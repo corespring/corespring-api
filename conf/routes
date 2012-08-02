@@ -1,0 +1,45 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                           controllers.Application.index
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+#
+# Auth endpoints
+#
+POST    /auth/register                          controllers.auth.AuthController.register
+POST    /auth/access_token                      controllers.auth.AuthController.getAccessToken
+
+#
+# V1 API
+#
+
+# Organizations
+GET     /api/v1/organizations                   api.v1.OrganizationApi.list
+GET     /api/v1/organizations/default           api.v1.OrganizationApi.getDefaultOrganization
+GET     /api/v1/organizations/:id               api.v1.OrganizationApi.getOrganization(id: ObjectId)
+POST    /api/v1/organizations                   api.v1.OrganizationApi.createOrganization
+PUT     /api/v1/organizations/:id               api.v1.OrganizationApi.updateOrganization(id: ObjectId)
+DELETE  /api/v1/organizations/:id               api.v1.OrganizationApi.deleteOrganization(id: ObjectId)
+
+
+# Collections
+GET     /api/v1/collections                     api.v1.CollectionApi.list
+GET     /api/v1/collections/:id                 api.v1.CollectionApi.getCollection(id: ObjectId)
+POST    /api/v1/collections                     api.v1.CollectionApi.createCollection
+PUT     /api/v1/collections/:id                 api.v1.CollectionApi.updateCollection(id: ObjectId)
+DELETE  /api/v1/collections/:id                 api.v1.CollectionApi.deleteCollection(id: ObjectId)
+
+# Users
+GET     /api/v1/users                           api.v1.UserApi.list
+GET     /api/v1/users/:id                       api.v1.UserApi.getUser(id: ObjectId)
+POST    /api/v1/users                           api.v1.UserApi.createUser
+PUT     /api/v1/users/:id                       api.v1.UserApi.updateUser(id: ObjectId)
+DELETE  /api/v1/users/:id                       api.v1.UserApi.deleteUser(id: ObjectId)
+
+
+
