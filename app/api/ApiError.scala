@@ -7,7 +7,11 @@ import play.api.libs.json._
  * A class representing errors returned by the APIs
  */
 
-case class ApiError(code: Int, message: String, moreInfo: Option[String] = None)
+case class ApiError(code: Int, message: String, moreInfo: Option[String] = None) {
+  def format(s: String):ApiError = {
+    copy(message = this.message.format(s))
+  }
+}
 
 object ApiError {
   // OAuth Provider
@@ -27,6 +31,8 @@ object ApiError {
   // Common DAOs
   val CantSave            = ApiError(200, "There was an error saving your information")
   val IdNotNeeded         = ApiError(201, "An id cannot be specified for this operation")
+  val InvalidQuery        = ApiError(202, "Your query is invalid")
+  val UnknownFieldOrOperator = ApiError(203, "Unknown field or operator: %s")
 
   // Organization API
   val IdsDoNotMatch       = ApiError(300, "Specified id does not match the one in the json")

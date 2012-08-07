@@ -21,6 +21,7 @@ case class Organization(
 object Organization extends ModelCompanion[Organization, ObjectId] {
   val collection = mongoCollection("organizations")
   val dao = new SalatDAO[Organization, ObjectId]( collection = collection ) {}
+  val queryFields = Map("name" -> "String")
 
   /**
    * Returns the organizations visible to the organization specified
@@ -32,18 +33,6 @@ object Organization extends ModelCompanion[Organization, ObjectId] {
     //todo: filter results according to what is visible under the passed ID
    findAll()
   }
-
-  //
-  //implicit object OrganizationReads extends Reads[Organization] {
-//    def reads(json: JsValue): Organization = {
-//      Organization(
-//        (json \ "id").asOpt[String].map(new ObjectId(_)),
-//        (json \ "name").as[String],
-//        (json \ "parentId").asOpt[String].map(new ObjectId(_)),
-//        (json \ "children").asOpt[Seq[String]].map( seq => seq.map(new ObjectId(_)))
-//      )
-//    }
-  //}
 
   //
   implicit object OrganizationWrites extends Writes[Organization] {
