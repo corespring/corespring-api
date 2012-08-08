@@ -16,13 +16,14 @@ import models.mongoContext._
 
 case class AccessToken(organization: ObjectId, scope: Option[String], var tokenId: String)
 
-object AccessToken extends ModelCompanion[AccessToken,ObjectId]{
+object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
   val organization = "organization"
   val scope = "scope"
   val tokenId = "tokenId"
 
   val collection = mongoCollection("accessTokens")
-  val dao = new SalatDAO[AccessToken,ObjectId](collection = collection) {}
+  val dao = new SalatDAO[AccessToken, ObjectId](collection = collection) {}
+
   /**
    * Finds an access token by id
    *
@@ -30,6 +31,7 @@ object AccessToken extends ModelCompanion[AccessToken,ObjectId]{
    * @return returns an Option[AccessToken]
    */
   def findById(tokenId: String) = findOne(MongoDBObject(this.tokenId -> tokenId))
+
   /**
    * Finds an access token by organization and scope
    *
@@ -40,7 +42,7 @@ object AccessToken extends ModelCompanion[AccessToken,ObjectId]{
   def find(orgId: ObjectId, scope: Option[String]) = {
     var query = MongoDBObject.newBuilder
     query += (organization -> orgId)
-    if ( scope.isDefined ) query += (this.scope -> scope.get)
+    if (scope.isDefined) query += (this.scope -> scope.get)
     findOne(query.result())
   }
 }

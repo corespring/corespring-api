@@ -21,7 +21,7 @@ class PermissionSet {
    * @param pvars a Permission
    */
   def revoke(pvars: Permission*) {
-    for(p <- pvars)
+    for (p <- pvars)
       permissions = permissions ^ p.value
   }
 

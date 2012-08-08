@@ -22,8 +22,8 @@ import models.mongoContext._
 
 object UserService {
 
-  def getUsers(orgId: ObjectId):Either[ApiError,Seq[User]] = {
-    val c:SalatMongoCursor[User] = User.find(MongoDBObject(User.orgs+"."+UserOrg.orgId -> orgId))
+  def getUsers(orgId: ObjectId): Either[ApiError, Seq[User]] = {
+    val c: SalatMongoCursor[User] = User.find(MongoDBObject(User.orgs + "." + UserOrg.orgId -> orgId))
     Right(c.toSeq)
   }
 }
