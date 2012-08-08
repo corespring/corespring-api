@@ -29,16 +29,17 @@ object AuthController extends Controller {
 
   def register = Action {
     implicit request =>
-      registerInfo.bindFromRequest().value.map { orgStr =>
-        try {
-          OAuthProvider.register(new ObjectId(orgStr)).fold(
-            error => BadRequest(Json.toJson(error)),
-            client => Ok( Json.toJson(Map(OAuthConstants.ClientId -> client.clientId.toString, OAuthConstants.ClientSecret -> client.clientSecret)))
-          )
-        } catch {
-          case ex: IllegalArgumentException => BadRequest(Json.toJson(ApiError.MissingOrganization))
-        }
-      }.getOrElse (BadRequest(Json.toJson(ApiError.MissingOrganization))).as(JSON)
+      registerInfo.bindFromRequest().value.map {
+        orgStr =>
+          try {
+            OAuthProvider.register(new ObjectId(orgStr)).fold(
+              error => BadRequest(Json.toJson(error)),
+              client => Ok(Json.toJson(Map(OAuthConstants.ClientId -> client.clientId.toString, OAuthConstants.ClientSecret -> client.clientSecret)))
+            )
+          } catch {
+            case ex: IllegalArgumentException => BadRequest(Json.toJson(ApiError.MissingOrganization))
+          }
+      }.getOrElse(BadRequest(Json.toJson(ApiError.MissingOrganization))).as(JSON)
   }
 
   def getAccessToken = Action {
@@ -48,7 +49,7 @@ object AuthController extends Controller {
         params =>
           OAuthProvider.getAccessToken(params.grant_type, params.client_id, params.client_secret, params.scope) match {
             case Right(token) =>
-              val result = Map(OAuthConstants.AccessToken -> token.tokenId) ++ token.scope.map( OAuthConstants.Scope -> _)
+              val result = Map(OAuthConstants.AccessToken -> token.tokenId) ++ token.scope.map(OAuthConstants.Scope -> _)
               Ok(Json.toJson(result))
             case Left(error) => Forbidden(Json.toJson(error))
           }

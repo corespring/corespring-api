@@ -9,16 +9,16 @@ import models.mongoContext._
 
 
 /**
- *  An API client.  This gets created for each organization that is allowed API access
+ * An API client.  This gets created for each organization that is allowed API access
  */
-case class ApiClient(id:ObjectId, clientId: ObjectId, clientSecret: String)
+case class ApiClient(id: ObjectId, clientId: ObjectId, clientSecret: String)
 
-object ApiClient extends ModelCompanion[ApiClient,ObjectId]{
+object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
   val clientId = "clientId"
   val clientSecret = "clientSecret"
 
   val collection = mongoCollection("apiClients")
-  val dao = new SalatDAO[ApiClient,ObjectId](collection = collection) {}
+  val dao = new SalatDAO[ApiClient, ObjectId](collection = collection) {}
 
   /**
    * Retrieves an ApiClient by client id and secret from the services.

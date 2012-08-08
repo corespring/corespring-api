@@ -42,14 +42,14 @@ trait BaseApi extends Controller {
    */
   def tokenFromRequest[A](request: Request[A]): Either[ApiError, String] = {
     request.session.get(OAuthConstants.AccessToken).map(Right(_)).getOrElse {
-        request.headers.get(AuthorizationHeader) match {
-          case Some(value) =>
-            value.split(Space) match {
-              case Array(Bearer, token) => Right(token)
-              case _ => Left(InvalidTokenType)
-            }
-          case _ => Left(MissingCredentials)
-        }
+      request.headers.get(AuthorizationHeader) match {
+        case Some(value) =>
+          value.split(Space) match {
+            case Array(Bearer, token) => Right(token)
+            case _ => Left(InvalidTokenType)
+          }
+        case _ => Left(MissingCredentials)
+      }
     }
   }
 
@@ -59,7 +59,7 @@ trait BaseApi extends Controller {
    *
    * for example to invoke as user John in company X you would use the username and the company id as:
    *
-   *  curl -H  "sudo:john.doe@3e4dda7c-8746-4483-8b58-a5a745a6991f" http://.....
+   * curl -H  "sudo:john.doe@3e4dda7c-8746-4483-8b58-a5a745a6991f" http://.....
    *
    *
    * @param request
@@ -67,26 +67,26 @@ trait BaseApi extends Controller {
    * @return
    */
   def fakeContext[A](request: Request[A]): Either[IllegalArgumentException, Option[AuthorizationContext]] = {
-    if ( Play.isProd(Play.current) ) {
+    if (Play.isProd(Play.current)) {
       // we don't want this in production mode
       Right(None)
     } else {
       try {
         Right(request.headers.get("sudo").map {
           _.split("@") match {
-//            case Array(user, "master") =>
-//              Logger.info("creating fake context with org master for user = " + user)
-//              Option(new AuthorizationContext(controllers.GlobalVars.masterOrgId, Option(user)))
-              case Array(user, org) =>
-                Logger.info("creating fake context with org " + org + ", user = " + user)
-                Option(new AuthorizationContext(new ObjectId(org), Option(user)))
-//              case Array("master") =>
-//                Logger.info("creating fake context for master org ")
-//                Option(new AuthorizationContext(controllers.GlobalVars.masterOrgId))
-              case Array(org) =>
-                Logger.info("creating fake context with org " + org)
-                Option(new AuthorizationContext(new ObjectId(org)))
-            }
+            //            case Array(user, "master") =>
+            //              Logger.info("creating fake context with org master for user = " + user)
+            //              Option(new AuthorizationContext(controllers.GlobalVars.masterOrgId, Option(user)))
+            case Array(user, org) =>
+              Logger.info("creating fake context with org " + org + ", user = " + user)
+              Option(new AuthorizationContext(new ObjectId(org), Option(user)))
+            //              case Array("master") =>
+            //                Logger.info("creating fake context for master org ")
+            //                Option(new AuthorizationContext(controllers.GlobalVars.masterOrgId))
+            case Array(org) =>
+              Logger.info("creating fake context with org " + org)
+              Option(new AuthorizationContext(new ObjectId(org)))
+          }
         }.getOrElse(None))
       } catch {
         case ex: IllegalArgumentException => Left(ex)
@@ -106,17 +106,17 @@ trait BaseApi extends Controller {
     Action(p) {
       request =>
         fakeContext(request).fold(
-          error => BadRequest( Json.toJson(new ApiError(1, "The id specified is not a valid UUID"))),
-          optionalCtx => optionalCtx.map( ctx => f(ApiRequest(ctx, request)) ).getOrElse {
-//            request.session.get("connected").map {
-//              invokeAsUser(_, request)(f)
-//            }.getOrElse {
-              tokenFromRequest(request).fold( error => BadRequest( Json.toJson(error)), token =>
-                  OAuthProvider.getAuthorizationContext(token).fold(
-                    error => Forbidden( Json.toJson(error)).as(JSON),
-                    ctx => f(ApiRequest(ctx, request))
-                  )
+          error => BadRequest(Json.toJson(new ApiError(1, "The id specified is not a valid UUID"))),
+          optionalCtx => optionalCtx.map(ctx => f(ApiRequest(ctx, request))).getOrElse {
+            //            request.session.get("connected").map {
+            //              invokeAsUser(_, request)(f)
+            //            }.getOrElse {
+            tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
+              OAuthProvider.getAuthorizationContext(token).fold(
+                error => Forbidden(Json.toJson(error)).as(JSON),
+                ctx => f(ApiRequest(ctx, request))
               )
+            )
             //}
           }
         )
@@ -132,13 +132,13 @@ trait BaseApi extends Controller {
    * @tparam A
    * @return
    */
-//  def invokeAsUser[A](username: String, request: Request[A])(f: ApiRequest[A]=>Result) = {
-//    UserService.getUser(username).map { user =>
-//      Logger.debug("Using user in Play's session = " + username)
-//      val ctx = new AuthorizationContext(user.mainOrg, Option(username))
-//      f( ApiRequest(ctx, request))
-//    }.getOrElse(Forbidden( Json.toJson(MissingCredentials) ).as(JSON))
-//  }
+  //  def invokeAsUser[A](username: String, request: Request[A])(f: ApiRequest[A]=>Result) = {
+  //    UserService.getUser(username).map { user =>
+  //      Logger.debug("Using user in Play's session = " + username)
+  //      val ctx = new AuthorizationContext(user.mainOrg, Option(username))
+  //      f( ApiRequest(ctx, request))
+  //    }.getOrElse(Forbidden( Json.toJson(MissingCredentials) ).as(JSON))
+  //  }
 
   /**
    * A helper method to create an action for API calls
@@ -158,8 +158,9 @@ trait BaseApi extends Controller {
    * @tparam A The parser type
    * @return Returns the result of the block function or BadRequest if there is no user available in the context
    */
-  def ApiActionWithUser[A](p: BodyParser[A])(block: (String, ApiRequest[A]) => Result): Action[A] = ApiAction(p) { request =>
-    request.ctx.user.map( block(_,request) ).getOrElse( BadRequest(Json.toJson(UserIsRequired)) )
+  def ApiActionWithUser[A](p: BodyParser[A])(block: (String, ApiRequest[A]) => Result): Action[A] = ApiAction(p) {
+    request =>
+      request.ctx.user.map(block(_, request)).getOrElse(BadRequest(Json.toJson(UserIsRequired)))
   }
 
   /**
@@ -168,7 +169,7 @@ trait BaseApi extends Controller {
    * @param block the code that gets executed if the user is present
    * @return Returns the result of the block function or BadRequest if there is no user available in the context
    */
-  def ApiActionWithUser (block: (String, ApiRequest[AnyContent]) => Result): Action[AnyContent] =  {
+  def ApiActionWithUser(block: (String, ApiRequest[AnyContent]) => Result): Action[AnyContent] = {
     ApiActionWithUser(parse.anyContent)(block)
   }
 

@@ -18,7 +18,7 @@ class AuthorizationContext(val organization: ObjectId, val user: Option[String] 
    * @return true if the permission is granted or false otherwise
    */
   def hasPermission(target: ObjectId, requestedPermission: Permission): Boolean = {
-    if ( target == organization && user.isEmpty ) {
+    if (target == organization && user.isEmpty) {
       // if the context does not have a user and the action is targeted at the same organization the caller belongs to then
       // this is an admin call -> grant anything
       true

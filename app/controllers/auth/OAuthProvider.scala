@@ -19,22 +19,22 @@ object OAuthProvider {
    * @param orgId - the organization id
    * @return returns an ApiClient or ApiError if the ApiClient could not be created.
    */
-  def register(orgId: ObjectId, isTesting:Boolean = false): Either[ApiError, ApiClient] = {
+  def register(orgId: ObjectId, isTesting: Boolean = false): Either[ApiError, ApiClient] = {
     // check we got an existing org id
-      Organization.findOneById(orgId)  match {
-        case Some(org) =>
-          val apiClient = ApiClient(orgId, new ObjectId(), generateToken)
-          try {
-            ApiClient.save(apiClient)
-            Right(apiClient)
-          } catch {
-            case e: SalatSaveError => {
-              Logger.error("Error registering ortganization %s".format(orgId), e)
-              Left(ApiError.OperationError)
-            }
+    Organization.findOneById(orgId) match {
+      case Some(org) =>
+        val apiClient = ApiClient(orgId, new ObjectId(), generateToken)
+        try {
+          ApiClient.save(apiClient)
+          Right(apiClient)
+        } catch {
+          case e: SalatSaveError => {
+            Logger.error("Error registering ortganization %s".format(orgId), e)
+            Left(ApiError.OperationError)
           }
-        case None => Left(UnknownOrganization)
-      }
+        }
+      case None => Left(UnknownOrganization)
+    }
   }
 
   /**
@@ -48,20 +48,21 @@ object OAuthProvider {
    */
   def getAccessToken(grantType: String, clientId: String, clientSecret: String, scope: Option[String] = None): Either[ApiError, AccessToken] = {
     grantType match {
-      case OAuthConstants.ClientCredentials  =>
+      case OAuthConstants.ClientCredentials =>
         // check we got valid credentials first
         ApiClient.findByIdAndSecret(clientId, clientSecret).map(
-        { client =>
+        {
+          client =>
           //todo: if a user if specified check that it exists and is visible for the caller
 
           // credentials are ok, delete if there's a previous token for the same org and scope
-          val org = client.id
-          AccessToken.find(org, scope).foreach( AccessToken.remove(_) )
-          val token = AccessToken(org, scope, generateToken)
-          AccessToken.insert(token) match {
-            case Some(_) => Right(token)
-            case None => Left(ApiError.OperationError)
-          }
+            val org = client.id
+            AccessToken.find(org, scope).foreach(AccessToken.remove(_))
+            val token = AccessToken(org, scope, generateToken)
+            AccessToken.insert(token) match {
+              case Some(_) => Right(token)
+              case None => Left(ApiError.OperationError)
+            }
         }).getOrElse(Left(InvalidCredentials))
       case _ => Left(UnsupportedFlow)
     }
@@ -74,11 +75,11 @@ object OAuthProvider {
    * @return Returns an Authorization Context or an ApiError if the token is invalid
    */
   def getAuthorizationContext(t: String): Either[ApiError, AuthorizationContext] = {
-      AccessToken.findById(t) match {
-        case Some(token: AccessToken) =>
-          Right(new AuthorizationContext(token.organization, token.scope))
-        case _ => Left(InvalidToken)
-      }
+    AccessToken.findById(t) match {
+      case Some(token: AccessToken) =>
+        Right(new AuthorizationContext(token.organization, token.scope))
+      case _ => Left(InvalidToken)
+    }
   }
 
   /**
@@ -86,5 +87,7 @@ object OAuthProvider {
    *
    * @return a token
    */
-  def generateToken = { BigInt.probablePrime(100, scala.util.Random).toString(36) }
+  def generateToken = {
+    BigInt.probablePrime(100, scala.util.Random).toString(36)
+  }
 }
