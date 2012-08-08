@@ -9,6 +9,11 @@ import api.ApiError
 import play.api.mvc.Result
 import controllers.services.OrgService
 import com.mongodb.casbah.commons.MongoDBObject
+import com.novus.salat.dao.SalatSaveError
+import api.{CountResult, QueryHelper, ApiError}
+import play.api.mvc.Result
+import play.api.Logger
+import com.mongodb.util.JSONParseException
 
 /**
  * The Organization API
@@ -20,8 +25,29 @@ object OrganizationApi extends BaseApi {
    *
    * @return
    */
-  def list() = ApiAction { request =>
-    Ok(Json.toJson(OrgService.getTree(request.ctx.organization)))
+  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+    Logger.debug("q in controller = " + q)
+
+    try {
+      import com.mongodb.casbah.Imports._
+
+      val query = q.map( QueryHelper.parse(_, Organization.queryFields) )
+      query.map( Organization.find(_) ) match {
+        case Some(cursor) => {
+          cursor.skip(sk)
+          cursor.limit(l)
+          Ok(
+            // I'm using a String for c because if I use a boolean I need to pass 0 or 1 from the command line for Play to parse the boolean.
+            // I think using "true" or "false" is better
+            if ( c.equalsIgnoreCase("true") ) CountResult.toJson(cursor.count) else Json.toJson(cursor.toList)
+          )
+        }
+        case None => Ok(Json.toJson(OrgService.getTree(request.ctx.organization)))
+      }
+    } catch {
+      case e: JSONParseException => BadRequest(Json.toJson(ApiError.InvalidQuery))
+      case re: RuntimeException => BadRequest(Json.toJson(ApiError.UnknownFieldOrOperator.format(re.getMessage)))
+    }
   }
 
   /**

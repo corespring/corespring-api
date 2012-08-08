@@ -16,7 +16,7 @@ POST    /auth/access_token                      controllers.auth.AuthController.
 #
 
 # Organizations
-GET     /api/v1/organizations                   api.v1.OrganizationApi.list
+GET     /api/v1/organizations                   api.v1.OrganizationApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100)
 GET     /api/v1/organizations/default           api.v1.OrganizationApi.getDefaultOrganization
 GET     /api/v1/organizations/:id               api.v1.OrganizationApi.getOrganization(id: ObjectId)
 POST    /api/v1/organizations                   api.v1.OrganizationApi.createOrganization

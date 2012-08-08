@@ -24,8 +24,9 @@ object Organization extends ModelCompanion[Organization,ObjectId]{
   val contentcolls: String = "contentcolls"
 
   val collection = mongoCollection("orgs")
-
   val dao = new SalatDAO[Organization,ObjectId](collection = collection) {}
+  val queryFields = Map("name" -> "String")
+
   def apply(): Organization = new Organization();
 
 
