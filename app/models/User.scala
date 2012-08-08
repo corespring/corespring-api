@@ -20,7 +20,6 @@ case class User(var userName: String,
                  var fullName: String,
                  var email: String,
                  var orgs: Seq[UserOrg] = Seq(),
-                 var privateColl: ObjectId = new ObjectId(),
                  var id: ObjectId = new ObjectId()
                )
 
@@ -29,7 +28,6 @@ object User extends ModelCompanion[User, ObjectId] {
   val fullName = "fullName"
   val email = "email"
   val orgs = "orgs"
-  val privateColl = "privateColl"
 
   val collection = mongoCollection("users")
   val dao = new SalatDAO[User, ObjectId]( collection = collection ) {}
@@ -43,22 +41,14 @@ object User extends ModelCompanion[User, ObjectId] {
   def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId:Boolean = true, checkUsername:Boolean = true): Either[ApiError, User] = {
     if (!checkOrgId || Organization.findOneById(orgId).isDefined){
       if (!checkUsername || getUser(user.userName).isEmpty){
-            val privateColl = new ContentCollection(user.fullName,true)
-            ContentCollection.insert(privateColl) match {
-              case Some(_) => {
-                user.id = new ObjectId
-                user.privateColl = privateColl.id
-                user.orgs =  List() :+ UserOrg(orgId,p.value)
-                User.insert(user) match {
-                  case Some(id) => {
-                    Right(user)
-                  }
-                  case None => Left(ApiError(ApiError.DatabaseError,"error inserting user"))
-                }
-              }
-              case None => Left(ApiError(ApiError.DatabaseError,"failed to insert content collection"))
-            }
-
+        user.id = new ObjectId
+        user.orgs =  List() :+ UserOrg(orgId,p.value)
+        User.insert(user) match {
+          case Some(id) => {
+            Right(user)
+          }
+          case None => Left(ApiError(ApiError.DatabaseError,"error inserting user"))
+        }
       }else Left(ApiError(ApiError.IllegalState,"user already exists"))
     }else Left(ApiError(ApiError.NotFound,"no organization found with given id"))
   }
