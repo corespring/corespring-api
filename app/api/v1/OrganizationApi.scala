@@ -4,9 +4,11 @@ import org.bson.types.ObjectId
 import models.Organization
 import play.api.libs.json.{JsValue, Json}
 import controllers.auth.BaseApi
-import com.novus.salat.dao.SalatSaveError
+import com.novus.salat.dao.{SalatDAOUpdateError, SalatSaveError}
 import api.ApiError
 import play.api.mvc.Result
+import controllers.services.OrgService
+import com.mongodb.casbah.commons.MongoDBObject
 
 /**
  * The Organization API
@@ -19,7 +21,7 @@ object OrganizationApi extends BaseApi {
    * @return
    */
   def list() = ApiAction { request =>
-    Ok(Json.toJson(Organization.findAllFor(request.ctx.organization).toList))
+    Ok(Json.toJson(OrgService.getTree(request.ctx.organization)))
   }
 
   /**
@@ -31,9 +33,14 @@ object OrganizationApi extends BaseApi {
   def getOrganization(id: ObjectId) = ApiAction { request =>
     Organization.findOneById(id) match {
         case Some(org) =>  {
-          //
-          // todo: check if this org is visible to the caller?
-          //
+          if (request.ctx.organization == org.id){
+            Ok(Json.toJson(org))
+          }else{
+            OrgService.getTree(request.ctx.organization).find(_ == org.id) match {
+              case Some(_) => Ok(Json.toJson(org))
+              case None => Unauthorized
+            }
+          }
           Ok(Json.toJson(org))
         }
         case _ => NotFound
@@ -69,9 +76,12 @@ object OrganizationApi extends BaseApi {
             if ( name.isEmpty ) {
               BadRequest( Json.toJson(ApiError.OrgNameMissing))
             } else {
-              val children = parseChildren(json, Seq.empty)
-              val organization = Organization(newId, name.get, Some(request.ctx.organization), children)
-              doSave(organization)
+              val optParent:Option[ObjectId] = (json \ "parent_id").asOpt[String].map(new ObjectId(_))
+              val organization = Organization(name.get)
+              Organization.insert(organization,optParent) match {
+                case Right(org) => Ok(Json.toJson(org))
+                case Left(e) => InternalServerError(Json.toJson(e))
+              }
             }
           }
         }
@@ -96,16 +106,10 @@ object OrganizationApi extends BaseApi {
       request.body.asJson match {
         case Some(json) => {
           val name = (json \ "name").asOpt[String].getOrElse(original.name)
-          val parentId = (json \ "parentId").asOpt[String] match {
-            // if they passed a parentId then create an objectId
-            case Some(str) if str.length > 0 => Some(new ObjectId(str))
-            // if they passed an empty string remove the parent (todo: confirm with evan how this should work)
-            case Some(str) if str.isEmpty => None
-            // if nothing was passed, use the parentId in the original
-            case None => original.parentId
+          Organization.updateOrganization(Organization(name = name,id = id)) match {
+            case Right(o) => Ok(Json.toJson(o))
+            case Left(e) => InternalServerError(Json.toJson(e))
           }
-          val toUpdate = Organization( original.id, name, parentId, parseChildren(json, original.children))
-          doSave(toUpdate)
         }
         case _ => jsonExpected
       }
@@ -116,32 +120,19 @@ object OrganizationApi extends BaseApi {
    * Deletes an organization
    */
   def deleteOrganization(id: ObjectId) = ApiAction { request =>
-    if ( id.equals(request.ctx.organization)) {
+    if ( id == request.ctx.organization) {
       Forbidden(Json.toJson(ApiError.CantDeleteMainOrg))
     } else {
       Organization.findOneById(id) match {
         case Some(toDelete) => {
-          Organization.removeById(id)
-          Ok(Json.toJson(toDelete))
+          Organization.delete(id) match {
+            case Right(_) => Ok(Json.toJson(toDelete))
+            case Left(e) => InternalServerError(Json.toJson(e))
+          }
         }
         case _ => unknownOrganization
       }
     }
   }
 
-  /**
-   * Internal method to save an organization
-   *
-   * @param organization
-   * @return
-   */
-  private def doSave(organization: Organization): Result = {
-    try {
-      Organization.save(organization)
-      val newOrg = Organization.findOneById(organization.id)
-      Ok(Json.toJson(newOrg))
-    } catch {
-      case ex: SalatSaveError => InternalServerError(Json.toJson(ApiError.CantSave))
-    }
-  }
 }

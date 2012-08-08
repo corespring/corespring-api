@@ -1,63 +1,103 @@
 package models
 
-import org.bson.types.ObjectId
-import play.api.Play.current
-import com.novus.salat.dao._
 import se.radley.plugin.salat._
-import mongoContext._
 import play.api.libs.json._
 import play.api.libs.json.JsObject
+import org.bson.types.ObjectId
+import com.novus.salat.dao.{SalatDAOUpdateError, ModelCompanion, SalatDAO}
+import controllers.auth.Permission
+import play.api.Play.current
+import com.mongodb.casbah.commons.MongoDBObject
+import api.ApiError
+import models.mongoContext._
 
-/**
- * An Organization
- */
-case class Organization(
-                         id: ObjectId,
-                         name: String,
-                         parentId: Option[ObjectId] = None,
-                         children: Seq[ObjectId] = Seq.empty
-                       )
+case class Organization(var name: String,
+                        var path: Seq[ObjectId] = Seq(),
+                        var contentcolls: Seq[ContentCollRef] = Seq(),
+                        var id: ObjectId = new ObjectId()){
 
-object Organization extends ModelCompanion[Organization, ObjectId] {
-  val collection = mongoCollection("organizations")
-  val dao = new SalatDAO[Organization, ObjectId]( collection = collection ) {}
+  def this() = this("")
+}
+object Organization extends ModelCompanion[Organization,ObjectId]{
+  val name: String = "name"
+  val path: String = "path"
+  val contentcolls: String = "contentcolls"
+
+  val collection = mongoCollection("orgs")
+
+  val dao = new SalatDAO[Organization,ObjectId](collection = collection) {}
+  def apply(): Organization = new Organization();
+
 
   /**
-   * Returns the organizations visible to the organization specified
-   *
-   * @param id an organization id
-   * @return
+   * insert organization. if parent exists, insert as child of parent, otherwise, insert as root of new nested set tree
+   * @param org - the organization to be inserted
+   * @param optParentId - the parent of the organization to be inserted or none if the organization is to be root of new tree
+   * @return - the organization if successfully inserted, otherwise none
    */
-  def findAllFor(id: ObjectId):SalatMongoCursor[Organization] = {
-    //todo: filter results according to what is visible under the passed ID
-   findAll()
+  def insert(org: Organization, optParentId: Option[ObjectId]): Either[ApiError,Organization] = {
+    org.id = new ObjectId()
+    optParentId match{
+      case Some(parentId) => {
+        findOneById(parentId) match {
+          case Some(parent) => {
+            org.path = parent.path :+ org.id
+            insert(org) match {
+              case Some(id) => Right(org)
+              case None => Left(ApiError(ApiError.DatabaseError,"error inserting organization"))
+            }
+          }
+          case None => Left(ApiError(ApiError.NotFound,"could not find parent given id"))
+        }
+      }
+      case None => {
+        org.path = Seq(org.id)
+        insert(org) match {
+          case Some(id) => Right(org)
+          case None => Left(ApiError(ApiError.DatabaseError,"error inserting organization"))
+        }
+      }
+    }
   }
 
-  //
-  //implicit object OrganizationReads extends Reads[Organization] {
-//    def reads(json: JsValue): Organization = {
-//      Organization(
-//        (json \ "id").asOpt[String].map(new ObjectId(_)),
-//        (json \ "name").as[String],
-//        (json \ "parentId").asOpt[String].map(new ObjectId(_)),
-//        (json \ "children").asOpt[Seq[String]].map( seq => seq.map(new ObjectId(_)))
-//      )
-//    }
-  //}
+  def delete(orgId: ObjectId): Either[ApiError,Unit] = {
+    try{
+      remove(MongoDBObject(Organization.path -> orgId))
+      Right(())
+    }catch{
+      case e => Left(ApiError(ApiError.DatabaseError,e.getMessage))
+    }
+  }
 
-  //
+  def updateOrganization(org:Organization):Either[ApiError,Organization] = {
+    try{
+      Organization.update(MongoDBObject("_id" -> org.id),MongoDBObject("$set" -> MongoDBObject(name -> org.name)),
+        false, false, Organization.collection.writeConcern)
+      Organization.findOneById(org.id) match {
+        case Some(org) => Right(org)
+        case None => Left(ApiError(ApiError.DatabaseError,"could not find organization that was just modified"))
+      }
+    }catch{
+      case e:SalatDAOUpdateError => Left(ApiError(ApiError.DatabaseError,e.getMessage))
+    }
+  }
+
   implicit object OrganizationWrites extends Writes[Organization] {
     def writes(org: Organization) = {
       JsObject(
         List(
           "id" -> JsString(org.id.toString),
           "name" -> JsString(org.name),
-          "parentId" -> JsString(org.parentId.map(_.toString).getOrElse("")),
-          "children" -> JsArray(org.children.map( c => JsString(c.toString) ).toSeq)
+          "path" -> JsArray(org.path.map( c => JsString(c.toString) ).toSeq)
         )
       )
     }
   }
+}
+case class ContentCollRef(var collId: ObjectId, var pval: Long = Permission.All.value)
+object ContentCollRef {
+  val pval: String = "pval"
+  val collId: String = "collId"
 }
 
 

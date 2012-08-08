@@ -1,12 +1,14 @@
 package api.v1
 
-import controllers.auth.BaseApi
-import play.api.libs.json.{JsValue, Json}
+import controllers.auth.{Permission, BaseApi}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import models.{ContentCollection, Organization}
 import org.bson.types.ObjectId
 import api.ApiError
 import play.api.mvc.Result
 import com.novus.salat.dao.SalatSaveError
+import controllers.CollService
+import controllers.services.OrgService
 
 /**
  * The Collections API
@@ -19,7 +21,10 @@ object CollectionApi extends BaseApi {
    * @return
    */
   def list() = ApiAction { request =>
-    Ok(Json.toJson(ContentCollection.findAllFor(request.ctx.organization).toList))
+    CollService.getCollections(request.ctx.organization,None) match {
+      case Right(colls) => Ok(Json.toJson(colls))
+      case Left(e) => Ok(Json.toJson(e))
+    }
   }
 
   /**
@@ -55,8 +60,12 @@ object CollectionApi extends BaseApi {
               BadRequest( Json.toJson(ApiError.CollectionNameMissing))
             } else {
               val organizations = parseOrganizations(json, Seq.empty)
-              val collection = ContentCollection(newId, name.get, organizations)
-              doSave(collection)
+              val collection = ContentCollection(id = newId, name = name.get)
+              ContentCollection.insert(request.ctx.organization,collection) match {
+                case Right(coll) => Ok(Json.toJson(coll))
+                case Left(e) => InternalServerError(Json.toJson(e))
+              }
+
             }
           }
         }
@@ -83,8 +92,18 @@ object CollectionApi extends BaseApi {
       request.body.asJson match {
         case Some(json) => {
           val name = (json \ "name").asOpt[String].getOrElse(original.name)
-          val toUpdate = ContentCollection( original.id, name, parseOrganizations(json, original.organizations))
-          doSave(toUpdate)
+          val toUpdate = ContentCollection( name, id = original.id)
+          ContentCollection.updateCollection(toUpdate) match {
+            case Right(coll) => (json \ "organizations").asOpt[Seq[String]].map( seq => seq.map( new ObjectId(_)) ) match {
+              case Some(orgIds) => CollService.addOrganizations(orgIds, id, Permission.All) match {
+                case Right(_) => Ok(Json.toJson(coll))
+                case Left(e) => InternalServerError(Json.toJson(e))
+              }
+              case None => Ok(Json.toJson(coll))
+            }
+            case Left(e) => InternalServerError(Json.toJson(e))
+          }
+
         }
         case _ => jsonExpected
       }
@@ -101,22 +120,6 @@ object CollectionApi extends BaseApi {
         Ok(Json.toJson(toDelete))
       }
       case _ => unknownCollection
-    }
-  }
-
-  /**
-   * Internal method to save a collection
-   *
-   * @param collection
-   * @return
-   */
-  private def doSave(collection: ContentCollection): Result = {
-    try {
-      ContentCollection.save(collection)
-      val newColl = ContentCollection.findOneById(collection.id)
-      Ok(Json.toJson(newColl))
-    } catch {
-      case ex: SalatSaveError => InternalServerError(Json.toJson(ApiError.CantSave))
     }
   }
 }

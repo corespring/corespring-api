@@ -1,15 +1,24 @@
 package api
 
 import play.api.libs.json._
+import controllers.{LogType, Log}
 
 
 /**
  * A class representing errors returned by the APIs
  */
-
-case class ApiError(code: Int, message: String, moreInfo: Option[String] = None)
+case class ApiError(code: Int, message: String, logType:LogType.LogType = LogType.printError, moreInfo:Option[String] = None){
+  Log.u(logType,message)
+  override def toString:String = code+": "+message
+}
 
 object ApiError {
+  val NotFound = 10
+  val NotImplemented = 11
+  val DatabaseError = 12
+  val IllegalState = 13
+  val Unknown = 14
+
   // OAuth Provider
   val InvalidCredentials  = ApiError(100, "Invalid credentials")
   val UnsupportedFlow     = ApiError(101, "Unsupported OAuth flow")
@@ -40,6 +49,8 @@ object ApiError {
   // User API
   val UserRequiredFields    = ApiError(500, "username, fullname and email are required")
   val UnknownUser           = ApiError(501, "Unknown user")
+
+
 
 
   implicit object ApiErrorWrites extends Writes[ApiError] {

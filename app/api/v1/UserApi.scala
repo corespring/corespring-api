@@ -1,12 +1,13 @@
 package api.v1
 
-import controllers.auth.BaseApi
+import controllers.auth.{Permission, BaseApi}
 import play.api.libs.json.Json
 import models.User
 import org.bson.types.ObjectId
 import api.ApiError
 import play.api.mvc.Result
 import com.novus.salat.dao.SalatSaveError
+import controllers.UserService
 
 /**
  * The User API
@@ -18,7 +19,10 @@ object UserApi extends BaseApi {
    * @return
    */
   def list() = ApiAction { request =>
-    Ok(Json.toJson(User.findAllFor(request.ctx.organization).toList))
+    UserService.getUsers(request.ctx.organization) match {
+      case Right(users) => Ok(Json.toJson(users))
+      case Left(e) => InternalServerError(Json.toJson(e))
+    }
   }
 
   /**
@@ -56,8 +60,11 @@ object UserApi extends BaseApi {
 
             userInfo match {
               case Some((username, fullName, email)) => {
-                val user = User(new ObjectId, username, fullName, email)
-                doSave(user)
+                val user = User(username, fullName, email)
+                User.insertUser(user,request.ctx.organization,Permission.All,false) match {
+                  case Right(u) => Ok(Json.toJson(u))
+                  case Left(e) => InternalServerError(Json.toJson(e))
+                }
               }
               case _ => BadRequest( Json.toJson(ApiError.UserRequiredFields))
             }
@@ -81,7 +88,10 @@ object UserApi extends BaseApi {
           val userName = (json \ "userName").asOpt[String].getOrElse(original.userName)
           val fullName = (json \ "fullName").asOpt[String].getOrElse(original.fullName)
           val email    = (json \ "email").asOpt[String].getOrElse(original.email)
-          doSave(User( original.id, userName, fullName, email))
+          User.updateUser(User(userName,fullName,email,id = id)) match {
+            case Right(u) => Ok(Json.toJson(u))
+            case Left(e) => InternalServerError(Json.toJson(e))
+          }
         }
         case _ => jsonExpected
       }
@@ -98,22 +108,6 @@ object UserApi extends BaseApi {
         Ok(Json.toJson(toDelete))
       }
       case _ => unknownUser
-    }
-  }
-
-  /**
-   * Internal method to save a user
-   *
-   * @param user
-   * @return
-   */
-  private def doSave(user: User): Result = {
-    try {
-      User.save(user)
-      val newUser = User.findOneById(user.id)
-      Ok(Json.toJson(newUser))
-    } catch {
-      case ex: SalatSaveError => InternalServerError(Json.toJson(ApiError.CantSave))
     }
   }
 
