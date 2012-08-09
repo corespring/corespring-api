@@ -1,7 +1,7 @@
-{ "_id" : { "$oid" : "5021814ce4b03e00504e4741"} , "name" : "Collection A" }
-{ "_id" : { "$oid" : "50218190e4b03e00504e4742"} , "name" : "Collection B" }
-{ "_id" : { "$oid" : "5001a66ce4b0d7c9ec320f2e"} , "name" : "Collection C" }
-{ "_id" : { "$oid" : "5001b6f3e4b0d7c9ec321065"} , "name" : "Collection D" }
-{ "_id" : { "$oid" : "5001b7ade4b0d7c9ec321070"} , "name" : "Collection E" }
-{ "_id" : { "$oid" : "5001b9b9e4b035d491c268c3"} , "name" : "Collection F" }
-{ "_id" : { "$oid" : "5001bb0ee4b0d7c9ec3210a2"} , "name" : "Collection G" }
+{ "_id" : ObjectId("5021814ce4b03e00504e4741"), "name" : "Connecticut Item Bank", "isPrivate" : false }
+{ "_id" : ObjectId("50218190e4b03e00504e4742"), "name" : "Monroe-Woodbury HS Item Bank", "isPrivate" : false }
+{ "_id" : ObjectId("5001a66ce4b0d7c9ec320f2e"), "name" : "George Washington HS Item Bank", "isPrivate" : false }
+{ "_id" : ObjectId("5001b6f3e4b0d7c9ec321065"), "name" : "Wayland HS Item Bank", "isPrivate" : false }
+{ "_id" : ObjectId("5001b7ade4b0d7c9ec321070"), "name" : "Wayland Middle School Item Bank", "isPrivate" : false }
+{ "_id" : ObjectId("5001b9b9e4b035d491c268c3"), "name" : "New York State Public School Item Bank", "isPrivate" : false }
+{ "_id" : ObjectId("5001bb0ee4b0d7c9ec3210a2"), "name" : "Massachusetts Public School Item Bank", "isPrivate" : false }
