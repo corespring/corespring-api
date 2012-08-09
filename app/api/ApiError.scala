@@ -7,9 +7,8 @@ import controllers.{LogType, Log}
 /**
  * A class representing errors returned by the APIs
  */
-case class ApiError(code: Int, message: String, logType:LogType.LogType = LogType.printError, moreInfo:Option[String] = None){
+case class ApiError(code: Int, message: String, logType:LogType.LogType = LogType.printNone, moreInfo:Option[String] = None){
   Log.u(logType,message)
-  override def toString:String = code+": "+message
   def format(s: String):ApiError = {
     copy(message = this.message.format(s))
   }

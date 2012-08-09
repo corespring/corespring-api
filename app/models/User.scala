@@ -11,6 +11,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import api.ApiError
 import controllers.auth.Permission
 import controllers.{LogType, Log}
+import play.api.Play
 
 
 /**
@@ -41,7 +42,7 @@ object User extends ModelCompanion[User, ObjectId] {
   def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId:Boolean = true, checkUsername:Boolean = true): Either[ApiError, User] = {
     if (!checkOrgId || Organization.findOneById(orgId).isDefined){
       if (!checkUsername || getUser(user.userName).isEmpty){
-        user.id = new ObjectId
+        if(Play.isProd) user.id = new ObjectId
         user.orgs =  List() :+ UserOrg(orgId,p.value)
         User.insert(user) match {
           case Some(id) => {

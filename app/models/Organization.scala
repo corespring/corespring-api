@@ -10,6 +10,7 @@ import play.api.Play.current
 import com.mongodb.casbah.commons.MongoDBObject
 import api.ApiError
 import models.mongoContext._
+import play.api.Play
 
 case class Organization(var name: String,
                         var path: Seq[ObjectId] = Seq(),
@@ -38,7 +39,7 @@ object Organization extends ModelCompanion[Organization, ObjectId] {
    * @return - the organization if successfully inserted, otherwise none
    */
   def insert(org: Organization, optParentId: Option[ObjectId]): Either[ApiError, Organization] = {
-    org.id = new ObjectId()
+    if(Play.isProd) org.id = new ObjectId()
     optParentId match {
       case Some(parentId) => {
         findOneById(parentId) match {

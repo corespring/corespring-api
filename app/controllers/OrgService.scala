@@ -46,7 +46,7 @@ object OrgService {
    */
   def getTree(parentId: ObjectId): List[Organization] = {
     val c = Organization.find(MongoDBObject(Organization.path -> parentId))
-    val orgList = c.filter(_.id != parentId).toList
+    val orgList = c.toList
     c.close
     orgList
   }

@@ -1,7 +1,6 @@
 package models
 
 import org.bson.types.ObjectId
-import play.api.Play.current
 import mongoContext._
 import se.radley.plugin.salat._
 import play.api.libs.json._
@@ -21,6 +20,8 @@ import play.api.libs.json.JsString
 import scala.Some
 import scala.Right
 import play.api.libs.json.JsObject
+import play.api.Play.current
+import play.api.Play
 
 /**
  * A ContentCollection
@@ -35,7 +36,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
   val dao = new SalatDAO[ContentCollection, ObjectId](collection = collection) {}
 
   def insert(orgId: ObjectId, coll: ContentCollection): Either[ApiError, ContentCollection] = {
-    coll.id = new ObjectId()
+    if(Play.isProd) coll.id = new ObjectId()
     try {
       super.insert(coll) match   {
         case Some(_) => try {
@@ -44,12 +45,12 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
             false, false, Organization.collection.writeConcern)
           Right(coll)
         } catch {
-          case e: SalatDAOUpdateError => Left(ApiError(ApiError.DatabaseError, e.getMessage))
+          case e: SalatDAOUpdateError => Left(ApiError(ApiError.DatabaseError, "failed to add collection to organization"))
         }
-        case None => Left(ApiError(ApiError.DatabaseError, "faild to insert content collection"))
+        case None => Left(ApiError(ApiError.DatabaseError, "failed to insert content collection"))
       }
     } catch {
-      case e: SalatInsertError => Left(ApiError(ApiError.DatabaseError, "faild to insert content collection"))
+      case e: SalatInsertError => Left(ApiError(ApiError.DatabaseError, "failed to insert content collection"))
     }
 
   }
