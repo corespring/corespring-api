@@ -21,7 +21,7 @@ object CollectionApi extends BaseApi {
    * @return
    */
   def list() = ApiAction { request =>
-    CollService.getCollections(request.ctx.organization,None) match {
+    CollService.getCollections(request.ctx.organization,Permission.All) match {
       case Right(colls) => Ok(Json.toJson(colls))
       case Left(e) => Ok(Json.toJson(e))
     }
