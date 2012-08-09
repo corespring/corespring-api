@@ -1,6 +1,7 @@
 import _root_.controllers.auth.Permission
 import _root_.controllers.services.OrgService
 import _root_.models.{ContentCollection, Organization}
+import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import play.api._
@@ -10,6 +11,10 @@ import play.api._
 object Global extends GlobalSettings {
 
   override def onStart(app: Application) {
+
+    // support JodaTime
+    RegisterJodaTimeConversionHelpers()
+
     if ( Play.isDev(app) ) {
 //      Logger.info("Loading data for development")
 //      val parentId = new ObjectId("5019921244ae551130b4b28e")
