@@ -17,9 +17,8 @@ object Permission {
   val RemoveCollection = new Permission(1 << 3, "remove_collection")
   val GetSubOrganizations = new Permission(1 << 4, "get_sub_organizations")
   val AssignCollection = new Permission(1 << 5, "assign_collection")
-  //only for libraries
   val PostSubOrganization = new Permission(1 << 6, "post_sub_organization")
-  val GetLibraryOrganizations = new Permission(1 << 7, "get_library_organizations")
+
 
   val All = new Permission(Long.MaxValue, "all")
   val None = new Permission(0, "none")
