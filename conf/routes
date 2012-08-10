@@ -38,5 +38,9 @@ POST    /api/v1/users                           api.v1.UserApi.createUser
 PUT     /api/v1/users/:id                       api.v1.UserApi.updateUser(id: ObjectId)
 DELETE  /api/v1/users/:id                       api.v1.UserApi.deleteUser(id: ObjectId)
 
+# Item Session API
+
+POST    /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.createItemSession(itemId: ObjectId)
+
 
 
