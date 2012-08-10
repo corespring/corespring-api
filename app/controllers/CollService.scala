@@ -18,11 +18,10 @@ object CollService {
     getOrElse(throw new RuntimeException("no archive collection establisthed")).id
 
   def getCollections(orgId: ObjectId, p:Permission): Either[ApiError, Seq[ContentCollection]] = {
-    val seqoptcoll:Seq[Option[ContentCollection]] = Organization.find(MongoDBObject(Organization.path -> orgId,
-      Organization.contentcolls+"."+ContentCollRef.pval -> MongoDBObject("$gte" -> p.value))).
-        foldRight[Seq[Option[ContentCollection]]](Seq())((o,acc) =>
-          acc ++ o.contentcolls.map(ccr => ContentCollection.findOneById(ccr.collId)))
-    val seqcoll:Seq[ContentCollection] = seqoptcoll.filter(_.isDefined).map(_.get)
+    val seqoptcoll:Seq[Option[ContentCollection]] = Organization.find(MongoDBObject(Organization.path -> orgId)).     //find the tree of the given organization
+        foldRight[Seq[ContentCollRef]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value)). //filter the collections that don't have the given permission
+        foldRight[Seq[Option[ContentCollection]]](Seq())((ccr,acc) => acc :+ ContentCollection.findOneById(ccr.collId)) //retrieve the collections
+    val seqcoll:Seq[ContentCollection] = seqoptcoll.filter(_.isDefined).map(_.get) //filter any collections that were not retrieved
     if (seqoptcoll.size > seqcoll.size) Log.f("CollService.getCollections: there are collections referenced by organizations that don't exist in the database. structure compromised")
     Right(seqcoll)
   }
@@ -31,11 +30,5 @@ object CollService {
     val errors = orgIds.map(oid => OrgService.addCollection(oid, collId, p)).filter(_.isLeft)
     if (errors.size > 0) Left(errors(0).left.get)
     else Right(())
-  }
-  def blerg(orgId:ObjectId, p:Permission) = {
-    OrgService.getTree(orgId).foldRight[Seq[ObjectId]](Seq())((o,acc) => acc ++ o.contentcolls.map(_.collId).seq)))).toSeq)
-    Organization.find(MongoDBObject(Organization.path -> orgId,
-      Organization.contentcolls+"."+ContentCollRef.pval -> MongoDBObject("$gte" -> p.value))).
-      foldRight[Seq[ObjectId]](Seq())((o,acc) => acc ++ o.contentcolls.map(_.collId).seq)
   }
 }

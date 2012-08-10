@@ -7,8 +7,7 @@ import play.api.Logger
 object Log {
   val enabled = true;
   lazy val herokuEnabled: Boolean = try {
-    System.getenv("ON_HEROKU")
-    true
+    System.getenv("ON_HEROKU") == "true"
   } catch {
     case e: NullPointerException => false
     case e: SecurityException => false
