@@ -54,6 +54,9 @@ object ApiError {
   val UserRequiredFields    = ApiError(500, "username, fullname and email are required")
   val UnknownUser           = ApiError(501, "Unknown user")
 
+  // Item Session API
+  val ItemSessionRequiredFields = ApiError(500, "start property must be provided")
+
 
 
 
