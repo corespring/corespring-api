@@ -38,6 +38,14 @@ POST    /api/v1/users                           api.v1.UserApi.createUser
 PUT     /api/v1/users/:id                       api.v1.UserApi.updateUser(id: ObjectId)
 DELETE  /api/v1/users/:id                       api.v1.UserApi.deleteUser(id: ObjectId)
 
+# Items API
+GET     /api/v1/items                           api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
+GET     /api/v1/items/:id                       api.v1.ItemApi.getItem(id: ObjectId)
+DELETE  /api/v1/items/:id                       api.v1.ItemApi.deleteItem(id: ObjectId)
+GET     /api/v1/items/:id/detail                api.v1.ItemApi.getItemDetail(id: ObjectId)
+GET     /api/v1/items/:id/data                  api.v1.ItemApi.getItemData(id: ObjectId)
+
+
 # Item Session API
 
 POST    /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.createItemSession(itemId: ObjectId)

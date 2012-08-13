@@ -5,15 +5,17 @@ import models.Organization
 import play.api.libs.json.{JsValue, Json}
 import controllers.auth.BaseApi
 import com.novus.salat.dao.{SalatDAOUpdateError, SalatSaveError}
-import api.ApiError
+import api._
 import play.api.mvc.Result
 import controllers.services.OrgService
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao.SalatSaveError
-import api.{CountResult, QueryHelper, ApiError}
 import play.api.mvc.Result
 import play.api.Logger
 import com.mongodb.util.JSONParseException
+import scala.Left
+import scala.Some
+import scala.Right
 
 /**
  * The Organization API
@@ -46,7 +48,7 @@ object OrganizationApi extends BaseApi {
       }
     } catch {
       case e: JSONParseException => BadRequest(Json.toJson(ApiError.InvalidQuery))
-      case re: RuntimeException => BadRequest(Json.toJson(ApiError.UnknownFieldOrOperator.format(re.getMessage)))
+      case ife: InvalidFieldException => BadRequest(Json.toJson(ApiError.UnknownFieldOrOperator.format(ife.field)))
     }
   }
 

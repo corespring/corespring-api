@@ -1,4 +1,4 @@
-import models.ItemSession
+import models.{ItemResponse, ItemSession}
 import org.bson.types.ObjectId
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.AnyContentAsJson
@@ -49,6 +49,11 @@ class ItemSessionTest extends Specification {
       val testSession = ItemSession(None, new ObjectId())
       val url = "/api/v1/items/" + testSession.itemId.toString + "/sessions"
 
+      // add some item responses
+      testSession.responses ::= ItemResponse("question1","choice1", "outcome:{$score:1}")
+      testSession.responses ::= ItemResponse("question2","some text", "outcome:{$score:1}")
+      testSession.responses ::= ItemResponse("question3","more text", "outcome:{$score:1}")
+
       val request = FakeRequest(
         POST,
         url,
@@ -60,14 +65,21 @@ class ItemSessionTest extends Specification {
       val optResult = routeAndCall(request)
       if(optResult.isDefined) {
 
-        // TODO - need to add responses to test
-        val json:JsValue = Json.parse(contentAsString(optResult.get))
 
+        val json:JsValue = Json.parse(contentAsString(optResult.get))
+        // need to implement reader first for below to work
+        //val parsedSession = Json.fromJson[ItemSession](json)
+
+        val id = (json \ "id").asOpt[String].getOrElse("")
+        val itemId = (json \ "itemId").asOpt[String].getOrElse("")
         val start = (json \ "start").asOpt[String]
         val finish = (json \ "finish").asOpt[String]
+
+
         val finishString = testSession.finish.getMillis.toString
         val startString = testSession.start.getMillis.toString
         if (finish.get == finishString && start.get == startString) {
+
           success
         }  else {
           failure
