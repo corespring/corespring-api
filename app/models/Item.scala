@@ -7,7 +7,7 @@ import play.api.Play.current
  * An Item model
  */
 object Item {
-  val collection = salat.mongoCollection("contents")
+  val collection = Content.collection
 
   val queryFields = Map(
     "gradeLevel" -> "String",

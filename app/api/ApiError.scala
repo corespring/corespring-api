@@ -63,7 +63,7 @@ object ApiError {
 
   // Item Session API
   val ItemSessionRequiredFields = ApiError(500, "start property must be provided")
-
+  val ItemIdRequired = ApiError(500, "no item id was provided for the session")
 
 
 

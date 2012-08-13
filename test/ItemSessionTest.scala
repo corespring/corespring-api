@@ -45,8 +45,8 @@ class ItemSessionTest extends Specification {
 
       // from standard fixture data
       val token = "34dj45a769j4e1c0h4wb"
-      // TODO this is currently passing a new itemId - this should fail. itemId needs to exist in items collection
-      val testSession = ItemSession(None, new ObjectId())
+      val testItemId = "5001b7ade4b0d7c9ec321070"
+      val testSession = ItemSession(None, new ObjectId(testItemId))
       val url = "/api/v1/items/" + testSession.itemId.toString + "/sessions"
 
       // add some item responses
