@@ -50,9 +50,9 @@ class ItemSessionTest extends Specification {
       val url = "/api/v1/items/" + testSession.itemId.toString + "/sessions"
 
       // add some item responses
-      testSession.responses ::= ItemResponse("question1","choice1", "outcome:{$score:1}")
-      testSession.responses ::= ItemResponse("question2","some text", "outcome:{$score:1}")
-      testSession.responses ::= ItemResponse("question3","more text", "outcome:{$score:1}")
+      testSession.responses ::= ItemResponse("question1","choice1", "{$score:1}")
+      testSession.responses ::= ItemResponse("question2","some text", "{$score:1}")
+      testSession.responses ::= ItemResponse("question3","more text", "{$score:1}")
 
       val request = FakeRequest(
         POST,
@@ -61,6 +61,7 @@ class ItemSessionTest extends Specification {
         AnyContentAsJson(Json.toJson(testSession))
       )
 
+      System.out.println(Json.toJson(testSession))
 
       val optResult = routeAndCall(request)
       if(optResult.isDefined) {
