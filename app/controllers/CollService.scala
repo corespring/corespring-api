@@ -14,15 +14,22 @@ import models.mongoContext._
 
 
 object CollService {
-  lazy val archiveCollId: ObjectId = ContentCollection.findOne(MongoDBObject(ContentCollection.name -> "archiveColl")).
-    getOrElse(throw new RuntimeException("no archive collection establisthed")).id
+  lazy val archiveCollId: ObjectId = ContentCollection.findOneById(new ObjectId("500ecfc1036471f538f24bdc")) match {
+    case Some(coll) => coll.id
+    case None => ContentCollection.insert(ContentCollection("archiveColl", id = new ObjectId("500ecfc1036471f538f24bdc"))) match {
+      case Some(collId) => collId
+      case None => throw new RuntimeException("could not create new archive collection")
+    }
+  }
 
   def getCollections(orgId: ObjectId, p:Permission): Either[ApiError, Seq[ContentCollection]] = {
-    val seqoptcoll:Seq[Option[ContentCollection]] = Organization.find(MongoDBObject(Organization.path -> orgId)).     //find the tree of the given organization
+    val cursor = Organization.find(MongoDBObject(Organization.path -> orgId))   //find the tree of the given organization
+    val seqoptcoll:Seq[Option[ContentCollection]] = cursor.
         foldRight[Seq[ContentCollRef]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value)). //filter the collections that don't have the given permission
-        foldRight[Seq[Option[ContentCollection]]](Seq())((ccr,acc) => acc :+ ContentCollection.findOneById(ccr.collId)) //retrieve the collections
+        foldRight[Seq[Option[ContentCollection]]](Seq())((ccr,acc) => {acc :+ ContentCollection.findOneById(ccr.collId)}) //retrieve the collections
     val seqcoll:Seq[ContentCollection] = seqoptcoll.filter(_.isDefined).map(_.get) //filter any collections that were not retrieved
     if (seqoptcoll.size > seqcoll.size) Log.f("CollService.getCollections: there are collections referenced by organizations that don't exist in the database. structure compromised")
+    cursor.close()
     Right(seqcoll)
   }
 

@@ -1,1 +1,1 @@
-{ "_id" : ObjectId("502404dd0364dc35bb393397"), "clientId" : ObjectId("502424ca0364b3c1c30dec64"), "clientSecret" : "26bn1r8cmlso1tmm1kw1" }
+{ "_id" : { "$oid" : "502404dd0364dc35bb393397"} , "clientId" : { "$oid" : "502424ca0364b3c1c30dec64"} , "clientSecret" : "26bn1r8cmlso1tmm1kw1"}
