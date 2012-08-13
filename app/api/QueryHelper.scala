@@ -22,7 +22,6 @@ object QueryHelper {
   def parse[T](q: String, validFields: Map[String, String]):MongoDBObject = {
     Logger.debug("fields = " + validFields.mkString(","))
       val query = JSON.parse(q).asInstanceOf[DBObject]
-      // todo: do some sanity check on the query
       for ( f <- query.iterator ) {
         // check if it's a valid field
         Logger.debug("checking field: " + f._1)
@@ -40,7 +39,7 @@ object QueryHelper {
                 checkOperator(validFields, f._2)
               }
               case _ => {
-                throw new RuntimeException(f._1)
+                throw new InvalidFieldException(f._1)
               }
             }
           }
@@ -52,7 +51,7 @@ object QueryHelper {
   private def checkInOperator(validFields: Map[String, String], obj: Object) {
     Logger.debug("in obj = " + obj)
     Logger.debug("in obj = " + obj.getClass)
-
+    // todo: check values?
   }
 
   private def checkOrOperator(validFields: Map[String, String], obj: Object) {
@@ -68,10 +67,11 @@ object QueryHelper {
           case Some(fieldType) => {
             // todo: check field type?
           }
-          case _ => throw new RuntimeException(key)
+          case _ => throw new InvalidFieldException(key)
         }
       }
     }
   }
 }
 
+case class InvalidFieldException(field: String) extends RuntimeException("Unknown field %s".format(field))
