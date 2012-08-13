@@ -9,6 +9,7 @@ import play.api.libs.json._
 import play.api.Play.current
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
+import org.codehaus.jackson.annotate.JsonValue
 
 
 /**
@@ -46,7 +47,8 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
             List(
               "id" -> JsString(session.id.get.toString),
               "start" -> JsString(session.start.getMillis.toString),
-              "finish" -> JsString(session.finish.getMillis.toString)
+              "finish" -> JsString(session.finish.getMillis.toString),
+              "responses" -> Json.toJson(session.responses)
             )
           )
         }
@@ -54,7 +56,8 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
           JsObject(
             List(
               "start" -> JsString(session.start.getMillis.toString),
-              "finish" -> JsString(session.finish.getMillis.toString)
+              "finish" -> JsString(session.finish.getMillis.toString),
+              "responses" -> Json.toJson(session.responses)
             )
           )
         }

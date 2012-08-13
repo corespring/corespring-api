@@ -22,7 +22,7 @@ import models.mongoContext._
 
 object UserService {
 
-  def getUsers(orgId: ObjectId): Either[ApiError, Seq[User]] = {
+  def getUsers(orgId: ObjectId): Either[InternalError, Seq[User]] = {
     val c: SalatMongoCursor[User] = User.find(MongoDBObject(User.orgs + "." + UserOrg.orgId -> orgId))
     val returnValue = Right(c.toSeq)
     c.close(); returnValue

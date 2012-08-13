@@ -7,19 +7,16 @@ import controllers.{LogType, Log}
 /**
  * A class representing errors returned by the APIs
  */
-case class ApiError(code: Int, message: String, logType:LogType.LogType = LogType.printNone, moreInfo:Option[String] = None){
-  Log.u(logType,message)
+case class ApiError(code: Int, message: String, moreInfo:Option[String] = None){
   def format(s: String):ApiError = {
     copy(message = this.message.format(s))
+  }
+  def apply(otherInfo:Option[String]):ApiError = {
+    copy(moreInfo = otherInfo)
   }
 }
 
 object ApiError {
-  val NotFound = 10
-  val NotImplemented = 11
-  val DatabaseError = 12
-  val IllegalState = 13
-  val Unknown = 14
 
   // OAuth Provider
   val InvalidCredentials  = ApiError(100, "Invalid credentials")
@@ -45,14 +42,24 @@ object ApiError {
   val IdsDoNotMatch       = ApiError(300, "Specified id does not match the one in the json")
   val CantDeleteMainOrg   = ApiError(301, "You cannot delete your main organization")
   val OrgNameMissing      = ApiError(303, "You need to specify a name for the organization")
+  val InsertOrganization  = ApiError(304, "Failed to insert organization")
+  val UpdateOrganization  = ApiError(305, "Failed to update organization")
+  val RemoveOrganization  = ApiError(306, "Failed to remove organization")
 
   // Collections aPI
   val CollectionNameMissing = ApiError(400, "You need to specify a name for the collection")
   val UnknownCollection     = ApiError(401, "Unknown collection")
+  val InsertCollection      = ApiError(402, "Failed to insert collection")
+  val UpdateCollection      = ApiError(403, "Failed to update collection")
+  val AddToOrganization     = ApiError(404, "Failed to link collection to organization(s)")
 
   // User API
   val UserRequiredFields    = ApiError(500, "username, fullname and email are required")
   val UnknownUser           = ApiError(501, "Unknown user")
+  val UsersInOrganization   = ApiError(502, "An error occurred when trying to find users in your organization")
+  val CreateUser            = ApiError(503, "Could not create user")
+  val UpdateUser            = ApiError(504, "Could not update user")
+  val DeleteUser            = ApiError(505, "An error occurred when deleting the user")
 
   // Item Session API
   val ItemSessionRequiredFields = ApiError(500, "start property must be provided")

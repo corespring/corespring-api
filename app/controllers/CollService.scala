@@ -1,16 +1,20 @@
 package controllers
 
-import auth.Permission
+import controllers.auth.Permission
 import org.bson.types.ObjectId
-import models.{ContentCollRef, UserOrg, Organization, ContentCollection}
+import models._
 import com.mongodb.casbah.commons.MongoDBObject
 import api.ApiError
 import com.novus.salat._
+import dao.SalatDAOUpdateError
 import scala.Left
 import scala.Some
 import scala.Right
 import controllers.services.OrgService
 import models.mongoContext._
+import scala.Left
+import scala.Some
+import scala.Right
 
 
 object CollService {
@@ -21,8 +25,16 @@ object CollService {
       case None => throw new RuntimeException("could not create new archive collection")
     }
   }
-
-  def getCollections(orgId: ObjectId, p:Permission): Either[ApiError, Seq[ContentCollection]] = {
+  def moveToArchive(collId:ObjectId):Either[InternalError,Unit] = {
+    try{
+    Content.collection.update(MongoDBObject(Content.collId -> collId), MongoDBObject("$set" -> MongoDBObject(Content.collId -> CollService.archiveCollId)),
+      false, false, Content.collection.writeConcern)
+      Right(())
+    }catch{
+      case e:SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to transfer collection to archive")))
+    }
+  }
+  def getCollections(orgId: ObjectId, p:Permission): Either[InternalError, Seq[ContentCollection]] = {
     val cursor = Organization.find(MongoDBObject(Organization.path -> orgId))   //find the tree of the given organization
     val seqoptcoll:Seq[Option[ContentCollection]] = cursor.
         foldRight[Seq[ContentCollRef]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value)). //filter the collections that don't have the given permission
@@ -33,7 +45,7 @@ object CollService {
     Right(seqcoll)
   }
 
-  def addOrganizations(orgIds: Seq[ObjectId], collId: ObjectId, p: Permission): Either[ApiError, Unit] = {
+  def addOrganizations(orgIds: Seq[ObjectId], collId: ObjectId, p: Permission): Either[InternalError, Unit] = {
     val errors = orgIds.map(oid => OrgService.addCollection(oid, collId, p)).filter(_.isLeft)
     if (errors.size > 0) Left(errors(0).left.get)
     else Right(())

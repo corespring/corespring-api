@@ -11,7 +11,7 @@ import dao.SalatDAOUpdateError
 import dao.SalatInsertError
 import dao.SalatRemoveError
 import dao.SalatSaveError
-import controllers.CollService
+import controllers.{Log, LogType, InternalError, CollService}
 import api.ApiError
 import controllers.services.OrgService
 import controllers.auth.Permission
@@ -35,7 +35,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
   val collection = mongoCollection("contentcolls")
   val dao = new SalatDAO[ContentCollection, ObjectId](collection = collection) {}
 
-  def insert(orgId: ObjectId, coll: ContentCollection): Either[ApiError, ContentCollection] = {
+  def insert(orgId: ObjectId, coll: ContentCollection): Either[InternalError, ContentCollection] = {
     if(Play.isProd) coll.id = new ObjectId()
     try {
       super.insert(coll) match   {
@@ -45,44 +45,45 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
             false, false, Organization.collection.writeConcern)
           Right(coll)
         } catch {
-          case e: SalatDAOUpdateError => Left(ApiError(ApiError.DatabaseError, "failed to add collection to organization"))
+          case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update organization with collection")))
         }
-        case None => Left(ApiError(ApiError.DatabaseError, "failed to insert content collection"))
+        case None => Left(InternalError("failed to insert content collection",LogType.printFatal,true))
       }
     } catch {
-      case e: SalatInsertError => Left(ApiError(ApiError.DatabaseError, "failed to insert content collection"))
+      case e: SalatInsertError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to insert content collection")))
     }
 
   }
 
-  def removeCollection(collId: ObjectId): Either[ApiError, Unit] = {
-    try {
-      //move collection's content to archive collection
-      Content.collection.update(MongoDBObject(Content.collId -> collId), MongoDBObject("$set" -> MongoDBObject(Content.collId -> CollService.archiveCollId)),
-        false, false, Content.collection.writeConcern)
-      //remove collection references from organizations
-      Organization.update(MongoDBObject(Organization.contentcolls + "." + ContentCollRef.collId -> collId),
-        MongoDBObject("$pull" -> MongoDBObject(Organization.contentcolls -> MongoDBObject(ContentCollRef.collId -> collId))),
-        false, false, Organization.collection.writeConcern)
-      //finally delete
-      ContentCollection.removeById(collId, ContentCollection.collection.writeConcern)
-      Right(())
-    } catch {
-      case e: SalatDAOUpdateError => Left(ApiError(ApiError.DatabaseError, e.getMessage))
-      case e: SalatRemoveError => Left(ApiError(ApiError.DatabaseError, e.getMessage))
+  def removeCollection(collId: ObjectId): Either[InternalError, Unit] = {
+    CollService.moveToArchive(collId) match {
+      case Right(_) => try {
+        //remove collection references from organizations
+        Organization.update(MongoDBObject(Organization.contentcolls + "." + ContentCollRef.collId -> collId),
+          MongoDBObject("$pull" -> MongoDBObject(Organization.contentcolls -> MongoDBObject(ContentCollRef.collId -> collId))),
+          false, false, Organization.collection.writeConcern)
+        //finally delete
+        ContentCollection.removeById(collId, ContentCollection.collection.writeConcern)
+        Right(())
+      } catch {
+        case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update corresponding organizations")))
+        case e: SalatRemoveError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to remove")))
+      }
+      case Left(e) => Left(e)
     }
+
   }
 
-  def updateCollection(coll: ContentCollection): Either[ApiError, ContentCollection] = {
+  def updateCollection(coll: ContentCollection): Either[InternalError, ContentCollection] = {
     try {
       ContentCollection.update(MongoDBObject("_id" -> coll.id), MongoDBObject("$set" ->
         MongoDBObject(ContentCollection.name -> coll.name)), false, false, ContentCollection.collection.writeConcern)
       ContentCollection.findOneById(coll.id) match {
         case Some(coll) => Right(coll)
-        case None => Left(ApiError(ApiError.IllegalState, "could not find the collection that was just updated"))
+        case None => Left(InternalError("could not find the collection that was just updated",LogType.printFatal,true))
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(ApiError(ApiError.DatabaseError, e.getMessage))
+      case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update collection")))
     }
   }
 

@@ -4,13 +4,14 @@ import se.radley.plugin.salat._
 import play.api.libs.json._
 import play.api.libs.json.JsObject
 import org.bson.types.ObjectId
-import com.novus.salat.dao.{SalatDAOUpdateError, ModelCompanion, SalatDAO}
+import com.novus.salat.dao.{SalatRemoveError, SalatDAOUpdateError, ModelCompanion, SalatDAO}
 import controllers.auth.Permission
 import play.api.Play.current
 import com.mongodb.casbah.commons.MongoDBObject
 import api.ApiError
 import models.mongoContext._
 import play.api.Play
+import controllers.{LogType, InternalError}
 
 case class Organization(var name: String,
                         var path: Seq[ObjectId] = Seq(),
@@ -38,7 +39,7 @@ object Organization extends ModelCompanion[Organization, ObjectId] {
    * @param optParentId - the parent of the organization to be inserted or none if the organization is to be root of new tree
    * @return - the organization if successfully inserted, otherwise none
    */
-  def insert(org: Organization, optParentId: Option[ObjectId]): Either[ApiError, Organization] = {
+  def insert(org: Organization, optParentId: Option[ObjectId]): Either[InternalError, Organization] = {
     if(Play.isProd) org.id = new ObjectId()
     optParentId match {
       case Some(parentId) => {
@@ -47,41 +48,41 @@ object Organization extends ModelCompanion[Organization, ObjectId] {
             org.path = parent.path :+ org.id
             insert(org) match {
               case Some(id) => Right(org)
-              case None => Left(ApiError(ApiError.DatabaseError, "error inserting organization"))
+              case None => Left(InternalError("error inserting organization",LogType.printFatal,true))
             }
           }
-          case None => Left(ApiError(ApiError.NotFound, "could not find parent given id"))
+          case None => Left(InternalError("could not find parent given id",LogType.printError,true))
         }
       }
       case None => {
         org.path = Seq(org.id)
         insert(org) match {
           case Some(id) => Right(org)
-          case None => Left(ApiError(ApiError.DatabaseError, "error inserting organization"))
+          case None => Left(InternalError("error inserting organization",LogType.printFatal,true))
         }
       }
     }
   }
 
-  def delete(orgId: ObjectId): Either[ApiError, Unit] = {
+  def delete(orgId: ObjectId): Either[InternalError, Unit] = {
     try {
       remove(MongoDBObject(Organization.path -> orgId))
       Right(())
     } catch {
-      case e => Left(ApiError(ApiError.DatabaseError, e.getMessage))
+      case e:SalatRemoveError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to destroy organization tree")))
     }
   }
 
-  def updateOrganization(org: Organization): Either[ApiError, Organization] = {
+  def updateOrganization(org: Organization): Either[InternalError, Organization] = {
     try {
       Organization.update(MongoDBObject("_id" -> org.id), MongoDBObject("$set" -> MongoDBObject(name -> org.name)),
         false, false, Organization.collection.writeConcern)
       Organization.findOneById(org.id) match {
         case Some(org) => Right(org)
-        case None => Left(ApiError(ApiError.DatabaseError, "could not find organization that was just modified"))
+        case None => Left(InternalError("could not find organization that was just modified",LogType.printFatal,true))
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(ApiError(ApiError.DatabaseError, e.getMessage))
+      case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("unable to update organization")))
     }
   }
 
