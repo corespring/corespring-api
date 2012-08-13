@@ -21,7 +21,7 @@ object UserApi extends BaseApi {
   def list() = ApiAction { request =>
     UserService.getUsers(request.ctx.organization) match {
       case Right(users) => Ok(Json.toJson(users))
-      case Left(e) => InternalServerError(Json.toJson(e))
+      case Left(e) => InternalServerError(Json.toJson(ApiError.UsersInOrganization(e.clientOutput)))
     }
   }
 
@@ -63,7 +63,7 @@ object UserApi extends BaseApi {
                 val user = User(username, fullName, email)
                 User.insertUser(user,request.ctx.organization,Permission.All,false) match {
                   case Right(u) => Ok(Json.toJson(u))
-                  case Left(e) => InternalServerError(Json.toJson(e))
+                  case Left(e) => InternalServerError(Json.toJson(ApiError.CreateUser(e.clientOutput)))
                 }
               }
               case _ => BadRequest( Json.toJson(ApiError.UserRequiredFields))
@@ -90,7 +90,7 @@ object UserApi extends BaseApi {
           val email    = (json \ "email").asOpt[String].getOrElse(original.email)
           User.updateUser(User(userName,fullName,email,id = id)) match {
             case Right(u) => Ok(Json.toJson(u))
-            case Left(e) => InternalServerError(Json.toJson(e))
+            case Left(e) => InternalServerError(Json.toJson(ApiError.UpdateUser(e.clientOutput)))
           }
         }
         case _ => jsonExpected
@@ -104,8 +104,10 @@ object UserApi extends BaseApi {
   def deleteUser(id: ObjectId) = ApiAction { request =>
     User.findOneById(id) match {
       case Some(toDelete) => {
-        User.removeById(id)
-        Ok(Json.toJson(toDelete))
+        User.removeUser(id) match {
+          case Right(_) => Ok(Json.toJson(toDelete))
+          case Left(e) => InternalServerError(Json.toJson(ApiError.DeleteUser(e.clientOutput)))
+        }
       }
       case _ => unknownUser
     }

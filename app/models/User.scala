@@ -10,7 +10,7 @@ import play.api.libs.json.JsObject
 import com.mongodb.casbah.commons.MongoDBObject
 import api.ApiError
 import controllers.auth.Permission
-import controllers.{LogType, Log}
+import controllers.{InternalError, LogType, Log}
 import play.api.Play
 
 
@@ -39,7 +39,7 @@ object User extends ModelCompanion[User, ObjectId] {
    * @param orgId - the organization that the given user belongs to
    * @return the user that was inserted
    */
-  def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId:Boolean = true, checkUsername:Boolean = true): Either[ApiError, User] = {
+  def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId:Boolean = true, checkUsername:Boolean = true): Either[InternalError, User] = {
     if (!checkOrgId || Organization.findOneById(orgId).isDefined){
       if (!checkUsername || getUser(user.userName).isEmpty){
         if(Play.isProd) user.id = new ObjectId
@@ -48,39 +48,39 @@ object User extends ModelCompanion[User, ObjectId] {
           case Some(id) => {
             Right(user)
           }
-          case None => Left(ApiError(ApiError.DatabaseError,"error inserting user"))
+          case None => Left(InternalError("error inserting user",LogType.printFatal,true))
         }
-      }else Left(ApiError(ApiError.IllegalState,"user already exists"))
-    }else Left(ApiError(ApiError.NotFound,"no organization found with given id"))
+      }else Left(InternalError("user already exists",LogType.printError,true))
+    }else Left(InternalError("no organization found with given id",LogType.printError,true))
   }
 
-  def removeUser(username: String): Either[ApiError, Unit] = {
+  def removeUser(username: String): Either[InternalError, Unit] = {
     getUser(username) match {
       case Some(user) => removeUser(user.id)
-      case None => Left(ApiError(ApiError.NotFound, "user could not be removed because it doesn't exist"))
+      case None => Left(InternalError("user could not be removed because it doesn't exist",LogType.printError,true))
     }
   }
 
-  def removeUser(userId: ObjectId): Either[ApiError, Unit] = {
+  def removeUser(userId: ObjectId): Either[InternalError, Unit] = {
     try {
       User.removeById(userId)
       Right(())
     } catch {
-      case e: SalatRemoveError => Left(ApiError(ApiError.DatabaseError, e.getMessage))
+      case e: SalatRemoveError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("error occured while removing user")))
     }
   }
 
-  def updateUser(user: User): Either[ApiError, User] = {
+  def updateUser(user: User): Either[InternalError, User] = {
     try {
       User.update(MongoDBObject("_id" -> user.id), MongoDBObject("$set" ->
         MongoDBObject(User.userName -> user.userName, User.fullName -> user.fullName, User.email -> user.email)),
         false, false, User.collection.writeConcern)
       User.findOneById(user.id) match {
         case Some(u) => Right(u)
-        case None => Left(ApiError(ApiError.IllegalState, "no user found that was just modified", LogType.printFatal))
+        case None => Left(InternalError("no user found that was just modified", LogType.printFatal, true))
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(ApiError(ApiError.DatabaseError, e.getMessage))
+      case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update user")))
     }
   }
 

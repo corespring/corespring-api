@@ -7,7 +7,7 @@ import play.api.test.Helpers._
 import play.api.test._
 
 
-class CollServiceTest extends Specification {
+class CollectionTest extends Specification {
 
     PlaySingleton.start()
 
@@ -16,6 +16,7 @@ class CollServiceTest extends Specification {
       withHeaders(("Authorization","Bearer "+token))
     val optResult = routeAndCall(request)
     val json:JsValue = if (optResult.isDefined) Json.parse(contentAsString(optResult.get)) else JsNull
+    Log.i(json.toString())
     // TODO check the value and verify it is as expected
     pending
 

@@ -23,7 +23,7 @@ object CollectionApi extends BaseApi {
   def list() = ApiAction { request =>
     CollService.getCollections(request.ctx.organization,Permission.All) match {
       case Right(colls) => Ok(Json.toJson(colls))
-      case Left(e) => Ok(Json.toJson(e))
+      case Left(e) => InternalServerError(Json.toJson(ApiError.OperationError(e.clientOutput)))
     }
   }
 
@@ -63,7 +63,7 @@ object CollectionApi extends BaseApi {
               val collection = ContentCollection(id = newId, name = name.get)
               ContentCollection.insert(request.ctx.organization,collection) match {
                 case Right(coll) => Ok(Json.toJson(coll))
-                case Left(e) => InternalServerError(Json.toJson(e))
+                case Left(e) => InternalServerError(Json.toJson(ApiError.InsertCollection(e.clientOutput)))
               }
 
             }
@@ -97,11 +97,11 @@ object CollectionApi extends BaseApi {
             case Right(coll) => (json \ "organizations").asOpt[Seq[String]].map( seq => seq.map( new ObjectId(_)) ) match {
               case Some(orgIds) => CollService.addOrganizations(orgIds, id, Permission.All) match {
                 case Right(_) => Ok(Json.toJson(coll))
-                case Left(e) => InternalServerError(Json.toJson(e))
+                case Left(e) => InternalServerError(Json.toJson(ApiError.AddToOrganization(e.clientOutput)))
               }
               case None => Ok(Json.toJson(coll))
             }
-            case Left(e) => InternalServerError(Json.toJson(e))
+            case Left(e) => InternalServerError(Json.toJson(ApiError.UpdateCollection(e.clientOutput)))
           }
 
         }

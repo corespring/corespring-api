@@ -97,7 +97,6 @@ object OrganizationApi extends BaseApi {
         (json \ "id").asOpt[String] match {
           case Some(id) => BadRequest(Json.toJson(ApiError.IdNotNeeded))
           case _ => {
-            val newId = new ObjectId
             val name = (json \ "name").asOpt[String]
             if ( name.isEmpty ) {
               BadRequest( Json.toJson(ApiError.OrgNameMissing))
@@ -106,7 +105,7 @@ object OrganizationApi extends BaseApi {
               val organization = Organization(name.get)
               Organization.insert(organization,optParent) match {
                 case Right(org) => Ok(Json.toJson(org))
-                case Left(e) => InternalServerError(Json.toJson(e))
+                case Left(e) => InternalServerError(Json.toJson(ApiError.InsertOrganization(e.clientOutput)))
               }
             }
           }
@@ -134,7 +133,7 @@ object OrganizationApi extends BaseApi {
           val name = (json \ "name").asOpt[String].getOrElse(original.name)
           Organization.updateOrganization(Organization(name = name,id = id)) match {
             case Right(o) => Ok(Json.toJson(o))
-            case Left(e) => InternalServerError(Json.toJson(e))
+            case Left(e) => InternalServerError(Json.toJson(ApiError.UpdateOrganization(e.clientOutput)))
           }
         }
         case _ => jsonExpected
@@ -153,7 +152,7 @@ object OrganizationApi extends BaseApi {
         case Some(toDelete) => {
           Organization.delete(id) match {
             case Right(_) => Ok(Json.toJson(toDelete))
-            case Left(e) => InternalServerError(Json.toJson(e))
+            case Left(e) => InternalServerError(Json.toJson(ApiError.RemoveOrganization(e.clientOutput)))
           }
         }
         case _ => unknownOrganization

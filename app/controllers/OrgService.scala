@@ -11,6 +11,7 @@ import scala.Left
 import scala.Some
 import scala.Right
 import api.ApiError
+import controllers.{LogType, InternalError}
 
 object OrgService {
   /**
@@ -66,7 +67,7 @@ object OrgService {
         MongoDBObject(ContentCollRef.collId -> collRef.collId, ContentCollRef.pval -> collRef.pval)))).isDefined
   }
 
-  def addCollection(orgId: ObjectId, collId: ObjectId, p: Permission): Either[ApiError, ContentCollRef] = {
+  def addCollection(orgId: ObjectId, collId: ObjectId, p: Permission): Either[InternalError, ContentCollRef] = {
     try {
       val collRef = new ContentCollRef(collId, p.value)
       if (!hasCollRef(orgId, collRef)) {
@@ -75,10 +76,10 @@ object OrgService {
           false, false, Organization.collection.writeConcern)
         Right(collRef)
       } else {
-        Left(ApiError(ApiError.IllegalState, "collection reference already exists"))
+        Left(InternalError("collection reference already exists",LogType.printError,true))
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(ApiError(ApiError.DatabaseError, e.getMessage))
+      case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal))
     }
   }
 }
