@@ -9,6 +9,7 @@ import org.joda.time.DateTime
 import com.novus.salat.dao.SalatSaveError
 import play.api.Logger
 import com.mongodb.casbah.MongoCursor
+import play.api.mvc.{AnyContent, Result}
 
 /**
  *  API for managing item sessions
@@ -23,11 +24,19 @@ object ItemSessionApi extends BaseApi {
    * @return json for the created item session
    */
   def createItemSession(itemId: ObjectId) = ApiAction { request =>
+    updateItemSession(itemId, request.body, isInsert = true)
+  }
+
+  /**
+   * Serves the PUT request for an item session
+   * @param itemId
+   */
+  def updateItemSession(itemId: ObjectId, body: AnyContent, isInsert: Boolean = false)  : Result = {
     // load the itemId and make sure an item exists with that id.
     // it is not allowed to create a session without an item
     Item.collection.findOneByID(itemId) match {
       case Some(o) => {
-        request.body.asJson match {
+        body.asJson match {
           case Some(json) => {
             (json \ "id").asOpt[String] match {
               case Some(id) => BadRequest(Json.toJson(ApiError.IdNotNeeded))
@@ -67,7 +76,6 @@ object ItemSessionApi extends BaseApi {
       }
       case None => BadRequest(Json.toJson(ApiError.ItemIdRequired))
     }
-
   }
 
   /**
