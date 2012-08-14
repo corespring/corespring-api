@@ -42,14 +42,16 @@ trait BaseApi extends Controller {
    */
   def tokenFromRequest[A](request: Request[A]): Either[ApiError, String] = {
     request.session.get(OAuthConstants.AccessToken).map(Right(_)).getOrElse {
-      request.headers.get(AuthorizationHeader) match {
-        case Some(value) =>
-          value.split(Space) match {
-            case Array(Bearer, token) => Right(token)
-            case _ => Left(InvalidTokenType)
-          }
-        case _ => Left(MissingCredentials)
-      }
+      request.queryString.get(OAuthConstants.AccessToken).map(seq => Right(seq.head)).getOrElse( {
+        request.headers.get(AuthorizationHeader) match {
+          case Some(value) =>
+            value.split(Space) match {
+              case Array(Bearer, token) => Right(token)
+              case _ => Left(InvalidTokenType)
+            }
+          case _ => Left(MissingCredentials)
+        }
+      })
     }
   }
 
