@@ -20,9 +20,9 @@ object Main {
 
   def jsonToDB(jsonPath: String, coll: MongoCollection) = {
     coll.drop()
-    val lines: Iterator[String] = io.Source.fromFile(new File(jsonPath))(new Codec(Charset.defaultCharset())).getLines()
+    val lines: Iterator[String] = io.Source.fromFile(new File(jsonPath))(new Codec(Charset.forName("UTF-8"))).getLines()
     for (line <- lines) {
-      println("adding document: "+line+" to collection"+coll.name)
+      println("adding document: "+line+" to collection "+coll.name)
       val wr = coll.insert(JSON.parse(line).asInstanceOf[DBObject], coll.writeConcern)
       if (!wr.getLastError.ok()){
         println("FATAL: error occured when inserting mock document")
