@@ -22,6 +22,7 @@ object Main {
     coll.drop()
     val lines: Iterator[String] = io.Source.fromFile(new File(jsonPath))(new Codec(Charset.defaultCharset())).getLines()
     for (line <- lines) {
+      println("adding document: "+line+" to collection"+coll.name)
       val wr = coll.insert(JSON.parse(line).asInstanceOf[DBObject], coll.writeConcern)
       if (!wr.getLastError.ok()){
         println("FATAL: error occured when inserting mock document")
@@ -40,6 +41,7 @@ object Main {
   def insertMockData = {
     val basePath = if (System.getenv("ON_HEROKU") == "true") "/app/conf/test-data/"
                     else "/Users/josh/git/corespring-api/conf/test-data/"
+    println("using basePath: "+basePath)
     getDb match {
       case Some(mongoDb) => {
         jsonToDB(basePath + "orgs.json", mongoDb("orgs"))
