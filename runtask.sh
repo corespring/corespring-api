@@ -9,14 +9,10 @@ else
         if [ "$?" = "0" ]; then
             sbt run
         else
-            if [[ ":$PATH:" = *":.sbt_home/bin:"* ]]; then
-                #HEROKU FIX: check if the path to sbt is .sbt_home/bin. if it is, add ~/.sbt_home/bin to path to make sbt executable from any folder
-                command -v ~/.sbt_home/sbt;
-                if [ "$?" = "0" ]; then
-                    ~/.sbt_home/sbt run
-                else
-                    echo "error: could not run sbt. sbt command unavailable"
-                fi
+            #HEROKU FIX: check if the path to sbt is .sbt_home/bin. if it is, add ~/.sbt_home/bin to path to make sbt executable from any folder
+            command -v ~/.sbt_home/sbt;
+            if [ "$?" = "0" ]; then
+                ~/.sbt_home/sbt run
             else
                 echo "error: could not run sbt. sbt command unavailable"
             fi
