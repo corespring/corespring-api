@@ -9,10 +9,10 @@ else
         if [ "$?" = "0" ]; then
             sbt run
         else
-            if [ ":$PATH:" = *":.sbt_home/bin:"* ]; then
+            if [[ ":$PATH:" = *":.sbt_home/bin:"* ]]; then
                 #HEROKU FIX: check if the path to sbt is .sbt_home/bin. if it is, add ~/.sbt_home/bin to path to make sbt executable from any folder
-                export PATH=${PATH}:~/.sbt_home/bin
-                command -v sbt
+                export PATH=${PATH}:~/.sbt_home/bin;
+                command -v sbt;
                 if [ "$?" = "0" ]; then
                     sbt run
                 else
