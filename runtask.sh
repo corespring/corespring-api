@@ -10,9 +10,9 @@ else
             sbt run
         else
             #HEROKU FIX: check if the path to sbt is .sbt_home/bin. if it is, add ~/.sbt_home/bin to path to make sbt executable from any folder
-            command -v ~/.sbt_home/sbt;
+            command -v ~/.sbt_home/bin/sbt;
             if [ "$?" = "0" ]; then
-                ~/.sbt_home/sbt run
+                ~/.sbt_home/bin/sbt run
             else
                 echo "error: could not run sbt. sbt command unavailable"
             fi
