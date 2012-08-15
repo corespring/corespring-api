@@ -45,14 +45,14 @@ class ItemSessionTest extends Specification {
 
       // from standard fixture data
       val token = "34dj45a769j4e1c0h4wb"
-      // TODO this is currently passing a new itemId - this should fail. itemId needs to exist in items collection
-      val testSession = ItemSession(None, new ObjectId())
+      val testItemId = "5001b7ade4b0d7c9ec321070"
+      val testSession = ItemSession(None, new ObjectId(testItemId))
       val url = "/api/v1/items/" + testSession.itemId.toString + "/sessions"
 
       // add some item responses
-      testSession.responses ::= ItemResponse("question1","choice1", "outcome:{$score:1}")
-      testSession.responses ::= ItemResponse("question2","some text", "outcome:{$score:1}")
-      testSession.responses ::= ItemResponse("question3","more text", "outcome:{$score:1}")
+      testSession.responses ::= ItemResponse("question1","choice1", "{$score:1}")
+      testSession.responses ::= ItemResponse("question2","some text", "{$score:1}")
+      testSession.responses ::= ItemResponse("question3","more text", "{$score:1}")
 
       val request = FakeRequest(
         POST,
@@ -61,6 +61,7 @@ class ItemSessionTest extends Specification {
         AnyContentAsJson(Json.toJson(testSession))
       )
 
+      System.out.println(Json.toJson(testSession))
 
       val optResult = routeAndCall(request)
       if(optResult.isDefined) {

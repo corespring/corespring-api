@@ -21,7 +21,7 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
   val scope = "scope"
   val tokenId = "tokenId"
 
-  val collection = mongoCollection("accessTokens.json")
+  val collection = mongoCollection("accessTokens")
   val dao = new SalatDAO[AccessToken, ObjectId](collection = collection) {}
 
   /**
