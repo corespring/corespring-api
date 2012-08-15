@@ -12,7 +12,7 @@ app.controller('TestApi', function($scope, $resource, $http) {
     // for testing
     $scope.url = '/items/5001b7ade4b0d7c9ec321070/sessions?access_token=34dj45a769j4e1c0h4wb';
 
-    $scope.method = 'GET';
+    $scope.method = 'POST';
     $scope.methods = ['GET', 'POST', 'PUT', 'DELETE'];
 
     $scope.submit = function() {
