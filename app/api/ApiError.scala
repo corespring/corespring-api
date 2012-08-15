@@ -37,6 +37,7 @@ object ApiError {
   val IdNotNeeded         = ApiError(201, "An id cannot be specified for this operation")
   val InvalidQuery        = ApiError(202, "Your query is invalid")
   val UnknownFieldOrOperator = ApiError(203, "Unknown field or operator: %s")
+  val InvalidField        = ApiError(203, "Field %s is invalid")
 
   // Organization API
   val IdsDoNotMatch       = ApiError(300, "Specified id does not match the one in the json")

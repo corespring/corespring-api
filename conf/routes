@@ -44,6 +44,9 @@ GET     /api/v1/items/:id                       api.v1.ItemApi.getItem(id: Objec
 DELETE  /api/v1/items/:id                       api.v1.ItemApi.deleteItem(id: ObjectId)
 GET     /api/v1/items/:id/detail                api.v1.ItemApi.getItemDetail(id: ObjectId)
 GET     /api/v1/items/:id/data                  api.v1.ItemApi.getItemData(id: ObjectId)
+POST    /api/v1/items                           api.v1.ItemApi.createItem
+PUT     /api/v1/items/:id                       api.v1.ItemApi.updateItem(id: ObjectId)
+
 
 
 # Item Session API
