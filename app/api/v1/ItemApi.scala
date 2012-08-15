@@ -4,12 +4,13 @@ import controllers.auth.BaseApi
 import play.api.Logger
 import api.{InvalidFieldException, ApiError, CountResult, QueryHelper}
 import models.Item
-import play.api.libs.json.Json
 import com.mongodb.util.JSONParseException
 import org.bson.types.ObjectId
 import com.mongodb.casbah.Imports._
+import com.mongodb.casbah.commons.MongoDBObject
 import play.api.templates.Xml
 import play.api.mvc.Result
+import play.api.libs.json.Json
 
 
 /**
@@ -125,6 +126,76 @@ object ItemApi extends BaseApi {
       case Some(o) => {
         Item.collection.remove(idField)
         Ok(com.mongodb.util.JSON.serialize(o))
+      }
+      case _ => NotFound
+    }
+  }
+
+  def createItem = ApiAction { request =>
+    request.body.asJson match {
+      case Some(json) => {
+        try {
+          Logger.info("Item.createItem: received json: %s".format(json))
+          val dbObj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
+          if ( dbObj.isDefinedAt("id") ) {
+            BadRequest(Json.toJson(ApiError.IdNotNeeded))
+          } else {
+            validateFields(dbObj)
+            val toSave = dbObj += ("_id" -> new ObjectId())
+            val wr = Item.collection.insert(toSave)
+            val commandResult = wr.getCachedLastError
+            if ( commandResult == null || commandResult.ok() ) {
+              Ok(com.mongodb.util.JSON.serialize(dbObj)).as(JSON)
+            } else {
+              Logger.error("There was an error inserting an item: %s".format(commandResult.toString))
+              InternalServerError(Json.toJson(ApiError.CantSave))
+            }
+          }
+        } catch {
+          case parseEx: JSONParseException => BadRequest(Json.toJson(ApiError.JsonExpected))
+          case invalidField: InvalidFieldException => BadRequest(Json.toJson(ApiError.InvalidField.format(invalidField.field)))
+        }
+      }
+      case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
+    }
+  }
+
+  private def validateFields(obj: DBObject) {
+    //todo: check with evanues what fields are valid
+  }
+
+  def updateItem(id: ObjectId) = ApiAction { request =>
+    Item.collection.findOneByID(id) match {
+      case Some(item) => {
+        request.body.asJson match {
+          case Some(json) => {
+            try {
+              Logger.info("Item.updateItem: received json: %s".format(json))
+
+              val dbObj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
+              val hasId = dbObj.isDefinedAt("_id")
+
+              if ( hasId && !dbObj.get("_id").equals(id) ) {
+                BadRequest(Json.toJson(ApiError.IdsDoNotMatch))
+              } else {
+                validateFields(dbObj)
+                val toSave = item ++ dbObj
+                val wr = Item.collection.update(MongoDBObject("_id" -> id), toSave)
+                val commandResult = wr.getCachedLastError
+                if ( commandResult == null || commandResult.ok() ) {
+                  Ok(com.mongodb.util.JSON.serialize(toSave)).as(JSON)
+                } else {
+                  Logger.error("There was an error updating item %s: %s".format(id, commandResult.toString))
+                  InternalServerError(Json.toJson(ApiError.CantSave))
+                }
+              }
+            } catch {
+              case parseEx: JSONParseException => BadRequest(Json.toJson(ApiError.JsonExpected))
+              case invalidField: InvalidFieldException => BadRequest(Json.toJson(ApiError.InvalidField.format(invalidField.field)))
+            }
+          }
+          case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
+        }
       }
       case _ => NotFound
     }
