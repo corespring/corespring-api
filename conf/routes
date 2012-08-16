@@ -41,6 +41,7 @@ DELETE  /api/v1/users/:id                       api.v1.UserApi.deleteUser(id: Ob
 
 # Items API
 GET     /api/v1/items                           api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
+GET     /api/v1/organizations/:orgId/items      api.v1.ItemApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
 GET     /api/v1/items/:id                       api.v1.ItemApi.getItem(id: ObjectId)
 DELETE  /api/v1/items/:id                       api.v1.ItemApi.deleteItem(id: ObjectId)
 GET     /api/v1/items/:id/detail                api.v1.ItemApi.getItemDetail(id: ObjectId)
