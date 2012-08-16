@@ -91,6 +91,11 @@ object User extends ModelCompanion[User, ObjectId] {
    */
   def getUser(username: String): Option[User] = User.findOne(MongoDBObject(User.userName -> username))
 
+  def getUsers(orgId: ObjectId): Either[InternalError, Seq[User]] = {
+    val c: SalatMongoCursor[User] = User.find(MongoDBObject(User.orgs + "." + UserOrg.orgId -> orgId))
+    val returnValue = Right(c.toSeq)
+    c.close(); returnValue
+  }
   //
   implicit object UserWrites extends Writes[User] {
     def writes(user: User) = {

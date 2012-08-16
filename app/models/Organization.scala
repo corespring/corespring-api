@@ -12,6 +12,16 @@ import api.ApiError
 import models.mongoContext._
 import play.api.Play
 import controllers.{LogType, InternalError}
+import com.novus.salat._
+import controllers.InternalError
+import dao.SalatDAOUpdateError
+import dao.SalatRemoveError
+import scala.Left
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsString
+import scala.Some
+import scala.Right
+import play.api.libs.json.JsObject
 
 case class Organization(var name: String,
                         var path: Seq[ObjectId] = Seq(),
@@ -85,7 +95,74 @@ object Organization extends ModelCompanion[Organization, ObjectId] {
       case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("unable to update organization")))
     }
   }
+  /**
+   * get the path of the given organization in descending order. e.g. Massachusetts Board of Education -> Some Mass. District -> Some Mass. School
+   * @param org: the organization in which to retrieve all parents from
+   */
+  def getPath(org: Organization): List[Organization] = {
+    val c = Organization.find(MongoDBObject("_id" -> MongoDBObject("$in" -> org.path)))
+    val orgList = c.toList
+    c.close()
+    orgList
+  }
 
+  /**
+   * get immediate sub-nodes of given organization, exactly one depth greather than parent.
+   * if none, or parent could not be found in database, returns empty list
+   * @param parentId
+   * @return
+   */
+  def getChildren(parentId: ObjectId): List[Organization] = {
+    val c = Organization.find(MongoDBObject(Organization.path -> parentId))
+
+    val orgList = c.filter(o => if (o.path.size >= 2) o.path(o.path.size - 2) == parentId else false).toList
+    c.close()
+    orgList
+  }
+
+  /**
+   * get all sub-nodes of given organization.
+   * if none, or parent could not be found in database, returns empty list
+   * @param parentId
+   * @return
+   */
+  def getTree(parentId: ObjectId): List[Organization] = {
+    val c = Organization.find(MongoDBObject(Organization.path -> parentId))
+    val orgList = c.toList
+    c.close
+    orgList
+  }
+
+  def isChild(parentId: ObjectId, childId: ObjectId): Boolean = {
+    Organization.findOneById(childId) match {
+      case Some(child) => {
+        if (child.path.size >= 2) child.path(child.path.size - 2) == parentId else false
+      }
+      case None => false
+    }
+  }
+
+  def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean = {
+    Organization.findOne(MongoDBObject("_id" -> orgId,
+      Organization.contentcolls -> MongoDBObject("$elemMatch" ->
+        MongoDBObject(ContentCollRef.collId -> collRef.collId, ContentCollRef.pval -> collRef.pval)))).isDefined
+  }
+
+  def addCollection(orgId: ObjectId, collId: ObjectId, p: Permission): Either[InternalError, ContentCollRef] = {
+    try {
+      val collRef = new ContentCollRef(collId, p.value)
+      if (!hasCollRef(orgId, collRef)) {
+        Organization.update(MongoDBObject("_id" -> orgId),
+          MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> grater[ContentCollRef].asDBObject(collRef))),
+          false, false, Organization.collection.writeConcern)
+        Right(collRef)
+      } else {
+        Left(InternalError("collection reference already exists",LogType.printError,true))
+      }
+    } catch {
+      case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal))
+    }
+  }
   implicit object OrganizationWrites extends Writes[Organization] {
     def writes(org: Organization) = {
       JsObject(

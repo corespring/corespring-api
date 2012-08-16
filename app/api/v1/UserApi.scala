@@ -5,9 +5,6 @@ import play.api.libs.json.Json
 import models.User
 import org.bson.types.ObjectId
 import api.ApiError
-import play.api.mvc.Result
-import com.novus.salat.dao.SalatSaveError
-import controllers.UserService
 
 /**
  * The User API
@@ -19,7 +16,7 @@ object UserApi extends BaseApi {
    * @return
    */
   def list() = ApiAction { request =>
-    UserService.getUsers(request.ctx.organization) match {
+    User.getUsers(request.ctx.organization) match {
       case Right(users) => Ok(Json.toJson(users))
       case Left(e) => InternalServerError(Json.toJson(ApiError.UsersInOrganization(e.clientOutput)))
     }

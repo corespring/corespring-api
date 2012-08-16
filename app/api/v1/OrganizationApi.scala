@@ -7,7 +7,6 @@ import controllers.auth.BaseApi
 import com.novus.salat.dao.{SalatDAOUpdateError, SalatSaveError}
 import api._
 import play.api.mvc.Result
-import controllers.services.OrgService
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao.SalatSaveError
 import play.api.mvc.Result
@@ -44,7 +43,7 @@ object OrganizationApi extends BaseApi {
             if ( c.equalsIgnoreCase("true") ) CountResult.toJson(cursor.count) else Json.toJson(cursor.toList)
           )
         }
-        case None => Ok(Json.toJson(OrgService.getTree(request.ctx.organization)))
+        case None => Ok(Json.toJson(Organization.getTree(request.ctx.organization)))
       }
     } catch {
       case e: JSONParseException => BadRequest(Json.toJson(ApiError.InvalidQuery))
@@ -64,7 +63,7 @@ object OrganizationApi extends BaseApi {
           if (request.ctx.organization == org.id){
             Ok(Json.toJson(org))
           }else{
-            OrgService.getTree(request.ctx.organization).find(_ == org.id) match {
+            Organization.getTree(request.ctx.organization).find(_ == org.id) match {
               case Some(_) => Ok(Json.toJson(org))
               case None => Unauthorized
             }

@@ -10,11 +10,7 @@ import dao._
 import dao.SalatDAOUpdateError
 import dao.SalatInsertError
 import dao.SalatRemoveError
-import dao.SalatSaveError
-import controllers.{Log, LogType, InternalError, CollService}
-import api.ApiError
-import controllers.services.OrgService
-import controllers.auth.Permission
+import controllers.{Log, LogType, InternalError}
 import scala.Left
 import play.api.libs.json.JsString
 import scala.Some
@@ -22,6 +18,7 @@ import scala.Right
 import play.api.libs.json.JsObject
 import play.api.Play.current
 import play.api.Play
+import controllers.auth.Permission
 
 /**
  * A ContentCollection
@@ -56,7 +53,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
   }
 
   def removeCollection(collId: ObjectId): Either[InternalError, Unit] = {
-    CollService.moveToArchive(collId) match {
+    ContentCollection.moveToArchive(collId) match {
       case Right(_) => try {
         //remove collection references from organizations
         Organization.update(MongoDBObject(Organization.contentcolls + "." + ContentCollRef.collId -> collId),
@@ -85,6 +82,38 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
     } catch {
       case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update collection")))
     }
+  }
+  lazy val archiveCollId: ObjectId = ContentCollection.findOneById(new ObjectId("500ecfc1036471f538f24bdc")) match {
+    case Some(coll) => coll.id
+    case None => ContentCollection.insert(ContentCollection("archiveColl", id = new ObjectId("500ecfc1036471f538f24bdc"))) match {
+      case Some(collId) => collId
+      case None => throw new RuntimeException("could not create new archive collection")
+    }
+  }
+  def moveToArchive(collId:ObjectId):Either[InternalError,Unit] = {
+    try{
+      Content.collection.update(MongoDBObject(Content.collId -> collId), MongoDBObject("$set" -> MongoDBObject(Content.collId -> ContentCollection.archiveCollId)),
+        false, false, Content.collection.writeConcern)
+      Right(())
+    }catch{
+      case e:SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to transfer collection to archive")))
+    }
+  }
+  def getCollections(orgId: ObjectId, p:Permission): Either[InternalError, Seq[ContentCollection]] = {
+    val cursor = Organization.find(MongoDBObject(Organization.path -> orgId))   //find the tree of the given organization
+    val seqoptcoll:Seq[Option[ContentCollection]] = cursor.
+        foldRight[Seq[ContentCollRef]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value)). //filter the collections that don't have the given permission
+        foldRight[Seq[Option[ContentCollection]]](Seq())((ccr,acc) => {acc :+ ContentCollection.findOneById(ccr.collId)}) //retrieve the collections
+    val seqcoll:Seq[ContentCollection] = seqoptcoll.filter(_.isDefined).map(_.get) //filter any collections that were not retrieved
+    if (seqoptcoll.size > seqcoll.size) Log.f("CollService.getCollections: there are collections referenced by organizations that don't exist in the database. structure compromised")
+    cursor.close()
+    Right(seqcoll)
+  }
+
+  def addOrganizations(orgIds: Seq[ObjectId], collId: ObjectId, p: Permission): Either[InternalError, Unit] = {
+    val errors = orgIds.map(oid => Organization.addCollection(oid, collId, p)).filter(_.isLeft)
+    if (errors.size > 0) Left(errors(0).left.get)
+    else Right(())
   }
 
   implicit object CollectionWrites extends Writes[ContentCollection] {

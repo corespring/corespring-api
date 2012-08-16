@@ -5,10 +5,6 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import models.{ContentCollection, Organization}
 import org.bson.types.ObjectId
 import api.ApiError
-import play.api.mvc.Result
-import com.novus.salat.dao.SalatSaveError
-import controllers.CollService
-import controllers.services.OrgService
 
 /**
  * The Collections API
@@ -21,7 +17,7 @@ object CollectionApi extends BaseApi {
    * @return
    */
   def list() = ApiAction { request =>
-    CollService.getCollections(request.ctx.organization,Permission.All) match {
+    ContentCollection.getCollections(request.ctx.organization,Permission.All) match {
       case Right(colls) => Ok(Json.toJson(colls))
       case Left(e) => InternalServerError(Json.toJson(ApiError.OperationError(e.clientOutput)))
     }
@@ -95,7 +91,7 @@ object CollectionApi extends BaseApi {
           val toUpdate = ContentCollection( name, id = original.id)
           ContentCollection.updateCollection(toUpdate) match {
             case Right(coll) => (json \ "organizations").asOpt[Seq[String]].map( seq => seq.map( new ObjectId(_)) ) match {
-              case Some(orgIds) => CollService.addOrganizations(orgIds, id, Permission.All) match {
+              case Some(orgIds) => ContentCollection.addOrganizations(orgIds, id, Permission.All) match {
                 case Right(_) => Ok(Json.toJson(coll))
                 case Left(e) => InternalServerError(Json.toJson(ApiError.AddToOrganization(e.clientOutput)))
               }
