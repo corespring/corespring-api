@@ -3,7 +3,7 @@ package api.v1
 import controllers.auth.{Permission, BaseApi}
 import play.api.Logger
 import api.{InvalidFieldException, ApiError, QueryHelper}
-import models.{ContentCollection, Content, Item}
+import models.{Organization, ContentCollection, Content, Item}
 import com.mongodb.util.JSONParseException
 import org.bson.types.ObjectId
 import com.mongodb.casbah.Imports._
@@ -45,7 +45,12 @@ object ItemApi extends BaseApi {
     val initSearch = MongoDBObject(Content.collId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(request.ctx.organization,Permission.All)))
     QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, initSearch)
   }
-
+  def listWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+    if (Organization.isChild(request.ctx.organization,orgId)){
+      val initSearch = MongoDBObject(Content.collId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(orgId,Permission.All)))
+      QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, initSearch)
+    }else Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
+  }
   /**
    * Returns an Item.  Only the default fields are rendered back.
    *
