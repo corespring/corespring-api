@@ -46,7 +46,9 @@ object Main {
         jsonToDB(basePath + "collections.json", mongoDb("contentcolls"))
         jsonToDB(basePath + "apiClients.json", mongoDb("apiClients"))
         jsonToDB(basePath + "accessTokens.json", mongoDb("accessTokens"))
+        jsonToDB(basePath + "users.json", mongoDb("users"))
         jsonToDB(basePath + "itemsessions.json", mongoDb("itemsessions"))
+
       }
       case None => throw new RuntimeException("could not create mongodb instance")
     }

@@ -46,6 +46,7 @@ object ApiError {
   val InsertOrganization  = ApiError(304, "Failed to insert organization")
   val UpdateOrganization  = ApiError(305, "Failed to update organization")
   val RemoveOrganization  = ApiError(306, "Failed to remove organization")
+  val UnauthorizedOrganization  = ApiError(307, "You do not have access to the given organization")
 
   // Collections aPI
   val CollectionNameMissing = ApiError(400, "You need to specify a name for the collection")

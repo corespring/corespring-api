@@ -99,8 +99,8 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
       case e:SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to transfer collection to archive")))
     }
   }
-  def getCollectionIds(orgId: ObjectId, p:Permission): Seq[ObjectId] = {
-    val cursor = Organization.find(MongoDBObject(Organization.path -> orgId))   //find the tree of the given organization
+  def getCollectionIds(orgId: ObjectId, p:Permission, deep:Boolean = true): Seq[ObjectId] = {
+    val cursor = if(deep)Organization.find(MongoDBObject(Organization.path -> orgId)) else Organization.find(MongoDBObject("_id" -> orgId))   //find the tree of the given organization
     val seqcollid:Seq[ObjectId] = cursor.foldRight[Seq[ObjectId]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value).map(_.collId)) //filter the collections that don't have the given permission
     cursor.close()
     seqcollid
@@ -110,6 +110,15 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
     val errors = orgIds.map(oid => Organization.addCollection(oid, collId, p)).filter(_.isLeft)
     if (errors.size > 0) Left(errors(0).left.get)
     else Right(())
+  }
+
+  /**
+   * does the given organization have access to the given collection with given permissions?
+   * @param orgId
+   * @param collId
+   */
+  def isAuthorized(orgId:ObjectId, collId:ObjectId, p: Permission):Boolean = {
+    getCollectionIds(orgId,p).find(_ == collId).isDefined
   }
 
   implicit object CollectionWrites extends Writes[ContentCollection] {
