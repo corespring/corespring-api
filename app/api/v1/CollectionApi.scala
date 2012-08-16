@@ -18,13 +18,25 @@ object CollectionApi extends BaseApi {
    * @return
    */
   def list() = ApiAction { request =>
-    val collids = ContentCollection.getCollectionIds(request.ctx.organization,Permission.All)
+    val collids = ContentCollection.getCollectionIds(request.ctx.organization,Permission.All,false)
 
     val cursor = ContentCollection.find(MongoDBObject("_id" -> MongoDBObject("$in" -> collids)))
 
     val colls = cursor.toSeq
     cursor.close()
     Ok(Json.toJson(colls))
+  }
+
+  def listWithOrg(orgId: ObjectId) = ApiAction { request =>
+    if (Organization.isChild(request.ctx.organization, orgId)){
+      val collids = ContentCollection.getCollectionIds(orgId,Permission.All,false)
+
+      val cursor = ContentCollection.find(MongoDBObject("_id" -> MongoDBObject("$in" -> collids)))
+
+      val colls = cursor.toSeq
+      cursor.close()
+      Ok(Json.toJson(colls))
+    }else Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
   /**
