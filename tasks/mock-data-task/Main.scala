@@ -38,7 +38,7 @@ object Main {
   }
 
   def insertMockData = {
-    val basePath = "/app/conf/test-data/"
+    val basePath = "/Users/evaneus/devt/corespring-api/conf/test-data/"
     getDb match {
       case Some(mongoDb) => {
         jsonToDB(basePath + "orgs.json", mongoDb("orgs"))
@@ -46,6 +46,7 @@ object Main {
         jsonToDB(basePath + "collections.json", mongoDb("contentcolls"))
         jsonToDB(basePath + "apiClients.json", mongoDb("apiClients"))
         jsonToDB(basePath + "accessTokens.json", mongoDb("accessTokens"))
+        jsonToDB(basePath + "itemsessions.json", mongoDb("itemsessions"))
       }
       case None => throw new RuntimeException("could not create mongodb instance")
     }
