@@ -7,7 +7,6 @@ import controllers.auth.BaseApi
 import com.novus.salat.dao.{SalatDAOUpdateError, SalatSaveError}
 import api._
 import play.api.mvc.Result
-import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao.SalatSaveError
 import play.api.mvc.Result
 import play.api.Logger
@@ -33,7 +32,7 @@ object OrganizationApi extends BaseApi {
       import com.mongodb.casbah.Imports._
 
       val query = q.map( QueryHelper.parse(_, Organization.queryFields) )
-      query.map( Organization.find(_) ) match {
+      query.map( qstr => Organization.find(qstr ++ MongoDBObject(Organization.path -> request.ctx.organization)) ) match {
         case Some(cursor) => {
           cursor.skip(sk)
           cursor.limit(l)

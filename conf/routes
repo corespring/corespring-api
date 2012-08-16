@@ -27,6 +27,7 @@ DELETE  /api/v1/organizations/:id               api.v1.OrganizationApi.deleteOrg
 # Collections
 GET     /api/v1/collections                     api.v1.CollectionApi.list
 GET     /api/v1/collections/:id                 api.v1.CollectionApi.getCollection(id: ObjectId)
+GET     /api/v1/organizations/:orgId/collections    api.v1.CollectionApi.listWithOrg(orgId:ObjectId)
 POST    /api/v1/collections                     api.v1.CollectionApi.createCollection
 PUT     /api/v1/collections/:id                 api.v1.CollectionApi.updateCollection(id: ObjectId)
 DELETE  /api/v1/collections/:id                 api.v1.CollectionApi.deleteCollection(id: ObjectId)

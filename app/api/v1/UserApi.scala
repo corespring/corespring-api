@@ -2,9 +2,11 @@ package api.v1
 
 import controllers.auth.{Permission, BaseApi}
 import play.api.libs.json.Json
-import models.User
+import models.{UserOrg, User}
 import org.bson.types.ObjectId
 import api.ApiError
+import com.novus.salat.dao.SalatMongoCursor
+import com.mongodb.casbah.commons.MongoDBObject
 
 /**
  * The User API
@@ -16,10 +18,10 @@ object UserApi extends BaseApi {
    * @return
    */
   def list() = ApiAction { request =>
-    User.getUsers(request.ctx.organization) match {
-      case Right(users) => Ok(Json.toJson(users))
-      case Left(e) => InternalServerError(Json.toJson(ApiError.UsersInOrganization(e.clientOutput)))
-    }
+    val c: SalatMongoCursor[User] = User.find(MongoDBObject(User.orgs + "." + UserOrg.orgId -> request.ctx.organization))
+    val users = c.toSeq
+    c.close()
+    Ok(Json.toJson(users))
   }
 
   /**
