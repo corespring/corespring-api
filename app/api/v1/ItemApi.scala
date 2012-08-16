@@ -45,12 +45,14 @@ object ItemApi extends BaseApi {
     val initSearch = MongoDBObject(Content.collId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(request.ctx.organization,Permission.All)))
     QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, Some(initSearch))
   }
+
   def listWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
-    if (Organization.isChild(request.ctx.organization,orgId)){
+    if (Organization.isChild(request.ctx.organization,orgId)) {
       val initSearch = MongoDBObject(Content.collId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(orgId,Permission.All)))
-      QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, initSearch)
-    }else Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
+      QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, Some(initSearch))
+    } else Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
   }
+
   /**
    * Returns an Item.  Only the default fields are rendered back.
    *
