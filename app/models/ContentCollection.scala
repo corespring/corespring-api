@@ -99,15 +99,11 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
       case e:SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to transfer collection to archive")))
     }
   }
-  def getCollections(orgId: ObjectId, p:Permission): Either[InternalError, Seq[ContentCollection]] = {
+  def getCollectionIds(orgId: ObjectId, p:Permission): Seq[ObjectId] = {
     val cursor = Organization.find(MongoDBObject(Organization.path -> orgId))   //find the tree of the given organization
-    val seqoptcoll:Seq[Option[ContentCollection]] = cursor.
-        foldRight[Seq[ContentCollRef]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value)). //filter the collections that don't have the given permission
-        foldRight[Seq[Option[ContentCollection]]](Seq())((ccr,acc) => {acc :+ ContentCollection.findOneById(ccr.collId)}) //retrieve the collections
-    val seqcoll:Seq[ContentCollection] = seqoptcoll.filter(_.isDefined).map(_.get) //filter any collections that were not retrieved
-    if (seqoptcoll.size > seqcoll.size) Log.f("CollService.getCollections: there are collections referenced by organizations that don't exist in the database. structure compromised")
+    val seqcollid:Seq[ObjectId] = cursor.foldRight[Seq[ObjectId]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value).map(_.collId)) //filter the collections that don't have the given permission
     cursor.close()
-    Right(seqcoll)
+    seqcollid
   }
 
   def addOrganizations(orgIds: Seq[ObjectId], collId: ObjectId, p: Permission): Either[InternalError, Unit] = {

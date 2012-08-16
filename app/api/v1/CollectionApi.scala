@@ -5,6 +5,7 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import models.{ContentCollection, Organization}
 import org.bson.types.ObjectId
 import api.ApiError
+import com.mongodb.casbah.commons.MongoDBObject
 
 /**
  * The Collections API
@@ -17,10 +18,13 @@ object CollectionApi extends BaseApi {
    * @return
    */
   def list() = ApiAction { request =>
-    ContentCollection.getCollections(request.ctx.organization,Permission.All) match {
-      case Right(colls) => Ok(Json.toJson(colls))
-      case Left(e) => InternalServerError(Json.toJson(ApiError.OperationError(e.clientOutput)))
-    }
+    val collids = ContentCollection.getCollectionIds(request.ctx.organization,Permission.All)
+
+    val cursor = ContentCollection.find(MongoDBObject("_id" -> MongoDBObject("$in" -> collids)))
+
+    val colls = cursor.toSeq
+    cursor.close()
+    Ok(Json.toJson(colls))
   }
 
   /**
