@@ -4,11 +4,7 @@ import org.bson.types.ObjectId
 import models.Organization
 import play.api.libs.json.{JsValue, Json}
 import controllers.auth.BaseApi
-import com.novus.salat.dao.{SalatDAOUpdateError, SalatSaveError}
 import api._
-import play.api.mvc.Result
-import com.novus.salat.dao.SalatSaveError
-import play.api.mvc.Result
 import play.api.Logger
 import com.mongodb.util.JSONParseException
 import scala.Left

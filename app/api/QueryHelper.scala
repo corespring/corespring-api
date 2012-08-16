@@ -1,6 +1,5 @@
 package api
 
-import com.mongodb.casbah.commons.MongoDBObject
 import play.api.mvc.{Result, Results}
 import play.api.Logger
 import com.mongodb.util.{JSONParseException, JSON}
@@ -21,7 +20,7 @@ object QueryHelper {
 
   def parse[T](q: String, validFields: Map[String, String]):MongoDBObject = {
     Logger.debug("fields = " + validFields.mkString(","))
-      val query = JSON.parse(q).asInstanceOf[DBObject]
+      val query:MongoDBObject = JSON.parse(q).asInstanceOf[MongoDBObject]
       for ( f <- query.iterator ) {
         // check if it's a valid field
         Logger.debug("checking field: " + f._1)
@@ -86,11 +85,10 @@ object QueryHelper {
    *
    * @return
    */
-  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, validFields: Map[String, String], collection: MongoCollection): Result = {
+  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, validFields: Map[String, String], collection: MongoCollection, initSearch:DBObject = MongoDBObject()): Result = {
     Logger.debug("QueryHelper: q = %s, f = %s, c = %s, sk = %d, l = %d".format(q, f, c, sk, l))
-
     try {
-      val query = q.map( QueryHelper.parse(_, validFields) ).getOrElse( new MongoDBObject() )
+      val query:MongoDBObject = q.map( QueryHelper.parse(_, validFields) ).getOrElse( new MongoDBObject() )
       val fields = f match {
         case Some(s) => {
           val fieldObj = JSON.parse(s).asInstanceOf[DBObject]
@@ -99,8 +97,7 @@ object QueryHelper {
         }
         case _ => None
       }
-
-      val cursor = fields.map( collection.find(query, _) ).getOrElse( collection.find(query))
+      val cursor = fields.map( collection.find(query ++ initSearch, _) ).getOrElse( collection.find(query))
       cursor.skip(sk)
       cursor.limit(l)
 

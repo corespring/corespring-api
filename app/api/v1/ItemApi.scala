@@ -1,9 +1,9 @@
 package api.v1
 
-import controllers.auth.BaseApi
+import controllers.auth.{Permission, BaseApi}
 import play.api.Logger
 import api.{InvalidFieldException, ApiError, QueryHelper}
-import models.Item
+import models.{ContentCollection, Content, Item}
 import com.mongodb.util.JSONParseException
 import org.bson.types.ObjectId
 import com.mongodb.casbah.Imports._
@@ -42,7 +42,8 @@ object ItemApi extends BaseApi {
    * @return
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
-    QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection)
+    val initSearch = MongoDBObject(Content.collId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(request.ctx.organization,Permission.All)))
+    QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, initSearch)
   }
 
   /**
