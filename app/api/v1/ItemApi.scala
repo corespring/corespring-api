@@ -43,7 +43,7 @@ object ItemApi extends BaseApi {
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
     val initSearch = MongoDBObject(Content.collId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(request.ctx.organization,Permission.All)))
-    QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, initSearch)
+    QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, Some(initSearch))
   }
 
   /**

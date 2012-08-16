@@ -85,10 +85,10 @@ object QueryHelper {
    *
    * @return
    */
-  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, validFields: Map[String, String], collection: MongoCollection, initSearch:DBObject = MongoDBObject()): Result = {
+  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, validFields: Map[String, String], collection: MongoCollection, initSearch:Option[DBObject] = None): Result = {
     Logger.debug("QueryHelper: q = %s, f = %s, c = %s, sk = %d, l = %d".format(q, f, c, sk, l))
     try {
-      val query:MongoDBObject = q.map( QueryHelper.parse(_, validFields) ).getOrElse( new MongoDBObject() )
+      val query = q.map( QueryHelper.parse(_, validFields) ).getOrElse( new MongoDBObject() )
       val fields = f match {
         case Some(s) => {
           val fieldObj = JSON.parse(s).asInstanceOf[DBObject]
@@ -97,7 +97,8 @@ object QueryHelper {
         }
         case _ => None
       }
-      val cursor = fields.map( collection.find(query ++ initSearch, _) ).getOrElse( collection.find(query))
+      val combinedQuery:DBObject = initSearch.map( extraParams => query ++ extraParams).getOrElse( query )
+      val cursor = fields.map( collection.find(combinedQuery, _) ).getOrElse( collection.find(combinedQuery))
       cursor.skip(sk)
       cursor.limit(l)
 
