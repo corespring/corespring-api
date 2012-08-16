@@ -2,7 +2,7 @@ package api.v1
 
 import controllers.auth.BaseApi
 import play.api.Logger
-import api.{InvalidFieldException, ApiError, CountResult, QueryHelper}
+import api.{InvalidFieldException, ApiError, QueryHelper}
 import models.Item
 import com.mongodb.util.JSONParseException
 import org.bson.types.ObjectId
@@ -19,14 +19,17 @@ import play.api.libs.json.Json
 
 object ItemApi extends BaseApi {
 
-  //todo: have evaneus define what should be returned by default for /items/:id
-  val defaultFields = Some(MongoDBObject(
-    "_id" -> 1,
-    "title" -> 1,
-    "author" -> 1
+  //todo: confirm with evaneus this is what should be returned by default for /items/:id
+  val excludedFieldsByDefault = Some(MongoDBObject(
+    Item.CopyrightOwner -> 0,
+    Item.Credentials -> 0,
+    Item.Files -> 0,
+    Item.KeySkills -> 0,
+    Item.ContentType -> 0,
+    Item.XmlData -> 0
   ))
 
-  val xmlDataField = MongoDBObject("xmlData" -> 1)
+  val xmlDataField = MongoDBObject(Item.XmlData -> 1)
 
   /**
    * List query implementation for Items
@@ -39,26 +42,7 @@ object ItemApi extends BaseApi {
    * @return
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
-    Logger.debug("ItemAPI: q in controller = %s".format(q))
-
-    //todo: this block of code is going to be very similar with all the operations supporting list queries.
-    // I need to refactor this so the common code is reused among all of them.
-    try {
-      val query = q.map( QueryHelper.parse(_, Item.queryFields) ).getOrElse( new MongoDBObject() )
-      val cursor = Item.collection.find(query)
-      cursor.skip(sk)
-      cursor.limit(l)
-
-      // I'm using a String for c because if I use a boolean I need to pass 0 or 1 from the command line for Play to parse the boolean.
-      // I think using "true" or "false" is better
-      if ( c.equalsIgnoreCase("true") )
-        Ok(CountResult.toJson(cursor.count))
-      else
-        Ok(com.mongodb.util.JSON.serialize(cursor.toList))
-    } catch {
-      case e: JSONParseException => BadRequest(Json.toJson(ApiError.InvalidQuery))
-      case ife: InvalidFieldException => BadRequest(Json.toJson(ApiError.UnknownFieldOrOperator.format(ife.field)))
-    }
+    QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection)
   }
 
   /**
@@ -68,7 +52,7 @@ object ItemApi extends BaseApi {
    * @return
    */
   def getItem(id: ObjectId) = ApiAction { request =>
-    _getItem(id, defaultFields)
+    _getItem(id, excludedFieldsByDefault)
   }
 
   /**
@@ -104,7 +88,7 @@ object ItemApi extends BaseApi {
   def getItemData(id: ObjectId) = ApiAction { request =>
     Item.collection.findOneByID(id, xmlDataField) match {
       case Some(o) => {
-        Ok(Xml(o.get("xmlData").toString))
+        Ok(Xml(o.get(Item.XmlData).toString))
       }
       case _ => NotFound
     }
@@ -140,7 +124,7 @@ object ItemApi extends BaseApi {
           if ( dbObj.isDefinedAt("id") ) {
             BadRequest(Json.toJson(ApiError.IdNotNeeded))
           } else {
-            validateFields(dbObj)
+            QueryHelper.validateFields(dbObj, Item.queryFields)
             val toSave = dbObj += ("_id" -> new ObjectId())
             val wr = Item.collection.insert(toSave)
             val commandResult = wr.getCachedLastError
@@ -160,10 +144,6 @@ object ItemApi extends BaseApi {
     }
   }
 
-  private def validateFields(obj: DBObject) {
-    //todo: check with evanues what fields are valid
-  }
-
   def updateItem(id: ObjectId) = ApiAction { request =>
     Item.collection.findOneByID(id) match {
       case Some(item) => {
@@ -178,7 +158,7 @@ object ItemApi extends BaseApi {
               if ( hasId && !dbObj.get("_id").equals(id) ) {
                 BadRequest(Json.toJson(ApiError.IdsDoNotMatch))
               } else {
-                validateFields(dbObj)
+                QueryHelper.validateFields(dbObj, Item.queryFields)
                 val toSave = item ++ dbObj
                 val wr = Item.collection.update(MongoDBObject("_id" -> id), toSave)
                 val commandResult = wr.getCachedLastError
