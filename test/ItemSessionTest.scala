@@ -1,5 +1,6 @@
 import models.{ItemResponse, ItemSession}
 import org.bson.types.ObjectId
+import org.specs2.execute.Pending
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.AnyContentAsJson
 import play.api.test.{FakeHeaders, FakeRequest}
@@ -13,10 +14,14 @@ class ItemSessionTest extends Specification {
 
   PlaySingleton.start()
 
+  // from standard fixture data
+  val token = "34dj45a769j4e1c0h4wb"
+  val testItemId = "5001b7ade4b0d7c9ec321070"
+  val testItemSessionId = "502d0f823004deb7f4f53be7"
 
   // create test session bound to random object id
   // in practice ItemSessions need to be bound to an item
-  val testSession = ItemSession(Some(new ObjectId()),new ObjectId())
+  val testSession = ItemSession(Some(new ObjectId()),Some(new ObjectId()))
 
   "ItemSession" should {
     "be saveable" in {
@@ -43,10 +48,9 @@ class ItemSessionTest extends Specification {
   "item session api" should {
     "support item creation " in {
 
-      // from standard fixture data
-      val token = "34dj45a769j4e1c0h4wb"
-      val testItemId = "5001b7ade4b0d7c9ec321070"
-      val testSession = ItemSession(None, new ObjectId(testItemId))
+
+
+      val testSession = ItemSession(None, Some(new ObjectId(testItemId)))
       val url = "/api/v1/items/" + testSession.itemId.toString + "/sessions"
 
       // add some item responses
@@ -92,6 +96,34 @@ class ItemSessionTest extends Specification {
         failure
       }
 
+    }
+  }
+
+  "item session api" should {
+    "support retrieval of an itemsession" in {
+
+      val url = "/api/v1/itemsessions/" + testItemSessionId
+      val getRequest = FakeRequest(
+        GET,
+        url,
+        FakeHeaders( Map("Authorization" -> Seq("Bearer "+token)) ),
+        None
+      )
+
+      try {
+        val optResult = routeAndCall(getRequest)
+        if (optResult.isDefined) {
+          success
+        } else {
+          failure
+        }
+
+      } catch {
+        case e: Exception => {
+          System.out.println(e.getMessage)
+          failure
+        }
+      }
     }
   }
 

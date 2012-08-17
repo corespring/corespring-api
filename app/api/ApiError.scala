@@ -67,6 +67,9 @@ object ApiError {
   val ItemSessionRequiredFields = ApiError(500, "start property must be provided")
   val ItemIdRequired = ApiError(500, "no item id was provided for the session")
 
+  // Item aPI
+  val CollectionIsRequired    = ApiError(600, "A collection id for the item is required")
+
 
 
   implicit object ApiErrorWrites extends Writes[ApiError] {

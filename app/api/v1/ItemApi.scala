@@ -29,7 +29,7 @@ object ItemApi extends BaseApi {
     Item.XmlData -> 0
   ))
 
-  val xmlDataField = MongoDBObject(Item.XmlData -> 1)
+  val xmlDataField = MongoDBObject(Item.XmlData -> 1, Item.CollId -> 1)
 
   /**
    * List query implementation for Items
@@ -42,15 +42,21 @@ object ItemApi extends BaseApi {
    * @return
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
-    val initSearch = MongoDBObject(Content.collId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(request.ctx.organization,Permission.All)))
-    QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, initSearch)
+    doList(request.ctx.organization, q, f, c, sk, l)
   }
+
   def listWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
-    if (Organization.isChild(request.ctx.organization,orgId)){
-      val initSearch = MongoDBObject(Content.collId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(orgId,Permission.All)))
-      QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, initSearch)
-    }else Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
+    if (Organization.isChild(request.ctx.organization,orgId)) {
+      doList(orgId, q, f, c, sk, l)
+    } else Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
   }
+
+
+  private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = {
+    val initSearch = MongoDBObject(Content.collId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(orgId,Permission.All).map(_.toString)))
+    QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, Some(initSearch))
+  }
+
   /**
    * Returns an Item.  Only the default fields are rendered back.
    *
@@ -58,7 +64,7 @@ object ItemApi extends BaseApi {
    * @return
    */
   def getItem(id: ObjectId) = ApiAction { request =>
-    _getItem(id, excludedFieldsByDefault)
+    _getItem(request.ctx.organization, id, excludedFieldsByDefault)
   }
 
   /**
@@ -68,7 +74,7 @@ object ItemApi extends BaseApi {
    * @return
    */
   def getItemDetail(id: ObjectId) = ApiAction { request =>
-    _getItem(id, None)
+    _getItem(request.ctx.organization, id, None)
   }
 
   /**
@@ -78,9 +84,13 @@ object ItemApi extends BaseApi {
    * @param fields
    * @return
    */
-  private def _getItem(id: ObjectId, fields: Option[DBObject]): Result  = {
+  private def _getItem(callerOrg: ObjectId, id: ObjectId, fields: Option[DBObject]): Result  = {
     fields.map( Item.collection.findOneByID(id, _)).getOrElse( Item.collection.findOneByID(id)) match {
-      case Some(o) =>  Ok(com.mongodb.util.JSON.serialize(o))
+      case Some(o) =>  if ( canUpdateOrDelete(callerOrg, o.get(Item.CollId).asInstanceOf[String])) {
+        Ok(com.mongodb.util.JSON.serialize(o))
+      } else {
+        Forbidden
+      }
       case _ => NotFound
     }
   }
@@ -93,8 +103,10 @@ object ItemApi extends BaseApi {
    */
   def getItemData(id: ObjectId) = ApiAction { request =>
     Item.collection.findOneByID(id, xmlDataField) match {
-      case Some(o) => {
+      case Some(o) =>  if ( canUpdateOrDelete(request.ctx.organization, o.get(Item.CollId).asInstanceOf[String])) {
         Ok(Xml(o.get(Item.XmlData).toString))
+      } else {
+        Forbidden
       }
       case _ => NotFound
     }
@@ -107,15 +119,16 @@ object ItemApi extends BaseApi {
    * @return
    */
   def deleteItem(id: ObjectId) = ApiAction { request =>
-    // todo: 1) how do we know if we can allow this operation?
-    // todo: 2) what else do we need to delete? Probably references to this item in content collections?
-    // todo: 3) is it OK to delete an item someone might be using?
     val idField = MongoDBObject("_id" -> id)
 
     Item.collection.findOneByID(id, idField) match {
       case Some(o) => {
-        Item.collection.remove(idField)
-        Ok(com.mongodb.util.JSON.serialize(o))
+        if ( canUpdateOrDelete(request.ctx.organization, o.get(Item.CollId).asInstanceOf[String]) ) {
+          Item.collection.remove(idField)
+          Ok(com.mongodb.util.JSON.serialize(o))
+        } else {
+          Forbidden
+        }
       }
       case _ => NotFound
     }
@@ -125,10 +138,12 @@ object ItemApi extends BaseApi {
     request.body.asJson match {
       case Some(json) => {
         try {
-          Logger.info("Item.createItem: received json: %s".format(json))
+          Logger.debug("Item.createItem: received json: %s".format(json))
           val dbObj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
-          if ( dbObj.isDefinedAt("id") ) {
+          if ( dbObj.isDefinedAt("_id") ) {
             BadRequest(Json.toJson(ApiError.IdNotNeeded))
+          } else if ( !dbObj.isDefinedAt(Item.CollId) ) {
+            BadRequest(Json.toJson(ApiError.CollectionIsRequired))
           } else {
             QueryHelper.validateFields(dbObj, Item.queryFields)
             val toSave = dbObj += ("_id" -> new ObjectId())
@@ -153,37 +168,48 @@ object ItemApi extends BaseApi {
   def updateItem(id: ObjectId) = ApiAction { request =>
     Item.collection.findOneByID(id) match {
       case Some(item) => {
-        request.body.asJson match {
-          case Some(json) => {
-            try {
-              Logger.info("Item.updateItem: received json: %s".format(json))
+        if ( canUpdateOrDelete(request.ctx.organization, item.get(Item.CollId).asInstanceOf[String]) ) {
+          request.body.asJson match {
+            case Some(json) => {
+              try {
+                Logger.debug("Item.updateItem: received json: %s".format(json))
 
-              val dbObj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
-              val hasId = dbObj.isDefinedAt("_id")
+                val dbObj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
+                val hasId = dbObj.isDefinedAt("_id")
 
-              if ( hasId && !dbObj.get("_id").equals(id) ) {
-                BadRequest(Json.toJson(ApiError.IdsDoNotMatch))
-              } else {
-                QueryHelper.validateFields(dbObj, Item.queryFields)
-                val toSave = item ++ dbObj
-                val wr = Item.collection.update(MongoDBObject("_id" -> id), toSave)
-                val commandResult = wr.getCachedLastError
-                if ( commandResult == null || commandResult.ok() ) {
-                  Ok(com.mongodb.util.JSON.serialize(toSave)).as(JSON)
+                if ( hasId && !dbObj.get("_id").equals(id) ) {
+                  BadRequest(Json.toJson(ApiError.IdsDoNotMatch))
+                } else if ( !dbObj.isDefinedAt(Item.CollId) ) {
+                  BadRequest(Json.toJson(ApiError.CollectionIsRequired))
                 } else {
-                  Logger.error("There was an error updating item %s: %s".format(id, commandResult.toString))
-                  InternalServerError(Json.toJson(ApiError.CantSave))
+                  QueryHelper.validateFields(dbObj, Item.queryFields)
+                  val toSave = item ++ dbObj
+                  val wr = Item.collection.update(MongoDBObject("_id" -> id), toSave)
+                  val commandResult = wr.getCachedLastError
+                  if ( commandResult == null || commandResult.ok() ) {
+                    Ok(com.mongodb.util.JSON.serialize(toSave)).as(JSON)
+                  } else {
+                    Logger.error("There was an error updating item %s: %s".format(id, commandResult.toString))
+                    InternalServerError(Json.toJson(ApiError.CantSave))
+                  }
                 }
+              } catch {
+                case parseEx: JSONParseException => BadRequest(Json.toJson(ApiError.JsonExpected))
+                case invalidField: InvalidFieldException => BadRequest(Json.toJson(ApiError.InvalidField.format(invalidField.field)))
               }
-            } catch {
-              case parseEx: JSONParseException => BadRequest(Json.toJson(ApiError.JsonExpected))
-              case invalidField: InvalidFieldException => BadRequest(Json.toJson(ApiError.InvalidField.format(invalidField.field)))
             }
+            case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
           }
-          case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
+        } else {
+          Forbidden
         }
       }
       case _ => NotFound
     }
+  }
+
+  private def canUpdateOrDelete(callerOrg: ObjectId, itemCollId: String):Boolean = {
+    val ids = ContentCollection.getCollectionIds(callerOrg,Permission.All)
+    ids.contains(itemCollId)
   }
 }

@@ -17,7 +17,7 @@ import org.codehaus.jackson.annotate.JsonValue
  */
 case class ItemSession (
                          var id: Option[ObjectId],
-                         var itemId: ObjectId,
+                         var itemId: Option[ObjectId],
                          var start: DateTime = new DateTime(),
                          var finish: DateTime = new DateTime(),
                          var responses: List[ItemResponse] = List[ItemResponse]()
@@ -30,7 +30,7 @@ case class ItemSession (
  *
  */
 object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
-  val collection = mongoCollection("itemsession")
+  val collection = mongoCollection("itemsessions")
   val dao = new SalatDAO[ItemSession, ObjectId](collection = collection) {}
 
 

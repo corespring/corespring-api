@@ -17,6 +17,22 @@ import play.api.mvc.{AnyContent, Result}
 object ItemSessionApi extends BaseApi {
 
   /**
+   *
+   * Serves GET request
+   * @param sessionId
+   * @return
+   */
+  def getItemSession(sessionId: ObjectId) = ApiAction { request =>
+    ItemSession.findOneById(sessionId) match {
+      case Some(o) => {
+        Ok(Json.toJson(o))
+      }
+      case None => NotFound
+    }
+
+  }
+
+  /**
    * Serves POST request
    * Creates an itemSession.
    * Does not require a json body, by default will create an 'empty' session for the item id
@@ -49,7 +65,7 @@ object ItemSessionApi extends BaseApi {
                 if ( start.isEmpty ) {
                   BadRequest( Json.toJson(ApiError.ItemSessionRequiredFields))
                 } else {
-                  val itemSession = ItemSession(Some(new ObjectId()), itemId)
+                  val itemSession = ItemSession(Some(new ObjectId()), Some(itemId))
                   val startTime = new DateTime(start.getOrElse("").toLong)
                   itemSession.start = startTime
                   if (! finish.isEmpty) itemSession.finish = new DateTime(finish.getOrElse("").toLong)
@@ -66,7 +82,7 @@ object ItemSessionApi extends BaseApi {
           }
           case _ => {
             // no json, create an empty session which will be initialized to current start time
-            val itemSession = ItemSession(Some(new ObjectId()), itemId)
+            val itemSession = ItemSession(Some(new ObjectId()), Some(itemId))
             insert(itemSession) match {
               case Right(session) => Ok(Json.toJson(session))
               case Left(error) => InternalServerError(Json.toJson(error))
