@@ -38,6 +38,7 @@ GET     /api/v1/users/:id                       api.v1.UserApi.getUser(id: Objec
 POST    /api/v1/users                           api.v1.UserApi.createUser
 PUT     /api/v1/users/:id                       api.v1.UserApi.updateUser(id: ObjectId)
 DELETE  /api/v1/users/:id                       api.v1.UserApi.deleteUser(id: ObjectId)
+GET     /api/v1/organizations/:orgId/users             api.v1.UserApi.getUsersByOrg(orgId: ObjectId)
 
 # Items API
 GET     /api/v1/items                           api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
