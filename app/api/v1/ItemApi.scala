@@ -42,14 +42,12 @@ object ItemApi extends BaseApi {
    * @return
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
-    val initSearch = MongoDBObject(Content.collId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(request.ctx.organization,Permission.All).map(_.toString)))
-    QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, Some(initSearch))
+    doList(request.ctx.organization, q, f, c, sk, l)
   }
 
   def listWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
     if (Organization.isChild(request.ctx.organization,orgId)) {
-      val initSearch = MongoDBObject(Content.collId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(orgId,Permission.All).map(_.toString)))
-      QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, Some(initSearch))
+      doList(orgId, q, f, c, sk, l)
     } else Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
@@ -58,6 +56,11 @@ object ItemApi extends BaseApi {
       val initSearch = MongoDBObject(Content.collId -> collId.toString)
       QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, Some(initSearch))
     } else Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
+  }
+
+  private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = {
+    val initSearch = MongoDBObject(Content.collId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(orgId,Permission.All).map(_.toString)))
+    QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, Some(initSearch))
   }
 
   /**
