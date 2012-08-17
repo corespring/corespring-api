@@ -6,6 +6,7 @@ import models.{ContentCollection, Organization}
 import org.bson.types.ObjectId
 import api.ApiError
 import com.mongodb.casbah.commons.MongoDBObject
+import controllers.Utils
 
 /**
  * The Collections API
@@ -22,9 +23,7 @@ object CollectionApi extends BaseApi {
 
     val cursor = ContentCollection.find(MongoDBObject("_id" -> MongoDBObject("$in" -> collids)))
 
-    val colls = cursor.toSeq
-    cursor.close()
-    Ok(Json.toJson(colls))
+    Ok(Json.toJson(Utils.toSeq(cursor)))
   }
 
   def listWithOrg(orgId: ObjectId) = ApiAction { request =>
@@ -33,9 +32,7 @@ object CollectionApi extends BaseApi {
 
       val cursor = ContentCollection.find(MongoDBObject("_id" -> MongoDBObject("$in" -> collids)))
 
-      val colls = cursor.toSeq
-      cursor.close()
-      Ok(Json.toJson(colls))
+      Ok(Json.toJson(Utils.toSeq(cursor)))
     }else Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
