@@ -38,7 +38,7 @@ object Main {
   }
 
   def insertMockData = {
-    val basePath = "/app/conf/test-data/"
+    val basePath = "/Users/josh/git/corespring-api/conf/test-data/"//"/app/conf/test-data/"
     getDb match {
       case Some(mongoDb) => {
         jsonToDB(basePath + "orgs.json", mongoDb("orgs"))
