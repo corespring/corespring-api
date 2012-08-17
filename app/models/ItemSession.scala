@@ -46,6 +46,7 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
           JsObject(
             List(
               "id" -> JsString(session.id.get.toString),
+              "itemId" -> JsString(session.itemId.get.toString),
               "start" -> JsString(session.start.getMillis.toString),
               "finish" -> JsString(session.finish.getMillis.toString),
               "responses" -> Json.toJson(session.responses)

@@ -1,4 +1,4 @@
-import models.{ItemResponse, ItemSession}
+import models.{Item, ItemResponse, ItemSession}
 import org.bson.types.ObjectId
 import org.specs2.execute.Pending
 import play.api.libs.json.{JsValue, Json}
@@ -51,7 +51,7 @@ class ItemSessionTest extends Specification {
 
 
       val testSession = ItemSession(None, Some(new ObjectId(testItemId)))
-      val url = "/api/v1/items/" + testSession.itemId.toString + "/sessions"
+      val url = "/api/v1/items/" + testSession.itemId.get.toString + "/sessions"
 
       // add some item responses
       testSession.responses ::= ItemResponse("question1","choice1", "{$score:1}")
@@ -72,9 +72,21 @@ class ItemSessionTest extends Specification {
 
 
         val json:JsValue = Json.parse(contentAsString(optResult.get))
+
+        // get the generated id
+        val id = (json \ "id").asOpt[String].getOrElse("")
+        testSession.id = Option(new ObjectId(id))
+
         // need to implement reader first for below to work
         //val parsedSession = Json.fromJson[ItemSession](json)
 
+        if (doesSessionMatch(json, testSession)) {
+          success
+        } else {
+          failure
+        }
+
+        /*
         val id = (json \ "id").asOpt[String].getOrElse("")
         val itemId = (json \ "itemId").asOpt[String].getOrElse("")
         val start = (json \ "start").asOpt[String]
@@ -89,6 +101,7 @@ class ItemSessionTest extends Specification {
         }  else {
           failure
         }
+        */
 
 
       } else {
@@ -113,7 +126,20 @@ class ItemSessionTest extends Specification {
       try {
         val optResult = routeAndCall(getRequest)
         if (optResult.isDefined) {
-          success
+          val json:JsValue = Json.parse(contentAsString(optResult.get))
+
+          // load the test session directly
+          val testSessionForGet : ItemSession = ItemSession.findOneById(new ObjectId(testItemSessionId)) match {
+            case Some(o) => o
+            case None =>  null
+          }
+
+          if (doesSessionMatch(json, testSessionForGet)) {
+            success
+          } else {
+            failure
+          }
+
         } else {
           failure
         }
@@ -127,6 +153,31 @@ class ItemSessionTest extends Specification {
     }
   }
 
+
+  def doesSessionMatch(json:JsValue, testSession:ItemSession) : Boolean = {
+    try {
+      val id = (json \ "id").asOpt[String].getOrElse("")
+      val itemId = (json \ "itemId").asOpt[String].getOrElse("")
+      val start = (json \ "start").asOpt[String]
+      val finish = (json \ "finish").asOpt[String]
+
+      val idString = testSession.id.get.toString
+      val itemIdString = testSession.itemId.get.toString
+      val finishString = testSession.finish.getMillis.toString
+      val startString = testSession.start.getMillis.toString
+
+      var result = false
+      result = finish.get == finishString
+      result = start.get == startString
+      result = id == idString
+      result = itemId == itemIdString
+
+      result
+      } catch {
+      case e: Exception => false
+    }
+
+  }
 
   /**
    * Clean up any state created
