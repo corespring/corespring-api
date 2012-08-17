@@ -56,7 +56,7 @@ object ApiError {
   val AddToOrganization     = ApiError(404, "Failed to link collection to organization(s)")
 
   // User API
-  val UserRequiredFields    = ApiError(500, "username, fullname and email are required")
+  val UserRequiredFields    = ApiError(500, "userName, fullName and email are required")
   val UnknownUser           = ApiError(501, "Unknown user")
   val UsersInOrganization   = ApiError(502, "An error occurred when trying to find users in your organization")
   val CreateUser            = ApiError(503, "Could not create user")

@@ -215,4 +215,9 @@ object ItemApi extends BaseApi {
     val ids = ContentCollection.getCollectionIds(callerOrg,Permission.All)
     ids.contains(itemCollId)
   }
+
+
+  def getItemsInCollection(collId: ObjectId) = ApiAction { request =>
+    NotImplemented
+  }
 }

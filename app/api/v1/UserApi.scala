@@ -112,6 +112,10 @@ object UserApi extends BaseApi {
     }
   }
 
+  def getUsersByOrg(orgId: ObjectId) = ApiAction { request =>
+    NotImplemented
+  }
+
   private def unknownUser = NotFound(Json.toJson(ApiError.UnknownUser))
 
 }
