@@ -117,7 +117,8 @@ trait BaseApi extends Controller {
               OAuthProvider.getAuthorizationContext(token).fold(
                 error => Forbidden(Json.toJson(error)).as(JSON),
                 ctx => { val result: PlainResult = f(ApiRequest(ctx, request)).asInstanceOf[PlainResult]
-                  result.withHeaders(("Access-Control-Allow-Origin", "*"))
+                  result
+                    //.withHeaders(("Access-Control-Allow-Origin", "*"))
                 }
               )
             )
