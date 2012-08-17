@@ -42,6 +42,7 @@ object Global extends GlobalSettings {
     jsonToDB(basePath+"apiClients.json", ApiClient.collection)
     jsonToDB(basePath+"accessTokens.json", AccessToken.collection)
     jsonToDB(basePath+"users.json", User.collection)
+    jsonToDB(basePath+"itemsessions.json", ItemSession.collection)
   }
 
 }
