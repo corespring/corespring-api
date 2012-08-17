@@ -23,7 +23,8 @@ object CollectionApi extends BaseApi {
     val cursor = ContentCollection.find(MongoDBObject("_id" -> MongoDBObject("$in" -> collids)))
 
     val colls = cursor.toSeq
-    cursor.close()
+    // todo: closing the cursor makes the app throw a NPE, we need to check this
+    //cursor.close()
     Ok(Json.toJson(colls))
   }
 
