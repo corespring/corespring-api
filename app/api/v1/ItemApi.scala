@@ -51,6 +51,12 @@ object ItemApi extends BaseApi {
     } else Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
+  def listWithColl(collId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+    if (ContentCollection.isAuthorized(request.ctx.organization,collId,Permission.All)) {
+      val initSearch = MongoDBObject(Content.collId -> collId.toString)
+      QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, Some(initSearch))
+    } else Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
+  }
 
   private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = {
     val initSearch = MongoDBObject(Content.collId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(orgId,Permission.All).map(_.toString)))
