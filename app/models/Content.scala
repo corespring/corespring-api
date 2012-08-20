@@ -8,13 +8,13 @@ import play.api.Play.current
 trait Content {
   var id: ObjectId;
   val contentType: String;
-  var collId: ObjectId;
+  var collectionId: ObjectId;
 
   def toJson(): JsValue;
 }
 
 object Content {
-  val collId: String = "collId"
+  val collectionId: String = "collectionId"
   val contentType: String = "contentType"
 
   val collection = mongoCollection("content")

@@ -145,7 +145,7 @@ object Organization extends ModelCompanion[Organization, ObjectId] {
   def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean = {
     Organization.findOne(MongoDBObject("_id" -> orgId,
       Organization.contentcolls -> MongoDBObject("$elemMatch" ->
-        MongoDBObject(ContentCollRef.collId -> collRef.collId, ContentCollRef.pval -> collRef.pval)))).isDefined
+        MongoDBObject(ContentCollRef.collectionId -> collRef.collectionId, ContentCollRef.pval -> collRef.pval)))).isDefined
   }
 
   def addCollection(orgId: ObjectId, collId: ObjectId, p: Permission): Either[InternalError, ContentCollRef] = {
@@ -177,11 +177,11 @@ object Organization extends ModelCompanion[Organization, ObjectId] {
 
 }
 
-case class ContentCollRef(var collId: ObjectId, var pval: Long = Permission.All.value)
+case class ContentCollRef(var collectionId: ObjectId, var pval: Long = Permission.All.value)
 
 object ContentCollRef {
   val pval: String = "pval"
-  val collId: String = "collId"
+  val collectionId: String = "collectionId"
 }
 
 

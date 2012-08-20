@@ -56,8 +56,8 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
     ContentCollection.moveToArchive(collId) match {
       case Right(_) => try {
         //remove collection references from organizations
-        Organization.update(MongoDBObject(Organization.contentcolls + "." + ContentCollRef.collId -> collId),
-          MongoDBObject("$pull" -> MongoDBObject(Organization.contentcolls -> MongoDBObject(ContentCollRef.collId -> collId))),
+        Organization.update(MongoDBObject(Organization.contentcolls + "." + ContentCollRef.collectionId -> collId),
+          MongoDBObject("$pull" -> MongoDBObject(Organization.contentcolls -> MongoDBObject(ContentCollRef.collectionId -> collId))),
           false, false, Organization.collection.writeConcern)
         //finally delete
         ContentCollection.removeById(collId, ContentCollection.collection.writeConcern)
@@ -92,7 +92,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
   }
   def moveToArchive(collId:ObjectId):Either[InternalError,Unit] = {
     try{
-      Content.collection.update(MongoDBObject(Content.collId -> collId), MongoDBObject("$set" -> MongoDBObject(Content.collId -> ContentCollection.archiveCollId)),
+      Content.collection.update(MongoDBObject(Content.collectionId -> collId), MongoDBObject("$set" -> MongoDBObject(Content.collectionId -> ContentCollection.archiveCollId)),
         false, false, Content.collection.writeConcern)
       Right(())
     }catch{
@@ -101,7 +101,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
   }
   def getCollectionIds(orgId: ObjectId, p:Permission, deep:Boolean = true): Seq[ObjectId] = {
     val cursor = if(deep)Organization.find(MongoDBObject(Organization.path -> orgId)) else Organization.find(MongoDBObject("_id" -> orgId))   //find the tree of the given organization
-    val seqcollid:Seq[ObjectId] = cursor.foldRight[Seq[ObjectId]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value).map(_.collId)) //filter the collections that don't have the given permission
+    val seqcollid:Seq[ObjectId] = cursor.foldRight[Seq[ObjectId]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value).map(_.collectionId)) //filter the collections that don't have the given permission
     cursor.close()
     seqcollid
   }
