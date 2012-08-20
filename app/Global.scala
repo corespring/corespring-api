@@ -33,7 +33,8 @@ object Global extends GlobalSettings {
           s
             .withHeaders(AccessControlAllowEverything)
             .withHeaders(("Access-Control-Allow-Methods", "PUT, GET, POST, DELETE, OPTIONS"))
-            .withHeaders(("Access-Control-Allow-Headers", "x-requested-with,Content-Type"))
+            .withHeaders(("Access-Control-Allow-Headers", "x-requested-with,Content-Type,Authorization"))
+
         case result => result
       }
   }
