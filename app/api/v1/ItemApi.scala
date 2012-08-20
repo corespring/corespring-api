@@ -42,7 +42,11 @@ object ItemApi extends BaseApi {
    * @return
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
-    doList(request.ctx.organization, q, f, c, sk, l)
+    f match {
+      case Some(fields) => doList(request.ctx.organization, q, Some(fields.toString), c, sk, l)
+      case None => doList(request.ctx.organization, q, f, c, sk, l)
+    }
+    //doList(request.ctx.organization, q, f, c, sk, l)
   }
 
   def listWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
@@ -80,7 +84,10 @@ object ItemApi extends BaseApi {
    * @return
    */
   def getItemDetail(id: ObjectId) = ApiAction { request =>
-    _getItem(request.ctx.organization, id, None)
+    val excludeXmlData = Some(MongoDBObject(
+      Item.XmlData -> 0
+    ))
+    _getItem(request.ctx.organization, id, excludeXmlData)
   }
 
   /**
