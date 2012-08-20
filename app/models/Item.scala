@@ -10,7 +10,7 @@ object Item {
   val collection = Content.collection
 
   val Author = "author"
-  val CollectionId = "collectionId"
+  val CollectionId = Content.collectionId
   val ContentType = "contentType"
   val Contributor = "contributor"
   val CopyrightOwner = "copyrightOwner"
