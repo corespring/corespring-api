@@ -10,7 +10,7 @@ object Item {
   val collection = Content.collection
 
   val Author = "author"
-  val CollId = "collId"
+  val CollectionId = "collectionId"
   val ContentType = "contentType"
   val Contributor = "contributor"
   val CopyrightOwner = "copyrightOwner"
@@ -32,7 +32,7 @@ object Item {
 
   val queryFields = Map(
       Author -> "String",
-      CollId -> "ObjectId",
+      CollectionId -> "ObjectId",
       ContentType -> "String",
       Contributor -> "String",
       CopyrightOwner -> "String",

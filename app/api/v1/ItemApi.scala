@@ -29,7 +29,7 @@ object ItemApi extends BaseApi {
     Item.XmlData -> 0
   ))
 
-  val xmlDataField = MongoDBObject(Item.XmlData -> 1, Item.CollId -> 1)
+  val xmlDataField = MongoDBObject(Item.XmlData -> 1, Item.CollectionId -> 1)
 
   /**
    * List query implementation for Items
@@ -92,7 +92,7 @@ object ItemApi extends BaseApi {
    */
   private def _getItem(callerOrg: ObjectId, id: ObjectId, fields: Option[DBObject]): Result  = {
     fields.map( Item.collection.findOneByID(id, _)).getOrElse( Item.collection.findOneByID(id)) match {
-      case Some(o) =>  if ( canUpdateOrDelete(callerOrg, o.get(Item.CollId).asInstanceOf[String])) {
+      case Some(o) =>  if ( canUpdateOrDelete(callerOrg, o.get(Item.CollectionId).asInstanceOf[String])) {
         Ok(com.mongodb.util.JSON.serialize(o))
       } else {
         Forbidden
@@ -109,7 +109,7 @@ object ItemApi extends BaseApi {
    */
   def getItemData(id: ObjectId) = ApiAction { request =>
     Item.collection.findOneByID(id, xmlDataField) match {
-      case Some(o) =>  if ( canUpdateOrDelete(request.ctx.organization, o.get(Item.CollId).asInstanceOf[String])) {
+      case Some(o) =>  if ( canUpdateOrDelete(request.ctx.organization, o.get(Item.CollectionId).asInstanceOf[String])) {
         Ok(Xml(o.get(Item.XmlData).toString))
       } else {
         Forbidden
@@ -129,7 +129,7 @@ object ItemApi extends BaseApi {
 
     Item.collection.findOneByID(id, idField) match {
       case Some(o) => {
-        if ( canUpdateOrDelete(request.ctx.organization, o.get(Item.CollId).asInstanceOf[String]) ) {
+        if ( canUpdateOrDelete(request.ctx.organization, o.get(Item.CollectionId).asInstanceOf[String]) ) {
           Item.collection.remove(idField)
           Ok(com.mongodb.util.JSON.serialize(o))
         } else {
@@ -148,7 +148,7 @@ object ItemApi extends BaseApi {
           val dbObj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
           if ( dbObj.isDefinedAt("_id") ) {
             BadRequest(Json.toJson(ApiError.IdNotNeeded))
-          } else if ( !dbObj.isDefinedAt(Item.CollId) ) {
+          } else if ( !dbObj.isDefinedAt(Item.CollectionId) ) {
             BadRequest(Json.toJson(ApiError.CollectionIsRequired))
           } else {
             QueryHelper.validateFields(dbObj, Item.queryFields)
@@ -174,7 +174,7 @@ object ItemApi extends BaseApi {
   def updateItem(id: ObjectId) = ApiAction { request =>
     Item.collection.findOneByID(id) match {
       case Some(item) => {
-        if ( canUpdateOrDelete(request.ctx.organization, item.get(Item.CollId).asInstanceOf[String]) ) {
+        if ( canUpdateOrDelete(request.ctx.organization, item.get(Item.CollectionId).asInstanceOf[String]) ) {
           request.body.asJson match {
             case Some(json) => {
               try {
@@ -185,7 +185,7 @@ object ItemApi extends BaseApi {
 
                 if ( hasId && !dbObj.get("_id").equals(id) ) {
                   BadRequest(Json.toJson(ApiError.IdsDoNotMatch))
-                } else if ( !dbObj.isDefinedAt(Item.CollId) ) {
+                } else if ( !dbObj.isDefinedAt(Item.CollectionId) ) {
                   BadRequest(Json.toJson(ApiError.CollectionIsRequired))
                 } else {
                   QueryHelper.validateFields(dbObj, Item.queryFields)
