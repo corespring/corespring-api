@@ -86,24 +86,6 @@ class ItemSessionTest extends Specification {
           failure
         }
 
-        /*
-        val id = (json \ "id").asOpt[String].getOrElse("")
-        val itemId = (json \ "itemId").asOpt[String].getOrElse("")
-        val start = (json \ "start").asOpt[String]
-        val finish = (json \ "finish").asOpt[String]
-
-
-        val finishString = testSession.finish.getMillis.toString
-        val startString = testSession.start.getMillis.toString
-        if (finish.get == finishString && start.get == startString) {
-
-          success
-        }  else {
-          failure
-        }
-        */
-
-
       } else {
         // no json back... fail
         failure
