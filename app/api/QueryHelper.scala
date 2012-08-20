@@ -20,7 +20,7 @@ object QueryHelper {
 
   def parse[T](q: String, validFields: Map[String, String]):MongoDBObject = {
     Logger.debug("fields = " + validFields.mkString(","))
-      val query:MongoDBObject = JSON.parse(q).asInstanceOf[MongoDBObject]
+      val query = JSON.parse(q).asInstanceOf[DBObject]
       for ( f <- query.iterator ) {
         // check if it's a valid field
         Logger.debug("checking field: " + f._1)
