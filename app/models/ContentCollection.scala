@@ -92,7 +92,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
   }
   def moveToArchive(collId:ObjectId):Either[InternalError,Unit] = {
     try{
-      Content.collection.update(MongoDBObject(Content.collectionId -> collId), MongoDBObject("$set" -> MongoDBObject(Content.collectionId -> ContentCollection.archiveCollId)),
+      Content.collection.update(MongoDBObject(Content.collectionId -> collId), MongoDBObject("$set" -> MongoDBObject(Content.collectionId -> ContentCollection.archiveCollId.toString)),
         false, false, Content.collection.writeConcern)
       Right(())
     }catch{

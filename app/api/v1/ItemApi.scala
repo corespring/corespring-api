@@ -11,6 +11,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import play.api.templates.Xml
 import play.api.mvc.Result
 import play.api.libs.json.Json
+import controllers.Log
 
 
 /**
@@ -20,14 +21,14 @@ import play.api.libs.json.Json
 object ItemApi extends BaseApi {
 
   //todo: confirm with evaneus this is what should be returned by default for /items/:id
-  val excludedFieldsByDefault = Some(MongoDBObject(
+  val excludedFieldsByDefault = MongoDBObject(
     Item.CopyrightOwner -> 0,
     Item.Credentials -> 0,
     Item.Files -> 0,
     Item.KeySkills -> 0,
     Item.ContentType -> 0,
     Item.XmlData -> 0
-  ))
+  )
 
   val xmlDataField = MongoDBObject(Item.XmlData -> 1, Item.CollectionId -> 1)
 
@@ -84,9 +85,9 @@ object ItemApi extends BaseApi {
    * @return
    */
   def getItemDetail(id: ObjectId) = ApiAction { request =>
-    val excludeXmlData = Some(MongoDBObject(
+    val excludeXmlData = MongoDBObject(
       Item.XmlData -> 0
-    ))
+    )
     _getItem(request.ctx.organization, id, excludeXmlData)
   }
 
@@ -97,8 +98,8 @@ object ItemApi extends BaseApi {
    * @param fields
    * @return
    */
-  private def _getItem(callerOrg: ObjectId, id: ObjectId, fields: Option[DBObject]): Result  = {
-    fields.map( Item.collection.findOneByID(id, _)).getOrElse( Item.collection.findOneByID(id)) match {
+  private def _getItem(callerOrg: ObjectId, id: ObjectId, fields: DBObject): Result  = {
+    Item.collection.findOneByID(id, fields) match {
       case Some(o) =>  if ( canUpdateOrDelete(callerOrg, o.get(Item.CollectionId).asInstanceOf[String])) {
         Ok(com.mongodb.util.JSON.serialize(o))
       } else {
@@ -134,10 +135,10 @@ object ItemApi extends BaseApi {
   def deleteItem(id: ObjectId) = ApiAction { request =>
     val idField = MongoDBObject("_id" -> id)
 
-    Item.collection.findOneByID(id, idField) match {
+    Item.collection.findOneByID(id, MongoDBObject(Item.CollectionId -> 1)) match {
       case Some(o) => {
         if ( canUpdateOrDelete(request.ctx.organization, o.get(Item.CollectionId).asInstanceOf[String]) ) {
-          Item.collection.remove(idField)
+          Content.moveToArchive(id)
           Ok(com.mongodb.util.JSON.serialize(o))
         } else {
           Forbidden
@@ -223,7 +224,7 @@ object ItemApi extends BaseApi {
 
   private def canUpdateOrDelete(callerOrg: ObjectId, itemCollId: String):Boolean = {
     val ids = ContentCollection.getCollectionIds(callerOrg,Permission.All)
-    ids.contains(itemCollId)
+    ids.find(_.toString == itemCollId).isDefined
   }
 
 

@@ -5,6 +5,8 @@ import play.api.Logger
 import com.mongodb.util.{JSONParseException, JSON}
 import com.mongodb.casbah.Imports._
 import play.api.libs.json.Json
+import v1.ItemApi
+import models.Item
 
 /**
  * A helper class to handle list queries from all the controllers
@@ -89,16 +91,17 @@ object QueryHelper {
     Logger.debug("QueryHelper: q = %s, f = %s, c = %s, sk = %d, l = %d".format(q, f, c, sk, l))
     try {
       val query = q.map( QueryHelper.parse(_, validFields) ).getOrElse( new MongoDBObject() )
-      val fields = f match {
+      val fields:DBObject = f match {
         case Some(s) => {
           val fieldObj = JSON.parse(s).asInstanceOf[DBObject]
           validateFields(fieldObj, validFields)
-          Some(fieldObj)
+          fieldObj
         }
-        case _ => None
+        case _ => ItemApi.excludedFieldsByDefault
+
       }
       val combinedQuery:DBObject = initSearch.map( extraParams => query ++ extraParams).getOrElse( query )
-      val cursor = fields.map( collection.find(combinedQuery, _) ).getOrElse( collection.find(combinedQuery))
+      val cursor = collection.find(combinedQuery, fields)
       cursor.skip(sk)
       cursor.limit(l)
 
