@@ -43,6 +43,7 @@ case class Item(var author:Option[String] = None,
 object Item {
   val collection = Content.collection
 
+  val Id = "Id"
   val Author = "author"
   val CollectionId = Content.collectionId
   val ContentType = Content.contentType
@@ -91,6 +92,7 @@ object Item {
     }
   }
   val queryFields = Map(
+      Id -> "String",
       Author -> "String",
       CollectionId -> "ObjectId",
       ContentType -> "String",

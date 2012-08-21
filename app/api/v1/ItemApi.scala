@@ -155,7 +155,7 @@ object ItemApi extends BaseApi {
         try {
           Logger.debug("Item.createItem: received json: %s".format(json))
           val dbObj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
-          if ( dbObj.isDefinedAt("_id") ) {
+          if ( dbObj.isDefinedAt("id") ) {
             BadRequest(Json.toJson(ApiError.IdNotNeeded))
           } else if ( !dbObj.isDefinedAt(Item.CollectionId) ) {
             BadRequest(Json.toJson(ApiError.CollectionIsRequired))
@@ -165,7 +165,7 @@ object ItemApi extends BaseApi {
             val wr = Item.collection.insert(toSave)
             val commandResult = wr.getCachedLastError
             if ( commandResult == null || commandResult.ok() ) {
-              Ok(com.mongodb.util.JSON.serialize(dbObj)).as(JSON)
+              Ok(com.mongodb.util.JSON.serialize(QueryHelper.replaceMongoId(dbObj))).as(JSON)
             } else {
               Logger.error("There was an error inserting an item: %s".format(commandResult.toString))
               InternalServerError(Json.toJson(ApiError.CantSave))
@@ -192,17 +192,17 @@ object ItemApi extends BaseApi {
                 val dbObj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
                 val hasId = dbObj.isDefinedAt("_id")
 
-                if ( hasId && !dbObj.get("_id").equals(id) ) {
+                if ( hasId && !dbObj.get("id").equals(id) ) {
                   BadRequest(Json.toJson(ApiError.IdsDoNotMatch))
-                } else if ( !dbObj.isDefinedAt(Item.CollectionId) ) {
-                  BadRequest(Json.toJson(ApiError.CollectionIsRequired))
                 } else {
                   QueryHelper.validateFields(dbObj, Item.queryFields)
-                  val toSave = item ++ dbObj
+                  val toSave = (item ++ dbObj)
+                  // remove the id we got since we want to save it as _id
+                  toSave.removeField("id")
                   val wr = Item.collection.update(MongoDBObject("_id" -> id), toSave)
                   val commandResult = wr.getCachedLastError
                   if ( commandResult == null || commandResult.ok() ) {
-                    Ok(com.mongodb.util.JSON.serialize(toSave)).as(JSON)
+                    Ok(com.mongodb.util.JSON.serialize(QueryHelper.replaceMongoId(toSave))).as(JSON)
                   } else {
                     Logger.error("There was an error updating item %s: %s".format(id, commandResult.toString))
                     InternalServerError(Json.toJson(ApiError.CantSave))

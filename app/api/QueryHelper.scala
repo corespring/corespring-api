@@ -110,13 +110,19 @@ object QueryHelper {
       if ( c.equalsIgnoreCase("true") )
         Results.Ok(CountResult.toJson(cursor.count))
       else
-        Results.Ok(com.mongodb.util.JSON.serialize(cursor.toList))
+        Results.Ok(com.mongodb.util.JSON.serialize(cursor.toList.map(replaceMongoId(_))))
     } catch {
       case e: JSONParseException => Results.BadRequest(Json.toJson(ApiError.InvalidQuery))
       case ife: InvalidFieldException => Results.BadRequest(Json.toJson(ApiError.UnknownFieldOrOperator.format(ife.field)))
     }
   }
 
+  def replaceMongoId(obj: DBObject): DBObject = {
+    // replace mongo's _id to id
+    val id = obj.get("_id")
+    obj.removeField("_id")
+    MongoDBObject("id" -> id.toString) ++ obj
+  }
   /**
    * Checks if all the fields in the passed DBObject are defined in the validFields map
    *
