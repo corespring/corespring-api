@@ -5,6 +5,17 @@ import org.bson.types.ObjectId
 import play.api.libs.json._
 import play.api.libs.json.JsString
 
+
+case class ItemFile(var filename:String)
+object ItemFile{
+  val filename = "filename"
+  implicit object ItemFileWrites extends Writes[ItemFile]{
+    def writes(itemFile:ItemFile) = {
+      JsObject(Seq[(String,JsValue)](filename -> JsString(itemFile.filename)))
+    }
+  }
+}
+
 case class Item(var author:Option[String] = None,
                 var collectionId:Option[String] = None,
                 var contentType:Option[String] = None,
@@ -12,13 +23,13 @@ case class Item(var author:Option[String] = None,
                 var copyrightOwner:Option[String] = None,
                 var copyrightYear:Option[String] = None,
                 var credentials:Option[String] = None,
-                var files:Seq[String] = Seq(),
+                var files:Seq[ItemFile] = Seq(),
                 var gradeLevel:Seq[String] = Seq(),
                 var itemType:Option[String] = None,
                 var itemTypeOther:Option[String] = None,
                 var keySkills:Seq[String] = Seq(),
                 var licenseType:Option[String] = None,
-                var primarySubject:Map[String,String] = Map(),
+                var primarySubject:Map[String,String] = Map(),     //TODO: define primary subject as an object instead of map
                 var priorUse:Option[String] = None,
                 var reviewsPassed:Seq[String] = Seq(),
                 var sourceUrl:Option[String] = None,
@@ -63,7 +74,7 @@ object Item {
       item.copyrightOwner.foreach(v => iseq = iseq :+ (CopyrightOwner -> JsString(v)))
       item.copyrightYear.foreach(v => iseq = iseq :+ (CopyrightYear -> JsString(v)))
       item.credentials.foreach(v => iseq = iseq :+ (Credentials -> JsString(v)))
-      if (!item.files.isEmpty) iseq = iseq :+ (Files -> JsArray(item.files.map(JsString(_))))
+      if (!item.files.isEmpty) iseq = iseq :+ (Files -> JsArray(item.files.map(Json.toJson(_))))
       if (!item.gradeLevel.isEmpty) iseq = iseq :+ (GradeLevel -> JsArray(item.gradeLevel.map(JsString(_))))
       item.itemType.foreach(v => iseq = iseq :+ (ItemType -> JsString(v)))
       item.itemTypeOther.foreach(v => iseq = iseq :+ (ItemTypeOther -> JsString(v)))
