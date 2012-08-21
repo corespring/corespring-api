@@ -10,10 +10,9 @@ import controllers.{LogType, InternalError}
 
 trait Content {
   var id: ObjectId;
-  val contentType: String;
-  var collectionId: ObjectId;
+  var contentType: Option[String];
+  var collectionId: Option[String];
 
-  def toJson(): JsValue;
 }
 
 object Content {

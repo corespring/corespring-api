@@ -7,7 +7,8 @@ import models.{Organization, ContentCollection, Content, Item}
 import com.mongodb.util.JSONParseException
 import org.bson.types.ObjectId
 import com.mongodb.casbah.Imports._
-import com.mongodb.casbah.commons.MongoDBObject
+import com.novus.salat._
+import com.novus.salat.global._
 import play.api.templates.Xml
 import play.api.mvc.Result
 import play.api.libs.json.Json
@@ -101,7 +102,7 @@ object ItemApi extends BaseApi {
   private def _getItem(callerOrg: ObjectId, id: ObjectId, fields: DBObject): Result  = {
     Item.collection.findOneByID(id, fields) match {
       case Some(o) =>  if ( canUpdateOrDelete(callerOrg, o.get(Item.CollectionId).asInstanceOf[String])) {
-        Ok(com.mongodb.util.JSON.serialize(o))
+        Ok(grater[Item].asObject(o).toString)
       } else {
         Forbidden
       }
