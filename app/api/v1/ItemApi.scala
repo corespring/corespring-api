@@ -102,7 +102,7 @@ object ItemApi extends BaseApi {
   private def _getItem(callerOrg: ObjectId, id: ObjectId, fields: DBObject): Result  = {
     Item.collection.findOneByID(id, fields) match {
       case Some(o) =>  if ( canUpdateOrDelete(callerOrg, o.get(Item.CollectionId).asInstanceOf[String])) {
-        Ok(grater[Item].asObject(o).toString)
+        Ok(Json.toJson(grater[Item].asObject(o)))
       } else {
         Forbidden
       }

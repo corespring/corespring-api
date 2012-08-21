@@ -1,6 +1,5 @@
 package models
 
-import se.radley.plugin.salat
 import play.api.Play.current
 import org.bson.types.ObjectId
 import play.api.libs.json._
@@ -13,17 +12,17 @@ case class Item(var author:Option[String] = None,
                 var copyrightOwner:Option[String] = None,
                 var copyrightYear:Option[String] = None,
                 var credentials:Option[String] = None,
-                var files:Option[Seq[String]] = None,
-                var gradeLevel:Option[Seq[String]] = None,
+                var files:Seq[String] = Seq(),
+                var gradeLevel:Seq[String] = Seq(),
                 var itemType:Option[String] = None,
                 var itemTypeOther:Option[String] = None,
-                var keySkills:Option[Seq[String]] = None,
+                var keySkills:Seq[String] = Seq(),
                 var licenseType:Option[String] = None,
-                var primarySubject:Option[Map[String,String]] = None,
+                var primarySubject:Map[String,String] = Map(),
                 var priorUse:Option[String] = None,
-                var reviewsPassed:Option[Seq[String]] = None,
+                var reviewsPassed:Seq[String] = Seq(),
                 var sourceUrl:Option[String] = None,
-                var standards:Option[Seq[String]] = None,
+                var standards:Seq[String] = Seq(),
                 var title:Option[String] = None,
                 var xmlData:Option[String] = None,
                 var id:ObjectId = new ObjectId()) extends Content
@@ -64,17 +63,17 @@ object Item {
       item.copyrightOwner.foreach(v => iseq = iseq :+ (CopyrightOwner -> JsString(v)))
       item.copyrightYear.foreach(v => iseq = iseq :+ (CopyrightYear -> JsString(v)))
       item.credentials.foreach(v => iseq = iseq :+ (Credentials -> JsString(v)))
-      item.files.foreach(v => iseq = iseq :+ (Files -> JsArray(v.map(JsString(_)))))
-      item.gradeLevel.foreach(v => iseq = iseq :+ (GradeLevel -> JsArray(v.map(JsString(_)))))
+      if (!item.files.isEmpty) iseq = iseq :+ (Files -> JsArray(item.files.map(JsString(_))))
+      if (!item.gradeLevel.isEmpty) iseq = iseq :+ (GradeLevel -> JsArray(item.gradeLevel.map(JsString(_))))
       item.itemType.foreach(v => iseq = iseq :+ (ItemType -> JsString(v)))
       item.itemTypeOther.foreach(v => iseq = iseq :+ (ItemTypeOther -> JsString(v)))
-      item.keySkills.foreach(v => iseq = iseq :+ (KeySkills -> JsArray(v.map(JsString(_)))))
+      if (!item.keySkills.isEmpty) iseq = iseq :+ (KeySkills -> JsArray(item.keySkills.map(JsString(_))))
       item.licenseType.foreach(v => iseq = iseq :+ (LicenseType -> JsString(v)))
-      item.primarySubject.foreach(v => iseq = iseq :+ (PrimarySubject -> JsObject(v.toSeq.map(ps => (ps._1,JsString(ps._2))))))
+      if (!item.primarySubject.isEmpty) iseq = iseq :+ (PrimarySubject -> JsObject(item.primarySubject.toSeq.map(ps => (ps._1,JsString(ps._2)))))
       item.priorUse.foreach(v => iseq = iseq :+ (PriorUse -> JsString(v)))
-      item.reviewsPassed.foreach(v => iseq = iseq :+ (ReviewsPassed -> JsArray(v.map(JsString(_)))))
+      if (!item.reviewsPassed.isEmpty) iseq = iseq :+ (ReviewsPassed -> JsArray(item.reviewsPassed.map(JsString(_))))
       item.sourceUrl.foreach(v => iseq = iseq :+ (SourceUrl -> JsString(v)))
-      item.standards.foreach(v => iseq = iseq :+ (Standards -> JsArray(v.map(JsString(_)))))
+      if (!item.standards.isEmpty) iseq = iseq :+ (Standards -> JsArray(item.standards.map(JsString(_))))
       item.title.foreach(v => iseq = iseq :+ (Title -> JsString(v)))
       item.xmlData.foreach(v => iseq = iseq :+ (XmlData -> JsString(v)))
       JsObject(iseq)
