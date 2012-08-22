@@ -64,11 +64,15 @@ object ApiError {
   val DeleteUser            = ApiError(505, "An error occurred when deleting the user")
 
   // Item Session API
-  val ItemSessionRequiredFields = ApiError(500, "start property must be provided")
-  val ItemIdRequired = ApiError(500, "no item id was provided for the session")
+  val ItemSessionRequiredFields = ApiError(600, "start property must be provided")
+  val ItemIdRequired = ApiError(601, "no item id was provided for the session")
+  val UnauthorizedItemSession = ApiError(602, "you are not authorized to access the given item session")
+  val CreateItemSession = ApiError(603, "could not create item session")
+  val UpdateItemSession = ApiError(604, "could not update item session")
+  val ItemSessionNotFound = ApiError(605, "item session specified could not be found")
 
   // Item aPI
-  val CollectionIsRequired    = ApiError(600, "A collection id for the item is required")
+  val CollectionIsRequired    = ApiError(700, "A collection id for the item is required")
 
 
 

@@ -57,7 +57,7 @@ GET     /api/v1/collections/:collId/items       api.v1.ItemApi.getItemsInCollect
 # Item Session API
 
 POST    /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.createItemSession(itemId: ObjectId)
-GET     /api/v1/itemsessions/:sessionId                   api.v1.ItemSessionApi.getItemSession(sessionId: ObjectId)
-
-
+PUT     /api/v1/items/:itemId/sessions/:sessionId         api.v1.ItemSessionApi.updateItemSession(itemId: ObjectId, sessionId: ObjectId)
+GET     /api/v1/items/:itemId/sessions/:sessionId         api.v1.ItemSessionApi.getItemSession(itemId:ObjectId, sessionId: ObjectId)
+GET     /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.list(itemId:ObjectId)
 

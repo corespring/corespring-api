@@ -139,7 +139,7 @@ class ItemSessionTest extends Specification {
   def doesSessionMatch(json:JsValue, testSession:ItemSession) : Boolean = {
     try {
       val id = (json \ "id").asOpt[String].getOrElse("")
-      val itemId = (json \ "itemId").asOpt[String].getOrElse("")
+      val itemId = (json \ "contentId").asOpt[String].getOrElse("")
       val start = (json \ "start").asOpt[String]
       val finish = (json \ "finish").asOpt[String]
 
