@@ -3,10 +3,10 @@ package api
 import play.api.mvc.{Result, Results}
 import play.api.Logger
 import com.mongodb.util.{JSONParseException, JSON}
+import play.api.libs.json.{Writes, Json}
+import com.novus.salat.dao.SalatDAO
 import com.mongodb.casbah.Imports._
-import play.api.libs.json.Json
-import v1.ItemApi
-import models.Item
+
 
 /**
  * A helper class to handle list queries from all the controllers
@@ -83,34 +83,35 @@ object QueryHelper {
    * @param sk how many entries to skip
    * @param l  the maximum number of entries to return
    * @param validFields the valid fields
-   * @param collection the collection that needs to be queried
+   * @param dao the collection that needs to be queried
    *
    * @return
    */
-  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, validFields: Map[String, String], collection: MongoCollection, initSearch:Option[DBObject] = None): Result = {
+  def list[ObjectType <: AnyRef, ID <: Any](q: Option[String], f: Option[Object], c: String, sk: Int, l: Int, validFields: Map[String, String], dao: SalatDAO[ObjectType, ID], writes: Writes[ObjectType], initSearch:Option[DBObject] = None): Result = {
     Logger.debug("QueryHelper: q = %s, f = %s, c = %s, sk = %d, l = %d".format(q, f, c, sk, l))
     try {
       val query = q.map( QueryHelper.parse(_, validFields) ).getOrElse( new MongoDBObject() )
-      val fields:DBObject = f match {
-        case Some(s) => {
-          val fieldObj = JSON.parse(s).asInstanceOf[DBObject]
-          validateFields(fieldObj, validFields)
-          fieldObj
+      val fields = f.map( fieldSet => {
+        if ( fieldSet.isInstanceOf[String] ) {
+          JSON.parse(fieldSet.asInstanceOf[String]).asInstanceOf[DBObject]
+        } else {
+          fieldSet.asInstanceOf[DBObject]
         }
-        case _ => ItemApi.excludedFieldsByDefault
-
-      }
+      })
+      fields.foreach(validateFields(_, validFields))
       val combinedQuery:DBObject = initSearch.map( extraParams => query ++ extraParams).getOrElse( query )
-      val cursor = collection.find(combinedQuery, fields)
+      val cursor = fields.map( dao.find(combinedQuery, _)).getOrElse( dao.find(combinedQuery))
       cursor.skip(sk)
       cursor.limit(l)
 
       // I'm using a String for c because if I use a boolean I need to pass 0 or 1 from the command line for Play to parse the boolean.
       // I think using "true" or "false" is better
-      if ( c.equalsIgnoreCase("true") )
+      if ( c.equalsIgnoreCase("true") ) {
         Results.Ok(CountResult.toJson(cursor.count))
-      else
-        Results.Ok(com.mongodb.util.JSON.serialize(cursor.toList.map(replaceMongoId(_))))
+      } else {
+        implicit val w = writes
+        Results.Ok(Json.toJson(cursor.toList))
+      }
     } catch {
       case e: JSONParseException => Results.BadRequest(Json.toJson(ApiError.InvalidQuery))
       case ife: InvalidFieldException => Results.BadRequest(Json.toJson(ApiError.UnknownFieldOrOperator.format(ife.field)))

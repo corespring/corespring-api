@@ -4,7 +4,7 @@ import controllers.auth.{Permission, BaseApi}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import models.{ContentCollection, Organization}
 import org.bson.types.ObjectId
-import api.ApiError
+import api.{QueryHelper, ApiError}
 import com.mongodb.casbah.commons.MongoDBObject
 import controllers.Utils
 
@@ -18,22 +18,21 @@ object CollectionApi extends BaseApi {
    *
    * @return
    */
-  def list() = ApiAction { request =>
-    val collids = ContentCollection.getCollectionIds(request.ctx.organization,Permission.All,false)
-
-    val cursor = ContentCollection.find(MongoDBObject("_id" -> MongoDBObject("$in" -> collids)))
-
-    Ok(Json.toJson(Utils.toSeq(cursor)))
+  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+    doList(request.ctx.organization, q, f, c, sk, l)
   }
 
-  def listWithOrg(orgId: ObjectId) = ApiAction { request =>
-    if (Organization.isChild(request.ctx.organization, orgId)){
-      val collids = ContentCollection.getCollectionIds(orgId,Permission.All,false)
+  def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+    if (Organization.isChild(request.ctx.organization, orgId)) {
+      doList(orgId, q, f, c, sk, l)
+    } else
+      Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
+  }
 
-      val cursor = ContentCollection.find(MongoDBObject("_id" -> MongoDBObject("$in" -> collids)))
-
-      Ok(Json.toJson(Utils.toSeq(cursor)))
-    }else Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
+  private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = {
+    val collids = ContentCollection.getCollectionIds(orgId,Permission.All, false)
+    val initSearch = MongoDBObject("_id" -> MongoDBObject("$in" -> collids))
+    QueryHelper.list[ContentCollection, ObjectId](q, f, c, sk, l, ContentCollection.queryFields, ContentCollection.dao, ContentCollection.CollectionWrites, Some(initSearch))
   }
 
   /**

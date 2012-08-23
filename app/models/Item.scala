@@ -4,7 +4,10 @@ import play.api.Play.current
 import org.bson.types.ObjectId
 import play.api.libs.json._
 import play.api.libs.json.JsString
-
+import com.novus.salat.dao.{SalatDAO, ModelCompanion}
+import com.novus.salat.dao._
+import se.radley.plugin.salat._
+import mongoContext._
 
 case class ItemFile(var filename:String)
 object ItemFile{
@@ -12,6 +15,23 @@ object ItemFile{
   implicit object ItemFileWrites extends Writes[ItemFile]{
     def writes(itemFile:ItemFile) = {
       JsObject(Seq[(String,JsValue)](filename -> JsString(itemFile.filename)))
+    }
+  }
+}
+
+case class Standard(dotNotation: String, subject: String, category: String, subCategory: String, standard: String)
+object Standard {
+  implicit object StandardWrites extends Writes[Standard] {
+    def writes(obj: Standard) = {
+      JsObject(
+        List(
+          "dotNotation" -> JsString(obj.dotNotation),
+          "subject" -> JsString(obj.subject),
+          "category" -> JsString(obj.category),
+          "subCategory" -> JsString(obj.subCategory),
+          "standard" -> JsString(obj.standard)
+        )
+      )
     }
   }
 }
@@ -33,15 +53,17 @@ case class Item(var author:Option[String] = None,
                 var priorUse:Option[String] = None,
                 var reviewsPassed:Seq[String] = Seq(),
                 var sourceUrl:Option[String] = None,
-                var standards:Seq[String] = Seq(),
+                var standards:Seq[Standard] = Seq(),
                 var title:Option[String] = None,
                 var xmlData:Option[String] = None,
                 var id:ObjectId = new ObjectId()) extends Content
 /**
  * An Item model
  */
-object Item {
+object Item extends ModelCompanion[Item, ObjectId] {
+
   val collection = Content.collection
+  val dao = new SalatDAO[Item, ObjectId](collection = collection) {}
 
   val Id = "Id"
   val Author = "author"
@@ -85,7 +107,7 @@ object Item {
       item.priorUse.foreach(v => iseq = iseq :+ (PriorUse -> JsString(v)))
       if (!item.reviewsPassed.isEmpty) iseq = iseq :+ (ReviewsPassed -> JsArray(item.reviewsPassed.map(JsString(_))))
       item.sourceUrl.foreach(v => iseq = iseq :+ (SourceUrl -> JsString(v)))
-      if (!item.standards.isEmpty) iseq = iseq :+ (Standards -> JsArray(item.standards.map(JsString(_))))
+      if (!item.standards.isEmpty) iseq = iseq :+ (Standards -> Json.toJson(item.standards))
       item.title.foreach(v => iseq = iseq :+ (Title -> JsString(v)))
       item.xmlData.foreach(v => iseq = iseq :+ (XmlData -> JsString(v)))
       JsObject(iseq)
