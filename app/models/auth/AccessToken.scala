@@ -6,6 +6,8 @@ import com.mongodb.casbah.commons.MongoDBObject
 import se.radley.plugin.salat._
 import play.api.Play.current
 import models.mongoContext._
+import org.joda.time.DateTime
+
 
 
 /**
@@ -14,7 +16,11 @@ import models.mongoContext._
  * @see ApiClient
  */
 
-case class AccessToken(organization: ObjectId, scope: Option[String], var tokenId: String)
+case class AccessToken(organization: ObjectId, scope: Option[String], var tokenId: String, creationDate: DateTime, expirationDate: DateTime) {
+  def isExpired:Boolean = {
+    DateTime.now().isAfter(expirationDate)
+  }
+}
 
 object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
   val organization = "organization"
