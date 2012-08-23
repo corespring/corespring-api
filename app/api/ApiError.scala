@@ -74,7 +74,12 @@ object ApiError {
   // Item aPI
   val CollectionIsRequired    = ApiError(700, "A collection id for the item is required")
 
-
+  //amazon s3
+  val AmazonS3Client          = ApiError(800, "an exception occured on the when communicating with S3")
+  val AmazonS3Server          = ApiError(801, "S3 was unable to service the request")
+  val ContentLength           = ApiError(802, "Error regarding content length header")
+  val S3NotIntialized         = ApiError(803, "S3 service not initialized")
+  val S3Write                 = ApiError(804, "error writing data to S3")
 
   implicit object ApiErrorWrites extends Writes[ApiError] {
     def writes(o: ApiError): JsValue = {

@@ -1,5 +1,5 @@
 import _root_.controllers.auth.Permission
-import _root_.controllers.Log
+import _root_.controllers.{S3Service, Log}
 import _root_.models.auth.{AccessToken, ApiClient}
 import _root_.models._
 import _root_.models.Content
@@ -74,6 +74,8 @@ object Global extends GlobalSettings {
 
     // support JodaTime
    // RegisterJodaTimeConversionHelpers()
+    val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
+    S3Service.init(amazonProperties)
     if (Play.isDev(app) || Play.isTest(app)) {
       insertTestData("/conf/test-data/")
     }
