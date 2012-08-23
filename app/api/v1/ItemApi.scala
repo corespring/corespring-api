@@ -12,8 +12,7 @@ import com.novus.salat.global._
 import play.api.templates.Xml
 import play.api.mvc.Result
 import play.api.libs.json.Json
-import controllers.Log
-
+import com.typesafe.config.ConfigFactory
 
 /**
  * Items API
@@ -22,16 +21,17 @@ import controllers.Log
 object ItemApi extends BaseApi {
 
   //todo: confirm with evaneus this is what should be returned by default for /items/:id
-  val excludedFieldsByDefault = MongoDBObject(
+  val excludedFieldsByDefault = Some(MongoDBObject(
     Item.CopyrightOwner -> 0,
     Item.Credentials -> 0,
     Item.Files -> 0,
     Item.KeySkills -> 0,
     Item.ContentType -> 0,
     Item.XmlData -> 0
-  )
+  ))
 
   val xmlDataField = MongoDBObject(Item.XmlData -> 1, Item.CollectionId -> 1)
+  val excludeXmlData = Some(MongoDBObject(Item.XmlData -> 0))
 
   /**
    * List query implementation for Items
@@ -44,11 +44,8 @@ object ItemApi extends BaseApi {
    * @return
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
-    f match {
-      case Some(fields) => doList(request.ctx.organization, q, Some(fields.toString), c, sk, l)
-      case None => doList(request.ctx.organization, q, f, c, sk, l)
-    }
-    //doList(request.ctx.organization, q, f, c, sk, l)
+    val fields = if ( f.isDefined ) f else excludedFieldsByDefault
+    doList(request.ctx.organization, q, fields, c, sk, l)
   }
 
   def listWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
@@ -60,13 +57,13 @@ object ItemApi extends BaseApi {
   def listWithColl(collId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
     if (ContentCollection.isAuthorized(request.ctx.organization,collId,Permission.All)) {
       val initSearch = MongoDBObject(Content.collectionId -> collId.toString)
-      QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, Some(initSearch))
+      QueryHelper.list[Item, ObjectId](q, f, c, sk, l, Item.queryFields, Item.dao, Item.ItemWrites, Some(initSearch))
     } else Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
-  private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = {
+  private def doList(orgId: ObjectId, q: Option[String], f: Option[Object], c: String, sk: Int, l: Int) = {
     val initSearch = MongoDBObject(Content.collectionId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(orgId,Permission.All).map(_.toString)))
-    QueryHelper.list(q, f, c, sk, l, Item.queryFields, Item.collection, Some(initSearch))
+    QueryHelper.list[Item, ObjectId](q, f, c, sk, l, Item.queryFields, Item.dao, Item.ItemWrites, Some(initSearch))
   }
 
   /**
@@ -86,9 +83,6 @@ object ItemApi extends BaseApi {
    * @return
    */
   def getItemDetail(id: ObjectId) = ApiAction { request =>
-    val excludeXmlData = MongoDBObject(
-      Item.XmlData -> 0
-    )
     _getItem(request.ctx.organization, id, excludeXmlData)
   }
 
@@ -99,8 +93,8 @@ object ItemApi extends BaseApi {
    * @param fields
    * @return
    */
-  private def _getItem(callerOrg: ObjectId, id: ObjectId, fields: DBObject): Result  = {
-    Item.collection.findOneByID(id, fields) match {
+  private def _getItem(callerOrg: ObjectId, id: ObjectId, fields: Option[DBObject]): Result  = {
+    fields.map(Item.collection.findOneByID(id, _)).getOrElse( Item.collection.findOneByID(id)) match {
       case Some(o) =>  if ( canUpdateOrDelete(callerOrg, o.get(Item.CollectionId).asInstanceOf[String])) {
         Ok(Json.toJson(grater[Item].asObject(o)))
       } else {
@@ -134,8 +128,6 @@ object ItemApi extends BaseApi {
    * @return
    */
   def deleteItem(id: ObjectId) = ApiAction { request =>
-    val idField = MongoDBObject("_id" -> id)
-
     Item.collection.findOneByID(id, MongoDBObject(Item.CollectionId -> 1)) match {
       case Some(o) => {
         if ( canUpdateOrDelete(request.ctx.organization, o.get(Item.CollectionId).asInstanceOf[String]) ) {
@@ -230,6 +222,13 @@ object ItemApi extends BaseApi {
 
 
   def getItemsInCollection(collId: ObjectId) = ApiAction { request =>
+    NotImplemented
+  }
+
+  //private final val AMAZON_ASSETS_BUCKET : String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
+
+  def getFile( itemId : ObjectId, fileName : String ) = ApiAction { request =>
+    //S3Service.s3download(AMAZON_ASSETS_BUCKET, itemId, fileName)
     NotImplemented
   }
 }

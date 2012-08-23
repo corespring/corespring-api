@@ -17,9 +17,9 @@ import play.api.Play
 /**
  * A User
  */
-case class User(var userName: String,
-                 var fullName: String,
-                 var email: String,
+case class User(var userName: String = "",
+                 var fullName: String = "",
+                 var email: String = "",
                  var orgs: Seq[UserOrg] = Seq(),
                  var id: ObjectId = new ObjectId()
                )
@@ -99,17 +99,21 @@ object User extends ModelCompanion[User, ObjectId] {
   //
   implicit object UserWrites extends Writes[User] {
     def writes(user: User) = {
-      JsObject(
-        List(
-          "id" -> JsString(user.id.toString),
-          "userName" -> JsString(user.userName),
-          "fullName" -> JsString(user.fullName),
-          "email" -> JsString(user.email)
-        )
-      )
+      var list = List[(String,JsString)]()
+      if ( user.email.nonEmpty ) list = ("email" -> JsString(user.email)) :: list
+      if ( user.fullName.nonEmpty ) list = ("fullName" -> JsString(user.fullName)) :: list
+      if ( user.userName.nonEmpty ) list = ("userName" -> JsString(user.userName)) :: list
+      list =  "id" -> JsString(user.id.toString) :: list
+      JsObject(list)
     }
   }
 
+  val queryFields = Map(
+    "id" -> "String",
+    "userName" -> "String",
+    "fullName" -> "String",
+    "email" -> "email"
+  )
 }
 
 case class UserOrg(var orgId: ObjectId, var pval: Long)

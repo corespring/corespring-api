@@ -25,15 +25,15 @@ DELETE  /api/v1/organizations/:id               api.v1.OrganizationApi.deleteOrg
 
 
 # Collections
-GET     /api/v1/collections                     api.v1.CollectionApi.list
+GET     /api/v1/collections                     api.v1.CollectionApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
 GET     /api/v1/collections/:id                 api.v1.CollectionApi.getCollection(id: ObjectId)
-GET     /api/v1/organizations/:orgId/collections    api.v1.CollectionApi.listWithOrg(orgId:ObjectId)
+GET     /api/v1/organizations/:orgId/collections    api.v1.CollectionApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
 POST    /api/v1/collections                     api.v1.CollectionApi.createCollection
 PUT     /api/v1/collections/:id                 api.v1.CollectionApi.updateCollection(id: ObjectId)
 DELETE  /api/v1/collections/:id                 api.v1.CollectionApi.deleteCollection(id: ObjectId)
 
 # Users
-GET     /api/v1/users                           api.v1.UserApi.list
+GET     /api/v1/users                           api.v1.UserApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
 GET     /api/v1/users/:id                       api.v1.UserApi.getUser(id: ObjectId)
 POST    /api/v1/users                           api.v1.UserApi.createUser
 PUT     /api/v1/users/:id                       api.v1.UserApi.updateUser(id: ObjectId)
@@ -52,6 +52,7 @@ POST    /api/v1/items                           api.v1.ItemApi.createItem
 PUT     /api/v1/items/:id                       api.v1.ItemApi.updateItem(id: ObjectId)
 GET     /api/v1/collections/:collId/items       api.v1.ItemApi.getItemsInCollection(collId: ObjectId)
 GET     /api/v1/items/:itemId/assets/:fileName  api.v1.FilesApi.getFile(itemId:String,fileName:String)
+
 
 
 # Item Session API

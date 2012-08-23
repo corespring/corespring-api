@@ -23,7 +23,7 @@ import controllers.auth.Permission
 /**
  * A ContentCollection
  */
-case class ContentCollection(var name: String, var isPrivate: Boolean = false, var id: ObjectId = new ObjectId())
+case class ContentCollection(var name: String = "", var isPrivate: Boolean = false, var id: ObjectId = new ObjectId())
 
 object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
   val name = "name"
@@ -123,13 +123,16 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
 
   implicit object CollectionWrites extends Writes[ContentCollection] {
     def writes(coll: ContentCollection) = {
-      JsObject(
-        List(
-          "id" -> JsString(coll.id.toString),
-          "name" -> JsString(coll.name)
-        )
-      )
+      var list = List[(String, JsString)]()
+      if ( coll.name.nonEmpty ) ("name" -> JsString(coll.name)) :: list
+      list = ("id" -> JsString(coll.id.toString)) :: list
+      JsObject( list )
     }
   }
+
+  val queryFields = Map(
+    "id" -> "ObjectId",
+    "name" -> "String"
+  )
 
 }
