@@ -105,7 +105,6 @@ object Global extends GlobalSettings {
     jsonLinesToDb(basePath + "items.json", Content.collection)
     jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
     jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
-    jsonLinesToDb(basePath + "accessTokens.json", AccessToken.collection)
     jsonLinesToDb(basePath + "users.json", User.collection)
     jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
 
