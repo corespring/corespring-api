@@ -23,7 +23,9 @@ import play.api.libs.json.JsObject
 case class ItemResponse(id: String, value: String, outcome: String)
 
 object ItemResponse {
-
+   val value = "value"
+   val id = "id"
+   val outcome = "outcome"
 
   implicit object ItemResponseWrites extends Writes[ItemResponse] {
     def writes(response: ItemResponse) = {

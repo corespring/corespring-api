@@ -25,15 +25,15 @@ DELETE  /api/v1/organizations/:id               api.v1.OrganizationApi.deleteOrg
 
 
 # Collections
-GET     /api/v1/collections                     api.v1.CollectionApi.list
+GET     /api/v1/collections                     api.v1.CollectionApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
 GET     /api/v1/collections/:id                 api.v1.CollectionApi.getCollection(id: ObjectId)
-GET     /api/v1/organizations/:orgId/collections    api.v1.CollectionApi.listWithOrg(orgId:ObjectId)
+GET     /api/v1/organizations/:orgId/collections    api.v1.CollectionApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
 POST    /api/v1/collections                     api.v1.CollectionApi.createCollection
 PUT     /api/v1/collections/:id                 api.v1.CollectionApi.updateCollection(id: ObjectId)
 DELETE  /api/v1/collections/:id                 api.v1.CollectionApi.deleteCollection(id: ObjectId)
 
 # Users
-GET     /api/v1/users                           api.v1.UserApi.list
+GET     /api/v1/users                           api.v1.UserApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
 GET     /api/v1/users/:id                       api.v1.UserApi.getUser(id: ObjectId)
 POST    /api/v1/users                           api.v1.UserApi.createUser
 PUT     /api/v1/users/:id                       api.v1.UserApi.updateUser(id: ObjectId)
@@ -58,7 +58,7 @@ GET     /api/v1/:itemId/assets/:fileName        api.v1.ItemApi.getFile(itemId : 
 # Item Session API
 
 POST    /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.createItemSession(itemId: ObjectId)
-GET     /api/v1/itemsessions/:sessionId                   api.v1.ItemSessionApi.getItemSession(sessionId: ObjectId)
-
-
+PUT     /api/v1/items/:itemId/sessions/:sessionId         api.v1.ItemSessionApi.updateItemSession(itemId: ObjectId, sessionId: ObjectId)
+GET     /api/v1/items/:itemId/sessions/:sessionId         api.v1.ItemSessionApi.getItemSession(itemId:ObjectId, sessionId: ObjectId)
+GET     /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.list(itemId:ObjectId)
 

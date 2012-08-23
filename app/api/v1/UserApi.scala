@@ -4,7 +4,7 @@ import controllers.auth.{Permission, BaseApi}
 import play.api.libs.json.Json
 import models.{Organization, UserOrg, User}
 import org.bson.types.ObjectId
-import api.ApiError
+import api.{QueryHelper, ApiError}
 import com.novus.salat.dao.SalatMongoCursor
 import com.mongodb.casbah.commons.MongoDBObject
 import controllers.Utils
@@ -18,10 +18,10 @@ object UserApi extends BaseApi {
    *
    * @return
    */
-  def list() = ApiAction { request =>
+  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
     val orgIds:List[ObjectId] = Organization.getTree(request.ctx.organization).map(_.id)
-    val c: SalatMongoCursor[User] = User.find(MongoDBObject(User.orgs + "." + UserOrg.orgId -> MongoDBObject("$in" -> orgIds)))
-    Ok(Json.toJson(Utils.toSeq(c)))
+    val initSearch = MongoDBObject(User.orgs + "." + UserOrg.orgId -> MongoDBObject("$in" -> orgIds))
+    QueryHelper.list[User, ObjectId](q, f, c, sk, l, User.queryFields, User.dao, User.UserWrites, Some(initSearch))
   }
 
   /**

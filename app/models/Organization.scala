@@ -23,7 +23,7 @@ import scala.Some
 import scala.Right
 import play.api.libs.json.JsObject
 
-case class Organization(var name: String,
+case class Organization(var name: String = "",
                         var path: Seq[ObjectId] = Seq(),
                         var contentcolls: Seq[ContentCollRef] = Seq(),
                         var id: ObjectId = new ObjectId()) {
@@ -165,16 +165,13 @@ object Organization extends ModelCompanion[Organization, ObjectId] {
   }
   implicit object OrganizationWrites extends Writes[Organization] {
     def writes(org: Organization) = {
-      JsObject(
-        List(
-          "id" -> JsString(org.id.toString),
-          "name" -> JsString(org.name),
-          "path" -> JsArray(org.path.map(c => JsString(c.toString)).toSeq)
-        )
-      )
+      var list = List[(String, JsValue)]()
+      if ( org.path.nonEmpty ) list = ("path" -> JsArray(org.path.map(c => JsString(c.toString)).toSeq)) :: list
+      if ( org.name.nonEmpty ) list = ("name" -> JsString(org.name)) :: list
+      list = ("id" -> JsString(org.id.toString)) :: list
+      JsObject(list)
     }
   }
-
 }
 
 case class ContentCollRef(var collectionId: ObjectId, var pval: Long = Permission.All.value)

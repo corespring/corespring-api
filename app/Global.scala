@@ -73,7 +73,7 @@ object Global extends GlobalSettings {
   override def onStart(app: Application) {
 
     // support JodaTime
-    RegisterJodaTimeConversionHelpers()
+   // RegisterJodaTimeConversionHelpers()
     if (Play.isDev(app) || Play.isTest(app)) {
       insertTestData("/conf/test-data/")
     }
