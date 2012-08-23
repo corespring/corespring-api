@@ -73,7 +73,7 @@ object Global extends GlobalSettings {
   override def onStart(app: Application) {
 
     // support JodaTime
-   // RegisterJodaTimeConversionHelpers()
+    // RegisterJodaTimeConversionHelpers()
     val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
     S3Service.init(amazonProperties)
     if (Play.isDev(app) || Play.isTest(app)) {
@@ -82,20 +82,33 @@ object Global extends GlobalSettings {
   }
 
   private def insertTestData(basePath: String) = {
-    def jsonToDB(jsonPath: String, coll: MongoCollection) = {
+
+
+    def jsonLinesToDb(jsonPath: String, coll: MongoCollection) = {
       coll.drop()
       val lines: Iterator[String] = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).getLines()
       for (line <- lines) {
-        coll.insert(JSON.parse(line).asInstanceOf[DBObject], coll.writeConcern)
+        insertString(line, coll)
       }
     }
-    jsonToDB(basePath + "orgs.json", Organization.collection)
-    jsonToDB(basePath + "items.json", Content.collection)
-    jsonToDB(basePath + "collections.json", ContentCollection.collection)
-    jsonToDB(basePath + "apiClients.json", ApiClient.collection)
-    jsonToDB(basePath + "accessTokens.json", AccessToken.collection)
-    jsonToDB(basePath + "users.json", User.collection)
-    jsonToDB(basePath + "itemsessions.json", ItemSession.collection)
+
+    def jsonFileToDb(jsonPath: String, coll: MongoCollection) {
+      coll.drop()
+      val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
+      insertString(s, coll)
+    }
+
+    def insertString(s: String, coll: MongoCollection) = coll.insert(JSON.parse(s).asInstanceOf[DBObject], coll.writeConcern)
+
+    jsonLinesToDb(basePath + "orgs.json", Organization.collection)
+    jsonLinesToDb(basePath + "items.json", Content.collection)
+    jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
+    jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
+    jsonLinesToDb(basePath + "accessTokens.json", AccessToken.collection)
+    jsonLinesToDb(basePath + "users.json", User.collection)
+    jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
+
+    jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
   }
 
 }
