@@ -7,6 +7,7 @@ import org.bson.types.ObjectId
 import models.Organization
 import play.api.Logger
 import com.novus.salat.dao.SalatSaveError
+import org.joda.time.DateTime
 
 /**
  * A OAuth provider
@@ -58,7 +59,8 @@ object OAuthProvider {
           // credentials are ok, delete if there's a previous token for the same org and scope
             val org = client.id
             AccessToken.find(org, scope).foreach(AccessToken.remove(_))
-            val token = AccessToken(org, scope, generateToken)
+            val creationTime = DateTime.now()
+            val token = AccessToken(org, scope, generateToken, creationTime, creationTime.plusHours(24))
             AccessToken.insert(token) match {
               case Some(_) => Right(token)
               case None => Left(ApiError.OperationError)
@@ -77,7 +79,11 @@ object OAuthProvider {
   def getAuthorizationContext(t: String): Either[ApiError, AuthorizationContext] = {
     AccessToken.findById(t) match {
       case Some(token: AccessToken) =>
-        Right(new AuthorizationContext(token.organization, token.scope))
+        if ( token.isExpired ) {
+          Left(ExpiredToken.format(token.expirationDate.toString))
+        } else {
+          Right(new AuthorizationContext(token.organization, token.scope))
+        }
       case _ => Left(InvalidToken)
     }
   }

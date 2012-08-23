@@ -9,6 +9,7 @@ import com.mongodb.casbah.MongoCollection
 import com.mongodb.util.JSON
 import java.nio.charset.Charset
 import org.bson.types.ObjectId
+import org.joda.time.DateTime
 import play.api._
 import http.Status
 import libs.iteratee.Enumerator
@@ -73,7 +74,7 @@ object Global extends GlobalSettings {
   override def onStart(app: Application) {
 
     // support JodaTime
-   // RegisterJodaTimeConversionHelpers()
+    RegisterJodaTimeConversionHelpers()
     val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
     S3Service.init(amazonProperties)
     if (Play.isDev(app) || Play.isTest(app)) {
@@ -93,7 +94,9 @@ object Global extends GlobalSettings {
     jsonToDB(basePath + "items.json", Content.collection)
     jsonToDB(basePath + "collections.json", ContentCollection.collection)
     jsonToDB(basePath + "apiClients.json", ApiClient.collection)
-    jsonToDB(basePath + "accessTokens.json", AccessToken.collection)
+    val creationDate = DateTime.now()
+    val token = AccessToken(new ObjectId("502404dd0364dc35bb393397"), None, "34dj45a769j4e1c0h4wb", creationDate, creationDate.plusHours(24))
+    AccessToken.insert(token)
     jsonToDB(basePath + "users.json", User.collection)
     jsonToDB(basePath + "itemsessions.json", ItemSession.collection)
   }
