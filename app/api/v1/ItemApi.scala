@@ -11,6 +11,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import play.api.templates.Xml
 import play.api.mvc.Result
 import play.api.libs.json.Json
+import com.typesafe.config.ConfigFactory
 
 
 /**
@@ -221,6 +222,13 @@ object ItemApi extends BaseApi {
 
 
   def getItemsInCollection(collId: ObjectId) = ApiAction { request =>
+    NotImplemented
+  }
+
+  //private final val AMAZON_ASSETS_BUCKET : String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
+
+  def getFile( itemId : ObjectId, fileName : String ) = ApiAction { request =>
+    //S3Service.s3download(AMAZON_ASSETS_BUCKET, itemId, fileName)
     NotImplemented
   }
 }
