@@ -96,7 +96,7 @@ object Global extends GlobalSettings {
   private def insertTestData(basePath: String) = {
     def jsonLinesToDb(jsonPath: String, coll: MongoCollection) = {
       coll.drop()
-      val lines: Iterator[String] = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).getLines()
+      val lines: Iterator[String] = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.forName("UTF-8"))).getLines()
       for (line <- lines) {
         insertString(line, coll)
       }
