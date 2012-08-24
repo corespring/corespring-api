@@ -100,6 +100,9 @@ object FieldValuesApi extends BaseApi {
         case FieldValue.ReviewsPassed => Ok(toJson(fv.reviewsPassed))
         case FieldValue.KeySkills => Ok(toJson(fv.keySkills))
         case FieldValue.ItemTypes => Ok(toJson(fv.itemTypes))
+        case FieldValue.LicenseTypes => Ok(toJson(fv.licenseTypes))
+        case FieldValue.PriorUses => Ok(toJson(fv.priorUses))
+        case FieldValue.Credentials => Ok(toJson(fv.credentials))
         case _ => NotFound
       }
     }

@@ -34,6 +34,9 @@ case class FieldValue(
                        var reviewsPassed: Seq[KeyValue] = Seq(),
                        var keySkills: Seq[KeyValue] = Seq(),
                        var itemTypes: Seq[KeyValue] = Seq(),
+                       var licenseTypes: Seq[KeyValue] = Seq(),
+                       var priorUses: Seq[KeyValue] = Seq(),
+                       var credentials: Seq[KeyValue] = Seq(),
                        var id: ObjectId = new ObjectId()
                        )
 
@@ -48,6 +51,9 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
   val GradeLevel = "gradeLevel"
   val ReviewsPassed = "reviewsPassed"
   val ItemTypes = "itemTypes"
+  val LicenseTypes = "licenseTypes"
+  val PriorUses = "priorUses"
+  val Credentials = "credentials"
 
   implicit object FieldValueWrites extends Writes[FieldValue] {
     def writes(fieldValue: FieldValue) = {
@@ -57,6 +63,9 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
       iseq = iseq :+ (GradeLevel -> JsArray(fieldValue.gradeLevels.map(Json.toJson(_))))
       iseq = iseq :+ (ReviewsPassed -> JsArray(fieldValue.reviewsPassed.map(Json.toJson(_))))
       iseq = iseq :+ (ItemTypes -> JsArray(fieldValue.itemTypes.map(Json.toJson(_))))
+      iseq = iseq :+ (LicenseTypes -> JsArray(fieldValue.licenseTypes.map(Json.toJson(_))))
+      iseq = iseq :+ (PriorUses -> JsArray(fieldValue.priorUses.map(Json.toJson(_))))
+      iseq = iseq :+ (Credentials -> JsArray(fieldValue.credentials.map(Json.toJson(_))))
       JsObject(iseq)
     }
   }
@@ -65,6 +74,9 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
     KeySkills -> "valid keyskills",
     GradeLevel -> "valid grade levels",
     ReviewsPassed -> "valid reviews passed",
-    ItemTypes -> "valid item types"
+    ItemTypes -> "valid item types (note: if you specify 'Other' you can enter freetext)",
+    LicenseTypes -> "license types",
+    PriorUses -> "prior uses",
+    Credentials -> "credentials"
   )
 }
