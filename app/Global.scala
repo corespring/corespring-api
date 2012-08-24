@@ -13,6 +13,7 @@ import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 import java.util.{TimerTask, Timer}
 import org.bson.types.ObjectId
+import org.joda.time.DateTime
 import play.api._
 import http.Status
 import libs.concurrent.Akka
@@ -79,7 +80,7 @@ object Global extends GlobalSettings {
   override def onStart(app: Application) {
 
     // support JodaTime
-   // RegisterJodaTimeConversionHelpers()
+    RegisterJodaTimeConversionHelpers()
     val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
     S3Service.init(amazonProperties)
     if (Play.isDev(app) || Play.isTest(app)) {
@@ -93,21 +94,35 @@ object Global extends GlobalSettings {
   }
 
   private def insertTestData(basePath: String) = {
-    Log.i("running insertTestData")
-    def jsonToDB(jsonPath: String, coll: MongoCollection) = {
+    def jsonLinesToDb(jsonPath: String, coll: MongoCollection) = {
       coll.drop()
       val lines: Iterator[String] = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).getLines()
       for (line <- lines) {
-        coll.insert(JSON.parse(line).asInstanceOf[DBObject], coll.writeConcern)
+        insertString(line, coll)
       }
     }
-    jsonToDB(basePath + "orgs.json", Organization.collection)
-    jsonToDB(basePath + "items.json", Content.collection)
-    jsonToDB(basePath + "collections.json", ContentCollection.collection)
-    jsonToDB(basePath + "apiClients.json", ApiClient.collection)
-    jsonToDB(basePath + "accessTokens.json", AccessToken.collection)
-    jsonToDB(basePath + "users.json", User.collection)
-    jsonToDB(basePath + "itemsessions.json", ItemSession.collection)
+
+    def jsonFileToDb(jsonPath: String, coll: MongoCollection) {
+      coll.drop()
+      val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
+      insertString(s, coll)
+    }
+
+    def insertString(s: String, coll: MongoCollection) = coll.insert(JSON.parse(s).asInstanceOf[DBObject], coll.writeConcern)
+
+    jsonLinesToDb(basePath + "orgs.json", Organization.collection)
+    jsonLinesToDb(basePath + "items.json", Content.collection)
+    jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
+    jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
+    jsonLinesToDb(basePath + "users.json", User.collection)
+    jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
+    jsonLinesToDb(basePath + "subjects.json", Subject.collection)
+    jsonLinesToDb(basePath + "standards.json", Standard.collection)
+
+    jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
+    val creationDate = DateTime.now()
+    val token = AccessToken(new ObjectId("502404dd0364dc35bb393397"), None, "34dj45a769j4e1c0h4wb", creationDate, creationDate.plusHours(24))
+    AccessToken.insert(token)
   }
 
 }

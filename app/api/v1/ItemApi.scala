@@ -224,11 +224,4 @@ object ItemApi extends BaseApi {
   def getItemsInCollection(collId: ObjectId) = ApiAction { request =>
     NotImplemented
   }
-
-  //private final val AMAZON_ASSETS_BUCKET : String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
-
-  def getFile( itemId : ObjectId, fileName : String ) = ApiAction { request =>
-    //S3Service.s3download(AMAZON_ASSETS_BUCKET, itemId, fileName)
-    NotImplemented
-  }
 }
