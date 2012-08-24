@@ -78,7 +78,6 @@ object Global extends GlobalSettings {
   }
 
   override def onStart(app: Application) {
-
     // support JodaTime
     RegisterJodaTimeConversionHelpers()
     val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")

@@ -73,6 +73,11 @@ object Organization extends ModelCompanion[Organization, ObjectId] {
     }
   }
 
+  /**
+   * delete the specified organization and all sub-organizations
+   * @param orgId
+   * @return
+   */
   def delete(orgId: ObjectId): Either[InternalError, Unit] = {
     try {
       remove(MongoDBObject(Organization.path -> orgId))
