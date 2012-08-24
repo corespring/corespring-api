@@ -83,7 +83,7 @@ object Global extends GlobalSettings {
     RegisterJodaTimeConversionHelpers()
     val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
     S3Service.init(amazonProperties)
-    if (Play.isDev(app) || Play.isTest(app)) {
+    if (Play.isDev(app) || Play.isTest(app) || System.getenv("AUTO_RESTART") == "true") {
       insertTestData("/conf/test-data/")
     }
     if(System.getenv("AUTO_RESTART") == "true"){
