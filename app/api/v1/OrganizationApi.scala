@@ -22,8 +22,17 @@ object OrganizationApi extends BaseApi {
    * @return
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
-    Logger.debug("q in controller = " + q)
     val initSearch = MongoDBObject(Organization.path -> request.ctx.organization)
+    QueryHelper.list[Organization, ObjectId](q, f, c, sk,l, Organization.queryFields, Organization.dao, Organization.OrganizationWrites, Some(initSearch))
+  }
+
+  /**
+   * Returns a list of organizations visible to the organization in the request context
+   *
+   * @return
+   */
+  def listChildren(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+    val initSearch = MongoDBObject(Organization.path+".1" -> request.ctx.organization)
     QueryHelper.list[Organization, ObjectId](q, f, c, sk,l, Organization.queryFields, Organization.dao, Organization.OrganizationWrites, Some(initSearch))
   }
 

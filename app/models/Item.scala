@@ -36,9 +36,9 @@ object Standard {
   }
 }
 
-case class Item(var author:Option[String] = None,
-                var collectionId:Option[String] = None,
-                var contentType:Option[String] = None,
+case class Item( var collectionId:Option[String] = None,
+                 var contentType:Option[String] = None,
+                 var author:Option[String] = None,
                 var contributor:Option[String] = None,
                 var copyrightOwner:Option[String] = None,
                 var copyrightYear:Option[String] = None,
@@ -65,75 +65,86 @@ object Item extends ModelCompanion[Item, ObjectId] {
   val collection = Content.collection
   val dao = new SalatDAO[Item, ObjectId](collection = collection) {}
 
-  val Id = "Id"
-  val Author = "author"
-  val CollectionId = Content.collectionId
-  val ContentType = Content.contentType
-  val Contributor = "contributor"
-  val CopyrightOwner = "copyrightOwner"
-  val CopyrightYear = "copyrightYear"
-  val Credentials = "credentials"
-  val Files = "files"
-  val GradeLevel = "gradeLevel"
-  val ItemType = "itemType"
-  val ItemTypeOther = "itemTypeOther"
-  val KeySkills = "keySkills"
-  val LicenseType = "licenseType"
-  val PrimarySubject = "primarySubject"
-  val PriorUse = "priorUse"
-  val ReviewsPassed = "reviewsPassed"
-  val SourceUrl = "sourceUrl"
-  val Standards = "standards"
-  val Title = "title"
-  val XmlData = "xmlData"
+  val id = "Id"
+  val author = "author"
+  val collectionId = Content.collectionId
+  val contentType = Content.contentType
+  val contributor = "contributor"
+  val copyrightOwner = "copyrightOwner"
+  val copyrightYear = "copyrightYear"
+  val credentials = "credentials"
+  val files = "files"
+  val gradeLevel = "gradeLevel"
+  val itemType = "itemType"
+  val itemTypeOther = "itemTypeOther"
+  val keySkills = "keySkills"
+  val licenseType = "licenseType"
+  val primarySubject = "primarySubject"
+  val priorUse = "priorUse"
+  val reviewsPassed = "reviewsPassed"
+  val sourceUrl = "sourceUrl"
+  val standards = "standards"
+  val title = "title"
+  val xmlData = "xmlData"
 
   implicit object ItemWrites extends Writes[Item] {
     def writes(item: Item) = {
       var iseq:Seq[(String,JsValue)] = Seq("id" -> JsString(item.id.toString))
-      item.author.foreach(v => iseq = iseq :+ (Author -> JsString(v)))
-      item.collectionId.foreach(v => iseq = iseq :+ (CollectionId -> JsString(v)))
-      item.contentType.foreach(v => iseq = iseq :+ (ContentType -> JsString(v)))
-      item.contributor.foreach(v => iseq = iseq :+ (Contributor -> JsString(v)))
-      item.copyrightOwner.foreach(v => iseq = iseq :+ (CopyrightOwner -> JsString(v)))
-      item.copyrightYear.foreach(v => iseq = iseq :+ (CopyrightYear -> JsString(v)))
-      item.credentials.foreach(v => iseq = iseq :+ (Credentials -> JsString(v)))
-      if (!item.files.isEmpty) iseq = iseq :+ (Files -> JsArray(item.files.map(Json.toJson(_))))
-      if (!item.gradeLevel.isEmpty) iseq = iseq :+ (GradeLevel -> JsArray(item.gradeLevel.map(JsString(_))))
-      item.itemType.foreach(v => iseq = iseq :+ (ItemType -> JsString(v)))
-      item.itemTypeOther.foreach(v => iseq = iseq :+ (ItemTypeOther -> JsString(v)))
-      if (!item.keySkills.isEmpty) iseq = iseq :+ (KeySkills -> JsArray(item.keySkills.map(JsString(_))))
-      item.licenseType.foreach(v => iseq = iseq :+ (LicenseType -> JsString(v)))
-      if (!item.primarySubject.isEmpty) iseq = iseq :+ (PrimarySubject -> JsObject(item.primarySubject.toSeq.map(ps => (ps._1,JsString(ps._2)))))
-      item.priorUse.foreach(v => iseq = iseq :+ (PriorUse -> JsString(v)))
-      if (!item.reviewsPassed.isEmpty) iseq = iseq :+ (ReviewsPassed -> JsArray(item.reviewsPassed.map(JsString(_))))
-      item.sourceUrl.foreach(v => iseq = iseq :+ (SourceUrl -> JsString(v)))
-      if (!item.standards.isEmpty) iseq = iseq :+ (Standards -> Json.toJson(item.standards))
-      item.title.foreach(v => iseq = iseq :+ (Title -> JsString(v)))
-      item.xmlData.foreach(v => iseq = iseq :+ (XmlData -> JsString(v)))
+      item.author.foreach(v => iseq = iseq :+ (author -> JsString(v)))
+      item.collectionId.foreach(v => iseq = iseq :+ (collectionId -> JsString(v)))
+      item.contentType.foreach(v => iseq = iseq :+ (contentType -> JsString(v)))
+      item.contributor.foreach(v => iseq = iseq :+ (contributor -> JsString(v)))
+      item.copyrightOwner.foreach(v => iseq = iseq :+ (copyrightOwner -> JsString(v)))
+      item.copyrightYear.foreach(v => iseq = iseq :+ (copyrightYear -> JsString(v)))
+      item.credentials.foreach(v => iseq = iseq :+ (credentials -> JsString(v)))
+      if (!item.files.isEmpty) iseq = iseq :+ (files -> JsArray(item.files.map(Json.toJson(_))))
+      if (!item.gradeLevel.isEmpty) iseq = iseq :+ (gradeLevel -> JsArray(item.gradeLevel.map(JsString(_))))
+      item.itemType.foreach(v => iseq = iseq :+ (itemType -> JsString(v)))
+      item.itemTypeOther.foreach(v => iseq = iseq :+ (itemTypeOther -> JsString(v)))
+      if (!item.keySkills.isEmpty) iseq = iseq :+ (keySkills -> JsArray(item.keySkills.map(JsString(_))))
+      item.licenseType.foreach(v => iseq = iseq :+ (licenseType -> JsString(v)))
+      if (!item.primarySubject.isEmpty) iseq = iseq :+ (primarySubject -> JsObject(item.primarySubject.toSeq.map(ps => (ps._1,JsString(ps._2)))))
+      item.priorUse.foreach(v => iseq = iseq :+ (priorUse -> JsString(v)))
+      if (!item.reviewsPassed.isEmpty) iseq = iseq :+ (reviewsPassed -> JsArray(item.reviewsPassed.map(JsString(_))))
+      item.sourceUrl.foreach(v => iseq = iseq :+ (sourceUrl -> JsString(v)))
+      if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards))
+      item.title.foreach(v => iseq = iseq :+ (title -> JsString(v)))
+      item.xmlData.foreach(v => iseq = iseq :+ (xmlData -> JsString(v)))
       JsObject(iseq)
     }
   }
+  implicit object ItemReads extends Reads[Item]{
+    def reads(json:JsValue):Item = {
+      val item = Item()
+      item.author = (json \ author).asOpt[String]
+      item.collectionId = (json \ collectionId).asOpt[String]
+      //item.contentType = (json \ contentType).asOpt[String].getOrElse()
+       // filter(v => v == ContentType.item || v == ContentType.assessment || v == ContentType.materials).getOrElse(throw new JsonValidationException(contentType))
+         item
+    }
+  }
   val queryFields = Map(
-      Id -> "String",
-      Author -> "String",
-      CollectionId -> "ObjectId",
-      ContentType -> "String",
-      Contributor -> "String",
-      CopyrightOwner -> "String",
-      CopyrightYear -> "Int",
-      Credentials -> "String",
-      Files -> "Seq[String]",
-      GradeLevel -> "Seq[String]",
-      ItemType -> "String",
-      ItemTypeOther -> "String",
-      KeySkills -> "Seq[String]",
-      LicenseType -> "String",
-      PrimarySubject -> "Map[String, String]",
-      PriorUse -> "String",
-      ReviewsPassed -> "Seq[String]",
-      SourceUrl -> "String",
-      Standards -> "Seq[String]",
-      Title -> "String",
-      XmlData -> "String"
+      id -> "String",
+      author -> "String",
+      collectionId -> "ObjectId",
+      contentType -> "String",
+      contributor -> "String",
+      copyrightOwner -> "String",
+      copyrightYear -> "Int",
+      credentials -> "String",
+      files -> "Seq[String]",
+      gradeLevel -> "Seq[String]",
+      itemType -> "String",
+      itemTypeOther -> "String",
+      keySkills -> "Seq[String]",
+      licenseType -> "String",
+      primarySubject -> "Map[String, String]",
+      priorUse -> "String",
+      reviewsPassed -> "Seq[String]",
+      sourceUrl -> "String",
+      standards -> "Seq[String]",
+      title -> "String",
+      xmlData -> "String"
   )
+  case class JsonValidationException(field:String) extends RuntimeException("invalid field for: "+field)
 }

@@ -3,14 +3,19 @@ import _root_.controllers.{S3Service, Log}
 import _root_.models.auth.{AccessToken, ApiClient}
 import _root_.models._
 import _root_.models.Content
+import akka.util.Duration
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.MongoCollection
 import com.mongodb.util.JSON
+import java.io.File
 import java.nio.charset.Charset
+import java.util.concurrent.TimeUnit
+import java.util.{TimerTask, Timer}
 import org.bson.types.ObjectId
 import play.api._
 import http.Status
+import libs.concurrent.Akka
 import libs.iteratee.Enumerator
 import mvc._
 import mvc.SimpleResult
@@ -19,6 +24,7 @@ import com.mongodb.casbah.Imports._
 import play.api.Play.current
 import com.novus.salat._
 import com.novus.salat.global._
+import play.api.Application
 
 /**
  */
@@ -79,9 +85,15 @@ object Global extends GlobalSettings {
     if (Play.isDev(app) || Play.isTest(app)) {
       insertTestData("/conf/test-data/")
     }
+    if(System.getenv("AUTO_RESTART") == "true"){
+      Akka.system.scheduler.scheduleOnce(Duration.create(1, TimeUnit.DAYS)){
+      Play.start(new Application(Play.current.path,Play.current.classloader,Play.current.sources,Play.current.mode))
+      }
+    }
   }
 
   private def insertTestData(basePath: String) = {
+    Log.i("running insertTestData")
     def jsonToDB(jsonPath: String, coll: MongoCollection) = {
       coll.drop()
       val lines: Iterator[String] = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).getLines()

@@ -46,6 +46,7 @@ object Content {
 object ContentType {
   val item = "item"
   val assessment = "assessment"
+  val materials = "materials"
 
   def isContentType(s: String): Boolean = s == item || s == assessment
 }
