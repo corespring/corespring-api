@@ -19,22 +19,6 @@ object ItemFile{
   }
 }
 
-case class Standard(dotNotation: String, subject: String, category: String, subCategory: String, standard: String)
-object Standard {
-  implicit object StandardWrites extends Writes[Standard] {
-    def writes(obj: Standard) = {
-      JsObject(
-        List(
-          "dotNotation" -> JsString(obj.dotNotation),
-          "subject" -> JsString(obj.subject),
-          "category" -> JsString(obj.category),
-          "subCategory" -> JsString(obj.subCategory),
-          "standard" -> JsString(obj.standard)
-        )
-      )
-    }
-  }
-}
 
 case class Item(var author:Option[String] = None,
                 var collectionId:Option[String] = None,

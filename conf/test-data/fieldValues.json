@@ -1,7 +1,17 @@
 {
     "version" : "0.0.1",
 
-    "gradeLevel" : [
+    "itemTypes" : [
+        {"key" : "Multiple Choice", "value" :  "Multiple Choice"},
+        {"key" : "Text with Questions", "value" : "Text with Questions" },
+        {"key" : "Performance Task", "value" : "Performance Task"},
+        {"key" : "Activity", "value" : "Activity" },
+        {"key" : "Constructed Response - Short Answer", "value" :"Constructed Response - Short Answer"},
+        {"key" : "Constructed Response - Open Ended", "value" : "Constructed Response - Open Ended"},
+        {"key" : "Other (Please Identify)", "value" : "Other" }
+    ],
+
+    "gradeLevels" : [
         { "key":"PK", "value":"Prekindergarten"},
         { "key":"KG", "value":"Kindergarten"},
         { "key":"01", "value":"First grade"},

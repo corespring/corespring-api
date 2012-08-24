@@ -1,0 +1,5 @@
+{ "_id" : { "$oid" : "4ffb535f6bb41e469c0bf2a7" }, "subject" : "", "category" : "Art" }
+{ "_id" : { "$oid" : "4ffb535f6bb41e469c0bf2a8"}, "subject" : "Performing Arts", "category" : "Art" }
+{ "_id" : { "$oid" : "4ffb535f6bb41e469c0bf2a9"}, "subject" : "AP Music Theory,Visual Arts", "category" : "Art" }
+{ "_id" : { "$oid" : "4ffb535f6bb41e469c0bf2aa"}, "subject" : "AP Art History", "category" : "Art" }
+{ "_id" : { "$oid" : "4ffb535f6bb41e469c0bf2ab"}, "subject" : "Other", "category" : "Art" }

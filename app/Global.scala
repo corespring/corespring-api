@@ -84,7 +84,6 @@ object Global extends GlobalSettings {
 
   private def insertTestData(basePath: String) = {
 
-
     def jsonLinesToDb(jsonPath: String, coll: MongoCollection) = {
       coll.drop()
       val lines: Iterator[String] = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).getLines()
@@ -107,6 +106,8 @@ object Global extends GlobalSettings {
     jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
     jsonLinesToDb(basePath + "users.json", User.collection)
     jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
+    jsonLinesToDb(basePath + "subjects.json", Subject.collection)
+    jsonLinesToDb(basePath + "standards.json", Standard.collection)
 
     jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
     val creationDate = DateTime.now()

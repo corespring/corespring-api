@@ -53,7 +53,9 @@ PUT     /api/v1/items/:id                       api.v1.ItemApi.updateItem(id: Ob
 GET     /api/v1/collections/:collId/items       api.v1.ItemApi.getItemsInCollection(collId: ObjectId)
 GET     /api/v1/items/:itemId/assets/:fileName  api.v1.FilesApi.getFile(itemId:String,fileName:String)
 
-
+# Field Values API
+GET     /api/v1/field_values                   api.v1.FieldValuesApi.getAllAvailable
+GET     /api/v1/field_values/:fieldName        api.v1.FieldValuesApi.getFieldValues(fieldName:String, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
 
 # Item Session API
 
