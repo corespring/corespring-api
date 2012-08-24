@@ -120,6 +120,8 @@ object Global extends GlobalSettings {
     jsonLinesToDb(basePath + "standards.json", Standard.collection)
 
     jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
+    //acces token stuff
+    AccessToken.collection.drop()
     val creationDate = DateTime.now()
     val token = AccessToken(new ObjectId("502404dd0364dc35bb393397"), None, "34dj45a769j4e1c0h4wb", creationDate, creationDate.plusHours(24))
     AccessToken.insert(token)

@@ -25,15 +25,26 @@ object OrganizationApi extends BaseApi {
     val initSearch = MongoDBObject(Organization.path -> request.ctx.organization)
     QueryHelper.list[Organization, ObjectId](q, f, c, sk,l, Organization.queryFields, Organization.dao, Organization.OrganizationWrites, Some(initSearch))
   }
-
+  def listWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+    if(orgId == request.ctx.organization || Organization.isChild(request.ctx.organization,orgId)){
+      val initSearch = MongoDBObject(Organization.path -> orgId)
+      QueryHelper.list[Organization, ObjectId](q, f, c, sk,l, Organization.queryFields, Organization.dao, Organization.OrganizationWrites, Some(initSearch))
+    }else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
+  }
   /**
    * Returns a list of organizations visible to the organization in the request context
    *
    * @return
    */
-  def listChildren(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+  def getChildren(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
     val initSearch = MongoDBObject(Organization.path+".1" -> request.ctx.organization)
     QueryHelper.list[Organization, ObjectId](q, f, c, sk,l, Organization.queryFields, Organization.dao, Organization.OrganizationWrites, Some(initSearch))
+  }
+  def getChildrenWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+    if(orgId == request.ctx.organization || Organization.isChild(request.ctx.organization,orgId)){
+      val initSearch = MongoDBObject(Organization.path+".1" -> orgId)
+      QueryHelper.list[Organization, ObjectId](q, f, c, sk,l, Organization.queryFields, Organization.dao, Organization.OrganizationWrites, Some(initSearch))
+    }else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
   /**

@@ -133,7 +133,7 @@ object Organization extends ModelCompanion[Organization, ObjectId] {
   def isChild(parentId: ObjectId, childId: ObjectId): Boolean = {
     Organization.findOneById(childId) match {
       case Some(child) => {
-        if (child.path.size >= 2) child.path(child.path.size - 2) == parentId else false
+        if (child.path.size >= 2) child.path(1) == parentId else false
       }
       case None => false
     }
