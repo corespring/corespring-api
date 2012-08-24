@@ -3,6 +3,7 @@ package api.v1
 import controllers.auth.BaseApi
 import play.api.libs.json.Json._
 import play.api.mvc.Action
+import play.api.Play.current
 import models.KeyValue.KeyValueWrites
 import play.api.libs.json
 import play.api.libs.json.JsObject
@@ -23,28 +24,21 @@ import play.api.mvc.Result
 import play.api.libs.json.Json
 import com.typesafe.config.ConfigFactory
 import scala.Some
-
-/**
- * Keep the fieldValue object in memory.
- *
- */
-class FieldValueCache {
-  var fieldValue : Option[FieldValue] = None
-}
+import play.api.cache.Cache
 
 object FieldValuesApi extends BaseApi {
 
-  val fieldValueCache = new FieldValueCache()
+  val FieldValueCacheKey = "fieldValue"
 
   val AllAvailable = buildAllAvailable
 
   def buildAllAvailable = {
     val list = FieldValue.descriptions.toList :::
       List(
-         ("cc-standard", Standard.description + " (list queries available)"),
-         ("subject", Subject.description + " (list queries available)")
+        ("cc-standard", Standard.description + " (list queries available)"),
+        ("subject", Subject.description + " (list queries available)")
       )
-    for{ d <- list } yield Map( "path" -> ("/api/v1/field_values/" + d._1), "description" -> d._2)
+    for {d <- list} yield Map("path" -> ("/api/v1/field_values/" + d._1), "description" -> d._2)
   }
 
   def getAllAvailable = Action {
@@ -63,37 +57,39 @@ object FieldValuesApi extends BaseApi {
    * @param l
    * @return
    */
-  def getFieldValues(fieldName: String,  q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = Action {
+  def getFieldValues(fieldName: String, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = Action {
     request =>
 
       fieldName match {
         case "subject" => {
-          val fields = if ( f.isDefined ) f else Some(MongoDBObject())
           QueryHelper.list[Subject, ObjectId](q, f, c, sk, l, Subject.queryFields, Subject.dao, Subject.SubjectWrites, None)
         }
         case "cc-standard" => {
-          val fields = if ( f.isDefined ) f else Some(MongoDBObject())
           QueryHelper.list[Standard, ObjectId](q, f, c, sk, l, Standard.queryFields, Standard.dao, Standard.StandardWrites, None)
         }
         case _ => {
-          fieldValueCache.fieldValue match {
-            case None =>  loadFieldValue()
-            case Some(fv) => //do nothing
+          Cache.getAs[FieldValue](FieldValueCacheKey) match {
+            case None => {
+              loadFieldValue()
+              Cache.getAs[FieldValue](FieldValueCacheKey) match {
+                case None => throw new RuntimeException("Unable to retrieve field value data")
+                case fv: Some[FieldValue] => getSubField(fv, fieldName)
+              }
+            }
+            case fv: Some[FieldValue] => getSubField(fv, fieldName)
           }
-          getSubField( fieldValueCache.fieldValue, fieldName : String )
         }
       }
   }
 
-  private def loadFieldValue()  {
-
+  private def loadFieldValue() {
     FieldValue.collection.findOne() match {
-      case Some(fv) => fieldValueCache.fieldValue = Some(grater[FieldValue].asObject(fv))
+      case Some(fv) => Cache.set(FieldValueCacheKey, grater[FieldValue].asObject(fv))
       case _ => //do nothing
     }
   }
 
-  private def getSubField( fieldValue : Option[FieldValue], fieldName : String) : Result = fieldValue match {
+  private def getSubField(fieldValue: Option[FieldValue], fieldName: String): Result = fieldValue match {
     case Some(fv) => {
       fieldName match {
         case FieldValue.GradeLevel => Ok(toJson(fv.gradeLevels))
