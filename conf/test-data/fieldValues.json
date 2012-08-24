@@ -1,5 +1,33 @@
 {
     "version":"0.0.1",
+
+    "bloomsTaxonomy":[
+        {
+            "key":"Knowledge (Remember)",
+            "value":"Knowledge (Remember)"
+        },
+        {
+            "key":"Understand (Describe, dramatize)",
+            "value":"Understand (Describe, dramatize)"
+        },
+        {
+            "key":"Apply",
+            "value":"Apply"
+        },
+        {
+            "key":"Analyze",
+            "value":"Analyze"
+        },
+        {
+            "key":"Evaluate",
+            "value":"Evaluate"
+        },
+        {
+            "key":"Create",
+            "value":"Create"
+        }
+    ],
+
     "priorUses":[
         {
             "key":"Formative",

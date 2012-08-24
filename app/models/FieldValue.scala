@@ -37,6 +37,7 @@ case class FieldValue(
                        var licenseTypes: Seq[KeyValue] = Seq(),
                        var priorUses: Seq[KeyValue] = Seq(),
                        var credentials: Seq[KeyValue] = Seq(),
+                       var bloomsTaxonomy: Seq[KeyValue] = Seq(),
                        var id: ObjectId = new ObjectId()
                        )
 
@@ -54,6 +55,18 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
   val LicenseTypes = "licenseTypes"
   val PriorUses = "priorUses"
   val Credentials = "credentials"
+  val BloomsTaxonomy = "bloomsTaxonomy"
+
+  def getSeqForFieldName(fieldValue:FieldValue, fieldName: String): Option[Seq[KeyValue]] = fieldName match {
+    case GradeLevel => Some(fieldValue.gradeLevels)
+    case ReviewsPassed => Some(fieldValue.reviewsPassed)
+    case KeySkills => Some(fieldValue.keySkills)
+    case ItemTypes => Some(fieldValue.itemTypes)
+    case LicenseTypes => Some(fieldValue.licenseTypes)
+    case PriorUses => Some(fieldValue.priorUses)
+    case Credentials => Some(fieldValue.credentials)
+    case BloomsTaxonomy => Some(fieldValue.bloomsTaxonomy)
+  }
 
   implicit object FieldValueWrites extends Writes[FieldValue] {
     def writes(fieldValue: FieldValue) = {
@@ -66,6 +79,7 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
       iseq = iseq :+ (LicenseTypes -> JsArray(fieldValue.licenseTypes.map(Json.toJson(_))))
       iseq = iseq :+ (PriorUses -> JsArray(fieldValue.priorUses.map(Json.toJson(_))))
       iseq = iseq :+ (Credentials -> JsArray(fieldValue.credentials.map(Json.toJson(_))))
+      iseq = iseq :+ (BloomsTaxonomy -> JsArray(fieldValue.bloomsTaxonomy.map(Json.toJson(_))))
       JsObject(iseq)
     }
   }
@@ -77,6 +91,7 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
     ItemTypes -> "valid item types (note: if you specify 'Other' you can enter freetext)",
     LicenseTypes -> "license types",
     PriorUses -> "prior uses",
-    Credentials -> "credentials"
+    Credentials -> "credentials",
+    BloomsTaxonomy -> "bloomsTaxonomy stuff"
   )
 }

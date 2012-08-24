@@ -91,14 +91,8 @@ object FieldValuesApi extends BaseApi {
 
   private def getSubField(fieldValue: Option[FieldValue], fieldName: String): Result = fieldValue match {
     case Some(fv) => {
-      fieldName match {
-        case FieldValue.GradeLevel => Ok(toJson(fv.gradeLevels))
-        case FieldValue.ReviewsPassed => Ok(toJson(fv.reviewsPassed))
-        case FieldValue.KeySkills => Ok(toJson(fv.keySkills))
-        case FieldValue.ItemTypes => Ok(toJson(fv.itemTypes))
-        case FieldValue.LicenseTypes => Ok(toJson(fv.licenseTypes))
-        case FieldValue.PriorUses => Ok(toJson(fv.priorUses))
-        case FieldValue.Credentials => Ok(toJson(fv.credentials))
+      FieldValue.getSeqForFieldName(fv,fieldName) match {
+        case Some(seq) => Ok(toJson(seq))
         case _ => NotFound
       }
     }
