@@ -24,6 +24,10 @@ import play.api.libs.json.Json
 import com.typesafe.config.ConfigFactory
 import scala.Some
 
+/**
+ * Keep the fieldValue object in memory.
+ *
+ */
 class FieldValueCache {
   var fieldValue : Option[FieldValue] = None
 }
@@ -37,8 +41,8 @@ object FieldValuesApi extends BaseApi {
   def buildAllAvailable = {
     val list = FieldValue.descriptions.toList :::
       List(
-         ("cc-standard", Standard.description),
-         ("subject", Subject.description)
+         ("cc-standard", Standard.description + " (list queries available)"),
+         ("subject", Subject.description + " (list queries available)")
       )
     for{ d <- list } yield Map( "path" -> ("/api/v1/field_values/" + d._1), "description" -> d._2)
   }
@@ -49,7 +53,7 @@ object FieldValuesApi extends BaseApi {
   }
 
   /**
-   * We store subject and standard in their own collection - so they are queryable.
+   * We store subject and standard in their own collection - so they are query-able.
    * The others exist in a single document in the fieldValues collection.
    * @param fieldName
    * @param q

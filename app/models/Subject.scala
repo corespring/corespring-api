@@ -38,5 +38,5 @@ object Subject extends ModelCompanion[Subject, ObjectId] {
     Id -> "ObjectId"
   )
 
-  val description = "Subjects!"
+  val description = "Subjects"
 }
