@@ -124,7 +124,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
   implicit object CollectionWrites extends Writes[ContentCollection] {
     def writes(coll: ContentCollection) = {
       var list = List[(String, JsString)]()
-      list = ("name" -> JsString(coll.name)) :: list
+      if ( coll.name.nonEmpty ) list = ("name" -> JsString(coll.name)) :: list
       list = ("id" -> JsString(coll.id.toString)) :: list
       JsObject( list )
     }
