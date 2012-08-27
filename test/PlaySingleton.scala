@@ -20,7 +20,7 @@ object PlaySingleton {
     this.synchronized {
       Play.maybeApplication match {
         case Some(fakeApp) => {
-          play_root.Global.onStop(fakeApp)
+          Global.onStop(fakeApp)
           Play.stop()
         }
         case None =>

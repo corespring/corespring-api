@@ -28,7 +28,6 @@ object FieldValuesApiTest extends Specification {
       val array: JsArray = json.asInstanceOf[JsArray]
       array.value.length.mustEqual(10)
 
-
       //iterate through each path and ensure its a 200
       for ( jso <- array.value ){
         val path = (jso \ "path").asOpt[String]
@@ -44,7 +43,5 @@ object FieldValuesApiTest extends Specification {
 
       true.mustEqual(true)
     }
-
   }
-
 }
