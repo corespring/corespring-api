@@ -30,7 +30,7 @@ case class Organization(var name: String = "",
   def this() = this("")
 }
 
-object Organization extends ModelCompanion[Organization, ObjectId] {
+object Organization extends ModelCompanion[Organization, ObjectId] with Queryable{
   val name: String = "name"
   val path: String = "path"
   val contentcolls: String = "contentcolls"

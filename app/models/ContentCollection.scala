@@ -25,7 +25,7 @@ import controllers.auth.Permission
  */
 case class ContentCollection(var name: String = "", var isPrivate: Boolean = false, var id: ObjectId = new ObjectId())
 
-object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
+object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] with Queryable{
   val name = "name"
   val isPrivate = "isPrivate"
 

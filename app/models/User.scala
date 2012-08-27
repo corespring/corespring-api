@@ -24,7 +24,7 @@ case class User(var userName: String = "",
                  var id: ObjectId = new ObjectId()
                )
 
-object User extends ModelCompanion[User, ObjectId] {
+object User extends ModelCompanion[User, ObjectId] with Queryable{
   val userName = "userName"
   val fullName = "fullName"
   val email = "email"
