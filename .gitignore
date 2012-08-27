@@ -9,3 +9,5 @@ dist
 .idea_modules
 tasks/mock-data-task/target
 tasks/mock-data-task/project
+
+.DS_Store
