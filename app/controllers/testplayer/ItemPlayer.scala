@@ -79,7 +79,8 @@ object ItemPlayer extends BaseApi {
    */
   private def getItemXMLByObjectId(itemId: String, callerOrg: ObjectId): Option[Elem] = {
     val xmlDataField = MongoDBObject(Item.xmlData -> 1, Item.collectionId -> 1)
-    Item.collection.findOneByID(itemId, xmlDataField) match {
+
+    Item.collection.findOneByID(new ObjectId(itemId), xmlDataField) match {
       case Some(o) =>
         if ( ItemApi.canUpdateOrDelete(callerOrg, o.get(Item.collectionId).asInstanceOf[String])) {
           val xmlDataString = o.get(Item.xmlData).toString
