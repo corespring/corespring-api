@@ -1,0 +1,11 @@
+<div class="control-group">
+    <label class="control-label">Collection</label>
+    <div class="controls">
+        <select id="collection"
+                ng-model="itemData.collection"
+                ng-options="c.name as c.name for c in collections"
+                required>
+        </select>
+    </div>
+</div>
+

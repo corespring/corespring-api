@@ -1,0 +1,76 @@
+@html = {
+@views.html.web.partials.common.simpleInput("contributor")
+@views.html.web.partials.common.simpleInput("copyrightOwner")
+@views.html.web.partials.common.simpleInput("author")
+
+<div class="control-group">
+    <label class="control-label">Credentials</label>
+
+    <div class="controls">
+        <select
+                ng-model="itemData.credentials"
+                ng-options="c for c in itemData.$credentialsDataProvider">
+            <option value=""> </option>
+        </select>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="sourceUrl">Source URL</label>
+
+    <div class="controls">
+            <input class="input"
+                   id="sourceUrl"
+                   size="16"
+                   type="text"
+                   ng-model="itemData.sourceUrl">
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label">License Type</label>
+
+    <div class="controls">
+        <select
+                ng-model="itemData.licenseType"
+                ng-options="c for c in itemData.$licenseTypeDataProvider">
+            <option value=""> </option>
+        </select>
+
+        <!--
+        <select id="licenseType" ng-model="itemData.licenseType">
+            <option>CC BY</option>
+            <option>CC BY-SA</option>
+            <option>CC BY-NC</option>
+            <option>CC BY-ND</option>
+            <option>CC BY-NC-SA</option>
+        </select>
+        -->
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label">Copyright Year</label>
+    <div class="controls form-inline">
+       <input type="text" class="input-medium" ng-model="itemData.copyrightYear">
+        &nbsp;
+        &nbsp;
+       <label>Copyright Expiration Date</label>
+        &nbsp;
+        &nbsp;
+        <input type="text" class="input-medium" ng-model="itemData.copyrightExpirationDate">
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="costForResource">Cost for Resource</label>
+    <div class="controls">
+        <div class="input-prepend input-append">
+            <span class="add-on">$</span><input class="input-small" id="costForResource" size="16"
+                                                type="text" ng-model="itemData.costForResource"><span
+                class="add-on">.00</span>
+        </div>
+    </div>
+</div>
+}
+@views.html.web.partials.editMetadataPartials._formWithLegend( html, "Contributor Details")
+

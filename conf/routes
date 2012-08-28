@@ -73,3 +73,14 @@ GET    /testplayer/item/:itemId/feedback/:responseIdentifier/:identifier  contro
 
 # Web tier
 GET    /web                                     controllers.web.Main.index
+
+GET    /web/partials/itemCollection            controllers.web.Partials.itemCollection
+GET    /web/partials/editMetadata              controllers.web.Partials.editMetadata
+GET    /web/partials/createItem                controllers.web.Partials.createItem
+
+# Authentication
+GET     /web/login                              controllers.web.Main.login
+POST    /web/login                              controllers.web.Main.authenticate
+GET     /web/logout                             controllers.web.Main.logout
+GET     /web/user/info                          controllers.web.Main.userInfo
+

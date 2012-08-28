@@ -1,0 +1,9 @@
+@(html:Html, legend : String = null)
+<form class="form-horizontal">
+    <fieldset>
+        @if( legend != null ) {
+            <legend>@legend</legend>
+        }
+        @html
+    </fieldset>
+</form>

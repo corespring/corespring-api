@@ -1,0 +1,127 @@
+@(templates: List[models.web.QtiTemplate])
+
+<div ui-modal ng-model="showConfirmDestroyModal" style="padding: 20px">
+    <h2>Delete Item</h2>
+    <br/>
+    <p>Are you sure? This can't be undone.</p>
+
+    <button ng-click="destroyConfirmed()" class="btn btn-danger">Yes</button>
+    <button class="btn btn-info" ng-click="showConfirmDestroyModal=false">No</button>
+</div>
+
+
+<div class="sub-nav">
+    <div class="container" style="width: 940px;">
+        <div class="row navbar">
+
+            <div class="input-append span4" style="margin-left: 10px">
+                <input placeholder="Search" ng-model="searchParams.searchText" ng-change="search() " class="input-small"
+                       id="appendedInputButtons"
+                       size="16" type="text"><span class="add-on"><i class="icon-search"></i></span>
+
+                <select style="max-width: 140px;" ng-options="collection.name for collection in collections"
+                        ng-model="searchParams.collection"
+                        ng-change="search()">
+                    <option value="">All Collections</option>
+                </select>
+            </div>
+
+
+            <div class="span5" style="margin-left: 0">
+                <form class="form-horizontal">
+                    <div class="control-group">
+                        <label class="control-label" style="width: 60px;">Status:&nbsp;&nbsp;</label>
+
+                        <div class="controls" style="margin-left: 0;">
+
+                            <!--
+                            TODO: To avoid having to manually update the ui
+                            It would be nice if we could generate the checkboxes from a model
+                            However this is triggering some strange behaviour atm. See:
+                            http://plunker.no.de/edit/HGeOT9
+                            <label class="checkbox inline" ng-repeat="(key,value) in searchParams">
+                                <input type="checkbox" ng-model="searchParams[key]" ng-change="search()">
+                                {{getLabel(key)}}
+                            </label>
+                            -->
+                            <label class="checkbox inline">
+                                <input type="checkbox" ng-model="searchParams.setup" ng-change="search()">
+                                Set up</label>
+                            <label class="checkbox inline">
+                                <input type="checkbox" ng-model="searchParams.tagged" ng-change="search()">
+                                Tagged </label>
+                            <label class="checkbox inline">
+                                <input type="checkbox" ng-model="searchParams.standardsAligned" ng-change="search()">
+                                Standards aligned</label>
+                            <label class="checkbox inline">
+                                <input type="checkbox" ng-model="searchParams.qaReview" ng-change="search()"> QA
+                            </label>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+
+            <ul class="nav pull-right">
+
+                <li><a href="#/collections">Collections</a></li>
+
+                <li class="dropdown">
+                    <a href="#"
+                       data-toggle="dropdown"
+                       class="dropdown-toggle">Create Item <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#/new">Blank item</a></li>
+                        @templates.map{ template =>
+                        <li><a href="#/new/@template.code">@template.label</a></li>
+                        }
+                    </ul>
+                </li>
+            </ul>
+
+        </div>
+
+    </div>
+</div>
+
+
+<div class="row" style="padding-top: 90px;">
+    <div class="container" style="width: 960px;" when-scrolled="loadMore()" watch="itemDataCollection">
+
+        <div>
+
+
+            <table class="table">
+                <thead>
+                <tr>
+                    <th width="80px">Origin-ID</th>
+                    <th>Title</th>
+                    <th>Primary Subject</th>
+                    <th>Grade</th>
+                    <th>Item Type</th>
+                    <th>Standard(s)</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="item in itemDataCollection" style="cursor: pointer;">
+                    <td ng-click="openEditView()" height="24px">{{item.originId}}</td>
+                    <td ng-click="openEditView()" ng-bind-html-unsafe="item.title"></td>
+                    <td ng-click="openEditView()" width="100">{{getPrimarySubjectLabel(item.primarySubject)}}</td>
+                    <td ng-click="openEditView()">
+                        {{showGradeLevel()}}
+                    </td>
+                    <td ng-click="openEditView()">{{showItemType(item)}}</td>
+                    <td ng-click="openEditView()">
+                          <a ui-jq="tooltip"
+                           ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
+                    </td>
+                    <td><button class="btn btn-danger btn-mini" href="javascript:void(1)" ng-click="deleteItem(item)">Delete</button> </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+

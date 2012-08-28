@@ -1,0 +1,56 @@
+@html = {
+<div class="control-group">
+    <label class="control-label" for="priorUse">Prior Use</label>
+
+    <div class="controls">
+        <select
+                name="itemData.priorUse"
+                id="priorUse"
+                ng-model="itemData.priorUse"
+                ng-options="c for c in itemData.$priorUseDataProvider">
+            <option value=""> </option>
+
+        </select>
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label">Reviews Passed</label>
+
+    <div class="span3">
+        <label ng-repeat="rp in itemData.$reviewsPassedDataProvider">
+            <input type="checkbox" ng-model="rp.state.selected">
+            {{rp.state.key}}
+        </label>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="pValue">Difficulty Level</label>
+
+    <div class="controls">
+        <input
+                type="text"
+                class="input-mini"
+                id="pValue" ng-model="itemData.pValue">
+        <span class="lead" style="padding-left: 50px">{{pValueAsString}}</span>
+    </div>
+</div>
+
+
+<div class="control-group">
+    <label class="control-label" for="pValue">Lexile Score</label>
+
+    <div class="controls">
+        <input
+                type="text"
+                class="input-mini"
+                id="lexile"
+                ng-model="itemData.lexile">
+        <span class="lead" style="padding-left: 50px">L</span>
+    </div>
+</div>
+
+}
+
+@views.html.web.partials.editMetadataPartials._formWithLegend( html, "Prior Use & Performance")
+

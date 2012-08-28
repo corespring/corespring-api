@@ -1,0 +1,138 @@
+<div ui-modal ng-model="showConfirmDestroyModal" id="myModal" style="padding: 20px">
+    <h2>Delete Item</h2>
+    <br/>
+    <p>Are you sure? This can't be undone.</p>
+
+    <button ng-click="destroyConfirmed()" class="btn btn-danger">Yes</button>
+    <button class="btn btn-info" ng-click="showConfirmDestroyModal=false">No</button>
+</div>
+
+
+<div class="sub-nav">
+    <div class="container" style="width: 940px;">
+        <div class="row">
+
+            <ul class="span3 nav nav-pills">
+                <li ng-class="contentClass">
+                    <a
+                            href="javascript:void(1)"
+                            ng-click="changePanel('content')">Item Design</a>
+                </li>
+                <li ng-class="metadataClass">
+                    <a
+                            href="javascript:void(1)"
+                            ng-click="changePanel('metadata')">Item Profile</a></li>
+                <!--
+                <li ng-class="contentClass">
+                    <a href="javascript:void(1)"
+                    ng-click="changePanel('supportingMaterials')">Supporting Materials</a>
+                </li>
+                -->
+            </ul>
+
+            <span class="pull-right">
+
+
+                <button class="btn btn-primary"
+                        ng-model="isSaving"
+                        loading-button
+                        data-loading-text="Saving..."
+                        ng-click="save()">Save
+                </button>
+
+            <i id="togglePreviewButton" class="icon-preview" ng-class="previewClassName"
+               style="cursor: pointer"
+               ng-click="togglePreview()"
+               title="toggle preview"
+               ng-show="mode == 'edit'"></i>
+
+            <i id="toggleFileListButton" class="icon-file icon-white" ng-class="fileListClassName"
+               style="cursor: pointer"
+               ng-click="toggleFileList()"
+               title="toggle file list"
+               ng-show="mode == 'edit'"></i>
+            </span>
+        </div>
+    </div>
+</div>
+<div class="item-content-container">
+    <div class="edit" style="overflow: auto" ng-class="previewClassName">
+        <div ng-show="showMetadata">
+
+
+            @views.html.web.partials.editMetadataPartials.basics()
+            @views.html.web.partials.editMetadataPartials.contributorDetails()
+            @views.html.web.partials.editMetadataPartials.priorUseAndPerformance()
+            @views.html.web.partials.editMetadataPartials.alignedStandards()
+            @views.html.web.partials.editMetadataPartials.otherAlignments()
+
+            @deleteBtn = {
+                <div class="control-group">
+
+                    <div class="controls">
+                        <button class="btn btn-danger"
+                                ng-click="showConfirmDestroyModal=true">Delete</button>
+
+                    </div>
+                </div>
+            }
+            @views.html.web.partials.editMetadataPartials._formWithLegend( deleteBtn, "" )
+        </div>
+
+
+        <div ng-show="showContent" class="editor-panel" ng-class="previewClassName">
+
+            <div class="file-list" ng-class="fileListClassName">
+                <h2>Files</h2>
+
+                <span class="info" ng:show="itemData.files.length == 0">No files yet</span>
+
+                <ul>
+                    <li ng-repeat="f in itemData.files">
+                        <a ng:click="showFile(f)">{{f.filename}}</a>
+                        <a class="" ng:click="removeFile(f)">
+                            <i class="icon-remove-sign">
+                            </i></a>
+                    </li>
+                </ul>
+
+                <button
+                        file-uploader
+                        class="btn btn-mini btn-success"
+                        fu-url="calculateUploadUrl()"
+                        fu-max-size="400"
+                        fu-mode="raw">add file
+                </button>
+
+            </div>
+            <div>
+                <div class="code-editor"
+                     ace-editor
+                     ace-model="itemData.xmlData"
+                     ace-theme="eclipse"
+                     ace-mode="xml"
+                     ng-class="fileListClassName"
+                     ace-exceptions="validationResult.exceptions"
+                     ace-resize-events="tabSelected,panelOpen,dataLoaded"
+                        ></div>
+
+                <div class="alert alert-danger code-errors"
+                     ng-click="showExceptions = false"
+                     ng-show="validationResult.exceptions && showExceptions">
+                    <span ng-repeat="e in validationResult.exceptions">{{e.message}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="preview" ng-class="previewClassName">
+        <div class="inner">
+            <a href="/testplayer/item/{{itemData._id.$oid}}" target="_blank">test player preview</a>
+
+            <div class="preview-container">
+                <div ng-bind-html-unsafe="processedXmlData">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

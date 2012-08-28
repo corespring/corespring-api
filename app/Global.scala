@@ -1,4 +1,5 @@
 import _root_.controllers.auth.Permission
+import _root_.controllers.web.InitialData
 import _root_.controllers.{S3Service, Log}
 import _root_.models.auth.{AccessToken, ApiClient}
 import _root_.models._
@@ -90,6 +91,8 @@ object Global extends GlobalSettings {
       Play.start(new Application(Play.current.path,Play.current.classloader,Play.current.sources,Play.current.mode))
       }
     }
+
+    InitialData.insert()
   }
 
   private def insertTestData(basePath: String) = {

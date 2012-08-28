@@ -1,0 +1,25 @@
+@html = {
+<div class="control-group">
+    <label class="control-label">Bloom's Taxonomy</label>
+
+    <div class="controls">
+        <select
+                ng-model="itemData.bloomsTaxonomy"
+                ng-options="c for c in itemData.$bloomsTaxonomyDataProvider">
+            <option value=""> </option>
+        </select>
+    </div>
+</div>
+
+@views.html.web.partials.editMetadataPartials.keyWords()
+
+<div class="control-group">
+    <label class="control-label">Related Curriculum</label>
+
+    <div class="controls">
+        <span>This material is used in concert with: &nbsp;<input type="text" ng-model="itemData.relatedCurriculum"> </input>&nbsp;curriculum materials</span>
+    </div>
+</div>
+}
+@views.html.web.partials.editMetadataPartials._formWithLegend( html, "Other Alignments")
+
