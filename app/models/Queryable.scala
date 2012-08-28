@@ -3,6 +3,7 @@ package models
 import play.api.libs.json.JsValue
 import com.mongodb.casbah.Imports._
 import controllers.InternalError
+import collection.mutable
 
 /**
  * Created with IntelliJ IDEA.

@@ -8,11 +8,11 @@ import com.mongodb.util.JSONParseException
 import org.bson.types.ObjectId
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
-import com.novus.salat.global._
 import play.api.templates.Xml
 import play.api.mvc.Result
 import play.api.libs.json.Json
 import com.typesafe.config.ConfigFactory
+import models.mongoContext._
 
 /**
  * Items API
@@ -96,7 +96,8 @@ object ItemApi extends BaseApi {
   private def _getItem(callerOrg: ObjectId, id: ObjectId, fields: Option[DBObject]): Result  = {
     fields.map(Item.collection.findOneByID(id, _)).getOrElse( Item.collection.findOneByID(id)) match {
       case Some(o) =>  if ( canUpdateOrDelete(callerOrg, o.get(Item.collectionId).asInstanceOf[String])) {
-        Ok(Json.toJson(grater[Item].asObject(o)))
+        val i =  grater[Item].asObject(o)
+        Ok(Json.toJson(i))
       } else {
         Forbidden
       }
