@@ -77,10 +77,12 @@ GET    /web                                    web.controllers.Main.index
 GET    /web/partials/itemCollection            web.controllers.Partials.itemCollection
 GET    /web/partials/editMetadata              web.controllers.Partials.editMetadata
 GET    /web/partials/createItem                web.controllers.Partials.createItem
+GET    /web/partials/home                      web.controllers.Partials.home
 
 # Authentication
 GET     /web/login                             web.controllers.Main.login
 POST    /web/login                             web.controllers.Main.authenticate
 GET     /web/logout                            web.controllers.Main.logout
 GET     /web/user/info                         web.controllers.Main.userInfo
+GET     /web/access_token                      web.controllers.Main.getAccessToken
 

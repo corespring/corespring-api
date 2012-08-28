@@ -1,25 +1,12 @@
 package web.config
 
-import io.Source
 import java.io.{File, InputStream, FileInputStream}
 import java.util.LinkedHashMap
 import java.util.ArrayList
 import org.yaml.snakeyaml.Yaml
 import play.api._
-import web.controllers.services.UserService
 import web.models.QtiTemplate
 
-object UserData {
-
-  val USER_JSON: String = "conf/users/users.json"
-
-  def insert() = {
-    if (UserService.count() == 0) {
-      val json = Source.fromFile(USER_JSON).mkString
-      UserService.insertFromJson(json)
-    }
-  }
-}
 
 object InitialData {
 

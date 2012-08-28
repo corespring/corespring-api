@@ -1,7 +1,5 @@
 package web.controllers
 
-import web.models.User
-
 import play.api.mvc._
 import web.models.QtiTemplate
 import web.controllers.utils.ConfigLoader
@@ -10,6 +8,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import scala.Some
 import scala.Tuple2
+import models.User
 
 object Main extends Controller with Secured {
 
@@ -17,7 +16,20 @@ object Main extends Controller with Secured {
       val obj = DBConnect.getCollection("mongodb://localhost:27017/api", "fieldValues").findOne()
       val jsonString = com.codahale.jerkson.Json.generate(obj)
       val (dbServer, dbName) = getDbName(ConfigLoader.get("MONGO_URI"))
-      Ok( web.views.html.index(QtiTemplate.all(), dbServer, dbName, "ed", jsonString))
+      Ok( web.views.html.index(QtiTemplate.all(), dbServer, dbName, username, jsonString))
+  }
+
+
+  def getAccessToken = IsAuthenticated{
+    username => request =>
+
+    User.getUser(username) match {
+      case Some(user) => {
+       NotImplemented
+      }
+      case None => Forbidden
+    }
+
   }
 
   private def getDbName(uri: Option[String]): Tuple2[String, String] = uri match {
@@ -34,7 +46,7 @@ object Main extends Controller with Secured {
       "username" -> text,
       "password" -> text
     ) verifying("Invalid email or password", result => result match {
-      case (username, password) => User.authenticate(username, password).isDefined
+      case (username, password) => User.getUser(username).isDefined
     })
   )
 
@@ -59,7 +71,7 @@ object Main extends Controller with Secured {
 
   def userInfo = IsAuthenticated {
     username => _ =>
-      User.findByEmail(username).map {
+      User.getUser(username).map {
         user =>
           Ok("user is: " + user)
       }.getOrElse(Forbidden)
@@ -82,8 +94,6 @@ trait Secured {
    */
   private def onUnauthorized(request: RequestHeader) = Results.Redirect(web.controllers.routes.Main.login())
 
-  // --
-
   /**
    * Action for authenticated users.
    */
@@ -92,27 +102,8 @@ trait Secured {
       Action(request => f(user)(request))
   }
 
-  /**
-   * return a user or null
-   */
-  def getUser(request: RequestHeader): User = {
-
-    if (!isLoggedIn(request)) {
-      return null
-    }
-
-    username(request) match {
-      case None => null
-      case Some(x) => {
-        User.findByEmail(x) match {
-          case None => null
-          case Some(x) => x
-        }
-      }
-    }
-  }
-
-  def isLoggedIn(request: RequestHeader): Boolean = request.session.get("email") != null
+  //TODO: Flesh this out.
+  def isLoggedIn(request: RequestHeader): Boolean = request.session.get("username") != null
 
 }
 
