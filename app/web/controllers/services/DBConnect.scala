@@ -1,4 +1,4 @@
-package controllers.web.services
+package web.controllers.services
 
 import com.mongodb.casbah.{MongoConnection, MongoURI, MongoCollection}
 

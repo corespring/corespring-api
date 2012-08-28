@@ -1,7 +1,7 @@
 @html = {
-@views.html.web.partials.common.simpleInput("contributor")
-@views.html.web.partials.common.simpleInput("copyrightOwner")
-@views.html.web.partials.common.simpleInput("author")
+@web.views.html.partials.common.simpleInput("contributor")
+@web.views.html.partials.common.simpleInput("copyrightOwner")
+@web.views.html.partials.common.simpleInput("author")
 
 <div class="control-group">
     <label class="control-label">Credentials</label>
@@ -72,5 +72,5 @@
     </div>
 </div>
 }
-@views.html.web.partials.editMetadataPartials._formWithLegend( html, "Contributor Details")
+@web.views.html.partials.editMetadataPartials._formWithLegend( html, "Contributor Details")
 

@@ -1,5 +1,4 @@
 import _root_.controllers.auth.Permission
-import _root_.controllers.web.InitialData
 import _root_.controllers.{S3Service, Log}
 import _root_.models.auth.{AccessToken, ApiClient}
 import _root_.models._
@@ -27,6 +26,7 @@ import play.api.Play.current
 import com.novus.salat._
 import com.novus.salat.global._
 import play.api.Application
+import _root_.web.config.InitialData
 
 /**
  */

@@ -1,4 +1,4 @@
-package controllers.web.utils
+package web.controllers.utils
 
 import com.typesafe.config.{ConfigFactory, Config}
 

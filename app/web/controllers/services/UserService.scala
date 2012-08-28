@@ -1,10 +1,10 @@
-package controllers.web.services
+package web.controllers.services
 
 import com.mongodb.casbah.MongoCollection
 import com.mongodb.{BasicDBList, DBObject, BasicDBObject}
 import com.mongodb.util.JSON
-import models.web.User
-import controllers.web.utils.ConfigLoader
+import web.controllers.utils.ConfigLoader
+import web.models.User
 
 object UserService {
   def login(username: String, password: String): Option[User] = {

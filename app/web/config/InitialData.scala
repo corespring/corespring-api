@@ -1,17 +1,13 @@
-package controllers.web
+package web.config
 
-import _root_.models.web.QtiTemplate
-import com.mongodb.casbah.MongoCollection
 import io.Source
 import java.io.{File, InputStream, FileInputStream}
 import java.util.LinkedHashMap
 import java.util.ArrayList
 import org.yaml.snakeyaml.Yaml
 import play.api._
-import play.api.Play.current
-import com.mongodb.DBObject
-import services.{DBConnect, UserService}
-import utils.ConfigLoader
+import web.controllers.services.UserService
+import web.models.QtiTemplate
 
 object UserData {
 
@@ -32,9 +28,8 @@ object InitialData {
   /*
    * Read in some templates from a yaml file and persist them to the db
    */
-  def insert(): Unit = {
+  def insert() {
     insertTemplates()
-    insertFieldValues()
   }
 
   def insertTemplates() {
@@ -67,17 +62,6 @@ object InitialData {
         case _ => Logger.logger.info("unknown yaml definition type")
       }
     }
-  }
-
-  def insertFieldValues() {
-    //Field values should already be inserted.
-    /*val collection : MongoCollection = DBConnect.getCollection(ConfigLoader.get("MONGO_URI").get, "fieldValues")
-    if ( collection.count == 0 ){
-      val jsonString = io.Source.fromFile( Play.getFile("conf/field-values/field-values.json")).mkString
-      collection.drop()
-      collection.insert( com.mongodb.util.JSON.parse(jsonString).asInstanceOf[DBObject])
-      Logger.info("Initialised Field Values")
-    }*/
   }
 
   def createFromYamlDeclaration(item: LinkedHashMap[String, String]): QtiTemplate = {

@@ -60,11 +60,11 @@
         <div ng-show="showMetadata">
 
 
-            @views.html.web.partials.editMetadataPartials.basics()
-            @views.html.web.partials.editMetadataPartials.contributorDetails()
-            @views.html.web.partials.editMetadataPartials.priorUseAndPerformance()
-            @views.html.web.partials.editMetadataPartials.alignedStandards()
-            @views.html.web.partials.editMetadataPartials.otherAlignments()
+            @web.views.html.partials.editMetadataPartials.basics()
+            @web.views.html.partials.editMetadataPartials.contributorDetails()
+            @web.views.html.partials.editMetadataPartials.priorUseAndPerformance()
+            @web.views.html.partials.editMetadataPartials.alignedStandards()
+            @web.views.html.partials.editMetadataPartials.otherAlignments()
 
             @deleteBtn = {
                 <div class="control-group">
@@ -76,7 +76,7 @@
                     </div>
                 </div>
             }
-            @views.html.web.partials.editMetadataPartials._formWithLegend( deleteBtn, "" )
+            @web.views.html.partials.editMetadataPartials._formWithLegend( deleteBtn, "" )
         </div>
 
 

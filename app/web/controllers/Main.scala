@@ -1,14 +1,13 @@
-package controllers.web
+package web.controllers
 
-import models.web.User
+import web.models.User
 
 import play.api.mvc._
-import models.web.QtiTemplate
-import controllers.web.services.DBConnect
-import utils.ConfigLoader
+import web.models.QtiTemplate
+import web.controllers.utils.ConfigLoader
+import web.controllers.services.DBConnect
 import play.api.data.Form
 import play.api.data.Forms._
-import views.html
 import scala.Some
 import scala.Tuple2
 
@@ -18,7 +17,7 @@ object Main extends Controller with Secured {
       val obj = DBConnect.getCollection("mongodb://localhost:27017/api", "fieldValues").findOne()
       val jsonString = com.codahale.jerkson.Json.generate(obj)
       val (dbServer, dbName) = getDbName(ConfigLoader.get("MONGO_URI"))
-      Ok(views.html.web.index(QtiTemplate.all(), dbServer, dbName, "ed", jsonString))
+      Ok( web.views.html.index(QtiTemplate.all(), dbServer, dbName, "ed", jsonString))
   }
 
   private def getDbName(uri: Option[String]): Tuple2[String, String] = uri match {
@@ -41,19 +40,19 @@ object Main extends Controller with Secured {
 
   def login = Action {
     implicit request =>
-      Ok(views.html.web.login(loginForm))
+      Ok(web.views.html.login(loginForm))
   }
 
   def authenticate = Action {
     implicit request =>
       loginForm.bindFromRequest.fold(
-        formWithErrors => BadRequest(views.html.web.login(formWithErrors)),
-        user => Redirect(routes.Main.index()).withSession("username" -> user._1)
+        formWithErrors => BadRequest( web.views.html.login(formWithErrors)),
+        user => Redirect(web.controllers.routes.Main.index()).withSession("username" -> user._1)
       )
   }
 
   def logout = Action {
-    Redirect(routes.Main.login()).withNewSession.flashing(
+    Redirect(web.controllers.routes.Main.login()).withNewSession.flashing(
       "success" -> "You've been logged out"
     )
   }
@@ -81,7 +80,7 @@ trait Secured {
   /**
    * Redirect to login if the user in not authorized.
    */
-  private def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Main.login())
+  private def onUnauthorized(request: RequestHeader) = Results.Redirect(web.controllers.routes.Main.login())
 
   // --
 

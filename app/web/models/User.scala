@@ -1,7 +1,6 @@
-package models.web
+package web.models
 
-import controllers.web.services.UserService
-import controllers.web.routes
+import web.controllers.services.UserService
 
 case class User(username:String,password:String)
 
@@ -14,3 +13,4 @@ object User{
     Some(User("ed", "password"))
   }
 }
+

@@ -1,5 +1,4 @@
-package models.web
-
+package web.models
 
 import com.novus.salat._
 import com.novus.salat.global._
@@ -13,28 +12,28 @@ import com.mongodb.casbah.MongoConnection
 import com.mongodb.casbah.MongoURI
 
 case class QtiTemplate(
-		_id: ObjectId = new ObjectId,
-		label: String,
-    code:String,
-		xmlData: String
-	)
+                        _id: ObjectId = new ObjectId,
+                        label: String,
+                        code:String,
+                        xmlData: String
+                        )
 
 object QtiTemplateDAO extends SalatDAO[QtiTemplate, ObjectId](QtiTemplate.connect())
 
 object QtiTemplate{
-	def all(): List[QtiTemplate] = QtiTemplateDAO.find(MongoDBObject.empty).toList
+  def all(): List[QtiTemplate] = QtiTemplateDAO.find(MongoDBObject.empty).toList
 
-	def create(item: QtiTemplate) : Option[String] = {
-		val id : Option[ObjectId] = QtiTemplateDAO.insert(item)
-	  id match{
+  def create(item: QtiTemplate) : Option[String] = {
+    val id : Option[ObjectId] = QtiTemplateDAO.insert(item)
+    id match{
       case Some(uid) => Some(uid.toString)
       case None => None
     }
   }
 
-	def delete(id: String) {
-		QtiTemplateDAO.remove(MongoDBObject("_id" -> new ObjectId(id)))
-	}
+  def delete(id: String) {
+    QtiTemplateDAO.remove(MongoDBObject("_id" -> new ObjectId(id)))
+  }
 
   val MONGO_URI = "MONGO_URI"
 
@@ -65,5 +64,5 @@ object QtiTemplate{
 
       }
     }
-	}
+  }
 }
