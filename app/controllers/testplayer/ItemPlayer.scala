@@ -99,16 +99,16 @@ object ItemPlayer extends BaseApi {
     val scriptSuffix = if (isWebMode) "" else "-print"
 
 
-    val choiceInteractionScripts = "<script src=\"/js/corespring/qti/choiceInteraction" +
+    val choiceInteractionScripts = "<script src=\"/assets/js/corespring/qti/choiceInteraction" +
       scriptSuffix + ".js\"></script>\n" +
-      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/js/corespring/qti/choiceInteraction.css\" />"
+      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/choiceInteraction.css\" />"
 
     // map of elements and the scripts needed to process them
     // can't concatenate string in map value apparently, so using replace()
     val elementScriptsMap = Map (
       "choiceInteraction" -> choiceInteractionScripts,
-      "textEntryInteraction" -> "<script src=\"/js/corespring/qti/textEntryInteraction{S}.js\"></script>".replace("{S}", scriptSuffix),
-      "extendedTextInteraction" -> "<script src=\"/js/corespring/qti/extendedTextInteraction{S}.js\"></script>".replace("{S}", scriptSuffix),
+      "textEntryInteraction" -> "<script src=\"/assets/js/corespring/qti/textEntryInteraction{S}.js\"></script>".replace("{S}", scriptSuffix),
+      "extendedTextInteraction" -> "<script src=\"/assets//js/corespring/qti/extendedTextInteraction{S}.js\"></script>".replace("{S}", scriptSuffix),
       "math" -> "<script type=\"text/javascript\" src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"></script>"
     )
 
