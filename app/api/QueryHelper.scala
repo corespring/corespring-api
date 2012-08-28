@@ -88,7 +88,6 @@ object QueryHelper {
    * @return
    */
   def list[ObjectType <: AnyRef, ID <: Any](q: Option[String], f: Option[Object], c: String, sk: Int, l: Int, validFields: Map[String, String], dao: SalatDAO[ObjectType, ID], writes: Writes[ObjectType], initSearch:Option[DBObject] = None): Result = {
-    Logger.debug("QueryHelper: q = %s, f = %s, c = %s, sk = %d, l = %d".format(q, f, c, sk, l))
     try {
       val query = q.map( QueryHelper.parse(_, validFields) ).getOrElse( new MongoDBObject() )
       val fields = f.map( fieldSet => {

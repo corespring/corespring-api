@@ -11,7 +11,6 @@ import play.api.libs.json.JsString
 import controllers.{LogType, InternalError}
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
-import com.novus.salat.global._
 import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
 import play.api.Play
 import play.api.Play.current
@@ -22,8 +21,8 @@ import play.api.Play.current
  * Case class representing an individual item session
  */
 case class ItemSession (var itemId: ObjectId,
-                         var start: Long = System.currentTimeMillis(),
-                         var finish: Long = 0,
+                         var start: DateTime= new DateTime(),
+                         var finish: Option[DateTime] = None,
                          var responses: Seq[ItemResponse] = Seq(),
                          var id: ObjectId = new ObjectId()
                         )
@@ -51,8 +50,6 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
   def newItemSession(itemId:ObjectId, session:ItemSession):Either[InternalError, ItemSession] = {
       if(Play.isProd) session.id = new ObjectId()
       session.itemId = itemId
-      session.start = System.currentTimeMillis()
-      session.finish = 0
       try{
         ItemSession.insert(session,collection.writeConcern) match {
           case Some(_) => Right(session)
@@ -86,10 +83,10 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
           var seq:Seq[(String,JsValue)] = Seq(
             "id" -> JsString(session.id.toString),
             itemId -> JsString(session.itemId.toString),
-            start -> JsNumber(session.start),
+            start -> JsNumber(session.start.getMillis),
             responses -> Json.toJson(session.responses)
           )
-          if(session.finish != 0) seq = seq :+ (finish -> JsNumber(session.finish))
+          if(session.finish.isDefined) seq = seq :+ (finish -> JsNumber(session.finish.get.getMillis))
           JsObject(seq)
     }
   }
@@ -97,8 +94,8 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
   implicit object ItemSessionReads extends Reads[ItemSession] {
     def reads(json: JsValue):ItemSession = {
       ItemSession((json \ itemId).asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()),
-        (json \ start).asOpt[Long].getOrElse(System.currentTimeMillis()),
-        (json \ finish).asOpt[Long].getOrElse(0),
+        (json \ start).asOpt[Long].map(new DateTime(_)).getOrElse(new DateTime()),
+        (json \ finish).asOpt[Long].map(new DateTime(_)),
         (json \ responses).asOpt[Seq[ItemResponse]].getOrElse(Seq()),
         (json \ "id").asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()))
     }

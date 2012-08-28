@@ -26,11 +26,12 @@ object ApiError {
   val MissingCredentials  = ApiError(104, "Missing credentials in request")
   val UnknownOrganization = ApiError(105, "Unknown organization")
   val MissingOrganization = ApiError(106, "Organization not specified")
-  val OperationError      = new ApiError(107, "There was an error processing your request")
+  val OperationError      = ApiError(107, "There was an error processing your request")
+  val ExpiredToken        = ApiError(108, "Your access token expired on %s. Please request a new one")
 
   // Base Api
-  val UserIsRequired      = new ApiError(150, "User is required")
-  val JsonExpected        = new ApiError(151, "You request does not contain a valid json")
+  val UserIsRequired      = ApiError(150, "User is required")
+  val JsonExpected        = ApiError(151, "You request does not contain a valid json")
 
   // Common DAOs
   val CantSave            = ApiError(200, "There was an error saving your information")

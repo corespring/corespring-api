@@ -11,8 +11,8 @@ import controllers.auth.Permission
 
 trait Content {
   var id: ObjectId;
-  var contentType: Option[String];
-  var collectionId: Option[String];
+  var contentType: String;
+  var collectionId: String;
 
 }
 
@@ -46,6 +46,5 @@ object Content {
 object ContentType {
   val item = "item"
   val assessment = "assessment"
-
-  def isContentType(s: String): Boolean = s == item || s == assessment
+  val materials = "materials"
 }

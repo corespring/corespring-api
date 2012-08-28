@@ -25,7 +25,7 @@ import controllers.auth.Permission
  */
 case class ContentCollection(var name: String = "", var isPrivate: Boolean = false, var id: ObjectId = new ObjectId())
 
-object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
+object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] with Queryable{
   val name = "name"
   val isPrivate = "isPrivate"
 
@@ -124,7 +124,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] {
   implicit object CollectionWrites extends Writes[ContentCollection] {
     def writes(coll: ContentCollection) = {
       var list = List[(String, JsString)]()
-      if ( coll.name.nonEmpty ) ("name" -> JsString(coll.name)) :: list
+      if ( coll.name.nonEmpty ) list = ("name" -> JsString(coll.name)) :: list
       list = ("id" -> JsString(coll.id.toString)) :: list
       JsObject( list )
     }

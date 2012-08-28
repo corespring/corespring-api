@@ -11,9 +11,8 @@ import com.mongodb.casbah.commons.MongoDBObject
 import api.ApiError
 import models.mongoContext._
 import play.api.Play
-import controllers.{LogType, InternalError}
+import controllers.{Utils, LogType, InternalError}
 import com.novus.salat._
-import controllers.InternalError
 import dao.SalatDAOUpdateError
 import dao.SalatRemoveError
 import scala.Left
@@ -31,7 +30,7 @@ case class Organization(var name: String = "",
   def this() = this("")
 }
 
-object Organization extends ModelCompanion[Organization, ObjectId] {
+object Organization extends ModelCompanion[Organization, ObjectId] with Queryable{
   val name: String = "name"
   val path: String = "path"
   val contentcolls: String = "contentcolls"
@@ -55,7 +54,7 @@ object Organization extends ModelCompanion[Organization, ObjectId] {
       case Some(parentId) => {
         findOneById(parentId) match {
           case Some(parent) => {
-            org.path = parent.path :+ org.id
+            org.path = Seq(org.id) ++ parent.path
             insert(org) match {
               case Some(id) => Right(org)
               case None => Left(InternalError("error inserting organization",LogType.printFatal,true))
@@ -74,6 +73,11 @@ object Organization extends ModelCompanion[Organization, ObjectId] {
     }
   }
 
+  /**
+   * delete the specified organization and all sub-organizations
+   * @param orgId
+   * @return
+   */
   def delete(orgId: ObjectId): Either[InternalError, Unit] = {
     try {
       remove(MongoDBObject(Organization.path -> orgId))
@@ -95,30 +99,28 @@ object Organization extends ModelCompanion[Organization, ObjectId] {
       case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("unable to update organization")))
     }
   }
-  /**
-   * get the path of the given organization in descending order. e.g. Massachusetts Board of Education -> Some Mass. District -> Some Mass. School
-   * @param org: the organization in which to retrieve all parents from
-   */
-  def getPath(org: Organization): List[Organization] = {
-    val c = Organization.find(MongoDBObject("_id" -> MongoDBObject("$in" -> org.path)))
-    val orgList = c.toList
-    c.close()
-    orgList
-  }
+//  /**
+//   * get the path of the given organization in descending order. e.g. Massachusetts Board of Education -> Some Mass. District -> Some Mass. School
+//   * @param org: the organization in which to retrieve all parents from
+//   */
+//  def getPath(org: Organization): Seq[Organization] = {
+//    val c = Organization.find(MongoDBObject("_id" -> MongoDBObject("$in" -> org.path)))
+//    Utils.toSeq(c)
+//  }
 
-  /**
-   * get immediate sub-nodes of given organization, exactly one depth greather than parent.
-   * if none, or parent could not be found in database, returns empty list
-   * @param parentId
-   * @return
-   */
-  def getChildren(parentId: ObjectId): List[Organization] = {
-    val c = Organization.find(MongoDBObject(Organization.path -> parentId))
-
-    val orgList = c.filter(o => if (o.path.size >= 2) o.path(o.path.size - 2) == parentId else false).toList
-    c.close()
-    orgList
-  }
+//  /**
+//   * get immediate sub-nodes of given organization, exactly one depth greather than parent.
+//   * if none, or parent could not be found in database, returns empty list
+//   * @param parentId
+//   * @return
+//   */
+//  def getChildren(parentId: ObjectId): List[Organization] = {
+//    val c = Organization.find(MongoDBObject(Organization.path+".1" -> parentId))
+//
+//    val orgList = c.filter(o => if (o.path.size >= 2) o.path(o.path.size - 2) == parentId else false).toList
+//    c.close()
+//    orgList
+//  }
 
   /**
    * get all sub-nodes of given organization.
@@ -136,7 +138,7 @@ object Organization extends ModelCompanion[Organization, ObjectId] {
   def isChild(parentId: ObjectId, childId: ObjectId): Boolean = {
     Organization.findOneById(childId) match {
       case Some(child) => {
-        if (child.path.size >= 2) child.path(child.path.size - 2) == parentId else false
+        if (child.path.size >= 2) child.path(1) == parentId else false
       }
       case None => false
     }

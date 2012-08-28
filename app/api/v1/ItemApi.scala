@@ -8,11 +8,11 @@ import com.mongodb.util.JSONParseException
 import org.bson.types.ObjectId
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
-import com.novus.salat.global._
 import play.api.templates.Xml
 import play.api.mvc.Result
 import play.api.libs.json.Json
 import com.typesafe.config.ConfigFactory
+import models.mongoContext._
 
 /**
  * Items API
@@ -22,16 +22,16 @@ object ItemApi extends BaseApi {
 
   //todo: confirm with evaneus this is what should be returned by default for /items/:id
   val excludedFieldsByDefault = Some(MongoDBObject(
-    Item.CopyrightOwner -> 0,
-    Item.Credentials -> 0,
-    Item.Files -> 0,
-    Item.KeySkills -> 0,
-    Item.ContentType -> 0,
-    Item.XmlData -> 0
+    Item.copyrightOwner -> 0,
+    Item.credentials -> 0,
+    Item.files -> 0,
+    Item.keySkills -> 0,
+    Item.contentType -> 0,
+    Item.xmlData -> 0
   ))
 
-  val xmlDataField = MongoDBObject(Item.XmlData -> 1, Item.CollectionId -> 1)
-  val excludeXmlData = Some(MongoDBObject(Item.XmlData -> 0))
+  val xmlDataField = MongoDBObject(Item.xmlData -> 1, Item.collectionId -> 1)
+  val excludeXmlData = Some(MongoDBObject(Item.xmlData -> 0))
 
   /**
    * List query implementation for Items
@@ -95,8 +95,9 @@ object ItemApi extends BaseApi {
    */
   private def _getItem(callerOrg: ObjectId, id: ObjectId, fields: Option[DBObject]): Result  = {
     fields.map(Item.collection.findOneByID(id, _)).getOrElse( Item.collection.findOneByID(id)) match {
-      case Some(o) =>  if ( canUpdateOrDelete(callerOrg, o.get(Item.CollectionId).asInstanceOf[String])) {
-        Ok(Json.toJson(grater[Item].asObject(o)))
+      case Some(o) =>  if ( canUpdateOrDelete(callerOrg, o.get(Item.collectionId).asInstanceOf[String])) {
+        val i =  grater[Item].asObject(o)
+        Ok(Json.toJson(i))
       } else {
         Forbidden
       }
@@ -112,8 +113,8 @@ object ItemApi extends BaseApi {
    */
   def getItemData(id: ObjectId) = ApiAction { request =>
     Item.collection.findOneByID(id, xmlDataField) match {
-      case Some(o) =>  if ( canUpdateOrDelete(request.ctx.organization, o.get(Item.CollectionId).asInstanceOf[String])) {
-        Ok(Xml(o.get(Item.XmlData).toString))
+      case Some(o) =>  if ( canUpdateOrDelete(request.ctx.organization, o.get(Item.collectionId).asInstanceOf[String])) {
+        Ok(Xml(o.get(Item.xmlData).toString))
       } else {
         Forbidden
       }
@@ -128,9 +129,9 @@ object ItemApi extends BaseApi {
    * @return
    */
   def deleteItem(id: ObjectId) = ApiAction { request =>
-    Item.collection.findOneByID(id, MongoDBObject(Item.CollectionId -> 1)) match {
+    Item.collection.findOneByID(id, MongoDBObject(Item.collectionId -> 1)) match {
       case Some(o) => {
-        if ( canUpdateOrDelete(request.ctx.organization, o.get(Item.CollectionId).asInstanceOf[String]) ) {
+        if ( canUpdateOrDelete(request.ctx.organization, o.get(Item.collectionId).asInstanceOf[String]) ) {
           Content.moveToArchive(id)
           Ok(com.mongodb.util.JSON.serialize(o))
         } else {
@@ -149,7 +150,7 @@ object ItemApi extends BaseApi {
           val dbObj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
           if ( dbObj.isDefinedAt("id") ) {
             BadRequest(Json.toJson(ApiError.IdNotNeeded))
-          } else if ( !dbObj.isDefinedAt(Item.CollectionId) ) {
+          } else if ( !dbObj.isDefinedAt(Item.collectionId) ) {
             BadRequest(Json.toJson(ApiError.CollectionIsRequired))
           } else {
             QueryHelper.validateFields(dbObj, Item.queryFields)
@@ -175,7 +176,7 @@ object ItemApi extends BaseApi {
   def updateItem(id: ObjectId) = ApiAction { request =>
     Item.collection.findOneByID(id) match {
       case Some(item) => {
-        if ( canUpdateOrDelete(request.ctx.organization, item.get(Item.CollectionId).asInstanceOf[String]) ) {
+        if ( canUpdateOrDelete(request.ctx.organization, item.get(Item.collectionId).asInstanceOf[String]) ) {
           request.body.asJson match {
             case Some(json) => {
               try {
@@ -215,20 +216,13 @@ object ItemApi extends BaseApi {
     }
   }
 
-  private def canUpdateOrDelete(callerOrg: ObjectId, itemCollId: String):Boolean = {
+  def canUpdateOrDelete(callerOrg: ObjectId, itemCollId: String):Boolean = {
     val ids = ContentCollection.getCollectionIds(callerOrg,Permission.All)
     ids.find(_.toString == itemCollId).isDefined
   }
 
 
   def getItemsInCollection(collId: ObjectId) = ApiAction { request =>
-    NotImplemented
-  }
-
-  //private final val AMAZON_ASSETS_BUCKET : String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
-
-  def getFile( itemId : ObjectId, fileName : String ) = ApiAction { request =>
-    //S3Service.s3download(AMAZON_ASSETS_BUCKET, itemId, fileName)
     NotImplemented
   }
 }

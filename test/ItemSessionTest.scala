@@ -21,12 +21,12 @@ class ItemSessionTest extends Specification {
 
   // create test session bound to random object id
   // in practice ItemSessions need to be bound to an item
-  val testSession = ItemSession(Some(new ObjectId()),Some(new ObjectId()))
+  val testSession = ItemSession(new ObjectId())
 
   "ItemSession" should {
     "be saveable" in {
       ItemSession.save(testSession)
-      ItemSession.findOneById(testSession.id.get) match {
+      ItemSession.findOneById(testSession.id) match {
         case Some(result) => success
         case _ => failure
       }
@@ -34,7 +34,7 @@ class ItemSessionTest extends Specification {
 
     "be deletable" in {
       ItemSession.remove(testSession)
-      ItemSession.findOneById(testSession.id.get) match {
+      ItemSession.findOneById(testSession.id) match {
         case Some(result) => failure
         case _ => success
       }
@@ -50,13 +50,13 @@ class ItemSessionTest extends Specification {
 
 
 
-      val testSession = ItemSession(None, Some(new ObjectId(testItemId)))
-      val url = "/api/v1/items/" + testSession.itemId.get.toString + "/sessions"
+      val testSession = ItemSession(new ObjectId(testItemId))
+      val url = "/api/v1/items/" + testSession.itemId.toString + "/sessions"
 
       // add some item responses
-      testSession.responses ::= ItemResponse("question1","choice1", "{$score:1}")
-      testSession.responses ::= ItemResponse("question2","some text", "{$score:1}")
-      testSession.responses ::= ItemResponse("question3","more text", "{$score:1}")
+      testSession.responses = testSession.responses ++ Seq(ItemResponse("question1","choice1", "{$score:1}"))
+      testSession.responses = testSession.responses ++ Seq(ItemResponse("question2","some text", "{$score:1}"))
+      testSession.responses = testSession.responses ++ Seq(ItemResponse("question3","more text", "{$score:1}"))
 
       val request = FakeRequest(
         POST,
@@ -75,7 +75,7 @@ class ItemSessionTest extends Specification {
 
         // get the generated id
         val id = (json \ "id").asOpt[String].getOrElse("")
-        testSession.id = Option(new ObjectId(id))
+        testSession.id = new ObjectId(id)
 
         // need to implement reader first for below to work
         //val parsedSession = Json.fromJson[ItemSession](json)
@@ -143,9 +143,9 @@ class ItemSessionTest extends Specification {
       val start = (json \ "start").asOpt[String]
       val finish = (json \ "finish").asOpt[String]
 
-      val idString = testSession.id.get.toString
-      val itemIdString = testSession.itemId.get.toString
-      val finishString = testSession.finish.getMillis.toString
+      val idString = testSession.id.toString
+      val itemIdString = testSession.itemId.toString
+      val finishString = testSession.finish.get.getMillis.toString
       val startString = testSession.start.getMillis.toString
 
       var result = false
