@@ -1,3 +1,35 @@
-<div class="item-content-container">
-    <h1>Hello!</h1>
+<div class="row" style="padding-top: 90px">
+
+    <div class="container" style="width: 960px;" when-scrolled="loadMore()" watch="itemDataCollection">
+    <table class="table">
+        <thead>
+        <tr>
+            <th width="80px">Origin-ID</th>
+            <th>Title</th>
+            <th>Primary Subject</th>
+            <th>Grade</th>
+            <th>Item Type</th>
+            <th>Standard(s)</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="item in items" style="cursor: pointer;">
+            <td ng-click="openEditView()" height="24px">{{item.originId}}</td>
+            <td ng-click="openEditView()" ng-bind-html-unsafe="item.title"></td>
+            <td ng-click="openEditView()" width="100">{{getPrimarySubjectLabel(item.primarySubject)}}</td>
+            <td ng-click="openEditView()">
+                {{showGradeLevel()}}
+            </td>
+            <td ng-click="openEditView()">{{showItemType(item)}}</td>
+            <td ng-click="openEditView()">
+                <a ui-jq="tooltip"
+                   ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
+            </td>
+            <td><button class="btn btn-danger btn-mini" href="javascript:void(1)" ng-click="deleteItem(item)">Delete</button> </td>
+        </tr>
+        </tbody>
+    </table>
+
+</div>
 </div>

@@ -49,7 +49,7 @@ object ItemSubject{
 }
 
 case class Item( var collectionId:String,
-                 var contentType:String,
+                 var contentType:String = "",
                  var author:Option[String] = None,
                 var contributor:Option[String] = None,
                 var copyrightOwner:Option[String] = None,

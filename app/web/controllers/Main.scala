@@ -8,7 +8,11 @@ import play.api.data.Form
 import play.api.data.Forms._
 import scala.Some
 import scala.Tuple2
+
+import play.api.libs.json.Json._
 import models.User
+import models.auth.AccessToken
+import play.api.libs.json.Json
 
 object Main extends Controller with Secured {
 
@@ -22,10 +26,10 @@ object Main extends Controller with Secured {
 
   def getAccessToken = IsAuthenticated{
     username => request =>
-
     User.getUser(username) match {
       case Some(user) => {
-       NotImplemented
+        //TODO: Just hardcoding this for now until we agree how to connect the user to the token.
+        Ok(toJson( Map("access_token" -> "34dj45a769j4e1c0h4wb")) )
       }
       case None => Forbidden
     }

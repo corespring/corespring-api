@@ -13,9 +13,10 @@ servicesModule
             //this.rootPath = 'https://api.mongolab.com/api/1/databases/ed-backup/collections';
 
             this.services = {
+                getAccessToken: '/web/access_token',
+                items: '/api/v1/items/:id',
                 standards:this.rootPath + '/cc-standards',
                 subject:this.rootPath + '/subject',
-                items:this.rootPath + '/mcas3',
                 collection:this.rootPath + '/collection',
                 uploadFile:'/tagger/upload/{itemId}/{fileName}',
                 viewFile:'/tagger/files/{itemId}/{fileName}',
