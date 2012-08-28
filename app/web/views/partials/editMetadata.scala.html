@@ -12,22 +12,21 @@
     <div class="container" style="width: 940px;">
         <div class="row">
 
-            <ul class="span3 nav nav-pills">
-                <li ng-class="contentClass">
+            <ul class="span5 nav nav-pills">
+                <li ng-class="{true:'active', false:''}[currentPanel=='content']">
                     <a
                             href="javascript:void(1)"
                             ng-click="changePanel('content')">Item Design</a>
                 </li>
-                <li ng-class="metadataClass">
+                <li ng-class="{true:'active', false:''}[currentPanel=='metadata']">
                     <a
                             href="javascript:void(1)"
                             ng-click="changePanel('metadata')">Item Profile</a></li>
-                <!--
-                <li ng-class="contentClass">
+
+                <li ng-class="{true:'active', false:''}[currentPanel=='supportingMaterials']" >
                     <a href="javascript:void(1)"
                     ng-click="changePanel('supportingMaterials')">Supporting Materials</a>
                 </li>
-                -->
             </ul>
 
             <span class="pull-right">
@@ -57,7 +56,7 @@
 </div>
 <div class="item-content-container">
     <div class="edit" style="overflow: auto" ng-class="previewClassName">
-        <div ng-show="showMetadata">
+        <div ng-show="currentPanel == 'metadata'">
 
 
             @web.views.html.partials._editMetadata.basics()
@@ -79,8 +78,11 @@
             @web.views.html.partials._editMetadata._formWithLegend( deleteBtn, "" )
         </div>
 
+        <div ng-show="currentPanel == 'supportingMaterials'">
+            <h1>TODO</h1>
+        </div>
 
-        <div ng-show="showContent" class="editor-panel" ng-class="previewClassName">
+        <div ng-show="currentPanel == 'content'" class="editor-panel" ng-class="previewClassName">
 
             <div class="file-list" ng-class="fileListClassName">
                 <h2>Files</h2>
