@@ -216,7 +216,7 @@ object ItemApi extends BaseApi {
     }
   }
 
-  private def canUpdateOrDelete(callerOrg: ObjectId, itemCollId: String):Boolean = {
+  def canUpdateOrDelete(callerOrg: ObjectId, itemCollId: String):Boolean = {
     val ids = ContentCollection.getCollectionIds(callerOrg,Permission.All)
     ids.find(_.toString == itemCollId).isDefined
   }

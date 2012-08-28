@@ -67,3 +67,10 @@ PUT     /api/v1/items/:itemId/sessions/:sessionId         api.v1.ItemSessionApi.
 GET     /api/v1/items/:itemId/sessions/:sessionId         api.v1.ItemSessionApi.getItemSession(itemId:ObjectId, sessionId: ObjectId)
 GET     /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.list(itemId:ObjectId)
 
+
+
+# Item Rendering
+GET    /testplayer/item/:itemId                     controllers.testplayer.ItemPlayer.renderItem(itemId)
+GET    /testplayer/item/:itemId/feedback/:responseIdentifier/:identifier  controllers.testplayer.ItemPlayer.getFeedbackInline(itemId, responseIdentifier, identifier)
+
+
