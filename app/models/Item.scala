@@ -5,14 +5,11 @@ import org.bson.types.ObjectId
 import play.api.libs.json._
 import play.api.libs.json.JsString
 import com.novus.salat.dao.{SalatDAO, ModelCompanion}
-import com.novus.salat.dao._
-import se.radley.plugin.salat._
-import mongoContext._
-import com.mongodb.util.JSONParseException
 import com.mongodb.casbah.Imports._
 import controllers.{LogType, InternalError}
 import collection.mutable
 import scala.Either
+import mongoContext._
 
 case class ItemFile(var filename:String)
 object ItemFile{
@@ -49,7 +46,7 @@ object ItemSubject{
 }
 
 case class Item( var collectionId:String,
-                 var contentType:String,
+                 var contentType:String = "item",
                  var author:Option[String] = None,
                 var contributor:Option[String] = None,
                 var copyrightOwner:Option[String] = None,
@@ -61,14 +58,14 @@ case class Item( var collectionId:String,
                 var itemTypeOther:Option[String] = None,
                 var keySkills:Seq[String] = Seq(),
                 var licenseType:Option[String] = None,
-                var primarySubject:Option[ItemSubject] = None,     //TODO: define primary subject as an object instead of map
+                var primarySubject:Option[ItemSubject] = None,
                 var priorUse:Option[String] = None,
                 var reviewsPassed:Seq[String] = Seq(),
                 var sourceUrl:Option[String] = None,
                 var standards:Seq[ObjectId] = Seq(),
                 var title:Option[String] = None,
                 var xmlData:Option[String] = None,
-                var id:ObjectId = new ObjectId()) extends Content
+                var id:ObjectId = new ObjectId())// extends Content
 /**
  * An Item model
  */
@@ -131,8 +128,8 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
       val item = Item((json \ collectionId).as[String],
         (json \ contentType).as[String] match {
           case ContentType.item => ContentType.item
-          case ContentType.assessment => ContentType.assessment
-          case ContentType.materials => ContentType.materials
+          //case ContentType.assessment => ContentType.assessment
+          //case ContentType.materials => ContentType.materials
           case _ => throw new JsonValidationException(contentType)
         })
       val fieldValues:FieldValue = FieldValue.findOne(MongoDBObject(FieldValue.Version -> FieldValuesVersion)).getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
@@ -205,13 +202,76 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
       case e:RuntimeException => Left(InternalError(e.getMessage,LogType.printError,true))
     }
   }
-  private def parseField(iter:Iterator[(String,JsValue)], acc:Either[InternalError,mutable.Builder[(String,Any),DBObject]]):Either[InternalError,mutable.Builder[(String,Any),DBObject]] = {
+  def parseFields(iter:Iterator[(String,JsValue)], acc:Either[InternalError,mutable.Builder[(String,Any),DBObject]]):Either[InternalError,mutable.Builder[(String,Any),DBObject]] = {
     if (iter.hasNext && acc.isRight){
       val field = iter.next()
-      field._1 match {
-        case _ => Left(InternalError("invalid json",LogType.printError))
-      }
+
     }else acc
+    acc
+  }
+  def parseOuterField(field:(String,JsValue), acc:mutable.Builder[(String,Any),DBObject]):Either[InternalError,mutable.Builder[(String,Any),DBObject]] = {
+    field._1 match {
+      case `id` => field._2 match {
+        case jsobj:JsObject =>
+      }
+      case `author` =>
+      case `collectionId` =>
+      case `contentType` =>
+      case `contributor` =>
+      case `copyrightOwner` =>
+      case `copyrightYear` =>
+      case `credentials` =>
+      case `files` =>
+      case `gradeLevel` =>
+      case `itemType` =>
+      case `itemTypeOther` =>
+      case `keySkills` =>
+      case `licenseType` =>
+      case `primarySubject` =>
+      case `priorUse` =>
+      case `reviewsPassed` =>
+      case `sourceUrl` =>
+      case `standards` =>
+      case `title` =>
+      case `xmlData` =>
+    }
+    Right(acc)
+  }
+  def parseEmbedded(key:String, keyType:String, embedded:JsObject, acc:mutable.Builder[(String,Any),DBObject]):Either[InternalError, mutable.Builder[(String,Any),DBObject]] = {
+    if (embedded.fields.size == 1){
+      val field = embedded.fields(0)
+      keyType match {
+        case "ObjectId" => field._1 match {
+          case "$ne" => field._2 match {
+            case x:JsString => try{
+              acc += (key -> MongoDBObject("$ne" -> new ObjectId(x.as[String])))
+              Right(acc)
+            } catch{
+              case e:IllegalArgumentException => Left(InternalError("{"+key+":{$ne:"+x+"}} : "+x+"value is not an object id",LogType.printError,true))
+            }
+            case _ => Left(InternalError("{"+key+":{$ne:"+field._2.toString()+"}} : "+field._2.toString()+"value is not a string",LogType.printError,true))
+          }
+          case "$in" => field._2 match {
+            case x:JsArray => //todo x.value.map(ids )
+          }
+          case "$nin" =>
+        }
+        case "String" => field._1 match {
+          case "$ne" => field._2 match {
+            case x:JsString =>
+              acc += (key -> MongoDBObject("$ne" -> x.as[String]))
+              Right(acc)
+            case _ => Left(InternalError("{"+key+":{$ne:"+field._2.toString()+"}} : "+field._2.toString()+"value is not a string",LogType.printError,true))
+          }
+        }
+        case "Number" =>
+        case "Seq[String]" =>
+        case "Seq[Number]" =>
+        case "Seq[Object]" =>
+        case _ => throw new RuntimeException("you passed an unknown key type jackass")
+      }
+    }else Left(InternalError(key+" contained multiple values",LogType.printError,true))
+    Left(InternalError("blerg",LogType.printError))
   }
   case class JsonValidationException(field:String) extends RuntimeException("invalid value for: "+field)
 }

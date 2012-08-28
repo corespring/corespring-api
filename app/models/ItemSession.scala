@@ -11,7 +11,6 @@ import play.api.libs.json.JsString
 import controllers.{LogType, InternalError}
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
-import com.novus.salat.global._
 import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
 import play.api.Play
 import play.api.Play.current
