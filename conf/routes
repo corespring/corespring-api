@@ -78,6 +78,7 @@ GET    /web/partials/itemCollection            web.controllers.Partials.itemColl
 GET    /web/partials/editMetadata              web.controllers.Partials.editMetadata
 GET    /web/partials/createItem                web.controllers.Partials.createItem
 GET    /web/partials/home                      web.controllers.Partials.home
+GET    /web/partials/viewItem                  web.controllers.Partials.viewItem
 
 # Authentication
 GET     /web/login                             web.controllers.Main.login

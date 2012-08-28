@@ -8,7 +8,8 @@ var taggerApp = angular.module('tagger', ['cs', 'tagger.filters', 'tagger.servic
 taggerApp.
     config(['$routeProvider', function ($routeProvider) {
     $routeProvider.when('/home', {templateUrl:'/web/partials/home', controller:HomeController});
-    $routeProvider.when('/edit/:itemId', {templateUrl:'/web/partials/editMetadata', controller:EditCtrl, reloadOnSearch: false});
+    $routeProvider.when('/edit/:itemId', {templateUrl:'/web/partials/editMetadata', controller:ItemController, reloadOnSearch: false});
+    $routeProvider.when('/view/:itemId', {templateUrl:'/web/partials/viewItem', controller:ItemController, reloadOnSearch: false});
     $routeProvider.when('/new', {redirectTo:'/new/blank'});
     $routeProvider.when('/new/:type', {templateUrl:'/web/partials/createItem', controller:CreateCtrl});
     $routeProvider.when('/collections', {templateUrl:'old.partials/collections.html', controller:CollectionsCtrl});

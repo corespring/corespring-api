@@ -15,9 +15,10 @@ servicesModule
             this.services = {
                 getAccessToken: '/web/access_token',
                 items: '/api/v1/items/:id',
+                standardsTree: '/assets/web/standards_tree.json',
                 standards:this.rootPath + '/cc-standards',
                 subject:this.rootPath + '/subject',
-                collection:this.rootPath + '/collection',
+                collection: '/api/v1/collections',
                 uploadFile:'/tagger/upload/{itemId}/{fileName}',
                 viewFile:'/tagger/files/{itemId}/{fileName}',
                 deleteFile:'/tagger/delete/{itemId}/{fileName}'

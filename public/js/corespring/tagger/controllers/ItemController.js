@@ -13,15 +13,13 @@ if (Array.prototype.removeItem == null) Array.prototype.removeItem = function (i
     return this.splice(itemIndex, 1)[0];
 };
 
-
 /**
- * Controller for editing ItemData
+ * Controller for editing ItemService
  */
-function EditCtrl($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http) {
-
+function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, AccessToken) {
 
     function loadStandardsSelectionData() {
-        $http.get('/standards_tree.json').success(function (data) {
+        $http.get( ServiceLookup.getUrlFor('standardsTree')).success(function (data) {
             $scope.standardsOptions = data;
         });
     }
@@ -75,7 +73,6 @@ function EditCtrl($scope, $location, $routeParams, ItemService, $rootScope, Coll
     var itemId = $routeParams.itemId;
 
     $scope.$root.mode = "edit";
-    $scope.collections = Collection.query();
 
     //ui nav
     $scope.showMetadata = true;
@@ -109,6 +106,10 @@ function EditCtrl($scope, $location, $routeParams, ItemService, $rootScope, Coll
         $scope.currentPanel = panelName;
         $scope.$broadcast("tabSelected");
         updateLocation($scope.currentPanel, $scope.previewVisible);
+    };
+
+    $scope.editItem = function(){
+       $location.url('/edit/' + $scope.itemData.id);
     };
 
     $scope.$on("panelOpen", function (event, panelOpen) {
@@ -162,7 +163,7 @@ function EditCtrl($scope, $location, $routeParams, ItemService, $rootScope, Coll
      */
     $scope.calculateUploadUrl = function (file) {
         if (file == null) {
-            throw "EditCtrl:calculateUploadUrl - the file is null"
+            throw "ItemController:calculateUploadUrl - the file is null"
         }
         return $scope.getUrl("uploadFile", itemId, file.name);
     };
@@ -189,7 +190,7 @@ function EditCtrl($scope, $location, $routeParams, ItemService, $rootScope, Coll
         if ($scope.itemData.files == null) {
             throw "Can't remove null item from array";
         }
-        var result = $scope.itemData.files.removeItem(file)
+        var result = $scope.itemData.files.removeItem(file);
 
         if (result == file) {
 
@@ -255,7 +256,7 @@ function EditCtrl($scope, $location, $routeParams, ItemService, $rootScope, Coll
     $rootScope.$broadcast('onEditViewOpened');
 
     $scope.loadItem = function () {
-        ItemService.get({id:$routeParams.itemId}, function onItemLoaded(itemData) {
+        ItemService.get({id:$routeParams.itemId, access_token:AccessToken.token}, function onItemLoaded(itemData) {
             $scope.itemData = itemData;
             $scope.initialXmlData = itemData.xmlData;
 
@@ -278,6 +279,22 @@ function EditCtrl($scope, $location, $routeParams, ItemService, $rootScope, Coll
             $scope.$broadcast("dataLoaded");
         });
     };
+
+    if (!AccessToken.token) {
+
+        $scope.accessToken = AccessToken;
+        $scope.$watch('accessToken.token', function(newValue){
+            if(newValue){
+                $scope.collections = Collection.query({access_token: $scope.accessToken.token});
+                $scope.loadItem();
+            }
+        })
+    } else {
+
+        $scope.collections = Collection.query({access_token: $scope.accessToken.token});
+        $scope.loadItem();
+    }
+
 
     $scope.$watch('itemData.pValue', function (newValue, oldValue) {
         $scope.pValueAsString = $scope.getPValueAsString(newValue);
@@ -481,5 +498,14 @@ function EditCtrl($scope, $location, $routeParams, ItemService, $rootScope, Coll
 
     // end EditCrtl
 }
-EditCtrl.$inject = ['$scope', '$location', '$routeParams', 'ItemService', '$rootScope', 'Collection', 'ServiceLookup', '$http'];
+ItemController.$inject = [
+    '$scope',
+    '$location',
+    '$routeParams',
+    'ItemService',
+    '$rootScope',
+    'Collection',
+    'ServiceLookup',
+    '$http',
+    'AccessToken'];
 

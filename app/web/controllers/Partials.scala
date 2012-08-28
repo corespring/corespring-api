@@ -9,4 +9,5 @@ object Partials extends Controller{
   def editMetadata = Action{ Ok(web.views.html.partials.editMetadata() ) }
   def createItem = Action{ Ok(web.views.html.partials.createItem() ) }
   def home = Action{ Ok(web.views.html.partials.home() )}
+  def viewItem = Action{ Ok(web.views.html.partials.viewItem() )}
 }

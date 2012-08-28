@@ -1,5 +1,5 @@
 
-function HomeController($scope, $timeout, $http, AccessToken, ItemService ) {
+function HomeController($scope, $timeout, $http, $location, AccessToken, ItemService ) {
     $http.defaults.headers.get = ($http.defaults.headers.get || {});
     $http.defaults.headers.get['Content-Type'] = 'application/json';
 
@@ -11,9 +11,14 @@ function HomeController($scope, $timeout, $http, AccessToken, ItemService ) {
        $scope.items = ItemService.query({ access_token: $scope.accessToken.token});
     };
 
-    $scope.$watch('accessToken.token', function(newValue, oldValue){
-       console.log("new token:" + newValue + ", " + oldValue );
+    /*
+     * called from the repeater. scope (this) is the current item
+     */
+    $scope.openEditView = function () {
+        $location.url('/view/' + this.item.id);
+    };
 
+    $scope.$watch('accessToken.token', function(newValue, oldValue){
        if(newValue){
            $timeout(function(){
                $scope.loadItems();
@@ -22,5 +27,5 @@ function HomeController($scope, $timeout, $http, AccessToken, ItemService ) {
     });
 }
 
-HomeController.$inject = ['$scope', '$timeout', '$http', 'AccessToken', 'ItemService'];
+HomeController.$inject = ['$scope', '$timeout', '$http', '$location', 'AccessToken', 'ItemService'];
 
