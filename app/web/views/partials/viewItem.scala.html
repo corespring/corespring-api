@@ -1,4 +1,46 @@
-<div class="item-content-container">
-    <p>{{itemData.title}}</p>
-    <a class="btn" ng-click="editItem()">Edit</a>
+<div class="sub-nav">
+    <div class="container" style="width: 940px;">
+        <div class="row">
+
+            <ul class="span6 nav nav-pills">
+                <li
+                        ng-class="{true:'active', false:''}[currentPanel=='item']">
+                    <a
+                            href="javascript:void(1)"
+                            ng-click="changePanel('item')">Item</a>
+                </li>
+                <li
+                        ng-class="{true:'active', false:''}[currentPanel=='corespringData']">
+                    <a
+                            href="javascript:void(1)"
+                            ng-click="changePanel('corespringData')">Corespring Data</a>
+                </li>
+                <li ng-class="{true:'active', false:''}[currentPanel=='history']">
+                    <a
+                            href="javascript:void(1)"
+                            ng-click="changePanel('history')">History</a></li>
+
+                <li ng-class="{true:'active', false:''}[currentPanel=='supportingMaterials']">
+                    <a
+                            href="javascript:void(1)"
+                            ng-click="changePanel('supportingMaterials')">Supporting Materials</a></li>
+            </ul>
+
+            <span class="pull-right">
+                <button class="btn btn-primary"
+                        ng-click="editItem()">Edit
+                </button>
+            </span>
+        </div>
+    </div>
 </div>
+<div class="item-content-container">
+    <div class="container">
+        <p>{{itemData.title}}</p>
+        <span ng-show="currentPanel == 'item'"><h1>//TODO: ITEM</h1></span>
+        <span ng-show="currentPanel == 'corespringData'">@web.views.html.partials._viewItem.corespringData()</span>
+        <span ng-show="currentPanel == 'history'"><h1>History</h1></span>
+        <span ng-show="currentPanel == 'supportingMaterials'"><h1>Supporting Materials</h1></span>
+    </div>
+</div>
+

@@ -1,0 +1,22 @@
+<h1>Corespring Data</h1>
+
+<div class="control-group">
+
+    <label class="control-label">Item Title</label>
+    <div class="controls span5">
+        <div>{{itemData.title}}</div>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label">Credentials</label>
+
+    <div class="controls">
+        <select
+                ng-model="itemData.credentials"
+                ng-options="c for c in itemData.$credentialsDataProvider">
+            <option value=""> </option>
+        </select>
+    </div>
+</div>
+

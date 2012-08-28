@@ -27,14 +27,11 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
     function initPane($routeParams) {
 
-        var panelName = 'metadata';
+        var panelName = 'item';
         if ($routeParams.panel) {
             panelName = $routeParams.panel;
-            panelName = (panelName != 'content' && panelName != 'metadata') ? "metadata" : panelName;
         }
         $scope.changePanel(panelName);
-        $scope.expandKeySkills = true;
-
         loadStandardsSelectionData();
     }
 
@@ -75,18 +72,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.$root.mode = "edit";
 
     //ui nav
-    $scope.showMetadata = true;
-    $scope.showContent = false;
     $scope.previewVisible = initPreviewVisibleFromParams($routeParams);
     $scope.fileListVisible = initFileListVisibleFromParams($routeParams);
-    $scope.previewClassName = "";
-
-    $scope.$watch("currentPanel", function (newValue) {
-        $scope.showMetadata = newValue == 'metadata';
-        $scope.metadataClass = newValue == 'metadata' ? "active" : "";
-        $scope.showContent = newValue == 'content';
-        $scope.contentClass = newValue == 'content' ? "active" : "";
-    });
 
     $scope.$watch("previewVisible", function (newValue) {
         $scope.previewClassName = newValue ? "preview-open" : "preview-closed";
@@ -100,9 +87,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     });
 
     $scope.changePanel = function (panelName) {
-        if (panelName != 'metadata' && panelName != 'content') {
-            throw "Unknown panel: " + panelName + " - can't navigate";
-        }
         $scope.currentPanel = panelName;
         $scope.$broadcast("tabSelected");
         updateLocation($scope.currentPanel, $scope.previewVisible);
