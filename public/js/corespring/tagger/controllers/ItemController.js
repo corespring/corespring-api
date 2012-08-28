@@ -280,9 +280,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         });
     };
 
+    $scope.accessToken = AccessToken;
+
     if (!AccessToken.token) {
 
-        $scope.accessToken = AccessToken;
         $scope.$watch('accessToken.token', function(newValue){
             if(newValue){
                 $scope.collections = Collection.query({access_token: $scope.accessToken.token});

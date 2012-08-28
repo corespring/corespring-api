@@ -9,15 +9,13 @@ servicesModule
     .factory('ServiceLookup', function () {
 
         var ServiceLookup = function () {
-            this.rootPath = '/mongo-rest/collections';
-            //this.rootPath = 'https://api.mongolab.com/api/1/databases/ed-backup/collections';
 
             this.services = {
                 getAccessToken: '/web/access_token',
                 items: '/api/v1/items/:id',
                 standardsTree: '/assets/web/standards_tree.json',
-                standards:this.rootPath + '/cc-standards',
-                subject:this.rootPath + '/subject',
+                standards:  '/api/v1/field_values/cc-standard',
+                subject:    '/api/v1/field_values/subject',
                 collection: '/api/v1/collections',
                 uploadFile:'/tagger/upload/{itemId}/{fileName}',
                 viewFile:'/tagger/files/{itemId}/{fileName}',
