@@ -16,6 +16,8 @@ import scala.Right
  */
 object OrganizationApi extends BaseApi {
 
+  val childPath = Organization.path + ".1"
+
   /**
    * Returns a list of organizations visible to the organization in the request context
    *
@@ -32,8 +34,9 @@ object OrganizationApi extends BaseApi {
       Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
-  private def doList(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = {
-    val initSearch = MongoDBObject(Organization.path -> orgId)
+  private def doList(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, childrenOnly: Boolean = false) = {
+    val key = if ( childrenOnly ) childPath else Organization.path
+    val initSearch = MongoDBObject(key -> orgId)
     QueryHelper.list[Organization, ObjectId](q, f, c, sk,l, Organization.queryFields, Organization.dao, Organization.OrganizationWrites, Some(initSearch))
   }
 
@@ -43,21 +46,15 @@ object OrganizationApi extends BaseApi {
    * @return
    */
   def getChildren(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
-    doList(request.ctx.organization, q, f, c, sk, l)
+    doList(request.ctx.organization, q, f, c, sk, l, childrenOnly =  true)
   }
 
   def getChildrenWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
     if(orgId == request.ctx.organization || Organization.isChild(request.ctx.organization,orgId))
-      doGetChildren(orgId, q, f, c, sk, l)
+      doList(orgId, q, f, c, sk, l, childrenOnly = true)
     else
       Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
   }
-
-  private def doGetChildren(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = {
-    val initSearch = MongoDBObject(Organization.path + ".1" -> orgId)
-    QueryHelper.list[Organization, ObjectId](q, f, c, sk,l, Organization.queryFields, Organization.dao, Organization.OrganizationWrites, Some(initSearch))
-  }
-
   /**
    * Returns an Organization by its id
    *
