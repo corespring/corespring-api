@@ -10,6 +10,12 @@ import org.bson.types.ObjectId
 import play.api.libs.json.Json._
 import api.ApiError
 import play.api.Logger
+import play.api.libs.json._
+import common.models.SupportingMaterialFile
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsBoolean
+import play.api.libs.json.JsString
+import scala.Some
 
 object MaterialsApi extends BaseApi {
 
@@ -32,9 +38,27 @@ object MaterialsApi extends BaseApi {
       }
   }
 
-  def getMaterial(itemId: String, fileName: String) = ApiAction {
+  def getMaterial(itemId: String, fileName: String) = Action {
     request =>
-      S3Service.s3download(AMAZON_ASSETS_BUCKET, itemId, "/materials/" + fileName)
+      S3Service.s3download(AMAZON_ASSETS_BUCKET, itemId, "materials/" + fileName)
   }
 
+  implicit object DeleteResponseWrites extends Writes[S3Service.S3DeleteResponse] {
+    def writes(obj:S3Service.S3DeleteResponse) = {
+      var seq : Seq[(String,JsValue)] = Seq()
+      seq = seq :+ ("success" -> JsBoolean(obj.success))
+      seq = seq :+ ("msg" -> JsString(obj.msg))
+      JsObject(seq)
+    }
+  }
+
+  def deleteMaterial(itemId:String, fileName:String) = Action{
+   request =>
+      val response : S3Service.S3DeleteResponse = S3Service.delete( AMAZON_ASSETS_BUCKET, itemId + "/materials/" + fileName )
+      Ok(toJson(response))
+  }
+
+
 }
+
+

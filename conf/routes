@@ -58,6 +58,7 @@ GET     /api/v1/items/:itemId/assets/:fileName  api.v1.FilesApi.getFile(itemId:S
 
 POST    /api/v1/items/:itemId/materials/:name   api.v1.MaterialsApi.uploadMaterial(itemId:String, name : String)
 GET     /api/v1/items/:itemId/materials/:name   api.v1.MaterialsApi.getMaterial(itemId:String, name : String)
+DELETE  /api/v1/items/:itemId/materials/:name   api.v1.MaterialsApi.deleteMaterial(itemId:String, name : String)
 
 # Field Values API
 GET     /api/v1/field_values                   api.v1.FieldValuesApi.getAllAvailable

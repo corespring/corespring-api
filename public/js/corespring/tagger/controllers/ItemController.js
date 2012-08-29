@@ -131,21 +131,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
     });
 
-    $scope.onSupportingMaterialUploadCompleted = function(result){
-        console.log("onSupportingMaterialUploadCompleted!!: " + result);
-
-        $scope.$apply(function(){
-            var resultObject = $.parseJSON(result);
-
-            if( !$scope.itemData.supportingMaterials ){
-                $scope.itemData.supportingMaterials = [];
-            }
-            $scope.itemData.supportingMaterials.push(resultObject);
-            console.log("now: " + $scope.itemData.supportingMaterials.length);
-            //no need to save - its already been saved by the upload
-        });
-
-    };
 
     $scope.$on("uploadStarted", function (event) {
         console.log("controller: uploadStarted");
@@ -169,12 +154,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         return $scope.getUrl("uploadFile", itemId, file.name);
     };
 
-    $scope.calculateSupportingMaterialUploadUrl = function (file) {
-        if (file == null) {
-            throw "ItemController:calculateSupportingMaterialUploadUrl - the file is null"
-        }
-        return $scope.getUrl("uploadSupportingMaterial", itemId, file.name);
-    };
 
     $scope.getUrl = function (action, itemId, fileName) {
         var templateUrl = ServiceLookup.getUrlFor(action);

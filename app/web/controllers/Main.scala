@@ -20,7 +20,7 @@ object Main extends Controller with Secured {
       val obj = DBConnect.getCollection("mongodb://localhost:27017/api", "fieldValues").findOne()
       val jsonString = com.codahale.jerkson.Json.generate(obj)
       val (dbServer, dbName) = getDbName(ConfigLoader.get("MONGO_URI"))
-      Ok( web.views.html.index(QtiTemplate.all(), dbServer, dbName, username, jsonString))
+      Ok( web.views.html.index(QtiTemplate.all(), dbServer, dbName, username, jsonString, "34dj45a769j4e1c0h4wb"))
   }
 
 

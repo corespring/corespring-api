@@ -1,11 +1,10 @@
 'use strict';
 
-var servicesModule = angular.module('tagger.services', ['ngResource']);
 
 /**
  * Lookup for all ajax services.
  */
-servicesModule
+window.servicesModule
     .factory('ServiceLookup', function () {
 
         var ServiceLookup = function () {
@@ -14,6 +13,7 @@ servicesModule
                 getAccessToken: '/web/access_token',
                 items: '/api/v1/items/:id',
                 uploadSupportingMaterial: '/api/v1/items/{itemId}/materials/{fileName}',
+                deleteSupportingMaterial: '/api/v1/items/{itemId}/materials/{fileName}',
                 standardsTree: '/assets/web/standards_tree.json',
                 standards:  '/api/v1/field_values/cc-standard',
                 subject:    '/api/v1/field_values/subject',
@@ -253,7 +253,7 @@ com.corespring.model.ItemDataProcessor = function () {
 
 // module for the mongo collection 'itemdata' resource on mongolab
 // 
-servicesModule
+window.servicesModule
     .factory('ItemData', [ '$resource', 'ServiceLookup', function ($resource, ServiceLookup) {
 
     var ItemData = $resource(
@@ -343,7 +343,7 @@ servicesModule
 
 // module for the mongo collection 'Collection' resource on mongolab
 // 
-servicesModule
+window.servicesModule
     .factory('Collection', [ '$resource', 'ServiceLookup', function ($resource, ServiceLookup) {
     var Collection = $resource(
         ServiceLookup.getUrlFor('collection') + '/:id',
@@ -377,7 +377,7 @@ servicesModule
 /*
  * module for the mongo collection 'Collection' resource on mongolab
  */
-servicesModule
+window.servicesModule
     .factory('CcStandard', ['$resource', 'ServiceLookup', function ($resource, ServiceLookup) {
     var CcStandard = $resource(
         ServiceLookup.getUrlFor('standards') + '/:id',
@@ -410,7 +410,7 @@ servicesModule
 /*
  * module for the mongo collection 'subject' resource on mongolab
  */
-servicesModule
+window.servicesModule
     .factory('Subject', ['$resource', 'ServiceLookup', function ($resource, ServiceLookup) {
     var Subject = $resource(
         ServiceLookup.getUrlFor('subject') + '/:id',
@@ -440,7 +440,7 @@ servicesModule
 }]
 );
 
-servicesModule.factory('searchService', function ($rootScope, ItemData) {
+window.servicesModule.factory('searchService', function ($rootScope, ItemData) {
 
     var mongoQuery = new com.corespring.mongo.MongoQuery();
 

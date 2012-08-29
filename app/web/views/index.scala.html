@@ -1,4 +1,4 @@
-@(templates: List[_root_.web.models.QtiTemplate], dbServer : String, dbName : String, username:String, jsonString:String)
+@(templates: List[_root_.web.models.QtiTemplate], dbServer : String, dbName : String, username:String, jsonString:String, accessToken:String)
 
 @htmlSafe(s:String) = @{
     var out = s.replace("\\", "\\\\")
@@ -51,8 +51,10 @@
     <script src="/assets/js/corespring/tagger/mongo/MongoQuery.js"></script>
 
     <script src="/assets/js/corespring/tagger/app.js"></script>
+    <script type="text/javascript">
+        window.servicesModule = angular.module('tagger.services', ['ngResource']);
+    </script>
     <script src="/assets/js/corespring/tagger/services.js"></script>
-    <script src="/assets/js/corespring/tagger/services/AccessToken.js"></script>
     <script src="/assets/js/corespring/tagger/services/ItemService.js"></script>
 
     <script src="/assets/js/corespring/tagger/controllers/HomeController.js"></script>
@@ -61,6 +63,7 @@
     <script src="/assets/js/corespring/tagger/controllers/CreateController.js"></script>
     <script src="/assets/js/corespring/tagger/controllers/CollectionsController.js"></script>
     <script src="/assets/js/corespring/tagger/controllers/ItemCollectionController.js"></script>
+    <script src="/assets/js/corespring/tagger/controllers/SupportingMaterialsController.js"></script>
 
     <script src="/assets/js/corespring/tagger/filters.js"></script>
     <script src="/assets/js/corespring/tagger/directives.js"></script>
@@ -99,6 +102,13 @@
             }
             return data;
         });
+
+        //Set the AccessToken service for the logged in user.
+       window.servicesModule
+           .factory('AccessToken', [ function () {
+              return { token: "@accessToken" };
+            }]
+        );
 
     </script>
 

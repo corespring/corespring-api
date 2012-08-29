@@ -78,14 +78,16 @@
             @web.views.html.partials._editMetadata._formWithLegend( deleteBtn, "" )
         </div>
 
-        <div ng-show="currentPanel == 'supportingMaterials'">
+        <div ng-show="currentPanel == 'supportingMaterials'" ng:controller="SupportingMaterialsController">
             <div class="file-list">
                 <h2>Supporting Materials</h2>
 
-                <span class="info" ng:show="itemData.supportingMaterials.length == 0">No files yet</span>
+                <span class="info" ng:show="itemData.supportingMaterials.length == 0">No supporting materials yet</span>
                 <ul>
                     <li ng-repeat="f in itemData.supportingMaterials">
                         <a ng:click="showFile(f)">{{f.name}}</a>
+                        <a class="" ng:click="removeFile(f)">
+                        <i class="icon-remove-sign"></i></a>
                     </li>
                 </ul>
 
@@ -98,7 +100,7 @@
                         fu-mode="raw">add material</button>
             </div>
 
-            <img ng-src="currentFile"/>
+            <img ng-show="currentFile" ng-src="/api/v1/items/{{itemId}}/materials/{{currentFile}}"/>
 
         </div>
 
