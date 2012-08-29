@@ -20,7 +20,7 @@ object MaterialsApi extends BaseApi {
 
       Item.findOneById(new ObjectId(itemId)) match {
         case Some(item) => {
-          Ok(toJson(item.supportingMaterials))
+          Ok(toJson(item.supportingMaterials.map(_.toString)))
         }
         case _ => NotFound
       }
@@ -32,11 +32,11 @@ object MaterialsApi extends BaseApi {
     request =>
       Item.findOneById(new ObjectId(itemId)) match {
         case Some(item) => {
-          val sm: SupportingMaterialFile = SupportingMaterialFile(fileName, Some(ItemFile(fileName)))
-          SupportingMaterialFile.save(sm)
-          item.supportingMaterials = item.supportingMaterials :+ sm.id.toString
+          val file: SupportingMaterialFile = SupportingMaterialFile(fileName, Some(ItemFile(fileName)))
+          SupportingMaterialFile.save(file)
+          item.supportingMaterials = item.supportingMaterials :+ file.id
           Item.save(item)
-          Ok(toJson(sm))
+          Ok(toJson(file))
         }
         case _ => InternalServerError("Can't find item with id")
       }
