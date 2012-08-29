@@ -1,59 +1,64 @@
 package common.models
 
 import models.ItemFile
-import org.bson.types.ObjectId
-import com.novus.salat.dao.{SalatDAO, ModelCompanion}
-import se.radley.plugin.salat._
-import play.api.libs.json._
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
 import models.Item.JsonValidationException
 
 
-import play.api.Play.current
-import org.bson.types.ObjectId
 import play.api.libs.json._
 import play.api.libs.json.JsString
-import com.novus.salat.dao.{SalatDAO, ModelCompanion}
-import com.mongodb.casbah.Imports._
-import controllers.{LogType, InternalError}
-import collection.mutable
-import scala.Either
-import models.mongoContext._
 
-//case class SupportingMaterial(materialType: String, var name : String)
+import com.novus.salat.annotations._
 
-case class SupportingMaterialFile(var name: String = "",
-                                  var file: Option[ItemFile] = None,
-                                  var id: ObjectId = new ObjectId())
+@Salat
+abstract class SupportingMaterial(val name: String)
 
-//case class SupportingMaterialFileInline(materialType: String = "inline", content: String = "", files: Seq[ItemFile] = Seq()) extends SupportingMaterialFile
+case class SupportingMaterialFile(override val name: String = "",
+                                  file: Option[String] = None) extends SupportingMaterial(name)
 
-object SupportingMaterialFile extends ModelCompanion[SupportingMaterialFile, ObjectId] {
+case class SupportingMaterialHtml(override val name: String = "",
+                                  html: String = "") extends SupportingMaterial(name)
 
-  val fileType: String = "file"
-  val inlineType: String = "inline"
-  val file : String = "file"
-  val name : String = "name"
+object SupportingMaterial {
 
-  val collection = mongoCollection("supportingMaterials")
-  val dao = new SalatDAO[SupportingMaterialFile, ObjectId](collection = collection) {}
+  val file: String = "file"
+  val name: String = "name"
+  val html: String = "html"
 
-  implicit object SupportingMaterialFileWrites extends Writes[SupportingMaterialFile] {
-    def writes(obj: SupportingMaterialFile) = {
-      var iseq: Seq[(String, JsValue)] = Seq("id" -> JsString(obj.id.toString))
-      obj.file.foreach(v => iseq = iseq :+ ("file" -> Json.toJson(v)))
-      iseq = iseq :+ ("name" -> JsString(obj.name))
+  implicit object SupportingMaterialWrites extends Writes[SupportingMaterial] {
+    def writes(obj: SupportingMaterial) = {
+
+      var iseq: Seq[(String, JsValue)] = Seq()
+      iseq = iseq :+ (name -> JsString(obj.name))
+
+      obj match {
+        case fileMaterial: SupportingMaterialFile => {
+          iseq = iseq :+ (file -> JsString(fileMaterial.file.getOrElse("")))
+        }
+        case htmlMaterial: SupportingMaterialHtml => {
+          iseq = iseq :+ (html -> JsString(htmlMaterial.html))
+        }
+      }
       JsObject(iseq)
     }
   }
 
-  implicit object SupportingMaterialFileReads extends Reads[SupportingMaterialFile] {
-    def reads(json: JsValue): SupportingMaterialFile = {
-      SupportingMaterialFile(
-        (json \ name).asOpt[String].getOrElse(""),
-        (json \ file).asOpt[ItemFile]
-      )
+  implicit object SupportingMaterialReads extends Reads[SupportingMaterial] {
+    def reads(json: JsValue): SupportingMaterial = {
+
+      (json \ file).asOpt[String] match {
+        case Some(foundFile) => {
+          SupportingMaterialFile((json \ name).as[String], Some(foundFile))
+        }
+        case _ => {
+          val maybeHtml: Option[String] = (json \ html).asOpt[String]
+          maybeHtml match {
+            case Some(foundHtml) => {
+              SupportingMaterialHtml((json \ name).as[String], (json \ html).as[String])
+            }
+            case _ => throw new JsonValidationException("no html or file property")
+          }
+        }
+      }
     }
   }
 

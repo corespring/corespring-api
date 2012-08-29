@@ -85,7 +85,7 @@
                 <span class="info" ng:show="itemData.supportingMaterials.length == 0">No files yet</span>
                 <ul>
                     <li ng-repeat="f in itemData.supportingMaterials">
-                        <a ng:click="showFile(f)">{{f}}</a>
+                        <a ng:click="showFile(f)">{{f.name}}</a>
                     </li>
                 </ul>
 
@@ -93,9 +93,12 @@
                         file-uploader
                         class="btn btn-mini btn-success"
                         fu-url="calculateSupportingMaterialUploadUrl()"
+                        fu-upload-completed="onSupportingMaterialUploadCompleted"
                         fu-max-size="400"
                         fu-mode="raw">add material</button>
             </div>
+
+            <img ng-src="currentFile"/>
 
         </div>
 

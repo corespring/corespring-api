@@ -10,6 +10,7 @@ import controllers.{LogType, InternalError}
 import collection.mutable
 import scala.Either
 import mongoContext._
+import common.models.SupportingMaterial
 
 case class ItemFile(var filename: String)
 
@@ -73,7 +74,7 @@ case class Item(var collectionId: String,
                 var standards: Seq[ObjectId] = Seq(),
                 var title: Option[String] = None,
                 var xmlData: Option[String] = None,
-                var supportingMaterials: Seq[ObjectId] = Seq(),
+                var supportingMaterials: Seq[SupportingMaterial] = Seq(),
                 var id: ObjectId = new ObjectId())
 
 // extends Content
@@ -131,7 +132,7 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable {
       item.sourceUrl.foreach(v => iseq = iseq :+ (sourceUrl -> JsString(v)))
       if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards.map(_.toString)))
       item.title.foreach(v => iseq = iseq :+ (title -> JsString(v)))
-      if (!item.supportingMaterials.isEmpty) iseq = iseq :+ (supportingMaterials -> Json.toJson(item.supportingMaterials.map(_.toString)))
+      if (!item.supportingMaterials.isEmpty) iseq = iseq :+ (supportingMaterials -> JsArray(item.supportingMaterials.map(Json.toJson(_))))
       item.xmlData.foreach(v => iseq = iseq :+ (xmlData -> JsString(v)))
       JsObject(iseq)
     }
@@ -177,15 +178,7 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable {
       item.title = (json \ title).asOpt[String]
       item.xmlData = (json \ xmlData).asOpt[String]
 
-      try {
-        item.supportingMaterials =
-          (json \ supportingMaterials)
-            .asOpt[Seq[String]]
-            .map(_.map(new ObjectId(_)))
-            .getOrElse(Seq.empty)
-      } catch {
-        case e: IllegalArgumentException => throw new JsonValidationException(supportingMaterials)
-      }
+      item.supportingMaterials = (json \ supportingMaterials).asOpt[Seq[SupportingMaterial]].getOrElse(Seq.empty)
 
       try {
         item.id = (json \ id).asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId())
@@ -217,7 +210,8 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable {
     sourceUrl -> "String",
     standards -> "Seq[String]",
     title -> "String",
-    xmlData -> "String"
+    xmlData -> "String",
+    supportingMaterials -> "Seq[String]"
   )
 
   def parseQuery(json: JsValue): Either[InternalError, DBObject] = {

@@ -116,7 +116,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
      */
     $scope.$on("uploadCompleted", function (event, result) {
 
-        $scope.$apply(function () {
+        /*$scope.$apply(function () {
             var resultObject = $.parseJSON(result);
 
             if (resultObject.error != null) {
@@ -127,8 +127,25 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             $scope.itemData.files.push({ filename:resultObject.fileName });
             $scope.save();
         })
+        */
 
     });
+
+    $scope.onSupportingMaterialUploadCompleted = function(result){
+        console.log("onSupportingMaterialUploadCompleted!!: " + result);
+
+        $scope.$apply(function(){
+            var resultObject = $.parseJSON(result);
+
+            if( !$scope.itemData.supportingMaterials ){
+                $scope.itemData.supportingMaterials = [];
+            }
+            $scope.itemData.supportingMaterials.push(resultObject);
+            console.log("now: " + $scope.itemData.supportingMaterials.length);
+            //no need to save - its already been saved by the upload
+        });
+
+    };
 
     $scope.$on("uploadStarted", function (event) {
         console.log("controller: uploadStarted");
@@ -341,10 +358,11 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
         $scope.validationResult = {};
 
-        $scope.itemData.update(function (data) {
+        $scope.itemData.update({access_token: $scope.accessToken.token},function (data) {
             $scope.isSaving = false;
             $scope.suppressSave = false;
-            $scope.processValidationResults(data["$validationResult"])
+            $scope.processValidationResults(data["$validationResult"]);
+            $scope.itemData = data;
         });
     };
 

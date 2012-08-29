@@ -227,6 +227,9 @@ TODO: Support file drag and drop
               return $rootScope.$broadcast("uploadStarted");
             },
             onUploadComplete: function(responseText) {
+              if (scope[attrs["fuUploadCompleted"]] != null) {
+                scope[attrs["fuUploadCompleted"]](responseText);
+              }
               return $rootScope.$broadcast("uploadCompleted", responseText);
             }
           };

@@ -12,14 +12,14 @@ servicesModule
         }
     );
 
-    ItemService.prototype.update = function (cb) {
-        var idObject = {id:this._id.$oid};
+    ItemService.prototype.update = function (paramsObject, cb) {
+        var idObject = angular.extend( paramsObject, {id:this.id});
         return ItemService.update(idObject, this, cb);
     };
 
 
     ItemService.prototype.destroy = function (cb) {
-        return ItemService.remove({id:this._id.$oid}, cb);
+        return ItemService.remove({id:this.id}, cb);
     };
 
     return ItemService;

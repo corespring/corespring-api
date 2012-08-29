@@ -56,8 +56,7 @@ PUT     /api/v1/items/:id                       api.v1.ItemApi.updateItem(id: Ob
 GET     /api/v1/collections/:collId/items       api.v1.ItemApi.getItemsInCollection(collId: ObjectId)
 GET     /api/v1/items/:itemId/assets/:fileName  api.v1.FilesApi.getFile(itemId:String,fileName:String)
 
-GET     /api/v1/items/:itemId/materials         api.v1.MaterialsApi.getMaterials(itemId:String)
-POST    /api/v1/items/:itemId/materials/:name   api.v1.MaterialsApi.createMaterial(itemId:String, name : String)
+POST    /api/v1/items/:itemId/materials/:name   api.v1.MaterialsApi.uploadMaterial(itemId:String, name : String)
 GET     /api/v1/items/:itemId/materials/:name   api.v1.MaterialsApi.getMaterial(itemId:String, name : String)
 
 # Field Values API
