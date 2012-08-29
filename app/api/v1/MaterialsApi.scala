@@ -16,6 +16,7 @@ import play.api.libs.json.JsObject
 import play.api.libs.json.JsBoolean
 import play.api.libs.json.JsString
 import scala.Some
+import models.mongoContext._
 
 object MaterialsApi extends BaseApi {
 
