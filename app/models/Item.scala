@@ -65,6 +65,8 @@ case class Item( var collectionId:String,
                 var standards:Seq[ObjectId] = Seq(),
                 var title:Option[String] = None,
                 var xmlData:Option[String] = None,
+                //a seq of ids to supporting materials
+                var supportingMaterials : Seq[String] = Seq(),
                 var id:ObjectId = new ObjectId())// extends Content
 /**
  * An Item model
@@ -96,6 +98,7 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
   val standards = "standards"
   val title = "title"
   val xmlData = "xmlData"
+  val supportingMaterials = "supportingMaterials"
 
   implicit object ItemWrites extends Writes[Item] {
     def writes(item: Item) = {
@@ -119,6 +122,7 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
       item.sourceUrl.foreach(v => iseq = iseq :+ (sourceUrl -> JsString(v)))
       if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards.map(_.toString)))
       item.title.foreach(v => iseq = iseq :+ (title -> JsString(v)))
+      if (!item.supportingMaterials.isEmpty) iseq = iseq :+ (supportingMaterials -> JsArray(item.supportingMaterials.map(JsString(_))))
       item.xmlData.foreach(v => iseq = iseq :+ (xmlData -> JsString(v)))
       JsObject(iseq)
     }
@@ -162,6 +166,9 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
       }
       item.title = (json \ title).asOpt[String]
       item.xmlData = (json \ xmlData).asOpt[String]
+
+      item.supportingMaterials = (json \ supportingMaterials).asOpt[Seq[String]].getOrElse(Seq())
+
       try{
         item.id = (json \ id).asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId())
       }catch{

@@ -79,7 +79,24 @@
         </div>
 
         <div ng-show="currentPanel == 'supportingMaterials'">
-            <h1>TODO</h1>
+            <div class="file-list">
+                <h2>Supporting Materials</h2>
+
+                <span class="info" ng:show="itemData.supportingMaterials.length == 0">No files yet</span>
+                <ul>
+                    <li ng-repeat="f in itemData.supportingMaterials">
+                        <a ng:click="showFile(f)">{{f.filename}}</a>
+                    </li>
+                </ul>
+
+                <button
+                        file-uploader
+                        class="btn btn-mini btn-success"
+                        fu-url="calculateSupportingMaterialUploadUrl()"
+                        fu-max-size="400"
+                        fu-mode="raw">add material</button>
+            </div>
+
         </div>
 
         <div ng-show="currentPanel == 'content'" class="editor-panel" ng-class="previewClassName">

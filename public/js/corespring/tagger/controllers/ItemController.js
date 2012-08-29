@@ -152,6 +152,13 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         return $scope.getUrl("uploadFile", itemId, file.name);
     };
 
+    $scope.calculateSupportingMaterialUploadUrl = function (file) {
+        if (file == null) {
+            throw "ItemController:calculateSupportingMaterialUploadUrl - the file is null"
+        }
+        return $scope.getUrl("uploadSupportingMaterial", itemId, file.name);
+    };
+
     $scope.getUrl = function (action, itemId, fileName) {
         var templateUrl = ServiceLookup.getUrlFor(action);
 

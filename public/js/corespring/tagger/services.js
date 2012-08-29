@@ -13,6 +13,7 @@ servicesModule
             this.services = {
                 getAccessToken: '/web/access_token',
                 items: '/api/v1/items/:id',
+                uploadSupportingMaterial: '/api/v1/items/{itemId}/materials/{fileName}',
                 standardsTree: '/assets/web/standards_tree.json',
                 standards:  '/api/v1/field_values/cc-standard',
                 subject:    '/api/v1/field_values/subject',
