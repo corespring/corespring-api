@@ -58,13 +58,13 @@ object Standard extends ModelCompanion[Standard, ObjectId] {
     }
   }
 
-  val queryFields = Map(
-    Id -> "String",
-    DotNotation -> "String",
-    Subject -> "String",
-    Category -> "String",
-    SubCategory -> "String",
-    Standard -> "String"
+  val queryFields:Seq[QueryField[Standard]] = Seq(
+    QueryField(Id,QueryField.ObjectIdType,_.id),
+    QueryField(DotNotation, QueryField.StringType, _.dotNotation),
+    QueryField(Subject, QueryField.StringType, _.subject),
+    QueryField(Category, QueryField.StringType, _.category),
+    QueryField(SubCategory, QueryField.StringType, _.subCategory),
+    QueryField(Standard, QueryField.StringType, _.standard)
   )
 
   val description = "common core state standards"

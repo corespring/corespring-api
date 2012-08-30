@@ -37,7 +37,7 @@ object Organization extends ModelCompanion[Organization, ObjectId] with Queryabl
 
   val collection = mongoCollection("orgs")
   val dao = new SalatDAO[Organization, ObjectId](collection = collection) {}
-  val queryFields = Map("name" -> "String")
+  val queryFields:Seq[QueryField[Organization]] = Seq(QueryField(name,QueryField.StringType,_.name))
 
   def apply(): Organization = new Organization();
 

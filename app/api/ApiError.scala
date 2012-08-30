@@ -38,7 +38,8 @@ object ApiError {
   val IdNotNeeded         = ApiError(201, "An id cannot be specified for this operation")
   val InvalidQuery        = ApiError(202, "Your query is invalid")
   val UnknownFieldOrOperator = ApiError(203, "Unknown field or operator: %s")
-  val InvalidField        = ApiError(203, "Field %s is invalid")
+  val InvalidField        = ApiError(204, "Field %s is invalid")
+  val CollIdNotNeeded      = ApiError(205, "a collection id cannot be specified for this operation")
 
   // Organization API
   val IdsDoNotMatch       = ApiError(300, "Specified id does not match the one in the json")
@@ -74,6 +75,8 @@ object ApiError {
 
   // Item aPI
   val CollectionIsRequired    = ApiError(700, "A collection id for the item is required")
+  val DeleteItem              = ApiError(701, "error occurred when attempting to delete the item")
+  val UpdateItem              = ApiError(702, "error occured when attempting to update the item")
 
   //amazon s3
   val AmazonS3Client          = ApiError(800, "an exception occured on the when communicating with S3")
