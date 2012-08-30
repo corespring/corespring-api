@@ -1,0 +1,25 @@
+<div ng-show="currentPanel == 'supportingMaterials'" ng:controller="SupportingMaterialsController">
+    <div class="file-list">
+        <h2>Supporting Materials</h2>
+
+        <span class="info" ng:show="itemData.supportingMaterials.length == 0">No supporting materials yet</span>
+        <ul>
+            <li ng-repeat="f in itemData.supportingMaterials">
+                <a ng:click="showFile(f)">{{f.name}}</a>
+                <a class="" ng:click="removeFile(f)">
+                    <i class="icon-remove-sign"></i></a>
+            </li>
+        </ul>
+
+        <button
+                file-uploader
+                class="btn btn-mini btn-success"
+                fu-url="calculateSupportingMaterialUploadUrl()"
+                fu-upload-completed="onSupportingMaterialUploadCompleted"
+                fu-max-size="400"
+                fu-mode="raw">add material</button>
+    </div>
+
+    <img ng-show="currentFile" ng-src="/api/v1/items/{{itemId}}/materials/{{currentFile}}"/>
+</div>
+
