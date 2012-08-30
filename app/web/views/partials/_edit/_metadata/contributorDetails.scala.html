@@ -35,16 +35,6 @@
                 ng-options="c for c in itemData.$licenseTypeDataProvider">
             <option value=""> </option>
         </select>
-
-        <!--
-        <select id="licenseType" ng-model="itemData.licenseType">
-            <option>CC BY</option>
-            <option>CC BY-SA</option>
-            <option>CC BY-NC</option>
-            <option>CC BY-ND</option>
-            <option>CC BY-NC-SA</option>
-        </select>
-        -->
     </div>
 </div>
 
@@ -72,5 +62,5 @@
     </div>
 </div>
 }
-@web.views.html.partials._editMetadata._formWithLegend( html, "Contributor Details")
+@_formWithLegend( html, "Contributor Details")
 

@@ -1,0 +1,22 @@
+<div ng-show="currentPanel == 'metadata'">
+
+    @_metadata.basics()
+    @_metadata.contributorDetails()
+    @_metadata.priorUseAndPerformance()
+    @_metadata.alignedStandards()
+    @_metadata.otherAlignments()
+
+    @deleteBtn = {
+    <div class="control-group">
+
+        <div class="controls">
+            <button class="btn btn-danger"
+                    ng-click="showConfirmDestroyModal=true">Delete
+            </button>
+
+        </div>
+    </div>
+    }
+    @_metadata._formWithLegend( deleteBtn, "" )
+</div>
+

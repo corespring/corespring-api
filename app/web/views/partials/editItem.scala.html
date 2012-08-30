@@ -56,31 +56,12 @@
 </div>
 <div class="item-content-container">
     <div class="edit" style="overflow: auto" ng-class="previewClassName">
-        <div ng-show="currentPanel == 'metadata'">
 
+        @_edit.metadata()
 
-            @web.views.html.partials._editMetadata.basics()
-            @web.views.html.partials._editMetadata.contributorDetails()
-            @web.views.html.partials._editMetadata.priorUseAndPerformance()
-            @web.views.html.partials._editMetadata.alignedStandards()
-            @web.views.html.partials._editMetadata.otherAlignments()
+        @_edit.supportingMaterials()
 
-            @deleteBtn = {
-                <div class="control-group">
-
-                    <div class="controls">
-                        <button class="btn btn-danger"
-                                ng-click="showConfirmDestroyModal=true">Delete</button>
-
-                    </div>
-                </div>
-            }
-            @web.views.html.partials._editMetadata._formWithLegend( deleteBtn, "" )
-        </div>
-
-        @web.views.html.partials._edit.supportingMaterials()
-
-        @web.views.html.partials._edit.content()
+        @_edit.content()
 
     </div>
 
