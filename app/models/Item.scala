@@ -51,7 +51,7 @@ object ItemSubject{
   }
 }
 
-case class Item( var collectionId:String,
+case class Item( var collectionId:String = "",
                  var contentType:String = "item",
                  var author:Option[String] = None,
                 var contributor:Option[String] = None,
