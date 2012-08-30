@@ -1,25 +1,75 @@
-<div ng-show="currentPanel == 'supportingMaterials'" ng:controller="SupportingMaterialsController">
+<div ng-show="currentPanel == 'supportingMaterials'" class="supporting-materials-panel"
+     ng-controller="SupportingMaterialsController">
+
+    <div ui-modal ng-model="showAddResourceModal" id="myModal" style="padding: 20px">
+        <h2>Add Supporting Material</h2>
+        <br/>
+
+        <div class="control-group">
+            <label class="control-label">Name</label>
+            <div class="controls">
+                <!--
+                ng-options="c for c in itemData.$smNamesDataProvider"
+                -->
+                <select ng-model="newSmName" >
+                    <option value="Rubric">Rubric</option>
+                    <option value="Scoring Guide">Scoring Guide</option>
+                    <option value="Other">Other</option>
+                </select>
+                <br/>
+                <input type="text" ng-model="newSmOtherName" placeholder="enter name.." ng-show="newSmName == 'Other'"/>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label class="control-label">Type</label>
+            <div class="controls">
+                <input type="radio" ng-model="newSmType" value="html"/> Html &nbsp;
+                <input type="radio" ng-model="newSmType" value="upload"/> Upload file<br/>
+            </div>
+        </div>
+
+        <button
+                ng-show="newSmType == 'upload'"
+                file-uploader
+                class="btn btn-success"
+                fu-url="calculateSmUploadUrl()"
+                ng-disabled="canCreateNewSm()"
+                fu-upload-completed="onSmUploadCompleted"
+                fu-max-size="400"
+                fu-mode="raw">Upload..
+        </button>
+        <button ng-click="createNewHtmlSm()"
+                ng-disabled="canCreateNewSm()"
+                class="btn btn-success"
+                ng-show="newSmType == 'html'">Create</button>
+
+        <button
+                class="btn btn-info"
+                ng-click="showAddResourceModal=false">Cancel</button>
+    </div>
+
     <div class="file-list">
         <h2>Supporting Materials</h2>
 
-        <span class="info" ng:show="itemData.supportingMaterials.length == 0">No supporting materials yet</span>
+        <span class="info" ng-show="itemData.supportingMaterials.length == 0">No supporting materials yet</span>
         <ul>
-            <li ng-repeat="f in itemData.supportingMaterials">
-                <a ng:click="showFile(f)">{{f.name}}</a>
-                <a class="" ng:click="removeFile(f)">
-                    <i class="icon-remove-sign"></i></a>
+            <li ng-class="{true:'active', false:''}[sm == currentMaterial]" ng-repeat="sm in itemData.supportingMaterials">
+                <a ng-click="showSm(sm)">{{sm.name}}</a>
+                <a ng-click="editSm(sm)" ng-show="sm.files"><i class="icon-edit"></i></a>
+                <a ng-click="removeSm(sm)"> <i class="icon-remove-sign"></i></a>
             </li>
         </ul>
 
-        <button
-                file-uploader
-                class="btn btn-mini btn-success"
-                fu-url="calculateSupportingMaterialUploadUrl()"
-                fu-upload-completed="onSupportingMaterialUploadCompleted"
-                fu-max-size="400"
-                fu-mode="raw">add material</button>
+        <button ng-click="showAddResourceModal = true" class="btn btn-mini btn-success" style="margin-left: 20px;" >add material</button>
+
     </div>
 
-    <img ng-show="currentFile" ng-src="/api/v1/items/{{itemId}}/materials/{{currentFile}}"/>
+    <div class="contents-holder">
+
+        <iframe src="{{currentHtmlUrl}}" ng-show="currentHtmlUrl" style="width: 100%; height: 100%;"></iframe>
+        <img ng-show="currentFile" ng-src="/api/v1/items/{{itemId}}/materials/{{currentFile}}"/>
+    </div>
+
 </div>
 

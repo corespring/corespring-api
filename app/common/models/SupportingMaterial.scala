@@ -3,7 +3,6 @@ package common.models
 import models.ItemFile
 import models.Item.JsonValidationException
 import models.mongoContext._
-
 import play.api.libs.json._
 import play.api.libs.json.JsString
 
@@ -11,16 +10,26 @@ import com.novus.salat.annotations._
 
 @Salat
 abstract class SupportingMaterial(val name: String)
-
-case class SupportingMaterialFile(override val name: String = "",
-                                  file: Option[String] = None) extends SupportingMaterial(name)
+//TODO: Do we need to support content-types for files?
+case class SupportingMaterialFile(override val name:String = "") extends SupportingMaterial(name)
 
 case class SupportingMaterialHtml(override val name: String = "",
-                                  html: String = "") extends SupportingMaterial(name)
+                                  files: Seq[InlineFile] = Seq() ) extends SupportingMaterial(name)
+
+case class InlineFile(name:String="", content:String="")
+
+object InlineFile{
+  implicit object InlineFileWrites extends Writes[InlineFile]{
+    def writes(obj: InlineFile) =  JsObject(Seq(("name" -> JsString(obj.name)), ("content"-> JsString(obj.content))))
+  }
+
+  implicit object InlineFileReads extends Reads[InlineFile]{
+    def reads(json:JsValue): InlineFile =  InlineFile( (json\"name").asOpt[String].getOrElse(""), (json\"content").asOpt[String].getOrElse(""))
+  }
+}
 
 object SupportingMaterial {
 
-  val file: String = "file"
   val name: String = "name"
   val html: String = "html"
 
@@ -31,12 +40,11 @@ object SupportingMaterial {
       iseq = iseq :+ (name -> JsString(obj.name))
 
       obj match {
-        case fileMaterial: SupportingMaterialFile => {
-          iseq = iseq :+ (file -> JsString(fileMaterial.file.getOrElse("")))
-        }
         case htmlMaterial: SupportingMaterialHtml => {
-          iseq = iseq :+ (html -> JsString(htmlMaterial.html))
+          val jsonFiles = htmlMaterial.files.map( (f : InlineFile) =>  Json.toJson(f)  )
+          iseq = iseq :+ ("files" -> JsArray(jsonFiles))
         }
+        case file : SupportingMaterialFile => //do nothing
       }
       JsObject(iseq)
     }
@@ -44,23 +52,13 @@ object SupportingMaterial {
 
   implicit object SupportingMaterialReads extends Reads[SupportingMaterial] {
     def reads(json: JsValue): SupportingMaterial = {
-
-      (json \ file).asOpt[String] match {
-        case Some(foundFile) => {
-          SupportingMaterialFile((json \ name).as[String], Some(foundFile))
+      (json \ "files").asOpt[Seq[InlineFile]] match {
+        case Some(foundFiles) => {
+          SupportingMaterialHtml((json \ name).as[String], foundFiles )
         }
-        case _ => {
-          val maybeHtml: Option[String] = (json \ html).asOpt[String]
-          maybeHtml match {
-            case Some(foundHtml) => {
-              SupportingMaterialHtml((json \ name).as[String], (json \ html).as[String])
-            }
-            case _ => throw new JsonValidationException("no html or file property")
-          }
-        }
+        case _ => SupportingMaterialFile( (json \ name ).as[String])
       }
     }
   }
-
 }
 

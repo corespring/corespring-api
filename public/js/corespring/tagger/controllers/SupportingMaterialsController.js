@@ -2,22 +2,74 @@
  */
 function SupportingMaterialsController($scope, $routeParams, ItemService, ServiceLookup, AccessToken) {
 
+    $scope.showAddResourceModal = false;
+    $scope.newSmType = "upload";
+    $scope.newSmName = "Rubric";
+    $scope.newSmOtherName = "";
+
+    $scope.canCreateNewSm = function(){
+       return $scope.newSmName == "Other" && !$scope.newSmOtherName;
+    };
+
     $scope.currentFile = null;
     $scope.itemId = $routeParams.itemId;
 
-    $scope.showFile = function(file) {
-       $scope.currentFile = file.name;
+    $scope.showSm = function(sm) {
+
+       if( sm.files ){
+
+           var templateUrl = ServiceLookup.getUrlFor('supportingMaterialRunner');
+
+           var finalUrl =
+               templateUrl
+               .replace("{itemId}", $routeParams.itemId)
+               .replace("{materialName}", sm.name)
+               .replace("{mainFileName}", sm.files[0].name );
+
+           $scope.currentHtmlUrl = finalUrl;
+           $scope.currentFile = null;
+       } else {
+           $scope.currentHtmlUrl = null;
+           $scope.currentFile = sm.name;
+       }
+       $scope.currentMaterial = sm;
     };
 
-    $scope.calculateSupportingMaterialUploadUrl = function (file) {
+    $scope.createNewHtmlSm = function(){
+
+        $scope.itemData.supportingMaterials = ($scope.itemData.supportingMaterials || []);
+
+        var blankHtml = { name: $scope.newSmName, inlineFiles : [
+            { name: "index.html", content: "<html><body>hello world</body></html>"}
+        ] };
+        $scope.itemData.supportingMaterials.push( blankHtml );
+
+        $scope.showAddResourceModal = false;
+
+        $scope.showSm(blankHtml);
+        //Disabled until we get teh Salat item update fix.
+        //$scope.save();
+    };
+
+    $scope.calculateSmUploadUrl = function (file) {
+
+        $scope.showAddResourceModal = false;
+
         if (file == null) {
-            throw "ItemController:calculateSupportingMaterialUploadUrl - the file is null"
+            throw "ItemController:calculateSmUploadUrl - the file is null"
         }
-        return $scope.getUrl("uploadSupportingMaterial", $routeParams.itemId, file.name);
+        return $scope.getUrl("uploadSupportingMaterial", $routeParams.itemId, $scope.getSmFileName());
     };
 
-    $scope.onSupportingMaterialUploadCompleted = function(result){
-        console.log("onSupportingMaterialUploadCompleted!!: " + result);
+    $scope.getSmFileName = function(){
+        if( $scope.newSmName == "Other") {
+            return $scope.newSmOtherName;
+        }
+        return $scope.newSmName;
+    };
+
+    $scope.onSmUploadCompleted = function(result){
+        console.log("onSmUploadCompleted!!: " + result);
 
         $scope.$apply(function(){
             var resultObject = $.parseJSON(result);
@@ -25,23 +77,24 @@ function SupportingMaterialsController($scope, $routeParams, ItemService, Servic
             if( !$scope.itemData.supportingMaterials ){
                 $scope.itemData.supportingMaterials = [];
             }
+
             $scope.itemData.supportingMaterials.push(resultObject);
-            console.log("now: " + $scope.itemData.supportingMaterials.length);
+            $scope.showSm(resultObject);
             //no need to save - its already been saved by the upload
         });
     };
 
 
-    $scope.removeFile = function (file) {
+    $scope.removeSm = function (sm) {
 
         if ($scope.itemData.supportingMaterials == null) {
             throw "Can't remove from null array";
         }
-        var result = $scope.itemData.supportingMaterials.removeItem(file);
+        var result = $scope.itemData.supportingMaterials.removeItem(sm);
 
-        if (result == file) {
+        if (result == sm) {
 
-            var deleteUrl = $scope.getUrl("deleteSupportingMaterial", $scope.itemId, file.file);
+            var deleteUrl = $scope.getUrl("deleteSupportingMaterial", $scope.itemId, sm.name);
 
             function onDeleteSuccess(result) {
 

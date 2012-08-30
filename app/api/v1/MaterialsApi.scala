@@ -24,13 +24,13 @@ object MaterialsApi extends BaseApi {
 
   val Json = ("Content-Type" -> "application/json; charset=utf-8")
 
-  def uploadMaterial(itemId: String, fileName: String) = Action(
-    S3Service.s3upload(AMAZON_ASSETS_BUCKET, itemId + "/materials/" + fileName)
+  def uploadMaterial(itemId: String, name:String) = Action(
+    S3Service.s3upload(AMAZON_ASSETS_BUCKET, itemId + "/materials/" + name)
   ) {
     request =>
       Item.findOneById(new ObjectId(itemId)) match {
         case Some(item) => {
-          val f = SupportingMaterialFile(fileName, Some(fileName))
+          val f = SupportingMaterialFile(name)
           item.supportingMaterials = item.supportingMaterials :+ f
           Item.save(item)
           Ok(toJson(f.asInstanceOf[SupportingMaterial]))

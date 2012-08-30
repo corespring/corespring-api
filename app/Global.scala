@@ -18,6 +18,7 @@ import play.api._
 import http.Status
 import libs.concurrent.Akka
 import libs.iteratee.Enumerator
+import libs.json.{Json, JsObject}
 import mvc._
 import mvc.SimpleResult
 import scala.io.Codec
@@ -104,12 +105,19 @@ object Global extends GlobalSettings {
       }
     }
 
-    def jsonFileToDb(jsonPath: String, coll: MongoCollection) {
-      coll.drop()
+    def jsonFileToDb(jsonPath: String, coll: MongoCollection, drop : Boolean = true) {
+
+      if(drop) coll.drop()
+
       val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
-      insertString(s, coll)
+       coll.insert(JSON.parse(s).asInstanceOf[DBObject])
     }
 
+    def jsonFileToItem(jsonPath: String, coll: MongoCollection, drop : Boolean = true) {
+      val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
+      val item = Item.ItemReads.reads(Json.parse(s))
+      Item.save(item)
+    }
     def insertString(s: String, coll: MongoCollection) = coll.insert(JSON.parse(s).asInstanceOf[DBObject], coll.writeConcern)
 
     jsonLinesToDb(basePath + "orgs.json", Organization.collection)
@@ -120,6 +128,8 @@ object Global extends GlobalSettings {
     jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
     jsonLinesToDb(basePath + "subjects.json", Subject.collection)
     jsonLinesToDb(basePath + "standards.json", Standard.collection)
+    Logger.info("insert item with supporting materials")
+    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = true)
 
     jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
     //acces token stuff
