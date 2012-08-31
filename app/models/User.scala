@@ -10,7 +10,7 @@ import play.api.libs.json.JsObject
 import com.mongodb.casbah.commons.MongoDBObject
 import api.ApiError
 import controllers.auth.Permission
-import controllers.{InternalError, LogType, Log}
+import controllers.{QueryParser, InternalError, LogType, Log}
 import play.api.Play
 
 
@@ -108,11 +108,11 @@ object User extends ModelCompanion[User, ObjectId] with Queryable{
     }
   }
 
-  val queryFields = Map(
-    "id" -> "String",
-    "userName" -> "String",
-    "fullName" -> "String",
-    "email" -> "email"
+  val queryFields:Seq[QueryField[User]] = Seq(
+    QueryField("id",QueryField.ObjectIdType,_.id),
+    QueryField(userName, QueryField.StringType,_.userName),
+    QueryField(fullName, QueryField.StringType, _.fullName),
+    QueryField(email, QueryField.StringType, _.email)
   )
 }
 

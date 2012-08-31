@@ -6,7 +6,7 @@ import se.radley.plugin.salat._
 import play.api.Play.current
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao.SalatDAOUpdateError
-import controllers.{LogType, InternalError}
+import controllers.{Log, LogType, InternalError}
 import controllers.auth.Permission
 
 trait Content {
@@ -32,14 +32,17 @@ object Content {
     }
   }
   def isAuthorized(orgId:ObjectId, contentId:ObjectId, p:Permission):Boolean = {
-    val ids = ContentCollection.getCollectionIds(orgId,p)
-    Content.collection.findOneByID(contentId) match {
+    Content.collection.findOneByID(contentId,MongoDBObject(Content.collectionId -> 1)) match {
       case Some(dbo) => dbo.get(Content.collectionId) match {
-        case collId:String => ids.exists(_.toString == collId)
-        case _ => false
+        case collId:String => isCollectionAuthorized(orgId,collId,p)
+        case _ => Log.f("content did not contain collection id"); false
       }
       case None => false
     }
+  }
+  def isCollectionAuthorized(orgId:ObjectId, collId:String, p:Permission):Boolean = {
+    val ids = ContentCollection.getCollectionIds(orgId,p)
+    ids.exists(_.toString == collId)
   }
 }
 

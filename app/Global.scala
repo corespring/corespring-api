@@ -89,7 +89,7 @@ object Global extends GlobalSettings {
     }
     if(System.getenv("AUTO_RESTART") == "true"){
       Akka.system.scheduler.scheduleOnce(Duration.create(1, TimeUnit.DAYS)){
-      Play.start(new Application(Play.current.path,Play.current.classloader,Play.current.sources,Play.current.mode))
+        Play.start(new Application(Play.current.path,Play.current.classloader,Play.current.sources,Play.current.mode))
       }
     }
 

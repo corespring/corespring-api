@@ -56,6 +56,7 @@ object UserTest extends BaseTest {
     contentType(result) must beSome("application/json")
     val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
     users.foreach( u => {
+      (u \ "userName").asOpt[String] must beSome
       (u \ "fullName").asOpt[String] must beNone
       (u \ "email").asOpt[String] must beNone
     })

@@ -73,10 +73,10 @@ object FieldValuesApi extends BaseApi {
               loadFieldValue()
               Cache.getAs[FieldValue](FieldValueCacheKey) match {
                 case None => throw new RuntimeException("Unable to retrieve field value data")
-                case fv: Some[FieldValue] => getSubField(fv, fieldName)
+                case Some(fv)=> getSubField(Some(fv), fieldName)
               }
             }
-            case fv: Some[FieldValue] => getSubField(fv, fieldName)
+            case Some(fv) => getSubField(Some(fv), fieldName)
           }
         }
       }

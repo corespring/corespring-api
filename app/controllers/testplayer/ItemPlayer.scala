@@ -7,8 +7,8 @@ import xml.{Elem, NodeSeq}
 import play.api.libs.json.Json
 import qti.FeedbackProcessor._
 import org.bson.types.ObjectId
-import controllers.auth.BaseApi
-import models.Item
+import controllers.auth.{Permission, BaseApi}
+import models.{Content, Item}
 import api.v1.ItemApi
 import com.mongodb.casbah.Imports._
 import scala.Some
@@ -79,15 +79,14 @@ object ItemPlayer extends BaseApi {
    */
   private def getItemXMLByObjectId(itemId: String, callerOrg: ObjectId): Option[Elem] = {
     val xmlDataField = MongoDBObject(Item.xmlData -> 1, Item.collectionId -> 1)
-
-    Item.collection.findOneByID(new ObjectId(itemId), xmlDataField) match {
-      case Some(o) =>
-        if ( ItemApi.canUpdateOrDelete(callerOrg, o.get(Item.collectionId).asInstanceOf[String])) {
+    Item.collection.findOneByID(itemId, xmlDataField) match {
+      case Some(o) => o.get(Item.collectionId) match {
+        case collId:String => if (Content.isCollectionAuthorized(callerOrg, collId,Permission.All)){
           val xmlDataString = o.get(Item.xmlData).toString
           Some(scala.xml.XML.loadString(xmlDataString))
-        } else {
-          None
-        }
+        } else None
+        case _ => None
+      }
       case _ => None
     }
 

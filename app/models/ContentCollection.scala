@@ -130,9 +130,9 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     }
   }
 
-  val queryFields = Map(
-    "id" -> "ObjectId",
-    "name" -> "String"
+  val queryFields:Seq[QueryField[ContentCollection]] = Seq(
+    QueryField("id",QueryField.ObjectIdType,_.id),
+    QueryField(name, QueryField.StringType,_.name)
   )
 
 }

@@ -9,6 +9,7 @@ import com.novus.salat.dao.{SalatDAO, ModelCompanion}
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import mongoContext._
+import controllers.QueryParser
 
 case class Subject(subject: Option[String] = None,
                    category: Option[String] = None,
@@ -32,10 +33,10 @@ object Subject extends ModelCompanion[Subject, ObjectId] {
     }
   }
 
-  val queryFields = Map(
-    Subject -> "String",
-    Category -> "String",
-    Id -> "ObjectId"
+  val queryFields:Seq[QueryField[Subject]] = Seq(
+    QueryField(Subject, QueryField.StringType, _.subject),
+    QueryField(Category, QueryField.StringType, _.category),
+    QueryField(Id, QueryField.ObjectIdType, _.id)
   )
 
   val description = "Subjects"
