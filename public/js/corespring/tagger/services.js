@@ -13,7 +13,7 @@ window.servicesModule
                 getAccessToken: '/web/access_token',
                 //items: '/api/v1/items/:id',
                 items: '/assets/mock-json/:id',
-                supportingMaterialRunner: '/web/runner/{itemId}/{materialName}/{mainFileName}',
+                previewFile: '/web/runner/{key}',
                 uploadSupportingMaterial: '/api/v1/items/{itemId}/materials/{fileName}',
                 deleteSupportingMaterial: '/api/v1/items/{itemId}/materials/{fileName}',
                 standardsTree: '/assets/web/standards_tree.json',

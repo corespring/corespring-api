@@ -19,14 +19,12 @@ if (Array.prototype.removeItem == null) Array.prototype.removeItem = function (i
 function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, AccessToken) {
 
     function loadStandardsSelectionData() {
-        $http.get( ServiceLookup.getUrlFor('standardsTree')).success(function (data) {
+        $http.get(ServiceLookup.getUrlFor('standardsTree')).success(function (data) {
             $scope.standardsOptions = data;
         });
     }
 
-
     function initPane($routeParams) {
-
         var panelName = 'item';
         if ($routeParams.panel) {
             panelName = $routeParams.panel;
@@ -61,23 +59,11 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             current.fileList == fileListNumber) {
             return;
         }
-
         $location.search("panel=" + panelName + "&preview=" + previewNumber + "&fileList=" + fileListNumber);
     }
 
-
     var self = this;
     var itemId = $routeParams.itemId;
-
-
-    /*
-    $scope.showResourceEditor = false;
-
-    $scope.$watch('resourceToEdit', function(newValue,oldValue){
-        $scope.showResourceEditor = newValue ? true : false;
-        console.log("[ItemController] watch: resourceToEdit: " + newValue);
-    });
-    */
 
     $scope.$root.mode = "edit";
 
@@ -90,25 +76,30 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         updateLocation($scope.currentPanel, $scope.previewVisible, $scope.fileListVisible);
     });
 
-
     $scope.$watch("fileListVisible", function (newValue) {
         $scope.fileListClassName = newValue ? "file-list-open" : "file-list-closed";
         updateLocation($scope.currentPanel, $scope.previewVisible, $scope.fileListVisible);
     });
 
-    function enterEditorIfInContentPanel(){
+    function enterEditorIfInContentPanel() {
 
-        if($scope.currentPanel == 'content' && $scope.itemData ){
+        if ($scope.currentPanel == 'content' && $scope.itemData) {
             $rootScope.$broadcast('enterEditor', $scope.itemData.data, false);
         }
-        else{
+        else {
             $rootScope.$broadcast('leaveEditor');
         }
     }
 
     //event handlers for the enter/leave edit events.
-    $scope.$on('enterEditor', function(){ console.log("[ItemController] enterEditor"); $scope.showResourceEditor = true });
-    $scope.$on('leaveEditor', function(){ console.log("[ItemController] leaveEditor"); $scope.showResourceEditor = false });
+    $scope.$on('enterEditor', function () {
+        console.log("[ItemController] enterEditor");
+        $scope.showResourceEditor = true
+    });
+    $scope.$on('leaveEditor', function () {
+        console.log("[ItemController] leaveEditor");
+        $scope.showResourceEditor = false
+    });
 
     $scope.changePanel = function (panelName) {
         $scope.currentPanel = panelName;
@@ -117,18 +108,12 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         updateLocation($scope.currentPanel, $scope.previewVisible);
     };
 
-
-    $scope.editItem = function(){
-
-       if(!$scope.itemData.id){
-           throw "No id";
-       }
-       $location.url('/edit/' + $scope.itemData.id);
+    $scope.editItem = function () {
+        $location.url('/edit/' + $scope.itemData.id);
     };
 
     $scope.$on("panelOpen", function (event, panelOpen) {
         $scope.editorClassName = panelOpen ? "preview-open" : "preview-closed";
-
     });
 
     $scope.togglePreview = function () {
@@ -141,109 +126,57 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         $scope.$broadcast("panelOpen");
     };
 
-    /**
-     * file upload event handlers
+    /*
+     $scope.showFile = function (file) {
+     if (file.filename != null) {
+     var url = $scope.getUrl("viewFile", itemId, file.filename);
+     window.open(url, '_blank');
+     }
+     };
+     $scope.removeFile = function (file) {
+
+     if ($scope.itemData.files == null) {
+     throw "Can't remove null item from array";
+     }
+     var result = $scope.itemData.files.removeItem(file);
+
+     if (result == file) {
+
+     var deleteUrl = $scope.getUrl("deleteFile", itemId, file.filename);
+
+     $.get(deleteUrl, function (result) {
+
+     var resultObject = null;
+
+     if (typeof(result) == "string") {
+     resultObject = $.parseJSON(result);
+     }
+     else {
+     resultObject = result;
+     }
+
+     if (!resultObject.success) {
+     console.warn("Couldn't delete the following resource: " + resultObject.key);
+     }
+     });
+
+     $scope.save();
+     } else {
+     throw "Couldn't remove item from files: " + file.filename;
+     }
+     };
+
+     $scope.destroyConfirmed = function () {
+     $scope.showConfirmDestroyModal = false;
+     $scope.itemData.destroy(function (result) {
+     if (result.success) {
+     $location.path('/item-collection');
+     }
+     });
+
+     };
+
      */
-    $scope.$on("uploadCompleted", function (event, result) {
-
-        /*$scope.$apply(function () {
-            var resultObject = $.parseJSON(result);
-
-            if (resultObject.error != null) {
-                alert("Error adding the file");
-                console.warn("uploadCompleted:Error: " + resultObject.error);
-                return;
-            }
-            $scope.itemData.files.push({ filename:resultObject.fileName });
-            $scope.save();
-        })
-        */
-
-    });
-
-
-    $scope.$on("uploadStarted", function (event) {
-        console.log("controller: uploadStarted");
-    });
-
-    $scope.$on("fileSizeGreaterThanMax", function (event, file, maxSize) {
-        //TODO: use a twitter modal instead
-        alert("The file : " + file.name + " is too big to upload (the max size is: " + maxSize + "kB).")
-    });
-
-
-    /**
-     * file-uploader callback.
-     * @param file - the file selected by the user
-     * @return a url where this file will be uploaded
-     */
-    $scope.calculateUploadUrl = function (file) {
-        if (file == null) {
-            throw "ItemController:calculateUploadUrl - the file is null"
-        }
-        return $scope.getUrl("uploadFile", itemId, file.name);
-    };
-
-
-    $scope.getUrl = function (action, itemId, fileName) {
-        var templateUrl = ServiceLookup.getUrlFor(action);
-
-        if (templateUrl == null) {
-            throw "Can't find url for action: " + action;
-        }
-
-        return templateUrl.replace("{itemId}", itemId).replace("{fileName}", fileName)
-    };
-
-    $scope.showFile = function (file) {
-        if (file.filename != null) {
-            var url = $scope.getUrl("viewFile", itemId, file.filename);
-            window.open(url, '_blank');
-        }
-    };
-
-    $scope.removeFile = function (file) {
-
-        if ($scope.itemData.files == null) {
-            throw "Can't remove null item from array";
-        }
-        var result = $scope.itemData.files.removeItem(file);
-
-        if (result == file) {
-
-            var deleteUrl = $scope.getUrl("deleteFile", itemId, file.filename);
-
-            $.get(deleteUrl, function (result) {
-
-                var resultObject = null;
-
-                if (typeof(result) == "string") {
-                    resultObject = $.parseJSON(result);
-                }
-                else {
-                    resultObject = result;
-                }
-
-                if (!resultObject.success) {
-                    console.warn("Couldn't delete the following resource: " + resultObject.key);
-                }
-            });
-
-            $scope.save();
-        } else {
-            throw "Couldn't remove item from files: " + file.filename;
-        }
-    };
-
-    $scope.destroyConfirmed = function () {
-        $scope.showConfirmDestroyModal = false;
-        $scope.itemData.destroy(function (result) {
-            if (result.success) {
-                $location.path('/item-collection');
-            }
-        });
-
-    };
 
     /**
      * optional callback from strap-tabs
@@ -278,41 +211,29 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
             enterEditorIfInContentPanel();
 
-            $scope.$watch("itemData.xmlData", function (newValue, oldValue) {
-                $scope.processedXmlData = $scope.processData(newValue, itemId, $scope.itemData.files);
+            /*$scope.$watch("itemData.xmlData", function (newValue, oldValue) {
+             $scope.processedXmlData = $scope.processData(newValue, itemId, $scope.itemData.files);
 
-                if (newValue == $scope.initialXmlData) {
-                    $scope.processValidationResults($scope.itemData["$validationResult"]);
-                } else {
-                    $scope.showExceptions = false;
-                    $scope.validationResult = ( $scope.validationResult || {} );
-                    $scope.validationResult.exceptions = [];
-                }
-            });
+             if (newValue == $scope.initialXmlData) {
+             $scope.processValidationResults($scope.itemData["$validationResult"]);
+             } else {
+             $scope.showExceptions = false;
+             $scope.validationResult = ( $scope.validationResult || {} );
+             $scope.validationResult.exceptions = [];
+             }
+             });*/
 
             if ($scope.itemData.collection) {
                 $scope.selectedCollection = $scope.itemData.collection.name;
             }
-
             $scope.$broadcast("dataLoaded");
         });
     };
 
     $scope.accessToken = AccessToken;
 
-    if (!AccessToken.token) {
-
-        $scope.$watch('accessToken.token', function(newValue){
-            if(newValue){
-                $scope.collections = Collection.query({access_token: $scope.accessToken.token});
-                $scope.loadItem();
-            }
-        })
-    } else {
-
-        $scope.collections = Collection.query({access_token: $scope.accessToken.token});
-        $scope.loadItem();
-    }
+    $scope.collections = Collection.query({access_token:$scope.accessToken.token});
+    $scope.loadItem();
 
 
     $scope.$watch('itemData.pValue', function (newValue, oldValue) {
@@ -340,11 +261,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         return key;
     };
 
-    $scope.isClean = function () {
-        return angular.equals(self.original, $scope.itemData);
-    };
-
-
     $scope.processValidationResults = function (result) {
 
         if (result != null && result.success == false) {
@@ -368,7 +284,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
         $scope.validationResult = {};
 
-        $scope.itemData.update({access_token: $scope.accessToken.token},function (data) {
+        $scope.itemData.update({access_token:$scope.accessToken.token}, function (data) {
             $scope.isSaving = false;
             $scope.suppressSave = false;
             $scope.processValidationResults(data["$validationResult"]);

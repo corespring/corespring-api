@@ -68,23 +68,29 @@
         ng-show="currentPanel == 'content'"
         -->
 
-        <div class="resource-editor editor-panel" ng-show="showResourceEditor"  ng-controller="ResourceEditor">
+        <div class="resource-editor editor-panel" ng-show="showResourceEditor" ng-controller="ResourceEditor">
 
             <div ui-modal ng-model="showRenameFileModal" style="padding: 10px">
                 <h3>Rename File</h3>
+
                 <div class="control-group">
                     <label class="control-label">Name</label>
-                    <input type="text" ng-model="newFilename" placeholder="enter name.."/>
+                    <input type="text" ng-model="newFilename" placeholder="enter name.." ng-change="nameAlreadyTaken = false"/>
+                    <br/>
+                    <span style="font-weight: 8px; color: red;" ng-show="nameAlreadyTaken">Name already taken</span>
                 </div>
                 <button ng-click="confirmRenameFile()"
                         ng-disabled="!canRenameFile()"
-                        class="btn btn-success" >Go</button>
+                        class="btn btn-success">Go
+                </button>
                 <button class="btn btn-info"
-                        ng-click="cancelRenameFile">Cancel</button>
+                        ng-click="cancelRenameFile()">Cancel
+                </button>
             </div>
 
             <div class="resource-editor-header" ng-show="showBackNav">
-                <h4><a ng-click="leaveEditor()" class="leave-link"><i class="icon-backward"></i></a> Editing: {{resource.name}}</h4>
+                <h4><a ng-click="leaveEditor()" class="leave-link"><i class="icon-backward"></i></a> Editing:
+                    {{resource.name}}</h4>
             </div>
 
             <div class="file-list">
@@ -109,16 +115,28 @@
                     </li>
                 </ul>
 
-                <button
-                        file-uploader
-                        fu-upload-completed="onFileUploadCompleted"
-                        class="btn btn-mini btn-success"
-                        fu-url="calculateUploadUrl()"
-                        fu-max-size="400"
-                        fu-mode="raw">upload file
-                </button>
+                <div class="btn-toolbar">
+                    <div class="btn-group">
+                        <button
+                                file-uploader
+                                fu-upload-completed="onFileUploadCompleted"
+                                class="btn btn-mini btn-success"
+                                fu-url="calculateUploadUrl()"
+                                fu-max-size="400"
+                                fu-mode="raw">Upload File
+                        </button>
+                        <button
+                                class="btn btn-mini btn-success dropdown-toggle"
+                                data-toggle="dropdown">New...<span class="caret"></span></button>
+                        <ul class="dropdown-menu">
+                            <li><a ng-click="createNewVirtualFile('*.html')">html</a></li>
+                            <li><a ng-click="createNewVirtualFile('*.css')">css</a></li>
+                            <li><a ng-click="createNewVirtualFile('*.xml')">xml</a></li>
+                            <li><a ng-click="createNewVirtualFile('*.js')">js</a></li>
+                        </ul>
+                    </div>
 
-                <button class="btn btn-mini btn-success" ng-click="createNewVirtualFile('index.html')">new file</button>
+                </div>
 
             </div>
 
@@ -131,7 +149,7 @@
                      ng-show="showEditor"
                      ace-model="selectedFile.content"
                      ace-theme="eclipse"
-                     ace-mode="xml"
+                     ace-mode="selectedFile.contentType"
                      ng-class="fileListClassName"
                      ace-resize-events="tabSelected,panelOpen,dataLoaded"
                         ></div>

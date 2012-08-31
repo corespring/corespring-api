@@ -52,7 +52,7 @@ the editor this model will be updated.
               Apply a nested value..
         */
 
-        var AceMode, applyValue, attachResizeEvents, initialData, mode, onExceptionsChanged, theme;
+        var applyValue, attachResizeEvents, initialData, onExceptionsChanged, theme;
         applyValue = function(obj, property, value) {
           var nextProp, props;
           if (!(obj != null)) {
@@ -116,9 +116,21 @@ the editor this model will be updated.
         scope.editor.getSession().setUseWrapMode(true);
         theme = attrs["aceTheme"] || "eclipse";
         scope.editor.setTheme("ace/theme/" + theme);
-        mode = attrs["aceMode"] || "xml";
-        AceMode = require('ace/mode/' + mode).Mode;
-        scope.editor.getSession().setMode(new AceMode());
+        scope.$watch(attrs["aceMode"], function(newValue, oldValue) {
+          var AceMode;
+          if (!(newValue != null)) {
+            return;
+          }
+          if (!(scope.editor != null)) {
+            return;
+          }
+          if (newValue === "js") {
+            newValue = "javascript";
+          }
+          AceMode = require('ace/mode/' + newValue).Mode;
+          scope.editor.getSession().setMode(new AceMode());
+          return null;
+        });
         scope.aceModel = attrs["aceModel"];
         scope.$watch(scope.aceModel, function(newValue, oldValue) {
           if (scope.changeFromEditor) {

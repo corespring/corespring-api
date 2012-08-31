@@ -6,54 +6,83 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, ItemSer
     $scope.newSmType = "upload";
     $scope.newSmName = "Rubric";
     $scope.newSmOtherName = "";
-
-    $scope.canCreateNewSm = function(){
-       return $scope.newSmName == "Other" && !$scope.newSmOtherName;
-    };
-
     $scope.currentFile = null;
     $scope.itemId = $routeParams.itemId;
 
-    $scope.showSm = function(sm) {
+    $scope.canCreateNewSm = function () {
+        if ($scope.newSmName == "Other" && !$scope.newSmOtherName) {
+            return false;
+        }
 
-       if( sm.files ){
+        if(!$scope.itemData){
+            return false;
+        }
 
-           var templateUrl = ServiceLookup.getUrlFor('supportingMaterialRunner');
+        var nameToCheck = $scope.newSmName == "Other" ? $scope.newSmOtherName : $scope.newSmName;
 
-           var finalUrl =
-               templateUrl
-               .replace("{itemId}", $routeParams.itemId)
-               .replace("{materialName}", sm.name)
-               .replace("{mainFileName}", sm.files[0].name );
+        var alreadyUsed = _.find($scope.itemData.supportingMaterials, function (f) {
+            return f.name == nameToCheck
+        });
 
-           $scope.currentHtmlUrl = finalUrl;
-           $scope.currentFile = null;
-       } else {
-           $scope.currentHtmlUrl = null;
-           $scope.currentFile = sm.name;
-       }
-       $scope.currentMaterial = sm;
+        return alreadyUsed == null;
     };
 
-    $scope.createNewHtmlSm = function(){
+    /**
+     * Show the supporting material.
+     * At the moment that means previewing the content in an iframe.
+     * @param sm
+     */
+    $scope.showSm = function (sm) {
+
+        function defaultFile(sm) {
+            return _.find(sm.files, function (f) {
+                return f['default'] == true;
+            });
+        }
+
+        function isIFrameableResource(sm) {
+            if (!sm.files || sm.files.length <= 0) {
+                return false;
+            }
+            return ['pdf', 'html', 'jpg', 'png', 'doc'].indexOf(defaultFile(sm).contentType) != -1;
+        }
+
+        if (isIFrameableResource(sm)) {
+            var templateUrl = ServiceLookup.getUrlFor('previewFile');
+            var file = defaultFile(sm);
+            var key = "";
+
+            if (file.content) {
+                key = $routeParams.itemId + "/" + sm.name + "/" + file.name;
+            } else {
+                key = file.storageKey;
+            }
+            $scope.currentHtmlUrl = templateUrl.replace("{key}", key);
+            $scope.currentMaterial = sm;
+        } else {
+            throw "Can't preview file";
+        }
+    };
+
+    $scope.createNewHtmlSm = function () {
 
         $scope.itemData.supportingMaterials = ($scope.itemData.supportingMaterials || []);
 
         var newName = $scope.newSmName == "Other" ? $scope.newSmOtherName : $scope.newSmName;
 
         var newHtml = {
-            name: newName,
-            files : [
+            name:newName,
+            files:[
                 {
-                    name: "index.html",
-                    content: "<html><body>hello world</body></html>",
-                    default: true,
-                    contentType: "html"
+                    name:"index.html",
+                    content:"<html><body>hello world</body></html>",
+                    default:true,
+                    contentType:"html"
                 }
             ]
         };
 
-        $scope.itemData.supportingMaterials.push( newHtml );
+        $scope.itemData.supportingMaterials.push(newHtml);
 
         $scope.showAddResourceModal = false;
 
@@ -72,29 +101,32 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, ItemSer
         return $scope.getUrl("uploadSupportingMaterial", $routeParams.itemId, $scope.getSmFileName());
     };
 
-    $scope.getSmFileName = function(){
-        if( $scope.newSmName == "Other") {
+    $scope.getSmFileName = function () {
+        if ($scope.newSmName == "Other") {
             return $scope.newSmOtherName;
         }
         return $scope.newSmName;
     };
 
-    $scope.showEditButton = function(sm){
-
-        function isSingleStoreFile(sm){
+    $scope.showEditButton = function (sm) {
+        function isSingleStoreFile(sm) {
             return sm.files && sm.files.length == 1 && sm.files[0].storageKey;
         }
 
         return !isSingleStoreFile(sm);
     };
 
-    $scope.onSmUploadCompleted = function(result){
+    /**
+     * Result callback from the file upload
+     * @param result - the json from the server with the StoredFile properties.
+     */
+    $scope.onSmUploadCompleted = function (result) {
         console.log("onSmUploadCompleted!!: " + result);
 
-        $scope.$apply(function(){
+        $scope.$apply(function () {
             var resultObject = $.parseJSON(result);
 
-            if( !$scope.itemData.supportingMaterials ){
+            if (!$scope.itemData.supportingMaterials) {
                 $scope.itemData.supportingMaterials = [];
             }
 
@@ -104,8 +136,8 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, ItemSer
         });
     };
 
-    $scope.editSm = function(sm){
-        $rootScope.$broadcast( 'enterEditor', sm, true );
+    $scope.editSm = function (sm) {
+        $rootScope.$broadcast('enterEditor', sm, true);
     };
 
     $scope.removeSm = function (sm) {
@@ -113,6 +145,7 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, ItemSer
         if ($scope.itemData.supportingMaterials == null) {
             throw "Can't remove from null array";
         }
+
         var result = $scope.itemData.supportingMaterials.removeItem(sm);
 
         if (result == sm) {
@@ -136,13 +169,11 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, ItemSer
             }
 
             $.ajax({
-                type: "DELETE",
-                url: deleteUrl,
-                data: {}
+                type:"DELETE",
+                url:deleteUrl,
+                data:{}
             }).done(onDeleteSuccess);
 
-
-            $scope.save();
         } else {
             throw "Couldn't remove item from files: " + file.filename;
         }
@@ -159,7 +190,7 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, ItemSer
         return templateUrl.replace("{itemId}", itemId).replace("{fileName}", fileName)
     };
 
-    $scope.loadItem = function(){
+    $scope.loadItem = function () {
         ItemService.get(
             {
                 id:$routeParams.itemId,
