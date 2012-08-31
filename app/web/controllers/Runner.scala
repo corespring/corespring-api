@@ -9,7 +9,8 @@ object Runner extends Controller {
 
   def getResource(itemId:String,materialName:String,resourceName:String) = Action{
 
-
+    NotImplemented
+    /*
     Item.findOneById(new ObjectId(itemId)) match {
       case Some(item) => {
 
@@ -28,6 +29,7 @@ object Runner extends Controller {
       }
       case _ => NotFound
     }
+    */
   }
 
 }

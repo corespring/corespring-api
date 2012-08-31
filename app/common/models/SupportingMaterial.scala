@@ -1,7 +1,6 @@
 package common.models
 
 import models.ItemFile
-import models.Item.JsonValidationException
 import models.mongoContext._
 import play.api.libs.json._
 import play.api.libs.json.JsString

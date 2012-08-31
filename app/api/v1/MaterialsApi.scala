@@ -28,7 +28,8 @@ object MaterialsApi extends BaseApi {
     S3Service.s3upload(AMAZON_ASSETS_BUCKET, itemId + "/materials/" + name)
   ) {
     request =>
-      Item.findOneById(new ObjectId(itemId)) match {
+      NotImplemented
+      /*Item.findOneById(new ObjectId(itemId)) match {
         case Some(item) => {
           val f = SupportingMaterialFile(name)
           item.supportingMaterials = item.supportingMaterials :+ f
@@ -36,12 +37,14 @@ object MaterialsApi extends BaseApi {
           Ok(toJson(f.asInstanceOf[SupportingMaterial]))
         }
         case _ => InternalServerError("Can't find item with id")
-      }
+      }*/
+
   }
 
   def getMaterial(itemId: String, fileName: String) = Action {
     request =>
-      S3Service.s3download(AMAZON_ASSETS_BUCKET, itemId, "materials/" + fileName)
+      NotImplemented
+      //S3Service.s3download(AMAZON_ASSETS_BUCKET, itemId, "materials/" + fileName)
   }
 
   implicit object DeleteResponseWrites extends Writes[S3Service.S3DeleteResponse] {
@@ -54,9 +57,11 @@ object MaterialsApi extends BaseApi {
   }
 
   def deleteMaterial(itemId:String, fileName:String) = Action{
-   request =>
-      val response : S3Service.S3DeleteResponse = S3Service.delete( AMAZON_ASSETS_BUCKET, itemId + "/materials/" + fileName )
-      Ok(toJson(response))
+    NotImplemented
+
+   //request =>
+   //   val response : S3Service.S3DeleteResponse = S3Service.delete( AMAZON_ASSETS_BUCKET, itemId + "/materials/" + fileName )
+   //   Ok(toJson(response))
   }
 
 
