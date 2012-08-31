@@ -39,14 +39,25 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, ItemSer
 
         $scope.itemData.supportingMaterials = ($scope.itemData.supportingMaterials || []);
 
-        var blankHtml = { name: $scope.newSmName, inlineFiles : [
-            { name: "index.html", content: "<html><body>hello world</body></html>"}
-        ] };
-        $scope.itemData.supportingMaterials.push( blankHtml );
+        var newName = $scope.newSmName == "Other" ? $scope.newSmOtherName : $scope.newSmName;
+
+        var newHtml = {
+            name: newName,
+            files : [
+                {
+                    name: "index.html",
+                    content: "<html><body>hello world</body></html>",
+                    default: true,
+                    contentType: "html"
+                }
+            ]
+        };
+
+        $scope.itemData.supportingMaterials.push( newHtml );
 
         $scope.showAddResourceModal = false;
 
-        $scope.showSm(blankHtml);
+        $scope.showSm(newHtml);
         //Disabled until we get teh Salat item update fix.
         //$scope.save();
     };
@@ -66,6 +77,15 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, ItemSer
             return $scope.newSmOtherName;
         }
         return $scope.newSmName;
+    };
+
+    $scope.showEditButton = function(sm){
+
+        function isSingleStoreFile(sm){
+            return sm.files && sm.files.length == 1 && sm.files[0].storageKey;
+        }
+
+        return !isSingleStoreFile(sm);
     };
 
     $scope.onSmUploadCompleted = function(result){
@@ -138,14 +158,6 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, ItemSer
 
         return templateUrl.replace("{itemId}", itemId).replace("{fileName}", fileName)
     };
-
-    /*$scope.save = function(){
-
-        if(!$scope.itemData){
-            return;
-        }
-        $scope.itemData.update({access_token: AccessToken.token},function (data) {});
-    };*/
 
     $scope.loadItem = function(){
         ItemService.get(

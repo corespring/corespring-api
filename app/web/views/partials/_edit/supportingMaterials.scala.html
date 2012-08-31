@@ -56,7 +56,7 @@
         <ul>
             <li ng-class="{true:'active', false:''}[sm == currentMaterial]" ng-repeat="sm in itemData.supportingMaterials">
                 <a ng-click="showSm(sm)">{{sm.name}}</a>
-                <a ng-click="editSm(sm)" ng-show="sm.files"><i class="icon-edit"></i></a>
+                <a ng-click="editSm(sm)" ng-show="showEditButton(sm)"><i class="icon-edit"></i></a>
                 <a ng-click="removeSm(sm)"> <i class="icon-remove-sign"></i></a>
             </li>
         </ul>
