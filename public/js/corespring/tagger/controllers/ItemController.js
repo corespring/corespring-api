@@ -69,6 +69,16 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     var self = this;
     var itemId = $routeParams.itemId;
 
+
+    /*
+    $scope.showResourceEditor = false;
+
+    $scope.$watch('resourceToEdit', function(newValue,oldValue){
+        $scope.showResourceEditor = newValue ? true : false;
+        console.log("[ItemController] watch: resourceToEdit: " + newValue);
+    });
+    */
+
     $scope.$root.mode = "edit";
 
     //ui nav
@@ -86,11 +96,27 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         updateLocation($scope.currentPanel, $scope.previewVisible, $scope.fileListVisible);
     });
 
+    function enterEditorIfInContentPanel(){
+
+        if($scope.currentPanel == 'content' && $scope.itemData ){
+            $rootScope.$broadcast('enterEditor', $scope.itemData.data, false);
+        }
+        else{
+            $rootScope.$broadcast('leaveEditor');
+        }
+    }
+
+    //event handlers for the enter/leave edit events.
+    $scope.$on('enterEditor', function(){ console.log("[ItemController] enterEditor"); $scope.showResourceEditor = true });
+    $scope.$on('leaveEditor', function(){ console.log("[ItemController] leaveEditor"); $scope.showResourceEditor = false });
+
     $scope.changePanel = function (panelName) {
         $scope.currentPanel = panelName;
         $scope.$broadcast("tabSelected");
+        enterEditorIfInContentPanel();
         updateLocation($scope.currentPanel, $scope.previewVisible);
     };
+
 
     $scope.editItem = function(){
 
@@ -249,7 +275,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.loadItem = function () {
         ItemService.get({id:$routeParams.itemId, access_token:AccessToken.token}, function onItemLoaded(itemData) {
             $scope.itemData = itemData;
-            $scope.initialXmlData = itemData.xmlData;
+
+            enterEditorIfInContentPanel();
 
             $scope.$watch("itemData.xmlData", function (newValue, oldValue) {
                 $scope.processedXmlData = $scope.processData(newValue, itemId, $scope.itemData.files);

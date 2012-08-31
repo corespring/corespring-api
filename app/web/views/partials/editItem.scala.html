@@ -1,6 +1,7 @@
-<div ui-modal ng-model="showConfirmDestroyModal" id="myModal" style="padding: 20px">
+<div ui-modal ng-model="showConfirmDestroyModal" id="myModal" style="padding- 20px">
     <h2>Delete Item</h2>
     <br/>
+
     <p>Are you sure? This can't be undone.</p>
 
     <button ng-click="destroyConfirmed()" class="btn btn-danger">Yes</button>
@@ -23,9 +24,9 @@
                             href="javascript:void(1)"
                             ng-click="changePanel('metadata')">Item Profile</a></li>
 
-                <li ng-class="{true:'active', false:''}[currentPanel=='supportingMaterials']" >
+                <li ng-class="{true:'active', false:''}[currentPanel=='supportingMaterials']">
                     <a href="javascript:void(1)"
-                    ng-click="changePanel('supportingMaterials')">Supporting Materials</a>
+                       ng-click="changePanel('supportingMaterials')">Supporting Materials</a>
                 </li>
             </ul>
 
@@ -54,6 +55,8 @@
         </div>
     </div>
 </div>
+
+
 <div class="item-content-container">
     <div class="edit" style="overflow: auto" ng-class="previewClassName">
 
@@ -61,7 +64,81 @@
 
         @_edit.supportingMaterials()
 
-        @_edit.content()
+        <!--_edit.content()
+        ng-show="currentPanel == 'content'"
+        -->
+
+        <div class="resource-editor editor-panel" ng-show="showResourceEditor"  ng-controller="ResourceEditor">
+
+            <div ui-modal ng-model="showRenameFileModal" style="padding: 10px">
+                <h3>Rename File</h3>
+                <div class="control-group">
+                    <label class="control-label">Name</label>
+                    <input type="text" ng-model="newFilename" placeholder="enter name.."/>
+                </div>
+                <button ng-click="confirmRenameFile()"
+                        ng-disabled="!canRenameFile()"
+                        class="btn btn-success" >Go</button>
+                <button class="btn btn-info"
+                        ng-click="cancelRenameFile">Cancel</button>
+            </div>
+
+            <div class="resource-editor-header" ng-show="showBackNav">
+                <h4><a ng-click="leaveEditor()" class="leave-link"><i class="icon-backward"></i></a> Editing: {{resource.name}}</h4>
+            </div>
+
+            <div class="file-list">
+                <h2>Files</h2>
+
+                <span class="info" ng-show="resource.files.length == 0">No files yet!</span>
+
+                <ul>
+                    <li ng-class="{true:'active', false:''}[f == selectedFile]" ng-repeat="f in resource.files">
+                        <i class="icon-home" ng-show="f.default"></i>
+                        <a ng-click="showFile(f)">{{f.name}}</a>
+
+                            <span class="dropdown">
+                                <a class="dropdown-toggle" id="drop5" role="button" data-toggle="dropdown" href="#"><b
+                                        class="caret"></b></a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a tabindex="-1" ng-click="removeFile(f)">Remove</a></li>
+                                    <li><a tabindex="-1" ng-click="renameFile(f)">Rename</a></li>
+                                    <li><a tabindex="-1" ng-click="makeDefault(f)">Make Default</a></li>
+                                </ul>
+                            </span>
+                    </li>
+                </ul>
+
+                <button
+                        file-uploader
+                        fu-upload-completed="onFileUploadCompleted"
+                        class="btn btn-mini btn-success"
+                        fu-url="calculateUploadUrl()"
+                        fu-max-size="400"
+                        fu-mode="raw">upload file
+                </button>
+
+                <button class="btn btn-mini btn-success" ng-click="createNewVirtualFile('index.html')">new file</button>
+
+            </div>
+
+            <div>
+
+                <img ng-show="selectedFile.storageKey" ng:src="{{selectedFileImageUrl}}"/>
+
+                <div class="code-editor"
+                     ace-editor
+                     ng-show="showEditor"
+                     ace-model="selectedFile.content"
+                     ace-theme="eclipse"
+                     ace-mode="xml"
+                     ng-class="fileListClassName"
+                     ace-resize-events="tabSelected,panelOpen,dataLoaded"
+                        ></div>
+            </div>
+
+        </div>
+
 
     </div>
 

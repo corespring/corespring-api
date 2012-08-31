@@ -120,12 +120,29 @@ the editor this model will be updated.
         AceMode = require('ace/mode/' + mode).Mode;
         scope.editor.getSession().setMode(new AceMode());
         scope.aceModel = attrs["aceModel"];
+        scope.$watch(scope.aceModel, function(newValue, oldValue) {
+          if (scope.changeFromEditor) {
+            return;
+          }
+          $timeout(function() {
+            scope.suppressChange = true;
+            scope.editor.getSession().setValue(newValue);
+            scope.suppressChange = false;
+            return null;
+          });
+          return null;
+        });
         initialData = scope.$eval(scope.aceModel);
         scope.editor.getSession().setValue(initialData);
         return scope.editor.getSession().on("change", function() {
           var newValue;
+          if (scope.suppressChange) {
+            return;
+          }
+          scope.changeFromEditor = true;
           newValue = scope.editor.getSession().getValue();
           applyValue(scope, scope.aceModel, newValue);
+          scope.changeFromEditor = false;
           return null;
         });
       }

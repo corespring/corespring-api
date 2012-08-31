@@ -1,6 +1,6 @@
 /**
  */
-function SupportingMaterialsController($scope, $routeParams, ItemService, ServiceLookup, AccessToken) {
+function SupportingMaterialsController($scope, $rootScope, $routeParams, ItemService, ServiceLookup, AccessToken) {
 
     $scope.showAddResourceModal = false;
     $scope.newSmType = "upload";
@@ -84,6 +84,9 @@ function SupportingMaterialsController($scope, $routeParams, ItemService, Servic
         });
     };
 
+    $scope.editSm = function(sm){
+        $rootScope.$broadcast( 'enterEditor', sm, true );
+    };
 
     $scope.removeSm = function (sm) {
 
@@ -160,6 +163,7 @@ function SupportingMaterialsController($scope, $routeParams, ItemService, Servic
 
 SupportingMaterialsController.$inject = [
     '$scope',
+    '$rootScope',
     '$routeParams',
     'ItemService',
     'ServiceLookup',

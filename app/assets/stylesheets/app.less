@@ -293,6 +293,25 @@
     background: #dbd9db url(../images/header-wrap-home-bg.jpg) center top repeat-x;
 }
 
+.resource-editor-header{
+    background-color: lighten(@cs-subnav-color, 25%);
+    @top: lighten(@cs-subnav-color, 25%);
+    @bottom: lighten(@cs-subnav-color, 25% + (@cs-bar-gradient-nudge - 4));
+    .mixin-bg-gradient(@bottom, @top);
+    position: relative;
+    top: 0px;
+    border-bottom: solid 1px darken(@cs-subnav-color, 5%);
+
+    padding-top: 6px;
+    padding-bottom: 6px;
+
+    .leave-link{
+        &:hover{
+            opacity: 0.5;
+        }
+    }
+}
+
 .sub-nav{
     padding-top: 40px;
     position: fixed;
