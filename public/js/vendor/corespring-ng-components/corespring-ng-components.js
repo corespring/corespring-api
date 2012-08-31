@@ -117,7 +117,7 @@ the editor this model will be updated.
         theme = attrs["aceTheme"] || "eclipse";
         scope.editor.setTheme("ace/theme/" + theme);
         scope.$watch(attrs["aceMode"], function(newValue, oldValue) {
-          var AceMode;
+          var AceMode, modeFactory;
           if (!(newValue != null)) {
             return;
           }
@@ -127,7 +127,11 @@ the editor this model will be updated.
           if (newValue === "js") {
             newValue = "javascript";
           }
-          AceMode = require('ace/mode/' + newValue).Mode;
+          modeFactory = require("ace/mode/" + newValue);
+          if (!(modeFactory != null)) {
+            return;
+          }
+          AceMode = modeFactory.Mode;
           scope.editor.getSession().setMode(new AceMode());
           return null;
         });
