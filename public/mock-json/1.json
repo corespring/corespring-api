@@ -1,0 +1,74 @@
+{
+    "id": "1.json",
+    "_id":{
+        "$oid":"50083ba9e4b071cb5ef79101"
+    },
+    "data" : {
+        "name" : "data",
+        "files" : [
+            {
+                "name" : "qti.xml",
+                "contentType" : "xml",
+                "content" : "<root>hello there</root>",
+                "default" : true
+            },
+            {
+                "name" : "6.clientcharges.JPG",
+                "contentType" : "jpg",
+                "storageKey" : "/12312312/6.clientcharges.JPG",
+                "default" : false
+            }
+        ]
+    },
+    "gradeLevel":[
+        "07"
+    ],
+    "title":"NOT SURE THIS IS A GOOD ITEM? NO CONNECTION BETWEEN ITEM AND CHART? Yoshi is a personal trainer. The table shows how much he charges his clients. Yoshi has two new clients, Wayne and Emily. He worked with Wayne one more hour than he did with Emily. How much more money did Yoshi charge Wayne than he charged Emily?",
+    "primarySubject":{
+        "subject":"",
+        "category":"Mathematics",
+        "refId":"4ffb535f6bb41e469c0bf2c2"
+    },
+    "itemType":"Multiple Choice",
+    "copyrightOwner":"State Department of Education",
+    "copyrightYear":"2010",
+    "materialType":"Assessment Item",
+    "contributor":"State Department of Education",
+    "credentials":"State Department of Education",
+    "author":"State Department of Education",
+    "licenseType":"CC BY",
+    "sourceUrl":"http://statedoe.gov",
+    "priorUse":"Summative",
+    "collectionId":"50218190e4b03e00504e4742",
+    "contentType":"item",
+    "supportingMaterials" : [
+        {
+            "name" : "Rubric",
+            "files" : [
+                {
+                    "name" : "index.html",
+                    "contentType" : "html",
+                    "default" : true,
+                    "content" : "<html><head><link rel=\"stylesheet\" href=\"my.css\"/></head><body><div class=\"blue\">hello world</body></html>"
+                },
+                {
+                    "name" : "my.css",
+                    "contentType" : "css",
+                    "default" : false,
+                    "content" : ".blue{ background-color: #00ff00;}"
+                }
+            ]
+        },
+        {
+            "name" : "Scoring Guide",
+            "files" : [
+                {
+                    "name" : "scoring_guide.pdf",
+                    "contentType" : "pdf",
+                    "default" : true,
+                    "storageKey" : "/23423423/materials/scoring_guide.pdf"
+                }
+            ]
+        }
+    ]
+}

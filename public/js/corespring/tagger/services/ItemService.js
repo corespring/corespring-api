@@ -6,7 +6,9 @@ servicesModule
         ServiceLookup.getUrlFor('items'),
         { },
         {
+
             update:{ method:'PUT'},
+            query: { method: 'GET', params:{id:'list.json'}, isArray: true},
             count:{ method:'GET', isArray:false}
         }
     );

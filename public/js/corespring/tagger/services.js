@@ -11,7 +11,8 @@ window.servicesModule
 
             this.services = {
                 getAccessToken: '/web/access_token',
-                items: '/api/v1/items/:id',
+                //items: '/api/v1/items/:id',
+                items: '/assets/mock-json/:id',
                 supportingMaterialRunner: '/web/runner/{itemId}/{materialName}/{mainFileName}',
                 uploadSupportingMaterial: '/api/v1/items/{itemId}/materials/{fileName}',
                 deleteSupportingMaterial: '/api/v1/items/{itemId}/materials/{fileName}',

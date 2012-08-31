@@ -93,6 +93,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     };
 
     $scope.editItem = function(){
+
+       if(!$scope.itemData.id){
+           throw "No id";
+       }
        $location.url('/edit/' + $scope.itemData.id);
     };
 
