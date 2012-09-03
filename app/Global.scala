@@ -28,10 +28,13 @@ import com.novus.salat._
 import com.novus.salat.global._
 import play.api.Application
 import _root_.web.config.InitialData
+import web.controllers.utils.ConfigLoader
 
 /**
  */
 object Global extends GlobalSettings {
+
+  val AUTO_RESTART : String = "AUTO_RESTART"
 
   val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
 
@@ -84,10 +87,14 @@ object Global extends GlobalSettings {
     RegisterJodaTimeConversionHelpers()
     val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
     S3Service.init(amazonProperties)
-    if (Play.isDev(app) || Play.isTest(app) || System.getenv("AUTO_RESTART") == "true") {
+
+    val autoRestart = ConfigLoader.get(AUTO_RESTART).getOrElse("true") == "true"
+
+    if (Play.isTest(app) || autoRestart) {
       insertTestData("/conf/test-data/")
     }
-    if(System.getenv("AUTO_RESTART") == "true"){
+
+    if( autoRestart){
       Akka.system.scheduler.scheduleOnce(Duration.create(1, TimeUnit.DAYS)){
         Play.start(new Application(Play.current.path,Play.current.classloader,Play.current.sources,Play.current.mode))
       }
@@ -120,6 +127,8 @@ object Global extends GlobalSettings {
     }
     def insertString(s: String, coll: MongoCollection) = coll.insert(JSON.parse(s).asInstanceOf[DBObject], coll.writeConcern)
 
+    jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
+
     jsonLinesToDb(basePath + "orgs.json", Organization.collection)
     jsonLinesToDb(basePath + "items.json", Content.collection)
     jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
@@ -131,7 +140,6 @@ object Global extends GlobalSettings {
     Logger.info("insert item with supporting materials")
     jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = true)
 
-    jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
     //acces token stuff
     AccessToken.collection.drop()
     val creationDate = DateTime.now()

@@ -1,10 +1,13 @@
 package web.models
 
 import com.novus.salat._
+import play.api.Play.current
+
 import com.novus.salat.global._
 import com.novus.salat.dao._
 import com.typesafe.config.{Config, ConfigFactory}
 import play.api.Logger
+import play.api.libs.json.{Reads, JsObject, JsString, Writes}
 
 //import com.mongodb.casbah.commons.Imports._
 import com.mongodb.casbah.Imports._
@@ -18,51 +21,25 @@ case class QtiTemplate(
                         xmlData: String
                         )
 
-object QtiTemplateDAO extends SalatDAO[QtiTemplate, ObjectId](QtiTemplate.connect())
 
-object QtiTemplate{
-  def all(): List[QtiTemplate] = QtiTemplateDAO.find(MongoDBObject.empty).toList
+object QtiTemplate extends ModelCompanion[QtiTemplate, ObjectId] {
+  val collection = se.radley.plugin.salat.mongoCollection("templates")
+  val dao = new SalatDAO[QtiTemplate, ObjectId](collection = collection) {}
 
-  def create(item: QtiTemplate) : Option[String] = {
-    val id : Option[ObjectId] = QtiTemplateDAO.insert(item)
-    id match{
-      case Some(uid) => Some(uid.toString)
-      case None => None
+
+  implicit object QtiTemplateWrites extends Writes[QtiTemplate] {
+    def writes(template:QtiTemplate) = {
+
+      JsObject(
+        Seq(
+          "id" -> JsString(template._id.toString()),
+          "label" -> JsString(template.label),
+          "code" -> JsString(template.code),
+          "xmlData" -> JsString(template.xmlData)
+        )
+      )
+
     }
   }
 
-  def delete(id: String) {
-    QtiTemplateDAO.remove(MongoDBObject("_id" -> new ObjectId(id)))
-  }
-
-  val MONGO_URI = "MONGO_URI"
-
-  def connect() = {
-
-    val config : Config = ConfigFactory.load()
-
-    val systemConfig = ConfigFactory.systemEnvironment()
-
-    //System env vars take precedence over application.conf vars.
-
-    val uriOptions = List(systemConfig, config)
-
-    val matchingConfig : Option[Config] = uriOptions.find( config => config.hasPath(MONGO_URI) )
-
-    matchingConfig match
-    {
-      case None => throw new RuntimeException("You must provide a db uri using the variable name: " + MONGO_URI )
-      case Some(matchingConfig) =>
-      {
-        val uriString = matchingConfig.getString(MONGO_URI)
-        Logger.logger.info("using mongo uri: " + uriString)
-        val uri = MongoURI(uriString)
-        val mongo = MongoConnection(uri)
-        val db = mongo(uri.database.get)
-        db.authenticate(uri.username.get, uri.password.get.foldLeft("")(_ + _.toString))
-        db("templates")
-
-      }
-    }
-  }
 }

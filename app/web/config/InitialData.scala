@@ -20,7 +20,7 @@ object InitialData {
   }
 
   def insertTemplates() {
-    val list: List[QtiTemplate] = QtiTemplate.all()
+    val list: List[QtiTemplate] = QtiTemplate.findAll().toList
 
     if (list.length == 0) {
       Logger.logger.info("Global::insert::Seeding db templates")
@@ -43,7 +43,7 @@ object InitialData {
           while (iterator.hasNext) {
             val item: LinkedHashMap[String, String] = iterator.next()
             val template: QtiTemplate = createFromYamlDeclaration(item)
-            QtiTemplate.create(template)
+            QtiTemplate.insert(template)
           }
         }
         case _ => Logger.logger.info("unknown yaml definition type")

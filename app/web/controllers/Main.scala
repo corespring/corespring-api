@@ -10,37 +10,49 @@ import scala.Some
 import scala.Tuple2
 
 import play.api.libs.json.Json._
-import models.User
+import models.{FieldValue, User}
 import models.auth.AccessToken
 import play.api.libs.json.Json
 
 object Main extends Controller with Secured {
 
-  def index =  IsAuthenticated{ username => _ =>
-      val obj = DBConnect.getCollection("mongodb://localhost:27017/api", "fieldValues").findOne()
-      val jsonString = com.codahale.jerkson.Json.generate(obj)
-      val (dbServer, dbName) = getDbName(ConfigLoader.get("MONGO_URI"))
-      Ok( web.views.html.index(QtiTemplate.all(), dbServer, dbName, username, jsonString, "34dj45a769j4e1c0h4wb"))
+  def index = IsAuthenticated {
+    username => _ =>
+      val jsonString = getFieldValueJsonString
+      val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
+      Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, username, jsonString, "34dj45a769j4e1c0h4wb"))
   }
 
+  private def getFieldValueJsonString: String = {
+    val all = FieldValue.findAll().toList
+    val first = all(0)
+    toJson(first).toString()
+  }
 
-  def getAccessToken = IsAuthenticated{
+  def getAccessToken = IsAuthenticated {
     username => request =>
-    User.getUser(username) match {
-      case Some(user) => {
-        //TODO: Just hardcoding this for now until we agree how to connect the user to the token.
-        Ok(toJson( Map("access_token" -> "34dj45a769j4e1c0h4wb")) )
+      User.getUser(username) match {
+        case Some(user) => {
+          //TODO: Just hardcoding this for now until we agree how to connect the user to the token.
+          Ok(toJson(Map("access_token" -> "34dj45a769j4e1c0h4wb")))
+        }
+        case None => Forbidden
       }
-      case None => Forbidden
-    }
 
   }
 
   private def getDbName(uri: Option[String]): Tuple2[String, String] = uri match {
     case Some(url) => {
-      val NameRegex = """.*@(.*)/(.*)""".r
-      val NameRegex(server, name) = url
-      (server, name)
+      if (!url.contains("@")) {
+        val noAt = """mongodb://(.*)/(.*)""".r
+        val noAt(server, name) = url
+        (server, name)
+      }
+      else {
+        val withAt = """.*@(.*)/(.*)""".r
+        val withAt(server, name) = url
+        (server, name)
+      }
     }
     case None => ("?", "?")
   }
@@ -62,7 +74,7 @@ object Main extends Controller with Secured {
   def authenticate = Action {
     implicit request =>
       loginForm.bindFromRequest.fold(
-        formWithErrors => BadRequest( web.views.html.login(formWithErrors)),
+        formWithErrors => BadRequest(web.views.html.login(formWithErrors)),
         user => Redirect(web.controllers.routes.Main.index()).withSession("username" -> user._1)
       )
   }
