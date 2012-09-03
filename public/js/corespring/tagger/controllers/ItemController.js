@@ -25,7 +25,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     }
 
     function initPane($routeParams) {
-        var panelName = 'item';
+        var panelName = 'metadata';
         if ($routeParams.panel) {
             panelName = $routeParams.panel;
         }

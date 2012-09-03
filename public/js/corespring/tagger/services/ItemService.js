@@ -8,7 +8,9 @@ servicesModule
         {
 
             update:{ method:'PUT'},
-            query: { method: 'GET', params:{id:'list.json'}, isArray: true},
+            //Enable for mock services
+            //query: { method: 'GET', params:{id:'list.json'}, isArray: true},
+            query: { method: 'GET', isArray: true},
             count:{ method:'GET', isArray:false}
         }
     );
