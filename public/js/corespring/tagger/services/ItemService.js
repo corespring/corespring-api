@@ -1,3 +1,4 @@
+window.servicesModule = ( window.servicesModule || angular.module('tagger.services', ['ngResource']));
 
 servicesModule
     .factory('ItemService', [ '$resource', 'ServiceLookup', 'AccessToken', function ($resource, ServiceLookup, AccessTokenService) {

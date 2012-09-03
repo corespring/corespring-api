@@ -1,5 +1,6 @@
 'use strict';
 
+window.servicesModule = ( window.servicesModule || angular.module('tagger.services', ['ngResource']));
 
 /**
  * Lookup for all ajax services.
