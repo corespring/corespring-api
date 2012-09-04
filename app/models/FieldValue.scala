@@ -49,7 +49,7 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
 
   val Version = "version"
   val KeySkills = "keySkills"
-  val GradeLevel = "gradeLevel"
+  val GradeLevel = "gradeLevels"
   val ReviewsPassed = "reviewsPassed"
   val ItemTypes = "itemTypes"
   val LicenseTypes = "licenseTypes"

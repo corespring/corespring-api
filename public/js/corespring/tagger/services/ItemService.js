@@ -27,9 +27,8 @@ servicesModule
     };
 
 
-    /////////////
-    //ItemService.processor = new com.corespring.model.ItemServiceProcessor();
-    //ItemService.createWorkflowObject = ItemService.processor.createWorkflowObject;
+    ItemService.processor = new com.corespring.model.ItemDataProcessor();
+    ItemService.createWorkflowObject = ItemService.processor.createWorkflowObject;
 
 
     //The currently retrieved item
@@ -71,7 +70,7 @@ servicesModule
             ItemService.angularGet(object, function resourceLoaded(resource) {
                 ItemService._curentItemId = resource.id;
                 ItemService._getInProgress = false;
-                //ItemService.processor.processIncomingData(resource);
+                ItemService.processor.processIncomingData(resource);
                 ItemService._currentItemService = new ItemService(resource);
                 callback(ItemService._currentItemService);
 

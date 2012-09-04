@@ -51,7 +51,10 @@
     <script src="/assets/js/corespring/tagger/mongo/MongoQuery.js"></script>
 
     <script src="/assets/js/corespring/tagger/app.js"></script>
+    <script src="/assets/js/corespring/tagger/services/services-declaration.js"></script>
     <script src="/assets/js/corespring/tagger/services.js"></script>
+    <script src="/assets/js/corespring/tagger/services/ServiceLookup.js"></script>
+    <script src="/assets/js/corespring/tagger/services/ItemDataProcessor.js"></script>
     <script src="/assets/js/corespring/tagger/services/ItemService.js"></script>
 
     <script src="/assets/js/corespring/tagger/controllers/HomeController.js"></script>
@@ -106,7 +109,7 @@
         });
 
         //Set the AccessToken service for the logged in user.
-       window.servicesModule
+        angular.module('tagger.services')
            .factory('AccessToken', [ function () {
               return { token: "@accessToken" };
             }]
@@ -124,24 +127,7 @@
             <a class="logout-icon" title="logout" href="/logout"><i class="icon-share icon-white"></i></a>
             </span>
 
-
-            <ul id="resultPager" class="nav pull-right" results-pager ng-show="pagerText">
-                <li>
-                    <div class="pager">
-                        <div class="muted pager-text">{{pagerText}}</div>
-                        <div class="progress progress-success progress-striped
-                             active pager-progress-bar" network-progress ng-show="isLoading">
-                            <div class="bar"></div>
-                        </div>
-                    </div>
-                </li>
-                <li>
-                    <a class="cs-icon-link" style="float:left;" ng-click="previous()" ng-show="editViewOpen"><i class="icon-white icon-arrow-left"></i></a>
-                    <a class="cs-icon-link" style="float:left;" ng-click="next()" ng-show="editViewOpen"><i class="icon-white icon-arrow-right"></i></a>
-                </li>
-            </ul>
-
-                </div>
+         </div>
     </div>
 </div>
     <div ng-view class=""></div>
