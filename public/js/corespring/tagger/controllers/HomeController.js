@@ -8,7 +8,7 @@ function HomeController($scope, $timeout, $http, $location, AccessToken, ItemSer
     $scope.accessToken = AccessToken;
 
     $scope.loadItems = function(){
-       $scope.items = ItemService.query({ access_token: $scope.accessToken.token});
+       $scope.items = ItemService.query({ access_token: $scope.accessToken.token, l: 200});
     };
 
     /*

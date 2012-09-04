@@ -4,14 +4,12 @@ import controllers.auth.BaseApi
 import com.typesafe.config.ConfigFactory
 import play.api.mvc.Action
 import controllers.S3Service
-import common.models.{SupportingMaterial, SupportingMaterialFile}
 import models.Item
 import org.bson.types.ObjectId
 import play.api.libs.json.Json._
 import api.ApiError
 import play.api.Logger
 import play.api.libs.json._
-import common.models.SupportingMaterialFile
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsBoolean
 import play.api.libs.json.JsString
