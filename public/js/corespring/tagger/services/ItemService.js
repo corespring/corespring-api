@@ -18,7 +18,15 @@ servicesModule
 
     ItemService.prototype.update = function (paramsObject, cb) {
         var idObject = angular.extend( paramsObject, {id:this.id});
-        return ItemService.update(idObject, this, cb);
+
+        var copy = {};
+        angular.copy(this, copy);
+        copy.id = null;
+        copy.collectionId = null;
+        delete copy.id;
+        delete copy.collectionId;
+
+        return ItemService.update(idObject, copy, cb);
     };
 
 

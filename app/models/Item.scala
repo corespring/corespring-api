@@ -17,6 +17,7 @@ import play.api.libs.json.JsString
 import scala.Right
 import play.api.libs.json.JsObject
 import api.InvalidFieldException
+import com.mongodb.casbah.commons.ValidBSONType.BasicDBObject
 
 //case class ItemFile(var filename:String)
 //object ItemFile{
@@ -40,7 +41,8 @@ object ItemSubject{
   val refId = "refId"
   implicit object ItemSubjectWrites extends Writes[ItemSubject]{
     def writes(itemSubject:ItemSubject) = {
-      JsObject(Seq[(String,JsValue)](subject -> JsString(itemSubject.subject), category -> JsString(itemSubject.category), refId -> JsString(itemSubject.refId)))
+      //val seq = Seq
+      Json.toJson(Map[String,JsValue](subject -> JsString(itemSubject.subject), category -> JsString(itemSubject.category), refId -> JsString(itemSubject.refId)))
     }
   }
   implicit object ItemSubjectReads extends Reads[ItemSubject]{
@@ -221,7 +223,8 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
   implicit object ItemReads extends Reads[Item]{
     def reads(json:JsValue):Item = {
       val item = Item("")
-      val fieldValues:FieldValue = FieldValue.findOne(MongoDBObject(FieldValue.Version -> FieldValuesVersion)).getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
+      val dbObject = MongoDBObject(FieldValue.Version -> FieldValuesVersion)
+      val fieldValues = FieldValue.findOne(dbObject).getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
       item.collectionId = (json \ collectionId).asOpt[String].getOrElse("") //must do checking outside of json deserialization
       item.author = (json \ author).asOpt[String]
       item.contributor = (json \ contributor).asOpt[String]

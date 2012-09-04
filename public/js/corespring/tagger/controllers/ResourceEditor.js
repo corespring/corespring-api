@@ -198,7 +198,8 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, ItemService,
         var newVirtualFile = {
             name:name,
             contentType: type,
-            content:defaultContent[type]
+            content:defaultContent[type],
+            default: false
         };
 
         $scope.addFile(newVirtualFile);

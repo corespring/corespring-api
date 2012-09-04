@@ -130,7 +130,7 @@ object Global extends GlobalSettings {
     jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
 
     jsonLinesToDb(basePath + "orgs.json", Organization.collection)
-    jsonLinesToDb(basePath + "items.json", Content.collection)
+    //jsonLinesToDb(basePath + "items.json", Content.collection)
     jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
     jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
     jsonLinesToDb(basePath + "users.json", User.collection)
