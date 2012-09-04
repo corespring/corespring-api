@@ -16,21 +16,22 @@ import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
 import scala.Right
 import play.api.libs.json.JsObject
+import api.InvalidFieldException
 
-case class ItemFile(var filename:String)
-object ItemFile{
-  val filename = "filename"
-  implicit object ItemFileWrites extends Writes[ItemFile]{
-    def writes(itemFile:ItemFile) = {
-      JsObject(Seq[(String,JsValue)](filename -> JsString(itemFile.filename)))
-    }
-  }
-  implicit object ItemFileReads extends Reads[ItemFile]{
-    def reads(json:JsValue) = {
-      ItemFile((json \ filename).as[String])
-    }
-  }
-}
+//case class ItemFile(var filename:String)
+//object ItemFile{
+//  val filename = "filename"
+//  implicit object ItemFileWrites extends Writes[ItemFile]{
+//    def writes(itemFile:ItemFile) = {
+//      JsObject(Seq[(String,JsValue)](filename -> JsString(itemFile.filename)))
+//    }
+//  }
+//  implicit object ItemFileReads extends Reads[ItemFile]{
+//    def reads(json:JsValue) = {
+//      ItemFile((json \ filename).as[String])
+//    }
+//  }
+//}
 
 case class ItemSubject(var subject:String, var category:String, var refId:String)
 object ItemSubject{
@@ -51,6 +52,89 @@ object ItemSubject{
   }
 }
 
+import com.novus.salat.annotations.raw.Salat
+import play.api.libs.json._
+
+@Salat
+abstract class BaseFile(val name:String, val contentType:String, val isMain: Boolean)
+object BaseFile {
+  implicit object BaseFileWrites extends Writes[BaseFile] {
+    def writes(f: BaseFile): JsValue = {
+      if ( f.isInstanceOf[VirtualFile]) {
+        VirtualFile.VirtualFileWrites.writes(f.asInstanceOf[VirtualFile])
+      } else {
+        StoredFile.StoredFileWrites.writes(f.asInstanceOf[StoredFile])
+      }
+    }
+  }
+
+  def toJson(f: BaseFile): JsObject = {
+    JsObject(Seq(
+      "name" -> JsString(f.name),
+      "contentType" -> JsString(f.contentType),
+      "default" -> JsBoolean(f.isMain))
+    )
+  }
+}
+
+/*
+ * A VirtualFile is a representation of a file, but the file contents are stored in mongo.
+ * Used for text based files.
+ */
+case class VirtualFile(override val name: String, override  val contentType: String, override val isMain: Boolean = false, content: String) extends BaseFile(name, contentType, isMain)
+object VirtualFile {
+  implicit object VirtualFileWrites extends Writes[VirtualFile] {
+    def writes(f: VirtualFile):JsValue = {
+      BaseFile.toJson(f) ++ JsObject(Seq("content" -> JsString(f.content)))
+    }
+  }
+}
+
+
+/**
+ * A File that has been stored in a file storage service.
+ */
+case class StoredFile(override val name: String, override val contentType: String, override val isMain: Boolean = false, storageKey: String) extends BaseFile(name, contentType, isMain)
+object StoredFile {
+  implicit object StoredFileWrites extends Writes[StoredFile] {
+    def writes(f: StoredFile):JsValue = {
+      BaseFile.toJson(f) ++ JsObject(Seq("storageKey" -> JsString(f.storageKey)))
+    }
+  }
+}
+
+/**
+ * A Resource is representation of a set of one or more files. The files can be Stored files (uploaded to amazon) or virtual files (stored in mongo).
+ */
+case class Resource(name: String, files:Seq[BaseFile])
+object Resource {
+  implicit object ResourceWrites extends Writes[Resource] {
+    def writes(res: Resource):JsValue = {
+      import BaseFile._
+      JsObject(List(
+        "name" -> JsString(res.name),
+        "files" -> Json.toJson(res.files)
+      ))
+    }
+  }
+
+  implicit object ResourceReads extends Reads[Resource] {
+    def reads(json: JsValue): Resource = {
+      val resourceName = (json \ "name" ).as[String]
+      val files = (json \ "files").asOpt[Seq[JsValue]].map( _.map(f => {
+        val fileName = (f \ "name").as[String]
+        val contentType = (f \ "contentType").as[String]
+        val isMain = (f \ "default").as[Boolean]
+        (f \ "content").asOpt[String] match {
+          case Some(c) => VirtualFile(fileName, contentType, isMain, c)
+          case _ => StoredFile(fileName, contentType, isMain, (f \ "storageKey").as[String])
+        }
+      }))
+      Resource(resourceName, files.getOrElse(Seq()))
+    }
+  }
+}
+
 case class Item( var collectionId:String = "",
                  var contentType:String = "item",
                  var author:Option[String] = None,
@@ -58,7 +142,7 @@ case class Item( var collectionId:String = "",
                 var copyrightOwner:Option[String] = None,
                 var copyrightYear:Option[String] = None,
                 var credentials:Option[String] = None,
-                var files:Seq[ItemFile] = Seq(),
+                //var files:Seq[ItemFile] = Seq(),
                 var gradeLevel:Seq[String] = Seq(),
                 var itemType:Option[String] = None,
                 var itemTypeOther:Option[String] = None,
@@ -70,7 +154,9 @@ case class Item( var collectionId:String = "",
                 var sourceUrl:Option[String] = None,
                 var standards:Seq[ObjectId] = Seq(),
                 var title:Option[String] = None,
-                var xmlData:Option[String] = None,
+                //var xmlData:Option[String] = None,
+                var data: Option[Resource] = None,
+                var supportingMaterials: Seq[Resource] = Seq(),
                 var id:ObjectId = new ObjectId()) extends Content{
 }
 /**
@@ -102,7 +188,9 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
   val sourceUrl = "sourceUrl"
   val standards = "standards"
   val title = "title"
-  val xmlData = "xmlData"
+  //val xmlData = "xmlData"
+  val data = "data"
+  val supportingMaterials = "supportingMaterials"
 
   implicit object ItemWrites extends Writes[Item] {
     def writes(item: Item) = {
@@ -114,7 +202,7 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
       item.copyrightOwner.foreach(v => iseq = iseq :+ (copyrightOwner -> JsString(v)))
       item.copyrightYear.foreach(v => iseq = iseq :+ (copyrightYear -> JsString(v)))
       item.credentials.foreach(v => iseq = iseq :+ (credentials -> JsString(v)))
-      if (!item.files.isEmpty) iseq = iseq :+ (files -> JsArray(item.files.map(Json.toJson(_))))
+      if (!item.supportingMaterials.isEmpty) iseq = iseq :+ (supportingMaterials -> JsArray(item.supportingMaterials.map(Json.toJson(_))))
       if (!item.gradeLevel.isEmpty) iseq = iseq :+ (gradeLevel -> JsArray(item.gradeLevel.map(JsString(_))))
       item.itemType.foreach(v => iseq = iseq :+ (itemType -> JsString(v)))
       item.itemTypeOther.foreach(v => iseq = iseq :+ (itemTypeOther -> JsString(v)))
@@ -126,7 +214,7 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
       item.sourceUrl.foreach(v => iseq = iseq :+ (sourceUrl -> JsString(v)))
       if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards.map(_.toString)))
       item.title.foreach(v => iseq = iseq :+ (title -> JsString(v)))
-      item.xmlData.foreach(v => iseq = iseq :+ (xmlData -> JsString(v)))
+      item.data.foreach(v => iseq = iseq :+ (data -> Json.toJson(v)))
       JsObject(iseq)
     }
   }
@@ -141,7 +229,7 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
       item.copyrightYear = (json \ copyrightYear).asOpt[String]
       item.credentials = (json \ credentials).asOpt[String].
         map(v => if (fieldValues.credentials.exists(_.key == v)) v else throw new JsonValidationException(credentials))
-      item.files = (json \ files).asOpt[Seq[ItemFile]].getOrElse(Seq.empty[ItemFile])
+      item.supportingMaterials = (json \ supportingMaterials).asOpt[Seq[Resource]].getOrElse(Seq())
       item.gradeLevel = (json \ gradeLevel).asOpt[Seq[String]].
         map(v => if(v.foldRight[Boolean](true)((g,acc) => fieldValues.gradeLevels.exists(_.key == g) && acc)) v else throw new JsonValidationException(gradeLevel)).getOrElse(Seq.empty)
       item.itemType = (json \ itemType).asOpt[String].
@@ -163,7 +251,7 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
         case e:IllegalArgumentException => throw new JsonValidationException(standards)
       }
       item.title = (json \ title).asOpt[String]
-      item.xmlData = (json \ xmlData).asOpt[String]
+      item.data = (json \ data).asOpt[Resource]
       try{
         item.id = (json \ id).asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId())
       }catch{
@@ -203,7 +291,7 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
     QueryField(copyrightOwner,QueryField.StringType,_.copyrightOwner),
     QueryField(copyrightYear,QueryField.NumberType,_.copyrightYear),
     QueryField(credentials,QueryField.StringType,_.credentials),
-    QueryField(files,QueryField.ObjectArrayType,_.files),
+    QueryField(supportingMaterials,QueryField.ObjectArrayType,_.supportingMaterials),
     QueryField(gradeLevel,QueryField.StringArrayType,_.gradeLevel),
     QueryField(itemType,QueryField.StringType,_.itemType),
     QueryField(itemTypeOther,QueryField.StringType,_.itemTypeOther),
@@ -215,7 +303,7 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
     QueryField(sourceUrl,QueryField.StringType,_.sourceUrl),
     QueryField(standards,QueryField.ObjectArrayType,_.standards),
     QueryField(title,QueryField.StringType,_.title),
-    QueryField(xmlData,QueryField.StringType,_.xmlData)
+    QueryField(data,QueryField.StringType,_.data)
 
   )
   def parseQuery(query:String):Either[InternalError, DBObject] = {
@@ -241,7 +329,8 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
 
     field._1 match {
       case x if x startsWith files+"." => field._1.substring(field._1.indexOf(".")+1) match {
-        case x if x endsWith ItemFile.filename => QueryParser.parseValue(field._1,QueryField.StringType,field._2,acc)
+        // todo: fix this query? ask bleezmo
+        //case x if x endsWith ItemFile.filename => QueryParser.parseValue(field._1,QueryField.StringType,field._2,acc)
         case _ => Left(InternalError("invalid attribute for embedded object: "+field._1,LogType.printError,true))
       }
       case x if x startsWith primarySubject+"." => field._1.substring(field._1.indexOf(".")+1) match {

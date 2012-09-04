@@ -1,6 +1,6 @@
 package common.models
 
-import models.ItemFile
+//import models.ItemFile
 import models.mongoContext._
 import play.api.libs.json._
 import play.api.libs.json.JsString

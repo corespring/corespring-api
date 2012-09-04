@@ -5,7 +5,7 @@ import com.typesafe.config.ConfigFactory
 import play.api.mvc.Action
 import controllers.S3Service
 import common.models.{SupportingMaterial, SupportingMaterialFile}
-import models.{Item, ItemFile}
+import models.Item
 import org.bson.types.ObjectId
 import play.api.libs.json.Json._
 import api.ApiError

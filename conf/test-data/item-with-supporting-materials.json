@@ -2,12 +2,18 @@
     "_id":{
         "$oid":"50083ba9e4b071cb5ef79101"
     },
-    "xmlData":"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n \n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceA</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n    <itemBody>\n        <p>Look at this table.<br></br><img src=\"6.clientcharges.JPG\">\n            \n            <br></br>Yoshi is a personal trainer. The table shows how much he charges his clients. Yoshi has two new clients, Wayne and Emily. He worked with Wayne one more hour than he did with Emily. How much more money did Yoshi charge Wayne than he charged Emily? \n        </p>\n        <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>Item prompt?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">$15.00</simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">$20.00</simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\">$25.00</simpleChoice>\n            <simpleChoice identifier=\"ChoiceD\">$35.00</simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n\n</assessmentItem>\n",
-    "files":[
-        {
-            "filename":"6.clientcharges.JPG"
-        }
-    ],
+    "data": {
+         "name":"xmlData",
+         "content":"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n \n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceA</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n    <itemBody>\n        <p>Look at this table.<br></br><img src=\"6.clientcharges.JPG\">\n            \n            <br></br>Yoshi is a personal trainer. The table shows how much he charges his clients. Yoshi has two new clients, Wayne and Emily. He worked with Wayne one more hour than he did with Emily. How much more money did Yoshi charge Wayne than he charged Emily? \n        </p>\n        <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>Item prompt?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">$15.00</simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">$20.00</simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\">$25.00</simpleChoice>\n            <simpleChoice identifier=\"ChoiceD\">$35.00</simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n\n</assessmentItem>\n",
+         "files":[
+             {
+                 "name":"clientcharges.jpg",
+                 "contentType":"image/jpg",
+                 "storageKey":"6.clientcharges.JPG",
+                 "default":false
+             }
+         ]
+    },
     "gradeLevel":[
         "07"
     ],
@@ -27,7 +33,7 @@
     "licenseType":"CC BY",
     "sourceUrl":"http://statedoe.gov",
     "priorUse":"Summative",
-    "collectionId":"50218190e4b03e00504e4742",
+    "collectionId":"5001b9b9e4b035d491c268c3",
     "contentType":"item",
     "supportingMaterials" : [
         {
@@ -35,12 +41,22 @@
             "files" : [
                 {
                     "name" : "index.html",
-                    "content" : "<html><head><link rel=\"stylesheet\" href=\"my.css\"/></head><body><div class=\"blue\">hello world</body></html>"
+                    "contentType":"text/html",
+                    "content" : "<html><head><link rel=\"stylesheet\" href=\"my.css\"/></head><body><div class=\"blue\">hello world</body></html>",
+                    "default": true
                 },
                 {
                     "name" : "my.css",
-                    "content" : ".blue{ background-color: #00ff00;}"
-                }
+                    "contentType":"text/css",
+                    "content" : ".blue{ background-color: #00ff00;}",
+                    "default": false
+                },
+                 {
+                     "name":"clientcharges.jpg",
+                     "contentType":"image/jpg",
+                     "storageKey":"6.clientcharges.JPG",
+                     "default":false
+                 }
             ]
         }
     ]

@@ -26,14 +26,14 @@ object ItemApi extends BaseApi {
   val excludedFieldsByDefault = Some(MongoDBObject(
     Item.copyrightOwner -> 0,
     Item.credentials -> 0,
-    Item.files -> 0,
+    Item.supportingMaterials -> 0,
     Item.keySkills -> 0,
     Item.contentType -> 0,
-    Item.xmlData -> 0
+    Item.data -> 0
   ))
 
-  val xmlDataField = MongoDBObject(Item.xmlData -> 1, Item.collectionId -> 1)
-  val excludeXmlData = Some(MongoDBObject(Item.xmlData -> 0))
+  val dataField = MongoDBObject(Item.data -> 1, Item.collectionId -> 1)
+  val excludeData = Some(MongoDBObject(Item.data -> 0))
 
   /**
    * List query implementation for Items
@@ -85,7 +85,7 @@ object ItemApi extends BaseApi {
    * @return
    */
   def getItemDetail(id: ObjectId) = ApiAction { request =>
-    _getItem(request.ctx.organization, id, excludeXmlData)
+    _getItem(request.ctx.organization, id, excludeData)
   }
 
   /**
@@ -117,10 +117,11 @@ object ItemApi extends BaseApi {
    * @return
    */
   def getItemData(id: ObjectId) = ApiAction { request =>
-    Item.collection.findOneByID(id, xmlDataField) match {
+    Item.collection.findOneByID(id, dataField) match {
       case Some(o) => o.get(Item.collectionId) match {
         case collId:String => if ( Content.isCollectionAuthorized(request.ctx.organization, collId,Permission.All)) {
-          Ok(Xml(o.get(Item.xmlData).toString))
+          // todo: should we return the whole Resource now? this was only xml content before ....
+          Ok(Xml(o.get(Item.data).toString))
         } else {
           Forbidden
         }
