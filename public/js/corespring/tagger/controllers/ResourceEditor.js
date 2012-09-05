@@ -61,9 +61,9 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, ItemService,
             return;
         }
 
-        //TODO..
         if (f.storageKey && imageContentTypes.indexOf(f.contentType.toLowerCase()) != -1) {
-            return 'http://funny.ph/wp-content/uploads/tdomf/2334/cute-pug-dog-executive-chair.jpg';
+            var templateUrl = ServiceLookup.getUrlFor('previewFile');
+            return templateUrl.replace("{key}", $routeParams.itemId + "/" + $scope.resource.name + "/" + f.name );
         } else {
             return '/assets/images/empty.png';
         }
