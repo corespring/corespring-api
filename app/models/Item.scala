@@ -18,6 +18,7 @@ import scala.Right
 import play.api.libs.json.JsObject
 import api.InvalidFieldException
 import com.mongodb.casbah.commons.ValidBSONType.BasicDBObject
+import com.novus.salat.annotations.raw.Salat
 
 //case class ItemFile(var filename:String)
 //object ItemFile{
@@ -34,7 +35,7 @@ import com.mongodb.casbah.commons.ValidBSONType.BasicDBObject
 //  }
 //}
 
-case class ItemSubject(var subject:String, var category:String, var refId:String)
+case class ItemSubject(subject:String, category:String, refId:String)
 object ItemSubject{
   val subject = "subject"
   val category = "category"
@@ -42,7 +43,7 @@ object ItemSubject{
   implicit object ItemSubjectWrites extends Writes[ItemSubject]{
     def writes(itemSubject:ItemSubject) = {
       //val seq = Seq
-      Json.toJson(Map[String,JsValue](subject -> JsString(itemSubject.subject), category -> JsString(itemSubject.category), refId -> JsString(itemSubject.refId)))
+      Json.toJson(Map(subject -> itemSubject.subject, category -> itemSubject.category, refId -> itemSubject.refId))
     }
   }
   implicit object ItemSubjectReads extends Reads[ItemSubject]{
@@ -264,21 +265,11 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
     }
   }
   def updateItem(oid:ObjectId, newItem:Item):Either[InternalError,Item] = {
-    val updateObj = MongoDBObject.newBuilder
-    for (queryField <- queryFields){
-      if (queryField.key != id && queryField.key != collectionId){
-       // updateObj += (queryField.key -> queryField.value(newItem))
-        queryField.value(newItem) match {
-          case optField:Option[_] => if(optField.isDefined) updateObj += (queryField.key -> optField)
-          case seqField:Seq[_] => if(!seqField.isEmpty) updateObj += (queryField.key -> seqField)
-          case _ => updateObj += (queryField.key -> queryField.value(newItem))
-        }
-      }
-    }
     try{
-      val result =  updateObj.result()
-      result.put("primarySubject", Map("subject" -> "", "category" -> "blah", "refId" -> "blah"))
-      Item.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> result),false,false,Item.collection.writeConcern)
+      import com.novus.salat.grater
+      newItem.id = oid
+      val toUpdate = grater[Item].asDBObject(newItem)
+      Item.update(MongoDBObject("_id" -> oid), toUpdate, upsert = false, multi = false, wc = Item.collection.writeConcern)
       Item.findOneById(oid) match {
         case Some(i) => Right(i)
         case None => Left(InternalError("somehow the document that was just updated could not be found",LogType.printFatal))

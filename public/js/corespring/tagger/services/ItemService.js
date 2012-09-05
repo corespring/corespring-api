@@ -22,10 +22,7 @@ servicesModule
         var copy = {};
         angular.copy(this, copy);
         copy.id = null;
-        copy.collectionId = null;
         delete copy.id;
-        delete copy.collectionId;
-
         return ItemService.update(idObject, copy, cb);
     };
 

@@ -184,7 +184,8 @@ object ItemApi extends BaseApi {
     if (Content.isAuthorized(request.ctx.organization, id, Permission.All)) {
       request.body.asJson match {
         case Some(json) => if ((json \ Item.id).asOpt[String].isDefined) BadRequest(Json.toJson(ApiError.IdNotNeeded))
-          else if ((json \ Item.collectionId).asOpt[String].isDefined) BadRequest(Json.toJson(ApiError.CollIdNotNeeded))
+          // I think there's no need to restrict the collection id, in fact we need it to update the item (confirm this with evaneus/bleezmo)
+          //else if ((json \ Item.collectionId).asOpt[String].isDefined) BadRequest(Json.toJson(ApiError.CollIdNotNeeded))
           else{
             try{
               Item.updateItem(id,Json.fromJson[Item](json)) match {
