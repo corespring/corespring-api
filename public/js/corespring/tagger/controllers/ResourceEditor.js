@@ -40,6 +40,11 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, ItemService,
      * @param f
      */
     $scope.showFile = function (f) {
+
+        if(!f){
+            return;
+        }
+
         $timeout(function () {
             $scope.showEditor = f.content ? true : false;
         });
@@ -48,9 +53,16 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, ItemService,
         $scope.selectedFileImageUrl = $scope.updateFileImageUrl(f);
     };
 
+    var imageContentTypes = [ 'image/jpg', 'image/png', 'image/jpeg'];
+
     $scope.updateFileImageUrl = function (f) {
+
+        if(!f){
+            return;
+        }
+
         //TODO..
-        if (f.storageKey && ['png', 'jpg'].indexOf(f.contentType) != -1) {
+        if (f.storageKey && imageContentTypes.indexOf(f.contentType.toLowerCase()) != -1) {
             return 'http://funny.ph/wp-content/uploads/tdomf/2334/cute-pug-dog-executive-chair.jpg';
         } else {
             return '/assets/images/empty.png';

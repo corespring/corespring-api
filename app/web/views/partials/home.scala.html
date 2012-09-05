@@ -9,7 +9,6 @@
             <th>Grade</th>
             <th>Item Type</th>
             <th>Standard(s)</th>
-            <th></th>
         </tr>
         </thead>
         <tbody>
@@ -25,7 +24,6 @@
                 <a ui-jq="tooltip"
                    ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
             </td>
-            <td><button class="btn btn-danger btn-mini" href="javascript:void(1)" ng-click="deleteItem(item)">Delete</button> </td>
         </tr>
         </tbody>
     </table>
