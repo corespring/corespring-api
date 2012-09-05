@@ -267,9 +267,9 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
   def updateItem(oid:ObjectId, newItem:Item):Either[InternalError,Item] = {
     try{
       import com.novus.salat.grater
-      newItem.id = oid
-      val toUpdate = grater[Item].asDBObject(newItem)
-      Item.update(MongoDBObject("_id" -> oid), toUpdate, upsert = false, multi = false, wc = Item.collection.writeConcern)
+      //newItem.id = oid
+      val toUpdate = grater[Item].asDBObject(newItem) - "_id"
+      Item.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> toUpdate), upsert = false, multi = false, wc = Item.collection.writeConcern)
       Item.findOneById(oid) match {
         case Some(i) => Right(i)
         case None => Left(InternalError("somehow the document that was just updated could not be found",LogType.printFatal))
