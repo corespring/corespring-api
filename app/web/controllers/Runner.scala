@@ -14,7 +14,7 @@ object Runner extends Controller {
    ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
 
-  def getResource(itemId:String,materialName:String,resourceName:String) = Action{
+  def getResource(itemId:String,materialName:String,resourceName:String) = Action{ request =>
 
 
     Item.findOneById(new ObjectId(itemId)) match {
@@ -29,7 +29,7 @@ object Runner extends Controller {
                      Ok(vFile.content).withHeaders(("Content-Type",vFile.contentType))
                   }
                   case sFile : StoredFile => {
-                    S3Service.download(AMAZON_ASSETS_BUCKET, sFile.storageKey)
+                    S3Service.download(AMAZON_ASSETS_BUCKET, sFile.storageKey, Some(request.headers))
                   }
                  }
                }
