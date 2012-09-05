@@ -40,11 +40,13 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, ItemSer
             });
         }
 
+        var iframeables = ['pdf', 'text/html', 'image/jpg', 'image/png', 'image/jpeg', 'doc'];
+
         function isIFrameableResource(sm) {
             if (!sm.files || sm.files.length <= 0) {
                 return false;
             }
-            return ['pdf', 'html', 'jpg', 'png', 'doc'].indexOf(defaultFile(sm).contentType) != -1;
+            return iframeables.indexOf(defaultFile(sm).contentType.toLowerCase()) != -1;
         }
 
         if (isIFrameableResource(sm)) {

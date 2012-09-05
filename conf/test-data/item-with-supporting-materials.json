@@ -42,19 +42,19 @@
                 {
                     "name" : "index.html",
                     "contentType":"text/html",
-                    "content" : "<html><head><link rel=\"stylesheet\" href=\"my.css\"/></head><body><div class=\"blue\">hello world</body></html>",
+                    "content" : "<html><head><link rel=\"stylesheet\" href=\"my.css\"/></head><body><div class=\"blue\">hello world, here is a cute puppy<br/><img src=\"cute-puppy.jpg\"/></body></html>",
                     "default": true
                 },
                 {
                     "name" : "my.css",
                     "contentType":"text/css",
-                    "content" : ".blue{ background-color: #00ff00;}",
+                    "content" : ".blue{ background-color: #0000ff;}",
                     "default": false
                 },
                  {
-                     "name":"clientcharges.jpg",
+                     "name":"cute-puppy.jpg",
                      "contentType":"image/jpg",
-                     "storageKey":"6.clientcharges.JPG",
+                     "storageKey":"test_images/cute-puppy.jpg",
                      "default":false
                  }
             ]

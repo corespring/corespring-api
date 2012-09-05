@@ -1,25 +1,37 @@
 package web.controllers
 
 import play.api.mvc.{Action, Controller}
-import models.Item
-import common.models.{SupportingMaterialHtml, SupportingMaterialFile, SupportingMaterial}
+import models.{StoredFile, VirtualFile, Item}
 import org.bson.types.ObjectId
+import controllers.S3Service
+import com.typesafe.config.ConfigFactory
+
+
 
 object Runner extends Controller {
 
+  private final val AMAZON_ASSETS_BUCKET : String =
+   ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
+
+
   def getResource(itemId:String,materialName:String,resourceName:String) = Action{
 
-    NotImplemented
-    /*
+
     Item.findOneById(new ObjectId(itemId)) match {
       case Some(item) => {
 
         item.supportingMaterials.find( f => f.name == materialName ) match {
-          case Some(matchingMaterial) => {
-            val html : SupportingMaterialHtml = matchingMaterial.asInstanceOf[SupportingMaterialHtml]
-             html.files.find( r => r.name == resourceName ) match {
-               case Some(resource) => {
-                 Ok(resource.content).withHeaders(("Content-Type","text/html"))
+          case Some(foundResource) => {
+             foundResource.files.find( r => r.name == resourceName ) match {
+               case Some(foundFile) => {
+                 foundFile match {
+                  case vFile : VirtualFile => {
+                     Ok(vFile.content).withHeaders(("Content-Type",vFile.contentType))
+                  }
+                  case sFile : StoredFile => {
+                    S3Service.download(AMAZON_ASSETS_BUCKET, sFile.storageKey)
+                  }
+                 }
                }
                case _ => NotFound
              }
@@ -29,7 +41,7 @@ object Runner extends Controller {
       }
       case _ => NotFound
     }
-    */
+   
   }
 
 }

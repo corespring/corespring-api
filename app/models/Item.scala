@@ -276,7 +276,9 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
       }
     }
     try{
-      Item.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> updateObj.result()),false,false,Item.collection.writeConcern)
+      val result =  updateObj.result()
+      result.put("primarySubject", Map("subject" -> "", "category" -> "blah", "refId" -> "blah"))
+      Item.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> result),false,false,Item.collection.writeConcern)
       Item.findOneById(oid) match {
         case Some(i) => Right(i)
         case None => Left(InternalError("somehow the document that was just updated could not be found",LogType.printFatal))

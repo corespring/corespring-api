@@ -57,8 +57,9 @@ object S3Service {
   /**
    * @return
    */
-  def s3download(bucket:String, itemId: String, keyName: String): Result = {
-    val fullKey = itemId + "/" + keyName
+  def s3download(bucket:String, itemId: String, keyName: String): Result = download(bucket, itemId + "/" + keyName )
+
+  def download(bucket:String, fullKey:String) : Result = {
     optS3 match {
       case Some(s3) => {
         try {
