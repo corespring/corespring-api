@@ -24,6 +24,14 @@ servicesModule
         copy.id = null;
         delete copy.author;
         delete copy.id;
+
+        //TODO: This needs to be in the model - this is just a quick test.
+        if(copy.primarySubject && !copy.primarySubject.refId){
+           copy.primarySubject.refId = copy.primarySubject.id;
+        }
+
+        delete copy.primarySubject.subject;
+
         return ItemService.update(idObject, copy, cb);
     };
 
