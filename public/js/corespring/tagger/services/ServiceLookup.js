@@ -10,6 +10,7 @@ angular.module('tagger.services')
             this.services = {
                 getAccessToken:'/web/access_token',
                 items:'/api/v1/items/:id',
+                uploadFileToMaterialResource: '/api/v1/items/{itemId}/materials/{materialName}/{filename}/upload',
                 //items: '/assets/mock-json/:id',
                 previewFile:'/web/runner/{key}',
                 uploadSupportingMaterial:'/api/v1/items/{itemId}/materials/{fileName}',

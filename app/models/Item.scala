@@ -101,7 +101,9 @@ case class StoredFile(override val name: String, override val contentType: Strin
 object StoredFile {
   implicit object StoredFileWrites extends Writes[StoredFile] {
     def writes(f: StoredFile):JsValue = {
-      BaseFile.toJson(f) ++ JsObject(Seq("storageKey" -> JsString(f.storageKey)))
+      BaseFile.toJson(f)
+      //"storageKey is for internal use only"
+      //++ JsObject(Seq("storageKey" -> JsString(f.storageKey)))
     }
   }
 }
@@ -109,7 +111,7 @@ object StoredFile {
 /**
  * A Resource is representation of a set of one or more files. The files can be Stored files (uploaded to amazon) or virtual files (stored in mongo).
  */
-case class Resource(name: String, files:Seq[BaseFile])
+case class Resource(name: String, var files:Seq[BaseFile])
 object Resource {
   implicit object ResourceWrites extends Writes[Resource] {
     def writes(res: Resource):JsValue = {

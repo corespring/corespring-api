@@ -161,7 +161,14 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, ItemService,
         if (file == null) {
             throw "ItemController:calculateUploadUrl - the file is null"
         }
-        return $scope.getUrl("uploadFile", $routeParams.itemId, file.name);
+
+        var template = ServiceLookup.getUrlFor("uploadFileToMaterialResource");
+        return template
+            .replace("{itemId}", $routeParams.itemId)
+            .replace("{materialName}", $scope.resource.name)
+            .replace("{filename}", file.name);
+
+        //return $scope.getUrl("uploadFile", $routeParams.itemId, file.name);
     };
 
 
