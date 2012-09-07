@@ -16,9 +16,10 @@ import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
 import scala.Right
 import play.api.libs.json.JsObject
+import org.specs2.internal.scalaz.Digit._0
 
 case class ItemFile(var filename:String)
-object ItemFile{
+object ItemFile extends Queryable[ItemFile]{
   val filename = "filename"
   implicit object ItemFileWrites extends Writes[ItemFile]{
     def writes(itemFile:ItemFile) = {
@@ -30,10 +31,13 @@ object ItemFile{
       ItemFile((json \ filename).as[String])
     }
   }
+  val queryFields:Seq[QueryField[ItemFile]] = Seq(
+    QueryFieldString(filename,_.filename)
+  )
 }
 
 case class ItemSubject(var subject:String, var category:String, var refId:String)
-object ItemSubject{
+object ItemSubject extends Queryable[ItemSubject]{
   val subject = "subject"
   val category = "category"
   val refId = "refId"
@@ -49,6 +53,11 @@ object ItemSubject{
         (json \ refId).as[String])
     }
   }
+  val queryFields:Seq[QueryField[ItemSubject]] = Seq(
+    QueryFieldString(subject,_.subject),
+    QueryFieldString(category,_.category),
+    QueryFieldString(refId,_.refId)
+  )
 }
 
 case class Item( var collectionId:String = "",
@@ -76,7 +85,7 @@ case class Item( var collectionId:String = "",
 /**
  * An Item model
  */
-object Item extends ModelCompanion[Item, ObjectId] with Queryable{
+object Item extends DBQueryable[Item]{
   val FieldValuesVersion = "0.0.1"
 
   val collection = Content.collection
@@ -124,7 +133,11 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
       item.priorUse.foreach(v => iseq = iseq :+ (priorUse -> JsString(v)))
       if (!item.reviewsPassed.isEmpty) iseq = iseq :+ (reviewsPassed -> JsArray(item.reviewsPassed.map(JsString(_))))
       item.sourceUrl.foreach(v => iseq = iseq :+ (sourceUrl -> JsString(v)))
-      if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards.map(_.toString)))
+      if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards.
+        foldRight[Seq[Standard]](Seq[Standard]())((sid, acc) => Standard.findOneById(sid) match {
+        case Some(standard) => acc :+ standard
+        case None => Log.f("ItemWrites: no standard found given id"); acc
+      })))
       item.title.foreach(v => iseq = iseq :+ (title -> JsString(v)))
       item.xmlData.foreach(v => iseq = iseq :+ (xmlData -> JsString(v)))
       JsObject(iseq)
@@ -133,29 +146,21 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
   implicit object ItemReads extends Reads[Item]{
     def reads(json:JsValue):Item = {
       val item = Item("")
-      val fieldValues:FieldValue = FieldValue.findOne(MongoDBObject(FieldValue.Version -> FieldValuesVersion)).getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
       item.collectionId = (json \ collectionId).asOpt[String].getOrElse("") //must do checking outside of json deserialization
       item.author = (json \ author).asOpt[String]
       item.contributor = (json \ contributor).asOpt[String]
       item.copyrightOwner = (json \ copyrightOwner).asOpt[String]
       item.copyrightYear = (json \ copyrightYear).asOpt[String]
-      item.credentials = (json \ credentials).asOpt[String].
-        map(v => if (fieldValues.credentials.exists(_.key == v)) v else throw new JsonValidationException(credentials))
+      item.credentials = (json \ credentials).asOpt[String]
       item.files = (json \ files).asOpt[Seq[ItemFile]].getOrElse(Seq.empty[ItemFile])
-      item.gradeLevel = (json \ gradeLevel).asOpt[Seq[String]].
-        map(v => if(v.foldRight[Boolean](true)((g,acc) => fieldValues.gradeLevels.exists(_.key == g) && acc)) v else throw new JsonValidationException(gradeLevel)).getOrElse(Seq.empty)
-      item.itemType = (json \ itemType).asOpt[String].
-        map(v => if (fieldValues.itemTypes.exists(_.key == v)) v else throw new JsonValidationException(itemType))
+      item.gradeLevel = (json \ gradeLevel).asOpt[Seq[String]].getOrElse(Seq.empty)
+      item.itemType = (json \ itemType).asOpt[String]
       item.itemTypeOther = (json \  itemTypeOther).asOpt[String]
-      item.keySkills = (json \ keySkills).asOpt[Seq[String]].
-        map(v => if (v.foldRight[Boolean](true)((s,acc) => fieldValues.keySkills.exists(_.key == s) && acc)) v else throw new JsonValidationException(keySkills)).getOrElse(Seq.empty)
-      item.licenseType = (json \ licenseType).asOpt[String].
-        map(v => if (fieldValues.licenseTypes.exists(_.key == v)) v else throw new JsonValidationException(licenseType))
+      item.keySkills = (json \ keySkills).asOpt[Seq[String]].getOrElse(Seq.empty)
+      item.licenseType = (json \ licenseType).asOpt[String]
       item.primarySubject = (json \ primarySubject).asOpt[ItemSubject]
-      item.priorUse = (json \ priorUse).asOpt[String].
-        map(v => if (fieldValues.priorUses.exists(_.key == v)) v else throw new JsonValidationException(priorUse))
-      item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].
-        map(v => if (v.foldRight[Boolean](true)((r,acc) => fieldValues.reviewsPassed.exists(_.key == r) && acc)) v else throw new JsonValidationException(reviewsPassed)).getOrElse(Seq.empty)
+      item.priorUse = (json \ priorUse).asOpt[String]
+      item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
       item.sourceUrl = (json \ sourceUrl).asOpt[String]
       try{
         item.standards = (json \ standards).asOpt[Seq[String]].map(_.map(new ObjectId(_))).getOrElse(Seq.empty)
@@ -169,13 +174,16 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
       }catch{
         case e:IllegalArgumentException => throw new JsonValidationException(id)
       }
+      queryFields.foreach(queryField =>
+        if (queryField.isValueValid(queryField.key,queryField.value(item)).isLeft) throw new JsonValidationException(queryField.key)
+      )
       item
     }
   }
   def updateItem(oid:ObjectId, newItem:Item):Either[InternalError,Item] = {
     val updateObj = MongoDBObject.newBuilder
     for (queryField <- queryFields){
-      if (queryField.key != id && queryField.key != collectionId){
+      if (queryField.key != "_id" && queryField.key != collectionId && !(queryField.key.startsWith(standards+".")) ){
        // updateObj += (queryField.key -> queryField.value(newItem))
         queryField.value(newItem) match {
           case optField:Option[_] => if(optField.isDefined) updateObj += (queryField.key -> optField)
@@ -194,71 +202,138 @@ object Item extends ModelCompanion[Item, ObjectId] with Queryable{
       case e:SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,false,Some("error occured while updating")))
     }
   }
-  val queryFields:Seq[QueryField[Item]] = Seq(
-    QueryField(id,QueryField.ObjectIdType,_.id),
-    QueryField(author,QueryField.StringType,_.author),
-    QueryField(collectionId,QueryField.StringType,_.collectionId),
-    QueryField(contentType,QueryField.StringType,_.contentType),
-    QueryField(contributor,QueryField.StringType,_.contributor),
-    QueryField(copyrightOwner,QueryField.StringType,_.copyrightOwner),
-    QueryField(copyrightYear,QueryField.NumberType,_.copyrightYear),
-    QueryField(credentials,QueryField.StringType,_.credentials),
-    QueryField(files,QueryField.ObjectArrayType,_.files),
-    QueryField(gradeLevel,QueryField.StringArrayType,_.gradeLevel),
-    QueryField(itemType,QueryField.StringType,_.itemType),
-    QueryField(itemTypeOther,QueryField.StringType,_.itemTypeOther),
-    QueryField(keySkills,QueryField.StringArrayType,_.keySkills),
-    QueryField(licenseType,QueryField.StringType,_.licenseType),
-    QueryField(primarySubject,QueryField.ObjectArrayType,_.primarySubject),
-    QueryField(priorUse,QueryField.ObjectArrayType,_.priorUse),
-    QueryField(reviewsPassed,QueryField.StringArrayType,_.reviewsPassed),
-    QueryField(sourceUrl,QueryField.StringType,_.sourceUrl),
-    QueryField(standards,QueryField.ObjectArrayType,_.standards),
-    QueryField(title,QueryField.StringType,_.title),
-    QueryField(xmlData,QueryField.StringType,_.xmlData)
+  val queryFields:Seq[QueryField[Item]] = Seq[QueryField[Item]](
+    QueryFieldObject[Item](id,_.id, QueryField.valuefuncid),
+    QueryFieldString[Item](author,_.author),
+    QueryFieldString[Item](collectionId,_.collectionId),
+    QueryFieldString[Item](contentType,_.contentType,_ match {
+      case x:String if x == ContentType.item => Right(x)
+      case _ => Left(InternalError("incorrect content type"))
+    }),
+    QueryFieldString[Item](contributor,_.contributor),
+    QueryFieldString[Item](copyrightOwner,_.copyrightOwner),
+    QueryFieldString[Item](copyrightYear,_.copyrightYear),
+    QueryFieldString[Item](credentials,_.credentials, value => {
+      val fieldValues:FieldValue = FieldValue.findOne(MongoDBObject(FieldValue.Version -> FieldValuesVersion)).
+        getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
+      value match {
+        case x:String => if(fieldValues.credentials.exists(_.key == x)) Right(x) else Left(InternalError("no valid credentials found for given value"))
+        case _ => Left(InternalError("invalid value format"))
+      }
+    }),
+    QueryFieldObjectArray[Item](files,_.files, innerQueryFields = ItemFile.queryFields),
+    QueryFieldStringArray[Item](gradeLevel,_.gradeLevel, value => {
+      val fieldValues:FieldValue = FieldValue.findOne(MongoDBObject(FieldValue.Version -> FieldValuesVersion)).
+        getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
+      value match {
+        case grades:BasicDBList =>
+          if(grades.foldRight[Boolean](true)((grade,acc) => fieldValues.gradeLevels.exists(_.key == grade.toString) && acc)) Right(value)
+          else Left(InternalError("gradeLevel contained invalid grade formats for values"))
+        case grade:String =>
+          if (fieldValues.gradeLevels.exists(_.key == grade.toString)) Right(grade) else Left(InternalError("gradeLevel contained invalid grade formats for values"))
+        case _ =>
+          Left(InternalError("invalid type for value in gradeLevel"))
+      }
+    }),
+    QueryFieldString[Item](itemType,_.itemType, value => {
+      val fieldValues:FieldValue = FieldValue.findOne(MongoDBObject(FieldValue.Version -> FieldValuesVersion)).
+        getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
+      value match {
+        case x:String => if(fieldValues.itemTypes.exists(_.key == x)) Right(value) else Left(InternalError("could not find valid item types for value"))
+        case _ => Left(InternalError("invalid type for value in itemType"))
+      }
+    }),
+    QueryFieldString[Item](itemTypeOther,_.itemTypeOther),
+    QueryFieldStringArray[Item](keySkills,_.keySkills, value => {
+      val fieldValues:FieldValue = FieldValue.findOne(MongoDBObject(FieldValue.Version -> FieldValuesVersion)).
+        getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
+      value match {
+        case skills:BasicDBList => if(skills.foldRight[Boolean](true)((skill,acc) => fieldValues.keySkills.exists(_.key == skill.toString) && acc)) Right(value)
+          else Left(InternalError("key skill not found for given value"))
+        case _ => Left(InternalError("invalid value type for keySkills"))
+      }
+    }),
+    QueryFieldString[Item](licenseType,_.licenseType, value => {
+      val fieldValues:FieldValue = FieldValue.findOne(MongoDBObject(FieldValue.Version -> FieldValuesVersion)).
+        getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
+      value match {
+        case x:String => if(fieldValues.licenseTypes.exists(_.key == x)) Right(value) else Left(InternalError("license type not found"))
+        case _ => Left(InternalError("invalid value type for licenceType"))
+      }
+    }),
+    QueryFieldObject[Item](primarySubject,_.primarySubject,innerQueryFields = ItemSubject.queryFields),
+    QueryFieldStringArray[Item](priorUse,_.priorUse, value => {
+      val fieldValues:FieldValue = FieldValue.findOne(MongoDBObject(FieldValue.Version -> FieldValuesVersion)).
+        getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
+      value match {
+        case x:String => if(fieldValues.priorUses.exists(_.key == x)) Right(value) else Left(InternalError("priorUse not found"))
+        case _ => Left(InternalError("invalid value type for priorUse"))
+      }
+    }),
+    QueryFieldStringArray[Item](reviewsPassed,_.reviewsPassed, value => {
+      val fieldValues:FieldValue = FieldValue.findOne(MongoDBObject(FieldValue.Version -> FieldValuesVersion)).
+        getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
+      value match {
+        case reviews:BasicDBList => if(reviews.foldRight[Boolean](true)((review,acc) => fieldValues.reviewsPassed.exists(_.key == review.toString) && acc)) Right(value)
+          else Left(InternalError("review not found"))
+        case _ => Left(InternalError("invalid value type for reviewsPassed"))
+      }
+    }),
+    QueryFieldString[Item](sourceUrl,_.sourceUrl),
+    QueryFieldObjectArray[Item](standards,_.standards, _ match {
+      case x:BasicDBList => x.foldRight[Either[InternalError,Seq[ObjectId]]](Right(Seq()))((standard,acc) => {
+        acc match {
+          case Right(ids) => standard match {
+            case x:String => try{
+              Right(ids :+ new ObjectId(x))
+            }catch{
+              case e:IllegalArgumentException => Left(InternalError("invalid object id format for standards"))
+            }
+          }
+          case Left(e) => Left(e)
+        }
+      })
+      case x:String => try{
+        Right(new ObjectId(x))
+      }catch{
+        case e:IllegalArgumentException => Left(InternalError("invalid object id format for standards"))
+      }
+      case _ => Left(InternalError("uknown value type for standards"))
+    },Standard.queryFields),
+    QueryFieldString[Item](title,_.title),
+    QueryFieldString[Item](xmlData,_.xmlData)
 
   )
-  def parseQuery(query:String):Either[InternalError, DBObject] = {
-    JSON.parse(query) match {
-      case dbo:DBObject => try{
-        var queryBuilder = MongoDBObject.newBuilder
-        val fields:Iterator[(String,AnyRef)] = dbo.iterator
-        Right(queryBuilder.result())
-      }catch{
-        case e:RuntimeException => Left(InternalError(e.getMessage,LogType.printError,true))
-      }
-      case _ => Left(InternalError("invalid format for query. could not parse into db object",LogType.printError,true))
+  override def preParse(dbo:DBObject):QueryParser = {
+    val qp = QueryParser.buildQuery(dbo,QueryParser(),Seq(queryFields.find(_.key == standards).get))
+   qp.result match {
+      case Right(query) =>
+        val dbquery = query.result()
+        val builder = MongoDBObject.newBuilder
+        if(!dbquery.isEmpty){
+          val c = Standard.find(query.result(),MongoDBObject("_id" -> 1))
+          val builderList = MongoDBList.newBuilder
+          if (!c.isEmpty){
+            c.foreach(builderList += _.id)
+            builder += (standards -> MongoDBObject("$in" -> builderList.result()))
+          }
+        }
+        removeKeys(dbo,Standard.queryFields.foldRight[Seq[String]](Seq(standards))((qf,acc) => acc :+ standards+"."+qf.key))
+        QueryParser(Right(builder))
+      case Left(e) => QueryParser(Left(e))
     }
   }
-  def parseFields(iter:Iterator[(String,AnyRef)], acc:Either[InternalError,mutable.Builder[(String,Any),DBObject]]):Either[InternalError,mutable.Builder[(String,Any),DBObject]] = {
-    if (iter.hasNext && acc.isRight){
-      val field = iter.next()
-
-    }else acc
-    acc
-  }
-  def parseOuterField(field:(String,AnyRef), acc:mutable.Builder[(String,Any),DBObject]):Either[InternalError,mutable.Builder[(String,Any),DBObject]] = {
-
-    field._1 match {
-      case x if x startsWith files+"." => field._1.substring(field._1.indexOf(".")+1) match {
-        case x if x endsWith ItemFile.filename => QueryParser.parseValue(field._1,QueryField.StringType,field._2,acc)
-        case _ => Left(InternalError("invalid attribute for embedded object: "+field._1,LogType.printError,true))
+  private def removeKeys(dbo:DBObject,keys:Seq[String]){
+    keys.foreach(key => dbo.remove(key))
+    dbo.iterator.foreach(field => {
+      field._2 match {
+        case dblist:BasicDBList => dblist.foreach(value => value match {
+          case innerdbo:BasicDBObject => removeKeys(innerdbo,keys)
+          case _ => Log.f("invalid query")
+        })
+        case innerdbo:BasicDBObject => removeKeys(innerdbo,keys)
+        case _ => Log.f("invalid query")
       }
-      case x if x startsWith primarySubject+"." => field._1.substring(field._1.indexOf(".")+1) match {
-        case ItemSubject.category => QueryParser.parseValue(field._1,QueryField.StringType,field._2,acc)
-        case ItemSubject.refId => QueryParser.parseValue(field._1,QueryField.StringType,field._2,acc)
-        case ItemSubject.subject => QueryParser.parseValue(field._1,QueryField.StringType,field._2,acc)
-        case _ => Left(InternalError("invalid attribute for embedded object: "+field._1,LogType.printError,true))
-      }
-      case `contentType` => field._2 match {
-        case ContentType.item => Right(acc)
-        case _ => Left(InternalError("invalid content type",LogType.printError,true))
-      }
-      case `standards` => Right(acc) //todo finish this part
-      case _ => queryFields.find(_.key == field._1) match {
-        case Some(queryField) => QueryParser.parseValue(queryField.key,queryField.keyType,field._2,acc)
-        case None => Left(InternalError("unknown field type: "+field._1,LogType.printError,true))
-      }
-    }
+    })
   }
 }

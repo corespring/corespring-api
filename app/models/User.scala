@@ -7,11 +7,12 @@ import se.radley.plugin.salat._
 import mongoContext._
 import play.api.libs.json._
 import play.api.libs.json.JsObject
-import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.casbah.Imports._
 import api.ApiError
 import controllers.auth.Permission
 import controllers.{QueryParser, InternalError, LogType, Log}
 import play.api.Play
+import collection.mutable
 
 
 /**
@@ -24,7 +25,7 @@ case class User(var userName: String = "",
                  var id: ObjectId = new ObjectId()
                )
 
-object User extends ModelCompanion[User, ObjectId] with Queryable{
+object User extends DBQueryable[User]{
   val userName = "userName"
   val fullName = "fullName"
   val email = "email"
@@ -109,10 +110,10 @@ object User extends ModelCompanion[User, ObjectId] with Queryable{
   }
 
   val queryFields:Seq[QueryField[User]] = Seq(
-    QueryField("id",QueryField.ObjectIdType,_.id),
-    QueryField(userName, QueryField.StringType,_.userName),
-    QueryField(fullName, QueryField.StringType, _.fullName),
-    QueryField(email, QueryField.StringType, _.email)
+    QueryFieldObject[User]("_id",_.id, QueryField.valuefuncid),
+    QueryFieldString[User](userName,_.userName),
+    QueryFieldString[User](fullName,_.fullName),
+    QueryFieldString[User](email,_.email)
   )
 }
 

@@ -18,12 +18,12 @@ case class Standard(var dotNotation: Option[String] = None,
                      var id: ObjectId = new ObjectId()
                      )
 
-object Standard extends ModelCompanion[Standard, ObjectId] {
+object Standard extends DBQueryable[Standard]{
 
   val collection = mongoCollection("cc-standards")
   val dao = new SalatDAO[Standard, ObjectId](collection = collection) {}
 
-  val Id = "Id"
+  val Id = "id"
   val DotNotation = "dotNotation"
   val Subject = "subject"
   val Category = "category"
@@ -59,12 +59,12 @@ object Standard extends ModelCompanion[Standard, ObjectId] {
   }
 
   val queryFields:Seq[QueryField[Standard]] = Seq(
-    QueryField(Id,QueryField.ObjectIdType,_.id),
-    QueryField(DotNotation, QueryField.StringType, _.dotNotation),
-    QueryField(Subject, QueryField.StringType, _.subject),
-    QueryField(Category, QueryField.StringType, _.category),
-    QueryField(SubCategory, QueryField.StringType, _.subCategory),
-    QueryField(Standard, QueryField.StringType, _.standard)
+    QueryFieldObject[Standard](Id,_.id,QueryField.valuefuncid),
+    QueryFieldString[Standard](DotNotation, _.dotNotation),
+    QueryFieldString[Standard](Subject, _.subject),
+    QueryFieldString[Standard](Category, _.category),
+    QueryFieldString[Standard](SubCategory, _.subCategory),
+    QueryFieldString[Standard](Standard, _.standard)
   )
 
   val description = "common core state standards"

@@ -15,12 +15,12 @@ case class Subject(subject: Option[String] = None,
                    category: Option[String] = None,
                    id: ObjectId = new ObjectId())
 
-object Subject extends ModelCompanion[Subject, ObjectId] {
+object Subject extends DBQueryable[Subject] {
 
   val collection = mongoCollection("subject")
   val dao = new SalatDAO[Subject, ObjectId](collection = collection) {}
 
-  val Id = "Id"
+  val Id = "id"
   val Subject = "subject"
   val Category = "category"
 
@@ -34,9 +34,10 @@ object Subject extends ModelCompanion[Subject, ObjectId] {
   }
 
   val queryFields:Seq[QueryField[Subject]] = Seq(
-    QueryField(Subject, QueryField.StringType, _.subject),
-    QueryField(Category, QueryField.StringType, _.category),
-    QueryField(Id, QueryField.ObjectIdType, _.id)
+
+    QueryFieldString[Subject](Subject,  _.subject),
+    QueryFieldString[Subject](Category, _.category),
+    QueryFieldObject[Subject](Id, _.id, QueryField.valuefuncid)
   )
 
   val description = "Subjects"

@@ -3,77 +3,17 @@ package api
 import play.api.mvc.{Result, Results}
 import play.api.Logger
 import com.mongodb.util.{JSONParseException, JSON}
-import play.api.libs.json.{Writes, Json}
+import play.api.libs.json.{JsNumber, JsObject, Writes, Json}
 import com.novus.salat.dao.SalatDAO
 import com.mongodb.casbah.Imports._
-import models.QueryField
+import models.{Queryable, DBQueryable, QueryField}
+import controllers.{LogType, InternalError, Utils, QueryParser}
 
 
 /**
  * A helper class to handle list queries from all the controllers
  */
 object QueryHelper {
-  val leftSideOperators = Map (
-    ("$or" ->  checkOrOperator _)
-  )
-
-  val rightSideOperators = Map(
-    ("$in" -> checkInOperator _)
-  )
-
-  def parse[T](q: String, validFields: Seq[QueryField[_]]):MongoDBObject = {
-    Logger.debug("fields = " + validFields.mkString(","))
-      val query = JSON.parse(q).asInstanceOf[DBObject]
-      for ( f <- query.iterator ) {
-        // check if it's a valid field
-        Logger.debug("checking field: " + f._1)
-        Logger.debug("         value: " + f._2)
-        validFields.find(_.key == f._1) match {
-          case Some(vf) => {
-            Logger.debug("checking if field value = %s (class = %s) is an operator".format(vf,vf.getClass))
-            // todo: add some more checking here
-          }
-          case _ => {
-            // not a valid field, it could be an operator
-            leftSideOperators.get(f._1) match {
-              case Some(checkOperator) => {
-                Logger.debug("checking if operator: " + f._1 + " has valid values")
-                checkOperator(validFields, f._2)
-              }
-              case _ => {
-                throw new InvalidFieldException(f._1)
-              }
-            }
-          }
-        }
-      }
-      query
-  }
-
-  private def checkInOperator(validFields: Seq[QueryField[_]], obj: Object) {
-    Logger.debug("in obj = " + obj)
-    Logger.debug("in obj = " + obj.getClass)
-    // todo: check values?
-  }
-
-  private def checkOrOperator(validFields: Seq[QueryField[_]], obj: Object) {
-    val list = obj.asInstanceOf[BasicDBList]
-    val iterator = list.iterator()
-
-    while ( iterator.hasNext ) {
-      val item = iterator.next().asInstanceOf[BasicDBObject]
-
-      for ( key <- item.keys ) {
-        Logger.debug("checking if %s is a valid field".format(key))
-        validFields.find(_.key == key) match {
-          case Some(fieldType) => {
-            // todo: check field type?
-          }
-          case _ => throw new InvalidFieldException(key)
-        }
-      }
-    }
-  }
 
   /**
    * Helper method to execute list queries from all the controllers.
@@ -83,57 +23,45 @@ object QueryHelper {
    * @param c  if set to true will return the number of entries matching instead of the entries themselves.
    * @param sk how many entries to skip
    * @param l  the maximum number of entries to return
-   * @param validFields the valid fields
-   * @param dao the collection that needs to be queried
    *
    * @return
    */
-  def list[ObjectType <: AnyRef, ID <: Any](q: Option[String], f: Option[Object], c: String, sk: Int, l: Int, validFields: Seq[QueryField[_]], dao: SalatDAO[ObjectType, ID], writes: Writes[ObjectType], initSearch:Option[DBObject] = None): Result = {
-    try {
-      val query = q.map( QueryHelper.parse(_, validFields) ).getOrElse( new MongoDBObject() )
-      val fields = f.map( fieldSet => {
-        if ( fieldSet.isInstanceOf[String] ) {
-          JSON.parse(fieldSet.asInstanceOf[String]).asInstanceOf[DBObject]
-        } else {
-          fieldSet.asInstanceOf[DBObject]
-        }
-      })
-      fields.foreach(validateFields(_, validFields))
-      val combinedQuery:DBObject = initSearch.map( extraParams => query ++ extraParams).getOrElse( query )
-      val cursor = fields.map( dao.find(combinedQuery, _)).getOrElse( dao.find(combinedQuery))
-      cursor.skip(sk)
-      cursor.limit(l)
-
-      // I'm using a String for c because if I use a boolean I need to pass 0 or 1 from the command line for Play to parse the boolean.
-      // I think using "true" or "false" is better
-      if ( c.equalsIgnoreCase("true") ) {
-        Results.Ok(CountResult.toJson(cursor.count))
-      } else {
-        implicit val w = writes
-        Results.Ok(Json.toJson(cursor.toList))
+  def list[T <: AnyRef](q: Option[String], f:Option[Object], c: String, sk: Int, l: Int, queryable:DBQueryable[T], initSearch:Option[DBObject] = None)(implicit writes:Writes[T]): Result = {
+    f.map(toFieldObject(_,queryable)).getOrElse(Right(new MongoDBObject())) match {
+      case Right(fields) => {
+        val qp:QueryParser = q.map(qstr => QueryParser.buildQuery(qstr, queryable)).getOrElse( QueryParser())
+        if (qp.ignoredKeys.isEmpty){
+          qp.result match {
+            case Right(builder) =>
+              val combinedQuery:DBObject = initSearch.map( extraParams => builder.result() ++ extraParams).getOrElse( builder.result() )
+              val test2 = combinedQuery.toString
+              val cursor = queryable.find(combinedQuery,fields)
+              cursor.skip(sk)
+              cursor.limit(l)
+              if ( c.equalsIgnoreCase("true") ) {
+                Results.Ok(JsObject(Seq("count" -> JsNumber(cursor.count))))
+              }else {
+                Results.Ok(Json.toJson(Utils.toSeq(cursor)))
+              }
+            case Left(e) =>
+              Results.BadRequest(Json.toJson(ApiError.UnknownFieldOrOperator(e.clientOutput)))
+          }
+        }else Results.BadRequest(Json.toJson(ApiError.UnknownFieldOrOperator(Some("the following keys were ignored: "+qp.ignoredKeys.foldRight[String]("")((key,acc) => key+", "+acc)))))
       }
-    } catch {
-      case e: JSONParseException => Results.BadRequest(Json.toJson(ApiError.InvalidQuery))
-      case ife: InvalidFieldException => Results.BadRequest(Json.toJson(ApiError.UnknownFieldOrOperator.format(ife.field)))
+      case Left(e) =>
+        Results.BadRequest(Json.toJson(ApiError.UnknownFieldOrOperator(e.clientOutput)))
     }
   }
-
-  def replaceMongoId(obj: DBObject): DBObject = {
-    // replace mongo's _id to id
-    val id = obj.get("_id")
-    obj.removeField("_id")
-    MongoDBObject("id" -> id.toString) ++ obj
-  }
-  /**
-   * Checks if all the fields in the passed DBObject are defined in the validFields map
-   *
-   * @param obj
-   * @param validFields
-   */
-  def validateFields(obj: DBObject, validFields: Seq[QueryField[_]]) {
-    for ( f <- obj.iterator ) {
-      if ( !validFields.find(_.key == f._1).isDefined ) {
-        throw new InvalidFieldException(f._1)
+  def toFieldObject[T <: AnyRef](f:Object, queryable: Queryable[T]):Either[InternalError,MongoDBObject] = {
+    def parseDBObject(dbo:DBObject):Either[InternalError,MongoDBObject] = dbo.iterator.find(field => !queryable.queryFields.exists(_.key == field._1) || !field._2.isInstanceOf[Int]) match {
+      case Some((key,_)) => Left(InternalError("either field key was invalid or value was NAN for "+key,LogType.printError,true))
+      case None => Right(MongoDBObject(dbo.iterator.toList))
+    }
+    f match {
+      case dbo:DBObject => parseDBObject(dbo)
+      case qfstr:String => JSON.parse(qfstr) match {
+        case dbo:DBObject => parseDBObject(dbo)
+        case _ => Left(InternalError("invalid query string",LogType.printError,true))
       }
     }
   }
