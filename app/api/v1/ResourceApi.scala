@@ -18,7 +18,7 @@ object ResourceApi extends BaseApi {
   /**
    * A wrapping Action that checks that an Item with the given id exists.
    * @param itemId - the item id
-   * @param additionalChecks - an additional check beyond checking for the item.
+   * @param additionalChecks - a sequence of additional checks beyond checking for the item.
    * @param action - the action to invoke
    * @tparam A
    */
@@ -37,9 +37,8 @@ object ResourceApi extends BaseApi {
             action(request)
           }
           else {
-
             //TODO: Only returning the first error
-            Ok(toJson(errors(0)))
+            NotFound(toJson(errors(0)))
           }
         }
         case _ => NotFound
@@ -58,7 +57,6 @@ object ResourceApi extends BaseApi {
   def uploadFileToData(itemId: String, filename: String) =
     HasItem(
       itemId,
-      //We have no additional check - so just enter an empty Seq()
       Seq( isFilenameTaken(filename, USE_ITEM_DATA_KEY)),
       Action(S3Service.s3upload(AMAZON_ASSETS_BUCKET, itemId + "/resource/" + filename)) {
         request =>
