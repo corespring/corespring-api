@@ -85,6 +85,10 @@ object ApiError {
   val S3NotIntialized         = ApiError(803, "S3 service not initialized")
   val S3Write                 = ApiError(804, "error writing data to S3")
 
+  //Resource Api
+  val FilenameTaken           = ApiError(900, "Filename is taken - please choose another name")
+  val ResourceNotFound        = ApiError(901, "Can't find resource")
+
   implicit object ApiErrorWrites extends Writes[ApiError] {
     def writes(o: ApiError): JsValue = {
       JsObject(List(
