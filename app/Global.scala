@@ -18,6 +18,7 @@ import play.api._
 import http.Status
 import libs.concurrent.Akka
 import libs.iteratee.Enumerator
+import libs.json.{Json, JsObject}
 import mvc._
 import mvc.SimpleResult
 import scala.io.Codec
@@ -27,10 +28,15 @@ import com.novus.salat._
 import com.novus.salat.global._
 import dao.SalatInsertError
 import play.api.Application
+import _root_.web.config.InitialData
+import web.controllers.utils.ConfigLoader
 
 /**
  */
 object Global extends GlobalSettings {
+
+  val AUTO_RESTART : String = "AUTO_RESTART"
+  val INIT_DATA:String = "INIT_DATA"
 
   val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
 
@@ -83,14 +89,21 @@ object Global extends GlobalSettings {
     RegisterJodaTimeConversionHelpers()
     val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
     S3Service.init(amazonProperties)
-    if (Play.isDev(app) || Play.isTest(app) || System.getenv("INIT_DATA") == "true") {
+
+    val autoRestart = ConfigLoader.get(AUTO_RESTART).getOrElse("true") == "true"
+    val initData = ConfigLoader.get(INIT_DATA).getOrElse("true") == "true"
+
+    if (Play.isTest(app) || initData) {
       insertTestData("/conf/test-data/")
     }
-    if(System.getenv("AUTO_RESTART") == "true"){
+
+    if( autoRestart){
       Akka.system.scheduler.scheduleOnce(Duration.create(1, TimeUnit.DAYS)){
         Play.start(new Application(Play.current.path,Play.current.classloader,Play.current.sources,Play.current.mode))
       }
     }
+
+    InitialData.insert()
   }
 
   private def insertTestData(basePath: String) = {
@@ -102,34 +115,42 @@ object Global extends GlobalSettings {
       }
     }
 
-    def jsonFileToDb(jsonPath: String, coll: MongoCollection) {
-      coll.drop()
+    def jsonFileToDb(jsonPath: String, coll: MongoCollection, drop : Boolean = true) {
+
+      if(drop) coll.drop()
+
       val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
-      insertString(s, coll)
+       coll.insert(JSON.parse(s).asInstanceOf[DBObject])
     }
 
-    def insertString(s: String, coll: MongoCollection) = try{
-      val wr = coll.insert(JSON.parse(s).asInstanceOf[DBObject], coll.writeConcern)
-      if(!wr.getLastError.ok()) Log.e("error on inserting")
-    }catch{
-      case e:SalatInsertError => Log.e("error on inserting: "+e.getMessage)
+    def jsonFileToItem(jsonPath: String, coll: MongoCollection, drop : Boolean = true) {
+      if(drop){
+        coll.drop()
+      }
+      val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
+      val item = Item.ItemReads.reads(Json.parse(s))
+      Item.save(item)
     }
+    def insertString(s: String, coll: MongoCollection) = coll.insert(JSON.parse(s).asInstanceOf[DBObject], coll.writeConcern)
 
-      jsonLinesToDb(basePath + "orgs.json", Organization.collection)
-      jsonLinesToDb(basePath + "items.json", Content.collection)
-      jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
-      jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
-      jsonLinesToDb(basePath + "users.json", User.collection)
-      jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
-      jsonLinesToDb(basePath + "subjects.json", Subject.collection)
-      jsonLinesToDb(basePath + "standards.json", Standard.collection)
+    jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
 
-      jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
-      //acces token stuff
-      AccessToken.collection.drop()
-      val creationDate = DateTime.now()
-      val token = AccessToken(new ObjectId("502404dd0364dc35bb393397"), None, "34dj45a769j4e1c0h4wb", creationDate, creationDate.plusHours(24))
-      AccessToken.insert(token)
+    jsonLinesToDb(basePath + "orgs.json", Organization.collection)
+    //jsonLinesToDb(basePath + "items.json", Content.collection)
+    jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
+    jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
+    jsonLinesToDb(basePath + "users.json", User.collection)
+    jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
+    jsonLinesToDb(basePath + "subjects.json", Subject.collection)
+    jsonLinesToDb(basePath + "standards.json", Standard.collection)
+    Logger.info("insert item with supporting materials")
+    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = true)
+
+    //acces token stuff
+    AccessToken.collection.drop()
+    val creationDate = DateTime.now()
+    val token = AccessToken(new ObjectId("502404dd0364dc35bb393397"), None, "34dj45a769j4e1c0h4wb", creationDate, creationDate.plusHours(24))
+    AccessToken.insert(token)
   }
 
 }

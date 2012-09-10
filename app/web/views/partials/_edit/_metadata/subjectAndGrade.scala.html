@@ -1,0 +1,31 @@
+<div class="control-group">
+    <label class="control-label">Primary Subject</label>
+
+    <div class="controls">
+        <input type='hidden' ui-select2="selectPrimarySubject" ng-model="itemData.primarySubject"
+               style="width: 400px">
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label">Related Subject</label>
+
+    <div class="controls">
+        <input type='hidden' ui-select2="selectRelatedSubject" ng-model="itemData.relatedSubject"
+               style="width: 400px">
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label" for="gradeLevel">Grade Level</label>
+
+    <div class="controls" id="gradeLevel">
+        <div class="btn-group">
+            <button ng-repeat="gl in itemData.$gradeLevelDataProvider"
+                    button-toggle="active"
+                    class="btn tight"
+                    title="{{gl.state.label}}"
+                    ng-model="gl.state.selected">{{gl.state.key}}
+            </button>
+        </div>
+    </div>
+</div>
+

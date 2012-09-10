@@ -26,14 +26,14 @@ object ItemApi extends BaseApi {
   val excludedFieldsByDefault = Some(MongoDBObject(
     Item.copyrightOwner -> 0,
     Item.credentials -> 0,
-    Item.files -> 0,
+    //Item.supportingMaterials -> 0,
     Item.keySkills -> 0,
-    Item.contentType -> 0,
-    Item.xmlData -> 0
+    Item.contentType -> 0
+    //Item.data -> 0
   ))
 
-  val xmlDataField = MongoDBObject(Item.xmlData -> 1, Item.collectionId -> 1)
-  val excludeXmlData = Some(MongoDBObject(Item.xmlData -> 0))
+  val dataField = MongoDBObject(Item.data -> 1, Item.collectionId -> 1)
+  val excludeData = Some(MongoDBObject(Item.data -> 0))
 
   /**
    * List query implementation for Items
@@ -85,7 +85,7 @@ object ItemApi extends BaseApi {
    * @return
    */
   def getItemDetail(id: ObjectId) = ApiAction { request =>
-    _getItem(request.ctx.organization, id, excludeXmlData)
+    _getItem(request.ctx.organization, id, excludeData)
   }
 
   /**
@@ -117,10 +117,11 @@ object ItemApi extends BaseApi {
    * @return
    */
   def getItemData(id: ObjectId) = ApiAction { request =>
-    Item.collection.findOneByID(id, xmlDataField) match {
+    Item.collection.findOneByID(id, dataField) match {
       case Some(o) => o.get(Item.collectionId) match {
         case collId:String => if ( Content.isCollectionAuthorized(request.ctx.organization, collId,Permission.All)) {
-          Ok(Xml(o.get(Item.xmlData).toString))
+          // todo: should we return the whole Resource now? this was only xml content before ....
+          Ok(Xml(o.get(Item.data).toString))
         } else {
           Forbidden
         }
@@ -183,7 +184,8 @@ object ItemApi extends BaseApi {
     if (Content.isAuthorized(request.ctx.organization, id, Permission.All)) {
       request.body.asJson match {
         case Some(json) => if ((json \ Item.id).asOpt[String].isDefined) BadRequest(Json.toJson(ApiError.IdNotNeeded))
-          else if ((json \ Item.collectionId).asOpt[String].isDefined) BadRequest(Json.toJson(ApiError.CollIdNotNeeded))
+          // I think there's no need to restrict the collection id, in fact we need it to update the item (confirm this with evaneus/bleezmo)
+          //else if ((json \ Item.collectionId).asOpt[String].isDefined) BadRequest(Json.toJson(ApiError.CollIdNotNeeded))
           else{
             try{
               Item.updateItem(id,Json.fromJson[Item](json)) match {

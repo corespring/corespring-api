@@ -26,13 +26,14 @@ object S3Service {
    * Init the S3 client
    * @param propertiesFile the properties file that contains the amazon credentials
    */
-  def init( propertiesFile : File ): Unit = this.synchronized {
+  def init(propertiesFile: File): Unit = this.synchronized {
     try {
       optS3 = Some(new AmazonS3Client(new PropertiesCredentials(propertiesFile)))
     } catch {
-      case e: IOException => InternalError("unable to authenticate s3 server with given credentials",LogType.printFatal)
+      case e: IOException => InternalError("unable to authenticate s3 server with given credentials", LogType.printFatal)
     }
   }
+
 
   /**
    * handle file upload through multiple parts. See http://docs.amazonwebservices.com/AmazonS3/latest/dev/llJavaUploadFile.html
@@ -41,7 +42,7 @@ object S3Service {
    * @param keyName
    * @return
    */
-  def s3upload(bucket:String, keyName: String): BodyParser[Int] = BodyParser("s3 file upload") {
+  def s3upload(bucket: String, keyName: String): BodyParser[Int] = BodyParser("s3 file upload") {
     request =>
       val optContentLength = request.headers.get(CONTENT_LENGTH)
       optContentLength match {
@@ -57,25 +58,48 @@ object S3Service {
   /**
    * @return
    */
-  def s3download(bucket:String, itemId: String, keyName: String): Result = {
-    val fullKey = itemId + "/" + keyName
+  def s3download(bucket: String, itemId: String, keyName: String): Result = download(bucket, itemId + "/" + keyName)
+
+  def download(bucket: String, fullKey: String, headers: Option[Headers] = None): Result = {
+
+    def returnResultWithAsset(s3 : AmazonS3Client, bucket: String, key: String) : Result = {
+      val s3Object: S3Object = s3.getObject(bucket, fullKey) //get object. may result in exception
+      val inputStream: InputStream = s3Object.getObjectContent
+      val objContent: Enumerator[Array[Byte]] = Enumerator.fromStream(inputStream)
+      val metadata = s3Object.getObjectMetadata
+      SimpleResult(
+        header = ResponseHeader(200,
+          Map(CONTENT_LENGTH -> metadata.getContentLength.toString,
+            ETAG -> metadata.getETag)),
+        body = objContent
+      )
+    }
+
+    def returnNotModifiedOrResultWithAsset( s3 : AmazonS3Client, headers: Headers, bucket: String, key: String): Result = {
+      val metadata: ObjectMetadata = s3.getObjectMetadata(new GetObjectMetadataRequest(bucket, fullKey))
+      val ifNoneMatch = headers.get(IF_NONE_MATCH).getOrElse("")
+      if (ifNoneMatch != "" && ifNoneMatch == metadata.getETag) {
+        Results.NotModified
+      }
+      else {
+        returnResultWithAsset(s3,bucket, fullKey)
+      }
+    }
+
     optS3 match {
       case Some(s3) => {
         try {
-          val s3obj: S3Object = s3.getObject(bucket, fullKey) //get object. may result in exception
-          val length: Long = s3obj.getObjectMetadata.getContentLength
-          val inputStream: InputStream = s3obj.getObjectContent
-          val objContent: Enumerator[Array[Byte]] = Enumerator.fromStream(inputStream)
-          SimpleResult(
-            header = ResponseHeader(200, Map(CONTENT_LENGTH -> length.toString)),
-            body = objContent
-          )
-        } catch {
+          headers match {
+            case Some(foundHeaders) => returnNotModifiedOrResultWithAsset(s3, foundHeaders, bucket, fullKey)
+            case _ => returnResultWithAsset(s3, bucket, fullKey)
+          }
+        }
+        catch {
           case e: AmazonClientException =>
-            Log.f("AmazonClientException in s3download: "+e.getMessage)
+            Log.f("AmazonClientException in s3download: " + e.getMessage)
             Results.InternalServerError(Json.toJson(ApiError.AmazonS3Client(Some("Occurred when attempting to retrieve object: " + fullKey))))
           case e: AmazonServiceException =>
-            Log.e("AmazonServiceException in s3download: "+e.getMessage)
+            Log.e("AmazonServiceException in s3download: " + e.getMessage)
             Results.InternalServerError(Json.toJson(ApiError.AmazonS3Server(Some("Occurred when attempting to retrieve object: " + fullKey))))
         }
       }
@@ -86,7 +110,7 @@ object S3Service {
   }
 
 
-  def delete(bucket : String, keyName: String): S3DeleteResponse = {
+  def delete(bucket: String, keyName: String): S3DeleteResponse = {
 
     optS3 match {
       case Some(s3) => {
@@ -96,10 +120,10 @@ object S3Service {
           S3DeleteResponse(true, keyName)
         } catch {
           case e: AmazonClientException =>
-            Log.f("AmazonClientException in delete: "+e.getMessage)
+            Log.f("AmazonClientException in delete: " + e.getMessage)
             S3DeleteResponse(false, keyName, e.getMessage)
           case e: AmazonServiceException =>
-            Log.e("AmazonServiceException in delete: "+e.getMessage)
+            Log.e("AmazonServiceException in delete: " + e.getMessage)
             S3DeleteResponse(false, keyName, e.getMessage)
         }
       }
@@ -114,7 +138,7 @@ object S3Service {
    * @param contentLength
    * @return
    */
-  private def s3UploadSingle(bucket:String, keyName: String, contentLength: Int): Iteratee[Array[Byte], Either[Result, Int]] = {
+  private def s3UploadSingle(bucket: String, keyName: String, contentLength: Int): Iteratee[Array[Byte], Either[Result, Int]] = {
     optS3 match {
       case Some(s3) => {
         val outputStream = new PipedOutputStream()
@@ -133,7 +157,7 @@ object S3Service {
                 Right(acc + chunk.size)
               } catch {
                 case e: IOException =>
-                  Log.f("IOException occurred when writing to S3: "+e.getMessage)
+                  Log.f("IOException occurred when writing to S3: " + e.getMessage)
                   Left(Results.InternalServerError(Json.toJson(ApiError.S3Write)))
               }
               case Left(error) => Left(error)
@@ -169,7 +193,7 @@ object S3Service {
 
   private case class Ack(result: Either[InternalError, Unit])
 
-  private class S3Writer(bucket:String, keyName: String, inputStream: InputStream, contentLength: Int) extends Actor {
+  private class S3Writer(bucket: String, keyName: String, inputStream: InputStream, contentLength: Int) extends Actor {
     def act() {
       var errorOccurred: Option[InternalError] = None
       while (true) {
@@ -181,13 +205,13 @@ object S3Service {
               optS3.get.putObject(bucket, keyName, inputStream, objectMetadata) // assume optS3 has instance of S3 otherwise this would have never been called
             } catch {
               case e: Exception => {
-                Log.f("exception occurred in Begin of S3Writer: "+e.getMessage)
+                Log.f("exception occurred in Begin of S3Writer: " + e.getMessage)
                 try {
                   inputStream.close()
                 } catch {
-                  case e: IOException => Log.f("IOException when closing input stream in S3Writer: "+e.getMessage)
+                  case e: IOException => Log.f("IOException when closing input stream in S3Writer: " + e.getMessage)
                 }
-                errorOccurred = Some(InternalError("error writing to S3",LogType.printFatal))
+                errorOccurred = Some(InternalError("error writing to S3", LogType.printFatal))
               }
             }
           }
@@ -195,7 +219,7 @@ object S3Service {
             try {
               inputStream.close()
             } catch {
-              case e: IOException => Log.f("IOException when closing input stream in S3Writer: "+e.getMessage)
+              case e: IOException => Log.f("IOException when closing input stream in S3Writer: " + e.getMessage)
             }
             errorOccurred match {
               case Some(error) => Actor.reply(Ack(Left(error)))

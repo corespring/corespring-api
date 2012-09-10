@@ -1,0 +1,44 @@
+<div ng-show="currentPanel == 'content'" class="editor-panel" ng-class="previewClassName">
+
+    <div class="file-list" ng-class="fileListClassName">
+        <h2>Files</h2>
+
+        <span class="info" ng:show="itemData.files.length == 0">No files yet</span>
+
+        <ul>
+            <li ng-repeat="f in itemData.files">
+                <a ng:click="showFile(f)">{{f.filename}}</a>
+                <a class="" ng:click="removeFile(f)">
+                    <i class="icon-remove-sign">
+                    </i></a>
+            </li>
+        </ul>
+
+        <button
+                file-uploader
+                class="btn btn-mini btn-success"
+                fu-url="calculateUploadUrl()"
+                fu-max-size="400"
+                fu-mode="raw">add file
+        </button>
+
+    </div>
+    <div>
+        <div class="code-editor"
+             ace-editor
+             ace-model="itemData.xmlData"
+             ace-theme="eclipse"
+             ace-mode="xml"
+             ng-class="fileListClassName"
+             ace-exceptions="validationResult.exceptions"
+             ace-resize-events="tabSelected,panelOpen,dataLoaded"
+                ></div>
+
+        <div class="alert alert-danger code-errors"
+             ng-click="showExceptions = false"
+             ng-show="validationResult.exceptions && showExceptions">
+            <span ng-repeat="e in validationResult.exceptions">{{e.message}}</span>
+        </div>
+    </div>
+</div>
+

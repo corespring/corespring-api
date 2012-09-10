@@ -78,12 +78,12 @@ object ItemPlayer extends BaseApi {
    * @return
    */
   private def getItemXMLByObjectId(itemId: String, callerOrg: ObjectId): Option[Elem] = {
-    val xmlDataField = MongoDBObject(Item.xmlData -> 1, Item.collectionId -> 1)
-    Item.collection.findOneByID(itemId, xmlDataField) match {
+    val dataField = MongoDBObject(Item.data -> 1, Item.collectionId -> 1)
+    Item.collection.findOneByID(itemId, dataField) match {
       case Some(o) => o.get(Item.collectionId) match {
         case collId:String => if (Content.isCollectionAuthorized(callerOrg, collId,Permission.All)){
-          val xmlDataString = o.get(Item.xmlData).toString
-          Some(scala.xml.XML.loadString(xmlDataString))
+          val dataString = o.get(Item.data).toString
+          Some(scala.xml.XML.loadString(dataString))
         } else None
         case _ => None
       }

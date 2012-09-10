@@ -1,0 +1,13 @@
+<br/>
+<div class="form-horizontal">
+    @web.views.html.partials._viewItem._item( "Item Title", "<div>{{itemData.title}}</div>")
+    @web.views.html.partials._viewItem._item( "Key Words", "<div>{{itemData.keySkills}}</div>")
+    @web.views.html.partials._viewItem._item( "Demonstrated Knowledge", "<div>TODO</div>")
+    @web.views.html.partials._viewItem._item( "Aligned Standards", "<div ng-repeat='s in itemData.standards'>{{s.dotNotation}}</div>")
+    @web.views.html.partials._viewItem._item( "Grade", "<div ng-repeat='gl in itemData.gradeLevel'>{{gl}}</div>")
+    @web.views.html.partials._viewItem._item( "Usage Data", "TODO")
+    @web.views.html.partials._viewItem._item( "Rubric", "TODO")
+    @web.views.html.partials._viewItem._item( "Examples of student work", "TODO")
+    @web.views.html.partials._viewItem._item( "Community Feedback", "TODO")
+</div>
+
