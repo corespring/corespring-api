@@ -58,12 +58,23 @@ GET     /api/v1/items/:itemId/assets/:fileName  api.v1.FilesApi.getFile(itemId:S
 
 # Resource api
 GET     /api/v1/items/:itemId/materials          api.v1.ResourceApi.getSupportingMaterials(itemId:String)
-POST    /api/v1/items/:itemId/materials/:resourceName/:filename/upload   api.v1.ResourceApi.uploadFile(itemId:String, resourceName : String, filename : String )
-POST    /api/v1/items/:itemId/data/:filename/upload   api.v1.ResourceApi.uploadFileToData(itemId:String, filename : String )
-POST     /api/v1/items/:itemId/materials          api.v1.ResourceApi.createSupportingMaterial(itemId:String)
+POST    /api/v1/items/:itemId/materials          api.v1.ResourceApi.createSupportingMaterial(itemId:String)
 DELETE  /api/v1/items/:itemId/materials/:resourceName          api.v1.ResourceApi.deleteSupportingMaterial(itemId:String, resourceName : String)
-#GET     /api/v1/items/:itemId/materials/:name   api.v1.MaterialsApi.getMaterial(itemId:String, name : String)
-#DELETE  /api/v1/items/:itemId/materials/:name   api.v1.MaterialsApi.deleteMaterial(itemId:String, name : String)
+
+#GET     /api/v1/items/:itemId/data/files
+#GET     /api/v1/items/:itemId/data/files/:filename
+#POST    /api/v1/items/:itemId/data/files
+POST    /api/v1/items/:itemId/data/:filename/upload   api.v1.ResourceApi.uploadFileToData(itemId:String, filename : String )
+#PUT     /api/v1/items/:itemId/data/files/:filename
+#DELETE  /api/v1/items/:itemId/data/files/:filename
+
+#GET     /api/v1/items/:itemId/materials/:resourceName/files
+#GET     /api/v1/items/:itemId/materials/:resourceName/files/:filename
+#POST    /api/v1/items/:itemId/materials/:resourceName/files
+POST    /api/v1/items/:itemId/materials/:resourceName/:filename/upload   api.v1.ResourceApi.uploadFile(itemId:String, resourceName : String, filename : String )
+#PUT     /api/v1/items/:itemId/materials/:resourceName/files/:filename
+#DELETE  /api/v1/items/:itemId/materials/:resourceName/files/:filename
+
 
 # Field Values API
 GET     /api/v1/field_values                   api.v1.FieldValuesApi.getAllAvailable
@@ -88,7 +99,8 @@ GET    /web/partials/createItem                web.controllers.Partials.createIt
 GET    /web/partials/home                      web.controllers.Partials.home
 GET    /web/partials/viewItem                  web.controllers.Partials.viewItem
 
-GET    /web/runner/:itemId/:materialName/:resourceName web.controllers.Runner.getResource(itemId:String,materialName:String,resourceName:String)
+GET    /web/runner/:itemId/data/:filename           web.controllers.Runner.getDataResource(itemId:String,filename:String)
+GET    /web/runner/:itemId/:resourceName/:filename   web.controllers.Runner.getResource(itemId:String,resourceName:String,filename:String)
 
 # Authentication
 GET     /web/login                             web.controllers.Main.login

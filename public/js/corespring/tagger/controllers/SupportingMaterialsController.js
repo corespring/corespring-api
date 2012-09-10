@@ -1,26 +1,26 @@
 /**
  */
-function SupportingMaterialsController($scope, $rootScope, $routeParams, ItemService, ServiceLookup, AccessToken) {
+function SupportingMaterialsController($scope, $rootScope, $routeParams, SupportingMaterial, ServiceLookup, AccessToken) {
 
     $scope.showAddResourceModal = false;
-    $scope.newSmType = "upload";
-    $scope.newSmName = "Rubric";
-    $scope.newSmOtherName = "";
+    $scope.newResourceType = "upload";
+    $scope.newResourceName = "Rubric";
+    $scope.newResourceOtherName = "";
     $scope.currentFile = null;
     $scope.itemId = $routeParams.itemId;
 
-    $scope.canCreateNewSm = function () {
-        if ($scope.newSmName == "Other" && !$scope.newSmOtherName) {
+    $scope.canCreateNewResource = function () {
+        if ($scope.newResourceName == "Other" && !$scope.newResourceOtherName) {
             return false;
         }
 
-        if(!$scope.itemData){
+        if (!$scope) {
             return false;
         }
 
-        var nameToCheck = $scope.newSmName == "Other" ? $scope.newSmOtherName : $scope.newSmName;
+        var nameToCheck = $scope.newResourceName == "Other" ? $scope.newResourceOtherName : $scope.newResourceName;
 
-        var alreadyUsed = _.find($scope.itemData.supportingMaterials, function (f) {
+        var alreadyUsed = _.find($scope.supportingMaterials, function (f) {
             return f.name == nameToCheck
         });
 
@@ -30,155 +30,143 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, ItemSer
     /**
      * Show the supporting material.
      * At the moment that means previewing the content in an iframe.
-     * @param sm
+     * @param resource
      */
-    $scope.showSm = function (sm) {
+    $scope.showResource = function (resource) {
 
-        function defaultFile(sm) {
-            return _.find(sm.files, function (f) {
+        function defaultFile(resource) {
+            return _.find(resource.files, function (f) {
                 return f['default'] == true;
             });
         }
 
         var iframeables = ['pdf', 'text/html', 'image/jpg', 'image/png', 'image/jpeg', 'doc'];
 
-        function isIFrameableResource(sm) {
-            if (!sm.files || sm.files.length <= 0) {
+        function isIFrameableResource(resource) {
+            if (!resource.files || resource.files.length <= 0) {
                 return false;
             }
-            return iframeables.indexOf(defaultFile(sm).contentType.toLowerCase()) != -1;
+            return iframeables.indexOf(defaultFile(resource).contentType.toLowerCase()) != -1;
         }
 
-        if (isIFrameableResource(sm)) {
+        if (isIFrameableResource(resource)) {
             var templateUrl = ServiceLookup.getUrlFor('previewFile');
-            var file = defaultFile(sm);
+            var file = defaultFile(resource);
             var key = "";
 
             if (file.content) {
-                key = $routeParams.itemId + "/" + sm.name + "/" + file.name;
+                key = $routeParams.itemId + "/" + resource.name + "/" + file.name;
             } else {
                 key = file.storageKey;
             }
             $scope.currentHtmlUrl = templateUrl.replace("{key}", key);
-            $scope.currentMaterial = sm;
+            $scope.currentMaterial = resource;
         } else {
             throw "Can't preview file";
         }
     };
 
-    $scope.createNewHtmlSm = function () {
+    $scope.createNewHtmlResource = function () {
 
-        $scope.itemData.supportingMaterials = ($scope.itemData.supportingMaterials || []);
+        $scope.supportingMaterials = ($scope.supportingMaterials || []);
 
-        var newName = $scope.newSmName == "Other" ? $scope.newSmOtherName : $scope.newSmName;
+        var newName = $scope.newResourceName == "Other" ? $scope.newResourceOtherName : $scope.newResourceName;
 
-        var newHtml = {
-            name:newName,
-            files:[
-                {
-                    name:"index.html",
-                    content:"<html><body>hello world</body></html>",
-                    default:true,
-                    contentType:"html"
-                }
-            ]
-        };
 
-        $scope.itemData.supportingMaterials.push(newHtml);
+        var newHtml = new SupportingMaterial(
+            {
+                name:newName,
+                files:[
+                    {
+                        name:"index.html",
+                        content:"<html><body>hello world</body></html>",
+                        default:true,
+                        contentType:"text/html"
+                    }
+                ]
+            }
+        );
 
-        $scope.showAddResourceModal = false;
-
-        $scope.showSm(newHtml);
-        //Disabled until we get teh Salat item update fix.
-        //$scope.save();
+        newHtml.$save({ itemId:$routeParams.itemId }, function (data) {
+            $scope.supportingMaterials.push(data);
+            $scope.showResource(data);
+            $scope.showAddResourceModal = false;
+        });
     };
 
-    $scope.calculateSmUploadUrl = function (file) {
+    $scope.calculateResourceUploadUrl = function (file) {
 
         $scope.showAddResourceModal = false;
 
         if (file == null) {
-            throw "ItemController:calculateSmUploadUrl - the file is null"
+            throw "ItemController:calculateResourceUploadUrl - the file is null"
         }
-        return $scope.getUrl("uploadSupportingMaterial", $routeParams.itemId, $scope.getSmFileName());
+        return $scope.getUrl("uploadSupportingMaterial", $routeParams.itemId, $scope.getResourceFileName());
     };
 
-    $scope.getSmFileName = function () {
-        if ($scope.newSmName == "Other") {
-            return $scope.newSmOtherName;
+    $scope.getResourceFileName = function () {
+        if ($scope.newResourceName == "Other") {
+            return $scope.newResourceOtherName;
         }
-        return $scope.newSmName;
+        return $scope.newResourceName;
     };
 
-    $scope.showEditButton = function (sm) {
-        function isSingleStoreFile(sm) {
-            return sm.files && sm.files.length == 1 && sm.files[0].storageKey;
+    $scope.showEditButton = function (resource) {
+        function isSingleStoreFile(resource) {
+            return resource.files && resource.files.length == 1 && resource.files[0].storageKey;
         }
 
-        return !isSingleStoreFile(sm);
+        return !isSingleStoreFile(resource);
     };
 
     /**
      * Result callback from the file upload
      * @param result - the json from the server with the StoredFile properties.
      */
-    $scope.onSmUploadCompleted = function (result) {
-        console.log("onSmUploadCompleted!!: " + result);
+    $scope.onResourceUploadCompleted = function (result) {
+        console.log("onResourceUploadCompleted!!: " + result);
 
         $scope.$apply(function () {
             var resultObject = $.parseJSON(result);
 
-            if (!$scope.itemData.supportingMaterials) {
-                $scope.itemData.supportingMaterials = [];
+            if (!$scope.supportingMaterials) {
+                $scope.supportingMaterials = [];
             }
 
-            $scope.itemData.supportingMaterials.push(resultObject);
-            $scope.showSm(resultObject);
+            $scope.supportingMaterials.push(resultObject);
+            $scope.showResource(resultObject);
             //no need to save - its already been saved by the upload
         });
     };
 
-    $scope.editSm = function (sm) {
-        $rootScope.$broadcast('enterEditor', sm, true);
+    $scope.editResource = function (resource) {
+        var url = ServiceLookup.getUrlFor('uploadSupportingMaterial');
+        url = url.replace("{itemId}", $routeParams.itemId)
+            .replace("{resourceName}", "materials/" + resource.name);
+        $rootScope.$broadcast('enterEditor', resource, true, url);
     };
 
-    $scope.removeSm = function (sm) {
+    $scope.$on('enterEditor', function(event){
+       $scope.isEditorActive = true;
+    });
 
-        if ($scope.itemData.supportingMaterials == null) {
+    $scope.$on('leaveEditor', function(event){
+        $scope.isEditorActive = false;
+    });
+
+    $scope.removeResource = function (resource) {
+
+        if ($scope.supportingMaterials == null) {
             throw "Can't remove from null array";
         }
 
-        var result = $scope.itemData.supportingMaterials.removeItem(sm);
-
-        if (result == sm) {
-
-            var deleteUrl = $scope.getUrl("deleteSupportingMaterial", $scope.itemId, sm.name);
-
-            function onDeleteSuccess(result) {
-
-                var resultObject = null;
-
-                if (typeof(result) == "string") {
-                    resultObject = $.parseJSON(result);
-                }
-                else {
-                    resultObject = result;
-                }
-
-                if (!resultObject.success) {
-                    console.warn("Couldn't delete the following resource: " + resultObject.key);
-                }
-            }
-
-            $.ajax({
-                type:"DELETE",
-                url:deleteUrl,
-                data:{}
-            }).done(onDeleteSuccess);
-
-        } else {
-            throw "Couldn't remove item from files: " + file.filename;
+        if (!resource) {
+            return;
         }
+
+        resource.$delete({itemId:$routeParams.itemId, resourceName:resource.name}, function (data) {
+            $scope.supportingMaterials.removeItem(data);
+        });
     };
 
     //TODO: dup from ItemController
@@ -192,24 +180,24 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, ItemSer
         return templateUrl.replace("{itemId}", itemId).replace("{fileName}", fileName)
     };
 
-    $scope.loadItem = function () {
-        ItemService.get(
+    $scope.loadMaterials = function () {
+        SupportingMaterial.query(
             {
-                id:$routeParams.itemId,
+                itemId:$routeParams.itemId,
                 access_token:AccessToken.token
             },
-            function onItemLoaded(itemData) {
-                $scope.itemData = itemData;
+            function onLoaded(data) {
+                $scope.supportingMaterials = data;
             });
     };
 
-    $scope.loadItem();
+    $scope.loadMaterials();
 }
 
 SupportingMaterialsController.$inject = [
     '$scope',
     '$rootScope',
     '$routeParams',
-    'ItemService',
+    'SupportingMaterial',
     'ServiceLookup',
     'AccessToken'];

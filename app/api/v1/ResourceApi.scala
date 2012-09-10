@@ -175,7 +175,7 @@ object ResourceApi extends BaseApi {
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
         item.supportingMaterials = item.supportingMaterials.filter(_.name != resourceName)
         Item.save(item)
-        Ok(toJson(item.supportingMaterials))
+        Ok("")
     }
   )
 

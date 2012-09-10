@@ -8,12 +8,17 @@ angular.module('tagger.services')
         var ServiceLookup = function () {
 
             this.services = {
+                //TODO: Do we need method here too? eg POST/PUT
+                materials: '/api/v1/items/:itemId/materials',
+                file: '/api/v1/items/:itemId/:resourceType/:resourceName',
+                createSupportingMaterial: '/api/v1/items/{itemId}/materials',
                 getAccessToken:'/web/access_token',
                 items:'/api/v1/items/:id',
                 uploadFileToMaterialResource: '/api/v1/items/{itemId}/materials/{materialName}/{filename}/upload',
                 //items: '/assets/mock-json/:id',
                 previewFile:'/web/runner/{key}',
-                uploadSupportingMaterial:'/api/v1/items/{itemId}/materials/{fileName}',
+                uploadSupportingMaterial:'/api/v1/items/{itemId}/{resourceName}/{filename}/upload',
+                uploadFileToData: '/api/v1/items/{itemId}/data/{filename}/upload',
                 deleteSupportingMaterial:'/api/v1/items/{itemId}/materials/{fileName}',
                 standardsTree:'/assets/web/standards_tree.json',
                 standards:'/api/v1/field_values/cc-standard',
@@ -24,6 +29,8 @@ angular.module('tagger.services')
                 deleteFile:'/tagger/delete/{itemId}/{fileName}'
             };
         };
+
+        ServiceLookup.CREATE_SUPPORTING_MATERIAL = "createSupportingMaterial";
 
         ServiceLookup.prototype.getUrlFor = function (name) {
             if (this.services.hasOwnProperty(name)) {

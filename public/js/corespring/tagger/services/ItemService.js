@@ -1,6 +1,36 @@
 window.servicesModule = ( window.servicesModule || angular.module('tagger.services', ['ngResource']));
 
 servicesModule
+    .factory('File',
+    [ '$resource', 'ServiceLookup', 'AccessToken',
+        function ($resource, ServiceLookup) {
+            return $resource(
+                ServiceLookup.getUrlFor('file') + '/:filename',
+                {},
+                {
+                   upload: { method: 'POST'}
+                }
+            );
+        }
+    ]);
+
+
+servicesModule
+    .factory('SupportingMaterial',
+    [ '$resource', 'ServiceLookup', 'AccessToken', function ($resource, ServiceLookup) {
+
+        return $resource(
+            ServiceLookup.getUrlFor('materials') + '/:resourceName',
+            {},
+            {
+                query:{ method:'GET', isArray:true},
+                delete:{ method:'DELETE', isArray:false}
+            }
+        );
+    }]);
+
+
+servicesModule
     .factory('ItemService', [ '$resource', 'ServiceLookup', 'AccessToken', function ($resource, ServiceLookup, AccessTokenService) {
 
     var ItemService = $resource(
@@ -11,13 +41,13 @@ servicesModule
             update:{ method:'PUT'},
             //Enable for mock services
             //query: { method: 'GET', params:{id:'list.json'}, isArray: true},
-            query: { method: 'GET', isArray: true},
+            query:{ method:'GET', isArray:true},
             count:{ method:'GET', isArray:false}
         }
     );
 
     ItemService.prototype.update = function (paramsObject, cb) {
-        var idObject = angular.extend( paramsObject, {id:this.id});
+        var idObject = angular.extend(paramsObject, {id:this.id});
 
         var copy = {};
         angular.copy(this, copy);
@@ -26,8 +56,8 @@ servicesModule
         delete copy.id;
 
         //TODO: This needs to be in the model - this is just a quick test.
-        if(copy.primarySubject && !copy.primarySubject.refId){
-           copy.primarySubject.refId = copy.primarySubject.id;
+        if (copy.primarySubject && !copy.primarySubject.refId) {
+            copy.primarySubject.refId = copy.primarySubject.id;
         }
 
         delete copy.primarySubject.subject;
@@ -93,8 +123,8 @@ servicesModule
                 if (pendingCallbacks === undefined) {
                     return;
                 }
-                _.forEach(pendingCallbacks, function(pc){
-                   pc(ItemService._currentItemService);
+                _.forEach(pendingCallbacks, function (pc) {
+                    pc(ItemService._currentItemService);
                 });
             });
         }

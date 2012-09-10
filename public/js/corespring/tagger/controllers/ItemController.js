@@ -84,7 +84,11 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     function enterEditorIfInContentPanel() {
 
         if ($scope.currentPanel == 'content' && $scope.itemData) {
-            $rootScope.$broadcast('enterEditor', $scope.itemData.data, false);
+
+            var url = ServiceLookup
+                .getUrlFor('uploadFileToData')
+                .replace("{itemId}", $routeParams.itemId);
+            $rootScope.$broadcast('enterEditor', $scope.itemData.data, false, url);
         }
         else {
             $rootScope.$broadcast('leaveEditor');
