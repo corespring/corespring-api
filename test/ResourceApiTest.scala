@@ -1,17 +1,10 @@
-import akka.dispatch.{Future}
 import api.ApiError
-import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{BasicDBObject, DBObject}
 import models.Item
-import org.specs2.mutable.Specification
-import play.api.libs.concurrent.Promise
-import play.api.libs.iteratee.{Iteratee, Enumerator}
-import play.api.libs.json.{JsValue, JsObject}
-import play.api.libs.ws.{Response, WS}
+import play.api.libs.json.JsValue
 import play.api.mvc.SimpleResult
 import play.api.Play
 import play.api.Play.current
-import play.api.test.TestServer
 import org.specs2.mutable._
 
 import play.api.test._
