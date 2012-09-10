@@ -54,7 +54,7 @@ object ResourceApiTest extends Specification {
       "create a new supporting material resource" in {
 
         val url = baseItemPath(testItem.id.toString) + "/materials"
-        val request = FakeRequest(PUT, url, FakeHeaders(), AnyContentAsEmpty)
+        val request = FakeRequest(POST, url, FakeHeaders(), AnyContentAsEmpty)
         routeAndCall(request) match {
           case Some(result) => {
             println(contentAsString(result))
@@ -67,7 +67,7 @@ object ResourceApiTest extends Specification {
 
         val r: Resource = Resource("newResource", Seq())
 
-        routeAndCall(FakeRequest(PUT, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
+        routeAndCall(FakeRequest(POST, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
           case Some(result) => {
             println(contentAsString(result))
             status(result) must equalTo(OK)
@@ -77,7 +77,7 @@ object ResourceApiTest extends Specification {
           }
         }
 
-        routeAndCall(FakeRequest(PUT, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
+        routeAndCall(FakeRequest(POST, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
           case Some(result) => {
             println(contentAsString(result))
             contentAsString(result).contains(ApiError.ResourceNameTaken.message) must equalTo(true)
@@ -96,7 +96,7 @@ object ResourceApiTest extends Specification {
         val url = baseItemPath(testItem.id.toString) + "/materials"
         val r: Resource = Resource("newResource2", Seq())
 
-        routeAndCall(FakeRequest(PUT, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r))))
+        routeAndCall(FakeRequest(POST, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r))))
         println("now delete...")
         routeAndCall(FakeRequest(DELETE, url + "/newResource2")) match {
           case Some(result) => {
