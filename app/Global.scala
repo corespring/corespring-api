@@ -25,6 +25,7 @@ import com.mongodb.casbah.Imports._
 import play.api.Play.current
 import com.novus.salat._
 import com.novus.salat.global._
+import dao.SalatInsertError
 import play.api.Application
 
 /**
@@ -107,23 +108,28 @@ object Global extends GlobalSettings {
       insertString(s, coll)
     }
 
-    def insertString(s: String, coll: MongoCollection) = coll.insert(JSON.parse(s).asInstanceOf[DBObject], coll.writeConcern)
+    def insertString(s: String, coll: MongoCollection) = try{
+      val wr = coll.insert(JSON.parse(s).asInstanceOf[DBObject], coll.writeConcern)
+      if(!wr.getLastError.ok()) Log.e("error on inserting")
+    }catch{
+      case e:SalatInsertError => Log.e("error on inserting: "+e.getMessage)
+    }
 
-    jsonLinesToDb(basePath + "orgs.json", Organization.collection)
-    jsonLinesToDb(basePath + "items.json", Content.collection)
-    jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
-    jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
-    jsonLinesToDb(basePath + "users.json", User.collection)
-    jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
-    jsonLinesToDb(basePath + "subjects.json", Subject.collection)
-    jsonLinesToDb(basePath + "standards.json", Standard.collection)
+      jsonLinesToDb(basePath + "orgs.json", Organization.collection)
+      jsonLinesToDb(basePath + "items.json", Content.collection)
+      jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
+      jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
+      jsonLinesToDb(basePath + "users.json", User.collection)
+      jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
+      jsonLinesToDb(basePath + "subjects.json", Subject.collection)
+      jsonLinesToDb(basePath + "standards.json", Standard.collection)
 
-    jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
-    //acces token stuff
-    AccessToken.collection.drop()
-    val creationDate = DateTime.now()
-    val token = AccessToken(new ObjectId("502404dd0364dc35bb393397"), None, "34dj45a769j4e1c0h4wb", creationDate, creationDate.plusHours(24))
-    AccessToken.insert(token)
+      jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
+      //acces token stuff
+      AccessToken.collection.drop()
+      val creationDate = DateTime.now()
+      val token = AccessToken(new ObjectId("502404dd0364dc35bb393397"), None, "34dj45a769j4e1c0h4wb", creationDate, creationDate.plusHours(24))
+      AccessToken.insert(token)
   }
 
 }

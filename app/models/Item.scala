@@ -309,9 +309,10 @@ object Item extends DBQueryable[Item]{
    qp.result match {
       case Right(query) =>
         val dbquery = query.result()
+        replaceKeys(dbquery,Standard.queryFields.map(qf => standards+"."+qf.key -> qf.key))
         val builder = MongoDBObject.newBuilder
         if(!dbquery.isEmpty){
-          val c = Standard.find(query.result(),MongoDBObject("_id" -> 1))
+          val c = Standard.find(dbquery,MongoDBObject("_id" -> 1))
           val builderList = MongoDBList.newBuilder
           if (!c.isEmpty){
             c.foreach(builderList += _.id)
@@ -323,6 +324,25 @@ object Item extends DBQueryable[Item]{
       case Left(e) => QueryParser(Left(e))
     }
   }
+  private def replaceKeys(dbo:DBObject,keys:Seq[(String,String)]){
+    keys.foreach(key => {
+      if(dbo.contains(key._1)){
+        val value = dbo.get(key._1)
+        dbo.remove(key._1)
+        dbo.put(key._2,value)
+      }
+    })
+    dbo.iterator.foreach(field => {
+      field._2 match {
+        case dblist:BasicDBList => dblist.foreach(value => value match {
+          case innerdbo:BasicDBObject => replaceKeys(innerdbo,keys)
+          case _ => Log.f("invalid query")
+        })
+        case innerdbo:BasicDBObject => replaceKeys(innerdbo,keys)
+        case _ =>
+      }
+    })
+  }
   private def removeKeys(dbo:DBObject,keys:Seq[String]){
     keys.foreach(key => dbo.remove(key))
     dbo.iterator.foreach(field => {
@@ -332,7 +352,7 @@ object Item extends DBQueryable[Item]{
           case _ => Log.f("invalid query")
         })
         case innerdbo:BasicDBObject => removeKeys(innerdbo,keys)
-        case _ => Log.f("invalid query")
+        case _ =>
       }
     })
   }

@@ -20,7 +20,7 @@ case class Standard(var dotNotation: Option[String] = None,
 
 object Standard extends DBQueryable[Standard]{
 
-  val collection = mongoCollection("cc-standards")
+  val collection = mongoCollection("ccstandards")
   val dao = new SalatDAO[Standard, ObjectId](collection = collection) {}
 
   val Id = "id"
