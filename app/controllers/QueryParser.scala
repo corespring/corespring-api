@@ -68,10 +68,10 @@ object QueryParser{
     acc.result match {
       case Right(builder) => field._1 match {
         case "$and" | "$or" => field._2 match {
-          case dblist:BasicDBList => if (dblist.exists(!_.isInstanceOf[DBObject])){
+          case dblist:BasicDBList => if (dblist.exists(!_.isInstanceOf[BasicDBObject])){
             acc.result = Left(InternalError("element in $and array was not a object",LogType.printError,true)); acc
           }else{
-            val results = dblist.map(dbo => dbo.asInstanceOf[DBObject].headOption match {
+            val results = dblist.map(dbo => dbo.asInstanceOf[BasicDBObject].headOption match {
               case Some(innerField) => parseOuterField(innerField,QueryParser(),includedFields)
               case None => QueryParser(Left(InternalError("empty object in "+field._1+" array",LogType.printError,true)))
             })
