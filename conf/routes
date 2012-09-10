@@ -57,6 +57,7 @@ GET     /api/v1/collections/:collId/items       api.v1.ItemApi.getItemsInCollect
 GET     /api/v1/items/:itemId/assets/:fileName  api.v1.FilesApi.getFile(itemId:String,fileName:String)
 
 # Resource api
+GET     /api/v1/items/:itemId/materials          api.v1.ResourceApi.getSupportingMaterials(itemId:String)
 POST    /api/v1/items/:itemId/materials/:materialName/:filename/upload   api.v1.ResourceApi.uploadFile(itemId:String, materialName : String, filename : String )
 POST    /api/v1/items/:itemId/resource/:filename/upload   api.v1.ResourceApi.uploadFileToData(itemId:String, filename : String )
 #GET     /api/v1/items/:itemId/materials/:name   api.v1.MaterialsApi.getMaterial(itemId:String, name : String)

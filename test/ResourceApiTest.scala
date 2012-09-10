@@ -1,7 +1,7 @@
 import api.ApiError
 import com.mongodb.{BasicDBObject, DBObject}
-import models.Item
-import play.api.libs.json.JsValue
+import models.{Resource, Item}
+import play.api.libs.json.{JsObject, Json, JsValue}
 import play.api.mvc.SimpleResult
 import play.api.Play
 import play.api.Play.current
@@ -9,6 +9,7 @@ import org.specs2.mutable._
 
 import play.api.test._
 import play.api.test.Helpers._
+import play.core.Router
 
 object ResourceApiTest extends Specification {
 
@@ -31,73 +32,83 @@ object ResourceApiTest extends Specification {
     }
   }
 
+  def baseItemPath(itemId: String) = {
+    "/api/v1/items/" + itemId
+  }
+
+  def testItem: Item = {
+    val query: DBObject = new BasicDBObject()
+    query.put("title", "NOT SURE THIS IS A GOOD ITEM? NO CONNECTION BETWEEN ITEM AND CHART?")
+    Item.findOne(query) match {
+      case Some(item) => item
+      case _ => throw new RuntimeException("test item")
+    }
+  }
+
+
   "resource api" should {
-    "do a binary post to supporting materials Resource" in {
 
-      running(FakeApplication()) {
 
-        val query: DBObject = new BasicDBObject()
-        query.put("title", "NOT SURE THIS IS A GOOD ITEM? NO CONNECTION BETWEEN ITEM AND CHART?")
-        Item.findOne(query) match {
-          case Some(item) => {
-            item.id.toString
+    running(FakeApplication()) {
 
-            println("itemId: " + item.id.toString)
-            val filename = "cute-rabbit.jpg"
-            val url = "/api/v1/items/" + item.id.toString + "/materials/Rubric/" + filename + "/upload"
-            val file = Play.getFile("test/files/" + filename)
-            val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
-            val byteArray = source.map(_.toByte).toArray
-            source.close()
 
-            //First upload should work
-            val firstCall = call(byteArray, url, OK, filename)
-            firstCall must equalTo((true,true))
-
-            //subsequent should file beacuse the filename is taken
-            val secondCall = call(byteArray, url, NOT_FOUND, ApiError.FilenameTaken.message)
-            secondCall must equalTo((true,true))
-
-            val badUrl = "/api/v1/items/" + item.id.toString + "/materials/badResourceName/" + filename + "/upload"
-
-            val thirdCall = call(byteArray, badUrl, NOT_FOUND, ApiError.ResourceNotFound.message)
-            thirdCall must equalTo((true,true))
-
+      "list an item's supporting materials" in {
+        val url = baseItemPath(testItem.id.toString) + "/materials"
+        routeAndCall(FakeRequest(GET, url)) match {
+          case Some(result) => {
+            val json: JsValue = Json.parse(contentAsString(result.asInstanceOf[SimpleResult[JsValue]]))
+            val seq: Seq[JsObject] = json.as[Seq[JsObject]]
+            seq.length must equalTo(1)
+            val jsItem = seq(0)
+            (jsItem \ "name").asOpt[String] must equalTo(Some("Rubric"))
           }
-          case _ => throw new RuntimeException("can't find upload test item.")
+          case _ => throw new RuntimeException("call failed")
         }
       }
-    }
 
-    "do a binary post to Item.data resource" in {
+      "do a binary post to supporting materials Resource" in {
 
-      running(FakeApplication()) {
+        val item = testItem
+        val filename = "cute-rabbit.jpg"
+        val url = baseItemPath(item.id.toString) + "/materials/Rubric/" + filename + "/upload"
+        val file = Play.getFile("test/files/" + filename)
+        val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
+        val byteArray = source.map(_.toByte).toArray
+        source.close()
 
-        val query: DBObject = new BasicDBObject()
-        query.put("title", "NOT SURE THIS IS A GOOD ITEM? NO CONNECTION BETWEEN ITEM AND CHART?")
-        Item.findOne(query) match {
-          case Some(item) => {
-            item.id.toString
+        //First upload should work
+        val firstCall = call(byteArray, url, OK, filename)
+        firstCall must equalTo((true, true))
 
-            println("itemId: " + item.id.toString)
-            val filename = "cute-rabbit.jpg"
-            val url = "/api/v1/items/" + item.id.toString + "/resource/" + filename + "/upload"
-            val file = Play.getFile("test/files/" + filename)
-            val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
-            val byteArray = source.map(_.toByte).toArray
-            source.close()
+        //subsequent should file beacuse the filename is taken
+        val secondCall = call(byteArray, url, NOT_FOUND, ApiError.FilenameTaken.message)
+        secondCall must equalTo((true, true))
 
-            //First upload should work
-            val firstCall = call(byteArray, url, OK, filename)
-            firstCall must equalTo((true,true))
+        val badUrl = baseItemPath(item.id.toString) + "/materials/badResourceName/" + filename + "/upload"
 
-            //subsequent should file beacuse the filename is taken
-            val secondCall = call(byteArray, url, NOT_FOUND, ApiError.FilenameTaken.message)
-            secondCall must equalTo((true,true))
-          }
-          case _ => throw new RuntimeException("can't find upload test item.")
-        }
+        val thirdCall = call(byteArray, badUrl, NOT_FOUND, ApiError.ResourceNotFound.message)
+        thirdCall must equalTo((true, true))
+      }
+
+      "do a binary post to Item.data resource" in {
+
+        val item = testItem
+        val filename = "cute-rabbit.jpg"
+        val url = baseItemPath(item.id.toString) + "/resource/" + filename + "/upload"
+        val file = Play.getFile("test/files/" + filename)
+        val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
+        val byteArray = source.map(_.toByte).toArray
+        source.close()
+
+        //First upload should work
+        val firstCall = call(byteArray, url, OK, filename)
+        firstCall must equalTo((true, true))
+
+        //subsequent should file beacuse the filename is taken
+        val secondCall = call(byteArray, url, NOT_FOUND, ApiError.FilenameTaken.message)
+        secondCall must equalTo((true, true))
       }
     }
   }
 }
+

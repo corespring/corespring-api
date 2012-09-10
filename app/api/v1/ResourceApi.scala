@@ -14,7 +14,8 @@ object ResourceApi extends BaseApi {
 
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
-  private val USE_ITEM_DATA_KEY : String = "__!data!__"
+  private val USE_ITEM_DATA_KEY: String = "__!data!__"
+
   /**
    * A wrapping Action that checks that an Item with the given id exists.
    * @param itemId - the item id
@@ -28,20 +29,36 @@ object ResourceApi extends BaseApi {
                          action: Action[A]) extends Action[A] {
 
     def apply(request: Request[A]): Result = {
-      Item.findOneById(new ObjectId(itemId)) match {
-        case Some(item) => {
+      val id = objectId(itemId)
 
-          val errors : Seq[ApiError] = additionalChecks.flatMap( _(item) )
+      id match {
+        case Some(validId) => {
+          Item.findOneById(new ObjectId(itemId)) match {
+            case Some(item) => {
 
-          if (errors.length == 0) {
-            action(request)
-          }
-          else {
-            //TODO: Only returning the first error
-            NotFound(toJson(errors(0)))
+              val errors: Seq[ApiError] = additionalChecks.flatMap(_(item))
+
+              if (errors.length == 0) {
+                action(request)
+              }
+              else {
+                //TODO: Only returning the first error
+                NotFound(toJson(errors(0)))
+              }
+            }
+            case _ => NotFound
           }
         }
         case _ => NotFound
+      }
+    }
+
+    private def objectId(itemId: String): Option[ObjectId] = {
+      try {
+        Some(new ObjectId(itemId))
+      }
+      catch {
+        case e : Exception => None
       }
     }
 
@@ -57,7 +74,7 @@ object ResourceApi extends BaseApi {
   def uploadFileToData(itemId: String, filename: String) =
     HasItem(
       itemId,
-      Seq( isFilenameTaken(filename, USE_ITEM_DATA_KEY)),
+      Seq(isFilenameTaken(filename, USE_ITEM_DATA_KEY)),
       Action(S3Service.s3upload(AMAZON_ASSETS_BUCKET, itemId + "/resource/" + filename)) {
         request =>
 
@@ -87,7 +104,7 @@ object ResourceApi extends BaseApi {
     HasItem(itemId,
       Seq(
         canFindResource(materialName)(_),
-        isFilenameTaken(filename,materialName)(_)
+        isFilenameTaken(filename, materialName)(_)
       ),
 
       Action(S3Service.s3upload(AMAZON_ASSETS_BUCKET, storageKey(itemId, materialName, filename))) {
@@ -105,6 +122,13 @@ object ResourceApi extends BaseApi {
           Ok(toJson(file))
       }
     )
+
+  def getSupportingMaterials(itemId: String) = HasItem(itemId, Seq(), Action {
+    request =>
+      val item = Item.findOneById(new ObjectId(itemId)).get
+      Ok(toJson(item.supportingMaterials))
+  }
+  )
 
 
   val SuffixToContentTypes = Map(
@@ -127,27 +151,28 @@ object ResourceApi extends BaseApi {
    * check that the item contains a supportingMaterial resource with the supplied name.
    */
   private def canFindResource(resourceName: String)(item: Item): Option[ApiError] = {
-    if( item.supportingMaterials.exists(_.name == resourceName) ){
-     None
+    if (item.supportingMaterials.exists(_.name == resourceName)) {
+      None
     }
     else {
       Some(ApiError.ResourceNotFound(Some(resourceName)))
     }
   }
 
-  private def getResource(item:Item, resourceName:String) : Option[Resource] = {
-    if ( resourceName == USE_ITEM_DATA_KEY ){
+  private def getResource(item: Item, resourceName: String): Option[Resource] = {
+    if (resourceName == USE_ITEM_DATA_KEY) {
       item.data
     } else {
-      item.supportingMaterials.find( _.name == resourceName )
+      item.supportingMaterials.find(_.name == resourceName)
     }
 
   }
-  private def isFilenameTaken(filename: String, resourceName:String)(item:Item) : Option[ApiError] = {
+
+  private def isFilenameTaken(filename: String, resourceName: String)(item: Item): Option[ApiError] = {
 
     getResource(item, resourceName) match {
       case Some(r) => {
-        if(r.files.exists(_.name == filename)){
+        if (r.files.exists(_.name == filename)) {
           Some(ApiError.FilenameTaken(Some(filename)))
         }
         else {
