@@ -1,15 +1,14 @@
 import api.ApiError
 import com.mongodb.{BasicDBObject, DBObject}
 import models.{Resource, Item}
-import play.api.libs.json.{JsObject, Json, JsValue}
-import play.api.mvc.SimpleResult
+import play.api.libs.json.{JsString, JsObject, Json, JsValue}
+import play.api.mvc.{AnyContentAsEmpty, AnyContentAsJson, SimpleResult}
 import play.api.Play
 import play.api.Play.current
 import org.specs2.mutable._
 
 import play.api.test._
 import play.api.test.Helpers._
-import play.core.Router
 
 object ResourceApiTest extends Specification {
 
@@ -50,6 +49,64 @@ object ResourceApiTest extends Specification {
 
 
     running(FakeApplication()) {
+
+
+      "create a new supporting material resource" in {
+
+        val url = baseItemPath(testItem.id.toString) + "/materials"
+        val request = FakeRequest(PUT, url, FakeHeaders(), AnyContentAsEmpty)
+        routeAndCall(request) match {
+          case Some(result) => {
+            println(contentAsString(result))
+            status(result) must equalTo(BAD_REQUEST)
+          }
+          case _ => {
+            throw new RuntimeException("Request failed")
+          }
+        }
+
+        val r: Resource = Resource("newResource", Seq())
+
+        routeAndCall(FakeRequest(PUT, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
+          case Some(result) => {
+            println(contentAsString(result))
+            status(result) must equalTo(OK)
+          }
+          case _ => {
+            throw new RuntimeException("Request failed")
+          }
+        }
+
+        routeAndCall(FakeRequest(PUT, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
+          case Some(result) => {
+            println(contentAsString(result))
+            contentAsString(result).contains(ApiError.ResourceNameTaken.message) must equalTo(true)
+            status(result) must equalTo(NOT_ACCEPTABLE)
+          }
+          case _ => {
+            throw new RuntimeException("Request failed")
+          }
+        }
+        //tidy up
+        routeAndCall(FakeRequest(DELETE, url + "/newResource"))
+        true must equalTo(true)
+      }
+
+      "delete a new supporting material resource" in {
+        val url = baseItemPath(testItem.id.toString) + "/materials"
+        val r: Resource = Resource("newResource2", Seq())
+
+        routeAndCall(FakeRequest(PUT, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r))))
+        println("now delete...")
+        routeAndCall(FakeRequest(DELETE, url + "/newResource2")) match {
+          case Some(result) => {
+            println(contentAsString(result))
+            status(result) must equalTo(OK)
+          }
+          case _ => throw new RuntimeException("Request Failed")
+        }
+
+      }
 
 
       "list an item's supporting materials" in {

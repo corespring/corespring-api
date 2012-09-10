@@ -9,6 +9,8 @@ import play.api.Logger
 import com.typesafe.config.ConfigFactory
 import play.api.libs.json.Json._
 import api.ApiError
+import play.api.libs.json.Json
+import com.sun.jndi.dns.ResourceRecord
 
 object ResourceApi extends BaseApi {
 
@@ -58,7 +60,7 @@ object ResourceApi extends BaseApi {
         Some(new ObjectId(itemId))
       }
       catch {
-        case e : Exception => None
+        case e: Exception => None
       }
     }
 
@@ -127,9 +129,44 @@ object ResourceApi extends BaseApi {
     request =>
       val item = Item.findOneById(new ObjectId(itemId)).get
       Ok(toJson(item.supportingMaterials))
-  }
-  )
+  })
 
+  def createSupportingMaterial(itemId: String) = HasItem(itemId,
+    Seq(),
+    Action {
+      request =>
+        request.body.asJson match {
+          case Some(json) => {
+
+            json.asOpt[Resource] match {
+              case Some(foundResource) => {
+                val item = Item.findOneById(new ObjectId(itemId)).get
+                isResourceNameTaken(foundResource.name)(item) match {
+                  case Some(error) => NotAcceptable(toJson(error))
+                  case _ => {
+                    item.supportingMaterials = item.supportingMaterials ++ Seq[Resource](foundResource)
+                    Item.save(item)
+                    Ok(toJson(foundResource))
+                  }
+                }
+              }
+              case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
+            }
+          }
+          case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
+        }
+    })
+
+  def deleteSupportingMaterial(itemId: String, resourceName: String) = HasItem(itemId,
+    Seq(canFindResource(resourceName)(_)),
+    Action {
+      request =>
+        val item : Item = Item.findOneById(new ObjectId(itemId)).get
+        item.supportingMaterials = item.supportingMaterials.filter( _.name != resourceName )
+        Item.save(item)
+        Ok(toJson(item.supportingMaterials))
+    }
+  )
 
   val SuffixToContentTypes = Map(
     "jpg" -> "image/jpg",
@@ -166,6 +203,13 @@ object ResourceApi extends BaseApi {
       item.supportingMaterials.find(_.name == resourceName)
     }
 
+  }
+
+  private def isResourceNameTaken(resourceName: String)(item: Item): Option[ApiError] = {
+    getResource(item, resourceName) match {
+      case Some(r) => Some(ApiError.ResourceNameTaken(Some(resourceName)))
+      case _ => None
+    }
   }
 
   private def isFilenameTaken(filename: String, resourceName: String)(item: Item): Option[ApiError] = {
