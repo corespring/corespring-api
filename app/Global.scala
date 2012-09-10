@@ -121,6 +121,9 @@ object Global extends GlobalSettings {
     }
 
     def jsonFileToItem(jsonPath: String, coll: MongoCollection, drop : Boolean = true) {
+      if(drop){
+        coll.drop()
+      }
       val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
       val item = Item.ItemReads.reads(Json.parse(s))
       Item.save(item)

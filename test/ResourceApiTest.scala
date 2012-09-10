@@ -1,9 +1,11 @@
 import akka.dispatch.{Future}
+import api.ApiError
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{BasicDBObject, DBObject}
 import models.Item
 import org.specs2.mutable.Specification
 import play.api.libs.concurrent.Promise
+import play.api.libs.iteratee.{Iteratee, Enumerator}
 import play.api.libs.json.{JsValue, JsObject}
 import play.api.libs.ws.{Response, WS}
 import play.api.mvc.SimpleResult
@@ -20,6 +22,25 @@ object ResourceApiTest extends Specification {
   "resource api" should {
     "do a binary post" in {
 
+      def call(byteArray: Array[Byte], url: String, expectedStatus: Int, expectedContains: String): (Boolean, Boolean) = {
+
+        routeAndCall(
+          FakeRequest(
+            POST,
+            url,
+            FakeHeaders(Map("Content" -> List("application/octet-stream"))),
+            byteArray)) match {
+          case Some(result) => {
+            val simpleResult = result.asInstanceOf[SimpleResult[JsValue]]
+            val stringResult = contentAsString(simpleResult)
+            (status(result) == expectedStatus, stringResult.contains(expectedContains))
+          }
+          case _ => {
+            throw new RuntimeException("Error with call")
+          }
+        }
+      }
+
       running(FakeApplication()) {
 
         val query: DBObject = new BasicDBObject()
@@ -27,6 +48,8 @@ object ResourceApiTest extends Specification {
         Item.findOne(query) match {
           case Some(item) => {
             item.id.toString
+
+            println("itemId: " + item.id.toString)
             val filename = "cute-rabbit.jpg"
             val url = "/api/v1/items/" + item.id.toString + "/resource/" + filename + "/upload"
             val file = Play.getFile("test/files/" + filename)
@@ -34,27 +57,13 @@ object ResourceApiTest extends Specification {
             val byteArray = source.map(_.toByte).toArray
             source.close()
 
-            routeAndCall(
-              FakeRequest(
-                POST,
-                url,
-                FakeHeaders(Map("Content" -> List("application/octet-stream"))),
-                byteArray)) match {
-              case Some(result) => {
-                println("result:")
-                println(result)
-                val simpleResult = result.asInstanceOf[SimpleResult[Any]]
-                //work in progress
-                //println(simpleResult.body.asInstanceOf[JsValue])
-                //val actualResult = result.apply(FakeRequest())
-                //status(actualResult) must equalTo(OK)
-              }
-              case _ => {
-                throw new RuntimeException("Error with call")
-              }
-            }
+            //First upload should work
+            val firstCall = call(byteArray, url, OK, filename)
+            firstCall must equalTo((true,true))
 
-            true mustEqual true
+            //subsequent should file beacuse the filename is taken
+            val secondCall = call(byteArray, url, NOT_FOUND, ApiError.FilenameTaken.message)
+            secondCall must equalTo((true,true))
           }
           case _ => throw new RuntimeException("can't find upload test item.")
         }
