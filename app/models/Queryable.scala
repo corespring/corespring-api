@@ -20,15 +20,7 @@ trait Queryable[T <: AnyRef]{
   val queryFields:Seq[QueryField[T]];
   def preParse(dbo:DBObject):QueryParser = QueryParser()
 }
-trait DBQueryable[ObjectType <: AnyRef] extends ModelCompanion[ObjectType,ObjectId] with Queryable[ObjectType]{
-  override def preParse(dbo:DBObject):QueryParser = {
-    if(dbo.contains("id")){
-      val value = dbo.get("id")
-      dbo.remove("id"); dbo.put("_id",value)
-    }
-   QueryParser()
-  }
-}
+trait DBQueryable[ObjectType <: AnyRef] extends ModelCompanion[ObjectType,ObjectId] with Queryable[ObjectType]
 
 /**
  * used for wrapping the attributes of a queryable object

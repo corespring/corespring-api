@@ -13,7 +13,38 @@ case class QueryParser(var result:Either[InternalError,mutable.Builder[(String,A
   }
 }
 object QueryParser{
-
+  def replaceKeys(dbo:DBObject,keys:Seq[(String,String)]){
+    keys.foreach(key => {
+      if(dbo.contains(key._1)){
+        val value = dbo.get(key._1)
+        dbo.remove(key._1)
+        dbo.put(key._2,value)
+      }
+    })
+    dbo.iterator.foreach(field => {
+      field._2 match {
+        case dblist:BasicDBList => dblist.foreach(value => value match {
+          case innerdbo:BasicDBObject => replaceKeys(innerdbo,keys)
+          case _ => Log.f("invalid query")
+        })
+        case innerdbo:BasicDBObject => replaceKeys(innerdbo,keys)
+        case _ =>
+      }
+    })
+  }
+  def removeKeys(dbo:DBObject,keys:Seq[String]){
+    keys.foreach(key => dbo.remove(key))
+    dbo.iterator.foreach(field => {
+      field._2 match {
+        case dblist:BasicDBList => dblist.foreach(value => value match {
+          case innerdbo:BasicDBObject => removeKeys(innerdbo,keys)
+          case _ => Log.f("invalid query")
+        })
+        case innerdbo:BasicDBObject => removeKeys(innerdbo,keys)
+        case _ =>
+      }
+    })
+  }
   /**
    *
    * @param query

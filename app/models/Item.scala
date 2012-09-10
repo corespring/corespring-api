@@ -271,9 +271,6 @@ object Item extends DBQueryable[Item]{
       }catch{
         case e:IllegalArgumentException => throw new JsonValidationException(id)
       }
-      queryFields.foreach(queryField =>
-        if (queryField.isValueValid(queryField.key,queryField.value(item)).isLeft) throw new JsonValidationException(queryField.key)
-      )
       item
     }
   }
@@ -326,33 +323,29 @@ object Item extends DBQueryable[Item]{
       }
     }),
     QueryFieldString[Item](itemTypeOther,_.itemTypeOther),
-    QueryFieldStringArray[Item](keySkills,_.keySkills, value => {
-      value match {
+    QueryFieldStringArray[Item](keySkills,_.keySkills, value => value match {
         case skills:BasicDBList => if(skills.foldRight[Boolean](true)((skill,acc) => fieldValues.keySkills.exists(_.key == skill.toString) && acc)) Right(value)
           else Left(InternalError("key skill not found for given value"))
         case _ => Left(InternalError("invalid value type for keySkills"))
       }
-    }),
-    QueryFieldString[Item](licenseType,_.licenseType, value => {
-      value match {
+    ),
+    QueryFieldString[Item](licenseType,_.licenseType, value => value match {
         case x:String => if(fieldValues.licenseTypes.exists(_.key == x)) Right(value) else Left(InternalError("license type not found"))
         case _ => Left(InternalError("invalid value type for licenceType"))
       }
-    }),
+    ),
     QueryFieldObject[Item](primarySubject,_.primarySubject,innerQueryFields = ItemSubject.queryFields),
-    QueryFieldStringArray[Item](priorUse,_.priorUse, value => {
-      value match {
+    QueryFieldStringArray[Item](priorUse,_.priorUse, value => value match {
         case x:String => if(fieldValues.priorUses.exists(_.key == x)) Right(value) else Left(InternalError("priorUse not found"))
         case _ => Left(InternalError("invalid value type for priorUse"))
       }
-    }),
-    QueryFieldStringArray[Item](reviewsPassed,_.reviewsPassed, value => {
-      value match {
+    ),
+    QueryFieldStringArray[Item](reviewsPassed,_.reviewsPassed, value => value match {
         case reviews:BasicDBList => if(reviews.foldRight[Boolean](true)((review,acc) => fieldValues.reviewsPassed.exists(_.key == review.toString) && acc)) Right(value)
           else Left(InternalError("review not found"))
         case _ => Left(InternalError("invalid value type for reviewsPassed"))
       }
-    }),
+    ),
     QueryFieldString[Item](sourceUrl,_.sourceUrl),
     QueryFieldObjectArray[Item](standards,_.standards, _ match {
       case x:BasicDBList => x.foldRight[Either[InternalError,Seq[ObjectId]]](Right(Seq()))((standard,acc) => {
@@ -381,7 +374,7 @@ object Item extends DBQueryable[Item]{
    qp.result match {
       case Right(query) =>
         val dbquery = query.result()
-        replaceKeys(dbquery,Standard.queryFields.map(qf => standards+"."+qf.key -> qf.key))
+        QueryParser.replaceKeys(dbquery,Standard.queryFields.map(qf => standards+"."+qf.key -> qf.key))
         val builder = MongoDBObject.newBuilder
         if(!dbquery.isEmpty){
           val c = Standard.find(dbquery,MongoDBObject("_id" -> 1))
@@ -391,41 +384,9 @@ object Item extends DBQueryable[Item]{
             builder += (standards -> MongoDBObject("$in" -> builderList.result()))
           }
         }
-        removeKeys(dbo,Standard.queryFields.foldRight[Seq[String]](Seq(standards))((qf,acc) => acc :+ standards+"."+qf.key))
+        QueryParser.removeKeys(dbo,Standard.queryFields.foldRight[Seq[String]](Seq(standards))((qf,acc) => acc :+ standards+"."+qf.key))
         QueryParser(Right(builder))
       case Left(e) => QueryParser(Left(e))
     }
-  }
-  private def replaceKeys(dbo:DBObject,keys:Seq[(String,String)]){
-    keys.foreach(key => {
-      if(dbo.contains(key._1)){
-        val value = dbo.get(key._1)
-        dbo.remove(key._1)
-        dbo.put(key._2,value)
-      }
-    })
-    dbo.iterator.foreach(field => {
-      field._2 match {
-        case dblist:BasicDBList => dblist.foreach(value => value match {
-          case innerdbo:BasicDBObject => replaceKeys(innerdbo,keys)
-          case _ => Log.f("invalid query")
-        })
-        case innerdbo:BasicDBObject => replaceKeys(innerdbo,keys)
-        case _ =>
-      }
-    })
-  }
-  private def removeKeys(dbo:DBObject,keys:Seq[String]){
-    keys.foreach(key => dbo.remove(key))
-    dbo.iterator.foreach(field => {
-      field._2 match {
-        case dblist:BasicDBList => dblist.foreach(value => value match {
-          case innerdbo:BasicDBObject => removeKeys(innerdbo,keys)
-          case _ => Log.f("invalid query")
-        })
-        case innerdbo:BasicDBObject => removeKeys(innerdbo,keys)
-        case _ =>
-      }
-    })
   }
 }
