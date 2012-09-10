@@ -1,4 +1,5 @@
 import api.ApiError
+import api.v1.ResourceApi
 import com.mongodb.{BasicDBObject, DBObject}
 import models.{Resource, Item}
 import play.api.libs.json.{JsString, JsObject, Json, JsValue}
@@ -151,7 +152,7 @@ object ResourceApiTest extends Specification {
 
         val item = testItem
         val filename = "cute-rabbit.jpg"
-        val url = baseItemPath(item.id.toString) + "/resource/" + filename + "/upload"
+        val url = baseItemPath(item.id.toString) + "/" + ResourceApi.DATA_PATH +"/" + filename + "/upload"
         val file = Play.getFile("test/files/" + filename)
         val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
         val byteArray = source.map(_.toByte).toArray

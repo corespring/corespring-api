@@ -1,6 +1,6 @@
 package api.v1
 
-import play.api.mvc.{Result, Request, BodyParser, Action}
+import play.api.mvc._
 import controllers.auth.BaseApi
 import models.{Resource, StoredFile, Item}
 import org.bson.types.ObjectId
@@ -11,12 +11,23 @@ import play.api.libs.json.Json._
 import api.ApiError
 import play.api.libs.json.Json
 import com.sun.jndi.dns.ResourceRecord
+import scala.Some
 
 object ResourceApi extends BaseApi {
 
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
   private val USE_ITEM_DATA_KEY: String = "__!data!__"
+
+  val DATA_PATH : String = "data"
+
+  /**
+   * A class that adds an AuthorizationContext to the Request object
+   * @param item - the found item
+   * @param r - the Request
+   * @tparam A - the type determining the type of the body parser (eg: AnyContent)
+   */
+  case class ItemRequest[A](item: Item, r: Request[A]) extends WrappedRequest(r)
 
   /**
    * A wrapping Action that checks that an Item with the given id exists.
@@ -41,7 +52,8 @@ object ResourceApi extends BaseApi {
               val errors: Seq[ApiError] = additionalChecks.flatMap(_(item))
 
               if (errors.length == 0) {
-                action(request)
+                action(ItemRequest(item, request))
+                //action(request)
               }
               else {
                 //TODO: Only returning the first error
@@ -77,21 +89,20 @@ object ResourceApi extends BaseApi {
     HasItem(
       itemId,
       Seq(isFilenameTaken(filename, USE_ITEM_DATA_KEY)),
-      Action(S3Service.s3upload(AMAZON_ASSETS_BUCKET, itemId + "/resource/" + filename)) {
+      Action(S3Service.s3upload(AMAZON_ASSETS_BUCKET, itemId + "/"+DATA_PATH+"/" + filename)) {
         request =>
+            val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+            val resource = item.data.get
 
-          val item = Item.findOneById(new ObjectId(itemId)).get
-          val resource = item.data.get
+            val file = new StoredFile(
+              filename,
+              contentType(filename),
+              false,
+              itemId + "/"+DATA_PATH+"/" + filename)
 
-          val file = new StoredFile(
-            filename,
-            contentType(filename),
-            false,
-            itemId + "/resource/" + filename)
-
-          resource.files = resource.files ++ Seq(file)
-          Item.save(item)
-          Ok(toJson(file))
+            resource.files = resource.files ++ Seq(file)
+            Item.save(item)
+            Ok(toJson(file))
       }
     )
 
@@ -111,7 +122,7 @@ object ResourceApi extends BaseApi {
 
       Action(S3Service.s3upload(AMAZON_ASSETS_BUCKET, storageKey(itemId, materialName, filename))) {
         request =>
-          val item = Item.findOneById(new ObjectId(itemId)).get
+          val item = request.asInstanceOf[ItemRequest[AnyContent]].item
           val resource = item.supportingMaterials.find(_.name == materialName).get
 
           val file = new StoredFile(
@@ -127,7 +138,7 @@ object ResourceApi extends BaseApi {
 
   def getSupportingMaterials(itemId: String) = HasItem(itemId, Seq(), Action {
     request =>
-      val item = Item.findOneById(new ObjectId(itemId)).get
+      val item = request.asInstanceOf[ItemRequest[AnyContent]].item
       Ok(toJson(item.supportingMaterials))
   })
 
@@ -140,7 +151,7 @@ object ResourceApi extends BaseApi {
 
             json.asOpt[Resource] match {
               case Some(foundResource) => {
-                val item = Item.findOneById(new ObjectId(itemId)).get
+                val item = request.asInstanceOf[ItemRequest[AnyContent]].item
                 isResourceNameTaken(foundResource.name)(item) match {
                   case Some(error) => NotAcceptable(toJson(error))
                   case _ => {
@@ -161,8 +172,8 @@ object ResourceApi extends BaseApi {
     Seq(canFindResource(resourceName)(_)),
     Action {
       request =>
-        val item : Item = Item.findOneById(new ObjectId(itemId)).get
-        item.supportingMaterials = item.supportingMaterials.filter( _.name != resourceName )
+        val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+        item.supportingMaterials = item.supportingMaterials.filter(_.name != resourceName)
         Item.save(item)
         Ok(toJson(item.supportingMaterials))
     }
