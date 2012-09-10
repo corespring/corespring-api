@@ -92,7 +92,6 @@ object ResourceApi extends BaseApi {
 
       Action(S3Service.s3upload(AMAZON_ASSETS_BUCKET, storageKey(itemId, materialName, filename))) {
         request =>
-
           val item = Item.findOneById(new ObjectId(itemId)).get
           val resource = item.supportingMaterials.find(_.name == materialName).get
 
@@ -102,9 +101,7 @@ object ResourceApi extends BaseApi {
             false,
             storageKey(itemId, materialName, filename))
           resource.files = resource.files ++ Seq(file)
-
           Item.save(item)
-
           Ok(toJson(file))
       }
     )
