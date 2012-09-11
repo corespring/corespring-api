@@ -131,9 +131,7 @@ object ResourceApiTest extends Specification {
             println(contentAsString(result))
             status(result) must equalTo(BAD_REQUEST)
           }
-          case _ => {
-            throw new RuntimeException("Request failed")
-          }
+          case _ => failure("Request failed")
         }
 
         val r: Resource = Resource("newResource", Seq())
