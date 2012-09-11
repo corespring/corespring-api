@@ -83,12 +83,61 @@ object ResourceApi extends BaseApi {
       }
     }
 
-//    lazy val parser = action.parser
-//  }
-
   def HasItem(itemId: String,
               additionalChecks: Seq[Item => Option[ApiError]] = Seq(),
               action: ItemRequest[AnyContent] => Result): Action[AnyContent] = HasItem(itemId, additionalChecks, parse.anyContent)(action)
+
+  private def removeFileFromResource(item:Item,resource:Resource, filename:String) : Result = {
+    resource.files.find(_.name == filename) match {
+      case Some(f) => {
+        resource.files = resource.files.filter(_.name != filename)
+        if(f.isInstanceOf[StoredFile]){
+          S3Service.delete(AMAZON_ASSETS_BUCKET, f.asInstanceOf[StoredFile].storageKey)
+        }
+          if(f.isMain && resource.files.length > 0){
+          var isMainValue = true
+          resource.files = resource.files.map( (bf:BaseFile) => {
+            val copy = copyFile(bf, Some(isMainValue))
+            isMainValue = false
+            copy
+          })
+        }
+        
+        Item.save(item)
+        Ok
+      }
+      case _ => NotFound(filename)
+    }
+  }
+
+  def deleteSupportingMaterialFile(itemId:String, resourceName:String, filename:String) = HasItem(
+    itemId,
+    Seq(),
+    Action {
+      request =>
+      val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+      item.supportingMaterials.find(_.name == resourceName) match {
+        case Some(r) => {
+          removeFileFromResource(item,r,filename) 
+        }
+        case _ => NotFound(resourceName)
+      }
+    }
+  )
+  
+  def deleteDataFile(itemId:String, filename:String) = HasItem(
+    itemId,
+    Seq(),
+    Action {
+      request =>
+      val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+      if( filename == DEFAULT_DATA_FILE_NAME ){
+        BadRequest("Can't delete " + DEFAULT_DATA_FILE_NAME)
+      } else {
+        removeFileFromResource(item, item.data.get, filename)
+      }
+    }
+  )
 
   def createSupportingMaterialFile(itemId: String, resourceName: String) = HasItem(
     itemId,
@@ -142,7 +191,24 @@ object ResourceApi extends BaseApi {
 
   private def ensureDataFileIsMainIsCorrect(file:BaseFile) : BaseFile = {
     val isMain = file.name == DEFAULT_DATA_FILE_NAME
-    VirtualFile(file.name, file.contentType, isMain = isMain, content = file.asInstanceOf[VirtualFile].content)
+    copyFile(file, Some(isMain))
+  }
+
+  private def copyFile(file:BaseFile, enforceIsMain : Option[Boolean]) : BaseFile = {
+
+    def _copy(file:BaseFile, isMain:Boolean) : BaseFile = {
+      if( file.isInstanceOf[VirtualFile]) 
+        VirtualFile(file.name, file.contentType, isMain = isMain, content = file.asInstanceOf[VirtualFile].content)
+      else if( file.isInstanceOf[StoredFile]) 
+        StoredFile(file.name, file.contentType, isMain = isMain, storageKey = file.asInstanceOf[StoredFile].storageKey)      
+      else 
+        throw new RuntimeException("Unknown file type")
+    }
+
+    enforceIsMain match {
+      case Some(b) => _copy(file, b) 
+      case _ => _copy(file, file.isMain) 
+    }
   }
 
   def updateDataFile(itemId: String, filename:String) = HasItem(
@@ -156,6 +222,13 @@ object ResourceApi extends BaseApi {
             item.data.get.files.find(_.name == filename) match {
               case Some(f) => {
                 val processedUpdate = ensureDataFileIsMainIsCorrect(update)
+
+
+                //we don't get the storage key in the request so we need to copy it across
+                if(processedUpdate.isInstanceOf[StoredFile]){
+                 processedUpdate.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey 
+                }
+
                 item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf )
                 Item.save(item)
                 Ok(toJson(processedUpdate))
@@ -171,7 +244,8 @@ object ResourceApi extends BaseApi {
   private def getFileFromJson(body:AnyContent) : Option[BaseFile] = {
    body.asJson match {
      case Some(json) => {
-      json.asOpt[BaseFile]
+      val file = json.asOpt[BaseFile]
+      file
      }
      case _ => None
    }
@@ -189,6 +263,12 @@ object ResourceApi extends BaseApi {
               case Some(resource) => {
                 resource.files.find(_.name == filename) match {
                   case Some(f) => {
+                    
+                    //we don't get the storage key in the request so we need to copy it across
+                    if(update.isInstanceOf[StoredFile]){
+                     update.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey 
+                    }
+
                     if (update.isMain){
                       unsetIsMain(resource)
                     }
@@ -218,8 +298,8 @@ object ResourceApi extends BaseApi {
       itemId,
       Seq(isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_)),
       S3Service.s3upload(AMAZON_ASSETS_BUCKET, itemId + "/" + DATA_PATH + "/" + filename))(
-       {
-        request => {
+      {
+        request =>
           val item = request.asInstanceOf[ItemRequest[AnyContent]].item
           val resource = item.data.get
 
@@ -232,11 +312,8 @@ object ResourceApi extends BaseApi {
           resource.files = resource.files ++ Seq(file)
           Item.save(item)
           Ok(toJson(file))
-        }
       }
     )
-
-
 
   /**
    * Upload a file to a supporting material Resource in the item.
@@ -253,7 +330,7 @@ object ResourceApi extends BaseApi {
       ),
       S3Service.s3upload(AMAZON_ASSETS_BUCKET, storageKey(itemId, materialName, filename)))(
        {
-        request => {
+        request =>
           val item = request.asInstanceOf[ItemRequest[AnyContent]].item
           val resource = item.supportingMaterials.find(_.name == materialName).get
 
@@ -262,14 +339,11 @@ object ResourceApi extends BaseApi {
             contentType(filename),
             false,
             storageKey(itemId, materialName, filename))
-
           resource.files = resource.files ++ Seq(file)
           Item.save(item)
           Ok(toJson(file))
-        }
       }
     )
-
 
   def getSupportingMaterials(itemId: String) = HasItem(itemId, Seq(), Action {
     request =>

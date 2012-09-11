@@ -63,10 +63,12 @@ DELETE  /api/v1/items/:itemId/materials/:resourceName          api.v1.ResourceAp
 POST    /api/v1/items/:itemId/materials/:resourceName   api.v1.ResourceApi.createSupportingMaterialFile(itemId:String, resourceName : String)
 PUT     /api/v1/items/:itemId/materials/:resourceName/:filename   api.v1.ResourceApi.updateSupportingMaterialFile(itemId:String, resourceName : String, filename : String)
 POST    /api/v1/items/:itemId/materials/:resourceName/:filename/upload   api.v1.ResourceApi.uploadFile(itemId:String, resourceName : String, filename : String )
+DELETE  /api/v1/items/:itemId/materials/:resourceName/:filename   api.v1.ResourceApi.deleteSupportingMaterialFile(itemId:String, resourceName : String, filename : String)
 
 POST    /api/v1/items/:itemId/data         api.v1.ResourceApi.createDataFile(itemId:String)
 PUT     /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.updateDataFile(itemId:String, filename:String)
 POST    /api/v1/items/:itemId/data/:filename/upload   api.v1.ResourceApi.uploadFileToData(itemId:String, filename : String )
+DELETE  /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.deleteDataFile(itemId:String, filename:String)
 
 
 # Field Values API
