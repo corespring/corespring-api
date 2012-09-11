@@ -2,7 +2,7 @@ package api.v1
 
 import play.api.mvc._
 import controllers.auth.BaseApi
-import models.{Resource, StoredFile, Item}
+import models._
 import org.bson.types.ObjectId
 import controllers.S3Service
 import play.api.Logger
@@ -12,6 +12,7 @@ import api.ApiError
 import play.api.libs.json.Json
 import com.sun.jndi.dns.ResourceRecord
 import scala.Some
+import scala.Some
 
 object ResourceApi extends BaseApi {
 
@@ -19,7 +20,7 @@ object ResourceApi extends BaseApi {
 
   private val USE_ITEM_DATA_KEY: String = "__!data!__"
 
-  val DATA_PATH : String = "data"
+  val DATA_PATH: String = "data"
 
   /**
    * A class that adds an AuthorizationContext to the Request object
@@ -80,13 +81,54 @@ object ResourceApi extends BaseApi {
   }
 
 
-  def createSupportingMaterialFile(itemId:String, resourceName:String) = Action{
-    NotImplemented
-  }
+  def createSupportingMaterialFile(itemId: String, resourceName: String) = HasItem(
+    itemId,
+    Seq(),
+    Action {
+      request =>
+        request.body.asJson match {
+          case Some(json) => {
+            val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+            item.supportingMaterials.find(_.name == resourceName) match {
+              case Some(r) => {
+                json.asOpt[BaseFile] match {
+                  case Some(file) => {
+                    saveFileIfNameNotTaken(item, r, file)
+                  }
+                  case _ => BadRequest
+                }
+              }
+              case _ => NotFound
+            }
+          }
+          case _ => BadRequest
+        }
+    }
+  )
 
-  def createDataFile(itemId:String) = Action{
-    NotImplemented
-  }
+
+  def createDataFile(itemId: String) = HasItem(
+    itemId,
+    Seq(),
+    Action {
+      request =>
+        request.body.asJson match {
+          case Some(json) => {
+            val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+            json.asOpt[BaseFile] match {
+              case Some(file) => {
+                if (!item.data.isDefined) {
+                  throw new RuntimeException("item.data should never be undefined")
+                }
+                saveFileIfNameNotTaken(item, item.data.get, file)
+              }
+              case _ => BadRequest
+            }
+          }
+          case _ => BadRequest
+        }
+    }
+  )
 
   /**
    * Upload a file to the 'data' Resource in the Item.
@@ -98,20 +140,20 @@ object ResourceApi extends BaseApi {
     HasItem(
       itemId,
       Seq(isFilenameTaken(filename, USE_ITEM_DATA_KEY)),
-      Action(S3Service.s3upload(AMAZON_ASSETS_BUCKET, itemId + "/"+DATA_PATH+"/" + filename)) {
+      Action(S3Service.s3upload(AMAZON_ASSETS_BUCKET, itemId + "/" + DATA_PATH + "/" + filename)) {
         request =>
-            val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-            val resource = item.data.get
+          val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+          val resource = item.data.get
 
-            val file = new StoredFile(
-              filename,
-              contentType(filename),
-              false,
-              itemId + "/"+DATA_PATH+"/" + filename)
+          val file = new StoredFile(
+            filename,
+            contentType(filename),
+            false,
+            itemId + "/" + DATA_PATH + "/" + filename)
 
-            resource.files = resource.files ++ Seq(file)
-            Item.save(item)
-            Ok(toJson(file))
+          resource.files = resource.files ++ Seq(file)
+          Item.save(item)
+          Ok(toJson(file))
       }
     )
 
@@ -188,21 +230,35 @@ object ResourceApi extends BaseApi {
     }
   )
 
-  val SuffixToContentTypes = Map(
-    "jpg" -> "image/jpg",
-    "jpeg" -> "image/jpg",
-    "png" -> "image/png",
-    "gif" -> "image/gif",
-    "doc" -> "application/msword",
-    "pdf" -> "application/pdf")
+  private def unsetIsMain(resource:Resource) {
+    resource.files = resource.files.map((f: BaseFile) => {
+      if (f.isInstanceOf[VirtualFile]) {
+        val vf = f.asInstanceOf[VirtualFile]
+        VirtualFile(f.name, f.contentType, isMain = false, content = vf.content)
+      }
+      else {
+        val sf = f.asInstanceOf[StoredFile]
+        StoredFile(f.name, f.contentType, isMain = false, storageKey = sf.storageKey)
+      }
+    })
+  }
+
+  private def saveFileIfNameNotTaken(item: Item, resource: Resource, file: BaseFile): Result =
+    resource.files.find(_.name == file.name) match {
+      case Some(existingFile) => NotAcceptable(toJson(ApiError.FilenameTaken(Some(file.name))))
+      case _ => {
+        if (file.isMain == true) {
+          unsetIsMain(resource)
+        }
+        resource.files = resource.files ++ Seq(file)
+        Item.save(item)
+        Ok(toJson(file))
+      }
+    }
 
   private def storageKey(itemId: String, materialName: String, filename: String) = itemId + "/materials/" + materialName + "/" + filename
 
-  private def contentType(filename: String): String = {
-    val split = filename.split("\\.").toList
-    val suffix = split.last
-    SuffixToContentTypes.getOrElse(suffix, "unknown")
-  }
+  private def contentType(filename: String): String = BaseFile.getContentType(filename)
 
   /**
    * check that the item contains a supportingMaterial resource with the supplied name.

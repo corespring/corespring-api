@@ -1,9 +1,9 @@
 import api.ApiError
 import api.v1.ResourceApi
 import com.mongodb.{BasicDBObject, DBObject}
-import models.{Resource, Item}
+import models.{BaseFile, VirtualFile, Resource, Item}
 import play.api.libs.json.{JsString, JsObject, Json, JsValue}
-import play.api.mvc.{AnyContentAsEmpty, AnyContentAsJson, SimpleResult}
+import play.api.mvc.{Result, AnyContentAsEmpty, AnyContentAsJson, SimpleResult}
 import play.api.Play
 import play.api.Play.current
 import org.specs2.mutable._
@@ -51,6 +51,76 @@ object ResourceApiTest extends Specification {
 
     running(FakeApplication()) {
 
+
+      def getFileCreationResult(file: VirtualFile, path: String): Result = {
+
+        val request = FakeRequest(POST, path, FakeHeaders(), AnyContentAsJson(Json.toJson(file)))
+
+        routeAndCall(request) match {
+          case Some(result) => {
+            result
+          }
+          case _ => {
+            throw new RuntimeException("Request failed")
+          }
+        }
+      }
+
+      "when creating a file - if its default - unsets the other items in the file list" in {
+        val url = baseItemPath(testItem.id.toString) + "/data"
+
+        val f0 = VirtualFile("data.file.0.default.txt", "text/txt", isMain = true, content = "f0")
+        val f1 = VirtualFile("data.file.default.txt", "text/txt", isMain = true, content = "hello there")
+
+        getFileCreationResult(f0, url)
+        val result = getFileCreationResult(f1, url)
+
+        val json = Json.parse(contentAsString(result))
+        json.as[BaseFile].name must equalTo("data.file.default.txt")
+        json.as[BaseFile].isMain must equalTo(true)
+
+        status(result) must equalTo(OK)
+
+        val item : Item = Item.findOneById(testItem.id).get
+
+        item.data.get.files.find( _.isMain == true ) match {
+          case Some(defaultFile) => {
+            defaultFile.name must equalTo(f1.name)
+          }
+          case None => failure("couldn't find default file")
+        }
+      }
+
+      "create a virtual file in Item.data resource" in {
+        val url = baseItemPath(testItem.id.toString) + "/data"
+        val f = VirtualFile("data.file.txt", "text/txt", isMain = false, content = "hello there")
+
+        val result = getFileCreationResult(f, url)
+        println(contentAsString(result))
+        val json = Json.parse(contentAsString(result))
+        json.as[BaseFile].name must equalTo("data.file.txt")
+        status(result) must equalTo(OK)
+
+        val secondResult = getFileCreationResult(f, url)
+        println(contentAsString(secondResult))
+        status(secondResult) must equalTo(NOT_ACCEPTABLE)
+      }
+
+      "create a virtual file in a supporting material resource" in {
+
+        val url = baseItemPath(testItem.id.toString) + "/materials/Rubric"
+        val f = VirtualFile("file", "text/txt", isMain = false, content = "hello there")
+
+        val result = getFileCreationResult(f, url)
+        println(contentAsString(result))
+        val json = Json.parse(contentAsString(result))
+        json.as[BaseFile].name must equalTo("file")
+        status(result) must equalTo(OK)
+
+        val secondResult = getFileCreationResult(f, url)
+        println(contentAsString(secondResult))
+        status(secondResult) must equalTo(NOT_ACCEPTABLE)
+      }
 
       "create a new supporting material resource" in {
 
@@ -152,7 +222,7 @@ object ResourceApiTest extends Specification {
 
         val item = testItem
         val filename = "cute-rabbit.jpg"
-        val url = baseItemPath(item.id.toString) + "/" + ResourceApi.DATA_PATH +"/" + filename + "/upload"
+        val url = baseItemPath(item.id.toString) + "/" + ResourceApi.DATA_PATH + "/" + filename + "/upload"
         val file = Play.getFile("test/files/" + filename)
         val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
         val byteArray = source.map(_.toByte).toArray
