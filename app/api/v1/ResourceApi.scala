@@ -5,13 +5,10 @@ import controllers.auth.BaseApi
 import models._
 import org.bson.types.ObjectId
 import controllers.S3Service
-import play.api.Logger
 import com.typesafe.config.ConfigFactory
 import play.api.libs.json.Json._
 import api.ApiError
 import play.api.libs.json.Json
-import com.sun.jndi.dns.ResourceRecord
-import scala.Some
 import scala.Some
 
 object ResourceApi extends BaseApi {
@@ -43,12 +40,15 @@ object ResourceApi extends BaseApi {
    * @param action - the action to invoke
    * @tparam A
    */
-  case class HasItem[A](
+  def HasItem[A](
                          itemId: String,
-                         additionalChecks: Seq[Item => Option[ApiError]] = Seq(),
-                         action: Action[A]) extends Action[A] {
+                         additionalChecks: Seq[Item => Option[ApiError]],
+                         p: BodyParser[A])(
+                         action: ItemRequest[A] => Result
+                         ) =  ApiAction(p: BodyParser[A]) { request => // extends Action[A] {
 
-    def apply(request: Request[A]): Result = {
+    //def apply(request: Request[A]): Result =  { ApiAction { request =>
+
       val id = objectId(itemId)
 
       id match {
@@ -74,7 +74,7 @@ object ResourceApi extends BaseApi {
       }
     }
 
-    private def objectId(itemId: String): Option[ObjectId] = {
+   private def objectId(itemId: String): Option[ObjectId] = {
       try {
         Some(new ObjectId(itemId))
       }
@@ -83,9 +83,12 @@ object ResourceApi extends BaseApi {
       }
     }
 
-    lazy val parser = action.parser
-  }
+//    lazy val parser = action.parser
+//  }
 
+  def HasItem(itemId: String,
+              additionalChecks: Seq[Item => Option[ApiError]] = Seq(),
+              action: ItemRequest[AnyContent] => Result): Action[AnyContent] = HasItem(itemId, additionalChecks, parse.anyContent)(action)
 
   def createSupportingMaterialFile(itemId: String, resourceName: String) = HasItem(
     itemId,
@@ -213,9 +216,10 @@ object ResourceApi extends BaseApi {
   def uploadFileToData(itemId: String, filename: String) =
     HasItem(
       itemId,
-      Seq(isFilenameTaken(filename, USE_ITEM_DATA_KEY)),
-      Action(S3Service.s3upload(AMAZON_ASSETS_BUCKET, itemId + "/" + DATA_PATH + "/" + filename)) {
-        request =>
+      Seq(isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_)),
+      S3Service.s3upload(AMAZON_ASSETS_BUCKET, itemId + "/" + DATA_PATH + "/" + filename))(
+       {
+        request => {
           val item = request.asInstanceOf[ItemRequest[AnyContent]].item
           val resource = item.data.get
 
@@ -228,8 +232,11 @@ object ResourceApi extends BaseApi {
           resource.files = resource.files ++ Seq(file)
           Item.save(item)
           Ok(toJson(file))
+        }
       }
     )
+
+
 
   /**
    * Upload a file to a supporting material Resource in the item.
@@ -244,9 +251,9 @@ object ResourceApi extends BaseApi {
         canFindResource(materialName)(_),
         isFilenameTaken(filename, materialName)(_)
       ),
-
-      Action(S3Service.s3upload(AMAZON_ASSETS_BUCKET, storageKey(itemId, materialName, filename))) {
-        request =>
+      S3Service.s3upload(AMAZON_ASSETS_BUCKET, storageKey(itemId, materialName, filename)))(
+       {
+        request => {
           val item = request.asInstanceOf[ItemRequest[AnyContent]].item
           val resource = item.supportingMaterials.find(_.name == materialName).get
 
@@ -255,11 +262,14 @@ object ResourceApi extends BaseApi {
             contentType(filename),
             false,
             storageKey(itemId, materialName, filename))
+
           resource.files = resource.files ++ Seq(file)
           Item.save(item)
           Ok(toJson(file))
+        }
       }
     )
+
 
   def getSupportingMaterials(itemId: String) = HasItem(itemId, Seq(), Action {
     request =>
