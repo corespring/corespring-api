@@ -110,7 +110,9 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
             return;
         }
 
+        var oldFilename = $scope.fileToRename.name;
         $scope.fileToRename.name = $scope.newFilename;
+        $scope.update($scope.fileToRename, oldFilename);
         $scope.clearRename();
     };
 
@@ -147,9 +149,13 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
      * Update the file on the server
      * @param file
      */
-    $scope.update = function(file) {
+    $scope.update = function(file, filename) {
+        if( !filename ){
+            filename = file.name;
+        }
+
         $http({
-            url:$scope.urls.updateFile.replace("{filename}", file.name),
+            url:$scope.urls.updateFile.replace("{filename}", filename),
             method:"PUT",
             data:file
         }).success(function (data, status, headers, config) {

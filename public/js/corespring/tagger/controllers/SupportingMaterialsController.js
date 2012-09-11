@@ -149,7 +149,7 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, Support
         };
 
         urls.uploadFile = ServiceLookup.getUrlFor('uploadSupportingMaterialFile', substitutions);
-        urls.createFile = ServiceLookup.getUrlFor('createSupportingMaterialFile', { itemId: $routeParams.itemId});
+        urls.createFile = ServiceLookup.getUrlFor('createSupportingMaterialFile', substitutions);
         urls.updateFile = ServiceLookup.getUrlFor('updateSupportingMaterialFile', substitutions);
         urls.deleteFile = ServiceLookup.getUrlFor('deleteSupportingMaterialFile', substitutions);
 

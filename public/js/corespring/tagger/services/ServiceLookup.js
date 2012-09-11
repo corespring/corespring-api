@@ -11,7 +11,7 @@ angular.module('tagger.services')
                 //TODO: Do we need method here too? eg POST/PUT
                 materials: '/api/v1/items/:itemId/materials',
 
-                createSupportingMaterialFile: '/api/v1/items/{itemId}/materials',
+                createSupportingMaterialFile: '/api/v1/items/{itemId}/materials/{resourceName}',
                 deleteSupportingMaterialFile:'/api/v1/items/{itemId}/materials/{resourceName}/{filename}',
                 updateSupportingMaterialFile: '/api/v1/items/{itemId}/materials/{resourceName}/{filename}',
                 uploadSupportingMaterialFile:'/api/v1/items/{itemId}/materials/{resourceName}/{filename}/upload',
