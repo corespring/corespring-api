@@ -10,16 +10,22 @@ angular.module('tagger.services')
             this.services = {
                 //TODO: Do we need method here too? eg POST/PUT
                 materials: '/api/v1/items/:itemId/materials',
-                file: '/api/v1/items/:itemId/:resourceType/:resourceName',
-                createSupportingMaterial: '/api/v1/items/{itemId}/materials',
-                getAccessToken:'/web/access_token',
+
+                createSupportingMaterialFile: '/api/v1/items/{itemId}/materials',
+                deleteSupportingMaterialFile:'/api/v1/items/{itemId}/materials/{resourceName}/{filename}',
+                updateSupportingMaterialFile: '/api/v1/items/{itemId}/materials/{resourceName}/{filename}',
+                uploadSupportingMaterialFile:'/api/v1/items/{itemId}/materials/{resourceName}/{filename}/upload',
+
                 items:'/api/v1/items/:id',
-                uploadFileToMaterialResource: '/api/v1/items/{itemId}/materials/{materialName}/{filename}/upload',
-                //items: '/assets/mock-json/:id',
+                getAccessToken:'/web/access_token',
+
                 previewFile:'/web/runner/{key}',
-                uploadSupportingMaterial:'/api/v1/items/{itemId}/{resourceName}/{filename}/upload',
-                uploadFileToData: '/api/v1/items/{itemId}/data/{filename}/upload',
-                deleteSupportingMaterial:'/api/v1/items/{itemId}/materials/{fileName}',
+
+                createDataFile: '/api/v1/items/{itemId}/data',
+                deleteDataFile: '/api/v1/items/{itemId}/data/{filename}',
+                updateDataFile: '/api/v1/items/{itemId}/data/{filename}',
+                uploadDataFile: '/api/v1/items/{itemId}/data/{filename}/upload',
+
                 standardsTree:'/assets/web/standards_tree.json',
                 standards:'/api/v1/field_values/cc-standard',
                 subject:'/api/v1/field_values/subject',
@@ -32,9 +38,18 @@ angular.module('tagger.services')
 
         ServiceLookup.CREATE_SUPPORTING_MATERIAL = "createSupportingMaterial";
 
-        ServiceLookup.prototype.getUrlFor = function (name) {
+        ServiceLookup.prototype.getUrlFor = function (name, substitutions) {
             if (this.services.hasOwnProperty(name)) {
-                return this.services[name];
+
+                var template = this.services[name];
+
+                if( substitutions ){
+                    for( var x in substitutions){
+                        template = template.replace("{" + x + "}", substitutions[x]);
+                    }
+                }
+
+                return template;
             }
             throw "Can't find service for name: " + name;
         };

@@ -117,6 +117,7 @@ object Global extends GlobalSettings {
 
     def jsonFileToDb(jsonPath: String, coll: MongoCollection, drop : Boolean = true) {
 
+
       if(drop) coll.drop()
 
       val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString

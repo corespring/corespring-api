@@ -79,6 +79,15 @@ object ResourceApi extends BaseApi {
     lazy val parser = action.parser
   }
 
+
+  def createSupportingMaterialFile(itemId:String, resourceName:String) = Action{
+    NotImplemented
+  }
+
+  def createDataFile(itemId:String) = Action{
+    NotImplemented
+  }
+
   /**
    * Upload a file to the 'data' Resource in the Item.
    * @param itemId

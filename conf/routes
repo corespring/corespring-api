@@ -60,20 +60,11 @@ GET     /api/v1/items/:itemId/assets/:fileName  api.v1.FilesApi.getFile(itemId:S
 GET     /api/v1/items/:itemId/materials          api.v1.ResourceApi.getSupportingMaterials(itemId:String)
 POST    /api/v1/items/:itemId/materials          api.v1.ResourceApi.createSupportingMaterial(itemId:String)
 DELETE  /api/v1/items/:itemId/materials/:resourceName          api.v1.ResourceApi.deleteSupportingMaterial(itemId:String, resourceName : String)
-
-#GET     /api/v1/items/:itemId/data/files
-#GET     /api/v1/items/:itemId/data/files/:filename
-#POST    /api/v1/items/:itemId/data/files
-POST    /api/v1/items/:itemId/data/:filename/upload   api.v1.ResourceApi.uploadFileToData(itemId:String, filename : String )
-#PUT     /api/v1/items/:itemId/data/files/:filename
-#DELETE  /api/v1/items/:itemId/data/files/:filename
-
-#GET     /api/v1/items/:itemId/materials/:resourceName/files
-#GET     /api/v1/items/:itemId/materials/:resourceName/files/:filename
-#POST    /api/v1/items/:itemId/materials/:resourceName/files
+POST    /api/v1/items/:itemId/materials/:resourceName   api.v1.ResourceApi.createSupportingMaterialFile(itemId:String, resourceName : String)
 POST    /api/v1/items/:itemId/materials/:resourceName/:filename/upload   api.v1.ResourceApi.uploadFile(itemId:String, resourceName : String, filename : String )
-#PUT     /api/v1/items/:itemId/materials/:resourceName/files/:filename
-#DELETE  /api/v1/items/:itemId/materials/:resourceName/files/:filename
+
+POST    /api/v1/items/:itemId/data         api.v1.ResourceApi.createDataFile(itemId:String)
+POST    /api/v1/items/:itemId/data/:filename/upload   api.v1.ResourceApi.uploadFileToData(itemId:String, filename : String )
 
 
 # Field Values API
