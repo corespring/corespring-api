@@ -139,7 +139,15 @@ object ResourceApi extends BaseApi {
 
   private def ensureDataFileIsMainIsCorrect(file:BaseFile) : BaseFile = {
     val isMain = file.name == DEFAULT_DATA_FILE_NAME
-    VirtualFile(file.name, file.contentType, isMain = isMain, content = file.asInstanceOf[VirtualFile].content)
+    if(file.isInstanceOf[VirtualFile]){
+      VirtualFile(file.name, file.contentType, isMain = isMain, content = file.asInstanceOf[VirtualFile].content)
+    }
+    else if( file.isInstanceOf[StoredFile]){
+      StoredFile(file.name, file.contentType, isMain = isMain )
+    }
+    else{
+      throw new RuntimeException("Unknown FileType")
+    }
   }
 
   def updateDataFile(itemId: String, filename:String) = HasItem(
@@ -153,6 +161,13 @@ object ResourceApi extends BaseApi {
             item.data.get.files.find(_.name == filename) match {
               case Some(f) => {
                 val processedUpdate = ensureDataFileIsMainIsCorrect(update)
+
+
+                //we don't get the storage key in the request so we need to copy it across
+                if(processedUpdate.isInstanceOf[StoredFile]){
+                 processedUpdate.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey 
+                }
+
                 item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf )
                 Item.save(item)
                 Ok(toJson(processedUpdate))
@@ -168,7 +183,8 @@ object ResourceApi extends BaseApi {
   private def getFileFromJson(body:AnyContent) : Option[BaseFile] = {
    body.asJson match {
      case Some(json) => {
-      json.asOpt[BaseFile]
+      val file = json.asOpt[BaseFile]
+      file
      }
      case _ => None
    }
@@ -186,6 +202,12 @@ object ResourceApi extends BaseApi {
               case Some(resource) => {
                 resource.files.find(_.name == filename) match {
                   case Some(f) => {
+                    
+                    //we don't get the storage key in the request so we need to copy it across
+                    if(update.isInstanceOf[StoredFile]){
+                     update.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey 
+                    }
+
                     if (update.isMain){
                       unsetIsMain(resource)
                     }

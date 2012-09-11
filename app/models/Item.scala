@@ -100,14 +100,13 @@ object BaseFile {
 
     def reads(json: JsValue): BaseFile = {
 
-      (json\"content").asOpt[String] match {
-        case Some(content) => {
-          val name = (json \ "name").asOpt[String].getOrElse("unknown")
-          val contentType = (json \ "contentType").asOpt[String].getOrElse(getContentType(name))
-          val isMain = (json\"default").asOpt[Boolean].getOrElse(false)
-          VirtualFile(name, contentType, isMain, content)
-        }
-        case _ => throw new JsonValidationException("invalid json - need content property")
+      val name = (json \ "name").asOpt[String].getOrElse("unknown")
+      val contentType = (json \ "contentType").asOpt[String].getOrElse(getContentType(name))
+      val isMain = (json\ "default").asOpt[Boolean].getOrElse(false)
+
+      (json\ "content").asOpt[String] match {
+        case Some(content) => VirtualFile(name, contentType, isMain, content) 
+        case _ => StoredFile(name, contentType, isMain) //we are missing the storageKey here 
       }
     }
   }
@@ -141,7 +140,7 @@ object VirtualFile {
 /**
  * A File that has been stored in a file storage service.
  */
-case class StoredFile(override val name: String, override val contentType: String, override val isMain: Boolean = false, storageKey: String) extends BaseFile(name, contentType, isMain)
+case class StoredFile(override val name: String, override val contentType: String, override val isMain: Boolean = false, var storageKey: String = "") extends BaseFile(name, contentType, isMain)
 
 object StoredFile {
 

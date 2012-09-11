@@ -140,9 +140,8 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
             return;
         }
         currentDefault['default'] = false;
-
-        $scope.update(f);
         f['default'] = true;
+        $scope.update(f);
     };
 
     /**
