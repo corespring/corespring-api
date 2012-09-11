@@ -1,5 +1,19 @@
 //Starting this as a controller but may move it to a directive.
 
+/**
+ *
+ * TODO: Implement a $resource for files?
+ * For Now: just use manual POST/DELETE etc.
+ *
+ * @param $scope
+ * @param $rootScope
+ * @param $timeout
+ * @param $routeParams
+ * @param ItemService
+ * @param ServiceLookup
+ * @param AccessToken
+ * @constructor
+ */
 function ResourceEditor($scope, $rootScope, $timeout, $routeParams, ItemService, ServiceLookup, AccessToken) {
     $scope.selectedFileImageUrl = '/assets/images/empty.png';
     $scope.showEditor = false;
@@ -9,9 +23,15 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, ItemService,
         $scope.resourceToEdit = null;
     });
 
-    $scope.$on('enterEditor', function( event, resource, showBackNav ){
+    $scope.$on('enterEditor', function( event, resource, showBackNav, uploadUrl ){
         $scope.resourceToEdit = resource;
         $scope.showBackNav = showBackNav;
+
+        /**
+         * An upload url template that contains {filename} - which will be replaced with
+         * the local file name.
+         */
+        $scope.uploadUrlTemplate = uploadUrl;
     });
 
     $scope.$watch('resourceToEdit', function (newValue, oldValue) {
@@ -19,7 +39,6 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, ItemService,
         if (!newValue) {
             return;
         }
-        console.log("resource to edit updated");
         $scope.resource = newValue;
 
         var defaultFile = _.find($scope.resource.files, function (f) {
@@ -61,14 +80,13 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, ItemService,
             return;
         }
 
-        if (f.storageKey && imageContentTypes.indexOf(f.contentType.toLowerCase()) != -1) {
+        if (imageContentTypes.indexOf(f.contentType.toLowerCase()) != -1) {
             var templateUrl = ServiceLookup.getUrlFor('previewFile');
             return templateUrl.replace("{key}", $routeParams.itemId + "/" + $scope.resource.name + "/" + f.name );
         } else {
             return '/assets/images/empty.png';
         }
     };
-
 
     $scope.renameFile = function(f){
         $scope.fileToRename = f;
@@ -161,14 +179,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, ItemService,
         if (file == null) {
             throw "ItemController:calculateUploadUrl - the file is null"
         }
-
-        var template = ServiceLookup.getUrlFor("uploadFileToMaterialResource");
-        return template
-            .replace("{itemId}", $routeParams.itemId)
-            .replace("{materialName}", $scope.resource.name)
-            .replace("{filename}", file.name);
-
-        //return $scope.getUrl("uploadFile", $routeParams.itemId, file.name);
+        return $scope.uploadUrlTemplate.replace("{filename}", file.name);
     };
 
 

@@ -140,9 +140,9 @@
 
             </div>
 
-            <div>
+            <div style="overflow:hidden;">
 
-                <img ng-show="selectedFile.storageKey" ng:src="{{selectedFileImageUrl}}"/>
+                <img ng-show="!selectedFile.content" ng:src="{{selectedFileImageUrl}}"/>
 
                 <div class="code-editor"
                      ace-editor
