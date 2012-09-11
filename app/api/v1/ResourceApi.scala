@@ -130,6 +130,76 @@ object ResourceApi extends BaseApi {
     }
   )
 
+  def updateDataFile(itemId: String) = HasItem(
+    itemId,
+    Seq(),
+    Action {
+      request =>
+        getFileFromJson(request.body) match {
+          case Some(update) => {
+            val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+            item.data.get.files.find(_.name == update.name) match {
+              case Some(fileToUpdate) => {
+                if (update.isMain) {
+                  unsetIsMain(item.data.get)
+                }
+                item.data.get.files = item.data.get.files.map((bf) => if (bf.name == update.name) {
+                  update
+                } else {
+                  bf
+                })
+                Item.save(item)
+                Ok(toJson(update))
+              }
+              case _ => NotFound(update.name)
+            }
+          }
+          case _ => BadRequest
+        }
+    }
+  )
+
+  private def getFileFromJson(body:AnyContent) : Option[BaseFile] = {
+   body.asJson match {
+     case Some(json) => {
+      json.asOpt[BaseFile]
+     }
+     case _ => None
+   }
+  }
+
+  def updateSupportingMaterialFile(itemId: String, resourceName: String) = HasItem(
+    itemId,
+    Seq(),
+    Action {
+      request =>
+        getFileFromJson(request.body) match {
+          case Some(update) => {
+            val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+            item.supportingMaterials.find(_.name == resourceName) match {
+              case Some(resource) => {
+                resource.files.find(_.name == update.name) match {
+                  case Some(f) => {
+
+                    if (update.isMain){
+                      unsetIsMain(resource)
+                    }
+
+                    resource.files = resource.files.map( bf => if (bf.name == update.name) update else bf )
+                    Item.save(item)
+                    Ok(toJson(update))
+                  }
+                  case _ => NotFound
+                }
+              }
+              case _ =>  NotFound(resourceName)
+            }
+          }
+          case _ => BadRequest
+        }
+    }
+  )
+
   /**
    * Upload a file to the 'data' Resource in the Item.
    * @param itemId
@@ -230,7 +300,7 @@ object ResourceApi extends BaseApi {
     }
   )
 
-  private def unsetIsMain(resource:Resource) {
+  private def unsetIsMain(resource: Resource) {
     resource.files = resource.files.map((f: BaseFile) => {
       if (f.isInstanceOf[VirtualFile]) {
         val vf = f.asInstanceOf[VirtualFile]

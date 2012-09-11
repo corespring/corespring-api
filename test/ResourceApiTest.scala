@@ -52,9 +52,9 @@ object ResourceApiTest extends Specification {
     running(FakeApplication()) {
 
 
-      def getFileCreationResult(file: VirtualFile, path: String): Result = {
+      def makeFileRequest(file: VirtualFile, path: String, method: String = POST): Result = {
 
-        val request = FakeRequest(POST, path, FakeHeaders(), AnyContentAsJson(Json.toJson(file)))
+        val request = FakeRequest(method, path, FakeHeaders(), AnyContentAsJson(Json.toJson(file)))
 
         routeAndCall(request) match {
           case Some(result) => {
@@ -66,14 +66,61 @@ object ResourceApiTest extends Specification {
         }
       }
 
+      "update a file in supporting materials" in {
+        val url = baseItemPath(testItem.id.toString) + "/materials/Rubric"
+
+        val f0 = VirtualFile("data.txt", "text/txt", isMain = false, content = "f0")
+        makeFileRequest(f0, url)
+
+        val update = VirtualFile("data.txt", "text/txt", isMain = false, content = "new content!")
+        val result = makeFileRequest(update, url, PUT)
+
+        status(result) must equalTo(OK)
+
+        val item = testItem
+
+        item.supportingMaterials.find(_.name == "Rubric") match {
+          case Some(r) => {
+            r.files.find(_.name == update.name) match {
+              case Some(f) => {
+                f.asInstanceOf[VirtualFile].content must equalTo(update.content)
+              }
+              case _ => failure("can't find updated file")
+            }
+          }
+          case _ => throw new RuntimeException("Can't find Rubric resource")
+        }
+      }
+
+      "update a file in Item.data" in {
+        val url = baseItemPath(testItem.id.toString) + "/data"
+
+        val f0 = VirtualFile("data.txt", "text/txt", isMain = false, content = "f0")
+        makeFileRequest(f0, url)
+
+        val update = VirtualFile("data.txt", "text/txt", isMain = false, content = "new content")
+        val result = makeFileRequest(update, url, PUT)
+
+        status(result) must equalTo(OK)
+
+        val item = testItem
+
+        item.data.get.files.find(_.name == update.name) match {
+          case Some(f) => {
+            f.asInstanceOf[VirtualFile].content must equalTo(update.content)
+          }
+          case _ => failure("can't find updated file")
+        }
+      }
+
       "when creating a file - if its default - unsets the other items in the file list" in {
         val url = baseItemPath(testItem.id.toString) + "/data"
 
         val f0 = VirtualFile("data.file.0.default.txt", "text/txt", isMain = true, content = "f0")
         val f1 = VirtualFile("data.file.default.txt", "text/txt", isMain = true, content = "hello there")
 
-        getFileCreationResult(f0, url)
-        val result = getFileCreationResult(f1, url)
+        makeFileRequest(f0, url)
+        val result = makeFileRequest(f1, url)
 
         val json = Json.parse(contentAsString(result))
         json.as[BaseFile].name must equalTo("data.file.default.txt")
@@ -81,9 +128,9 @@ object ResourceApiTest extends Specification {
 
         status(result) must equalTo(OK)
 
-        val item : Item = Item.findOneById(testItem.id).get
+        val item: Item = Item.findOneById(testItem.id).get
 
-        item.data.get.files.find( _.isMain == true ) match {
+        item.data.get.files.find(_.isMain == true) match {
           case Some(defaultFile) => {
             defaultFile.name must equalTo(f1.name)
           }
@@ -95,13 +142,13 @@ object ResourceApiTest extends Specification {
         val url = baseItemPath(testItem.id.toString) + "/data"
         val f = VirtualFile("data.file.txt", "text/txt", isMain = false, content = "hello there")
 
-        val result = getFileCreationResult(f, url)
+        val result = makeFileRequest(f, url)
         println(contentAsString(result))
         val json = Json.parse(contentAsString(result))
         json.as[BaseFile].name must equalTo("data.file.txt")
         status(result) must equalTo(OK)
 
-        val secondResult = getFileCreationResult(f, url)
+        val secondResult = makeFileRequest(f, url)
         println(contentAsString(secondResult))
         status(secondResult) must equalTo(NOT_ACCEPTABLE)
       }
@@ -111,13 +158,13 @@ object ResourceApiTest extends Specification {
         val url = baseItemPath(testItem.id.toString) + "/materials/Rubric"
         val f = VirtualFile("file", "text/txt", isMain = false, content = "hello there")
 
-        val result = getFileCreationResult(f, url)
+        val result = makeFileRequest(f, url)
         println(contentAsString(result))
         val json = Json.parse(contentAsString(result))
         json.as[BaseFile].name must equalTo("file")
         status(result) must equalTo(OK)
 
-        val secondResult = getFileCreationResult(f, url)
+        val secondResult = makeFileRequest(f, url)
         println(contentAsString(secondResult))
         status(secondResult) must equalTo(NOT_ACCEPTABLE)
       }
