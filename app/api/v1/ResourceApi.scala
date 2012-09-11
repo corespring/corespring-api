@@ -86,6 +86,59 @@ object ResourceApi extends BaseApi {
     lazy val parser = action.parser
   }
 
+  private def removeFileFromResource(item:Item,resource:Resource, filename:String) : Result = {
+    resource.files.find(_.name == filename) match {
+      case Some(f) => {
+        resource.files = resource.files.filter(_.name != filename)
+
+        if(f.isInstanceOf[StoredFile]){
+          S3Service.delete(AMAZON_ASSETS_BUCKET, f.asInstanceOf[StoredFile].storageKey)
+        }
+
+        if(f.isMain && resource.files.length > 0){
+          var isMainValue = true
+          resource.files = resource.files.map( (bf:BaseFile) => {
+            val copy = copyFile(bf, Some(isMainValue))
+            isMainValue = false
+            copy
+          })
+        }
+        
+        Item.save(item)
+        Ok
+      }
+      case _ => NotFound(filename)
+    }
+  }
+
+  def deleteSupportingMaterialFile(itemId:String, resourceName:String, filename:String) = HasItem(
+    itemId,
+    Seq(),
+    Action {
+      request =>
+      val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+      item.supportingMaterials.find(_.name == resourceName) match {
+        case Some(r) => {
+          removeFileFromResource(item,r,filename) 
+        }
+        case _ => NotFound(resourceName)
+      }
+    }
+  )
+  
+  def deleteDataFile(itemId:String, filename:String) = HasItem(
+    itemId,
+    Seq(),
+    Action {
+      request =>
+      val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+      if( filename == DEFAULT_DATA_FILE_NAME ){
+        BadRequest("Can't delete " + DEFAULT_DATA_FILE_NAME)
+      } else {
+        removeFileFromResource(item, item.data.get, filename)
+      }
+    }
+  )
 
   def createSupportingMaterialFile(itemId: String, resourceName: String) = HasItem(
     itemId,
@@ -139,14 +192,23 @@ object ResourceApi extends BaseApi {
 
   private def ensureDataFileIsMainIsCorrect(file:BaseFile) : BaseFile = {
     val isMain = file.name == DEFAULT_DATA_FILE_NAME
-    if(file.isInstanceOf[VirtualFile]){
-      VirtualFile(file.name, file.contentType, isMain = isMain, content = file.asInstanceOf[VirtualFile].content)
+    copyFile(file, Some(isMain))
+  }
+
+  private def copyFile(file:BaseFile, enforceIsMain : Option[Boolean]) : BaseFile = {
+
+    def _copy(file:BaseFile, isMain:Boolean) : BaseFile = {
+      if( file.isInstanceOf[VirtualFile]) 
+        VirtualFile(file.name, file.contentType, isMain = isMain, content = file.asInstanceOf[VirtualFile].content)
+      else if( file.isInstanceOf[StoredFile]) 
+        StoredFile(file.name, file.contentType, isMain = isMain, storageKey = file.asInstanceOf[StoredFile].storageKey)      
+      else 
+        throw new RuntimeException("Unknown file type")
     }
-    else if( file.isInstanceOf[StoredFile]){
-      StoredFile(file.name, file.contentType, isMain = isMain )
-    }
-    else{
-      throw new RuntimeException("Unknown FileType")
+
+    enforceIsMain match {
+      case Some(b) => _copy(file, b) 
+      case _ => _copy(file, file.isMain) 
     }
   }
 

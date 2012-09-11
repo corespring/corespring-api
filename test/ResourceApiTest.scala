@@ -49,6 +49,12 @@ object ResourceApiTest extends Specification {
     }
   }
 
+  def rubric : Resource = {
+    testItem.supportingMaterials.find(_.name == "Rubric") match {
+     case Some(r) => r
+     case _ => throw new RuntimeException("can't find rubric") 
+    }
+  }
 
   "resource api" should {
 
@@ -68,6 +74,43 @@ object ResourceApiTest extends Specification {
             throw new RuntimeException("Request failed")
           }
         }
+      }
+
+      "delete a file from the Item.data Resource" in {
+        val url = baseItemPath(testItem.id.toString) + "/data"
+
+        val f0 = VirtualFile("myfile.txt", "text/txt", isMain = true, content = "I'm never going to be main")
+
+        val initialLength = testItem.data.get.files.length
+        
+        makeFileRequest(f0, url)
+
+        val length = testItem.data.get.files.length
+
+        length must equalTo( initialLength + 1)
+
+        makeFileRequest(f0, url + "/myfile.txt", DELETE)
+        println("initialLength: " + initialLength)
+        testItem.data.get.files.length must equalTo(initialLength) 
+      }
+
+
+      "delete a file from a supportingMaterial Resource" in {
+        val url = baseItemPath(testItem.id.toString) + "/materials/Rubric"
+
+        val f0 = VirtualFile("myfile.txt", "text/txt", isMain = true, content = "I'm never going to be main")
+
+        val initialLength = rubric.files.length
+        
+        makeFileRequest(f0, url)
+
+        val length = rubric.files.length
+
+        length must equalTo( initialLength + 1)
+
+        makeFileRequest(f0, url + "/myfile.txt", DELETE)
+        println("initialLength: " + initialLength)
+        rubric.files.length must equalTo(initialLength) 
       }
 
 
