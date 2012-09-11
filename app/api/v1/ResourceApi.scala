@@ -23,6 +23,12 @@ object ResourceApi extends BaseApi {
   val DATA_PATH: String = "data"
 
   /**
+   * Item.data has at least one file that is always default its name is set here.
+   * TODO: move this elsewhere
+   */
+  private val DEFAULT_DATA_FILE_NAME : String = "qti.xml"
+
+  /**
    * A class that adds an AuthorizationContext to the Request object
    * @param item - the found item
    * @param r - the Request
@@ -120,7 +126,8 @@ object ResourceApi extends BaseApi {
                 if (!item.data.isDefined) {
                   throw new RuntimeException("item.data should never be undefined")
                 }
-                saveFileIfNameNotTaken(item, item.data.get, file)
+                val processedFile = ensureDataFileIsMainIsCorrect(file)
+                saveFileIfNameNotTaken(item, item.data.get, processedFile)
               }
               case _ => BadRequest
             }
@@ -129,6 +136,11 @@ object ResourceApi extends BaseApi {
         }
     }
   )
+
+  private def ensureDataFileIsMainIsCorrect(file:BaseFile) : BaseFile = {
+    val isMain = file.name == DEFAULT_DATA_FILE_NAME
+    VirtualFile(file.name, file.contentType, isMain = isMain, content = file.asInstanceOf[VirtualFile].content)
+  }
 
   def updateDataFile(itemId: String, filename:String) = HasItem(
     itemId,
@@ -140,12 +152,10 @@ object ResourceApi extends BaseApi {
             val item = request.asInstanceOf[ItemRequest[AnyContent]].item
             item.data.get.files.find(_.name == filename) match {
               case Some(f) => {
-                if (update.isMain) {
-                  unsetIsMain(item.data.get)
-                }
-                item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename)  update else bf )
+                val processedUpdate = ensureDataFileIsMainIsCorrect(update)
+                item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf )
                 Item.save(item)
-                Ok(toJson(update))
+                Ok(toJson(processedUpdate))
               }
               case _ => NotFound(update.name)
             }

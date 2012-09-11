@@ -13,6 +13,7 @@ import play.api.test.Helpers._
 
 object ResourceApiTest extends Specification {
 
+
   def call(byteArray: Array[Byte], url: String, expectedStatus: Int, expectedContains: String): (Boolean, Boolean) = {
 
     routeAndCall(
@@ -37,10 +38,13 @@ object ResourceApiTest extends Specification {
   }
 
   def testItem: Item = {
+
     val query: DBObject = new BasicDBObject()
     query.put("title", "NOT SURE THIS IS A GOOD ITEM? NO CONNECTION BETWEEN ITEM AND CHART?")
     Item.findOne(query) match {
-      case Some(item) => item
+      case Some(item) => {
+         item
+      }
       case _ => throw new RuntimeException("test item")
     }
   }
@@ -63,6 +67,32 @@ object ResourceApiTest extends Specification {
           case _ => {
             throw new RuntimeException("Request failed")
           }
+        }
+      }
+
+
+      "creating or updating a file to default in Item.data is ignored" in {
+
+        val url = baseItemPath(testItem.id.toString) + "/data"
+
+        val f0 = VirtualFile("myfile.txt", "text/txt", isMain = true, content = "I'm never going to be main")
+
+        makeFileRequest(f0, url)
+
+        testItem.data.get.files.find(_.name == f0.name) match {
+          case Some(f) => {
+            f.isMain must equalTo(false)
+          }
+          case _ => failure("Can't find new file")
+        }
+
+        makeFileRequest( f0, url + "/myfile.txt", PUT)
+
+        testItem.data.get.files.find(_.name == f0.name) match {
+          case Some(f) => {
+            f.isMain must equalTo(false)
+          }
+          case _ => failure("Can't find new file")
         }
       }
 
@@ -114,7 +144,7 @@ object ResourceApiTest extends Specification {
       }
 
       "when creating a file - if its default - unsets the other items in the file list" in {
-        val url = baseItemPath(testItem.id.toString) + "/data"
+        val url = baseItemPath(testItem.id.toString) + "/materials/Rubric"
 
         val f0 = VirtualFile("data.file.0.default.txt", "text/txt", isMain = true, content = "f0")
         val f1 = VirtualFile("data.file.default.txt", "text/txt", isMain = true, content = "hello there")
@@ -130,11 +160,17 @@ object ResourceApiTest extends Specification {
 
         val item: Item = Item.findOneById(testItem.id).get
 
-        item.data.get.files.find(_.isMain == true) match {
-          case Some(defaultFile) => {
-            defaultFile.name must equalTo(f1.name)
+
+        item.supportingMaterials.find(_.name == "Rubric") match {
+          case Some(r) => {
+            r.files.find(_.isMain == true) match {
+              case Some(defaultFile) => {
+                defaultFile.name must equalTo(f1.name)
+              }
+              case None => failure("couldn't find default file")
+            }
           }
-          case None => failure("couldn't find default file")
+          case _ => failure("can't find resource")
         }
       }
 
