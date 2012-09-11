@@ -72,8 +72,8 @@ object ResourceApiTest extends Specification {
         val f0 = VirtualFile("data.txt", "text/txt", isMain = false, content = "f0")
         makeFileRequest(f0, url)
 
-        val update = VirtualFile("data.txt", "text/txt", isMain = false, content = "new content!")
-        val result = makeFileRequest(update, url, PUT)
+        val update = VirtualFile("newName.txt", "text/txt", isMain = false, content = "new content!")
+        val result = makeFileRequest(update, url + "/data.txt", PUT)
 
         status(result) must equalTo(OK)
 
@@ -98,8 +98,8 @@ object ResourceApiTest extends Specification {
         val f0 = VirtualFile("data.txt", "text/txt", isMain = false, content = "f0")
         makeFileRequest(f0, url)
 
-        val update = VirtualFile("data.txt", "text/txt", isMain = false, content = "new content")
-        val result = makeFileRequest(update, url, PUT)
+        val update = VirtualFile("newName2.txt", "text/txt", isMain = false, content = "new content")
+        val result = makeFileRequest(update, url + "/data.txt", PUT)
 
         status(result) must equalTo(OK)
 

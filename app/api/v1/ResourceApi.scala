@@ -130,7 +130,7 @@ object ResourceApi extends BaseApi {
     }
   )
 
-  def updateDataFile(itemId: String) = HasItem(
+  def updateDataFile(itemId: String, filename:String) = HasItem(
     itemId,
     Seq(),
     Action {
@@ -138,16 +138,12 @@ object ResourceApi extends BaseApi {
         getFileFromJson(request.body) match {
           case Some(update) => {
             val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-            item.data.get.files.find(_.name == update.name) match {
-              case Some(fileToUpdate) => {
+            item.data.get.files.find(_.name == filename) match {
+              case Some(f) => {
                 if (update.isMain) {
                   unsetIsMain(item.data.get)
                 }
-                item.data.get.files = item.data.get.files.map((bf) => if (bf.name == update.name) {
-                  update
-                } else {
-                  bf
-                })
+                item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename)  update else bf )
                 Item.save(item)
                 Ok(toJson(update))
               }
@@ -168,7 +164,7 @@ object ResourceApi extends BaseApi {
    }
   }
 
-  def updateSupportingMaterialFile(itemId: String, resourceName: String) = HasItem(
+  def updateSupportingMaterialFile(itemId: String, resourceName: String, filename:String) = HasItem(
     itemId,
     Seq(),
     Action {
@@ -178,14 +174,12 @@ object ResourceApi extends BaseApi {
             val item = request.asInstanceOf[ItemRequest[AnyContent]].item
             item.supportingMaterials.find(_.name == resourceName) match {
               case Some(resource) => {
-                resource.files.find(_.name == update.name) match {
+                resource.files.find(_.name == filename) match {
                   case Some(f) => {
-
                     if (update.isMain){
                       unsetIsMain(resource)
                     }
-
-                    resource.files = resource.files.map( bf => if (bf.name == update.name) update else bf )
+                    resource.files = resource.files.map( bf => if (bf.name == filename) update else bf )
                     Item.save(item)
                     Ok(toJson(update))
                   }
