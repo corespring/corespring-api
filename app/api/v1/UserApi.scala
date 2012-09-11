@@ -21,7 +21,7 @@ object UserApi extends BaseApi {
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
     val orgIds:List[ObjectId] = Organization.getTree(request.ctx.organization).map(_.id)
     val initSearch = MongoDBObject(User.orgs + "." + UserOrg.orgId -> MongoDBObject("$in" -> orgIds))
-    QueryHelper.list[User, ObjectId](q, f, c, sk, l, User.queryFields, User.dao, User.UserWrites, Some(initSearch))
+    QueryHelper.list(q, f, c, sk, l, User, Some(initSearch))
   }
 
   /**

@@ -25,7 +25,7 @@ import controllers.auth.Permission
  */
 case class ContentCollection(var name: String = "", var isPrivate: Boolean = false, var id: ObjectId = new ObjectId())
 
-object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] with Queryable{
+object ContentCollection extends DBQueryable[ContentCollection]{
   val name = "name"
   val isPrivate = "isPrivate"
 
@@ -131,8 +131,8 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
   }
 
   val queryFields:Seq[QueryField[ContentCollection]] = Seq(
-    QueryField("id",QueryField.ObjectIdType,_.id),
-    QueryField(name, QueryField.StringType,_.name)
+    QueryFieldObject[ContentCollection]("id",_.id,QueryField.valuefuncid),
+    QueryFieldString[ContentCollection](name,_.name)
   )
 
 }

@@ -26,6 +26,7 @@ import com.mongodb.casbah.Imports._
 import play.api.Play.current
 import com.novus.salat._
 import com.novus.salat.global._
+import dao.SalatInsertError
 import play.api.Application
 import _root_.web.config.InitialData
 import web.controllers.utils.ConfigLoader
@@ -35,6 +36,7 @@ import web.controllers.utils.ConfigLoader
 object Global extends GlobalSettings {
 
   val AUTO_RESTART : String = "AUTO_RESTART"
+  val INIT_DATA:String = "INIT_DATA"
 
   val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
 
@@ -89,8 +91,9 @@ object Global extends GlobalSettings {
     S3Service.init(amazonProperties)
 
     val autoRestart = ConfigLoader.get(AUTO_RESTART).getOrElse("true") == "true"
+    val initData = ConfigLoader.get(INIT_DATA).getOrElse("true") == "true"
 
-    if (Play.isTest(app) || autoRestart) {
+    if (Play.isTest(app) || initData) {
       insertTestData("/conf/test-data/")
     }
 

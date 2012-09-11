@@ -30,14 +30,18 @@ case class Organization(var name: String = "",
   def this() = this("")
 }
 
-object Organization extends ModelCompanion[Organization, ObjectId] with Queryable{
+object Organization extends DBQueryable[Organization]{
   val name: String = "name"
   val path: String = "path"
   val contentcolls: String = "contentcolls"
+  val id = "id"
 
   val collection = mongoCollection("orgs")
   val dao = new SalatDAO[Organization, ObjectId](collection = collection) {}
-  val queryFields:Seq[QueryField[Organization]] = Seq(QueryField(name,QueryField.StringType,_.name))
+  val queryFields:Seq[QueryField[Organization]] = Seq(
+    QueryFieldString[Organization](name,_.name),
+    QueryFieldObject[Organization](id,_.id,QueryField.valuefuncid)
+  )
 
   def apply(): Organization = new Organization();
 

@@ -37,7 +37,7 @@ object OrganizationApi extends BaseApi {
   private def doList(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, childrenOnly: Boolean = false) = {
     val key = if ( childrenOnly ) childPath else Organization.path
     val initSearch = MongoDBObject(key -> orgId)
-    QueryHelper.list[Organization, ObjectId](q, f, c, sk,l, Organization.queryFields, Organization.dao, Organization.OrganizationWrites, Some(initSearch))
+    QueryHelper.list(q, f, c, sk,l, Organization, Some(initSearch))
   }
 
   /**
