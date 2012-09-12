@@ -13,11 +13,19 @@ import play.api.test.Helpers._
 
 object ResourceApiTest extends Specification {
 
+  val ACCESS_TOKEN: String = Global.MOCK_ACCESS_TOKEN
+
+  def tokenize(url: String): String = url + "?access_token=" + ACCESS_TOKEN
+
+
+  def tokenRequest[A](method: String, uri: String, headers: FakeHeaders = FakeHeaders(), body: A = "") : FakeRequest[A] = {
+    FakeRequest(method, tokenize(uri), headers, body)
+  }
 
   def call(byteArray: Array[Byte], url: String, expectedStatus: Int, expectedContains: String): (Boolean, Boolean) = {
 
     routeAndCall(
-      FakeRequest(
+      tokenRequest(
         POST,
         url,
         FakeHeaders(Map("Content" -> List("application/octet-stream"))),
@@ -43,16 +51,16 @@ object ResourceApiTest extends Specification {
     query.put("title", "NOT SURE THIS IS A GOOD ITEM? NO CONNECTION BETWEEN ITEM AND CHART?")
     Item.findOne(query) match {
       case Some(item) => {
-         item
+        item
       }
       case _ => throw new RuntimeException("test item")
     }
   }
 
-  def rubric : Resource = {
+  def rubric: Resource = {
     testItem.supportingMaterials.find(_.name == "Rubric") match {
-     case Some(r) => r
-     case _ => throw new RuntimeException("can't find rubric") 
+      case Some(r) => r
+      case _ => throw new RuntimeException("can't find rubric")
     }
   }
 
@@ -64,7 +72,7 @@ object ResourceApiTest extends Specification {
 
       def makeFileRequest(file: VirtualFile, path: String, method: String = POST): Result = {
 
-        val request = FakeRequest(method, path, FakeHeaders(), AnyContentAsJson(Json.toJson(file)))
+        val request = tokenRequest(method, path, FakeHeaders(), AnyContentAsJson(Json.toJson(file)))
 
         routeAndCall(request) match {
           case Some(result) => {
@@ -82,16 +90,16 @@ object ResourceApiTest extends Specification {
         val f0 = VirtualFile("myfile.txt", "text/txt", isMain = true, content = "I'm never going to be main")
 
         val initialLength = testItem.data.get.files.length
-        
+
         makeFileRequest(f0, url)
 
         val length = testItem.data.get.files.length
 
-        length must equalTo( initialLength + 1)
+        length must equalTo(initialLength + 1)
 
         makeFileRequest(f0, url + "/myfile.txt", DELETE)
         println("initialLength: " + initialLength)
-        testItem.data.get.files.length must equalTo(initialLength) 
+        testItem.data.get.files.length must equalTo(initialLength)
       }
 
 
@@ -101,16 +109,16 @@ object ResourceApiTest extends Specification {
         val f0 = VirtualFile("myfile.txt", "text/txt", isMain = true, content = "I'm never going to be main")
 
         val initialLength = rubric.files.length
-        
+
         makeFileRequest(f0, url)
 
         val length = rubric.files.length
 
-        length must equalTo( initialLength + 1)
+        length must equalTo(initialLength + 1)
 
         makeFileRequest(f0, url + "/myfile.txt", DELETE)
         println("initialLength: " + initialLength)
-        rubric.files.length must equalTo(initialLength) 
+        rubric.files.length must equalTo(initialLength)
       }
 
 
@@ -129,7 +137,7 @@ object ResourceApiTest extends Specification {
           case _ => failure("Can't find new file")
         }
 
-        makeFileRequest( f0, url + "/myfile.txt", PUT)
+        makeFileRequest(f0, url + "/myfile.txt", PUT)
 
         testItem.data.get.files.find(_.name == f0.name) match {
           case Some(f) => {
@@ -251,7 +259,7 @@ object ResourceApiTest extends Specification {
       "create a new supporting material resource" in {
 
         val url = baseItemPath(testItem.id.toString) + "/materials"
-        val request = FakeRequest(POST, url, FakeHeaders(), AnyContentAsEmpty)
+        val request = tokenRequest(POST, url, FakeHeaders(), AnyContentAsEmpty)
         routeAndCall(request) match {
           case Some(result) => {
             println(contentAsString(result))
@@ -262,7 +270,7 @@ object ResourceApiTest extends Specification {
 
         val r: Resource = Resource("newResource", Seq())
 
-        routeAndCall(FakeRequest(POST, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
+        routeAndCall(tokenRequest(POST, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
           case Some(result) => {
             println(contentAsString(result))
             status(result) must equalTo(OK)
@@ -272,7 +280,7 @@ object ResourceApiTest extends Specification {
           }
         }
 
-        routeAndCall(FakeRequest(POST, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
+        routeAndCall(tokenRequest(POST, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
           case Some(result) => {
             println(contentAsString(result))
             contentAsString(result).contains(ApiError.ResourceNameTaken.message) must equalTo(true)
@@ -283,7 +291,7 @@ object ResourceApiTest extends Specification {
           }
         }
         //tidy up
-        routeAndCall(FakeRequest(DELETE, url + "/newResource"))
+        routeAndCall(tokenRequest(DELETE, url + "/newResource"))
         true must equalTo(true)
       }
 
@@ -291,9 +299,9 @@ object ResourceApiTest extends Specification {
         val url = baseItemPath(testItem.id.toString) + "/materials"
         val r: Resource = Resource("newResource2", Seq())
 
-        routeAndCall(FakeRequest(POST, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r))))
+        routeAndCall(tokenRequest(POST, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r))))
         println("now delete...")
-        routeAndCall(FakeRequest(DELETE, url + "/newResource2")) match {
+        routeAndCall(tokenRequest(DELETE, url + "/newResource2")) match {
           case Some(result) => {
             println(contentAsString(result))
             status(result) must equalTo(OK)
@@ -306,7 +314,7 @@ object ResourceApiTest extends Specification {
 
       "list an item's supporting materials" in {
         val url = baseItemPath(testItem.id.toString) + "/materials"
-        routeAndCall(FakeRequest(GET, url)) match {
+        routeAndCall(tokenRequest(GET, url)) match {
           case Some(result) => {
             val json: JsValue = Json.parse(contentAsString(result.asInstanceOf[SimpleResult[JsValue]]))
             val seq: Seq[JsObject] = json.as[Seq[JsObject]]

@@ -38,6 +38,8 @@ object Global extends GlobalSettings {
   val AUTO_RESTART : String = "AUTO_RESTART"
   val INIT_DATA:String = "INIT_DATA"
 
+  val MOCK_ACCESS_TOKEN : String = "34dj45a769j4e1c0h4wb"
+
   val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
 
   def AccessControlAction[A](action: Action[A]): Action[A] = Action(action.parser) {
@@ -150,7 +152,7 @@ object Global extends GlobalSettings {
     //acces token stuff
     AccessToken.collection.drop()
     val creationDate = DateTime.now()
-    val token = AccessToken(new ObjectId("502404dd0364dc35bb393397"), None, "34dj45a769j4e1c0h4wb", creationDate, creationDate.plusHours(24))
+    val token = AccessToken(new ObjectId("502404dd0364dc35bb393397"), None, MOCK_ACCESS_TOKEN, creationDate, creationDate.plusHours(24))
     AccessToken.insert(token)
   }
 
