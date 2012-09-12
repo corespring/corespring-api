@@ -98,7 +98,7 @@ object ResourceApiTest extends Specification {
         length must equalTo(initialLength + 1)
 
         makeFileRequest(f0, url + "/myfile.txt", DELETE)
-        println("initialLength: " + initialLength)
+
         testItem.data.get.files.length must equalTo(initialLength)
       }
 
@@ -117,7 +117,6 @@ object ResourceApiTest extends Specification {
         length must equalTo(initialLength + 1)
 
         makeFileRequest(f0, url + "/myfile.txt", DELETE)
-        println("initialLength: " + initialLength)
         rubric.files.length must equalTo(initialLength)
       }
 
@@ -230,13 +229,11 @@ object ResourceApiTest extends Specification {
         val f = VirtualFile("data.file.txt", "text/txt", isMain = false, content = "hello there")
 
         val result = makeFileRequest(f, url)
-        println(contentAsString(result))
         val json = Json.parse(contentAsString(result))
         json.as[BaseFile].name must equalTo("data.file.txt")
         status(result) must equalTo(OK)
 
         val secondResult = makeFileRequest(f, url)
-        println(contentAsString(secondResult))
         status(secondResult) must equalTo(NOT_ACCEPTABLE)
       }
 
@@ -246,13 +243,11 @@ object ResourceApiTest extends Specification {
         val f = VirtualFile("file", "text/txt", isMain = false, content = "hello there")
 
         val result = makeFileRequest(f, url)
-        println(contentAsString(result))
         val json = Json.parse(contentAsString(result))
         json.as[BaseFile].name must equalTo("file")
         status(result) must equalTo(OK)
 
         val secondResult = makeFileRequest(f, url)
-        println(contentAsString(secondResult))
         status(secondResult) must equalTo(NOT_ACCEPTABLE)
       }
 
@@ -262,7 +257,6 @@ object ResourceApiTest extends Specification {
         val request = tokenRequest(POST, url, FakeHeaders(), AnyContentAsEmpty)
         routeAndCall(request) match {
           case Some(result) => {
-            println(contentAsString(result))
             status(result) must equalTo(BAD_REQUEST)
           }
           case _ => failure("Request failed")
@@ -272,7 +266,6 @@ object ResourceApiTest extends Specification {
 
         routeAndCall(tokenRequest(POST, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
           case Some(result) => {
-            println(contentAsString(result))
             status(result) must equalTo(OK)
           }
           case _ => {
@@ -282,7 +275,6 @@ object ResourceApiTest extends Specification {
 
         routeAndCall(tokenRequest(POST, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
           case Some(result) => {
-            println(contentAsString(result))
             contentAsString(result).contains(ApiError.ResourceNameTaken.message) must equalTo(true)
             status(result) must equalTo(NOT_ACCEPTABLE)
           }
@@ -300,10 +292,8 @@ object ResourceApiTest extends Specification {
         val r: Resource = Resource("newResource2", Seq())
 
         routeAndCall(tokenRequest(POST, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r))))
-        println("now delete...")
         routeAndCall(tokenRequest(DELETE, url + "/newResource2")) match {
           case Some(result) => {
-            println(contentAsString(result))
             status(result) must equalTo(OK)
           }
           case _ => throw new RuntimeException("Request Failed")
