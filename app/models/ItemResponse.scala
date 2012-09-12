@@ -20,7 +20,7 @@ import play.api.libs.json.JsObject
  * @param value string response, may be json-formatted. Format and type depends on the question type
  * @param outcome  this is the outcome of the user interaction as calculated by the server. usually 'SCORE' property
  */
-case class ItemResponse(id: String, value: String, outcome: String)
+case class ItemResponse(id: String, value: String, outcome: String = "")
 
 object ItemResponse {
    val value = "value"

@@ -1,11 +1,14 @@
-package controllers.testplayer.qti
+package api.processors
 
-import scala.xml._
+import xml._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 import play.api.libs.json.Json
-import scala.xml.Null
-import xml.{ExceptionMessage, XmlValidationResult, XmlValidator}
-import XmlValidationResult.success
+import controllers.testplayer.qti.xml.{ExceptionMessage, XmlValidationResult, XmlValidator}
+import scala.Some
+import controllers.testplayer.qti.xml.XmlValidationResult.success
+import scala.Some
+import controllers.testplayer.qti.xml.ExceptionMessage
+import scala.Some
 
 /**
  * Provides transformations on JSON strings to add/remove csFeedbackIds to feedback elements, as well as validation for
@@ -24,8 +27,12 @@ object FeedbackProcessor extends XmlValidator {
         n match {
           case e: Elem if (FEEDBACK_NODE_LABELS.contains(e.label)) =>
             e.attribute("csFeedbackId") match {
-              case Some(id) => {<a csFeedbackId={id}></a>.copy(label = e.label)}
-              case None => {<a/>.copy(label = e.label)}
+              case Some(id) => {
+                <a csFeedbackId={id}></a>.copy(label = e.label)
+              }
+              case None => {
+                  <a/>.copy(label = e.label)
+              }
             }
           case n => n
         }
@@ -55,7 +62,7 @@ object FeedbackProcessor extends XmlValidator {
   def addFeedbackIds(jsonData: String): String = applyRewriteRuleToJson(jsonData, new FeedbackIdentifierInserter())
 
   /**
-   *  Removes csFeedbackId attributes to all feedback elements in a JSON string's xmlData field.
+   * Removes csFeedbackId attributes to all feedback elements in a JSON string's xmlData field.
    */
   def removeFeedbackIds(jsonData: String): String = applyRewriteRuleToJson(jsonData, feedbackIdentifierRemoverRule)
 

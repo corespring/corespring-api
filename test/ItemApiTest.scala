@@ -1,8 +1,11 @@
+import org.junit.Ignore
 import play.api.libs.json.{JsValue, Json}
 import play.api.Logger
-import play.api.test.FakeRequest
+import play.api.mvc.{Result, AnyContentAsJson}
+import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers._
 import scala.Some
+import api.ApiError._
 
 /**
  *
@@ -38,7 +41,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    (items(0) \ "id").as[String] must beEqualTo("50086e0ae4b03c53174f7456")
+    (items(0) \ "id").as[String] must beEqualTo("50086b82e4b095c1f3af7b50")
   }
 
   "list items limiting result to 10" in {
@@ -90,8 +93,92 @@ class ItemApiTest extends BaseTest {
     (item \ "id").as[String] must beEqualTo(id)
   }
 
-  "create update and delete an item" in {
+  "create requires a collection id" in {
+    val toCreate = Map("xmlData" -> "<html></html>")
+    val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
+    val result = routeAndCall(fakeRequest).get
+    status(result) must equalTo(BAD_REQUEST)
+    val collection = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
+    (collection \ "code").as[Int] must equalTo(CollectionIsRequired.code)
+  }
 
+  "create requires an authorized collection id" in {
+    val toCreate = Map("xmlData" -> "<html></html>", "collectionId" -> "something")
+    val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
+    val result = routeAndCall(fakeRequest).get
+    status(result) must equalTo(FORBIDDEN)
+    val collection = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
+    (collection \ "code").as[Int] must equalTo(CollectionUnauthorized.code)
+  }
+
+  "create response does not include csFeedbackIds" in {
+    val toCreate = Map("xmlData" -> "<html><feedbackInline></feedbackInline></html>", "collectionId" -> "5001bb0ee4b0d7c9ec3210a2")
+    val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
+    val result = routeAndCall(fakeRequest).get
+    status(result) must equalTo(OK)
+    val xmlData = (Json.parse(contentAsString(result)) \ "xmlData").toString
+    xmlData must not (beMatching(".*csFeedbackId.*"))
+  }
+
+  "create does not accept id" in {
+    val toCreate = Map("xmlData" -> "<html><feedbackInline></feedbackInline></html>", "collectionId" -> "5001bb0ee4b0d7c9ec3210a2")
+    var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
+    var result = routeAndCall(fakeRequest).get
+    status(result) must equalTo(OK)
+    val itemId = (Json.parse(contentAsString(result)) \ "id").toString
+
+    val toUpdate = Map("xmlData" -> "<html><feedbackInline></feedbackInline></html>", "id" -> itemId)
+    fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
+    result = routeAndCall(fakeRequest).get
+    var collection = Json.parse(contentAsString(result))
+    (collection \ "code").as[Int] must equalTo(IdNotNeeded.code)
+  }
+
+  "update does not accept collection id" in {
+    val toCreate = Map("xmlData" -> "<html><feedbackInline></feedbackInline></html>", "collectionId" -> "5001bb0ee4b0d7c9ec3210a2")
+    var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
+    var result = routeAndCall(fakeRequest).get
+    println("#1: " + result.toString)
+    status(result) must equalTo(OK)
+    val itemId = (Json.parse(contentAsString(result)) \ "id").as[String]
+
+    val toUpdate = Map("xmlData" -> "<html><feedbackInline></feedbackInline></html>", "collectionId" -> "5001bb0ee4b0d7c9ec3210a2")
+    fakeRequest = FakeRequest(PUT, "/api/v1/items/%s?access_token=%s".format(itemId,  token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
+    result = routeAndCall(fakeRequest).get
+    val collection = Json.parse(contentAsString(result))
+    (collection \ "code").as[Int] must equalTo(CollIdNotNeeded.code)
+  }
+
+  "update does not include csFeedbackIds" in {
+    val toCreate = Map("xmlData" -> "<html><feedbackInline></feedbackInline></html>", "collectionId" -> "5001bb0ee4b0d7c9ec3210a2")
+    var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
+    var result = routeAndCall(fakeRequest).get
+    status(result) must equalTo(OK)
+    val itemId = (Json.parse(contentAsString(result)) \ "id").as[String]
+
+    val toUpdate = Map("xmlData" -> "<html><feedbackInline></feedbackInline></html>")
+    fakeRequest = FakeRequest(PUT, "/api/v1/items/%s?access_token=%s".format(itemId,  token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
+    result = routeAndCall(fakeRequest).get
+    status(result) must equalTo(OK)
+    val xmlData = (Json.parse(contentAsString(result)) \ "xmlData").toString
+    xmlData must not (beMatching(".*csFeedbackId.*"))
+  }
+
+
+  "get item data with feedback contains csFeedbackIds" in {
+    val toCreate = Map("xmlData" -> "<html><feedbackInline></feedbackInline></html>", "collectionId" -> "5001bb0ee4b0d7c9ec3210a2")
+    var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
+    var result = routeAndCall(fakeRequest).get
+    status(result) must equalTo(OK)
+    val itemId = (Json.parse(contentAsString(result)) \ "id").as[String]
+    val path: String = "/api/v1/items/%s/data?access_token=%s".format(itemId, token)
+
+
+    val anotherFakeRequest = FakeRequest(GET, path)
+    result = routeAndCall(anotherFakeRequest).get
+    status(result) must equalTo(OK)
+    val xmlData = contentAsString(result).toString
+    xmlData must beMatching(".*csFeedbackId.*")
   }
 
 

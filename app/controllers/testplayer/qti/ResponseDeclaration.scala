@@ -13,7 +13,7 @@ class ResponseDeclaration(rootElement: Node) {
   // Enum for this?
   val cardinality: String = (rootElement \ "@cardinality").text.toLowerCase
 
-  private val correctResponse = cardinality match {
+  val correctResponse = cardinality match {
     case "multiple" => (rootElement \ "correctResponse" \ "value").map(_.text)
     case _ => (rootElement \ "correctResponse" \ "value").text
   }

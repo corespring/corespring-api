@@ -56,6 +56,7 @@ object ApiError {
   val InsertCollection      = ApiError(402, "Failed to insert collection")
   val UpdateCollection      = ApiError(403, "Failed to update collection")
   val AddToOrganization     = ApiError(404, "Failed to link collection to organization(s)")
+  val CollectionUnauthorized = ApiError(405, "You do not have permissions for the specified collection")
 
   // User API
   val UserRequiredFields    = ApiError(500, "userName, fullName and email are required")

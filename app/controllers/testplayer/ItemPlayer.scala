@@ -1,17 +1,15 @@
 package controllers.testplayer
 
-
 import org.xml.sax.SAXParseException
 import qti.{QtiItem, FeedbackElement}
 import xml.{Elem, NodeSeq}
 import play.api.libs.json.Json
-import qti.FeedbackProcessor._
 import org.bson.types.ObjectId
 import controllers.auth.{Permission, BaseApi}
 import models.{Content, Item}
-import api.v1.ItemApi
 import com.mongodb.casbah.Imports._
-import scala.Some
+import api.processors.FeedbackProcessor._
+
 
 case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: Int = -1)
 

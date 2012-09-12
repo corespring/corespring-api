@@ -1,11 +1,15 @@
 import models.{Item, ItemResponse, ItemSession}
 import org.bson.types.ObjectId
+import org.joda.time.DateTime
 import org.specs2.execute.Pending
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsUndefined, JsValue, Json}
 import play.api.mvc.AnyContentAsJson
+import play.api.mvc.AnyContentAsJson
+import play.api.test.FakeHeaders
 import play.api.test.{FakeHeaders, FakeRequest}
 import org.specs2.mutable._
 import play.api.test.Helpers._
+import scala.Some
 
 /**
  * Tests the ItemSession model
@@ -17,7 +21,11 @@ class ItemSessionTest extends Specification {
   // from standard fixture data
   val token = "34dj45a769j4e1c0h4wb"
   val testItemId = "5001b7ade4b0d7c9ec321070"
-  val testItemSessionId = "502d0f823004deb7f4f53be7"
+
+  val testSessionIds = Map(
+    "itemId" -> "4ffd8645e4b0031d54b5ab90",
+    "itemSessionId" -> "502d0f823004deb7f4f53be7"
+  )
 
   // create test session bound to random object id
   // in practice ItemSessions need to be bound to an item
@@ -42,13 +50,48 @@ class ItemSessionTest extends Specification {
   }
 
 
-
-
-
   "item session api" should {
+
+    "return feedback with session" in {
+      val testSessionId = "4ffd8645e4b0031d54b5ab90"
+      val testSession = ItemSession(new ObjectId(testSessionId))
+      testSession.responses = List(ItemResponse("RESPONSE", "ChoiceA"))
+
+      val url = "/api/v1/items/" + testSessionId + "/sessions"
+      val request = FakeRequest(
+        POST,
+        url,
+        FakeHeaders( Map("Authorization" -> Seq("Bearer "+token)) ),
+        AnyContentAsJson(Json.toJson(testSession))
+      )
+
+      val result = routeAndCall(request)
+
+
+      if (result.isDefined) {
+        result match {
+          case Some(result) => {
+            val jsonResponse = Json.parse(contentAsString(result))
+            (jsonResponse \ "sessionData") match {
+              case undefined: JsUndefined => failure
+              case sessionData: JsValue =>
+                (sessionData \ "feedbackContent") match {
+                  case undefined: JsUndefined => failure
+                  case feedbackContent: JsValue => {
+                    success
+                  }
+                }
+            }
+          }
+          case None => failure
+        }
+      }
+      else {
+        failure
+      }
+    }
+
     "support item creation " in {
-
-
 
       val testSession = ItemSession(new ObjectId(testItemId))
       val url = "/api/v1/items/" + testSession.itemId.toString + "/sessions"
@@ -57,6 +100,7 @@ class ItemSessionTest extends Specification {
       testSession.responses = testSession.responses ++ Seq(ItemResponse("question1","choice1", "{$score:1}"))
       testSession.responses = testSession.responses ++ Seq(ItemResponse("question2","some text", "{$score:1}"))
       testSession.responses = testSession.responses ++ Seq(ItemResponse("question3","more text", "{$score:1}"))
+      testSession.finish = Some(new DateTime())
 
       val request = FakeRequest(
         POST,
@@ -65,12 +109,8 @@ class ItemSessionTest extends Specification {
         AnyContentAsJson(Json.toJson(testSession))
       )
 
-      System.out.println(Json.toJson(testSession))
-
       val optResult = routeAndCall(request)
       if(optResult.isDefined) {
-
-
         val json:JsValue = Json.parse(contentAsString(optResult.get))
 
         // get the generated id
@@ -92,12 +132,10 @@ class ItemSessionTest extends Specification {
       }
 
     }
-  }
 
-  "item session api" should {
     "support retrieval of an itemsession" in {
 
-      val url = "/api/v1/itemsessions/" + testItemSessionId
+      val url = "/api/v1/items/" + testSessionIds("itemId") + "/sessions/" + testSessionIds("itemSessionId")
       val getRequest = FakeRequest(
         GET,
         url,
@@ -108,13 +146,14 @@ class ItemSessionTest extends Specification {
       try {
         val optResult = routeAndCall(getRequest)
         if (optResult.isDefined) {
-          val json:JsValue = Json.parse(contentAsString(optResult.get))
+          val json: JsValue = Json.parse(contentAsString(optResult.get))
 
           // load the test session directly
-          val testSessionForGet : ItemSession = ItemSession.findOneById(new ObjectId(testItemSessionId)) match {
-            case Some(o) => o
-            case None =>  null
-          }
+          val testSessionForGet: ItemSession =
+            ItemSession.findOneById(new ObjectId(testSessionIds("itemSessionId"))) match {
+              case Some(o) => o
+              case None =>  null
+            }
 
           if (doesSessionMatch(json, testSessionForGet)) {
             success
@@ -128,35 +167,37 @@ class ItemSessionTest extends Specification {
 
       } catch {
         case e: Exception => {
-          System.out.println(e.getMessage)
+          e.printStackTrace
           failure
         }
       }
     }
+
   }
 
 
-  def doesSessionMatch(json:JsValue, testSession:ItemSession) : Boolean = {
+  def doesSessionMatch(json: JsValue, testSession: ItemSession): Boolean = {
     try {
       val id = (json \ "id").asOpt[String].getOrElse("")
-      val itemId = (json \ "contentId").asOpt[String].getOrElse("")
-      val start = (json \ "start").asOpt[String]
-      val finish = (json \ "finish").asOpt[String]
+      val itemId = (json \ "itemId").asOpt[String].getOrElse("no id")
+      val start = (json \ "start").toString
+      val finish = (json \ "finish").toString
 
       val idString = testSession.id.toString
       val itemIdString = testSession.itemId.toString
-      val finishString = testSession.finish.get.getMillis.toString
+      val finishString = testSession.finish.getOrElse(new DateTime(0)).getMillis.toString
       val startString = testSession.start.getMillis.toString
 
-      var result = false
-      result = finish.get == finishString
-      result = start.get == startString
-      result = id == idString
-      result = itemId == itemIdString
+      (finish equals finishString) &&
+        (start equals startString) &&
+        (id equals idString) &&
+        (itemId equals itemIdString)
 
-      result
       } catch {
-      case e: Exception => false
+      case e: Exception => {
+        e.printStackTrace()
+        false
+      }
     }
 
   }

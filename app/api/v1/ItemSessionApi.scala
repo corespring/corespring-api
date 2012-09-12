@@ -5,16 +5,12 @@ import play.api.libs.json.Json
 import api.ApiError
 import org.bson.types.ObjectId
 import models._
-import org.joda.time.DateTime
-import com.novus.salat.dao.{SalatInsertError, SalatSaveError}
-import play.api.Logger
-import com.mongodb.casbah.MongoCursor
-import play.api.mvc.{AnyContent, Result}
 import com.mongodb.casbah.Imports._
-import controllers.{Log, Utils}
+import controllers.Utils
 import scala.Left
 import scala.Some
 import scala.Right
+import controllers.testplayer.qti.QtiItem
 
 
 /**
@@ -35,18 +31,28 @@ object ItemSessionApi extends BaseApi {
    * @param sessionId
    * @return
    */
-  def getItemSession(itemId:ObjectId, sessionId: ObjectId) = ApiAction { request =>
+  def getItemSession(itemId: ObjectId, sessionId: ObjectId) = ApiAction { request =>
     ItemSession.findOneById(sessionId) match {
-      case Some(o) => {
-        if(Content.isAuthorized(request.ctx.organization, o.itemId, Permission.All)){
-          Ok(Json.toJson(o))
-        }else Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
-        Ok(Json.toJson(o))
+      case Some(itemSession) => {
+        if (Content.isAuthorized(request.ctx.organization, itemSession.itemId, Permission.All)) {
+          Item.collection.findOneByID(itemId, MongoDBObject(Item.data -> 1)) match {
+            case Some(o) => {
+              val xmlData = o.get(Item.data).toString
+              val qtiItem = new QtiItem(scala.xml.XML.loadString(xmlData))
+              Ok(Json.toJson(itemSession))
+            }
+            case None => NotFound
+          }
+        }
+        else {
+          Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
+        }
       }
       case None => NotFound
     }
 
   }
+
   /**
    * Serves POST request
    * Creates an itemSession.
@@ -55,18 +61,43 @@ object ItemSessionApi extends BaseApi {
    * @return json for the created item session
    */
   def createItemSession(itemId: ObjectId) = ApiAction { request =>
-    if (Content.isAuthorized(request.ctx.organization,itemId,Permission.All)){
+    if (Content.isAuthorized(request.ctx.organization,itemId,Permission.All)) {
       val newSession = request.body.asJson match {
         case Some(jssession) => Json.fromJson[ItemSession](jssession)
         case None => ItemSession(itemId)
       }
+
       ItemSession.newItemSession(itemId,newSession) match {
-        case Right(session) => Ok(Json.toJson(session))
+        case Right(session) => {
+          val feedback: Map[String, String] = getSessionFeedback(itemId, newSession)
+          if (!feedback.isEmpty) {
+            Ok(Json.toJson(session.sessionData(Map("feedbackContent" -> feedback))))
+          }
+          else {
+            Ok(Json.toJson(session))
+          }
+        }
         case Left(error) => InternalServerError(Json.toJson(ApiError.CreateItemSession(error.clientOutput)))
       }
-    }else Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
+    }
+    else {
+      Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
+    }
   }
 
+  private def getSessionFeedback(itemId: ObjectId, itemSession: ItemSession): Map[String, String] = {
+    Item.collection.findOneByID(itemId, MongoDBObject(Item.data -> 1)) match {
+      case None => Map[String, String]()
+      case Some(o) => {
+        val xmlData = o.get(Item.data).toString
+        val qtiItem = new QtiItem(scala.xml.XML.loadString(xmlData))
+
+        optMap[String, String](
+          qtiItem.feedback(itemSession.responses).map(feedback => (feedback.csFeedbackId, feedback.body))
+        ).getOrElse(Map[String, String]())
+      }
+    }
+  }
   /**
    * Serves the PUT request for an item session
    * @param itemId
@@ -91,5 +122,12 @@ object ItemSessionApi extends BaseApi {
       case None => BadRequest(Json.toJson(ApiError.ItemSessionNotFound))
     }
   }
+
+  // Translates a collection of tuples to an Option[Map]
+  private def optMap[A,B](in: Iterable[(A,B)]): Option[Map[A,B]] =
+    in.iterator.foldLeft(Option(Map[A,B]())) {
+      case (Some(m),e @ (k,v)) if m.getOrElse(k, v) == v => Some(m + e)
+      case _ => None
+    }
 
 }
