@@ -1,3 +1,11 @@
+try{
+    angular.module('tagger.services')
+}
+catch(e) {
+    angular.module('tagger.services', ['ngResource']);
+    window.servicesModule = ( window.servicesModule || angular.module('tagger.services'));
+}
+
 /**
  * Lookup for all ajax services.
  */

@@ -70,7 +70,6 @@ PUT     /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.updateDa
 POST    /api/v1/items/:itemId/data/:filename/upload   api.v1.ResourceApi.uploadFileToData(itemId:String, filename : String )
 DELETE  /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.deleteDataFile(itemId:String, filename:String)
 
-
 # Field Values API
 GET     /api/v1/field_values                   api.v1.FieldValuesApi.getAllAvailable
 GET     /api/v1/field_values/:fieldName        api.v1.FieldValuesApi.getFieldValues(fieldName:String, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
@@ -88,6 +87,9 @@ GET    /testplayer/item/:itemId/feedback/:responseIdentifier/:identifier  contro
 
 # Web tier
 GET    /web                                    web.controllers.Main.index
+# Item Preview
+GET     /web/item-preview/:itemId              web.controllers.Main.previewItem(itemId:String)
+GET     /web/item-preview                      web.controllers.Main.previewAnyItem
 
 GET    /web/partials/editItem                  web.controllers.Partials.editItem
 GET    /web/partials/createItem                web.controllers.Partials.createItem
