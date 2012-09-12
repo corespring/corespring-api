@@ -15,7 +15,7 @@
 
                  "name":"clientcharges.jpg",
                  "contentType":"image/jpg",
-                 "storageKey":"6.clientcharges.JPG",
+                 "storageKey":"test_images/Cute-Koala-01.jpg",
                  "default":false
              }
          ]
@@ -60,7 +60,7 @@
                  {
                      "name":"cute-puppy.jpg",
                      "contentType":"image/jpg",
-                     "storageKey":"test_images/cute-puppy.jpg",
+                     "storageKey":"test_images/cute-kittens1.jpg",
                      "default":false
                  }
             ]

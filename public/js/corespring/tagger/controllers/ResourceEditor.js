@@ -118,8 +118,19 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
         return (f && !isLockedFile(f));
     };
 
+    function isTypeDefaultable(type){
+        if(!type){
+            return false;
+        }
+
+        return ["text/html","application/pdf"].indexOf(type) != -1;
+    }
+
     $scope.canMakeDefault = function(f){
-        return (!$scope.lockedFiles || $scope.lockedFiles.length == 0);
+        if ($scope.lockedFiles && $scope.lockedFiles.length > 0){
+            return false;
+        }
+        return isTypeDefaultable(f.contentType);
     };
 
     $scope.onFileSizeGreaterThanMax = function(file, maxSize) {
