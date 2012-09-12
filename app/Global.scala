@@ -92,17 +92,10 @@ object Global extends GlobalSettings {
     val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
     S3Service.init(amazonProperties)
 
-    val autoRestart = ConfigLoader.get(AUTO_RESTART).getOrElse("true") == "true"
     val initData = ConfigLoader.get(INIT_DATA).getOrElse("true") == "true"
 
     if (Play.isTest(app) || initData) {
       insertTestData("/conf/test-data/")
-    }
-
-    if( autoRestart){
-      Akka.system.scheduler.scheduleOnce(Duration.create(1, TimeUnit.DAYS)){
-        Play.start(new Application(Play.current.path,Play.current.classloader,Play.current.sources,Play.current.mode))
-      }
     }
 
     InitialData.insert()
