@@ -1,6 +1,6 @@
 /**
  */
-function SupportingMaterialsController($scope, $rootScope, $routeParams, SupportingMaterial, ServiceLookup, AccessToken) {
+function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeout, SupportingMaterial, ServiceLookup, AccessToken) {
 
     $scope.showAddResourceModal = false;
     $scope.newResourceType = "upload";
@@ -40,7 +40,7 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, Support
             });
         }
 
-        var iframeables = ['pdf', 'text/html', 'image/jpg', 'image/png', 'image/jpeg', 'doc'];
+        var iframeables = ['application/pdf', 'text/html', 'image/jpg', 'image/png', 'image/jpeg', 'doc'];
 
         function isIFrameableResource(resource) {
             if (!resource.files || resource.files.length <= 0) {
@@ -52,17 +52,18 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, Support
         if (isIFrameableResource(resource)) {
             var templateUrl = ServiceLookup.getUrlFor('previewFile');
             var file = defaultFile(resource);
-            var key = "";
+            if(!file) throw "Can't find default file";
 
-            if (file.content) {
-                key = $routeParams.itemId + "/" + resource.name + "/" + file.name;
-            } else {
-                key = file.storageKey;
-            }
-            $scope.currentHtmlUrl = templateUrl.replace("{key}", key);
+            var key = $routeParams.itemId + "/" + resource.name + "/" + file.name;
+
+            //empty it so we trigger a refresh
+            $scope.currentHtmlUrl = "";
+            $timeout(function(){
+                $scope.currentHtmlUrl = templateUrl.replace("{key}", key);
+            });
             $scope.currentMaterial = resource;
         } else {
-            throw "Can't preview file";
+            throw "[SupportingMaterialsController] showResource : Can't preview file: " + defaultFile(resource).name;
         }
     };
 
@@ -208,6 +209,7 @@ SupportingMaterialsController.$inject = [
     '$scope',
     '$rootScope',
     '$routeParams',
+    '$timeout',
     'SupportingMaterial',
     'ServiceLookup',
     'AccessToken'];

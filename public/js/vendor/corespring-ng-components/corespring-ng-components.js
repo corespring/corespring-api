@@ -244,6 +244,9 @@ TODO: Support file drag and drop
           var callback, name, options, uploader, url,
             _this = this;
           if (file.size > maxSize) {
+            if (scope[attrs["fuFileSizeGreaterThanMax"]] != null) {
+              scope[attrs["fuFileSizeGreaterThanMax"]](file, maxSizeKb);
+            }
             $rootScope.$broadcast("fileSizeGreaterThanMax", file, maxSizeKb);
             return;
           }

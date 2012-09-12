@@ -430,15 +430,29 @@ a:hover {
     color: darken(@cs-main-a-color, 20%);
 }
 
-/*
-.dropdown-menu li > a:hover,
-.dropdown-menu .active > a,
-.dropdown-menu .active > a:hover {
-    color: #ffffff;
-    text-decoration: none;
-    background-color: @cs-base-color;
+.file-list li.active ul.dropdown-menu li a {
+    font-weight: normal;
 }
-*/
+
+ul.dropdown-menu {
+    min-width: 130px;
+    padding: 2px 0;
+    margin: 2px 0 0;
+
+    li.active{
+        a{
+            font-weight: normal;
+        }
+    }
+    li{
+        padding: 2px;
+
+        a{
+            padding: 2px;
+            font-weight: normal;
+        }
+    }
+}
 
 .navbar-inner {
     min-height: 40px;

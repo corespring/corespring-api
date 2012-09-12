@@ -36,6 +36,7 @@
                 <button class="btn btn-primary"
                         ng-model="isSaving"
                         loading-button
+                        ng-show="!showResourceEditor"
                         data-loading-text="Saving..."
                         ng-click="save()">Save
                 </button>
@@ -46,11 +47,13 @@
                title="toggle preview"
                ng-show="mode == 'edit'"></i>
 
+            <!--
             <i id="toggleFileListButton" class="icon-file icon-white" ng-class="fileListClassName"
                style="cursor: pointer"
                ng-click="toggleFileList()"
                title="toggle file list"
                ng-show="mode == 'edit'"></i>
+             -->
             </span>
         </div>
     </div>
@@ -75,7 +78,8 @@
 
                 <div class="control-group">
                     <label class="control-label">Name</label>
-                    <input type="text" ng-model="newFilename" placeholder="enter name.." ng-change="nameAlreadyTaken = false"/>
+                    <input type="text" ng-model="newFilename" placeholder="enter name.."
+                           ng-change="nameAlreadyTaken = false"/>
                     <br/>
                     <span style="font-weight: 8px; color: red;" ng-show="nameAlreadyTaken">Name already taken</span>
                 </div>
@@ -88,9 +92,20 @@
                 </button>
             </div>
 
-            <div class="resource-editor-header" ng-show="showBackNav">
-                <h4><a ng-click="leaveEditor()" class="leave-link"><i class="icon-backward"></i></a> Editing:
-                    {{resource.name}}</h4>
+            <div class="resource-editor-header" >
+                <div style="height: 22px;">
+
+                <div class="pull-left" style="padding-left: 10px">
+                    <a ng-click="leaveEditor()" ng-show="showBackNav" class="leave-link">
+                        <i class="icon-backward"></i>
+                    </a>
+                    Editing:
+                    {{resource.name}}
+                    </div>
+                    &nbsp;
+                <a class="btn btn-mini btn-success pull-left" style="margin-left: 10px;" ng-click="update(selectedFile)"
+                   ng-show="selectedFile.content">Save</a>
+                </div>
             </div>
 
             <div class="file-list">
@@ -103,13 +118,13 @@
                         <i class="icon-home" ng-show="f.default"></i>
                         <a ng-click="showFile(f)">{{f.name}}</a>
 
-                            <span class="dropdown">
+                            <span class="dropdown" ng-show="canShowFileDropdown(f)">
                                 <a class="dropdown-toggle" id="drop5" role="button" data-toggle="dropdown" href="#"><b
                                         class="caret"></b></a>
                                 <ul class="dropdown-menu" role="menu">
-                                    <li><a tabindex="-1" ng-click="removeFile(f)">Remove</a></li>
-                                    <li><a tabindex="-1" ng-click="renameFile(f)">Rename</a></li>
-                                    <li><a tabindex="-1" ng-click="makeDefault(f)">Make Default</a></li>
+                                    <li ng-show="canRemove(f)"><a tabindex="-1" ng-click="removeFile(f)">Remove</a></li>
+                                    <li ng-show="canRename(f)"><a tabindex="-1" ng-click="renameFile(f)">Rename</a></li>
+                                    <li ng-show="canMakeDefault(f)"><a tabindex="-1" ng-click="makeDefault(f)">Make Default</a></li>
                                 </ul>
                             </span>
                     </li>
@@ -120,6 +135,7 @@
                         <button
                                 file-uploader
                                 fu-upload-completed="onFileUploadCompleted"
+                                fu-file-size-greater-than-max="onFileSizeGreaterThanMax"
                                 class="btn btn-mini btn-success"
                                 fu-url="calculateUploadUrl()"
                                 fu-max-size="400"

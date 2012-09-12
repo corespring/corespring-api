@@ -188,6 +188,7 @@ object ItemApi extends BaseApi {
           //else if ((json \ Item.collectionId).asOpt[String].isDefined) BadRequest(Json.toJson(ApiError.CollIdNotNeeded))
           else{
             try{
+              //TODO: This should be using $set - because this is updating in place and removing 'supportingMaterials'.
               Item.updateItem(id,Json.fromJson[Item](json)) match {
                 case Right(i) => Ok(Json.toJson(i))
                 case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateItem(error.clientOutput)))

@@ -37,9 +37,11 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         return ($routeParams && $routeParams.preview === "1");
     }
 
+    /*
     function initFileListVisibleFromParams($routeParams) {
         return ($routeParams && $routeParams.fileList === "1")
     }
+    */
 
     /**
      * Update the location search settings to reflect the ui state
@@ -47,19 +49,16 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
      * @param panelName
      * @param previewVisible
      */
-    function updateLocation(panelName, previewVisible, fileListVisible) {
+    function updateLocation(panelName, previewVisible) {
         var current = $location.search();
         var previewNumber = previewVisible ? "1" : "0";
-        var fileListNumber = fileListVisible ? "1" : "0";
 
         if (current.panel == panelName
             &&
-            current.preview == previewNumber
-            &&
-            current.fileList == fileListNumber) {
+            current.preview == previewNumber) {
             return;
         }
-        $location.search("panel=" + panelName + "&preview=" + previewNumber + "&fileList=" + fileListNumber);
+        $location.search("panel=" + panelName + "&preview=" + previewNumber);
     }
 
     var self = this;
@@ -69,17 +68,17 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
     //ui nav
     $scope.previewVisible = initPreviewVisibleFromParams($routeParams);
-    $scope.fileListVisible = initFileListVisibleFromParams($routeParams);
+    //$scope.fileListVisible = initFileListVisibleFromParams($routeParams);
 
     $scope.$watch("previewVisible", function (newValue) {
         $scope.previewClassName = newValue ? "preview-open" : "preview-closed";
-        updateLocation($scope.currentPanel, $scope.previewVisible, $scope.fileListVisible);
+        updateLocation($scope.currentPanel, $scope.previewVisible );
     });
 
-    $scope.$watch("fileListVisible", function (newValue) {
+    /*$scope.$watch("fileListVisible", function (newValue) {
         $scope.fileListClassName = newValue ? "file-list-open" : "file-list-closed";
         updateLocation($scope.currentPanel, $scope.previewVisible, $scope.fileListVisible);
-    });
+    });*/
 
     function enterEditorIfInContentPanel() {
 
@@ -90,7 +89,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             urls.createFile = ServiceLookup.getUrlFor('createDataFile', substitutions);
             urls.updateFile = ServiceLookup.getUrlFor('updateDataFile', substitutions);
             urls.deleteFile = ServiceLookup.getUrlFor('deleteDataFile', substitutions);
-            $rootScope.$broadcast('enterEditor', $scope.itemData.data, false, urls);
+            $rootScope.$broadcast('enterEditor', $scope.itemData.data, false, urls, ["qti.xml"]);
         }
         else {
             $rootScope.$broadcast('leaveEditor');
@@ -127,10 +126,12 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         $scope.$broadcast("panelOpen");
     };
 
+    /*
     $scope.toggleFileList = function () {
         $scope.fileListVisible = !$scope.fileListVisible;
         $scope.$broadcast("panelOpen");
     };
+    */
 
     /*
      $scope.showFile = function (file) {

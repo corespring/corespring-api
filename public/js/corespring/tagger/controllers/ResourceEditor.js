@@ -14,17 +14,25 @@
  * @param AccessToken
  * @constructor
  */
-function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, ServiceLookup) {
+function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, ServiceLookup, AccessToken) {
+
+    //private methods
+    function tokenize(url){
+        return url + "?access_token=" + AccessToken.token;
+    }
+
     $scope.selectedFileImageUrl = '/assets/images/empty.png';
     $scope.showEditor = false;
 
     $scope.$on('leaveEditor', function (event) {
         $scope.resourceToEdit = null;
+        $scope.lockedFiles = [];
     });
 
-    $scope.$on('enterEditor', function (event, resource, showBackNav, urls ) {
+    $scope.$on('enterEditor', function (event, resource, showBackNav, urls, lockedFiles ) {
         $scope.resourceToEdit = resource;
         $scope.showBackNav = showBackNav;
+        $scope.lockedFiles = (lockedFiles || []);
 
         /**
          * An upload url template that contains {filename} - which will be replaced with
@@ -52,6 +60,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     $scope.leaveEditor = function () {
         $rootScope.$broadcast('leaveEditor');
     };
+
 
     /**
      * Depending on the file type show it.
@@ -88,6 +97,33 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
         } else {
             return '/assets/images/empty.png';
         }
+    };
+
+    function isLockedFile(file){
+        if(!$scope.lockedFiles){
+            return false;
+        }
+        return $scope.lockedFiles.indexOf(file.name) != -1;
+    }
+
+    $scope.canShowFileDropdown = function(f){
+        return !isLockedFile(f);
+    };
+
+    $scope.canRemove = function(f){
+        return (f && !isLockedFile(f));
+    };
+
+    $scope.canRename = function(f){
+        return (f && !isLockedFile(f));
+    };
+
+    $scope.canMakeDefault = function(f){
+        return (!$scope.lockedFiles || $scope.lockedFiles.length == 0);
+    };
+
+    $scope.onFileSizeGreaterThanMax = function(file, maxSize) {
+        alert("File: " + file.name + " is too big (max: " + maxSize + ")");
     };
 
     $scope.renameFile = function (f) {
@@ -154,7 +190,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
         }
 
         $http({
-            url:$scope.urls.updateFile.replace("{filename}", filename),
+            url: tokenize($scope.urls.updateFile.replace("{filename}", filename)),
             method:"PUT",
             data:file
         }).success(function (data, status, headers, config) {
@@ -164,6 +200,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
             });
 
     };
+
 
 
     $scope.getSelectedFileImageUrl = function () {
@@ -180,7 +217,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
         }
 
         $http({
-            url:$scope.urls.deleteFile.replace("{filename}", f.name),
+            url: tokenize($scope.urls.deleteFile.replace("{filename}", f.name)),
             method:"DELETE"
         }).success(function (data, status, headers, config) {
                 $scope.resource.files.removeItem(f);
@@ -199,7 +236,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
         if (file == null) {
             throw "ItemController:calculateUploadUrl - the file is null"
         }
-        return $scope.urls.uploadFile.replace("{filename}", file.name);
+        return tokenize($scope.urls.uploadFile.replace("{filename}", file.name));
     };
 
     $scope.onFileUploadCompleted = function (result) {
@@ -246,7 +283,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
         };
 
         $http({
-            url:$scope.urls.createFile,
+            url: tokenize($scope.urls.createFile),
             method:"POST",
             data:newVirtualFile
         }).success(function (data, status, headers, config) {
@@ -263,4 +300,5 @@ ResourceEditor.$inject = [ '$scope',
     '$timeout',
     '$routeParams',
     '$http',
-    'ServiceLookup'];
+    'ServiceLookup',
+    'AccessToken'];
