@@ -7,7 +7,7 @@ import org.specs2.mutable.Specification
  * Time: 10:53 AM
  * To change this template use File | Settings | File Templates.
  */
-object ItemQueryTest extends BaseTest {
+object ItemQueryTest extends Specification {
 
   val orquery = "{\"$or\":[{\"gradeLevel\":\"04\"},{\"gradeLevel\":\"08\"}]}"
   val andquery = "{\"$and\":[{\"gradeLevel\":\"04\"},{\"gradeLevel\":\"08\"}]}"
