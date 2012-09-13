@@ -374,7 +374,7 @@ object ResourceApi extends BaseApi {
               fname,
               contentType(fname),
               false,
-              storageKey(itemId, materialName, fname))
+              s3Key)
             val resource = Resource(materialName, Seq(file))
             item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
             Item.save(item)
