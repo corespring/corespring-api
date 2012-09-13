@@ -357,56 +357,41 @@ object ResourceApi extends BaseApi {
       Ok(toJson(item.supportingMaterials))
   })
 
-  def createSupportingMaterial(itemId: String, name: Option[String], filename: Option[String]) = {
-    if ( name.isDefined ) {
-      if ( !filename.isDefined ) {
-          Action { request => BadRequest(Json.toJson(ApiError.FilenameIsRequired)) }
-      } else {
-        //handle upload
-        val materialName = name.get
-        val fname = filename.get
-        val s3Key = storageKey(itemId, materialName, fname)
-        HasItem(itemId,Seq(), S3Service.s3upload(AMAZON_ASSETS_BUCKET, s3Key))(
-        {
-          request =>
-            val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-            val file = new StoredFile(
-              fname,
-              contentType(fname),
-              false,
-              s3Key)
-            val resource = Resource(materialName, Seq(file))
-            item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
-            Item.save(item)
-            Ok(toJson(resource))
-        })
-        // adding this so the compilation won't fail.  need to fix this.
-        Action { r => Ok("") }
-      }
-    } else {
-      HasItem(itemId,Seq(), Action { request =>
-        request.body.asJson match {
-          case Some(json) => {
-            json.asOpt[Resource] match {
-              case Some(foundResource) => {
-                val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-                isResourceNameTaken(foundResource.name)(item) match {
-                  case Some(error) => NotAcceptable(toJson(error))
-                  case _ => {
-                    item.supportingMaterials = item.supportingMaterials ++ Seq[Resource](foundResource)
-                    Item.save(item)
-                    Ok(toJson(foundResource))
-                  }
-                }
-              }
-              case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
-            }
-          }
-          case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
-        }
+  def createSupportingMaterialWithFile(itemId: String, name: String, filename: String) = {
+      val s3Key = storageKey(itemId, name, filename)
+      HasItem(itemId,Seq(), S3Service.s3upload(AMAZON_ASSETS_BUCKET, s3Key))(
+      {
+        request =>
+          val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+          val file = new StoredFile(filename, contentType(filename), false, s3Key)
+          val resource = Resource(name, Seq(file))
+          item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
+          Item.save(item)
+          Ok(toJson(resource))
       })
     }
-  }
+
+    def createSupportingMaterial(itemId: String) = HasItem(itemId,Seq(), Action { request =>
+      request.body.asJson match {
+        case Some(json) => {
+          json.asOpt[Resource] match {
+            case Some(foundResource) => {
+              val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+              isResourceNameTaken(foundResource.name)(item) match {
+                case Some(error) => NotAcceptable(toJson(error))
+                case _ => {
+                  item.supportingMaterials = item.supportingMaterials ++ Seq[Resource](foundResource)
+                  Item.save(item)
+                  Ok(toJson(foundResource))
+                }
+              }
+            }
+            case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
+          }
+        }
+        case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
+      }
+    })
 
   def deleteSupportingMaterial(itemId: String, resourceName: String) = HasItem(itemId,
     Seq(canFindResource(resourceName)(_)),
