@@ -1,3 +1,5 @@
+package tests.api.v1
+
 import controllers.auth.Permission
 import controllers.Log
 import models.ContentCollection
@@ -6,12 +8,22 @@ import org.specs2.mutable._
 import play.api.libs.json.{JsNull, Json, JsValue}
 import play.api.Logger
 import play.api.mvc.AnyContentAsJson
-import play.api.test.{FakeHeaders, FakeRequest}
-import play.api.test.Helpers._
 import play.api.test._
+import play.api.test.Helpers._
+import scala._
+import play.api.test.FakeHeaders
+import play.api.mvc.AnyContentAsJson
+import play.api.test.FakeHeaders
+import play.api.mvc.AnyContentAsJson
+import play.api.test.FakeHeaders
+import play.api.mvc.AnyContentAsJson
+import play.api.test.FakeHeaders
+import play.api.mvc.AnyContentAsJson
+import scala.Some
+import tests.BaseTest
 
 
-class CollectionTest extends BaseTest {
+class CollectionApiTest extends BaseTest {
 
   "list all collections" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/collections?access_token=%s".format(token))
@@ -73,7 +85,7 @@ class CollectionTest extends BaseTest {
     val toCreate = Map("name" -> name)
     val fakeRequest = FakeRequest(POST, "/api/v1/collections?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
     val r = routeAndCall(fakeRequest)
-    if ( r.isEmpty ) {
+    if (r.isEmpty) {
       failure("Failed to create collection")
     }
     val result = r.get
@@ -87,14 +99,14 @@ class CollectionTest extends BaseTest {
     val name2 = "a new name"
     val toUpdate = Map("name" -> name2)
     val collectionId = (collection \ "id").as[String]
-    val postRequest = FakeRequest(PUT, "/api/v1/collections/%s?access_token=%s".format( collectionId, token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
+    val postRequest = FakeRequest(PUT, "/api/v1/collections/%s?access_token=%s".format(collectionId, token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
     routeAndCall(postRequest) match {
       case Some(result2) => {
         status(result2) must equalTo(OK)
         charset(result2) must beSome("utf-8")
         contentType(result2) must beSome("application/json")
         val updatedCollection = Json.fromJson[JsValue](Json.parse(contentAsString(result2)))
-        (updatedCollection \ "id").as[String] must beEqualTo( collectionId )
+        (updatedCollection \ "id").as[String] must beEqualTo(collectionId)
         (updatedCollection \ "name").as[String] must beEqualTo(name2)
 
         // delete

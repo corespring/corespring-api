@@ -1,3 +1,5 @@
+package tests.api.v1
+
 import org.specs2.mutable.Specification
 import models.{Item, ItemResponse, ItemSession}
 import org.bson.types.ObjectId
@@ -29,11 +31,11 @@ object FieldValuesApiTest extends Specification {
       array.value.length.mustEqual(10)
 
       //iterate through each path and ensure its a 200
-      for ( jso <- array.value ){
+      for (jso <- array.value) {
         val path = (jso \ "path").asOpt[String]
-        val subRequest = FakeRequest( GET, path.get.toString )
+        val subRequest = FakeRequest(GET, path.get.toString)
         val maybeSubResult = routeAndCall(subRequest)
-        if ( !maybeSubResult.isDefined ){
+        if (!maybeSubResult.isDefined) {
           failure
         }
 

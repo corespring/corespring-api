@@ -1,3 +1,5 @@
+package tests
+
 import play.api.Play
 import play.api.test.FakeApplication
 import scala.Some

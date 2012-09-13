@@ -1,11 +1,16 @@
+package tests.api.v1
+
 import org.junit.Ignore
 import play.api.libs.json.{JsValue, Json}
 import play.api.Logger
-import play.api.mvc.{Result, AnyContentAsJson}
+import play.api.mvc.{AnyContentAsJson, Result}
 import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers._
 import scala.Some
 import api.ApiError._
+import scala.Some
+import play.api.test.FakeHeaders
+import play.api.mvc.AnyContentAsJson
 
 /**
  *
@@ -68,7 +73,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items.foreach( i => {
+    items.foreach(i => {
       (i \ "title").as[Option[String]] must beSome
       (i \ "author").as[Option[String]] must beNone
     })
@@ -110,7 +115,7 @@ class ItemApiTest extends BaseTest {
     val result = routeAndCall(fakeRequest).get
     status(result) must equalTo(OK)
     val xmlData = (Json.parse(contentAsString(result)) \ "xmlData").toString
-    xmlData must not (beMatching(".*csFeedbackId.*"))
+    xmlData must not(beMatching(".*csFeedbackId.*"))
   }
 
   "create does not accept id" in {
@@ -135,7 +140,7 @@ class ItemApiTest extends BaseTest {
     val itemId = (Json.parse(contentAsString(result)) \ "id").as[String]
 
     val toUpdate = Map("xmlData" -> "<html><feedbackInline></feedbackInline></html>", "collectionId" -> "5001bb0ee4b0d7c9ec3210a2")
-    fakeRequest = FakeRequest(PUT, "/api/v1/items/%s?access_token=%s".format(itemId,  token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
+    fakeRequest = FakeRequest(PUT, "/api/v1/items/%s?access_token=%s".format(itemId, token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
     result = routeAndCall(fakeRequest).get
     val collection = Json.parse(contentAsString(result))
     (collection \ "code").as[Int] must equalTo(CollIdNotNeeded.code)
@@ -149,11 +154,11 @@ class ItemApiTest extends BaseTest {
     val itemId = (Json.parse(contentAsString(result)) \ "id").as[String]
 
     val toUpdate = Map("xmlData" -> "<html><feedbackInline></feedbackInline></html>")
-    fakeRequest = FakeRequest(PUT, "/api/v1/items/%s?access_token=%s".format(itemId,  token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
+    fakeRequest = FakeRequest(PUT, "/api/v1/items/%s?access_token=%s".format(itemId, token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
     result = routeAndCall(fakeRequest).get
     status(result) must equalTo(OK)
     val xmlData = (Json.parse(contentAsString(result)) \ "xmlData").toString
-    xmlData must not (beMatching(".*csFeedbackId.*"))
+    xmlData must not(beMatching(".*csFeedbackId.*"))
   }
 
 
