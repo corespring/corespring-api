@@ -48,7 +48,7 @@ qtiDirectives.directive('simplechoice', function(QtiUtils){
                 localScope.$watch('status', function(newValue, oldValue) {
                     if (newValue == 'SUBMITTED') {
                         // status has changed to submitted
-                        var correctResponse = localScope.itemSession.sessionData.correctResponse[responseIdentifier];
+                        var correctResponse = localScope.sessionData.correctResponse[responseIdentifier];
                         var responseValue = "";
                         try {
                             responseValue = localScope.itemSession.responses[responseIdentifier].value;

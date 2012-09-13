@@ -6,7 +6,7 @@ var app = angular.module('qti', ['qti.directives','qti.services']);
 
 
 // base directive include for all QTI items
-qtiDirectives.directive('assessmentitem', function(AssessmentSession, $location) {
+qtiDirectives.directive('assessmentitem', function(AssessmentSession, SessionData, $location) {
     return {
         restrict: 'E',
         controller: function($scope, $element, $attrs) {
@@ -42,6 +42,7 @@ qtiDirectives.directive('assessmentitem', function(AssessmentSession, $location)
                 scope.itemSession.responses = scope.responses;
                 scope.itemSession.finish = new Date().getTime();
                 scope.itemSession = AssessmentSession.create(scope.itemSession);
+                scope.sessionData = SessionData.get({id: scope.itemSession.id});
                 scope.status = 'SUBMITTED';
                 scope.formDisabled = true;
             };
@@ -92,7 +93,7 @@ var feedbackDirectiveFunction = function (QtiUtils) {
             scope.$watch('status', function(newValue, oldValue) {
                 if (scope.isFeedbackEnabled() == false) return; // break if feedback is disabled
                 if (newValue == 'SUBMITTED') {
-                    var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
+                    var feedback = scope.sessionData.feedbackContents[csFeedbackId];
                     var outcomeIdentifier = attrs["outcomeidentifier"];
                     var choiceValue = attrs["identifier"];
                     var responseExpr = 'scope.itemSession.' + outcomeIdentifier;
