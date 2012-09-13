@@ -6,7 +6,7 @@ var app = angular.module('qti', ['qti.directives','qti.services']);
 
 
 // base directive include for all QTI items
-qtiDirectives.directive('assessmentitem', function(AssessmentSession, SessionData, $location) {
+qtiDirectives.directive('assessmentitem', function(AssessmentSessionService, SessionDataService, $location) {
     return {
         restrict: 'E',
         controller: function($scope, $element, $attrs) {
@@ -41,8 +41,8 @@ qtiDirectives.directive('assessmentitem', function(AssessmentSession, SessionDat
             this.submitResponses = function() {
                 scope.itemSession.responses = scope.responses;
                 scope.itemSession.finish = new Date().getTime();
-                scope.itemSession = AssessmentSession.create(scope.itemSession);
-                scope.sessionData = SessionData.get({id: scope.itemSession.id});
+                scope.itemSession = AssessmentSessionService.create(scope.itemSession);
+                scope.sessionData = SessionDataService.get({id: scope.itemSession.id});
                 scope.status = 'SUBMITTED';
                 scope.formDisabled = true;
             };

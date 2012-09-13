@@ -18,9 +18,9 @@ qtiServices
  * Mock Resource Service
  */
 qtiServices
-    .factory('AssessmentSession', ['$resource', function ($resource) {
-    var AssessmentSession = {};
-    AssessmentSession.create = function(session) {
+    .factory('AssessmentSessionService', ['$resource', function ($resource) {
+    var AssessmentSessionService = {};
+    AssessmentSessionService.create = function(session) {
         // i'm guessing that outcome variables would be declared in base scope like this...
         session.score = 1;
         // putting an outcome property for each response, but maybe they should just be
@@ -35,17 +35,17 @@ qtiServices
 
 
     };
-    return AssessmentSession;
+    return AssessmentSessionService;
 
 }]
 );
 
 
 qtiServices
-    .factory('SessionData', ['$resource', function ($resource) {
-    var SessionData = {};
+    .factory('SessionDataService', ['$resource', function ($resource) {
+    var SessionDataService = {};
 
-    SessionData.get = function(obj) {
+    SessionDataService.get = function(obj) {
         // when we switch to using resource it uses {id: someId} obj type args
         // id will be the item session id
         // TODO - the server implementation would need to ensure that response was already submitted before returning this data
@@ -83,7 +83,7 @@ qtiServices
 
     };
 
-    return SessionData;
+    return SessionDataService;
     }
 ]);
 
