@@ -1,0 +1,22 @@
+/* sortable styles for ordering interaction */
+.sortable-body {
+    margin-left: 20px;
+    list-style-type: none;
+}
+
+.sortable-item {
+    margin-bottom: .4em;
+    display: inline-block;
+    padding: 8px;
+    border: 1px #000000 solid;
+    border-radius: 8px;
+    background-color: #EEE;
+    cursor: move;
+}
+.orderCorrect {
+    border: 2px green solid;
+}
+
+.orderIncorrect {
+    border: 2px red solid;
+}

@@ -20,7 +20,7 @@ class CollectionTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val collections = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    collections must have size 2
+    collections must have size 3
   }
 
   "list all collections skipping the first result" in {
@@ -30,7 +30,7 @@ class CollectionTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val collections = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    collections must have size 1
+    collections must have size 2
     (collections(0) \ "name").as[String] must beEqualTo("Collection G")
   }
 
