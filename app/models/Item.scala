@@ -141,7 +141,7 @@ object BaseFile {
  * A VirtualFile is a representation of a file, but the file contents are stored in mongo.
  * Used for text based files.
  */
-case class VirtualFile(override val name: String, override val contentType: String, override val isMain: Boolean = false, content: String) extends BaseFile(name, contentType, isMain)
+case class VirtualFile(override val name: String, override val contentType: String, override val isMain: Boolean = false, var content: String) extends BaseFile(name, contentType, isMain)
 
 object VirtualFile {
 

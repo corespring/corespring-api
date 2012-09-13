@@ -41,11 +41,11 @@ object Runner extends Controller with ObjectIdParser{
           case Some(item) => {
 
             item.data.get.files.find( _.isMain == true ) match {
-              case Some(f) => {
-                if (f.contentType == BaseFile.ContentTypes.XML && f.name == "qti.xml" ){
+              case Some(defaultFile) => {
+                if (defaultFile.contentType == BaseFile.ContentTypes.XML && defaultFile.name == "qti.xml" ){
                   Action(Redirect("/testplayer/item/" + itemId + "?access_token=" + MOCK_ACCESS_TOKEN))
                 } else {
-                  Action(Redirect("/web/runner/" + itemId + "/data/" + f.name))
+                  Action(Redirect("/web/runner/" + itemId + "/data/" + defaultFile.name))
                 }
               }
               case _ => Action(NotFound)

@@ -1,0 +1,62 @@
+{
+    "_id":{
+        "$oid":"50083ba9e4b071cb5ef79101"
+    },
+    "data": {
+         "name":"data",
+         "files":[
+             {
+                 "name" : "index.html",
+                 "contentType":"text/html",
+                 "default":true,
+                 "content": "<html><body>I'm a plain html test</body></html>"
+             }
+         ]
+    },
+    "gradeLevel":[
+        "07"
+    ],
+    "title":"NOT SURE THIS IS A GOOD ITEM? NO CONNECTION BETWEEN ITEM AND CHART?",
+    "primarySubject":{
+        "subject":"",
+        "category":"Mathematics",
+        "refId":"4ffb535f6bb41e469c0bf2c2"
+    },
+    "itemType":"Multiple Choice",
+    "copyrightOwner":"State Department of Education",
+    "copyrightYear":"2010",
+    "materialType":"Assessment Item",
+    "contributor":"State Department of Education",
+    "credentials":"State Department of Education",
+    "author":"State Department of Education",
+    "licenseType":"CC BY",
+    "sourceUrl":"http://statedoe.gov",
+    "priorUse":"Summative",
+    "collectionId":"5001b9b9e4b035d491c268c3",
+    "contentType":"item",
+    "supportingMaterials" : [
+        {
+            "name" : "Rubric",
+            "files" : [
+                {
+                    "name" : "index.html",
+                    "contentType":"text/html",
+                    "content" : "<html><head><link rel=\"stylesheet\" href=\"my.css\"/></head><body><div class=\"blue\">hello world, here is a cute puppy<br/><img src=\"cute-puppy.jpg\"/></body></html>",
+                    "default": true
+                },
+                {
+                    "name" : "my.css",
+                    "contentType":"text/css",
+                    "content" : ".blue{ background-color: #0000ff;}",
+                    "default": false
+                },
+                 {
+                     "name":"cute-puppy.jpg",
+                     "contentType":"image/jpg",
+                     "storageKey":"test_images/cute-kittens1.jpg",
+                     "default":false
+                 }
+            ]
+        }
+    ]
+}

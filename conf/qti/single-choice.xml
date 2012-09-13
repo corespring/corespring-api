@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<assessmentItem
+        identifier="mcas-16373" timeDependent="false" title="16373" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 imsqti_v2p1.xsd" toolName="SIB" adaptive="false" toolVersion="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1">
+    <stylesheet type="text/css" href="css/mcas/default.css"></stylesheet>
+    <itemBody>
+        <div>
+            <div id="block" class="item_stem">Which of the following numbers is a common multiple of 6 and 8?</div>
+            <responseDeclaration identifier="16373" baseType="identifier" cardinality="single">
+                <correctResponse>
+                    <value>54532</value>
+                </correctResponse>
+            </responseDeclaration>
+            <choiceInteraction responseIdentifier="16373" maxChoices="1">
+                <simpleChoice fixed="false" identifier="54530">
+                    <div id="block" class="item_options">12</div>
+                </simpleChoice>
+                <simpleChoice fixed="false" identifier="54531">
+                    <div id="block" class="item_options">16</div>
+                </simpleChoice>
+                <simpleChoice fixed="false" identifier="54532">
+                    <div id="block" class="item_options">24</div>
+                </simpleChoice>
+                <simpleChoice fixed="false" identifier="54533">
+                    <div id="block" class="item_options">30</div>
+                </simpleChoice>
+            </choiceInteraction>
+        </div>
+    </itemBody>
+</assessmentItem>

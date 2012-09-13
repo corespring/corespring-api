@@ -119,12 +119,21 @@ object Global extends GlobalSettings {
        coll.insert(JSON.parse(s).asInstanceOf[DBObject])
     }
 
-    def jsonFileToItem(jsonPath: String, coll: MongoCollection, drop : Boolean = true) {
+    def jsonFileToItem(jsonPath: String, coll: MongoCollection, drop : Boolean = true, xmlPath : String = null) {
       if(drop){
         coll.drop()
       }
       val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
       val item = Item.ItemReads.reads(Json.parse(s))
+
+      //load in some xml if specified
+      if (xmlPath != null ){
+        item.data.get.files.find(_.name == "qti.xml") match {
+          case Some(f) => f.asInstanceOf[VirtualFile].content = io.Source.fromFile(Play.getFile(xmlPath)).mkString
+          case _ => //do nothing
+        }
+      }
+
       Item.save(item)
     }
     def insertString(s: String, coll: MongoCollection) = coll.insert(JSON.parse(s).asInstanceOf[DBObject], coll.writeConcern)
@@ -140,7 +149,8 @@ object Global extends GlobalSettings {
     jsonLinesToDb(basePath + "subjects.json", Subject.collection)
     jsonLinesToDb(basePath + "standards.json", Standard.collection)
     Logger.info("insert item with supporting materials")
-    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = true)
+    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = true, xmlPath = "/conf/qti/single-choice.xml")
+    jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false  )
 
     //acces token stuff
     AccessToken.collection.drop()
