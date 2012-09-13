@@ -6,24 +6,25 @@
          "name":"data",
          "files":[
              {
+                 "_t" : "models.VirtualFile",
                  "name" : "qti.xml",
                  "contentType":"text/xml",
-                 "default":true,
-                 "content": "<root>I'm a test</root>"
+                 "isMain":true,
+                 "content": "$[interpolate{/conf/qti/single-choice.xml}]"
              },
              {
-
+                 "_t" : "models.StoredFile",
                  "name":"clientcharges.jpg",
                  "contentType":"image/jpg",
                  "storageKey":"test_images/Cute-Koala-01.jpg",
-                 "default":false
+                 "isMain":false
              }
          ]
     },
     "gradeLevel":[
         "07"
     ],
-    "title":"NOT SURE THIS IS A GOOD ITEM? NO CONNECTION BETWEEN ITEM AND CHART?",
+    "title":"This item has Qti.xml and supporting materials",
     "primarySubject":{
         "subject":"",
         "category":"Mathematics",
@@ -46,22 +47,25 @@
             "name" : "Rubric",
             "files" : [
                 {
+                    "_t" : "models.VirtualFile",
                     "name" : "index.html",
                     "contentType":"text/html",
                     "content" : "<html><head><link rel=\"stylesheet\" href=\"my.css\"/></head><body><div class=\"blue\">hello world, here is a cute puppy<br/><img src=\"cute-puppy.jpg\"/></body></html>",
-                    "default": true
+                    "isMain": true
                 },
                 {
+                    "_t" : "models.VirtualFile",
                     "name" : "my.css",
                     "contentType":"text/css",
                     "content" : ".blue{ background-color: #0000ff;}",
-                    "default": false
+                    "isMain": false
                 },
                  {
+                     "_t" : "models.StoredFile",
                      "name":"cute-puppy.jpg",
                      "contentType":"image/jpg",
                      "storageKey":"test_images/cute-kittens1.jpg",
-                     "default":false
+                     "isMain":false
                  }
             ]
         }

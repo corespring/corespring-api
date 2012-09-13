@@ -6,6 +6,7 @@
          "name":"data",
          "files":[
              {
+                 "_t" : "models.VirtualFile",
                  "name" : "index.html",
                  "contentType":"text/html",
                  "default":true,
@@ -39,18 +40,21 @@
             "name" : "Rubric",
             "files" : [
                 {
+                    "_t" : "models.VirtualFile",
                     "name" : "index.html",
                     "contentType":"text/html",
                     "content" : "<html><head><link rel=\"stylesheet\" href=\"my.css\"/></head><body><div class=\"blue\">hello world, here is a cute puppy<br/><img src=\"cute-puppy.jpg\"/></body></html>",
                     "default": true
                 },
                 {
+                    "_t" : "models.VirtualFile",
                     "name" : "my.css",
                     "contentType":"text/css",
                     "content" : ".blue{ background-color: #0000ff;}",
                     "default": false
                 },
                  {
+                     "_t" : "models.StoredFile",
                      "name":"cute-puppy.jpg",
                      "contentType":"image/jpg",
                      "storageKey":"test_images/cute-kittens1.jpg",
