@@ -71,14 +71,31 @@ abstract class BaseFile(val name: String, val contentType: String, val isMain: B
 
 object BaseFile {
 
+  object ContentTypes {
+    val JPG : String = "image/jpg"
+    val PNG : String = "image/png"
+    val GIF : String = "image/gif"
+    val DOC : String = "application/msword"
+    val PDF : String = "application/pdf"
+    val XML : String = "text/xml"
+    val CSS : String = "text/css"
+    val HTML : String = "text/html"
+    val TXT : String = "text/txt"
+    val JS : String = "text/javascript"
+  }
 
   val SuffixToContentTypes = Map(
-    "jpg" -> "image/jpg",
-    "jpeg" -> "image/jpg",
-    "png" -> "image/png",
-    "gif" -> "image/gif",
-    "doc" -> "application/msword",
-    "pdf" -> "application/pdf")
+    "jpg" -> ContentTypes.JPG,
+    "jpeg" -> ContentTypes.JPG,
+    "png" -> ContentTypes.PNG,
+    "gif" -> ContentTypes.GIF,
+    "doc" -> ContentTypes.DOC,
+    "pdf" -> ContentTypes.PDF,
+    "xml" -> ContentTypes.XML,
+    "css" -> ContentTypes.CSS,
+    "html" -> ContentTypes.HTML,
+    "txt" -> ContentTypes.TXT,
+    "js" -> ContentTypes.JS)
 
   def getContentType(filename: String): String = {
     val split = filename.split("\\.").toList

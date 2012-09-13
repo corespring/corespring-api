@@ -6,7 +6,7 @@ import xml.{Elem, NodeSeq}
 import play.api.libs.json.Json
 import org.bson.types.ObjectId
 import controllers.auth.{Permission, BaseApi}
-import models.{Content, Item}
+import models.{VirtualFile, Content, Item}
 import com.mongodb.casbah.Imports._
 import api.processors.FeedbackProcessor._
 
@@ -77,17 +77,20 @@ object ItemPlayer extends BaseApi {
    */
   private def getItemXMLByObjectId(itemId: String, callerOrg: ObjectId): Option[Elem] = {
     val dataField = MongoDBObject(Item.data -> 1, Item.collectionId -> 1)
-    Item.collection.findOneByID(itemId, dataField) match {
-      case Some(o) => o.get(Item.collectionId) match {
-        case collId:String => if (Content.isCollectionAuthorized(callerOrg, collId,Permission.All)){
-          val dataString = o.get(Item.data).toString
-          Some(scala.xml.XML.loadString(dataString))
+    Item.findOneById( new ObjectId(itemId)) match {
+      case Some(item) => {
+        if( Content.isCollectionAuthorized(callerOrg,item.collectionId,Permission.All)){
+         val dataResource = item.data.get
+          dataResource.files.find( _.name == "qti.xml") match {
+            case Some(qtiXml) => {
+              Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
+            }
+            case _ => None
+          }
         } else None
-        case _ => None
       }
       case _ => None
     }
-
   }
 
   def getScriptsToInclude(itemBody : NodeSeq, isWebMode: Boolean = true) : List[String] = {

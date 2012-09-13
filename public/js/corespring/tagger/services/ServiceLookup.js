@@ -28,6 +28,7 @@ angular.module('tagger.services')
                 getAccessToken:'/web/access_token',
 
                 previewFile:'/web/runner/{key}',
+                renderResource:'/web/runner/{key}',
 
                 createDataFile: '/api/v1/items/{itemId}/data',
                 deleteDataFile: '/api/v1/items/{itemId}/data/{filename}',

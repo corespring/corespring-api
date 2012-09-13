@@ -10,7 +10,23 @@ import scala.Some
 import scala.Some
 
 
-object Runner extends Controller {
+trait ObjectIdParser{
+
+  def objectId(id:String):Option[ObjectId] = {
+    try{
+      Some(new ObjectId(id))
+    }
+    catch {
+      case e : Exception => None
+    }
+  }
+}
+
+
+object Runner extends Controller with ObjectIdParser{
+
+
+  private val MOCK_ACCESS_TOKEN : String = "34dj45a769j4e1c0h4wb"
 
   private final val AMAZON_ASSETS_BUCKET : String =
    ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
@@ -18,7 +34,63 @@ object Runner extends Controller {
   private val ContentType : String = "Content-Type"
 
 
-  def getDataResource(itemId:String, filename:String) = Action{ request =>
+  def renderDataResource(itemId:String) =
+    objectId(itemId) match {
+      case Some(oid) => {
+        Item.findOneById(oid) match {
+          case Some(item) => {
+
+            item.data.get.files.find( _.isMain == true ) match {
+              case Some(f) => {
+                if (f.contentType == BaseFile.ContentTypes.XML && f.name == "qti.xml" ){
+                  Action(Redirect("/testplayer/item/" + itemId + "?access_token=" + MOCK_ACCESS_TOKEN))
+                } else {
+                  Action(Redirect("/web/runner/" + itemId + "/data/" + f.name))
+                }
+              }
+              case _ => Action(NotFound)
+            }
+          }
+          case None => Action(NotFound)
+        }
+      }
+      case None => Action(BadRequest("Invalid Object Id"))
+  }
+
+  /**
+   * Given an item id and an resourceName - renders the SupportingMaterial resource.
+   * This means that the default file in the files array will be rendered.
+   * @param itemId
+   * @param resourceName
+   * @return
+   */
+  def renderResource(itemId:String, resourceName:String) =
+    objectId(itemId) match {
+      case Some(oid) => {
+        Item.findOneById(oid) match {
+          case Some(item) => {
+
+            item.supportingMaterials.find( _.name == resourceName ) match {
+              case Some(resource) => {
+                resource.files.find(_.isMain == true) match {
+                  case Some(defaultFile) => {
+                    //TODO: Is there a better way of doing this?
+                    Action(Redirect("/web/runner/" + item.id + "/" + resource.name + "/" + defaultFile.name))
+                  }
+                  case None => throw new RuntimeException("Bad data - no default file specified")
+                }
+              }
+              case None => Action(NotFound(resourceName))
+            }
+          }
+          case None => Action(NotFound)
+        }
+      }
+      case None => Action(BadRequest("Invalid Object Id"))
+
+  }
+
+  def getDataFile(itemId:String, filename:String) = Action{ request =>
     Item.findOneById( new ObjectId(itemId)) match {
       case Some(item) => {
         item.data match {
@@ -33,7 +105,7 @@ object Runner extends Controller {
   }
 
 
-  def getResource(itemId:String,resourceName:String,filename:String) = Action{ request =>
+  def getResourceFile(itemId:String,resourceName:String,filename:String) = Action{ request =>
     Item.findOneById(new ObjectId(itemId)) match {
       case Some(item) => {
         item.supportingMaterials.find( f => f.name == resourceName ) match {
