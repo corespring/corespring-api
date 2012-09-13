@@ -38,7 +38,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    (items(0) \ "id").as[String] must beEqualTo("50086b82e4b095c1f3af7b50")
+    (items(0) \ "id").as[String] must beEqualTo("5006cbb3e4b0df23296000da")
   }
 
   "list items limiting result to 10" in {
@@ -51,14 +51,14 @@ class ItemApiTest extends BaseTest {
     items must have size 10
   }
 
-  "find items in the Science category" in {
+  "find items in the grade level 7" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&q={\"gradeLevel\":\"07\"}".format(token))
     val Some(result) = routeAndCall(fakeRequest)
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items must have size 11
+    items must have size 14
   }
 
   "find items in returning only their title and up to 10" in {
@@ -158,7 +158,7 @@ class ItemApiTest extends BaseTest {
 
 
   "get item data with feedback contains csFeedbackIds" in {
-    val toCreate = Map("xmlData" -> "<html><feedbackInline></feedbackInline></html>", "collectionId" -> "5001bb0ee4b0d7c9ec3210a2")
+    val toCreate = Map("xmlData" -> "<html><csFeedbackId></csFeedbackId></html>", "collectionId" -> "5001bb0ee4b0d7c9ec3210a2")
     var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
     var result = routeAndCall(fakeRequest).get
     status(result) must equalTo(OK)
@@ -172,6 +172,4 @@ class ItemApiTest extends BaseTest {
     val xmlData = contentAsString(result).toString
     xmlData must beMatching(".*csFeedbackId.*")
   }
-
-
 }

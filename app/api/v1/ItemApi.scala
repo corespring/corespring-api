@@ -111,8 +111,12 @@ object ItemApi extends BaseApi {
     Item.collection.findOneByID(id, dataField) match {
       case Some(o) => o.get(Item.collectionId) match {
         case collId:String => if ( Content.isCollectionAuthorized(request.ctx.organization, collId,Permission.All)) {
-          // todo: should we return the whole Resource now? this was only xml content before ....
-          Ok(Xml(o.get(Item.data).toString))
+          // added this to prevent a NPE when the data is not available in the item
+          // this is temporary until bleezmo finishes working on this operation
+          if ( o.contains(Item.data))
+            Ok(Xml(o.get(Item.data).toString))
+          else
+            Ok("")
         } else {
           Forbidden
         }
