@@ -1,6 +1,6 @@
 {
     "_id":{
-        "$oid":"50083ba9e4b071cb5ef79101"
+        "$oid":"50083ba9e4b071cb5ef79102"
     },
     "data": {
          "name":"data",
@@ -9,7 +9,7 @@
                  "_t" : "models.VirtualFile",
                  "name" : "index.html",
                  "contentType":"text/html",
-                 "default":true,
+                 "isMain":true,
                  "content": "<html><body>I'm a plain html test</body></html>"
              }
          ]
@@ -44,21 +44,21 @@
                     "name" : "index.html",
                     "contentType":"text/html",
                     "content" : "<html><head><link rel=\"stylesheet\" href=\"my.css\"/></head><body><div class=\"blue\">hello world, here is a cute puppy<br/><img src=\"cute-puppy.jpg\"/></body></html>",
-                    "default": true
+                    "isMain": true
                 },
                 {
                     "_t" : "models.VirtualFile",
                     "name" : "my.css",
                     "contentType":"text/css",
                     "content" : ".blue{ background-color: #0000ff;}",
-                    "default": false
+                    "isMain": false
                 },
                  {
                      "_t" : "models.StoredFile",
                      "name":"cute-puppy.jpg",
                      "contentType":"image/jpg",
                      "storageKey":"test_images/cute-kittens1.jpg",
-                     "default":false
+                     "isMain":false
                  }
             ]
         }

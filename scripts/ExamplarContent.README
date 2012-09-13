@@ -1,0 +1,9 @@
+ExamplarContent.README
+
+The steps for importing Examplar content are as follows:
+
+* Backup corespring-live (the content-tagger db) -> localhost
+* Run the port script against it: port_contentTagger_to_corespring-api
+* Run the ruby script to: 
+** Update the mongo document with content from teh corespring-content git repo
+** Upload any binary files from corespring-content to s3, then update the mongo document
