@@ -89,7 +89,16 @@ object ItemSessionApi extends BaseApi {
     Item.collection.findOneByID(itemId, MongoDBObject(Item.data -> 1)) match {
       case None => Map[String, String]()
       case Some(o) => {
-        val xmlData = o.get(Item.data).toString
+        val xmlData = o.get(Item.data) match {
+          case res:Resource => res.files.find(bf => bf.isMain) match {
+            case Some(bf) => bf match {
+              case vf:VirtualFile => vf.content
+              case _ => throw new RuntimeException("main file was not a virtual file")
+            }
+            case None => throw new RuntimeException("no main file found")
+          }
+          case _ => throw new RuntimeException("no data found for given item")
+        }
         val qtiItem = new QtiItem(scala.xml.XML.loadString(xmlData))
 
         optMap[String, String](

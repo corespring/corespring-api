@@ -93,7 +93,6 @@ object Global extends GlobalSettings {
     S3Service.init(amazonProperties)
 
     val initData = ConfigLoader.get(INIT_DATA).getOrElse("true") == "true"
-
     if (Play.isTest(app) || initData) {
       insertTestData("/conf/test-data/")
     }
@@ -149,7 +148,7 @@ object Global extends GlobalSettings {
     jsonLinesToDb(basePath + "subjects.json", Subject.collection)
     jsonLinesToDb(basePath + "standards.json", Standard.collection)
     Logger.info("insert item with supporting materials")
-    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = true, xmlPath = "/conf/qti/single-choice.xml")
+    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/single-choice.xml")
     jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false  )
 
     //acces token stuff
