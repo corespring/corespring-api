@@ -24,7 +24,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items must have size 50
+    items.size must beEqualTo( 50 )
   }
 
   "list items in a collection" in {
@@ -34,7 +34,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items must have size 50
+    items.size must beEqualTo( 50 )
   }
 
   "list all items skipping 30" in {
@@ -54,7 +54,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items must have size 10
+    items.size must beEqualTo( 10 )
   }
 
   "find items in the grade level 7" in {
@@ -64,7 +64,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items must have size 14
+    items.size must beEqualTo( 14 )
   }
 
   "find items in returning only their title and up to 10" in {
@@ -78,7 +78,7 @@ class ItemApiTest extends BaseTest {
       (i \ "title").as[Option[String]] must beSome
       (i \ "author").as[Option[String]] must beNone
     })
-    items must have size 10
+    items.size must beEqualTo( 10  )
   }
 
   "get an item by id" in {
