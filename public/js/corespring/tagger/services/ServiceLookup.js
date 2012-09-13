@@ -17,8 +17,12 @@ angular.module('tagger.services')
 
             this.services = {
                 //TODO: Do we need method here too? eg POST/PUT
+                //TODO: For our keys we sometimes use : and sometimes {}?
                 materials: '/api/v1/items/:itemId/materials',
+                //uploadSupportingMaterial: '/api/vi/items/{itemId}/materials?name={name}&filename="{filename}',
+                uploadSupportingMaterial: '/api/v1/items/{itemId}/materialsWithFile/{name}/{filename}',
 
+                createSupportingMaterial: '/api/v1/items/{itemId}/materials',
                 createSupportingMaterialFile: '/api/v1/items/{itemId}/materials/{resourceName}',
                 deleteSupportingMaterialFile:'/api/v1/items/{itemId}/materials/{resourceName}/{filename}',
                 updateSupportingMaterialFile: '/api/v1/items/{itemId}/materials/{resourceName}/{filename}',
