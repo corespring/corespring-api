@@ -7,19 +7,46 @@ print("to db: " + to);
 conn = new Mongo("localhost");
 corespringLiveDb = conn.getDB(from);
 
-var liveItems = corespringLiveDb.mcas3.find({ title:/.*car.*/ });
+print(corespringLiveDb)
 
+//var query = { "title": /.*car.*/};
+var query = {};
+print(">>> --- count: " + corespringLiveDb.mcas3.count(query));
+
+var liveItems = corespringLiveDb.mcas3.find(query);
+print(liveItems);
 
 var apiDevDb = conn.getDB(to);
 
+var suffixToContentTypeMap = {
+    "jpg" : "image/jpg",
+    "jpeg" : "image/jpg",
+    "png" : "image/png",
+    "gif" : "image/gif",
+    "doc" : "application/msword",
+    "docx" : "application/msword",
+    "pdf" : "application/pdf",
+    "xml" : "text/xml",
+    "css" : "text/css",
+    "html" : "text/html",
+    "txt" : "text/txt",
+    "js" : "text/javascript"
+};
 
 function getContentType(filename) {
     var split = filename.split(".");
-    return split[split.length - 1];
+    var suffix = split[split.length - 1];
+    return suffixToContentTypeMap[suffix];
 }
 
 function collection_to_collectionId(fromItem, toItem) {
     var collectionName = fromItem.collection;
+
+    print(">>>> -- " + collectionName);
+
+    if(!collectionName){
+        return;
+    }
 
     apiDevDb.contentcolls.find({ name:collectionName }).forEach(function (c) {
         toItem.collectionId = "" + c._id;
@@ -33,10 +60,10 @@ function xmlData_to_resource(fromItem, targetItem) {
     targetItem.data.name = "data";
     targetItem.data.files = [];
     var dataFile = {
-        _t:"common.models.VirtualFile",
+        _t:"models.VirtualFile",
         name:"qti.xml",
-        contentType:"xml",
-        default:true,
+        contentType:"text/xml",
+        isMain:true,
         content:fromItem.xmlData };
 
     targetItem.data.files.push(dataFile);
@@ -46,8 +73,9 @@ function xmlData_to_resource(fromItem, targetItem) {
 
         targetItem.data.files.push(
             {
+                _t: "models.StoredFile",
                 name:file.filename,
-                default:false,
+                isMain:false,
                 storageKey:"TODO!",
                 contentType:getContentType(file.filename)
             }
@@ -81,6 +109,7 @@ var ignoredProperties = ["files",
     "primaryStandard"];
 
 function convertLiveItemToApiItem(item) {
+    print(item.title);
     var target = {};
     target._id = item._id;
 
