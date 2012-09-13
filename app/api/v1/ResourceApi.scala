@@ -363,7 +363,7 @@ object ResourceApi extends BaseApi {
       {
         request =>
           val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-          val file = new StoredFile(filename, contentType(filename), false, s3Key)
+          val file = new StoredFile(filename, contentType(filename), true, s3Key)
           val resource = Resource(name, Seq(file))
           item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
           Item.save(item)

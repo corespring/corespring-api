@@ -149,7 +149,7 @@ object Global extends GlobalSettings {
     jsonLinesToDb(basePath + "subjects.json", Subject.collection)
     jsonLinesToDb(basePath + "standards.json", Standard.collection)
     Logger.info("insert item with supporting materials")
-    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = true, xmlPath = "/conf/qti/single-choice.xml")
+    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/single-choice.xml")
     jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false  )
 
     //acces token stuff
