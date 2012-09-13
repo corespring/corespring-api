@@ -372,7 +372,7 @@ class ResourceApiTest extends BaseTest {
       val item = testItem
       val filename = "cute-rabbit.jpg"
       val url = baseItemPath(item.id.toString) + "/materials/Rubric/" + filename + "/upload"
-      val file = Play.getFile("tests/files/" + filename)
+      val file = Play.getFile("test/tests/files/" + filename)
       val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
       val byteArray = source.map(_.toByte).toArray
       source.close()
@@ -396,7 +396,7 @@ class ResourceApiTest extends BaseTest {
       val item = testItem
       val filename = "cute-rabbit.jpg"
       val url = baseItemPath(item.id.toString) + "/" + ResourceApi.DATA_PATH + "/" + filename + "/upload"
-      val file = Play.getFile("tests/files/" + filename)
+      val file = Play.getFile("test/tests/files/" + filename)
       val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
       val byteArray = source.map(_.toByte).toArray
       source.close()
