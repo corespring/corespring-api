@@ -1,10 +1,10 @@
 package controllers.testplayer.qti
 
 import org.specs2.mutable._
-import FeedbackProcessor._
-import scala.xml.{Elem, XML, NodeSeq}
+import scala.xml.{Elem, XML}
 import com.codahale.jerkson.Json.{generate, parse}
 import scala.xml.NodeSeq
+import api.processors.FeedbackProcessor._
 
 class FeedbackProcessorSpec extends Specification {
 

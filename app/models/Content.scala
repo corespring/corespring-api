@@ -8,6 +8,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao.SalatDAOUpdateError
 import controllers.{Log, LogType, InternalError}
 import controllers.auth.Permission
+import play.api.Logger
 
 trait Content {
   var id: ObjectId;

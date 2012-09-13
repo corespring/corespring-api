@@ -126,6 +126,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         $scope.$broadcast("panelOpen");
     };
 
+
     /*
     $scope.toggleFileList = function () {
         $scope.fileListVisible = !$scope.fileListVisible;

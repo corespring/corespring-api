@@ -10,17 +10,37 @@ import scala.Some
 import scala.Tuple2
 
 import play.api.libs.json.Json._
-import models.{FieldValue, User}
+import models.{Item, FieldValue, User}
 import models.auth.AccessToken
 import play.api.libs.json.Json
+import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.{BasicDBObject, DBObject}
 
 object Main extends Controller with Secured {
+
+  val TMP_ACCESS_TOKEN : String = "34dj45a769j4e1c0h4wb"
+
+  def previewItem(itemId:String) = Action{ request =>
+    Ok(web.views.html.itemPreview(itemId, TMP_ACCESS_TOKEN))
+  }
+
+  /**
+   * A temporary route whilst working on preview
+   * @return
+   */
+  def previewAnyItem() = {
+    Item.findOne( new BasicDBObject()) match {
+      case Some(item) => previewItem(item.id.toString)
+      case None => Action(Ok("no item found"))
+    }
+  }
+
 
   def index = IsAuthenticated {
     username => _ =>
       val jsonString = getFieldValueJsonString
       val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
-      Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, username, jsonString, "34dj45a769j4e1c0h4wb"))
+      Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, username, jsonString, TMP_ACCESS_TOKEN))
   }
 
   private def getFieldValueJsonString: String = {

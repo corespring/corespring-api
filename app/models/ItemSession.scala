@@ -14,18 +14,27 @@ import com.novus.salat._
 import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
 import play.api.Play
 import play.api.Play.current
-
+import akka.actor.FSM.->
 
 
 /**
  * Case class representing an individual item session
  */
 case class ItemSession (var itemId: ObjectId,
-                         var start: DateTime= new DateTime(),
-                         var finish: Option[DateTime] = None,
-                         var responses: Seq[ItemResponse] = Seq(),
-                         var id: ObjectId = new ObjectId()
-                        )
+                        var start: DateTime= new DateTime(),
+                        var finish: Option[DateTime] = None,
+                        var responses: Seq[ItemResponse] = Seq(),
+                        var id: ObjectId = new ObjectId(),
+                        var data: Option[Map[String, Map[String, String]]] = None
+                       ) {
+
+  def sessionData: Option[Map[String, Map[String, String]]] = data
+
+  def sessionData(sessionData: Map[String, Map[String, String]]): ItemSession = {
+    copy(itemId, start, finish, responses, id, Some(sessionData))
+  }
+
+}
 
 
 /**
@@ -38,6 +47,7 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
   val start = "start"
   val finish = "finish"
   val responses = "responses"
+  val sessionData = "sessionData"
 
   val collection = mongoCollection("itemsessions")
   val dao = new SalatDAO[ItemSession, ObjectId](collection = collection) {}
@@ -86,7 +96,12 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
             start -> JsNumber(session.start.getMillis),
             responses -> Json.toJson(session.responses)
           )
-          if(session.finish.isDefined) seq = seq :+ (finish -> JsNumber(session.finish.get.getMillis))
+          if (session.sessionData.isDefined) {
+            seq = seq :+ (sessionData -> Json.toJson(session.sessionData.getOrElse(Map())))
+          }
+          if (session.finish.isDefined) {
+            seq = seq :+ (finish -> JsNumber(session.finish.get.getMillis))
+          }
           JsObject(seq)
     }
   }

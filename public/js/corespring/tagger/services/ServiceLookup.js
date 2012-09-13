@@ -1,3 +1,11 @@
+try{
+    angular.module('tagger.services')
+}
+catch(e) {
+    angular.module('tagger.services', ['ngResource']);
+    window.servicesModule = ( window.servicesModule || angular.module('tagger.services'));
+}
+
 /**
  * Lookup for all ajax services.
  */
@@ -20,6 +28,7 @@ angular.module('tagger.services')
                 getAccessToken:'/web/access_token',
 
                 previewFile:'/web/runner/{key}',
+                renderResource:'/web/runner/{key}',
 
                 createDataFile: '/api/v1/items/{itemId}/data',
                 deleteDataFile: '/api/v1/items/{itemId}/data/{filename}',

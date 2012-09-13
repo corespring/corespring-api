@@ -11,10 +11,11 @@ import com.novus.salat._
 import dao.SalatInsertError
 import play.api.templates.Xml
 import play.api.mvc.Result
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import com.typesafe.config.ConfigFactory
 import models.mongoContext._
 import controllers.JsonValidationException
+import api.processors.FeedbackProcessor.{addFeedbackIds, removeFeedbackIds}
 
 /**
  * Items API
@@ -37,13 +38,6 @@ object ItemApi extends BaseApi {
 
   /**
    * List query implementation for Items
-   *
-   * @param q
-   * @param f
-   * @param c
-   * @param sk
-   * @param l
-   * @return
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
     val fields = if ( f.isDefined ) f else excludedFieldsByDefault
@@ -70,9 +64,6 @@ object ItemApi extends BaseApi {
 
   /**
    * Returns an Item.  Only the default fields are rendered back.
-   *
-   * @param id
-   * @return
    */
   def getItem(id: ObjectId) = ApiAction { request =>
     _getItem(request.ctx.organization, id, excludedFieldsByDefault)
@@ -98,8 +89,8 @@ object ItemApi extends BaseApi {
   private def _getItem(callerOrg: ObjectId, id: ObjectId, fields: Option[DBObject]): Result  = {
     fields.map(Item.collection.findOneByID(id, _)).getOrElse( Item.collection.findOneByID(id)) match {
       case Some(o) =>  o.get(Item.collectionId) match {
-        case collId:String => if ( Content.isCollectionAuthorized(callerOrg, collId, Permission.All)) {
-          val i =  grater[Item].asObject(o)
+        case collId:String => if (Content.isCollectionAuthorized(callerOrg, collId, Permission.All)) {
+          val i = grater[Item].asObject(o)
           Ok(Json.toJson(i))
         } else {
           Forbidden
@@ -156,19 +147,24 @@ object ItemApi extends BaseApi {
 
   def createItem = ApiAction { request =>
     request.body.asJson match {
-      case Some(json) => {
+      case Some(jsonData) => {
+        val json = addFeedbackIds(jsonData.toString)
         try {
-          val dbObj = com.mongodb.util.JSON.parse(json.toString()).asInstanceOf[DBObject]
-          if ( dbObj.isDefinedAt("id") ) {
+          val dbObj = com.mongodb.util.JSON.parse(json).asInstanceOf[DBObject]
+          if (dbObj.isDefinedAt("id")) {
             BadRequest(Json.toJson(ApiError.IdNotNeeded))
           } else {
-            val i:Item = Json.fromJson[Item](json)
-            if(Content.isCollectionAuthorized(request.ctx.organization,i.collectionId,Permission.All)){
+            val i: Item = Json.parse(json).as[Item]
+            if (i.collectionId.isEmpty) {
+              BadRequest(Json.toJson(ApiError.CollectionIsRequired))
+            } else if (Content.isCollectionAuthorized(request.ctx.organization, i.collectionId,Permission.All)) {
               Item.insert(i) match {
-                case Some(_) => Ok(Json.toJson(i))
+                case Some(_) => Ok(removeFeedbackIds(Json.toJson(i).toString))
                 case None => InternalServerError(Json.toJson(ApiError.CantSave))
               }
-            }else BadRequest(Json.toJson(ApiError.CollectionIsRequired))
+            } else {
+              Forbidden(Json.toJson(ApiError.CollectionUnauthorized))
+            }
           }
         } catch {
           case parseEx: JSONParseException => BadRequest(Json.toJson(ApiError.JsonExpected))
@@ -183,31 +179,30 @@ object ItemApi extends BaseApi {
   def updateItem(id: ObjectId) = ApiAction { request =>
     if (Content.isAuthorized(request.ctx.organization, id, Permission.All)) {
       request.body.asJson match {
-        case Some(json) => if ((json \ Item.id).asOpt[String].isDefined) BadRequest(Json.toJson(ApiError.IdNotNeeded))
-          // I think there's no need to restrict the collection id, in fact we need it to update the item (confirm this with evaneus/bleezmo)
-          //else if ((json \ Item.collectionId).asOpt[String].isDefined) BadRequest(Json.toJson(ApiError.CollIdNotNeeded))
-          else{
-            try{
-              //TODO: This should be using $set - because this is updating in place and removing 'supportingMaterials'.
+        case Some(jsonData) => {
+          val json = Json.parse(addFeedbackIds(jsonData.toString))
+          if ((json \ Item.id).asOpt[String].isDefined) {
+            BadRequest(Json.toJson(ApiError.IdNotNeeded))
+          }
+          else if ((json \ Item.collectionId).asOpt[String].isDefined) {
+            BadRequest(Json.toJson(ApiError.CollIdNotNeeded))
+          }
+          else {
+            try {
               Item.updateItem(id,Json.fromJson[Item](json)) match {
-                case Right(i) => Ok(Json.toJson(i))
+                case Right(i) => Ok(removeFeedbackIds(Json.toJson(i).toString))
                 case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateItem(error.clientOutput)))
               }
-           }catch{
-             case e:JSONParseException => BadRequest(Json.toJson(ApiError.JsonExpected))
-             case e:JsonValidationException => BadRequest(Json.toJson(ApiError.JsonExpected(Some(e.getMessage))))
-           }
+            } catch {
+              case e:JSONParseException => BadRequest(Json.toJson(ApiError.JsonExpected))
+              case e:JsonValidationException => BadRequest(Json.toJson(ApiError.JsonExpected(Some(e.getMessage))))
+            }
           }
+        }
         case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
       }
-    }else Forbidden
+    } else Forbidden
   }
-
-//  def canUpdateOrDelete(callerOrg: ObjectId, itemCollId: String):Boolean = {
-//    val ids = ContentCollection.getCollectionIds(callerOrg,Permission.All)
-//    ids.find(_.toString == itemCollId).isDefined
-//  }
-
 
   def getItemsInCollection(collId: ObjectId) = ApiAction { request =>
     NotImplemented

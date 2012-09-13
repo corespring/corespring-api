@@ -175,6 +175,7 @@ object ResourceApi extends BaseApi {
                 if (!item.data.isDefined) {
                   throw new RuntimeException("item.data should never be undefined")
                 }
+
                 val processedFile = ensureDataFileIsMainIsCorrect(file)
                 saveFileIfNameNotTaken(item, item.data.get, processedFile)
               }
