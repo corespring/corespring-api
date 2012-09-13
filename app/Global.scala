@@ -139,18 +139,22 @@ object Global extends GlobalSettings {
     def insertString(s: String, coll: MongoCollection) = coll.insert(JSON.parse(s).asInstanceOf[DBObject], coll.writeConcern)
 
     jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
-
     jsonLinesToDb(basePath + "orgs.json", Organization.collection)
-    jsonLinesToDb(basePath + "items.json", Content.collection)
+
+    if( Play.isTest){
+      jsonLinesToDb(basePath + "items.json", Content.collection)
+    } else {
+      Content.collection.drop()
+      Logger.info("insert item with supporting materials")
+      jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/single-choice.xml")
+      jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false  )
+    }
     jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
     jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
     jsonLinesToDb(basePath + "users.json", User.collection)
     jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
     jsonLinesToDb(basePath + "subjects.json", Subject.collection)
     jsonLinesToDb(basePath + "standards.json", Standard.collection)
-    Logger.info("insert item with supporting materials")
-    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/single-choice.xml")
-    jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false  )
 
     //acces token stuff
     AccessToken.collection.drop()
