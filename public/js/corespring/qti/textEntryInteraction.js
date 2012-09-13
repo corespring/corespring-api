@@ -1,6 +1,3 @@
-/**
- * handles QTI 2.1 textEntryInteraction which is intended for in-line text reponses
- */
 qtiDirectives.directive("textentryinteraction", function() {
 
 
@@ -8,22 +5,19 @@ qtiDirectives.directive("textentryinteraction", function() {
         restrict: 'E',
         replace: true,
         scope: true,
-        template: '<span><input type="text" size="{{expectedLength}}" ng-model="response"></input></span>',
-        link: function (scope, element, attrs, controller) {
-                console.log('in link function');
+        require: '^assessmentitem',
+        template: '<span><input type="text" size="{{expectedLength}}" ng-model="textResponse" ng-disabled="formDisabled"></input></span>',
+        link: function (scope, element, attrs, AssessmentItemController) {
+            // read some stuff from attrs
+            var modelToUpdate = attrs.responseidentifier;
+            scope.expectedLength = attrs.expectedlength;
 
-                // read some stuff from attrs
-                scope.responseidentifier = attrs.responseidentifier;
-                scope.expectedLength = attrs.expectedlength;
+            // called when this choice is clicked
+            scope.$watch('textResponse', function(newVal, oldVal) {
+                AssessmentItemController.setResponse(modelToUpdate, scope.textResponse);
+            });
 
-                // called when this choice is clicked
-                scope.$watch('response', function(oldVal, newVal) {
-                    console.log('response: ' + scope.response);
-                });
-
-            }
+        }
 
     }
 });
-
-
