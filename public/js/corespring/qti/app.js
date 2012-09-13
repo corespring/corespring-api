@@ -11,9 +11,18 @@ qtiDirectives.directive('assessmentitem', function(AssessmentSessionService, Ses
         restrict: 'E',
         controller: function($scope, $element, $attrs) {
 
+            var scope = $scope;
+
             // get some attribute parameters
-            var itemId = $attrs.csItemid; // cd:itemId
-            var feedbackEnabled = $attrs.csFeedbackenabled; // cs:FeedbackEnabled
+            var itemId = $attrs.csItemid; // cs:itemId
+            var itemSessionId = $attrs.csItemsessionid; // cs:itemId
+
+            // get item session - parameters for session behavior will be defined there
+            // TODO it is an error if there is no session found
+            scope.itemSession = AssessmentSessionService.get({id: itemSessionId});
+
+
+            var feedbackEnabled = scope.itemSession.feedbackEnabled;
             if (feedbackEnabled == undefined) feedbackEnabled = false;
 
             // let query string override feedback property
@@ -22,11 +31,10 @@ qtiDirectives.directive('assessmentitem', function(AssessmentSessionService, Ses
             if (feedbackParam && (feedbackParam == 'true' || feedbackParam == 'false' )) {
                 feedbackEnabled = feedbackParam;
             }
-            var scope = $scope;
+
 
             scope.status = 'ACTIVE';
-            // init item session
-            scope.itemSession = {};
+
             scope.itemSession.start = new Date().getTime(); // millis since epoch (maybe this should be set in an onload event?)
 
 
@@ -41,14 +49,14 @@ qtiDirectives.directive('assessmentitem', function(AssessmentSessionService, Ses
             this.submitResponses = function() {
                 scope.itemSession.responses = scope.responses;
                 scope.itemSession.finish = new Date().getTime();
-                scope.itemSession = AssessmentSessionService.create(scope.itemSession);
+                scope.itemSession = AssessmentSessionService.update(scope.itemSession);
                 scope.sessionData = SessionDataService.get({id: scope.itemSession.id});
                 scope.status = 'SUBMITTED';
                 scope.formDisabled = true;
             };
 
             scope.isFeedbackEnabled = function () {
-                return (feedbackEnabled && feedbackEnabled == 'true');
+                return feedbackEnabled;
             }
 
         }

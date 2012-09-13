@@ -20,7 +20,19 @@ qtiServices
 qtiServices
     .factory('AssessmentSessionService', ['$resource', function ($resource) {
     var AssessmentSessionService = {};
-    AssessmentSessionService.create = function(session) {
+
+    // create a mock session
+    var mockSession = {};
+    mockSession.start = new Date().getTime();
+    mockSession.feedbackEnabled = true;
+    mockSession.role = 'candidate';
+    mockSession.multipleAttemptsAllowed = true;
+
+    AssessmentSessionService.get = function(obj) {
+        return mockSession;
+    };
+
+    AssessmentSessionService.update = function(session) {
         // i'm guessing that outcome variables would be declared in base scope like this...
         session.score = 1;
         // putting an outcome property for each response, but maybe they should just be
