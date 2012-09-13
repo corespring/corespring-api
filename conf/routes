@@ -58,7 +58,7 @@ GET     /api/v1/items/:itemId/assets/:fileName  api.v1.FilesApi.getFile(itemId:S
 
 # Resource api
 GET     /api/v1/items/:itemId/materials          api.v1.ResourceApi.getSupportingMaterials(itemId:String)
-POST    /api/v1/items/:itemId/materials          api.v1.ResourceApi.createSupportingMaterial(itemId:String)
+POST    /api/v1/items/:itemId/materials          api.v1.ResourceApi.createSupportingMaterial(itemId:String, name: Option[String] = None, filename: Option[String] = None )
 DELETE  /api/v1/items/:itemId/materials/:resourceName          api.v1.ResourceApi.deleteSupportingMaterial(itemId:String, resourceName : String)
 POST    /api/v1/items/:itemId/materials/:resourceName   api.v1.ResourceApi.createSupportingMaterialFile(itemId:String, resourceName : String)
 PUT     /api/v1/items/:itemId/materials/:resourceName/:filename   api.v1.ResourceApi.updateSupportingMaterialFile(itemId:String, resourceName : String, filename : String)

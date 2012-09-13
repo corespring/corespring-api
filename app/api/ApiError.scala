@@ -89,6 +89,7 @@ object ApiError {
   val FilenameTaken           = ApiError(900, "Filename is taken - please choose another name")
   val ResourceNotFound        = ApiError(901, "Can't find resource")
   val ResourceNameTaken       = ApiError(902, "Resource name is taken - please choose another")
+  val FilenameIsRequired      = ApiError(903, "Filename is required")
 
   implicit object ApiErrorWrites extends Writes[ApiError] {
     def writes(o: ApiError): JsValue = {

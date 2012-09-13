@@ -10,6 +10,7 @@ import play.api.libs.json.Json._
 import api.ApiError
 import play.api.libs.json.Json
 import scala.Some
+import com.mongodb.casbah.commons.MongoDBObject
 
 object ResourceApi extends BaseApi {
 
@@ -45,18 +46,12 @@ object ResourceApi extends BaseApi {
                   additionalChecks: Seq[Item => Option[ApiError]],
                   p: BodyParser[A])(
     action: ItemRequest[A] => Result
-    ) = ApiAction(p: BodyParser[A]) {
-    request => // extends Action[A] {
-
-      val id = objectId(itemId)
-
-      id match {
+    ) = ApiAction(p: BodyParser[A]) { request =>
+      objectId(itemId) match {
         case Some(validId) => {
           Item.findOneById(validId) match {
             case Some(item) => {
-
               val errors: Seq[ApiError] = additionalChecks.flatMap(_(item))
-
               if (errors.length == 0) {
                 action(ItemRequest(item, request))
               }
@@ -301,8 +296,8 @@ object ResourceApi extends BaseApi {
    * @param filename
    * @return
    */
-  def uploadFileToData(itemId: String, filename: String) =
-    HasItem(
+  def uploadFileToData(itemId: String, filename: String) = {
+    val x = HasItem(
       itemId,
       Seq(isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_)),
       S3Service.s3upload(AMAZON_ASSETS_BUCKET, itemId + "/" + DATA_PATH + "/" + filename))(
@@ -322,6 +317,8 @@ object ResourceApi extends BaseApi {
         Ok(toJson(file))
     }
     )
+    x
+  }
 
   /**
    * Upload a file to a supporting material Resource in the item.
@@ -359,13 +356,36 @@ object ResourceApi extends BaseApi {
       Ok(toJson(item.supportingMaterials))
   })
 
-  def createSupportingMaterial(itemId: String) = HasItem(itemId,
-    Seq(),
-    Action {
-      request =>
+  def createSupportingMaterial(itemId: String, name: Option[String], filename: Option[String]) = {
+    if ( name.isDefined ) {
+      if ( !filename.isDefined ) {
+          Action { request => BadRequest(Json.toJson(ApiError.FilenameIsRequired)) }
+      } else {
+        //handle upload
+        val materialName = name.get
+        val fname = filename.get
+        val s3Key = storageKey(itemId, materialName, fname)
+        HasItem(itemId,Seq(), S3Service.s3upload(AMAZON_ASSETS_BUCKET, s3Key))(
+        {
+          request =>
+            val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+            val file = new StoredFile(
+              fname,
+              contentType(fname),
+              false,
+              storageKey(itemId, materialName, fname))
+            val resource = Resource(materialName, Seq(file))
+            item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
+            Item.save(item)
+            Ok(toJson(resource))
+        })
+        // adding this so the compilation won't fail.  need to fix this.
+        Action { r => Ok("") }
+      }
+    } else {
+      HasItem(itemId,Seq(), Action { request =>
         request.body.asJson match {
           case Some(json) => {
-
             json.asOpt[Resource] match {
               case Some(foundResource) => {
                 val item = request.asInstanceOf[ItemRequest[AnyContent]].item
@@ -383,7 +403,9 @@ object ResourceApi extends BaseApi {
           }
           case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
         }
-    })
+      })
+    }
+  }
 
   def deleteSupportingMaterial(itemId: String, resourceName: String) = HasItem(itemId,
     Seq(canFindResource(resourceName)(_)),
