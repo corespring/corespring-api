@@ -42,9 +42,8 @@ object Content {
     }
   }
   def isCollectionAuthorized(orgId:ObjectId, collId:String, p:Permission):Boolean = {
-    true
-//    val ids = ContentCollection.getCollectionIds(orgId,p)
-//    ids.exists(_.toString == collId)
+    val ids = ContentCollection.getCollectionIds(orgId,p)
+    ids.exists(_.toString == collId)
   }
 }
 
