@@ -10,7 +10,7 @@
                  "name" : "qti.xml",
                  "contentType":"text/xml",
                  "isMain":true,
-                 "content": "$[interpolate{/conf/qti/single-choice.xml}]"
+                 "content": "$[interpolate{/conf/qti/composite-with-feedback.xml}]"
              },
              {
                  "_t" : "models.StoredFile",

@@ -172,7 +172,7 @@ object Global extends GlobalSettings {
     if (Play.isTest) {
       jsonLinesToDb(basePath + "items.json", Content.collection)
     }
-    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/single-choice.xml")
+    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/composite-with-feedback.xml")
     jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false)
 
     jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)

@@ -1,3 +1,9 @@
+.choiceInteraction {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    margin-left: 20px;
+}
 .choicePrompt {
     display: block;
     margin-bottom: 10px;
