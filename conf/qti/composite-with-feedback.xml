@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<assessmentItem
+        identifier="mcas-16373" timeDependent="false" title="16373" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 imsqti_v2p1.xsd" toolName="SIB" adaptive="false" toolVersion="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1">
+    <stylesheet type="text/css" href="css/mcas/default.css"></stylesheet>
+    <itemBody>
+
+        <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1">
+            <prompt>Who is the President of Mexico?</prompt>
+            <simpleChoice identifier="bush"> George W Bush
+                <!-- in feedback directive we could infer that if the variable in outcomeIdentifier is an array we should do a contains() instead of '=='-->
+                <feedbackInline csFeedbackId="bush" outcomeIdentifier="responses.mexicanPresident.value" identifier="bush" showHide="show"></feedbackInline>
+            </simpleChoice>
+            <simpleChoice identifier="blair"> Tony Blair
+                <feedbackInline csFeedbackId="blair" outcomeIdentifier="responses.mexicanPresident.value" identifier="blair" showHide="show"></feedbackInline>
+            </simpleChoice>
+            <simpleChoice identifier="calderon"> Felipe Calderon
+                <feedbackInline csFeedbackId="calderon" outcomeIdentifier="responses.mexicanPresident.value" identifier="calderon" showHide="show" ></feedbackInline>
+            </simpleChoice>
+            <simpleChoice identifier="sharon"> Ariel Sharon
+                <feedbackInline csFeedbackId="sharon" outcomeIdentifier="responses.mexicanPresident.value" identifier="sharon" showHide="show"></feedbackInline>
+            </simpleChoice>
+        </choiceInteraction>
+
+        <choiceInteraction responseIdentifier="irishPresident" shuffle="false" maxChoices="1">
+        <prompt>Who is the President of Ireland?</prompt>
+        <simpleChoice identifier="robinson"> Mary Robinson <feedbackInline
+                csFeedbackId="robinson" outcomeIdentifier="responses.irishPresident.value" identifier="robinson" showHide="show"></feedbackInline>
+        </simpleChoice>
+        <simpleChoice identifier="higgins"> Michel D. Higgins <feedbackInline
+                csFeedbackId="higgins" outcomeIdentifier="responses.irishPresident.value" identifier="higgins" showHide="show"></feedbackInline>
+        </simpleChoice>
+        <simpleChoice identifier="guinness"> Arthur Guinness <feedbackInline
+                csFeedbackId="guinness" outcomeIdentifier="responses.irishPresident.value" identifier="guinness" showHide="show"
+                ></feedbackInline>
+        </simpleChoice>
+        <simpleChoice identifier="adams"> Gerry Adams <feedbackInline
+                csFeedbackId="adams" outcomeIdentifier="responses.irishPresident.value" identifier="adams" showHide="show"></feedbackInline>
+        </simpleChoice>
+        </choiceInteraction>
+
+
+
+        <choiceInteraction responseIdentifier="rainbowColors" shuffle="false" maxChoices="0">
+        <prompt>Which colors are in a rainbow?</prompt>
+        <simpleChoice identifier="blue"> Blue <feedbackInline
+                csFeedbackId="blue" outcomeIdentifier="responses.rainbowColors.value" identifier="blue" showHide="show"></feedbackInline>
+        </simpleChoice>
+        <simpleChoice identifier="violet"> Violet <feedbackInline
+                csFeedbackId="violet" outcomeIdentifier="responses.rainbowColors.value" identifier="violet" showHide="show"></feedbackInline>
+        </simpleChoice>
+        <simpleChoice identifier="white"> White <feedbackInline
+                csFeedbackId="white" outcomeIdentifier="responses.rainbowColors.value" identifier="white" showHide="show"
+                ></feedbackInline>
+        </simpleChoice>
+        <simpleChoice identifier="red"> Red <feedbackInline
+                csFeedbackId="red" outcomeIdentifier="responses.rainbowColors.value" identifier="red" showHide="show"></feedbackInline>
+        </simpleChoice>
+        </choiceInteraction>
+
+
+
+        <prompt>Identify the missing word in this famous quote from Shakespeare's Richard III.</prompt>
+        <blockquote>
+        <p>Now is the winter of our discontent<br/> Made glorious summer by this sun of
+            <textEntryInteraction responseIdentifier="winterDiscontent" expectedLength="15"/>;<br/>
+            And all the clouds that lour'd upon our house<br/> In the deep bosom of the ocean
+            buried.</p>
+        </blockquote>
+        <p/>
+        <feedbackInline
+        csFeedbackId="fbWinter" outcomeIdentifier="responses.winterDiscontent.value" identifier="York" showHide="show"></feedbackInline>
+
+        <p/>
+
+
+
+        <p/>
+        <hr/>
+        <p/>
+
+
+                        <orderInteraction responseIdentifier="wivesOfHenry" shuffle="true">
+                            <prompt>Arrange the wives of Henry VIII in chronological order:</prompt>
+                            <simpleChoice identifier="parr">Catherine Parr</simpleChoice>
+                            <simpleChoice identifier="boleyn">Anne Boleyn</simpleChoice>
+                            <simpleChoice identifier="cleves" fixed="true">Anne of Cleves</simpleChoice>
+                            <simpleChoice identifier="aragon">Catherine of Aragon</simpleChoice>
+                            <simpleChoice identifier="seymour">Jane Seymour</simpleChoice>
+                            <simpleChoice identifier="howard">Catherine Howard</simpleChoice>
+                        </orderInteraction>
+
+
+                        <p/>
+                        <hr/>
+                        <p/>
+
+                        <orderInteraction responseIdentifier="cutePugs" shuffle="true">
+                            <prompt>Arrange these pugs in order of cuteness:</prompt>
+                            <simpleChoice identifier="pug1"><img src="http://stuffpoint.com/dogs/image/59240-dogs-4plus-pugs.jpg" width="150" height="150"/> </simpleChoice>
+                            <simpleChoice identifier="pug2"><img src="http://images.fanpop.com/images/image_uploads/pug-pugs-239511_407_436.jpg" width="150" height="150"/></simpleChoice>
+                            <simpleChoice identifier="pug3" fixed="true"><img src="http://www.weruletheinternet.com/wp-content/uploads/images/2011/may/cute_pugs/cute_pugs_7.jpg" width="150" height="150"/></simpleChoice>
+                        </orderInteraction>
+
+
+                        <p/>
+                        <hr/>
+                        <p/>
+
+
+
+        <prompt>Write Sam a postcard. Write 25-35 words.</prompt>
+        <extendedTextInteraction responseIdentifier="longAnswer" expectedLength="200">
+
+        </extendedTextInteraction>
+
+        <p/>
+        <hr/>
+        <p/>
+
+    </itemBody>
+</assessmentItem>
