@@ -26,7 +26,7 @@ object Utils {
    * @return
    */
   def toSeq[T <: AnyRef](c:SalatMongoCursor[T]):Seq[T] = {
-    val seq = c.foldRight[Seq[T]](Seq())((o,acc) => acc :+ o)
+    val seq = c.foldRight[Seq[T]](Seq())((o,acc) => o +: acc)
     c.close()
     seq
   }
