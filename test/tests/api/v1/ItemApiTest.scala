@@ -11,6 +11,7 @@ import api.ApiError._
 import scala.Some
 import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
+import tests.BaseTest
 
 /**
  *

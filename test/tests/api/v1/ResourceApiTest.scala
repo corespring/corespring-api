@@ -66,12 +66,11 @@ import scala.Some
 import play.api.mvc.SimpleResult
 import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
+import tests.BaseTest
 
 class ResourceApiTest extends BaseTest {
 
-  val ACCESS_TOKEN: String = Global.MOCK_ACCESS_TOKEN
-
-  def tokenize(url: String): String = url + "?access_token=" + ACCESS_TOKEN
+  def tokenize(url: String): String = url + "?access_token=" + token
 
 
   def tokenRequest[A](method: String, uri: String, headers: FakeHeaders = FakeHeaders(), body: A = ""): FakeRequest[A] = {

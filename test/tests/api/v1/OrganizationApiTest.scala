@@ -10,6 +10,7 @@ import scala.Some
 import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
 import scala.Some
+import tests.BaseTest
 
 /**
  *

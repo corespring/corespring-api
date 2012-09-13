@@ -46,7 +46,7 @@ class ResponseDeclarationSpec extends Specification {
     val responseDeclaration = new ResponseDeclaration(xml)
 
     "provide default for unmapped keys" in {
-      if (responseDeclaration.responseFor("test") equals defaultValue.toString) success else failure
+      if (responseDeclaration.responseFor("tests") equals defaultValue.toString) success else failure
     }
 
     "calculate response of default value for empty choices" in {

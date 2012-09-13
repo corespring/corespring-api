@@ -10,6 +10,7 @@ import play.api.mvc.{Results, SimpleResult, AnyContentAsJson}
 import play.api.test.{FakeHeaders, FakeRequest}
 import org.specs2.mutable._
 import play.api.test.Helpers._
+import tests.PlaySingleton
 
 object FieldValuesApiTest extends Specification {
 
