@@ -158,7 +158,7 @@ class ItemApiTest extends BaseTest {
 
 
   "get item data with feedback contains csFeedbackIds" in {
-    val toCreate = Map("xmlData" -> "<html><csFeedbackId></csFeedbackId></html>", "collectionId" -> "5001bb0ee4b0d7c9ec3210a2")
+    val toCreate = Map("xmlData" -> "<html><feedbackInline></feedbackInline></html>", "collectionId" -> "5001bb0ee4b0d7c9ec3210a2")
     var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
     var result = routeAndCall(fakeRequest).get
     status(result) must equalTo(OK)
