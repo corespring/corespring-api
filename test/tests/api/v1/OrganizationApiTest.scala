@@ -1,3 +1,5 @@
+package tests.api.v1
+
 import org.specs2.mutable.Specification
 import play.api.libs.json.{JsValue, Json}
 import play.api.Logger
@@ -5,6 +7,10 @@ import play.api.mvc.AnyContentAsJson
 import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers._
 import scala.Some
+import play.api.test.FakeHeaders
+import play.api.mvc.AnyContentAsJson
+import scala.Some
+import tests.BaseTest
 
 /**
  *
@@ -49,7 +55,7 @@ class OrganizationApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val organizations = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    organizations.foreach( o => {
+    organizations.foreach(o => {
       (o \ "path").asOpt[String] must beNone
     })
     organizations must have size 3
@@ -62,7 +68,7 @@ class OrganizationApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val tree = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    tree.foreach( o => {
+    tree.foreach(o => {
       // make sure the orgId is in the path of each retrieved org
       (o \ "path").as[Seq[String]].contains(orgId) must beTrue
     })
@@ -75,13 +81,13 @@ class OrganizationApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val children = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    children.foreach( o => {
+    children.foreach(o => {
       // make sure the orgId is in the path of each retrieved org
       (o \ "path").as[Seq[String]].contains(orgId) must beTrue
     })
     // make sure the parent org was not returned
     children.foreach(o => {
-      (o \ "id").as[String] must not equalTo(orgId)
+      (o \ "id").as[String] must not equalTo (orgId)
     })
   }
 
@@ -128,7 +134,7 @@ class OrganizationApiTest extends BaseTest {
     val toCreate = Map("name" -> name)
     val fakeRequest = FakeRequest(POST, "/api/v1/organizations?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
     val r = routeAndCall(fakeRequest)
-    if ( r.isEmpty ) {
+    if (r.isEmpty) {
       failure("Failed to create an organization")
     }
     val result = r.get
@@ -142,14 +148,14 @@ class OrganizationApiTest extends BaseTest {
     val name2 = "Acme Corp"
     val toUpdate = Map("name" -> name2)
     val orgId = (organization \ "id").as[String]
-    val postRequest = FakeRequest(PUT, "/api/v1/organizations/%s?access_token=%s".format( orgId, token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
+    val postRequest = FakeRequest(PUT, "/api/v1/organizations/%s?access_token=%s".format(orgId, token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
     routeAndCall(postRequest) match {
       case Some(result2) => {
         status(result2) must equalTo(OK)
         charset(result2) must beSome("utf-8")
         contentType(result2) must beSome("application/json")
         val updatedOrganization = Json.fromJson[JsValue](Json.parse(contentAsString(result2)))
-        (updatedOrganization \ "id").as[String] must beEqualTo( orgId )
+        (updatedOrganization \ "id").as[String] must beEqualTo(orgId)
         (updatedOrganization \ "name").as[String] must beEqualTo(name2)
 
         // delete

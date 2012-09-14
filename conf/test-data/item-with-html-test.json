@@ -1,30 +1,23 @@
 {
     "_id":{
-        "$oid":"50083ba9e4b071cb5ef79101"
+        "$oid":"50083ba9e4b071cb5ef79102"
     },
     "data": {
          "name":"data",
          "files":[
              {
                  "_t" : "models.VirtualFile",
-                 "name" : "qti.xml",
-                 "contentType":"text/xml",
+                 "name" : "index.html",
+                 "contentType":"text/html",
                  "isMain":true,
-                 "content": "$[interpolate{/conf/qti/composite-with-feedback.xml}]"
-             },
-             {
-                 "_t" : "models.StoredFile",
-                 "name":"clientcharges.jpg",
-                 "contentType":"image/jpg",
-                 "storageKey":"test_images/Cute-Koala-01.jpg",
-                 "isMain":false
+                 "content": "<html><body>I'm a plain html test</body></html>"
              }
          ]
     },
     "gradeLevel":[
         "07"
     ],
-    "title":"This item has Qti.xml and supporting materials",
+    "title":"This item has html as its test data - not qti.xml",
     "primarySubject":{
         "subject":"",
         "category":"Mathematics",

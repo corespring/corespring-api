@@ -15,10 +15,9 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
 
 
     $scope.getSmSrc = function (sm) {
-        var templateUrl = ServiceLookup.getUrlFor('previewFile');
-        var file = defaultFile(sm);
-        if(!file) throw "Can't find default file";
-        var key = $scope.itemData.id + "/" + sm.name + "/" + file.name;
+        //var templateUrl = ServiceLookup.getUrlFor('previewFile');
+        var templateUrl = ServiceLookup.getUrlFor('renderResource');
+        var key = $scope.itemData.id + "/" + sm.name;
         //empty it so we trigger a refresh
         return templateUrl.replace("{key}", key);
     };

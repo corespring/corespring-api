@@ -158,7 +158,14 @@ object Global extends GlobalSettings {
 
       val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
       val finalObject: String = replaceLinksWithContent(s)
-      insertString(finalObject, coll)
+
+      /**
+       * Force the collection id
+       * TODO: Speak with others about setting this up correctly.
+       */
+      val FORCED_COLLECTION_ID = "5001b9b9e4b035d491c268c3"
+      val forcedCollectionId = finalObject.replaceAll("\"collectionId\".*?:.*?\".*?\",", "\"collectionId\" : \""+FORCED_COLLECTION_ID+"\",")
+      insertString(forcedCollectionId, coll)
 
     }
     def insertString(s: String, coll: MongoCollection) = coll.insert(JSON.parse(s).asInstanceOf[DBObject], coll.writeConcern)
@@ -173,6 +180,16 @@ object Global extends GlobalSettings {
     }
     jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/composite-with-feedback.xml")
     jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false)
+
+
+    val ExemplarContent = "exemplar-content"
+
+    //load examplar content
+    val folder : File = Play.getFile(basePath + ExemplarContent)
+    for (file <- folder.listFiles) {
+      Logger.info("adding: " + file.getName)
+      jsonFileToItem(basePath + ExemplarContent + "/" + file.getName, Content.collection, drop = false)
+    }
 
     jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
     jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)

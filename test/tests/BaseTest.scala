@@ -1,10 +1,13 @@
+package tests
+
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
-import play.api.mvc.AnyContentAsJson
-import play.api.mvc.{AnyContent, Request, Result, AnyContentAsJson}
-import play.api.test.FakeHeaders
+import play.api.mvc._
 import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers._
+import scala.Some
+import scala.Some
+import play.api.test.FakeHeaders
 import scala.Some
 
 
@@ -22,6 +25,7 @@ abstract class BaseTest extends Specification {
    */
   class ResultHelper(result: Result) {
     def \(key: String): String = (Json.parse(contentAsString(result)) \ key).as[String]
+
     def body: String = contentAsString(result).toString
   }
 
@@ -35,9 +39,9 @@ abstract class BaseTest extends Specification {
     doRequest(httpVerb, url, Some(jsonObject))
 
   def doRequest(httpVerb: String, url: String, jsonObject: Option[Map[String, String]] = None): Option[Result] = {
-    require (Set(GET, PUT, POST, DELETE).contains(httpVerb))
+    require(Set(GET, PUT, POST, DELETE).contains(httpVerb))
 
-    val fullUrl =  url + "?access_token=%s".format(token)
+    val fullUrl = url + "?access_token=%s".format(token)
 
     val request = jsonObject match {
       case Some(jsonMap) =>

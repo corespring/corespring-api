@@ -1,20 +1,24 @@
-import models.{Item, ItemResponse, ItemSession}
+package tests.api.v1
+
+import models.{ItemResponse, ItemSession, Item}
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import org.specs2.execute.Pending
 import play.api.libs.json.{JsUndefined, JsValue, Json}
 import play.api.mvc.AnyContentAsJson
-import play.api.mvc.AnyContentAsJson
-import play.api.test.FakeHeaders
 import play.api.test.{FakeHeaders, FakeRequest}
 import org.specs2.mutable._
 import play.api.test.Helpers._
 import scala.Some
+import play.api.mvc.AnyContentAsJson
+import play.api.test.FakeHeaders
+import scala.Some
+import tests.PlaySingleton
 
 /**
  * Tests the ItemSession model
  */
-class ItemSessionTest extends Specification {
+class ItemSessionApiTest extends Specification {
 
   PlaySingleton.start()
 
@@ -61,7 +65,7 @@ class ItemSessionTest extends Specification {
       val request = FakeRequest(
         POST,
         url,
-        FakeHeaders( Map("Authorization" -> Seq("Bearer "+token)) ),
+        FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
         AnyContentAsJson(Json.toJson(testSession))
       )
 
@@ -97,21 +101,21 @@ class ItemSessionTest extends Specification {
       val url = "/api/v1/items/" + testSession.itemId.toString + "/sessions"
 
       // add some item responses
-      testSession.responses = testSession.responses ++ Seq(ItemResponse("question1","choice1", "{$score:1}"))
-      testSession.responses = testSession.responses ++ Seq(ItemResponse("question2","some text", "{$score:1}"))
-      testSession.responses = testSession.responses ++ Seq(ItemResponse("question3","more text", "{$score:1}"))
+      testSession.responses = testSession.responses ++ Seq(ItemResponse("question1", "choice1", "{$score:1}"))
+      testSession.responses = testSession.responses ++ Seq(ItemResponse("question2", "some text", "{$score:1}"))
+      testSession.responses = testSession.responses ++ Seq(ItemResponse("question3", "more text", "{$score:1}"))
       testSession.finish = Some(new DateTime())
 
       val request = FakeRequest(
         POST,
         url,
-        FakeHeaders( Map("Authorization" -> Seq("Bearer "+token)) ),
+        FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
         AnyContentAsJson(Json.toJson(testSession))
       )
 
       val optResult = routeAndCall(request)
-      if(optResult.isDefined) {
-        val json:JsValue = Json.parse(contentAsString(optResult.get))
+      if (optResult.isDefined) {
+        val json: JsValue = Json.parse(contentAsString(optResult.get))
 
         // get the generated id
         val id = (json \ "id").asOpt[String].getOrElse("")
@@ -139,7 +143,7 @@ class ItemSessionTest extends Specification {
       val getRequest = FakeRequest(
         GET,
         url,
-        FakeHeaders( Map("Authorization" -> Seq("Bearer "+token)) ),
+        FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
         None
       )
 
@@ -152,7 +156,7 @@ class ItemSessionTest extends Specification {
           val testSessionForGet: ItemSession =
             ItemSession.findOneById(new ObjectId(testSessionIds("itemSessionId"))) match {
               case Some(o) => o
-              case None =>  null
+              case None => null
             }
 
           if (doesSessionMatch(json, testSessionForGet)) {
@@ -193,7 +197,7 @@ class ItemSessionTest extends Specification {
         (id equals idString) &&
         (itemId equals itemIdString)
 
-      } catch {
+    } catch {
       case e: Exception => {
         e.printStackTrace()
         false
@@ -207,7 +211,7 @@ class ItemSessionTest extends Specification {
    */
   trait cleanUp extends After {
     def after {
-        // TODO - delete created sessions
+      // TODO - delete created sessions
     }
   }
 

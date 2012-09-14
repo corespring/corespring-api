@@ -1,3 +1,5 @@
+package tests
+
 import play.api.Play
 import play.api.test.FakeApplication
 import scala.Some
@@ -20,7 +22,6 @@ object PlaySingleton {
     this.synchronized {
       Play.maybeApplication match {
         case Some(fakeApp) => {
-          Global.onStop(fakeApp)
           Play.stop()
         }
         case None =>

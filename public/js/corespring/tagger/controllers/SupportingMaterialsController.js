@@ -88,7 +88,7 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
             }
         );
 
-        newHtml.$save({ itemId:$routeParams.itemId }, function (data) {
+        newHtml.$save({ itemId:$routeParams.itemId, access_token: AccessToken.token }, function (data) {
             $scope.supportingMaterials.push(data);
             $scope.showResource(data);
             $scope.showAddResourceModal = false;
@@ -102,10 +102,20 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
         if (file == null) {
             throw "ItemController:calculateResourceUploadUrl - the file is null"
         }
-        return $scope.getUrl("uploadSupportingMaterial", $routeParams.itemId, $scope.getResourceFileName());
+
+        var substitutions = {
+            itemId: $routeParams.itemId,
+            name: $scope.getResourceName(),
+            filename: file.name
+        };
+
+        var url = ServiceLookup.getUrlFor('uploadSupportingMaterial', substitutions);
+        url += "?access_token=" + AccessToken.token;
+        console.log("upload url: " + url);
+        return url;
     };
 
-    $scope.getResourceFileName = function () {
+    $scope.getResourceName = function () {
         if ($scope.newResourceName == "Other") {
             return $scope.newResourceOtherName;
         }
@@ -178,17 +188,6 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
         resource.$delete({itemId:$routeParams.itemId, resourceName:resource.name}, function (data) {
             $scope.supportingMaterials.removeItem(data);
         });
-    };
-
-    //TODO: dup from ItemController
-    $scope.getUrl = function (action, itemId, fileName) {
-        var templateUrl = ServiceLookup.getUrlFor(action);
-
-        if (templateUrl == null) {
-            throw "Can't find url for action: " + action;
-        }
-
-        return templateUrl.replace("{itemId}", itemId).replace("{fileName}", fileName)
     };
 
     $scope.loadMaterials = function () {
