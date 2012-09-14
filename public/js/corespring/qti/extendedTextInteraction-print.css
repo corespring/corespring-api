@@ -1,0 +1,15 @@
+.extendedTextInteraction {
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+.extendedTextLine {
+    border-bottom: 1px;
+    border-top: 0px;
+    border-left: 0px;
+    border-right: 0px;
+    border-style: dotted;
+    border-color: #000000;
+    width: 50%;
+    height: 2.5em;
+}

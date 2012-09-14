@@ -92,8 +92,9 @@ qtiDirectives.directive('choiceinteraction', function () {
         link: function(scope, element, attrs, AssessmentItemCtrl, $timeout) {
             var maxChoices = attrs['maxchoices'];
             // the model for an interaction is specified by the responseIdentifier
-            // TODO this applies to all QTI interactions, prob need to factor any common behaviour out to a service
             var modelToUpdate = attrs["responseidentifier"];
+
+            // TODO need to handle shuffle and fixed options... probably need to rearrange the DOM in compile function for this
 
             scope.setChosenItem = function(value){
                 if (maxChoices != 1) {

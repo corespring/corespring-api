@@ -1,0 +1,19 @@
+.ordered-choice-form {
+    width: 3em;
+    height: 3em;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #000000;
+    margin: .5em;
+    display: inline-block;
+    vertical-align: middle;
+}
+.ordered-choice {
+    padding: 10px;
+    vertical-align: middle;
+}
+
+.ordered-choice-item {
+    display: inline-block;
+    vertical-align: middle;
+}

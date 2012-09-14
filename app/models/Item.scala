@@ -177,6 +177,8 @@ object StoredFile {
 case class Resource(name: String, var files: Seq[BaseFile])
 
 object Resource {
+  val name = "name"
+  val files = "files"
 
   implicit object ResourceWrites extends Writes[Resource] {
     def writes(res: Resource): JsValue = {

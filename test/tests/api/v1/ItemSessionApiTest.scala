@@ -24,7 +24,7 @@ class ItemSessionApiTest extends Specification {
 
   // from standard fixture data
   val token = "34dj45a769j4e1c0h4wb"
-  val testItemId = "5001b7ade4b0d7c9ec321070"
+  val testItemId = "50535f3899e3c431e9a40df5"
 
   val testSessionIds = Map(
     "itemId" -> "4ffd8645e4b0031d54b5ab90",
@@ -57,11 +57,11 @@ class ItemSessionApiTest extends Specification {
   "item session api" should {
 
     "return feedback with session" in {
-      val testSessionId = "4ffd8645e4b0031d54b5ab90"
-      val testSession = ItemSession(new ObjectId(testSessionId))
+      val itemId = "4ffd8645e4b0031d54b5ab90"
+      val testSession = ItemSession(new ObjectId(itemId))
       testSession.responses = List(ItemResponse("RESPONSE", "ChoiceA"))
 
-      val url = "/api/v1/items/" + testSessionId + "/sessions"
+      val url = "/api/v1/items/" + itemId + "/sessions"
       val request = FakeRequest(
         POST,
         url,
