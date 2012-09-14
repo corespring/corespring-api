@@ -20,6 +20,7 @@ require 'aws/s3'
 item_id = ARGV[0]
 db_name = ARGV[1]
 corespring_content_path = ARGV[2]
+output_path = ARGV[3]
 
 class AmazonUploader
 
@@ -63,7 +64,7 @@ class CorespringContentUpdater
     "js" => "text/javascript"
   }
 
-  def initialize(item_id, db_name, corespring_content_path, uploader)
+  def initialize(item_id, db_name, corespring_content_path, uploader, output_path)
     puts "!! update_mongo_document_from_corespring_content"
     puts "!! item_id: #{item_id}"
     puts "!! db_name: #{db_name}"
@@ -74,6 +75,7 @@ class CorespringContentUpdater
     @connection = Mongo::Connection.new("localhost", 27017)
     @db = @connection.db(@db_name)
     @uploader = uploader
+    @output_path = output_path 
   end
 
   def begin
@@ -116,8 +118,24 @@ class CorespringContentUpdater
 
     sm_array = item["supportingMaterials"] || []
 
+    if sm_array.index{ |i| i["name"] == sm_name } != nil
+      puts "Already exists - DON'T ADD"
+    else
+      new_sm = create_sm(sm_name, file_path)   
+      sm_array << new_sm 
+      item["supportingMaterials"] = sm_array
+      coll.update({"_id" => BSON::ObjectId(@item_id)}, item)
+    end
+ 
+    puts "------ "
+    #puts coll.find({"_id" => BSON::ObjectId(@item_id)}, {}).to_a
+    export_json
+  end
+
+  def create_sm(name, file_path)
+
     sm = {
-      "name" => sm_name,
+      "name" => name,
       "files" => []
     }
 
@@ -129,7 +147,7 @@ class CorespringContentUpdater
           sm["files"] << create_virtual_file( new_file_path)
         elsif can_be_stored_file(f)
           puts "upload the file...#{f}"
-          storage_key = create_storage_key(sm_name, new_file_path)
+          storage_key = create_storage_key(name, new_file_path)
           sm["files"] << create_stored_file(storage_key, new_file_path)
         else
           puts "!!!Don't know how to handle file: #{file_path}/{f}"
@@ -137,12 +155,42 @@ class CorespringContentUpdater
       end
     end
 
-    sm_array << sm
-    item["supportingMaterials"] = sm_array
+    sm
+  
+  end
 
-    coll.update({"_id" => BSON::ObjectId(@item_id)}, item)
-    puts "------ "
-    puts coll.find({"_id" => BSON::ObjectId(@item_id)}, {}).to_a
+  def export_json
+    eval = "db.content.find({_id: ObjectId('#{@item_id}')}).forEach(printjson)"
+    out = `mongo #{@db_name} --eval "#{eval}"`
+    out = strip_object_id(out)
+    out = remove_preamble(out)
+    out.match(/"title".*?:.*?"(.*?\s+.*?\s+.*?)\s+/m)
+    json_file_name = create_json_file_name(out)
+    f = File.new("#{@output_path}/#{json_file_name}.json", "w")
+    f.write(out)
+    f.close
+  end
+
+  def create_json_file_name(mongo_json)
+    
+    name = "no-title"  
+    match  = mongo_json.match(/"title".*?:.*?"(.*?\s+.*?\s+.*?)\s+/m)
+    
+    if !match.nil? && match.length == 2
+      t = match[1]
+      name = t.gsub(" ", "-")
+    end
+
+    "#{@item_id}-#{name}"
+  end
+
+
+  def strip_object_id(mongo_json)
+    mongo_json.gsub(/ObjectId\((.*?)\)/, "{ \"$oid\" : \\1 }")
+  end
+
+  def remove_preamble(mongo_json)
+    mongo_json.gsub(/\A.*?{/m, "{")
   end
 
   def can_be_virtual_file(filename)
@@ -206,5 +254,5 @@ end
 
 
 uploader = AmazonUploader.new( "AKIAJNPUNTVH2HMFWVVA", "sl+sXsuq8Xkbl4NvlLuyHRZtrVJp+BXEoH7XlLPm", "corespring-assets")
-updater = CorespringContentUpdater.new(item_id, db_name, corespring_content_path, uploader)
+updater = CorespringContentUpdater.new(item_id, db_name, corespring_content_path, uploader, output_path)
 updater.begin

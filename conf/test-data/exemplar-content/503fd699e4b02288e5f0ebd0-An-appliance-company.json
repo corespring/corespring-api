@@ -1,0 +1,102 @@
+{
+	"_id" : { "$oid" : "503fd699e4b02288e5f0ebd0" },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n      \n      <!-- extended text -->\n      <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"string\"/>\n      \n       <!-- SINGLE-answer multi choice (radio button ) -->\n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value></value>\n        </correctResponse>\n    </responseDeclaration>\n    \n    <!-- extended text -->\n     <responseDeclaration identifier=\"Q_03\" cardinality=\"single\" baseType=\"string\"/>\n     \n       <!-- SINGLE-answer multi choice (radio button ) -->\n    <responseDeclaration identifier=\"Q_04\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value></value>\n        </correctResponse>\n    </responseDeclaration>\n    \n    \n    <!-- extended text -->\n     <responseDeclaration identifier=\"Q_05\" cardinality=\"single\" baseType=\"string\"/>\n     \n    <itemBody>\n        <p>\n            An appliance company builds washing machines and dishwashers. The company is able to build at most 750 washing machines per month and at most 600 dishwashers per month. It takes 20 hours of labor to build a washing machine and 25 hours of labor to build a dishwasher. The company has at most 20,000 hours of labor available each month.  <p/>\n           \n           <ol>\n           <li>Write a system of inequalities to model the problem above, where x is the number of washing machines and y is the number of dishwashers built per month.</li></ol>\n           <ul>\n           <extendedTextInteraction responseIdentifier=\"Q_01\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"/></ul></p>\n           \n           <ol start=\"2\">\n<li>On the worksheet provided, sketch a graph of the system from Part a in the coordinate plane below.</li>\n</ol>\n            \n            \n             <ol start=\"3\">\n<li>Can the company build 325 washing machines and 550 dishwashers in one month?</li>\n</ol>\n<ul>\n<choiceInteraction responseIdentifier=\"Q_02\" shuffle=\"false\" maxChoices=\"1\">\n            <!-- prompt is optional, will just be simply formatted above the choices if present -->\n            <prompt></prompt>\n            <simpleChoice identifier=\"1\">Yes</simpleChoice>\n            <simpleChoice identifier=\"2\">No</simpleChoice>\n        </choiceInteraction><p/>\n        Explain your answer.<p/>\n        <extendedTextInteraction responseIdentifier=\"Q_03\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"/></ul><p/>\n\n<ol start=\"4\">\n<li>Can the company build 400 washing machines and 475 dishwashers in one month?</li></ol>\n<ul>\n<choiceInteraction responseIdentifier=\"Q_04\" shuffle=\"false\" maxChoices=\"1\">\n            <!-- prompt is optional, will just be simply formatted above the choices if present -->\n            <prompt></prompt>\n            <simpleChoice identifier=\"1\">Yes</simpleChoice>\n            <simpleChoice identifier=\"2\">No</simpleChoice>\n        </choiceInteraction><p/><p/>\n        Explain your answer.<p/>\n        <extendedTextInteraction responseIdentifier=\"Q_05\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"/></ul><p/>\n\n            \n    </itemBody>\n\n</assessmentItem>"
+			}
+		]
+	},
+	"collectionId" : "4ff2e56fe4b077b9e3168a05",
+	"primarySubject" : "4ffb535f6bb41e469c0bf2c3",
+	"standards" : [
+		{ "$oid" : "4ff47f6e6bb41e469c0beb6c" },
+		{ "$oid" : "4ff47f6e6bb41e469c0beb6e" }
+	],
+	"workflow" : {
+		"setup" : false,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"keySkills" : [ ],
+	"title" : "An appliance company builds washing machines and dishwashers. The company has at most 20,000 hours of labor available each month. Write a system of inequalities and answer some questions about manufacturing capacity.",
+	"itemType" : "Performance Task",
+	"itemTypeOther" : null,
+	"contributor" : "New Jersey Department of Education",
+	"copyrightOwner" : "New Jersey Department of Education",
+	"author" : "New Jersey Department of Education",
+	"credentials" : "State Department of Education",
+	"sourceUrl" : "http://www.state.nj.us/education/modelcurriculum/math/AlgebraIu1.shtml",
+	"licenseType" : "CC BY",
+	"copyrightYear" : "2012",
+	"relatedCurriculum" : "NJDOE: Model Curriculum: Algebra I: Unit 1: Relationships Between Quantities and Reasoning with Equations",
+	"gradeLevel" : [
+		"09",
+		"10"
+	],
+	"reviewsPassed" : [
+		"Editorial"
+	],
+	"supportingMaterials" : [
+		{
+			"name" : "Scoring Guide",
+			"files" : [
+				{
+					"_t" : "models.VirtualFile",
+					"name" : "A1.1.18.ScoreGuide.html",
+					"contentType" : "text/html",
+					"isMain" : true,
+					"content" : "<html>\n<head>\n<script type=\"text/javascript\"\n  src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\">\n</script>\n</head>\n<h2>Scoring Guide</h2><p></p>\n<body>\n<u>Q1:</u>:<p/>\n<img src=\"A1.1.18ScoringGuidea.png\"/><p/>\n<img src=\"A1.1.18ScoringGuideb.png\"/><p/>\n<img src=\"A1.1.18ScoringGuidec.png\"/><p/>\n <p/>\n <u>Q2:</u>:<p/>\n<img src=\"A1.1.18ScoringGuided.png\"/><p/>\n\n<u>Q3:</u>: \nNo<p/>\n<img src=\"A1.1.18ScoringGuidee.png\"/><p/>\n<p/>\n<u>Q4:</u>: Yes <p/>\nYes\n<img src=\"A1.1.18ScoringGuidef.png\"/><p/>\n\n<h2>Score Points</h2> \n\n<table>\n<tr>\n<td>2 points:</td>\n<td>The student gives a correct system of inequalities, graphs the system correctly, and correctly determines that the combination in part 3 is nonviable and the combination in part 4 is viable. </td>\n</tr>\n<tr>\n<td>1 point:</td>\n<td> The student gives a correct system of inequalities and graphs the system correctly, but makes one or more errors when attempting to determine whether the combinations in parts 3 and 4 are viable. \n</td>\n</tr>\n<tr>\n<td>0 points:</td>\n<td>The student fails to correctly answer most or all of the question.</td>\n</tr>\n</body>\n</html>"
+				},
+				{
+					"_t" : "models.StoredFile",
+					"name" : "A1.1.18ScoringGuidea.png",
+					"contentType" : "image/png",
+					"isMain" : false,
+					"storageKey" : "503fd699e4b02288e5f0ebd0/materials/Scoring Guide/A1.1.18ScoringGuidea.png"
+				},
+				{
+					"_t" : "models.StoredFile",
+					"name" : "A1.1.18ScoringGuideb.png",
+					"contentType" : "image/png",
+					"isMain" : false,
+					"storageKey" : "503fd699e4b02288e5f0ebd0/materials/Scoring Guide/A1.1.18ScoringGuideb.png"
+				},
+				{
+					"_t" : "models.StoredFile",
+					"name" : "A1.1.18ScoringGuidec.png",
+					"contentType" : "image/png",
+					"isMain" : false,
+					"storageKey" : "503fd699e4b02288e5f0ebd0/materials/Scoring Guide/A1.1.18ScoringGuidec.png"
+				},
+				{
+					"_t" : "models.StoredFile",
+					"name" : "A1.1.18ScoringGuided.png",
+					"contentType" : "image/png",
+					"isMain" : false,
+					"storageKey" : "503fd699e4b02288e5f0ebd0/materials/Scoring Guide/A1.1.18ScoringGuided.png"
+				},
+				{
+					"_t" : "models.StoredFile",
+					"name" : "A1.1.18ScoringGuidee.png",
+					"contentType" : "image/png",
+					"isMain" : false,
+					"storageKey" : "503fd699e4b02288e5f0ebd0/materials/Scoring Guide/A1.1.18ScoringGuidee.png"
+				},
+				{
+					"_t" : "models.StoredFile",
+					"name" : "A1.1.18ScoringGuidef.png",
+					"contentType" : "image/png",
+					"isMain" : false,
+					"storageKey" : "503fd699e4b02288e5f0ebd0/materials/Scoring Guide/A1.1.18ScoringGuidef.png"
+				}
+			]
+		}
+	]
+}
