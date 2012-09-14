@@ -48,7 +48,7 @@
 </div>
 
 
-<div class="item-content-container">
+<div class="item-content-container" ng-class="{true:'editor-active', false:''}[showResourceEditor==true]" >
     <div class="edit" style="overflow: auto" ng-class="previewClassName">
 
         @_edit.metadata()
@@ -81,7 +81,7 @@
             </div>
 
             <div class="resource-editor-header">
-                <div style="height: 22px;">
+                <div>
 
                     <div class="pull-left" style="padding-left: 10px">
                         <a ng-click="leaveEditor()" ng-show="showBackNav" class="leave-link">
@@ -155,7 +155,7 @@
                      ng-show="showEditor"
                      ace-model="selectedFile.content"
                      ace-theme="eclipse"
-                     ace-mode="selectedFile.contentType"
+                     ace-mode="getAceMode(selectedFile.contentType)"
                      ng-class="fileListClassName"
                      ace-resize-events="tabSelected,panelOpen,dataLoaded"
                         ></div>
@@ -163,17 +163,6 @@
 
         </div>
 
-
     </div>
 
-    <div class="preview" ng-class="previewClassName">
-        <div class="inner">
-            <a href="/testplayer/item/{{itemData._id.$oid}}" target="_blank">test player preview</a>
-
-            <div class="preview-container">
-                <div ng-bind-html-unsafe="processedXmlData">
-                </div>
-            </div>
-        </div>
-    </div>
 </div>

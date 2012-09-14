@@ -76,7 +76,7 @@ function xmlData_to_resource(fromItem, targetItem) {
                 _t: "models.StoredFile",
                 name:file.filename,
                 isMain:false,
-                storageKey:"TODO!",
+                storageKey: fromItem._id + "/" + file.filename,
                 contentType:getContentType(file.filename)
             }
         );

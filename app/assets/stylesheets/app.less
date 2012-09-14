@@ -19,6 +19,7 @@
 @cs-file-list-width: 180px;
 @cs-top-bar-height: 40px;
 @cs-subnav-height: 40px;
+@cs-resource-header-height: 20px;
 @cs-preview-width: 500px;
 
 /* nav pills */
@@ -126,6 +127,9 @@
     }
 }
 
+.item-content-container.editor-active {
+    top: @cs-top-bar-height + @cs-subnav-height + @cs-resource-header-height + 13px;
+}
 .item-content-container{
 
 
@@ -303,12 +307,16 @@
     @top: lighten(@cs-subnav-color, 25%);
     @bottom: lighten(@cs-subnav-color, 25% + (@cs-bar-gradient-nudge - 4));
     .mixin-bg-gradient(@bottom, @top);
-    position: relative;
-    top: 0px;
-    border-bottom: solid 1px darken(@cs-subnav-color, 5%);
 
+    border-bottom: solid 1px darken(@cs-subnav-color, 5%);
     padding-top: 6px;
     padding-bottom: 6px;
+    position: fixed;
+    z-index: 1001;
+    top: 80px;
+    right: 0px;
+    left: 0px;
+    height: @cs-resource-header-height;
 
     .leave-link{
         &:hover{
