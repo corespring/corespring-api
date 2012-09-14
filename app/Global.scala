@@ -174,6 +174,7 @@ object Global extends GlobalSettings {
     }
     jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/composite-with-feedback.xml")
     jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false)
+    jsonFileToItem(basePath + "exemplar-content/An-appliance-company.json", Content.collection, drop = false)
 
     jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
     jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
