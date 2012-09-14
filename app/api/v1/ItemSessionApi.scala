@@ -40,7 +40,7 @@ object ItemSessionApi extends BaseApi {
           Item.collection.findOneByID(itemId, MongoDBObject(Item.data -> 1)) match {
             case Some(o) => o.get(Item.data) match {
               case res:BasicDBObject => {
-                val xmlData = grater[Resource].asObject(o.get(Item.data)).files.find(bf => bf.isMain) match {
+                val xmlData = grater[Resource].asObject(res).files.find(bf => bf.isMain) match {
                   case Some(bf) => bf match {
                     case vf:VirtualFile => vf.content
                     case _ => throw new RuntimeException("main file was not a virtual file")
@@ -99,19 +99,20 @@ object ItemSessionApi extends BaseApi {
   private def getSessionFeedback(itemId: ObjectId, itemSession: ItemSession): Map[String, String] = {
     Item.collection.findOneByID(itemId, MongoDBObject(Item.data -> 1)) match {
       case None => Map[String, String]()
-      case Some(o) => {
-        val xmlData = grater[Resource].asObject(o.get(Item.data)).files.find(bf => bf.isMain) match {
-          case Some(bf) => bf match {
-            case vf:VirtualFile => vf.content
-            case _ => throw new RuntimeException("main file was not a virtual file")
+      case Some(o) => o.get(Item.data) match {
+        case res:BasicDBObject => {
+          val xmlData = grater[Resource].asObject(res).files.find(bf => bf.isMain) match {
+            case Some(bf) => bf match {
+              case vf:VirtualFile => vf.content
+              case _ => throw new RuntimeException("main file was not a virtual file")
+            }
+            case None => throw new RuntimeException("no main file found")
           }
-          case None => throw new RuntimeException("no main file found")
+          val qtiItem = new QtiItem(scala.xml.XML.loadString(xmlData))
+          optMap[String, String](
+            qtiItem.feedback(itemSession.responses).map(feedback => (feedback.csFeedbackId, feedback.body))
+          ).getOrElse(Map[String, String]())
         }
-        val qtiItem = new QtiItem(scala.xml.XML.loadString(xmlData))
-
-        optMap[String, String](
-          qtiItem.feedback(itemSession.responses).map(feedback => (feedback.csFeedbackId, feedback.body))
-        ).getOrElse(Map[String, String]())
       }
     }
   }
