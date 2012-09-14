@@ -102,84 +102,17 @@ object Global extends GlobalSettings {
   }
 
   private def insertTestData(basePath: String) = {
-    def jsonLinesToDb(jsonPath: String, coll: MongoCollection) = {
-      coll.drop()
-      val lines: Iterator[String] = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.forName("UTF-8"))).getLines()
-      for (line <- lines) {
-        insertString(line, coll)
-      }
-    }
 
-    def jsonFileToDb(jsonPath: String, coll: MongoCollection, drop: Boolean = true) {
-
-
-      if (drop) coll.drop()
-
-      val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
-      coll.insert(JSON.parse(s).asInstanceOf[DBObject])
-    }
-
-
-    def interpolate(text: String, lookup: String => String) =
-      """\$\[interpolate\{([^}]+)\}\]""".r.replaceAllIn(text, (_: scala.util.matching.Regex.Match) match {
-        case Regex.Groups(v) => {
-
-          val result = lookup(v)
-          result
-        }
-      })
-
-    def replaceLinksWithContent(s: String): String = {
-
-
-      /**
-       * Load a string from a given path, remove new lines and escape "
-       * @param path
-       * @return
-       */
-      def loadString(path: String): String = {
-        val s = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.defaultCharset())).mkString
-
-
-        val lines = s.replaceAll("\n", "\\\\\n")
-        //TODO: I had "\\\\\"" here as the replacement but it didn't work.
-        val quotes = lines.replaceAll("\"", "'")
-        quotes
-      }
-      val interpolated = interpolate(s, loadString)
-      interpolated
-    }
-
-    def jsonFileToItem(jsonPath: String, coll: MongoCollection, drop: Boolean = true, xmlPath: String = null) {
-      if (drop) {
-        coll.drop()
-      }
-
-
-      val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
-      val finalObject: String = replaceLinksWithContent(s)
-
-      /**
-       * Force the collection id
-       * TODO: Speak with others about setting this up correctly.
-       */
-      val FORCED_COLLECTION_ID = "5001b9b9e4b035d491c268c3"
-      val forcedCollectionId = finalObject.replaceAll("\"collectionId\".*?:.*?\".*?\",", "\"collectionId\" : \""+FORCED_COLLECTION_ID+"\",")
-      insertString(forcedCollectionId, coll)
-
-    }
-    def insertString(s: String, coll: MongoCollection) = coll.insert(JSON.parse(s).asInstanceOf[DBObject], coll.writeConcern)
-
-    jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
-    jsonLinesToDb(basePath + "orgs.json", Organization.collection)
+    JsonImporter.jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
+    JsonImporter.jsonLinesToDb(basePath + "orgs.json", Organization.collection)
 
 
     Content.collection.drop()
     if (Play.isTest) {
-      jsonLinesToDb(basePath + "items.json", Content.collection)
+      JsonImporter.jsonLinesToDb(basePath + "items.json", Content.collection)
     }
-    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/composite-with-feedback.xml")
-    jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false)
+    JsonImporter.jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/composite-with-feedback.xml")
+    JsonImporter.jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false)
 
     val ExemplarContent = "exemplar-content"
 
@@ -187,18 +120,20 @@ object Global extends GlobalSettings {
     val folder : File = Play.getFile(basePath + ExemplarContent)
     for (file <- folder.listFiles) {
       Logger.info("adding: " + file.getName)
-      jsonFileToItem(basePath + ExemplarContent + "/" + file.getName, Content.collection, drop = false)
+      JsonImporter.jsonFileToItem(basePath + ExemplarContent + "/" + file.getName, Content.collection, drop = false)
     }
 
-    jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
-    jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
-    jsonLinesToDb(basePath + "users.json", User.collection)
-    jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
-    jsonLinesToDb(basePath + "subjects.json", Subject.collection)
-    jsonLinesToDb(basePath + "standards.json", Standard.collection)
-    Logger.info("insert item with supporting materials")
-    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/single-choice.xml")
-    jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false  )
+    //Subjects and standards
+    JsonImporter.jsonFileListToDb(basePath + "subjects.json", Subject.collection)
+    JsonImporter.jsonFileListToDb(basePath + "standards.json", Standard.collection)
+
+    JsonImporter.jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
+    JsonImporter.jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
+    JsonImporter.jsonLinesToDb(basePath + "users.json", User.collection)
+    JsonImporter.jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
+
+    JsonImporter.jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/single-choice.xml")
+    JsonImporter.jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false  )
 
     //acces token stuff
     AccessToken.collection.drop()
@@ -206,5 +141,105 @@ object Global extends GlobalSettings {
     val token = AccessToken(new ObjectId("502404dd0364dc35bb393397"), None, MOCK_ACCESS_TOKEN, creationDate, creationDate.plusHours(24))
     AccessToken.insert(token)
   }
+
+}
+
+object StringUtils {
+
+  def interpolate(text: String, lookup: String => String) =
+    """\$\[interpolate\{([^}]+)\}\]""".r.replaceAllIn(text, (_: scala.util.matching.Regex.Match) match {
+      case Regex.Groups(v) => {
+
+        val result = lookup(v)
+        result
+      }
+    })
+}
+
+object JsonImporter {
+
+
+  /**
+   * Insert each line of the file as a single object
+   * @param jsonPath
+   * @param coll
+   */
+  def jsonLinesToDb(jsonPath: String, coll: MongoCollection, drop : Boolean = true) {
+
+    if(drop) coll.drop()
+
+    val lines: Iterator[String] = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.forName("UTF-8"))).getLines()
+    for (line <- lines) {
+      insertString(line, coll)
+    }
+  }
+
+  /**
+   * Read a complete file as a single json object
+   * @param jsonPath
+   * @param coll
+   * @param drop
+   */
+  def jsonFileToDb(jsonPath: String, coll: MongoCollection, drop: Boolean = true) {
+    if (drop) coll.drop()
+    val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
+    coll.insert(JSON.parse(s).asInstanceOf[DBObject])
+  }
+
+  def jsonFileToItem(jsonPath: String, coll: MongoCollection, drop: Boolean = true, xmlPath: String = null) {
+    if (drop) {
+      coll.drop()
+    }
+
+    val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
+    val finalObject: String = replaceLinksWithContent(s)
+
+    /**
+     * Force the collection id
+     * TODO: Speak with others about setting this up correctly.
+     */
+    val FORCED_COLLECTION_ID = "5001b9b9e4b035d491c268c3"
+    val forcedCollectionId = finalObject.replaceAll("\"collectionId\".*?:.*?\".*?\",", "\"collectionId\" : \""+FORCED_COLLECTION_ID+"\",")
+    insertString(forcedCollectionId, coll)
+  }
+
+  /**
+   * Insert a json file that is a json array of items into the db
+   * @param path = path to json
+   * @param coll
+   */
+  def jsonFileListToDb(path:String, coll:MongoCollection) {
+    val listString = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.defaultCharset())).mkString
+    val dbList = com.mongodb.util.JSON.parse(listString).asInstanceOf[com.mongodb.BasicDBList]
+    Logger.info("Adding " + dbList.size() + " to: " + coll.name )
+    dbList.toList.foreach(  dbo => coll.insert(dbo.asInstanceOf[DBObject]))
+  }
+
+  /**
+   * replace any interpolated keys with the path that they point to eg:
+   * $[interpolate{/path/to/file.xml}] will be replaced with the contents of file.xml
+   * @param s
+   * @return
+   */
+  def replaceLinksWithContent(s: String): String = {
+
+    /**
+     * Load a string from a given path, remove new lines and escape "
+     * @param path
+     * @return
+     */
+    def loadString(path: String): String = {
+      val s = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.defaultCharset())).mkString
+      val lines = s.replaceAll("\n", "\\\\\n")
+      //TODO: I had "\\\\\"" here as the replacement but it didn't work.
+      val quotes = lines.replaceAll("\"", "'")
+      quotes
+    }
+    val interpolated = StringUtils.interpolate(s, loadString)
+    interpolated
+  }
+
+  def insertString(s: String, coll: MongoCollection) = coll.insert(JSON.parse(s).asInstanceOf[DBObject], coll.writeConcern)
+
 
 }
