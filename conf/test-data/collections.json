@@ -5,3 +5,4 @@
 { "name" : "Collection E" , "isPrivate" : false , "_id" : { "$oid" : "5001b7ade4b0d7c9ec321070"}}
 { "name" : "Collection F" , "isPrivate" : false , "_id" : { "$oid" : "5001b9b9e4b035d491c268c3"}}
 { "name" : "Collection G" , "isPrivate" : false , "_id" : { "$oid" : "5001bb0ee4b0d7c9ec3210a2"}}
+{ "name" : "Collection H" , "isPrivate" : false , "_id" : { "$oid" : "4ff2e56fe4b077b9e3168a05"}}
