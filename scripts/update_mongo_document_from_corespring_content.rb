@@ -75,7 +75,7 @@ class CorespringContentUpdater
     @connection = Mongo::Connection.new("localhost", 27017)
     @db = @connection.db(@db_name)
     @uploader = uploader
-    @output_path = output_path 
+    @output_path = output_path
   end
 
   def begin
@@ -88,12 +88,7 @@ class CorespringContentUpdater
 
       unless f == "." || f == ".."
         full_path = "#{@item_path}/#{f}"
-        #puts "full_path: #{full_path}"
-        if File.directory?(full_path)
-          create_supporting_material_from_folder(full_path)
-        else
-          create_supporting_material_from_file(full_path)
-        end
+        create_supporting_material(full_path)
       end
     end
   end
@@ -101,15 +96,14 @@ class CorespringContentUpdater
   private
 
   def create_storage_key(sm_name, file_name)
-    #50083ba9e4b071cb5ef79101/materials/Rubric/cute-kittens1.jpg
     "#{@item_id}/materials/#{sm_name}/#{File.basename(file_name)}"
   end
 
-  def create_supporting_material_from_folder(file_path)
+  def create_supporting_material(file_path)
 
     sm_name = File.basename(file_path)
     puts "sm_name: #{sm_name}"
-    puts "create_supporting_material_from_folder: #{file_path}"
+    puts "create_supporting_material: #{file_path}"
     coll = @db.collection(CONTENT_COLLECTION)
     puts coll.count
     puts "find item with id: #{@item_id}"
@@ -119,44 +113,75 @@ class CorespringContentUpdater
     sm_array = item["supportingMaterials"] || []
 
     if sm_array.index{ |i| i["name"] == sm_name } != nil
-      puts "Already exists - DON'T ADD"
+      puts "Already exists - DON'T ADD: #{sm_name}"
     else
-      new_sm = create_sm(sm_name, file_path)   
-      sm_array << new_sm 
+      new_sm = create_sm(sm_name, file_path)
+      sm_array << new_sm unless new_sm.nil?
       item["supportingMaterials"] = sm_array
       coll.update({"_id" => BSON::ObjectId(@item_id)}, item)
     end
- 
+
     puts "------ "
-    #puts coll.find({"_id" => BSON::ObjectId(@item_id)}, {}).to_a
     export_json
   end
 
   def create_sm(name, file_path)
 
+    puts "Create Supporting Material: name: #{name}, file_path: #{file_path}"
+
+    if !File.directory?(file_path) && !can_handle_file(file_path)
+      puts "Can't handle file - return nil"
+      return nil
+    end
+
+
+    basename = File.basename(name, File.extname(name))
     sm = {
-      "name" => name,
+      "name" => basename,
       "files" => []
     }
 
-    Dir.entries(file_path).each do |f|
-      unless f == "." || f == ".."
-
-        new_file_path = "#{file_path}/#{f}"
-        if can_be_virtual_file(f)
-          sm["files"] << create_virtual_file( new_file_path)
-        elsif can_be_stored_file(f)
-          puts "upload the file...#{f}"
-          storage_key = create_storage_key(name, new_file_path)
-          sm["files"] << create_stored_file(storage_key, new_file_path)
-        else
-          puts "!!!Don't know how to handle file: #{file_path}/{f}"
-        end
+    if File.directory?(file_path)
+      file_list(file_path).each do |f|
+        #only set to isMain if no other files are set to isMain and its a html file
+        default_files = sm["files"].select{ |ef| ef["isMain"] == true }
+        #puts "default_files: #{default_files}"
+        is_main = is_html(f) && default_files.length < 1
+        #puts "file: #{f} - is_main? #{is_main}"
+        file = create_file(basename, "#{file_path}/#{f}", is_main)
+        sm["files"] << file unless file.nil?
       end
+    else
+      file = create_file(basename, file_path, true)
+      sm["files"] << file unless file.nil?
     end
-
     sm
-  
+  end
+
+  def file_list(path)
+    Dir.entries(path).select{ |f| f != "." && f != ".." }
+  end
+
+  def can_handle_file(file_path)
+    can_be_virtual_file(file_path) || can_be_stored_file(file_path)
+  end
+
+
+  def create_file(sm_name, file_path, is_main)
+    out = nil
+    if can_be_virtual_file(file_path)
+      out = create_virtual_file(file_path, is_main)
+    elsif can_be_stored_file(file_path)
+      storage_key = create_storage_key(sm_name, file_path)
+      out = create_stored_file(storage_key, file_path, is_main)
+    else
+      puts "!!!Don't know how to handle file: #{file_path}/{f}"
+    end
+    out
+  end
+
+  def is_html(name)
+    File.extname(name).gsub(".", "") == "html"
   end
 
   def export_json
@@ -172,10 +197,10 @@ class CorespringContentUpdater
   end
 
   def create_json_file_name(mongo_json)
-    
-    name = "no-title"  
+
+    name = "no-title"
     match  = mongo_json.match(/"title".*?:.*?"(.*?\s+.*?\s+.*?)\s+/m)
-    
+
     if !match.nil? && match.length == 2
       t = match[1]
       name = t.gsub(" ", "-")
@@ -211,7 +236,7 @@ class CorespringContentUpdater
     type || "unknown"
   end
 
-  def create_stored_file(storage_key,file_path)
+  def create_stored_file(storage_key,file_path, is_main)
 
     result = @uploader.store(file_path, storage_key)
     puts "result: #{result}"
@@ -220,19 +245,19 @@ class CorespringContentUpdater
       "_t" => "models.StoredFile",
       "name" => File.basename(file_path),
       "contentType" => content_type(file_path),
-      "isMain" => false,
+      "isMain" => is_main,
       "storageKey" => storage_key
     }
     out
   end
 
-  def create_virtual_file(file_path)
+  def create_virtual_file(file_path, is_main)
     out = {
 
       "_t" => "models.VirtualFile",
       "name" => File.basename(file_path),
       "contentType" => content_type(file_path),
-      "isMain" => true,
+      "isMain" => is_main,
       "content" => get_content(file_path)
     }
     out
@@ -246,9 +271,7 @@ class CorespringContentUpdater
   end
 
 
-  def create_supporting_material_from_file(file_path)
-    puts "create_supporting_material_from_file: #{file_path}"
-  end
+
 
 end
 

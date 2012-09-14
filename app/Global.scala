@@ -165,7 +165,6 @@ object Global extends GlobalSettings {
        */
       val FORCED_COLLECTION_ID = "5001b9b9e4b035d491c268c3"
       val forcedCollectionId = finalObject.replaceAll("\"collectionId\".*?:.*?\".*?\",", "\"collectionId\" : \""+FORCED_COLLECTION_ID+"\",")
-      println(forcedCollectionId)
       insertString(forcedCollectionId, coll)
 
     }
