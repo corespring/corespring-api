@@ -1,14 +1,21 @@
+package tests.api.v1
+
 import play.api.libs.json.{JsValue, Json}
 import play.api.Logger
 import play.api.mvc.AnyContentAsJson
 import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers._
+import scala.Some
+import play.api.test.FakeHeaders
+import play.api.mvc.AnyContentAsJson
+import scala.Some
+import tests.BaseTest
 
 /**
  * User API Tests
  */
 
-object UserTest extends BaseTest {
+object UserApiTest extends BaseTest {
   val userId = "502d46ce0364068384f217a3"
 
   "list all visible users" in {
@@ -51,7 +58,7 @@ object UserTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    users.foreach( u => {
+    users.foreach(u => {
       (u \ "userName").asOpt[String] must beSome
       (u \ "fullName").asOpt[String] must beNone
       (u \ "email").asOpt[String] must beNone
@@ -91,7 +98,7 @@ object UserTest extends BaseTest {
     val toCreate = Map("userName" -> name, "fullName" -> fullName, "email" -> email)
     val fakeRequest = FakeRequest(POST, "/api/v1/users?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
     val r = routeAndCall(fakeRequest)
-    if ( r.isEmpty ) {
+    if (r.isEmpty) {
       failure("Failed to create user")
     }
     val result = r.get
@@ -110,14 +117,14 @@ object UserTest extends BaseTest {
 
     val toUpdate = Map("userName" -> name2, "fullName" -> fullName2, "email" -> email2)
     val userId = (user \ "id").as[String]
-    val postRequest = FakeRequest(PUT, "/api/v1/users/%s?access_token=%s".format( userId, token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
+    val postRequest = FakeRequest(PUT, "/api/v1/users/%s?access_token=%s".format(userId, token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
     routeAndCall(postRequest) match {
       case Some(result2) => {
         status(result2) must equalTo(OK)
         charset(result2) must beSome("utf-8")
         contentType(result2) must beSome("application/json")
         val updatedUser = Json.fromJson[JsValue](Json.parse(contentAsString(result2)))
-        (updatedUser \ "id").as[String] must beEqualTo( userId )
+        (updatedUser \ "id").as[String] must beEqualTo(userId)
         (updatedUser \ "userName").as[String] must beEqualTo(name2)
         (updatedUser \ "fullName").as[String] must beEqualTo(fullName2)
         (updatedUser \ "email").as[String] must beEqualTo(email2)

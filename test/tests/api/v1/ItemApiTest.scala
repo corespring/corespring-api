@@ -1,11 +1,17 @@
+package tests.api.v1
+
 import org.junit.Ignore
 import play.api.libs.json.{JsValue, Json}
 import play.api.Logger
-import play.api.mvc.{Result, AnyContentAsJson}
+import play.api.mvc.{AnyContentAsJson, Result}
 import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers._
 import scala.Some
 import api.ApiError._
+import scala.Some
+import play.api.test.FakeHeaders
+import play.api.mvc.AnyContentAsJson
+import tests.BaseTest
 
 /**
  *
@@ -18,7 +24,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items must have size 50
+    items.size must beEqualTo( 50 )
   }
 
   "list items in a collection" in {
@@ -28,7 +34,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items must have size 50
+    items.size must beEqualTo( 50 )
   }
 
   "list all items skipping 30" in {
@@ -38,7 +44,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    (items(0) \ "id").as[String] must beEqualTo("5006cbb3e4b0df23296000da")
+    (items(0) \ "id").as[String] must beEqualTo("4ffef554e4b0accb1d7e2016")
   }
 
   "list items limiting result to 10" in {
@@ -48,7 +54,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items must have size 10
+    items.size must beEqualTo( 10 )
   }
 
   "find items in the grade level 7" in {
@@ -58,7 +64,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items must have size 14
+    items.size must beEqualTo( 15 )
   }
 
   "find items in returning only their title and up to 10" in {
@@ -68,11 +74,11 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items.foreach( i => {
+    items.foreach(i => {
       (i \ "title").as[Option[String]] must beSome
       (i \ "author").as[Option[String]] must beNone
     })
-    items must have size 10
+    items.size must beEqualTo( 10  )
   }
 
   "get an item by id" in {
@@ -110,7 +116,7 @@ class ItemApiTest extends BaseTest {
     val result = routeAndCall(fakeRequest).get
     status(result) must equalTo(OK)
     val xmlData = (Json.parse(contentAsString(result)) \ "xmlData").toString
-    xmlData must not (beMatching(".*csFeedbackId.*"))
+    xmlData must not(beMatching(".*csFeedbackId.*"))
   }
 
   "create does not accept id" in {
@@ -135,7 +141,7 @@ class ItemApiTest extends BaseTest {
     val itemId = (Json.parse(contentAsString(result)) \ "id").as[String]
 
     val toUpdate = Map("xmlData" -> "<html><feedbackInline></feedbackInline></html>", "collectionId" -> "5001bb0ee4b0d7c9ec3210a2")
-    fakeRequest = FakeRequest(PUT, "/api/v1/items/%s?access_token=%s".format(itemId,  token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
+    fakeRequest = FakeRequest(PUT, "/api/v1/items/%s?access_token=%s".format(itemId, token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
     result = routeAndCall(fakeRequest).get
     val collection = Json.parse(contentAsString(result))
     (collection \ "code").as[Int] must equalTo(CollIdNotNeeded.code)
@@ -149,11 +155,11 @@ class ItemApiTest extends BaseTest {
     val itemId = (Json.parse(contentAsString(result)) \ "id").as[String]
 
     val toUpdate = Map("xmlData" -> "<html><feedbackInline></feedbackInline></html>")
-    fakeRequest = FakeRequest(PUT, "/api/v1/items/%s?access_token=%s".format(itemId,  token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
+    fakeRequest = FakeRequest(PUT, "/api/v1/items/%s?access_token=%s".format(itemId, token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
     result = routeAndCall(fakeRequest).get
     status(result) must equalTo(OK)
     val xmlData = (Json.parse(contentAsString(result)) \ "xmlData").toString
-    xmlData must not (beMatching(".*csFeedbackId.*"))
+    xmlData must not(beMatching(".*csFeedbackId.*"))
   }
 
 

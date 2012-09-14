@@ -34,8 +34,10 @@ object Content {
   }
   def isAuthorized(orgId:ObjectId, contentId:ObjectId, p:Permission):Boolean = {
     Content.collection.findOneByID(contentId,MongoDBObject(Content.collectionId -> 1)) match {
-      case Some(dbo) => dbo.get(Content.collectionId) match {
-        case collId:String => isCollectionAuthorized(orgId,collId,p)
+      case Some(dbo) =>
+        dbo.get(Content.collectionId) match {
+        case collId:String =>
+          isCollectionAuthorized(orgId,collId,p)
         case _ => Log.f("content did not contain collection id"); false
       }
       case None => false

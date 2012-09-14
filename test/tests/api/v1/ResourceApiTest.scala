@@ -1,22 +1,76 @@
+package tests.api.v1
+
 import api.ApiError
 import api.v1.ResourceApi
 import com.mongodb.{BasicDBObject, DBObject}
-import models.{BaseFile, VirtualFile, Resource, Item}
+import models._
 import org.bson.types.ObjectId
 import play.api.libs.json.{JsString, JsObject, Json, JsValue}
-import play.api.mvc.{Result, AnyContentAsEmpty, AnyContentAsJson, SimpleResult}
+import play.api.mvc._
 import play.api.Play
 import play.api.Play.current
 import org.specs2.mutable._
 
 import play.api.test._
 import play.api.test.Helpers._
+import scala._
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsObject
+import play.api.test.FakeHeaders
+import play.api.libs.json.JsObject
+import play.api.test.FakeHeaders
+import play.api.mvc.SimpleResult
+import play.api.mvc.AnyContentAsJson
+import play.api.libs.json.JsObject
+import play.api.test.FakeHeaders
+import play.api.mvc.SimpleResult
+import play.api.mvc.AnyContentAsJson
+import play.api.libs.json.JsObject
+import play.api.test.FakeHeaders
+import play.api.mvc.SimpleResult
+import play.api.mvc.AnyContentAsJson
+import play.api.libs.json.JsObject
+import play.api.test.FakeHeaders
+import scala.Some
+import play.api.mvc.SimpleResult
+import play.api.mvc.AnyContentAsJson
+import play.api.libs.json.JsObject
+import tests.BaseTest
 
 class ResourceApiTest extends BaseTest {
 
-  val ACCESS_TOKEN: String = Global.MOCK_ACCESS_TOKEN
-
-  def tokenize(url: String): String = url + "?access_token=" + ACCESS_TOKEN
+  def tokenize(url: String): String = url + "?access_token=" + token
 
 
   def tokenRequest[A](method: String, uri: String, headers: FakeHeaders = FakeHeaders(), body: A = ""): FakeRequest[A] = {
@@ -318,7 +372,7 @@ class ResourceApiTest extends BaseTest {
       val item = testItem
       val filename = "cute-rabbit.jpg"
       val url = baseItemPath(item.id.toString) + "/materials/Rubric/" + filename + "/upload"
-      val file = Play.getFile("test/files/" + filename)
+      val file = Play.getFile("test/tests/files/" + filename)
       val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
       val byteArray = source.map(_.toByte).toArray
       source.close()
@@ -342,7 +396,7 @@ class ResourceApiTest extends BaseTest {
       val item = testItem
       val filename = "cute-rabbit.jpg"
       val url = baseItemPath(item.id.toString) + "/" + ResourceApi.DATA_PATH + "/" + filename + "/upload"
-      val file = Play.getFile("test/files/" + filename)
+      val file = Play.getFile("test/tests/files/" + filename)
       val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
       val byteArray = source.map(_.toByte).toArray
       source.close()
