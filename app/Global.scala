@@ -111,7 +111,7 @@ object Global extends GlobalSettings {
     if (Play.isTest) {
       JsonImporter.jsonLinesToDb(basePath + "items.json", Content.collection)
     }
-    JsonImporter.jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/composite-with-feedback.xml")
+    JsonImporter.jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false )
     JsonImporter.jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false)
 
     val ExemplarContent = "exemplar-content"
@@ -132,7 +132,7 @@ object Global extends GlobalSettings {
     JsonImporter.jsonLinesToDb(basePath + "users.json", User.collection)
     JsonImporter.jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
 
-    JsonImporter.jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/single-choice.xml")
+    JsonImporter.jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false )
     JsonImporter.jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false  )
 
     //acces token stuff
@@ -186,7 +186,7 @@ object JsonImporter {
     coll.insert(JSON.parse(s).asInstanceOf[DBObject])
   }
 
-  def jsonFileToItem(jsonPath: String, coll: MongoCollection, drop: Boolean = true, xmlPath: String = null) {
+  def jsonFileToItem(jsonPath: String, coll: MongoCollection, drop: Boolean = true) {
     if (drop) {
       coll.drop()
     }
@@ -194,13 +194,7 @@ object JsonImporter {
     val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
     val finalObject: String = replaceLinksWithContent(s)
 
-    /**
-     * Force the collection id
-     * TODO: Speak with others about setting this up correctly.
-     */
-    val FORCED_COLLECTION_ID = "5001b9b9e4b035d491c268c3"
-    val forcedCollectionId = finalObject.replaceAll("\"collectionId\".*?:.*?\".*?\",", "\"collectionId\" : \""+FORCED_COLLECTION_ID+"\",")
-    insertString(forcedCollectionId, coll)
+    insertString(finalObject, coll)
   }
 
   /**
