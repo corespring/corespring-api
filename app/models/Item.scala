@@ -71,14 +71,31 @@ abstract class BaseFile(val name: String, val contentType: String, val isMain: B
 
 object BaseFile {
 
+  object ContentTypes {
+    val JPG : String = "image/jpg"
+    val PNG : String = "image/png"
+    val GIF : String = "image/gif"
+    val DOC : String = "application/msword"
+    val PDF : String = "application/pdf"
+    val XML : String = "text/xml"
+    val CSS : String = "text/css"
+    val HTML : String = "text/html"
+    val TXT : String = "text/txt"
+    val JS : String = "text/javascript"
+  }
 
   val SuffixToContentTypes = Map(
-    "jpg" -> "image/jpg",
-    "jpeg" -> "image/jpg",
-    "png" -> "image/png",
-    "gif" -> "image/gif",
-    "doc" -> "application/msword",
-    "pdf" -> "application/pdf")
+    "jpg" -> ContentTypes.JPG,
+    "jpeg" -> ContentTypes.JPG,
+    "png" -> ContentTypes.PNG,
+    "gif" -> ContentTypes.GIF,
+    "doc" -> ContentTypes.DOC,
+    "pdf" -> ContentTypes.PDF,
+    "xml" -> ContentTypes.XML,
+    "css" -> ContentTypes.CSS,
+    "html" -> ContentTypes.HTML,
+    "txt" -> ContentTypes.TXT,
+    "js" -> ContentTypes.JS)
 
   def getContentType(filename: String): String = {
     val split = filename.split("\\.").toList
@@ -124,7 +141,7 @@ object BaseFile {
  * A VirtualFile is a representation of a file, but the file contents are stored in mongo.
  * Used for text based files.
  */
-case class VirtualFile(override val name: String, override val contentType: String, override val isMain: Boolean = false, content: String) extends BaseFile(name, contentType, isMain)
+case class VirtualFile(override val name: String, override val contentType: String, override val isMain: Boolean = false, var content: String) extends BaseFile(name, contentType, isMain)
 
 object VirtualFile {
 
@@ -160,6 +177,8 @@ object StoredFile {
 case class Resource(name: String, var files: Seq[BaseFile])
 
 object Resource {
+  val name = "name"
+  val files = "files"
 
   implicit object ResourceWrites extends Writes[Resource] {
     def writes(res: Resource): JsValue = {

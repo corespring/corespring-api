@@ -6,7 +6,7 @@ import xml.{Elem, NodeSeq}
 import play.api.libs.json.Json
 import org.bson.types.ObjectId
 import controllers.auth.{Permission, BaseApi}
-import models.{Content, Item}
+import models.{VirtualFile, Content, Item}
 import com.mongodb.casbah.Imports._
 import api.processors.FeedbackProcessor._
 
@@ -32,8 +32,10 @@ object ItemPlayer extends BaseApi {
           // parse the itemBody and determine what scripts should be included for the defined interactions
           val scripts: List[String] = getScriptsToInclude(itemBody)
 
+          val qtiXml = <assessmentItem cs:itemId={itemId} cs:feedbackEnabled="true">{itemBody}</assessmentItem>
+
           // angular will render the itemBody client-side
-          Ok(views.html.testplayer.itemPlayer(itemId, scripts, itemBody.mkString))
+          Ok(views.html.testplayer.itemPlayer(itemId, scripts, qtiXml.mkString))
         case None =>
           // we found nothing
           NotFound
@@ -77,24 +79,39 @@ object ItemPlayer extends BaseApi {
    */
   private def getItemXMLByObjectId(itemId: String, callerOrg: ObjectId): Option[Elem] = {
     val dataField = MongoDBObject(Item.data -> 1, Item.collectionId -> 1)
-    Item.collection.findOneByID(itemId, dataField) match {
-      case Some(o) => o.get(Item.collectionId) match {
-        case collId:String => if (Content.isCollectionAuthorized(callerOrg, collId,Permission.All)){
-          val dataString = o.get(Item.data).toString
-          Some(scala.xml.XML.loadString(dataString))
+    Item.findOneById( new ObjectId(itemId)) match {
+      case Some(item) => {
+        if( Content.isCollectionAuthorized(callerOrg,item.collectionId,Permission.All)){
+         val dataResource = item.data.get
+          dataResource.files.find( _.name == "qti.xml") match {
+            case Some(qtiXml) => {
+              Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
+            }
+            case _ => None
+          }
         } else None
-        case _ => None
       }
       case _ => None
     }
-
   }
 
   def getScriptsToInclude(itemBody : NodeSeq, isWebMode: Boolean = true) : List[String] = {
     var scripts = List[String]()
+
+    // base css to include for all QTI items
+    scripts ::= "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/qti-base.css\" />"
+
+
     // suffix to append for loading print-mode scripts
     val scriptSuffix = if (isWebMode) "" else "-print"
 
+
+    // TODO - dropping jquery in for all right now, but this needs to be only dropped in if required by interactions
+    scripts ::= "<script src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js\"></script>"
+    scripts ::= "<script src=\"http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js\"></script>"
+
+    val orderInteractionScripts =  "<script src=\"/assets/js/corespring/qti/orderInteraction" + scriptSuffix + ".js\"></script>\n" +
+       "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/orderInteraction.css\" />"
 
     val choiceInteractionScripts = "<script src=\"/assets/js/corespring/qti/choiceInteraction" +
       scriptSuffix + ".js\"></script>\n" +
@@ -104,6 +121,7 @@ object ItemPlayer extends BaseApi {
     // can't concatenate string in map value apparently, so using replace()
     val elementScriptsMap = Map (
       "choiceInteraction" -> choiceInteractionScripts,
+      "orderInteraction" -> orderInteractionScripts,
       "textEntryInteraction" -> "<script src=\"/assets/js/corespring/qti/textEntryInteraction{S}.js\"></script>".replace("{S}", scriptSuffix),
       "extendedTextInteraction" -> "<script src=\"/assets//js/corespring/qti/extendedTextInteraction{S}.js\"></script>".replace("{S}", scriptSuffix),
       "math" -> "<script type=\"text/javascript\" src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"></script>"
@@ -115,8 +133,8 @@ object ItemPlayer extends BaseApi {
         scripts ::= scriptString
       }
     }
-
-    scripts
+    // order matters so put them out in the chronological order I put them in
+    scripts.reverse
   }
 
 }

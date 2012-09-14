@@ -53,11 +53,11 @@ class ItemSessionTest extends Specification {
   "item session api" should {
 
     "return feedback with session" in {
-      val testSessionId = "4ffd8645e4b0031d54b5ab90"
-      val testSession = ItemSession(new ObjectId(testSessionId))
+      val itemId = "4ffd8645e4b0031d54b5ab90"
+      val testSession = ItemSession(new ObjectId(itemId))
       testSession.responses = List(ItemResponse("RESPONSE", "ChoiceA"))
 
-      val url = "/api/v1/items/" + testSessionId + "/sessions"
+      val url = "/api/v1/items/" + itemId + "/sessions"
       val request = FakeRequest(
         POST,
         url,

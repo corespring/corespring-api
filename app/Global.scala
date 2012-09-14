@@ -29,16 +29,17 @@ import com.novus.salat.global._
 import dao.SalatInsertError
 import play.api.Application
 import _root_.web.config.InitialData
+import scala.util.matching.Regex
 import web.controllers.utils.ConfigLoader
 
 /**
- */
+  */
 object Global extends GlobalSettings {
 
-  val AUTO_RESTART : String = "AUTO_RESTART"
-  val INIT_DATA:String = "INIT_DATA"
+  val AUTO_RESTART: String = "AUTO_RESTART"
+  val INIT_DATA: String = "INIT_DATA"
 
-  val MOCK_ACCESS_TOKEN : String = "34dj45a769j4e1c0h4wb"
+  val MOCK_ACCESS_TOKEN: String = "34dj45a769j4e1c0h4wb"
 
   val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
 
@@ -93,7 +94,6 @@ object Global extends GlobalSettings {
     S3Service.init(amazonProperties)
 
     val initData = ConfigLoader.get(INIT_DATA).getOrElse("true") == "true"
-
     if (Play.isTest(app) || initData) {
       insertTestData("/conf/test-data/")
     }
@@ -110,29 +110,70 @@ object Global extends GlobalSettings {
       }
     }
 
-    def jsonFileToDb(jsonPath: String, coll: MongoCollection, drop : Boolean = true) {
+    def jsonFileToDb(jsonPath: String, coll: MongoCollection, drop: Boolean = true) {
 
 
-      if(drop) coll.drop()
+      if (drop) coll.drop()
 
       val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
-       coll.insert(JSON.parse(s).asInstanceOf[DBObject])
+      coll.insert(JSON.parse(s).asInstanceOf[DBObject])
     }
 
-    def jsonFileToItem(jsonPath: String, coll: MongoCollection, drop : Boolean = true) {
-      if(drop){
+
+    def interpolate(text: String, lookup: String => String) =
+      """\$\[interpolate\{([^}]+)\}\]""".r.replaceAllIn(text, (_: scala.util.matching.Regex.Match) match {
+        case Regex.Groups(v) => {
+
+          val result = lookup(v)
+          result
+        }
+      })
+
+    def replaceLinksWithContent(s: String): String = {
+
+
+      /**
+       * Load a string from a given path, remove new lines and escape "
+       * @param path
+       * @return
+       */
+      def loadString(path: String): String = {
+        val s = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.defaultCharset())).mkString
+
+
+        val lines = s.replaceAll("\n", "\\\\\n")
+        //TODO: I had "\\\\\"" here as the replacement but it didn't work.
+        val quotes = lines.replaceAll("\"", "'")
+        quotes
+      }
+      val interpolated = interpolate(s, loadString)
+      interpolated
+    }
+
+    def jsonFileToItem(jsonPath: String, coll: MongoCollection, drop: Boolean = true, xmlPath: String = null) {
+      if (drop) {
         coll.drop()
       }
+
+
       val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
-      val item = Item.ItemReads.reads(Json.parse(s))
-      Item.save(item)
+      val finalObject: String = replaceLinksWithContent(s)
+      insertString(finalObject, coll)
+
     }
     def insertString(s: String, coll: MongoCollection) = coll.insert(JSON.parse(s).asInstanceOf[DBObject], coll.writeConcern)
 
     jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
-
     jsonLinesToDb(basePath + "orgs.json", Organization.collection)
-    //jsonLinesToDb(basePath + "items.json", Content.collection)
+
+
+    Content.collection.drop()
+    if (Play.isTest) {
+      jsonLinesToDb(basePath + "items.json", Content.collection)
+    }
+    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/composite-with-feedback.xml")
+    jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false)
+
     jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
     jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
     jsonLinesToDb(basePath + "users.json", User.collection)
@@ -140,7 +181,8 @@ object Global extends GlobalSettings {
     jsonLinesToDb(basePath + "subjects.json", Subject.collection)
     jsonLinesToDb(basePath + "standards.json", Standard.collection)
     Logger.info("insert item with supporting materials")
-    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = true)
+    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false, xmlPath = "/conf/qti/single-choice.xml")
+    jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false  )
 
     //acces token stuff
     AccessToken.collection.drop()

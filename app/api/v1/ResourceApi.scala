@@ -10,6 +10,7 @@ import play.api.libs.json.Json._
 import api.ApiError
 import play.api.libs.json.Json
 import scala.Some
+import com.mongodb.casbah.commons.MongoDBObject
 
 object ResourceApi extends BaseApi {
 
@@ -45,18 +46,12 @@ object ResourceApi extends BaseApi {
                   additionalChecks: Seq[Item => Option[ApiError]],
                   p: BodyParser[A])(
     action: ItemRequest[A] => Result
-    ) = ApiAction(p: BodyParser[A]) {
-    request => // extends Action[A] {
-
-      val id = objectId(itemId)
-
-      id match {
+    ) = ApiAction(p: BodyParser[A]) { request =>
+      objectId(itemId) match {
         case Some(validId) => {
           Item.findOneById(validId) match {
             case Some(item) => {
-
               val errors: Seq[ApiError] = additionalChecks.flatMap(_(item))
-
               if (errors.length == 0) {
                 action(ItemRequest(item, request))
               }
@@ -302,8 +297,8 @@ object ResourceApi extends BaseApi {
    * @param filename
    * @return
    */
-  def uploadFileToData(itemId: String, filename: String) =
-    HasItem(
+  def uploadFileToData(itemId: String, filename: String) = {
+    val x = HasItem(
       itemId,
       Seq(isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_)),
       S3Service.s3upload(AMAZON_ASSETS_BUCKET, itemId + "/" + DATA_PATH + "/" + filename))(
@@ -323,6 +318,8 @@ object ResourceApi extends BaseApi {
         Ok(toJson(file))
     }
     )
+    x
+  }
 
   /**
    * Upload a file to a supporting material Resource in the item.
@@ -360,30 +357,40 @@ object ResourceApi extends BaseApi {
       Ok(toJson(item.supportingMaterials))
   })
 
-  def createSupportingMaterial(itemId: String) = HasItem(itemId,
-    Seq(),
-    Action {
-      request =>
-        request.body.asJson match {
-          case Some(json) => {
+  def createSupportingMaterialWithFile(itemId: String, name: String, filename: String) = {
+      val s3Key = storageKey(itemId, name, filename)
+      HasItem(itemId,Seq(), S3Service.s3upload(AMAZON_ASSETS_BUCKET, s3Key))(
+      {
+        request =>
+          val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+          val file = new StoredFile(filename, contentType(filename), true, s3Key)
+          val resource = Resource(name, Seq(file))
+          item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
+          Item.save(item)
+          Ok(toJson(resource))
+      })
+    }
 
-            json.asOpt[Resource] match {
-              case Some(foundResource) => {
-                val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-                isResourceNameTaken(foundResource.name)(item) match {
-                  case Some(error) => NotAcceptable(toJson(error))
-                  case _ => {
-                    item.supportingMaterials = item.supportingMaterials ++ Seq[Resource](foundResource)
-                    Item.save(item)
-                    Ok(toJson(foundResource))
-                  }
+    def createSupportingMaterial(itemId: String) = HasItem(itemId,Seq(), Action { request =>
+      request.body.asJson match {
+        case Some(json) => {
+          json.asOpt[Resource] match {
+            case Some(foundResource) => {
+              val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+              isResourceNameTaken(foundResource.name)(item) match {
+                case Some(error) => NotAcceptable(toJson(error))
+                case _ => {
+                  item.supportingMaterials = item.supportingMaterials ++ Seq[Resource](foundResource)
+                  Item.save(item)
+                  Ok(toJson(foundResource))
                 }
               }
-              case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
             }
+            case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
           }
-          case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
         }
+        case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
+      }
     })
 
   def deleteSupportingMaterial(itemId: String, resourceName: String) = HasItem(itemId,

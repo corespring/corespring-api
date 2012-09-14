@@ -118,7 +118,6 @@ trait BaseApi extends Controller {
                 error => Forbidden(Json.toJson(error)).as(JSON),
                 ctx => { val result: PlainResult = f(ApiRequest(ctx, request)).asInstanceOf[PlainResult]
                   result
-                    //.withHeaders(("Access-Control-Allow-Origin", "*"))
                 }
               )
             )
