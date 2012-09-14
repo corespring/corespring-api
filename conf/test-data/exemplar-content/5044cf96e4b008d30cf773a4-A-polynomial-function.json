@@ -14,7 +14,7 @@
 				"_t" : "models.StoredFile",
 				"name" : "a2.18.mainimage.png",
 				"isMain" : false,
-				"storageKey" : "TODO!",
+				"storageKey" : "5044cf96e4b008d30cf773a4/a2.18.mainimage.png",
 				"contentType" : "image/png"
 			}
 		]
@@ -51,18 +51,6 @@
 	"copyrightYear" : "2012",
 	"relatedCurriculum" : "NJDOE: Model Curriculum: Algebra II: Unit 1: Polynomials",
 	"supportingMaterials" : [
-		{
-			"name" : "Geo.1.18.worksheet",
-			"files" : [
-				{
-					"_t" : "models.StoredFile",
-					"name" : "Geo.1.18.worksheet.pdf",
-					"contentType" : "application/pdf",
-					"isMain" : true,
-					"storageKey" : "5044cf96e4b008d30cf773a4/materials/Geo.1.18.worksheet/Geo.1.18.worksheet.pdf"
-				}
-			]
-		},
 		{
 			"name" : "Geo.1.18.worksheet",
 			"files" : [

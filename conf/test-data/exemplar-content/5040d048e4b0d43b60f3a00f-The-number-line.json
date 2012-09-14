@@ -14,7 +14,7 @@
 				"_t" : "models.StoredFile",
 				"name" : "G7.1.1numberline.png",
 				"isMain" : false,
-				"storageKey" : "TODO!",
+				"storageKey" : "5040d048e4b0d43b60f3a00f/G7.1.1numberline.png",
 				"contentType" : "image/png"
 			}
 		]
@@ -48,18 +48,6 @@
 		"Editorial"
 	],
 	"supportingMaterials" : [
-		{
-			"name" : "G7.1.1.worksheet",
-			"files" : [
-				{
-					"_t" : "models.StoredFile",
-					"name" : "G7.1.1.worksheet.pdf",
-					"contentType" : "application/pdf",
-					"isMain" : true,
-					"storageKey" : "5040d048e4b0d43b60f3a00f/materials/G7.1.1.worksheet/G7.1.1.worksheet.pdf"
-				}
-			]
-		},
 		{
 			"name" : "G7.1.1.worksheet",
 			"files" : [
