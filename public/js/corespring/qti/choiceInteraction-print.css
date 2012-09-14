@@ -1,0 +1,30 @@
+.choiceInteraction {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    margin-left: 20px;
+}
+.choicePrompt {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+.simpleChoice {
+    font-size: 18px;
+}
+.simpleChoice input {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.print-choice {
+    display: inline-block;
+    vertical-align: middle;
+    background-color: white;
+    width: 2em;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #000000;
+    height: 2em;
+    margin: .5em;
+}

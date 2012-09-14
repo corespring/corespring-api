@@ -100,7 +100,7 @@ qtiServices
 ]);
 
 qtiServices
-    .factory('QtiUtils', ['$resource', function ($resource) {
+    .factory('QtiUtils', function () {
     var QtiUtils = {};
     // TODO - this will need to support other comparisons... e.g. two arrays for orderInteraction to ensure correct order & other QTI response types like matching?
     // function checks if value == response, or if response is array it checks if the array contains the value
@@ -118,6 +118,13 @@ qtiServices
             return false;
         }
     };
+
+    // shared service for re-arranging simpleChoice elements according to
+    // shuffle and fixed attributes. Should be called from compile functions for interactions that support these props
+    QtiUtils.shuffleChoices = function(element) {
+        // TODO - implement me, and call this from compile function in choiceInteraction, orderInteraction print/web
+    };
+
     return QtiUtils;
 }
-]);
+);
