@@ -62,6 +62,15 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     };
 
 
+    $scope.getAceMode = function(contentType){
+        if(!contentType){
+            return "unknown";
+        }
+        var split = contentType.split("/");
+        return split.length == 2 ? split[1] : "unknown";
+    };
+
+
     /**
      * Depending on the file type show it.
      * Eg: if its Virtual - show the editor text
