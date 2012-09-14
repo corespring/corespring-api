@@ -4,23 +4,10 @@
 #  ruby update_mongo_document_from_corespring_content.rb 503fd699e4b02288e5f0ebd0 tdb ../../corespring-content
 #eg: ruby upload_file_to_amazon.rb AKIAJNPUNTVH2HMFWVVA sl+sXsuq8Xkbl4NvlLuyHRZtrVJp+BXEoH7XlLPm corespring-assets /Users/edeustace/Desktop/cute-puppy.jpg test_images
 
-
 require 'rubygems'
 require 'mongo'
 require 'aws/s3'
 
-
-=begin
- Args:
- - item_id
- - db_name
- - corespring_content_path  
-=end
-
-item_id = ARGV[0]
-db_name = ARGV[1]
-corespring_content_path = ARGV[2]
-output_path = ARGV[3]
 
 class AmazonUploader
 
@@ -270,12 +257,23 @@ class CorespringContentUpdater
     contents
   end
 
-
-
-
 end
+
+db_name = "tdb"
+output_path = "../conf/test-data/exemplar-content"
+
+items = []
+items << { "item_id" => "503fd699e4b02288e5f0ebd0", "path" =>  "../../corespring-content" }
+items << { "item_id" => "5040d048e4b0d43b60f3a00f", "path" =>  "../../corespring-content/Items for Ed" }
+items << { "item_id" => "5040da52e4b0d43b60f3a011", "path" =>  "../../corespring-content/Items for Ed" }
+items << { "item_id" => "5044cf96e4b008d30cf773a4", "path" => "../../corespring-content/Items for Ed" }
 
 
 uploader = AmazonUploader.new( "AKIAJNPUNTVH2HMFWVVA", "sl+sXsuq8Xkbl4NvlLuyHRZtrVJp+BXEoH7XlLPm", "corespring-assets")
-updater = CorespringContentUpdater.new(item_id, db_name, corespring_content_path, uploader, output_path)
-updater.begin
+
+items.each do |i|
+  updater = CorespringContentUpdater.new(i["item_id"], db_name, i["path"], uploader, output_path)
+  updater.begin
+end
+
+
