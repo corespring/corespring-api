@@ -113,7 +113,7 @@ object ItemApi extends BaseApi {
         case collId:String => if ( Content.isCollectionAuthorized(request.ctx.organization, collId,Permission.All)) {
           // added this to prevent a NPE when the data is not available in the item
           // this is temporary until bleezmo finishes working on this operation
-          if ( o.contains(Item.data))
+          if (o.contains(Item.data))
             Ok(Xml(o.get(Item.data).toString))
           else
             Ok("")
@@ -161,7 +161,7 @@ object ItemApi extends BaseApi {
             val i: Item = Json.parse(json).as[Item]
             if (i.collectionId.isEmpty) {
               BadRequest(Json.toJson(ApiError.CollectionIsRequired))
-            } else if (Content.isCollectionAuthorized(request.ctx.organization, i.collectionId,Permission.All)) {
+            } else if (Content.isCollectionAuthorized(request.ctx.organization, i.collectionId, Permission.All)) {
               Item.insert(i) match {
                 case Some(_) => Ok(removeFeedbackIds(Json.toJson(i).toString))
                 case None => InternalServerError(Json.toJson(ApiError.CantSave))

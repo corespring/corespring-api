@@ -97,13 +97,22 @@ class QtiItem(rootNode: Node) {
     responseForIdentifier(responseIdentifier) match {
       case Some(responseDeclaration: ResponseDeclaration) => {
         if (responseDeclaration.responseFor(identifier) equals "1") {
-          Some(responseToFeedbackMap.get(responseIdentifier).get(identifier))
+          responseToFeedbackMap.get(responseIdentifier) match {
+            case Some(map) => {
+              map.get(identifier) match {
+                case Some(feedbackElement) => Some(feedbackElement)
+                case None => None
+              }
+            }
+            case None => None
+          }
         }
         else None
       }
       case None => None
     }
   }
+
 
   // Translates a collection of tuples to an Option[Map]
   private def optMap[A,B](in: Iterable[(A,B)]): Option[Map[A,B]] =

@@ -2,13 +2,12 @@ package api.processors
 
 import xml._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
-import play.api.libs.json.Json
-import controllers.testplayer.qti.xml.{ExceptionMessage, XmlValidationResult, XmlValidator}
-import scala.Some
+import play.api.libs.json.{JsValue, JsObject, Json}
+import controllers.testplayer.qti.xml.{XmlValidationResult, XmlValidator}
 import controllers.testplayer.qti.xml.XmlValidationResult.success
-import scala.Some
 import controllers.testplayer.qti.xml.ExceptionMessage
 import scala.Some
+import models.Item
 
 /**
  * Provides transformations on JSON strings to add/remove csFeedbackIds to feedback elements, as well as validation for
@@ -50,6 +49,7 @@ object FeedbackProcessor extends XmlValidator {
       case other => other
     }
 
+    // FIXME This breaks if that attribute doesn't exist
     private def remove(n: Elem, key: String): Node = {
       n.copy(attributes = n.attributes.find(_.key == key).get.remove(key))
     }
@@ -57,12 +57,12 @@ object FeedbackProcessor extends XmlValidator {
   }
 
   /**
-   * Adds csFeedbackId attributes to all feedback elements in a JSON string's xmlData field.
+   * Adds csFeedbackId attributes to all feedback elements in a JSON string's data field.
    */
   def addFeedbackIds(jsonData: String): String = applyRewriteRuleToJson(jsonData, new FeedbackIdentifierInserter())
 
   /**
-   * Removes csFeedbackId attributes to all feedback elements in a JSON string's xmlData field.
+   * Removes csFeedbackId attributes to all feedback elements in a JSON string's data field.
    */
   def removeFeedbackIds(jsonData: String): String = applyRewriteRuleToJson(jsonData, feedbackIdentifierRemoverRule)
 
@@ -82,17 +82,26 @@ object FeedbackProcessor extends XmlValidator {
   }
 
   /**
-   * Locates an xmlData element in a JSON string, applies a provided RewriteRule to the XML representation of its
+   * Locates a data element in a JSON string, applies a provided RewriteRule to the XML representation of its
    * data, and returns JSON string with the applied transformation.
+   *
+   * TODO: This can be more functional.
    */
-  private def applyRewriteRuleToJson(jsonData: String, rewriteRule: RewriteRule): String =
-    (Json.parse(jsonData) \ "xmlData").asOpt[String] match {
-      case Some(qtiXml) => {
-        val newQtiXml = new RuleTransformer(rewriteRule).transform(XML.loadString(qtiXml)).toString
-        jsonData.replace(jsonEncode(qtiXml), jsonEncode(newQtiXml))
+  private def applyRewriteRuleToJson(jsonData: String, rewriteRule: RewriteRule): String = {
+
+    var newJson = jsonData
+    val files: Seq[JsObject] = (Json.parse(jsonData) \ "data" \ "files").asOpt[Seq[JsObject]].getOrElse(Seq())
+    files.foreach(file => {
+      (file \ "content").asOpt[String] match {
+        case Some(qtiXml) => {
+          val newQtiXml = new RuleTransformer(rewriteRule).transform(XML.loadString(qtiXml)).toString
+          newJson = newJson.replace(jsonEncode(qtiXml), jsonEncode(newQtiXml))
+        }
+        case None => {}
       }
-      case None => jsonData
-    }
+    })
+    newJson
+  }
 
   private def jsonEncode(xml: String): String = xml.replaceAll("\"", "\\\\\"").replaceAll("\n", "\\\\n")
 
