@@ -132,9 +132,6 @@ object Global extends GlobalSettings {
     jsonLinesToDb(basePath + "users.json", User.collection)
     jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
 
-    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false )
-    jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false  )
-
     //acces token stuff
     AccessToken.collection.drop()
     val creationDate = DateTime.now()
