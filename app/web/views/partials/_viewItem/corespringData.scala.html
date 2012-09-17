@@ -1,7 +1,6 @@
 <br/>
 <div class="pull-right">
-    License Type<br/>
-    <img width="90" height="90" src="http://creativecommons.org/images/deed/cc-logo.jpg"/>
+    <img ng-show="itemData.licenseType" ng-src="/assets/images/licenseTypes/{{itemData.licenseType}}.png"/>
 </div>
 <div class="form-horizontal">
     @web.views.html.partials._viewItem._item( "Item Title", "<div>{{itemData.title}}</div>")
