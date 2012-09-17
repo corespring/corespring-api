@@ -30,9 +30,10 @@ class QtiItem(rootNode: Node) {
   /**
    * Returns a Map of outcomeIdentifiers and their matching values. For now, this will only be something
    * Map(SCORE -> 1) and Map(SCORE -> 0) for incorrect responses.
+   *
+   * TODO: This is the same as the next method. Consolidate.
    **/
   private def processResponse(responseIdentifier: String, choiceIdentifier: String): Map[String, String] = {
-
     var response = defaultOutcome
     responseForIdentifier(responseIdentifier) match {
       case Some(responseDeclaration: ResponseDeclaration) =>
@@ -98,13 +99,29 @@ class QtiItem(rootNode: Node) {
     responseForIdentifier(responseIdentifier) match {
       case Some(responseDeclaration: ResponseDeclaration) => {
         if (responseDeclaration.responseFor(identifier) equals "1") {
-          Some(responseToFeedbackMap.get(responseIdentifier).get(identifier))
+          responseToFeedbackMap.get(responseIdentifier) match {
+            case Some(map) => {
+              map.get(identifier) match {
+                case Some(feedbackElement) => Some(feedbackElement)
+                case None => None
+              }
+            }
+            case None => None
+          }
         }
         else None
       }
       case None => None
     }
   }
+
+  def getOutcomeIdentifierForCsFeedbackId(csFeedbackId: String): String = {
+    responseToFeedbackMap.foreach({ case (responseIdentifier, choiceToFeedbackMap) => {
+      // Return the FeedbackElement with the matching id...
+    }})
+    ""
+  }
+
 
   // Translates a collection of tuples to an Option[Map]
   private def optMap[A,B](in: Iterable[(A,B)]): Option[Map[A,B]] =
