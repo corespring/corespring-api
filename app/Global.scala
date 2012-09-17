@@ -132,9 +132,6 @@ object Global extends GlobalSettings {
     jsonLinesToDb(basePath + "users.json", User.collection)
     jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
 
-    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false )
-    jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false  )
-
     //acces token stuff
     AccessToken.collection.drop()
     val creationDate = DateTime.now()
@@ -182,7 +179,7 @@ object JsonImporter {
    */
   def jsonFileToDb(jsonPath: String, coll: MongoCollection, drop: Boolean = true) {
     if (drop) coll.drop()
-    val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
+    val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.forName("UTF-8"))).mkString
     coll.insert(JSON.parse(s).asInstanceOf[DBObject])
   }
 
@@ -191,7 +188,7 @@ object JsonImporter {
       coll.drop()
     }
 
-    val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.defaultCharset())).mkString
+    val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.forName("UTF-8"))).mkString
     val finalObject: String = replaceLinksWithContent(s)
 
     insertString(finalObject, coll)
@@ -203,7 +200,8 @@ object JsonImporter {
    * @param coll
    */
   def jsonFileListToDb(path:String, coll:MongoCollection) {
-    val listString = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.defaultCharset())).mkString
+    coll.drop()
+    val listString = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.forName("UTF-8"))).mkString
     val dbList = com.mongodb.util.JSON.parse(listString).asInstanceOf[com.mongodb.BasicDBList]
     Logger.info("Adding " + dbList.size() + " to: " + coll.name )
     dbList.toList.foreach(  dbo => coll.insert(dbo.asInstanceOf[DBObject]))
@@ -223,7 +221,7 @@ object JsonImporter {
      * @return
      */
     def loadString(path: String): String = {
-      val s = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.defaultCharset())).mkString
+      val s = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.forName("UTF-8"))).mkString
       val lines = s.replaceAll("\n", "\\\\\n")
       //TODO: I had "\\\\\"" here as the replacement but it didn't work.
       val quotes = lines.replaceAll("\"", "'")
