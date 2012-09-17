@@ -46,7 +46,7 @@ object Main extends Controller with Secured {
   private def getFieldValueJsonString: String = {
     val all = FieldValue.findAll().toList
     val first = all(0)
-    toJson(first).toString()
+    com.codahale.jerkson.Json.generate(first)
   }
 
   def getAccessToken = IsAuthenticated {
