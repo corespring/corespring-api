@@ -6,7 +6,7 @@ import com.mongodb.util.{JSONParseException, JSON}
 import play.api.libs.json.{JsNumber, JsObject, Writes, Json}
 import com.novus.salat.dao.SalatDAO
 import com.mongodb.casbah.Imports._
-import models.{Queryable, DBQueryable, QueryField}
+import models.{Identifiable, Queryable, DBQueryable, QueryField}
 import controllers.{LogType, InternalError, Utils, QueryParser}
 
 
@@ -26,7 +26,7 @@ object QueryHelper {
    *
    * @return
    */
-  def list[T <: AnyRef](q: Option[String], f:Option[Object], c: String, sk: Int, l: Int, queryable:DBQueryable[T], initSearch:Option[DBObject] = None)(implicit writes:Writes[T]): Result = {
+  def list[T <: Identifiable](q: Option[String], f:Option[Object], c: String, sk: Int, l: Int, queryable:DBQueryable[T], initSearch:Option[DBObject] = None)(implicit writes:Writes[T]): Result = {
     f.map(toFieldObject(_,queryable)).getOrElse(Right(new MongoDBObject())) match {
       case Right(fields) => {
         val qp:QueryParser = q.map(qstr => QueryParser.buildQuery(qstr, queryable)).getOrElse( QueryParser())
@@ -34,7 +34,6 @@ object QueryHelper {
           qp.result match {
             case Right(builder) =>
               val combinedQuery:DBObject = initSearch.map( extraParams => builder.result() ++ extraParams).getOrElse( builder.result() )
-              val test2 = combinedQuery.toString
               val cursor = queryable.find(combinedQuery,fields)
               cursor.skip(sk)
               cursor.limit(l)

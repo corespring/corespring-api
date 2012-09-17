@@ -10,7 +10,7 @@ import controllers.{Log, LogType, InternalError}
 import controllers.auth.Permission
 import play.api.Logger
 
-trait Content {
+trait Content extends Identifiable{
   var id: ObjectId;
   var contentType: String;
   var collectionId: String;

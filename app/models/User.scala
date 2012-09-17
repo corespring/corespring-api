@@ -23,7 +23,7 @@ case class User(var userName: String = "",
                  var email: String = "",
                  var orgs: Seq[UserOrg] = Seq(),
                  var id: ObjectId = new ObjectId()
-               )
+               ) extends Identifiable
 
 object User extends DBQueryable[User]{
   val userName = "userName"

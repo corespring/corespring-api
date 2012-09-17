@@ -6,6 +6,9 @@ import controllers.{QueryParser, LogType, InternalError}
 import com.novus.salat.dao.ModelCompanion
 
 
+trait Identifiable{
+  var id:ObjectId;
+}
 /**
  * Created with IntelliJ IDEA.
  * User: josh
@@ -20,7 +23,7 @@ trait Queryable[T <: AnyRef]{
   val queryFields:Seq[QueryField[T]];
   def preParse(dbo:DBObject):QueryParser = QueryParser()
 }
-trait DBQueryable[ObjectType <: AnyRef] extends ModelCompanion[ObjectType,ObjectId] with Queryable[ObjectType]
+trait DBQueryable[ObjectType <: Identifiable] extends ModelCompanion[ObjectType,ObjectId] with Queryable[ObjectType]
 
 /**
  * used for wrapping the attributes of a queryable object

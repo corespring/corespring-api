@@ -26,7 +26,7 @@ case class ItemSession (var itemId: ObjectId,
                         var responses: Seq[ItemResponse] = Seq(),
                         var id: ObjectId = new ObjectId(),
                         var data: Option[Map[String, Map[String, String]]] = None
-                       ) {
+                       ) extends Identifiable{
 
   def sessionData: Option[Map[String, Map[String, String]]] = data
 
