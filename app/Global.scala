@@ -103,16 +103,18 @@ object Global extends GlobalSettings {
 
   private def insertTestData(basePath: String) = {
 
-    JsonImporter.jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
-    JsonImporter.jsonLinesToDb(basePath + "orgs.json", Organization.collection)
+    import JsonImporter._
+
+    jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
+    jsonLinesToDb(basePath + "orgs.json", Organization.collection)
 
 
     Content.collection.drop()
     if (Play.isTest) {
-      JsonImporter.jsonLinesToDb(basePath + "items.json", Content.collection)
+      jsonLinesToDb(basePath + "items.json", Content.collection)
     }
-    JsonImporter.jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false )
-    JsonImporter.jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false)
+    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false )
+    jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false)
 
     val ExemplarContent = "exemplar-content"
 
@@ -120,20 +122,20 @@ object Global extends GlobalSettings {
     val folder : File = Play.getFile(basePath + ExemplarContent)
     for (file <- folder.listFiles) {
       Logger.info("adding: " + file.getName)
-      JsonImporter.jsonFileToItem(basePath + ExemplarContent + "/" + file.getName, Content.collection, drop = false)
+      jsonFileToItem(basePath + ExemplarContent + "/" + file.getName, Content.collection, drop = false)
     }
 
     //Subjects and standards
-    JsonImporter.jsonFileListToDb(basePath + "subjects.json", Subject.collection)
-    JsonImporter.jsonFileListToDb(basePath + "standards.json", Standard.collection)
+    jsonFileListToDb(basePath + "subjects.json", Subject.collection)
+    jsonFileListToDb(basePath + "standards.json", Standard.collection)
 
-    JsonImporter.jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
-    JsonImporter.jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
-    JsonImporter.jsonLinesToDb(basePath + "users.json", User.collection)
-    JsonImporter.jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
+    jsonLinesToDb(basePath + "collections.json", ContentCollection.collection)
+    jsonLinesToDb(basePath + "apiClients.json", ApiClient.collection)
+    jsonLinesToDb(basePath + "users.json", User.collection)
+    jsonLinesToDb(basePath + "itemsessions.json", ItemSession.collection)
 
-    JsonImporter.jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false )
-    JsonImporter.jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false  )
+    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false )
+    jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false  )
 
     //acces token stuff
     AccessToken.collection.drop()
