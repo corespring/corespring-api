@@ -15,7 +15,7 @@ import play.api.libs.json.{JsValue, Json}
 import com.typesafe.config.ConfigFactory
 import models.mongoContext._
 import controllers.JsonValidationException
-import api.processors.FeedbackProcessor.{addFeedbackIds, removeFeedbackIds}
+import api.processors.FeedbackProcessor._
 
 /**
  * Items API
@@ -163,7 +163,7 @@ object ItemApi extends BaseApi {
               BadRequest(Json.toJson(ApiError.CollectionIsRequired))
             } else if (Content.isCollectionAuthorized(request.ctx.organization, i.collectionId, Permission.All)) {
               Item.insert(i) match {
-                case Some(_) => Ok(removeFeedbackIds(Json.toJson(i).toString))
+                case Some(_) => Ok(removeFeedbackIds(addOutcomeIdentifiers(Json.toJson(i).toString)))
                 case None => InternalServerError(Json.toJson(ApiError.CantSave))
               }
             } else {

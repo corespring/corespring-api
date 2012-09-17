@@ -185,6 +185,17 @@ class ItemApiTest extends BaseTest {
     xmlFileContents.foreach(_ must beMatching(".*csFeedbackId.*"))
   }
 
+  // Next step is to make this pass...
+  "item body without outcomeIdentifiers for feedback adds them" in {
+    val toCreate = xmlBody("<html><choiceInteraction responseIdentifier=\"irishPresident\"><simpleChoice identifier=\"higgins\"><feedbackInline><b>Correct!</b> Michael D. Higgins is the president of Ireland</feedbackInline></simpleChoice></choiceInteraction></html>", Map("collectionId" -> "5001bb0ee4b0d7c9ec3210a2"))
+    val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
+    val result = routeAndCall(fakeRequest).get
+    status(result) must equalTo(OK)
+
+    val xmlFileContents: Seq[String] = getXMLContentFromResponse(contentAsString(result))
+    //xmlFileContents.foreach(_ must beMatching(".*responses.irishPresident.value*"))
+  }
+
   /**
    * Generates JSON request body for the API, with provided XML data in the appropriate field. Also adds in a set of
    * top-level attributes that get added to the request.

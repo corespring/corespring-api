@@ -8,6 +8,7 @@ import controllers.testplayer.qti.xml.XmlValidationResult.success
 import controllers.testplayer.qti.xml.ExceptionMessage
 import scala.Some
 import models.Item
+import controllers.testplayer.qti.QtiItem
 
 /**
  * Provides transformations on JSON strings to add/remove csFeedbackIds to feedback elements, as well as validation for
@@ -15,7 +16,11 @@ import models.Item
  */
 object FeedbackProcessor extends XmlValidator {
 
-  private val FEEDBACK_NODE_LABELS = List("feedbackInline", "modalFeedback")
+  val FEEDBACK_INLINE = "feedbackInline"
+
+  private val FEEDBACK_NODE_LABELS = {
+    List(FEEDBACK_INLINE, "modalFeedback")
+  }
 
   private val FEEDBACK_ID_ATTTRIBUTE = "csFeedbackId"
   private val OUTCOME_ID_ATTRIBUTE = "outcomeIdentifier"
@@ -66,6 +71,20 @@ object FeedbackProcessor extends XmlValidator {
    */
   def removeFeedbackIds(jsonData: String): String = applyRewriteRuleToJson(jsonData, feedbackIdentifierRemoverRule)
 
+  def addOutcomeIdentifiers(jsonData: String): String = {
+    val files: Seq[JsObject] = (Json.parse(jsonData) \ "data" \ "files").asOpt[Seq[JsObject]].getOrElse(Seq())
+    files.foreach(file => {
+      (file \ "content").asOpt[String] match {
+        case Some(qtiXml) => {
+          val qtiItem = new QtiItem(XML.loadString(qtiXml))
+          qtiItem.getOutcomeIdentifierForCsFeedbackId("123")
+        }
+        case None => {}
+      }
+    })
+    jsonData
+  }
+
   def filterFeedbackContent(xml: NodeSeq) = removeResponsesTransformer.transform(xml)
 
   def validate(xmlString: String): XmlValidationResult = {
@@ -103,6 +122,7 @@ object FeedbackProcessor extends XmlValidator {
     newJson
   }
 
+  // There's something in Play! JSON that does this already.
   private def jsonEncode(xml: String): String = xml.replaceAll("\"", "\\\\\"").replaceAll("\n", "\\\\n")
 
   /**
@@ -121,6 +141,17 @@ object FeedbackProcessor extends XmlValidator {
         elem % Attribute(None, FEEDBACK_ID_ATTTRIBUTE, Text(id.toString), Null)
       }
       case other => other
+    }
+
+  }
+
+  private class FeedbackOutcomeIdentifierRule(qtiItem: QtiItem) extends RewriteRule {
+
+    override def transform(node: Node): Seq[Node] = {
+      if (node.label equals FEEDBACK_INLINE) {
+        println("awesome!")
+      }
+      node
     }
 
   }
