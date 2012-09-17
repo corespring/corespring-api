@@ -487,7 +487,8 @@ object Item extends DBQueryable[Item] {
 //      case Left(e) => QueryParser(Left(e))
 //    }
     parseProperty[Standard](dbo,standards,Standard) match {
-      case Right(builder1) => parseProperty[Subject](dbo,primarySubject,Subject) match {
+      case Right(builder1) =>
+        parseProperty[Subject](dbo,primarySubject,Subject) match {
         case Right(builder2) =>
           val builder = MongoDBObject.newBuilder
           builder1.foreach(field => builder += field)
