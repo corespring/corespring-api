@@ -2,6 +2,7 @@ package controllers.testplayer.qti
 
 import scala.xml.Node
 import models.ItemResponse
+import controllers.Log
 
 class QtiItem(rootNode: Node) {
 
@@ -13,7 +14,7 @@ class QtiItem(rootNode: Node) {
   /**
    * Constructs a Map keyed by responseIdentifier and then by choice identifier to look up appropriate feedback element
    */
-  private val responseToFeedbackMap: Map[String, Map[String, FeedbackElement]] = {
+  private lazy val responseToFeedbackMap: Map[String, Map[String, FeedbackElement]] = {
     optMap[String, Map[String, FeedbackElement]](
       (rootNode \\ "choiceInteraction").map(responseIdentifierNode => {
         ((responseIdentifierNode \ "@responseIdentifier").text ->
