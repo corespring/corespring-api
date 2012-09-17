@@ -49,9 +49,11 @@ object ShowResource extends Controller with ObjectIdParser{
             item.data.get.files.find( _.isMain == true ) match {
               case Some(defaultFile) => {
                 if (defaultFile.contentType == BaseFile.ContentTypes.XML && defaultFile.name == "qti.xml" ){
-                  Action(Redirect("/testplayer/item/" + itemId + "?access_token=" + MOCK_ACCESS_TOKEN))
+                  val itemPlayerUrl = controllers.testplayer.routes.ItemPlayer.renderItem(itemId).url
+                  Action(Redirect( itemPlayerUrl + "?access_token=" + MOCK_ACCESS_TOKEN))
                 } else {
-                  Action(Redirect("/web/show-resource/" + itemId + "/data/" + defaultFile.name))
+                  val showFileUrl = web.controllers.routes.ShowResource.getDataFile(itemId, defaultFile.name).url
+                  Action(Redirect(showFileUrl))
                 }
               }
               case _ => Action(NotFound)
@@ -80,8 +82,9 @@ object ShowResource extends Controller with ObjectIdParser{
               case Some(resource) => {
                 resource.files.find(_.isMain == true) match {
                   case Some(defaultFile) => {
-                    //TODO: Is there a better way of doing this?
-                    Action(Redirect("/web/show-resource/" + item.id + "/" + resource.name + "/" + defaultFile.name))
+                    //TODO: Is there a better way of doing this instead of redirecting?
+                    val url = web.controllers.routes.ShowResource.getResourceFile(itemId, resource.name, defaultFile.name).url
+                    Action(Redirect(url))
                   }
                   case None => throw new RuntimeException("Bad data - no default file specified")
                 }
