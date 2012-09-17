@@ -38,7 +38,8 @@ object ItemSessionApi extends BaseApi {
       case Some(itemSession) => {
         if (Content.isAuthorized(request.ctx.organization, itemSession.itemId, Permission.All)) {
           Item.collection.findOneByID(itemId, MongoDBObject(Item.data -> 1)) match {
-            case Some(o) => o.get(Item.data) match {
+            case Some(o) =>
+              o.get(Item.data) match {
               case res:BasicDBObject => {
                 val xmlData = grater[Resource].asObject(res).files.find(bf => bf.isMain) match {
                   case Some(bf) => bf match {
@@ -50,7 +51,7 @@ object ItemSessionApi extends BaseApi {
                 val qtiItem = new QtiItem(scala.xml.XML.loadString(xmlData))
                 Ok(Json.toJson(itemSession))
               }
-              case None => throw new RuntimeException("db object not found for resource")
+              case _ => throw new RuntimeException("db object not found for resource")
             }
             case None => NotFound
           }
@@ -83,15 +84,13 @@ object ItemSessionApi extends BaseApi {
           val feedback: Map[String, String] = getSessionFeedback(itemId, newSession)
           if (!feedback.isEmpty) {
             Ok(Json.toJson(session.sessionData(Map("feedbackContent" -> feedback))))
-          }
-          else {
+          } else {
             Ok(Json.toJson(session))
           }
         }
         case Left(error) => InternalServerError(Json.toJson(ApiError.CreateItemSession(error.clientOutput)))
       }
-    }
-    else {
+    } else {
       Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
     }
   }
