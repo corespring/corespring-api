@@ -16,24 +16,6 @@ import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
 import scala.Right
 
-//case class ItemFile(var filename:String)
-//object ItemFile extends Queryable[ItemFile]{
-//  val filename = "filename"
-//  implicit object ItemFileWrites extends Writes[ItemFile]{
-//    def writes(itemFile:ItemFile) = {
-//      JsObject(Seq[(String,JsValue)](filename -> JsString(itemFile.filename)))
-//    }
-//  }
-//  implicit object ItemFileReads extends Reads[ItemFile]{
-//    def reads(json:JsValue) = {
-//      ItemFile((json \ filename).as[String])
-//    }
-//  }
-//  val queryFields:Seq[QueryField[ItemFile]] = Seq(
-//    QueryFieldString(filename,_.filename)
-//  )
-//}
-
 case class ItemSubject(subject: String, category: String, refId: String)
 
 object ItemSubject extends Queryable[ItemSubject] {
@@ -218,7 +200,6 @@ case class Item(var collectionId: String = "",
                 var copyrightOwner: Option[String] = None,
                 var copyrightYear: Option[String] = None,
                 var credentials: Option[String] = None,
-                //var files:Seq[ItemFile] = Seq(),
                 var gradeLevel: Seq[String] = Seq(),
                 var itemType: Option[String] = None,
                 var itemTypeOther: Option[String] = None,
@@ -230,7 +211,6 @@ case class Item(var collectionId: String = "",
                 var sourceUrl: Option[String] = None,
                 var standards: Seq[ObjectId] = Seq(),
                 var title: Option[String] = None,
-                //var xmlData:Option[String] = None,
                 var data: Option[Resource] = None,
                 var supportingMaterials: Seq[Resource] = Seq(),
                 var id: ObjectId = new ObjectId()) extends Content {
