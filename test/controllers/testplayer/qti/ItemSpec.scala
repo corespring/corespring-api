@@ -3,7 +3,6 @@ package controllers.testplayer.qti
 import org.specs2.mutable._
 
 class ItemSpec extends Specification {
-
   class FeedbackSequenceMatcher(feedback: Seq[FeedbackElement]) {
     def matches(ids: List[Int]): Boolean = feedback.map(_.csFeedbackId.toInt).toSet equals ids.toSet
   }

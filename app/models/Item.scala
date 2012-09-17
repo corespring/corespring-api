@@ -121,8 +121,10 @@ object BaseFile {
       val contentType = (json \ "contentType").asOpt[String].getOrElse(getContentType(name))
       val isMain = (json\ "default").asOpt[Boolean].getOrElse(false)
 
+      println("gettin here")
+
       (json\ "content").asOpt[String] match {
-        case Some(content) => VirtualFile(name, contentType, isMain, content) 
+        case Some(content) => { println("Content is king: " + content); VirtualFile(name, contentType, isMain, content) }
         case _ => StoredFile(name, contentType, isMain) //we are missing the storageKey here 
       }
     }
@@ -194,6 +196,7 @@ object Resource {
     def reads(json: JsValue): Resource = {
       val resourceName = (json \ "name").as[String]
       val files = (json \ "files").asOpt[Seq[JsValue]].map(_.map(f => {
+
         val fileName = (f \ "name").as[String]
         val contentType = (f \ "contentType").as[String]
         val isMain = (f \ "default").as[Boolean]
@@ -332,6 +335,7 @@ object Item extends DBQueryable[Item] {
       }
       item.title = (json \ title).asOpt[String]
       item.data = (json \ data).asOpt[Resource]
+
       try {
         item.id = (json \ id).asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId())
       } catch {
