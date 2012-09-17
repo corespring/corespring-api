@@ -9,6 +9,8 @@ import scala.Some
 import scala.Some
 import play.api.test.FakeHeaders
 import scala.Some
+import org.bson.types.ObjectId
+import models.Item
 
 
 /**
@@ -33,6 +35,36 @@ abstract class BaseTest extends Specification {
 
 
   PlaySingleton.start()
+
+  def tokenize(url: String): String = url + "?access_token=" + token
+
+  /**
+   * Create a tokenized request
+   * @param method
+   * @param uri
+   * @param headers
+   * @param body
+   * @tparam A
+   * @return
+   */
+  def tokenFakeRequest[A](method: String, uri: String, headers: FakeHeaders = FakeHeaders(), body: A = AnyContentAsText("")): FakeRequest[A] = {
+    FakeRequest(method, tokenize(uri), headers, body)
+  }
+
+  /**
+   * @param id item id
+   * @return
+   */
+  def item(id:String): Item = {
+
+    Item.findOneById(new ObjectId(id)) match {
+      case Some(item) => {
+        item
+      }
+      case _ => throw new RuntimeException("test item")
+    }
+  }
+
 
   // TODO: Something's wrong with this, but when it works it will be a useful shorthand
   def doRequest(httpVerb: String, url: String, jsonObject: Map[String, String]): Option[Result] =

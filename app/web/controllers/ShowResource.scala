@@ -23,7 +23,7 @@ trait ObjectIdParser{
 }
 
 
-object Runner extends Controller with ObjectIdParser{
+object ShowResource extends Controller with ObjectIdParser{
 
 
   private val MOCK_ACCESS_TOKEN : String = "34dj45a769j4e1c0h4wb"
@@ -34,6 +34,12 @@ object Runner extends Controller with ObjectIdParser{
   private val ContentType : String = "Content-Type"
 
 
+  /**
+   * Render the Item.data resource. Find the default file in the Resource.files Seq,
+   * If the file is qti.xml then redirect to the testplayer otherwise render as html.
+   * @param itemId
+   * @return
+   */
   def renderDataResource(itemId:String) =
     objectId(itemId) match {
       case Some(oid) => {
@@ -45,7 +51,7 @@ object Runner extends Controller with ObjectIdParser{
                 if (defaultFile.contentType == BaseFile.ContentTypes.XML && defaultFile.name == "qti.xml" ){
                   Action(Redirect("/testplayer/item/" + itemId + "?access_token=" + MOCK_ACCESS_TOKEN))
                 } else {
-                  Action(Redirect("/web/runner/" + itemId + "/data/" + defaultFile.name))
+                  Action(Redirect("/web/show-resource/" + itemId + "/data/" + defaultFile.name))
                 }
               }
               case _ => Action(NotFound)
@@ -75,7 +81,7 @@ object Runner extends Controller with ObjectIdParser{
                 resource.files.find(_.isMain == true) match {
                   case Some(defaultFile) => {
                     //TODO: Is there a better way of doing this?
-                    Action(Redirect("/web/runner/" + item.id + "/" + resource.name + "/" + defaultFile.name))
+                    Action(Redirect("/web/show-resource/" + item.id + "/" + resource.name + "/" + defaultFile.name))
                   }
                   case None => throw new RuntimeException("Bad data - no default file specified")
                 }
@@ -90,6 +96,12 @@ object Runner extends Controller with ObjectIdParser{
 
   }
 
+  /**
+   * Return an individual file from Item.data
+   * @param itemId
+   * @param filename
+   * @return
+   */
   def getDataFile(itemId:String, filename:String) = Action{ request =>
     Item.findOneById( new ObjectId(itemId)) match {
       case Some(item) => {
@@ -105,6 +117,13 @@ object Runner extends Controller with ObjectIdParser{
   }
 
 
+  /**
+   * Return an individual file from a supporting material resource.
+   * @param itemId
+   * @param resourceName
+   * @param filename
+   * @return
+   */
   def getResourceFile(itemId:String,resourceName:String,filename:String) = Action{ request =>
     Item.findOneById(new ObjectId(itemId)) match {
       case Some(item) => {

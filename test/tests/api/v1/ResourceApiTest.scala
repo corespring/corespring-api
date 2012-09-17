@@ -1,7 +1,7 @@
 package tests.api.v1
 
 import api.ApiError
-import api.v1.ResourceApi
+import api.v1.{ReverseResourceApi, ResourceApi}
 import com.mongodb.{BasicDBObject, DBObject}
 import models._
 import org.bson.types.ObjectId
@@ -70,18 +70,16 @@ import tests.BaseTest
 
 class ResourceApiTest extends BaseTest {
 
-  def tokenize(url: String): String = url + "?access_token=" + token
 
+  def testItemId : String = testItem.id.toString
 
-  def tokenRequest[A](method: String, uri: String, headers: FakeHeaders = FakeHeaders(), body: A = ""): FakeRequest[A] = {
-    FakeRequest(method, tokenize(uri), headers, body)
-  }
+  val testRoutes : api.v1.ReverseResourceApi = api.v1.routes.ResourceApi
 
-  def call(byteArray: Array[Byte], url: String, expectedStatus: Int, expectedContains: String): (Boolean, Boolean) = {
+  def call(url : String, method : String, byteArray: Array[Byte], expectedStatus: Int, expectedContains: String): (Boolean, Boolean) = {
 
     routeAndCall(
-      tokenRequest(
-        POST,
+      tokenFakeRequest(
+        method,
         url,
         FakeHeaders(Map("Content" -> List("application/octet-stream"))),
         byteArray)) match {
@@ -96,20 +94,7 @@ class ResourceApiTest extends BaseTest {
     }
   }
 
-  def baseItemPath(itemId: String) = {
-    "/api/v1/items/" + itemId
-  }
-
-  def testItem: Item = {
-
-    val query: DBObject = new BasicDBObject()
-    Item.findOneById(new ObjectId("50083ba9e4b071cb5ef79101")) match {
-      case Some(item) => {
-        item
-      }
-      case _ => throw new RuntimeException("test item")
-    }
-  }
+  def testItem: Item = item("50083ba9e4b071cb5ef79101")
 
   def rubric: Resource = {
     testItem.supportingMaterials.find(_.name == "Rubric") match {
@@ -120,10 +105,9 @@ class ResourceApiTest extends BaseTest {
 
   "resource api" should {
 
-
     def makeFileRequest(file: VirtualFile, path: String, method: String = POST): Result = {
 
-      val request = tokenRequest(method, path, FakeHeaders(), AnyContentAsJson(Json.toJson(file)))
+      val request = tokenFakeRequest(method, path, FakeHeaders(), AnyContentAsJson(Json.toJson(file)))
 
       routeAndCall(request) match {
         case Some(result) => {
@@ -136,49 +120,34 @@ class ResourceApiTest extends BaseTest {
     }
 
     "delete a file from the Item.data Resource" in {
-      val url = baseItemPath(testItem.id.toString) + "/data"
-
-      val f0 = VirtualFile("myfile.txt", "text/txt", isMain = true, content = "I'm never going to be main")
-
-      val initialLength = testItem.data.get.files.length
-
-      makeFileRequest(f0, url)
-
-      val length = testItem.data.get.files.length
-
-      length must equalTo(initialLength + 1)
-
-      makeFileRequest(f0, url + "/myfile.txt", DELETE)
-
-      testItem.data.get.files.length must equalTo(initialLength)
+      val create = testRoutes.createDataFile(testItemId)
+      val delete =  testRoutes.deleteDataFile(testItemId, "myfile.txt")
+      val file = VirtualFile("myfile.txt", "text/txt", isMain = true, content = "I'm never going to be main")
+      assertDelete(create, delete, testItem.data.get, file)
     }
-
 
     "delete a file from a supportingMaterial Resource" in {
-      val url = baseItemPath(testItem.id.toString) + "/materials/Rubric"
-
-      val f0 = VirtualFile("myfile.txt", "text/txt", isMain = true, content = "I'm never going to be main")
-
-      val initialLength = rubric.files.length
-
-      makeFileRequest(f0, url)
-
-      val length = rubric.files.length
-
-      length must equalTo(initialLength + 1)
-
-      makeFileRequest(f0, url + "/myfile.txt", DELETE)
-      rubric.files.length must equalTo(initialLength)
+      val create = testRoutes.createSupportingMaterialFile(testItemId, "Rubric")
+      val delete = testRoutes.deleteSupportingMaterialFile(testItemId, "Rubric", "myfile.txt")
+      val file = VirtualFile("myfile.txt", "text/txt", isMain = true, content = "I'm never going to be main")
+      assertDelete(create, delete, rubric, file)
     }
 
+    def assertDelete(create : Call, delete : Call, resource : Resource, file : VirtualFile) = {
+      val initialLength = resource.files.length
+      makeFileRequest(file, create.url, create.method)
+      val length = rubric.files.length
+      length must equalTo(initialLength + 1)
+      makeFileRequest(file, delete.url, delete.method)
+      resource.files.length must equalTo(initialLength)
+    }
 
     "creating or updating a file to default in Item.data is ignored" in {
 
-      val url = baseItemPath(testItem.id.toString) + "/data"
-
+      val create = testRoutes.createDataFile(testItemId)
       val f0 = VirtualFile("myfile.txt", "text/txt", isMain = true, content = "I'm never going to be main")
 
-      makeFileRequest(f0, url)
+      makeFileRequest(f0, create.url, create.method)
 
       testItem.data.get.files.find(_.name == f0.name) match {
         case Some(f) => {
@@ -187,7 +156,8 @@ class ResourceApiTest extends BaseTest {
         case _ => failure("Can't find new file")
       }
 
-      makeFileRequest(f0, url + "/myfile.txt", PUT)
+      val update = testRoutes.updateDataFile(testItemId, "myfile.txt")
+      makeFileRequest(f0, update.url, update.method)
 
       testItem.data.get.files.find(_.name == f0.name) match {
         case Some(f) => {
@@ -197,61 +167,49 @@ class ResourceApiTest extends BaseTest {
       }
     }
 
+
     "update a file in supporting materials" in {
-      val url = baseItemPath(testItem.id.toString) + "/materials/Rubric"
-
-      val f0 = VirtualFile("data.txt", "text/txt", isMain = false, content = "f0")
-      makeFileRequest(f0, url)
-
-      val update = VirtualFile("newName.txt", "text/txt", isMain = false, content = "new content!")
-      val result = makeFileRequest(update, url + "/data.txt", PUT)
-
-      status(result) must equalTo(OK)
-
-      val item = testItem
-
-      item.supportingMaterials.find(_.name == "Rubric") match {
-        case Some(r) => {
-          r.files.find(_.name == update.name) match {
-            case Some(f) => {
-              f.asInstanceOf[VirtualFile].content must equalTo(update.content)
-            }
-            case _ => failure("can't find updated file")
-          }
-        }
-        case _ => throw new RuntimeException("Can't find Rubric resource")
-      }
+      val create = testRoutes.createSupportingMaterialFile(testItemId, "Rubric")
+      val file = VirtualFile("data.txt", "text/txt", isMain = false, content = "f0")
+      val update = testRoutes.updateSupportingMaterialFile(testItemId, "Rubric", "data.txt")
+      assertUpdate(create, update, file, ( _ => testItem.supportingMaterials.find(_.name == "Rubric").get))
     }
 
     "update a file in Item.data" in {
-      val url = baseItemPath(testItem.id.toString) + "/data"
 
-      val f0 = VirtualFile("data.txt", "text/txt", isMain = false, content = "f0")
-      makeFileRequest(f0, url)
+      val create = testRoutes.createDataFile(testItemId)
+      val file = VirtualFile("data.txt", "text/txt", isMain = false, content = "f0")
+      val update = testRoutes.updateDataFile(testItemId, "data.txt")
+      assertUpdate(create, update, file, ( _ => testItem.data.get))
+    }
 
-      val update = VirtualFile("newName2.txt", "text/txt", isMain = false, content = "new content")
-      val result = makeFileRequest(update, url + "/data.txt", PUT)
+    def assertUpdate(create:Call,update:Call, file: VirtualFile, resourceFn : ( Unit => Resource)) = {
 
+      makeFileRequest(file, create.url, create.method)
+
+      val updateFile = VirtualFile("newName2.txt", "text/txt", isMain = false, content = "new content")
+      val result = makeFileRequest(updateFile, update.url, update.method)
       status(result) must equalTo(OK)
-
       val item = testItem
 
-      item.data.get.files.find(_.name == update.name) match {
+      resourceFn().files.find(_.name == updateFile.name) match {
         case Some(f) => {
-          f.asInstanceOf[VirtualFile].content must equalTo(update.content)
+          f.asInstanceOf[VirtualFile].content must equalTo(updateFile.content)
         }
         case _ => failure("can't find updated file")
       }
     }
 
+
     "when creating a file - if its default - unsets the other items in the file list" in {
-      val url = baseItemPath(testItem.id.toString) + "/materials/Rubric"
+
+      val create = testRoutes.createSupportingMaterialFile(testItemId, "Rubric")
 
       val f0 = VirtualFile("data.file.0.default.txt", "text/txt", isMain = true, content = "f0")
       val f1 = VirtualFile("data.file.default.txt", "text/txt", isMain = true, content = "hello there")
 
-      makeFileRequest(f0, url)
-      val result = makeFileRequest(f1, url)
+      makeFileRequest(f0, create.url, create.method)
+      val result = makeFileRequest(f1, create.url, create.method)
 
       val json = Json.parse(contentAsString(result))
       json.as[BaseFile].name must equalTo("data.file.default.txt")
@@ -260,7 +218,6 @@ class ResourceApiTest extends BaseTest {
       status(result) must equalTo(OK)
 
       val item: Item = Item.findOneById(testItem.id).get
-
 
       item.supportingMaterials.find(_.name == "Rubric") match {
         case Some(r) => {
@@ -276,36 +233,29 @@ class ResourceApiTest extends BaseTest {
     }
 
     "create a virtual file in Item.data resource" in {
-      val url = baseItemPath(testItem.id.toString) + "/data"
-      val f = VirtualFile("data.file.txt", "text/txt", isMain = false, content = "hello there")
-
-      val result = makeFileRequest(f, url)
-      val json = Json.parse(contentAsString(result))
-      json.as[BaseFile].name must equalTo("data.file.txt")
-      status(result) must equalTo(OK)
-
-      val secondResult = makeFileRequest(f, url)
-      status(secondResult) must equalTo(NOT_ACCEPTABLE)
+      val create = testRoutes.createDataFile(testItemId)
+      assertCantCreateTwoFilesWithSameName(create)
     }
 
     "create a virtual file in a supporting material resource" in {
+      val create = testRoutes.createSupportingMaterialFile(testItemId, "Rubric")
+      assertCantCreateTwoFilesWithSameName(create)
+    }
 
-      val url = baseItemPath(testItem.id.toString) + "/materials/Rubric"
-      val f = VirtualFile("file", "text/txt", isMain = false, content = "hello there")
-
-      val result = makeFileRequest(f, url)
+    def assertCantCreateTwoFilesWithSameName(create:Call) = {
+      val f = VirtualFile("data.file.txt", "text/txt", isMain = false, content = "hello there")
+      val result = makeFileRequest(f, create.url, create.method)
       val json = Json.parse(contentAsString(result))
-      json.as[BaseFile].name must equalTo("file")
+      json.as[BaseFile].name must equalTo("data.file.txt")
       status(result) must equalTo(OK)
-
-      val secondResult = makeFileRequest(f, url)
+      val secondResult = makeFileRequest(f, create.url, create.method)
       status(secondResult) must equalTo(NOT_ACCEPTABLE)
     }
 
     "create a new supporting material resource" in {
 
-      val url = baseItemPath(testItem.id.toString) + "/materials"
-      val request = tokenRequest(POST, url, FakeHeaders(), AnyContentAsEmpty)
+      val create : Call = testRoutes.createSupportingMaterial(testItemId)
+      val request = tokenFakeRequest(create.method, create.url, FakeHeaders())
       routeAndCall(request) match {
         case Some(result) => {
           status(result) must equalTo(BAD_REQUEST)
@@ -315,7 +265,7 @@ class ResourceApiTest extends BaseTest {
 
       val r: Resource = Resource("newResource", Seq())
 
-      routeAndCall(tokenRequest(POST, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
+      routeAndCall(tokenFakeRequest(create.method, create.url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
         case Some(result) => {
           status(result) must equalTo(OK)
         }
@@ -324,7 +274,7 @@ class ResourceApiTest extends BaseTest {
         }
       }
 
-      routeAndCall(tokenRequest(POST, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
+      routeAndCall(tokenFakeRequest(create.method, create.url, FakeHeaders(), AnyContentAsJson(Json.toJson(r)))) match {
         case Some(result) => {
           contentAsString(result).contains(ApiError.ResourceNameTaken.message) must equalTo(true)
           status(result) must equalTo(NOT_ACCEPTABLE)
@@ -333,17 +283,25 @@ class ResourceApiTest extends BaseTest {
           throw new RuntimeException("Request failed")
         }
       }
+
+      val delete = testRoutes.deleteSupportingMaterial(testItemId, "newResource")
       //tidy up
-      routeAndCall(tokenRequest(DELETE, url + "/newResource"))
-      true must equalTo(true)
+      routeAndCall(tokenFakeRequest(delete.method, delete.url)) match {
+        case Some(result) => status(result) must equalTo(OK)
+        case _ => failure("delete failed")
+      }
     }
 
     "delete a new supporting material resource" in {
-      val url = baseItemPath(testItem.id.toString) + "/materials"
+
+      val resourceName = "newResource2"
+      val delete = testRoutes.deleteSupportingMaterial(testItemId, resourceName)
+      val create = testRoutes.createSupportingMaterial(testItemId)
+
       val r: Resource = Resource("newResource2", Seq())
 
-      routeAndCall(tokenRequest(POST, url, FakeHeaders(), AnyContentAsJson(Json.toJson(r))))
-      routeAndCall(tokenRequest(DELETE, url + "/newResource2")) match {
+      routeAndCall(tokenFakeRequest(create.method, create.url, FakeHeaders(), AnyContentAsJson(Json.toJson(r))))
+      routeAndCall(tokenFakeRequest(delete.method, delete.url)) match {
         case Some(result) => {
           status(result) must equalTo(OK)
         }
@@ -354,8 +312,9 @@ class ResourceApiTest extends BaseTest {
 
 
     "list an item's supporting materials" in {
-      val url = baseItemPath(testItem.id.toString) + "/materials"
-      routeAndCall(tokenRequest(GET, url)) match {
+
+      val get = testRoutes.getSupportingMaterials(testItemId)
+      routeAndCall(tokenFakeRequest(get.method, get.url)) match {
         case Some(result) => {
           val json: JsValue = Json.parse(contentAsString(result.asInstanceOf[SimpleResult[JsValue]]))
           val seq: Seq[JsObject] = json.as[Seq[JsObject]]
@@ -371,23 +330,21 @@ class ResourceApiTest extends BaseTest {
 
       val item = testItem
       val filename = "cute-rabbit.jpg"
-      val url = baseItemPath(item.id.toString) + "/materials/Rubric/" + filename + "/upload"
+      val create = testRoutes.uploadFile(item.id.toString,"Rubric", filename)
       val file = Play.getFile("test/tests/files/" + filename)
       val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
       val byteArray = source.map(_.toByte).toArray
       source.close()
 
       //First upload should work
-      val firstCall = call(byteArray, url, OK, filename)
+      val firstCall = call(create.url, create.method, byteArray,  OK, filename)
       firstCall must equalTo((true, true))
-
-      //subsequent should file beacuse the filename is taken
-      val secondCall = call(byteArray, url, NOT_FOUND, ApiError.FilenameTaken.message)
+      //Second call is not acceptable - the file is already existing
+      val secondCall = call(create.url, create.method, byteArray, NOT_FOUND, ApiError.FilenameTaken.message)
       secondCall must equalTo((true, true))
 
-      val badUrl = baseItemPath(item.id.toString) + "/materials/badResourceName/" + filename + "/upload"
-
-      val thirdCall = call(byteArray, badUrl, NOT_FOUND, ApiError.ResourceNotFound.message)
+      val badUpdate = testRoutes.uploadFile(item.id.toString, "badResourceName", filename)
+      val thirdCall = call(badUpdate.url, badUpdate.method, byteArray,  NOT_FOUND, ApiError.ResourceNotFound.message)
       thirdCall must equalTo((true, true))
     }
 
@@ -395,18 +352,18 @@ class ResourceApiTest extends BaseTest {
 
       val item = testItem
       val filename = "cute-rabbit.jpg"
-      val url = baseItemPath(item.id.toString) + "/" + ResourceApi.DATA_PATH + "/" + filename + "/upload"
+
+      val update = testRoutes.uploadFileToData(item.id.toString, filename)
       val file = Play.getFile("test/tests/files/" + filename)
       val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
       val byteArray = source.map(_.toByte).toArray
       source.close()
 
       //First upload should work
-      val firstCall = call(byteArray, url, OK, filename)
+      val firstCall = call(update.url, update.method, byteArray, OK, filename)
       firstCall must equalTo((true, true))
 
-      //subsequent should file beacuse the filename is taken
-      val secondCall = call(byteArray, url, NOT_FOUND, ApiError.FilenameTaken.message)
+      val secondCall = call(update.url, update.method, byteArray, NOT_FOUND, ApiError.FilenameTaken.message)
       secondCall must equalTo((true, true))
     }
   }

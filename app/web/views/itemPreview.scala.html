@@ -6,6 +6,7 @@
     <title>Item Preview</title>
     <meta name="description" content="CoreSpring Content Tagger"/>
     <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
+    @head.mathMl()
     @head.coreJs()
     @head.bootstrap()
     @head.angular()
@@ -59,7 +60,7 @@
             ng-show="currentPanel=='item'"
             >
         <iframe frameBorder="0"
-                style="width: 100%; height: 100%" ng-show="itemData" ng-src="/web/runner/{{itemData.id}}"> </iframe>
+                style="width: 100%; height: 100%" ng-show="itemData" ng-src="/web/show-resource/{{itemData.id}}"> </iframe>
     </div>
 
     <div

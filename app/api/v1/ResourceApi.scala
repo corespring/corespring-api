@@ -363,11 +363,16 @@ object ResourceApi extends BaseApi {
       {
         request =>
           val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-          val file = new StoredFile(filename, contentType(filename), true, s3Key)
-          val resource = Resource(name, Seq(file))
-          item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
-          Item.save(item)
-          Ok(toJson(resource))
+          item.supportingMaterials.find(_.name == name) match {
+            case Some(foundResource) => NotAcceptable(toJson(ApiError.ResourceNameTaken))
+            case _ => {
+              val file = new StoredFile(filename, contentType(filename), true, s3Key)
+              val resource = Resource(name, Seq(file))
+              item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
+              Item.save(item)
+              Ok(toJson(resource))
+            }
+          }
       })
     }
 
