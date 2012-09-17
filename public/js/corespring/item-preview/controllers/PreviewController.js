@@ -36,6 +36,10 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
             function onItemLoaded(itemData) {
                 console.log("ItemLoaded!");
                 $scope.itemData = itemData;
+
+                $timeout(function(){
+                    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+                }, 200);
             }
         );
     };

@@ -97,10 +97,10 @@ GET    /web/partials/createItem                web.controllers.Partials.createIt
 GET    /web/partials/home                      web.controllers.Partials.home
 GET    /web/partials/viewItem                  web.controllers.Partials.viewItem
 
-GET    /web/runner/:itemId/data/:filename           web.controllers.Runner.getDataFile(itemId:String,filename:String)
-GET    /web/runner/:itemId/:resourceName/:filename  web.controllers.Runner.getResourceFile(itemId:String,resourceName:String,filename:String)
-GET    /web/runner/:itemId                          web.controllers.Runner.renderDataResource(itemId)
-GET    /web/runner/:itemId/:resourceName            web.controllers.Runner.renderResource(itemId,resourceName)
+GET    /web/show-resource/:itemId/data/:filename           web.controllers.ShowResource.getDataFile(itemId:String,filename:String)
+GET    /web/show-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId:String,resourceName:String,filename:String)
+GET    /web/show-resource/:itemId                          web.controllers.ShowResource.renderDataResource(itemId)
+GET    /web/show-resource/:itemId/:resourceName            web.controllers.ShowResource.renderResource(itemId,resourceName)
 
 # Authentication
 GET     /web/login                             web.controllers.Main.login

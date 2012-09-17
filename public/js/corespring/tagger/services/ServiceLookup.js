@@ -31,8 +31,8 @@ angular.module('tagger.services')
                 items:'/api/v1/items/:id',
                 getAccessToken:'/web/access_token',
 
-                previewFile:'/web/runner/{key}',
-                renderResource:'/web/runner/{key}',
+                previewFile:'/web/show-resource/{key}',
+                renderResource:'/web/show-resource/{key}',
 
                 createDataFile: '/api/v1/items/{itemId}/data',
                 deleteDataFile: '/api/v1/items/{itemId}/data/{filename}',
