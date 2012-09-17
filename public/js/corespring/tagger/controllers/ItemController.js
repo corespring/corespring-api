@@ -14,7 +14,7 @@ if (Array.prototype.removeItem == null) Array.prototype.removeItem = function (i
 };
 
 /**
- * Controller for editing ItemService
+ * Controller for editing Item
  */
 function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, AccessToken) {
 

@@ -86,7 +86,9 @@ function xmlData_to_resource(fromItem, targetItem) {
 
 function primarySubject_obj_to_id(from, to) {
     if (from.primarySubject) {
-        to.primarySubject = from.primarySubject.refId;
+        if(from.primarySubject.refId){
+          to.primarySubject = ObjectId(from.primarySubject.refId);
+        }
     }
 }
 
