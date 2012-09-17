@@ -25,7 +25,7 @@ import play.api.libs.json.JsObject
 case class Organization(var name: String = "",
                         var path: Seq[ObjectId] = Seq(),
                         var contentcolls: Seq[ContentCollRef] = Seq(),
-                        var id: ObjectId = new ObjectId()) {
+                        var id: ObjectId = new ObjectId()) extends Identifiable{
 
   def this() = this("")
 }

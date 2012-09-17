@@ -110,9 +110,7 @@ object Global extends GlobalSettings {
 
 
     Content.collection.drop()
-    if (Play.isTest) {
-      jsonLinesToDb(basePath + "items.json", Content.collection)
-    }
+    jsonLinesToDb(basePath + "items.json", Content.collection)
     jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false )
     jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false)
 

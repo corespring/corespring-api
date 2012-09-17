@@ -23,7 +23,7 @@ import controllers.auth.Permission
 /**
  * A ContentCollection
  */
-case class ContentCollection(var name: String = "", var isPrivate: Boolean = false, var id: ObjectId = new ObjectId())
+case class ContentCollection(var name: String = "", var isPrivate: Boolean = false, var id: ObjectId = new ObjectId()) extends Identifiable
 
 object ContentCollection extends DBQueryable[ContentCollection]{
   val name = "name"

@@ -11,9 +11,9 @@ import se.radley.plugin.salat._
 import mongoContext._
 import controllers.QueryParser
 
-case class Subject(subject: Option[String] = None,
-                   category: Option[String] = None,
-                   id: ObjectId = new ObjectId())
+case class Subject(var subject: Option[String] = None,
+                   var category: Option[String] = None,
+                   var id: ObjectId = new ObjectId()) extends Identifiable
 
 object Subject extends DBQueryable[Subject] {
 
@@ -34,7 +34,6 @@ object Subject extends DBQueryable[Subject] {
   }
 
   val queryFields:Seq[QueryField[Subject]] = Seq(
-
     QueryFieldString[Subject](Subject,  _.subject),
     QueryFieldString[Subject](Category, _.category),
     QueryFieldObject[Subject](Id, _.id, QueryField.valuefuncid)
