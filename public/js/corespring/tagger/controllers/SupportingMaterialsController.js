@@ -124,7 +124,7 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
 
     $scope.showEditButton = function (resource) {
         function isSingleStoreFile(resource) {
-            return resource.files && resource.files.length == 1 && resource.files[0].storageKey;
+            return resource.files && resource.files.length == 1 && !resource.files[0].content;
         }
 
         return !isSingleStoreFile(resource);

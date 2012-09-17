@@ -64,6 +64,7 @@ import com.mongodb.QueryBuilder
 //  )
 //}
 
+
 import com.novus.salat.annotations.raw.Salat
 import play.api.libs.json._
 
@@ -219,7 +220,6 @@ case class Item(var collectionId: String = "",
                 var copyrightOwner: Option[String] = None,
                 var copyrightYear: Option[String] = None,
                 var credentials: Option[String] = None,
-                //var files:Seq[ItemFile] = Seq(),
                 var gradeLevel: Seq[String] = Seq(),
                 var itemType: Option[String] = None,
                 var itemTypeOther: Option[String] = None,
@@ -231,7 +231,6 @@ case class Item(var collectionId: String = "",
                 var sourceUrl: Option[String] = None,
                 var standards: Seq[ObjectId] = Seq(),
                 var title: Option[String] = None,
-                //var xmlData:Option[String] = None,
                 var data: Option[Resource] = None,
                 var supportingMaterials: Seq[Resource] = Seq(),
                 var id: ObjectId = new ObjectId()) extends Content {
