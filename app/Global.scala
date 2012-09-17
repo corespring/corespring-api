@@ -200,6 +200,7 @@ object JsonImporter {
    * @param coll
    */
   def jsonFileListToDb(path:String, coll:MongoCollection) {
+    coll.drop()
     val listString = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.defaultCharset())).mkString
     val dbList = com.mongodb.util.JSON.parse(listString).asInstanceOf[com.mongodb.BasicDBList]
     Logger.info("Adding " + dbList.size() + " to: " + coll.name )
