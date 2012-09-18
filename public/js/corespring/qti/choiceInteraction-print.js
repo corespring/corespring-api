@@ -19,7 +19,7 @@ qtiDirectives.directive('simplechoice', function(QtiUtils){
             }
 
 
-            var template =  '<div ng-transclude="true"><div class="' + style + '">&nbsp;</div></div>';
+            var template =  '<div class="' + style + '">&nbsp;</div><div ng-transclude class="choice-content"></div>';
 
             // now can modify DOM
             tElement.html(template);
