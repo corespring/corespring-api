@@ -92,7 +92,7 @@ qtiDirectives.directive('orderinteraction', function () {
                                 // find the item with the current identifier and set css to correct
                                 for (var x = 0; x < scope.items.length; x++) {
                                     if (scope.items[x].identifier == response.value[i]) {
-                                        scope.items[x].submittedClass = "orderCorrect";
+                                        scope.items[x].submittedClass = "order-correct";
                                     }
                                 }
 
