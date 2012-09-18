@@ -11,7 +11,7 @@ prompt, .choice-prompt {
     display: block;
     color: red;
 }
-.feedbackinline {
+.feedback-inline {
     color: grey;
     padding-left: 10px;
 }
