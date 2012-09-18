@@ -1,3 +1,5 @@
+package tests.api.v1
+
 import org.specs2.mutable.Specification
 
 /**
@@ -16,7 +18,7 @@ object ItemQueryTest extends Specification {
   val standardsquery = "{\"standards.dotNotation\":\"1.RL.1\""
   val standardsorquery = "&{\"$or\":[{\"standards.subCategory\":\"Key Ideas and Details\"},{\"standards.subCategory\":\"Craft and Structure\"}]}"
 
-  "the results of querying items with "+orquery should {
+  "the results of querying items with " + orquery should {
     "contain items with gradeLevels containing either 04 or 08" in {
       pending
     }
@@ -24,7 +26,7 @@ object ItemQueryTest extends Specification {
       pending
     }
   }
-  "the results of querying items with "+andquery should {
+  "the results of querying items with " + andquery should {
     "contain both items with gradeLevels of both 04 and 08" in {
       pending
     }

@@ -218,7 +218,50 @@ case class Copyright(owner: Option[String] = None, year: Option[String] = None)
 
 case class ItemType(defaultType: Option[String] = None, other: Option[String] = None)
 
-case class Subjects(primary: Option[ObjectId] = None, related: Option[ObjectId] = None)
+case class Subjects(var primary: Option[ObjectId] = None, var related: Option[ObjectId] = None)
+object Subjects extends Queryable[Subjects]{
+  val primary = "primary";
+  val related = "related"
+
+  implicit object SubjectsWrites extends Writes[Subjects]{
+    def writes(subjects:Subjects) = {
+      def getSubject(id: Option[ObjectId]): Option[JsValue] = id match {
+        case Some(foundId) => Some(Json.toJson(Subject.findOneById(foundId).get))
+        case _ => None
+      }
+      var seqsubjects:Seq[(String,JsValue)] = Seq()
+      getSubject(subjects.primary) match {
+        case Some(found) => seqsubjects = seqsubjects :+ (Subjects.primary -> Json.toJson(found))
+        case _ => //do nothing
+      }
+      getSubject(subjects.related) match {
+        case Some(found) => seqsubjects = seqsubjects :+ (Subjects.related -> Json.toJson(found))
+        case _ => //do nothing
+      }
+      JsObject(seqsubjects)
+    }
+  }
+  implicit object SubjectsReads extends Reads[Subjects]{
+    def reads(json:JsValue):Subjects = {
+      val subjects = Subjects()
+      subjects.primary = try{
+        (json \ primary).asOpt[String].map(new ObjectId(_))
+      }catch{
+        case e:IllegalArgumentException => throw new JsonValidationException(Item.subjects+"."+primary)
+      }
+      subjects.related = try{
+        (json \ related).asOpt[String].map(new ObjectId(_))
+      }catch{
+        case e:IllegalArgumentException => throw new JsonValidationException(Item.subjects+"."+related)
+      }
+      subjects
+    }
+  }
+  val queryFields:Seq[QueryField[Subjects]] = Seq(
+    QueryFieldObject(primary,_.primary,)
+  )
+
+}
 
 case class Item(var collectionId: String = "",
                 var contentType: String = "item",
@@ -265,8 +308,7 @@ object Item extends DBQueryable[Item] {
   val itemTypeOther = "itemTypeOther"
   val keySkills = "keySkills"
   val licenseType = "licenseType"
-  val primarySubject = "primarySubject"
-  val relatedSubject = "relatedSubject"
+  val subjects = "subjects"
   val priorUse = "priorUse"
   val reviewsPassed = "reviewsPassed"
   val sourceUrl = "sourceUrl"
@@ -318,14 +360,16 @@ object Item extends DBQueryable[Item] {
             case Some(foundId) => Some(Json.toJson(Subject.findOneById(foundId).get))
             case _ => None
           }
+          var seqsubjects:Seq[(String,JsValue)] = Seq()
           getSubject(s.primary) match {
-            case Some(found) => iseq = iseq :+ (primarySubject -> found)
+            case Some(found) => seqsubjects = seqsubjects :+ (Subjects.primary -> Json.toJson(found))
             case _ => //do nothing
           }
           getSubject(s.related) match {
-            case Some(found) => iseq = iseq :+ (relatedSubject -> found)
+            case Some(found) => seqsubjects = seqsubjects :+ (Subjects.related -> Json.toJson(found))
             case _ => //do nothing
           }
+          iseq = iseq :+ (subjects -> JsObject(seqsubjects))
         }
         case _ => //
       }
@@ -507,18 +551,6 @@ object Item extends DBQueryable[Item] {
     }
     ),
     QueryFieldObject[Item](primarySubject, _.subjects.get.primary, _ match {
-      case x: BasicDBList => x.foldRight[Either[InternalError, Seq[ObjectId]]](Right(Seq()))((subject, acc) => {
-        acc match {
-          case Right(ids) => subject match {
-            case x: String => try {
-              Right(ids :+ new ObjectId(x))
-            } catch {
-              case e: IllegalArgumentException => Left(InternalError("invalid object id format for primarySubject"))
-            }
-          }
-          case Left(e) => Left(e)
-        }
-      })
       case x: String => try {
         Right(new ObjectId(x))
       } catch {
