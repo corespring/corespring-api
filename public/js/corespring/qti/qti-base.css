@@ -3,11 +3,11 @@ prompt, .choice-prompt {
     display: block;
     margin-bottom: 15px;
 }
-.correctResponse {
+.correct-response {
     display: block;
     color: green;
 }
-.incorrectSelection {
+.incorrect-selection {
     display: block;
     color: red;
 }

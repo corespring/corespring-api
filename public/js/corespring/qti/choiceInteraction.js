@@ -57,17 +57,17 @@ qtiDirectives.directive('simplechoice', function(QtiUtils){
                         }
                         var isSelected = QtiUtils.compare(localScope.value, responseValue);
                         if (localScope.isFeedbackEnabled() != false) {
-                            // give the current choice the correctResponse class if it is the correct response
+                            // give the current choice the correct-response class if it is the correct response
                             if (QtiUtils.compare(localScope.value, correctResponse)) {
-                                element.toggleClass('correctResponse');
+                                element.toggleClass('correct-response');
                             }
 
                             if (isSelected && ( QtiUtils.compare(localScope.value, correctResponse) )) {
                                 // user selected the right response
-                                element.toggleClass('correctSelection');
+                                element.toggleClass('correct-selection');
                             } else if (isSelected) {
                                 // user selected the wrong response
-                                element.toggleClass('incorrectSelection');
+                                element.toggleClass('incorrect-selection');
                             }
                         }
 
