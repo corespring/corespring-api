@@ -355,10 +355,11 @@ object Item extends DBQueryable[Item] {
     try {
       import com.novus.salat.grater
       //newItem.id = oid
-      val toUpdate = ((grater[Item].asDBObject(newItem) - "_id" ) - supportingMaterials ) - data
+      val toUpdate = (((grater[Item].asDBObject(newItem) - "_id" ) - supportingMaterials ) - data) - collectionId
       Item.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> toUpdate), upsert = false, multi = false, wc = Item.collection.writeConcern)
       Item.findOneById(oid) match {
-        case Some(i) => Right(i)
+        case Some(i) =>
+          Right(i)
         case None => Left(InternalError("somehow the document that was just updated could not be found", LogType.printFatal))
       }
     } catch {
