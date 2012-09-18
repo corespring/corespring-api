@@ -52,7 +52,7 @@ object QueryParser{
    * @tparam T
    * @return
    */
-  def buildQuery[T <: AnyRef](query:String, queryable:DBQueryable[T], queryFields:Seq[QueryField[T]] = Seq()):QueryParser = {
+  def buildQuery[T <: AnyRef](query:String, queryable:Queryable[T], queryFields:Seq[QueryField[T]] = Seq()):QueryParser = {
     try{
     JSON.parse(query) match {
       case dbo:DBObject =>

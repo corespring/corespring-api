@@ -219,49 +219,6 @@ case class Copyright(owner: Option[String] = None, year: Option[String] = None)
 case class ItemType(defaultType: Option[String] = None, other: Option[String] = None)
 
 case class Subjects(var primary: Option[ObjectId] = None, var related: Option[ObjectId] = None)
-object Subjects extends Queryable[Subjects]{
-  val primary = "primary";
-  val related = "related"
-
-  implicit object SubjectsWrites extends Writes[Subjects]{
-    def writes(subjects:Subjects) = {
-      def getSubject(id: Option[ObjectId]): Option[JsValue] = id match {
-        case Some(foundId) => Some(Json.toJson(Subject.findOneById(foundId).get))
-        case _ => None
-      }
-      var seqsubjects:Seq[(String,JsValue)] = Seq()
-      getSubject(subjects.primary) match {
-        case Some(found) => seqsubjects = seqsubjects :+ (Subjects.primary -> Json.toJson(found))
-        case _ => //do nothing
-      }
-      getSubject(subjects.related) match {
-        case Some(found) => seqsubjects = seqsubjects :+ (Subjects.related -> Json.toJson(found))
-        case _ => //do nothing
-      }
-      JsObject(seqsubjects)
-    }
-  }
-  implicit object SubjectsReads extends Reads[Subjects]{
-    def reads(json:JsValue):Subjects = {
-      val subjects = Subjects()
-      subjects.primary = try{
-        (json \ primary).asOpt[String].map(new ObjectId(_))
-      }catch{
-        case e:IllegalArgumentException => throw new JsonValidationException(Item.subjects+"."+primary)
-      }
-      subjects.related = try{
-        (json \ related).asOpt[String].map(new ObjectId(_))
-      }catch{
-        case e:IllegalArgumentException => throw new JsonValidationException(Item.subjects+"."+related)
-      }
-      subjects
-    }
-  }
-  val queryFields:Seq[QueryField[Subjects]] = Seq(
-    QueryFieldObject(primary,_.primary,)
-  )
-
-}
 
 case class Item(var collectionId: String = "",
                 var contentType: String = "item",
@@ -299,6 +256,7 @@ object Item extends DBQueryable[Item] {
   val collectionId = Content.collectionId
   val contentType = Content.contentType
   val contributor = "contributor"
+  val copyright = "copyright"
   val copyrightOwner = "copyrightOwner"
   val copyrightYear = "copyrightYear"
   val credentials = "credentials"
@@ -309,6 +267,8 @@ object Item extends DBQueryable[Item] {
   val keySkills = "keySkills"
   val licenseType = "licenseType"
   val subjects = "subjects"
+  val primarySubject = "primarySubject"
+  val relatedSubject = "relativeSubject"
   val priorUse = "priorUse"
   val reviewsPassed = "reviewsPassed"
   val sourceUrl = "sourceUrl"
@@ -362,14 +322,13 @@ object Item extends DBQueryable[Item] {
           }
           var seqsubjects:Seq[(String,JsValue)] = Seq()
           getSubject(s.primary) match {
-            case Some(found) => seqsubjects = seqsubjects :+ (Subjects.primary -> Json.toJson(found))
+            case Some(found) => iseq = iseq :+ (primarySubject -> Json.toJson(found))
             case _ => //do nothing
           }
           getSubject(s.related) match {
-            case Some(found) => seqsubjects = seqsubjects :+ (Subjects.related -> Json.toJson(found))
+            case Some(found) => iseq = iseq :+ (relatedSubject -> Json.toJson(found))
             case _ => //do nothing
           }
-          iseq = iseq :+ (subjects -> JsObject(seqsubjects))
         }
         case _ => //
       }
@@ -413,7 +372,6 @@ object Item extends DBQueryable[Item] {
           }
         )
       }
-
 
       def getSubjects(json: JsValue): Option[Subjects] = {
         try {
@@ -513,8 +471,8 @@ object Item extends DBQueryable[Item] {
       case _ => Left(InternalError("incorrect content type"))
     }),
     QueryFieldString[Item](contributor, _.contributor),
-    QueryFieldString[Item](copyrightOwner, _.copyright.get.owner),
-    QueryFieldString[Item](copyrightYear, _.copyright.get.year),
+    QueryFieldString[Item](copyrightOwner, _.copyright.map(_.owner)),
+    QueryFieldString[Item](copyrightYear, _.copyright.map(_.year)),
     QueryFieldString[Item](credentials, _.credentials, value => {
       value match {
         case x: String => if (fieldValues.credentials.exists(_.key == x)) Right(x) else Left(InternalError("no valid credentials found for given value"))
@@ -550,7 +508,15 @@ object Item extends DBQueryable[Item] {
       case _ => Left(InternalError("invalid value type for licenceType"))
     }
     ),
-    QueryFieldObject[Item](primarySubject, _.subjects.get.primary, _ match {
+    QueryFieldObject[Item](primarySubject, _.subjects.map(_.primary), _ match {
+      case x: String => try {
+        Right(new ObjectId(x))
+      } catch {
+        case e: IllegalArgumentException => Left(InternalError("invalid object id format for standards"))
+      }
+      case _ => Left(InternalError("uknown value type for standards"))
+    }, Subject.queryFields),
+    QueryFieldObject[Item](relatedSubject, _.subjects.map(_.related), _ match {
       case x: String => try {
         Right(new ObjectId(x))
       } catch {
@@ -616,10 +582,16 @@ object Item extends DBQueryable[Item] {
       case Right(builder1) =>
         parseProperty[Subject](dbo, primarySubject, Subject) match {
           case Right(builder2) =>
-            val builder = MongoDBObject.newBuilder
-            builder1.foreach(field => builder += field)
-            builder2.foreach(field => builder += field)
-            QueryParser(Right(builder))
+            parseProperty[Subject](dbo, relatedSubject, Subject) match {
+              case Right(builder3) => {
+                val builder = MongoDBObject.newBuilder
+                builder1.foreach(field => builder += field)
+                builder2.foreach(field => builder += field)
+                builder3.foreach(field => builder += field)
+                QueryParser(Right(builder))
+              }
+              case Left(e) => QueryParser(Left(e))
+            }
           case Left(e) => QueryParser(Left(e))
         }
       case Left(e) => QueryParser(Left(e))

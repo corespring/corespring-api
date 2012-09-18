@@ -21,10 +21,9 @@ trait Queryable[T <: AnyRef]{
    * the attributes of the queryable object, each wrapped in a QueryField
    */
   val queryFields:Seq[QueryField[T]];
-}
-trait DBQueryable[ObjectType <: Identifiable] extends ModelCompanion[ObjectType,ObjectId] with Queryable[ObjectType]{
   def preParse(dbo:DBObject):QueryParser = QueryParser()
 }
+trait DBQueryable[ObjectType <: Identifiable] extends ModelCompanion[ObjectType,ObjectId] with Queryable[ObjectType]
 
 /**
  * used for wrapping the attributes of a queryable object
