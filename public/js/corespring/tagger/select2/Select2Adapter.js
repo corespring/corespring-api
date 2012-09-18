@@ -25,15 +25,7 @@ com.corespring.select2.Select2Adapter = function (ajaxUrl, apiKey, placeholder, 
         if (item == null) {
             return null;
         }
-        if (item._id != null) {
-            return item._id.$oid;
-        }
-        else if (item.refId != null) {
-            return item.refId;
-        }
-        else {
-            return null;
-        }
+        return item.id;
     };
     /**
      * Callback from the select2 directive.

@@ -63,6 +63,21 @@ angular.module('tagger.services')
         delete copy.id;
         delete copy.collectionId;
 
+        /**
+         * We need to only send the ids for items instead of embedded objects
+         * @param item
+         * @return {*}
+         */
+        function convertEmbeddedToOid(item){
+            if(!item || !item.id){
+                throw "No item sent to convertEmbeddedToOid"
+            }
+            return  item.id;
+        }
+
+        copy.primarySubject = convertEmbeddedToOid(copy.primarySubject);
+        copy.standards = _.map(copy.standards, convertEmbeddedToOid);
+
         return ItemService.update(idObject, copy, cb);
     };
 

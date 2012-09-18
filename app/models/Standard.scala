@@ -35,6 +35,7 @@ object Standard extends DBQueryable[Standard]{
     def writes(obj: Standard) = {
       JsObject(
         List(
+          Id -> JsString(obj.id.toString),
           DotNotation -> JsString(obj.dotNotation.getOrElse("")),
           Subject -> JsString(obj.subject.getOrElse("")),
           Category -> JsString(obj.category.getOrElse("")),
