@@ -2,8 +2,74 @@
 <assessmentItem
         identifier="mcas-16373" timeDependent="false" title="16373" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 imsqti_v2p1.xsd" toolName="SIB" adaptive="false" toolVersion="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1">
     <stylesheet type="text/css" href="css/mcas/default.css"></stylesheet>
-    <itemBody>
 
+    <!-- single choice -->
+    <responseDeclaration identifier="mexicanPresident" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>calderon</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- single choice -->
+    <responseDeclaration identifier="irishPresident" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>higgins</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- multi choice -->
+    <responseDeclaration identifier="rainbowColors" cardinality="multiple" baseType="identifier">
+        <correctResponse>
+            <value>blue</value>
+            <value>violet</value>
+            <value>red</value>
+        </correctResponse>
+        <!-- example of mapping score -->
+        <mapping lowerBound="0" upperBound="3" defaultValue="-3">
+            <mapEntry mapKey="blue" mappedValue="1"/>
+            <mapEntry mapKey="violet" mappedValue="1"/>
+            <mapEntry mapKey="red" mappedValue="1"/>
+            <mapEntry mapKey="white" mappedValue="-3"/>
+        </mapping>
+    </responseDeclaration>
+
+    <!-- inline text interaction -->
+    <responseDeclaration identifier="winterDiscontent" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>York</value>
+        </correctResponse>
+        <mapping defaultValue="0">
+            <mapEntry mapKey="York" mappedValue="1"/>
+            <mapEntry mapKey="york" mappedValue="0.5"/>
+        </mapping>
+    </responseDeclaration>
+
+    <!-- orderInteraction -->
+    <responseDeclaration identifier="wivesOfHenry" cardinality="ordered" baseType="identifier">
+        <correctResponse>
+            <value>aragon</value>
+            <value>boleyn</value>
+            <value>seymour</value>
+            <value>cleves</value>
+            <value>howard</value>
+            <value>parr</value>
+        </correctResponse>
+    </responseDeclaration>
+
+
+    <!-- orderInteraction -->
+    <responseDeclaration identifier="cutePugs" cardinality="ordered" baseType="identifier">
+        <correctResponse>
+            <value>pug1</value>
+            <value>pug2</value>
+            <value>pug3</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- extended text interaction -->
+    <responseDeclaration identifier="longAnswer" cardinality="single" baseType="string"/>
+
+    <itemBody>
         <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1">
             <prompt>Who is the President of Mexico?</prompt>
             <simpleChoice identifier="bush"> George W Bush
