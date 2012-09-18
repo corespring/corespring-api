@@ -19,7 +19,7 @@ qtiDirectives.directive('simplechoice', function(QtiUtils){
             var responseIdentifier = choiceInteractionElem.attr('responseidentifier');
 
 
-            var template =  '<div ng-transclude="true"><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div>';
+            var template =  '<div class="choiceInput"><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div><div class="choice-content" ng-transclude></div>';
 
             // now can modify DOM
             tElement.html(template);
