@@ -6,7 +6,7 @@ qtiDirectives.directive("textentryinteraction", function() {
         replace: true,
         scope: true,
         require: '^assessmentitem',
-        template: '<span><div class="textEntryInteraction" style="width: {{expectedLength}}em"></input></span>',
+        template: '<span><div class="text-entry-interaction" style="width: {{expectedLength}}em"></input></span>',
         link: function (scope, element, attrs, AssessmentItemController) {
 
             scope.expectedLength = attrs.expectedlength;
