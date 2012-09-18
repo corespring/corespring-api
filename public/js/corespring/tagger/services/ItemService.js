@@ -74,11 +74,14 @@ angular.module('tagger.services')
             }
             return  item.id;
         }
-
+        copy.relatedSubject = convertEmbeddedToOid(copy.relatedSubject);
         copy.primarySubject = convertEmbeddedToOid(copy.primarySubject);
         copy.standards = _.map(copy.standards, convertEmbeddedToOid);
 
-        return ItemService.update(idObject, copy, cb);
+        return ItemService.update(idObject, copy, function(resource){
+            ItemService.processor.processIncomingData(resource);
+            cb(resource)
+        });
     };
 
 
@@ -97,10 +100,33 @@ angular.module('tagger.services')
     ItemService._currentItemId = null;
     //stash the default get implementation
     ItemService.angularGet = ItemService.get;
+    //ItemService.angularUpdate = ItemService.update;
 
     ItemService._getInProgress = false;
 
     ItemService._getCallbacks = {};
+
+    ItemService.resourceLoaded = function(callback, resource){
+        ItemService._curentItemId = resource.id;
+        ItemService._getInProgress = false;
+        ItemService.processor.processIncomingData(resource);
+        ItemService._currentItemService = new ItemService(resource);
+        callback(ItemService._currentItemService);
+
+        var pendingCallbacks = ItemService._getCallbacks[ItemService._curentItemId];
+
+        if (pendingCallbacks === undefined) {
+            return;
+        }
+        _.forEach(pendingCallbacks, function (pc) {
+            pc(ItemService._currentItemService);
+        });
+
+    };
+
+    //ItemService.update = function(object,callback){
+    //    ItemService.angularUpdate(object, function(resource){ ItemService.resourceLoaded(callback, resource)});
+    //};
 
     /**
      * Several controllers within the edit context would like the itemData object.
@@ -126,23 +152,7 @@ angular.module('tagger.services')
             ItemService._getCallbacks = {};
             ItemService._currentItemId = null;
             ItemService._getInProgress = true;
-
-            ItemService.angularGet(object, function resourceLoaded(resource) {
-                ItemService._curentItemId = resource.id;
-                ItemService._getInProgress = false;
-                ItemService.processor.processIncomingData(resource);
-                ItemService._currentItemService = new ItemService(resource);
-                callback(ItemService._currentItemService);
-
-                var pendingCallbacks = ItemService._getCallbacks[ItemService._curentItemId];
-
-                if (pendingCallbacks === undefined) {
-                    return;
-                }
-                _.forEach(pendingCallbacks, function (pc) {
-                    pc(ItemService._currentItemService);
-                });
-            });
+            ItemService.angularGet(object, function(resource){ ItemService.resourceLoaded(callback, resource) } );
         }
     };
 
