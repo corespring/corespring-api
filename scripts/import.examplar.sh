@@ -1,5 +1,5 @@
 #!/usr/bin/ruby
-puts "hello"
+puts "This scripts performs the necessary steps to do the import from corespring-content. You'll need ruby 1.9.3 installed"
 puts "Step 0: empty the db"
 puts `mongo tdb --eval "db.dropDatabase()"`
 puts "Step 1: port the content tagger db to a corespring-api format"
