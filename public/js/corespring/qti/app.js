@@ -67,7 +67,7 @@ qtiDirectives.directive('itembody', function() {
     return {
         restrict: 'E',
         transclude: true,
-        template: '<span ng-transclude="true"></span><input type="submit" value="submit" ng-disabled="formDisabled" ng-click="onClick()"></input>',
+        template: '<span ng-transclude="true"></span><input type="submit" value="submit" class="submit" ng-disabled="formDisabled" ng-click="onClick()"></input>',
         //replace: true,
         require: '^assessmentitem',
         link: function(scope, element, attrs, AssessmentItemCtrl) {
