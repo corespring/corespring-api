@@ -1,5 +1,7 @@
 {
 	"_id" : { "$oid" : "503fd699e4b02288e5f0ebd0" },
+
+    "lexile" : "100",
 	"data" : {
 		"name" : "data",
 		"files" : [

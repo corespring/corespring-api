@@ -74,16 +74,16 @@ abstract class BaseFile(val name: String, val contentType: String, val isMain: B
 object BaseFile {
 
   object ContentTypes {
-    val JPG : String = "image/jpg"
-    val PNG : String = "image/png"
-    val GIF : String = "image/gif"
-    val DOC : String = "application/msword"
-    val PDF : String = "application/pdf"
-    val XML : String = "text/xml"
-    val CSS : String = "text/css"
-    val HTML : String = "text/html"
-    val TXT : String = "text/txt"
-    val JS : String = "text/javascript"
+    val JPG: String = "image/jpg"
+    val PNG: String = "image/png"
+    val GIF: String = "image/gif"
+    val DOC: String = "application/msword"
+    val PDF: String = "application/pdf"
+    val XML: String = "text/xml"
+    val CSS: String = "text/css"
+    val HTML: String = "text/html"
+    val TXT: String = "text/txt"
+    val JS: String = "text/javascript"
   }
 
   val SuffixToContentTypes = Map(
@@ -121,11 +121,13 @@ object BaseFile {
 
       val name = (json \ "name").asOpt[String].getOrElse("unknown")
       val contentType = (json \ "contentType").asOpt[String].getOrElse(getContentType(name))
-      val isMain = (json\ "default").asOpt[Boolean].getOrElse(false)
+      val isMain = (json \ "default").asOpt[Boolean].getOrElse(false)
 
 
-      (json\ "content").asOpt[String] match {
-        case Some(content) => { VirtualFile(name, contentType, isMain, content) }
+      (json \ "content").asOpt[String] match {
+        case Some(content) => {
+          VirtualFile(name, contentType, isMain, content)
+        }
         case _ => StoredFile(name, contentType, isMain) //we are missing the storageKey here 
       }
     }
@@ -229,6 +231,7 @@ case class Item(var collectionId: String = "",
                 var reviewsPassed: Seq[String] = Seq(),
                 var sourceUrl: Option[String] = None,
                 var standards: Seq[ObjectId] = Seq(),
+                var lexile: Option[String] = None,
                 var title: Option[String] = None,
                 var data: Option[Resource] = None,
                 var supportingMaterials: Seq[Resource] = Seq(),
@@ -264,16 +267,19 @@ object Item extends DBQueryable[Item] {
   val sourceUrl = "sourceUrl"
   val standards = "standards"
   val title = "title"
-  //val xmlData = "xmlData"
+  val lexile = "lexile"
   val data = "data"
   val supportingMaterials = "supportingMaterials"
 
   lazy val fieldValues = FieldValue.findOne(MongoDBObject(FieldValue.Version -> FieldValuesVersion)).getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
 
   implicit object ItemWrites extends Writes[Item] {
+
     def writes(item: Item) = {
+
       var iseq: Seq[(String, JsValue)] = Seq("id" -> JsString(item.id.toString))
       item.author.foreach(v => iseq = iseq :+ (author -> JsString(v)))
+      item.lexile.foreach(v => iseq = iseq :+ (lexile -> JsString(v)))
       iseq = iseq :+ (collectionId -> JsString(item.collectionId))
       iseq = iseq :+ (contentType -> JsString(ContentType.item))
       item.contributor.foreach(v => iseq = iseq :+ (contributor -> JsString(v)))
@@ -309,6 +315,7 @@ object Item extends DBQueryable[Item] {
       val item = Item("")
       item.collectionId = (json \ collectionId).asOpt[String].getOrElse("") //must do checking outside of json deserialization
       item.author = (json \ author).asOpt[String]
+      item.lexile = (json \ lexile).asOpt[String]
       item.contributor = (json \ contributor).asOpt[String]
       item.copyrightOwner = (json \ copyrightOwner).asOpt[String]
       item.copyrightYear = (json \ copyrightYear).asOpt[String]
@@ -326,10 +333,10 @@ object Item extends DBQueryable[Item] {
       item.itemTypeOther = (json \ itemTypeOther).asOpt[String]
       item.keySkills = (json \ keySkills).asOpt[Seq[String]].getOrElse(Seq.empty)
       item.licenseType = (json \ licenseType).asOpt[String]
-      try{
-      item.primarySubject = (json \ primarySubject).asOpt[String].map(new ObjectId(_))
-      }catch{
-        case e:IllegalArgumentException => throw new JsonValidationException(primarySubject)
+      try {
+        item.primarySubject = (json \ primarySubject).asOpt[String].map(new ObjectId(_))
+      } catch {
+        case e: IllegalArgumentException => throw new JsonValidationException(primarySubject)
       }
       item.priorUse = (json \ priorUse).asOpt[String]
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
@@ -469,44 +476,45 @@ object Item extends DBQueryable[Item] {
   )
 
   override def preParse(dbo: DBObject): QueryParser = {
-//    val qp = QueryParser.buildQuery(dbo, QueryParser(), Seq(queryFields.find(_.key == standards).get))
-//    qp.result match {
-//      case Right(query) =>
-//        val dbquery = query.result()
-//        QueryParser.replaceKeys(dbquery, Standard.queryFields.map(qf => standards + "." + qf.key -> qf.key))
-//        val builder = MongoDBObject.newBuilder
-//        if (!dbquery.isEmpty) {
-//          val c = Standard.find(dbquery, MongoDBObject("_id" -> 1))
-//          val builderList = MongoDBList.newBuilder
-//          if (!c.isEmpty) {
-//            c.foreach(builderList += _.id)
-//            builder += (standards -> MongoDBObject("$in" -> builderList.result()))
-//          }
-//        }
-//        QueryParser.removeKeys(dbo, Standard.queryFields.foldRight[Seq[String]](Seq(standards))((qf, acc) => acc :+ standards + "." + qf.key))
-//        QueryParser(Right(builder))
-//      case Left(e) => QueryParser(Left(e))
-//    }
-    parseProperty[Standard](dbo,standards,Standard) match {
+    //    val qp = QueryParser.buildQuery(dbo, QueryParser(), Seq(queryFields.find(_.key == standards).get))
+    //    qp.result match {
+    //      case Right(query) =>
+    //        val dbquery = query.result()
+    //        QueryParser.replaceKeys(dbquery, Standard.queryFields.map(qf => standards + "." + qf.key -> qf.key))
+    //        val builder = MongoDBObject.newBuilder
+    //        if (!dbquery.isEmpty) {
+    //          val c = Standard.find(dbquery, MongoDBObject("_id" -> 1))
+    //          val builderList = MongoDBList.newBuilder
+    //          if (!c.isEmpty) {
+    //            c.foreach(builderList += _.id)
+    //            builder += (standards -> MongoDBObject("$in" -> builderList.result()))
+    //          }
+    //        }
+    //        QueryParser.removeKeys(dbo, Standard.queryFields.foldRight[Seq[String]](Seq(standards))((qf, acc) => acc :+ standards + "." + qf.key))
+    //        QueryParser(Right(builder))
+    //      case Left(e) => QueryParser(Left(e))
+    //    }
+    parseProperty[Standard](dbo, standards, Standard) match {
       case Right(builder1) =>
-        parseProperty[Subject](dbo,primarySubject,Subject) match {
-        case Right(builder2) =>
-          val builder = MongoDBObject.newBuilder
-          builder1.foreach(field => builder += field)
-          builder2.foreach(field => builder += field)
-          QueryParser(Right(builder))
-        case Left(e) => QueryParser(Left(e))
-      }
+        parseProperty[Subject](dbo, primarySubject, Subject) match {
+          case Right(builder2) =>
+            val builder = MongoDBObject.newBuilder
+            builder1.foreach(field => builder += field)
+            builder2.foreach(field => builder += field)
+            QueryParser(Right(builder))
+          case Left(e) => QueryParser(Left(e))
+        }
       case Left(e) => QueryParser(Left(e))
     }
   }
-  private def parseProperty[T <: Identifiable](dbo: DBObject, key:String, joinedQueryable:DBQueryable[T]):Either[InternalError,Seq[(String,Any)]] = {
+
+  private def parseProperty[T <: Identifiable](dbo: DBObject, key: String, joinedQueryable: DBQueryable[T]): Either[InternalError, Seq[(String, Any)]] = {
     val qp = QueryParser.buildQuery(dbo, QueryParser(), Seq(queryFields.find(_.key == key).get))
     qp.result match {
       case Right(query) =>
         val dbquery = query.result()
         QueryParser.replaceKeys(dbquery, joinedQueryable.queryFields.map(qf => key + "." + qf.key -> qf.key))
-        var builder:Seq[(String,Any)] = Seq()
+        var builder: Seq[(String, Any)] = Seq()
         if (!dbquery.isEmpty) {
           val c = joinedQueryable.find(dbquery, MongoDBObject("_id" -> 1))
           val builderList = MongoDBList.newBuilder
