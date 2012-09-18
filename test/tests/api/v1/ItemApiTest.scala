@@ -17,11 +17,12 @@ import play.api.test.FakeHeaders
 import play.api.libs.json.JsString
 import scala.Some
 import play.api.mvc.AnyContentAsJson
+import org.bson.types.ObjectId
 
-/**
- *
- */
 class ItemApiTest extends BaseTest {
+
+  val TEST_COLLECTION_ID : String = "5001bb0ee4b0d7c9ec3210a2"
+
   "list all items" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s".format(token))
     val Some(result) = routeAndCall(fakeRequest)
@@ -118,7 +119,7 @@ class ItemApiTest extends BaseTest {
   }
 
   "create response does not include csFeedbackIds" in {
-    val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> "5001bb0ee4b0d7c9ec3210a2"))
+    val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> TEST_COLLECTION_ID))
     val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
     val result = routeAndCall(fakeRequest).get
     status(result) must equalTo(OK)
@@ -127,7 +128,7 @@ class ItemApiTest extends BaseTest {
   }
 
   "create does not accept id" in {
-    val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> "5001bb0ee4b0d7c9ec3210a2"))
+    val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> TEST_COLLECTION_ID))
     var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
     var result = routeAndCall(fakeRequest).get
     status(result) must equalTo(OK)
@@ -141,21 +142,40 @@ class ItemApiTest extends BaseTest {
   }
 
   "update does not accept collection id" in {
-    val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> "5001bb0ee4b0d7c9ec3210a2"))
+    val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> TEST_COLLECTION_ID))
     var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
     var result = routeAndCall(fakeRequest).get
     status(result) must equalTo(OK)
     val itemId = (Json.parse(contentAsString(result)) \ "id").as[String]
 
-    val toUpdate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> "5001bb0ee4b0d7c9ec3210a2"))
+    val toUpdate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> TEST_COLLECTION_ID))
     fakeRequest = FakeRequest(PUT, "/api/v1/items/%s?access_token=%s".format(itemId, token), FakeHeaders(), AnyContentAsJson(toUpdate))
     result = routeAndCall(fakeRequest).get
     val collection = Json.parse(contentAsString(result))
     (collection \ "code").as[Int] must equalTo(CollIdNotNeeded.code)
   }
 
+  "update with no collectionId returns the item's stored collection id" in {
+
+    val toCreate = xmlBody("<root/>", Map("collectionId" -> TEST_COLLECTION_ID))
+    val call = api.v1.routes.ItemApi.createItem()
+    val createResult = routeAndCall( FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsJson(toCreate))).get
+    status(createResult) must equalTo(OK)
+    val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
+    val toUpdate = xmlBody("<root2/>", Map(Item.author -> "Ed"))
+
+    val updateCall = api.v1.routes.ItemApi.updateItem(new ObjectId(id))
+
+    val updateResult = routeAndCall(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
+    status(updateResult) must equalTo(OK)
+    val item : Item = Json.parse(contentAsString(updateResult)).as[Item]
+
+    item.collectionId must equalTo(TEST_COLLECTION_ID)
+  }
+
+
   "update does not include csFeedbackIds" in {
-    val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> "5001bb0ee4b0d7c9ec3210a2"))
+    val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> TEST_COLLECTION_ID))
     var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
     var result = routeAndCall(fakeRequest).get
     status(result) must equalTo(OK)
@@ -166,13 +186,12 @@ class ItemApiTest extends BaseTest {
     result = routeAndCall(fakeRequest).get
     status(result) must equalTo(OK)
 
-
     val xmlFileContents: Seq[String] = getXMLContentFromResponse(contentAsString(result))
     xmlFileContents.foreach(_ must not(beMatching(".*csFeedbackId.*")))
   }
 
   "get item data with feedback contains csFeedbackIds" in {
-    val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> "5001bb0ee4b0d7c9ec3210a2"))
+    val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> TEST_COLLECTION_ID))
     val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
     var result = routeAndCall(fakeRequest).get
     status(result) must equalTo(OK)
@@ -189,7 +208,7 @@ class ItemApiTest extends BaseTest {
 
   // Next step is to make this pass...
   "item body without outcomeIdentifiers for feedback adds them" in {
-    val toCreate = xmlBody("<html><choiceInteraction responseIdentifier=\"irishPresident\"><simpleChoice identifier=\"higgins\"><feedbackInline><b>Correct!</b> Michael D. Higgins is the president of Ireland</feedbackInline></simpleChoice></choiceInteraction></html>", Map("collectionId" -> "5001bb0ee4b0d7c9ec3210a2"))
+    val toCreate = xmlBody("<html><choiceInteraction responseIdentifier=\"irishPresident\"><simpleChoice identifier=\"higgins\"><feedbackInline><b>Correct!</b> Michael D. Higgins is the president of Ireland</feedbackInline></simpleChoice></choiceInteraction></html>", Map("collectionId" -> TEST_COLLECTION_ID))
     val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
     val result = routeAndCall(fakeRequest).get
     status(result) must equalTo(OK)
