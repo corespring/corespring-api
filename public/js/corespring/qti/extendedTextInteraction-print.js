@@ -5,10 +5,10 @@ qtiDirectives.directive("extendedtextinteraction", function() {
     return {
         restrict: 'E',
         replace: true,
-        template: '<div class="extendedTextInteraction"></div>',
+        template: '<div class="extended-text-interaction"></div>',
         compile: function(element, attrs, transclude){
             var newElement = element;
-            //var newElement = angular.element('<div class="extendedTextInteraction"></div>') ;
+            //var newElement = angular.element('<div class="extended-text-interaction"></div>') ;
 
             // create a div for each line
             var numLines = 4;
