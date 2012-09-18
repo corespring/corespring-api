@@ -16,7 +16,7 @@ qtiDirectives.directive("extendedtextinteraction", function() {
                 numLines = attrs.expectedlines;
             }
             for (i=0; i<=numLines; i++) {
-                newElement.append('<div class="extendedTextLine"/>')
+                newElement.append('<div class="extended-text-line"/>')
             }
 
             element.html(newElement.html());
