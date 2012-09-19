@@ -136,6 +136,10 @@ object ItemPlayer extends BaseApi {
       scriptSuffix + ".js\"></script>\n" +
       "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/extendedTextInteraction" + scriptSuffix + ".css\" />"
 
+    val tabScripts = "<script src=\"/assets/js/corespring/qti/tabs" +
+      scriptSuffix + ".js\"></script>\n" +
+      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/tabs" + scriptSuffix + ".css\" />"
+
     // map of elements and the scripts needed to process them
     // can't concatenate string in map value apparently, so using replace()
     val elementScriptsMap = Map (
@@ -143,6 +147,7 @@ object ItemPlayer extends BaseApi {
       "orderInteraction" -> orderInteractionScripts,
       "textEntryInteraction" -> textEntryInteractionScripts,
       "extendedTextInteraction" -> extendedTextInteractionScripts,
+      "tabs" -> tabScripts,
       "math" -> "<script type=\"text/javascript\" src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"></script>"
     )
 

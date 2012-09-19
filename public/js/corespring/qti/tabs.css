@@ -1,0 +1,74 @@
+.tab-panel {
+    margin: 0 0 9px 0;
+  	padding:0px;
+   	font-family: 'Ubuntu';
+ 	border-bottom:1px #cacaca solid;
+   	padding-bottom:4px;
+   	margin-bottom:12px;
+    position:relative;
+   	overflow:hidden;
+
+}
+
+.tabs {
+    padding: 0 0 0 5px;
+    margin: 0px;
+}
+
+.tab-panel .tabs ul {
+    padding: 0px;
+    margin: 0px;
+    list-style: none;
+}
+
+.tabs ul.tabs {
+    position: absolute;
+    z-index: 500;
+    top: 1px;
+}
+
+.tab-panel .tabs li {
+    list-style: none;
+    display: inline;
+}
+
+.tab-panel .tabs a {
+    font-family: 'Ubuntu';
+    font-weight: bold;
+    padding: 10px 10px;
+    display: inline-block;
+    background: #666;
+    color: #dcddde;
+    font-size: 14px;
+    height: 20px;
+    position: relative;
+    top: 1px;
+    border: 1px #b2b2b2 solid;
+    text-decoration: none;
+    border-bottom: none;
+}
+
+.tab-panel .tabs a.active {
+    background: #fff;
+    color: #000;
+    border: 1px #b2b2b2 solid;
+    border-bottom: none;
+}
+
+.tab-panel .tab-box {
+    margin: 0px;
+    padding: 0px;
+    border: 1px #b2b2b2 solid;
+    background: #fff;
+}
+
+.tab-box .paragraph-style {
+    font-family: 'Ubuntu';
+    color: #4d4d4f;
+    padding: 5px;
+    line-height: 18.8px;
+    font-size: 14px;
+    background: #fff;
+    height: 300px;
+    overflow-y: scroll;
+}
