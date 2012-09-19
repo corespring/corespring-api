@@ -1,5 +1,6 @@
 package tests
 
+import _root_.models.Item
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -10,7 +11,6 @@ import scala.Some
 import play.api.test.FakeHeaders
 import scala.Some
 import org.bson.types.ObjectId
-import models.Item
 
 
 /**

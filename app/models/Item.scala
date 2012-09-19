@@ -216,8 +216,6 @@ object Resource {
 
 case class Copyright(owner: Option[String] = None, year: Option[String] = None)
 
-case class ItemType(defaultType: Option[String] = None, other: Option[String] = None)
-
 case class Subjects(var primary: Option[ObjectId] = None, var related: Option[ObjectId] = None)
 
 case class Item(var collectionId: String = "",
@@ -227,7 +225,7 @@ case class Item(var collectionId: String = "",
                 var copyright: Option[Copyright] = None,
                 var credentials: Option[String] = None,
                 var gradeLevel: Seq[String] = Seq(),
-                var itemType: Option[ItemType] = None,
+                var itemType: Option[String] = None,
                 var keySkills: Seq[String] = Seq(),
                 var licenseType: Option[String] = None,
                 var subjects: Option[Subjects] = None,
@@ -263,12 +261,11 @@ object Item extends DBQueryable[Item] {
   val files = "files"
   val gradeLevel = "gradeLevel"
   val itemType = "itemType"
-  val itemTypeOther = "itemTypeOther"
   val keySkills = "keySkills"
   val licenseType = "licenseType"
   val subjects = "subjects"
   val primarySubject = "primarySubject"
-  val relatedSubject = "relativeSubject"
+  val relatedSubject = "relatedSubject"
   val priorUse = "priorUse"
   val reviewsPassed = "reviewsPassed"
   val sourceUrl = "sourceUrl"
@@ -301,15 +298,7 @@ object Item extends DBQueryable[Item] {
       item.credentials.foreach(v => iseq = iseq :+ (credentials -> JsString(v)))
       if (!item.supportingMaterials.isEmpty) iseq = iseq :+ (supportingMaterials -> JsArray(item.supportingMaterials.map(Json.toJson(_))))
       if (!item.gradeLevel.isEmpty) iseq = iseq :+ (gradeLevel -> JsArray(item.gradeLevel.map(JsString(_))))
-
-      item.itemType match {
-        case Some(it) => {
-          it.defaultType.foreach(v => iseq = iseq :+ (itemType -> JsString(v)))
-          it.other.foreach(v => iseq = iseq :+ (itemTypeOther -> JsString(v)))
-        }
-        case _ => //do nothing
-      }
-
+      item.itemType.foreach(v => iseq = iseq :+ (itemType -> JsString(v)))
       if (!item.keySkills.isEmpty) iseq = iseq :+ (keySkills -> JsArray(item.keySkills.map(JsString(_))))
       item.licenseType.foreach(v => iseq = iseq :+ (licenseType -> JsString(v)))
 
@@ -362,17 +351,6 @@ object Item extends DBQueryable[Item] {
           (s: Seq[Option[String]]) => Copyright(s(0), s(1)))
       }
 
-      def getItemType(json: JsValue): Option[ItemType] = {
-        get[ItemType](
-          json,
-          Seq(itemType, itemTypeOther),
-          (s: Seq[Option[String]]) => {
-            s(0).map(v => if (fieldValues.itemTypes.exists(_.key == v)) v else throw new JsonValidationException(itemType))
-            ItemType(s(0), s(1))
-          }
-        )
-      }
-
       def getSubjects(json: JsValue): Option[Subjects] = {
         try {
 
@@ -414,7 +392,11 @@ object Item extends DBQueryable[Item] {
       item.supportingMaterials = (json \ supportingMaterials).asOpt[Seq[Resource]].getOrElse(Seq())
       item.gradeLevel = (json \ gradeLevel).asOpt[Seq[String]].getOrElse(Seq.empty)
 
-      item.itemType = getItemType(json)
+      (json \ itemType).asOpt[String] match {
+        case Some(foundType) => item.itemType = Some(foundType)
+        case _ => //do nothing
+      }
+
 
       item.credentials = (json \ credentials).asOpt[String].
         map(v => if (fieldValues.credentials.exists(_.key == v)) v else throw new JsonValidationException(credentials))
@@ -490,13 +472,17 @@ object Item extends DBQueryable[Item] {
           Left(InternalError("invalid type for value in gradeLevel"))
       }
     }),
-    QueryFieldString[Item](itemType, _.itemType, value => {
+
+    /**
+     * TODO: Check with Evan/Josh about item types.
+     */
+    QueryFieldString[Item](itemType, _.itemType),
+    /*QueryFieldString[Item](itemType, _.itemType, value => {
       value match {
         case x: String => if (fieldValues.itemTypes.exists(_.key == x)) Right(value) else Left(InternalError("could not find valid item types for value"))
         case _ => Left(InternalError("invalid type for value in itemType"))
       }
-    }),
-    QueryFieldString[Item](itemTypeOther, _.itemType.get.other),
+    }),*/
     QueryFieldStringArray[Item](keySkills, _.keySkills, value => value match {
       case skills: BasicDBList => if (skills.foldRight[Boolean](true)((skill, acc) => fieldValues.keySkills.exists(_.key == skill.toString) && acc)) Right(value)
       else Left(InternalError("key skill not found for given value"))
