@@ -54,6 +54,45 @@ class ItemSessionApiTest extends Specification {
   }
 
 
+  /**
+   * TODO - implement these tests...
+   * @see https://trello.com/card/implement-itemsession-sessiondata-api/500f0e4cf207c721072011c1/27
+   */
+  "item session data resource" should {
+    "be available at /api/vi/itemsession/:id/sessiondata" in {
+      pending
+    }
+
+    "contain feedback contents for all feedback elements in the xml" in {
+      /**
+       * See mock in qtiServices.js
+       * the response should contain an object feedbackContents with properties from csFeedbackIds that hold the body of feedback content
+       * e.g. feedbackContents.50083ba9e4b071cb5ef79101-1 = "Correct, Felipe calderon is president of Mexico"
+       */
+      pending
+    }
+
+    "contain correctResponse object with all correctresponses available" in {
+      /**
+       * See mock in qtiServices.js
+       * sessiondata.correctResponses should contain properties with the correct responses as defined in the QTI
+       * e.g.  correctResponses.irishPresident == "higgins", correctResponse.rainbowColors == "['red','blue', 'violet']"
+       * correctResponse.wivesOfHendry == ["aragon", "boleyn" ... etc
+       *
+       * See the test item 50083ba9e4b071cb5ef79101
+       */
+      pending
+    }
+
+    "only return session data for an item seession if response was already submitted" in {
+      /**
+       * Low priority for now
+       */
+      pending
+    }
+
+  }
+
   "item session api" should {
 
     "return feedback with session" in {
