@@ -44,9 +44,16 @@
                     <a ng-click="changeSupportingMaterialPanel(sm)">{{sm.name}}</a>
                 </li>
 
+                <li class="pull-right">
+                    <a ng-click="printCurrent()">
+                        <img src="/assets/images/print.png" alt="Print"/></a>
+                    </a>
+                </li>
+
                 <li class="pull-right" ng-class="{true: 'active', false:''}[currentPanel=='profile']">
                     <a ng-click="changePanel('profile')">Profile</a>
                 </li>
+
             </ul>
 
         </div>
