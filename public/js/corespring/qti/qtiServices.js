@@ -14,8 +14,11 @@ qtiServices
 }]
 );
 
-/*
+/**
+ *
  * Mock Resource Service
+ * When the item player loads it will be given an itemSessionId of a session that was already
+ * created, it will load those properties by calling the get() method
  */
 qtiServices
     .factory('AssessmentSessionService', ['$resource', function ($resource) {
@@ -35,8 +38,7 @@ qtiServices
     AssessmentSessionService.update = function(session) {
         // i'm guessing that outcome variables would be declared in base scope like this...
         session.score = 1;
-        // putting an outcome property for each response, but maybe they should just be
-        // at response.score instead of response.outcome.score ?
+
         for(var i=0, len=session.responses.length; i < len; i++){
             var response = session.responses[i];
             response.outcome = {score: 1};
@@ -52,16 +54,23 @@ qtiServices
 }]
 );
 
-
+/**
+ * This might be implemented as part of ItemSessionAPI, but under a different route
+ * like /api/v1/itemsession/:itemSessionId/sessiondata
+ */
 qtiServices
     .factory('SessionDataService', ['$resource', function ($resource) {
     var SessionDataService = {};
 
     SessionDataService.get = function(obj) {
-        // when we switch to using resource it uses {id: someId} obj type args
+        // when we switch to using resource obj will be {id: someId}
         // id will be the item session id
         // TODO - the server implementation would need to ensure that response was already submitted before returning this data
         // responses may not be submitted more than once unless the runtime options for the item session allow that
+
+        // This is mock data
+        // The server will need to create the feedbackContents object
+        // the properties will be the csFeedbackIds that were specified in the xml (or automatically added to the xml)
         var data = {};
         data.feedbackContents = {};
         data.feedbackContents.bush = "George Bush was president of the USA";
@@ -81,6 +90,8 @@ qtiServices
         data.feedbackContents.fbWinter = "York is correct";
 
         // sessionData correct responses
+        // server service will need to process the QTI and prepare this object with the correct responses
+        // using e.b. <responseDeclaration idenfifier="mexicanPresident"
         data.correctResponse = {};
         data.correctResponse.mexicanPresident = 'calderon';
         data.correctResponse.irishPresident = 'higgins';
