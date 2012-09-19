@@ -27,9 +27,17 @@
 		{ "$oid" : "4ff47f6d6bb41e469c0bea35" }
 	],
 	"itemType" : "Multiple Choice",
-	"copyright" : {
-		"owner" : "New Jersey Department of Education",
-		"year" : "2012"
+	"contributorDetails" : {
+		"contributor" : "New Jersey Department of Education",
+		"credentials" : "State Department of Education",
+		"author" : "New Jersey Department of Education",
+		"sourceUrl" : "http://www.state.nj.us/education/modelcurriculum/math/2u1.shtml",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New Jersey Department of Education",
+			"year" : "2012"
+		}
 	},
 	"workflow" : {
 		"setup" : true,
@@ -43,11 +51,6 @@
 		"Arrange"
 	],
 	"title" : "Jill is counting bundles of pennies. Each bundle has 100 pennies and she has 8 bundles. Which shows the best way to count all of the pennies?",
-	"contributor" : "New Jersey Department of Education",
-	"author" : "New Jersey Department of Education",
-	"credentials" : "State Department of Education",
-	"sourceUrl" : "http://www.state.nj.us/education/modelcurriculum/math/2u1.shtml",
-	"licenseType" : "CC BY",
 	"priorUse" : "Formative",
 	"bloomsTaxonomy" : "Apply",
 	"relatedCurriculum" : "New Jersey Department of Education Model",

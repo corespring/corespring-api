@@ -20,9 +20,17 @@
 		{ "$oid" : "4ff47f6e6bb41e469c0beaf2" }
 	],
 	"itemType" : "Activity",
-	"copyright" : {
-		"owner" : "New Jersey Department of Education",
-		"year" : "2012"
+	"contributorDetails" : {
+		"contributor" : "New Jersey Department of Education",
+		"credentials" : "State Department of Education",
+		"author" : "New Jersey Department of Education",
+		"sourceUrl" : "http://www.state.nj.us/education/modelcurriculum/math/7u1.shtml",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New Jersey Department of Education",
+			"year" : "2012"
+		}
 	},
 	"workflow" : {
 		"setup" : false,
@@ -32,11 +40,6 @@
 	},
 	"keySkills" : [ ],
 	"title" : "A bird was sitting on a branch 1<math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mfrac>\n    <mrow>\n     <mn>1</mn>\n    </mrow>\n    <mrow>\n     <mn>2</mn>\n    </mrow>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">{1} over {2} </annotation>\n </semantics>\n</math> feet above the surface of a lake. The bird saw a fish and dove 2<math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mfrac>\n    <mrow>\n     <mn>1</mn>\n    </mrow>\n    <mrow>\n     <mn>4</mn>\n    </mrow>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">{1} over {4} </annotation>\n </semantics>\n</math> feet straight down to catch it. On the worksheet provided, use the number line to show how to find the depth, in feet, of where the bird caught the fish.",
-	"contributor" : "New Jersey Department of Education",
-	"author" : "New Jersey Department of Education",
-	"credentials" : "State Department of Education",
-	"licenseType" : "CC BY",
-	"sourceUrl" : "http://www.state.nj.us/education/modelcurriculum/math/7u1.shtml",
 	"gradeLevel" : [
 		"07"
 	],
@@ -72,18 +75,6 @@
 					"contentType" : "image/png",
 					"isMain" : false,
 					"storageKey" : "5040da52e4b0d43b60f3a011/materials/Scoring Guide/G7.1.2.ScoreGuidea.png"
-				}
-			]
-		},
-		{
-			"name" : "G7.1.2.worksheet",
-			"files" : [
-				{
-					"_t" : "models.StoredFile",
-					"name" : "G7.1.2.worksheet.pdf",
-					"contentType" : "application/pdf",
-					"isMain" : true,
-					"storageKey" : "5040da52e4b0d43b60f3a011/materials/G7.1.2.worksheet/G7.1.2.worksheet.pdf"
 				}
 			]
 		}

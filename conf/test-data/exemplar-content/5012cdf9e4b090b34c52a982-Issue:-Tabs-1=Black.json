@@ -24,9 +24,17 @@
 		{ "$oid" : "4ff47f6b6bb41e469c0be734" }
 	],
 	"itemType" : "Text with Questions",
-	"copyright" : {
-		"owner" : "New York State Education Department",
-		"year" : "2012"
+	"contributorDetails" : {
+		"contributor" : "New York State Education Department",
+		"credentials" : "State Department of Education",
+		"author" : "New York State Education Department",
+		"sourceUrl" : "www.p12.nysed.gov/apda/common-core-sample-questions",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New York State Education Department",
+			"year" : "2012"
+		}
 	},
 	"workflow" : {
 		"setup" : false,
@@ -39,14 +47,9 @@
 	],
 	"title" : "Issue: Tabs 1=Black Beauty Tab2 = Secret Garden\n\nRead the passages <i>Black Beauty</i> by Anna Sewell and <i>The Secret Garden</i> by Frances Hodgson Burnett and respond to questions to demonstrate understanding.",
 	"materialType" : "Assessment Other",
-	"credentials" : "State Department of Education",
-	"licenseType" : "CC BY",
 	"keySkills" : [ ],
 	"reviewsPassed" : [
 		"Editorial"
 	],
-	"sourceUrl" : "www.p12.nysed.gov/apda/common-core-sample-questions",
-	"contributor" : "New York State Education Department",
-	"author" : "New York State Education Department",
 	"priorUse" : "Formative"
 }

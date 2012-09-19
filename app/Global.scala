@@ -117,14 +117,12 @@ object Global extends GlobalSettings {
     val ExemplarContent = "exemplar-content"
 
     //load examplar content
-    /*
+
     val folder : File = Play.getFile(basePath + ExemplarContent)
     for (file <- folder.listFiles) {
       Logger.info("adding: " + file.getName)
       jsonFileToItem(basePath + ExemplarContent + "/" + file.getName, Content.collection, drop = false)
     }
-     */
-    jsonFileToItem(basePath + ExemplarContent + "/5020025fe4b0b0fa073aa3d7-The-shapes-of.json", Content.collection, drop = false)
 
     //Subjects and standards
     jsonFileListToDb(basePath + "subjects.json", Subject.collection)

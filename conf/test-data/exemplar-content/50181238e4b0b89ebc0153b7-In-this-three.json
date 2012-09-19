@@ -27,9 +27,17 @@
 		{ "$oid" : "4ff47f6e6bb41e469c0beb14" }
 	],
 	"itemType" : "Constructed Response - Short Answer",
-	"copyright" : {
-		"owner" : "New York State Education Department",
-		"year" : "2012"
+	"contributorDetails" : {
+		"contributor" : "New York State Education Department",
+		"credentials" : "State Department of Education",
+		"author" : "New York State Education Department",
+		"sourceUrl" : "www.p12.nysed.gov/apda/common-core-sample-questions",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New York State Education Department",
+			"year" : "2012"
+		}
 	},
 	"workflow" : {
 		"setup" : false,
@@ -38,12 +46,7 @@
 		"qaReview" : false
 	},
 	"title" : "In this three part activity, give the sample space to show all possible outcomes for a given problem, calculate the outcomes given specific parameters, and calculate expected results based on the number of students in the class.",
-	"sourceUrl" : "www.p12.nysed.gov/apda/common-core-sample-questions",
-	"contributor" : "New York State Education Department",
-	"author" : "New York State Education Department",
 	"materialType" : "Assessment Item",
-	"credentials" : "State Department of Education",
-	"licenseType" : "CC BY",
 	"priorUse" : "Formative",
 	"reviewsPassed" : [
 		"Editorial"

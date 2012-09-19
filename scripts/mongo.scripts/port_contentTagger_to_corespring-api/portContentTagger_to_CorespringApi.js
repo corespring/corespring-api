@@ -143,6 +143,21 @@ function copyright(from, to){
     }
 }
 
+function contributorDetails(from, to){
+
+    to.contributorDetails = {};
+    var details = to.contributorDetails;
+    details.contributor = from.contributor;
+    details.credentials = from.credentials;
+    details.author = from.author;
+    details.sourceUrl = from.sourceUrl;
+    details.licenseType = from.licenseType;
+    details.costForResource = from.costForResource;
+
+    copyright(from, details);
+}
+
+
 var ignoredProperties = ["files",
     "xmlData",
     "_id",
@@ -153,8 +168,15 @@ var ignoredProperties = ["files",
     "_typeHint",
     "itemType",
     "itemTypeOther",
+    "contributor",
+    "credentials",
     "copyrightOwner",
     "copyrightYear",
+    "copyrightExpirationDate",
+    "author",
+    "sourceUrl",
+    "licenseType",
+    "costForResource",
     "primaryStandard"];
 
 function convertLiveItemToApiItem(item) {
@@ -167,7 +189,7 @@ function convertLiveItemToApiItem(item) {
     subjects_obj_to_id(item, target);
     standards_obj_to_id(item, target);
     itemType(item, target);
-    copyright(item, target);
+    contributorDetails(item, target);
 
     for (var x in item) {
 

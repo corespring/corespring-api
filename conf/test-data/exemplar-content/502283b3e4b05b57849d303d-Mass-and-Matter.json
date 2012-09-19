@@ -25,9 +25,17 @@
 	},
 	"standards" : [ ],
 	"itemType" : "Performance Task",
-	"copyright" : {
-		"owner" : "New England Common Assessment Program",
-		"year" : "2010"
+	"contributorDetails" : {
+		"contributor" : "New England Common Assessment Program",
+		"credentials" : "State Department of Education",
+		"author" : "New England Common Assessment Program",
+		"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New England Common Assessment Program",
+			"year" : "2010"
+		}
 	},
 	"workflow" : {
 		"setup" : false,
@@ -37,11 +45,6 @@
 	},
 	"keySkills" : [ ],
 	"title" : "Mass and Matter Experiment - Part 3 - Analyzing and Using Results",
-	"contributor" : "New England Common Assessment Program",
-	"author" : "New England Common Assessment Program",
-	"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
-	"credentials" : "State Department of Education",
-	"licenseType" : "CC BY",
 	"priorUse" : "Summative",
 	"gradeLevel" : [
 		"08"

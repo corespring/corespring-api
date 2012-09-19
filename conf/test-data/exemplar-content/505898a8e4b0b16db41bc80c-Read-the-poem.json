@@ -18,9 +18,17 @@
 	},
 	"standards" : [ ],
 	"itemType" : "Text with Questions",
-	"copyright" : {
-		"owner" : "New Jersey Department of Education",
-		"year" : "2012"
+	"contributorDetails" : {
+		"contributor" : "New Jersey Department of Education",
+		"credentials" : "State Department of Education",
+		"author" : "New Jersey Department of Education",
+		"sourceUrl" : "http://www.state.nj.us/education/modelcurriculum/ela/11u1.shtml",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New Jersey Department of Education",
+			"year" : "2012"
+		}
 	},
 	"workflow" : {
 		"setup" : false,
@@ -36,11 +44,6 @@
 		"Analyze",
 		"Examine"
 	],
-	"contributor" : "New Jersey Department of Education",
-	"author" : "New Jersey Department of Education",
-	"credentials" : "State Department of Education",
-	"sourceUrl" : "http://www.state.nj.us/education/modelcurriculum/ela/11u1.shtml",
-	"licenseType" : "CC BY",
 	"title" : "Read the poem <i>The Driver</i> by Renny Christopher and analyze the text using the questions presented as a guide.",
 	"gradeLevel" : [
 		"11"

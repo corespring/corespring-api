@@ -27,9 +27,17 @@
 		{ "$oid" : "4ff47f6a6bb41e469c0be686" }
 	],
 	"itemType" : "Multiple Choice",
-	"copyright" : {
-		"owner" : "New York State Education Department",
-		"year" : "2012"
+	"contributorDetails" : {
+		"contributor" : "New York State Education Department",
+		"credentials" : "State Department of Education",
+		"author" : "New York State Education Department",
+		"sourceUrl" : "http://www.p12.nysed.gov/apda/common-core-sample-questions",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New York State Education Department",
+			"year" : "2012"
+		}
 	},
 	"workflow" : {
 		"setup" : false,
@@ -42,14 +50,9 @@
 	],
 	"title" : "Describe the relationship between the two sentences as presented in <i>What's the Scoop on Soil?</i>",
 	"materialType" : "Assessment Item",
-	"contributor" : "New York State Education Department",
-	"author" : "New York State Education Department",
-	"licenseType" : "CC BY",
-	"sourceUrl" : "http://www.p12.nysed.gov/apda/common-core-sample-questions",
 	"priorUse" : "Formative",
 	"reviewsPassed" : [
 		"Editorial"
 	],
-	"keySkills" : [ ],
-	"credentials" : "State Department of Education"
+	"keySkills" : [ ]
 }
