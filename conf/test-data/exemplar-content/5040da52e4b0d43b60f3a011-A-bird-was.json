@@ -13,7 +13,9 @@
 		]
 	},
 	"collectionId" : "4ff2e56fe4b077b9e3168a05",
-	"primarySubject" : { "$oid" : "4ffb535f6bb41e469c0bf2c2" },
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2c2" }
+	},
 	"standards" : [
 		{ "$oid" : "4ff47f6e6bb41e469c0beaf2" }
 	],
