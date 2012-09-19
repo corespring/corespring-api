@@ -33,52 +33,38 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         loadStandardsSelectionData();
     }
 
-    function initPreviewVisibleFromParams($routeParams) {
-        return ($routeParams && $routeParams.preview === "1");
-    }
-
-    /*
-    function initFileListVisibleFromParams($routeParams) {
-        return ($routeParams && $routeParams.fileList === "1")
-    }
-    */
-
     /**
      * Update the location search settings to reflect the ui state
-     * Generates: ?preview=[1|0]&panel=[content|metadata]
+     * Generates: ?panel=[content|metadata]
      * @param panelName
-     * @param previewVisible
      */
-    function updateLocation(panelName, previewVisible) {
+    function updateLocation(panelName) {
         var current = $location.search();
-        var previewNumber = previewVisible ? "1" : "0";
 
-        if (current.panel == panelName
-            &&
-            current.preview == previewNumber) {
+        if (current.panel == panelName ) {
             return;
         }
-        $location.search("panel=" + panelName + "&preview=" + previewNumber);
+        $location.search("panel=" + panelName );
     }
-
-    var self = this;
-    var itemId = $routeParams.itemId;
 
     $scope.$root.mode = "edit";
 
-    //ui nav
-    $scope.previewVisible = initPreviewVisibleFromParams($routeParams);
-    //$scope.fileListVisible = initFileListVisibleFromParams($routeParams);
+    /**
+     * If the itemData.itemType is not one of the defaults,
+     * set otherItemType to be its value so the ui picks it up.
+     */
+    function initItemType(){
 
-    $scope.$watch("previewVisible", function (newValue) {
-        $scope.previewClassName = newValue ? "preview-open" : "preview-closed";
-        updateLocation($scope.currentPanel, $scope.previewVisible );
-    });
+        var type = $scope.itemData.itemType;
+        if(!type){
+            return;
+        }
+        var foundType = _.find($scope.itemData.$itemTypeDataProvider, function(d){ return d.value == type});
 
-    /*$scope.$watch("fileListVisible", function (newValue) {
-        $scope.fileListClassName = newValue ? "file-list-open" : "file-list-closed";
-        updateLocation($scope.currentPanel, $scope.previewVisible, $scope.fileListVisible);
-    });*/
+        if(!foundType){
+            $scope.otherItemType = type;
+        }
+    }
 
     function enterEditorIfInContentPanel() {
 
@@ -98,11 +84,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
     //event handlers for the enter/leave edit events.
     $scope.$on('enterEditor', function () {
-        console.log("[ItemController] enterEditor");
         $scope.showResourceEditor = true
     });
+
     $scope.$on('leaveEditor', function () {
-        console.log("[ItemController] leaveEditor");
         $scope.showResourceEditor = false
     });
 
@@ -110,81 +95,12 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         $scope.currentPanel = panelName;
         $scope.$broadcast("tabSelected");
         enterEditorIfInContentPanel();
-        updateLocation($scope.currentPanel, $scope.previewVisible);
+        updateLocation($scope.currentPanel);
     };
 
     $scope.editItem = function () {
         $location.url('/edit/' + $scope.itemData.id);
     };
-
-    $scope.$on("panelOpen", function (event, panelOpen) {
-        $scope.editorClassName = panelOpen ? "preview-open" : "preview-closed";
-    });
-
-    $scope.togglePreview = function () {
-        $scope.previewVisible = !$scope.previewVisible;
-        $scope.$broadcast("panelOpen");
-    };
-
-
-    /*
-    $scope.toggleFileList = function () {
-        $scope.fileListVisible = !$scope.fileListVisible;
-        $scope.$broadcast("panelOpen");
-    };
-    */
-
-    /*
-     $scope.showFile = function (file) {
-     if (file.filename != null) {
-     var url = $scope.getUrl("viewFile", itemId, file.filename);
-     window.open(url, '_blank');
-     }
-     };
-     $scope.removeFile = function (file) {
-
-     if ($scope.itemData.files == null) {
-     throw "Can't remove null item from array";
-     }
-     var result = $scope.itemData.files.removeItem(file);
-
-     if (result == file) {
-
-     var deleteUrl = $scope.getUrl("deleteFile", itemId, file.filename);
-
-     $.get(deleteUrl, function (result) {
-
-     var resultObject = null;
-
-     if (typeof(result) == "string") {
-     resultObject = $.parseJSON(result);
-     }
-     else {
-     resultObject = result;
-     }
-
-     if (!resultObject.success) {
-     console.warn("Couldn't delete the following resource: " + resultObject.key);
-     }
-     });
-
-     $scope.save();
-     } else {
-     throw "Couldn't remove item from files: " + file.filename;
-     }
-     };
-
-     $scope.destroyConfirmed = function () {
-     $scope.showConfirmDestroyModal = false;
-     $scope.itemData.destroy(function (result) {
-     if (result.success) {
-     $location.path('/item-collection');
-     }
-     });
-
-     };
-
-     */
 
     /**
      * optional callback from strap-tabs
@@ -216,21 +132,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.loadItem = function () {
         ItemService.get({id:$routeParams.itemId, access_token:AccessToken.token}, function onItemLoaded(itemData) {
             $scope.itemData = itemData;
-
             enterEditorIfInContentPanel();
-
-            /*$scope.$watch("itemData.xmlData", function (newValue, oldValue) {
-             $scope.processedXmlData = $scope.processData(newValue, itemId, $scope.itemData.files);
-
-             if (newValue == $scope.initialXmlData) {
-             $scope.processValidationResults($scope.itemData["$validationResult"]);
-             } else {
-             $scope.showExceptions = false;
-             $scope.validationResult = ( $scope.validationResult || {} );
-             $scope.validationResult.exceptions = [];
-             }
-             });*/
-
+            initItemType();
             if ($scope.itemData.collection) {
                 $scope.selectedCollection = $scope.itemData.collection.name;
             }
@@ -240,7 +143,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
     $scope.accessToken = AccessToken;
 
-    $scope.collections = Collection.query({access_token:$scope.accessToken.token});
+    Collection.query({access_token:$scope.accessToken.token}, function(data){
+        $scope.collections = data;
+    });
+
     $scope.loadItem();
 
 
@@ -398,15 +304,13 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.selectRelatedSubject.formatSelection = subjectFormatSelection;
 
     $scope.$watch("itemData.itemType", function (newValue) {
-        if (newValue != "Other") {
-            if ($scope.itemData != undefined) {
-                $scope.itemData.itemTypeOther = null;
-            }
+        if(newValue != $scope.otherItemType){
+           $scope.otherItemType = "";
         }
     });
 
     $scope.updateItemType = function () {
-        $scope.itemData.itemType = "Other";
+        $scope.itemData.itemType = $scope.otherItemType;
     };
 
     $scope.getKeySkillsSummary = function (keySkills) {

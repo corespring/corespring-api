@@ -13,11 +13,18 @@
 		]
 	},
 	"collectionId" : "4ff2e56fe4b077b9e3168a05",
-	"primarySubject" : { "$oid" : "4ffb535f6bb41e469c0bf2c3" },
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2c3" }
+	},
 	"standards" : [
 		{ "$oid" : "4ff47f6e6bb41e469c0beb6c" },
 		{ "$oid" : "4ff47f6e6bb41e469c0beb6e" }
 	],
+	"itemType" : "Performance Task",
+	"copyright" : {
+		"owner" : "New Jersey Department of Education",
+		"year" : "2012"
+	},
 	"workflow" : {
 		"setup" : false,
 		"tagged" : false,
@@ -26,15 +33,11 @@
 	},
 	"keySkills" : [ ],
 	"title" : "An appliance company builds washing machines and dishwashers. The company has at most 20,000 hours of labor available each month. Write a system of inequalities and answer some questions about manufacturing capacity.",
-	"itemType" : "Performance Task",
-	"itemTypeOther" : null,
 	"contributor" : "New Jersey Department of Education",
-	"copyrightOwner" : "New Jersey Department of Education",
 	"author" : "New Jersey Department of Education",
 	"credentials" : "State Department of Education",
 	"sourceUrl" : "http://www.state.nj.us/education/modelcurriculum/math/AlgebraIu1.shtml",
 	"licenseType" : "CC BY",
-	"copyrightYear" : "2012",
 	"relatedCurriculum" : "NJDOE: Model Curriculum: Algebra I: Unit 1: Relationships Between Quantities and Reasoning with Equations",
 	"gradeLevel" : [
 		"09",

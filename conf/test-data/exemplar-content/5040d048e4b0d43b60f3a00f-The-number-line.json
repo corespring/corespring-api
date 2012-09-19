@@ -20,10 +20,17 @@
 		]
 	},
 	"collectionId" : "4ff2e56fe4b077b9e3168a05",
-	"primarySubject" : { "$oid" : "4ffb535f6bb41e469c0bf2c2" },
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2c2" }
+	},
 	"standards" : [
 		{ "$oid" : "4ff47f6e6bb41e469c0beaf2" }
 	],
+	"itemType" : "Activity",
+	"copyright" : {
+		"owner" : "New Jersey Department of Education",
+		"year" : "2012"
+	},
 	"workflow" : {
 		"setup" : false,
 		"tagged" : false,
@@ -31,15 +38,11 @@
 		"qaReview" : false
 	},
 	"keySkills" : [ ],
-	"itemType" : "Activity",
-	"itemTypeOther" : null,
 	"contributor" : "New Jersey Department of Education",
-	"copyrightOwner" : "New Jersey Department of Education",
 	"author" : "New Jersey Department of Education",
 	"credentials" : "State Department of Education",
 	"sourceUrl" : "http://www.state.nj.us/education/modelcurriculum/math/7u1.shtml",
 	"licenseType" : "CC BY",
-	"copyrightYear" : "2012",
 	"title" : "The number line shows the high temperature in Newark, in degrees Fahrenheit, on Monday. From Monday to Tuesday, the high temperature increased by 9 degrees. Use the number line to show how to find the high temperature on Tuesday.",
 	"gradeLevel" : [
 		"07"

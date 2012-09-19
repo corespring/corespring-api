@@ -19,18 +19,18 @@ print(liveItems);
 var apiDevDb = conn.getDB(to);
 
 var suffixToContentTypeMap = {
-    "jpg" : "image/jpg",
-    "jpeg" : "image/jpg",
-    "png" : "image/png",
-    "gif" : "image/gif",
-    "doc" : "application/msword",
-    "docx" : "application/msword",
-    "pdf" : "application/pdf",
-    "xml" : "text/xml",
-    "css" : "text/css",
-    "html" : "text/html",
-    "txt" : "text/txt",
-    "js" : "text/javascript"
+    "jpg":"image/jpg",
+    "jpeg":"image/jpg",
+    "png":"image/png",
+    "gif":"image/gif",
+    "doc":"application/msword",
+    "docx":"application/msword",
+    "pdf":"application/pdf",
+    "xml":"text/xml",
+    "css":"text/css",
+    "html":"text/html",
+    "txt":"text/txt",
+    "js":"text/javascript"
 };
 
 function getContentType(filename) {
@@ -44,7 +44,7 @@ function collection_to_collectionId(fromItem, toItem) {
 
     print(">>>> -- " + collectionName);
 
-    if(!collectionName){
+    if (!collectionName) {
         return;
     }
 
@@ -73,10 +73,10 @@ function xmlData_to_resource(fromItem, targetItem) {
 
         targetItem.data.files.push(
             {
-                _t: "models.StoredFile",
+                _t:"models.StoredFile",
                 name:file.filename,
                 isMain:false,
-                storageKey: fromItem._id + "/" + file.filename,
+                storageKey:fromItem._id + "/" + file.filename,
                 contentType:getContentType(file.filename)
             }
         );
@@ -84,11 +84,20 @@ function xmlData_to_resource(fromItem, targetItem) {
 
 }
 
-function primarySubject_obj_to_id(from, to) {
-    if (from.primarySubject) {
-        if(from.primarySubject.refId){
-          to.primarySubject = ObjectId(from.primarySubject.refId);
-        }
+function subjects_obj_to_id(from, to) {
+
+    if (!from.primarySubject && !from.relatedSubject) {
+        return;
+    }
+
+    to.subjects = {};
+
+    if (from.primarySubject && from.primarySubject.refId) {
+        to.subjects.primary = ObjectId(from.primarySubject.refId);
+    }
+
+    if (from.relatedSubject && from.relatedSubject.refId) {
+        to.subjects.related = ObjectId(from.relatedSubject.refId);
     }
 }
 
@@ -101,13 +110,51 @@ function standards_obj_to_id(from, to) {
     }
 }
 
+function itemType(from, to) {
+    if (!from.itemType) {
+        return;
+    }
+
+    if (from.itemType == "Other") {
+        to.itemType = from.itemTypeOther;
+    } else {
+        to.itemType = from.itemType;
+    }
+}
+
+function copyright(from, to){
+
+    if(!from.copyrightOwner && !from.copyrightYear && !from.copyrightExpirationDate){
+        return;
+    }
+
+    to.copyright = {};
+
+    if( from.copyrightOwner){
+        to.copyright.owner = from.copyrightOwner;
+    }
+
+    if( from.copyrightYear){
+        to.copyright.year= from.copyrightYear;
+    }
+
+    if( from.copyrightExpirationDate){
+        to.copyright.expirationDate = from.copyrightExpirationDate;
+    }
+}
+
 var ignoredProperties = ["files",
     "xmlData",
     "_id",
     "primarySubject",
+    "relatedSubject",
     "standards",
     "collection",
     "_typeHint",
+    "itemType",
+    "itemTypeOther",
+    "copyrightOwner",
+    "copyrightYear",
     "primaryStandard"];
 
 function convertLiveItemToApiItem(item) {
@@ -117,8 +164,10 @@ function convertLiveItemToApiItem(item) {
 
     xmlData_to_resource(item, target);
     collection_to_collectionId(item, target);
-    primarySubject_obj_to_id(item, target);
+    subjects_obj_to_id(item, target);
     standards_obj_to_id(item, target);
+    itemType(item, target);
+    copyright(item, target);
 
     for (var x in item) {
 

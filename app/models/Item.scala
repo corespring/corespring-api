@@ -6,7 +6,7 @@ import play.api.libs.json._
 import com.novus.salat.dao.{SalatDAOUpdateError, SalatDAO, ModelCompanion}
 import com.mongodb.casbah.Imports._
 import controllers._
-import collection.mutable
+import collection.{SeqProxy, mutable}
 import scala.Either
 import mongoContext._
 import com.mongodb.util.JSON
@@ -214,26 +214,31 @@ object Resource {
 
 }
 
+case class Copyright(owner: Option[String] = None, year: Option[String] = None, expirationDate: Option[String] = None)
+
+case class Subjects(var primary: Option[ObjectId] = None, var related: Option[ObjectId] = None)
+
 case class Item(var collectionId: String = "",
                 var contentType: String = "item",
                 var author: Option[String] = None,
                 var contributor: Option[String] = None,
-                var copyrightOwner: Option[String] = None,
-                var copyrightYear: Option[String] = None,
+                var copyright: Option[Copyright] = None,
                 var credentials: Option[String] = None,
+                var costForResource: Option[Int] = None,
                 var gradeLevel: Seq[String] = Seq(),
                 var itemType: Option[String] = None,
-                var itemTypeOther: Option[String] = None,
                 var keySkills: Seq[String] = Seq(),
                 var licenseType: Option[String] = None,
-                var primarySubject: Option[ObjectId] = None,
+                var subjects: Option[Subjects] = None,
                 var priorUse: Option[String] = None,
                 var reviewsPassed: Seq[String] = Seq(),
                 var sourceUrl: Option[String] = None,
                 var standards: Seq[ObjectId] = Seq(),
+                var pValue: Option[String] = None,
                 var lexile: Option[String] = None,
                 var title: Option[String] = None,
                 var data: Option[Resource] = None,
+                //var relatedCurriculum : Option[String] = None,
                 var supportingMaterials: Seq[Resource] = Seq(),
                 var id: ObjectId = new ObjectId()) extends Content {
 }
@@ -252,16 +257,22 @@ object Item extends DBQueryable[Item] {
   val collectionId = Content.collectionId
   val contentType = Content.contentType
   val contributor = "contributor"
+  val copyright = "copyright"
   val copyrightOwner = "copyrightOwner"
   val copyrightYear = "copyrightYear"
+  val copyrightExpirationDate = "copyrightExpirationDate"
+  val costForResource = "costForResource"
   val credentials = "credentials"
   val files = "files"
   val gradeLevel = "gradeLevel"
+  val relatedCurriculum = "relatedCurriculum"
   val itemType = "itemType"
-  val itemTypeOther = "itemTypeOther"
   val keySkills = "keySkills"
   val licenseType = "licenseType"
+  val subjects = "subjects"
   val primarySubject = "primarySubject"
+  val relatedSubject = "relatedSubject"
+  val pValue = "pValue"
   val priorUse = "priorUse"
   val reviewsPassed = "reviewsPassed"
   val sourceUrl = "sourceUrl"
@@ -283,19 +294,45 @@ object Item extends DBQueryable[Item] {
       iseq = iseq :+ (collectionId -> JsString(item.collectionId))
       iseq = iseq :+ (contentType -> JsString(ContentType.item))
       item.contributor.foreach(v => iseq = iseq :+ (contributor -> JsString(v)))
-      item.copyrightOwner.foreach(v => iseq = iseq :+ (copyrightOwner -> JsString(v)))
-      item.copyrightYear.foreach(v => iseq = iseq :+ (copyrightYear -> JsString(v)))
+      item.costForResource.foreach(v => iseq = iseq :+ (costForResource -> JsNumber(v)))
+      item.pValue.foreach(v => iseq = iseq :+ (pValue -> JsString(v)))
+      //item.relatedCurriculum.foreach(v => iseq = iseq :+ (relatedCurriculum -> JsString(v)))
+
+      item.copyright match {
+        case Some(c) => {
+          c.owner.foreach(v => iseq = iseq :+ (copyrightOwner -> JsString(v)))
+          c.year.foreach(v => iseq = iseq :+ (copyrightYear -> JsString(v)))
+          c.expirationDate.foreach(v => iseq = iseq :+ (copyrightExpirationDate -> JsString(v)))
+        }
+        case _ => //do nothing
+      }
       item.credentials.foreach(v => iseq = iseq :+ (credentials -> JsString(v)))
       if (!item.supportingMaterials.isEmpty) iseq = iseq :+ (supportingMaterials -> JsArray(item.supportingMaterials.map(Json.toJson(_))))
       if (!item.gradeLevel.isEmpty) iseq = iseq :+ (gradeLevel -> JsArray(item.gradeLevel.map(JsString(_))))
       item.itemType.foreach(v => iseq = iseq :+ (itemType -> JsString(v)))
-      item.itemTypeOther.foreach(v => iseq = iseq :+ (itemTypeOther -> JsString(v)))
       if (!item.keySkills.isEmpty) iseq = iseq :+ (keySkills -> JsArray(item.keySkills.map(JsString(_))))
       item.licenseType.foreach(v => iseq = iseq :+ (licenseType -> JsString(v)))
-      if (!item.primarySubject.isEmpty) {
-        val subject = Subject.findOneById(item.primarySubject.get)
-        iseq = iseq :+ (primarySubject -> Json.toJson(subject))
+
+
+      item.subjects match {
+        case Some(s) => {
+          def getSubject(id: Option[ObjectId]): Option[JsValue] = id match {
+            case Some(foundId) => Some(Json.toJson(Subject.findOneById(foundId).get))
+            case _ => None
+          }
+          var seqsubjects: Seq[(String, JsValue)] = Seq()
+          getSubject(s.primary) match {
+            case Some(found) => iseq = iseq :+ (primarySubject -> Json.toJson(found))
+            case _ => //do nothing
+          }
+          getSubject(s.related) match {
+            case Some(found) => iseq = iseq :+ (relatedSubject -> Json.toJson(found))
+            case _ => //do nothing
+          }
+        }
+        case _ => //
       }
+
       item.priorUse.foreach(v => iseq = iseq :+ (priorUse -> JsString(v)))
       if (!item.reviewsPassed.isEmpty) iseq = iseq :+ (reviewsPassed -> JsArray(item.reviewsPassed.map(JsString(_))))
       item.sourceUrl.foreach(v => iseq = iseq :+ (sourceUrl -> JsString(v)))
@@ -317,27 +354,74 @@ object Item extends DBQueryable[Item] {
       item.author = (json \ author).asOpt[String]
       item.lexile = (json \ lexile).asOpt[String]
       item.contributor = (json \ contributor).asOpt[String]
-      item.copyrightOwner = (json \ copyrightOwner).asOpt[String]
-      item.copyrightYear = (json \ copyrightYear).asOpt[String]
+      item.costForResource = (json \ costForResource).asOpt[Int]
+      item.pValue = (json \ pValue).asOpt[String]
+      //item.relatedCurriculum = (json \ relatedCurriculum).asOpt[String]
+
+      def getCopyright(json: JsValue): Option[Copyright] = {
+        get[Copyright](
+          json,
+          Seq(copyrightOwner, copyrightYear, copyrightExpirationDate),
+          (s: Seq[Option[String]]) => Copyright(s(0), s(1), s(2)))
+      }
+
+      def getSubjects(json: JsValue): Option[Subjects] = {
+        try {
+
+          get[Subjects](
+            json,
+            Seq(primarySubject, relatedSubject),
+            (s: Seq[Option[String]]) => s.find(_.isDefined) match {
+              case Some(_) => Subjects(s(0).map(new ObjectId(_)), s(1).map(new ObjectId(_)))
+              case _ => null
+            }
+          )
+        }
+        catch {
+          case e: IllegalArgumentException => throw new JsonValidationException(e.getMessage)
+        }
+      }
+
+
+      def get[A](json: JsValue, names: Seq[String], fn: (Seq[Option[String]] => A)): Option[A] = {
+        val vals: Seq[Option[String]] = names.map((n: String) => {
+          (json \ n).asOpt[String]
+        })
+
+        vals.find(_.isDefined) match {
+          case Some(_) => {
+            val result: A = fn(vals)
+            if (result == null) {
+              None
+            } else {
+              Some(fn(vals))
+            }
+          }
+          case _ => None
+        }
+      }
+
+      item.copyright = getCopyright(json)
       item.credentials = (json \ credentials).asOpt[String]
       item.supportingMaterials = (json \ supportingMaterials).asOpt[Seq[Resource]].getOrElse(Seq())
       item.gradeLevel = (json \ gradeLevel).asOpt[Seq[String]].getOrElse(Seq.empty)
-      item.itemType = (json \ itemType).asOpt[String]
+
+      (json \ itemType).asOpt[String] match {
+        case Some(foundType) => item.itemType = Some(foundType)
+        case _ => //do nothing
+      }
+
+
       item.credentials = (json \ credentials).asOpt[String].
         map(v => if (fieldValues.credentials.exists(_.key == v)) v else throw new JsonValidationException(credentials))
       item.supportingMaterials = (json \ supportingMaterials).asOpt[Seq[Resource]].getOrElse(Seq())
       item.gradeLevel = (json \ gradeLevel).asOpt[Seq[String]].
         map(v => if (v.foldRight[Boolean](true)((g, acc) => fieldValues.gradeLevels.exists(_.key == g) && acc)) v else throw new JsonValidationException(gradeLevel)).getOrElse(Seq.empty)
-      item.itemType = (json \ itemType).asOpt[String].
-        map(v => if (fieldValues.itemTypes.exists(_.key == v)) v else throw new JsonValidationException(itemType))
-      item.itemTypeOther = (json \ itemTypeOther).asOpt[String]
       item.keySkills = (json \ keySkills).asOpt[Seq[String]].getOrElse(Seq.empty)
       item.licenseType = (json \ licenseType).asOpt[String]
-      try {
-        item.primarySubject = (json \ primarySubject).asOpt[String].map(new ObjectId(_))
-      } catch {
-        case e: IllegalArgumentException => throw new JsonValidationException(primarySubject)
-      }
+
+      item.subjects = getSubjects(json)
+
       item.priorUse = (json \ priorUse).asOpt[String]
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
       item.sourceUrl = (json \ sourceUrl).asOpt[String]
@@ -362,7 +446,7 @@ object Item extends DBQueryable[Item] {
     try {
       import com.novus.salat.grater
       //newItem.id = oid
-      val toUpdate = (((grater[Item].asDBObject(newItem) - "_id" ) - supportingMaterials ) - data) - collectionId
+      val toUpdate = (((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials) - data) - collectionId
       Item.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> toUpdate), upsert = false, multi = false, wc = Item.collection.writeConcern)
       Item.findOneById(oid) match {
         case Some(i) =>
@@ -383,8 +467,8 @@ object Item extends DBQueryable[Item] {
       case _ => Left(InternalError("incorrect content type"))
     }),
     QueryFieldString[Item](contributor, _.contributor),
-    QueryFieldString[Item](copyrightOwner, _.copyrightOwner),
-    QueryFieldString[Item](copyrightYear, _.copyrightYear),
+    QueryFieldString[Item](copyrightOwner, _.copyright.map(_.owner)),
+    QueryFieldString[Item](copyrightYear, _.copyright.map(_.year)),
     QueryFieldString[Item](credentials, _.credentials, value => {
       value match {
         case x: String => if (fieldValues.credentials.exists(_.key == x)) Right(x) else Left(InternalError("no valid credentials found for given value"))
@@ -402,13 +486,17 @@ object Item extends DBQueryable[Item] {
           Left(InternalError("invalid type for value in gradeLevel"))
       }
     }),
-    QueryFieldString[Item](itemType, _.itemType, value => {
+
+    /**
+     * TODO: Check with Evan/Josh about item types.
+     */
+    QueryFieldString[Item](itemType, _.itemType),
+    /*QueryFieldString[Item](itemType, _.itemType, value => {
       value match {
         case x: String => if (fieldValues.itemTypes.exists(_.key == x)) Right(value) else Left(InternalError("could not find valid item types for value"))
         case _ => Left(InternalError("invalid type for value in itemType"))
       }
-    }),
-    QueryFieldString[Item](itemTypeOther, _.itemTypeOther),
+    }),*/
     QueryFieldStringArray[Item](keySkills, _.keySkills, value => value match {
       case skills: BasicDBList => if (skills.foldRight[Boolean](true)((skill, acc) => fieldValues.keySkills.exists(_.key == skill.toString) && acc)) Right(value)
       else Left(InternalError("key skill not found for given value"))
@@ -420,19 +508,15 @@ object Item extends DBQueryable[Item] {
       case _ => Left(InternalError("invalid value type for licenceType"))
     }
     ),
-    QueryFieldObject[Item](primarySubject, _.primarySubject, _ match {
-      case x: BasicDBList => x.foldRight[Either[InternalError, Seq[ObjectId]]](Right(Seq()))((subject, acc) => {
-        acc match {
-          case Right(ids) => subject match {
-            case x: String => try {
-              Right(ids :+ new ObjectId(x))
-            } catch {
-              case e: IllegalArgumentException => Left(InternalError("invalid object id format for primarySubject"))
-            }
-          }
-          case Left(e) => Left(e)
-        }
-      })
+    QueryFieldObject[Item](primarySubject, _.subjects.map(_.primary), _ match {
+      case x: String => try {
+        Right(new ObjectId(x))
+      } catch {
+        case e: IllegalArgumentException => Left(InternalError("invalid object id format for standards"))
+      }
+      case _ => Left(InternalError("uknown value type for standards"))
+    }, Subject.queryFields),
+    QueryFieldObject[Item](relatedSubject, _.subjects.map(_.related), _ match {
       case x: String => try {
         Right(new ObjectId(x))
       } catch {
@@ -498,10 +582,16 @@ object Item extends DBQueryable[Item] {
       case Right(builder1) =>
         parseProperty[Subject](dbo, primarySubject, Subject) match {
           case Right(builder2) =>
-            val builder = MongoDBObject.newBuilder
-            builder1.foreach(field => builder += field)
-            builder2.foreach(field => builder += field)
-            QueryParser(Right(builder))
+            parseProperty[Subject](dbo, relatedSubject, Subject) match {
+              case Right(builder3) => {
+                val builder = MongoDBObject.newBuilder
+                builder1.foreach(field => builder += field)
+                builder2.foreach(field => builder += field)
+                builder3.foreach(field => builder += field)
+                QueryParser(Right(builder))
+              }
+              case Left(e) => QueryParser(Left(e))
+            }
           case Left(e) => QueryParser(Left(e))
         }
       case Left(e) => QueryParser(Left(e))
