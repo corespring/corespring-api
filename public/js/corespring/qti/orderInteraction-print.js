@@ -9,7 +9,7 @@ qtiDirectives.directive('orderinteraction', function () {
 
 
     var choiceTemplate = [
-        '<span ng-bind-html-unsafe="prompt" class="choicePrompt"></span>',
+        '<span ng-bind-html-unsafe="prompt" class="choice-prompt"></span>',
         '<div ng:repeat="choice in choices"> ',
         '<div class="ordered-choice">',
         '<div class="ordered-choice-form"></div> <div class="ordered-choice-item" ng-bind-html-unsafe="choice.content"></div>',
@@ -33,7 +33,7 @@ qtiDirectives.directive('orderinteraction', function () {
                 prompt = promptElem.html();
             }
 
-            // get the simpleChoice elements
+            // get the simple-choice elements
             // they support embedded html
             var choices = [];
 

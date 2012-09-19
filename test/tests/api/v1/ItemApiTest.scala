@@ -18,6 +18,7 @@ import play.api.libs.json.JsString
 import scala.Some
 import play.api.mvc.AnyContentAsJson
 import org.bson.types.ObjectId
+import controllers.Log
 
 class ItemApiTest extends BaseTest {
 
@@ -168,6 +169,7 @@ class ItemApiTest extends BaseTest {
 
     val updateResult = routeAndCall(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
     status(updateResult) must equalTo(OK)
+    Log.i(contentAsString(updateResult))
     val item : Item = Json.parse(contentAsString(updateResult)).as[Item]
 
     item.collectionId must equalTo(TEST_COLLECTION_ID)

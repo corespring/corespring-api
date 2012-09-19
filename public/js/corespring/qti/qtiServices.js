@@ -119,7 +119,7 @@ qtiServices
         }
     };
 
-    // shared service for re-arranging simpleChoice elements according to
+    // shared service for re-arranging simple-choice elements according to
     // shuffle and fixed attributes. Should be called from compile functions for interactions that support these props
     QtiUtils.shuffleChoices = function(element) {
         // TODO - implement me, and call this from compile function in choiceInteraction, orderInteraction print/web

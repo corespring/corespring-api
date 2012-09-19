@@ -1,18 +1,18 @@
-.choiceInteraction {
+.choice-interaction {
     display: block;
     margin-top: 15px;
     margin-bottom: 15px;
     margin-left: 20px;
 }
-.choicePrompt {
+.choice-prompt {
     display: block;
     margin-bottom: 10px;
     font-size: 20px;
 }
-.simpleChoice {
+.simple-choice {
     font-size: 18px;
 }
-.simpleChoice input {
+.simple-choice input {
     margin-left: 10px;
     margin-right: 10px;
 }
