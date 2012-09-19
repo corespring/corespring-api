@@ -27,6 +27,11 @@
 		{ "$oid" : "4ff47f6e6bb41e469c0beb5d" },
 		{ "$oid" : "4ff47f6e6bb41e469c0beb65" }
 	],
+	"itemType" : "Constructed Response - Short Answer",
+	"copyright" : {
+		"owner" : "New Jersey Department of Education",
+		"year" : "2012"
+	},
 	"workflow" : {
 		"setup" : false,
 		"tagged" : false,
@@ -42,15 +47,11 @@
 		"Editorial"
 	],
 	"title" : "A polynomial function has the following characteristics: a) the function has exactly 3 real zeros at -3, 1, and 3, b) the leading coefficient of the polynomial is positive. On the worksheet provided, sketch a function that meets the characteristics.",
-	"itemType" : "Constructed Response - Short Answer",
-	"itemTypeOther" : null,
 	"contributor" : "New Jersey Department of Education",
-	"copyrightOwner" : "New Jersey Department of Education",
 	"author" : "New Jersey Department of Education",
 	"credentials" : "State Department of Education",
 	"sourceUrl" : "http://www.nj.gov/education/modelcurriculum/assessment/math/score/AlgebraIIu1.doc",
 	"licenseType" : "CC BY",
-	"copyrightYear" : "2012",
 	"relatedCurriculum" : "NJDOE: Model Curriculum: Algebra II: Unit 1: Polynomials",
 	"supportingMaterials" : [
 		{

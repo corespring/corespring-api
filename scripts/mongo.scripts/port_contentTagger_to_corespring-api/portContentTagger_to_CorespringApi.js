@@ -124,7 +124,7 @@ function itemType(from, to) {
 
 function copyright(from, to){
 
-    if(!from.copyrightOwner && !from.copyrightYear){
+    if(!from.copyrightOwner && !from.copyrightYear && !from.copyrightExpirationDate){
         return;
     }
 
@@ -136,6 +136,10 @@ function copyright(from, to){
 
     if( from.copyrightYear){
         to.copyright.year= from.copyrightYear;
+    }
+
+    if( from.copyrightExpirationDate){
+        to.copyright.expirationDate = from.copyrightExpirationDate;
     }
 }
 

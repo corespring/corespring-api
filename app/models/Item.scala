@@ -214,7 +214,7 @@ object Resource {
 
 }
 
-case class Copyright(owner: Option[String] = None, year: Option[String] = None)
+case class Copyright(owner: Option[String] = None, year: Option[String] = None, expirationDate: Option[String] = None)
 
 case class Subjects(var primary: Option[ObjectId] = None, var related: Option[ObjectId] = None)
 
@@ -224,6 +224,7 @@ case class Item(var collectionId: String = "",
                 var contributor: Option[String] = None,
                 var copyright: Option[Copyright] = None,
                 var credentials: Option[String] = None,
+                var costForResource: Option[Int] = None,
                 var gradeLevel: Seq[String] = Seq(),
                 var itemType: Option[String] = None,
                 var keySkills: Seq[String] = Seq(),
@@ -233,9 +234,11 @@ case class Item(var collectionId: String = "",
                 var reviewsPassed: Seq[String] = Seq(),
                 var sourceUrl: Option[String] = None,
                 var standards: Seq[ObjectId] = Seq(),
+                var pValue: Option[String] = None,
                 var lexile: Option[String] = None,
                 var title: Option[String] = None,
                 var data: Option[Resource] = None,
+                //var relatedCurriculum : Option[String] = None,
                 var supportingMaterials: Seq[Resource] = Seq(),
                 var id: ObjectId = new ObjectId()) extends Content {
 }
@@ -257,15 +260,19 @@ object Item extends DBQueryable[Item] {
   val copyright = "copyright"
   val copyrightOwner = "copyrightOwner"
   val copyrightYear = "copyrightYear"
+  val copyrightExpirationDate = "copyrightExpirationDate"
+  val costForResource = "costForResource"
   val credentials = "credentials"
   val files = "files"
   val gradeLevel = "gradeLevel"
+  val relatedCurriculum = "relatedCurriculum"
   val itemType = "itemType"
   val keySkills = "keySkills"
   val licenseType = "licenseType"
   val subjects = "subjects"
   val primarySubject = "primarySubject"
   val relatedSubject = "relatedSubject"
+  val pValue = "pValue"
   val priorUse = "priorUse"
   val reviewsPassed = "reviewsPassed"
   val sourceUrl = "sourceUrl"
@@ -287,11 +294,15 @@ object Item extends DBQueryable[Item] {
       iseq = iseq :+ (collectionId -> JsString(item.collectionId))
       iseq = iseq :+ (contentType -> JsString(ContentType.item))
       item.contributor.foreach(v => iseq = iseq :+ (contributor -> JsString(v)))
+      item.costForResource.foreach(v => iseq = iseq :+ (costForResource -> JsNumber(v)))
+      item.pValue.foreach(v => iseq = iseq :+ (pValue -> JsString(v)))
+      //item.relatedCurriculum.foreach(v => iseq = iseq :+ (relatedCurriculum -> JsString(v)))
 
       item.copyright match {
         case Some(c) => {
-          c.owner.foreach(v => iseq :+ (copyrightOwner -> JsString(v)))
-          c.year.foreach(v => iseq :+ (copyrightYear -> JsString(v)))
+          c.owner.foreach(v => iseq = iseq :+ (copyrightOwner -> JsString(v)))
+          c.year.foreach(v => iseq = iseq :+ (copyrightYear -> JsString(v)))
+          c.expirationDate.foreach(v => iseq = iseq :+ (copyrightExpirationDate -> JsString(v)))
         }
         case _ => //do nothing
       }
@@ -309,7 +320,7 @@ object Item extends DBQueryable[Item] {
             case Some(foundId) => Some(Json.toJson(Subject.findOneById(foundId).get))
             case _ => None
           }
-          var seqsubjects:Seq[(String,JsValue)] = Seq()
+          var seqsubjects: Seq[(String, JsValue)] = Seq()
           getSubject(s.primary) match {
             case Some(found) => iseq = iseq :+ (primarySubject -> Json.toJson(found))
             case _ => //do nothing
@@ -343,12 +354,15 @@ object Item extends DBQueryable[Item] {
       item.author = (json \ author).asOpt[String]
       item.lexile = (json \ lexile).asOpt[String]
       item.contributor = (json \ contributor).asOpt[String]
+      item.costForResource = (json \ costForResource).asOpt[Int]
+      item.pValue = (json \ pValue).asOpt[String]
+      //item.relatedCurriculum = (json \ relatedCurriculum).asOpt[String]
 
       def getCopyright(json: JsValue): Option[Copyright] = {
         get[Copyright](
           json,
-          Seq(copyrightOwner, copyrightYear),
-          (s: Seq[Option[String]]) => Copyright(s(0), s(1)))
+          Seq(copyrightOwner, copyrightYear, copyrightExpirationDate),
+          (s: Seq[Option[String]]) => Copyright(s(0), s(1), s(2)))
       }
 
       def getSubjects(json: JsValue): Option[Subjects] = {
