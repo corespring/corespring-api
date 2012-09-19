@@ -3,22 +3,25 @@ package tests.api.v1
 import org.junit.Ignore
 import play.api.libs.json._
 import play.api.Logger
-import play.api.mvc.{AnyContentAsJson, Result}
+import play.api.mvc._
 import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers._
 import scala.Some
 import api.ApiError._
 import scala.Some
 import play.api.test.FakeHeaders
-import play.api.mvc.AnyContentAsJson
 import tests.BaseTest
 import models.Item
 import play.api.test.FakeHeaders
 import play.api.libs.json.JsString
 import scala.Some
-import play.api.mvc.AnyContentAsJson
 import org.bson.types.ObjectId
 import controllers.Log
+import play.api.test.FakeHeaders
+import play.api.libs.json.JsString
+import scala.Some
+import play.api.mvc.AnyContentAsJson
+import play.api.libs.json.JsObject
 
 class ItemApiTest extends BaseTest {
 
@@ -175,6 +178,27 @@ class ItemApiTest extends BaseTest {
     item.collectionId must equalTo(TEST_COLLECTION_ID)
   }
 
+  val STATE_DEPT : String = "State Department of Education"
+
+  "get and update return the same json" in {
+
+    val toCreate = xmlBody("<root/>", Map(Item.collectionId -> TEST_COLLECTION_ID,Item.credentials -> STATE_DEPT))
+    val call = api.v1.routes.ItemApi.createItem()
+    val createResult = routeAndCall( FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsJson(toCreate))).get
+    val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
+
+    val getItemCall = api.v1.routes.ItemApi.getItem(new ObjectId(id))
+    val getResult = routeAndCall( FakeRequest(getItemCall.method, tokenize(getItemCall.url), FakeHeaders(), AnyContentAsEmpty)).get
+
+    val getJsonString = contentAsString(getResult)
+
+    val updateCall = api.v1.routes.ItemApi.updateItem(new ObjectId(id))
+
+    val toUpdate = xmlBody("<root/>", Map(Item.credentials -> STATE_DEPT ))
+    val updateResult = routeAndCall(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
+    val updateJsonString = contentAsString(updateResult)
+    updateJsonString must equalTo(getJsonString)
+  }
 
   "update does not include csFeedbackIds" in {
     val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> TEST_COLLECTION_ID))
