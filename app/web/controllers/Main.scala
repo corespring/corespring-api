@@ -35,6 +35,10 @@ object Main extends Controller with Secured {
     }
   }
 
+  def renderProfile(itemId:String) = Action{ request =>
+    Ok(web.views.html.profilePrint(itemId, TMP_ACCESS_TOKEN))
+  }
+
 
   def index = IsAuthenticated {
     username => _ =>

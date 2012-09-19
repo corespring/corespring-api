@@ -1,0 +1,44 @@
+@(itemId:String, accessToken : String )
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html ng-app="item-preview">
+<head>
+    <title>Item Profile</title>
+    <meta name="description" content="CoreSpring Content Tagger"/>
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
+    @head.mathMl()
+    @head.coreJs()
+    @head.bootstrap()
+    @head.angular()
+    @head.previewApp()
+
+    <script type="text/javascript">
+
+        angular.module('tagger.services')
+                .factory('Config', [ function () {
+            return {
+                accessToken:"@accessToken",
+                itemId:"@itemId"
+            };
+        }]
+        );
+
+    </script>
+
+    <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
+</head>
+<body ng-controller="PreviewController">
+
+<div style="padding-top: 0px;">
+
+            @web.views.html.partials._viewItem.corespringData()
+            <hr/>
+            <h3>History</h3>
+            <hr/>
+            @web.views.html.partials._viewItem.history()
+
+
+</div>
+
+</body>
+</html>

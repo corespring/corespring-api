@@ -19,7 +19,7 @@ qtiDirectives.directive('simplechoice', function(QtiUtils){
             var responseIdentifier = choiceInteractionElem.attr('responseidentifier');
 
 
-            var template =  '<div ng-transclude="true"><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div>';
+            var template =  '<div class="choiceInput"><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div><div class="choice-content" ng-transclude></div>';
 
             // now can modify DOM
             tElement.html(template);
@@ -57,17 +57,17 @@ qtiDirectives.directive('simplechoice', function(QtiUtils){
                         }
                         var isSelected = QtiUtils.compare(localScope.value, responseValue);
                         if (localScope.isFeedbackEnabled() != false) {
-                            // give the current choice the correctResponse class if it is the correct response
+                            // give the current choice the correct-response class if it is the correct response
                             if (QtiUtils.compare(localScope.value, correctResponse)) {
-                                element.toggleClass('correctResponse');
+                                element.toggleClass('correct-response');
                             }
 
                             if (isSelected && ( QtiUtils.compare(localScope.value, correctResponse) )) {
                                 // user selected the right response
-                                element.toggleClass('correctSelection');
+                                element.toggleClass('correct-selection');
                             } else if (isSelected) {
                                 // user selected the wrong response
-                                element.toggleClass('incorrectSelection');
+                                element.toggleClass('incorrect-selection');
                             }
                         }
 
@@ -85,7 +85,7 @@ qtiDirectives.directive('choiceinteraction', function () {
     return {
         restrict: 'E',
         transclude: true,
-        template: '<div class="choiceInteraction" ng-transclude="true"></div>',
+        template: '<div class="choice-interaction" ng-transclude="true"></div>',
         replace: true,
         scope: true,
         require: '^assessmentitem',

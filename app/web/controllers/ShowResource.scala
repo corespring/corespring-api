@@ -33,14 +33,23 @@ object ShowResource extends Controller with ObjectIdParser{
 
   private val ContentType : String = "Content-Type"
 
+  /**
+    * Render the Item.data resource using the CSS for printing.
+    * @param itemId
+    * @return
+    */
+   def renderDataResourceForPrinting(itemId:String) = {
+    renderDataResource(itemId, true);
+  }
 
   /**
    * Render the Item.data resource. Find the default file in the Resource.files Seq,
    * If the file is qti.xml then redirect to the testplayer otherwise render as html.
    * @param itemId
+   * @param toPrint if true the printing stylesheet will be used to render the resource
    * @return
    */
-  def renderDataResource(itemId:String) =
+  def renderDataResource(itemId:String, toPrint:Boolean = false) =
     objectId(itemId) match {
       case Some(oid) => {
         Item.findOneById(oid) match {
@@ -49,8 +58,9 @@ object ShowResource extends Controller with ObjectIdParser{
             item.data.get.files.find( _.isMain == true ) match {
               case Some(defaultFile) => {
                 if (defaultFile.contentType == BaseFile.ContentTypes.XML && defaultFile.name == "qti.xml" ){
-                  val itemPlayerUrl = controllers.testplayer.routes.ItemPlayer.renderItem(itemId).url
-                  Action(Redirect( itemPlayerUrl + "?access_token=" + MOCK_ACCESS_TOKEN))
+                  val itemPlayerUrl = controllers.testplayer.routes.ItemPlayer.renderItem(itemId, toPrint).url
+                  val delimiter = if (toPrint) "&" else "?";
+                  Action(Redirect( itemPlayerUrl + delimiter + "access_token=" + MOCK_ACCESS_TOKEN))
                 } else {
                   val showFileUrl = web.controllers.routes.ShowResource.getDataFile(itemId, defaultFile.name).url
                   Action(Redirect(showFileUrl))

@@ -1,17 +1,17 @@
-prompt, .choicePrompt {
+prompt, .choice-prompt {
     font-size: 1.5em;
     display: block;
     margin-bottom: 15px;
 }
-.correctResponse {
+.correct-response {
     display: block;
     color: green;
 }
-.incorrectSelection {
+.incorrect-selection {
     display: block;
     color: red;
 }
-.feedbackinline {
+.feedback-inline {
     color: grey;
     padding-left: 10px;
 }
