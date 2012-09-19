@@ -197,8 +197,7 @@ class ItemApiTest extends BaseTest {
     val toUpdate = xmlBody("<root/>", Map(Item.credentials -> STATE_DEPT ))
     val updateResult = routeAndCall(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
     val updateJsonString = contentAsString(updateResult)
-    skipped
-    //updateJsonString must equalTo(getJsonString)
+    updateJsonString must equalTo(getJsonString)
   }
 
   "update does not include csFeedbackIds" in {
