@@ -28,7 +28,7 @@ object ItemApi extends BaseApi {
     Item.copyrightOwner -> 0,
     Item.credentials -> 0,
     //Item.supportingMaterials -> 0,
-    Item.keySkills -> 0,
+    //Item.keySkills -> 0,
     Item.contentType -> 0
     //Item.data -> 0
   ))
@@ -193,7 +193,7 @@ object ItemApi extends BaseApi {
           }
           else {
             try {
-              Item.updateItem(id,Json.fromJson[Item](json)) match {
+              Item.updateItem(id,Json.fromJson[Item](json),excludedFieldsByDefault) match {
                 case Right(i) => Ok(removeFeedbackIds(Json.toJson(i).toString))
                 case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateItem(error.clientOutput)))
               }
