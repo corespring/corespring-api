@@ -1,0 +1,70 @@
+{
+	"_id" : { "$oid" : "50228443e4b05b57849d303f" },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"string\"/>\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"string\"/>\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_03\" cardinality=\"single\" baseType=\"string\"/>\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_04\" cardinality=\"single\" baseType=\"string\"/>\n\n    <itemBody>\n<h3>Extending the Investigation</h3>\n<p/>Two students in Elaine’s class forgot to close their bags when they conducted their investigation. They \nmeasured the mass of Powder X and water before mixing, mixed Powder X and water together, left the \nbag open, and measured the mass after mixing. They conducted three trials and recorded the average \ndifference in mass in the data table below.\n\n<p/>Data Table 2 shows the average difference in mass for the combination of Powder X and water for the \nstudents who left their bags open.\n<h3>Data Table 2: Open Bags</h3>\n<table>\n<tr>\n<th border=\"0\"></th>\n<th>Average Difference in Mass <p>(Number of Washers)</p></th>\n</tr>\n<tr>\n<td>Powder X and water</td>\n<td>0.5</td>\n</tr>\n</table>\n\n<p/><b>1.</b> Compare your results with those of the students who left their bags open. Explain why your \nresults are the same or different. Use evidence to support your answer. \n        <p/><extendedTextInteraction responseIdentifier=\"Q_01\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"/>\n\n<p/>The next day, Elaine’s teacher placed a candle on a balance and lit the candle. As the candle burned, the \nclass watched the values on the balance to see if the mass of the candle changed. They recorded the mass \nof the candle every 5 minutes for 30 minutes. Data Table 3 shows the students’ data.\n\n<p/><center><img src=\"DataTable3.png\"/></center>\n\n<p/><b>2.</b> Use the information in Data Table 3 to graph the relationship between the candle’s mass and \ntime. Clearly label each axis and include a title.\n\n<p/>Elaine graphed the difference in the mass of the candle every ﬁve minutes. Graph 1 below shows her results.\n<p/><center><img src=\"Graph1.png\"/></center>\n\n<p/><b>3.</b> Describe the pattern (trend) in the mass of the candle over time shown in your graph. \nCompare your graph to Graph 1. Use speciﬁc data in your comparison. \n        <p/><extendedTextInteraction responseIdentifier=\"Q_02\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"/>\n\n<p/><b>4.</b> Explain why the mass of the candle changed over time. Use speciﬁc information from the \ninvestigation to support your answer.\n        <p/><extendedTextInteraction responseIdentifier=\"Q_03\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"/>\n\n<p/>After the students conducted their investigation, Elaine’s teacher explained that Powder X was a mixture \nof two different substances. When the two substances are mixed with water, they make a gas called carbon \ndioxide (CO2\n). Carbon dioxide is what bubbles up from the mixture.\n\n<p/><b>5.</b> Use what you learned from the burning candle experiment to explain why your results from \nthe Powder X investigation were similar to or different from the results of the two students \nwho left their bags open. Use evidence to support your explanation.\n        <p/><extendedTextInteraction responseIdentifier=\"Q_04\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"/>\n\n    </itemBody>\n</assessmentItem>\n"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "DataTable2.png",
+				"isMain" : false,
+				"storageKey" : "50228443e4b05b57849d303f/DataTable2.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "DataTable3.png",
+				"isMain" : false,
+				"storageKey" : "50228443e4b05b57849d303f/DataTable3.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "Graph1.png",
+				"isMain" : false,
+				"storageKey" : "50228443e4b05b57849d303f/Graph1.png",
+				"contentType" : "image/png"
+			}
+		]
+	},
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2d9" }
+	},
+	"standards" : [ ],
+	"itemType" : "Performance Task",
+	"copyright" : {
+		"owner" : "New England Common Assessment Program",
+		"year" : "2010"
+	},
+	"workflow" : {
+		"setup" : false,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"keySkills" : [ ],
+	"title" : "Mass and Matter Experiment - Part 4 - Extending the Investigation",
+	"contributor" : "New England Common Assessment Program",
+	"author" : "New England Common Assessment Program",
+	"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
+	"credentials" : "State Department of Education",
+	"licenseType" : "CC BY",
+	"priorUse" : "Summative",
+	"gradeLevel" : [
+		"08"
+	],
+	"reviewsPassed" : [
+		"Editorial",
+		"Bias",
+		"Fairness",
+		"Content",
+		"Psychometric"
+	]
+}

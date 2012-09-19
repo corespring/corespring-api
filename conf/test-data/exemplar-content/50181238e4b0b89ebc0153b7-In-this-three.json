@@ -1,0 +1,69 @@
+{
+	"_id" : { "$oid" : "50181238e4b0b89ebc0153b7" },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"string\"/> \n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value>2</value> \n        </correctResponse> \n    </responseDeclaration> \n    \n        <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_03\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value>6</value> \n        </correctResponse> \n    </responseDeclaration> \n    \n        <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_04\" cardinality=\"single\" baseType=\"string\"/>\n\n    \n<itemBody>\n\n\n<div class=\"imagewrapper\"><img src=\"coins.png\"/></div><p/>\n<div class=\"image-copyright\">Copyright 2010 Muffet</div>\n\n<p class=\"intro-2\">During an experiment, three coins were tossed once.</p>\n\n     <p class=\"prompt\"><b>Part A:</b> Use the sample space to show all possible outcomes for tossing three coins one time, using the letter H when a coin faces “heads” up, and the \nletter T when it faces “tails” up.</p>\n<extendedTextInteraction responseIdentifier=\"Q_01\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"></extendedTextInteraction>\n\n    <p class=\"prompt\"><b>Part B:</b> Based on your answer to part A, how many outcomes consist of 3 heads or 3 tails? </p>\n        <p>There are <textEntryInteraction responseIdentifier=\"Q_02\" expectedLength=\"5\" class=\"textarea.answer_5_linebox\"> </textEntryInteraction> outcomes that consist of 3 heads or 3 tails.</p>\n        \n    <p class=\"prompt\"><b>Part C:</b> During a math class, each of 24 students tossed three coins once. Based on your answer to part B, how many students would you expect to get a result of 3 heads or 3 tails? </p>\n        <p>\n       I think that <textEntryInteraction responseIdentifier=\"Q_03\" expectedLength=\"5\" class=\"textarea.answer_5_linebox\">         \n        </textEntryInteraction>  \n        students would get a result of 3 heads or 3 tails.   \n        </p>\n\n<p class=\"prompt\">Show your work.</p>\n        \n<p><extendedTextInteraction responseIdentifier=\"Q_04\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\" class=\"textarea.answer_20_linebox\"/></p>\n\n        </itemBody>\n</assessmentItem>"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "coins.png",
+				"isMain" : false,
+				"storageKey" : "50181238e4b0b89ebc0153b7/coins.png",
+				"contentType" : "image/png"
+			}
+		]
+	},
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2c2" }
+	},
+	"standards" : [
+		{ "$oid" : "4ff47f6e6bb41e469c0beb14" }
+	],
+	"itemType" : "Constructed Response - Short Answer",
+	"copyright" : {
+		"owner" : "New York State Education Department",
+		"year" : "2012"
+	},
+	"workflow" : {
+		"setup" : false,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"title" : "In this three part activity, give the sample space to show all possible outcomes for a given problem, calculate the outcomes given specific parameters, and calculate expected results based on the number of students in the class.",
+	"sourceUrl" : "www.p12.nysed.gov/apda/common-core-sample-questions",
+	"contributor" : "New York State Education Department",
+	"author" : "New York State Education Department",
+	"materialType" : "Assessment Item",
+	"credentials" : "State Department of Education",
+	"licenseType" : "CC BY",
+	"priorUse" : "Formative",
+	"reviewsPassed" : [
+		"Editorial"
+	],
+	"gradeLevel" : [
+		"07"
+	],
+	"keySkills" : [ ],
+	"supportingMaterials" : [
+		{
+			"name" : "Scoring Guide",
+			"files" : [
+				{
+					"_t" : "models.VirtualFile",
+					"name" : "NY.G7.12.ScoreGuide.html",
+					"contentType" : "text/html",
+					"isMain" : true,
+					"content" : "<html>\n\n<head>\n<script type=\"text/javascript\"\n  src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\">\n</script>\n</head>\n\n<body>\n<p/><h2>Scoring Guide</h2>\n\n<p/><b>Key:</b>\n\n<p/><b>Part A:</b> \n\n<p/><table>\n<tr>\n  <td>H</td>\n  <td>H</td>\n  <td>H</td>\n  <td></td>\n  <td></td>\n  <td></td>\n  <td>T</td>\n  <td>T</td>\n  <td>T</td>\n</tr>\n<tr>\n  <td>H</td>\n  <td>H</td>\n  <td>T</td>\n  <td></td>\n  <td></td>\n  <td></td>\n  <td>T</td>\n  <td>T</td>\n  <td>H</td>\n</tr>\n<tr>\n  <td>H</td>\n  <td>T</td>\n  <td>H</td>\n  <td></td>\n  <td></td>\n  <td></td>\n  <td>T</td>\n  <td>H</td>\n  <td>T</td>\n</tr>\n<tr>\n  <td>T</td>\n  <td>H</td>\n  <td>H</td>\n  <td></td>\n  <td></td>\n  <td></td>\n  <td>H</td>\n  <td>T</td>\n  <td>T</td>\n</tr>\n</table>\n\n<p/><b>Part B:</b> 2\n\n<p/><b>Part C:</b> 6\n\n</body>\n</html>"
+				}
+			]
+		}
+	]
+}

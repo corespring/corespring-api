@@ -74,6 +74,18 @@
 					"storageKey" : "5040da52e4b0d43b60f3a011/materials/Scoring Guide/G7.1.2.ScoreGuidea.png"
 				}
 			]
+		},
+		{
+			"name" : "G7.1.2.worksheet",
+			"files" : [
+				{
+					"_t" : "models.StoredFile",
+					"name" : "G7.1.2.worksheet.pdf",
+					"contentType" : "application/pdf",
+					"isMain" : true,
+					"storageKey" : "5040da52e4b0d43b60f3a011/materials/G7.1.2.worksheet/G7.1.2.worksheet.pdf"
+				}
+			]
 		}
 	]
 }
