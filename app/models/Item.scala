@@ -422,7 +422,10 @@ object Item extends DBQueryable[Item] {
       }
       case _ => Left(InternalError("uknown value type for standards"))
     }, Standard.queryFields),
-    QueryFieldString[Item](title, _.title)
+    QueryFieldString[Item](title, _.title),
+    QueryFieldString[Item](lexile,_.lexile),
+    QueryFieldString[Item](pValue,_.pValue),
+    QueryFieldString[Item](relatedCurriculum,_.relatedCurriculum)
   )
 
   override def preParse(dbo: DBObject): QueryParser = {
