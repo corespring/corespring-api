@@ -237,9 +237,6 @@ object JsonImporter {
 
   def insertString(s: String, coll: MongoCollection) = {
     val dbo : DBObject = JSON.parse(s).asInstanceOf[DBObject]
-
-    val dboId : BasicDBObject = new BasicDBObject()
-    dboId.put("_id", new ObjectId( dbo.get("_id").toString ))
     val id = dbo.get("_id").toString
 
     coll.findOneByID( new ObjectId( id )) match {

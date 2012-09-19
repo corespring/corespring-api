@@ -25,6 +25,8 @@ import tests.BaseTest
 
 class CollectionApiTest extends BaseTest {
 
+  val INITIAL_COLLECTION_SIZE : Int = 5
+
   "list all collections" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/collections?access_token=%s".format(token))
     val Some(result) = routeAndCall(fakeRequest)
@@ -32,7 +34,7 @@ class CollectionApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val collections = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    collections.size must beEqualTo(4)
+    collections.size must beEqualTo(INITIAL_COLLECTION_SIZE)
   }
 
   "list all collections skipping the first result" in {
@@ -42,7 +44,7 @@ class CollectionApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val collections = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    collections.size must beEqualTo(3)
+    collections.size must beEqualTo(INITIAL_COLLECTION_SIZE - 1)
     (collections(0) \ "name").as[String] must beEqualTo("Collection F")
   }
 
