@@ -6,8 +6,12 @@
             <input type="radio" ng-model="itemData.itemType" value="{{t.value}}"/>
             {{t.key}}
         </label>
+        <label class="radio">
+            <input type="radio" ng-model="itemData.itemType" value="{{otherItemType}}"/>
+            Other
+        </label>
         <label class="input-medium">
-            <input type="text" ng-model="itemData.itemTypeOther" ng-change="updateItemType()"></input>
+            <input type="text" ng-model="otherItemType" ng-change="updateItemType()"></input>
         </label>
     </div>
 </div>

@@ -120,7 +120,7 @@ com.corespring.model.ItemDataProcessor = function () {
         item.$credentialsDataProvider = _.map(window.fieldValues.credentials, function(c){return c.key});
         item.$licenseTypeDataProvider = _.map(window.fieldValues.licenseTypes, function(c){return c.key});
         item.$bloomsTaxonomyDataProvider = _.map(window.fieldValues.bloomsTaxonomy, function(c){return c.key});
-        item.$itemTypeDataProvider = window.fieldValues.itemTypes;
+        item.$itemTypeDataProvider = _.filter( window.fieldValues.itemTypes, function(c){ return c.value != "Other" });
 
         if (!item.keySkills) {
             item.keySkills = [];

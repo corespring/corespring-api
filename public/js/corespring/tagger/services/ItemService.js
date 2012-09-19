@@ -74,8 +74,14 @@ angular.module('tagger.services')
             }
             return  item.id;
         }
-        copy.relatedSubject = convertEmbeddedToOid(copy.relatedSubject);
-        copy.primarySubject = convertEmbeddedToOid(copy.primarySubject);
+
+        if(copy.primarySubject){
+            copy.primarySubject = convertEmbeddedToOid(copy.primarySubject);
+        }
+
+        if(copy.relatedSubject){
+            copy.relatedSubject = convertEmbeddedToOid(copy.relatedSubject);
+        }
         copy.standards = _.map(copy.standards, convertEmbeddedToOid);
 
         return ItemService.update(idObject, copy, function(resource){
