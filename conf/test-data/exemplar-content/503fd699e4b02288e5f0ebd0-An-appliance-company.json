@@ -12,7 +12,7 @@
 			}
 		]
 	},
-	"collectionId" : "4ff2e56fe4b077b9e3168a05",
+	"collectionId" : "50521167e4b0deb1e1d5e5e9",
 	"subjects" : {
 		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2c3" }
 	},
@@ -110,6 +110,18 @@
 					"contentType" : "image/png",
 					"isMain" : false,
 					"storageKey" : "503fd699e4b02288e5f0ebd0/materials/Scoring Guide/A1.1.18ScoringGuidef.png"
+				}
+			]
+		},
+		{
+			"name" : "A1.1.18.worksheet",
+			"files" : [
+				{
+					"_t" : "models.StoredFile",
+					"name" : "A1.1.18.worksheet.pdf",
+					"contentType" : "application/pdf",
+					"isMain" : true,
+					"storageKey" : "503fd699e4b02288e5f0ebd0/materials/A1.1.18.worksheet/A1.1.18.worksheet.pdf"
 				}
 			]
 		}

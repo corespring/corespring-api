@@ -1,0 +1,83 @@
+{
+	"_id" : { "$oid" : "504e9571e4b07f3e2e432371" },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"ordered\" baseType=\"identifier\">\n    \t<correctResponse>\n\t\t\t<value>ChoiceC</value>\n\t\t\t<value>ChoiceA</value>\n\t\t\t<value>ChoiceB</value>\n            <value>ChoiceD</value>\n\t\t</correctResponse>\n\t</responseDeclaration>\n\t<outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\"/>\n    <itemBody>\n        <p>\n            The life cycle of butterﬂies has four stages. One of these stages is pictured below. \n            <p/><img src=\"7.butterfly.png\"/>\n        </p>\n        \n        <orderInteraction responseIdentifier=\"RESPONSE\" shuffle=\"true\">\n            <prompt>Arrange the stages of life of a butterfly in order from beginning to end.</prompt>\n            <simpleChoice identifier=\"ChoiceA\"><img src=\"caterpillar.png\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\"><img src=\"cocoon2.png\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\"><img src=\"egg2.png\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceD\"><img src=\"butterfly2.png\"/></simpleChoice>\n        </orderInteraction>\n        \n    </itemBody>\n\n</assessmentItem>\n"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "7.butterfly.png",
+				"isMain" : false,
+				"storageKey" : "504e9571e4b07f3e2e432371/7.butterfly.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "butterfly2.png",
+				"isMain" : false,
+				"storageKey" : "504e9571e4b07f3e2e432371/butterfly2.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "caterpillar.png",
+				"isMain" : false,
+				"storageKey" : "504e9571e4b07f3e2e432371/caterpillar.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "cocoon2.png",
+				"isMain" : false,
+				"storageKey" : "504e9571e4b07f3e2e432371/cocoon2.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "egg2.png",
+				"isMain" : false,
+				"storageKey" : "504e9571e4b07f3e2e432371/egg2.png",
+				"contentType" : "image/png"
+			}
+		]
+	},
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2d1" }
+	},
+	"standards" : [ ],
+	"itemType" : "Ordering",
+	"copyright" : {
+		"owner" : "New England Common Assessment Program",
+		"year" : "2012"
+	},
+	"gradeLevel" : [
+		"04"
+	],
+	"workflow" : {
+		"setup" : true,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"title" : "The life cycle of butterﬂies has four stages. Arrange the stages of life of a butterfly in order from beginning to end.",
+	"demonstratedKnowledge" : "Factual",
+	"materialType" : "Assessment Item",
+	"contributor" : "CoreSpring",
+	"credentials" : "Other",
+	"author" : "CoreSpring",
+	"licenseType" : "CC BY",
+	"bloomsTaxonomy" : "Understand (Describe, dramatize)",
+	"priorUse" : null,
+	"sourceUrl" : "www.corespring.org",
+	"keySkills" : [ ],
+	"reviewsPassed" : [
+		"Editorial"
+	]
+}

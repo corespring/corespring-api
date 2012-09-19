@@ -77,6 +77,18 @@
 					"content" : "<html>\n<head>\n<script type=\"text/javascript\"\n  src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\">\n</script>\n</head>\n<body>\n\n\t<h2>Scoring Guide</h2>\n\nA graph with x-intercepts at -3, 1, and 3 and nowhere else that goes upward towards positive infinity on the right and negative infinity on the left.\n\n<h2>Score Points</h2>\n \n \n\n<table>\n\t<tr>\n\t\t<td>2 points:  </td>\n\t\t<td>Student sketches a graph with x-intercepts only at -3, 1, and 3 with the correct end behavior.</td>\n\t\t</tr>\n\t\t<tr>\n\t\t<td>1 point:</td>\n\t\t<td>Student sketches a graph with x-intercepts only at -3, 1, and 3 with the incorrect end behavior.</td>\n\t\t</tr>\n    <tr>\n    <td>0 points:</td>\n    <td>Student does not sketch a graph with x-intercepts at -3, 1, and 3.  </td>\n    </tr>\n</body>\n</html>"
 				}
 			]
+		},
+		{
+			"name" : "Geo.1.18.worksheet",
+			"files" : [
+				{
+					"_t" : "models.StoredFile",
+					"name" : "Geo.1.18.worksheet.pdf",
+					"contentType" : "application/pdf",
+					"isMain" : true,
+					"storageKey" : "5044cf96e4b008d30cf773a4/materials/Geo.1.18.worksheet/Geo.1.18.worksheet.pdf"
+				}
+			]
 		}
 	]
 }
