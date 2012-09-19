@@ -32,9 +32,17 @@
 	},
 	"standards" : [ ],
 	"itemType" : "Performance Task",
-	"copyright" : {
-		"owner" : "New England Common Assessment Program",
-		"year" : "2010"
+	"contributorDetails" : {
+		"contributor" : "New England Common Assessment Program",
+		"credentials" : "State Department of Education",
+		"author" : "New England Common Assessment Program",
+		"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New England Common Assessment Program",
+			"year" : "2010"
+		}
 	},
 	"workflow" : {
 		"setup" : false,
@@ -43,11 +51,6 @@
 		"qaReview" : false
 	},
 	"keySkills" : [ ],
-	"contributor" : "New England Common Assessment Program",
-	"author" : "New England Common Assessment Program",
-	"credentials" : "State Department of Education",
-	"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
-	"licenseType" : "CC BY",
 	"priorUse" : "Summative",
 	"title" : "Mass and Matter Experiment - Part 1 - Prediction and Rationale",
 	"gradeLevel" : [

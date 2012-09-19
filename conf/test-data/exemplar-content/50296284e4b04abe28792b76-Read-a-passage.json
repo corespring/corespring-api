@@ -23,9 +23,17 @@
 		{ "$oid" : "4ff47f6b6bb41e469c0be827" }
 	],
 	"itemType" : "Text with Questions",
-	"copyright" : {
-		"owner" : "New York State Education Department",
-		"year" : "2012"
+	"contributorDetails" : {
+		"contributor" : "New York State Education Department",
+		"credentials" : "State Department of Education",
+		"author" : "New York State Education Department",
+		"sourceUrl" : "www.p12.nysed.gov/apda/common-core-sample-questions",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New York State Education Department",
+			"year" : "2012"
+		}
 	},
 	"workflow" : {
 		"setup" : false,
@@ -35,11 +43,6 @@
 	},
 	"keySkills" : [ ],
 	"title" : "Read a passage from Louisa May Alcott's <i>Little Women</i> and answer some questions to demonstrate understanding.",
-	"contributor" : "New York State Education Department",
-	"author" : "New York State Education Department",
-	"sourceUrl" : "www.p12.nysed.gov/apda/common-core-sample-questions",
-	"credentials" : "State Department of Education",
-	"licenseType" : "CC BY",
 	"priorUse" : "Formative",
 	"gradeLevel" : [
 		"08"

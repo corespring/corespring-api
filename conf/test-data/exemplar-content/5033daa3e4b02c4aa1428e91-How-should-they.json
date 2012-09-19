@@ -27,9 +27,17 @@
 		{ "$oid" : "4ff47f6e6bb41e469c0beafc" }
 	],
 	"itemType" : "Constructed Response - Short Answer",
-	"copyright" : {
-		"owner" : "Illustrative Mathematics",
-		"year" : "2012"
+	"contributorDetails" : {
+		"contributor" : "Illustrative Mathematics",
+		"credentials" : "Other",
+		"author" : "Illustrative Mathematics",
+		"sourceUrl" : "www.illustrativemathematics.org",
+		"licenseType" : "CC BY-NC",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "Illustrative Mathematics",
+			"year" : "2012"
+		}
 	},
 	"workflow" : {
 		"setup" : false,
@@ -38,11 +46,6 @@
 		"qaReview" : false
 	},
 	"keySkills" : [ ],
-	"sourceUrl" : "www.illustrativemathematics.org",
-	"contributor" : "Illustrative Mathematics",
-	"author" : "Illustrative Mathematics",
-	"credentials" : "Other",
-	"licenseType" : "CC BY-NC",
 	"priorUse" : "Formative",
 	"title" : "How should they divide the $600 prize money so that each class gets the same fraction of the money as the fraction of the box tops that they collected?",
 	"gradeLevel" : [
