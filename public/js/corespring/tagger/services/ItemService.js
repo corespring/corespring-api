@@ -59,7 +59,6 @@ angular.module('tagger.services')
         var copy = {};
         angular.copy(this, copy);
         copy.id = null;
-        delete copy.author;
         delete copy.id;
         delete copy.collectionId;
 

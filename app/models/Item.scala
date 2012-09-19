@@ -16,6 +16,7 @@ import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
 import scala.Right
 import com.mongodb.QueryBuilder
+import web.views.html.partials._edit._metadata._formWithLegend
 
 //case class ItemFile(var filename:String)
 //object ItemFile extends Queryable[ItemFile]{
@@ -68,157 +69,10 @@ import com.mongodb.QueryBuilder
 import com.novus.salat.annotations.raw.Salat
 import play.api.libs.json._
 
-@Salat
-abstract class BaseFile(val name: String, val contentType: String, val isMain: Boolean)
-
-object BaseFile {
-
-  object ContentTypes {
-    val JPG: String = "image/jpg"
-    val PNG: String = "image/png"
-    val GIF: String = "image/gif"
-    val DOC: String = "application/msword"
-    val PDF: String = "application/pdf"
-    val XML: String = "text/xml"
-    val CSS: String = "text/css"
-    val HTML: String = "text/html"
-    val TXT: String = "text/txt"
-    val JS: String = "text/javascript"
-  }
-
-  val SuffixToContentTypes = Map(
-    "jpg" -> ContentTypes.JPG,
-    "jpeg" -> ContentTypes.JPG,
-    "png" -> ContentTypes.PNG,
-    "gif" -> ContentTypes.GIF,
-    "doc" -> ContentTypes.DOC,
-    "pdf" -> ContentTypes.PDF,
-    "xml" -> ContentTypes.XML,
-    "css" -> ContentTypes.CSS,
-    "html" -> ContentTypes.HTML,
-    "txt" -> ContentTypes.TXT,
-    "js" -> ContentTypes.JS)
-
-  def getContentType(filename: String): String = {
-    val split = filename.split("\\.").toList
-    val suffix = split.last
-    SuffixToContentTypes.getOrElse(suffix, "unknown")
-  }
-
-  implicit object BaseFileWrites extends Writes[BaseFile] {
-    def writes(f: BaseFile): JsValue = {
-      if (f.isInstanceOf[VirtualFile]) {
-        VirtualFile.VirtualFileWrites.writes(f.asInstanceOf[VirtualFile])
-      } else {
-        StoredFile.StoredFileWrites.writes(f.asInstanceOf[StoredFile])
-      }
-    }
-  }
-
-  implicit object BaseFileReads extends Reads[BaseFile] {
-
-    def reads(json: JsValue): BaseFile = {
-
-      val name = (json \ "name").asOpt[String].getOrElse("unknown")
-      val contentType = (json \ "contentType").asOpt[String].getOrElse(getContentType(name))
-      val isMain = (json \ "default").asOpt[Boolean].getOrElse(false)
-
-
-      (json \ "content").asOpt[String] match {
-        case Some(content) => {
-          VirtualFile(name, contentType, isMain, content)
-        }
-        case _ => StoredFile(name, contentType, isMain) //we are missing the storageKey here 
-      }
-    }
-  }
-
-  def toJson(f: BaseFile): JsObject = {
-    JsObject(Seq(
-      "name" -> JsString(f.name),
-      "contentType" -> JsString(f.contentType),
-      "default" -> JsBoolean(f.isMain))
-    )
-  }
-}
-
-/*
- * A VirtualFile is a representation of a file, but the file contents are stored in mongo.
- * Used for text based files.
- */
-case class VirtualFile(override val name: String, override val contentType: String, override val isMain: Boolean = false, var content: String) extends BaseFile(name, contentType, isMain)
-
-object VirtualFile {
-
-  implicit object VirtualFileWrites extends Writes[VirtualFile] {
-    def writes(f: VirtualFile): JsValue = {
-      BaseFile.toJson(f) ++ JsObject(Seq("content" -> JsString(f.content)))
-    }
-  }
-
-}
-
-
-/**
- * A File that has been stored in a file storage service.
- */
-case class StoredFile(override val name: String, override val contentType: String, override val isMain: Boolean = false, var storageKey: String = "") extends BaseFile(name, contentType, isMain)
-
-object StoredFile {
-
-  implicit object StoredFileWrites extends Writes[StoredFile] {
-    def writes(f: StoredFile): JsValue = {
-      BaseFile.toJson(f)
-      //"storageKey is for internal use only"
-      //++ JsObject(Seq("storageKey" -> JsString(f.storageKey)))
-    }
-  }
-
-}
-
-/**
- * A Resource is representation of a set of one or more files. The files can be Stored files (uploaded to amazon) or virtual files (stored in mongo).
- */
-case class Resource(name: String, var files: Seq[BaseFile])
-
-object Resource {
-  val name = "name"
-  val files = "files"
-
-  implicit object ResourceWrites extends Writes[Resource] {
-    def writes(res: Resource): JsValue = {
-      import BaseFile._
-      JsObject(List(
-        "name" -> JsString(res.name),
-        "files" -> Json.toJson(res.files)
-      ))
-    }
-  }
-
-  implicit object ResourceReads extends Reads[Resource] {
-    def reads(json: JsValue): Resource = {
-      val resourceName = (json \ "name").as[String]
-      val files = (json \ "files").asOpt[Seq[JsValue]].map(_.map(f => {
-
-        val fileName = (f \ "name").as[String]
-        val contentType = (f \ "contentType").as[String]
-        val isMain = (f \ "default").as[Boolean]
-        (f \ "content").asOpt[String] match {
-          case Some(c) => VirtualFile(fileName, contentType, isMain, c)
-          case _ => StoredFile(fileName, contentType, isMain, (f \ "storageKey").as[String])
-        }
-      }))
-      Resource(resourceName, files.getOrElse(Seq()))
-    }
-  }
-
-}
 
 case class Copyright(owner: Option[String] = None, year: Option[String] = None, expirationDate: Option[String] = None)
 
 case class Subjects(var primary: Option[ObjectId] = None, var related: Option[ObjectId] = None)
-
-
 
 case class ContributorDetails(
                                var contributor: Option[String] = None,
@@ -230,8 +84,9 @@ case class ContributorDetails(
                                var costForResource: Option[Int] = None
                                )
 
+
 case class Item(var collectionId: String = "",
-                var contributorDetails : Option[ContributorDetails] = None,
+                var contributorDetails: Option[ContributorDetails] = None,
                 var contentType: String = "item",
                 var gradeLevel: Seq[String] = Seq(),
                 var itemType: Option[String] = None,
@@ -244,7 +99,7 @@ case class Item(var collectionId: String = "",
                 var lexile: Option[String] = None,
                 var title: Option[String] = None,
                 var data: Option[Resource] = None,
-                //var relatedCurriculum : Option[String] = None,
+                var relatedCurriculum: Option[String] = None,
                 var supportingMaterials: Seq[Resource] = Seq(),
                 var id: ObjectId = new ObjectId()) extends Content {
 }
@@ -295,29 +150,39 @@ object Item extends DBQueryable[Item] {
     def writes(item: Item) = {
 
       var iseq: Seq[(String, JsValue)] = Seq("id" -> JsString(item.id.toString))
-      item.author.foreach(v => iseq = iseq :+ (author -> JsString(v)))
-      item.lexile.foreach(v => iseq = iseq :+ (lexile -> JsString(v)))
-      iseq = iseq :+ (collectionId -> JsString(item.collectionId))
-      iseq = iseq :+ (contentType -> JsString(ContentType.item))
-      item.contributor.foreach(v => iseq = iseq :+ (contributor -> JsString(v)))
-      item.costForResource.foreach(v => iseq = iseq :+ (costForResource -> JsNumber(v)))
-      item.pValue.foreach(v => iseq = iseq :+ (pValue -> JsString(v)))
-      //item.relatedCurriculum.foreach(v => iseq = iseq :+ (relatedCurriculum -> JsString(v)))
 
-      item.copyright match {
-        case Some(c) => {
-          c.owner.foreach(v => iseq = iseq :+ (copyrightOwner -> JsString(v)))
-          c.year.foreach(v => iseq = iseq :+ (copyrightYear -> JsString(v)))
-          c.expirationDate.foreach(v => iseq = iseq :+ (copyrightExpirationDate -> JsString(v)))
+
+      //ContributorDetails
+      item.contributorDetails match {
+        case Some(cd) => {
+          cd.author.foreach(v => iseq = iseq :+ (author -> JsString(v)))
+          cd.contributor.foreach(v => iseq = iseq :+ (contributor -> JsString(v)))
+          cd.costForResource.foreach(v => iseq = iseq :+ (costForResource -> JsNumber(v)))
+          cd.credentials.foreach(v => iseq = iseq :+ (credentials -> JsString(v)))
+          cd.licenseType.foreach(v => iseq = iseq :+ (licenseType -> JsString(v)))
+          cd.sourceUrl.foreach(v => iseq = iseq :+ (sourceUrl -> JsString(v)))
+          cd.copyright match {
+            case Some(c) => {
+              c.owner.foreach(v => iseq = iseq :+ (copyrightOwner -> JsString(v)))
+              c.year.foreach(v => iseq = iseq :+ (copyrightYear -> JsString(v)))
+              c.expirationDate.foreach(v => iseq = iseq :+ (copyrightExpirationDate -> JsString(v)))
+            }
+            case _ => //do nothing
+          }
         }
         case _ => //do nothing
       }
-      item.credentials.foreach(v => iseq = iseq :+ (credentials -> JsString(v)))
+
+      item.lexile.foreach(v => iseq = iseq :+ (lexile -> JsString(v)))
+      iseq = iseq :+ (collectionId -> JsString(item.collectionId))
+      iseq = iseq :+ (contentType -> JsString(ContentType.item))
+      item.pValue.foreach(v => iseq = iseq :+ (pValue -> JsString(v)))
+      item.relatedCurriculum.foreach(v => iseq = iseq :+ (relatedCurriculum -> JsString(v)))
+
       if (!item.supportingMaterials.isEmpty) iseq = iseq :+ (supportingMaterials -> JsArray(item.supportingMaterials.map(Json.toJson(_))))
       if (!item.gradeLevel.isEmpty) iseq = iseq :+ (gradeLevel -> JsArray(item.gradeLevel.map(JsString(_))))
       item.itemType.foreach(v => iseq = iseq :+ (itemType -> JsString(v)))
       if (!item.keySkills.isEmpty) iseq = iseq :+ (keySkills -> JsArray(item.keySkills.map(JsString(_))))
-      item.licenseType.foreach(v => iseq = iseq :+ (licenseType -> JsString(v)))
 
 
       item.subjects match {
@@ -341,7 +206,6 @@ object Item extends DBQueryable[Item] {
 
       item.priorUse.foreach(v => iseq = iseq :+ (priorUse -> JsString(v)))
       if (!item.reviewsPassed.isEmpty) iseq = iseq :+ (reviewsPassed -> JsArray(item.reviewsPassed.map(JsString(_))))
-      item.sourceUrl.foreach(v => iseq = iseq :+ (sourceUrl -> JsString(v)))
       if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards.
         foldRight[Seq[Standard]](Seq[Standard]())((sid, acc) => Standard.findOneById(sid) match {
         case Some(standard) => acc :+ standard
@@ -357,12 +221,22 @@ object Item extends DBQueryable[Item] {
     def reads(json: JsValue): Item = {
       val item = Item("")
       item.collectionId = (json \ collectionId).asOpt[String].getOrElse("") //must do checking outside of json deserialization
-      item.author = (json \ author).asOpt[String]
       item.lexile = (json \ lexile).asOpt[String]
-      item.contributor = (json \ contributor).asOpt[String]
-      item.costForResource = (json \ costForResource).asOpt[Int]
       item.pValue = (json \ pValue).asOpt[String]
-      //item.relatedCurriculum = (json \ relatedCurriculum).asOpt[String]
+      item.relatedCurriculum = (json \ relatedCurriculum).asOpt[String]
+
+      item.contributorDetails = Some(
+        ContributorDetails(
+          author = (json \ author).asOpt[String],
+          contributor = (json \ contributor).asOpt[String],
+          costForResource = (json \ costForResource).asOpt[Int],
+          copyright = getCopyright(json),
+          sourceUrl = (json \ sourceUrl).asOpt[String],
+          licenseType = (json \ licenseType).asOpt[String],
+          credentials = (json \ credentials).asOpt[String].
+            map(v => if (fieldValues.credentials.exists(_.key == v)) v else throw new JsonValidationException(credentials))
+        ))
+
 
       def getCopyright(json: JsValue): Option[Copyright] = {
         get[Copyright](
@@ -407,8 +281,6 @@ object Item extends DBQueryable[Item] {
         }
       }
 
-      item.copyright = getCopyright(json)
-      item.credentials = (json \ credentials).asOpt[String]
       item.supportingMaterials = (json \ supportingMaterials).asOpt[Seq[Resource]].getOrElse(Seq())
       item.gradeLevel = (json \ gradeLevel).asOpt[Seq[String]].getOrElse(Seq.empty)
 
@@ -418,19 +290,15 @@ object Item extends DBQueryable[Item] {
       }
 
 
-      item.credentials = (json \ credentials).asOpt[String].
-        map(v => if (fieldValues.credentials.exists(_.key == v)) v else throw new JsonValidationException(credentials))
       item.supportingMaterials = (json \ supportingMaterials).asOpt[Seq[Resource]].getOrElse(Seq())
       item.gradeLevel = (json \ gradeLevel).asOpt[Seq[String]].
         map(v => if (v.foldRight[Boolean](true)((g, acc) => fieldValues.gradeLevels.exists(_.key == g) && acc)) v else throw new JsonValidationException(gradeLevel)).getOrElse(Seq.empty)
       item.keySkills = (json \ keySkills).asOpt[Seq[String]].getOrElse(Seq.empty)
-      item.licenseType = (json \ licenseType).asOpt[String]
 
       item.subjects = getSubjects(json)
 
       item.priorUse = (json \ priorUse).asOpt[String]
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
-      item.sourceUrl = (json \ sourceUrl).asOpt[String]
       try {
         item.standards = (json \ standards).asOpt[Seq[String]].map(_.map(new ObjectId(_))).getOrElse(Seq.empty)
       } catch {
@@ -464,23 +332,25 @@ object Item extends DBQueryable[Item] {
     }
   }
 
+  def queryValueFn(name: String, seq: Seq[KeyValue])(c: Any) = {
+    c match {
+      case x: String => if (seq.exists(_.key == x)) Right(x) else Left(InternalError("no valid " + name + " found for given value"))
+      case _ => Left(InternalError("invalid value format"))
+    }
+  }
+
   val queryFields: Seq[QueryField[Item]] = Seq[QueryField[Item]](
     QueryFieldObject[Item](id, _.id, QueryField.valuefuncid),
-    QueryFieldString[Item](author, _.author),
+    QueryFieldString[Item](author, _.contributorDetails.map(_.author)),
     QueryFieldString[Item](collectionId, _.collectionId),
     QueryFieldString[Item](contentType, _.contentType, _ match {
       case x: String if x == ContentType.item => Right(x)
       case _ => Left(InternalError("incorrect content type"))
     }),
-    QueryFieldString[Item](contributor, _.contributor),
-    QueryFieldString[Item](copyrightOwner, _.copyright.map(_.owner)),
-    QueryFieldString[Item](copyrightYear, _.copyright.map(_.year)),
-    QueryFieldString[Item](credentials, _.credentials, value => {
-      value match {
-        case x: String => if (fieldValues.credentials.exists(_.key == x)) Right(x) else Left(InternalError("no valid credentials found for given value"))
-        case _ => Left(InternalError("invalid value format"))
-      }
-    }),
+    QueryFieldString[Item](contributor, _.contributorDetails.map(_.contributor)),
+    QueryFieldString[Item](copyrightOwner, _.contributorDetails.map(_.copyright.map(_.owner))),
+    QueryFieldString[Item](copyrightYear, _.contributorDetails.map(_.copyright.map(_.year))),
+    QueryFieldString[Item](credentials, _.contributorDetails.map(_.credentials), queryValueFn("credentials",fieldValues.credentials)),
     QueryFieldStringArray[Item](gradeLevel, _.gradeLevel, value => {
       value match {
         case grades: BasicDBList =>
@@ -497,23 +367,14 @@ object Item extends DBQueryable[Item] {
      * TODO: Check with Evan/Josh about item types.
      */
     QueryFieldString[Item](itemType, _.itemType),
-    /*QueryFieldString[Item](itemType, _.itemType, value => {
-      value match {
-        case x: String => if (fieldValues.itemTypes.exists(_.key == x)) Right(value) else Left(InternalError("could not find valid item types for value"))
-        case _ => Left(InternalError("invalid type for value in itemType"))
-      }
-    }),*/
     QueryFieldStringArray[Item](keySkills, _.keySkills, value => value match {
       case skills: BasicDBList => if (skills.foldRight[Boolean](true)((skill, acc) => fieldValues.keySkills.exists(_.key == skill.toString) && acc)) Right(value)
       else Left(InternalError("key skill not found for given value"))
       case _ => Left(InternalError("invalid value type for keySkills"))
     }
     ),
-    QueryFieldString[Item](licenseType, _.licenseType, value => value match {
-      case x: String => if (fieldValues.licenseTypes.exists(_.key == x)) Right(value) else Left(InternalError("license type not found"))
-      case _ => Left(InternalError("invalid value type for licenceType"))
-    }
-    ),
+    QueryFieldString[Item](licenseType, _.contributorDetails.map(_.licenseType), queryValueFn("licenseType",fieldValues.licenseTypes)),
+
     QueryFieldObject[Item](primarySubject, _.subjects.map(_.primary), _ match {
       case x: String => try {
         Right(new ObjectId(x))
@@ -541,7 +402,7 @@ object Item extends DBQueryable[Item] {
       case _ => Left(InternalError("invalid value type for reviewsPassed"))
     }
     ),
-    QueryFieldString[Item](sourceUrl, _.sourceUrl),
+    QueryFieldString[Item](sourceUrl, _.contributorDetails.map(_.sourceUrl)),
     QueryFieldObjectArray[Item](standards, _.standards, _ match {
       case x: BasicDBList => x.foldRight[Either[InternalError, Seq[ObjectId]]](Right(Seq()))((standard, acc) => {
         acc match {
