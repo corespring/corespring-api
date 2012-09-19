@@ -218,21 +218,27 @@ case class Copyright(owner: Option[String] = None, year: Option[String] = None, 
 
 case class Subjects(var primary: Option[ObjectId] = None, var related: Option[ObjectId] = None)
 
+
+
+case class ContributorDetails(
+                               var contributor: Option[String] = None,
+                               var credentials: Option[String] = None,
+                               var copyright: Option[Copyright] = None,
+                               var author: Option[String] = None,
+                               var sourceUrl: Option[String] = None,
+                               var licenseType: Option[String] = None,
+                               var costForResource: Option[Int] = None
+                               )
+
 case class Item(var collectionId: String = "",
+                var contributorDetails : Option[ContributorDetails] = None,
                 var contentType: String = "item",
-                var author: Option[String] = None,
-                var contributor: Option[String] = None,
-                var copyright: Option[Copyright] = None,
-                var credentials: Option[String] = None,
-                var costForResource: Option[Int] = None,
                 var gradeLevel: Seq[String] = Seq(),
                 var itemType: Option[String] = None,
                 var keySkills: Seq[String] = Seq(),
-                var licenseType: Option[String] = None,
                 var subjects: Option[Subjects] = None,
                 var priorUse: Option[String] = None,
                 var reviewsPassed: Seq[String] = Seq(),
-                var sourceUrl: Option[String] = None,
                 var standards: Seq[ObjectId] = Seq(),
                 var pValue: Option[String] = None,
                 var lexile: Option[String] = None,
