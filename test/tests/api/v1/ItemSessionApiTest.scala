@@ -24,10 +24,10 @@ class ItemSessionApiTest extends Specification {
 
   // from standard fixture data
   val token = "34dj45a769j4e1c0h4wb"
-  val testItemId = "50535f3899e3c431e9a40df5"
+  val testItemId = "50083ba9e4b071cb5ef79101"
 
   val testSessionIds = Map(
-    "itemId" -> "4ffd8645e4b0031d54b5ab90",
+    "itemId" -> "50083ba9e4b071cb5ef79101",
     "itemSessionId" -> "502d0f823004deb7f4f53be7"
   )
 
@@ -57,9 +57,9 @@ class ItemSessionApiTest extends Specification {
   "item session api" should {
 
     "return feedback with session" in {
-      val itemId = "4ffd8645e4b0031d54b5ab90"
+      val itemId = "50083ba9e4b071cb5ef79101"
       val testSession = ItemSession(new ObjectId(itemId))
-      testSession.responses = List(ItemResponse("RESPONSE", "ChoiceA"))
+      testSession.responses = List(ItemResponse("mexicanPresident", "calderon"))
 
       val url = "/api/v1/items/" + itemId + "/sessions"
       val request = FakeRequest(
@@ -101,9 +101,9 @@ class ItemSessionApiTest extends Specification {
       val url = "/api/v1/items/" + testSession.itemId.toString + "/sessions"
 
       // add some item responses
-      testSession.responses = testSession.responses ++ Seq(ItemResponse("question1", "choice1", "{$score:1}"))
-      testSession.responses = testSession.responses ++ Seq(ItemResponse("question2", "some text", "{$score:1}"))
-      testSession.responses = testSession.responses ++ Seq(ItemResponse("question3", "more text", "{$score:1}"))
+      testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon", "{$score:1}"))
+      testSession.responses = testSession.responses ++ Seq(ItemResponse("irishPresident", "guinness", "{$score:0}"))
+      testSession.responses = testSession.responses ++ Seq(ItemResponse("winterDiscontent", "York", "{$score:1}"))
       testSession.finish = Some(new DateTime())
 
       val request = FakeRequest(
