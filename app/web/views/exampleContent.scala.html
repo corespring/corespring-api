@@ -14,13 +14,17 @@
     <script type="text/javascript">
 
         angular.module('example-content', []);
-        function ExampleContentController($scope, $http){
+        function ExampleContentController($scope, $http, $timeout){
 
             $http.get("/example-content/items").success( function(result){
                 $scope.items = result;
+
+                $timeout(function () {
+                    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                }, 200);
             })
         }
-        ExampleContentController.$inject = ['$scope', '$http'];
+        ExampleContentController.$inject = ['$scope', '$http', '$timeout'];
     </script>
 </head>
 <body ng-controller="ExampleContentController">
