@@ -33,8 +33,18 @@
     <h3>Example Content</h3>
 
     <div ng-repeat="i in items" style="padding-bottom: 12px;">
-        <a ng-href="/web/item-preview/{{i.id}}" style="text-decoration: none;" ng-bind-html-unsafe="i.title"></a>
+        <div>Item Profile:</div>
+        <div>
+            <a ng-href="/web/item-preview/{{i.id}}" style="text-decoration: none;" ng-bind-html-unsafe="i.title"></a>
+        </div>
+        <div>Item Player:</div>
+        <div>
+            <a ng-href="/testplayer/item/{{i.id}}?access_token=34dj45a769j4e1c0h4wb" style="text-decoration: none;" ng-bind-html-unsafe="i.title"></a>
+        </div>
+
     </div>
+
+
 </div>
 </body>
 </html>
