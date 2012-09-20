@@ -44,33 +44,8 @@ qtiServices
             response.outcome = {score: 1};
         }
 
-        return session;
 
-
-
-    };
-    return AssessmentSessionService;
-
-}]
-);
-
-/**
- * This might be implemented as part of ItemSessionAPI, but under a different route
- * like /api/v1/itemsession/:itemSessionId/sessiondata
- */
-qtiServices
-    .factory('SessionDataService', ['$resource', function ($resource) {
-    var SessionDataService = {};
-
-    SessionDataService.get = function(obj) {
-        // when we switch to using resource obj will be {id: someId}
-        // id will be the item session id
-        // TODO - the server implementation would need to ensure that response was already submitted before returning this data
-        // responses may not be submitted more than once unless the runtime options for the item session allow that
-
-        // This is mock data
-        // The server will need to create the feedbackContents object
-        // the properties will be the csFeedbackIds that were specified in the xml (or automatically added to the xml)
+        // set up response data
         var data = {};
         data.feedbackContents = {};
         data.feedbackContents.obama = "Barack Obama is president of the USA";
@@ -103,13 +78,17 @@ qtiServices
         // should send this back in the sessionData, but won't work for inline feedback, could work in modalFeedback...
         data.correctResponse.winterDiscontent = 'York';
 
-        return data;
+        session.sessionData = data;
+
+        return session;
+
+
 
     };
+    return AssessmentSessionService;
 
-    return SessionDataService;
-    }
-]);
+}]
+);
 
 qtiServices
     .factory('QtiUtils', function () {
