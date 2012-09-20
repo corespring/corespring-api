@@ -62,7 +62,7 @@
 <div style="padding-top: 0px;">
 
     <div
-            style="position: absolute; left: 0px; top: 80px; right: 0px; bottom: 0px;"
+            style="position: absolute; left: 0px; top: 81px; right: 0px; bottom: 0px;"
             ng-show="currentPanel=='item'"
             >
         <iframe frameBorder="0"
@@ -70,15 +70,24 @@
     </div>
 
     <div
-         style="position: absolute; left: 0px; top: 80px; right: 0px; bottom: 0px;"
+         style="position: absolute; left: 0px; top: 81px; right: 0px; bottom: 0px;"
          ng-repeat="sm in itemData.supportingMaterials"
          ng-show="currentSm==sm">
         <iframe frameBorder="0" ng-src="{{getSmSrc(sm)}}" style="width: 100%; height: 100%;"></iframe>
     </div>
 
-    <div class="container" style="padding-top: 80px;">
+    <div ng-show="currentPanel=='profile'" style="overflow-y: auto; position: absolute; left: 0px; top: 81px; right: 0px; bottom: 0px;" >
+        <div class="container" >
+            @web.views.html.partials._viewItem.corespringData()
+            <hr/>
+            <h3>History</h3>
+            <hr/>
+            @web.views.html.partials._viewItem.history()
+        </div>
+    </div>
 
-
+    <!--
+    <div class="container" style="padding-top: 81px;">
         <div ng-show="currentPanel=='profile'">
             @web.views.html.partials._viewItem.corespringData()
             <hr/>
@@ -86,9 +95,8 @@
             <hr/>
             @web.views.html.partials._viewItem.history()
         </div>
-
-
     </div>
+    -->
 </div>
 
 </body>

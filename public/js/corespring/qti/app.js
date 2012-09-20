@@ -1,6 +1,6 @@
 var qtiServices = angular.module('qti.services', ['ngResource']);
 var qtiDirectives = angular.module('qti.directives', ['qti.services']).config(['$locationProvider', function($locationProvider) {
-    $locationProvider.html5Mode(true);
+    $locationProvider.html5Mode(false);
 }]);
 var app = angular.module('qti', ['qti.directives','qti.services']);
 
