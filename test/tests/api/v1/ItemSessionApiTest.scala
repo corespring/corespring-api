@@ -56,10 +56,9 @@ class ItemSessionApiTest extends Specification {
 
   /**
    * TODO - implement these tests...
-   * @see https://trello.com/card/implement-itemsession-sessiondata-api/500f0e4cf207c721072011c1/27
    */
-  "item session data resource" should {
-    "be available at /api/vi/itemsession/:id/sessiondata" in {
+  "item session data" should {
+    "be returned in sessionData property when an item is updated/inserted with a response value" in {
       pending
     }
 
