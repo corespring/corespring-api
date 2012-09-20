@@ -91,16 +91,12 @@
         <choiceInteraction responseIdentifier="irishPresident" shuffle="false" maxChoices="1">
             <prompt>Who is the President of Ireland?</prompt>
             <simpleChoice identifier="robinson"> Mary Robinson
-                <feedbackInline csFeedbackId="fbRobinson" outcomeIdentifier="responses.irishPresident.value" identifier="robinson" showHide="show">Incorrect, Mary Robinson was President of Ireland from 1990 to 1997</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier="higgins"> Michel D. Higgins
-                <feedbackInline csFeedbackId="fbHiggins" outcomeIdentifier="responses.irishPresident.value" identifier="higgins" showHide="show">Correct, Michael D. Higgins is the sitting President of Ireland</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier="guinness"> Arthur Guinness
-                <feedbackInline csFeedbackId="fbGuinness" outcomeIdentifier="responses.irishPresident.value" identifier="guinness" showHide="show">Incorrect, Arthur Guinness founded Guinness Brewery</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier="adams"> Gerry Adams
-                <feedbackInline csFeedbackId="fbAdams" outcomeIdentifier="responses.irishPresident.value" identifier="adams" showHide="show">Incorrect, Gerry Adams is the President of the Sinn Fein political party</feedbackInline>
             </simpleChoice>
         </choiceInteraction>
 
