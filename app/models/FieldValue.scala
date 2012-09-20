@@ -48,6 +48,8 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
 
   val dao = new SalatDAO[FieldValue, ObjectId](collection = collection) {}
 
+  val CurrentVersion = "0.0.1"
+
   val Version = "version"
   val KeySkills = "keySkills"
   val GradeLevel = "gradeLevels"
