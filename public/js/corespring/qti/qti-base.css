@@ -15,3 +15,1723 @@ prompt, .choice-prompt {
     color: grey;
     padding-left: 10px;
 }
+
+/**
+* Full set of styles from jason (wip)
+*/
+@charset "utf-8";
+/* CSS Document */
+/* Getting the new tags to behave */
+article, aside, audio, canvas, command, datalist, details, embed, figcaption, figure, footer, header, hgroup, keygen, meter, nav, output, progress, section, source, video, prompt, choicePrompt {
+    display:block;
+    margin:0px;
+    padding:0px;
+}
+mark, rp, rt, ruby, summary, time {
+    display:inline
+}
+html, body, div, h1, h2, h3, h4, h5, h6, p, input, textarea, radio, checkbox, ul, li, label, img, a, ul, ol, li {
+    margin:0px;
+    padding:0px;
+    font-family: 'Ubuntu';
+}
+/* -------------------------------------------------
+QUICK WORKING CSS THAT IS NOT TESTED OR ORGANIZED YET
+---------------------------------------------------- */
+
+/* Indent of small text fields*/
+span p.ng-scope input.ng-pristine, .ng-scope span p.ng-scope span input.ng-valid{
+    margin-left:20px;
+}
+
+p span input.ng-valid, p span input.ng-pristine {
+    margin-left:3px;
+}
+
+/*DEFINITION LIST STYLES*/
+dl{
+    margin:0 5px 17px;
+    overflow:hidden;
+    font:14px/18px 'Ubuntu', Arial, Helvetica, sans-serif;
+    color:#4d4d4f;
+}
+dl dt{
+    float:left;
+    clear:left;
+    padding:0 10px 0 0;
+    width:140px;
+    font-weight:bold;
+}
+dl dd {
+    float:left;
+    width:400px;
+    overflow:hidden;
+    margin:0;
+    color:#4d4d4f;
+}
+
+
+.ng-scope input {
+    font-size:14px;
+}
+
+
+/* NEW TABLE STYLES */
+table.ng-scope{
+    border-collapse:collapse;
+    margin:0 auto 30px;
+    line-height:17px;
+    color:#4d4d4f;
+    font:14px/17px 'Ubuntu', Arial, Helvetica, sans-serif;
+    margin-left:20px;
+    margin-right:auto;
+}
+table.ng-scope th,
+table.ng-scope td{
+    padding:10px 5px;
+    border:1px solid #a6a3a3;
+    text-align:center;
+    vertical-align:middle;
+    min-width:50px;
+}
+table.ng-scope th{
+    background:#3b3a3a;
+    color:#fff;
+}
+table.ng-scope td a{
+    color:#108fc4;
+    text-decoration:none;
+}
+table.ng-scope td a:hover{text-decoration:underline;}
+
+table.ng-scope tfoot td{
+    background:#E5E3E3;
+}
+/*end new table styles */
+
+.educator-message {
+    border-bottom-color: #999999;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-top-color: #999999;
+    border-top-style: solid;
+    border-top-width: 1px;
+    color: #999999;
+    font-style: italic;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    padding-bottom: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 5px;
+}
+
+
+ul.single-line-equation li {
+    font-size:16px;
+    list-style:none;
+}
+
+
+/*input items (checkboxes, radio buttons, inine text items etc) */
+input.ng-pristine, input.ng-valid, .choiceInteraction simplechoice.ng-scope div {
+    margin-left: 0px;
+    margin-right: 8px;
+    font-size: 14px;
+    margin-left: 0;
+}
+
+/*This is just for testing. Styles the HR that goes between items.
+In production, there will only be one item per page. */
+hr.item-seperator {
+    background: green;
+    height:1px;
+    background-color:#0FF;
+    border:none;
+    color:#0FF;
+    margin:20 0 20 0;
+}
+/* Multiple Choice Option text */
+.choiceInteraction simplechoice.ng-scope div span.ng-scope {
+    font-style:normal;
+}
+
+blockquote.ng-scope p span input.ng-pristine {
+    margin:none;
+}
+hr.element-seperator {
+    height:1px;
+    background-color:#CCCCCC;
+    border:none;
+    color:#0FF;
+    margin:30px 0 30px 0;
+    display:block;
+}
+
+
+/* -------------------------------------
+GLOBAL PROPERTIES
+---------------------------------------- */
+
+
+p, p.ng-scope, .intro-2 {
+    line-height:18.8px;
+    font-size:14px;
+    margin:0px;
+    color: #4E4E4E;
+    padding:0 0 18px 0;
+}
+
+
+/* Required for line numbering */
+p .numbers{
+    float:left;
+    text-align:right;
+    white-space:nowrap;
+}
+.numbered-wrapper p {
+    line-height: 23px;
+}
+
+/* For Paragraph Numbering */
+.p-list{
+    padding:0;
+    margin:0;
+    counter-reset:section;
+    font:14px/18px 'Ubuntu', Arial, Helvetica, sans-serif;
+}
+.p-list li{
+    padding:0 0 18px 30px;
+    list-style:none;
+    position:relative;
+}
+.p-list li:before{
+    content:counter(section);
+    counter-increment:section;
+    font:14px/18px 'Ubuntu', Arial, Helvetica, sans-serif;
+    position:absolute;
+    top:2px;
+    left:0;
+    width:20px;
+    height:18px;
+    text-align:right;
+    color:#4e4e4e;
+}
+.p-list p{padding:0;}
+
+
+p.leading-150-percent {
+    line-height: 28.2px;
+}
+p.leading-200-percent {
+    line-height: 37.6px;
+}
+
+.border-1px{
+    border: 1px solid #999999;
+    padding:20px;
+}
+
+h1 {
+    font-family: 'Ubuntu';
+    font-size:20px;
+    padding:0 0 8px 0;
+    font-weight: bold;
+    color:#000;
+}
+h2 {
+    font-family: 'Ubuntu';
+    font-weight:bold;
+    font-size:18px;
+    padding-bottom:4px;
+    margin-bottom:12px;
+    color:#000;
+}
+h2.horizontal-line {
+    width:100%;
+    border-bottom:1px #cacaca solid;
+    padding-bottom:4px;
+    margin-bottom:12px;
+}
+h3 {
+    font-family: 'Ubuntu';
+    font-size:16px;
+    font-weight:bold;
+    padding:0px 0 15px 0;
+    color:#000;
+}
+h4 {
+    font-family: 'Ubuntu';
+    font-weight:bold;
+    font-size:14px;
+    padding:0px 0 20px 0;
+    color:#000;
+}
+/* The correct selector for text is .para-center. The rest of these variations were observed in the files */
+h1.text-centered, h2.text-centered, h3.text-centered, h4.text-centered, h5.text-centered, h6.text-centered, h1.para-center, h2.para-center, h3.para-center, h4.para-center, h5.para-center, h6.para-center, h1.center, h2.center, h3.center h4.center h5.center h6.center, div.text-centered,div.para-center, div.center, center, .text-centered, .para-center{
+    text-align:center;
+}
+.height-10 {
+    height:10px;
+    clear:both;
+    width:100%
+}
+.height-20 {
+    height:20px;
+    clear:both;
+    width:100%
+}
+.height-25 {
+    height:25px;
+    clear:both;
+    width:100%
+}
+/*Main-wrapper for testing*/
+
+.main-wrapper {
+    margin:0 auto;
+    width:800px;
+    overflow:hidden;
+}
+/*Main Content wrapper for testing*/
+.main-content {
+    width:612px;
+    margin:20px;
+    padding:16px 13px;
+    border:2px #EAEAEA dashed;
+}
+.intro, div.intro {
+    font-family: 'Ubuntu';
+    font-style:italic;
+    font-size:14px;
+    line-height:20.4px;
+    color:#4d4d4f;
+    font-style:italic;
+    padding:0 0 23px 0;
+}
+/* LIST ITEMS */
+ul, ol, li {
+    list-style:none;
+}
+
+ol {
+    margin-bottom:24px;
+}
+ol li {
+    list-style:decimal;
+    font-family: 'Ubuntu';
+    font-size:14px;
+    padding:3px 0;
+}
+ol,  ol.line-height {
+    padding:0 0 0 18px;
+    padding-bottom:13px;
+}
+ol.line-height {
+    border-bottom:none;
+    clear:both;
+}
+.line-height li.line-height-next1 {
+    padding-bottom:0px;
+    padding-top:0px;
+    line-height:18.8px;
+}
+.line-height li.line-height-next2 {
+    padding-bottom:25px;
+    padding-top:0px;
+    line-height:18.8px;
+}
+ol.line-height li {
+    padding-bottom:20px;
+    line-height:18px;
+    font-family: 'Ubuntu';
+}
+ul li {
+    list-style:disc;
+    font-family: 'Ubuntu';
+    font-size:14px;
+    padding:3px 0;
+    padding-bottom:17px;
+}
+ul.line-space li {
+    line-height:26px;
+}
+ul.double-space li {
+    line-height:30px;
+}
+
+
+
+/*----------------------------
+TEXT BOXES
+------------------------------*/
+
+html* .main-content textarea {
+    margin-left:-18px;
+}
+textarea {
+    width:96%;
+    margin:0px 0 10px 0px;
+    border:1px #797979 solid;
+    box-shadow:inset 0 0 8px #d1d1d1;
+    -moz-box-shadow:inset 0 0 8px #d1d1d1;
+    -webkit-box-shadow:inset 0 0 8px #d1d1d1;
+    padding:7px;
+    text-align:left;
+    font-family: 'Ubuntu';
+    font-size:14px;
+    color:#4d4d4d;
+    resize:none;
+}
+textarea.answer-1-linebox, answer-1-linebox {
+    height:26px;
+    padding:10px 7px 0px 7px;
+    line-height:12px;
+}
+textarea.answer-5-linebox {
+    height:95px;
+}
+textarea.answer-5-linebox-1 {
+    height:95px;
+    margin-bottom:40px;
+}
+textarea.answer-10-linebox {
+    height:180px;
+}
+textarea.answer-15-linebox {
+    height:285px;
+}
+textarea.answer-20-linebox {
+    height:380px;
+}
+/*----END-------------*/
+
+/* FOOTNOTES AND COPYRIGHT */
+.note-tip {
+    border-top:1px #b2b2b2 solid;
+    padding:5px 0 0 0;
+    margin:10px 0 0 0;
+    font-size:11px;
+    display:inline-block;
+}
+
+div.copyright {
+    position:relative;
+    top:-30px;
+    margin-bottom:20px;
+    font-family: 'Ubuntu';
+    font-size:11px;
+    text-align:center;
+    display:block;
+}
+/*----------------------------
+TABS
+------------------------------*/
+.tab-panel {
+    margin:0 0 9px 0;
+    position:relative;
+    overflow:hidden;
+}
+.tabs {
+    padding:0 0 0 5px;
+    margin:0px;
+}
+.tabs ul.tabs {
+    position:absolute;
+    z-index:500;
+    top:1px;
+}
+.tab-panel .tabs li {
+    list-style:none;
+    display:inline;
+}
+.tab-panel .tabs a {
+    font-family: 'Ubuntu';
+    font-weight:bold;
+    padding:10px 10px;
+    display:inline-block;
+    background:#666;
+    color:#dcddde;
+    font-size:14px;
+    height:20px;
+    position:relative;
+    top:1px;
+    border:1px #b2b2b2 solid;
+    text-decoration:none;
+    border-bottom:none;
+}
+.tab-panel .tabs a.active {
+    background:#fff;
+    color:#000;
+    border:1px #b2b2b2 solid;
+    border-bottom:none;
+}
+.tab-panel .tab-box {
+    margin:0px;
+    padding:10px;
+    border:1px #b2b2b2 solid;
+    background:#fff;
+}
+.tab-box .paragraph-style {
+    font-family: 'Ubuntu';
+    color:#4d4d4f;
+    padding:5px;
+    line-height:18.8px;
+    font-size:14px;
+    background:#fff;
+    height:300px;
+    overflow-y:scroll;
+}
+/*----END-------------*/
+
+
+/*----------------------------
+IMAGES
+------------------------------*/
+
+.imagewrapper-200,.imagewrapper-400, .imagewrapper-600, .imagewrapper{
+    margin:0px auto;
+    margin-bottom:37px;
+    padding:0px;
+    overflow:hidden;
+    text-align:center;
+}
+
+
+.img-left {
+    margin-left:20px;
+    text-align:left;
+}
+
+.imagewrapper-200, .imagewrapper-200 img{
+    max-width:200px;
+}
+.imagewrapper-400, .imagewrapper-400 img{
+    max-width:400px;
+}
+.imagewrapper-600, .imagewrapper-600 img{
+    max-width:600px;
+}
+
+p img, .imagewrapper img {
+    max-width:600px;
+}
+
+p .img-right {
+    float: right;
+    margin:5px 0 26px 26px;
+    max-width: 300px;
+}
+.crop { width: 200px; height: 150px; overflow: hidden; }
+.crop img { width: 400px; height: 300px; margin: -75px 0 0 -100px; }
+/*----END-------------*/
+
+
+
+
+/*error-msg*/
+
+
+.error-msg, .info-msg, .correct-msg {
+    margin:10px 5px 5px 5px;
+    padding:5px 5px 5px 35px;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    font-size:14px;
+}
+.error-msg {
+    color: #f8a31a;
+    background:url(images/wrong-icon.png) 5px 2px no-repeat;
+}
+.info-msg {
+    border:1px #1e74bb solid;
+    color: #1e74bb;
+    background:url(images/info-icon.png) 5px 2px no-repeat;
+}
+.correct-msg {
+    border:1px #53c516 solid;
+    color: #53c516;
+    background:url(images/correct-icon.gif) 5px 1px no-repeat;
+}
+/*option-form*/
+
+.option-box {
+    margin:0px;
+    overflow:hidden;
+}
+/*table-options*/
+
+.option-box {
+    margin:0px;
+    overflow:hidden;
+}
+.option-box table {
+    font-family: 'Ubuntu';
+    font-size:14px;
+}
+.option-box table tr {
+}
+form.list-type {
+    float:left;
+    width:285px;
+    margin:0px;
+}
+.list-type li {
+    width:250px;
+    margin:2px 0;
+    padding:0 0 0 14px;
+    display:block;
+    overflow:hidden;
+    clear:both;
+}
+.list-type li.wrong-ans {
+    border:2px #F8A31A solid;
+    padding:5px 0 5px 12px;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+}
+.list-type li.correct-ans {
+    border:2px #53c516 solid;
+    padding:5px 0 5px 12px;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+}
+.list-type li input[type="radio"] {
+    width:10px;
+    float:left;
+    margin:2px 5px 0 0;
+    display:block;
+}
+.list-type ol li p {
+    width:200px;
+    float:left;
+    display:block;
+    padding:0px 10px;
+}
+.option-box table tr td {
+}
+.option-box table tr td input[type="radio"] {
+    margin:0px 10px 0 0;
+    width:10px;
+    float:left;
+}
+.option-box table tr td input[type="radio"].radio-middle-100 {
+    margin:45px 0 0 0;
+}
+.option-box table tr td input[type="radio"].radio-middle-200 {
+    margin:90px 0 0 0;
+}
+.option-box table tr td input[type="radio"].radio-middle-300 {
+    margin:145px 0 0 0;
+}
+.option-box table tr td p {
+    font-family: 'Ubuntu';
+    color:#4e4e4e;
+    padding:0 0 0 10px;
+    margin:0px;
+}
+.option-box table tr td p img {
+    border:1px #a6a6a6 solid;
+    height:auto;
+}
+.option-box table tr td dl {
+    float:left;
+    width:10px;
+    margin:0px;
+    padding:0 10px 0 0px;
+    font-family: 'Ubuntu';
+}
+.option-box table tr td dd {
+    float:left;
+    margin:0px;
+    padding:0px;
+    width:180px;
+    font-family: 'Ubuntu';
+}
+.option-box table tr td p.wrong-ans-selected {
+    width:270px;
+    padding:5px 5px 5px 35px;
+    color: #4e4e4e;
+    background:url(images/wrong-icon.png) 5px 4px no-repeat;
+}
+.option-box table tr td p.correct-ans-selected {
+    padding:5px 5px 5px 35px;
+    color: #4e4e4e;
+    background:url(images/correct-icon.png) 5px 4px no-repeat;
+}
+.feedback-box {
+    margin-top:22px;
+    padding:5px 10px;
+    border:1px #fcd18c solid;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+}
+.feedback-box div.feedback-wrong {
+    color: #f8a31a;
+    font-size:14px;
+    padding:10px 0 6px 0px;
+    font-family: 'Ubuntu';
+    font-weight:bold;
+}
+.feedback-wrong span, .feedback-correct span {
+    color:#4d4d4f;
+    font-size:14px;
+    font-family: 'Ubuntu';
+    font-style:italic;
+}
+.feedback-box .good-job {
+    color:#4d4d4f;
+    font-size:14px;
+    font-family: 'Ubuntu';
+    font-weight:bold;
+    padding:10px 0;
+}
+.feedback-box div.feedback-correct {
+    color: #95c444;
+    font-size:14px;
+    padding:10px 0 10px 0px;
+    font-family: 'Ubuntu';
+    font-weight:bold;
+}
+
+div.floated-para {
+    font-family: 'Ubuntu';
+    font-size:14px;
+    line-height:18.8px;
+    padding-bottom:25px;
+}
+.floated-para .img-right {
+    float:right;
+    width:200px;
+    margin:26px;
+}
+
+
+div.question-one {
+    font-family: 'Ubuntu';
+    font-size:16px;
+    line-height:19.2px;
+    padding-bottom:26px;
+    color:#000;
+}
+ol.border-none {
+    border-bottom:none;
+}
+.border-none li {
+    margin-bottom:5px;
+}
+form.temperature {
+    margin-top:10px;
+    overflow:hidden;
+}
+
+
+.author-name, .passage-author, .passage-byline {
+    display: block;
+    font-style: normal;
+    font-weight: normal;
+    text-align: center;
+    padding-bottom:20px;
+}
+
+/* -------------------------------------
+FROM E. ORIGINAL ITEMS ARE COMMENTED OUT
+---------------------------------------- */
+
+/*.prompt, .choicePrompt {
+	display: block;
+	font-size: 1.5em;
+	margin-bottom: 15px;
+}*/
+
+/* Item Prompts */
+.prompt, prompt.ng-scope, span.ng-scope, .choicePrompt, .item-stem, p.ng-scope prompt, .ng-scope span p.prompt {
+    font-family: 'Ubuntu';
+    font-size:14px;
+    padding:0px 0 15px 0;
+}
+.choiceInteraction simplechoice.ng-scope {
+    display:block;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 28px;
+    margin-bottom: 2px;
+}
+html body.ng-scope itembody div choiceinteraction.ng-scope .correctResponse {
+    color: green;
+    display: block;
+}
+.incorrectSelection {
+    color: #F8A31A;
+    display: block;
+}
+.feedbackinline {
+    color: grey;
+    padding-left: 10px;
+}
+/* Multiple Choice Set */
+.choiceInteraction {
+    display: block;
+    margin-bottom: 30px;
+    margin-left: 0;
+    margin-top: 15px;
+}
+.sortable-body {
+    list-style-type: none;
+    margin-left: 20px;
+}
+.sortable-item {
+    background-color: #EEEEEE;
+    border-radius: 8px 8px 8px 8px;
+    border: 1px solid #000000;
+    cursor: move;
+    display: inline-block;
+    margin-bottom: 0.4em;
+    padding: 8px;
+}
+.orderCorrect {
+    border: 2px solid green;
+}
+.orderIncorrect {
+    border: 2px solid #F8A31A;
+}
+
+
+/*-----------------------------------
+MCAS CSS SELECTORS
+-------------------------------------*/
+/* Items that are notes out have been integrated into the stylesabove */
+
+.item-options/*original mcas selector*/ {
+    padding-left: 10px;
+    vertical-align: top;
+}
+.option-table td/*original mcas selector*/ {
+    padding-bottom: 0.9em;
+    vertical-align: middle;
+}
+
+/*.item-stem/*original mcas selector {
+	padding-bottom: 1.1em;
+	vertical-align: top;
+}*/
+
+.item-table-ordinal/*original mcas selector*/ {
+    vertical-align: top;
+    width: 5%;
+}
+.item-table/*original mcas selector*/ {
+    vertical-align: top;
+}
+.default/*original mcas selector*/ {
+    bottom: 0px;
+    display: block;
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 16px;
+    font-style: normal;
+    left: 0px;
+    line-height: 1.5em;
+    right: 0px;
+    text-align: left;
+    text-decoration: none;
+    top: 0px;
+    vertical-align: top;
+}
+.mathml/*original mcas selector*/ {
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 1em;
+}
+.item-prestimulus/*original mcas selector*/ {
+    padding-bottom: 1.5em;
+    padding-left: 0px;
+    vertical-align: top;
+}
+.item-pre-stimulus/*original mcas selector*/ {
+    padding-bottom: 1.5em;
+    padding-left: 0px;
+    vertical-align: top;
+}
+.item-direction/*original mcas selector*/ {
+    display: block;
+    font-style: italic;
+    margin-bottom: 15px;
+}
+.item-purpose/*original mcas selector*/ {
+    display: block;
+    font-style: italic;
+    margin-bottom: 15px;
+}
+.passage-purpose/*original mcas selector*/ {
+    font-style: italic;
+}
+.passage-title/*original mcas selector*/ {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center;
+}
+.passage-subtitle/*original mcas selector*/ {
+    display: block;
+    font-size: 1.3em;
+    font-weight: bold;
+    text-align: center;
+}
+.passage-byline /*original mcas selector*/{
+    display: block;
+    font-style: italic;
+    font-weight: normal;
+    text-align: center;
+}
+
+.passage-author/*original mcas selector*/ {
+    display: block;
+    font-style: italic;
+    font-weight: normal;
+    text-align: center;
+}
+
+.passage-ack/*original mcas selector*/ {
+    display: block;
+    font-size: 0.8em;
+    font-weight: normal;
+    text-align: left;
+}
+.default td/*original mcas selector*/ {
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 1em;
+}
+.default li/*original mcas selector*/ {
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 1em;
+}
+.readaloud/*original mcas selector*/ {
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 1em;
+    font-style: italic;
+    font-weight: normal;
+}
+.readaloud-direction/*original mcas selector*/ {
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 1em;
+    font-style: normal;
+    font-weight: bold;
+}
+.item-poststimulus/*original mcas selector*/ {
+    display: block;
+    margin-bottom: 15px;
+}
+.item-substem/*original mcas selector*/ {
+    bottom: 5px;
+    display: inline;
+}
+
+.bold-text/*original mcas selector*/ {
+    display: inline;
+    font-weight: bold;
+}
+.underline-text/*original mcas selector*/ {
+    display: inline;
+    text-decoration: underline;
+}
+.superscript-text/*original mcas selector*/ {
+    display: inline;
+    font-size: 0.7em;
+    vertical-align: super;
+}
+.subscript-text/*original mcas selector*/ {
+    display: inline;
+    font-size: 0.7em;
+    vertical-align: sub;
+}
+.small-caps-text/*original mcas selector*/ {
+    display: inline;
+    font-variant: small-caps;
+}
+.keep-together-text/*original mcas selector*/ {
+    background-color: #FFFF99;
+    display: inline;
+}
+.set-hyphenation-text/*original mcas selector*/ {
+    background-color: #99FFFF;
+    display: inline;
+}
+.insert-text/*original mcas selector*/ {
+    background-color: #FF8000;
+    display: inline;
+}
+.delete-text/*original mcas selector*/ {
+    background-color: #FF8000;
+    display: inline;
+    text-decoration: line-through;
+}
+.para-left/*original mcas selector*/ {
+    display: block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    padding: 0px;
+    text-align: left;
+}
+
+.para-right/*original mcas selector*/ {
+    display: block;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    padding: 0px;
+    text-align: right;
+}
+.para-indent/*original mcas selector*/{
+    display: block;
+    margin-bottom: 0px;
+    margin-top: 0px;
+    padding: 0px;
+    text-align: left;
+    text-indent: 35pt;
+}
+
+/* LIST TYPES */
+.list-decimal/*original mcas selector*/ {
+    display: block;
+    list-style-type: decimal;
+}
+.list-upper-roman/*original mcas selector*/ {
+    display: block;
+    list-style-type: upper-roman;
+}
+.list-upper-alpha/*original mcas selector*/ {
+    display: block;
+    list-style-type: upper-alpha;
+}
+.list-disc/*original mcas selector*/ {
+    display: block;
+    list-style-type: disc;
+}
+.list-circle/*original mcas selector*/ {
+    display: block;
+    list-style-type: circle;
+}
+.list-square/*original mcas selector*/ {
+    display: block;
+    list-style-type: square;
+}
+
+.box-floating/*original mcas selector*/ {
+    border-color: #000000;
+    border-style: solid;
+    border-width: 1px;
+    display: block;
+}
+.box-fixed/*original mcas selector*/ {
+    border-color: #000000;
+    border-style: solid;
+    border-width: 1px;
+    display: block;
+}
+
+/*------------------------------
+LETTER & WORD SPACING
+------------------------------*/
+.letter-kerning-minus-2/*original mcas selector*/ {
+    letter-spacing: -2pt;
+}
+.letter-kerning-minus-1/*original mcas selector*/ {
+    letter-spacing: -1pt;
+}
+.letter-kerning-plus-1/*original mcas selector*/ {
+    letter-spacing: 1pt;
+}
+.letter-kerning-plus-2/*original mcas selector*/ {
+    letter-spacing: 2pt;
+}
+.letter-kerning-minus-3/*original mcas selector*/ {
+    letter-spacing: -3pt;
+}
+.letter-kerning-plus-3/*original mcas selector*/ {
+    letter-spacing: 3pt;
+}
+.letter-kerning-plus-4/*original mcas selector*/ {
+    letter-spacing: 4pt;
+}
+.letter-kerning-plus-5/*original mcas selector*/ {
+    letter-spacing: 5pt;
+}
+.letter-kerning-plus-6/*original mcas selector*/ {
+    letter-spacing: 6pt;
+}
+.letter-kerning-plus-7/*original mcas selector*/ {
+    letter-spacing: 7pt;
+}
+.word-kerning-minus-3/*original mcas selector*/ {
+    word-spacing: -3pt;
+}
+.word-kerning-plus-3/*original mcas selector*/ {
+    word-spacing: 3pt;
+}
+.word-kerning-plus-4/*original mcas selector*/ {
+    word-spacing: 4pt;
+}
+.word-kerning-plus-5/*original mcas selector*/ {
+    word-spacing: 5pt;
+}
+.word-kerning-plus-6/*original mcas selector*/ {
+    word-spacing: 6pt;
+}
+.word-kerning-plus-7/*original mcas selector*/ {
+    word-spacing: 7pt;
+}
+.word-kerning-minus-2/*original mcas selector*/ {
+    word-spacing: -2pt;
+}
+.word-kerning-minus-1/*original mcas selector*/ {
+    word-spacing: -1pt;
+}
+.word-kerning-plus-1/*original mcas selector*/ {
+    word-spacing: 1pt;
+}
+.word-kerning-plus-2/*original mcas selector*/ {
+    word-spacing: 2pt;
+}
+
+/*------------------------------
+PARAGRAPH LEADING INCREMENTS
+------------------------------*/
+.paragraph-leading-20 /*original mcas selector*/{
+    line-height: 20pt;
+}
+.paragraph-leading-21/*original mcas selector*/ {
+    line-height: 21pt;
+}
+.paragraph-leading-22/*original mcas selector*/ {
+    line-height: 22pt;
+}
+.paragraph-leading-23/*original mcas selector*/ {
+    line-height: 23pt;
+}
+.paragraph-leading-24 /*original mcas selector*/{
+    line-height: 24pt;
+}
+.paragraph-leading-25/*original mcas selector*/ {
+    line-height: 25pt;
+}
+.padding-top-plus-1/*original mcas selector*/ {
+    position: relative;
+    top: 1pt;
+}
+
+.paragraph-leading-15/*original mcas selector*/ {
+    line-height: 15pt;
+}
+.paragraph-leading-16/*original mcas selector*/ {
+    line-height: 16pt;
+}
+.paragraph-leading-17/*original mcas selector*/ {
+    line-height: 17pt;
+}
+.paragraph-leading-18/*original mcas selector*/ {
+    line-height: 18pt;
+}
+.paragraph-leading-19/*original mcas selector*/ {
+    line-height: 19pt;
+}
+
+.paragraph-leading-9 /*original mcas selector*/{
+    line-height: 9pt;
+}
+.paragraph-leading-10 /*original mcas selector*/{
+    line-height: 10pt;
+}
+.paragraph-leading-11 /*original mcas selector*/{
+    line-height: 11pt;
+}
+.paragraph-leading-12 /*original mcas selector*/{
+    line-height: 12pt;
+}
+.paragraph-leading-13 /*original mcas selector*/{
+    line-height: 13pt;
+}
+.paragraph-leading-14 /*original mcas selector*/{
+    line-height: 14pt;
+}
+
+
+/*------------------------------
+PADDING INCREMENTS
+------------------------------*/
+.padding-top-plus-2/*original mcas selector*/ {
+    position: relative;
+    top: 2pt;
+}
+.padding-top-plus-3/*original mcas selector*/ {
+    position: relative;
+    top: 3pt;
+}
+.padding-top-minus-1/*original mcas selector*/ {
+    position: relative;
+    top: -1pt;
+}
+.padding-top-minus-2/*original mcas selector*/ {
+    position: relative;
+    top: -2pt;
+}
+.padding-top-minus-3/*original mcas selector*/ {
+    position: relative;
+    top: -3pt;
+}
+.padding-left-plus-1/*original mcas selector*/ {
+    left: 1pt;
+    position: relative;
+}
+.padding-top-plus-4/*original mcas selector*/ {
+    position: relative;
+    top: 4pt;
+}
+.padding-top-plus-5/*original mcas selector*/ {
+    position: relative;
+    top: 5pt;
+}
+.padding-top-plus-6/*original mcas selector*/ {
+    position: relative;
+    top: 6pt;
+}
+.padding-top-plus-7/*original mcas selector*/ {
+    position: relative;
+    top: 7pt;
+}
+.padding-top-plus-8/*original mcas selector*/ {
+    position: relative;
+    top: 8pt;
+}
+.padding-top-plus-9/*original mcas selector*/ {
+    position: relative;
+    top: 9pt;
+}
+.padding-top-plus-10/*original mcas selector*/ {
+    position: relative;
+    top: 10pt;
+}
+.padding-top-minus-4/*original mcas selector*/ {
+    position: relative;
+    top: -4pt;
+}
+.padding-top-minus-5/*original mcas selector*/ {
+    position: relative;
+    top: -5pt;
+}
+.padding-top-minus-6/*original mcas selector*/ {
+    position: relative;
+    top: -6pt;
+}
+.padding-top-minus-7/*original mcas selector*/ {
+    position: relative;
+    top: -7pt;
+}
+.padding-top-minus-8/*original mcas selector*/ {
+    position: relative;
+    top: -8pt;
+}
+.padding-top-minus-9/*original mcas selector*/ {
+    position: relative;
+    top: -9pt;
+}
+.padding-top-minus-10/*original mcas selector*/ {
+    position: relative;
+    top: -10pt;
+}
+.padding-left-plus-2/*original mcas selector*/ {
+    left: 2pt;
+    position: relative;
+}
+.padding-left-plus-3 {
+    left: 3pt;
+    position: relative;
+}
+.padding-left-plus-4 {/*original mcas selector*/
+    left: 4pt;
+    position: relative;
+}
+.padding-left-plus-5 {
+    left: 5pt;
+    position: relative;
+}
+.padding-left-plus-6 /*original mcas selector*/{
+    left: 6pt;
+    position: relative;
+}
+.padding-left-plus-7 /*original mcas selector*/{
+    left: 7pt;
+    position: relative;
+}
+.padding-left-plus-8 /*original mcas selector*/{
+    left: 8pt;
+    position: relative;
+}
+.padding-left-plus-9 /*original mcas selector*/{
+    left: 9pt;
+    position: relative;
+}
+.padding-left-plus-10 /*original mcas selector*/{
+    left: 10pt;
+    position: relative;
+}
+.padding-left-minus-1 /*original mcas selector*/{
+    position: relative;
+    right: 1pt;
+}
+.padding-left-minus-2 /*original mcas selector*/{
+    position: relative;
+    right: 2pt;
+}
+.padding-left-minus-3 /*original mcas selector*/{
+    position: relative;
+    right: 3pt;
+}
+.padding-left-minus-4 /*original mcas selector*/{
+    position: relative;
+    right: 4pt;
+}
+.padding-left-minus-5 /*original mcas selector*/{
+    position: relative;
+    right: 5pt;
+}
+.padding-left-minus-6 /*original mcas selector*/{
+    position: relative;
+    right: 6pt;
+}
+.padding-left-minus-7 /*original mcas selector*/{
+    position: relative;
+    right: 7pt;
+}
+.padding-left-minus-8 /*original mcas selector*/{
+    position: relative;
+    right: 8pt;
+}
+.padding-left-minus-9 /*original mcas selector*/{
+    position: relative;
+    right: 9pt;
+}
+.padding-left-minus-10 /*original mcas selector*/{
+    position: relative;
+    right: 10pt;
+}
+/*------------------ */
+
+.box-fixed-100/*original mcas selector*/ {
+    border-color: #000000;
+    border-style: solid;
+    border-width: 1px;
+    display: block;
+    width: 100px;
+}
+.box-fixed-200/*original mcas selector*/ {
+    border-color: #000000;
+    border-style: solid;
+    border-width: 1px;
+    display: block;
+    width: 200px;
+}
+.box-fixed-300/*original mcas selector*/ {
+    border-color: #000000;
+    border-style: solid;
+    border-width: 1px;
+    display: block;
+    width: 300px;
+}
+
+
+.extheader /*original mcas selector*/{
+}
+.break /*original mcas selector*/{
+    display: block;
+}
+.exttable /*original mcas selector*/{
+}
+.exttablecell /*original mcas selector*/{
+}
+.item-input-sa /*original mcas selector*/{
+}
+.item-input-er /*original mcas selector*/{
+}
+.italic-text /*original mcas selector*/{
+    display: inline;
+    font-style: italic;
+}
+.emphasis-text /*original mcas selector*/{
+    font-weight: bold;
+}
+.response-alpha-left /*original mcas selector*/{
+}
+.table-header-1 /*original mcas selector*/{
+    background-color: #CCCCCC;
+}
+.response-radio-button-baseline /*original mcas selector*/{
+}
+.list-lower-alpha /*original mcas selector*/{
+    display: block;
+    list-style-type: lower-alpha;
+}
+.table-cell-header /*original mcas selector*/{
+    background-color: #CCCCCC;
+}
+.table-cell-decimal-align /*original mcas selector*/{
+    text-align: right;
+}
+.passage-poem-1 /*original mcas selector*/{
+    display: block;
+    margin-left: 1.5in;
+}
+.passage-poem-2 /*original mcas selector*/{
+    display: block;
+    margin-left: 2in;
+}
+.publish-title-1 /*original mcas selector*/{
+}
+.publish-title-2 /*original mcas selector*/{
+}
+.publish-part-1 /*original mcas selector*/{
+}
+.publish-part-2 /*original mcas selector*/{
+}
+.distracter-analysis /*original mcas selector*/{
+    background-color: #99FF00;
+    display: inline;
+}
+.publish-part-border /*original mcas selector*/{
+}
+.passage-part /*original mcas selector*/{
+    display: block;
+    margin-bottom: 15px;
+}
+.header-logo /*original mcas selector*/{
+}
+.mfrac-style /*original mcas selector*/{
+}
+.scoring-guide /*original mcas selector*/{
+    display: block;
+    margin-bottom: 15px;
+}
+.training-notes /*original mcas selector*/{
+    display: block;
+    margin-bottom: 15px;
+}
+.item-post-stimulus /*original mcas selector*/{
+}
+.sample-item-stem /*original mcas selector*/{
+}
+.response-radio-button-middle /*original mcas selector*/{
+}
+.passage-session-header /*original mcas selector*/{
+}
+.common-page-title /*original mcas selector*/{
+}
+.common-page-text /*original mcas selector*/{
+}
+.para-block /*original mcas selector*/{
+}
+.publish-part-border-2 /*original mcas selector*/{
+}
+.bordered-table /*original mcas selector*/{
+    border-collapse: collapse;
+    border: 1pt solid #000000;
+}
+.bordered-table td /*original mcas selector*/{
+    border: 1pt solid #000000;
+    padding: 4pt;
+}
+.bordered-table caption /*original mcas selector*/{
+    caption-side: top;
+    text-align: center;
+    vertical-align: middle;
+}
+.borderless-table /*original mcas selector*/{
+    border-collapse: collapse;
+    border-style: none;
+}
+.borderless-table td /*original mcas selector*/{
+    border-style: none;
+    padding: 4pt;
+}
+.borderless-table caption /*original mcas selector*/{
+    caption-side: top;
+    text-align: center;
+    vertical-align: middle;
+}
+.publish-attributes /*original mcas selector*/{
+    border-style: outset;
+    border-width: 1pt;
+}
+.publish-attributes td /*original mcas selector*/{
+    border-style: inset;
+    border-width: 1pt;
+}
+.publish-statistics /*original mcas selector*/{
+    border-style: outset;
+    border-width: 1pt;
+}
+.publish-statistics td /*original mcas selector*/{
+    border-style: inset;
+    border-width: 1pt;
+}
+.score-rubric-table /*original mcas selector*/{
+    border-collapse: collapse;
+    border: 1pt solid black;
+    width: 7.5in;
+}
+.score-rubric-table td /*original mcas selector*/{
+    border: 1pt solid black;
+    padding: 4pt;
+}
+.training-rubric-table /*original mcas selector*/{
+    border-collapse: collapse;
+    border: 1pt solid black;
+}
+.training-rubric-table td /*original mcas selector*/{
+    border: 1pt solid black;
+    padding: 4pt;
+}
+.training-notes-table /*original mcas selector*/{
+    border-collapse: collapse;
+    border: 0pt solid white;
+}
+.training-notes-table td /*original mcas selector*/{
+    padding: 4pt;
+}
+.single-cell-table /*original mcas selector*/{
+    border-collapse: collapse;
+    border: 1pt solid black;
+}
+.single-cell-table td /*original mcas selector*/{
+    border: 1pt solid black;
+    padding: 6pt;
+}
+.multi-cell-table /*original mcas selector*/{
+    border-collapse: collapse;
+    border: 1pt solid black;
+}
+.multi-cell-table td /*original mcas selector*/{
+    border: 1pt solid black;
+    padding: 4pt;
+}
+.multi-cell-table caption /*original mcas selector*/{
+    caption-side: top;
+    text-align: center;
+    vertical-align: middle;
+}
+.aligned-table /*original mcas selector*/{
+    border-collapse: collapse;
+    border: 0pt solid white;
+}
+.aligned-table td /*original mcas selector*/{
+    padding: 0.5pt;
+}
+.inside-border-table /*original mcas selector*/{
+    border-collapse: collapse;
+    border: 1pt solid white;
+}
+.inside-border-table td /*original mcas selector*/{
+    border: 1pt solid black;
+    padding: 4pt;
+}
+.outside-border-table /*original mcas selector*/{
+    border-collapse: collapse;
+    border: 1pt solid black;
+}
+.outside-border-table td /*original mcas selector*/{
+    border-style: hidden;
+    padding: 4pt;
+}
+.item-title /*original mcas selector*/ /*original mcas selector*/{
+    display: block;
+    font-size: 1.3em;
+    font-style: italic;
+    text-align: center;
+}
+.alt-item-table1 /*original mcas selector*/{
+    border-collapse: collapse;
+    border: 1pt solid black;
+}
+.alt-item-table1 td /*original mcas selector*/{
+    border: 1pt solid black;
+    padding: 4pt;
+    text-align: left;
+    vertical-align: top;
+}
+.alt-item-table1 th /*original mcas selector*/{
+    background-color: #E6E7E8;
+    border: 1pt solid black;
+    height: 29px;
+    text-align: center;
+}
+
+
+/* -------END---------------*/
+
+/*.choicePrompt /*original mcas selector {
+    display: block;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+.simpleChoice {
+    font-size: 18px;
+}
+.simpleChoice input {
+    margin-left: 10px;
+    margin-right: 10px;
+*/
+
+
+/* NOT NEEDED
+.temperature ul {
+}
+.temperature ul li {
+	clear:both;
+	display:block;
+}
+.temperature label {
+	line-height:28px;
+	float:left;
+	width:110px;
+	font-family:'Ubuntu';
+	font-size:13px;
+}
+.temperature input {
+	float:left;
+	width:100px;
+	height:20px;
+	margin:0 0 5px 0;
+	color:#4d4d4d;
+	border:1px #797979 solid;
+	box-shadow:inset 0 0 8px #d1d1d1;
+	-moz-box-shadow:inset 0 0 8px #d1d1d1;
+	-webkit-box-shadow:inset 0 0 8px #d1d1d1;
+	padding:3px 5px 3px 5px;
+	line-height:18.8px;
+	text-align:left;
+	font-family: 'Ubuntu';
+	font-size:13px;
+}
+
+ /*
+table.new-para {
+	margin-bottom:20px;
+	font-family: 'Ubuntu';
+	font-size:14px;
+	line-height:18.8px;
+}
+table.para-table {
+	margin-top:20px;
+	font-size:14px;
+	font-family: 'Ubuntu';
+	line-height: 18px;
+}
+.para-table tr {
+	margin:0px;
+}
+.para-table tr td {
+	padding:1px 10px 1px 0;
+}
+/*
+p.paragraph-style, p.paragraph-style1 {
+	font-family: 'Ubuntu';
+	color:#4d4d4f;
+	padding:0 0 18px 0;
+	font-size:14px;
+}
+p.paragraph-style1 {
+	line-height:30px;
+}
+
+/* OLD TABLE
+.table-box {
+	padding:0px;
+	margin:0px 0 46px 0;
+}
+table.main-table {
+	overflow:hidden;
+	background:#a6a3a3;
+	text-align:center;
+	margin: 0 auto;
+	font-size:14px;
+}
+.main-table thead {
+	background:#3b3a3a;
+}
+
+.main-table tbody tr th{
+	padding:10px 5px;
+	background:#3b3a3a;
+	text-align:center;
+	color:#FFF;
+	font-size:14px;
+	font-family: 'Ubuntu';
+	font-weight:bold;
+	font-weight:bold;
+}
+.main-table tbody tr {
+	background:#ffffff;
+}
+.main-table tbody tr td {
+	padding:10px 5px;
+	font-size:14px;
+	color:#4D4D4F;
+	font-family: 'Ubuntu';
+	text-align:center;
+}
+
+.main-table tbody tr th p  {
+	padding:10px 5px;
+	font-size:14px;
+	color:#4D4D4F;
+	font-family: 'Ubuntu';
+	text-align:center;
+}
+
+
+.main-table tbody tr td a {
+	color:#108fc4;
+	text-decoration:none;
+}
+.main-table tbody tr td strong {
+	color:#649652;
+}
+.main-table tbody tr td span {
+	color:#F00;
+}
+.main-table tbody tr:hover {
+	background:#e0f3ac;
+}
+.main-table tbody tr.foot {
+	background:#e5e3e3;
+}
+
+/*DL, DT, DD TAGS LIST DATA
+dl.dl-list {
+	margin:0 0 17px 0;
+	overflow:hidden;
+}
+dt {
+	font-family: 'Ubuntu';
+	font-weight:bold;
+	font-size:14px;
+	background:#fff;
+	color:#4d4d4f;
+	float:left;
+	line-height:18px;
+	margin-right:5px;
+	padding:0 5px;
+	width:140px;
+}
+dd {
+	font-family: 'Ubuntu';
+	float:left;
+	font-size:14px;
+	width:400px;
+	height:auto;
+	line-height:18px;
+	overflow:hidden;
+	margin:0;
+	padding:0 5px;
+	color:#4d4d4f;
+}
