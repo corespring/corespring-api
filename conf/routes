@@ -86,6 +86,10 @@ GET     /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.
 GET    /testplayer/item/:itemId                     controllers.testplayer.ItemPlayer.renderItem(itemId, printMode: Boolean ?= false)
 GET    /testplayer/item/:itemId/feedback/:responseIdentifier/:identifier  controllers.testplayer.ItemPlayer.getFeedbackInline(itemId, responseIdentifier, identifier)
 
+# Example content
+GET    /example-content                        web.controllers.ExampleContent.index
+GET    /example-content/items                  web.controllers.ExampleContent.items
+
 # Web tier
 GET    /web                                    web.controllers.Main.index
 # Item Preview

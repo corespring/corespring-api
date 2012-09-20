@@ -1,0 +1,36 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html ng-app="example-content">
+<head>
+    <title>Example Content</title>
+    <meta name="description" content="CoreSpring Content Tagger"/>
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
+    @head.mathMl()
+    @head.coreJs()
+    @head.bootstrap()
+    @head.angular()
+
+    <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
+    <script type="text/javascript">
+
+        angular.module('example-content', []);
+        function ExampleContentController($scope, $http){
+
+            $http.get("/example-content/items").success( function(result){
+                $scope.items = result;
+            })
+        }
+        ExampleContentController.$inject = ['$scope', '$http'];
+    </script>
+</head>
+<body ng-controller="ExampleContentController">
+@mainNav()
+<div class="container" style="padding-top: 90px;">
+    <h3>Example Content</h3>
+
+    <div ng-repeat="i in items" style="padding-bottom: 12px;">
+        <a ng-href="/web/item-preview/{{i.id}}" style="text-decoration: none;" ng-bind-html-unsafe="i.title"></a>
+    </div>
+</div>
+</body>
+</html>
