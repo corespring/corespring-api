@@ -72,13 +72,13 @@
     <itemBody>
         <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1">
             <prompt>Who is the President of Mexico?</prompt>
-            <simpleChoice identifier="bush"> Barack Obama
+            <simpleChoice identifier="obama"> Barack Obama
                 <feedbackInline showHide="show">Incorrect, Barack Obama is President of the USA</feedbackInline>
                 <!-- feedback will be parsed and converted to format like this
                 <feedbackInline csFeedbackId="bush" outcomeIdentifier="responses.mexicanPresident.value" identifier="bush" showHide="show"></feedbackInline>
                 -->
             </simpleChoice>
-            <simpleChoice identifier="blair"> James Cameron
+            <simpleChoice identifier="cameron"> James Cameron
                 <feedbackInline showHide="show">Incorrect, James Cameron is Prime Minister of the UK</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier="calderon"> Felipe Calderon
@@ -89,19 +89,20 @@
             </simpleChoice>
         </choiceInteraction>
 
+        <!-- this one has feedback pre-populated with csFeedbackId, outcomeIdentifier and identifier -->
         <choiceInteraction responseIdentifier="irishPresident" shuffle="false" maxChoices="1">
             <prompt>Who is the President of Ireland?</prompt>
             <simpleChoice identifier="robinson"> Mary Robinson
-                <feedbackInline showHide="show">Incorrect, Mary Robinson was President of Ireland from 1990 to 1997</feedbackInline>
+                <feedbackInline csFeedbackId="fbRobinson" outcomeIdentifier="responses.irishPresident.value" identifier="robinson" showHide="show">Incorrect, Mary Robinson was President of Ireland from 1990 to 1997</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier="higgins"> Michel D. Higgins
-                <feedbackInline showHide="show">Correct, Michael D. Higgins is the sitting President of Ireland</feedbackInline>
+                <feedbackInline csFeedbackId="fbHiggins" outcomeIdentifier="responses.irishPresident.value" identifier="higgins" showHide="show">Correct, Michael D. Higgins is the sitting President of Ireland</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier="guinness"> Arthur Guinness
-                <feedbackInline showHide="show">Incorrect, Arthur Guinness founded Guinness Brewery</feedbackInline>
+                <feedbackInline csFeedbackId="fbGuinness" outcomeIdentifier="responses.irishPresident.value" identifier="guinness" showHide="show">Incorrect, Arthur Guinness founded Guinness Brewery</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier="adams"> Gerry Adams
-                <feedbackInline showHide="show">Incorrect, Gerry Adams is the President of the Sinn Fein political party</feedbackInline>
+                <feedbackInline csFeedbackId="fbAdams" outcomeIdentifier="responses.irishPresident.value" identifier="adams" showHide="show">Incorrect, Gerry Adams is the President of the Sinn Fein political party</feedbackInline>
             </simpleChoice>
         </choiceInteraction>
 

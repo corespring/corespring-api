@@ -73,14 +73,15 @@ qtiServices
         // the properties will be the csFeedbackIds that were specified in the xml (or automatically added to the xml)
         var data = {};
         data.feedbackContents = {};
-        data.feedbackContents.bush = "George Bush was president of the USA";
-        data.feedbackContents.blair = "Tony Blair was president of the UK";
-        data.feedbackContents.sharon = "Ariel Sharon was the president of the Israel";
+        data.feedbackContents.obama = "Barack Obama is president of the USA";
+        data.feedbackContents.cameron = "David Cameron is Prime Minister of the UK";
+        data.feedbackContents.netanyahu = "Benjamin Netanyahu is the Prime Minister Israel";
         data.feedbackContents.calderon = "Correct, <b>Felipe Calderon</b> is the president of Mexico";
-        data.feedbackContents.robinson = "Mary Robinson was president of Ireland in the nineties";
-        data.feedbackContents.higgins = "Correct! Michael D Higgins is the current president of Ireland";
-        data.feedbackContents.adams = "Gerry Adams is the leader of the Sinn Fein political party";
-        data.feedbackContents.guinness = "Arthur Guinness is the founder of Guinness Brewery";
+
+        data.feedbackContents.fbRobinson = "Mary Robinson was president of Ireland in the nineties";
+        data.feedbackContents.fbHiggins = "Correct! Michael D Higgins is the current president of Ireland";
+        data.feedbackContents.fbAdams = "Gerry Adams is the leader of the Sinn Fein political party";
+        data.feedbackContents.fbGuinness = "Arthur Guinness is the founder of Guinness Brewery";
 
         data.feedbackContents.blue = "Correct, blue is a color in the rainbow";
         data.feedbackContents.violet = "Correct, violet is a color in the rainbow";
