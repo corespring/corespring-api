@@ -37,9 +37,10 @@ qtiDirectives.directive('csTabs', [
           if ($scope.onTabSelect != null) {
             $scope.onTabSelect(tab);
           }
-
-          $event.preventDefault();
-          $event.stopPropagation();
+          if (!(!$event)) {
+              $event.preventDefault();
+              $event.stopPropagation();
+          }
           return null;
         };
         $scope.changeTab = function(index) {
