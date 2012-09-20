@@ -6,7 +6,9 @@
     @web.views.html.partials._viewItem._item( "Item Title", "<div ng-bind-html-unsafe=\"itemData.title\"></div>")
     @web.views.html.partials._viewItem._item( "Key Words", "<div>{{itemData.keySkills}}</div>")
     @web.views.html.partials._viewItem._item( "Demonstrated Knowledge", "<div>{{itemData.demonstratedKnowledge}}</div>")
-    @web.views.html.partials._viewItem._item( "Aligned Standards", "<div ng-repeat='s in itemData.standards'>{{s.dotNotation}}</div>")
+
+    @web.views.html.partials._viewItem._item( "Aligned Standards", "<a style=\"margin-right: 7px;\" ng-repeat=\"s in itemData.standards\" ui-jq=\"tooltip\" ui-options=\"{title: s.standard}\">{{s.dotNotation}}</a>" )
+
     @web.views.html.partials._viewItem._item( "Grade", "<div ng-repeat='gl in itemData.gradeLevel'>{{gl}}</div>")
 </div>
 
