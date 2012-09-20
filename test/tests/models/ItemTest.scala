@@ -1,7 +1,7 @@
 package tests.models
 
 import tests.BaseTest
-import models.{Copyright, Subject, Item}
+import models.{ContributorDetails, Copyright, Subject, Item}
 import play.api.libs.json.{JsString, JsObject, Json}
 import org.bson.types.ObjectId
 import com.mongodb.BasicDBObject
@@ -52,27 +52,33 @@ class ItemTest extends BaseTest {
       parsed.subjects.get.related must equalTo(item.subjects.get.related)
     }
 
-    "parse copyright" in {
+    "parse contributor details" in {
       val copyright = Copyright(Some("Ed"), Some("2001"), Some("3000"))
-      val item = Item(copyright = Some(copyright))
+      val contributorDetails = ContributorDetails(
+        copyright = Some(copyright),
+        costForResource = Some(10),
+        author = Some("Ed")
+      )
+      val item = Item(contributorDetails = Some(contributorDetails))
       val json = Json.toJson(item)
-      (json \ "copyrightOwner").asOpt[String] must equalTo(Some("Ed"))
-      (json \ "copyrightYear").asOpt[String] must equalTo(Some("2001"))
-      (json \ "copyrightExpirationDate").asOpt[String] must equalTo(Some("3000"))
+      (json \ Item.copyrightOwner).asOpt[String] must equalTo(Some("Ed"))
+      (json \ Item.copyrightYear).asOpt[String] must equalTo(Some("2001"))
+      (json \ Item.copyrightExpirationDate).asOpt[String] must equalTo(Some("3000"))
+      (json \ Item.costForResource).asOpt[Int] must equalTo(Some(10))
+      (json \ Item.author).asOpt[String] must equalTo(Some("Ed"))
+      (json \ Item.licenseType).asOpt[String] must beNone
+      (json \ Item.sourceUrl).asOpt[String] must beNone
 
       val parsedItem = json.as[Item]
-      parsedItem.copyright.get.owner must equalTo(Some("Ed"))
-      parsedItem.copyright.get.year must equalTo(Some("2001"))
-      parsedItem.copyright.get.expirationDate must equalTo(Some("3000"))
+      parsedItem.contributorDetails.get.copyright.get.owner must equalTo(Some("Ed"))
+      parsedItem.contributorDetails.get.copyright.get.year must equalTo(Some("2001"))
+      parsedItem.contributorDetails.get.copyright.get.expirationDate must equalTo(Some("3000"))
+      parsedItem.contributorDetails.get.costForResource must equalTo(Some(10))
+      parsedItem.contributorDetails.get.author must equalTo(Some("Ed"))
+      parsedItem.contributorDetails.get.licenseType must beNone
+      parsedItem.contributorDetails.get.sourceUrl must beNone
     }
 
-    "parse cost for resource" in {
-      val item = Item(costForResource = Some(10))
-      val json = Json.toJson(item)
-      (json \ Item.costForResource).asOpt[Int] must equalTo(Some(10))
-      val parsed = json.as[Item]
-      parsed.costForResource must equalTo(Some(10))
-    }
   }
 
 }

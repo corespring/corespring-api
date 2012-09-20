@@ -1,0 +1,66 @@
+{
+	"_id" : { "$oid" : "502414e2e4b07ddb03e0f019" },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value>8</value> \n        </correctResponse> \n    </responseDeclaration> \n\n    <itemBody>\n   <p class=\"intro-2\"> Oliver used some shapes to make this picture.</p>\n   <div class=\"imagewrapper\"><img src=\"13Shapes.png\"/></div>\n \n   <p>Oliver used only <img src=\"13T.png\"/> to cover this picture without any gaps or overlaps.</p>\n    \n    <p class=\"prompt\">How many <img src=\"13T.png\"/> did he use?</p>\n    \n   <p> He used <textEntryInteraction responseIdentifier=\"Q_01\" expectedLength=\"10\"></textEntryInteraction> of them.</p>\n\n    </itemBody>\n</assessmentItem>\n\n\n"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "13Shapes.png",
+				"isMain" : false,
+				"storageKey" : "502414e2e4b07ddb03e0f019/13Shapes.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "13T.png",
+				"isMain" : false,
+				"storageKey" : "502414e2e4b07ddb03e0f019/13T.png",
+				"contentType" : "image/png"
+			}
+		]
+	},
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2c2" }
+	},
+	"standards" : [ ],
+	"itemType" : "Constructed Response - Short Answer",
+	"contributorDetails" : {
+		"contributor" : "New England Common Assessment Program",
+		"credentials" : "State Department of Education",
+		"author" : "New England Common Assessment Program",
+		"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New England Common Assessment Program",
+			"year" : "2010"
+		}
+	},
+	"workflow" : {
+		"setup" : true,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"keySkills" : [ ],
+	"priorUse" : "Summative",
+	"title" : "Oliver used some shapes to make the picture. How many shapes did Oliver use to cover the picture without any gaps or overlaps?",
+	"gradeLevel" : [
+		"03"
+	],
+	"reviewsPassed" : [
+		"Editorial",
+		"Bias",
+		"Fairness",
+		"Content",
+		"Psychometric"
+	]
+}

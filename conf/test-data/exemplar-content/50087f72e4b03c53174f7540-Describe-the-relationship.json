@@ -1,0 +1,58 @@
+{
+	"_id" : { "$oid" : "50087f72e4b03c53174f7540" },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceA</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n    <itemBody>\n    \n    <resource \n    type=\"passage\"\n    title=\"What's the Scoop on Soil?\"\n    copyrightOwner=\"NASA\"\n\tlicenseType=\"CC BY\"\n\turl=\"http://www.nasa.gov\"\n\t/>\n\n<h1 class=\"text-centered\">What’s the Scoop on Soil?</h1>\n\n<p><i>It’s easy to forget about soil. You have to look down on the ground to see it. Even then, soil may not seem to do very much. But there’s more to soil than you might think. It isn’t just dirt that gets on your shoes.</i></p>\n1 <p>Trees and plants need soil to grow. Very few fruits, vegetables and grains would live \nwithout it. Many animals need soil, too. They eat the plants that grow in it. Some aals even live in the soil. Can you imagine a world without soil?</p>\n2 <p>Most soil comes from rocks. Over many years, weather causes rocks to break apart. \nThe pieces get smaller and smaller as time goes on. Soil forms when bits of rock mix with things like dead leaves and dead bugs.</p>\n\n<resource \n    type=\"image\"\n\tcopyrightOwner=\"GLOBE\"\n\tlicenseType=\"CC BY/CC BY-NC/CC BY-ND/CC BY NC-SA\"\n\t/>\n    \n<p><center><img src=\"Soil.png\"></img></center>\n<center>The soil in Arizona, on the left, looks different from the soil from Texas, on the right.</center>\n<center>Credit: GLOBE</center></p>\n3 <p>Not all soil is the same. Soil comes in many colors. Some soil looks and feels different than other soil. The color and feel of soil often changes as you dig deeper into the ground. You can learn a lot by seeing and touching soil. In a way, soil is like a secret <b>decoder</b>.</p>\n4 <p>The color of soil can sometimes tell you where you are. For example, red soil can be \nfound in Arizona. Grey soil can be found in Nevada. Black soil can be found in Texas. Water also affects the color of soil. Wet soil is usually darker than dry soil.</p>\n5 <p>The feel of soil can tell you about its ingredients. Soil contains different amounts of sand, <b>silt</b> and clay. Soil in a forest might be gritty, which means more sand. Soil in a meadow might be smooth, which means more silt. Soil in a garden might be sticky, which means more clay.</p>\n6 <p>Did you know that squeezing soil can tell you about the weather? If soil  crumbles \n15 between your fingers, then the weather has probably been dry. If soil is wet and sticky—yuck!—then it might have rained not too long ago.</p>\n\n<div class=\"note-tip\">http://nasa.gov</div>\n  \n            Read these two sentences from paragraph 5:<br></br>\n<i>“Soil in a forest might be gritty, which means more sand.”</i><br></br>\n<i>“Soil in a meadow might be smooth, which means more silt.”</i>\n\n\n        <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>Which of the following describes the relationship between  these two sentences?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">The sentences make a comparison.</simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">The sentences describe two steps in a process.</simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\">The first sentence explains the reason for the second.</simpleChoice>\n            <simpleChoice identifier=\"ChoiceD\">The second sentence gives the cause of the first.</simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n\n</assessmentItem>\n"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "Soil.png",
+				"isMain" : false,
+				"storageKey" : "50087f72e4b03c53174f7540/Soil.png",
+				"contentType" : "image/png"
+			}
+		]
+	},
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2ac" }
+	},
+	"standards" : [
+		{ "$oid" : "4ff47f6a6bb41e469c0be686" }
+	],
+	"itemType" : "Multiple Choice",
+	"contributorDetails" : {
+		"contributor" : "New York State Education Department",
+		"credentials" : "State Department of Education",
+		"author" : "New York State Education Department",
+		"sourceUrl" : "http://www.p12.nysed.gov/apda/common-core-sample-questions",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New York State Education Department",
+			"year" : "2012"
+		}
+	},
+	"workflow" : {
+		"setup" : false,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"gradeLevel" : [
+		"03"
+	],
+	"title" : "Describe the relationship between the two sentences as presented in <i>What's the Scoop on Soil?</i>",
+	"materialType" : "Assessment Item",
+	"priorUse" : "Formative",
+	"reviewsPassed" : [
+		"Editorial"
+	],
+	"keySkills" : [ ]
+}

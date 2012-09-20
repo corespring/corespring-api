@@ -1,0 +1,59 @@
+{
+	"_id" : { "$oid" : "5020025fe4b0b0fa073aa3d7" },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value>8</value> \n        </correctResponse> \n    </responseDeclaration> \n    \n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"string\"/> \n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_03\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value>16</value> \n        </correctResponse> \n    </responseDeclaration>\n    \n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_04\" cardinality=\"single\" baseType=\"string\"/> \n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_05\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value>2</value> \n        </correctResponse> \n    </responseDeclaration>\n \n     <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_06\" cardinality=\"single\" baseType=\"string\"/> \n \n    <itemBody>\n<p class=\"intro2\">The shapes of these three greeting cards are similar rectangles. The cards are not drawn to scale.</p>\n<img src=\"15Cards.png\"/>\n        \n        <p class=\"prompt\"><b>Part a.</b> What is the length, in inches, of the side labeled  <i>w</i>  on Card 2?</p> \n        <textEntryInteraction responseIdentifier=\"Q_01\" expectedLength=\"10\" class=\"textarea.answer_5_linebox\"></textEntryInteraction> \n        <p/>\n        \n        <p class=\"prompt\">How do you know?</p>\n        <extendedTextInteraction responseIdentifier=\"Q_02\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\" class=\"textarea.answer_5_linebox\"></extendedTextInteraction>\n        <p/>\n        \n        <p class=\"prompt\"><b>Part b.</b> The area of Card 2 is how many times as great as the area of Card 1?</p> \n        <p/>\n        <textEntryInteraction responseIdentifier=\"Q_03\" expectedLength=\"10\"></textEntryInteraction>\n        \n        <p class=\"prompt\">How do you know?</p>\n<extendedTextInteraction responseIdentifier=\"Q_04\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\" class=\"textarea.answer_5_linebox\"></extendedTextInteraction>  \n        \n        <p class=\"prompt\"><b>Part c.</b> The sides of Card 3 are <i>n</i> times as long as the sides of Card 1. The area of Card 3 is how many times as great as the area of Card 1? </p> \n        \n        <p class=\"prompt\">It is <textEntryInteraction responseIdentifier=\"Q_05\" expectedLength=\"10\" class=\"textarea.answer_5_linebox\"> times greater.</textEntryInteraction></p>\n        \n        <p class=\"prompt\">How do you know?</p>\n        <extendedTextInteraction responseIdentifier=\"Q_06\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\" class=\"textarea.answer_5_linebox\"></extendedTextInteraction>  \n    \n    \n    </itemBody>\n</assessmentItem>"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "15Cards.png",
+				"isMain" : false,
+				"storageKey" : "5020025fe4b0b0fa073aa3d7/15Cards.png",
+				"contentType" : "image/png"
+			}
+		]
+	},
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2c2" }
+	},
+	"standards" : [ ],
+	"itemType" : "Constructed Response - Short Answer",
+	"contributorDetails" : {
+		"contributor" : "New England Common Assessment Program",
+		"credentials" : "State Department of Education",
+		"author" : "New England Common Assessment Program",
+		"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New England Common Assessment Program",
+			"year" : "2011"
+		}
+	},
+	"workflow" : {
+		"setup" : true,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"keySkills" : [ ],
+	"title" : "The shapes of these three greeting cards are similar rectangles. The cards are not drawn to scale. a. What is the length, in inches, of the side labeled w on Card 2? Show your work or explain how you know. b. The area of Card 2 is how many times as great as the area of Card 1? Show your work or explain how you know. c. The sides of Card 3 are n times as long as the sides of Card 1. The area of Card 3 is how many times as great as the area of Card 1? Show your work or explain how you know.",
+	"priorUse" : "Summative",
+	"gradeLevel" : [
+		"08"
+	],
+	"reviewsPassed" : [
+		"Editorial",
+		"Bias",
+		"Fairness",
+		"Content",
+		"Psychometric"
+	]
+}

@@ -76,7 +76,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items.size must beEqualTo( 17 )
+    items.size must beEqualTo( 19 )
   }
 
   "find items in returning only their title and up to 10" in {
@@ -197,51 +197,31 @@ class ItemApiTest extends BaseTest {
     val toUpdate = xmlBody("<root/>", Map(Item.credentials -> STATE_DEPT ))
     val updateResult = routeAndCall(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
     val updateJsonString = contentAsString(updateResult)
-    skipped
-    //updateJsonString must equalTo(getJsonString)
+    updateJsonString must equalTo(getJsonString)
   }
 
-  "update does not include csFeedbackIds" in {
-    val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> TEST_COLLECTION_ID))
-    var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
-    var result = routeAndCall(fakeRequest).get
-    status(result) must equalTo(OK)
-    val itemId = (Json.parse(contentAsString(result)) \ "id").as[String]
 
-    val toUpdate = Map(Item.data -> "<html><feedbackInline></feedbackInline></html>")
-    fakeRequest = FakeRequest(PUT, "/api/v1/items/%s?access_token=%s".format(itemId, token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
-    result = routeAndCall(fakeRequest).get
-    status(result) must equalTo(OK)
 
-    val xmlFileContents: Seq[String] = getXMLContentFromResponse(contentAsString(result))
-    xmlFileContents.foreach(_ must not(beMatching(".*csFeedbackId.*")))
+  "when saving an item with QTI xml, add csFeedbackId attrs if they are not present" in {
+    /**
+     * all feedback elements, feedbackInline and modalFeedback should be decorated with the attribute csFeedbackId
+     * on persist/update of an item if the attribute is not already there. These need to be unique within the item, so itemId-n would work as id
+     *
+     * NOTE: test data loaded to db may be missing this if it is loaded statically. Could load a the test composite item
+     * (50083ba9e4b071cb5ef79101) and save it. Other tests might fail if these csFeedbackId attrs are not present
+     */
+    pending
   }
 
-  "get item data with feedback contains csFeedbackIds" in {
-    val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> TEST_COLLECTION_ID))
-    val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
-    var result = routeAndCall(fakeRequest).get
-    status(result) must equalTo(OK)
+  "add outcomeidentifier and identifier to feedback elements defined within choices" in {
 
-    val itemId = (Json.parse(contentAsString(result)) \ "id").as[String]
-    val path: String = "/api/v1/items/%s?access_token=%s".format(itemId, token)
-    val anotherFakeRequest = FakeRequest(GET, path)
-    result = routeAndCall(anotherFakeRequest).get
-    status(result) must equalTo(OK)
+    /**
+     *  @see https://trello.com/card/add-outcomeidentifier-and-identifier-to-feedback-elements-defined-within-choices/500f0e4cf207c721072011c1/90
+     *
+     *  For now This should happen when the xml is being sent to the test player
+     */
 
-    val xmlFileContents: Seq[String] = getXMLContentFromResponse(contentAsString(result))
-    xmlFileContents.foreach(_ must beMatching(".*csFeedbackId.*"))
-  }
-
-  // Next step is to make this pass...
-  "item body without outcomeIdentifiers for feedback adds them" in {
-    val toCreate = xmlBody("<html><choiceInteraction responseIdentifier=\"irishPresident\"><simpleChoice identifier=\"higgins\"><feedbackInline><b>Correct!</b> Michael D. Higgins is the president of Ireland</feedbackInline></simpleChoice></choiceInteraction></html>", Map("collectionId" -> TEST_COLLECTION_ID))
-    val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
-    val result = routeAndCall(fakeRequest).get
-    status(result) must equalTo(OK)
-
-    val xmlFileContents: Seq[String] = getXMLContentFromResponse(contentAsString(result))
-    //xmlFileContents.foreach(_ must beMatching(".*responses.irishPresident.value*"))
+    pending
   }
 
   /**

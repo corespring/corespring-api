@@ -117,6 +117,7 @@ object Global extends GlobalSettings {
     val ExemplarContent = "exemplar-content"
 
     //load examplar content
+
     val folder : File = Play.getFile(basePath + ExemplarContent)
     for (file <- folder.listFiles) {
       Logger.info("adding: " + file.getName)
@@ -167,7 +168,9 @@ object JsonImporter {
 
     val lines: Iterator[String] = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.forName("UTF-8"))).getLines()
     for (line <- lines) {
-      insertString(line, coll)
+      if (line != null && line != ""){
+        insertString(line, coll)
+      }
     }
   }
 
@@ -190,7 +193,6 @@ object JsonImporter {
 
     val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.forName("UTF-8"))).mkString
     val finalObject: String = replaceLinksWithContent(s)
-
     insertString(finalObject, coll)
   }
 
@@ -231,7 +233,15 @@ object JsonImporter {
     interpolated
   }
 
-  def insertString(s: String, coll: MongoCollection) = coll.insert(JSON.parse(s).asInstanceOf[DBObject], coll.writeConcern)
+  def insertString(s: String, coll: MongoCollection) = {
+    val dbo : DBObject = JSON.parse(s).asInstanceOf[DBObject]
+    val id = dbo.get("_id").toString
+
+    coll.findOneByID( new ObjectId( id )) match {
+      case Some(obj) => throw new RuntimeException("Item already exisits: " + id + " collection: " + coll.name)
+      case _ => coll.insert(dbo, coll.writeConcern)
+    }
+  }
 
 
 }

@@ -1,0 +1,129 @@
+{
+	"_id" : { "$oid" : "50228360e4b05b57849d303c" },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"string\"/>\n    \n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value></value> \n        </correctResponse> \n    </responseDeclaration> \n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_03\" cardinality=\"single\" baseType=\"string\"/>\n\n    <responseDeclaration identifier=\"Q_04\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value></value> \n        </correctResponse> \n    </responseDeclaration>\n    \n    <responseDeclaration identifier=\"Q_05\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value></value> \n        </correctResponse> \n    </responseDeclaration>\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_06\" cardinality=\"single\" baseType=\"string\"/>\n\n    <responseDeclaration identifier=\"Q_07\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value></value> \n        </correctResponse> \n    </responseDeclaration>\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_08\" cardinality=\"single\" baseType=\"string\"/>\n\n    <responseDeclaration identifier=\"Q_09\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value></value> \n        </correctResponse> \n    </responseDeclaration>\n\n    <responseDeclaration identifier=\"Q_10\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value></value> \n        </correctResponse> \n    </responseDeclaration>\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_11\" cardinality=\"single\" baseType=\"string\"/>\n\n    <responseDeclaration identifier=\"Q_12\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value></value> \n        </correctResponse> \n    </responseDeclaration>\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_13\" cardinality=\"single\" baseType=\"string\"/>\n    \n    <responseDeclaration identifier=\"Q_14\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value></value> \n        </correctResponse> \n    </responseDeclaration>\n\n    <responseDeclaration identifier=\"Q_15\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value></value> \n        </correctResponse> \n    </responseDeclaration>\n\n    <responseDeclaration identifier=\"Q_16\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value></value> \n        </correctResponse> \n    </responseDeclaration>\n\n    <itemBody>\n<h3>Conducting Your Investigation</h3>\n<p/>You and your partner(s) will investigate what happens to the total mass of Powder X and water after \nthey are mixed together.\n\n<p/>You will combine two substances:\n<ul>\n<li>Powder X</li>\n<li>Water</li>\n</ul>\n\n<p/>You will conduct three trials with Powder X. \n<p/>\n\n<h3>Safety:</h3>\n<p/>You will be working with an unknown substance and water so you need to follow safe laboratory \npractices.\n\n<ul>\n<li>Each student should have a pair of safety goggles.</li>\n<li><b>Always</b> wear safety goggles throughout this investigation.</li>\n<li><b>Never</b> taste or touch unknown substances.</li>\n<li>Follow your teacher’s instructions to dispose of the substances and bags.</li>\n</ul>\n\n<p/>The single-beam balance is made by setting two cups in a cardboard arm, and then placing the arm \nand two cups on a wood block. Washers are used to measure the mass of the substances. Each \nwasher equals 1 unit of mass.\n<p/><center><img src=\"SingleBeamBalance.png\"/></center>\n<br/>\n<h3>Procedure:</h3>\n<p/><b>TRIAL 1</b>\n<ul>\n<p/><b>Step 1: Measure Powder X</b>\n\n<ol>\n<li><b>Put on</b> your safety goggles.</li><img src=\"1Goggles.png\"/>\n<li><b>Make sure</b> that the cardboard arm on the wooden block is balanced.</li><img src=\"2Wooden.png\"/>\n<li><b>Measure</b> one level scoop of <b>Powder X</b> and place it in one of the medium bags. <b>Tightly zip</b> the bag closed. </li><img src=\"3PowderX.png\"/>\n<li><b>Observe</b> the physical characteristics of Powder X. <b>Record</b> your observations below.</li>\n</ol>\n    <ul><p/>Trial 1 Observations Before Mixing with Water: <p/><extendedTextInteraction responseIdentifier=\"Q_01\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"/></ul>\n<br/>\n<p/><b>Step 2: Measure Water</b>\n<ol>\n<li>Measure 15 mL of water in the measuring cup.</li><p/><img src=\"4Measuring.png\"/>\n<li><b>Pour</b> the water into the small bag. <b>Tightly zip</b> the bag closed.</li><img src=\"5Bag.png\"/>  \n</ol>\n<br/>\n<p/><b>Step 3: Place Powder X and Bag with Water in Cup on the Single-Beam Balance</b>\n<ol>\n<li><b>Hold</b> the Powder X bag <b>and</b> the water bag by their top (zippered) edges. <b>Place</b> them in the cup on the left side of the \nsingle-beam balance.</li><img src=\"6BagBeam.png\"/>   \n</ol>\n<br/>\n<p/><b>Step 4: Find Mass of Powder X and Bag with Water BEFORE Mixing</b>\n<ol>\n<li><b>Carefully place</b> one washer at a time into the cup on the right-hand side until the arm of the single-beam balance is level.</li><img src=\"7BagWasher.png\"/> \n<li><b>Remove</b> the cup with the washers from the balance.</li>  \n</ol>\n       <prompt> <b>Count and record</b> the number of washers (Mass before Mixing with Water) for Trial 1:</prompt><p/> <textEntryInteraction responseIdentifier=\"QUESTION_02\" expectedLength=\"10\"/>\n<br/>\n<p/><b>Step 5: Mix Powder X and Water</b>\n<ol>\n<li><b>Open</b> the medium bag with Powder X in it. <b>Open</b> the water bag. <b>Pour</b> the water into the medium bag with Powder X. <b>Quickly zip</b> the Powder X bag closed.</li><p/><img src=\"8MixPowder.png\"/>\n<li><b>Gently mix</b> the water with Powder X. (Do <b>not</b> shake the bag.)</li> \n<li><b>Observe</b> Powder X mixed with water. <b>Record</b> your observations below.</li>\n</ol>\n        Trial 1 Observations After Mixing with Water: <p/><extendedTextInteraction responseIdentifier=\"Q_03\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"/>\n<br/>\n<p/><b>Step 6: Place Powder X Mixed with Water and the Empty Water Bag in Cup on the SingleBeam Balance</b>\n<ol>\n<li><b>Place</b> the bag with Powder X mixed with water <b>and</b> the empty water bag in the cup on the left side of the single-beam \nbalance.</li><img src=\"9BagWater.png\"/>   \n</ol>\n<br/>\n<p/><b>Step 7: Find Mass of Powder X Mixed with Water and the Empty Water Bag AFTER Mixing</b><p/><img src=\"10AfterMixing.png\"/>\n<ol>\n<li><b>Carefully place</b> one washer at a time into the right-hand cup until the arm of the single-beam balance is level.</li> \n<li><b>Remove</b> the cup with the washers from the balance.  \n        <p/><b>Count and record</b> the number of washers (Mass after Mixing with Water) for Trial 1: <textEntryInteraction responseIdentifier=\"QUESTION_04\" expectedLength=\"10\"/>\n        \n        <p/>Then <b>calculate</b> and <b>record</b> the difference in mass: <textEntryInteraction responseIdentifier=\"QUESTION_05\" expectedLength=\"10\"/></li>\n<li>Place the bag with Powder X aside on your desk or table. Do not open the bag or shake it.</li>\n</ol>\n<br/>\n<p/><b>TRIAL 2</b>\n<ul>\n<li>Reset the single-beam balance.</li>\n<li>Repeat Steps 1–7.</li>\n<li>Be sure to record your Trial 2 data below.</li>\n</ul>\n\n<ul><p/>Trial 2 Observations Before Mixing with Water: <p/><extendedTextInteraction responseIdentifier=\"Q_06\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"/>\n\n<p/><b>Count and record</b> the number of washers (Mass before Mixing with Water) for Trial 2: <textEntryInteraction responseIdentifier=\"QUESTION_07\" expectedLength=\"10\"/>\n\n<p/>Trial 2 Observations After Mixing with Water: <p/><extendedTextInteraction responseIdentifier=\"Q_08\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"/>\n\n<p/><b>Count and record</b> the number of washers (Mass after Mixing with Water) for Trial 2: <textEntryInteraction responseIdentifier=\"QUESTION_09\" expectedLength=\"10\"/>\n\n<p/>Then <b>calculate</b> and <b>record</b> the difference in mass for Trial 2: <textEntryInteraction responseIdentifier=\"QUESTION_10\" expectedLength=\"10\"/></ul>\n\n<br/>\n<p/><b>TRIAL 3</b>\n<ul>\n<li>Reset the single-beam balance.</li>\n<li>Repeat Steps 1–7.</li>\n<li>Be sure to record your Trial 3 data below.</li>\n</ul>\n\n<p/>Trial 3 Observations Before Mixing with Water: <p/><extendedTextInteraction responseIdentifier=\"Q_11\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"/>\n\n<p/><b>Count and record</b> the number of washers (Mass before Mixing with Water) for Trial 3: <textEntryInteraction responseIdentifier=\"QUESTION_12\" expectedLength=\"10\"/>\n\n<p/>Trial 3 Observations After Mixing with Water: <p/><extendedTextInteraction responseIdentifier=\"Q_13\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"/>\n\n<p/><b>Count and record</b> the number of washers (Mass after Mixing with Water) for Trial 3: <textEntryInteraction responseIdentifier=\"QUESTION_14\" expectedLength=\"10\"/>\n\n<p/>Then <b>calculate</b> and <b>record</b> the difference in mass for Trial 3: <textEntryInteraction responseIdentifier=\"QUESTION_15\" expectedLength=\"10\"/></ul>\n\n<p/>After completing the three trials, calculate the average difference in mass. Record the average \ndifference in mass: <textEntryInteraction responseIdentifier=\"QUESTION_16\" expectedLength=\"10\"/>\n    \n    </itemBody>\n</assessmentItem>\n"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "SingleBeamBalance.png",
+				"isMain" : false,
+				"storageKey" : "50228360e4b05b57849d303c/SingleBeamBalance.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "1Goggles.png",
+				"isMain" : false,
+				"storageKey" : "50228360e4b05b57849d303c/1Goggles.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "2Wooden.png",
+				"isMain" : false,
+				"storageKey" : "50228360e4b05b57849d303c/2Wooden.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "3PowderX.png",
+				"isMain" : false,
+				"storageKey" : "50228360e4b05b57849d303c/3PowderX.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "4Measuring.png",
+				"isMain" : false,
+				"storageKey" : "50228360e4b05b57849d303c/4Measuring.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "5Bag.png",
+				"isMain" : false,
+				"storageKey" : "50228360e4b05b57849d303c/5Bag.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "6BagBeam.png",
+				"isMain" : false,
+				"storageKey" : "50228360e4b05b57849d303c/6BagBeam.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "7BagWasher.png",
+				"isMain" : false,
+				"storageKey" : "50228360e4b05b57849d303c/7BagWasher.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "8MixPowder.png",
+				"isMain" : false,
+				"storageKey" : "50228360e4b05b57849d303c/8MixPowder.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "9BagWater.png",
+				"isMain" : false,
+				"storageKey" : "50228360e4b05b57849d303c/9BagWater.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "10AfterMixing.png",
+				"isMain" : false,
+				"storageKey" : "50228360e4b05b57849d303c/10AfterMixing.png",
+				"contentType" : "image/png"
+			}
+		]
+	},
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2d9" }
+	},
+	"standards" : [ ],
+	"itemType" : "Performance Task",
+	"contributorDetails" : {
+		"contributor" : "New England Common Assessment Program",
+		"credentials" : "State Department of Education",
+		"author" : "New England Common Assessment Program",
+		"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New England Common Assessment Program",
+			"year" : "2010"
+		}
+	},
+	"workflow" : {
+		"setup" : false,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"keySkills" : [ ],
+	"title" : "Mass and Matter Experiment - Part 2 - Conducting the Investigation",
+	"priorUse" : "Summative",
+	"gradeLevel" : [
+		"08"
+	],
+	"reviewsPassed" : [
+		"Editorial",
+		"Bias",
+		"Fairness",
+		"Content",
+		"Psychometric"
+	]
+}
