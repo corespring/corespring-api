@@ -56,20 +56,20 @@ object FeedbackProcessor extends XmlValidator {
 
     // FIXME This breaks if that attribute doesn't exist
     private def remove(n: Elem, key: String): Node = {
-      n.copy(attributes = n.attributes.find(_.key == key).get.remove(key))
+      n.copy(attributes = n.attributes.filter(_.key != key))
     }
 
   }
 
   /**
-   * Adds csFeedbackId attributes to all feedback elements in a JSON string's data field.
+   * Adds csFeedbackId attributes to all feedback elements
    */
-  def addFeedbackIds(jsonData: String): String = applyRewriteRuleToJson(jsonData, new FeedbackIdentifierInserter())
+  def addFeedbackIds(qtixml: String): String = applyRewriteRuleToJson(qtixml, new FeedbackIdentifierInserter())
 
   /**
-   * Removes csFeedbackId attributes to all feedback elements in a JSON string's data field.
+   * Removes csFeedbackId attributes to all feedback elements
    */
-  def removeFeedbackIds(jsonData: String): String = applyRewriteRuleToJson(jsonData, feedbackIdentifierRemoverRule)
+  def removeFeedbackIds(qtixml: String): String = applyRewriteRuleToJson(qtixml, feedbackIdentifierRemoverRule)
 
   def addOutcomeIdentifiers(jsonData: String): String = {
     val files: Seq[JsObject] = (Json.parse(jsonData) \ "data" \ "files").asOpt[Seq[JsObject]].getOrElse(Seq())
@@ -106,21 +106,8 @@ object FeedbackProcessor extends XmlValidator {
    *
    * TODO: This can be more functional.
    */
-  private def applyRewriteRuleToJson(jsonData: String, rewriteRule: RewriteRule): String = {
-
-    var newJson = jsonData
-    val files: Seq[JsObject] = (Json.parse(jsonData) \ "data" \ "files").asOpt[Seq[JsObject]].getOrElse(Seq())
-    files.foreach(file => {
-      (file \ "content").asOpt[String] match {
-        case Some(qtiXml) => {
-          val newQtiXml = new RuleTransformer(rewriteRule).transform(XML.loadString(qtiXml)).toString
-          newJson = newJson.replace(jsonEncode(qtiXml), jsonEncode(newQtiXml))
-        }
-        case None => {}
-      }
-    })
-    newJson
-  }
+  private def applyRewriteRuleToJson(qtiXml: String, rewriteRule: RewriteRule): String =
+    new RuleTransformer(rewriteRule).transform(XML.loadString(qtiXml)).toString
 
   // There's something in Play! JSON that does this already.
   private def jsonEncode(xml: String): String = xml.replaceAll("\"", "\\\\\"").replaceAll("\n", "\\\\n")
@@ -135,7 +122,8 @@ object FeedbackProcessor extends XmlValidator {
 
     var id: Int = 0
 
-    override def transform(node: Node): Seq[Node] = node match {
+    override def transform(node: Node): Seq[Node] =
+      node match {
       case elem: Elem if (FEEDBACK_NODE_LABELS.contains(elem.label)) => {
         id = id + 1
         elem % Attribute(None, FEEDBACK_ID_ATTTRIBUTE, Text(id.toString), Null)

@@ -83,6 +83,9 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
       case e:SalatDAOUpdateError => Left(InternalError("error updating item session: "+e.getMessage,LogType.printFatal))
     }
   }
+  def retrieveFeedback(itemId:ObjectId, csFeedbackId: String) = {
+
+  }
 
 
   /**

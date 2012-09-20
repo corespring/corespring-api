@@ -320,7 +320,7 @@ object Item extends DBQueryable[Item] {
     try {
       import com.novus.salat.grater
       //newItem.id = oid
-      val toUpdate = (((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials) - data) - collectionId
+      val toUpdate = ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials) - collectionId
       Item.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> toUpdate), upsert = false, multi = false, wc = Item.collection.writeConcern)
       fields.map(Item.collection.findOneByID(oid,_)).getOrElse(Item.collection.findOneByID(oid)) match {
         case Some(dbo) => Right(grater[Item].asObject(dbo))
