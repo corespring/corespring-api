@@ -28,6 +28,25 @@
         }
     ],
 
+    "demonstratedKnowledge" : [
+        {
+            "key" : "Factual",
+            "value" : "Factual"
+        },
+        {
+            "key" : "Conceptual",
+            "value" : "Conceptual"
+        },
+        {
+            "key" : "Procedural",
+            "value" : "Procedural"
+        },
+        {
+            "key" : "Metacognitive",
+            "value" : "Metacognitive"
+        }
+    ],
+
     "priorUses":[
         {
             "key":"Formative",

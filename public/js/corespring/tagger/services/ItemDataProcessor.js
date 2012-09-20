@@ -110,17 +110,21 @@ com.corespring.model.ItemDataProcessor = function () {
             item.workflow = this.createWorkflowObject();
         }
 
+
+        function getKey(o){ return o.key }
+
         /**
          * Dataproviders are prepended with a $ so that angular doesn't send them across the wire.
          * @type {Array}
          */
         item.$gradeLevelDataProvider = this.buildNgDataProvider(this.$defaults.gradeLevels, item.gradeLevel);
         item.$reviewsPassedDataProvider = this.buildNgDataProvider(this.$defaults.reviewsPassed, item.reviewsPassed);
-        item.$priorUseDataProvider = _.map(window.fieldValues.priorUses, function (p) { return p.key });
-        item.$credentialsDataProvider = _.map(window.fieldValues.credentials, function(c){return c.key});
-        item.$licenseTypeDataProvider = _.map(window.fieldValues.licenseTypes, function(c){return c.key});
-        item.$bloomsTaxonomyDataProvider = _.map(window.fieldValues.bloomsTaxonomy, function(c){return c.key});
+        item.$priorUseDataProvider = _.map(window.fieldValues.priorUses, getKey);
+        item.$credentialsDataProvider = _.map(window.fieldValues.credentials, getKey);
+        item.$licenseTypeDataProvider = _.map(window.fieldValues.licenseTypes, getKey);
+        item.$bloomsTaxonomyDataProvider = _.map(window.fieldValues.bloomsTaxonomy, getKey);
         item.$itemTypeDataProvider = _.filter( window.fieldValues.itemTypes, function(c){ return c.value != "Other" });
+        item.$demonstratedKnowledgeDataProvider = _.map(window.fieldValues.demonstratedKnowledge, getKey);
 
         if (!item.keySkills) {
             item.keySkills = [];

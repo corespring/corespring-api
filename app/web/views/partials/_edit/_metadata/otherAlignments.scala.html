@@ -13,6 +13,18 @@
 
 @keyWords()
 
+
+<div class="control-group">
+    <label class="control-label">Demonstrated Knowledge</label>
+    <div class="controls">
+        <p class="help-block">Select the type of knowledge that best represents the objective</p>
+        <label class="radio" ng-repeat="dk in itemData.$demonstratedKnowledgeDataProvider">
+            <input type="radio" ng-model="itemData.demonstratedKnowledge" value="{{dk}}" />
+            {{dk}}
+        </label>
+    </div>
+</div>
+
 <div class="control-group">
     <label class="control-label">Related Curriculum</label>
 
