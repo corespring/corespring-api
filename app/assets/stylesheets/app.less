@@ -660,8 +660,11 @@ body{
 @cs-shift: 2%;
 
 .grade-color(@multiplier){
-    border: solid 1px darken(@cs-blue, @cs-shift * @multiplier);
-    background-color: darken(@cs-blue, (@cs-shift * @multiplier) + 5);
+    @col: darken(@cs-blue, (@cs-shift * @multiplier) + 6);
+    border: solid 1px @col;
+    background-color: darken(@cs-blue, (@cs-shift * @multiplier) );
+    .mixin-inner-shadow( 1px, @col);
+    .mixin-box-shadow(4px);
 }
 
 .grade-01{
@@ -699,4 +702,30 @@ body{
 }
 .grade-12{
     .grade-color(12);
+}
+
+.mixin-item-preview-hero-unit(@color){
+    padding: 20px;
+    background-color: lighten(@color, 5%);
+    border: solid 1px lighten(@color, -5%);
+    .mixin-inner-shadow(4px, lighten(@color, 3%));
+    .h2{
+        color: @cs-grey;
+    }
+}
+.item-preview-hero-unit{
+    @color: lighten(desaturate(@cs-blue, 80%), 50%);
+    .mixin-item-preview-hero-unit(@color);
+}
+.item-preview-hero-unit-two{
+    @color: lighten(desaturate(@cs-green, 20%), 50%);
+    .mixin-item-preview-hero-unit(@color);
+}
+
+.item-preview-table{
+    tr{
+        th{
+            text-align: left;
+        }
+    }
 }

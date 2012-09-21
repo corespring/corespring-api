@@ -1,12 +1,39 @@
 <br/>
 <div class="form-horizontal">
-    @web.views.html.partials._viewItem._item( "Contributor", "<div>{{itemData.contributor}}</div>")
-    @web.views.html.partials._viewItem._item( "Copyright Owner", "<div>{{itemData.copyrightOwner}}</div>")
-    @web.views.html.partials._viewItem._item( "Author", "<div>{{itemData.author}}</div>")
-    @web.views.html.partials._viewItem._item( "Credentials", "<div>{{itemData.credentials}}</div>")
-    @web.views.html.partials._viewItem._item( "Source URL", "<div>{{itemData.sourceUrl}}</div>")
-    @web.views.html.partials._viewItem._item( "Prior Use", "<div>{{itemData.priorUse}}</div>")
-    @web.views.html.partials._viewItem._item( "Reviews passed", "<div>{{itemData.reviewsPassed}}</div>")
-    @web.views.html.partials._viewItem._item( "Difficulty Level", "<div>{{itemData.pValue}}</div>")
-    @web.views.html.partials._viewItem._item( "Lexile Score", "<div>{{itemData.lexile}}</div>")
+    <div class="hero-unit item-preview-hero-unit-two">
+       <table class="item-preview-table" cellpadding="7" style="width: 100%">
+          <tr>
+            <th>Contributor</th>
+              <th>Copyright Owner</th>
+              <th>Author</th>
+              <th>Credentials</th>
+              <th>Source</th>
+          </tr>
+           <tr>
+               <td>{{itemData.contributor}}</td>
+               <td>{{itemData.copyrightOwner}}</td>
+               <td>{{itemData.author}}</td>
+               <td>{{itemData.credentials}}</td>
+               <td><a ng-href="{{itemData.sourceUrl}}" target="_blank">URL</a></td>
+           </tr>
+           <tr>
+               <td colspan="5">&nbsp;</td>
+           </tr>
+
+            <tr>
+                <th>Prior Use</th>
+                <th>Reviews Passed</th>
+                <th>Difficulty Level</th>
+                <th>Lexile Score</th>
+                <th></th>
+            </tr>
+            <tr>
+                <td>{{itemData.priorUse}}</td>
+                <td>{{itemData.reviewsPassed}}</td>
+                <td>{{itemData.pValue}}</td>
+                <td>{{itemData.lexile}}</td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
 </div>
