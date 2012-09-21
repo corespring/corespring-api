@@ -9,6 +9,17 @@ import com.mongodb.BasicDBObject
 class ItemTest extends BaseTest {
 
   "item" should {
+
+    "general parse" in {
+      val item = Item(demonstratedKnowledge = Some("Factual"))
+      val json = Json.toJson(item)
+
+      (json\ Item.demonstratedKnowledge).asOpt[String] must equalTo(Some("Factual"))
+
+      val parsed = json.as[Item]
+      parsed.demonstratedKnowledge must equalTo(Some("Factual"))
+    }
+
     "parse itemType" in {
 
       val item = Item(itemType = Some("itemType"))

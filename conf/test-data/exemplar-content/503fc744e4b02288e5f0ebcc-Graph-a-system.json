@@ -51,71 +51,28 @@
 	],
 	"supportingMaterials" : [
 		{
-			"name" : "A1.1.16.ScoreGuide",
+			"name" : "ScoringGuide",
 			"files" : [
 				{
 					"_t" : "models.VirtualFile",
 					"name" : "A1.1.16.ScoreGuide.html",
 					"contentType" : "text/html",
 					"isMain" : true,
-					"content" : "<html>\n<head>\n<script type=\"text/javascript\"\n  src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\">\n</script>\n</head>\n<h2>Scoring Guide</h2><p></p>\n<body>\n<u>Q1:</u>: Answers may vary, one possible solution: <p/>\n<img src=\"A1.1.16.ScoreGuidea.png\"/>\n <p/>\n <u>Q2:</u>: Answers may vary depending on the graph made for quation 1. The system of inequalities for the graph in part 1 is: <p/>\n<img src=\"A1.1.16.ScoreGuideb.png\"/><p/>\n\n<u>Q3:</u>: Answers vary. The point (3,4) is a solution to the system of inequalities. <p/>\n<u>Q4:</u>: Answers vary. The point (4,1) is a solution to the system of inequalities. <p/>\n\n<h2>Score Points</h2> \n\n<table>\n<tr>\n<td>2 points:</td>\n<td>The student gives a graph that meets all of the conditions, writes a system of inequalities that corresponds to the graph, correctly identifies a point that is a solution of the system, and correctly identifies a point that is NOT a solution of the system.</td>\n</tr>\n<tr>\n<td>1 point:</td>\n<td> The student gives a graph that meets all of the conditions, writes a system of inequalities that corresponds to the graph, but fails to correctly identify a point that is a solution of the system, and fails to correctly identify a point that is NOT a solution of the system.\n</td>\n</tr>\n<tr>\n<td>0 points:</td>\n<td>The student fails to correctly answer most or all of the question.</td>\n</tr>\n</body>\n</html>"
-				}
-			]
-		},
-		{
-			"name" : "A1.1.16.ScoreGuidea",
-			"files" : [
+					"content" : "<html>\n<head>\n<script type=\"text/javascript\"\n  src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\">\n</script>\n</head>\n<h2>Scoring Guide</h2><p></p>\n<body>\n<u>Q1:</u>: Answers may vary, one possible solution: <p/>\n<img src=\"A1.1.16.ScoreGuidea.png\"/>\n <p/>\n <u>Q2:</u>: Answers may vary depending on the graph made for equation 1. The system of inequalities for the graph in part 1 is: <p/>\n<img src=\"A1.1.16.ScoreGuideb.png\"/><p/>\n\n<u>Q3:</u>: The point (3,4) is a solution to the system of inequalities. <p/>\n<u>Q4:</u>: The point (4,1) is a solution to the system of inequalities. <p/>\n\n<h2>Score Points</h2> \n\n<table>\n<tr>\n<td>2 points:</td>\n<td>The student gives a graph that meets all of the conditions, writes a system of inequalities that corresponds to the graph, correctly identifies a point that is a solution of the system, and correctly identifies a point that is NOT a solution of the system.</td>\n</tr>\n<tr>\n<td>1 point:</td>\n<td> The student gives a graph that meets all of the conditions, writes a system of inequalities that corresponds to the graph, but fails to correctly identify a point that is a solution of the system, and fails to correctly identify a point that is NOT a solution of the system.\n</td>\n</tr>\n<tr>\n<td>0 points:</td>\n<td>The student fails to correctly answer most or all of the question.</td>\n</tr>\n</body>\n</html>"
+				},
 				{
 					"_t" : "models.StoredFile",
 					"name" : "A1.1.16.ScoreGuidea.png",
 					"contentType" : "image/png",
-					"isMain" : true,
-					"storageKey" : "503fc744e4b02288e5f0ebcc/materials/A1.1.16.ScoreGuidea/A1.1.16.ScoreGuidea.png"
-				}
-			]
-		},
-		{
-			"name" : "A1.1.16.ScoreGuideb",
-			"files" : [
+					"isMain" : false,
+					"storageKey" : "503fc744e4b02288e5f0ebcc/materials/ScoringGuide/A1.1.16.ScoreGuidea.png"
+				},
 				{
 					"_t" : "models.StoredFile",
 					"name" : "A1.1.16.ScoreGuideb.png",
 					"contentType" : "image/png",
-					"isMain" : true,
-					"storageKey" : "503fc744e4b02288e5f0ebcc/materials/A1.1.16.ScoreGuideb/A1.1.16.ScoreGuideb.png"
-				}
-			]
-		},
-		{
-			"name" : "Item Graphics",
-			"files" : [
-				{
-					"_t" : "models.StoredFile",
-					"name" : "A1.1.17choica.png",
-					"contentType" : "image/png",
 					"isMain" : false,
-					"storageKey" : "503fc744e4b02288e5f0ebcc/materials/Item Graphics/A1.1.17choica.png"
-				},
-				{
-					"_t" : "models.StoredFile",
-					"name" : "A1.1.17choicb.png",
-					"contentType" : "image/png",
-					"isMain" : false,
-					"storageKey" : "503fc744e4b02288e5f0ebcc/materials/Item Graphics/A1.1.17choicb.png"
-				},
-				{
-					"_t" : "models.StoredFile",
-					"name" : "A1.1.17choicec.png",
-					"contentType" : "image/png",
-					"isMain" : false,
-					"storageKey" : "503fc744e4b02288e5f0ebcc/materials/Item Graphics/A1.1.17choicec.png"
-				},
-				{
-					"_t" : "models.StoredFile",
-					"name" : "A1.1.17choiced.png",
-					"contentType" : "image/png",
-					"isMain" : false,
-					"storageKey" : "503fc744e4b02288e5f0ebcc/materials/Item Graphics/A1.1.17choiced.png"
+					"storageKey" : "503fc744e4b02288e5f0ebcc/materials/ScoringGuide/A1.1.16.ScoreGuideb.png"
 				}
 			]
 		}

@@ -44,43 +44,19 @@ qtiServices
             response.outcome = {score: 1};
         }
 
-        return session;
 
-
-
-    };
-    return AssessmentSessionService;
-
-}]
-);
-
-/**
- * This might be implemented as part of ItemSessionAPI, but under a different route
- * like /api/v1/itemsession/:itemSessionId/sessiondata
- */
-qtiServices
-    .factory('SessionDataService', ['$resource', function ($resource) {
-    var SessionDataService = {};
-
-    SessionDataService.get = function(obj) {
-        // when we switch to using resource obj will be {id: someId}
-        // id will be the item session id
-        // TODO - the server implementation would need to ensure that response was already submitted before returning this data
-        // responses may not be submitted more than once unless the runtime options for the item session allow that
-
-        // This is mock data
-        // The server will need to create the feedbackContents object
-        // the properties will be the csFeedbackIds that were specified in the xml (or automatically added to the xml)
+        // set up response data
         var data = {};
         data.feedbackContents = {};
-        data.feedbackContents.bush = "George Bush was president of the USA";
-        data.feedbackContents.blair = "Tony Blair was president of the UK";
-        data.feedbackContents.sharon = "Ariel Sharon was the president of the Israel";
+        data.feedbackContents.obama = "Barack Obama is president of the USA";
+        data.feedbackContents.cameron = "David Cameron is Prime Minister of the UK";
+        data.feedbackContents.netanyahu = "Benjamin Netanyahu is the Prime Minister Israel";
         data.feedbackContents.calderon = "Correct, <b>Felipe Calderon</b> is the president of Mexico";
-        data.feedbackContents.robinson = "Mary Robinson was president of Ireland in the nineties";
-        data.feedbackContents.higgins = "Correct! Michael D Higgins is the current president of Ireland";
-        data.feedbackContents.adams = "Gerry Adams is the leader of the Sinn Fein political party";
-        data.feedbackContents.guinness = "Arthur Guinness is the founder of Guinness Brewery";
+
+        data.feedbackContents.fbRobinson = "Mary Robinson was president of Ireland in the nineties";
+        data.feedbackContents.fbHiggins = "Correct! Michael D Higgins is the current president of Ireland";
+        data.feedbackContents.fbAdams = "Gerry Adams is the leader of the Sinn Fein political party";
+        data.feedbackContents.fbGuinness = "Arthur Guinness is the founder of Guinness Brewery";
 
         data.feedbackContents.blue = "Correct, blue is a color in the rainbow";
         data.feedbackContents.violet = "Correct, violet is a color in the rainbow";
@@ -102,13 +78,17 @@ qtiServices
         // should send this back in the sessionData, but won't work for inline feedback, could work in modalFeedback...
         data.correctResponse.winterDiscontent = 'York';
 
-        return data;
+        session.sessionData = data;
+
+        return session;
+
+
 
     };
+    return AssessmentSessionService;
 
-    return SessionDataService;
-    }
-]);
+}]
+);
 
 qtiServices
     .factory('QtiUtils', function () {

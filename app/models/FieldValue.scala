@@ -36,6 +36,7 @@ case class FieldValue(
                        var itemTypes: Seq[KeyValue] = Seq(),
                        var licenseTypes: Seq[KeyValue] = Seq(),
                        var priorUses: Seq[KeyValue] = Seq(),
+                       var demonstratedKnowledge : Seq[KeyValue] = Seq(),
                        var credentials: Seq[KeyValue] = Seq(),
                        var bloomsTaxonomy: Seq[KeyValue] = Seq(),
                        var id: ObjectId = new ObjectId()
@@ -47,6 +48,8 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
 
   val dao = new SalatDAO[FieldValue, ObjectId](collection = collection) {}
 
+  val CurrentVersion = "0.0.1"
+
   val Version = "version"
   val KeySkills = "keySkills"
   val GradeLevel = "gradeLevels"
@@ -56,6 +59,8 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
   val PriorUses = "priorUses"
   val Credentials = "credentials"
   val BloomsTaxonomy = "bloomsTaxonomy"
+  val demonstratedKnowledge = "demonstratedKnowledge"
+
 
   def getSeqForFieldName(fieldValue:FieldValue, fieldName: String): Option[Seq[KeyValue]] = fieldName match {
     case GradeLevel => Some(fieldValue.gradeLevels)
@@ -66,6 +71,7 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
     case PriorUses => Some(fieldValue.priorUses)
     case Credentials => Some(fieldValue.credentials)
     case BloomsTaxonomy => Some(fieldValue.bloomsTaxonomy)
+    case demonstratedKnowledge => Some(fieldValue.demonstratedKnowledge)
   }
 
   implicit object FieldValueWrites extends Writes[FieldValue] {
@@ -80,6 +86,7 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
       iseq = iseq :+ (PriorUses -> JsArray(fieldValue.priorUses.map(Json.toJson(_))))
       iseq = iseq :+ (Credentials -> JsArray(fieldValue.credentials.map(Json.toJson(_))))
       iseq = iseq :+ (BloomsTaxonomy -> JsArray(fieldValue.bloomsTaxonomy.map(Json.toJson(_))))
+      iseq = iseq :+ (demonstratedKnowledge -> JsArray(fieldValue.demonstratedKnowledge.map(Json.toJson(_))))
       JsObject(iseq)
     }
   }
@@ -92,6 +99,7 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
     LicenseTypes -> "license types",
     PriorUses -> "prior uses",
     Credentials -> "credentials",
-    BloomsTaxonomy -> "bloomsTaxonomy stuff"
+    BloomsTaxonomy -> "bloomsTaxonomy stuff",
+    demonstratedKnowledge -> "Demonstrated Knowledge"
   )
 }

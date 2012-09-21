@@ -72,36 +72,31 @@
     <itemBody>
         <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1">
             <prompt>Who is the President of Mexico?</prompt>
-            <simpleChoice identifier="bush"> Barack Obama
-                <feedbackInline showHide="show">Incorrect, Barack Obama is President of the USA</feedbackInline>
-                <!-- feedback will be parsed and converted to format like this
-                <feedbackInline csFeedbackId="bush" outcomeIdentifier="responses.mexicanPresident.value" identifier="bush" showHide="show"></feedbackInline>
-                -->
+            <simpleChoice identifier="obama"> Barack Obama
+                <feedbackInline csFeedbackId="obama" outcomeIdentifier="responses.mexicanPresident.value" identifier="obama" showHide="show">Incorrect, Barack Obama is President of the USA</feedbackInline>
+
             </simpleChoice>
-            <simpleChoice identifier="blair"> James Cameron
-                <feedbackInline showHide="show">Incorrect, James Cameron is Prime Minister of the UK</feedbackInline>
+            <simpleChoice identifier="cameron"> James Cameron
+                <feedbackInline csFeedbackId="cameron" outcomeIdentifier="responses.mexicanPresident.value" identifier="cameron" showHide="show">Incorrect, James Cameron is Prime Minister of the UK</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier="calderon"> Felipe Calderon
-                <feedbackInline showHide="show"><b>Correct!</b>, Felipe Calderon is the President of Mexico</feedbackInline>
+                <feedbackInline csFeedbackId="calderon" outcomeIdentifier="responses.mexicanPresident.value" identifier="calderon" showHide="show"><b>Correct!</b>, Felipe Calderon is the President of Mexico</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier="netanyahu"> Benjamin Netanyahu
-                <feedbackInline showHide="show">Incorrect, Benjamin Netanyahu is the Prime Minister of Israel</feedbackInline>
+                <feedbackInline csFeedbackId="netanyahu" outcomeIdentifier="responses.mexicanPresident.value" identifier="netanyahu" showHide="show">Incorrect, Benjamin Netanyahu is the Prime Minister of Israel</feedbackInline>
             </simpleChoice>
         </choiceInteraction>
 
+        <!-- this one has feedback pre-populated with csFeedbackId, outcomeIdentifier and identifier -->
         <choiceInteraction responseIdentifier="irishPresident" shuffle="false" maxChoices="1">
             <prompt>Who is the President of Ireland?</prompt>
             <simpleChoice identifier="robinson"> Mary Robinson
-                <feedbackInline showHide="show">Incorrect, Mary Robinson was President of Ireland from 1990 to 1997</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier="higgins"> Michel D. Higgins
-                <feedbackInline showHide="show">Correct, Michael D. Higgins is the sitting President of Ireland</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier="guinness"> Arthur Guinness
-                <feedbackInline showHide="show">Incorrect, Arthur Guinness founded Guinness Brewery</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier="adams"> Gerry Adams
-                <feedbackInline showHide="show">Incorrect, Gerry Adams is the President of the Sinn Fein political party</feedbackInline>
             </simpleChoice>
         </choiceInteraction>
 
@@ -110,16 +105,16 @@
         <choiceInteraction responseIdentifier="rainbowColors" shuffle="false" maxChoices="0">
             <prompt>Which colors are in a rainbow?</prompt>
             <simpleChoice identifier="blue"> Blue
-                <feedbackInline showHide="show">Blue is a color in the rainbow</feedbackInline>
+                <feedbackInline csFeedbackId="blue" outcomeIdentifier="responses.rainbowColors.value" identifier="blue" showHide="show">Blue is a color in the rainbow</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier="violet"> Violet
-                <feedbackInline showHide="show">Violet is a color in the rainbow</feedbackInline>
+                <feedbackInline csFeedbackId="violet" outcomeIdentifier="responses.rainbowColors.value" identifier="violet" showHide="show">Violet is a color in the rainbow</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier="white"> White
-                <feedbackInline showHide="show">White is not a color in the rainbow.</feedbackInline>
+                <feedbackInline csFeedbackId="white" outcomeIdentifier="responses.rainbowColors.value" identifier="white" showHide="show">White is not a color in the rainbow.</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier="red"> Red
-                <feedbackInline showHide="show">Red is a color in the rainbow</feedbackInline>
+                <feedbackInline scsFeedbackId="red" outcomeIdentifier="responses.rainbowColors.value" identifier="red" howHide="show">Red is a color in the rainbow</feedbackInline>
             </simpleChoice>
         </choiceInteraction>
 

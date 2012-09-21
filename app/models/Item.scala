@@ -17,58 +17,8 @@ import play.api.libs.json.JsString
 import scala.Right
 import com.mongodb.QueryBuilder
 import web.views.html.partials._edit._metadata._formWithLegend
-
-//case class ItemFile(var filename:String)
-//object ItemFile extends Queryable[ItemFile]{
-//  val filename = "filename"
-//  implicit object ItemFileWrites extends Writes[ItemFile]{
-//    def writes(itemFile:ItemFile) = {
-//      JsObject(Seq[(String,JsValue)](filename -> JsString(itemFile.filename)))
-//    }
-//  }
-//  implicit object ItemFileReads extends Reads[ItemFile]{
-//    def reads(json:JsValue) = {
-//      ItemFile((json \ filename).as[String])
-//    }
-//  }
-//  val queryFields:Seq[QueryField[ItemFile]] = Seq(
-//    QueryFieldString(filename,_.filename)
-//  )
-//}
-
-//case class ItemSubject(subject: String, category: String, refId: String)
-//
-//object ItemSubject extends Queryable[ItemSubject] {
-//  val subject = "subject"
-//  val category = "category"
-//  val refId = "refId"
-//
-//  implicit object ItemSubjectWrites extends Writes[ItemSubject] {
-//    def writes(itemSubject: ItemSubject) = {
-//      //val seq = Seq
-//      Json.toJson(Map(subject -> itemSubject.subject, category -> itemSubject.category, refId -> itemSubject.refId))
-//    }
-//  }
-//
-//  implicit object ItemSubjectReads extends Reads[ItemSubject] {
-//    def reads(json: JsValue) = {
-//      ItemSubject((json \ subject).asOpt[String].getOrElse(""),
-//        (json \ category).as[String],
-//        (json \ refId).as[String])
-//    }
-//  }
-//
-//  val queryFields: Seq[QueryField[ItemSubject]] = Seq(
-//    QueryFieldString(subject, _.subject),
-//    QueryFieldString(category, _.category),
-//    QueryFieldString(refId, _.refId)
-//  )
-//}
-
-
 import com.novus.salat.annotations.raw.Salat
 import play.api.libs.json._
-
 
 case class Copyright(owner: Option[String] = None, year: Option[String] = None, expirationDate: Option[String] = None)
 
@@ -100,6 +50,7 @@ case class Item(var collectionId: String = "",
                 var title: Option[String] = None,
                 var data: Option[Resource] = None,
                 var relatedCurriculum: Option[String] = None,
+                var demonstratedKnowledge : Option[String] = None,
                 var supportingMaterials: Seq[Resource] = Seq(),
                 var id: ObjectId = new ObjectId()) extends Content {
 }
@@ -136,6 +87,7 @@ object Item extends DBQueryable[Item] {
   val pValue = "pValue"
   val priorUse = "priorUse"
   val reviewsPassed = "reviewsPassed"
+  val demonstratedKnowledge = "demonstratedKnowledge"
   val sourceUrl = "sourceUrl"
   val standards = "standards"
   val title = "title"
@@ -174,6 +126,9 @@ object Item extends DBQueryable[Item] {
       }
 
       item.lexile.foreach(v => iseq = iseq :+ (lexile -> JsString(v)))
+      
+      item.demonstratedKnowledge.foreach(v => iseq = iseq :+ (demonstratedKnowledge -> JsString(v)))
+
       iseq = iseq :+ (collectionId -> JsString(item.collectionId))
       iseq = iseq :+ (contentType -> JsString(ContentType.item))
       item.pValue.foreach(v => iseq = iseq :+ (pValue -> JsString(v)))
@@ -217,11 +172,19 @@ object Item extends DBQueryable[Item] {
     }
   }
 
+  def getValidatedValue(s:Seq[KeyValue])( json : JsValue, key:String) = {
+    (json \ key).asOpt[String]
+        .map( v => if( s.exists(_.key == v)) v else throw new JsonValidationException(key))
+  }
+
   implicit object ItemReads extends Reads[Item] {
     def reads(json: JsValue): Item = {
       val item = Item("")
       item.collectionId = (json \ collectionId).asOpt[String].getOrElse("") //must do checking outside of json deserialization
       item.lexile = (json \ lexile).asOpt[String]
+      
+      item.demonstratedKnowledge = getValidatedValue(fieldValues.demonstratedKnowledge)(json, demonstratedKnowledge)
+
       item.pValue = (json \ pValue).asOpt[String]
       item.relatedCurriculum = (json \ relatedCurriculum).asOpt[String]
 
@@ -424,6 +387,7 @@ object Item extends DBQueryable[Item] {
     }, Standard.queryFields),
     QueryFieldString[Item](title, _.title),
     QueryFieldString[Item](lexile,_.lexile),
+    QueryFieldString[Item](demonstratedKnowledge, _.demonstratedKnowledge, queryValueFn(demonstratedKnowledge, fieldValues.demonstratedKnowledge)),
     QueryFieldString[Item](pValue,_.pValue),
     QueryFieldString[Item](relatedCurriculum,_.relatedCurriculum)
   )

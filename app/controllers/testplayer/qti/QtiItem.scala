@@ -6,6 +6,8 @@ import controllers.Log
 
 class QtiItem(rootNode: Node) {
 
+  val name = "test"
+
   private val responseDeclarations = (rootNode \\ "responseDeclaration").map(new ResponseDeclaration(_))
   private val outcomeDeclarations = (rootNode \\ "outcomeDeclaration").map(new OutcomeDeclaration(_))
   private val feedbackInlines = (rootNode \\ "feedbackInline").map(new FeedbackInline(_))
@@ -115,11 +117,17 @@ class QtiItem(rootNode: Node) {
     }
   }
 
-  def getOutcomeIdentifierForCsFeedbackId(csFeedbackId: String): String = {
-    responseToFeedbackMap.foreach({ case (responseIdentifier, choiceToFeedbackMap) => {
-      // Return the FeedbackElement with the matching id...
-    }})
-    ""
+  // outcomeIdentifier = responses.[responseIdentifier].value
+  // identifier = parent choice identifier
+  def getOutcomeIdentifierForCsFeedbackId(csFeedbackId: String): Option[String] = {
+    responseToFeedbackMap.find({ case (responseIdentifier, choiceToFeedbackMap) => {
+        !choiceToFeedbackMap.find({ case (choiceIdentifier, feedbackElement) => {
+          feedbackElement.csFeedbackId equals csFeedbackId
+        }}).isEmpty
+      }}) match {
+      case Some((value, map)) => Some(value)
+      case None => None
+    }
   }
 
 

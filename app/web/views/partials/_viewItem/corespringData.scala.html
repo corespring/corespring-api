@@ -1,12 +1,48 @@
 <br/>
-<div class="pull-right">
-    <img ng-show="itemData.licenseType" ng-src="/assets/images/licenseTypes/{{itemData.licenseType}}.png"/>
-</div>
 <div class="form-horizontal">
-    @web.views.html.partials._viewItem._item( "Item Title", "<div ng-bind-html-unsafe=\"itemData.title\"></div>")
-    @web.views.html.partials._viewItem._item( "Key Words", "<div>{{itemData.keySkills}}</div>")
-    @web.views.html.partials._viewItem._item( "Demonstrated Knowledge", "<div>TODO</div>")
-    @web.views.html.partials._viewItem._item( "Aligned Standards", "<div ng-repeat='s in itemData.standards'>{{s.dotNotation}}</div>")
-    @web.views.html.partials._viewItem._item( "Grade", "<div ng-repeat='gl in itemData.gradeLevel'>{{gl}}</div>")
+    <div class="hero-unit item-preview-hero-unit">
+        <h2 ng-bind-html-unsafe="itemData.title" style="font-weight: normal;"></h2>
+        <hr/>
+        <br/>
+        <table class="item-preview-table" cellpadding="7" border="0" style="width: 100%;">
+            <tr>
+                <th >Grade</th>
+                <th >Aligned Standards</th>
+                <th >Keywords</th>
+                <th >Demonstrated Knowledge</th>
+                <th >License</th>
+            </tr>
+            <tr>
+                <td>
+                    <span ng-show="!itemData.gradeLevel" style="color: #888; font-style: italic;">None yet</span>
+                    <div ng-repeat="gl in itemData.gradeLevel" class="grade-circle" ng-class="getGradeLevelCssName(gl)">
+                        {{gl}}
+                    </div>
+                </td>
+                <td style="max-width: 100px;">
+                    <span ng-show="!itemData.standards" style="color: #888; font-style: italic;">None yet</span>
+                    <a style="margin-right: 7px;" ng-repeat="s in itemData.standards" ui-jq="tooltip"
+                       ui-options="{title: s.standard}">{{s.dotNotation}}</a>
+                </td>
+                <td style="max-width: 200px;">
+                    <span ng-show="!itemData.keySkills" style="color: #888; font-style: italic;">None yet</span>
+                    <span ng-show="itemData.keySkills">
+                         <span class="badge badge-info" style="margin-right: 6px; margin-bottom: 6px; float: left;"
+                               ng-repeat="ks in itemData.keySkills">{{ks}}
+                         </span>
+                    </span>
+
+                </td>
+                <td>
+                    <span ng-show="!itemData.demonstratedKnowledge" style="color: #888; font-style: italic;">None yet</span>
+                    <div>{{itemData.demonstratedKnowledge}}</div>
+                </td>
+                <td>
+                    <img ng-show="itemData.licenseType"
+                         ng-src="/assets/images/licenseTypes/{{itemData.licenseType}}.png"/>
+                </td>
+            </tr>
+        </table>
+    </div>
 </div>
 

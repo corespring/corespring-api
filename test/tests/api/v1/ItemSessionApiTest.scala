@@ -56,10 +56,9 @@ class ItemSessionApiTest extends Specification {
 
   /**
    * TODO - implement these tests...
-   * @see https://trello.com/card/implement-itemsession-sessiondata-api/500f0e4cf207c721072011c1/27
    */
-  "item session data resource" should {
-    "be available at /api/vi/itemsession/:id/sessiondata" in {
+  "item session data" should {
+    "be returned in sessionData property when an item is updated/inserted with a response value" in {
       pending
     }
 
@@ -95,44 +94,48 @@ class ItemSessionApiTest extends Specification {
 
   "item session api" should {
 
-//    "return feedback with session" in {
-//      val itemId = "50083ba9e4b071cb5ef79101"
-//      val testSession = ItemSession(new ObjectId(itemId))
-//      testSession.responses = List(ItemResponse("mexicanPresident", "calderon"))
-//
-//      val url = "/api/v1/items/" + itemId + "/sessions"
-//      val request = FakeRequest(
-//        POST,
-//        url,
-//        FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
-//        AnyContentAsJson(Json.toJson(testSession))
-//      )
-//
-//      val result = routeAndCall(request)
-//
-//
-//      if (result.isDefined) {
-//        result match {
-//          case Some(result) => {
-//            val jsonResponse = Json.parse(contentAsString(result))
-//            (jsonResponse \ "sessionData") match {
-//              case undefined: JsUndefined => failure
-//              case sessionData: JsValue =>
-//                (sessionData \ "feedbackContent") match {
-//                  case undefined: JsUndefined => failure
-//                  case feedbackContent: JsValue => {
-//                    success
-//                  }
-//                }
-//            }
-//          }
-//          case None => failure
-//        }
-//      }
-//      else {
-//        failure
-//      }
-//    }
+
+    "return feedback with session" in {
+      /*
+      val itemId = "50083ba9e4b071cb5ef79101"
+      val testSession = ItemSession(new ObjectId(itemId))
+      testSession.responses = List(ItemResponse("mexicanPresident", "calderon"))
+
+      val url = "/api/v1/items/" + itemId + "/sessions"
+      val request = FakeRequest(
+        POST,
+        url,
+        FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
+        AnyContentAsJson(Json.toJson(testSession))
+      )
+
+      val result = routeAndCall(request)
+
+
+      if (result.isDefined) {
+        result match {
+          case Some(result) => {
+            val jsonResponse = Json.parse(contentAsString(result))
+            (jsonResponse \ "sessionData") match {
+              case undefined: JsUndefined => failure
+              case sessionData: JsValue =>
+                (sessionData \ "feedbackContent") match {
+                  case undefined: JsUndefined => failure
+                  case feedbackContent: JsValue => {
+                    success
+                  }
+                }
+            }
+          }
+          case None => failure
+        }
+      }
+      else {
+        failure
+      }
+      */
+      pending
+    }
 
     "support item creation " in {
 

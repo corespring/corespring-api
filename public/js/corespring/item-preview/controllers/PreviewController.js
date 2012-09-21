@@ -44,7 +44,13 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
         $scope.currentPanel = panelName;
     };
 
+    $scope.getGradeLevelCssName = function (gradeLevel){
+        return "grade-" + gradeLevel;
+    };
+
     $scope.loadItem = function () {
+
+
         Item.get(
             {
                 id:Config.itemId,
@@ -61,6 +67,8 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
         );
     };
 
+
+    $scope.itemId = Config.itemId;
     $scope.loadItem();
     $scope.currentPanel = "item";
 }
