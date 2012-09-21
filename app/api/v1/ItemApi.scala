@@ -162,6 +162,7 @@ object ItemApi extends BaseApi {
             if (i.collectionId.isEmpty) {
               BadRequest(Json.toJson(ApiError.CollectionIsRequired))
             } else if (Content.isCollectionAuthorized(request.ctx.organization, i.collectionId, Permission.All)) {
+              println(Json.toJson(i))
               Item.insert(i) match {
                 case Some(_) => Ok(removeFeedbackIds(addOutcomeIdentifiers(Json.toJson(i).toString)))
                 case None => InternalServerError(Json.toJson(ApiError.CantSave))
