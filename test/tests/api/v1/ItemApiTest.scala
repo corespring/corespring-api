@@ -11,7 +11,7 @@ import api.ApiError._
 import scala.Some
 import play.api.test.FakeHeaders
 import tests.BaseTest
-import models.Item
+import models.{VirtualFile, Resource, Item}
 import play.api.test.FakeHeaders
 import play.api.libs.json.JsString
 import scala.Some
@@ -22,6 +22,7 @@ import play.api.libs.json.JsString
 import scala.Some
 import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
+import scala.xml._
 
 class ItemApiTest extends BaseTest {
 
@@ -210,8 +211,22 @@ class ItemApiTest extends BaseTest {
      * NOTE: test data loaded to db may be missing this if it is loaded statically. Could load a the test composite item
      * (50083ba9e4b071cb5ef79101) and save it. Other tests might fail if these csFeedbackId attrs are not present
      */
-    pending
+    var jsitem = Json.toJson(Item.findOneById(new ObjectId("50083ba9e4b071cb5ef79101"))).asInstanceOf[JsObject]
+    jsitem = JsObject(jsitem.fields.filter(field => field._1 != "id" && field._1 != "collectionId"))
+    var fakeRequest = FakeRequest(PUT, "/api/v1/items/50083ba9e4b071cb5ef79101?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(jsitem))
+    var result = routeAndCall(fakeRequest).get
+    status(result) must equalTo(OK)
+    val resource:Resource = Item.findOneById(new ObjectId("50083ba9e4b071cb5ef79101")).get.data.get
+    val qtiXml:Option[String] = resource.files.find(file => file.isMain).map(file => file.asInstanceOf[VirtualFile].content)
+    qtiXml must beSome[String]
+    val hasCsFeedbackIds:Boolean = qtiXml.map(qti =>
+      findFeedbackIds(XML.loadString(qti),Seq(),0).find(result => {
+        if(result._2) false else true
+      }).isEmpty
+    ).getOrElse(false)
+    hasCsFeedbackIds must beTrue
   }
+
 
   "add outcomeidentifier and identifier to feedback elements defined within choices" in {
 
@@ -223,7 +238,27 @@ class ItemApiTest extends BaseTest {
 
     pending
   }
-
+  private def findFeedbackIds(xml:Elem, acc:Seq[(NodeSeq,Boolean)], levels:Int):Seq[(NodeSeq,Boolean)] = {
+    var feedback:Seq[(NodeSeq,Boolean)] = acc
+    val children = xml.child
+    for (child <- children){
+      val feedbackInline = child \ "feedbackInline"
+      if(feedbackInline.isEmpty){
+        child match {
+          case innerXml:Elem => feedback = findFeedbackIds(innerXml,feedback,levels+1)
+          case _ =>
+        }
+      }else{
+        val feedbackInlines = feedbackInline.theSeq
+        for(feedbackNode <- feedbackInlines){
+          if((feedbackNode \ "@csFeedbackId").nonEmpty){
+            feedback = feedback :+ (feedbackInline -> true)
+          }else feedback = feedback :+ (feedbackInline -> false)
+        }
+      }
+    }
+    feedback
+  }
   /**
    * Generates JSON request body for the API, with provided XML data in the appropriate field. Also adds in a set of
    * top-level attributes that get added to the request.
