@@ -9,6 +9,7 @@ var app = angular.module('qti', ['qti.directives','qti.services']);
 qtiDirectives.directive('assessmentitem', function(AssessmentSessionService, $location) {
     return {
         restrict: 'E',
+        //template: '<span ng-transclude="true"></span>',
         controller: function($scope, $element, $attrs) {
 
             var scope = $scope;

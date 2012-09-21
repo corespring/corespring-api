@@ -34,8 +34,10 @@ object ItemPlayer extends BaseApi {
 
           val qtiXml = <assessmentItem cs:itemId={itemId} cs:feedbackEnabled="true">{itemBody}</assessmentItem>
 
+          val finalXml = removeNamespaces(qtiXml)
+
           // angular will render the itemBody client-side
-          Ok(views.html.testplayer.itemPlayer(itemId, scripts, qtiXml.mkString))
+          Ok(views.html.testplayer.itemPlayer(itemId, scripts, finalXml))
         case None =>
           // we found nothing
           NotFound
@@ -54,6 +56,15 @@ object ItemPlayer extends BaseApi {
     }
 
   }
+
+  val NamespaceRegex = """xmlns.*?=".*?"""".r
+
+  /**
+   * remove the namespaces - TODO - should we do this with xml processing?
+   * @param xml
+   * @return
+   */
+  private def removeNamespaces(  xml : Elem ) : String =  NamespaceRegex.replaceAllIn(xml.mkString, "")
 
   def getFeedbackInline(itemId: String, responseIdentifier: String, choiceIdentifier: String) = ApiAction { request =>
     getItemXMLByObjectId(itemId, request.ctx.organization) match {
