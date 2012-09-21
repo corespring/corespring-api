@@ -22,7 +22,7 @@
          ]
     },
     "gradeLevel":[
-        "07"
+        "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"
     ],
     "title":"This item has Qti.xml and supporting materials",
     "primarySubject":{
@@ -31,6 +31,7 @@
         "refId":"4ffb535f6bb41e469c0bf2c2"
     },
     "itemType":"Multiple Choice",
+    "keySkills" : [ "Analyze", "Arrange"],
     "copyrightOwner":"State Department of Education",
     "copyrightYear":"2010",
     "materialType":"Assessment Item",

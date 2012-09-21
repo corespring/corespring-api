@@ -44,6 +44,10 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
         $scope.currentPanel = panelName;
     };
 
+    $scope.getGradeLevelCssName = function (gradeLevel){
+        return "grade-" + gradeLevel;
+    };
+
     $scope.loadItem = function () {
 
 

@@ -636,3 +636,67 @@ body{
     }
 }
 
+@grade-circle-diameter: 20px;
+@grade-circle-padding: 4px;
+@grade-circle-radius: (@grade-circle-diameter + (@grade-circle-padding * 2)) / 2;
+.grade-circle{
+    float: left;
+    position: relative;
+    width: @grade-circle-diameter;
+    height: @grade-circle-diameter;
+    padding: @grade-circle-padding;
+    border: solid 1px darken(@cs-blue, 25%);
+    background-color: darken(@cs-blue, 20%);
+    line-height: @grade-circle-diameter;
+    text-align: center;
+    font-size: 15px;
+    -moz-border-radius: @grade-circle-radius;
+    -webkit-border-radius: @grade-circle-radius;
+    border-radius: @grade-circle-radius;
+    color: lighten(@cs-blue, 60%);
+    margin-right: 5px;
+}
+
+@cs-shift: 2%;
+
+.grade-color(@multiplier){
+    border: solid 1px darken(@cs-blue, @cs-shift * @multiplier);
+    background-color: darken(@cs-blue, (@cs-shift * @multiplier) + 5);
+}
+
+.grade-01{
+    .grade-color(1);
+}
+.grade-02{
+    .grade-color(2);
+}
+.grade-03{
+    .grade-color(3);
+}
+.grade-04{
+    .grade-color(4);
+}
+.grade-05{
+    .grade-color(5);
+}
+.grade-06{
+    .grade-color(6);
+}
+.grade-07{
+    .grade-color(7);
+}
+.grade-08{
+    .grade-color(8);
+}
+.grade-09{
+    .grade-color(9);
+}
+.grade-10{
+    .grade-color(10);
+}
+.grade-11{
+    .grade-color(11);
+}
+.grade-12{
+    .grade-color(12);
+}

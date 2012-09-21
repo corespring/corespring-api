@@ -3,12 +3,38 @@
     <img ng-show="itemData.licenseType" ng-src="/assets/images/licenseTypes/{{itemData.licenseType}}.png"/>
 </div>
 <div class="form-horizontal">
-    @web.views.html.partials._viewItem._item( "Item Title", "<div ng-bind-html-unsafe=\"itemData.title\"></div>")
-    @web.views.html.partials._viewItem._item( "Key Words", "<div>{{itemData.keySkills}}</div>")
+
+    <div class="well">
+        <h4 ng-bind-html-unsafe="itemData.title"></h4>
+    </div>
+
+    <div class="well">
+
+        <div class="control-group">
+            <label class="control-label">Key Words</label>
+            <div class="controls span7" style="margin-left: 40px;">
+                <span ng-show="!itemData.keySkills" style="font-style: italic;">None yet</span>
+                <span ng-show="itemData.keySkills">
+                    <span class="badge badge-info" style="margin-right: 6px;" ng-repeat="ks in itemData.keySkills">{{ks}}</span>
+                </span>
+            </div>
+        </div>
+
+
     @web.views.html.partials._viewItem._item( "Demonstrated Knowledge", "<div>{{itemData.demonstratedKnowledge}}</div>")
 
     @web.views.html.partials._viewItem._item( "Aligned Standards", "<a style=\"margin-right: 7px;\" ng-repeat=\"s in itemData.standards\" ui-jq=\"tooltip\" ui-options=\"{title: s.standard}\">{{s.dotNotation}}</a>" )
 
-    @web.views.html.partials._viewItem._item( "Grade", "<div ng-repeat='gl in itemData.gradeLevel'>{{gl}}</div>")
+        <div class="control-group">
+            <label class="control-label">Grade</label>
+            <div class="controls span7" style="margin-left: 40px;">
+                <div ng-repeat="gl in itemData.gradeLevel">
+                    <div class="grade-circle" ng-class="getGradeLevelCssName(gl)">
+                        {{gl}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
