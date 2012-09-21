@@ -244,13 +244,18 @@ class ItemApiTest extends BaseTest {
     for (child <- children){
       val feedbackInline = child \ "feedbackInline"
       if(feedbackInline.isEmpty){
-        feedbackInline match {
+        child match {
           case innerXml:Elem => feedback = findFeedbackIds(innerXml,feedback,levels+1)
           case _ =>
         }
-      }else if((feedbackInline \ "@csFeedbackId").nonEmpty){
-        feedback = feedback :+ (feedbackInline -> true)
-      }else feedback = feedback :+ (feedbackInline -> false)
+      }else{
+        val feedbackInlines = feedbackInline.theSeq
+        for(feedbackNode <- feedbackInlines){
+          if((feedbackNode \ "@csFeedbackId").nonEmpty){
+            feedback = feedback :+ (feedbackInline -> true)
+          }else feedback = feedback :+ (feedbackInline -> false)
+        }
+      }
     }
     feedback
   }

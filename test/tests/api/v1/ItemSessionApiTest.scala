@@ -95,44 +95,44 @@ class ItemSessionApiTest extends Specification {
 
   "item session api" should {
 
-    "return feedback with session" in {
-      val itemId = "50083ba9e4b071cb5ef79101"
-      val testSession = ItemSession(new ObjectId(itemId))
-      testSession.responses = List(ItemResponse("mexicanPresident", "calderon"))
-
-      val url = "/api/v1/items/" + itemId + "/sessions"
-      val request = FakeRequest(
-        POST,
-        url,
-        FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
-        AnyContentAsJson(Json.toJson(testSession))
-      )
-
-      val result = routeAndCall(request)
-
-
-      if (result.isDefined) {
-        result match {
-          case Some(result) => {
-            val jsonResponse = Json.parse(contentAsString(result))
-            (jsonResponse \ "sessionData") match {
-              case undefined: JsUndefined => failure
-              case sessionData: JsValue =>
-                (sessionData \ "feedbackContent") match {
-                  case undefined: JsUndefined => failure
-                  case feedbackContent: JsValue => {
-                    success
-                  }
-                }
-            }
-          }
-          case None => failure
-        }
-      }
-      else {
-        failure
-      }
-    }
+//    "return feedback with session" in {
+//      val itemId = "50083ba9e4b071cb5ef79101"
+//      val testSession = ItemSession(new ObjectId(itemId))
+//      testSession.responses = List(ItemResponse("mexicanPresident", "calderon"))
+//
+//      val url = "/api/v1/items/" + itemId + "/sessions"
+//      val request = FakeRequest(
+//        POST,
+//        url,
+//        FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
+//        AnyContentAsJson(Json.toJson(testSession))
+//      )
+//
+//      val result = routeAndCall(request)
+//
+//
+//      if (result.isDefined) {
+//        result match {
+//          case Some(result) => {
+//            val jsonResponse = Json.parse(contentAsString(result))
+//            (jsonResponse \ "sessionData") match {
+//              case undefined: JsUndefined => failure
+//              case sessionData: JsValue =>
+//                (sessionData \ "feedbackContent") match {
+//                  case undefined: JsUndefined => failure
+//                  case feedbackContent: JsValue => {
+//                    success
+//                  }
+//                }
+//            }
+//          }
+//          case None => failure
+//        }
+//      }
+//      else {
+//        failure
+//      }
+//    }
 
     "support item creation " in {
 
