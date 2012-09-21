@@ -3,6 +3,7 @@ package controllers.testplayer.qti
 import scala.xml.Node
 import models.ItemResponse
 import controllers.Log
+import play.api.libs.json.{Json, JsObject}
 
 class QtiItem(rootNode: Node) {
 
@@ -95,6 +96,36 @@ class QtiItem(rootNode: Node) {
         responses.contains(feedback.outcomeIdentifier) &&
           (responses.getOrElse(feedback.outcomeIdentifier, "") equals feedback.identifier)
     )
+  }
+
+  private def getAllFeedbackElements : Seq[FeedbackElement] = {
+    (feedbackInlines ++ modalFeedbacks)
+  }
+
+  /**
+   * Get all the feedback in the document
+   * @return  json formatted string with all the feedback contents keyed by csFeedbackId
+   */
+  def getAllFeedbackJson : String = {
+    val stringBuilder = new StringBuilder()
+    stringBuilder.append("{")
+    val allFeedback = getAllFeedbackElements
+    allFeedback.map( fe => {
+      val jsonFe = Json.toJson(fe)
+      val optCsFeedbackId = (jsonFe \ "csFeedbackId").asOpt[String]
+      val optText = (jsonFe \ "contents").asOpt[String]
+
+      optCsFeedbackId match {
+        case Some(csFeedbackId) if csFeedbackId.length > 0 =>  {
+         stringBuilder.append("\"" + csFeedbackId + "\" : \"" + optText.getOrElse("") + "\"," )
+        }
+        case _ =>
+      }
+    })
+    // ugh
+    val output = stringBuilder.stripSuffix(",")
+    output + "}"
+
   }
 
   def getBasicFeedbackMatch(responseIdentifier: String, identifier: String): Option[FeedbackElement] = {
