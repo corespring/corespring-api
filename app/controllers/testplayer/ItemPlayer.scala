@@ -60,7 +60,9 @@ object ItemPlayer extends BaseApi {
   val NamespaceRegex = """xmlns.*?=".*?"""".r
 
   /**
-   * remove the namespaces - TODO - should we do this with xml processing?
+   *
+   * remove the namespaces - Note: this is necessary to support correct rendering in IE8
+   * TODO - should we do this with xml processing?
    * @param xml
    * @return
    */
