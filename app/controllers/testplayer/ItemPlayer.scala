@@ -9,6 +9,7 @@ import controllers.auth.{Permission, BaseApi}
 import models.{VirtualFile, Content, Item}
 import com.mongodb.casbah.Imports._
 import api.processors.FeedbackProcessor._
+import play.api.Logger
 
 
 case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: Int = -1)
@@ -21,12 +22,11 @@ object ItemPlayer extends BaseApi {
    * @return
    */
   def renderItem(itemId: String, printMode: Boolean) = ApiAction { request =>
-
     try {
       getItemXMLByObjectId(itemId,request.ctx.organization) match {
         case Some(xmlData: Elem) =>
           // extract and filter the itemBody element
-          val itemBody = filterFeedbackContent(xmlData \ "itemBody")
+          val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlData \ "itemBody"))
           // Logger.info(itemBody.mkString)
 
           // parse the itemBody and determine what scripts should be included for the defined interactions
@@ -66,7 +66,7 @@ object ItemPlayer extends BaseApi {
    * @param xml
    * @return
    */
-  private def removeNamespaces(  xml : Elem ) : String =  NamespaceRegex.replaceAllIn(xml.mkString, "")
+  private def removeNamespaces(xml: Elem): String =  NamespaceRegex.replaceAllIn(xml.mkString, "")
 
   def getFeedbackInline(itemId: String, responseIdentifier: String, choiceIdentifier: String) = ApiAction { request =>
     getItemXMLByObjectId(itemId, request.ctx.organization) match {
@@ -91,11 +91,10 @@ object ItemPlayer extends BaseApi {
    * @return
    */
   private def getItemXMLByObjectId(itemId: String, callerOrg: ObjectId): Option[Elem] = {
-    val dataField = MongoDBObject(Item.data -> 1, Item.collectionId -> 1)
-    Item.findOneById( new ObjectId(itemId)) match {
+    Item.findOneById(new ObjectId(itemId)) match {
       case Some(item) => {
-        if( Content.isCollectionAuthorized(callerOrg,item.collectionId,Permission.All)){
-         val dataResource = item.data.get
+        if (Content.isCollectionAuthorized(callerOrg, item.collectionId, Permission.All)) {
+          val dataResource = item.data.get
           dataResource.files.find( _.name == "qti.xml") match {
             case Some(qtiXml) => {
               Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
@@ -135,7 +134,7 @@ object ItemPlayer extends BaseApi {
     scripts ::= "<script src=\"http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js\"></script>"
 
     val orderInteractionScripts =  "<script src=\"/assets/js/corespring/qti/orderInteraction" + scriptSuffix + ".js\"></script>\n" +
-       "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/orderInteraction" + scriptSuffix + ".css\" />"
+      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/orderInteraction" + scriptSuffix + ".css\" />"
 
     val choiceInteractionScripts = "<script src=\"/assets/js/corespring/qti/choiceInteraction" +
       scriptSuffix + ".js\"></script>\n" +

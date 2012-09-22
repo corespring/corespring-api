@@ -31,6 +31,4 @@ class FeedbackElement(rootElement: Node) {
   val childBody = new StringBuilder
   rootElement.child.map(node => childBody.append(node.toString()))
   def contents: String = childBody.toString()
-
-
 }
