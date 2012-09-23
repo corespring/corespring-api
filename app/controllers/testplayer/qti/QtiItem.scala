@@ -55,12 +55,6 @@ class QtiItem(rootNode: Node) {
     response
   }
 
-  private def matchesSimple(responseIdentifier: String, choiceIdentifier: String): Option[FeedbackElement] =
-    responseForIdentifier(responseIdentifier).find(_.responseFor(choiceIdentifier) equals "1") match {
-      case Some(responseDeclaration) => getBasicFeedbackMatch(responseIdentifier, choiceIdentifier)
-      case None => None
-    }
-
   private def defaultOutcome: Map[String, String] =
     outcomeDeclarations.map(outcomeDeclaration => (outcomeDeclaration.identifier, outcomeDeclaration.value)).toMap
 
@@ -73,11 +67,11 @@ class QtiItem(rootNode: Node) {
   }
 
   def feedback(responseIdentifier: String, choiceIdentifier: String): Seq[FeedbackElement] = {
-    matchesSimple(responseIdentifier, choiceIdentifier)
     if (choiceIdentifier.contains(",")) {
       feedback(responseIdentifier, choiceIdentifier.split(','))
     }
     else {
+      println("responseIdentifier: %s, choiceIdentifier: %s\n".format(responseIdentifier, choiceIdentifier) + getBasicFeedbackMatch(responseIdentifier, choiceIdentifier))
       List(
         List[Option[FeedbackElement]](getBasicFeedbackMatch(responseIdentifier, choiceIdentifier)).flatten,
         getFeedbackForResponse(processResponse(responseIdentifier, choiceIdentifier))
@@ -89,7 +83,7 @@ class QtiItem(rootNode: Node) {
     getFeedbackForResponse(processResponse(responseIdentifier, choiceIdentifiers))
 
   private def getFeedbackForResponse(responses: Map[String, String]): Seq[FeedbackElement] = {
-    (feedbackInlines ++ modalFeedbacks).filter(
+    getAllFeedbackElements.filter(
       feedback =>
         responses.contains(feedback.outcomeIdentifier) &&
           (responses.getOrElse(feedback.outcomeIdentifier, "") equals feedback.identifier)
@@ -100,47 +94,31 @@ class QtiItem(rootNode: Node) {
     (feedbackInlines ++ modalFeedbacks)
   }
 
-  /**
-   * Get all the feedback in the document
-   * @return  json formatted string with all the feedback contents keyed by csFeedbackId
-   */
+
   def getAllFeedbackJson: String = {
-    val stringBuilder = new StringBuilder()
-    stringBuilder.append("{")
-    val allFeedback = getAllFeedbackElements
-    allFeedback.map( fe => {
-      val jsonFe = Json.toJson(fe)
-      val optCsFeedbackId = (jsonFe \ "csFeedbackId").asOpt[String]
-      val optText = (jsonFe \ "contents").asOpt[String]
-
-      optCsFeedbackId match {
-        case Some(csFeedbackId) if csFeedbackId.length > 0 =>  {
-         stringBuilder.append("\"" + csFeedbackId + "\" : \"" + optText.getOrElse("") + "\"," )
+    Json.toJson(getAllFeedbackElements.foldLeft(Map[String, String]()){(map, feedback) => {
+      val json = Json.toJson(feedback)
+      (json \ "csFeedbackId").asOpt[String] match {
+        case Some(csFeedbackId) => {
+          map + (csFeedbackId -> (json \ "contents").asOpt[String].getOrElse(""))
         }
-        case _ =>
+        case None => map
       }
-    })
-    // ugh
-    val output = stringBuilder.stripSuffix(",")
-    output + "}"
-
+    }}.filterKeys(!_.isEmpty)).toString
   }
 
   def getBasicFeedbackMatch(responseIdentifier: String, identifier: String): Option[FeedbackElement] = {
     responseForIdentifier(responseIdentifier) match {
       case Some(responseDeclaration: ResponseDeclaration) => {
-        if (responseDeclaration.responseFor(identifier) equals "1") {
-          responseToFeedbackMap.get(responseIdentifier) match {
-            case Some(map) => {
-              map.get(identifier) match {
-                case Some(feedbackElement) => Some(feedbackElement)
-                case None => None
-              }
+        responseToFeedbackMap.get(responseIdentifier) match {
+          case Some(map) => {
+            map.get(identifier) match {
+              case Some(feedbackElement) => Some(feedbackElement)
+              case None => None
             }
-            case None => None
           }
+          case None => None
         }
-        else None
       }
       case None => None
     }

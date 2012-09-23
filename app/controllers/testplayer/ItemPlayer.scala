@@ -16,6 +16,10 @@ case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: I
 
 object ItemPlayer extends BaseApi {
 
+  val notFoundJson = Json.toJson(
+    Map("error" -> "not found")
+  )
+
   /**
    * Very simple QTI Item Renderer
    * @param itemId
@@ -40,7 +44,7 @@ object ItemPlayer extends BaseApi {
           Ok(views.html.testplayer.itemPlayer(itemId, scripts, finalXml))
         case None =>
           // we found nothing
-          NotFound
+          NotFound(notFoundJson)
       }
     } catch {
       case e: SAXParseException =>
@@ -74,13 +78,13 @@ object ItemPlayer extends BaseApi {
         val item = new QtiItem(rootElement)
         val feedback: Seq[FeedbackElement] = item.feedback(responseIdentifier, choiceIdentifier)
         if (feedback.nonEmpty) {
-          Ok("{\"feedback\":" + Json.toJson(feedback).toString + "}")
+          Ok(Json.toJson(Map("feedback" -> Json.toJson(feedback))))
         } else {
-          NotFound("{\"error\": \"not found\"}")
+          NotFound(notFoundJson)
         }
       }
       case None => {
-        NotFound("{\"error\": \"not found\"}")
+        NotFound(notFoundJson)
       }
     }
   }

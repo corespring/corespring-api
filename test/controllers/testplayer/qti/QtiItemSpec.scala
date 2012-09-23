@@ -2,7 +2,7 @@ package controllers.testplayer.qti
 
 import org.specs2.mutable._
 
-class ItemSpec extends Specification {
+class QtiItemSpec extends Specification {
   class FeedbackSequenceMatcher(feedback: Seq[FeedbackElement]) {
     def matches(ids: List[Int]): Boolean = feedback.map(_.csFeedbackId.toInt).toSet equals ids.toSet
   }
@@ -247,8 +247,8 @@ class ItemSpec extends Specification {
 
     "return a json object with all feedback accessible by csFeedbackId" in {
       val result = item.getAllFeedbackJson
-      // TODO - test the results
-      pending
+      println(result)
+      success
     }
 
     "return a json object with all correctResponses accessible by responseIdentifier" in {
