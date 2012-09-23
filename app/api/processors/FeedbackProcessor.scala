@@ -22,6 +22,7 @@ object FeedbackProcessor extends XmlValidator {
   }
 
   private val csFeedbackId = "csFeedbackId"
+  private val identifier = "identifier"
   private val outcomeIdentifier = "outcomeIdentifier"
 
   private val removeResponsesTransformer = new RuleTransformer(
@@ -119,18 +120,15 @@ object FeedbackProcessor extends XmlValidator {
 
     override def transform(node: Node): Seq[Node] = node match {
       case elem: Elem => {
-        if ((elem.label equals FEEDBACK_INLINE) && (elem \ "@outcomeIdentifier").isEmpty) {
-          elem.attribute("csFeedbackId") match {
-            case Some(id) => {
-              qtiItem.getOutcomeIdentifierForCsFeedbackId(id.toString) match {
-                case Some(outcomeIdentifier) =>
-                  elem % Attribute(None, FeedbackProcessor.outcomeIdentifier, Text("responses.%s.value".format(outcomeIdentifier)), Null)
+        if (elem.label equals FEEDBACK_INLINE) {
+          elem.attribute(FeedbackProcessor.csFeedbackId) match {
+            case Some(csFeedbackId) => {
+              qtiItem.getIdentifiersForCsFeedbackId(csFeedbackId.toString) match {
+                case Some(identifiers) => addIdentifiersToElem(elem, identifiers._1, identifiers._2)
                 case None => elem
               }
             }
-            case None => {
-              elem
-            }
+            case None => elem
           }
         }
         else {
@@ -140,6 +138,16 @@ object FeedbackProcessor extends XmlValidator {
       case other => other
     }
 
+    private def addIdentifiersToElem(elem: Elem, outcomeIdentifier: String, identifier: String): Elem = {
+      var elementWithIdentifiers = elem
+      if ((elem \ "@identifier").isEmpty) {
+        elementWithIdentifiers = elementWithIdentifiers % Attribute(None, FeedbackProcessor.identifier, Text(identifier), Null)
+      }
+      if ((elem \ "@outcomeIdentifier").isEmpty) {
+        elementWithIdentifiers = elementWithIdentifiers % Attribute(None, FeedbackProcessor.outcomeIdentifier, Text("responses.%s.value".format(outcomeIdentifier)), Null)
+      }
+      elementWithIdentifiers
+    }
   }
 
 }

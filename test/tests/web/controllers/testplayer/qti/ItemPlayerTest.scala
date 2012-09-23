@@ -9,27 +9,49 @@ import xml.{NodeSeq, XML}
 
 class ItemPlayerTest extends BaseTest {
 
-  "add outcomeidentifier and identifier to feedback elements defined within choices" in {
-    val itemId = "505d839b763ebc84ac34d484"
+  val itemWithNoIdentifiersId = "505d839b763ebc84ac34d484"
+  val itemWithSomeIdentifiersId = "505e704c03e1112792e383ab"
 
-    /**
-     *  @see https://trello.com/card/add-outcomeidentifier-and-identifier-to-feedback-elements-defined-within-choices/500f0e4cf207c721072011c1/90
-     *
-     *  For now This should happen when the xml is being sent to the test player
-     */
+  "add outcomeidentifier and identifier to feedback elements defined within choices" in {
+    getFeedbackFromPlayer(itemWithNoIdentifiersId).foreach(feedbackInline => {
+      val identifier = (feedbackInline \ "@identifier").text
+      val outcomeIdentifier = (feedbackInline \ "@outcomeIdentifier").text
+
+      outcomeIdentifier must not beEmpty;
+      outcomeIdentifier must beMatching(".*responses.*.value")
+      identifier must not beEmpty
+    })
+  }
+
+  "do not add outcomeIdentifier or identifier to feedback elements if already present" in {
+    getFeedbackFromPlayer(itemWithSomeIdentifiersId).foreach(feedback => {
+      val outcomeIdentifier = (feedback \ "@outcomeIdentifier").text
+      val identifier = (feedback \ "@identifier").text
+      (feedback \ "@csFeedbackId").text match {
+        case "feedbackChoiceA" => {
+          outcomeIdentifier must beEqualTo("RESPONSE")
+          identifier must beEqualTo("ChoiceA")
+        }
+        case "feedbackChoiceB" => {
+          outcomeIdentifier must beEqualTo("RESPONSE")
+          identifier must beEqualTo("ChoiceD")
+        }
+        case "feedbackChoiceC" => {
+          outcomeIdentifier must beMatching(".*responses.*.value")
+          identifier must beEqualTo("ChoiceD")
+        }
+      }
+    })
+  }
+
+  private def getFeedbackFromPlayer(itemId: String): NodeSeq = {
     val fakeGet = FakeRequest(GET, "/testplayer/item/%s?access_token=%s".format(itemId, token))
     val getResult = routeAndCall(fakeGet).get
     status(getResult) must equalTo(OK)
 
     // XML parser can't understand the doctype, so parse XML starting at <html> tab
     val content = contentAsString(getResult)
-    val xmlResponse = XML.loadString(content.substring(content.indexOf("<html")))
-
-    println(xmlResponse)
-
-    (xmlResponse \ "body" \\ "feedbackInline").foreach(feedbackInline => {
-      (feedbackInline \ "@outcomeIdentifier").text must not beEmpty
-    })
+    XML.loadString(content.substring(content.indexOf("<html"))) \ "body" \\ "feedbackInline"
   }
 
 }

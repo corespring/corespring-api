@@ -7,8 +7,6 @@ import play.api.libs.json.{Json, JsObject}
 
 class QtiItem(rootNode: Node) {
 
-  val name = "test"
-
   private val responseDeclarations = (rootNode \\ "responseDeclaration").map(new ResponseDeclaration(_))
   private val outcomeDeclarations = (rootNode \\ "outcomeDeclaration").map(new OutcomeDeclaration(_))
   private val feedbackInlines = (rootNode \\ "feedbackInline").map(new FeedbackInline(_))
@@ -21,8 +19,8 @@ class QtiItem(rootNode: Node) {
     optMap[String, Map[String, FeedbackElement]](
       (rootNode \\ "choiceInteraction").map(responseIdentifierNode => {
         ((responseIdentifierNode \ "@responseIdentifier").text ->
-          optMap[String, FeedbackElement]((responseIdentifierNode \\ "feedbackInline").map(feedbackNode => {
-            (feedbackNode \ "@identifier").text -> new FeedbackInline(feedbackNode)
+          optMap[String, FeedbackElement]((responseIdentifierNode \\ "simpleChoice").map(simpleChoice => {
+            (simpleChoice \ "@identifier").text -> new FeedbackInline((simpleChoice \ "feedbackInline").head)
           })).getOrElse(Map[String, FeedbackElement]()))
       })).getOrElse(Map[String, Map[String, FeedbackElement]]())
   }
@@ -106,7 +104,7 @@ class QtiItem(rootNode: Node) {
    * Get all the feedback in the document
    * @return  json formatted string with all the feedback contents keyed by csFeedbackId
    */
-  def getAllFeedbackJson : String = {
+  def getAllFeedbackJson: String = {
     val stringBuilder = new StringBuilder()
     stringBuilder.append("{")
     val allFeedback = getAllFeedbackElements
@@ -148,17 +146,16 @@ class QtiItem(rootNode: Node) {
     }
   }
 
-  // outcomeIdentifier = responses.[responseIdentifier].value
-  // identifier = parent choice identifier
-  def getOutcomeIdentifierForCsFeedbackId(csFeedbackId: String): Option[String] = {
-    responseToFeedbackMap.find({ case (responseIdentifier, choiceToFeedbackMap) => {
-        !choiceToFeedbackMap.find({ case (choiceIdentifier, feedbackElement) => {
-          feedbackElement.csFeedbackId equals csFeedbackId
-        }}).isEmpty
-      }}) match {
-      case Some((value, map)) => Some(value)
-      case None => None
-    }
+  // There must be a better FP way to do this
+  def getIdentifiersForCsFeedbackId(csFeedbackId: String): Option[(String, String)] = {
+    responseToFeedbackMap.foreach({ case (responseIdentifier, choiceToFeedbackMap) => {
+      choiceToFeedbackMap.foreach({ case (choiceIdentifier, feedbackElement) => {
+        if (feedbackElement.csFeedbackId equals csFeedbackId) {
+          return Some((responseIdentifier, choiceIdentifier))
+        }
+      }})
+    }})
+    None
   }
 
 
