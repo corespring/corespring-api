@@ -1,0 +1,10 @@
+p .numbers{
+	float:left;
+	text-align:right;
+	white-space:nowrap;
+}
+
+.numbered-lines p {
+	padding-left: 30px;
+	line-height: 23px;
+}

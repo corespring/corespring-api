@@ -9,6 +9,7 @@ import controllers.auth.{Permission, BaseApi}
 import models.{VirtualFile, Content, Item}
 import com.mongodb.casbah.Imports._
 import api.processors.FeedbackProcessor._
+import play.api.Logger
 
 
 case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: Int = -1)
@@ -27,12 +28,14 @@ object ItemPlayer extends BaseApi {
         case Some(xmlData: Elem) =>
           // extract and filter the itemBody element
           val itemBody = filterFeedbackContent(xmlData \ "itemBody")
-          // Logger.info(itemBody.mkString)
+
 
           // parse the itemBody and determine what scripts should be included for the defined interactions
           val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
 
           val qtiXml = <assessmentItem cs:itemId={itemId} cs:feedbackEnabled="true">{itemBody}</assessmentItem>
+
+          Logger.info(qtiXml.mkString)
 
           // angular will render the itemBody client-side
           Ok(views.html.testplayer.itemPlayer(itemId, scripts, qtiXml.mkString))
@@ -83,9 +86,11 @@ object ItemPlayer extends BaseApi {
       case Some(item) => {
         if( Content.isCollectionAuthorized(callerOrg,item.collectionId,Permission.All)){
          val dataResource = item.data.get
+
           dataResource.files.find( _.name == "qti.xml") match {
             case Some(qtiXml) => {
-              Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
+              return        Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
+
             }
             case _ => None
           }
@@ -140,6 +145,10 @@ object ItemPlayer extends BaseApi {
       scriptSuffix + ".js\"></script>\n" +
       "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/tabs" + scriptSuffix + ".css\" />"
 
+    val numberedLineScripts = "<script src=\"/assets/js/corespring/qti/numberedLines" +
+      scriptSuffix + ".js\"></script>\n" +
+      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/numberedLines" + scriptSuffix + ".css\" />"
+
     // map of elements and the scripts needed to process them
     // can't concatenate string in map value apparently, so using replace()
     val elementScriptsMap = Map (
@@ -157,6 +166,9 @@ object ItemPlayer extends BaseApi {
         scripts ::= scriptString
       }
     }
+
+    scripts ::= numberedLineScripts
+
     // order matters so put them out in the chronological order we put them in
     scripts.reverse
   }
