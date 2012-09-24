@@ -16,32 +16,40 @@ case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: I
 
 object ItemPlayer extends BaseApi {
 
+  val notFoundJson = Json.toJson(
+    Map("error" -> "not found")
+  )
+
   /**
    * Very simple QTI Item Renderer
    * @param itemId
    * @return
    */
   def renderItem(itemId: String, printMode: Boolean) = ApiAction { request =>
-
     try {
       getItemXMLByObjectId(itemId,request.ctx.organization) match {
         case Some(xmlData: Elem) =>
           // extract and filter the itemBody element
+<<<<<<< HEAD
           val itemBody = filterFeedbackContent(xmlData \ "itemBody")
 
+=======
+          val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlData \ "itemBody"))
+          // Logger.info(itemBody.mkString)
+>>>>>>> master
 
           // parse the itemBody and determine what scripts should be included for the defined interactions
           val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
 
           val qtiXml = <assessmentItem cs:itemId={itemId} cs:feedbackEnabled="true">{itemBody}</assessmentItem>
 
-          Logger.info(qtiXml.mkString)
+          val finalXml = removeNamespaces(qtiXml)
 
           // angular will render the itemBody client-side
-          Ok(views.html.testplayer.itemPlayer(itemId, scripts, qtiXml.mkString))
+          Ok(views.html.testplayer.itemPlayer(itemId, scripts, finalXml))
         case None =>
           // we found nothing
-          NotFound
+          NotFound(notFoundJson)
       }
     } catch {
       case e: SAXParseException =>
@@ -58,19 +66,30 @@ object ItemPlayer extends BaseApi {
 
   }
 
+  val NamespaceRegex = """xmlns.*?=".*?"""".r
+
+  /**
+   *
+   * remove the namespaces - Note: this is necessary to support correct rendering in IE8
+   * TODO - should we do this with xml processing?
+   * @param xml
+   * @return
+   */
+  private def removeNamespaces(xml: Elem): String =  NamespaceRegex.replaceAllIn(xml.mkString, "")
+
   def getFeedbackInline(itemId: String, responseIdentifier: String, choiceIdentifier: String) = ApiAction { request =>
     getItemXMLByObjectId(itemId, request.ctx.organization) match {
       case Some(rootElement: Elem) => {
         val item = new QtiItem(rootElement)
         val feedback: Seq[FeedbackElement] = item.feedback(responseIdentifier, choiceIdentifier)
         if (feedback.nonEmpty) {
-          Ok("{\"feedback\":" + Json.toJson(feedback).toString + "}")
+          Ok(Json.toJson(Map("feedback" -> Json.toJson(feedback))))
         } else {
-          NotFound("{\"error\": \"not found\"}")
+          NotFound(notFoundJson)
         }
       }
       case None => {
-        NotFound("{\"error\": \"not found\"}")
+        NotFound(notFoundJson)
       }
     }
   }
@@ -81,12 +100,16 @@ object ItemPlayer extends BaseApi {
    * @return
    */
   private def getItemXMLByObjectId(itemId: String, callerOrg: ObjectId): Option[Elem] = {
-    val dataField = MongoDBObject(Item.data -> 1, Item.collectionId -> 1)
-    Item.findOneById( new ObjectId(itemId)) match {
+    Item.findOneById(new ObjectId(itemId)) match {
       case Some(item) => {
+<<<<<<< HEAD
         if( Content.isCollectionAuthorized(callerOrg,item.collectionId,Permission.All)){
          val dataResource = item.data.get
 
+=======
+        if (Content.isCollectionAuthorized(callerOrg, item.collectionId, Permission.All)) {
+          val dataResource = item.data.get
+>>>>>>> master
           dataResource.files.find( _.name == "qti.xml") match {
             case Some(qtiXml) => {
               return        Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
@@ -127,7 +150,7 @@ object ItemPlayer extends BaseApi {
     scripts ::= "<script src=\"http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js\"></script>"
 
     val orderInteractionScripts =  "<script src=\"/assets/js/corespring/qti/orderInteraction" + scriptSuffix + ".js\"></script>\n" +
-       "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/orderInteraction" + scriptSuffix + ".css\" />"
+      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/orderInteraction" + scriptSuffix + ".css\" />"
 
     val choiceInteractionScripts = "<script src=\"/assets/js/corespring/qti/choiceInteraction" +
       scriptSuffix + ".js\"></script>\n" +

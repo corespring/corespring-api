@@ -1,9 +1,8 @@
 package api.v1
 
 import controllers.auth.{Permission, BaseApi}
-import play.api.Logger
-import api.{InvalidFieldException, ApiError, QueryHelper}
-import models.{Organization, ContentCollection, Content, Item}
+import api.{ApiError, QueryHelper}
+import models._
 import com.mongodb.util.JSONParseException
 import org.bson.types.ObjectId
 import com.mongodb.casbah.Imports._
@@ -11,11 +10,14 @@ import com.novus.salat._
 import dao.SalatInsertError
 import play.api.templates.Xml
 import play.api.mvc.Result
-import play.api.libs.json.{JsValue, Json}
-import com.typesafe.config.ConfigFactory
+import play.api.libs.json.Json
 import models.mongoContext._
+import scala.Left
+import scala.Some
+import scala.Right
+import api.InvalidFieldException
 import controllers.JsonValidationException
-import api.processors.FeedbackProcessor._
+import api.processors.FeedbackProcessor
 
 /**
  * Items API
@@ -27,10 +29,7 @@ object ItemApi extends BaseApi {
   val excludedFieldsByDefault = Some(MongoDBObject(
     Item.copyrightOwner -> 0,
     Item.credentials -> 0,
-    //Item.supportingMaterials -> 0,
-    //Item.keySkills -> 0,
     Item.contentType -> 0
-    //Item.data -> 0
   ))
 
   val dataField = MongoDBObject(Item.data -> 1, Item.collectionId -> 1)
@@ -151,19 +150,20 @@ object ItemApi extends BaseApi {
 
   def createItem = ApiAction { request =>
     request.body.asJson match {
-      case Some(jsonData) => {
-        val json = addFeedbackIds(jsonData.toString)
+      case Some(json) => {
         try {
-          val dbObj = com.mongodb.util.JSON.parse(json).asInstanceOf[DBObject]
-          if (dbObj.isDefinedAt("id")) {
+          if ((json \ "id").asOpt[String].isDefined) {
             BadRequest(Json.toJson(ApiError.IdNotNeeded))
           } else {
-            val i: Item = Json.parse(json).as[Item]
+            val i: Item = Json.fromJson[Item](json)
             if (i.collectionId.isEmpty) {
               BadRequest(Json.toJson(ApiError.CollectionIsRequired))
             } else if (Content.isCollectionAuthorized(request.ctx.organization, i.collectionId, Permission.All)) {
+              addFeedbackIds(i)
               Item.insert(i) match {
-                case Some(_) => Ok(removeFeedbackIds(addOutcomeIdentifiers(Json.toJson(i).toString)))
+                case Some(_) =>
+                  removeFeedbackIds(i)
+                  Ok(Json.toJson(i))
                 case None => InternalServerError(Json.toJson(ApiError.CantSave))
               }
             } else {
@@ -183,8 +183,7 @@ object ItemApi extends BaseApi {
   def updateItem(id: ObjectId) = ApiAction { request =>
     if (Content.isAuthorized(request.ctx.organization, id, Permission.All)) {
       request.body.asJson match {
-        case Some(jsonData) => {
-          val json = Json.parse(addFeedbackIds(jsonData.toString))
+        case Some(json) => {
           if ((json \ Item.id).asOpt[String].isDefined) {
             BadRequest(Json.toJson(ApiError.IdNotNeeded))
           }
@@ -193,8 +192,12 @@ object ItemApi extends BaseApi {
           }
           else {
             try {
-              Item.updateItem(id,Json.fromJson[Item](json),excludedFieldsByDefault) match {
-                case Right(i) => Ok(removeFeedbackIds(Json.toJson(i).toString))
+              val item = Json.fromJson[Item](json)
+              addFeedbackIds(item)
+              Item.updateItem(id,item,excludedFieldsByDefault) match {
+                case Right(i) =>
+                  removeFeedbackIds(i)
+                  Ok(Json.toJson(i))
                 case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateItem(error.clientOutput)))
               }
             } catch {
@@ -206,6 +209,34 @@ object ItemApi extends BaseApi {
         case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
       }
     } else Forbidden
+  }
+
+  def addFeedbackIds(item: Item) = {
+    item.data.map(resource => {
+      resource.files.find(file => {
+        file match {
+          case vf:VirtualFile => if(vf.isMain){
+            vf.content = FeedbackProcessor.addFeedbackIds(vf.content)
+            true
+          } else false
+          case _ => false
+        }
+      })
+    })
+  }
+
+  def removeFeedbackIds(item: Item) = {
+    item.data.map(resource => {
+      resource.files.find(file => {
+        file match {
+          case vf:VirtualFile => if(vf.isMain){
+            vf.content = FeedbackProcessor.removeFeedbackIds(vf.content)
+            true
+          } else false
+          case _ => false
+        }
+      })
+    })
   }
 
   def getItemsInCollection(collId: ObjectId) = ApiAction { request =>

@@ -2,7 +2,7 @@ package controllers.testplayer.qti
 
 import org.specs2.mutable._
 
-class ItemSpec extends Specification {
+class QtiItemSpec extends Specification {
   class FeedbackSequenceMatcher(feedback: Seq[FeedbackElement]) {
     def matches(ids: List[Int]): Boolean = feedback.map(_.csFeedbackId.toInt).toSet equals ids.toSet
   }
@@ -112,7 +112,7 @@ class ItemSpec extends Specification {
             <feedbackInline csFeedbackId="fbRobinson" outcomeIdentifier="responses.irishPresident.value" identifier="robinson" showHide="show">Incorrect, Mary Robinson was President of Ireland from 1990 to 1997</feedbackInline>
           </simpleChoice>
           <simpleChoice identifier="higgins"> Michel D. Higgins
-            <feedbackInline csFeedbackId="fbHiggins" outcomeIdentifier="responses.irishPresident.value" identifier="higgins" showHide="show">Correct, Michael D. Higgins is the sitting President of Ireland</feedbackInline>
+            <feedbackInline csFeedbackId="fbHiggins" outcomeIdentifier="responses.irishPresident.value" identifier="higgins" showHide="show"><b>Correct</b>, Michael D. Higgins is the sitting President of Ireland</feedbackInline>
           </simpleChoice>
           <simpleChoice identifier="guinness"> Arthur Guinness
             <feedbackInline csFeedbackId="fbGuinness" outcomeIdentifier="responses.irishPresident.value" identifier="guinness" showHide="show">Incorrect, Arthur Guinness founded Guinness Brewery</feedbackInline>
@@ -246,7 +246,9 @@ class ItemSpec extends Specification {
 
 
     "return a json object with all feedback accessible by csFeedbackId" in {
-      pending
+      val result = item.getAllFeedbackJson
+      println(result)
+      success
     }
 
     "return a json object with all correctResponses accessible by responseIdentifier" in {

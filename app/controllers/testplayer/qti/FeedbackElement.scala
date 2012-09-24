@@ -1,6 +1,6 @@
 package controllers.testplayer.qti
 
-import scala.xml.Node
+import scala.xml.{Elem, Node}
 import play.api.libs.json.{JsString, JsObject, Writes}
 
 object FeedbackElement {
@@ -8,7 +8,8 @@ object FeedbackElement {
     def writes(feedbackElement: FeedbackElement) = JsObject(
       Seq(
         "csFeedbackId" -> JsString(feedbackElement.csFeedbackId),
-        "body" -> JsString(feedbackElement.body)
+        "body" -> JsString(feedbackElement.body),
+        "contents" -> JsString(feedbackElement.contents)
       )
     )
   }
@@ -25,6 +26,9 @@ class FeedbackElement(rootElement: Node) {
   def matches(outcomeIdentifier: String, identifier: String) =
     this.outcomeIdentifier.equals(outcomeIdentifier) && this.identifier.equals(identifier)
 
-  def body: String = rootElement.toString
+  def body: String = rootElement.toString()
 
+  val childBody = new StringBuilder
+  rootElement.child.map(node => childBody.append(node.toString()))
+  def contents: String = childBody.toString()
 }

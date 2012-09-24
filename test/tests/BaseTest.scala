@@ -2,7 +2,7 @@ package tests
 
 import _root_.models.Item
 import org.specs2.mutable.Specification
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import play.api.mvc._
 import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers._
@@ -82,6 +82,39 @@ abstract class BaseTest extends Specification {
         FakeRequest(httpVerb, fullUrl)
     }
     routeAndCall(request)
+  }
+
+  /**
+   * Generates JSON request body for the API, with provided XML data in the appropriate field. Also adds in a set of
+   * top-level attributes that get added to the request.
+   */
+  def xmlBody(xml: String, attributes: Map[String, String] = Map()): JsValue = {
+    Json.toJson(
+      attributes.iterator.foldLeft(
+        Map(
+          Item.data -> Json.toJson(
+            Map(
+              "name" -> JsString("qtiItem"),
+              "files" -> Json.toJson(
+                Seq(
+                  Json.toJson(
+                    Map(
+                      "name" -> Json.toJson("qti.xml"),
+                      "default" -> Json.toJson(false),
+                      "contentType" -> Json.toJson("text/xml"),
+                      "content" -> Json.toJson(xml)
+                    )
+                  )
+                )
+              )
+            )
+          )
+        ))((map, entry) => map + ((entry._1, Json.toJson(entry._2))))
+    )
+  }
+
+  def getXMLContentFromResponse(jsonResponse: String): Seq[String] = {
+    (Json.parse(jsonResponse) \ Item.data \ "files").asOpt[Seq[JsObject]].getOrElse(Seq()).map(file => { (file \ "content").toString })
   }
 
 }

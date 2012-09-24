@@ -35,7 +35,7 @@ object Resource {
         val isMain = (f \ "default").as[Boolean]
         (f \ "content").asOpt[String] match {
           case Some(c) => VirtualFile(fileName, contentType, isMain, c)
-          case _ => StoredFile(fileName, contentType, isMain, (f \ "storageKey").as[String])
+          case _ => StoredFile(fileName, contentType, isMain, (f \ "storageKey").asOpt[String].getOrElse(""))
         }
       }))
       Resource(resourceName, files.getOrElse(Seq()))
