@@ -32,7 +32,6 @@ object ItemPlayer extends BaseApi {
         case Some(xmlData: Elem) =>
           // extract and filter the itemBody element
           val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlData \ "itemBody"))
-          // Logger.info(itemBody.mkString)
 
           // parse the itemBody and determine what scripts should be included for the defined interactions
           val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
@@ -103,8 +102,7 @@ object ItemPlayer extends BaseApi {
 
           dataResource.files.find( _.name == "qti.xml") match {
             case Some(qtiXml) => {
-              return        Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
-
+              Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
             }
             case _ => None
           }
