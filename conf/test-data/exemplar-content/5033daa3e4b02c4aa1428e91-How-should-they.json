@@ -45,7 +45,11 @@
 		"standardsAligned" : false,
 		"qaReview" : false
 	},
-	"keySkills" : [ ],
+	"keySkills" : [
+		"Compute",
+		"Produce",
+		"Calculate"
+	],
 	"priorUse" : "Formative",
 	"title" : "How should they divide the $600 prize money so that each class gets the same fraction of the money as the fraction of the box tops that they collected?",
 	"gradeLevel" : [
@@ -53,5 +57,8 @@
 	],
 	"reviewsPassed" : [
 		"Editorial"
-	]
+	],
+	"bloomsTaxonomy" : "Apply",
+	"demonstratedKnowledge" : "Procedural",
+	"relatedCurriculum" : "Illustrative Mathematics Illustrations"
 }

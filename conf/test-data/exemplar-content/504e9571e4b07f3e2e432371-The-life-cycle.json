@@ -78,9 +78,21 @@
 	"demonstratedKnowledge" : "Factual",
 	"materialType" : "Assessment Item",
 	"bloomsTaxonomy" : "Understand (Describe, dramatize)",
-	"priorUse" : null,
-	"keySkills" : [ ],
+	"priorUse" : "Summative",
+	"keySkills" : [
+		"Arrange",
+		"Describe",
+		"Identify",
+		"Order",
+		"Recall",
+		"Classify"
+	],
 	"reviewsPassed" : [
-		"Editorial"
-	]
+		"Editorial",
+		"Bias",
+		"Fairness",
+		"Content",
+		"Psychometric"
+	],
+	"relatedCurriculum" : "New England Common Assessments Program Released Items"
 }

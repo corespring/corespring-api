@@ -108,21 +108,11 @@ object Global extends GlobalSettings {
     jsonFileToDb(basePath + "fieldValues.json", FieldValue.collection)
     jsonLinesToDb(basePath + "orgs.json", Organization.collection)
 
-
     Content.collection.drop()
     jsonLinesToDb(basePath + "items.json", Content.collection)
-    jsonFileToItem(basePath + "item-with-supporting-materials.json", Content.collection, drop = false )
-    jsonFileToItem(basePath + "item-with-html-test.json", Content.collection, drop = false)
+    insertFilesInFolder(basePath + "feature-items")
+    insertFilesInFolder(basePath + "exemplar-content")
 
-    val ExemplarContent = "exemplar-content"
-
-    //load examplar content
-
-    val folder : File = Play.getFile(basePath + ExemplarContent)
-    for (file <- folder.listFiles) {
-      Logger.info("adding: " + file.getName)
-      jsonFileToItem(basePath + ExemplarContent + "/" + file.getName, Content.collection, drop = false)
-    }
 
     //Subjects and standards
     jsonFileListToDb(basePath + "subjects.json", Subject.collection)
@@ -162,13 +152,13 @@ object JsonImporter {
    * @param jsonPath
    * @param coll
    */
-  def jsonLinesToDb(jsonPath: String, coll: MongoCollection, drop : Boolean = true) {
+  def jsonLinesToDb(jsonPath: String, coll: MongoCollection, drop: Boolean = true) {
 
-    if(drop) coll.drop()
+    if (drop) coll.drop()
 
     val lines: Iterator[String] = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.forName("UTF-8"))).getLines()
     for (line <- lines) {
-      if (line != null && line != ""){
+      if (line != null && line != "") {
         insertString(line, coll)
       }
     }
@@ -201,12 +191,12 @@ object JsonImporter {
    * @param path = path to json
    * @param coll
    */
-  def jsonFileListToDb(path:String, coll:MongoCollection) {
+  def jsonFileListToDb(path: String, coll: MongoCollection) {
     coll.drop()
     val listString = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.forName("UTF-8"))).mkString
     val dbList = com.mongodb.util.JSON.parse(listString).asInstanceOf[com.mongodb.BasicDBList]
-    Logger.info("Adding " + dbList.size() + " to: " + coll.name )
-    dbList.toList.foreach(  dbo => coll.insert(dbo.asInstanceOf[DBObject]))
+    Logger.info("Adding " + dbList.size() + " to: " + coll.name)
+    dbList.toList.foreach(dbo => coll.insert(dbo.asInstanceOf[DBObject]))
   }
 
   /**
@@ -234,12 +224,27 @@ object JsonImporter {
   }
 
   def insertString(s: String, coll: MongoCollection) = {
-    val dbo : DBObject = JSON.parse(s).asInstanceOf[DBObject]
-    val id = dbo.get("_id").toString
+    val dbo: DBObject = JSON.parse(s).asInstanceOf[DBObject]
 
-    coll.findOneByID( new ObjectId( id )) match {
-      case Some(obj) => throw new RuntimeException("Item already exisits: " + id + " collection: " + coll.name)
-      case _ => coll.insert(dbo, coll.writeConcern)
+    val NO_ID = "NO_ID"
+    val id = if (dbo.get("_id") != null) dbo.get("_id").toString else NO_ID
+
+    if (NO_ID.equals(id)) {
+      coll.insert(dbo, coll.writeConcern)
+    } else {
+      coll.findOneByID(new ObjectId(id)) match {
+        case Some(obj) => throw new RuntimeException("Item already exisits: " + id + " collection: " + coll.name)
+        case _ => coll.insert(dbo, coll.writeConcern)
+      }
+    }
+  }
+
+
+  def insertFilesInFolder(path: String) {
+    val folder: File = Play.getFile(path)
+    for (file <- folder.listFiles) {
+      Logger.info("adding: " + file.getName)
+      jsonFileToItem(path + "/" + file.getName, Content.collection, drop = false)
     }
   }
 

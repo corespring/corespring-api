@@ -9,6 +9,7 @@ require 'mongo'
 require 'aws/s3'
 require_relative 'lib/amazon_uploader'
 require_relative 'lib/corespring_content_uploader'
+require 'fileutils'
 
 
 def beta_items(db_name, collection_name)
@@ -36,12 +37,13 @@ db_name = "tdb"
 output_path = "../conf/test-data/exemplar-content"
 collection_name = "Beta Items"
 
+FileUtils.rm_rf("#{output_path}/.", secure: true)
 
 items = []
-items << { "item_id" => "503fd699e4b02288e5f0ebd0", "path" =>  "../../corespring-content" }
-items << { "item_id" => "5040d048e4b0d43b60f3a00f", "path" =>  "../../corespring-content/Items for Ed" }
-items << { "item_id" => "5040da52e4b0d43b60f3a011", "path" =>  "../../corespring-content/Items for Ed" }
-items << { "item_id" => "5044cf96e4b008d30cf773a4", "path" => "../../corespring-content/Items for Ed" }
+#items << { "item_id" => "503fd699e4b02288e5f0ebd0", "path" =>  "../../corespring-content" }
+#items << { "item_id" => "5040d048e4b0d43b60f3a00f", "path" =>  "../../corespring-content/Items for Ed" }
+#items << { "item_id" => "5040da52e4b0d43b60f3a011", "path" =>  "../../corespring-content/Items for Ed" }
+#items << { "item_id" => "5044cf96e4b008d30cf773a4", "path" => "../../corespring-content/Items for Ed" }
 
 beta_items( db_name, collection_name ).each do |bi| 
     items << { "item_id" => bi["_id"].to_s, "path" => "../../corespring-content" }

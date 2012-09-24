@@ -39,14 +39,20 @@
 		"standardsAligned" : false,
 		"qaReview" : false
 	},
-	"keySkills" : [ ],
+	"keySkills" : [
+		"Arrange",
+		"Identify",
+		"Explain",
+		"Apply",
+		"Compute"
+	],
 	"title" : "Which of the following is equivalent to <i>i</i><sup>49</sup> ?",
 	"gradeLevel" : [
-		"11",
-		"12"
+		"11"
 	],
 	"reviewsPassed" : [
 		"Editorial"
 	],
-	"relatedCurriculum" : "NJDOE: Model Curriculum: Algebra II: Unit 1: Polynomials"
+	"relatedCurriculum" : "NJDOE: Model Curriculum: Algebra II: Unit 1: Polynomials",
+	"bloomsTaxonomy" : "Apply"
 }

@@ -15,6 +15,8 @@ trait ItemResources {
 
   /**
    * Return an individual file from Item.data
+   * TODO: This is an unprotected resource. We'll want to protect it, but
+   * I think it needs some thought. using access tokens will break the html client.
    * @param itemId
    * @param filename
    * @return
