@@ -16,3 +16,66 @@
     margin-left: 10px;
     margin-right: 10px;
 }
+.simplechoice-placeholder, .choice-interaction simplechoice.ng-scope {
+	display:table;
+	margin-left: 20px;
+	margin-bottom: 5px;
+}
+.choice-interaction > .ng-scope:first-child + .ng-scope{
+	display:block;
+	margin:0 0 5px;
+}
+simplechoice.ng-scope{
+	display:block;
+	overflow:hidden;
+}
+.simplechoice-inner{
+	margin:0 0 5px 20px;
+}
+.choiceInput,
+.choice-content{
+	display:table-cell;
+	vertical-align:middle;
+	color:#4d4d4f;
+	font-size:14px;
+}
+.choiceInput{
+	padding:0 3px 0 0;
+}
+.choice-content > .ng-scope{
+	display:inline-block;
+	vertical-align:middle;
+	padding:0;
+}
+.choice-content .ng-scope:first-child{
+	width:180px;
+}
+.correct-response .choice-content > .ng-scope:first-child,
+.incorrect-selection .choice-content > .ng-scope:first-child{
+	-webkit-border-radius:6px;
+	-moz-border-radius:6px;
+	border-radius:6px;
+	margin:0 5px 0 -6px;
+	padding:5px;
+	width:166px;
+}
+.incorrect-selection .choice-content > .ng-scope:first-child{
+	border:2px solid #f8a31a;
+}
+.correct-response .choice-content > .ng-scope:first-child{
+	border:2px solid #53C516;
+}
+.choice-content .ng-scope:first-child + .ng-scope span{
+	padding:0 0 0 30px;
+	display:inline-block;
+	min-height:21px;
+	max-width:338px;
+	line-height:21px;
+}
+.incorrect-selection .choice-content .ng-scope:first-child + .ng-scope span{
+	background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
+}
+.correct-response .choice-content .ng-scope:first-child + .ng-scope span{
+	background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
+}
+

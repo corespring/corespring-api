@@ -56,9 +56,11 @@ class FeedbackProcessorSpec extends Specification {
 
       val xmlWithOnlyCsFeedbackIds = filterFeedbackContent(xml)
 
+      println(xmlWithOnlyCsFeedbackIds)
+
       if (trueForAllFeedback(xmlWithOnlyCsFeedbackIds, node => {
         val attributes: Map[String, String] = getAttributeMap(node.asInstanceOf[Elem])
-        attributes.contains("csFeedbackId") && attributes.size == 1 && node.asInstanceOf[Elem].child.length == 0
+        attributes.contains("csFeedbackId") && node.asInstanceOf[Elem].child.length == 0
       })) success else failure
     }
   }
