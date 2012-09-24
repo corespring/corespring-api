@@ -30,13 +30,8 @@ object ItemPlayer extends BaseApi {
       getItemXMLByObjectId(itemId,request.ctx.organization) match {
         case Some(xmlData: Elem) =>
           // extract and filter the itemBody element
-<<<<<<< HEAD
-          val itemBody = filterFeedbackContent(xmlData \ "itemBody")
-
-=======
           val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlData \ "itemBody"))
           // Logger.info(itemBody.mkString)
->>>>>>> master
 
           // parse the itemBody and determine what scripts should be included for the defined interactions
           val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
@@ -102,14 +97,9 @@ object ItemPlayer extends BaseApi {
   private def getItemXMLByObjectId(itemId: String, callerOrg: ObjectId): Option[Elem] = {
     Item.findOneById(new ObjectId(itemId)) match {
       case Some(item) => {
-<<<<<<< HEAD
         if( Content.isCollectionAuthorized(callerOrg,item.collectionId,Permission.All)){
          val dataResource = item.data.get
 
-=======
-        if (Content.isCollectionAuthorized(callerOrg, item.collectionId, Permission.All)) {
-          val dataResource = item.data.get
->>>>>>> master
           dataResource.files.find( _.name == "qti.xml") match {
             case Some(qtiXml) => {
               return        Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
