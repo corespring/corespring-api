@@ -72,7 +72,6 @@ class QtiItem(rootNode: Node) {
       feedback(responseIdentifier, choiceIdentifier.split(','))
     }
     else {
-      println("responseIdentifier: %s, choiceIdentifier: %s\n".format(responseIdentifier, choiceIdentifier) + getBasicFeedbackMatch(responseIdentifier, choiceIdentifier))
       List(
         List[Option[FeedbackElement]](getBasicFeedbackMatch(responseIdentifier, choiceIdentifier)).flatten,
         getFeedbackForResponse(processResponse(responseIdentifier, choiceIdentifier))

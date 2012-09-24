@@ -43,7 +43,6 @@ object XmlValidator extends XmlValidator {
         XmlValidationResult(Some(List(ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber))))
       }
       case e: Exception => {
-        println(e.getMessage)
         XmlValidationResult(Some(List(ExceptionMessage("An unknown exception occurred"))))
       }
     }
