@@ -15,7 +15,8 @@ class ItemPlayerTest extends BaseTest {
   val itemWithFeedbackId = "505d839b763ebc84ac34d484"
 
   "works with test player example item" in {
-    val fakeGet = FakeRequest(GET, "/testplayer/item/%s?access_token=%s".format( "50083ba9e4b071cb5ef79101", token))
+    val call = controllers.testplayer.routes.ItemPlayer.renderItem("50083ba9e4b071cb5ef79101")
+    val fakeGet = FakeRequest(call.method, (call.url+"?access_token=%s").format(token))
     val getResult = routeAndCall(fakeGet).get
     status(getResult) must equalTo(OK)
   }
@@ -100,7 +101,9 @@ class ItemPlayerTest extends BaseTest {
   }
 
   private def getFeedbackFromItem(itemId: String): NodeSeq = {
-    val fakeGet = FakeRequest(GET, "/testplayer/item/%s?access_token=%s".format(itemId, token))
+
+    val call = controllers.testplayer.routes.ItemPlayer.renderItem(itemId)
+    val fakeGet = FakeRequest(call.method, (call.url+"?access_token=%s").format(token))
     val getResult = routeAndCall(fakeGet).get
     status(getResult) must equalTo(OK)
 
@@ -111,9 +114,9 @@ class ItemPlayerTest extends BaseTest {
 
 
   private def getFeedback(itemId: String, responseIdentifier: String, identifier: String): Set[Map[String, String]] = {
-    val fakeGet = FakeRequest(GET,
-      "/testplayer/item/%s/feedback/%s/%s?access_token=%s".format(
-        itemId, responseIdentifier, identifier, token))
+    val call = controllers.testplayer.routes.ItemPlayer.getFeedbackInline(itemId,responseIdentifier,identifier)
+    val fakeGet = FakeRequest(call.method,
+      (call.url + "?access_token=%s").format(token))
 
     val getResult = routeAndCall(fakeGet).get
     status(getResult) must equalTo(OK)

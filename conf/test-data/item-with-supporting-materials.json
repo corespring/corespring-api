@@ -3,7 +3,7 @@
         "$oid":"50083ba9e4b071cb5ef79101"
     },
     "data": {
-         "name":"data",
+         "name":"qti.xml",
          "files":[
              {
                  "_t" : "models.VirtualFile",

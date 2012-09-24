@@ -11,11 +11,13 @@ import com.mongodb.casbah.Imports._
 import api.processors.FeedbackProcessor._
 import play.api.Logger
 import controllers.Log
+import play.api.mvc.Action
+import common.controllers.ItemResources
 
 
 case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: Int = -1)
 
-object ItemPlayer extends BaseApi {
+object ItemPlayer extends BaseApi with ItemResources{
 
   val notFoundJson = Json.toJson(
     Map("error" -> "not found")
