@@ -56,6 +56,7 @@ object ItemPlayer extends BaseApi {
       case e: Exception =>
         // db or other problem?
         Log.e(e.getMessage)
+        e.printStackTrace()
         InternalServerError("ItemPlayer.renderItem: " + itemId + " printMode: " + printMode)
     }
 
@@ -64,7 +65,6 @@ object ItemPlayer extends BaseApi {
   val NamespaceRegex = """xmlns.*?=".*?"""".r
 
   /**
-   *
    * remove the namespaces - Note: this is necessary to support correct rendering in IE8
    * TODO - should we do this with xml processing?
    * @param xml

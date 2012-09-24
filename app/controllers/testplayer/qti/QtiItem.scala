@@ -1,6 +1,6 @@
 package controllers.testplayer.qti
 
-import scala.xml.Node
+import scala.xml.{NodeSeq, Node}
 import models.ItemResponse
 import controllers.Log
 import play.api.libs.json.{Json, JsObject}
@@ -19,8 +19,9 @@ class QtiItem(rootNode: Node) {
     optMap[String, Map[String, FeedbackElement]](
       (rootNode \\ "choiceInteraction").map(responseIdentifierNode => {
         ((responseIdentifierNode \ "@responseIdentifier").text ->
-          optMap[String, FeedbackElement]((responseIdentifierNode \\ "simpleChoice").map(simpleChoice => {
-            (simpleChoice \ "@identifier").text -> new FeedbackInline((simpleChoice \ "feedbackInline").head)
+          optMap[String, FeedbackElement]((responseIdentifierNode \\ "simpleChoice")
+            .filter(choice => {!(choice \ "feedbackInline").equals(NodeSeq.Empty)}).map(simpleChoice => {
+              (simpleChoice \ "@identifier").text -> new FeedbackInline((simpleChoice \ "feedbackInline").head)
           })).getOrElse(Map[String, FeedbackElement]()))
       })).getOrElse(Map[String, Map[String, FeedbackElement]]())
   }
@@ -71,7 +72,6 @@ class QtiItem(rootNode: Node) {
       feedback(responseIdentifier, choiceIdentifier.split(','))
     }
     else {
-      println("responseIdentifier: %s, choiceIdentifier: %s\n".format(responseIdentifier, choiceIdentifier) + getBasicFeedbackMatch(responseIdentifier, choiceIdentifier))
       List(
         List[Option[FeedbackElement]](getBasicFeedbackMatch(responseIdentifier, choiceIdentifier)).flatten,
         getFeedbackForResponse(processResponse(responseIdentifier, choiceIdentifier))

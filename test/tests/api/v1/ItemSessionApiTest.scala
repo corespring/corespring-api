@@ -155,8 +155,6 @@ class ItemSessionApiTest extends Specification {
         AnyContentAsJson(Json.toJson(testSession))
       )
 
-      println(testSession.itemId.toString)
-
       val optResult = routeAndCall(request)
       if (optResult.isDefined) {
         val json: JsValue = Json.parse(contentAsString(optResult.get))
