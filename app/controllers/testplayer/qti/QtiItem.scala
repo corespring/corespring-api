@@ -11,7 +11,6 @@ class QtiItem(rootNode: Node) {
   private val outcomeDeclarations = (rootNode \\ "outcomeDeclaration").map(new OutcomeDeclaration(_))
   private val feedbackInlines = (rootNode \\ "feedbackInline").map(new FeedbackInline(_))
   private val modalFeedbacks = (rootNode \\ "modalFeedback").map(new ModalFeedback(_))
-
   /**
    * Constructs a Map keyed by responseIdentifier and then by choice identifier to look up appropriate feedback element
    */
