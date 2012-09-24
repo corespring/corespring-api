@@ -1,21 +1,17 @@
 package api.v1
 
 import controllers.auth.{Permission, BaseApi}
-import play.api.Logger
-import api.{InvalidFieldException, ApiError, QueryHelper}
+import api.{ApiError, QueryHelper}
 import models._
 import com.mongodb.util.JSONParseException
 import org.bson.types.ObjectId
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import dao.SalatInsertError
-import dao.SalatInsertError
 import play.api.templates.Xml
 import play.api.mvc.Result
-import play.api.libs.json.{JsValue, Json}
-import com.typesafe.config.ConfigFactory
+import play.api.libs.json.Json
 import models.mongoContext._
-import controllers.JsonValidationException
 import scala.Left
 import scala.Some
 import scala.Right
@@ -33,10 +29,7 @@ object ItemApi extends BaseApi {
   val excludedFieldsByDefault = Some(MongoDBObject(
     Item.copyrightOwner -> 0,
     Item.credentials -> 0,
-    //Item.supportingMaterials -> 0,
-    //Item.keySkills -> 0,
     Item.contentType -> 0
-    //Item.data -> 0
   ))
 
   val dataField = MongoDBObject(Item.data -> 1, Item.collectionId -> 1)
@@ -217,8 +210,9 @@ object ItemApi extends BaseApi {
       }
     } else Forbidden
   }
-  def addFeedbackIds(i:Item) = {
-    i.data.map(resource => {
+
+  def addFeedbackIds(item: Item) = {
+    item.data.map(resource => {
       resource.files.find(file => {
         file match {
           case vf:VirtualFile => if(vf.isMain){
@@ -230,8 +224,9 @@ object ItemApi extends BaseApi {
       })
     })
   }
-  def removeFeedbackIds(i:Item) = {
-    i.data.map(resource => {
+
+  def removeFeedbackIds(item: Item) = {
+    item.data.map(resource => {
       resource.files.find(file => {
         file match {
           case vf:VirtualFile => if(vf.isMain){
@@ -243,6 +238,7 @@ object ItemApi extends BaseApi {
       })
     })
   }
+
   def getItemsInCollection(collId: ObjectId) = ApiAction { request =>
     NotImplemented
   }

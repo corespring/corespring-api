@@ -227,58 +227,31 @@ class ItemApiTest extends BaseTest {
     hasCsFeedbackIds must beTrue
   }
 
-  private def findFeedbackIds(xml:Elem, acc:Seq[(NodeSeq,Boolean)], levels:Int):Seq[(NodeSeq,Boolean)] = {
+  private def findFeedbackIds(xml:Elem, acc:Seq[(NodeSeq,Boolean)], levels: Int): Seq[(NodeSeq,Boolean)] = {
     var feedback:Seq[(NodeSeq,Boolean)] = acc
     val children = xml.child
     for (child <- children){
       val feedbackInline = child \ "feedbackInline"
-      if(feedbackInline.isEmpty){
+      if (feedbackInline.isEmpty) {
         child match {
           case innerXml:Elem => feedback = findFeedbackIds(innerXml,feedback,levels+1)
           case _ =>
         }
-      }else{
+      }
+      else {
         val feedbackInlines = feedbackInline.theSeq
-        for(feedbackNode <- feedbackInlines){
-          if((feedbackNode \ "@csFeedbackId").nonEmpty){
+        for (feedbackNode <- feedbackInlines) {
+          if ((feedbackNode \ "@csFeedbackId").nonEmpty) {
             feedback = feedback :+ (feedbackInline -> true)
-          }else feedback = feedback :+ (feedbackInline -> false)
+          }
+          else {
+            feedback = feedback :+ (feedbackInline -> false)
+          }
         }
       }
     }
     feedback
   }
-  /**
-   * Generates JSON request body for the API, with provided XML data in the appropriate field. Also adds in a set of
-   * top-level attributes that get added to the request.
-   */
-  private def xmlBody(xml: String, attributes: Map[String, String] = Map()): JsValue = {
-    Json.toJson(
-      attributes.iterator.foldLeft(
-        Map(
-        Item.data -> Json.toJson(
-          Map(
-            "name" -> JsString("qtiItem"),
-            "files" -> Json.toJson(
-              Seq(
-                Json.toJson(
-                  Map(
-                    "name" -> Json.toJson("xml"),
-                    "default" -> Json.toJson(false),
-                    "contentType" -> Json.toJson("text/xml"),
-                    "content" -> Json.toJson(xml)
-                  )
-                )
-              )
-            )
-          )
-        )
-      ))((map, entry) => map + ((entry._1, Json.toJson(entry._2))))
-    )
-  }
 
-  private def getXMLContentFromResponse(jsonResponse: String): Seq[String] = {
-    (Json.parse(jsonResponse) \ Item.data \ "files").asOpt[Seq[JsObject]].getOrElse(Seq()).map(file => { (file \ "content").toString })
-  }
 
 }

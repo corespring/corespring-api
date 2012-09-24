@@ -9,36 +9,42 @@ import controllers.auth.{Permission, BaseApi}
 import models.{VirtualFile, Content, Item}
 import com.mongodb.casbah.Imports._
 import api.processors.FeedbackProcessor._
+import play.api.Logger
+import controllers.Log
 
 
 case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: Int = -1)
 
 object ItemPlayer extends BaseApi {
 
+  val notFoundJson = Json.toJson(
+    Map("error" -> "not found")
+  )
+
   /**
    * Very simple QTI Item Renderer
    * @param itemId
    * @return
    */
-  def renderItem(itemId: String, printMode: Boolean) = ApiAction { request =>
-
+  def renderItem(itemId: String, printMode: Boolean = false) = ApiAction { request =>
     try {
       getItemXMLByObjectId(itemId,request.ctx.organization) match {
         case Some(xmlData: Elem) =>
           // extract and filter the itemBody element
-          val itemBody = filterFeedbackContent(xmlData \ "itemBody")
-          // Logger.info(itemBody.mkString)
+          val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlData \ "itemBody"))
 
           // parse the itemBody and determine what scripts should be included for the defined interactions
           val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
 
           val qtiXml = <assessmentItem cs:itemId={itemId} cs:feedbackEnabled="true">{itemBody}</assessmentItem>
 
+          val finalXml = removeNamespaces(qtiXml)
+
           // angular will render the itemBody client-side
-          Ok(views.html.testplayer.itemPlayer(itemId, scripts, qtiXml.mkString))
+          Ok(views.html.testplayer.itemPlayer(itemId, scripts, finalXml))
         case None =>
           // we found nothing
-          NotFound
+          NotFound(notFoundJson)
       }
     } catch {
       case e: SAXParseException =>
@@ -49,11 +55,22 @@ object ItemPlayer extends BaseApi {
         Ok(views.html.testplayer.itemPlayerError(errorInfo))
       case e: Exception =>
         // db or other problem?
-        //Log.e(e)
-        InternalServerError
+        Log.e(e.getMessage)
+        InternalServerError("ItemPlayer.renderItem: " + itemId + " printMode: " + printMode)
     }
 
   }
+
+  val NamespaceRegex = """xmlns.*?=".*?"""".r
+
+  /**
+   *
+   * remove the namespaces - Note: this is necessary to support correct rendering in IE8
+   * TODO - should we do this with xml processing?
+   * @param xml
+   * @return
+   */
+  private def removeNamespaces(xml: Elem): String =  NamespaceRegex.replaceAllIn(xml.mkString, "")
 
   def getFeedbackInline(itemId: String, responseIdentifier: String, choiceIdentifier: String) = ApiAction { request =>
     getItemXMLByObjectId(itemId, request.ctx.organization) match {
@@ -61,13 +78,13 @@ object ItemPlayer extends BaseApi {
         val item = new QtiItem(rootElement)
         val feedback: Seq[FeedbackElement] = item.feedback(responseIdentifier, choiceIdentifier)
         if (feedback.nonEmpty) {
-          Ok("{\"feedback\":" + Json.toJson(feedback).toString + "}")
+          Ok(Json.toJson(Map("feedback" -> Json.toJson(feedback))))
         } else {
-          NotFound("{\"error\": \"not found\"}")
+          NotFound(notFoundJson)
         }
       }
       case None => {
-        NotFound("{\"error\": \"not found\"}")
+        NotFound(notFoundJson)
       }
     }
   }
@@ -78,11 +95,11 @@ object ItemPlayer extends BaseApi {
    * @return
    */
   private def getItemXMLByObjectId(itemId: String, callerOrg: ObjectId): Option[Elem] = {
-    val dataField = MongoDBObject(Item.data -> 1, Item.collectionId -> 1)
-    Item.findOneById( new ObjectId(itemId)) match {
+    Item.findOneById(new ObjectId(itemId)) match {
       case Some(item) => {
         if( Content.isCollectionAuthorized(callerOrg,item.collectionId,Permission.All)){
          val dataResource = item.data.get
+
           dataResource.files.find( _.name == "qti.xml") match {
             case Some(qtiXml) => {
               Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
@@ -122,7 +139,7 @@ object ItemPlayer extends BaseApi {
     scripts ::= "<script src=\"http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js\"></script>"
 
     val orderInteractionScripts =  "<script src=\"/assets/js/corespring/qti/orderInteraction" + scriptSuffix + ".js\"></script>\n" +
-       "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/orderInteraction" + scriptSuffix + ".css\" />"
+      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/orderInteraction" + scriptSuffix + ".css\" />"
 
     val choiceInteractionScripts = "<script src=\"/assets/js/corespring/qti/choiceInteraction" +
       scriptSuffix + ".js\"></script>\n" +
@@ -139,6 +156,10 @@ object ItemPlayer extends BaseApi {
     val tabScripts = "<script src=\"/assets/js/corespring/qti/tabs" +
       scriptSuffix + ".js\"></script>\n" +
       "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/tabs" + scriptSuffix + ".css\" />"
+
+    val numberedLineScripts = "<script src=\"/assets/js/corespring/qti/numberedLines" +
+      scriptSuffix + ".js\"></script>\n" +
+      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/numberedLines" + scriptSuffix + ".css\" />"
 
     // map of elements and the scripts needed to process them
     // can't concatenate string in map value apparently, so using replace()
@@ -157,6 +178,9 @@ object ItemPlayer extends BaseApi {
         scripts ::= scriptString
       }
     }
+
+    scripts ::= numberedLineScripts
+
     // order matters so put them out in the chronological order we put them in
     scripts.reverse
   }

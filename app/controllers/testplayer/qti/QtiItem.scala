@@ -3,10 +3,9 @@ package controllers.testplayer.qti
 import scala.xml.Node
 import models.ItemResponse
 import controllers.Log
+import play.api.libs.json.{Json, JsObject}
 
 class QtiItem(rootNode: Node) {
-
-  val name = "test"
 
   private val responseDeclarations = (rootNode \\ "responseDeclaration").map(new ResponseDeclaration(_))
   private val outcomeDeclarations = (rootNode \\ "outcomeDeclaration").map(new OutcomeDeclaration(_))
@@ -20,8 +19,8 @@ class QtiItem(rootNode: Node) {
     optMap[String, Map[String, FeedbackElement]](
       (rootNode \\ "choiceInteraction").map(responseIdentifierNode => {
         ((responseIdentifierNode \ "@responseIdentifier").text ->
-          optMap[String, FeedbackElement]((responseIdentifierNode \\ "feedbackInline").map(feedbackNode => {
-            (feedbackNode \ "@identifier").text -> new FeedbackInline(feedbackNode)
+          optMap[String, FeedbackElement]((responseIdentifierNode \\ "simpleChoice").map(simpleChoice => {
+            (simpleChoice \ "@identifier").text -> new FeedbackInline((simpleChoice \ "feedbackInline").head)
           })).getOrElse(Map[String, FeedbackElement]()))
       })).getOrElse(Map[String, Map[String, FeedbackElement]]())
   }
@@ -56,12 +55,6 @@ class QtiItem(rootNode: Node) {
     response
   }
 
-  private def matchesSimple(responseIdentifier: String, choiceIdentifier: String): Option[FeedbackElement] =
-    responseForIdentifier(responseIdentifier).find(_.responseFor(choiceIdentifier) equals "1") match {
-      case Some(responseDeclaration) => getBasicFeedbackMatch(responseIdentifier, choiceIdentifier)
-      case None => None
-    }
-
   private def defaultOutcome: Map[String, String] =
     outcomeDeclarations.map(outcomeDeclaration => (outcomeDeclaration.identifier, outcomeDeclaration.value)).toMap
 
@@ -74,11 +67,11 @@ class QtiItem(rootNode: Node) {
   }
 
   def feedback(responseIdentifier: String, choiceIdentifier: String): Seq[FeedbackElement] = {
-    matchesSimple(responseIdentifier, choiceIdentifier)
     if (choiceIdentifier.contains(",")) {
       feedback(responseIdentifier, choiceIdentifier.split(','))
     }
     else {
+      println("responseIdentifier: %s, choiceIdentifier: %s\n".format(responseIdentifier, choiceIdentifier) + getBasicFeedbackMatch(responseIdentifier, choiceIdentifier))
       List(
         List[Option[FeedbackElement]](getBasicFeedbackMatch(responseIdentifier, choiceIdentifier)).flatten,
         getFeedbackForResponse(processResponse(responseIdentifier, choiceIdentifier))
@@ -90,44 +83,57 @@ class QtiItem(rootNode: Node) {
     getFeedbackForResponse(processResponse(responseIdentifier, choiceIdentifiers))
 
   private def getFeedbackForResponse(responses: Map[String, String]): Seq[FeedbackElement] = {
-    (feedbackInlines ++ modalFeedbacks).filter(
+    getAllFeedbackElements.filter(
       feedback =>
         responses.contains(feedback.outcomeIdentifier) &&
           (responses.getOrElse(feedback.outcomeIdentifier, "") equals feedback.identifier)
     )
   }
 
+  private def getAllFeedbackElements : Seq[FeedbackElement] = {
+    (feedbackInlines ++ modalFeedbacks)
+  }
+
+
+  def getAllFeedbackJson: String = {
+    Json.toJson(getAllFeedbackElements.foldLeft(Map[String, String]()){(map, feedback) => {
+      val json = Json.toJson(feedback)
+      (json \ "csFeedbackId").asOpt[String] match {
+        case Some(csFeedbackId) => {
+          map + (csFeedbackId -> (json \ "contents").asOpt[String].getOrElse(""))
+        }
+        case None => map
+      }
+    }}.filterKeys(!_.isEmpty)).toString
+  }
+
   def getBasicFeedbackMatch(responseIdentifier: String, identifier: String): Option[FeedbackElement] = {
     responseForIdentifier(responseIdentifier) match {
       case Some(responseDeclaration: ResponseDeclaration) => {
-        if (responseDeclaration.responseFor(identifier) equals "1") {
-          responseToFeedbackMap.get(responseIdentifier) match {
-            case Some(map) => {
-              map.get(identifier) match {
-                case Some(feedbackElement) => Some(feedbackElement)
-                case None => None
-              }
+        responseToFeedbackMap.get(responseIdentifier) match {
+          case Some(map) => {
+            map.get(identifier) match {
+              case Some(feedbackElement) => Some(feedbackElement)
+              case None => None
             }
-            case None => None
           }
+          case None => None
         }
-        else None
       }
       case None => None
     }
   }
 
-  // outcomeIdentifier = responses.[responseIdentifier].value
-  // identifier = parent choice identifier
-  def getOutcomeIdentifierForCsFeedbackId(csFeedbackId: String): Option[String] = {
-    responseToFeedbackMap.find({ case (responseIdentifier, choiceToFeedbackMap) => {
-        !choiceToFeedbackMap.find({ case (choiceIdentifier, feedbackElement) => {
-          feedbackElement.csFeedbackId equals csFeedbackId
-        }}).isEmpty
-      }}) match {
-      case Some((value, map)) => Some(value)
-      case None => None
-    }
+  // There must be a better FP way to do this
+  def getIdentifiersForCsFeedbackId(csFeedbackId: String): Option[(String, String)] = {
+    responseToFeedbackMap.foreach({ case (responseIdentifier, choiceToFeedbackMap) => {
+      choiceToFeedbackMap.foreach({ case (choiceIdentifier, feedbackElement) => {
+        if (feedbackElement.csFeedbackId equals csFeedbackId) {
+          return Some((responseIdentifier, choiceIdentifier))
+        }
+      }})
+    }})
+    None
   }
 
 

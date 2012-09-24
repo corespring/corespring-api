@@ -2,12 +2,12 @@ package api.processors
 
 import xml._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
-import play.api.libs.json.{JsObject, Json}
 import controllers.testplayer.qti.xml.{XmlValidationResult, XmlValidator}
 import controllers.testplayer.qti.xml.XmlValidationResult.success
 import controllers.testplayer.qti.xml.ExceptionMessage
 import scala.Some
 import controllers.testplayer.qti.QtiItem
+import play.api.Logger
 
 /**
  * Provides transformations on JSON strings to add/remove csFeedbackIds to feedback elements, as well as validation for
@@ -22,6 +22,7 @@ object FeedbackProcessor extends XmlValidator {
   }
 
   private val csFeedbackId = "csFeedbackId"
+  private val identifier = "identifier"
   private val outcomeIdentifier = "outcomeIdentifier"
 
   private val removeResponsesTransformer = new RuleTransformer(
@@ -29,14 +30,7 @@ object FeedbackProcessor extends XmlValidator {
       override def transform(n: Node): NodeSeq =
         n match {
           case e: Elem if (FEEDBACK_NODE_LABELS.contains(e.label)) =>
-            e.attribute("csFeedbackId") match {
-              case Some(id) => {
-                <a csFeedbackId={id}></a>.copy(label = e.label)
-              }
-              case None => {
-                  <a/>.copy(label = e.label)
-              }
-            }
+              <a/>.copy(attributes = e.attributes).copy(label = e.label)
           case n => n
         }
     })
@@ -47,43 +41,26 @@ object FeedbackProcessor extends XmlValidator {
   private val feedbackIdentifierRemoverRule = new RewriteRule {
 
     override def transform(node: Node): Seq[Node] = node match {
-      case elem: Elem if (FEEDBACK_NODE_LABELS.contains(elem.label)) => {
-        remove(elem, csFeedbackId)
-      }
+      case elem: Elem if (FEEDBACK_NODE_LABELS.contains(elem.label)) => remove(elem, csFeedbackId)
       case other => other
     }
 
-    // FIXME This breaks if that attribute doesn't exist
-    private def remove(n: Elem, key: String): Node = {
-      n.copy(attributes = n.attributes.filter(_.key != key))
-    }
-
+    private def remove(n: Elem, key: String): Node = n.copy(attributes = n.attributes.filter(_.key != key))
   }
 
   /**
    * Adds csFeedbackId attributes to all feedback elements
    */
-  def addFeedbackIds(qtixml: String): String = applyRewriteRuleToJson(qtixml, new FeedbackIdentifierInserter())
+  def addFeedbackIds(xml: NodeSeq): NodeSeq = applyRewriteRuleToXml(xml, new FeedbackIdentifierInserter())
+  def addFeedbackIds(xmlString: String): String = addFeedbackIds(XML.loadString(xmlString)).toString
 
   /**
    * Removes csFeedbackId attributes to all feedback elements
    */
-  def removeFeedbackIds(qtixml: String): String = applyRewriteRuleToJson(qtixml, feedbackIdentifierRemoverRule)
+  def removeFeedbackIds(qtiXml: String): String = applyRewriteRuleToXml(qtiXml, feedbackIdentifierRemoverRule)
 
-  def addOutcomeIdentifiers(jsonData: String): String = {
-    var newJsonData = jsonData
-    val files: Seq[JsObject] = (Json.parse(jsonData) \ "data" \ "files").asOpt[Seq[JsObject]].getOrElse(Seq())
-    files.foreach(file => {
-      (file \ "content").asOpt[String] match {
-        case Some(qtiXml) => {
-          val qtiItem = new QtiItem(XML.loadString(qtiXml))
-          val newQtiXml = new RuleTransformer(new FeedbackOutcomeIdentifierInserter(qtiItem)).transform(XML.loadString(qtiXml)).toString
-          println(newQtiXml)
-        }
-        case None => {}
-      }
-    })
-    newJsonData
+  def addOutcomeIdentifiers(qtiXml: NodeSeq): NodeSeq = {
+    applyRewriteRuleToXml(qtiXml, new FeedbackOutcomeIdentifierInserter(new QtiItem(qtiXml.head)))
   }
 
   def filterFeedbackContent(xml: NodeSeq) = removeResponsesTransformer.transform(xml)
@@ -102,16 +79,15 @@ object FeedbackProcessor extends XmlValidator {
   }
 
   /**
-   * Locates a data element in a JSON string, applies a provided RewriteRule to the XML representation of its
-   * data, and returns JSON string with the applied transformation.
-   *
-   * TODO: This can be more functional.
+   * Applies a provided RewriteRule to the XML representation of its data, and returns XML string with the applied
+   * transformation.
    */
-  private def applyRewriteRuleToJson(qtiXml: String, rewriteRule: RewriteRule): String =
-    new RuleTransformer(rewriteRule).transform(XML.loadString(qtiXml)).toString
+  private def applyRewriteRuleToXml(xml: NodeSeq, rewriteRule: RewriteRule): NodeSeq =
+    new RuleTransformer(rewriteRule).transform(xml)
 
-  // There's something in Play! JSON that does this already.
-  private def jsonEncode(xml: String): String = xml.replaceAll("\"", "\\\\\"").replaceAll("\n", "\\\\n")
+  private def applyRewriteRuleToXml(xmlString: String, rewriteRule: RewriteRule): String =
+    applyRewriteRuleToXml(XML.loadString(xmlString), rewriteRule).toString
+
 
   /**
    * Adds an incrementing csFeedbackId attribute to each <feedbackInline> element.
@@ -144,19 +120,15 @@ object FeedbackProcessor extends XmlValidator {
 
     override def transform(node: Node): Seq[Node] = node match {
       case elem: Elem => {
-        if ((elem.label equals FEEDBACK_INLINE) && (elem \ "@outcomeIdentifier").isEmpty) {
-          elem.attribute("csFeedbackId") match {
-            case Some(id) => {
-              qtiItem.getOutcomeIdentifierForCsFeedbackId(id.toString) match {
-                case Some(outcomeIdentifier) => {
-                  elem % Attribute(None, FeedbackProcessor.outcomeIdentifier, Text("responses.%s.value".format(outcomeIdentifier)), Null)
-                }
+        if (elem.label equals FEEDBACK_INLINE) {
+          elem.attribute(FeedbackProcessor.csFeedbackId) match {
+            case Some(csFeedbackId) => {
+              qtiItem.getIdentifiersForCsFeedbackId(csFeedbackId.toString) match {
+                case Some(identifiers) => addIdentifiersToElem(elem, identifiers._1, identifiers._2)
                 case None => elem
               }
             }
-            case None => {
-              elem
-            }
+            case None => elem
           }
         }
         else {
@@ -166,6 +138,16 @@ object FeedbackProcessor extends XmlValidator {
       case other => other
     }
 
+    private def addIdentifiersToElem(elem: Elem, outcomeIdentifier: String, identifier: String): Elem = {
+      var elementWithIdentifiers = elem
+      if ((elem \ "@identifier").isEmpty) {
+        elementWithIdentifiers = elementWithIdentifiers % Attribute(None, FeedbackProcessor.identifier, Text(identifier), Null)
+      }
+      if ((elem \ "@outcomeIdentifier").isEmpty) {
+        elementWithIdentifiers = elementWithIdentifiers % Attribute(None, FeedbackProcessor.outcomeIdentifier, Text("responses.%s.value".format(outcomeIdentifier)), Null)
+      }
+      elementWithIdentifiers
+    }
   }
 
 }
