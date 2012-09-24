@@ -98,11 +98,13 @@ object ItemPlayer extends BaseApi {
   private def getItemXMLByObjectId(itemId: String, callerOrg: ObjectId): Option[Elem] = {
     Item.findOneById(new ObjectId(itemId)) match {
       case Some(item) => {
-        if (Content.isCollectionAuthorized(callerOrg, item.collectionId, Permission.All)) {
-          val dataResource = item.data.get
+        if( Content.isCollectionAuthorized(callerOrg,item.collectionId,Permission.All)){
+         val dataResource = item.data.get
+
           dataResource.files.find( _.name == "qti.xml") match {
             case Some(qtiXml) => {
-              Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
+              return        Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
+
             }
             case _ => None
           }
@@ -157,6 +159,10 @@ object ItemPlayer extends BaseApi {
       scriptSuffix + ".js\"></script>\n" +
       "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/tabs" + scriptSuffix + ".css\" />"
 
+    val numberedLineScripts = "<script src=\"/assets/js/corespring/qti/numberedLines" +
+      scriptSuffix + ".js\"></script>\n" +
+      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/numberedLines" + scriptSuffix + ".css\" />"
+
     // map of elements and the scripts needed to process them
     // can't concatenate string in map value apparently, so using replace()
     val elementScriptsMap = Map (
@@ -174,6 +180,9 @@ object ItemPlayer extends BaseApi {
         scripts ::= scriptString
       }
     }
+
+    scripts ::= numberedLineScripts
+
     // order matters so put them out in the chronological order we put them in
     scripts.reverse
   }
