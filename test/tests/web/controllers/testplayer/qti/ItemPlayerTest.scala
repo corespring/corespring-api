@@ -14,6 +14,12 @@ class ItemPlayerTest extends BaseTest {
 
   val itemWithFeedbackId = "505d839b763ebc84ac34d484"
 
+  "works with test player example item" in {
+    val fakeGet = FakeRequest(GET, "/testplayer/item/%s?access_token=%s".format( "50083ba9e4b071cb5ef79101", token))
+    val getResult = routeAndCall(fakeGet).get
+    status(getResult) must equalTo(OK)
+  }
+
   "add outcomeidentifier and identifier to feedback elements defined within choices" in {
     pending
     getFeedbackFromItem(itemWithNoIdentifiersId).foreach(feedbackInline => {

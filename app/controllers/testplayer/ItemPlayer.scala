@@ -10,6 +10,7 @@ import models.{VirtualFile, Content, Item}
 import com.mongodb.casbah.Imports._
 import api.processors.FeedbackProcessor._
 import play.api.Logger
+import controllers.Log
 
 
 case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: Int = -1)
@@ -25,7 +26,7 @@ object ItemPlayer extends BaseApi {
    * @param itemId
    * @return
    */
-  def renderItem(itemId: String, printMode: Boolean) = ApiAction { request =>
+  def renderItem(itemId: String, printMode: Boolean = false) = ApiAction { request =>
     try {
       getItemXMLByObjectId(itemId,request.ctx.organization) match {
         case Some(xmlData: Elem) =>
@@ -55,8 +56,8 @@ object ItemPlayer extends BaseApi {
         Ok(views.html.testplayer.itemPlayerError(errorInfo))
       case e: Exception =>
         // db or other problem?
-        //Log.e(e)
-        InternalServerError
+        Log.e(e.getMessage)
+        InternalServerError("ItemPlayer.renderItem: " + itemId + " printMode: " + printMode)
     }
 
   }
