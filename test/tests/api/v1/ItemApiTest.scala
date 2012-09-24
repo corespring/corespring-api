@@ -227,17 +227,6 @@ class ItemApiTest extends BaseTest {
     hasCsFeedbackIds must beTrue
   }
 
-
-  "add outcomeidentifier and identifier to feedback elements defined within choices" in {
-
-    /**
-     *  @see https://trello.com/card/add-outcomeidentifier-and-identifier-to-feedback-elements-defined-within-choices/500f0e4cf207c721072011c1/90
-     *
-     *  For now This should happen when the xml is being sent to the test player
-     */
-
-    pending
-  }
   private def findFeedbackIds(xml:Elem, acc:Seq[(NodeSeq,Boolean)], levels:Int):Seq[(NodeSeq,Boolean)] = {
     var feedback:Seq[(NodeSeq,Boolean)] = acc
     val children = xml.child
