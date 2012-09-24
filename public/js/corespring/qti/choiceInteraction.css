@@ -76,6 +76,6 @@ simplechoice.ng-scope{
 	background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
 }
 .correct-response .choice-content .ng-scope:first-child + .ng-scope span{
-	background:url(/images/correct-icon.png) no-repeat 0 50%;
+	background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
 }
 
