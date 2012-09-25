@@ -138,36 +138,24 @@ object ItemPlayer extends BaseApi with ItemResources{
     def script( url : String ) : String =  """<script type="text/javascript" src="%s"></script>""".format(url)
 
     def createScripts( name : String ) : String = {
-      Seq(
-        script( PATH + name + scriptSuffix + ".js"),
-        css( PATH + name + scriptSuffix + ".css") ).mkString("\n")
-    }
+      Seq( script( PATH + name + scriptSuffix + ".js"), css( PATH + name + scriptSuffix + ".css") ).mkString("\n") }
 
     // base css to include for all QTI items
     //scripts ::= "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/qti-base.css\" />"
-    scripts ::= css("//bytebureau.com/styles.css")
-    scripts ::= css( PATH + "qti-base-overrides.css")
     // TODO - dropping jquery in for all right now, but this needs to be only dropped in if required by interactions
     scripts ::= script("//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js")
     scripts ::= script("//ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js")
-
-    val orderInteractionScripts =  createScripts("orderInteraction")
-    val choiceInteractionScripts = createScripts("choiceInteraction")
-    val textEntryInteractionScripts = createScripts("textEntryIntercation")
-    val extendedTextInteractionScripts = createScripts("extendedTextInteraction")
-    val tabScripts = createScripts("tabs")
-    val numberedLineScripts = createScripts("numberedLines")
 
 
     // map of elements and the scripts needed to process them
     // can't concatenate string in map value apparently, so using replace()
     val elementScriptsMap = Map (
-      "choiceInteraction" -> choiceInteractionScripts,
-      "orderInteraction" -> orderInteractionScripts,
-      "textEntryInteraction" -> textEntryInteractionScripts,
-      "extendedTextInteraction" -> extendedTextInteractionScripts,
-      "tabs" -> tabScripts,
-      "math" -> "<script type=\"text/javascript\" src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"></script>"
+      "choiceInteraction" -> createScripts("choiceInteraction"),
+      "orderInteraction" -> createScripts("orderInteraction"),
+      "textEntryInteraction" -> createScripts("textEntryInteraction"),
+      "extendedTextInteraction" -> createScripts("extendedTextInteraction"),
+      "tabs" -> createScripts("tabs"),
+      "math" -> script("http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")
     )
 
     // iterate through the script map
@@ -177,8 +165,10 @@ object ItemPlayer extends BaseApi with ItemResources{
       }
     }
 
-    scripts ::= numberedLineScripts
+    scripts ::= createScripts("numberedLines")
 
+    scripts ::= css("//bytebureau.com/styles.css")
+    scripts ::= css( PATH + "qti-base-overrides.css")
     // order matters so put them out in the chronological order we put them in
     scripts.reverse
   }
