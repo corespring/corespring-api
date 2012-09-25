@@ -245,6 +245,16 @@ class QtiItemSpec extends Specification {
      */
 
 
+    "add outcomeidentifier and identifier to feedback elements defined within choices" in {
+
+      /**
+       *  @see https://trello.com/card/add-outcomeidentifier-and-identifier-to-feedback-elements-defined-within-choices/500f0e4cf207c721072011c1/90
+       *
+       *  For now This should happen when the xml is being sent to the test player
+       */
+
+      pending
+    }
     "return a json object with all feedback accessible by csFeedbackId" in {
       val result = item.getAllFeedbackJson
       println(result)

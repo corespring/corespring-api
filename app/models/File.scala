@@ -86,10 +86,10 @@ object BaseFile {
 case class VirtualFile(override val name: String, override val contentType: String, override val isMain: Boolean = false, var content: String) extends BaseFile(name, contentType, isMain)
 
 object VirtualFile {
-
+  val content = "content"
   implicit object VirtualFileWrites extends Writes[VirtualFile] {
     def writes(f: VirtualFile): JsValue = {
-      BaseFile.toJson(f) ++ JsObject(Seq("content" -> JsString(f.content)))
+      BaseFile.toJson(f) ++ JsObject(Seq(content -> JsString(f.content)))
     }
   }
 

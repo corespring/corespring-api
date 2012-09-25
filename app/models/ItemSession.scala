@@ -15,6 +15,8 @@ import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
 import play.api.Play
 import play.api.Play.current
 import akka.actor.FSM.->
+import scala.xml._
+import controllers.testplayer.qti.QtiItem
 
 
 /**
@@ -26,7 +28,7 @@ case class ItemSession (var itemId: ObjectId,
                         var responses: Seq[ItemResponse] = Seq(),
                         var id: ObjectId = new ObjectId(),
                         var data: Option[Map[String, Map[String, String]]] = None
-                       ) extends Identifiable{
+                         ) extends Identifiable{
 
   def sessionData: Option[Map[String, Map[String, String]]] = data
 
@@ -35,7 +37,6 @@ case class ItemSession (var itemId: ObjectId,
   }
 
 }
-
 
 /**
  * Companion object for ItemSession.
@@ -83,10 +84,25 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
       case e:SalatDAOUpdateError => Left(InternalError("error updating item session: "+e.getMessage,LogType.printFatal))
     }
   }
-  def retrieveFeedback(itemId:ObjectId, csFeedbackId: String) = {
+  private def getSessionData(itemId:ObjectId, responses:Seq[ItemResponse]):Either[InternalError,SessionData] = {
+    val sessionData = SessionData()
+    Item.findOneById(itemId) match {
+      case Some(item) => item.data match {
+        case Some(resource) => resource.files.find(file => file.isMain) match {
+          case vf:VirtualFile => {
+            val qti = XML.loadString(vf.content)
+            responses.foreach(response => {
 
+            })
+          }
+          case _ => Left(InternalError("main file is not a virtual file. cannot extract qti information",LogType.printWarning))
+        }
+        case None => Left(InternalError("item was found but did not include any data associated with it",LogType.printFatal,true))
+      }
+      case None => Left(InternalError("item not found",addMessageToClientOutput = true))
+    }
+    Left(InternalError("not implemented"))
   }
-
 
   /**
    * Json Serializer
@@ -100,7 +116,7 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
             responses -> Json.toJson(session.responses)
           )
           if (session.sessionData.isDefined) {
-            seq = seq :+ (sessionData -> Json.toJson(session.sessionData.getOrElse(Map())))
+            seq = seq :+ (sessionData -> Json.toJson(session.sessionData))
           }
           if (session.finish.isDefined) {
             seq = seq :+ (finish -> JsNumber(session.finish.get.getMillis))
