@@ -130,7 +130,10 @@ qtiDirectives.directive("sortable", function() {
                         liItem.ord = index;
                         items.push(liItem);
                     });
-                    scope.orderedList  = items;
+
+                    scope.$apply(function(){
+                        scope.orderedList  = items;
+                    });
                     //scope.$apply();
 
                 },

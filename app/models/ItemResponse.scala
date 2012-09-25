@@ -27,7 +27,7 @@ object ItemResponse {
    val id = "id"
    val outcome = "outcome"
 
-   private val Delimiter = "_item_response_delimiter_"
+   private val Delimiter = " _item_response_delimiter_ "
 
   implicit object ItemResponseWrites extends Writes[ItemResponse] {
     def writes(response: ItemResponse) = {
