@@ -85,7 +85,6 @@ GET     /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.
 # Item Rendering
 GET    /testplayer/item/:itemId/run                 controllers.testplayer.ItemPlayer.renderItem(itemId, printMode: Boolean ?= false)
 GET    /testplayer/item/:itemId/:filename           controllers.testplayer.ItemPlayer.getDataFile(itemId, filename)
-#GET    /testplayer/item/:itemId                     controllers.testplayer.ItemPlayer.renderItem(itemId, printMode: Boolean ?= false)
 GET    /testplayer/item/:itemId/feedback/:responseIdentifier/:identifier  controllers.testplayer.ItemPlayer.getFeedbackInline(itemId, responseIdentifier, identifier)
 
 # Example content
