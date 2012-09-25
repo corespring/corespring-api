@@ -30,10 +30,7 @@
 	"subjects" : {
 		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2c2" }
 	},
-	"standards" : [
-		{ "$oid" : "4ff47f6e6bb41e469c0beaf1" },
-		{ "$oid" : "4ff47f6e6bb41e469c0beb00" }
-	],
+	"standards" : [ ],
 	"itemType" : "Constructed Response - Short Answer",
 	"contributorDetails" : {
 		"contributor" : "New England Common Assessment Program",
@@ -44,8 +41,7 @@
 		"costForResource" : null,
 		"copyright" : {
 			"owner" : "New England Common Assessment Program",
-			"year" : "2009",
-            "imageName" : "nysed.png"
+			"year" : "2009"
 		}
 	},
 	"workflow" : {
@@ -67,7 +63,7 @@
 	"priorUse" : "Summative",
 	"title" : "Greg wants to buy a computer chess game with a regular price of $40. A hobby shop sells the computer chess game at a discounted price of 30% off the regular price. Answer questions about the discounted and regular prices of the chess game.",
 	"gradeLevel" : [
-		"07"
+		"11"
 	],
 	"reviewsPassed" : [
 		"Editorial",
