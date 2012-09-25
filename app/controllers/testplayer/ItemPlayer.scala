@@ -128,40 +128,36 @@ object ItemPlayer extends BaseApi with ItemResources{
     //        <print>
     // (also need to support minifying/obfuscating)
 
-    // base css to include for all QTI items
-    scripts ::= "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/qti-base.css\" />"
-
 
     // suffix to append for loading print-mode scripts
     val scriptSuffix = if (isPrintMode) "-print" else ""
 
+    val PATH : String = "/assets/js/corespring/qti/"
 
+    def css( url : String ) : String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
+    def script( url : String ) : String =  """<script type="text/javascript" src="%s"></script>""".format(url)
+
+    def createScripts( name : String ) : String = {
+      Seq(
+        script( PATH + name + scriptSuffix + ".js"),
+        css( PATH + name + scriptSuffix + ".css") ).mkString("\n")
+    }
+
+    // base css to include for all QTI items
+    //scripts ::= "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/qti-base.css\" />"
+    scripts ::= css("//bytebureau.com/styles.css")
+    scripts ::= css( PATH + "qti-base-overrides.css")
     // TODO - dropping jquery in for all right now, but this needs to be only dropped in if required by interactions
-    scripts ::= "<script src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js\"></script>"
-    scripts ::= "<script src=\"http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js\"></script>"
+    scripts ::= script("//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js")
+    scripts ::= script("//ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js")
 
-    val orderInteractionScripts =  "<script src=\"/assets/js/corespring/qti/orderInteraction" + scriptSuffix + ".js\"></script>\n" +
-      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/orderInteraction" + scriptSuffix + ".css\" />"
+    val orderInteractionScripts =  createScripts("orderInteraction")
+    val choiceInteractionScripts = createScripts("choiceInteraction")
+    val textEntryInteractionScripts = createScripts("textEntryIntercation")
+    val extendedTextInteractionScripts = createScripts("extendedTextInteraction")
+    val tabScripts = createScripts("tabs")
+    val numberedLineScripts = createScripts("numberedLines")
 
-    val choiceInteractionScripts = "<script src=\"/assets/js/corespring/qti/choiceInteraction" +
-      scriptSuffix + ".js\"></script>\n" +
-      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/choiceInteraction" + scriptSuffix + ".css\" />"
-
-    val textEntryInteractionScripts = "<script src=\"/assets/js/corespring/qti/textEntryInteraction" +
-      scriptSuffix + ".js\"></script>\n" +
-      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/textEntryInteraction" + scriptSuffix + ".css\" />"
-
-    val extendedTextInteractionScripts = "<script src=\"/assets/js/corespring/qti/extendedTextInteraction" +
-      scriptSuffix + ".js\"></script>\n" +
-      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/extendedTextInteraction" + scriptSuffix + ".css\" />"
-
-    val tabScripts = "<script src=\"/assets/js/corespring/qti/tabs" +
-      scriptSuffix + ".js\"></script>\n" +
-      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/tabs" + scriptSuffix + ".css\" />"
-
-    val numberedLineScripts = "<script src=\"/assets/js/corespring/qti/numberedLines" +
-      scriptSuffix + ".js\"></script>\n" +
-      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/numberedLines" + scriptSuffix + ".css\" />"
 
     // map of elements and the scripts needed to process them
     // can't concatenate string in map value apparently, so using replace()
