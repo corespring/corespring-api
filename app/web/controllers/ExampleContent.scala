@@ -27,7 +27,7 @@ object ExampleContent extends Controller {
           val out = new BasicDBObject()
           out.put("title", 1)
           Item.find(itemSearch, out) match {
-            case cursor: SalatMongoCursor[Item] => {
+            case cursor: SalatMongoCursor[_] => {
               Ok(Json.toJson(cursor.toList))
             }
             case _ => NotFound
