@@ -51,6 +51,7 @@ case class Item(var collectionId: String = "",
                 var data: Option[Resource] = None,
                 var relatedCurriculum: Option[String] = None,
                 var demonstratedKnowledge : Option[String] = None,
+                var bloomsTaxonomy : Option[String] = None,
                 var supportingMaterials: Seq[Resource] = Seq(),
                 var id: ObjectId = new ObjectId()) extends Content {
 }
@@ -94,6 +95,7 @@ object Item extends DBQueryable[Item] {
   val lexile = "lexile"
   val data = "data"
   val supportingMaterials = "supportingMaterials"
+  val bloomsTaxonomy = "bloomsTaxonomy"
 
   lazy val fieldValues = FieldValue.findOne(MongoDBObject(FieldValue.Version -> FieldValuesVersion)).getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
 
@@ -133,6 +135,8 @@ object Item extends DBQueryable[Item] {
       iseq = iseq :+ (contentType -> JsString(ContentType.item))
       item.pValue.foreach(v => iseq = iseq :+ (pValue -> JsString(v)))
       item.relatedCurriculum.foreach(v => iseq = iseq :+ (relatedCurriculum -> JsString(v)))
+
+      item.bloomsTaxonomy.foreach(v => iseq = iseq :+ (bloomsTaxonomy -> JsString(v)))
 
       if (!item.supportingMaterials.isEmpty) iseq = iseq :+ (supportingMaterials -> JsArray(item.supportingMaterials.map(Json.toJson(_))))
       if (!item.gradeLevel.isEmpty) iseq = iseq :+ (gradeLevel -> JsArray(item.gradeLevel.map(JsString(_))))
@@ -184,7 +188,7 @@ object Item extends DBQueryable[Item] {
       item.lexile = (json \ lexile).asOpt[String]
       
       item.demonstratedKnowledge = getValidatedValue(fieldValues.demonstratedKnowledge)(json, demonstratedKnowledge)
-
+      item.bloomsTaxonomy = getValidatedValue(fieldValues.bloomsTaxonomy)(json, bloomsTaxonomy)
       item.pValue = (json \ pValue).asOpt[String]
       item.relatedCurriculum = (json \ relatedCurriculum).asOpt[String]
 

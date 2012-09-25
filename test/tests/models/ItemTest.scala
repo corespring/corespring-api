@@ -11,13 +11,19 @@ class ItemTest extends BaseTest {
   "item" should {
 
     "general parse" in {
-      val item = Item(demonstratedKnowledge = Some("Factual"))
+      val item = Item(demonstratedKnowledge = Some("Factual"),
+        bloomsTaxonomy = Some("Apply")
+      )
+
       val json = Json.toJson(item)
 
       (json\ Item.demonstratedKnowledge).asOpt[String] must equalTo(Some("Factual"))
+      (json\ Item.bloomsTaxonomy).asOpt[String] must equalTo(Some("Apply"))
 
       val parsed = json.as[Item]
+
       parsed.demonstratedKnowledge must equalTo(Some("Factual"))
+      parsed.bloomsTaxonomy must equalTo(Some("Apply"))
     }
 
     "parse itemType" in {
