@@ -6,22 +6,45 @@ qtiServices
     .factory('InlineFeedback', ['$resource', function ($resource) {
     return $resource (
         '/testplayer/item/:itemId/feedback' + '/:responseIdentifier/:identifier',
-        {}
-        ,
-        {'get':  {method:'GET', isArray: false} }
+        {},
+        {   get:
+                {method:'GET', isArray: false},
+            save:
+                {method: 'PUT'}
+        }
     );
 
 }]
 );
 
+//The session service
+qtiServices.factory('AssessmentSessionService', ['$resource', function($resource){
+
+    return $resource (
+        '/api/v1/items/:itemId/sessions/:sessionId',
+        {},
+        { get:  {method:'GET', isArray: false},
+          save: {method: 'PUT'}
+        }
+    );
+}]);
+
+
 /**
- *
  * Mock Resource Service
  * When the item player loads it will be given an itemSessionId of a session that was already
  * created, it will load those properties by calling the get() method
- */
 qtiServices
     .factory('AssessmentSessionService', ['$resource', function ($resource) {
+
+    return $resource (
+        '/api/v1/items/:itemId/sessions/:sessionId',
+        {},
+        { get:  {method:'GET', isArray: false}
+        }
+    );
+
+
     var AssessmentSessionService = {};
 
     // create a mock session
@@ -89,6 +112,7 @@ qtiServices
 
 }]
 );
+*/
 
 qtiServices
     .factory('QtiUtils', function () {

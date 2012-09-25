@@ -6,7 +6,7 @@ import xml.{Elem, NodeSeq}
 import play.api.libs.json.Json
 import org.bson.types.ObjectId
 import controllers.auth.{Permission, BaseApi}
-import models.{VirtualFile, Content, Item}
+import models.{ItemSession, VirtualFile, Content, Item}
 import com.mongodb.casbah.Imports._
 import api.processors.FeedbackProcessor._
 import play.api.Logger
@@ -38,7 +38,11 @@ object ItemPlayer extends BaseApi with ItemResources{
           // parse the itemBody and determine what scripts should be included for the defined interactions
           val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
 
-          val qtiXml = <assessmentItem cs:itemId={itemId} cs:feedbackEnabled="true">{itemBody}</assessmentItem>
+          //Begin a new ItemSession
+          val session : ItemSession = ItemSession( itemId = new ObjectId(itemId) )
+          ItemSession.save(session, ItemSession.collection.writeConcern)
+
+          val qtiXml = <assessmentItem cs:itemId={itemId} cs:itemSessionId={session.id.toString} cs:feedbackEnabled="true">{itemBody}</assessmentItem>
 
           val finalXml = removeNamespaces(qtiXml)
 

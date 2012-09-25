@@ -1,12 +1,10 @@
 var qtiServices = angular.module('qti.services', ['ngResource']);
-var qtiDirectives = angular.module('qti.directives', ['qti.services']).config(['$locationProvider', function($locationProvider) {
-    $locationProvider.html5Mode(false);
-}]);
+var qtiDirectives = angular.module('qti.directives', ['qti.services']);
 var app = angular.module('qti', ['qti.directives','qti.services']);
 
 
 // base directive include for all QTI items
-qtiDirectives.directive('assessmentitem', function(AssessmentSessionService, $location) {
+qtiDirectives.directive('assessmentitem', function(AssessmentSessionService) {
     return {
         restrict: 'E',
         controller: function($scope, $element, $attrs) {
@@ -17,29 +15,24 @@ qtiDirectives.directive('assessmentitem', function(AssessmentSessionService, $lo
             var itemId = $attrs.csItemid; // cs:itemId
             var itemSessionId = $attrs.csItemsessionid; // cs:itemId
 
+            var apiCallParams = {
+                itemId: itemId,
+                sessionId: itemSessionId,
+                access_token: "34dj45a769j4e1c0h4wb"
+            };
+
             // get item session - parameters for session behavior will be defined there
             // TODO it is an error if there is no session found
-            scope.itemSession = AssessmentSessionService.get({id: itemSessionId});
-
+            scope.itemSession = AssessmentSessionService.get( apiCallParams );
 
             var feedbackEnabled = scope.itemSession.feedbackEnabled;
             if (feedbackEnabled == undefined) feedbackEnabled = false;
-
-            // let query string override feedback property
-            // TODO - perhaps only enable this in 'development' mode (which would be an attr param)
-            var feedbackParam = $location.search().enableFeedback;
-            if (feedbackParam && (feedbackParam == 'true' || feedbackParam == 'false' )) {
-                feedbackEnabled = feedbackParam;
-            }
-
 
             scope.status = 'ACTIVE';
 
             scope.itemSession.start = new Date().getTime(); // millis since epoch (maybe this should be set in an onload event?)
 
-
-
-            scope.responses = {};
+            scope.responses = [];
 
             // sets a response for a given question/interaction
             this.setResponse = function(key, responseValue) {
@@ -49,7 +42,7 @@ qtiDirectives.directive('assessmentitem', function(AssessmentSessionService, $lo
             this.submitResponses = function() {
                 scope.itemSession.responses = scope.responses;
                 scope.itemSession.finish = new Date().getTime();
-                scope.itemSession = AssessmentSessionService.update(scope.itemSession);
+                scope.itemSession = AssessmentSessionService.save( apiCallParams, scope.itemSession);
                 scope.status = 'SUBMITTED';
                 scope.formDisabled = true;
             };
