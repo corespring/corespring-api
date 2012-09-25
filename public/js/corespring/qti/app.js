@@ -36,8 +36,29 @@ qtiDirectives.directive('assessmentitem', function(AssessmentSessionService) {
 
             // sets a response for a given question/interaction
             this.setResponse = function(key, responseValue) {
-                scope.responses[key] = {value:responseValue};
+
+                var itemResponse = this.findItemByKey(key);
+                //if its null - create it
+
+                if(!itemResponse) {
+                    itemResponse = (itemResponse || { id : key });
+                    scope.responses.push(itemResponse);
+                }
+
+                itemResponse.value = responseValue;
             };
+
+            this.findItemByKey = function(key){
+                for(var i = 0; i < scope.responses.length ; i++){
+                    if( scope.responses[i] && scope.responses[i].id == key ){
+                        return scope.responses[i];
+                    }
+                }
+
+
+                return null;
+            };
+
             // this is the function that submits the user responses and gets the outcomes
             this.submitResponses = function() {
                 scope.itemSession.responses = scope.responses;
