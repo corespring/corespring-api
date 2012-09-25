@@ -27,8 +27,16 @@ case class ItemSession (var itemId: ObjectId,
                         var finish: Option[DateTime] = None,
                         var responses: Seq[ItemResponse] = Seq(),
                         var id: ObjectId = new ObjectId(),
-                        var sessionData: Option[SessionData] = None
-                       ) extends Identifiable
+                        var data: Option[Map[String, Map[String, String]]] = None
+                         ) extends Identifiable{
+
+  def sessionData: Option[Map[String, Map[String, String]]] = data
+
+  def sessionData(sessionData: Map[String, Map[String, String]]): ItemSession = {
+    copy(itemId, start, finish, responses, id, Some(sessionData))
+  }
+
+}
 
 /**
  * Companion object for ItemSession.
@@ -93,6 +101,7 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
       }
       case None => Left(InternalError("item not found",addMessageToClientOutput = true))
     }
+    Left(InternalError("not implemented"))
   }
 
   /**

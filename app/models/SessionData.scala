@@ -1,9 +1,7 @@
 package models
 
 import play.api.libs.json._
-import models.CorrectResponseMultiple
 import play.api.libs.json.JsString
-import models.CorrectResponseSingle
 import scala.xml._
 
 
@@ -25,40 +23,69 @@ import scala.xml._
  * @param feedbackContents map of csFeedbackId's to outcome value's
  * @param correctResponses array of CorrectResponse objects, representing the mapping of response identifier's to correct response
  */
-case class SessionData(var feedbackContents:Map[String,String] = Map(), var correctResponses: CorrectResponses = CorrectResponses())
+case class SessionData()
 object SessionData{
   val feedbackContents = "feedbackContents"
   val correctResponses = "correctResponses"
   implicit object SessionDataWrites extends Writes[SessionData]{
     def writes(sd: SessionData) = {
       JsObject(Seq(
-        feedbackContents -> Json.toJson(sd.feedbackContents),
-        correctResponses -> Json.toJson(sd.correctResponses)
       ))
     }
   }
-  def apply(elem:Elem):SessionData = {
-    val
-  }
+
 }
+package bleezmo {
 /*******************move this to qti item somehow*******************/
+case class QtiItem(responseDeclarations:Seq[ResponseDeclaration],itemBody:ItemBody)
 case class ResponseDeclaration(identifier:String, cardinality:String,correctResponse:CorrectResponse)
 object ResponseDeclaration{
-
+  def apply(node:Node):ResponseDeclaration = ResponseDeclaration(
+    (node \ "@identifier").text,
+    (node \ "@cardinality").text,
+    CorrectResponse((node \ "correctResponse").head,(node \ "@cardinality").text)
+  )
+}
+trait CorrectResponse
+object CorrectResponse{
+  def apply(node:Node,cardinality:String):CorrectResponse = {
+    cardinality match {
+      case "single" => CorrectResponseSingle(node)
+      case "multiple" => CorrectResponseMultiple(node)
+      case _ => throw new RuntimeException("unknown cardinality. cannot generate CorrectResponse")
+    }
+  }
+}
+case class CorrectResponseSingle(value: String) extends CorrectResponse
+object CorrectResponseSingle{
+  def apply(node:Node):CorrectResponseSingle = CorrectResponseSingle(
+    (node \ "value").text
+  )
+}
+case class CorrectResponseMultiple(value: Seq[String]) extends CorrectResponse
+object CorrectResponseMultiple{
+  def apply(node:Node):CorrectResponseMultiple = CorrectResponseMultiple(
+    (node \ "value").map(_.text)
+  )
+}
+case class ItemBody(interactions:Seq[Interaction])
+object ItemBody{
+  def apply(node:Node):ItemBody = {
+    var interactions:Seq[Interaction] = Seq()
+    node.foreach(inner => if (inner.label contains "Interaction") {
+      interactions = interactions :+ Interaction(inner)
+    })
+    ItemBody(interactions)
+  }
 }
 trait Interaction{
   val identifier:String
 }
-trait CorrectResponse
-case class CorrectResponseSingle(identifier: String, value: String) extends CorrectResponse
-case class CorrectResponseMultiple(identifier: String, value: Seq[String]) extends CorrectResponse
-
 object Interaction{
-  val choiceInteraction = "choiceInteraction"
   def apply(node:Node):Interaction = {
     node.label match {
-      case `choiceInteraction` =>
-      case _ => throw new RuntimeException("uknown interaction")
+      case "choiceInteraction" => ChoiceInteraction(node)
+      case _ => throw new RuntimeException("unknown interaction")
     }
   }
 }
@@ -83,20 +110,22 @@ object FeedbackInline{
     node.child.text
   )
 }
-/*********************************************************************/
-case class CorrectResponses(var correctResponses:Seq[CorrectResponse] = Seq())
-object CorrectResponses{
-  implicit object CorrectResponsesWrites extends Writes[CorrectResponses]{
-    def writes(crs: CorrectResponses) = {
-      var crseq:Seq[(String,JsValue)] = Seq()
-      crs.correctResponses.foreach(cr => {
-        cr match {
-          case single:CorrectResponseSingle => crseq = crseq :+ (single.identifier -> JsString(single.value))
-          case multiple:CorrectResponseMultiple => crseq = crseq :+ (multiple.identifier -> JsArray(multiple.value.map(JsString(_))))
-        }
-      })
-      JsObject(crseq)
-    }
-  }
+///*********************************************************************/
+//case class CorrectResponses(var correctResponses:Seq[CorrectResponse] = Seq())
+//object CorrectResponses{
+//  implicit object CorrectResponsesWrites extends Writes[CorrectResponses]{
+//    def writes(crs: CorrectResponses) = {
+//      var crseq:Seq[(String,JsValue)] = Seq()
+//      crs.correctResponses.foreach(cr => {
+//        cr match {
+//          case single:CorrectResponseSingle => crseq = crseq :+ (single.identifier -> JsString(single.value))
+//          case multiple:CorrectResponseMultiple => crseq = crseq :+ (multiple.identifier -> JsArray(multiple.value.map(JsString(_))))
+//        }
+//      })
+//      JsObject(crseq)
+//    }
+//  }
+//}
 }
+
 
