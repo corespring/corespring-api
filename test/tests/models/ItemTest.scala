@@ -70,7 +70,7 @@ class ItemTest extends BaseTest {
     }
 
     "parse contributor details" in {
-      val copyright = Copyright(Some("Ed"), Some("2001"), Some("3000"))
+      val copyright = Copyright(Some("Ed"), Some("2001"), Some("3000"), Some("imageName.png"))
       val contributorDetails = ContributorDetails(
         copyright = Some(copyright),
         costForResource = Some(10),
@@ -81,6 +81,7 @@ class ItemTest extends BaseTest {
       (json \ Item.copyrightOwner).asOpt[String] must equalTo(Some("Ed"))
       (json \ Item.copyrightYear).asOpt[String] must equalTo(Some("2001"))
       (json \ Item.copyrightExpirationDate).asOpt[String] must equalTo(Some("3000"))
+      (json \ Item.copyrightImageName).asOpt[String] must equalTo(Some("imageName.png"))
       (json \ Item.costForResource).asOpt[Int] must equalTo(Some(10))
       (json \ Item.author).asOpt[String] must equalTo(Some("Ed"))
       (json \ Item.licenseType).asOpt[String] must beNone

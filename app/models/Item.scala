@@ -20,7 +20,7 @@ import web.views.html.partials._edit._metadata._formWithLegend
 import com.novus.salat.annotations.raw.Salat
 import play.api.libs.json._
 
-case class Copyright(owner: Option[String] = None, year: Option[String] = None, expirationDate: Option[String] = None)
+case class Copyright(owner: Option[String] = None, year: Option[String] = None, expirationDate: Option[String] = None, imageName: Option[String] = None)
 
 case class Subjects(var primary: Option[ObjectId] = None, var related: Option[ObjectId] = None)
 
@@ -72,6 +72,7 @@ object Item extends DBQueryable[Item] {
   val contributor = "contributor"
   val copyright = "copyright"
   val copyrightOwner = "copyrightOwner"
+  val copyrightImageName = "copyrightImageName"
   val copyrightYear = "copyrightYear"
   val copyrightExpirationDate = "copyrightExpirationDate"
   val costForResource = "costForResource"
@@ -120,6 +121,7 @@ object Item extends DBQueryable[Item] {
               c.owner.foreach(v => iseq = iseq :+ (copyrightOwner -> JsString(v)))
               c.year.foreach(v => iseq = iseq :+ (copyrightYear -> JsString(v)))
               c.expirationDate.foreach(v => iseq = iseq :+ (copyrightExpirationDate -> JsString(v)))
+              c.imageName.foreach(v => iseq = iseq :+ (copyrightImageName -> JsString(v)))
             }
             case _ => //do nothing
           }
@@ -208,8 +210,8 @@ object Item extends DBQueryable[Item] {
       def getCopyright(json: JsValue): Option[Copyright] = {
         get[Copyright](
           json,
-          Seq(copyrightOwner, copyrightYear, copyrightExpirationDate),
-          (s: Seq[Option[String]]) => Copyright(s(0), s(1), s(2)))
+          Seq(copyrightOwner, copyrightYear, copyrightExpirationDate, copyrightImageName),
+          (s: Seq[Option[String]]) => Copyright(s(0), s(1), s(2), s(3)))
       }
 
       def getSubjects(json: JsValue): Option[Subjects] = {

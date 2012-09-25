@@ -44,7 +44,8 @@
 		"costForResource" : null,
 		"copyright" : {
 			"owner" : "New England Common Assessment Program",
-			"year" : "2009"
+			"year" : "2009",
+            "imageName" : "nysed.png"
 		}
 	},
 	"workflow" : {

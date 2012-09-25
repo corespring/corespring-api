@@ -1,48 +1,77 @@
-<br/>
-<div class="form-horizontal">
-    <div class="hero-unit item-preview-hero-unit">
-        <h2 ng-bind-html-unsafe="itemData.title" style="font-weight: normal;"></h2>
-        <hr/>
-        <br/>
-        <table class="item-preview-table" cellpadding="7" border="0" style="width: 100%;">
-            <tr>
-                <th >Grade</th>
-                <th >Aligned Standards</th>
-                <th >Keywords</th>
-                <th >Demonstrated Knowledge</th>
-                <th >License</th>
-            </tr>
-            <tr>
-                <td>
-                    <span ng-show="!itemData.gradeLevel" style="color: #888; font-style: italic;">None yet</span>
-                    <div ng-repeat="gl in itemData.gradeLevel" class="grade-circle" ng-class="getGradeLevelCssName(gl)">
-                        {{gl}}
-                    </div>
-                </td>
-                <td style="max-width: 100px;">
-                    <span ng-show="!itemData.standards" style="color: #888; font-style: italic;">None yet</span>
-                    <a style="margin-right: 7px;" ng-repeat="s in itemData.standards" ui-jq="tooltip"
-                       ui-options="{title: s.standard}">{{s.dotNotation}}</a>
-                </td>
-                <td style="max-width: 200px;">
-                    <span ng-show="!itemData.keySkills" style="color: #888; font-style: italic;">None yet</span>
-                    <span ng-show="itemData.keySkills">
-                         <span class="badge badge-info" style="margin-right: 6px; margin-bottom: 6px; float: left;"
-                               ng-repeat="ks in itemData.keySkills">{{ks}}
-                         </span>
-                    </span>
 
-                </td>
-                <td>
-                    <span ng-show="!itemData.demonstratedKnowledge" style="color: #888; font-style: italic;">None yet</span>
-                    <div>{{itemData.demonstratedKnowledge}}</div>
-                </td>
-                <td>
-                    <img ng-show="itemData.licenseType"
-                         ng-src="/assets/images/licenseTypes/{{itemData.licenseType}}.png"/>
-                </td>
-            </tr>
-        </table>
-    </div>
+<div class="container profile">
+    <div class="item-type">Task</div>
+    <hr/>
+    <br/>
+
+
+    <table>
+
+        <tr>
+            <td class="key-label">Grade</td>
+            <td class="key-value">
+                <span ng-show="!itemData.gradeLevel"
+                      style="color: #888; font-style: italic;">None yet</span>
+                {{itemData.gradeLevel[itemData.gradeLevel.length - 1]}}
+            <td class="key-label">CCSS</td>
+            <td class="key-value">
+                <span ng-show="!itemData.standards" style="color: #888; font-style: italic;">None yet</span>
+                <a style="margin-right: 7px;" ng-repeat="s in itemData.standards" ui-jq="tooltip"
+                   ui-options="{title: s.standard}">{{s.dotNotation}}</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="4">
+                <hr/>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="4">
+                <p class="title" ng-bind-html-unsafe="itemData.title"/>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="4">
+                <hr/>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="key-label">Primary Subject</td>
+            <td class="key-value">{{itemData.primarySubject.category}}</td>
+            <td class="key-label">Related Subject</td>
+            <td class="key-value">{{itemData.relatedSubject.category}}</td>
+        </tr>
+        <tr>
+            <td class="key-label">Item Type</td>
+            <td class="key-value">{{itemData.itemType}}</td>
+            <td class="key-label">Key Skills</td>
+            <td class="key-value">{{itemData.keySkills.join(', ')}}</td>
+        </tr>
+        <tr>
+            <td class="key-label">Bloom's</td>
+            <td class="key-value">{{itemData.bloomsTaxonomy}}</td>
+            <td class="key-label">Demonstrated Knowledge</td>
+            <td class="key-value"><span ng-show="!itemData.demonstratedKnowledge"
+                                        style="color: #888; font-style: italic;">None yet</span>
+
+                <div>{{itemData.demonstratedKnowledge}}</div>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="4">
+                <hr/>
+            </td>
+        </tr>
+
+
+
+
+    </table>
+
+
 </div>
-
