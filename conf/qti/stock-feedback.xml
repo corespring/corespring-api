@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<assessmentItem
+identifier="mcas-16373" timeDependent="false" title="16373" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 imsqti_v2p1.xsd" toolName="SIB" adaptive="false" toolVersion="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1">
+<stylesheet type="text/css" href="css/mcas/default.css"></stylesheet>
+
+<!-- single choice -->
+<responseDeclaration identifier="mexicanPresident" cardinality="single" baseType="identifier">
+    <correctResponse>
+        <value>calderon</value>
+    </correctResponse>
+</responseDeclaration>
+
+<itemBody>
+    <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1">
+        <prompt>Who is the President of Mexico?</prompt>
+        <simpleChoice identifier="obama"> Barack Obama
+            <feedbackInline defaultFeedback="true"/>
+        </simpleChoice>
+        <simpleChoice identifier="cameron"> James Cameron
+            <feedbackInline defaultFeedback="true"/>
+        </simpleChoice>
+        <simpleChoice identifier="calderon"> Felipe Calderon
+            <feedbackInline defaultFeedback="true"/>
+        </simpleChoice>
+        <simpleChoice identifier="netanyahu"> Benjamin Netanyahu
+            <feedbackInline defaultFeedback="true"/>
+        </simpleChoice>
+    </choiceInteraction>
+</itemBody>
+</assessmentItem>

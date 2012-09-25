@@ -8,6 +8,7 @@ import com.typesafe.config.ConfigFactory
 import web.views.html.partials._edit._metadata._formWithLegend
 import scala.Some
 import scala.Some
+import common.controllers.ItemResources
 
 
 trait ObjectIdParser{
@@ -23,15 +24,9 @@ trait ObjectIdParser{
 }
 
 
-object ShowResource extends Controller with ObjectIdParser{
-
+object ShowResource extends Controller with ObjectIdParser with ItemResources{
 
   private val MOCK_ACCESS_TOKEN : String = "34dj45a769j4e1c0h4wb"
-
-  private final val AMAZON_ASSETS_BUCKET : String =
-   ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
-
-  private val ContentType : String = "Content-Type"
 
   /**
     * Render the Item.data resource using the CSS for printing.
@@ -109,25 +104,6 @@ object ShowResource extends Controller with ObjectIdParser{
 
   }
 
-  /**
-   * Return an individual file from Item.data
-   * @param itemId
-   * @param filename
-   * @return
-   */
-  def getDataFile(itemId:String, filename:String) = Action{ request =>
-    Item.findOneById( new ObjectId(itemId)) match {
-      case Some(item) => {
-        item.data match {
-          case Some(foundData) => {
-            getResult(request, foundData.files, filename)
-          }
-          case _ => NotFound
-        }
-      }
-      case _ => NotFound
-    }
-  }
 
 
   /**
@@ -148,22 +124,5 @@ object ShowResource extends Controller with ObjectIdParser{
       case _ => NotFound
     }
   }
-
-  private def getResult(request : Request[AnyContent], files :Seq[BaseFile], filename:String) : Result = {
-    files.find( _.name == filename) match {
-      case Some(foundFile) => {
-        foundFile match {
-          case vFile : VirtualFile => {
-            Ok(vFile.content).withHeaders((ContentType,vFile.contentType))
-          }
-          case sFile : StoredFile => {
-            S3Service.download(AMAZON_ASSETS_BUCKET, sFile.storageKey, Some(request.headers))
-          }
-        }
-      }
-      case _ => NotFound
-    }
-  }
-
 
 }

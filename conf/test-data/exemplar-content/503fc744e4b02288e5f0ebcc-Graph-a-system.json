@@ -39,7 +39,13 @@
 		"standardsAligned" : false,
 		"qaReview" : false
 	},
-	"keySkills" : [ ],
+	"keySkills" : [
+		"Express",
+		"Indicate",
+		"Apply",
+		"Sketch",
+		"Solve"
+	],
 	"title" : "Graph a system of inequalities given the conditions outlined.",
 	"relatedCurriculum" : "NJDOE: Model Curriculum: Algebra I: Unit 1: Relationships Between Quantities and Reasoning with Equations",
 	"gradeLevel" : [
@@ -49,6 +55,7 @@
 	"reviewsPassed" : [
 		"Editorial"
 	],
+	"demonstratedKnowledge" : "Procedural",
 	"supportingMaterials" : [
 		{
 			"name" : "ScoringGuide",

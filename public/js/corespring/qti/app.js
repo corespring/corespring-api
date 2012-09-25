@@ -96,14 +96,14 @@ var feedbackDirectiveFunction = function (QtiUtils) {
             scope.cssClass = element[0].localName;
             var csFeedbackId = attrs["csfeedbackid"];
 
-            var feedbackExpr = 'scope.itemSession.feedBackContent[' + csFeedbackId + ']' ;
             scope.$watch('status', function(newValue, oldValue) {
                 if (scope.isFeedbackEnabled() == false) return; // break if feedback is disabled
                 if (newValue == 'SUBMITTED') {
                     var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
-                    var outcomeIdentifier = attrs["outcomeidentifier"];
+                    var responseIdentifier = attrs["responseidentifier"];
+                    var correctResponse = scope.itemSession.sessionData.correctResponse[responseIdentifier];
                     var choiceValue = attrs["identifier"];
-                    var responseExpr = 'scope.itemSession.' + outcomeIdentifier;
+                    var responseExpr = 'scope.itemSession.responses.' + responseIdentifier +".value";
                     var response = {};
                     try {
                         response = eval(responseExpr);
@@ -112,7 +112,7 @@ var feedbackDirectiveFunction = function (QtiUtils) {
                         console.log(e.message);
                     }
                     // if the response is an array, check if the array contains the current choice
-                    if (QtiUtils.compare(choiceValue, response)) {
+                    if (QtiUtils.compare(choiceValue, correctResponse) || QtiUtils.compare(choiceValue, response)) {
                         scope.feedback = feedback;
                     }
                 }

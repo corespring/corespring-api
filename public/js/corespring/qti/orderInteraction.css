@@ -13,10 +13,12 @@
     background-color: #EEE;
     cursor: move;
 }
+
 .order-correct {
-    border: 2px green solid;
+	border: 2px solid green;
 }
 
 .orderIncorrect {
-    border: 2px red solid;
+	border: 2px solid #F8A31A;
 }
+
