@@ -5,32 +5,29 @@
         <tr ng-show="itemData.copyrightOwner">
             <td colspan="4">
                 This item was made available to CoreSpring users courtesy of the {{itemData.copyrightOwner}}.
-                Information related to <u>this specific item</u> is presented below.
+                Information related to this specific item is presented below.
             </td>
         </tr>
 
-        <tr ng-show="itemData.copyrightOwner">
-            <td colspan="4">
-                <hr/>
-            </td>
-        </tr>
 
         <tr ng-show="itemData.copyrightImageName">
             <td colspan="4"><img ng-src="/assets/images/copyright/{{itemData.copyrightImageName}}"/></td>
         </tr>
 
     </table>
-
-    <hr/>
-
     <table>
+        <tr>
+            <td class="key-label">Copyright Year</td>
+            <td class="key-value">{{itemData.copyrightYear}}</td>
+        </tr>
+
         <tr>
             <td class="key-label">Credentials</td>
             <td class="key-value">{{itemData.credentials}}</td>
         </tr>
         <tr>
             <td class="key-label">Reviews Passed</td>
-            <td class="key-value">{{itemData.reviewsPassed}}</td>
+            <td class="key-value">{{itemData.reviewsPassed.join(", ")}}</td>
         </tr>
         <tr>
             <td class="key-label">Prior Use</td>
@@ -42,7 +39,7 @@
         </tr>
         <tr>
             <td class="key-label">Source</td>
-            <td class="key-value" colspan="3"><a ng-href="{{itemData.sourceUrl}}" target="_blank">{{itemData.sourceUrl}}</a>
+            <td class="key-value" colspan="3"><a ng-href="{{prependHttp(itemData.sourceUrl)}}" target="_blank">{{prependHttp(itemData.sourceUrl)}}</a>
             </td>
         </tr>
     </table>

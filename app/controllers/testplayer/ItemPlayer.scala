@@ -19,6 +19,17 @@ case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: I
 
 object ItemPlayer extends BaseApi with ItemResources{
 
+
+  val PATH : String = "/assets/js/corespring/qti/"
+
+  def css( url : String ) : String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
+  def script( url : String ) : String =  """<script type="text/javascript" src="%s"></script>""".format(url)
+
+  def createScripts( name : String, scriptSuffix : String = "" ) : String = {
+    Seq( script( PATH + name + scriptSuffix + ".js"), css( PATH + name + scriptSuffix + ".css") ).mkString("\n") }
+
+  val DEFAULT_CSS = Seq(css("//bytebureau.com/styles.css"), css(PATH + "qti-base-overrides.css")).mkString("\n")
+
   val notFoundJson = Json.toJson(
     Map("error" -> "not found")
   )
@@ -132,50 +143,27 @@ object ItemPlayer extends BaseApi with ItemResources{
     //        <print>
     // (also need to support minifying/obfuscating)
 
-    // base css to include for all QTI items
-    scripts ::= "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/qti-base.css\" />"
-
 
     // suffix to append for loading print-mode scripts
     val scriptSuffix = if (isPrintMode) "-print" else ""
 
 
+    // base css to include for all QTI items
+    //scripts ::= "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/qti-base.css\" />"
     // TODO - dropping jquery in for all right now, but this needs to be only dropped in if required by interactions
-    scripts ::= "<script src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js\"></script>"
-    scripts ::= "<script src=\"http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js\"></script>"
+    scripts ::= script("//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js")
+    scripts ::= script("//ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js")
 
-    val orderInteractionScripts =  "<script src=\"/assets/js/corespring/qti/orderInteraction" + scriptSuffix + ".js\"></script>\n" +
-      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/orderInteraction" + scriptSuffix + ".css\" />"
-
-    val choiceInteractionScripts = "<script src=\"/assets/js/corespring/qti/choiceInteraction" +
-      scriptSuffix + ".js\"></script>\n" +
-      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/choiceInteraction" + scriptSuffix + ".css\" />"
-
-    val textEntryInteractionScripts = "<script src=\"/assets/js/corespring/qti/textEntryInteraction" +
-      scriptSuffix + ".js\"></script>\n" +
-      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/textEntryInteraction" + scriptSuffix + ".css\" />"
-
-    val extendedTextInteractionScripts = "<script src=\"/assets/js/corespring/qti/extendedTextInteraction" +
-      scriptSuffix + ".js\"></script>\n" +
-      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/extendedTextInteraction" + scriptSuffix + ".css\" />"
-
-    val tabScripts = "<script src=\"/assets/js/corespring/qti/tabs" +
-      scriptSuffix + ".js\"></script>\n" +
-      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/tabs" + scriptSuffix + ".css\" />"
-
-    val numberedLineScripts = "<script src=\"/assets/js/corespring/qti/numberedLines" +
-      scriptSuffix + ".js\"></script>\n" +
-      "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/numberedLines" + scriptSuffix + ".css\" />"
 
     // map of elements and the scripts needed to process them
     // can't concatenate string in map value apparently, so using replace()
     val elementScriptsMap = Map (
-      "choiceInteraction" -> choiceInteractionScripts,
-      "orderInteraction" -> orderInteractionScripts,
-      "textEntryInteraction" -> textEntryInteractionScripts,
-      "extendedTextInteraction" -> extendedTextInteractionScripts,
-      "tabs" -> tabScripts,
-      "math" -> "<script type=\"text/javascript\" src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"></script>"
+      "choiceInteraction" -> createScripts("choiceInteraction", scriptSuffix),
+      "orderInteraction" -> createScripts("orderInteraction", scriptSuffix),
+      "textEntryInteraction" -> createScripts("textEntryInteraction", scriptSuffix),
+      "extendedTextInteraction" -> createScripts("extendedTextInteraction", scriptSuffix),
+      "tabs" -> createScripts("tabs", scriptSuffix),
+      "math" -> script("http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")
     )
 
     // iterate through the script map
@@ -185,8 +173,10 @@ object ItemPlayer extends BaseApi with ItemResources{
       }
     }
 
-    scripts ::= numberedLineScripts
+    scripts ::= createScripts("numberedLines")
 
+    scripts ::= DEFAULT_CSS
+    //scripts ::= css( PATH + "qti-base-overrides.css")
     // order matters so put them out in the chronological order we put them in
     scripts.reverse
   }

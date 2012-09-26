@@ -37,24 +37,14 @@ object ItemSessionApi extends BaseApi {
     ItemSession.findOneById(sessionId) match {
       case Some(itemSession) => {
         if (Content.isAuthorized(request.ctx.organization, itemSession.itemId, Permission.All)) {
-          Item.collection.findOneByID(itemId, MongoDBObject(Item.data -> 1)) match {
-            case Some(o) =>
-              o.get(Item.data) match {
-              case res:BasicDBObject => {
-                val xmlData = grater[Resource].asObject(res).files.find(bf => bf.isMain) match {
-                  case Some(bf) => bf match {
-                    case vf:VirtualFile => vf.content
-                    case _ => throw new RuntimeException("main file was not a virtual file")
-                  }
-                  case None => throw new RuntimeException("no main file found")
-                }
-                val qtiItem = new QtiItem(scala.xml.XML.loadString(xmlData))
-                Ok(Json.toJson(itemSession))
-              }
-              case _ => throw new RuntimeException("db object not found for resource")
+          if(itemSession.finish.isDefined){
+            ItemSession.getSessionData(itemId) match {
+              case Right(sessionData) =>
+                itemSession.sessionData = Some(sessionData)
+              case Left(e) =>
             }
-            case None => NotFound
           }
+          Ok(Json.toJson(itemSession))
         }
         else {
           Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
@@ -80,14 +70,7 @@ object ItemSessionApi extends BaseApi {
       }
 
       ItemSession.newItemSession(itemId,newSession) match {
-        case Right(session) => {
-          val feedback: Map[String, String] = getSessionFeedback(itemId, newSession)
-          if (!feedback.isEmpty) {
-            Ok(Json.toJson(session.sessionData(Map("feedbackContent" -> feedback))))
-          } else {
-            Ok(Json.toJson(session))
-          }
-        }
+        case Right(session) => Ok(Json.toJson(session))
         case Left(error) => InternalServerError(Json.toJson(ApiError.CreateItemSession(error.clientOutput)))
       }
     } else {
@@ -96,23 +79,11 @@ object ItemSessionApi extends BaseApi {
   }
 
   private def getSessionFeedback(itemId: ObjectId, itemSession: ItemSession): Map[String, String] = {
-    Item.collection.findOneByID(itemId, MongoDBObject(Item.data -> 1)) match {
-      case None => Map[String, String]()
-      case Some(o) => o.get(Item.data) match {
-        case res:BasicDBObject => {
-          val xmlData = grater[Resource].asObject(res).files.find(bf => bf.isMain) match {
-            case Some(bf) => bf match {
-              case vf:VirtualFile => vf.content
-              case _ => throw new RuntimeException("main file was not a virtual file")
-            }
-            case None => throw new RuntimeException("no main file found")
-          }
-          val qtiItem = new QtiItem(scala.xml.XML.loadString(xmlData))
-          optMap[String, String](
-            qtiItem.feedback(itemSession.responses).map(feedback => (feedback.csFeedbackId, feedback.body))
-          ).getOrElse(Map[String, String]())
-        }
-      }
+    Item.getQti(itemId) match {
+      case Right(xmlData) => optMap[String, String](
+        new QtiItem(scala.xml.XML.loadString(xmlData)).feedback(itemSession.responses).map(feedback => (feedback.csFeedbackId, feedback.body))
+      ).getOrElse(Map[String, String]())
+      case Left(error) => Map()
     }
   }
   /**

@@ -1,0 +1,30 @@
+.assessmentPage {
+    width:600px;
+    margin:20px auto;
+    padding: 16px 13px;
+    border: 2px #EAEAEA dashed;
+}
+
+prompt, .choice-prompt {
+    font-size: 1.5em;
+    display: block;
+    margin-bottom: 15px;
+}
+.correct-response {
+    display: block;
+    color: green;
+}
+.incorrect-selection {
+    display: block;
+    color: red;
+}
+.feedback-inline {
+    color: grey;
+    padding-left: 10px;
+}
+
+/*Fix for superscript not rendering*/
+sup{
+    vertical-align: super;
+    padding: 2px;
+}

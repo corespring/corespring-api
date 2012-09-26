@@ -7,11 +7,12 @@ import org.bson.types.ObjectId
 import scala.Some
 import controllers.S3Service
 import web.controllers.utils.ConfigLoader
+import controllers.testplayer.ItemPlayer
 
 trait ItemResources {
 
   val AMAZON_ASSETS_BUCKET = ConfigLoader.get("AMAZON_ASSETS_BUCKET").get
-  private val ContentType : String = "Content-Type"
+  private val ContentType: String = "Content-Type"
 
   /**
    * Return an individual file from Item.data
@@ -21,29 +22,36 @@ trait ItemResources {
    * @param filename
    * @return
    */
-  def getDataFile(itemId:String, filename:String) = Action{ request =>
-    Item.findOneById( new ObjectId(itemId)) match {
-      case Some(item) => {
-        item.data match {
-          case Some(foundData) => {
-            getResult(request, foundData.files, filename)
+  def getDataFile(itemId: String, filename: String) = Action {
+    request =>
+      Item.findOneById(new ObjectId(itemId)) match {
+        case Some(item) => {
+          item.data match {
+            case Some(foundData) => {
+              getResult(request, foundData.files, filename)
+            }
+            case _ => NotFound
           }
-          case _ => NotFound
         }
+        case _ => NotFound
       }
-      case _ => NotFound
-    }
   }
 
 
-  def getResult(request : Request[AnyContent], files :Seq[BaseFile], filename:String) : Result = {
-    files.find( _.name == filename) match {
+  def getResult(request: Request[AnyContent], files: Seq[BaseFile], filename: String): Result = {
+    files.find(_.name == filename) match {
       case Some(foundFile) => {
         foundFile match {
-          case vFile : VirtualFile => {
-            Ok(vFile.content).withHeaders((ContentType,vFile.contentType))
+          case vFile: VirtualFile => {
+            //TODO: is this the best place to be adding this?
+            val text = if (vFile.isMain && vFile.contentType == BaseFile.ContentTypes.HTML) {
+              addDefaultCss(vFile.content)
+            } else {
+              vFile.content
+            }
+            Ok(text).withHeaders((ContentType, vFile.contentType))
           }
-          case sFile : StoredFile => {
+          case sFile: StoredFile => {
             S3Service.download(AMAZON_ASSETS_BUCKET, sFile.storageKey, Some(request.headers))
           }
         }
@@ -52,4 +60,5 @@ trait ItemResources {
     }
   }
 
+  private def addDefaultCss(html : String) : String = """<head>""".r.replaceAllIn(html, "<head>\n" + ItemPlayer.DEFAULT_CSS + "\n" )
 }

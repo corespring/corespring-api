@@ -32,9 +32,9 @@
 @mainNav()
 
 <div class="sub-nav">
-    <div class="container" style="width: 940px;">
+    <div class="container" style="width: 600px;">
         <div class="row">
-            <ul class="span12 nav nav-pills">
+            <ul class="nav nav-pills">
                 <li ng-class="{true:'active', false:''}[currentPanel=='item']">
                     <a ng-click="changePanel('item')">Item</a>
                 </li>
@@ -44,17 +44,17 @@
                     <a ng-click="changeSupportingMaterialPanel(sm)">{{sm.name}}</a>
                 </li>
 
-                <li class="span7">&nbsp;</li>
 
-                <li ng-class="{true: 'active', false:''}[currentPanel=='profile']">
-                    <a ng-click="changePanel('profile')">Profile</a>
-                </li>
 
-                <li>
-                    <a ng-click="printCurrent()">
-                        <img src="/assets/images/print.png" alt="Print"/></a>
-                    </a>
-                </li>
+                    <li ng-class="{true: 'active', false:''}[currentPanel=='profile']" class="pull-right">
+                        <a ng-click="changePanel('profile')">Profile</a>
+                    </li>
+
+                    <li class="pull-right">
+                        <a ng-click="printCurrent()" >
+                            <img src="/assets/images/print.png" alt="Print"/></a>
+                        </a>
+                    </li>
             </ul>
         </div>
     </div>
@@ -80,7 +80,6 @@
     <div ng-show="currentPanel=='profile'" style="overflow-y: auto; position: absolute; left: 0px; top: 81px; right: 0px; bottom: 0px;" >
         <div class="container" style="width: 600px;" >
             @web.views.html.partials._viewItem.corespringData()
-            <h3>History</h3>
             @web.views.html.partials._viewItem.history()
         </div>
     </div>

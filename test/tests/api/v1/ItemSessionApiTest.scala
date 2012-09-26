@@ -58,6 +58,7 @@ class ItemSessionApiTest extends Specification {
    * TODO - implement these tests...
    */
   "item session data" should {
+
     "be returned in sessionData property when an item is updated/inserted with a response value" in {
       pending
     }
@@ -189,7 +190,6 @@ class ItemSessionApiTest extends Specification {
         None
       )
 
-      try {
         val optResult = routeAndCall(getRequest)
         if (optResult.isDefined) {
           val json: JsValue = Json.parse(contentAsString(optResult.get))
@@ -211,12 +211,6 @@ class ItemSessionApiTest extends Specification {
           failure
         }
 
-      } catch {
-        case e: Exception => {
-          e.printStackTrace
-          failure
-        }
-      }
     }
 
   }
