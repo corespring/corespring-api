@@ -1,39 +1,50 @@
-<br/>
-<div class="form-horizontal">
-    <div class="hero-unit item-preview-hero-unit-two">
-       <table class="item-preview-table" cellpadding="7" style="width: 100%">
-          <tr>
-            <th>Contributor</th>
-              <th>Copyright Owner</th>
-              <th>Author</th>
-              <th>Credentials</th>
-              <th>Source</th>
-          </tr>
-           <tr>
-               <td>{{itemData.contributor}}</td>
-               <td>{{itemData.copyrightOwner}}</td>
-               <td>{{itemData.author}}</td>
-               <td>{{itemData.credentials}}</td>
-               <td><a ng-href="{{itemData.sourceUrl}}" target="_blank">URL</a></td>
-           </tr>
-           <tr>
-               <td colspan="5">&nbsp;</td>
-           </tr>
+<div class="container profile">
 
-            <tr>
-                <th>Prior Use</th>
-                <th>Reviews Passed</th>
-                <th>Difficulty Level</th>
-                <th>Lexile Score</th>
-                <th></th>
-            </tr>
-            <tr>
-                <td>{{itemData.priorUse}}</td>
-                <td>{{itemData.reviewsPassed}}</td>
-                <td>{{itemData.pValue}}</td>
-                <td>{{itemData.lexile}}</td>
-                <td></td>
-            </tr>
-        </table>
-    </div>
+    <table>
+
+        <tr ng-show="itemData.copyrightOwner">
+            <td colspan="4">
+                This item was made available to CoreSpring users courtesy of the {{itemData.copyrightOwner}}.
+                Information related to <u>this specific item</u> is presented below.
+            </td>
+        </tr>
+
+        <tr ng-show="itemData.copyrightOwner">
+            <td colspan="4">
+                <hr/>
+            </td>
+        </tr>
+
+        <tr ng-show="itemData.copyrightImageName">
+            <td colspan="4"><img ng-src="/assets/images/copyright/{{itemData.copyrightImageName}}"/></td>
+        </tr>
+
+    </table>
+
+    <hr/>
+
+    <table>
+        <tr>
+            <td class="key-label">Credentials</td>
+            <td class="key-value">{{itemData.credentials}}</td>
+        </tr>
+        <tr>
+            <td class="key-label">Reviews Passed</td>
+            <td class="key-value">{{itemData.reviewsPassed}}</td>
+        </tr>
+        <tr>
+            <td class="key-label">Prior Use</td>
+            <td class="key-value">{{itemData.priorUse}}</td>
+        </tr>
+        <tr>
+            <td class="key-label">Related Materials</td>
+            <td class="key-value" colspan="3">{{itemData.relatedCurriculum}}</td>
+        </tr>
+        <tr>
+            <td class="key-label">Source</td>
+            <td class="key-value" colspan="3"><a ng-href="{{itemData.sourceUrl}}" target="_blank">{{itemData.sourceUrl}}</a>
+            </td>
+        </tr>
+    </table>
+
 </div>

@@ -25,11 +25,12 @@
         "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"
     ],
     "title":"This item has Qti.xml and supporting materials",
-    "primarySubject":{
-        "subject":"",
-        "category":"Mathematics",
-        "refId":"4ffb535f6bb41e469c0bf2c2"
+    "subjects" : {
+        "primary" : { "$oid" : "4ffb535f6bb41e469c0bf2c2" },
+        "related" : { "$oid" : "4ffb535f6bb41e469c0bf2ac" }
     },
+
+    "bloomsTaxonomy" : "Apply",
     "itemType":"Multiple Choice",
     "keySkills" : [ "Analyze", "Arrange"],
     "copyrightOwner":"State Department of Education",
