@@ -20,7 +20,11 @@ qtiDirectives.directive("textentryinteraction", function(QtiUtils) {
             });
 
              scope.$watch('status', function (newValue, oldValue) {
+
+                    //TODO: This logic is almost identical to the other interaction items - we need to reuse it.
                     if (newValue == 'SUBMITTED') {
+
+
                         // status has changed to submitted
                         var correctResponse = scope.itemSession.sessionData.correctResponses[responseIdentifier];
                         var responseValue = "";
