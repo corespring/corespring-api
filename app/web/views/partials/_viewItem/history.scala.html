@@ -1,20 +1,18 @@
 <div class="container profile">
 
-    <table>
+    <div ng-show="itemData.copyrightOwner">
+        This item was made available to CoreSpring users courtesy of the {{itemData.copyrightOwner}}.
+        Information related to this specific item is presented below.
+    </div>
+    <div ng-show="itemData.copyrightImageName">
+        <hr />
+        <img ng-src="/assets/images/copyright/{{itemData.copyrightImageName}}"/>
+        <hr />
+    </div>
+    <div ng-show="!itemData.copyrightImageName">
+        <br />
+    </div>
 
-        <tr ng-show="itemData.copyrightOwner">
-            <td colspan="4">
-                This item was made available to CoreSpring users courtesy of the {{itemData.copyrightOwner}}.
-                Information related to this specific item is presented below.
-            </td>
-        </tr>
-
-
-        <tr ng-show="itemData.copyrightImageName">
-            <td colspan="4"><img ng-src="/assets/images/copyright/{{itemData.copyrightImageName}}"/></td>
-        </tr>
-
-    </table>
     <table>
         <tr>
             <td class="key-label">Copyright Year</td>
