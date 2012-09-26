@@ -74,7 +74,11 @@
          style="position: absolute; left: 0px; top: 81px; right: 0px; bottom: 0px;"
          ng-repeat="sm in itemData.supportingMaterials"
          ng-show="currentSm==sm">
-        <iframe frameBorder="0" ng-src="{{getSmSrc(sm)}}" style="width: 100%; height: 100%;"></iframe>
+        <iframe
+                frameBorder="0"
+                ng-src="{{getSmSrc(sm)}}"
+                align="center"
+                class="iframe-600-centered"></iframe>
     </div>
 
     <div ng-show="currentPanel=='profile'" style="overflow-y: auto; position: absolute; left: 0px; top: 81px; right: 0px; bottom: 0px;" >
