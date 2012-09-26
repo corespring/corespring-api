@@ -60,7 +60,26 @@ class ItemSessionApiTest extends Specification {
   "item session data" should {
 
     "be returned in sessionData property when an item is updated/inserted with a response value" in {
-      pending
+      val url = "/api/v1/items/" + testSessionIds("itemId") + "/sessions/" + testSessionIds("itemSessionId")
+      val testSession = ItemSession(new ObjectId(testSessionIds("itemId")))
+      // add some item responses
+      testSession.id = new ObjectId(testSessionIds("itemSessionId"))
+      testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon", "{$score:1}"))
+      testSession.responses = testSession.responses ++ Seq(ItemResponse("irishPresident", "guinness", "{$score:0}"))
+      testSession.responses = testSession.responses ++ Seq(ItemResponse("winterDiscontent", "York", "{$score:1}"))
+      testSession.finish = Some(new DateTime())
+      val getRequest = FakeRequest(
+        PUT,
+        url,
+        FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
+        AnyContentAsJson(Json.toJson(testSession))
+      )
+
+      val optResult = routeAndCall(getRequest)
+      if (optResult.isDefined){
+        val json: JsValue = Json.parse(contentAsString(optResult.get))
+
+      }
     }
 
     "contain feedback contents for all feedback elements in the xml" in {
