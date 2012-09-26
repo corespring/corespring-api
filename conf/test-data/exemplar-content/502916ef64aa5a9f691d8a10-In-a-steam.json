@@ -8,7 +8,7 @@
 				"name" : "qti.xml",
 				"contentType" : "text/xml",
 				"isMain" : true,
-				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"multiple\" baseType=\"identifier\">\n        <correctResponse>\n            <value>A</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"float\"/>\n    <itemBody>\n    <h4 class=\"para-center\">Mirror Steam</h4>\n    <div class=\"image-wrapper\"><img src=\"steammirror.png\"/></div>\n    <div class=\"image-copyright\"> Copyright 2010 vanessa-michelle</div>\n    \n    <p/>\n        <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"true\" maxChoices=\"0\">\n            <prompt>In a steam filled bathroom, water condenses out of the air onto a mirror. Describe the energy transfer that occurs in this process.</prompt>\n            <simpleChoice identifier=\"A\" fixed=\"false\">Heat energy is released from the water into the mirror.</simpleChoice>\n            <simpleChoice identifier=\"B\" fixed=\"false\">Heat energy is absorbed by the water from the mirror.</simpleChoice>\n            <simpleChoice identifier=\"C\" fixed=\"false\">Heat energy increases the temperature of the water.</simpleChoice>\n            <simpleChoice identifier=\"D\" fixed=\"false\">Heat energy decreases the temperature of the mirror.</simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n</assessmentItem>\n"
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"multiple\" baseType=\"identifier\">\n        <correctResponse>\n            <value>A</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"float\"/>\n    <itemBody>\n    <h4 class=\"para-center\">Mirror Steam</h4>\n    <div class=\"image-wrapper\"><img src=\"steammirror.png\"/></div>\n    <div class=\"image-copyright\"> Copyright 2010 vanessa-michelle</div>\n    \n    <p/>\n        <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"true\" maxChoices=\"1\">\n            <prompt>In a steam filled bathroom, water condenses out of the air onto a mirror. Describe the energy transfer that occurs in this process.</prompt>\n            <simpleChoice identifier=\"A\" fixed=\"false\">Heat energy is released from the water into the mirror.</simpleChoice>\n            <simpleChoice identifier=\"B\" fixed=\"false\">Heat energy is absorbed by the water from the mirror.</simpleChoice>\n            <simpleChoice identifier=\"C\" fixed=\"false\">Heat energy increases the temperature of the water.</simpleChoice>\n            <simpleChoice identifier=\"D\" fixed=\"false\">Heat energy decreases the temperature of the mirror.</simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n</assessmentItem>\n"
 			},
 			{
 				"_t" : "models.StoredFile",
@@ -37,7 +37,10 @@
 			"year" : "2009"
 		}
 	},
-	"gradeLevel" : [ ],
+	"gradeLevel" : [
+		"09",
+		"10"
+	],
 	"priorUse" : "Formative",
 	"reviewsPassed" : [
 		"Editorial"

@@ -47,6 +47,15 @@ function ViewItemController($scope, $routeParams, $location, ItemService, Access
         updateLocation($scope.currentPanel, $scope.previewVisible);
     };
 
+    $scope.prependHttp = function(url) {
+            if (!url) return "";
+            if (!url.match(/^[a-zA-Z]+:\/\//))
+            {
+                url = 'http://' + url;
+            }
+            return url;
+    }
+
 
    $scope.loadItem();
    initPane($routeParams);

@@ -19,6 +19,17 @@ case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: I
 
 object ItemPlayer extends BaseApi with ItemResources{
 
+
+  val PATH : String = "/assets/js/corespring/qti/"
+
+  def css( url : String ) : String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
+  def script( url : String ) : String =  """<script type="text/javascript" src="%s"></script>""".format(url)
+
+  def createScripts( name : String, scriptSuffix : String = "" ) : String = {
+    Seq( script( PATH + name + scriptSuffix + ".js"), css( PATH + name + scriptSuffix + ".css") ).mkString("\n") }
+
+  val DEFAULT_CSS = Seq(css("//bytebureau.com/styles.css"), css(PATH + "qti-base-overrides.css")).mkString("\n")
+
   val notFoundJson = Json.toJson(
     Map("error" -> "not found")
   )
@@ -132,13 +143,6 @@ object ItemPlayer extends BaseApi with ItemResources{
     // suffix to append for loading print-mode scripts
     val scriptSuffix = if (isPrintMode) "-print" else ""
 
-    val PATH : String = "/assets/js/corespring/qti/"
-
-    def css( url : String ) : String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
-    def script( url : String ) : String =  """<script type="text/javascript" src="%s"></script>""".format(url)
-
-    def createScripts( name : String ) : String = {
-      Seq( script( PATH + name + scriptSuffix + ".js"), css( PATH + name + scriptSuffix + ".css") ).mkString("\n") }
 
     // base css to include for all QTI items
     //scripts ::= "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/qti-base.css\" />"
@@ -150,11 +154,11 @@ object ItemPlayer extends BaseApi with ItemResources{
     // map of elements and the scripts needed to process them
     // can't concatenate string in map value apparently, so using replace()
     val elementScriptsMap = Map (
-      "choiceInteraction" -> createScripts("choiceInteraction"),
-      "orderInteraction" -> createScripts("orderInteraction"),
-      "textEntryInteraction" -> createScripts("textEntryInteraction"),
-      "extendedTextInteraction" -> createScripts("extendedTextInteraction"),
-      "tabs" -> createScripts("tabs"),
+      "choiceInteraction" -> createScripts("choiceInteraction", scriptSuffix),
+      "orderInteraction" -> createScripts("orderInteraction", scriptSuffix),
+      "textEntryInteraction" -> createScripts("textEntryInteraction", scriptSuffix),
+      "extendedTextInteraction" -> createScripts("extendedTextInteraction", scriptSuffix),
+      "tabs" -> createScripts("tabs", scriptSuffix),
       "math" -> script("http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")
     )
 
@@ -167,8 +171,8 @@ object ItemPlayer extends BaseApi with ItemResources{
 
     scripts ::= createScripts("numberedLines")
 
-    scripts ::= css("//bytebureau.com/styles.css")
-    scripts ::= css( PATH + "qti-base-overrides.css")
+    scripts ::= DEFAULT_CSS
+    //scripts ::= css( PATH + "qti-base-overrides.css")
     // order matters so put them out in the chronological order we put them in
     scripts.reverse
   }
