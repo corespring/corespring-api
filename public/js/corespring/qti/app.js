@@ -5,10 +5,11 @@ var app = angular.module('qti', ['qti.directives', 'qti.services']);
 
 function QtiAppController($scope, $timeout) {
 
-    //Trigger a layout event for the MathML
-    $timeout(function () {
-        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-    }, 200);
+        $timeout(function () {
+            if(typeof(MathJax) != "undefined"){
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+            }
+        }, 200);
 }
 
 QtiAppController.$inject = ['$scope', '$timeout'];
