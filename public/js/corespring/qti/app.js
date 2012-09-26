@@ -130,19 +130,15 @@ var feedbackDirectiveFunction = function (QtiUtils) {
                 if (scope.isFeedbackEnabled() == false) return; // break if feedback is disabled
                 if (newValue == 'SUBMITTED') {
                     var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
-                    var responseIdentifier = attrs["responseidentifier"];
+                    var outcomeIdentifier = attrs["outcomeidentifier"];
+
+                    if (!outcomeIdentifier) return;
+                    var responseIdentifier = outcomeIdentifier.match(/\.(.*?)\./)[1];
                     var correctResponse = scope.itemSession.sessionData.correctResponses[responseIdentifier];
                     var choiceValue = attrs["identifier"];
-                    var responseExpr = 'scope.itemSession.responses.' + responseIdentifier + ".value";
-                    var response = {};
-                    try {
-                        response = eval(responseExpr);
-                    } catch (e) {
-                        // response not found, leaving it empty
-                        console.log(e.message);
-                    }
-                    // if the response is an array, check if the array contains the current choice
-                    if (QtiUtils.compare(choiceValue, correctResponse) || QtiUtils.compare(choiceValue, response)) {
+                    var response = QtiUtils.getResponseById(responseIdentifier, scope.itemSession.responses);// localScope.itemSession.responses[responseIdentifier].value;
+                    var responseValue = response ? response.value : "";
+                    if (QtiUtils.compare(choiceValue, correctResponse) || QtiUtils.compare(choiceValue, responseValue)) {
                         scope.feedback = feedback;
                     }
                 }
