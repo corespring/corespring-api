@@ -28,7 +28,7 @@ object ItemPlayer extends BaseApi with ItemResources{
   def createScripts( name : String, scriptSuffix : String = "" ) : String = {
     Seq( script( PATH + name + scriptSuffix + ".js"), css( PATH + name + scriptSuffix + ".css") ).mkString("\n") }
 
-  val DEFAULT_CSS = css("//bytebureau.com/styles.css")
+  val DEFAULT_CSS = Seq(css("//bytebureau.com/styles.css"), css(PATH + "qti-base-overrides.css")).mkString("\n")
 
   val notFoundJson = Json.toJson(
     Map("error" -> "not found")
@@ -172,7 +172,7 @@ object ItemPlayer extends BaseApi with ItemResources{
     scripts ::= createScripts("numberedLines")
 
     scripts ::= DEFAULT_CSS
-    scripts ::= css( PATH + "qti-base-overrides.css")
+    //scripts ::= css( PATH + "qti-base-overrides.css")
     // order matters so put them out in the chronological order we put them in
     scripts.reverse
   }
