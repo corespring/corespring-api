@@ -1,7 +1,5 @@
 var qtiServices = angular.module('qti.services', ['ngResource']);
-var qtiDirectives = angular.module('qti.directives', ['qti.services']).config(['$locationProvider', function($locationProvider) {
-    $locationProvider.html5Mode(false);
-}]);
+var qtiDirectives = angular.module('qti.directives', ['qti.services']);
 var app = angular.module('qti', ['qti.directives','qti.services']);
 
 
@@ -25,19 +23,9 @@ qtiDirectives.directive('assessmentitem', function(AssessmentSessionService, $lo
             var feedbackEnabled = scope.itemSession.feedbackEnabled;
             if (feedbackEnabled == undefined) feedbackEnabled = false;
 
-            // let query string override feedback property
-            // TODO - perhaps only enable this in 'development' mode (which would be an attr param)
-            var feedbackParam = $location.search().enableFeedback;
-            if (feedbackParam && (feedbackParam == 'true' || feedbackParam == 'false' )) {
-                feedbackEnabled = feedbackParam;
-            }
-
-
             scope.status = 'ACTIVE';
 
             scope.itemSession.start = new Date().getTime(); // millis since epoch (maybe this should be set in an onload event?)
-
-
 
             scope.responses = {};
 
