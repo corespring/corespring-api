@@ -1,6 +1,6 @@
 var qtiServices = angular.module('qti.services', ['ngResource']);
 var qtiDirectives = angular.module('qti.directives', ['qti.services']);
-var app = angular.module('qti', ['qti.directives', 'qti.services']);
+var app = angular.module('qti', ['qti.directives','qti.services']);
 
 
 function QtiAppController($scope, $timeout) {
@@ -15,7 +15,7 @@ function QtiAppController($scope, $timeout) {
 QtiAppController.$inject = ['$scope', '$timeout'];
 
 // base directive include for all QTI items
-qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $location) {
+qtiDirectives.directive('assessmentitem', function(AssessmentSessionService) {
     return {
         restrict:'E',
         controller:function ($scope, $element, $attrs) {
@@ -26,30 +26,61 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $l
             var itemId = $attrs.csItemid; // cs:itemId
             var itemSessionId = $attrs.csItemsessionid; // cs:itemId
 
+            var apiCallParams = {
+                itemId: itemId,
+                //sessionId: "502d0f823004deb7f4f53be7",
+                sessionId: itemSessionId,
+                access_token: "34dj45a769j4e1c0h4wb"
+            };
+
             // get item session - parameters for session behavior will be defined there
             // TODO it is an error if there is no session found
-            scope.itemSession = AssessmentSessionService.get({id:itemSessionId});
+            scope.itemSession = AssessmentSessionService.get( apiCallParams );
 
-
-            var feedbackEnabled = scope.itemSession.feedbackEnabled;
-            if (feedbackEnabled == undefined) feedbackEnabled = false;
+            //TODO: Setting this to true by default
+            var feedbackEnabled = (scope.itemSession.feedbackEnabled || true);
 
             scope.status = 'ACTIVE';
 
             scope.itemSession.start = new Date().getTime(); // millis since epoch (maybe this should be set in an onload event?)
 
-            scope.responses = {};
+            scope.responses = [];
 
             // sets a response for a given question/interaction
-            this.setResponse = function (key, responseValue) {
-                scope.responses[key] = {value:responseValue};
+            this.setResponse = function(key, responseValue) {
+
+                var itemResponse = this.findItemByKey(key);
+                //if its null - create it
+
+                if(!itemResponse) {
+                    itemResponse = (itemResponse || { id : key });
+                    scope.responses.push(itemResponse);
+                }
+
+                itemResponse.value = responseValue;
             };
+
+            this.findItemByKey = function(key){
+                for(var i = 0; i < scope.responses.length ; i++){
+                    if( scope.responses[i] && scope.responses[i].id == key ){
+                        return scope.responses[i];
+                    }
+                }
+
+
+                return null;
+            };
+
             // this is the function that submits the user responses and gets the outcomes
             this.submitResponses = function () {
                 scope.itemSession.responses = scope.responses;
                 scope.itemSession.finish = new Date().getTime();
-                scope.itemSession = AssessmentSessionService.update(scope.itemSession);
-                scope.status = 'SUBMITTED';
+                AssessmentSessionService.save( apiCallParams, scope.itemSession, function(data){
+                    console.log("saved");
+                    console.log(data);
+                    scope.itemSession = data;
+                    scope.status = 'SUBMITTED';
+                });
                 scope.formDisabled = true;
             };
 
@@ -100,7 +131,7 @@ var feedbackDirectiveFunction = function (QtiUtils) {
                 if (newValue == 'SUBMITTED') {
                     var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
                     var responseIdentifier = attrs["responseidentifier"];
-                    var correctResponse = scope.itemSession.sessionData.correctResponse[responseIdentifier];
+                    var correctResponse = scope.itemSession.sessionData.correctResponses[responseIdentifier];
                     var choiceValue = attrs["identifier"];
                     var responseExpr = 'scope.itemSession.responses.' + responseIdentifier + ".value";
                     var response = {};

@@ -27,12 +27,27 @@ object ItemResponse {
    val id = "id"
    val outcome = "outcome"
 
+  /**
+   * Saving the array with a simple delimiter like ',' could cause problems
+   * As there should be used in the answer if its a single value.
+   * Instead use this delimiter to guarantee that the items are read/written correctly as arrays if needed.
+   */
+   val Delimiter = " _item_response_delimiter_ "
+
   implicit object ItemResponseWrites extends Writes[ItemResponse] {
     def writes(response: ItemResponse) = {
+
+      def createValue( storedValue : String ) : JsValue = {
+        storedValue.split(Delimiter).toSeq match {
+          case Seq(s) => JsString(s)
+          case l : Seq[_]  => JsArray(l.map( JsString(_)))
+        }
+      }
+
       JsObject(
         List(
           "id" -> JsString(response.id.toString),
-          "value" -> JsString(response.value.toString),
+          "value" -> createValue(response.value.toString) ,
           "outcome" -> JsString(response.outcome.toString)
         )
       )
@@ -44,10 +59,23 @@ object ItemResponse {
 
     def reads(json: JsValue):ItemResponse = {
 
+      //The value can either be a single string or an array of strings
+      def getValue(js : JsValue) : String = {
+        if ( js.asOpt[String].isDefined ){
+          js.as[String]
+        } else {
+          if( js.asOpt[Seq[String]].isDefined){
+           js.as[Seq[String]].mkString(Delimiter)
+          } else {
+            ""
+          }
+        }
+      }
+
       new ItemResponse(
-        (json \ "id").asOpt[String].getOrElse(""),
-        (json \ "value").asOpt[String].getOrElse(""),
-        (json \ "outcome").asOpt[String].getOrElse("")
+        id = (json \ "id").asOpt[String].getOrElse(""),
+        value = getValue( (json\"value")),
+        outcome = (json \ "outcome").asOpt[String].getOrElse("")
       )
 
     }
