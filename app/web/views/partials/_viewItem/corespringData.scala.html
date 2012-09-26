@@ -1,4 +1,3 @@
-
 <div class="container profile">
     <div class="item-type">Task</div>
     <br/>
@@ -20,13 +19,11 @@
             </td>
         </tr>
 
+    </table>
 
-        <tr>
-            <td colspan="4">
-                <p class="title" ng-bind-html-unsafe="itemData.title"/>
-            </td>
-        </tr>
+    <p class="title" ng-bind-html-unsafe="itemData.title"/>
 
+    <table>
         <tr>
             <td class="key-label">Primary Subject</td>
             <td class="key-value">{{itemData.primarySubject.category}}</td>
@@ -55,8 +52,6 @@
                 <hr class="element-separator"/>
             </td>
         </tr>
-
-
 
 
     </table>

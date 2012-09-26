@@ -68,7 +68,7 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
     if(session.finish.isDefined) updatedbo += "$set" -> MongoDBObject(finish -> session.finish.get)
     if (!session.responses.isEmpty) updatedbo += "$pushAll" -> MongoDBObject(responses -> session.responses.map(grater[ItemResponse].asDBObject(_)))
     try{
-      ItemSession.update(MongoDBObject("_id" -> session.id, finish -> 0),
+      ItemSession.update(MongoDBObject("_id" -> session.id, finish ->  MongoDBObject("$exists" -> false)),
                       updatedbo.result(),
                       false,false,collection.writeConcern)
       ItemSession.findOneById(session.id) match {
