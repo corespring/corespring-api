@@ -3,7 +3,7 @@
  * Interaction for ordering a set of choices
  */
 
-qtiDirectives.directive('orderinteraction', function () {
+qtiDirectives.directive('orderinteraction', function (QtiUtils) {
 
 
 
@@ -83,8 +83,9 @@ qtiDirectives.directive('orderinteraction', function () {
                             scope.items[y].submittedClass = "orderIncorrect";
                         }
                         // get the correct response
-                        var correctResponse = scope.itemSession.sessionData.correctResponse[responseIdentifier];
-                        var response = scope.itemSession.responses[responseIdentifier];
+                        var correctResponse = scope.itemSession.sessionData.correctResponses[responseIdentifier];
+                        var response = QtiUtils.getResponseById(responseIdentifier, scope.itemSession.responses);
+                            //.itemSession.responses[responseIdentifier];
                         // for each item, determine if item is in right or wrong place
                         for (var i = 0; i < correctResponse.length; i++) {
                             if (correctResponse[i] == response.value[i]) {

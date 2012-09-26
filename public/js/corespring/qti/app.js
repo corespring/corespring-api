@@ -37,7 +37,8 @@ qtiDirectives.directive('assessmentitem', function(AssessmentSessionService) {
             // TODO it is an error if there is no session found
             scope.itemSession = AssessmentSessionService.get( apiCallParams );
 
-            var feedbackEnabled = (scope.itemSession.feedbackEnabled || false);
+            //TODO: Setting this to true by default
+            var feedbackEnabled = (scope.itemSession.feedbackEnabled || true);
 
             scope.status = 'ACTIVE';
 
@@ -74,8 +75,12 @@ qtiDirectives.directive('assessmentitem', function(AssessmentSessionService) {
             this.submitResponses = function () {
                 scope.itemSession.responses = scope.responses;
                 scope.itemSession.finish = new Date().getTime();
-                scope.itemSession = AssessmentSessionService.save( apiCallParams, scope.itemSession);
-                scope.status = 'SUBMITTED';
+                AssessmentSessionService.save( apiCallParams, scope.itemSession, function(data){
+                    console.log("saved");
+                    console.log(data);
+                    scope.itemSession = data;
+                    scope.status = 'SUBMITTED';
+                });
                 scope.formDisabled = true;
             };
 
@@ -126,7 +131,7 @@ var feedbackDirectiveFunction = function (QtiUtils) {
                 if (newValue == 'SUBMITTED') {
                     var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
                     var responseIdentifier = attrs["responseidentifier"];
-                    var correctResponse = scope.itemSession.sessionData.correctResponse[responseIdentifier];
+                    var correctResponse = scope.itemSession.sessionData.correctResponses[responseIdentifier];
                     var choiceValue = attrs["identifier"];
                     var responseExpr = 'scope.itemSession.responses.' + responseIdentifier + ".value";
                     var response = {};

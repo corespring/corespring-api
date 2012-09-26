@@ -1,12 +1,12 @@
-qtiDirectives.directive('simplechoice', function(QtiUtils){
+qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
     return {
-        restrict: 'E',
-        replace: true,
-        scope: true,
-        transclude: true,
-        require: '^choiceinteraction',
-        compile: function(tElement, tAttrs, transclude){
+        restrict:'E',
+        replace:true,
+        scope:true,
+        transclude:true,
+        require:'^choiceinteraction',
+        compile:function (tElement, tAttrs, transclude) {
             // determine input type by inspecting markup before modifying DOM
             var inputType = 'checkbox';
             var choiceInteractionElem = tElement.parent();
@@ -19,40 +19,45 @@ qtiDirectives.directive('simplechoice', function(QtiUtils){
             var responseIdentifier = choiceInteractionElem.attr('responseidentifier');
 
 
-            var template =  '<div class="choiceInput"><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div><div class="choice-content" ng-transclude></div>';
+            var template = '<div class="choiceInput"><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div><div class="choice-content" ng-transclude></div>';
 
             // now can modify DOM
             tElement.html(template);
 
             // return link function
-            return function(localScope, element, attrs, choiceInteractionController) {
+            return function (localScope, element, attrs, choiceInteractionController) {
 
                 localScope.disabled = false;
 
                 localScope.value = attrs.identifier;
 
                 localScope.controller = choiceInteractionController;
-                localScope.$watch('controller.scope.chosenItem', function(newValue, oldValue) {
+                localScope.$watch('controller.scope.chosenItem', function (newValue, oldValue) {
                     // todo - don't like this special case, but need it to update ui. Look into alternative solution
                     if (inputType == 'radio') {
                         localScope.chosenItem = newValue;
                     }
                 });
 
-                localScope.onClick = function(){
-                    choiceInteractionController.scope.setChosenItem( localScope.value );
+                localScope.onClick = function () {
+                    choiceInteractionController.scope.setChosenItem(localScope.value);
                 };
 
                 // watch the status of the item, update the css if this is the chosen response
                 // and if it is correct or not
-                localScope.$watch('status', function(newValue, oldValue) {
+                localScope.$watch('status', function (newValue, oldValue) {
                     if (newValue == 'SUBMITTED') {
                         // status has changed to submitted
-                        var correctResponse = localScope.itemSession.sessionData.correctResponse[responseIdentifier];
+                        var correctResponse = localScope.itemSession.sessionData.correctResponses[responseIdentifier];
                         var responseValue = "";
                         try {
-                            responseValue = localScope.itemSession.responses[responseIdentifier].value;
-                        } catch(e) {
+                            var response =
+                                QtiUtils.getResponseById(responseIdentifier, localScope.itemSession.responses);// localScope.itemSession.responses[responseIdentifier].value;
+                            if (response) {
+                                responseValue = response.value;
+                            }
+
+                        } catch (e) {
                             // just means it isn't set, leave it as ""
                         }
                         var isSelected = QtiUtils.compare(localScope.value, responseValue);
@@ -72,7 +77,7 @@ qtiDirectives.directive('simplechoice', function(QtiUtils){
                         }
 
                     }
-                }) ;
+                });
 
             };
         }
@@ -83,20 +88,20 @@ qtiDirectives.directive('simplechoice', function(QtiUtils){
 qtiDirectives.directive('choiceinteraction', function () {
 
     return {
-        restrict: 'E',
-        transclude: true,
-        template: '<div class="choice-interaction" ng-transclude="true"></div>',
-        replace: true,
-        scope: true,
-        require: '^assessmentitem',
-        link: function(scope, element, attrs, AssessmentItemCtrl, $timeout) {
+        restrict:'E',
+        transclude:true,
+        template:'<div class="choice-interaction" ng-transclude="true"></div>',
+        replace:true,
+        scope:true,
+        require:'^assessmentitem',
+        link:function (scope, element, attrs, AssessmentItemCtrl, $timeout) {
             var maxChoices = attrs['maxchoices'];
             // the model for an interaction is specified by the responseIdentifier
             var modelToUpdate = attrs["responseidentifier"];
 
             // TODO need to handle shuffle and fixed options... probably need to rearrange the DOM in compile function for this
 
-            scope.setChosenItem = function(value){
+            scope.setChosenItem = function (value) {
                 if (maxChoices != 1) {
                     // multi choice means array model
                     if (scope.chosenItem == undefined) {
@@ -109,7 +114,7 @@ qtiDirectives.directive('choiceinteraction', function () {
                     } else {
                         // otherwise remove it
                         var idx = scope.chosenItem.indexOf(value); // Find the index
-                        if(idx!=-1) scope.chosenItem.splice(idx, 1); // Remove it if really found!
+                        if (idx != -1) scope.chosenItem.splice(idx, 1); // Remove it if really found!
                     }
                     AssessmentItemCtrl.setResponse(modelToUpdate, scope.chosenItem);
                 } else {
@@ -120,7 +125,7 @@ qtiDirectives.directive('choiceinteraction', function () {
 
 
         },
-        controller: function($scope) {
+        controller:function ($scope) {
             this.scope = $scope;
         }
     }
