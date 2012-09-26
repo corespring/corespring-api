@@ -27,16 +27,8 @@ case class ItemSession (var itemId: ObjectId,
                         var finish: Option[DateTime] = None,
                         var responses: Seq[ItemResponse] = Seq(),
                         var id: ObjectId = new ObjectId(),
-                        var data: Option[Map[String, Map[String, String]]] = None
-                         ) extends Identifiable{
-
-  def sessionData: Option[Map[String, Map[String, String]]] = data
-
-  def sessionData(sessionData: Map[String, Map[String, String]]): ItemSession = {
-    copy(itemId, start, finish, responses, id, Some(sessionData))
-  }
-
-}
+                        var sessionData: Option[SessionData] = None
+                         ) extends Identifiable
 
 /**
  * Companion object for ItemSession.
@@ -71,37 +63,34 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
       }
   }
 
-  def updateItemSession(session:ItemSession):Either[InternalError,Unit] = {
+  def updateItemSession(session:ItemSession):Either[InternalError,ItemSession] = {
     val updatedbo = MongoDBObject.newBuilder
-    if(session.finish != 0) updatedbo += "$set" -> MongoDBObject(finish -> session.finish)
+    if(session.finish.isDefined) updatedbo += "$set" -> MongoDBObject(finish -> session.finish.get)
     if (!session.responses.isEmpty) updatedbo += "$pushAll" -> MongoDBObject(responses -> session.responses.map(grater[ItemResponse].asDBObject(_)))
     try{
-    ItemSession.update(MongoDBObject("_id" -> session.id, finish -> 0),
+      ItemSession.update(MongoDBObject("_id" -> session.id, finish -> 0),
                       updatedbo.result(),
                       false,false,collection.writeConcern)
-      Right(())
+      ItemSession.findOneById(session.id) match {
+        case Some(session) => if(session.finish.isDefined){
+          getSessionData(session.itemId) match {
+            case Right(sessionData) =>
+              session.sessionData = Some(sessionData)
+              Right(session)
+            case Left(error) => Right(session)
+          }
+        } else Right(session)
+        case None => Left(InternalError("could not find session that was just updated",LogType.printFatal))
+      }
     }catch{
       case e:SalatDAOUpdateError => Left(InternalError("error updating item session: "+e.getMessage,LogType.printFatal))
     }
   }
-  private def getSessionData(itemId:ObjectId, responses:Seq[ItemResponse]):Either[InternalError,SessionData] = {
-    val sessionData = SessionData()
-    Item.findOneById(itemId) match {
-      case Some(item) => item.data match {
-        case Some(resource) => resource.files.find(file => file.isMain) match {
-          case vf:VirtualFile => {
-            val qti = XML.loadString(vf.content)
-            responses.foreach(response => {
-
-            })
-          }
-          case _ => Left(InternalError("main file is not a virtual file. cannot extract qti information",LogType.printWarning))
-        }
-        case None => Left(InternalError("item was found but did not include any data associated with it",LogType.printFatal,true))
-      }
-      case None => Left(InternalError("item not found",addMessageToClientOutput = true))
+  def getSessionData(itemId:ObjectId):Either[InternalError,SessionData] = {
+    Item.getQti(itemId) match {
+      case Right(xmlData) => Right(SessionData(bleezmo.QtiItem(XML.loadString(xmlData))))
+      case Left(e) => Left(e)
     }
-    Left(InternalError("not implemented"))
   }
 
   /**

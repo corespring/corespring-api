@@ -19,6 +19,7 @@ import com.mongodb.QueryBuilder
 import web.views.html.partials._edit._metadata._formWithLegend
 import com.novus.salat.annotations.raw.Salat
 import play.api.libs.json._
+import com.novus.salat._
 
 case class Copyright(owner: Option[String] = None, year: Option[String] = None, expirationDate: Option[String] = None)
 
@@ -303,6 +304,24 @@ object Item extends DBQueryable[Item] {
       case x: String => if (seq.exists(_.key == x)) Right(x) else Left(InternalError("no valid " + name + " found for given value"))
       case _ => Left(InternalError("invalid value format"))
     }
+  }
+
+  def getQti(itemId:ObjectId):Either[InternalError,String] = {
+      Item.collection.findOneByID(itemId, MongoDBObject(Item.data -> 1)) match {
+        case None => Left(InternalError("not found"))
+        case Some(o) => o.get(Item.data) match {
+          case res:BasicDBObject => {
+            grater[Resource].asObject(res).files.find(bf => bf.isMain && bf.contentType == BaseFile.ContentTypes.XML) match {
+              case Some(bf) => bf match {
+                case vf:VirtualFile => Right(vf.content)
+                case _ => Left(InternalError("main file was not a virtual file",LogType.printFatal))
+              }
+              case None => Left(InternalError("no main file found that contained xml",LogType.printFatal))
+            }
+          }
+          case _ => Left(InternalError("data not an object"))
+        }
+      }
   }
 
   val queryFields: Seq[QueryField[Item]] = Seq[QueryField[Item]](
