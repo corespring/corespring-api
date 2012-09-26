@@ -48,6 +48,11 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
         return "grade-" + gradeLevel;
     };
 
+    $scope.getItemUrl = function() {
+        if (!$scope.itemData) return null;
+        return "/web/show-resource/" + $scope.itemData.id;
+    }
+
     $scope.prependHttp = function(url) {
         if (!url) return "";
         if (!url.match(/^[a-zA-Z]+:\/\//))
