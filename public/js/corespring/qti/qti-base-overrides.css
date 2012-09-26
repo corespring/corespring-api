@@ -22,3 +22,9 @@ prompt, .choice-prompt {
     color: grey;
     padding-left: 10px;
 }
+
+/*Fix for superscript not rendering*/
+sup{
+    vertical-align: super;
+    padding: 2px;
+}
