@@ -99,7 +99,7 @@ object ItemSessionApi extends BaseApi {
             session.finish = newSession.finish
             session.responses = newSession.responses
             ItemSession.updateItemSession(session) match {
-              case Right(_) => Ok(Json.toJson(session))
+              case Right(newSession) => Ok(Json.toJson(newSession))
               case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateItemSession(error.clientOutput)))
             }
           }
