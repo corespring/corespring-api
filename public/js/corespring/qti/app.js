@@ -28,6 +28,7 @@ qtiDirectives.directive('assessmentitem', function(AssessmentSessionService) {
 
             var apiCallParams = {
                 itemId: itemId,
+                //sessionId: "502d0f823004deb7f4f53be7",
                 sessionId: itemSessionId,
                 access_token: "34dj45a769j4e1c0h4wb"
             };

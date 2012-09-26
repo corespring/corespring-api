@@ -27,7 +27,12 @@ object ItemResponse {
    val id = "id"
    val outcome = "outcome"
 
-   private val Delimiter = " _item_response_delimiter_ "
+  /**
+   * Saving the array with a simple delimiter like ',' could cause problems
+   * As there should be used in the answer if its a single value.
+   * Instead use this delimiter to guarantee that the items are read/written correctly as arrays if needed.
+   */
+   val Delimiter = " _item_response_delimiter_ "
 
   implicit object ItemResponseWrites extends Writes[ItemResponse] {
     def writes(response: ItemResponse) = {
