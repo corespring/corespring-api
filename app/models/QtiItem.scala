@@ -45,18 +45,21 @@ object CorrectResponseMultiple{
     (node \ "value").map(_.text)
   )
 }
-case class ItemBody(interactions:Seq[Interaction])
+case class ItemBody(interactions:Seq[Interaction],feedbackInlines:Seq[FeedbackInline])
 object ItemBody{
   def apply(node:Node):ItemBody = {
     var interactions:Seq[Interaction] = Seq()
+    var feedbackInlines:Seq[FeedbackInline] = Seq()
     node.child.foreach(inner => {
       inner.label match {
         case "choiceInteraction" => interactions = interactions :+ ChoiceInteraction(inner)
         case "orderInteraction" => interactions = interactions :+ OrderInteraction(inner)
+        case "feedbackInline" => feedbackInlines = feedbackInlines :+ FeedbackInline(inner)
+
         case _ =>
       }
     })
-    ItemBody(interactions)
+    ItemBody(interactions,feedbackInlines)
   }
 }
 trait Interaction{

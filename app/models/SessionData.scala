@@ -45,6 +45,9 @@ object SessionData{
           ))
         }
       })
+      sd.qtiItem.itemBody.feedbackInlines.foreach(fi =>
+        feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(fi.content))
+      )
       JsObject(Seq(
         "feedbackContents" -> JsObject(feedbackContents),
         "correctResponses" -> JsObject(correctResponses)
