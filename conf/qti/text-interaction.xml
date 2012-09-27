@@ -30,8 +30,8 @@
             buried.
         </p>
         <feedbackInline
-                responseIdentifier="winterDiscontent"
                 identifier="York"
+                outcomeIdentifier="responses.winterDiscontent.value"
                 csFeedbackId="winterDiscontent"
                 showHide="show">
             York is correct

@@ -25,6 +25,7 @@ var feedbackDirectiveFunction = function (QtiUtils) {
                     var choiceValue = attrs["identifier"];
                     var response = QtiUtils.getResponseById(responseIdentifier, scope.itemSession.responses);// localScope.itemSession.responses[responseIdentifier].value;
                     var responseValue = response ? response.value : "";
+                    console.log("choiceValue: " + choiceValue);
                     if (QtiUtils.compare(choiceValue, correctResponse) || QtiUtils.compare(choiceValue, responseValue)) {
                         scope.feedback = feedback;
                     }
