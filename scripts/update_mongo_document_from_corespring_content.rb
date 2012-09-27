@@ -50,7 +50,7 @@ beta_items( db_name, collection_name ).each do |bi|
 end
 
 
-puts items
+puts "Found #{items.length} items to update"
 
 uploader = AmazonUploader.new( "AKIAJNPUNTVH2HMFWVVA", "sl+sXsuq8Xkbl4NvlLuyHRZtrVJp+BXEoH7XlLPm", "corespring-assets")
 

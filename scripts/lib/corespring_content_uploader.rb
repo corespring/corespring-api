@@ -39,7 +39,7 @@ class CorespringContentUpdater
     end
 
     if @item_path.nil?
-      puts " Can't find any items with that id: #{@item_id}"
+      puts " Can't find any items with that id: #{@item_id} just export the json"
       export_json
       return 
     end
