@@ -250,7 +250,7 @@
     right: 0px;
     top: 0px;
     bottom: 0px;
-    
+
     .contents-holder{
         float:left;
         left: @cs-file-list-width;
@@ -733,12 +733,13 @@ body{
 
 .profile {
     width: 600px;
-
+    font-family:"Ubuntu", Arial, Helvetica, sans-serif;
 
     table {
         color: #4D4D4D;
         border-spacing: 0px 5px;
         border-collapse: separate;
+
     }
 
     hr {
@@ -747,54 +748,92 @@ body{
     }
 
     td {
-        text-align: center;
+        font-size: 14px;
+        border:none;
+        color: #80B312;
+        font-weight: bold;
+        padding: 5px 5px 20px 5px;
+        text-align: left;
     }
 
     td.key-label {
+        border: none;
+        color: #80B312;
         font-weight: bold;
-        background-color: #8B8D8E;
-        width: 170px;
-        text-align: center;
-        padding: 5px;
-        border-radius: 4px;
-        -moz-border-radius: 4px;
-        -webkit-border-radius: 4px;
-        color: white;
+        text-align: left;
+        vertical-align: top;
     }
 
-    td.key-value {
-        width: 250px;
-        padding-left: 5px;
+    .key-value {
+        font-weight: normal;
+        color: #333;
     }
 
     .item-type {
+        background-color: #80B312;
+        border-radius:28px;
+        border: none;
+        box-shadow:0 0 2px 2px rgba(27, 27, 27, 0.15);
+        color: #FFFFFF;
+        font-size:15px;
+        height:40px;
+        line-height:38px;
+        margin-right:5px;
         margin-top: 40px;
-        width: 40px;
-        height: 40px;
-        padding: 4px;
-        border: solid 1px #555555;
-        background-color: #8B8D8E;
-        line-height: 38px;
+        padding:4px;
         text-align: center;
-        font-size: 15px;
-        -moz-border-radius: 28px;
-        -webkit-border-radius: 28px;
-        border-radius: 28px;
-        color: #ffffff;
-        margin-right: 5px;
-        box-shadow: 0 0 2px 2px rgba(27, 27, 27, 0.15);
+        width:40px;
+        margin-bottom: 30px;
     }
 
     .title {
-        font-size: 18px;
-        line-height: 24px;
-        color: #4D4D4D;
+        color: #333;
+        margin-left: 0;
+        padding-bottom: 5px;
     }
 
     p {
-    	font:14px/20px "Ubuntu", Arial, Helvetica, sans-serif;
+        font:14px "Ubuntu", Arial, Helvetica, sans-serif;
+        font-size:14px;
+        line-height:20px;
     }
+
+    p.profile-h1 {
+        border-bottom-color: #999;
+        border-bottom-style: solid;
+        border-bottom-width: 1px;
+        color: #80B312;
+        font-weight: bold;
+        margin-bottom: 20px;
+        margin-left: 0;
+        padding-bottom: 5px;
+        text-transform: uppercase;
+    }
+
+    .copyright-graph {
+        margin: 0;
+        overflow: hidden;
+    }
+
+    .copyright-logo {
+        max-height: 50px;
+        max-width: 140px;
+        float: left;
+    }
+
 }
+
+.profileSource {
+    border: 1px solid #999;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    padding: 20px 20px 10px 20px;
+    width: 560px;
+    position: relative;
+    margin-top: 15px;
+}
+
 
 .iframe-600-centered{
     width: 600px;

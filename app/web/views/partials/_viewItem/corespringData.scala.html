@@ -6,16 +6,25 @@
     <table>
 
         <tr>
-            <td class="key-label">Grade</td>
-            <td class="key-value">
-                <span ng-show="!itemData.gradeLevel"
-                      style="color: #888; font-style: italic;">Not Assigned</span>
+            <td width="120px" class="key-label">Grade:
+            <span class="key-value">
+                <span ng-show="!itemData.gradeLevel" style="color: #888; font-style: italic;">Not Assigned</span>
                 {{itemData.gradeLevel[itemData.gradeLevel.length - 1]}}
-            <td class="key-label">CCSS</td>
-            <td class="key-value">
-                <span ng-show="!itemData.standards" style="color: #888; font-style: italic;">Not Assigned</span>
-                <a style="margin-right: 7px;" ng-repeat="s in itemData.standards" ui-jq="tooltip"
-                   ui-options="{title: s.standard}">{{s.dotNotation}}</a>
+             </span>
+            </td>
+            <td width="300px" class="key-label">CCSS:
+                <span class="key-value">
+                    <span ng-show="!itemData.standards || itemData.standards.length == 0" style="color: #888; font-style: italic;">Not Assigned</span>
+                    <a style="margin-right: 7px;" ng-repeat="s in itemData.standards" ui-jq="tooltip"
+                       ui-options="{title: s.standard}">{{s.dotNotation}}</a>
+                </span>
+            </td>
+
+            <td width="150px" class="key-label" style="text-align: right">License:
+                <span class="key-value">
+                    <span ng-show="!itemData.licenseType" style="color: #888; font-style: italic;">Not Assigned</span>
+                    <img ng-show="itemData.licenseType" ng-src="/assets/images/licenseTypes/{{itemData.licenseType}}.png"/>
+                 </span>
             </td>
         </tr>
 
@@ -23,27 +32,47 @@
 
     <p class="title" ng-bind-html-unsafe="itemData.title"/>
 
-    <table>
+    <table width="100%">
         <tr>
-            <td class="key-label">Primary Subject</td>
-            <td class="key-value">{{itemData.primarySubject.category}}</td>
-            <td class="key-label">Related Subject</td>
-            <td class="key-value">{{itemData.relatedSubject.category}}</td>
+            <td class="key-label" width="50%">Primary Subject<br/>
+                <span class="key-value">
+                    <span ng-show="!itemData.primarySubject" style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{itemData.primarySubject.category}}
+                </span>
+            </td>
+            <td class="key-label" width="50%">Related Subject<br/>
+                <span class="key-value">
+                    <span ng-show="!itemData.relatedSubject" style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{itemData.relatedSubject.category}}
+                </span>
+            </td>
         </tr>
         <tr>
-            <td class="key-label">Item Type</td>
-            <td class="key-value">{{itemData.itemType}}</td>
-            <td class="key-label">Key Skills</td>
-            <td class="key-value">{{itemData.keySkills.join(', ')}}</td>
+            <td class="key-label" width="50%">Item Type<br/>
+                <span class="key-value">
+                    <span ng-show="!itemData.itemType" style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{itemData.itemType}}
+                </span>
+            </td>
+            <td class="key-label" width="50%">Key Skills<br/>
+                <span class="key-value">
+                    <span ng-show="!itemData.keySkills || itemData.keySkills.length == 0" style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{itemData.keySkills.join(', ')}}
+                </span>
+            </td>
         </tr>
         <tr>
-            <td class="key-label">Bloom's</td>
-            <td class="key-value">{{itemData.bloomsTaxonomy}}</td>
-            <td class="key-label">Demonstrated Knowledge</td>
-            <td class="key-value"><span ng-show="!itemData.demonstratedKnowledge"
-                                        style="color: #888; font-style: italic;">Not Assigned</span>
-
-                <div>{{itemData.demonstratedKnowledge}}</div>
+            <td class="key-label" width="50%">Bloom's<br/>
+                <span class="key-value">
+                    <span ng-show="!itemData.bloomsTaxonomy" style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{itemData.bloomsTaxonomy}}
+                </span>
+            </td>
+            <td class="key-label" width="50%">Demonstrated Knowledge<br/>
+                <span class="key-value"><span ng-show="!itemData.demonstratedKnowledge"
+                                                        style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{itemData.demonstratedKnowledge}}
+                </span>
             </td>
         </tr>
 

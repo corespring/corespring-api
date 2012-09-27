@@ -1,45 +1,64 @@
-<div class="container profile">
+<div class="container profile profileSource">
 
-    <div ng-show="itemData.copyrightOwner">
-        This item was made available to CoreSpring users courtesy of the {{itemData.copyrightOwner}}.
-        Information related to this specific item is presented below.
-    </div>
-    <div ng-show="itemData.copyrightImageName">
-        <hr />
-        <img ng-src="/assets/images/copyright/{{itemData.copyrightImageName}}"/>
-        <hr />
-    </div>
-    <div ng-show="!itemData.copyrightImageName">
-        <br />
-    </div>
 
-    <table>
-        <tr>
-            <td class="key-label">Copyright Year</td>
-            <td class="key-value">{{itemData.copyrightYear}}</td>
-        </tr>
+    <p class="profile-h1"> Source </p>
+
+
+    <img ng-show="itemData.copyrightImageName" class="copyright-logo"
+         ng-src="/assets/images/copyright/{{itemData.copyrightImageName}}"/>
+
+    <div class="copyright-graph" ng-show="itemData.copyrightOwner">
+        <p>
+            This item was made available to CoreSpring users courtesy of the {{itemData.copyrightOwner}}.
+            Information related to this specific item is presented below.
+        </p>
+    </div>
+    <table width="100%">
 
         <tr>
-            <td class="key-label">Credentials</td>
-            <td class="key-value">{{itemData.credentials}}</td>
-        </tr>
-        <tr>
-            <td class="key-label">Reviews Passed</td>
-            <td class="key-value">{{itemData.reviewsPassed.join(", ")}}</td>
-        </tr>
-        <tr>
-            <td class="key-label">Prior Use</td>
-            <td class="key-value">{{itemData.priorUse}}</td>
-        </tr>
-        <tr>
-            <td class="key-label">Related Materials</td>
-            <td class="key-value" colspan="3">{{itemData.relatedCurriculum}}</td>
-        </tr>
-        <tr>
-            <td class="key-label">Source</td>
-            <td class="key-value" colspan="3"><a ng-href="{{prependHttp(itemData.sourceUrl)}}" target="_blank">{{prependHttp(itemData.sourceUrl)}}</a>
+            <td class="key-label" width="50%">Copyright Year<br/>
+                <span class="key-value">
+                    <span ng-show="!itemData.copyrightYear" style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{itemData.copyrightYear}}
+                </span>
+            </td>
+            <td class="key-label" width="50%">Credentials<br/>
+                <span class="key-value">
+                    <span ng-show="!itemData.credentials" style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{itemData.credentials}}
+                </span>
             </td>
         </tr>
+        <tr>
+            <td class="key-label" width="50%">Reviews Passed<br/>
+                <span class="key-value">
+                    <span ng-show="!itemData.reviewsPassed" style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{itemData.reviewsPassed.join(", ")}}
+                </span>
+            </td>
+            <td class="key-label" width="50%">Prior Use<br/>
+                <span class="key-value">
+                    <span ng-show="!itemData.priorUse" style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{itemData.priorUse}}
+                </span>
+            </td>
+        </tr>
+        <tr>
+            <td class="key-label" width="50%">Related Materials<br/>
+                <span class="key-value">
+                    <span ng-show="!itemData.relatedCurriculum" style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{itemData.relatedCurriculum}}
+                </span>
+            </td>
+            <td class="key-label" width="50%">Source<br/>
+                <span class="key-value">
+                    <span ng-show="!itemData.sourceUrl" style="color: #888; font-style: italic;">Not Assigned</span>
+                    <a ng-href="{{prependHttp(itemData.sourceUrl)}}" target="_blank">{{prependHttp(itemData.sourceUrl)}}</a>
+                </span>
+            </td>
+        </tr>
+
+
     </table>
 
 </div>
