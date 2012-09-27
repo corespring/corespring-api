@@ -118,6 +118,11 @@ qtiServices
         // TODO - this will need to support other comparisons... e.g. two arrays for orderInteraction to ensure correct order & other QTI response types like matching?
         // function checks if value == response, or if response is array it checks if the array contains the value
         QtiUtils.compare = function (choiceValue, response) {
+
+            if (choiceValue === undefined && response === undefined) {
+                throw "Error: can't compare 2 undefined elements";
+            }
+
             if (response instanceof Array) {
                 if (response.indexOf(choiceValue) != -1) {
                     return true;

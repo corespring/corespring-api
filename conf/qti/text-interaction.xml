@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<assessmentItem
+        identifier="mcas-16373" timeDependent="false" title="16373"
+        xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 imsqti_v2p1.xsd" toolName="SIB" adaptive="false"
+        toolVersion="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1">
+    <stylesheet type="text/css" href="css/mcas/default.css"></stylesheet>
+
+
+    <!-- inline text interaction -->
+    <responseDeclaration identifier="winterDiscontent" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>York</value>
+        </correctResponse>
+        <mapping defaultValue="0">
+            <mapEntry mapKey="York" mappedValue="1"/>
+            <mapEntry mapKey="york" mappedValue="0.5"/>
+        </mapping>
+    </responseDeclaration>
+
+    <itemBody>
+        <p>Now is the winter of our discontent
+            <br/>
+            Made glorious summer by this sun of
+            <textEntryInteraction responseIdentifier="winterDiscontent" expectedLength="15"/>;
+            <br/>
+            And all the clouds that lour'd upon our house
+            <br/>
+            In the deep bosom of the ocean
+            buried.
+        </p>
+        <feedbackInline
+                responseIdentifier="winterDiscontent"
+                identifier="York"
+                showHide="show">
+            York is correct
+        </feedbackInline>
+    </itemBody>
+
+    <modalFeedback
+            outcomeIdentifier="responses.winterDiscontent.value"
+            identifier="York"
+            showHide="show">
+        This is modal feedback, shown when 'York' was entered in the inline text question
+    </modalFeedback>
+
+</assessmentItem>

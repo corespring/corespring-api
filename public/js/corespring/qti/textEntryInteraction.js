@@ -1,63 +1,35 @@
-qtiDirectives.directive("textentryinteraction", function(QtiUtils) {
+qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
 
 
     return {
-        restrict: 'E',
-        replace: true,
-        scope: true,
-        require: '^assessmentitem',
-        template: '<span><input type="text" size="{{expectedLength}}" ng-model="textResponse" ng-disabled="formDisabled"></input></span>',
-        link: function (scope, element, attrs, AssessmentItemController) {
-            // read some stuff from attrs
-            var modelToUpdate = attrs.responseidentifier;
-            var responseIdentifier = attrs.responseIdentifier;
+        restrict:'E',
+        replace:true,
+        scope:true,
+        require:'^assessmentitem',
+        template:'<span class="text-entry-interaction"><input type="text" size="{{expectedLength}}" ng-model="textResponse" ng-disabled="formDisabled"></input></span>',
+        link:function (scope, element, attrs, AssessmentItemController) {
+            var responseIdentifier = attrs.responseidentifier;
 
             scope.expectedLength = attrs.expectedlength;
 
             // called when this choice is clicked
-            scope.$watch('textResponse', function(newVal, oldVal) {
-                AssessmentItemController.setResponse(modelToUpdate, scope.textResponse);
+            scope.$watch('textResponse', function (newVal, oldVal) {
+                AssessmentItemController.setResponse(responseIdentifier, scope.textResponse);
             });
 
-             scope.$watch('status', function (newValue, oldValue) {
+            scope.$watch('status', function (newValue) {
 
-                    //TODO: This logic is almost identical to the other interaction items - we need to reuse it.
-                    if (newValue == 'SUBMITTED') {
+                if (newValue == 'SUBMITTED') {
 
-
-                        // status has changed to submitted
-                        var correctResponse = scope.itemSession.sessionData.correctResponses[responseIdentifier];
-                        var responseValue = "";
-                        try {
-                            var response =
-                                QtiUtils.getResponseById(responseIdentifier, scope.itemSession.responses);// localScope.itemSession.responses[responseIdentifier].value;
-                            if (response) {
-                                responseValue = response.value;
-                            }
-
-                        } catch (e) {
-                            // just means it isn't set, leave it as ""
-                        }
-                        var isSelected = QtiUtils.compare(scope.value, responseValue);
-                        if (scope.isFeedbackEnabled() != false) {
-                            // give the current choice the correct-response class if it is the correct response
-                            if (QtiUtils.compare(scope.value, correctResponse)) {
-                                element.toggleClass('correct-response');
-                            }
-
-                            if (isSelected && ( QtiUtils.compare(scope.value, correctResponse) )) {
-                                // user selected the right response
-                                element.toggleClass('correct-selection');
-                            } else if (isSelected) {
-                                // user selected the wrong response
-                                element.toggleClass('incorrect-selection');
-                            }
-                        }
-
+                    if (scope.isFeedbackEnabled() == false) {
+                        return;
                     }
-                });
 
+                    var correctResponse = scope.itemSession.sessionData.correctResponses[responseIdentifier];
+                    var className = QtiUtils.compare(scope.textResponse, correctResponse) ? 'correct-response' : 'incorrect-response';
+                    element.toggleClass(className);
+                }
+            });
         }
-
     }
 });

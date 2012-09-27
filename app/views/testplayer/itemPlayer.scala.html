@@ -19,6 +19,8 @@
         document.createElement('choiceInteraction');
         document.createElement('orderInteraction');
         document.createElement('simpleChoice');
+        document.createElement('textInteraction');
+        document.createElement('extendedTextInteraction');
         document.createElement('itemBody');
     </script>
     <![endif]-->
@@ -31,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="/assets/js/corespring/qti/cs-qti-styles.css"/>
     <script src="/assets/js/corespring/qti/app.js"></script>
     <script src="/assets/js/corespring/qti/qtiServices.js"></script>
+    <script src="/assets/js/corespring/qti/feedbackInline.js"></script>
 
     @for(script <- scripts) {
         @Html(script)
