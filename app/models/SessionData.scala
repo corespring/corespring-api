@@ -3,7 +3,10 @@ package models
 import play.api.libs.json._
 import play.api.libs.json.JsString
 import scala.xml._
-import models.bleezmo.{OrderInteraction, ChoiceInteraction, CorrectResponseMultiple, CorrectResponseSingle}
+import models.bleezmo._
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsString
 
 
 /**
@@ -31,6 +34,7 @@ object SessionData{
         rd.correctResponse.foreach( _ match {
           case crs:CorrectResponseSingle => correctResponses = correctResponses :+ (rd.identifier -> JsString(crs.value))
           case crm:CorrectResponseMultiple => correctResponses = correctResponses :+ (rd.identifier -> JsArray(crm.value.map(JsString(_))))
+          case cro:CorrectResponseOrdered => correctResponses = correctResponses :+ (rd.identifier -> JsArray(cro.value.map(JsString(_))))
           case _ => throw new RuntimeException("unexpected correct response type")
         })
       })
@@ -38,15 +42,18 @@ object SessionData{
       sd.qtiItem.itemBody.interactions.foreach(interaction => {
         interaction match {
           case ci:ChoiceInteraction => ci.choices.map(choice => choice.feedbackInline.foreach(fi =>
-            feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(fi.content))
+            feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(if(fi.defaultFeedback) fi.defaultContent(sd.qtiItem)
+              else fi.content))
           ))
           case oi:OrderInteraction => oi.choices.map(choice => choice.feedbackInline.foreach(fi =>
-            feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(fi.content))
+            feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(if(fi.defaultFeedback) fi.defaultContent(sd.qtiItem)
+            else fi.content))
           ))
         }
       })
       sd.qtiItem.itemBody.feedbackInlines.foreach(fi =>
-        feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(fi.content))
+        feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(if(fi.defaultFeedback) fi.defaultContent(sd.qtiItem)
+        else fi.content))
       )
       JsObject(Seq(
         "feedbackContents" -> JsObject(feedbackContents),

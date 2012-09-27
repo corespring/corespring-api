@@ -2,7 +2,8 @@
 <assessmentItem
         identifier="mcas-16373" timeDependent="false" title="16373" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 imsqti_v2p1.xsd" toolName="SIB" adaptive="false" toolVersion="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1">
     <stylesheet type="text/css" href="css/mcas/default.css"></stylesheet>
-
+    <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
+    <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
     <!-- single choice -->
     <responseDeclaration identifier="mexicanPresident" cardinality="single" baseType="identifier">
         <correctResponse>
@@ -90,12 +91,16 @@
         <choiceInteraction responseIdentifier="irishPresident" shuffle="false" maxChoices="1">
             <prompt>Who is the President of Ireland?</prompt>
             <simpleChoice identifier="robinson"> Mary Robinson
+                <feedbackInline csFeedbackId='robinson' identifier='robinson' showHide='show' defaultFeedback='true' />
             </simpleChoice>
             <simpleChoice identifier="higgins"> Michel D. Higgins
+                <feedbackInline csFeedbackId='higgins' identifier='higgins' showHide='show' defaultFeedback='true' />
             </simpleChoice>
             <simpleChoice identifier="guinness"> Arthur Guinness
+                <feedbackInline csFeedbackId='guiness' identifier='guiness' showHide='show' defaultFeedback='true' />
             </simpleChoice>
             <simpleChoice identifier="adams"> Gerry Adams
+                <feedbackInline csFeedbackId='adams' identifier='adams' showHide='show' defaultFeedback='true' />
             </simpleChoice>
         </choiceInteraction>
 

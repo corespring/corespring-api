@@ -3,18 +3,30 @@ package models.bleezmo
 import scala.xml._
 
 case class QtiItem(responseDeclarations:Seq[ResponseDeclaration],itemBody:ItemBody){
-  var _defaultCorrect = "That is correct!"
-  var _defaultIncorrect = "That is incorrect"
-  def defaultCorrect = _defaultCorrect
-  def defaultIncorrect = _defaultIncorrect
+  var defaultCorrect = "That is correct!"
+  var defaultIncorrect = "That is incorrect"
 }
 object QtiItem{
-  def apply(node:Node):QtiItem = QtiItem(
-    (node \ "responseDeclaration").map(ResponseDeclaration(_)),
-    ItemBody((node \ "itemBody").head)
-  )
+  def apply(node:Node):QtiItem = {
+    val qtiItem = QtiItem((node \ "responseDeclaration").map(ResponseDeclaration(_)), ItemBody((node \ "itemBody").head))
+    (node \ "correctResponseFeedback").headOption match {
+      case Some(correctResponseFeedback) => qtiItem.defaultCorrect = correctResponseFeedback.child.text
+      case None =>
+    }
+    (node \ "incorrectResponseFeedback").headOption match {
+      case Some(incorrectResponseFeedback) => qtiItem.defaultIncorrect = incorrectResponseFeedback.child.text
+      case None =>
+    }
+    qtiItem
+  }
+
 }
-case class ResponseDeclaration(identifier:String, cardinality:String, correctResponse:Option[CorrectResponse])
+case class ResponseDeclaration(identifier:String, cardinality:String, correctResponse:Option[CorrectResponse]){
+  def isCorrect(responseIdentifier:String):Boolean = correctResponse match {
+    case Some(cr) => cr.isCorrect(responseIdentifier)
+    case None => throw new RuntimeException("no correct response to check")
+  }
+}
 object ResponseDeclaration{
   def apply(node:Node):ResponseDeclaration = ResponseDeclaration(
     (node \ "@identifier").text,
@@ -22,26 +34,40 @@ object ResponseDeclaration{
     (node \ "correctResponse").headOption.map(CorrectResponse(_,(node \ "@cardinality").text))
   )
 }
-trait CorrectResponse
+trait CorrectResponse{
+  def isCorrect(identifier:String):Boolean
+}
 object CorrectResponse{
   def apply(node:Node,cardinality:String):CorrectResponse = {
     cardinality match {
       case "single" => CorrectResponseSingle(node)
       case "multiple" => CorrectResponseMultiple(node)
-      case "ordered" => CorrectResponseMultiple(node)
+      case "ordered" => CorrectResponseOrdered(node)
       case _ => throw new RuntimeException("unknown cardinality: "+cardinality+". cannot generate CorrectResponse")
     }
   }
 }
-case class CorrectResponseSingle(value: String) extends CorrectResponse
+case class CorrectResponseSingle(value: String) extends CorrectResponse{
+  def isCorrect(identifier:String):Boolean = identifier == value
+}
 object CorrectResponseSingle{
   def apply(node:Node):CorrectResponseSingle = CorrectResponseSingle(
     (node \ "value").text
   )
 }
-case class CorrectResponseMultiple(value: Seq[String]) extends CorrectResponse
+case class CorrectResponseMultiple(value: Seq[String]) extends CorrectResponse{
+  def isCorrect(identifier:String) = value.find(_ == identifier).isDefined
+}
 object CorrectResponseMultiple{
   def apply(node:Node):CorrectResponseMultiple = CorrectResponseMultiple(
+    (node \ "value").map(_.text)
+  )
+}
+case class CorrectResponseOrdered(value: Seq[String]) extends CorrectResponse{
+  def isCorrect(identifier:String) = value.find(_ == identifier).isDefined
+}
+object CorrectResponseOrdered{
+  def apply(node:Node):CorrectResponseOrdered = CorrectResponseOrdered(
     (node \ "value").map(_.text)
   )
 }
@@ -54,7 +80,7 @@ object ItemBody{
       inner.label match {
         case "choiceInteraction" => interactions = interactions :+ ChoiceInteraction(inner)
         case "orderInteraction" => interactions = interactions :+ OrderInteraction(inner)
-        case "feedbackInline" => feedbackInlines = feedbackInlines :+ FeedbackInline(inner)
+        case "feedbackInline" => feedbackInlines = feedbackInlines :+ FeedbackInline(inner,None)
 
         case _ =>
       }
@@ -63,37 +89,45 @@ object ItemBody{
   }
 }
 trait Interaction{
-  val identifier:String
+  val responseIdentifier:String
 }
-case class ChoiceInteraction(identifier:String, choices:Seq[SimpleChoice]) extends Interaction
+case class ChoiceInteraction(responseIdentifier:String, choices:Seq[SimpleChoice]) extends Interaction
 object ChoiceInteraction{
   def apply(node:Node):ChoiceInteraction = ChoiceInteraction(
-    (node \ "@identifier").text,
-    (node \ "simpleChoice").map(SimpleChoice(_))
+    (node \ "@responseIdentifier").text,
+    (node \ "simpleChoice").map(SimpleChoice(_,(node \ "@responseIdentifier").text))
   )
 }
-case class OrderInteraction(identifier:String, choices:Seq[SimpleChoice]) extends Interaction
+case class OrderInteraction(responseIdentifier:String, choices:Seq[SimpleChoice]) extends Interaction
 object OrderInteraction{
   def apply(node:Node):OrderInteraction = OrderInteraction(
-    (node \ "@identifier").text,
-    (node \ "simpleChoice").map(SimpleChoice(_))
+    (node \ "@responseIdentifier").text,
+    (node \ "simpleChoice").map(SimpleChoice(_,(node \ "@responseIdentifier").text))
   )
 }
-case class SimpleChoice(identifier: String, feedbackInline: Option[FeedbackInline])
+case class SimpleChoice(identifier: String, responseIdentifier:String, feedbackInline: Option[FeedbackInline])
 object SimpleChoice{
-  def apply(node:Node):SimpleChoice = SimpleChoice(
+  def apply(node:Node,responseIdentifier:String):SimpleChoice = SimpleChoice(
     (node \ "@identifier").text,
-    (node \ "feedbackInline").headOption.map(FeedbackInline(_))
+    responseIdentifier,
+    (node \ "feedbackInline").headOption.map(FeedbackInline(_,Some(responseIdentifier)))
   )
 }
-case class FeedbackInline(csFeedbackId:String, content: String, var defaultFeedback:Boolean = false)
+case class FeedbackInline(csFeedbackId:String, responseIdentifier:String, identifier:String, content: String, var defaultFeedback:Boolean = false){
+  def defaultContent(qtiItem:QtiItem):String =
+    qtiItem.responseDeclarations.find(_.identifier == responseIdentifier) match {
+    case Some(rd) =>
+      if(rd.isCorrect(identifier)) qtiItem.defaultCorrect else qtiItem.defaultIncorrect
+    case None => ""
+  }
+}
 object FeedbackInline{
-  def apply(node:Node):FeedbackInline = {
-    val feedbackInline = FeedbackInline((node \ "@csFeedbackId").text, node.child.text)
-    (node \ "@defaultFeedback") match {
-      case Text(defaultFeedback) => feedbackInline.defaultFeedback = if(defaultFeedback == "true") true else false
-      case _ =>
+  def apply(node:Node,responseIdentifier:Option[String]):FeedbackInline = {
+    val feedbackInline = responseIdentifier match {
+      case Some(ri) => FeedbackInline((node \ "@csFeedbackId").text, ri, (node \ "@identifier").text, node.child.text)
+      case None => FeedbackInline((node \ "@csFeedbackId").text, (node \ "@responseIdentifier").text, (node \ "@identifier").text, node.child.text)
     }
+    if ((node \ "@defaultFeedback").text == "true") feedbackInline.defaultFeedback = true
     feedbackInline
   }
 
