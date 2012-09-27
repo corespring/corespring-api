@@ -34,7 +34,9 @@
                 outcomeIdentifier="responses.winterDiscontent.value"
                 csFeedbackId="winterDiscontent"
                 showHide="show">
-            York is correct
+            <span class="correct-response">
+                York is correct
+            </span>
         </feedbackInline>
     </itemBody>
 
