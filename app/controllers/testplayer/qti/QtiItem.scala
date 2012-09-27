@@ -93,7 +93,6 @@ class QtiItem(rootNode: Node) {
     (feedbackInlines ++ modalFeedbacks)
   }
 
-
   def getAllFeedbackJson: String = {
     Json.toJson(getAllFeedbackElements.foldLeft(Map[String, String]()){(map, feedback) => {
       val json = Json.toJson(feedback)

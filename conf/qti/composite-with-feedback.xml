@@ -128,12 +128,14 @@
         </blockquote>
         <p/>
         <feedbackInline
+                csFeedbackId="York"
                 responseIdentifier="winterDiscontent"
             identifier="York"
             showHide="show">
               York is correct
         </feedbackInline>
         <feedbackInline
+                csFeedbackId="york"
                 responseIdentifier="winterDiscontent"
                 identifier="york"
                 showHide="show">
