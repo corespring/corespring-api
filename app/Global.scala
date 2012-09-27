@@ -183,7 +183,7 @@ object JsonImporter {
 
     val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.forName("UTF-8"))).mkString
     val finalObject: String = replaceLinksWithContent(s)
-    insertString(finalObject, coll)
+    insertString(finalObject, coll, true)
   }
 
   /**
@@ -223,7 +223,7 @@ object JsonImporter {
     interpolated
   }
 
-  def insertString(s: String, coll: MongoCollection) = {
+  def insertString(s: String, coll: MongoCollection, printId : Boolean = false) = {
     val dbo: DBObject = JSON.parse(s).asInstanceOf[DBObject]
 
     val NO_ID = "NO_ID"
@@ -234,7 +234,10 @@ object JsonImporter {
     } else {
       coll.findOneByID(new ObjectId(id)) match {
         case Some(obj) => throw new RuntimeException("Item already exisits: " + id + " collection: " + coll.name)
-        case _ => coll.insert(dbo, coll.writeConcern)
+        case _ => {
+          if(printId) println(id)
+          coll.insert(dbo, coll.writeConcern)
+        }
       }
     }
   }
