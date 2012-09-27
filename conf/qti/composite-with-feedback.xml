@@ -134,14 +134,14 @@
         <p/>
         <feedbackInline
                 csFeedbackId="York"
-                responseIdentifier="winterDiscontent"
+                outcomeIdentifier="responses.winterDiscontent.value"
             identifier="York"
             showHide="show">
               York is correct
         </feedbackInline>
         <feedbackInline
                 csFeedbackId="york"
-                responseIdentifier="winterDiscontent"
+                outcomeIdentifier="responses.winterDiscontent.value"
                 identifier="york"
                 showHide="show">
             York is a proper noun, and should be capitalized.
