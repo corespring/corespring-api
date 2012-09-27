@@ -125,7 +125,7 @@ object FeedbackInline{
   def apply(node:Node,responseIdentifier:Option[String]):FeedbackInline = {
     val feedbackInline = responseIdentifier match {
       case Some(ri) => FeedbackInline((node \ "@csFeedbackId").text, ri, (node \ "@identifier").text, node.child.text)
-      case None => FeedbackInline((node \ "@csFeedbackId").text, (node \ "@responseIdentifier").text, (node \ "@identifier").text, node.child.text)
+      case None => FeedbackInline((node \ "@csFeedbackId").text, (node \ "@outcomeIdentifier").text.split('.')(1), (node \ "@identifier").text, node.child.text)
     }
     if ((node \ "@defaultFeedback").text == "true") feedbackInline.defaultFeedback = true
     feedbackInline
