@@ -70,7 +70,13 @@ qtiServices.factory('AssessmentSessionService', ['$resource', function ($resourc
                 if( !data.sessionData || !data.sessionData.feedbackContents ){
                     callback(data);
                 } else {
-                     angular.extend(data.sessionData, mockData.sessionData);
+                     //angular.extend(data.sessionData, mockData.sessionData);
+
+                    for( var x in mockData.sessionData.feedbackContents ){
+                        if(!data.sessionData.feedbackContents[x]){
+                            data.sessionData.feedbackContents[x] = mockData.sessionData.feedbackContents[x];
+                        }
+                    }
                     callback(data);
                 }
             };
