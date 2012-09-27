@@ -32,6 +32,7 @@
         <feedbackInline
                 responseIdentifier="winterDiscontent"
                 identifier="York"
+                csFeedbackId="winterDiscontent"
                 showHide="show">
             York is correct
         </feedbackInline>
