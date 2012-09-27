@@ -163,6 +163,7 @@ object ItemPlayer extends BaseApi with ItemResources{
       "textEntryInteraction" -> createScripts("textEntryInteraction", scriptSuffix),
       "extendedTextInteraction" -> createScripts("extendedTextInteraction", scriptSuffix),
       "tabs" -> createScripts("tabs", scriptSuffix),
+      "cs-tabs" -> createScripts("tabs", scriptSuffix),
       "math" -> script("http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")
     )
 
@@ -170,6 +171,12 @@ object ItemPlayer extends BaseApi with ItemResources{
     for ((element, scriptString) <- elementScriptsMap) {
       if ((itemBody \\ element).size > 0) {  // always returns a NodeSeq, check if not empty
         scripts ::= scriptString
+      } else {
+
+        //Also check for Attributes (we need to use attriibutes to support ie8
+        if( (itemBody \\ ("@" + element)).size > 0 ){
+         scripts ::= scriptString
+        }
       }
     }
 
