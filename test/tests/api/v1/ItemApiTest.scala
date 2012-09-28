@@ -77,7 +77,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items.size must beEqualTo( 18 )
+    items.size must beEqualTo( 19 )
   }
 
   "find items in returning only their title and up to 10" in {
