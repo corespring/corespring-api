@@ -15,6 +15,9 @@ object Resource {
   val name = "name"
   val files = "files"
 
+
+  val QtiXml = "qti.xml"
+
   implicit object ResourceWrites extends Writes[Resource] {
     def writes(res: Resource): JsValue = {
       import BaseFile._

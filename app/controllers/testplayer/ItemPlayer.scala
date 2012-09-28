@@ -6,7 +6,7 @@ import xml.{Elem, NodeSeq}
 import play.api.libs.json.Json
 import org.bson.types.ObjectId
 import controllers.auth.{Permission, BaseApi}
-import models.{ItemSession, VirtualFile, Content, Item}
+import models._
 import com.mongodb.casbah.Imports._
 import api.processors.FeedbackProcessor._
 import play.api.{Play, Logger}
@@ -16,6 +16,7 @@ import common.controllers.ItemResources
 import api.processors.FeedbackProcessor
 import play.api.cache.Cache
 import play.api.Play.current
+import scala.Some
 
 case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: Int = -1)
 
@@ -53,8 +54,7 @@ object ItemPlayer extends BaseApi with ItemResources{
           //store this updated xml in the Play.cache with a uid of itemid + sessionid
           //proceed with whats below here...
           //session data can then retrieve the served xml from the cache instead of from the db.
-          val xmlStringWithCsFeedbackIds = FeedbackProcessor.addFeedbackIds(xmlData.toString())
-          val xmlWithCsFeedbackIds = scala.xml.XML.loadString(xmlStringWithCsFeedbackIds)
+          val xmlWithCsFeedbackIds = ItemSessionXmlStore.addCsFeedbackIds(xmlData)
           // extract and filter the itemBody element
           val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds \ "itemBody"))
 
@@ -66,8 +66,7 @@ object ItemPlayer extends BaseApi with ItemResources{
           ItemSession.save(session, ItemSession.collection.writeConcern)
 
           //Stash it the cache for the Feedback rendering
-          val oneHourInSeconds = 60 * 60
-          Cache.set( xmlCacheKey(itemId, session.id.toString ), xmlWithCsFeedbackIds, oneHourInSeconds )
+          ItemSessionXmlStore.cacheXml(xmlWithCsFeedbackIds, itemId, session.id.toString)
 
           val qtiXml = <assessmentItem cs:itemId={itemId} cs:itemSessionId={session.id.toString} cs:feedbackEnabled="true">{itemBody}</assessmentItem>
 
@@ -133,7 +132,7 @@ object ItemPlayer extends BaseApi with ItemResources{
         if( Content.isCollectionAuthorized(callerOrg,item.collectionId,Permission.All)){
          val dataResource = item.data.get
 
-          dataResource.files.find( _.name == "qti.xml") match {
+          dataResource.files.find( _.name == Resource.QtiXml) match {
             case Some(qtiXml) => {
               Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
             }

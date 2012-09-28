@@ -14,9 +14,10 @@ import controllers.testplayer.qti.QtiItem
 import com.novus.salat._
 import models.mongoContext._
 import play.api.cache.Cache
-import controllers.testplayer.ItemPlayer
+import controllers.testplayer.{ItemSessionXmlStore, ItemPlayer}
 import xml.Elem
 import play.api.Play.current
+import play.api.Logger
 
 
 /**
@@ -43,7 +44,7 @@ object ItemSessionApi extends BaseApi {
         if (Content.isAuthorized(request.ctx.organization, itemSession.itemId, Permission.All)) {
           if(itemSession.finish.isDefined){
 
-            val cachedXml : Option[Elem] = Cache.getAs[Elem](ItemPlayer.xmlCacheKey(itemId.toString, sessionId.toString))
+            val cachedXml : Option[Elem] =  ItemSessionXmlStore.getCachedXml(itemId.toString, sessionId.toString)
 
             cachedXml match {
               case Some(xml) => {
@@ -79,12 +80,41 @@ object ItemSessionApi extends BaseApi {
 
       ItemSession.newItemSession(itemId,newSession) match {
         case Right(session) => {
-          Ok(Json.toJson(session))
+
+          /**
+           * Temporarily - process the raw xml and add csFeedbackIds
+           * Then cache it.
+           */
+          getQtiXml(itemId) match {
+            case Some(xml) => {
+              val xmlWithFeedbackIds = ItemSessionXmlStore.addCsFeedbackIds(xml)
+              ItemSessionXmlStore.cacheXml(xmlWithFeedbackIds, itemId.toString, session.id.toString)
+              Ok(Json.toJson(session))
+            }
+            case _ => {
+              Logger.warn("Returning session - no xml cached!")
+              Ok(Json.toJson(session))
+            }
+          }
         }
         case Left(error) => InternalServerError(Json.toJson(ApiError.CreateItemSession(error.clientOutput)))
       }
     } else {
       Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
+    }
+  }
+
+
+  private def getQtiXml(itemId:ObjectId) : Option[Elem] = {
+    Item.findOneById(itemId) match {
+      case Some(item) => {
+        val dataResource = item.data.get
+        dataResource.files.find( _.name == Resource.QtiXml ) match {
+          case Some(qtiXml) => Some( scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
+          case _ => None
+        }
+      }
+      case _ => None
     }
   }
 
@@ -113,7 +143,7 @@ object ItemSessionApi extends BaseApi {
              * This is a temporary means of allowing SessionData and itemplayer
              * To use the same xml with csFeedbackId attributes.
              */
-            val cachedXml : Option[Elem] = Cache.getAs[Elem](ItemPlayer.xmlCacheKey(itemId.toString, sessionId.toString))
+            val cachedXml : Option[Elem] = ItemSessionXmlStore.getCachedXml(itemId.toString, session.id.toString)
 
             cachedXml match {
               case Some(xmlWithCsFeedbackIds) => {
@@ -124,7 +154,6 @@ object ItemSessionApi extends BaseApi {
               }
               case _ => InternalServerError(Json.toJson(ApiError.UpdateItemSession(Some("can't find cached xml"))))
             }
-
           }
           case None => BadRequest(Json.toJson(ApiError.JsonExpected))
         }
