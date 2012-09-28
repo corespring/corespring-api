@@ -69,7 +69,6 @@ sup{
 }
 
 .feedback-block-incorrect {
-
     background:url(images/wrong-icon.png) no-repeat 0 50%;
     border-color: #F8A31A;
     box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 4px rgba(161, 225, 23, 0.8);
