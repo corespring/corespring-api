@@ -65,7 +65,12 @@ object SessionData{
       ))
     }
   }
-
+  implicit object SessionDataReads extends Reads[SessionData]{
+    def reads(json:JsValue):SessionData = {
+      val feedbackfields = (json \ "feedbackContents").asInstanceOf[JsObject].fields
+      SessionData(null)
+    }
+  }
 }
 
 
