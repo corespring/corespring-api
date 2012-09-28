@@ -50,18 +50,15 @@ object ItemPlayer extends BaseApi with ItemResources{
       getItemXMLByObjectId(itemId,request.ctx.organization) match {
         case Some(xmlData: Elem) =>
 
-          //generate csFeedbackId attributes on the complete xml.
-          //store this updated xml in the Play.cache with a uid of itemid + sessionid
-          //proceed with whats below here...
-          //session data can then retrieve the served xml from the cache instead of from the db.
+          /**
+           * Temporary fix - get the ItemPlayer to serve xml with csFeedback ids.
+           * Then make this xml available to ItemSessionApi via the cache
+           */
           val xmlWithCsFeedbackIds = ItemSessionXmlStore.addCsFeedbackIds(xmlData)
-          // extract and filter the itemBody element
           val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds \ "itemBody"))
 
-          // parse the itemBody and determine what scripts should be included for the defined interactions
           val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
 
-          //Begin a new ItemSession
           val session : ItemSession = ItemSession( itemId = new ObjectId(itemId) )
           ItemSession.save(session, ItemSession.collection.writeConcern)
 
@@ -72,7 +69,6 @@ object ItemPlayer extends BaseApi with ItemResources{
 
           val finalXml = removeNamespaces(qtiXml)
 
-          // angular will render the itemBody client-side
           Ok(views.html.testplayer.itemPlayer(itemId, scripts, finalXml))
         case None =>
           // we found nothing
