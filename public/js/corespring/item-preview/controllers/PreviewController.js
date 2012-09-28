@@ -30,14 +30,20 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
 
     $scope.printCurrent = function () {
 
+        var newWindow = null;
+
         if ($scope.currentPanel == "profile") {
-            window.open(ServiceLookup.getUrlFor('printProfile').replace("{key}", $scope.itemData.id), 'name', 'height=600,width=800');
+            newWindow = window.open(ServiceLookup.getUrlFor('printProfile').replace("{key}", $scope.itemData.id), 'name', 'height=600,width=800');
         } else if ($scope.currentPanel == "item") {
-            window.open($scope.getItemSrc(true), 'name', 'height=600,width=800');
+            newWindow = window.open($scope.getItemSrc(true), 'name', 'height=600,width=800');
         } else if ($scope.currentSm) {
-            window.open($scope.getSmSrc($scope.currentSm, true), 'name', 'height=600,width=800');
+            newWindow = window.open($scope.getSmSrc($scope.currentSm, true), 'name', 'height=600,width=800');
         }
-    }
+
+        if(newWindow){
+            newWindow.focus();
+        }
+    };
 
     $scope.changePanel = function (panelName) {
         $scope.currentSm = null;
