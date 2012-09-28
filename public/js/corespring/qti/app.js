@@ -95,19 +95,11 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService) {
 
 qtiDirectives.directive('itembody', function () {
 
-    var dots = function(count) {
-       var out = "";
-        for( var i = 0; i < count ; i++){
-           out += "&nbsp;&nbsp;.";
-        }
-        return out;
-    };
-
     return {
         restrict:'E',
         transclude:true,
         template: [
-            '<span ng-show="printMode"><p>Name: ' + dots(50) + '</p></span>',
+            '<div ng-show="printMode" class="item-body-dotted-line">Name: </div>',
             '<span ng-transclude="true"></span>',
             '<input ng-show="!printMode" type="submit" value="submit" class="submit" ng-disabled="formDisabled" ng-click="onClick()"></input>'
         ].join('\n'),
