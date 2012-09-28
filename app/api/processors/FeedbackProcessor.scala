@@ -16,9 +16,10 @@ import play.api.Logger
 object FeedbackProcessor extends XmlValidator {
 
   val FEEDBACK_INLINE = "feedbackInline"
+  val FEEDBACK_BLOCK = "feedbackBlock"
 
   private val FEEDBACK_NODE_LABELS = {
-    List(FEEDBACK_INLINE, "modalFeedback")
+    List(FEEDBACK_INLINE, FEEDBACK_BLOCK, "modalFeedback")
   }
 
   private val csFeedbackId = "csFeedbackId"

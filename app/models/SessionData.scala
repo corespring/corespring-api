@@ -55,6 +55,10 @@ object SessionData{
         feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(if(fi.defaultFeedback) fi.defaultContent(sd.qtiItem)
         else fi.content))
       )
+      sd.qtiItem.itemBody.feedbackBlocks.foreach(fi =>
+        feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(if(fi.defaultFeedback) fi.defaultContent(sd.qtiItem)
+        else fi.content))
+      )
       JsObject(Seq(
         "feedbackContents" -> JsObject(feedbackContents),
         "correctResponses" -> JsObject(correctResponses)

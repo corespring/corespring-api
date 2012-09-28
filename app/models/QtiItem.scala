@@ -71,21 +71,23 @@ object CorrectResponseOrdered{
     (node \ "value").map(_.text)
   )
 }
-case class ItemBody(interactions:Seq[Interaction],feedbackInlines:Seq[FeedbackInline])
+case class ItemBody(interactions:Seq[Interaction],feedbackInlines:Seq[FeedbackInline],feedbackBlocks:Seq[FeedbackInline])
 object ItemBody{
   def apply(node:Node):ItemBody = {
     var interactions:Seq[Interaction] = Seq()
     var feedbackInlines:Seq[FeedbackInline] = Seq()
+    var feedbackBlocks:Seq[FeedbackInline] = Seq()
     node.child.foreach(inner => {
       inner.label match {
         case "choiceInteraction" => interactions = interactions :+ ChoiceInteraction(inner)
         case "orderInteraction" => interactions = interactions :+ OrderInteraction(inner)
         case "feedbackInline" => feedbackInlines = feedbackInlines :+ FeedbackInline(inner,None)
+        case "feedbackBlock" => feedbackBlocks = feedbackBlocks :+ FeedbackInline(inner,None)
 
         case _ =>
       }
     })
-    ItemBody(interactions,feedbackInlines)
+    ItemBody(interactions,feedbackInlines,feedbackBlocks)
   }
 }
 trait Interaction{

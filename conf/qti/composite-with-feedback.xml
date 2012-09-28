@@ -35,9 +35,10 @@
     </responseDeclaration>
 
     <!-- inline text interaction -->
-    <responseDeclaration identifier="winterDiscontent" cardinality="single" baseType="string">
+    <responseDeclaration identifier="winterDiscontent" cardinality="multiple" baseType="string">
         <correctResponse>
             <value>York</value>
+            <value>york</value>
         </correctResponse>
         <mapping defaultValue="0">
             <mapEntry mapKey="York" mappedValue="1"/>
@@ -71,6 +72,7 @@
     <responseDeclaration identifier="longAnswer" cardinality="single" baseType="string"/>
 
     <itemBody>
+
         <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1">
             <prompt>Who is the President of Mexico?</prompt>
             <simpleChoice identifier='obama'> Barack Obama
@@ -123,7 +125,6 @@
         </choiceInteraction>
 
 
-
         <prompt>Identify the missing word in this famous quote from Shakespeare's Richard III.</prompt>
         <blockquote>
         <p>Now is the winter of our discontent<br/> Made glorious summer by this sun of
@@ -132,67 +133,27 @@
             buried.</p>
         </blockquote>
         <p/>
-        <feedbackInline
-                csFeedbackId="York"
+        <feedbackBlock
                 outcomeIdentifier="responses.winterDiscontent.value"
-            identifier="York"
-            showHide="show">
+                identifier="York"
+                showHide="show">
               York is correct
-        </feedbackInline>
-        <feedbackInline
-                csFeedbackId="york"
+        </feedbackBlock>
+        <feedbackBlock
                 outcomeIdentifier="responses.winterDiscontent.value"
                 identifier="york"
                 showHide="show">
             York is a proper noun, and should be capitalized.
-        </feedbackInline>
+        </feedbackBlock>
+        <feedbackBlock
+                incorrectResponse="true"
+                outcomeIdentifier="responses.winterDiscontent.value"
+                showHide="show">
+            Not Correct
+        </feedbackBlock>
 
         <p/>
 
-
-
-        <p/>
-        <hr/>
-        <p/>
-
-
-        <orderInteraction responseIdentifier="wivesOfHenry" shuffle="true">
-            <prompt>Arrange the wives of Henry VIII in chronological order:</prompt>
-            <simpleChoice identifier="parr">Catherine Parr</simpleChoice>
-            <simpleChoice identifier="boleyn">Anne Boleyn</simpleChoice>
-            <simpleChoice identifier="cleves" fixed="true">Anne of Cleves</simpleChoice>
-            <simpleChoice identifier="aragon">Catherine of Aragon</simpleChoice>
-            <simpleChoice identifier="seymour">Jane Seymour</simpleChoice>
-            <simpleChoice identifier="howard">Catherine Howard</simpleChoice>
-        </orderInteraction>
-
-
-        <p/>
-        <hr/>
-        <p/>
-
-        <orderInteraction responseIdentifier="cutePugs" shuffle="true">
-            <prompt>Arrange these pugs in order of cuteness:</prompt>
-            <simpleChoice identifier="pug1"><img src="http://stuffpoint.com/dogs/image/59240-dogs-4plus-pugs.jpg" width="150" height="150"/> </simpleChoice>
-            <simpleChoice identifier="pug2"><img src="http://images.fanpop.com/images/image_uploads/pug-pugs-239511_407_436.jpg" width="150" height="150"/></simpleChoice>
-            <simpleChoice identifier="pug3" fixed="true"><img src="http://www.weruletheinternet.com/wp-content/uploads/images/2011/may/cute_pugs/cute_pugs_7.jpg" width="150" height="150"/></simpleChoice>
-        </orderInteraction>
-
-
-        <p/>
-        <hr/>
-        <p/>
-
-
-
-        <prompt>Write Sam a postcard. Write 25-35 words.</prompt>
-        <extendedTextInteraction responseIdentifier="longAnswer" expectedLength="200">
-
-        </extendedTextInteraction>
-
-        <p/>
-        <hr/>
-        <p/>
 
     </itemBody>
 
