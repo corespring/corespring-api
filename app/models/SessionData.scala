@@ -51,7 +51,7 @@ object SessionData{
           ))
         }
       })
-      sd.qtiItem.itemBody.feedbackInlines.foreach(fi =>
+      sd.qtiItem.itemBody.feedbackBlocks.foreach(fi =>
         feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(if(fi.defaultFeedback) fi.defaultContent(sd.qtiItem)
         else fi.content))
       )
