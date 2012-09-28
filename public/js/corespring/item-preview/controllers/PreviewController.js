@@ -30,15 +30,18 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
 
     $scope.printCurrent = function () {
 
-        var newWindow = null;
+        var features = "width=650,height=800,menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
 
-        if ($scope.currentPanel == "profile") {
-            newWindow = window.open(ServiceLookup.getUrlFor('printProfile').replace("{key}", $scope.itemData.id), 'name', 'height=600,width=800');
-        } else if ($scope.currentPanel == "item") {
-            newWindow = window.open($scope.getItemSrc(true), 'name', 'height=600,width=800');
-        } else if ($scope.currentSm) {
-            newWindow = window.open($scope.getSmSrc($scope.currentSm, true), 'name', 'height=600,width=800');
+        function getPrintUrl(panel) {
+            switch(panel){
+                case "profile" : return ServiceLookup.getUrlFor('printProfile').replace("{key}", $scope.itemData.id);
+                case "item" : return $scope.getItemSrc(true);
+                default : return $scope.getSmSrc($scope.currentSm, true);
+            }
         }
+        var url = getPrintUrl($scope.currentPanel);
+
+        var newWindow = window.open(url, 'name', features);
 
         if(newWindow){
             newWindow.focus();
