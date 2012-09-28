@@ -6,14 +6,17 @@ import xml.{Elem, NodeSeq}
 import play.api.libs.json.Json
 import org.bson.types.ObjectId
 import controllers.auth.{Permission, BaseApi}
-import models.{ItemSession, VirtualFile, Content, Item}
+import models._
 import com.mongodb.casbah.Imports._
 import api.processors.FeedbackProcessor._
-import play.api.Logger
+import play.api.{Play, Logger}
 import controllers.Log
 import play.api.mvc.Action
 import common.controllers.ItemResources
-
+import api.processors.FeedbackProcessor
+import play.api.cache.Cache
+import play.api.Play.current
+import scala.Some
 
 case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: Int = -1)
 
@@ -34,6 +37,9 @@ object ItemPlayer extends BaseApi with ItemResources{
     Map("error" -> "not found")
   )
 
+
+  def xmlCacheKey(itemId:String, sessionId: String) = """qti_itemId[%s]_sessionId[%s]""".format(itemId, sessionId)
+
   /**
    * Very simple QTI Item Renderer
    * @param itemId
@@ -43,21 +49,26 @@ object ItemPlayer extends BaseApi with ItemResources{
     try {
       getItemXMLByObjectId(itemId,request.ctx.organization) match {
         case Some(xmlData: Elem) =>
-          // extract and filter the itemBody element
-          val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlData \ "itemBody"))
 
-          // parse the itemBody and determine what scripts should be included for the defined interactions
+          /**
+           * Temporary fix - get the ItemPlayer to serve xml with csFeedback ids.
+           * Then make this xml available to ItemSessionApi via the cache
+           */
+          val xmlWithCsFeedbackIds = ItemSessionXmlStore.addCsFeedbackIds(xmlData)
+          val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds \ "itemBody"))
+
           val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
 
-          //Begin a new ItemSession
           val session : ItemSession = ItemSession( itemId = new ObjectId(itemId) )
           ItemSession.save(session, ItemSession.collection.writeConcern)
+
+          //Stash it the cache for the Feedback rendering
+          ItemSessionXmlStore.cacheXml(xmlWithCsFeedbackIds, itemId, session.id.toString)
 
           val qtiXml = <assessmentItem cs:itemId={itemId} cs:itemSessionId={session.id.toString} cs:feedbackEnabled="true">{itemBody}</assessmentItem>
 
           val finalXml = removeNamespaces(qtiXml)
 
-          // angular will render the itemBody client-side
           Ok(views.html.testplayer.itemPlayer(itemId, scripts, finalXml))
         case None =>
           // we found nothing
@@ -117,7 +128,7 @@ object ItemPlayer extends BaseApi with ItemResources{
         if( Content.isCollectionAuthorized(callerOrg,item.collectionId,Permission.All)){
          val dataResource = item.data.get
 
-          dataResource.files.find( _.name == "qti.xml") match {
+          dataResource.files.find( _.name == Resource.QtiXml) match {
             case Some(qtiXml) => {
               Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
             }

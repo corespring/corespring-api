@@ -24,7 +24,7 @@ object ResourceApi extends BaseApi {
    * Item.data has at least one file that is always default its name is set here.
    * TODO: move this elsewhere
    */
-  private val DEFAULT_DATA_FILE_NAME: String = "qti.xml"
+  private val DEFAULT_DATA_FILE_NAME: String = Resource.QtiXml
 
   /**
    * A class that adds an AuthorizationContext to the Request object

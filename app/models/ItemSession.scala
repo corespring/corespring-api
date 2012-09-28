@@ -63,7 +63,7 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
       }
   }
 
-  def updateItemSession(session:ItemSession):Either[InternalError,ItemSession] = {
+  def updateItemSession(session:ItemSession, xmlWithCsFeedbackIds : scala.xml.Elem ):Either[InternalError,ItemSession] = {
     val updatedbo = MongoDBObject.newBuilder
     if(session.finish.isDefined) updatedbo += "$set" -> MongoDBObject(finish -> session.finish.get)
     if (!session.responses.isEmpty) updatedbo += "$pushAll" -> MongoDBObject(responses -> session.responses.map(grater[ItemResponse].asDBObject(_)))
@@ -73,12 +73,9 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
                       false,false,collection.writeConcern)
       ItemSession.findOneById(session.id) match {
         case Some(session) => if(session.finish.isDefined){
-          getSessionData(session.itemId) match {
-            case Right(sessionData) =>
-              session.sessionData = Some(sessionData)
-              Right(session)
-            case Left(error) => Right(session)
-          }
+          //TODO - we need to flush the cache if session is finished
+          session.sessionData = getSessionData(xmlWithCsFeedbackIds)
+          Right(session)
         } else Right(session)
         case None => Left(InternalError("could not find session that was just updated",LogType.printFatal))
       }
@@ -86,12 +83,8 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
       case e:SalatDAOUpdateError => Left(InternalError("error updating item session: "+e.getMessage,LogType.printFatal))
     }
   }
-  def getSessionData(itemId:ObjectId):Either[InternalError,SessionData] = {
-    Item.getQti(itemId) match {
-      case Right(xmlData) => Right(SessionData(bleezmo.QtiItem(XML.loadString(xmlData))))
-      case Left(e) => Left(e)
-    }
-  }
+
+  def getSessionData(xml : Elem) = Some(SessionData(bleezmo.QtiItem(xml)))
 
   /**
    * Json Serializer
