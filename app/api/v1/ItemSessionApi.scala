@@ -13,6 +13,10 @@ import scala.Right
 import controllers.testplayer.qti.QtiItem
 import com.novus.salat._
 import models.mongoContext._
+import play.api.cache.Cache
+import controllers.testplayer.ItemPlayer
+import xml.Elem
+import play.api.Play.current
 
 
 /**
@@ -38,10 +42,14 @@ object ItemSessionApi extends BaseApi {
       case Some(itemSession) => {
         if (Content.isAuthorized(request.ctx.organization, itemSession.itemId, Permission.All)) {
           if(itemSession.finish.isDefined){
-            ItemSession.getSessionData(itemId) match {
-              case Right(sessionData) =>
-                itemSession.sessionData = Some(sessionData)
-              case Left(e) =>
+
+            val cachedXml : Option[Elem] = Cache.getAs[Elem](ItemPlayer.xmlCacheKey(itemId.toString, sessionId.toString))
+
+            cachedXml match {
+              case Some(xml) => {
+                itemSession.sessionData = ItemSession.getSessionData(xml)
+              }
+              case _ => NotFound(Json.toJson(ApiError.ItemSessionNotFound))
             }
           }
           Ok(Json.toJson(itemSession))
@@ -70,7 +78,9 @@ object ItemSessionApi extends BaseApi {
       }
 
       ItemSession.newItemSession(itemId,newSession) match {
-        case Right(session) => Ok(Json.toJson(session))
+        case Right(session) => {
+          Ok(Json.toJson(session))
+        }
         case Left(error) => InternalServerError(Json.toJson(ApiError.CreateItemSession(error.clientOutput)))
       }
     } else {
@@ -98,10 +108,23 @@ object ItemSessionApi extends BaseApi {
             val newSession = Json.fromJson[ItemSession](jssession)
             session.finish = newSession.finish
             session.responses = newSession.responses
-            ItemSession.updateItemSession(session) match {
-              case Right(newSession) => Ok(Json.toJson(newSession))
-              case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateItemSession(error.clientOutput)))
+
+            /**
+             * This is a temporary means of allowing SessionData and itemplayer
+             * To use the same xml with csFeedbackId attributes.
+             */
+            val cachedXml : Option[Elem] = Cache.getAs[Elem](ItemPlayer.xmlCacheKey(itemId.toString, sessionId.toString))
+
+            cachedXml match {
+              case Some(xmlWithCsFeedbackIds) => {
+                ItemSession.updateItemSession(session, xmlWithCsFeedbackIds) match {
+                  case Right(newSession) => Ok(Json.toJson(newSession))
+                  case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateItemSession(error.clientOutput)))
+                }
+              }
+              case _ => InternalServerError(Json.toJson(ApiError.UpdateItemSession(Some("can't find cached xml"))))
             }
+
           }
           case None => BadRequest(Json.toJson(ApiError.JsonExpected))
         }
