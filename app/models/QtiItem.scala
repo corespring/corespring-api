@@ -71,23 +71,21 @@ object CorrectResponseOrdered{
     (node \ "value").map(_.text)
   )
 }
-case class ItemBody(interactions:Seq[Interaction],feedbackInlines:Seq[FeedbackInline],feedbackBlocks:Seq[FeedbackInline])
+case class ItemBody(interactions:Seq[Interaction],feedbackBlocks:Seq[FeedbackInline])
 object ItemBody{
   def apply(node:Node):ItemBody = {
     var interactions:Seq[Interaction] = Seq()
-    var feedbackInlines:Seq[FeedbackInline] = Seq()
     var feedbackBlocks:Seq[FeedbackInline] = Seq()
     node.child.foreach(inner => {
       inner.label match {
         case "choiceInteraction" => interactions = interactions :+ ChoiceInteraction(inner)
         case "orderInteraction" => interactions = interactions :+ OrderInteraction(inner)
-        case "feedbackInline" => feedbackInlines = feedbackInlines :+ FeedbackInline(inner,None)
         case "feedbackBlock" => feedbackBlocks = feedbackBlocks :+ FeedbackInline(inner,None)
 
         case _ =>
       }
     })
-    ItemBody(interactions,feedbackInlines,feedbackBlocks)
+    ItemBody(interactions,feedbackBlocks)
   }
 }
 trait Interaction{
@@ -125,9 +123,13 @@ case class FeedbackInline(csFeedbackId:String, responseIdentifier:String, identi
 }
 object FeedbackInline{
   def apply(node:Node,responseIdentifier:Option[String]):FeedbackInline = {
+    val childBody = new StringBuilder
+    node.child.map(
+      node => childBody.append(node.toString()))
+    def contents: String = childBody.toString()
     val feedbackInline = responseIdentifier match {
-      case Some(ri) => FeedbackInline((node \ "@csFeedbackId").text, ri, (node \ "@identifier").text, node.child.text)
-      case None => FeedbackInline((node \ "@csFeedbackId").text, (node \ "@outcomeIdentifier").text.split('.')(1), (node \ "@identifier").text, node.child.text)
+      case Some(ri) => FeedbackInline((node \ "@csFeedbackId").text, ri, (node \ "@identifier").text, contents)
+      case None => FeedbackInline((node \ "@csFeedbackId").text, (node \ "@outcomeIdentifier").text.split('.')(1), (node \ "@identifier").text, contents)
     }
     if ((node \ "@defaultFeedback").text == "true") feedbackInline.defaultFeedback = true
     feedbackInline

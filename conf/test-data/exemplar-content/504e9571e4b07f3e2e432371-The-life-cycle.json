@@ -26,16 +26,16 @@
 			},
 			{
 				"_t" : "models.StoredFile",
-				"name" : "caterpillar.png",
+				"name" : "cocoon2.png",
 				"isMain" : false,
-				"storageKey" : "504e9571e4b07f3e2e432371/caterpillar.png",
+				"storageKey" : "504e9571e4b07f3e2e432371/cocoon2.png",
 				"contentType" : "image/png"
 			},
 			{
 				"_t" : "models.StoredFile",
-				"name" : "cocoon2.png",
+				"name" : "caterpillar.png",
 				"isMain" : false,
-				"storageKey" : "504e9571e4b07f3e2e432371/cocoon2.png",
+				"storageKey" : "504e9571e4b07f3e2e432371/caterpillar.png",
 				"contentType" : "image/png"
 			},
 			{
@@ -94,5 +94,5 @@
 		"Content",
 		"Psychometric"
 	],
-	"relatedCurriculum" : "New England Common Assessments Program Released Items"
+	"relatedCurriculum" : "New England Common Assessment Program Released Items"
 }
