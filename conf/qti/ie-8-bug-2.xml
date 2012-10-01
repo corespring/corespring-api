@@ -11,10 +11,13 @@
         </correctResponse>
     </responseDeclaration>
     <itemBody>
-                <div class="numbered-lines">
-                        <line>The best time was the mornings</line>
-                        <p/>
-                    <line>The best time was the mornings</line>
+                <div numbered-lines="b" class="numbered-lines">
+                    <p>
+                        <span line="line">The best time was the mornings</span>
+                    </p>
+                    <p>
+                        <span line="line">The best time was the mornings</span>
+                    </p>
                 </div>
     </itemBody>
 </assessmentItem>
