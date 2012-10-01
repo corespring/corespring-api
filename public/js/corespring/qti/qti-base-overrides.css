@@ -43,6 +43,12 @@ sup{
     outline: 0px none;
 }
 
+.text-entry-interaction.correct-response > input {
+    border-color: #53C516;
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 4px rgba(161, 225, 23, 0.8);
+    outline: 0px none;
+}
+
 .item-body-dotted-line{
     border-bottom: 1px;
     border-top: 0px;
@@ -55,25 +61,33 @@ sup{
     margin-bottom: 20px;
 }
 
+
+.feedback-block-correct, .feedback-block-incorrect {
+    padding:0 0 0 30px;
+    min-height:21px;
+    line-height:21px;
+}
+
+
 /**
 *  TODO - temporary fix - evan
 */
 .feedback-block-correct {
-    background:url(images/correct-icon.png) no-repeat 0 50%;
-    border-color: green;
-    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 4px rgba(161, 225, 23, 0.8);
+    background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
+    border: solid 1px #53C516;
     outline: 0px none;
     padding:10px;
     margin: 15px;
-
+    padding-left: 30px;
+    border-radius:6px;
 }
 
 .feedback-block-incorrect {
-    background:url(images/wrong-icon.png) no-repeat 0 50%;
-    border-color: #F8A31A;
-    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 4px rgba(161, 225, 23, 0.8);
+    background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
+    border: solid 1px #F8A31A;
     outline: 0px none;
     padding:10px;
     margin: 15px;
-
+    padding-left: 30px;
+    border-radius:6px;
 }

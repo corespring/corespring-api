@@ -19,16 +19,13 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
 
             scope.$watch('status', function (newValue) {
 
-                if (newValue == 'SUBMITTED') {
-
-                    if (scope.isFeedbackEnabled() == false) {
-                        return;
-                    }
-
-                    var correctResponse = scope.itemSession.sessionData.correctResponses[responseIdentifier];
-                    var className = QtiUtils.compare(scope.textResponse, correctResponse) ? 'correct-response' : 'incorrect-response';
-                    element.toggleClass(className);
+                if (newValue != 'SUBMITTED' || scope.isFeedbackEnabled() == false) {
+                    return;
                 }
+
+                var correctResponse = scope.itemSession.sessionData.correctResponses[responseIdentifier];
+                var className = QtiUtils.compare(scope.textResponse, correctResponse) ? 'correct-response' : 'incorrect-response';
+                element.toggleClass(className);
             });
         }
     }

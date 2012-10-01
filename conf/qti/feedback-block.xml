@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem  identifier="composite" title="Composite Item" adaptive="false" timeDependent="false">
+    <responseDeclaration identifier="Q_03" cardinality="multiple" baseType="string">
+        <correctResponse>
+            <value>6</value>
+            <value>six</value>
+            <value>6.0</value>
+            <value>SIX</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+        <p class="prompt">During a math class, each of 24 students tossed three coins once. Based on your answer, how many students would you expect to get a result of 3 heads or 3 tails? </p>
+        <p>
+            I think that <textEntryInteraction responseIdentifier="Q_03" expectedLength="5" class="textarea.answer_5_linebox">
+        </textEntryInteraction>
+            students would get a result of 3 heads or 3 tails.
+        </p>
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_03.value"
+                identifier="6">
+            <div class="feedback-block-correct">Nice work, that's correct!</div>
+        </feedbackBlock>
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_03.value"
+                identifier="six">
+            <div class="feedback-block-correct">Nice work, that's correct!</div>
+        </feedbackBlock>
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_03.value"
+                identifier="6.0">
+            <div class="feedback-block-correct">Nice work, that's correct!</div>
+        </feedbackBlock>
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_03.value"
+                identifier="SIX">
+            <div class="feedback-block-correct">Nice work, that's correct!</div>
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_03.value"
+                incorrectResponse="true">
+            <div class="feedback-block-incorrect">Good try, but the correct answer is that 6 students will get a result of 3 heards or 3 tails.</div>
+        </feedbackBlock>
+    </itemBody>
+</assessmentItem>

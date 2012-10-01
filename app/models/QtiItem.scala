@@ -51,10 +51,18 @@ case class CorrectResponseSingle(value: String) extends CorrectResponse{
   def isCorrect(identifier:String):Boolean = identifier == value
 }
 object CorrectResponseSingle{
-  def apply(node:Node):CorrectResponseSingle = CorrectResponseSingle(
-    (node \ "value").text
-  )
+  def apply(node:Node):CorrectResponseSingle = {
+
+    //TODO: How do we want to handle such scenarios
+    if ( (node \ "value" ).size != 1 ){
+      throw new RuntimeException("Cardinality is set to single but there is not one <value> declared: " + (node\"value").toString)
+    }
+    else {
+      CorrectResponseSingle( (node \ "value").text )
+    }
+  }
 }
+
 case class CorrectResponseMultiple(value: Seq[String]) extends CorrectResponse{
   def isCorrect(identifier:String) = value.find(_ == identifier).isDefined
 }
