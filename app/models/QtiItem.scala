@@ -130,6 +130,13 @@ case class FeedbackInline(csFeedbackId:String, responseIdentifier:String, identi
   }
 }
 object FeedbackInline{
+  /**
+   * if this feedbackInline is within a interaction, responseIdentifier should be pased in
+   * otherwise, if the feedbackInline is within itemBody, then the feedbackInline must have an outcomeIdentifier (equivalent to responseIdentifier) which must be parsed
+   * @param node
+   * @param responseIdentifier
+   * @return
+   */
   def apply(node:Node,responseIdentifier:Option[String]):FeedbackInline = {
     val childBody = new StringBuilder
     node.child.map(

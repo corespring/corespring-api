@@ -25,7 +25,7 @@ import play.api.libs.json.JsString
  *         }
  *   }
  */
-case class SessionData(qtiItem: bleezmo.QtiItem)
+case class SessionData(qtiItem: bleezmo.QtiItem,responses:Seq[ItemResponse])
 object SessionData{
   implicit object SessionDataWrites extends Writes[SessionData]{
     def writes(sd: SessionData) = {
@@ -41,21 +41,21 @@ object SessionData{
       var feedbackContents:Seq[(String,JsValue)] = Seq()
       sd.qtiItem.itemBody.interactions.foreach(interaction => {
         interaction match {
-          case ci:ChoiceInteraction => ci.choices.map(choice => choice.feedbackInline.foreach(fi =>
+          case ci:ChoiceInteraction => ci.choices
+            .filter(choice => sd.responses.find(_.value == choice.identifier).isDefined)
+            .map(choice => choice.feedbackInline.foreach(fi =>
             feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(if(fi.defaultFeedback) fi.defaultContent(sd.qtiItem)
               else fi.content))
           ))
-          case oi:OrderInteraction => oi.choices.map(choice => choice.feedbackInline.foreach(fi =>
+          case oi:OrderInteraction => oi.choices
+            .filter(choice => sd.responses.find(_.value == choice.identifier).isDefined)
+            .map(choice => choice.feedbackInline.foreach(fi =>
             feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(if(fi.defaultFeedback) fi.defaultContent(sd.qtiItem)
             else fi.content))
           ))
         }
       })
-      sd.qtiItem.itemBody.feedbackBlocks.foreach(fi =>
-        feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(if(fi.defaultFeedback) fi.defaultContent(sd.qtiItem)
-        else fi.content))
-      )
-      sd.qtiItem.itemBody.feedbackBlocks.foreach(fi =>
+      sd.qtiItem.itemBody.feedbackBlocks.filter(fi => sd.responses.find(_.value == fi.identifier).isDefined).foreach(fi =>
         feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(if(fi.defaultFeedback) fi.defaultContent(sd.qtiItem)
         else fi.content))
       )

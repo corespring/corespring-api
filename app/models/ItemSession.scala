@@ -74,7 +74,7 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
       ItemSession.findOneById(session.id) match {
         case Some(session) => if(session.finish.isDefined){
           //TODO - we need to flush the cache if session is finished
-          session.sessionData = getSessionData(xmlWithCsFeedbackIds)
+          session.sessionData = getSessionData(xmlWithCsFeedbackIds,session.responses)
           Right(session)
         } else Right(session)
         case None => Left(InternalError("could not find session that was just updated",LogType.printFatal))
@@ -84,7 +84,7 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
     }
   }
 
-  def getSessionData(xml : Elem) = Some(SessionData(bleezmo.QtiItem(xml)))
+  def getSessionData(xml : Elem,responses:Seq[ItemResponse]) = Some(SessionData(bleezmo.QtiItem(xml),responses))
 
   /**
    * Json Serializer

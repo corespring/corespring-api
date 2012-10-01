@@ -48,7 +48,7 @@ object ItemSessionApi extends BaseApi {
 
             cachedXml match {
               case Some(xml) => {
-                itemSession.sessionData = ItemSession.getSessionData(xml)
+                itemSession.sessionData = ItemSession.getSessionData(xml,itemSession.responses)
               }
               case _ => NotFound(Json.toJson(ApiError.ItemSessionNotFound))
             }
