@@ -80,7 +80,6 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
                 access_token:Config.accessToken
             },
             function onItemLoaded(itemData) {
-                console.log("ItemLoaded!");
                 $scope.itemData = itemData;
 
                 $timeout(function () {

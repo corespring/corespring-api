@@ -49,7 +49,6 @@ qtiServices.factory('AssessmentSessionService', ['$resource', function ($resourc
             return -1;
         };
 
-        console.log("Intercepting the save function !");
 
         var callbackIndex = getCallbackIndex(arguments);
 
@@ -65,7 +64,6 @@ qtiServices.factory('AssessmentSessionService', ['$resource', function ($resourc
              * @param data
              */
             var callbackWrapper = function(data){
-                console.log("I've intercepted the response");
 
                 if( !data.sessionData || !data.sessionData.feedbackContents ){
                     callback(data);

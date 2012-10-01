@@ -1,0 +1,19 @@
+{
+
+    "_id" : { "$oid" : "5069ca6ea0eed8acb74dcbeb" },
+    "data" : {
+        "name" : "data",
+        "files" : [
+            {
+                "_t" : "models.VirtualFile",
+                "name" : "qti.xml",
+                "contentType" : "text/xml",
+                "isMain" : true,
+                "content" : "$[interpolate{/conf/qti/ie-8-bug-2.xml}]"
+            }
+        ]
+    },
+    "collectionId" : "5001b9b9e4b035d491c268c3",
+    "itemType" : "Text with Questions",
+    "title" : "IE-8 Bug 2"
+}

@@ -33,7 +33,6 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
             // get the simple-choice elements
             // they support embedded html
             var choices = [];
-            console.log('compile function');
             var choiceElements = angular.element(tElement).find("simpleChoice");
             for (var i = 0; i < choiceElements.length; i++) {
                 var elem = angular.element(choiceElements[i]);
