@@ -1,0 +1,72 @@
+{
+	"_id" : { "$oid" : "502282bce4b05b57849d303b" },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n<!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"string\"/>\n\n<itemBody>\n    \n    <h1 class=\"center\">Mass and Matter: Part 1</h1>            \n\n<p class=\"intro\">You will conduct a science investigation in four parts called <b>Mass and Matter</b>. In this first task, you will:\n\n<ul class= \"list-disc\">\n<li>Read a story and review the materials used in the investigation.</li>\n<li>Make a prediction.</li>\n</ul>\n</p>\n\n<cs-tabs>\n<cs-tab title=\"Story\">\n<h1 class=\"center\">Elaine Helps Out</h1>\n\n<p>Elaine helped her father make bread at the family bakery. He asked her to measure the mass of the bread mix and the mass of the water. Elaine used a balance to measure each mass. After mixing the ingredients together, she formed a ball of dough, covered it with plastic wrap, and let it rise for two hours. After two \nhours, the ball of dough was larger. When Elaine measured the mass of the bread dough, she was surprised to ﬁnd that it was the same as the mass of the ingredients before they were mixed together. She wondered \nwhy the size of the dough increased without the mass increasing.</p>\n<p>The next day, Elaine shared her observations with her science class. Many students thought that the mass of the dough should be more than the mass of the ingredients before they were mixed together. Other students thought the mass would stay the same. To help the students understand what happened at the bakery, the \nteacher told the class that they needed to conduct a scientiﬁc investigation.</p>\n<p>The teacher told the students to think of a question about the masses of substances when mixed together that \nthey could investigate scientiﬁcally. </p>\n\n<p>The students came up with the following research question:</p>\n\n<p><b>How does the mass of two substances before mixing compare with the total mass after mixing?</b></p>\n\n<p>Elaine’s class split into groups of two and the teacher gave each pair of students two substances—Powder X and water—safety goggles, plastic bags, a plastic scoop, a measuring cup, a plastic cup for water, washers, and a single-beam balance to investigate their question.</p>\n</cs-tab>\n<cs-tab title=\"Word Bank\">\n  <h1 class=\"center\">Word Bank</h1>\n  \n   <dl> <dt>Average (mean)</dt> <dd>to get the <i>average</i>, add all of the numbers together and divide the total by the number of figures in the set</dd>\n       <dt>Concentration</dt> <dd>the amount of a solute per unit volume of a solvent</dd><br/>\n       <dt>Carbon Dioxide (CO<sub>2</sub>)</dt><dd>a gas that is given off during combustion and breathing</dd>\n       <dt>Ingredient</dt><dd>a substace that is part of a mixture; in cooking, recipes identify which <i>ingredients</i> are needed to prepare something</dd>\n       <dt>Multiple trials</dt><dd>when an experiment is repeated several times</dd>\n       <dt>Oxygen</dt><dd>a gas in the air that is used by living things</dd>\n   </dl>\n      \n</cs-tab>\n<cs-tab title=\"Materials\" >\n<p>You have the same materials as Elaine’s class to conduct your own investigation.</p>\n <img src=\"Materials.png\"/>\n </cs-tab>\n</cs-tabs>\n\n<h1 class=\"center\">Make a Prediction</h1>\n\n\n  <p class=\"prompt\"> Write a prediction <b>on your own</b> about what \nwill happen to the total mass of Powder X and water after they are mixed together.\nUse the information from the story and what you already know to support your prediction. <p/><b>I predict</b></p>\n \n<extendedTextInteraction responseIdentifier=\"Q_01\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\" class=\"textarea.answer-20-linebox\"></extendedTextInteraction>\n \n    </itemBody>\n</assessmentItem>\n"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "WordBank.png",
+				"isMain" : false,
+				"storageKey" : "502282bce4b05b57849d303b/WordBank.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "Materials.png",
+				"isMain" : false,
+				"storageKey" : "502282bce4b05b57849d303b/Materials.png",
+				"contentType" : "image/png"
+			}
+		]
+	},
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2d9" }
+	},
+	"standards" : [ ],
+	"itemType" : "Performance Task",
+	"contributorDetails" : {
+		"contributor" : "New England Common Assessment Program",
+		"credentials" : "State Department of Education",
+		"author" : "New England Common Assessment Program",
+		"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New England Common Assessment Program",
+			"year" : "2010"
+		}
+	},
+	"workflow" : {
+		"setup" : false,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"keySkills" : [
+		"Review",
+		"Predict"
+	],
+	"priorUse" : "Summative",
+	"title" : "The <i>Mass and Matter Experiment</i> is a 4 part experiment. In Part 1, students review the story that sets up the experiment. Based on the review of the story, students then make a prediction about what will happen during the experiment.",
+	"gradeLevel" : [
+		"08"
+	],
+	"reviewsPassed" : [
+		"Editorial",
+		"Bias",
+		"Fairness",
+		"Content",
+		"Psychometric"
+	],
+	"bloomsTaxonomy" : "Analyze",
+	"demonstratedKnowledge" : "Conceptual",
+	"relatedCurriculum" : "New England Common Assessment Program Released Items"
+}
