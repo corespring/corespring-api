@@ -195,7 +195,6 @@ object JsonImporter {
     coll.drop()
     val listString = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.forName("UTF-8"))).mkString
     val dbList = com.mongodb.util.JSON.parse(listString).asInstanceOf[com.mongodb.BasicDBList]
-    Logger.info("Adding " + dbList.size() + " to: " + coll.name)
     dbList.toList.foreach(dbo => coll.insert(dbo.asInstanceOf[DBObject]))
   }
 
@@ -235,7 +234,6 @@ object JsonImporter {
       coll.findOneByID(new ObjectId(id)) match {
         case Some(obj) => throw new RuntimeException("Item already exisits: " + id + " collection: " + coll.name)
         case _ => {
-          if(printId) println(id)
           coll.insert(dbo, coll.writeConcern)
         }
       }
@@ -246,7 +244,6 @@ object JsonImporter {
   def insertFilesInFolder(path: String) {
     val folder: File = Play.getFile(path)
     for (file <- folder.listFiles) {
-      Logger.info("adding: " + file.getName)
       jsonFileToItem(path + "/" + file.getName, Content.collection, drop = false)
     }
   }
