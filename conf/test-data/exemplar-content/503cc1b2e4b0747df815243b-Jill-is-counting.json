@@ -36,6 +36,7 @@
 		"costForResource" : null,
 		"copyright" : {
 			"owner" : "State of New Jersey Department of Education",
+			"imageName" : "njded.png",
 			"year" : "2012"
 		}
 	},

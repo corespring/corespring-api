@@ -122,6 +122,7 @@ function itemType(from, to) {
     }
 }
 
+
 function copyright(from, to){
 
     if(!from.copyrightOwner && !from.copyrightYear && !from.copyrightExpirationDate){
@@ -132,7 +133,22 @@ function copyright(from, to){
 
     if( from.copyrightOwner){
         to.copyright.owner = from.copyrightOwner;
+        switch (from.copyrightOwner) {
+            case "New York State Education Department":
+                to.copyright.imageName = "nysed.png";
+                break;
+            case "State of New Jersey Department of Education":
+                to.copyright.imageName = "njded.png";
+                break;
+            case "Illustrative Mathematics":
+                to.copyright.imageName = "illustrativemathematics.png";
+                break;
+            case "Aspire Public Schools":
+                to.copyright.imageName = "aspire.png";
+                break;
+        }
     }
+
 
     if( from.copyrightYear){
         to.copyright.year= from.copyrightYear;

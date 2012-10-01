@@ -32,6 +32,7 @@
 		"costForResource" : null,
 		"copyright" : {
 			"owner" : "New York State Education Department",
+			"imageName" : "nysed.png",
 			"year" : "2012"
 		}
 	},
