@@ -1,11 +1,8 @@
-
 /**
  * Interaction for ordering a set of choices
  */
 
 qtiDirectives.directive('orderinteraction', function (QtiUtils) {
-
-
 
 
     var choiceTemplate = [
@@ -18,10 +15,10 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
 
 
     return {
-        restrict: 'E',
-        scope: true,
-        require: '^assessmentitem',
-        compile: function(tElement, tAttrs, transclude) {
+        restrict:'E',
+        scope:true,
+        require:'^assessmentitem',
+        compile:function (tElement, tAttrs, transclude) {
             // compile function
 
             // get the prompt element if present
@@ -38,19 +35,18 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
             var choices = [];
             console.log('compile function');
             var choiceElements = angular.element(tElement).find("simpleChoice");
-            for (var i = 0; i < choiceElements.length; i++)  {
+            for (var i = 0; i < choiceElements.length; i++) {
                 var elem = angular.element(choiceElements[i]);
                 var identifier = elem.attr('identifier');
-                choices.push({content: elem.html(), identifier: identifier});
+                choices.push({content:elem.html(), identifier:identifier});
             }
 
             // now modify the DOM
             tElement.html(choiceTemplate);
 
 
-
             // linking function
-            return function(scope, element, attrs, AssessmentItemCtrl) {
+            return function (scope, element, attrs, AssessmentItemCtrl) {
 
 
                 var responseIdentifier = attrs["responseidentifier"];
@@ -60,18 +56,23 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
                 scope.prompt = prompt;
                 scope.items = choices;
 
+
+                var updateAssessmentItem = function (orderedList) {
+                    var flattenedArray = [];
+                    for (var i = 0; i < orderedList.length; i++) {
+                        flattenedArray[i] = orderedList[i].identifier;
+                    }
+                    AssessmentItemCtrl.setResponse(responseIdentifier, flattenedArray);
+                };
+
                 // watch the response and set it to the responses list
                 scope.$watch('orderedList', function (newValue, oldValue) {
-                    var flattenedArray = [];
-                    for (var i = 0; i < newValue.length; i++) {
-                        flattenedArray[i] = newValue[i].identifier;
-                    }
-
-                    AssessmentItemCtrl.setResponse(responseIdentifier, flattenedArray);
+                    updateAssessmentItem(newValue);
                 });
 
+
                 // handle updating this view after submission
-                scope.$watch('status', function(newValue, oldValue) {
+                scope.$watch('status', function (newValue, oldValue) {
                     if (newValue == 'SUBMITTED') {
                         // TODO disable further interaction with the widget now that it is submitted
 
@@ -80,12 +81,12 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
 
                         // initialize the item css feedback to incorrect
                         for (var y = 0; y < scope.items.length; y++) {
-                            scope.items[y].submittedClass = "orderIncorrect";
+                            scope.items[y].submittedClass = "order-incorrect";
                         }
                         // get the correct response
                         var correctResponse = scope.itemSession.sessionData.correctResponses[responseIdentifier];
                         var response = QtiUtils.getResponseById(responseIdentifier, scope.itemSession.responses);
-                            //.itemSession.responses[responseIdentifier];
+                        //.itemSession.responses[responseIdentifier];
                         // for each item, determine if item is in right or wrong place
                         for (var i = 0; i < correctResponse.length; i++) {
                             if (correctResponse[i] == response.value[i]) {
@@ -110,39 +111,63 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
 });
 
 
-qtiDirectives.directive("sortable", function() {
+qtiDirectives.directive("sortable", function () {
     return {
         // todo look into isolate scope so orderedList is not on global scope, tried it but was having trouble
-        link: function(scope, el, attrs, ctrl) {
+        link:function (scope, el, attrs, ctrl, $timeout) {
 
             var startParent = null;
             var stopParent = null;
+
+            var buildItemsList = function ($node) {
+                var items = [];
+                $node.children('div').each(function (index) {
+                    var liItem = scope.$eval($(this).attr('obj'));
+                    liItem.ord = index;
+                    items.push(liItem);
+                });
+
+                return items;
+            };
+
+
             $(el).sortable({
-                items: 'div:not(:has(div.complete))',
-                start: function(event, ui) {
+                items:'div:not(:has(div.complete))',
+                start:function (event, ui) {
                     startParent = $(ui.item).parent();
                 },
-                stop: function(event, ui) {
-                    stopParent = $(ui.item).parent();
-                    //var stopData = scope.list;
-                    var items = [];
-                    stopParent.children('div').each(function(index) {
-                        var liItem = scope.$eval($(this).attr('obj'));
-                        liItem.ord = index;
-                        items.push(liItem);
-                    });
 
-                    scope.$apply(function(){
-                        scope.orderedList  = items;
+                /**
+                 * Adding a create event handler so that we can init the list correctly.
+                 * @param event
+                 * @param ui
+                 */
+                create:function (event, ui) {
+
+                    var target = event.target;
+
+                    setTimeout(
+                        function () {
+                            var items = buildItemsList($(target));
+                            scope.$apply(function () {
+                                scope.orderedList = items;
+                            });
+                        }, 500
+                    );
+                },
+                stop:function (event, ui) {
+                    stopParent = $(ui.item).parent();
+                    var items = buildItemsList(stopParent);
+                    scope.$apply(function () {
+                        scope.orderedList = items;
                     });
-                    //scope.$apply();
 
                 },
-                connectWith: '.sortable-linked',
-                placeholder: 'ui-state-highlight',
-                forcePlaceholderSize: true,
-                axis: 'y',
-                dropOnEmpty: true
+                connectWith:'.sortable-linked',
+                placeholder:'ui-state-highlight',
+                forcePlaceholderSize:true,
+                axis:'y',
+                dropOnEmpty:true
             });
         }
     }
