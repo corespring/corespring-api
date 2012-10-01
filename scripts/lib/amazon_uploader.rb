@@ -48,7 +48,7 @@ class AmazonUploader
 
   def exists?( s3_name )
      result = s3_bucket[s3_name]
-     puts result
+     #puts result
      #pp result.about
      puts "last uploaded: #{result.about['last-modified']}"
      !result.nil?
