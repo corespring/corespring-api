@@ -154,6 +154,41 @@
 
         <p/>
 
+        <orderInteraction responseIdentifier="wivesOfHenry" shuffle="true">
+            <prompt>Arrange the wives of Henry VIII in chronological order:</prompt>
+            <simpleChoice identifier="parr">Catherine Parr</simpleChoice>
+            <simpleChoice identifier="boleyn">Anne Boleyn</simpleChoice>
+            <simpleChoice identifier="cleves" fixed="true">Anne of Cleves</simpleChoice>
+            <simpleChoice identifier="aragon">Catherine of Aragon</simpleChoice>
+            <simpleChoice identifier="seymour">Jane Seymour</simpleChoice>
+            <simpleChoice identifier="howard">Catherine Howard</simpleChoice>
+        </orderInteraction>
+
+
+        <p/>
+        <hr/>
+        <p/>
+
+        <orderInteraction responseIdentifier="cutePugs" shuffle="true">
+            <prompt>Arrange these pugs in order of cuteness:</prompt>
+            <simpleChoice identifier="pug1"><img src="http://stuffpoint.com/dogs/image/59240-dogs-4plus-pugs.jpg" width="150" height="150"/> </simpleChoice>
+            <simpleChoice identifier="pug2"><img src="http://images.fanpop.com/images/image_uploads/pug-pugs-239511_407_436.jpg" width="150" height="150"/></simpleChoice>
+            <simpleChoice identifier="pug3" fixed="true"><img src="http://www.weruletheinternet.com/wp-content/uploads/images/2011/may/cute_pugs/cute_pugs_7.jpg" width="150" height="150"/></simpleChoice>
+        </orderInteraction>
+
+
+        <p/>
+        <hr/>
+        <p/>
+
+
+
+        <prompt>Write Sam a postcard. Write 25-35 words.</prompt>
+        <extendedTextInteraction responseIdentifier="longAnswer" expectedLength="200">
+
+        </extendedTextInteraction>
+
+
 
     </itemBody>
 

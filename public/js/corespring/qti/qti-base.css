@@ -392,6 +392,10 @@ DISTRACTOR-RELATED
 .orderIncorrect {
     border-color:#F8A31A;
 }
+
+.orderCorrect{
+
+}
 .feedbackinline {
     color: #444;
     padding-left: 10px;
@@ -483,12 +487,6 @@ simplechoice.ng-scope {
     display:inline-block;
     margin-bottom:0.4em;
     padding:8px;
-}
-.orderCorrect {
-    border: 2px solid green;
-}
-.orderIncorrect {
-    border: 2px solid #F8A31A;
 }
 
 

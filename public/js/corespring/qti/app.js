@@ -77,8 +77,6 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService) {
                 scope.itemSession.responses = scope.responses;
                 scope.itemSession.finish = new Date().getTime();
                 AssessmentSessionService.save(apiCallParams, scope.itemSession, function (data) {
-                    console.log("saved");
-                    console.log(data);
                     scope.itemSession = data;
                     scope.status = 'SUBMITTED';
                 });

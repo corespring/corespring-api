@@ -158,7 +158,7 @@ class CorespringContentUpdater
 
     if !match.nil? && match.length == 2
       t = match[1]
-      name = t.gsub(" ", "-")
+      name = t.gsub(" ", "-").gsub("<", "").gsub(">", "").gsub("/", "")
     end
 
     "#{@item_id}-#{name}"

@@ -14,11 +14,11 @@
     cursor: move;
 }
 
-.order-correct {
-	border: 2px solid green;
+.sortable-item.order-correct {
+	border: 2px solid #53C516;
 }
 
-.orderIncorrect {
+.sortable-item.order-incorrect {
 	border: 2px solid #F8A31A;
 }
 

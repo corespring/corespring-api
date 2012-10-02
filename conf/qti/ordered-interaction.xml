@@ -1,0 +1,19 @@
+<assessmentItem>
+    <responseDeclaration identifier="alphabet" cardinality="ordered" baseType="identifier">
+        <correctResponse>
+            <value>a</value>
+            <value>b</value>
+            <value>c</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+        <orderInteraction responseIdentifier="alphabet" shuffle="true">
+            <prompt>Arrange letters of the alphabet:</prompt>
+            <simpleChoice identifier="a">A</simpleChoice>
+            <simpleChoice identifier="b">B</simpleChoice>
+            <simpleChoice identifier="c">C</simpleChoice>
+        </orderInteraction>
+    </itemBody>
+</assessmentItem>
+

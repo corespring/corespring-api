@@ -213,11 +213,16 @@ object JsonImporter {
      */
     def loadString(path: String): String = {
       val s = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.forName("UTF-8"))).mkString
-      val lines = s.replaceAll("\n", "\\\\\n")
-      //TODO: I had "\\\\\"" here as the replacement but it didn't work.
-      val quotes = lines.replaceAll("\"", "'")
-      quotes
-    }
+      val lines = s
+        .replace("\n", "\\\n")
+        .replace("\"", "'")
+        .replace("$", "\\\\\\$")
+        .replace("{", "\\\\{")
+        .replace("}", "\\\\}")
+       lines
+
+       }
+
     val interpolated = StringUtils.interpolate(s, loadString)
     interpolated
   }
