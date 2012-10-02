@@ -21,7 +21,7 @@ qtiServices.factory('AssessmentSessionService', ['$resource', function ($resourc
     var mockData = {
       sessionData: {
           feedbackContents: {
-              winterDiscontent: "Wrong again!"
+//              winterDiscontent: "Wrong again!"
           }
       }
     };
