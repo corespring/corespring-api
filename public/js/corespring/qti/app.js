@@ -99,7 +99,7 @@ qtiDirectives.directive('itembody', function () {
         template: [
             '<div ng-show="printMode" class="item-body-dotted-line">Name: </div>',
             '<span ng-transclude="true"></span>',
-            '<input ng-show="!printMode" type="submit" value="submit" class="submit" ng-disabled="formDisabled" ng-click="onClick()"></input>'
+            '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="formDisabled" ng-click="onClick()">Submit</a>'
         ].join('\n'),
         //replace: true,
         require:'^assessmentitem',
