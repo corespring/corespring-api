@@ -99,7 +99,7 @@
                 <feedbackInline csFeedbackId='higgins' identifier='higgins' showHide='show' defaultFeedback='true' />
             </simpleChoice>
             <simpleChoice identifier="guinness"> Arthur Guinness
-                <feedbackInline csFeedbackId='guiness' identifier='guiness' showHide='show' defaultFeedback='true' />
+                <feedbackInline csFeedbackId='guinness' identifier='guinness' showHide='show' defaultFeedback='true' />
             </simpleChoice>
             <simpleChoice identifier="adams"> Gerry Adams
                 <feedbackInline csFeedbackId='adams' identifier='adams' showHide='show' defaultFeedback='true' />
