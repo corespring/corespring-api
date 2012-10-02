@@ -60,19 +60,5 @@
 	],
 	"bloomsTaxonomy" : "Apply",
 	"demonstratedKnowledge" : "Conceptual",
-	"relatedCurriculum" : "New Jersey Model Curriculum",
-	"supportingMaterials" : [
-		{
-			"name" : "Scoring Guide",
-			"files" : [
-				{
-					"_t" : "models.VirtualFile",
-					"name" : "G8.1.1.ScoreGuide.html",
-					"contentType" : "text/html",
-					"isMain" : true,
-					"content" : "<html>\n<head>\n<script type=\"text/javascript\"\n  src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\">\n</script>\n</head>\n\n<body>\n<p/><h2>Scoring Guide</h2>\n\n<p/>No, because parallel lines are still parallel after they are translated, and lines <i>t</i> and <i>u</i> are not parallel. \n\n</body>\n</html>\n\n\n"
-				}
-			]
-		}
-	]
+	"relatedCurriculum" : "New Jersey Model Curriculum"
 }

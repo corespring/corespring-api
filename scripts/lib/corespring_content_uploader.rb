@@ -175,17 +175,17 @@ class CorespringContentUpdater
 
   def can_be_virtual_file(filename)
     suffix = File.extname(filename).gsub(".", "")
-    VIRTUAL_FILE_TYPES.include? suffix
+    VIRTUAL_FILE_TYPES.include? suffix.downcase
   end
 
   def can_be_stored_file(filename)
     suffix = File.extname(filename).gsub(".", "")
-    STORED_FILE_TYPES.include? suffix
+    STORED_FILE_TYPES.include? suffix.downcase
   end
 
   def content_type(file_path)
     suffix = File.extname(file_path)
-    type = SUFFIX_TO_CONTENT_TYPE_MAP[suffix.gsub(".", "")]
+    type = SUFFIX_TO_CONTENT_TYPE_MAP[suffix.downcase.gsub(".", "")]
     type || "unknown"
   end
 

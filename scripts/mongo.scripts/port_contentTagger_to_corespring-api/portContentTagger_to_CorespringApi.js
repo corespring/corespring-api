@@ -36,7 +36,10 @@ var suffixToContentTypeMap = {
 function getContentType(filename) {
     var split = filename.split(".");
     var suffix = split[split.length - 1];
-    return suffixToContentTypeMap[suffix];
+    if(!suffix){
+        return "unknown";
+    }
+    return suffixToContentTypeMap[suffix.toLowerCase()];
 }
 
 function collection_to_collectionId(fromItem, toItem) {
