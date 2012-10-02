@@ -32,9 +32,9 @@ object ItemPlayer extends BaseApi with ItemResources{
     Seq( script( PATH + name + scriptSuffix + ".js"), css( PATH + name + scriptSuffix + ".css") ).mkString("\n") }
 
   val BYTE_BUREAU = css("/assets/stylesheets/bytebureau/styles.css")
-  //val BYTE_BUREAU = css("//bytebureau.com/styles.css")
+  val BYTE_BUREAU_ORIG = css("//bytebureau.com/styles.css")
 
-  val DEFAULT_CSS = Seq(BYTE_BUREAU, css(PATH + "qti-base-overrides.css")).mkString("\n")
+  val DEFAULT_CSS = Seq( css(PATH + "qti-base-overrides.css")).mkString("\n")
   //val DEFAULT_CSS = ""
 
   val notFoundJson = Json.toJson(
@@ -202,6 +202,10 @@ object ItemPlayer extends BaseApi with ItemResources{
 
 
     scripts ::= DEFAULT_CSS
+
+    //TODO: The print css needs to be updated - this is a temporary fix to use the old css for now.
+    if ( isPrintMode ) scripts ::= BYTE_BUREAU_ORIG else scripts ::= BYTE_BUREAU
+
     //scripts ::= css( PATH + "qti-base-overrides.css")
     // order matters so put them out in the chronological order we put them in
     scripts.reverse
