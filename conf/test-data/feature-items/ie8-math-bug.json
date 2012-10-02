@@ -1,0 +1,20 @@
+{
+    "_id" : {
+        "$oid" : "506b16a6a0ee19706d739f02"
+    },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+                "content" : "$[interpolate{/conf/qti/ie8-math-bug.xml}]"
+			}
+		]
+	},
+	"collectionId" : "5001b9b9e4b035d491c268c3",
+	"itemType" : "Text with Questions",
+	"title" : "IE8 Math Bug"
+}

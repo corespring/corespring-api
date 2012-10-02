@@ -165,7 +165,6 @@ qtiDirectives.directive('choiceinteraction', function () {
         scope:true,
         require:'^assessmentitem',
         compile:function (element, attrs, transclude) {
-            console.log("choice-interaction:compile");
             return link;
         },
         controller:function ($scope) {

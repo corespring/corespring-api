@@ -422,7 +422,7 @@ simplechoice.ng-scope {
     font-size:14px;
 }
 .choiceInput {
-    padding:0 3px 0 0;
+    padding:0 12px 0 0;
 }
 .choice-content > .ng-scope {
     display:inline-block;

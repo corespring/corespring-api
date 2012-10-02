@@ -47,10 +47,17 @@ body, html {
     padding:0 0 18px;
     margin:0;
 }
+
 .choiceInput, .choice-content {
     float: left;
     padding: 8px;
 }
+
+
+.choiceInput {
+    padding-top: 12px;
+}
+
 .feedback-container{
     clear: both;
     padding-left: 35px;
@@ -67,6 +74,72 @@ input[type="submit"] {
     margin:20px 0 10px auto;
 }
 
+/*-------------------------------------------------------------------------------------------*/
+/*  SETUP */
+/*-------------------------------------------------------------------------------------------*/
+body {
+    font-family:"Ubuntu", Arial, Helvetica, sans-serif;
+    color:#333;
+    background-color: #fff;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+}
+h1 {
+    font-size:20px;
+    margin-bottom:15px;
+}
+h2 {
+    font-size:18px;
+    padding-bottom:4px;
+    margin-bottom:12px;
+}
+h2.horizontal-line {
+    width:100%;
+    border-bottom:1px #CCCCCC solid;
+    padding-bottom:4px;
+    margin-bottom:12px;
+}
+h3 {
+    font-size:16px;
+    padding:0 0 15px;
+}
+h4 {
+    font-size:14px;
+    padding:0 0 18px;
+}
+p {
+    margin: 0 0 0 20px;
+    font-size:14px;
+    line-height:20px;
+    padding:0 0 18px;
+}
+/* Indent of small text fields*/
+span p input, span p. span input {
+    margin-left:20px;
+}
+/*input items (checkboxes, radio buttons, inine text items etc) */
+input[type="text"] {
+    margin:0 8px 0 3px;
+    font:14px "Ubuntu", Arial, Helvetica, sans-serif;
+}
+input[type="text"]:focus, textarea:focus {
+    border-color:rgba(161, 225, 23, 0.8);
+    box-shadow:0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 4px rgba(161, 225, 23, 0.8);
+    outline:0 none;
+}
+a:focus, .btn:focus, input[type="file"]:focus, input[type="radio"]:focus, input[type="checkbox"]:focus, select:focus {
+    outline:5px auto rgba(161, 225, 23, 0.8);
+}
+.prompt, .choice-prompt, prompt, .choicePrompt, .item-stem, p.prompt, span.choice-prompt, p.prompt, span p.prompt, resource.ng-scope prompt, span.choice-prompt, .choice-interaction prompt {
+    font:14px/20px "Ubuntu", Arial, Helvetica, sans-serif !important;
+    padding:0 0 18px;
+    margin:0;
+}
+/* Bicubic resizing for non-native sized IMG: code.flickr.com/blog/2008/11/12/on-ui-quality-the-little-things-client-side-image-resizing/ */
+.ie7 img {
+    -ms-interpolation-mode: bicubic;
+}
 
 
 
@@ -222,4 +295,545 @@ a.btn{
 .btn-primary.active {
     background-color: #00acce;
 }
+
+
+/*-------------------------------------------------------------------------------------------*/
+/* TEXT FORMATTING */
+/*-------------------------------------------------------------------------------------------*/
+math, .mathml, div.math-choices simplechoice, .math-text, .MathJax {
+    font-family:"Times New Roman", Times, serif;
+    font-size: 15px;
+}
+/* MULTIPLE CHOICE */
+.choice-interaction {
+    display: block;
+    margin:15px 0 30px 0;
+    color:#333;
+    font-size:14px;
+}
+
+.choiceInput, .choice-content {
+    display: table-cell;
+    vertical-align: middle;
+    color:#333;
+}
+.choice-content {
+    line-height:20px;
+}
+/*.choiceInput {
+    padding:0 8px 0 0;
+}*/
+.choice-interaction input[type="checkbox"], .choice-interaction input[type="radio"] {
+    margin:0 0 0 1px;
+}
+.correct-response {
+    color: #95C444;
+}
+.feedbackinline {
+    color: #333;
+    padding-left: 10px;
+    font-size: 14px;
+}
+input[type="submit"] {
+    display:block;
+    margin:20px 0 10px auto;
+}
+blockquote p span input.ng-pristine {
+    margin:none;
+}
+.incorrectSelection, .incorrect-selection {
+    color: #F8A31A;
+}
+.orderIncorrect {
+    border-color:#F8A31A;
+}
+
+/* For Feedback Blocks (10-1) */
+.feedback-block-correct, .feedback-block-incorrect {
+    line-height: 21px;
+    min-height: 21px;
+    padding: 0px 0px 0px 30px;
+}
+
+.feedback-block-correct {
+    background: url("/assets/images/correct-icon.png") no-repeat scroll 0px 50% transparent;
+    border-radius: 6px 6px 6px 6px;
+    border: 1px solid #53C516;
+    margin: 15px;
+    outline: 0px none;
+    padding: 10px 10px 10px 30px;
+}
+
+.feedback-block-incorrect {
+    background: url("/assets/images/wrong-icon.png") no-repeat scroll 0px 50% transparent;
+    border-radius: 6px 6px 6px 6px;
+    border: 1px solid #F8A31A;
+    margin: 15px;
+    outline: 0px none;
+    padding: 10px 10px 10px 30px;
+}
+
+
+
+/* 9/27 Formatting for new Inline feedback. Also made answers display as block.*/
+.incorrect-selection .choice-interaction simplechoice.ng-scope div.choice-content feedbackinline,
+.correct-response .choice-interaction simplechoice.ng-scope div.choice-content feedbackinline.ng-scope {
+    display:block;
+    padding:5px 0 10 15 !important;
+}
+
+.incorrect-selection feedbackinline.ng-scope span.feedbackinline, .correct-response feedbackinline.ng-scope span.feedbackinline {
+    font-size:12px !important;
+}
+
+/* -------------------------------------
+TEXT ELEMENTS
+---------------------------------------- */
+.intro, div.intro {
+    font-family: 'Ubuntu';
+    font-style:italic;
+    font-size:14px;
+    line-height:20.4px;
+    color:#333;
+    font-style:italic;
+    padding:0 0 23px 0;
+    margin:0;
+}
+.intro-2 {
+    line-height:18px;
+    font-size:14px;
+    margin:0;
+    color: #333;
+}
+/* Required for line numbering */
+p .numbers {
+    float:left;
+    text-align:right;
+    white-space:nowrap;
+}
+
+.numbered-wrapper p {
+    line-height: 23px;
+}
+
+/* Required for Paragraph Numbering */
+.p-list {
+    padding:0;
+    margin:0;
+    counter-reset:section;
+    font-size:14px;
+    line-height:18px;
+}
+.p-list li {
+    padding:0 0 18px 30px;
+    list-style:none;
+    position:relative;
+}
+.p-list li:before {
+    content:counter(section);
+    counter-increment:section;
+    font-size:14px;
+    line-height:18px;
+    position:absolute;
+    top:2px;
+    left:0;
+    width:20px;
+    height:18px;
+    text-align:right;
+    color:#333;
+}
+.educator-message {
+    border-bottom:1px solid #999;
+    border-top:1px solid #999;
+    color:#999;
+    font-style:italic;
+    margin:20px 0;
+    padding:5px;
+}
+.p-list p {
+    padding:0;
+}
+.leading-150-percent {
+    line-height:28px;
+}
+.leading-200-percent {
+    line-height:38px;
+}
+/* The correct selector for text is .para-center. The rest of these variations were observed in the files */
+div.text-centered, div.para-center, div.center, .center, center, .text-centered, .para_center .para-center {
+    text-align:center;
+}
+div.floated-para {
+    font-size:14px;
+    line-height:18px;
+    padding-bottom:25px;
+}
+.floated-para .img-right {
+    float:right;
+    width:200px;
+    margin:26px;
+}
+.author-name, .passage-author, .passage_author, .passage-byline {
+    display: block;
+    font-style: italic;
+    font-weight: normal;
+    text-align: center;
+    padding-bottom:20px;
+    margin-top:-5px;
+}
+.passage-subtitle/*mcas*/ {
+    display: block;
+    font-size: 17px;
+    font-weight: bold;
+    text-align: center;
+    color:#000;
+    margin:0;
+}
+/*----------------------------
+TEXT BOXES
+------------------------------*/
+textarea {
+    width:96%;
+    margin:0 0 30px;
+    border:1px solid #797979;
+    -moz-box-shadow:inset 0 0 8px #d1d1d1;
+    -webkit-box-shadow:inset 0 0 8px #d1d1d1;
+    box-shadow:inset 0 0 8px #d1d1d1;
+    padding:7px;
+    text-align:left;
+    font:14px 'Ubuntu', Arial, Helvetica, sans-serif;
+    color:#333;
+    resize:none;
+}
+textarea.answer-1-linebox, answer-1-linebox {
+    height:26px;
+    padding:10px 7px 0 7px;
+    line-height:12px;
+}
+textarea.answer-5-linebox {
+    height:95px;
+}
+textarea.answer-5-linebox-1 {
+    height:95px;
+    margin-bottom:40px;
+}
+textarea.answer-10-linebox {
+    height:180px;
+}
+textarea.answer-15-linebox {
+    height:285px;
+}
+textarea.answer-20-linebox {
+    height:380px;
+}
+.passage-author/*mcas*/ {
+    display: block;
+    font-style: italic;
+    font-weight: normal;
+    text-align: center;
+    margin-top: -5px;
+    font-size:16px;
+}
+/* FOOTNOTES AND COPYRIGHT */
+.note-tip {
+    border-top:1px #999 solid;
+    padding:5px 0 0 0;
+    margin:10px 0 0 0;
+    font-size:11px;
+    display:inline-block;
+}
+div.copyright, div.image-copyright, div.image_copyright {
+    position:relative;
+    top:-30px;
+    margin-bottom:20px;
+    font-size:11px;
+    text-align:center;
+    display:block;
+}
+/*----------------------------
+CONTAINERS AND IMAGES
+------------------------------*/
+.imagewrapper-200, .imagewrapper-400, .imagewrapper-600, .imagewrapper, .image-wrapper {
+    margin:0 auto 37px;
+    padding:0;
+    overflow:hidden;
+    text-align:center;
+}
+.img-left {
+    margin-left:20px;
+    text-align:left;
+}
+.imagewrapper-200, .imagewrapper-200 img {
+    max-width:200px;
+}
+.imagewrapper-400, .imagewrapper-400 img {
+    max-width:400px;
+}
+.imagewrapper-600, .imagewrapper-600 img {
+    max-width:600px;
+}
+p img, .imagewrapper img, .image-wrapper img {
+    max-width:600px;
+}
+p .img-right {
+    float: right;
+    margin:5px 0 26px 26px;
+    max-width: 300px;
+}
+.para-left/*mcas*/ {
+    margin-bottom: 5px;
+    margin-top: 5px;
+    padding: 0px;
+    text-align: left;
+}
+/* Multiple Choice Set */
+.choiceInteraction {
+    display: block;
+    margin-bottom: 30px;
+    margin-left: 0;
+    margin-top: 15px;
+}
+.sortable-body {
+    list-style-type:none;
+    margin-left:20px;
+}
+.sortable-item {
+    background-color:#eee;
+    border-radius:8px;
+    border:1px solid #333;
+    cursor:move;
+    display:inline-block;
+    margin-bottom:0.4em;
+    padding:8px;
+}
+.orderCorrect {
+    border: 2px solid #95C444;
+}
+.orderIncorrect {
+    border: 2px solid #F8A31A;
+}
+/*----------------------------
+LISTS AND TABLES
+------------------------------*/
+
+/* LIST ITEMS*/
+ol, ul {
+    padding:0;
+    margin:0 0 20px 35px;
+    list-style:none;
+    font-size:14px;
+    line-height:18px;
+    position:relative;
+}
+ol li {
+    list-style:decimal;
+    font-size:14px;
+    padding:0 0 10px;
+}
+ul li {
+    list-style:disc;
+    padding:0 0 10px;
+}
+/* LIST TYPES */
+.list-upper-roman li {
+    list-style-type:upper-roman;
+}
+.list-lower-roman li {
+    list-style-type:lower-roman;
+}
+.list-upper-alpha li {
+    list-style-type:upper-alpha;
+}
+.list-lower-alpha li {
+    list-style-type:lower-alpha;
+}
+.list-disc li {
+    list-style-type:disc;
+}
+.list-circle li {
+    list-style-type:circle;
+}
+.list-square li {
+    list-style-type:square;
+}
+ul.list-disc ul li {
+    list-style-type:circle;
+}
+ul.list-disc ul ul li {
+    list-style-type:square;
+}
+/*DEFINITION LISTS*/
+dl {
+    margin:0 5px 17px;
+    overflow:hidden;
+    font-size:14px;
+    line-height:18px;
+    color:#333;
+}
+dl dt {
+    float:left;
+    padding:0 10px 0 0;
+    width:140px;
+    font-weight:bold;
+}
+dl dd {
+    float:left;
+    width:400px;
+    overflow:hidden;
+    margin:0;
+    margin-bottom: 10px;
+}
+input {
+    font-size:14px;
+}
+/* DATA TABLE STYLE */
+table {
+    border-collapse:collapse;
+    line-height:17px;
+    color:#333;
+    font-size:14px;
+    margin:0 0 30px 20px;
+}
+table th, table td {
+    padding:10px 5px;
+    border:1px solid #999;
+    text-align:center;
+    vertical-align:middle;
+    min-width:50px;
+}
+table th {
+    background:#333;
+    color:#fff;
+}
+table td a {
+    color:#108fc4;
+    text-decoration:none;
+}
+table td a:hover {
+    text-decoration:underline;
+}
+table tfoot td {
+    background:#E5E3E3;
+}
+td.para-left {
+    padding:10px 5px;
+    border:1px solid #999;
+    text-align:left;
+    vertical-align:middle;
+    min-width:50px;
+}
+/*----------------------------
+TABS
+------------------------------*/
+.tab-panel {
+    margin:0 0 13px;
+    position:relative;
+    overflow:hidden;
+    border-bottom:none;
+    padding:0;
+}
+.tabs {
+    padding:0 0 0 5px;
+    margin:0;
+}
+.tabs ul.tabs {
+    position:absolute;
+    z-index:500;
+    top:1px;
+}
+.tab-panel .tabs li {
+    list-style:none;
+    display:inline;
+}
+.tab-panel div.tabs ul {
+    margin-bottom: 0;
+    margin-left:0;
+}
+.tab-panel .tabs a {
+    font-weight:bold;
+    padding:10px;
+    display:inline-block;
+    background:#4F4F4F;
+    color:#dcddde;
+    font-size:14px;
+    height:20px;
+    position:relative;
+    top:1px;
+    border:1px #999 solid;
+    text-decoration:none;
+    border-bottom:none;
+}
+.tab-panel .tabs a.active {
+    background:#EFEFEF;
+    color:#000;
+    border:1px #999 solid;
+    border-bottom:none;
+}
+.tab-panel .tab-box {
+    margin:0;
+    padding:10px;
+    border:1px #999 solid;
+    background:#EFEFEF;
+}
+.tab-box .paragraph-style {
+    color:#000;
+    padding:20px 5px 5px;
+    line-height:18px;
+    font-size:14px;
+    background:#EFEFEF;
+    height:300px;
+    overflow-y:scroll;
+}
+.tab-box .paragraph-style p {
+    color: #000;
+}
+/*-----------------------------------
+MISC.
+-------------------------------------*/
+hr.element-seperator {
+    height:1px;
+    background-color:#ccc;
+    border:none;
+    color:#0FF;
+    margin:30px 0;
+    display:block;
+}
+/* TABLED TEXT SINGLE COLUMN BOXES - DIVs */
+div.text-box-wrapper {
+    background-color: #FFF;
+    border: 1px solid #999;
+    width: auto;
+    margin-left: 20px;
+}
+div.text-box-header {
+    background-color: #3B3A3A;
+    color: #fff;
+    font-weight: bold;
+    width: auto;
+    padding:5px;
+    margin-bottom: 10px;
+}
+div.text-box-content {
+    display: block;
+    margin: 0;
+    padding-left:15px;
+}
+/* Borders */
+.border-1px {
+    border: 1px solid #999999;
+    padding:20px;
+}
+/*Misc. Spacing */
+.10px-below {
+       margin-bottom:10px;
+   }
+.20px-below {
+       margin-bottom:20px;
+   }
+.10px-above {
+       padding-top:20px;
+   }
+.20px-above {
+       padding-top:20px;
+   }
 

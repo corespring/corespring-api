@@ -35,6 +35,7 @@ object ItemPlayer extends BaseApi with ItemResources{
   //val BYTE_BUREAU = css("//bytebureau.com/styles.css")
 
   val DEFAULT_CSS = Seq(BYTE_BUREAU, css(PATH + "qti-base-overrides.css")).mkString("\n")
+  //val DEFAULT_CSS = ""
 
   val notFoundJson = Json.toJson(
     Map("error" -> "not found")
