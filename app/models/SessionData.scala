@@ -50,11 +50,14 @@ object SessionData{
         feedbackGroups.map(kvpair => filterFeedbackGroup(kvpair._2)).flatten.toSeq
       }
       def filterFeedbackGroup(feedbackGroup:Seq[FeedbackInline]):Seq[FeedbackInline] = {
+        //add feedbackInline to feedbackContents if it was a response or it is the correct answer denoted by responseDeclaration
         val feedbackContents = feedbackGroup.filter(fi => sd.responses.find(response =>
           if (response.value.contains(ItemResponse.Delimiter)){
             response.value.split(ItemResponse.Delimiter).find(_ == fi.identifier).isDefined
           }else response.value == fi.identifier
-        ).isDefined)
+        ).isDefined || sd.qtiItem.responseDeclarations
+          .find(_.identifier == fi.responseIdentifier)
+          .map(_.isCorrect(fi.identifier)).getOrElse(false))
         if(feedbackContents.isEmpty){
           feedbackGroup.find(fi => fi.incorrectResponse) match {
             case Some(fi) => Seq(fi)
