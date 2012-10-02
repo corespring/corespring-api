@@ -42,10 +42,10 @@ object SessionData{
 
       def filterFeedbacks(feedbacks:Seq[FeedbackInline]):Seq[FeedbackInline] = {
         var feedbackGroups:HashMap[String,Seq[FeedbackInline]] = HashMap()
-        feedbacks.foreach(fi => if (feedbackGroups.get(fi.identifier).isDefined){
-          feedbackGroups += (fi.identifier -> (feedbackGroups.get(fi.identifier).get :+ fi))
+        feedbacks.foreach(fi => if (feedbackGroups.get(fi.responseIdentifier).isDefined){
+          feedbackGroups += (fi.responseIdentifier -> (feedbackGroups.get(fi.responseIdentifier).get :+ fi))
         }else{
-          feedbackGroups += (fi.identifier -> Seq(fi))
+          feedbackGroups += (fi.responseIdentifier -> Seq(fi))
         })
         feedbackGroups.map(kvpair => filterFeedbackGroup(kvpair._2)).flatten.toSeq
       }
