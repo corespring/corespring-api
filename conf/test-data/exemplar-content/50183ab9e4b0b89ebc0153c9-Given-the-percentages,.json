@@ -36,7 +36,7 @@
 		"standardsAligned" : false,
 		"qaReview" : false
 	},
-	"title" : "Given the percentages, calculate the number of students that attend  Lakeview School and, explain how it is possible for the band at Mountainside to have fewer members than the band at Lakeview.",
+	"title" : "Given the percentages, calculate the number of students that attend  Lakeview School.",
 	"demonstratedKnowledge" : "Meta-Cognitive",
 	"materialType" : "Assessment Item",
 	"bloomsTaxonomy" : "Evaluate",
