@@ -4,9 +4,41 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
         restrict:'E',
         replace:true,
         scope:true,
-        transclude:true,
         require:'^choiceinteraction',
+
+        /**
+         * We manually build our template so that we can move the feedbackinline
+         * nodes out of the content node and into their own now. This
+         * makes it easier to style them.
+         * @param tElement
+         * @param tAttrs
+         * @param transclude
+         * @return {Function}
+         */
         compile:function (tElement, tAttrs, transclude) {
+
+            var feedbackInlineRegex = /(<feedbackinline.*?>.*?<\/feedbackinline>)/g;
+
+            /**
+             * Build a div with <feedbackinline> nodes from the incoming html.
+             * @param html
+             * @return {String}
+             */
+            var createFeedbackContainerDiv = function(html){
+                var feedbackNodes = html.match(feedbackInlineRegex);
+
+                if(!feedbackNodes){
+                    return "";
+                }
+
+                var feedbackContainer = "<div class='feedback-container'>";
+                for( var i = 0 ; i < feedbackNodes.length ; i++ ){
+                    feedbackContainer += feedbackNodes[i];
+                }
+                feedbackContainer += "</div>";
+                return feedbackContainer;
+            };
+
             // determine input type by inspecting markup before modifying DOM
             var inputType = 'checkbox';
             var choiceInteractionElem = tElement.parent();
@@ -16,17 +48,25 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                 inputType = 'radio';
             }
 
+
+            var nodeWithFeedbackRemoved = tElement.html().replace(feedbackInlineRegex, "");
+
             var responseIdentifier = choiceInteractionElem.attr('responseidentifier');
 
+            var divs = ['<div class="simple-choice-inner">',
+                        '  <div class="choiceInput">',
+                        '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div>',
+                        '  <div class="choice-content"> ' + nodeWithFeedbackRemoved + '</div>',
+                        '</div>',
+                        createFeedbackContainerDiv(tElement.html())];
 
-            var template = '<div class="choiceInput"><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div><div class="choice-content" ng-transclude></div>';
+            var template = divs.join("\n");
 
             // now can modify DOM
             tElement.html(template);
 
             // return link function
             return function (localScope, element, attrs, choiceInteractionController) {
-
                 localScope.disabled = false;
 
                 localScope.value = attrs.identifier;
@@ -87,6 +127,36 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
 qtiDirectives.directive('choiceinteraction', function () {
 
+    var link = function (scope, element, attrs, AssessmentItemCtrl, $timeout) {
+        var maxChoices = attrs['maxchoices'];
+        // the model for an interaction is specified by the responseIdentifier
+        var modelToUpdate = attrs["responseidentifier"];
+
+        // TODO need to handle shuffle and fixed options... probably need to rearrange the DOM in compile function for this
+
+        scope.setChosenItem = function (value) {
+            if (maxChoices != 1) {
+                // multi choice means array model
+                if (scope.chosenItem == undefined) {
+                    scope.chosenItem = [];
+                }
+                // check if it's in the array
+                if (scope.chosenItem.indexOf(value) == -1) {
+                    // if not, push it
+                    scope.chosenItem.push(value);
+                } else {
+                    // otherwise remove it
+                    var idx = scope.chosenItem.indexOf(value); // Find the index
+                    if (idx != -1) scope.chosenItem.splice(idx, 1); // Remove it if really found!
+                }
+                AssessmentItemCtrl.setResponse(modelToUpdate, scope.chosenItem);
+            } else {
+                scope.chosenItem = value;
+                AssessmentItemCtrl.setResponse(modelToUpdate, value);
+            }
+        };
+    };
+
     return {
         restrict:'E',
         transclude:true,
@@ -94,36 +164,9 @@ qtiDirectives.directive('choiceinteraction', function () {
         replace:true,
         scope:true,
         require:'^assessmentitem',
-        link:function (scope, element, attrs, AssessmentItemCtrl, $timeout) {
-            var maxChoices = attrs['maxchoices'];
-            // the model for an interaction is specified by the responseIdentifier
-            var modelToUpdate = attrs["responseidentifier"];
-
-            // TODO need to handle shuffle and fixed options... probably need to rearrange the DOM in compile function for this
-
-            scope.setChosenItem = function (value) {
-                if (maxChoices != 1) {
-                    // multi choice means array model
-                    if (scope.chosenItem == undefined) {
-                        scope.chosenItem = [];
-                    }
-                    // check if it's in the array
-                    if (scope.chosenItem.indexOf(value) == -1) {
-                        // if not, push it
-                        scope.chosenItem.push(value);
-                    } else {
-                        // otherwise remove it
-                        var idx = scope.chosenItem.indexOf(value); // Find the index
-                        if (idx != -1) scope.chosenItem.splice(idx, 1); // Remove it if really found!
-                    }
-                    AssessmentItemCtrl.setResponse(modelToUpdate, scope.chosenItem);
-                } else {
-                    scope.chosenItem = value;
-                    AssessmentItemCtrl.setResponse(modelToUpdate, value);
-                }
-            };
-
-
+        compile:function (element, attrs, transclude) {
+            console.log("choice-interaction:compile");
+            return link;
         },
         controller:function ($scope) {
             this.scope = $scope;
