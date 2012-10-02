@@ -121,7 +121,7 @@ object SimpleChoice{
     (node \ "feedbackInline").headOption.map(FeedbackInline(_,Some(responseIdentifier)))
   )
 }
-case class FeedbackInline(csFeedbackId:String, responseIdentifier:String, identifier:String, content: String, var defaultFeedback:Boolean = false){
+case class FeedbackInline(csFeedbackId:String, responseIdentifier:String, identifier:String, content: String, var defaultFeedback:Boolean = false, var incorrectResponse:Boolean = false){
   def defaultContent(qtiItem:QtiItem):String =
     qtiItem.responseDeclarations.find(_.identifier == responseIdentifier) match {
     case Some(rd) =>
@@ -143,10 +143,17 @@ object FeedbackInline{
       node => childBody.append(node.toString()))
     def contents: String = childBody.toString()
     val feedbackInline = responseIdentifier match {
-      case Some(ri) => FeedbackInline((node \ "@csFeedbackId").text, ri, (node \ "@identifier").text, contents)
-      case None => FeedbackInline((node \ "@csFeedbackId").text, (node \ "@outcomeIdentifier").text.split('.')(1), (node \ "@identifier").text, contents)
+      case Some(ri) => FeedbackInline((node \ "@csFeedbackId").text,
+        ri,
+        (node \ "@identifier").text, contents,
+        (node \ "@defaultFeedback").text == "true",
+        (node \ "@incorrectResponse").text == "true")
+      case None => FeedbackInline((node \ "@csFeedbackId").text,
+        (node \ "@outcomeIdentifier").text.split('.')(1),
+        (node \ "@identifier").text, contents,
+        (node \ "@defaultFeedback").text == "true",
+        (node \ "@incorrectResponse").text == "true")
     }
-    if ((node \ "@defaultFeedback").text == "true") feedbackInline.defaultFeedback = true
     feedbackInline
   }
 

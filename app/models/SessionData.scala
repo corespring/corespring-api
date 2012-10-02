@@ -7,6 +7,7 @@ import models.bleezmo._
 import play.api.libs.json.JsArray
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
+import collection.immutable.HashMap
 
 
 /**
@@ -38,26 +39,38 @@ object SessionData{
           case _ => throw new RuntimeException("unexpected correct response type")
         })
       })
+
+      def filterFeedbacks(feedbacks:Seq[FeedbackInline]):Seq[FeedbackInline] = {
+        var feedbackGroups:HashMap[String,Seq[FeedbackInline]] = HashMap()
+        feedbacks.foreach(fi => if (feedbackGroups.get(fi.identifier).isDefined){
+          feedbackGroups += (fi.identifier -> (feedbackGroups.get(fi.identifier).get :+ fi))
+        }else{
+          feedbackGroups += (fi.identifier -> Seq(fi))
+        })
+        feedbackGroups.map(kvpair => filterFeedbackGroup(kvpair._2)).flatten.toSeq
+      }
+      def filterFeedbackGroup(feedbackGroup:Seq[FeedbackInline]):Option[FeedbackInline] = {
+        feedbackGroup.find(fi => sd.responses.find(_.value == fi.identifier).isDefined) match {
+          case Some(fi) => Some(fi)
+          case None => feedbackGroup.find(fi => fi.incorrectResponse)
+        }
+      }
+
+      def getFeedbackContent(fi:FeedbackInline) = if(fi.defaultFeedback)
+        fi.defaultContent(sd.qtiItem)
+      else fi.content
+
       var feedbackContents:Seq[(String,JsValue)] = Seq()
       sd.qtiItem.itemBody.interactions.foreach(interaction => {
         interaction match {
-          case ci:ChoiceInteraction => ci.choices
-            .filter(choice => sd.responses.find(_.value == choice.identifier).isDefined)
-            .map(choice => choice.feedbackInline.foreach(fi =>
-            feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(if(fi.defaultFeedback) fi.defaultContent(sd.qtiItem)
-              else fi.content))
-          ))
-          case oi:OrderInteraction => oi.choices
-            .filter(choice => sd.responses.find(_.value == choice.identifier).isDefined)
-            .map(choice => choice.feedbackInline.foreach(fi =>
-            feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(if(fi.defaultFeedback) fi.defaultContent(sd.qtiItem)
-            else fi.content))
-          ))
+          case ci:ChoiceInteraction => filterFeedbackGroup(ci.choices.filter(_.feedbackInline.isDefined).map(_.feedbackInline.get))
+            .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
+          case oi:OrderInteraction => filterFeedbackGroup(oi.choices.filter(_.feedbackInline.isDefined).map(_.feedbackInline.get))
+            .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
         }
       })
-      sd.qtiItem.itemBody.feedbackBlocks.filter(fi => sd.responses.find(_.value == fi.identifier).isDefined).foreach(fi =>
-        feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(if(fi.defaultFeedback) fi.defaultContent(sd.qtiItem)
-        else fi.content))
+      filterFeedbacks(sd.qtiItem.itemBody.feedbackBlocks).foreach(fi =>
+        feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi)))
       )
       JsObject(Seq(
         "feedbackContents" -> JsObject(feedbackContents),
