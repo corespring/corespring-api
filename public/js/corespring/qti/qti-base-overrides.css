@@ -78,6 +78,39 @@ table th, table td {
 }
 
 
+.incorrect-selection > .feedback-container > feedbackinline,
+.correct-response > .feedback-container > feedbackinline{
+    padding: 5px;
+    padding-left: 20px;
+    display: inline-block;
+    margin-bottom: 5px;
+}
+.incorrect-selection > .feedback-container > feedbackinline {
+    background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
+}
+.correct-response > .feedback-container > feedbackinline{
+    background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
+}
+
+simplechoice{
+    width: 100%;
+}
+
+.incorrect-selection .choice-content {
+    border:2px solid #f8a31a;
+    display:block;
+    border-radius: 6px;
+    margin-bottom:5px;
+}
+.correct-response .choice-content {
+    border:2px solid #92D400;
+    display:block;
+    border-radius: 6px;
+    margin-bottom:5px;
+}
+
+
+
 /**
 *  TODO - temporary fix - evan
 */
