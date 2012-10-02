@@ -31,7 +31,8 @@ object FeedbackProcessor extends XmlValidator {
       override def transform(n: Node): NodeSeq =
         n match {
           case e: Elem if (FEEDBACK_NODE_LABELS.contains(e.label)) =>
-              <a/>.copy(attributes = e.attributes).copy(label = e.label)
+            e
+              <a/>.copy(attributes = e.attributes.filter(_.key != identifier)).copy(label = e.label)
           case n => n
         }
     })
