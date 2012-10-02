@@ -40,24 +40,24 @@ object SessionData{
         })
       })
 
-      def filterFeedbacks(feedbacks:Seq[FeedbackInline]):Seq[FeedbackInline] = {
+      def filterFeedbacks(feedbacks:Seq[FeedbackInline],displayCorrectResponse:Boolean = false):Seq[FeedbackInline] = {
         var feedbackGroups:HashMap[String,Seq[FeedbackInline]] = HashMap()
         feedbacks.foreach(fi => if (feedbackGroups.get(fi.responseIdentifier).isDefined){
           feedbackGroups += (fi.responseIdentifier -> (feedbackGroups.get(fi.responseIdentifier).get :+ fi))
         }else{
           feedbackGroups += (fi.responseIdentifier -> Seq(fi))
         })
-        feedbackGroups.map(kvpair => filterFeedbackGroup(kvpair._2)).flatten.toSeq
+        feedbackGroups.map(kvpair => filterFeedbackGroup(kvpair._2,displayCorrectResponse)).flatten.toSeq
       }
-      def filterFeedbackGroup(feedbackGroup:Seq[FeedbackInline]):Seq[FeedbackInline] = {
+      def filterFeedbackGroup(feedbackGroup:Seq[FeedbackInline], displayCorrectResponse:Boolean = true):Seq[FeedbackInline] = {
         //add feedbackInline to feedbackContents if it was a response or it is the correct answer denoted by responseDeclaration
         val feedbackContents = feedbackGroup.filter(fi => sd.responses.find(response =>
           if (response.value.contains(ItemResponse.Delimiter)){
             response.value.split(ItemResponse.Delimiter).find(_ == fi.identifier).isDefined
           }else response.value == fi.identifier
-        ).isDefined || sd.qtiItem.responseDeclarations
+        ).isDefined || (displayCorrectResponse && sd.qtiItem.responseDeclarations
           .find(_.identifier == fi.responseIdentifier)
-          .map(_.isCorrect(fi.identifier)).getOrElse(false))
+          .map(_.isCorrect(fi.identifier)).getOrElse(false)))
         if(feedbackContents.isEmpty){
           feedbackGroup.find(fi => fi.incorrectResponse) match {
             case Some(fi) => Seq(fi)
@@ -73,13 +73,13 @@ object SessionData{
       var feedbackContents:Seq[(String,JsValue)] = Seq()
       sd.qtiItem.itemBody.interactions.foreach(interaction => {
         interaction match {
-          case ci:ChoiceInteraction => filterFeedbackGroup(ci.choices.map(_.feedbackInline).flatten)
+          case ci:ChoiceInteraction => filterFeedbackGroup(ci.choices.map(_.feedbackInline).flatten,true)
             .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
-          case oi:OrderInteraction => filterFeedbackGroup(oi.choices.map(_.feedbackInline).flatten)
+          case oi:OrderInteraction => filterFeedbackGroup(oi.choices.map(_.feedbackInline).flatten,true)
             .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
         }
       })
-      filterFeedbacks(sd.qtiItem.itemBody.feedbackBlocks).foreach(fi =>
+      filterFeedbacks(sd.qtiItem.itemBody.feedbackBlocks,false).foreach(fi =>
         feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi)))
       )
       JsObject(Seq(
