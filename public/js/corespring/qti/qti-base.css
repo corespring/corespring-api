@@ -75,7 +75,7 @@ article, aside, audio, canvas, command, datalist, details, embed, figcaption, fi
 /*  SETUP */
 /*-------------------------------------------------------------------------------------------*/
 
-body {
+body, html {
     font-family:"Ubuntu", Arial, Helvetica, sans-serif;
     color:#444;
     background-color: #fff;
