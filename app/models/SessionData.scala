@@ -49,11 +49,18 @@ object SessionData{
         })
         feedbackGroups.map(kvpair => filterFeedbackGroup(kvpair._2)).flatten.toSeq
       }
-      def filterFeedbackGroup(feedbackGroup:Seq[FeedbackInline]):Option[FeedbackInline] = {
-        feedbackGroup.find(fi => sd.responses.find(_.value == fi.identifier).isDefined) match {
-          case Some(fi) => Some(fi)
-          case None => feedbackGroup.find(fi => fi.incorrectResponse)
-        }
+      def filterFeedbackGroup(feedbackGroup:Seq[FeedbackInline]):Seq[FeedbackInline] = {
+        val feedbackContents = feedbackGroup.filter(fi => sd.responses.find(response =>
+          if (response.value.contains(ItemResponse.Delimiter)){
+            response.value.split(ItemResponse.Delimiter).find(_ == fi.identifier).isDefined
+          }else response.value == fi.identifier
+        ).isDefined)
+        if(feedbackContents.isEmpty){
+          feedbackGroup.find(fi => fi.incorrectResponse) match {
+            case Some(fi) => Seq(fi)
+            case None => Seq()
+          }
+        }else feedbackContents
       }
 
       def getFeedbackContent(fi:FeedbackInline) = if(fi.defaultFeedback)
@@ -63,9 +70,9 @@ object SessionData{
       var feedbackContents:Seq[(String,JsValue)] = Seq()
       sd.qtiItem.itemBody.interactions.foreach(interaction => {
         interaction match {
-          case ci:ChoiceInteraction => filterFeedbackGroup(ci.choices.filter(_.feedbackInline.isDefined).map(_.feedbackInline.get))
+          case ci:ChoiceInteraction => filterFeedbackGroup(ci.choices.map(_.feedbackInline).flatten)
             .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
-          case oi:OrderInteraction => filterFeedbackGroup(oi.choices.filter(_.feedbackInline.isDefined).map(_.feedbackInline.get))
+          case oi:OrderInteraction => filterFeedbackGroup(oi.choices.map(_.feedbackInline).flatten)
             .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
         }
       })
