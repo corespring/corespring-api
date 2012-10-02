@@ -8,6 +8,7 @@ import play.api.libs.json.JsArray
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import collection.immutable.HashMap
+import controllers.Log
 
 
 /**
@@ -47,15 +48,17 @@ object SessionData{
         }else{
           feedbackGroups += (fi.responseIdentifier -> Seq(fi))
         })
-        feedbackGroups.map(kvpair => filterFeedbackGroup(kvpair._2,displayCorrectResponse)).flatten.toSeq
+        feedbackGroups.map(kvpair => filterFeedbackGroup(kvpair._1, kvpair._2,displayCorrectResponse)).flatten.toSeq
       }
-      def filterFeedbackGroup(feedbackGroup:Seq[FeedbackInline], displayCorrectResponse:Boolean = true):Seq[FeedbackInline] = {
+      def filterFeedbackGroup(responseIdentifier:String, feedbackGroup:Seq[FeedbackInline], displayCorrectResponse:Boolean = true):Seq[FeedbackInline] = {
         //add feedbackInline to feedbackContents if it was a response or it is the correct answer denoted by responseDeclaration
-        val feedbackContents = feedbackGroup.filter(fi => sd.responses.find(response =>
+        val responseGroup = sd.responses.filter(ir => ir.id == responseIdentifier)
+        val feedbackContents = feedbackGroup.filter(fi => responseGroup.find(response => {
+         // Log.i("comparing response: "+response.toString+"\n\twith feedbackInline: "+fi.toString)
           if (response.value.contains(ItemResponse.Delimiter)){
             response.value.split(ItemResponse.Delimiter).find(_ == fi.identifier).isDefined
           }else response.value == fi.identifier
-        ).isDefined || (displayCorrectResponse && sd.qtiItem.responseDeclarations
+        }).isDefined || (displayCorrectResponse && sd.qtiItem.responseDeclarations
           .find(_.identifier == fi.responseIdentifier)
           .map(_.isCorrect(fi.identifier)).getOrElse(false)))
         if(feedbackContents.isEmpty){
@@ -73,9 +76,9 @@ object SessionData{
       var feedbackContents:Seq[(String,JsValue)] = Seq()
       sd.qtiItem.itemBody.interactions.foreach(interaction => {
         interaction match {
-          case ci:ChoiceInteraction => filterFeedbackGroup(ci.choices.map(_.feedbackInline).flatten,true)
+          case ci:ChoiceInteraction => filterFeedbackGroup(ci.responseIdentifier, ci.choices.map(_.feedbackInline).flatten,true)
             .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
-          case oi:OrderInteraction => filterFeedbackGroup(oi.choices.map(_.feedbackInline).flatten,true)
+          case oi:OrderInteraction => filterFeedbackGroup(oi.responseIdentifier, oi.choices.map(_.feedbackInline).flatten,true)
             .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
         }
       })
