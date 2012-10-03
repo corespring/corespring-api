@@ -60,5 +60,5 @@ trait ItemResources {
     }
   }
 
-  private def addDefaultCss(html : String) : String = """<head>""".r.replaceAllIn(html, "<head>\n" + ItemPlayer.DEFAULT_CSS + "\n" )
+  private def addDefaultCss(html : String) : String = """<head>""".r.replaceAllIn(html, "<head>\n" + ItemPlayer.BYTE_BUREAU + ItemPlayer.DEFAULT_CSS + "\n" )
 }
