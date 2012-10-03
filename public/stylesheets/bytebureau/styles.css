@@ -367,7 +367,7 @@ blockquote p span input.ng-pristine {
 .feedback-block-incorrect {
     background: url("/assets/images/wrong-icon.png") no-repeat scroll 0px 50% transparent;
     border-radius: 6px 6px 6px 6px;
-    border: 1px solid #F8A31A;
+    border: 2px solid #F8A31A;
     margin: 15px;
     outline: 0px none;
     padding: 10px 10px 10px 30px;
