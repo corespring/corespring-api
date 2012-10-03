@@ -18,7 +18,7 @@ QtiAppController.$inject = ['$scope', '$timeout'];
 qtiDirectives.directive('assessmentitem', function (AssessmentSessionService) {
     return {
         restrict:'E',
-        controller:function ($scope, $element, $attrs) {
+        controller:function ($scope, $element, $attrs, $timeout) {
 
             $scope.printMode = ( $attrs['printMode'] == "true" || false );
             // get some attribute parameters
@@ -70,17 +70,27 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService) {
 
             // this is the function that submits the user responses and gets the outcomes
             this.submitResponses = function () {
+
+                $scope.$broadcast( 'submitResponses');
+
+
                 $scope.itemSession.responses = $scope.responses;
-                $scope.itemSession.finish = new Date().getTime();
-                AssessmentSessionService.save(apiCallParams, $scope.itemSession, function (data) {
+                //$scope.itemSession.finish = new Date().getTime();
 
-                    $scope.itemSession = data;
+               setTimeout( function(){
 
-                    if( !$scope.tryAgainEnabled ){
-                        $scope.status = 'SUBMITTED';
-                        $scope.formDisabled = true;
-                    }
-                });
+                   AssessmentSessionService.save(apiCallParams, $scope.itemSession, function (data) {
+
+                       $scope.itemSession = data;
+
+                       if( !$scope.tryAgainEnabled ){
+                           $scope.status = 'SUBMITTED';
+                           $scope.formDisabled = true;
+                       }
+                   });
+
+               }, 3000);
+
             };
 
             $scope.isFeedbackEnabled = function () {

@@ -136,6 +136,26 @@ qtiServices
         };
 
 
+        /**
+         * Get the value from the response object
+         * @param id
+         * @param responses
+         * @param defaultValue
+         * @return {*}
+         */
+        QtiUtils.getResponseValue = function (id, responses, defaultValue ) {
+            defaultValue = (defaultValue || "");
+
+            try {
+                var response = QtiUtils.getResponseById(id, responses);
+                if (response)  return response.value;
+            } catch (e) {
+                // just means it isn't set, leave it as ""
+            }
+            return defaultValue;
+        };
+
+
         return QtiUtils;
     }
 );

@@ -45,15 +45,15 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
 
 
             // linking function
-            return function (scope, element, attrs, AssessmentItemCtrl) {
+            return function ($scope, element, attrs, AssessmentItemCtrl) {
 
 
                 var responseIdentifier = attrs["responseidentifier"];
                 // set model to choices extracted from html
-                scope.orderedList = [];
-                scope.result = [];
-                scope.prompt = prompt;
-                scope.items = choices;
+                $scope.orderedList = [];
+                $scope.result = [];
+                $scope.prompt = prompt;
+                $scope.items = choices;
 
 
                 var updateAssessmentItem = function (orderedList) {
@@ -65,45 +65,40 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
                 };
 
                 // watch the response and set it to the responses list
-                scope.$watch('orderedList', function (newValue, oldValue) {
+                $scope.$watch('orderedList', function (newValue, oldValue) {
                     updateAssessmentItem(newValue);
                 });
 
+                var setAllIncorrect = function(){
+                    for (var y = 0; y < $scope.items.length; y++) {
+                        $scope.items[y].submittedClass = "order-incorrect";
+                    }
+                };
 
-                // handle updating this view after submission
-                scope.$watch('status', function (newValue, oldValue) {
-                    if (newValue == 'SUBMITTED') {
-                        // TODO disable further interaction with the widget now that it is submitted
+                var applyCss = function(correctResponse, ourResponse) {
 
-                        // break if feedback is not enabled
-                        if (scope.isFeedbackEnabled() == false) return;
+                    setAllIncorrect();
 
-                        // initialize the item css feedback to incorrect
-                        for (var y = 0; y < scope.items.length; y++) {
-                            scope.items[y].submittedClass = "order-incorrect";
-                        }
-                        // get the correct response
-                        var correctResponse = scope.itemSession.sessionData.correctResponses[responseIdentifier];
-                        var response = QtiUtils.getResponseById(responseIdentifier, scope.itemSession.responses);
-                        //.itemSession.responses[responseIdentifier];
-                        // for each item, determine if item is in right or wrong place
-                        for (var i = 0; i < correctResponse.length; i++) {
-                            if (correctResponse[i] == response.value[i]) {
-                                // this response is in the right place
-                                // find the item with the current identifier and set css to correct
-                                for (var x = 0; x < scope.items.length; x++) {
-                                    if (scope.items[x].identifier == response.value[i]) {
-                                        scope.items[x].submittedClass = "order-correct";
-                                    }
+                    for (var i = 0; i < correctResponse.length; i++) {
+                        if (correctResponse[i] == ourResponse[i]) {
+                            for (var x = 0; x < $scope.items.length; x++) {
+                                if ($scope.items[x].identifier == ourResponse[i]) {
+                                    $scope.items[x].submittedClass = "order-correct";
                                 }
-
                             }
-
                         }
                     }
+                };
+
+                $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
+                    if(!responses) return;
+                    if(!$scope.isFeedbackEnabled()) return;
+                    var correctResponse = responses[responseIdentifier];
+                    var ourResponse = QtiUtils.getResponseValue(responseIdentifier, $scope.itemSession.responses, [])
+                    applyCss(correctResponse, ourResponse)
                 });
 
-            };  // end linking function
+            };
         }
 
     }

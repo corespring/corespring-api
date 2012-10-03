@@ -72,11 +72,11 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
                       updatedbo.result(),
                       false,false,collection.writeConcern)
       ItemSession.findOneById(session.id) match {
-        case Some(session) => if(session.finish.isDefined){
+        case Some(session) =>  {
           //TODO - we need to flush the cache if session is finished
           session.sessionData = getSessionData(xmlWithCsFeedbackIds,session.responses)
           Right(session)
-        } else Right(session)
+        }
         case None => Left(InternalError("could not find session that was just updated",LogType.printFatal))
       }
     }catch{

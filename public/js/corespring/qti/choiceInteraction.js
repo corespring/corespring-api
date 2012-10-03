@@ -24,15 +24,15 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
              * @param html
              * @return {String}
              */
-            var createFeedbackContainerDiv = function(html){
+            var createFeedbackContainerDiv = function (html) {
                 var feedbackNodes = html.match(feedbackInlineRegex);
 
-                if(!feedbackNodes){
+                if (!feedbackNodes) {
                     return "";
                 }
 
                 var feedbackContainer = "<div class='feedback-container'>";
-                for( var i = 0 ; i < feedbackNodes.length ; i++ ){
+                for (var i = 0; i < feedbackNodes.length; i++) {
                     feedbackContainer += feedbackNodes[i];
                 }
                 feedbackContainer += "</div>";
@@ -54,11 +54,11 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
             var responseIdentifier = choiceInteractionElem.attr('responseidentifier');
 
             var divs = ['<div class="simple-choice-inner">',
-                        '  <div class="choiceInput">',
-                        '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div>',
-                        '  <div class="choice-content"> ' + nodeWithFeedbackRemoved + '</div>',
-                        '</div>',
-                        createFeedbackContainerDiv(tElement.html())];
+                '  <div class="choiceInput">',
+                '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div>',
+                '  <div class="choice-content"> ' + nodeWithFeedbackRemoved + '</div>',
+                '</div>',
+                createFeedbackContainerDiv(tElement.html())];
 
             var template = divs.join("\n");
 
@@ -83,46 +83,51 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                     choiceInteractionController.scope.setChosenItem(localScope.value);
                 };
 
-
-                var getResponseValue = function(id, responses){
-
-                    try {
-                        var response = QtiUtils.getResponseById(id, responses);
-                        if (response) {
-                            return response.value;
-                        }
-
-                    } catch (e) {
-                        // just means it isn't set, leave it as ""
-                    }
-                    return "";
+                var isSelected = function () {
+                    var responseId = QtiUtils.getResponseValue(responseIdentifier, localScope.itemSession.responses, "");
+                    return QtiUtils.compare(localScope.value, responseId);
                 };
+
+                var isOurResponseCorrect = function (correctResponse) {
+                    return QtiUtils.compare(localScope.value, correctResponse)
+                };
+
+                var applyCss = function (correct) {
+                    var className = correct ? 'correct-selection' : 'incorrect-selection';
+                    element.toggleClass(className);
+                };
+
+
+                var tidyUp = function() {
+                    element
+                        .removeClass('correct-selection')
+                        .removeClass('incorrect-selection')
+                        .removeClass('correct-response');
+                };
+
+
+                localScope.$on( 'submitResponses', function( event ){
+                    tidyUp();
+                });
+
 
                 // watch the status of the item, update the css if this is the chosen response
                 // and if it is correct or not
                 localScope.$watch('itemSession.sessionData.correctResponses', function (responses) {
 
-                        if(!responses ){
-                            return;
-                        }
+                    if (!responses) return;
+                    if (!localScope.isFeedbackEnabled()) return;
 
-                        var correctResponse = responses[responseIdentifier];
-                        var responseValue = getResponseValue(responseIdentifier, localScope.itemSession.responses);
-                        var isSelected = QtiUtils.compare(localScope.value, responseValue);
+                    var correctResponse = responses[responseIdentifier];
+                    var isCorrect = isOurResponseCorrect(correctResponse);
 
-                        if (localScope.isFeedbackEnabled()) {
+                    if (isCorrect) {
+                        element.toggleClass('correct-response');
+                    }
 
-                            if (QtiUtils.compare(localScope.value, correctResponse)) {
-                                element.toggleClass('correct-response');
-                            }
+                    if (!isSelected()) return;
 
-                            if (isSelected && ( QtiUtils.compare(localScope.value, correctResponse) )) {
-                                element.toggleClass('correct-selection');
-                            } else if (isSelected) {
-                                element.toggleClass('incorrect-selection');
-                            }
-                        }
-
+                    applyCss(isCorrect);
                 });
 
             };

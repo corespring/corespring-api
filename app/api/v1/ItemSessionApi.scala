@@ -148,7 +148,11 @@ object ItemSessionApi extends BaseApi {
             cachedXml match {
               case Some(xmlWithCsFeedbackIds) => {
                 ItemSession.updateItemSession(session, xmlWithCsFeedbackIds) match {
-                  case Right(newSession) => Ok(Json.toJson(newSession))
+                  case Right(newSession) => {
+                    val json = Json.toJson(newSession)
+                    println(json)
+                    Ok(json)
+                  }
                   case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateItemSession(error.clientOutput)))
                 }
               }
