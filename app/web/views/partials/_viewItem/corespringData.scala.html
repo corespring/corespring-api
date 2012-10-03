@@ -9,7 +9,7 @@
             <td width="120px" class="key-label">Grade:
             <span class="key-value">
                 <span ng-show="!itemData.gradeLevel" style="color: #888; font-style: italic;">Not Assigned</span>
-                {{itemData.gradeLevel[itemData.gradeLevel.length - 1]}}
+                {{itemData.gradeLevel.join(', ')}}
              </span>
             </td>
             <td width="300px" class="key-label">CCSS:
