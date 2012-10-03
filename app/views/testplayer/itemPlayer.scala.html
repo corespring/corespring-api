@@ -29,7 +29,13 @@
     -->
 </head>
 <body ng-controller="QtiAppController">
-    <div class="assessmentPage">
+        <div class="assessment-options">
+            <ul>
+                <li><input type="checkbox" ng-model="tryAgainEnabled"></input> Allow try again</li>
+                <li><input type="checkbox" ng-model="feedbackEnabled"></input> Show feedback</li>
+            </ul>
+        </div>
+    <div class="assessment-page">
         @Html(itemBody)
     </div>
 

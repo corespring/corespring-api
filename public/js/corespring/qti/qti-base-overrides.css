@@ -1,8 +1,26 @@
-.assessmentPage {
+.assessment-page {
     width:600px;
     margin:20px auto;
     padding: 16px 13px;
     border: 2px #EAEAEA dashed;
+}
+.assessment-options {
+    width: 600px;
+    margin: 20px auto;
+    height: 20px;
+}
+
+.assessment-options > ul {
+    margin: 0px;
+    padding: 0px;
+}
+
+.assessment-options > ul > li {
+    padding: 0px;
+    margin: 0px;
+    padding-left: 10px;
+    float: right;
+    list-style: none;
 }
 
 prompt, .choice-prompt {

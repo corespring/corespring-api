@@ -83,40 +83,46 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                     choiceInteractionController.scope.setChosenItem(localScope.value);
                 };
 
+
+                var getResponseValue = function(id, responses){
+
+                    try {
+                        var response = QtiUtils.getResponseById(id, responses);
+                        if (response) {
+                            return response.value;
+                        }
+
+                    } catch (e) {
+                        // just means it isn't set, leave it as ""
+                    }
+                    return "";
+                };
+
                 // watch the status of the item, update the css if this is the chosen response
                 // and if it is correct or not
-                localScope.$watch('status', function (newValue, oldValue) {
-                    if (newValue == 'SUBMITTED') {
-                        // status has changed to submitted
-                        var correctResponse = localScope.itemSession.sessionData.correctResponses[responseIdentifier];
-                        var responseValue = "";
-                        try {
-                            var response =
-                                QtiUtils.getResponseById(responseIdentifier, localScope.itemSession.responses);// localScope.itemSession.responses[responseIdentifier].value;
-                            if (response) {
-                                responseValue = response.value;
-                            }
+                localScope.$watch('itemSession.sessionData.correctResponses', function (responses) {
 
-                        } catch (e) {
-                            // just means it isn't set, leave it as ""
+                        if(!responses ){
+                            return;
                         }
+
+                        var correctResponse = responses[responseIdentifier];
+                        var responseValue = getResponseValue(responseIdentifier, localScope.itemSession.responses);
                         var isSelected = QtiUtils.compare(localScope.value, responseValue);
-                        if (localScope.isFeedbackEnabled() != false) {
-                            // give the current choice the correct-response class if it is the correct response
+
+                        if (localScope.isFeedbackEnabled()) {
+
                             if (QtiUtils.compare(localScope.value, correctResponse)) {
                                 element.toggleClass('correct-response');
                             }
 
                             if (isSelected && ( QtiUtils.compare(localScope.value, correctResponse) )) {
-                                // user selected the right response
                                 element.toggleClass('correct-selection');
                             } else if (isSelected) {
-                                // user selected the wrong response
                                 element.toggleClass('incorrect-selection');
                             }
                         }
 
-                    }
                 });
 
             };
