@@ -3,10 +3,10 @@
 <assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
-                title="" adaptive="false" timeDependentts u="false">
+                title="" adaptive="false" timeDependents="false">
     <responseDeclaration identifier="RESPONSE" cardinality="single" baseType="identifier">
         <correctResponse>
-            <value>ChoiceC</value>
+            <value>ChoiceA</value>
         </correctResponse>
     </responseDeclaration>
     <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="integer">
@@ -16,11 +16,15 @@
     </outcomeDeclaration>
     <itemBody>
 
+
         <choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="1">
             <prompt>Bill spent $60 on fertilizer and weed killer for his lawn. Each pound of fertilizer cost 75 cents, and each ounce of weed killer cost $2.50. <p/>Which of the following equations represents the relationship between the number of pounds of fertilizer Bill bought, <i>x</i>, and the number of ounces of weed killer he bought, <i>y</i> ? </prompt>
-            <simpleChoice identifier="ChoiceC">
-            <feedbackInline>X</feedbackInline>
-                </simpleChoice>
+            <simpleChoice identifier="ChoiceA"> AAAA
+                <feedbackInline
+                        csFeedbackId='ChoiceA'
+                        identifier='ChoiceA'
+                        showHide='show'>This is Correct!</feedbackInline>
+            </simpleChoice>
         </choiceInteraction>
     </itemBody>
 
