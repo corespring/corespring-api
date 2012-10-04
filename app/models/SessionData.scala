@@ -51,16 +51,16 @@ object SessionData{
         feedbackGroups.map(kvpair => filterFeedbackGroup(kvpair._1, kvpair._2,displayCorrectResponse)).flatten.toSeq
       }
       def filterFeedbackGroup(responseIdentifier:String, feedbackGroup:Seq[FeedbackInline], displayCorrectResponse:Boolean = true):Seq[FeedbackInline] = {
-        //add feedbackInline to feedbackContents if it was a response or it is the correct answer denoted by responseDeclaration
-        val responseGroup = sd.responses.filter(ir => ir.id == responseIdentifier)
-        val feedbackContents = feedbackGroup.filter(fi => responseGroup.find(response => {
-         // Log.i("comparing response: "+response.toString+"\n\twith feedbackInline: "+fi.toString)
-          if (response.value.contains(ItemResponse.Delimiter)){
-            response.value.split(ItemResponse.Delimiter).find(_ == fi.identifier).isDefined
-          }else response.value == fi.identifier
-        }).isDefined || (displayCorrectResponse && sd.qtiItem.responseDeclarations
-          .find(_.identifier == fi.responseIdentifier)
-          .map(_.isCorrect(fi.identifier)).getOrElse(false)))
+        val responseGroup = sd.responses.filter(ir => ir.id == responseIdentifier) //find the responses corresponding to this feedbackGroup
+        //find if a response element that has the same value as the identifier in the feedbackInline element exists
+        def responseAndFeedbackMatch(fi:FeedbackInline) = responseGroup.find(response => {
+            if (response.value.contains(ItemResponse.Delimiter)){
+              response.value.split(ItemResponse.Delimiter).find(_ == fi.identifier).isDefined
+            }else response.value == fi.identifier
+          }).isDefined
+        //find if the given feedback element represents the correct response
+        def isCorrectResponseFeedback(fi:FeedbackInline) = sd.qtiItem.responseDeclarations.find(_.identifier == fi.responseIdentifier).map(_.isCorrect(fi.identifier)).getOrElse(false)
+        val feedbackContents = feedbackGroup.filter(fi => responseAndFeedbackMatch(fi) || (displayCorrectResponse && isCorrectResponseFeedback(fi)))
         if(feedbackContents.isEmpty){
           feedbackGroup.find(fi => fi.incorrectResponse) match {
             case Some(fi) => Seq(fi)

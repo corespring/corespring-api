@@ -1,10 +1,10 @@
 package tests.api.v1
 
-import models.{ItemResponse, ItemSession, Item}
+import models.{SessionData, ItemResponse, ItemSession, Item}
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import org.specs2.execute.Pending
-import play.api.libs.json.{JsUndefined, JsValue, Json}
+import play.api.libs.json._
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsJson}
 import play.api.test.{FakeHeaders, FakeRequest}
 import org.specs2.mutable._
@@ -13,10 +13,14 @@ import scala.Some
 import play.api.test.FakeHeaders
 import scala.Some
 import tests.PlaySingleton
-import api.ApiError
+import controllers.testplayer.ItemSessionXmlStore
+import models.bleezmo
 import play.api.test.FakeHeaders
 import scala.Some
 import play.api.mvc.AnyContentAsJson
+import play.api.libs.json.JsObject
+import api.ApiError
+import models.bleezmo.FeedbackInline
 
 /**
  * Tests the ItemSession model
@@ -33,6 +37,22 @@ class ItemSessionApiTest extends Specification {
     "itemId" -> "50083ba9e4b071cb5ef79101",
     "itemSessionId" -> "502d0f823004deb7f4f53be7"
   )
+
+  def createNewSession () : ItemSession = {
+
+    val call = api.v1.routes.ItemSessionApi.createItemSession(new ObjectId(testSessionIds("itemId")))
+
+    val newSessionRequest = FakeRequest(
+      call.method,
+      call.url,
+      FakeHeaders(Map("Authorization" -> Seq("Bearer "+token))),
+      AnyContentAsEmpty
+    )
+
+    val newSessionResult = routeAndCall(newSessionRequest).get
+    val newSessionJson:JsValue = Json.parse(contentAsString(newSessionResult))
+    Json.fromJson[ItemSession](newSessionJson)
+  }
 
   // create test session bound to random object id
   // in practice ItemSessions need to be bound to an item
@@ -61,24 +81,6 @@ class ItemSessionApiTest extends Specification {
    * TODO - implement these tests...
    */
   "item session data" should {
-
-
-    def createNewSession () : ItemSession = {
-
-      val call = api.v1.routes.ItemSessionApi.createItemSession(new ObjectId(testSessionIds("itemId")))
-
-      val newSessionRequest = FakeRequest(
-        call.method,
-        call.url,
-        FakeHeaders(Map("Authorization" -> Seq("Bearer "+token))),
-        AnyContentAsEmpty
-      )
-
-      val newSessionResult = routeAndCall(newSessionRequest).get
-      val newSessionJson:JsValue = Json.parse(contentAsString(newSessionResult))
-      Json.fromJson[ItemSession](newSessionJson)
-    }
-
 
     "return an error if we try and update an item that is already finished" in {
 
@@ -115,61 +117,97 @@ class ItemSessionApiTest extends Specification {
         case _ => failure("Second update didn't work")
       }
     }
+  }
 
-
-
-    "be returned in sessionData property when an item is updated with a response value" in {
-      val newSessionRequest = FakeRequest(
-        POST,
-        "/api/v1/items/"+testSessionIds("itemId")+"/sessions",
-        FakeHeaders(Map("Authorization" -> Seq("Bearer "+token))),
-        AnyContentAsEmpty
-      )
-      val newSessionResult = routeAndCall(newSessionRequest).get
-      val newSessionJson:JsValue = Json.parse(contentAsString(newSessionResult))
-      val newSession:ItemSession = Json.fromJson[ItemSession](newSessionJson)
-      val url = "/api/v1/items/" + testSessionIds("itemId") + "/sessions/" + newSession.id.toString
-      val testSession = ItemSession(new ObjectId(testSessionIds("itemId")))
-      // add some item responses
-      testSession.id = new ObjectId(testSessionIds("itemSessionId"))
-      testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon", "{$score:1}"))
-      testSession.responses = testSession.responses ++ Seq(ItemResponse("irishPresident", "guinness", "{$score:0}"))
-      testSession.responses = testSession.responses ++ Seq(ItemResponse("winterDiscontent", "York", "{$score:1}"))
-      testSession.finish = Some(new DateTime())
-      val getRequest = FakeRequest(
-        PUT,
-        url,
-        FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
-        AnyContentAsJson(Json.toJson(testSession))
-      )
-
-      val optResult = routeAndCall(getRequest)
-      if (optResult.isDefined){
-        val json: JsValue = Json.parse(contentAsString(optResult.get))
-
+  "creating and then updating item session" should {
+    val newSession = createNewSession()
+    val url = "/api/v1/items/" + testSessionIds("itemId") + "/sessions/" + newSession.id.toString
+    val testSession = ItemSession(new ObjectId(testSessionIds("itemId")))
+    // add some item responses
+    testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon", "{$score:1}"))
+    testSession.responses = testSession.responses ++ Seq(ItemResponse("irishPresident", "guinness", "{$score:0}"))
+    testSession.responses = testSession.responses ++ Seq(ItemResponse("winterDiscontent", "York", "{$score:1}"))
+    testSession.finish = Some(new DateTime())
+    val getRequest = FakeRequest(
+      PUT,
+      url,
+      FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
+      AnyContentAsJson(Json.toJson(testSession))
+    )
+    val result = routeAndCall(getRequest).get
+    ItemSession.remove(newSession)
+    val optQtiItem = ItemSessionXmlStore.getCachedXml(testSessionIds("itemId"),newSession.id.toString).map(models.bleezmo.QtiItem(_))
+    "create a cached qti xml for the specified item" in {
+      optQtiItem must beSome[models.bleezmo.QtiItem]
+    }
+    "return an item session which contains a sessionData property" in {
+      val json: JsValue = Json.parse(contentAsString(result))
+      (json \ "sessionData") match {
+        case JsObject(sessionData) => success
+        case _ => failure
       }
-      ItemSession.remove(newSession)
     }
 
-    "contain feedback contents for all feedback elements in the xml" in {
-      /**
-       * See mock in qtiServices.js
-       * the response should contain an object feedbackContents with properties from csFeedbackIds that hold the body of feedback content
-       * e.g. feedbackContents.50083ba9e4b071cb5ef79101-1 = "Correct, Felipe calderon is president of Mexico"
-       */
-      pending
+    "return an item session which contains feedback contents within sessionData which contains all feedback elements in the xml which correspond to responses from client" in {
+      val json: JsValue = Json.parse(contentAsString(result))
+      (json \ "sessionData") match {
+        case JsObject(sessionData) => sessionData.find(field => field._1 == "feedbackContents") match {
+          case Some((_,jsfeedbackContents)) => jsfeedbackContents match {
+            case JsObject(feedbackContents) => optQtiItem match {
+              case Some(qtiItem) =>
+                val feedbackBlocks = qtiItem.itemBody.feedbackBlocks
+                val feedbackInlines = qtiItem.itemBody.interactions.map(i => i match {
+                  case bleezmo.ChoiceInteraction(_,choices) => choices.map(choice => choice.feedbackInline)
+                  case bleezmo.OrderInteraction(_,choices) => choices.map(choice => choice.feedbackInline)
+                  case _ => throw new RuntimeException("unknown interaction")
+                }).flatten.flatten ++ feedbackBlocks
+                def feedbackInlineContent(fi:FeedbackInline) = if (fi.defaultFeedback) fi.defaultContent(qtiItem) else fi.content
+                if (feedbackContents.foldRight[Boolean](true)((field,acc) => {
+                  acc && (feedbackInlines.find(fi => field._1 == fi.csFeedbackId) match {
+                    case Some(fi) =>
+                      field._2 match {
+                      case JsArray(values) => values.contains(JsString(feedbackInlineContent(fi)))
+                      case JsString(value) => value == feedbackInlineContent(fi)
+                      case _ => false
+                    }
+                    case None => false
+                  })
+                })) success
+                else failure
+              case None => failure
+            }
+            case _ => failure
+          }
+          case _ => failure
+        }
+        case _ => failure
+      }
     }
 
-    "contain correctResponse object with all correctresponses available" in {
-      /**
-       * See mock in qtiServices.js
-       * sessiondata.correctResponses should contain properties with the correct responses as defined in the QTI
-       * e.g.  correctResponses.irishPresident == "higgins", correctResponse.rainbowColors == "['red','blue', 'violet']"
-       * correctResponse.wivesOfHendry == ["aragon", "boleyn" ... etc
-       *
-       * See the test item 50083ba9e4b071cb5ef79101
-       */
-      pending
+    "return an item session which contains correctResponse object within sessionData which contains all correct responses available" in {
+      val json: JsValue = Json.parse(contentAsString(result))
+      (json \ "sessionData") match {
+        case JsObject(sessionData) => sessionData.find(field => field._1 == "correctResponses") match {
+          case Some((_,jscorrectResponses)) => jscorrectResponses match {
+            case JsObject(correctResponses) =>
+              if(correctResponses.foldRight[Boolean](true)((prop, acc) => {
+                acc && (prop._1 match {
+                  case "mexicanPresident" => prop._2.as[String] == "calderon"
+                  case "irishPresident" => prop._2.as[String] == "higgins"
+                  case "rainbowColors" => prop._2.as[Seq[String]].sameElements(Seq("blue", "violet", "red"))
+                  case "winterDiscontent" => prop._2.as[Seq[String]].sameElements(Seq("York", "york"))
+                  case "wivesOfHenry" => prop._2.as[Seq[String]].equals(Seq("aragon", "boleyn", "seymour", "cleves", "howard", "parr"))
+                  case "cutePugs" => prop._2.as[Seq[String]].equals(Seq("pug1", "pug2", "pug3"))
+                  case _ => false
+                })
+              })) success
+              else failure
+            case _ => failure
+          }
+          case _ => failure
+        }
+        case _ => failure
+      }
     }
 
     "only return session data for an item seession if response was already submitted" in {

@@ -39,9 +39,7 @@ object ItemPlayer extends BaseApi with ItemResources{
     Map("error" -> "not found")
   )
 
-
   def xmlCacheKey(itemId:String, sessionId: String) = """qti_itemId[%s]_sessionId[%s]""".format(itemId, sessionId)
-
 
   /**
    * Very simple QTI Item Renderer
@@ -68,7 +66,7 @@ object ItemPlayer extends BaseApi with ItemResources{
           //Stash it the cache for the Feedback rendering
           ItemSessionXmlStore.cacheXml(xmlWithCsFeedbackIds, itemId, session.id.toString)
 
-          val qtiXml = <assessmentItem print-mode={ if(printMode) "true" else "false" } cs:itemId={itemId} cs:itemSessionId={session.id.toString} cs:feedbackEnabled="true">{itemBody}</assessmentItem>
+          val qtiXml = <assessmentItem print-mode={ if(printMode) "true" else "false" } cs:itemId={itemId} cs:itemSessionId={session.id.toString} cs:feedbackEnabled="true" cs:noResponseAllowed="true">{itemBody}</assessmentItem>
 
           val finalXml = removeNamespaces(qtiXml)
 
