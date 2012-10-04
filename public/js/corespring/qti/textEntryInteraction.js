@@ -6,7 +6,7 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
         replace:true,
         scope:true,
         require:'^assessmentitem',
-        template:'<span class="text-entry-interaction"><input type="text" size="{{expectedLength}}" ng-model="textResponse" ng-disabled="formDisabled"></input></span>',
+        template:'<span class="text-entry-interaction" ng-class="{noResponse: noResponse}"><input type="text" size="{{expectedLength}}" ng-model="textResponse" ng-disabled="formDisabled"></input></span>',
         link:function (scope, element, attrs, AssessmentItemController) {
             var responseIdentifier = attrs.responseidentifier;
 
@@ -15,7 +15,13 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
             // called when this choice is clicked
             scope.$watch('textResponse', function (newVal, oldVal) {
                 AssessmentItemController.setResponse(responseIdentifier, scope.textResponse);
+                scope.noResponse = (scope.isEmptyItem(scope.textResponse) && scope.showNoResponseFeedback);
             });
+
+            scope.$watch('showNoResponseFeedback', function(newVal, oldVal) {
+                scope.noResponse = (scope.isEmptyItem(scope.textResponse) && scope.showNoResponseFeedback);
+            });
+
 
             scope.$watch('status', function (newValue) {
 

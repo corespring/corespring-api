@@ -7,7 +7,7 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
 
     var choiceTemplate = [
         '<span ng-bind-html-unsafe="prompt" class="choice-prompt"></span>',
-        '<div sortable="" class="sortable-body">',
+        '<div sortable="" class="sortable-body" ng-class="{noResponse: noResponse}">',
         '<div ng:repeat="item in items" obj="{{item}}"> ',
         '<span class="sortable-item {{item.submittedClass}}" ng-bind-html-unsafe="item.content"></span>',
         ' </div>',
@@ -54,6 +54,7 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
                 scope.result = [];
                 scope.prompt = prompt;
                 scope.items = choices;
+                scope.changed = false;
 
 
                 var updateAssessmentItem = function (orderedList) {
@@ -62,11 +63,21 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
                         flattenedArray[i] = orderedList[i].identifier;
                     }
                     AssessmentItemCtrl.setResponse(responseIdentifier, flattenedArray);
+                    scope.changed = true;
                 };
+
+                scope.$watch('showNoResponseFeedback', function(newVal, oldVal) {
+                    scope.noResponse = (!scope.changed && scope.showNoResponseFeedback);
+                });
 
                 // watch the response and set it to the responses list
                 scope.$watch('orderedList', function (newValue, oldValue) {
-                    updateAssessmentItem(newValue);
+//                    if (oldValue.length == 0 || newValue.length == 0) {
+//                        AssessmentItemCtrl.setResponse(responseIdentifier, []);
+//                    } else {
+                        updateAssessmentItem(newValue);
+//                    }
+                    scope.noResponse = (!scope.changed && scope.showNoResponseFeedback);
                 });
 
 

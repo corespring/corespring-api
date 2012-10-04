@@ -494,7 +494,7 @@ TEXT BOXES
 ------------------------------*/
 textarea {
     width:96%;
-    margin:0 0 30px;
+    margin:0 0 0px;
     border:1px solid #797979;
     -moz-box-shadow:inset 0 0 8px #d1d1d1;
     -webkit-box-shadow:inset 0 0 8px #d1d1d1;
@@ -836,3 +836,15 @@ div.text-box-content {
        padding-top:20px;
    }
 
+
+.noResponse {
+    background-color: #fffe9b;
+    padding: 10px;
+}
+
+.noResponseFeedback
+{
+    margin-top: 15px;
+    padding: 5px;
+    background-color: #fffe9b;
+}
