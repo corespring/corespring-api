@@ -143,7 +143,7 @@ object ItemSessionApi extends BaseApi {
             case Some(jsonSession) => {
 
               if (dbSession.finish.isDefined) {
-                Unauthorized(Json.toJson(ApiError.ItemSessionFinished))
+                BadRequest(Json.toJson(ApiError.ItemSessionFinished))
               } else {
 
                 val newSession = Json.fromJson[ItemSession](jsonSession)

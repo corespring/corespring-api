@@ -13,6 +13,10 @@ import scala.Some
 import play.api.test.FakeHeaders
 import scala.Some
 import tests.PlaySingleton
+import api.ApiError
+import play.api.test.FakeHeaders
+import scala.Some
+import play.api.mvc.AnyContentAsJson
 
 /**
  * Tests the ItemSession model
@@ -57,6 +61,62 @@ class ItemSessionApiTest extends Specification {
    * TODO - implement these tests...
    */
   "item session data" should {
+
+
+    def createNewSession () : ItemSession = {
+
+      val call = api.v1.routes.ItemSessionApi.createItemSession(new ObjectId(testSessionIds("itemId")))
+
+      val newSessionRequest = FakeRequest(
+        call.method,
+        call.url,
+        FakeHeaders(Map("Authorization" -> Seq("Bearer "+token))),
+        AnyContentAsEmpty
+      )
+
+      val newSessionResult = routeAndCall(newSessionRequest).get
+      val newSessionJson:JsValue = Json.parse(contentAsString(newSessionResult))
+      Json.fromJson[ItemSession](newSessionJson)
+    }
+
+
+    "return an error if we try and update an item that is already finished" in {
+
+      val newSession : ItemSession = createNewSession()
+
+      //testSession.id = new ObjectId(testSessionIds("itemSessionId"))
+      testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon", "{$score:1}"))
+      testSession.finish = Some(new DateTime())
+
+      val itemId = testSessionIds("itemId")
+      val update = api.v1.routes.ItemSessionApi.updateItemSession(new ObjectId(itemId), newSession.id)
+
+      val updateRequest = FakeRequest(
+        update.method,
+        update.url,
+        FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
+        AnyContentAsJson(Json.toJson(testSession))
+      )
+
+      //First update is fine
+      routeAndCall(updateRequest) match {
+        case Some(result) => status(result) must equalTo(OK)
+        case _ => failure("First update didn't work")
+      }
+
+      //This will fail because a finish has been set for this ItemSession in the previous request.
+      routeAndCall(updateRequest) match {
+        case Some(result) => {
+          status(result) must equalTo(BAD_REQUEST)
+          val json = Json.parse(contentAsString(result))
+          (json \ "message" ).asOpt[String] must equalTo( Some(ApiError.ItemSessionFinished.message ))
+          (json \ "code" ).asOpt[Int] must equalTo( Some(ApiError.ItemSessionFinished.code))
+        }
+        case _ => failure("Second update didn't work")
+      }
+    }
+
+
 
     "be returned in sessionData property when an item is updated with a response value" in {
       val newSessionRequest = FakeRequest(
