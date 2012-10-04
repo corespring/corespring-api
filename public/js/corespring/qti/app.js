@@ -10,27 +10,46 @@ function QtiAppController($scope, $timeout) {
             MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
         }
     }, 200);
+
+    $scope.reset = function () {
+        $scope.$broadcast('reset');
+    }
 }
 
 QtiAppController.$inject = ['$scope', '$timeout'];
 
 // base directive include for all QTI items
-qtiDirectives.directive('assessmentitem', function (AssessmentSessionService) {
+qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $http) {
     return {
         restrict:'E',
         controller:function ($scope, $element, $attrs, $timeout) {
 
             $scope.printMode = ( $attrs['printMode'] == "true" || false );
-            // get some attribute parameters
-            var itemId = $attrs.csItemid; // cs:itemId
-            var itemSessionId = $attrs.csItemsessionid; // cs:itemId
 
             var apiCallParams = {
-                itemId:itemId,
-                //sessionId: "502d0f823004deb7f4f53be7",
-                sessionId:itemSessionId,
+                itemId: $attrs.csItemid,
+                sessionId: $attrs.csItemsessionid,
                 access_token:"34dj45a769j4e1c0h4wb"
             };
+
+            var createNewItemSession = function(){
+
+                var createUrl = AssessmentSessionService.getCreateUrl(apiCallParams.itemId, apiCallParams.access_token);
+                $http({method:'POST', url:createUrl }).
+                    success(function (data, status, headers, config) {
+                        apiCallParams.sessionId = data.id;
+                    }).
+                    error(function (data, status, headers, config) {
+                        throw "Error creating new ItemSession";
+                    });
+            };
+
+            $scope.$on('reset', function (event) {
+                createNewItemSession();
+                $scope.$broadcast('resetUI');
+                $scope.formDisabled = false;
+            });
+
 
             // get item session - parameters for session behavior will be defined there
             // TODO it is an error if there is no session found
@@ -38,8 +57,6 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService) {
 
             $scope.feedbackEnabled = ($scope.itemSession.feedbackEnabled || true);
             $scope.tryAgainEnabled = ($scope.itemSession.tryAgainEnabled || true);
-
-            $scope.status = 'ACTIVE';
 
             $scope.itemSession.start = new Date().getTime(); // millis since epoch (maybe this should be set in an onload event?)
 
@@ -71,7 +88,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService) {
             // this is the function that submits the user responses and gets the outcomes
             this.submitResponses = function () {
 
-                $scope.$broadcast('submitResponses');
+                $scope.$broadcast('resetUI');
 
 
                 $scope.itemSession.responses = $scope.responses;
@@ -86,11 +103,10 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService) {
                     $scope.itemSession = data;
 
                     if (!$scope.tryAgainEnabled) {
-                        $scope.status = 'SUBMITTED';
                         $scope.formDisabled = true;
                     }
-                }, function onError( error ) {
-                    if( error && error.data) alert(error.data.message);
+                }, function onError(error) {
+                    if (error && error.data) alert(error.data.message);
                 });
 
             };

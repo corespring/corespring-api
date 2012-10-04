@@ -95,7 +95,7 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
                 /**
                  * Reset the ui.
                  */
-                $scope.$on('submitResponses', function (event) {
+                $scope.$on('resetUI', function (event) {
                     applyCssNameToAll("");
                 });
 

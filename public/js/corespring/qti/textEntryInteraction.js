@@ -17,7 +17,7 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
             });
 
 
-            scope.$on('submitResponses', function (event) {
+            scope.$on('resetUI', function (event) {
                 element
                     .removeClass('correct-response')
                     .removeClass('incorrect-response');

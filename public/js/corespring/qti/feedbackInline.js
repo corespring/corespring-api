@@ -13,7 +13,7 @@ var feedbackDirectiveFunction = function (QtiUtils) {
 
             var csFeedbackId = attrs["csfeedbackid"];
 
-            scope.$on('submitResponses', function (event) {
+            scope.$on('resetUI', function (event) {
                 scope.feedback = "";
             });
 

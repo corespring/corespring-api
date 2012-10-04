@@ -106,7 +106,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                 };
 
 
-                localScope.$on( 'submitResponses', function( event ){
+                localScope.$on( 'resetUI', function( event ){
                     tidyUp();
                 });
 
