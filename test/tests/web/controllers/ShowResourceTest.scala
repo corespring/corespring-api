@@ -25,7 +25,7 @@ class ShowResourceTest extends BaseTest{
         case Some(result) => {
           status(result) must equalTo(SEE_OTHER)
           val resultHeaders = headers(result)
-          val expectedUrl = controllers.testplayer.routes.ItemPlayer.renderItem(testItem.id.toString).url
+          val expectedUrl = controllers.testplayer.routes.ItemPlayer.previewItem(testItem.id.toString).url
           resultHeaders.get("Location") must equalTo(Some(tokenize(expectedUrl)))
         }
         case _ => failure("request failed")
