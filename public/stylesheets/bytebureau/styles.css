@@ -836,3 +836,153 @@ div.text-box-content {
        padding-top:20px;
    }
 
+
+.assessmentPage {
+    width:600px;
+    margin:20px auto;
+    padding: 16px 13px;
+    border: 2px #EAEAEA dashed;
+}
+
+prompt, .choice-prompt {
+    font-size: 1.5em;
+    display: block;
+    margin-bottom: 15px;
+}
+.correct-response {
+    display: block;
+    color: green;
+}
+.incorrect-selection {
+    display: block;
+    color: red;
+}
+.feedback-inline {
+    color: grey;
+    padding-left: 10px;
+}
+
+/*Fix for superscript not rendering*/
+
+sub,
+sup {
+    position: relative;
+    font-size: 75%;
+    line-height: 0;
+    vertical-align: baseline;
+}
+
+sub {
+    bottom: -0.25em;
+}
+
+sup{
+    top: -0.5em;
+    padding: 2px;
+}
+
+.text-entry-interaction.correct-response {
+    display: inline;
+}
+
+.text-entry-interaction.incorrect-response {
+    display: inline;
+}
+
+table th, table td {
+    padding:10px 5px;
+    border:1px solid #999;
+    text-align:left;
+    vertical-align:middle;
+    min-width:50px;
+}
+
+
+.text-entry-interaction.incorrect-response > input {
+    border-color: #F8A31A;
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 4px rgba(161, 225, 23, 0.8);
+    outline: 0px none;
+}
+
+.text-entry-interaction.correct-response > input {
+    border-color: #53C516;
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 4px rgba(161, 225, 23, 0.8);
+    outline: 0px none;
+}
+
+.item-body-dotted-line{
+    border-bottom: 1px;
+    border-top: 0px;
+    border-left: 0px;
+    border-right: 0px;
+    border-style: dotted;
+    border-color: #000000;
+    width: 100%;
+    height: 2.5em;
+    margin-bottom: 20px;
+}
+
+
+.feedback-block-correct, .feedback-block-incorrect {
+    padding:0 0 0 30px;
+    min-height:21px;
+    line-height:21px;
+}
+
+
+.incorrect-selection > .feedback-container > feedbackinline,
+.correct-response > .feedback-container > feedbackinline{
+    padding: 5px;
+    padding-left: 20px;
+    display: inline-block;
+    margin-bottom: 5px;
+}
+.incorrect-selection > .feedback-container > feedbackinline {
+    background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
+}
+.correct-response > .feedback-container > feedbackinline{
+    background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
+}
+
+simplechoice{
+    width: 100%;
+}
+
+.incorrect-selection .choice-content {
+    border:2px solid #f8a31a;
+    display:block;
+    border-radius: 6px;
+    margin-bottom:5px;
+}
+.correct-response .choice-content {
+    border:2px solid #92D400;
+    display:block;
+    border-radius: 6px;
+    margin-bottom:5px;
+}
+
+
+
+/**
+*  TODO - temporary fix - evan
+*/
+.feedback-block-correct {
+    background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
+    border: solid 1px #53C516;
+    outline: 0px none;
+    padding:10px;
+    margin: 15px;
+    padding-left: 30px;
+    border-radius:6px;
+}
+
+.feedback-block-incorrect {
+    background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
+    border: solid 1px #F8A31A;
+    outline: 0px none;
+    padding:10px;
+    margin: 15px;
+    padding-left: 30px;
+    border-radius:6px;
+}
+
