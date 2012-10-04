@@ -71,25 +71,27 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService) {
             // this is the function that submits the user responses and gets the outcomes
             this.submitResponses = function () {
 
-                $scope.$broadcast( 'submitResponses');
+                $scope.$broadcast('submitResponses');
 
 
                 $scope.itemSession.responses = $scope.responses;
-                //$scope.itemSession.finish = new Date().getTime();
 
-               setTimeout( function(){
+                if (!$scope.tryAgainEnabled) {
+                    $scope.itemSession.finish = new Date().getTime();
+                }
 
-                   AssessmentSessionService.save(apiCallParams, $scope.itemSession, function (data) {
 
-                       $scope.itemSession = data;
+                AssessmentSessionService.save(apiCallParams, $scope.itemSession, function (data) {
 
-                       if( !$scope.tryAgainEnabled ){
-                           $scope.status = 'SUBMITTED';
-                           $scope.formDisabled = true;
-                       }
-                   });
+                    $scope.itemSession = data;
 
-               }, 3000);
+                    if (!$scope.tryAgainEnabled) {
+                        $scope.status = 'SUBMITTED';
+                        $scope.formDisabled = true;
+                    }
+                }, function onError( error ) {
+                    if( error && error.data) alert(error.data.message);
+                });
 
             };
 
@@ -106,7 +108,7 @@ qtiDirectives.directive('itembody', function () {
     return {
         restrict:'E',
         transclude:true,
-        template: [
+        template:[
             '<div ng-show="printMode" class="item-body-dotted-line">Name: </div>',
             '<span ng-transclude="true"></span>',
             '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="formDisabled" ng-click="onClick()">Submit</a>'

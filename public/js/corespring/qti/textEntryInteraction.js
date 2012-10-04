@@ -16,6 +16,14 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
                 AssessmentItemController.setResponse(responseIdentifier, scope.textResponse);
             });
 
+
+            scope.$on('submitResponses', function (event) {
+                element
+                    .removeClass('correct-response')
+                    .removeClass('incorrect-response');
+            });
+
+
             var isCorrect = function (value) {
                 return QtiUtils.compare(scope.textResponse, value);
             };

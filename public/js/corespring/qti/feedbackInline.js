@@ -9,18 +9,12 @@ var feedbackDirectiveFunction = function (QtiUtils) {
         template:'<span class="{{cssClass}}" ng-bind-html-unsafe="feedback"></span>',
         scope:true,
         require:'^assessmentitem',
-        link:function (scope, element, attrs, AssessmentItemCtrl, $timeout) {
+        link:function (scope, element, attrs) {
 
             var csFeedbackId = attrs["csfeedbackid"];
 
-            scope.$on('submitResponses', function(event){
-                setTimeout( function() {
-                    scope.$apply(function() {
-                        console.log("id:" + csFeedbackId);
-                        scope.feedback = "";
-                        console.log("feedback now: " + scope.feedback);
-                    });
-                }, 400);
+            scope.$on('submitResponses', function (event) {
+                scope.feedback = "";
             });
 
             scope.cssClass = element[0].localName;

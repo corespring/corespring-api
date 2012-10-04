@@ -73,6 +73,7 @@ object ApiError {
   val CreateItemSession = ApiError(603, "could not create item session")
   val UpdateItemSession = ApiError(604, "could not update item session")
   val ItemSessionNotFound = ApiError(605, "item session specified could not be found")
+  val ItemSessionFinished = ApiError(606, "item session is alredy finished - can't update it")
 
   // Item aPI
   val CollectionIsRequired    = ApiError(700, "A collection id for the item is required")

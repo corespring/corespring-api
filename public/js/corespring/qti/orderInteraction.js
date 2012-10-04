@@ -69,9 +69,11 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
                     updateAssessmentItem(newValue);
                 });
 
-                var setAllIncorrect = function(){
+                var setAllIncorrect = function(){ applyCssNameToAll("order-incorrect"); };
+
+                var applyCssNameToAll = function( name ){
                     for (var y = 0; y < $scope.items.length; y++) {
-                        $scope.items[y].submittedClass = "order-incorrect";
+                        $scope.items[y].submittedClass = name;
                     }
                 };
 
@@ -89,6 +91,14 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
                         }
                     }
                 };
+
+                /**
+                 * Reset the ui.
+                 */
+                $scope.$on('submitResponses', function (event) {
+                    applyCssNameToAll("");
+                });
+
 
                 $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
                     if(!responses) return;
@@ -123,6 +133,10 @@ qtiDirectives.directive("sortable", function () {
 
                 return items;
             };
+
+            scope.$watch("formDisabled", function( newValue ){
+               $(el).sortable( "option", "disabled", newValue === true );
+            });
 
 
             $(el).sortable({

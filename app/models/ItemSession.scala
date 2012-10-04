@@ -65,8 +65,14 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
 
   def updateItemSession(session:ItemSession, xmlWithCsFeedbackIds : scala.xml.Elem ):Either[InternalError,ItemSession] = {
     val updatedbo = MongoDBObject.newBuilder
-    if(session.finish.isDefined) updatedbo += "$set" -> MongoDBObject(finish -> session.finish.get)
-    if (!session.responses.isEmpty) updatedbo += "$pushAll" -> MongoDBObject(responses -> session.responses.map(grater[ItemResponse].asDBObject(_)))
+
+    val dbo : BasicDBObject = new BasicDBObject()
+
+    if(session.finish.isDefined) dbo.put(finish, session.finish.get)
+    if (!session.responses.isEmpty) dbo.put(responses, session.responses.map(grater[ItemResponse].asDBObject(_)))
+
+    updatedbo += ( "$set" -> dbo )
+
     try{
       ItemSession.update(MongoDBObject("_id" -> session.id, finish ->  MongoDBObject("$exists" -> false)),
                       updatedbo.result(),

@@ -21,46 +21,49 @@ import play.api.Logger
 
 
 /**
- *  API for managing item sessions
+ * API for managing item sessions
  */
 object ItemSessionApi extends BaseApi {
 
 
-  def list(itemId:ObjectId) = ApiAction { request =>
-    if(Content.isAuthorized(request.ctx.organization,itemId,Permission.All)){
-      val cursor = ItemSession.find(MongoDBObject(ItemSession.itemId -> itemId))
-      Ok(Json.toJson(Utils.toSeq(cursor)))
-    }else Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
+  def list(itemId: ObjectId) = ApiAction {
+    request =>
+      if (Content.isAuthorized(request.ctx.organization, itemId, Permission.All)) {
+        val cursor = ItemSession.find(MongoDBObject(ItemSession.itemId -> itemId))
+        Ok(Json.toJson(Utils.toSeq(cursor)))
+      } else Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
   }
+
   /**
    *
    * Serves GET request
    * @param sessionId
    * @return
    */
-  def getItemSession(itemId: ObjectId, sessionId: ObjectId) = ApiAction { request =>
-    ItemSession.findOneById(sessionId) match {
-      case Some(itemSession) => {
-        if (Content.isAuthorized(request.ctx.organization, itemSession.itemId, Permission.All)) {
-          if(itemSession.finish.isDefined){
+  def getItemSession(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
+    request =>
+      ItemSession.findOneById(sessionId) match {
+        case Some(itemSession) => {
+          if (Content.isAuthorized(request.ctx.organization, itemSession.itemId, Permission.All)) {
+            if (itemSession.finish.isDefined) {
 
-            val cachedXml : Option[Elem] =  ItemSessionXmlStore.getCachedXml(itemId.toString, sessionId.toString)
+              val cachedXml: Option[Elem] = ItemSessionXmlStore.getCachedXml(itemId.toString, sessionId.toString)
 
-            cachedXml match {
-              case Some(xml) => {
-                itemSession.sessionData = ItemSession.getSessionData(xml,itemSession.responses)
+              cachedXml match {
+                case Some(xml) => {
+                  itemSession.sessionData = ItemSession.getSessionData(xml, itemSession.responses)
+                }
+                case _ => NotFound(Json.toJson(ApiError.ItemSessionNotFound))
               }
-              case _ => NotFound(Json.toJson(ApiError.ItemSessionNotFound))
             }
+            Ok(Json.toJson(itemSession))
           }
-          Ok(Json.toJson(itemSession))
+          else {
+            Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
+          }
         }
-        else {
-          Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
-        }
+        case None => NotFound
       }
-      case None => NotFound
-    }
 
   }
 
@@ -71,46 +74,47 @@ object ItemSessionApi extends BaseApi {
    *
    * @return json for the created item session
    */
-  def createItemSession(itemId: ObjectId) = ApiAction { request =>
-    if (Content.isAuthorized(request.ctx.organization,itemId,Permission.All)) {
-      val newSession = request.body.asJson match {
-        case Some(jssession) => Json.fromJson[ItemSession](jssession)
-        case None => ItemSession(itemId)
-      }
+  def createItemSession(itemId: ObjectId) = ApiAction {
+    request =>
+      if (Content.isAuthorized(request.ctx.organization, itemId, Permission.All)) {
+        val newSession = request.body.asJson match {
+          case Some(jssession) => Json.fromJson[ItemSession](jssession)
+          case None => ItemSession(itemId)
+        }
 
-      ItemSession.newItemSession(itemId,newSession) match {
-        case Right(session) => {
+        ItemSession.newItemSession(itemId, newSession) match {
+          case Right(session) => {
 
-          /**
-           * Temporarily - process the raw xml and add csFeedbackIds
-           * Then cache it.
-           */
-          getQtiXml(itemId) match {
-            case Some(xml) => {
-              val xmlWithFeedbackIds = ItemSessionXmlStore.addCsFeedbackIds(xml)
-              ItemSessionXmlStore.cacheXml(xmlWithFeedbackIds, itemId.toString, session.id.toString)
-              Ok(Json.toJson(session))
-            }
-            case _ => {
-              Logger.warn("Returning session - no xml cached!")
-              Ok(Json.toJson(session))
+            /**
+             * Temporarily - process the raw xml and add csFeedbackIds
+             * Then cache it.
+             */
+            getQtiXml(itemId) match {
+              case Some(xml) => {
+                val xmlWithFeedbackIds = ItemSessionXmlStore.addCsFeedbackIds(xml)
+                ItemSessionXmlStore.cacheXml(xmlWithFeedbackIds, itemId.toString, session.id.toString)
+                Ok(Json.toJson(session))
+              }
+              case _ => {
+                Logger.warn("Returning session - no xml cached!")
+                Ok(Json.toJson(session))
+              }
             }
           }
+          case Left(error) => InternalServerError(Json.toJson(ApiError.CreateItemSession(error.clientOutput)))
         }
-        case Left(error) => InternalServerError(Json.toJson(ApiError.CreateItemSession(error.clientOutput)))
+      } else {
+        Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
       }
-    } else {
-      Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
-    }
   }
 
 
-  private def getQtiXml(itemId:ObjectId) : Option[Elem] = {
+  private def getQtiXml(itemId: ObjectId): Option[Elem] = {
     Item.findOneById(itemId) match {
       case Some(item) => {
         val dataResource = item.data.get
-        dataResource.files.find( _.name == Resource.QtiXml ) match {
-          case Some(qtiXml) => Some( scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
+        dataResource.files.find(_.name == Resource.QtiXml) match {
+          case Some(qtiXml) => Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
           case _ => None
         }
       }
@@ -126,51 +130,58 @@ object ItemSessionApi extends BaseApi {
       case Left(error) => Map()
     }
   }
+
   /**
    * Serves the PUT request for an item session
    * @param itemId
    */
-  def updateItemSession(itemId: ObjectId, sessionId:ObjectId) = ApiAction { request =>
-    ItemSession.findOneById(sessionId) match {
-      case Some(session) => Content.isAuthorized(request.ctx.organization,session.itemId,Permission.All) match {
-        case true => request.body.asJson match {
-          case Some(jssession) => {
-            val newSession = Json.fromJson[ItemSession](jssession)
-            session.finish = newSession.finish
-            session.responses = newSession.responses
+  def updateItemSession(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
+    request =>
+      ItemSession.findOneById(sessionId) match {
+        case Some(dbSession) => Content.isAuthorized(request.ctx.organization, dbSession.itemId, Permission.All) match {
+          case true => request.body.asJson match {
+            case Some(jsonSession) => {
 
-            /**
-             * This is a temporary means of allowing SessionData and itemplayer
-             * To use the same xml with csFeedbackId attributes.
-             */
-            val cachedXml : Option[Elem] = ItemSessionXmlStore.getCachedXml(itemId.toString, session.id.toString)
+              if (dbSession.finish.isDefined) {
+                Unauthorized(Json.toJson(ApiError.ItemSessionFinished))
+              } else {
 
-            cachedXml match {
-              case Some(xmlWithCsFeedbackIds) => {
-                ItemSession.updateItemSession(session, xmlWithCsFeedbackIds) match {
-                  case Right(newSession) => {
-                    val json = Json.toJson(newSession)
-                    println(json)
-                    Ok(json)
+                val newSession = Json.fromJson[ItemSession](jsonSession)
+                dbSession.finish = newSession.finish
+                dbSession.responses = newSession.responses
+
+                /**
+                 * This is a temporary means of allowing SessionData and itemplayer
+                 * To use the same xml with csFeedbackId attributes.
+                 */
+                val cachedXml: Option[Elem] = ItemSessionXmlStore.getCachedXml(itemId.toString, dbSession.id.toString)
+
+                cachedXml match {
+                  case Some(xmlWithCsFeedbackIds) => {
+                    ItemSession.updateItemSession(dbSession, xmlWithCsFeedbackIds) match {
+                      case Right(newSession) => {
+                        val json = Json.toJson(newSession)
+                        Ok(json)
+                      }
+                      case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateItemSession(error.clientOutput)))
+                    }
                   }
-                  case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateItemSession(error.clientOutput)))
+                  case _ => InternalServerError(Json.toJson(ApiError.UpdateItemSession(Some("can't find cached xml"))))
                 }
               }
-              case _ => InternalServerError(Json.toJson(ApiError.UpdateItemSession(Some("can't find cached xml"))))
             }
+            case None => BadRequest(Json.toJson(ApiError.JsonExpected))
           }
-          case None => BadRequest(Json.toJson(ApiError.JsonExpected))
+          case false => Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
         }
-        case false => Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
+        case None => BadRequest(Json.toJson(ApiError.ItemSessionNotFound))
       }
-      case None => BadRequest(Json.toJson(ApiError.ItemSessionNotFound))
-    }
   }
 
   // Translates a collection of tuples to an Option[Map]
-  private def optMap[A,B](in: Iterable[(A,B)]): Option[Map[A,B]] =
-    in.iterator.foldLeft(Option(Map[A,B]())) {
-      case (Some(m),e @ (k,v)) if m.getOrElse(k, v) == v => Some(m + e)
+  private def optMap[A, B](in: Iterable[(A, B)]): Option[Map[A, B]] =
+    in.iterator.foldLeft(Option(Map[A, B]())) {
+      case (Some(m), e@(k, v)) if m.getOrElse(k, v) == v => Some(m + e)
       case _ => None
     }
 
