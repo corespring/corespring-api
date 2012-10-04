@@ -145,6 +145,12 @@ qtiDirectives.directive('choiceinteraction', function () {
 
         // TODO need to handle shuffle and fixed options... probably need to rearrange the DOM in compile function for this
 
+        AssessmentItemCtrl.setResponse(modelToUpdate, undefined);
+
+        scope.$watch('showNoResponseFeedback', function(newVal, oldVal) {
+            scope.noResponse = (scope.isEmptyItem(scope.chosenItem) && scope.showNoResponseFeedback);
+        });
+
         scope.setChosenItem = function (value) {
             if (maxChoices != 1) {
                 // multi choice means array model
@@ -165,13 +171,14 @@ qtiDirectives.directive('choiceinteraction', function () {
                 scope.chosenItem = value;
                 AssessmentItemCtrl.setResponse(modelToUpdate, value);
             }
+            scope.noResponse = (scope.isEmptyItem(scope.chosenItem) && scope.showNoResponseFeedback);
         };
     };
 
     return {
         restrict:'E',
         transclude:true,
-        template:'<div class="choice-interaction" ng-transclude="true"></div>',
+        template:'<div class="choice-interaction" ng-class="{noResponse: noResponse}" ng-transclude="true"></div>',
         replace:true,
         scope:true,
         require:'^assessmentitem',

@@ -7,7 +7,7 @@ qtiDirectives.directive("extendedtextinteraction", function() {
         replace: true,
         scope: true,
         require: '^assessmentitem',
-        template: '<textarea rows="{{rows}}" cols="{{cols}}" ng-model="extResponse" ng-disabled="formDisabled"></textarea>',
+        template: '<div ng-class="{noResponse: noResponse}"><textarea rows="{{rows}}" cols="{{cols}}" ng-model="extResponse" ng-disabled="formDisabled"></textarea></div>',
         link: function (scope, element, attrs, AssessmentItemController) {
 
             scope.rows = 4; // default # of rows
@@ -23,9 +23,13 @@ qtiDirectives.directive("extendedtextinteraction", function() {
             scope.maxStrings = attrs.maxstrings;
             scope.minStrings = attrs.minstrings;
 
-            // called when this choice is clicked
+            scope.$watch('showNoResponseFeedback', function (newVal, oldVal) {
+                scope.noResponse = (scope.isEmptyItem(scope.extResponse) && scope.showNoResponseFeedback);
+            });
+
             scope.$watch('extResponse', function(newVal, oldVal) {
                 AssessmentItemController.setResponse(modelToUpdate, scope.extResponse);
+                scope.noResponse = (scope.isEmptyItem(scope.extResponse) && scope.showNoResponseFeedback);
             });
 
         }
