@@ -14,10 +14,10 @@
     <itemBody>
         <choiceInteraction responseIdentifier="RESPONSE" maxChoices="1">
             <prompt>A flask containing 150 ml of hydrogen was collected under a pressure of 20 .0 kPa.  What pressure is required for the volume of the gas to be 100.0 mL, assuming the same temperature?</prompt>
-            <simpleChoice identifier="A" fixed="false">13.0 kPa<feedbackInline defaultFeedback="true"></feedbackInline></simpleChoice>
-            <simpleChoice identifier="B" fixed="false">30.0 kPa<feedbackInline defaultFeedback="true"></feedbackInline></simpleChoice>
-            <simpleChoice identifier="C" fixed="false">750 kPa<feedbackInline defaultFeedback="true"></feedbackInline></simpleChoice>
-            <simpleChoice identifier="D" fixed="false">3000 kPa<feedbackInline defaultFeedback="true"></feedbackInline></simpleChoice>
+            <simpleChoice identifier="A" fixed="false">13.0 kPa<feedbackInline identifier="A" defaultFeedback="true"></feedbackInline></simpleChoice>
+            <simpleChoice identifier="B" fixed="false">30.0 kPa<feedbackInline identifier="B"  defaultFeedback="true"></feedbackInline></simpleChoice>
+            <simpleChoice identifier="C" fixed="false">750 kPa<feedbackInline  identifier="C" defaultFeedback="true"></feedbackInline></simpleChoice>
+            <simpleChoice identifier="D" fixed="false">3000 kPa<feedbackInline identifier="D" defaultFeedback="true"></feedbackInline></simpleChoice>
         </choiceInteraction>
     </itemBody>
 </assessmentItem>
