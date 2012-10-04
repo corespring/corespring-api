@@ -39,14 +39,28 @@ object ItemPlayer extends BaseApi with ItemResources{
     Map("error" -> "not found")
   )
 
-  def xmlCacheKey(itemId:String, sessionId: String) = """qti_itemId[%s]_sessionId[%s]""".format(itemId, sessionId)
+
+  def previewItem(itemId:String, printMode:Boolean = false) =
+    _renderItem(itemId, printMode, previewEnabled = true )
 
   /**
    * Very simple QTI Item Renderer
    * @param itemId
    * @return
    */
-  def renderItem(itemId: String, printMode: Boolean = false) = ApiAction { request =>
+  def renderItem(itemId: String, printMode: Boolean = false) =
+    _renderItem(itemId, printMode, previewEnabled  = false)
+
+
+  private def createItemSession(itemId:String, xml : Elem) : String = {
+    val session : ItemSession = ItemSession( itemId = new ObjectId(itemId) )
+    ItemSession.save(session, ItemSession.collection.writeConcern)
+    //Stash it the cache for the Feedback rendering
+    ItemSessionXmlStore.cacheXml(xml, itemId, session.id.toString)
+    session.id.toString
+  }
+
+  private def _renderItem(itemId:String, printMode : Boolean = false, previewEnabled : Boolean = false)  = ApiAction { request =>
     try {
       getItemXMLByObjectId(itemId,request.ctx.organization) match {
         case Some(xmlData: Elem) =>
@@ -56,21 +70,23 @@ object ItemPlayer extends BaseApi with ItemResources{
            * Then make this xml available to ItemSessionApi via the cache
            */
           val xmlWithCsFeedbackIds = ItemSessionXmlStore.addCsFeedbackIds(xmlData)
+
           val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds \ "itemBody"))
 
           val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
 
-          val session : ItemSession = ItemSession( itemId = new ObjectId(itemId) )
-          ItemSession.save(session, ItemSession.collection.writeConcern)
+          val itemSessionId = if (printMode) "" else createItemSession(itemId, xmlWithCsFeedbackIds)
 
-          //Stash it the cache for the Feedback rendering
-          ItemSessionXmlStore.cacheXml(xmlWithCsFeedbackIds, itemId, session.id.toString)
-
-          val qtiXml = <assessmentItem print-mode={ if(printMode) "true" else "false" } cs:itemId={itemId} cs:itemSessionId={session.id.toString} cs:feedbackEnabled="true">{itemBody}</assessmentItem>
+          val qtiXml = <assessmentItem
+                           print-mode={ if(printMode) "true" else "false" }
+                           cs:itemId={itemId}
+                           cs:itemSessionId={itemSessionId}
+                           cs:feedbackEnabled="true"
+                           cs:noResponseAllowed="true">{itemBody}</assessmentItem>
 
           val finalXml = removeNamespaces(qtiXml)
 
-          Ok(views.html.testplayer.itemPlayer(itemId, scripts, finalXml))
+          Ok(views.html.testplayer.itemPlayer(itemId, scripts, finalXml, previewEnabled))
         case None =>
           // we found nothing
           NotFound(notFoundJson)

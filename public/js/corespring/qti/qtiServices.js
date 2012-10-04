@@ -26,11 +26,15 @@ qtiServices.factory('AssessmentSessionService', ['$resource', function ($resourc
       }
     };
 
+    var baseUrl = '/api/v1/items/:itemId/sessions';
+
     var AssessmentSessionService = $resource(
-        '/api/v1/items/:itemId/sessions/:sessionId',
+        baseUrl + '/:sessionId',
         {},
-        { get:{method:'GET', isArray:false},
-            save:{method:'PUT'}
+        {
+            get:{method:'GET', isArray:false},
+            save:{method:'PUT'},
+            create: {method: 'POST', params : {} }
         }
     );
 
@@ -87,6 +91,10 @@ qtiServices.factory('AssessmentSessionService', ['$resource', function ($resourc
             ngSave.apply(AssessmentSessionService, newArguments);
         }
     };
+
+    AssessmentSessionService.getCreateUrl = function( itemId, accessToken ){
+        return baseUrl.replace(":itemId", itemId) + "?access_token=" + accessToken;
+    }
 
     return AssessmentSessionService;
 }]);
