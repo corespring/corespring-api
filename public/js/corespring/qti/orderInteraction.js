@@ -45,16 +45,16 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
 
 
             // linking function
-            return function (scope, element, attrs, AssessmentItemCtrl) {
+            return function ($scope, element, attrs, AssessmentItemCtrl) {
 
 
                 var responseIdentifier = attrs["responseidentifier"];
                 // set model to choices extracted from html
-                scope.orderedList = [];
-                scope.result = [];
-                scope.prompt = prompt;
-                scope.items = choices;
-                scope.changed = false;
+                $scope.orderedList = [];
+                $scope.result = [];
+                $scope.prompt = prompt;
+                $scope.items = choices;
+                $scope.changed = false;
 
 
                 var updateAssessmentItem = function (orderedList) {
@@ -63,58 +63,63 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
                         flattenedArray[i] = orderedList[i].identifier;
                     }
                     AssessmentItemCtrl.setResponse(responseIdentifier, flattenedArray);
-                    scope.changed = true;
+                    $scope.changed = true;
                 };
 
-                scope.$watch('showNoResponseFeedback', function(newVal, oldVal) {
-                    scope.noResponse = (!scope.changed && scope.showNoResponseFeedback);
+                $scope.$watch('showNoResponseFeedback', function(newVal, oldVal) {
+                    $scope.noResponse = (!$scope.changed && $scope.showNoResponseFeedback);
                 });
 
                 // watch the response and set it to the responses list
-                scope.$watch('orderedList', function (newValue, oldValue) {
-//                    if (oldValue.length == 0 || newValue.length == 0) {
-//                        AssessmentItemCtrl.setResponse(responseIdentifier, []);
-//                    } else {
+                $scope.$watch('orderedList', function (newValue, oldValue) {
+                    if (oldValue.length == 0 || newValue.length == 0) {
+                        AssessmentItemCtrl.setResponse(responseIdentifier, []);
+                    } else {
                         updateAssessmentItem(newValue);
-//                    }
-                    scope.noResponse = (!scope.changed && scope.showNoResponseFeedback);
+                    }
+                    $scope.noResponse = (!$scope.changed && $scope.showNoResponseFeedback);
                 });
 
+                var setAllIncorrect = function(){ applyCssNameToAll("order-incorrect"); };
 
-                // handle updating this view after submission
-                scope.$watch('status', function (newValue, oldValue) {
-                    if (newValue == 'SUBMITTED') {
-                        // TODO disable further interaction with the widget now that it is submitted
+                var applyCssNameToAll = function( name ){
+                    for (var y = 0; y < $scope.items.length; y++) {
+                        $scope.items[y].submittedClass = name;
+                    }
+                };
 
-                        // break if feedback is not enabled
-                        if (scope.isFeedbackEnabled() == false) return;
+                var applyCss = function(correctResponse, ourResponse) {
 
-                        // initialize the item css feedback to incorrect
-                        for (var y = 0; y < scope.items.length; y++) {
-                            scope.items[y].submittedClass = "order-incorrect";
-                        }
-                        // get the correct response
-                        var correctResponse = scope.itemSession.sessionData.correctResponses[responseIdentifier];
-                        var response = QtiUtils.getResponseById(responseIdentifier, scope.itemSession.responses);
-                        //.itemSession.responses[responseIdentifier];
-                        // for each item, determine if item is in right or wrong place
-                        for (var i = 0; i < correctResponse.length; i++) {
-                            if (correctResponse[i] == response.value[i]) {
-                                // this response is in the right place
-                                // find the item with the current identifier and set css to correct
-                                for (var x = 0; x < scope.items.length; x++) {
-                                    if (scope.items[x].identifier == response.value[i]) {
-                                        scope.items[x].submittedClass = "order-correct";
-                                    }
+                    setAllIncorrect();
+
+                    for (var i = 0; i < correctResponse.length; i++) {
+                        if (correctResponse[i] == ourResponse[i]) {
+                            for (var x = 0; x < $scope.items.length; x++) {
+                                if ($scope.items[x].identifier == ourResponse[i]) {
+                                    $scope.items[x].submittedClass = "order-correct";
                                 }
-
                             }
-
                         }
                     }
+                };
+
+                /**
+                 * Reset the ui.
+                 */
+                $scope.$on('submitResponses', function (event) {
+                    applyCssNameToAll("");
                 });
 
-            };  // end linking function
+
+                $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
+                    if(!responses) return;
+                    if(!$scope.isFeedbackEnabled()) return;
+                    var correctResponse = responses[responseIdentifier];
+                    var ourResponse = QtiUtils.getResponseValue(responseIdentifier, $scope.itemSession.responses, [])
+                    applyCss(correctResponse, ourResponse)
+                });
+
+            };
         }
 
     }
@@ -139,6 +144,10 @@ qtiDirectives.directive("sortable", function () {
 
                 return items;
             };
+
+            scope.$watch("formDisabled", function( newValue ){
+               $(el).sortable( "option", "disabled", newValue === true );
+            });
 
 
             $(el).sortable({

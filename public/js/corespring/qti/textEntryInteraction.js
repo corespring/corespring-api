@@ -12,8 +12,7 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
 
             scope.expectedLength = attrs.expectedlength;
 
-            // called when this choice is clicked
-            scope.$watch('textResponse', function (newVal, oldVal) {
+            scope.$watch('textResponse', function () {
                 AssessmentItemController.setResponse(responseIdentifier, scope.textResponse);
                 scope.noResponse = (scope.isEmptyItem(scope.textResponse) && scope.showNoResponseFeedback);
             });
@@ -22,15 +21,22 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
                 scope.noResponse = (scope.isEmptyItem(scope.textResponse) && scope.showNoResponseFeedback);
             });
 
+            scope.$on('submitResponses', function (event) {
+                element
+                    .removeClass('correct-response')
+                    .removeClass('incorrect-response');
+            });
 
-            scope.$watch('status', function (newValue) {
+            var isCorrect = function (value) {
+                return QtiUtils.compare(scope.textResponse, value);
+            };
 
-                if (newValue != 'SUBMITTED' || scope.isFeedbackEnabled() == false) {
-                    return;
-                }
+            scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
+                if (!responses) return;
+                if (!scope.isFeedbackEnabled()) return;
 
-                var correctResponse = scope.itemSession.sessionData.correctResponses[responseIdentifier];
-                var className = QtiUtils.compare(scope.textResponse, correctResponse) ? 'correct-response' : 'incorrect-response';
+                var correctResponse = responses[responseIdentifier];
+                var className = isCorrect(correctResponse) ? 'correct-response' : 'incorrect-response';
                 element.toggleClass(className);
             });
         }

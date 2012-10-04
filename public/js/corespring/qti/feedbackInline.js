@@ -9,17 +9,22 @@ var feedbackDirectiveFunction = function (QtiUtils) {
         template:'<span class="{{cssClass}}" ng-bind-html-unsafe="feedback"></span>',
         scope:true,
         require:'^assessmentitem',
-        link:function (scope, element, attrs, AssessmentItemCtrl, $timeout) {
-            scope.cssClass = element[0].localName;
+        link:function (scope, element, attrs) {
+
             var csFeedbackId = attrs["csfeedbackid"];
 
-            scope.$watch('status', function (newValue, oldValue) {
-                if (scope.isFeedbackEnabled() == false) return; // break if feedback is disabled
-                if (newValue == 'SUBMITTED') {
-                    var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
-                    if (feedback) {
-                        scope.feedback = feedback;
-                    }
+            scope.$on('submitResponses', function (event) {
+                scope.feedback = "";
+            });
+
+            scope.cssClass = element[0].localName;
+
+            scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
+                if (!responses || scope.isFeedbackEnabled() == false) return;
+
+                var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
+                if (feedback) {
+                    scope.feedback = feedback;
                 }
             });
             scope.feedback = "";

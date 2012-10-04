@@ -65,18 +65,24 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
 
   def updateItemSession(session:ItemSession, xmlWithCsFeedbackIds : scala.xml.Elem ):Either[InternalError,ItemSession] = {
     val updatedbo = MongoDBObject.newBuilder
-    if(session.finish.isDefined) updatedbo += "$set" -> MongoDBObject(finish -> session.finish.get)
-    if (!session.responses.isEmpty) updatedbo += "$pushAll" -> MongoDBObject(responses -> session.responses.map(grater[ItemResponse].asDBObject(_)))
+
+    val dbo : BasicDBObject = new BasicDBObject()
+
+    if(session.finish.isDefined) dbo.put(finish, session.finish.get)
+    if (!session.responses.isEmpty) dbo.put(responses, session.responses.map(grater[ItemResponse].asDBObject(_)))
+
+    updatedbo += ( "$set" -> dbo )
+
     try{
       ItemSession.update(MongoDBObject("_id" -> session.id, finish ->  MongoDBObject("$exists" -> false)),
                       updatedbo.result(),
                       false,false,collection.writeConcern)
       ItemSession.findOneById(session.id) match {
-        case Some(session) => if(session.finish.isDefined){
+        case Some(session) =>  {
           //TODO - we need to flush the cache if session is finished
           session.sessionData = getSessionData(xmlWithCsFeedbackIds,session.responses)
           Right(session)
-        } else Right(session)
+        }
         case None => Left(InternalError("could not find session that was just updated",LogType.printFatal))
       }
     }catch{

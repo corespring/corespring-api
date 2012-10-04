@@ -18,9 +18,7 @@ QtiAppController.$inject = ['$scope', '$timeout'];
 qtiDirectives.directive('assessmentitem', function (AssessmentSessionService) {
     return {
         restrict:'E',
-        controller:function ($scope, $element, $attrs) {
-
-            var scope = $scope;
+        controller:function ($scope, $element, $attrs, $timeout) {
 
             $scope.printMode = ( $attrs['printMode'] == "true" || false );
             // get some attribute parameters
@@ -37,18 +35,18 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService) {
 
             // get item session - parameters for session behavior will be defined there
             // TODO it is an error if there is no session found
-            scope.itemSession = AssessmentSessionService.get(apiCallParams);
+            $scope.itemSession = AssessmentSessionService.get(apiCallParams);
 
-            //TODO: Setting this to true by default
-            var feedbackEnabled = (scope.itemSession.feedbackEnabled || true);
+            $scope.feedbackEnabled = ($scope.itemSession.feedbackEnabled || true);
+            $scope.tryAgainEnabled = ($scope.itemSession.tryAgainEnabled || true);
 
-            scope.status = 'ACTIVE';
-            scope.showNoResponseFeedback = false;
-            scope.itemSession.start = new Date().getTime(); // millis since epoch (maybe this should be set in an onload event?)
-            scope.responses = [];
+            $scope.status = 'ACTIVE';
+            $scope.showNoResponseFeedback = false;
+            $scope.itemSession.start = new Date().getTime(); // millis since epoch (maybe this should be set in an onload event?)
+            $scope.responses = [];
 
 
-            scope.isEmptyItem = function (value) {
+            $scope.isEmptyItem = function (value) {
                 if (!value || value == undefined) {
                     return true;
                 }
@@ -61,9 +59,9 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService) {
                 return false;
             }
 
-            scope.hasEmptyResponse = function() {
-                for (var i = 0; i < scope.responses.length; i++) {
-                    if (scope.isEmptyItem(scope.responses[i].value)) return true;
+            $scope.hasEmptyResponse = function() {
+                for (var i = 0; i < $scope.responses.length; i++) {
+                    if ($scope.isEmptyItem($scope.responses[i].value)) return true;
                 }
                 return false;
             }
@@ -76,55 +74,61 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService) {
 
                 if (!itemResponse) {
                     itemResponse = (itemResponse || { id:key });
-                    scope.responses.push(itemResponse);
+                    $scope.responses.push(itemResponse);
                 }
 
                 itemResponse.value = responseValue;
-                scope.canSubmit = noResponseAllowed || !scope.hasEmptyResponse();
-                scope.showNoResponseFeedback = (scope.status == 'ATTEMPTED' && scope.hasEmptyResponse());
+                $scope.canSubmit = noResponseAllowed || !$scope.hasEmptyResponse();
+                $scope.showNoResponseFeedback = ($scope.status == 'ATTEMPTED' && $scope.hasEmptyResponse());
             };
 
             this.findItemByKey = function (key) {
-                for (var i = 0; i < scope.responses.length; i++) {
-                    if (scope.responses[i] && scope.responses[i].id == key) {
-                        return scope.responses[i];
+                for (var i = 0; i < $scope.responses.length; i++) {
+                    if ($scope.responses[i] && $scope.responses[i].id == key) {
+                        return $scope.responses[i];
                     }
                 }
-
-
                 return null;
             };
 
             // this is the function that submits the user responses and gets the outcomes
             this.submitResponses = function () {
-                if (scope.formDisabled) return;
+                if ($scope.formDisabled) return;
 
-                if (scope.hasEmptyResponse()) {
-                    scope.status = 'ATTEMPTED';
-                    scope.showNoResponseFeedback = (scope.hasEmptyResponse());
+
+                if ($scope.hasEmptyResponse()) {
+                    $scope.status = 'ATTEMPTED';
+                    $scope.showNoResponseFeedback = ($scope.hasEmptyResponse());
                     return;
                 }
 
-                scope.itemSession.responses = scope.responses;
-                scope.itemSession.finish = new Date().getTime();
-                AssessmentSessionService.save(apiCallParams, scope.itemSession, function (data) {
-                    console.log("Submitted. Response:");
-                    console.log(data);
-                    scope.itemSession = data;
-                    scope.status = 'SUBMITTED';
-                    scope.formDisabled = true;
+                $scope.$broadcast('submitResponses');
+
+                $scope.itemSession.responses = $scope.responses;
+
+                if (!$scope.tryAgainEnabled) {
+                    $scope.itemSession.finish = new Date().getTime();
+                }
+
+                AssessmentSessionService.save(apiCallParams, $scope.itemSession, function (data) {
+
+                    $scope.itemSession = data;
+
+                    if (!$scope.tryAgainEnabled) {
+                        $scope.status = 'SUBMITTED';
+                        $scope.formDisabled = true;
+                    } else {
+                        $scope.status = '';
+                    }
+                }, function onError( error ) {
+                    if( error && error.data) alert(error.data.message);
                 });
 
             };
 
-            scope.isFeedbackEnabled = function () {
-                return feedbackEnabled;
+            $scope.isFeedbackEnabled = function () {
+                return $scope.feedbackEnabled;
             }
-
-            scope.canSubmit = false;
-
-
-
         }
     };
 });
@@ -134,7 +138,7 @@ qtiDirectives.directive('itembody', function () {
     return {
         restrict:'E',
         transclude:true,
-        template: [
+        template:[
             '<div ng-show="printMode" class="item-body-dotted-line">Name: </div>',
             '<span ng-transclude="true"></span>',
             '<div class="noResponseFeedback" ng-show="showNoResponseFeedback">Some information seems to be missing. Please provide an answer and then click "Submit". </div>',
