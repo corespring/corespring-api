@@ -299,7 +299,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
             name:name,
             contentType:type,
             content:defaultContent[type],
-            default:false
+            "default" :false
         };
 
         $http({
