@@ -41,10 +41,7 @@ object ItemPlayer extends BaseApi with ItemResources{
     Map("error" -> "not found")
   )
 
-
   def xmlCacheKey(itemId:String, sessionId: String) = """qti_itemId[%s]_sessionId[%s]""".format(itemId, sessionId)
-
-
 
   /**
    * Very simple QTI Item Renderer
