@@ -20,6 +20,7 @@ import scala.Some
 import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
 import api.ApiError
+import models.bleezmo.FeedbackInline
 
 /**
  * Tests the ItemSession model
@@ -36,6 +37,22 @@ class ItemSessionApiTest extends Specification {
     "itemId" -> "50083ba9e4b071cb5ef79101",
     "itemSessionId" -> "502d0f823004deb7f4f53be7"
   )
+
+  def createNewSession () : ItemSession = {
+
+    val call = api.v1.routes.ItemSessionApi.createItemSession(new ObjectId(testSessionIds("itemId")))
+
+    val newSessionRequest = FakeRequest(
+      call.method,
+      call.url,
+      FakeHeaders(Map("Authorization" -> Seq("Bearer "+token))),
+      AnyContentAsEmpty
+    )
+
+    val newSessionResult = routeAndCall(newSessionRequest).get
+    val newSessionJson:JsValue = Json.parse(contentAsString(newSessionResult))
+    Json.fromJson[ItemSession](newSessionJson)
+  }
 
   // create test session bound to random object id
   // in practice ItemSessions need to be bound to an item
@@ -64,24 +81,6 @@ class ItemSessionApiTest extends Specification {
    * TODO - implement these tests...
    */
   "item session data" should {
-
-
-    def createNewSession () : ItemSession = {
-
-      val call = api.v1.routes.ItemSessionApi.createItemSession(new ObjectId(testSessionIds("itemId")))
-
-      val newSessionRequest = FakeRequest(
-        call.method,
-        call.url,
-        FakeHeaders(Map("Authorization" -> Seq("Bearer "+token))),
-        AnyContentAsEmpty
-      )
-
-      val newSessionResult = routeAndCall(newSessionRequest).get
-      val newSessionJson:JsValue = Json.parse(contentAsString(newSessionResult))
-      Json.fromJson[ItemSession](newSessionJson)
-    }
-
 
     "return an error if we try and update an item that is already finished" in {
 
@@ -121,15 +120,7 @@ class ItemSessionApiTest extends Specification {
   }
 
   "creating and then updating item session" should {
-    val newSessionRequest = FakeRequest(
-      POST,
-      "/api/v1/items/"+testSessionIds("itemId")+"/sessions",
-      FakeHeaders(Map("Authorization" -> Seq("Bearer "+token))),
-      AnyContentAsEmpty
-    )
-    val newSessionResult = routeAndCall(newSessionRequest).get
-    val newSessionJson:JsValue = Json.parse(contentAsString(newSessionResult))
-    val newSession:ItemSession = Json.fromJson[ItemSession](newSessionJson)
+    val newSession = createNewSession()
     val url = "/api/v1/items/" + testSessionIds("itemId") + "/sessions/" + newSession.id.toString
     val testSession = ItemSession(new ObjectId(testSessionIds("itemId")))
     // add some item responses
@@ -169,12 +160,14 @@ class ItemSessionApiTest extends Specification {
                   case bleezmo.ChoiceInteraction(_,choices) => choices.map(choice => choice.feedbackInline)
                   case bleezmo.OrderInteraction(_,choices) => choices.map(choice => choice.feedbackInline)
                   case _ => throw new RuntimeException("unknown interaction")
-                }).flatten.flatten
+                }).flatten.flatten ++ feedbackBlocks
+                def feedbackInlineContent(fi:FeedbackInline) = if (fi.defaultFeedback) fi.defaultContent(qtiItem) else fi.content
                 if (feedbackContents.foldRight[Boolean](true)((field,acc) => {
                   acc && (feedbackInlines.find(fi => field._1 == fi.csFeedbackId) match {
-                    case Some(fi) => field._2 match {
-                      case JsArray(values) => values.contains(JsString(fi.identifier))
-                      case JsString(value) => value == fi.identifier
+                    case Some(fi) =>
+                      field._2 match {
+                      case JsArray(values) => values.contains(JsString(feedbackInlineContent(fi)))
+                      case JsString(value) => value == feedbackInlineContent(fi)
                       case _ => false
                     }
                     case None => false
