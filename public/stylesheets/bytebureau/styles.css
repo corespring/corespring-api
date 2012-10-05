@@ -59,7 +59,6 @@ body, html {
 }
 
 .feedback-container{
-    clear: both;
     padding-left: 35px;
 }
 
@@ -967,6 +966,7 @@ simplechoice{
     width: 100%;
 }
 
+
 .incorrect-selection .choice-content {
     border:2px solid #f8a31a;
     display:block;
@@ -980,7 +980,11 @@ simplechoice{
     margin-bottom:5px;
 }
 
-
+.simple-choice-inner:after {
+   content: "";
+    display: block;
+    clear: both;
+}
 
 /**
 *  TODO - temporary fix - evan
