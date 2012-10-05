@@ -7,5 +7,6 @@
 { "name" : "Collection G" , "isPrivate" : false , "_id" : { "$oid" : "5001bb0ee4b0d7c9ec3210a2"}}
 { "name" : "Beta Items" , "isPrivate" : false , "_id" : { "$oid" : "505777f5e4b05f7845735bc1"}}
 { "name" : "Collection H" , "isPrivate" : false , "_id" : { "$oid" : "4ff2e56fe4b077b9e3168a05"}}
+{ "name" : "Temporary Collection" , "isPrivate" : false , "_id" : { "$oid" : "4ff2e46fa4b077b9e3168b07"}}
 
 
