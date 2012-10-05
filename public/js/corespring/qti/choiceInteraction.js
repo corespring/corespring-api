@@ -138,7 +138,74 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
 qtiDirectives.directive('choiceinteraction', function () {
 
+
+
+    var simpleChoiceRegex = /(<simplechoice[\s\S]*?>[\s\S]*?<\/simplechoice>)/gm;
+
+    /**
+     * @param html
+     * @return {String}
+     */
+    var getSimpleChoicesArray = function (html) {
+        var nodes = html.match(simpleChoiceRegex);
+
+        if (!nodes) {
+            return [];
+        }
+
+        return nodes;
+    };
+
+    var isFixedNode = function( node ){
+       return node.indexOf("fixed='true'") != -1 || node.indexOf('fixed="true"') != -1;
+    };
+
+    var getFixedIndexes = function( simpleChoiceNodes ){
+
+        var out = [];
+        for( var i  = 0 ; i < simpleChoiceNodes.length ; i++){
+            var node = simpleChoiceNodes[i];
+
+            if( isFixedNode(node)){
+                out.push(i);
+            }
+        }
+        return out;
+    };
+
+    /**
+     * Get the simplechoice nodes - shuffle those that need shuffling,
+     * then add the back to the original html
+     * @param html
+     * @return {*}
+     */
+    var getShuffledContents = function( html ) {
+
+        var TOKEN = "__SHUFFLED_CHOICES__";
+        var simpleChoicesArray = getSimpleChoicesArray(html);
+        var fixedIndexes = getFixedIndexes(simpleChoicesArray);
+
+        var contentsWithChoicesStripped =
+            html.replace( /<simplechoice[\s\S]*?>[\s\S]*<\/simplechoice>/gm, TOKEN);
+
+        var shuffled = simpleChoicesArray.shuffle(fixedIndexes);
+        return contentsWithChoicesStripped.replace(TOKEN, shuffled.join("\n") );
+    };
+
+    /**
+     * shuffle the nodes if shuffle="true"
+     */
+    var compile = function(element, attrs, transclude){
+        var shuffle = attrs["shuffle"] === "true";
+        var html = element.html();
+        var finalContents = shuffle ? getShuffledContents(html) : html;
+        element.html( finalContents );
+        return link;
+    };
+
+
     var link = function (scope, element, attrs, AssessmentItemCtrl, $timeout) {
+
         var maxChoices = attrs['maxchoices'];
         // the model for an interaction is specified by the responseIdentifier
         var modelToUpdate = attrs["responseidentifier"];
@@ -177,14 +244,10 @@ qtiDirectives.directive('choiceinteraction', function () {
 
     return {
         restrict:'E',
-        transclude:true,
-        template:'<div class="choice-interaction" ng-class="{noResponse: noResponse}" ng-transclude="true"></div>',
         replace:true,
         scope:true,
         require:'^assessmentitem',
-        compile:function (element, attrs, transclude) {
-            return link;
-        },
+        compile: compile,
         controller:function ($scope) {
             this.scope = $scope;
         }
