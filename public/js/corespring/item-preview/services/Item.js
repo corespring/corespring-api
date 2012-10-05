@@ -1,9 +1,4 @@
-try{
-    angular.module('preview.services')
-}
-catch(e) {
-    angular.module('preview.services', ['ngResource', 'tagger.services']);
-}
+angular.module('preview.services', ['ngResource', 'tagger.services']);
 
 angular.module('preview.services')
 .factory('Item',

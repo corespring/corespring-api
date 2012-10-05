@@ -1,12 +1,4 @@
-try{
-    angular.module('tagger.services')
-}
-catch(e) {
-    angular.module('tagger.services', ['ngResource']);
-    window.servicesModule = ( window.servicesModule || angular.module('tagger.services'));
-}
-
-servicesModule
+angular.module('tagger.services')
     .factory('File',
     [ '$resource', 'ServiceLookup', 'AccessToken',
         function ($resource, ServiceLookup) {
@@ -21,7 +13,7 @@ servicesModule
     ]);
 
 
-servicesModule
+angular.module('tagger.services')
     .factory('SupportingMaterial',
     [ '$resource', 'ServiceLookup', 'AccessToken', function ($resource, ServiceLookup) {
 

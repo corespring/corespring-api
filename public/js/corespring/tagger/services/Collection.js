@@ -1,0 +1,29 @@
+angular.module('tagger.services')
+    .factory('Collection', [ '$resource', 'ServiceLookup', function ($resource, ServiceLookup) {
+    var Collection = $resource(
+        ServiceLookup.getUrlFor('collection') + '/:id',
+        { },
+        {
+            update:{ method:'PUT' },
+            count:{method:'GET', isArray:false}
+        }
+    );
+
+    Collection.prototype.update = function (cb) {
+        return Collection.update(
+            {id:this._id.$oid},
+            angular.extend(
+                {},
+                this,
+                {
+                    _id:undefined
+                }),
+            cb);
+    };
+
+    Collection.prototype.destroy = function (cb) {
+        return Collection.remove({id:this._id.$oid}, cb);
+    };
+    return Collection;
+}]
+);
