@@ -33,12 +33,21 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
             // get the simple-choice elements
             // they support embedded html
             var choices = [];
+            var fixedIndexes = [];
             var choiceElements = angular.element(tElement).find("simpleChoice");
             for (var i = 0; i < choiceElements.length; i++) {
                 var elem = angular.element(choiceElements[i]);
                 var identifier = elem.attr('identifier');
+                var fixed = elem.attr('fixed') == "true";
+
+                if(fixed){
+                    fixedIndexes.push(i);
+                }
+
                 choices.push({content:elem.html(), identifier:identifier});
             }
+
+            choices.shuffle(fixedIndexes);
 
             // now modify the DOM
             tElement.html(choiceTemplate);
