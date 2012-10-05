@@ -1,3 +1,5 @@
+#!ruby19
+# encoding: utf-8
 
 class CorespringContentUpdater
 
@@ -158,7 +160,11 @@ class CorespringContentUpdater
 
     if !match.nil? && match.length == 2
       t = match[1]
-      name = t.gsub(" ", "-").gsub("<", "").gsub(">", "").gsub("/", "")
+      name = t.gsub(" ", "-")
+              .gsub("<", "")
+              .gsub(">", "")
+              .gsub("/", "")
+              .gsub("ﬂ", "fl")
     end
 
     "#{@item_id}-#{name}"
