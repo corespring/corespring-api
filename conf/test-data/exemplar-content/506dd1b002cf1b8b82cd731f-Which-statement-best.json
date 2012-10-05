@@ -1,0 +1,44 @@
+{
+	"_id" : { "$oid" : "506dd1b002cf1b8b82cd731f" },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n                  <correctResponseFeedback>Correct!</correctResponseFeedback>\n    <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>B</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"float\"/>\n    <itemBody>\n        <choiceInteraction responseIdentifier=\"RESPONSE\" maxChoices=\"1\">\n            <prompt>Which statement best describes the nucleus of an atom?</prompt>\n            <simpleChoice identifier=\"A\" fixed=\"false\">High density, small percentage of atom's mass<feedbackInline identifier=\"A\" defaultFeedback=\"true\"></feedbackInline></simpleChoice>\n            <simpleChoice identifier=\"B\" fixed=\"false\">High density, high  percentage of atom's mass<feedbackInline identifier=\"B\" defaultFeedback=\"true\"></feedbackInline></simpleChoice>\n            <simpleChoice identifier=\"C\" fixed=\"false\">Low density, low  percentage of atom's mass<feedbackInline identifier=\"C\" defaultFeedback=\"true\"></feedbackInline></simpleChoice>\n            <simpleChoice identifier=\"D\" fixed=\"false\">Low density, low  percentage of atom's mass<feedbackInline identifier=\"D\" defaultFeedback=\"true\"></feedbackInline></simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n</assessmentItem>"
+			}
+		]
+	},
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"standards" : [ ],
+	"itemType" : "Multiple Choice",
+	"contributorDetails" : {
+		"contributor" : "Aspire Public Schools",
+		"credentials" : "CMO",
+		"author" : null,
+		"sourceUrl" : "www.aspirepublicschools.org",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "Aspire Public Schools",
+			"imageName" : "aspire.png",
+			"year" : "2009"
+		}
+	},
+	"gradeLevel" : [ ],
+	"priorUse" : "Formative",
+	"reviewsPassed" : [
+		"Editorial"
+	],
+	"title" : "Which statement best describes the nucleus of an atom?",
+	"workflow" : {
+		"setup" : false,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"keySkills" : [ ]
+}
