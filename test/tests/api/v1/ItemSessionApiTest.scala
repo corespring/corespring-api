@@ -13,7 +13,6 @@ import scala.Some
 import play.api.test.FakeHeaders
 import scala.Some
 import tests.PlaySingleton
-import controllers.testplayer.ItemSessionXmlStore
 import models.bleezmo
 import play.api.test.FakeHeaders
 import scala.Some
@@ -21,6 +20,7 @@ import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
 import api.ApiError
 import models.bleezmo.FeedbackInline
+import controllers.InternalError
 
 /**
  * Tests the ItemSession model
@@ -136,9 +136,12 @@ class ItemSessionApiTest extends Specification {
     )
     val result = routeAndCall(getRequest).get
     ItemSession.remove(newSession)
-    val optQtiItem = ItemSessionXmlStore.getCachedXml(testSessionIds("itemId"),newSession.id.toString).map(models.bleezmo.QtiItem(_))
+    val optQtiItem:Either[InternalError,models.bleezmo.QtiItem] = ItemSession.getXmlWithFeedback(new ObjectId(testSessionIds("itemId")),ItemSession.findOneById(newSession.id).get.feedbackIdLookup) match {
+      case Right(elem) => Right(models.bleezmo.QtiItem(elem))
+      case Left(e) => Left(e)
+    }
     "create a cached qti xml for the specified item" in {
-      optQtiItem must beSome[models.bleezmo.QtiItem]
+      optQtiItem must beRight[models.bleezmo.QtiItem]
     }
     "return an item session which contains a sessionData property" in {
       val json: JsValue = Json.parse(contentAsString(result))
@@ -154,7 +157,7 @@ class ItemSessionApiTest extends Specification {
         case JsObject(sessionData) => sessionData.find(field => field._1 == "feedbackContents") match {
           case Some((_,jsfeedbackContents)) => jsfeedbackContents match {
             case JsObject(feedbackContents) => optQtiItem match {
-              case Some(qtiItem) =>
+              case Right(qtiItem) =>
                 val feedbackBlocks = qtiItem.itemBody.feedbackBlocks
                 val feedbackInlines = qtiItem.itemBody.interactions.map(i => i match {
                   case bleezmo.ChoiceInteraction(_,choices) => choices.map(choice => choice.feedbackInline)
@@ -174,7 +177,7 @@ class ItemSessionApiTest extends Specification {
                   })
                 })) success
                 else failure
-              case None => failure
+              case Left(_) => failure
             }
             case _ => failure
           }

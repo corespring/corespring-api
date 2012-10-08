@@ -159,10 +159,10 @@ object ItemApi extends BaseApi {
             if (i.collectionId.isEmpty) {
               BadRequest(Json.toJson(ApiError.CollectionIsRequired))
             } else if (Content.isCollectionAuthorized(request.ctx.organization, i.collectionId, Permission.All)) {
-              addFeedbackIds(i)
+             // addFeedbackIds(i)
               Item.insert(i) match {
                 case Some(_) =>
-                  removeFeedbackIds(i)
+                 // removeFeedbackIds(i)
                   Ok(Json.toJson(i))
                 case None => InternalServerError(Json.toJson(ApiError.CantSave))
               }
@@ -193,10 +193,10 @@ object ItemApi extends BaseApi {
           else {
             try {
               val item = Json.fromJson[Item](json)
-              addFeedbackIds(item)
+              //addFeedbackIds(item)
               Item.updateItem(id,item,excludedFieldsByDefault) match {
                 case Right(i) =>
-                  removeFeedbackIds(i)
+                 // removeFeedbackIds(i)
                   Ok(Json.toJson(i))
                 case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateItem(error.clientOutput)))
               }
@@ -211,33 +211,33 @@ object ItemApi extends BaseApi {
     } else Forbidden
   }
 
-  def addFeedbackIds(item: Item) = {
-    item.data.map(resource => {
-      resource.files.find(file => {
-        file match {
-          case vf:VirtualFile => if(vf.isMain){
-            vf.content = FeedbackProcessor.addFeedbackIds(vf.content)
-            true
-          } else false
-          case _ => false
-        }
-      })
-    })
-  }
-
-  def removeFeedbackIds(item: Item) = {
-    item.data.map(resource => {
-      resource.files.find(file => {
-        file match {
-          case vf:VirtualFile => if(vf.isMain){
-            vf.content = FeedbackProcessor.removeFeedbackIds(vf.content)
-            true
-          } else false
-          case _ => false
-        }
-      })
-    })
-  }
+//  def addFeedbackIds(item: Item) = {
+//    item.data.map(resource => {
+//      resource.files.find(file => {
+//        file match {
+//          case vf:VirtualFile => if(vf.isMain){
+//            vf.content = FeedbackProcessor.addFeedbackIds(scala.xml.XML.loadString(vf.content))._1.toString()
+//            true
+//          } else false
+//          case _ => false
+//        }
+//      })
+//    })
+//  }
+//
+//  def removeFeedbackIds(item: Item) = {
+//    item.data.map(resource => {
+//      resource.files.find(file => {
+//        file match {
+//          case vf:VirtualFile => if(vf.isMain){
+//            vf.content = FeedbackProcessor.removeFeedbackIds(vf.content)
+//            true
+//          } else false
+//          case _ => false
+//        }
+//      })
+//    })
+//  }
 
   def getItemsInCollection(collId: ObjectId) = ApiAction { request =>
     NotImplemented

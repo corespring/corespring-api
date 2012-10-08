@@ -8,6 +8,7 @@ import controllers.testplayer.qti.xml.ExceptionMessage
 import scala.Some
 import controllers.testplayer.qti.QtiItem
 import play.api.Logger
+import controllers.Log
 
 /**
  * Provides transformations on JSON strings to add/remove csFeedbackIds to feedback elements, as well as validation for
@@ -17,9 +18,10 @@ object FeedbackProcessor extends XmlValidator {
 
   val FEEDBACK_INLINE = "feedbackInline"
   val FEEDBACK_BLOCK = "feedbackBlock"
+  val MODAL_FEEDBACK = "modalFeedback"
 
   private val FEEDBACK_NODE_LABELS = {
-    List(FEEDBACK_INLINE, FEEDBACK_BLOCK, "modalFeedback")
+    List(FEEDBACK_INLINE, FEEDBACK_BLOCK, MODAL_FEEDBACK)
   }
 
   private val csFeedbackId = "csFeedbackId"
@@ -53,8 +55,53 @@ object FeedbackProcessor extends XmlValidator {
   /**
    * Adds csFeedbackId attributes to all feedback elements
    */
-  def addFeedbackIds(xml: NodeSeq): NodeSeq = applyRewriteRuleToXml(xml, new FeedbackIdentifierInserter())
-  def addFeedbackIds(xmlString: String): String = addFeedbackIds(XML.loadString(xmlString)).toString
+  //def addFeedbackIds(xml: NodeSeq): NodeSeq = applyRewriteRuleToXml(xml, new FeedbackIdentifierInserter())
+  //def addFeedbackIds(xmlString: String): String = addFeedbackIds(XML.loadString(xmlString)).toString
+  def addFeedbackIds(elem:Elem):(Elem,Map[String,String]) = addFeedbackIds(elem,new Incrementor)
+  def addFeedbackIds(elem:Elem, incr:Incrementor):(Elem,Map[String,String]) = {
+    var mapping:Map[String,String] = Map()
+    if (FEEDBACK_NODE_LABELS.contains(elem.label)){
+      val id:Int = incr.increment
+      mapping += (id.toString -> (elem \ "@identifier").text)
+      ((elem % Attribute(None,csFeedbackId,Text(id.toString),Null)),mapping)
+    }else{
+      var innerNodes:Seq[Node] = Seq()
+      elem.child.foreach(node => node match {
+        case innerElem:Elem =>
+          val (innerElem2:Elem,innerMapping:Map[String,String]) = addFeedbackIds(innerElem,incr)
+          innerNodes = innerNodes :+ innerElem2
+          mapping = mapping ++ innerMapping
+        case other => innerNodes = innerNodes :+ other
+      })
+      (Elem(elem.prefix,elem.label,elem.attributes,elem.scope,innerNodes : _*),mapping)
+    }
+  }
+  private class Incrementor{
+    private var id:Int = 0
+    def increment:Int = {id = id + 1; id}
+  }
+  /**
+   * adds the csFeedbackIds to elem given the csFeedbackId -> identifier map. returns the same element passed in
+   * @param elem
+   * @param mapping
+   * @return
+   */
+  def addFeedbackIds(elem:Elem, mapping:Map[String,String]):Elem = {
+    def addFeedbackIdToFeedbackInlines(nodes:Seq[Node]) = {
+      nodes.foreach(_ match {
+        case feedbackElem:Elem =>
+          mapping.find(field => field._2 == (elem \ "@identifier").text).map(_._1) match {
+            case Some(id) => feedbackElem % Attribute(None,csFeedbackId,Text(id),Null)
+            case None =>
+          }
+        case _ =>
+      })
+    }
+    addFeedbackIdToFeedbackInlines(elem \\ FEEDBACK_INLINE)
+    addFeedbackIdToFeedbackInlines(elem \\ FEEDBACK_BLOCK)
+    addFeedbackIdToFeedbackInlines(elem \\ MODAL_FEEDBACK)
+    elem
+  }
 
   /**
    * Removes csFeedbackId attributes to all feedback elements

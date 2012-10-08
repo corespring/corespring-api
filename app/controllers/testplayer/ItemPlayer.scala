@@ -52,11 +52,9 @@ object ItemPlayer extends BaseApi with ItemResources{
     _renderItem(itemId, printMode, previewEnabled  = false)
 
 
-  private def createItemSession(itemId:String, xml : Elem) : String = {
-    val session : ItemSession = ItemSession( itemId = new ObjectId(itemId) )
+  private def createItemSession(itemId:String, mapping:Map[String,String]) : String = {
+    val session : ItemSession = ItemSession( itemId = new ObjectId(itemId),feedbackIdLookup = mapping )
     ItemSession.save(session, ItemSession.collection.writeConcern)
-    //Stash it the cache for the Feedback rendering
-    ItemSessionXmlStore.cacheXml(xml, itemId, session.id.toString)
     session.id.toString
   }
 
@@ -65,17 +63,13 @@ object ItemPlayer extends BaseApi with ItemResources{
       getItemXMLByObjectId(itemId,request.ctx.organization) match {
         case Some(xmlData: Elem) =>
 
-          /**
-           * Temporary fix - get the ItemPlayer to serve xml with csFeedback ids.
-           * Then make this xml available to ItemSessionApi via the cache
-           */
-          val xmlWithCsFeedbackIds = ItemSessionXmlStore.addCsFeedbackIds(xmlData)
+          val (xmlWithCsFeedbackIds,mapping) = FeedbackProcessor.addFeedbackIds(xmlData)
 
           val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds \ "itemBody"))
 
           val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
 
-          val itemSessionId = if (printMode) "" else createItemSession(itemId, xmlWithCsFeedbackIds)
+          val itemSessionId = if (printMode) "" else createItemSession(itemId, mapping)
 
           val qtiXml = <assessmentItem
                            print-mode={ if(printMode) "true" else "false" }

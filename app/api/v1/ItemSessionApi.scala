@@ -11,13 +11,10 @@ import scala.Left
 import scala.Some
 import scala.Right
 import controllers.testplayer.qti.QtiItem
-import com.novus.salat._
-import models.mongoContext._
-import play.api.cache.Cache
-import controllers.testplayer.{ItemSessionXmlStore, ItemPlayer}
 import xml.Elem
 import play.api.Play.current
 import play.api.Logger
+import api.processors.FeedbackProcessor
 
 
 /**
@@ -47,13 +44,13 @@ object ItemSessionApi extends BaseApi {
           if (Content.isAuthorized(request.ctx.organization, itemSession.itemId, Permission.All)) {
             if (itemSession.finish.isDefined) {
 
-              val cachedXml: Option[Elem] = ItemSessionXmlStore.getCachedXml(itemId.toString, sessionId.toString)
-
-              cachedXml match {
-                case Some(xml) => {
+              //val cachedXml: Option[Elem] = ItemSessionXmlStore.getCachedXml(itemId.toString, sessionId.toString)
+              val xmlWithFeedback = ItemSession.getXmlWithFeedback(itemId,itemSession.feedbackIdLookup)
+              ItemSession.getXmlWithFeedback(itemId,itemSession.feedbackIdLookup) match {
+                case Right(xml) => {
                   itemSession.sessionData = ItemSession.getSessionData(xml, itemSession.responses)
                 }
-                case _ => NotFound(Json.toJson(ApiError.ItemSessionNotFound))
+                case Left(e) => NotFound(Json.toJson(ApiError.ItemSessionNotFound(e.clientOutput)))
               }
             }
             Ok(Json.toJson(itemSession))
@@ -81,26 +78,15 @@ object ItemSessionApi extends BaseApi {
           case Some(jssession) => Json.fromJson[ItemSession](jssession)
           case None => ItemSession(itemId)
         }
-
-        ItemSession.newItemSession(itemId, newSession) match {
-          case Right(session) => {
-
-            /**
-             * Temporarily - process the raw xml and add csFeedbackIds
-             * Then cache it.
-             */
-            getQtiXml(itemId) match {
-              case Some(xml) => {
-                val xmlWithFeedbackIds = ItemSessionXmlStore.addCsFeedbackIds(xml)
-                ItemSessionXmlStore.cacheXml(xmlWithFeedbackIds, itemId.toString, session.id.toString)
-                Ok(Json.toJson(session))
-              }
-              case _ => {
-                Logger.warn("Returning session - no xml cached!")
-                Ok(Json.toJson(session))
-              }
-            }
+        getQtiXml(itemId) match {
+          case Some(xml) => {
+            val (xmlWithFeedbackIds,mapping) = FeedbackProcessor.addFeedbackIds(xml)
+            newSession.feedbackIdLookup = mapping
           }
+          case _ =>
+        }
+        ItemSession.newItemSession(itemId, newSession) match {
+          case Right(session) => Ok(Json.toJson(session))
           case Left(error) => InternalServerError(Json.toJson(ApiError.CreateItemSession(error.clientOutput)))
         }
       } else {
@@ -150,14 +136,8 @@ object ItemSessionApi extends BaseApi {
                 dbSession.finish = newSession.finish
                 dbSession.responses = newSession.responses
 
-                /**
-                 * This is a temporary means of allowing SessionData and itemplayer
-                 * To use the same xml with csFeedbackId attributes.
-                 */
-                val cachedXml: Option[Elem] = ItemSessionXmlStore.getCachedXml(itemId.toString, dbSession.id.toString)
-
-                cachedXml match {
-                  case Some(xmlWithCsFeedbackIds) => {
+                ItemSession.getXmlWithFeedback(itemId,dbSession.feedbackIdLookup) match {
+                  case Right(xmlWithCsFeedbackIds) => {
                     ItemSession.updateItemSession(dbSession, xmlWithCsFeedbackIds) match {
                       case Right(newSession) => {
                         val json = Json.toJson(newSession)
@@ -166,7 +146,7 @@ object ItemSessionApi extends BaseApi {
                       case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateItemSession(error.clientOutput)))
                     }
                   }
-                  case _ => InternalServerError(Json.toJson(ApiError.UpdateItemSession(Some("can't find cached xml"))))
+                  case Left(e) => InternalServerError(Json.toJson(ApiError.UpdateItemSession(e.clientOutput)))
                 }
               }
             }

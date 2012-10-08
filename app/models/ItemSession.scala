@@ -17,6 +17,7 @@ import play.api.Play.current
 import akka.actor.FSM.->
 import scala.xml._
 import controllers.testplayer.qti.QtiItem
+import api.processors.FeedbackProcessor
 
 
 /**
@@ -27,6 +28,7 @@ case class ItemSession (var itemId: ObjectId,
                         var finish: Option[DateTime] = None,
                         var responses: Seq[ItemResponse] = Seq(),
                         var id: ObjectId = new ObjectId(),
+                        var feedbackIdLookup:Map[String,String] = Map(),
                         var sessionData: Option[SessionData] = None
                          ) extends Identifiable
 
@@ -53,6 +55,7 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
   def newItemSession(itemId:ObjectId, session:ItemSession):Either[InternalError, ItemSession] = {
       if(Play.isProd) session.id = new ObjectId()
       session.itemId = itemId
+
       try{
         ItemSession.insert(session,collection.writeConcern) match {
           case Some(_) => Right(session)
@@ -61,6 +64,13 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
       }catch{
         case e:SalatInsertError => Left(InternalError("error inserting item session: "+e.getMessage, LogType.printFatal))
       }
+  }
+
+  def getXmlWithFeedback(itemId:ObjectId, mapping:Map[String,String]):Either[InternalError,Elem] = {
+    Item.getQti(itemId) match {
+      case Right(qti) => Right(FeedbackProcessor.addFeedbackIds(XML.loadString(qti),mapping))
+      case Left(e) => Left(e)
+    }
   }
 
   def updateItemSession(session:ItemSession, xmlWithCsFeedbackIds : scala.xml.Elem ):Either[InternalError,ItemSession] = {
