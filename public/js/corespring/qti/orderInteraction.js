@@ -64,6 +64,7 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
                 $scope.prompt = prompt;
                 $scope.items = choices;
                 $scope.changed = false;
+                $scope.requireModification = (attrs.csRequiremodification != undefined) ? attrs.csRequiremodification === 'true' : true;
 
 
                 var updateAssessmentItem = function (orderedList) {
@@ -81,7 +82,8 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
 
                 // watch the response and set it to the responses list
                 $scope.$watch('orderedList', function (newValue, oldValue) {
-                    if (oldValue.length == 0 || newValue.length == 0) {
+                    console.log($scope.requireModification);
+                    if ($scope.requireModification && (oldValue.length == 0 || newValue.length == 0)) {
                         AssessmentItemCtrl.setResponse(responseIdentifier, []);
                     } else {
                         updateAssessmentItem(newValue);

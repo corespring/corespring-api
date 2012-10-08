@@ -53,7 +53,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
             var responseIdentifier = choiceInteractionElem.attr('responseidentifier');
 
-            var divs = ['<div class="simple-choice-inner">',
+            var divs = ['<div class="simple-choice-inner" ng-class="{noResponse: noResponse}">',
                 '  <div class="choiceInput">',
                 '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div>',
                 '  <div class="choice-content"> ' + nodeWithFeedbackRemoved + '</div>',
