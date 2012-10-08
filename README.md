@@ -1,6 +1,7 @@
 Corespring API
 ==============
 
+
 # Getting set up
 
 Run MongoDB locally on the default port:
