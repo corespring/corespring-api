@@ -28,12 +28,12 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             var noResponseAllowed = $attrs.csNoresponseallowed;
 
             var apiCallParams = {
-                itemId: $attrs.csItemid,
-                sessionId: $attrs.csItemsessionid,
+                itemId:$attrs.csItemid,
+                sessionId:$attrs.csItemsessionid,
                 access_token:"34dj45a769j4e1c0h4wb"
             };
 
-            var createNewItemSession = function(){
+            var createNewItemSession = function () {
 
                 var createUrl = AssessmentSessionService.getCreateUrl(apiCallParams.itemId, apiCallParams.access_token);
                 $http({method:'POST', url:createUrl }).
@@ -77,7 +77,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 return false;
             }
 
-            $scope.hasEmptyResponse = function() {
+            $scope.hasEmptyResponse = function () {
                 for (var i = 0; i < $scope.responses.length; i++) {
                     if ($scope.isEmptyItem($scope.responses[i].value)) return true;
                 }
@@ -124,7 +124,9 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
                 $scope.itemSession.responses = $scope.responses;
 
-                if (!$scope.tryAgainEnabled) {
+                if ($scope.tryAgainEnabled) {
+                    delete $scope.itemSession.finish;
+                } else {
                     $scope.itemSession.finish = new Date().getTime();
                 }
 

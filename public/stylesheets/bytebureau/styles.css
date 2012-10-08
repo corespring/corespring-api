@@ -59,7 +59,6 @@ body, html {
 }
 
 .feedback-container{
-    clear: both;
     padding-left: 35px;
 }
 
@@ -948,6 +947,14 @@ table th, table td {
     line-height:21px;
 }
 
+.feedback-container {
+    display: none;
+}
+
+.incorrect-selection > .feedback-container,
+.correct-response > .feedback-container {
+    display: block;
+}
 
 .incorrect-selection > .feedback-container > feedbackinline,
 .correct-response > .feedback-container > feedbackinline{
@@ -967,6 +974,7 @@ simplechoice{
     width: 100%;
 }
 
+
 .incorrect-selection .choice-content {
     border:2px solid #f8a31a;
     display:block;
@@ -980,7 +988,11 @@ simplechoice{
     margin-bottom:5px;
 }
 
-
+.simple-choice-inner:after {
+   content: "";
+    display: block;
+    clear: both;
+}
 
 /**
 *  TODO - temporary fix - evan

@@ -154,7 +154,7 @@
 
         <p/>
 
-        <orderInteraction responseIdentifier="wivesOfHenry" shuffle="true">
+        <orderInteraction responseIdentifier="wivesOfHenry" cs:requireModification="false" shuffle="true">
             <prompt>Arrange the wives of Henry VIII in chronological order:</prompt>
             <simpleChoice identifier="parr">Catherine Parr</simpleChoice>
             <simpleChoice identifier="boleyn">Anne Boleyn</simpleChoice>

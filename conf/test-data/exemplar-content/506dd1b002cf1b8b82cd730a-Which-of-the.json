@@ -1,0 +1,50 @@
+{
+	"_id" : { "$oid" : "506dd1b002cf1b8b82cd730a" },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n                  <correctResponseFeedback>Correct!</correctResponseFeedback>\n    <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>A</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"float\"/>\n    <itemBody>\n        <choiceInteraction responseIdentifier=\"RESPONSE\" maxChoices=\"1\">\n            <prompt>Which of the following radioactive decay processes are least likely to cause damage to skin or internal organs when externally exposed?</prompt>\n            <simpleChoice identifier=\"A\" fixed=\"false\">Alpha particle<feedbackInline identifier=\"A\" defaultFeedback=\"true\"></feedbackInline></simpleChoice>\n            <simpleChoice identifier=\"B\" fixed=\"false\">Beta particle<feedbackInline identifier=\"B\" defaultFeedback=\"true\"></feedbackInline></simpleChoice>\n            <simpleChoice identifier=\"C\" fixed=\"false\">Gamma radiation<feedbackInline identifier=\"C\" defaultFeedback=\"true\"></feedbackInline></simpleChoice>\n            <simpleChoice identifier=\"D\" fixed=\"false\">Positron particle<feedbackInline identifier=\"D\" defaultFeedback=\"true\"></feedbackInline></simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n</assessmentItem>"
+			}
+		]
+	},
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2d5" }
+	},
+	"standards" : [ ],
+	"itemType" : "Multiple Choice",
+	"contributorDetails" : {
+		"contributor" : "Aspire Public Schools",
+		"credentials" : "CMO",
+		"author" : null,
+		"sourceUrl" : "www.aspirepublicschools.org",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "Aspire Public Schools",
+			"imageName" : "aspire.png",
+			"year" : "2009"
+		}
+	},
+	"gradeLevel" : [
+		"10",
+		"11"
+	],
+	"priorUse" : "Formative",
+	"reviewsPassed" : [
+		"Editorial"
+	],
+	"title" : "Which of the following radioactive decay processes are least likely to cause damage to skin or internal organs when externally exposed?",
+	"workflow" : {
+		"setup" : false,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"keySkills" : [ ]
+}

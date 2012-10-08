@@ -33,12 +33,21 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
             // get the simple-choice elements
             // they support embedded html
             var choices = [];
+            var fixedIndexes = [];
             var choiceElements = angular.element(tElement).find("simpleChoice");
             for (var i = 0; i < choiceElements.length; i++) {
                 var elem = angular.element(choiceElements[i]);
                 var identifier = elem.attr('identifier');
+                var fixed = elem.attr('fixed') == "true";
+
+                if(fixed){
+                    fixedIndexes.push(i);
+                }
+
                 choices.push({content:elem.html(), identifier:identifier});
             }
+
+            choices.shuffle(fixedIndexes);
 
             // now modify the DOM
             tElement.html(choiceTemplate);
@@ -55,6 +64,7 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
                 $scope.prompt = prompt;
                 $scope.items = choices;
                 $scope.changed = false;
+                $scope.requireModification = (attrs.csRequiremodification != undefined) ? attrs.csRequiremodification === 'true' : true;
 
 
                 var updateAssessmentItem = function (orderedList) {
@@ -72,7 +82,7 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
 
                 // watch the response and set it to the responses list
                 $scope.$watch('orderedList', function (newValue, oldValue) {
-                    if (oldValue.length == 0 || newValue.length == 0) {
+                    if ($scope.requireModification && (oldValue.length == 0 || newValue.length == 0)) {
                         AssessmentItemCtrl.setResponse(responseIdentifier, []);
                     } else {
                         updateAssessmentItem(newValue);
