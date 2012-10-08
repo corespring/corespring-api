@@ -45,7 +45,6 @@ class CollectionApiTest extends BaseTest {
     contentType(result) must beSome("application/json")
     val collections = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
     collections.size must beEqualTo(INITIAL_COLLECTION_SIZE - 1)
-    (collections(0) \ "name").as[String] must beEqualTo("Collection H")
   }
 
   "list all collections limit results to 1" in {
