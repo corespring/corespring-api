@@ -82,7 +82,6 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
 
                 // watch the response and set it to the responses list
                 $scope.$watch('orderedList', function (newValue, oldValue) {
-                    console.log($scope.requireModification);
                     if ($scope.requireModification && (oldValue.length == 0 || newValue.length == 0)) {
                         AssessmentItemCtrl.setResponse(responseIdentifier, []);
                     } else {
