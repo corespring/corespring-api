@@ -164,9 +164,9 @@ class CorespringContentUpdater
               .gsub("<", "")
               .gsub(">", "")
               .gsub("/", "")
+              .gsub("ﬂ", "fl")
               # see: http://www.fileformat.info/info/unicode/char/fb02/index.htm
               # this character is bad news
-              .gsub("ﬂ", "fl")
     end
 
     "#{@item_id}-#{name}"

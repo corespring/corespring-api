@@ -52,5 +52,11 @@
 	"bloomsTaxonomy" : "Apply",
 	"priorUse" : "Summative",
 	"keySkills" : [ ],
-	"reviewsPassed" : [ ]
+	"reviewsPassed" : [
+		"Editorial",
+		"Bias",
+		"Fairness",
+		"Content",
+		"Psychometric"
+	]
 }

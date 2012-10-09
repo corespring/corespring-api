@@ -40,9 +40,9 @@
 		}
 	},
 	"workflow" : {
-		"setup" : false,
+		"setup" : true,
 		"tagged" : false,
-		"standardsAligned" : false,
+		"standardsAligned" : true,
 		"qaReview" : false
 	},
 	"keySkills" : [
