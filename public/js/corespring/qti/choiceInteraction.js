@@ -53,7 +53,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
             var responseIdentifier = choiceInteractionElem.attr('responseidentifier');
 
-            var divs = ['<div class="simple-choice-inner" ng-class="{noResponse: noResponse}">',
+            var divs = ['<div class="simple-choice-inner">',
                 '  <div class="choiceInput">',
                 '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div>',
                 '  <div class="choice-content"> ' + nodeWithFeedbackRemoved + '</div>',
@@ -199,7 +199,7 @@ qtiDirectives.directive('choiceinteraction', function () {
         var shuffle = attrs["shuffle"] === "true";
         var html = element.html();
         var finalContents = shuffle ? getShuffledContents(html) : html;
-        var newNode = '<div class="choice-interaction" ng-transclude>' + finalContents + '</div>';
+        var newNode = '<div class="choice-interaction" ng-class="{noResponse: noResponse}" ng-transclude>' + finalContents + '</div>';
         element.html(newNode);
         return link;
     };
