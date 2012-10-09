@@ -45,7 +45,6 @@ object ItemSessionApi extends BaseApi {
             if (itemSession.finish.isDefined) {
 
               //val cachedXml: Option[Elem] = ItemSessionXmlStore.getCachedXml(itemId.toString, sessionId.toString)
-              val xmlWithFeedback = ItemSession.getXmlWithFeedback(itemId,itemSession.feedbackIdLookup)
               ItemSession.getXmlWithFeedback(itemId,itemSession.feedbackIdLookup) match {
                 case Right(xml) => {
                   itemSession.sessionData = ItemSession.getSessionData(xml, itemSession.responses)
@@ -132,9 +131,9 @@ object ItemSessionApi extends BaseApi {
                 BadRequest(Json.toJson(ApiError.ItemSessionFinished))
               } else {
 
-                val newSession = Json.fromJson[ItemSession](jsonSession)
-                dbSession.finish = newSession.finish
-                dbSession.responses = newSession.responses
+                val clientSession = Json.fromJson[ItemSession](jsonSession)
+                dbSession.finish = clientSession.finish
+                dbSession.responses = clientSession.responses
 
                 ItemSession.getXmlWithFeedback(itemId,dbSession.feedbackIdLookup) match {
                   case Right(xmlWithCsFeedbackIds) => {

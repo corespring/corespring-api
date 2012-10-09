@@ -57,26 +57,33 @@ object FeedbackProcessor extends XmlValidator {
    */
   //def addFeedbackIds(xml: NodeSeq): NodeSeq = applyRewriteRuleToXml(xml, new FeedbackIdentifierInserter())
   //def addFeedbackIds(xmlString: String): String = addFeedbackIds(XML.loadString(xmlString)).toString
-  def addFeedbackIds(elem:Elem):(Elem,Map[String,String]) = addFeedbackIds(elem,new Incrementor)
-  def addFeedbackIds(elem:Elem, incr:Incrementor):(Elem,Map[String,String]) = {
-    var mapping:Map[String,String] = Map()
+  def addFeedbackIds(elem:Elem):(Elem,Map[String,String]) = {
+    val feedbackMap = addFeedbackIds(elem,FeedbackMap(elem,Map(),new IdIncrementor))
+    (feedbackMap.elem,feedbackMap.mapping)
+  }
+  private def addFeedbackIds(elem:Elem,feedbackMap:FeedbackMap):FeedbackMap = {
     if (FEEDBACK_NODE_LABELS.contains(elem.label)){
-      val id:Int = incr.increment
-      mapping += (id.toString -> (elem \ "@identifier").text)
-      ((elem % Attribute(None,csFeedbackId,Text(id.toString),Null)),mapping)
+      val id:Int = feedbackMap.incrementId
+      feedbackMap.mapping = feedbackMap.mapping + (id.toString -> (elem \ "@identifier").text)
+      feedbackMap.elem = elem % Attribute(None,csFeedbackId,Text(id.toString),Null)
+      feedbackMap
     }else{
       var innerNodes:Seq[Node] = Seq()
       elem.child.foreach(node => node match {
         case innerElem:Elem =>
-          val (innerElem2:Elem,innerMapping:Map[String,String]) = addFeedbackIds(innerElem,incr)
-          innerNodes = innerNodes :+ innerElem2
-          mapping = mapping ++ innerMapping
+          val innerFeedbackMap = addFeedbackIds(innerElem,FeedbackMap(innerElem,Map(),feedbackMap.incr))
+          innerNodes = innerNodes :+ innerFeedbackMap.elem
+          feedbackMap.mapping = feedbackMap.mapping ++ innerFeedbackMap.mapping
         case other => innerNodes = innerNodes :+ other
       })
-      (Elem(elem.prefix,elem.label,elem.attributes,elem.scope,innerNodes : _*),mapping)
+      feedbackMap.elem = Elem(elem.prefix,elem.label,elem.attributes,elem.scope,innerNodes : _*)
+      feedbackMap
     }
   }
-  private class Incrementor{
+  private case class FeedbackMap(var elem:Elem,var mapping:Map[String,String], incr:IdIncrementor){
+    def incrementId:Int = incr.increment
+  }
+  private class IdIncrementor{
     private var id:Int = 0
     def increment:Int = {id = id + 1; id}
   }
@@ -87,20 +94,19 @@ object FeedbackProcessor extends XmlValidator {
    * @return
    */
   def addFeedbackIds(elem:Elem, mapping:Map[String,String]):Elem = {
-    def addFeedbackIdToFeedbackInlines(nodes:Seq[Node]) = {
-      nodes.foreach(_ match {
-        case feedbackElem:Elem =>
-          mapping.find(field => field._2 == (elem \ "@identifier").text).map(_._1) match {
-            case Some(id) => feedbackElem % Attribute(None,csFeedbackId,Text(id),Null)
-            case None =>
-          }
-        case _ =>
+    if (FEEDBACK_NODE_LABELS.contains(elem.label)){
+      mapping.find(field => field._2 == (elem \ "@identifier").text).map(_._1) match {
+        case Some(id) => elem % Attribute(None,csFeedbackId,Text(id),Null)
+        case None => elem
+      }
+    } else {
+      var innerNodes:Seq[Node] = Seq()
+      elem.child.foreach(_ match {
+          case innerElem:Elem => innerNodes = innerNodes :+ addFeedbackIds(innerElem,mapping)
+          case other => innerNodes = innerNodes :+ other
       })
+      Elem(elem.prefix,elem.label,elem.attributes,elem.scope,innerNodes : _*)
     }
-    addFeedbackIdToFeedbackInlines(elem \\ FEEDBACK_INLINE)
-    addFeedbackIdToFeedbackInlines(elem \\ FEEDBACK_BLOCK)
-    addFeedbackIdToFeedbackInlines(elem \\ MODAL_FEEDBACK)
-    elem
   }
 
   /**
@@ -144,15 +150,17 @@ object FeedbackProcessor extends XmlValidator {
    * FIXME: It looks like the transform method is called multiple times per node, resulting in higher than desired id
    * values
    */
-  private class FeedbackIdentifierInserter extends RewriteRule {
-
-    var id: Int = 0
-
+  private class FeedbackIdentifierInserter(mapping:Map[String,String]) extends RewriteRule {
     override def transform(node: Node): Seq[Node] =
       node match {
       case elem: Elem if (FEEDBACK_NODE_LABELS.contains(elem.label)) => {
-        id = id + 1
-        elem % Attribute(None, csFeedbackId, Text(id.toString), Null)
+        mapping.find(field => field._2 == (elem \ "@identifier").text).map(_._1) match {
+          case Some(id) =>
+            elem % Attribute(None,csFeedbackId,Text(id),Null)
+            elem
+          case None =>
+        }
+        elem
       }
       case other => other
     }
