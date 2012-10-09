@@ -199,7 +199,8 @@ qtiDirectives.directive('choiceinteraction', function () {
         var shuffle = attrs["shuffle"] === "true";
         var html = element.html();
         var finalContents = shuffle ? getShuffledContents(html) : html;
-        element.html( finalContents );
+        var newNode = '<div class="choice-interaction" ng-transclude>' + finalContents + '</div>';
+        element.html(newNode);
         return link;
     };
 
@@ -246,6 +247,7 @@ qtiDirectives.directive('choiceinteraction', function () {
         restrict:'E',
         replace:true,
         scope:true,
+        transclude: true,
         require:'^assessmentitem',
         compile: compile,
         controller:function ($scope) {
