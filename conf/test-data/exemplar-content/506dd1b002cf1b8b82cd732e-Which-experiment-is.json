@@ -39,7 +39,7 @@
 	"reviewsPassed" : [
 		"Editorial"
 	],
-	"title" : "Which experiment is depicted in the above picture?",
+	"title" : "Which experiment is depicted in the picture?",
 	"workflow" : {
 		"setup" : false,
 		"tagged" : false,

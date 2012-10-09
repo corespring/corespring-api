@@ -318,6 +318,7 @@ math, .mathml, div.math-choices simplechoice, .math-text, .MathJax {
 }
 .choice-content {
     line-height:20px;
+    width: 540px;
 }
 /*.choiceInput {
     padding:0 8px 0 0;
@@ -459,7 +460,7 @@ p .numbers {
     line-height:38px;
 }
 /* The correct selector for text is .para-center. The rest of these variations were observed in the files */
-div.text-centered, div.para-center, div.center, .center, center, .text-centered, .para_center .para-center {
+div.text-centered, div.para-center, div.center, .center, center, .text-centered, .para_center, .para-center {
     text-align:center;
 }
 div.floated-para {

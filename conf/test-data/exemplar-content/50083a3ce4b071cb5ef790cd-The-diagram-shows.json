@@ -52,5 +52,11 @@
 	"bloomsTaxonomy" : "Understand (Describe, dramatize)",
 	"priorUse" : "Summative",
 	"keySkills" : [ ],
-	"reviewsPassed" : [ ]
+	"reviewsPassed" : [
+		"Editorial",
+		"Bias",
+		"Fairness",
+		"Content",
+		"Psychometric"
+	]
 }

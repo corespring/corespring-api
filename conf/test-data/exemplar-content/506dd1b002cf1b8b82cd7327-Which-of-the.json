@@ -31,7 +31,10 @@
 			"year" : "2009"
 		}
 	},
-	"gradeLevel" : [ ],
+	"gradeLevel" : [
+		"10",
+		"11"
+	],
 	"priorUse" : "Formative",
 	"reviewsPassed" : [
 		"Editorial"

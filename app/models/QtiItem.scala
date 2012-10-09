@@ -40,7 +40,13 @@ trait CorrectResponse{
 object CorrectResponse{
   def apply(node:Node,cardinality:String):CorrectResponse = {
     cardinality match {
-      case "single" => CorrectResponseSingle(node)
+      case "single" => {
+        if( (node\"value").length > 1 ){
+         CorrectResponseMultiple(node)
+        }else {
+          CorrectResponseSingle(node)
+        }
+      }
       case "multiple" => CorrectResponseMultiple(node)
       case "ordered" => CorrectResponseOrdered(node)
       case _ => throw new RuntimeException("unknown cardinality: "+cardinality+". cannot generate CorrectResponse")
@@ -53,7 +59,6 @@ case class CorrectResponseSingle(value: String) extends CorrectResponse{
 object CorrectResponseSingle{
   def apply(node:Node):CorrectResponseSingle = {
 
-    //TODO: How do we want to handle such scenarios
     if ( (node \ "value" ).size != 1 ){
       throw new RuntimeException("Cardinality is set to single but there is not one <value> declared: " + (node\"value").toString)
     }
