@@ -318,6 +318,7 @@ math, .mathml, div.math-choices simplechoice, .math-text, .MathJax {
 }
 .choice-content {
     line-height:20px;
+    width: 540px;
 }
 /*.choiceInput {
     padding:0 8px 0 0;
