@@ -1,8 +1,0 @@
-# YAML
-- label: QTI2 Multi Choice (single)
-  code: multi
-  xmlFile: conf/templates/multiple_choice.xml
-- label: QTI2 Multiple Choice (multiple)
-  code: multi2
-  xmlFile: conf/templates/multiple_choice_two.xml
-

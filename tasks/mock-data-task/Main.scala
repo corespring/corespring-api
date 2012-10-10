@@ -42,8 +42,8 @@ object Main {
     getDb match {
       case Some(mongoDb) => {
         jsonToDB(basePath + "orgs.json", mongoDb("orgs"))
-        jsonToDB(basePath + "items.json", mongoDb("content"))
-        jsonToDB(basePath + "collections.json", mongoDb("contentcolls"))
+        jsonToDB(basePath + "content.json", mongoDb("content"))
+        jsonToDB(basePath + "contentcolls.json", mongoDb("contentcolls"))
         jsonToDB(basePath + "apiClients.json", mongoDb("apiClients"))
         jsonToDB(basePath + "accessTokens.json", mongoDb("accessTokens"))
         jsonToDB(basePath + "users.json", mongoDb("users"))
