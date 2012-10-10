@@ -5,7 +5,6 @@ import mvc._
 import mvc.SimpleResult
 import play.api.Play.current
 import play.api.Application
-import _root_.web.config.InitialData
 import web.controllers.utils.ConfigLoader
 import seed.SeedDb._
 /**
@@ -76,8 +75,6 @@ object Global extends GlobalSettings {
     } else {
       if (initData) seedDevData()
     }
-
-    InitialData.insert()
   }
 
   private def seedTestData()  {

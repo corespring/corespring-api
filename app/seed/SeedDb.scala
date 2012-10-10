@@ -10,6 +10,7 @@ import org.joda.time.DateTime
 import play.api._
 import play.api.Play.current
 import JsonImporter._
+import web.models.QtiTemplate
 
 object SeedDb {
 
@@ -24,17 +25,23 @@ object SeedDb {
     ApiClient.collection,
     ItemSession.collection,
     User.collection,
-    Organization.collection)
+    Organization.collection,
+    QtiTemplate.collection)
 
 
   abstract class SeedFormat
-  case class JsonOnEachLine(f:File) extends SeedFormat
-  case class JsonFilesAreChildren(f:File) extends SeedFormat
-  case class JsonListFile(f:File) extends SeedFormat
 
-  def emptyData() { collections.foreach(_.drop()) }
+  case class JsonOnEachLine(f: File) extends SeedFormat
 
-  def seedData( path : String ) {
+  case class JsonFilesAreChildren(f: File) extends SeedFormat
+
+  case class JsonListFile(f: File) extends SeedFormat
+
+  def emptyData() {
+    collections.foreach(_.drop())
+  }
+
+  def seedData(path: String) {
     Logger.info("seedData: " + path)
 
     val folder: File = Play.getFile(path)
@@ -46,7 +53,7 @@ object SeedDb {
           getSeedFormat(file) match {
             case JsonOnEachLine(f) => jsonLinesToDb(path + "/" + f.getName, c)
             case JsonFilesAreChildren(f) => insertFilesInFolder(path + "/" + f.getName, c)
-            case JsonListFile(f) => jsonFileListToDb(path + "/" + f.getName + "/list.json", c )
+            case JsonListFile(f) => jsonFileListToDb(path + "/" + f.getName + "/list.json", c)
           }
         }
         case _ => Logger.warn("Couldn't find collection for: " + file.getName)
@@ -54,8 +61,8 @@ object SeedDb {
     }
   }
 
-  private def getSeedFormat(f:File) : SeedFormat = {
-    if( f.isDirectory ){
+  private def getSeedFormat(f: File): SeedFormat = {
+    if (f.isDirectory) {
       getSingleList(f) match {
         case Some(listFile) => JsonListFile(f)
         case _ => JsonFilesAreChildren(f)
@@ -65,19 +72,19 @@ object SeedDb {
     }
   }
 
-  private def getSingleList(directory:File) : Option[File] = {
+  private def getSingleList(directory: File): Option[File] = {
 
-    val listFile = for (f <- directory.listFiles; if(f.getName == "list.json")) yield f
+    val listFile = for (f <- directory.listFiles; if (f.getName == "list.json")) yield f
 
-    if ( listFile.length != 1 ){
+    if (listFile.length != 1) {
       None
     } else {
-      Some( listFile(0) )
+      Some(listFile(0))
     }
   }
 
 
-  def addMockAccessToken(token:String) = {
+  def addMockAccessToken(token: String) = {
     AccessToken.collection.drop()
     val creationDate = DateTime.now()
     val accessToken = AccessToken(new ObjectId("502404dd0364dc35bb393397"), None, token, creationDate, creationDate.plusHours(24))
