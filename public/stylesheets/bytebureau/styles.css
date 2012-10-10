@@ -113,6 +113,7 @@ p {
     line-height:20px;
     padding:0 0 18px;
 }
+
 /* Indent of small text fields*/
 span p input, span p. span input {
     margin-left:20px;
@@ -388,6 +389,11 @@ blockquote p span input.ng-pristine {
 
 .item-title {
 	font-size: 24px;
+}
+
+
+p-indent-20 {
+    margin: 0 0 0 20px;
 }
 
 /* -------------------------------------
