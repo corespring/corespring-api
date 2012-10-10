@@ -33,7 +33,7 @@ object ItemPlayer extends BaseApi with ItemResources{
 
   val BYTE_BUREAU = css("/assets/stylesheets/bytebureau/styles.css")
 
-  val DEFAULT_CSS = Seq( BYTE_BUREAU).mkString("\n")
+  val DEFAULT_CSS = Seq(BYTE_BUREAU).mkString("\n")
 
   val notFoundJson = Json.toJson(
     Map("error" -> "not found")
