@@ -124,8 +124,8 @@ input[type="text"] {
     font:14px "Ubuntu", Arial, Helvetica, sans-serif;
 }
 input[type="text"]:focus, textarea:focus {
-    border-color:rgba(161, 225, 23, 0.8);
-    box-shadow:0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 4px rgba(161, 225, 23, 0.8);
+    border-color: rgba(30, 30, 30, 0.8);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 4px rgba(30, 30, 30, 0.8);
     outline:0 none;
 }
 a:focus, .btn:focus, input[type="file"]:focus, input[type="radio"]:focus, input[type="checkbox"]:focus, select:focus {
@@ -934,7 +934,7 @@ table th, table td {
 
 .text-entry-interaction.incorrect-response > input {
     border-color: #F8A31A;
-    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 4px rgba(161, 225, 23, 0.8);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 4px rgba(248, 163, 26, 0.8);
     outline: 0px none;
 }
 
