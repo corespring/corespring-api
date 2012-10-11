@@ -307,7 +307,6 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
             method:"POST",
             data:newVirtualFile
         }).success(function (data, status, headers, config) {
-                console.log("createFile Success");
                 $scope.addFile(newVirtualFile);
                 $scope.showFile(newVirtualFile);
             }).error(function (data, status, headers, config) {
