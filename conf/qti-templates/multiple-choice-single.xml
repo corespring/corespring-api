@@ -1,30 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->
 <assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
                 title="" adaptive="false" timeDependent="false">
-    <responseDeclaration identifier="RESPONSE" cardinality="single" baseType="identifier">
-        <correctResponse>
-            <value>ChoiceA</value>
-        </correctResponse>
-    </responseDeclaration>
-    <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="integer">
-        <defaultValue>
-            <value>0</value>
-        </defaultValue>
-    </outcomeDeclaration>
-    <itemBody>
-        <p>
-            Item body content
-        </p>
-        <choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="1">
-            <prompt>Item prompt?</prompt>
-            <simpleChoice identifier="ChoiceA">ChoiceA (Correct Choice)</simpleChoice>
-            <simpleChoice identifier="ChoiceB">ChoiceB</simpleChoice>
-            <simpleChoice identifier="ChoiceC">ChoiceC.</simpleChoice>
-            <simpleChoice identifier="ChoiceD">ChoiceD.</simpleChoice>
-        </choiceInteraction>
-    </itemBody>
+<correctResponseFeedback>Correct!</correctResponseFeedback>
+<incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>
+
+<responseDeclaration identifier="RESPONSE" cardinality="single" baseType="identifier">
+    <correctResponse>
+        <value>ChoiceA</value>
+    </correctResponse>
+</responseDeclaration>
+<outcomeDeclaration identifier="SCORE" cardinality="single" baseType="integer">
+    <defaultValue>
+        <value>0</value>
+    </defaultValue>
+</outcomeDeclaration>
+<itemBody>
+    <p>
+        Item body content
+    </p>
+    <choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="1">
+        <prompt>Item prompt?</prompt>
+        <simpleChoice identifier="ChoiceA">ChoiceA (Correct Choice)<feedbackInline identifer="ChoiceA" defaultFeedback="true"/></simpleChoice>
+        <simpleChoice identifier="ChoiceB">ChoiceB<feedbackInline identifer="ChoiceB" defaultFeedback="true"/></simpleChoice>
+        <simpleChoice identifier="ChoiceC">ChoiceC.<feedbackInline identifer="ChoiceC" defaultFeedback="true"/></simpleChoice>
+        <simpleChoice identifier="ChoiceD">ChoiceD.<feedbackInline identifer="ChoiceD" defaultFeedback="true"/></simpleChoice>
+    </choiceInteraction>
+</itemBody>
 
 </assessmentItem>
+
+
