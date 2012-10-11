@@ -9,11 +9,12 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
         template:'<span class="text-entry-interaction" ng-class="{noResponse: noResponse}"><input type="text" size="{{expectedLength}}" ng-model="textResponse" ng-disabled="formDisabled"></input></span>',
         link:function (scope, element, attrs, AssessmentItemController) {
             var responseIdentifier = attrs.responseidentifier;
+            scope.controller = AssessmentItemController;
 
             scope.expectedLength = attrs.expectedlength;
 
             scope.$watch('textResponse', function () {
-                AssessmentItemController.setResponse(responseIdentifier, scope.textResponse);
+                scope.controller.setResponse(responseIdentifier, scope.textResponse);
                 scope.noResponse = (scope.isEmptyItem(scope.textResponse) && scope.showNoResponseFeedback);
             });
 
