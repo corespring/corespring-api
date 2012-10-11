@@ -8,6 +8,7 @@ import controllers.testplayer.qti.xml.ExceptionMessage
 import scala.Some
 import controllers.testplayer.qti.QtiItem
 import play.api.Logger
+import controllers.Log
 
 /**
  * Provides transformations on JSON strings to add/remove csFeedbackIds to feedback elements, as well as validation for
@@ -17,9 +18,10 @@ object FeedbackProcessor extends XmlValidator {
 
   val FEEDBACK_INLINE = "feedbackInline"
   val FEEDBACK_BLOCK = "feedbackBlock"
+  val MODAL_FEEDBACK = "modalFeedback"
 
   private val FEEDBACK_NODE_LABELS = {
-    List(FEEDBACK_INLINE, FEEDBACK_BLOCK, "modalFeedback")
+    List(FEEDBACK_INLINE, FEEDBACK_BLOCK, MODAL_FEEDBACK)
   }
 
   private val csFeedbackId = "csFeedbackId"
@@ -53,8 +55,59 @@ object FeedbackProcessor extends XmlValidator {
   /**
    * Adds csFeedbackId attributes to all feedback elements
    */
-  def addFeedbackIds(xml: NodeSeq): NodeSeq = applyRewriteRuleToXml(xml, new FeedbackIdentifierInserter())
-  def addFeedbackIds(xmlString: String): String = addFeedbackIds(XML.loadString(xmlString)).toString
+  //def addFeedbackIds(xml: NodeSeq): NodeSeq = applyRewriteRuleToXml(xml, new FeedbackIdentifierInserter())
+  //def addFeedbackIds(xmlString: String): String = addFeedbackIds(XML.loadString(xmlString)).toString
+  def addFeedbackIds(elem:Elem):(Elem,Map[String,String]) = {
+    val feedbackMap = addFeedbackIds(elem,FeedbackMap(elem,Map(),new IdIncrementor))
+    (feedbackMap.elem,feedbackMap.mapping)
+  }
+  private def addFeedbackIds(elem:Elem,feedbackMap:FeedbackMap):FeedbackMap = {
+    if (FEEDBACK_NODE_LABELS.contains(elem.label)){
+      val id:Int = feedbackMap.incrementId
+      feedbackMap.mapping = feedbackMap.mapping + (id.toString -> (elem \ "@identifier").text)
+      feedbackMap.elem = elem % Attribute(None,csFeedbackId,Text(id.toString),Null)
+      feedbackMap
+    }else{
+      var innerNodes:Seq[Node] = Seq()
+      elem.child.foreach(node => node match {
+        case innerElem:Elem =>
+          val innerFeedbackMap = addFeedbackIds(innerElem,FeedbackMap(innerElem,Map(),feedbackMap.incr))
+          innerNodes = innerNodes :+ innerFeedbackMap.elem
+          feedbackMap.mapping = feedbackMap.mapping ++ innerFeedbackMap.mapping
+        case other => innerNodes = innerNodes :+ other
+      })
+      feedbackMap.elem = Elem(elem.prefix,elem.label,elem.attributes,elem.scope,innerNodes : _*)
+      feedbackMap
+    }
+  }
+  private case class FeedbackMap(var elem:Elem,var mapping:Map[String,String], incr:IdIncrementor){
+    def incrementId:Int = incr.increment
+  }
+  private class IdIncrementor{
+    private var id:Int = 0
+    def increment:Int = {id = id + 1; id}
+  }
+  /**
+   * adds the csFeedbackIds to elem given the csFeedbackId -> identifier map. returns the same element passed in
+   * @param elem
+   * @param mapping
+   * @return
+   */
+  def addFeedbackIds(elem:Elem, mapping:Map[String,String]):Elem = {
+    if (FEEDBACK_NODE_LABELS.contains(elem.label)){
+      mapping.find(field => field._2 == (elem \ "@identifier").text).map(_._1) match {
+        case Some(id) => elem % Attribute(None,csFeedbackId,Text(id),Null)
+        case None => elem
+      }
+    } else {
+      var innerNodes:Seq[Node] = Seq()
+      elem.child.foreach(_ match {
+          case innerElem:Elem => innerNodes = innerNodes :+ addFeedbackIds(innerElem,mapping)
+          case other => innerNodes = innerNodes :+ other
+      })
+      Elem(elem.prefix,elem.label,elem.attributes,elem.scope,innerNodes : _*)
+    }
+  }
 
   /**
    * Removes csFeedbackId attributes to all feedback elements
@@ -97,15 +150,17 @@ object FeedbackProcessor extends XmlValidator {
    * FIXME: It looks like the transform method is called multiple times per node, resulting in higher than desired id
    * values
    */
-  private class FeedbackIdentifierInserter extends RewriteRule {
-
-    var id: Int = 0
-
+  private class FeedbackIdentifierInserter(mapping:Map[String,String]) extends RewriteRule {
     override def transform(node: Node): Seq[Node] =
       node match {
       case elem: Elem if (FEEDBACK_NODE_LABELS.contains(elem.label)) => {
-        id = id + 1
-        elem % Attribute(None, csFeedbackId, Text(id.toString), Null)
+        mapping.find(field => field._2 == (elem \ "@identifier").text).map(_._1) match {
+          case Some(id) =>
+            elem % Attribute(None,csFeedbackId,Text(id),Null)
+            elem
+          case None =>
+        }
+        elem
       }
       case other => other
     }
