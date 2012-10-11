@@ -1,13 +1,6 @@
 describe('textentryinteraction', function () {
     'use strict';
 
-    beforeEach(function () {
-        angular.module('qti');
-        angular.module('qti.directives');
-        angular.module('qti.services');
-    });
-
-
     var prepareBackend = function ($backend) {
 
         var urls = [
@@ -39,7 +32,7 @@ describe('textentryinteraction', function () {
         return assessmentItemWrapper.replace("${contents}", content);
     };
 
-    var compileAndGetScope = function($rootScope, $compile, node){
+    var compileAndGetScope = function ($rootScope, $compile, node) {
         $compile(wrap('<textentryinteraction responseIdentifier="rid" expectedLength="1"/>'))($rootScope);
         return $rootScope.$$childHead;
     };
@@ -47,44 +40,42 @@ describe('textentryinteraction', function () {
 
     beforeEach(module('qti'));
 
+    var rootScope, compile;
+
+    beforeEach(inject(function ($compile, $rootScope, _$httpBackend_) {
+        prepareBackend(_$httpBackend_);
+        rootScope = $rootScope.$new();
+        compile = $compile;
+    }));
+
+
     it('inits correctly', function () {
-        //TODO: Can't I just inject once at the top?
-        inject(function ($compile, $rootScope, _$httpBackend_) {
-            prepareBackend(_$httpBackend_);
-            var node = '<textentryinteraction responseIdentifier="rid" expectedLength="1"/>';
-            var scope = compileAndGetScope($rootScope,$compile, node);
-            expect(scope.expectedLength).toBe('1');
-        });
+        var node = '<textentryinteraction responseIdentifier="rid" expectedLength="1"/>';
+        var scope = compileAndGetScope(rootScope, compile, node);
+        expect(scope.expectedLength).toBe('1');
     });
 
     it('interacts with controller', function () {
-        inject(function ($compile, $rootScope, _$httpBackend_) {
-            prepareBackend(_$httpBackend_);
-            var node = '<textentryinteraction responseIdentifier="rid" expectedLength="1"/>';
-            var scope = compileAndGetScope($rootScope,$compile, node);
+        var node = '<textentryinteraction responseIdentifier="rid" expectedLength="1"/>';
+        var scope = compileAndGetScope(rootScope, compile, node);
 
-            var response = "here's a response";
-            scope.$apply(function () {
-                scope.textResponse = response;
-            });
-
-            expect(scope.textResponse).toBe(response);
-            expect(scope.controller.findItemByKey("rid").value).toBe(response);
+        var response = "here's a response";
+        scope.$apply(function () {
+            scope.textResponse = response;
         });
+
+        expect(scope.textResponse).toBe(response);
+        expect(scope.controller.findItemByKey("rid").value).toBe(response);
     });
 
     it('shows/hides no response feedback', function () {
-        inject(function ($compile, $rootScope, _$httpBackend_) {
-            prepareBackend(_$httpBackend_);
-            var node = '<textentryinteraction responseIdentifier="rid" expectedLength="1"/>';
-            var scope = compileAndGetScope($rootScope,$compile, node);
-
-            scope.textResponse = "";
-            scope.$apply( function() {
-                scope.showNoResponseFeedback = true;
-            });
-
-            expect(scope.noResponse).toBe(true);
+        var node = '<textentryinteraction responseIdentifier="rid" expectedLength="1"/>';
+        var scope = compileAndGetScope(rootScope, compile, node);
+        scope.textResponse = "";
+        scope.$apply(function () {
+            scope.showNoResponseFeedback = true;
         });
+
+        expect(scope.noResponse).toBe(true);
     });
 });
