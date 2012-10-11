@@ -1,6 +1,12 @@
 #!/bin/bash
 
-make
+#aggregate js and spec files
+DECLARATIONS=`find ../public/js/corespring -type f -path '**/services.js'`
+APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/*.js'`
+SPEC_FILES=`find ./unit -type f -path '**/*.js'`
+
+cat ${DECLARATIONS}  ${APP_JS_SRC_FILES} > all_corespring.js
+cat ${SPEC_FILES} > all_specs.js
 
 # sanity check to make sure phantomjs exists in the PATH
 hash /usr/bin/env phantomjs &> /dev/null
