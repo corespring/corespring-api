@@ -8,7 +8,7 @@ describe('Testing Numbered lines directive', function() {
     compile = $compile;
   }));
 
-  it('should say hallo to the World', function() {
+  it('numberedLines div should transform into ordered list and line into a li', function() {
     var elm = compile(
         [
          '<div class="numberedLines">',
