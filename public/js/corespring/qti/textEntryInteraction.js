@@ -11,6 +11,8 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
             var responseIdentifier = attrs.responseidentifier;
             scope.controller = AssessmentItemController;
 
+            scope.CSS = { correct: 'correct-response', incorrect: 'incorrect-response'};
+
             scope.expectedLength = attrs.expectedlength;
 
             scope.$watch('textResponse', function () {
@@ -22,10 +24,15 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
                 scope.noResponse = (scope.isEmptyItem(scope.textResponse) && scope.showNoResponseFeedback);
             });
 
-            scope.$on('resetUI', function (event) {
+
+            var removeCss = function(){
                 element
                     .removeClass('correct-response')
                     .removeClass('incorrect-response');
+            };
+
+            scope.$on('resetUI', function (event) {
+                removeCss();
             });
 
             var isCorrect = function (value) {
@@ -38,6 +45,7 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
 
                 var correctResponse = responses[responseIdentifier];
                 var className = isCorrect(correctResponse) ? 'correct-response' : 'incorrect-response';
+                removeCss();
                 element.toggleClass(className);
             });
         }
