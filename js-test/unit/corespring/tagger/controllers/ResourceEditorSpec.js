@@ -64,7 +64,6 @@ describe('ResourceEditor should', function () {
 
 
     it('handle enterEditor', inject(function ($rootScope) {
-        expect(3).toBe(4);
         expect(scope.resourceToEdit).toBe(undefined);
         var resource = { name:"testResource", files:[
             { name:"testFile", contentType:"xml", content:"<root/>", default:true}
