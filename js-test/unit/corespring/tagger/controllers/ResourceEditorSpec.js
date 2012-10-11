@@ -4,13 +4,14 @@
 describe('ResourceEditor should', function () {
 
   beforeEach( function(){
-    window.servicesModule
+    angular.module('tagger.services')
            .factory('AccessToken', [ function () {
               return { token: "1" };
             }]
         );
 
-  })
+  });
+
   var scope, ctrl, $httpBackend;
 
   beforeEach(module('tagger.services'));
