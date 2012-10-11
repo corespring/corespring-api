@@ -2,7 +2,7 @@
 
 #aggregate js and spec files
 DECLARATIONS=`find ../public/js/corespring -type f -path '**/services.js'`
-APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/*.js'`
+APP_JS_SRC_FILES=`find ../public/js/corespring \( -type f -path '**/*.js' -and -not -name '*print*' \)`
 SPEC_FILES=`find ./unit -type f -path '**/*.js'`
 
 cat ${DECLARATIONS}  ${APP_JS_SRC_FILES} > all_corespring.js
