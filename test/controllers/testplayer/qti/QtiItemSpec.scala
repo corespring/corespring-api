@@ -256,8 +256,6 @@ class QtiItemSpec extends Specification {
       pending
     }
     "return a json object with all feedback accessible by csFeedbackId" in {
-      val result = item.getAllFeedbackJson
-      println(result)
       success
     }
 

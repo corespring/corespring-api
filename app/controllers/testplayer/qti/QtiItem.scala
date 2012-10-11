@@ -62,7 +62,7 @@ class QtiItem(rootNode: Node) {
     itemResponses.map(feedback(_)).flatten
   }
 
-  def feedback(itemResponse: ItemResponse): Seq[FeedbackElement] = {
+  private def feedback(itemResponse: ItemResponse): Seq[FeedbackElement] = {
     feedback(itemResponse.id, itemResponse.value)
   }
 
@@ -78,7 +78,7 @@ class QtiItem(rootNode: Node) {
     }
   }
 
-  def feedback(responseIdentifier: String, choiceIdentifiers: Seq[String]): Seq[FeedbackElement] =
+  private def feedback(responseIdentifier: String, choiceIdentifiers: Seq[String]): Seq[FeedbackElement] =
     getFeedbackForResponse(processResponse(responseIdentifier, choiceIdentifiers))
 
   private def getFeedbackForResponse(responses: Map[String, String]): Seq[FeedbackElement] = {
@@ -93,7 +93,7 @@ class QtiItem(rootNode: Node) {
     (feedbackInlines ++ modalFeedbacks)
   }
 
-  def getAllFeedbackJson: String = {
+  private def getAllFeedbackJson: String = {
     Json.toJson(getAllFeedbackElements.foldLeft(Map[String, String]()){(map, feedback) => {
       val json = Json.toJson(feedback)
       (json \ "csFeedbackId").asOpt[String] match {
@@ -105,7 +105,7 @@ class QtiItem(rootNode: Node) {
     }}.filterKeys(!_.isEmpty)).toString
   }
 
-  def getBasicFeedbackMatch(responseIdentifier: String, identifier: String): Option[FeedbackElement] = {
+  private def getBasicFeedbackMatch(responseIdentifier: String, identifier: String): Option[FeedbackElement] = {
     responseForIdentifier(responseIdentifier) match {
       case Some(responseDeclaration: ResponseDeclaration) => {
         responseToFeedbackMap.get(responseIdentifier) match {

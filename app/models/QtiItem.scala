@@ -126,6 +126,7 @@ object SimpleChoice{
     (node \ "feedbackInline").headOption.map(FeedbackInline(_,Some(responseIdentifier)))
   )
 }
+case class ModalFeedback(csFeedbackId:String, responseIdentifier:String)
 case class FeedbackInline(csFeedbackId:String, responseIdentifier:String, identifier:String, content: String, var defaultFeedback:Boolean = false, var incorrectResponse:Boolean = false){
   def defaultContent(qtiItem:QtiItem):String =
     qtiItem.responseDeclarations.find(_.identifier == responseIdentifier) match {
