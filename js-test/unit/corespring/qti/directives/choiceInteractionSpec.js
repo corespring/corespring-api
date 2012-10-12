@@ -110,13 +110,11 @@ describe('qtiDirectives.choiceinteraction', function () {
             rootScope.$apply( function() {
                 rootScope.showNoResponseFeedback = true;
             });
-            interaction.scope.$digest();
             expect(interaction.scope.noResponse).toBe(true);
 
             rootScope.$apply( function() {
                 rootScope.showNoResponseFeedback = false;
             });
-            interaction.scope.$digest();
             expect(interaction.scope.noResponse).toBe(false);
 
             interaction.scope.setChosenItem("a");
@@ -124,7 +122,6 @@ describe('qtiDirectives.choiceinteraction', function () {
             rootScope.$apply( function() {
                 rootScope.showNoResponseFeedback = true;
             });
-            interaction.scope.$digest();
             expect(interaction.scope.noResponse).toBe(false);
         });
     });
