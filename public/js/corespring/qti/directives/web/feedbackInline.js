@@ -23,9 +23,7 @@ var feedbackDirectiveFunction = function (QtiUtils) {
                 if (!responses || scope.isFeedbackEnabled() == false) return;
 
                 var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
-                if (feedback) {
-                    scope.feedback = feedback;
-                }
+                scope.feedback = ( feedback || "" );
             });
             scope.feedback = "";
         },
