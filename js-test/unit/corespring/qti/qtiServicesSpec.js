@@ -49,4 +49,22 @@ describe('qtiServices', function () {
             expect(service.getResponseById('x', [])).toBe(null);
         });
     });
+
+    describe('getResponseValue', function () {
+
+        it("gets the value", function(){
+            expect(
+                service.getResponseValue("one", [ {id: "one", value: "hello" }])).toBe("hello")
+
+            expect(
+                service.getResponseValue("one", [], "default")
+            ).toBe("default");
+
+            expect(
+                service.getResponseValue("one", [] )
+            ).toBe("");
+        });
+
+    });
+
 });

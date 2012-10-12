@@ -15,16 +15,7 @@ qtiServices
 }]
 );
 
-//The session service
 qtiServices.factory('AssessmentSessionService', ['$resource', function ($resource) {
-
-    var mockData = {
-      sessionData: {
-          feedbackContents: {
-//              winterDiscontent: "Wrong again!"
-          }
-      }
-    };
 
     var baseUrl = '/api/v1/items/:itemId/sessions';
 
@@ -38,63 +29,9 @@ qtiServices.factory('AssessmentSessionService', ['$resource', function ($resourc
         }
     );
 
-    //stash the default update function from angular
-    var ngSave = AssessmentSessionService.save;
-
-    AssessmentSessionService.save = function() {
-
-        var getCallbackIndex = function(argArray){
-            if(!argArray){ return -1; }
-            for(var i = 0; i < argArray.length ; i++){
-                if( typeof(argArray[i]) == "function"){
-                    return i;
-                }
-            }
-            return -1;
-        };
-
-
-        var callbackIndex = getCallbackIndex(arguments);
-
-        if( callbackIndex == -1 ){
-            ngSave.apply( AssessmentSessionService, arguments );
-        } else {
-
-            var callback = arguments[callbackIndex];
-
-
-            /**
-             * A callback wrapper - so we can mock some responses whilst we are developing.
-             * @param data
-             */
-            var callbackWrapper = function(data){
-
-                if( !data.sessionData || !data.sessionData.feedbackContents ){
-                    callback(data);
-                } else {
-                     //angular.extend(data.sessionData, mockData.sessionData);
-
-                    for( var x in mockData.sessionData.feedbackContents ){
-                        if(!data.sessionData.feedbackContents[x]){
-                            data.sessionData.feedbackContents[x] = mockData.sessionData.feedbackContents[x];
-                        }
-                    }
-                    callback(data);
-                }
-            };
-
-            var newArguments = [];
-            for( var i = 0; i < arguments.length ; i++ ){
-                newArguments.push( callbackIndex == i ? callbackWrapper : arguments[i]);
-            }
-
-            ngSave.apply(AssessmentSessionService, newArguments);
-        }
-    };
-
     AssessmentSessionService.getCreateUrl = function( itemId, accessToken ){
         return baseUrl.replace(":itemId", itemId) + "?access_token=" + accessToken;
-    }
+    };
 
     return AssessmentSessionService;
 }]);
