@@ -1,5 +1,5 @@
 describe('Testing Numbered lines directive', function() {
-  var $scope, ctrl, compile;
+  var $scope, compile;
 
   beforeEach(module('qti.directives'));
 
