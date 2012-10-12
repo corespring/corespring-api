@@ -2,9 +2,9 @@
 
 #aggregate js and spec files
 DECLARATIONS=`find ../public/js/corespring -type f -path '**/services.js'`
-#We are ignoring the -print.js directives here
-#APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/*.js' | grep -v 'print.js'`
-APP_JS_SRC_FILES=`find ../public/js/corespring \( -type f -path '**/*.js' -and -not -name '*print*' \)`
+
+#We are ignoring the print related directives here
+APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/*.js' | grep -v '/print/'`
 FRONTLOAD_SPEC_FILES=`find ./unit -type f -path '**/*-priority-1.js'`
 SPEC_FILES=`find ./unit \( -type f -path '**/*.js' -and -not -name '*priority*' \)`
 
