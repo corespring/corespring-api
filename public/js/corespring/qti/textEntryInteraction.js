@@ -27,8 +27,8 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
 
             var removeCss = function(){
                 element
-                    .removeClass('correct-response')
-                    .removeClass('incorrect-response');
+                    .removeClass(scope.CSS.correct)
+                    .removeClass(scope.CSS.incorrect);
             };
 
             scope.$on('resetUI', function (event) {
@@ -44,7 +44,7 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
                 if (!scope.isFeedbackEnabled()) return;
 
                 var correctResponse = responses[responseIdentifier];
-                var className = isCorrect(correctResponse) ? 'correct-response' : 'incorrect-response';
+                var className = isCorrect(correctResponse) ? scope.CSS.correct : scope.CSS.incorrect;
                 removeCss();
                 element.toggleClass(className);
             });

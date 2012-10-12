@@ -102,12 +102,17 @@ qtiServices.factory('AssessmentSessionService', ['$resource', function ($resourc
 qtiServices
     .factory('QtiUtils', function () {
         var QtiUtils = {};
+
+        QtiUtils.ERROR = {
+            unefinedElements: "Error: can't compare 2 undefined elements"
+        };
+
         // TODO - this will need to support other comparisons... e.g. two arrays for orderInteraction to ensure correct order & other QTI response types like matching?
         // function checks if value == response, or if response is array it checks if the array contains the value
         QtiUtils.compare = function (choiceValue, response) {
 
             if (choiceValue === undefined && response === undefined) {
-                throw "Error: can't compare 2 undefined elements";
+                throw QtiUtils.ERROR.unefinedElements;
             }
 
             if (response instanceof Array) {
@@ -124,12 +129,6 @@ qtiServices
             }
         };
 
-        // shared service for re-arranging simple-choice elements according to
-        // shuffle and fixed attributes. Should be called from compile functions for interactions that support these props
-        QtiUtils.shuffleChoices = function (element) {
-            // TODO - implement me, and call this from compile function in choiceInteraction, orderInteraction print/web
-        };
-
         QtiUtils.getResponseById = function (id, responses) {
 
             if (!id || !responses) {
@@ -141,6 +140,8 @@ qtiServices
                     return responses[i];
                 }
             }
+
+            return null;
         };
 
 
