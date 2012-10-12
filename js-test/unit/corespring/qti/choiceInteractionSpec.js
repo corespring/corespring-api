@@ -30,6 +30,16 @@ describe('qtiDirectives.choiceinteraction', function () {
         '</choiceInteraction>'
     ].join("\n");
 
+
+    var getRadioInteraction = function(){
+        return getInteraction();
+    };
+
+    var getCheckboxInteraction = function(){
+        return getInteraction( basicNode.replace("${maxChoices}", 0));
+    };
+
+
     var getInteraction = function (node) {
 
         node = (node || basicNode.replace("${maxChoices}", 1));
@@ -55,8 +65,9 @@ describe('qtiDirectives.choiceinteraction', function () {
     }));
 
     describe("compilation", function () {
+
         it('inits checkboxes correctly', function () {
-            var interaction = getInteraction(basicNode.replace("${maxChoices}", "0"));
+            var interaction = getCheckboxInteraction();
             expect(interaction.scope).not.toBe(null);
             var element = interaction.element;
             expect(element.find('simplechoice').length).toBe(2);
@@ -64,7 +75,7 @@ describe('qtiDirectives.choiceinteraction', function () {
         });
 
         it('inits radios correctly', function () {
-            var interaction = getInteraction();
+            var interaction = getRadioInteraction();
             expect(interaction.scope).not.toBe(null);
             var element = interaction.element;
             expect(element.find('simplechoice').length).toBe(2);
@@ -73,8 +84,24 @@ describe('qtiDirectives.choiceinteraction', function () {
     });
 
     describe("behaviour", function () {
-        it('dummy', function () {
-            expect(true).toBe(true);
+        it('sets chosen item for radios', function () {
+            var interaction = getRadioInteraction();
+            interaction.scope.setChosenItem("a");
+            expect(interaction.scope.chosenItem).toBe("a");
+            expect(interaction.scope.controller.findItemByKey("question").value).toBe("a");
+        });
+
+        it('sets chosen item for checkboxes', function () {
+            var interaction = getCheckboxInteraction();
+            interaction.scope.setChosenItem("a");
+            expect(interaction.scope.chosenItem).toEqual(["a"]);
+            expect(interaction.scope.controller.findItemByKey("question").value).toEqual(["a"]);
+            interaction.scope.setChosenItem("b");
+            expect(interaction.scope.chosenItem).toEqual(["a","b"]);
+            expect(interaction.scope.controller.findItemByKey("question").value).toEqual(["a","b"]);
+            interaction.scope.setChosenItem("b");
+            expect(interaction.scope.chosenItem).toEqual(["a"]);
+            expect(interaction.scope.controller.findItemByKey("question").value).toEqual(["a"]);
         });
     });
 });

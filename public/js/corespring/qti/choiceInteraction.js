@@ -207,37 +207,37 @@ qtiDirectives.directive('choiceinteraction', function () {
 
     var link = function (scope, element, attrs, AssessmentItemCtrl, $timeout) {
 
+        scope.controller = AssessmentItemCtrl;
+
         var maxChoices = attrs['maxchoices'];
-        // the model for an interaction is specified by the responseIdentifier
         var modelToUpdate = attrs["responseidentifier"];
 
-        // TODO need to handle shuffle and fixed options... probably need to rearrange the DOM in compile function for this
+        var mode = maxChoices == 1 ? "radio" : "checkbox";
 
-        AssessmentItemCtrl.setResponse(modelToUpdate, undefined);
+        scope.controller.setResponse(modelToUpdate, undefined);
 
         scope.$watch('showNoResponseFeedback', function(newVal, oldVal) {
             scope.noResponse = (scope.isEmptyItem(scope.chosenItem) && scope.showNoResponseFeedback);
         });
 
+        var toggleChosenItem = function(value){
+            scope.chosenItem = (scope.chosenItem || []);
+
+            if (scope.chosenItem.indexOf(value) == -1) {
+                scope.chosenItem.push(value);
+            } else {
+                var idx = scope.chosenItem.indexOf(value);
+                if (idx != -1) scope.chosenItem.splice(idx, 1);
+            }
+        };
+
         scope.setChosenItem = function (value) {
-            if (maxChoices != 1) {
-                // multi choice means array model
-                if (scope.chosenItem == undefined) {
-                    scope.chosenItem = [];
-                }
-                // check if it's in the array
-                if (scope.chosenItem.indexOf(value) == -1) {
-                    // if not, push it
-                    scope.chosenItem.push(value);
-                } else {
-                    // otherwise remove it
-                    var idx = scope.chosenItem.indexOf(value); // Find the index
-                    if (idx != -1) scope.chosenItem.splice(idx, 1); // Remove it if really found!
-                }
-                AssessmentItemCtrl.setResponse(modelToUpdate, scope.chosenItem);
+            if (mode == "checkbox") {
+                toggleChosenItem(value);
+                scope.controller.setResponse(modelToUpdate, scope.chosenItem);
             } else {
                 scope.chosenItem = value;
-                AssessmentItemCtrl.setResponse(modelToUpdate, value);
+                scope.controller.setResponse(modelToUpdate, value);
             }
             scope.noResponse = (scope.isEmptyItem(scope.chosenItem) && scope.showNoResponseFeedback);
         };
