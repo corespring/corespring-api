@@ -1,35 +1,40 @@
-describe('Testing Numbered lines directive', function() {
-  var $scope, compile;
+describe('qtiDirectives.numberedLines', function () {
 
-  beforeEach(module('qti.directives'));
+    'use strict';
 
-  beforeEach(inject(function($rootScope, $controller, $compile) {
-    $scope = $rootScope.$new();
-    compile = $compile;
-  }));
+    var $scope, compile;
 
-  it('numberedLines div should transform into ordered list and line into a li', function() {
-    var elm = compile(
-        [
-         '<div class="numberedLines">',
-            '<line>Line 1</line>',
-            '<line>Line 2</line>',
-         '</div>'
-        ].join(''))($scope);
+    beforeEach(module('qti.directives'));
 
-      expect(elm.html()).toBe([
-        '<ol ng-transclude="">',
-            '<line class="ng-scope">',
+    beforeEach(inject(function ($rootScope, $controller, $compile) {
+        $scope = $rootScope.$new();
+        compile = $compile;
+    }));
+
+    describe('compilation', function () {
+        it('numberedLines div should transform into ordered list and each line into an li', function () {
+            var elm = compile(
+                [
+                    '<div class="numberedLines">',
+                    '<line>Line 1</line>',
+                    '<line>Line 2</line>',
+                    '</div>'
+                ].join(''))($scope);
+
+            expect(elm.html()).toBe([
+                '<ol ng-transclude="">',
+                '<line class="ng-scope">',
                 '<li ng-transclude="">',
-                    '<span class="ng-scope">Line 1</span>',
+                '<span class="ng-scope">Line 1</span>',
                 '</li>',
-            '</line>',
-            '<line class="ng-scope">',
+                '</line>',
+                '<line class="ng-scope">',
                 '<li ng-transclude="">',
-                    '<span class="ng-scope">Line 2</span>',
+                '<span class="ng-scope">Line 2</span>',
                 '</li>',
-            '</line>',
-        '</ol>'
-    ].join(''));
-  });
+                '</line>',
+                '</ol>'
+            ].join(''));
+        })
+    })
 });
