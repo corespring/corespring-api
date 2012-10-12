@@ -103,5 +103,29 @@ describe('qtiDirectives.choiceinteraction', function () {
             expect(interaction.scope.chosenItem).toEqual(["a"]);
             expect(interaction.scope.controller.findItemByKey("question").value).toEqual(["a"]);
         });
+
+        it('watches showNoResponseFeedback', function(){
+            var interaction = getRadioInteraction();
+
+            rootScope.$apply( function() {
+                rootScope.showNoResponseFeedback = true;
+            });
+            interaction.scope.$digest();
+            expect(interaction.scope.noResponse).toBe(true);
+
+            rootScope.$apply( function() {
+                rootScope.showNoResponseFeedback = false;
+            });
+            interaction.scope.$digest();
+            expect(interaction.scope.noResponse).toBe(false);
+
+            interaction.scope.setChosenItem("a");
+
+            rootScope.$apply( function() {
+                rootScope.showNoResponseFeedback = true;
+            });
+            interaction.scope.$digest();
+            expect(interaction.scope.noResponse).toBe(false);
+        });
     });
 });
