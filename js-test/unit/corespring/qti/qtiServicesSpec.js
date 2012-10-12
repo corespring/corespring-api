@@ -1,4 +1,4 @@
-describe('qtiServices', function () {
+describe('qtiServices.QtiUtils', function () {
 
     'use strict';
 
