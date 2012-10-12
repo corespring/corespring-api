@@ -32,7 +32,6 @@ describe('qtiDirectives.textentryinteraction', function () {
     var compileAndGetScope = function ($rootScope, $compile, node) {
         var element = $compile(wrap(node))($rootScope);
 
-        console.log("element: " + element.html());
         return { element:element.children(), scope:$rootScope.$$childHead};
     };
 
@@ -86,7 +85,6 @@ describe('qtiDirectives.textentryinteraction', function () {
 
         it('updates the ui on response received', function () {
             var interaction = getInteraction();
-            console.log("itemSession: " + rootScope.itemSession);
 
             var element = interaction.element;
             var scope = interaction.scope;

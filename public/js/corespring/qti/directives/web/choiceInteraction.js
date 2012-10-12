@@ -93,6 +93,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                 };
 
                 var applyCss = function (correct) {
+                    tidyUp();
                     var className = correct ? 'correct-selection' : 'incorrect-selection';
                     element.toggleClass(className);
                 };
@@ -121,8 +122,10 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                     var correctResponse = responses[responseIdentifier];
                     var isCorrect = isOurResponseCorrect(correctResponse);
 
+                    tidyUp();
+
                     if (isCorrect) {
-                        element.toggleClass('correct-response');
+                        element.addClass('correct-response');
                     }
 
                     if (!isSelected()) return;
