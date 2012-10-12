@@ -73,6 +73,13 @@ input[type="submit"] {
     margin:20px 0 10px auto;
 }
 
+/* FEEDBACK FOR HORIZONTAL MULTIPLE CHOICE */
+
+.simple-choice-inner-horizontal {
+    line-height: 20px;
+    text-align: center;
+}
+
 /*-------------------------------------------------------------------------------------------*/
 /*  SETUP */
 /*-------------------------------------------------------------------------------------------*/
