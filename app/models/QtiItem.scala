@@ -1,14 +1,15 @@
 package models.bleezmo
 
 import scala.xml._
+import play.api.libs.json.{JsString, JsObject, JsValue, Writes}
 
-case class QtiItem(responseDeclarations:Seq[ResponseDeclaration],itemBody:ItemBody){
+case class QtiItem(responseDeclarations:Seq[ResponseDeclaration],itemBody:ItemBody, modalFeedbacks:Seq[FeedbackInline]){
   var defaultCorrect = "That is correct!"
   var defaultIncorrect = "That is incorrect"
 }
 object QtiItem{
   def apply(node:Node):QtiItem = {
-    val qtiItem = QtiItem((node \ "responseDeclaration").map(ResponseDeclaration(_)), ItemBody((node \ "itemBody").head))
+    val qtiItem = QtiItem((node \ "responseDeclaration").map(ResponseDeclaration(_)), ItemBody((node \ "itemBody").head), (node \ "modalFeedbacks").map(FeedbackInline(_,None)))
     (node \ "correctResponseFeedback").headOption match {
       case Some(correctResponseFeedback) => qtiItem.defaultCorrect = correctResponseFeedback.child.text
       case None =>
@@ -19,7 +20,13 @@ object QtiItem{
     }
     qtiItem
   }
-
+  def getAllFeedback(qtiItem:QtiItem):Seq[FeedbackInline] = {
+    qtiItem.modalFeedbacks ++ qtiItem.itemBody.feedbackBlocks ++ qtiItem.itemBody.interactions.map(_ match {
+      case ChoiceInteraction(_,choices) => choices.map(sc => sc.feedbackInline)
+      case OrderInteraction(_,choices) => choices.map(sc => sc.feedbackInline)
+      case _ => Seq()
+    }).flatten.flatten
+  }
 }
 case class ResponseDeclaration(identifier:String, cardinality:String, correctResponse:Option[CorrectResponse]){
   def isCorrect(responseIdentifier:String):Boolean = correctResponse match {
@@ -94,7 +101,6 @@ object ItemBody{
         case "choiceInteraction" => interactions = interactions :+ ChoiceInteraction(inner)
         case "orderInteraction" => interactions = interactions :+ OrderInteraction(inner)
         case "feedbackBlock" => feedbackBlocks = feedbackBlocks :+ FeedbackInline(inner,None)
-
         case _ =>
       }
     })
@@ -161,6 +167,15 @@ object FeedbackInline{
     }
     feedbackInline
   }
-
+  implicit object FeedbackInlineWrites extends Writes[FeedbackInline]{
+    override def writes(fi:FeedbackInline):JsValue = {
+      JsObject(Seq(
+        "csFeedbackId" -> JsString(fi.csFeedbackId),
+        "responseIdentifier" -> JsString(fi.responseIdentifier),
+        "identifier" -> JsString(fi.identifier),
+        "body" -> JsString(fi.content)
+      ))
+    }
+  }
 }
 

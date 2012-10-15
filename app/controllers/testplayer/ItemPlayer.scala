@@ -17,6 +17,7 @@ import api.processors.FeedbackProcessor
 import play.api.cache.Cache
 import play.api.Play.current
 import scala.Some
+import models.bleezmo.{FeedbackInline, ChoiceInteraction, OrderInteraction}
 
 case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: Int = -1)
 
@@ -65,7 +66,7 @@ object ItemPlayer extends BaseApi with ItemResources{
 
           val (xmlWithCsFeedbackIds,mapping) = FeedbackProcessor.addFeedbackIds(xmlData)
 
-          val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds \ "itemBody"))
+          val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds))
 
           val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
 
@@ -114,8 +115,17 @@ object ItemPlayer extends BaseApi with ItemResources{
   def getFeedbackInline(itemId: String, responseIdentifier: String, choiceIdentifier: String) = ApiAction { request =>
     getItemXMLByObjectId(itemId, request.ctx.organization) match {
       case Some(rootElement: Elem) => {
-        val item = new QtiItem(rootElement)
-        val feedback: Seq[FeedbackElement] = item.feedback(responseIdentifier, choiceIdentifier)
+        val choiceIdentifiers:Seq[String] = if (choiceIdentifier.contains(",")) choiceIdentifier.split(",") else Seq(choiceIdentifier)
+        val item = bleezmo.QtiItem(rootElement)
+        val feedback: Seq[FeedbackInline] = item.itemBody.interactions.find(_.responseIdentifier == responseIdentifier) match {
+          case Some(interaction) =>
+            interaction match {
+            case ChoiceInteraction(_,choices) => choices.filter(sc => choiceIdentifiers.contains(sc.identifier)).flatMap(_.feedbackInline)
+            case OrderInteraction(_,choices) => choices.filter(sc => choiceIdentifiers.contains(sc.identifier)).flatMap(_.feedbackInline)
+            case _ => Seq()
+          }
+          case None => Seq()
+        }
         if (feedback.nonEmpty) {
           Ok(Json.toJson(Map("feedback" -> Json.toJson(feedback))))
         } else {

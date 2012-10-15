@@ -58,15 +58,15 @@ class QtiItem(rootNode: Node) {
   private def defaultOutcome: Map[String, String] =
     outcomeDeclarations.map(outcomeDeclaration => (outcomeDeclaration.identifier, outcomeDeclaration.value)).toMap
 
-  def feedback(itemResponses: Seq[ItemResponse]): Seq[FeedbackElement] = {
+  private def feedback(itemResponses: Seq[ItemResponse]): Seq[FeedbackElement] = {
     itemResponses.map(feedback(_)).flatten
   }
 
-  def feedback(itemResponse: ItemResponse): Seq[FeedbackElement] = {
+  private def feedback(itemResponse: ItemResponse): Seq[FeedbackElement] = {
     feedback(itemResponse.id, itemResponse.value)
   }
 
-  def feedback(responseIdentifier: String, choiceIdentifier: String): Seq[FeedbackElement] = {
+  private def feedback(responseIdentifier: String, choiceIdentifier: String): Seq[FeedbackElement] = {
     if (choiceIdentifier.contains(",")) {
       feedback(responseIdentifier, choiceIdentifier.split(','))
     }
@@ -78,7 +78,7 @@ class QtiItem(rootNode: Node) {
     }
   }
 
-  def feedback(responseIdentifier: String, choiceIdentifiers: Seq[String]): Seq[FeedbackElement] =
+  private def feedback(responseIdentifier: String, choiceIdentifiers: Seq[String]): Seq[FeedbackElement] =
     getFeedbackForResponse(processResponse(responseIdentifier, choiceIdentifiers))
 
   private def getFeedbackForResponse(responses: Map[String, String]): Seq[FeedbackElement] = {
@@ -93,7 +93,7 @@ class QtiItem(rootNode: Node) {
     (feedbackInlines ++ modalFeedbacks)
   }
 
-  def getAllFeedbackJson: String = {
+  private def getAllFeedbackJson: String = {
     Json.toJson(getAllFeedbackElements.foldLeft(Map[String, String]()){(map, feedback) => {
       val json = Json.toJson(feedback)
       (json \ "csFeedbackId").asOpt[String] match {
@@ -105,7 +105,7 @@ class QtiItem(rootNode: Node) {
     }}.filterKeys(!_.isEmpty)).toString
   }
 
-  def getBasicFeedbackMatch(responseIdentifier: String, identifier: String): Option[FeedbackElement] = {
+  private def getBasicFeedbackMatch(responseIdentifier: String, identifier: String): Option[FeedbackElement] = {
     responseForIdentifier(responseIdentifier) match {
       case Some(responseDeclaration: ResponseDeclaration) => {
         responseToFeedbackMap.get(responseIdentifier) match {
@@ -123,7 +123,7 @@ class QtiItem(rootNode: Node) {
   }
 
   // There must be a better FP way to do this
-  def getIdentifiersForCsFeedbackId(csFeedbackId: String): Option[(String, String)] = {
+  private def getIdentifiersForCsFeedbackId(csFeedbackId: String): Option[(String, String)] = {
     responseToFeedbackMap.foreach({ case (responseIdentifier, choiceToFeedbackMap) => {
       choiceToFeedbackMap.foreach({ case (choiceIdentifier, feedbackElement) => {
         if (feedbackElement.csFeedbackId equals csFeedbackId) {

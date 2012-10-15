@@ -9,6 +9,7 @@ import scala.Some
 import controllers.testplayer.qti.QtiItem
 import play.api.Logger
 import controllers.Log
+import models.bleezmo.{OrderInteraction, ChoiceInteraction}
 
 /**
  * Provides transformations on JSON strings to add/remove csFeedbackIds to feedback elements, as well as validation for
@@ -114,8 +115,9 @@ object FeedbackProcessor extends XmlValidator {
    */
   def removeFeedbackIds(qtiXml: String): String = applyRewriteRuleToXml(qtiXml, feedbackIdentifierRemoverRule)
 
-  def addOutcomeIdentifiers(qtiXml: NodeSeq): NodeSeq = {
-    applyRewriteRuleToXml(qtiXml, new FeedbackOutcomeIdentifierInserter(new QtiItem(qtiXml.head)))
+  def addOutcomeIdentifiers(qtiXml: Elem): NodeSeq = {
+    val newXml = applyRewriteRuleToXml(qtiXml, new FeedbackOutcomeIdentifierInserter(models.bleezmo.QtiItem(qtiXml)))
+    newXml
   }
 
   def filterFeedbackContent(xml: NodeSeq) = removeResponsesTransformer.transform(xml)
@@ -173,14 +175,28 @@ object FeedbackProcessor extends XmlValidator {
    *
    * @param qtiItem used to query the item structure for response identifier
    */
-  private class FeedbackOutcomeIdentifierInserter(qtiItem: QtiItem) extends RewriteRule {
+  private class FeedbackOutcomeIdentifierInserter(qtiItem: models.bleezmo.QtiItem) extends RewriteRule {
 
     override def transform(node: Node): Seq[Node] = node match {
       case elem: Elem => {
         if (elem.label equals FEEDBACK_INLINE) {
           elem.attribute(FeedbackProcessor.csFeedbackId) match {
             case Some(csFeedbackId) => {
-              qtiItem.getIdentifiersForCsFeedbackId(csFeedbackId.toString) match {
+              val optIdentifiers:Option[(String,String)] = qtiItem.itemBody.interactions.map(i =>
+                i match {
+                case ChoiceInteraction(responseIdentifier,choices) =>
+                  choices.find(_.feedbackInline.exists(_.csFeedbackId == csFeedbackId.text)) match {
+                    case Some(sc) => Some((responseIdentifier -> sc.identifier))
+                    case None => None
+                  }
+                case OrderInteraction(responseIdentifier,choices) =>
+                  choices.find(_.feedbackInline.exists(_.csFeedbackId == csFeedbackId.text)) match {
+                    case Some(sc) => Some((responseIdentifier -> sc.identifier))
+                    case None => None
+                  }
+                case _ => None
+              }).find(_.isDefined).getOrElse(None)
+              optIdentifiers match {
                 case Some(identifiers) => addIdentifiersToElem(elem, identifiers._1, identifiers._2)
                 case None => elem
               }

@@ -107,14 +107,14 @@ object ItemSessionApi extends BaseApi {
     }
   }
 
-  private def getSessionFeedback(itemId: ObjectId, itemSession: ItemSession): Map[String, String] = {
-    Item.getQti(itemId) match {
-      case Right(xmlData) => optMap[String, String](
-        new QtiItem(scala.xml.XML.loadString(xmlData)).feedback(itemSession.responses).map(feedback => (feedback.csFeedbackId, feedback.body))
-      ).getOrElse(Map[String, String]())
-      case Left(error) => Map()
-    }
-  }
+//  private def getSessionFeedback(itemId: ObjectId, itemSession: ItemSession): Map[String, String] = {
+//    Item.getQti(itemId) match {
+//      case Right(xmlData) => optMap[String, String](
+//        new QtiItem(scala.xml.XML.loadString(xmlData)).feedback(itemSession.responses).map(feedback => (feedback.csFeedbackId, feedback.body))
+//      ).getOrElse(Map[String, String]())
+//      case Left(error) => Map()
+//    }
+//  }
 
   /**
    * Serves the PUT request for an item session
