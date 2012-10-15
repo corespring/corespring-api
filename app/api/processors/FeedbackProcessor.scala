@@ -6,10 +6,9 @@ import controllers.testplayer.qti.xml.{XmlValidationResult, XmlValidator}
 import controllers.testplayer.qti.xml.XmlValidationResult.success
 import controllers.testplayer.qti.xml.ExceptionMessage
 import scala.Some
-import controllers.testplayer.qti.QtiItem
 import play.api.Logger
 import controllers.Log
-import models.bleezmo.{OrderInteraction, ChoiceInteraction}
+import controllers.testplayer.qti._
 
 /**
  * Provides transformations on JSON strings to add/remove csFeedbackIds to feedback elements, as well as validation for
@@ -116,7 +115,7 @@ object FeedbackProcessor extends XmlValidator {
   def removeFeedbackIds(qtiXml: String): String = applyRewriteRuleToXml(qtiXml, feedbackIdentifierRemoverRule)
 
   def addOutcomeIdentifiers(qtiXml: Elem): NodeSeq = {
-    val newXml = applyRewriteRuleToXml(qtiXml, new FeedbackOutcomeIdentifierInserter(models.bleezmo.QtiItem(qtiXml)))
+    val newXml = applyRewriteRuleToXml(qtiXml, new FeedbackOutcomeIdentifierInserter(QtiItem(qtiXml)))
     newXml
   }
 
@@ -175,7 +174,7 @@ object FeedbackProcessor extends XmlValidator {
    *
    * @param qtiItem used to query the item structure for response identifier
    */
-  private class FeedbackOutcomeIdentifierInserter(qtiItem: models.bleezmo.QtiItem) extends RewriteRule {
+  private class FeedbackOutcomeIdentifierInserter(qtiItem: QtiItem) extends RewriteRule {
 
     override def transform(node: Node): Seq[Node] = node match {
       case elem: Elem => {

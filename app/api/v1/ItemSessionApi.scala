@@ -10,7 +10,6 @@ import controllers.{Log, Utils}
 import scala.Left
 import scala.Some
 import scala.Right
-import controllers.testplayer.qti.QtiItem
 import xml.Elem
 import play.api.Play.current
 import play.api.Logger

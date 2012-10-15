@@ -16,8 +16,8 @@ import play.api.Play
 import play.api.Play.current
 import akka.actor.FSM.->
 import scala.xml._
-import controllers.testplayer.qti.QtiItem
 import api.processors.FeedbackProcessor
+import controllers.testplayer.qti.QtiItem
 
 
 /**
@@ -100,7 +100,7 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
     }
   }
 
-  def getSessionData(xml : Elem,responses:Seq[ItemResponse]) = Some(SessionData(bleezmo.QtiItem(xml),responses))
+  def getSessionData(xml : Elem,responses:Seq[ItemResponse]) = Some(SessionData(QtiItem(xml),responses))
 
   /**
    * Json Serializer

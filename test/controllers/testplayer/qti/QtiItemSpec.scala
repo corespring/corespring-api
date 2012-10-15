@@ -3,11 +3,11 @@ package controllers.testplayer.qti
 import org.specs2.mutable._
 
 class QtiItemSpec extends Specification {
-  class FeedbackSequenceMatcher(feedback: Seq[FeedbackElement]) {
+  class FeedbackSequenceMatcher(feedback: Seq[FeedbackInline]) {
     def matches(ids: List[Int]): Boolean = feedback.map(_.csFeedbackId.toInt).toSet equals ids.toSet
   }
 
-  implicit def feedbackSeqToMatcher(feedback: Seq[FeedbackElement]) = new FeedbackSequenceMatcher(feedback)
+  implicit def feedbackSeqToMatcher(feedback: Seq[FeedbackInline]) = new FeedbackSequenceMatcher(feedback)
 
   "A mutiple choice item" should {
 
@@ -222,7 +222,7 @@ class QtiItemSpec extends Specification {
 
     </assessmentItem>
 
-    val item = new QtiItem(xml)
+    val item = QtiItem(xml)
 
 
     /**

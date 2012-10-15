@@ -1,7 +1,6 @@
 package controllers.testplayer
 
 import org.xml.sax.SAXParseException
-import qti.{QtiItem, FeedbackElement}
 import xml.{Elem, NodeSeq}
 import play.api.libs.json.Json
 import org.bson.types.ObjectId
@@ -17,7 +16,7 @@ import api.processors.FeedbackProcessor
 import play.api.cache.Cache
 import play.api.Play.current
 import scala.Some
-import models.bleezmo.{FeedbackInline, ChoiceInteraction, OrderInteraction}
+import controllers.testplayer.qti._
 
 case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: Int = -1)
 
@@ -122,7 +121,7 @@ object ItemPlayer extends BaseApi with ItemResources{
     getItemXMLByObjectId(itemId, request.ctx.organization) match {
       case Some(rootElement: Elem) => {
         val choiceIdentifiers:Seq[String] = if (choiceIdentifier.contains(",")) choiceIdentifier.split(",") else Seq(choiceIdentifier)
-        val item = bleezmo.QtiItem(rootElement)
+        val item = QtiItem(rootElement)
         val feedback: Seq[FeedbackInline] = item.itemBody.interactions.find(_.responseIdentifier == responseIdentifier) match {
           case Some(interaction) =>
             interaction match {
