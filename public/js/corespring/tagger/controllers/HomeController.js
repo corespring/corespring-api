@@ -110,7 +110,9 @@ function HomeController($scope, $timeout, $http, $location, AccessToken, ItemSer
                 return "";
             }
             var wordArray =  standards[i].standard.split(/\W+/);
-            out.push(standards[i].dotNotation + ": " + wordArray.splice(0,6).join(" ") + "...");
+
+            var standardLabel = wordArray.length > 6 ? wordArray.splice(0,6).join(" ") + "..." : wordArray.join(" ");
+            out.push(standards[i].dotNotation + ": " + standardLabel);
         }
 
         return out.join(", ");

@@ -1,0 +1,63 @@
+{
+	"_id" : { "$oid" : "50100859e4b0d12660c61d2d" },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceC</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n    <itemBody>\n\n<p class=\"intro-2\">The table below lists causes of stream changes in the Mud Creek Watershed in North Carolina.</p>\n\n<h3 class=\"table-title\">Changes in Mud Creek Watershed</h3>\n\n<table>\n<tr>\n<th>Cause</th>\n<th>Specific Sources</th>\n</tr>\n<tr>\n<td>Sedimentation</td>\n<td>\n<ul class= \"list-disc\">\n<li>Runoff from roads, lawns, fields</li>\n<li>Solid surfaces:</li>\n<ul class= \"list-disc\">\n<li>roads</li>\n<li>driveways</li>\n<li>parking lots</li>\n<li>rooftops</li>\n<li>sidewalks</li>\n</ul>\n<li>Disturbances from construction sites</li>\n<li>Livestock access to creek</li></ul>\n</td>\n</tr>\n<tr>\n<td>Nonpoint source pollutants</td>\n<td><ul class= \"list-disc\"><li>Road runoff of salt, metals, oil</li>\n<li>Nutrients like pet waste, leaky septic systems, fertilizers</li>\n<li>Pesticides from lawns and gardens</li>\n<li>Agricultural runoff</li></ul>\n</td>\n</tr>\n<tr>\n<td>Bacteria (fecal coliform)</td>\n<td><ul class= \"list-disc\">\n<li>Runoff of pet waste, leaky septic systems</li>\n<li>Livestock access to creek</li></ul>\n</td>\n</tr>\n</table>\n\n\n        <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"false\" maxChoices=\"1\">\n           <prompt>Which action might help improve the condition of the streams?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">restricting ﬁshing\n                 <feedbackInline csFeedbackId='ChoiceA' identifier='ChoiceA' showHide='show'>Your answer.</feedbackInline>\n            </simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">clear-cutting the forest\n                <feedbackInline csFeedbackId='ChoiceB' identifier='ChoiceB' showHide='show'>Your answer.</feedbackInline>\n            </simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\">limiting residential development\n                <feedbackInline csFeedbackId='ChoiceC' identifier='ChoiceC' showHide='show'>Correct!</feedbackInline>\n            </simpleChoice>\n            <simpleChoice identifier=\"ChoiceD\">adding livestock to the region\n                <feedbackInline csFeedbackId='ChoiceD' identifier='ChoiceD' showHide='show'>Your answer.</feedbackInline>\n            </simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n\n</assessmentItem>\n"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "7 Table.png",
+				"isMain" : false,
+				"storageKey" : "50100859e4b0d12660c61d2d/7 Table.png",
+				"contentType" : "image/png"
+			}
+		]
+	},
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2d1" }
+	},
+	"standards" : [ ],
+	"itemType" : "Multiple Choice",
+	"contributorDetails" : {
+		"contributor" : "New England Common Assessment Program",
+		"credentials" : "State Department of Education",
+		"author" : "New England Common Assessment Program",
+		"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New England Common Assessment Program",
+			"year" : "2009"
+		}
+	},
+	"workflow" : {
+		"setup" : true,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"gradeLevel" : [
+		"11"
+	],
+	"title" : "The table lists causes of stream changes in the Mud Creek Watershed in North Carolina. Which action might help improve the condition of the streams?",
+	"demonstratedKnowledge" : "Factual",
+	"materialType" : "Assessment Item",
+	"bloomsTaxonomy" : "Understand (Describe, dramatize)",
+	"priorUse" : "Summative",
+	"keySkills" : [ ],
+	"reviewsPassed" : [
+		"Editorial",
+		"Bias",
+		"Fairness",
+		"Content",
+		"Psychometric"
+	],
+	"relatedCurriculum" : "New England Common Assessment Program Released Items"
+}

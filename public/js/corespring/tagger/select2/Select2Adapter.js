@@ -6,17 +6,16 @@ com.corespring.select2 = (com.corespring.select2 || {});
  * Select2Adapter. The Select2 directive expects an object with certain properties
  * and certain methods available. This is a default set for the choosers.
  * @param ajaxUrl
- * @param apiKey
  * @param placeholder
  * @param createQueryCallback
  * @param searchCategories
  * @constructor
  */
-com.corespring.select2.Select2Adapter = function (ajaxUrl, apiKey, placeholder, createQueryCallback, searchCategories) {
+com.corespring.select2.Select2Adapter = function (ajaxUrl, placeholder, createQueryCallback, searchCategories) {
     this.watch = "id";
     this.initial = function (url, currentValue, multiple) {
         var id = this.id(currentValue);
-        return url + "/" + id + "?apiKey=" + apiKey;
+        return url + "/" + id;
     };
     this.allowClear = true;
     this.minimumInputLength = 1;
@@ -33,10 +32,10 @@ com.corespring.select2.Select2Adapter = function (ajaxUrl, apiKey, placeholder, 
      * In this case we look up the mongo object in the result array of the ajax request.
      * We then copy it and insert a 'refId' into it.
      * //TODO: Should we insert the collection name too?
-     * @param value
+     * @param id
      * @return {*}
      */
-    this.createValue = function (value) {
+    this.createValue = function (id) {
 
         var createReferenceObject = function (item) {
             var copy = angular.copy(item);
@@ -50,13 +49,10 @@ com.corespring.select2.Select2Adapter = function (ajaxUrl, apiKey, placeholder, 
             return copy;
         };
 
-        var id = value;
-
         for (var i = 0; i < this.ajax.dataResults.length; i++) {
             var item = this.ajax.dataResults[i];
             var itemId = this.id(item);
             if (itemId == id) {
-                console.log("found item");
                 return createReferenceObject(item);
             }
         }
@@ -67,9 +63,11 @@ com.corespring.select2.Select2Adapter = function (ajaxUrl, apiKey, placeholder, 
     this.formatSelection = function (item) {
         throw "You must override formatSelection"
     };
+
     this.formatResult = function (item) {
         throw "You ust override formatResult"
     };
+
     this.ajax = {
         url:ajaxUrl,
         dataType:'json',
@@ -77,8 +75,7 @@ com.corespring.select2.Select2Adapter = function (ajaxUrl, apiKey, placeholder, 
         data:function (term, page) {
             return {
                 q:createQueryCallback(term, searchCategories),
-                l:50,
-                apiKey:apiKey
+                l:50
             };
         },
         results:function (data, page) {

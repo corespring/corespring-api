@@ -34,7 +34,7 @@ end
 
 
 db_name = "tdb"
-output_path = "../conf/test-data/exemplar-content"
+output_path = "../conf/seed-data/exemplar-content/content"
 collection_name = "Beta Items"
 
 FileUtils.rm_rf("#{output_path}/.", secure: true)
