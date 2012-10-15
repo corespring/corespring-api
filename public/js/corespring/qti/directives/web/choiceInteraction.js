@@ -93,7 +93,6 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                 };
 
                 var applyCss = function (correct) {
-                    tidyUp();
                     var className = correct ? 'correct-selection' : 'incorrect-selection';
                     element.toggleClass(className);
                 };
