@@ -72,7 +72,7 @@ object ItemPlayer extends BaseApi with ItemResources{
 
           val (xmlWithCsFeedbackIds,mapping) = FeedbackProcessor.addFeedbackIds(xmlData)
 
-          val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds))
+          val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds) \ "itemBody")
 
           val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
 

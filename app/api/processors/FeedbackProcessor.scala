@@ -120,7 +120,7 @@ object FeedbackProcessor extends XmlValidator {
     newXml
   }
 
-  def filterFeedbackContent(xml: NodeSeq) = removeResponsesTransformer.transform(xml)
+  def filterFeedbackContent(xml: NodeSeq):NodeSeq = removeResponsesTransformer.transform(xml)
 
   def validate(xmlString: String): XmlValidationResult = {
     val xml = XML.loadString(xmlString)
