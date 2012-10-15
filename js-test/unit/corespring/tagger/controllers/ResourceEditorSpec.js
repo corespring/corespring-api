@@ -53,7 +53,6 @@ describe('ResourceEditor should', function () {
         } catch (e) {
             throw("Error with the controller: " + e);
         }
-        console.log(ctrl);
     }));
 
 

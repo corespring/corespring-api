@@ -10,11 +10,12 @@ qtiDirectives.directive("extendedtextinteraction", function() {
         template: '<div ng-class="{noResponse: noResponse}"><textarea rows="{{rows}}" cols="{{cols}}" ng-model="extResponse" ng-disabled="formDisabled"></textarea></div>',
         link: function (scope, element, attrs, AssessmentItemController) {
 
+            scope.controller = AssessmentItemController;
             scope.rows = 4; // default # of rows
             scope.cols = 60; // default # of cols
-
-            if (attrs.expectedLines) {
-                scope.rows = attrs.expectelines;
+            if (attrs.expectedlines)
+            {
+                scope.rows = attrs.expectedlines;
             }
 
             // read some stuff from attrs

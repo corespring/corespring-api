@@ -12,7 +12,6 @@ describe('qtiServices.QtiUtils', function () {
         } catch (e) {
             throw("Error with the service: " + e);
         }
-        console.log(service);
     }));
 
     describe('compare', function () {
