@@ -1,0 +1,66 @@
+{
+	"_id" : { "$oid" : "5001bcc5e4b035d491c268fb" },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceC</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n    <itemBody>\n\n<p class=\"intro-2\">On a February morning, scientists recorded the temperature on Mount  Washington at different heights. The temperature data are shown in the diagram below.</p>\n\n<div class=\"imagewrapper\"><img src=\"6. Mount Washington.JPG\"/></div>\n\n        <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>Which statement describes the weather pattern shown in the diagram?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">The temperature at 4300 feet is \ncolder than the temperature at 3300 feet.\n    <feedbackInline csFeedbackId='ChoiceA' identifier='ChoiceA' showHide='show'>Your answer.</feedbackInline>\n</simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">The temperature in the morning is colder than the temperature in the afternoon.\n    <feedbackInline csFeedbackId='ChoiceB' identifier='ChoiceB' showHide='show'>Your answer.</feedbackInline>\n            </simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\">The greater heights are colder than the lower heights.\n                <feedbackInline csFeedbackId='ChoiceC' identifier='ChoiceC' showHide='show'>Correct!</feedbackInline>\n            </simpleChoice>\n            <simpleChoice identifier=\"ChoiceD\">The greater heights have deeper snow than the lower heights.<feedbackInline csFeedbackId='ChoiceD' identifier='ChoiceD' showHide='show'>Your answer.</feedbackInline>\n            </simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n\n</assessmentItem>\n"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "6. Mount Washington.JPG",
+				"isMain" : false,
+				"storageKey" : "5001bcc5e4b035d491c268fb/6. Mount Washington.JPG",
+				"contentType" : "image/jpg"
+			}
+		]
+	},
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2d1" }
+	},
+	"standards" : [ ],
+	"itemType" : "Multiple Choice",
+	"contributorDetails" : {
+		"contributor" : "New England Common Assessment Program",
+		"credentials" : "State Department of Education",
+		"author" : "New England Common Assessment Program",
+		"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New England Common Assessment Program",
+			"year" : "2011"
+		}
+	},
+	"gradeLevel" : [
+		"04"
+	],
+	"workflow" : {
+		"setup" : true,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"title" : "On a February morning, scientists recorded the temperature on Mount Washington at different heights. Which statement describes the weather pattern shown in the diagram?",
+	"materialType" : "Assessment Item",
+	"priorUse" : "Summative",
+	"demonstratedKnowledge" : "Conceptual",
+	"bloomsTaxonomy" : "Understand (Describe, dramatize)",
+	"keySkills" : [
+		"Relate",
+		"Explain",
+		"Indicate"
+	],
+	"reviewsPassed" : [
+		"Editorial",
+		"Bias",
+		"Fairness",
+		"Content",
+		"Psychometric"
+	]
+}

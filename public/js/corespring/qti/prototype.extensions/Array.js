@@ -24,7 +24,7 @@ if (typeof(Array.shuffle) == "undefined") {
 
                 if (fixedIndexes.indexOf(index) == -1) {
                     return index;
-                }
+               }
                 else {
                     return getRandomIndex(currentIndex);
                 }

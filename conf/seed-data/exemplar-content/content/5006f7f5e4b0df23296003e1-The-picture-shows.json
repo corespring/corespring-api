@@ -1,0 +1,62 @@
+{
+	"_id" : { "$oid" : "5006f7f5e4b0df23296003e1" },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceA</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n    <itemBody>\n\n<p class=\"intro-2\">The picture below shows an aquatic plant called a water hyacinth.</p>\n\n<div class=\"image-wrapper\"><img src=\"9 Picture.png\"/></div>\n\nWater hyacinth plants are classiﬁed as an invasive species in most states. The plants grow on top of water and form thick mats, quickly covering the surface of ponds or rivers.\n        \n        <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>Which statement <b>best</b> predicts what will \nhappen when water hyacinth plants enter an ecosystem?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">Other aquatic plant species will have less available sunlight.\n                <feedbackInline csFeedbackId='ChoiceA' identifier='ChoiceA' showHide='show'>Correct!</feedbackInline>\n            </simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">All herbivores in the ecosystem will start to eat water hyacinth plants.\n                <feedbackInline csFeedbackId='ChoiceB' identifier='ChoiceB' showHide='show'>Your answer.</feedbackInline>\n            </simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\">Other aquatic plant species will have more available sunlight.\n                <feedbackInline csFeedbackId='ChoiceC' identifier='ChoiceC' showHide='show'>Your answer.</feedbackInline>\n            </simpleChoice>\n            <simpleChoice identifier=\"ChoiceD\">The water hyacinth plants will have no effect on the ecosystem.\n                <feedbackInline csFeedbackId='ChoiceD' identifier='ChoiceD' showHide='show'>Your answer.</feedbackInline>\n            </simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n\n</assessmentItem>"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "9 Picture.png",
+				"isMain" : false,
+				"storageKey" : "5006f7f5e4b0df23296003e1/9 Picture.png",
+				"contentType" : "image/png"
+			}
+		]
+	},
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2d1" }
+	},
+	"standards" : [ ],
+	"itemType" : "Multiple Choice",
+	"contributorDetails" : {
+		"contributor" : "New England Common Assessment Program",
+		"credentials" : "State Department of Education",
+		"author" : "New England Common Assessment Program",
+		"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New England Common Assessment Program",
+			"year" : "2010"
+		}
+	},
+	"gradeLevel" : [
+		"08"
+	],
+	"workflow" : {
+		"setup" : true,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"title" : "The picture shows an aquatic plant called a water hyacinth. Water hyacinth plants are classiﬁed as an invasive species in most states. The plants grow on top of water and form thick mats, quickly covering the surface of ponds or rivers. Which statement best predicts what will happen when water hyacinth plants enter an ecosystem?",
+	"demonstratedKnowledge" : "Conceptual",
+	"materialType" : "Assessment Item",
+	"bloomsTaxonomy" : "Apply",
+	"priorUse" : "Summative",
+	"keySkills" : [ ],
+	"reviewsPassed" : [
+		"Editorial",
+		"Bias",
+		"Fairness",
+		"Content",
+		"Psychometric"
+	]
+}

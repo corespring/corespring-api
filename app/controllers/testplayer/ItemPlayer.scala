@@ -24,13 +24,19 @@ case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: I
 object ItemPlayer extends BaseApi with ItemResources{
 
 
-  val PATH : String = "/assets/js/corespring/qti/"
+  val JS_PATH : String = "/assets/js/corespring/qti/directives/web/"
+  val JS_PRINT_PATH : String = "/assets/js/corespring/qti/directives/print/"
+
+  val CSS_PATH : String = "/assets/stylesheets/qti/directives/web/"
+  val CSS_PRINT_PATH : String = "/assets/stylesheets/qti/directives/print/"
 
   def css( url : String ) : String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
   def script( url : String ) : String =  """<script type="text/javascript" src="%s"></script>""".format(url)
 
-  def createScripts( name : String, scriptSuffix : String = "" ) : String = {
-    Seq( script( PATH + name + scriptSuffix + ".js"), css( PATH + name + scriptSuffix + ".css") ).mkString("\n") }
+  def createScripts( name : String, toPrint : Boolean = false) : String = {
+    val jspath = if (toPrint) JS_PRINT_PATH else JS_PATH
+    val csspath = if (toPrint) CSS_PRINT_PATH else CSS_PATH
+    Seq( script( jspath + name + ".js"), css( csspath + name  + ".css") ).mkString("\n") }
 
   val BYTE_BUREAU = css("/assets/stylesheets/bytebureau/styles.css")
 
@@ -176,9 +182,6 @@ object ItemPlayer extends BaseApi with ItemResources{
     // (also need to support minifying/obfuscating)
 
 
-    // suffix to append for loading print-mode scripts
-    val scriptSuffix = if (isPrintMode) "-print" else ""
-
 
     // base css to include for all QTI items
     //scripts ::= "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/qti-base.css\" />"
@@ -190,12 +193,12 @@ object ItemPlayer extends BaseApi with ItemResources{
     // map of elements and the scripts needed to process them
     // can't concatenate string in map value apparently, so using replace()
     val elementScriptsMap = Map (
-      "choiceInteraction" -> createScripts("choiceInteraction", scriptSuffix),
-      "orderInteraction" -> createScripts("orderInteraction", scriptSuffix),
-      "textEntryInteraction" -> createScripts("textEntryInteraction", scriptSuffix),
-      "extendedTextInteraction" -> createScripts("extendedTextInteraction", scriptSuffix),
-      "tabs" -> createScripts("tabs", scriptSuffix),
-      "cs-tabs" -> createScripts("tabs", scriptSuffix),
+      "choiceInteraction" -> createScripts("choiceInteraction", isPrintMode),
+      "orderInteraction" -> createScripts("orderInteraction", isPrintMode),
+      "textEntryInteraction" -> createScripts("textEntryInteraction", isPrintMode),
+      "extendedTextInteraction" -> createScripts("extendedTextInteraction", isPrintMode),
+      "tabs" -> createScripts("tabs", isPrintMode),
+      "cs-tabs" -> createScripts("tabs", isPrintMode),
       "math" -> script("http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")
     )
 

@@ -1,0 +1,59 @@
+{
+	"_id" : { "$oid" : "5001d880e4b0d7c9ec3211b0" },
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceD</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n    <itemBody>\n\n<p class=\"intro-2\">A student concludes that the material in a round bowl is a liquid.</p>\n\n        <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>Which statement about the material <b>must</b> be true?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">The material is clear.\n                <feedbackInline csFeedbackId='ChoiceA' identifier='ChoiceA' showHide='show'>Your answer.</feedbackInline>\n            </simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">The material weighs 1 kg.\n                <feedbackInline csFeedbackId='ChoiceB' identifier='ChoiceB' showHide='show'>Your answer.</feedbackInline>\n            </simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\">The material has a temperature of 35°C.\n                <feedbackInline csFeedbackId='ChoiceC' identifier='ChoiceC' showHide='show'>Your answer.</feedbackInline>\n            </simpleChoice>\n            <simpleChoice identifier=\"ChoiceD\">The material takes the shape of its container.\n                <feedbackInline csFeedbackId='ChoiceD' identifier='ChoiceD' showHide='show'>Correct!</feedbackInline>\n            </simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n\n</assessmentItem>\n"
+			}
+		]
+	},
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2d1" }
+	},
+	"standards" : [ ],
+	"itemType" : "Multiple Choice",
+	"contributorDetails" : {
+		"contributor" : "New England Common Assessment Program",
+		"credentials" : "State Department of Education",
+		"author" : "New England Common Assessment Program",
+		"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
+		"licenseType" : "CC BY",
+		"costForResource" : null,
+		"copyright" : {
+			"owner" : "New England Common Assessment Program",
+			"year" : "2009"
+		}
+	},
+	"gradeLevel" : [
+		"04"
+	],
+	"keySkills" : [
+		"state",
+		"classify",
+		"explain"
+	],
+	"workflow" : {
+		"setup" : true,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"title" : "A student concludes that the material in a round bowl is a liquid. Which statement about the material must be true?",
+	"demonstratedKnowledge" : "Factual",
+	"materialType" : "Assessment Item",
+	"bloomsTaxonomy" : "Knowledge (Remember)",
+	"priorUse" : "Summative",
+	"reviewsPassed" : [
+		"Editorial",
+		"Bias",
+		"Fairness",
+		"Content",
+		"Psychometric"
+	]
+}

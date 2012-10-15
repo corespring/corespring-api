@@ -41,10 +41,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     function updateLocation(panelName) {
         var current = $location.search();
 
-        if (current.panel == panelName ) {
+        if (current.panel == panelName) {
             return;
         }
-        $location.search("panel=" + panelName );
+        $location.search("panel=" + panelName);
     }
 
     $scope.$root.mode = "edit";
@@ -53,15 +53,17 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
      * If the itemData.itemType is not one of the defaults,
      * set otherItemType to be its value so the ui picks it up.
      */
-    function initItemType(){
+    function initItemType() {
 
         var type = $scope.itemData.itemType;
-        if(!type){
+        if (!type) {
             return;
         }
-        var foundType = _.find($scope.itemData.$itemTypeDataProvider, function(d){ return d.value == type});
+        var foundType = _.find($scope.itemData.$itemTypeDataProvider, function (d) {
+            return d.value == type
+        });
 
-        if(!foundType){
+        if (!foundType) {
             $scope.otherItemType = type;
         }
     }
@@ -70,7 +72,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
         if ($scope.currentPanel == 'content' && $scope.itemData) {
             var urls = {};
-            var substitutions = { itemId: $routeParams.itemId };
+            var substitutions = { itemId:$routeParams.itemId };
             urls.uploadFile = ServiceLookup.getUrlFor('uploadDataFile', substitutions);
             urls.createFile = ServiceLookup.getUrlFor('createDataFile', substitutions);
             urls.updateFile = ServiceLookup.getUrlFor('updateDataFile', substitutions);
@@ -134,21 +136,13 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             $scope.itemData = itemData;
             enterEditorIfInContentPanel();
             initItemType();
-            if ($scope.itemData.collection) {
-                $scope.selectedCollection = $scope.itemData.collection.name;
-            }
             $scope.$broadcast("dataLoaded");
         });
     };
 
     $scope.accessToken = AccessToken;
 
-    Collection.query({access_token:$scope.accessToken.token}, function(data){
-        $scope.collections = data;
-    });
-
     $scope.loadItem();
-
 
     $scope.$watch('itemData.pValue', function (newValue, oldValue) {
         $scope.pValueAsString = $scope.getPValueAsString(newValue);
@@ -164,15 +158,15 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             "Easy":80,
             "Very Easy":100 };
 
-        var key = function (numberArray, valueToCheck) {
+        var getLabelFromValue = function (numberArray, valueToCheck) {
             for (var x in numberArray) {
-                if (valueToCheck < numberArray[x]) {
+                if (valueToCheck <= numberArray[x]) {
                     return x == "NO_VALUE" ? "" : x;
                 }
             }
-        }(vals, value);
+        };
 
-        return key;
+        return getLabelFromValue(vals, value);
     };
 
     $scope.processValidationResults = function (result) {
@@ -224,6 +218,21 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     };
 
 
+    var addToFilter = function (item, filter, key) {
+
+        if (!item) {
+            return;
+        }
+
+        if (item.name && item.name.toLowerCase() == "all") {
+            return;
+        }
+
+        var o = {};
+        o[key] = item.name;
+        filter.push(o);
+    };
+
     $scope.createStandardMongoQuery = function (searchText, fields) {
 
         if ($scope.standardAdapter.subjectOption == "all") {
@@ -234,24 +243,23 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             var orQuery = mongoQueryMaker.fuzzyTextQuery(searchText, fields);
 
             var filter = [];
-            if ($scope.standardAdapter.subjectOption && $scope.standardAdapter.subjectOption.name != "All") {
-                filter.push({subject:$scope.standardAdapter.subjectOption.name});
-            }
-            if ($scope.standardAdapter.categoryOption.name != "All") {
-                filter.push({category:$scope.standardAdapter.categoryOption.name});
-            }
-            if ($scope.standardAdapter.subCategoryOption != "All") {
+
+            addToFilter($scope.standardAdapter.subjectOption, filter, "subject");
+            addToFilter($scope.standardAdapter.categoryOption, filter, "category");
+
+            if ($scope.standardAdapter.subCategoryOption && $scope.standardAdapter.subCategoryOption != "All") {
                 filter.push({subCategory:$scope.standardAdapter.subCategoryOption});
             }
+
             filter.push(orQuery);
             var query = mongoQueryMaker.and.apply(null, filter);
 
             return JSON.stringify(query);
         }
     };
+
     $scope.standardAdapter = new com.corespring.select2.Select2Adapter(
         ServiceLookup.getUrlFor('standards'),
-        "4fbe6747e4b083e37574238b",
         "Choose a standard",
         $scope.createStandardMongoQuery,
         ['dotNotation', 'category', 'subCategory', 'standard']
@@ -285,7 +293,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
     $scope.selectPrimarySubject = new com.corespring.select2.Select2Adapter(
         ServiceLookup.getUrlFor('subject'),
-        "4fbe6747e4b083e37574238b",
         { subject:"choose a subject", category:"Subject", id:""},
         createMongoQuery,
         [ 'subject', 'category' ]
@@ -295,7 +302,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
     $scope.selectRelatedSubject = new com.corespring.select2.Select2Adapter(
         ServiceLookup.getUrlFor('subject'),
-        "4fbe6747e4b083e37574238b",
         { subject:"choose a subject", category:"Subject", id:""},
         createMongoQuery,
         [ 'subject', 'category' ]
@@ -304,8 +310,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.selectRelatedSubject.formatSelection = subjectFormatSelection;
 
     $scope.$watch("itemData.itemType", function (newValue) {
-        if(newValue != $scope.otherItemType){
-           $scope.otherItemType = "";
+        if (newValue != $scope.otherItemType) {
+            $scope.otherItemType = "";
         }
     });
 
