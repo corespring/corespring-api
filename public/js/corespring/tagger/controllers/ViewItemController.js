@@ -50,7 +50,7 @@ function ViewItemController($scope, $routeParams, $location, ItemService, Access
     $scope.getItemUrl = function() {
         if (!$scope.itemData) return null;
         return "/web/show-resource/" + $scope.itemData.id;
-    }
+    };
 
     $scope.prependHttp = function(url) {
             if (!url) return "";
