@@ -41,7 +41,11 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
             // determine input type by inspecting markup before modifying DOM
             var inputType = 'checkbox';
-            var choiceInteractionElem = tElement.parent();
+
+            /**
+             * Note - in choiceInteraction.compile we wrap this in 2 divs - so we need the grandparent node.
+             */
+            var choiceInteractionElem = tElement.parent().parent();
             var maxChoices = choiceInteractionElem.attr('maxChoices');
 
             if (maxChoices == 1) {
@@ -201,7 +205,7 @@ qtiDirectives.directive('choiceinteraction', function () {
         var shuffle = attrs["shuffle"] === "true";
         var html = element.html();
         var finalContents = shuffle ? getShuffledContents(html) : html;
-        var newNode = '<div class="choice-interaction" ng-class="{noResponse: noResponse}" ng-transclude>' + finalContents + '</div>';
+        var newNode = '<div class="choice-interaction" ng-class="{noResponse: noResponse}">' + finalContents + '</div>';
         element.html(newNode);
         return link;
     };
@@ -245,11 +249,13 @@ qtiDirectives.directive('choiceinteraction', function () {
         };
     };
 
+    /**
+     * NOTE: We disable replace and transclude.
+     * We are going to do this manually to support shuffling.
+     */
     return {
         restrict:'E',
-        replace:true,
         scope:true,
-        transclude: true,
         require:'^assessmentitem',
         compile: compile,
         controller:function ($scope) {
