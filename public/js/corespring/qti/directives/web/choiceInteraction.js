@@ -39,19 +39,12 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                 return feedbackContainer;
             };
 
-            // determine input type by inspecting markup before modifying DOM
-            var inputType = 'checkbox';
-
             /**
              * Note - in choiceInteraction.compile we wrap this in 2 divs - so we need the grandparent node.
              */
             var choiceInteractionElem = tElement.parent().parent();
             var maxChoices = choiceInteractionElem.attr('maxChoices');
-
-            if (maxChoices == 1) {
-                inputType = 'radio';
-            }
-
+            var inputType = maxChoices == 1 ? 'radio' : 'checkbox';
 
             var nodeWithFeedbackRemoved = tElement.html().replace(feedbackInlineRegex, "");
 
@@ -96,7 +89,18 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                     return QtiUtils.compare(localScope.value, correctResponse)
                 };
 
-                var applyCss = function (correct) {
+                var applyCss = function (correct, selected) {
+
+                    tidyUp();
+
+                    if(correct){
+                        element.addClass('correct-response');
+                    }
+
+                    if(!selected){
+                        return;
+                    }
+
                     var className = correct ? 'correct-selection' : 'incorrect-selection';
                     element.toggleClass(className);
                 };
@@ -124,16 +128,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
                     var correctResponse = responses[responseIdentifier];
                     var isCorrect = isOurResponseCorrect(correctResponse);
-
-                    tidyUp();
-
-                    if (isCorrect) {
-                        element.addClass('correct-response');
-                    }
-
-                    if (!isSelected()) return;
-
-                    applyCss(isCorrect);
+                    applyCss(isCorrect, isSelected());
                 });
 
             };
