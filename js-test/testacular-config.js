@@ -12,19 +12,24 @@ files = [
     'public/js/vendor/angular/1.0.1/angular-1.0.1.js',
     'public/js/vendor/angular/1.0.1/angular-resource-1.0.1.js',
     'public/js/vendor/angular/1.0.1/angular-mocks-1.0.1.js',
+    'public/js/vendor/underscore/1.3.3/underscore.js',
     'public/js/vendor/angular-bootstrap-ui/angular-bootstrap-ui.js',
     'public/js/vendor/corespring-ng-components/corespring-ng-components.js',
-    'public/js/corespring/tagger/select2/Select2Adapter.js',
-    'public/js/corespring/tagger/mongo/MongoQuery.js',
-    'public/js/corespring/tagger/app.js',
-    'public/js/corespring/tagger/services.js',
+    'public/js/corespring/tagger/select2/*.js',
+    'public/js/corespring/tagger/mongo/*.js',
+    'public/js/corespring/tagger/*.js',
+    'public/js/corespring/tagger/controllers/*.js',
+    'public/js/corespring/tagger/services/*.js',
     'public/js/corespring/qti/prototype.extensions/*.js',
     'public/js/corespring/qti/*.js',
     'public/js/corespring/qti/directives/*.js',
     'public/js/corespring/qti/directives/web/*.js',
     'js-test/unit/corespring/qti/*.js',
     'js-test/unit/corespring/qti/prototype.extensions/*.js',
-    'js-test/unit/corespring/qti/directives/*.js'
+    'js-test/unit/corespring/qti/directives/*.js',
+    'js-test/unit/corespring/tagger/*.js',
+    'js-test/unit/corespring/tagger/controllers/*.js',
+    'js-test/unit/corespring/tagger/mongo/*.js'
 ];
 // list of files to exclude
 exclude = [];
