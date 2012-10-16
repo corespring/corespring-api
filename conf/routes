@@ -120,3 +120,8 @@ GET     /web/logout                            web.controllers.Main.logout
 GET     /web/user/info                         web.controllers.Main.userInfo
 GET     /web/access_token                      web.controllers.Main.getAccessToken
 
+#
+# BasicLTI
+#
+POST    /basiclti                               basiclti.LtiController.launch
+
