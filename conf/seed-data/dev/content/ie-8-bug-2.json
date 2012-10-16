@@ -9,7 +9,7 @@
                 "name" : "qti.xml",
                 "contentType" : "text/xml",
                 "isMain" : true,
-                "content" : "$[interpolate{/conf/qti/ie-8-bug-2.xml}]"
+                "content" : "$[interpolate{conf/qti/ie-8-bug-2.xml}]"
             }
         ]
     },
