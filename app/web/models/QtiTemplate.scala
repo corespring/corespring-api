@@ -5,19 +5,14 @@ import play.api.Play.current
 
 import com.novus.salat.global._
 import com.novus.salat.dao._
-import com.typesafe.config.{Config, ConfigFactory}
-import play.api.Logger
-import play.api.libs.json.{Reads, JsObject, JsString, Writes}
+import play.api.libs.json.{JsObject, JsString, Writes}
 
-//import com.mongodb.casbah.commons.Imports._
 import com.mongodb.casbah.Imports._
-import com.mongodb.casbah.MongoConnection
-import com.mongodb.casbah.MongoURI
 
 case class QtiTemplate(
                         _id: ObjectId = new ObjectId,
                         label: String,
-                        code:String,
+                        code: String,
                         xmlData: String
                         )
 
@@ -28,7 +23,7 @@ object QtiTemplate extends ModelCompanion[QtiTemplate, ObjectId] {
 
 
   implicit object QtiTemplateWrites extends Writes[QtiTemplate] {
-    def writes(template:QtiTemplate) = {
+    def writes(template: QtiTemplate) = {
 
       JsObject(
         Seq(

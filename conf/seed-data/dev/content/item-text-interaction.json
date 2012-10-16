@@ -1,0 +1,20 @@
+{
+    "_id" : {
+        "$oid" : "50643c1c3004d21bdd889bc6"
+    },
+    "data": {
+         "name":"qti.xml",
+         "files":[
+             {
+                 "_t" : "models.VirtualFile",
+                 "name" : "qti.xml",
+                 "contentType":"text/xml",
+                 "isMain":true,
+                 "content": "$[interpolate{conf/qti/text-interaction.xml}]"
+             }
+         ]
+    },
+    "title":"Text interaction only",
+    "collectionId":"5001b9b9e4b035d491c268c3",
+    "contentType":"item"
+}

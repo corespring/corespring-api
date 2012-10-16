@@ -1,0 +1,18 @@
+{
+    "_id" : { "$oid" : "50698f2d30046bc12ba210a3" },
+    "data": {
+        "name":"qti.xml",
+        "files":[
+            {
+                "_t" : "models.VirtualFile",
+                "name" : "qti.xml",
+                "contentType":"text/xml",
+                "isMain":true,
+                "content": "$[interpolate{conf/qti/feedback-block.xml}]"
+            }
+        ]
+    },
+    "title":"Feedback block",
+    "collectionId":"5001b9b9e4b035d491c268c3",
+    "contentType":"item"
+}
