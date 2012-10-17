@@ -8,8 +8,7 @@ object ApplicationBuild extends Build {
     val appVersion      = "1.0-SNAPSHOT"
 
     val appDependencies = Seq(
-      "se.radley" %% "play-plugins-salat" % "1.1",
-      "org.mongodb" %% "casbah" % "2.4.1"
+      "se.radley" %% "play-plugins-salat" % "1.1"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
