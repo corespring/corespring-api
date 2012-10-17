@@ -17,7 +17,7 @@ case class Subject(var subject: Option[String] = None,
 
 object Subject extends DBQueryable[Subject] {
 
-  val collection = mongoCollection("subject")
+  val collection = mongoCollection("subjects")
   val dao = new SalatDAO[Subject, ObjectId](collection = collection) {}
 
   val Id = "id"

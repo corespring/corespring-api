@@ -149,11 +149,19 @@ object Item extends DBQueryable[Item] {
 
       item.subjects match {
         case Some(s) => {
+
           def getSubject(id: Option[ObjectId]): Option[JsValue] = id match {
-            case Some(foundId) => Some(Json.toJson(Subject.findOneById(foundId).get))
+            case Some(foundId) => {
+              Subject.findOneById(foundId) match {
+                case Some(subj) => Some(Json.toJson(subj))
+                case _ => throw new RuntimeException("Can't find subject with id: " + foundId + " in item: " + item.id)
+              }
+            }
             case _ => None
           }
+
           var seqsubjects: Seq[(String, JsValue)] = Seq()
+
           getSubject(s.primary) match {
             case Some(found) => iseq = iseq :+ (primarySubject -> Json.toJson(found))
             case _ => //do nothing
