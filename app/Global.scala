@@ -85,31 +85,31 @@ object Global extends GlobalSettings {
     } else if (Play.isProd(app)) {
       if (initData) seedDevData()
     }
+
   }
-}
 
-private def isLocalDb: Boolean = {
+  private def isLocalDb: Boolean = {
 
-  ConfigLoader.get("mongodb.default.uri") match {
-    case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1"))
-    case None => false
+    ConfigLoader.get("mongodb.default.uri") match {
+      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1"))
+      case None => false
+    }
   }
-}
 
-private def seedTestData() {
-  emptyData()
-  seedData("conf/seed-data/common")
-  seedData("conf/seed-data/test")
-  addMockAccessToken(MOCK_ACCESS_TOKEN)
-}
+  private def seedTestData() {
+    emptyData()
+    seedData("conf/seed-data/common")
+    seedData("conf/seed-data/test")
+    addMockAccessToken(MOCK_ACCESS_TOKEN)
+  }
 
-private def seedDevData() {
-  emptyData()
-  seedData("conf/seed-data/common")
-  seedData("conf/seed-data/dev")
-  seedData("conf/seed-data/exemplar-content")
-  addMockAccessToken(MOCK_ACCESS_TOKEN)
-}
+  private def seedDevData() {
+    emptyData()
+    seedData("conf/seed-data/common")
+    seedData("conf/seed-data/dev")
+    seedData("conf/seed-data/exemplar-content")
+    addMockAccessToken(MOCK_ACCESS_TOKEN)
+  }
 
 }
 
