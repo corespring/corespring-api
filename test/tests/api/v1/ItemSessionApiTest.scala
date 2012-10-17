@@ -13,14 +13,13 @@ import scala.Some
 import play.api.test.FakeHeaders
 import scala.Some
 import tests.PlaySingleton
-import models.bleezmo
 import play.api.test.FakeHeaders
 import scala.Some
 import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
 import api.ApiError
-import models.bleezmo.FeedbackInline
 import controllers.InternalError
+import controllers.testplayer.qti._
 
 /**
  * Tests the ItemSession model
@@ -136,12 +135,12 @@ class ItemSessionApiTest extends Specification {
     )
     val result = routeAndCall(getRequest).get
     ItemSession.remove(newSession)
-    val optQtiItem:Either[InternalError,models.bleezmo.QtiItem] = ItemSession.getXmlWithFeedback(new ObjectId(testSessionIds("itemId")),ItemSession.findOneById(newSession.id).get.feedbackIdLookup) match {
-      case Right(elem) => Right(models.bleezmo.QtiItem(elem))
+    val optQtiItem:Either[InternalError,QtiItem] = ItemSession.getXmlWithFeedback(new ObjectId(testSessionIds("itemId")),ItemSession.findOneById(newSession.id).get.feedbackIdLookup) match {
+      case Right(elem) => Right(QtiItem(elem))
       case Left(e) => Left(e)
     }
     "create a cached qti xml for the specified item" in {
-      optQtiItem must beRight[models.bleezmo.QtiItem]
+      optQtiItem must beRight[QtiItem]
     }
     "return an item session which contains a sessionData property" in {
       val json: JsValue = Json.parse(contentAsString(result))
@@ -160,8 +159,8 @@ class ItemSessionApiTest extends Specification {
               case Right(qtiItem) =>
                 val feedbackBlocks = qtiItem.itemBody.feedbackBlocks
                 val feedbackInlines = qtiItem.itemBody.interactions.map(i => i match {
-                  case bleezmo.ChoiceInteraction(_,choices) => choices.map(choice => choice.feedbackInline)
-                  case bleezmo.OrderInteraction(_,choices) => choices.map(choice => choice.feedbackInline)
+                  case ChoiceInteraction(_,choices) => choices.map(choice => choice.feedbackInline)
+                  case OrderInteraction(_,choices) => choices.map(choice => choice.feedbackInline)
                   case _ => throw new RuntimeException("unknown interaction")
                 }).flatten.flatten ++ feedbackBlocks
                 def feedbackInlineContent(fi:FeedbackInline) = if (fi.defaultFeedback) fi.defaultContent(qtiItem) else fi.content

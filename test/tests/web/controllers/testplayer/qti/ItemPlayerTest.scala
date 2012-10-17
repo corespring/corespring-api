@@ -84,7 +84,7 @@ class ItemPlayerTest extends BaseTest {
       val body = feedback.get("body").get
 
       csFeedbackId must be equalTo "feedbackChoiceA"
-      body must be containing "<p>This is the correct answer!</p>"
+      body must be containing "This is the correct answer!</p>"
     })
 
     getFeedback(itemWithFeedbackId, "RESPONSE", "ChoiceB").foreach(feedback => {
@@ -95,7 +95,7 @@ class ItemPlayerTest extends BaseTest {
       val body = feedback.get("body").get
 
       csFeedbackId must be equalTo "feedbackChoiceB"
-      body must be containing "<p>This is the incorrect answer!</p>"
+      body must be containing "This is the incorrect answer!</p>"
     })
 
     getFeedback(itemWithFeedbackId, "RESPONSE", "ChoiceC").foreach(feedback => {
@@ -106,7 +106,7 @@ class ItemPlayerTest extends BaseTest {
       val body = feedback.get("body").get
 
       csFeedbackId must be equalTo "feedbackChoiceC"
-      body must be containing "<p>This is the incorrect answer!</p>"
+      body must be containing "This is the incorrect answer!</p>"
     })
   }
 

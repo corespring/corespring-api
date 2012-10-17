@@ -1,11 +1,12 @@
 package controllers.testplayer.qti
 
 import org.specs2.mutable._
-import scala.xml.{Elem, XML}
+import scala.xml.{Node, Elem, XML, NodeSeq}
 import com.codahale.jerkson.Json.{generate, parse}
-import scala.xml.NodeSeq
 import api.processors.FeedbackProcessor._
 import org.specs2.execute.Skipped
+import api.processors.FeedbackProcessor
+import models.FeedbackIdMapEntry
 
 class FeedbackProcessorSpec extends Specification {
 
@@ -22,28 +23,43 @@ class FeedbackProcessorSpec extends Specification {
     ((rootNode \\ "feedbackInline") ++ (rootNode \\ "modalFeedback")).foldLeft(true)((a, b) => p(b) && a)
   }
 
+  def identifierEquals(value: String)(node: Node) = {
+    (node \ "@identifier" ).text == value
+  }
+
+  def nodeWithFeedbackId(xml:Node, id:String) : Node = {
+     (xml \\ "_" ).filter( identifierEquals(id)).head
+  }
+
   "FeedbackProcessor" should {
-    "add feedback ids to feedback elements in JSON" in {
+    "add feedback ids to xml and create map of feedbackIds -> identifiers" in {
       val xml =
         <body>
-          <feedbackInline>Test feedback!</feedbackInline>
-          <modalFeedback>More test feedback!</modalFeedback>
+          <feedbackInline identifier="testFeedback">Test feedback!</feedbackInline>
+          <modalFeedback identifier="moreTestFeedback">More test feedback!</modalFeedback>
         </body>
 
-      //val xmlWithFeedbackIds: NodeSeq = xmlFromJson(addFeedbackIds(jsonFromXml(xml)))
-      Skipped("Waiting on a fix for this")
-      //if (trueForAllFeedback(xmlWithFeedbackIds, node => (node \ "@csFeedbackId").text.nonEmpty)) success else failure
+      val expectedMap = Seq(FeedbackIdMapEntry("1","","testFeedback"), FeedbackIdMapEntry("2","","moreTestFeedback"))
+
+      val expectedXml =
+        <body>
+          <feedbackInline csFeedbackId="1" identifier="testFeedback">Test feedback!</feedbackInline>
+          <modalFeedback csFeedbackId="2" identifier="moreTestFeedback">More test feedback!</modalFeedback>
+        </body>
+
+      val (xmlWithIds, feedbackIdToIdentifierMap) = FeedbackProcessor.addFeedbackIds(xml)
+
+      feedbackIdToIdentifierMap mustEqual expectedMap
+      xmlWithIds mustEqual expectedXml
     }
 
-    "remove feedback ids from elements in JSON" in {
-      val json =
-        """{"xmlData":"<body><feedbackInline csFeedbackId=\"1\">Test feedback!</feedbackInline><modalFeedback csFeedbackId=\"2\">More test feedback!</modalFeedback></body>"}"""
-
-      //val xmlWithoutFeedbackIds: NodeSeq = xmlFromJson(removeFeedbackIds(json))
-
-      Skipped("Waiting on a fix for this")
-      //if (trueForAllFeedback(xmlWithoutFeedbackIds, node => (node \ "@csFeedbackId").text.isEmpty)) success else failure
+    "add the csFeedbackId to the node that is declared in the map" in {
+      val elem = <feedbackInline identifier="test1"></feedbackInline>
+      val map = Seq(FeedbackIdMapEntry("12345","","test1"))
+      val result = FeedbackProcessor.addFeedbackIds(elem,map)
+      (result \ "@csFeedbackId").text must equalTo("12345")
     }
+
 
     "filter all feedback info other than csFeedbackId" in {
       val xml =

@@ -6,9 +6,10 @@ import controllers.testplayer.qti.xml.{XmlValidationResult, XmlValidator}
 import controllers.testplayer.qti.xml.XmlValidationResult.success
 import controllers.testplayer.qti.xml.ExceptionMessage
 import scala.Some
-import controllers.testplayer.qti.QtiItem
 import play.api.Logger
 import controllers.Log
+import controllers.testplayer.qti._
+import models.FeedbackIdMapEntry
 
 /**
  * Provides transformations on JSON strings to add/remove csFeedbackIds to feedback elements, as well as validation for
@@ -57,21 +58,21 @@ object FeedbackProcessor extends XmlValidator {
    */
   //def addFeedbackIds(xml: NodeSeq): NodeSeq = applyRewriteRuleToXml(xml, new FeedbackIdentifierInserter())
   //def addFeedbackIds(xmlString: String): String = addFeedbackIds(XML.loadString(xmlString)).toString
-  def addFeedbackIds(elem:Elem):(Elem,Map[String,String]) = {
-    val feedbackMap = addFeedbackIds(elem,FeedbackMap(elem,Map(),new IdIncrementor))
+  def addFeedbackIds(elem:Elem):(Elem,Seq[FeedbackIdMapEntry]) = {
+    val feedbackMap = addFeedbackIds(elem,FeedbackMap(elem,Seq(),new IdIncrementor))
     (feedbackMap.elem,feedbackMap.mapping)
   }
   private def addFeedbackIds(elem:Elem,feedbackMap:FeedbackMap):FeedbackMap = {
     if (FEEDBACK_NODE_LABELS.contains(elem.label)){
       val id:Int = feedbackMap.incrementId
-      feedbackMap.mapping = feedbackMap.mapping + (id.toString -> (elem \ "@identifier").text)
+      feedbackMap.mapping = feedbackMap.mapping :+ FeedbackIdMapEntry(id.toString,(elem \ "@outcomeIdentifier").text,(elem \ "@identifier").text)
       feedbackMap.elem = elem % Attribute(None,csFeedbackId,Text(id.toString),Null)
       feedbackMap
     }else{
       var innerNodes:Seq[Node] = Seq()
       elem.child.foreach(node => node match {
         case innerElem:Elem =>
-          val innerFeedbackMap = addFeedbackIds(innerElem,FeedbackMap(innerElem,Map(),feedbackMap.incr))
+          val innerFeedbackMap = addFeedbackIds(innerElem,FeedbackMap(innerElem,Seq(),feedbackMap.incr))
           innerNodes = innerNodes :+ innerFeedbackMap.elem
           feedbackMap.mapping = feedbackMap.mapping ++ innerFeedbackMap.mapping
         case other => innerNodes = innerNodes :+ other
@@ -80,7 +81,7 @@ object FeedbackProcessor extends XmlValidator {
       feedbackMap
     }
   }
-  private case class FeedbackMap(var elem:Elem,var mapping:Map[String,String], incr:IdIncrementor){
+  private case class FeedbackMap(var elem:Elem,var mapping:Seq[FeedbackIdMapEntry], incr:IdIncrementor){
     def incrementId:Int = incr.increment
   }
   private class IdIncrementor{
@@ -93,9 +94,9 @@ object FeedbackProcessor extends XmlValidator {
    * @param mapping
    * @return
    */
-  def addFeedbackIds(elem:Elem, mapping:Map[String,String]):Elem = {
+  def addFeedbackIds(elem:Elem, mapping:Seq[FeedbackIdMapEntry]):Elem = {
     if (FEEDBACK_NODE_LABELS.contains(elem.label)){
-      mapping.find(field => field._2 == (elem \ "@identifier").text).map(_._1) match {
+      mapping.find(fime => (fime.outcomeIdentifier == (elem \ "@outcomeIdentifier").text) && (fime.identifier== (elem \ "@identifier").text)).map(_.csFeedbackId) match {
         case Some(id) => elem % Attribute(None,csFeedbackId,Text(id),Null)
         case None => elem
       }
@@ -114,11 +115,12 @@ object FeedbackProcessor extends XmlValidator {
    */
   def removeFeedbackIds(qtiXml: String): String = applyRewriteRuleToXml(qtiXml, feedbackIdentifierRemoverRule)
 
-  def addOutcomeIdentifiers(qtiXml: NodeSeq): NodeSeq = {
-    applyRewriteRuleToXml(qtiXml, new FeedbackOutcomeIdentifierInserter(new QtiItem(qtiXml.head)))
+  def addOutcomeIdentifiers(qtiXml: Elem): NodeSeq = {
+    val newXml = applyRewriteRuleToXml(qtiXml, new FeedbackOutcomeIdentifierInserter(QtiItem(qtiXml)))
+    newXml
   }
 
-  def filterFeedbackContent(xml: NodeSeq) = removeResponsesTransformer.transform(xml)
+  def filterFeedbackContent(xml: NodeSeq):NodeSeq = removeResponsesTransformer.transform(xml)
 
   def validate(xmlString: String): XmlValidationResult = {
     val xml = XML.loadString(xmlString)
@@ -180,7 +182,21 @@ object FeedbackProcessor extends XmlValidator {
         if (elem.label equals FEEDBACK_INLINE) {
           elem.attribute(FeedbackProcessor.csFeedbackId) match {
             case Some(csFeedbackId) => {
-              qtiItem.getIdentifiersForCsFeedbackId(csFeedbackId.toString) match {
+              val optIdentifiers:Option[(String,String)] = qtiItem.itemBody.interactions.map(i =>
+                i match {
+                case ChoiceInteraction(responseIdentifier,choices) =>
+                  choices.find(_.feedbackInline.exists(_.csFeedbackId == csFeedbackId.text)) match {
+                    case Some(sc) => Some((responseIdentifier -> sc.identifier))
+                    case None => None
+                  }
+                case OrderInteraction(responseIdentifier,choices) =>
+                  choices.find(_.feedbackInline.exists(_.csFeedbackId == csFeedbackId.text)) match {
+                    case Some(sc) => Some((responseIdentifier -> sc.identifier))
+                    case None => None
+                  }
+                case _ => None
+              }).find(_.isDefined).getOrElse(None)
+              optIdentifiers match {
                 case Some(identifiers) => addIdentifiersToElem(elem, identifiers._1, identifiers._2)
                 case None => elem
               }
