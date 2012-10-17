@@ -8,6 +8,7 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockq
     font-size: 100%;
     vertical-align: baseline;
 }
+
 /* HTML5 display-role reset for older browsers */
 article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
     display: block;
@@ -48,25 +49,6 @@ body, html {
     margin:0;
 }
 
-.choiceInput, .choice-content {
-    float: left;
-    padding: 8px;
-}
-
-
-.choiceInput {
-    padding-top: 12px;
-}
-
-.feedback-container{
-    padding-left: 35px;
-}
-
-.feedbackinline {
-    color: #333;
-    padding-left: 10px;
-    font-size: 12px;
-}
 
 input[type="submit"] {
     display:block;
@@ -147,10 +129,6 @@ a:focus, .btn:focus, input[type="file"]:focus, input[type="radio"]:focus, input[
 .ie7 img {
     -ms-interpolation-mode: bicubic;
 }
-
-
-
-
 
 
 .btn {
@@ -303,15 +281,32 @@ a.btn{
     background-color: #00acce;
 }
 
+/*-------------------------------------------------------------------------------------------
+SIMPLE CHOICE
+-------------------------------------------------------------------------------------------*/
 
-/*-------------------------------------------------------------------------------------------*/
-/* TEXT FORMATTING */
-/*-------------------------------------------------------------------------------------------*/
-math, .mathml, div.math-choices simplechoice, .math-text, .MathJax {
-    font-family:"Times New Roman", Times, serif;
-    font-size: 15px;
+/* SC INPUT*/
+input[type="submit"] {
+    display:block;
+    margin:20px 0 10px auto;
 }
-/* MULTIPLE CHOICE */
+.choice-interaction input[type="checkbox"], .choice-interaction input[type="radio"] {
+    margin:0 0 0 1px;
+}
+
+/* SC STRUCTURAL ELEMENTS */
+
+.simple-choice-inner{
+	display:table-row;
+	}
+	
+.choiceInput, .choice-content {
+    padding: 8px;
+	display: table-cell;
+    vertical-align: middle;
+    color:#333;
+}
+
 .choice-interaction {
     display: block;
     margin:15px 0 30px 0;
@@ -319,79 +314,103 @@ math, .mathml, div.math-choices simplechoice, .math-text, .MathJax {
     font-size:14px;
 }
 
-.choiceInput, .choice-content {
-    display: table-cell;
-    vertical-align: middle;
-    color:#333;
-}
 .choice-content {
     line-height:20px;
     width: 540px;
 }
-/*.choiceInput {
-    padding:0 8px 0 0;
-}*/
-.choice-interaction input[type="checkbox"], .choice-interaction input[type="radio"] {
-    margin:0 0 0 1px;
-}
+
+
+
+/* SC FEEDBACK ELEMENTS */
 .correct-response {
     color: #95C444;
 }
+
+.feedback-container{
+    padding-left: 35px;
+}
+
 .feedbackinline {
     color: #333;
-    padding-left: 10px;
-    font-size: 14px;
+    padding-left:10px;
+    font-size: 12px;
 }
-input[type="submit"] {
-    display:block;
-    margin:20px 0 10px auto;
-}
-blockquote p span input.ng-pristine {
-    margin:none;
-}
-.incorrectSelection, .incorrect-selection {
+
+/*.incorrectSelection, .incorrect-selection {
     color: #F8A31A;
 }
+*/
+
+
 .orderIncorrect {
     border-color:#F8A31A;
 }
 
-/* For Feedback Blocks (10-1) */
-.feedback-block-correct, .feedback-block-incorrect {
-    line-height: 21px;
-    min-height: 21px;
-    padding: 0px 0px 0px 30px;
-}
-
-.feedback-block-correct {
-    background: url("/assets/images/correct-icon.png") no-repeat scroll 0px 50% transparent;
-    border-radius: 6px 6px 6px 6px;
-    border: 1px solid #53C516;
-    margin: 15px;
-    outline: 0px none;
-    padding: 10px 10px 10px 30px;
-}
-
-.feedback-block-incorrect {
-    background: url("/assets/images/wrong-icon.png") no-repeat scroll 0px 50% transparent;
-    border-radius: 6px 6px 6px 6px;
-    border: 2px solid #F8A31A;
-    margin: 15px;
-    outline: 0px none;
-    padding: 10px 10px 10px 30px;
+blockquote p span input.ng-pristine {
+    margin:none;
 }
 
 
 
-/* 9/27 Formatting for new Inline feedback. Also made answers display as block.*/
-.incorrect-selection .choice-interaction simplechoice.ng-scope div.choice-content feedbackinline,
-.correct-response .choice-interaction simplechoice.ng-scope div.choice-content feedbackinline.ng-scope {
+.incorrect-selection > .feedback-container > feedbackinline,
+.correct-response > .feedback-container > feedbackinline{
+    padding: 5px;
+    padding-left: 20px;
+    display: inline-block;
+    margin-bottom: 5px;
+}
+
+
+.incorrect-selection > .feedback-container > feedbackinline {
+    background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
+}
+.correct-response > .feedback-container > feedbackinline{
+    background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
+}
+
+simplechoice{
+    width: 100%;
+}
+
+
+.incorrect-selection .choice-content {
+    border:2px solid #f8a31a;
     display:block;
-    padding:5px 0 10 15 !important;
+    border-radius: 6px;
+    margin-bottom:5px;
 }
 
-.incorrect-selection feedbackinline.ng-scope span.feedbackinline, .correct-response feedbackinline.ng-scope span.feedbackinline {
-    font-size:12px !important;
+.correct-response .choice-content {
+    border:2px solid #92D400;
+    display:block;
+    border-radius: 6px;
+    margin-bottom:5px;
+}
+
+
+.simple-choice-inner:after {
+   content: "";
+    display: block;
+    clear: both;
+}
+
+.noResponseFeedback {
+    background-color: #FFFE9B;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 19px;
+    margin-top: 15px;
+    padding: 10px;
+}
+
+
+
+/* -------------------------------------
+TEXT ELEMENTS
+---------------------------------------- */
+math, .mathml, div.math-choices simplechoice, .math-text, .MathJax {
+    font-family:"Times New Roman", Times, serif;
+    font-size: 15px;
 }
 
 .item-title {
@@ -403,9 +422,6 @@ blockquote p span input.ng-pristine {
     margin: 0 0 0 20px;
 }
 
-/* -------------------------------------
-TEXT ELEMENTS
----------------------------------------- */
 .intro, div.intro {
     font-family: 'Ubuntu';
     font-style:italic;
@@ -964,90 +980,3 @@ table th, table td {
 }
 
 
-.feedback-block-correct, .feedback-block-incorrect {
-    padding:0 0 0 30px;
-    min-height:21px;
-    line-height:21px;
-}
-
-.feedback-container {
-    display: none;
-}
-
-.incorrect-selection > .feedback-container,
-.correct-response > .feedback-container {
-    display: block;
-}
-
-.incorrect-selection > .feedback-container > feedbackinline,
-.correct-response > .feedback-container > feedbackinline{
-    padding: 5px;
-    padding-left: 20px;
-    display: inline-block;
-    margin-bottom: 5px;
-}
-.incorrect-selection > .feedback-container > feedbackinline {
-    background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
-}
-.correct-response > .feedback-container > feedbackinline{
-    background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
-}
-
-simplechoice{
-    width: 100%;
-}
-
-
-.incorrect-selection .choice-content {
-    border:2px solid #f8a31a;
-    display:block;
-    border-radius: 6px;
-    margin-bottom:5px;
-}
-.correct-response .choice-content {
-    border:2px solid #92D400;
-    display:block;
-    border-radius: 6px;
-    margin-bottom:5px;
-}
-
-.simple-choice-inner:after {
-   content: "";
-    display: block;
-    clear: both;
-}
-
-/**
-*  TODO - temporary fix - evan
-*/
-.feedback-block-correct {
-    background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
-    border: solid 1px #53C516;
-    outline: 0px none;
-    padding:10px;
-    margin: 15px;
-    padding-left: 30px;
-    border-radius:6px;
-}
-
-.feedback-block-incorrect {
-    background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
-    border: solid 1px #F8A31A;
-    outline: 0px none;
-    padding:10px;
-    margin: 15px;
-    padding-left: 30px;
-    border-radius:6px;
-}
-
-.noResponse {
-    background-color: #fffe9b;
-    padding: 10px;
-}
-
-.noResponseFeedback
-{
-    margin-top: 15px;
-    padding: 5px;
-    background-color: #fffe9b;
-}

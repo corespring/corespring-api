@@ -1,7 +1,6 @@
 package controllers.testplayer
 
 import org.xml.sax.SAXParseException
-import qti.{QtiItem, FeedbackElement}
 import xml.{Elem, NodeSeq}
 import play.api.libs.json.Json
 import org.bson.types.ObjectId
@@ -17,6 +16,7 @@ import api.processors.FeedbackProcessor
 import play.api.cache.Cache
 import play.api.Play.current
 import scala.Some
+import controllers.testplayer.qti._
 
 case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: Int = -1)
 
@@ -39,7 +39,7 @@ object ItemPlayer extends BaseApi with ItemResources{
 
   val BYTE_BUREAU = css("/assets/stylesheets/bytebureau/styles.css")
 
-  val DEFAULT_CSS = Seq( BYTE_BUREAU).mkString("\n")
+  val DEFAULT_CSS = Seq(BYTE_BUREAU).mkString("\n")
 
   val notFoundJson = Json.toJson(
     Map("error" -> "not found")
@@ -58,11 +58,9 @@ object ItemPlayer extends BaseApi with ItemResources{
     _renderItem(itemId, printMode, previewEnabled  = false)
 
 
-  private def createItemSession(itemId:String, xml : Elem) : String = {
-    val session : ItemSession = ItemSession( itemId = new ObjectId(itemId) )
+  private def createItemSession(itemId:String, mapping:Seq[FeedbackIdMapEntry]) : String = {
+    val session : ItemSession = ItemSession( itemId = new ObjectId(itemId),feedbackIdLookup = mapping )
     ItemSession.save(session, ItemSession.collection.writeConcern)
-    //Stash it the cache for the Feedback rendering
-    ItemSessionXmlStore.cacheXml(xml, itemId, session.id.toString)
     session.id.toString
   }
 
@@ -71,17 +69,13 @@ object ItemPlayer extends BaseApi with ItemResources{
       getItemXMLByObjectId(itemId,request.ctx.organization) match {
         case Some(xmlData: Elem) =>
 
-          /**
-           * Temporary fix - get the ItemPlayer to serve xml with csFeedback ids.
-           * Then make this xml available to ItemSessionApi via the cache
-           */
-          val xmlWithCsFeedbackIds = ItemSessionXmlStore.addCsFeedbackIds(xmlData)
+          val (xmlWithCsFeedbackIds,mapping) = FeedbackProcessor.addFeedbackIds(xmlData)
 
-          val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds \ "itemBody"))
+          val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds) \ "itemBody")
 
           val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
 
-          val itemSessionId = if (printMode) "" else createItemSession(itemId, xmlWithCsFeedbackIds)
+          val itemSessionId = if (printMode) "" else createItemSession(itemId, mapping)
 
           val qtiXml = <assessmentItem
                            print-mode={ if(printMode) "true" else "false" }
@@ -126,8 +120,17 @@ object ItemPlayer extends BaseApi with ItemResources{
   def getFeedbackInline(itemId: String, responseIdentifier: String, choiceIdentifier: String) = ApiAction { request =>
     getItemXMLByObjectId(itemId, request.ctx.organization) match {
       case Some(rootElement: Elem) => {
-        val item = new QtiItem(rootElement)
-        val feedback: Seq[FeedbackElement] = item.feedback(responseIdentifier, choiceIdentifier)
+        val choiceIdentifiers:Seq[String] = if (choiceIdentifier.contains(",")) choiceIdentifier.split(",") else Seq(choiceIdentifier)
+        val item = QtiItem(rootElement)
+        val feedback: Seq[FeedbackInline] = item.itemBody.interactions.find(_.responseIdentifier == responseIdentifier) match {
+          case Some(interaction) =>
+            interaction match {
+            case ChoiceInteraction(_,choices) => choices.filter(sc => choiceIdentifiers.contains(sc.identifier)).flatMap(_.feedbackInline)
+            case OrderInteraction(_,choices) => choices.filter(sc => choiceIdentifiers.contains(sc.identifier)).flatMap(_.feedbackInline)
+            case _ => Seq()
+          }
+          case None => Seq()
+        }
         if (feedback.nonEmpty) {
           Ok(Json.toJson(Map("feedback" -> Json.toJson(feedback))))
         } else {

@@ -16,9 +16,10 @@ import play.api.Play
 import play.api.Play.current
 import akka.actor.FSM.->
 import scala.xml._
+import api.processors.FeedbackProcessor
 import controllers.testplayer.qti.QtiItem
 
-
+case class FeedbackIdMapEntry(csFeedbackId:String,outcomeIdentifier:String,identifier:String)
 /**
  * Case class representing an individual item session
  */
@@ -27,9 +28,9 @@ case class ItemSession (var itemId: ObjectId,
                         var finish: Option[DateTime] = None,
                         var responses: Seq[ItemResponse] = Seq(),
                         var id: ObjectId = new ObjectId(),
+                        var feedbackIdLookup:Seq[FeedbackIdMapEntry] = Seq(),
                         var sessionData: Option[SessionData] = None
                          ) extends Identifiable
-
 /**
  * Companion object for ItemSession.
  * All operations specific to ItemSession are handled here
@@ -53,6 +54,7 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
   def newItemSession(itemId:ObjectId, session:ItemSession):Either[InternalError, ItemSession] = {
       if(Play.isProd) session.id = new ObjectId()
       session.itemId = itemId
+
       try{
         ItemSession.insert(session,collection.writeConcern) match {
           case Some(_) => Right(session)
@@ -61,6 +63,13 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
       }catch{
         case e:SalatInsertError => Left(InternalError("error inserting item session: "+e.getMessage, LogType.printFatal))
       }
+  }
+
+  def getXmlWithFeedback(itemId:ObjectId, mapping:Seq[FeedbackIdMapEntry]):Either[InternalError,Elem] = {
+    Item.getQti(itemId) match {
+      case Right(qti) => Right(FeedbackProcessor.addFeedbackIds(XML.loadString(qti),mapping))
+      case Left(e) => Left(e)
+    }
   }
 
   def updateItemSession(session:ItemSession, xmlWithCsFeedbackIds : scala.xml.Elem ):Either[InternalError,ItemSession] = {
@@ -90,7 +99,7 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
     }
   }
 
-  def getSessionData(xml : Elem,responses:Seq[ItemResponse]) = Some(SessionData(bleezmo.QtiItem(xml),responses))
+  def getSessionData(xml : Elem,responses:Seq[ItemResponse]) = Some(SessionData(QtiItem(xml),responses))
 
   /**
    * Json Serializer

@@ -21,6 +21,7 @@ import com.novus.salat.annotations.raw.Salat
 import play.api.libs.json._
 import com.novus.salat._
 import models.Workflow.WorkflowWrites
+import controllers.auth.Permission
 
 case class Copyright(owner: Option[String] = None, year: Option[String] = None, expirationDate: Option[String] = None, imageName: Option[String] = None)
 
@@ -344,11 +345,15 @@ object Item extends DBQueryable[Item] {
     }
   }
 
-  def updateItem(oid: ObjectId, newItem: Item, fields: Option[DBObject]): Either[InternalError, Item] = {
+  def updateItem(oid: ObjectId, newItem: Item,fields: Option[DBObject],requesterOrgId:ObjectId): Either[InternalError, Item] = {
     try {
       import com.novus.salat.grater
       //newItem.id = oid
-      val toUpdate = ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials) - collectionId
+      val toUpdate = if(newItem.collectionId != "") {
+        if(ContentCollection.isAuthorized(requesterOrgId, new ObjectId(newItem.collectionId),Permission.All)){
+          ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials)
+        }else throw new RuntimeException("not authorized")
+      }else ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials) - collectionId
       Item.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> toUpdate), upsert = false, multi = false, wc = Item.collection.writeConcern)
       fields.map(Item.collection.findOneByID(oid, _)).getOrElse(Item.collection.findOneByID(oid)) match {
         case Some(dbo) => Right(grater[Item].asObject(dbo))
@@ -356,6 +361,8 @@ object Item extends DBQueryable[Item] {
       }
     } catch {
       case e: SalatDAOUpdateError => Left(InternalError(e.getMessage, LogType.printFatal, false, Some("error occured while updating")))
+      case e:IllegalArgumentException => Left(InternalError(e.getMessage,clientOutput = Some("destination collection id was not a valid id")))
+      case e: RuntimeException => Left(InternalError(e.getMessage,addMessageToClientOutput = true))
     }
   }
 

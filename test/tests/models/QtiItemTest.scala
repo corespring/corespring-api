@@ -1,8 +1,8 @@
-package tests.models.bleezmo
+package tests.models
 
 import org.specs2.mutable.Specification
-import models.bleezmo.{CorrectResponseMultiple, QtiItem}
 import scala.Some
+import controllers.testplayer.qti._
 
 class QtiItemTest extends Specification{
 

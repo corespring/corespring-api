@@ -12,19 +12,13 @@ class ResponseDeclarationSpec extends Specification {
         </correctResponse>
       </responseDeclaration>
 
-    val responseDeclaration = new ResponseDeclaration(xml)
+    val responseDeclaration = ResponseDeclaration(xml)
 
     "parse identifier" in { if (responseDeclaration.identifier equals "RESPONSE") success else failure }
 
-    "validate correct response" in { if (responseDeclaration.responseFor("ChoiceA") equals "1") success else failure }
+    "single cardinality" in { if (responseDeclaration.cardinality == "single") success else failure}
 
-    "not validate incorrect response" in {
-      if (responseDeclaration.responseFor("ChoiceB") equals "0") success else failure
-    }
-
-    "throw an exception when called with multiple choices" in {
-      responseDeclaration.responseFor(List("ChoiceA", "ChoiceB")) must throwAn[IllegalArgumentException]
-    }
+    "validate correct response" in { if (responseDeclaration.correctResponse.isDefined && responseDeclaration.isCorrect("ChoiceA")) success else failure }
   }
 
   "A multiple cardinality response declaration" should {
@@ -43,20 +37,16 @@ class ResponseDeclarationSpec extends Specification {
         </mapping>
       </responseDeclaration>
 
-    val responseDeclaration = new ResponseDeclaration(xml)
+    val responseDeclaration = ResponseDeclaration(xml)
 
     "provide default for unmapped keys" in {
-      if (responseDeclaration.responseFor("tests") equals defaultValue.toString) success else failure
-    }
-
-    "calculate response of default value for empty choices" in {
-      if (responseDeclaration.responseFor(List()) equals defaultValue.toString) success else failure
+      if (responseDeclaration.mappedValue("tests") equals defaultValue.toString) success else failure
     }
 
     "calculate response values correctly" in {
-      if (responseDeclaration.responseFor("H") equals "1") success else failure
-      if (responseDeclaration.responseFor(List("H", "O")) equals "3") success else failure
-      if (responseDeclaration.responseFor(List("H", "O", "Cl")) equals "2") success else failure
+      if (responseDeclaration.mappedValue("H") equals "1") success else failure
+      if (responseDeclaration.mappedValue("O") equals "2") success else failure
+      if (responseDeclaration.mappedValue("Cl") equals "-1") success else failure
     }
 
   }
