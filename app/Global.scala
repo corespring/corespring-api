@@ -78,13 +78,13 @@ object Global extends GlobalSettings {
         throw new RuntimeException("You're trying to seed against a remote db - bad idea")
     }
 
-    if (Play.isTest(app))
+    if (Play.isTest(app)) {
       onlyIfLocalDb(seedTestData)
-    else if (Play.isDev(app))
-      onlyIfLocalDb(seedDevData)
-    else if (Play.isProd(app))
+    } else if (Play.isDev(app)) {
+      if (initData) onlyIfLocalDb(seedDevData)
+    } else if (Play.isProd(app)) {
       if (initData) seedDevData()
-
+    }
   }
 }
 
