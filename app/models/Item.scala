@@ -179,7 +179,7 @@ object Item extends DBQueryable[Item] {
       if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards.
         foldRight[Seq[Standard]](Seq[Standard]())((sid, acc) => Standard.findOneById(sid) match {
         case Some(standard) => acc :+ standard
-        case None => Log.f("ItemWrites: no standard found given id"); acc
+        case None => throw new RuntimeException("ItemWrites: no standard found given id: " + sid); acc
       })))
       item.title.foreach(v => iseq = iseq :+ (title -> JsString(v)))
       item.data.foreach(v => iseq = iseq :+ (data -> Json.toJson(v)))
