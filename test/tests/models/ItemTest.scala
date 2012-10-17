@@ -1,10 +1,15 @@
 package tests.models
 
 import tests.BaseTest
-import models.{ContributorDetails, Copyright, Subject, Item}
+import models._
 import play.api.libs.json.{JsString, JsObject, Json}
 import org.bson.types.ObjectId
 import com.mongodb.BasicDBObject
+import models.Copyright
+import models.ContributorDetails
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsString
+import scala.Some
 
 class ItemTest extends BaseTest {
 
@@ -24,6 +29,29 @@ class ItemTest extends BaseTest {
 
       parsed.demonstratedKnowledge must equalTo(Some("Factual"))
       parsed.bloomsTaxonomy must equalTo(Some("Apply"))
+    }
+
+    "parse workflow" in {
+      val workflow = Workflow(setup = true,
+      tagged = true,
+      qaReview = true,
+      standardsAligned = true)
+
+      val item = Item(workflow = Some(workflow))
+
+      val jsonItem = Json.toJson(item)
+
+      (jsonItem \ "workflow" \ Workflow.setup ).as[Boolean] must equalTo(true)
+      (jsonItem \ "workflow" \ Workflow.tagged ).as[Boolean] must equalTo(true)
+      (jsonItem \ "workflow" \ Workflow.standardsAligned ).as[Boolean] must equalTo(true)
+      (jsonItem \ "workflow" \Workflow.qaReview).as[Boolean] must equalTo(true)
+
+      val itemFromJson = jsonItem.as[Item]
+
+      itemFromJson.workflow.get.setup must equalTo(true)
+      itemFromJson.workflow.get.tagged must equalTo(true)
+      itemFromJson.workflow.get.standardsAligned must equalTo(true)
+      itemFromJson.workflow.get.qaReview must equalTo(true)
     }
 
     "parse itemType" in {
