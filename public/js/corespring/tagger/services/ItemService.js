@@ -45,14 +45,14 @@ angular.module('tagger.services')
         }
     );
 
-    ItemService.prototype.update = function (paramsObject, cb) {
+    ItemService.prototype.update = function (paramsObject, cb, onErrorCallback) {
         var idObject = angular.extend(paramsObject, {id:this.id});
 
         var copy = {};
         angular.copy(this, copy);
         copy.id = null;
         delete copy.id;
-        delete copy.collectionId;
+        //delete copy.collectionId;
 
         /**
          * We need to only send the ids for items instead of embedded objects
@@ -78,7 +78,7 @@ angular.module('tagger.services')
         return ItemService.update(idObject, copy, function(resource){
             ItemService.processor.processIncomingData(resource);
             cb(resource)
-        });
+        }, onErrorCallback);
     };
 
 

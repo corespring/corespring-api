@@ -24,6 +24,15 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         });
     }
 
+    function loadCollections() {
+        Collection.get({ access_token : AccessToken.token }, function (data){
+            $scope.collections = data;
+        },
+        function(){
+           console.log("load collections: error: " + arguments)
+        });
+    }
+
     function initPane($routeParams) {
         var panelName = 'metadata';
         if ($routeParams.panel) {
@@ -31,6 +40,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         }
         $scope.changePanel(panelName);
         loadStandardsSelectionData();
+        loadCollections();
     }
 
     /**
@@ -197,6 +207,11 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             $scope.suppressSave = false;
             $scope.processValidationResults(data["$validationResult"]);
             $scope.itemData = data;
+        },
+        function onError(){
+            console.log("Error saving item");
+            $scope.isSaving = false;
+            $scope.suppressSave = false;
         });
     };
 

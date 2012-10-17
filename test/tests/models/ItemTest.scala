@@ -4,7 +4,7 @@ import tests.BaseTest
 import models._
 import play.api.libs.json.{JsString, JsObject, Json}
 import org.bson.types.ObjectId
-import com.mongodb.BasicDBObject
+import com.mongodb.{DBObject, BasicDBObject}
 import models.Copyright
 import models.ContributorDetails
 import play.api.libs.json.JsObject
@@ -22,8 +22,8 @@ class ItemTest extends BaseTest {
 
       val json = Json.toJson(item)
 
-      (json\ Item.demonstratedKnowledge).asOpt[String] must equalTo(Some("Factual"))
-      (json\ Item.bloomsTaxonomy).asOpt[String] must equalTo(Some("Apply"))
+      (json \ Item.demonstratedKnowledge).asOpt[String] must equalTo(Some("Factual"))
+      (json \ Item.bloomsTaxonomy).asOpt[String] must equalTo(Some("Apply"))
 
       val parsed = json.as[Item]
 
@@ -33,18 +33,18 @@ class ItemTest extends BaseTest {
 
     "parse workflow" in {
       val workflow = Workflow(setup = true,
-      tagged = true,
-      qaReview = true,
-      standardsAligned = true)
+        tagged = true,
+        qaReview = true,
+        standardsAligned = true)
 
       val item = Item(workflow = Some(workflow))
 
       val jsonItem = Json.toJson(item)
 
-      (jsonItem \ "workflow" \ Workflow.setup ).as[Boolean] must equalTo(true)
-      (jsonItem \ "workflow" \ Workflow.tagged ).as[Boolean] must equalTo(true)
-      (jsonItem \ "workflow" \ Workflow.standardsAligned ).as[Boolean] must equalTo(true)
-      (jsonItem \ "workflow" \Workflow.qaReview).as[Boolean] must equalTo(true)
+      (jsonItem \ "workflow" \ Workflow.setup).as[Boolean] must equalTo(true)
+      (jsonItem \ "workflow" \ Workflow.tagged).as[Boolean] must equalTo(true)
+      (jsonItem \ "workflow" \ Workflow.standardsAligned).as[Boolean] must equalTo(true)
+      (jsonItem \ "workflow" \ Workflow.qaReview).as[Boolean] must equalTo(true)
 
       val itemFromJson = jsonItem.as[Item]
 
@@ -95,6 +95,14 @@ class ItemTest extends BaseTest {
 
       parsed.subjects.get.primary must equalTo(item.subjects.get.primary)
       parsed.subjects.get.related must equalTo(item.subjects.get.related)
+    }
+
+    "item properties are validated when saving" in {
+
+      val item = Item(demonstratedKnowledge = Some("illegalstring value"))
+      Item.save(item)
+      //TODO: Item.updateItem(item.id, item, None).isLeft must equalTo(true)
+      pending
     }
 
     "parse contributor details" in {
