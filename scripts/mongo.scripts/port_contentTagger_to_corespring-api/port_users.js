@@ -22,8 +22,12 @@ var org = { "name" : "Root Org" ,
     };
 
 print(">>>> toDb " + toDb.contentcolls.count());
-var mcas3Collection = toDb.contentcolls.findOne({name: "mcas"});
-org.contentcolls.push( { collectionId: mcas3Collection._id });
+
+toDb.contentcolls.find().forEach( function(collection){
+    org.contentcolls.push( { collectionId: collection._id});
+});
+
+//org.contentcolls.push( { collectionId: mcas3Collection._id });
 
 toDb.orgs.insert(org);
 
