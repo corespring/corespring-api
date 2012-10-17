@@ -49,14 +49,9 @@ body, html {
 }
 
 .choiceInput, .choice-content {
-    float: left;
     padding: 8px;
 }
 
-
-.choiceInput {
-    padding-top: 12px;
-}
 
 .feedback-container{
     padding-left: 35px;
@@ -1051,3 +1046,5 @@ simplechoice{
     padding: 5px;
     background-color: #fffe9b;
 }
+
+.simple-choice-inner{display:table-row;}
