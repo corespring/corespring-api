@@ -7,6 +7,7 @@ import play.api.Play.current
 import play.api.Application
 import web.controllers.utils.ConfigLoader
 import seed.SeedDb._
+
 /**
   */
 object Global extends GlobalSettings {
@@ -70,24 +71,36 @@ object Global extends GlobalSettings {
 
     val initData = ConfigLoader.get(INIT_DATA).getOrElse("true") == "true"
 
+    def onlyIfLocalDb(fn: (() => Unit)) {
+      if (isLocalDb())
+        fn()
+      else
+        throw new RuntimeException("You're trying to test against a remote db - bad idea")
+    }
+
     if (Play.isTest(app)) {
-      seedTestData()
+      onlyIfLocalDb(seedTestData)
     } else {
-      if (initData) ConfigLoader.get("mongodb.default.uri") match {
-        case Some(url) => if (url.contains("localhost") || url.contains("127.0.0.1")) seedDevData()
-        case None =>
-      }
+      if (initData) onlyIfLocalDb(seedDevData)
     }
   }
 
-  private def seedTestData()  {
+  private def isLocalDb(): Boolean = {
+
+    ConfigLoader.get("mongodb.default.uri") match {
+      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1"))
+      case None => false
+    }
+  }
+
+  private def seedTestData() {
     emptyData()
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/test")
     addMockAccessToken(MOCK_ACCESS_TOKEN)
   }
 
-  private def seedDevData()  {
+  private def seedDevData() {
     emptyData()
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/dev")

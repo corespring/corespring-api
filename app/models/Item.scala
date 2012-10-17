@@ -50,6 +50,7 @@ case class Item(var collectionId: String = "",
                 var lexile: Option[String] = None,
                 var title: Option[String] = None,
                 var data: Option[Resource] = None,
+                var originId : Option[String] = None,
                 var relatedCurriculum: Option[String] = None,
                 var demonstratedKnowledge : Option[String] = None,
                 var bloomsTaxonomy : Option[String] = None,
@@ -67,6 +68,7 @@ object Item extends DBQueryable[Item] {
   val dao = new SalatDAO[Item, ObjectId](collection = collection) {}
 
   val id = "id"
+  val originId = "originId"
   val author = "author"
   val collectionId = Content.collectionId
   val contentType = Content.contentType
@@ -133,6 +135,8 @@ object Item extends DBQueryable[Item] {
       item.lexile.foreach(v => iseq = iseq :+ (lexile -> JsString(v)))
       
       item.demonstratedKnowledge.foreach(v => iseq = iseq :+ (demonstratedKnowledge -> JsString(v)))
+
+      if (item.originId.isDefined ) iseq = iseq :+ (originId -> JsString(item.originId.get))
 
       iseq = iseq :+ (collectionId -> JsString(item.collectionId))
       iseq = iseq :+ (contentType -> JsString(ContentType.item))
@@ -202,6 +206,8 @@ object Item extends DBQueryable[Item] {
       item.bloomsTaxonomy = getValidatedValue(fieldValues.bloomsTaxonomy)(json, bloomsTaxonomy)
       item.pValue = (json \ pValue).asOpt[String]
       item.relatedCurriculum = (json \ relatedCurriculum).asOpt[String]
+
+      item.originId = (json \ originId ).asOpt[String]
 
       item.contributorDetails = Some(
         ContributorDetails(
@@ -338,6 +344,7 @@ object Item extends DBQueryable[Item] {
     QueryFieldObject[Item](id, _.id, QueryField.valuefuncid),
     QueryFieldString[Item](author, _.contributorDetails.map(_.author)),
     QueryFieldString[Item](collectionId, _.collectionId),
+    QueryFieldString[Item](originId, _.originId),
     QueryFieldString[Item](contentType, _.contentType, _ match {
       case x: String if x == ContentType.item => Right(x)
       case _ => Left(InternalError("incorrect content type"))
