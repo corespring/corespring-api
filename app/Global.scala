@@ -73,7 +73,10 @@ object Global extends GlobalSettings {
     if (Play.isTest(app)) {
       seedTestData()
     } else {
-      if (initData) seedDevData()
+      if (initData) ConfigLoader.get("mongodb.default.uri") match {
+        case Some(url) => if (url.contains("localhost") || url.contains("127.0.0.1")) seedDevData()
+        case None =>
+      }
     }
   }
 
