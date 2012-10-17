@@ -7,7 +7,17 @@ function HomeController($scope, $timeout, $http, $location, AccessToken, ItemSer
     $scope.accessToken = AccessToken;
 
     $scope.loadItems = function () {
-        ItemService.query({ access_token:$scope.accessToken.token, l:200}, function (data) {
+        ItemService.query({
+            access_token:$scope.accessToken.token,
+            l:200,
+            f: JSON.stringify( {
+                "title":1,
+                "primarySubject":1,
+                "gradeLevel":1,
+                "itemType":1,
+                "standards":1} )
+            },
+            function (data) {
             $scope.items = data;
 
             //trigger math ml rendering
