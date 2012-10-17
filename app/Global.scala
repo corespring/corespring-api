@@ -72,41 +72,44 @@ object Global extends GlobalSettings {
     val initData = ConfigLoader.get(INIT_DATA).getOrElse("true") == "true"
 
     def onlyIfLocalDb(fn: (() => Unit)) {
-      if (isLocalDb())
+      if (isLocalDb)
         fn()
       else
-        throw new RuntimeException("You're trying to test against a remote db - bad idea")
+        throw new RuntimeException("You're trying to seed against a remote db - bad idea")
     }
 
-    if (Play.isTest(app)) {
+    if (Play.isTest(app))
       onlyIfLocalDb(seedTestData)
-    } else {
-      if (initData) onlyIfLocalDb(seedDevData)
-    }
-  }
+    else if (Play.isDev(app))
+      onlyIfLocalDb(seedDevData)
+    else if (Play.isProd(app))
+      if (initData) seedDevData()
 
-  private def isLocalDb(): Boolean = {
-
-    ConfigLoader.get("mongodb.default.uri") match {
-      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1"))
-      case None => false
-    }
   }
+}
 
-  private def seedTestData() {
-    emptyData()
-    seedData("conf/seed-data/common")
-    seedData("conf/seed-data/test")
-    addMockAccessToken(MOCK_ACCESS_TOKEN)
-  }
+private def isLocalDb: Boolean = {
 
-  private def seedDevData() {
-    emptyData()
-    seedData("conf/seed-data/common")
-    seedData("conf/seed-data/dev")
-    seedData("conf/seed-data/exemplar-content")
-    addMockAccessToken(MOCK_ACCESS_TOKEN)
+  ConfigLoader.get("mongodb.default.uri") match {
+    case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1"))
+    case None => false
   }
+}
+
+private def seedTestData() {
+  emptyData()
+  seedData("conf/seed-data/common")
+  seedData("conf/seed-data/test")
+  addMockAccessToken(MOCK_ACCESS_TOKEN)
+}
+
+private def seedDevData() {
+  emptyData()
+  seedData("conf/seed-data/common")
+  seedData("conf/seed-data/dev")
+  seedData("conf/seed-data/exemplar-content")
+  addMockAccessToken(MOCK_ACCESS_TOKEN)
+}
 
 }
 
