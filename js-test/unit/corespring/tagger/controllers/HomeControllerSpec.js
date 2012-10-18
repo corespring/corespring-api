@@ -2,17 +2,18 @@
 
 describe('HomeController', function () {
 
+    // Mock dependencies
+    var MockItemService = function() {};
+    MockItemService.prototype.$save = jasmine.createSpy("Resource Save");
+
     beforeEach(function () {
-        angular.module('tagger.services')
-            .factory('AccessToken', [ function () {
-            return { token:"1" };
-        }]
-        );
+        module(function ($provide) {
+            $provide.value('AccessToken', "1");
+            $provide.value('ItemService', MockItemService);
+        });
     });
 
     var scope, ctrl, $httpBackend;
-
-    beforeEach(module('tagger.services'));
 
     var prepareBackend = function ($backend) {
 

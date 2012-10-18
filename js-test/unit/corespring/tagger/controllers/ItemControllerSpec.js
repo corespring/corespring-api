@@ -2,16 +2,14 @@
 
 describe('ItemController should', function () {
 
-    beforeEach(function () {
-        angular.module('tagger.services')
-            .factory('AccessToken', [ function () {
-            return { token:"1" };
-        }]
-        );
-    });
 
     var scope, ctrl, $httpBackend;
 
+    beforeEach(function () {
+        module(function ($provide) {
+            $provide.value('AccessToken', {token:"1"});
+        });
+    });
     beforeEach(module('tagger.services'));
 
     var prepareBackend = function ($backend) {
