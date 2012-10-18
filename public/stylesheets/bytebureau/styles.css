@@ -336,7 +336,7 @@ input[type="submit"] {
     font-size: 12px;
 }
 
-/*.incorrectSelection, .incorrect-selection {
+.incorrectSelection, .incorrect-selection {
     color: #F8A31A;
 }
 */
@@ -403,7 +403,32 @@ simplechoice{
     padding: 10px;
 }
 
+/*TODO - temporary fix - evan */
 
+.feedback-block-correct {
+    background: url("/assets/images/correct-icon.png") no-repeat scroll 3px center transparent;
+    border: solid 1px #53C516;
+    outline: 0px none;
+    padding: 10px 10px 10px 35px;
+    margin: 15px;
+    border-radius:6px;
+}
+
+.feedback-block-incorrect {
+    background: url("/assets/images/wrong-icon.png") no-repeat scroll 3px center transparent;
+    border: 1px solid #F8A31A;
+    border-radius: 6px 6px 6px 6px;
+    margin: 15px;
+    outline: 0 none;
+    padding: 10px 10px 10px 35px;
+}
+
+.noResponse {
+    background-color: #fffe9b;
+    padding: 10px;
+}
+
+.simple-choice-inner{display:table-row;}
 
 /* -------------------------------------
 TEXT ELEMENTS
