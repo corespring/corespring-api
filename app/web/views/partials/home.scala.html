@@ -1,3 +1,12 @@
+<div ui-modal ng-model="showConfirmDestroyModal" style="padding: 20px">
+    <h2>Delete Item</h2>
+    <br/>
+    <p>Are you sure? This can't be undone.</p>
+
+    <button ng-click="deleteConfirmed()" class="btn btn-danger">Yes</button>
+    <button class="btn btn-info" ng-click="deleteCancelled()">No</button>
+</div>
+
 <div class="row" style="padding-top: 90px">
     <div class="container" style="width: 960px;" when-scrolled="loadMore()" watch="itemDataCollection">
     <table class="table">
@@ -8,6 +17,7 @@
             <th>Grade</th>
             <th>Item Type</th>
             <th>Standard(s)</th>
+            <th>Actions</th>
         </tr>
         </thead>
         <tbody>
@@ -22,6 +32,7 @@
                 <a ui-jq="tooltip"
                    ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
             </td>
+            <td><button class="btn btn-danger btn-mini" href="javascript:void(1)" ng-click="deleteItem(item)">Delete</button> </td>
         </tr>
         </tbody>
     </table>

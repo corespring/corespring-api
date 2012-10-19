@@ -10,6 +10,8 @@ describe('HomeController', function () {
         module(function ($provide) {
             $provide.value('AccessToken', "1");
             $provide.value('ItemService', MockItemService);
+            $provide.value('ServiceLookup', {});
+            $provide.value('SupportingMaterial', {});
         });
     });
 

@@ -1,4 +1,4 @@
-function HomeController($scope, $timeout, $http, $location, AccessToken, ItemService) {
+function HomeController($scope, $timeout, $http, $location, AccessToken, ItemService, ServiceLookup, SupportingMaterial) {
     $http.defaults.headers.get = ($http.defaults.headers.get || {});
     $http.defaults.headers.get['Content-Type'] = 'application/json';
 
@@ -128,6 +128,89 @@ function HomeController($scope, $timeout, $http, $location, AccessToken, ItemSer
         return out.join(", ");
     };
 
+    var deleteDataFile = function(itemId, fileName) {
+        console.log("Deleting Data File id: "+itemId+" name: "+fileName);
+        var substitutions = { itemId: itemId };
+        var deleteFileUrl = ServiceLookup.getUrlFor('deleteDataFile', substitutions);
+        var tokenize = function(url){
+            return url + "?access_token=" + AccessToken.token;
+        }
+        $http({
+            url:tokenize(deleteFileUrl.replace("{filename}", fileName)),
+            method:"DELETE"
+        }).success(function (data, status, headers, config) {
+                console.log("Delete file success");
+        }).error(function (data, status, headers, config) {
+                throw "Error deleting file";
+        });
+
+    }
+
+    var deleteSupportingMaterial = function(itemId, resourceName) {
+        console.log("Deleting Supporint Material: "+itemId+" name: "+fileName);
+        SupportingMaterial.delete({access_token:AccessToken.token, itemId:itemId, resourceName: resourceName},
+            function (file) {
+                console.log("File Getting Succ");
+                console.log(file);
+            },
+            function () {
+                console.log("File Getting error");
+            }
+        );
+
+    }
+
+    $scope.deleteItem = function(item) {
+        $scope.itemToDelete = item;
+        $scope.showConfirmDestroyModal = true;
+    }
+
+    $scope.deleteConfirmed = function(){
+        console.log("Item Delete Confirmed");
+        console.log($scope.itemToDelete);
+        var deletingId = $scope.itemToDelete.id;
+        ItemService.get({access_token:$scope.accessToken.token, id: $scope.itemToDelete.id},
+            function success(data) {
+                //TODO: should we not be doing this on the server side?
+
+                // Delete associated data files
+                if (data.data && data.data.files)
+                for (var i=0; i < data.data.files.length; i++) {
+                    var file = data.data.files[i];
+                    if (angular.isUndefined(file.content) || file.content.length < 1)
+                        deleteDataFile(deletingId, file.name);
+                }
+
+                // Delete associated supporting materials
+                if (data.supportingMaterials)
+                for (var i=0; i < data.supportingMaterials.length; i++) {
+                    var material = data.supportingMaterials[i];
+                    for (var j=0; j < material.files.length; j++) {
+                        var file = material.files[j];
+                        deleteSupportingMaterial(deletingId, material.name);
+                    }
+                }
+            }
+        );
+
+        ItemService.remove({access_token:$scope.accessToken.token, id: $scope.itemToDelete.id},
+            function(result) {
+                console.log("Item Successfully deleted");
+                $scope.itemToDelete = null;
+                $scope.loadItems();
+            }
+        );
+        $scope.itemToDelete = null;
+        $scope.showConfirmDestroyModal = false;
+    };
+
+    $scope.deleteCancelled = function(){
+        console.log("Item Delete Cancelled");
+       $scope.itemToDelete = null;
+       $scope.showConfirmDestroyModal = false;
+    };
+
+
     /*
      * called from the repeater. scope (this) is the current item
      */
@@ -144,5 +227,5 @@ function HomeController($scope, $timeout, $http, $location, AccessToken, ItemSer
     });
 }
 
-HomeController.$inject = ['$scope', '$timeout', '$http', '$location', 'AccessToken', 'ItemService'];
+HomeController.$inject = ['$scope', '$timeout', '$http', '$location', 'AccessToken', 'ItemService', 'ServiceLookup', 'SupportingMaterial'];
 
