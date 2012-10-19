@@ -1,10 +1,12 @@
-function HomeController($scope, $timeout, $http, $location, AccessToken, ItemService, ServiceLookup, SupportingMaterial) {
+function HomeController($scope, $rootScope, $timeout, $http, $location, AccessToken, ItemService, ServiceLookup, SupportingMaterial, SearchService) {
     $http.defaults.headers.get = ($http.defaults.headers.get || {});
     $http.defaults.headers.get['Content-Type'] = 'application/json';
 
     $scope.$root.mode = "home";
 
     $scope.accessToken = AccessToken;
+
+    $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
 
     $scope.loadItems = function () {
         ItemService.query({
@@ -18,14 +20,20 @@ function HomeController($scope, $timeout, $http, $location, AccessToken, ItemSer
                 "standards":1} )
             },
             function (data) {
-            $scope.items = data;
-
-            //trigger math ml rendering
-            $timeout(function(){
-                MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-            }, 200);
-        });
+                $scope.items = data;
+                //trigger math ml rendering
+                $timeout(function () {
+                    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                }, 200);
+            });
     };
+
+    $scope.search = function() {
+        SearchService.search($scope.searchParams, function(res){
+            $scope.items = res;
+        });
+    }
+
 
 
     $scope.showGradeLevel = function () {
@@ -227,5 +235,5 @@ function HomeController($scope, $timeout, $http, $location, AccessToken, ItemSer
     });
 }
 
-HomeController.$inject = ['$scope', '$timeout', '$http', '$location', 'AccessToken', 'ItemService', 'ServiceLookup', 'SupportingMaterial'];
+HomeController.$inject = ['$scope', '$rootScope','$timeout', '$http', '$location', 'AccessToken', 'ItemService', 'ServiceLookup', 'SupportingMaterial','SearchService'];
 

@@ -161,3 +161,78 @@ angular.module('tagger.services')
 }]
 );
 
+angular.module('tagger.services').factory('SearchService',
+    function ($rootScope, ItemService, AccessToken) {
+
+
+    var mongoQuery = new com.corespring.mongo.MongoQuery();
+    var searchService = {
+        queryText:"",
+        loaded:0,
+        limit:20,
+        isLastSearchRunning:false,
+        resultCount:"",
+        itemDataCollection:{},
+        resultFields:['originId', 'title', 'primarySubject', 'gradeLevel', 'itemType','standards'],
+        searchFields:[
+            'originId',
+            'title',
+//            'primarySubject.subject',
+            'copyrightOwner',
+            'contributor',
+            'author',
+//            'standards.standard',
+//            'standards.dotNotation',
+//            'standards.subject',
+//            'standards.category',
+//            'standards.subCategory'
+        ],
+
+        search:function (searchParams, resultHandler) {
+            this.searchParams = searchParams;
+            $rootScope.$broadcast('onNetworkLoading');
+            this.loaded = 0;
+
+            var query = this.buildQueryObject(searchParams, this.searchFields);
+
+            ItemService.query({
+                    access_token:AccessToken.token,
+                    l: this.limit,
+                    q:JSON.stringify(query),
+                    f:JSON.stringify(mongoQuery.buildFilter(this.resultFields))
+                }, function (data) {
+                    searchService.itemDataCollection = data;
+                    resultHandler(data);
+                }
+            );
+
+            this.loaded = this.loaded + this.limit;
+        },
+
+        buildQueryObject:function (searchParams, searchFields, resultFields) {
+            function addIfTrue(query, value, key) {
+                if (value) {
+                    query[key] = true;
+                }
+            }
+
+            var query = mongoQuery.fuzzyTextQuery(searchParams.searchText, searchFields);
+
+            addIfTrue(query, searchParams.setup, "workflow.setup");
+            addIfTrue(query, searchParams.tagged, "workflow.tagged");
+            addIfTrue(query, searchParams.qaReview, "workflow.qaReview");
+            addIfTrue(query, searchParams.standardsAligned, "workflow.standardsAligned");
+
+            if (searchParams.collection && searchParams.collection.name) {
+                query.collection = searchParams.collection.name;
+            }
+
+            return query;
+        },
+
+        resetDataCollection:function () {
+            searchService.itemDataCollection = [];
+        }
+    };
+    return searchService;
+});

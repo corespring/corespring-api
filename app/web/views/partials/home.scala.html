@@ -7,6 +7,19 @@
     <button class="btn btn-info" ng-click="deleteCancelled()">No</button>
 </div>
 
+<div class="sub-nav sub-nav-lower">
+    <div class="container" style="width: 900px;">
+        <div class="row navbar">
+            <div class="input-append span4" style="margin-left: 10px">
+                <input placeholder="Search" ng-model="searchParams.searchText" ng-change="search() " class="input-small"
+                       id="appendedInputButtons"
+                       size="16" type="text"><span class="add-on"><i class="icon-search"></i></span>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 <div class="row" style="padding-top: 90px">
     <div class="container" style="width: 960px;" when-scrolled="loadMore()" watch="itemDataCollection">
     <table class="table">
