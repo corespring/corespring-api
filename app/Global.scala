@@ -101,7 +101,7 @@ object Global extends GlobalSettings {
     emptyData()
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/test")
-    addMockAccessToken(MOCK_ACCESS_TOKEN_ID,MOCK_ACCESS_TOKEN_SCOPE)
+    addMockAccessToken(MOCK_ACCESS_TOKEN_ID,None)
   }
 
   private def seedDevData() {
@@ -109,7 +109,7 @@ object Global extends GlobalSettings {
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/dev")
     seedData("conf/seed-data/exemplar-content")
-    addMockAccessToken(MOCK_ACCESS_TOKEN_ID,MOCK_ACCESS_TOKEN_SCOPE)
+    addMockAccessToken(MOCK_ACCESS_TOKEN_ID,None)
   }
 
 }
