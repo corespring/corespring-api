@@ -11,10 +11,11 @@ import scala.Tuple2
 
 import play.api.libs.json.Json._
 import models.{Item, FieldValue, User}
-import models.auth.AccessToken
-import play.api.libs.json.Json
+import models.auth.{ApiClient, AccessToken}
+import play.api.libs.json.{JsString, JsObject, Json}
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{BasicDBObject, DBObject}
+import controllers.auth.{OAuthConstants, OAuthProvider}
 
 object Main extends Controller with Secured {
 
@@ -86,9 +87,7 @@ object Main extends Controller with Secured {
     tuple(
       "username" -> text,
       "password" -> text
-    ) verifying("Invalid email or password", result => result match {
-      case (username, password) => User.getUser(username).isDefined
-    })
+    )
   )
 
   def login = Action {
@@ -100,7 +99,21 @@ object Main extends Controller with Secured {
     implicit request =>
       loginForm.bindFromRequest.fold(
         formWithErrors => BadRequest(web.views.html.login(formWithErrors)),
-        user => Redirect(web.controllers.routes.Main.index()).withSession("username" -> user._1)
+        user => {
+          User.getUser(user._1) match {
+            case Some(dbuser) => ApiClient.findByIdAndSecret(dbuser.id,user._2) match {
+              case Some(apiClient) => OAuthProvider.getAccessToken(OAuthConstants.ClientCredentials,
+                apiClient.clientId.toString,
+                apiClient.clientSecret,
+                Some(user._1)) match {
+                case Right(accessToken) => Redirect(web.controllers.routes.Main.index()).withSession("access_token" -> accessToken.tokenId)
+                case Left(error) => BadRequest(JsObject(Seq("error" -> JsString(error.message))))
+              }
+              case None => Unauthorized
+            }
+            case None => Unauthorized("no user found")
+          }
+        }
       )
   }
 
@@ -128,7 +141,13 @@ trait Secured {
   /**
    * Retrieve the connected user email.
    */
-  private def username(request: RequestHeader) = request.session.get("username")
+  private def username(request: RequestHeader) = request.session.get("access_token") match {
+    case Some(accessTokenId) =>
+      AccessToken.findById(accessTokenId).map(accessToken =>
+        accessToken.scope
+      ).getOrElse(None)
+    case None => None
+  }
 
   /**
    * Redirect to login if the user in not authorized.
@@ -138,7 +157,8 @@ trait Secured {
   /**
    * Action for authenticated users.
    */
-  def IsAuthenticated(f: => String => Request[AnyContent] => Result) = Security.Authenticated(username, onUnauthorized) {
+  def IsAuthenticated(f: => String => Request[AnyContent] => Result) =
+    Security.Authenticated(username, onUnauthorized) {
     user =>
       Action(request => f(user)(request))
   }
