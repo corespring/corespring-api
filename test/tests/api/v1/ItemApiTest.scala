@@ -7,7 +7,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import api.ApiError._
 import tests.BaseTest
-import models.{StoredFile, VirtualFile, Resource, Item}
+import models._
 import play.api.Play.current
 import org.bson.types.ObjectId
 import controllers.{S3Service, Log}
@@ -17,6 +17,11 @@ import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
 import scala.xml._
 import utils.S3TestUtil
+import play.mvc.Http.Request
+import scala.Some
+import play.api.test.FakeHeaders
+import play.api.mvc.AnyContentAsJson
+import play.api.libs.json.JsObject
 
 class ItemApiTest extends BaseTest {
 
@@ -202,45 +207,21 @@ class ItemApiTest extends BaseTest {
   }
 
 
-  "delete deletes any file resources too" in {
+  "delete moves item to the archived collection" in {
 
-    val item = Item()
+    val item = Item(collectionId = TEST_COLLECTION_ID)
     Item.save(item)
-    println("new item : " + item.id)
+    val deleteItemCall = api.v1.routes.ItemApi.deleteItem(item.id)
 
-    val filename = "cute-rabbit.jpg"
-    val updateCall = api.v1.routes.ResourceApi.uploadFileToData(item.id.toString, filename)
-    val file = Play.getFile("test/tests/files/" + filename)
-    val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
-    val byteArray = source.map(_.toByte).toArray
-    source.close()
-
-    routeAndCall(tokenFakeRequest(updateCall.method, updateCall.url, FakeHeaders(), byteArray)) match {
-      case Some(result) => {
-
+    routeAndCall(tokenFakeRequest(deleteItemCall.method, deleteItemCall.url, FakeHeaders())) match {
+      case Some(deleteResult) => {
         Item.findOneById(item.id) match {
-          case Some(updatedItem) => {
-            val storedFile = updatedItem.data.get.files.find(_.name == filename).get
-            val key = storedFile.asInstanceOf[StoredFile].storageKey
-
-            val deleteItemCall = api.v1.routes.ItemApi.deleteItem(item.id)
-
-            routeAndCall(tokenFakeRequest(deleteItemCall.method, deleteItemCall.url, FakeHeaders())) match {
-              case Some(deleteResult) => {
-                println("storage key: " + key)
-                println("delete result: " + contentAsString(deleteResult))
-
-                S3TestUtil.exists(key) must equalTo(false)
-              }
-              case _ => failure("delete failed")
-            }
-          }
-          case _ => failure("can't find updated item")
+          case Some(deletedItem) => deletedItem.collectionId must equalTo(models.ContentCollection.archiveCollId.toString)
+          case _ => failure("couldn't find deleted item")
         }
       }
-      case _ => failure("couldn't upload")
+      case _ => failure("delete failed")
     }
-
   }
 
 

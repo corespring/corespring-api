@@ -6,14 +6,29 @@ import tools.nsc.io.File
 import play.api.Play
 import play.api.Play.current
 import web.controllers.utils.ConfigLoader
+import com.amazonaws.services.s3.model.{ObjectMetadata, UploadPartRequest}
+import java.io.ByteArrayInputStream
 
 object S3TestUtil {
 
-  private val s3 = new AmazonS3Client( new PropertiesCredentials( Play.getFile("/conf/AwsCredentials.properties")))
+  private val s3 = new AmazonS3Client(new PropertiesCredentials(Play.getFile("/conf/AwsCredentials.properties")))
 
   private val bucket = ConfigLoader.get("AMAZON_ASSETS_BUCKET").get
 
-  def exists( path : String ) : Boolean = {
+  def upload(path: String, bytes: Array[Byte]): Boolean = {
+    try {
+      val inputStream = new ByteArrayInputStream(bytes)
+      val result = s3.putObject(bucket, path, inputStream, new ObjectMetadata())
+      println("upload result: " + result)
+      true
+    }
+    catch {
+      case e: Exception => false
+    }
+  }
+
+
+  def exists(path: String): Boolean = {
 
     println("exists? " + bucket + ", " + path)
     try {
@@ -23,10 +38,7 @@ object S3TestUtil {
       true
     }
     catch {
-      case e : Exception => {
-        println("exception occured: " + e.getMessage)
-        false
-      }
+      case e: Exception => false
     }
   }
 }
