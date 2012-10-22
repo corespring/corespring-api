@@ -416,6 +416,10 @@ object Item extends DBQueryable[Item] {
       }
     }),
 
+  QueryFieldString[Item](workflow + "." + Workflow.qaReview, _.workflow.map(_.qaReview)),
+  QueryFieldString[Item](workflow + "." + Workflow.setup, _.workflow.map(_.setup)),
+  QueryFieldString[Item](workflow + "." + Workflow.tagged, _.workflow.map(_.tagged)),
+  QueryFieldString[Item](workflow + "." + Workflow.standardsAligned, _.workflow.map(_.standardsAligned)),
     /**
      * TODO: Check with Evan/Josh about item types.
      */
