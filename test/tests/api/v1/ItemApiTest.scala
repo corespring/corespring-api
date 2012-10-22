@@ -1,33 +1,27 @@
 package tests.api.v1
 
-import org.junit.Ignore
 import play.api.libs.json._
-import play.api.Logger
+import play.api.Play
 import play.api.mvc._
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import scala.Some
 import api.ApiError._
-import scala.Some
-import play.api.test.FakeHeaders
 import tests.BaseTest
-import models.{VirtualFile, Resource, Item}
-import play.api.test.FakeHeaders
-import play.api.libs.json.JsString
-import scala.Some
+import models.{StoredFile, VirtualFile, Resource, Item}
+import play.api.Play.current
 import org.bson.types.ObjectId
-import controllers.Log
+import controllers.{S3Service, Log}
 import play.api.test.FakeHeaders
-import play.api.libs.json.JsString
 import scala.Some
 import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
 import scala.xml._
+import utils.S3TestUtil
 
 class ItemApiTest extends BaseTest {
 
-  val TEST_COLLECTION_ID : String = "5001bb0ee4b0d7c9ec3210a2"
-  val OTHER_TEST_COLLECTION_ID : String = "5001a66ce4b0d7c9ec320f2e"
+  val TEST_COLLECTION_ID: String = "5001bb0ee4b0d7c9ec3210a2"
+  val OTHER_TEST_COLLECTION_ID: String = "5001a66ce4b0d7c9ec320f2e"
 
   "list all items" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s".format(token))
@@ -36,7 +30,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items.size must beEqualTo( 50 )
+    items.size must beEqualTo(50)
   }
 
   "list items in a collection" in {
@@ -46,7 +40,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items.size must beEqualTo( 50 )
+    items.size must beEqualTo(50)
   }
 
   "list all items skipping 30" in {
@@ -68,7 +62,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items.size must beEqualTo( 10 )
+    items.size must beEqualTo(10)
   }
 
   "find items in the grade level 7" in {
@@ -78,7 +72,7 @@ class ItemApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items.size must beEqualTo( 14 )
+    items.size must beEqualTo(14)
   }
 
   "find items in returning only their title and up to 10" in {
@@ -92,7 +86,7 @@ class ItemApiTest extends BaseTest {
       (i \ "title").as[Option[String]] must beSome
       (i \ "author").as[Option[String]] must beNone
     })
-    items.size must beEqualTo( 10  )
+    items.size must beEqualTo(10)
   }
 
   "get an item by id" in {
@@ -151,7 +145,7 @@ class ItemApiTest extends BaseTest {
 
     val toCreate = xmlBody("<root/>", Map("collectionId" -> TEST_COLLECTION_ID))
     val call = api.v1.routes.ItemApi.createItem()
-    val createResult = routeAndCall( FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsJson(toCreate))).get
+    val createResult = routeAndCall(FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsJson(toCreate))).get
     status(createResult) must equalTo(OK)
 
     val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
@@ -161,7 +155,7 @@ class ItemApiTest extends BaseTest {
     val updateResult = routeAndCall(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
     status(updateResult) must equalTo(OK)
     Log.i(contentAsString(updateResult))
-    val item : Item = Json.parse(contentAsString(updateResult)).as[Item]
+    val item: Item = Json.parse(contentAsString(updateResult)).as[Item]
     item.collectionId must equalTo(OTHER_TEST_COLLECTION_ID)
   }
 
@@ -170,7 +164,7 @@ class ItemApiTest extends BaseTest {
 
     val toCreate = xmlBody("<root/>", Map("collectionId" -> TEST_COLLECTION_ID))
     val call = api.v1.routes.ItemApi.createItem()
-    val createResult = routeAndCall( FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsJson(toCreate))).get
+    val createResult = routeAndCall(FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsJson(toCreate))).get
     status(createResult) must equalTo(OK)
     val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
     val toUpdate = xmlBody("<root2/>", Map(Item.author -> "Ed"))
@@ -180,31 +174,73 @@ class ItemApiTest extends BaseTest {
     val updateResult = routeAndCall(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
     status(updateResult) must equalTo(OK)
     Log.i(contentAsString(updateResult))
-    val item : Item = Json.parse(contentAsString(updateResult)).as[Item]
+    val item: Item = Json.parse(contentAsString(updateResult)).as[Item]
 
     item.collectionId must equalTo(TEST_COLLECTION_ID)
   }
 
-  val STATE_DEPT : String = "State Department of Education"
+  val STATE_DEPT: String = "State Department of Education"
 
   "get and update return the same json" in {
 
-    val toCreate = xmlBody("<root/>", Map(Item.collectionId -> TEST_COLLECTION_ID,Item.credentials -> STATE_DEPT))
+    val toCreate = xmlBody("<root/>", Map(Item.collectionId -> TEST_COLLECTION_ID, Item.credentials -> STATE_DEPT))
     val call = api.v1.routes.ItemApi.createItem()
-    val createResult = routeAndCall( FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsJson(toCreate))).get
+    val createResult = routeAndCall(FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsJson(toCreate))).get
     val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
 
     val getItemCall = api.v1.routes.ItemApi.getItem(new ObjectId(id))
-    val getResult = routeAndCall( FakeRequest(getItemCall.method, tokenize(getItemCall.url), FakeHeaders(), AnyContentAsEmpty)).get
+    val getResult = routeAndCall(FakeRequest(getItemCall.method, tokenize(getItemCall.url), FakeHeaders(), AnyContentAsEmpty)).get
 
     val getJsonString = contentAsString(getResult)
 
     val updateCall = api.v1.routes.ItemApi.updateItem(new ObjectId(id))
 
-    val toUpdate = xmlBody("<root/>", Map(Item.credentials -> STATE_DEPT ))
+    val toUpdate = xmlBody("<root/>", Map(Item.credentials -> STATE_DEPT))
     val updateResult = routeAndCall(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
     val updateJsonString = contentAsString(updateResult)
     updateJsonString must equalTo(getJsonString)
+  }
+
+
+  "delete deletes any file resources too" in {
+
+    val item = Item()
+    Item.save(item)
+    println("new item : " + item.id)
+
+    val filename = "cute-rabbit.jpg"
+    val updateCall = api.v1.routes.ResourceApi.uploadFileToData(item.id.toString, filename)
+    val file = Play.getFile("test/tests/files/" + filename)
+    val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
+    val byteArray = source.map(_.toByte).toArray
+    source.close()
+
+    routeAndCall(tokenFakeRequest(updateCall.method, updateCall.url, FakeHeaders(), byteArray)) match {
+      case Some(result) => {
+
+        Item.findOneById(item.id) match {
+          case Some(updatedItem) => {
+            val storedFile = updatedItem.data.get.files.find(_.name == filename).get
+            val key = storedFile.asInstanceOf[StoredFile].storageKey
+
+            val deleteItemCall = api.v1.routes.ItemApi.deleteItem(item.id)
+
+            routeAndCall(tokenFakeRequest(deleteItemCall.method, deleteItemCall.url, FakeHeaders())) match {
+              case Some(deleteResult) => {
+                println("storage key: " + key)
+                println("delete result: " + contentAsString(deleteResult))
+
+                S3TestUtil.exists(key) must equalTo(false)
+              }
+              case _ => failure("delete failed")
+            }
+          }
+          case _ => failure("can't find updated item")
+        }
+      }
+      case _ => failure("couldn't upload")
+    }
+
   }
 
 
@@ -222,25 +258,25 @@ class ItemApiTest extends BaseTest {
     var fakeRequest = FakeRequest(PUT, "/api/v1/items/50083ba9e4b071cb5ef79101?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(jsitem))
     var result = routeAndCall(fakeRequest).get
     status(result) must equalTo(OK)
-    val resource:Resource = Item.findOneById(new ObjectId("50083ba9e4b071cb5ef79101")).get.data.get
-    val qtiXml:Option[String] = resource.files.find(file => file.isMain).map(file => file.asInstanceOf[VirtualFile].content)
+    val resource: Resource = Item.findOneById(new ObjectId("50083ba9e4b071cb5ef79101")).get.data.get
+    val qtiXml: Option[String] = resource.files.find(file => file.isMain).map(file => file.asInstanceOf[VirtualFile].content)
     qtiXml must beSome[String]
-    val hasCsFeedbackIds:Boolean = qtiXml.map(qti =>
-      findFeedbackIds(XML.loadString(qti),Seq(),0).find(result => {
-        if(result._2) false else true
+    val hasCsFeedbackIds: Boolean = qtiXml.map(qti =>
+      findFeedbackIds(XML.loadString(qti), Seq(), 0).find(result => {
+        if (result._2) false else true
       }).isEmpty
     ).getOrElse(false)
     hasCsFeedbackIds must beTrue
   }
 
-  private def findFeedbackIds(xml:Elem, acc:Seq[(NodeSeq,Boolean)], levels: Int): Seq[(NodeSeq,Boolean)] = {
-    var feedback:Seq[(NodeSeq,Boolean)] = acc
+  private def findFeedbackIds(xml: Elem, acc: Seq[(NodeSeq, Boolean)], levels: Int): Seq[(NodeSeq, Boolean)] = {
+    var feedback: Seq[(NodeSeq, Boolean)] = acc
     val children = xml.child
-    for (child <- children){
+    for (child <- children) {
       val feedbackInline = child \ "feedbackInline"
       if (feedbackInline.isEmpty) {
         child match {
-          case innerXml:Elem => feedback = findFeedbackIds(innerXml,feedback,levels+1)
+          case innerXml: Elem => feedback = findFeedbackIds(innerXml, feedback, levels + 1)
           case _ =>
         }
       }

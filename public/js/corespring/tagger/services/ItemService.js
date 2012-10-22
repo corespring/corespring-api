@@ -228,10 +228,18 @@ angular.module('tagger.services').factory('SearchService',
 
             var query = mongoQuery.fuzzyTextQuery(searchParams.searchText, searchFields);
 
-            addIfTrue(query, searchParams.setup, "workflow.setup");
-            addIfTrue(query, searchParams.tagged, "workflow.tagged");
-            addIfTrue(query, searchParams.qaReview, "workflow.qaReview");
-            addIfTrue(query, searchParams.standardsAligned, "workflow.standardsAligned");
+            if( searchParams.exactMatch ){
+                query["workflow.setup"] = searchParams.setup;
+                query["workflow.tagged"] = searchParams.tagged;
+                query["workflow.qaReview"] = searchParams.qaReview;
+                query["workflow.standardsAligned"] = searchParams.standardsAligned;
+
+            } else {
+                addIfTrue(query, searchParams.setup, "workflow.setup");
+                addIfTrue(query, searchParams.tagged, "workflow.tagged");
+                addIfTrue(query, searchParams.qaReview, "workflow.qaReview");
+                addIfTrue(query, searchParams.standardsAligned, "workflow.standardsAligned");
+            }
 
             if (searchParams.collection && searchParams.collection.name) {
                 query.collection = searchParams.collection.name;

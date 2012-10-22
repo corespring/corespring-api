@@ -291,6 +291,8 @@ object ResourceApi extends BaseApi {
     }
   )
 
+  def key(keys : String*) : String = keys.toList.mkString("/")
+
   /**
    * Upload a file to the 'data' Resource in the Item.
    * @param itemId
@@ -298,27 +300,33 @@ object ResourceApi extends BaseApi {
    * @return
    */
   def uploadFileToData(itemId: String, filename: String) = {
-    val x = HasItem(
+    HasItem(
       itemId,
       Seq(isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_)),
-      S3Service.s3upload(AMAZON_ASSETS_BUCKET, itemId + "/" + DATA_PATH + "/" + filename))(
+      S3Service.s3upload(AMAZON_ASSETS_BUCKET, key(itemId, DATA_PATH, filename)))(
     {
       request =>
+
+        def getDataResource(item:Item) : Resource = item.data match {
+            case Some(r) => r
+            case _ => item.data = Some(Resource(name = "data", files = Seq())); item.data.get
+        }
+
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-        val resource = item.data.get
+
+        val resource = getDataResource(item)
 
         val file = new StoredFile(
           filename,
           contentType(filename),
           false,
-          itemId + "/" + DATA_PATH + "/" + filename)
+          key(itemId, DATA_PATH, filename))
 
         resource.files = resource.files ++ Seq(file)
         Item.save(item)
         Ok(toJson(file))
     }
     )
-    x
   }
 
   /**
@@ -435,7 +443,7 @@ object ResourceApi extends BaseApi {
       }
     }
 
-  private def storageKey(itemId: String, materialName: String, filename: String) = itemId + "/materials/" + materialName + "/" + filename
+  private def storageKey(itemId: String, materialName: String, filename: String) = key(itemId, "materials", materialName, filename)
 
   private def contentType(filename: String): String = BaseFile.getContentType(filename)
 
@@ -457,7 +465,6 @@ object ResourceApi extends BaseApi {
     } else {
       item.supportingMaterials.find(_.name == resourceName)
     }
-
   }
 
   private def isResourceNameTaken(resourceName: String)(item: Item): Option[ApiError] = {
