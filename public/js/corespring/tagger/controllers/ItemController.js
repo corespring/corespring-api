@@ -25,12 +25,12 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     }
 
     function loadCollections() {
-        Collection.get({ access_token : AccessToken.token }, function (data){
-            $scope.collections = data;
-        },
-        function(){
-           console.log("load collections: error: " + arguments)
-        });
+        Collection.get({ access_token:AccessToken.token }, function (data) {
+                $scope.collections = data;
+            },
+            function () {
+                console.log("load collections: error: " + arguments)
+            });
     }
 
     function initPane($routeParams) {
@@ -41,6 +41,13 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         $scope.changePanel(panelName);
         loadStandardsSelectionData();
         loadCollections();
+        $scope.$watch(
+            function () {
+                return $location.url()
+            },
+            function (path) {
+                $scope.changePanel($location.search().panel);
+            });
     }
 
     /**
@@ -56,6 +63,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         }
         $location.search("panel=" + panelName);
     }
+
 
     $scope.$root.mode = "edit";
 
@@ -104,7 +112,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     });
 
     $scope.changePanel = function (panelName) {
-        $scope.currentPanel = panelName;
+        var panel = ["metadata", "supportingMaterials", "content"].indexOf(panelName) == -1 ? "metadata" : panelName;
+        $scope.currentPanel = panel;
         $scope.$broadcast("tabSelected");
         enterEditorIfInContentPanel();
         updateLocation($scope.currentPanel);
@@ -203,16 +212,16 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         $scope.validationResult = {};
 
         $scope.itemData.update({access_token:$scope.accessToken.token}, function (data) {
-            $scope.isSaving = false;
-            $scope.suppressSave = false;
-            $scope.processValidationResults(data["$validationResult"]);
-            $scope.itemData = data;
-        },
-        function onError(){
-            console.log("Error saving item");
-            $scope.isSaving = false;
-            $scope.suppressSave = false;
-        });
+                $scope.isSaving = false;
+                $scope.suppressSave = false;
+                $scope.processValidationResults(data["$validationResult"]);
+                $scope.itemData = data;
+            },
+            function onError() {
+                console.log("Error saving item");
+                $scope.isSaving = false;
+                $scope.suppressSave = false;
+            });
     };
 
 
@@ -367,6 +376,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
     // end EditCrtl
 }
+
 ItemController.$inject = [
     '$scope',
     '$location',
