@@ -1,66 +1,14 @@
 package tests.api.v1
 
 import api.ApiError
-import api.v1.{ReverseResourceApi, ResourceApi}
-import com.mongodb.{BasicDBObject, DBObject}
 import models._
-import org.bson.types.ObjectId
-import play.api.libs.json.{JsString, JsObject, Json, JsValue}
+import play.api.libs.json.{Json, JsValue}
 import play.api.mvc._
 import play.api.Play
 import play.api.Play.current
-import org.specs2.mutable._
 
-import play.api.test._
 import play.api.test.Helpers._
 import scala._
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsObject
-import play.api.test.FakeHeaders
-import play.api.libs.json.JsObject
-import play.api.test.FakeHeaders
-import play.api.mvc.SimpleResult
-import play.api.mvc.AnyContentAsJson
-import play.api.libs.json.JsObject
-import play.api.test.FakeHeaders
-import play.api.mvc.SimpleResult
-import play.api.mvc.AnyContentAsJson
-import play.api.libs.json.JsObject
-import play.api.test.FakeHeaders
-import play.api.mvc.SimpleResult
-import play.api.mvc.AnyContentAsJson
-import play.api.libs.json.JsObject
 import play.api.test.FakeHeaders
 import scala.Some
 import play.api.mvc.SimpleResult
