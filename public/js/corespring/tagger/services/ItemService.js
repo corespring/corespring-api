@@ -178,15 +178,15 @@ angular.module('tagger.services').factory('SearchService',
         searchFields:[
             'originId',
             'title',
-//            'primarySubject.subject',
+            'primarySubject.subject.primary',
             'copyrightOwner',
             'contributor',
             'author',
-//            'standards.standard',
-//            'standards.dotNotation',
-//            'standards.subject',
-//            'standards.category',
-//            'standards.subCategory'
+            'standards.standards',
+            'standards.standards.dotNotation',
+            'standards.standards.subject',
+            'standards.standards.category',
+            'standards.standards.subCategory'
         ],
 
         search:function (searchParams, resultHandler) {
@@ -204,14 +204,12 @@ angular.module('tagger.services').factory('SearchService',
                         f:JSON.stringify(mongoQuery.buildFilter(searchService.resultFields))
                     }, function (data) {
                         if (id != searchService.searchId) {
-                            console.log("Obsolete handler");
                             return;
                         }
                         searchService.itemDataCollection = data;
                         resultHandler(data);
                         searchService.count(JSON.stringify(query), function (resultCount) {
                             searchService.resultCount = parseInt(resultCount);
-                            console.log("Count of query is "+resultCount);
                             $rootScope.$broadcast('onSearchCountComplete', resultCount);
                         });
                     }
@@ -219,7 +217,6 @@ angular.module('tagger.services').factory('SearchService',
             })(searchService.searchId);
 
             this.loaded = this.loaded + this.limit;
-            console.log(this.loaded);
         },
 
         buildQueryObject:function (searchParams, searchFields, resultFields) {
@@ -267,7 +264,6 @@ angular.module('tagger.services').factory('SearchService',
                     f:JSON.stringify(mongoQuery.buildFilter(this.resultFields)),
                     sk:this.loaded >= 0 ? this.loaded : -1
                 }, function (data) {
-                    console.log("New data arrived");
                     searchService.itemDataCollection = searchService.itemDataCollection.concat(data);
                     resultHandler(data);
                     searchService.isLastSearchRunning = false; // reset flag
