@@ -5,6 +5,9 @@ describe('HomeController', function () {
     // Mock dependencies
     var MockItemService = function() {};
     MockItemService.prototype.$save = jasmine.createSpy("Resource Save");
+    MockItemService.createWorkflowObject = jasmine.createSpy("Create Workflow Object");
+
+    var MockSearchService = function() {}
 
     beforeEach(function () {
         module(function ($provide) {
@@ -12,6 +15,7 @@ describe('HomeController', function () {
             $provide.value('ItemService', MockItemService);
             $provide.value('ServiceLookup', {});
             $provide.value('SupportingMaterial', {});
+            $provide.value('SearchService', MockSearchService);
         });
     });
 
@@ -113,6 +117,15 @@ describe('HomeController', function () {
             s.push({ standard: "a b c d e f g", dotNotation: "dn2"});
 
             expect(scope.buildStandardTooltip(s)).toBe("dn: s, dn2: a b c d e f...");
+        });
+
+        it("Search should invoke search service", function() {
+            MockSearchService.search = jasmine.createSpy("Search").andCallFake(function(params, handler) {
+                handler(["item"]);
+            });
+            scope.search();
+            expect(MockSearchService.search).toHaveBeenCalled();
+            expect(scope.items).toEqual(["item"]);
         });
     });
 

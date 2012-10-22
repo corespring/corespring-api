@@ -8,31 +8,25 @@ function HomeController($scope, $rootScope, $timeout, $http, $location, AccessTo
 
     $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
 
-    $scope.loadItems = function () {
-        ItemService.query({
-            access_token:$scope.accessToken.token,
-            l:200,
-            f: JSON.stringify( {
-                "title":1,
-                "primarySubject":1,
-                "gradeLevel":1,
-                "itemType":1,
-                "standards":1} )
-            },
-            function (data) {
-                $scope.items = data;
-                //trigger math ml rendering
-                $timeout(function () {
-                    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-                }, 200);
-            });
-    };
-
     $scope.search = function() {
         SearchService.search($scope.searchParams, function(res){
             $scope.items = res;
         });
     }
+
+    $scope.loadMore = function () {
+        SearchService.loadMore(function () {
+                // re-bind the scope collection to the services model after result comes back
+                $scope.items = SearchService.itemDataCollection;
+                //Trigger MathJax
+                setTimeout(function(){
+                    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+                }, 200);
+
+            }
+        );
+    };
+
 
 
 
@@ -229,7 +223,7 @@ function HomeController($scope, $rootScope, $timeout, $http, $location, AccessTo
     $scope.$watch('accessToken.token', function (newValue, oldValue) {
         if (newValue) {
             $timeout(function () {
-                $scope.loadItems();
+                $scope.search();
             });
         }
     });

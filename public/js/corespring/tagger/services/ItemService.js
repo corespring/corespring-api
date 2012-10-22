@@ -169,23 +169,24 @@ angular.module('tagger.services').factory('SearchService',
     var searchService = {
         queryText:"",
         loaded:0,
-        limit:20,
+        limit:50,
         isLastSearchRunning:false,
         resultCount:"",
         itemDataCollection:{},
+        searchId:0,
         resultFields:['originId', 'title', 'primarySubject', 'gradeLevel', 'itemType','standards'],
         searchFields:[
             'originId',
             'title',
-            //'primarySubject.subject',
+            'primarySubject.subject.primary',
             'copyrightOwner',
             'contributor',
-            'author'
-//            'standards.standard',
-//            'standards.dotNotation',
-//            'standards.subject',
-//            'standards.category',
-//            'standards.subCategory'
+            'author',
+            'standards.standards',
+            'standards.standards.dotNotation',
+            'standards.standards.subject',
+            'standards.standards.category',
+            'standards.standards.subCategory'
         ],
 
         search:function (searchParams, resultHandler) {
@@ -194,17 +195,26 @@ angular.module('tagger.services').factory('SearchService',
             this.loaded = 0;
 
             var query = this.buildQueryObject(searchParams, this.searchFields);
-
-            ItemService.query({
-                    access_token:AccessToken.token,
-                    l: this.limit,
-                    q:JSON.stringify(query),
-                    f:JSON.stringify(mongoQuery.buildFilter(this.resultFields))
-                }, function (data) {
-                    searchService.itemDataCollection = data;
-                    resultHandler(data);
-                }
-            );
+            searchService.searchId = new Date().getTime();
+            (function(id) {
+                ItemService.query({
+                        access_token:AccessToken.token,
+                        l: searchService.limit,
+                        q:JSON.stringify(query),
+                        f:JSON.stringify(mongoQuery.buildFilter(searchService.resultFields))
+                    }, function (data) {
+                        if (id != searchService.searchId) {
+                            return;
+                        }
+                        searchService.itemDataCollection = data;
+                        resultHandler(data);
+                        searchService.count(JSON.stringify(query), function (resultCount) {
+                            searchService.resultCount = parseInt(resultCount);
+                            $rootScope.$broadcast('onSearchCountComplete', resultCount);
+                        });
+                    }
+                );
+            })(searchService.searchId);
 
             this.loaded = this.loaded + this.limit;
         },
@@ -237,6 +247,55 @@ angular.module('tagger.services').factory('SearchService',
 
             return query;
         },
+
+        loadMore:function (resultHandler) {
+
+            if (this.loaded >= this.resultCount) {
+                return;
+            }
+
+            $rootScope.$broadcast('onNetworkLoading');
+
+            if (this.isLastSearchRunning) {
+                console.log("last request not done yet");
+                return;
+            }
+
+            this.isLastSearchRunning = true; // set flag
+
+            var query = this.buildQueryObject(this.searchParams, this.searchFields, this.resultFields);
+
+            ItemService.query({
+                    access_token:AccessToken.token,
+                    l: this.limit,
+                    q:JSON.stringify(query),
+                    f:JSON.stringify(mongoQuery.buildFilter(this.resultFields)),
+                    sk:this.loaded >= 0 ? this.loaded : -1
+                }, function (data) {
+                    searchService.itemDataCollection = searchService.itemDataCollection.concat(data);
+                    resultHandler(data);
+                    searchService.isLastSearchRunning = false; // reset flag
+                    $rootScope.$broadcast('onNetworkComplete');
+                }
+            );
+
+            this.loaded = this.loaded + this.limit;
+        },
+
+        count:function (queryText, callback) {
+           ItemService.count({access_token:AccessToken.token, q:queryText, c:true}, function (count) {
+               // angular treats a raw string like a json object and copies it (see copy() method in angular)
+               // this mean "21" will come back as {0:"2", 1:"1"}
+               // need to unpack this here....
+               var unpackedCount = "";
+               for (var key in count) {
+                   if (count.hasOwnProperty(key))
+                       unpackedCount += count[key];
+               }
+               callback(unpackedCount);
+           });
+       },
+
 
         resetDataCollection:function () {
             searchService.itemDataCollection = [];
