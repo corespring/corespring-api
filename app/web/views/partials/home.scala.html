@@ -1,6 +1,7 @@
 <div ui-modal ng-model="showConfirmDestroyModal" style="padding: 20px">
     <h2>Delete Item</h2>
     <br/>
+
     <p>Are you sure? This can't be undone.</p>
 
     <button ng-click="deleteConfirmed()" class="btn btn-danger">Yes</button>
@@ -10,10 +11,39 @@
 <div class="sub-nav sub-nav-lower">
     <div class="container" style="width: 900px;">
         <div class="row navbar">
-            <div class="input-append span4" style="margin-left: 10px">
+            <div class="input-append span2" style="margin-left: 10px">
                 <input placeholder="Search" ng-model="searchParams.searchText" ng-change="search() " class="input-small"
                        id="appendedInputButtons"
                        size="16" type="text"><span class="add-on"><i class="icon-search"></i></span>
+            </div>
+
+
+            <div class="span7" style="margin-left: 0">
+                <form class="form-horizontal">
+                    <div class="control-group">
+                        <label class="control-label" style="width: 60px;">Status:&nbsp;&nbsp;</label>
+
+                        <div class="controls" style="margin-left: 0;">
+
+                            <label class="checkbox inline">
+                                <input type="checkbox" ng-model="searchParams.setup" ng-change="search()">
+                                Set up</label>
+                            <label class="checkbox inline">
+                                <input type="checkbox" ng-model="searchParams.tagged" ng-change="search()">
+                                Tagged </label>
+                            <label class="checkbox inline">
+                                <input type="checkbox" ng-model="searchParams.standardsAligned" ng-change="search()">
+                                Standards aligned</label>
+                            <label class="checkbox inline">
+                                <input type="checkbox" ng-model="searchParams.qaReview" ng-change="search()"> QA
+                            </label>
+                            <label class="checkbox inline">
+                                <input type="checkbox" ng-model="searchParams.exactMatch" ng-change="search()"> Exact
+                                Match
+                            </label>
+                        </div>
+                    </div>
+                </form>
             </div>
 
         </div>
@@ -22,33 +52,37 @@
 
 <div class="row" style="padding-top: 90px">
     <div class="container" style="width: 960px;" when-scrolled="loadMore()" watch="itemDataCollection">
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Title</th>
-            <th>Primary Subject</th>
-            <th>Grade</th>
-            <th>Item Type</th>
-            <th>Standard(s)</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr ng-repeat="item in items" style="cursor: pointer;">
-            <td ng-click="openEditView()" ng-bind-html-unsafe="item.title"></td>
-            <td ng-click="openEditView()" width="100">{{getPrimarySubjectLabel(item.primarySubject)}}</td>
-            <td ng-click="openEditView()">
-                {{showGradeLevel()}}
-            </td>
-            <td ng-click="openEditView()">{{showItemType(item)}}</td>
-            <td ng-click="openEditView()">
-                <a ui-jq="tooltip"
-                   ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
-            </td>
-            <td><button class="btn btn-danger btn-mini" href="javascript:void(1)" ng-click="deleteItem(item)">Delete</button> </td>
-        </tr>
-        </tbody>
-    </table>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Primary Subject</th>
+                <th>Grade</th>
+                <th>Item Type</th>
+                <th>Standard(s)</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="item in items" style="cursor: pointer;">
+                <td ng-click="openEditView()" ng-bind-html-unsafe="item.title"></td>
+                <td ng-click="openEditView()" width="100">{{getPrimarySubjectLabel(item.primarySubject)}}</td>
+                <td ng-click="openEditView()">
+                    {{showGradeLevel()}}
+                </td>
+                <td ng-click="openEditView()">{{showItemType(item)}}</td>
+                <td ng-click="openEditView()">
+                    <a ui-jq="tooltip"
+                       ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
+                </td>
+                <td>
+                    <button class="btn btn-danger btn-mini" href="javascript:void(1)" ng-click="deleteItem(item)">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
 
-</div>
+    </div>
 </div>

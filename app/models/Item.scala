@@ -416,6 +416,10 @@ object Item extends DBQueryable[Item] {
       }
     }),
 
+  QueryFieldString[Item](workflow + "." + Workflow.qaReview, _.workflow.map(_.qaReview)),
+  QueryFieldString[Item](workflow + "." + Workflow.setup, _.workflow.map(_.setup)),
+  QueryFieldString[Item](workflow + "." + Workflow.tagged, _.workflow.map(_.tagged)),
+  QueryFieldString[Item](workflow + "." + Workflow.standardsAligned, _.workflow.map(_.standardsAligned)),
     /**
      * TODO: Check with Evan/Josh about item types.
      */
@@ -428,6 +432,8 @@ object Item extends DBQueryable[Item] {
     ),
     QueryFieldString[Item](bloomsTaxonomy, _.bloomsTaxonomy, queryValueFn(bloomsTaxonomy, fieldValues.bloomsTaxonomy)),
     QueryFieldString[Item](licenseType, _.contributorDetails.map(_.licenseType), queryValueFn(licenseType, fieldValues.licenseTypes)),
+
+    //QueryFieldString[Item](primarySubject + ".subject", _.subjects.map(_.primary)),
 
     QueryFieldObject[Item](primarySubject, _.subjects.map(_.primary), _ match {
       case x: String => try {
