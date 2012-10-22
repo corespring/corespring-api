@@ -169,7 +169,7 @@ angular.module('tagger.services').factory('SearchService',
     var searchService = {
         queryText:"",
         loaded:0,
-        limit:100,
+        limit:50,
         isLastSearchRunning:false,
         resultCount:"",
         itemDataCollection:{},
