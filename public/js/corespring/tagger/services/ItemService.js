@@ -198,7 +198,6 @@ angular.module('tagger.services').factory('SearchService',
             searchService.searchId = new Date().getTime();
             (function(id) {
                 ItemService.query({
-                        access_token:AccessToken.token,
                         l: searchService.limit,
                         q:JSON.stringify(query),
                         f:JSON.stringify(mongoQuery.buildFilter(searchService.resultFields))
@@ -266,7 +265,6 @@ angular.module('tagger.services').factory('SearchService',
             var query = this.buildQueryObject(this.searchParams, this.searchFields, this.resultFields);
 
             ItemService.query({
-                    access_token:AccessToken.token,
                     l: this.limit,
                     q:JSON.stringify(query),
                     f:JSON.stringify(mongoQuery.buildFilter(this.resultFields)),
@@ -283,7 +281,7 @@ angular.module('tagger.services').factory('SearchService',
         },
 
         count:function (queryText, callback) {
-           ItemService.count({access_token:AccessToken.token, q:queryText, c:true}, function (count) {
+           ItemService.count({q:queryText, c:true}, function (count) {
                // angular treats a raw string like a json object and copies it (see copy() method in angular)
                // this mean "21" will come back as {0:"2", 1:"1"}
                // need to unpack this here....

@@ -137,7 +137,7 @@ function HomeController($scope, $rootScope, $timeout, $http, $location, AccessTo
 
     $scope.deleteConfirmed = function(){
         var deletingId = $scope.itemToDelete.id;
-        ItemService.remove({access_token:$scope.accessToken.token, id: $scope.itemToDelete.id},
+        ItemService.remove({id: $scope.itemToDelete.id},
             function(result) {
                 $scope.itemToDelete = null;
                 $scope.search();
