@@ -47,7 +47,7 @@ object ItemPlayer extends BaseApi with ItemResources{
 
 
   def previewItem(itemId:String, printMode:Boolean = false) =
-    _renderItem(itemId, printMode, previewEnabled = !printMode )
+    _renderItem(itemId, printMode, previewEnabled = false )
 
   /**
    * Very simple QTI Item Renderer
