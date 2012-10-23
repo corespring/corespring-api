@@ -59,4 +59,10 @@ users.forEach(function(user){
     ];
 
     toDb.users.insert(newUser);
+
+    //create an api client for existing users
+    var apiClient = {};
+    apiClient.clientSecret = user.password;
+    apiClient.clientId = user._id;
+    toDb.apiClients.insert(apiClient);
 });
