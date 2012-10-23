@@ -339,8 +339,6 @@ input[type="submit"] {
 .incorrectSelection, .incorrect-selection {
     color: #F8A31A;
 }
-*/
-
 
 .orderIncorrect {
     border-color:#F8A31A;
@@ -349,7 +347,6 @@ input[type="submit"] {
 blockquote p span input.ng-pristine {
     margin:none;
 }
-
 
 
 .incorrect-selection > .feedback-container > feedbackinline,
@@ -428,7 +425,7 @@ simplechoice{
     padding: 10px;
 }
 
-.simple-choice-inner{display:table-row;}
+
 
 /* -------------------------------------
 TEXT ELEMENTS
