@@ -39,7 +39,7 @@
 	},
 	"workflow" : {
 		"setup" : true,
-		"tagged" : false,
+		"tagged" : true,
 		"standardsAligned" : false,
 		"qaReview" : false
 	},

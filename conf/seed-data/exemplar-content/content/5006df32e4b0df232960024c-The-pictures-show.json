@@ -42,14 +42,17 @@
 	],
 	"workflow" : {
 		"setup" : true,
-		"tagged" : false,
+		"tagged" : true,
 		"standardsAligned" : false,
 		"qaReview" : false
 	},
 	"title" : "The pictures show a father with dimples and a mother without dimples. The parents have two sons and two daughters. Based on the parents’ genes, which children have dimples?",
 	"demonstratedKnowledge" : "Conceptual",
 	"materialType" : "Assessment Item",
-	"keySkills" : [ ],
+	"keySkills" : [
+		"Classify",
+		"Explain"
+	],
 	"reviewsPassed" : [
 		"Editorial",
 		"Bias",
@@ -57,5 +60,6 @@
 		"Content",
 		"Psychometric"
 	],
-	"priorUse" : "Summative"
+	"priorUse" : "Summative",
+	"bloomsTaxonomy" : "Understand (Describe, dramatize)"
 }

@@ -42,7 +42,7 @@
 	},
 	"workflow" : {
 		"setup" : true,
-		"tagged" : false,
+		"tagged" : true,
 		"standardsAligned" : true,
 		"qaReview" : false
 	},
@@ -58,5 +58,6 @@
 	],
 	"reviewsPassed" : [
 		"Editorial"
-	]
+	],
+	"demonstratedKnowledge" : "Procedural"
 }
