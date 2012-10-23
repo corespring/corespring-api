@@ -64,5 +64,6 @@ users.forEach(function(user){
     var apiClient = {};
     apiClient.clientSecret = user.password;
     apiClient.clientId = user._id;
+    apiClient.orgId = ObjectId("502404dd0364dc35bb393398")
     toDb.apiClients.insert(apiClient);
 });
