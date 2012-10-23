@@ -92,7 +92,7 @@ object Global extends GlobalSettings {
   private def isLocalDb: Boolean = {
 
     ConfigLoader.get("mongodb.default.uri") match {
-      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1"))
+      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907-a.mongolab.com:35907/sib")
       case None => false
     }
   }
