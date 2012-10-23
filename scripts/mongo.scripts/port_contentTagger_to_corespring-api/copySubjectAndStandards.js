@@ -17,5 +17,5 @@ fromDb.subject.find().forEach( function(x){toDb.subjects.insert(x)} );
 
 
 print("copying cc-standards");
-fromDb["cc-standards"].find().forEach( function(x){toDb["cc-standards"].insert(x)} );
+fromDb["cc-standards"].find().forEach( function(x){toDb["ccstandards"].insert(x)} );
 

@@ -1,11 +1,12 @@
-<div class="control-group">
+<div class="control-group" ng-show="collections">
     <label class="control-label">Collection</label>
     <div class="controls">
         <select id="collection"
-                ng-model="itemData.collection"
-                ng-options="c.name as c.name for c in collections"
+                ng-model="itemData.collectionId"
+                ng-options="c.id as c.name for c in collections"
                 required>
         </select>
     </div>
 </div>
+<br ng-show="!collections"/>
 

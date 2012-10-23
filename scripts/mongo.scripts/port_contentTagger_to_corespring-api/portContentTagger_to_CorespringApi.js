@@ -14,7 +14,7 @@ var query = {};
 print(">>> --- count: " + corespringLiveDb.mcas3.count(query));
 
 var liveItems = corespringLiveDb.mcas3.find(query);
-print(liveItems);
+//print(liveItems);
 
 var apiDevDb = conn.getDB(to);
 
@@ -36,7 +36,8 @@ var suffixToContentTypeMap = {
 function getContentType(filename) {
     var split = filename.split(".");
     var suffix = split[split.length - 1];
-    if(!suffix){
+    if(!suffix || !suffixToContentTypeMap[suffix.toLowerCase()]){
+        print( "can't find filename for: " + filename);
         return "unknown";
     }
     return suffixToContentTypeMap[suffix.toLowerCase()];
@@ -45,7 +46,7 @@ function getContentType(filename) {
 function collection_to_collectionId(fromItem, toItem) {
     var collectionName = fromItem.collection;
 
-    print(">>>> -- " + collectionName);
+    //print(">>>> -- " + collectionName);
 
     if (!collectionName) {
         return;
@@ -74,15 +75,22 @@ function xmlData_to_resource(fromItem, targetItem) {
     for (var x in fromItem.files) {
         var file = fromItem.files[x];
 
-        targetItem.data.files.push(
-            {
-                _t:"models.StoredFile",
-                name:file.filename,
-                isMain:false,
-                storageKey:fromItem._id + "/" + file.filename,
-                contentType:getContentType(file.filename)
-            }
-        );
+        var contentType = getContentType(file.filename);
+
+        if( contentType == "unknown"){
+            print("not adding file: " + file.filename);
+        }
+        else {
+            targetItem.data.files.push(
+                {
+                    _t:"models.StoredFile",
+                    name:file.filename,
+                    isMain:false,
+                    storageKey:fromItem._id + "/" + file.filename,
+                    contentType:getContentType(file.filename)
+                }
+            );
+        }
     }
 
 }
@@ -199,7 +207,7 @@ var ignoredProperties = ["files",
     "primaryStandard"];
 
 function convertLiveItemToApiItem(item) {
-    print(item.title);
+    //print(item.title);
     var target = {};
     target._id = item._id;
 

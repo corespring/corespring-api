@@ -41,8 +41,8 @@ trait BaseApi extends Controller {
    * @return
    */
   def tokenFromRequest[A](request: Request[A]): Either[ApiError, String] = {
+    request.queryString.get(OAuthConstants.AccessToken).map(seq => Right(seq.head)).getOrElse {
     request.session.get(OAuthConstants.AccessToken).map(Right(_)).getOrElse {
-      request.queryString.get(OAuthConstants.AccessToken).map(seq => Right(seq.head)).getOrElse( {
         request.headers.get(AuthorizationHeader) match {
           case Some(value) =>
             value.split(Space) match {
@@ -51,7 +51,7 @@ trait BaseApi extends Controller {
             }
           case _ => Left(MissingCredentials)
         }
-      })
+      }
     }
   }
 

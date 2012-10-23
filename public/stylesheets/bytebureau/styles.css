@@ -391,6 +391,11 @@ simplechoice{
     clear: both;
 }
 
+.noResponse {
+    background-color: #fffe9b;
+    padding: 10px;
+}
+
 .noResponseFeedback {
     background-color: #FFFE9B;
     font-size: 16px;

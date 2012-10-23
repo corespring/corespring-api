@@ -1,18 +1,21 @@
 package api.v1
 
-import controllers.auth.{Permission, BaseApi}
-import play.api.libs.json.Json
+import controllers.auth.{OAuthConstants, OAuthProvider, Permission, BaseApi}
+import play.api.libs.json.{JsString, JsObject, Json}
 import models.{Organization, UserOrg, User}
 import org.bson.types.ObjectId
 import api.{QueryHelper, ApiError}
 import com.novus.salat.dao.SalatMongoCursor
 import com.mongodb.casbah.commons.MongoDBObject
 import controllers.Utils
+import play.api.mvc.Action
+import models.auth.ApiClient
 
 /**
  * The User API
  */
 object UserApi extends BaseApi {
+
   /**
    * Returns a list of users visible to the organization in the request context
    *
@@ -56,12 +59,15 @@ object UserApi extends BaseApi {
               fullName <- (json \ "fullName").asOpt[String] ;
               email    <- (json \ "email").asOpt[String]
             ) yield ( (userName, fullName, email) )
-
             userInfo match {
               case Some((username, fullName, email)) => {
                 val user = User(username, fullName, email)
                 User.insertUser(user,request.ctx.organization,Permission.All,false) match {
-                  case Right(u) => Ok(Json.toJson(u))
+                  case Right(u) =>
+                    OAuthProvider.register(request.ctx.organization,u.id,(json \ "password").asOpt[String].getOrElse("")) match {
+                      case Right(apiClient) => Ok(Json.toJson(u))
+                      case Left(error) => InternalServerError(Json.toJson(ApiError.CreateUser(Some(error.message))))
+                    }
                   case Left(e) => InternalServerError(Json.toJson(ApiError.CreateUser(e.clientOutput)))
                 }
               }

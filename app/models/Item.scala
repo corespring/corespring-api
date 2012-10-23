@@ -20,6 +20,7 @@ import web.views.html.partials._edit._metadata._formWithLegend
 import com.novus.salat.annotations.raw.Salat
 import play.api.libs.json._
 import com.novus.salat._
+import models.Workflow.WorkflowWrites
 import controllers.auth.Permission
 
 case class Copyright(owner: Option[String] = None, year: Option[String] = None, expirationDate: Option[String] = None, imageName: Option[String] = None)
@@ -36,6 +37,44 @@ case class ContributorDetails(
                                var costForResource: Option[Int] = None
                                )
 
+case class Workflow(var setup: Boolean = false,
+                    var tagged: Boolean = false,
+                    var standardsAligned: Boolean = false,
+                    var qaReview: Boolean = false )
+
+object Workflow {
+  val setup : String = "setup"
+  val tagged : String = "tagged"
+  val standardsAligned : String = "standardsAligned"
+  val qaReview : String = "qaReview"
+
+  implicit object WorkflowWrites extends Writes[Workflow] {
+
+    def writes(workflow: Workflow) = {
+
+      JsObject( Seq(
+        setup -> JsBoolean(workflow.setup),
+        tagged -> JsBoolean(workflow.tagged),
+        standardsAligned -> JsBoolean(workflow.standardsAligned),
+        qaReview -> JsBoolean(workflow.qaReview)
+      ))
+    }
+
+  }
+
+  implicit object WorkflowReads extends Reads[Workflow] {
+    def reads( json : JsValue ) : Workflow = {
+
+      Workflow(
+        setup = (json \ setup).asOpt[Boolean].getOrElse(false),
+        tagged = (json \ tagged).asOpt[Boolean].getOrElse(false),
+        standardsAligned = (json\standardsAligned).asOpt[Boolean].getOrElse(false),
+        qaReview = (json\qaReview).asOpt[Boolean].getOrElse(false)
+      )
+    }
+  }
+}
+
 
 case class Item(var collectionId: String = "",
                 var contributorDetails: Option[ContributorDetails] = None,
@@ -51,10 +90,12 @@ case class Item(var collectionId: String = "",
                 var lexile: Option[String] = None,
                 var title: Option[String] = None,
                 var data: Option[Resource] = None,
+                var originId: Option[String] = None,
                 var relatedCurriculum: Option[String] = None,
-                var demonstratedKnowledge : Option[String] = None,
-                var bloomsTaxonomy : Option[String] = None,
+                var demonstratedKnowledge: Option[String] = None,
+                var bloomsTaxonomy: Option[String] = None,
                 var supportingMaterials: Seq[Resource] = Seq(),
+                var workflow: Option[Workflow] = None,
                 var id: ObjectId = new ObjectId()) extends Content {
 }
 
@@ -68,6 +109,7 @@ object Item extends DBQueryable[Item] {
   val dao = new SalatDAO[Item, ObjectId](collection = collection) {}
 
   val id = "id"
+  val originId = "originId"
   val author = "author"
   val collectionId = Content.collectionId
   val contentType = Content.contentType
@@ -99,6 +141,7 @@ object Item extends DBQueryable[Item] {
   val data = "data"
   val supportingMaterials = "supportingMaterials"
   val bloomsTaxonomy = "bloomsTaxonomy"
+  val workflow = "workflow"
 
   lazy val fieldValues = FieldValue.findOne(MongoDBObject(FieldValue.Version -> FieldValuesVersion)).getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
 
@@ -108,6 +151,7 @@ object Item extends DBQueryable[Item] {
 
       var iseq: Seq[(String, JsValue)] = Seq("id" -> JsString(item.id.toString))
 
+      if ( item.workflow.isDefined ) iseq = iseq :+ (workflow -> WorkflowWrites.writes(item.workflow.get))
 
       //ContributorDetails
       item.contributorDetails match {
@@ -132,8 +176,10 @@ object Item extends DBQueryable[Item] {
       }
 
       item.lexile.foreach(v => iseq = iseq :+ (lexile -> JsString(v)))
-      
+
       item.demonstratedKnowledge.foreach(v => iseq = iseq :+ (demonstratedKnowledge -> JsString(v)))
+
+      if (item.originId.isDefined) iseq = iseq :+ (originId -> JsString(item.originId.get))
 
       iseq = iseq :+ (collectionId -> JsString(item.collectionId))
       iseq = iseq :+ (contentType -> JsString(ContentType.item))
@@ -150,11 +196,19 @@ object Item extends DBQueryable[Item] {
 
       item.subjects match {
         case Some(s) => {
+
           def getSubject(id: Option[ObjectId]): Option[JsValue] = id match {
-            case Some(foundId) => Some(Json.toJson(Subject.findOneById(foundId).get))
+            case Some(foundId) => {
+              Subject.findOneById(foundId) match {
+                case Some(subj) => Some(Json.toJson(subj))
+                case _ => throw new RuntimeException("Can't find subject with id: " + foundId + " in item: " + item.id)
+              }
+            }
             case _ => None
           }
+
           var seqsubjects: Seq[(String, JsValue)] = Seq()
+
           getSubject(s.primary) match {
             case Some(found) => iseq = iseq :+ (primarySubject -> Json.toJson(found))
             case _ => //do nothing
@@ -172,7 +226,7 @@ object Item extends DBQueryable[Item] {
       if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards.
         foldRight[Seq[Standard]](Seq[Standard]())((sid, acc) => Standard.findOneById(sid) match {
         case Some(standard) => acc :+ standard
-        case None => Log.f("ItemWrites: no standard found given id"); acc
+        case None => throw new RuntimeException("ItemWrites: no standard found given id: " + sid); acc
       })))
       item.title.foreach(v => iseq = iseq :+ (title -> JsString(v)))
       item.data.foreach(v => iseq = iseq :+ (data -> Json.toJson(v)))
@@ -180,9 +234,9 @@ object Item extends DBQueryable[Item] {
     }
   }
 
-  def getValidatedValue(s:Seq[KeyValue])( json : JsValue, key:String) = {
+  def getValidatedValue(s: Seq[KeyValue])(json: JsValue, key: String) = {
     (json \ key).asOpt[String]
-        .map( v => if( s.exists(_.key == v)) v else throw new JsonValidationException(key))
+      .map(v => if (s.exists(_.key == v)) v else throw new JsonValidationException(key))
   }
 
   implicit object ItemReads extends Reads[Item] {
@@ -190,11 +244,15 @@ object Item extends DBQueryable[Item] {
       val item = Item("")
       item.collectionId = (json \ collectionId).asOpt[String].getOrElse("") //must do checking outside of json deserialization
       item.lexile = (json \ lexile).asOpt[String]
-      
+
+      item.workflow = (json\workflow).asOpt[Workflow]
+
       item.demonstratedKnowledge = getValidatedValue(fieldValues.demonstratedKnowledge)(json, demonstratedKnowledge)
       item.bloomsTaxonomy = getValidatedValue(fieldValues.bloomsTaxonomy)(json, bloomsTaxonomy)
       item.pValue = (json \ pValue).asOpt[String]
       item.relatedCurriculum = (json \ relatedCurriculum).asOpt[String]
+
+      item.originId = (json \ originId).asOpt[String]
 
       item.contributorDetails = Some(
         ContributorDetails(
@@ -297,7 +355,7 @@ object Item extends DBQueryable[Item] {
         }else throw new RuntimeException("not authorized")
       }else ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials) - collectionId
       Item.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> toUpdate), upsert = false, multi = false, wc = Item.collection.writeConcern)
-      fields.map(Item.collection.findOneByID(oid,_)).getOrElse(Item.collection.findOneByID(oid)) match {
+      fields.map(Item.collection.findOneByID(oid, _)).getOrElse(Item.collection.findOneByID(oid)) match {
         case Some(dbo) => Right(grater[Item].asObject(dbo))
         case None => Left(InternalError("somehow the document that was just updated could not be found", LogType.printFatal))
       }
@@ -315,28 +373,29 @@ object Item extends DBQueryable[Item] {
     }
   }
 
-  def getQti(itemId:ObjectId):Either[InternalError,String] = {
-      Item.collection.findOneByID(itemId, MongoDBObject(Item.data -> 1)) match {
-        case None => Left(InternalError("not found"))
-        case Some(o) => o.get(Item.data) match {
-          case res:BasicDBObject => {
-            grater[Resource].asObject(res).files.find(bf => bf.isMain && bf.contentType == BaseFile.ContentTypes.XML) match {
-              case Some(bf) => bf match {
-                case vf:VirtualFile => Right(vf.content)
-                case _ => Left(InternalError("main file was not a virtual file",LogType.printFatal))
-              }
-              case None => Left(InternalError("no main file found that contained xml",LogType.printFatal))
+  def getQti(itemId: ObjectId): Either[InternalError, String] = {
+    Item.collection.findOneByID(itemId, MongoDBObject(Item.data -> 1)) match {
+      case None => Left(InternalError("not found"))
+      case Some(o) => o.get(Item.data) match {
+        case res: BasicDBObject => {
+          grater[Resource].asObject(res).files.find(bf => bf.isMain && bf.contentType == BaseFile.ContentTypes.XML) match {
+            case Some(bf) => bf match {
+              case vf: VirtualFile => Right(vf.content)
+              case _ => Left(InternalError("main file was not a virtual file", LogType.printFatal))
             }
+            case None => Left(InternalError("no main file found that contained xml", LogType.printFatal))
           }
-          case _ => Left(InternalError("data not an object"))
         }
+        case _ => Left(InternalError("data not an object"))
       }
+    }
   }
 
   val queryFields: Seq[QueryField[Item]] = Seq[QueryField[Item]](
     QueryFieldObject[Item](id, _.id, QueryField.valuefuncid),
     QueryFieldString[Item](author, _.contributorDetails.map(_.author)),
     QueryFieldString[Item](collectionId, _.collectionId),
+    QueryFieldString[Item](originId, _.originId),
     QueryFieldString[Item](contentType, _.contentType, _ match {
       case x: String if x == ContentType.item => Right(x)
       case _ => Left(InternalError("incorrect content type"))
@@ -344,7 +403,7 @@ object Item extends DBQueryable[Item] {
     QueryFieldString[Item](contributor, _.contributorDetails.map(_.contributor)),
     QueryFieldString[Item](copyrightOwner, _.contributorDetails.map(_.copyright.map(_.owner))),
     QueryFieldString[Item](copyrightYear, _.contributorDetails.map(_.copyright.map(_.year))),
-    QueryFieldString[Item](credentials, _.contributorDetails.map(_.credentials), queryValueFn("credentials",fieldValues.credentials)),
+    QueryFieldString[Item](credentials, _.contributorDetails.map(_.credentials), queryValueFn("credentials", fieldValues.credentials)),
     QueryFieldStringArray[Item](gradeLevel, _.gradeLevel, value => {
       value match {
         case grades: BasicDBList =>
@@ -357,6 +416,10 @@ object Item extends DBQueryable[Item] {
       }
     }),
 
+  QueryFieldString[Item](workflow + "." + Workflow.qaReview, _.workflow.map(_.qaReview)),
+  QueryFieldString[Item](workflow + "." + Workflow.setup, _.workflow.map(_.setup)),
+  QueryFieldString[Item](workflow + "." + Workflow.tagged, _.workflow.map(_.tagged)),
+  QueryFieldString[Item](workflow + "." + Workflow.standardsAligned, _.workflow.map(_.standardsAligned)),
     /**
      * TODO: Check with Evan/Josh about item types.
      */
@@ -368,7 +431,7 @@ object Item extends DBQueryable[Item] {
     }
     ),
     QueryFieldString[Item](bloomsTaxonomy, _.bloomsTaxonomy, queryValueFn(bloomsTaxonomy, fieldValues.bloomsTaxonomy)),
-    QueryFieldString[Item](licenseType, _.contributorDetails.map(_.licenseType), queryValueFn(licenseType,fieldValues.licenseTypes)),
+    QueryFieldString[Item](licenseType, _.contributorDetails.map(_.licenseType), queryValueFn(licenseType, fieldValues.licenseTypes)),
 
     QueryFieldObject[Item](primarySubject, _.subjects.map(_.primary), _ match {
       case x: String => try {
@@ -419,10 +482,10 @@ object Item extends DBQueryable[Item] {
       case _ => Left(InternalError("uknown value type for standards"))
     }, Standard.queryFields),
     QueryFieldString[Item](title, _.title),
-    QueryFieldString[Item](lexile,_.lexile),
+    QueryFieldString[Item](lexile, _.lexile),
     QueryFieldString[Item](demonstratedKnowledge, _.demonstratedKnowledge, queryValueFn(demonstratedKnowledge, fieldValues.demonstratedKnowledge)),
-    QueryFieldString[Item](pValue,_.pValue),
-    QueryFieldString[Item](relatedCurriculum,_.relatedCurriculum)
+    QueryFieldString[Item](pValue, _.pValue),
+    QueryFieldString[Item](relatedCurriculum, _.relatedCurriculum)
   )
 
   override def preParse(dbo: DBObject): QueryParser = {

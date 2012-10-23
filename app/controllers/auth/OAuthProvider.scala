@@ -20,11 +20,29 @@ object OAuthProvider {
    * @param orgId - the organization id
    * @return returns an ApiClient or ApiError if the ApiClient could not be created.
    */
-  def register(orgId: ObjectId, isTesting: Boolean = false): Either[ApiError, ApiClient] = {
+  def register(orgId: ObjectId): Either[ApiError, ApiClient] = {
     // check we got an existing org id
     Organization.findOneById(orgId) match {
       case Some(org) =>
         val apiClient = ApiClient(orgId, new ObjectId(), generateToken)
+        try {
+          ApiClient.save(apiClient)
+          Right(apiClient)
+        } catch {
+          case e: SalatSaveError => {
+            Logger.error("Error registering ortganization %s".format(orgId), e)
+            Left(ApiError.OperationError)
+          }
+        }
+      case None => Left(UnknownOrganization)
+    }
+  }
+
+  def register(orgId:ObjectId, userId:ObjectId, pass:String): Either[ApiError, ApiClient] = {
+    // check we got an existing org id
+    Organization.findOneById(orgId) match {
+      case Some(org) =>
+        val apiClient = ApiClient(orgId, userId, pass)
         try {
           ApiClient.save(apiClient)
           Right(apiClient)
@@ -57,7 +75,7 @@ object OAuthProvider {
           //todo: if a user if specified check that it exists and is visible for the caller
 
           // credentials are ok, delete if there's a previous token for the same org and scope
-            val org = client.id
+            val org = client.orgId
             AccessToken.find(org, scope).foreach(AccessToken.remove(_))
             val creationTime = DateTime.now()
             val token = AccessToken(org, scope, generateToken, creationTime, creationTime.plusHours(24))

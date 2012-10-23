@@ -5,7 +5,8 @@ angular.module('tagger.services')
         { },
         {
             update:{ method:'PUT' },
-            count:{method:'GET', isArray:false}
+            count:{method:'GET', isArray:false},
+            get: {method: 'GET', isArray: true}
         }
     );
 

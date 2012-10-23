@@ -22,6 +22,7 @@ scripts = [
 "insertFieldValues.js",
 "copySubjectAndStandards.js",
 "portCollection.js",
+"portTemplates.js",
 "port_users.js",
 "portContentTagger_to_CorespringApi.js" ]
 

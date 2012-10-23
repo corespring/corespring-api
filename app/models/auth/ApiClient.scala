@@ -11,9 +11,10 @@ import models.mongoContext._
 /**
  * An API client.  This gets created for each organization that is allowed API access
  */
-case class ApiClient(id: ObjectId, clientId: ObjectId, clientSecret: String)
+case class ApiClient(orgId: ObjectId, clientId: ObjectId, clientSecret: String)
 
 object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
+  val orgId = "orgId"
   val clientId = "clientId"
   val clientSecret = "clientSecret"
 
@@ -26,8 +27,9 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
    * @param secret - the client secret
    * @return an Option[ApiClient]
    */
-  def findByIdAndSecret(id: String, secret: String): Option[ApiClient] = {
-    val idsObj = MongoDBObject(clientId -> new ObjectId(id), clientSecret -> secret)
+  def findByIdAndSecret(id: String, secret: String): Option[ApiClient] = findByIdAndSecret(new ObjectId(id),secret)
+  def findByIdAndSecret(id:ObjectId, secret:String):Option[ApiClient] = {
+    val idsObj = MongoDBObject(clientId -> id, clientSecret -> secret)
     findOne(idsObj)
   }
 }
