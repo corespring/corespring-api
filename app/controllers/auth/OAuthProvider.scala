@@ -75,7 +75,7 @@ object OAuthProvider {
           //todo: if a user if specified check that it exists and is visible for the caller
 
           // credentials are ok, delete if there's a previous token for the same org and scope
-            val org = client.id
+            val org = client.orgId
             AccessToken.find(org, scope).foreach(AccessToken.remove(_))
             val creationTime = DateTime.now()
             val token = AccessToken(org, scope, generateToken, creationTime, creationTime.plusHours(24))
