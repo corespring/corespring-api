@@ -9,7 +9,14 @@ import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import mongoContext._
 
-5006f7f5e4b0df23296003e1
+case class Standard(var dotNotation: Option[String] = None,
+                     var guid:Option[String] = None,
+                     var subject: Option[String] = None,
+                     var category: Option[String] = None,
+                     var subCategory: Option[String] = None,
+                     var standard: Option[String] = None,
+                     var id: ObjectId = new ObjectId()
+                     ) extends Identifiable
 
 object Standard extends DBQueryable[Standard]{
 
