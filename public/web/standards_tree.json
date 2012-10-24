@@ -4,7 +4,7 @@
 		"items" : [ ]
 	},
 	{
-		"name" : "ELA",
+		"name" : "ELA-Literacy",
 		"items" : [
 			{
 				"name" : "All",
@@ -26,9 +26,9 @@
 				"items" : [
 					"All",
 					"Key Ideas and Details",
+					"Range of Reading and Level of Text Complexity",
 					"Craft and Structure",
-					"Integration of Knowledge and Ideas",
-					"Range of Reading and Level of Text Complexity"
+					"Integration of Knowledge and Ideas"
 				]
 			},
 			{
@@ -64,8 +64,8 @@
 				"name" : "Language",
 				"items" : [
 					"All",
-					"Conventions of Standard English",
 					"Knowledge of Language",
+					"Conventions of Standard English",
 					"Vocabulary Acquisition and Use",
 					"Vocabulary acquisition and Use"
 				]
@@ -99,11 +99,18 @@
 					"Research to Build and Present Knowledge",
 					"Range of Writing"
 				]
+			},
+			{
+				"name" : "Operations And Algebraic Thinking",
+				"items" : [
+					"All",
+					"Multiply And Divide Within 100."
+				]
 			}
 		]
 	},
 	{
-		"name" : "MATH",
+		"name" : "Math",
 		"items" : [
 			{
 				"name" : "All",
@@ -130,7 +137,6 @@
 					"Work With Equal Groups Of Objects To Gain Foundations For Multiplication.",
 					"Represent And Solve Problems Involving Multiplication And Division.",
 					"Understand Properties Of Multiplication And The Relationship Between Multiplication And Division.",
-					"Multiply And Divide Within 100.",
 					"Solve Problems Involving The Four Operations, And Identify And Explain Patterns In Arithmetic.",
 					"Use The Four Operations With Whole Numbers To Solve Problems.",
 					"Gain Familiarity With Factors And Multiples.",
