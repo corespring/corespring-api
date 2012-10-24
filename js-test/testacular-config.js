@@ -29,6 +29,7 @@ files = [
     'js-test/unit/corespring/qti/directives/*.js',
     'js-test/unit/corespring/tagger/*.js',
     'js-test/unit/corespring/tagger/controllers/*.js',
+    'js-test/unit/corespring/tagger/services/*.js',
     'js-test/unit/corespring/tagger/mongo/*.js'
 ];
 // list of files to exclude
