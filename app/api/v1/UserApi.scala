@@ -63,11 +63,7 @@ object UserApi extends BaseApi {
               case Some((username, fullName, email)) => {
                 val user = User(username, fullName, email)
                 User.insertUser(user,request.ctx.organization,Permission.All,false) match {
-                  case Right(u) =>
-                    OAuthProvider.register(request.ctx.organization,u.id,(json \ "password").asOpt[String].getOrElse("")) match {
-                      case Right(apiClient) => Ok(Json.toJson(u))
-                      case Left(error) => InternalServerError(Json.toJson(ApiError.CreateUser(Some(error.message))))
-                    }
+                  case Right(u) => Ok(Json.toJson(u))
                   case Left(e) => InternalServerError(Json.toJson(ApiError.CreateUser(e.clientOutput)))
                 }
               }

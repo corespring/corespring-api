@@ -84,11 +84,11 @@ object SeedDb {
   }
 
 
-  def addMockAccessToken(token: String, scope:Option[String]) = {
-    AccessToken.collection.drop()
-    val creationDate = DateTime.now()
-    val accessToken = AccessToken(new ObjectId("502404dd0364dc35bb393397"), scope, token, creationDate, creationDate.plusHours(24))
-    AccessToken.insert(accessToken)
-  }
+//  def addMockAccessToken(token: String, scope:Option[String]) = {
+//    AccessToken.collection.drop()
+//    val creationDate = DateTime.now()
+//    val accessToken = AccessToken(new ObjectId("502404dd0364dc35bb393397"), scope, token, creationDate, creationDate.plusHours(24))
+//    AccessToken.insert(accessToken)
+//  }
 
 }
