@@ -1,30 +1,3 @@
-/*
-qtiDirectives.directive('inlinechoice', function () {
-
-    var link = function( $scope, element, attrs, AssessmentItemCtrl ){
-        console.log('inlinechoice!')
-    };
-
-    var compile = function(element,attrs,transclude){
-
-        element.parent().html('<option>test</option>');
-        return link;
-    };
-
-    return {
-        restrict: 'E',
-        replace: true,
-        scope: true,
-        require: '^inlinechoiceinteraction',
-        compile: compile,
-        //TODO - is this necessary?
-        controller: function($scope){
-            this.scope = $scope;
-        }
-    }
-});
-*/
-
 qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
     var link = function( $scope, element, attrs, AssessmentItemCtrl ){
