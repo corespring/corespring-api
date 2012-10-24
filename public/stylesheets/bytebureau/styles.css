@@ -49,12 +49,8 @@ input[type="submit"] {
 	display:block;
 	margin:20px 0 10px auto;
 }
-/* FEEDBACK FOR HORIZONTAL MULTIPLE CHOICE */
 
-.simple-choice-inner-horizontal {
-	line-height: 20px;
-	text-align: center;
-}
+
 /*-------------------------------------------------------------------------------------------*/
 /*  SETUP */
 /*-------------------------------------------------------------------------------------------*/
@@ -277,12 +273,7 @@ input[type="submit"] {
 	line-height:20px;
 	width: 540px;
 }
-/*.choiceInput {
-    padding:0 8px 0 0;
-}*/
-.choice-interaction input[type="checkbox"], .choice-interaction input[type="radio"] {
-	margin:0 0 0 1px;
-}
+
 .correct-response, .correct-response-horizontal {
 	color: #95C444;
 }
@@ -347,28 +338,25 @@ simplechoice {
 	margin-top: 15px;
 	padding: 10px;
 }
-/*TODO - temporary fix - evan */
+/*TODO - temporary fix - evan // 10/24 Adjusted and looking good. --JM  */
 
 .feedback-block-correct {
 	background: url("/assets/images/correct-icon.png") no-repeat scroll 3px center transparent;
-	border: solid 1px #53C516;
-	outline: 0px none;
-	padding: 10px 10px 10px 35px;
-	margin: 15px;
-	border-radius:6px;
+	border: 2px solid #53C516;
 }
 .feedback-block-incorrect {
 	background: url("/assets/images/wrong-icon.png") no-repeat scroll 3px center transparent;
-	border: 1px solid #F8A31A;
-	border-radius: 6px 6px 6px 6px;
+	border: 2px solid #F8A31A;
+}
+
+.feedback-block-correct, .feedback-block-incorrect {
+	border-radius:6px;min-height:21px;
+	line-height:21px;
 	margin: 15px;
-	outline: 0 none;
+	outline: 0px none;
 	padding: 10px 10px 10px 35px;
 }
-.noResponse {
-	background-color: #fffe9b;
-	padding: 10px;
-}
+
 /* -------------------------------------
 TEXT ELEMENTS
 ---------------------------------------- */
@@ -945,11 +933,7 @@ table th, table td {
 	height: 2.5em;
 	margin-bottom: 20px;
 }
-.feedback-block-correct, .feedback-block-incorrect {
-	padding:0 0 0 30px;
-	min-height:21px;
-	line-height:21px;
-}
+
 .feedback-container {
 	display: none;
 }
@@ -977,6 +961,7 @@ simplechoice {
 	border-radius: 6px;
 	margin-bottom:5px;
 }
+
 .incorrect-selection-horizontal .simple-choice-inner-horizontal {
 	border:2px solid #f8a31a;
 	border-radius: 6px;
@@ -992,12 +977,30 @@ simplechoice {
 	border-radius: 6px;
 }
 .simple-choice-inner-horizontal {
-	padding: 10px;
-	float: left;
-	line-height: 20px;
+    display: table-row;
+    float: left;
+    line-height: 20px;
+    margin-right: 10px;
+    padding: 0 10px 10px;
+    text-align: center;
+    vertical-align: top;
 }
+.choiceInput-horizontal, .choice-content-horizontal {
+padding: 8px;
+display: table-cell;
+vertical-align: middle;
+color:#333;
+max-width:150px;
+}
+
+.simple-choice-inner-horizontal img {
+max-width: 150px;
+height:auto;
+}
+
 .simple-choice-inner:after {
 	content: "";
 	display: block;
 	clear: both;
 }
+
