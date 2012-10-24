@@ -113,15 +113,23 @@ GET    /web/print-resource/:itemId/:resourceName/:filename  web.controllers.Show
 GET    /web/print-resource/:itemId/:resourceName            web.controllers.ShowResource.renderResource(itemId,resourceName)
 GET    /web/print-resource-profile/:itemId                  web.controllers.Main.renderProfile(itemId:String)
 
-# Authentication
-GET     /web/login                             web.controllers.Main.login
-POST    /web/login                             web.controllers.Main.authenticate
-GET     /web/logout                            web.controllers.Main.logout
-GET     /web/user/info                         web.controllers.Main.userInfo
-GET     /web/access_token                      web.controllers.Main.getAccessToken
-
 #
 # BasicLTI
 #
 POST    /basiclti                               basiclti.LtiController.launch
+
+#
+# SecureSocial routes
+#
+# Login page
+GET     /login                      securesocial.controllers.LoginPage.login
+GET     /logout                     securesocial.controllers.LoginPage.logout
+
+# User Registration
+GET     /signup                     securesocial.controllers.Registration.signUp
+POST    /signup                     securesocial.controllers.Registration.handleSignUp
+
+# Providers entry points
+GET     /authenticate/:provider     securesocial.controllers.LoginPage.authenticate(provider)
+POST    /authenticate/:provider     securesocial.controllers.LoginPage.authenticateByPost(provider)
 

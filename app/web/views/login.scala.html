@@ -30,7 +30,7 @@
 
                 <h3>Login</h3>
                 <br/>
-                @helper.form(web.controllers.routes.Main.authenticate) {
+                @@helper.form(web.controllers.routes.Main.authenticate) {
 
                 @form.globalError.map { error =>
                 <div class="alert alert-error">

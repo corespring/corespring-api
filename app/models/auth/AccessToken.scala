@@ -51,12 +51,4 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
     if (scope.isDefined) query += (this.scope -> scope.get)
     findOne(query.result())
   }
-  implicit object AccessTokenWrites extends Writes[AccessToken]{
-    override def writes(accessToken:AccessToken):JsValue = {
-      var seq:Seq[(String,JsValue)] = Seq(organization -> JsString(accessToken.organization.toString))
-      if (accessToken.scope.isDefined) seq = seq :+ (scope -> JsString(accessToken.scope.get))
-      seq = seq :+ (tokenId -> JsString(accessToken.tokenId))
-      JsObject(seq)
-    }
-  }
 }
