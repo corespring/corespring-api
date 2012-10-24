@@ -91,11 +91,12 @@ h4 {
 }
 p {
 	margin: 0;
-	font-family:"Ubuntu", Arial, Helvetica, sans-serif;
+	font:14px/20px "Ubuntu", Arial, Helvetica, sans-serif !important;
 	font-size:14px;
 	line-height:20px;
 	padding:0 0 18px;
 }
+
 
 /* Indent of small text fields*/
 span p input, span p. span input {
@@ -276,8 +277,13 @@ input[type="submit"] {
 	line-height:20px;
 	width: 540px;
 }
-/* SC FEEDBACK ELEMENTS */
-.correct-response {
+/*.choiceInput {
+    padding:0 8px 0 0;
+}*/
+.choice-interaction input[type="checkbox"], .choice-interaction input[type="radio"] {
+	margin:0 0 0 1px;
+}
+.correct-response, .correct-response-horizontal {
 	color: #95C444;
 }
 .feedback-container {
@@ -288,7 +294,7 @@ input[type="submit"] {
 	padding-left:10px;
 	font-size: 12px;
 }
-.incorrectSelection, .incorrect-selection {
+.incorrectSelection, .incorrect-selection, .incorrect-selection-horizontal {
 	color: #F8A31A;
 }
 .orderIncorrect {
@@ -345,7 +351,7 @@ simplechoice {
 
 .feedback-block-correct {
 	background: url("/assets/images/correct-icon.png") no-repeat scroll 3px center transparent;
-	border: solid 2px #53C516;
+	border: solid 1px #53C516;
 	outline: 0px none;
 	padding: 10px 10px 10px 35px;
 	margin: 15px;
@@ -353,13 +359,16 @@ simplechoice {
 }
 .feedback-block-incorrect {
 	background: url("/assets/images/wrong-icon.png") no-repeat scroll 3px center transparent;
-	border: 2px solid #F8A31A;
+	border: 1px solid #F8A31A;
 	border-radius: 6px 6px 6px 6px;
 	margin: 15px;
 	outline: 0 none;
 	padding: 10px 10px 10px 35px;
 }
-
+.noResponse {
+	background-color: #fffe9b;
+	padding: 10px;
+}
 /* -------------------------------------
 TEXT ELEMENTS
 ---------------------------------------- */
@@ -645,6 +654,7 @@ ul.list-disc ul ul li {
 	list-style-type:square;
 }
 /*DEFINITION LISTS*/
+
 dl {
 	margin:0 5px 17px;
 	overflow:hidden;
@@ -845,6 +855,39 @@ prompt, .choice-prompt {
 	display: block;
 	color: green;
 }
+inlinechoiceinteraction.incorrect-response, inlinechoiceinteraction.correct-response {
+	display: inline;
+}
+inlinechoiceinteraction.correct-response > .feedback-float.show, inlinechoiceinteraction.incorrect-response > .feedback-float.show {
+	width: 26px;
+	height: 22px;
+	line-height: 30px;
+	position: relative;
+	top: 0px;
+	display: inline-block;
+	cursor: pointer;
+}
+inlinechoiceinteraction.correct-response > .feedback-float.show {
+	background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
+}
+inlinechoiceinteraction.incorrect-response > .feedback-float.show {
+	background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
+}
+.feedback-float.hide {
+	display: none;
+}
+inlinechoiceinteraction.correct-response > select {
+	border: solid 2px #53C516;
+}
+select.small {
+	height: auto;
+	width: auto;
+	vertical-align: middle;
+	font-size: 12px;
+}
+inlinechoiceinteraction.incorrect-response > select {
+	border: solid 2px #F8A31A;
+}
 .incorrect-selection {
 	display: block;
 	color: red;
@@ -901,4 +944,60 @@ table th, table td {
 	width: 100%;
 	height: 2.5em;
 	margin-bottom: 20px;
+}
+.feedback-block-correct, .feedback-block-incorrect {
+	padding:0 0 0 30px;
+	min-height:21px;
+	line-height:21px;
+}
+.feedback-container {
+	display: none;
+}
+.incorrect-selection > .feedback-container, .correct-response > .feedback-container {
+	display: block;
+}
+.incorrect-selection > .feedback-container > feedbackinline, .correct-response > .feedback-container > feedbackinline {
+	padding: 5px;
+	padding-left: 20px;
+	display: inline-block;
+	margin-bottom: 5px;
+}
+.incorrect-selection > .feedback-container > feedbackinline {
+	background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
+}
+.correct-response > .feedback-container > feedbackinline {
+	background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
+}
+simplechoice {
+	width: 100%;
+}
+.incorrect-selection .choice-content {
+	border:2px solid #f8a31a;
+	display:block;
+	border-radius: 6px;
+	margin-bottom:5px;
+}
+.incorrect-selection-horizontal .simple-choice-inner-horizontal {
+	border:2px solid #f8a31a;
+	border-radius: 6px;
+}
+.correct-response .choice-content {
+	border:2px solid #92D400;
+	display:block;
+	border-radius: 6px;
+	margin-bottom:5px;
+}
+.correct-response-horizontal .simple-choice-inner-horizontal {
+	border:2px solid #92D400;
+	border-radius: 6px;
+}
+.simple-choice-inner-horizontal {
+	padding: 10px;
+	float: left;
+	line-height: 20px;
+}
+.simple-choice-inner:after {
+	content: "";
+	display: block;
+	clear: both;
 }
