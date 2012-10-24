@@ -1,8 +1,10 @@
 package tests.models
 
 import org.specs2.mutable.Specification
-import scala.Some
 import controllers.testplayer.qti._
+import io.Codec
+import java.nio.charset.Charset
+import scala.xml.XML
 
 class QtiItemTest extends Specification{
 
@@ -34,6 +36,17 @@ class QtiItemTest extends Specification{
       item.responseDeclarations.size must equalTo(1)
       val response = item.responseDeclarations(0).correctResponse.get
       response.isInstanceOf[CorrectResponseMultiple] must be equalTo(true)
+    }
+
+    "parse an inline choice interaction even though its nested" in {
+      val path = "test/mockXml/inline-choice-interaction-in-p.xml"
+      val s = io.Source.fromFile(path)(new Codec(Charset.forName("UTF-8"))).mkString
+      val xml = XML.loadString(s)
+
+      val qtiItem = QtiItem(xml)
+
+      qtiItem.itemBody.interactions.size must equalTo(1)
+
     }
   }
 

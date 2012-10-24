@@ -42,20 +42,41 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
             /**
              * Note - in choiceInteraction.compile we wrap this in 2 divs - so we need the grandparent node.
              */
-            var choiceInteractionElem = tElement.parent().parent();
+            var choiceInteractionElem = tElement.parent();
+            try {
+            var i = 0;
+            while (choiceInteractionElem.prop("nodeName").toLowerCase() != "choiceinteraction") {
+                choiceInteractionElem = choiceInteractionElem.parent();
+                if (i++ > 5) throw new Error("Parent choice interaction not found");
+            }
+            } catch (e) {
+                // TODO: temporary fix for tests...
+            }
             var maxChoices = choiceInteractionElem.attr('maxChoices');
+            var isHorizontal = choiceInteractionElem.attr('orientation') == 'horizontal';
             var inputType = maxChoices == 1 ? 'radio' : 'checkbox';
+
 
             var nodeWithFeedbackRemoved = tElement.html().replace(feedbackInlineRegex, "");
 
             var responseIdentifier = choiceInteractionElem.attr('responseidentifier');
 
-            var divs = ['<div class="simple-choice-inner">',
-                '  <div class="choiceInput">',
-                '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div>',
-                '  <div class="choice-content"> ' + nodeWithFeedbackRemoved + '</div>',
-                '</div>',
-                createFeedbackContainerDiv(tElement.html())];
+            var divs = isHorizontal ? [
+                    '<div class="simple-choice-inner-horizontal" ng-class="{noResponse: noResponse}">',
+                    '   <div class="choice-content-horizontal" ng-class="{noResponse: noResponse}"> ' + nodeWithFeedbackRemoved + '</div>',
+                    '   <div ng-class="{noResponse: noResponse}"><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div>',
+                    '</div>']
+
+                    :
+
+                    ['<div class="simple-choice-inner">',
+                    '  <div class="choiceInput">',
+                    '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div>',
+                    '  <div class="choice-content"> ' + nodeWithFeedbackRemoved + '</div>',
+                    '</div>',
+                    createFeedbackContainerDiv(tElement.html())]
+
+                ;
 
             var template = divs.join("\n");
 
@@ -90,27 +111,23 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                 };
 
                 var applyCss = function (correct, selected) {
-
-                    tidyUp();
-
-                    if(correct){
-                        element.addClass('correct-response');
+                    if (selected) {
+                        var className = correct ? 'correct-selection' : 'incorrect-selection';
+                        element.toggleClass(isHorizontal ? (className+"-horizontal") : className);
                     }
-
-                    if(!selected){
-                        return;
+                    if (correct) {
+                        element.toggleClass(isHorizontal ? 'correct-response-horizontal' : 'correct-response');
                     }
-
-                    var className = correct ? 'correct-selection' : 'incorrect-selection';
-                    element.toggleClass(className);
                 };
-
 
                 var tidyUp = function() {
                     element
                         .removeClass('correct-selection')
                         .removeClass('incorrect-selection')
-                        .removeClass('correct-response');
+                        .removeClass('correct-response')
+                        .removeClass('correct-selection-horizontal')
+                        .removeClass('incorrect-selection-horizontal')
+                        .removeClass('correct-response-horizontal');
                 };
 
 
@@ -125,7 +142,6 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
                     if (!responses) return;
                     if (!localScope.isFeedbackEnabled()) return;
-
                     var correctResponse = responses[responseIdentifier];
                     var isCorrect = isOurResponseCorrect(correctResponse);
                     applyCss(isCorrect, isSelected());
@@ -198,9 +214,14 @@ qtiDirectives.directive('choiceinteraction', function () {
      */
     var compile = function(element, attrs, transclude){
         var shuffle = attrs["shuffle"] === "true";
+        var isHorizontal = attrs["orientation"] === "horizontal";
         var html = element.html();
         var finalContents = shuffle ? getShuffledContents(html) : html;
-        var newNode = '<div class="choice-interaction" ng-class="{noResponse: noResponse}">' + finalContents + '</div>';
+
+        var newNode = isHorizontal ?
+            ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction">' + finalContents + '</div><div style="clear: both"></div></div>')
+            :
+            ('<div class="choice-interaction" ng-class="{noResponse: noResponse}">' + finalContents + '</div>')
         element.html(newNode);
         return link;
     };
@@ -250,7 +271,7 @@ qtiDirectives.directive('choiceinteraction', function () {
      */
     return {
         restrict:'E',
-        scope:true,
+        scope: true,
         require:'^assessmentitem',
         compile: compile,
         controller:function ($scope) {

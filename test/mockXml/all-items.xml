@@ -3,28 +3,25 @@
     <stylesheet type="text/css" href="css/mcas/default.css"></stylesheet>
     <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
     <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
-    <!-- single choice -->
+    <!-- single choice
     <responseDeclaration identifier="mexicanPresident" cardinality="single" baseType="identifier">
         <correctResponse>
             <value>calderon</value>
         </correctResponse>
     </responseDeclaration>
 
-    <!-- single choice -->
     <responseDeclaration identifier="irishPresident" cardinality="single" baseType="identifier">
         <correctResponse>
             <value>higgins</value>
         </correctResponse>
     </responseDeclaration>
 
-    <!-- multi choice -->
     <responseDeclaration identifier="rainbowColors" cardinality="multiple" baseType="identifier">
         <correctResponse>
             <value>blue</value>
             <value>violet</value>
             <value>red</value>
         </correctResponse>
-        <!-- example of mapping score -->
         <mapping lowerBound="0" upperBound="3" defaultValue="-3">
             <mapEntry mapKey="blue" mappedValue="1"/>
             <mapEntry mapKey="violet" mappedValue="1"/>
@@ -33,7 +30,6 @@
         </mapping>
     </responseDeclaration>
 
-    <!-- inline text interaction -->
     <responseDeclaration identifier="winterDiscontent" cardinality="multiple" baseType="string">
         <correctResponse>
             <value>York</value>
@@ -45,7 +41,6 @@
         </mapping>
     </responseDeclaration>
 
-    <!-- orderInteraction -->
     <responseDeclaration identifier="wivesOfHenry" cardinality="ordered" baseType="identifier">
         <correctResponse>
             <value>aragon</value>
@@ -58,7 +53,6 @@
     </responseDeclaration>
 
 
-    <!-- orderInteraction -->
     <responseDeclaration identifier="cutePugs" cardinality="ordered" baseType="identifier">
         <correctResponse>
             <value>pug1</value>
@@ -66,10 +60,9 @@
             <value>pug3</value>
         </correctResponse>
     </responseDeclaration>
-
-    <!-- extended text interaction -->
     <responseDeclaration identifier="longAnswer" cardinality="single" baseType="string"/>
 
+    -->
     <responseDeclaration identifier="manOnMoon" cardinality="single" baseType="identifier">
         <correctResponse>
             <value>armstrong</value>
@@ -78,7 +71,7 @@
 
 
     <itemBody>
-
+        <!--
         <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1">
             <prompt>Who is the President of Mexico?</prompt>
             <simpleChoice identifier='obama'> Barack Obama
@@ -95,7 +88,6 @@
             </simpleChoice>
         </choiceInteraction>
 
-        <!-- this one has feedback pre-populated with csFeedbackId, outcomeIdentifier and identifier -->
         <choiceInteraction responseIdentifier="irishPresident" shuffle="false" maxChoices="1">
             <prompt>Who is the President of Ireland?</prompt>
             <simpleChoice identifier="robinson"> Mary Robinson
@@ -191,24 +183,22 @@
         <p/>
 
 
-
-        <prompt>Write Sam a postcard. Write 25-35 words.</prompt>
         <extendedTextInteraction responseIdentifier="longAnswer" expectedLength="200">
-
         </extendedTextInteraction>
 
-        <h1>Inline choice interaction</h1>
+        -->
         <p>
             The first man on the moon was <inlineChoiceInteraction
                 responseIdentifier="manOnMoon"
                 required="false">
-            <inlineChoice identifier="armstrong">Neil Armstrong<feedbackInline csFeedbackId="armstrong" identifier="armstrong" defaultFeedback="true">Hooray!</feedbackInline></inlineChoice>
-            <inlineChoice identifier="aldrin">Buzz Aldrin<feedbackInline csFeedbackId="aldrin"  identifier="aldrin" defaultFeedback="true">Boohoo</feedbackInline></inlineChoice>
+            <inlineChoice identifier="armstrong">Neil Armstrong<feedbackInline csFeedbackId="armstrong" identifier="armstrong" defaultFeedback="true"></feedbackInline></inlineChoice>
+            <inlineChoice identifier="aldrin">Buzz Aldrin<feedbackInline csFeedbackId="aldrin"  identifier="aldrin" defaultFeedback="true"></feedbackInline></inlineChoice>
         </inlineChoiceInteraction>, he landed there in 1969.
         </p>
 
     </itemBody>
 
+<!--
     <modalFeedback
             outcomeIdentifier="responses.winterDiscontent.value"
             identifier="York"
@@ -216,5 +206,6 @@
         This is modal feedback, shown when 'York' was entered in the inline text question
     </modalFeedback>
 
+-->
 
 </assessmentItem>

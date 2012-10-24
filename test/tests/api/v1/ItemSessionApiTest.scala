@@ -37,19 +37,19 @@ class ItemSessionApiTest extends Specification {
     "itemSessionId" -> "502d0f823004deb7f4f53be7"
   )
 
-  def createNewSession () : ItemSession = {
+  def createNewSession(): ItemSession = {
 
     val call = api.v1.routes.ItemSessionApi.createItemSession(new ObjectId(testSessionIds("itemId")))
 
     val newSessionRequest = FakeRequest(
       call.method,
       call.url,
-      FakeHeaders(Map("Authorization" -> Seq("Bearer "+token))),
+      FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
       AnyContentAsEmpty
     )
 
     val newSessionResult = routeAndCall(newSessionRequest).get
-    val newSessionJson:JsValue = Json.parse(contentAsString(newSessionResult))
+    val newSessionJson: JsValue = Json.parse(contentAsString(newSessionResult))
     Json.fromJson[ItemSession](newSessionJson)
   }
 
@@ -83,7 +83,7 @@ class ItemSessionApiTest extends Specification {
 
     "return an error if we try and update an item that is already finished" in {
 
-      val newSession : ItemSession = createNewSession()
+      val newSession: ItemSession = createNewSession()
 
       //testSession.id = new ObjectId(testSessionIds("itemSessionId"))
       testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon", "{$score:1}"))
@@ -110,8 +110,8 @@ class ItemSessionApiTest extends Specification {
         case Some(result) => {
           status(result) must equalTo(BAD_REQUEST)
           val json = Json.parse(contentAsString(result))
-          (json \ "message" ).asOpt[String] must equalTo( Some(ApiError.ItemSessionFinished.message ))
-          (json \ "code" ).asOpt[Int] must equalTo( Some(ApiError.ItemSessionFinished.code))
+          (json \ "message").asOpt[String] must equalTo(Some(ApiError.ItemSessionFinished.message))
+          (json \ "code").asOpt[Int] must equalTo(Some(ApiError.ItemSessionFinished.code))
         }
         case _ => failure("Second update didn't work")
       }
@@ -154,28 +154,50 @@ class ItemSessionApiTest extends Specification {
       val json: JsValue = Json.parse(contentAsString(result))
       (json \ "sessionData") match {
         case JsObject(sessionData) => sessionData.find(field => field._1 == "feedbackContents") match {
-          case Some((_,jsfeedbackContents)) => jsfeedbackContents match {
+          case Some((_, jsfeedbackContents)) => jsfeedbackContents match {
             case JsObject(feedbackContents) => optQtiItem match {
               case Right(qtiItem) =>
                 val feedbackBlocks = qtiItem.itemBody.feedbackBlocks
                 val feedbackInlines = qtiItem.itemBody.interactions.map(i => i match {
                   case ChoiceInteraction(_,choices) => choices.map(choice => choice.feedbackInline)
                   case OrderInteraction(_,choices) => choices.map(choice => choice.feedbackInline)
+                  case InlineChoiceInteraction(_, choices) => choices.map(choice => choice.feedbackInline)
                   case _ => throw new RuntimeException("unknown interaction")
                 }).flatten.flatten ++ feedbackBlocks
-                def feedbackInlineContent(fi:FeedbackInline) = if (fi.defaultFeedback) fi.defaultContent(qtiItem) else fi.content
-                if (feedbackContents.foldRight[Boolean](true)((field,acc) => {
-                  acc && (feedbackInlines.find(fi => field._1 == fi.csFeedbackId) match {
-                    case Some(fi) =>
-                      field._2 match {
-                      case JsArray(values) => values.contains(JsString(feedbackInlineContent(fi)))
-                      case JsString(value) => value == feedbackInlineContent(fi)
+
+                def feedbackInlineContent(fi: FeedbackInline) = if (fi.defaultFeedback) fi.defaultContent(qtiItem) else fi.content
+
+                def valueContains(feedbackInline: Option[FeedbackInline], value: JsValue): Boolean = feedbackInline match {
+                  case Some(fb) => {
+                    val fbContent = feedbackInlineContent(fb)
+
+                    value match {
+                      case JsArray(values) => values.contains(JsString(fbContent))
+                      case JsString(value) => value == fbContent
                       case _ => false
                     }
-                    case None => false
+                  }
+                  case _ => false
+                }
+
+
+                def allFeedbackItemsArePresent(contents: Seq[(String, JsValue)], feedbacks: Seq[FeedbackInline]) = {
+                  contents.foldRight[Boolean](true)((field, acc) => {
+
+                    val fieldId = field._1
+                    val fieldValue = field._2
+
+                    if (acc) {
+                      val maybeFeedbackInline = feedbacks.find(fieldId == _.csFeedbackId)
+                      valueContains(maybeFeedbackInline, fieldValue)
+                    } else {
+                      false
+                    }
                   })
-                })) success
-                else failure
+                }
+
+                if (allFeedbackItemsArePresent(feedbackContents, feedbackInlines)) success else failure
+
               case Left(_) => failure
             }
             case _ => failure
@@ -190,9 +212,9 @@ class ItemSessionApiTest extends Specification {
       val json: JsValue = Json.parse(contentAsString(result))
       (json \ "sessionData") match {
         case JsObject(sessionData) => sessionData.find(field => field._1 == "correctResponses") match {
-          case Some((_,jscorrectResponses)) => jscorrectResponses match {
+          case Some((_, jscorrectResponses)) => jscorrectResponses match {
             case JsObject(correctResponses) =>
-              if(correctResponses.foldRight[Boolean](true)((prop, acc) => {
+              if (correctResponses.foldRight[Boolean](true)((prop, acc) => {
                 acc && (prop._1 match {
                   case "mexicanPresident" => prop._2.as[String] == "calderon"
                   case "irishPresident" => prop._2.as[String] == "higgins"
@@ -200,6 +222,7 @@ class ItemSessionApiTest extends Specification {
                   case "winterDiscontent" => prop._2.as[Seq[String]].sameElements(Seq("York", "york"))
                   case "wivesOfHenry" => prop._2.as[Seq[String]].equals(Seq("aragon", "boleyn", "seymour", "cleves", "howard", "parr"))
                   case "cutePugs" => prop._2.as[Seq[String]].equals(Seq("pug1", "pug2", "pug3"))
+                  case "manOnMoon" => prop._2.as[String] == "armstrong"
                   case _ => false
                 })
               })) success
@@ -318,26 +341,26 @@ class ItemSessionApiTest extends Specification {
         None
       )
 
-        val optResult = routeAndCall(getRequest)
-        if (optResult.isDefined) {
-          val json: JsValue = Json.parse(contentAsString(optResult.get))
+      val optResult = routeAndCall(getRequest)
+      if (optResult.isDefined) {
+        val json: JsValue = Json.parse(contentAsString(optResult.get))
 
-          // load the test session directly
-          val testSessionForGet: ItemSession =
-            ItemSession.findOneById(new ObjectId(testSessionIds("itemSessionId"))) match {
-              case Some(o) => o
-              case None => null
-            }
-
-          if (doesSessionMatch(json, testSessionForGet)) {
-            success
-          } else {
-            failure
+        // load the test session directly
+        val testSessionForGet: ItemSession =
+          ItemSession.findOneById(new ObjectId(testSessionIds("itemSessionId"))) match {
+            case Some(o) => o
+            case None => null
           }
 
+        if (doesSessionMatch(json, testSessionForGet)) {
+          success
         } else {
           failure
         }
+
+      } else {
+        failure
+      }
 
     }
 

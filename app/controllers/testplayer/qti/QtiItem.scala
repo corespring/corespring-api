@@ -124,11 +124,18 @@ object ItemBody{
   def apply(node:Node):ItemBody = {
     var interactions:Seq[Interaction] = Seq()
     var feedbackBlocks:Seq[FeedbackInline] = Seq()
+
+    //Inline choice interactions can be nested within html elements so use \\ instead
+    (node \\ "inlineChoiceInteraction").foreach( (n:Node) => {
+      interactions = interactions :+ InlineChoiceInteraction(n)
+    })
+
     node.child.foreach(inner => {
       inner.label match {
         case "choiceInteraction" => interactions = interactions :+ ChoiceInteraction(inner)
         case "orderInteraction" => interactions = interactions :+ OrderInteraction(inner)
         case "feedbackBlock" => feedbackBlocks = feedbackBlocks :+ FeedbackInline(inner,None)
+
         case _ =>
       }
     })
@@ -138,6 +145,28 @@ object ItemBody{
 trait Interaction{
   val responseIdentifier:String
 }
+
+case class InlineChoiceInteraction(responseIdentifier:String, choices:Seq[InlineChoice]) extends Interaction
+
+object InlineChoiceInteraction{
+  def apply(node:Node) : InlineChoiceInteraction = InlineChoiceInteraction(
+
+  (node\"@responseIdentifier").text,
+  (node \ "inlineChoice").map(InlineChoice(_,(node \ "@responseIdentifier").text))
+  )
+}
+
+case class InlineChoice(identifier:String,  responseIdentifier:String, feedbackInline:Option[FeedbackInline])
+
+object InlineChoice{
+  def apply(node:Node, responseIdentifier:String): InlineChoice = InlineChoice(
+   (node\"@identifier").text,
+   responseIdentifier,
+   (node\"feedbackInline").headOption.map(FeedbackInline(_, Some(responseIdentifier)))
+ )
+}
+
+
 case class ChoiceInteraction(responseIdentifier:String, choices:Seq[SimpleChoice]) extends Interaction
 object ChoiceInteraction{
   def apply(node:Node):ChoiceInteraction = ChoiceInteraction(

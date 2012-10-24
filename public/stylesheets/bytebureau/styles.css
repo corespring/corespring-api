@@ -318,11 +318,13 @@ input[type="submit"] {
     line-height:20px;
     width: 540px;
 }
-
-
-
-/* SC FEEDBACK ELEMENTS */
-.correct-response {
+/*.choiceInput {
+    padding:0 8px 0 0;
+}*/
+.choice-interaction input[type="checkbox"], .choice-interaction input[type="radio"] {
+    margin:0 0 0 1px;
+}
+.correct-response, .correct-response-horizontal{
     color: #95C444;
 }
 
@@ -335,8 +337,7 @@ input[type="submit"] {
     padding-left:10px;
     font-size: 12px;
 }
-
-.incorrectSelection, .incorrect-selection {
+.incorrectSelection, .incorrect-selection, .incorrect-selection-horizontal {
     color: #F8A31A;
 }
 
@@ -957,6 +958,49 @@ prompt, .choice-prompt {
     display: block;
     color: green;
 }
+
+
+inlinechoiceinteraction.incorrect-response,
+inlinechoiceinteraction.correct-response {
+   display: inline;
+}
+
+inlinechoiceinteraction.correct-response > .feedback-float.show,
+inlinechoiceinteraction.incorrect-response > .feedback-float.show{
+    width: 26px;
+    height: 22px;
+    line-height: 30px;
+    position: relative;
+    top: 0px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+inlinechoiceinteraction.correct-response > .feedback-float.show{
+    background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
+}
+inlinechoiceinteraction.incorrect-response > .feedback-float.show{
+    background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
+}
+
+.feedback-float.hide {
+    display: none;
+}
+inlinechoiceinteraction.correct-response > select {
+    border: solid 2px #53C516;
+}
+
+select.small {
+    height: auto;
+    width: auto;
+    vertical-align: middle;
+    font-size: 12px;
+}
+
+inlinechoiceinteraction.incorrect-response > select {
+    border: solid 2px #F8A31A;
+}
+
 .incorrect-selection {
     display: block;
     color: red;
@@ -1027,3 +1071,71 @@ table th, table td {
 }
 
 
+.feedback-block-correct, .feedback-block-incorrect {
+    padding:0 0 0 30px;
+    min-height:21px;
+    line-height:21px;
+}
+
+.feedback-container {
+    display: none;
+}
+
+.incorrect-selection > .feedback-container,
+.correct-response > .feedback-container {
+    display: block;
+}
+
+.incorrect-selection > .feedback-container > feedbackinline,
+.correct-response > .feedback-container > feedbackinline{
+    padding: 5px;
+    padding-left: 20px;
+    display: inline-block;
+    margin-bottom: 5px;
+}
+.incorrect-selection > .feedback-container > feedbackinline {
+    background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
+}
+.correct-response > .feedback-container > feedbackinline{
+    background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
+}
+
+simplechoice{
+    width: 100%;
+}
+
+
+.incorrect-selection .choice-content  {
+    border:2px solid #f8a31a;
+    display:block;
+    border-radius: 6px;
+    margin-bottom:5px;
+}
+.incorrect-selection-horizontal .simple-choice-inner-horizontal {
+    border:2px solid #f8a31a;
+    border-radius: 6px;
+}
+
+.correct-response .choice-content {
+    border:2px solid #92D400;
+    display:block;
+    border-radius: 6px;
+    margin-bottom:5px;
+}
+
+.correct-response-horizontal .simple-choice-inner-horizontal {
+    border:2px solid #92D400;
+    border-radius: 6px;
+}
+
+.simple-choice-inner-horizontal {
+    padding: 10px;
+    float: left;
+    line-height: 20px;
+}
+
+.simple-choice-inner:after {
+   content: "";
+    display: block;
+    clear: both;
+}

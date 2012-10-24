@@ -187,12 +187,14 @@ object ItemPlayer extends BaseApi with ItemResources{
     // TODO - dropping jquery in for all right now, but this needs to be only dropped in if required by interactions
     scripts ::= script("//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js")
     scripts ::= script("//ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js")
-
+    scripts ::= script("/assets/bootstrap/js/bootstrap.js")
+    scripts ::= script("/assets/js/vendor/angular-ui/angular-ui.js")
 
     // map of elements and the scripts needed to process them
     // can't concatenate string in map value apparently, so using replace()
     val elementScriptsMap = Map (
       "choiceInteraction" -> createScripts("choiceInteraction", isPrintMode),
+      "inlineChoiceInteraction" -> createScripts("inlineChoiceInteraction", isPrintMode),
       "orderInteraction" -> createScripts("orderInteraction", isPrintMode),
       "textEntryInteraction" -> createScripts("textEntryInteraction", isPrintMode),
       "extendedTextInteraction" -> createScripts("extendedTextInteraction", isPrintMode),
