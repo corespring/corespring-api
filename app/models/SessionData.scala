@@ -3,12 +3,12 @@ package models
 import play.api.libs.json._
 import play.api.libs.json.JsString
 import scala.xml._
-import models.bleezmo._
 import play.api.libs.json.JsArray
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import collection.immutable.HashMap
 import controllers.Log
+import controllers.testplayer.qti._
 
 
 /**
@@ -27,7 +27,7 @@ import controllers.Log
  *         }
  *   }
  */
-case class SessionData(qtiItem: bleezmo.QtiItem,responses:Seq[ItemResponse])
+case class SessionData(qtiItem: QtiItem,responses:Seq[ItemResponse])
 object SessionData{
   implicit object SessionDataWrites extends Writes[SessionData]{
     def writes(sd: SessionData) = {
@@ -43,12 +43,14 @@ object SessionData{
 
       def filterFeedbacks(feedbacks:Seq[FeedbackInline],displayCorrectResponse:Boolean = false):Seq[FeedbackInline] = {
         var feedbackGroups:HashMap[String,Seq[FeedbackInline]] = HashMap()
-        feedbacks.foreach(fi => if (feedbackGroups.get(fi.responseIdentifier).isDefined){
-          feedbackGroups += (fi.responseIdentifier -> (feedbackGroups.get(fi.responseIdentifier).get :+ fi))
+        feedbacks.foreach(fi => if (feedbackGroups.get(fi.outcomeIdentifier).isDefined){
+          feedbackGroups += (fi.outcomeIdentifier -> (feedbackGroups.get(fi.outcomeIdentifier).get :+ fi))
         }else{
-          feedbackGroups += (fi.responseIdentifier -> Seq(fi))
+          feedbackGroups += (fi.outcomeIdentifier -> Seq(fi))
         })
-        feedbackGroups.map(kvpair => filterFeedbackGroup(kvpair._1, kvpair._2,displayCorrectResponse)).flatten.toSeq
+        feedbackGroups.map(kvpair =>
+          filterFeedbackGroup(kvpair._1, kvpair._2,displayCorrectResponse)
+        ).flatten.toSeq
       }
       def filterFeedbackGroup(responseIdentifier:String, feedbackGroup:Seq[FeedbackInline], displayCorrectResponse:Boolean = true):Seq[FeedbackInline] = {
         val responseGroup = sd.responses.filter(ir => ir.id == responseIdentifier) //find the responses corresponding to this feedbackGroup
@@ -59,7 +61,7 @@ object SessionData{
             }else response.value == fi.identifier
           }).isDefined
         //find if the given feedback element represents the correct response
-        def isCorrectResponseFeedback(fi:FeedbackInline) = sd.qtiItem.responseDeclarations.find(_.identifier == fi.responseIdentifier).map(_.isCorrect(fi.identifier)).getOrElse(false)
+        def isCorrectResponseFeedback(fi:FeedbackInline) = sd.qtiItem.responseDeclarations.find(_.identifier == fi.outcomeIdentifier).map(_.isCorrect(fi.identifier)).getOrElse(false)
         val feedbackContents = feedbackGroup.filter(fi => responseAndFeedbackMatch(fi) || (displayCorrectResponse && isCorrectResponseFeedback(fi)))
         if(feedbackContents.isEmpty){
           feedbackGroup.find(fi => fi.incorrectResponse) match {
@@ -76,6 +78,8 @@ object SessionData{
       var feedbackContents:Seq[(String,JsValue)] = Seq()
       sd.qtiItem.itemBody.interactions.foreach(interaction => {
         interaction match {
+          case ci:InlineChoiceInteraction => filterFeedbackGroup(ci.responseIdentifier, ci.choices.map(_.feedbackInline).flatten,false)
+            .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
           case ci:ChoiceInteraction => filterFeedbackGroup(ci.responseIdentifier, ci.choices.map(_.feedbackInline).flatten,true)
             .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
           case oi:OrderInteraction => filterFeedbackGroup(oi.responseIdentifier, oi.choices.map(_.feedbackInline).flatten,true)

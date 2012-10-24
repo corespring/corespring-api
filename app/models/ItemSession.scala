@@ -16,10 +16,10 @@ import play.api.Play
 import play.api.Play.current
 import akka.actor.FSM.->
 import scala.xml._
-import controllers.testplayer.qti.QtiItem
 import api.processors.FeedbackProcessor
+import controllers.testplayer.qti.QtiItem
 
-
+case class FeedbackIdMapEntry(csFeedbackId:String,outcomeIdentifier:String,identifier:String)
 /**
  * Case class representing an individual item session
  */
@@ -28,10 +28,9 @@ case class ItemSession (var itemId: ObjectId,
                         var finish: Option[DateTime] = None,
                         var responses: Seq[ItemResponse] = Seq(),
                         var id: ObjectId = new ObjectId(),
-                        var feedbackIdLookup:Map[String,String] = Map(),
+                        var feedbackIdLookup:Seq[FeedbackIdMapEntry] = Seq(),
                         var sessionData: Option[SessionData] = None
                          ) extends Identifiable
-
 /**
  * Companion object for ItemSession.
  * All operations specific to ItemSession are handled here
@@ -66,7 +65,7 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
       }
   }
 
-  def getXmlWithFeedback(itemId:ObjectId, mapping:Map[String,String]):Either[InternalError,Elem] = {
+  def getXmlWithFeedback(itemId:ObjectId, mapping:Seq[FeedbackIdMapEntry]):Either[InternalError,Elem] = {
     Item.getQti(itemId) match {
       case Right(qti) => Right(FeedbackProcessor.addFeedbackIds(XML.loadString(qti),mapping))
       case Left(e) => Left(e)
@@ -100,7 +99,7 @@ object ItemSession extends ModelCompanion[ItemSession,ObjectId] {
     }
   }
 
-  def getSessionData(xml : Elem,responses:Seq[ItemResponse]) = Some(SessionData(bleezmo.QtiItem(xml),responses))
+  def getSessionData(xml : Elem,responses:Seq[ItemResponse]) = Some(SessionData(QtiItem(xml),responses))
 
   /**
    * Json Serializer

@@ -7,6 +7,7 @@ import play.api.Play.current
 import play.api.Application
 import web.controllers.utils.ConfigLoader
 import seed.SeedDb._
+
 /**
   */
 object Global extends GlobalSettings {
@@ -14,7 +15,8 @@ object Global extends GlobalSettings {
   val AUTO_RESTART: String = "AUTO_RESTART"
   val INIT_DATA: String = "INIT_DATA"
 
-  val MOCK_ACCESS_TOKEN: String = "34dj45a769j4e1c0h4wb"
+  val MOCK_ACCESS_TOKEN_ID: String = "34dj45a769j4e1c0h4wb"
+  val MOCK_ACCESS_TOKEN_SCOPE: Option[String] = Some("homer")
 
   val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
 
@@ -70,26 +72,44 @@ object Global extends GlobalSettings {
 
     val initData = ConfigLoader.get(INIT_DATA).getOrElse("true") == "true"
 
+    def onlyIfLocalDb(fn: (() => Unit)) {
+      if (isLocalDb)
+        fn()
+      else
+        throw new RuntimeException("You're trying to seed against a remote db - bad idea")
+    }
+
     if (Play.isTest(app)) {
-      seedTestData()
-    } else {
+      onlyIfLocalDb(seedTestData)
+    } else if (Play.isDev(app)) {
+      if (initData) onlyIfLocalDb(seedDevData)
+    } else if (Play.isProd(app)) {
       if (initData) seedDevData()
+    }
+
+  }
+
+  private def isLocalDb: Boolean = {
+
+    ConfigLoader.get("mongodb.default.uri") match {
+      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907-a.mongolab.com:35907/sib")
+      case None => false
     }
   }
 
-  private def seedTestData()  {
+  private def seedTestData() {
     emptyData()
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/test")
-    addMockAccessToken(MOCK_ACCESS_TOKEN)
+    addMockAccessToken(MOCK_ACCESS_TOKEN_ID,None)
   }
 
-  private def seedDevData()  {
+  private def seedDevData() {
     emptyData()
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/dev")
     seedData("conf/seed-data/exemplar-content")
-    addMockAccessToken(MOCK_ACCESS_TOKEN)
+    addMockAccessToken(MOCK_ACCESS_TOKEN_ID,None)
   }
 
 }

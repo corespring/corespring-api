@@ -1,4 +1,4 @@
-function HomeController($scope, $timeout, $http, $location, AccessToken, ItemService) {
+function HomeController($scope, $rootScope, $timeout, $http, $location, AccessToken, ItemService, ServiceLookup, SupportingMaterial, SearchService) {
     $http.defaults.headers.get = ($http.defaults.headers.get || {});
     $http.defaults.headers.get['Content-Type'] = 'application/json';
 
@@ -6,16 +6,28 @@ function HomeController($scope, $timeout, $http, $location, AccessToken, ItemSer
 
     $scope.accessToken = AccessToken;
 
-    $scope.loadItems = function () {
-        ItemService.query({ access_token:$scope.accessToken.token, l:200}, function (data) {
-            $scope.items = data;
+    $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
 
-            //trigger math ml rendering
-            $timeout(function(){
-                MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-            }, 200);
+    $scope.search = function() {
+        SearchService.search($scope.searchParams, function(res){
+            $scope.items = res;
         });
+    }
+
+    $scope.loadMore = function () {
+        SearchService.loadMore(function () {
+                // re-bind the scope collection to the services model after result comes back
+                $scope.items = SearchService.itemDataCollection;
+                //Trigger MathJax
+                setTimeout(function(){
+                    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+                }, 200);
+
+            }
+        );
     };
+
+
 
 
     $scope.showGradeLevel = function () {
@@ -118,6 +130,30 @@ function HomeController($scope, $timeout, $http, $location, AccessToken, ItemSer
         return out.join(", ");
     };
 
+    $scope.deleteItem = function(item) {
+        $scope.itemToDelete = item;
+        $scope.showConfirmDestroyModal = true;
+    }
+
+    $scope.deleteConfirmed = function(){
+        var deletingId = $scope.itemToDelete.id;
+        ItemService.remove({id: $scope.itemToDelete.id},
+            function(result) {
+                $scope.itemToDelete = null;
+                $scope.search();
+            }
+        );
+        $scope.itemToDelete = null;
+        $scope.showConfirmDestroyModal = false;
+    };
+
+    $scope.deleteCancelled = function(){
+        console.log("Item Delete Cancelled");
+       $scope.itemToDelete = null;
+       $scope.showConfirmDestroyModal = false;
+    };
+
+
     /*
      * called from the repeater. scope (this) is the current item
      */
@@ -128,11 +164,11 @@ function HomeController($scope, $timeout, $http, $location, AccessToken, ItemSer
     $scope.$watch('accessToken.token', function (newValue, oldValue) {
         if (newValue) {
             $timeout(function () {
-                $scope.loadItems();
+                $scope.search();
             });
         }
     });
 }
 
-HomeController.$inject = ['$scope', '$timeout', '$http', '$location', 'AccessToken', 'ItemService'];
+HomeController.$inject = ['$scope', '$rootScope','$timeout', '$http', '$location', 'AccessToken', 'ItemService', 'ServiceLookup', 'SupportingMaterial','SearchService'];
 

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<assessmentItem
+        identifier="mcas-16373" timeDependent="false" title="16373" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 imsqti_v2p1.xsd" toolName="SIB" adaptive="false" toolVersion="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1">
+    <stylesheet type="text/css" href="css/mcas/default.css"></stylesheet>
+    <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
+    <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
+    <!-- single choice -->
+    <responseDeclaration identifier="mexicanPresident" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>calderon</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <responseDeclaration identifier="rainbowColors" cardinality="multiple" baseType="identifier">
+        <correctResponse>
+            <value>blue</value>
+            <value>violet</value>
+            <value>red</value>
+        </correctResponse>
+        <!-- example of mapping score -->
+        <mapping lowerBound="0" upperBound="3" defaultValue="-3">
+            <mapEntry mapKey="blue" mappedValue="1"/>
+            <mapEntry mapKey="violet" mappedValue="1"/>
+            <mapEntry mapKey="red" mappedValue="1"/>
+            <mapEntry mapKey="white" mappedValue="-3"/>
+        </mapping>
+    </responseDeclaration>
+
+
+
+
+    <itemBody>
+
+        <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1" orientation="horizontal">
+            <prompt>Who is the President of Mexico?</prompt>
+            <simpleChoice identifier='obama'> Barack Obama
+            </simpleChoice>
+            <simpleChoice identifier='cameron'> James Cameron
+            </simpleChoice>
+            <simpleChoice identifier='calderon'> Felipe Calderon
+            </simpleChoice>
+        </choiceInteraction>
+
+        <choiceInteraction responseIdentifier="rainbowColors" shuffle="false" maxChoices="0" orientation="horizontal">
+            <prompt>Which colors are in a rainbow?</prompt>
+            <simpleChoice identifier='blue'> Blue
+            </simpleChoice>
+            <simpleChoice identifier='violet'> Violet
+            </simpleChoice>
+            <simpleChoice identifier='white'> White
+            </simpleChoice>
+            <simpleChoice identifier='red'> Red
+            </simpleChoice>
+        </choiceInteraction>
+
+    </itemBody>
+
+</assessmentItem>

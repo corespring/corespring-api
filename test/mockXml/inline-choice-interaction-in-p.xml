@@ -1,0 +1,26 @@
+<assessmentItem
+        identifier="mcas-16373" timeDependent="false" title="16373" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 imsqti_v2p1.xsd" toolName="SIB" adaptive="false" toolVersion="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1">
+    <stylesheet type="text/css" href="css/mcas/default.css"></stylesheet>
+    <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
+    <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
+
+    <responseDeclaration identifier="manOnMoon" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>armstrong</value>
+        </correctResponse>
+    </responseDeclaration>
+
+
+    <itemBody>
+        <p>
+            The first man on the moon was <inlineChoiceInteraction
+                responseIdentifier="manOnMoon"
+                required="false">
+            <inlineChoice identifier="armstrong">Neil Armstrong<feedbackInline csFeedbackId="armstrong" identifier="armstrong" defaultFeedback="true"></feedbackInline></inlineChoice>
+            <inlineChoice identifier="aldrin">Buzz Aldrin<feedbackInline csFeedbackId="aldrin"  identifier="aldrin" defaultFeedback="true"></feedbackInline></inlineChoice>
+        </inlineChoiceInteraction>, he landed there in 1969.
+        </p>
+
+    </itemBody>
+
+</assessmentItem>

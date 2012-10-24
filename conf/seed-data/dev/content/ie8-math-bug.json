@@ -10,7 +10,7 @@
 				"name" : "qti.xml",
 				"contentType" : "text/xml",
 				"isMain" : true,
-                "content" : "$[interpolate{/conf/qti/ie8-math-bug.xml}]"
+                "content" : "$[interpolate{conf/qti/ie8-math-bug.xml}]"
 			}
 		]
 	},

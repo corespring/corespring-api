@@ -8,7 +8,7 @@
                  "name" : "qti.xml",
                  "contentType":"text/xml",
                  "isMain":true,
-                 "content": "$[interpolate{/conf/qti/choice-interaction.xml}]"
+                 "content": "$[interpolate{conf/qti/choice-interaction.xml}]"
              }
          ]
     },

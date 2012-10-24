@@ -186,18 +186,11 @@ object ItemApi extends BaseApi {
         case Some(json) => {
           if ((json \ Item.id).asOpt[String].isDefined) {
             BadRequest(Json.toJson(ApiError.IdNotNeeded))
-          }
-          else if ((json \ Item.collectionId).asOpt[String].isDefined) {
-            BadRequest(Json.toJson(ApiError.CollIdNotNeeded))
-          }
-          else {
+          } else {
             try {
               val item = Json.fromJson[Item](json)
-              //addFeedbackIds(item)
-              Item.updateItem(id,item,excludedFieldsByDefault) match {
-                case Right(i) =>
-                 // removeFeedbackIds(i)
-                  Ok(Json.toJson(i))
+              Item.updateItem(id,item,excludedFieldsByDefault,request.ctx.organization) match {
+                case Right(i) => Ok(Json.toJson(i))
                 case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateItem(error.clientOutput)))
               }
             } catch {

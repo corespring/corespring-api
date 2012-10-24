@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+                identifier="composite" title="Composite Item" adaptive="false" timeDependent="false">
+    <correctResponseFeedback>Correct!</correctResponseFeedback>
+    <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>
+
+
+    <!-- an Extended text entry response for longer form text entry -->
+    <responseDeclaration identifier="Q_01" cardinality="single" baseType="string"/>
+
+    <responseDeclaration identifier="Q_02" cardinality="multiple" baseType="identifier">
+        <correctResponse>
+            <value>A</value>
+            <value>C</value>
+            <value>F</value>
+            <value>G</value>
+        </correctResponse>
+    </responseDeclaration>
+    <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float"/>
+
+    <itemBody>
+
+        <p class="intro-2">Children have characteristics that are either inherited or learned.</p>
+        <p class="prompt">Explain how an inherited characteristic is different from a learned characteristic.</p>
+        <extendedTextInteraction responseIdentifier="Q_01" expectedLength="200" class="answer-5-linebox"/>
+
+        <choiceInteraction responseIdentifier="Q_02" shuffle="true" maxChoices="0">
+            <prompt>Select all of the characteristics that that are <b>inherited</b>:</prompt>
+            <simpleChoice identifier="A" fixed="false">tallest student in class<feedbackInline identifier="A" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="B" fixed="false">rides a bicycle<feedbackInline identifier="B" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="C" fixed="false">curly, black hair<feedbackInline identifier="C" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="D" fixed="false">plays the piano<feedbackInline identifier="D" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="E" fixed="false">reads mystery books<feedbackInline identifier="E" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="F" fixed="false">brown eyes<feedbackInline identifier="F" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="G" fixed="false">long fingers<feedbackInline identifier="G" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="H" fixed="false">speaks French<feedbackInline identifier="H" defaultFeedback="true"/>
+            </simpleChoice>
+        </choiceInteraction>
+
+    </itemBody>
+</assessmentItem>

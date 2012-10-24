@@ -22,21 +22,24 @@ var org = { "name" : "Root Org" ,
     };
 
 print(">>>> toDb " + toDb.contentcolls.count());
-var mcas3Collection = toDb.contentcolls.findOne({name: "mcas"});
-org.contentcolls.push( { collectionId: mcas3Collection._id });
+
+toDb.contentcolls.find().forEach( function(collection){
+    org.contentcolls.push( { collectionId: collection._id});
+});
+
+//org.contentcolls.push( { collectionId: mcas3Collection._id });
 
 toDb.orgs.insert(org);
 
 print( "new org id : " + org._id );
 
+
 var accessToken = {
     "organization" : org._id ,
     "tokenId" : "34dj45a769j4e1c0h4wb",
     "creationDate" : ISODate("2012-09-03T18:47:33.087Z"),
-    "expirationDate" : ISODate("2012-09-09T18:47:33.087Z")
+    "expirationDate" : ISODate("2013-09-09T18:47:33.087Z")
 };
-
-
 toDb.accessTokens.insert(accessToken);
 
 
@@ -55,4 +58,11 @@ users.forEach(function(user){
     ];
 
     toDb.users.insert(newUser);
+
+    //create an api client for existing users
+    var apiClient = {};
+    apiClient.clientSecret = user.password;
+    apiClient.clientId = user._id;
+    apiClient.orgId = ObjectId("502404dd0364dc35bb393398");
+    toDb.apiClients.insert(apiClient);
 });

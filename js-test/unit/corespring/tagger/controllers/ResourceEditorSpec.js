@@ -4,12 +4,9 @@
 describe('ResourceEditor should', function () {
 
     beforeEach(function () {
-        angular.module('tagger.services')
-            .factory('AccessToken', [ function () {
-            return { token:"1" };
-        }]
-        );
-
+        module(function ($provide) {
+            $provide.value('AccessToken', {token:"1"});
+        });
     });
 
     var broadcastEnterEditor = function ($rootScope, resource) {

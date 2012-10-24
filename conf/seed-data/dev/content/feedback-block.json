@@ -8,7 +8,7 @@
                 "name" : "qti.xml",
                 "contentType":"text/xml",
                 "isMain":true,
-                "content": "$[interpolate{/conf/qti/feedback-block.xml}]"
+                "content": "$[interpolate{conf/qti/feedback-block.xml}]"
             }
         ]
     },

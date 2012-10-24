@@ -1,0 +1,211 @@
+<assessmentItem
+        identifier="mcas-16373" timeDependent="false" title="16373" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 imsqti_v2p1.xsd" toolName="SIB" adaptive="false" toolVersion="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1">
+    <stylesheet type="text/css" href="css/mcas/default.css"></stylesheet>
+    <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
+    <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
+    <!-- single choice
+    <responseDeclaration identifier="mexicanPresident" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>calderon</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <responseDeclaration identifier="irishPresident" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>higgins</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <responseDeclaration identifier="rainbowColors" cardinality="multiple" baseType="identifier">
+        <correctResponse>
+            <value>blue</value>
+            <value>violet</value>
+            <value>red</value>
+        </correctResponse>
+        <mapping lowerBound="0" upperBound="3" defaultValue="-3">
+            <mapEntry mapKey="blue" mappedValue="1"/>
+            <mapEntry mapKey="violet" mappedValue="1"/>
+            <mapEntry mapKey="red" mappedValue="1"/>
+            <mapEntry mapKey="white" mappedValue="-3"/>
+        </mapping>
+    </responseDeclaration>
+
+    <responseDeclaration identifier="winterDiscontent" cardinality="multiple" baseType="string">
+        <correctResponse>
+            <value>York</value>
+            <value>york</value>
+        </correctResponse>
+        <mapping defaultValue="0">
+            <mapEntry mapKey="York" mappedValue="1"/>
+            <mapEntry mapKey="york" mappedValue="0.5"/>
+        </mapping>
+    </responseDeclaration>
+
+    <responseDeclaration identifier="wivesOfHenry" cardinality="ordered" baseType="identifier">
+        <correctResponse>
+            <value>aragon</value>
+            <value>boleyn</value>
+            <value>seymour</value>
+            <value>cleves</value>
+            <value>howard</value>
+            <value>parr</value>
+        </correctResponse>
+    </responseDeclaration>
+
+
+    <responseDeclaration identifier="cutePugs" cardinality="ordered" baseType="identifier">
+        <correctResponse>
+            <value>pug1</value>
+            <value>pug2</value>
+            <value>pug3</value>
+        </correctResponse>
+    </responseDeclaration>
+    <responseDeclaration identifier="longAnswer" cardinality="single" baseType="string"/>
+
+    -->
+    <responseDeclaration identifier="manOnMoon" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>armstrong</value>
+        </correctResponse>
+    </responseDeclaration>
+
+
+    <itemBody>
+        <!--
+        <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1">
+            <prompt>Who is the President of Mexico?</prompt>
+            <simpleChoice identifier='obama'> Barack Obama
+                <feedbackInline csFeedbackId='obama' identifier='obama' showHide='show'>Incorrect, Barack Obama is President of the USA</feedbackInline>
+            </simpleChoice>
+            <simpleChoice identifier='cameron'> James Cameron
+                <feedbackInline csFeedbackId='cameron' identifier='cameron' showHide='show'>Incorrect, James Cameron is Prime Minister of the UK</feedbackInline>
+            </simpleChoice>
+            <simpleChoice identifier='calderon'> Felipe Calderon
+                <feedbackInline csFeedbackId='calderon' identifier='calderon' showHide='show'><b>Correct!</b>, Felipe Calderon is the President of Mexico</feedbackInline>
+            </simpleChoice>
+            <simpleChoice identifier='netanyahu'> Benjamin Netanyahu
+                <feedbackInline csFeedbackId='netanyahu' identifier='netanyahu' showHide='show'>Incorrect, Benjamin Netanyahu is the Prime Minister of Israel</feedbackInline>
+            </simpleChoice>
+        </choiceInteraction>
+
+        <choiceInteraction responseIdentifier="irishPresident" shuffle="false" maxChoices="1">
+            <prompt>Who is the President of Ireland?</prompt>
+            <simpleChoice identifier="robinson"> Mary Robinson
+                <feedbackInline csFeedbackId='robinson' identifier='robinson' showHide='show' defaultFeedback='true' />
+            </simpleChoice>
+            <simpleChoice identifier="higgins"> Michel D. Higgins
+                <feedbackInline csFeedbackId='higgins' identifier='higgins' showHide='show' defaultFeedback='true' />
+            </simpleChoice>
+            <simpleChoice identifier="guinness"> Arthur Guinness
+                <feedbackInline csFeedbackId='guinness' identifier='guinness' showHide='show' defaultFeedback='true' />
+            </simpleChoice>
+            <simpleChoice identifier="adams"> Gerry Adams
+                <feedbackInline csFeedbackId='adams' identifier='adams' showHide='show' defaultFeedback='true' />
+            </simpleChoice>
+        </choiceInteraction>
+
+
+
+        <choiceInteraction responseIdentifier="rainbowColors" shuffle="false" maxChoices="0">
+            <prompt>Which colors are in a rainbow?</prompt>
+            <simpleChoice identifier='blue'> Blue
+                <feedbackInline csFeedbackId='blue' identifier='blue' showHide='show'>Blue is a color in the rainbow</feedbackInline>
+            </simpleChoice>
+            <simpleChoice identifier='violet'> Violet
+                <feedbackInline csFeedbackId='violet' identifier='violet' showHide='show'>Violet is a color in the rainbow</feedbackInline>
+            </simpleChoice>
+            <simpleChoice identifier='white'> White
+                <feedbackInline csFeedbackId='white' identifier='white' showHide='show'>White is not a color in the rainbow.</feedbackInline>
+            </simpleChoice>
+            <simpleChoice identifier='red'> Red
+                <feedbackInline csFeedbackId='red' identifier='red' howHide='show'>Red is a color in the rainbow</feedbackInline>
+            </simpleChoice>
+        </choiceInteraction>
+
+
+        <prompt>Identify the missing word in this famous quote from Shakespeare's Richard III.</prompt>
+        <blockquote>
+        <p>Now is the winter of our discontent<br/> Made glorious summer by this sun of
+            <textEntryInteraction responseIdentifier="winterDiscontent" expectedLength="15"/>;<br/>
+            And all the clouds that lour'd upon our house<br/> In the deep bosom of the ocean
+            buried.</p>
+        </blockquote>
+        <p/>
+        <feedbackBlock
+                outcomeIdentifier="responses.winterDiscontent.value"
+                identifier="York"
+                csFeedbackId="York_1"
+                showHide="show">
+              York is correct
+        </feedbackBlock>
+        <feedbackBlock
+                outcomeIdentifier="responses.winterDiscontent.value"
+                identifier="york"
+                csFeedbackId="York_2"
+                showHide="show">
+            York is a proper noun, and should be capitalized.
+        </feedbackBlock>
+        <feedbackBlock
+                incorrectResponse="true"
+                csFeedbackId="York_3"
+                outcomeIdentifier="responses.winterDiscontent.value"
+                showHide="show">
+            Not Correct
+        </feedbackBlock>
+
+        <p/>
+
+        <orderInteraction responseIdentifier="wivesOfHenry" cs:requireModification="false" shuffle="true">
+            <prompt>Arrange the wives of Henry VIII in chronological order:</prompt>
+            <simpleChoice identifier="parr">Catherine Parr</simpleChoice>
+            <simpleChoice identifier="boleyn">Anne Boleyn</simpleChoice>
+            <simpleChoice identifier="cleves" fixed="true">Anne of Cleves</simpleChoice>
+            <simpleChoice identifier="aragon">Catherine of Aragon</simpleChoice>
+            <simpleChoice identifier="seymour">Jane Seymour</simpleChoice>
+            <simpleChoice identifier="howard">Catherine Howard</simpleChoice>
+        </orderInteraction>
+
+
+        <p/>
+        <hr/>
+        <p/>
+
+        <orderInteraction responseIdentifier="cutePugs" shuffle="true">
+            <prompt>Arrange these pugs in order of cuteness:</prompt>
+            <simpleChoice identifier="pug1"><img src="http://stuffpoint.com/dogs/image/59240-dogs-4plus-pugs.jpg" width="150" height="150"/> </simpleChoice>
+            <simpleChoice identifier="pug2"><img src="http://images.fanpop.com/images/image_uploads/pug-pugs-239511_407_436.jpg" width="150" height="150"/></simpleChoice>
+            <simpleChoice identifier="pug3" fixed="true"><img src="http://www.weruletheinternet.com/wp-content/uploads/images/2011/may/cute_pugs/cute_pugs_7.jpg" width="150" height="150"/></simpleChoice>
+        </orderInteraction>
+
+
+        <p/>
+        <hr/>
+        <p/>
+
+
+        <extendedTextInteraction responseIdentifier="longAnswer" expectedLength="200">
+        </extendedTextInteraction>
+
+        -->
+        <p>
+            The first man on the moon was <inlineChoiceInteraction
+                responseIdentifier="manOnMoon"
+                required="false">
+            <inlineChoice identifier="armstrong">Neil Armstrong<feedbackInline csFeedbackId="armstrong" identifier="armstrong" defaultFeedback="true"></feedbackInline></inlineChoice>
+            <inlineChoice identifier="aldrin">Buzz Aldrin<feedbackInline csFeedbackId="aldrin"  identifier="aldrin" defaultFeedback="true"></feedbackInline></inlineChoice>
+        </inlineChoiceInteraction>, he landed there in 1969.
+        </p>
+
+    </itemBody>
+
+<!--
+    <modalFeedback
+            outcomeIdentifier="responses.winterDiscontent.value"
+            identifier="York"
+            showHide="show">
+        This is modal feedback, shown when 'York' was entered in the inline text question
+    </modalFeedback>
+
+-->
+
+</assessmentItem>

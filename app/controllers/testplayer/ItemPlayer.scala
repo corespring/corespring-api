@@ -1,7 +1,6 @@
 package controllers.testplayer
 
 import org.xml.sax.SAXParseException
-import qti.{QtiItem, FeedbackElement}
 import xml.{Elem, NodeSeq}
 import play.api.libs.json.Json
 import org.bson.types.ObjectId
@@ -17,6 +16,7 @@ import api.processors.FeedbackProcessor
 import play.api.cache.Cache
 import play.api.Play.current
 import scala.Some
+import controllers.testplayer.qti._
 
 case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: Int = -1)
 
@@ -39,7 +39,7 @@ object ItemPlayer extends BaseApi with ItemResources{
 
   val BYTE_BUREAU = css("/assets/stylesheets/bytebureau/styles.css")
 
-  val DEFAULT_CSS = Seq( BYTE_BUREAU).mkString("\n")
+  val DEFAULT_CSS = Seq(BYTE_BUREAU).mkString("\n")
 
   val notFoundJson = Json.toJson(
     Map("error" -> "not found")
@@ -47,7 +47,7 @@ object ItemPlayer extends BaseApi with ItemResources{
 
 
   def previewItem(itemId:String, printMode:Boolean = false) =
-    _renderItem(itemId, printMode, previewEnabled = !printMode )
+    _renderItem(itemId, printMode, previewEnabled = false )
 
   /**
    * Very simple QTI Item Renderer
@@ -58,7 +58,7 @@ object ItemPlayer extends BaseApi with ItemResources{
     _renderItem(itemId, printMode, previewEnabled  = false)
 
 
-  private def createItemSession(itemId:String, mapping:Map[String,String]) : String = {
+  private def createItemSession(itemId:String, mapping:Seq[FeedbackIdMapEntry]) : String = {
     val session : ItemSession = ItemSession( itemId = new ObjectId(itemId),feedbackIdLookup = mapping )
     ItemSession.save(session, ItemSession.collection.writeConcern)
     session.id.toString
@@ -71,7 +71,7 @@ object ItemPlayer extends BaseApi with ItemResources{
 
           val (xmlWithCsFeedbackIds,mapping) = FeedbackProcessor.addFeedbackIds(xmlData)
 
-          val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds \ "itemBody"))
+          val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds) \ "itemBody")
 
           val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
 
@@ -120,8 +120,17 @@ object ItemPlayer extends BaseApi with ItemResources{
   def getFeedbackInline(itemId: String, responseIdentifier: String, choiceIdentifier: String) = ApiAction { request =>
     getItemXMLByObjectId(itemId, request.ctx.organization) match {
       case Some(rootElement: Elem) => {
-        val item = new QtiItem(rootElement)
-        val feedback: Seq[FeedbackElement] = item.feedback(responseIdentifier, choiceIdentifier)
+        val choiceIdentifiers:Seq[String] = if (choiceIdentifier.contains(",")) choiceIdentifier.split(",") else Seq(choiceIdentifier)
+        val item = QtiItem(rootElement)
+        val feedback: Seq[FeedbackInline] = item.itemBody.interactions.find(_.responseIdentifier == responseIdentifier) match {
+          case Some(interaction) =>
+            interaction match {
+            case ChoiceInteraction(_,choices) => choices.filter(sc => choiceIdentifiers.contains(sc.identifier)).flatMap(_.feedbackInline)
+            case OrderInteraction(_,choices) => choices.filter(sc => choiceIdentifiers.contains(sc.identifier)).flatMap(_.feedbackInline)
+            case _ => Seq()
+          }
+          case None => Seq()
+        }
         if (feedback.nonEmpty) {
           Ok(Json.toJson(Map("feedback" -> Json.toJson(feedback))))
         } else {
@@ -178,12 +187,14 @@ object ItemPlayer extends BaseApi with ItemResources{
     // TODO - dropping jquery in for all right now, but this needs to be only dropped in if required by interactions
     scripts ::= script("//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js")
     scripts ::= script("//ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js")
-
+    scripts ::= script("/assets/bootstrap/js/bootstrap.js")
+    scripts ::= script("/assets/js/vendor/angular-ui/angular-ui.js")
 
     // map of elements and the scripts needed to process them
     // can't concatenate string in map value apparently, so using replace()
     val elementScriptsMap = Map (
       "choiceInteraction" -> createScripts("choiceInteraction", isPrintMode),
+      "inlineChoiceInteraction" -> createScripts("inlineChoiceInteraction", isPrintMode),
       "orderInteraction" -> createScripts("orderInteraction", isPrintMode),
       "textEntryInteraction" -> createScripts("textEntryInteraction", isPrintMode),
       "extendedTextInteraction" -> createScripts("extendedTextInteraction", isPrintMode),

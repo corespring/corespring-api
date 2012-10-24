@@ -10,7 +10,7 @@
                 "name" : "qti.xml",
                 "contentType":"text/xml",
                 "isMain":true,
-                "content": "$[interpolate{/conf/qti/example-aspire-qti.xml}]"
+                "content": "$[interpolate{conf/qti/example-aspire-qti.xml}]"
             }
         ]
     },

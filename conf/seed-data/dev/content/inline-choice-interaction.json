@@ -1,0 +1,20 @@
+{
+    "_id" : {
+        "$oid" : "5072d06630048e365d2526eb"
+    },
+    "data" : {
+        "name" : "data",
+        "files" : [
+            {
+                "_t" : "models.VirtualFile",
+                "name" : "qti.xml",
+                "contentType" : "text/xml",
+                "isMain" : true,
+                "content" : "$[interpolate{/conf/qti/inline-choice-interaction.xml}]"
+            }
+        ]
+    },
+    "collectionId" : "5001b9b9e4b035d491c268c3",
+    "itemType" : "Text with Questions",
+    "title" : "Inline choice interaction"
+}

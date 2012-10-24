@@ -7,7 +7,7 @@ import se.radley.plugin.salat._
 import play.api.Play.current
 import models.mongoContext._
 import org.joda.time.DateTime
-
+import play.api.libs.json.{JsString, JsValue, JsObject, Writes}
 
 
 /**
@@ -50,5 +50,13 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
     query += (organization -> orgId)
     if (scope.isDefined) query += (this.scope -> scope.get)
     findOne(query.result())
+  }
+  implicit object AccessTokenWrites extends Writes[AccessToken]{
+    override def writes(accessToken:AccessToken):JsValue = {
+      var seq:Seq[(String,JsValue)] = Seq(organization -> JsString(accessToken.organization.toString))
+      if (accessToken.scope.isDefined) seq = seq :+ (scope -> JsString(accessToken.scope.get))
+      seq = seq :+ (tokenId -> JsString(accessToken.tokenId))
+      JsObject(seq)
+    }
   }
 }

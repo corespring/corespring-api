@@ -4,5 +4,5 @@
     },
     "label":"QTI2 Multiple Choice (multiple)",
     "code":"multi2",
-    "xmlData":"$[interpolate{/conf/qti-templates/multiple-choice-multiple.xml}]"
+    "xmlData":"$[interpolate{conf/qti-templates/multiple-choice-multiple.xml}]"
 }

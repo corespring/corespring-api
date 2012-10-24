@@ -8,7 +8,7 @@
                  "name" : "qti.xml",
                  "contentType":"text/xml",
                  "isMain":true,
-                 "content": "$[interpolate{/conf/qti/stock-feedback.xml}]"
+                 "content": "$[interpolate{conf/qti/stock-feedback.xml}]"
              },
              {
                  "_t" : "models.StoredFile",

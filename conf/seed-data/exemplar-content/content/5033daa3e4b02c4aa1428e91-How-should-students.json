@@ -41,9 +41,9 @@
 		}
 	},
 	"workflow" : {
-		"setup" : false,
-		"tagged" : false,
-		"standardsAligned" : false,
+		"setup" : true,
+		"tagged" : true,
+		"standardsAligned" : true,
 		"qaReview" : false
 	},
 	"keySkills" : [

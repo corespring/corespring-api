@@ -35,9 +35,9 @@
 		}
 	},
 	"workflow" : {
-		"setup" : false,
-		"tagged" : false,
-		"standardsAligned" : false,
+		"setup" : true,
+		"tagged" : true,
+		"standardsAligned" : true,
 		"qaReview" : false
 	},
 	"keySkills" : [ ],
@@ -47,5 +47,7 @@
 	],
 	"reviewsPassed" : [
 		"Editorial"
-	]
+	],
+	"bloomsTaxonomy" : "Understand (Describe, dramatize)",
+	"demonstratedKnowledge" : "Conceptual"
 }

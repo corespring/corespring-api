@@ -17,6 +17,16 @@ qtiServices
 
 qtiServices.factory('AssessmentSessionService', ['$resource', function ($resource) {
 
+    var mockData = {
+      sessionData: {
+          feedbackContents: {
+                //120: "Correct"
+                //128: "Incorrect"
+//              winterDiscontent: "Wrong again!"
+          }
+      }
+    };
+
     var baseUrl = '/api/v1/items/:itemId/sessions';
 
     var AssessmentSessionService = $resource(
