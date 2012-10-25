@@ -40,17 +40,13 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
             };
 
             /**
-             * Note - in choiceInteraction.compile we wrap this in 2 divs - so we need the grandparent node.
+             * Note - in choiceInteraction.compile we wrap this in varying number of divs - so we need to find the choiceInteraction ancestor node.
              */
             var choiceInteractionElem = tElement.parent();
-            try {
             var i = 0;
-            while (choiceInteractionElem.prop("nodeName").toLowerCase() != "choiceinteraction") {
+            while (choiceInteractionElem.attr('responseidentifier') == undefined) {
                 choiceInteractionElem = choiceInteractionElem.parent();
-                if (i++ > 5) throw new Error("Parent choice interaction not found");
-            }
-            } catch (e) {
-                // TODO: temporary fix for tests...
+                if (i++ > 10) throw new Error("Parent choice interaction not found");
             }
             var maxChoices = choiceInteractionElem.attr('maxChoices');
             var isHorizontal = choiceInteractionElem.attr('orientation') == 'horizontal';
@@ -111,6 +107,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                 };
 
                 var applyCss = function (correct, selected) {
+                    tidyUp();
                     if (selected) {
                         var className = correct ? 'correct-selection' : 'incorrect-selection';
                         element.toggleClass(isHorizontal ? (className+"-horizontal") : className);
@@ -142,6 +139,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
                     if (!responses) return;
                     if (!localScope.isFeedbackEnabled()) return;
+
                     var correctResponse = responses[responseIdentifier];
                     var isCorrect = isOurResponseCorrect(correctResponse);
                     applyCss(isCorrect, isSelected());

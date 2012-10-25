@@ -53,6 +53,8 @@ object SessionData{
         ).flatten.toSeq
       }
       def filterFeedbackGroup(responseIdentifier:String, feedbackGroup:Seq[FeedbackInline], displayCorrectResponse:Boolean = true):Seq[FeedbackInline] = {
+
+
         val responseGroup = sd.responses.filter(ir => ir.id == responseIdentifier) //find the responses corresponding to this feedbackGroup
         //find if a response element that has the same value as the identifier in the feedbackInline element exists
         def responseAndFeedbackMatch(fi:FeedbackInline) = responseGroup.find(response => {

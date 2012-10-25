@@ -1,0 +1,18 @@
+<assessmentItem toolVersion="1.0" adaptive="false" toolName="SIB" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 imsqti_v2p1.xsd" title="16373" timeDependent="false" identifier="mcas-16373" xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <stylesheet href="css/mcas/default.css" type="text/css"></stylesheet>
+    <correctResponseFeedback>correct</correctResponseFeedback>
+    <incorrectResponseFeedback>incorrect</incorrectResponseFeedback>
+    <responseDeclaration baseType="identifier" cardinality="single" identifier="mexicanPresident">
+        <correctResponse>
+            <value>calderon</value>
+        </correctResponse>
+    </responseDeclaration>
+    <itemBody>
+        <choiceInteraction maxChoices="1" shuffle="false" responseIdentifier="mexicanPresident">
+            <prompt>Who is the President of Mexico?</prompt>
+            <simpleChoice identifier="obama"> Barack Obama
+                <feedbackInline showHide="show" csFeedbackId="1" defaultFeedback="true"></feedbackInline>
+            </simpleChoice>
+        </choiceInteraction>
+    </itemBody>
+</assessmentItem>

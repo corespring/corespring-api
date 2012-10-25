@@ -206,6 +206,12 @@ object FeedbackInline{
    * @return
    */
   def apply(node:Node,responseIdentifier:Option[String]):FeedbackInline = {
+
+    def isNullOrEmpty( s : String ) : Boolean = (s == null || s.length == 0)
+
+    if ( node.label == "feedbackInline")
+      require( !isNullOrEmpty((node \ "@identifier").text ), node )
+
     val childBody = new StringBuilder
     node.child.map(
       node => childBody.append(node.toString()))
