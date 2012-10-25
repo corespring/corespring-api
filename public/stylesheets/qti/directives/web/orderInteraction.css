@@ -22,3 +22,26 @@
 	border: 2px solid #F8A31A;
 }
 
+
+ul {
+    list-style: none;
+}
+
+.placable-item {
+    background-color: #eee;
+    margin: 10px;
+
+}
+
+.placement-destination {
+    width: 50px;
+    height: 50px;
+    border: 1px solid black;
+    margin: 10px;
+}
+
+.placing {
+    background-color: green;
+}
+
+.ui-state-highlight { background-color: #EEEEEE; }​

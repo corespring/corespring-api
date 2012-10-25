@@ -1,0 +1,24 @@
+<assessmentItem>
+    <responseDeclaration identifier="alphabet" cardinality="ordered" baseType="identifier">
+        <correctResponse>
+            <value>a</value>
+            <value>b</value>
+            <value>c</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+        <orderInteraction responseIdentifier="alphabet" shuffle="true" csOrderingType="placement">
+            <prompt>Please arrange letters of the alphabet:</prompt>
+            <simpleChoice identifier="a" fixed="true">A</simpleChoice>
+            <simpleChoice identifier="b">B</simpleChoice>
+            <simpleChoice identifier="c">C</simpleChoice>
+            <simpleChoice identifier="d">DJODISJID<br/>DJSOISJD<br/>DSIOJD</simpleChoice>
+            <simpleChoice identifier="e"><img src="http://stuffpoint.com/dogs/image/59240-dogs-4plus-pugs.jpg" width="150" height="150"/></simpleChoice>
+            <simpleChoice identifier="f">F</simpleChoice>
+            <simpleChoice identifier="g">G</simpleChoice>
+            <simpleChoice identifier="h" fixed="true">H</simpleChoice>
+        </orderInteraction>
+    </itemBody>
+</assessmentItem>
+
