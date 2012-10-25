@@ -1,6 +1,8 @@
 import _root_.controllers.S3Service
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
+import org.bson.types.ObjectId
 import play.api._
+import play.api.mvc.Results._
 import mvc._
 import mvc.SimpleResult
 import play.api.Play.current
@@ -46,6 +48,20 @@ object Global extends GlobalSettings {
       }
     }
   }
+
+  // 500 - internal server error
+  override def onError(request: RequestHeader, throwable: Throwable) = {
+
+    val uid = new ObjectId().toString
+    Logger.error(uid)
+    Logger.error(throwable.getMessage)
+
+    if ( Logger.isDebugEnabled ){
+      throwable.printStackTrace()
+    }
+    InternalServerError(common.views.html.onError( uid, throwable))
+  }
+
 
   override def onHandlerNotFound(request: play.api.mvc.RequestHeader): Result = {
     val result = super.onHandlerNotFound(request)

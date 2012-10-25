@@ -92,17 +92,12 @@ object ItemPlayer extends BaseApi with ItemResources{
           NotFound(notFoundJson)
       }
     } catch {
-      case e: SAXParseException =>
+      case e: SAXParseException => {
         // xml processing error - inform the user
-        // TODO - only respond with xml error info if in 'preview'/editing mode
-        val saxError = e // only doing this so intellij debugger will let me inspect
         val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
         Ok(views.html.testplayer.itemPlayerError(errorInfo))
-      case e: Exception =>
-        // db or other problem?
-        Log.e(e.getMessage)
-        e.printStackTrace()
-        InternalServerError("ItemPlayer.renderItem: " + itemId + " printMode: " + printMode)
+      }
+      case e: Exception => throw new RuntimeException( "ItemPlayer.renderItem: " + e.getMessage, e)
     }
 
   }
