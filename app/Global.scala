@@ -14,7 +14,6 @@ import seed.SeedDb._
   */
 object Global extends GlobalSettings {
 
-  val AUTO_RESTART: String = "AUTO_RESTART"
   val INIT_DATA: String = "INIT_DATA"
 
   val MOCK_ACCESS_TOKEN_ID: String = "34dj45a769j4e1c0h4wb"
