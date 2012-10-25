@@ -28,6 +28,8 @@ class ItemSessionApiTest extends Specification {
 
   PlaySingleton.start()
 
+  lazy val FakeAuthHeader = FakeHeaders(Map("Authorization" -> Seq("Bearer " + token)))
+
   // from standard fixture data
   val token = "34dj45a769j4e1c0h4wb"
   val testItemId = "50083ba9e4b071cb5ef79101"
@@ -37,14 +39,14 @@ class ItemSessionApiTest extends Specification {
     "itemSessionId" -> "502d0f823004deb7f4f53be7"
   )
 
-  def createNewSession(): ItemSession = {
+  def createNewSession(itemId: String = testSessionIds.get("itemId").get): ItemSession = {
 
-    val call = api.v1.routes.ItemSessionApi.createItemSession(new ObjectId(testSessionIds("itemId")))
+    val call = api.v1.routes.ItemSessionApi.createItemSession(new ObjectId(itemId))
 
     val newSessionRequest = FakeRequest(
       call.method,
       call.url,
-      FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
+      FakeAuthHeader,
       AnyContentAsEmpty
     )
 
@@ -95,7 +97,7 @@ class ItemSessionApiTest extends Specification {
       val updateRequest = FakeRequest(
         update.method,
         update.url,
-        FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
+        FakeAuthHeader,
         AnyContentAsJson(Json.toJson(testSession))
       )
 
@@ -118,6 +120,10 @@ class ItemSessionApiTest extends Specification {
     }
   }
 
+
+
+
+
   "creating and then updating item session" should {
     val newSession = createNewSession()
     val url = "/api/v1/items/" + testSessionIds("itemId") + "/sessions/" + newSession.id.toString
@@ -130,12 +136,12 @@ class ItemSessionApiTest extends Specification {
     val getRequest = FakeRequest(
       PUT,
       url,
-      FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
+      FakeAuthHeader,
       AnyContentAsJson(Json.toJson(testSession))
     )
     val result = routeAndCall(getRequest).get
     ItemSession.remove(newSession)
-    val optQtiItem:Either[InternalError,QtiItem] = ItemSession.getXmlWithFeedback(new ObjectId(testSessionIds("itemId")),ItemSession.findOneById(newSession.id).get.feedbackIdLookup) match {
+    val optQtiItem: Either[InternalError, QtiItem] = ItemSession.getXmlWithFeedback(new ObjectId(testSessionIds("itemId")), ItemSession.findOneById(newSession.id).get.feedbackIdLookup) match {
       case Right(elem) => Right(QtiItem(elem))
       case Left(e) => Left(e)
     }
@@ -150,6 +156,7 @@ class ItemSessionApiTest extends Specification {
       }
     }
 
+
     "return an item session which contains feedback contents within sessionData which contains all feedback elements in the xml which correspond to responses from client" in {
       val json: JsValue = Json.parse(contentAsString(result))
       (json \ "sessionData") match {
@@ -159,8 +166,8 @@ class ItemSessionApiTest extends Specification {
               case Right(qtiItem) =>
                 val feedbackBlocks = qtiItem.itemBody.feedbackBlocks
                 val feedbackInlines = qtiItem.itemBody.interactions.map(i => i match {
-                  case ChoiceInteraction(_,choices) => choices.map(choice => choice.feedbackInline)
-                  case OrderInteraction(_,choices) => choices.map(choice => choice.feedbackInline)
+                  case ChoiceInteraction(_, choices) => choices.map(choice => choice.feedbackInline)
+                  case OrderInteraction(_, choices) => choices.map(choice => choice.feedbackInline)
                   case InlineChoiceInteraction(_, choices) => choices.map(choice => choice.feedbackInline)
                   case _ => throw new RuntimeException("unknown interaction")
                 }).flatten.flatten ++ feedbackBlocks
@@ -303,7 +310,7 @@ class ItemSessionApiTest extends Specification {
       val request = FakeRequest(
         POST,
         url,
-        FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
+        FakeAuthHeader,
         AnyContentAsJson(Json.toJson(testSession))
       )
 
@@ -337,7 +344,7 @@ class ItemSessionApiTest extends Specification {
       val getRequest = FakeRequest(
         GET,
         url,
-        FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
+        FakeAuthHeader,
         None
       )
 

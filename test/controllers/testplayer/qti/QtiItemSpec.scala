@@ -89,19 +89,19 @@ class QtiItemSpec extends Specification {
         <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1">
           <prompt>Who is the President of Mexico?</prompt>
           <simpleChoice identifier="obama"> Barack Obama
-            <feedbackInline showHide="show">Incorrect, Barack Obama is President of the USA</feedbackInline>
+            <feedbackInline identifier="obama" showHide="show">Incorrect, Barack Obama is President of the USA</feedbackInline>
             <!-- feedback will be parsed and converted to format like this
                 <feedbackInline csFeedbackId="bush" outcomeIdentifier="responses.mexicanPresident.value" identifier="bush" showHide="show"></feedbackInline>
                 -->
           </simpleChoice>
           <simpleChoice identifier="cameron"> James Cameron
-            <feedbackInline showHide="show">Incorrect, James Cameron is Prime Minister of the UK</feedbackInline>
+            <feedbackInline identifier="cameron" showHide="show">Incorrect, James Cameron is Prime Minister of the UK</feedbackInline>
           </simpleChoice>
           <simpleChoice identifier="calderon"> Felipe Calderon
-            <feedbackInline showHide="show"><b>Correct!</b>, Felipe Calderon is the President of Mexico</feedbackInline>
+            <feedbackInline identifier="calderon" showHide="show"><b>Correct!</b>, Felipe Calderon is the President of Mexico</feedbackInline>
           </simpleChoice>
           <simpleChoice identifier="netanyahu"> Benjamin Netanyahu
-            <feedbackInline showHide="show">Incorrect, Benjamin Netanyahu is the Prime Minister of Israel</feedbackInline>
+            <feedbackInline identifier="netanyahu" showHide="show">Incorrect, Benjamin Netanyahu is the Prime Minister of Israel</feedbackInline>
           </simpleChoice>
         </choiceInteraction>
 
@@ -127,16 +127,16 @@ class QtiItemSpec extends Specification {
         <choiceInteraction responseIdentifier="rainbowColors" shuffle="false" maxChoices="0">
           <prompt>Which colors are in a rainbow?</prompt>
           <simpleChoice identifier="blue"> Blue
-            <feedbackInline showHide="show">Blue is a color in the rainbow</feedbackInline>
+            <feedbackInline identifier="blue" showHide="show">Blue is a color in the rainbow</feedbackInline>
           </simpleChoice>
           <simpleChoice identifier="violet"> Violet
-            <feedbackInline showHide="show">Violet is a color in the rainbow</feedbackInline>
+            <feedbackInline identifier="violet" showHide="show">Violet is a color in the rainbow</feedbackInline>
           </simpleChoice>
           <simpleChoice identifier="white"> White
-            <feedbackInline showHide="show">White is not a color in the rainbow.</feedbackInline>
+            <feedbackInline identifier="white" showHide="show">White is not a color in the rainbow.</feedbackInline>
           </simpleChoice>
           <simpleChoice identifier="red"> Red
-            <feedbackInline showHide="show">Red is a color in the rainbow</feedbackInline>
+            <feedbackInline identifier="red" showHide="show">Red is a color in the rainbow</feedbackInline>
           </simpleChoice>
         </choiceInteraction>
 
