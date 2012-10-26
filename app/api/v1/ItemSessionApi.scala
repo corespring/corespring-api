@@ -114,7 +114,7 @@ object ItemSessionApi extends BaseApi {
     request =>
       findSessionAndCheckAuthorization(sessionId, itemId, request.ctx.organization) match {
         case Right(s) => {
-          ItemSession.startItemSession(s) match {
+          ItemSession.beginItemSession(s) match {
             case Left(error) => BadRequest(error.message)
             case Right(started) => Ok(Json.toJson(started))
           }

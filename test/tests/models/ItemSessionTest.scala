@@ -90,7 +90,7 @@ class ItemSessionTest  extends Specification {
       val settings = ItemSessionSettings( submitCompleteMessage = "custom")
       val session = ItemSession( itemId = new ObjectId(), settings = Some(settings) )
       ItemSession.save(session)
-      ItemSession.startItemSession(session)
+      ItemSession.beginItemSession(session)
 
       session.settings.get.submitCompleteMessage = "updated custom message"
 
@@ -138,7 +138,7 @@ class ItemSessionTest  extends Specification {
       val session = ItemSession( itemId = new ObjectId() )
       ItemSession.save(session)
       if ( session.start.isDefined ) failure
-      ItemSession.startItemSession(session) match {
+      ItemSession.beginItemSession(session) match {
         case Left(_) => failure
         case Right(s) =>  if (s.start.isDefined) success else failure
       }

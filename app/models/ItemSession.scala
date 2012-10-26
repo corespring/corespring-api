@@ -74,7 +74,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
    * @param session
    * @return either an InternalError or the updated ItemSession
    */
-  def startItemSession(session: ItemSession): Either[InternalError, ItemSession] = session.start match {
+  def beginItemSession(session: ItemSession): Either[InternalError, ItemSession] = session.start match {
 
     case Some(_) => Left(InternalError("ItemSession already started: " + session.id, LogType.printFatal))
     case _ => {

@@ -143,8 +143,8 @@ class ItemSessionApiTest extends Specification {
     }
   }
 
-  "starting" should {
-    "start the session" in {
+  "begin" should {
+    "set the start value in the session" in {
       val newSession = createNewSession()
 
       if(newSession.start.isDefined) failure else success

@@ -84,9 +84,11 @@ GET     /api/v1/items/:itemId/sessions/:sessionId/start   api.v1.ItemSessionApi.
 GET     /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.list(itemId:ObjectId)
 
 # Item Rendering
-GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false)
+GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
 GET    /testplayer/item/:itemId/:filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
-GET    /testplayer/item/:itemId/feedback/:responseIdentifier/:identifier  testplayer.controllers.ItemPlayer.getFeedbackInline(itemId, responseIdentifier, identifier)
+GET    /testplayer/session/:sessionId/run           testplayer.controllers.ItemPlayer.previewItemBySessionId(sessionId, printMode: Boolean ?= false)
+GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
+
 
 # Example content
 GET    /example-content                        web.controllers.ExampleContent.index
