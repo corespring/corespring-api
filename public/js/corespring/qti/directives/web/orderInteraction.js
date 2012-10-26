@@ -2,31 +2,12 @@
  * Interaction for ordering a set of choices
  */
 
-var compileNormalOrderInteraction = function (tElement, QtiUtils) {
-
-    var choiceTemplate = [
-        '<span ng-bind-html-unsafe="prompt" class="choice-prompt"></span>',
-        '<div sortable="" class="sortable-body" ng-class="{noResponse: noResponse}">',
-        '<div ng:repeat="item in items" obj="{{item}}"> ',
-        '<span class="sortable-item {{item.submittedClass}}" ng-bind-html-unsafe="item.content"></span>',
-        ' </div>',
-        '</div>'].join('');
-
-
-    // get the prompt element if present
-    // it supports embedded html
-    var result = tElement.find("prompt");
-    var prompt = "";
-    if (result.length == 1) {
-        var promptElem = angular.element(result[0]);
-        prompt = promptElem.html();
-    }
-
+var parseSimpleChoices = function(element) {
     // get the simple-choice elements
     // they support embedded html
     var choices = [];
     var fixedIndexes = [];
-    var choiceElements = angular.element(tElement).find("simpleChoice");
+    var choiceElements = angular.element(element).find("simpleChoice");
     for (var i = 0; i < choiceElements.length; i++) {
         var elem = angular.element(choiceElements[i]);
         var identifier = elem.attr('identifier');
@@ -40,12 +21,62 @@ var compileNormalOrderInteraction = function (tElement, QtiUtils) {
     }
 
     choices.shuffle(fixedIndexes);
+    return choices;
+}
+
+var parsePrompt = function(element) {
+    // get the prompt element if present
+    // it supports embedded html
+    var result = element.find("prompt");
+    var prompt = "";
+    if (result.length == 1) {
+        var promptElem = angular.element(result[0]);
+        prompt = promptElem.html();
+    }
+    return prompt;
+}
+
+var setAllIncorrect = function (scope) {
+    applyCssNameToAll(scope, "order-incorrect");
+};
+
+var applyCssNameToAll = function (scope, name) {
+    for (var y = 0; y < scope.items.length; y++) {
+        scope.items[y].submittedClass = name;
+    }
+};
+
+var applyCss = function (scope, correctResponse, ourResponse) {
+    setAllIncorrect(scope);
+    for (var i = 0; i < correctResponse.length; i++) {
+        if (correctResponse[i] == ourResponse[i]) {
+            for (var x = 0; x < scope.items.length; x++) {
+                if (scope.items[x].identifier == ourResponse[i]) {
+                    scope.items[x].submittedClass = "order-correct";
+                }
+            }
+        }
+    }
+};
+
+var compileNormalOrderInteraction = function (tElement, QtiUtils) {
+
+    var choiceTemplate = [
+        '<span ng-bind-html-unsafe="prompt" class="choice-prompt"></span>',
+        '<div sortable="" class="sortable-body" ng-class="{noResponse: noResponse}">',
+        '<div ng:repeat="item in items" obj="{{item}}"> ',
+        '<span class="sortable-item {{item.submittedClass}}" ng-bind-html-unsafe="item.content"></span>',
+        ' </div>',
+        '</div>'].join('');
+
+
+    var choices = parseSimpleChoices(tElement);
+    var prompt = parsePrompt(tElement);
 
     // now modify the DOM
     tElement.html(choiceTemplate);
     // linking function
     return function ($scope, element, attrs, AssessmentItemCtrl) {
-
 
         var responseIdentifier = attrs["responseidentifier"];
         // set model to choices extracted from html
@@ -54,8 +85,6 @@ var compileNormalOrderInteraction = function (tElement, QtiUtils) {
         $scope.prompt = prompt;
         $scope.items = choices;
         $scope.changed = false;
-        $scope.requireModification = (attrs.csRequiremodification != undefined) ? attrs.csRequiremodification === 'true' : true;
-
 
         var updateAssessmentItem = function (orderedList) {
             var flattenedArray = [];
@@ -80,36 +109,8 @@ var compileNormalOrderInteraction = function (tElement, QtiUtils) {
             $scope.noResponse = (!$scope.changed && $scope.showNoResponseFeedback);
         });
 
-        var setAllIncorrect = function () {
-            applyCssNameToAll("order-incorrect");
-        };
-
-        var applyCssNameToAll = function (name) {
-            for (var y = 0; y < $scope.items.length; y++) {
-                $scope.items[y].submittedClass = name;
-            }
-        };
-
-        var applyCss = function (correctResponse, ourResponse) {
-
-            setAllIncorrect();
-
-            for (var i = 0; i < correctResponse.length; i++) {
-                if (correctResponse[i] == ourResponse[i]) {
-                    for (var x = 0; x < $scope.items.length; x++) {
-                        if ($scope.items[x].identifier == ourResponse[i]) {
-                            $scope.items[x].submittedClass = "order-correct";
-                        }
-                    }
-                }
-            }
-        };
-
-        /**
-         * Reset the ui.
-         */
         $scope.$on('resetUI', function (event) {
-            applyCssNameToAll("");
+            applyCssNameToAll($scope, "");
         });
 
 
@@ -118,7 +119,8 @@ var compileNormalOrderInteraction = function (tElement, QtiUtils) {
             if (!$scope.isFeedbackEnabled()) return;
             var correctResponse = responses[responseIdentifier];
             var ourResponse = QtiUtils.getResponseValue(responseIdentifier, $scope.itemSession.responses, [])
-            applyCss(correctResponse, ourResponse)
+            console.log(ourResponse);
+            applyCss($scope, correctResponse, ourResponse)
         });
 
     };
@@ -127,87 +129,99 @@ var compileNormalOrderInteraction = function (tElement, QtiUtils) {
 var compilePlacementOrderInteraction = function (tElement, QtiUtils, $timeout) {
 
     var choiceTemplate = [
+        '<div class="dragArea">',
         '<span ng-bind-html-unsafe="prompt" class="choice-prompt"></span>',
         '<div id="draggableItems" ng-class="{noResponse: noResponse}" style="z-index: 10">',
-            '<draggable-item ng:repeat="item in items" obj="{{item}}" class="sortable-item placable-item {{item.submittedClass}}" ng-bind-html-unsafe="item.content" > ',
+            '<draggable-item ng:repeat="item in items" obj="{{item}}" class="{{item.submittedClass}}" ng-bind-html-unsafe="item.content" > ',
         '</div>',
 
-        '<div style="background-color: red; width:400px; z-index: 0">',
-            '<placement-destination ng:repeat="item in items" index="{{$index}}" class="span1 placement-destination {{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px">',
-            '{{index}}',
-            '</placement-item>',
+        '<div class="order-placement-destination-area">',
+            '<placement-destination ng:repeat="item in emptyCorrectAnswers" index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px; line-height: {{maxH}}px">',
+            '<span ng-hide="hideNumbering">{{$index+1}}</span>',
+            '</placement-destination>',
+            '<div style="clear: both">Drag answers here</div>',
         '</div>',
-        '<div style="clear: both">fdifjds</div>',
-
-        '{{orderedList}}',
+        '</div>'
 
     ].join('');
 
 
-    // get the prompt element if present
-    // it supports embedded html
-    var result = tElement.find("prompt");
-    var prompt = "";
-    if (result.length == 1) {
-        var promptElem = angular.element(result[0]);
-        prompt = promptElem.html();
-    }
-
-    // get the simple-choice elements
-    // they support embedded html
-    var choices = [];
-    var fixedIndexes = [];
-    var choiceElements = angular.element(tElement).find("simpleChoice");
-    for (var i = 0; i < choiceElements.length; i++) {
-        var elem = angular.element(choiceElements[i]);
-        var identifier = elem.attr('identifier');
-        var fixed = elem.attr('fixed') == "true";
-
-        if (fixed) {
-            fixedIndexes.push(i);
-        }
-
-        choices.push({content:elem.html(), identifier:identifier});
-    }
-
-    choices.shuffle(fixedIndexes);
+    var choices = parseSimpleChoices(tElement);
+    var prompt = parsePrompt(tElement);
 
     // now modify the DOM
     tElement.html(choiceTemplate);
+
     // linking function
     return function ($scope, element, attrs, AssessmentItemCtrl) {
-        $timeout(function() {
+
+        var pollSize = function() {
             var maxW = 0, maxH = 0;
+            console.log(angular.element(tElement).find("simpleChoice"));
+            var hasDimension = false;
             $(element).find('draggable-item').each(function (index) {
-                console.log(index, $(this).width());
-                if ($(this).width() > maxW)
-                    maxW = $(this).outerWidth();
-
-                if ($(this).height() > maxH)
-                    maxH = $(this).outerHeight();
-
+                if ($(this).width() > maxW) {
+                    maxW = $(this).width();
+                    hasDimension = true;
+                }
+                if ($(this).height() > maxH) {
+                    maxH = $(this).height();
+                    hasDimension = true;
+                }
             });
 
-            $scope.maxW = maxW;
-            $scope.maxH = maxW;
-        }, 1);
+            if (maxW<30) maxW = 30;
+            if (maxH<30) maxH = 30;
+
+            var hasGrown = false;
+
+            if (maxW > $scope.maxW) {
+                $scope.maxW = maxW;
+                hasGrown = true;
+            }
+
+            if (maxH > $scope.maxH) {
+                $scope.maxH = maxH;
+                hasGrown = true;
+            }
+
+            console.log(hasGrown, hasDimension);
+            if (hasGrown || !hasDimension)
+                $timeout(pollSize, 100);
+
+        }
+
+        $scope.maxW = 30;
+        $scope.maxH = 30;
+        pollSize();
+
         var responseIdentifier = attrs["responseidentifier"];
         // set model to choices extracted from html
-        $scope.orderedList = [1,2];
-        $scope.result = [];
+        $scope.orderedList = [];
+
+        $scope.emptyCorrectAnswers = [];
+        var cn = attrs.cscorrectanswers;
+        if (angular.isUndefined(cn)) {
+            cn = choices.length;
+            $scope.hideNumbering = true;
+        }
+        for (var ecntr=0; ecntr < cn; ecntr++)
+            $scope.emptyCorrectAnswers.push(ecntr);
+
         $scope.prompt = prompt;
         $scope.items = choices;
         $scope.changed = false;
 
-        $scope.maxW = 32;
-        $scope.maxH = 30;
 
         var updateAssessmentItem = function (orderedList) {
             var flattenedArray = [];
             for (var i = 0; i < orderedList.length; i++) {
-                flattenedArray[orderedList[i].ord] = orderedList[i].identifier;
+                if (orderedList[i])
+                    flattenedArray.push(orderedList[i].identifier);
+                else
+                    flattenedArray.push('');
             }
-//            AssessmentItemCtrl.setResponse(responseIdentifier, flattenedArray);
+            AssessmentItemCtrl.setResponse(responseIdentifier, flattenedArray);
             $scope.changed = true;
         };
 
@@ -217,8 +231,7 @@ var compilePlacementOrderInteraction = function (tElement, QtiUtils, $timeout) {
 
         // watch the response and set it to the responses list
         $scope.$watch('orderedList', function (newValue, oldValue) {
-            console.log("Ordered List Changed");
-            if ($scope.requireModification && (oldValue.length == 0 || newValue.length == 0)) {
+            if (oldValue.length == 0 || newValue.length == 0) {
                 AssessmentItemCtrl.setResponse(responseIdentifier, []);
             } else {
                 updateAssessmentItem(newValue);
@@ -226,33 +239,9 @@ var compilePlacementOrderInteraction = function (tElement, QtiUtils, $timeout) {
             $scope.noResponse = (!$scope.changed && $scope.showNoResponseFeedback);
         });
 
-        var setAllIncorrect = function () {
-            applyCssNameToAll("order-incorrect");
-        };
-
-        var applyCssNameToAll = function (name) {
-            for (var y = 0; y < $scope.items.length; y++) {
-                $scope.items[y].submittedClass = name;
-            }
-        };
-
-        var applyCss = function (correctResponse, ourResponse) {
-
-            setAllIncorrect();
-
-            for (var i = 0; i < correctResponse.length; i++) {
-                if (correctResponse[i] == ourResponse[i]) {
-                    for (var x = 0; x < $scope.items.length; x++) {
-                        if ($scope.items[x].identifier == ourResponse[i]) {
-                            $scope.items[x].submittedClass = "order-correct";
-                        }
-                    }
-                }
-            }
-        };
 
         $scope.$on('resetUI', function (event) {
-            applyCssNameToAll("");
+            applyCssNameToAll($scope, "");
         });
 
 
@@ -261,7 +250,8 @@ var compilePlacementOrderInteraction = function (tElement, QtiUtils, $timeout) {
             if (!$scope.isFeedbackEnabled()) return;
             var correctResponse = responses[responseIdentifier];
             var ourResponse = QtiUtils.getResponseValue(responseIdentifier, $scope.itemSession.responses, [])
-            applyCss(correctResponse, ourResponse)
+            console.log(correctResponse);
+            applyCss($scope, correctResponse, ourResponse)
         });
 
     };
@@ -270,66 +260,63 @@ var compilePlacementOrderInteraction = function (tElement, QtiUtils, $timeout) {
 
 
 
-var orderInteraction =
+
+qtiDirectives.directive('orderinteraction',
     function (QtiUtils, $timeout) {
         return {
             restrict:'E',
             scope: true,
             require:'^assessmentitem',
-            controller: function() {
-
-            },
             compile:function (tElement, tAttrs, transclude) {
-                console.log(tAttrs.csorderingtype);
                 if (tAttrs.csorderingtype == "placement") {
                     return compilePlacementOrderInteraction(tElement, QtiUtils, $timeout);
                 } else {
                     return compileNormalOrderInteraction(tElement, QtiUtils);
                 }
             }
-
         }
     }
-
-qtiDirectives.directive('orderinteraction', orderInteraction);
+);
 
 
 qtiDirectives.directive("draggableItem", function () {
     return {
         restrict:'E',
         link:function (scope, el, attrs, ctrl, $timeout) {
-            console.log("sorting");
-
             $(el).draggable({
-                start: function() {
-                    angular.element(el).attr('rid','');
+                containment: $(el).parents("div.dragArea"),
+                start:function () {
+                    angular.element(el).attr('rid', '');
                     scope.reverted = false;
                 },
-                revert: function(socketObj) {
+                revert:function (socketObj) {
                     if (socketObj === false) {
-                        $(this).animate({left:0, top: 0});
+                        $(this).animate({left:0, top:0});
                         scope.reverted = true;
                     }
                     return false;
                 },
-                stop: function(ev, ui) {
+                stop:function (ev, ui) {
                     if (scope.reverted) {
-                        console.log("TA: "+angular.element(el).attr('rid'));
-                        angular.element(el).attr('rid','');
-                    } else {
+                        angular.element(el).attr('rid', '');
                     }
                     var items = [];
                     $(el).parent().children('draggable-item').each(function (index, element) {
-                        var rid = $(element).attr('rid');
-                        var liItem = scope.$eval($(element).attr('obj'));
-
-                        if (!angular.isUndefined(liItem)) {
-                            liItem.ord = index;
-                            items[rid] = liItem;
+                            if ($(element).attr('rid') != undefined && $(element).attr('rid').length>0) {
+                                var rid = Number($(element).attr('rid'));
+                                var liItem = scope.$eval($(element).attr('obj'));
+                                if (!angular.isUndefined(liItem)) {
+                                    liItem.ord = rid;
+                                    items[rid] = liItem;
+                                }
+                            }
                         }
+                    );
+
+                    scope.$apply(function () {
+                        scope.$parent.orderedList = items;
                     });
-                    console.log(items);
-                    console.log("Stopped "+scope.reverted);
+
                 }
             });
         }
@@ -340,21 +327,6 @@ qtiDirectives.directive("placementDestination", function () {
     return {
         restrict:'E',
         link:function (scope, el, attrs, ctrl, $timeout) {
-            console.log("sorting");
-
-
-            var buildItemsList = function ($node) {
-                var items = [];
-                $node.children('placement-destination').each(function (index) {
-                    var liItem = scope.$eval($(this.droppedItem).attr('obj'));
-                    if (!angular.isUndefined(liItem)) {
-                        liItem.ord = index;
-                        items.push(liItem);
-                    }
-                });
-
-                return items;
-            };
             $(el).droppable(
                 {
                     hoverClass: "placing",
@@ -370,17 +342,13 @@ qtiDirectives.directive("placementDestination", function () {
                         var draggableElement = ui.draggable;
 
                         $(draggableElement).position({
-                            my:        "left top",
-                            at:        "left top",
+                            my:        "center",
+                            at:        "center",
                             of:        $(e.target),
-                            collision: "fit"
+                            collision: "none"
                         });
 
                         angular.element(draggableElement).attr('rid', angular.element(el).attr('index'));
-                        var list = $(this).parent();
-                        scope.$apply(function () {
-                            scope.$parent.orderedList = buildItemsList(list);
-                        });
                     }
                 }
             );
