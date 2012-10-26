@@ -1,80 +1,64 @@
 package tests.api.v1
 
-import models.{SessionData, ItemResponse, ItemSession, Item}
+import models.{ItemSessionSettings, ItemResponse, ItemSession}
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
-import org.specs2.execute.Pending
 import play.api.libs.json._
-import play.api.mvc.{AnyContentAsEmpty, AnyContentAsJson}
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.mvc.{Call, AnyContent, AnyContentAsEmpty, AnyContentAsJson}
+import play.api.test.FakeRequest
 import org.specs2.mutable._
 import play.api.test.Helpers._
-import scala.Some
-import play.api.test.FakeHeaders
-import scala.Some
 import tests.PlaySingleton
 import play.api.test.FakeHeaders
 import scala.Some
-import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
 import api.ApiError
 import controllers.InternalError
 import controllers.testplayer.qti._
 
-/**
- * Tests the ItemSession model
- */
 class ItemSessionApiTest extends Specification {
 
   PlaySingleton.start()
 
+  val Routes = api.v1.routes.ItemSessionApi
+
   lazy val FakeAuthHeader = FakeHeaders(Map("Authorization" -> Seq("Bearer " + token)))
 
-  // from standard fixture data
   val token = "34dj45a769j4e1c0h4wb"
-  val testItemId = "50083ba9e4b071cb5ef79101"
 
-  val testSessionIds = Map(
-    "itemId" -> "50083ba9e4b071cb5ef79101",
-    "itemSessionId" -> "502d0f823004deb7f4f53be7"
-  )
+  object IDs {
+    val Item : String = "50083ba9e4b071cb5ef79101"
+    val ItemSession : String = "502d0f823004deb7f4f53be7"
+  }
 
-  def createNewSession(itemId: String = testSessionIds.get("itemId").get): ItemSession = {
 
-    val call = api.v1.routes.ItemSessionApi.createItemSession(new ObjectId(itemId))
+  def invokeCall( makeCallFn : (() => Call), makeContent : (()=> AnyContent)) : ItemSession = {
+    val call = makeCallFn()
 
-    val newSessionRequest = FakeRequest(
+    println("calling: " + call.method + " " + call.url )
+    val request = FakeRequest(
       call.method,
       call.url,
       FakeAuthHeader,
-      AnyContentAsEmpty
-    )
+      makeContent() )
 
-    val newSessionResult = routeAndCall(newSessionRequest).get
-    val newSessionJson: JsValue = Json.parse(contentAsString(newSessionResult))
-    Json.fromJson[ItemSession](newSessionJson)
+    val result = routeAndCall(request).get
+    val json: JsValue = Json.parse(contentAsString(result))
+    Json.fromJson[ItemSession](json)
   }
 
-  // create test session bound to random object id
-  // in practice ItemSessions need to be bound to an item
-  val testSession = ItemSession(new ObjectId())
+  def createNewSession(itemId: String = IDs.Item, content : AnyContent = AnyContentAsEmpty ): ItemSession = {
+    invokeCall(
+      () => Routes.createItemSession(new ObjectId(itemId)),
+      () => content
+    )
+  }
 
-  "ItemSession" should {
-    "be saveable" in {
-      ItemSession.save(testSession)
-      ItemSession.findOneById(testSession.id) match {
-        case Some(result) => success
-        case _ => failure
-      }
-    }
-
-    "be deletable" in {
-      ItemSession.remove(testSession)
-      ItemSession.findOneById(testSession.id) match {
-        case Some(result) => failure
-        case _ => success
-      }
-    }
+  def updateSession(session : ItemSession) : ItemSession = {
+    invokeCall(
+      () => Routes.updateItemSession(session.itemId, session.id),
+      () => AnyContentAsJson(Json.toJson(session))
+    )
   }
 
 
@@ -87,12 +71,13 @@ class ItemSessionApiTest extends Specification {
 
       val newSession: ItemSession = createNewSession()
 
+      val testSession = ItemSession(itemId = new ObjectId())
+
       //testSession.id = new ObjectId(testSessionIds("itemSessionId"))
       testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon", "{$score:1}"))
       testSession.finish = Some(new DateTime())
 
-      val itemId = testSessionIds("itemId")
-      val update = api.v1.routes.ItemSessionApi.updateItemSession(new ObjectId(itemId), newSession.id)
+      val update = api.v1.routes.ItemSessionApi.updateItemSession(new ObjectId(IDs.Item), newSession.id)
 
       val updateRequest = FakeRequest(
         update.method,
@@ -120,28 +105,65 @@ class ItemSessionApiTest extends Specification {
     }
   }
 
+  "creating" should {
 
+    "accept a json body with an itemSession" in {
+
+      val settings =  ItemSessionSettings( maxNoOfAttempts = 12)
+      val session = ItemSession( itemId = new ObjectId(IDs.Item), settings = Some(settings))
+      val json = Json.toJson(session)
+      val newSession = createNewSession( IDs.Item, AnyContentAsJson(json))
+
+      newSession.settings match {
+        case Some(s) => {
+          s.maxNoOfAttempts must equalTo(12)
+          success
+        }
+        case _ => failure
+      }
+    }
+
+    "only use the item id set in the url" in {
+     val session = ItemSession( itemId = new ObjectId())
+     val newSession = createNewSession(IDs.Item, AnyContentAsJson(Json.toJson(session)))
+      newSession.itemId.toString must equalTo( IDs.Item )
+    }
+  }
+
+  "updating" should {
+    "allow updates to settings" in {
+      val newSession = createNewSession()
+      val settings = ItemSessionSettings( submitCompleteMessage = "custom message")
+      newSession.settings = Some(settings)
+      val updatedSession = updateSession(newSession)
+      updatedSession.settings.get.submitCompleteMessage must equalTo("custom message")
+    }
+  }
 
 
 
   "creating and then updating item session" should {
     val newSession = createNewSession()
-    val url = "/api/v1/items/" + testSessionIds("itemId") + "/sessions/" + newSession.id.toString
-    val testSession = ItemSession(new ObjectId(testSessionIds("itemId")))
+    val updateCall = api.v1.routes.ItemSessionApi.updateItemSession( new ObjectId(IDs.Item), newSession.id )
+    val testSession = ItemSession(itemId = new ObjectId(IDs.Item))
     // add some item responses
     testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon", "{$score:1}"))
     testSession.responses = testSession.responses ++ Seq(ItemResponse("irishPresident", "guinness", "{$score:0}"))
     testSession.responses = testSession.responses ++ Seq(ItemResponse("winterDiscontent", "York", "{$score:1}"))
     testSession.finish = Some(new DateTime())
+
+    val json = Json.toJson(testSession)
+    println(Json.stringify(json))
+
     val getRequest = FakeRequest(
-      PUT,
-      url,
+      updateCall.method,
+      updateCall.url,
       FakeAuthHeader,
-      AnyContentAsJson(Json.toJson(testSession))
+      AnyContentAsJson(json)
     )
     val result = routeAndCall(getRequest).get
     ItemSession.remove(newSession)
-    val optQtiItem: Either[InternalError, QtiItem] = ItemSession.getXmlWithFeedback(new ObjectId(testSessionIds("itemId")), ItemSession.findOneById(newSession.id).get.feedbackIdLookup) match {
+    val optQtiItem: Either[InternalError, QtiItem] = ItemSession.getXmlWithFeedback(new ObjectId(IDs.Item), ItemSession.findOneById(newSession.id).get.feedbackIdLookup) match {
       case Right(elem) => Right(QtiItem(elem))
       case Left(e) => Left(e)
     }
@@ -298,7 +320,7 @@ class ItemSessionApiTest extends Specification {
 
     "support item creation " in {
 
-      val testSession = ItemSession(new ObjectId(testItemId))
+      val testSession = ItemSession(new ObjectId(IDs.Item))
       val url = "/api/v1/items/" + testSession.itemId.toString + "/sessions"
 
       // add some item responses
@@ -340,10 +362,11 @@ class ItemSessionApiTest extends Specification {
 
     "support retrieval of an itemsession" in {
 
-      val url = "/api/v1/items/" + testSessionIds("itemId") + "/sessions/" + testSessionIds("itemSessionId")
+      val getCall = api.v1.routes.ItemSessionApi.getItemSession( new ObjectId(IDs.Item), new ObjectId(IDs.ItemSession))
+
       val getRequest = FakeRequest(
-        GET,
-        url,
+        getCall.method,
+        getCall.url,
         FakeAuthHeader,
         None
       )
@@ -354,7 +377,7 @@ class ItemSessionApiTest extends Specification {
 
         // load the test session directly
         val testSessionForGet: ItemSession =
-          ItemSession.findOneById(new ObjectId(testSessionIds("itemSessionId"))) match {
+          ItemSession.findOneById(new ObjectId(IDs.ItemSession)) match {
             case Some(o) => o
             case None => null
           }
@@ -384,7 +407,11 @@ class ItemSessionApiTest extends Specification {
       val idString = testSession.id.toString
       val itemIdString = testSession.itemId.toString
       val finishString = testSession.finish.getOrElse(new DateTime(0)).getMillis.toString
-      val startString = testSession.start.getMillis.toString
+
+      val startString = testSession.start match {
+        case Some(s) => s.getMillis.toString
+        case _ => "null"
+      }
 
       (finish equals finishString) &&
         (start equals startString) &&

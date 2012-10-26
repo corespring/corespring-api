@@ -73,7 +73,11 @@ object ItemSessionApi extends BaseApi {
     request =>
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.All)) {
         val newSession = request.body.asJson match {
-          case Some(jssession) => Json.fromJson[ItemSession](jssession)
+          case Some(json) => {
+            val jsonSession = Json.fromJson[ItemSession](json)
+            jsonSession.id = itemId
+            jsonSession
+          }
           case None => ItemSession(itemId)
         }
         getQtiXml(itemId) match {
@@ -133,6 +137,7 @@ object ItemSessionApi extends BaseApi {
                 val clientSession = Json.fromJson[ItemSession](jsonSession)
                 dbSession.finish = clientSession.finish
                 dbSession.responses = clientSession.responses
+                dbSession.settings = clientSession.settings
 
                 ItemSession.getXmlWithFeedback(itemId,dbSession.feedbackIdLookup) match {
                   case Right(xmlWithCsFeedbackIds) => {
