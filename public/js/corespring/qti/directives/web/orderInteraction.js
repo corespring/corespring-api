@@ -36,28 +36,7 @@ var parsePrompt = function(element) {
     return prompt;
 }
 
-var setAllIncorrect = function (scope) {
-    applyCssNameToAll(scope, "order-incorrect");
-};
 
-var applyCssNameToAll = function (scope, name) {
-    for (var y = 0; y < scope.items.length; y++) {
-        scope.items[y].submittedClass = name;
-    }
-};
-
-var applyCss = function (scope, correctResponse, ourResponse) {
-    setAllIncorrect(scope);
-    for (var i = 0; i < correctResponse.length; i++) {
-        if (correctResponse[i] == ourResponse[i]) {
-            for (var x = 0; x < scope.items.length; x++) {
-                if (scope.items[x].identifier == ourResponse[i]) {
-                    scope.items[x].submittedClass = "order-correct";
-                }
-            }
-        }
-    }
-};
 
 var compileNormalOrderInteraction = function (tElement, QtiUtils) {
 
@@ -70,57 +49,37 @@ var compileNormalOrderInteraction = function (tElement, QtiUtils) {
         '</div>'].join('');
 
 
-    var choices = parseSimpleChoices(tElement);
-    var prompt = parsePrompt(tElement);
+    var localScope = {
+        choices:  parseSimpleChoices(tElement),
+        prompt:  parsePrompt(tElement)
+    };
 
-    // now modify the DOM
     tElement.html(choiceTemplate);
+
     // linking function
     return function ($scope, element, attrs, AssessmentItemCtrl) {
-
-        var responseIdentifier = attrs["responseidentifier"];
-        // set model to choices extracted from html
-        $scope.orderedList = [];
-        $scope.result = [];
-        $scope.prompt = prompt;
-        $scope.items = choices;
-        $scope.changed = false;
-
+        localScope.responseIdentifier = attrs["responseidentifier"];
         var updateAssessmentItem = function (orderedList) {
             var flattenedArray = [];
-            for (var i = 0; i < orderedList.length; i++) {
-                flattenedArray[i] = orderedList[i].identifier;
-            }
-            AssessmentItemCtrl.setResponse(responseIdentifier, flattenedArray);
+
+            if (orderedList)
+                for (var i = 0; i < orderedList.length; i++) {
+                    flattenedArray[i] = orderedList[i].identifier;
+                }
+            AssessmentItemCtrl.setResponse(localScope.responseIdentifier, flattenedArray);
             $scope.changed = true;
         };
-
-        $scope.$watch('showNoResponseFeedback', function (newVal, oldVal) {
-            $scope.noResponse = (!$scope.changed && $scope.showNoResponseFeedback);
-        });
+        commonLinkFn.call(localScope, $scope, element, attrs, AssessmentItemCtrl, QtiUtils);
 
         // watch the response and set it to the responses list
         $scope.$watch('orderedList', function (newValue, oldValue) {
+            console.log("Change ",newValue.length, oldValue.length);
             if ($scope.requireModification && (oldValue.length == 0 || newValue.length == 0)) {
-                AssessmentItemCtrl.setResponse(responseIdentifier, []);
+                AssessmentItemCtrl.setResponse(that.responseIdentifier, []);
             } else {
                 updateAssessmentItem(newValue);
             }
             $scope.noResponse = (!$scope.changed && $scope.showNoResponseFeedback);
-        });
-
-        $scope.$on('resetUI', function (event) {
-            applyCssNameToAll($scope, "");
-        });
-
-
-        $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
-            if (!responses) return;
-            if (!$scope.isFeedbackEnabled()) return;
-            var correctResponse = responses[responseIdentifier];
-            var ourResponse = QtiUtils.getResponseValue(responseIdentifier, $scope.itemSession.responses, [])
-            console.log(ourResponse);
-            applyCss($scope, correctResponse, ourResponse)
         });
 
     };
@@ -146,8 +105,10 @@ var compilePlacementOrderInteraction = function (tElement, QtiUtils, $timeout) {
     ].join('');
 
 
-    var choices = parseSimpleChoices(tElement);
-    var prompt = parsePrompt(tElement);
+    var localScope = {
+        choices:  parseSimpleChoices(tElement),
+        prompt:  parsePrompt(tElement)
+    };
 
     // now modify the DOM
     tElement.html(choiceTemplate);
@@ -155,9 +116,34 @@ var compilePlacementOrderInteraction = function (tElement, QtiUtils, $timeout) {
     // linking function
     return function ($scope, element, attrs, AssessmentItemCtrl) {
 
+        localScope.responseIdentifier = attrs["responseidentifier"];
+        var updateAssessmentItem = function (orderedList) {
+            console.log("Updating Item");
+            var flattenedArray = [];
+            for (var i = 0; i < orderedList.length; i++) {
+                if (orderedList[i])
+                    flattenedArray.push(orderedList[i].identifier);
+                else
+                    flattenedArray.push('');
+            }
+            AssessmentItemCtrl.setResponse(localScope.responseIdentifier, flattenedArray);
+            $scope.changed = (orderedList.length > 0);
+        };
+
+        commonLinkFn.call(localScope, $scope, element, attrs, AssessmentItemCtrl, QtiUtils);
+
+        updateAssessmentItem([]);
+        $scope.noResponse = true;
+        // watch the response and set it to the responses list
+        $scope.$watch('orderedList', function (newValue, oldValue) {
+            if (newValue.length!=0 || oldValue.length!=0)
+                updateAssessmentItem(newValue);
+            $scope.noResponse = (!$scope.changed && $scope.showNoResponseFeedback);
+        });
+
+
         var pollSize = function() {
             var maxW = 0, maxH = 0;
-            console.log(angular.element(tElement).find("simpleChoice"));
             var hasDimension = false;
             $(element).find('draggable-item').each(function (index) {
                 if ($(this).width() > maxW) {
@@ -185,7 +171,6 @@ var compilePlacementOrderInteraction = function (tElement, QtiUtils, $timeout) {
                 hasGrown = true;
             }
 
-            console.log(hasGrown, hasDimension);
             if (hasGrown || !hasDimension)
                 $timeout(pollSize, 100);
 
@@ -195,68 +180,72 @@ var compilePlacementOrderInteraction = function (tElement, QtiUtils, $timeout) {
         $scope.maxH = 30;
         pollSize();
 
-        var responseIdentifier = attrs["responseidentifier"];
         // set model to choices extracted from html
         $scope.orderedList = [];
-
+        $scope.requireModification = true;
         $scope.emptyCorrectAnswers = [];
         var cn = attrs.cscorrectanswers;
         if (angular.isUndefined(cn)) {
-            cn = choices.length;
+            cn = localScope.choices.length;
             $scope.hideNumbering = true;
         }
+
         for (var ecntr=0; ecntr < cn; ecntr++)
             $scope.emptyCorrectAnswers.push(ecntr);
 
-        $scope.prompt = prompt;
-        $scope.items = choices;
-        $scope.changed = false;
+    };
+}
 
 
-        var updateAssessmentItem = function (orderedList) {
-            var flattenedArray = [];
-            for (var i = 0; i < orderedList.length; i++) {
-                if (orderedList[i])
-                    flattenedArray.push(orderedList[i].identifier);
-                else
-                    flattenedArray.push('');
-            }
-            AssessmentItemCtrl.setResponse(responseIdentifier, flattenedArray);
-            $scope.changed = true;
-        };
+var commonLinkFn = function($scope, element, attrs, AssessmentItemCtrl, QtiUtils) {
+    $scope.prompt = this.prompt;
+    $scope.items = this.choices;
+    $scope.changed = false;
 
-        $scope.$watch('showNoResponseFeedback', function (newVal, oldVal) {
-            $scope.noResponse = (!$scope.changed && $scope.showNoResponseFeedback);
-        });
+    var that = this;
 
-        // watch the response and set it to the responses list
-        $scope.$watch('orderedList', function (newValue, oldValue) {
-            if (oldValue.length == 0 || newValue.length == 0) {
-                AssessmentItemCtrl.setResponse(responseIdentifier, []);
-            } else {
-                updateAssessmentItem(newValue);
-            }
-            $scope.noResponse = (!$scope.changed && $scope.showNoResponseFeedback);
-        });
-
-
-        $scope.$on('resetUI', function (event) {
-            applyCssNameToAll($scope, "");
-        });
-
-
-        $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
-            if (!responses) return;
-            if (!$scope.isFeedbackEnabled()) return;
-            var correctResponse = responses[responseIdentifier];
-            var ourResponse = QtiUtils.getResponseValue(responseIdentifier, $scope.itemSession.responses, [])
-            console.log(correctResponse);
-            applyCss($scope, correctResponse, ourResponse)
-        });
-
+    var setAllIncorrect = function () {
+        applyCssNameToAll("order-incorrect");
     };
 
+    var applyCssNameToAll = function (name) {
+        for (var y = 0; y < $scope.items.length; y++) {
+            $scope.items[y].submittedClass = name;
+        }
+    };
+
+    var applyCss = function (correctResponse, ourResponse) {
+        setAllIncorrect();
+        for (var i = 0; i < correctResponse.length; i++) {
+            if (correctResponse[i] == ourResponse[i]) {
+                for (var x = 0; x < $scope.items.length; x++) {
+                    if ($scope.items[x].identifier == ourResponse[i]) {
+                        $scope.items[x].submittedClass = "order-correct";
+                    }
+                }
+            }
+        }
+    };
+
+    $scope.$watch('showNoResponseFeedback', function (newVal, oldVal) {
+        $scope.noResponse = (!$scope.changed && $scope.showNoResponseFeedback);
+    });
+
+
+    $scope.$on('resetUI', function (event) {
+        applyCssNameToAll("");
+    });
+
+    $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
+        if (!responses) return;
+        if (!$scope.isFeedbackEnabled()) return;
+        var correctResponse = responses[that.responseIdentifier];
+        var ourResponse = QtiUtils.getResponseValue(that.responseIdentifier, $scope.itemSession.responses, []);
+        applyCss(correctResponse, ourResponse)
+    });
+
 }
+
 
 
 
