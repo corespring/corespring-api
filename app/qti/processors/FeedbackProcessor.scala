@@ -1,15 +1,10 @@
-package api.processors
+package qti.processors
 
 import xml._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
-import controllers.testplayer.qti.xml.{XmlValidationResult, XmlValidator}
-import controllers.testplayer.qti.xml.XmlValidationResult.success
-import controllers.testplayer.qti.xml.ExceptionMessage
 import scala.Some
-import play.api.Logger
-import controllers.Log
-import controllers.testplayer.qti._
 import models.FeedbackIdMapEntry
+import qti.models.{OrderInteraction, ChoiceInteraction, QtiItem}
 
 /**
  * Provides transformations on JSON strings to add/remove csFeedbackIds to feedback elements, as well as validation for
@@ -131,7 +126,7 @@ object FeedbackProcessor extends XmlValidator {
         // TODO: This needs to capture line information. Possible solution: http://bit.ly/T9iV5k
         XmlValidationResult(Some(badResults.map(node => ExceptionMessage(node.toString())).toList))
       }
-      case _ => success
+      case _ => XmlValidationResult.success
     }
   }
 

@@ -1,20 +1,27 @@
 package tests.api.v1
 
-import models.{ItemSessionSettings, ItemResponse, ItemSession}
+import models.ItemSessionSettings
+import play.api.mvc.{Call, AnyContent}
+import models.{ItemResponse, ItemSession}
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import play.api.libs.json._
-import play.api.mvc.{Call, AnyContent, AnyContentAsEmpty, AnyContentAsJson}
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import org.specs2.mutable._
 import play.api.test.Helpers._
 import tests.PlaySingleton
-import play.api.test.FakeHeaders
-import scala.Some
-import play.api.libs.json.JsObject
 import api.ApiError
+import qti.models._
+import scala.Left
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsString
+import scala.Some
 import controllers.InternalError
-import controllers.testplayer.qti._
+import play.api.test.FakeHeaders
+import scala.Right
+import play.api.mvc.AnyContentAsJson
+import play.api.libs.json.JsObject
 
 class ItemSessionApiTest extends Specification {
 

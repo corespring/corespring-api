@@ -1,10 +1,10 @@
-package tests.models
+package tests.qti.models
 
 import org.specs2.mutable.Specification
-import controllers.testplayer.qti._
 import io.Codec
 import java.nio.charset.Charset
 import scala.xml.XML
+import qti.models.{CorrectResponseMultiple, QtiItem}
 
 class QtiItemTest extends Specification{
 

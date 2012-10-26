@@ -13,7 +13,7 @@ import scala.Right
 import xml.Elem
 import play.api.Play.current
 import play.api.Logger
-import api.processors.FeedbackProcessor
+import qti.processors.FeedbackProcessor
 
 
 /**

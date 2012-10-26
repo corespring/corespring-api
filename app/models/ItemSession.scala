@@ -16,8 +16,8 @@ import play.api.Play
 import play.api.Play.current
 import akka.actor.FSM.->
 import scala.xml._
-import api.processors.FeedbackProcessor
-import controllers.testplayer.qti.QtiItem
+import qti.processors.FeedbackProcessor
+import qti.models.QtiItem
 
 case class FeedbackIdMapEntry(csFeedbackId: String, outcomeIdentifier: String, identifier: String)
 
