@@ -1,4 +1,4 @@
-package controllers.testplayer.qti.xml
+package qti.processors
 
 import xml.{XML, Elem}
 import org.xml.sax.SAXParseException

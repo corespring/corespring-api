@@ -1,12 +1,10 @@
-package controllers.testplayer.qti
+package tests.qti.processors
 
 import org.specs2.mutable._
 import scala.xml.{Node, Elem, XML, NodeSeq}
 import com.codahale.jerkson.Json.{generate, parse}
-import api.processors.FeedbackProcessor._
-import org.specs2.execute.Skipped
-import api.processors.FeedbackProcessor
 import models.FeedbackIdMapEntry
+import qti.processors.FeedbackProcessor
 
 class FeedbackProcessorSpec extends Specification {
 
@@ -70,7 +68,7 @@ class FeedbackProcessorSpec extends Specification {
           <modalFeedback we="should" check="modal" feedback="too" csFeedbackId="300"></modalFeedback>
         </body>
 
-      val xmlWithOnlyCsFeedbackIds = filterFeedbackContent(xml)
+      val xmlWithOnlyCsFeedbackIds = FeedbackProcessor.filterFeedbackContent(xml)
 
       println(xmlWithOnlyCsFeedbackIds)
 

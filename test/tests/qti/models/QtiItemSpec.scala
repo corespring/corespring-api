@@ -1,6 +1,7 @@
-package controllers.testplayer.qti
+package tests.qti.models
 
 import org.specs2.mutable._
+import qti.models.{QtiItem, FeedbackInline}
 
 class QtiItemSpec extends Specification {
   class FeedbackSequenceMatcher(feedback: Seq[FeedbackInline]) {

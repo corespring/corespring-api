@@ -7,7 +7,6 @@ import org.bson.types.ObjectId
 import scala.Some
 import controllers.S3Service
 import web.controllers.utils.ConfigLoader
-import controllers.testplayer.ItemPlayer
 
 trait ItemResources {
 
@@ -60,5 +59,5 @@ trait ItemResources {
     }
   }
 
-  private def addDefaultCss(html : String) : String = """<head>""".r.replaceAllIn(html, "<head>\n" + ItemPlayer.BYTE_BUREAU + ItemPlayer.DEFAULT_CSS + "\n" )
+  private def addDefaultCss(html : String) : String = """<head>""".r.replaceAllIn(html, "<head>\n" + DefaultCss.DEFAULT_CSS + "\n" )
 }

@@ -1,4 +1,4 @@
-package seed
+package common.seed
 
 import util.matching.Regex
 

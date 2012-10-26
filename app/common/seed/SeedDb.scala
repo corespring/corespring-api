@@ -1,4 +1,4 @@
-package seed
+package common.seed
 
 import _root_.models.auth.{AccessToken, ApiClient}
 import _root_.models._

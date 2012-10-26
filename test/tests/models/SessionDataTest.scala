@@ -8,7 +8,7 @@ import play.api.Play
 import io.Codec
 import java.nio.charset.Charset
 import xml.XML
-import controllers.testplayer.qti.QtiItem
+import qti.models.QtiItem
 
 class SessionDataTest extends Specification {
 

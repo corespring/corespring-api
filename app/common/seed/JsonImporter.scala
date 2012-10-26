@@ -1,4 +1,4 @@
-package seed
+package common.seed
 
 import com.mongodb.casbah.MongoCollection
 import play.api.Play

@@ -1,14 +1,12 @@
 package models
 
 import play.api.libs.json._
-import play.api.libs.json.JsString
-import scala.xml._
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
 import collection.immutable.HashMap
-import controllers.Log
-import controllers.testplayer.qti._
+import qti.models._
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsString
+import scala.Some
+import play.api.libs.json.JsObject
 
 
 /**

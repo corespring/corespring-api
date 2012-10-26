@@ -1,4 +1,4 @@
-package controllers.testplayer.qti
+package qti.models
 
 import scala.xml._
 import play.api.libs.json.{JsString, JsObject, JsValue, Writes}

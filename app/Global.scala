@@ -8,7 +8,7 @@ import mvc.SimpleResult
 import play.api.Play.current
 import play.api.Application
 import web.controllers.utils.ConfigLoader
-import seed.SeedDb._
+import common.seed.SeedDb._
 
 /**
   */

@@ -1,4 +1,4 @@
-package controllers.testplayer
+package testplayer.controllers
 
 import org.xml.sax.SAXParseException
 import xml.{Elem, NodeSeq}
@@ -6,19 +6,13 @@ import play.api.libs.json.Json
 import org.bson.types.ObjectId
 import controllers.auth.{Permission, BaseApi}
 import models._
-import com.mongodb.casbah.Imports._
-import api.processors.FeedbackProcessor._
-import play.api.{Play, Logger}
-import controllers.Log
-import play.api.mvc.Action
-import common.controllers.ItemResources
-import api.processors.FeedbackProcessor
-import play.api.cache.Cache
-import play.api.Play.current
+import qti.processors.FeedbackProcessor._
+import common.controllers.{DefaultCss, ItemResources}
 import scala.Some
-import controllers.testplayer.qti._
+import qti.processors.FeedbackProcessor
+import qti.models.{OrderInteraction, ChoiceInteraction, QtiItem, FeedbackInline}
+import testplayer.models.ExceptionMessage
 
-case class ExceptionMessage(message:String, lineNumber:Int = -1, columnNumber: Int = -1)
 
 object ItemPlayer extends BaseApi with ItemResources{
 
@@ -37,9 +31,6 @@ object ItemPlayer extends BaseApi with ItemResources{
     val csspath = if (toPrint) CSS_PRINT_PATH else CSS_PATH
     Seq( script( jspath + name + ".js"), css( csspath + name  + ".css") ).mkString("\n") }
 
-  val BYTE_BUREAU = css("/assets/stylesheets/bytebureau/styles.css")
-
-  val DEFAULT_CSS = Seq(BYTE_BUREAU).mkString("\n")
 
   val notFoundJson = Json.toJson(
     Map("error" -> "not found")
@@ -86,7 +77,7 @@ object ItemPlayer extends BaseApi with ItemResources{
 
           val finalXml = removeNamespaces(qtiXml)
 
-          Ok(views.html.testplayer.itemPlayer(itemId, scripts, finalXml, previewEnabled))
+          Ok(testplayer.views.html.itemPlayer(itemId, scripts, finalXml, previewEnabled))
         case None =>
           // we found nothing
           NotFound(notFoundJson)
@@ -95,7 +86,7 @@ object ItemPlayer extends BaseApi with ItemResources{
       case e: SAXParseException => {
         // xml processing error - inform the user
         val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
-        Ok(views.html.testplayer.itemPlayerError(errorInfo))
+        Ok(testplayer.views.html.itemPlayerError(errorInfo))
       }
       case e: Exception => throw new RuntimeException( "ItemPlayer.renderItem: " + e.getMessage, e)
     }
@@ -212,7 +203,7 @@ object ItemPlayer extends BaseApi with ItemResources{
     }
 
     scripts ::= createScripts("numberedLines")
-    scripts ::= DEFAULT_CSS
+    scripts ::= DefaultCss.DEFAULT_CSS
 
     // order matters so put them out in the chronological order we put them in
     scripts.reverse

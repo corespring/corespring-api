@@ -10,6 +10,8 @@ import play.Routes
 
 class ShowResourceTest extends BaseTest{
 
+  val ItemPlayerRoutes = testplayer.controllers.routes.ItemPlayer
+
   val TEST_ITEM_ID : String = "50083ba9e4b071cb5ef79101"
 
   def testItem: Item = item(TEST_ITEM_ID)
@@ -25,7 +27,7 @@ class ShowResourceTest extends BaseTest{
         case Some(result) => {
           status(result) must equalTo(SEE_OTHER)
           val resultHeaders = headers(result)
-          val expectedUrl = controllers.testplayer.routes.ItemPlayer.previewItem(testItem.id.toString).url
+          val expectedUrl = ItemPlayerRoutes.previewItem(testItem.id.toString).url
           resultHeaders.get("Location") must equalTo(Some(tokenize(expectedUrl)))
         }
         case _ => failure("request failed")
