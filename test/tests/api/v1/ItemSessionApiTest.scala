@@ -38,7 +38,6 @@ class ItemSessionApiTest extends Specification {
     val ItemSession : String = "502d0f823004deb7f4f53be7"
   }
 
-
   def invokeCall( makeCallFn : (() => Call), makeContent : (()=> AnyContent)) : ItemSession = {
     val call = makeCallFn()
 
@@ -69,9 +68,6 @@ class ItemSessionApiTest extends Specification {
   }
 
 
-  /**
-   * TODO - implement these tests...
-   */
   "item session data" should {
 
     "return an error if we try and update an item that is already finished" in {
@@ -147,7 +143,19 @@ class ItemSessionApiTest extends Specification {
     }
   }
 
+  "starting" should {
+    "start the session" in {
+      val newSession = createNewSession()
 
+      if(newSession.start.isDefined) failure else success
+
+      def call() = Routes.begin(newSession.itemId, newSession.id)
+      def make() = AnyContentAsJson(Json.toJson(newSession))
+      val result = invokeCall( call, make )
+
+      if(result.start.isDefined) success else failure
+    }
+  }
 
   "creating and then updating item session" should {
     val newSession = createNewSession()
@@ -188,6 +196,7 @@ class ItemSessionApiTest extends Specification {
 
     "return an item session which contains feedback contents within sessionData which contains all feedback elements in the xml which correspond to responses from client" in {
       val json: JsValue = Json.parse(contentAsString(result))
+
       (json \ "sessionData") match {
         case JsObject(sessionData) => sessionData.find(field => field._1 == "feedbackContents") match {
           case Some((_, jsfeedbackContents)) => jsfeedbackContents match {

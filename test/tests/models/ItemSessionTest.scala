@@ -85,6 +85,24 @@ class ItemSessionTest  extends Specification {
       }
     }
 
+    "not update settings if session has been started" in {
+
+      val settings = ItemSessionSettings( submitCompleteMessage = "custom")
+      val session = ItemSession( itemId = new ObjectId(), settings = Some(settings) )
+      ItemSession.save(session)
+      ItemSession.startItemSession(session)
+
+      session.settings.get.submitCompleteMessage = "updated custom message"
+
+       ItemSession.updateItemSession(session, DummyXml) match {
+         case Right(is) => {
+           is.settings.get.submitCompleteMessage must equalTo("custom")
+           success
+         }
+         case _ => failure
+       }
+    }
+
     "return feedback contents for an incorrect answer" in {
 
       val session = ItemSession( itemId = new ObjectId() )

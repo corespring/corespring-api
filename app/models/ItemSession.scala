@@ -99,9 +99,11 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     if (session.finish.isDefined) dbo.put(finish, session.finish.get)
     if (!session.responses.isEmpty) dbo.put(responses, session.responses.map(grater[ItemResponse].asDBObject(_)))
 
-    session.settings match {
-      case Some(s) => dbo.put(settings, grater[ItemSessionSettings].asDBObject(s))
-      case _ => //do nothing
+    if ( session.start.isEmpty ){
+      session.settings match {
+        case Some(s) => dbo.put(settings, grater[ItemSessionSettings].asDBObject(s))
+        case _ => //do nothing
+      }
     }
 
     updatedbo += ("$set" -> dbo)

@@ -110,14 +110,33 @@ object ItemSessionApi extends BaseApi {
     }
   }
 
-//  private def getSessionFeedback(itemId: ObjectId, itemSession: ItemSession): Map[String, String] = {
-//    Item.getQti(itemId) match {
-//      case Right(xmlData) => optMap[String, String](
-//        new QtiItem(scala.xml.XML.loadString(xmlData)).feedback(itemSession.responses).map(feedback => (feedback.csFeedbackId, feedback.body))
-//      ).getOrElse(Map[String, String]())
-//      case Left(error) => Map()
-//    }
-//  }
+  def begin(itemId:ObjectId, sessionId:ObjectId) = ApiAction {
+    request =>
+      findSessionAndCheckAuthorization(sessionId, itemId, request.ctx.organization) match {
+        case Right(s) => {
+          ItemSession.startItemSession(s) match {
+            case Left(error) => BadRequest(error.message)
+            case Right(started) => Ok(Json.toJson(started))
+          }
+        }
+        case Left(error) => BadRequest(Json.toJson(error))
+      }
+  }
+
+  /**
+   * Find the session and check the user is authorized to manipulate it.
+   * @param sessionId
+   * @param itemId
+   * @param orgId
+   * @return
+   */
+  private def findSessionAndCheckAuthorization(sessionId:ObjectId, itemId: ObjectId, orgId : ObjectId ) : Either[ApiError,ItemSession] = ItemSession.findOneById(sessionId) match {
+    case Some(s) => Content.isAuthorized(orgId, itemId, Permission.All) match {
+      case true => Right(s)
+      case false => Left( ApiError.UnauthorizedItemSession )
+    }
+    case None => Left( ApiError.ItemSessionNotFound )
+  }
 
   /**
    * Serves the PUT request for an item session
