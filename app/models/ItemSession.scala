@@ -25,14 +25,20 @@ case class FeedbackIdMapEntry(csFeedbackId: String, outcomeIdentifier: String, i
  * Case class representing an individual item session
  */
 case class ItemSession(var itemId: ObjectId,
+                       var attempts: Int = 0,
                        var start: Option[DateTime] = None,
                        var finish: Option[DateTime] = None,
                        var responses: Seq[ItemResponse] = Seq(),
                        var id: ObjectId = new ObjectId(),
                        var feedbackIdLookup: Seq[FeedbackIdMapEntry] = Seq(),
                        var sessionData: Option[SessionData] = None,
-                       var settings: Option[ItemSessionSettings] = None
-                        ) extends Identifiable
+                       var settings: ItemSessionSettings = new ItemSessionSettings()
+                        ) extends Identifiable {
+
+  def isStarted: Boolean = start.isDefined
+
+  def isFinished: Boolean = finish.isDefined
+}
 
 /**
  * Companion object for ItemSession.
@@ -55,7 +61,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
    * @param itemId - create the item session based on this contentId
    * @return - the newly created item session
    */
-  def newItemSession(itemId: ObjectId, session: ItemSession): Either[InternalError, ItemSession] = {
+  def newSession(itemId: ObjectId, session: ItemSession): Either[InternalError, ItemSession] = {
     if (Play.isProd) session.id = new ObjectId()
     session.itemId = itemId
 
@@ -74,7 +80,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
    * @param session
    * @return either an InternalError or the updated ItemSession
    */
-  def beginItemSession(session: ItemSession): Either[InternalError, ItemSession] = session.start match {
+  def begin(session: ItemSession): Either[InternalError, ItemSession] = session.start match {
 
     case Some(_) => Left(InternalError("ItemSession already started: " + session.id, LogType.printFatal))
     case _ => {
@@ -91,37 +97,98 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     }
   }
 
-  def updateItemSession(session: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem): Either[InternalError, ItemSession] = {
-    val updatedbo = MongoDBObject.newBuilder
 
-    val dbo: BasicDBObject = new BasicDBObject()
+  def unfinishedSession(id: ObjectId): MongoDBObject = MongoDBObject("_id" -> id, finish -> MongoDBObject("$exists" -> false))
 
-    if (session.finish.isDefined) dbo.put(finish, session.finish.get)
-    if (!session.responses.isEmpty) dbo.put(responses, session.responses.map(grater[ItemResponse].asDBObject(_)))
 
-    if ( session.start.isEmpty ){
-      session.settings match {
-        case Some(s) => dbo.put(settings, grater[ItemSessionSettings].asDBObject(s))
-        case _ => //do nothing
-      }
+  /**
+   * Update the itemSession model - this is not counted as the item being processed.
+   * ItemSession can only be updated if its not started.
+   * The only part of the session that is update-able is the settings.
+   * @param update
+   * @return
+   */
+  def update(update: ItemSession): Either[InternalError, ItemSession] =
+    withDbSession(update) {
+      dbSession =>
+
+        val dbo: BasicDBObject = new BasicDBObject()
+
+        if (!dbSession.isStarted) {
+          dbo.put(settings, grater[ItemSessionSettings].asDBObject(update.settings))
+        }
+
+        if (dbo.size() > 0)
+          updateFromDbo(update.id, MongoDBObject(("$set", dbo)))
+        else
+          Right(dbSession)
+
     }
 
-    updatedbo += ("$set" -> dbo)
+  /**
+   * find the db session and return it to fn
+   * @param session
+   * @param fn
+   * @return
+   */
+  private def withDbSession(session: ItemSession)(fn: ((ItemSession) => Either[InternalError, ItemSession])) = {
+    ItemSession.findOneById(session.id) match {
+      case Some(dbSession) => fn(dbSession)
+      case _ => Left(InternalError("can't find item session" + session.id.toString))
+    }
+  }
 
+  private def updateFromDbo(id: ObjectId, dbo: DBObject, additionalProcessing: (ItemSession => Unit) = (s) => ()): Either[InternalError, ItemSession] = {
     try {
-      ItemSession.update(MongoDBObject("_id" -> session.id, finish -> MongoDBObject("$exists" -> false)),
-        updatedbo.result(),
-        false, false, collection.writeConcern)
-      ItemSession.findOneById(session.id) match {
+      ItemSession.update(unfinishedSession(id), dbo, false, false, collection.writeConcern)
+      ItemSession.findOneById(id) match {
         case Some(session) => {
-          //TODO - we need to flush the cache if session is finished
-          session.sessionData = getSessionData(xmlWithCsFeedbackIds, session.responses)
+          additionalProcessing(session)
           Right(session)
         }
         case None => Left(InternalError("could not find session that was just updated", LogType.printFatal))
       }
     } catch {
       case e: SalatDAOUpdateError => Left(InternalError("error updating item session: " + e.getMessage, LogType.printFatal))
+    }
+  }
+
+  /**
+   * Process the item session responses and return feedback.
+   * If this iteration exceeds the number of attempts the finish it.
+   * @param updateSession
+   * @param xmlWithCsFeedbackIds
+   * @return
+   */
+  def process(updateSession: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem): Either[InternalError, ItemSession] = withDbSession(updateSession) {
+    dbSession =>
+
+      finishSessionIfNeeded(dbSession)
+
+      if (dbSession.isFinished) {
+        Left(InternalError("The session is finished"))
+      } else {
+
+        val dbo: BasicDBObject = new BasicDBObject()
+
+        if (updateSession.isFinished) dbo.put(finish, updateSession.finish.get)
+        if (!updateSession.responses.isEmpty) dbo.put(responses, updateSession.responses.map(grater[ItemResponse].asDBObject(_)))
+
+        val update = MongoDBObject(("$set", dbo), ("$inc", MongoDBObject(("attempts", 1))))
+
+        updateFromDbo(updateSession.id, update, (updatedSession) => {
+          updatedSession.sessionData = getSessionData(xmlWithCsFeedbackIds, updatedSession.responses)
+        })
+
+      }
+  }
+
+  private def finishSessionIfNeeded(session: ItemSession) {
+    val max = session.settings.maxNoOfAttempts
+
+    if (max != 0 && session.attempts >= session.settings.maxNoOfAttempts) {
+      session.finish = Some(new DateTime())
+      ItemSession.save(session)
     }
   }
 
@@ -146,9 +213,9 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
       if (session.finish.isDefined) {
         seq = seq :+ (finish -> JsNumber(session.finish.get.getMillis))
       }
-      if (session.settings.isDefined) {
-        seq = seq :+ (settings -> Json.toJson(session.settings))
-      }
+
+      seq = seq :+ (settings -> Json.toJson(session.settings))
+
       JsObject(seq)
     }
   }
@@ -156,20 +223,17 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
   implicit object ItemSessionReads extends Reads[ItemSession] {
     def reads(json: JsValue): ItemSession = {
 
-      /**
-       * Note: if settings isn't there i
-       */
+      val settings = if ((json \ "settings").as[ItemSessionSettings] == null)
+        new ItemSessionSettings()
+      else
+        (json \ "settings").as[ItemSessionSettings]
 
-      val settings = (json\"settings").asOpt[JsObject] match {
-        case Some(jso) => jso.asOpt[ItemSessionSettings]
-        case _ => None
-      }
-
-      ItemSession((json \ itemId).asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()),
-        (json \ start).asOpt[Long].map(new DateTime(_)),
-        (json \ finish).asOpt[Long].map(new DateTime(_)),
-        (json \ responses).asOpt[Seq[ItemResponse]].getOrElse(Seq()),
-        (json \ "id").asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()),
+      ItemSession(
+        itemId = (json \ itemId).asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()),
+        start = (json \ start).asOpt[Long].map(new DateTime(_)),
+        finish = (json \ finish).asOpt[Long].map(new DateTime(_)),
+        responses = (json \ responses).asOpt[Seq[ItemResponse]].getOrElse(Seq()),
+        id = (json \ "id").asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()),
         settings = settings)
     }
   }

@@ -52,7 +52,7 @@ class ItemSessionSettingsTest extends Specification {
 
       val session = json.as[ItemSession]
 
-      session.settings must beNone
+      session.settings must equalTo(new ItemSessionSettings())
     }
   }
 

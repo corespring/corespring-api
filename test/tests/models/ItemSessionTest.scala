@@ -9,21 +9,21 @@ import play.api.libs.json.Json.stringify
 import play.api.libs.json.Json.toJson
 import play.api.libs.json.{JsObject, Json, JsValue}
 
-class ItemSessionTest  extends Specification {
+class ItemSessionTest extends Specification {
 
   PlaySingleton.start()
 
 
-  val DummyXml  = scala.xml.XML.loadFile("test/mockXml/item-session-test-one.xml")
+  val DummyXml = scala.xml.XML.loadFile("test/mockXml/item-session-test-one.xml")
 
   "json parsing" should {
     "work" in {
-      val session = ItemSession( itemId = new ObjectId(), settings = Some(ItemSessionSettings( maxNoOfAttempts = 10)) )
+      val session = ItemSession(itemId = new ObjectId(), settings = ItemSessionSettings(maxNoOfAttempts = 10))
       val json = Json.toJson(session)
-      val settings : JsValue = (json\ItemSession.settings)
+      val settings: JsValue = (json \ ItemSession.settings)
       (settings \ "maxNoOfAttempts").as[Int] must equalTo(10)
-      val newSession : ItemSession = json.as[ItemSession]
-      newSession.settings.get.maxNoOfAttempts must equalTo(10)
+      val newSession: ItemSession = json.as[ItemSession]
+      newSession.settings.maxNoOfAttempts must equalTo(10)
     }
   }
 
@@ -52,17 +52,17 @@ class ItemSessionTest  extends Specification {
 
 
     "throw an IllegalArgumentException if a feedbackInline node has no identifier" in {
-      val session = ItemSession( itemId = new ObjectId() )
+      val session = ItemSession(itemId = new ObjectId())
       ItemSession.save(session)
-      session.responses = Seq( ItemResponse( id = "RESPONSE", value="ChoiceB"))
+      session.responses = Seq(ItemResponse(id = "RESPONSE", value = "ChoiceB"))
 
       val xml = scala.xml.XML.loadFile("test/mockXml/item-session-test-two.xml")
 
       try {
-        ItemSession.updateItemSession( session , xml )
+        ItemSession.process(session, xml)
         failure
       } catch {
-        case e : IllegalArgumentException => success
+        case e: IllegalArgumentException => success
         case _ => failure
       }
     }
@@ -71,76 +71,102 @@ class ItemSessionTest  extends Specification {
 
   "update item session" should {
 
-    "update item settings"  in {
-      val session = ItemSession( itemId = new ObjectId() )
+    "update item settings" in {
+      val session = ItemSession(itemId = new ObjectId())
       ItemSession.save(session)
 
-      session.settings = Some(ItemSessionSettings( submitCompleteMessage = "custom"))
+      session.settings = ItemSessionSettings(submitCompleteMessage = "custom")
 
-      ItemSession.updateItemSession(session, DummyXml ) match {
+      ItemSession.update(session) match {
         case Left(_) => failure
         case Right(s) => {
-          if ( s.settings.get.submitCompleteMessage == "custom") success else failure
+          if (s.settings.submitCompleteMessage == "custom") success else failure
         }
       }
     }
 
     "not update settings if session has been started" in {
 
-      val settings = ItemSessionSettings( submitCompleteMessage = "custom")
-      val session = ItemSession( itemId = new ObjectId(), settings = Some(settings) )
+      val settings = ItemSessionSettings(submitCompleteMessage = "custom")
+      val session = ItemSession(itemId = new ObjectId(), settings = settings)
       ItemSession.save(session)
-      ItemSession.beginItemSession(session)
+      ItemSession.begin(session)
 
-      session.settings.get.submitCompleteMessage = "updated custom message"
+      session.settings.submitCompleteMessage = "updated custom message"
 
-       ItemSession.updateItemSession(session, DummyXml) match {
-         case Right(is) => {
-           is.settings.get.submitCompleteMessage must equalTo("custom")
-           success
-         }
-         case _ => failure
-       }
+      ItemSession.update(session) match {
+        case Right(is) => {
+          is.settings.submitCompleteMessage must equalTo("custom")
+          success
+        }
+        case _ => failure
+      }
     }
+
+  }
+
+  "process" should {
 
     "return feedback contents for an incorrect answer" in {
 
-      val session = ItemSession( itemId = new ObjectId() )
+      val session = ItemSession(itemId = new ObjectId())
       ItemSession.save(session)
-      session.responses = Seq( ItemResponse( id = "RESPONSE", value="ChoiceB"))
+      session.responses = Seq(ItemResponse(id = "RESPONSE", value = "ChoiceB"))
 
       val xml = scala.xml.XML.loadFile("test/mockXml/item-session-test-one.xml")
 
-      ItemSession.updateItemSession( session , xml ) match {
+      ItemSession.process(session, xml) match {
         case Right(newSession) => {
-          val json : JsValue = toJson(newSession)
+          val json: JsValue = toJson(newSession)
           val feedbackContents = (json \ "sessionData" \ "feedbackContents")
           newSession.sessionData must beSome
-          (feedbackContents \ "5").as[String] must equalTo( (xml \ "incorrectResponseFeedback").text )
-          (feedbackContents \ "6").as[String] must equalTo( (xml \ "correctResponseFeedback").text )
+          (feedbackContents \ "5").as[String] must equalTo((xml \ "incorrectResponseFeedback").text)
+          (feedbackContents \ "6").as[String] must equalTo((xml \ "correctResponseFeedback").text)
         }
         case Left(error) => failure(error.toString)
       }
       true must equalTo(true)
     }
+
+    "automatically finish an item if the max number of attempts has been reached" in {
+      val settings = ItemSessionSettings(maxNoOfAttempts = 2)
+      val session = ItemSession(itemId = new ObjectId(), settings = settings)
+
+      ItemSession.begin(session)
+
+      (1 to settings.maxNoOfAttempts).foreach(c => {
+
+        ItemSession.process(session, DummyXml) match {
+          case Left(e) => failure
+          case Right(e) => success
+        }
+      })
+
+      //Should fail now
+      ItemSession.process(session, DummyXml) match {
+        case Left(e) => success
+        case Right(e) => failure
+      }
+    }
+
   }
 
   "new item session" should {
     "return an unstarted item session" in {
-      val session = ItemSession( itemId = new ObjectId() )
-      ItemSession.newItemSession( new ObjectId(), session )
-      if( session.start.isDefined ) failure else success
+      val session = ItemSession(itemId = new ObjectId())
+      ItemSession.newSession(new ObjectId(), session)
+      if (session.start.isDefined) failure else success
     }
   }
 
   "start item session" should {
     "start the session" in {
-      val session = ItemSession( itemId = new ObjectId() )
+      val session = ItemSession(itemId = new ObjectId())
       ItemSession.save(session)
-      if ( session.start.isDefined ) failure
-      ItemSession.beginItemSession(session) match {
+      if (session.start.isDefined) failure
+      ItemSession.begin(session) match {
         case Left(_) => failure
-        case Right(s) =>  if (s.start.isDefined) success else failure
+        case Right(s) => if (s.start.isDefined) success else failure
       }
     }
   }

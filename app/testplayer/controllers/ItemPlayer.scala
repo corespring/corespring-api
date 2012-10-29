@@ -34,25 +34,28 @@ object ItemPlayer extends BaseApi with ItemResources {
 
     ItemSession.findOneById(new ObjectId(sessionId)) match {
       case Some(session) => getDataFile(session.itemId.toString, filename)
-      case _ =>  Action( NotFound("sessionId: " + sessionId) )
+      case _ => Action(NotFound("sessionId: " + sessionId))
     }
   }
 
-  def previewItem(itemId: String, printMode: Boolean = false, sessionSettings : String = "") =
-    _renderItem(itemId, printMode, previewEnabled = false, sessionSettings = sessionSettings )
+  def previewItem(itemId: String, printMode: Boolean = false, sessionSettings: String = "") =
+    _renderItem(itemId, printMode, previewEnabled = false, sessionSettings = sessionSettings)
 
   def renderItem(itemId: String, printMode: Boolean = false, sessionSettings: String = "") =
     _renderItem(itemId, printMode, previewEnabled = false, sessionSettings = sessionSettings)
 
 
-  private def createItemSession(itemId: String, mapping: Seq[FeedbackIdMapEntry], sessionSettings : String ): String = {
-    val settings = parseSettings(sessionSettings)
+  private def createItemSession(itemId: String, feedbackIdLookup: Seq[FeedbackIdMapEntry], sessionSettings: String): String = {
     val session: ItemSession = ItemSession(
       itemId = new ObjectId(itemId),
-      feedbackIdLookup = mapping,
-      settings = if (settings.isDefined) settings else None )
+      feedbackIdLookup = feedbackIdLookup,
+      settings = parseSettings(sessionSettings))
     ItemSession.save(session, ItemSession.collection.writeConcern)
     session.id.toString
+    /*ItemSession.beginItemSession(session) match {
+      case Left(error) => throw new RuntimeException("couldn't begin the session")
+      case Right(s) => s.id.toString
+    }*/
   }
 
 
@@ -95,16 +98,21 @@ object ItemPlayer extends BaseApi with ItemResources {
   }
 
 
-  private def parseSettings(s: String): Option[ItemSessionSettings] = {
-    if (s.isEmpty)
-      None
+  /**
+   * Parse the item session settings
+   * @param json
+   * @return
+   */
+  private def parseSettings(json: String): ItemSessionSettings = {
+    if (json.isEmpty)
+      new ItemSessionSettings()
     else {
       try {
-        val settings = Json.parse(s).as[ItemSessionSettings]
-        Some(settings)
+        val settings = Json.parse(json).as[ItemSessionSettings]
+        settings
       }
       catch {
-        case e: Exception => None
+        case e: Exception => new ItemSessionSettings()
       }
     }
   }

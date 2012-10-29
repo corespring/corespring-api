@@ -1,7 +1,7 @@
 package api.v1
 
 import controllers.auth.{Permission, BaseApi}
-import play.api.libs.json.Json
+import play.api.libs.json.Json._
 import api.ApiError
 import org.bson.types.ObjectId
 import models._
@@ -14,6 +14,7 @@ import xml.Elem
 import play.api.Play.current
 import play.api.Logger
 import qti.processors.FeedbackProcessor
+import play.api.mvc.AnyContent
 
 
 /**
@@ -26,8 +27,8 @@ object ItemSessionApi extends BaseApi {
     request =>
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.All)) {
         val cursor = ItemSession.find(MongoDBObject(ItemSession.itemId -> itemId))
-        Ok(Json.toJson(Utils.toSeq(cursor)))
-      } else Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
+        Ok(toJson(Utils.toSeq(cursor)))
+      } else Unauthorized(toJson(ApiError.UnauthorizedItemSession))
   }
 
   /**
@@ -44,17 +45,17 @@ object ItemSessionApi extends BaseApi {
             if (itemSession.finish.isDefined) {
 
               //val cachedXml: Option[Elem] = ItemSessionXmlStore.getCachedXml(itemId.toString, sessionId.toString)
-              ItemSession.getXmlWithFeedback(itemId,itemSession.feedbackIdLookup) match {
+              ItemSession.getXmlWithFeedback(itemId, itemSession.feedbackIdLookup) match {
                 case Right(xml) => {
                   itemSession.sessionData = ItemSession.getSessionData(xml, itemSession.responses)
                 }
-                case Left(e) => NotFound(Json.toJson(ApiError.ItemSessionNotFound(e.clientOutput)))
+                case Left(e) => NotFound(toJson(ApiError.ItemSessionNotFound(e.clientOutput)))
               }
             }
-            Ok(Json.toJson(itemSession))
+            Ok(toJson(itemSession))
           }
           else {
-            Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
+            Unauthorized(toJson(ApiError.UnauthorizedItemSession))
           }
         }
         case None => NotFound
@@ -74,7 +75,7 @@ object ItemSessionApi extends BaseApi {
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.All)) {
         val newSession = request.body.asJson match {
           case Some(json) => {
-            val jsonSession = Json.fromJson[ItemSession](json)
+            val jsonSession = fromJson[ItemSession](json)
             jsonSession.id = itemId
             jsonSession
           }
@@ -82,17 +83,17 @@ object ItemSessionApi extends BaseApi {
         }
         getQtiXml(itemId) match {
           case Some(xml) => {
-            val (xmlWithFeedbackIds,mapping) = FeedbackProcessor.addFeedbackIds(xml)
+            val (xmlWithFeedbackIds, mapping) = FeedbackProcessor.addFeedbackIds(xml)
             newSession.feedbackIdLookup = mapping
           }
           case _ =>
         }
-        ItemSession.newItemSession(itemId, newSession) match {
-          case Right(session) => Ok(Json.toJson(session))
-          case Left(error) => InternalServerError(Json.toJson(ApiError.CreateItemSession(error.clientOutput)))
+        ItemSession.newSession(itemId, newSession) match {
+          case Right(session) => Ok(toJson(session))
+          case Left(error) => InternalServerError(toJson(ApiError.CreateItemSession(error.clientOutput)))
         }
       } else {
-        Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
+        Unauthorized(toJson(ApiError.UnauthorizedItemSession))
       }
   }
 
@@ -110,16 +111,16 @@ object ItemSessionApi extends BaseApi {
     }
   }
 
-  def begin(itemId:ObjectId, sessionId:ObjectId) = ApiAction {
+  def begin(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
     request =>
       findSessionAndCheckAuthorization(sessionId, itemId, request.ctx.organization) match {
         case Right(s) => {
-          ItemSession.beginItemSession(s) match {
+          ItemSession.begin(s) match {
             case Left(error) => BadRequest(error.message)
-            case Right(started) => Ok(Json.toJson(started))
+            case Right(started) => Ok(toJson(started))
           }
         }
-        case Left(error) => BadRequest(Json.toJson(error))
+        case Left(error) => BadRequest(toJson(error))
       }
   }
 
@@ -130,19 +131,63 @@ object ItemSessionApi extends BaseApi {
    * @param orgId
    * @return
    */
-  private def findSessionAndCheckAuthorization(sessionId:ObjectId, itemId: ObjectId, orgId : ObjectId ) : Either[ApiError,ItemSession] = ItemSession.findOneById(sessionId) match {
+  private def findSessionAndCheckAuthorization(sessionId: ObjectId, itemId: ObjectId, orgId: ObjectId): Either[ApiError, ItemSession] = ItemSession.findOneById(sessionId) match {
     case Some(s) => Content.isAuthorized(orgId, itemId, Permission.All) match {
       case true => Right(s)
-      case false => Left( ApiError.UnauthorizedItemSession )
+      case false => Left(ApiError.UnauthorizedItemSession)
     }
-    case None => Left( ApiError.ItemSessionNotFound )
+    case None => Left(ApiError.ItemSessionNotFound)
+  }
+
+
+  /**
+   * Update the item session - note this only updates the settings
+   * It is different from when a user submits responses for this session
+   * @param itemId
+   * @param sessionId
+   * @return
+   */
+  def update(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
+    request =>
+      findSessionAndCheckAuthorization(sessionId, itemId, request.ctx.organization)
+      match {
+        case Left(error) => BadRequest(toJson(error))
+        case Right(dbSession) => {
+          requestAsData(request, ApiError.ItemSessionRequiredFields) match {
+            case Left(error) => BadRequest(toJson(error))
+            case Right(update) => {
+              ItemSession.update(update) match {
+                case Left(error) => BadRequest(toJson(ApiError.CantSave))
+                case Right(updatedSession) => Ok(toJson(updatedSession))
+              }
+            }
+          }
+        }
+      }
+  }
+
+  /**
+   * Parse the request body as an ItemSession
+   * @param request
+   * @return
+   */
+  private def requestAsData(request: ApiRequest[AnyContent], error : ApiError): Either[ApiError, ItemSession] = {
+    request.body.asJson match {
+      case Some(json) => {
+        json.asOpt[ItemSession] match {
+          case Some(is) => Right(is)
+          case _ => Left(error)
+        }
+      }
+      case _ => Left(error)
+    }
   }
 
   /**
    * Serves the PUT request for an item session
    * @param itemId
    */
-  def updateItemSession(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
+  def processResponse(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
     request =>
       ItemSession.findOneById(sessionId) match {
         case Some(dbSession) => Content.isAuthorized(request.ctx.organization, dbSession.itemId, Permission.All) match {
@@ -150,33 +195,33 @@ object ItemSessionApi extends BaseApi {
             case Some(jsonSession) => {
 
               if (dbSession.finish.isDefined) {
-                BadRequest(Json.toJson(ApiError.ItemSessionFinished))
+                BadRequest(toJson(ApiError.ItemSessionFinished))
               } else {
 
-                val clientSession = Json.fromJson[ItemSession](jsonSession)
+                val clientSession = fromJson[ItemSession](jsonSession)
                 dbSession.finish = clientSession.finish
                 dbSession.responses = clientSession.responses
                 dbSession.settings = clientSession.settings
 
-                ItemSession.getXmlWithFeedback(itemId,dbSession.feedbackIdLookup) match {
+                ItemSession.getXmlWithFeedback(itemId, dbSession.feedbackIdLookup) match {
                   case Right(xmlWithCsFeedbackIds) => {
-                    ItemSession.updateItemSession(dbSession, xmlWithCsFeedbackIds) match {
+                    ItemSession.process(dbSession, xmlWithCsFeedbackIds) match {
                       case Right(newSession) => {
-                        val json = Json.toJson(newSession)
+                        val json = toJson(newSession)
                         Ok(json)
                       }
-                      case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateItemSession(error.clientOutput)))
+                      case Left(error) => InternalServerError(toJson(ApiError.UpdateItemSession(error.clientOutput)))
                     }
                   }
-                  case Left(e) => InternalServerError(Json.toJson(ApiError.UpdateItemSession(e.clientOutput)))
+                  case Left(e) => InternalServerError(toJson(ApiError.UpdateItemSession(e.clientOutput)))
                 }
               }
             }
-            case None => BadRequest(Json.toJson(ApiError.JsonExpected))
+            case None => BadRequest(toJson(ApiError.JsonExpected))
           }
-          case false => Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
+          case false => Unauthorized(toJson(ApiError.UnauthorizedItemSession))
         }
-        case None => BadRequest(Json.toJson(ApiError.ItemSessionNotFound))
+        case None => BadRequest(toJson(ApiError.ItemSessionNotFound))
       }
   }
 

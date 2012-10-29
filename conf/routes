@@ -78,7 +78,8 @@ GET     /api/v1/field_values/:fieldName        api.v1.FieldValuesApi.getFieldVal
 # Item Session API
 
 POST    /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.createItemSession(itemId: ObjectId)
-PUT     /api/v1/items/:itemId/sessions/:sessionId         api.v1.ItemSessionApi.updateItemSession(itemId: ObjectId, sessionId: ObjectId)
+PUT     /api/v1/items/:itemId/sessions/:sessionId         api.v1.ItemSessionApi.processResponse(itemId: ObjectId, sessionId: ObjectId)
+PUT     /api/v1/items/:itemId/sessions/:sessionId/update  api.v1.ItemSessionApi.update(itemId: ObjectId, sessionId: ObjectId)
 GET     /api/v1/items/:itemId/sessions/:sessionId         api.v1.ItemSessionApi.getItemSession(itemId:ObjectId, sessionId: ObjectId)
 GET     /api/v1/items/:itemId/sessions/:sessionId/start   api.v1.ItemSessionApi.begin(itemId:ObjectId, sessionId: ObjectId)
 GET     /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.list(itemId:ObjectId)
