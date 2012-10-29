@@ -24,7 +24,7 @@
     </responseDeclaration>
 
     <itemBody>
-        <orderInteraction responseIdentifier="alphabet1" shuffle="true" csOrderingType="placement" >
+        <orderInteraction responseIdentifier="alphabet1" shuffle="true" csOrderingType="placement" orientation="vertical">
             <prompt>Please select the letters of the alphabet and put them into ascending order:</prompt>
             <simpleChoice identifier="a" fixed="true">A</simpleChoice>
             <simpleChoice identifier="b">B</simpleChoice>
@@ -38,7 +38,7 @@
 
         <br/>
         <br/>
-        <orderInteraction responseIdentifier="alphabet2" shuffle="true" csOrderingType="placement" csCorrectAnswers="3">
+        <orderInteraction responseIdentifier="alphabet2" shuffle="true" csOrderingType="placement">
             <prompt>Please arrange letters of the alphabet:</prompt>
             <simpleChoice identifier="a" fixed="true">A</simpleChoice>
             <simpleChoice identifier="b">B</simpleChoice>

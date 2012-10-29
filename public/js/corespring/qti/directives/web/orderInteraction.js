@@ -85,9 +85,30 @@ var compileNormalOrderInteraction = function (tElement, QtiUtils) {
     };
 }
 
-var compilePlacementOrderInteraction = function (tElement, QtiUtils, $timeout) {
+var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils, $timeout) {
 
-    var choiceTemplate = [
+
+    var choiceTemplate = isVertical ?
+        [
+        '<div class="dragArea">',
+        '<span ng-bind-html-unsafe="prompt" class="choice-prompt"></span>',
+        '<div class="verticalHolder">',
+        '<div id="draggableItems" class="vertical" ng-class="{noResponse: noResponse}" style="z-index: 10">',
+            '<draggable-item ng:repeat="item in items" obj="{{item}}" class="{{item.submittedClass}}" ng-bind-html-unsafe="item.content" /> ',
+        '</div>',
+
+        '<div class="order-placement-destination-area-vertical" style="width: {{maxW+25}}px">',
+            '<placement-destination ng:repeat="item in emptyCorrectAnswers" index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px">',
+            '<div class="numbering" ng-hide="hideNumbering"><span class="number">{{$index+1}}</span></div>',
+            '</placement-destination>',
+            '<div style="clear: both"></div>',
+        '</div><div style="clear: both"></div>',
+        '</div>',
+
+    ].join('')
+
+        :
+    [
         '<div class="dragArea">',
         '<span ng-bind-html-unsafe="prompt" class="choice-prompt"></span>',
         '<div id="draggableItems" ng-class="{noResponse: noResponse}" style="z-index: 10">',
@@ -109,6 +130,7 @@ var compilePlacementOrderInteraction = function (tElement, QtiUtils, $timeout) {
         choices:  parseSimpleChoices(tElement),
         prompt:  parsePrompt(tElement)
     };
+
 
     // now modify the DOM
     tElement.html(choiceTemplate);
@@ -258,7 +280,8 @@ qtiDirectives.directive('orderinteraction',
             require:'^assessmentitem',
             compile:function (tElement, tAttrs, transclude) {
                 if (tAttrs.csorderingtype == "placement") {
-                    return compilePlacementOrderInteraction(tElement, QtiUtils, $timeout);
+                    var isVertical = tAttrs.orientation == "vertical";
+                    return compilePlacementOrderInteraction(tElement, isVertical, QtiUtils, $timeout);
                 } else {
                     return compileNormalOrderInteraction(tElement, QtiUtils);
                 }
