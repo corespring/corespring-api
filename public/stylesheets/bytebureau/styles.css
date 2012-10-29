@@ -1009,3 +1009,11 @@ height:auto;
 	clear: both;
 }
 
+/* Table styling for tables where only targeted edges have borders */
+table.no-border tbody tr td {
+border:none;
+}
+
+.no-border tbody tr td.right-dashed-border {
+border-right: 2px dashed #EEE;
+}
