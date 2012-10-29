@@ -1,19 +1,15 @@
 package testplayer.controllers
 
 import org.xml.sax.SAXParseException
-import xml.{Elem, NodeSeq}
+import xml.Elem
 import play.api.libs.json.Json
 import org.bson.types.ObjectId
 import controllers.auth.{Permission, BaseApi}
 import models._
 import qti.processors.FeedbackProcessor._
-import common.controllers.{DefaultCss, ItemResources}
-import scala.Some
+import common.controllers.ItemResources
 import qti.processors.FeedbackProcessor
-import qti.models.{OrderInteraction, ChoiceInteraction, QtiItem, FeedbackInline}
-import testplayer.models.ExceptionMessage
 import play.api.mvc._
-import play.mvc.BodyParser.AnyContent
 import testplayer.models.ExceptionMessage
 import models.FeedbackIdMapEntry
 import scala.Some
@@ -22,25 +18,7 @@ import models.Content
 
 object ItemPlayer extends BaseApi with ItemResources {
 
-
   val NamespaceRegex = """xmlns.*?=".*?"""".r
-
-  val JS_PATH: String = "/assets/js/corespring/qti/directives/web/"
-  val JS_PRINT_PATH: String = "/assets/js/corespring/qti/directives/print/"
-
-  val CSS_PATH: String = "/assets/stylesheets/qti/directives/web/"
-  val CSS_PRINT_PATH: String = "/assets/stylesheets/qti/directives/print/"
-
-  def css(url: String): String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
-
-  def script(url: String): String = """<script type="text/javascript" src="%s"></script>""".format(url)
-
-  def createScripts(name: String, toPrint: Boolean = false): String = {
-    val jspath = if (toPrint) JS_PRINT_PATH else JS_PATH
-    val csspath = if (toPrint) CSS_PRINT_PATH else CSS_PATH
-    Seq(script(jspath + name + ".js"), css(csspath + name + ".css")).mkString("\n")
-  }
-
 
   def previewItemBySessionId(sessionId: String, printMode: Boolean = false) = {
 
@@ -88,8 +66,6 @@ object ItemPlayer extends BaseApi with ItemResources {
 
             val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds) \ "itemBody")
 
-            val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
-
             val itemSessionId = if (printMode) "" else createItemSession(itemId, mapping, sessionSettings)
 
             val qtiXml = <assessmentItem
@@ -103,9 +79,8 @@ object ItemPlayer extends BaseApi with ItemResources {
 
             val finalXml = removeNamespaces(qtiXml)
 
-            Ok(testplayer.views.html.itemPlayer(itemId, scripts, finalXml, previewEnabled))
+            Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled))
           case None =>
-            // we found nothing
             NotFound("not found")
         }
       } catch {
@@ -121,7 +96,7 @@ object ItemPlayer extends BaseApi with ItemResources {
 
 
   private def parseSettings(s: String): Option[ItemSessionSettings] = {
-    if (s == "")
+    if (s.isEmpty)
       None
     else {
       try {
@@ -165,41 +140,5 @@ object ItemPlayer extends BaseApi with ItemResources {
     }
   }
 
-  def getScriptsToInclude(itemBody: NodeSeq, isPrintMode: Boolean = false): List[String] = {
-    var scripts = List[String]()
-
-    scripts ::= script("//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js")
-    scripts ::= script("//ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js")
-    scripts ::= script("/assets/bootstrap/js/bootstrap.js")
-    scripts ::= script("/assets/js/vendor/angular-ui/angular-ui.js")
-
-    val elementScriptsMap = Map(
-      "choiceInteraction" -> createScripts("choiceInteraction", isPrintMode),
-      "inlineChoiceInteraction" -> createScripts("inlineChoiceInteraction", isPrintMode),
-      "orderInteraction" -> createScripts("orderInteraction", isPrintMode),
-      "textEntryInteraction" -> createScripts("textEntryInteraction", isPrintMode),
-      "extendedTextInteraction" -> createScripts("extendedTextInteraction", isPrintMode),
-      "tabs" -> createScripts("tabs", isPrintMode),
-      "cs-tabs" -> createScripts("tabs", isPrintMode),
-      "math" -> script("http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")
-    )
-
-    for ((element, scriptString) <- elementScriptsMap) {
-      if ((itemBody \\ element).size > 0) {
-        scripts ::= scriptString
-      } else {
-
-        if ((itemBody \\ ("@" + element)).size > 0) {
-          scripts ::= scriptString
-        }
-      }
-    }
-
-    scripts ::= createScripts("numberedLines")
-    scripts ::= DefaultCss.DEFAULT_CSS
-
-    // order matters so put them out in the chronological order we put them in
-    scripts.reverse
-  }
 
 }
