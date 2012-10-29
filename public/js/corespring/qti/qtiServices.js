@@ -1,19 +1,4 @@
 'use strict';
-/*
- * resource for returning inline feedback on a given choice id in QTI document
- */
-qtiServices
-    .factory('InlineFeedback', ['$resource', function ($resource) {
-    return $resource(
-        '/testplayer/item/:itemId/feedback' + '/:responseIdentifier/:identifier',
-        {},
-        {   get:{method:'GET', isArray:false},
-            save:{method:'PUT'}
-        }
-    );
-
-}]
-);
 
 qtiServices.factory('AssessmentSessionService', ['$resource', function ($resource) {
 
@@ -27,15 +12,26 @@ qtiServices.factory('AssessmentSessionService', ['$resource', function ($resourc
       }
     };
 
-    var baseUrl = '/api/v1/items/:itemId/sessions';
+    //var baseUrl = '/api/v1/items/:itemId/sessions';
+    var api = TestPlayerRoutes.api.v1.ItemSessionApi;
+    var calls  = {
+        get: api.getItemSession(":itemId", ":sessionId"),
+        begin: api.begin(":itemId", ":sessionId"),
+        create: api.createItemSession(":itemId"),
+        process: api.processResponse(":itemId", ":sessionId"),
+        save: api.update(":itemId", ":sessionId")
+    };
+
+    function toNgDef(playDef) { return { method: playDef.method, url : playDef.url} }
 
     var AssessmentSessionService = $resource(
-        baseUrl + '/:sessionId',
+        calls.get.url,
         {},
         {
-            get:{method:'GET', isArray:false},
-            save:{method:'PUT'},
-            create: {method: 'POST', params : {} }
+            get: toNgDef(calls.get),
+            save: toNgDef(calls.save),
+            create: toNgDef(calls.create),
+            process: toNgDef(calls.process)
         }
     );
 

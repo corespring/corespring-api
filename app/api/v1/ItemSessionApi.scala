@@ -14,7 +14,7 @@ import xml.Elem
 import play.api.Play.current
 import play.api.Logger
 import qti.processors.FeedbackProcessor
-import play.api.mvc.AnyContent
+import play.api.mvc.{Action, AnyContent}
 
 
 /**
@@ -29,6 +29,12 @@ object ItemSessionApi extends BaseApi {
         val cursor = ItemSession.find(MongoDBObject(ItemSession.itemId -> itemId))
         Ok(toJson(Utils.toSeq(cursor)))
       } else Unauthorized(toJson(ApiError.UnauthorizedItemSession))
+  }
+
+
+  def tester(test:String) = Action {
+    request =>
+      Ok("")
   }
 
   /**
@@ -189,6 +195,9 @@ object ItemSessionApi extends BaseApi {
    */
   def processResponse(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
     request =>
+
+      Log.d("processResponse: " + sessionId)
+
       ItemSession.findOneById(sessionId) match {
         case Some(dbSession) => Content.isAuthorized(request.ctx.organization, dbSession.itemId, Permission.All) match {
           case true => request.body.asJson match {

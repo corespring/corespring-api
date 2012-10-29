@@ -14,11 +14,27 @@ import testplayer.models.ExceptionMessage
 import models.FeedbackIdMapEntry
 import scala.Some
 import models.Content
+import play.api.Routes
 
 
 object ItemPlayer extends BaseApi with ItemResources {
 
   val NamespaceRegex = """xmlns.*?=".*?"""".r
+
+  def javascriptRoutes = Action { implicit request =>
+
+    import api.v1.routes.javascript._
+
+    Ok(
+      Routes.javascriptRouter("TestPlayerRoutes")(
+        ItemSessionApi.begin,
+        ItemSessionApi.getItemSession,
+        ItemSessionApi.createItemSession,
+        ItemSessionApi.update,
+        ItemSessionApi.processResponse
+      )
+    ).as("text/javascript")
+  }
 
   def previewItemBySessionId(sessionId: String, printMode: Boolean = false) = {
 
@@ -51,11 +67,10 @@ object ItemPlayer extends BaseApi with ItemResources {
       feedbackIdLookup = feedbackIdLookup,
       settings = parseSettings(sessionSettings))
     ItemSession.save(session, ItemSession.collection.writeConcern)
-    session.id.toString
-    /*ItemSession.beginItemSession(session) match {
+    ItemSession.begin(session) match {
       case Left(error) => throw new RuntimeException("couldn't begin the session")
       case Right(s) => s.id.toString
-    }*/
+    }
   }
 
 

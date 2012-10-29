@@ -130,7 +130,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                     $scope.itemSession.finish = new Date().getTime();
                 }
 
-                AssessmentSessionService.save(apiCallParams, $scope.itemSession, function (data) {
+                AssessmentSessionService.process(apiCallParams, $scope.itemSession, function (data) {
 
                     $scope.itemSession = data;
 
