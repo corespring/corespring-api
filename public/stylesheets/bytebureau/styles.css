@@ -823,6 +823,16 @@ div.text-box-content {
 	padding: 16px 13px;
 	border: 2px #EAEAEA dashed;
 }
+
+.itemplayer-control-bar{
+    width: 600px;
+    margin: 20px auto;
+}
+
+.itemplayer-control-bar > div {
+    font-size: 12px;
+}
+
 .assessment-options {
 	width: 600px;
 	margin: 20px auto;

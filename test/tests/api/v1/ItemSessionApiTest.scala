@@ -34,43 +34,53 @@ class ItemSessionApiTest extends Specification {
   val token = "34dj45a769j4e1c0h4wb"
 
   object IDs {
-    val Item : String = "50083ba9e4b071cb5ef79101"
-    val ItemSession : String = "502d0f823004deb7f4f53be7"
+    val Item: String = "50083ba9e4b071cb5ef79101"
+    val ItemSession: String = "502d0f823004deb7f4f53be7"
   }
 
-  def invokeCall( makeCallFn : (() => Call), makeContent : (()=> AnyContent)) : ItemSession = {
+  def invokeCall(makeCallFn: (() => Call), makeContent: (() => AnyContent), args: (String, String)*): ItemSession = {
     val call = makeCallFn()
 
-    println("calling: " + call.method + " " + call.url )
+    val url = call.url + "?" + args.toList.map((a: (String, String)) => a._1 + "=" + a._2).mkString("&")
+    println("calling: " + call.method + " " + url)
     val request = FakeRequest(
       call.method,
-      call.url,
+      url,
       FakeAuthHeader,
-      makeContent() )
+      makeContent())
 
     val result = routeAndCall(request).get
     val json: JsValue = Json.parse(contentAsString(result))
     Json.fromJson[ItemSession](json)
   }
 
-  def createNewSession(itemId: String = IDs.Item, content : AnyContent = AnyContentAsEmpty ): ItemSession = {
+  def createNewSession(itemId: String = IDs.Item, content: AnyContent = AnyContentAsEmpty): ItemSession = {
     invokeCall(
       () => Routes.createItemSession(new ObjectId(itemId)),
       () => content
     )
   }
 
-  def processResponse(session : ItemSession) : ItemSession = {
+  def processResponse(session: ItemSession): ItemSession = {
     invokeCall(
-      () => Routes.processResponse(session.itemId, session.id),
+      () => Routes.update(session.itemId, session.id),
       () => AnyContentAsJson(Json.toJson(session))
     )
   }
 
-  def update(session:ItemSession) : ItemSession = {
+  def update(session: ItemSession): ItemSession = {
     invokeCall(
-    () => Routes.update(session.itemId, session.id),
-    () => AnyContentAsJson(Json.toJson(session))
+      () => Routes.update(session.itemId, session.id),
+      () => AnyContentAsJson(Json.toJson(session)),
+      ("action", "updateSettings")
+    )
+  }
+
+  def begin(s: ItemSession) = {
+    invokeCall(
+      () => Routes.update(s.itemId, s.id),
+      () => AnyContentAsJson(Json.toJson(s)),
+      ("action", "begin")
     )
   }
 
@@ -87,7 +97,7 @@ class ItemSessionApiTest extends Specification {
       testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon", "{$score:1}"))
       testSession.finish = Some(new DateTime())
 
-      val update = api.v1.routes.ItemSessionApi.processResponse(new ObjectId(IDs.Item), newSession.id)
+      val update = api.v1.routes.ItemSessionApi.update(new ObjectId(IDs.Item), newSession.id)
 
       val updateRequest = FakeRequest(
         update.method,
@@ -119,24 +129,24 @@ class ItemSessionApiTest extends Specification {
 
     "accept a json body with an itemSession" in {
 
-      val settings =  ItemSessionSettings( maxNoOfAttempts = 12)
-      val session = ItemSession( itemId = new ObjectId(IDs.Item), settings = settings)
+      val settings = ItemSessionSettings(maxNoOfAttempts = 12)
+      val session = ItemSession(itemId = new ObjectId(IDs.Item), settings = settings)
       val json = Json.toJson(session)
-      val newSession = createNewSession( IDs.Item, AnyContentAsJson(json))
+      val newSession = createNewSession(IDs.Item, AnyContentAsJson(json))
       newSession.settings.maxNoOfAttempts must equalTo(12)
     }
 
     "only use the item id set in the url" in {
-     val session = ItemSession( itemId = new ObjectId())
-     val newSession = createNewSession(IDs.Item, AnyContentAsJson(Json.toJson(session)))
-      newSession.itemId.toString must equalTo( IDs.Item )
+      val session = ItemSession(itemId = new ObjectId())
+      val newSession = createNewSession(IDs.Item, AnyContentAsJson(Json.toJson(session)))
+      newSession.itemId.toString must equalTo(IDs.Item)
     }
   }
 
   "updating" should {
     "allow updates to settings" in {
       val newSession = createNewSession()
-      val settings = ItemSessionSettings( submitCompleteMessage = "custom message")
+      val settings = ItemSessionSettings(submitCompleteMessage = "custom message")
       newSession.settings = settings
       val updatedSession = update(newSession)
       updatedSession.settings.submitCompleteMessage must equalTo("custom message")
@@ -146,20 +156,17 @@ class ItemSessionApiTest extends Specification {
   "begin" should {
     "set the start value in the session" in {
       val newSession = createNewSession()
-
-      if(newSession.start.isDefined) failure else success
-
-      def call() = Routes.begin(newSession.itemId, newSession.id)
-      def make() = AnyContentAsJson(Json.toJson(newSession))
-      val result = invokeCall( call, make )
-
-      if(result.start.isDefined) success else failure
+      if (newSession.start.isDefined) failure else success
+      val result = begin(newSession)
+      println(".. begin..")
+      println(result)
+      if (result.start.isDefined) success else failure
     }
   }
 
   "creating and then updating item session" should {
     val newSession = createNewSession()
-    val updateCall = api.v1.routes.ItemSessionApi.processResponse( new ObjectId(IDs.Item), newSession.id )
+    val updateCall = api.v1.routes.ItemSessionApi.update(new ObjectId(IDs.Item), newSession.id)
     val testSession = ItemSession(itemId = new ObjectId(IDs.Item))
     // add some item responses
     testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon", "{$score:1}"))
@@ -378,7 +385,7 @@ class ItemSessionApiTest extends Specification {
 
     "support retrieval of an itemsession" in {
 
-      val getCall = api.v1.routes.ItemSessionApi.getItemSession( new ObjectId(IDs.Item), new ObjectId(IDs.ItemSession))
+      val getCall = api.v1.routes.ItemSessionApi.getItemSession(new ObjectId(IDs.Item), new ObjectId(IDs.ItemSession))
 
       val getRequest = FakeRequest(
         getCall.method,

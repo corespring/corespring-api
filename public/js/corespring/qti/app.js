@@ -3,7 +3,7 @@ var qtiDirectives = angular.module('qti.directives', ['qti.services']);
 var app = angular.module('qti', ['qti.directives', 'qti.services']);
 
 
-function QtiAppController($scope, $timeout) {
+function QtiAppController($scope, $timeout, AssessmentSessionService) {
 
     $timeout(function () {
         if (typeof(MathJax) != "undefined") {
@@ -13,10 +13,32 @@ function QtiAppController($scope, $timeout) {
 
     $scope.reset = function () {
         $scope.$broadcast('reset');
+    };
+
+    $scope.reloadItem = function () {
+        console.log("reloadItem..");
+
+        var apiCallParams = {
+            itemId:$scope.itemSession.itemId,
+            sessionId:$scope.itemSession.id
+        };
+
+        AssessmentSessionService.update2(apiCallParams, $scope.itemSession, function (data) {
+            $scope.itemSession = data;
+        });
+
     }
 }
 
-QtiAppController.$inject = ['$scope', '$timeout'];
+QtiAppController.$inject = ['$scope', '$timeout', 'AssessmentSessionService'];
+
+
+function ControlBarController($scope) {
+
+    $scope.showAdminOptions = false;
+}
+
+ControlBarController.$inject = ['$scope'];
 
 // base directive include for all QTI items
 qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $http) {
@@ -44,6 +66,11 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                         throw "Error creating new ItemSession";
                     });
             };
+
+
+            $scope.$watch('itemSession', function(newValue){
+                console.log("assessment item - new itemSession: " + newValue)
+            });
 
             $scope.$on('reset', function (event) {
                 createNewItemSession();

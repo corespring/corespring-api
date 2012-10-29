@@ -32,10 +32,12 @@ object ItemSessionApi extends BaseApi {
   }
 
 
-  def tester(test:String) = Action {
-    request =>
-      Ok("")
+  def update(itemId:ObjectId, sessionId:ObjectId, action : Option[String]) = action match {
+    case Some("begin") => begin(itemId, sessionId)
+    case Some("updateSettings") => updateSettings(itemId,sessionId)
+    case _ => processResponse(itemId, sessionId)
   }
+
 
   /**
    *
@@ -153,7 +155,7 @@ object ItemSessionApi extends BaseApi {
    * @param sessionId
    * @return
    */
-  def update(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
+  def updateSettings(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
     request =>
       findSessionAndCheckAuthorization(sessionId, itemId, request.ctx.organization)
       match {

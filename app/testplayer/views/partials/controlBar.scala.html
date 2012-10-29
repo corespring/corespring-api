@@ -1,0 +1,36 @@
+<div class="itemplayer-control-bar" ng-controller="ControlBarController">
+
+    <div>
+        <i ng-class="{ true: 'icon-arrow-down', false: 'icon-arrow-right'}[showAdminOptions]" ></i>
+        <a ng-click="showAdminOptions=!showAdminOptions"> Administrative Options</a>
+        &nbsp;
+        <i class="icon-refresh"></i><a ng-click="reloadItem()"> Reload Item</a>
+    </div>
+    <br/>
+    <div class="well" ng-show="showAdminOptions">
+
+        <div class="container">
+
+            <div class="span2">
+                <input type="radio" ng-model="itemSession.settings.maxNoOfAttempts" value="0"> Multiple Tries</input>
+                <br/>
+                <input type="radio" ng-model="itemSession.settings.maxNoOfAttempts" value="1"> Single Try</input>
+            </div>
+
+            <div class="span4">
+                <input type="checkbox"
+                       ng-model="itemSession.settings.highlightUserResponse"> Highlight user response</input>
+                <br/>
+                <input type="checkbox"
+                       ng-model="itemSession.settings.showFeedback"> Show feedback content for highlighted response</input>
+                <br/>
+                <input type="checkbox"
+                       ng-model="itemSession.settings.allowEmptyResponses"> Accept empty responses</input>
+                <br/>
+                <input type="checkbox"
+                       ng-model="itemSession.settings.highlightCorrectResponse"> Highlight correct responses</input>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -19,19 +19,17 @@ qtiServices.factory('AssessmentSessionService', ['$resource', function ($resourc
         begin: api.begin(":itemId", ":sessionId"),
         create: api.createItemSession(":itemId"),
         process: api.processResponse(":itemId", ":sessionId"),
-        save: api.update(":itemId", ":sessionId")
+        update2: api.update(":itemId", ":sessionId")
     };
-
-    function toNgDef(playDef) { return { method: playDef.method, url : playDef.url} }
 
     var AssessmentSessionService = $resource(
         calls.get.url,
         {},
         {
-            get: toNgDef(calls.get),
-            save: toNgDef(calls.save),
-            create: toNgDef(calls.create),
-            process: toNgDef(calls.process)
+            get: calls.get,
+            update2: calls.update2,
+            create: calls.create,
+            process: calls.process
         }
     );
 

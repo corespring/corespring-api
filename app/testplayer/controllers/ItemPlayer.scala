@@ -27,11 +27,9 @@ object ItemPlayer extends BaseApi with ItemResources {
 
     Ok(
       Routes.javascriptRouter("TestPlayerRoutes")(
-        ItemSessionApi.begin,
-        ItemSessionApi.getItemSession,
-        ItemSessionApi.createItemSession,
         ItemSessionApi.update,
-        ItemSessionApi.processResponse
+        ItemSessionApi.getItemSession,
+        ItemSessionApi.createItemSession
       )
     ).as("text/javascript")
   }
@@ -55,7 +53,7 @@ object ItemPlayer extends BaseApi with ItemResources {
   }
 
   def previewItem(itemId: String, printMode: Boolean = false, sessionSettings: String = "") =
-    _renderItem(itemId, printMode, previewEnabled = false, sessionSettings = sessionSettings)
+    _renderItem(itemId, printMode, previewEnabled = true, sessionSettings = sessionSettings)
 
   def renderItem(itemId: String, printMode: Boolean = false, sessionSettings: String = "") =
     _renderItem(itemId, printMode, previewEnabled = false, sessionSettings = sessionSettings)
