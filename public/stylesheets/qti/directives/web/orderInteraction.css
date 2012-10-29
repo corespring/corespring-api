@@ -37,11 +37,13 @@ draggable-item {
    	margin-bottom:0.4em;
    	padding:8px;
 }
-draggable-item.order-correct {
+
+placement-destination > draggable-item.order-correct {
 	border: 2px solid #53C516;
     margin: 9px;
 }
-draggable-item.order-incorrect {
+
+placement-destination > draggable-item.order-incorrect {
 	border: 2px solid #F8A31A;
     margin: 9px;
 }
@@ -54,10 +56,12 @@ placement-destination {
     border: 1px solid #eee;
     display: inline-block;
     margin: 10px;
-    color: #ddd;
+    /*color: #ddd;*/
     vertical-align: middle;
-    line-height: 50px;
+    /*line-height: 50px;*/
 }
+
+
 
 .order-placement-destination-area {
     border: 1px solid #eee;
@@ -67,12 +71,24 @@ placement-destination {
     margin: auto;
 }
 
+
+.numbering {
+    height: 100%;
+    width: 100%;
+    display: table;
+}
+
+.numbering .number {
+    display: table-cell;
+    vertical-align: middle;
+    color: #ddd;
+}
+
 .placing {
     background-color: green;
 }
 
 .dragArea {
-    /*background-color: #ffe8ea;*/
 }
 
 .ui-state-highlight { background-color: #EEEEEE; }​

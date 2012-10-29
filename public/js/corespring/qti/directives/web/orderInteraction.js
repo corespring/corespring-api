@@ -66,18 +66,18 @@ var compileNormalOrderInteraction = function (tElement, QtiUtils) {
                 for (var i = 0; i < orderedList.length; i++) {
                     flattenedArray[i] = orderedList[i].identifier;
                 }
+
             AssessmentItemCtrl.setResponse(localScope.responseIdentifier, flattenedArray);
-            $scope.changed = true;
         };
         commonLinkFn.call(localScope, $scope, element, attrs, AssessmentItemCtrl, QtiUtils);
+        updateAssessmentItem([]);
+        $scope.requireModification = (attrs.csRequiremodification != undefined) ? attrs.csRequiremodification === 'true' : true;
 
         // watch the response and set it to the responses list
         $scope.$watch('orderedList', function (newValue, oldValue) {
-            console.log("Change ",newValue.length, oldValue.length);
-            if ($scope.requireModification && (oldValue.length == 0 || newValue.length == 0)) {
-                AssessmentItemCtrl.setResponse(that.responseIdentifier, []);
-            } else {
+            if (!$scope.requireModification || oldValue) {
                 updateAssessmentItem(newValue);
+                $scope.changed = true;
             }
             $scope.noResponse = (!$scope.changed && $scope.showNoResponseFeedback);
         });
@@ -95,8 +95,8 @@ var compilePlacementOrderInteraction = function (tElement, QtiUtils, $timeout) {
         '</div>',
 
         '<div class="order-placement-destination-area">',
-            '<placement-destination ng:repeat="item in emptyCorrectAnswers" index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px; line-height: {{maxH}}px">',
-            '<span ng-hide="hideNumbering">{{$index+1}}</span>',
+            '<placement-destination ng:repeat="item in emptyCorrectAnswers" index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px">',
+            '<div class="numbering" ng-hide="hideNumbering"><span class="number">{{$index+1}}</span></div>',
             '</placement-destination>',
             '<div style="clear: both">Drag answers here</div>',
         '</div>',
@@ -118,7 +118,6 @@ var compilePlacementOrderInteraction = function (tElement, QtiUtils, $timeout) {
 
         localScope.responseIdentifier = attrs["responseidentifier"];
         var updateAssessmentItem = function (orderedList) {
-            console.log("Updating Item");
             var flattenedArray = [];
             for (var i = 0; i < orderedList.length; i++) {
                 if (orderedList[i])
@@ -134,6 +133,7 @@ var compilePlacementOrderInteraction = function (tElement, QtiUtils, $timeout) {
 
         updateAssessmentItem([]);
         $scope.noResponse = true;
+
         // watch the response and set it to the responses list
         $scope.$watch('orderedList', function (newValue, oldValue) {
             if (newValue.length!=0 || oldValue.length!=0)
@@ -147,11 +147,11 @@ var compilePlacementOrderInteraction = function (tElement, QtiUtils, $timeout) {
             var hasDimension = false;
             $(element).find('draggable-item').each(function (index) {
                 if ($(this).width() > maxW) {
-                    maxW = $(this).width();
+                    maxW = $(this).width() + 30;
                     hasDimension = true;
                 }
                 if ($(this).height() > maxH) {
-                    maxH = $(this).height();
+                    maxH = $(this).height() + 30;
                     hasDimension = true;
                 }
             });
@@ -275,22 +275,25 @@ qtiDirectives.directive("draggableItem", function () {
             $(el).draggable({
                 containment: $(el).parents("div.dragArea"),
                 start:function () {
+                    scope.srcRid = angular.element(el).attr('rid');
                     angular.element(el).attr('rid', '');
                     scope.reverted = false;
                 },
                 revert:function (socketObj) {
                     if (socketObj === false) {
-                        $(this).animate({left:0, top:0});
+                        if (scope.srcRid == undefined || scope.srcRid == '') {
+                            return true;
+                        }
+                        $(el).parents('.dragArea').find('#draggableItems').append($(this));
+                        $(this).css('left', 0);
+                        $(this).css('top', 0);
                         scope.reverted = true;
                     }
                     return false;
                 },
                 stop:function (ev, ui) {
-                    if (scope.reverted) {
-                        angular.element(el).attr('rid', '');
-                    }
                     var items = [];
-                    $(el).parent().children('draggable-item').each(function (index, element) {
+                    $(el).parents('.dragArea').find('draggable-item').each(function (index, element) {
                             if ($(element).attr('rid') != undefined && $(element).attr('rid').length>0) {
                                 var rid = Number($(element).attr('rid'));
                                 var liItem = scope.$eval($(element).attr('obj'));
@@ -301,7 +304,6 @@ qtiDirectives.directive("draggableItem", function () {
                             }
                         }
                     );
-
                     scope.$apply(function () {
                         scope.$parent.orderedList = items;
                     });
@@ -330,13 +332,14 @@ qtiDirectives.directive("placementDestination", function () {
                     drop: function(e, ui) {
                         var draggableElement = ui.draggable;
 
+                        $(e.target).append(draggableElement);
+
                         $(draggableElement).position({
                             my:        "center",
                             at:        "center",
                             of:        $(e.target),
                             collision: "none"
                         });
-
                         angular.element(draggableElement).attr('rid', angular.element(el).attr('index'));
                     }
                 }
