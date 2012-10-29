@@ -8,6 +8,8 @@ import common.controllers.DefaultCss
  */
 object QtiScriptLoader {
 
+  val PRINT_MODE : String = "@print-mode"
+
   val JS_PATH: String = "/assets/js/corespring/qti/directives/web/"
   val JS_PRINT_PATH: String = "/assets/js/corespring/qti/directives/print/"
 
@@ -17,7 +19,7 @@ object QtiScriptLoader {
 
   def load( itemBody : String) : String = {
     val xml = scala.xml.XML.loadString(itemBody)
-    val isPrintMode = (xml \ "@printMode").text == "true"
+    val isPrintMode = (xml \ PRINT_MODE).text == "true"
     getScriptsToInclude(scala.xml.XML.loadString(itemBody), isPrintMode).mkString("\n")
   }
 
