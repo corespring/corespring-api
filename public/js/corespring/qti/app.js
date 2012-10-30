@@ -3,7 +3,7 @@ var qtiDirectives = angular.module('qti.directives', ['qti.services']);
 var app = angular.module('qti', ['qti.directives', 'qti.services']);
 
 
-function QtiAppController($scope, $timeout, AssessmentSessionService) {
+function QtiAppController($scope, $timeout,  $location, AssessmentSessionService) {
 
     $timeout(function () {
         if (typeof(MathJax) != "undefined") {
@@ -15,27 +15,29 @@ function QtiAppController($scope, $timeout, AssessmentSessionService) {
         $scope.$broadcast('reset');
     };
 
+    $scope.init = function(){
+        var url = $location.absUrl();
+        var matches = url.match(/.*\/item\/(.*?)\/.*/);
+        var params = { itemId : matches[1] };
+         AssessmentSessionService.create(params, {}, function(data){
+            $scope.itemSession = data;
+        });
+    };
 
     /**
      * Because the current item session has been started - its settings are now locked.
      * So we are going to be creating a new item session.
      */
     $scope.reloadItem = function () {
-        console.log("reloadItem..");
-
-        var apiCallParams = {
-            itemId:$scope.itemSession.itemId,
-            sessionId:$scope.itemSession.id
-        };
-
         AssessmentSessionService.create({itemId:$scope.itemSession.itemId}, $scope.itemSession, function (data) {
             $scope.itemSession = data;
         });
+    };
 
-    }
+    $scope.init();
 }
 
-QtiAppController.$inject = ['$scope', '$timeout', 'AssessmentSessionService'];
+QtiAppController.$inject = ['$scope', '$timeout', '$location','AssessmentSessionService'];
 
 
 function ControlBarController($scope) {
@@ -51,17 +53,11 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
         restrict:'E',
         controller:function ($scope, $element, $attrs, $timeout) {
 
-            $scope.printMode = ( $attrs['printMode'] == "true" || false );
-            var noResponseAllowed = $attrs.csNoresponseallowed;
+            var itemId = null;
+            var sessionId = null;
+            var noResponseAllowed = true;
 
-            /**
-             * TODO: The way we initialize the directive is a bit messy as it comes from 2 sources (xml or watch)
-             * Also we have service calls in the directive - is that ok?
-             */
-            var apiCallParams = {
-                itemId:$attrs.csItemid,
-                sessionId:$attrs.csItemsessionid
-            };
+            $scope.printMode = ( $attrs['printMode'] == "true" || false );
 
             $scope.$on('reset', function (event) {
                 $scope.$broadcast('resetUI');
@@ -69,22 +65,21 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             });
 
             $scope.$watch('itemSession', function (newValue) {
-                apiCallParams.itemId = ( newValue.itemId || $attrs.csItemid);
-                apiCallParams.sessionId = ( newValue.id || $attrs.csItemsessionid);
-                noResponseAllowed = newValue.settings.allowEmptyResponses;
-                console.log("new id: " + apiCallParams.sessionId);
+
+                if(!newValue){
+                    return;
+                }
+                itemId =  newValue.itemId;
+                sessionId = newValue.id;
+
+                if( newValue.settings ){
+                    noResponseAllowed = newValue.settings.allowEmptyResponses;
+                }
                 $scope.$broadcast('resetUI');
                 $scope.formDisabled = false;
             });
 
-            //TODO: move this out of the directive.
-            $scope.itemSession = AssessmentSessionService.get(apiCallParams);
-
-            $scope.feedbackEnabled = ($scope.itemSession.feedbackEnabled || true);
-            $scope.tryAgainEnabled = ($scope.itemSession.tryAgainEnabled || true);
-
             $scope.showNoResponseFeedback = false;
-            $scope.itemSession.start = new Date().getTime(); // millis since epoch (maybe this should be set in an onload event?)
             $scope.responses = [];
 
 
@@ -99,7 +94,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                     return true;
                 }
                 return false;
-            }
+            };
 
             $scope.hasEmptyResponse = function () {
                 for (var i = 0; i < $scope.responses.length; i++) {
@@ -138,7 +133,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 if ($scope.formDisabled) return;
 
 
-                if ($scope.hasEmptyResponse()) {
+                if ($scope.hasEmptyResponse() && !noResponseAllowed) {
                     $scope.status = 'ATTEMPTED';
                     $scope.showNoResponseFeedback = ($scope.hasEmptyResponse());
                     return;
@@ -148,25 +143,12 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
                 $scope.itemSession.responses = $scope.responses;
 
-                if ($scope.tryAgainEnabled) {
-                    delete $scope.itemSession.finish;
-                } else {
-                    $scope.itemSession.finish = new Date().getTime();
-                }
-
-                AssessmentSessionService.save(apiCallParams, $scope.itemSession, function (data) {
-
+                AssessmentSessionService.save({itemId:itemId, sessionId:sessionId}, $scope.itemSession, function (data) {
                     $scope.itemSession = data;
-
-                    if (!$scope.tryAgainEnabled) {
-                        $scope.formDisabled = true;
-                    } else {
-                        $scope.status = '';
-                    }
+                    $scope.formDisabled = $scope.itemSession.isFinished;
                 }, function onError(error) {
                     if (error && error.data) alert(error.data.message);
                 });
-
             };
 
             var isSettingEnabled = function (name) {
@@ -202,16 +184,12 @@ qtiDirectives.directive('itembody', function () {
             '<div class="noResponseFeedback" ng-show="showNoResponseFeedback">Some information seems to be missing. Please provide an answer and then click "Submit". </div>',
             '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="formDisabled || !canSubmit" ng-click="onClick()">Submit</a>'
         ].join('\n'),
-        //replace: true,
         require:'^assessmentitem',
         link:function (scope, element, attrs, AssessmentItemCtrl) {
-
             scope.onClick = function () {
                 AssessmentItemCtrl.submitResponses()
             };
-
         }
-
     }
 });
 

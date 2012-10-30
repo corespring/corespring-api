@@ -285,7 +285,7 @@ input[type="submit"] {
 	padding-left:10px;
 	font-size: 12px;
 }
-.incorrectSelection, .incorrect-selection, .incorrect-selection-horizontal {
+.incorrectSelection, .incorrect-response, .incorrect-response-horizontal {
 	color: #F8A31A;
 }
 .orderIncorrect {
@@ -294,13 +294,13 @@ input[type="submit"] {
 blockquote p span input.ng-pristine {
 	margin:none;
 }
-.incorrect-selection > .feedback-container > feedbackinline, .correct-response > .feedback-container > feedbackinline {
+.incorrect-response > .feedback-container > feedbackinline, .correct-response > .feedback-container > feedbackinline {
 	padding: 5px;
 	padding-left: 20px;
 	display: inline-block;
 	margin-bottom: 5px;
 }
-.incorrect-selection > .feedback-container > feedbackinline {
+.incorrect-response > .feedback-container > feedbackinline {
 	background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
 }
 .correct-response > .feedback-container > feedbackinline {
@@ -309,7 +309,7 @@ blockquote p span input.ng-pristine {
 simplechoice {
 	width: 100%;
 }
-.incorrect-selection .choice-content {
+.incorrect-response .choice-content {
 	border:2px solid #f8a31a;
 	display:block;
 	border-radius: 6px;
@@ -891,7 +891,7 @@ select.small {
 inlinechoiceinteraction.incorrect-response > select {
 	border: solid 2px #F8A31A;
 }
-.incorrect-selection {
+.incorrect-response {
 	display: block;
 	color: red;
 }
@@ -952,16 +952,16 @@ table th, table td {
 .feedback-container {
 	display: none;
 }
-.incorrect-selection > .feedback-container, .correct-response > .feedback-container {
+.incorrect-response > .feedback-container, .correct-response > .feedback-container {
 	display: block;
 }
-.incorrect-selection > .feedback-container > feedbackinline, .correct-response > .feedback-container > feedbackinline {
+.incorrect-response > .feedback-container > feedbackinline, .correct-response > .feedback-container > feedbackinline {
 	padding: 5px;
 	padding-left: 20px;
 	display: inline-block;
 	margin-bottom: 5px;
 }
-.incorrect-selection > .feedback-container > feedbackinline {
+.incorrect-response > .feedback-container > feedbackinline {
 	background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
 }
 .correct-response > .feedback-container > feedbackinline {
@@ -970,14 +970,14 @@ table th, table td {
 simplechoice {
 	width: 100%;
 }
-.incorrect-selection .choice-content {
+.incorrect-response .choice-content {
 	border:2px solid #f8a31a;
 	display:block;
 	border-radius: 6px;
 	margin-bottom:5px;
 }
 
-.incorrect-selection-horizontal .simple-choice-inner-horizontal {
+.incorrect-response-horizontal .simple-choice-inner-horizontal {
 	border:2px solid #f8a31a;
 	border-radius: 6px;
 }

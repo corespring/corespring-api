@@ -61,6 +61,10 @@ class ItemSessionApiTest extends Specification {
     )
   }
 
+  def get(sessionId : String, itemId : String) : ItemSession = {
+    invokeCall( () => Routes.get(new ObjectId(itemId), new ObjectId(sessionId)), () => AnyContentAsEmpty  )
+  }
+
   def processResponse(session: ItemSession): ItemSession = {
     invokeCall(
       () => Routes.update(session.itemId, session.id),
@@ -309,167 +313,37 @@ class ItemSessionApiTest extends Specification {
       }
     }
 
-    "only return session data for an item seession if response was already submitted" in {
-      /**
-       * Low priority for now
-       */
-      pending
-    }
-
-  }
-
-  "item session api" should {
-
-
-    "return feedback with session" in {
-      /*
-      val itemId = "50083ba9e4b071cb5ef79101"
-      val testSession = ItemSession(new ObjectId(itemId))
-      testSession.responses = List(ItemResponse("mexicanPresident", "calderon"))
-
-      val url = "/api/v1/items/" + itemId + "/sessions"
-      val request = FakeRequest(
-        POST,
-        url,
-        FakeHeaders(Map("Authorization" -> Seq("Bearer " + token))),
-        AnyContentAsJson(Json.toJson(testSession))
-      )
-
-      val result = routeAndCall(request)
-
-
-      if (result.isDefined) {
-        result match {
-          case Some(result) => {
-            val jsonResponse = Json.parse(contentAsString(result))
-            (jsonResponse \ "sessionData") match {
-              case undefined: JsUndefined => failure
-              case sessionData: JsValue =>
-                (sessionData \ "feedbackContent") match {
-                  case undefined: JsUndefined => failure
-                  case feedbackContent: JsValue => {
-                    success
-                  }
-                }
-            }
-          }
-          case None => failure
-        }
-      }
-      else {
-        failure
-      }
-      */
-      pending
-    }
-
     "support item creation " in {
 
       val testSession = ItemSession(new ObjectId(IDs.Item))
-      val url = "/api/v1/items/" + testSession.itemId.toString + "/sessions"
-
-      // add some item responses
       testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon", "{$score:1}"))
       testSession.responses = testSession.responses ++ Seq(ItemResponse("irishPresident", "guinness", "{$score:0}"))
       testSession.responses = testSession.responses ++ Seq(ItemResponse("winterDiscontent", "York", "{$score:1}"))
-      testSession.finish = Some(new DateTime())
-
-      val request = FakeRequest(
-        POST,
-        url,
-        FakeAuthHeader,
-        AnyContentAsJson(Json.toJson(testSession))
-      )
-
-      val optResult = routeAndCall(request)
-      if (optResult.isDefined) {
-        val json: JsValue = Json.parse(contentAsString(optResult.get))
-
-        // get the generated id
-        val id = (json \ "id").asOpt[String].getOrElse("")
-        testSession.id = new ObjectId(id)
-
-        // need to implement reader first for below to work
-        //val parsedSession = Json.fromJson[ItemSession](json)
-
-        if (doesSessionMatch(json, testSession)) {
-          success
-        } else {
-          failure
-        }
-
-      } else {
-        // no json back... fail
-        failure
-      }
-
+      val newSession = createNewSession(IDs.Item, AnyContentAsJson(Json.toJson(testSession)))
+      val unequalItems = getUnequalItems(newSession,testSession)
+      unequalItems must be(Seq())
     }
 
     "support retrieval of an itemsession" in {
 
-      val getCall = api.v1.routes.ItemSessionApi.get(new ObjectId(IDs.Item), new ObjectId(IDs.ItemSession))
-
-      val getRequest = FakeRequest(
-        getCall.method,
-        getCall.url,
-        FakeAuthHeader,
-        None
-      )
-
-      val optResult = routeAndCall(getRequest)
-      if (optResult.isDefined) {
-        val json: JsValue = Json.parse(contentAsString(optResult.get))
-
-        // load the test session directly
-        val testSessionForGet: ItemSession =
-          ItemSession.findOneById(new ObjectId(IDs.ItemSession)) match {
-            case Some(o) => o
-            case None => null
-          }
-
-        if (doesSessionMatch(json, testSessionForGet)) {
-          success
-        } else {
-          failure
-        }
-
-      } else {
-        failure
-      }
-
+      val dbSession = ItemSession.findOneById( new ObjectId(IDs.ItemSession)).get
+      val session = get( IDs.ItemSession, IDs.Item)
+      dbSession.id must equalTo(session.id)
+      val unequalItems = getUnequalItems(dbSession, session)
+      unequalItems must be(Seq())
+      success
     }
-
   }
 
 
-  def doesSessionMatch(json: JsValue, testSession: ItemSession): Boolean = {
-    try {
-      val id = (json \ "id").asOpt[String].getOrElse("")
-      val itemId = (json \ "itemId").asOpt[String].getOrElse("no id")
-      val start = (json \ "start").toString
-      val finish = (json \ "finish").toString
+  private def getUnequalItems(a:ItemSession, b: ItemSession): Seq[String] = {
 
-      val idString = testSession.id.toString
-      val itemIdString = testSession.itemId.toString
-      val finishString = testSession.finish.getOrElse(new DateTime(0)).getMillis.toString
-
-      val startString = testSession.start match {
-        case Some(s) => s.getMillis.toString
-        case _ => "null"
-      }
-
-      (finish equals finishString) &&
-        (start equals startString) &&
-        (id equals idString) &&
-        (itemId equals itemIdString)
-
-    } catch {
-      case e: Exception => {
-        e.printStackTrace()
-        false
-      }
-    }
-
+    val out = Seq[Option[String]](
+      if(a.itemId equals b.itemId) None else Some("itemId"),
+      if(a.start equals b.start) None else Some("start"),
+      if(a.finish equals b.finish) None else Some("finish")
+    )
+    out.flatten
   }
 
   /**

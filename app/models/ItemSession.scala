@@ -163,13 +163,13 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
   def process(update: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem): Either[InternalError, ItemSession] = withDbSession(update) {
     dbSession =>
 
-
       if (dbSession.isFinished) {
         Left(InternalError("The session is finished"))
       } else {
 
         val dbo: BasicDBObject = new BasicDBObject()
 
+        if (!dbSession.isStarted) dbo.put(start, new DateTime())
         if (update.isFinished) dbo.put(finish, update.finish.get)
         if (!update.responses.isEmpty) dbo.put(responses, update.responses.map(grater[ItemResponse].asDBObject(_)))
 

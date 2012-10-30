@@ -128,6 +128,13 @@ describe('qtiDirectives.choiceinteraction', function () {
             expect(interaction.scope.value).toEqual("a");
         });
 
+        it('highlights correct response when its the users response and correct response highlighting is disabled', function() {
+            var interaction = getSimpleChoiceInteraction();
+            helper.setSessionSettings( rootScope, { highlightUserResponse: true, highlightCorrectResponse: false});
+            interaction.scope.setChosenItem("a");
+            helper.setCorrectResponseOnScope(rootScope, "question","a");
+            expect(interaction.element.attr('class').contains('correct-response')).toBe(true);
+        });
 
         it('highlights correct response', function() {
 
@@ -143,7 +150,7 @@ describe('qtiDirectives.choiceinteraction', function () {
             helper.setSessionSettings(rootScope, { highlightUserResponse : true});
             interaction.scope.setChosenItem("a");
             helper.setCorrectResponseOnScope( rootScope, "question","b");
-            expect(interaction.element.attr('class').contains('incorrect-selection')).toBe(true);
+            expect(interaction.element.attr('class').contains('incorrect-response')).toBe(true);
         });
 
         it('does not highlight incorrect selection if disabled', function(){
@@ -151,7 +158,7 @@ describe('qtiDirectives.choiceinteraction', function () {
             helper.setSessionSettings(rootScope, { highlightUserResponse : false});
             interaction.scope.setChosenItem("a");
             helper.setCorrectResponseOnScope( rootScope, "question","b");
-            expect(interaction.element.attr('class').contains('incorrect-selection')).toBe(false);
+            expect(interaction.element.attr('class').contains('incorrect-response')).toBe(false);
         });
 
         it('does not highlight correct response if not enabled', function() {

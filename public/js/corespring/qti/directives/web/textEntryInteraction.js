@@ -47,7 +47,7 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
                 removeCss();
 
                 if( isCorrect(correctResponse) ){
-                    if(scope.highlightCorrectResponse()){
+                    if(scope.highlightCorrectResponse() || scope.highlightUserResponse()){
                         element.addClass(scope.CSS.correct);
                     }
                 } else {

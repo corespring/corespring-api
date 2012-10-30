@@ -11,7 +11,6 @@ import common.controllers.ItemResources
 import qti.processors.FeedbackProcessor
 import play.api.mvc._
 import testplayer.models.ExceptionMessage
-import models.FeedbackIdMapEntry
 import scala.Some
 import models.Content
 import play.api.Routes
@@ -59,19 +58,6 @@ object ItemPlayer extends BaseApi with ItemResources {
     _renderItem(itemId, printMode, previewEnabled = false, sessionSettings = sessionSettings)
 
 
-  private def createItemSession(itemId: String, feedbackIdLookup: Seq[FeedbackIdMapEntry], sessionSettings: String): String = {
-    val session: ItemSession = ItemSession(
-      itemId = new ObjectId(itemId),
-      feedbackIdLookup = feedbackIdLookup,
-      settings = parseSettings(sessionSettings))
-    ItemSession.save(session, ItemSession.collection.writeConcern)
-    ItemSession.begin(session) match {
-      case Left(error) => throw new RuntimeException("couldn't begin the session")
-      case Right(s) => s.id.toString
-    }
-  }
-
-
   private def _renderItem(itemId: String, printMode: Boolean = false, previewEnabled: Boolean = false, sessionSettings: String = "") = ApiAction {
     request =>
       try {
@@ -82,16 +68,7 @@ object ItemPlayer extends BaseApi with ItemResources {
 
             val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds) \ "itemBody")
 
-            val itemSessionId = if (printMode) "" else createItemSession(itemId, mapping, sessionSettings)
-
-            val qtiXml = <assessmentItem
-            print-mode={if (printMode) "true" else "false"}
-            cs:itemId={itemId}
-            cs:itemSessionId={itemSessionId}
-            cs:feedbackEnabled="true"
-            cs:noResponseAllowed="true">
-              {itemBody}
-            </assessmentItem>
+            val qtiXml = <assessmentItem print-mode={printMode.toString}>{itemBody}</assessmentItem>
 
             val finalXml = removeNamespaces(qtiXml)
 
@@ -101,33 +78,12 @@ object ItemPlayer extends BaseApi with ItemResources {
         }
       } catch {
         case e: SAXParseException => {
-          // xml processing error - inform the user
           val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
           Ok(testplayer.views.html.itemPlayerError(errorInfo))
         }
         case e: Exception => throw new RuntimeException("ItemPlayer.renderItem: " + e.getMessage, e)
       }
 
-  }
-
-
-  /**
-   * Parse the item session settings
-   * @param json
-   * @return
-   */
-  private def parseSettings(json: String): ItemSessionSettings = {
-    if (json.isEmpty)
-      new ItemSessionSettings()
-    else {
-      try {
-        val settings = Json.parse(json).as[ItemSessionSettings]
-        settings
-      }
-      catch {
-        case e: Exception => new ItemSessionSettings()
-      }
-    }
   }
 
   /**

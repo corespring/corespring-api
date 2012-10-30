@@ -22,12 +22,23 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
         $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
 
             if (!responses) return;
-            if (!$scope.isFeedbackEnabled()) return;
 
             var correctResponse = responses[modelToUpdate];
             var isCorrect = QtiUtils.compare($scope.choice, correctResponse);
-            var css = isCorrect ? 'correct-response' : 'incorrect-response';
-            element.toggleClass(css);
+
+            element
+                .removeClass('correct-response')
+                .removeClass('incorrect-response');
+
+            if( isCorrect ){
+                if( $scope.highlightCorrectResponse() || $scope.highlightUserResponse()){
+                   element.addClass('correct-response');
+                }
+            } else {
+                if( $scope.highlightUserResponse() ){
+                    element.addClass('incorrect-response');
+                }
+            }
         });
 
     };

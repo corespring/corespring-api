@@ -120,11 +120,9 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
                 var tidyUp = function() {
                     element
-                        .removeClass('correct-selection')
-                        .removeClass('incorrect-selection')
+                        .removeClass('incorrect-response')
                         .removeClass('correct-response')
-                        .removeClass('correct-selection-horizontal')
-                        .removeClass('incorrect-selection-horizontal')
+                        .removeClass('incorrect-response-horizontal')
                         .removeClass('correct-response-horizontal');
                 };
 
@@ -150,7 +148,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                     }
 
                     if (isSelected() && localScope.highlightUserResponse()) {
-                        var className = isCorrect ? 'correct-selection' : 'incorrect-selection';
+                        var className = isCorrect ? 'correct-response' : 'incorrect-response';
                         element.toggleClass(isHorizontal ? (className+"-horizontal") : className);
                     }
                 });

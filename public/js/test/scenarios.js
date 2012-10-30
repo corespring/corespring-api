@@ -54,7 +54,7 @@ describe('Item Player', function () {
     it('Should click', function () {
         element("input[value='obama']").click();
         element("a:contains('Submit')").click();
-        expect(element("simplechoice[identifier='obama']").attr('class')).toContain("incorrect-selection");
+        expect(element("simplechoice[identifier='obama']").attr('class')).toContain("incorrect-response");
         expect(element("simplechoice[identifier='calderon']").attr('class')).toContain("correct-response");
     });
 

@@ -149,6 +149,18 @@ class ItemSessionTest extends Specification {
       }
     }
 
+    "automatically start an item if its not started" in {
+      val session = ItemSession(itemId = new ObjectId())
+      ItemSession.save(session)
+      ItemSession.process(session, DummyXml) match {
+        case Left(e) => failure("error: " + e.message)
+        case Right(processed) => {
+         processed.isStarted must equalTo(true)
+          success
+        }
+      }
+    }
+
     "return a finish after the first attempt if only one attempt is allowed" in {
       val settings = ItemSessionSettings(maxNoOfAttempts = 1)
       val session = ItemSession(itemId = new ObjectId(), settings = settings)

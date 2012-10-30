@@ -104,6 +104,19 @@ describe('qtiDirectives.textentryinteraction', function () {
             assertUi({highlightCorrectResponse:false, highlightUserResponse:false}, false, false);
         });
 
+
+        it('highlights correct response when its the users response and correct response highlighting is disabled', function() {
+            var interaction = getInteraction();
+            helper.setSessionSettings( rootScope, { highlightUserResponse: true, highlightCorrectResponse: false});
+
+            interaction.scope.$apply( function(){
+               interaction.scope.textResponse = "a";
+            });
+            helper.setCorrectResponseOnScope(rootScope, "rid","a");
+            expect(interaction.element.attr('class').contains('correct-response')).toBe(true);
+        });
+
+
         it('resets the ui', function () {
             var interaction = getInteraction();
             var element = interaction.element;
