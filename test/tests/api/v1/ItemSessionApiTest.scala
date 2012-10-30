@@ -130,7 +130,7 @@ class ItemSessionApiTest extends Specification {
   }
 
   "process" should {
-    "ignore any settings" in {
+    "ignore any settings in the model" in {
 
       val settings = ItemSessionSettings(maxNoOfAttempts = 5)
       val session = ItemSession(itemId = new ObjectId(IDs.Item), settings = settings)
