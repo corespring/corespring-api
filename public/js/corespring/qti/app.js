@@ -28,7 +28,7 @@ function QtiAppController($scope, $timeout, AssessmentSessionService) {
             sessionId:$scope.itemSession.id
         };
 
-        AssessmentSessionService.create({itemId: $scope.itemSession.itemId}, $scope.itemSession, function (data) {
+        AssessmentSessionService.create({itemId:$scope.itemSession.itemId}, $scope.itemSession, function (data) {
             $scope.itemSession = data;
         });
 
@@ -66,7 +66,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 $scope.formDisabled = false;
             });
 
-            $scope.$watch('itemSession', function(newValue){
+            $scope.$watch('itemSession', function (newValue) {
                 apiCallParams.itemId = ( newValue.itemId || $attrs.csItemid);
                 apiCallParams.sessionId = ( newValue.id || $attrs.csItemsessionid);
                 console.log("new id: " + apiCallParams.sessionId);
@@ -166,9 +166,24 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
             };
 
+            var isSettingEnabled = function (name) {
+                if (!$scope.itemSession || !$scope.itemSession.settings) {
+                    return false;
+                }
+                return $scope.itemSession.settings[name];
+            };
+
             $scope.isFeedbackEnabled = function () {
-                return $scope.feedbackEnabled;
-            }
+                return isSettingEnabled("showFeedback");
+            };
+
+            $scope.highlightCorrectResponse = function () {
+                return isSettingEnabled("highlightCorrectResponse")
+            };
+
+            $scope.highlightUserResponse = function() {
+                return isSettingEnabled("highlightUserResponse")
+            };
         }
     };
 });

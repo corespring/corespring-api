@@ -23,51 +23,10 @@ describe('qtiDirectives.choiceinteraction', function () {
         return helper.compileAndGetScope(rootScope, compile, node);
     };
 
-    var mockApplied = false;
-
-    beforeEach(function () {
-
-        if (mockApplied) {
-            return;
-        }
-
-        var __this = {
-
-            MockChoiceInteractionController:function () {
-                console.log("mock choiceInteraction controller ");
-                this.scope = {
-                    setChosenItem:function (value) {
-                        this.chosenValue = value;
-                    }
-                };
-            }
-        };
-
-        /**
-         * a directive that allows you to mock the outer controller of a directive.
-         * eg: if a directive <a/> requires a controller from a directive <x/> (aka <x><a></a></x>)
-         * Then instead of wrapping it (x itself may need other directives),
-         * you can just go: <mock-controller node="x" ctrl="XMock"><a></a></mock-controller>
-         * where XMock is defined above
-         */
-        angular.module('qti')
-            .directive('mockController', function () {
-
-                return {
-                    restrict:'E',
-                    transclude:true,
-                    template:'<span ng-transclude></span>',
-                    compile:function (element, attrs, transclude) {
-                        console.log("add mock controller to element...");
-                        var nodeName = attrs["node"];
-                        element.data('$' + nodeName + 'Controller', new __this[attrs["ctrl"]]());
-                        return function ($scope, element, attrs) {
-                        }
-                    }
-                };
-            });
-        mockApplied = true;
+    afterEach(function() {
+        rootScope = null;
     });
+
 
     beforeEach(module('qti'));
 
@@ -76,6 +35,8 @@ describe('qtiDirectives.choiceinteraction', function () {
     beforeEach(inject(function ($compile, $rootScope, _$httpBackend_) {
         helper.prepareBackend(_$httpBackend_);
         rootScope = $rootScope.$new();
+
+        rootScope.highlightCorrectResponse = function(){ return true};
         compile = $compile;
     }));
 
@@ -122,6 +83,7 @@ describe('qtiDirectives.choiceinteraction', function () {
                 expect(interaction.scope.controller.findItemByKey("question").value).toEqual(["a"]);
             });
 
+
             it('watches showNoResponseFeedback', function () {
                 var interaction = getRadioInteraction();
 
@@ -148,20 +110,14 @@ describe('qtiDirectives.choiceinteraction', function () {
     describe('simplechoice', function () {
 
         var getSimpleChoiceInteraction = function () {
-            var node = ['<mock-controller node="choiceinteraction" responseidentifier="rid" ctrl="MockChoiceInteractionController">',
-                '<div><simplechoice identifier="a">hello</simplechoice></div>',
-                '</mock-controller>'].join("\n");
-            var element = compile(node)(rootScope);
+            var node = [
+                '<choiceInteraction responseIdentifier="question" maxChoices="1">',
+            '<simpleChoice identifier="a">A</simpleChoice>',
+            '</choiceInteraction>'].join("\n");
 
-            var mockScope = rootScope.$$childHead;
-
-            mockScope.isFeedbackEnabled = function() {return true;};
-
-            return {
-                scope:mockScope.$$childHead,
-                element:element.find('simplechoice'),
-                mockScope: mockScope
-            };
+            var r = getInteraction(node);
+            console.log("r: " + r);
+            return { scope: r.scope.$$childHead, element:  r.element.find("simpleChoice") };
         };
 
         it('inits', function () {
@@ -172,24 +128,70 @@ describe('qtiDirectives.choiceinteraction', function () {
             expect(interaction.scope.value).toEqual("a");
         });
 
+
+        it('highlights correct response', function() {
+
+            var interaction = getSimpleChoiceInteraction();
+            helper.setSessionSettings( rootScope, { highlightCorrectResponse: true});
+            interaction.scope.setChosenItem("a");
+            setCorrectResponseOnScope("question","a");
+            expect(interaction.element.attr('class').contains('correct-response')).toBe(true);
+        });
+
+        it('highlights incorrect selection', function(){
+            var interaction = getSimpleChoiceInteraction();
+            helper.setSessionSettings(rootScope, { highlightUserResponse : true});
+            interaction.scope.setChosenItem("a");
+            setCorrectResponseOnScope("question","b");
+            expect(interaction.element.attr('class').contains('incorrect-selection')).toBe(true);
+        });
+
+        it('does not highlight incorrect selection if disabled', function(){
+            var interaction = getSimpleChoiceInteraction();
+            helper.setSessionSettings(rootScope, { highlightUserResponse : false});
+            interaction.scope.setChosenItem("a");
+            setCorrectResponseOnScope("question","b");
+            expect(interaction.element.attr('class').contains('incorrect-selection')).toBe(false);
+        });
+
+        it('does not highlight correct response if not enabled', function() {
+            var interaction = getSimpleChoiceInteraction();
+            helper.setSessionSettings( rootScope, { highlightCorrectResponse: false});
+            interaction.scope.setChosenItem("a");
+            setCorrectResponseOnScope("question","a");
+            console.log(interaction.element.attr('class'));
+            expect(interaction.element.attr('class').contains('correct-response')).toBe(false);
+        });
+
+        /**
+         * Set the correctResponses value on the rootScope
+         * @param value
+         */
+        var setCorrectResponseOnScope = function( key, value ){
+            rootScope.itemSession = (rootScope.itemSession || {});
+            rootScope.itemSession.sessionData = (rootScope.itemSession.sessionData || {});
+            
+            rootScope.$apply(function () {
+                var obj = {};
+                obj[key] = value;
+                rootScope.itemSession.sessionData.correctResponses = obj;
+            });
+        };
+
         it('responds to click', function () {
             var interaction = getSimpleChoiceInteraction();
+
+            helper.setSessionSettings( rootScope, { highlightCorrectResponse: true});
+
             interaction.scope.onClick();
 
-            expect(interaction.scope.controller.scope.chosenValue).toBe("a");
+            expect(interaction.scope.controller.scope.chosenItem).toBe("a");
 
-            rootScope.itemSession = {};
-            rootScope.itemSession.sessionData = {};
-
-            rootScope.$apply(function () {
-                rootScope.itemSession.sessionData.correctResponses = { rid:"a" }
-            });
+            setCorrectResponseOnScope("question","a");
 
             expect(interaction.element.attr('class').contains('correct-response')).toBe(true);
 
-            rootScope.$apply(function () {
-                rootScope.itemSession.sessionData.correctResponses = { rid:"b" }
-            });
+            setCorrectResponseOnScope("question","b");
 
             expect(interaction.element.attr('class').contains('correct-response')).toBe(false);
         });
@@ -197,18 +199,18 @@ describe('qtiDirectives.choiceinteraction', function () {
         it('resets ui', function(){
 
             var interaction = getSimpleChoiceInteraction();
-            interaction.scope.onClick();
-            rootScope.$apply(function () {
-                rootScope.itemSession = {};
-                rootScope.itemSession.sessionData = {};
-                rootScope.itemSession.sessionData.correctResponses = { rid:"a" }
-            });
 
-//            expect(interaction.element.attr('class').contains('correct-response')).toBe(true);
+            helper.setSessionSettings( rootScope, { highlightCorrectResponse: true});
+
+            interaction.scope.onClick();
+
+            setCorrectResponseOnScope("question", "a");
+
+            expect(interaction.element.attr('class').contains('correct-response')).toBe(true);
 
             rootScope.$broadcast('resetUI');
 
-//            expect(interaction.element.attr('class').contains('correct-response')).toBe(false);
+            expect(interaction.element.attr('class').contains('correct-response')).toBe(false);
 
         });
     });

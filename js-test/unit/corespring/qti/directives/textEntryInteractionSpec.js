@@ -62,6 +62,8 @@ describe('qtiDirectives.textentryinteraction', function () {
             var element = interaction.element;
             var scope = interaction.scope;
 
+            helper.setFeedbackEnabled(rootScope, rootScope.itemSession, true);
+
             scope.$apply(function () {
                 scope.textResponse = "correct";
             });

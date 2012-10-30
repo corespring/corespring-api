@@ -98,7 +98,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                 };
 
                 var isSelected = function () {
-                    var responseId = QtiUtils.getResponseValue(responseIdentifier, localScope.itemSession.responses, "");
+                    var responseId = QtiUtils.getResponseValue(responseIdentifier, localScope.responses, "");
                     return QtiUtils.compare(localScope.value, responseId);
                 };
 
@@ -106,14 +106,15 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                     return QtiUtils.compare(localScope.value, correctResponse)
                 };
 
-                var applyCss = function (correct, selected) {
-                    tidyUp();
-                    if (selected) {
-                        var className = correct ? 'correct-selection' : 'incorrect-selection';
-                        element.toggleClass(isHorizontal ? (className+"-horizontal") : className);
-                    }
-                    if (correct) {
-                        element.toggleClass(isHorizontal ? 'correct-response-horizontal' : 'correct-response');
+                var applyCorrectResponseStyle = function(){
+                    clear('correct-response', 'correct-response-horizontal');
+
+                    element.toggleClass(isHorizontal ? 'correct-response-horizontal' : 'correct-response');
+                };
+
+                var clear = function(){
+                    for(var i = 0 ; i < arguments.length; i++){
+                        element.removeClass(arguments[i]);
                     }
                 };
 
@@ -138,11 +139,20 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                 localScope.$watch('itemSession.sessionData.correctResponses', function (responses) {
 
                     if (!responses) return;
-                    if (!localScope.isFeedbackEnabled()) return;
 
                     var correctResponse = responses[responseIdentifier];
                     var isCorrect = isOurResponseCorrect(correctResponse);
-                    applyCss(isCorrect, isSelected());
+
+                    tidyUp();
+
+                    if(isCorrect && localScope.highlightCorrectResponse()){
+                        applyCorrectResponseStyle();
+                    }
+
+                    if (isSelected() && localScope.highlightUserResponse()) {
+                        var className = isCorrect ? 'correct-selection' : 'incorrect-selection';
+                        element.toggleClass(isHorizontal ? (className+"-horizontal") : className);
+                    }
                 });
 
             };

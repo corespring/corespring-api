@@ -1,10 +1,10 @@
-(function(){
+(function () {
 
     window.com = (window.com || {});
     com.qti = (com.qti || {});
     com.qti.helpers = (com.qti.helpers || {});
 
-    com.qti.helpers.QtiHelper = function(){
+    com.qti.helpers.QtiHelper = function () {
         var that = this;
         this.assessmentItemWrapper = [
             '<assessmentitem ',
@@ -41,6 +41,22 @@
             var element = $compile(that.wrap(node))($rootScope);
             return { element:element.children(), scope:$rootScope.$$childHead};
         };
+
+
+        this.setSessionSettings = function($rootScope, settings ){
+
+            console.log("setSessionSettings: " + settings);
+
+            $rootScope.itemSession = ($rootScope.itemSession || {});
+
+            $rootScope.$apply(function () {
+                $rootScope.itemSession.settings = settings;
+            });
+        };
+
+        this.setFeedbackEnabled = function ($rootScope, itemSession, show) {
+            this.setSessionSettings($rootScope, {showFeedback: show});
+        }
 
     };
 
