@@ -67,8 +67,6 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             });
 
             $scope.$watch('itemSession', function(newValue){
-                console.log("assessment item - new itemSession: " + newValue);
-
                 apiCallParams.itemId = ( newValue.itemId || $attrs.csItemid);
                 apiCallParams.sessionId = ( newValue.id || $attrs.csItemsessionid);
                 console.log("new id: " + apiCallParams.sessionId);

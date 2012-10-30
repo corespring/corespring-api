@@ -26,7 +26,7 @@
             var urls = [
                 {
                     method:'GET',
-                    url:'/api/v1/items/itemId/sessions/itemSessionId?access_token=34dj45a769j4e1c0h4wb',
+                    url:'/api/v1/items/itemId/sessions/itemSessionId',
                     response:{"id":"itemSessionId", "itemId":"itemId", "start":1349970769197, "responses":[]}
                 }
             ];
