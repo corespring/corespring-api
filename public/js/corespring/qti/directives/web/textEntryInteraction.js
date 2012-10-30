@@ -41,12 +41,20 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
 
             scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
                 if (!responses) return;
-                if (!scope.isFeedbackEnabled()) return;
 
                 var correctResponse = responses[responseIdentifier];
-                var className = isCorrect(correctResponse) ? scope.CSS.correct : scope.CSS.incorrect;
+
                 removeCss();
-                element.toggleClass(className);
+
+                if( isCorrect(correctResponse) ){
+                    if(scope.highlightCorrectResponse()){
+                        element.addClass(scope.CSS.correct);
+                    }
+                } else {
+                    if( scope.highlightUserResponse()){
+                        element.addClass(scope.CSS.incorrect);
+                    }
+                }
             });
         }
     }

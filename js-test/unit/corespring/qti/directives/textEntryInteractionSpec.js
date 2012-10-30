@@ -56,35 +56,52 @@ describe('qtiDirectives.textentryinteraction', function () {
             expect(scope.noResponse).toBe(true);
         });
 
-        it('updates the ui on response received', function () {
-            var interaction = getInteraction();
 
+        var matchedClass = function(source, search){
+            var regex = new RegExp(".*?[$|\\s]" + search + ".*");
+            var matched = source.match(regex);
+            console.log(matched);
+            return matched != null;
+        };
+
+
+        /**
+         * Assert ui behaviour - using the item session seetings for feedback
+         * Test for correct and incorrect responses.
+         * @param settings
+         * @param correctCssVisible
+         * @param incorrectCssVisible
+         */
+        var assertUi = function( settings, correctCssVisible, incorrectCssVisible) {
+
+            var interaction = getInteraction();
             var element = interaction.element;
             var scope = interaction.scope;
 
-            helper.setFeedbackEnabled(rootScope, rootScope.itemSession, true);
+            helper.setSessionSettings(rootScope, settings);
 
             scope.$apply(function () {
                 scope.textResponse = "correct";
             });
 
-            rootScope.$apply(function () {
-                rootScope.itemSession.sessionData = {};
-                rootScope.itemSession.sessionData.correctResponses = { rid:"correct" }
-            });
+            helper.setCorrectResponseOnScope(rootScope, "rid", "correct");
 
-            expect(element.attr('class').contains(scope.CSS.correct)).toBe(true);
+            console.log("element class: " + element.attr('class'));
+
+            expect( matchedClass(element.attr('class'), scope.CSS.correct) ).toBe(correctCssVisible);
 
             scope.$apply(function () {
                 scope.textResponse = "incorrect";
             });
 
-            rootScope.$apply(function () {
-                rootScope.itemSession.sessionData = {};
-                rootScope.itemSession.sessionData.correctResponses = { rid:"correct" }
-            });
+            helper.setCorrectResponseOnScope(rootScope, "rid", "correct");
+            expect(matchedClass(element.attr('class'), scope.CSS.incorrect)).toBe(incorrectCssVisible);
+        };
 
-            expect(element.attr('class').contains(' ' + scope.CSS.correct)).toBe(false);
+        it('updates the ui on response received', function () {
+            assertUi({highlightCorrectResponse:true, highlightUserResponse:true}, true, true);
+            assertUi({highlightCorrectResponse:false, highlightUserResponse:true}, false, true);
+            assertUi({highlightCorrectResponse:false, highlightUserResponse:false}, false, false);
         });
 
         it('resets the ui', function () {

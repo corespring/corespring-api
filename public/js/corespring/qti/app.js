@@ -54,8 +54,10 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             $scope.printMode = ( $attrs['printMode'] == "true" || false );
             var noResponseAllowed = $attrs.csNoresponseallowed;
 
-            //TODO: The way we initialize the directive is a bit messy as it comes from 2 sources (xml or watch)
-            //Also we have service calls in the directive - is that ok?
+            /**
+             * TODO: The way we initialize the directive is a bit messy as it comes from 2 sources (xml or watch)
+             * Also we have service calls in the directive - is that ok?
+             */
             var apiCallParams = {
                 itemId:$attrs.csItemid,
                 sessionId:$attrs.csItemsessionid
@@ -69,6 +71,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             $scope.$watch('itemSession', function (newValue) {
                 apiCallParams.itemId = ( newValue.itemId || $attrs.csItemid);
                 apiCallParams.sessionId = ( newValue.id || $attrs.csItemsessionid);
+                noResponseAllowed = newValue.settings.allowEmptyResponses;
                 console.log("new id: " + apiCallParams.sessionId);
                 $scope.$broadcast('resetUI');
                 $scope.formDisabled = false;
@@ -103,7 +106,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                     if ($scope.isEmptyItem($scope.responses[i].value)) return true;
                 }
                 return false;
-            }
+            };
 
             // sets a response for a given question/interaction
             this.setResponse = function (key, responseValue) {

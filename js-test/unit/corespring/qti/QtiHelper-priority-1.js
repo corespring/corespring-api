@@ -56,7 +56,23 @@
 
         this.setFeedbackEnabled = function ($rootScope, itemSession, show) {
             this.setSessionSettings($rootScope, {showFeedback: show});
-        }
+        };
+
+
+        /**
+         * Set the correctResponses value on the rootScope
+         * @param value
+         */
+        this.setCorrectResponseOnScope = function( rootScope, key, value ){
+            rootScope.itemSession = (rootScope.itemSession || {});
+            rootScope.itemSession.sessionData = (rootScope.itemSession.sessionData || {});
+
+            rootScope.$apply(function () {
+                var obj = {};
+                obj[key] = value;
+                rootScope.itemSession.sessionData.correctResponses = obj;
+            });
+        };
 
     };
 

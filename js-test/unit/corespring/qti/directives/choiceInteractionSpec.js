@@ -134,7 +134,7 @@ describe('qtiDirectives.choiceinteraction', function () {
             var interaction = getSimpleChoiceInteraction();
             helper.setSessionSettings( rootScope, { highlightCorrectResponse: true});
             interaction.scope.setChosenItem("a");
-            setCorrectResponseOnScope("question","a");
+            helper.setCorrectResponseOnScope(rootScope, "question","a");
             expect(interaction.element.attr('class').contains('correct-response')).toBe(true);
         });
 
@@ -142,7 +142,7 @@ describe('qtiDirectives.choiceinteraction', function () {
             var interaction = getSimpleChoiceInteraction();
             helper.setSessionSettings(rootScope, { highlightUserResponse : true});
             interaction.scope.setChosenItem("a");
-            setCorrectResponseOnScope("question","b");
+            helper.setCorrectResponseOnScope( rootScope, "question","b");
             expect(interaction.element.attr('class').contains('incorrect-selection')).toBe(true);
         });
 
@@ -150,7 +150,7 @@ describe('qtiDirectives.choiceinteraction', function () {
             var interaction = getSimpleChoiceInteraction();
             helper.setSessionSettings(rootScope, { highlightUserResponse : false});
             interaction.scope.setChosenItem("a");
-            setCorrectResponseOnScope("question","b");
+            helper.setCorrectResponseOnScope( rootScope, "question","b");
             expect(interaction.element.attr('class').contains('incorrect-selection')).toBe(false);
         });
 
@@ -158,25 +158,11 @@ describe('qtiDirectives.choiceinteraction', function () {
             var interaction = getSimpleChoiceInteraction();
             helper.setSessionSettings( rootScope, { highlightCorrectResponse: false});
             interaction.scope.setChosenItem("a");
-            setCorrectResponseOnScope("question","a");
+            helper.setCorrectResponseOnScope(rootScope, "question","a");
             console.log(interaction.element.attr('class'));
             expect(interaction.element.attr('class').contains('correct-response')).toBe(false);
         });
 
-        /**
-         * Set the correctResponses value on the rootScope
-         * @param value
-         */
-        var setCorrectResponseOnScope = function( key, value ){
-            rootScope.itemSession = (rootScope.itemSession || {});
-            rootScope.itemSession.sessionData = (rootScope.itemSession.sessionData || {});
-            
-            rootScope.$apply(function () {
-                var obj = {};
-                obj[key] = value;
-                rootScope.itemSession.sessionData.correctResponses = obj;
-            });
-        };
 
         it('responds to click', function () {
             var interaction = getSimpleChoiceInteraction();
@@ -187,11 +173,11 @@ describe('qtiDirectives.choiceinteraction', function () {
 
             expect(interaction.scope.controller.scope.chosenItem).toBe("a");
 
-            setCorrectResponseOnScope("question","a");
+            helper.setCorrectResponseOnScope( rootScope, "question","a");
 
             expect(interaction.element.attr('class').contains('correct-response')).toBe(true);
 
-            setCorrectResponseOnScope("question","b");
+            helper.setCorrectResponseOnScope( rootScope, "question","b");
 
             expect(interaction.element.attr('class').contains('correct-response')).toBe(false);
         });
@@ -204,7 +190,7 @@ describe('qtiDirectives.choiceinteraction', function () {
 
             interaction.scope.onClick();
 
-            setCorrectResponseOnScope("question", "a");
+            helper.setCorrectResponseOnScope( rootScope, "question", "a");
 
             expect(interaction.element.attr('class').contains('correct-response')).toBe(true);
 
