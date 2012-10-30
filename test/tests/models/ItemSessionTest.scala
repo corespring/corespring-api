@@ -149,6 +149,17 @@ class ItemSessionTest extends Specification {
       }
     }
 
+    "return a finish after the first attempt if only one attempt is allowed" in {
+      val settings = ItemSessionSettings(maxNoOfAttempts = 1)
+      val session = ItemSession(itemId = new ObjectId(), settings = settings)
+      ItemSession.begin(session)
+      ItemSession.process(session, DummyXml) match {
+        case Left(e) => failure
+        case Right(s) => s.finish must not beNone
+      }
+      success
+    }
+
   }
 
   "new item session" should {

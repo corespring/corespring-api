@@ -28,8 +28,8 @@ object ItemPlayer extends BaseApi with ItemResources {
     Ok(
       Routes.javascriptRouter("TestPlayerRoutes")(
         ItemSessionApi.update,
-        ItemSessionApi.getItemSession,
-        ItemSessionApi.createItemSession
+        ItemSessionApi.get,
+        ItemSessionApi.create
       )
     ).as("text/javascript")
   }

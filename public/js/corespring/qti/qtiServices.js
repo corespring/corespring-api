@@ -12,30 +12,23 @@ qtiServices.factory('AssessmentSessionService', ['$resource', function ($resourc
       }
     };
 
-    //var baseUrl = '/api/v1/items/:itemId/sessions';
     var api = TestPlayerRoutes.api.v1.ItemSessionApi;
     var calls  = {
-        get: api.getItemSession(":itemId", ":sessionId"),
-        begin: api.begin(":itemId", ":sessionId"),
-        create: api.createItemSession(":itemId"),
-        process: api.processResponse(":itemId", ":sessionId"),
-        update2: api.update(":itemId", ":sessionId")
+        get: api.get(":itemId", ":sessionId"),
+        create: api.create(":itemId"),
+        update: api.update(":itemId", ":sessionId")
     };
 
     var AssessmentSessionService = $resource(
         calls.get.url,
         {},
         {
-            get: calls.get,
-            update2: calls.update2,
             create: calls.create,
-            process: calls.process
+            save: calls.update,
+            begin: { method: calls.update.method, params: { action: "begin"} },
+            updateSettings: { method: calls.update.method, params: { action: "updateSettings"} }
         }
     );
-
-    AssessmentSessionService.getCreateUrl = function( itemId, accessToken ){
-        return baseUrl.replace(":itemId", itemId) + "?access_token=" + accessToken;
-    };
 
     return AssessmentSessionService;
 }]);

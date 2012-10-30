@@ -56,7 +56,7 @@ class ItemSessionApiTest extends Specification {
 
   def createNewSession(itemId: String = IDs.Item, content: AnyContent = AnyContentAsEmpty): ItemSession = {
     invokeCall(
-      () => Routes.createItemSession(new ObjectId(itemId)),
+      () => Routes.create(new ObjectId(itemId)),
       () => content
     )
   }
@@ -122,6 +122,28 @@ class ItemSessionApiTest extends Specification {
         }
         case _ => failure("Second update didn't work")
       }
+    }
+  }
+
+  "process" should {
+    "ignore any settings" in {
+
+      val settings = ItemSessionSettings(maxNoOfAttempts = 5)
+      val session = ItemSession(itemId = new ObjectId(IDs.Item), settings = settings)
+      val newSession = createNewSession(IDs.Item, AnyContentAsJson(Json.toJson(session)))
+      newSession.settings.maxNoOfAttempts must equalTo(settings.maxNoOfAttempts)
+
+      newSession.settings.maxNoOfAttempts = 10
+      val processed = processResponse(newSession)
+      processed.settings.maxNoOfAttempts must equalTo(settings.maxNoOfAttempts)
+    }
+
+    "return a finish after the first attempt if only one attempt is allowed" in {
+      val settings = ItemSessionSettings(maxNoOfAttempts = 1)
+      val session = ItemSession(itemId = new ObjectId(IDs.Item), settings = settings)
+      val newSession = createNewSession(IDs.Item, AnyContentAsJson(Json.toJson(session)))
+      val processed = processResponse(newSession)
+      processed.finish must not beNone
     }
   }
 
@@ -385,7 +407,7 @@ class ItemSessionApiTest extends Specification {
 
     "support retrieval of an itemsession" in {
 
-      val getCall = api.v1.routes.ItemSessionApi.getItemSession(new ObjectId(IDs.Item), new ObjectId(IDs.ItemSession))
+      val getCall = api.v1.routes.ItemSessionApi.get(new ObjectId(IDs.Item), new ObjectId(IDs.ItemSession))
 
       val getRequest = FakeRequest(
         getCall.method,

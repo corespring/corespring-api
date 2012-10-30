@@ -40,19 +40,16 @@ object ItemSessionApi extends BaseApi {
 
 
   /**
-   *
-   * Serves GET request
    * @param sessionId
    * @return
    */
-  def getItemSession(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
+  def get(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
     request =>
       ItemSession.findOneById(sessionId) match {
         case Some(itemSession) => {
           if (Content.isAuthorized(request.ctx.organization, itemSession.itemId, Permission.All)) {
             if (itemSession.finish.isDefined) {
 
-              //val cachedXml: Option[Elem] = ItemSessionXmlStore.getCachedXml(itemId.toString, sessionId.toString)
               ItemSession.getXmlWithFeedback(itemId, itemSession.feedbackIdLookup) match {
                 case Right(xml) => {
                   itemSession.sessionData = ItemSession.getSessionData(xml, itemSession.responses)
@@ -72,26 +69,24 @@ object ItemSessionApi extends BaseApi {
   }
 
   /**
-   * Serves POST request
    * Creates an itemSession.
-   * Does not require a json body, by default will create an 'empty' session for the item id
    *
    * @return json for the created item session
    */
-  def createItemSession(itemId: ObjectId) = ApiAction {
+  def create(itemId: ObjectId) = ApiAction {
     request =>
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.All)) {
         val newSession = request.body.asJson match {
           case Some(json) => {
             val jsonSession = fromJson[ItemSession](json)
-            jsonSession.id = itemId
-            jsonSession
+            //We only pull in the settings from the request
+            ItemSession( itemId = itemId, settings = jsonSession.settings )
           }
           case None => ItemSession(itemId)
         }
         getQtiXml(itemId) match {
           case Some(xml) => {
-            val (xmlWithFeedbackIds, mapping) = FeedbackProcessor.addFeedbackIds(xml)
+            val (_, mapping) = FeedbackProcessor.addFeedbackIds(xml)
             newSession.feedbackIdLookup = mapping
           }
           case _ =>
@@ -212,7 +207,6 @@ object ItemSessionApi extends BaseApi {
                 val clientSession = fromJson[ItemSession](jsonSession)
                 dbSession.finish = clientSession.finish
                 dbSession.responses = clientSession.responses
-                dbSession.settings = clientSession.settings
 
                 ItemSession.getXmlWithFeedback(itemId, dbSession.feedbackIdLookup) match {
                   case Right(xmlWithCsFeedbackIds) => {

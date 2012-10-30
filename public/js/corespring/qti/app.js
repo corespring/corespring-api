@@ -15,6 +15,11 @@ function QtiAppController($scope, $timeout, AssessmentSessionService) {
         $scope.$broadcast('reset');
     };
 
+
+    /**
+     * Because the current item session has been started - its settings are now locked.
+     * So we are going to be creating a new item session.
+     */
     $scope.reloadItem = function () {
         console.log("reloadItem..");
 
@@ -23,7 +28,7 @@ function QtiAppController($scope, $timeout, AssessmentSessionService) {
             sessionId:$scope.itemSession.id
         };
 
-        AssessmentSessionService.update2(apiCallParams, $scope.itemSession, function (data) {
+        AssessmentSessionService.create({itemId: $scope.itemSession.itemId}, $scope.itemSession, function (data) {
             $scope.itemSession = data;
         });
 
@@ -49,38 +54,29 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             $scope.printMode = ( $attrs['printMode'] == "true" || false );
             var noResponseAllowed = $attrs.csNoresponseallowed;
 
+            //TODO: The way we initialize the directive is a bit messy as it comes from 2 sources (xml or watch)
+            //Also we have service calls in the directive - is that ok?
             var apiCallParams = {
                 itemId:$attrs.csItemid,
-                sessionId:$attrs.csItemsessionid,
-                access_token:"34dj45a769j4e1c0h4wb"
+                sessionId:$attrs.csItemsessionid
             };
-
-            var createNewItemSession = function () {
-
-                var createUrl = AssessmentSessionService.getCreateUrl(apiCallParams.itemId, apiCallParams.access_token);
-                $http({method:'POST', url:createUrl }).
-                    success(function (data, status, headers, config) {
-                        apiCallParams.sessionId = data.id;
-                    }).
-                    error(function (data, status, headers, config) {
-                        throw "Error creating new ItemSession";
-                    });
-            };
-
-
-            $scope.$watch('itemSession', function(newValue){
-                console.log("assessment item - new itemSession: " + newValue)
-            });
 
             $scope.$on('reset', function (event) {
-                createNewItemSession();
                 $scope.$broadcast('resetUI');
                 $scope.formDisabled = false;
             });
 
+            $scope.$watch('itemSession', function(newValue){
+                console.log("assessment item - new itemSession: " + newValue);
 
-            // get item session - parameters for session behavior will be defined there
-            // TODO it is an error if there is no session found
+                apiCallParams.itemId = ( newValue.itemId || $attrs.csItemid);
+                apiCallParams.sessionId = ( newValue.id || $attrs.csItemsessionid);
+                console.log("new id: " + apiCallParams.sessionId);
+                $scope.$broadcast('resetUI');
+                $scope.formDisabled = false;
+            });
+
+            //TODO: move this out of the directive.
             $scope.itemSession = AssessmentSessionService.get(apiCallParams);
 
             $scope.feedbackEnabled = ($scope.itemSession.feedbackEnabled || true);
@@ -157,7 +153,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                     $scope.itemSession.finish = new Date().getTime();
                 }
 
-                AssessmentSessionService.process(apiCallParams, $scope.itemSession, function (data) {
+                AssessmentSessionService.save(apiCallParams, $scope.itemSession, function (data) {
 
                     $scope.itemSession = data;
 

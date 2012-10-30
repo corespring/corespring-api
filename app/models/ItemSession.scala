@@ -156,14 +156,13 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
   /**
    * Process the item session responses and return feedback.
    * If this iteration exceeds the number of attempts the finish it.
-   * @param updateSession
+   * @param update
    * @param xmlWithCsFeedbackIds
    * @return
    */
-  def process(updateSession: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem): Either[InternalError, ItemSession] = withDbSession(updateSession) {
+  def process(update: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem): Either[InternalError, ItemSession] = withDbSession(update) {
     dbSession =>
 
-      finishSessionIfNeeded(dbSession)
 
       if (dbSession.isFinished) {
         Left(InternalError("The session is finished"))
@@ -171,13 +170,14 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
 
         val dbo: BasicDBObject = new BasicDBObject()
 
-        if (updateSession.isFinished) dbo.put(finish, updateSession.finish.get)
-        if (!updateSession.responses.isEmpty) dbo.put(responses, updateSession.responses.map(grater[ItemResponse].asDBObject(_)))
+        if (update.isFinished) dbo.put(finish, update.finish.get)
+        if (!update.responses.isEmpty) dbo.put(responses, update.responses.map(grater[ItemResponse].asDBObject(_)))
 
-        val update = MongoDBObject(("$set", dbo), ("$inc", MongoDBObject(("attempts", 1))))
+        val dboUpdate = MongoDBObject(("$set", dbo), ("$inc", MongoDBObject(("attempts", 1))))
 
-        updateFromDbo(updateSession.id, update, (updatedSession) => {
-          updatedSession.sessionData = getSessionData(xmlWithCsFeedbackIds, updatedSession.responses)
+        updateFromDbo(update.id, dboUpdate, (u) => {
+          finishSessionIfNeeded(u)
+          u.sessionData = getSessionData(xmlWithCsFeedbackIds, u.responses)
         })
 
       }
@@ -209,9 +209,11 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
       }
       if (session.start.isDefined) {
         seq = seq :+ (start -> JsNumber(session.start.get.getMillis))
+        seq = seq :+ ("isStarted" -> JsBoolean(session.isStarted))
       }
       if (session.finish.isDefined) {
         seq = seq :+ (finish -> JsNumber(session.finish.get.getMillis))
+        seq = seq :+ ("isFinished" -> JsBoolean(session.isFinished))
       }
 
       seq = seq :+ (settings -> Json.toJson(session.settings))
