@@ -38,8 +38,7 @@ class ItemSessionApiTest extends Specification {
     val ItemSession: String = "502d0f823004deb7f4f53be7"
   }
 
-  def invokeCall(makeCallFn: (() => Call), makeContent: (() => AnyContent), args: (String, String)*): ItemSession = {
-    val call = makeCallFn()
+  def invokeCall(call: Call, content:  AnyContent, args: (String, String)*): ItemSession = {
 
     val url = call.url + "?" + args.toList.map((a: (String, String)) => a._1 + "=" + a._2).mkString("&")
     println("calling: " + call.method + " " + url)
@@ -47,7 +46,7 @@ class ItemSessionApiTest extends Specification {
       call.method,
       url,
       FakeAuthHeader,
-      makeContent())
+      content)
 
     val result = routeAndCall(request).get
     val json: JsValue = Json.parse(contentAsString(result))
@@ -56,34 +55,34 @@ class ItemSessionApiTest extends Specification {
 
   def createNewSession(itemId: String = IDs.Item, content: AnyContent = AnyContentAsEmpty): ItemSession = {
     invokeCall(
-      () => Routes.create(new ObjectId(itemId)),
-      () => content
+       Routes.create(new ObjectId(itemId)),
+      content
     )
   }
 
   def get(sessionId : String, itemId : String) : ItemSession = {
-    invokeCall( () => Routes.get(new ObjectId(itemId), new ObjectId(sessionId)), () => AnyContentAsEmpty  )
+    invokeCall(  Routes.get(new ObjectId(itemId), new ObjectId(sessionId)), AnyContentAsEmpty  )
   }
 
   def processResponse(session: ItemSession): ItemSession = {
     invokeCall(
-      () => Routes.update(session.itemId, session.id),
-      () => AnyContentAsJson(Json.toJson(session))
+       Routes.update(session.itemId, session.id),
+       AnyContentAsJson(Json.toJson(session))
     )
   }
 
   def update(session: ItemSession): ItemSession = {
     invokeCall(
-      () => Routes.update(session.itemId, session.id),
-      () => AnyContentAsJson(Json.toJson(session)),
+       Routes.update(session.itemId, session.id),
+       AnyContentAsJson(Json.toJson(session)),
       ("action", "updateSettings")
     )
   }
 
   def begin(s: ItemSession) = {
     invokeCall(
-      () => Routes.update(s.itemId, s.id),
-      () => AnyContentAsJson(Json.toJson(s)),
+      Routes.update(s.itemId, s.id),
+       AnyContentAsJson(Json.toJson(s)),
       ("action", "begin")
     )
   }
@@ -314,18 +313,13 @@ class ItemSessionApiTest extends Specification {
     }
 
     "support item creation " in {
-
       val testSession = ItemSession(new ObjectId(IDs.Item))
-      testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon", "{$score:1}"))
-      testSession.responses = testSession.responses ++ Seq(ItemResponse("irishPresident", "guinness", "{$score:0}"))
-      testSession.responses = testSession.responses ++ Seq(ItemResponse("winterDiscontent", "York", "{$score:1}"))
       val newSession = createNewSession(IDs.Item, AnyContentAsJson(Json.toJson(testSession)))
       val unequalItems = getUnequalItems(newSession,testSession)
       unequalItems must be(Seq())
     }
 
     "support retrieval of an itemsession" in {
-
       val dbSession = ItemSession.findOneById( new ObjectId(IDs.ItemSession)).get
       val session = get( IDs.ItemSession, IDs.Item)
       dbSession.id must equalTo(session.id)
