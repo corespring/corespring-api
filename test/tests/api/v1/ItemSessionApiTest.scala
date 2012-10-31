@@ -7,6 +7,7 @@ import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import play.api.libs.json._
 import play.api.mvc.AnyContentAsEmpty
+import play.api.mvc.Result
 import play.api.test.FakeRequest
 import org.specs2.mutable._
 import play.api.test.Helpers._
@@ -38,7 +39,7 @@ class ItemSessionApiTest extends Specification {
     val ItemSession: String = "502d0f823004deb7f4f53be7"
   }
 
-  def invokeCall(call: Call, content:  AnyContent, args: (String, String)*): ItemSession = {
+  def invokeCall(call: Call, content: AnyContent, args: (String, String)*): ItemSession = {
 
     val url = call.url + "?" + args.toList.map((a: (String, String)) => a._1 + "=" + a._2).mkString("&")
     println("calling: " + call.method + " " + url)
@@ -55,26 +56,26 @@ class ItemSessionApiTest extends Specification {
 
   def createNewSession(itemId: String = IDs.Item, content: AnyContent = AnyContentAsEmpty): ItemSession = {
     invokeCall(
-       Routes.create(new ObjectId(itemId)),
+      Routes.create(new ObjectId(itemId)),
       content
     )
   }
 
-  def get(sessionId : String, itemId : String) : ItemSession = {
-    invokeCall(  Routes.get(new ObjectId(itemId), new ObjectId(sessionId)), AnyContentAsEmpty  )
+  def get(sessionId: String, itemId: String): ItemSession = {
+    invokeCall(Routes.get(new ObjectId(itemId), new ObjectId(sessionId)), AnyContentAsEmpty)
   }
 
   def processResponse(session: ItemSession): ItemSession = {
     invokeCall(
-       Routes.update(session.itemId, session.id),
-       AnyContentAsJson(Json.toJson(session))
+      Routes.update(session.itemId, session.id),
+      AnyContentAsJson(Json.toJson(session))
     )
   }
 
   def update(session: ItemSession): ItemSession = {
     invokeCall(
-       Routes.update(session.itemId, session.id),
-       AnyContentAsJson(Json.toJson(session)),
+      Routes.update(session.itemId, session.id),
+      AnyContentAsJson(Json.toJson(session)),
       ("action", "updateSettings")
     )
   }
@@ -82,7 +83,7 @@ class ItemSessionApiTest extends Specification {
   def begin(s: ItemSession) = {
     invokeCall(
       Routes.update(s.itemId, s.id),
-       AnyContentAsJson(Json.toJson(s)),
+      AnyContentAsJson(Json.toJson(s)),
       ("action", "begin")
     )
   }
@@ -97,7 +98,7 @@ class ItemSessionApiTest extends Specification {
       val testSession = ItemSession(itemId = new ObjectId())
 
       //testSession.id = new ObjectId(testSessionIds("itemSessionId"))
-      testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon", "{$score:1}"))
+      testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon"))
       testSession.finish = Some(new DateTime())
 
       val update = api.v1.routes.ItemSessionApi.update(new ObjectId(IDs.Item), newSession.id)
@@ -194,9 +195,9 @@ class ItemSessionApiTest extends Specification {
     val updateCall = api.v1.routes.ItemSessionApi.update(new ObjectId(IDs.Item), newSession.id)
     val testSession = ItemSession(itemId = new ObjectId(IDs.Item))
     // add some item responses
-    testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon", "{$score:1}"))
-    testSession.responses = testSession.responses ++ Seq(ItemResponse("irishPresident", "guinness", "{$score:0}"))
-    testSession.responses = testSession.responses ++ Seq(ItemResponse("winterDiscontent", "York", "{$score:1}"))
+    testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon" ))
+    testSession.responses = testSession.responses ++ Seq(ItemResponse("irishPresident", "guinness" ))
+    testSession.responses = testSession.responses ++ Seq(ItemResponse("winterDiscontent", "York" ))
     testSession.finish = Some(new DateTime())
 
     val json = Json.toJson(testSession)
@@ -285,43 +286,53 @@ class ItemSessionApiTest extends Specification {
       }
     }
 
-    "return an item session which contains correctResponse object within sessionData which contains all correct responses available" in {
-      val json: JsValue = Json.parse(contentAsString(result))
+    def getCorrectResponses(result: Result): Seq[JsValue] = {
+      val jsonString = contentAsString(result)
+      val json: JsValue = Json.parse(jsonString)
       (json \ "sessionData") match {
         case JsObject(sessionData) => sessionData.find(field => field._1 == "correctResponses") match {
           case Some((_, jscorrectResponses)) => jscorrectResponses match {
-            case JsObject(correctResponses) =>
-              if (correctResponses.foldRight[Boolean](true)((prop, acc) => {
-                acc && (prop._1 match {
-                  case "mexicanPresident" => prop._2.as[String] == "calderon"
-                  case "irishPresident" => prop._2.as[String] == "higgins"
-                  case "rainbowColors" => prop._2.as[Seq[String]].sameElements(Seq("blue", "violet", "red"))
-                  case "winterDiscontent" => prop._2.as[Seq[String]].sameElements(Seq("York", "york"))
-                  case "wivesOfHenry" => prop._2.as[Seq[String]].equals(Seq("aragon", "boleyn", "seymour", "cleves", "howard", "parr"))
-                  case "cutePugs" => prop._2.as[Seq[String]].equals(Seq("pug1", "pug2", "pug3"))
-                  case "manOnMoon" => prop._2.as[String] == "armstrong"
-                  case _ => false
-                })
-              })) success
-              else failure
-            case _ => failure
+            case JsArray(correctResponses) => correctResponses
+            case _ => throw new RuntimeException("no array found")
           }
-          case _ => failure
+          case _ => throw new RuntimeException("no field called correctResponses")
         }
-        case _ => failure
+        case _ => throw new RuntimeException("no sessionData found")
       }
+    }
+
+    "return an item session which contains correctResponse object within sessionData which contains all correct responses available" in {
+      val correctResponses = getCorrectResponses(result)
+
+      def _jso(id:String, value:JsValue) : JsObject = JsObject(Seq("id" -> JsString(id), "value" -> value))
+      def _jsa(s:Seq[String]) : JsArray = JsArray(s.map(JsString(_)))
+
+      val expectedJsValues = Seq(
+        _jso( "mexicanPresident", JsString("calderon")),
+        _jso("irishPresident", JsString("higgins")),
+        _jso("rainbowColors", _jsa(Seq("blue", "violet", "red"))),
+        _jso("winterDiscontent", _jsa(Seq("York", "york"))),
+        _jso("wivesOfHenry", _jsa(Seq("aragon", "boleyn", "seymour", "cleves", "howard", "parr"))),
+        _jso("cutePugs", _jsa(Seq("pug1","pug2", "pug3"))),
+        _jso("manOnMoon", JsString("armstrong"))
+      )
+      def jsString(value:JsValue) = Json.stringify(value)
+      val expected = expectedJsValues.map(jsString).mkString("\n")
+      val actual = correctResponses.map(jsString).mkString("\n")
+
+      expected must equalTo(actual)
     }
 
     "support item creation " in {
       val testSession = ItemSession(new ObjectId(IDs.Item))
       val newSession = createNewSession(IDs.Item, AnyContentAsJson(Json.toJson(testSession)))
-      val unequalItems = getUnequalItems(newSession,testSession)
+      val unequalItems = getUnequalItems(newSession, testSession)
       unequalItems must be(Seq())
     }
 
     "support retrieval of an itemsession" in {
-      val dbSession = ItemSession.findOneById( new ObjectId(IDs.ItemSession)).get
-      val session = get( IDs.ItemSession, IDs.Item)
+      val dbSession = ItemSession.findOneById(new ObjectId(IDs.ItemSession)).get
+      val session = get(IDs.ItemSession, IDs.Item)
       dbSession.id must equalTo(session.id)
       val unequalItems = getUnequalItems(dbSession, session)
       unequalItems must be(Seq())
@@ -330,12 +341,12 @@ class ItemSessionApiTest extends Specification {
   }
 
 
-  private def getUnequalItems(a:ItemSession, b: ItemSession): Seq[String] = {
+  private def getUnequalItems(a: ItemSession, b: ItemSession): Seq[String] = {
 
     val out = Seq[Option[String]](
-      if(a.itemId equals b.itemId) None else Some("itemId"),
-      if(a.start equals b.start) None else Some("start"),
-      if(a.finish equals b.finish) None else Some("finish")
+      if (a.itemId equals b.itemId) None else Some("itemId"),
+      if (a.start equals b.start) None else Some("start"),
+      if (a.finish equals b.finish) None else Some("finish")
     )
     out.flatten
   }

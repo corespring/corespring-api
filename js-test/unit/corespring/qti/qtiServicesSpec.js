@@ -14,6 +14,7 @@ describe('qtiServices.QtiUtils', function () {
         }
     }));
 
+
     describe('compare', function () {
 
         it("compares strings", function () {
@@ -34,6 +35,28 @@ describe('qtiServices.QtiUtils', function () {
 
     });
 
+    describe("compare response sets", function () {
+
+        it("compares user responses against full response set", function () {
+            var user = [
+                    { "id":"mexicanPresident", "value":"cameron" },
+                    { "id":"rainbowColors", "value":"white" },
+                    { "id":"winterDiscontent", "value":"asdf" },
+                    { "id":"cutePugs", "value":[ "pug2", "pug1", "pug3" ] }
+                ];
+
+            var fullset = [
+                { "id":"mexicanPresident", "value":"calderon" },
+                { "id":"rainbowColors", "value":[ "blue", "violet", "red" ] },
+                { "id":"winterDiscontent", "value":[ "York", "york" ] },
+                { "id":"cutePugs", "value":[ "pug1", "pug2", "pug3" ] }
+            ]
+
+        });
+
+
+    });
+
     describe('getResponseById', function () {
 
         it("gets the response", function () {
@@ -42,7 +65,7 @@ describe('qtiServices.QtiUtils', function () {
             ]).value).toBe('hello')
         });
 
-        it("returns null if id or array is null", function(){
+        it("returns null if id or array is null", function () {
             expect(service.getResponseById('x', null)).toBe(null);
             expect(service.getResponseById(null, [])).toBe(null);
             expect(service.getResponseById('x', [])).toBe(null);
@@ -51,16 +74,18 @@ describe('qtiServices.QtiUtils', function () {
 
     describe('getResponseValue', function () {
 
-        it("gets the value", function(){
+        it("gets the value", function () {
             expect(
-                service.getResponseValue("one", [ {id: "one", value: "hello" }])).toBe("hello")
+                service.getResponseValue("one", [
+                    {id:"one", value:"hello" }
+                ])).toBe("hello")
 
             expect(
                 service.getResponseValue("one", [], "default")
             ).toBe("default");
 
             expect(
-                service.getResponseValue("one", [] )
+                service.getResponseValue("one", [])
             ).toBe("");
         });
 

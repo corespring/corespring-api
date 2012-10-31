@@ -80,6 +80,15 @@ object CorrectResponseSingle{
   }
 }
 
+/**
+ * Work in progress..
+case class CorrectResponseMultiple(value: Seq[String]) extends CorrectResponse{
+  def isCorrect(responseValue:String) = {
+    val responseList = responseValue.split(",").toList
+    value.sortWith(_ < _) == responseList.sortWith( _ < _ )
+  }
+}
+ */
 case class CorrectResponseMultiple(value: Seq[String]) extends CorrectResponse{
   def isCorrect(responseValue:String) = value.find(_ == responseValue).isDefined
 }

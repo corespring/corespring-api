@@ -3,7 +3,7 @@ var qtiDirectives = angular.module('qti.directives', ['qti.services']);
 var app = angular.module('qti', ['qti.directives', 'qti.services']);
 
 
-function QtiAppController($scope, $timeout,  $location, AssessmentSessionService) {
+function QtiAppController($scope, $timeout, $location, AssessmentSessionService) {
 
     $timeout(function () {
         if (typeof(MathJax) != "undefined") {
@@ -15,11 +15,11 @@ function QtiAppController($scope, $timeout,  $location, AssessmentSessionService
         $scope.$broadcast('reset');
     };
 
-    $scope.init = function(){
+    $scope.init = function () {
         var url = $location.absUrl();
         var matches = url.match(/.*\/item\/(.*?)\/.*/);
-        var params = { itemId : matches[1] };
-         AssessmentSessionService.create(params, {}, function(data){
+        var params = { itemId:matches[1] };
+        AssessmentSessionService.create(params, {}, function (data) {
             $scope.itemSession = data;
         });
     };
@@ -37,7 +37,7 @@ function QtiAppController($scope, $timeout,  $location, AssessmentSessionService
     $scope.init();
 }
 
-QtiAppController.$inject = ['$scope', '$timeout', '$location','AssessmentSessionService'];
+QtiAppController.$inject = ['$scope', '$timeout', '$location', 'AssessmentSessionService'];
 
 
 function ControlBarController($scope) {
@@ -66,19 +66,20 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
             $scope.$watch('itemSession', function (newValue) {
 
-                if(!newValue){
+                if (!newValue) {
                     return;
                 }
-                itemId =  newValue.itemId;
+                itemId = newValue.itemId;
                 sessionId = newValue.id;
 
-                if( newValue.settings ){
+                if (newValue.settings) {
                     noResponseAllowed = newValue.settings.allowEmptyResponses;
                 }
                 $scope.$broadcast('resetUI');
                 $scope.formDisabled = false;
             });
 
+            $scope.formDisabled = true;
             $scope.showNoResponseFeedback = false;
             $scope.responses = [];
 
@@ -128,6 +129,11 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 return null;
             };
 
+
+            var areResponsesIncorrect = function(){
+
+            };
+
             // this is the function that submits the user responses and gets the outcomes
             this.submitResponses = function () {
                 if ($scope.formDisabled) return;
@@ -144,8 +150,20 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 $scope.itemSession.responses = $scope.responses;
 
                 AssessmentSessionService.save({itemId:itemId, sessionId:sessionId}, $scope.itemSession, function (data) {
+
                     $scope.itemSession = data;
-                    $scope.formDisabled = $scope.itemSession.isFinished;
+
+                    $scope.showResponsesIncorrect = areResponsesIncorrect();
+
+                    /**
+                     * Note: need to call this within a $timeout
+                     * as the propogation isn't working properly without it.
+                     */
+                    $timeout(function () {
+                        $scope.formDisabled = $scope.itemSession.isFinished;
+                        $scope.$broadcast('onFormDisabled', $scope.formDisabled);
+                    });
+
                 }, function onError(error) {
                     if (error && error.data) alert(error.data.message);
                 });
@@ -166,7 +184,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 return isSettingEnabled("highlightCorrectResponse")
             };
 
-            $scope.highlightUserResponse = function() {
+            $scope.highlightUserResponse = function () {
                 return isSettingEnabled("highlightUserResponse")
             };
         }
@@ -182,7 +200,7 @@ qtiDirectives.directive('itembody', function () {
             '<div ng-show="printMode" class="item-body-dotted-line">Name: </div>',
             '<span ng-transclude="true"></span>',
             '<div class="noResponseFeedback" ng-show="showNoResponseFeedback">Some information seems to be missing. Please provide an answer and then click "Submit". </div>',
-            '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="formDisabled || !canSubmit" ng-click="onClick()">Submit</a>'
+            '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="formDisabled || !canSubmit" ng-click="onClick()">Submit</a>',
         ].join('\n'),
         require:'^assessmentitem',
         link:function (scope, element, attrs, AssessmentItemCtrl) {

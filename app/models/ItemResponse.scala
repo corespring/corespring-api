@@ -3,6 +3,7 @@ package models
 import play.api.libs.json._
 import play.api.libs.json.JsString
 import play.api.libs.json.JsObject
+import play.api.libs.json.Json._
 
 /**
  * Case class representing a user's response to an indvidual qusetion in an item
@@ -20,7 +21,20 @@ import play.api.libs.json.JsObject
  * @param value string response, may be json-formatted. Format and type depends on the question type
  * @param outcome  this is the outcome of the user interaction as calculated by the server. usually 'SCORE' property
  */
-case class ItemResponse(id: String, value: String, outcome: String = "")
+case class ItemResponse(id: String, value: String, outcome: Option[ItemResponseOutcome] = None )
+
+case class ItemResponseOutcome( score: Float = 0, maxScore: Float = 0, comment : String = "" ) {
+  def isCorrect = score == maxScore
+}
+
+object ItemResponseOutcome {
+  implicit object Writes extends Writes[ItemResponseOutcome] {
+    def writes(iro:ItemResponseOutcome) : JsValue = {
+     val json = com.codahale.jerkson.Json.generate(iro)
+     Json.parse(json)
+    }
+  }
+}
 
 object ItemResponse {
    val value = "value"
@@ -44,22 +58,26 @@ object ItemResponse {
         }
       }
 
-      JsObject(
-        List(
-          "id" -> JsString(response.id.toString),
-          "value" -> createValue(response.value.toString) ,
-          "outcome" -> JsString(response.outcome.toString)
-        )
+      val seq : Seq[Option[(String,JsValue)]] = List(
+        Some("id" -> JsString(response.id.toString)),
+        Some("value" -> createValue(response.value.toString)),
+        response.outcome.map(("outcome" -> toJson(_)))
       )
+
+      JsObject(seq.flatten)
     }
   }
 
 
   implicit object ItemResponseReads extends Reads[ItemResponse] {
 
+    /**
+     * We don't read the outcome from json - its generated from the qti
+     * @param json
+     * @return
+     */
     def reads(json: JsValue):ItemResponse = {
 
-      //The value can either be a single string or an array of strings
       def getValue(js : JsValue) : String = {
         if ( js.asOpt[String].isDefined ){
           js.as[String]
@@ -74,8 +92,7 @@ object ItemResponse {
 
       new ItemResponse(
         id = (json \ "id").asOpt[String].getOrElse(""),
-        value = getValue( (json\"value")),
-        outcome = (json \ "outcome").asOpt[String].getOrElse("")
+        value = getValue( (json\"value"))
       )
 
     }

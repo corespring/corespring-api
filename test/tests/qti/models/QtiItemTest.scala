@@ -4,7 +4,7 @@ import org.specs2.mutable.Specification
 import io.Codec
 import java.nio.charset.Charset
 import scala.xml.XML
-import qti.models.{CorrectResponseMultiple, QtiItem}
+import qti.models.{CorrectResponse, CorrectResponseMultiple, QtiItem}
 
 class QtiItemTest extends Specification{
 
@@ -50,4 +50,33 @@ class QtiItemTest extends Specification{
     }
   }
 
+}
+
+class CorrectResponseTest extends Specification{
+  "CorrectResponse" should {
+    "return correct" in {
+
+      val xml = <correctResponse>
+        <value>A</value>
+        </correctResponse>
+
+      CorrectResponse(xml, "single").isCorrect("A") must equalTo(true)
+      CorrectResponse(xml, "single").isCorrect("B") must equalTo(false)
+    }
+
+    "only return correct for a checkbox if all items are selected" in {
+      val xml = <correctResponse>
+        <value>blue</value>
+        <value>violet</value>
+        <value>red</value>
+      </correctResponse>
+
+      CorrectResponse(xml, "multiple").isCorrect("blue") must equalTo(false)
+      CorrectResponse(xml, "multiple").isCorrect("blue,violet") must equalTo(false)
+      CorrectResponse(xml, "multiple").isCorrect("blue,violet,red") must equalTo(true)
+      CorrectResponse(xml, "multiple").isCorrect("blue,violet,red,purple") must equalTo(false)
+    }
+
+
+  }
 }

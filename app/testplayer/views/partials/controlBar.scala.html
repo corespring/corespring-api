@@ -1,12 +1,13 @@
 <div class="itemplayer-control-bar" ng-controller="ControlBarController">
 
     <div>
-        <i ng-class="{ true: 'icon-arrow-down', false: 'icon-arrow-right'}[showAdminOptions]" ></i>
+        <i ng-class="{ true: 'icon-arrow-down', false: 'icon-arrow-right'}[showAdminOptions]"></i>
         <a ng-click="showAdminOptions=!showAdminOptions"> Administrative Options</a>
         &nbsp;
         <i class="icon-refresh"></i><a ng-click="reloadItem()"> Reload Item</a>
     </div>
     <br/>
+
     <div class="well" ng-show="showAdminOptions">
 
         <div class="container">
@@ -22,7 +23,8 @@
                        ng-model="itemSession.settings.highlightUserResponse"> Highlight user response</input>
                 <br/>
                 <input type="checkbox"
-                       ng-model="itemSession.settings.showFeedback"> Show feedback content for highlighted response</input>
+                       ng-model="itemSession.settings.showFeedback"> Show feedback content for highlighted
+                response</input>
                 <br/>
                 <input type="checkbox"
                        ng-model="itemSession.settings.allowEmptyResponses"> Accept empty responses</input>
@@ -30,7 +32,27 @@
                 <input type="checkbox"
                        ng-model="itemSession.settings.highlightCorrectResponse"> Highlight correct responses</input>
             </div>
+        </div>
+        <br/>
 
+        <div class="container">
+            <div class="span7">
+                <form class="form-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">Submit message</label>
+                        <div class="controls">
+                            <input style="width:95%; font-size: 11px;" type="text" ng-model="itemSession.settings.submitCompleteMessage"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Submit incorrect</label>
+
+                        <div class="controls">
+                            <input style="width:95%; font-size: 11px;" type="text" ng-model="itemSession.settings.submitIncorrectMessage"/>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

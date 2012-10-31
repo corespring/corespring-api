@@ -187,7 +187,8 @@ object ItemSessionApi extends BaseApi {
   }
 
   /**
-   * Serves the PUT request for an item session
+   * Process the user response - this counts as an attempt at the question
+   * Return sessionData and ItemResponseOutcomes
    * @param itemId
    */
   def processResponse(itemId: ObjectId, sessionId: ObjectId) = ApiAction {

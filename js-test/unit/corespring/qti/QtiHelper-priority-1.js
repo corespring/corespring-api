@@ -8,11 +8,7 @@
         var that = this;
         this.assessmentItemWrapper = [
             '<assessmentitem ',
-            'cs:feedbackEnabled="true" ',
-            'cs:itemSessionId="itemSessionId" ',
-            'cs:itemId="itemId" ',
             'print-mode="false" ',
-            'cs:noResponseAllowed="true"',
             '>',
             '${contents}',
             '</assessmentitem>'].join("\n");
