@@ -153,28 +153,36 @@ class ItemSessionTest extends Specification {
       }
     }
 
+    val SimpleXml = <assessmentItem>
+      <responseDeclaration identifier="a" cardinality="single">
+        <correctResponse>
+          <value>a</value>
+        </correctResponse>
+      </responseDeclaration>
+      <itemBody>
+        <choiceInteraction responseIdentifier="a">
+          <simpleChoice identifier="optiona">a</simpleChoice>
+        </choiceInteraction>
+      </itemBody>
+    </assessmentItem>
+
     "automatically finish a session if all responses are correct" in {
       val session = ItemSession(itemId = new ObjectId())
-
       ItemSession.begin(session)
-
-      val xml = <assessmentItem>
-        <responseDeclaration identifier="a" cardinality="single">
-          <correctResponse>
-          <value>a</value>
-          </correctResponse>
-        </responseDeclaration>
-        <itemBody>
-          <choiceInteraction responseIdentifier="a">
-            <simpleChoice identifier="optiona">a</simpleChoice>
-          </choiceInteraction>
-        </itemBody>
-      </assessmentItem>
-
       session.responses = Seq( StringItemResponse("a", "a") )
-      ItemSession.process(session, xml) match {
+      ItemSession.process(session, SimpleXml) match {
         case Left(e) => failure("error: "  + e.message)
         case Right(s) => s.isFinished must equalTo(true)
+      }
+    }
+
+    "don't automatically finish an item if there is any incorrect responses" in {
+      val session = ItemSession(itemId = new ObjectId())
+      ItemSession.begin(session)
+      session.responses = Seq( StringItemResponse("a", "b") )
+      ItemSession.process(session, SimpleXml) match {
+        case Left(e) => failure("error: "  + e.message)
+        case Right(s) => s.isFinished must equalTo(false)
       }
     }
 
