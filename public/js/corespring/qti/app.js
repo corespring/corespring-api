@@ -54,7 +54,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
             // get item session - parameters for session behavior will be defined there
             // TODO it is an error if there is no session found
-            $scope.itemSession = AssessmentSessionService.get(apiCallParams);
+            $scope.itemSession = ($scope.printMode) ? {} : AssessmentSessionService.get(apiCallParams);
 
             $scope.feedbackEnabled = ($scope.itemSession.feedbackEnabled || true);
             $scope.tryAgainEnabled = ($scope.itemSession.tryAgainEnabled || true);
@@ -163,7 +163,6 @@ qtiDirectives.directive('itembody', function () {
             '<div class="noResponseFeedback" ng-show="showNoResponseFeedback">Some information seems to be missing. Please provide an answer and then click "Submit". </div>',
             '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="formDisabled || !canSubmit" ng-click="onClick()">Submit</a>'
         ].join('\n'),
-        //replace: true,
         require:'^assessmentitem',
         link:function (scope, element, attrs, AssessmentItemCtrl) {
 

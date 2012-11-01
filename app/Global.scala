@@ -1,18 +1,19 @@
 import _root_.controllers.S3Service
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
+import org.bson.types.ObjectId
 import play.api._
+import play.api.mvc.Results._
 import mvc._
 import mvc.SimpleResult
 import play.api.Play.current
 import play.api.Application
 import web.controllers.utils.ConfigLoader
-import seed.SeedDb._
+import common.seed.SeedDb._
 
 /**
   */
 object Global extends GlobalSettings {
 
-  val AUTO_RESTART: String = "AUTO_RESTART"
   val INIT_DATA: String = "INIT_DATA"
 
   val MOCK_ACCESS_TOKEN_ID: String = "34dj45a769j4e1c0h4wb"
@@ -46,6 +47,20 @@ object Global extends GlobalSettings {
       }
     }
   }
+
+  // 500 - internal server error
+  override def onError(request: RequestHeader, throwable: Throwable) = {
+
+    val uid = new ObjectId().toString
+    Logger.error(uid)
+    Logger.error(throwable.getMessage)
+
+    if ( Logger.isDebugEnabled ){
+      throwable.printStackTrace()
+    }
+    InternalServerError(common.views.html.onError( uid, throwable))
+  }
+
 
   override def onHandlerNotFound(request: play.api.mvc.RequestHeader): Result = {
     val result = super.onHandlerNotFound(request)

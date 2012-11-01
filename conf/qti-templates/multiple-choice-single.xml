@@ -22,10 +22,10 @@
     </p>
     <choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="1">
         <prompt>Item prompt?</prompt>
-        <simpleChoice identifier="ChoiceA">ChoiceA (Correct Choice)<feedbackInline identifer="ChoiceA" defaultFeedback="true"/></simpleChoice>
-        <simpleChoice identifier="ChoiceB">ChoiceB<feedbackInline identifer="ChoiceB" defaultFeedback="true"/></simpleChoice>
-        <simpleChoice identifier="ChoiceC">ChoiceC.<feedbackInline identifer="ChoiceC" defaultFeedback="true"/></simpleChoice>
-        <simpleChoice identifier="ChoiceD">ChoiceD.<feedbackInline identifer="ChoiceD" defaultFeedback="true"/></simpleChoice>
+        <simpleChoice identifier="ChoiceA">ChoiceA (Correct Choice)<feedbackInline identifier="ChoiceA" defaultFeedback="true"/></simpleChoice>
+        <simpleChoice identifier="ChoiceB">ChoiceB<feedbackInline identifier="ChoiceB" defaultFeedback="true"/></simpleChoice>
+        <simpleChoice identifier="ChoiceC">ChoiceC.<feedbackInline identifier="ChoiceC" defaultFeedback="true"/></simpleChoice>
+        <simpleChoice identifier="ChoiceD">ChoiceD.<feedbackInline identifier="ChoiceD" defaultFeedback="true"/></simpleChoice>
     </choiceInteraction>
 </itemBody>
 

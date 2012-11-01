@@ -14,6 +14,14 @@ POST    /auth/access_token                      controllers.auth.AuthController.
 #
 # V1 API
 #
+# Public site
+GET     /                                       controllers.Application.index
+GET     /collection                             controllers.Application.collection
+GET     /contact                                controllers.Application.contact
+GET     /partnerships                           controllers.Application.partnerships
+GET     /team                                   controllers.Application.team
+GET     /items                                  controllers.Application.getItems
+
 
 # Organizations
 GET     /api/v1/organizations                   api.v1.OrganizationApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100)
@@ -83,9 +91,9 @@ GET     /api/v1/items/:itemId/sessions/:sessionId         api.v1.ItemSessionApi.
 GET     /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.list(itemId:ObjectId)
 
 # Item Rendering
-GET    /testplayer/item/:itemId/run                 controllers.testplayer.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false)
-GET    /testplayer/item/:itemId/:filename           controllers.testplayer.ItemPlayer.getDataFile(itemId, filename)
-GET    /testplayer/item/:itemId/feedback/:responseIdentifier/:identifier  controllers.testplayer.ItemPlayer.getFeedbackInline(itemId, responseIdentifier, identifier)
+GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false)
+GET    /testplayer/item/:itemId/:filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
+GET    /testplayer/item/:itemId/feedback/:responseIdentifier/:identifier  testplayer.controllers.ItemPlayer.getFeedbackInline(itemId, responseIdentifier, identifier)
 
 # Example content
 GET    /example-content                        web.controllers.ExampleContent.index

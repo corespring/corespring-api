@@ -17,7 +17,6 @@ import scala.Some
 import scala.Right
 import api.InvalidFieldException
 import controllers.JsonValidationException
-import api.processors.FeedbackProcessor
 
 /**
  * Items API
@@ -203,34 +202,6 @@ object ItemApi extends BaseApi {
       }
     } else Forbidden
   }
-
-//  def addFeedbackIds(item: Item) = {
-//    item.data.map(resource => {
-//      resource.files.find(file => {
-//        file match {
-//          case vf:VirtualFile => if(vf.isMain){
-//            vf.content = FeedbackProcessor.addFeedbackIds(scala.xml.XML.loadString(vf.content))._1.toString()
-//            true
-//          } else false
-//          case _ => false
-//        }
-//      })
-//    })
-//  }
-//
-//  def removeFeedbackIds(item: Item) = {
-//    item.data.map(resource => {
-//      resource.files.find(file => {
-//        file match {
-//          case vf:VirtualFile => if(vf.isMain){
-//            vf.content = FeedbackProcessor.removeFeedbackIds(vf.content)
-//            true
-//          } else false
-//          case _ => false
-//        }
-//      })
-//    })
-//  }
 
   def getItemsInCollection(collId: ObjectId) = ApiAction { request =>
     NotImplemented
