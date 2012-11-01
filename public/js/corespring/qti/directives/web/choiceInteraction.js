@@ -137,8 +137,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                 localScope.$watch('itemSession.sessionData.correctResponses', function (responses) {
 
                     if (!responses) return;
-
-                    var correctResponse = responses[responseIdentifier];
+                    var correctResponse = QtiUtils.getResponseValue(responseIdentifier, responses, "");
                     var isCorrect = isOurResponseCorrect(correctResponse);
 
                     tidyUp();
@@ -146,10 +145,9 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                     if(isCorrect && localScope.highlightCorrectResponse()){
                         applyCorrectResponseStyle();
                     }
-
                     if (isSelected() && localScope.highlightUserResponse()) {
                         var className = isCorrect ? 'correct-response' : 'incorrect-response';
-                        element.toggleClass(isHorizontal ? (className+"-horizontal") : className);
+                        element.addClass(isHorizontal ? (className+"-horizontal") : className);
                     }
                 });
 

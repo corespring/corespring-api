@@ -200,11 +200,11 @@ qtiDirectives.directive('itembody', function () {
             '<div ng-show="printMode" class="item-body-dotted-line">Name: </div>',
             '<span ng-transclude="true"></span>',
             '<div class="noResponseFeedback" ng-show="showNoResponseFeedback">Some information seems to be missing. Please provide an answer and then click "Submit". </div>',
-            '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="formDisabled || !canSubmit" ng-click="onClick()">Submit</a>',
+            '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="formDisabled || !canSubmit" ng-click="onSubmitClick()">Submit</a>',
         ].join('\n'),
         require:'^assessmentitem',
         link:function (scope, element, attrs, AssessmentItemCtrl) {
-            scope.onClick = function () {
+            scope.onSubmitClick = function () {
                 AssessmentItemCtrl.submitResponses()
             };
         }
