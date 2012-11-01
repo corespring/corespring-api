@@ -1,7 +1,7 @@
 package tests.models
 
 import org.specs2.mutable.Specification
-import models.{SessionData, ItemResponse}
+import models.{StringItemResponse, SessionData, ItemResponse}
 import models.SessionData.SessionDataWrites
 import scala.Some
 import play.api.Play
@@ -40,8 +40,8 @@ class SessionDataTest extends Specification {
 
       val qtiItem = QtiItem(XML)
 
-      val correctResponse = ItemResponse("manOnMoon", "armstrong")
-      val incorrectResponse = ItemResponse("manOnMoon", "aldrin")
+      val correctResponse = StringItemResponse("manOnMoon", "armstrong")
+      val incorrectResponse = StringItemResponse("manOnMoon", "aldrin")
 
       val correctJson = SessionDataWrites.writes( SessionData(qtiItem, Seq(correctResponse)) )
       (correctJson \ "feedbackContents" \ "1").asOpt[String] must beSome((XML\\ "correctResponseFeedback").text)
@@ -58,8 +58,8 @@ class SessionDataTest extends Specification {
 
       val qtiItem = QtiItem(xml)
 
-      val correctResponse = ItemResponse("manOnMoon", "armstrong")
-      val incorrectResponse = ItemResponse("manOnMoon", "aldrin")
+      val correctResponse = StringItemResponse("manOnMoon", "armstrong")
+      val incorrectResponse = StringItemResponse("manOnMoon", "aldrin")
 
       val correctJson = SessionDataWrites.writes( SessionData( qtiItem, Seq(correctResponse)))
       println(correctJson)

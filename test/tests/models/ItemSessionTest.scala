@@ -1,13 +1,18 @@
 package tests.models
 
 import org.specs2.mutable.Specification
-import models.{ItemSessionSettings, ItemResponse, ItemSession}
+import models._
 import org.bson.types.ObjectId
 import tests.PlaySingleton
 import models.ItemSession._
 import play.api.libs.json.Json.stringify
 import play.api.libs.json.Json.toJson
 import play.api.libs.json.{JsObject, Json, JsValue}
+import utils.MockXml
+import scala.Left
+import models.StringItemResponse
+import scala.Some
+import scala.Right
 
 class ItemSessionTest extends Specification {
 
@@ -54,7 +59,7 @@ class ItemSessionTest extends Specification {
     "throw an IllegalArgumentException if a feedbackInline node has no identifier" in {
       val session = ItemSession(itemId = new ObjectId())
       ItemSession.save(session)
-      session.responses = Seq(ItemResponse(id = "RESPONSE", value = "ChoiceB", outcome = None))
+      session.responses = Seq(StringItemResponse(id = "RESPONSE", responseValue = "ChoiceB", outcome = None))
 
       val xml = scala.xml.XML.loadFile("test/mockXml/item-session-test-two.xml")
 
@@ -111,7 +116,7 @@ class ItemSessionTest extends Specification {
 
       val session = ItemSession(itemId = new ObjectId())
       ItemSession.save(session)
-      session.responses = Seq(ItemResponse(id = "RESPONSE", value = "ChoiceB", outcome = None))
+      session.responses = Seq(StringItemResponse(id = "RESPONSE", responseValue = "ChoiceB", outcome = None))
 
       val xml = scala.xml.XML.loadFile("test/mockXml/item-session-test-one.xml")
 
@@ -155,7 +160,7 @@ class ItemSessionTest extends Specification {
       ItemSession.process(session, DummyXml) match {
         case Left(e) => failure("error: " + e.message)
         case Right(processed) => {
-         processed.isStarted must equalTo(true)
+          processed.isStarted must equalTo(true)
           success
         }
       }
@@ -177,7 +182,7 @@ class ItemSessionTest extends Specification {
       val xml = <assessmentItem>
         <responseDeclaration identifier="q1" cardinality="single" baseType="identifier">
           <correctResponse>
-          <value>q1Answer</value>
+            <value>q1Answer</value>
           </correctResponse>
         </responseDeclaration>
         <itemBody>
@@ -187,7 +192,7 @@ class ItemSessionTest extends Specification {
 
       val session = ItemSession(itemId = new ObjectId())
       session.responses = Seq(
-        ItemResponse("q1", "q1Answer")
+        StringItemResponse("q1", "q1Answer")
       )
 
       ItemSession.save(session)
@@ -198,8 +203,24 @@ class ItemSessionTest extends Specification {
           s.responses(0).outcome.get.score must equalTo(1)
         }
       }
+    }
 
-      true must equalTo(true)
+    "return scores for full qti item" in {
+
+      val session = ItemSession(itemId = new ObjectId())
+      ItemSession.save(session)
+
+      session.responses = Seq(
+        ArrayItemResponse("rainbowColors", Seq("blue","violet","red"))
+      )
+
+      ItemSession.process(session, MockXml.AllItems) match {
+        case Left(e) => failure("error: " + e.message)
+        case Right(s) => {
+          s.responses(0).outcome must beSome
+          s.responses(0).outcome.get.score must equalTo(1)
+        }
+      }
     }
 
   }

@@ -56,12 +56,15 @@ object SessionData {
 
 
         val responseGroup = sd.responses.filter(ir => ir.id == responseIdentifier) //find the responses corresponding to this feedbackGroup
-        //find if a response element that has the same value as the identifier in the feedbackInline element exists
-        def responseAndFeedbackMatch(fi: FeedbackInline) = responseGroup.find(response => {
-            if (response.value.contains(ItemResponse.Delimiter)) {
-              response.value.split(ItemResponse.Delimiter).find(_ == fi.identifier).isDefined
-            } else response.value == fi.identifier
-          }).isDefined
+
+
+        /**
+         * find if a response element that has the same value as the identifier in the feedbackInline element exists
+         */
+        def responseAndFeedbackMatch(fi: FeedbackInline) : Boolean = {
+          responseGroup.find( (ir:ItemResponse) => ItemResponse.containsValue(ir,fi.identifier)).isDefined
+        }
+
         //find if the given feedback element represents the correct response
         def isCorrectResponseFeedback(fi: FeedbackInline) = sd.qtiItem.responseDeclarations.find(_.identifier == fi.outcomeIdentifier).map(_.isCorrect(fi.identifier)).getOrElse(false)
         val feedbackContents = feedbackGroup.filter(fi => responseAndFeedbackMatch(fi) || (displayCorrectResponse && isCorrectResponseFeedback(fi)))

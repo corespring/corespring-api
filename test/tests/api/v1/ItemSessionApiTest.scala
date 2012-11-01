@@ -1,8 +1,7 @@
 package tests.api.v1
 
-import models.ItemSessionSettings
+import models.{StringItemResponse, ItemSessionSettings, ItemResponse, ItemSession}
 import play.api.mvc.{Call, AnyContent}
-import models.{ItemResponse, ItemSession}
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import play.api.libs.json._
@@ -98,7 +97,7 @@ class ItemSessionApiTest extends Specification {
       val testSession = ItemSession(itemId = new ObjectId())
 
       //testSession.id = new ObjectId(testSessionIds("itemSessionId"))
-      testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon"))
+      testSession.responses = testSession.responses ++ Seq(StringItemResponse("mexicanPresident", "calderon"))
       testSession.finish = Some(new DateTime())
 
       val update = api.v1.routes.ItemSessionApi.update(new ObjectId(IDs.Item), newSession.id)
@@ -195,9 +194,9 @@ class ItemSessionApiTest extends Specification {
     val updateCall = api.v1.routes.ItemSessionApi.update(new ObjectId(IDs.Item), newSession.id)
     val testSession = ItemSession(itemId = new ObjectId(IDs.Item))
     // add some item responses
-    testSession.responses = testSession.responses ++ Seq(ItemResponse("mexicanPresident", "calderon" ))
-    testSession.responses = testSession.responses ++ Seq(ItemResponse("irishPresident", "guinness" ))
-    testSession.responses = testSession.responses ++ Seq(ItemResponse("winterDiscontent", "York" ))
+    testSession.responses = testSession.responses ++ Seq(StringItemResponse("mexicanPresident", "calderon" ))
+    testSession.responses = testSession.responses ++ Seq(StringItemResponse("irishPresident", "guinness" ))
+    testSession.responses = testSession.responses ++ Seq(StringItemResponse("winterDiscontent", "York" ))
     testSession.finish = Some(new DateTime())
 
     val json = Json.toJson(testSession)

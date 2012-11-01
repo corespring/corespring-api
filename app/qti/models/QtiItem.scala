@@ -61,7 +61,7 @@ object QtiItem {
 case class ResponseDeclaration(identifier: String, cardinality: String, correctResponse: Option[CorrectResponse], mapping: Option[Mapping]) {
   def isCorrect(responseValue: String): Boolean = correctResponse match {
     case Some(cr) => cr.isCorrect(responseValue)
-    case None => throw new RuntimeException("no correct response to check")
+    case None => false
   }
 
   def mappedValue(mapKey: String): String = mapping match {

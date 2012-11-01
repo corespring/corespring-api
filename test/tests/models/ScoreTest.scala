@@ -2,7 +2,7 @@ package tests.models
 
 import org.specs2.mutable.Specification
 import qti.models.{CorrectResponseSingle, ResponseDeclaration, ItemBody, QtiItem}
-import models.{ItemResponseOutcome, Score, ItemResponse}
+import models.{StringItemResponse, ItemResponseOutcome, Score, ItemResponse}
 import org.omg.CORBA.IRObject
 
 class ScoreTest extends Specification {
@@ -30,20 +30,20 @@ class ScoreTest extends Specification {
     }
 
     "score a sequence of responses with one item" in {
-      val seq = Seq( ItemResponse(id = "q1", value = "q1Answer", outcome = None) )
+      val seq = Seq( StringItemResponse(id = "q1", responseValue = "q1Answer", outcome = None) )
       val result = Score.scoreResponses(seq, qti)
-      val expected = Seq( ItemResponse(id = "q1", value = "q1Answer", outcome = Some(ItemResponseOutcome(score = 1))) )
+      val expected = Seq( StringItemResponse(id = "q1", responseValue = "q1Answer", outcome = Some(ItemResponseOutcome(score = 1))) )
       result must equalTo(expected)
     }
 
     "score a sequence of responses with one item" in {
       val seq = Seq(
-        ItemResponse(id = "q1", value = "q1Answer", outcome = None),
-        ItemResponse(id = "q2", value = "blah", outcome = None) )
+        StringItemResponse(id = "q1", responseValue = "q1Answer", outcome = None),
+        StringItemResponse(id = "q2", responseValue = "blah", outcome = None) )
       val result = Score.scoreResponses(seq, qti)
       val expected = Seq(
-        ItemResponse(id = "q1", value = "q1Answer", outcome = Some(ItemResponseOutcome(score = 1))),
-        ItemResponse(id = "q2", value = "blah", outcome = Some(ItemResponseOutcome(score = 0))) )
+        StringItemResponse(id = "q1", responseValue = "q1Answer", outcome = Some(ItemResponseOutcome(score = 1))),
+        StringItemResponse(id = "q2", responseValue = "blah", outcome = Some(ItemResponseOutcome(score = 0))) )
       result must equalTo(expected)
     }
   }

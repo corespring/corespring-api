@@ -1,7 +1,7 @@
 package tests.models
 
 import org.specs2.mutable.Specification
-import models.{ItemResponseOutcome, ItemResponse}
+import models.{ArrayItemResponse, ItemResponseOutcome, ItemResponse}
 import play.api.libs.json._
 import play.api.libs.json.Json._
 import play.api.libs.json.JsArray
@@ -15,7 +15,7 @@ class ItemResponseTest extends Specification {
 
     val outcome = ItemResponseOutcome(score = 0,  comment = Some("b"))
 
-    val response = ItemResponse(id = "test", outcome = Some(outcome), value = "a" + ItemResponse.Delimiter + "b")
+    val response : ItemResponse = ArrayItemResponse(id = "test", outcome = Some(outcome), responseValue = Seq("a" ,"b"))
     val json = Json.toJson(response)
 
     val expectedJson = JsObject(Seq(
@@ -39,9 +39,10 @@ class ItemResponseTest extends Specification {
     }
 
     "generate json correctly with a value string" in {
-      val response = ItemResponse(id = "test", outcome = Some(outcome), value = "a,b")
+      val response : ItemResponse = ArrayItemResponse(id = "test", outcome = Some(outcome), responseValue = Seq("a","b"))
       val json = Json.toJson(response)
-      (json \ "value") must equalTo(JsString("a,b"))
+      println("json value: " + (json\"value"))
+      (json \ "value") must equalTo(JsArray(Seq(JsString("a"),JsString("b"))))
     }
   }
 

@@ -3,7 +3,6 @@
     <stylesheet type="text/css" href="css/mcas/default.css"></stylesheet>
     <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
     <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
-    <!-- single choice
     <responseDeclaration identifier="mexicanPresident" cardinality="single" baseType="identifier">
         <correctResponse>
             <value>calderon</value>
@@ -62,7 +61,6 @@
     </responseDeclaration>
     <responseDeclaration identifier="longAnswer" cardinality="single" baseType="string"/>
 
-    -->
     <responseDeclaration identifier="manOnMoon" cardinality="single" baseType="identifier">
         <correctResponse>
             <value>armstrong</value>
@@ -71,7 +69,6 @@
 
 
     <itemBody>
-        <!--
         <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1">
             <prompt>Who is the President of Mexico?</prompt>
             <simpleChoice identifier='obama'> Barack Obama
@@ -186,7 +183,6 @@
         <extendedTextInteraction responseIdentifier="longAnswer" expectedLength="200">
         </extendedTextInteraction>
 
-        -->
         <p>
             The first man on the moon was <inlineChoiceInteraction
                 responseIdentifier="manOnMoon"
@@ -198,7 +194,6 @@
 
     </itemBody>
 
-<!--
     <modalFeedback
             outcomeIdentifier="responses.winterDiscontent.value"
             identifier="York"
@@ -206,6 +201,5 @@
         This is modal feedback, shown when 'York' was entered in the inline text question
     </modalFeedback>
 
--->
 
 </assessmentItem>

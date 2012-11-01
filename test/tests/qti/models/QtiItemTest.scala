@@ -9,6 +9,9 @@ import scala.xml._
 
 class QtiItemTest extends Specification {
 
+
+  val AllItems = QtiItem(scala.xml.XML.loadFile("test/mockXml/all-items.xml"))
+
   def xml(cardinality: String, values: NodeSeq, interaction: Elem = <none/>): Elem = {
 
     <assessmentItem>
@@ -85,6 +88,11 @@ class QtiItemTest extends Specification {
 
       val qti = QtiItem(xml)
       qti.isCorrect("q1", "q1Answer") must equalTo(true)
+    }
+
+    "return correct for multiple choice" in {
+      AllItems.isCorrect("rainbowColors", "blue,violet,red") must equalTo(true)
+      AllItems.isCorrect("rainbowColors", "violet,red,blue") must equalTo(true)
     }
   }
 
