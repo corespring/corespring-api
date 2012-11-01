@@ -42,7 +42,7 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
             scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
                 if (!responses) return;
 
-                var correctResponse = responses[responseIdentifier];
+                var correctResponse = QtiUtils.getResponseValue(responseIdentifier, responses, "");
 
                 removeCss();
 
