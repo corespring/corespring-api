@@ -124,8 +124,8 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
                 $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
                     if(!responses) return;
                     if(!$scope.isFeedbackEnabled()) return;
-                    var correctResponse = responses[responseIdentifier];
-                    var ourResponse = QtiUtils.getResponseValue(responseIdentifier, $scope.itemSession.responses, [])
+                    var correctResponse = QtiUtils.getResponseValue(responseIdentifier, responses, []);
+                    var ourResponse = QtiUtils.getResponseValue(responseIdentifier, $scope.itemSession.responses, []);
                     applyCss(correctResponse, ourResponse)
                 });
 

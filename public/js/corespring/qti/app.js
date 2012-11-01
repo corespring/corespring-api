@@ -30,6 +30,7 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService)
      */
     $scope.reloadItem = function () {
         AssessmentSessionService.create({itemId:$scope.itemSession.itemId}, $scope.itemSession, function (data) {
+            $scope.reset();
             $scope.itemSession = data;
         });
     };
@@ -58,14 +59,16 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             var noResponseAllowed = true;
 
             $scope.printMode = ( $attrs['printMode'] == "true" || false );
+            $scope.finalSubmit = false;
 
             $scope.$on('reset', function (event) {
                 $scope.$broadcast('resetUI');
-                $scope.formDisabled = false;
+                $scope.formSubmitted = false;
+                $scope.formHasIncorrect = false;
+                $scope.finalSubmit = false;
             });
 
             $scope.$watch('itemSession', function (newValue) {
-
                 if (!newValue) {
                     return;
                 }
@@ -74,15 +77,14 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
                 if (newValue.settings) {
                     noResponseAllowed = newValue.settings.allowEmptyResponses;
+                    $scope.canSubmit = noResponseAllowed || !$scope.hasEmptyResponse();
                 }
                 $scope.$broadcast('resetUI');
-                $scope.formDisabled = false;
+                $scope.formSubmitted = false;
             });
 
-            $scope.formDisabled = true;
             $scope.showNoResponseFeedback = false;
             $scope.responses = [];
-
 
             $scope.isEmptyItem = function (value) {
                 if (!value || value == undefined) {
@@ -108,8 +110,8 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             this.setResponse = function (key, responseValue) {
 
                 var itemResponse = this.findItemByKey(key);
-                //if its null - create it
 
+                //if its null - create it
                 if (!itemResponse) {
                     itemResponse = (itemResponse || { id:key });
                     $scope.responses.push(itemResponse);
@@ -118,6 +120,8 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 itemResponse.value = responseValue;
                 $scope.canSubmit = noResponseAllowed || !$scope.hasEmptyResponse();
                 $scope.showNoResponseFeedback = ($scope.status == 'ATTEMPTED' && $scope.hasEmptyResponse());
+
+                $scope.finalSubmit = false;
             };
 
             this.findItemByKey = function (key) {
@@ -131,12 +135,17 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
 
             var areResponsesIncorrect = function(){
+                if (!$scope.itemSession || $scope.itemSession.responses) return false;
+                for (var i = 0; i < $scope.itemSession.responses.length; i++) {
+                    if ($scope.itemSession.responses[i].outcome.score < 1) return true;
+                }
+                return false;
 
             };
 
             // this is the function that submits the user responses and gets the outcomes
             this.submitResponses = function () {
-                if ($scope.formDisabled) return;
+                if ($scope.formSubmitted) return;
 
 
                 if ($scope.hasEmptyResponse() && !noResponseAllowed) {
@@ -149,18 +158,19 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
                 $scope.itemSession.responses = $scope.responses;
 
+                if ($scope.finalSubmit) $scope.itemSession.finish = new Date().getTime();
+
                 AssessmentSessionService.save({itemId:itemId, sessionId:sessionId}, $scope.itemSession, function (data) {
-
                     $scope.itemSession = data;
+                    $scope.formHasIncorrect = areResponsesIncorrect();
+                    $scope.finalSubmit = true;
 
-                    $scope.showResponsesIncorrect = areResponsesIncorrect();
-
-                    /**
-                     * Note: need to call this within a $timeout
-                     * as the propogation isn't working properly without it.
-                     */
+                    // Note: need to call this within a $timeout as the propogation isn't working properly without it.
                     $timeout(function () {
-                        $scope.formDisabled = $scope.itemSession.isFinished;
+                        $scope.formSubmitted = $scope.itemSession.isFinished;
+                        if ($scope.formSubmitted) {
+                            $scope.formHasIncorrect = false;
+                        }
                         $scope.$broadcast('onFormDisabled', $scope.formDisabled);
                     });
 
@@ -176,6 +186,10 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 return $scope.itemSession.settings[name];
             };
 
+            $scope.submitButtonText = function() {
+                return ($scope.finalSubmit) ? "Submit Anyway" : "Submit";
+            }
+
             $scope.isFeedbackEnabled = function () {
                 return isSettingEnabled("showFeedback");
             };
@@ -187,6 +201,20 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             $scope.highlightUserResponse = function () {
                 return isSettingEnabled("highlightUserResponse")
             };
+
+            $scope.submitCompleteMessage = function () {
+                if (!$scope.itemSession || !$scope.itemSession.settings) {
+                    return "Your response has been received";
+                }
+                return $scope.itemSession.settings.submitCompleteMessage;
+            }
+
+            $scope.submitIncorrectMessage = function () {
+                if (!$scope.itemSession || !$scope.itemSession.settings) {
+                    return "Looks like there is something you might fix in your work. You can change your answers, or submit your response as-is";
+                }
+                return $scope.itemSession.settings.submitIncorrectMessage;
+            }
         }
     };
 });
@@ -200,7 +228,9 @@ qtiDirectives.directive('itembody', function () {
             '<div ng-show="printMode" class="item-body-dotted-line">Name: </div>',
             '<span ng-transclude="true"></span>',
             '<div class="noResponseFeedback" ng-show="showNoResponseFeedback">Some information seems to be missing. Please provide an answer and then click "Submit". </div>',
-            '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="formDisabled || !canSubmit" ng-click="onSubmitClick()">Submit</a>',
+            '<div class="noResponseFeedback" ng-show="formHasIncorrect">{{submitIncorrectMessage()}}</div>',
+            '<div class="noResponseFeedback" ng-show="formSubmitted">{{submitCompleteMessage()}}</div>',
+            '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="formSubmitted || !canSubmit" ng-hide="formSubmitted" ng-click="onSubmitClick()">{{submitButtonText()}}</a>',
         ].join('\n'),
         require:'^assessmentitem',
         link:function (scope, element, attrs, AssessmentItemCtrl) {
