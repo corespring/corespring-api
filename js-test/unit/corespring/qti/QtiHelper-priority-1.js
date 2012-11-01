@@ -64,9 +64,8 @@
             rootScope.itemSession.sessionData = (rootScope.itemSession.sessionData || {});
 
             rootScope.$apply(function () {
-                var obj = {};
-                obj[key] = value;
-                rootScope.itemSession.sessionData.correctResponses = obj;
+                var obj = {id: key, value: value};
+                rootScope.itemSession.sessionData.correctResponses = [obj];
             });
         };
 
