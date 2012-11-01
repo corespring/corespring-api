@@ -5,9 +5,8 @@ import models._
 import org.bson.types.ObjectId
 import tests.PlaySingleton
 import models.ItemSession._
-import play.api.libs.json.Json.stringify
 import play.api.libs.json.Json.toJson
-import play.api.libs.json.{JsObject, Json, JsValue}
+import play.api.libs.json.{Json, JsValue}
 import utils.MockXml
 import scala.Left
 import models.StringItemResponse
@@ -151,6 +150,31 @@ class ItemSessionTest extends Specification {
       ItemSession.process(session, DummyXml) match {
         case Left(e) => success
         case Right(e) => failure
+      }
+    }
+
+    "automatically finish a session if all responses are correct" in {
+      val session = ItemSession(itemId = new ObjectId())
+
+      ItemSession.begin(session)
+
+      val xml = <assessmentItem>
+        <responseDeclaration identifier="a" cardinality="single">
+          <correctResponse>
+          <value>a</value>
+          </correctResponse>
+        </responseDeclaration>
+        <itemBody>
+          <choiceInteraction responseIdentifier="a">
+            <simpleChoice identifier="optiona">a</simpleChoice>
+          </choiceInteraction>
+        </itemBody>
+      </assessmentItem>
+
+      session.responses = Seq( StringItemResponse("a", "a") )
+      ItemSession.process(session, xml) match {
+        case Left(e) => failure("error: "  + e.message)
+        case Right(s) => s.isFinished must equalTo(true)
       }
     }
 

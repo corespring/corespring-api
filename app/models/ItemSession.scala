@@ -176,23 +176,40 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
         val dboUpdate = MongoDBObject(("$set", dbo), ("$inc", MongoDBObject(("attempts", 1))))
 
         updateFromDbo(update.id, dboUpdate, (u) => {
-          finishSessionIfNeeded(u)
           val qtiItem = QtiItem(xmlWithCsFeedbackIds)
-          u.sessionData = Some(SessionData(qtiItem, u.responses))
-          //TODO: Do we need to persist scores?
           u.responses = Score.scoreResponses(u.responses, qtiItem)
+          finishSessionIfNeeded(u)
+          //TODO: We need to be careful with session data - you can't persist it
+          u.sessionData = Some(SessionData(qtiItem, u.responses))
         })
 
       }
   }
 
   private def finishSessionIfNeeded(session: ItemSession) {
-    val max = session.settings.maxNoOfAttempts
 
-    if (max != 0 && session.attempts >= session.settings.maxNoOfAttempts) {
-      session.finish = Some(new DateTime())
-      ItemSession.save(session)
+    def finishIfMaxAttemptsExceeded() {
+      val max = session.settings.maxNoOfAttempts
+      if (max != 0 && session.attempts >= session.settings.maxNoOfAttempts) {
+        session.finish = Some(new DateTime())
+        ItemSession.save(session)
+      }
     }
+
+    def finishIfThereAreNoIncorrectResponses() {
+      val incorrectResponses = session.responses.filter( _.outcome match {
+        case None => false
+        case Some(o) => if (o.score == 0) true else false
+      })
+
+      if (incorrectResponses.length == 0){
+        session.finish = Some(new DateTime())
+        ItemSession.save(session)
+      }
+    }
+
+    finishIfMaxAttemptsExceeded()
+    finishIfThereAreNoIncorrectResponses()
   }
 
   def getSessionData(xml: Elem, responses: Seq[ItemResponse]) = Some(SessionData(QtiItem(xml), responses))

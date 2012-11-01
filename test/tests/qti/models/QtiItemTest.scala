@@ -3,7 +3,6 @@ package tests.qti.models
 import org.specs2.mutable.Specification
 import io.Codec
 import java.nio.charset.Charset
-import scala.xml.XML
 import qti.models._
 import scala.xml._
 import utils.MockXml
