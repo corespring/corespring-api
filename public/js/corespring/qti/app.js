@@ -135,7 +135,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
 
             var areResponsesIncorrect = function(){
-                if (!$scope.itemSession || $scope.itemSession.responses) return false;
+                if (!$scope.itemSession || !$scope.itemSession.responses) return false;
                 for (var i = 0; i < $scope.itemSession.responses.length; i++) {
                     if ($scope.itemSession.responses[i].outcome.score < 1) return true;
                 }
@@ -171,7 +171,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                         if ($scope.formSubmitted) {
                             $scope.formHasIncorrect = false;
                         }
-                        $scope.$broadcast('onFormDisabled', $scope.formDisabled);
+                        $scope.$broadcast('onFormDisabled', $scope.formSubmitted);
                     });
 
                 }, function onError(error) {
