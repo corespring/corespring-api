@@ -6,11 +6,12 @@ import java.nio.charset.Charset
 import scala.xml.XML
 import qti.models._
 import scala.xml._
+import utils.MockXml
 
 class QtiItemTest extends Specification {
 
 
-  val AllItems = QtiItem(scala.xml.XML.loadFile("test/mockXml/all-items.xml"))
+  val AllItems = QtiItem(MockXml.AllItems)
 
   def xml(cardinality: String, values: NodeSeq, interaction: Elem = <none/>): Elem = {
 
@@ -94,10 +95,29 @@ class QtiItemTest extends Specification {
       AllItems.isCorrect("rainbowColors", "blue,violet,red") must equalTo(true)
       AllItems.isCorrect("rainbowColors", "violet,red,blue") must equalTo(true)
     }
+
+    "return correct for text interaction" in {
+      AllItems.isCorrect("winterDiscontent", "york") must equalTo(true)
+    }
   }
 
 }
 
+
+class ItemBodyTest extends Specification {
+
+  "ItemBody" should {
+    "find a TextEntryInteraction" in {
+
+      val body = (MockXml.AllItems \ "itemBody").head
+      println(body)
+
+      val itemBody = ItemBody(body)
+      itemBody.getInteraction("winterDiscontent") must not beNone
+    }
+  }
+
+}
 class CorrectResponseTest extends Specification {
   "CorrectResponse" should {
     "single - return correct" in {

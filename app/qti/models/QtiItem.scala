@@ -7,7 +7,7 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
   var defaultCorrect = "That is correct!"
   var defaultIncorrect = "That is incorrect"
 
-  def isCorrect(responseIdentifier:String, value:String ) : Boolean = {
+  def isCorrect(responseIdentifier: String, value: String): Boolean = {
     responseDeclarations.find(_.identifier == responseIdentifier) match {
       case Some(rd) => rd.isCorrect(value)
       case _ => false
@@ -112,10 +112,10 @@ object CorrectResponse {
    */
   def apply(node: Node, cardinality: String, interaction: Option[Interaction] = None): CorrectResponse = {
 
-    if (interaction.isDefined){
+    if (interaction.isDefined) {
       interaction.get match {
-        case TextEntryInteraction(_,_) => CorrectResponseAny(node)
-        case _ => CorrectResponse(node,cardinality)
+        case TextEntryInteraction(_, _, _) => CorrectResponseAny(node)
+        case _ => CorrectResponse(node, cardinality)
       }
     }
     else {
@@ -123,11 +123,11 @@ object CorrectResponse {
     }
   }
 
-  def apply(node:Node, cardinality:String) : CorrectResponse =  cardinality match {
-      case "single" => CorrectResponseSingle(node)
-      case "multiple" => CorrectResponseMultiple(node)
-      case "ordered" => CorrectResponseOrdered(node)
-      case _ => throw new RuntimeException("unknown cardinality: " + cardinality + ". cannot generate CorrectResponse")
+  def apply(node: Node, cardinality: String): CorrectResponse = cardinality match {
+    case "single" => CorrectResponseSingle(node)
+    case "multiple" => CorrectResponseMultiple(node)
+    case "ordered" => CorrectResponseOrdered(node)
+    case _ => throw new RuntimeException("unknown cardinality: " + cardinality + ". cannot generate CorrectResponse")
   }
 }
 
@@ -214,25 +214,30 @@ case class ItemBody(interactions: Seq[Interaction], feedbackBlocks: Seq[Feedback
 
 object ItemBody {
   def apply(node: Node): ItemBody = {
-    var interactions: Seq[Interaction] = Seq()
-    var feedbackBlocks: Seq[FeedbackInline] = Seq()
 
-    //Inline choice interactions can be nested within html elements so use \\ instead
-    (node \\ "inlineChoiceInteraction").foreach((n: Node) => {
-      interactions = interactions :+ InlineChoiceInteraction(n)
-    })
+    val feedbackBlocks = buildTypes[FeedbackInline](node, Seq(
+      ("feedbackBlock", FeedbackInline(_, None))
+    ))
 
-    node.child.foreach(inner => {
-      inner.label match {
-        case "choiceInteraction" => interactions = interactions :+ ChoiceInteraction(inner)
-        case "orderInteraction" => interactions = interactions :+ OrderInteraction(inner)
-        case "textEntryInteraction" => interactions = interactions :+ TextEntryInteraction(inner)
-        case "feedbackBlock" => feedbackBlocks = feedbackBlocks :+ FeedbackInline(inner, None)
+    val interactions = buildTypes[Interaction](node, Seq(
+      ("inlineChoiceInteraction", InlineChoiceInteraction(_)),
+      ("textEntryInteraction", TextEntryInteraction(_, feedbackBlocks)),
+      ("choiceInteraction", ChoiceInteraction(_)),
+      ("orderInteraction", OrderInteraction(_))
+    ))
 
-        case _ =>
-      }
-    })
     ItemBody(interactions, feedbackBlocks)
+  }
+
+  private def buildTypes[T](node: Node, names: Seq[(String, (Node) => T)]): List[T] = {
+    if (names.isEmpty) List()
+    else {
+      val name = names.head._1
+      val fn = names.head._2
+      val nodes: Seq[Node] = (node \\ name)
+      val interactions: Seq[T] = nodes.map((n: Node) => fn(n))
+      interactions.toList ::: buildTypes[T](node, names.tail)
+    }
   }
 }
 
@@ -244,13 +249,15 @@ object Interaction {
   def responseIdentifier(n: Node) = (n \ "@responseIdentifier").text
 }
 
-case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int) extends Interaction
+case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int, feedbackBlocks : Seq[FeedbackInline]) extends Interaction
 
 object TextEntryInteraction {
-  def apply(node: Node): TextEntryInteraction = {
+  def apply(node: Node, feedbackBlocks : Seq[FeedbackInline]): TextEntryInteraction = {
+    val responseIdentifier = Interaction.responseIdentifier(node)
     TextEntryInteraction(
-      responseIdentifier = Interaction.responseIdentifier(node),
-      expectedLength = expectedLength(node)
+      responseIdentifier = responseIdentifier,
+      expectedLength = expectedLength(node),
+      feedbackBlocks = feedbackBlocks.filter( _.identifier == responseIdentifier )
     )
   }
 
@@ -342,7 +349,8 @@ object FeedbackInline {
         (node \ "@incorrectResponse").text == "true")
       case None => FeedbackInline((node \ "@csFeedbackId").text,
         (node \ "@outcomeIdentifier").text.split('.')(1),
-        (node \ "@identifier").text, contents,
+        (node \ "@identifier").text,
+        contents.trim,
         (node \ "@defaultFeedback").text == "true",
         (node \ "@incorrectResponse").text == "true")
     }

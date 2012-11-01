@@ -37,6 +37,7 @@ object SessionData {
           case crs: CorrectResponseSingle => correctResponses = correctResponses :+ (rd.identifier -> JsString(crs.value))
           case crm: CorrectResponseMultiple => correctResponses = correctResponses :+ (rd.identifier -> JsArray(crm.value.map(JsString(_))))
           case cro: CorrectResponseOrdered => correctResponses = correctResponses :+ (rd.identifier -> JsArray(cro.value.map(JsString(_))))
+          case cra: CorrectResponseAny => correctResponses = correctResponses :+ (rd.identifier -> JsArray(cra.value.map(JsString(_))))
           case _ => throw new RuntimeException("unexpected correct response type")
         })
       })
@@ -88,6 +89,8 @@ object SessionData {
           case ci: ChoiceInteraction => filterFeedbackGroup(ci.responseIdentifier, ci.choices.map(_.feedbackInline).flatten, true)
             .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
           case oi: OrderInteraction => filterFeedbackGroup(oi.responseIdentifier, oi.choices.map(_.feedbackInline).flatten, true)
+            .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
+          case ti : TextEntryInteraction => filterFeedbackGroup(ti.responseIdentifier, ti.feedbackBlocks, true)
             .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
         }
       })

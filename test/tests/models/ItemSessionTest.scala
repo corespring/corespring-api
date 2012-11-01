@@ -211,7 +211,8 @@ class ItemSessionTest extends Specification {
       ItemSession.save(session)
 
       session.responses = Seq(
-        ArrayItemResponse("rainbowColors", Seq("blue","violet","red"))
+        ArrayItemResponse("rainbowColors", Seq("blue","violet","red")),
+        StringItemResponse("winterDiscontent", "york")
       )
 
       ItemSession.process(session, MockXml.AllItems) match {
@@ -219,6 +220,7 @@ class ItemSessionTest extends Specification {
         case Right(s) => {
           s.responses(0).outcome must beSome
           s.responses(0).outcome.get.score must equalTo(1)
+          s.responses(1).outcome.get.score must equalTo(1)
         }
       }
     }
