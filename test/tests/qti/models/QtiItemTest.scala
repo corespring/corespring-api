@@ -4,38 +4,57 @@ import org.specs2.mutable.Specification
 import io.Codec
 import java.nio.charset.Charset
 import scala.xml.XML
-import qti.models.{CorrectResponse, CorrectResponseMultiple, QtiItem}
+import qti.models._
+import scala.xml._
 
-class QtiItemTest extends Specification{
+class QtiItemTest extends Specification {
 
+  def xml(cardinality: String, values: NodeSeq, interaction: Elem = <none/>): Elem = {
+
+    <assessmentItem>
+      <responseDeclaration identifier="Q_01" cardinality={cardinality} baseType="string">
+        <correctResponse>
+          {values}
+        </correctResponse>
+      </responseDeclaration>
+      <itemBody>
+        {interaction}
+      </itemBody>
+    </assessmentItem>
+
+  }
 
   "QtiItem" should {
-    "parse a response that has a single cardinality but has multiple values as a CorrectResponseMutliple" in {
 
-      val SINGLE_RESPONSE_WITH_MULTIPLE_VALUES = <assessmentItem >
-        <responseDeclaration identifier="Q_01" cardinality="single" baseType="string">
-          <correctResponse>
-            <value>14</value>
-            <value>fourteen</value>
-            <value>14.0</value>
-            <value>Fourteen</value>
-            <value>FOURTEEN</value>
-          </correctResponse>
-        </responseDeclaration>
-        <itemBody>
-           <textEntryInteraction responseIdentifier="Q_01" expectedLength="5"/>
-          <feedbackBlock
-          outcomeIdentifier="responses.Q_01.value"
-          identifier="fourteen">
-            <div class="feedback-block-correct">Nice work, that's correct!</div>
-          </feedbackBlock>
-        </itemBody>
-      </assessmentItem>
+    val textEntryOne = QtiItem(xml(
+      "single",
+      <value>14</value> <value>Fourteen</value>,
+        <textEntryInteraction responseIdentifier="Q_01" expectedLength="1"/>))
 
-      val item = QtiItem(SINGLE_RESPONSE_WITH_MULTIPLE_VALUES)
-      item.responseDeclarations.size must equalTo(1)
+    val single = QtiItem(xml("single", <value>1</value>))
+    val multiple = QtiItem(xml("multiple", <value>1</value> <value>2</value>))
+    val ordered = QtiItem(xml("ordered", <value>1</value> <value>2</value>))
+
+    def assertParse(item: QtiItem, t: Class[_]): Boolean = {
       val response = item.responseDeclarations(0).correctResponse.get
-      response.isInstanceOf[CorrectResponseMultiple] must be equalTo(true)
+      item.responseDeclarations.size == 1 &&
+        t.getName.startsWith(response.getClass.getName)
+    }
+
+    "parse a response that is for a textEntryInteraction as a CorrectResponseAny" in {
+      assertParse(textEntryOne, CorrectResponseAny.getClass) must equalTo(true)
+    }
+
+    "parse a correctResponse single" in {
+      assertParse(single, CorrectResponseSingle.getClass)
+    }
+
+    "parse a correct response multiple" in {
+      assertParse(multiple, CorrectResponseMultiple.getClass)
+    }
+
+    "parse a correct response ordered" in {
+      assertParse(ordered, CorrectResponseOrdered.getClass)
     }
 
     "parse an inline choice interaction even though its nested" in {
@@ -46,38 +65,43 @@ class QtiItemTest extends Specification{
       val qtiItem = QtiItem(xml)
 
       qtiItem.itemBody.interactions.size must equalTo(1)
-
     }
   }
 
 }
 
-class CorrectResponseTest extends Specification{
+class CorrectResponseTest extends Specification {
   "CorrectResponse" should {
-    "return correct" in {
-
-      val xml = <correctResponse>
-        <value>A</value>
-        </correctResponse>
-
-      CorrectResponse(xml, "single").isCorrect("A") must equalTo(true)
-      CorrectResponse(xml, "single").isCorrect("B") must equalTo(false)
+    "single - return correct" in {
+      CorrectResponseSingle("A").isCorrect("A") must equalTo(true)
+      CorrectResponseSingle("A").isCorrect("B") must equalTo(false)
     }
 
-    "only return correct for a checkbox if all items are selected" in {
-      val xml = <correctResponse>
-        <value>blue</value>
-        <value>violet</value>
-        <value>red</value>
-      </correctResponse>
-
-      //These assertions are incorrect - they'll be changed shortly.
-      CorrectResponse(xml, "multiple").isCorrect("blue") must equalTo(true)
-      CorrectResponse(xml, "multiple").isCorrect("violet") must equalTo(true)
-      CorrectResponse(xml, "multiple").isCorrect("red") must equalTo(true)
-      CorrectResponse(xml, "multiple").isCorrect("blue,violet,red,purple") must equalTo(false)
+    "multiple - return correct" in {
+      CorrectResponseMultiple(Seq("A", "B")).isCorrect("A,B") must equalTo(true)
+      CorrectResponseMultiple(Seq("A", "B")).isCorrect("B,A") must equalTo(true)
+      CorrectResponseMultiple(Seq("A", "B")).isCorrect("A") must equalTo(false)
+      CorrectResponseMultiple(Seq("A", "B")).isCorrect("B") must equalTo(false)
+      CorrectResponseMultiple(Seq("A", "B")).isCorrect("A,B,C") must equalTo(false)
+      CorrectResponseMultiple(Seq("A", "B")).isCorrect("") must equalTo(false)
     }
 
+    "any - return correct" in {
+      CorrectResponseAny(Seq("A", "B", "C")).isCorrect("A") must equalTo(true)
+      CorrectResponseAny(Seq("A", "B", "C")).isCorrect("B") must equalTo(true)
+      CorrectResponseAny(Seq("A", "B", "C")).isCorrect("C") must equalTo(true)
+      CorrectResponseAny(Seq("A", "B", "C")).isCorrect("D") must equalTo(false)
+      CorrectResponseAny(Seq("A", "B", "C")).isCorrect("") must equalTo(false)
+    }
+
+    "ordered - return correct" in {
+      CorrectResponseOrdered(Seq("A", "B", "C")).isCorrect("A,B,C") must equalTo(true)
+      CorrectResponseOrdered(Seq("A", "B", "C")).isCorrect("B,A,C") must equalTo(false)
+      CorrectResponseOrdered(Seq("A", "B", "C")).isCorrect("C,A,B") must equalTo(false)
+      CorrectResponseOrdered(Seq("A", "B", "C")).isCorrect("A,B") must equalTo(false)
+      CorrectResponseOrdered(Seq("A", "B", "C")).isCorrect("D") must equalTo(false)
+      CorrectResponseOrdered(Seq("A", "B", "C")).isCorrect("") must equalTo(false)
+    }
 
   }
 }

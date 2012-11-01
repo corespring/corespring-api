@@ -1,9 +1,14 @@
 package tests.qti.models
 
 import org.specs2.mutable._
-import qti.models.ResponseDeclaration
+import qti.models.{ItemBody, ResponseDeclaration}
 
 class ResponseDeclarationSpec extends Specification {
+
+  val itemBody = ItemBody(
+    interactions = Seq(),
+    feedbackBlocks = Seq()
+  )
 
   "A single cardinality response declaration" should {
     val xml =
@@ -13,13 +18,19 @@ class ResponseDeclarationSpec extends Specification {
         </correctResponse>
       </responseDeclaration>
 
-    val responseDeclaration = ResponseDeclaration(xml)
+    val responseDeclaration = ResponseDeclaration(xml, itemBody)
 
-    "parse identifier" in { if (responseDeclaration.identifier equals "RESPONSE") success else failure }
+    "parse identifier" in {
+      if (responseDeclaration.identifier equals "RESPONSE") success else failure
+    }
 
-    "single cardinality" in { if (responseDeclaration.cardinality == "single") success else failure}
+    "single cardinality" in {
+      if (responseDeclaration.cardinality == "single") success else failure
+    }
 
-    "validate correct response" in { if (responseDeclaration.correctResponse.isDefined && responseDeclaration.isCorrect("ChoiceA")) success else failure }
+    "validate correct response" in {
+      if (responseDeclaration.correctResponse.isDefined && responseDeclaration.isCorrect("ChoiceA")) success else failure
+    }
   }
 
   "A multiple cardinality response declaration" should {
@@ -38,7 +49,7 @@ class ResponseDeclarationSpec extends Specification {
         </mapping>
       </responseDeclaration>
 
-    val responseDeclaration = ResponseDeclaration(xml)
+    val responseDeclaration = ResponseDeclaration(xml, itemBody)
 
     "provide default for unmapped keys" in {
       if (responseDeclaration.mappedValue("tests") equals defaultValue.toString) success else failure
