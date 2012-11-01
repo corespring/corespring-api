@@ -2,20 +2,26 @@ package qti.models
 
 import scala.xml._
 import play.api.libs.json.{JsString, JsObject, JsValue, Writes}
+import qti.models.QtiItem.Correctness
 
 case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline]) {
   var defaultCorrect = "That is correct!"
   var defaultIncorrect = "That is incorrect"
 
-  def isCorrect(responseIdentifier: String, value: String): Boolean = {
+  def isCorrect(responseIdentifier: String, value: String): Correctness.Value  = {
     responseDeclarations.find(_.identifier == responseIdentifier) match {
       case Some(rd) => rd.isCorrect(value)
-      case _ => false
+      case _ => Correctness.Unknown
     }
   }
 }
 
 object QtiItem {
+
+  object Correctness extends Enumeration{
+    type Correctness = Value
+    val Correct, Incorrect, Unknown = Value
+  }
 
   def apply(node: Node): QtiItem = {
     val qtiItem = createItem(node)
@@ -59,9 +65,9 @@ object QtiItem {
 }
 
 case class ResponseDeclaration(identifier: String, cardinality: String, correctResponse: Option[CorrectResponse], mapping: Option[Mapping]) {
-  def isCorrect(responseValue: String): Boolean = correctResponse match {
-    case Some(cr) => cr.isCorrect(responseValue)
-    case None => false
+  def isCorrect(responseValue: String): Correctness.Value = correctResponse match {
+    case Some(cr) => if(cr.isCorrect(responseValue)) Correctness.Correct else Correctness.Incorrect
+    case None =>  Correctness.Unknown
   }
 
   def mappedValue(mapKey: String): String = mapping match {
@@ -317,7 +323,11 @@ case class FeedbackInline(csFeedbackId: String, outcomeIdentifier: String, ident
   def defaultContent(qtiItem: QtiItem): String =
     qtiItem.responseDeclarations.find(_.identifier == outcomeIdentifier) match {
       case Some(rd) =>
-        if (rd.isCorrect(identifier)) qtiItem.defaultCorrect else qtiItem.defaultIncorrect
+        rd.isCorrect(identifier) match {
+          case Correctness.Correct => qtiItem.defaultCorrect
+          case Correctness.Incorrect => qtiItem.defaultIncorrect
+          case _ => ""
+        }
       case None => ""
     }
 }

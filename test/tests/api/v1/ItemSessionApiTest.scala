@@ -247,8 +247,6 @@ class ItemSessionApiTest extends Specification {
 
     "return an item session feedback contents with sessionData which contains all feedback elements in the xml which correspond to responses from client" in {
 
-
-
       val newSession = createNewSession()
       val updateCall = api.v1.routes.ItemSessionApi.update(new ObjectId(IDs.Item), newSession.id)
       val testSession = ItemSession(itemId = new ObjectId(IDs.Item))
@@ -269,7 +267,6 @@ class ItemSessionApiTest extends Specification {
           println("found feedbackContents: ")
           println(seq)
           success
-          //testSession.responses.length must equalTo(seq.length)
         }
         case _ => failure("couldn't find contents")
       }

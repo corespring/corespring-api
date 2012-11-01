@@ -4,6 +4,7 @@ import org.specs2.mutable.Specification
 import qti.models.{CorrectResponseSingle, ResponseDeclaration, ItemBody, QtiItem}
 import models.{StringItemResponse, ItemResponseOutcome, Score, ItemResponse}
 import org.omg.CORBA.IRObject
+import qti.models.QtiItem.Correctness
 
 class ScoreTest extends Specification {
 
@@ -25,8 +26,9 @@ class ScoreTest extends Specification {
 
 
     "score single responses" in {
-      qti.isCorrect("apple", "hello") must equalTo(false)
-      qti.isCorrect("q1", "q1Answer") must equalTo(true)
+      qti.isCorrect("apple", "hello") must equalTo(Correctness.Unknown)
+      qti.isCorrect("q1", "q1Answer") must equalTo(Correctness.Correct)
+      qti.isCorrect("q1", "wrong") must equalTo(Correctness.Incorrect)
     }
 
     "score a sequence of responses with one item" in {
@@ -43,7 +45,7 @@ class ScoreTest extends Specification {
       val result = Score.scoreResponses(seq, qti)
       val expected = Seq(
         StringItemResponse(id = "q1", responseValue = "q1Answer", outcome = Some(ItemResponseOutcome(score = 1))),
-        StringItemResponse(id = "q2", responseValue = "blah", outcome = Some(ItemResponseOutcome(score = 0))) )
+        StringItemResponse(id = "q2", responseValue = "blah", outcome = None) )
       result must equalTo(expected)
     }
   }

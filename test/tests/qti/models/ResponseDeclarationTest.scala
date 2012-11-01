@@ -2,8 +2,9 @@ package tests.qti.models
 
 import org.specs2.mutable._
 import qti.models.{ItemBody, ResponseDeclaration}
+import qti.models.QtiItem.Correctness
 
-class ResponseDeclarationSpec extends Specification {
+class ResponseDeclarationTest extends Specification {
 
   val itemBody = ItemBody(
     interactions = Seq(),
@@ -29,7 +30,8 @@ class ResponseDeclarationSpec extends Specification {
     }
 
     "validate correct response" in {
-      if (responseDeclaration.correctResponse.isDefined && responseDeclaration.isCorrect("ChoiceA")) success else failure
+      if (responseDeclaration.correctResponse.isDefined &&
+        responseDeclaration.isCorrect("ChoiceA") == Correctness.Correct) success else failure
     }
   }
 

@@ -7,6 +7,7 @@ import scala.xml.XML
 import qti.models._
 import scala.xml._
 import utils.MockXml
+import qti.models.QtiItem.Correctness
 
 class QtiItemTest extends Specification {
 
@@ -88,16 +89,20 @@ class QtiItemTest extends Specification {
       </assessmentItem>
 
       val qti = QtiItem(xml)
-      qti.isCorrect("q1", "q1Answer") must equalTo(true)
+      qti.isCorrect("q1", "q1Answer") must equalTo(Correctness.Correct)
     }
 
     "return correct for multiple choice" in {
-      AllItems.isCorrect("rainbowColors", "blue,violet,red") must equalTo(true)
-      AllItems.isCorrect("rainbowColors", "violet,red,blue") must equalTo(true)
+      AllItems.isCorrect("rainbowColors", "blue,violet,red") must equalTo(Correctness.Correct)
+      AllItems.isCorrect("rainbowColors", "violet,red,blue") must equalTo(Correctness.Correct)
     }
 
     "return correct for text interaction" in {
-      AllItems.isCorrect("winterDiscontent", "york") must equalTo(true)
+      AllItems.isCorrect("winterDiscontent", "york") must equalTo(Correctness.Correct)
+    }
+
+    "return unknown for long answer" in {
+      AllItems.isCorrect("longAnswer", "anything") must equalTo(Correctness.Unknown)
     }
   }
 

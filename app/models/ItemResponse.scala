@@ -51,10 +51,10 @@ object ItemResponse {
   val id = "id"
   val outcome = "outcome"
 
-  def apply(r: ItemResponse, outcome: ItemResponseOutcome): ItemResponse =
+  def apply(r: ItemResponse, outcome: Option[ItemResponseOutcome]): ItemResponse =
     r match {
-      case StringItemResponse(i, v, out) => StringItemResponse(i, v, Some(outcome))
-      case ArrayItemResponse(i, v, out) => ArrayItemResponse(i, v, Some(outcome))
+      case StringItemResponse(i, v, out) => StringItemResponse(i, v, outcome)
+      case ArrayItemResponse(i, v, out) => ArrayItemResponse(i, v, outcome)
     }
 
   def containsValue(r:ItemResponse, s : String) : Boolean = r match {

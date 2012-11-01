@@ -7,6 +7,7 @@ import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
 import scala.Some
 import play.api.libs.json.JsObject
+import qti.models.QtiItem.Correctness
 
 
 /**
@@ -53,7 +54,17 @@ object SessionData {
           filterFeedbackGroup(kvpair._1, kvpair._2, displayCorrectResponse)
         ).flatten.toSeq
       }
-      def filterFeedbackGroup(responseIdentifier: String, feedbackGroup: Seq[FeedbackInline], displayCorrectResponse: Boolean = true): Seq[FeedbackInline] = {
+
+      /**
+       *
+       * @param responseIdentifier
+       * @param feedbackGroup
+       * @param displayCorrectResponse
+       * @return
+       */
+      def filterFeedbackGroup( responseIdentifier: String,
+                               feedbackGroup: Seq[FeedbackInline],
+                               displayCorrectResponse: Boolean = false): Seq[FeedbackInline] = {
 
 
         val responseGroup = sd.responses.filter(ir => ir.id == responseIdentifier) //find the responses corresponding to this feedbackGroup
@@ -67,7 +78,12 @@ object SessionData {
         }
 
         //find if the given feedback element represents the correct response
-        def isCorrectResponseFeedback(fi: FeedbackInline) = sd.qtiItem.responseDeclarations.find(_.identifier == fi.outcomeIdentifier).map(_.isCorrect(fi.identifier)).getOrElse(false)
+        def isCorrectResponseFeedback(fi: FeedbackInline) = {
+          sd.qtiItem.responseDeclarations
+            .find(_.identifier == fi.outcomeIdentifier)
+            .map(_.isCorrect(fi.identifier) == Correctness.Correct)
+            .getOrElse(false)
+        }
         val feedbackContents = feedbackGroup.filter(fi => responseAndFeedbackMatch(fi) || (displayCorrectResponse && isCorrectResponseFeedback(fi)))
         if (feedbackContents.isEmpty) {
           feedbackGroup.find(fi => fi.incorrectResponse) match {
