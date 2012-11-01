@@ -59,12 +59,32 @@ class QtiItemTest extends Specification {
 
     "parse an inline choice interaction even though its nested" in {
       val path = "test/mockXml/inline-choice-interaction-in-p.xml"
+
       val s = io.Source.fromFile(path)(new Codec(Charset.forName("UTF-8"))).mkString
       val xml = XML.loadString(s)
 
       val qtiItem = QtiItem(xml)
 
       qtiItem.itemBody.interactions.size must equalTo(1)
+    }
+  }
+
+  "QtiItem iscorrect" should {
+    "return correct scores" in {
+
+      val xml = <assessmentItem>
+        <responseDeclaration identifier="q1" cardinality="single" baseType="identifier">
+          <correctResponse>
+            <value>q1Answer</value>
+          </correctResponse>
+        </responseDeclaration>
+        <itemBody>
+          <choiceInteraction responseIdentifier="q1"></choiceInteraction>
+        </itemBody>
+      </assessmentItem>
+
+      val qti = QtiItem(xml)
+      qti.isCorrect("q1", "q1Answer") must equalTo(true)
     }
   }
 

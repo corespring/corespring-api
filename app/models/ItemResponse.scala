@@ -41,6 +41,9 @@ object ItemResponse {
    val id = "id"
    val outcome = "outcome"
 
+  def apply(r:ItemResponse, outcome : ItemResponseOutcome ) : ItemResponse =
+    ItemResponse( id = r.id, value = r.value, outcome = Some(outcome) )
+
   /**
    * Saving the array with a simple delimiter like ',' could cause problems
    * As there should be used in the answer if its a single value.

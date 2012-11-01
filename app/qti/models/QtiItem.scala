@@ -6,6 +6,13 @@ import play.api.libs.json.{JsString, JsObject, JsValue, Writes}
 case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline]) {
   var defaultCorrect = "That is correct!"
   var defaultIncorrect = "That is incorrect"
+
+  def isCorrect(responseIdentifier:String, value:String ) : Boolean = {
+    responseDeclarations.find(_.identifier == responseIdentifier) match {
+      case Some(rd) => rd.isCorrect(value)
+      case _ => false
+    }
+  }
 }
 
 object QtiItem {
@@ -68,6 +75,9 @@ object ResponseDeclaration {
     val identifier = (node \ "@identifier").text
     val cardinality = (node \ "@cardinality").text
     val correctResponseNode = (node \ "correctResponse").headOption
+
+    require(!identifier.isEmpty, "identifier is empty for node: \n" + node)
+    require(!cardinality.isEmpty, "cardinality is empty for node: \n" + node)
 
     ResponseDeclaration(
       identifier = identifier,

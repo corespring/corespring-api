@@ -179,21 +179,11 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
           finishSessionIfNeeded(u)
           val qtiItem = QtiItem(xmlWithCsFeedbackIds)
           u.sessionData = Some(SessionData(qtiItem, u.responses))
-          u.responses.foreach(addOutcomeToResponse(qtiItem))
+          //TODO: Do we need to persist scores?
+          u.responses = Score.scoreResponses(u.responses, qtiItem)
         })
 
       }
-  }
-
-  private def addOutcomeToResponse(qtiItem:QtiItem)(ir:ItemResponse) : Unit = {
-
-    val id = ir.id
-    qtiItem.responseDeclarations.find( _.identifier == id) match {
-      case Some(rd) => {
-        rd.isCorrect(ir.value)
-      }
-      case _ => //nothing
-    }
   }
 
   private def finishSessionIfNeeded(session: ItemSession) {

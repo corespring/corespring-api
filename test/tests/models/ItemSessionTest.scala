@@ -54,7 +54,7 @@ class ItemSessionTest extends Specification {
     "throw an IllegalArgumentException if a feedbackInline node has no identifier" in {
       val session = ItemSession(itemId = new ObjectId())
       ItemSession.save(session)
-      session.responses = Seq(ItemResponse(id = "RESPONSE", value = "ChoiceB"))
+      session.responses = Seq(ItemResponse(id = "RESPONSE", value = "ChoiceB", outcome = None))
 
       val xml = scala.xml.XML.loadFile("test/mockXml/item-session-test-two.xml")
 
@@ -111,7 +111,7 @@ class ItemSessionTest extends Specification {
 
       val session = ItemSession(itemId = new ObjectId())
       ItemSession.save(session)
-      session.responses = Seq(ItemResponse(id = "RESPONSE", value = "ChoiceB"))
+      session.responses = Seq(ItemResponse(id = "RESPONSE", value = "ChoiceB", outcome = None))
 
       val xml = scala.xml.XML.loadFile("test/mockXml/item-session-test-one.xml")
 
@@ -170,6 +170,36 @@ class ItemSessionTest extends Specification {
         case Right(s) => s.finish must not beNone
       }
       success
+    }
+
+    "return scores for item responses" in {
+
+      val xml = <assessmentItem>
+        <responseDeclaration identifier="q1" cardinality="single" baseType="identifier">
+          <correctResponse>
+          <value>q1Answer</value>
+          </correctResponse>
+        </responseDeclaration>
+        <itemBody>
+          <choiceInteraction identifier="q1"></choiceInteraction>
+        </itemBody>
+      </assessmentItem>
+
+      val session = ItemSession(itemId = new ObjectId())
+      session.responses = Seq(
+        ItemResponse("q1", "q1Answer")
+      )
+
+      ItemSession.save(session)
+      ItemSession.process(session, xml) match {
+        case Left(e) => failure("error: " + e.message)
+        case Right(s) => {
+          s.responses(0).outcome must beSome
+          s.responses(0).outcome.get.score must equalTo(1)
+        }
+      }
+
+      true must equalTo(true)
     }
 
   }
