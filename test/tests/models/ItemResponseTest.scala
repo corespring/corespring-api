@@ -13,7 +13,7 @@ class ItemResponseTest extends Specification {
 
   "ItemResponse" should {
 
-    val outcome = ItemResponseOutcome(score = 0, maxScore = 0, comment = "b")
+    val outcome = ItemResponseOutcome(score = 0,  comment = Some("b"))
 
     val response = ItemResponse(id = "test", outcome = Some(outcome), value = "a" + ItemResponse.Delimiter + "b")
     val json = Json.toJson(response)
@@ -23,7 +23,6 @@ class ItemResponseTest extends Specification {
       "value" -> JsArray(Seq(JsString("a"), JsString("b"))),
       "outcome" -> JsObject(Seq(
         "score" -> JsNumber(0.0),
-        "maxScore" -> JsNumber(0.0),
         "comment" -> JsString("b")
       ))
     ))

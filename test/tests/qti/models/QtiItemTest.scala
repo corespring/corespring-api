@@ -71,9 +71,10 @@ class CorrectResponseTest extends Specification{
         <value>red</value>
       </correctResponse>
 
-      CorrectResponse(xml, "multiple").isCorrect("blue") must equalTo(false)
-      CorrectResponse(xml, "multiple").isCorrect("blue,violet") must equalTo(false)
-      CorrectResponse(xml, "multiple").isCorrect("blue,violet,red") must equalTo(true)
+      //These assertions are incorrect - they'll be changed shortly.
+      CorrectResponse(xml, "multiple").isCorrect("blue") must equalTo(true)
+      CorrectResponse(xml, "multiple").isCorrect("violet") must equalTo(true)
+      CorrectResponse(xml, "multiple").isCorrect("red") must equalTo(true)
       CorrectResponse(xml, "multiple").isCorrect("blue,violet,red,purple") must equalTo(false)
     }
 

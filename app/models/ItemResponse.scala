@@ -23,8 +23,8 @@ import play.api.libs.json.Json._
  */
 case class ItemResponse(id: String, value: String, outcome: Option[ItemResponseOutcome] = None )
 
-case class ItemResponseOutcome( score: Float = 0, maxScore: Float = 0, comment : String = "" ) {
-  def isCorrect = score == maxScore
+case class ItemResponseOutcome( score: Float = 0, comment : Option[String] = None ) {
+  def isCorrect = score == 1
 }
 
 object ItemResponseOutcome {
