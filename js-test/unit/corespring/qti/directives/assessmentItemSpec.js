@@ -135,16 +135,76 @@ describe('qtiDirectives.assessmentItem', function () {
             controller.setResponse("questionOne", null);
 
             interaction.scope.$apply(function () {
-                interaction.scope.itemSession = getItemSession(Math.random() + "", 'itemId', {
-                    allowEmptyResponses:true });
+                interaction.scope.itemSession =
+                    getItemSession(
+                        Math.random() + "",
+                        'itemId',
+                        { allowEmptyResponses:true }
+                    );
                 itemSession = interaction.scope.itemSession;
 
             });
 
             expect(interaction.scope.canSubmit).toBe(true);
-
         });
 
+        it('checks has empty response', function () {
+            var scope = interaction.scope;
+            scope.responses = [];
+            expect(scope.hasEmptyResponse()).toBe(false);
+            scope.responses = [
+                {id:"a", value:""}
+            ];
+            expect(scope.hasEmptyResponse()).toBe(true);
+            scope.responses = [
+                {id:"a", value:"a"}
+            ];
+            expect(scope.hasEmptyResponse()).toBe(false);
+            scope.responses = [
+                {id:"aa", value:"aa"},
+                {id:"a", value:""}
+            ];
+            expect(scope.hasEmptyResponse()).toBe(true);
+        });
 
+        it('checks is empty item', function () {
+            var scope = interaction.scope;
+            expect(scope.isEmptyItem(null)).toBe(true);
+            expect(scope.isEmptyItem(undefined)).toBe(true);
+            expect(scope.isEmptyItem("")).toBe(true);
+            expect(scope.isEmptyItem([])).toBe(true);
+            expect(scope.isEmptyItem("hello")).toBe(false);
+            expect(scope.isEmptyItem(["hello"])).toBe(false);
+        });
+
+        it('handles reset correctly', function () {
+            rootScope.formSubmitted = true;
+            rootScope.formHasIncorrect = true;
+            rootScope.finalSubmit = true;
+            rootScope.$broadcast('reset');
+            expect(rootScope.formSubmitted).toBe(false);
+            expect(rootScope.formHasIncorrect).toBe(false);
+            expect(rootScope.finalSubmit).toBe(false);
+        });
+
+        it('shows no response feedback', function(){
+
+            setUpBackendForSubmit(function () {
+                var response = angular.copy(itemSession);
+                response.responses = interaction.scope.responses;
+                return response;
+            });
+
+            controller.setResponse("questionOne", "hello");
+            expect(rootScope.showNoResponseFeedback).toBe(false);
+            controller.setResponse("questionOne", null);
+            expect(rootScope.showNoResponseFeedback).toBe(false);
+            controller.submitResponses();
+            expect(rootScope.showNoResponseFeedback).toBe(true);
+            controller.setResponse("questionOne", "hello");
+            controller.submitResponses();
+            expect(rootScope.showNoResponseFeedback).toBe(false);
+
+        });
     });
 });
