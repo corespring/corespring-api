@@ -51,7 +51,7 @@ object QueryHelper {
         Results.BadRequest(Json.toJson(ApiError.UnknownFieldOrOperator(e.clientOutput)))
     }
   }
-  def toFieldObject[T <: AnyRef](f:Object, queryable: Queryable[T]):Either[InternalError,MongoDBObject] = {
+  private def toFieldObject[T <: AnyRef](f:Object, queryable: Queryable[T]):Either[InternalError,MongoDBObject] = {
     def parseDBObject(dbo:DBObject):Either[InternalError,MongoDBObject] = dbo.iterator.find(field => !queryable.queryFields.exists(_.key == field._1) || !field._2.isInstanceOf[Int]) match {
       case Some((key,_)) => Left(InternalError("either field key was invalid or value was NAN for "+key,LogType.printError,true))
       case None => Right(MongoDBObject(dbo.iterator.toList))

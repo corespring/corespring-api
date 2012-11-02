@@ -6,6 +6,7 @@ import models.{Item, ContentCollection, Content}
 import com.mongodb.BasicDBObject
 import play.api.libs.json.Json
 import com.novus.salat.dao.SalatMongoCursor
+import api.QueryHelper
 
 object ExampleContent extends Controller {
 
@@ -16,7 +17,7 @@ object ExampleContent extends Controller {
 
   val EXAMPLE_CONTENT_COLLECTION_NAME = "Beta Items"
 
-  def items = Action {
+  def items(q: Option[String]) = Action {
     request =>
       val search = new BasicDBObject()
       search.put("name", EXAMPLE_CONTENT_COLLECTION_NAME)
@@ -26,12 +27,14 @@ object ExampleContent extends Controller {
           itemSearch.put("collectionId", contentCollection.id.toString)
           val out = new BasicDBObject()
           out.put("title", 1)
-          Item.find(itemSearch, out) match {
-            case cursor: SalatMongoCursor[_] => {
-              Ok(Json.toJson(cursor.toList))
-            }
-            case _ => NotFound
-          }
+          val result = QueryHelper.list(q,Some(out),"false",0,50,Item,Some(itemSearch))
+          result
+//          Item.find(itemSearch, out) match {
+//            case cursor: SalatMongoCursor[_] => {
+//              Ok(Json.toJson(cursor.toList))
+//            }
+//            case _ => NotFound
+//          }
         }
         case _ => NotFound
       }

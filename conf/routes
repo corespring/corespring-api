@@ -97,7 +97,7 @@ GET    /testplayer/item/:itemId/feedback/:responseIdentifier/:identifier  testpl
 
 # Example content
 GET    /example-content                        web.controllers.ExampleContent.index
-GET    /example-content/items                  web.controllers.ExampleContent.items
+GET    /example-content/items                  web.controllers.ExampleContent.items(q: Option[String] ?= None)
 
 # Web tier
 GET    /web                                    web.controllers.Main.index

@@ -105,7 +105,7 @@
                     <div class="control-group">
                      <label class="control-label" for="primary-subject-dropdown" >Primary Subject</label>
                         <div class="controls" id="primary-subject-dropdown">
-                            <select ng-click="updatePrimarySubjectSearch($event)">
+                            <select ng-model="primarySubjectSearch" ng-change="updatePrimarySubjectSearch()">
                                 <option ng-repeat="primarySubject in primarySubjects">{{primarySubject}}</option>
                             </select>
                         </div>

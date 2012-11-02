@@ -2,41 +2,44 @@ var app = angular.module('app', ['itemResource','fieldValuesResource']);
 
 
 function ItemsCtrl($scope, FieldValues, Items) {
-    //set the items to it's initial state (grab everything with no search params).
-    if($scope.items !== undefined){
-        $scope.items.length = 0
-        var newItems = Items.query({},function(){
-            $scope.items.push(newItems)
-        })
-    }else{
-        $scope.items = Items.query()
-    }
-    $scope.rootUrl = "http://app.corespring.org";
     $scope.searchFields = {
         grades:[],
         itemTypes:[],
-        primarySubject:""
+        primarySubject:" "
     };
     $scope.primarySubjects = [];//FieldValues.primarySubjects;
     $scope.grades = [];
     $scope.itemTypes = [];//FieldValues.itemTypes
+    //set the items to it's initial state (grab everything with no search params).
+    if($scope.items !== undefined){
+        $scope.items.length = 0
+        var newItems = Items.query({},function(){
+            newItems.map(function(item){$scope.items.push(item)})
+        })
+    }else{
+        var newItems = Items.query({},function(){
+            $scope.items = newItems
+        })
+    }
     //set the field values based on the json object
-    var gradeLevels = FieldValues.query({fieldValue: "gradeLevels"},function() {
-        $scope.grades = gradeLevels.map(function(gradeLevel){return gradeLevel.key})
-    })
-    var subjects = FieldValues.query({fieldValue: "subject"},function() {
-        //need a loop instead of map because subject may be empty
-        for(var i = 0, x = 0; i < subjects.length; i++){
-            var subject = subjects[i].subject;
-            if(subject && subject != "Other"){
-                $scope.primarySubjects[x] = subject;
-                x++;
+    (function(){
+        var gradeLevels = FieldValues.query({fieldValue: "gradeLevels"},function() {
+            $scope.grades = gradeLevels.map(function(gradeLevel){return gradeLevel.key})
+        })
+        var subjects = FieldValues.query({fieldValue: "subject"},function() {
+            //need a loop instead of map because subject may be empty
+            for(var i = 0, x = 0; i < subjects.length; i++){
+                var subject = subjects[i].subject;
+                if(subject && subject != "Other"){
+                    $scope.primarySubjects[x] = subject;
+                    x++;
+                }
             }
-        }
-    })
-    var itemTypes = FieldValues.query({fieldValue: "itemTypes"},function() {
-        $scope.itemTypes = itemTypes.map(function(itemType){return itemType.key})
-    })
+        })
+        var itemTypes = FieldValues.query({fieldValue: "itemTypes"},function() {
+            $scope.itemTypes = itemTypes.map(function(itemType){return itemType.key})
+        })
+    })()
     //update the item list based on the search fields
     var updateItemList = function() {
         var searchFields = {}
@@ -65,7 +68,16 @@ function ItemsCtrl($scope, FieldValues, Items) {
             return true;
         }
         if(!isEmpty(searchFields)){
-            //TODO add query to search
+            console.log("searchFields: "+JSON.stringify(searchFields))
+            var newItems = Items.query({q : JSON.stringify(searchFields)},function(){
+                console.log("newItems: "+JSON.stringify(newItems))
+                $scope.items.length = 0
+                newItems.map(function(item){$scope.items.push(item)})
+            })
+        }else{
+            var newItems = Items.query({},function(){
+                $scope.items = newItems
+            })
         }
     }
     //update items based on grades entered
@@ -80,7 +92,6 @@ function ItemsCtrl($scope, FieldValues, Items) {
             event.srcElement.setAttribute("class","btn")
         }
         updateItemList()
-        console.log(JSON.stringify(grades))
     }
     //update items based on item types entered
     $scope.updateItemTypeSearch = function(itemType) {
@@ -92,13 +103,11 @@ function ItemsCtrl($scope, FieldValues, Items) {
             itemTypes.splice(itemTypeIndex,1)
         }
         updateItemList()
-        console.log(JSON.stringify(itemTypes))
     }
     //update items based on primary subject entered
-    $scope.updatePrimarySubjectSearch = function(event) {
-        $scope.searchFields.primarySubject = event.srcElement.options[event.srcElement.selectedIndex].innerHTML
+    $scope.updatePrimarySubjectSearch = function() {
+        $scope.searchFields.primarySubject = $scope.primarySubjectSearch
         updateItemList()
-        console.log(JSON.stringify($scope.searchFields.primarySubject ))
     }
 }
 ItemsCtrl.$inject = ['$scope','FieldValues', 'Items']
