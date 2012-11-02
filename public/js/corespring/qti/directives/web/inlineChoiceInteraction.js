@@ -23,7 +23,7 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
             if (!responses) return;
 
-            var correctResponse = responses[modelToUpdate];
+            var correctResponse = QtiUtils.getResponseValue(modelToUpdate, responses, "");
             var isCorrect = QtiUtils.compare($scope.choice, correctResponse);
 
             element
