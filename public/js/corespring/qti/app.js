@@ -44,6 +44,15 @@ QtiAppController.$inject = ['$scope', '$timeout', '$location', 'AssessmentSessio
 function ControlBarController($scope) {
 
     $scope.showAdminOptions = false;
+
+    $scope.toggleHighlightCorrectResponse = function(){
+
+        if($scope.itemSession.settings.maxNoOfAttempts == 1){
+            return;
+        }
+        $scope.itemSession.settings.highlightCorrectResponse = !$scope.itemSession.settings.highlightCorrectResponse;
+    }
+
 }
 
 ControlBarController.$inject = ['$scope'];
