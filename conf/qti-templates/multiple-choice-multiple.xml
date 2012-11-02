@@ -23,12 +23,12 @@
 <itemBody>
     <choiceInteraction responseIdentifier="RESPONSE" shuffle="true" maxChoices="0">
         <prompt>Which of the following elements are used to form water?</prompt>
-        <simpleChoice identifier="H" fixed="false">Hydrogen<feedbackInline identifer="H" defaultFeedback="true"/></simpleChoice>
-        <simpleChoice identifier="He" fixed="false">Helium<feedbackInline identifer="He" defaultFeedback="true"/></simpleChoice>
-        <simpleChoice identifier="C" fixed="false">Carbon<feedbackInline identifer="C" defaultFeedback="true"/></simpleChoice>
-        <simpleChoice identifier="O" fixed="false">Oxygen<feedbackInline identifer="O" defaultFeedback="true"/></simpleChoice>
-        <simpleChoice identifier="N" fixed="false">Nitrogen<feedbackInline identifer="N" defaultFeedback="true"/></simpleChoice>
-        <simpleChoice identifier="Cl" fixed="false">Chlorine<feedbackInline identifer="Cl" defaultFeedback="true"/></simpleChoice>
+        <simpleChoice identifier="H" fixed="false">Hydrogen<feedbackInline identifier="H" defaultFeedback="true"/></simpleChoice>
+        <simpleChoice identifier="He" fixed="false">Helium<feedbackInline identifier="He" defaultFeedback="true"/></simpleChoice>
+        <simpleChoice identifier="C" fixed="false">Carbon<feedbackInline identifier="C" defaultFeedback="true"/></simpleChoice>
+        <simpleChoice identifier="O" fixed="false">Oxygen<feedbackInline identifier="O" defaultFeedback="true"/></simpleChoice>
+        <simpleChoice identifier="N" fixed="false">Nitrogen<feedbackInline identifier="N" defaultFeedback="true"/></simpleChoice>
+        <simpleChoice identifier="Cl" fixed="false">Chlorine<feedbackInline identifier="Cl" defaultFeedback="true"/></simpleChoice>
     </choiceInteraction>
 </itemBody>
 </assessmentItem>

@@ -1,0 +1,37 @@
+@(errorId: String, throwable : Throwable)
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+      <link href='/assets/bootstrap/css/bootstrap.css' rel='stylesheet' type='text/css'/>
+      <link href='//fonts.googleapis.com/css?family=Ubuntu:400,700,700italic,400italic' rel='stylesheet' type='text/css'/>
+    <style type="text/css">
+
+        html, body {
+            font-family:"Ubuntu", Arial, Helvetica, sans-serif;
+            color: #444;
+        }
+
+        h1{
+            color: #80b312;
+            font-size: 18px;
+            font-weight: normal;
+        }
+
+    </style>
+  </head>
+  <body>
+    <div class="well" style="width: 500px; margin: auto; top: 70px; position: relative;">
+    <img src="//www.thedawgsdish.com/wp-content/uploads/2012/06/sad-pug.jpg"/>
+    <br/>
+    <br/>
+    <h1>Something went wrong</h1>
+    <p>Something has caused the application to fail. Please try again.</p>
+    <p>Error id: @errorId</p>
+
+    @if( play.api.Play.isDev(play.api.Play.current) ) {
+        <p>@throwable.getMessage</p>
+    }
+    </div>
+  </body>
+</html>

@@ -3,7 +3,7 @@ var qtiDirectives = angular.module('qti.directives', ['qti.services']);
 var app = angular.module('qti', ['qti.directives', 'qti.services']);
 
 
-function QtiAppController($scope, $timeout) {
+function QtiAppController($scope, $timeout, $location, AssessmentSessionService) {
 
     $timeout(function () {
         if (typeof(MathJax) != "undefined") {
@@ -13,10 +13,40 @@ function QtiAppController($scope, $timeout) {
 
     $scope.reset = function () {
         $scope.$broadcast('reset');
-    }
+    };
+
+    $scope.init = function () {
+        var url = $location.absUrl();
+        var matches = url.match(/.*\/item\/(.*?)\/.*/);
+        var params = { itemId:matches[1] };
+        AssessmentSessionService.create(params, {}, function (data) {
+            $scope.itemSession = data;
+        });
+    };
+
+    /**
+     * Because the current item session has been started - its settings are now locked.
+     * So we are going to be creating a new item session.
+     */
+    $scope.reloadItem = function () {
+        AssessmentSessionService.create({itemId:$scope.itemSession.itemId}, $scope.itemSession, function (data) {
+            $scope.reset();
+            $scope.itemSession = data;
+        });
+    };
+
+    $scope.init();
 }
 
-QtiAppController.$inject = ['$scope', '$timeout'];
+QtiAppController.$inject = ['$scope', '$timeout', '$location', 'AssessmentSessionService'];
+
+
+function ControlBarController($scope) {
+
+    $scope.showAdminOptions = false;
+}
+
+ControlBarController.$inject = ['$scope'];
 
 // base directive include for all QTI items
 qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $http) {
@@ -24,45 +54,37 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
         restrict:'E',
         controller:function ($scope, $element, $attrs, $timeout) {
 
+            var itemId = null;
+            var sessionId = null;
+            var noResponseAllowed = true;
+
             $scope.printMode = ( $attrs['printMode'] == "true" || false );
-            var noResponseAllowed = $attrs.csNoresponseallowed;
-
-            var apiCallParams = {
-                itemId:$attrs.csItemid,
-                sessionId:$attrs.csItemsessionid,
-                access_token:"34dj45a769j4e1c0h4wb"
-            };
-
-            var createNewItemSession = function () {
-
-                var createUrl = AssessmentSessionService.getCreateUrl(apiCallParams.itemId, apiCallParams.access_token);
-                $http({method:'POST', url:createUrl }).
-                    success(function (data, status, headers, config) {
-                        apiCallParams.sessionId = data.id;
-                    }).
-                    error(function (data, status, headers, config) {
-                        throw "Error creating new ItemSession";
-                    });
-            };
+            $scope.finalSubmit = false;
 
             $scope.$on('reset', function (event) {
-                createNewItemSession();
                 $scope.$broadcast('resetUI');
-                $scope.formDisabled = false;
+                $scope.formSubmitted = false;
+                $scope.formHasIncorrect = false;
+                $scope.finalSubmit = false;
             });
 
+            $scope.$watch('itemSession', function (newValue) {
+                if (!newValue) {
+                    return;
+                }
+                itemId = newValue.itemId;
+                sessionId = newValue.id;
 
-            // get item session - parameters for session behavior will be defined there
-            // TODO it is an error if there is no session found
-            $scope.itemSession = AssessmentSessionService.get(apiCallParams);
-
-            $scope.feedbackEnabled = ($scope.itemSession.feedbackEnabled || true);
-            $scope.tryAgainEnabled = ($scope.itemSession.tryAgainEnabled || true);
+                if (newValue.settings) {
+                    noResponseAllowed = newValue.settings.allowEmptyResponses;
+                    $scope.canSubmit = noResponseAllowed || !$scope.hasEmptyResponse();
+                }
+                $scope.$broadcast('resetUI');
+                $scope.formSubmitted = false;
+            });
 
             $scope.showNoResponseFeedback = false;
-            $scope.itemSession.start = new Date().getTime(); // millis since epoch (maybe this should be set in an onload event?)
             $scope.responses = [];
-
 
             $scope.isEmptyItem = function (value) {
                 if (!value || value == undefined) {
@@ -75,21 +97,21 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                     return true;
                 }
                 return false;
-            }
+            };
 
             $scope.hasEmptyResponse = function () {
                 for (var i = 0; i < $scope.responses.length; i++) {
                     if ($scope.isEmptyItem($scope.responses[i].value)) return true;
                 }
                 return false;
-            }
+            };
 
             // sets a response for a given question/interaction
             this.setResponse = function (key, responseValue) {
 
                 var itemResponse = this.findItemByKey(key);
-                //if its null - create it
 
+                //if its null - create it
                 if (!itemResponse) {
                     itemResponse = (itemResponse || { id:key });
                     $scope.responses.push(itemResponse);
@@ -98,6 +120,8 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 itemResponse.value = responseValue;
                 $scope.canSubmit = noResponseAllowed || !$scope.hasEmptyResponse();
                 $scope.showNoResponseFeedback = ($scope.status == 'ATTEMPTED' && $scope.hasEmptyResponse());
+
+                $scope.finalSubmit = false;
             };
 
             this.findItemByKey = function (key) {
@@ -109,12 +133,22 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 return null;
             };
 
+
+            var areResponsesIncorrect = function(){
+                if (!$scope.itemSession || !$scope.itemSession.responses) return false;
+                for (var i = 0; i < $scope.itemSession.responses.length; i++) {
+                    if ($scope.itemSession.responses[i].outcome != undefined && $scope.itemSession.responses[i].outcome.score < 1) return true;
+                }
+                return false;
+
+            };
+
             // this is the function that submits the user responses and gets the outcomes
             this.submitResponses = function () {
-                if ($scope.formDisabled) return;
+                if ($scope.formSubmitted) return;
 
 
-                if ($scope.hasEmptyResponse()) {
+                if ($scope.hasEmptyResponse() && !noResponseAllowed) {
                     $scope.status = 'ATTEMPTED';
                     $scope.showNoResponseFeedback = ($scope.hasEmptyResponse());
                     return;
@@ -124,29 +158,62 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
                 $scope.itemSession.responses = $scope.responses;
 
-                if ($scope.tryAgainEnabled) {
-                    delete $scope.itemSession.finish;
-                } else {
-                    $scope.itemSession.finish = new Date().getTime();
-                }
+                if ($scope.finalSubmit) $scope.itemSession.finish = new Date().getTime();
 
-                AssessmentSessionService.save(apiCallParams, $scope.itemSession, function (data) {
-
+                AssessmentSessionService.save({itemId:itemId, sessionId:sessionId}, $scope.itemSession, function (data) {
                     $scope.itemSession = data;
+                    $scope.formHasIncorrect = areResponsesIncorrect();
+                    $scope.finalSubmit = true;
 
-                    if (!$scope.tryAgainEnabled) {
-                        $scope.formDisabled = true;
-                    } else {
-                        $scope.status = '';
-                    }
+                    // Note: need to call this within a $timeout as the propogation isn't working properly without it.
+                    $timeout(function () {
+                        $scope.formSubmitted = $scope.itemSession.isFinished;
+                        if ($scope.formSubmitted) {
+                            $scope.formHasIncorrect = false;
+                        }
+                        $scope.$broadcast('onFormDisabled', $scope.formSubmitted);
+                    });
+
                 }, function onError(error) {
                     if (error && error.data) alert(error.data.message);
                 });
-
             };
 
+            var isSettingEnabled = function (name) {
+                if (!$scope.itemSession || !$scope.itemSession.settings) {
+                    return false;
+                }
+                return $scope.itemSession.settings[name];
+            };
+
+            $scope.submitButtonText = function() {
+                return ($scope.finalSubmit) ? "Submit Anyway" : "Submit";
+            }
+
             $scope.isFeedbackEnabled = function () {
-                return $scope.feedbackEnabled;
+                return isSettingEnabled("showFeedback");
+            };
+
+            $scope.highlightCorrectResponse = function () {
+                return isSettingEnabled("highlightCorrectResponse")
+            };
+
+            $scope.highlightUserResponse = function () {
+                return isSettingEnabled("highlightUserResponse")
+            };
+
+            $scope.submitCompleteMessage = function () {
+                if (!$scope.itemSession || !$scope.itemSession.settings) {
+                    return "Your response has been received";
+                }
+                return $scope.itemSession.settings.submitCompleteMessage;
+            }
+
+            $scope.submitIncorrectMessage = function () {
+                if (!$scope.itemSession || !$scope.itemSession.settings) {
+                    return "Looks like there is something you might fix in your work. You can change your answers, or submit your response as-is";
+                }
+                return $scope.itemSession.settings.submitIncorrectMessage;
             }
         }
     };
@@ -161,18 +228,16 @@ qtiDirectives.directive('itembody', function () {
             '<div ng-show="printMode" class="item-body-dotted-line">Name: </div>',
             '<span ng-transclude="true"></span>',
             '<div class="noResponseFeedback" ng-show="showNoResponseFeedback">Some information seems to be missing. Please provide an answer and then click "Submit". </div>',
-            '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="formDisabled || !canSubmit" ng-click="onClick()">Submit</a>'
+            '<div class="noResponseFeedback" ng-show="formHasIncorrect">{{submitIncorrectMessage()}}</div>',
+            '<div class="noResponseFeedback" ng-show="formSubmitted">{{submitCompleteMessage()}}</div>',
+            '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="formSubmitted || !canSubmit" ng-hide="formSubmitted" ng-click="onSubmitClick()">{{submitButtonText()}}</a>',
         ].join('\n'),
-        //replace: true,
         require:'^assessmentitem',
         link:function (scope, element, attrs, AssessmentItemCtrl) {
-
-            scope.onClick = function () {
+            scope.onSubmitClick = function () {
                 AssessmentItemCtrl.submitResponses()
             };
-
         }
-
     }
 });
 

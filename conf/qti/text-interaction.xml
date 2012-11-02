@@ -18,6 +18,8 @@
         </mapping>
     </responseDeclaration>
 
+    <responseDeclaration identifier="longAnswer" cardinality="single" baseType="string"/>
+
     <itemBody>
         <p>Now is the winter of our discontent
             <br/>
@@ -37,6 +39,10 @@
                 York is correct
             </span>
         </feedbackInline>
+
+
+        <prompt>Write Sam a postcard. Write 25-35 words.</prompt>
+                <extendedTextInteraction responseIdentifier="longAnswer" expectedLength="200" />
     </itemBody>
 
     <modalFeedback

@@ -1,0 +1,21 @@
+@(itemId: String, itemBody: String, previewEnabled : Boolean)
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html ng-app="qti">
+<head>
+    <title>@itemId</title>
+    @common.views.html.partials.ieEightSupport()
+    @partials.scripts(itemBody)
+</head>
+<body ng-controller="QtiAppController">
+
+        @if( previewEnabled ){
+
+            @partials.controlBar()
+        }
+    <div class="assessment-page">
+        @Html(itemBody)
+    </div>
+</body>
+</html>

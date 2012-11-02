@@ -24,6 +24,7 @@ files = [
     'public/js/corespring/qti/*.js',
     'public/js/corespring/qti/directives/*.js',
     'public/js/corespring/qti/directives/web/*.js',
+    'js-test/lib/play.mock.routes.js',
     'js-test/unit/corespring/qti/*.js',
     'js-test/unit/corespring/qti/prototype.extensions/*.js',
     'js-test/unit/corespring/qti/directives/*.js',
