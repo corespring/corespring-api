@@ -20,17 +20,17 @@
 
             <div class="span4">
                 <input type="checkbox"
-                       ng-model="itemSession.settings.highlightUserResponse"> Highlight user response</input>
+                       ng-model="itemSession.settings.highlightUserResponse"> Highlight the student’s answer</input>
                 <br/>
                 <input type="checkbox"
-                       ng-model="itemSession.settings.showFeedback"> Show feedback content for highlighted
-                response</input>
+                       ng-model="itemSession.settings.highlightCorrectResponse"> Highlight the correct answer</input>
                 <br/>
                 <input type="checkbox"
-                       ng-model="itemSession.settings.allowEmptyResponses"> Accept empty responses</input>
+                       ng-model="itemSession.settings.showFeedback"> Show the feedback text for all answers (if available)</input>
                 <br/>
                 <input type="checkbox"
-                       ng-model="itemSession.settings.highlightCorrectResponse"> Highlight correct responses</input>
+                       ng-model="itemSession.settings.allowEmptyResponses"> Accept incomplete work</input>
+                <br/>
             </div>
         </div>
     </div>
