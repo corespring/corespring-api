@@ -40,11 +40,6 @@ case class ItemSession(var itemId: ObjectId,
   def isFinished: Boolean = finish.isDefined
 }
 
-/**
- * Companion object for ItemSession.
- * All operations specific to ItemSession are handled here
- *
- */
 object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
   val itemId = "itemId"
   val start = "start"
@@ -126,7 +121,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     }
 
   /**
-   * find the db session and return it to fn
+   * find the db session and call fn with it passed in
    * @param session
    * @param fn
    * @return
@@ -155,7 +150,8 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
 
   /**
    * Process the item session responses and return feedback.
-   * If this iteration exceeds the number of attempts the finish it.
+   * If this iteration exceeds the number of attempts the finish it
+   * Or if there are no incorrect responses finish it.
    * @param update
    * @param xmlWithCsFeedbackIds
    * @return
@@ -214,9 +210,6 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
 
   def getSessionData(xml: Elem, responses: Seq[ItemResponse]) = Some(SessionData(QtiItem(xml), responses))
 
-  /**
-   * Json Serializer
-   */
   implicit object ItemSessionWrites extends Writes[ItemSession] {
     def writes(session: ItemSession) = {
       var seq: Seq[(String, JsValue)] = Seq(
@@ -259,7 +252,6 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
         settings = settings)
     }
   }
-
 
 }
 

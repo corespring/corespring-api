@@ -9,22 +9,33 @@ import scala.Some
 import play.api.libs.json.JsObject
 import qti.models.QtiItem.Correctness
 
-
 /**
- * data sent back after a session update (representing a completed item). example:
+ * Creates information about the responses.
+ *  - feedback - feedback to the user about their responses
+ *  - correctResponses
  *
  * {
- * sessionData: {
- * feedbackContents: {
- * [csFeedbackId]: "[contents of feedback element]",
- * [csFeedbackId]: "[contents of feedback element]"
+ *  sessionData: {
+ *    feedbackContents: {
+ *      [csFeedbackId]: "[contents of feedback element]",
+ *      [csFeedbackId]: "[contents of feedback element]"
+ *    }
+ *  correctResponse: {
+ *    irishPresident: "higgins",
+ *    rainbowColors: ['blue','violet', 'red']
+ *    }
+ *  }
  * }
- * correctResponse: {
- * irishPresident: "higgins",
- * rainbowColors: ['blue','violet', 'red']
- * }
- * }
- * }
+ *
+ * TODO: SessionData output should change its output depending on the following:
+ * ItemSessionSettings{
+ *  highlightCorrectResponses,
+ *  highlightUserResponse,
+ *  showFeedbackForHighlighted
+ *  }
+ *
+ * @param qtiItem
+ * @param responses
  */
 case class SessionData(qtiItem: QtiItem, responses: Seq[ItemResponse])
 
