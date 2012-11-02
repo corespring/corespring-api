@@ -8,31 +8,32 @@ import play.api.libs.json.JsString
 import scala.Some
 import play.api.libs.json.JsObject
 import qti.models.QtiItem.Correctness
+import com.codahale.jerkson.{Json => Jerkson}
 
 /**
  * Creates information about the responses.
- *  - feedback - feedback to the user about their responses
- *  - correctResponses
+ * - feedback - feedback to the user about their responses
+ * - correctResponses
  *
  * {
- *  sessionData: {
- *    feedbackContents: {
- *      [csFeedbackId]: "[contents of feedback element]",
- *      [csFeedbackId]: "[contents of feedback element]"
- *    }
- *  correctResponse: {
- *    irishPresident: "higgins",
- *    rainbowColors: ['blue','violet', 'red']
- *    }
- *  }
+ * sessionData: {
+ * feedbackContents: {
+ * [csFeedbackId]: "[contents of feedback element]",
+ * [csFeedbackId]: "[contents of feedback element]"
+ * }
+ * correctResponse: {
+ * irishPresident: "higgins",
+ * rainbowColors: ['blue','violet', 'red']
+ * }
+ * }
  * }
  *
  * TODO: SessionData output should change its output depending on the following:
  * ItemSessionSettings{
- *  highlightCorrectResponses,
- *  highlightUserResponse,
- *  showFeedbackForHighlighted
- *  }
+ * highlightCorrectResponses,
+ * highlightUserResponse,
+ * showFeedbackForHighlighted
+ * }
  *
  * @param qtiItem
  * @param responses
@@ -42,17 +43,10 @@ case class SessionData(qtiItem: QtiItem, responses: Seq[ItemResponse])
 object SessionData {
 
   implicit object SessionDataWrites extends Writes[SessionData] {
+
     def writes(sd: SessionData) = {
-      var correctResponses: Seq[(String, JsValue)] = Seq()
-      sd.qtiItem.responseDeclarations.foreach(rd => {
-        rd.correctResponse.foreach(_ match {
-          case crs: CorrectResponseSingle => correctResponses = correctResponses :+ (rd.identifier -> JsString(crs.value))
-          case crm: CorrectResponseMultiple => correctResponses = correctResponses :+ (rd.identifier -> JsArray(crm.value.map(JsString(_))))
-          case cro: CorrectResponseOrdered => correctResponses = correctResponses :+ (rd.identifier -> JsArray(cro.value.map(JsString(_))))
-          case cra: CorrectResponseAny => correctResponses = correctResponses :+ (rd.identifier -> JsArray(cra.value.map(JsString(_))))
-          case _ => throw new RuntimeException("unexpected correct response type")
-        })
-      })
+
+      val correctResponses: List[JsValue] = declarationsToJson(sd.qtiItem.responseDeclarations)
 
       def filterFeedbacks(feedbacks: Seq[FeedbackInline], displayCorrectResponse: Boolean = false): Seq[FeedbackInline] = {
         var feedbackGroups: HashMap[String, Seq[FeedbackInline]] = HashMap()
@@ -73,9 +67,9 @@ object SessionData {
        * @param displayCorrectResponse
        * @return
        */
-      def filterFeedbackGroup( responseIdentifier: String,
-                               feedbackGroup: Seq[FeedbackInline],
-                               displayCorrectResponse: Boolean = false): Seq[FeedbackInline] = {
+      def filterFeedbackGroup(responseIdentifier: String,
+                              feedbackGroup: Seq[FeedbackInline],
+                              displayCorrectResponse: Boolean = false): Seq[FeedbackInline] = {
 
 
         val responseGroup = sd.responses.filter(ir => ir.id == responseIdentifier) //find the responses corresponding to this feedbackGroup
@@ -84,8 +78,8 @@ object SessionData {
         /**
          * find if a response element that has the same value as the identifier in the feedbackInline element exists
          */
-        def responseAndFeedbackMatch(fi: FeedbackInline) : Boolean = {
-          responseGroup.find( (ir:ItemResponse) => ItemResponse.containsValue(ir,fi.identifier)).isDefined
+        def responseAndFeedbackMatch(fi: FeedbackInline): Boolean = {
+          responseGroup.find((ir: ItemResponse) => ItemResponse.containsValue(ir, fi.identifier)).isDefined
         }
 
         //find if the given feedback element represents the correct response
@@ -117,7 +111,7 @@ object SessionData {
             .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
           case oi: OrderInteraction => filterFeedbackGroup(oi.responseIdentifier, oi.choices.map(_.feedbackInline).flatten, true)
             .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
-          case ti : TextEntryInteraction => filterFeedbackGroup(ti.responseIdentifier, ti.feedbackBlocks, true)
+          case ti: TextEntryInteraction => filterFeedbackGroup(ti.responseIdentifier, ti.feedbackBlocks, true)
             .foreach(fi => feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi))))
         }
       })
@@ -125,19 +119,43 @@ object SessionData {
         feedbackContents = feedbackContents :+ (fi.csFeedbackId -> JsString(getFeedbackContent(fi)))
       )
 
-      /**
-       * Create an 'ItemResponse' style model
-       * TODO: Integrate a tru ItemResponse here
-       * @param t
-       * @return
-       */
-      def tupleToItemResponse(t: (String, JsValue)): JsObject = JsObject(Seq("id" -> JsString(t._1), "value" -> t._2))
 
       JsObject(Seq(
         "feedbackContents" -> JsObject(feedbackContents),
-        "correctResponses" -> JsArray(correctResponses.map(tupleToItemResponse))
+        "correctResponses" -> JsArray(correctResponses)
       ))
     }
+
+    /**
+     * convert ResponseDeclaration.CorrectResponse -> JsValue
+     * @param declarations
+     * @return
+     */
+    private def declarationsToJson(declarations: Seq[ResponseDeclaration]): List[JsValue] = {
+
+      def correctResponseToItemResponse(id: String)(cr: CorrectResponse): ItemResponse = cr match {
+        case CorrectResponseSingle(value) => StringItemResponse(id, value)
+        case CorrectResponseMultiple(value) => ArrayItemResponse(id, value)
+        case CorrectResponseAny(value) => ArrayItemResponse(id, value)
+        case CorrectResponseOrdered(value) => ArrayItemResponse(id, value)
+        case _ => throw new RuntimeException("Unknown CorrectResponseType: " + cr)
+      }
+
+      def _declarationsToViews(declarations: Seq[ResponseDeclaration]): List[ItemResponse] =
+      {
+        if (declarations.isEmpty) {
+          List()
+        } else {
+          val rd: ResponseDeclaration = declarations.head
+          val correctResponseViews = rd.correctResponse.map(correctResponseToItemResponse(rd.identifier))
+          correctResponseViews.toList ::: _declarationsToViews(declarations.tail)
+        }
+      }
+
+      _declarationsToViews(declarations).map(Json.toJson(_))
+
+    }
+
   }
 
 }
