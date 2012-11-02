@@ -56,7 +56,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
             var itemId = null;
             var sessionId = null;
-            var noResponseAllowed = true;
+            var allowEmptyResponses = true;
 
             $scope.printMode = ( $attrs['printMode'] == "true" || false );
             $scope.finalSubmit = false;
@@ -76,8 +76,8 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 sessionId = newValue.id;
 
                 if (newValue.settings) {
-                    noResponseAllowed = newValue.settings.allowEmptyResponses;
-                    $scope.canSubmit = noResponseAllowed || !$scope.hasEmptyResponse();
+                    allowEmptyResponses = newValue.settings.allowEmptyResponses;
+                    $scope.canSubmit = allowEmptyResponses && $scope.hasEmptyResponse();
                 }
                 $scope.$broadcast('resetUI');
                 $scope.formSubmitted = false;
@@ -100,6 +100,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             };
 
             $scope.hasEmptyResponse = function () {
+
                 for (var i = 0; i < $scope.responses.length; i++) {
                     if ($scope.isEmptyItem($scope.responses[i].value)) return true;
                 }
@@ -118,7 +119,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 }
 
                 itemResponse.value = responseValue;
-                $scope.canSubmit = noResponseAllowed || !$scope.hasEmptyResponse();
+                $scope.canSubmit = allowEmptyResponses || !$scope.hasEmptyResponse();
                 $scope.showNoResponseFeedback = ($scope.status == 'ATTEMPTED' && $scope.hasEmptyResponse());
 
                 $scope.finalSubmit = false;
@@ -148,7 +149,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 if ($scope.formSubmitted) return;
 
 
-                if ($scope.hasEmptyResponse() && !noResponseAllowed) {
+                if ($scope.hasEmptyResponse() && !allowEmptyResponses) {
                     $scope.status = 'ATTEMPTED';
                     $scope.showNoResponseFeedback = ($scope.hasEmptyResponse());
                     return;
