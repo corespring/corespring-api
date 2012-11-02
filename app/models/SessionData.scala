@@ -141,18 +141,18 @@ object SessionData {
         case _ => throw new RuntimeException("Unknown CorrectResponseType: " + cr)
       }
 
-      def _declarationsToViews(declarations: Seq[ResponseDeclaration]): List[ItemResponse] =
+      def _declarationsToItemResponses(declarations: Seq[ResponseDeclaration]): List[ItemResponse] =
       {
         if (declarations.isEmpty) {
           List()
         } else {
           val rd: ResponseDeclaration = declarations.head
           val correctResponseViews = rd.correctResponse.map(correctResponseToItemResponse(rd.identifier))
-          correctResponseViews.toList ::: _declarationsToViews(declarations.tail)
+          correctResponseViews.toList ::: _declarationsToItemResponses(declarations.tail)
         }
       }
 
-      _declarationsToViews(declarations).map(Json.toJson(_))
+      _declarationsToItemResponses(declarations).map(Json.toJson(_))
 
     }
 
