@@ -22,14 +22,6 @@ GET     /public/items                                  publicsite.controllers.Ap
 #
 # V1 API
 #
-# Public site
-GET     /                                       controllers.Application.index
-GET     /collection                             controllers.Application.collection
-GET     /contact                                controllers.Application.contact
-GET     /partnerships                           controllers.Application.partnerships
-GET     /team                                   controllers.Application.team
-GET     /items                                  controllers.Application.getItems
-
 
 # Organizations
 GET     /api/v1/organizations                   api.v1.OrganizationApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100)
