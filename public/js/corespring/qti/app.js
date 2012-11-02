@@ -172,7 +172,6 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                         if ($scope.formSubmitted) {
                             $scope.formHasIncorrect = false;
                         }
-                        $scope.$broadcast('onFormDisabled', $scope.formSubmitted);
                     });
 
                 }, function onError(error) {
@@ -189,7 +188,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
             $scope.submitButtonText = function() {
                 return ($scope.finalSubmit) ? "Submit Anyway" : "Submit";
-            }
+            };
 
             $scope.isFeedbackEnabled = function () {
                 return isSettingEnabled("showFeedback");
