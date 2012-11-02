@@ -41,8 +41,6 @@
 
         this.setSessionSettings = function($rootScope, settings ){
 
-            console.log("setSessionSettings: " + settings);
-
             $rootScope.itemSession = ($rootScope.itemSession || {});
 
             $rootScope.$apply(function () {

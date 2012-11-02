@@ -16,14 +16,15 @@ describe('qtiDirectives.assessmentItem', function () {
         return { element: element, scope: rootScope};
     };
 
-    var getItemSession = function(){
+    var getItemSession = function(sessionId, itemId, settings){
 
+        sessionId = (sessionId || "sessionId");
+        itemId = (itemId || "itemId");
+        settings = (settings || { allowEmptyResponses: false});
         return {
-            id: "id",
-            itemId: "itemId",
-            settings: {
-                allowEmptyResponses: false
-            }
+            id: sessionId,
+            itemId: itemId,
+            settings: settings
         }
     };
 
@@ -33,9 +34,10 @@ describe('qtiDirectives.assessmentItem', function () {
 
     beforeEach(module('qti'));
 
-    var rootScope, compile, interaction, itemSession, controller;
+    var rootScope, compile, interaction, itemSession, controller, httpBackend;
 
     beforeEach(inject(function ($compile, $rootScope, _$httpBackend_) {
+        httpBackend = _$httpBackend_;
         helper.prepareBackend(_$httpBackend_);
         rootScope = $rootScope.$new();
         compile = $compile;
@@ -44,6 +46,13 @@ describe('qtiDirectives.assessmentItem', function () {
         controller = interaction.element.data('$assessmentitemController');
         itemSession = getItemSession();
     }));
+
+    /**
+     * the responses are added in the submt function,
+     * but we don't have access to the submitted data
+     * TODO: See if there's a way of accessing this data
+     * See: https://groups.google.com/forum/?fromgroups=#!topic/angular/WzuBKosy8PM
+     */
 
     describe('assessment item', function() {
 
@@ -58,19 +67,26 @@ describe('qtiDirectives.assessmentItem', function () {
             expect(interaction.scope.itemSession).not.toBeNull();
         });
 
-        it('should show responses is incorrect', function(){
+        var assertFormIncorrect = function( isCorrect, responses  ) {
 
-            interaction.scope.itemSession = itemSession;
+            interaction.scope.$apply(function(){
+                interaction.scope.itemSession = getItemSession( Math.random() + "", 'itemId');
+                itemSession = interaction.scope.itemSession;
+            });
 
-            controller.setResponse("questionOne", "apple");
+            var def = TestPlayerRoutes.api.v1.ItemSessionApi.update(itemSession.itemId, itemSession.id);
+            var response = angular.copy(itemSession);
+            response.responses = responses;
+            httpBackend.when(def.method, def.url).respond(200,response);
+            controller.submitResponses();
+            httpBackend.flush();
+            expect(interaction.scope.formHasIncorrect).toBe(isCorrect);
+        };
 
-            itemSession.sessionData = {};
-            itemSession.sessionData.correctResponses = {
-                questionOne: "banana"
-            };
-            //Need to get the server response set up for this
-            //expect(interaction.scope.showResponsesIncorrect).toBe(true);
-
+        it('form is incorrect if any item has a score of 0', function(){
+            assertFormIncorrect(true, [{ id : "questionOne", value: "apple", outcome: { score: 0 } }]);
+            assertFormIncorrect(false, [{ id : "questionOne", value: "apple", outcome: { score: 1 } }]);
+            assertFormIncorrect(false, [{ id : "questionOne", value: "apple" }]);
         });
 
 

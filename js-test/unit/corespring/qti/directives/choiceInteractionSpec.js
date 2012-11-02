@@ -116,7 +116,6 @@ describe('qtiDirectives.choiceinteraction', function () {
             '</choiceInteraction>'].join("\n");
 
             var r = getInteraction(node);
-            console.log("r: " + r);
             return { scope: r.scope.$$childHead, element:  r.element.find("simpleChoice") };
         };
 

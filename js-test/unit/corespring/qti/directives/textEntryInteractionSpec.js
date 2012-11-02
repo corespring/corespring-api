@@ -60,7 +60,6 @@ describe('qtiDirectives.textentryinteraction', function () {
         var matchedClass = function(source, search){
             var regex = new RegExp(".*?[$|\\s]" + search + ".*");
             var matched = source.match(regex);
-            console.log(matched);
             return matched != null;
         };
 
@@ -86,7 +85,6 @@ describe('qtiDirectives.textentryinteraction', function () {
 
             helper.setCorrectResponseOnScope(rootScope, "rid", "correct");
 
-            console.log("element class: " + element.attr('class'));
 
             expect( matchedClass(element.attr('class'), scope.CSS.correct) ).toBe(correctCssVisible);
 
