@@ -67,17 +67,24 @@ describe('qtiDirectives.assessmentItem', function () {
             expect(interaction.scope.itemSession).not.toBeNull();
         });
 
-        var assertFormIncorrect = function( isCorrect, responses  ) {
 
+        var setUpBackendForSubmit = function(getResponse) {
             interaction.scope.$apply(function(){
                 interaction.scope.itemSession = getItemSession( Math.random() + "", 'itemId');
                 itemSession = interaction.scope.itemSession;
             });
-
             var def = TestPlayerRoutes.api.v1.ItemSessionApi.update(itemSession.itemId, itemSession.id);
-            var response = angular.copy(itemSession);
-            response.responses = responses;
-            httpBackend.when(def.method, def.url).respond(200,response);
+            httpBackend.when(def.method, def.url).respond(200,getResponse());
+        };
+
+        var assertFormIncorrect = function( isCorrect, responses  ) {
+
+            setUpBackendForSubmit( function() {
+                var response = angular.copy(itemSession);
+                response.responses = responses;
+                return response;
+            });
+
             controller.submitResponses();
             httpBackend.flush();
             expect(interaction.scope.formHasIncorrect).toBe(isCorrect);
@@ -87,6 +94,21 @@ describe('qtiDirectives.assessmentItem', function () {
             assertFormIncorrect(true, [{ id : "questionOne", value: "apple", outcome: { score: 0 } }]);
             assertFormIncorrect(false, [{ id : "questionOne", value: "apple", outcome: { score: 1 } }]);
             assertFormIncorrect(false, [{ id : "questionOne", value: "apple" }]);
+        });
+
+        it('sets finalSubmit to true and sets it to false if the user makes a change', function(){
+
+            setUpBackendForSubmit( function() {
+                var response = angular.copy(itemSession);
+                response.responses = [];
+                return response;
+            });
+
+            controller.submitResponses();
+            httpBackend.flush();
+            expect(interaction.scope.finalSubmit).toBe(true);
+            controller.setResponse("questionOne", "hello");
+            expect(interaction.scope.finalSubmit).toBe(false);
         });
 
 
