@@ -195,6 +195,11 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 return $scope.itemSession.settings[name];
             };
 
+            $scope.isAllowedSubmit = function(){
+                var out = $scope.canSubmit || !$scope.formSubmitted;
+                return out;
+            };
+
             $scope.submitButtonText = function() {
                 return ($scope.finalSubmit) ? "Submit Anyway" : "Submit";
             };
@@ -239,7 +244,7 @@ qtiDirectives.directive('itembody', function () {
             '<div class="noResponseFeedback" ng-show="showNoResponseFeedback">Some information seems to be missing. Please provide an answer and then click "Submit". </div>',
             '<div class="noResponseFeedback" ng-show="formHasIncorrect">{{submitIncorrectMessage()}}</div>',
             '<div class="noResponseFeedback" ng-show="formSubmitted">{{submitCompleteMessage()}}</div>',
-            '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="formSubmitted || !canSubmit" ng-hide="formSubmitted" ng-click="onSubmitClick()">{{submitButtonText()}}</a>',
+            '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="!isAllowedSubmit()" ng-hide="formSubmitted" ng-click="onSubmitClick()">{{submitButtonText()}}</a>',
         ].join('\n'),
         require:'^assessmentitem',
         link:function (scope, element, attrs, AssessmentItemCtrl) {
