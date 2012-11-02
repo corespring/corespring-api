@@ -18,29 +18,12 @@ class ItemSessionSettingsTest extends Specification {
 
       (json \ "maxNoOfAttempts").as[Int] must equalTo(0)
       (json \ "highlightUserResponse").as[Boolean] must equalTo(true)
-      (json \ "highlightCorrectResponse").as[Boolean] must equalTo(false)
+      (json \ "highlightCorrectResponse").as[Boolean] must equalTo(true)
       (json \ "showFeedback").as[Boolean] must equalTo(true)
       (json \ "allowEmptyResponses").as[Boolean] must equalTo(false)
       (json \ "submitCompleteMessage").as[String] must equalTo(ItemSessionSettings.SubmitComplete)
       (json \ "submitIncorrectMessage").as[String] must equalTo(ItemSessionSettings.SubmitIncorrect)
 
-    }
-
-    "when parsing json - if maxNoOfAttempts is 0 - highlightCorrectResponse is false" in {
-      val jsonString = """{
-        "maxNoOfAttempts" : 0,
-        "highlightUserResponse": true,
-        "highlightCorrectResponse": true,
-        "showFeedback": true,
-        "allowEmptyResponses" : true,
-        "submitCompleteMessage" : "complete",
-        "submitIncorrectMessage" : "incorrect"
-      }"""
-
-      val json = Json.parse(jsonString)
-      val settings = json.as[ItemSessionSettings]
-
-      settings.highlightCorrectResponse must equalTo(false)
     }
 
     "parse settings in ItemSession" in {
