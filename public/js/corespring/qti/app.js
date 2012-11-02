@@ -221,7 +221,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                     return "Your response has been received";
                 }
                 return $scope.itemSession.settings.submitCompleteMessage;
-            }
+            };
 
             $scope.submitIncorrectMessage = function () {
                 if (!$scope.itemSession || !$scope.itemSession.settings) {
