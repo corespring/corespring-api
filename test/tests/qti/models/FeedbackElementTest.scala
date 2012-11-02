@@ -3,7 +3,7 @@ package tests.qti.models
 import org.specs2.mutable._
 import qti.models.FeedbackInline
 
-class FeedbackElementSpec extends Specification {
+class FeedbackElementTest extends Specification {
 
   "A feedback element" should {
 
@@ -19,8 +19,10 @@ class FeedbackElementSpec extends Specification {
       if (feedbackInline.identifier equals "1") success else failure
       if (feedbackInline.outcomeIdentifier equals "SCORE") success else failure
     }
+
     "return body xml" in {
-      feedbackInline.content must beEqualTo(feedbackXML.child.foldRight[String]("")((node,acc) => node.toString() + acc))
+      val actualString = feedbackXML.child.foldRight[String]("")((node,acc) => node.toString() + acc)
+      feedbackInline.content must beEqualTo(actualString.trim)
     }
 
   }

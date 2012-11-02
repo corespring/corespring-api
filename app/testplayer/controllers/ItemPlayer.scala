@@ -1,99 +1,90 @@
 package testplayer.controllers
 
 import org.xml.sax.SAXParseException
-import xml.{Elem, NodeSeq}
+import xml.Elem
 import play.api.libs.json.Json
 import org.bson.types.ObjectId
 import controllers.auth.{Permission, BaseApi}
 import models._
 import qti.processors.FeedbackProcessor._
-import common.controllers.{DefaultCss, ItemResources}
-import scala.Some
+import common.controllers.ItemResources
 import qti.processors.FeedbackProcessor
-import qti.models.{OrderInteraction, ChoiceInteraction, QtiItem, FeedbackInline}
+import play.api.mvc._
 import testplayer.models.ExceptionMessage
+import scala.Some
+import models.Content
+import play.api.Routes
 
 
-object ItemPlayer extends BaseApi with ItemResources{
-
-
-  val JS_PATH : String = "/assets/js/corespring/qti/directives/web/"
-  val JS_PRINT_PATH : String = "/assets/js/corespring/qti/directives/print/"
-
-  val CSS_PATH : String = "/assets/stylesheets/qti/directives/web/"
-  val CSS_PRINT_PATH : String = "/assets/stylesheets/qti/directives/print/"
-
-  def css( url : String ) : String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
-  def script( url : String ) : String =  """<script type="text/javascript" src="%s"></script>""".format(url)
-
-  def createScripts( name : String, toPrint : Boolean = false) : String = {
-    val jspath = if (toPrint) JS_PRINT_PATH else JS_PATH
-    val csspath = if (toPrint) CSS_PRINT_PATH else CSS_PATH
-    Seq( script( jspath + name + ".js"), css( csspath + name  + ".css") ).mkString("\n") }
-
-
-  val notFoundJson = Json.toJson(
-    Map("error" -> "not found")
-  )
-
-
-  def previewItem(itemId:String, printMode:Boolean = false) =
-    _renderItem(itemId, printMode, previewEnabled = false )
-
-  /**
-   * Very simple QTI Item Renderer
-   * @param itemId
-   * @return
-   */
-  def renderItem(itemId: String, printMode: Boolean = false) =
-    _renderItem(itemId, printMode, previewEnabled  = false)
-
-
-  private def createItemSession(itemId:String, mapping:Seq[FeedbackIdMapEntry]) : String = {
-    val session : ItemSession = ItemSession( itemId = new ObjectId(itemId),feedbackIdLookup = mapping )
-    ItemSession.save(session, ItemSession.collection.writeConcern)
-    session.id.toString
-  }
-
-  private def _renderItem(itemId:String, printMode : Boolean = false, previewEnabled : Boolean = false)  = ApiAction { request =>
-    try {
-      getItemXMLByObjectId(itemId,request.ctx.organization) match {
-        case Some(xmlData: Elem) =>
-
-          val (xmlWithCsFeedbackIds,mapping) = FeedbackProcessor.addFeedbackIds(xmlData)
-
-          val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds) \ "itemBody")
-
-          val scripts: List[String] = getScriptsToInclude(itemBody, printMode)
-
-          val itemSessionId = if (printMode) "" else createItemSession(itemId, mapping)
-
-          val qtiXml = <assessmentItem
-                           print-mode={ if(printMode) "true" else "false" }
-                           cs:itemId={itemId}
-                           cs:itemSessionId={itemSessionId}
-                           cs:feedbackEnabled="true"
-                           cs:noResponseAllowed="true">{itemBody}</assessmentItem>
-
-          val finalXml = removeNamespaces(qtiXml)
-
-          Ok(testplayer.views.html.itemPlayer(itemId, scripts, finalXml, previewEnabled))
-        case None =>
-          // we found nothing
-          NotFound(notFoundJson)
-      }
-    } catch {
-      case e: SAXParseException => {
-        // xml processing error - inform the user
-        val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
-        Ok(testplayer.views.html.itemPlayerError(errorInfo))
-      }
-      case e: Exception => throw new RuntimeException( "ItemPlayer.renderItem: " + e.getMessage, e)
-    }
-
-  }
+object ItemPlayer extends BaseApi with ItemResources {
 
   val NamespaceRegex = """xmlns.*?=".*?"""".r
+
+  def javascriptRoutes = Action { implicit request =>
+
+    import api.v1.routes.javascript._
+
+    Ok(
+      Routes.javascriptRouter("TestPlayerRoutes")(
+        ItemSessionApi.update,
+        ItemSessionApi.get,
+        ItemSessionApi.create
+      )
+    ).as("text/javascript")
+  }
+
+  def previewItemBySessionId(sessionId: String, printMode: Boolean = false) = {
+
+    ItemSession.findOneById(new ObjectId(sessionId)) match {
+      case Some(session) => {
+        _renderItem(session.itemId.toString, printMode)
+      }
+      case _ => throw new RuntimeException("Can't find item session: " + sessionId)
+    }
+  }
+
+  def getDataFileBySessionId(sessionId: String, filename: String) = {
+
+    ItemSession.findOneById(new ObjectId(sessionId)) match {
+      case Some(session) => getDataFile(session.itemId.toString, filename)
+      case _ => Action(NotFound("sessionId: " + sessionId))
+    }
+  }
+
+  def previewItem(itemId: String, printMode: Boolean = false, sessionSettings: String = "") =
+    _renderItem(itemId, printMode, previewEnabled = true, sessionSettings = sessionSettings)
+
+  def renderItem(itemId: String, printMode: Boolean = false, sessionSettings: String = "") =
+    _renderItem(itemId, printMode, previewEnabled = false, sessionSettings = sessionSettings)
+
+
+  private def _renderItem(itemId: String, printMode: Boolean = false, previewEnabled: Boolean = false, sessionSettings: String = "") = ApiAction {
+    request =>
+      try {
+        getItemXMLByObjectId(itemId, request.ctx.organization) match {
+          case Some(xmlData: Elem) =>
+
+            val (xmlWithCsFeedbackIds, _) = FeedbackProcessor.addFeedbackIds(xmlData)
+
+            val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds) \ "itemBody")
+
+            val qtiXml = <assessmentItem print-mode={printMode.toString}>{itemBody}</assessmentItem>
+
+            val finalXml = removeNamespaces(qtiXml)
+
+            Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled))
+          case None =>
+            NotFound("not found")
+        }
+      } catch {
+        case e: SAXParseException => {
+          val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
+          Ok(testplayer.views.html.itemPlayerError(errorInfo))
+        }
+        case e: Exception => throw new RuntimeException("ItemPlayer.renderItem: " + e.getMessage, e)
+      }
+
+  }
 
   /**
    * remove the namespaces - Note: this is necessary to support correct rendering in IE8
@@ -101,33 +92,7 @@ object ItemPlayer extends BaseApi with ItemResources{
    * @param xml
    * @return
    */
-  private def removeNamespaces(xml: Elem): String =  NamespaceRegex.replaceAllIn(xml.mkString, "")
-
-  def getFeedbackInline(itemId: String, responseIdentifier: String, choiceIdentifier: String) = ApiAction { request =>
-    getItemXMLByObjectId(itemId, request.ctx.organization) match {
-      case Some(rootElement: Elem) => {
-        val choiceIdentifiers:Seq[String] = if (choiceIdentifier.contains(",")) choiceIdentifier.split(",") else Seq(choiceIdentifier)
-        val item = QtiItem(rootElement)
-        val feedback: Seq[FeedbackInline] = item.itemBody.interactions.find(_.responseIdentifier == responseIdentifier) match {
-          case Some(interaction) =>
-            interaction match {
-            case ChoiceInteraction(_,choices) => choices.filter(sc => choiceIdentifiers.contains(sc.identifier)).flatMap(_.feedbackInline)
-            case OrderInteraction(_,choices) => choices.filter(sc => choiceIdentifiers.contains(sc.identifier)).flatMap(_.feedbackInline)
-            case _ => Seq()
-          }
-          case None => Seq()
-        }
-        if (feedback.nonEmpty) {
-          Ok(Json.toJson(Map("feedback" -> Json.toJson(feedback))))
-        } else {
-          NotFound(notFoundJson)
-        }
-      }
-      case None => {
-        NotFound(notFoundJson)
-      }
-    }
-  }
+  private def removeNamespaces(xml: Elem): String = NamespaceRegex.replaceAllIn(xml.mkString, "")
 
   /**
    * Provides the item XML body for an item with a provided item id.
@@ -137,10 +102,10 @@ object ItemPlayer extends BaseApi with ItemResources{
   private def getItemXMLByObjectId(itemId: String, callerOrg: ObjectId): Option[Elem] = {
     Item.findOneById(new ObjectId(itemId)) match {
       case Some(item) => {
-        if( Content.isCollectionAuthorized(callerOrg,item.collectionId,Permission.All)){
-         val dataResource = item.data.get
+        if (Content.isCollectionAuthorized(callerOrg, item.collectionId, Permission.All)) {
+          val dataResource = item.data.get
 
-          dataResource.files.find( _.name == Resource.QtiXml) match {
+          dataResource.files.find(_.name == Resource.QtiXml) match {
             case Some(qtiXml) => {
               Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
             }
@@ -152,61 +117,5 @@ object ItemPlayer extends BaseApi with ItemResources{
     }
   }
 
-  def getScriptsToInclude(itemBody : NodeSeq, isPrintMode: Boolean = false) : List[String] = {
-    var scripts = List[String]()
-
-    // TODO - maybe move all of this configuration to an external .json/xml file in conf/ ?
-    // e.g. <match element="orderInteraction" priority="500" depends="jquery,jquery-ui">
-    //        <web>
-    //            <stylesheet src="/assets/js/corespring/qti/orderInteraction.css"/>
-    //            <script src="/assets/js/corespring/qti/orderInteraction.js/>
-    //        </web>
-    //        <print>
-    //          ...
-    //        <print>
-    // (also need to support minifying/obfuscating)
-
-
-
-    // base css to include for all QTI items
-    //scripts ::= "<link rel=\"stylesheet\" type=\"text/css\" href=\"/assets/js/corespring/qti/qti-base.css\" />"
-    // TODO - dropping jquery in for all right now, but this needs to be only dropped in if required by interactions
-    scripts ::= script("//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js")
-    scripts ::= script("//ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js")
-    scripts ::= script("/assets/bootstrap/js/bootstrap.js")
-    scripts ::= script("/assets/js/vendor/angular-ui/angular-ui.js")
-
-    // map of elements and the scripts needed to process them
-    // can't concatenate string in map value apparently, so using replace()
-    val elementScriptsMap = Map (
-      "choiceInteraction" -> createScripts("choiceInteraction", isPrintMode),
-      "inlineChoiceInteraction" -> createScripts("inlineChoiceInteraction", isPrintMode),
-      "orderInteraction" -> createScripts("orderInteraction", isPrintMode),
-      "textEntryInteraction" -> createScripts("textEntryInteraction", isPrintMode),
-      "extendedTextInteraction" -> createScripts("extendedTextInteraction", isPrintMode),
-      "tabs" -> createScripts("tabs", isPrintMode),
-      "cs-tabs" -> createScripts("tabs", isPrintMode),
-      "math" -> script("http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")
-    )
-
-    // iterate through the script map
-    for ((element, scriptString) <- elementScriptsMap) {
-      if ((itemBody \\ element).size > 0) {  // always returns a NodeSeq, check if not empty
-        scripts ::= scriptString
-      } else {
-
-        //Also check for Attributes (we need to use attriibutes to support ie8
-        if( (itemBody \\ ("@" + element)).size > 0 ){
-         scripts ::= scriptString
-        }
-      }
-    }
-
-    scripts ::= createScripts("numberedLines")
-    scripts ::= DefaultCss.DEFAULT_CSS
-
-    // order matters so put them out in the chronological order we put them in
-    scripts.reverse
-  }
 
 }

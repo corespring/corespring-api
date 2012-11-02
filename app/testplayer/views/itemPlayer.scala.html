@@ -1,38 +1,18 @@
-@(itemId: String, scripts:List[String], itemBody: String, previewEnabled : Boolean)
+@(itemId: String, itemBody: String, previewEnabled : Boolean)
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 <html ng-app="qti">
 <head>
     <title>@itemId</title>
-
     @common.views.html.partials.ieEightSupport()
-
-    <link href='//fonts.googleapis.com/css?family=Ubuntu:400,700,700italic,400italic' rel='stylesheet' type='text/css'/>
-    <link href='/assets/bootstrap/css/bootstrap.css' rel='stylesheet' type='text/css'/>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.1/angular.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.1/angular-resource.js"></script>
-    <script src="/assets/js/corespring/qti/app.js"></script>
-    <script src="/assets/js/corespring/qti/qtiServices.js"></script>
-    <script src="/assets/js/corespring/qti/directives/feedbackInline.js"></script>
-    <script src="/assets/js/corespring/qti/prototype.extensions/Array.js"></script>
-
-    @for(script <- scripts) {
-        @Html(script)
-    }
+    @partials.scripts(itemBody)
 </head>
 <body ng-controller="QtiAppController">
 
         @if( previewEnabled ){
-        <div class="assessment-options">
-            <ul>
-                <li><a ng-click="reset()">Reset</a></li>
-                <li><input type="checkbox" ng-model="feedbackEnabled"></input> Show feedback</li>
-                <li><input type="checkbox" ng-model="tryAgainEnabled"></input> Allow try again</li>
-            </ul>
-        </div>
+
+            @partials.controlBar()
         }
     <div class="assessment-page">
         @Html(itemBody)

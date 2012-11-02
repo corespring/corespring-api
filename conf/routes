@@ -85,15 +85,17 @@ GET     /api/v1/field_values/:fieldName        api.v1.FieldValuesApi.getFieldVal
 
 # Item Session API
 
-POST    /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.createItemSession(itemId: ObjectId)
-PUT     /api/v1/items/:itemId/sessions/:sessionId         api.v1.ItemSessionApi.updateItemSession(itemId: ObjectId, sessionId: ObjectId)
-GET     /api/v1/items/:itemId/sessions/:sessionId         api.v1.ItemSessionApi.getItemSession(itemId:ObjectId, sessionId: ObjectId)
-GET     /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.list(itemId:ObjectId)
+POST    /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.create(itemId: ObjectId)
+GET     /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.list(itemId:ObjectId)
+GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.get(itemId:ObjectId, sessionId: ObjectId)
+PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId: ObjectId, sessionId: ObjectId, action : Option[String] ?= None)
 
 # Item Rendering
-GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false)
+GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
 GET    /testplayer/item/:itemId/:filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
-GET    /testplayer/item/:itemId/feedback/:responseIdentifier/:identifier  testplayer.controllers.ItemPlayer.getFeedbackInline(itemId, responseIdentifier, identifier)
+GET    /testplayer/session/:sessionId/run           testplayer.controllers.ItemPlayer.previewItemBySessionId(sessionId, printMode: Boolean ?= false)
+GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
+GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes
 
 # Example content
 GET    /example-content                        web.controllers.ExampleContent.index
