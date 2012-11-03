@@ -102,8 +102,9 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                     return QtiUtils.compare(localScope.value, responseId);
                 };
 
-                var isOurResponseCorrect = function (correctResponse) {
-                    return QtiUtils.compare(localScope.value, correctResponse)
+                var isOurResponseCorrect = function () {
+                    var response = QtiUtils.getResponseById(responseIdentifier, localScope.itemSession.responses);
+                    return QtiUtils.isResponseCorrect(response);
                 };
 
                 var applyCorrectResponseStyle = function(){
@@ -134,11 +135,11 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
                 // watch the status of the item, update the css if this is the chosen response
                 // and if it is correct or not
-                localScope.$watch('itemSession.sessionData.correctResponses', function (responses) {
+                localScope.$watch('itemSession.responses', function (responses) {
 
                     if (!responses) return;
-                    var correctResponse = QtiUtils.getResponseValue(responseIdentifier, responses, "");
-                    var isCorrect = isOurResponseCorrect(correctResponse);
+                    //var correctResponse = QtiUtils.getResponseValue(responseIdentifier, responses, "");
+                    var isCorrect = isSelected() && isOurResponseCorrect();
 
                     tidyUp();
 

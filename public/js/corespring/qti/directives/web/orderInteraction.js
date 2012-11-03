@@ -120,6 +120,27 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
                     applyCssNameToAll("");
                 });
 
+                $scope.$watch('itemSession.responses', function (responses) {
+                    if(!responses) return;
+                    if(!$scope.isFeedbackEnabled()) return;
+
+                    var response = QtiUtils.getResponseById(responseIdentifier, responses);
+                    var isCorrect = QtiUtils.isResponseCorrect(response);
+
+                    var ourResponse = QtiUtils.getResponseValue(responseIdentifier, $scope.itemSession.responses, []);
+
+                    if(!ourResponse || ourResponse.length == 0){
+                        return;
+                    }
+
+                    console.log( responseIdentifier + " is correct: " + isCorrect);
+
+                    if(isCorrect){
+                        applyCss(ourResponse, ourResponse)
+                    } else {
+                        applyCss([], ourResponse)
+                    }
+                });
 
                 $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
                     if(!responses) return;
