@@ -13,7 +13,7 @@ class QtiItemTest extends Specification {
 
   val AllItems = QtiItem(MockXml.AllItems)
 
-  def xml(cardinality: String, values: NodeSeq, interaction: Elem = <none/>): Elem = {
+  def xml(cardinality: String, values: NodeSeq, interaction: NodeSeq = <none/>): Elem = {
 
     <assessmentItem>
       <responseDeclaration identifier="Q_01" cardinality={cardinality} baseType="string">
@@ -105,6 +105,34 @@ class QtiItemTest extends Specification {
     }
   }
 
+  "QtiItem get feedback" should {
+    val feedbackXml = xml("single",
+      <value>1</value>,
+      <choiceInteraction responseIdentifier="Q_01">
+        <simpleChoice identifier="1">a
+          <feedbackInline csFeedbackId="cs_1" identifier="1">You are correct</feedbackInline>
+        </simpleChoice>
+        <simpleChoice identifier="2">a
+          <feedbackInline csFeedbackId="cs_2" identifier="2">You are incorrect</feedbackInline>
+        </simpleChoice>
+      </choiceInteraction>
+        <feedbackBlock
+        outcomeIdentifier="responses.Q_01.value"
+        identifier="3"
+        csFeedbackId="cs_3"
+        showHide="show">
+          cs_3 feedback text
+        </feedbackBlock>)
+
+    "find simple choice feedback inline" in {
+      QtiItem(feedbackXml).getFeedback("Q_01", "1") must not beNone
+    }
+
+    "find feedback blocks" in {
+      QtiItem(feedbackXml).getFeedback("Q_01", "3") must not beNone
+    }
+  }
+
 }
 
 
@@ -122,6 +150,7 @@ class ItemBodyTest extends Specification {
   }
 
 }
+
 class CorrectResponseTest extends Specification {
   "CorrectResponse" should {
     "single - return correct" in {

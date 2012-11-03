@@ -2,35 +2,67 @@ package tests.models.itemSession
 
 import org.specs2.mutable.Specification
 import models.itemSession.SessionData
-import qti.models.{CorrectResponseSingle, ResponseDeclaration, ItemBody, QtiItem}
+import qti.models._
 import models.{StringItemResponse, ItemResponse, ItemSession}
 import org.bson.types.ObjectId
 import tests.PlaySingleton
 import org.joda.time.DateTime
+import models.StringItemResponse
+import scala.Some
+import xml.{Node, NodeSeq}
 
 class SessionDataTest extends Specification {
 
   PlaySingleton.start()
 
-  def EmptyItemBody = ItemBody(Seq(), Seq())
+  object xml {
+    def qti(responseDeclarations : NodeSeq, choiceInteractions : NodeSeq) = <assessmentItem>
+      {responseDeclarations}
+      <itemBody>
+        {choiceInteractions}
+      </itemBody>
+    </assessmentItem>
 
-  val emptyQti = QtiItem(Seq(), EmptyItemBody, Seq())
-  val session = ItemSession(new ObjectId())
+    def rd( id : String, cardinality : String, value : NodeSeq) = {
+      <responseDeclaration identifier={id} cardinality={cardinality} baseType="doesnt matter">
+        <correctResponse>{value}</correctResponse>
+      </responseDeclaration>
+    }
 
-  val singleResponseQti = QtiItem(
-    Seq(
-      ResponseDeclaration(
-        identifier = "questionOne",
-        cardinality = "single",
-        correctResponse = Some(CorrectResponseSingle("value")),
-        mapping = None)
-    ),
-    EmptyItemBody,
-    Seq())
+    def cr(text : String ) = <value>{text}</value>
+
+    def ci(ri:String, maxChoices : String, simpleChoices : NodeSeq) : Node =
+      <choiceInteraction responseIdentifier={ri} maxChoices={maxChoices}>
+      {simpleChoices}
+    </choiceInteraction>
+
+    def sc(identifier:String, feedbackInline : Node) : Node = <simpleChoice identifier={identifier}>Label
+      {feedbackInline}
+    </simpleChoice>
+
+    def fi(csFeedbackId:String, defaultFeedback:Boolean, text:String) =
+    <feedbackInline csFeedbackId={csFeedbackId} defaultFeedback={defaultFeedback.toString}>{text}</feedbackInline>
+  }
+
+  def createEmptyItemBody = ItemBody(Seq(), Seq())
+
+  def createEmptyQti = QtiItem(Seq(), createEmptyItemBody, Seq())
+
+  def createSession = ItemSession(new ObjectId())
+
+  def singleResponseDeclaration(id: String = "questionOne", value: String = "value"): Seq[ResponseDeclaration] = Seq(
+    ResponseDeclaration(
+      identifier = id,
+      cardinality = "single",
+      correctResponse = Some(CorrectResponseSingle(value)),
+      mapping = None)
+  )
+
+  def createSingleResponseQti = QtiItem(singleResponseDeclaration(), createEmptyItemBody, Seq())
 
   "new session data" should {
     "be empty for empty qti and session" in {
-      val sessionData = SessionData(emptyQti, session)
+      val sessionData = SessionData(createEmptyQti, createSession)
       sessionData.correctResponses.length must equalTo(0)
       sessionData.feedbackContents.size must equalTo(0)
     }
@@ -38,27 +70,53 @@ class SessionDataTest extends Specification {
 
   "session data" should {
     "only show correct responses for finished session + highlightCorrectResponses is true" in {
-      session.responses = Seq( StringItemResponse(id = "questionOne", responseValue = "value") )
-      SessionData(singleResponseQti, session).correctResponses.length must equalTo(0)
-      session.finish = Some(new DateTime())
-      SessionData(singleResponseQti, session).correctResponses.length must equalTo(1)
-      session.settings.highlightCorrectResponse = false
-      SessionData(singleResponseQti, session).correctResponses.length must equalTo(0)
+
+      val s : ItemSession = createSession
+      val qti : QtiItem = createSingleResponseQti
+      s.responses = Seq(StringItemResponse(id = "questionOne", responseValue = "value"))
+      SessionData(qti, s).correctResponses.length must equalTo(0)
+      s.settings.highlightCorrectResponse = true
+      s.finish = Some(new DateTime())
+      SessionData(qti, s).correctResponses.length must equalTo(1)
+      s.settings.highlightCorrectResponse = false
+      SessionData(qti, s).correctResponses.length must equalTo(0)
     }
 
-    "show simple feedback" in {
-      session.settings.showFeedback = true
-      SessionData(singleResponseQti, session).feedbackContents.size must equalTo(1)
-      session.settings.showFeedback = false
-      SessionData(singleResponseQti, session).feedbackContents.size must equalTo(0)
 
-      session.settings.showFeedback = true
-      singleResponseQti.defaultCorrect = "Correct"
 
+    "only show feedback if showFeedback is true" in {
+      val s : ItemSession = createSession
+      val qti : QtiItem = createSingleResponseQti
+      s.settings.showFeedback = true
+      SessionData(qti, s).feedbackContents.size must equalTo(1)
+      s.settings.showFeedback = false
+      SessionData(qti, s).feedbackContents.size must equalTo(0)
+    }
+
+    /*
+    "show default feedback" in {
+
+      val interactions = Seq(
+        ChoiceInteraction("questionOne",
+          Seq(
+            SimpleChoice("answer", "questionOne",
+              Some(
+                FeedbackInline("csFeedbackId_1", "", "", "", true, false)
+              )
+            )
+          )
+        )
+      )
+
+      val body = ItemBody(interactions, Seq())
+      val qti = QtiItem(singleResponseDeclaration("questionOne", "answer"), body, Seq())
+      session.settings.showFeedback = true
+      singleResponseQti.defaultCorrect = "Correcto"
+      session.responses = Seq(StringItemResponse(id = "questionOne", responseValue = "answer"))
       println(SessionData(singleResponseQti, session))
-      SessionData(singleResponseQti, session).feedbackContents.get("questionOne") must beSome("Correct")
+      SessionData(singleResponseQti, session).feedbackContents.get("csFeedbackId_1") must beSome("Correcto")
 
-    }
+    }*/
   }
 
 }

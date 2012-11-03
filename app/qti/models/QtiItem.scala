@@ -14,6 +14,33 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
       case _ => Correctness.Unknown
     }
   }
+
+  def getFeedback(id:String, value : String) : Option[FeedbackInline] = {
+    Seq(
+      getFeedbackBlock(id,value),
+      getFeedbackInline(id,value)
+    ).flatten.headOption
+  }
+
+  private def getFeedbackBlock(id:String, value : String) : Option[FeedbackInline] = {
+   itemBody.feedbackBlocks.find( _.identifier == value ) match {
+     case Some(fb) => Some(fb)
+     case None => None
+   }
+  }
+
+  private def getFeedbackInline(id:String, value : String) : Option[FeedbackInline] = {
+
+    itemBody.interactions.find(_.responseIdentifier == id) match {
+      case Some(i) => {
+        i.getChoice(value) match {
+          case Some(choice) => choice.getFeedback
+          case None => None
+        }
+      }
+      case _ => None
+    }
+  }
 }
 
 object QtiItem {
@@ -249,13 +276,17 @@ object ItemBody {
 
 trait Interaction {
   val responseIdentifier: String
+
+  def getChoice( identifier : String ) : Option[Choice]
 }
 
 object Interaction {
   def responseIdentifier(n: Node) = (n \ "@responseIdentifier").text
 }
 
-case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int, feedbackBlocks : Seq[FeedbackInline]) extends Interaction
+case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int, feedbackBlocks : Seq[FeedbackInline]) extends Interaction {
+  def getChoice(identifier : String) = None
+}
 
 object TextEntryInteraction {
   def apply(node: Node, feedbackBlocks : Seq[FeedbackInline]): TextEntryInteraction = {
@@ -270,7 +301,9 @@ object TextEntryInteraction {
   private def expectedLength(n: Node): Int = (n \ "@expectedLength").text.toInt
 }
 
-case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[InlineChoice]) extends Interaction
+case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[InlineChoice]) extends Interaction {
+  def getChoice(identifier: String) = choices.find( _.identifier == identifier)
+}
 
 object InlineChoiceInteraction {
   def apply(node: Node): InlineChoiceInteraction = InlineChoiceInteraction(
@@ -280,7 +313,9 @@ object InlineChoiceInteraction {
   )
 }
 
-case class InlineChoice(identifier: String, responseIdentifier: String, feedbackInline: Option[FeedbackInline])
+case class InlineChoice(identifier: String, responseIdentifier: String, feedbackInline: Option[FeedbackInline]) extends Choice {
+  def getFeedback = feedbackInline
+}
 
 object InlineChoice {
   def apply(node: Node, responseIdentifier: String): InlineChoice = InlineChoice(
@@ -291,7 +326,9 @@ object InlineChoice {
 }
 
 
-case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends Interaction
+case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends Interaction {
+  def getChoice(identifier: String) = choices.find( _.identifier == identifier)
+}
 
 object ChoiceInteraction {
   def apply(node: Node): ChoiceInteraction = ChoiceInteraction(
@@ -300,7 +337,9 @@ object ChoiceInteraction {
   )
 }
 
-case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends Interaction
+case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends Interaction {
+  def getChoice(identifier: String) = choices.find( _.identifier == identifier)
+}
 
 object OrderInteraction {
   def apply(node: Node): OrderInteraction = OrderInteraction(
@@ -309,7 +348,12 @@ object OrderInteraction {
   )
 }
 
-case class SimpleChoice(identifier: String, responseIdentifier: String, feedbackInline: Option[FeedbackInline])
+trait Choice {
+  def getFeedback : Option[FeedbackInline]
+}
+case class SimpleChoice(identifier: String, responseIdentifier: String, feedbackInline: Option[FeedbackInline]) extends Choice {
+  def getFeedback = feedbackInline
+}
 
 object SimpleChoice {
   def apply(node: Node, responseIdentifier: String): SimpleChoice = SimpleChoice(
@@ -319,7 +363,12 @@ object SimpleChoice {
   )
 }
 
-case class FeedbackInline(csFeedbackId: String, outcomeIdentifier: String, identifier: String, content: String, var defaultFeedback: Boolean = false, var incorrectResponse: Boolean = false) {
+case class FeedbackInline(csFeedbackId: String,
+                          outcomeIdentifier: String,
+                          identifier: String,
+                          content: String,
+                          var defaultFeedback: Boolean = false,
+                          var incorrectResponse: Boolean = false) {
   def defaultContent(qtiItem: QtiItem): String =
     qtiItem.responseDeclarations.find(_.identifier == outcomeIdentifier) match {
       case Some(rd) =>

@@ -2,62 +2,72 @@ package models.itemSession
 
 import models._
 import play.api.libs.json.{Json, JsValue, Writes}
-import com.codahale.jerkson.{ Json => Jerkson }
+import com.codahale.jerkson.{Json => Jerkson}
 import qti.models._
 import models.StringItemResponse
 import qti.models.QtiItem.Correctness
 
-case class SessionData( correctResponses : Seq[ItemResponse] = Seq(), feedbackContents : Map[String,String] = Map())
+case class SessionData(correctResponses: Seq[ItemResponse] = Seq(), feedbackContents: Map[String, String] = Map())
 
 object SessionData {
 
-  implicit object Writes extends Writes[SessionData]{
+  implicit object Writes extends Writes[SessionData] {
 
-    def writes( sd : SessionData ) : JsValue = {
-     val s = Jerkson.generate(sd)
+    def writes(sd: SessionData): JsValue = {
+      val s = Jerkson.generate(sd)
       Json.parse(s)
     }
   }
 
-  def apply(qti:QtiItem, session : ItemSession) : SessionData = {
+  def apply(qti: QtiItem, session: ItemSession): SessionData = {
 
     val _correctResponses = getCorrectResponses(qti)
 
     def showCorrectResponses = session.isFinished && session.settings.highlightCorrectResponse
     def showFeedback = session.settings.showFeedback
 
-    def isResponseCorrect(ir:ItemResponse, rd : ResponseDeclaration) = ir match {
-      case StringItemResponse(_,value,_) => rd.isCorrect(value)
-      case ArrayItemResponse(_,value,_) => rd.isCorrect(value.mkString(","))
+    def isResponseCorrect(ir: ItemResponse, rd: ResponseDeclaration) = ir match {
+      case StringItemResponse(_, value, _) => rd.isCorrect(value)
+      case ArrayItemResponse(_, value, _) => rd.isCorrect(value.mkString(","))
     }
 
     /**
-     * 1. find feedback by id and value
-     * 2. if found return
-     * 3. if not found - is feedback node
+     * 1. find the interaction
+     * 2. find the choice
+     * 3. find feedback
+     * -> if custom feedback -> return feedback id + text
+     * -> if default
+     * -> is correct?
+     * if yes return feedback.id + correct default
+     * if no return feedback.id + incorrect default
      * @param userResponse
      * @return
      */
-    def createFeedback(userResponse : ItemResponse) : Option[(String,String)] = {
+    def createFeedback(userResponse: ItemResponse): Option[(String, String)] = {
 
-      qti.responseDeclarations.find(_.identifier == userResponse.id) match {
-        case Some(rd) => {
-          isResponseCorrect(userResponse, rd) match {
-            case Correctness.Correct => None//Some((id,"Correct"))
-            case Correctness.Incorrect => None//Some((id,"Incorrect"))
-            case _ => None
-          }
+      qti.getFeedback(userResponse.id, userResponse.value) match {
+        case Some(fb) => {
+          if (fb.defaultFeedback)
+            None
+          else
+            Some((fb.csFeedbackId, fb.content))
         }
         case None => None
       }
     }
 
-    def getFeedbackContents : Map[String,String] = {
-      val feedbackTuples : Seq[(String,String)] = session.responses.map(createFeedback).flatten
-      feedbackTuples.toMap[String,String]
+    def getFeedbackContents: Map[String, String] = {
+      if (showFeedback) {
+
+        val feedbackTuples: Seq[(String, String)] = session.responses.map(createFeedback).flatten
+        feedbackTuples.toMap[String, String]
+
+      } else {
+        Map()
+      }
     }
 
-    val feedback : Map[String,String] = if (showFeedback) getFeedbackContents else Map()
+    val feedback: Map[String, String] = getFeedbackContents
 
     SessionData(
       if (showCorrectResponses) _correctResponses else Seq(),
@@ -65,8 +75,7 @@ object SessionData {
     )
   }
 
-  private def getCorrectResponses(qti:QtiItem) : Seq[ItemResponse] = declarationsToItemResponse(qti.responseDeclarations)
-
+  private def getCorrectResponses(qti: QtiItem): Seq[ItemResponse] = declarationsToItemResponse(qti.responseDeclarations)
 
 
   /**
@@ -84,8 +93,7 @@ object SessionData {
       case _ => throw new RuntimeException("Unknown CorrectResponseType: " + cr)
     }
 
-    def _declarationsToItemResponses(declarations: Seq[ResponseDeclaration]): List[ItemResponse] =
-    {
+    def _declarationsToItemResponses(declarations: Seq[ResponseDeclaration]): List[ItemResponse] = {
       if (declarations.isEmpty) {
         List()
       } else {

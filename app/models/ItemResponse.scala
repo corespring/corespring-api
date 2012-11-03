@@ -23,11 +23,17 @@ import com.novus.salat.annotations.raw.Salat
  */
 
 @Salat
-abstract class ItemResponse(val id: String, val outcome: Option[ItemResponseOutcome] = None)
+abstract class ItemResponse(val id: String, val outcome: Option[ItemResponseOutcome] = None) {
+  def value : String
+}
 
-case class StringItemResponse(override val id: String, responseValue: String, override val outcome: Option[ItemResponseOutcome] = None) extends ItemResponse(id, outcome)
+case class StringItemResponse(override val id: String, responseValue: String, override val outcome: Option[ItemResponseOutcome] = None) extends ItemResponse(id, outcome) {
+  override def value = responseValue
+}
 
-case class ArrayItemResponse(override val id: String, responseValue: Seq[String], override val outcome: Option[ItemResponseOutcome] = None) extends ItemResponse(id, outcome)
+case class ArrayItemResponse(override val id: String, responseValue: Seq[String], override val outcome: Option[ItemResponseOutcome] = None) extends ItemResponse(id, outcome) {
+  override def value = responseValue.mkString(",")
+}
 
 case class ItemResponseOutcome(score: Float = 0, comment: Option[String] = None) {
   def isCorrect = score == 1
