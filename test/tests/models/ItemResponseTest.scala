@@ -23,7 +23,8 @@ class ItemResponseTest extends Specification {
       "value" -> JsArray(Seq(JsString("a"), JsString("b"))),
       "outcome" -> JsObject(Seq(
         "score" -> JsNumber(0.0),
-        "comment" -> JsString("b")
+        "comment" -> JsString("b"),
+        "report" -> JsObject(Seq())
       ))
     ))
 

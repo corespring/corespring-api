@@ -45,7 +45,7 @@ case class ArrayItemResponse(override val id: String, responseValue: Seq[String]
   def getIdValueIndex = responseValue.view.zipWithIndex.map((f:(String,Int)) => (id,f._1, f._2))
 }
 
-case class ItemResponseOutcome(score: Float = 0, comment: Option[String] = None) {
+case class ItemResponseOutcome(score: Float = 0, comment: Option[String] = None, report : Map[String,Boolean] = Map()) {
   def isCorrect = score == 1
 }
 
@@ -63,6 +63,7 @@ object ItemResponse {
   val value = "value"
   val id = "id"
   val outcome = "outcome"
+  val report = "report"
 
   def apply(r: ItemResponse, outcome: Option[ItemResponseOutcome]): ItemResponse =
     r match {
@@ -74,12 +75,6 @@ object ItemResponse {
     case StringItemResponse(_, v, _) => s == v
     case ArrayItemResponse(_, v, _) => v.contains(s)
   }
-
-  /**
-   * Saving the array with a simple delimiter like ',' could cause problems
-   * As there should be used in the answer if its a single value.
-   * Instead use this delimiter to guarantee that the items are read/written correctly as arrays if needed.
-   */
 
   implicit object ItemResponseWrites extends Writes[ItemResponse] {
     def writes(response: ItemResponse) = {

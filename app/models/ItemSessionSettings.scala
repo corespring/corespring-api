@@ -13,7 +13,6 @@ case class ItemSessionSettings( var maxNoOfAttempts : Int = 0,
                                  */
                                 var highlightCorrectResponse : Boolean = true,
                                 var showFeedback : Boolean = true,
-                                var showFeedbackForEmptyAnswers : Boolean = true,
                                 var allowEmptyResponses : Boolean = false,
                                 var submitCompleteMessage : String = ItemSessionSettings.SubmitComplete,
                                 var submitIncorrectMessage : String = ItemSessionSettings.SubmitIncorrect)
@@ -23,8 +22,6 @@ object ItemSessionSettings {
 
   val SubmitComplete : String = "Submit Completed"
   val SubmitIncorrect: String = "Submit Incorrect"
-
-
 
   implicit object Reads extends Reads[ItemSessionSettings] {
     def reads( js : JsValue) : ItemSessionSettings = {
