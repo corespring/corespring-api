@@ -2,13 +2,8 @@ package models.itemSession
 
 import models._
 import play.api.libs.json.Json._
-import com.codahale.jerkson.{Json => Jerkson}
 import qti.models._
-import models.StringItemResponse
-import models.StringItemResponse
-import scala.Some
 import play.api.libs.json._
-import models.ArrayItemResponse
 import play.api.libs.json.JsArray
 import models.StringItemResponse
 import scala.Some
@@ -88,7 +83,6 @@ object SessionData {
   }
 
 
-
   /**
    * convert ResponseDeclaration.CorrectResponse -> ItemResponse
    * @param declarations
@@ -115,7 +109,4 @@ object SessionData {
     }
     _declarationsToItemResponses(declarations)
   }
-
 }
-
-
