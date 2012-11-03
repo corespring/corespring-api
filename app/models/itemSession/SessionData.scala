@@ -1,54 +1,49 @@
 package models.itemSession
 
 import models._
-import play.api.libs.json.{Json, JsValue, Writes}
+import play.api.libs.json.Json._
 import com.codahale.jerkson.{Json => Jerkson}
 import qti.models._
 import models.StringItemResponse
-import qti.models.QtiItem.Correctness
+import models.StringItemResponse
+import scala.Some
+import play.api.libs.json._
+import models.ArrayItemResponse
+import play.api.libs.json.JsArray
+import models.StringItemResponse
+import scala.Some
+import play.api.libs.json.JsObject
+import models.ArrayItemResponse
 
 case class SessionData(correctResponses: Seq[ItemResponse] = Seq(), feedbackContents: Map[String, String] = Map())
 
 object SessionData {
 
   implicit object Writes extends Writes[SessionData] {
-
     def writes(sd: SessionData): JsValue = {
-      val s = Jerkson.generate(sd)
-      Json.parse(s)
+
+      def tupleToJs(t:(String,String)) : (String,JsString) = (t._1,JsString(t._2))
+
+      JsObject(Seq(
+        ("correctResponses" -> JsArray(sd.correctResponses.map(toJson(_)))),
+        ("feedbackContents" -> JsObject(sd.feedbackContents.toSeq.map(tupleToJs)))
+      ))
     }
   }
 
   def apply(qti: QtiItem, session: ItemSession): SessionData = {
 
-    val _correctResponses = getCorrectResponses(qti)
-
     def showCorrectResponses = session.isFinished && session.settings.highlightCorrectResponse
     def showFeedback = session.settings.showFeedback
 
-    def isResponseCorrect(ir: ItemResponse, rd: ResponseDeclaration) = ir match {
-      case StringItemResponse(_, value, _) => rd.isCorrect(value)
-      case ArrayItemResponse(_, value, _) => rd.isCorrect(value.mkString(","))
-    }
+    val allCorrectResponses = declarationsToItemResponse(qti.responseDeclarations)
 
-    /**
-     * 1. find the interaction
-     * 2. find the choice
-     * 3. find feedback
-     * -> if custom feedback -> return feedback id + text
-     * -> if default
-     * -> is correct?
-     * if yes return feedback.id + correct default
-     * if no return feedback.id + incorrect default
-     * @param userResponse
-     * @return
-     */
-    def createFeedback(userResponse: ItemResponse): Option[(String, String)] = {
-
-      qti.getFeedback(userResponse.id, userResponse.value) match {
+    def createFeedback( idValueIndex : (String, String, Int)): Option[(String, String)] = {
+      val (id,value, index) = idValueIndex
+      qti.getFeedback(id, value) match {
         case Some(fb) => {
           if (fb.defaultFeedback)
-            None
+            Some(fb.csFeedbackId, getDefaultFeedback(id, value, index))
           else
             Some((fb.csFeedbackId, fb.content))
         }
@@ -56,26 +51,42 @@ object SessionData {
       }
     }
 
+    def getDefaultFeedback(id:String, value : String, index : Int) : String = {
+      if(qti.isValueCorrect(id, value, index))
+        qti.defaultCorrect
+       else
+        qti.defaultIncorrect
+    }
+
     def getFeedbackContents: Map[String, String] = {
       if (showFeedback) {
+        val userResponses = session.responses.map(_.getIdValueIndex).flatten
+        val correctResponses = if (showCorrectResponses) makeCorrectResponseList else Seq()
+        val responsesToGiveFeedbackOn : List[(String,String,Int)] =
+          (userResponses.toList ::: correctResponses.toList).distinct
 
-        val feedbackTuples: Seq[(String, String)] = session.responses.map(createFeedback).flatten
+        val feedbackTuples: List[(String, String)] = responsesToGiveFeedbackOn.map(createFeedback).flatten
         feedbackTuples.toMap[String, String]
-
       } else {
         Map()
       }
     }
 
-    val feedback: Map[String, String] = getFeedbackContents
+    def makeCorrectResponseList : Seq[(String,String,Int)] = {
+      val answered = allCorrectResponses.filter( (cr:ItemResponse) => {
+        val id = cr.id
+        session.responses.exists( _.id == id)
+      })
+      answered.map(_.getIdValueIndex).flatten
+    }
+
 
     SessionData(
-      if (showCorrectResponses) _correctResponses else Seq(),
-      feedback
+      if (showCorrectResponses) allCorrectResponses else Seq(),
+      getFeedbackContents
     )
   }
 
-  private def getCorrectResponses(qti: QtiItem): Seq[ItemResponse] = declarationsToItemResponse(qti.responseDeclarations)
 
 
   /**

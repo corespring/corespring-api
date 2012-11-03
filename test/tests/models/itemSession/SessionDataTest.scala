@@ -3,46 +3,18 @@ package tests.models.itemSession
 import org.specs2.mutable.Specification
 import models.itemSession.SessionData
 import qti.models._
-import models.{StringItemResponse, ItemResponse, ItemSession}
+import models._
 import org.bson.types.ObjectId
 import tests.PlaySingleton
 import org.joda.time.DateTime
+import utils.MockXml
 import models.StringItemResponse
 import scala.Some
-import xml.{Node, NodeSeq}
+import play.api.libs.json.Json._
 
 class SessionDataTest extends Specification {
 
   PlaySingleton.start()
-
-  object xml {
-    def qti(responseDeclarations : NodeSeq, choiceInteractions : NodeSeq) = <assessmentItem>
-      {responseDeclarations}
-      <itemBody>
-        {choiceInteractions}
-      </itemBody>
-    </assessmentItem>
-
-    def rd( id : String, cardinality : String, value : NodeSeq) = {
-      <responseDeclaration identifier={id} cardinality={cardinality} baseType="doesnt matter">
-        <correctResponse>{value}</correctResponse>
-      </responseDeclaration>
-    }
-
-    def cr(text : String ) = <value>{text}</value>
-
-    def ci(ri:String, maxChoices : String, simpleChoices : NodeSeq) : Node =
-      <choiceInteraction responseIdentifier={ri} maxChoices={maxChoices}>
-      {simpleChoices}
-    </choiceInteraction>
-
-    def sc(identifier:String, feedbackInline : Node) : Node = <simpleChoice identifier={identifier}>Label
-      {feedbackInline}
-    </simpleChoice>
-
-    def fi(csFeedbackId:String, defaultFeedback:Boolean, text:String) =
-    <feedbackInline csFeedbackId={csFeedbackId} defaultFeedback={defaultFeedback.toString}>{text}</feedbackInline>
-  }
 
   def createEmptyItemBody = ItemBody(Seq(), Seq())
 
@@ -68,11 +40,22 @@ class SessionDataTest extends Specification {
     }
   }
 
-  "session data" should {
+  "session data json output" should {
+    val s: ItemSession = createSession
+    val qti: QtiItem = createSingleResponseQti
+    s.responses = Seq(StringItemResponse(id = "questionOne", responseValue = "value"))
+    s.settings.highlightCorrectResponse = true
+    s.finish = Some(new DateTime())
+    val json = toJson(SessionData(qti, s))
+    val expected = """{"correctResponses":[{"id":"questionOne","value":"value"}],"feedbackContents":{}}"""
+    expected must equalTo(stringify(json))
+  }
+
+  "session data correct responses" should {
     "only show correct responses for finished session + highlightCorrectResponses is true" in {
 
-      val s : ItemSession = createSession
-      val qti : QtiItem = createSingleResponseQti
+      val s: ItemSession = createSession
+      val qti: QtiItem = createSingleResponseQti
       s.responses = Seq(StringItemResponse(id = "questionOne", responseValue = "value"))
       SessionData(qti, s).correctResponses.length must equalTo(0)
       s.settings.highlightCorrectResponse = true
@@ -81,42 +64,149 @@ class SessionDataTest extends Specification {
       s.settings.highlightCorrectResponse = false
       SessionData(qti, s).correctResponses.length must equalTo(0)
     }
+  }
+
+  "session data feedback" should {
+
+    val questionId = "questionOne"
+
+    def interactionXml(maxChoices: Int) =
+      <choiceInteraction maxChoices={maxChoices.toString} responseIdentifier={questionId}>
+        <simpleChoice identifier="A">A
+          <feedbackInline csFeedbackId="cs_1" identifier="A">Super!</feedbackInline>
+        </simpleChoice>
+        <simpleChoice identifier="B">B
+          <feedbackInline csFeedbackId="cs_2" identifier="B" defaultFeedback="true"></feedbackInline>
+        </simpleChoice>
+        <simpleChoice identifier="C">C
+          <feedbackInline csFeedbackId="cs_3" identifier="C" defaultFeedback="true"></feedbackInline>
+        </simpleChoice>
+      </choiceInteraction>
 
 
+    val radioInteraction = interactionXml(1)
 
-    "only show feedback if showFeedback is true" in {
-      val s : ItemSession = createSession
-      val qti : QtiItem = createSingleResponseQti
-      s.settings.showFeedback = true
+    val multipleChoiceInteraction = interactionXml(0)
+
+    val radioInteractionXml = MockXml.createXml(questionId, "single", <value>A</value>, radioInteraction)
+
+    val qti = QtiItem(radioInteractionXml)
+
+    "only show feedback if showFeedback is true and there is a response for that item" in {
+      val s: ItemSession = createSession
+      s.responses = Seq(StringItemResponse(questionId, responseValue = "A"))
       SessionData(qti, s).feedbackContents.size must equalTo(1)
       s.settings.showFeedback = false
       SessionData(qti, s).feedbackContents.size must equalTo(0)
     }
 
-    /*
+
+    "show feedback for correct responses even though it wasn't selected" in {
+      val s = createSession
+      s.finish = Some(new DateTime())
+      s.settings.highlightCorrectResponse = true
+      s.settings.showFeedback = true
+      //Answer incorrectly
+      s.responses = Seq( StringItemResponse(questionId, responseValue = "B"))
+      SessionData(qti,s).feedbackContents.size === 2
+    }
+
+    "show the correct feedback string" in {
+      val s: ItemSession = createSession
+      s.responses = Seq(StringItemResponse(questionId, responseValue = "A"))
+      s.settings.showFeedback = true
+
+      SessionData(qti, s).feedbackContents.get("cs_1") match {
+        case Some(fb) => fb must equalTo("Super!")
+        case _ => failure("couldn't find feedback")
+      }
+    }
+
     "show default feedback" in {
+      val s = createSession
+      s.responses = Seq(StringItemResponse(questionId, responseValue = "B"))
+      s.settings.showFeedback = true
 
-      val interactions = Seq(
-        ChoiceInteraction("questionOne",
-          Seq(
-            SimpleChoice("answer", "questionOne",
-              Some(
-                FeedbackInline("csFeedbackId_1", "", "", "", true, false)
-              )
-            )
-          )
-        )
+      SessionData(qti, s).feedbackContents.get("cs_2") match {
+        case Some(fb) => fb must equalTo(MockXml.incorrectResponseFeedback)
+        case _ => failure("couldn't find feedback")
+      }
+    }
+
+    "show feedback for multiple choice items" in {
+      val s = createSession
+      s.responses = Seq(
+        ArrayItemResponse(questionId, responseValue = Seq("B", "C"))
       )
+      s.settings.showFeedback = true
+      val multiChoiceXml = MockXml.createXml(questionId,
+        "multiple",
+        <value>A</value> <value>B</value>,
+        multipleChoiceInteraction)
 
-      val body = ItemBody(interactions, Seq())
-      val qti = QtiItem(singleResponseDeclaration("questionOne", "answer"), body, Seq())
-      session.settings.showFeedback = true
-      singleResponseQti.defaultCorrect = "Correcto"
-      session.responses = Seq(StringItemResponse(id = "questionOne", responseValue = "answer"))
-      println(SessionData(singleResponseQti, session))
-      SessionData(singleResponseQti, session).feedbackContents.get("csFeedbackId_1") must beSome("Correcto")
+      val qti = QtiItem(multiChoiceXml)
+      val data = SessionData(qti, s)
+      data.feedbackContents.size must_== (2)
+      data.feedbackContents.get("cs_2").getOrElse("error") === MockXml.correctResponseFeedback
+      data.feedbackContents.get("cs_3").getOrElse("error") === MockXml.incorrectResponseFeedback
+    }
 
-    }*/
+    val textWithFeedbackBlocks =
+      <p>
+        <textEntryInteraction responseIdentifier="id" expectedLength="1"/>
+        <feedbackBlock outcomeIdentifier="responses.id.value"
+                       identifier="york" csFeedbackId="cs_1">Capitalize</feedbackBlock>
+        <feedbackBlock outcomeIdentifier="responses.id.value"
+                       identifier="York" csFeedbackId="cs_2">Bingo</feedbackBlock>
+        <feedbackBlock outcomeIdentifier="responses.id.value"
+                       incorrectResponse="true"
+                       csFeedbackId="cs_3">What is this?</feedbackBlock>
+      </p>
+
+    val textEntryXml = MockXml.createXml("id",
+      "multiple",
+      <value>York</value> <value>york</value>,
+      textWithFeedbackBlocks)
+
+    val textEntryQti = QtiItem(textEntryXml)
+
+    "show custom correct 1 feedback for text entry interaction" in {
+      val s = createSession
+      s.settings.showFeedback = true
+      s.responses = Seq(
+        StringItemResponse("id", responseValue = "york")
+      )
+      val data = SessionData(textEntryQti, s)
+      data.feedbackContents.size must_== (1)
+      data.feedbackContents.get("cs_1").getOrElse("error") === "Capitalize"
+    }
+
+    "show custom correct 2 feedback for text entry interaction" in {
+      val s = createSession
+      s.settings.showFeedback = true
+      s.responses = Seq(StringItemResponse("id", responseValue = "York"))
+      val data = SessionData(textEntryQti, s)
+      data.feedbackContents.size must_== (1)
+      data.feedbackContents.get("cs_2").getOrElse("error") === "Bingo"
+    }
+
+    "show incorrect feedback for text entry interaction" in {
+      val s = createSession
+      s.settings.showFeedback = true
+      s.responses = Seq(StringItemResponse("id", responseValue = "Some other text"))
+      val data = SessionData(textEntryQti, s)
+      data.feedbackContents.size must_== (1)
+      data.feedbackContents.get("cs_3").getOrElse("error") === "What is this?"
+    }
+
+
+    /**
+     * Showing custom feedback for individual items for an order interaction isn't
+     * currently possible - we'd need to know if the feedback message was
+     * for when the items position was correct or not.
+     */
+    //"show feedback for ordered items" in { }
+
   }
 
 }

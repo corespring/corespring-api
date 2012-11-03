@@ -25,14 +25,24 @@ import com.novus.salat.annotations.raw.Salat
 @Salat
 abstract class ItemResponse(val id: String, val outcome: Option[ItemResponseOutcome] = None) {
   def value : String
+
+  def getIdValueIndex : Seq[(String,String,Int)]
 }
 
 case class StringItemResponse(override val id: String, responseValue: String, override val outcome: Option[ItemResponseOutcome] = None) extends ItemResponse(id, outcome) {
   override def value = responseValue
+
+  /**
+   * Return the response as a sequence of id, value, index
+   * @return
+   */
+  def getIdValueIndex = Seq((id,responseValue,0))
 }
 
 case class ArrayItemResponse(override val id: String, responseValue: Seq[String], override val outcome: Option[ItemResponseOutcome] = None) extends ItemResponse(id, outcome) {
   override def value = responseValue.mkString(",")
+
+  def getIdValueIndex = responseValue.view.zipWithIndex.map((f:(String,Int)) => (id,f._1, f._2))
 }
 
 case class ItemResponseOutcome(score: Float = 0, comment: Option[String] = None) {
@@ -40,9 +50,6 @@ case class ItemResponseOutcome(score: Float = 0, comment: Option[String] = None)
 }
 
 object ItemResponseOutcome {
-
-
-
   implicit object Writes extends Writes[ItemResponseOutcome] {
     def writes(iro: ItemResponseOutcome): JsValue = {
       val json = com.codahale.jerkson.Json.generate(iro)
