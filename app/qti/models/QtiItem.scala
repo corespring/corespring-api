@@ -24,13 +24,13 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
   /**
    * Checks whether the individual value is one of the values in the correct response.
    * So for a question id of "Q" : "Name the first 3 letters of the alphabet" ->
-   * isValueWithinResponse("Q", "A") -> true
-   * isValueWithinResponse("Q", "B") -> true
-   * isValueWithinResponse("Q", "D") -> false
+   * {{{
+   * isValueCorrect("Q", "A", 0) -> true
+   * isValueCorrect("Q", "B", 0) -> true
+   * isValueCorrect("Q", "D", 0) -> false
+   * }}}
    *
-   * TODO: This needs to be extended to check position too
-   * @param responseIdentifier
-   * @param value
+   * @param index - useful when checking the value against a [[qti.models.CorrectResponseOrdered]] - but may not be required
    * @return
    */
   def isValueCorrect(responseIdentifier: String, value: String, index: Int = 0): Boolean = {
@@ -40,17 +40,24 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
     }
   }
 
+  /**
+   * Get FeedbackInline with given id and value.
+   * First looks for it in the feedbackBlocks, then in interaction feedbacks
+   * finally if looks for a feedback that is flagged as incorrectResponse
+   * @param id - the question responseIdentifier
+   * @param choiceId - the choice identifier
+   * @return some FeedbackInline or None
+   */
+  def getFeedback(id: String, choiceId: String): Option[FeedbackInline] = {
+    pf(getFeedbackBlock(id,choiceId)) orElse
+      pf(getFeedbackInline(id,choiceId)) orElse
+        pf(getFeedbackWithIncorrectResponse(id)) orElse None
+  }
 
-  def getFeedback(id: String, value: String): Option[FeedbackInline] = {
-    val feedbackFoundByIdAndValue : Option[FeedbackInline] = Seq(
-      getFeedbackBlock(id, value),
-      getFeedbackInline(id, value)
-    ).flatten.headOption
 
-    feedbackFoundByIdAndValue match {
-      case Some(fb) => Some(fb)
-      case None => getFeedbackWithIncorrectResponse(id)
-    }
+  private def pf[T] : PartialFunction[Option[T], Option[T]] = {
+    case Some(thing) => Some(thing)
+    case None => None
   }
 
   private def getFeedbackWithIncorrectResponse(id:String) : Option[FeedbackInline] = {
@@ -83,11 +90,19 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
 
 object QtiItem {
 
+  /**
+   * An enumeration of the possible Correctness of a question
+   */
   object Correctness extends Enumeration {
     type Correctness = Value
     val Correct, Incorrect, Unknown = Value
   }
 
+  /**
+   * Builds a [[qti.models.QtiItem]] from the qti xml
+   * @param node - qti formatted xml, with some additional attributes added like csFeedbackId
+   * @return
+   */
   def apply(node: Node): QtiItem = {
     val qtiItem = createItem(node)
     addCorrectResponseFeedback(qtiItem, node)
