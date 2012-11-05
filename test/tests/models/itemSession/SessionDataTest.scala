@@ -52,14 +52,11 @@ class SessionDataTest extends Specification {
   }
 
   "session data correct responses" should {
-    "only show correct responses for finished session + highlightCorrectResponses is true" in {
+    "only show correct responses if highlightCorrectResponses is true" in {
 
       val s: ItemSession = createSession
       val qti: QtiItem = createSingleResponseQti
       s.responses = Seq(StringItemResponse(id = "questionOne", responseValue = "value"))
-      SessionData(qti, s).correctResponses.length must equalTo(0)
-      s.settings.highlightCorrectResponse = true
-      s.finish = Some(new DateTime())
       SessionData(qti, s).correctResponses.length must equalTo(1)
       s.settings.highlightCorrectResponse = false
       SessionData(qti, s).correctResponses.length must equalTo(0)
@@ -134,21 +131,31 @@ class SessionDataTest extends Specification {
     }
 
     "show feedback for multiple choice items" in {
-      val s = createSession
-      s.responses = Seq(
+      val incorrectResponse = createSession
+      incorrectResponse.responses = Seq(
         ArrayItemResponse(questionId, responseValue = Seq("B", "C"))
       )
-      s.settings.showFeedback = true
+      incorrectResponse.settings.showFeedback = true
       val multiChoiceXml = MockXml.createXml(questionId,
         "multiple",
         <value>A</value> <value>B</value>,
         multipleChoiceInteraction)
 
       val qti = QtiItem(multiChoiceXml)
-      val data = SessionData(qti, s)
-      data.feedbackContents.size must_== (2)
+      val data = SessionData(qti, incorrectResponse)
+      println(data.feedbackContents)
+      data.feedbackContents.size must_== (3)
       data.feedbackContents.get("cs_2").getOrElse("error") === MockXml.correctResponseFeedback
       data.feedbackContents.get("cs_3").getOrElse("error") === MockXml.incorrectResponseFeedback
+
+      val correctResponse = createSession
+      correctResponse.settings.highlightCorrectResponse = true
+      correctResponse.settings.showFeedback = true
+      correctResponse.responses = Seq(
+        ArrayItemResponse(questionId, responseValue = Seq("A","B"))
+      )
+
+      SessionData(qti,correctResponse).feedbackContents.size === 2
     }
 
     val textWithFeedbackBlocks =

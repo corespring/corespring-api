@@ -30,7 +30,7 @@ object SessionData {
 
   def apply(qti: QtiItem, session: ItemSession): SessionData = {
 
-    def showCorrectResponses = session.isFinished && session.settings.highlightCorrectResponse
+    def showCorrectResponses = session.settings.highlightCorrectResponse
     def showFeedback = session.settings.showFeedback
 
     val allCorrectResponses = declarationsToItemResponse(qti.responseDeclarations)
