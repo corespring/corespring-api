@@ -15,9 +15,9 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
                 .removeClass('incorrect-response');
         });
 
-        $scope.$on( 'unsetSelection', function(event) {
+        $scope.$on('unsetSelection', function (event) {
             $scope.choice = "";
-        });
+       });
 
         $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
 
