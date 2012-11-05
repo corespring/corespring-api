@@ -6,18 +6,16 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
         var modelToUpdate = attrs["responseidentifier"];
 
         $scope.$watch('choice', function( newValue ){
-
-            console.log(" new choice: " + newValue );
-
             AssessmentItemCtrl.setResponse(modelToUpdate, newValue);
-
         });
 
         $scope.$on( 'resetUI', function( event ){
             element
                 .removeClass('correct-response')
                 .removeClass('incorrect-response');
+        });
 
+        $scope.$on( 'unsetSelection', function(event) {
             $scope.choice = "";
         });
 
