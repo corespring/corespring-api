@@ -33,6 +33,7 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
 
             scope.$on('resetUI', function (event) {
                 removeCss();
+                scope.textResponse = "";
             });
 
             scope.$watch('itemSession.responses', function (responses) {
