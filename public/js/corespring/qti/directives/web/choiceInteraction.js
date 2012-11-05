@@ -102,9 +102,8 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                     return QtiUtils.compare(localScope.value, responseId);
                 };
 
-                var isOurResponseCorrect = function () {
-                    var response = QtiUtils.getResponseById(responseIdentifier, localScope.itemSession.responses);
-                    return QtiUtils.isResponseCorrect(response);
+                var isOurResponseCorrect = function (correctResponse) {
+                    return QtiUtils.compare(localScope.value, correctResponse)
                 };
 
                 var applyCorrectResponseStyle = function(){
@@ -130,21 +129,21 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
                 localScope.$on( 'resetUI', function( event ){
                     tidyUp();
-                    localScope.chosenItem = false;
                 });
 
 
                 // watch the status of the item, update the css if this is the chosen response
                 // and if it is correct or not
-                localScope.$watch('itemSession.responses', function (responses) {
+                localScope.$watch('itemSession.sessionData.correctResponses', function (responses) {
 
-                    if (!responses || responses.length == 0) return;
-                    //var correctResponse = QtiUtils.getResponseValue(responseIdentifier, responses, "");
-                    var isCorrect = isSelected() && isOurResponseCorrect();
+                    if (!responses) return;
+
+                    var correctResponse = QtiUtils.getResponseValue(responseIdentifier, responses, "");
+                    var isCorrect = isOurResponseCorrect(correctResponse);
 
                     tidyUp();
 
-                    if(isCorrect && localScope.highlightCorrectResponse()){
+                    if(isCorrect && localScope.highlightCorrectResponse() ){
                         applyCorrectResponseStyle();
                     }
                     if (isSelected() && localScope.highlightUserResponse()) {
@@ -247,8 +246,6 @@ qtiDirectives.directive('choiceinteraction', function () {
         scope.$watch('showNoResponseFeedback', function(newVal, oldVal) {
             scope.noResponse = (scope.isEmptyItem(scope.chosenItem) && scope.showNoResponseFeedback);
         });
-
-
 
         var toggleChosenItem = function(value){
             scope.chosenItem = (scope.chosenItem || []);

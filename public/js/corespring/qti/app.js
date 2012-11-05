@@ -134,7 +134,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             };
 
 
-            var areResponsesIncorrect = function(){
+            var areResponsesIncorrect = function () {
                 if (!$scope.itemSession || !$scope.itemSession.responses) return false;
                 for (var i = 0; i < $scope.itemSession.responses.length; i++) {
                     if ($scope.itemSession.responses[i].outcome != undefined && $scope.itemSession.responses[i].outcome.score < 1) return true;
@@ -185,12 +185,12 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 return $scope.itemSession.settings[name];
             };
 
-            $scope.isAllowedSubmit = function(){
+            $scope.isAllowedSubmit = function () {
                 var out = $scope.canSubmit || !$scope.formSubmitted;
                 return out;
             };
 
-            $scope.submitButtonText = function() {
+            $scope.submitButtonText = function () {
                 return ($scope.finalSubmit) ? "Submit Anyway" : "Submit";
             };
 
@@ -199,7 +199,11 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             };
 
             $scope.highlightCorrectResponse = function () {
-                return isSettingEnabled("highlightCorrectResponse")
+                return  $scope.itemSession
+                    &&
+                    $scope.itemSession.isFinished
+                    &&
+                    isSettingEnabled("highlightCorrectResponse")
             };
 
             $scope.highlightUserResponse = function () {
