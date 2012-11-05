@@ -5,10 +5,10 @@ import qti.models.QtiItem.Correctness
 
 object Score {
 
-  def scoreResponses(responses: Seq[ItemResponse], qti: QtiItem): Seq[ItemResponse] = {
+  def scoreResponses(responses: Seq[ItemResponse], qti: QtiItem, addReport : Boolean = true): Seq[ItemResponse] = {
 
     def addResponseOutcome(r: ItemResponse): ItemResponse = {
-      val report = makeReport(r, qti)
+      val report : Map[String,Boolean] = if (addReport) makeReport(r, qti) else Map()
       r match {
         case StringItemResponse(id, value, _) => {
           val outcome = correctnessToOutcome(qti.isCorrect(id, value), report)

@@ -37,6 +37,9 @@ object SessionData {
       val (id,value, index) = idValueIndex
       qti.getFeedback(id, value) match {
         case Some(fb) => {
+
+          println("found feedback for: %s, %s, %s".format(id,value,index) )
+          println(fb)
           if (fb.defaultFeedback)
             Some(fb.csFeedbackId, getDefaultFeedback(id, value, index))
           else

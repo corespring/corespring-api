@@ -49,11 +49,12 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
    * @return some FeedbackInline or None
    */
   def getFeedback(id: String, choiceId: String): Option[FeedbackInline] = {
-    pf(getFeedbackBlock(id,choiceId)) orElse
+    val fb = pf(getFeedbackBlock(id,choiceId)) orElse
       pf(getFeedbackInline(id,choiceId)) orElse
         pf(getFeedbackWithIncorrectResponse(id)) orElse None
-  }
 
+    fb
+  }
 
   private def pf[T] : PartialFunction[Option[T], Option[T]] = {
     case Some(thing) => Some(thing)
@@ -62,14 +63,21 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
 
   private def getFeedbackWithIncorrectResponse(id:String) : Option[FeedbackInline] = {
     itemBody.interactions.find(_.responseIdentifier == id) match {
-      case Some(TextEntryInteraction(_,_,blocks)) => blocks.find(_.incorrectResponse)
+      case Some(TextEntryInteraction(_,_,blocks)) => {
+        val fb = blocks.find(_.incorrectResponse)
+        fb
+      }
       case _ => None
     }
   }
 
   private def getFeedbackBlock(id: String, value: String): Option[FeedbackInline] = {
-    itemBody.feedbackBlocks.find(_.identifier == value) match {
-      case Some(fb) => Some(fb)
+    itemBody.feedbackBlocks
+      .filter(_.outcomeIdentifier == id)
+      .find(_.identifier == value) match {
+      case Some(fb) => {
+        Some(fb)
+      }
       case None => None
     }
   }
@@ -79,7 +87,10 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
     itemBody.interactions.find(_.responseIdentifier == id) match {
       case Some(i) => {
         i.getChoice(value) match {
-          case Some(choice) => choice.getFeedback
+          case Some(choice) => {
+            val fb = choice.getFeedback
+            fb
+          }
           case None => None
         }
       }
@@ -447,6 +458,9 @@ case class FeedbackInline(csFeedbackId: String,
         }
       case None => ""
     }
+
+  override def toString = """[FeedbackInline csFeedbackId: %s,  identifier: %s, content:%s ]"""
+    .format(csFeedbackId,identifier,content)
 }
 
 object FeedbackInline {

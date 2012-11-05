@@ -8,15 +8,18 @@ import com.novus.salat.annotations.raw.Salat
 
 /**
  * Case class representing a user's response to an indvidual qusetion in an item
- *
- * e.g.
+ * {{{
  * {
- * id: "question1",
- * value: "choice1",
- * outcome: {
- * "$score": 1
+ *  id: "question1",
+ *  value: "a",
+ *  outcome: {
+ *    score: 1,
+ *    report: {
+ *      a: true
+ *    }
+ *  }
  * }
- * }
+ * }}}
  *
  * @param id  the id defined in the QTI markup that identifies the question within the item
  * @param outcome  this is the outcome of the user interaction as calculated by the server. usually 'SCORE' property

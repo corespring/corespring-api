@@ -13,8 +13,7 @@ class QtiItemTest extends Specification {
 
   val AllItems = QtiItem(MockXml.AllItems)
 
-  def xml(identifier: String, cardinality: String, values: NodeSeq, interaction: NodeSeq = <none/>): Elem =
-    MockXml.createXml(identifier, cardinality, values, interaction)
+  def xml(identifier: String, cardinality: String, values: NodeSeq, interaction: NodeSeq = <none/>): Elem = MockXml.createXml(identifier, cardinality, values, interaction)
 
 
   "QtiItem" should {
@@ -63,10 +62,56 @@ class QtiItemTest extends Specification {
     }
   }
 
+  "QtiItem xml parsing" should {
+    val item = QtiItem(MockXml.load("multiple-feedback-blocks.xml"))
+
+    def interactionMatchesExpectation(i: Interaction, expectedValues: Seq[String]): Boolean = i match {
+      case TextEntryInteraction(id, length, blocks) => {
+        if (blocks.length != 2) return false
+        if (!blocks(0).content.contains(expectedValues(0))) return false
+        if (!blocks(1).content.contains(expectedValues(1))) return false
+        true
+      }
+      case _ => false
+    }
+
+    "parse xml with multiple feedback ids" in {
+      item.getFeedback("Q_03", "-5").isDefined === true
+      item.getFeedback("Q_03", "incorrect answer").isDefined === true
+      item.getFeedback("Q_04", "7.5").isDefined === true
+      item.getFeedback("Q_04", "incorrect answer").isDefined === true
+      item.getFeedback("Q_05", "-2").isDefined === true
+      item.getFeedback("Q_05", "incorrect answer").isDefined === true
+      item.getFeedback("Q_06", "8").isDefined === true
+      item.getFeedback("Q_06", "incorrect answer").isDefined === true
+    }
+
+    "find a feedback block for an incorrect response" in {
+      item.getFeedback("Q_03", "8") match {
+        case Some(FeedbackInline(csFeedbackId,outcomeId,id,c,defaultFeedback,incorrectResponse)) => {
+          csFeedbackId === "2"
+          outcomeId === "Q_03"
+        }
+        case _ => failure("couldn't find item")
+      }
+    }
+
+    "find all interactions" in {
+      val q3: Interaction = item.itemBody.getInteraction("Q_03").get
+      interactionMatchesExpectation(q3, Seq("Q_03 : -5", "Q_03 : incorrect")) === true
+
+      val q4: Interaction = item.itemBody.getInteraction("Q_04").get
+      interactionMatchesExpectation(q4, Seq("Q_04 : 7.5", "Q_04 : incorrect")) === true
+
+      val q6: Interaction = item.itemBody.getInteraction("Q_06").get
+      interactionMatchesExpectation(q6, Seq("Q_06 : 8", "Q_06 : incorrect")) === true
+    }
+  }
+
   "QtiItem iscorrect" should {
     "return correct scores" in {
 
-      val xml = <assessmentItem>
+      val testXml = <assessmentItem>
         <responseDeclaration identifier="q1" cardinality="single" baseType="identifier">
           <correctResponse>
             <value>q1Answer</value>
@@ -77,7 +122,7 @@ class QtiItemTest extends Specification {
         </itemBody>
       </assessmentItem>
 
-      val qti = QtiItem(xml)
+      val qti = QtiItem(testXml)
       qti.isCorrect("q1", "q1Answer") must equalTo(Correctness.Correct)
     }
 
@@ -186,7 +231,7 @@ class CorrectResponseTest extends Specification {
     }
 
     "any - is value correct" in {
-      val response = CorrectResponseAny(Seq("A","B"))
+      val response = CorrectResponseAny(Seq("A", "B"))
       response.isValueCorrect("A", 0) === true
       response.isValueCorrect("A", 1) === true
       response.isValueCorrect("B", 0) === true

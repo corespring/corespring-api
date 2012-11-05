@@ -9,6 +9,8 @@ object MockXml {
   val incorrectResponseFeedback = "incorrect response feedback"
   val correctResponseFeedback = "correct response feedback"
 
+  def load(filename:String) : Elem = scala.xml.XML.loadFile("test/mockXml/%s".format(filename))
+
   def createXml(identifier:String, cardinality: String, values: NodeSeq, interaction: NodeSeq = <none/>): Elem = {
     <assessmentItem>
       <correctResponseFeedback>{correctResponseFeedback}</correctResponseFeedback>

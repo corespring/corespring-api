@@ -209,4 +209,22 @@ class SessionDataTest extends Specification {
 
   }
 
+
+  "session data feedback for item with multiple feedback blocks" should {
+    "return all the incorrect feedback" in {
+      val s : ItemSession = createSession
+      s.settings.showFeedback = true
+      s.responses = Seq(
+        StringItemResponse("Q_03", "8"),
+        StringItemResponse("Q_04", "8"),
+        StringItemResponse("Q_05", "8"),
+        StringItemResponse("Q_06", "9")
+      )
+
+      val qti = QtiItem( MockXml.load("multiple-feedback-blocks.xml"))
+      val sd = SessionData(qti,s)
+      println(sd.feedbackContents)
+      sd.feedbackContents.size === 4
+    }
+  }
 }
