@@ -31,6 +31,7 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService)
     $scope.reloadItem = function () {
         AssessmentSessionService.create({itemId:$scope.itemSession.itemId}, $scope.itemSession, function (data) {
             $scope.reset();
+            $scope.$broadcast('unsetSelection');
             $scope.itemSession = data;
         });
     };
@@ -42,7 +43,6 @@ QtiAppController.$inject = ['$scope', '$timeout', '$location', 'AssessmentSessio
 
 
 function ControlBarController($scope) {
-
     $scope.showAdminOptions = false;
 }
 
@@ -56,7 +56,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
             var itemId = null;
             var sessionId = null;
-            var noResponseAllowed = true;
+            var allowEmptyResponses = true;
 
             $scope.printMode = ( $attrs['printMode'] == "true" || false );
             $scope.finalSubmit = false;
@@ -76,8 +76,8 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 sessionId = newValue.id;
 
                 if (newValue.settings) {
-                    noResponseAllowed = newValue.settings.allowEmptyResponses;
-                    $scope.canSubmit = noResponseAllowed || !$scope.hasEmptyResponse();
+                    allowEmptyResponses = newValue.settings.allowEmptyResponses;
+                    $scope.canSubmit = allowEmptyResponses && $scope.hasEmptyResponse();
                 }
                 $scope.$broadcast('resetUI');
                 $scope.formSubmitted = false;
@@ -100,6 +100,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             };
 
             $scope.hasEmptyResponse = function () {
+
                 for (var i = 0; i < $scope.responses.length; i++) {
                     if ($scope.isEmptyItem($scope.responses[i].value)) return true;
                 }
@@ -118,7 +119,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 }
 
                 itemResponse.value = responseValue;
-                $scope.canSubmit = noResponseAllowed || !$scope.hasEmptyResponse();
+                $scope.canSubmit = allowEmptyResponses || !$scope.hasEmptyResponse();
                 $scope.showNoResponseFeedback = ($scope.status == 'ATTEMPTED' && $scope.hasEmptyResponse());
 
                 $scope.finalSubmit = false;
@@ -134,7 +135,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             };
 
 
-            var areResponsesIncorrect = function(){
+            var areResponsesIncorrect = function () {
                 if (!$scope.itemSession || !$scope.itemSession.responses) return false;
                 for (var i = 0; i < $scope.itemSession.responses.length; i++) {
                     if ($scope.itemSession.responses[i].outcome != undefined && $scope.itemSession.responses[i].outcome.score < 1) return true;
@@ -148,7 +149,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 if ($scope.formSubmitted) return;
 
 
-                if ($scope.hasEmptyResponse() && !noResponseAllowed) {
+                if ($scope.hasEmptyResponse() && !allowEmptyResponses) {
                     $scope.status = 'ATTEMPTED';
                     $scope.showNoResponseFeedback = ($scope.hasEmptyResponse());
                     return;
@@ -171,7 +172,6 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                         if ($scope.formSubmitted) {
                             $scope.formHasIncorrect = false;
                         }
-                        $scope.$broadcast('onFormDisabled', $scope.formSubmitted);
                     });
 
                 }, function onError(error) {
@@ -186,16 +186,25 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 return $scope.itemSession.settings[name];
             };
 
-            $scope.submitButtonText = function() {
+            $scope.isAllowedSubmit = function () {
+                var out = $scope.canSubmit || !$scope.formSubmitted;
+                return out;
+            };
+
+            $scope.submitButtonText = function () {
                 return ($scope.finalSubmit) ? "Submit Anyway" : "Submit";
-            }
+            };
 
             $scope.isFeedbackEnabled = function () {
                 return isSettingEnabled("showFeedback");
             };
 
             $scope.highlightCorrectResponse = function () {
-                return isSettingEnabled("highlightCorrectResponse")
+                return  $scope.itemSession
+                    &&
+                    $scope.itemSession.isFinished
+                    &&
+                    isSettingEnabled("highlightCorrectResponse")
             };
 
             $scope.highlightUserResponse = function () {
@@ -207,7 +216,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                     return "Your response has been received";
                 }
                 return $scope.itemSession.settings.submitCompleteMessage;
-            }
+            };
 
             $scope.submitIncorrectMessage = function () {
                 if (!$scope.itemSession || !$scope.itemSession.settings) {
@@ -230,7 +239,7 @@ qtiDirectives.directive('itembody', function () {
             '<div class="noResponseFeedback" ng-show="showNoResponseFeedback">Some information seems to be missing. Please provide an answer and then click "Submit". </div>',
             '<div class="noResponseFeedback" ng-show="formHasIncorrect">{{submitIncorrectMessage()}}</div>',
             '<div class="noResponseFeedback" ng-show="formSubmitted">{{submitCompleteMessage()}}</div>',
-            '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="formSubmitted || !canSubmit" ng-hide="formSubmitted" ng-click="onSubmitClick()">{{submitButtonText()}}</a>',
+            '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="!isAllowedSubmit()" ng-hide="formSubmitted" ng-click="onSubmitClick()">{{submitButtonText()}}</a>',
         ].join('\n'),
         require:'^assessmentitem',
         link:function (scope, element, attrs, AssessmentItemCtrl) {

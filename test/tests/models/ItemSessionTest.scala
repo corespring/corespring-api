@@ -12,6 +12,7 @@ import scala.Left
 import models.StringItemResponse
 import scala.Some
 import scala.Right
+import org.joda.time.DateTime
 
 class ItemSessionTest extends Specification {
 
@@ -111,17 +112,22 @@ class ItemSessionTest extends Specification {
 
   "process" should {
 
-    "return feedback contents for an incorrect answer" in {
+    "return feedback contents for an incorrect answer if settings are set and item is finished" in {
 
       val session = ItemSession(itemId = new ObjectId())
+      session.settings.highlightCorrectResponse
       ItemSession.save(session)
       session.responses = Seq(StringItemResponse(id = "RESPONSE", responseValue = "ChoiceB", outcome = None))
 
       val xml = scala.xml.XML.loadFile("test/mockXml/item-session-test-one.xml")
 
+      session.finish = Some(new DateTime())
+
       ItemSession.process(session, xml) match {
         case Right(newSession) => {
           val json: JsValue = toJson(newSession)
+          println("finish = " + session.isFinished)
+          println(Json.stringify(json))
           val feedbackContents = (json \ "sessionData" \ "feedbackContents")
           newSession.sessionData must beSome
           (feedbackContents \ "5").as[String] must equalTo((xml \ "incorrectResponseFeedback").text)

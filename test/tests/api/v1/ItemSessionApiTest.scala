@@ -363,7 +363,7 @@ class ItemSessionApiTest extends Specification {
       def jsString(value: JsValue) = Json.stringify(value)
       val expected = expectedJsValues.map(jsString).mkString("\n")
       val actual = correctResponses.map(jsString).mkString("\n")
-
+      println(actual)
       expected must equalTo(actual)
     }
 

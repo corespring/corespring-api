@@ -20,38 +20,17 @@
 
             <div class="span4">
                 <input type="checkbox"
-                       ng-model="itemSession.settings.highlightUserResponse"> Highlight user response</input>
+                       ng-model="itemSession.settings.highlightUserResponse"> Highlight the student’s answer</input>
                 <br/>
                 <input type="checkbox"
-                       ng-model="itemSession.settings.showFeedback"> Show feedback content for highlighted
-                response</input>
+                       ng-model="itemSession.settings.highlightCorrectResponse"> Highlight the correct answer</input>
                 <br/>
                 <input type="checkbox"
-                       ng-model="itemSession.settings.allowEmptyResponses"> Accept empty responses</input>
+                       ng-model="itemSession.settings.showFeedback"> Show the feedback text for all answers (if available)</input>
                 <br/>
                 <input type="checkbox"
-                       ng-model="itemSession.settings.highlightCorrectResponse"> Highlight correct responses</input>
-            </div>
-        </div>
-        <br/>
-
-        <div class="container">
-            <div class="span7">
-                <form class="form-horizontal">
-                    <div class="control-group">
-                        <label class="control-label">Submit message</label>
-                        <div class="controls">
-                            <input style="width:95%; font-size: 11px;" type="text" ng-model="itemSession.settings.submitCompleteMessage"/>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label">Submit incorrect</label>
-
-                        <div class="controls">
-                            <input style="width:95%; font-size: 11px;" type="text" ng-model="itemSession.settings.submitIncorrectMessage"/>
-                        </div>
-                    </div>
-                </form>
+                       ng-model="itemSession.settings.allowEmptyResponses"> Accept incomplete work</input>
+                <br/>
             </div>
         </div>
     </div>

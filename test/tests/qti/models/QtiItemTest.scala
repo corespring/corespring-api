@@ -13,31 +13,20 @@ class QtiItemTest extends Specification {
 
   val AllItems = QtiItem(MockXml.AllItems)
 
-  def xml(cardinality: String, values: NodeSeq, interaction: Elem = <none/>): Elem = {
+  def xml(identifier: String, cardinality: String, values: NodeSeq, interaction: NodeSeq = <none/>): Elem = MockXml.createXml(identifier, cardinality, values, interaction)
 
-    <assessmentItem>
-      <responseDeclaration identifier="Q_01" cardinality={cardinality} baseType="string">
-        <correctResponse>
-          {values}
-        </correctResponse>
-      </responseDeclaration>
-      <itemBody>
-        {interaction}
-      </itemBody>
-    </assessmentItem>
-
-  }
 
   "QtiItem" should {
 
     val textEntryOne = QtiItem(xml(
+      "id",
       "single",
       <value>14</value> <value>Fourteen</value>,
-        <textEntryInteraction responseIdentifier="Q_01" expectedLength="1"/>))
+        <textEntryInteraction responseIdentifier="id" expectedLength="1"/>))
 
-    val single = QtiItem(xml("single", <value>1</value>))
-    val multiple = QtiItem(xml("multiple", <value>1</value> <value>2</value>))
-    val ordered = QtiItem(xml("ordered", <value>1</value> <value>2</value>))
+    val single = QtiItem(xml("id", "single", <value>1</value>))
+    val multiple = QtiItem(xml("id", "multiple", <value>1</value> <value>2</value>))
+    val ordered = QtiItem(xml("id", "ordered", <value>1</value> <value>2</value>))
 
     def assertParse(item: QtiItem, t: Class[_]): Boolean = {
       val response = item.responseDeclarations(0).correctResponse.get
@@ -73,10 +62,71 @@ class QtiItemTest extends Specification {
     }
   }
 
+
+  "QtiItem xml parsing" should {
+    val item = QtiItem(MockXml.load("multiple-feedback-blocks.xml"))
+
+    def interactionMatchesExpectation(i: Interaction, expectedValues: Seq[String]): Boolean = i match {
+      case TextEntryInteraction(id, length, blocks) => {
+        if (blocks.length != 2) return false
+        if (!blocks(0).content.contains(expectedValues(0))) return false
+        if (!blocks(1).content.contains(expectedValues(1))) return false
+        true
+      }
+      case _ => false
+    }
+
+    "parse xml with multiple feedback ids" in {
+      item.getFeedback("Q_03", "-5").isDefined === true
+      item.getFeedback("Q_03", "incorrect answer").isDefined === true
+      item.getFeedback("Q_04", "7.5").isDefined === true
+      item.getFeedback("Q_04", "incorrect answer").isDefined === true
+      item.getFeedback("Q_05", "-2").isDefined === true
+      item.getFeedback("Q_05", "incorrect answer").isDefined === true
+      item.getFeedback("Q_06", "8").isDefined === true
+      item.getFeedback("Q_06", "incorrect answer").isDefined === true
+    }
+
+    "find a feedback block for an incorrect response" in {
+      item.getFeedback("Q_03", "8") match {
+        case Some(FeedbackInline(csFeedbackId,outcomeId,_,_,_,_)) => {
+          csFeedbackId === "2"
+          outcomeId === "Q_03"
+        }
+        case _ => failure("couldn't find item")
+      }
+    }
+
+    "find all interactions" in {
+      val q3: Interaction = item.itemBody.getInteraction("Q_03").get
+      interactionMatchesExpectation(q3, Seq("Q_03 : -5", "Q_03 : incorrect")) === true
+
+      val q4: Interaction = item.itemBody.getInteraction("Q_04").get
+      interactionMatchesExpectation(q4, Seq("Q_04 : 7.5", "Q_04 : incorrect")) === true
+
+      val q6: Interaction = item.itemBody.getInteraction("Q_06").get
+      interactionMatchesExpectation(q6, Seq("Q_06 : 8", "Q_06 : incorrect")) === true
+    }
+
+
+    "is correct response applicable is false for text interactions" in {
+
+      val textEntryXml = MockXml.createXml("1",
+        "multiple",
+        <value>six</value><value>6</value>,
+        <textEntryInteraction responseIdentifier="1" expectedLength="4"></textEntryInteraction>
+        )
+
+      val qti = QtiItem(textEntryXml)
+
+      qti.isCorrectResponseApplicable("1") === false
+    }
+  }
+
   "QtiItem iscorrect" should {
     "return correct scores" in {
 
-      val xml = <assessmentItem>
+      val testXml = <assessmentItem>
         <responseDeclaration identifier="q1" cardinality="single" baseType="identifier">
           <correctResponse>
             <value>q1Answer</value>
@@ -87,7 +137,7 @@ class QtiItemTest extends Specification {
         </itemBody>
       </assessmentItem>
 
-      val qti = QtiItem(xml)
+      val qti = QtiItem(testXml)
       qti.isCorrect("q1", "q1Answer") must equalTo(Correctness.Correct)
     }
 
@@ -105,6 +155,34 @@ class QtiItemTest extends Specification {
     }
   }
 
+  "QtiItem get feedback" should {
+    val feedbackXml = xml("id", "single",
+      <value>1</value>,
+      <choiceInteraction responseIdentifier="id">
+        <simpleChoice identifier="1">a
+          <feedbackInline csFeedbackId="cs_1" identifier="1">You are correct</feedbackInline>
+        </simpleChoice>
+        <simpleChoice identifier="2">a
+          <feedbackInline csFeedbackId="cs_2" identifier="2">You are incorrect</feedbackInline>
+        </simpleChoice>
+      </choiceInteraction>
+        <feedbackBlock
+        outcomeIdentifier="responses.id.value"
+        identifier="3"
+        csFeedbackId="cs_3"
+        showHide="show">
+          cs_3 feedback text
+        </feedbackBlock>)
+
+    "find simple choice feedback inline" in {
+      QtiItem(feedbackXml).getFeedback("id", "1") must not beNone
+    }
+
+    "find feedback blocks" in {
+      QtiItem(feedbackXml).getFeedback("id", "3") must not beNone
+    }
+  }
+
 }
 
 
@@ -114,19 +192,33 @@ class ItemBodyTest extends Specification {
     "find a TextEntryInteraction" in {
 
       val body = (MockXml.AllItems \ "itemBody").head
-      println(body)
 
       val itemBody = ItemBody(body)
       itemBody.getInteraction("winterDiscontent") must not beNone
+
+      itemBody.getInteraction("winterDiscontent") match {
+        case Some(i) => {
+          val ti = i.asInstanceOf[TextEntryInteraction]
+          ti.feedbackBlocks.length === 3
+        }
+        case _ => failure("can't find text entry interaction")
+      }
     }
   }
 
 }
+
 class CorrectResponseTest extends Specification {
   "CorrectResponse" should {
     "single - return correct" in {
       CorrectResponseSingle("A").isCorrect("A") must equalTo(true)
       CorrectResponseSingle("A").isCorrect("B") must equalTo(false)
+    }
+
+    "single - is value correct" in {
+      CorrectResponseSingle("A").isValueCorrect("A", 0) must equalTo(true)
+      CorrectResponseSingle("A").isValueCorrect("A", 10) must equalTo(true)
+      CorrectResponseSingle("A").isValueCorrect("B", 10) must equalTo(false)
     }
 
     "multiple - return correct" in {
@@ -138,6 +230,13 @@ class CorrectResponseTest extends Specification {
       CorrectResponseMultiple(Seq("A", "B")).isCorrect("") must equalTo(false)
     }
 
+    "multiple - is value correct" in {
+      CorrectResponseMultiple(Seq("A", "B")).isValueCorrect("A", 0) === true
+      CorrectResponseMultiple(Seq("A", "B")).isValueCorrect("A", 1) === true
+      CorrectResponseMultiple(Seq("A", "B")).isValueCorrect("B", 0) === true
+      CorrectResponseMultiple(Seq("A", "B")).isValueCorrect("C", 0) === false
+    }
+
     "any - return correct" in {
       CorrectResponseAny(Seq("A", "B", "C")).isCorrect("A") must equalTo(true)
       CorrectResponseAny(Seq("A", "B", "C")).isCorrect("B") must equalTo(true)
@@ -146,13 +245,30 @@ class CorrectResponseTest extends Specification {
       CorrectResponseAny(Seq("A", "B", "C")).isCorrect("") must equalTo(false)
     }
 
+    "any - is value correct" in {
+      val response = CorrectResponseAny(Seq("A", "B"))
+      response.isValueCorrect("A", 0) === true
+      response.isValueCorrect("A", 1) === true
+      response.isValueCorrect("B", 0) === true
+      response.isValueCorrect("C", 0) === false
+    }
+
     "ordered - return correct" in {
-      CorrectResponseOrdered(Seq("A", "B", "C")).isCorrect("A,B,C") must equalTo(true)
-      CorrectResponseOrdered(Seq("A", "B", "C")).isCorrect("B,A,C") must equalTo(false)
-      CorrectResponseOrdered(Seq("A", "B", "C")).isCorrect("C,A,B") must equalTo(false)
-      CorrectResponseOrdered(Seq("A", "B", "C")).isCorrect("A,B") must equalTo(false)
-      CorrectResponseOrdered(Seq("A", "B", "C")).isCorrect("D") must equalTo(false)
-      CorrectResponseOrdered(Seq("A", "B", "C")).isCorrect("") must equalTo(false)
+      val response = CorrectResponseOrdered(Seq("A", "B", "C"))
+      response.isCorrect("A,B,C") must equalTo(true)
+      response.isCorrect("B,A,C") must equalTo(false)
+      response.isCorrect("C,A,B") must equalTo(false)
+      response.isCorrect("A,B") must equalTo(false)
+      response.isCorrect("D") must equalTo(false)
+      response.isCorrect("") must equalTo(false)
+    }
+
+    "ordered - is value correct" in {
+      val response = CorrectResponseOrdered(Seq("A", "B", "C"))
+      response.isValueCorrect("A", 0) === true
+      response.isValueCorrect("A", 1) === false
+      response.isValueCorrect("B", 1) === true
+      response.isValueCorrect("D", 1) === false
     }
 
   }

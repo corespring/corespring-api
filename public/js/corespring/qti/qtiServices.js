@@ -79,6 +79,13 @@ qtiServices
         };
 
 
+        QtiUtils.isResponseCorrect = function(response) {
+            if(!response || !response.outcome){
+                return false;
+            }
+            return response.outcome.score == 1;
+        };
+
         /**
          * Get the value from the response object
          * @param id

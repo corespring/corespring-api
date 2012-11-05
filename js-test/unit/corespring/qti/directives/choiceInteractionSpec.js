@@ -42,7 +42,6 @@ describe('qtiDirectives.choiceinteraction', function () {
 
     describe('choiceInteraction', function () {
 
-
         describe("compilation", function () {
 
             it('inits checkboxes correctly', function () {
@@ -116,7 +115,6 @@ describe('qtiDirectives.choiceinteraction', function () {
             '</choiceInteraction>'].join("\n");
 
             var r = getInteraction(node);
-            console.log("r: " + r);
             return { scope: r.scope.$$childHead, element:  r.element.find("simpleChoice") };
         };
 
@@ -137,9 +135,9 @@ describe('qtiDirectives.choiceinteraction', function () {
         });
 
         it('highlights correct response', function() {
-
             var interaction = getSimpleChoiceInteraction();
             helper.setSessionSettings( rootScope, { highlightCorrectResponse: true});
+            rootScope.itemSession.isFinished = true;
             interaction.scope.setChosenItem("a");
             helper.setCorrectResponseOnScope(rootScope, "question","a");
             expect(interaction.element.attr('class').contains('correct-response')).toBe(true);
@@ -166,7 +164,6 @@ describe('qtiDirectives.choiceinteraction', function () {
             helper.setSessionSettings( rootScope, { highlightCorrectResponse: false});
             interaction.scope.setChosenItem("a");
             helper.setCorrectResponseOnScope(rootScope, "question","a");
-            console.log(interaction.element.attr('class'));
             expect(interaction.element.attr('class').contains('correct-response')).toBe(false);
         });
 
@@ -175,34 +172,31 @@ describe('qtiDirectives.choiceinteraction', function () {
             var interaction = getSimpleChoiceInteraction();
 
             helper.setSessionSettings( rootScope, { highlightCorrectResponse: true});
+            rootScope.itemSession.isFinished = true;
 
             interaction.scope.onClick();
 
             expect(interaction.scope.controller.scope.chosenItem).toBe("a");
 
             helper.setCorrectResponseOnScope( rootScope, "question","a");
-
             expect(interaction.element.attr('class').contains('correct-response')).toBe(true);
 
             helper.setCorrectResponseOnScope( rootScope, "question","b");
-
             expect(interaction.element.attr('class').contains('correct-response')).toBe(false);
         });
 
         it('resets ui', function(){
 
             var interaction = getSimpleChoiceInteraction();
-
             helper.setSessionSettings( rootScope, { highlightCorrectResponse: true});
+            rootScope.itemSession.isFinished = true;
 
             interaction.scope.onClick();
 
             helper.setCorrectResponseOnScope( rootScope, "question", "a");
-
             expect(interaction.element.attr('class').contains('correct-response')).toBe(true);
 
             rootScope.$broadcast('resetUI');
-
             expect(interaction.element.attr('class').contains('correct-response')).toBe(false);
 
         });

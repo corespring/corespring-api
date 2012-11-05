@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html ng-app="app" xmlns="http://www.w3.org/1999/html">
+<head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="google-site-verification" content="-wfxFrZYKKRpF5_-V-G9g1wk5e8HrF2zKc-FKJ-NhNE" />
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular-resource.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script type="text/javascript" src="js/widgets.js"></script>
+    <script type="text/javascript" src="bootstrap/2.1.1/js/bootstrap.js"></script>
+    <script src="js/angular/items-app.js"></script>
+    <script src="js/angular/items.js"></script>
+
+<!-- Add fancyBox -->
+    <link rel="stylesheet" href="js/fancybox/jquery.fancybox.css?v=2.1.1" type="text/css" media="screen" />
+    <script type="text/javascript" src="js/fancybox/jquery.fancybox.pack.js?v=2.1.1"></script>
+
+
+
+    <script
+        type="text/javascript"
+        src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+    <title>Collections</title>
+    
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
+    
+    <!--
+    <link href="bootstrap/2.0.2/css/bootstrap.css" rel="stylesheet" type="text/css" media="all" />
+    -->
+    <link href="bootstrap/2.1.1/css/bootstrap.css" rel="stylesheet" type="text/css" media="all" />
+    <link href="css/bootstrap-overrides.css" rel="stylesheet" type="text/css" media="all" />
+    
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
+    
+    <!--[if lte IE 8]>
+    <link type="text/css" rel="stylesheet" href="css/ie.css" />
+    <script src="js/html5.js" type="text/javascript"></script>
+    <![endif]-->
+    
+    <!--[if lte IE 6]>
+    <script src="js/belated.js" type="text/javascript"></script>
+    <![endif]-->
+    
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $(".fancybox").fancybox(
+                {
+                    minWidth: 700
+                }
+                );
+        });
+    </script>
+
+</head>
+
+<body>
+
+<!--header starts here -->
+<div class="header-wrap">
+  <div class="page">
+        <header class="header">
+        
+            
+            
+            <div class="logo"><a href="index.html"><img src="images/logo.png" alt=""></a></div>
+            
+       <nav class="nav">
+                <div class="navbar">
+                    <div class="">
+                        <div class="container">
+                                
+                            <div class="nav-collapse">
+                                <ul class="nav">
+                                    <li ><a class="active" href="collection.html">collection</a></li>
+                                    <li><a href="partnerships.html">partnerships</a></li>
+                                     <li><a href="team.html">team</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </header>
+    </div>
+</div>
+<!--header ends -->
+
+<div class="title-wrap title-single">
+  <div class="container">
+      <div class="title">
+          <h1>Take a Peek</h1>
+        </div>
+    </div>
+</div>
+
+
+<!--main contents area starts here -->
+<div class="main-wrap">
+<div class="container">
+<div class="main" ng-controller="ItemsCtrl">
+            <div class="row">
+                <form class="form-horizontal">
+                    <div class="control-group">
+                     <label class="control-label" for="primary-subject-dropdown" >Primary Subject</label>
+                        <div class="controls" id="primary-subject-dropdown">
+                            <select ng-click="updatePrimarySubjectSearch($event)">
+                                <option ng-repeat="primarySubject in primarySubjects">{{primarySubject}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="grade-btn-bar">Grade:</label>
+                        <div class="controls btn-group" id="grade-btn-bar">
+                            <button ng-repeat="grade in grades" class="btn" style="float:left" ng-click="updateGradeSearch($event,grade)">{{grade}}</button>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="item-type-chkbx">Item Type:</label>
+                        <div class="controls" id="item-type-chkbx">
+                            <label class="checkbox inline" style="float:left" ng-repeat="itemType in itemTypes">
+                                <input type="checkbox" ng-click="updateItemTypeSearch(itemType)">{{itemType}}
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="row">
+                <div class="span2">&nbsp;</div>
+                <div class="span30">
+                    <p class="lead-in">
+                       We're focusing on quality and innovation. All items in CoreSpring's open collections are reviewed by content experts to make sure that they are well aligned to the information important to guide teaching and learning. We also want to support the use of innovative item types that push toward college readiness. CoreSpring currently delivers the majority of innovative item types that were recently released by the PARCC Consortium and are expanding our capability to offer even more. You can browse some of the samples from the Mathematics, English Language Arts and Literacy, and Science Collections below. Our test player will give you confidence that the item will always display the way it's designed. With CoreSpring, what you see is what you get.  
+                    </p>
+                </div>
+            </div>
+
+<!-- items -->
+
+<div>
+    <div>
+
+        <div ng-repeat="i in items" style="padding-bottom: 12px;">
+
+            <div class="well">
+                <h4 style="font-weight: 300; line-height: 22px;" ng-bind-html-unsafe="i.title"></h4>
+                <br/>
+                <a class="btn btn-success fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/web/item-preview/{{i.id}}">Preview</a>
+                <a class="btn btn-primary fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/testplayer/item/{{i.id}}/run?access_token=34dj45a769j4e1c0h4wb" >Play it!</a>
+            </div>
+
+         </div>    
+        <!--
+        <div ng-repeat="item in items">
+            {{item.id}}<br/>
+        </div>
+    -->
+    </div>
+
+</div>
+
+
+<!--main content area (except header,footer) ends -->
+
+
+
+<!--footer area starts here -->
+<div class="footer-wrap">
+	<div class="page">
+        <footer class="footer">
+        	&copy; 2012  CoreSpring 
+        </footer>
+    </div>
+</div>
+<!--footer ends-->
+
+
+</div>
+</div>
+</div>
+</body>
+</html>

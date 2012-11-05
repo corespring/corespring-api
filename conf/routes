@@ -11,6 +11,14 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 POST    /auth/register                          controllers.auth.AuthController.register
 POST    /auth/access_token                      controllers.auth.AuthController.getAccessToken
 
+#Public site
+GET     /public                                       publicsite.controllers.Application.index
+GET     /public/collection                             publicsite.controllers.Application.collection
+GET     /public/contact                                publicsite.controllers.Application.contact
+GET     /public/partnerships                           publicsite.controllers.Application.partnerships
+GET     /public/team                                   publicsite.controllers.Application.team
+GET     /public/items                                  publicsite.controllers.Application.getItems
+
 #
 # V1 API
 #
@@ -91,7 +99,7 @@ GET    /testplayer/javascripts/routes               testplayer.controllers.ItemP
 
 # Example content
 GET    /example-content                        web.controllers.ExampleContent.index
-GET    /example-content/items                  web.controllers.ExampleContent.items
+GET    /example-content/items                  web.controllers.ExampleContent.items(q: Option[String] ?= None)
 
 # Web tier
 GET    /web                                    web.controllers.Main.index

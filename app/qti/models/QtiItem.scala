@@ -8,21 +8,125 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
   var defaultCorrect = "That is correct!"
   var defaultIncorrect = "That is incorrect"
 
-  def isCorrect(responseIdentifier: String, value: String): Correctness.Value  = {
+
+  /**
+   * Does the given interaction need correct responses?
+   * @param id - the interaction id
+   */
+  def isCorrectResponseApplicable(id:String) : Boolean = itemBody.getInteraction(id) match {
+    case Some(TextEntryInteraction(_,_,_)) => false
+    case _ => true
+  }
+
+
+  /**
+   * Check whether the entire response is correct
+   * @param responseIdentifier
+   * @param value
+   * @return
+   */
+  def isCorrect(responseIdentifier: String, value: String): Correctness.Value = {
     responseDeclarations.find(_.identifier == responseIdentifier) match {
       case Some(rd) => rd.isCorrect(value)
       case _ => Correctness.Unknown
+    }
+  }
+
+  /**
+   * Checks whether the individual value is one of the values in the correct response.
+   * So for a question id of "Q" : "Name the first 3 letters of the alphabet" ->
+   * {{{
+   * isValueCorrect("Q", "A", 0) -> true
+   * isValueCorrect("Q", "B", 0) -> true
+   * isValueCorrect("Q", "D", 0) -> false
+   * }}}
+   *
+   * @param index - useful when checking the value against a [[qti.models.CorrectResponseOrdered]] - but may not be required
+   * @return
+   */
+  def isValueCorrect(responseIdentifier: String, value: String, index: Int = 0): Boolean = {
+    responseDeclarations.find(_.identifier == responseIdentifier) match {
+      case Some(rd) => rd.isValueCorrect(value, index)
+      case _ => false
+    }
+  }
+
+  /**
+   * Get FeedbackInline with given id and value.
+   * First looks for it in the feedbackBlocks, then in interaction feedbacks
+   * finally if looks for a feedback that is flagged as incorrectResponse
+   * @param id - the question responseIdentifier
+   * @param choiceId - the choice identifier
+   * @return some FeedbackInline or None
+   */
+  def getFeedback(id: String, choiceId: String): Option[FeedbackInline] = {
+    val fb = pf(getFeedbackBlock(id,choiceId)) orElse
+      pf(getFeedbackInline(id,choiceId)) orElse
+        pf(getFeedbackWithIncorrectResponse(id)) orElse None
+
+    fb
+  }
+
+
+
+  private def pf[T] : PartialFunction[Option[T], Option[T]] = {
+    case Some(thing) => Some(thing)
+    case None => None
+  }
+
+  private def getFeedbackWithIncorrectResponse(id:String) : Option[FeedbackInline] = {
+    itemBody.interactions.find(_.responseIdentifier == id) match {
+      case Some(TextEntryInteraction(_,_,blocks)) => {
+        val fb = blocks.find(_.incorrectResponse)
+        fb
+      }
+      case _ => None
+    }
+  }
+
+  private def getFeedbackBlock(id: String, value: String): Option[FeedbackInline] = {
+    itemBody.feedbackBlocks
+      .filter(_.outcomeIdentifier == id)
+      .find(_.identifier == value) match {
+      case Some(fb) => {
+        Some(fb)
+      }
+      case None => None
+    }
+  }
+
+  private def getFeedbackInline(id: String, value: String): Option[FeedbackInline] = {
+
+    itemBody.interactions.find(_.responseIdentifier == id) match {
+      case Some(i) => {
+        i.getChoice(value) match {
+          case Some(choice) => {
+            val fb = choice.getFeedback
+            fb
+          }
+          case None => None
+        }
+      }
+      case _ => None
     }
   }
 }
 
 object QtiItem {
 
-  object Correctness extends Enumeration{
+  /**
+   * An enumeration of the possible Correctness of a question
+   */
+  object Correctness extends Enumeration {
     type Correctness = Value
     val Correct, Incorrect, Unknown = Value
   }
 
+  /**
+   * Builds a [[qti.models.QtiItem]] from the qti xml
+   * @param node - qti formatted xml, with some additional attributes added like csFeedbackId
+   * @return
+   */
   def apply(node: Node): QtiItem = {
     val qtiItem = createItem(node)
     addCorrectResponseFeedback(qtiItem, node)
@@ -66,8 +170,13 @@ object QtiItem {
 
 case class ResponseDeclaration(identifier: String, cardinality: String, correctResponse: Option[CorrectResponse], mapping: Option[Mapping]) {
   def isCorrect(responseValue: String): Correctness.Value = correctResponse match {
-    case Some(cr) => if(cr.isCorrect(responseValue)) Correctness.Correct else Correctness.Incorrect
-    case None =>  Correctness.Unknown
+    case Some(cr) => if (cr.isCorrect(responseValue)) Correctness.Correct else Correctness.Incorrect
+    case None => Correctness.Unknown
+  }
+
+  def isValueCorrect(value : String, index : Int ) : Boolean = correctResponse match {
+    case Some(cr) => cr.isValueCorrect(value, index)
+    case None => false
   }
 
   def mappedValue(mapKey: String): String = mapping match {
@@ -104,6 +213,8 @@ object ResponseDeclaration {
 
 trait CorrectResponse {
   def isCorrect(responseValue: String): Boolean
+
+  def isValueCorrect(value : String, index : Int) : Boolean
 }
 
 object CorrectResponse {
@@ -139,6 +250,8 @@ object CorrectResponse {
 
 case class CorrectResponseSingle(value: String) extends CorrectResponse {
   def isCorrect(responseValue: String): Boolean = responseValue == value
+
+  def isValueCorrect(v : String, index : Int) = v == value
 }
 
 object CorrectResponseSingle {
@@ -159,6 +272,9 @@ case class CorrectResponseMultiple(value: Seq[String]) extends CorrectResponse {
     val responseList = responseValue.split(",").toList
     value.sortWith(_ < _) == responseList.sortWith(_ < _)
   }
+
+  def isValueCorrect(v : String, index : Int) = value.contains(v)
+
 }
 
 object CorrectResponseMultiple {
@@ -169,6 +285,7 @@ object CorrectResponseMultiple {
 
 case class CorrectResponseAny(value: Seq[String]) extends CorrectResponse {
   def isCorrect(responseValue: String) = value.find(_ == responseValue).isDefined
+  def isValueCorrect(v : String, index : Int) = value.contains(v)
 }
 
 object CorrectResponseAny {
@@ -180,6 +297,7 @@ case class CorrectResponseOrdered(value: Seq[String]) extends CorrectResponse {
     val responseList = responseValue.split(",").toList
     value == responseList
   }
+  def isValueCorrect(v : String, index : Int) = value.length > index && value(index) == v
 }
 
 object CorrectResponseOrdered {
@@ -249,28 +367,34 @@ object ItemBody {
 
 trait Interaction {
   val responseIdentifier: String
+
+  def getChoice(identifier: String): Option[Choice]
 }
 
 object Interaction {
   def responseIdentifier(n: Node) = (n \ "@responseIdentifier").text
 }
 
-case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int, feedbackBlocks : Seq[FeedbackInline]) extends Interaction
+case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int, feedbackBlocks: Seq[FeedbackInline]) extends Interaction {
+  def getChoice(identifier: String) = None
+}
 
 object TextEntryInteraction {
-  def apply(node: Node, feedbackBlocks : Seq[FeedbackInline]): TextEntryInteraction = {
+  def apply(node: Node, feedbackBlocks: Seq[FeedbackInline]): TextEntryInteraction = {
     val responseIdentifier = Interaction.responseIdentifier(node)
     TextEntryInteraction(
       responseIdentifier = responseIdentifier,
       expectedLength = expectedLength(node),
-      feedbackBlocks = feedbackBlocks.filter( _.identifier == responseIdentifier )
+      feedbackBlocks = feedbackBlocks.filter(_.outcomeIdentifier == responseIdentifier)
     )
   }
 
   private def expectedLength(n: Node): Int = (n \ "@expectedLength").text.toInt
 }
 
-case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[InlineChoice]) extends Interaction
+case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[InlineChoice]) extends Interaction {
+  def getChoice(identifier: String) = choices.find(_.identifier == identifier)
+}
 
 object InlineChoiceInteraction {
   def apply(node: Node): InlineChoiceInteraction = InlineChoiceInteraction(
@@ -280,7 +404,9 @@ object InlineChoiceInteraction {
   )
 }
 
-case class InlineChoice(identifier: String, responseIdentifier: String, feedbackInline: Option[FeedbackInline])
+case class InlineChoice(identifier: String, responseIdentifier: String, feedbackInline: Option[FeedbackInline]) extends Choice {
+  def getFeedback = feedbackInline
+}
 
 object InlineChoice {
   def apply(node: Node, responseIdentifier: String): InlineChoice = InlineChoice(
@@ -291,7 +417,9 @@ object InlineChoice {
 }
 
 
-case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends Interaction
+case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends Interaction {
+  def getChoice(identifier: String) = choices.find(_.identifier == identifier)
+}
 
 object ChoiceInteraction {
   def apply(node: Node): ChoiceInteraction = ChoiceInteraction(
@@ -300,7 +428,9 @@ object ChoiceInteraction {
   )
 }
 
-case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends Interaction
+case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends Interaction {
+  def getChoice(identifier: String) = choices.find(_.identifier == identifier)
+}
 
 object OrderInteraction {
   def apply(node: Node): OrderInteraction = OrderInteraction(
@@ -309,7 +439,13 @@ object OrderInteraction {
   )
 }
 
-case class SimpleChoice(identifier: String, responseIdentifier: String, feedbackInline: Option[FeedbackInline])
+trait Choice {
+  def getFeedback: Option[FeedbackInline]
+}
+
+case class SimpleChoice(identifier: String, responseIdentifier: String, feedbackInline: Option[FeedbackInline]) extends Choice {
+  def getFeedback = feedbackInline
+}
 
 object SimpleChoice {
   def apply(node: Node, responseIdentifier: String): SimpleChoice = SimpleChoice(
@@ -319,7 +455,12 @@ object SimpleChoice {
   )
 }
 
-case class FeedbackInline(csFeedbackId: String, outcomeIdentifier: String, identifier: String, content: String, var defaultFeedback: Boolean = false, var incorrectResponse: Boolean = false) {
+case class FeedbackInline(csFeedbackId: String,
+                          outcomeIdentifier: String,
+                          identifier: String,
+                          content: String,
+                          var defaultFeedback: Boolean = false,
+                          var incorrectResponse: Boolean = false) {
   def defaultContent(qtiItem: QtiItem): String =
     qtiItem.responseDeclarations.find(_.identifier == outcomeIdentifier) match {
       case Some(rd) =>
@@ -330,6 +471,9 @@ case class FeedbackInline(csFeedbackId: String, outcomeIdentifier: String, ident
         }
       case None => ""
     }
+
+  override def toString = """[FeedbackInline csFeedbackId: %s,  identifier: %s, content:%s ]"""
+    .format(csFeedbackId,identifier,content)
 }
 
 object FeedbackInline {

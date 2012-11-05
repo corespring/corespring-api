@@ -1,0 +1,528 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+                identifier="composite" title="Composite Item" adaptive="false" timeDependent="false">
+
+
+
+    <!-- definition for question one, a short text entry response with correct answer -->
+    <responseDeclaration identifier="Q_03" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>-5</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_04" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>7.5</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_05" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>-2</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_06" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>8</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_07" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>1</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_08" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>8.5</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_09" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>4</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_10" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>9</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_11" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>7</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_12" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>9.5</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_13" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>10</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_14" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>10</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_15" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>13</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_16" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>10.5</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_17" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>16</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_18" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>11</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_19" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>19</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_20" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>11.5</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_21" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>22</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_22" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>12</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_23" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>G</value>
+        </correctResponse>
+    </responseDeclaration>
+
+
+
+    <itemBody>
+
+        <div class="imagewrapper"><img src="a1.item6main.png"/></div>
+
+        <p class="prompt">For the functions defined above, fill in the table of values for <i>y1</i> and <i>y2</i> below. </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Row</th>
+                    <th><i>x</i></th>
+                    <th><i>y1</i></th>
+                    <th><i>y2</i></th>
+                </tr>
+            </thead>
+            <tfoot>
+            </tfoot>
+            <tbody>
+                <tr>
+                    <td>A</td>
+                    <td>0</td>
+                    <td>-8</td>
+                    <td>7</td>
+                </tr>
+                <tr>
+                    <td>B</td>
+                    <td>1</td>
+                    <td><textEntryInteraction responseIdentifier="Q_03" expectedLength="10"/></td>
+                    <td><textEntryInteraction responseIdentifier="Q_04" expectedLength="10"/></td>
+                </tr>
+                <tr>
+                    <td>C</td>
+                    <td>2</td>
+                    <td><textEntryInteraction responseIdentifier="Q_05" expectedLength="10"/></td>
+                    <td><textEntryInteraction responseIdentifier="Q_06" expectedLength="10"/></td>
+                </tr>
+                <tr>
+                    <td>D</td>
+                    <td>3</td>
+                    <td><textEntryInteraction responseIdentifier="Q_07" expectedLength="10"/></td>
+                    <td><textEntryInteraction responseIdentifier="Q_08" expectedLength="10"/></td>
+                </tr>
+                <tr>
+                    <td>E</td>
+                    <td>4</td>
+                    <td><textEntryInteraction responseIdentifier="Q_09" expectedLength="10"/></td>
+                    <td><textEntryInteraction responseIdentifier="Q_10" expectedLength="10"/></td>
+                </tr>
+                <tr>
+                    <td>F</td>
+                    <td>5</td>
+                    <td><textEntryInteraction responseIdentifier="Q_11" expectedLength="10"/></td>
+                    <td><textEntryInteraction responseIdentifier="Q_12" expectedLength="10"/></td>
+                </tr>
+                <tr>
+                    <td>G</td>
+                    <td>6</td>
+                    <td><textEntryInteraction responseIdentifier="Q_13" expectedLength="10"/></td>
+                    <td><textEntryInteraction responseIdentifier="Q_14" expectedLength="10"/></td>
+                </tr>
+                <tr>
+                    <td>H</td>
+                    <td>7</td>
+                    <td><textEntryInteraction responseIdentifier="Q_15" expectedLength="10"/></td>
+                    <td><textEntryInteraction responseIdentifier="Q_16" expectedLength="10"/></td>
+                </tr>
+                <tr>
+                    <td>I</td>
+                    <td>8</td>
+                    <td><textEntryInteraction responseIdentifier="Q_17" expectedLength="10"/></td>
+                    <td><textEntryInteraction responseIdentifier="Q_18" expectedLength="10"/></td>
+                </tr>
+                <tr>
+                    <td>J</td>
+                    <td>9</td>
+                    <td><textEntryInteraction responseIdentifier="Q_19" expectedLength="10"/></td>
+                    <td><textEntryInteraction responseIdentifier="Q_20" expectedLength="10"/></td>
+                </tr>
+                <tr>
+                    <td>K</td>
+                    <td>10</td>
+                    <td><textEntryInteraction responseIdentifier="Q_21" expectedLength="10"/></td>
+                    <td><textEntryInteraction responseIdentifier="Q_22" expectedLength="10"/></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p class="prompt">Which row of the table indicates the solution to <i>y1 = y2</i>?</p>
+        <p class= "p-indent-20">Row <textEntryInteraction responseIdentifier="Q_23" expectedLength="10"/>.</p>
+
+
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_03.value"
+                identifier="-5">
+            <div class="feedback-block-correct">Nice work, that's correct, In Row B <i>y1</i> -5=!</div>
+        </feedbackBlock>
+
+        <!-- this is for any response not defined as a correct response in responseDeclaration -->
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_03.value"
+                incorrectResponse="true">
+            <div class="feedback-block-incorrect">Good try, In Row B <i>y1</i> = -5! </div>
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_04.value"
+                identifier="7.5">
+            <div class="feedback-block-correct">Nice work, that's correct, In Row B <i>y2</i> = 7.5!</div>
+        </feedbackBlock>
+
+        <!-- this is for any response not defined as a correct response in responseDeclaration -->
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_04.value"
+                incorrectResponse="true">
+            <div class="feedback-block-incorrect">Good try, In Row B <i>y2</i> = 7.5! </div>
+        </feedbackBlock>
+
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_05.value"
+                identifier="-2">
+            <div class="feedback-block-correct">Nice work, that's correct, In Row C <i>y1</i> = -2!</div>
+        </feedbackBlock>
+
+        <!-- this is for any response not defined as a correct response in responseDeclaration -->
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_05.value"
+                incorrectResponse="true">
+            <div class="feedback-block-incorrect">Good try, In Row C <i>y1</i> = -2! </div>
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_06.value"
+                identifier="8">
+            <div class="feedback-block-correct">Nice work, that's correct, In Row C <i>y2</i> = 8!</div>
+        </feedbackBlock>
+
+        <!-- this is for any response not defined as a correct response in responseDeclaration -->
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_06.value"
+                incorrectResponse="true">
+            <div class="feedback-block-incorrect">Good try, In Row C <i>y2</i> = 8! </div>
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_07.value"
+                identifier="1">
+            <div class="feedback-block-correct">Nice work, that's correct, In Row D <i>y1</i> = 1!</div>
+        </feedbackBlock>
+
+        <!-- this is for any response not defined as a correct response in responseDeclaration -->
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_07.value"
+                incorrectResponse="true">
+            <div class="feedback-block-incorrect">Good try, In Row D <i>y1</i> = 1! </div>
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_08.value"
+                identifier="8.5">
+            <div class="feedback-block-correct">Nice work, that's correct, In Row D <i>y2</i> = 8.5!</div>
+        </feedbackBlock>
+
+        <!-- this is for any response not defined as a correct response in responseDeclaration -->
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_08.value"
+                incorrectResponse="true">
+            <div class="feedback-block-incorrect">Good try, In Row D <i>y2</i> = 8.5! </div>
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_09.value"
+                identifier="4">
+            <div class="feedback-block-correct">Nice work, that's correct, In Row E <i>y1</i> = 4!</div>
+        </feedbackBlock>
+
+        <!-- this is for any response not defined as a correct response in responseDeclaration -->
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_09.value"
+                incorrectResponse="true">
+            <div class="feedback-block-incorrect">Good try, In Row E <i>y1</i> = 4! </div>
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_10.value"
+                identifier="9">
+            <div class="feedback-block-correct">Nice work, that's correct, In Row E <i>y2</i> = 9!</div>
+        </feedbackBlock>
+
+        <!-- this is for any response not defined as a correct response in responseDeclaration -->
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_10.value"
+                incorrectResponse="true">
+            <div class="feedback-block-incorrect">Good try, In Row E <i>y2</i> = 9! </div>
+        </feedbackBlock>
+
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_11.value"
+            identifier="7">
+        <div class="feedback-block-correct">Nice work, that's correct, In Row F <i>y1</i> = 7!</div>
+    </feedbackBlock>
+
+    <!-- this is for any response not defined as a correct response in responseDeclaration -->
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_11.value"
+            incorrectResponse="true">
+        <div class="feedback-block-incorrect">Good try, In Row F <i>y1</i> = 7! </div>
+    </feedbackBlock>
+
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_12.value"
+            identifier="9.5">
+        <div class="feedback-block-correct">Nice work, that's correct, In Row F <i>y2</i> = 9.5!</div>
+    </feedbackBlock>
+
+    <!-- this is for any response not defined as a correct response in responseDeclaration -->
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_12.value"
+            incorrectResponse="true">
+        <div class="feedback-block-incorrect">Good try, In Row F <i>y2</i> = 9.5! </div>
+    </feedbackBlock>
+
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_13.value"
+            identifier="10">
+        <div class="feedback-block-correct">Nice work, that's correct, In Row G <i>y1</i> = 10!</div>
+    </feedbackBlock>
+
+    <!-- this is for any response not defined as a correct response in responseDeclaration -->
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_13.value"
+            incorrectResponse="true">
+        <div class="feedback-block-incorrect">Good try, In Row G <i>y1</i> = 10! </div>
+    </feedbackBlock>
+
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_14.value"
+            identifier="10">
+        <div class="feedback-block-correct">Nice work, that's correct, In Row G <i>y2</i> = 10!</div>
+    </feedbackBlock>
+
+    <!-- this is for any response not defined as a correct response in responseDeclaration -->
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_14.value"
+            incorrectResponse="true">
+        <div class="feedback-block-incorrect">Good try, In Row G <i>y2</i> = 10! </div>
+    </feedbackBlock>
+
+
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_15.value"
+            identifier="13">
+        <div class="feedback-block-correct">Nice work, that's correct, In Row H <i>y1</i> = 13!</div>
+    </feedbackBlock>
+
+    <!-- this is for any response not defined as a correct response in responseDeclaration -->
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_15.value"
+            incorrectResponse="true">
+        <div class="feedback-block-incorrect">Good try, In Row H <i>y1</i> = 13! </div>
+    </feedbackBlock>
+
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_16.value"
+            identifier="10.5">
+        <div class="feedback-block-correct">Nice work, that's correct, In Row H <i>y2</i> = 10.5!</div>
+    </feedbackBlock>
+
+    <!-- this is for any response not defined as a correct response in responseDeclaration -->
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_16.value"
+            incorrectResponse="true">
+        <div class="feedback-block-incorrect">Good try, In Row H <i>y2</i> = 10.5! </div>
+    </feedbackBlock>
+
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_17.value"
+            identifier="16">
+        <div class="feedback-block-correct">Nice work, that's correct, In Row I <i>y1</i> = 16!</div>
+    </feedbackBlock>
+
+    <!-- this is for any response not defined as a correct response in responseDeclaration -->
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_17.value"
+            incorrectResponse="true">
+        <div class="feedback-block-incorrect">Good try, In Row I <i>y1</i> = 16! </div>
+    </feedbackBlock>
+
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_18.value"
+            identifier="11">
+        <div class="feedback-block-correct">Nice work, that's correct, In Row I <i>y2</i> = 11!</div>
+    </feedbackBlock>
+
+    <!-- this is for any response not defined as a correct response in responseDeclaration -->
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_18.value"
+            incorrectResponse="true">
+        <div class="feedback-block-incorrect">Good try, In Row I <i>y2</i> = 11! </div>
+    </feedbackBlock>
+
+
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_19.value"
+            identifier="19">
+        <div class="feedback-block-correct">Nice work, that's correct, In Row J <i>y1</i> = 19!</div>
+    </feedbackBlock>
+
+    <!-- this is for any response not defined as a correct response in responseDeclaration -->
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_19.value"
+            incorrectResponse="true">
+        <div class="feedback-block-incorrect">Good try, In Row J <i>y1</i> = 19! </div>
+    </feedbackBlock>
+
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_20.value"
+            identifier="11.5">
+        <div class="feedback-block-correct">Nice work, that's correct, In Row J <i>y2</i> = 11.5!</div>
+    </feedbackBlock>
+
+    <!-- this is for any response not defined as a correct response in responseDeclaration -->
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_20.value"
+            incorrectResponse="true">
+        <div class="feedback-block-incorrect">Good try, In Row J <i>y2</i> = 11.5! </div>
+    </feedbackBlock>
+
+
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_21.value"
+            identifier="22">
+        <div class="feedback-block-correct">Nice work, that's correct, In Row K <i>y1</i> = 22!</div>
+    </feedbackBlock>
+
+    <!-- this is for any response not defined as a correct response in responseDeclaration -->
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_21.value"
+            incorrectResponse="true">
+        <div class="feedback-block-incorrect">Good try, In Row K <i>y1</i> = 22! </div>
+    </feedbackBlock>
+
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_22.value"
+            identifier="12">
+        <div class="feedback-block-correct">Nice work, that's correct, In Row K <i>y2</i> = 12!</div>
+    </feedbackBlock>
+
+    <!-- this is for any response not defined as a correct response in responseDeclaration -->
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_22.value"
+            incorrectResponse="true">
+        <div class="feedback-block-incorrect">Good try, In Row K <i>y2</i> = 12! </div> </feedbackBlock>
+
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_23.value"
+            identifier="G">
+        <div class="feedback-block-correct">Nice work, that's correct! Row G indicates the solution to y1 = y2!</div>
+    </feedbackBlock>
+    <feedbackBlock
+            outcomeIdentifier="responses.Q_23.value"
+            incorrectResponse="true">
+        <div class="feedback-block-incorrect">Good try, Row G indicates the solution to y1 = y2! </div>
+    </feedbackBlock>
+
+    </itemBody>
+
+</assessmentItem>
+
+

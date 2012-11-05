@@ -7,11 +7,16 @@ import play.api.libs.json._
  */
 case class ItemSessionSettings( var maxNoOfAttempts : Int = 0,
                                 var highlightUserResponse : Boolean = true,
+
+                                /**
+                                 * Only applicable when the session is finished
+                                 */
                                 var highlightCorrectResponse : Boolean = true,
                                 var showFeedback : Boolean = true,
                                 var allowEmptyResponses : Boolean = false,
                                 var submitCompleteMessage : String = ItemSessionSettings.SubmitComplete,
                                 var submitIncorrectMessage : String = ItemSessionSettings.SubmitIncorrect)
+
 
 object ItemSessionSettings {
 

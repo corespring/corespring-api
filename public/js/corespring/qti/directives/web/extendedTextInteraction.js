@@ -28,6 +28,10 @@ qtiDirectives.directive("extendedtextinteraction", function() {
                 scope.noResponse = (scope.isEmptyItem(scope.extResponse) && scope.showNoResponseFeedback);
             });
 
+            scope.$on('unsetSelection', function (event) {
+                scope.extResponse = "";
+            });
+
             scope.$watch('extResponse', function(newVal, oldVal) {
                 AssessmentItemController.setResponse(modelToUpdate, scope.extResponse);
                 scope.noResponse = (scope.isEmptyItem(scope.extResponse) && scope.showNoResponseFeedback);

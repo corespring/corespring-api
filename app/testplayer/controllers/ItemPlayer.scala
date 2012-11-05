@@ -64,7 +64,7 @@ object ItemPlayer extends BaseApi with ItemResources {
         getItemXMLByObjectId(itemId, request.ctx.organization) match {
           case Some(xmlData: Elem) =>
 
-            val (xmlWithCsFeedbackIds, mapping) = FeedbackProcessor.addFeedbackIds(xmlData)
+            val (xmlWithCsFeedbackIds, _) = FeedbackProcessor.addFeedbackIds(xmlData)
 
             val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds) \ "itemBody")
 

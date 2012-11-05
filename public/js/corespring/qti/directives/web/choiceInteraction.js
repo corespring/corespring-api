@@ -131,18 +131,23 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                     tidyUp();
                 });
 
+                localScope.$on( 'unsetSelection', function(event){
+                    localScope.chosenItem = false;
+                });
+
 
                 // watch the status of the item, update the css if this is the chosen response
                 // and if it is correct or not
                 localScope.$watch('itemSession.sessionData.correctResponses', function (responses) {
 
                     if (!responses) return;
+
                     var correctResponse = QtiUtils.getResponseValue(responseIdentifier, responses, "");
                     var isCorrect = isOurResponseCorrect(correctResponse);
 
                     tidyUp();
 
-                    if(isCorrect && localScope.highlightCorrectResponse()){
+                    if(isCorrect && localScope.highlightCorrectResponse() ){
                         applyCorrectResponseStyle();
                     }
                     if (isSelected() && localScope.highlightUserResponse()) {

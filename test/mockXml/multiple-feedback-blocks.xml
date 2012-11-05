@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+                identifier="composite" title="Composite Item" adaptive="false" timeDependent="false">
+
+
+
+    <!-- definition for question one, a short text entry response with correct answer -->
+    <responseDeclaration identifier="Q_03" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>-5</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_04" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>7.5</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_05" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>-2</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <!-- definition for question one, a short text entry response with correct answer = "white" -->
+    <responseDeclaration identifier="Q_06" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>8</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+        <textEntryInteraction responseIdentifier="Q_03" expectedLength="10"/>
+        <br/>
+        <textEntryInteraction responseIdentifier="Q_04" expectedLength="10"/>
+        <br/>
+        <textEntryInteraction responseIdentifier="Q_05" expectedLength="10"/>
+        <br/>
+        <textEntryInteraction responseIdentifier="Q_06" expectedLength="10"/>
+        <br/>
+
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_03.value"
+                csFeedbackId="1"
+                identifier="-5"> Q_03 : -5
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_03.value"
+                csFeedbackId="2"
+                incorrectResponse="true"> Q_03 : incorrect
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_04.value"
+                csFeedbackId="3"
+                identifier="7.5"> Q_04 : 7.5
+        </feedbackBlock>
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_04.value"
+                csFeedbackId="4"
+                incorrectResponse="true"> Q_04 : incorrect
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_05.value"
+                csFeedbackId="5"
+                identifier="-2"> Q_05 : -2
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_05.value"
+                csFeedbackId="6"
+                incorrectResponse="true"> Q_05 : incorrect
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_06.value"
+                csFeedbackId="7"
+                identifier="8"> Q_06 : 8
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_06.value"
+                csFeedbackId="8"
+                incorrectResponse="true"> Q_06 : incorrect
+        </feedbackBlock>
+    </itemBody>
+</assessmentItem>
+
+

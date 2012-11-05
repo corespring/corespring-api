@@ -70,7 +70,6 @@ var compileNormalOrderInteraction = function (tElement, QtiUtils) {
             AssessmentItemCtrl.setResponse(localScope.responseIdentifier, flattenedArray);
         };
         commonLinkFn.call(localScope, $scope, element, attrs, AssessmentItemCtrl, QtiUtils);
-        updateAssessmentItem([]);
         $scope.requireModification = (attrs.csRequiremodification != undefined) ? attrs.csRequiremodification === 'true' : true;
 
         // watch the response and set it to the responses list
@@ -220,9 +219,12 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
 
 
 var commonLinkFn = function($scope, element, attrs, AssessmentItemCtrl, QtiUtils) {
+
     $scope.prompt = this.prompt;
-    $scope.items = this.choices;
     $scope.changed = false;
+    $scope.orderedList = $scope.items = this.choices;
+    $scope.defaultItems = angular.copy(this.choices);
+    $scope.requireModification = (attrs.csRequiremodification != undefined) ? attrs.csRequiremodification === 'true' : true;
 
     var that = this;
 
@@ -266,9 +268,14 @@ var commonLinkFn = function($scope, element, attrs, AssessmentItemCtrl, QtiUtils
         applyCss(correctResponse, ourResponse)
     });
 
+    $scope.$on('unsetSelection', function (event) {
+        for (var x = 0; x < $scope.items.length; x++) {
+            $scope.items[x] = {content: $scope.defaultItems[x].content, identifier: $scope.defaultItems[x].identifier};
+        }
+        $scope.orderedList = $scope.items;
+    });
+
 }
-
-
 
 
 qtiDirectives.directive('orderinteraction',
@@ -298,6 +305,7 @@ qtiDirectives.directive("draggableItem", function () {
                 containment: $(el).parents("div.dragArea"),
                 start:function () {
                     scope.srcRid = angular.element(el).attr('rid');
+                    angular.element(el).removeClass("order-correct").removeClass("order-incorrect");
                     angular.element(el).attr('rid', '');
                     scope.reverted = false;
                 },
@@ -377,14 +385,12 @@ qtiDirectives.directive("sortable", function () {
         // todo look into isolate scope so orderedList is not on global scope, tried it but was having trouble
         link:function (scope, el, attrs, ctrl, $timeout) {
 
-            var startParent = null;
             var stopParent = null;
 
             var buildItemsList = function ($node) {
                 var items = [];
                 $node.children('div').each(function (index) {
                     var liItem = scope.$eval($(this).attr('obj'));
-                    liItem.ord = index;
                     items.push(liItem);
                 });
 
@@ -398,28 +404,6 @@ qtiDirectives.directive("sortable", function () {
 
             $(el).sortable({
                 items:'div:not(:has(div.complete))',
-                start:function (event, ui) {
-                    startParent = $(ui.item).parent();
-                },
-
-                /**
-                 * Adding a create event handler so that we can init the list correctly.
-                 * @param event
-                 * @param ui
-                 */
-                create:function (event, ui) {
-
-                    var target = event.target;
-
-                    setTimeout(
-                        function () {
-                            var items = buildItemsList($(target));
-                            scope.$apply(function () {
-                                scope.orderedList = items;
-                            });
-                        }, 500
-                    );
-                },
                 stop:function (event, ui) {
                     stopParent = $(ui.item).parent();
                     var items = buildItemsList(stopParent);
