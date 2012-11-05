@@ -8,6 +8,17 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
   var defaultCorrect = "That is correct!"
   var defaultIncorrect = "That is incorrect"
 
+
+  /**
+   * Does the given interaction need correct responses?
+   * @param id - the interaction id
+   */
+  def isCorrectResponseApplicable(id:String) : Boolean = itemBody.getInteraction(id) match {
+    case Some(TextEntryInteraction(_,_,_)) => false
+    case _ => true
+  }
+
+
   /**
    * Check whether the entire response is correct
    * @param responseIdentifier
@@ -55,6 +66,8 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
 
     fb
   }
+
+
 
   private def pf[T] : PartialFunction[Option[T], Option[T]] = {
     case Some(thing) => Some(thing)

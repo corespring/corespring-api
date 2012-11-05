@@ -14,6 +14,8 @@ case class SessionData(correctResponses: Seq[ItemResponse] = Seq(), feedbackCont
 
 object SessionData {
 
+  type IdValueIndex = (String,String,Int)
+
   implicit object Writes extends Writes[SessionData] {
     def writes(sd: SessionData): JsValue = {
 
@@ -37,9 +39,6 @@ object SessionData {
       val (id,value, index) = idValueIndex
       qti.getFeedback(id, value) match {
         case Some(fb) => {
-
-          println("found feedback for: %s, %s, %s".format(id,value,index) )
-          println(fb)
           if (fb.defaultFeedback)
             Some(fb.csFeedbackId, getDefaultFeedback(id, value, index))
           else
@@ -71,11 +70,16 @@ object SessionData {
     }
 
     def makeCorrectResponseList : Seq[(String,String,Int)] = {
-      val answered = allCorrectResponses.filter( (cr:ItemResponse) => {
-        val id = cr.id
-        session.responses.exists( _.id == id)
-      })
-      answered.map(_.getIdValueIndex).flatten
+
+      def getIdValueIndexIfApplicable(response:ItemResponse) : Seq[IdValueIndex] = {
+        if(qti.isCorrectResponseApplicable(response.id))
+          response.getIdValueIndex
+        else
+         Seq()
+      }
+
+      val answered = allCorrectResponses.filter( (cr) => session.responses.exists( _.id == cr.id) )
+      answered.map(getIdValueIndexIfApplicable(_)).flatten
     }
 
 

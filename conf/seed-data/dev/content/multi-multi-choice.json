@@ -1,0 +1,19 @@
+{
+
+    "_id" : { "$oid" : "5097c10730041f9ef432aef5" },
+    "data" : {
+        "name" : "data",
+        "files" : [
+            {
+                "_t" : "models.VirtualFile",
+                "name" : "qti.xml",
+                "contentType" : "text/xml",
+                "isMain" : true,
+                "content" : "$[interpolate{conf/qti/multi-multi-choice.xml}]"
+            }
+        ]
+    },
+    "collectionId" : "5001b9b9e4b035d491c268c3",
+    "itemType" : "Text with Questions",
+    "title" : "multi-multi-choice https://trello.com/c/FDI9hlO0"
+}

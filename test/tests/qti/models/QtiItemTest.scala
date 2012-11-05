@@ -62,6 +62,7 @@ class QtiItemTest extends Specification {
     }
   }
 
+
   "QtiItem xml parsing" should {
     val item = QtiItem(MockXml.load("multiple-feedback-blocks.xml"))
 
@@ -88,7 +89,7 @@ class QtiItemTest extends Specification {
 
     "find a feedback block for an incorrect response" in {
       item.getFeedback("Q_03", "8") match {
-        case Some(FeedbackInline(csFeedbackId,outcomeId,id,c,defaultFeedback,incorrectResponse)) => {
+        case Some(FeedbackInline(csFeedbackId,outcomeId,_,_,_,_)) => {
           csFeedbackId === "2"
           outcomeId === "Q_03"
         }
@@ -105,6 +106,20 @@ class QtiItemTest extends Specification {
 
       val q6: Interaction = item.itemBody.getInteraction("Q_06").get
       interactionMatchesExpectation(q6, Seq("Q_06 : 8", "Q_06 : incorrect")) === true
+    }
+
+
+    "is correct response applicable is false for text interactions" in {
+
+      val textEntryXml = MockXml.createXml("1",
+        "multiple",
+        <value>six</value><value>6</value>,
+        <textEntryInteraction responseIdentifier="1" expectedLength="4"></textEntryInteraction>
+        )
+
+      val qti = QtiItem(textEntryXml)
+
+      qti.isCorrectResponseApplicable("1") === false
     }
   }
 
