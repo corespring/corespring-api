@@ -59,10 +59,11 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
 
                 var responseIdentifier = attrs["responseidentifier"];
                 // set model to choices extracted from html
-                $scope.orderedList = [];
                 $scope.result = [];
                 $scope.prompt = prompt;
-                $scope.items = choices;
+                $scope.orderedList = $scope.items = choices;
+                $scope.defaultItems = angular.copy(choices);
+
                 $scope.changed = false;
                 $scope.requireModification = (attrs.csRequiremodification != undefined) ? attrs.csRequiremodification === 'true' : true;
 
@@ -82,11 +83,7 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
 
                 // watch the response and set it to the responses list
                 $scope.$watch('orderedList', function (newValue, oldValue) {
-                    if ($scope.requireModification && (oldValue.length == 0 || newValue.length == 0)) {
-                        AssessmentItemCtrl.setResponse(responseIdentifier, []);
-                    } else {
-                        updateAssessmentItem(newValue);
-                    }
+                    updateAssessmentItem(newValue);
                     $scope.noResponse = (!$scope.changed && $scope.showNoResponseFeedback);
                 });
 
@@ -113,13 +110,39 @@ qtiDirectives.directive('orderinteraction', function (QtiUtils) {
                     }
                 };
 
-                /**
-                 * Reset the ui.
-                 */
                 $scope.$on('resetUI', function (event) {
                     applyCssNameToAll("");
                 });
 
+                $scope.$on('unsetSelection', function (event) {
+                    for (var x = 0; x < $scope.items.length; x++) {
+                        $scope.items[x] = {content: $scope.defaultItems[x].content, identifier: $scope.defaultItems[x].identifier};
+                    }
+                    $scope.orderedList = $scope.items;
+                });
+
+
+                $scope.$watch('itemSession.responses', function (responses) {
+                    if(!responses) return;
+                    if(!$scope.isFeedbackEnabled()) return;
+
+                    var response = QtiUtils.getResponseById(responseIdentifier, responses);
+                    var isCorrect = QtiUtils.isResponseCorrect(response);
+
+                    var ourResponse = QtiUtils.getResponseValue(responseIdentifier, $scope.itemSession.responses, []);
+
+                    if(!ourResponse || ourResponse.length == 0){
+                        return;
+                    }
+
+                    console.log( responseIdentifier + " is correct: " + isCorrect);
+
+                    if(isCorrect){
+                        applyCss(ourResponse, ourResponse)
+                    } else {
+                        applyCss([], ourResponse)
+                    }
+                });
 
                 $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
                     if(!responses) return;
@@ -141,14 +164,12 @@ qtiDirectives.directive("sortable", function () {
         // todo look into isolate scope so orderedList is not on global scope, tried it but was having trouble
         link:function (scope, el, attrs, ctrl, $timeout) {
 
-            var startParent = null;
             var stopParent = null;
 
             var buildItemsList = function ($node) {
                 var items = [];
                 $node.children('div').each(function (index) {
                     var liItem = scope.$eval($(this).attr('obj'));
-                    liItem.ord = index;
                     items.push(liItem);
                 });
 
@@ -162,28 +183,6 @@ qtiDirectives.directive("sortable", function () {
 
             $(el).sortable({
                 items:'div:not(:has(div.complete))',
-                start:function (event, ui) {
-                    startParent = $(ui.item).parent();
-                },
-
-                /**
-                 * Adding a create event handler so that we can init the list correctly.
-                 * @param event
-                 * @param ui
-                 */
-                create:function (event, ui) {
-
-                    var target = event.target;
-
-                    setTimeout(
-                        function () {
-                            var items = buildItemsList($(target));
-                            scope.$apply(function () {
-                                scope.orderedList = items;
-                            });
-                        }, 500
-                    );
-                },
                 stop:function (event, ui) {
                     stopParent = $(ui.item).parent();
                     var items = buildItemsList(stopParent);

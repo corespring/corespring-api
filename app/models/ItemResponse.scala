@@ -8,35 +8,51 @@ import com.novus.salat.annotations.raw.Salat
 
 /**
  * Case class representing a user's response to an indvidual qusetion in an item
- *
- * e.g.
+ * {{{
  * {
- * id: "question1",
- * value: "choice1",
- * outcome: {
- * "$score": 1
+ *  id: "question1",
+ *  value: "a",
+ *  outcome: {
+ *    score: 1,
+ *    report: {
+ *      a: true
+ *    }
+ *  }
  * }
- * }
+ * }}}
  *
  * @param id  the id defined in the QTI markup that identifies the question within the item
  * @param outcome  this is the outcome of the user interaction as calculated by the server. usually 'SCORE' property
  */
 
 @Salat
-abstract class ItemResponse(val id: String, val outcome: Option[ItemResponseOutcome] = None)
+abstract class ItemResponse(val id: String, val outcome: Option[ItemResponseOutcome] = None) {
+  def value : String
 
-case class StringItemResponse(override val id: String, responseValue: String, override val outcome: Option[ItemResponseOutcome] = None) extends ItemResponse(id, outcome)
+  def getIdValueIndex : Seq[(String,String,Int)]
+}
 
-case class ArrayItemResponse(override val id: String, responseValue: Seq[String], override val outcome: Option[ItemResponseOutcome] = None) extends ItemResponse(id, outcome)
+case class StringItemResponse(override val id: String, responseValue: String, override val outcome: Option[ItemResponseOutcome] = None) extends ItemResponse(id, outcome) {
+  override def value = responseValue
+
+  /**
+   * Return the response as a sequence of id, value, index
+   * @return
+   */
+  def getIdValueIndex = Seq((id,responseValue,0))
+}
+
+case class ArrayItemResponse(override val id: String, responseValue: Seq[String], override val outcome: Option[ItemResponseOutcome] = None) extends ItemResponse(id, outcome) {
+  override def value = responseValue.mkString(",")
+
+  def getIdValueIndex = responseValue.view.zipWithIndex.map((f:(String,Int)) => (id,f._1, f._2))
+}
 
 case class ItemResponseOutcome(score: Float = 0, comment: Option[String] = None) {
   def isCorrect = score == 1
 }
 
 object ItemResponseOutcome {
-
-
-
   implicit object Writes extends Writes[ItemResponseOutcome] {
     def writes(iro: ItemResponseOutcome): JsValue = {
       val json = com.codahale.jerkson.Json.generate(iro)
@@ -50,6 +66,7 @@ object ItemResponse {
   val value = "value"
   val id = "id"
   val outcome = "outcome"
+  val report = "report"
 
   def apply(r: ItemResponse, outcome: Option[ItemResponseOutcome]): ItemResponse =
     r match {
@@ -61,12 +78,6 @@ object ItemResponse {
     case StringItemResponse(_, v, _) => s == v
     case ArrayItemResponse(_, v, _) => v.contains(s)
   }
-
-  /**
-   * Saving the array with a simple delimiter like ',' could cause problems
-   * As there should be used in the answer if its a single value.
-   * Instead use this delimiter to guarantee that the items are read/written correctly as arrays if needed.
-   */
 
   implicit object ItemResponseWrites extends Writes[ItemResponse] {
     def writes(response: ItemResponse) = {

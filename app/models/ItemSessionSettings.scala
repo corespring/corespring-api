@@ -23,8 +23,6 @@ object ItemSessionSettings {
   val SubmitComplete : String = "Submit Completed"
   val SubmitIncorrect: String = "Submit Incorrect"
 
-
-
   implicit object Reads extends Reads[ItemSessionSettings] {
     def reads( js : JsValue) : ItemSessionSettings = {
       val string = Json.stringify(js)

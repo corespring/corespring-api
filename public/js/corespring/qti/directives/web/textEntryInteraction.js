@@ -35,6 +35,10 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
                 removeCss();
             });
 
+            scope.$on('unsetSelection', function(event){
+                scope.textResponse = "";
+            });
+
             var isCorrect = function (value) {
                 return QtiUtils.compare(scope.textResponse, value);
             };

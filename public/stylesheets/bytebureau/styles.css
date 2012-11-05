@@ -817,11 +817,22 @@ div.text-box-content {
 .20px-above {
 	padding-top:20px;
 }
+
+
 .assessment-page {
 	width:600px;
 	margin:20px auto;
+	margin-top: 0px;
 	padding: 16px 13px;
 	border: 2px #EAEAEA dashed;
+	border-top: 2px #EAEAEA solid;
+}
+.student-view-header {
+	margin: auto;
+    width: 600px;
+    background-color: #EAEAEA;
+    padding: 15px;
+    margin-bottom: 0px;
 }
 
 .itemplayer-control-bar{

@@ -31,14 +31,18 @@
             In the deep bosom of the ocean
             buried.
         </p>
-        <feedbackInline
+        <feedbackBlock
                 identifier="York"
                 outcomeIdentifier="responses.winterDiscontent.value"
                 showHide="show">
             <span class="correct-response">
                 York is correct
             </span>
-        </feedbackInline>
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.winterDiscontent.value"
+                incorrectResponse="true">Incorrect</feedbackBlock>
 
 
         <prompt>Write Sam a postcard. Write 25-35 words.</prompt>
