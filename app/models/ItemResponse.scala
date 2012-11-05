@@ -48,7 +48,7 @@ case class ArrayItemResponse(override val id: String, responseValue: Seq[String]
   def getIdValueIndex = responseValue.view.zipWithIndex.map((f:(String,Int)) => (id,f._1, f._2))
 }
 
-case class ItemResponseOutcome(score: Float = 0, comment: Option[String] = None, report : Map[String,Boolean] = Map()) {
+case class ItemResponseOutcome(score: Float = 0, comment: Option[String] = None) {
   def isCorrect = score == 1
 }
 

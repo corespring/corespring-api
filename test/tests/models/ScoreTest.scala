@@ -51,7 +51,7 @@ class ScoreTest extends Specification {
           id = "q1",
           responseValue = "q1Answer",
           outcome = Some(
-            ItemResponseOutcome(score = 1, report = Map("q1Answer" -> true))
+            ItemResponseOutcome(score = 1)
           )
         )
       )
@@ -68,7 +68,7 @@ class ScoreTest extends Specification {
           id = "q3",
           responseValue = Seq("q3_answer_1", "q3_answer_2"),
           outcome = Some(
-            ItemResponseOutcome(score = 0, report = Map("q3_answer_1" -> true, "q3_answer_2" -> false))
+            ItemResponseOutcome(score = 0)
           )
         ))
       result must equalTo(expected)
@@ -85,7 +85,7 @@ class ScoreTest extends Specification {
           id = "q1",
           responseValue = "q1Answer",
           outcome = Some(
-            ItemResponseOutcome(score = 1, report = Map("q1Answer" -> true))
+            ItemResponseOutcome(score = 1)
           )
         ),
         StringItemResponse(id = "q2", responseValue = "blah", outcome = None))
