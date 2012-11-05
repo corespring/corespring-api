@@ -31,6 +31,7 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService)
     $scope.reloadItem = function () {
         AssessmentSessionService.create({itemId:$scope.itemSession.itemId}, $scope.itemSession, function (data) {
             $scope.reset();
+            $scope.$broadcast('unsetSelection');
             $scope.itemSession = data;
         });
     };
