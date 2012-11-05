@@ -11,7 +11,7 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
             var responseIdentifier = attrs.responseidentifier;
             scope.controller = AssessmentItemController;
 
-            scope.CSS = { correct:'correct-response', incorrect:'incorrect-response'};
+            scope.CSS = { correct: 'correct-response', incorrect: 'incorrect-response'};
 
             scope.expectedLength = attrs.expectedlength;
 
@@ -20,12 +20,12 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
                 scope.noResponse = (scope.isEmptyItem(scope.textResponse) && scope.showNoResponseFeedback);
             });
 
-            scope.$watch('showNoResponseFeedback', function (newVal, oldVal) {
+            scope.$watch('showNoResponseFeedback', function(newVal, oldVal) {
                 scope.noResponse = (scope.isEmptyItem(scope.textResponse) && scope.showNoResponseFeedback);
             });
 
 
-            var removeCss = function () {
+            var removeCss = function(){
                 element
                     .removeClass(scope.CSS.correct)
                     .removeClass(scope.CSS.incorrect);
@@ -33,29 +33,29 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
 
             scope.$on('resetUI', function (event) {
                 removeCss();
+            });
+
+            scope.$on('unsetSelection', function(event){
                 scope.textResponse = "";
             });
 
-            scope.$watch('itemSession.responses', function (responses) {
+            var isCorrect = function (value) {
+                return QtiUtils.compare(scope.textResponse, value);
+            };
+
+            scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
                 if (!responses) return;
+
+                var correctResponse = QtiUtils.getResponseValue(responseIdentifier, responses, "");
 
                 removeCss();
 
-                var response = QtiUtils.getResponseById(responseIdentifier, scope.itemSession.responses);
-
-                if(!response || response.value == "" || response.value == null){
-                    return;
-                }
-
-                var isCorrect = QtiUtils.isResponseCorrect(response);
-
-
-                if (isCorrect) {
-                    if (scope.highlightCorrectResponse() || scope.highlightUserResponse()) {
+                if( isCorrect(correctResponse) ){
+                    if(scope.highlightCorrectResponse() || scope.highlightUserResponse()){
                         element.addClass(scope.CSS.correct);
                     }
                 } else {
-                    if (scope.highlightUserResponse()) {
+                    if( scope.highlightUserResponse()){
                         element.addClass(scope.CSS.incorrect);
                     }
                 }

@@ -28,7 +28,7 @@ qtiDirectives.directive("extendedtextinteraction", function() {
                 scope.noResponse = (scope.isEmptyItem(scope.extResponse) && scope.showNoResponseFeedback);
             });
 
-            scope.$on('resetUI', function (event) {
+            scope.$on('unsetSelection', function (event) {
                 scope.extResponse = "";
             });
 
