@@ -4,6 +4,7 @@ import org.specs2.mutable.Specification
 import models.itemSession.SessionData
 import qti.models._
 import models._
+import models.itemSession._
 import org.bson.types.ObjectId
 import tests.PlaySingleton
 import org.joda.time.DateTime
@@ -214,6 +215,47 @@ class SessionDataTest extends Specification {
      */
     //"show feedback for ordered items" in { }
 
+  }
+
+"legacy tests" should {
+
+  "return correct feedback for inline item" in {
+      val XML =
+        <assessmentItem>
+          <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
+          <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
+          <responseDeclaration identifier="manOnMoon" cardinality="single" baseType="identifier">
+            <correctResponse>
+              <value>armstrong</value>
+            </correctResponse>
+          </responseDeclaration>
+          <itemBody>
+            <inlineChoiceInteraction
+            responseIdentifier="manOnMoon"
+            required="false">
+              <inlineChoice identifier="armstrong">Neil Armstrong
+                <feedbackInline csFeedbackId="1" identifier="armstrong" defaultFeedback="true"/>
+              </inlineChoice>
+              <inlineChoice identifier="aldrin">Buzz Aldrin
+                <feedbackInline csFeedbackId="2" identifier="aldrin" defaultFeedback="true"/>
+              </inlineChoice>
+            </inlineChoiceInteraction>
+          </itemBody>
+        </assessmentItem>
+
+      val qtiItem = QtiItem(XML)
+
+      val correctResponse = StringItemResponse("manOnMoon", "armstrong")
+      val incorrectResponse = StringItemResponse("manOnMoon", "aldrin")
+
+      val session = ItemSession(itemId = new ObjectId(), responses = Seq(correctResponse, incorrectResponse))
+
+      val data : SessionData = SessionData(qtiItem, session)
+      data.feedbackContents.size === 2
+      data.feedbackContents.get("1").get === (XML\\"correctResponseFeedback").text 
+      data.feedbackContents.get("2").get === (XML\\"incorrectResponseFeedback").text 
+
+    }
   }
 
 

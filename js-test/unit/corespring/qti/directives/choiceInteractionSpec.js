@@ -42,7 +42,6 @@ describe('qtiDirectives.choiceinteraction', function () {
 
     describe('choiceInteraction', function () {
 
-
         describe("compilation", function () {
 
             it('inits checkboxes correctly', function () {
