@@ -130,6 +130,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
                 localScope.$on( 'resetUI', function( event ){
                     tidyUp();
+                    localScope.chosenItem = false;
                 });
 
 
@@ -137,7 +138,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                 // and if it is correct or not
                 localScope.$watch('itemSession.responses', function (responses) {
 
-                    if (!responses) return;
+                    if (!responses || responses.length == 0) return;
                     //var correctResponse = QtiUtils.getResponseValue(responseIdentifier, responses, "");
                     var isCorrect = isSelected() && isOurResponseCorrect();
 
@@ -246,6 +247,8 @@ qtiDirectives.directive('choiceinteraction', function () {
         scope.$watch('showNoResponseFeedback', function(newVal, oldVal) {
             scope.noResponse = (scope.isEmptyItem(scope.chosenItem) && scope.showNoResponseFeedback);
         });
+
+
 
         var toggleChosenItem = function(value){
             scope.chosenItem = (scope.chosenItem || []);
