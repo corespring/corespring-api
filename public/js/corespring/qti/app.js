@@ -170,6 +170,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                     $timeout(function () {
                         $scope.formSubmitted = $scope.itemSession.isFinished;
                         if ($scope.formSubmitted) {
+                            $scope.formDisabled = true;
                             $scope.formHasIncorrect = false;
                         }
                     });
