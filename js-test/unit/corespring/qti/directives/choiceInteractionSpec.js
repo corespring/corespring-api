@@ -136,9 +136,9 @@ describe('qtiDirectives.choiceinteraction', function () {
         });
 
         it('highlights correct response', function() {
-
             var interaction = getSimpleChoiceInteraction();
             helper.setSessionSettings( rootScope, { highlightCorrectResponse: true});
+            rootScope.itemSession.isFinished = true;
             interaction.scope.setChosenItem("a");
             helper.setCorrectResponseOnScope(rootScope, "question","a");
             expect(interaction.element.attr('class').contains('correct-response')).toBe(true);
@@ -175,6 +175,8 @@ describe('qtiDirectives.choiceinteraction', function () {
 
             helper.setSessionSettings( rootScope, { highlightCorrectResponse: true});
 
+            rootScope.itemSession.isFinished = true;
+
             interaction.scope.onClick();
 
             expect(interaction.scope.controller.scope.chosenItem).toBe("a");
@@ -193,6 +195,8 @@ describe('qtiDirectives.choiceinteraction', function () {
             var interaction = getSimpleChoiceInteraction();
 
             helper.setSessionSettings( rootScope, { highlightCorrectResponse: true});
+
+            rootScope.itemSession.isFinished = true;
 
             interaction.scope.onClick();
 
