@@ -22,22 +22,23 @@ function ItemsCtrl($scope, FieldValues, Items) {
         })
     }
     //set the field values based on the json object
+    //there seems to be a bug in angularjs where multiple queries at once just time out. Hence, the embedded queries. Once one is done, the other starts.
     (function(){
         var gradeLevels = FieldValues.query({fieldValue: "gradeLevels"},function() {
             $scope.grades = gradeLevels.map(function(gradeLevel){return gradeLevel.key})
-        })
-        var subjects = FieldValues.query({fieldValue: "subject"},function() {
-            //need a loop instead of map because subject may be empty
-            for(var i = 0, x = 0; i < subjects.length; i++){
-                var subject = subjects[i].subject;
-                if(subject && subject != "Other"){
-                    $scope.primarySubjects[x] = subject;
-                    x++;
-                }
-            }
-        })
-        var itemTypes = FieldValues.query({fieldValue: "itemTypes"},function() {
-            $scope.itemTypes = itemTypes.map(function(itemType){return itemType.key})
+                    var subjects = FieldValues.query({fieldValue: "subject"},function() {
+                        //need a loop instead of map because subject may be empty
+                        for(var i = 0, x = 0; i < subjects.length; i++){
+                            var subject = subjects[i].subject;
+                            if(subject && subject != "Other"){
+                                $scope.primarySubjects[x] = subject;
+                                x++;
+                            }
+                        }
+                                var itemTypes = FieldValues.query({fieldValue: "itemTypes"},function() {
+                                    $scope.itemTypes = itemTypes.map(function(itemType){return itemType.key})
+                                })
+                    })
         })
     })()
     //update the item list based on the search fields
@@ -60,8 +61,8 @@ function ItemsCtrl($scope, FieldValues, Items) {
             }
         }
         var primarySubject = $scope.searchFields.primarySubject
-        if(primarySubject) {
-            searchFields['primarySubject'] = primarySubject
+        if(primarySubject != " ") {
+            searchFields['primarySubject.subject'] = primarySubject
         }
         var isEmpty = function(obj){
             for(var i in obj) {return false;}

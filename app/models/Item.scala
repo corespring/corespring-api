@@ -437,7 +437,7 @@ object Item extends DBQueryable[Item] {
       case x: String => try {
         Right(new ObjectId(x))
       } catch {
-        case e: IllegalArgumentException => Left(InternalError("invalid object id format for standards"))
+        case e: IllegalArgumentException => Left(InternalError("invalid object id format for primarySubject"))
       }
       case _ => Left(InternalError("uknown value type for standards"))
     }, Subject.queryFields),
@@ -445,7 +445,7 @@ object Item extends DBQueryable[Item] {
       case x: String => try {
         Right(new ObjectId(x))
       } catch {
-        case e: IllegalArgumentException => Left(InternalError("invalid object id format for standards"))
+        case e: IllegalArgumentException => Left(InternalError("invalid object id format for relatedSubject"))
       }
       case _ => Left(InternalError("uknown value type for standards"))
     }, Subject.queryFields),
@@ -489,24 +489,6 @@ object Item extends DBQueryable[Item] {
   )
 
   override def preParse(dbo: DBObject): QueryParser = {
-    //    val qp = QueryParser.buildQuery(dbo, QueryParser(), Seq(queryFields.find(_.key == standards).get))
-    //    qp.result match {
-    //      case Right(query) =>
-    //        val dbquery = query.result()
-    //        QueryParser.replaceKeys(dbquery, Standard.queryFields.map(qf => standards + "." + qf.key -> qf.key))
-    //        val builder = MongoDBObject.newBuilder
-    //        if (!dbquery.isEmpty) {
-    //          val c = Standard.find(dbquery, MongoDBObject("_id" -> 1))
-    //          val builderList = MongoDBList.newBuilder
-    //          if (!c.isEmpty) {
-    //            c.foreach(builderList += _.id)
-    //            builder += (standards -> MongoDBObject("$in" -> builderList.result()))
-    //          }
-    //        }
-    //        QueryParser.removeKeys(dbo, Standard.queryFields.foldRight[Seq[String]](Seq(standards))((qf, acc) => acc :+ standards + "." + qf.key))
-    //        QueryParser(Right(builder))
-    //      case Left(e) => QueryParser(Left(e))
-    //    }
     parseProperty[Standard](dbo, standards, Standard) match {
       case Right(builder1) =>
         parseProperty[Subject](dbo, primarySubject, Subject) match {
