@@ -129,6 +129,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
                 localScope.$on( 'resetUI', function( event ){
                     tidyUp();
+                    localScope.chosenItem = false;
                 });
 
 
