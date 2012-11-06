@@ -2,7 +2,7 @@
  * Interaction for ordering a set of choices
  */
 
-var parseSimpleChoices = function(element) {
+var parseSimpleChoices = function(element, dontShuffle) {
     // get the simple-choice elements
     // they support embedded html
     var choices = [];
@@ -17,10 +17,10 @@ var parseSimpleChoices = function(element) {
             fixedIndexes.push(i);
         }
 
-        choices.push({content:elem.html(), identifier:identifier});
+        choices.push({content:elem.html(), identifier:identifier, label: elem.attr('label')});
     }
 
-    choices.shuffle(fixedIndexes);
+    if (!dontShuffle) choices.shuffle(fixedIndexes);
     return choices;
 }
 
@@ -117,9 +117,12 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
 
         '<div class="order-placement-destination-area">',
             '<div style="clear: both">Place answers here</div>',
-            '<placement-destination ng:repeat="item in emptyCorrectAnswers" index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px">',
-            '<div class="numbering" ng-hide="hideNumbering"><span class="number">{{$index+1}}</span></div>',
-            '</placement-destination>',
+            '<div ng:repeat="item in emptyCorrectAnswers" class="placement-destination-holder " >',
+                '{{item.label}}<br/>',
+                '<placement-destination index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px">',
+                    '<div class="numbering" ng-hide="hideNumbering"><span class="number">{{$index+1}}</span></div>',
+                '</placement-destination>',
+            '</div>',
 
         '</div>',
         '</div>'
@@ -129,6 +132,7 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
 
     var localScope = {
         choices:  parseSimpleChoices(tElement),
+        originalChoices: parseSimpleChoices(tElement, true),
         prompt:  parsePrompt(tElement)
     };
 
@@ -230,8 +234,12 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
             $scope.hideNumbering = true;
         }
 
-        for (var ecntr=0; ecntr < cn; ecntr++)
-            $scope.emptyCorrectAnswers.push(ecntr);
+        for (var ecntr=0; ecntr < cn; ecntr++) {
+            var o = {};
+            o.label = localScope.originalChoices[ecntr].label;
+            if (ecntr < cn) o.count = ecntr+1;
+            $scope.emptyCorrectAnswers.push(o);
+        }
 
     };
 }
@@ -292,6 +300,10 @@ var commonLinkFn = function($scope, element, attrs, AssessmentItemCtrl, QtiUtils
             $scope.items[x] = {content: $scope.defaultItems[x].content, identifier: $scope.defaultItems[x].identifier};
         }
         $scope.orderedList = $scope.items;
+        setTimeout(function(){
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub, element[0]]);
+        }, 0);
+
     });
 
 }
