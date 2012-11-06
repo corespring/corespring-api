@@ -62,10 +62,10 @@ object FieldValuesApi extends BaseApi {
 
       fieldName match {
         case "subject" => {
-          QueryHelper.list(q, f, c, sk, l, Subject, None)
+          QueryHelper.listSimple(Subject, q, f, c.equalsIgnoreCase("true"), sk, l)
         }
         case "cc-standard" => {
-          QueryHelper.list(q, f, c, sk, l, Standard, None)
+          QueryHelper.listSimple(Standard, q, f, c.equalsIgnoreCase("true"), sk, l)
         }
         case _ => {
           Cache.getAs[FieldValue](FieldValueCacheKey) match {

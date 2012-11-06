@@ -4,7 +4,7 @@ import play.api.mvc.{Result, Results}
 import play.api.Logger
 import com.mongodb.util.{JSONParseException, JSON}
 import play.api.libs.json.{JsNumber, JsObject, Writes, Json}
-import com.novus.salat.dao.SalatDAO
+import com.novus.salat.dao.{SalatMongoCursor, ModelCompanion, SalatDAO}
 import com.mongodb.casbah.Imports._
 import models.{Identifiable, Queryable, DBQueryable, QueryField}
 import controllers.{LogType, InternalError, Utils, QueryParser}
@@ -14,7 +14,54 @@ import controllers.{LogType, InternalError, Utils, QueryParser}
  * A helper class to handle list queries from all the controllers
  */
 object QueryHelper {
-
+  def listSimple[T <: AnyRef, ID <: ObjectId](coll:ModelCompanion[T,ID],
+                                              q:Option[String] = None,
+                                              f:Option[Object] = None,
+                                              getCount:Boolean = false,
+                                              skip:Int = 0, limit:Int = 50,
+                                              initSearch:Option[DBObject] = None)(implicit writes:Writes[T]):Result = {
+    val optqDbo:Option[DBObject] = q.flatMap(query => try{
+      com.mongodb.util.JSON.parse(query) match {
+        case dbo:BasicDBObject => Some(dbo)
+        case _ => None
+      }
+    }catch{
+      case e:JSONParseException => None
+    })
+    val fDbo:Option[DBObject] = f.flatMap(_ match {
+      case fields:BasicDBObject => Some(fields)
+      case fields:String => try{
+        com.mongodb.util.JSON.parse(fields) match {
+          case dbo:BasicDBObject => Some(dbo)
+          case _ => None
+        }
+      }catch{
+        case e:JSONParseException => None
+      }
+    })
+    val optQuery:Option[DBObject] = optqDbo match {
+      case Some(qDbo) => initSearch match {
+        case Some(is) => Some(qDbo ++ is)
+        case None => Some(qDbo)
+      }
+      case None => initSearch
+    }
+    val cursor:SalatMongoCursor[T] = optQuery match {
+      case Some(query) => fDbo match {
+        case Some(fields) => coll.find(query,fields)
+        case None => coll.find(query)
+      }
+      case None => fDbo match {
+        case Some(fields) => coll.find(MongoDBObject(),fields)
+        case None => coll.findAll()
+      }
+    }
+    if (getCount){
+      Results.Ok(JsObject(Seq("count" -> JsNumber(cursor.count))))
+    }else{
+      Results.Ok(Json.toJson(Utils.toSeq(cursor.skip(skip).limit(limit))))
+    }
+  }
   /**
    * Helper method to execute list queries from all the controllers.
    *

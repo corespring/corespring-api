@@ -40,6 +40,7 @@ object ApiError {
   val UnknownFieldOrOperator = ApiError(203, "Unknown field or operator: %s")
   val InvalidField        = ApiError(204, "Field %s is invalid")
   val CollIdNotNeeded      = ApiError(205, "a collection id cannot be specified for this operation")
+  val StringToMongo         = ApiError(206, "could not parse string into db object")
 
   // Organization API
   val IdsDoNotMatch       = ApiError(300, "Specified id does not match the one in the json")

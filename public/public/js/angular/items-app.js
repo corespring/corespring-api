@@ -5,7 +5,7 @@ function ItemsCtrl($scope, FieldValues, Items) {
     $scope.searchFields = {
         grades:[],
         itemTypes:[],
-        primarySubject:" "
+        primarySubjectId:" "
     };
     $scope.primarySubjects = [];//FieldValues.primarySubjects;
     $scope.grades = [];
@@ -24,21 +24,21 @@ function ItemsCtrl($scope, FieldValues, Items) {
     //set the field values based on the json object
     //there seems to be a bug in angularjs where multiple queries at once just time out. Hence, the embedded queries. Once one is done, the other starts.
     (function(){
+        var subjects = FieldValues.query({fieldValue: "subject"},function() {
+            //need a loop instead of map because subject is funky
+            for(var i = 0, x = 0; i < subjects.length; i++){
+                if(subjects[i].subject == ""){
+                    $scope.primarySubjects[x] = subjects[i];
+                    x++;
+                }
+            }
+            console.log(JSON.stringify($scope.primarySubjects))
+        })
         var gradeLevels = FieldValues.query({fieldValue: "gradeLevels"},function() {
             $scope.grades = gradeLevels.map(function(gradeLevel){return gradeLevel.key})
-                    var subjects = FieldValues.query({fieldValue: "subject"},function() {
-                        //need a loop instead of map because subject may be empty
-                        for(var i = 0, x = 0; i < subjects.length; i++){
-                            var subject = subjects[i].subject;
-                            if(subject && subject != "Other"){
-                                $scope.primarySubjects[x] = subject;
-                                x++;
-                            }
-                        }
-                                var itemTypes = FieldValues.query({fieldValue: "itemTypes"},function() {
-                                    $scope.itemTypes = itemTypes.map(function(itemType){return itemType.key})
-                                })
-                    })
+        })
+        var itemTypes = FieldValues.query({fieldValue: "itemTypes"},function() {
+            $scope.itemTypes = itemTypes.map(function(itemType){return itemType.key})
         })
     })()
     //update the item list based on the search fields
@@ -49,7 +49,7 @@ function ItemsCtrl($scope, FieldValues, Items) {
             if(grades.length == 1){
                 searchFields.gradeLevel = grades[0]
             }else{
-                searchFields.gradeLevel = {"$or" : JSON.stringify(grades)}
+                searchFields["$or"] = grades.map(function(grade){return {gradeLevel : grade}})
             }
         }
         var itemTypes = $scope.searchFields.itemTypes
@@ -57,12 +57,12 @@ function ItemsCtrl($scope, FieldValues, Items) {
             if(itemTypes.length == 1){
                 searchFields.itemType = itemTypes[0]
             }else{
-                searchFields.itemType = {"$or" : JSON.stringify(itemTypes)}
+                searchFields["$or"] = itemTypes.map(function(iType){return {itemType : iType}})
             }
         }
-        var primarySubject = $scope.searchFields.primarySubject
+        var primarySubject = $scope.searchFields.primarySubjectId
         if(primarySubject != " ") {
-            searchFields['primarySubject.subject'] = primarySubject
+            searchFields['subjects.primary'] = primarySubject
         }
         var isEmpty = function(obj){
             for(var i in obj) {return false;}
@@ -107,7 +107,14 @@ function ItemsCtrl($scope, FieldValues, Items) {
     }
     //update items based on primary subject entered
     $scope.updatePrimarySubjectSearch = function() {
-        $scope.searchFields.primarySubject = $scope.primarySubjectSearch
+        var matchFlag = false;
+        for(var i = 0; i < $scope.primarySubjects.length; i++){
+            if($scope.primarySubjects[i].category == $scope.primarySubjectSearch){
+                matchFlag = true;
+                $scope.searchFields.primarySubjectId = {"$oid" : $scope.primarySubjects[i].id};
+            }
+        }
+        if(!matchFlag) $scope.searchFields.primarySubjectId = " "
         updateItemList()
     }
 }

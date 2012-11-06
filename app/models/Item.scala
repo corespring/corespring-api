@@ -432,7 +432,6 @@ object Item extends DBQueryable[Item] {
     ),
     QueryFieldString[Item](bloomsTaxonomy, _.bloomsTaxonomy, queryValueFn(bloomsTaxonomy, fieldValues.bloomsTaxonomy)),
     QueryFieldString[Item](licenseType, _.contributorDetails.map(_.licenseType), queryValueFn(licenseType, fieldValues.licenseTypes)),
-
     QueryFieldObject[Item](primarySubject, _.subjects.map(_.primary), _ match {
       case x: String => try {
         Right(new ObjectId(x))

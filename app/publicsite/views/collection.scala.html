@@ -107,7 +107,7 @@
                         <div class="controls" id="primary-subject-dropdown">
                             <select ng-model="primarySubjectSearch" ng-change="updatePrimarySubjectSearch()">
                                 <option> </option>
-                                <option ng-repeat="primarySubject in primarySubjects">{{primarySubject}}</option>
+                                <option ng-repeat="primarySubject in primarySubjects">{{primarySubject.category}}</option>
                             </select>
                         </div>
                     </div>
