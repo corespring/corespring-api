@@ -6,7 +6,7 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
         replace:true,
         scope:true,
         require:'^assessmentitem',
-        template:'<span class="text-entry-interaction" ng-class="{noResponse: noResponse}"><input type="text" size="{{expectedLength}}" ng-model="textResponse" ng-disabled="formDisabled"></input></span>',
+        template:'<span class="text-entry-interaction" ng-class="{noResponse: noResponse}"><input type="text" size="{{expectedLength}}" ng-model="textResponse" ng-disabled="formSubmitted"></input></span>',
         link:function (scope, element, attrs, AssessmentItemController) {
             var responseIdentifier = attrs.responseidentifier;
             scope.controller = AssessmentItemController;

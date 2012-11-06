@@ -33,6 +33,10 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService)
             $scope.reset();
             $scope.$broadcast('unsetSelection');
             $scope.itemSession = data;
+
+            // Empty out the responses
+            for (var i = 0; i < $scope.responses.length; i++)
+                $scope.responses[i].value = [];
         });
     };
 
@@ -170,7 +174,6 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                     $timeout(function () {
                         $scope.formSubmitted = $scope.itemSession.isFinished;
                         if ($scope.formSubmitted) {
-                            $scope.formDisabled = true;
                             $scope.formHasIncorrect = false;
                         }
                     });
