@@ -61,7 +61,8 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                     '<div class="simple-choice-inner-horizontal" ng-class="{noResponse: noResponse}">',
                     '   <div class="choice-content-horizontal" ng-class="{noResponse: noResponse}"> ' + nodeWithFeedbackRemoved + '</div>',
                     '   <div ng-class="{noResponse: noResponse}"><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted" ng-model="chosenItem" value="{{value}}"></input></div>',
-                    '</div>']
+                    '</div>',
+                    '<div class="feedback-container"></div> ']
 
                     :
 
