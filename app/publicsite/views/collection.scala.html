@@ -102,6 +102,10 @@
 <!--main contents area starts here -->
 <div class="main-wrap">
 <div class="container">
+    <div class="span30">
+                    <p class="lead-in">
+                        All items in CoreSpring's open collections are reviewed by content experts to make sure that they are well aligned to the information important to guide teaching and learning. Take a peek at some samples below.</p>
+                </div>
 <div class="main" ng-controller="ItemsCtrl">
             <div class="row">
                 <form class="form-horizontal">
@@ -131,10 +135,6 @@
             </div>
             <div class="row">
                 <div class="span2">&nbsp;</div>
-                <div class="span30">
-                    <p class="lead-in">
-                        All items in CoreSpring's open collections are reviewed by content experts to make sure that they are well aligned to the information important to guide teaching and learning. Take a peek at some samples below..</p>
-                </div>
             </div>
 
 <!-- items -->
@@ -147,7 +147,7 @@
             <div class="well item">
                 <table>
                     <tr>
-                        <td width="70px">Grade:</td>
+                        <td width="45px">Grade:</td>
                         <td width="220px" class="value">{{i.gradeLevel.join()}}</td>
                         <td width="70px">Standard:</td>
                         <td width="300px" class="value"><span
@@ -156,15 +156,17 @@
                     </tr>
 
                 </table>
-                <h4 style="font-weight: 300; line-height: 22px;" ng-bind-html-unsafe="i.title"></h4>
+                <p class="title" ng-bind-html-unsafe="i.title"></h4>
                 <br/>
                 <table>
                     <tr>
                         <td width="70px">Primary Subject:</td>
-                        <td width="220px" class="value">{{i.primarySubject.category}}: {{i.primarySubject.subject}}</td>
                         <td width="50px">Type:</td>
-                        <td width="230px" class="value">{{i.itemType}}</td>
                         <td width="70px">Source:</td>
+                    </tr>
+                       <tr>
+                        <td width="220px" class="value">{{i.primarySubject.category}}: {{i.primarySubject.subject}}</td>
+                        <td width="230px" class="value">{{i.itemType}}</td>
                         <td class="value">{{i.contributor}}</td>
                     </tr>
 
