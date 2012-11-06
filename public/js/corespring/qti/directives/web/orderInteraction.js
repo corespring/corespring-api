@@ -103,31 +103,29 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
             '</placement-destination>',
             '<div style="clear: both"></div>',
         '</div><div style="clear: both"></div>',
-        '</div>',
-
-    ].join('')
-
-        :
-    [
-        '<div class="dragArea">',
-        '<span ng-bind-html-unsafe="prompt" class="choice-prompt"></span>',
-        '<div id="draggableItems" ng-class="{noResponse: noResponse}" style="z-index: 10">',
-            '<draggable-item ng:repeat="item in items" obj="{{item}}" class="{{item.submittedClass}}" ng-bind-html-unsafe="item.content" > ',
-        '</div>',
-
-        '<div class="order-placement-destination-area">',
-            '<div style="clear: both">Place answers here</div>',
-            '<div ng:repeat="item in emptyCorrectAnswers" class="placement-destination-holder " >',
-                '{{item.label}}<br/>',
-                '<placement-destination index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px">',
-                    '<div class="numbering" ng-hide="hideNumbering"><span class="number">{{$index+1}}</span></div>',
-                '</placement-destination>',
-            '</div>',
-
-        '</div>',
         '</div>'
 
-    ].join('');
+    ].join('')
+            :
+
+        [
+            '<div class="dragArea">',
+            '<span ng-bind-html-unsafe="prompt" class="choice-prompt"></span>',
+            '<div id="draggableItems" ng-class="{noResponse: noResponse}" style="z-index: 10">',
+                '<draggable-item ng:repeat="item in items" obj="{{item}}" class="{{item.submittedClass}}" ng-bind-html-unsafe="item.content" > ',
+            '</div>',
+
+            '<div class="order-placement-destination-area">',
+                '<div style="clear: both">Place answers here</div>',
+                '<placement-destination ng:repeat="item in emptyCorrectAnswers" index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px">',
+                '<div class="numbering"><span class="number">{{item.label}}</span></div>',
+                '</placement-destination>',
+
+            '</div>',
+            '</div>'
+
+        ].join('');
+
 
 
     var localScope = {
@@ -237,7 +235,7 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
         for (var ecntr=0; ecntr < cn; ecntr++) {
             var o = {};
             o.label = localScope.originalChoices[ecntr].label;
-            if (ecntr < cn) o.count = ecntr+1;
+            if (o.label == undefined) o.label = String(ecntr+1);
             $scope.emptyCorrectAnswers.push(o);
         }
 
@@ -300,9 +298,11 @@ var commonLinkFn = function($scope, element, attrs, AssessmentItemCtrl, QtiUtils
             $scope.items[x] = {content: $scope.defaultItems[x].content, identifier: $scope.defaultItems[x].identifier};
         }
         $scope.orderedList = $scope.items;
-        setTimeout(function(){
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub, element[0]]);
-        }, 0);
+        if (typeof(MathJax) != "undefined") {
+            setTimeout(function(){
+                MathJax.Hub.Queue(["Typeset",MathJax.Hub, element[0]]);
+            }, 0);
+        }
 
     });
 
@@ -428,7 +428,7 @@ qtiDirectives.directive("sortable", function () {
                 return items;
             };
 
-            scope.$watch("formDisabled", function (newValue) {
+            scope.$watch("formSubmitted", function (newValue) {
                 $(el).sortable("option", "disabled", newValue === true);
             });
 
