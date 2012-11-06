@@ -1119,3 +1119,20 @@ vertical-align: bottom;
 .no-border tbody tr td.right-dashed-border {
 border-right: 2px dashed #EEE;
 }
+
+
+/* Ordering Interaction Tweaks --> Move to Ordering Interaction Css */
+.order-placement-destination-area-vertical {
+    min-width: 150px;
+}
+
+.order-placement-destination-area-vertical div, .order-placement-destination-area div {
+	font:14px/20px "Ubuntu", Arial, Helvetica, sans-serif !important;
+	padding:10px 0 5px;
+	margin:0;
+}
+
+.order-placement-destination-area placement-destination div.numbering span.number {
+	padding:5px 0 5px;
+}
+	
