@@ -25,13 +25,12 @@
     <title>Collections</title>
     
     <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
-    
-    <!--
-    <link href="bootstrap/2.0.2/css/bootstrap.css" rel="stylesheet" type="text/css" media="all" />
-    -->
+
+    <!-- TODO: Consolidate css linking -->    
     <link href="/assets/public/bootstrap/2.1.1/css/bootstrap.css" rel="stylesheet" type="text/css" media="all" />
     <link href="/assets/public/css/bootstrap-overrides.css" rel="stylesheet" type="text/css" media="all" />
-    
+   
+
     <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
     
     <!--[if lte IE 8]>
@@ -47,7 +46,10 @@
         $(document).ready(function() {
             $(".fancybox").fancybox(
                 {
-                    minWidth: 700
+                   minWidth: 700,
+                   height : 720,
+                   fitToView : false,
+                   autoSize : false
                 }
                 );
         });

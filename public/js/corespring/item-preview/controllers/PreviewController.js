@@ -58,7 +58,7 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
     };
 
     $scope.getItemUrl = function() {
-        if (!$scope.itemData) return null;
+        if (!$scope.itemData || $scope.currentPanel != 'item') return null;
         return "/web/show-resource/" + $scope.itemData.id;
     }
 
