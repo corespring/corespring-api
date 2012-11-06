@@ -31,6 +31,7 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService)
     $scope.reloadItem = function () {
         AssessmentSessionService.create({itemId:$scope.itemSession.itemId}, $scope.itemSession, function (data) {
             $scope.reset();
+            $scope.$broadcast('unsetSelection');
             $scope.itemSession = data;
         });
     };
@@ -42,17 +43,7 @@ QtiAppController.$inject = ['$scope', '$timeout', '$location', 'AssessmentSessio
 
 
 function ControlBarController($scope) {
-
     $scope.showAdminOptions = false;
-
-    $scope.toggleHighlightCorrectResponse = function(){
-
-        if($scope.itemSession.settings.maxNoOfAttempts == 1){
-            return;
-        }
-        $scope.itemSession.settings.highlightCorrectResponse = !$scope.itemSession.settings.highlightCorrectResponse;
-    }
-
 }
 
 ControlBarController.$inject = ['$scope'];
@@ -144,7 +135,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             };
 
 
-            var areResponsesIncorrect = function(){
+            var areResponsesIncorrect = function () {
                 if (!$scope.itemSession || !$scope.itemSession.responses) return false;
                 for (var i = 0; i < $scope.itemSession.responses.length; i++) {
                     if ($scope.itemSession.responses[i].outcome != undefined && $scope.itemSession.responses[i].outcome.score < 1) return true;
@@ -179,6 +170,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                     $timeout(function () {
                         $scope.formSubmitted = $scope.itemSession.isFinished;
                         if ($scope.formSubmitted) {
+                            $scope.formDisabled = true;
                             $scope.formHasIncorrect = false;
                         }
                     });
@@ -195,12 +187,12 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 return $scope.itemSession.settings[name];
             };
 
-            $scope.isAllowedSubmit = function(){
+            $scope.isAllowedSubmit = function () {
                 var out = $scope.canSubmit || !$scope.formSubmitted;
                 return out;
             };
 
-            $scope.submitButtonText = function() {
+            $scope.submitButtonText = function () {
                 return ($scope.finalSubmit) ? "Submit Anyway" : "Submit";
             };
 
@@ -209,7 +201,11 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             };
 
             $scope.highlightCorrectResponse = function () {
-                return isSettingEnabled("highlightCorrectResponse")
+                return  $scope.itemSession
+                    &&
+                    $scope.itemSession.isFinished
+                    &&
+                    isSettingEnabled("highlightCorrectResponse")
             };
 
             $scope.highlightUserResponse = function () {

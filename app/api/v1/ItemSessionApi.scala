@@ -52,7 +52,7 @@ object ItemSessionApi extends BaseApi {
 
               ItemSession.getXmlWithFeedback(itemId, itemSession.feedbackIdLookup) match {
                 case Right(xml) => {
-                  itemSession.sessionData = ItemSession.getSessionData(xml, itemSession.responses)
+                  itemSession.sessionData = ItemSession.getSessionData(xml, itemSession)
                 }
                 case Left(e) => NotFound(toJson(ApiError.ItemSessionNotFound(e.clientOutput)))
               }

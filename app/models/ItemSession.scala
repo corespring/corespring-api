@@ -1,5 +1,6 @@
 package models
 
+import models.itemSession.{ SessionData => NewSessionData }
 import org.bson.types.ObjectId
 import se.radley.plugin.salat._
 import mongoContext._
@@ -31,7 +32,7 @@ case class ItemSession(var itemId: ObjectId,
                        var responses: Seq[ItemResponse] = Seq(),
                        var id: ObjectId = new ObjectId(),
                        var feedbackIdLookup: Seq[FeedbackIdMapEntry] = Seq(),
-                       var sessionData: Option[SessionData] = None,
+                       var sessionData: Option[NewSessionData] = None,
                        var settings: ItemSessionSettings = new ItemSessionSettings()
                         ) extends Identifiable {
 
@@ -176,7 +177,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
           u.responses = Score.scoreResponses(u.responses, qtiItem)
           finishSessionIfNeeded(u)
           //TODO: We need to be careful with session data - you can't persist it
-          u.sessionData = Some(SessionData(qtiItem, u.responses))
+          u.sessionData = Some(NewSessionData(qtiItem, u))
         })
 
       }
@@ -208,7 +209,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     finishIfThereAreNoIncorrectResponses()
   }
 
-  def getSessionData(xml: Elem, responses: Seq[ItemResponse]) = Some(SessionData(QtiItem(xml), responses))
+  def getSessionData(xml: Elem, s : ItemSession) = Some(NewSessionData(QtiItem(xml), s))
 
   implicit object ItemSessionWrites extends Writes[ItemSession] {
     def writes(session: ItemSession) = {

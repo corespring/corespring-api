@@ -15,7 +15,9 @@ class ItemResponseTest extends Specification {
 
     val outcome = ItemResponseOutcome(score = 0,  comment = Some("b"))
 
-    val response : ItemResponse = ArrayItemResponse(id = "test", outcome = Some(outcome), responseValue = Seq("a" ,"b"))
+    val response : ItemResponse = ArrayItemResponse(id = "test", 
+      outcome = Some(outcome), 
+      responseValue = Seq("a" ,"b"))
     val json = Json.toJson(response)
 
     val expectedJson = JsObject(Seq(

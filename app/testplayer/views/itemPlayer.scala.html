@@ -10,10 +10,12 @@
 </head>
 <body ng-controller="QtiAppController">
 
-        @if( previewEnabled ){
+    @if( previewEnabled ){
 
-            @partials.controlBar()
-        }
+        @partials.controlBar()
+        
+        <div class="student-view-header">Student View</div>
+    }
     <div class="assessment-page">
         @Html(itemBody)
     </div>
