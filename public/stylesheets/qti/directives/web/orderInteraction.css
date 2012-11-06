@@ -85,6 +85,8 @@ placement-destination {
     width: 90%;
     text-align: center;
     margin-left: 100px;
+    float: left;
+    padding: 5px;
 
 }
 
@@ -102,7 +104,7 @@ placement-destination {
 }
 
 .placing {
-    background-color: green;
+    background-color: #92D400;
 }
 
 .dragArea {
