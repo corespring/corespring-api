@@ -22,7 +22,7 @@ angular.module('tagger.services')
             {},
             {
                 query:{ method:'GET', isArray:true},
-                delete:{ method:'DELETE', isArray:false}
+                "delete":{ method:'DELETE', isArray:false}
             }
         );
     }]);
@@ -51,7 +51,7 @@ angular.module('tagger.services')
         var copy = {};
         angular.copy(this, copy);
         copy.id = null;
-        delete copy.id;
+        //delete copy.id;
         //delete copy.collectionId;
 
         /**

@@ -28,7 +28,7 @@ function CreateCtrl($scope, ItemService, NewItemTemplates, Collection, AccessTok
             name: "qtiItem",
             files: [{
                 name: "qti.xml",
-                default: true,
+                "default": true,
                 contentType: "text/xml",
                 content: $scope.selectedTemplate.xmlData
             }]
