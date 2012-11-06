@@ -240,10 +240,12 @@ qtiDirectives.directive('itembody', function () {
         template:[
             '<div ng-show="printMode" class="item-body-dotted-line">Name: </div>',
             '<span ng-transclude="true"></span>',
-            '<div class="noResponseFeedback" ng-show="showNoResponseFeedback">Some information seems to be missing. Please provide an answer and then click "Submit". </div>',
-            '<div class="noResponseFeedback" ng-show="formHasIncorrect">{{submitIncorrectMessage()}}</div>',
-            '<div class="noResponseFeedback" ng-show="formSubmitted">{{submitCompleteMessage()}}</div>',
-            '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="!isAllowedSubmit()" ng-hide="formSubmitted" ng-click="onSubmitClick()">{{submitButtonText()}}</a>',
+            '<div class="flowBox">',
+                '<div class="noResponseFeedback" ng-show="showNoResponseFeedback">Some information seems to be missing. Please provide an answer and then click "Submit". </div>',
+                '<div class="form-is-incorrect" ng-show="formHasIncorrect">{{submitIncorrectMessage()}}</div>',
+                '<div class="form-submitted" ng-show="formSubmitted">{{submitCompleteMessage()}}</div>',
+                '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="!isAllowedSubmit()" ng-hide="formSubmitted" ng-click="onSubmitClick()">{{submitButtonText()}}</a>',
+            '</div>'
         ].join('\n'),
         require:'^assessmentitem',
         link:function (scope, element, attrs, AssessmentItemCtrl) {
