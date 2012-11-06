@@ -97,6 +97,7 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
         '</div>',
 
         '<div class="order-placement-destination-area-vertical" style="width: {{maxW+25}}px">',
+            '<div style="clear: both; margin-bottom: 10px">Place answers here</div>',
             '<placement-destination ng:repeat="item in emptyCorrectAnswers" index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px">',
             '<div class="numbering" ng-hide="hideNumbering"><span class="number">{{$index+1}}</span></div>',
             '</placement-destination>',
@@ -115,10 +116,11 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
         '</div>',
 
         '<div class="order-placement-destination-area">',
+            '<div style="clear: both">Place answers here</div>',
             '<placement-destination ng:repeat="item in emptyCorrectAnswers" index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px">',
             '<div class="numbering" ng-hide="hideNumbering"><span class="number">{{$index+1}}</span></div>',
             '</placement-destination>',
-            '<div style="clear: both">Drag answers here</div>',
+
         '</div>',
         '</div>'
 
@@ -180,25 +182,42 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
             if (maxW<30) maxW = 30;
             if (maxH<30) maxH = 30;
 
-            var hasGrown = false;
+            var sizeHasChanged = false;
 
-            if (maxW > $scope.maxW) {
+            if (maxW != $scope.maxW) {
                 $scope.maxW = maxW;
-                hasGrown = true;
+                sizeHasChanged = true;
             }
 
-            if (maxH > $scope.maxH) {
+            if (maxH != $scope.maxH) {
                 $scope.maxH = maxH;
-                hasGrown = true;
+                sizeHasChanged = true;
             }
 
-            if (hasGrown || !hasDimension)
-                $timeout(pollSize, 100);
+            // If the elements have no dimension yet (i.e. pre-render phase),
+            // or the size changed from previous poll let's keep polling
+            if (sizeHasChanged || !hasDimension) {
+                $scope.pollCounter = 0;
+            } else {
+                if (isVertical)
+                    $(element).find('#draggableItems').width(maxW + 50);
+                else
+                    $(element).find('#draggableItems').height(maxH + 50);
+            }
+
+            $scope.pollCounter++;
+            // If the size has not changed for 2 seconds we consider rendering done
+            if ($scope.pollCounter > 10)
+                return;
+
+
+            $timeout(pollSize, 200);
 
         }
 
         $scope.maxW = 30;
         $scope.maxH = 30;
+        $scope.pollCounter = 0;
         pollSize();
 
         // set model to choices extracted from html

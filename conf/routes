@@ -12,7 +12,7 @@ POST    /auth/register                          controllers.auth.AuthController.
 POST    /auth/access_token                      controllers.auth.AuthController.getAccessToken
 
 #Public site
-GET     /public                                       publicsite.controllers.Application.index
+GET     /                                      publicsite.controllers.Application.index
 GET     /public/collection                             publicsite.controllers.Application.collection
 GET     /public/contact                                publicsite.controllers.Application.contact
 GET     /public/partnerships                           publicsite.controllers.Application.partnerships

@@ -154,10 +154,6 @@
         {
             "key":"Constructed Response - Open Ended",
             "value":"Constructed Response - Open Ended"
-        },
-        {
-            "key":"Other (Please Identify)",
-            "value":"Other"
         }
     ],
 
@@ -233,10 +229,6 @@
         {
             "key":"UG",
             "value":"Ungraded"
-        },
-        {
-            "key":"Other",
-            "value":"Other"
         }
     ],
 

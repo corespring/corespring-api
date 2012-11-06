@@ -103,22 +103,21 @@
             <div class="row">
                 <form class="form-horizontal">
                     <div class="control-group">
-                     <label class="control-label" for="primary-subject-dropdown" >Primary Subject</label>
+                     <label class="control-label" for="primary-subject-dropdown" ><strong>Primary Subject</strong></label>
                         <div class="controls" id="primary-subject-dropdown">
-                            <select ng-model="primarySubjectSearch" ng-change="updatePrimarySubjectSearch()">
-                                <option> </option>
-                                <option ng-repeat="primarySubject in primarySubjects">{{primarySubject}}</option>
-                            </select>
+                            <label class="checkbox inline" style="float:left" ng-repeat="primarySubject in primarySubjects">
+                                <input type="checkbox" ng-click="updatePrimarySubjectSearch(primarySubject)">{{primarySubject.category}}
+                            </label>
                         </div>
                     </div>
                     <div class="control-group">
-                        <label class="control-label" for="grade-btn-bar">Grade:</label>
+                        <label class="control-label" for="grade-btn-bar"><strong>Grade:</strong></label>
                         <div class="controls btn-group" id="grade-btn-bar">
                             <button ng-repeat="grade in grades" class="btn" style="float:left" ng-click="updateGradeSearch($event,grade)">{{grade}}</button>
                         </div>
                     </div>
                     <div class="control-group">
-                        <label class="control-label" for="item-type-chkbx">Item Type:</label>
+                        <label class="control-label" for="item-type-chkbx"><strong>Item Type:</strong></label>
                         <div class="controls" id="item-type-chkbx">
                             <label class="checkbox inline" style="float:left" ng-repeat="itemType in itemTypes">
                                 <input type="checkbox" ng-click="updateItemTypeSearch(itemType)">{{itemType}}
