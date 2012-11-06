@@ -1,0 +1,12 @@
+.item td {
+	color: #80B312;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: left;
+}
+
+td.value {
+	color: #333;
+    font-weight: normal;
+    font-size: 14px;
+}
