@@ -84,8 +84,6 @@ object Global extends GlobalSettings {
 
   override def onStart(app: Application) {
 
-    if (autoRestart) scheduleRestart
-
     // support JodaTime
     RegisterJodaTimeConversionHelpers()
 
@@ -108,33 +106,9 @@ object Global extends GlobalSettings {
     } else if (Play.isProd(app)) {
       if (initData) seedDevData()
     }
-
   }
-
-  private def autoRestart: Boolean = {
-    ConfigLoader.get("AUTO_RESTART") match {
-      case Some(restart) => restart == "true"
-      case _ => false
-    }
-  }
-
-  private def scheduleRestart = {
-    Logger.debug("Application scheduled to restart in 1 day")
-    val oneDay = Duration.create(1, TimeUnit.DAYS)
-    Akka.system.scheduler.scheduleOnce(oneDay) {
-      Play.start(
-        new Application(
-          Play.current.path,
-          Play.current.classloader,
-          Play.current.sources,
-          Play.current.mode)
-      )
-    }
-  }
-
 
   private def isLocalDb: Boolean = {
-
     ConfigLoader.get("mongodb.default.uri") match {
       case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907-a.mongolab.com:35907/sib")
       case None => false
