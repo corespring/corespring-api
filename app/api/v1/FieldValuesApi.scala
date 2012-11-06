@@ -59,7 +59,6 @@ object FieldValuesApi extends BaseApi {
    */
   def getFieldValues(fieldName: String, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = Action {
     request =>
-
       fieldName match {
         case "subject" => {
           QueryHelper.listSimple(Subject, q, f, c.equalsIgnoreCase("true"), sk, l)
