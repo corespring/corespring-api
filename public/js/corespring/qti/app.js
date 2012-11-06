@@ -62,6 +62,8 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             var sessionId = null;
             var allowEmptyResponses = true;
 
+            var noResponseMessage = 'Some information seems to be missing. Please provide an answer and then click "Submit".';
+
             $scope.printMode = ( $attrs['printMode'] == "true" || false );
             $scope.finalSubmit = false;
 
@@ -91,13 +93,13 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             $scope.responses = [];
 
             $scope.isEmptyItem = function (value) {
-                if (!value || value == undefined) {
+                if (!value) {
                     return true;
                 }
-                else if (typeof value == "string" && value == "") {
+                else if (typeof(value) === "string" && value === "") {
                     return true;
                 }
-                else if (Object.prototype.toString.call(value) == "[object Array]" && value.length == 0) {
+                else if (Object.prototype.toString.call(value) == "[object Array]" && value.length === 0) {
                     return true;
                 }
                 return false;
@@ -142,7 +144,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             var areResponsesIncorrect = function () {
                 if (!$scope.itemSession || !$scope.itemSession.responses) return false;
                 for (var i = 0; i < $scope.itemSession.responses.length; i++) {
-                    if ($scope.itemSession.responses[i].outcome != undefined && $scope.itemSession.responses[i].outcome.score < 1) return true;
+                    if ($scope.itemSession.responses[i].outcome && $scope.itemSession.responses[i].outcome.score < 1) return true;
                 }
                 return false;
 
@@ -190,6 +192,36 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 return $scope.itemSession.settings[name];
             };
 
+            $scope.showFeedback = function(){
+                return $scope.formHasIncorrect || $scope.formSubmitted || $scope.showNoResponseFeedback;
+            };
+
+            $scope.getFeedbackMessageClass = function(){
+               if( $scope.showNoResponseFeedback){
+                return "no-response-feedback";
+               }
+               if( $scope.formHasIncorrect ){
+                return "form-is-incorrect";
+               }
+               if($scope.formSubmitted){
+                return "form-submitted";
+               }
+               return "";
+            };
+
+            $scope.getFeedbackMessage = function(){
+               if( $scope.showNoResponseFeedback){
+                return noResponseMessage;
+               }
+               if( $scope.formHasIncorrect ){
+                    return $scope.submitIncorrectMessage();
+               }
+               if($scope.formSubmitted){
+                return $scope.submitCompleteMessage();
+               }
+               return "";
+            };
+
             $scope.isAllowedSubmit = function () {
                 var out = $scope.canSubmit || !$scope.formSubmitted;
                 return out;
@@ -204,15 +236,13 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             };
 
             $scope.highlightCorrectResponse = function () {
-                return  $scope.itemSession
-                    &&
-                    $scope.itemSession.isFinished
-                    &&
-                    isSettingEnabled("highlightCorrectResponse")
+                return  $scope.itemSession &&
+                    $scope.itemSession.isFinished &&
+                    isSettingEnabled("highlightCorrectResponse");
             };
 
             $scope.highlightUserResponse = function () {
-                return isSettingEnabled("highlightUserResponse")
+                return isSettingEnabled("highlightUserResponse");
             };
 
             $scope.submitCompleteMessage = function () {
@@ -227,7 +257,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                     return "Looks like there is something you might fix in your work. You can change your answers, or submit your response as-is";
                 }
                 return $scope.itemSession.settings.submitIncorrectMessage;
-            }
+            };
         }
     };
 });
@@ -241,19 +271,19 @@ qtiDirectives.directive('itembody', function () {
             '<div ng-show="printMode" class="item-body-dotted-line">Name: </div>',
             '<span ng-transclude="true"></span>',
             '<div class="flowBox">',
-                '<div class="noResponseFeedback" ng-show="showNoResponseFeedback">Some information seems to be missing. Please provide an answer and then click "Submit". </div>',
-                '<div class="form-is-incorrect" ng-show="formHasIncorrect">{{submitIncorrectMessage()}}</div>',
-                '<div class="form-submitted" ng-show="formSubmitted">{{submitCompleteMessage()}}</div>',
+                '<div class="ui-hide animatable flow-feedback-container" ng-class="{true: \'ui-show\', false: \'ui-hide\'}[showFeedback()]">',
+                    '<div class="feedback-message" ng-class="getFeedbackMessageClass()"><span class="text">{{getFeedbackMessage()}}</span></div>',
+                '</div>',
                 '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="!isAllowedSubmit()" ng-hide="formSubmitted" ng-click="onSubmitClick()">{{submitButtonText()}}</a>',
             '</div>'
         ].join('\n'),
         require:'^assessmentitem',
         link:function (scope, element, attrs, AssessmentItemCtrl) {
             scope.onSubmitClick = function () {
-                AssessmentItemCtrl.submitResponses()
+                AssessmentItemCtrl.submitResponses();
             };
         }
-    }
+    };
 });
 
 
