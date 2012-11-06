@@ -15,6 +15,7 @@
 <!-- Add fancyBox -->
     <link rel="stylesheet" href="/assets/public/js/fancybox/jquery.fancybox.css?v=2.1.1" type="text/css" media="screen" />
     <script type="text/javascript" src="/assets/public/js/fancybox/jquery.fancybox.pack.js?v=2.1.1"></script>
+    <link rel="stylesheet" href="/assets/public/css/public.css" type="text/css" media="screen" />
 
 
 
@@ -144,8 +145,31 @@
 
         <div ng-repeat="i in items" style="padding-bottom: 12px;">
 
-            <div class="well">
+            <div class="well item">
+                <table>
+                    <tr>
+                        <td width="70px">Grade:</td>
+                        <td width="220px" class="value">{{i.gradeLevel.join()}}</td>
+                        <td width="70px">Standard:</td>
+                        <td width="300px" class="value"><span
+                                ng-repeat="s in i.standards">{{s.dotNotation}}&nbsp;</span></td>
+
+                    </tr>
+
+                </table>
                 <h4 style="font-weight: 300; line-height: 22px;" ng-bind-html-unsafe="i.title"></h4>
+                <br/>
+                <table>
+                    <tr>
+                        <td width="70px">Primary Subject:</td>
+                        <td width="220px" class="value">{{i.primarySubject.category}}: {{i.primarySubject.subject}}</td>
+                        <td width="50px">Type:</td>
+                        <td width="230px" class="value">{{i.itemType}}</td>
+                        <td width="70px">Source:</td>
+                        <td class="value">{{i.contributor}}</td>
+                    </tr>
+
+                </table>
                 <br/>
                 <a class="btn btn-success fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/web/item-preview/{{i.id}}">Preview</a>
                 <a class="btn btn-primary fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/testplayer/item/{{i.id}}/run?access_token=34dj45a769j4e1c0h4wb" >Play it!</a>
