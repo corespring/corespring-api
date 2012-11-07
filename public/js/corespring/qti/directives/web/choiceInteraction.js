@@ -1,7 +1,7 @@
 qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
     return {
-        restrict:'E',
+        restrict:'A',
         replace:true,
         scope:true,
         require:'^choiceinteraction',
@@ -180,6 +180,7 @@ qtiDirectives.directive('choiceinteraction', function () {
             return [];
         }
 
+
         return nodes;
     };
 
@@ -225,11 +226,16 @@ qtiDirectives.directive('choiceinteraction', function () {
     var compile = function(element, attrs, transclude){
         var shuffle = attrs["shuffle"] === "true";
         var isHorizontal = attrs["orientation"] === "horizontal";
-        var html = element.html();
-        var finalContents = shuffle ? getShuffledContents(html) : html;
+        var html = element.html().replace(/<:prompt>/g, "<span prompt>").replace(/<\/:prompt>/g, "</span>");
+        html = html.replace(/<:simpleChoice/g, "<span simplechoice").replace(/<\/:simpleChoice>/g, "</span>");
+        html = html.replace(/<:feedbackInline/g, "<span feedbackInline").replace(/<\/:feedbackInline>/g, "</span>");
+
+        var finalContents = html;//shuffle ? getShuffledContents(html) : html;
+
+        console.log("Final:", finalContents);
 
         var newNode = isHorizontal ?
-            ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction">' + finalContents + '</div><div style="clear: both"></div></div>')
+            ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction"><div class="choice-wrap">' + finalContents + '</div></div><div style="clear: both"></div></div>')
             :
             ('<div class="choice-interaction" ng-class="{noResponse: noResponse}">' + finalContents + '</div>')
         element.html(newNode);
