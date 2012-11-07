@@ -340,6 +340,10 @@ simplechoice {
 	padding: 10px;
 }
 
+.fade-out{
+	opacity: 0.3;
+}
+
 .animatable {
   -webkit-transition: all 250ms ease-in-out;
   -moz-transition: all 250ms ease-in-out;

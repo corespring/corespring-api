@@ -21,7 +21,40 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService)
         var params = { itemId:matches[1] };
         AssessmentSessionService.create(params, {}, function (data) {
             $scope.itemSession = data;
+            $scope.setUpChangeWatcher();
+            $scope.settingsHaveChanged = false;
         });
+    };
+
+    /**
+     * Track changes to settings so we know if the user needs to save the changes
+     * before working with the item.
+     */
+    $scope.setUpChangeWatcher = function() {
+
+        $scope.originalSettings = angular.copy($scope.itemSession.settings);
+        $scope.maxNoOfAttempts = $scope.itemSession.settings.maxNoOfAttempts;
+
+        //need to make sure we store an int from the radio group
+        $scope.$watch('itemSession.settings.maxNoOfAttempts', function(newData){
+            $scope.itemSession.settings.maxNoOfAttempts = parseInt(newData);
+        });
+
+        //watcher for $watch - builds string from object values
+        var watcher = function() {
+            var out = "";
+            for(var x in $scope.itemSession.settings){
+                out += $scope.itemSession.settings[x];
+            }
+            return out;
+        };
+
+        $scope.$watch( watcher, function(newData){
+            $scope.settingsHaveChanged = !angular.equals(
+                $scope.originalSettings, 
+                $scope.itemSession.settings);
+        });
+
     };
 
     /**
@@ -33,7 +66,7 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService)
             $scope.reset();
             $scope.$broadcast('unsetSelection');
             $scope.itemSession = data;
-
+            $scope.setUpChangeWatcher();
             // Empty out the responses
             for (var i = 0; i < $scope.responses.length; i++)
                 $scope.responses[i].value = [];

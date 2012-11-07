@@ -3,8 +3,6 @@
     <div>
         <i ng-class="{ true: 'icon-arrow-down', false: 'icon-arrow-right'}[showAdminOptions]"></i>
         <a ng-click="showAdminOptions=!showAdminOptions"> Administrative Options</a>
-        &nbsp;
-        <i class="icon-refresh"></i><a ng-click="reloadItem()"> Reload Item</a>
     </div>
     <br/>
 
@@ -13,25 +11,33 @@
         <div class="container">
 
             <div class="span2">
-                <input type="radio" ng-model="itemSession.settings.maxNoOfAttempts" value="0"> Multiple Tries</input>
+                <input type="radio" int-type ng-model="itemSession.settings.maxNoOfAttempts" value="0"> Multiple Tries</input>
                 <br/>
-                <input type="radio" ng-model="itemSession.settings.maxNoOfAttempts" value="1"> Single Try</input>
+                <input type="radio" ng-model="itemSession.settings.maxNoOfAttempts" ng-validate="int" value="1"> Single Try</input>
             </div>
 
             <div class="span4">
                 <input type="checkbox"
-                       ng-model="itemSession.settings.highlightUserResponse"> Highlight the student’s answer</input>
+                ng-model="itemSession.settings.highlightUserResponse"> Highlight the student’s answer</input>
                 <br/>
                 <input type="checkbox"
-                       ng-model="itemSession.settings.highlightCorrectResponse"> Highlight the correct answer</input>
+                ng-model="itemSession.settings.highlightCorrectResponse"> Highlight the correct answer</input>
                 <br/>
                 <input type="checkbox"
-                       ng-model="itemSession.settings.showFeedback"> Show the feedback text for all answers (if available)</input>
+                ng-model="itemSession.settings.showFeedback"> Show the feedback text for all answers (if available)</input>
                 <br/>
                 <input type="checkbox"
-                       ng-model="itemSession.settings.allowEmptyResponses"> Accept incomplete work</input>
+                ng-model="itemSession.settings.allowEmptyResponses"> Accept incomplete work</input>
                 <br/>
             </div>
+            
         </div>
+        <div class="container" ng-show="settingsHaveChanged" style="margin-top: 20px;">
+            <div class="span6 alert alert-info" style="margin-bottom: 0px; padding-right: 14px">
+                <span style="float:left; padding-top: 5px;"><i class="icon-exclamation-sign"></i> You must save your settings before you can proceed</span>
+                <a ng-click="reloadItem()" style="margin-top: 0px; margin-bottom: 0px;" class="btn btn-primary">Save Settings</a>
+            </div>
+        </div>
+
     </div>
 </div>
