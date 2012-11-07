@@ -54,7 +54,7 @@ p {
   margin: 0 0 30px;
 }
 .title-single {
-  padding: 48px 0;
+  padding: 25px 0;
 }
 .learn-section {
   border-top: 1px solid #92D400;
@@ -166,7 +166,9 @@ p {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#92d400', endColorstr='#62890e', GradientType=0);
   border-color: #62890e #62890e #304407;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+  text-shadow: 0 1px 0 #62890E;
 }
+
 .navbar .nav .active > a {
   color: #ffffff;
   text-decoration: none;
