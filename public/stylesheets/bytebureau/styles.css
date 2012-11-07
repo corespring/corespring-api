@@ -1135,3 +1135,16 @@ border-right: 2px dashed #EEE;
 .order-placement-destination-area placement-destination div.numbering span.number {
 	padding:5px 0 5px;
 }
+
+.verticalHolder div#draggableItems.vertical, .verticalHolder div.order-placement-destination-area-vertical {
+display: table-cell;
+vertical-align:middle;
+}
+
+.vertical {
+    float: none;
+}
+
+orderinteraction.ng-scope div.dragArea div#draggableItems {
+text-align:center;
+}
