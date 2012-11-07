@@ -56,7 +56,7 @@ object ItemPlayer extends BaseApi with ItemResources {
   }
 
   def previewItem(itemId: String, printMode: Boolean = false, sessionSettings: String = "") =
-    _renderItem(itemId, printMode, previewEnabled = true, sessionSettings = sessionSettings)
+    _renderItem(itemId, printMode, previewEnabled = !printMode, sessionSettings = sessionSettings)
 
   def renderItem(itemId: String, printMode: Boolean = false, sessionSettings: String = "") =
     _renderItem(itemId, printMode, previewEnabled = false, sessionSettings = sessionSettings)

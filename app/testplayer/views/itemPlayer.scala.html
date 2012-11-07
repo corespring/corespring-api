@@ -15,6 +15,8 @@
         @partials.controlBar()
         
         <div class="student-view-header" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">Student View</div>
+    } else {
+        <br/>
     }
     <div class="assessment-page" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">
         @Html(itemBody)

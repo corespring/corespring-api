@@ -303,11 +303,11 @@ qtiDirectives.directive('itembody', function () {
         template:[
             '<div ng-show="printMode" class="item-body-dotted-line">Name: </div>',
             '<span ng-transclude="true"></span>',
-            '<div class="flowBox">',
+            '<div class="flowBox" ng-show="!printMode">',
                 '<div class="ui-hide animatable flow-feedback-container" ng-class="{true: \'ui-show\', false: \'ui-hide\'}[showFeedback()]">',
                     '<div class="feedback-message" ng-class="getFeedbackMessageClass()"><span class="text">{{getFeedbackMessage()}}</span></div>',
                 '</div>',
-                '<a ng-show="!printMode" class="btn btn-primary" ng-disabled="!isAllowedSubmit()" ng-hide="formSubmitted" ng-click="onSubmitClick()">{{submitButtonText()}}</a>',
+                '<a class="btn btn-primary" ng-disabled="!isAllowedSubmit()" ng-hide="formSubmitted" ng-click="onSubmitClick()">{{submitButtonText()}}</a>',
             '</div>'
         ].join('\n'),
         require:'^assessmentitem',
