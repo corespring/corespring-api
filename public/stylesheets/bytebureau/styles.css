@@ -1135,12 +1135,3 @@ border-right: 2px dashed #EEE;
 .order-placement-destination-area placement-destination div.numbering span.number {
 	padding:5px 0 5px;
 }
-
-
-/* Profile Summary */
-.well p.title {
-    color: #333333;
-    margin-left: 0;
-    padding-bottom: 5px;
-    font: 14px/20px "Ubuntu",Arial,Helvetica,sans-serif;
-}	
