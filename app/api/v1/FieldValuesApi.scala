@@ -67,6 +67,7 @@ object FieldValuesApi extends BaseApi {
           QueryHelper.listSimple(Standard, q, f, c.equalsIgnoreCase("true"), sk, l)
         }
         case _ => {
+//          getSubField(FieldValue.findOne(MongoDBObject()),fieldName)
           Cache.getAs[FieldValue](FieldValueCacheKey) match {
             case None => {
               loadFieldValue()

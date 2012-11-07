@@ -16,11 +16,6 @@
     <link rel="stylesheet" href="/assets/public/js/fancybox/jquery.fancybox.css?v=2.1.1" type="text/css" media="screen" />
     <script type="text/javascript" src="/assets/public/js/fancybox/jquery.fancybox.pack.js?v=2.1.1"></script>
 
-
-
-    <script
-        type="text/javascript"
-        src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
     <title>Collections</title>
     
@@ -108,21 +103,21 @@
                      <label class="control-label" for="primary-subject-dropdown" ><strong>Primary Subject</strong></label>
                         <div class="controls" id="primary-subject-dropdown">
                             <label class="checkbox inline" style="float:left" ng-repeat="primarySubject in primarySubjects">
-                                <input type="checkbox" ng-click="updatePrimarySubjectSearch(primarySubject)">{{primarySubject.category}}
+                                <input type="checkbox" defaultChecked="false" ng-click="updatePrimarySubjectSearch(primarySubject)">{{primarySubject.category}}
                             </label>
                         </div>
                     </div>
                     <div class="control-group">
                         <label class="control-label" for="grade-btn-bar"><strong>Grade:</strong></label>
                         <div class="controls btn-group" id="grade-btn-bar">
-                            <button ng-repeat="grade in grades" class="btn" style="float:left" ng-click="updateGradeSearch($event,grade)">{{grade}}</button>
+                            <button ng-repeat="grade in grades" class="btn" style="float:left" data-toggle="button" ng-click="updateGradeSearch(grade)">{{grade}}</button>
                         </div>
                     </div>
                     <div class="control-group">
                         <label class="control-label" for="item-type-chkbx"><strong>Item Type:</strong></label>
                         <div class="controls" id="item-type-chkbx">
                             <label class="checkbox inline" style="float:left" ng-repeat="itemType in itemTypes">
-                                <input type="checkbox" ng-click="updateItemTypeSearch(itemType)">{{itemType}}
+                                <input type="checkbox" defaultChecked="false" ng-click="updateItemTypeSearch(itemType)">{{itemType}}
                             </label>
                         </div>
                     </div>
@@ -141,7 +136,9 @@
 
 <div>
     <div>
-
+        <div class="progress progress-striped active">
+            <div class="bar" style="width: 100%;"></div>
+        </div>
         <div ng-repeat="i in items" style="padding-bottom: 12px;">
 
             <div class="well">

@@ -38,7 +38,6 @@ function ItemsCtrl($scope, FieldValues, Items) {
                     x++;
                 }
             }
-            console.log(JSON.stringify($scope.primarySubjects))
         })
         var gradeLevels = FieldValues.query({fieldValue: "gradeLevels"},function() {
             $scope.grades = gradeLevels.map(function(gradeLevel){return gradeLevel.key})
@@ -78,10 +77,9 @@ function ItemsCtrl($scope, FieldValues, Items) {
             for(var i in obj) {return false;}
             return true;
         }
+        console.log("searchFields: "+JSON.stringify(searchFields))
         if(!isEmpty(searchFields)){
-            console.log("searchFields: "+JSON.stringify(searchFields))
             var newItems = Items.query({q : JSON.stringify(searchFields)},function(){
-                console.log("newItems: "+JSON.stringify(newItems))
                 $scope.items.length = 0
                 newItems.map(function(item){$scope.items.push(item)})
             })
@@ -92,15 +90,15 @@ function ItemsCtrl($scope, FieldValues, Items) {
         }
     }
     //update items based on grades entered
-    $scope.updateGradeSearch = function(event, grade) {
+    $scope.updateGradeSearch = function(grade) {
         var grades = $scope.searchFields.grades
         var gradeIndex = grades.indexOf(grade)
         if(gradeIndex == -1){
             grades.push(grade)
-            event.srcElement.setAttribute("class","btn btn-primary")
+           // event.srcElement.setAttribute("class","btn btn-primary")
         }else{
             grades.splice(gradeIndex,1)
-            event.srcElement.setAttribute("class","btn")
+          //  event.srcElement.setAttribute("class","btn")
         }
         updateItemList()
     }
