@@ -1152,3 +1152,56 @@ vertical-align:middle;
 orderinteraction.ng-scope div.dragArea div#draggableItems {
 text-align:center;
 }
+
+/* Simple choice horizontal start*/
+.choice-wrap{
+	overflow:hidden;
+	width:100%;
+	display:table-row;
+}
+.choice-wrap simplechoice{
+	display:table-cell;
+	width:auto;
+}
+.choice-wrap .simple-choice-inner-horizontal{
+	display:block;
+	float:none;
+	margin:0 10px 0 0;
+	padding:0 10px 10px;
+	text-align:center;
+	vertical-align:top;
+}
+.choice-wrap .choiceInput-horizontal,
+.choice-wrap .choice-content-horizontal{
+	display:block;
+	color:#333;
+	padding:8px;
+}
+.choice-wrap .simple-choice-inner-horizontal{
+	text-align:center;
+}
+.choice-wrap .correct-response-horizontal > .feedback-container,
+.choice-wrap .incorrect-response-horizontal > .feedback-container{
+	background:url("/assets/images/wrong-icon.png") no-repeat 0 0;
+	display:block;
+	height:22px;
+	width:26px;
+	margin:0 auto;
+}
+.choice-wrap .correct-response-horizontal > .feedback-container{
+	background:url("/assets/images/correct-icon.png") no-repeat 0 0;
+}
+.choice-wrap .correct-response-horizontal .simple-choice-inner-horizontal,
+.choice-wrap .incorrect-response-horizontal .simple-choice-inner-horizontal{
+	border-radius:6px;
+	border:2px solid #F8A31A;
+	margin:0 0 10px;
+}
+.choice-wrap .correct-response-horizontal .simple-choice-inner-horizontal{
+	border:2px solid #92D400;
+}
+.choice-wrap .correct-response-horizontal > .feedback-container,
+.choice-wrap .incorrect-response-horizontal > .feedback-container{
+ padding:0;
+}
+/* Simple choice horizontal end*/
