@@ -260,6 +260,11 @@ p {
     padding-top: 20px;
 }
 
+.well table {
+	width:100%;
+}
+
+
 .well a.btn {
 margin:15px 0 3px 0;
 }
