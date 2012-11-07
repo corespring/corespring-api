@@ -12,7 +12,7 @@ case class ItemSessionSettings( var maxNoOfAttempts : Int = 0,
                                  * Only applicable when the session is finished
                                  */
                                 var highlightCorrectResponse : Boolean = true,
-                                var showFeedback : Boolean = true,
+                                var showFeedback : Boolean = false,
                                 var allowEmptyResponses : Boolean = false,
                                 var submitCompleteMessage : String = ItemSessionSettings.SubmitComplete,
                                 var submitIncorrectMessage : String = ItemSessionSettings.SubmitIncorrect)
