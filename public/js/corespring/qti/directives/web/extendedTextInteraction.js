@@ -7,7 +7,7 @@ qtiDirectives.directive("extendedtextinteraction", function() {
         replace: true,
         scope: true,
         require: '^assessmentitem',
-        template: '<div ng-class="{noResponse: noResponse}"><textarea rows="{{rows}}" cols="{{cols}}" ng-model="extResponse" ng-disabled="formDisabled"></textarea></div>',
+        template: '<div ng-class="{noResponse: noResponse}"><textarea rows="{{rows}}" cols="{{cols}}" ng-model="extResponse" ng-disabled="formSubmitted"></textarea></div>',
         link: function (scope, element, attrs, AssessmentItemController) {
 
             scope.controller = AssessmentItemController;

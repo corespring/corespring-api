@@ -1,14 +1,17 @@
 import _root_.controllers.S3Service
+import play.api.mvc.Results._
+import web.controllers.utils.ConfigLoader
+import common.seed.SeedDb._
+import akka.util.Duration
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
+import java.util.concurrent.TimeUnit
 import org.bson.types.ObjectId
 import play.api._
-import play.api.mvc.Results._
+import libs.concurrent.Akka
 import mvc._
 import mvc.SimpleResult
 import play.api.Play.current
 import play.api.Application
-import web.controllers.utils.ConfigLoader
-import common.seed.SeedDb._
 
 /**
   */
@@ -55,10 +58,10 @@ object Global extends GlobalSettings {
     Logger.error(uid)
     Logger.error(throwable.getMessage)
 
-    if ( Logger.isDebugEnabled ){
+    if (Logger.isDebugEnabled) {
       throwable.printStackTrace()
     }
-    InternalServerError(common.views.html.onError( uid, throwable))
+    InternalServerError(common.views.html.onError(uid, throwable))
   }
 
 
@@ -80,8 +83,10 @@ object Global extends GlobalSettings {
   }
 
   override def onStart(app: Application) {
+
     // support JodaTime
     RegisterJodaTimeConversionHelpers()
+
     val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
     S3Service.init(amazonProperties)
 
@@ -101,11 +106,9 @@ object Global extends GlobalSettings {
     } else if (Play.isProd(app)) {
       if (initData) seedDevData()
     }
-
   }
 
   private def isLocalDb: Boolean = {
-
     ConfigLoader.get("mongodb.default.uri") match {
       case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907-a.mongolab.com:35907/sib")
       case None => false
@@ -116,7 +119,7 @@ object Global extends GlobalSettings {
     emptyData()
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/test")
-    addMockAccessToken(MOCK_ACCESS_TOKEN_ID,None)
+    addMockAccessToken(MOCK_ACCESS_TOKEN_ID, None)
   }
 
   private def seedDevData() {
@@ -124,7 +127,7 @@ object Global extends GlobalSettings {
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/dev")
     seedData("conf/seed-data/exemplar-content")
-    addMockAccessToken(MOCK_ACCESS_TOKEN_ID,None)
+    addMockAccessToken(MOCK_ACCESS_TOKEN_ID, None)
   }
 
 }

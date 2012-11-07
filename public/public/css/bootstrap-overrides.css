@@ -54,7 +54,7 @@ p {
   margin: 0 0 30px;
 }
 .title-single {
-  padding: 48px 0;
+  padding: 25px 0;
 }
 .learn-section {
   border-top: 1px solid #92D400;
@@ -166,7 +166,9 @@ p {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#92d400', endColorstr='#62890e', GradientType=0);
   border-color: #62890e #62890e #304407;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+  text-shadow: 0 1px 0 #62890E;
 }
+
 .navbar .nav .active > a {
   color: #ffffff;
   text-decoration: none;
@@ -247,4 +249,40 @@ p {
 }
 .invisible {
   visibility: hidden;
+}
+
+/* Collection Summary */
+.well p.title {
+    color: #333333;
+    font: 14px/20px "Ubuntu",Arial,Helvetica,sans-serif;
+    margin: 0 0 20px;
+    padding-bottom: 0;
+    padding-top: 10px;
+}
+
+.well table {
+	width:100%;
+}
+
+
+.well a.btn {
+    margin: 5px 5px 3px;
+}
+
+#grade-btn-bar.controls button.btn {
+    font: 14px/20px "Ubuntu",Arial,Helvetica,sans-serif;
+    padding: 5px 12px;
+}
+
+.row form.form-horizontal div.control-group div#item-type-chkbx.controls label.checkbox .radio.inline + .radio.inline, .checkbox.inline + .checkbox.inline {
+    margin-left: 0px;
+}
+
+.form-horizontal div.control-group div#item-type-chkbx.controls label.checkbox, 
+.form-horizontal div.control-group div#primary-subject-dropdown.controls label.checkbox {
+margin-right:25px;
+}
+
+.well .button-cell {
+    text-align: right;
 }

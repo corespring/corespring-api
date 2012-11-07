@@ -91,7 +91,7 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
         var optionsAndFeedback = getOptionsAndFeedbacks(element);
 
-        var html = ['<select ng-disabled="formDisabled" class="small" ng-model="choice">'];
+        var html = ['<select ng-disabled="formSubmitted" class="small" ng-model="choice">'];
 
         //TODO: This isn't being picked up - leave it for now.
         if( element.attr('required') === "true"){

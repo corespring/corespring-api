@@ -116,6 +116,7 @@ class ItemSessionTest extends Specification {
 
       val session = ItemSession(itemId = new ObjectId())
       session.settings.highlightCorrectResponse
+      session.settings.showFeedback = true
       ItemSession.save(session)
       session.responses = Seq(StringItemResponse(id = "RESPONSE", responseValue = "ChoiceB", outcome = None))
 

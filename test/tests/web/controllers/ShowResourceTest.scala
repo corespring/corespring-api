@@ -28,12 +28,10 @@ class ShowResourceTest extends BaseTest{
           status(result) must equalTo(SEE_OTHER)
           val resultHeaders = headers(result)
           val expectedUrl = ItemPlayerRoutes.previewItem(testItem.id.toString).url
-          resultHeaders.get("Location") must equalTo(Some(tokenize(expectedUrl)))
+          resultHeaders.get("Location") must equalTo(Some(expectedUrl))
         }
         case _ => failure("request failed")
       }
-
-      true must equalTo(true)
     }
   }
 

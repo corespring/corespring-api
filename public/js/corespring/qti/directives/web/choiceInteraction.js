@@ -60,14 +60,15 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
             var divs = isHorizontal ? [
                     '<div class="simple-choice-inner-horizontal" ng-class="{noResponse: noResponse}">',
                     '   <div class="choice-content-horizontal" ng-class="{noResponse: noResponse}"> ' + nodeWithFeedbackRemoved + '</div>',
-                    '   <div ng-class="{noResponse: noResponse}"><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div>',
-                    '</div>']
+                    '   <div ng-class="{noResponse: noResponse}"><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted" ng-model="chosenItem" value="{{value}}"></input></div>',
+                    '</div>',
+                    '<div class="feedback-container"></div> ']
 
                     :
 
                     ['<div class="simple-choice-inner">',
                     '  <div class="choiceInput">',
-                    '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formDisabled" ng-model="chosenItem" value="{{value}}"></input></div>',
+                    '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted" ng-model="chosenItem" value="{{value}}"></input></div>',
                     '  <div class="choice-content"> ' + nodeWithFeedbackRemoved + '</div>',
                     '</div>',
                     createFeedbackContainerDiv(tElement.html())]
@@ -132,7 +133,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                 });
 
                 localScope.$on( 'unsetSelection', function(event){
-                    localScope.chosenItem = false;
+                    localScope.chosenItem = [];
                 });
 
 
@@ -261,6 +262,11 @@ qtiDirectives.directive('choiceinteraction', function () {
                 if (idx != -1) scope.chosenItem.splice(idx, 1);
             }
         };
+
+        scope.$on( 'unsetSelection', function(event){
+            scope.chosenItem = [];
+        });
+
 
         scope.setChosenItem = function (value) {
             if (mode == "checkbox") {

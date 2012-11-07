@@ -92,6 +92,7 @@ class SessionDataTest extends Specification {
 
     "only show feedback if showFeedback is true and there is a response for that item" in {
       val s: ItemSession = createSession
+      s.settings.showFeedback = true
       s.responses = Seq(StringItemResponse(questionId, responseValue = "A"))
       SessionData(qti, s).feedbackContents.size must equalTo(1)
       s.settings.showFeedback = false
@@ -249,7 +250,7 @@ class SessionDataTest extends Specification {
       val incorrectResponse = StringItemResponse("manOnMoon", "aldrin")
 
       val session = ItemSession(itemId = new ObjectId(), responses = Seq(correctResponse, incorrectResponse))
-
+      session.settings.showFeedback = true
       val data : SessionData = SessionData(qtiItem, session)
       data.feedbackContents.size === 2
       data.feedbackContents.get("1").get === (XML\\"correctResponseFeedback").text 

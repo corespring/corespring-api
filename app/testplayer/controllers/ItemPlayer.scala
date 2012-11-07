@@ -14,9 +14,13 @@ import testplayer.models.ExceptionMessage
 import scala.Some
 import models.Content
 import play.api.Routes
+import play.api._
+import play.api.Play.current
 
 
 object ItemPlayer extends BaseApi with ItemResources {
+
+  val MOCK_ACCESS_TOKEN = "34dj45a769j4e1c0h4wb"
 
   val NamespaceRegex = """xmlns.*?=".*?"""".r
 
@@ -52,7 +56,7 @@ object ItemPlayer extends BaseApi with ItemResources {
   }
 
   def previewItem(itemId: String, printMode: Boolean = false, sessionSettings: String = "") =
-    _renderItem(itemId, printMode, previewEnabled = true, sessionSettings = sessionSettings)
+    _renderItem(itemId, printMode, previewEnabled = !printMode, sessionSettings = sessionSettings)
 
   def renderItem(itemId: String, printMode: Boolean = false, sessionSettings: String = "") =
     _renderItem(itemId, printMode, previewEnabled = false, sessionSettings = sessionSettings)
@@ -72,7 +76,14 @@ object ItemPlayer extends BaseApi with ItemResources {
 
             val finalXml = removeNamespaces(qtiXml)
 
-            Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled))
+            if(Play.isDev(play.api.Play.current)){
+              Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled))
+               .withSession("access_token" -> MOCK_ACCESS_TOKEN)
+            }
+            else {
+              Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled))
+            } 
+
           case None =>
             NotFound("not found")
         }

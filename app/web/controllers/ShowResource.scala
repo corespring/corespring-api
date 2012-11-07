@@ -54,8 +54,7 @@ object ShowResource extends Controller with ObjectIdParser with ItemResources{
               case Some(defaultFile) => {
                 if (defaultFile.contentType == BaseFile.ContentTypes.XML && defaultFile.name == Resource.QtiXml ){
                   val itemPlayerUrl = testplayer.controllers.routes.ItemPlayer.previewItem(itemId, toPrint).url
-                  val delimiter = if (toPrint) "&" else "?"
-                  Action(Redirect( itemPlayerUrl + delimiter + "access_token=" + MOCK_ACCESS_TOKEN))
+                  Action(Redirect( itemPlayerUrl  ))
                 } else {
                   val showFileUrl = web.controllers.routes.ShowResource.getDataFile(itemId, defaultFile.name).url
                   Action(Redirect(showFileUrl))
