@@ -112,7 +112,7 @@ input[type="text"]:focus, textarea:focus {
 a:focus, .btn:focus, input[type="file"]:focus, input[type="radio"]:focus, input[type="checkbox"]:focus, select:focus {
 	outline:5px auto rgba(161, 225, 23, 0.8);
 }
-.prompt, .choice-prompt, prompt, .choicePrompt, .item-stem, p.prompt, span.choice-prompt, p.prompt, span p.prompt, resource.ng-scope prompt, span.choice-prompt, .choice-interaction prompt {
+[prompt], .prompt, .choice-prompt, prompt, .choicePrompt, .item-stem, p.prompt, span.choice-prompt, p.prompt, span p.prompt, resource.ng-scope prompt, span.choice-prompt, .choice-interaction prompt {
 	font:14px/20px "Ubuntu", Arial, Helvetica, sans-serif !important;
 	padding:0 0 18px;
 	margin:0;
@@ -281,7 +281,10 @@ input[type="submit"] {
 .feedback-container {
 	padding-left: 35px;
 }
-.feedbackinline {
+
+.feedbackinline,
+[feedbackinline]
+{
 	color: #333;
 	padding-left:10px;
 	font-size: 12px;
@@ -295,16 +298,18 @@ input[type="submit"] {
 blockquote p span input.ng-pristine {
 	margin:none;
 }
-.incorrect-response > .feedback-container > feedbackinline, .correct-response > .feedback-container > feedbackinline {
+.incorrect-response > .feedback-container > [feedbackinline],
+.correct-response > .feedback-container > [feedbackinline] {
 	padding: 5px;
 	padding-left: 20px;
 	display: inline-block;
 	margin-bottom: 5px;
 }
-.incorrect-response > .feedback-container > feedbackinline {
+.incorrect-response > .feedback-container > [feedbackinline],
+{
 	background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
 }
-.correct-response > .feedback-container > feedbackinline {
+.correct-response > .feedback-container > [feedbackinline] {
 	background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
 }
 simplechoice {
@@ -1034,13 +1039,14 @@ table th, table td {
 .incorrect-response > .feedback-container, .correct-response > .feedback-container {
 	display: block;
 }
-.incorrect-response > .feedback-container > feedbackinline, .correct-response > .feedback-container > feedbackinline {
+.incorrect-response > .feedback-container > [feedbackinline],
+.correct-response > .feedback-container > [feedbackinline] {
 	padding: 5px;
-	padding-left: 20px;
+	padding-left: 25px;
 	display: inline-block;
 	margin-bottom: 5px;
 }
-.incorrect-response > .feedback-container > feedbackinline {
+.incorrect-response > .feedback-container > [feedbackinline] {
 	background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
 }
 .incorrect-response-horizontal > .feedback-container {
@@ -1049,7 +1055,7 @@ table th, table td {
     height: 20px;
     display: table-cell;
 }
-.correct-response > .feedback-container > feedbackinline {
+.correct-response > .feedback-container > [feedbackinline] {
 	background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
 }
 .correct-response-horizontal > .feedback-container {
@@ -1159,7 +1165,7 @@ text-align:center;
 	width:100%;
 	display:table-row;
 }
-.choice-wrap simplechoice{
+.choice-wrap [simplechoice]{
 	display:table-cell;
 	width:auto;
 }

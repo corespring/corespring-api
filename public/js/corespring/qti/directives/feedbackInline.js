@@ -5,7 +5,7 @@
 var feedbackDirectiveFunction = function (QtiUtils) {
 
     return {
-        restrict:'E',
+        restrict:'ACE',
         template:'<span class="{{cssClass}}" ng-bind-html-unsafe="feedback"></span>',
         scope:true,
         require:'^assessmentitem',

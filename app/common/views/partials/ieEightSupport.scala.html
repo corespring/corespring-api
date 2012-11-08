@@ -6,16 +6,19 @@
     //See angular docs about supporting ie8
     //http://docs.angularjs.org/guide/ie
     document.createElement('assessmentItem');
+    document.createElement('assessmentitem');
     document.createElement('prompt');
     document.createElement('sup');
     document.createElement('feedbackInline');
     document.createElement('feedbackinline');
     document.createElement('feedbackBlock');
+    document.createElement('choiceinteraction');
     document.createElement('choiceInteraction');
     document.createElement('orderInteraction');
     document.createElement('simpleChoice');
     document.createElement('textInteraction');
     document.createElement('extendedTextInteraction');
+    document.createElement('itembody');
     document.createElement('itemBody');
     document.createElement('cs-tabs');
     document.createElement('cs-tab');
@@ -46,6 +49,8 @@
             return -1;
         };
     }
+
+     if (!window.console) console = {log: function() {}};
 
 </script>
 <![endif]-->

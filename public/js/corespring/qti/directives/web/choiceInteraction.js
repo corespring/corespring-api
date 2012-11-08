@@ -1,7 +1,7 @@
 qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
     return {
-        restrict:'E',
+        restrict:'ACE',
         replace:true,
         scope:true,
         require:'^choiceinteraction',
@@ -17,7 +17,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
          */
         compile:function (tElement, tAttrs, transclude) {
 
-            var feedbackInlineRegex = /(<feedbackinline.*?>.*?<\/feedbackinline>)/g;
+            var feedbackInlineRegex = /(<span.*?feedbackInline.*?<\/.*?>)/gi;
 
             /**
              * Build a div with <feedbackinline> nodes from the incoming html.
@@ -39,6 +39,8 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                 return feedbackContainer;
             };
 
+
+
             /**
              * Note - in choiceInteraction.compile we wrap this in varying number of divs - so we need to find the choiceInteraction ancestor node.
              */
@@ -48,12 +50,16 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                 choiceInteractionElem = choiceInteractionElem.parent();
                 if (i++ > 10) throw new Error("Parent choice interaction not found");
             }
+
+
             var maxChoices = choiceInteractionElem.attr('maxChoices');
             var isHorizontal = choiceInteractionElem.attr('orientation') == 'horizontal';
             var inputType = maxChoices == 1 ? 'radio' : 'checkbox';
 
 
             var nodeWithFeedbackRemoved = tElement.html().replace(feedbackInlineRegex, "");
+
+
 
             var responseIdentifier = choiceInteractionElem.attr('responseidentifier');
 
@@ -71,11 +77,13 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                     '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted" ng-model="chosenItem" value="{{value}}"></input></div>',
                     '  <div class="choice-content"> ' + nodeWithFeedbackRemoved + '</div>',
                     '</div>',
-                    createFeedbackContainerDiv(tElement.html())]
+                    createFeedbackContainerDiv(tElement.html())
+                    ]
 
                 ;
 
             var template = divs.join("\n");
+
 
             // now can modify DOM
             tElement.html(template);
@@ -167,7 +175,7 @@ qtiDirectives.directive('choiceinteraction', function () {
 
 
 
-    var simpleChoiceRegex = /(<simplechoice[\s\S]*?>[\s\S]*?<\/simplechoice>)/gm;
+    var simpleChoiceRegex = /(<:*simplechoice[\s\S]*?>[\s\S]*?<\/:*simplechoice>)/gmi;
 
     /**
      * @param html
@@ -179,6 +187,7 @@ qtiDirectives.directive('choiceinteraction', function () {
         if (!nodes) {
             return [];
         }
+
 
         return nodes;
     };
@@ -212,10 +221,14 @@ qtiDirectives.directive('choiceinteraction', function () {
         var simpleChoicesArray = getSimpleChoicesArray(html);
         var fixedIndexes = getFixedIndexes(simpleChoicesArray);
 
+
         var contentsWithChoicesStripped =
-            html.replace( /<simplechoice[\s\S]*?>[\s\S]*<\/simplechoice>/gm, TOKEN);
+            html.replace( /<:*simplechoice[\s\S]*?>[\s\S]*<\/:*simplechoice>/gmi, TOKEN);
+
 
         var shuffled = simpleChoicesArray.shuffle(fixedIndexes);
+
+
         return contentsWithChoicesStripped.replace(TOKEN, shuffled.join("\n") );
     };
 
@@ -223,10 +236,16 @@ qtiDirectives.directive('choiceinteraction', function () {
      * shuffle the nodes if shuffle="true"
      */
     var compile = function(element, attrs, transclude){
+
         var shuffle = attrs["shuffle"] === "true";
         var isHorizontal = attrs["orientation"] === "horizontal";
         var html = element.html();
-        var finalContents = shuffle ? getShuffledContents(html) : html;
+
+        // We convert custom elements to attributes in order to support IE8
+        var finalContents = (shuffle ? getShuffledContents(html) : html)
+            .replace(/<:*prompt>/gi, "<span prompt").replace(/<\/:*prompt>/gi, "</span>")
+            .replace(/<:*simpleChoice/gi, "<span simplechoice").replace(/<\/:*simpleChoice>/gi, "</span>")
+            .replace(/<:*feedbackInline/gi, "<span feedbackinline").replace(/<\/:*feedbackInline>/gi, "</span>");
 
         var newNode = isHorizontal ?
             ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction"><div class="choice-wrap">' + finalContents + '</div></div><div style="clear: both"></div></div>')
