@@ -30,10 +30,10 @@ function ItemsCtrl($scope, $timeout, FieldValues, Items) {
             }
         })
         var gradeLevels = FieldValues.query({fieldValue: "gradeLevels"},function() {
-            $scope.grades = gradeLevels.map(function(gradeLevel){return gradeLevel.key})
+            $scope.grades = _.map(gradeLevels,function(gradeLevel){return gradeLevel.key})
         })
         var itemTypes = FieldValues.query({fieldValue: "itemTypes"},function() {
-            $scope.itemTypes = itemTypes.map(function(itemType){return itemType.key})
+            $scope.itemTypes = _.map(itemTypes,function(itemType){return itemType.key})
         })
     })()
     //set a timeout before retrieving items. required so app doesn't crash
@@ -42,7 +42,7 @@ function ItemsCtrl($scope, $timeout, FieldValues, Items) {
         if($scope.items !== undefined){
             $scope.items.length = 0
             var newItems = Items.query({},function(){
-                newItems.map(function(item){$scope.items.push(item)})
+                _.map(newItems,function(item){$scope.items.push(item)})
                 $scope.itemState="hasContent"
             })
         }else{
@@ -61,7 +61,7 @@ function ItemsCtrl($scope, $timeout, FieldValues, Items) {
             if(grades.length == 1){
                 searchFields.gradeLevel = grades[0]
             }else{
-                searchFields["$or"] = grades.map(function(grade){return {gradeLevel : grade}})
+                searchFields["$or"] = _.map(grades,function(grade){return {gradeLevel : grade}})
             }
         }
         var itemTypes = $scope.searchFields.itemTypes
@@ -69,7 +69,7 @@ function ItemsCtrl($scope, $timeout, FieldValues, Items) {
             if(itemTypes.length == 1){
                 searchFields.itemType = itemTypes[0]
             }else{
-                searchFields["$or"] = itemTypes.map(function(iType){return {itemType : iType}})
+                searchFields["$or"] = _.map(itemTypes,function(iType){return {itemType : iType}})
             }
         }
         var primarySubjectIds = $scope.searchFields.primarySubjectIds
@@ -77,7 +77,7 @@ function ItemsCtrl($scope, $timeout, FieldValues, Items) {
             if(primarySubjectIds.length == 1){
                 searchFields['subjects.primary'] = {"$oid" : primarySubjectIds[0]}
             }else{
-                searchFields['$or'] = primarySubjectIds.map(function(id){return {"subjects.primary": {"$oid" : id}}})
+                searchFields['$or'] = _.map(primarySubjectIds,function(id){return {"subjects.primary": {"$oid" : id}}})
             }
         }
         var isEmpty = function(obj){
@@ -91,7 +91,7 @@ function ItemsCtrl($scope, $timeout, FieldValues, Items) {
                 if(newItems.length == 0){
                     $scope.itemState = "noContent"
                 }else{
-                    newItems.map(function(item){$scope.items.push(item)})
+                    _.map(newItems,function(item){$scope.items.push(item)})
                     $scope.itemState = "hasContent"
                 }
             })
