@@ -17,7 +17,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
          */
         compile:function (tElement, tAttrs, transclude) {
 
-            var feedbackInlineRegex = /(<.*?feedbackInline.*?<\/.*?>)/gi;
+            var feedbackInlineRegex = /(<span.*?feedbackInline.*?<\/.*?>)/gi;
 
             /**
              * Build a div with <feedbackinline> nodes from the incoming html.
@@ -58,6 +58,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
 
             var nodeWithFeedbackRemoved = tElement.html().replace(feedbackInlineRegex, "");
+
 
 
             var responseIdentifier = choiceInteractionElem.attr('responseidentifier');
@@ -241,14 +242,13 @@ qtiDirectives.directive('choiceinteraction', function () {
         var html = element.html();
 
 
-        html = true ? getShuffledContents(html) : html;
+        html = shuffle ? getShuffledContents(html) : html;
 
-        html = html.replace(/<:prompt>/g, "<span prompt").replace(/<\/:prompt>/g, "</span>");
-        html = html.replace(/<:simpleChoice/g, "<span simplechoice").replace(/<\/:simpleChoice>/g, "</span>");
-        html = html.replace(/<:feedbackInline/g, "<span feedbackinline").replace(/<\/:feedbackInline>/g, "</span>");
+        html = html.replace(/<:*prompt>/gi, "<span prompt").replace(/<\/:*prompt>/gi, "</span>")
+            .replace(/<:*simpleChoice/gi, "<span simplechoice").replace(/<\/:*simpleChoice>/gi, "</span>")
+            .replace(/<:*feedbackInline/gi, "<span feedbackinline").replace(/<\/:*feedbackInline>/gi, "</span>");
 
         var finalContents = html;
-
 
         var newNode = isHorizontal ?
             ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction"><div class="choice-wrap">' + finalContents + '</div></div><div style="clear: both"></div></div>')

@@ -298,21 +298,17 @@ input[type="submit"] {
 blockquote p span input.ng-pristine {
 	margin:none;
 }
-.incorrect-response > .feedback-container > feedbackinline,
 .incorrect-response > .feedback-container > [feedbackinline],
-.correct-response > .feedback-container > feedbackinline,
 .correct-response > .feedback-container > [feedbackinline] {
 	padding: 5px;
 	padding-left: 20px;
 	display: inline-block;
 	margin-bottom: 5px;
 }
-.incorrect-response > .feedback-container > feedbackinline,
 .incorrect-response > .feedback-container > [feedbackinline],
 {
 	background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
 }
-.correct-response > .feedback-container > feedbackinline,
 .correct-response > .feedback-container > [feedbackinline] {
 	background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
 }
@@ -1043,16 +1039,13 @@ table th, table td {
 .incorrect-response > .feedback-container, .correct-response > .feedback-container {
 	display: block;
 }
-.incorrect-response > .feedback-container > feedbackinline,
 .incorrect-response > .feedback-container > [feedbackinline],
-.correct-response > .feedback-container > feedbackinline,
 .correct-response > .feedback-container > [feedbackinline] {
 	padding: 5px;
 	padding-left: 25px;
 	display: inline-block;
 	margin-bottom: 5px;
 }
-.incorrect-response > .feedback-container > feedbackinline,
 .incorrect-response > .feedback-container > [feedbackinline] {
 	background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
 }
@@ -1062,7 +1055,6 @@ table th, table td {
     height: 20px;
     display: table-cell;
 }
-.correct-response > .feedback-container > feedbackinline,
 .correct-response > .feedback-container > [feedbackinline] {
 	background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
 }
