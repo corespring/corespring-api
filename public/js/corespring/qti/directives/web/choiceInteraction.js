@@ -241,14 +241,11 @@ qtiDirectives.directive('choiceinteraction', function () {
         var isHorizontal = attrs["orientation"] === "horizontal";
         var html = element.html();
 
-
-        html = shuffle ? getShuffledContents(html) : html;
-
-        html = html.replace(/<:*prompt>/gi, "<span prompt").replace(/<\/:*prompt>/gi, "</span>")
+        // We convert custom elements to attributes in order to support IE8
+        var finalContents = (shuffle ? getShuffledContents(html) : html)
+            .replace(/<:*prompt>/gi, "<span prompt").replace(/<\/:*prompt>/gi, "</span>")
             .replace(/<:*simpleChoice/gi, "<span simplechoice").replace(/<\/:*simpleChoice>/gi, "</span>")
             .replace(/<:*feedbackInline/gi, "<span feedbackinline").replace(/<\/:*feedbackInline>/gi, "</span>");
-
-        var finalContents = html;
 
         var newNode = isHorizontal ?
             ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction"><div class="choice-wrap">' + finalContents + '</div></div><div style="clear: both"></div></div>')
