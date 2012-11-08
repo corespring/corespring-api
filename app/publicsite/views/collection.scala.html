@@ -139,6 +139,14 @@
 <!-- items -->
 
 <div ng-switch on="itemState">
+    <div ng-switch-when="noContent">
+        <div class="row offset4">
+            <h1>No Items Found</h1>
+        </div>
+        <div class="row offset3">
+            <p class="lead">No items were found with the selected filters. <a href="/public/collection">clear all filters</a></p>
+        </div>
+    </div>
     <div class="progress progress-striped active" ng-switch-when="loading">
         <div class="bar" style="width: 100%;"></div>
     </div>
