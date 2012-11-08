@@ -75,6 +75,7 @@ ul {
 
 .verticalHolder  .placement-destination {
     margin: 3px;
+    display: block;
 }
 
 .order-placement-destination-area {

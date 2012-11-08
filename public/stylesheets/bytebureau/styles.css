@@ -1165,7 +1165,7 @@ text-align:center;
 	width:100%;
 	display:table-row;
 }
-.choice-wrap simplechoice{
+.choice-wrap [simplechoice]{
 	display:table-cell;
 	width:auto;
 }
