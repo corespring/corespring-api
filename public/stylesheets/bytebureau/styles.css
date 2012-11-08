@@ -1157,7 +1157,7 @@ text-align:center;
 .choice-wrap{
 	overflow:hidden;
 	width:100%;
-	display:table-row;
+	display:table-cell;
 }
 .choice-wrap simplechoice{
 	display:table-cell;
@@ -1204,4 +1204,5 @@ text-align:center;
 .choice-wrap .incorrect-response-horizontal > .feedback-container{
  padding:0;
 }
+
 /* Simple choice horizontal end*/
