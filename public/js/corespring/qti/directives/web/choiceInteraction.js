@@ -1,7 +1,7 @@
 qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
     return {
-        restrict:'A',
+        restrict:'ACE',
         replace:true,
         scope:true,
         require:'^choiceinteraction',
@@ -17,7 +17,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
          */
         compile:function (tElement, tAttrs, transclude) {
 
-            var feedbackInlineRegex = /(<feedbackinline.*?>.*?<\/feedbackinline>)/g;
+            var feedbackInlineRegex = /(<span.*?feedbackInline.*?>.*?<\/span>)/gi;
 
             /**
              * Build a div with <feedbackinline> nodes from the incoming html.
@@ -25,6 +25,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
              * @return {String}
              */
             var createFeedbackContainerDiv = function (html) {
+                console.log("Htmlign", html);
                 var feedbackNodes = html.match(feedbackInlineRegex);
 
                 if (!feedbackNodes) {
@@ -33,6 +34,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
                 var feedbackContainer = "<div class='feedback-container'>";
                 for (var i = 0; i < feedbackNodes.length; i++) {
+                    console.log("Matched: "+feedbackNodes[i]);
                     feedbackContainer += feedbackNodes[i];
                 }
                 feedbackContainer += "</div>";
@@ -54,6 +56,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
 
 
             var nodeWithFeedbackRemoved = tElement.html().replace(feedbackInlineRegex, "");
+            console.log("REmoved", nodeWithFeedbackRemoved);
 
             var responseIdentifier = choiceInteractionElem.attr('responseidentifier');
 
