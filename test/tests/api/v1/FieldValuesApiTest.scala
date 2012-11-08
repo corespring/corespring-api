@@ -51,5 +51,22 @@ object FieldValuesApiTest extends Specification {
 
       true.mustEqual(true)
     }
+
+    "return multiple values" in {
+
+      val call = api.v1.routes.FieldValuesApi.multiple("gradeLevels,reviewsPassed")
+      val request = FakeRequest(call.method, call.url)
+
+      routeAndCall(request) match {
+        case Some(result) => {
+          val json : JsValue = Json.parse(contentAsString(result))
+          println(json)
+          true === true
+        }
+        case _ => failure("call failed")
+      }
+      true === true
+
+    }
   }
 }

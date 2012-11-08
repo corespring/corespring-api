@@ -6,8 +6,7 @@ import play.api.mvc.Action
 import play.api.Play.current
 import models.KeyValue.KeyValueWrites
 import play.api.libs.json
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
+import play.api.libs.json.{JsValue, JsObject, JsString, Json}
 import models._
 import com.novus.salat._
 import com.novus.salat.global._
@@ -21,7 +20,6 @@ import com.novus.salat._
 import com.novus.salat.global._
 import play.api.templates.Xml
 import play.api.mvc.Result
-import play.api.libs.json.Json
 import com.typesafe.config.ConfigFactory
 import scala.Some
 import play.api.cache.Cache
@@ -82,6 +80,49 @@ object FieldValuesApi extends BaseApi {
       }
   }
 
+  def multiple(fieldNames: String, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = Action {
+
+    val names : Seq[String] = fieldNames.split(",").toSeq
+
+    def _getItems( names : Seq[String] ) : Map[String,JsValue] = {
+      val n : String = names.head
+      val value : JsValue = getFieldValuesAsJsValue(n,q,f,c,sk,l)
+      Map((n -> value)) ++ _getItems(names.tail)
+    }
+
+    val items = _getItems(names)
+    Ok(toJson(items))
+  }
+
+  private def getFieldValuesAsJsValue(name: String, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) : JsValue ={
+
+    name match {
+      case "subject" => {
+        val list = QueryHelper.listAsList(Subject, q, f, c.equalsIgnoreCase("true"), sk, l)
+        toJson(list)
+      }
+      case "cc-standard" => {
+        val list = QueryHelper.listAsList(Standard, q, f, c.equalsIgnoreCase("true"), sk, l)
+        toJson(list)
+      }
+      case _ => {
+        Cache.getAs[FieldValue](FieldValueCacheKey) match {
+          case None => {
+            loadFieldValue()
+            Cache.getAs[FieldValue](FieldValueCacheKey) match {
+              case None => throw new RuntimeException("Unable to retrieve field value data")
+              case Some(fv)=> getSubFieldAsJsValue(Some(fv), name)
+            }
+          }
+          case Some(fv) => getSubFieldAsJsValue(Some(fv), name)
+        }
+      }
+    }
+
+  }
+
+
+
   private def loadFieldValue() {
     FieldValue.collection.findOne() match {
       case Some(fv) => Cache.set(FieldValueCacheKey, grater[FieldValue].asObject(fv))
@@ -97,5 +138,15 @@ object FieldValuesApi extends BaseApi {
       }
     }
     case _ => NotFound
+  }
+
+  private def getSubFieldAsJsValue(fieldValue:Option[FieldValue], fieldName:String) : JsValue = fieldValue match {
+    case Some(fv) => {
+      FieldValue.getSeqForFieldName(fv,fieldName) match {
+        case Some(seq) => toJson(seq)
+        case _ => JsObject(Seq())
+      }
+    }
+    case _ => JsObject(Seq())
   }
 }
