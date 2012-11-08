@@ -1,17 +1,23 @@
 package tests.api.v1
 
 import org.specs2.mutable.Specification
-import models.{FieldValue, Item, ItemResponse, ItemSession}
+import models._
 import org.bson.types.ObjectId
 import org.specs2.execute.Pending
-import play.api.libs.json.Json
-import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.libs.json._
 import play.api.mvc.{Results, SimpleResult, AnyContentAsJson}
 import play.api.test.{FakeHeaders, FakeRequest}
 import org.specs2.mutable._
 import play.api.test.Helpers._
 import tests.PlaySingleton
 import com.mongodb.BasicDBObject
+import play.api.mvc.AnyContentAsJson
+import scala.Some
+import play.api.mvc.SimpleResult
+import play.api.libs.json.JsArray
+import play.api.mvc.AnyContentAsJson
+import scala.Some
+import play.api.mvc.SimpleResult
 
 object FieldValuesApiTest extends Specification {
 
@@ -61,7 +67,8 @@ object FieldValuesApiTest extends Specification {
         case Some(result) => {
           val json : JsValue = Json.parse(contentAsString(result))
           println(json)
-          true === true
+          ((json \ "gradeLevels").asOpt[List[JsObject]].getOrElse(List()).length > 0)  === true
+          ((json \ "reviewsPassed").asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
         }
         case _ => failure("call failed")
       }

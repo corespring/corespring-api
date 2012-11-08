@@ -57,44 +57,26 @@ object FieldValuesApi extends BaseApi {
    */
   def getFieldValues(fieldName: String, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = Action {
     request =>
-      fieldName match {
-        case "subject" => {
-          QueryHelper.listSimple(Subject, q, f, c.equalsIgnoreCase("true"), sk, l)
-        }
-        case "cc-standard" => {
-          QueryHelper.listSimple(Standard, q, f, c.equalsIgnoreCase("true"), sk, l)
-        }
-        case _ => {
-//          getSubField(FieldValue.findOne(MongoDBObject()),fieldName)
-          Cache.getAs[FieldValue](FieldValueCacheKey) match {
-            case None => {
-              loadFieldValue()
-              Cache.getAs[FieldValue](FieldValueCacheKey) match {
-                case None => throw new RuntimeException("Unable to retrieve field value data")
-                case Some(fv)=> getSubField(Some(fv), fieldName)
-              }
-            }
-            case Some(fv) => getSubField(Some(fv), fieldName)
-          }
-        }
-      }
+      val jsValue = getFieldValuesAsJsValue(fieldName,q,f,c,sk,l)
+      Ok(toJson(jsValue))
   }
 
   def multiple(fieldNames: String, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = Action {
+    val names: Seq[String] = fieldNames.split(",").toSeq
 
-    val names : Seq[String] = fieldNames.split(",").toSeq
-
-    def _getItems( names : Seq[String] ) : Map[String,JsValue] = {
-      val n : String = names.head
-      val value : JsValue = getFieldValuesAsJsValue(n,q,f,c,sk,l)
-      Map((n -> value)) ++ _getItems(names.tail)
+    def _getItems(names: Seq[String]): Map[String, JsValue] = names match {
+      case Nil => Map()
+      case _ => {
+        val n: String = names.head
+        val value: JsValue = getFieldValuesAsJsValue(n, q, f, c, sk, l)
+        Map((n -> value)) ++ _getItems(names.tail)
+      }
     }
-
     val items = _getItems(names)
     Ok(toJson(items))
   }
 
-  private def getFieldValuesAsJsValue(name: String, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) : JsValue ={
+  private def getFieldValuesAsJsValue(name: String, q: Option[String], f: Option[String], c: String, sk: Int, l: Int): JsValue = {
 
     name match {
       case "subject" => {
@@ -111,7 +93,7 @@ object FieldValuesApi extends BaseApi {
             loadFieldValue()
             Cache.getAs[FieldValue](FieldValueCacheKey) match {
               case None => throw new RuntimeException("Unable to retrieve field value data")
-              case Some(fv)=> getSubFieldAsJsValue(Some(fv), name)
+              case Some(fv) => getSubFieldAsJsValue(Some(fv), name)
             }
           }
           case Some(fv) => getSubFieldAsJsValue(Some(fv), name)
@@ -121,8 +103,6 @@ object FieldValuesApi extends BaseApi {
 
   }
 
-
-
   private def loadFieldValue() {
     FieldValue.findOne(MongoDBObject()) match {
       case Some(fv) => Cache.set(FieldValueCacheKey, fv)
@@ -130,19 +110,9 @@ object FieldValuesApi extends BaseApi {
     }
   }
 
-  private def getSubField(fieldValue: Option[FieldValue], fieldName: String): Result = fieldValue match {
+  private def getSubFieldAsJsValue(fieldValue: Option[FieldValue], fieldName: String): JsValue = fieldValue match {
     case Some(fv) => {
-      FieldValue.getSeqForFieldName(fv,fieldName) match {
-        case Some(seq) => Ok(toJson(seq))
-        case _ => NotFound
-      }
-    }
-    case _ => NotFound
-  }
-
-  private def getSubFieldAsJsValue(fieldValue:Option[FieldValue], fieldName:String) : JsValue = fieldValue match {
-    case Some(fv) => {
-      FieldValue.getSeqForFieldName(fv,fieldName) match {
+      FieldValue.getSeqForFieldName(fv, fieldName) match {
         case Some(seq) => toJson(seq)
         case _ => JsObject(Seq())
       }
