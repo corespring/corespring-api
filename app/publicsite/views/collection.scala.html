@@ -4,11 +4,15 @@
 
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="google-site-verification" content="-wfxFrZYKKRpF5_-V-G9g1wk5e8HrF2zKc-FKJ-NhNE" />
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script type="text/javascript" src="/assets/bootstrap/js/bootstrap.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular-resource.js"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script src="/assets/js/vendor/angular-bootstrap-ui/angular-bootstrap-ui.js"></script>
+    <script src="/assets/js/vendor/angular-ui/fork-test/angular-ui.js"></script>
     <script type="text/javascript" src="/assets/public/js/widgets.js"></script>
-    <script type="text/javascript" src="/assets/public/bootstrap/2.1.1/js/bootstrap.js"></script>
+
     <script src="/assets/public/js/angular/items-app.js"></script>
     <script src="/assets/public/js/angular/items.js"></script>
 
@@ -143,9 +147,11 @@
                     <tr>
                         <td width="45px">Grade:</td>
                         <td width="238px" class="value">{{i.gradeLevel.join()}}</td>
-                        <td width="70px">Standard:</td>
-                        <td width="300px" class="value"><span
-                                ng-repeat="s in i.standards">{{s.dotNotation}}&nbsp;</span></td>
+                        <td width="70px">CCSS:</td>
+                        <td width="300px" class="value">
+                            <span ng-show="!i.standards || i.length == 0" style="color: #888; font-style: italic;">Not Assigned</span>
+                            <span ng-repeat="s in i.standards" ui-jq="tooltip"
+                                  ui-options="{title: s.standard}">{{s.dotNotation}}&nbsp;</span></td>
                                 <td class="button-cell"><a class="btn btn-success fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/web/item-preview/{{i.id}}">Profile</a>
                 <a class="btn btn-primary fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/testplayer/item/{{i.id}}/run?access_token=34dj45a769j4e1c0h4wb" >Play it!</a></td>
 
