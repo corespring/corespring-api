@@ -243,7 +243,7 @@ qtiDirectives.directive('choiceinteraction', function () {
 
         // We convert custom elements to attributes in order to support IE8
         var finalContents = (shuffle ? getShuffledContents(html) : html)
-            .replace(/<:*prompt>/gi, "<span prompt").replace(/<\/:*prompt>/gi, "</span>")
+            .replace(/<:*prompt>/gi, "<span class='prompt'>").replace(/<\/:*prompt>/gi, "</span>")
             .replace(/<:*simpleChoice/gi, "<span simplechoice").replace(/<\/:*simpleChoice>/gi, "</span>")
             .replace(/<:*feedbackInline/gi, "<span feedbackinline").replace(/<\/:*feedbackInline>/gi, "</span>");
 
