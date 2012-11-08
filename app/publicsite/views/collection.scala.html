@@ -16,11 +16,11 @@
     <script src="/assets/public/js/angular/items-app.js"></script>
     <script src="/assets/public/js/angular/items.js"></script>
 
-<!-- Add fancyBox -->
+    <!-- Add fancyBox -->
     <link rel="stylesheet" href="/assets/public/js/fancybox/jquery.fancybox.css?v=2.1.1" type="text/css" media="screen" />
     <script type="text/javascript" src="/assets/public/js/fancybox/jquery.fancybox.pack.js?v=2.1.1"></script>
     <link rel="stylesheet" href="/assets/public/css/public.css" type="text/css" media="screen" />
-
+    <script type="text/javascript" src="/assets/js/vendor/underscore/1.3.3/underscore-min.js"></script>
 </script>
 
     <title>Collections</title>
@@ -140,6 +140,14 @@
 <!-- items -->
 
 <div ng-switch on="itemState">
+    <div ng-switch-when="noContent">
+        <div class="row offset4">
+            <h1>No Items Found</h1>
+        </div>
+        <div class="row offset3">
+            <p class="lead">No items were found with the selected filters. <a href="/public/collection">clear all filters</a></p>
+        </div>
+    </div>
     <div class="progress progress-striped active" ng-switch-when="loading">
         <div class="bar" style="width: 100%;"></div>
     </div>

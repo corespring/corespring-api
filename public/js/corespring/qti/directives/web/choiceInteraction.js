@@ -241,16 +241,19 @@ qtiDirectives.directive('choiceinteraction', function () {
         var isHorizontal = attrs["orientation"] === "horizontal";
         var html = element.html();
 
+        var promptMatch = html.match(/<:*prompt>(.*?)<\/:*prompt>/);
+        var prompt = "<span class=\"prompt\">"+((promptMatch && promptMatch.length > 0) ? promptMatch[1] : "")+"</span>";
+
         // We convert custom elements to attributes in order to support IE8
         var finalContents = (shuffle ? getShuffledContents(html) : html)
-            .replace(/<:*prompt>/gi, "<span class='prompt'>").replace(/<\/:*prompt>/gi, "</span>")
+            .replace(/<:*prompt>.*?<\/:*prompt>/gi, "")
             .replace(/<:*simpleChoice/gi, "<span simplechoice").replace(/<\/:*simpleChoice>/gi, "</span>")
             .replace(/<:*feedbackInline/gi, "<span feedbackinline").replace(/<\/:*feedbackInline>/gi, "</span>");
 
         var newNode = isHorizontal ?
-            ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction"><div class="choice-wrap">' + finalContents + '</div></div><div style="clear: both"></div></div>')
+            ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction">'+prompt+'<div class="choice-wrap">' + finalContents + '</div></div><div style="clear: both"></div></div>')
             :
-            ('<div class="choice-interaction" ng-class="{noResponse: noResponse}">' + finalContents + '</div>')
+            ('<div class="choice-interaction" ng-class="{noResponse: noResponse}">' + prompt + finalContents + '</div>')
         element.html(newNode);
         return link;
     };

@@ -30,10 +30,10 @@ function ItemsCtrl($scope, $timeout, FieldValues, Items) {
             }
         })
         var gradeLevels = FieldValues.query({fieldValue: "gradeLevels"},function() {
-            $scope.grades = gradeLevels.map(function(gradeLevel){return gradeLevel.key})
+            $scope.grades = _.map(gradeLevels,function(gradeLevel){return gradeLevel.key})
         })
         var itemTypes = FieldValues.query({fieldValue: "itemTypes"},function() {
-            $scope.itemTypes = itemTypes.map(function(itemType){return itemType.key})
+            $scope.itemTypes = _.map(itemTypes,function(itemType){return itemType.key})
         })
     })()
     //set a timeout before retrieving items. required so app doesn't crash
@@ -42,7 +42,7 @@ function ItemsCtrl($scope, $timeout, FieldValues, Items) {
         if($scope.items !== undefined){
             $scope.items.length = 0
             var newItems = Items.query({},function(){
-                newItems.map(function(item){$scope.items.push(item)})
+                _.map(newItems,function(item){$scope.items.push(item)})
                 $scope.itemState="hasContent"
             })
         }else{
@@ -54,13 +54,14 @@ function ItemsCtrl($scope, $timeout, FieldValues, Items) {
     },500)
     //update the item list based on the search fields
     var updateItemList = function() {
+        $scope.itemState = "loading"
         var searchFields = {}
         var grades = $scope.searchFields.grades
         if(grades.length != 0) {
             if(grades.length == 1){
                 searchFields.gradeLevel = grades[0]
             }else{
-                searchFields["$or"] = grades.map(function(grade){return {gradeLevel : grade}})
+                searchFields["$or"] = _.map(grades,function(grade){return {gradeLevel : grade}})
             }
         }
         var itemTypes = $scope.searchFields.itemTypes
@@ -68,7 +69,7 @@ function ItemsCtrl($scope, $timeout, FieldValues, Items) {
             if(itemTypes.length == 1){
                 searchFields.itemType = itemTypes[0]
             }else{
-                searchFields["$or"] = itemTypes.map(function(iType){return {itemType : iType}})
+                searchFields["$or"] = _.map(itemTypes,function(iType){return {itemType : iType}})
             }
         }
         var primarySubjectIds = $scope.searchFields.primarySubjectIds
@@ -76,7 +77,7 @@ function ItemsCtrl($scope, $timeout, FieldValues, Items) {
             if(primarySubjectIds.length == 1){
                 searchFields['subjects.primary'] = {"$oid" : primarySubjectIds[0]}
             }else{
-                searchFields['$or'] = primarySubjectIds.map(function(id){return {"subjects.primary": {"$oid" : id}}})
+                searchFields['$or'] = _.map(primarySubjectIds,function(id){return {"subjects.primary": {"$oid" : id}}})
             }
         }
         var isEmpty = function(obj){
@@ -87,11 +88,17 @@ function ItemsCtrl($scope, $timeout, FieldValues, Items) {
         if(!isEmpty(searchFields)){
             var newItems = Items.query({q : JSON.stringify(searchFields)},function(){
                 $scope.items.length = 0
-                newItems.map(function(item){$scope.items.push(item)})
+                if(newItems.length == 0){
+                    $scope.itemState = "noContent"
+                }else{
+                    _.map(newItems,function(item){$scope.items.push(item)})
+                    $scope.itemState = "hasContent"
+                }
             })
         }else{
             var newItems = Items.query({},function(){
                 $scope.items = newItems
+                $scope.itemState = "hasContent"
             })
         }
     }
@@ -119,18 +126,6 @@ function ItemsCtrl($scope, $timeout, FieldValues, Items) {
         }
         updateItemList()
     }
-    //update items based on primary subject entered
-//    $scope.updatePrimarySubjectSearch = function(primarySubject) {
-//        var matchFlag = false;
-//        for(var i = 0; i < $scope.primarySubjects.length; i++){
-//            if($scope.primarySubjects[i].category == $scope.primarySubjectSearch){
-//                matchFlag = true;
-//                $scope.searchFields.primarySubjectId = {"$oid" : $scope.primarySubjects[i].id};
-//            }
-//        }
-//        if(!matchFlag) $scope.searchFields.primarySubjectId = " "
-//        updateItemList()
-//    }
     //update items based on primary subject entered
     $scope.updatePrimarySubjectSearch = function(primarySubject) {
         var primarySubjectIds = $scope.searchFields.primarySubjectIds
