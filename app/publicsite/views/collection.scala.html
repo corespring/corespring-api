@@ -139,8 +139,11 @@
 
 <!-- items -->
 
-<div>
-    <div>
+<div ng-switch on="itemState">
+    <div class="progress progress-striped active" ng-switch-when="loading">
+        <div class="bar" style="width: 100%;"></div>
+    </div>
+    <div ng-switch-when="hasContent">
         <div ng-repeat="i in items" style="padding-bottom: 12px;">
 
             <div class="well item">

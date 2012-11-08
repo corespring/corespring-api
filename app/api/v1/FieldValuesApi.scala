@@ -124,8 +124,8 @@ object FieldValuesApi extends BaseApi {
 
 
   private def loadFieldValue() {
-    FieldValue.collection.findOne() match {
-      case Some(fv) => Cache.set(FieldValueCacheKey, grater[FieldValue].asObject(fv))
+    FieldValue.findOne(MongoDBObject()) match {
+      case Some(fv) => Cache.set(FieldValueCacheKey, fv)
       case _ => //do nothing
     }
   }

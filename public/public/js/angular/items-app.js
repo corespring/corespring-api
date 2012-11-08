@@ -1,26 +1,16 @@
 var app = angular.module('app', ['itemResource','fieldValuesResource','ui']);
 
 
-function ItemsCtrl($scope, FieldValues, Items) {
+function ItemsCtrl($scope, $timeout, FieldValues, Items) {
     $scope.searchFields = {
         grades:[],
         itemTypes:[],
         primarySubjectIds:[]
     };
+    $scope.itemState = "loading"
     $scope.primarySubjects = [];//FieldValues.primarySubjects;
     $scope.grades = [];
     $scope.itemTypes = [];//FieldValues.itemTypes
-    //set the items to it's initial state (grab everything with no search params).
-    if($scope.items !== undefined){
-        $scope.items.length = 0
-        var newItems = Items.query({},function(){
-            newItems.map(function(item){$scope.items.push(item)})
-        })
-    }else{
-        var newItems = Items.query({},function(){
-            $scope.items = newItems
-        })
-    }
     //set the field values based on the json object
     (function(){
         var subjects = FieldValues.query({fieldValue: "subject"},function() {
@@ -46,6 +36,22 @@ function ItemsCtrl($scope, FieldValues, Items) {
             $scope.itemTypes = itemTypes.map(function(itemType){return itemType.key})
         })
     })()
+    //set a timeout before retrieving items. required so app doesn't crash
+    $timeout(function(){
+        //set the items to it's initial state (grab everything with no search params).
+        if($scope.items !== undefined){
+            $scope.items.length = 0
+            var newItems = Items.query({},function(){
+                newItems.map(function(item){$scope.items.push(item)})
+                $scope.itemState="hasContent"
+            })
+        }else{
+            var newItems = Items.query({},function(){
+                $scope.items = newItems
+                $scope.itemState = "hasContent"
+            })
+        }
+    },500)
     //update the item list based on the search fields
     var updateItemList = function() {
         var searchFields = {}
@@ -137,4 +143,4 @@ function ItemsCtrl($scope, FieldValues, Items) {
         updateItemList()
     }
 }
-ItemsCtrl.$inject = ['$scope','FieldValues', 'Items']
+ItemsCtrl.$inject = ['$scope', '$timeout', 'FieldValues', 'Items']
