@@ -94,8 +94,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
             var itemId = null;
             var sessionId = null;
             var allowEmptyResponses = true;
-
-            var noResponseMessage = 'Some information seems to be missing. Please provide an answer and then click "Submit".';
+            var noResponseMessage = 'Please complete your work before you submit it.';
 
             $scope.printMode = ( $attrs['printMode'] == "true" || false );
             $scope.finalSubmit = false;
@@ -280,14 +279,14 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
             $scope.submitCompleteMessage = function () {
                 if (!$scope.itemSession || !$scope.itemSession.settings) {
-                    return "Your response has been received";
+                    return "Ok!";
                 }
                 return $scope.itemSession.settings.submitCompleteMessage;
             };
 
             $scope.submitIncorrectMessage = function () {
                 if (!$scope.itemSession || !$scope.itemSession.settings) {
-                    return "Looks like there is something you might fix in your work. You can change your answers, or submit your response as-is";
+                    return "Do you want to revise your work before you submit it?";
                 }
                 return $scope.itemSession.settings.submitIncorrectMessage;
             };
