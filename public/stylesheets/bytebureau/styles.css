@@ -1157,7 +1157,7 @@ text-align:center;
 .choice-wrap{
 	overflow:hidden;
 	width:100%;
-	display:table-cell;
+	display:table-row;
 }
 .choice-wrap simplechoice{
 	display:table-cell;
