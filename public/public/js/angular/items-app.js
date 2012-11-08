@@ -1,4 +1,4 @@
-var app = angular.module('app', ['itemResource','fieldValuesResource']);
+var app = angular.module('app', ['itemResource','fieldValuesResource','ui']);
 
 
 function ItemsCtrl($scope, $timeout, FieldValues, Items) {

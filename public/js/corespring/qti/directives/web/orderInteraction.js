@@ -93,14 +93,14 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
         '<span ng-bind-html-unsafe="prompt" class="choice-prompt"></span>',
         '<div class="verticalHolder">',
         '<div id="draggableItems" class="vertical" ng-class="{noResponse: noResponse}" style="z-index: 10">',
-            '<draggable-item ng:repeat="item in items" obj="{{item}}" class="{{item.submittedClass}}" ng-bind-html-unsafe="item.content" /> ',
+            '<span class="draggable-item {{item.submittedClass}}" ng:repeat="item in items" obj="{{item}}" ng-bind-html-unsafe="item.content" /> ',
         '</div>',
 
         '<div class="order-placement-destination-area-vertical" style="width: {{maxW+25}}px">',
             '<div style="clear: both; margin-bottom: 10px">Place answers here</div>',
-            '<placement-destination ng:repeat="item in emptyCorrectAnswers" index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px">',
-            '<div class="numbering" ng-hide="hideNumbering"><span class="number">{{$index+1}}</span></div>',
-            '</placement-destination>',
+            '<span class="placement-destination" ng:repeat="item in emptyCorrectAnswers" index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px">',
+                '<div class="numbering" ng-hide="hideNumbering"><span class="number">{{$index+1}}</span></div>',
+            '</span>',
             '<div style="clear: both"></div>',
         '</div><div style="clear: both"></div>',
         '</div>'
@@ -110,18 +110,17 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
 
         [
             '<div class="dragArea">',
-            '<span ng-bind-html-unsafe="prompt" class="choice-prompt"></span>',
-            '<div id="draggableItems" ng-class="{noResponse: noResponse}" style="z-index: 10">',
-                '<draggable-item ng:repeat="item in items" obj="{{item}}" class="{{item.submittedClass}}" ng-bind-html-unsafe="item.content" > ',
-            '</div>',
+                '<span ng-bind-html-unsafe="prompt" class="choice-prompt"></span>',
+                '<div id="draggableItems" ng-class="{noResponse: noResponse}" >',
+                    '<span class="draggable-item {{item.submittedClass}}" ng:repeat="item in items" obj="{{item}}" ng-bind-html-unsafe="item.content"></span>',
+                '</div>',
 
-            '<div class="order-placement-destination-area">',
-                '<div style="clear: both">Place answers here</div>',
-                '<placement-destination ng:repeat="item in emptyCorrectAnswers" index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px">',
-                '<div class="numbering"><span class="number">{{item.label}}</span></div>',
-                '</placement-destination>',
-
-            '</div>',
+                '<div class="order-placement-destination-area">',
+                    '<div style="clear: both">Place answers here</div>',
+                    '<span class="placement-destination" ng:repeat="item in emptyCorrectAnswers" index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px">',
+                        '<div class="numbering"><span class="number">{{item.label}}</span></div>',
+                    '</span>',
+                '</div>',
             '</div>'
 
         ].join('');
@@ -170,7 +169,7 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
         var pollSize = function() {
             var maxW = 0, maxH = 0;
             var hasDimension = false;
-            $(element).find('draggable-item').each(function (index) {
+            $(element).find('.draggable-item').each(function (index) {
                 if ($(this).width() > maxW) {
                     maxW = $(this).width() + 30;
                     hasDimension = true;
@@ -328,9 +327,10 @@ qtiDirectives.directive('orderinteraction',
 );
 
 
+if (false)
 qtiDirectives.directive("draggableItem", function () {
     return {
-        restrict:'E',
+        restrict:'C',
         link:function (scope, el, attrs, ctrl, $timeout) {
             $(el).draggable({
                 containment: $(el).parents("div.dragArea"),
@@ -354,7 +354,7 @@ qtiDirectives.directive("draggableItem", function () {
                 },
                 stop:function (ev, ui) {
                     var items = [];
-                    $(el).parents('.dragArea').find('draggable-item').each(function (index, element) {
+                    $(el).parents('.dragArea').find('.draggable-item').each(function (index, element) {
                             if ($(element).attr('rid') != undefined && $(element).attr('rid').length>0) {
                                 var rid = Number($(element).attr('rid'));
                                 var liItem = scope.$eval($(element).attr('obj'));
@@ -377,14 +377,14 @@ qtiDirectives.directive("draggableItem", function () {
 
 qtiDirectives.directive("placementDestination", function () {
     return {
-        restrict:'E',
+        restrict:'C',
         link:function (scope, el, attrs, ctrl, $timeout) {
             $(el).droppable(
                 {
                     hoverClass: "placing",
                     accept: function(dest) {
                         var hasDeployed = false;
-                        $(el).parent().parent().find('draggable-item').each(function(idx, element) {
+                        $(el).parent().parent().find('.draggable-item').each(function(idx, element) {
                             var rid = angular.element(element).attr('rid');
                             hasDeployed |= angular.element(el).attr('index') == rid;
                         });
