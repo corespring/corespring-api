@@ -1041,6 +1041,7 @@ table th, table td {
 }
 .incorrect-response > .feedback-container > [feedbackinline],
 .correct-response > .feedback-container > [feedbackinline] {
+	height: 12px;
 	padding: 5px;
 	padding-left: 25px;
 	display: inline-block;
