@@ -21,7 +21,7 @@ case class ItemSessionSettings( var maxNoOfAttempts : Int = 0,
 object ItemSessionSettings {
 
   val SubmitComplete : String = "Ok!"
-  val SubmitIncorrect: String = "Do you want to revise your work before you submit it?"
+  val SubmitIncorrect: String = "You may revise your work before you submit it."
 
   implicit object Reads extends Reads[ItemSessionSettings] {
     def reads( js : JsValue) : ItemSessionSettings = {

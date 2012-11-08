@@ -286,7 +286,8 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
             $scope.submitIncorrectMessage = function () {
                 if (!$scope.itemSession || !$scope.itemSession.settings) {
-                    return "Do you want to revise your work before you submit it?";
+                    // TODO - this is being drawn from ItemSessionSettings.scala, is this a dupe
+                    return "You may revise your work before you submit it.";
                 }
                 return $scope.itemSession.settings.submitIncorrectMessage;
             };
