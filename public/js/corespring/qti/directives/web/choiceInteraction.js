@@ -229,7 +229,7 @@ qtiDirectives.directive('choiceinteraction', function () {
         var finalContents = shuffle ? getShuffledContents(html) : html;
 
         var newNode = isHorizontal ?
-            ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction">' + finalContents + '</div><div style="clear: both"></div></div>')
+            ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction"><div class="choice-wrap">' + finalContents + '</div></div><div style="clear: both"></div></div>')
             :
             ('<div class="choice-interaction" ng-class="{noResponse: noResponse}">' + finalContents + '</div>')
         element.html(newNode);
