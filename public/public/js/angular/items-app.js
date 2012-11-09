@@ -61,7 +61,9 @@ function ItemsCtrl($scope, $timeout, Items, MultipleFieldValues) {
     };
 
     /**
-     * add search paramters to the search object.
+     * Build a query object from the search field array.
+     * builds either a simple query object eg: {key: "value"}
+     * or an $or query eg: { $or: [{key: "value1"}, {key: "value2"}]}
      */
     var makeQueryFromArray = function(array, key, makeFn){
 
