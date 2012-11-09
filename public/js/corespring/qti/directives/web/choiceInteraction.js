@@ -24,18 +24,22 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
              * @param html
              * @return {String}
              */
-            var createFeedbackContainerDiv = function (html) {
+            var createFeedbackContainerDiv = function (html, returnContainerIfEmpty) {
                 var feedbackNodes = html.match(feedbackInlineRegex);
 
-                if (!feedbackNodes) {
-                    return "";
-                }
 
                 var feedbackContainer = "<div class='feedback-container'>";
+                if (!feedbackNodes) {
+                    return returnContainerIfEmpty ? feedbackContainer+"</div>" : "";
+                }
+
+
                 for (var i = 0; i < feedbackNodes.length; i++) {
                     feedbackContainer += feedbackNodes[i];
                 }
                 feedbackContainer += "</div>";
+
+                console.log(feedbackContainer);
                 return feedbackContainer;
             };
 
@@ -68,7 +72,8 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
                     '   <div class="choice-content-horizontal" ng-class="{noResponse: noResponse}"> ' + nodeWithFeedbackRemoved + '</div>',
                     '   <div ng-class="{noResponse: noResponse}"><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted" ng-model="chosenItem" value="{{value}}"></input></div>',
                     '</div>',
-                    '<div class="feedback-container"></div> ']
+                    createFeedbackContainerDiv(tElement.html(), true)
+                    ]
 
                     :
 

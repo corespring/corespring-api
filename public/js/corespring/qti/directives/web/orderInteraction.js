@@ -286,7 +286,6 @@ var commonLinkFn = function($scope, element, attrs, AssessmentItemCtrl, QtiUtils
 
     $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
         if (!responses) return;
-        if (!$scope.isFeedbackEnabled()) return;
         var correctResponse = QtiUtils.getResponseValue(that.responseIdentifier, responses, []);
         var ourResponse = QtiUtils.getResponseValue(that.responseIdentifier, $scope.itemSession.responses, []);
         applyCss(correctResponse, ourResponse)
@@ -327,7 +326,6 @@ qtiDirectives.directive('orderinteraction',
 );
 
 
-if (false)
 qtiDirectives.directive("draggableItem", function () {
     return {
         restrict:'C',

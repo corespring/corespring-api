@@ -28,39 +28,7 @@
             <prompt>Please select the letters of the alphabet and put them into ascending order:</prompt>
             <simpleChoice identifier="a" fixed="true">A</simpleChoice>
             <simpleChoice identifier="b">B</simpleChoice>
-            <simpleChoice identifier="c"><math xmlns="http://www.w3.org/1998/Math/MathML">
-                        <semantics>
-                            <mrow>
-                                <mfrac>
-                                    <mrow>
-                                        <mn>2</mn>
-                                    </mrow>
-                                    <mrow>
-                                        <mn>3</mn>
-                                    </mrow>
-                                </mfrac>
-                                <mrow>
-                                    <mrow>
-                                        <mo stretchy="false">(</mo>
-                                        <mrow>
-                                            <mrow>
-                                                <mrow>
-                                                    <mn>2</mn>
-                                                    <mrow>
-                                                        <mi>x</mi>
-                                                    </mrow>
-                                                </mrow>
-                                                <mo stretchy="false">−</mo>
-                                                <mn>1</mn>
-                                            </mrow>
-                                        </mrow>
-                                        <mo stretchy="false">)</mo>
-                                    </mrow>
-                                </mrow>
-                            </mrow>
-                            <annotation encoding="StarMath 5.0">{2} over {3} ({2{x}} - 1) + 2{1} over {3} = 7 + {1} over {2}{x}</annotation>
-                        </semantics>
-                    </math></simpleChoice>
+            <simpleChoice identifier="c">APPLE</simpleChoice>
             <simpleChoice identifier="d">1</simpleChoice>
             <simpleChoice identifier="e">2</simpleChoice>
             <simpleChoice identifier="f">3</simpleChoice>

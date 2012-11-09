@@ -34,10 +34,13 @@
         <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1" orientation="horizontal">
             <prompt>Who is the President of Mexico?</prompt>
             <simpleChoice identifier='obama'> Barack Obama
+                <feedbackInline csFeedbackId='obama' identifier='obama' showHide='show'>Your answer</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier='cameron'> James Cameron
+                <feedbackInline csFeedbackId='cameron' identifier='cameron' showHide='show'>Your answer</feedbackInline>
             </simpleChoice>
             <simpleChoice identifier='calderon'> Felipe Calderon
+                <feedbackInline csFeedbackId='calderon' identifier='calderon' showHide='show'>Correct</feedbackInline>
             </simpleChoice>
         </choiceInteraction>
 
