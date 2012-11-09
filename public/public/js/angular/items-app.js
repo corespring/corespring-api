@@ -2,6 +2,9 @@ var app = angular.module('app', ['itemResource', 'fieldValuesResource', 'ui']);
 
 
 function ItemsCtrl($scope, $timeout, Items, MultipleFieldValues) {
+
+    var query = new com.corespring.mongo.MongoQuery();
+
     $scope.searchFields = {
         grades:[],
         itemTypes:[],
@@ -53,94 +56,81 @@ function ItemsCtrl($scope, $timeout, Items, MultipleFieldValues) {
     $scope.getItems = function(query){
         Items.query(query, function (data) {
             $scope.items = data;
-            $scope.itemState = "hasContent"
+            $scope.itemState = "hasContent";
         });
     };
 
+    /**
+     * add search paramters to the search object.
+     */
+    var makeQueryFromArray = function(array, key, makeFn){
+
+        if(!array || array.length === 0) return null;
+
+        //default makeFn to just pass the value through
+        makeFn = (makeFn || function(v){return v;});
+       
+        //a curried js function
+        var keyFn = function(key){
+            return function(val){
+                var o = {};
+                o[key] = makeFn(val);
+                return o;
+            };
+        };
+
+        var output = {};
+
+        if (array.length === 1) {
+            output[key] = makeFn(array[0]);
+        } else {
+            output["$or"] = _.map(array, keyFn(key) );
+        }
+        return output;
+    };
+    
     //update the item list based on the search fields
     var updateItemList = function () {
         $scope.itemState = "loading";
-        var searchFields = {};
-        var grades = $scope.searchFields.grades;
-        if (grades.length != 0) {
-            if (grades.length == 1) {
-                searchFields.gradeLevel = grades[0]
-            } else {
-                searchFields["$or"] = _.map(grades, function (grade) {
-                    return {gradeLevel:grade}
-                })
-            }
-        }
-        var itemTypes = $scope.searchFields.itemTypes;
-        if (itemTypes.length != 0) {
-            if (itemTypes.length == 1) {
-                searchFields.itemType = itemTypes[0]
-            } else {
-                searchFields["$or"] = _.map(itemTypes, function (iType) {
-                    return {itemType:iType}
-                })
-            }
-        }
-        var primarySubjectIds = $scope.searchFields.primarySubjectIds;
-        if (primarySubjectIds.length != 0) {
-            if (primarySubjectIds.length == 1) {
-                searchFields['subjects.primary'] = {"$oid":primarySubjectIds[0]}
-            } else {
-                searchFields['$or'] = _.map(primarySubjectIds, function (id) {
-                    return {"subjects.primary":{"$oid":id}}
-                })
-            }
-        }
-        var isEmpty = function (obj) {
-            for (var i in obj) {
-                return false;
-            }
-            return true;
-        };
 
-        var getSearchFields = function() {
-            if (!isEmpty(searchFields)) {
-                return { q: JSON.stringify(searchFields)};
-            }
-            return {};
-        };
+        var gradeQuery = makeQueryFromArray($scope.searchFields.grades,"gradeLevel");
+        var typeQuery = makeQueryFromArray($scope.searchFields.itemTypes,"itemType");
+        var makeOid = function(id){ return { "$oid" : id}; };
+        var subjectQuery = makeQueryFromArray($scope.searchFields.primarySubjectIds,"subjects.primary", makeOid);
 
-        var fields = getSearchFields();
-        $scope.getItems(fields);
+        var andQuery = query.and(gradeQuery, typeQuery, subjectQuery);
+        var finalQuery = andQuery.$and.length === 0 ? {} : { q: JSON.stringify(andQuery) };
+        $scope.getItems(finalQuery);
+    };
+
+    $scope.toggleSearchField = function(fieldArray, value){
+        try{
+            var index = _.indexOf(fieldArray,value);
+            if (index == -1) {
+                fieldArray.push(value);
+            } else {
+                fieldArray.splice(index, 1);
+            }
+            updateItemList();
+
+        } catch (e){
+            throw "Error in toggleSearchField: " + e;
+        }
     };
 
     //update items based on grades entered
     $scope.updateGradeSearch = function (grade) {
-        var grades = $scope.searchFields.grades;
-        var gradeIndex = grades.indexOf(grade);
-        if (gradeIndex == -1) {
-            grades.push(grade);
-        } else {
-            grades.splice(gradeIndex, 1);
-        }
-        updateItemList();
+        $scope.toggleSearchField($scope.searchFields.grades, grade);
     };
+
     //update items based on item types entered
     $scope.updateItemTypeSearch = function (itemType) {
-        var itemTypes = $scope.searchFields.itemTypes;
-        var itemTypeIndex = itemTypes.indexOf(itemType);
-        if (itemTypeIndex == -1) {
-            itemTypes.push(itemType)
-        } else {
-            itemTypes.splice(itemTypeIndex, 1)
-        }
-        updateItemList();
+        $scope.toggleSearchField($scope.searchFields.itemTypes,itemType);
     };
+
     //update items based on primary subject entered
     $scope.updatePrimarySubjectSearch = function (primarySubject) {
-        var primarySubjectIds = $scope.searchFields.primarySubjectIds;
-        var primarySubjectIndex = primarySubjectIds.indexOf(primarySubject.id);
-        if (primarySubjectIndex == -1) {
-            primarySubjectIds.push(primarySubject.id)
-        } else {
-            primarySubjectIds.splice(primarySubjectIndex, 1)
-        }
-        updateItemList();
+        $scope.toggleSearchField($scope.searchFields.primarySubjectIds, primarySubject.id);
     };
 
     $scope.getItems({});
