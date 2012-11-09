@@ -725,6 +725,10 @@ input {
 	font-size:14px;
 }
 /* DATA TABLE STYLE */
+td.three-col {
+width: 33%
+}
+
 .table-title {
 	margin-left: 20px;
 	padding-top: 10px;
@@ -1128,6 +1132,12 @@ height:auto;
 /* Table styling for tables where only targeted edges have borders */
   table.no-border{
 	    margin: 0 0 10px;
+		width: 100%
+}
+
+table.no-border {
+    margin: 0 0 10px;
+    width: 100%;
 }
 
 table.no-border tbody tr td {
