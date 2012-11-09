@@ -72,8 +72,22 @@ object FieldValuesApiTest extends Specification {
         }
         case _ => failure("call failed")
       }
-      true === true
+    }
 
+    "return multiple values with queries" in {
+      val options = """{"subject" : { "q" : {"category": "Art"}} }"""
+      val call = api.v1.routes.FieldValuesApi.multiple("subject,reviewsPassed", Some(options) )
+      println("call url: " + call.url)
+
+      val request = FakeRequest(call.method, call.url)
+
+      routeAndCall(request) match {
+       case Some(result) => {
+          val json = Json.parse(contentAsString(result))
+          (((json\ "subject")).asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
+       } 
+       case _ => failure("request unsuccessful")
+      }
     }
   }
 }

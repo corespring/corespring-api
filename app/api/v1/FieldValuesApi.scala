@@ -1,12 +1,13 @@
 package api.v1
 
+import fieldValues.{Options, QueryOptions}
 import controllers.auth.BaseApi
 import play.api.libs.json.Json._
 import play.api.mvc.Action
 import play.api.Play.current
 import models.KeyValue.KeyValueWrites
 import play.api.libs.json
-import play.api.libs.json.{JsValue, JsObject, JsString, Json}
+import play.api.libs.json._
 import models._
 import com.novus.salat._
 import com.novus.salat.global._
@@ -61,19 +62,41 @@ object FieldValuesApi extends BaseApi {
       Ok(toJson(jsValue))
   }
 
-  def multiple(fieldNames: String, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = Action {
+  /**
+   * @param fieldOptions -  a map of options for each field, will be extracted by [[api.v1.fieldValues.QueryOptions]]
+   * eg: 
+   * {{{
+   *  { "subject" : { q: {}, f: {}, l: 1, sk: 1} , "standards" : {...}}
+   * }}}
+   */
+  def multiple(fieldNames: String, fieldOptions: Option[String], c: String ) = Action {
     val names: Seq[String] = fieldNames.split(",").toSeq
 
     def _getItems(names: Seq[String]): Map[String, JsValue] = names match {
       case Nil => Map()
       case _ => {
         val n: String = names.head
-        val value: JsValue = getFieldValuesAsJsValue(n, q, f, c, sk, l)
+        val options : Options = getOptionsForField(n, fieldOptions)
+        val value: JsValue = getFieldValuesAsJsValue(n, options.query, options.filter, c, options.skip, options.limit)
         Map((n -> value)) ++ _getItems(names.tail)
       }
     }
     val items = _getItems(names)
     Ok(toJson(items))
+  }
+
+  /**
+   * Extract the values from the json string
+   */
+  private def getOptionsForField(name:String, options : Option[String]) : Options = options match {
+    case Some(s) => {
+      val json = Json.parse(s)
+      (json\name) match {
+        case QueryOptions(queryOpts) => queryOpts
+        case _ => QueryOptions.EmptyOptions
+      }
+    }
+    case _ => QueryOptions.EmptyOptions
   }
 
   private def getFieldValuesAsJsValue(name: String, q: Option[String], f: Option[String], c: String, sk: Int, l: Int): JsValue = {
