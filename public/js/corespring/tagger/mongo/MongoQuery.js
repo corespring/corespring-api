@@ -29,7 +29,10 @@ com.corespring.mongo.MongoQuery = function () {
         var out = {};
         out.$and = [];
         for( var i = 0 ; i < arguments.length; i++){
-            out.$and.push(arguments[i]);
+
+            if(arguments[i]){
+                out.$and.push(arguments[i]);
+            }
         }
         return out;
     };
