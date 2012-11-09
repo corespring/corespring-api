@@ -1233,4 +1233,9 @@ text-align:center;
 margin-right: 10px;
 }
 
+.choice-wrap [simplechoice] {
+    display: table-cell;
+    min-width: 125px;
+}
+
 /* Simple choice horizontal end*/
