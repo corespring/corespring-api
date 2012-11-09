@@ -385,6 +385,10 @@ simplechoice {
 	top: 10px;
 }
 
+.choice-interaction span div.feedback-container span span.span {
+margin-left: 5px;
+}
+
 .no-response-feedback,
 .form-is-incorrect{
 	background: url("/assets/images/warning-icon-37x37.png") no-repeat scroll 3px center transparent;
@@ -1114,6 +1118,7 @@ max-width: 150px;
 height:auto;
 }
 
+
 .simple-choice-inner:after {
 	content: "";
 	display: block;
@@ -1213,6 +1218,19 @@ text-align:center;
 .choice-wrap .correct-response-horizontal > .feedback-container,
 .choice-wrap .incorrect-response-horizontal > .feedback-container{
  padding:0;
+}
+
+
+.choice-wrap span div.feedback-container span span.span {
+    display: block;
+    max-width: 80px;
+    min-width: 80px;
+    padding: 5px 0 0 10px;
+	margin:0 0 0 20px;
+}
+
+.choice-interaction div.choice-wrap .simple-choice-inner-horizontal{
+margin-right: 10px;
 }
 
 /* Simple choice horizontal end*/
