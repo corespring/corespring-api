@@ -90,13 +90,17 @@ object FieldValuesApi extends BaseApi {
    */
   private def getOptionsForField(name:String, options : Option[String]) : Options = options match {
     case Some(s) => {
-      val json = Json.parse(s)
-      (json\name) match {
-        case QueryOptions(queryOpts) => queryOpts
-        case _ => QueryOptions.EmptyOptions
+      try {
+        val json = Json.parse(s)
+        (json\name) match {
+          case QueryOptions(queryOpts) => queryOpts
+          case _ => QueryOptions.DefaultOptions
+        }
+      } catch {
+        case _ : Throwable => QueryOptions.DefaultOptions
       }
     }
-    case _ => QueryOptions.EmptyOptions
+    case _ => QueryOptions.DefaultOptions
   }
 
   private def getFieldValuesAsJsValue(name: String, q: Option[String], f: Option[String], c: String, sk: Int, l: Int): JsValue = {

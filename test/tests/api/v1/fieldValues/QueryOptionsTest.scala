@@ -46,5 +46,6 @@ class QueryOptionsTest extends Specification {
             val assertion = assertExtraction("{}", None,None,0,50)            
             if(assertion) success else failure
         }
+
     }
 }

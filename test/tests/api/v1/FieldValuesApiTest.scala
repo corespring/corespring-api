@@ -89,5 +89,20 @@ object FieldValuesApiTest extends Specification {
        case _ => failure("request unsuccessful")
       }
     }
+
+    "multiple handles invalid json" in {
+      val call = api.v1.routes.FieldValuesApi.multiple("reviewsPassed", Some("asdfadsf") )
+      val request = FakeRequest(call.method, call.url)
+
+      routeAndCall(request) match {
+       case Some(result) => {
+          val json = Json.parse(contentAsString(result))
+          (((json\ "reviewsPassed")).asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
+       } 
+       case _ => failure("request unsuccessful")
+      }
+
+    }
+
   }
 }
