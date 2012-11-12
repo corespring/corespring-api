@@ -1,4 +1,4 @@
-@(  username : String = "", root : String = "/web" )
+@(templates: List[_root_.web.models.QtiTemplate] = Nil,  username : String = "", root : String = "/web" )
 <div class="navbar navbar-fixed-top">
     <div class="navbar-inner" style="padding-bottom: 0px; padding-top:0px;">
         <div class="container">
@@ -8,8 +8,15 @@
 
             <span class="nav">
                 <li class="dropdown">
-                    <a href="#/new"
-                      >Create Item</a>
+                    <a href="#"
+                       data-toggle="dropdown"
+                       class="dropdown-toggle">Create Item <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#/new">Blank item</a></li>
+                        @templates.map{ template =>
+                        <li><a href="#/new/@template.code">@template.label</a></li>
+                        }
+                    </ul>
                 </li>
             </span>
 
