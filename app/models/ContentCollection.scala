@@ -28,6 +28,7 @@ case class ContentCollection(var name: String = "", var isPrivate: Boolean = fal
 object ContentCollection extends DBQueryable[ContentCollection]{
   val name = "name"
   val isPrivate = "isPrivate"
+  val DEFAULT = "default" //used as the value for name when the content collection is a default collection
 
   val collection = mongoCollection("contentcolls")
   val dao = new SalatDAO[ContentCollection, ObjectId](collection = collection) {}
@@ -119,6 +120,11 @@ object ContentCollection extends DBQueryable[ContentCollection]{
    */
   def isAuthorized(orgId:ObjectId, collId:ObjectId, p: Permission):Boolean = {
     getCollectionIds(orgId,p).find(_ == collId).isDefined
+  }
+
+  private def createDefaultCollection(orgId:ObjectId):Either[InternalError,ContentCollection] = {
+    val cc = ContentCollection(ContentCollection.DEFAULT)
+    return Left(InternalError("blergl"))
   }
 
   implicit object CollectionWrites extends Writes[ContentCollection] {

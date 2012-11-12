@@ -169,6 +169,11 @@ object Organization extends DBQueryable[Organization]{
       case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal))
     }
   }
+  def getDefaultCollection(orgId: ObjectId):Either[InternalError,ContentCollection] = {
+    val collections = ContentCollection.getCollectionIds(orgId,Permission.All,false);
+    if (collections.isEmpty) return Left(InternalError("mergl"))
+    else return Left(InternalError("blahhh"))
+  }
   implicit object OrganizationWrites extends Writes[Organization] {
     def writes(org: Organization) = {
       var list = List[(String, JsValue)]()
