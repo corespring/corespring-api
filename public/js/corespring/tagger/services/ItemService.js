@@ -183,7 +183,7 @@ angular.module('tagger.services').factory('SearchService',
         resultCount:"",
         itemDataCollection:{},
         searchId:0,
-        resultFields:['originId', 'title', 'primarySubject', 'gradeLevel', 'itemType','standards'],
+        resultFields:['originId', 'title', 'primarySubject', 'gradeLevel', 'itemType','standards', 'subjects'],
         searchFields:[
             'originId',
             'title',

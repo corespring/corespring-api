@@ -39,12 +39,11 @@ object ItemApi extends BaseApi {
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction {
     request =>
-      getCollectionId(q) match {
-        case Some(collectionId) => listWithCollection(request,collectionId, q,f,c,sk,l)
-        case _ => {
-          val fields = if (f.isDefined) f else excludedFieldsByDefault
-          listWithFields(request.ctx.organization, q, fields, c, sk, l)
-        }
+      if ("true".equalsIgnoreCase(c)){
+        Ok(toJson(Item.countItems(q,f)))
+      } else {
+        val result = Item.list(q,f,sk,l)
+        Ok(toJson(result))
       }
   }
 

@@ -3,7 +3,6 @@ package models
 import play.api.Play.current
 import org.bson.types.ObjectId
 import play.api.libs.json._
-import com.novus.salat.dao.{SalatDAOUpdateError, SalatDAO, ModelCompanion}
 import com.mongodb.casbah.Imports._
 import controllers._
 import collection.{SeqProxy, mutable}
@@ -20,6 +19,7 @@ import web.views.html.partials._edit._metadata._formWithLegend
 import com.novus.salat.annotations.raw.Salat
 import play.api.libs.json._
 import com.novus.salat._
+import dao.{SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
 import models.Workflow.WorkflowWrites
 import controllers.auth.Permission
 
@@ -371,6 +371,22 @@ object Item extends DBQueryable[Item] {
     item.id = new ObjectId()
     Item.save(item)
     Some(item)
+  }
+
+  def countItems(query:Option[String] = None, fields : Option[String] = None ) : Int = {
+    val queryDbo = JSON.parse(query.getOrElse("{}")).asInstanceOf[BasicDBObject]
+    val fieldsDbo = JSON.parse(fields.getOrElse("{}")).asInstanceOf[BasicDBObject]
+    val result : SalatMongoCursor[Item] = Item.find( queryDbo, fieldsDbo)
+    result.count
+  }
+
+  def list(query: Option[String] = None, fields: Option[String] = None, skip: Int = 0, limit: Int = 200) : List[Item] = {
+    val queryDbo = JSON.parse(query.getOrElse("{}")).asInstanceOf[BasicDBObject]
+    val fieldsDbo = JSON.parse(fields.getOrElse("{}")).asInstanceOf[BasicDBObject]
+    val result : SalatMongoCursor[Item] = Item.find( queryDbo, fieldsDbo)
+    result.limit(limit)
+    result.skip(skip)
+    result.toList
   }
 
   def queryValueFn(name: String, seq: Seq[KeyValue])(c: Any) = {

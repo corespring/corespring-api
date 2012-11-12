@@ -59,7 +59,7 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
   val PriorUses = "priorUses"
   val Credentials = "credentials"
   val BloomsTaxonomy = "bloomsTaxonomy"
-  val demonstratedKnowledge = "demonstratedKnowledge"
+  val DemonstratedKnowledge = "demonstratedKnowledge"
 
 
   def getSeqForFieldName(fieldValue:FieldValue, fieldName: String): Option[Seq[KeyValue]] = fieldName match {
@@ -71,7 +71,8 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
     case PriorUses => Some(fieldValue.priorUses)
     case Credentials => Some(fieldValue.credentials)
     case BloomsTaxonomy => Some(fieldValue.bloomsTaxonomy)
-    case demonstratedKnowledge => Some(fieldValue.demonstratedKnowledge)
+    case DemonstratedKnowledge => Some(fieldValue.demonstratedKnowledge)
+    case _ => None
   }
 
   implicit object FieldValueWrites extends Writes[FieldValue] {
@@ -86,7 +87,7 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
       iseq = iseq :+ (PriorUses -> JsArray(fieldValue.priorUses.map(Json.toJson(_))))
       iseq = iseq :+ (Credentials -> JsArray(fieldValue.credentials.map(Json.toJson(_))))
       iseq = iseq :+ (BloomsTaxonomy -> JsArray(fieldValue.bloomsTaxonomy.map(Json.toJson(_))))
-      iseq = iseq :+ (demonstratedKnowledge -> JsArray(fieldValue.demonstratedKnowledge.map(Json.toJson(_))))
+      iseq = iseq :+ (DemonstratedKnowledge -> JsArray(fieldValue.demonstratedKnowledge.map(Json.toJson(_))))
       JsObject(iseq)
     }
   }
@@ -100,6 +101,6 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
     PriorUses -> "prior uses",
     Credentials -> "credentials",
     BloomsTaxonomy -> "bloomsTaxonomy stuff",
-    demonstratedKnowledge -> "Demonstrated Knowledge"
+    DemonstratedKnowledge -> "Demonstrated Knowledge"
   )
 }
