@@ -16,6 +16,9 @@ function ViewItemController($scope, $routeParams, $location, ItemService, Access
 
 
     function initPane($routeParams) {
+
+        $scope.$root.mode = 'view';
+
         var panelName = 'item';
         if ($routeParams.panel) {
             panelName = $routeParams.panel;
@@ -24,7 +27,7 @@ function ViewItemController($scope, $routeParams, $location, ItemService, Access
 
         $scope.$watch(
             function () {
-                return $location.url()
+                return $location.url();
             },
             function (path) {
                 $scope.changePanel($location.search().panel);
