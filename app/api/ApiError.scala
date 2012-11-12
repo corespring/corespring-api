@@ -14,9 +14,43 @@ case class ApiError(code: Int, message: String, moreInfo:Option[String] = None){
   def apply(otherInfo:Option[String]):ApiError = {
     copy(moreInfo = otherInfo)
   }
+
+  override def toString = "%d: %s [%s]".format(code,message, moreInfo)
 }
 
+
 object ApiError {
+
+  trait BaseError {
+    def index : Int
+
+    private var errors : List[ApiError] = List()
+
+    def make(msg:String) : ApiError = {
+      val e = ApiError(code, msg)
+      errors = e :: errors
+      e
+    }
+
+    def code = (index.toString + "%02d" format errors.length).toInt
+    def allErrors : String = errors.reverse.mkString("\n")
+  }
+
+  trait ResourceError extends BaseError{
+    def name : String
+    def template : String = "error occurred when attempting to %s %s"
+    val NotFound = make("%s not found".format(name))
+    val Delete = make(template.format("delete",name))
+    val Update = make(template.format("update", name))
+    val Create = make(template.format("create",name))
+  }
+
+  val Item = new ResourceError{
+    def index = 1
+    def name = "item"
+    val CollectionIsRequired = make("A collection id for the %s is required".format(name))
+    val Clone = make("Error cloning")
+  }
 
   // OAuth Provider
   val InvalidCredentials  = ApiError(100, "Invalid credentials")
@@ -76,10 +110,6 @@ object ApiError {
   val ItemSessionNotFound = ApiError(605, "item session specified could not be found")
   val ItemSessionFinished = ApiError(606, "item session is alredy finished - can't update it")
 
-  // Item aPI
-  val CollectionIsRequired    = ApiError(700, "A collection id for the item is required")
-  val DeleteItem              = ApiError(701, "error occurred when attempting to delete the item")
-  val UpdateItem              = ApiError(702, "error occured when attempting to update the item")
 
   //amazon s3
   val AmazonS3Client          = ApiError(800, "an exception occured on the when communicating with S3")

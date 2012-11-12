@@ -134,7 +134,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
     $scope.processData = function (rawData, itemId, itemFiles) {
 
-        if (itemFiles == undefined) {
+        if (!itemFiles) {
             return;
         }
         var out = rawData;
@@ -156,6 +156,12 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             enterEditorIfInContentPanel();
             initItemType();
             $scope.$broadcast("dataLoaded");
+        });
+    };
+
+    $scope.clone = function(){
+        $scope.itemData.clone({id:$scope.itemData.id}, function onCloneSuccess(data){
+            $location.path('/edit/' + data.id);
         });
     };
 
@@ -190,7 +196,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
     $scope.processValidationResults = function (result) {
 
-        if (result != null && result.success == false) {
+        if (result && result.success === false) {
             $scope.showExceptions = true;
             $scope.validationResult = { exceptions:angular.copy(result.exceptions) };
         }

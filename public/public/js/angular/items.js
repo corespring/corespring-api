@@ -8,7 +8,6 @@ angular.module('fieldValuesResource',['ngResource']).
         return $resource('/api/v1/field_values/:fieldValue')
     });
 
-
 angular.module('fieldValuesResource',['ngResource']).
     factory('MultipleFieldValues', function($resource) {
 

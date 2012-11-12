@@ -40,19 +40,19 @@ case class ContributorDetails(
 case class Workflow(var setup: Boolean = false,
                     var tagged: Boolean = false,
                     var standardsAligned: Boolean = false,
-                    var qaReview: Boolean = false )
+                    var qaReview: Boolean = false)
 
 object Workflow {
-  val setup : String = "setup"
-  val tagged : String = "tagged"
-  val standardsAligned : String = "standardsAligned"
-  val qaReview : String = "qaReview"
+  val setup: String = "setup"
+  val tagged: String = "tagged"
+  val standardsAligned: String = "standardsAligned"
+  val qaReview: String = "qaReview"
 
   implicit object WorkflowWrites extends Writes[Workflow] {
 
     def writes(workflow: Workflow) = {
 
-      JsObject( Seq(
+      JsObject(Seq(
         setup -> JsBoolean(workflow.setup),
         tagged -> JsBoolean(workflow.tagged),
         standardsAligned -> JsBoolean(workflow.standardsAligned),
@@ -63,16 +63,17 @@ object Workflow {
   }
 
   implicit object WorkflowReads extends Reads[Workflow] {
-    def reads( json : JsValue ) : Workflow = {
+    def reads(json: JsValue): Workflow = {
 
       Workflow(
         setup = (json \ setup).asOpt[Boolean].getOrElse(false),
         tagged = (json \ tagged).asOpt[Boolean].getOrElse(false),
-        standardsAligned = (json\standardsAligned).asOpt[Boolean].getOrElse(false),
-        qaReview = (json\qaReview).asOpt[Boolean].getOrElse(false)
+        standardsAligned = (json \ standardsAligned).asOpt[Boolean].getOrElse(false),
+        qaReview = (json \ qaReview).asOpt[Boolean].getOrElse(false)
       )
     }
   }
+
 }
 
 
@@ -151,7 +152,7 @@ object Item extends DBQueryable[Item] {
 
       var iseq: Seq[(String, JsValue)] = Seq("id" -> JsString(item.id.toString))
 
-      if ( item.workflow.isDefined ) iseq = iseq :+ (workflow -> WorkflowWrites.writes(item.workflow.get))
+      if (item.workflow.isDefined) iseq = iseq :+ (workflow -> WorkflowWrites.writes(item.workflow.get))
 
       //ContributorDetails
       item.contributorDetails match {
@@ -245,7 +246,7 @@ object Item extends DBQueryable[Item] {
       item.collectionId = (json \ collectionId).asOpt[String].getOrElse("") //must do checking outside of json deserialization
       item.lexile = (json \ lexile).asOpt[String]
 
-      item.workflow = (json\workflow).asOpt[Workflow]
+      item.workflow = (json \ workflow).asOpt[Workflow]
 
       item.demonstratedKnowledge = getValidatedValue(fieldValues.demonstratedKnowledge)(json, demonstratedKnowledge)
       item.bloomsTaxonomy = getValidatedValue(fieldValues.bloomsTaxonomy)(json, bloomsTaxonomy)
@@ -345,15 +346,15 @@ object Item extends DBQueryable[Item] {
     }
   }
 
-  def updateItem(oid: ObjectId, newItem: Item,fields: Option[DBObject],requesterOrgId:ObjectId): Either[InternalError, Item] = {
+  def updateItem(oid: ObjectId, newItem: Item, fields: Option[DBObject], requesterOrgId: ObjectId): Either[InternalError, Item] = {
     try {
       import com.novus.salat.grater
       //newItem.id = oid
-      val toUpdate = if(newItem.collectionId != "") {
-        if(ContentCollection.isAuthorized(requesterOrgId, new ObjectId(newItem.collectionId),Permission.All)){
+      val toUpdate = if (newItem.collectionId != "") {
+        if (ContentCollection.isAuthorized(requesterOrgId, new ObjectId(newItem.collectionId), Permission.All)) {
           ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials)
-        }else throw new RuntimeException("not authorized")
-      }else ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials) - collectionId
+        } else throw new RuntimeException("not authorized")
+      } else ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials) - collectionId
       Item.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> toUpdate), upsert = false, multi = false, wc = Item.collection.writeConcern)
       fields.map(Item.collection.findOneByID(oid, _)).getOrElse(Item.collection.findOneByID(oid)) match {
         case Some(dbo) => Right(grater[Item].asObject(dbo))
@@ -361,9 +362,15 @@ object Item extends DBQueryable[Item] {
       }
     } catch {
       case e: SalatDAOUpdateError => Left(InternalError(e.getMessage, LogType.printFatal, false, Some("error occured while updating")))
-      case e:IllegalArgumentException => Left(InternalError(e.getMessage,clientOutput = Some("destination collection id was not a valid id")))
-      case e: RuntimeException => Left(InternalError(e.getMessage,addMessageToClientOutput = true))
+      case e: IllegalArgumentException => Left(InternalError(e.getMessage, clientOutput = Some("destination collection id was not a valid id")))
+      case e: RuntimeException => Left(InternalError(e.getMessage, addMessageToClientOutput = true))
     }
+  }
+
+  def cloneItem(item: Item): Option[Item] = {
+    item.id = new ObjectId()
+    Item.save(item)
+    Some(item)
   }
 
   def queryValueFn(name: String, seq: Seq[KeyValue])(c: Any) = {
@@ -416,10 +423,11 @@ object Item extends DBQueryable[Item] {
       }
     }),
 
-  QueryFieldString[Item](workflow + "." + Workflow.qaReview, _.workflow.map(_.qaReview)),
-  QueryFieldString[Item](workflow + "." + Workflow.setup, _.workflow.map(_.setup)),
-  QueryFieldString[Item](workflow + "." + Workflow.tagged, _.workflow.map(_.tagged)),
-  QueryFieldString[Item](workflow + "." + Workflow.standardsAligned, _.workflow.map(_.standardsAligned)),
+    QueryFieldString[Item](workflow + "." + Workflow.qaReview, _.workflow.map(_.qaReview)),
+    QueryFieldString[Item](workflow + "." + Workflow.setup, _.workflow.map(_.setup)),
+    QueryFieldString[Item](workflow + "." + Workflow.tagged, _.workflow.map(_.tagged)),
+    QueryFieldString[Item](workflow + "." + Workflow.standardsAligned, _.workflow.map(_.standardsAligned)),
+
     /**
      * TODO: Check with Evan/Josh about item types.
      */
