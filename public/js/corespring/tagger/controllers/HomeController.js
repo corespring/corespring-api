@@ -158,7 +158,7 @@ function HomeController($scope, $rootScope, $timeout, $http, $location, AccessTo
      * called from the repeater. scope (this) is the current item
      */
     $scope.openEditView = function () {
-        $location.url('/view/' + this.item.id);
+        $location.url('/edit/' + this.item.id);
     };
 
     $scope.$watch('accessToken.token', function (newValue, oldValue) {
