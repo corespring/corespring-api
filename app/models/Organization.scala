@@ -171,8 +171,17 @@ object Organization extends DBQueryable[Organization]{
   }
   def getDefaultCollection(orgId: ObjectId):Either[InternalError,ContentCollection] = {
     val collections = ContentCollection.getCollectionIds(orgId,Permission.All,false);
-    if (collections.isEmpty) return Left(InternalError("mergl"))
-    else return Left(InternalError("blahhh"))
+    if (collections.isEmpty){
+      ContentCollection.insert(orgId,ContentCollection(ContentCollection.DEFAULT));
+    }else{
+      ContentCollection.findOne(
+        MongoDBObject("_id" -> MongoDBObject("$in" -> collections), ContentCollection.name -> ContentCollection.DEFAULT)
+      ) match {
+        case Some(default) => Right(default)
+        case None =>
+          ContentCollection.insert(orgId,ContentCollection(ContentCollection.DEFAULT));
+      }
+    }
   }
   implicit object OrganizationWrites extends Writes[Organization] {
     def writes(org: Organization) = {

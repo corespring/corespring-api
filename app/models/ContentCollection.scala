@@ -34,23 +34,22 @@ object ContentCollection extends DBQueryable[ContentCollection]{
   val dao = new SalatDAO[ContentCollection, ObjectId](collection = collection) {}
 
   def insert(orgId: ObjectId, coll: ContentCollection): Either[InternalError, ContentCollection] = {
-    if(Play.isProd) coll.id = new ObjectId()
-    try {
-      super.insert(coll) match   {
-        case Some(_) => try {
-          Organization.update(MongoDBObject("_id" -> orgId),
-            MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> grater[ContentCollRef].asDBObject(new ContentCollRef(coll.id)))),
-            false, false, Organization.collection.writeConcern)
-          Right(coll)
-        } catch {
-          case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update organization with collection")))
+      if(Play.isProd) coll.id = new ObjectId()
+      try {
+        super.insert(coll) match   {
+          case Some(_) => try {
+            Organization.update(MongoDBObject("_id" -> orgId),
+              MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> grater[ContentCollRef].asDBObject(new ContentCollRef(coll.id)))),
+              false, false, Organization.collection.writeConcern)
+            Right(coll)
+          } catch {
+            case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update organization with collection")))
+          }
+          case None => Left(InternalError("failed to insert content collection",LogType.printFatal,true))
         }
-        case None => Left(InternalError("failed to insert content collection",LogType.printFatal,true))
+      } catch {
+        case e: SalatInsertError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to insert content collection")))
       }
-    } catch {
-      case e: SalatInsertError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to insert content collection")))
-    }
-
   }
 
   def removeCollection(collId: ObjectId): Either[InternalError, Unit] = {
@@ -120,11 +119,6 @@ object ContentCollection extends DBQueryable[ContentCollection]{
    */
   def isAuthorized(orgId:ObjectId, collId:ObjectId, p: Permission):Boolean = {
     getCollectionIds(orgId,p).find(_ == collId).isDefined
-  }
-
-  private def createDefaultCollection(orgId:ObjectId):Either[InternalError,ContentCollection] = {
-    val cc = ContentCollection(ContentCollection.DEFAULT)
-    return Left(InternalError("blergl"))
   }
 
   implicit object CollectionWrites extends Writes[ContentCollection] {

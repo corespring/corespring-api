@@ -210,13 +210,19 @@ object ItemApi extends BaseApi {
             } else {
               val i: Item = fromJson[Item](json)
               if (i.collectionId.isEmpty) {
-                BadRequest(toJson(ApiError.Item.CollectionIsRequired))
+                Organization.getDefaultCollection(request.ctx.organization) match {
+                  case Right(default) => {
+                    i.collectionId = default.id.toString;
+                    Item.insert(i) match {
+                      case Some(_) => Ok(toJson(i))
+                      case None => InternalServerError(toJson(ApiError.CantSave))
+                    }
+                  }
+                  case Left(error) => InternalServerError(toJson(ApiError.CantSave(error.clientOutput)))
+                }
               } else if (Content.isCollectionAuthorized(request.ctx.organization, i.collectionId, Permission.All)) {
-                // addFeedbackIds(i)
                 Item.insert(i) match {
-                  case Some(_) =>
-                    // removeFeedbackIds(i)
-                    Ok(toJson(i))
+                  case Some(_) => Ok(toJson(i))
                   case None => InternalServerError(toJson(ApiError.CantSave))
                 }
               } else {
