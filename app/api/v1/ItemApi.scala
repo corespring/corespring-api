@@ -9,7 +9,7 @@ import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import dao.SalatInsertError
 import play.api.templates.Xml
-import play.api.mvc.Result
+import play.api.mvc.{AnyContent, Result}
 import play.api.libs.json.Json._
 import models.mongoContext._
 import scala.Left
