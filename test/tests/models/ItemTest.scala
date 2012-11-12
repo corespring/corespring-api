@@ -133,6 +133,21 @@ class ItemTest extends BaseTest {
       parsedItem.contributorDetails.get.sourceUrl must beNone
     }
 
+    "clone" in {
+
+      val item = Item(collectionId="1234567")
+      val clonedItem = Item.cloneItem(item)
+      item.collectionId === clonedItem.get.collectionId
+
+      item.collectionId = "0987654321"
+      Item.save(item)
+
+      Item.findOneById(clonedItem.get.id) match {
+        case Some(fromDb) => clonedItem.get.collectionId === fromDb.collectionId
+        case _ => failure("couldn't find cloned item")
+      }
+    }
+
   }
 
 }

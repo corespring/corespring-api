@@ -30,20 +30,29 @@ angular.module('tagger.services')
 
 
 angular.module('tagger.services')
-    .factory('ItemService', [ '$resource', 'ServiceLookup', 'AccessToken', function ($resource, ServiceLookup, AccessTokenService) {
+    .factory('ItemService', [ '$resource', 'ServiceLookup', 'AccessToken', '$http',
+        function ($resource, ServiceLookup, AccessTokenService, $http) {
 
     var ItemService = $resource(
         ServiceLookup.getUrlFor('items'),
         { },
         {
-
             update:{ method:'PUT'},
-            //Enable for mock services
-            //query: { method: 'GET', params:{id:'list.json'}, isArray: true},
             query:{ method:'GET', isArray:true},
             count:{ method:'GET', isArray:false}
         }
     );
+
+    ItemService.prototype.clone = function( params, onSuccess, onError) {
+        var url = "/api/v1/items/:id".replace(":id", params.id);
+        var successCallback = function(data){
+            onSuccess(data);
+        };
+
+        $http.post(url, {})
+            .success(successCallback)
+            .error(onError);
+    };
 
     ItemService.prototype.update = function (paramsObject, cb, onErrorCallback) {
         var idObject = angular.extend(paramsObject, {id:this.id});
@@ -61,7 +70,7 @@ angular.module('tagger.services')
          */
         function convertEmbeddedToOid(item){
             if(!item || !item.id){
-                throw "No item sent to convertEmbeddedToOid"
+                throw "No item sent to convertEmbeddedToOid";
             }
             return  item.id;
         }
@@ -77,7 +86,7 @@ angular.module('tagger.services')
 
         return ItemService.update(idObject, copy, function(resource){
             ItemService.processor.processIncomingData(resource);
-            cb(resource)
+            cb(resource);
         }, onErrorCallback);
     };
 

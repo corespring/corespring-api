@@ -6,4 +6,4 @@ angular.module('itemResource', ['ngResource']).
 angular.module('fieldValuesResource',['ngResource']).
     factory('FieldValues', function($resource) {
         return $resource('/api/v1/field_values/:fieldValue')
-    })
+    });
