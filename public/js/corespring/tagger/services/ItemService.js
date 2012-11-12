@@ -249,8 +249,8 @@ angular.module('tagger.services').factory('SearchService',
                 addIfTrue(query, searchParams.standardsAligned, "workflow.standardsAligned");
             }
 
-            if (searchParams.collection && searchParams.collection.name) {
-                query.collection = searchParams.collection.name;
+            if (searchParams.collection && searchParams.collection.id ) {
+                query.collectionId = searchParams.collection.id;
             }
 
             return query;
