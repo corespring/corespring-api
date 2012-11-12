@@ -29,11 +29,12 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
                 $scope.collections = data;
             },
             function () {
-                console.log("load collections: error: " + arguments)
+                console.log("load collections: error: " + arguments);
             });
     }
 
     function initPane($routeParams) {
+        $scope.$root.mode = 'edit';
         var panelName = 'metadata';
         if ($routeParams.panel) {
             panelName = $routeParams.panel;
@@ -43,7 +44,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         loadCollections();
         $scope.$watch(
             function () {
-                return $location.url()
+                return $location.url();
             },
             function (path) {
                 $scope.changePanel($location.search().panel);

@@ -18,3 +18,5 @@ taggerApp.
     $routeProvider.when('/view/:itemId', {templateUrl:'/web/partials/viewItem', controller:ViewItemController, reloadOnSearch: false});
     $routeProvider.otherwise({redirectTo:'/home'});
 }]);
+
+

@@ -22,7 +22,8 @@ case class ApiError(code: Int, message: String, moreInfo:Option[String] = None){
 object ApiError {
 
   trait BaseError {
-    def index : Int
+    def index = name.hashCode()
+    def name : String
 
     private var errors : List[ApiError] = List()
 
@@ -37,7 +38,6 @@ object ApiError {
   }
 
   trait ResourceError extends BaseError{
-    def name : String
     def template : String = "error occurred when attempting to %s %s"
     val NotFound = make("%s not found".format(name))
     val Delete = make(template.format("delete",name))
@@ -46,7 +46,6 @@ object ApiError {
   }
 
   val Item = new ResourceError{
-    def index = 1
     def name = "item"
     val CollectionIsRequired = make("A collection id for the %s is required".format(name))
     val Clone = make("Error cloning")
