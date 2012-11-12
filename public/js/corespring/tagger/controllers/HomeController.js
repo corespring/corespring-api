@@ -4,15 +4,20 @@ function HomeController($scope, $rootScope, $timeout, $http, $location, AccessTo
 
     $scope.$root.mode = "home";
 
+    $scope.pagerText = "hello";
+
     $scope.accessToken = AccessToken;
 
     $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
 
     $scope.search = function() {
+
+        $scope.$root.$broadcast( 'beginSearch', $scope.searchParams);
+
         SearchService.search($scope.searchParams, function(res){
             $scope.items = res;
         });
-    }
+    };
 
     $scope.loadMore = function () {
         SearchService.loadMore(function () {
