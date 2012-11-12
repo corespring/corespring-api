@@ -187,15 +187,9 @@ angular.module('tagger.services').factory('SearchService',
         searchFields:[
             'originId',
             'title',
-            'primarySubject.subject.primary',
-            'copyrightOwner',
-            'contributor',
-            'author',
-            'standards.standards',
-            'standards.standards.dotNotation',
-            'standards.standards.subject',
-            'standards.standards.category',
-            'standards.standards.subCategory'
+            'contributorDetails.copyright.owner',
+            'contributorDetails.contributor',
+            'contributorDetails.author'
         ],
 
         search:function (searchParams, resultHandler) {

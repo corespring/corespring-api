@@ -1,12 +1,10 @@
-function HomeController($scope, $rootScope, $timeout, $http, $location, AccessToken, ItemService, ServiceLookup, SupportingMaterial, SearchService, Collection) {
+function HomeController($scope, $rootScope, $timeout, $http, $location, ItemService, ServiceLookup, SupportingMaterial, SearchService, Collection) {
     $http.defaults.headers.get = ($http.defaults.headers.get || {});
     $http.defaults.headers.get['Content-Type'] = 'application/json';
 
     $scope.$root.mode = "home";
 
     $scope.pagerText = "hello";
-
-    $scope.accessToken = AccessToken;
 
     $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
 
@@ -36,7 +34,7 @@ function HomeController($scope, $rootScope, $timeout, $http, $location, AccessTo
     };
 
     function loadCollections() {
-        Collection.get({ access_token:AccessToken.token }, function (data) {
+        Collection.get({}, function (data) {
                 $scope.collections = data;
             },
             function () {
@@ -186,7 +184,6 @@ HomeController.$inject = ['$scope',
     '$timeout',
     '$http',
     '$location',
-    'AccessToken',
     'ItemService',
     'ServiceLookup',
     'SupportingMaterial',
