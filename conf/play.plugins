@@ -1,4 +1,5 @@
 500:se.radley.plugin.salat.SalatPlugin
+9997:web.CoreSpringViews
 9998:web.CoreSpringUserService
 9999:securesocial.core.providers.utils.BCryptPasswordHasher
 10000:securesocial.core.providers.UsernamePasswordProvider

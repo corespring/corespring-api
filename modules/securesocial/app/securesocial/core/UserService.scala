@@ -17,7 +17,7 @@
 package securesocial.core
 
 import play.api.{Logger, Plugin, Application}
-
+import providers.Token
 
 /**
  * A trait that provides the means to find and save users
@@ -35,6 +35,18 @@ trait UserService {
   def find(id: UserId):Option[SocialUser]
 
   /**
+   * Finds a Social user by email and provider id.
+   *
+   * Note: If you do not plan to use the UsernamePassword provider just provide en empty
+   * implementation.
+   *
+   * @param email - the user email
+   * @param providerId - the provider id
+   * @return
+   */
+  def findByEmail(email: String, providerId: String):Option[SocialUser]
+
+  /**
    * Saves the user.  This method gets called when a user logs in.
    * This is your chance to save the user information in your backing store.
    * @param user
@@ -42,26 +54,47 @@ trait UserService {
   def save(user: SocialUser)
 
   /**
-   * Creates an activation request.  This is needed for users that
+   * Saves a token.  This is needed for users that
    * are creating an account in the system instead of using one in a 3rd party system.
    *
-   * Note: If you do not plan to use the UsernamePassword provider just return an empty
-   * String in your UserService implementation.
+   * Note: If you do not plan to use the UsernamePassword provider just provide en empty
+   * implementation
    *
-   * @param user The user that needs to be activated
+   * @param token The token to save
    * @return A string with a uuid that will be embedded in the welcome email.
    */
-  def createActivation(user: SocialUser): String
+  def save(token: Token)
+
 
   /**
-   * Activates a user by setting the isEmailVerified field to true.  This is only used
-   * for UsernamePassword accounts.
+   * Finds a token
    *
-   * @param uuid The uuid created using the createActivation method.
-   * @return Returns true if the user was activated - false otherwise.
+   * Note: If you do not plan to use the UsernamePassword provider just provide en empty
+   * implementation
+   *
+   * @param token the token id
+   * @return
    */
-  def activateAccount(uuid: String): Boolean
+  def findToken(token: String): Option[Token]
 
+  /**
+   * Deletes a token
+   *
+   * Note: If you do not plan to use the UsernamePassword provider just provide en empty
+   * implementation
+   *
+   * @param uuid the token id
+   */
+  def deleteToken(uuid: String)
+
+  /**
+   * Deletes all expired tokens
+   *
+   * Note: If you do not plan to use the UsernamePassword provider just provide en empty
+   * implementation
+   *
+   */
+  def deleteExpiredTokens()
 }
 
 /**
@@ -97,25 +130,38 @@ object UserService {
     }
   }
 
+  def findByEmail(email: String, providerId: String):Option[SocialUser] = {
+    delegate.map( _.findByEmail(email, providerId) ).getOrElse {
+      notInitialized()
+      None
+    }
+  }
+
   def save(user: SocialUser) {
     delegate.map( _.save(user) ).getOrElse {
       notInitialized()
     }
   }
 
-  def createActivation(user: SocialUser): String = {
-    delegate.map( _.createActivation(user) ).getOrElse {
+  def save(token: Token) {
+    delegate.map( _.save(token) ).getOrElse {
       notInitialized()
-      ""
     }
   }
 
-  def activateAccount(uuid: String): Boolean = {
-    delegate.map( _.activateAccount(uuid) ).getOrElse {
+  def findToken(token: String): Option[Token] =  {
+    delegate.map( _.findToken(token)).getOrElse {
       notInitialized()
-      false
+      None
     }
   }
+
+  def deleteToken(token: String) {
+    delegate.map( _.deleteToken(token)).getOrElse {
+      notInitialized()
+    }
+  }
+
 
   private def notInitialized() {
     Logger.error("UserService was not initialized. Make sure a UserService plugin is specified in your play.plugins file")
