@@ -2,9 +2,7 @@
  * Controller for creating new item, in practice after the object is persisted
  * Control moves to the EditCtrl
  */
-function CreateCtrl($scope, $routeParams, ItemService, NewItemTemplates, Collection, AccessToken) {
-
-    $scope.$root.$broadcast("createNewItem");
+function CreateCtrl($scope, $routeParams, ItemService, NewItemTemplates, AccessToken) {
 
     if (angular.isUndefined($routeParams.type) || angular.isUndefined(NewItemTemplates[$routeParams.type]))
         return false;
@@ -20,17 +18,16 @@ function CreateCtrl($scope, $routeParams, ItemService, NewItemTemplates, Collect
         }]
     };
 
-    console.log(item);
-//
-//    item.$save({},
-//        function onItemSaved(itemData) {
-//            window.location.href = '/web#/edit/' + itemData.id;
-//        },
-//        function onError(e) {
-//            alert("Error Saving Item: "+ e.data.message);
-//        }
-//    );
+
+    item.$save({},
+        function onItemSaved(itemData) {
+            window.location.href = '/web#/edit/' + itemData.id;
+        },
+        function onError(e) {
+            alert("Error Saving Item: "+ e.data.message);
+        }
+    );
 
 }
 
-CreateCtrl.$inject = ['$scope', '$routeParams','ItemService','NewItemTemplates','Collection','AccessToken'];
+CreateCtrl.$inject = ['$scope', '$routeParams','ItemService','NewItemTemplates','AccessToken'];
