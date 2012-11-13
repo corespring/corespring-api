@@ -51,43 +51,47 @@ object ItemApi extends BaseApi {
   }
 
   private def restrictedQueryForOrg(orgId: ObjectId): MongoDBObject = {
-    val collectionIds = getCollectionIdsForOrg(orgId).map( _.toString )
+    val collectionIds = getCollectionIdsForOrg(orgId).map(_.toString)
     MongoDBObject("collectionId" -> MongoDBObject("$in" -> collectionIds))
   }
 
   private def getCollectionIdsForOrg(orgId: ObjectId): Seq[ObjectId] = ContentCollection.getCollectionIds(orgId, Permission.All, false)
 
 
-  private def makeQuery(q: Option[String], orgId : ObjectId): DBObject = {
+  private def makeQuery(q: Option[String], orgId: ObjectId): DBObject = {
 
     val enforcedQuery = restrictedQueryForOrg(orgId)
 
-    def processDbo(dbo:Any) : DBObject = {
-      val dbObject: DBObject = dbo.asInstanceOf[DBObject]
+    /** add the required query attributes to the dbo
+      */
+    def processDbo(dbo: DBObject): DBObject = {
 
-      if (!dbObject.contains("collectionId")) {
-        dbObject.putAll(enforcedQuery.toMap)
+      if (!dbo.contains("collectionId")) {
+        dbo.putAll(enforcedQuery.toMap)
       } else {
-        val requestedCollectionId : String = dbObject.get("collectionId").asInstanceOf[String]
-        if (!isValidCollectionId(requestedCollectionId, orgId)){
+        val requestedCollectionId: String = dbo.get("collectionId").asInstanceOf[String]
+        if (!isValidCollectionId(requestedCollectionId, orgId)) {
           throw new RuntimeException("Invalid collection id")
         }
       }
-      dbObject
+      dbo
     }
 
     q match {
       case Some(s) => {
-        com.mongodb.util.JSON.parse(s) match {
-          case Some(dbo) => processDbo(dbo)
-          case _ => new BasicDBObject(enforcedQuery.toMap)
+        try {
+          val obj: Any = com.mongodb.util.JSON.parse(s)
+          processDbo(obj.asInstanceOf[DBObject])
+        }
+        catch {
+          case e: Throwable => new BasicDBObject(enforcedQuery.toMap)
         }
       }
       case _ => new BasicDBObject(enforcedQuery.toMap)
     }
   }
 
-  private def isValidCollectionId(collectionId:String, orgId : ObjectId) : Boolean = {
+  private def isValidCollectionId(collectionId: String, orgId: ObjectId): Boolean = {
     getCollectionIdsForOrg(orgId).map(_.toString).contains(collectionId)
   }
 
