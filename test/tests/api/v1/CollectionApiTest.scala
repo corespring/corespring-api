@@ -25,7 +25,7 @@ import tests.BaseTest
 
 class CollectionApiTest extends BaseTest {
 
-  val INITIAL_COLLECTION_SIZE : Int = 6
+  val INITIAL_COLLECTION_SIZE : Int = 7
 
   "list all collections" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/collections?access_token=%s".format(token))
