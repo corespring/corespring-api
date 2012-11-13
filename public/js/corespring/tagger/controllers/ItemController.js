@@ -51,6 +51,28 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             });
     }
 
+    $scope.deleteItem = function(item) {
+        $scope.itemToDelete = item;
+        $scope.showConfirmDestroyModal = true;
+    };
+
+    $scope.deleteConfirmed = function(){
+        var deletingId = $scope.itemToDelete.id;
+        ItemService.remove({id: $scope.itemToDelete.id},
+            function(result) {
+                $scope.itemToDelete = null;
+                $location.path("/web");
+            }
+        );
+        $scope.itemToDelete = null;
+        $scope.showConfirmDestroyModal = false;
+    };
+
+    $scope.deleteCancelled = function(){
+       $scope.itemToDelete = null;
+       $scope.showConfirmDestroyModal = false;
+    };
+
     /**
      * Update the location search settings to reflect the ui state
      * Generates: ?panel=[content|metadata]

@@ -39,13 +39,58 @@ object ItemApi extends BaseApi {
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction {
     request =>
-      if ("true".equalsIgnoreCase(c)){
-        Ok(toJson(Item.countItems(q,f)))
+
+      val query = makeQuery(q, request.ctx.organization)
+
+      if ("true".equalsIgnoreCase(c)) {
+        Ok(toJson(Item.countItems(Some(query), f)))
       } else {
-        val result = Item.list(q,f,sk,l)
+        val result = Item.list(Some(query), f, sk, l)
         Ok(toJson(result))
       }
   }
+
+  private def restrictedQueryForOrg(orgId: ObjectId): MongoDBObject = {
+    val collectionIds = getCollectionIdsForOrg(orgId).map( _.toString )
+    MongoDBObject("collectionId" -> MongoDBObject("$in" -> collectionIds))
+  }
+
+  private def getCollectionIdsForOrg(orgId: ObjectId): Seq[ObjectId] = ContentCollection.getCollectionIds(orgId, Permission.All, false)
+
+
+  private def makeQuery(q: Option[String], orgId : ObjectId): DBObject = {
+
+    val enforcedQuery = restrictedQueryForOrg(orgId)
+
+    def processDbo(dbo:Any) : DBObject = {
+      val dbObject: DBObject = dbo.asInstanceOf[DBObject]
+
+      if (!dbObject.contains("collectionId")) {
+        dbObject.putAll(enforcedQuery.toMap)
+      } else {
+        val requestedCollectionId : String = dbObject.get("collectionId").asInstanceOf[String]
+        if (!isValidCollectionId(requestedCollectionId, orgId)){
+          throw new RuntimeException("Invalid collection id")
+        }
+      }
+      dbObject
+    }
+
+    q match {
+      case Some(s) => {
+        com.mongodb.util.JSON.parse(s) match {
+          case Some(dbo) => processDbo(dbo)
+          case _ => new BasicDBObject(enforcedQuery.toMap)
+        }
+      }
+      case _ => new BasicDBObject(enforcedQuery.toMap)
+    }
+  }
+
+  private def isValidCollectionId(collectionId:String, orgId : ObjectId) : Boolean = {
+    getCollectionIdsForOrg(orgId).map(_.toString).contains(collectionId)
+  }
+
 
   private def getCollectionId(q: Option[String]): Option[ObjectId] = q match {
     case Some(s) => {
@@ -66,10 +111,10 @@ object ItemApi extends BaseApi {
   }
 
   def listWithColl(collId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction {
-    request => listWithCollection(request,collId, q,f,c,sk,l)
+    request => listWithCollection(request, collId, q, f, c, sk, l)
   }
 
-  private def listWithCollection(request : ApiRequest[AnyContent], collectionId : ObjectId, q : Option[String],f : Option[String],c : String,sk: Int,l : Int) : Result = {
+  private def listWithCollection(request: ApiRequest[AnyContent], collectionId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int): Result = {
     if (ContentCollection.isAuthorized(request.ctx.organization, collectionId, Permission.All)) {
       val initSearch = MongoDBObject(Content.collectionId -> collectionId.toString)
       QueryHelper.list(q, f, c, sk, l, Item, Some(initSearch))

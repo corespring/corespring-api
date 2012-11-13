@@ -1,11 +1,11 @@
-<div ui-modal ng-model="showConfirmDestroyModal" id="myModal" style="padding- 20px">
+<div ui-modal ng-model="showConfirmDestroyModal" id="myModal" style="padding: 20px">
     <h2>Delete Item</h2>
     <br/>
 
     <p>Are you sure? This can't be undone.</p>
 
-    <button ng-click="destroyConfirmed()" class="btn btn-danger">Yes</button>
-    <button class="btn btn-info" ng-click="showConfirmDestroyModal=false">No</button>
+    <button ng-click="deleteConfirmed()" class="btn btn-danger">Yes</button>
+    <button class="btn btn-info" ng-click="deleteCancelled()">No</button>
 </div>
 
 
