@@ -15,12 +15,10 @@ object ScormExporter {
 
   def makeScormPackage(id: String, token: String): Array[Byte] = {
 
-    val plainFilePaths = PlainFiles.map(ScormFolder + "/" + _.getName)
-
     def processTemplates(): List[Option[NameContents]] = {
       TemplateFiles.map {
         f: File => {
-          (f, id) match {
+          (f, id, token) match {
             case RemoteItemRunnerTemplate(n, c) => Some((n, c))
             case _ => None
           }
@@ -28,6 +26,7 @@ object ScormExporter {
       }
     }
 
+    val plainFilePaths = PlainFiles.map(ScormFolder + "/" + _.getName)
     val processedTemplates = processTemplates()
     zip(plainFilePaths, processedTemplates.flatten, basename)
   }
