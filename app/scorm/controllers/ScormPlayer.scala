@@ -7,7 +7,7 @@ object ScormPlayer extends BaseApi {
 
   def run(itemId:ObjectId) = ApiAction{ request =>
 
-    Ok("coming soon...")
+    Ok(scorm.views.html.run())
 
   }
 }
