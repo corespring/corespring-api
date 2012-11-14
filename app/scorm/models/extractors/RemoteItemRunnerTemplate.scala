@@ -4,7 +4,7 @@ import java.io.File
 import scala.io.Source
 import common.seed.StringUtils
 
-object RemoteItemRunner {
+object RemoteItemRunnerTemplate {
 
   val Name : String = "remote-item-runner.html.template"
 
