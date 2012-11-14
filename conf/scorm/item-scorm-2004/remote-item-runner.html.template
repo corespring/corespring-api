@@ -3,6 +3,22 @@
 <head>
     <title>Remote Item Runner</title>
 
+    <style type="text/css">
+
+    #sendMessage{
+        position: absolute;
+        z-index: 100;
+        left: 100px;
+    }
+
+    iframe{
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+
+    </style>
+
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
     <script type="text/javascript" src="scormfunctions.js"></script>
     <script type="text/javascript">
@@ -44,7 +60,7 @@
 
     <a id="sendMessage">Send message</a>
 
-    <iframe id="iframeHolder" src="${corespringDomain}${scormPlayerUrl}" width="600"></iframe>
+    <iframe id="iframeHolder" src="${corespringDomain}${scormPlayerUrl}"></iframe>
 
 </body>
 </html>

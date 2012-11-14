@@ -18,11 +18,9 @@ import play.api._
 import play.api.Play.current
 
 
-object ItemPlayer extends BaseApi with ItemResources {
+object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
 
   val MOCK_ACCESS_TOKEN = "34dj45a769j4e1c0h4wb"
-
-  val NamespaceRegex = """xmlns.*?=".*?"""".r
 
   def javascriptRoutes = Action { implicit request =>
 
@@ -68,13 +66,7 @@ object ItemPlayer extends BaseApi with ItemResources {
         getItemXMLByObjectId(itemId, request.ctx.organization) match {
           case Some(xmlData: Elem) =>
 
-            val (xmlWithCsFeedbackIds, _) = FeedbackProcessor.addFeedbackIds(xmlData)
-
-            val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds) \ "itemBody")
-
-            val qtiXml = <assessmentItem print-mode={printMode.toString}>{itemBody}</assessmentItem>
-
-            val finalXml = removeNamespaces(qtiXml)
+            val finalXml = prepareQti(xmlData, printMode)
 
             if(Play.isDev(play.api.Play.current)){
               Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled))
@@ -94,39 +86,6 @@ object ItemPlayer extends BaseApi with ItemResources {
         }
         case e: Exception => throw new RuntimeException("ItemPlayer.renderItem: " + e.getMessage, e)
       }
-
   }
-
-  /**
-   * remove the namespaces - Note: this is necessary to support correct rendering in IE8
-   * TODO - should we do this with xml processing?
-   * @param xml
-   * @return
-   */
-  private def removeNamespaces(xml: Elem): String = NamespaceRegex.replaceAllIn(xml.mkString, "")
-
-  /**
-   * Provides the item XML body for an item with a provided item id.
-   * @param itemId
-   * @return
-   */
-  private def getItemXMLByObjectId(itemId: String, callerOrg: ObjectId): Option[Elem] = {
-    Item.findOneById(new ObjectId(itemId)) match {
-      case Some(item) => {
-        if (Content.isCollectionAuthorized(callerOrg, item.collectionId, Permission.All)) {
-          val dataResource = item.data.get
-
-          dataResource.files.find(_.name == Resource.QtiXml) match {
-            case Some(qtiXml) => {
-              Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
-            }
-            case _ => None
-          }
-        } else None
-      }
-      case _ => None
-    }
-  }
-
 
 }

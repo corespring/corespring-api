@@ -9,6 +9,8 @@ import common.seed.StringUtils
  */
 object RemoteItemRunnerTemplate {
 
+  val MockToken : String = "34dj45a769j4e1c0h4wb"
+
   val Name: String = "remote-item-runner.html.template"
 
   def unapply(pair: (File, String, String)) = {
@@ -26,7 +28,8 @@ object RemoteItemRunnerTemplate {
 
   def replaceKey(id: String, token: String)(s: String): String = s match {
     case "corespringDomain" => "http://localhost:9000"
-    case "scormPlayerUrl" => "/scorm-player/" + id + "/run?access_token=" + token
+    //use the mock token for now
+    case "scormPlayerUrl" => "/scorm-player/" + id + "/run?access_token=" + MockToken
     case _ => "?"
   }
 }
