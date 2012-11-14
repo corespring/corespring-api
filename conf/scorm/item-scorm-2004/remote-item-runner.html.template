@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+    <title>${title}</title>
+    <script type="text/javascript" src="scormfunctions.js"></script>
+    <script type="text/javascript" src="easyXDM.debug.js"></script>
+    <script type="text/javascript">
+
+    function onBodyLoad() {
+        startTimeStamp = new Date();
+        ScormProcessInitialize();
+
+        var completionStatus = ScormProcessGetValue("cmi.completion_status", true);
+        if (completionStatus == "unknown"){
+            ScormProcessSetValue("cmi.completion_status", "incomplete");
+
+        }
+
+        console.log( ScormProcessGetValue("cmi.completion_status"));
+    }
+
+    var transport = new easyXDM.Socket(/** The configuration */{
+        /**
+         * remote - the remote url to load. It will also contain a
+         * Socket through which communication will occur.
+         */
+        remote:   "${remoteTestPlayerUrl}",
+        swf: "${remoteEasyXdmSwfUrl}",
+        container: "embedded",
+        onMessage: function(message, origin){
+            alert("onMessage: " + message + " origin: " + origin)
+        },
+        onReady: function(){
+            transport.postMessage("hello from the runner!");
+        }
+    });
+    </script>
+</head>
+<body onload="onBodyLoad()">
+    <!-- easyXDM.Debug.trace(msg) will output its messages to any element with the id "log" -->
+    <div id="log" style="height:100px;border:1px dotted black;overflow:auto">
+    </div>
+    <div id="embedded">
+    </div>
+</body>
+</html>

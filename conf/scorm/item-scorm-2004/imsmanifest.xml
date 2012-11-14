@@ -1,0 +1,43 @@
+<?xml version="1.0" standalone="no" ?>
+
+<manifest identifier="com.scorm.golfsamples.runtime.basicruntime.20043rd" version="1"
+          xmlns="http://www.imsglobal.org/xsd/imscp_v1p1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_v1p3"
+          xmlns:adlseq="http://www.adlnet.org/xsd/adlseq_v1p3"
+          xmlns:adlnav="http://www.adlnet.org/xsd/adlnav_v1p3"
+          xmlns:imsss="http://www.imsglobal.org/xsd/imsss"
+          xsi:schemaLocation="http://www.imsglobal.org/xsd/imscp_v1p1 imscp_v1p1.xsd
+                              http://www.adlnet.org/xsd/adlcp_v1p3 adlcp_v1p3.xsd
+                              http://www.adlnet.org/xsd/adlseq_v1p3 adlseq_v1p3.xsd
+                              http://www.adlnet.org/xsd/adlnav_v1p3 adlnav_v1p3.xsd
+                              http://www.imsglobal.org/xsd/imsss imsss_v1p0.xsd">
+
+ <metadata>
+    <schema>ADL SCORM</schema>
+    <schemaversion>2004 3rd Edition</schemaversion>
+  </metadata>
+
+  <!-- There is just one organization that generates a hierarchy of SCOs.-->
+  <organizations default="some_test_org">
+    <organization identifier="org">
+      <title>Option 2</title>
+
+      <item identifier="section_one">
+        <title>Section One</title>
+        <item identifier="item_1" identifierref="resource_1"> 
+          <title>Item One</title>
+        </item>
+      </item>
+    </organization>
+  </organizations>
+
+  <resources>
+    <resource
+            identifier="resource_1"
+            type="webcontent"
+            adlcp:scormType="sco"
+            href="remote-item-runner.html">
+    </resource>
+  </resources>
+</manifest>

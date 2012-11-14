@@ -66,7 +66,7 @@ GET     /api/v1/collections/:collId/items       api.v1.ItemApi.getItemsInCollect
 GET     /api/v1/items/:itemId/assets/:fileName  api.v1.FilesApi.getFile(itemId:String,fileName:String)
 
 # Exporter api
-GET     /api/v1/export/scorm2004/:id            api.v1.Exporter.getScorm2004(id:ObjectId)
+GET     /api/v1/items/:id/scorm-2004.zip            api.v1.ExporterApi.scorm2004(id:ObjectId)
 
 # Resource api
 GET     /api/v1/items/:itemId/materials          api.v1.ResourceApi.getSupportingMaterials(itemId:String)
