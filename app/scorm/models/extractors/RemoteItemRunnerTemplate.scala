@@ -27,7 +27,7 @@ object RemoteItemRunnerTemplate {
   }
 
   def replaceKey(id: String, token: String)(s: String): String = s match {
-    case "corespringDomain" => "http://localhost:9000"
+    case "corespringDomain" => "http://192.168.2.103:9000"
     //use the mock token for now
     case "scormPlayerUrl" => "/scorm-player/" + id + "/run?access_token=" + MockToken
     case _ => "?"

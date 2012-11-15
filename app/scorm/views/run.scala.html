@@ -31,7 +31,20 @@
             }
         }]);
 
-        window.addEventListener('message', messageHandler, true);
+
+        function addMessageListener( fn ) {
+            if(window.addEventListener){
+                window.addEventListener('message', fn, true );
+            }
+            else if(window.attachEvent) {
+                window.attachEvent('message', fn );
+            }
+            else {
+                throw "couldn't add message listener";
+            }
+        }
+
+        addMessageListener(messageHandler);
 
         function messageHandler(e) {
             //Not worrying about security on this side for now.

@@ -46,7 +46,7 @@
 
         if(initialized){
 
-            console.log("process cached messages...");
+            //console.log("process cached messages...");
 
             for(var i = 0 ; i < scorm_preInitMessageCache.length ; i++ ){
                 processMessage(scorm_preInitMessageCache[i]);
@@ -61,10 +61,23 @@
             ScormProcessSetValue("cmi.completion_status", "incomplete");
         }
 
-        console.log( ScormProcessGetValue("cmi.completion_status"));
+        //console.log( ScormProcessGetValue("cmi.completion_status"));
     }
 
-    window.addEventListener('message', messageHandler, true);
+    function addMessageListener( fn ) {
+        if(window.addEventListener){
+            window.addEventListener('message', fn, true );
+        }
+        else if(window.attachEvent) {
+            window.attachEvent('message', fn);
+        }
+        else {
+            throw "couldn't add message listener";
+        }
+    }
+
+    addMessageListener( messageHandler );
+
 
     function parseMessage( str ) {
         try {
@@ -77,26 +90,25 @@
 
     function processMessage( message ) {
 
-        console.log("[processMessage]: " + message.key);
+        //console.log("[processMessage]: " + message.key);
 
         if(message.action == "setValue" ){
 
-           console.log("scorm initialized? " + initialized);
+           //console.log("scorm initialized? " + initialized);
 
            if(!initialized) {
-             console.log("scorm not ready - caching");
+             //console.log("scorm not ready - caching");
              scorm_preInitMessageCache.push(message);
            }
            else {
                var root = (message.index !== undefined)? "cmi.interactions." + message.index : "cmi";
                var key = root + "." + message.key;
-               console.log("ScormSetValue: " + key + " -> " + message.value );
+               //console.log("ScormSetValue: " + key + " -> " + message.value );
                ScormProcessSetValue(key, message.value );
            }
         }
 
     }
-
 
     function messageHandler(e) {
         if(e.origin !== '${corespringDomain}') return;
