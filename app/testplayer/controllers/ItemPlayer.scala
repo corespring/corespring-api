@@ -2,20 +2,14 @@ package testplayer.controllers
 
 import org.xml.sax.SAXParseException
 import xml.Elem
-import play.api.libs.json.Json
 import org.bson.types.ObjectId
-import controllers.auth.{Permission, BaseApi}
+import controllers.auth.BaseApi
 import models._
-import qti.processors.FeedbackProcessor._
 import common.controllers.ItemResources
-import qti.processors.FeedbackProcessor
 import play.api.mvc._
 import testplayer.models.ExceptionMessage
 import scala.Some
-import models.Content
-import play.api.Routes
 import play.api._
-import play.api.Play.current
 
 
 object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
