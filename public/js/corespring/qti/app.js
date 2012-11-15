@@ -133,6 +133,8 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                         $scope.formSubmitted = $scope.itemSession.isFinished;
                         if ($scope.formSubmitted) {
                             $scope.formHasIncorrect = false;
+
+                            $scope.$broadcast('formSubmitted', $scope.itemSession.responses);
                         }
                     });
 
@@ -146,6 +148,10 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                     return false;
                 }
                 return $scope.itemSession.settings[name];
+            };
+
+            this.registerInteraction = function(id,prompt){
+                $scope.$broadcast('registerInteraction', id, prompt);
             };
 
             $scope.showFeedback = function(){

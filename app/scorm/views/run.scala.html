@@ -11,14 +11,25 @@
 
     <script type="text/javascript">
 
-        $(document).ready(function(){
-            $("#sendMessage").click(function(){
+        angular.module('qti.services').factory('ScormBridge', [function () {
 
-                if(parent){
-                    parent.postMessage('hello from comm-test', '*');
+            return {
+                /**
+                 * send a message to the Scorm container
+                 * param: [messageObject, .... ]
+                 */
+                sendMessage : function(){
+                    if(parent && parent != window){
+
+                        for( var x in arguments ){
+                            parent.postMessage(JSON.stringify(arguments[x]), "*");
+                        }
+                    } else {
+                        console.warn( "Couldn't post message to parent - not found");
+                    }
                 }
-            });
-        });
+            }
+        }]);
 
         window.addEventListener('message', messageHandler, true);
 
@@ -29,9 +40,7 @@
 
     </script>
 </head>
-<body ng-controller="QtiAppController">
-    <a id="sendMessage">Send message</a>
-    <hr/>
+<body ng-controller="QtiAppController" style="padding: 20px;">
     @Html(itemBody)
 </body>
 </html>

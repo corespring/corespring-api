@@ -5,6 +5,10 @@
 
     <style type="text/css">
 
+    body{
+        margin: 0px;
+    }
+
     #sendMessage{
         position: absolute;
         z-index: 100;
@@ -34,9 +38,23 @@
     });
 
 
+    var scorm_preInitMessageCache = [];
+
     function onBodyLoad() {
         startTimeStamp = new Date();
         ScormProcessInitialize();
+
+        if(initialized){
+
+            console.log("process cached messages...");
+
+            for(var i = 0 ; i < scorm_preInitMessageCache.length ; i++ ){
+                processMessage(scorm_preInitMessageCache[i]);
+            }
+            scorm_preInitMessageCache = [];
+        } else {
+            throw "scorm still not initialized";
+        }
 
         var completionStatus = ScormProcessGetValue("cmi.completion_status", true);
         if (completionStatus == "unknown"){
@@ -48,19 +66,52 @@
 
     window.addEventListener('message', messageHandler, true);
 
+    function parseMessage( str ) {
+        try {
+            return JSON.parse(str)
+        }
+        catch(e){
+            return null;
+        }
+    }
+
+    function processMessage( message ) {
+
+        console.log("[processMessage]: " + message.key);
+
+        if(message.action == "setValue" ){
+
+           console.log("scorm initialized? " + initialized);
+
+           if(!initialized) {
+             console.log("scorm not ready - caching");
+             scorm_preInitMessageCache.push(message);
+           }
+           else {
+               var root = (message.index !== undefined)? "cmi.interactions." + message.index : "cmi";
+               var key = root + "." + message.key;
+               console.log("ScormSetValue: " + key + " -> " + message.value );
+               ScormProcessSetValue(key, message.value );
+           }
+        }
+
+    }
+
+
     function messageHandler(e) {
         if(e.origin !== '${corespringDomain}') return;
 
-        alert('remote-runner ' + e.data + ' ' + e.origin);
+        var message = parseMessage(e.data);
+
+        if( !message ){
+            return;
+        }
+        processMessage(message);
     }
 
     </script>
 </head>
 <body onload="onBodyLoad()">
-
-    <a id="sendMessage">Send message</a>
-
-    <iframe id="iframeHolder" src="${corespringDomain}${scormPlayerUrl}"></iframe>
-
+    <iframe id="iframeHolder" frameborder="0" src="${corespringDomain}${scormPlayerUrl}"></iframe>
 </body>
 </html>

@@ -268,6 +268,8 @@ qtiDirectives.directive('choiceinteraction', function () {
 
         scope.controller = AssessmentItemCtrl;
 
+        scope.controller.registerInteraction( element.attr('responseIdentifier'), element.find('.prompt').html());
+
         var maxChoices = attrs['maxchoices'];
         var modelToUpdate = attrs["responseidentifier"];
 
