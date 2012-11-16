@@ -14,7 +14,6 @@ import play.api._
 
 object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
 
-  val MOCK_ACCESS_TOKEN = "34dj45a769j4e1c0h4wb"
 
   def javascriptRoutes = Action { implicit request =>
 
@@ -64,7 +63,7 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
 
             if(Play.isDev(play.api.Play.current)){
               Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled))
-               .withSession("access_token" -> MOCK_ACCESS_TOKEN)
+               .withSession("access_token" -> common.mock.MockToken)
             }
             else {
               Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled))

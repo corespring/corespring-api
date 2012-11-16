@@ -3,13 +3,12 @@ package scorm.models.extractors
 import java.io.File
 import scala.io.Source
 import common.seed.StringUtils
-
+import common.mock._
 /**
  * Extractor for the RemoteItem runner html file that gets bundled into the scorm package
  */
 object RemoteItemRunnerTemplate {
 
-  val MockToken : String = "34dj45a769j4e1c0h4wb"
 
   val Name: String = "remote-item-runner.html.template"
 
