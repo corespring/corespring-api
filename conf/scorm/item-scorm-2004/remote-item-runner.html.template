@@ -1,129 +1,139 @@
 <!doctype html>
 <html>
 <head>
-    <title>Remote Item Runner</title>
+  <title>Remote Item Runner</title>
 
-    <style type="text/css">
+  <style type="text/css">
 
-    body{
-        margin: 0px;
+  body{
+    margin: 0px;
+  }
+
+  #sendMessage{
+    position: absolute;
+    z-index: 100;
+    left: 100px;
+  }
+
+  iframe{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
+
+  </style>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+  <script type="text/javascript" src="scormfunctions.js"></script>
+  <script type="text/javascript">
+
+
+  $(document).ready(function(){
+
+    var iframe = document.getElementById('iframeHolder').contentWindow;
+
+    $("#sendMessage").click(function(){
+     iframe.postMessage('message from the runner -> iframe', '${corespringDomain}' )
+   });
+  });
+
+
+  var scorm_preInitMessageCache = [];
+
+  function onBodyLoad() {
+    startTimeStamp = new Date();
+    var completionStatus = ScormProcessGetValue("cmi.completion_status");
+
+    if( completionStatus == "completed"){
+      throw "Already completed - return";
+      return;
     }
+    
+    ScormProcessInitialize();
 
-    #sendMessage{
-        position: absolute;
-        z-index: 100;
-        left: 100px;
+    if(initialized){
+
+      //console.log("process cached messages...");
+
+      for(var i = 0 ; i < scorm_preInitMessageCache.length ; i++ ){
+        processMessage(scorm_preInitMessageCache[i]);
+      }
+      scorm_preInitMessageCache = [];
+      } else {
+        throw "scorm still not initialized";
+      }
+
+    var completionStatus = ScormProcessGetValue("cmi.completion_status", true);
+
+    if (completionStatus == "unknown"){
+      ScormProcessSetValue("cmi.completion_status", "incomplete");
     }
-
-    iframe{
-        position: absolute;
-        width: 100%;
-        height: 100%;
-    }
-
-    </style>
-
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-    <script type="text/javascript" src="scormfunctions.js"></script>
-    <script type="text/javascript">
-
-
-    $(document).ready(function(){
-
-        var iframe = document.getElementById('iframeHolder').contentWindow;
-
-        $("#sendMessage").click(function(){
-           iframe.postMessage('message from the runner -> iframe', '${corespringDomain}' )
-        });
-    });
-
-
-    var scorm_preInitMessageCache = [];
-
-    function onBodyLoad() {
-        startTimeStamp = new Date();
-        ScormProcessInitialize();
-
-        if(initialized){
-
-            //console.log("process cached messages...");
-
-            for(var i = 0 ; i < scorm_preInitMessageCache.length ; i++ ){
-                processMessage(scorm_preInitMessageCache[i]);
-            }
-            scorm_preInitMessageCache = [];
-        } else {
-            throw "scorm still not initialized";
-        }
-
-        var completionStatus = ScormProcessGetValue("cmi.completion_status", true);
-        if (completionStatus == "unknown"){
-            ScormProcessSetValue("cmi.completion_status", "incomplete");
-        }
 
         //console.log( ScormProcessGetValue("cmi.completion_status"));
+  }
+
+  function addMessageListener( fn ) {
+    if(window.addEventListener){
+      window.addEventListener('message', fn, true );
     }
-
-    function addMessageListener( fn ) {
-        if(window.addEventListener){
-            window.addEventListener('message', fn, true );
-        }
-        else if(window.attachEvent) {
-            window.attachEvent('message', fn);
-        }
-        else {
-            throw "couldn't add message listener";
-        }
+    else if(window.attachEvent) {
+      window.attachEvent('message', fn);
     }
-
-    addMessageListener( messageHandler );
-
-
-    function parseMessage( str ) {
-        try {
-            return JSON.parse(str)
-        }
-        catch(e){
-            return null;
-        }
+    else {
+      throw "couldn't add message listener";
     }
+  }
 
-    function processMessage( message ) {
+  addMessageListener( messageHandler );
 
-        //console.log("[processMessage]: " + message.key);
 
-        if(message.action == "setValue" ){
-
-           //console.log("scorm initialized? " + initialized);
-
-           if(!initialized) {
-             //console.log("scorm not ready - caching");
-             scorm_preInitMessageCache.push(message);
-           }
-           else {
-               var root = (message.index !== undefined)? "cmi.interactions." + message.index : "cmi";
-               var key = root + "." + message.key;
-               //console.log("ScormSetValue: " + key + " -> " + message.value );
-               ScormProcessSetValue(key, message.value );
-           }
-        }
-
+  function parseMessage( str ) {
+    try {
+      return JSON.parse(str)
     }
-
-    function messageHandler(e) {
-        if(e.origin !== '${corespringDomain}') return;
-
-        var message = parseMessage(e.data);
-
-        if( !message ){
-            return;
-        }
-        processMessage(message);
+    catch(e){
+      return null;
     }
+  }
 
-    </script>
-</head>
-<body onload="onBodyLoad()">
-    <iframe id="iframeHolder" frameborder="0" src="${corespringDomain}${scormPlayerUrl}"></iframe>
-</body>
-</html>
+  function processMessage( message ) {
+    if(!initialized) {
+      scorm_preInitMessageCache.push(message);
+    }
+    else {
+      switch(message.action){
+        case "setValue" : 
+          var root = (message.index !== undefined)? "cmi.interactions." + message.index : "cmi";
+          var key = root + "." + message.key;
+          console.log("setValue: " + key + ": " + message.value);
+          ScormProcessSetValue(key, message.value );
+          break;
+        case "terminate" : 
+          ScormProcessTerminate();
+          break;
+        default: 
+          //do nothing
+          break; 
+      }
+    }
+  }
+
+  function messageHandler(e) {
+    if(e.origin !== '${corespringDomain}') return;
+
+    var message = parseMessage(e.data);
+
+    if( !message ){
+      return;
+    }
+    processMessage(message);
+  }
+
+      </script>
+    </head>
+    <body onload="onBodyLoad()">
+      <!--
+      <iframe id="iframeHolder" frameborder="0" src="${corespringDomain}${scormPlayerUrl}"></iframe>
+      -->
+    </body>
+    </html>

@@ -4,17 +4,28 @@ import controllers.auth.BaseApi
 import org.bson.types.ObjectId
 import common.controllers.ItemResources
 import testplayer.controllers.QtiRenderer
+import models.ItemSession
 
 object ScormPlayer extends BaseApi with ItemResources with QtiRenderer {
 
-  def run(itemId: ObjectId) = ApiAction {
+  def runBySessionId(sessionId: ObjectId) = ApiAction {
     request =>
 
-      getItemXMLByObjectId(itemId.toString, request.ctx.organization) match {
-        case Some(qti) => {
-          val itemBody = prepareQti(qti)
-          Ok(scorm.views.html.run(itemBody))
+      ItemSession.findOneById(sessionId) match {
+        case Some(session) => {
+          getItemXMLByObjectId(session.itemId.toString, request.ctx.organization) match {
+            case Some(qti) => Ok(scorm.views.html.run(prepareQti(qti), session.itemId.toString, sessionId.toString))
+            case _ => NotFound("can't find item with id: " + session.itemId.toString)
+          }
         }
+        case _ => NotFound("Can't find Item by Session " + sessionId.toString)
+      }
+  }
+
+  def runByItemId(itemId: ObjectId) = ApiAction {
+    request =>
+      getItemXMLByObjectId(itemId.toString, request.ctx.organization) match {
+        case Some(qti) => Ok(scorm.views.html.run(prepareQti(qti), itemId.toString))
         case _ => NotFound("can't find item with id: " + itemId.toString)
       }
   }

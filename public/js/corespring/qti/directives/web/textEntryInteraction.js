@@ -10,7 +10,9 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
         link:function (scope, element, attrs, AssessmentItemController) {
             var responseIdentifier = attrs.responseidentifier;
             scope.controller = AssessmentItemController;
-
+            
+            scope.controller.registerInteraction(element.attr('responseIdentifier'), "text entry","fill-in");
+            
             scope.CSS = { correct: 'correct-response', incorrect: 'incorrect-response'};
 
             scope.expectedLength = attrs.expectedlength;

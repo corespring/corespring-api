@@ -39,5 +39,5 @@ qtiDirectives.directive("extendedtextinteraction", function() {
 
         }
 
-    }
+    };
 });

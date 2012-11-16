@@ -1,4 +1,4 @@
-@(itemBody: String)
+@(itemBody: String, itemId : String, sessionId : String = "")
 <!doctype html>
 <html ng-app="qti">
 <head>
@@ -11,50 +11,56 @@
 
     <script type="text/javascript">
 
-        angular.module('qti.services').factory('ScormBridge', [function () {
-
+        angular.module('qti.services').factory('Config', [function(){
             return {
-                /**
-                 * send a message to the Scorm container
-                 * param: [messageObject, .... ]
-                 */
-                sendMessage : function(){
-                    if(parent && parent != window){
-
-                        for( var x in arguments ){
-                            parent.postMessage(JSON.stringify(arguments[x]), "*");
-                        }
-                    } else {
-                        console.warn( "Couldn't post message to parent - not found");
-                    }
-                }
+                itemId : "@itemId",
+                sessionId : "@sessionId"
             }
         }]);
 
+        angular.module('qti.services').factory('ScormBridge', [function () {
 
-        function addMessageListener( fn ) {
-            if(window.addEventListener){
-                window.addEventListener('message', fn, true );
+          return {
+            /**
+             * send a message to the Scorm container
+             * param: [messageObject, .... ]
+             */
+            sendMessage: function () {
+              if (parent && parent != window) {
+                for (var x in arguments) {
+                  parent.postMessage(JSON.stringify(arguments[x]), "*");
+                }
+              } else {
+                console.warn("Couldn't post message to parent - not found");
+              }
             }
-            else if(window.attachEvent) {
-                window.attachEvent('message', fn );
-            }
-            else {
-                throw "couldn't add message listener";
-            }
+          }
+        }]);
+
+
+        function addMessageListener(fn) {
+          if (window.addEventListener) {
+            window.addEventListener('message', fn, true);
+          }
+          else if (window.attachEvent) {
+            window.attachEvent('message', fn);
+          }
+          else {
+            throw "couldn't add message listener";
+          }
         }
 
         addMessageListener(messageHandler);
 
         function messageHandler(e) {
-            //Not worrying about security on this side for now.
-            alert('scorm-player ' + e.data + ' ' + e.origin);
+          //Not worrying about security on this side for now.
+          alert('scorm-player ' + e.data + ' ' + e.origin);
         }
 
     </script>
 </head>
 <body ng-controller="QtiAppController" style="padding: 20px;">
-    @Html(itemBody)
+@Html(itemBody)
 </body>
 </html>
 

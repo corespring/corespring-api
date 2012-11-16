@@ -6,15 +6,18 @@ import models.{Content, Item}
 import scorm.utils.ScormExporter
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc.{ResponseHeader, SimpleResult}
+import common.mock._
 
 object ExporterApi extends BaseApi {
+
 
   def scorm2004(id: ObjectId) = ApiAction {
     request =>
       Item.findOneById(id) match {
         case Some(item) => {
           if (Content.isCollectionAuthorized(request.ctx.organization, item.collectionId, Permission.All)) {
-            val data = ScormExporter.makeScormPackage(item.id.toString, request.token)
+            //TODO: Need to associate a non expiring token with this users' org and pass it in here.
+            val data = ScormExporter.makeScormPackage(item.id.toString, MockToken)
             Binary(data, None, "application/octet-stream")
           } else {
             BadRequest("You don't have access to this item")

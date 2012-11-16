@@ -141,6 +141,10 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
     return function ($scope, element, attrs, AssessmentItemCtrl) {
 
         localScope.responseIdentifier = attrs["responseidentifier"];
+
+        scope.controller.registerInteraction( element.attr('responseIdentifier'), element.find('.prompt').html(), "sequencing");
+
+
         var updateAssessmentItem = function (orderedList) {
             var flattenedArray = [];
             for (var i = 0; i < orderedList.length; i++) {

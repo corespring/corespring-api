@@ -3,6 +3,9 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
     var link = function( $scope, element, attrs, AssessmentItemCtrl ){
         console.log('inlinechoiceinteraction!');
 
+        scope.controller.registerInteraction( element.attr('responseIdentifier'), 'inline');
+
+
         var modelToUpdate = attrs["responseidentifier"];
 
         $scope.$watch('choice', function( newValue ){

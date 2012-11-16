@@ -102,7 +102,8 @@ GET    /testplayer/session/:sessionId/run           testplayer.controllers.ItemP
 GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
 GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes
 
-GET    /scorm-player/:itemId/run               scorm.controllers.ScormPlayer.run(itemId : ObjectId)
+GET    /scorm-player/item/:itemId/run               scorm.controllers.ScormPlayer.runByItemId(itemId : ObjectId)
+GET    /scorm-player/session/:sessionId/run         scorm.controllers.ScormPlayer.runBySessionId(sessionId : ObjectId)
 
 # Example content
 GET    /example-content                        web.controllers.ExampleContent.index

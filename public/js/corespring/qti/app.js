@@ -41,8 +41,14 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                     allowEmptyResponses = newValue.settings.allowEmptyResponses;
                     $scope.canSubmit = allowEmptyResponses && $scope.hasEmptyResponse();
                 }
-                $scope.$broadcast('resetUI');
-                $scope.formSubmitted = false;
+
+                $scope.formSubmitted = $scope.itemSession.isFinished;
+
+                if(!$scope.formSubmitted){
+                  $scope.$broadcast('resetUI');
+                } else {
+                  $scope.$broadcast('highlightUserResponses');
+                }
             });
 
             $scope.showNoResponseFeedback = false;
@@ -134,7 +140,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                         if ($scope.formSubmitted) {
                             $scope.formHasIncorrect = false;
 
-                            $scope.$broadcast('formSubmitted', $scope.itemSession.responses);
+                            $scope.$broadcast('formSubmitted', $scope.itemSession);
                         }
                     });
 
@@ -150,8 +156,8 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                 return $scope.itemSession.settings[name];
             };
 
-            this.registerInteraction = function(id,prompt){
-                $scope.$broadcast('registerInteraction', id, prompt);
+            this.registerInteraction = function(id,prompt,type){
+                $scope.$broadcast('registerInteraction', id, prompt,type);
             };
 
             $scope.showFeedback = function(){

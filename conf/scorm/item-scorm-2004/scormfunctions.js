@@ -98,6 +98,15 @@ function ScormProcessInitialize(){
         return;
     }
     
+    var completionStatus = ScormProcessGetValue("cmi.completion_status");
+
+    console.log("completionStatus: " + completionStatus);
+
+    if(completionStatus == "completed"){
+      alert("already completed");
+      return;
+    }
+
     result = API.Initialize("");
     
     if (result == SCORM_FALSE){
