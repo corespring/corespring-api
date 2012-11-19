@@ -2,48 +2,47 @@ package scorm.utils
 
 import java.io._
 import scorm.models.extractors.RemoteItemRunnerTemplate
+import models.Item
+import scorm.models.Builder
+import scorm.models.Builder.Config
 
 
 object ScormExporter {
 
-  val ScormFolder = "conf/scorm/item-scorm-2004"
+  val ScormFolder = "conf/scorm/multi-item-scorm-2004"
   val ScormFolderFiles = new File(ScormFolder).listFiles.toList
   val PlainFiles = ScormFolderFiles.filterNot(_.getName.endsWith(".template"))
   val TemplateFiles = ScormFolderFiles.filter(_.getName.endsWith(".template"))
 
   type NameContents = (String, String)
 
-  def makeScormPackage(id: String, token: String): Array[Byte] = {
+  def makeMultiScormPackage( items : List[Item], token : String ) : Array[Byte] = {
+    val plainFilePaths = PlainFiles.map(ScormFolder + "/" + _.getName)
 
-    def processTemplates(): List[Option[NameContents]] = {
-      TemplateFiles.map {
-        f: File => {
-          (f, id, token) match {
-            case RemoteItemRunnerTemplate(n, c) => Some((n, c))
-            case _ => None
-          }
+    val tokens : Map[String,String] = Map("corespringDomain" -> "http://192.168.2.103:9000")
+    val processedTemplates = processTemplates(tokens)
+    val config : Config = Config("http://192.168.2.103:9000", common.mock.MockToken)
+    val manifest = Builder.Manifest(items, config)
+    val stringFiles = (("imsmanifest.xml", manifest.mkString("\n"))) :: processedTemplates.flatten
+
+    zip(plainFilePaths, stringFiles, basename)
+  }
+
+  private def processTemplates(tokens : Map[String,String]): List[Option[NameContents]] = {
+    TemplateFiles.map {
+      f: File => {
+        (f, tokens) match {
+          case RemoteItemRunnerTemplate(n, c) => Some((n, c))
+          case _ => None
         }
       }
     }
-
-    val plainFilePaths = PlainFiles.map(ScormFolder + "/" + _.getName)
-    val processedTemplates = processTemplates()
-    zip(plainFilePaths, processedTemplates.flatten, basename)
   }
+
 
   def basename(n: String): String = {
     val parts = n.split("/")
     parts(parts.length - 1)
-  }
-
-  /** Write the scorm package to a zip
-    */
-  def makeScormPackageZip(id: String, token: String, folder: String = ".") {
-    val arr = makeScormPackage(id,token)
-    val name =  folder + "/" + id + "-scorm-2004.zip"
-    val filesOut = new FileOutputStream(name)
-    filesOut.write(arr)
-    filesOut.close()
   }
 
   def zipToFile(zipFilename: String, files: Iterable[String], stringFiles: List[NameContents] = List(), processName: (String => String) = (n => n)) {
