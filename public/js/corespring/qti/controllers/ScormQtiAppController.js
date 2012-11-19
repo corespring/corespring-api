@@ -54,14 +54,17 @@ function scormQtiController($scope, $timeout, AssessmentSessionService, ScormBri
       }
     });
 
+    var params = {
+        itemId: Config.itemId,
+        sessionId: Config.sessionId,
+        access_token: Config.token};
+
     if (Config.sessionId === "") {
-      AssessmentSessionService.create({itemId: Config.itemId}, {}, function (data) {
+      AssessmentSessionService.create(params, {}, function (data) {
         $scope.itemSession = data;
-
-
       });
     } else {
-      AssessmentSessionService.get({itemId: Config.itemId, sessionId: Config.sessionId}, {}, function (data) {
+      AssessmentSessionService.get( params, {}, function (data) {
         $scope.itemSession = data;
       });
     }
@@ -70,7 +73,7 @@ function scormQtiController($scope, $timeout, AssessmentSessionService, ScormBri
      * The form has been submitted - process the responses and notify Scorm
      * of correct/incorrect results.
      */
-    $scope.$on('formSubmitted', function (event, itemSession) {
+    $scope.$on('formSubmitted', function (event, itemSession, isFormCorrect) {
 
       var responses = itemSession.responses;
       var correctResponses = itemSession.sessionData.correctResponses;
@@ -113,7 +116,7 @@ function scormQtiController($scope, $timeout, AssessmentSessionService, ScormBri
         {
           action: "setValue",
           key: "success_status",
-          value: "passed"
+          value: isFormCorrect ? "passed" : "failed"
         },
         { action: "terminate" }
       );
@@ -153,5 +156,5 @@ scormQtiController.$inject = ['$scope', '$timeout', 'AssessmentSessionService', 
 /**
  * Only initialize the QtiAppController -> scormQtiController if it is undefined.
  */
-QtiAppController = (QtiAppController || scormQtiController);
+var QtiAppController = (QtiAppController || scormQtiController);
 

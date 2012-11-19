@@ -14,7 +14,7 @@ object ScormPlayer extends BaseApi with ItemResources with QtiRenderer {
       ItemSession.findOneById(sessionId) match {
         case Some(session) => {
           getItemXMLByObjectId(session.itemId.toString, request.ctx.organization) match {
-            case Some(qti) => Ok(scorm.views.html.run(prepareQti(qti), session.itemId.toString, sessionId.toString))
+            case Some(qti) => Ok(scorm.views.html.run(prepareQti(qti), session.itemId.toString, sessionId.toString, request.token))
             case _ => NotFound("can't find item with id: " + session.itemId.toString)
           }
         }
@@ -25,7 +25,7 @@ object ScormPlayer extends BaseApi with ItemResources with QtiRenderer {
   def runByItemId(itemId: ObjectId) = ApiAction {
     request =>
       getItemXMLByObjectId(itemId.toString, request.ctx.organization) match {
-        case Some(qti) => Ok(scorm.views.html.run(prepareQti(qti), itemId.toString))
+        case Some(qti) => Ok(scorm.views.html.run(prepareQti(qti), itemId.toString, "", request.token))
         case _ => NotFound("can't find item with id: " + itemId.toString)
       }
   }

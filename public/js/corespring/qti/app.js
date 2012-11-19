@@ -10,7 +10,7 @@ function ControlBarController($scope) {
 ControlBarController.$inject = ['$scope'];
 
 // base directive include for all QTI items
-qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $http) {
+qtiDirectives.directive('assessmentitem', function (AssessmentSessionService ) {
     return {
         restrict:'E',
         controller:function ($scope, $element, $attrs, $timeout) {
@@ -44,10 +44,11 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
 
                 $scope.formSubmitted = $scope.itemSession.isFinished;
 
-                if(!$scope.formSubmitted){
-                  $scope.$broadcast('resetUI');
-                } else {
+                if($scope.formSubmitted){
+                  $scope.$broadcast('formSubmitted', $scope.itemSession, !areResponsesIncorrect());
                   $scope.$broadcast('highlightUserResponses');
+                } else {
+                  $scope.$broadcast('resetUI');
                 }
             });
 
@@ -140,7 +141,7 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                         if ($scope.formSubmitted) {
                             $scope.formHasIncorrect = false;
 
-                            $scope.$broadcast('formSubmitted', $scope.itemSession);
+                            $scope.$broadcast('formSubmitted', $scope.itemSession, !areResponsesIncorrect());
                         }
                     });
 

@@ -72,6 +72,16 @@
         //console.log( ScormProcessGetValue("cmi.completion_status"));
   }
 
+
+  function onBodyUnload() {
+      console.log("saving data...")
+      saveSharedData();
+      saveScoData();
+      ScormProcessSetValue("cmi.exit", "suspend");
+      ScormProcessTerminate("");
+    }
+
+
   function addMessageListener( fn ) {
     if(window.addEventListener){
       window.addEventListener('message', fn, true );
@@ -131,7 +141,7 @@
 
       </script>
     </head>
-    <body onload="onBodyLoad()">
+    <body onload="onBodyLoad()" onbeforeunload="onBodyUnload()" onunload="onBodyUnload()">
       <!--
       <iframe id="iframeHolder" frameborder="0" src="${corespringDomain}${scormPlayerUrl}"></iframe>
       -->

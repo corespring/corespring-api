@@ -1,6 +1,6 @@
 package models
 
-import models.itemSession.{ SessionData => NewSessionData }
+import models.itemSession.{SessionData => NewSessionData}
 import org.bson.types.ObjectId
 import se.radley.plugin.salat._
 import mongoContext._
@@ -183,6 +183,31 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
       }
   }
 
+  /**
+   * Get the item session and add any extra data to it if its finished.
+   * @param id - the item session id
+   * @return
+   */
+  def get(id: ObjectId): Option[ItemSession] = {
+    ItemSession.findOneById(id) match {
+      case Some(session) => {
+        if (session.isFinished) {
+          getXmlWithFeedback(session.itemId, session.feedbackIdLookup) match {
+            case Right(xml) => {
+              session.sessionData = getSessionData(xml, session)
+              session.responses = Score.scoreResponses(session.responses, QtiItem(xml))
+              Some(session)
+            }
+            case Left(e) => None
+          }
+        } else {
+          Some(session)
+        }
+      }
+      case _ => None
+    }
+  }
+
   private def finishSessionIfNeeded(session: ItemSession) {
 
     def finishIfMaxAttemptsExceeded() {
@@ -194,12 +219,12 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     }
 
     def finishIfThereAreNoIncorrectResponses() {
-      val incorrectResponses = session.responses.filter( _.outcome match {
+      val incorrectResponses = session.responses.filter(_.outcome match {
         case None => false
         case Some(o) => if (o.score == 0) true else false
       })
 
-      if (incorrectResponses.length == 0){
+      if (incorrectResponses.length == 0) {
         session.finish = Some(new DateTime())
         ItemSession.save(session)
       }
@@ -209,7 +234,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     finishIfThereAreNoIncorrectResponses()
   }
 
-  def getSessionData(xml: Elem, s : ItemSession) = Some(NewSessionData(QtiItem(xml), s))
+  def getSessionData(xml: Elem, s: ItemSession) = Some(NewSessionData(QtiItem(xml), s))
 
   implicit object ItemSessionWrites extends Writes[ItemSession] {
     def writes(session: ItemSession) = {
