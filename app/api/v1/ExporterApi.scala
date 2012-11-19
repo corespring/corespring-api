@@ -5,13 +5,19 @@ import org.bson.types.ObjectId
 import models.{Content, Item}
 import scorm.utils.ScormExporter
 import play.api.libs.iteratee.Enumerator
-import play.api.mvc.{ResponseHeader, SimpleResult}
+import play.api.mvc.{AnyContent, Request, ResponseHeader, SimpleResult}
 import common.mock._
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.BasicDBObject
 
 object ExporterApi extends BaseApi {
 
+  object BaseUrl{
+    def apply(r:Request[AnyContent]) : String = {
+      val protocol = if(r.uri.startsWith("https")) "https" else "http"
+      protocol + "://" + r.host
+    }
+  }
 
   val OctetStream: String = "application/octet-stream"
 
@@ -21,7 +27,8 @@ object ExporterApi extends BaseApi {
         case Some(item) => {
           if (Content.isCollectionAuthorized(request.ctx.organization, item.collectionId, Permission.All)) {
             //TODO: Need to associate a non expiring token with this users' org and pass it in here.
-            val data = ScormExporter.makeMultiScormPackage(List(item), MockToken)
+
+            val data = ScormExporter.makeMultiScormPackage(List(item), MockToken, BaseUrl(request))
             Binary(data, None, OctetStream)
           } else {
             BadRequest("You don't have access to this item")
@@ -49,7 +56,7 @@ object ExporterApi extends BaseApi {
         .toList
         .filter(access(request.ctx.organization))
 
-      val data = ScormExporter.makeMultiScormPackage(items, MockToken)
+      val data = ScormExporter.makeMultiScormPackage(items, MockToken, BaseUrl(request))
       Binary(data, None, OctetStream)
   }
 
