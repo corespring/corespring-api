@@ -33,12 +33,16 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
                     .removeClass(scope.CSS.incorrect);
             };
 
-            scope.$on('resetUI', function (event) {
+            scope.$on('resetUI', function () {
                 removeCss();
             });
 
-            scope.$on('unsetSelection', function(event){
+            scope.$on('unsetSelection', function(){
                 scope.textResponse = "";
+            });
+
+            scope.$on('highlightUserResponses', function () {
+              scope.textResponse = QtiUtils.getResponseValue(responseIdentifier, scope.itemSession.responses, "");
             });
 
             var isCorrect = function (value) {
