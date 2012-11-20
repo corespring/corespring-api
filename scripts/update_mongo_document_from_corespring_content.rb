@@ -60,8 +60,10 @@ puts "Found #{items.length} items to update"
 
 uploader = AmazonUploader.new( "AKIAJNPUNTVH2HMFWVVA", "sl+sXsuq8Xkbl4NvlLuyHRZtrVJp+BXEoH7XlLPm", "corespring-assets")
 
+generate_json = true
+
 items.each do |i|
-  updater = CorespringContentUpdater.new(i["item_id"], db_name, i["path"], uploader, output_path)
+  updater = CorespringContentUpdater.new(i["item_id"], db_name, i["path"], uploader, output_path, generate_json)
   updater.begin
 end
 
