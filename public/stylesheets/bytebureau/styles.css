@@ -882,7 +882,7 @@ div.text-box-content {
 	padding-top:20px;
 }
 
-
+.student-assessment-page,
 .assessment-page {
 	width:600px;
 	margin:20px auto;
@@ -891,6 +891,10 @@ div.text-box-content {
 	border: 2px #EAEAEA dashed;
 	border-top: 2px #EAEAEA solid;
 }
+.student-assessment-page{
+    border: 0;
+}
+
 .student-view-header {
 	margin: auto;
     width: 600px;

@@ -1,5 +1,7 @@
 @(itemId: String, itemBody: String, previewEnabled : Boolean)
-
+@cssClass = @{
+    if(previewEnabled) "assessment-page" else "student-assessment-page"
+}
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 <html ng-app="qti">
@@ -18,7 +20,8 @@
     } else {
         <br/>
     }
-    <div class="assessment-page" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">
+
+    <div class="@cssClass" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">
         @Html(itemBody)
     </div>
 </body>
