@@ -19,10 +19,9 @@ import controllers.auth.{OAuthConstants, OAuthProvider}
 
 object Main extends Controller with Secured {
 
-  val TMP_ACCESS_TOKEN : String = "34dj45a769j4e1c0h4wb"
 
   def previewItem(itemId:String) = Action{ request =>
-    Ok(web.views.html.itemPreview(itemId, TMP_ACCESS_TOKEN))
+    Ok(web.views.html.itemPreview(itemId, common.mock.MockToken))
   }
 
 
@@ -38,7 +37,7 @@ object Main extends Controller with Secured {
   }
 
   def renderProfile(itemId:String) = Action{ request =>
-    Ok(web.views.html.profilePrint(itemId, TMP_ACCESS_TOKEN))
+    Ok(web.views.html.profilePrint(itemId, common.mock.MockToken))
   }
 
 
@@ -46,7 +45,7 @@ object Main extends Controller with Secured {
     username => _ =>
       val jsonString = getFieldValueJsonString
       val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
-      Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, username, jsonString, TMP_ACCESS_TOKEN))
+      Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, username, jsonString, common.mock.MockToken))
   }
 
   private def getFieldValueJsonString: String = {

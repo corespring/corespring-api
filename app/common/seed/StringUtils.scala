@@ -4,7 +4,9 @@ import util.matching.Regex
 
 object StringUtils {
 
-  def interpolate(text: String, lookup: String => String, regex : Regex = """\$\[interpolate\{([^}]+)\}\]""".r ) =
+  val DefaultRegex = """\$\[interpolate\{([^}]+)\}\]""".r
+
+  def interpolate(text: String, lookup: String => String, regex : Regex = DefaultRegex )  =
     regex.replaceAllIn(text, (_: scala.util.matching.Regex.Match) match {
       case Regex.Groups(v) => {
         val result = lookup(v)

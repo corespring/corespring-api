@@ -26,7 +26,6 @@ trait ObjectIdParser{
 
 object ShowResource extends Controller with ObjectIdParser with ItemResources{
 
-  private val MOCK_ACCESS_TOKEN : String = "34dj45a769j4e1c0h4wb"
 
   /**
     * Render the Item.data resource using the CSS for printing.

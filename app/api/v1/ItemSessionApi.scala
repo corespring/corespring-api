@@ -45,27 +45,16 @@ object ItemSessionApi extends BaseApi {
    */
   def get(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
     request =>
-      ItemSession.findOneById(sessionId) match {
-        case Some(itemSession) => {
-          if (Content.isAuthorized(request.ctx.organization, itemSession.itemId, Permission.All)) {
-            if (itemSession.finish.isDefined) {
-
-              ItemSession.getXmlWithFeedback(itemId, itemSession.feedbackIdLookup) match {
-                case Right(xml) => {
-                  itemSession.sessionData = ItemSession.getSessionData(xml, itemSession)
-                }
-                case Left(e) => NotFound(toJson(ApiError.ItemSessionNotFound(e.clientOutput)))
-              }
-            }
-            Ok(toJson(itemSession))
-          }
-          else {
-            Unauthorized(toJson(ApiError.UnauthorizedItemSession))
+      ItemSession.get(sessionId) match {
+        case Some(session) => {
+          if (Content.isAuthorized(request.ctx.organization, session.itemId, Permission.All)) {
+            Ok(toJson(session))
+          } else {
+           Unauthorized(toJson(ApiError.UnauthorizedItemSession))
           }
         }
-        case None => NotFound
+        case _ => NotFound
       }
-
   }
 
   /**

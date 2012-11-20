@@ -1,0 +1,187 @@
+<!doctype html>
+<html>
+<head>
+  <title>Remote Item Runner</title>
+
+  <style type="text/css">
+
+  body{
+    margin: 0px;
+  }
+
+  #sendMessage{
+    position: absolute;
+    z-index: 100;
+    left: 100px;
+  }
+
+  iframe{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
+
+  </style>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+  <script type="text/javascript" src="scormfunctions.js"></script>
+  <script type="text/javascript">
+
+  var iframeWindow = null;
+  var launchData = null;
+  var scoData = null;
+
+  var scorm_preInitMessageCache = [];
+
+  function onBodyLoad() {
+      startTimeStamp = new Date();
+
+      ScormProcessInitialize();
+      processAnyPendingMessages();
+
+      console.log("cmi.completion_status: " + ScormProcessGetValue("cmi.completion_status"));
+      console.log("cmi.success_status: " + ScormProcessGetValue("cmi.success_status"));
+      console.log("loading data...")
+      
+      scoData = loadScoData();
+
+      if(scoData.completion_status){
+        ScormProcessSetValue("cmi.completion_status", scoData.completion_status);
+      }
+
+      if(scoData.success_status){
+        ScormProcessSetValue("cmi.success_status", scoData.success_status);
+      }
+
+      launchData = loadLaunchData();
+
+      if(!launchData.itemId){
+        throw "Can't find an itemId - bad launch data"
+      }
+
+      if( scoData.itemSession ){
+        loadExistingItemSession(scoData.itemSession.id);
+      } else {
+        loadNewItemSession();
+      }
+  }
+
+  function onBodyUnload() {
+    console.log("saving data...")
+    ScormProcessSetValue("cmi.exit", "suspend");
+    ScormProcessTerminate("");
+  }
+
+
+
+    function loadLaunchData(){ return ( getDataAsObject("cmi.launch_data") || {} ); }
+    function loadSharedData(){ return ( getDataAsObject("adl.data.0.store") || {} ); }
+    function loadScoData(){ return ( getDataAsObject("adl.data.1.store") || {} ) }
+    function saveScoData(){ ScormProcessSetValue("adl.data.1.store", JSON.stringify(scoData)) }
+
+    function getDataAsObject(name) {
+      var data = null; 
+      try{
+        data = JSON.parse(ScormProcessGetValue(name));
+      } catch (e){ 
+        // no op
+      }
+      return data;
+    }
+
+  function loadExistingItemSession(itemSessionId){
+
+    if(!launchData.templates.session ) throw "Can't find session url template in launchData"; 
+    
+    var url = launchData.templates.session.replace(":sessionId", itemSessionId);
+    addIframe(url);
+  }
+
+  function loadNewItemSession(){
+    if(!launchData.templates.item) throw "Can't find item url template in launchData";
+
+    var url = launchData.templates.item.replace(":itemId", launchData.itemId);
+    addIframe(url);
+  }
+
+  function addIframe(url){
+    $("body").html('<iframe id="iframeHolder" frameborder="0" src="'+ url +'"></iframe>'); 
+    iframeWindow = document.getElementById('iframeHolder').contentWindow;
+  }
+
+  function processAnyPendingMessages(){
+    if(initialized){
+      for(var i = 0 ; i < scorm_preInitMessageCache.length ; i++ ){
+        processMessage(scorm_preInitMessageCache[i]);
+      }
+    scorm_preInitMessageCache = [];
+    } else {
+      throw "scorm still not initialized";
+    }
+  }
+
+  function addMessageListener( fn ) {
+    if(window.addEventListener){
+      window.addEventListener('message', fn, true );
+    }
+    else if(window.attachEvent) {
+      window.attachEvent('message', fn);
+    }
+    else {
+      throw "couldn't add message listener";
+    }
+  }
+
+  addMessageListener( messageHandler );
+
+
+  function parseMessage( str ) {
+    try {
+      return JSON.parse(str)
+    }
+    catch(e){
+      return null;
+    }
+  }
+
+  function processMessage( message ) {
+    if(!initialized) {
+      scorm_preInitMessageCache.push(message);
+    }
+    else {
+      switch(message.action){
+        case "setValue" : 
+          var root = (message.index !== undefined)? "cmi.interactions." + message.index : "cmi";
+          var key = root + "." + message.key;
+          ScormProcessSetValue(key, message.value );
+          break;
+        case "terminate" : 
+          ScormProcessTerminate();
+          break;
+        case "setItemSession" : 
+          scoData["itemSession"] = JSON.parse(message.value); 
+          saveScoData(scoData);
+          break;
+        default: 
+          //do nothing
+          break; 
+      }
+    }
+  }
+
+  function messageHandler(e) {
+    if(e.origin !== '${corespringDomain}') return;
+
+    var message = parseMessage(e.data);
+
+    if( !message ){
+      return;
+    }
+    processMessage(message);
+  }
+
+      </script>
+    </head>
+    <body onload="onBodyLoad()" onbeforeunload="onBodyUnload()" onunload="onBodyUnload()">
+    </body>
+    </html>

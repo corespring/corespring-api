@@ -7,6 +7,8 @@ import org.bson.types.ObjectId
 import scala.Some
 import controllers.S3Service
 import web.controllers.utils.ConfigLoader
+import xml.Elem
+import controllers.auth.Permission
 
 trait ItemResources {
 
@@ -58,6 +60,31 @@ trait ItemResources {
       case _ => NotFound
     }
   }
+
+
+  /**
+   * Provides the item XML body for an item with a provided item id.
+   * @param itemId
+   * @return
+   */
+  def getItemXMLByObjectId(itemId: String, callerOrg: ObjectId): Option[Elem] = {
+    Item.findOneById(new ObjectId(itemId)) match {
+      case Some(item) => {
+        if (Content.isCollectionAuthorized(callerOrg, item.collectionId, Permission.All)) {
+          val dataResource = item.data.get
+
+          dataResource.files.find(_.name == Resource.QtiXml) match {
+            case Some(qtiXml) => {
+              Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
+            }
+            case _ => None
+          }
+        } else None
+      }
+      case _ => None
+    }
+  }
+
 
   private def addDefaultCss(html : String) : String = """<head>""".r.replaceAllIn(html, "<head>\n" + DefaultCss.DEFAULT_CSS + "\n" )
 }

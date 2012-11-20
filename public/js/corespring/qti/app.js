@@ -3,82 +3,6 @@ var qtiDirectives = angular.module('qti.directives', ['qti.services']);
 var app = angular.module('qti', ['qti.directives', 'qti.services']);
 
 
-function QtiAppController($scope, $timeout, $location, AssessmentSessionService) {
-
-    $timeout(function () {
-        if (typeof(MathJax) != "undefined") {
-            MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-        }
-    }, 200);
-
-    $scope.reset = function () {
-        $scope.$broadcast('reset');
-    };
-
-    $scope.init = function () {
-        var url = $location.absUrl();
-        var matches = url.match(/.*\/item\/(.*?)\/.*/);
-        var params = { itemId:matches[1] };
-        AssessmentSessionService.create(params, {}, function (data) {
-            $scope.itemSession = data;
-            $scope.setUpChangeWatcher();
-            $scope.settingsHaveChanged = false;
-        });
-    };
-
-    /**
-     * Track changes to settings so we know if the user needs to save the changes
-     * before working with the item.
-     */
-    $scope.setUpChangeWatcher = function() {
-
-        $scope.originalSettings = angular.copy($scope.itemSession.settings);
-        $scope.maxNoOfAttempts = $scope.itemSession.settings.maxNoOfAttempts;
-
-        //need to make sure we store an int from the radio group
-        $scope.$watch('itemSession.settings.maxNoOfAttempts', function(newData){
-            $scope.itemSession.settings.maxNoOfAttempts = parseInt(newData);
-        });
-
-        //watcher for $watch - builds string from object values
-        var watcher = function() {
-            var out = "";
-            for(var x in $scope.itemSession.settings){
-                out += $scope.itemSession.settings[x];
-            }
-            return out;
-        };
-
-        $scope.$watch( watcher, function(newData){
-            $scope.settingsHaveChanged = !angular.equals(
-                $scope.originalSettings, 
-                $scope.itemSession.settings);
-        });
-
-    };
-
-    /**
-     * Because the current item session has been started - its settings are now locked.
-     * So we are going to be creating a new item session.
-     */
-    $scope.reloadItem = function () {
-        AssessmentSessionService.create({itemId:$scope.itemSession.itemId}, $scope.itemSession, function (data) {
-            $scope.reset();
-            $scope.$broadcast('unsetSelection');
-            $scope.itemSession = data;
-            $scope.setUpChangeWatcher();
-            // Empty out the responses
-            for (var i = 0; i < $scope.responses.length; i++)
-                $scope.responses[i].value = [];
-        });
-    };
-
-    $scope.init();
-}
-
-QtiAppController.$inject = ['$scope', '$timeout', '$location', 'AssessmentSessionService'];
-
-
 function ControlBarController($scope) {
     $scope.showAdminOptions = false;
 }
@@ -86,7 +10,7 @@ function ControlBarController($scope) {
 ControlBarController.$inject = ['$scope'];
 
 // base directive include for all QTI items
-qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $http) {
+qtiDirectives.directive('assessmentitem', function (AssessmentSessionService ) {
     return {
         restrict:'E',
         controller:function ($scope, $element, $attrs, $timeout) {
@@ -117,8 +41,15 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                     allowEmptyResponses = newValue.settings.allowEmptyResponses;
                     $scope.canSubmit = allowEmptyResponses && $scope.hasEmptyResponse();
                 }
-                $scope.$broadcast('resetUI');
-                $scope.formSubmitted = false;
+
+                $scope.formSubmitted = $scope.itemSession.isFinished;
+
+                if($scope.formSubmitted){
+                  $scope.$broadcast('formSubmitted', $scope.itemSession, !areResponsesIncorrect());
+                  $scope.$broadcast('highlightUserResponses');
+                } else {
+                  $scope.$broadcast('resetUI');
+                }
             });
 
             $scope.showNoResponseFeedback = false;
@@ -209,6 +140,8 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                         $scope.formSubmitted = $scope.itemSession.isFinished;
                         if ($scope.formSubmitted) {
                             $scope.formHasIncorrect = false;
+
+                            $scope.$broadcast('formSubmitted', $scope.itemSession, !areResponsesIncorrect());
                         }
                     });
 
@@ -222,6 +155,10 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService, $h
                     return false;
                 }
                 return $scope.itemSession.settings[name];
+            };
+
+            this.registerInteraction = function(id,prompt,type){
+                $scope.$broadcast('registerInteraction', id, prompt,type);
             };
 
             $scope.showFeedback = function(){

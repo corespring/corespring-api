@@ -30,7 +30,10 @@ object QtiScriptLoader {
   private def createScripts(name: String, toPrint: Boolean = false): String = {
     val jspath = if (toPrint) JS_PRINT_PATH else JS_PATH
     val csspath = if (toPrint) CSS_PRINT_PATH else CSS_PATH
-    Seq(script(jspath + name + ".js"), css(csspath + name + ".css")).mkString("\n")
+
+    def jsAndCss(name:String) = Seq(script(jspath + name + ".js"), css(csspath + name + ".css")).mkString("\n")
+
+    name.split(",").toList.map( jsAndCss ).mkString("\n")
   }
 
   private def getScriptsToInclude(itemBody: NodeSeq, isPrintMode: Boolean = false): List[String] = {
@@ -38,7 +41,7 @@ object QtiScriptLoader {
 
 
     val elementScriptsMap = Map(
-      "choiceInteraction" -> createScripts("choiceInteraction", isPrintMode),
+      "choiceInteraction" -> createScripts("choiceInteraction,simpleChoice", isPrintMode),
       "inlineChoiceInteraction" -> createScripts("inlineChoiceInteraction", isPrintMode),
       "orderInteraction" -> createScripts("orderInteraction", isPrintMode),
       "textEntryInteraction" -> createScripts("textEntryInteraction", isPrintMode),

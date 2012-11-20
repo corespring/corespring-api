@@ -20,7 +20,7 @@ import org.bson.types.ObjectId
 abstract class BaseTest extends Specification {
 
   // From standard fixture data
-  val token = "34dj45a769j4e1c0h4wb"
+  val token = common.mock.MockToken
 
   /**
    * Decorate play.api.mvc.Result with some helper methods
