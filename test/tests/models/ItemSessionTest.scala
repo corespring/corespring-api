@@ -225,7 +225,7 @@ class ItemSessionTest extends Specification {
           </correctResponse>
         </responseDeclaration>
         <itemBody>
-          <choiceInteraction identifier="q1"></choiceInteraction>
+          <choiceInteraction responseIdentifier="q1"></choiceInteraction>
         </itemBody>
       </assessmentItem>
 
