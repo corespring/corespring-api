@@ -8,7 +8,6 @@ import play.api.libs.iteratee.Enumerator
 import play.api.mvc.{AnyContent, Request, ResponseHeader, SimpleResult}
 import common.mock._
 import com.mongodb.casbah.commons.MongoDBObject
-import com.mongodb.BasicDBObject
 
 object ExporterApi extends BaseApi {
 
@@ -38,6 +37,9 @@ object ExporterApi extends BaseApi {
       }
   }
 
+  /** Build a multi item scorm .zip
+   * @param ids - comma delimited list of ids
+   */
   def multiItemScorm2004(ids: String) = ApiAction {
     request =>
 
@@ -52,14 +54,21 @@ object ExporterApi extends BaseApi {
 
       def access(orgId: ObjectId)(item: Item): Boolean = Content.isCollectionAuthorized(orgId, item.collectionId, Permission.All)
 
-      val items = Item.find(MongoDBObject("_id" -> MongoDBObject("$in" -> validIds)))
-        .toList
-        .filter(access(request.ctx.organization))
+      val items = Item.find(MongoDBObject("_id" -> MongoDBObject("$in" -> validIds))).toList
 
-      val data = ScormExporter.makeMultiScormPackage(items, MockToken, BaseUrl(request))
-      Binary(data, None, OctetStream)
+      items match {
+        case List() => NotFound("No items found")
+        case _ => {
+           items.filter(access(request.ctx.organization)) match {
+            case List() => Unauthorized("You don't have access to these items")
+            case _ => {
+              val data = ScormExporter.makeMultiScormPackage(items, MockToken, BaseUrl(request))
+              Binary(data, None, OctetStream)
+            }
+          }
+        }
+      }
   }
-
 
 
   private def Binary(data: Array[Byte], length: Option[Long] = None, contentType: String = "application/octet-stream") = {
