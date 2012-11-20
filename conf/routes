@@ -138,3 +138,11 @@ GET     /web/access_token                      web.controllers.Main.getAccessTok
 #
 POST    /basiclti                               basiclti.LtiController.launch
 
+# Reporting
+GET    /reports                                     reporting.controllers.Reports.index
+GET    /reports/:collection/:queryType.csv          reporting.controllers.Reports.getCsv(collection,queryType)
+GET    /reports/primary-subject-item-report.csv     reporting.controllers.Reports.getPrimarySubjectItemReport
+GET    /reports/contributor-item-report.csv         reporting.controllers.Reports.getContributorReport
+GET    /reports/collection-item-report.csv          reporting.controllers.Reports.getCollectionReport
+
+
