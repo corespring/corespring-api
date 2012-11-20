@@ -97,6 +97,7 @@ GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessio
 PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId: ObjectId, sessionId: ObjectId, action : Option[String] ?= None)
 
 # Item Rendering
+GET    /testplayer/item/:itemId/render              testplayer.controllers.ItemPlayer.renderItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
 GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
 GET    /testplayer/item/:itemId/:filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
 GET    /testplayer/session/:sessionId/run           testplayer.controllers.ItemPlayer.previewItemBySessionId(sessionId, printMode: Boolean ?= false)
@@ -143,4 +144,13 @@ GET     /web/access_token                      web.controllers.Main.getAccessTok
 # BasicLTI
 #
 POST    /basiclti                               basiclti.LtiController.launch
+
+# Reporting
+GET    /reports                                     reporting.controllers.Reports.index
+GET    /reports/:collection/:queryType.csv          reporting.controllers.Reports.getCsv(collection,queryType)
+GET    /reports/standard-item-report.csv            reporting.controllers.Reports.getStandardItemReport
+GET    /reports/primary-subject-item-report.csv     reporting.controllers.Reports.getPrimarySubjectItemReport
+GET    /reports/contributor-item-report.csv         reporting.controllers.Reports.getContributorReport
+GET    /reports/collection-item-report.csv          reporting.controllers.Reports.getCollectionReport
+
 
