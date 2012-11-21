@@ -1,0 +1,33 @@
+{
+    "_id" : { "$oid" : "50aa16203004e43e523374fa" },
+    "attempts" : 2,
+    "feedbackIdLookup" : [ ],
+    "finish" : { "$date" : 1353324075269},
+    "itemId" : { "$oid" : "5069a57130044a796b864f20" },
+    "responses" : [
+        {
+            "_t" : "models.ArrayItemResponse",
+            "_id" : "alphabet",
+            "responseValue" : [
+                "d",
+                "b",
+                "f",
+                "a",
+                "c",
+                "g",
+                "h",
+                "e"
+            ]
+        }
+    ],
+    "settings" : {
+        "maxNoOfAttempts" : 0,
+        "highlightUserResponse" : true,
+        "highlightCorrectResponse" : true,
+        "showFeedback" : false,
+        "allowEmptyResponses" : false,
+        "submitCompleteMessage" : "Ok!",
+        "submitIncorrectMessage" : "You may revise your work before you submit it."
+    },
+    "start" : { "$date" : 1353324070953}
+}

@@ -31,7 +31,7 @@ class ItemSessionApiTest extends Specification {
 
   lazy val FakeAuthHeader = FakeHeaders(Map("Authorization" -> Seq("Bearer " + token)))
 
-  val token = "34dj45a769j4e1c0h4wb"
+  val token = common.mock.MockToken
 
   object IDs {
     val Item: String = "50083ba9e4b071cb5ef79101"

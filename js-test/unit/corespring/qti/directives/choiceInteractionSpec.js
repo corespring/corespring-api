@@ -64,20 +64,20 @@ describe('qtiDirectives.choiceinteraction', function () {
         describe("behaviour", function () {
             it('sets chosen item for radios', function () {
                 var interaction = getRadioInteraction();
-                interaction.scope.setChosenItem("a");
+                interaction.scope.setChosenItem("a", true);
                 expect(interaction.scope.chosenItem).toBe("a");
                 expect(interaction.scope.controller.findItemByKey("question").value).toBe("a");
             });
 
             it('sets chosen item for checkboxes', function () {
                 var interaction = getCheckboxInteraction();
-                interaction.scope.setChosenItem("a");
+                interaction.scope.setChosenItem("a", true);
                 expect(interaction.scope.chosenItem).toEqual(["a"]);
                 expect(interaction.scope.controller.findItemByKey("question").value).toEqual(["a"]);
-                interaction.scope.setChosenItem("b");
+                interaction.scope.setChosenItem("b", true);
                 expect(interaction.scope.chosenItem).toEqual(["a", "b"]);
                 expect(interaction.scope.controller.findItemByKey("question").value).toEqual(["a", "b"]);
-                interaction.scope.setChosenItem("b");
+                interaction.scope.setChosenItem("b", false);
                 expect(interaction.scope.chosenItem).toEqual(["a"]);
                 expect(interaction.scope.controller.findItemByKey("question").value).toEqual(["a"]);
             });
@@ -96,7 +96,7 @@ describe('qtiDirectives.choiceinteraction', function () {
                 });
                 expect(interaction.scope.noResponse).toBe(false);
 
-                interaction.scope.setChosenItem("a");
+                interaction.scope.setChosenItem("a", true);
 
                 rootScope.$apply(function () {
                     rootScope.showNoResponseFeedback = true;
@@ -129,7 +129,7 @@ describe('qtiDirectives.choiceinteraction', function () {
         it('highlights correct response when its the users response and correct response highlighting is disabled', function() {
             var interaction = getSimpleChoiceInteraction();
             helper.setSessionSettings( rootScope, { highlightUserResponse: true, highlightCorrectResponse: false});
-            interaction.scope.setChosenItem("a");
+            interaction.scope.setChosenItem("a", true);
             helper.setCorrectResponseOnScope(rootScope, "question","a");
             expect(interaction.element.attr('class').contains('correct-response')).toBe(true);
         });
@@ -138,7 +138,7 @@ describe('qtiDirectives.choiceinteraction', function () {
             var interaction = getSimpleChoiceInteraction();
             helper.setSessionSettings( rootScope, { highlightCorrectResponse: true});
             rootScope.itemSession.isFinished = true;
-            interaction.scope.setChosenItem("a");
+            interaction.scope.setChosenItem("a", true);
             helper.setCorrectResponseOnScope(rootScope, "question","a");
             expect(interaction.element.attr('class').contains('correct-response')).toBe(true);
         });
@@ -146,7 +146,7 @@ describe('qtiDirectives.choiceinteraction', function () {
         it('highlights incorrect selection', function(){
             var interaction = getSimpleChoiceInteraction();
             helper.setSessionSettings(rootScope, { highlightUserResponse : true});
-            interaction.scope.setChosenItem("a");
+            interaction.scope.setChosenItem("a", true);
             helper.setCorrectResponseOnScope( rootScope, "question","b");
             expect(interaction.element.attr('class').contains('incorrect-response')).toBe(true);
         });
@@ -154,7 +154,7 @@ describe('qtiDirectives.choiceinteraction', function () {
         it('does not highlight incorrect selection if disabled', function(){
             var interaction = getSimpleChoiceInteraction();
             helper.setSessionSettings(rootScope, { highlightUserResponse : false});
-            interaction.scope.setChosenItem("a");
+            interaction.scope.setChosenItem("a", true);
             helper.setCorrectResponseOnScope( rootScope, "question","b");
             expect(interaction.element.attr('class').contains('incorrect-response')).toBe(false);
         });
@@ -162,7 +162,7 @@ describe('qtiDirectives.choiceinteraction', function () {
         it('does not highlight correct response if not enabled', function() {
             var interaction = getSimpleChoiceInteraction();
             helper.setSessionSettings( rootScope, { highlightCorrectResponse: false});
-            interaction.scope.setChosenItem("a");
+            interaction.scope.setChosenItem("a", true);
             helper.setCorrectResponseOnScope(rootScope, "question","a");
             expect(interaction.element.attr('class').contains('correct-response')).toBe(false);
         });

@@ -1,20 +1,29 @@
 if (!from || !to) {
     throw "You must specify from and to eg: --eval 'var from = \"dbone\"; var to = \"dbtwo\";'"
 }
+
+if(!d){
+  throw "You also need so specify d = a Date object"
+}
 print("from db: " + from);
 print("to db: " + to);
+print("date: " + d);
 
 conn = new Mongo("localhost");
 corespringLiveDb = conn.getDB(from);
 
-print(corespringLiveDb)
+print(corespringLiveDb);
 
-//var query = { "title": /.*car.*/};
-var query = {};
+var dateNumber = d.getTime() + (d.getTimezoneOffset() * 60000);
+print(d);
+print(dateNumber);
+
+var query = {dateModified: { $gte: dateNumber }};
+
 print(">>> --- count: " + corespringLiveDb.mcas3.count(query));
 
+
 var liveItems = corespringLiveDb.mcas3.find(query);
-//print(liveItems);
 
 var apiDevDb = conn.getDB(to);
 
@@ -45,8 +54,6 @@ function getContentType(filename) {
 
 function collection_to_collectionId(fromItem, toItem) {
     var collectionName = fromItem.collection;
-
-    //print(">>>> -- " + collectionName);
 
     if (!collectionName) {
         return;

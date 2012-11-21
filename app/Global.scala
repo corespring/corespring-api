@@ -2,12 +2,9 @@ import _root_.controllers.S3Service
 import play.api.mvc.Results._
 import web.controllers.utils.ConfigLoader
 import common.seed.SeedDb._
-import akka.util.Duration
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
-import java.util.concurrent.TimeUnit
 import org.bson.types.ObjectId
 import play.api._
-import libs.concurrent.Akka
 import mvc._
 import mvc.SimpleResult
 import play.api.Play.current
@@ -19,7 +16,6 @@ object Global extends GlobalSettings {
 
   val INIT_DATA: String = "INIT_DATA"
 
-  val MOCK_ACCESS_TOKEN_ID: String = "34dj45a769j4e1c0h4wb"
   val MOCK_ACCESS_TOKEN_SCOPE: Option[String] = Some("homer")
 
   val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
@@ -119,7 +115,7 @@ object Global extends GlobalSettings {
     emptyData()
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/test")
-    addMockAccessToken(MOCK_ACCESS_TOKEN_ID, None)
+    addMockAccessToken(common.mock.MockToken, None)
   }
 
   private def seedDevData() {
@@ -127,7 +123,7 @@ object Global extends GlobalSettings {
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/dev")
     seedData("conf/seed-data/exemplar-content")
-    addMockAccessToken(MOCK_ACCESS_TOKEN_ID, None)
+    addMockAccessToken(common.mock.MockToken, None)
   }
 
 }
