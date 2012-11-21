@@ -12,6 +12,7 @@ from = ARGV[1] || "corespring-live"
 to = ARGV[2] || "tdb"
 puts "from: #{from}"
 puts "to: #{to}"
+date = ARGV[3] || "2012.11.21"
 
 if ARGV[0] == "true"
     puts "dropping the db"
@@ -23,12 +24,25 @@ scripts = [
 "copySubjectAndStandards.js",
 "portCollection.js",
 "portTemplates.js",
-"port_users.js",
-"portContentTagger_to_CorespringApi.js" ]
+"port_users.js"
+ ]
+
 
 scripts.each do |s|
     puts "!!! Running: #{s}"
     puts `mongo #{s} --eval 'var from = "#{from}"; var to = "#{to}"'`
 end
 
+ct_to_cs_api = "portContentTagger_to_CorespringApi.js"
+
+year,month,day = date.split(".").map{ |v| Integer(v) }
+
+# javascript dates are zero based - so drop it down one.
+month = month - 1
+
+date_string = "#{year}, #{month}, #{day}"
+
+puts "date --> #{date_string}"
+
+puts `mongo #{ct_to_cs_api} --eval 'var from = "#{from}"; var to = "#{to}"; var d = new Date(#{date_string});'`
 
