@@ -6,6 +6,7 @@ import oauth.signpost.http.HttpRequest
 import play.api.Logger
 import java.net.{URLDecoder, URLEncoder}
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
+import controllers.Log
 
 
 /**
@@ -28,7 +29,33 @@ object LtiController extends Controller {
         Logger.info("verified signature  = " + consumer.getOAuthSignature().getOrElse("not available"))
         consumer.getOAuthSignature() match {
           case Some(signature) if signature == originalSignature => {
-            val url = "testplayer/item/%s/run?access_token=34dj45a769j4e1c0h4wb".format(data.corespringItemId)
+            val url = "testplayer/item/%s/run?access_token=34dj45a769j4e1c0h4wb".format(data.corespringItemId.get)
+            Redirect(url)
+          }
+          case _ => BadRequest("Invalid OAuth signature")
+        }
+      }
+    )
+  }
+
+  def launchList = Action { request =>
+    LaunchData.buildFromRequest(request,
+      List(LaunchData.LtiMessageType, LaunchData.LtiVersion, LaunchData.ResourceLinkId, LaunchData.LaunchPresentationLocale, LaunchData.LaunchPresentationReturnUrl)
+    ).fold(
+      errors => {
+        BadRequest(errors.mkString(","))
+      },
+      data => {
+        // todo: set up a proper way to assign keys/secrets for tool consumers
+        val consumer = new LtiOAuthConsumer("1234", "secret")
+        consumer.sign(request)
+        consumer.setSigningStrategy(new AuthorizationHeaderSigningStrategy())
+        val originalSignature = request.body.asFormUrlEncoded.get("oauth_signature").head
+        Logger.info("original signature  = " + originalSignature)
+        Logger.info("verified signature  = " + consumer.getOAuthSignature().getOrElse("not available"))
+        consumer.getOAuthSignature() match {
+          case Some(signature) if signature == originalSignature => {
+            val url = "/public/collection?access_token=34dj45a769j4e1c0h4wb&lti_return_url="+data.launchPresentation.returnUrl.get
             Redirect(url)
           }
           case _ => BadRequest("Invalid OAuth signature")
@@ -67,8 +94,9 @@ case class LtiRequestAdapter(request: Request[AnyContent], params:Map[String, St
 
   def getMethod = request.method
 
+
   def getRequestUrl = {
-    val url = "http://localhost:9000/basiclti"
+    val url = LaunchData.BaseUrl+request.path
     val args = if ( !params.isEmpty ) Some(params.map( s => "%s=%s".format(URLEncoder.encode(s._1, "utf-8") ,URLEncoder.encode(s._2, "utf-8"))).mkString("&")) else None
     args.map(url + "?" + _).getOrElse(url)
   }

@@ -1,6 +1,7 @@
 package basiclti
 
 import play.api.mvc.{Request, AnyContent}
+import web.controllers.utils.ConfigLoader
 
 /**
  * Basic LTI Launch Data
@@ -47,7 +48,7 @@ case class LaunchData(
     contextLabel: Option[String], // recommended
     launchPresentation: LaunchPresentation,
     toolConsumer: ToolConsumer,
-    corespringItemId: String
+    corespringItemId: Option[String]
     // recommended
     //
     // not including custom fields for now
@@ -56,6 +57,8 @@ case class LaunchData(
 )
 
 object LaunchData {
+  lazy val BaseUrl = ConfigLoader.get("BASE_URL").getOrElse("http://localhost:9000");
+
   val LtiMessageType = "lti_message_type"
   val BasicLtiLaunchRequest = "basic-lti-launch-request"
   val LtiVersion = "lti_version"
@@ -97,24 +100,24 @@ object LaunchData {
 
   val requiredFields = List(LtiMessageType, LtiVersion, ResourceLinkId, LaunchPresentationLocale, CoreSpringItemId)
 
-  private def checkRequired(data: Map[String, String]): Option[List[String]] = {
+  private def checkRequired(data: Map[String, String], required: List[String] = requiredFields): Option[List[String]] = {
     def check(fields: List[String], errors: List[String]): List[String] = {
       if ( fields.isEmpty ) errors else {
         val e = if ( data.isDefinedAt(fields.head) ) errors else "Missing field form: %s".format(fields.head) :: errors
         check(fields.tail, e)
       }
     }
-    check(requiredFields, List()) match {
+    check(required, List()) match {
       case errors: List[_] if errors.size > 0 => Some(errors)
       case _ => None
     }
   }
 
-  def buildFromRequest(request: Request[AnyContent]): Either[List[String], LaunchData] = {
+  def buildFromRequest(request: Request[AnyContent], required: List[String] = requiredFields): Either[List[String], LaunchData] = {
     request.body.asFormUrlEncoded match {
       case Some(formData) => {
         val data = formData.mapValues(_.headOption.getOrElse(""))
-        val errors = checkRequired(data)
+        val errors = checkRequired(data,required)
         if ( errors.isDefined ) {
           Left(errors.get)
         } else {
@@ -156,7 +159,7 @@ object LaunchData {
               data.get(ToolConsumerInstanceUrl),
               data.get(ToolConsumerInstanceContactEmail)
             ),
-            data.get(CoreSpringItemId).get
+            data.get(CoreSpringItemId)
           ))
         }
       }
