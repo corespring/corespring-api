@@ -26,6 +26,7 @@ com.corespring.model.ItemDataProcessor = function () {
         processedData.standards = _.map(itemData.standards, this.convertEmbeddedToOid);
         processedData.costForResource = parseInt(itemData.costForResource);
         angular.extend(dto, itemData, processedData);
+        dto.id = null;
         return dto;
     };
 
