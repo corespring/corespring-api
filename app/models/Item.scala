@@ -315,7 +315,6 @@ object Item extends DBQueryable[Item] {
       }
 
       item.supportingMaterials = (json \ supportingMaterials).asOpt[Seq[Resource]].getOrElse(Seq())
-      item.gradeLevel = (json \ gradeLevel).asOpt[Seq[String]].getOrElse(Seq.empty)
 
       (json \ itemType).asOpt[String] match {
         case Some(foundType) => item.itemType = Some(foundType)
@@ -331,7 +330,8 @@ object Item extends DBQueryable[Item] {
       item.subjects = getSubjects(json)
 
       item.priorUse = (json \ priorUse).asOpt[String]
-      item.priorGradeLevel = (json \ priorGradeLevel).asOpt[Seq[String]].getOrElse(Seq.empty)
+      item.priorGradeLevel = (json \ priorGradeLevel).asOpt[Seq[String]].
+              map(v => if (v.foldRight[Boolean](true)((g, acc) => fieldValues.gradeLevels.exists(_.key == g) && acc)) v else throw new JsonValidationException(priorGradeLevel)).getOrElse(Seq.empty)
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
       try {
         item.standards = (json \ standards).asOpt[Seq[String]].map(_.map(new ObjectId(_))).getOrElse(Seq.empty)

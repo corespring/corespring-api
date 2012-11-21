@@ -10,6 +10,7 @@ import models.ContributorDetails
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import scala.Some
+import controllers.JsonValidationException
 
 class ItemTest extends BaseTest {
 
@@ -60,6 +61,32 @@ class ItemTest extends BaseTest {
       val json = Json.toJson(item)
       val parsedItem = json.as[Item]
       parsedItem.itemType must equalTo(item.itemType)
+    }
+
+    "parses gradeLevel" in {
+      val item = Item(gradeLevel = Seq("03","04"))
+      val json = Json.toJson(item)
+      val parsedItem = json.as[Item]
+      parsedItem.gradeLevel must equalTo(item.gradeLevel)
+    }
+
+    "does not parse invalid gradeLevel" in {
+      val item = Item(gradeLevel = Seq("apple","pear"))
+      val json = Json.toJson(item)
+      json.as[Item] must throwA[JsonValidationException]
+    }
+
+    "parses priorGradeLevel" in {
+      val item = Item(priorGradeLevel = Seq("03","04"))
+      val json = Json.toJson(item)
+      val parsedItem = json.as[Item]
+      parsedItem.priorGradeLevel must equalTo(item.priorGradeLevel)
+    }
+
+    "does not parse invalid priorGradeLevel" in {
+      val item = Item(priorGradeLevel = Seq("apple","pear"))
+      val json = Json.toJson(item)
+      json.as[Item] must throwA[JsonValidationException]
     }
 
     "parse subjects with only primary" in {
