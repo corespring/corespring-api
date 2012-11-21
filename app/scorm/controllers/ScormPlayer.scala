@@ -22,6 +22,13 @@ object ScormPlayer extends BaseApi with ItemResources with QtiRenderer {
       }
   }
 
+  def getDataFileBySessionId(sessionId: ObjectId, filename: String) = {
+    ItemSession.findOneById(sessionId) match {
+      case Some(session) => getDataFile(session.itemId.toString, filename: String)
+      case _ => ApiAction(request => NotFound(filename))
+    }
+  }
+
   def runByItemId(itemId: ObjectId) = ApiAction {
     request =>
       getItemXMLByObjectId(itemId.toString, request.ctx.organization) match {
