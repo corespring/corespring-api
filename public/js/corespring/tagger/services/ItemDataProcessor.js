@@ -20,6 +20,7 @@ com.corespring.model.ItemDataProcessor = function () {
         var processedData = { _id:undefined };
         processedData.gradeLevel = this.buildDtoKeyArray(itemData.$gradeLevelDataProvider);
         processedData.reviewsPassed = this.buildDtoKeyArray(itemData.$reviewsPassedDataProvider);
+        processedData.costForResource = parseInt(itemData.costForResource);
         angular.extend(dto, itemData, processedData);
 
         this.processOids(dto, false);
