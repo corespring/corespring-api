@@ -60,8 +60,8 @@ angular.module('tagger.services')
         var copy = {};
         angular.copy(this, copy);
         copy.id = null;
-        //delete copy.id;
-        //delete copy.collectionId;
+
+        copy = ItemService.processor.createDTO(copy);
 
         /**
          * We need to only send the ids for items instead of embedded objects
@@ -75,6 +75,7 @@ angular.module('tagger.services')
             return  item.id;
         }
 
+        //TODO: move to the ItemDataProcessor
         if(copy.primarySubject){
             copy.primarySubject = convertEmbeddedToOid(copy.primarySubject);
         }
