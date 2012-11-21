@@ -57,33 +57,8 @@ angular.module('tagger.services')
     ItemService.prototype.update = function (paramsObject, cb, onErrorCallback) {
         var idObject = angular.extend(paramsObject, {id:this.id});
 
-        var copy = {};
-        angular.copy(this, copy);
+        var copy = ItemService.processor.createDTO(this);
         copy.id = null;
-        //delete copy.id;
-        //delete copy.collectionId;
-
-        /**
-         * We need to only send the ids for items instead of embedded objects
-         * @param item
-         * @return {*}
-         */
-        function convertEmbeddedToOid(item){
-            if(!item || !item.id){
-                throw "No item sent to convertEmbeddedToOid";
-            }
-            return  item.id;
-        }
-
-        if(copy.primarySubject){
-            copy.primarySubject = convertEmbeddedToOid(copy.primarySubject);
-        }
-
-        if(copy.relatedSubject){
-            copy.relatedSubject = convertEmbeddedToOid(copy.relatedSubject);
-        }
-        copy.standards = _.map(copy.standards, convertEmbeddedToOid);
-
         return ItemService.update(idObject, copy, function(resource){
             ItemService.processor.processIncomingData(resource);
             cb(resource);

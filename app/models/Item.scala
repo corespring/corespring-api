@@ -85,6 +85,7 @@ case class Item(var collectionId: String = "",
                 var keySkills: Seq[String] = Seq(),
                 var subjects: Option[Subjects] = None,
                 var priorUse: Option[String] = None,
+                var priorGradeLevel: Seq[String] = Seq(),
                 var reviewsPassed: Seq[String] = Seq(),
                 var standards: Seq[ObjectId] = Seq(),
                 var pValue: Option[String] = None,
@@ -124,6 +125,7 @@ object Item extends DBQueryable[Item] {
   val credentials = "credentials"
   val files = "files"
   val gradeLevel = "gradeLevel"
+  val priorGradeLevel = "priorGradeLevel"
   val relatedCurriculum = "relatedCurriculum"
   val itemType = "itemType"
   val keySkills = "keySkills"
@@ -223,6 +225,7 @@ object Item extends DBQueryable[Item] {
       }
 
       item.priorUse.foreach(v => iseq = iseq :+ (priorUse -> JsString(v)))
+      if (!item.priorGradeLevel.isEmpty) iseq = iseq :+ (priorGradeLevel -> JsArray(item.priorGradeLevel.map(JsString(_))))
       if (!item.reviewsPassed.isEmpty) iseq = iseq :+ (reviewsPassed -> JsArray(item.reviewsPassed.map(JsString(_))))
       if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards.
         foldRight[Seq[Standard]](Seq[Standard]())((sid, acc) => Standard.findOneById(sid) match {
@@ -328,6 +331,7 @@ object Item extends DBQueryable[Item] {
       item.subjects = getSubjects(json)
 
       item.priorUse = (json \ priorUse).asOpt[String]
+      item.priorGradeLevel = (json \ priorGradeLevel).asOpt[Seq[String]].getOrElse(Seq.empty)
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
       try {
         item.standards = (json \ standards).asOpt[Seq[String]].map(_.map(new ObjectId(_))).getOrElse(Seq.empty)
