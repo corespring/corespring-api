@@ -1,4 +1,4 @@
-@(itemId: String, itemBody: String, previewEnabled : Boolean)
+@(itemId: String, itemBody: String, previewEnabled : Boolean = true)
 @cssClass = @{
     if(previewEnabled) "assessment-page" else "student-assessment-page"
 }
@@ -9,6 +9,15 @@
     <title>@itemId</title>
     @common.views.html.partials.ieEightSupport()
     @partials.scripts(itemBody)
+
+    <script type="text/javascript">
+        angular.module('qti.services').factory('Config', [function(){
+            return {
+                itemId : "@itemId"
+            }
+        }]);
+    </script>
+
     <script src="/assets/js/corespring/qti/controllers/QtiAppController.js"></script>
 
 </head>
