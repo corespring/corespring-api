@@ -29,6 +29,7 @@ describe('qtiDirectives.assessmentItem', function () {
   beforeEach(function () {
     module(function ($provide) {
       $provide.value('AssessmentSessionService', MockAssessmentSessionService);
+      $provide.value('Config', { itemId: "1"});
     });
   });
 

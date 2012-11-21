@@ -55,19 +55,36 @@ function scormQtiController($scope, $timeout, AssessmentSessionService, ScormBri
     });
 
     var params = {
-        itemId: Config.itemId,
-        sessionId: Config.sessionId,
-        access_token: Config.token};
+      itemId: Config.itemId,
+      sessionId: Config.sessionId,
+      access_token: Config.token};
 
     if (Config.sessionId === "") {
       AssessmentSessionService.create(params, {}, function (data) {
         $scope.itemSession = data;
       });
     } else {
-      AssessmentSessionService.get( params, {}, function (data) {
+      AssessmentSessionService.get(params, {}, function (data) {
         $scope.itemSession = data;
       });
     }
+
+    $scope.$on('assessmentItem_submit', function (event, itemSession, onSuccess, onError) {
+
+      var params = {
+        itemId: itemSession.itemId,
+        sessionId: itemSession.id,
+        access_token: Config.token};
+
+      AssessmentSessionService.save(params, itemSession, function (data) {
+          $scope.itemSession = data;
+          onSuccess();
+        },
+        function (error) {
+          onError(error)
+        });
+
+    });
 
     /**
      * The form has been submitted - process the responses and notify Scorm

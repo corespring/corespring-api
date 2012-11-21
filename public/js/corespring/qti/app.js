@@ -10,7 +10,7 @@ function ControlBarController($scope) {
 ControlBarController.$inject = ['$scope'];
 
 // base directive include for all QTI items
-qtiDirectives.directive('assessmentitem', function (AssessmentSessionService ) {
+qtiDirectives.directive('assessmentitem', function () {
     return {
         restrict:'E',
         controller:function ($scope, $element, $attrs, $timeout) {
@@ -130,24 +130,25 @@ qtiDirectives.directive('assessmentitem', function (AssessmentSessionService ) {
 
                 if ($scope.finalSubmit) $scope.itemSession.finish = new Date().getTime();
 
-                AssessmentSessionService.save({itemId:itemId, sessionId:sessionId}, $scope.itemSession, function (data) {
-                    $scope.itemSession = data;
-                    $scope.formHasIncorrect = areResponsesIncorrect();
-                    $scope.finalSubmit = true;
+                var onSuccess = function(){
+                  $scope.formHasIncorrect = areResponsesIncorrect();
+                  $scope.finalSubmit = true;
+                  // Note: need to call this within a $timeout as the propogation isn't working properly without it.
+                  $timeout(function () {
+                    $scope.formSubmitted = $scope.itemSession.isFinished;
+                    if ($scope.formSubmitted) {
+                      $scope.formHasIncorrect = false;
 
-                    // Note: need to call this within a $timeout as the propogation isn't working properly without it.
-                    $timeout(function () {
-                        $scope.formSubmitted = $scope.itemSession.isFinished;
-                        if ($scope.formSubmitted) {
-                            $scope.formHasIncorrect = false;
+                      $scope.$broadcast('formSubmitted', $scope.itemSession, !areResponsesIncorrect());
+                    }
+                  });
+                };
 
-                            $scope.$broadcast('formSubmitted', $scope.itemSession, !areResponsesIncorrect());
-                        }
-                    });
+                var onError = function(){
+                  console.log("onError...")
+                };
 
-                }, function onError(error) {
-                    if (error && error.data) alert(error.data.message);
-                });
+                $scope.$broadcast('assessmentItem_submit', $scope.itemSession, onSuccess, onError);
             };
 
             var isSettingEnabled = function (name) {
