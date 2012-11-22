@@ -1,0 +1,42 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Demo LTI Assessment Tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="/bootstrap/ico/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/bootstrap/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/bootstrap/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="/bootstrap/ico/apple-touch-icon-57-precomposed.png">
+</head>
+<body>
+<div class="container">
+    <div class="hero-unit" style="padding-top: 30px; padding-bottom: 30px;">
+        <h1>Pick a Grade!</h1>
+    </div>
+    <div id="contents">
+        <div class='row'>
+              <span class='span8 offset2'>
+                <form action="/lti/assessment" method="post" class='well'>
+                    <h2>Hi, #{username}.</h2>
+                    <p>On a scale of <code>0.0</code> to <code>1.0</code>, how well would you say you did on this assessment?</p>
+                    <div style="margin: 40px 10px 20px;">
+                        <input name='score' type='text' class='span1' id='score' placeholder='##' style="height: auto; margin-bottom: auto;"/>
+                        <input type='submit' value='Submit' class='btn btn-primary'/>
+                        <p><em>If you want to enter an invalid score here, you can test how the LMS will reject it.</em></p>
+                    </div>
+                </form>
+              </span>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,67 +1,99 @@
 package basiclti
 
-import play.api.mvc.{AnyContent, Request, Action, Controller}
-import oauth.signpost.AbstractOAuthConsumer
-import oauth.signpost.http.HttpRequest
-import play.api.Logger
+import play.api.mvc.{AnyContent, Request, Controller, Action}
+import play.Logger
 import java.net.{URLDecoder, URLEncoder}
-import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
-import controllers.Log
+import oauth.signpost.http.HttpRequest
+import oauth.signpost.AbstractOAuthConsumer
+import play.api.libs.ws.WS
+import play.api.libs.oauth.{RequestToken, ConsumerKey, OAuthCalculator}
 
 
-/**
- *
- */
 object LtiController extends Controller {
+  def launch = Action(request => Ok(""))
+  
+  def assessmentLaunch = Action{ request =>
 
-  def launch = Action { request =>
-    LaunchData.buildFromRequest(request).fold(
-      errors => {
-        BadRequest(errors.mkString(","))
-      },
-      data => {
-        // todo: set up a proper way to assign keys/secrets for tool consumers
-        val consumer = new LtiOAuthConsumer("1234", "secret")
-        consumer.sign(request)
-        consumer.setSigningStrategy(new AuthorizationHeaderSigningStrategy())
-        val originalSignature = request.body.asFormUrlEncoded.get("oauth_signature").head
-        Logger.info("original signature  = " + originalSignature)
-        Logger.info("verified signature  = " + consumer.getOAuthSignature().getOrElse("not available"))
-        consumer.getOAuthSignature() match {
-          case Some(signature) if signature == originalSignature => {
-            val url = "testplayer/item/%s/run?access_token=%s".format(data.corespringItemId, common.mock.MockToken)
-            Redirect(url)
-          }
-          case _ => BadRequest("Invalid OAuth signature")
-        }
-      }
+   val call = basiclti.routes.LtiController.assessmentPlay()
+    val sessionInfo = info( request, Seq(
+      "lis_outcome_service_url",
+      "lis_result_sourcedid",
+      "lis_person_name_full",
+      "lis_person_contact_email_primary")
     )
+
+    Logger.info(sessionInfo.toString())
+
+    if(sessionInfo.filter(_._2 == "?").length > 0 ){
+      BadRequest("you are missing some parameters - here's whats missing: " + sessionInfo.toString() )
+    } else {
+      Redirect(call.url).withSession(sessionInfo : _*)
+    }
+  }
+  
+  def assessmentPlay = Action{ request =>
+    Ok(basiclti.views.html.assessmentPlay())
   }
 
-  def launchList = Action { request =>
-    LaunchData.buildFromRequest(request,
-      List(LaunchData.LtiMessageType, LaunchData.LtiVersion, LaunchData.ResourceLinkId, LaunchData.LaunchPresentationLocale, LaunchData.LaunchPresentationReturnUrl)
-    ).fold(
-      errors => {
-        BadRequest(errors.mkString(","))
-      },
-      data => {
-        // todo: set up a proper way to assign keys/secrets for tool consumers
-        val consumer = new LtiOAuthConsumer("1234", "secret")
-        consumer.sign(request)
-        consumer.setSigningStrategy(new AuthorizationHeaderSigningStrategy())
-        val originalSignature = request.body.asFormUrlEncoded.get("oauth_signature").head
-        Logger.info("original signature  = " + originalSignature)
-        Logger.info("verified signature  = " + consumer.getOAuthSignature().getOrElse("not available"))
-        consumer.getOAuthSignature() match {
-          case Some(signature) if signature == originalSignature => {
-            val url = "/public/collection?access_token="+common.mock.MockToken+"&lti_return_url="+data.launchPresentation.returnUrl.get
-            Redirect(url)
+
+   def assessmentProcess = Action{ request =>
+
+    val sourcedId = request.session.get("lis_result_sourcedid").get
+     val reportUrl = request.session.get("lis_outcome_service_url").get
+     val score = "0.1"
+
+     val responseXml = <imsx_POXEnvelopeRequest>
+          <imsx_POXHeader>
+            <imsx_POXRequestHeaderInfo>
+              <imsx_version>V1.0</imsx_version>
+              <imsx_messageIdentifier>12341234</imsx_messageIdentifier>
+            </imsx_POXRequestHeaderInfo>
+          </imsx_POXHeader>
+          <imsx_POXBody>
+            <replaceResultRequest>
+              <resultRecord>
+                <sourcedGUID>
+                  <sourcedId>{sourcedId}</sourcedId>
+      </sourcedGUID>
+      <result>
+        <resultScore>
+          <language>en</language>
+          <textString>{score}</textString>
+        </resultScore>
+      </result>
+      </resultRecord>
+      </replaceResultRequest>
+      </imsx_POXBody>
+      </imsx_POXEnvelopeRequest>
+     val consumer = new LtiOAuthConsumer("1234", "secret")
+
+     val call = WS.url(reportUrl)
+       .sign(
+       OAuthCalculator(ConsumerKey("1234","secret"),
+         RequestToken(consumer.getToken, consumer.getTokenSecret)))
+       .withHeaders(("Content-Type", "application/xml"))
+       .post(responseXml)
+
+     call.await(10000).fold(
+       error => throw new RuntimeException( error.getMessage ) ,
+       response => Ok(basiclti.views.html.assessmentResponse(response.body))
+     )
+  }
+
+
+  def launchList = Action(request => Ok(""))
+
+  private def info(request : Request[AnyContent], fields : Seq[String]) : Seq[(String,String)] = request.body.asFormUrlEncoded match {
+      case Some(data) => {
+        Logger.info(data.toString())
+        fields.map { k =>
+          data.getOrElse(k, Seq()) match {
+            case Seq(v) => Some((k, v))
+            case _ => None
           }
-          case _ => BadRequest("Invalid OAuth signature")
-        }
+        }.flatten
       }
-    )
+      case _ => Seq()
   }
 }
 

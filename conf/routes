@@ -146,6 +146,9 @@ GET     /web/access_token                      web.controllers.Main.getAccessTok
 # BasicLTI
 #
 POST    /basiclti                               basiclti.LtiController.launch
+POST    /lti/assessment/start                   basiclti.LtiController.assessmentLaunch
+GET     /lti/assessment                         basiclti.LtiController.assessmentPlay
+POST    /lti/assessment                         basiclti.LtiController.assessmentProcess
 POST    /basiclti/items                         basiclti.LtiController.launchList
 
 # Reporting
