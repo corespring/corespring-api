@@ -61,7 +61,7 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
 
             val finalXml = prepareQti(xmlData, printMode)
 
-            if(Play.isDev(play.api.Play.current)){
+            if(Play.isDev(play.api.Play.current) && request.session.get("access_token") == null){
               Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled))
                .withSession("access_token" -> common.mock.MockToken)
             }
