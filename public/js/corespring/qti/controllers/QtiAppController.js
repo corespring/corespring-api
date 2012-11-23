@@ -11,12 +11,21 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
   };
 
   $scope.init = function () {
-    var params = { itemId: Config.itemId };
-    AssessmentSessionService.create(params, {}, function (data) {
-      $scope.itemSession = data;
-      $scope.setUpChangeWatcher();
-      $scope.settingsHaveChanged = false;
-    });
+
+    var params = {
+      itemId: Config.itemId,
+      sessionId: Config.sessionId,
+      access_token: Config.token};
+
+    if (Config.sessionId === "") {
+      AssessmentSessionService.create(params, {}, function (data) {
+        $scope.itemSession = data;
+      });
+    } else {
+      AssessmentSessionService.get(params, {}, function (data) {
+        $scope.itemSession = data;
+      });
+    }
 
 
     $scope.$on('assessmentItem_submit', function (event, itemSession, onSuccess, onError) {
@@ -29,12 +38,15 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
       AssessmentSessionService.save(params, itemSession, function (data) {
           $scope.itemSession = data;
           onSuccess();
+          //$scope.$broadcast("saveSuccessful")
         },
         function (error) {
           onError(error)
         });
 
     });
+
+
   };
 
   /**
@@ -85,6 +97,11 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
   };
 
   $scope.init();
+
+  if(QtiAppController.prototype.extend){
+    QtiAppController.prototype.extend($scope);
+  }
+
 }
 
 QtiAppController.$inject = ['$scope', '$timeout', '$location', 'AssessmentSessionService', 'Config'];

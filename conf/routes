@@ -101,6 +101,7 @@ GET    /testplayer/item/:itemId/render              testplayer.controllers.ItemP
 GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
 GET    /testplayer/item/:itemId/:filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
 GET    /testplayer/session/:sessionId/run           testplayer.controllers.ItemPlayer.previewItemBySessionId(sessionId, printMode: Boolean ?= false)
+GET    /testplayer/session/:sessionId/render        testplayer.controllers.ItemPlayer.renderItemBySessionId(sessionId, printMode: Boolean ?= false)
 GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
 GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes
 
@@ -146,9 +147,10 @@ GET     /web/access_token                      web.controllers.Main.getAccessTok
 # BasicLTI
 #
 POST    /basiclti                               basiclti.LtiController.launch
-POST    /lti/assessment/start                   basiclti.controllers.AssignmentLauncher.launch
-GET     /lti/assessment                         basiclti.controllers.AssignmentLauncher.play
-POST    /lti/assessment                         basiclti.controllers.AssignmentLauncher.process
+POST    /lti/assignment/launch/:itemId          basiclti.controllers.AssignmentLauncher.launch(itemId:ObjectId)
+GET     /lti/assignment/:assignmentId/process   basiclti.controllers.AssignmentLauncher.process(assignmentId:ObjectId)
+GET     /lti/assignment/:assignmentId/run       basiclti.controllers.AssignmentPlayer.runByAssignmentId(assignmentId:ObjectId)
+GET     /lti/assignment/:assignmentId/:filename basiclti.controllers.AssignmentPlayer.getDataFileByAssignmentId(assignmentId:ObjectId, filename:String)
 POST    /basiclti/items                         basiclti.LtiController.launchList
 
 # Reporting

@@ -141,10 +141,7 @@ trait Secured {
    * Retrieve the connected user email.
    */
   private def username(request: RequestHeader) = request.session.get("access_token") match {
-    case Some(accessTokenId) =>
-      AccessToken.findById(accessTokenId).map(accessToken =>
-        accessToken.scope
-      ).getOrElse(None)
+    case Some(accessTokenId) => AccessToken.findById(accessTokenId).map(accessToken => accessToken.scope ).getOrElse(None)
     case None => None
   }
 

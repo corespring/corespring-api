@@ -28,13 +28,26 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
     ).as("text/javascript")
   }
 
-  def previewItemBySessionId(sessionId: String, printMode: Boolean = false) = {
+  def renderItemBySessionId(sessionId:String, printMode : Boolean = false) = {
+    callRenderBySessionId(
+      _renderItem(_,_, previewEnabled = false, sessionSettings = ""),
+      sessionId,
+      printMode)
+  }
 
-    ItemSession.findOneById(new ObjectId(sessionId)) match {
+  def previewItemBySessionId(sessionId: String, printMode: Boolean = false) = {
+    callRenderBySessionId(
+      _renderItem(_,_, previewEnabled = true, sessionSettings = ""),
+      sessionId,
+      printMode)
+  }
+
+  private def callRenderBySessionId(renderFn : (String,Boolean) => Action[AnyContent], id : String, printMode : Boolean ) = {
+    ItemSession.findOneById(new ObjectId(id)) match {
       case Some(session) => {
-        _renderItem(session.itemId.toString, printMode)
+        renderFn(session.itemId.toString, printMode)
       }
-      case _ => throw new RuntimeException("Can't find item session: " + sessionId)
+      case _ => throw new RuntimeException("Can't find item session: " + id)
     }
   }
 

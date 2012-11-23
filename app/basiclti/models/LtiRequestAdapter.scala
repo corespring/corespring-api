@@ -3,7 +3,7 @@ package basiclti.models
 import play.api.mvc.{AnyContent, Request}
 import oauth.signpost.http.HttpRequest
 
-case class LtiRequestAdapter(request: Request[AnyContent], params:Map[String, String]) extends HttpRequest {
+case class LtiRequestAdapter(request: Request[_], params:Map[String, String]) extends HttpRequest {
   var headers = Map[String,String]()
 
   def getMethod = request.method
