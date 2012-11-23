@@ -2,7 +2,9 @@ package basiclti.models
 
 import play.api.mvc.{AnyContent, Request}
 
-case class LtiData(outcomeUrl: Option[String], resultSourcedId: Option[String], returnUrl: Option[String])
+case class LtiData(outcomeUrl: Option[String],
+                   resultSourcedId: Option[String],
+                   returnUrl: Option[String])
 
 object LtiData {
   def apply(request: Request[AnyContent]): Option[LtiData] = request.body.asFormUrlEncoded match {
@@ -17,7 +19,6 @@ object LtiData {
     }
     case _ => None
   }
-
 
   private def getString(s: Option[Seq[String]]): Option[String] = s match {
     case Some(seq) => Some(seq(0))

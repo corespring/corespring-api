@@ -1,18 +1,14 @@
 package basiclti.controllers
 
-import testplayer.controllers.BasePlayer
-import org.bson.types.ObjectId
+import testplayer.controllers.QtiRenderer
 import basiclti.models.Assignment
 import play.api.mvc.Action
 import models.ItemSession
+import controllers.auth.BaseApi
+import common.controllers.ItemResources
+import org.bson.types.ObjectId
 
-object AssignmentPlayer extends BasePlayer {
-
-  @deprecated("to be removed", "..")
-  def OkRunPlayer(xml: String, itemId: String, sessionId: String, token: String) = {
-    Ok("")
-  }
-
+object AssignmentPlayer extends BaseApi with QtiRenderer with ItemResources {
 
   def runByAssignmentId(assignmentId: ObjectId) = ApiAction {
     request =>
@@ -45,7 +41,12 @@ object AssignmentPlayer extends BasePlayer {
   def getDataFileByAssignmentId(assignmentId: ObjectId, filename: String) =
     Assignment.findOneById(assignmentId) match {
       case Some(assignment) => {
-        getDataFileBySessionId(assignment.itemSessionId, filename)
+        ItemSession.findOneById(assignment.itemSessionId) match {
+          case Some(session) => {
+            getDataFile(session.itemId.toString, filename)
+          }
+          case _ => Action(request => NotFound("Can't find item session"))
+        }
       }
       case _ => Action(request => NotFound("can't find assignment by id: " + assignmentId))
     }

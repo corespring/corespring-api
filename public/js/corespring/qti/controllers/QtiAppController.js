@@ -14,17 +14,22 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
 
     var params = {
       itemId: Config.itemId,
-      sessionId: Config.sessionId,
-      access_token: Config.token};
+      sessionId: Config.sessionId};
+
+    if(Config.token){
+      params.access_token = Config.token;
+    }
+
+    var onItemSessionLoaded = function(data){
+      $scope.itemSession = data;
+      $scope.setUpChangeWatcher();
+      $scope.settingsHaveChanged = false;
+    };
 
     if (Config.sessionId === "") {
-      AssessmentSessionService.create(params, {}, function (data) {
-        $scope.itemSession = data;
-      });
+      AssessmentSessionService.create(params, {}, onItemSessionLoaded );
     } else {
-      AssessmentSessionService.get(params, {}, function (data) {
-        $scope.itemSession = data;
-      });
+      AssessmentSessionService.get(params, {}, onItemSessionLoaded );
     }
 
 
@@ -97,10 +102,6 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
   };
 
   $scope.init();
-
-  if(QtiAppController.prototype.extend){
-    QtiAppController.prototype.extend($scope);
-  }
 
 }
 

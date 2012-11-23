@@ -53,7 +53,7 @@ object AssignmentLauncher extends Controller {
         }
       }
       case _ => {
-        Ok("you're a teacher - in this mode you'll just play with the assessment but there's no marks")
+        Logger.info("its a teacher")
         val testPlayerCall = ItemPlayerRoutes.previewItem(itemId.toString)
         Redirect( tokenize(testPlayerCall.url, common.mock.MockToken))
       }
@@ -84,6 +84,11 @@ object AssignmentLauncher extends Controller {
     </imsx_POXBody>
   </imsx_POXEnvelopeRequest>
 
+  /**
+   * TODO: token secret
+   * @param assignmentId
+   * @return
+   */
   def process(assignmentId:ObjectId) = Action{ request =>
 
      Assignment.findOneById(assignmentId) match {
