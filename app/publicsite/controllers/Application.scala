@@ -12,10 +12,6 @@ import controllers.auth.OAuthConstants
 
 object Application extends Controller{
 
-  //TODO: Temporary mock access token
-  val MOCK_ACCESS_TOKEN_ID: String = "34dj45a769j4e1c0h4wb"
-
-
   def index = Action {
     Ok(publicsite.views.html.index())
   }
@@ -24,7 +20,7 @@ object Application extends Controller{
   }
   def collection = Action {
     Ok(publicsite.views.html.collection())
-    .withSession(OAuthConstants.AccessToken -> MOCK_ACCESS_TOKEN_ID)
+    .withSession(OAuthConstants.AccessToken -> common.mock.MockToken)
   }
   def partnerships = Action {
     Ok(publicsite.views.html.partnerships())

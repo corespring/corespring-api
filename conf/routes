@@ -65,6 +65,10 @@ POST    /api/v1/items/:id                       api.v1.ItemApi.cloneItem(id:Obje
 GET     /api/v1/collections/:collId/items       api.v1.ItemApi.getItemsInCollection(collId: ObjectId)
 GET     /api/v1/items/:itemId/assets/:fileName  api.v1.FilesApi.getFile(itemId:String,fileName:String)
 
+# Exporter api
+GET     /api/v1/items/multiple/scorm-2004.zip       api.v1.ExporterApi.multiItemScorm2004(ids:String)
+GET     /api/v1/items/:id/scorm-2004.zip            api.v1.ExporterApi.scorm2004(id:ObjectId)
+
 # Resource api
 GET     /api/v1/items/:itemId/materials          api.v1.ResourceApi.getSupportingMaterials(itemId:String)
 POST    /api/v1/items/:itemId/materials          api.v1.ResourceApi.createSupportingMaterial(itemId:String)
@@ -93,11 +97,17 @@ GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessio
 PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId: ObjectId, sessionId: ObjectId, action : Option[String] ?= None)
 
 # Item Rendering
+GET    /testplayer/item/:itemId/render              testplayer.controllers.ItemPlayer.renderItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
 GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
 GET    /testplayer/item/:itemId/:filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
 GET    /testplayer/session/:sessionId/run           testplayer.controllers.ItemPlayer.previewItemBySessionId(sessionId, printMode: Boolean ?= false)
 GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
 GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes
+
+GET    /scorm-player/item/:itemId/run               scorm.controllers.ScormPlayer.runByItemId(itemId : ObjectId)
+GET    /scorm-player/item/:itemId/:filename         scorm.controllers.ScormPlayer.getDataFile(itemId, filename)
+GET    /scorm-player/session/:sessionId/run         scorm.controllers.ScormPlayer.runBySessionId(sessionId : ObjectId)
+GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : ObjectId, filename)
 
 # Example content
 GET    /example-content                        web.controllers.ExampleContent.index
@@ -137,4 +147,13 @@ GET     /web/access_token                      web.controllers.Main.getAccessTok
 #
 POST    /basiclti                               basiclti.LtiController.launch
 POST    /basiclti/items                         basiclti.LtiController.launchList
+
+# Reporting
+GET    /reports                                     reporting.controllers.Reports.index
+GET    /reports/:collection/:queryType.csv          reporting.controllers.Reports.getCsv(collection,queryType)
+GET    /reports/standard-item-report.csv            reporting.controllers.Reports.getStandardItemReport
+GET    /reports/primary-subject-item-report.csv     reporting.controllers.Reports.getPrimarySubjectItemReport
+GET    /reports/contributor-item-report.csv         reporting.controllers.Reports.getContributorReport
+GET    /reports/collection-item-report.csv          reporting.controllers.Reports.getCollectionReport
+
 

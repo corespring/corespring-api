@@ -1,0 +1,74 @@
+@(collections : List[(String,String)])
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="utf-8">
+    <title>Reports</title>
+    <meta name="description" content="CoreSpring"/>
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
+    @web.views.html.head.coreJs()
+    @web.views.html.head.bootstrap()
+    @web.views.html.head.select2()
+
+    <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
+
+    <script type="text/javascript">
+
+        function updateLinks( collectionName ){
+
+            var items = ["collection", "contributor", "itemType", "credentials", "licenseType"];
+
+            _.each(items, function(item){
+                $("#" + item).attr('href', '/reports/' + collectionName + '/' + item + '.csv');
+            })
+        }
+
+        $(document).ready(function(){
+
+            $("#collectionSelect").change(function(){
+                var newLink = $("#collectionSelect").val();
+                updateLinks(newLink);
+            });
+            updateLinks($("#collectionSelect").val());
+        });
+    </script>
+</head>
+<body>
+
+@web.views.html.mainNav()
+
+<div class="container" style="position:relative; top: 100px;">
+    <h1>Main Reports</h1>
+    <a href="/reports/primary-subject-item-report.csv">Primary Subject Report</a>
+    <br/>
+    <a href="/reports/standard-item-report.csv">Standard Report</a>
+    <br/>
+    <a href="/reports/contributor-item-report.csv">Contributor Report</a>
+    <br/>
+    <a href="/reports/collection-item-report.csv">Collection Report</a>
+    <br/>
+
+    <br/>
+    <br/>
+
+    <h1>Item Totals</h1>
+    <select id="collectionSelect">
+        <option value="all">All</option>
+        @collections.map{ c =>
+        <option value="@c._2">@c._1</option>
+        }
+    </select>
+    <br/>
+    <a id="collection">Total items by collection</a>
+    <br/>
+    <a id="contributor">Total items by Contributor</a>
+    <br/>
+    <a id="itemType">Total items by Type</a>
+    <br/>
+    <a id="credentials">Total items by Credentials</a>
+    <br/>
+    <a id="licenseType">Total items by licenseType</a>
+
+</div>
+</body>
+</html>

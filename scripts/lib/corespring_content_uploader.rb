@@ -24,7 +24,7 @@ class CorespringContentUpdater
     "js" => "text/javascript"
   }
 
-  def initialize(item_id, db_name, corespring_content_path, uploader, output_path)
+  def initialize(item_id, db_name, corespring_content_path, uploader, output_path, export_files = true)
     puts "update_mongo_document_from_corespring_content, item_id: #{item_id}, db_name: #{db_name}, corespring_content_path: #{corespring_content_path}"
     @item_id = item_id
     @db_name = db_name
@@ -33,6 +33,7 @@ class CorespringContentUpdater
     @db = @connection.db(@db_name)
     @uploader = uploader
     @output_path = output_path
+    @export_files = export_files
   end
 
   def begin
@@ -42,7 +43,7 @@ class CorespringContentUpdater
 
     if @item_path.nil?
       puts " Can't find any items with that id: #{@item_id} just export the json"
-      export_json
+      export_json if @export_files
       return 
     end
 
@@ -51,6 +52,8 @@ class CorespringContentUpdater
       unless f == "." || f == ".."
         full_path = "#{@item_path}/#{f}"
         create_supporting_material(full_path)
+        puts "------ "
+        export_json if @export_files
       end
     end
   end
@@ -80,8 +83,7 @@ class CorespringContentUpdater
       coll.update({"_id" => BSON::ObjectId(@item_id)}, item)
     end
 
-    puts "------ "
-    export_json
+  
   end
 
   def create_sm(name, file_path)

@@ -54,6 +54,7 @@
 	"materialType" : "Assessment Item",
 	"bloomsTaxonomy" : "Knowledge (Remember)",
 	"priorUse" : "Summative",
+    "priorGradeLevel" : [ "03", "04" ],
 	"reviewsPassed" : [
 		"Editorial",
 		"Bias",

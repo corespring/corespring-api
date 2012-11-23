@@ -55,7 +55,7 @@ object LtiController extends Controller {
         Logger.info("verified signature  = " + consumer.getOAuthSignature().getOrElse("not available"))
         consumer.getOAuthSignature() match {
           case Some(signature) if signature == originalSignature => {
-            val url = "/public/collection?access_token=34dj45a769j4e1c0h4wb&lti_return_url="+data.launchPresentation.returnUrl.get
+            val url = "testplayer/item/%s/run?access_token=%s".format(data.corespringItemId, common.mock.MockToken)
             Redirect(url)
           }
           case _ => BadRequest("Invalid OAuth signature")

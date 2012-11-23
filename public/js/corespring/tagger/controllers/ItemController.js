@@ -16,7 +16,7 @@ if (Array.prototype.removeItem == null) Array.prototype.removeItem = function (i
 /**
  * Controller for editing Item
  */
-function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, AccessToken) {
+function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http) {
 
     function loadStandardsSelectionData() {
         $http.get(ServiceLookup.getUrlFor('standardsTree')).success(function (data) {
@@ -25,7 +25,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     }
 
     function loadCollections() {
-        Collection.get({ access_token:AccessToken.token }, function (data) {
+        Collection.get({}, function (data) {
                 $scope.collections = data;
             },
             function () {
@@ -174,7 +174,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $rootScope.$broadcast('onEditViewOpened');
 
     $scope.loadItem = function () {
-        ItemService.get({id:$routeParams.itemId, access_token:AccessToken.token}, function onItemLoaded(itemData) {
+        ItemService.get({id:$routeParams.itemId}, function onItemLoaded(itemData) {
             $scope.itemData = itemData;
             enterEditorIfInContentPanel();
             initItemType();
@@ -187,8 +187,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             $location.path('/edit/' + data.id);
         });
     };
-
-    $scope.accessToken = AccessToken;
 
     $scope.loadItem();
 
@@ -240,7 +238,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
         $scope.validationResult = {};
 
-        $scope.itemData.update({access_token:$scope.accessToken.token}, function (data) {
+        $scope.itemData.update({}, function (data) {
                 $scope.isSaving = false;
                 $scope.suppressSave = false;
                 $scope.processValidationResults(data["$validationResult"]);
@@ -414,6 +412,6 @@ ItemController.$inject = [
     '$rootScope',
     'Collection',
     'ServiceLookup',
-    '$http',
-    'AccessToken'];
+    '$http'
+    ];
 

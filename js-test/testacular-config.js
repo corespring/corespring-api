@@ -22,6 +22,7 @@ files = [
     'public/js/corespring/tagger/services/*.js',
     'public/js/corespring/qti/prototype.extensions/*.js',
     'public/js/corespring/qti/*.js',
+    'public/js/corespring/qti/controllers/*.js',
     'public/js/corespring/qti/directives/*.js',
     'public/js/corespring/qti/directives/web/*.js',
     'js-test/lib/play.mock.routes.js',

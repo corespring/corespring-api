@@ -1,4 +1,4 @@
-function ViewItemController($scope, $routeParams, $location, ItemService, AccessToken) {
+function ViewItemController($scope, $routeParams, $location, ItemService) {
 
     /**
      * Update the location search settings to reflect the ui state
@@ -36,7 +36,7 @@ function ViewItemController($scope, $routeParams, $location, ItemService, Access
     }
 
     $scope.loadItem = function () {
-        ItemService.get({id:$routeParams.itemId, access_token:AccessToken.token}, function onItemLoaded(itemData) {
+        ItemService.get({id:$routeParams.itemId}, function onItemLoaded(itemData) {
             $scope.itemData = itemData;
         });
     };
@@ -74,6 +74,5 @@ ViewItemController.$inject = [
     '$scope',
     '$routeParams',
     '$location',
-    'ItemService',
-    'AccessToken'
+    'ItemService'
 ];

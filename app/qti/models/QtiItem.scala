@@ -502,7 +502,8 @@ object FeedbackInline {
     def isNullOrEmpty(s: String): Boolean = (s == null || s.length == 0)
 
     if (node.label == "feedbackInline")
-      require(!isNullOrEmpty((node \ "@identifier").text), node)
+      require(!isNullOrEmpty((node \ "@identifier").text),
+        "feedbackInline node doesn't have an identifier: " + node)
 
     val childBody = new StringBuilder
     node.child.map(
