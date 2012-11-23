@@ -19,38 +19,36 @@ object AssignmentLauncher extends Controller {
 
   def launch(itemId:ObjectId) = Action{ request =>
 
+  /**
+   * Find assignment in the db - if its not there create it.
+   */
+    def getOrCreateAssignment(data:LtiData) : Assignment = {
+      Assignment.findOne( MongoDBObject("resultSourcedId" -> data.resultSourcedId )) match {
+        case Some(a) => a
+        case _ => {
+          val newSession = new ItemSession( itemId = itemId )
+          ItemSession.save(newSession)
+          val newAssignment = new Assignment(
+            itemSessionId = newSession.id,
+            resultSourcedId = data.resultSourcedId.get,
+            gradePassbackUrl = data.outcomeUrl.get,
+            onFinishedUrl = data.returnUrl.get
+          )
+          Assignment.save(newAssignment)
+          newAssignment
+        }
+      }
+    }
+
     //TODO: Token access?
 
     LtiData(request) match {
       case Some(d) => {
-
         require(d.outcomeUrl.isDefined, "no outcome url is defined")
         require(d.resultSourcedId.isDefined, "sourcedid is defined")
-
-        Assignment.findOne( MongoDBObject("resultSourcedId" -> d.resultSourcedId )) match {
-          case Some(assignment) => {
-            val call = AssignmentPlayerRoutes.runByAssignmentId(assignment.id)
-            Redirect( tokenize(call.url, common.mock.MockToken) )
-              .withSession(("assignment_id",assignment.id.toString))
-          }
-          case _ => {
-            val newSession = new ItemSession( itemId = itemId )
-            ItemSession.save(newSession)
-            val newAssignment = new Assignment(
-              itemSessionId = newSession.id,
-              resultSourcedId = d.resultSourcedId.get,
-              gradePassbackUrl = d.outcomeUrl.get,
-              onFinishedUrl = d.returnUrl.get
-            )
-            Assignment.save(newAssignment)
-
-            val call = AssignmentPlayerRoutes.runByAssignmentId(newAssignment.id)
-
-            //TODO: shouldn't be using sessions
-            Redirect( tokenize(call.url, common.mock.MockToken ) )
-              .withSession(("assignment_id",newAssignment.id.toString))
-          }
-        }
+        val assignment = getOrCreateAssignment(d)
+        val call = AssignmentPlayerRoutes.runByAssignmentId(assignment.id)
+        Redirect( tokenize(call.url, common.mock.MockToken ) )
       }
       case _ => {
         Logger.info("its a teacher")
@@ -59,6 +57,7 @@ object AssignmentLauncher extends Controller {
       }
     }
   }
+
 
   def responseXml(sourcedId:String,score:String) = <imsx_POXEnvelopeRequest>
     <imsx_POXHeader>
@@ -93,21 +92,29 @@ object AssignmentLauncher extends Controller {
 
      Assignment.findOneById(assignmentId) match {
        case Some(assignment) => {
+
         ItemSession.findOneById(assignment.itemSessionId) match {
           case Some(session) => {
 
               val consumer = new LtiOAuthConsumer("1234", "secret")
+              val score = getScore(session)
 
-              val call = WS.url(assignment.gradePassbackUrl)
-                .sign(
-                OAuthCalculator(ConsumerKey("1234","secret"),
-                  RequestToken(consumer.getToken, consumer.getTokenSecret)))
-                .withHeaders(("Content-Type", "application/xml"))
-                .post(responseXml(assignment.resultSourcedId, "0.3"))
+              def sendResultsToPassback = {
+                WS.url(assignment.gradePassbackUrl)
+                  .sign(
+                  OAuthCalculator(ConsumerKey("1234","secret"),
+                    RequestToken(consumer.getToken, consumer.getTokenSecret)))
+                  .withHeaders(("Content-Type", "application/xml"))
+                  .post(responseXml(assignment.resultSourcedId, score))
+              }
 
-              call.await(10000).fold(
-                error => throw new RuntimeException( error.getMessage ) ,
-                response => Ok(toJson(Map("returnUrl" -> assignment.onFinishedUrl)))
+              sendResultsToPassback.await(10000).fold(
+                error => throw new RuntimeException( error.getMessage ),
+                response => {
+                  Logger.debug("response from lms:")
+                  Logger.debug(response.body)
+                  Ok(toJson(Map("returnUrl" -> assignment.onFinishedUrl)))
+                }
               )
           }
           case _ => BadRequest("no item session found")
@@ -115,6 +122,10 @@ object AssignmentLauncher extends Controller {
        }
        case _ =>  BadRequest("no assignment found")
      }
+  }
 
+  //TODO: calculate score
+  private def getScore(session:ItemSession) : String = {
+    "0.3"
   }
 }
