@@ -1,6 +1,6 @@
 /**
  */
-function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeout, SupportingMaterial, ServiceLookup, AccessToken) {
+function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeout, SupportingMaterial, ServiceLookup) {
 
     $scope.showAddResourceModal = false;
     $scope.newResourceType = "upload";
@@ -88,7 +88,7 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
             }
         );
 
-        newHtml.$save({ itemId:$routeParams.itemId, access_token: AccessToken.token }, function (data) {
+        newHtml.$save({ itemId:$routeParams.itemId}, function (data) {
             $scope.supportingMaterials.push(data);
             $scope.showResource(data);
             $scope.showAddResourceModal = false;
@@ -110,7 +110,6 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
         };
 
         var url = ServiceLookup.getUrlFor('uploadSupportingMaterial', substitutions);
-        url += "?access_token=" + AccessToken.token;
         console.log("upload url: " + url);
         return url;
     };
@@ -193,8 +192,7 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
     $scope.loadMaterials = function () {
         SupportingMaterial.query(
             {
-                itemId:$routeParams.itemId,
-                access_token:AccessToken.token
+                itemId:$routeParams.itemId
             },
             function onLoaded(data) {
                 $scope.supportingMaterials = data;
@@ -211,4 +209,4 @@ SupportingMaterialsController.$inject = [
     '$timeout',
     'SupportingMaterial',
     'ServiceLookup',
-    'AccessToken'];
+    ];

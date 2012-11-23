@@ -14,11 +14,11 @@
  * @param AccessToken
  * @constructor
  */
-function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, ServiceLookup, AccessToken) {
+function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, ServiceLookup) {
 
     //private methods
     function tokenize(url){
-        return url + "?access_token=" + AccessToken.token;
+        return url;
     }
 
     $scope.selectedFileImageUrl = '/assets/images/empty.png';
@@ -320,5 +320,4 @@ ResourceEditor.$inject = [ '$scope',
     '$timeout',
     '$routeParams',
     '$http',
-    'ServiceLookup',
-    'AccessToken'];
+    'ServiceLookup'];

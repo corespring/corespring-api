@@ -17,8 +17,8 @@ describe('ItemController should', function () {
         var urls = [
             {method:'PUT', url:/.*/, response:{ ok:true }},
             {method:'POST', url:/.*/, data:{}, response:{ ok:true }},
-            {method:'GET', url:"/api/v1/collections?access_token=1", response:{}},
-            {method:'GET', url:"/api/v1/items?access_token=1", response:{}},
+            {method:'GET', url:"/api/v1/collections", response:{}},
+            {method:'GET', url:"/api/v1/items", response:{}},
             {method:'GET', url:"/assets/web/standards_tree.json", response:{}}
         ];
 

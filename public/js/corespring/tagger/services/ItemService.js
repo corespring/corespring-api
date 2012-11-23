@@ -1,6 +1,6 @@
 angular.module('tagger.services')
     .factory('File',
-    [ '$resource', 'ServiceLookup', 'AccessToken',
+    [ '$resource', 'ServiceLookup',
         function ($resource, ServiceLookup) {
             return $resource(
                 ServiceLookup.getUrlFor('file') + '/:filename',
@@ -15,7 +15,7 @@ angular.module('tagger.services')
 
 angular.module('tagger.services')
     .factory('SupportingMaterial',
-    [ '$resource', 'ServiceLookup', 'AccessToken', function ($resource, ServiceLookup) {
+    [ '$resource', 'ServiceLookup', function ($resource, ServiceLookup) {
 
         return $resource(
             ServiceLookup.getUrlFor('materials') + '/:resourceName',
@@ -30,8 +30,8 @@ angular.module('tagger.services')
 
 
 angular.module('tagger.services')
-    .factory('ItemService', [ '$resource', 'ServiceLookup', 'AccessToken', '$http',
-        function ($resource, ServiceLookup, AccessTokenService, $http) {
+    .factory('ItemService', [ '$resource', 'ServiceLookup', '$http',
+        function ($resource, ServiceLookup, $http) {
 
     var ItemService = $resource(
         ServiceLookup.getUrlFor('items'),

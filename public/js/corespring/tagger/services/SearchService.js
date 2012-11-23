@@ -1,5 +1,5 @@
 angular.module('tagger.services').factory('SearchService',
-    function ($rootScope, ItemService, AccessToken) {
+    function ($rootScope, ItemService) {
 
 
     var mongoQuery = new com.corespring.mongo.MongoQuery();

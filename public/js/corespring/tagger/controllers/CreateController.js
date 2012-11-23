@@ -2,7 +2,7 @@
  * Controller for creating new item, in practice after the object is persisted
  * Control moves to the EditCtrl
  */
-function CreateCtrl($scope, $routeParams, ItemService, NewItemTemplates, AccessToken) {
+function CreateCtrl($scope, $routeParams, ItemService, NewItemTemplates) {
 
     if (angular.isUndefined($routeParams.type) || angular.isUndefined(NewItemTemplates[$routeParams.type]))
         return false;
@@ -30,4 +30,4 @@ function CreateCtrl($scope, $routeParams, ItemService, NewItemTemplates, AccessT
 
 }
 
-CreateCtrl.$inject = ['$scope', '$routeParams','ItemService','NewItemTemplates','AccessToken'];
+CreateCtrl.$inject = ['$scope', '$routeParams','ItemService','NewItemTemplates'];

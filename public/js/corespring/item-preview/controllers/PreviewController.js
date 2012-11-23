@@ -1,13 +1,5 @@
 function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
 
-
-    function defaultFile(resource) {
-        return _.find(resource.files, function (f) {
-            return f['default'] == true;
-        });
-    }
-
-
     $scope.changeSupportingMaterialPanel = function (sm) {
         $scope.changePanel(sm.name);
         $scope.currentSm = sm;
@@ -53,10 +45,6 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
         $scope.currentPanel = panelName;
     };
 
-    $scope.getGradeLevelCssName = function (gradeLevel){
-        return "grade-" + gradeLevel;
-    };
-
     $scope.getItemUrl = function() {
         if (!$scope.itemData || $scope.currentPanel != 'item') return null;
         return "/web/show-resource/" + $scope.itemData.id;
@@ -72,12 +60,9 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
     }
 
     $scope.loadItem = function () {
-
-
         Item.get(
             {
-                id:Config.itemId,
-                access_token:Config.accessToken
+                id:Config.itemId
             },
             function onItemLoaded(itemData) {
                 $scope.itemData = itemData;
@@ -88,7 +73,6 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
             }
         );
     };
-
 
     $scope.itemId = Config.itemId;
     $scope.loadItem();
