@@ -8,6 +8,7 @@ import play.api.libs.iteratee.Enumerator
 import play.api.mvc.{AnyContent, Request, ResponseHeader, SimpleResult}
 import common.mock._
 import com.mongodb.casbah.commons.MongoDBObject
+import basiclti.export.LtiExporter
 
 object ExporterApi extends BaseApi {
 
@@ -70,6 +71,34 @@ object ExporterApi extends BaseApi {
       }
   }
 
+  def multiItemLti(ids: String) = ApiAction {
+    request =>
+      val validIds = ids.split(",").toList.map {
+        rawId =>
+          try {
+            Some(new ObjectId(rawId))
+          } catch {
+            case e: Throwable => None
+          }
+      }.flatten
+
+      def access(orgId: ObjectId)(item: Item): Boolean = Content.isCollectionAuthorized(orgId, item.collectionId, Permission.All)
+
+      val items = Item.find(MongoDBObject("_id" -> MongoDBObject("$in" -> validIds))).toList
+
+      items match {
+        case List() => NotFound("No items found")
+        case _ => {
+          items.filter(access(request.ctx.organization)) match {
+            case List() => Unauthorized("You don't have access to these items")
+            case _ => {
+              val data = LtiExporter.packageItems(items.map(_.id))
+              Binary(data, None, OctetStream)
+            }
+          }
+        }
+      }
+  }
 
   private def Binary(data: Array[Byte], length: Option[Long] = None, contentType: String = "application/octet-stream") = {
 
