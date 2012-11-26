@@ -210,7 +210,7 @@ class ItemSessionApiTest extends Specification {
     )
     val result = routeAndCall(getRequest).get
     ItemSession.remove(newSession)
-    val optQtiItem: Either[InternalError, QtiItem] = ItemSession.getXmlWithFeedback(new ObjectId(IDs.Item), ItemSession.findOneById(newSession.id).get.feedbackIdLookup) match {
+    val optQtiItem: Either[InternalError, QtiItem] = ItemSession.getXmlWithFeedback( ItemSession.findOneById(newSession.id).get) match {
       case Right(elem) => Right(QtiItem(elem))
       case Left(e) => Left(e)
     }

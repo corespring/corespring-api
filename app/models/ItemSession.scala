@@ -1,6 +1,6 @@
 package models
 
-import models.itemSession.{SessionData => NewSessionData}
+import itemSession.SessionData
 import org.bson.types.ObjectId
 import se.radley.plugin.salat._
 import mongoContext._
@@ -32,7 +32,7 @@ case class ItemSession(var itemId: ObjectId,
                        var responses: Seq[ItemResponse] = Seq(),
                        var id: ObjectId = new ObjectId(),
                        var feedbackIdLookup: Seq[FeedbackIdMapEntry] = Seq(),
-                       var sessionData: Option[NewSessionData] = None,
+                       var sessionData: Option[SessionData] = None,
                        var settings: ItemSessionSettings = new ItemSessionSettings()
                         ) extends Identifiable {
 
@@ -86,9 +86,9 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     }
   }
 
-  def getXmlWithFeedback(itemId: ObjectId, mapping: Seq[FeedbackIdMapEntry]): Either[InternalError, Elem] = {
-    Item.getQti(itemId) match {
-      case Right(qti) => Right(FeedbackProcessor.addFeedbackIds(XML.loadString(qti), mapping))
+  def getXmlWithFeedback(session: ItemSession): Either[InternalError, Elem] = {
+    Item.getQti(session.itemId) match {
+      case Right(qti) => Right(FeedbackProcessor.addFeedbackIds(XML.loadString(qti), session.feedbackIdLookup))
       case Left(e) => Left(e)
     }
   }
@@ -150,6 +150,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
   }
 
   /**
+   * TODO: process should only take one argument - ItemSession. The xml is always the xml linked via that session item.
    * Process the item session responses and return feedback.
    * If this iteration exceeds the number of attempts the finish it
    * Or if there are no incorrect responses finish it.
@@ -177,10 +178,47 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
           u.responses = Score.scoreResponses(u.responses, qtiItem)
           finishSessionIfNeeded(u)
           //TODO: We need to be careful with session data - you can't persist it
-          u.sessionData = Some(NewSessionData(qtiItem, u))
+          u.sessionData = Some(SessionData(qtiItem, u))
         })
 
       }
+  }
+
+
+  /**
+   * Calculate the score total
+   * @param session
+   * @return a tuple (score, maxScore)
+   */
+  def getTotalScore(session: ItemSession): (Double,Double) = {
+    require(session.isFinished, "The session isn't finished.")
+
+    val xml = ItemSession.getXmlWithFeedback(session) match {
+      case Left(e) => throw new RuntimeException("Error scoring - can't get xml")
+      case Right(x) => x
+    }
+
+    val qti = QtiItem(xml)
+    session.responses = Score.scoreResponses(session.responses, qti)
+    session.sessionData = Some(SessionData(qti, session))
+
+    val correctResponsesScored = Score.scoreResponses(session.sessionData.get.correctResponses, qti)
+
+    def processScore(responses:Seq[ItemResponse], processFn : Float => Double) = {
+      responses.foldLeft(0.0) {
+        (acc, r) =>
+          val current = r.outcome match {
+            case None => 0
+            case Some(v) => processFn(v.score)
+          }
+          acc + current
+      }
+    }
+
+    def score =  processScore( session.responses, (s) => s )
+    def maxScore =  processScore( correctResponsesScored, (s) => 1.0 )
+    println("score + maxScore: " + score + ", " + maxScore)
+    (score, maxScore)
   }
 
   /**
@@ -192,7 +230,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     ItemSession.findOneById(id) match {
       case Some(session) => {
         if (session.isFinished) {
-          getXmlWithFeedback(session.itemId, session.feedbackIdLookup) match {
+          getXmlWithFeedback(session) match {
             case Right(xml) => {
               session.sessionData = getSessionData(xml, session)
               session.responses = Score.scoreResponses(session.responses, QtiItem(xml))
@@ -234,7 +272,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     finishIfThereAreNoIncorrectResponses()
   }
 
-  def getSessionData(xml: Elem, s: ItemSession) = Some(NewSessionData(QtiItem(xml), s))
+  def getSessionData(xml: Elem, s: ItemSession) = Some(SessionData(QtiItem(xml), s))
 
   implicit object ItemSessionWrites extends Writes[ItemSession] {
     def writes(session: ItemSession) = {

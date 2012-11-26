@@ -198,7 +198,7 @@ object ItemSessionApi extends BaseApi {
                 dbSession.finish = clientSession.finish
                 dbSession.responses = clientSession.responses
 
-                ItemSession.getXmlWithFeedback(itemId, dbSession.feedbackIdLookup) match {
+                ItemSession.getXmlWithFeedback(dbSession) match {
                   case Right(xmlWithCsFeedbackIds) => {
                     ItemSession.process(dbSession, xmlWithCsFeedbackIds) match {
                       case Right(newSession) => {

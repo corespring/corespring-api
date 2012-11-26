@@ -124,8 +124,8 @@ object AssignmentLauncher extends Controller {
      }
   }
 
-  //TODO: calculate score
   private def getScore(session:ItemSession) : String = {
-    "0.3"
+    val (score,maxScore) = ItemSession.getTotalScore(session)
+    (score / maxScore).toString
   }
 }
