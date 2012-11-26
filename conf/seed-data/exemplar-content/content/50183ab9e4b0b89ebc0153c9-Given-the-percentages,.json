@@ -39,7 +39,7 @@
 	"title" : "Given the percentages, calculate the number of students that attend  Lakeview School.",
 	"demonstratedKnowledge" : "Procedural",
 	"materialType" : "Assessment Item",
-	"bloomsTaxonomy" : "Analyze",
+	"bloomsTaxonomy" : "Analyzing",
 	"priorUse" : "Summative",
 	"gradeLevel" : [
 		"08"
