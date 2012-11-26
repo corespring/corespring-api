@@ -23,6 +23,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
 
     $scope.selectedFileImageUrl = '/assets/images/empty.png';
     $scope.showEditor = false;
+    $scope.previewVisible = false;
 
     $scope.$on('leaveEditor', function (event) {
         $scope.resourceToEdit = null;

@@ -16,7 +16,7 @@ if (Array.prototype.removeItem == null) Array.prototype.removeItem = function (i
 /**
  * Controller for editing Item
  */
-function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http) {
+function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, $timeout) {
 
     function loadStandardsSelectionData() {
         $http.get(ServiceLookup.getUrlFor('standardsTree')).success(function (data) {
@@ -50,6 +50,25 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
                 $scope.changePanel($location.search().panel);
             });
     }
+
+    $scope.refreshPreview = function() {
+        // Trigger iframe reload
+        var oldvalue = $scope.corespringApiUrl;
+        $scope.corespringApiUrl = "";
+        $timeout(function() {
+            $scope.corespringApiUrl = oldvalue;
+        });
+    }
+
+    $scope.togglePreview = function() {
+        $scope.previewVisible = !$scope.previewVisible;
+        $scope.$broadcast("panelOpen");
+    }
+
+    $scope.$watch("previewVisible", function (newValue) {
+        $scope.previewClassName = newValue ? "preview-open" : "preview-closed";
+        $scope.corespringApiUrl = newValue ? ("/testplayer/item/" + $routeParams.itemId + "/run") : "";
+    });
 
     $scope.deleteItem = function(item) {
         $scope.itemToDelete = item;
@@ -412,6 +431,7 @@ ItemController.$inject = [
     '$rootScope',
     'Collection',
     'ServiceLookup',
-    '$http'
+    '$http',
+    '$timeout'
     ];
 
