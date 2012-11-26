@@ -76,22 +76,31 @@ trait CCResource{
   val identifier: String
   val rtype: String;
   val files: Seq[CCResourceFile];
-  def toXml: Elem;
-}
-case class CCWebResource(identifier: String, href: String, files: Seq[CCResourceFile]) extends CCResource{
-  val rtype = "webcontent"
-  def toXml:Elem = {
-    val outer:Elem = <resource href={href} identifier={identifier} type={rtype}></resource>
-    new Elem(outer.prefix,outer.label, outer.attributes, outer.scope, (outer.child ++ files.map(_.toXml)) : _*)
-  }
-}
-case class CCLtiResource(identifier: String, files: Seq[CCResourceFile]) extends CCResource{
-  val rtype = "imsbasiclti_xmlv1p0"
-  def toXml:Elem = {
+  def toXml: Elem = {
     val outer:Elem = <resource identifier={identifier} type={rtype}></resource>
     new Elem(outer.prefix,outer.label, outer.attributes, outer.scope, (outer.child ++ files.map(_.toXml)) : _*)
   }
 }
+trait CCHrefResource extends CCResource{
+  val href:String;
+  override def toXml:Elem = {
+    val outer:Elem = <resource href={href} identifier={identifier} type={rtype}></resource>
+    new Elem(outer.prefix,outer.label, outer.attributes, outer.scope, (outer.child ++ files.map(_.toXml)) : _*)
+  }
+}
+case class CCFolderResource(identifier: String, files: Seq[CCResourceFile]) extends CCResource{
+  val rtype = "associatedcontent/imscc_xmlv1p1/learning-application-resource"
+}
+case class CCWebFolderResource(identifier:String, href:String, files: Seq[CCResourceFile]) extends CCHrefResource{
+  val rtype = "associatedcontent/imscc_xmlv1p1/learning-application-resource"
+}
+case class CCWebResource(identifier: String, href: String, files: Seq[CCResourceFile]) extends CCHrefResource{
+  val rtype = "webcontent"
+}
+case class CCLtiResource(identifier: String, files: Seq[CCResourceFile]) extends CCResource{
+  val rtype = "imsbasiclti_xmlv1p0"
+}
 case class CCResourceFile(href: String){
   def toXml:Elem = <file href={href} />
 }
+
