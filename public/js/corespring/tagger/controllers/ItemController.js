@@ -68,6 +68,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.$watch("previewVisible", function (newValue) {
         $scope.previewClassName = newValue ? "preview-open" : "preview-closed";
         $scope.corespringApiUrl = newValue ? ("/testplayer/item/" + $routeParams.itemId + "/run") : "";
+        $scope.fullPreviewUrl = "/web/item-preview/" + $routeParams.itemId;
     });
 
     $scope.deleteItem = function(item) {
