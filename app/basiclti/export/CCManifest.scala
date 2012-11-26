@@ -23,7 +23,7 @@ case class CCManifest(identifier:String, resources:Seq[CCResource], organization
     } else None
   }
  def toXml:Elem = {
-   var outer:Elem = <manifest identifier="cctd0001"
+   var outer:Elem = <manifest identifier={identifier}
                             xmlns="http://www.imsglobal.org/xsd/imsccv1p2/imscp_v1p1"
                             xmlns:lom="http://ltsc.ieee.org/xsd/imsccv1p2/LOM/resource"
                             xmlns:lomimscc="http://ltsc.ieee.org/xsd/imsccv1p2/LOM/manifest"

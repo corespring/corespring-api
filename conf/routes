@@ -68,6 +68,7 @@ GET     /api/v1/items/:itemId/assets/:fileName  api.v1.FilesApi.getFile(itemId:S
 # Exporter api
 GET     /api/v1/items/multiple/scorm-2004.zip       api.v1.ExporterApi.multiItemScorm2004(ids:String)
 GET     /api/v1/items/:id/scorm-2004.zip            api.v1.ExporterApi.scorm2004(id:ObjectId)
+GET     /api/v1/items/multiple/item_launch.imscc    api.v1.ExporterApi.multiItemLti(ids:String)
 
 # Resource api
 GET     /api/v1/items/:itemId/materials          api.v1.ResourceApi.getSupportingMaterials(itemId:String)

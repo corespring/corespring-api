@@ -70,7 +70,6 @@ object ExporterApi extends BaseApi {
         }
       }
   }
-
   def multiItemLti(ids: String) = ApiAction {
     request =>
       val validIds = ids.split(",").toList.map {
