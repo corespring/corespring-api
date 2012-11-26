@@ -12,6 +12,7 @@ import play.api.libs.json.Json._
 
 import testplayer.controllers.routes.{ ItemPlayer => ItemPlayerRoutes }
 import basiclti.controllers.routes.{ AssignmentPlayer => AssignmentPlayerRoutes }
+import basiclti.controllers.routes.{ AssignmentLauncher => AssignmentLauncherRoutes }
 
 object AssignmentLauncher extends Controller {
 
@@ -23,19 +24,25 @@ object AssignmentLauncher extends Controller {
    * Find assignment in the db - if its not there create it.
    */
     def getOrCreateAssignment(data:LtiData) : Assignment = {
+
+      def makeAssignment(data:LtiData, sessionId : ObjectId, id : ObjectId = new ObjectId()) = {
+        val newAssignment = new Assignment(
+          itemSessionId = sessionId,
+          resultSourcedId = data.resultSourcedId.get,
+          gradePassbackUrl = data.outcomeUrl.get,
+          onFinishedUrl = data.returnUrl.get,
+          id = id
+        )
+        Assignment.save(newAssignment)
+        newAssignment
+      }
+
       Assignment.findOne( MongoDBObject("resultSourcedId" -> data.resultSourcedId )) match {
-        case Some(a) => a
+        case Some(a) => makeAssignment(data,a.itemSessionId,a.id)
         case _ => {
           val newSession = new ItemSession( itemId = itemId )
           ItemSession.save(newSession)
-          val newAssignment = new Assignment(
-            itemSessionId = newSession.id,
-            resultSourcedId = data.resultSourcedId.get,
-            gradePassbackUrl = data.outcomeUrl.get,
-            onFinishedUrl = data.returnUrl.get
-          )
-          Assignment.save(newAssignment)
-          newAssignment
+          makeAssignment(data, newSession.id)
         }
       }
     }
@@ -111,9 +118,14 @@ object AssignmentLauncher extends Controller {
               sendResultsToPassback.await(10000).fold(
                 error => throw new RuntimeException( error.getMessage ),
                 response => {
-                  Logger.debug("response from lms:")
-                  Logger.debug(response.body)
-                  Ok(toJson(Map("returnUrl" -> assignment.onFinishedUrl)))
+                 Logger.debug(response.body)
+                 val returnUrl = response.body match {
+                   case e : String if e.contains("Invalid authorization header") => {
+                     AssignmentLauncherRoutes.authorizationError().url
+                   }
+                   case _ => assignment.onFinishedUrl
+                }
+                  Ok(toJson(Map("returnUrl" -> returnUrl)))
                 }
               )
           }
@@ -124,8 +136,12 @@ object AssignmentLauncher extends Controller {
      }
   }
 
-  //TODO: calculate score
+  def authorizationError = Action{ request =>
+    Ok(basiclti.views.html.authorizationError())
+  }
+
   private def getScore(session:ItemSession) : String = {
-    "0.3"
+    val (score,maxScore) = ItemSession.getTotalScore(session)
+    (score / maxScore).toString
   }
 }
