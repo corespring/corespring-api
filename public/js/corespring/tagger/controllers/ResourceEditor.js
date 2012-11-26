@@ -103,7 +103,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
 
         if (imageContentTypes.indexOf(f.contentType.toLowerCase()) != -1) {
             var templateUrl = ServiceLookup.getUrlFor('previewFile');
-            return templateUrl.replace("{key}", $routeParams.itemId + "/" + $scope.resource.name + "/" + f.name);
+            return templateUrl.replace("{key}", $routeParams.itemId + "/data/" + f.name);
         } else {
             return '/assets/images/empty.png';
         }
