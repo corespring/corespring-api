@@ -17,12 +17,12 @@
                 <li ng-class="{true:'active', false:''}[currentPanel=='content']">
                     <a
                             href="javascript:void(1)"
-                            ng-click="changePanel('content')">Item Design</a>
+                            ng-click="changePanel('content')">Interaction</a>
                 </li>
                 <li ng-class="{true:'active', false:''}[currentPanel=='metadata']">
                     <a
                             href="javascript:void(1)"
-                            ng-click="changePanel('metadata')">Item Profile</a></li>
+                            ng-click="changePanel('metadata')">Profile</a></li>
 
                 <li ng-class="{true:'active', false:''}[currentPanel=='supportingMaterials']">
                     <a href="javascript:void(1)"
@@ -83,6 +83,17 @@
                 </button>
                 <button class="btn btn-info"
                         ng-click="cancelRenameFile()">Cancel
+                </button>
+            </div>
+
+            <div ui-modal ng-model="showRemoveFileModal" style="padding: 10px">
+                <h3>Delete {{fileToRemove.name}}</h3>
+
+                <button ng-click="confirmRemoveFile()"
+                        class="btn btn-success">Ok
+                </button>
+                <button class="btn btn-info"
+                        ng-click="cancelRemoveFile()">Cancel
                 </button>
             </div>
 

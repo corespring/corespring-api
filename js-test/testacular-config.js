@@ -40,7 +40,7 @@ exclude = [];
 // use dots reporter, as travis terminal does not support escaping sequences
 // possible values: 'dots' || 'progress'
 reporter = 'dots';
-browsers = ['PhantomJS'];
+browsers = ['PhantomJS','Firefox'];
 // these are default values, just to show available options
 // web server port
 port = 8080;

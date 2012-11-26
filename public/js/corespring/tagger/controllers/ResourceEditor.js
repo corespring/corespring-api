@@ -231,20 +231,38 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
         return "/api/v1/files/{storageKey}"
     };
 
-    $scope.removeFile = function (f) {
+    $scope.confirmRemoveFile = function () {
+        var f = $scope.fileToRemove;
+
 
         if(!f){
             return;
         }
 
+
         $http({
-            url: tokenize($scope.urls.deleteFile.replace("{filename}", f.name)),
+            url:tokenize($scope.urls.deleteFile.replace("{filename}", f.name)),
             method:"DELETE"
         }).success(function (data, status, headers, config) {
-                $scope.resource.files.removeItem(f);
-            }).error(function (data, status, headers, config) {
-                throw "Error deleting file";
-            });
+            $scope.resource.files.removeItem(f);
+            $scope.showRemoveFileModal = false;
+            $scope.fileToRemove = null;
+        }).error(function (data, status, headers, config) {
+            $scope.showRemoveFileModal = false;
+            $scope.fileToRemove = null;
+            alert("Error deleting file");
+        });
+    };
+
+    $scope.cancelRemoveFile = function () {
+        $scope.showRemoveFileModal = false;
+        $scope.fileToRemove = null;
+    };
+
+
+    $scope.removeFile = function (f) {
+        $scope.fileToRemove = f;
+        $scope.showRemoveFileModal = true;
     };
 
 
