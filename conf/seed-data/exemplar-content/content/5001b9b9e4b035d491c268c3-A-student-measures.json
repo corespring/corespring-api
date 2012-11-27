@@ -51,7 +51,7 @@
 	"materialType" : "Assessment Item",
 	"priorUse" : "Summative",
 	"demonstratedKnowledge" : "Conceptual",
-	"bloomsTaxonomy" : "Understand (Describe, dramatize)",
+	"bloomsTaxonomy" : "Understanding",
 	"keySkills" : [ ],
 	"reviewsPassed" : [
 		"Editorial",
