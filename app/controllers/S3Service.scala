@@ -62,6 +62,9 @@ object S3Service {
 
   def download(bucket: String, fullKey: String, headers: Option[Headers] = None): Result = {
 
+    require(fullKey != null && !fullKey.isEmpty, "Invalid key")
+    require(bucket != null && !bucket.isEmpty, "Invalid bucket")
+
     def returnResultWithAsset(s3 : AmazonS3Client, bucket: String, key: String) : Result = {
       val s3Object: S3Object = s3.getObject(bucket, fullKey) //get object. may result in exception
       val inputStream: InputStream = s3Object.getObjectContent
