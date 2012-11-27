@@ -28,7 +28,7 @@ case class CCManifest(identifier:String, resources:Seq[CCResource], organization
   http://ltsc.ieee.org/xsd/imsccv1p2/LOM/manifest http://www.imsglobal.org/profile/cc/ccv1p2/LOM/ccv1p2_lommanifest_v1p0.xsd">
    <metadata>
      <schema>IMS Common Cartridge</schema>
-     <schemaversion>1.1.0</schemaversion>
+     <schemaversion>1.2.0</schemaversion>
    </metadata>
  </manifest>
    if (organizationsXml.isDefined){

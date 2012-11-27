@@ -34,7 +34,9 @@ object CCExporter {
     val ag = CCAssignmentGroup(IdGen(),"Assignments")
     val ags = CCAssignmentGroups(Seq(ag))
     cf.virtualFiles += CCFile("course_settings/assignment_groups.xml",xmlToString(ags.toXml))
-    cf.resources += CCFolderResource(ag.identifier,Seq(CCResourceFile("course_settings/assignment_groups.xml")))
+    cf.virtualFiles += CCFile("course_settings/canvas_export.txt","Q: What did the panda say when he was forced out of his natural habitat?\nA: This is un-BEAR-able")
+    cf.resources += CCWebFolderResource(IdGen(),"course_settings/canvas_export.txt",
+      Seq(CCResourceFile("course_settings/canvas_export.txt"), CCResourceFile("course_settings/assignment_groups.xml")))
     var count = 0;
     ids.foreach(id => {
       val folderId = IdGen()
