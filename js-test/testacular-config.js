@@ -4,6 +4,7 @@ files = [
     JASMINE,
     JASMINE_ADAPTER,
     'js-test/lib/jquery-1.7.2.min.js',
+    'js-test/lib/jquery-ui.js',
     'js-test/lib/js-diff.js',
     'public/bootstrap/js/bootstrap.js',
     'public/js/vendor/ace/ace.js',
