@@ -2,13 +2,6 @@ package basiclti.export
 
 import xml.Elem
 
-/**
- * Created with IntelliJ IDEA.
- * User: josh
- * Date: 11/25/12
- * Time: 2:08 PM
- * To change this template use File | Settings | File Templates.
- */
 case class CCManifest(identifier:String, resources:Seq[CCResource], organizations:Seq[CCOrganization]) {
   private val resourcesXml:Option[Elem] = {
     val outer:Elem = <resources></resources>
@@ -35,14 +28,14 @@ case class CCManifest(identifier:String, resources:Seq[CCResource], organization
   http://ltsc.ieee.org/xsd/imsccv1p2/LOM/manifest http://www.imsglobal.org/profile/cc/ccv1p2/LOM/ccv1p2_lommanifest_v1p0.xsd">
    <metadata>
      <schema>IMS Common Cartridge</schema>
-     <schemaversion>1.2.0</schemaversion>
+     <schemaversion>1.1.0</schemaversion>
    </metadata>
  </manifest>
-   if (resourcesXml.isDefined){
-     outer = new Elem(outer.prefix, outer.label, outer.attributes, outer.scope, (outer.child ++ resourcesXml.get) : _*)
-   }
    if (organizationsXml.isDefined){
      outer = new Elem(outer.prefix, outer.label, outer.attributes, outer.scope, (outer.child ++ organizationsXml.get) : _*)
+   }
+   if (resourcesXml.isDefined){
+     outer = new Elem(outer.prefix, outer.label, outer.attributes, outer.scope, (outer.child ++ resourcesXml.get) : _*)
    }
    outer
  }
@@ -60,16 +53,20 @@ case class CCOrganization(identifier: String,itemGroup:Option[CCItemGroup]){
 
 case class CCItemGroup(title: String, identifier: String, items:Seq[CCItem]){
   def toXml:Elem = {
-    val outer:Elem = <item identifier={identifier}>
-      <title>{title}</title>
+    var outer:Elem = <item identifier={identifier}>
     </item>
-    new Elem(outer.prefix,outer.label,outer.attributes,outer.scope, (outer.child ++ items.map(_.toXml)) : _*)
+    if (title != "") outer =  new Elem(outer.prefix,outer.label,outer.attributes,outer.scope, (outer.child ++ <title>{title}</title>) : _*)
+    outer = new Elem(outer.prefix,outer.label,outer.attributes,outer.scope, (outer.child ++ items.map(_.toXml)) : _*)
+    outer
   }
 }
 case class CCItem(title: String, identifier:String, identifierref:String){
-  def toXml:Elem = <item identifier={identifier} identifierref={identifierref}>
-    <title>{title}</title>
-  </item>
+  def toXml:Elem = {
+    var outer:Elem = <item identifier={identifier}>
+    </item>
+    if (title != "") outer =  new Elem(outer.prefix,outer.label,outer.attributes,outer.scope, (outer.child ++ <title>{title}</title>) : _*)
+    outer
+  }
 }
 
 trait CCResource{

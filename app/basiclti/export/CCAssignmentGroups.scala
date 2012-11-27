@@ -28,7 +28,7 @@ case class CCAssignmentGroup(identifier: String, title: String){
 case class CCExternalToolAssignmentSettings(identifier:String,title:String, assignmentGroupId:String, externalToolUrl:String, maxPoints:String = "10"){
   def toXml:Elem = <assignment identifier={identifier} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://canvas.instructure.com/xsd/cccv1p0" xsi:schemaLocation="http://canvas.instructure.com/xsd/cccv1p0 http://canvas.instructure.com/xsd/cccv1p0.xsd">
     <title>{title}</title>
-    <assignment_group_identifierref>id3b5ba1ee504687ddd144d8e36ed451b</assignment_group_identifierref>
+    <assignment_group_identifierref>{assignmentGroupId}</assignment_group_identifierref>
     <points_possible>{maxPoints}</points_possible>
     <grading_type>points</grading_type>
     <all_day>false</all_day>

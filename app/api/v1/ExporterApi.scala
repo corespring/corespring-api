@@ -8,7 +8,7 @@ import play.api.libs.iteratee.Enumerator
 import play.api.mvc._
 import common.mock._
 import com.mongodb.casbah.commons.MongoDBObject
-import basiclti.export.LtiExporter
+import basiclti.export.CCExporter
 import scala.Some
 import play.api.mvc.SimpleResult
 import play.api.mvc.ResponseHeader
@@ -33,7 +33,7 @@ object ExporterApi extends BaseApi {
 
 
   def multiItemLti(ids: String) = ApiAction { request =>
-    binaryResultFromIds( ids, request.ctx.organization, (i) => LtiExporter.packageItems(i.map(_.id)) )
+    binaryResultFromIds( ids, request.ctx.organization, (i) => CCExporter.packageItems(i.map(_.id.toString)) )
   }
 
   private def binaryResultFromIds(ids:String, orgId : ObjectId, itemsToByteArray : (List[Item] => Array[Byte])) : Result = {
