@@ -18,18 +18,18 @@ class ItemTest extends BaseTest {
 
     "general parse" in {
       val item = Item(demonstratedKnowledge = Some("Factual"),
-        bloomsTaxonomy = Some("Apply")
+        bloomsTaxonomy = Some("Applying")
       )
 
       val json = Json.toJson(item)
 
       (json \ Item.demonstratedKnowledge).asOpt[String] must equalTo(Some("Factual"))
-      (json \ Item.bloomsTaxonomy).asOpt[String] must equalTo(Some("Apply"))
+      (json \ Item.bloomsTaxonomy).asOpt[String] must equalTo(Some("Applying"))
 
       val parsed = json.as[Item]
 
       parsed.demonstratedKnowledge must equalTo(Some("Factual"))
-      parsed.bloomsTaxonomy must equalTo(Some("Apply"))
+      parsed.bloomsTaxonomy must equalTo(Some("Applying"))
     }
 
     "parse workflow" in {
