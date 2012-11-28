@@ -246,14 +246,24 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         }
     };
 
+    $scope.saveSelectedFileFinished = function() {
+        $scope.isSaving = false;
+        $scope.suppressSave = false;
+    };
 
     $scope.save = function () {
+
         if (!$scope.itemData) {
             return;
         }
 
         if (!$scope.suppressSave) {
             $scope.isSaving = true;
+        }
+
+        if ($scope.showResourceEditor) {
+            $scope.$broadcast("saveSelectedFile");
+            return;
         }
 
         $scope.validationResult = {};

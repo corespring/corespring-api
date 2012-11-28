@@ -201,11 +201,15 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
         $scope.update(f);
     };
 
+    $scope.$on("saveSelectedFile", function() {
+       $scope.update($scope.selectedFile);
+    });
     /**
      * Update the file on the server
      * @param file
      */
     $scope.update = function(file, filename) {
+
         if( !filename ){
             filename = file.name;
         }
@@ -216,7 +220,9 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
             data:file
         }).success(function (data, status, headers, config) {
                 $scope.showFile(file);
+                $scope.saveSelectedFileFinished();
             }).error(function (data, status, headers, config) {
+                $scope.saveSelectedFileFinished();
                 throw "Error updating file";
             });
 

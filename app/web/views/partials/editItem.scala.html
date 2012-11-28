@@ -35,7 +35,6 @@
                 <button class="btn btn-primary"
                         ng-model="isSaving"
                         loading-button
-                        ng-show="!showResourceEditor"
                         data-loading-text="Saving..."
                         ng-click="save()">Save
                 </button>
@@ -104,13 +103,7 @@
                         <a ng-click="leaveEditor()" ng-show="showBackNav" class="leave-link">
                             <i class="icon-backward"></i>
                         </a>
-                        Editing:
-                        {{resource.name}}
                     </div>
-                    &nbsp;
-                    <a class="btn btn-mini btn-success pull-left" style="margin-left: 10px;"
-                       ng-click="update(selectedFile)"
-                       ng-show="selectedFile.content">Save</a>
                 </div>
             </div>
 
