@@ -11,14 +11,19 @@ import securesocial.core.UserId
 import securesocial.core.SocialUser
 import scala.Some
 
+object CoreSpringUserService{
+  def uid(id:UserId) = id.id + "|" + id.providerId
+}
 /**
  * An implementation of the UserService
  */
 class CoreSpringUserService(application: Application) extends UserServicePlugin(application) {
+
+
   def find(id: UserId): Option[SocialUser] = {
     // id.id has the username
     Log.i("looking for %s(%s)".format(id.id, id.providerId))
-    User.getUser(id.id).map( u => {
+    User.getUser(CoreSpringUserService.uid(id)).map( u => {
       Log.i("found user = " + u.userName)
       SocialUser(id, "", "", u.fullName, Some(u.email), None, AuthenticationMethod.UserPassword, passwordInfo = Some(PasswordInfo(u.password)) )
     })
@@ -28,7 +33,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
    if ( User.getUser(user.id.id).isEmpty ) {
       val corespringUser =
         User(
-          user.id.id,
+          CoreSpringUserService.uid(user.id),
           user.fullName,
           user.email.getOrElse(""),
           Seq(),

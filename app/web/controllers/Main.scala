@@ -38,7 +38,7 @@ object Main extends Controller with SecureSocial {
   def index = SecuredAction() { request =>
       val jsonString = getFieldValueJsonString
       val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
-      Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.id.id, jsonString, TMP_ACCESS_TOKEN))
+      Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName, jsonString, TMP_ACCESS_TOKEN))
   }
 
   private def getFieldValueJsonString: String = {

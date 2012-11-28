@@ -8,6 +8,7 @@ import play.api.libs.json.Json
 import org.bson.types.ObjectId
 import models.User
 import securesocial.core.SecureSocial
+import web.CoreSpringUserService
 
 
 /**
@@ -113,7 +114,7 @@ trait BaseApi extends Controller {
           error => BadRequest(Json.toJson(new ApiError(1, "The id specified is not a valid UUID"))),
           optionalCtx => optionalCtx.map(ctx => f(ApiRequest(ctx, request))).getOrElse {
             SecureSocial.currentUser(request).map { u =>
-              invokeAsUser(u.id.id, request)(f)
+              invokeAsUser(CoreSpringUserService.uid(u.id), request)(f)
             }.getOrElse {
               tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
                 OAuthProvider.getAuthorizationContext(token).fold(
