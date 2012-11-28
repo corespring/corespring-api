@@ -25,7 +25,7 @@ object QueryParser{
       field._2 match {
         case dblist:BasicDBList => dblist.foreach(value => value match {
           case innerdbo:BasicDBObject => replaceKeys(innerdbo,keys)
-          case _ => Log.f("invalid query")
+          case _ =>
         })
         case innerdbo:BasicDBObject => replaceKeys(innerdbo,keys)
         case _ =>
@@ -38,7 +38,7 @@ object QueryParser{
       field._2 match {
         case dblist:BasicDBList => dblist.foreach(value => value match {
           case innerdbo:BasicDBObject => removeKeys(innerdbo,keys)
-          case _ => Log.f("invalid query")
+          case _ =>
         })
         case innerdbo:BasicDBObject => removeKeys(innerdbo,keys)
         case _ =>

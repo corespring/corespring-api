@@ -1,0 +1,166 @@
+
+
+html, body, p, select, textarea, h1, h2, h3, h4, h5, h6 {
+  font-family: 'Ubuntu', sans-serif;
+  color: #333333;
+}
+
+body {
+ 
+  font-size: 18px;
+ }
+
+h1 {
+  color: #fff;
+  font-size: 30px;
+  line-height: 1.2;
+  text-shadow: 1px -2px 0 rgba(51, 51, 51, 0.6);
+}
+
+h4 {
+  font-size: 18px;
+  line-height: 24px;
+}
+
+p {
+  line-height: 26px;
+  margin: 0 0 30px;
+  font-weight: 300;
+}
+.learn-section {
+  border-top: 1px solid #92c425;
+  border-bottom: 1px solid #92c425;
+  padding: 20px;
+  text-align: center;
+  margin: 10px 0 0;
+}
+.learn-section span {
+  font-size: 20px;
+  font-weight: 300;
+  display: inline-block;
+  line-height: 42px;
+}
+.learn-section a {
+  color: #92c425;
+  font-weight: bold;
+}
+
+.lead-in {
+  font-size: 20px;
+  line-height: 35px;
+}
+
+.title-wrap {
+  padding: 25px 0;
+  text-align: center;
+  background: #80b312 url(../images/title-wrap-bg-tile.png) repeat;
+  margin: 0 0 30px;
+}
+
+.header-wrap {
+  background: #dbd9db url(../images/header-wrap-home-bg.jpg) center top repeat-x;
+}
+
+.navbar .nav-collapse .nav > li > a {
+  padding: 6px 20px 8px;
+  display: inline-block;
+  float: none;
+  font-weight: 500;
+  vertical-align: middle;
+  color: #00acce;
+  margin: 0 10px 0 0;
+}
+
+
+.navbar .nav-collapse .nav > li > a:hover,
+.navbar .nav-collapse .nav > li > .active a {
+  color: #ffffff;
+  background-color: #92c425;
+}
+
+.navbar .nav-collapse .nav > li > a.active {
+color: #333333;
+}
+
+.navbar .nav .active > a {
+  color: #ffffff;
+  text-decoration: none;
+  background-color: none;
+}
+
+.navbar .nav > li > a {
+  float: none;
+  padding: 10px 10px 11px;
+  line-height: 19px;
+  color: #ffffff;
+  text-decoration: none;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.footer-wrap {
+  background: #dfdddf url(../images/footer-wrap-bg.jpg) center top repeat-x;
+}
+.footer {
+  line-height: 70px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.header {
+  text-align: center;
+  padding: 18px 0 25px;
+}
+
+/** - corespring color overrides - */
+
+.btn-success {
+  background-color: #80b312;
+  background-image: -ms-linear-gradient(top, #80b312, #62890e);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#80b312), to(#62890e));
+  background-image: -webkit-linear-gradient(top, #80b312, #62890e);
+  background-image: -o-linear-gradient(top, #80b312, #62890e);
+  background-image: -moz-linear-gradient(top, #80b312, #62890e);
+  background-image: linear-gradient(top, #80b312, #62890e);
+  filter: progid:dximagetransform.microsoft.gradient(startColorstr='@top', endColorstr='@bottom', GradientType=0);
+  filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+  background-repeat: repeat-x;
+  border-color: #6f9c10 #5f850d #5f850d;
+  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+}
+.btn-success:hover,
+.btn-success:active,
+.btn-success.active,
+.btn-success.disabled,
+.btn-success[disabled] {
+  background-color: #5f850d;
+}
+.btn-success:active,
+.btn-success.active {
+  background-color: #80b312;
+}
+.btn-primary {
+  background-color: #00acce;
+  background-image: -ms-linear-gradient(top, #00acce, #0086a0);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#00acce), to(#0086a0));
+  background-image: -webkit-linear-gradient(top, #00acce, #0086a0);
+  background-image: -o-linear-gradient(top, #00acce, #0086a0);
+  background-image: -moz-linear-gradient(top, #00acce, #0086a0);
+  background-image: linear-gradient(top, #00acce, #0086a0);
+  filter: progid:dximagetransform.microsoft.gradient(startColorstr='@top', endColorstr='@bottom', GradientType=0);
+  filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+  background-repeat: repeat-x;
+  border-color: #0097b5 #00819b #00819b;
+  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+}
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary.active,
+.btn-primary.disabled,
+.btn-primary[disabled] {
+  background-color: #00819b;
+}
+.btn-primary:active,
+.btn-primary.active {
+  background-color: #00acce;
+}
+

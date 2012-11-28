@@ -8,14 +8,24 @@ describe('HomeController', function () {
     MockItemService.createWorkflowObject = jasmine.createSpy("Create Workflow Object");
 
     var MockSearchService = function() {}
+    MockSearchService.search = jasmine.createSpy("Search");
 
     beforeEach(function () {
         module(function ($provide) {
-            $provide.value('AccessToken', "1");
             $provide.value('ItemService', MockItemService);
             $provide.value('ServiceLookup', {});
             $provide.value('SupportingMaterial', {});
             $provide.value('SearchService', MockSearchService);
+            $provide.value('Collection', {
+                query: function(data, result) {
+                    setTimeout(result, 0);
+                    return ["collection1", "collection2"];
+                },
+                get: function() {
+
+                }
+            });
+
         });
     });
 
@@ -39,6 +49,9 @@ describe('HomeController', function () {
         $httpBackend = _$httpBackend_;
         prepareBackend($httpBackend);
         scope = $rootScope.$new();
+        scope.search = function() {
+
+        }
 
         try {
             ctrl = $controller(HomeController, {$scope:scope});

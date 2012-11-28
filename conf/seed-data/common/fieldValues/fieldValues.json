@@ -3,28 +3,28 @@
 
     "bloomsTaxonomy":[
         {
-            "key":"Knowledge (Remember)",
-            "value":"Knowledge (Remember)"
+            "key":"Remembering",
+            "value":"Remembering"
         },
         {
-            "key":"Understand (Describe, dramatize)",
-            "value":"Understand (Describe, dramatize)"
+            "key":"Understanding",
+            "value":"Understanding"
         },
         {
-            "key":"Apply",
-            "value":"Apply"
+            "key":"Applying",
+            "value":"Applying"
         },
         {
-            "key":"Analyze",
-            "value":"Analyze"
+            "key":"Analyzing",
+            "value":"Analyzing"
         },
         {
-            "key":"Evaluate",
-            "value":"Evaluate"
+            "key":"Evaluating",
+            "value":"Evaluating"
         },
         {
-            "key":"Create",
-            "value":"Create"
+            "key":"Creating",
+            "value":"Creating"
         }
     ],
 
@@ -154,10 +154,6 @@
         {
             "key":"Constructed Response - Open Ended",
             "value":"Constructed Response - Open Ended"
-        },
-        {
-            "key":"Other (Please Identify)",
-            "value":"Other"
         }
     ],
 
@@ -233,10 +229,6 @@
         {
             "key":"UG",
             "value":"Ungraded"
-        },
-        {
-            "key":"Other",
-            "value":"Other"
         }
     ],
 

@@ -26,6 +26,7 @@ describe('qtiDirectives.feedbackinline', function () {
         });
     });
 
+
     describe("behaviour", function(){
 
         it('responds to correctResponses', function(){
@@ -35,6 +36,8 @@ describe('qtiDirectives.feedbackinline', function () {
 
             rootScope.itemSession= {};
             rootScope.itemSession.sessionData = {};
+
+            helper.setFeedbackEnabled(rootScope,rootScope.itemSession, true);
 
             rootScope.$apply(function () {
                 rootScope.itemSession.sessionData.feedbackContents = { a: "correct!"};
@@ -51,12 +54,33 @@ describe('qtiDirectives.feedbackinline', function () {
             expect(interaction.scope.feedback).toBe("");
         });
 
+        it('does not show feedback when feedback is disabled', function () {
+
+            var node = '<feedbackinline csFeedbackId="a"></feedbackinline>';
+            var interaction = getFeedback(node);
+
+            rootScope.itemSession= {};
+            rootScope.itemSession.sessionData = {};
+
+            helper.setFeedbackEnabled(rootScope,rootScope.itemSession, false);
+
+            rootScope.$apply(function(){
+                rootScope.itemSession.sessionData.feedbackContents = { a: "correct!"};
+                rootScope.itemSession.sessionData.correctResponses = { rid:"correct" }
+            });
+
+            expect(interaction.scope.feedback).toBe("")
+
+        });
+
         it('resets ui', function(){
             var node = '<feedbackinline csFeedbackId="a"></feedbackinline>';
             var interaction = getFeedback(node);
 
             rootScope.itemSession= {};
             rootScope.itemSession.sessionData = {};
+
+            helper.setFeedbackEnabled(rootScope,rootScope.itemSession, true);
 
             rootScope.$apply(function () {
                 rootScope.itemSession.sessionData.feedbackContents = { a: "correct!"};

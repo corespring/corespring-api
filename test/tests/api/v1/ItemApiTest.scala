@@ -1,35 +1,30 @@
 package tests.api.v1
 
 import play.api.libs.json._
-import play.api.Play
 import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import api.ApiError._
 import tests.BaseTest
 import models._
-import play.api.Play.current
 import org.bson.types.ObjectId
-import controllers.{S3Service, Log}
-import play.api.test.FakeHeaders
-import scala.Some
-import play.api.mvc.AnyContentAsJson
-import play.api.libs.json.JsObject
+import controllers.Log
 import scala.xml._
-import utils.S3TestUtil
-import play.mvc.Http.Request
 import scala.Some
 import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
+import api.ApiError
 
 class ItemApiTest extends BaseTest {
 
   val TEST_COLLECTION_ID: String = "5001bb0ee4b0d7c9ec3210a2"
   val OTHER_TEST_COLLECTION_ID: String = "5001a66ce4b0d7c9ec320f2e"
 
+  val ItemRoutes = api.v1.routes.ItemApi
+
   "list all items" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s".format(token))
+    val call = ItemRoutes.list()
+    val fakeRequest = FakeRequest(call.method, tokenize(call.url) )
     val Some(result) = routeAndCall(fakeRequest)
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
@@ -105,13 +100,13 @@ class ItemApiTest extends BaseTest {
     (item \ "id").as[String] must beEqualTo(id)
   }
 
-  "create requires a collection id" in {
+  "create does not require a collection id" in {
     val toCreate = xmlBody("<html></html>")
     val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
     val result = routeAndCall(fakeRequest).get
-    status(result) must equalTo(BAD_REQUEST)
-    val collection = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
-    (collection \ "code").as[Int] must equalTo(CollectionIsRequired.code)
+    status(result) must equalTo(OK)
+    val collectionId = (Json.fromJson[JsValue](Json.parse(contentAsString(result))) \ "collectionId").as[String]
+    ContentCollection.findOneById(new ObjectId(collectionId)).get.name must beEqualTo(ContentCollection.DEFAULT)
   }
 
   "create requires an authorized collection id" in {
@@ -120,7 +115,7 @@ class ItemApiTest extends BaseTest {
     val result = routeAndCall(fakeRequest).get
     status(result) must equalTo(FORBIDDEN)
     val collection = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
-    (collection \ "code").as[Int] must equalTo(CollectionUnauthorized.code)
+    (collection \ "code").as[Int] must equalTo(ApiError.CollectionUnauthorized.code)
   }
 
   "create response does not include csFeedbackIds" in {
@@ -143,23 +138,22 @@ class ItemApiTest extends BaseTest {
     fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toUpdate))
     result = routeAndCall(fakeRequest).get
     var collection = Json.parse(contentAsString(result))
-    (collection \ "code").as[Int] must equalTo(IdNotNeeded.code)
+    (collection \ "code").as[Int] must equalTo(ApiError.IdNotNeeded.code)
   }
 
   "update with a new collection id" in {
 
     val toCreate = xmlBody("<root/>", Map("collectionId" -> TEST_COLLECTION_ID))
-    val call = api.v1.routes.ItemApi.createItem()
+    val call = api.v1.routes.ItemApi.create()
     val createResult = routeAndCall(FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsJson(toCreate))).get
     status(createResult) must equalTo(OK)
 
     val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
     val toUpdate = xmlBody("<root2/>", Map(Item.collectionId -> OTHER_TEST_COLLECTION_ID))
-    val updateCall = api.v1.routes.ItemApi.updateItem(new ObjectId(id))
+    val updateCall = api.v1.routes.ItemApi.update(new ObjectId(id))
 
     val updateResult = routeAndCall(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
     status(updateResult) must equalTo(OK)
-    Log.i(contentAsString(updateResult))
     val item: Item = Json.parse(contentAsString(updateResult)).as[Item]
     item.collectionId must equalTo(OTHER_TEST_COLLECTION_ID)
   }
@@ -168,13 +162,13 @@ class ItemApiTest extends BaseTest {
   "update with no collectionId returns the item's stored collection id" in {
 
     val toCreate = xmlBody("<root/>", Map("collectionId" -> TEST_COLLECTION_ID))
-    val call = api.v1.routes.ItemApi.createItem()
+    val call = api.v1.routes.ItemApi.create()
     val createResult = routeAndCall(FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsJson(toCreate))).get
     status(createResult) must equalTo(OK)
     val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
     val toUpdate = xmlBody("<root2/>", Map(Item.author -> "Ed"))
 
-    val updateCall = api.v1.routes.ItemApi.updateItem(new ObjectId(id))
+    val updateCall = api.v1.routes.ItemApi.update(new ObjectId(id))
 
     val updateResult = routeAndCall(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
     status(updateResult) must equalTo(OK)
@@ -189,16 +183,16 @@ class ItemApiTest extends BaseTest {
   "get and update return the same json" in {
 
     val toCreate = xmlBody("<root/>", Map(Item.collectionId -> TEST_COLLECTION_ID, Item.credentials -> STATE_DEPT))
-    val call = api.v1.routes.ItemApi.createItem()
+    val call = api.v1.routes.ItemApi.create()
     val createResult = routeAndCall(FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsJson(toCreate))).get
     val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
 
-    val getItemCall = api.v1.routes.ItemApi.getItem(new ObjectId(id))
+    val getItemCall = api.v1.routes.ItemApi.get(new ObjectId(id))
     val getResult = routeAndCall(FakeRequest(getItemCall.method, tokenize(getItemCall.url), FakeHeaders(), AnyContentAsEmpty)).get
 
     val getJsonString = contentAsString(getResult)
 
-    val updateCall = api.v1.routes.ItemApi.updateItem(new ObjectId(id))
+    val updateCall = api.v1.routes.ItemApi.update(new ObjectId(id))
 
     val toUpdate = xmlBody("<root/>", Map(Item.credentials -> STATE_DEPT))
     val updateResult = routeAndCall(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
@@ -211,7 +205,7 @@ class ItemApiTest extends BaseTest {
 
     val item = Item(collectionId = TEST_COLLECTION_ID)
     Item.save(item)
-    val deleteItemCall = api.v1.routes.ItemApi.deleteItem(item.id)
+    val deleteItemCall = api.v1.routes.ItemApi.delete(item.id)
 
     routeAndCall(tokenFakeRequest(deleteItemCall.method, deleteItemCall.url, FakeHeaders())) match {
       case Some(deleteResult) => {

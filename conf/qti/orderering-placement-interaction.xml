@@ -1,0 +1,67 @@
+<assessmentItem>
+    <responseDeclaration identifier="alphabet1" cardinality="ordered" baseType="identifier">
+        <correctResponse>
+            <value>a</value>
+            <value>b</value>
+            <value>c</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <responseDeclaration identifier="alphabet2" cardinality="ordered" baseType="identifier">
+        <correctResponse>
+            <value>a</value>
+            <value>b</value>
+            <value>c</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <responseDeclaration identifier="pugs" cardinality="ordered" baseType="identifier">
+        <correctResponse>
+            <value>pug1</value>
+            <value>pug2</value>
+            <value>pug3</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+        <orderInteraction responseIdentifier="alphabet1" shuffle="true" csOrderingType="placement" orientation="vertical">
+            <prompt>Please select the letters of the alphabet and put them into ascending order:</prompt>
+            <simpleChoice identifier="a" fixed="true">A</simpleChoice>
+            <simpleChoice identifier="b">B</simpleChoice>
+            <simpleChoice identifier="c">APPLE</simpleChoice>
+            <simpleChoice identifier="d">1</simpleChoice>
+            <simpleChoice identifier="e">2</simpleChoice>
+            <simpleChoice identifier="f">3</simpleChoice>
+            <simpleChoice identifier="g">4</simpleChoice>
+            <simpleChoice identifier="h" fixed="true">%</simpleChoice>
+        </orderInteraction>
+
+        <br/>
+        <br/>
+        <orderInteraction responseIdentifier="alphabet2" shuffle="true" csOrderingType="placement">
+            <prompt>Please arrange letters of the alphabet:</prompt>
+            <simpleChoice identifier="a" fixed="true" label="A label">A</simpleChoice>
+            <simpleChoice identifier="b" label="B label">B</simpleChoice>
+            <simpleChoice identifier="c">C</simpleChoice>
+            <simpleChoice identifier="d">D</simpleChoice>
+            <simpleChoice identifier="e">E</simpleChoice>
+            <simpleChoice identifier="f" label="F label">F</simpleChoice>
+            <simpleChoice identifier="g">G</simpleChoice>
+            <simpleChoice identifier="h" fixed="true">H</simpleChoice>
+        </orderInteraction>
+
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <orderInteraction responseIdentifier="pugs" shuffle="true" csOrderingType="placement" csCorrectAnswers="3">
+            <prompt>Please arrange letters of the alphabet:</prompt>
+            <simpleChoice identifier="pug1">A</simpleChoice>
+            <simpleChoice identifier="pug2">B</simpleChoice>
+            <simpleChoice identifier="pug3"><img src="http://stuffpoint.com/dogs/image/59240-dogs-4plus-pugs.jpg" width="150" height="150"/></simpleChoice>
+            <simpleChoice identifier="pug4">D</simpleChoice>
+            <simpleChoice identifier="pug5">D</simpleChoice>
+        </orderInteraction>
+    </itemBody>
+</assessmentItem>
+

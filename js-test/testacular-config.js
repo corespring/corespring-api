@@ -4,6 +4,7 @@ files = [
     JASMINE,
     JASMINE_ADAPTER,
     'js-test/lib/jquery-1.7.2.min.js',
+    'js-test/lib/jquery-ui.js',
     'js-test/lib/js-diff.js',
     'public/bootstrap/js/bootstrap.js',
     'public/js/vendor/ace/ace.js',
@@ -22,8 +23,10 @@ files = [
     'public/js/corespring/tagger/services/*.js',
     'public/js/corespring/qti/prototype.extensions/*.js',
     'public/js/corespring/qti/*.js',
+    'public/js/corespring/qti/controllers/*.js',
     'public/js/corespring/qti/directives/*.js',
     'public/js/corespring/qti/directives/web/*.js',
+    'js-test/lib/play.mock.routes.js',
     'js-test/unit/corespring/qti/*.js',
     'js-test/unit/corespring/qti/prototype.extensions/*.js',
     'js-test/unit/corespring/qti/directives/*.js',
@@ -38,7 +41,7 @@ exclude = [];
 // use dots reporter, as travis terminal does not support escaping sequences
 // possible values: 'dots' || 'progress'
 reporter = 'dots';
-browsers = ['PhantomJS'];
+browsers = ['PhantomJS','Firefox'];
 // these are default values, just to show available options
 // web server port
 port = 8080;

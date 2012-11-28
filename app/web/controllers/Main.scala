@@ -12,10 +12,9 @@ import securesocial.core.SecureSocial
 
 object Main extends Controller with SecureSocial {
 
-  val TMP_ACCESS_TOKEN : String = "-- delete me ---"
 
   def previewItem(itemId:String) = Action{ request =>
-    Ok(web.views.html.itemPreview(itemId, TMP_ACCESS_TOKEN))
+    Ok(web.views.html.itemPreview(itemId, common.mock.MockToken))
   }
 
 
@@ -30,15 +29,15 @@ object Main extends Controller with SecureSocial {
     }
   }
 
-  def renderProfile(itemId:String) = SecuredAction() { request =>
-    Ok(web.views.html.profilePrint(itemId, TMP_ACCESS_TOKEN))
+  def renderProfile(itemId:String) = SecuredAction(){ request =>
+    Ok(web.views.html.profilePrint(itemId, common.mock.MockToken))
   }
 
 
   def index = SecuredAction() { request =>
       val jsonString = getFieldValueJsonString
       val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
-      Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName, jsonString, TMP_ACCESS_TOKEN))
+      Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName, jsonString, common.mock.MockToken))
   }
 
   private def getFieldValueJsonString: String = {

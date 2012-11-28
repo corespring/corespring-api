@@ -4,7 +4,7 @@ import play.api.mvc.{Result, Results}
 import play.api.Logger
 import com.mongodb.util.{JSONParseException, JSON}
 import play.api.libs.json.{JsNumber, JsObject, Writes, Json}
-import com.novus.salat.dao.SalatDAO
+import com.novus.salat.dao.{SalatMongoCursor, ModelCompanion, SalatDAO}
 import com.mongodb.casbah.Imports._
 import models.{Identifiable, Queryable, DBQueryable, QueryField}
 import controllers.{LogType, InternalError, Utils, QueryParser}
@@ -14,6 +14,81 @@ import controllers.{LogType, InternalError, Utils, QueryParser}
  * A helper class to handle list queries from all the controllers
  */
 object QueryHelper {
+
+  def listAsList[T <: AnyRef, ID <: ObjectId](coll: ModelCompanion[T, ID],
+                                        q: Option[String] = None,
+                                        f: Option[Object] = None,
+                                        getCount: Boolean = false,
+                                        skip: Int = 0, limit: Int = 50,
+                                        initSearch: Option[DBObject] = None): List[T] = {
+
+    val cursor : SalatMongoCursor[T] = _list(coll,q,f,getCount,skip,limit,initSearch)
+    cursor.toList
+  }
+
+
+  def listSimple[T <: AnyRef, ID <: ObjectId](coll: ModelCompanion[T, ID],
+                                              q: Option[String] = None,
+                                              f: Option[Object] = None,
+                                              getCount: Boolean = false,
+                                              skip: Int = 0, limit: Int = 50,
+                                              initSearch: Option[DBObject] = None)(implicit writes: Writes[T]): Result = {
+
+    val cursor : SalatMongoCursor[T] = _list(coll,q,f,getCount,skip, limit,initSearch)
+
+    if (getCount) {
+      Results.Ok(JsObject(Seq("count" -> JsNumber(cursor.count))))
+    } else {
+      Results.Ok(Json.toJson(Utils.toSeq(cursor.skip(skip).limit(limit))))
+    }
+  }
+
+  private def _list[T <: AnyRef, ID <: ObjectId](coll: ModelCompanion[T, ID],
+                                        q: Option[String] = None,
+                                        f: Option[Object] = None,
+                                        getCount: Boolean = false,
+                                        skip: Int = 0, limit: Int = 50,
+                                        initSearch: Option[DBObject] = None): SalatMongoCursor[T] = {
+    val optqDbo: Option[DBObject] = q.flatMap(query => try {
+      com.mongodb.util.JSON.parse(query) match {
+        case dbo: BasicDBObject => Some(dbo)
+        case _ => None
+      }
+    } catch {
+      case e: JSONParseException => None
+    })
+    val fDbo: Option[DBObject] = f.flatMap(_ match {
+      case fields: BasicDBObject => Some(fields)
+      case fields: String => try {
+        com.mongodb.util.JSON.parse(fields) match {
+          case dbo: BasicDBObject => Some(dbo)
+          case _ => None
+        }
+      } catch {
+        case e: JSONParseException => None
+      }
+    })
+    val optQuery: Option[DBObject] = optqDbo match {
+      case Some(qDbo) => initSearch match {
+        case Some(is) => Some(qDbo ++ is)
+        case None => Some(qDbo)
+      }
+      case None => initSearch
+    }
+    val cursor: SalatMongoCursor[T] = optQuery match {
+      case Some(query) => fDbo match {
+        case Some(fields) => coll.find(query, fields)
+        case None => coll.find(query)
+      }
+      case None => fDbo match {
+        case Some(fields) => coll.find(MongoDBObject(), fields)
+        case None => coll.findAll()
+      }
+    }
+    cursor
+  }
+
+
 
   /**
    * Helper method to execute list queries from all the controllers.
@@ -26,41 +101,42 @@ object QueryHelper {
    *
    * @return
    */
-  def list[T <: Identifiable](q: Option[String], f:Option[Object], c: String, sk: Int, l: Int, queryable:DBQueryable[T], initSearch:Option[DBObject] = None)(implicit writes:Writes[T]): Result = {
-    f.map(toFieldObject(_,queryable)).getOrElse(Right(new MongoDBObject())) match {
+  def list[T <: Identifiable](q: Option[String], f: Option[Object], c: String, sk: Int, l: Int, queryable: DBQueryable[T], initSearch: Option[DBObject] = None)(implicit writes: Writes[T]): Result = {
+    f.map(toFieldObject(_, queryable)).getOrElse(Right(new MongoDBObject())) match {
       case Right(fields) => {
-        val qp:QueryParser = q.map(qstr => QueryParser.buildQuery(qstr, queryable)).getOrElse( QueryParser())
-        if (qp.ignoredKeys.isEmpty){
+        val qp: QueryParser = q.map(qstr => QueryParser.buildQuery(qstr, queryable)).getOrElse(QueryParser())
+        if (qp.ignoredKeys.isEmpty) {
           qp.result match {
             case Right(builder) =>
-              val combinedQuery:DBObject = initSearch.map( extraParams => builder.result() ++ extraParams).getOrElse( builder.result() )
-              val cursor = queryable.find(combinedQuery,fields)
+              val combinedQuery: DBObject = initSearch.map(extraParams => builder.result() ++ extraParams).getOrElse(builder.result())
+              val cursor = queryable.find(combinedQuery, fields)
               cursor.skip(sk)
               cursor.limit(l)
-              if ( c.equalsIgnoreCase("true") ) {
+              if (c.equalsIgnoreCase("true")) {
                 Results.Ok(JsObject(Seq("count" -> JsNumber(cursor.count))))
-              }else {
+              } else {
                 Results.Ok(Json.toJson(Utils.toSeq(cursor)))
               }
             case Left(e) =>
               Results.BadRequest(Json.toJson(ApiError.UnknownFieldOrOperator(e.clientOutput)))
           }
-        }else Results.BadRequest(Json.toJson(ApiError.UnknownFieldOrOperator(Some("the following keys were ignored: "+qp.ignoredKeys.foldRight[String]("")((key,acc) => key+", "+acc)))))
+        } else Results.BadRequest(Json.toJson(ApiError.UnknownFieldOrOperator(Some("the following keys were ignored: " + qp.ignoredKeys.foldRight[String]("")((key, acc) => key + ", " + acc)))))
       }
       case Left(e) =>
         Results.BadRequest(Json.toJson(ApiError.UnknownFieldOrOperator(e.clientOutput)))
     }
   }
-  def toFieldObject[T <: AnyRef](f:Object, queryable: Queryable[T]):Either[InternalError,MongoDBObject] = {
-    def parseDBObject(dbo:DBObject):Either[InternalError,MongoDBObject] = dbo.iterator.find(field => !queryable.queryFields.exists(_.key == field._1) || !field._2.isInstanceOf[Int]) match {
-      case Some((key,_)) => Left(InternalError("either field key was invalid or value was NAN for "+key,LogType.printError,true))
+
+  private def toFieldObject[T <: AnyRef](f: Object, queryable: Queryable[T]): Either[InternalError, MongoDBObject] = {
+    def parseDBObject(dbo: DBObject): Either[InternalError, MongoDBObject] = dbo.iterator.find(field => !queryable.queryFields.exists(_.key == field._1) || !field._2.isInstanceOf[Int]) match {
+      case Some((key, _)) => Left(InternalError("either field key was invalid or value was NAN for " + key, LogType.printError, true))
       case None => Right(MongoDBObject(dbo.iterator.toList))
     }
     f match {
-      case dbo:DBObject => parseDBObject(dbo)
-      case qfstr:String => JSON.parse(qfstr) match {
-        case dbo:DBObject => parseDBObject(dbo)
-        case _ => Left(InternalError("invalid query string",LogType.printError,true))
+      case dbo: DBObject => parseDBObject(dbo)
+      case qfstr: String => JSON.parse(qfstr) match {
+        case dbo: DBObject => parseDBObject(dbo)
+        case _ => Left(InternalError("invalid query string", LogType.printError, true))
       }
     }
   }

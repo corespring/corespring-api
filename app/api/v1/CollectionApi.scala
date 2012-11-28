@@ -31,6 +31,7 @@ object CollectionApi extends BaseApi {
 
   private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = {
     val collids = ContentCollection.getCollectionIds(orgId,Permission.All, false)
+    println(collids)
     val initSearch = MongoDBObject("_id" -> MongoDBObject("$in" -> collids))
     QueryHelper.list(q, f, c, sk, l, ContentCollection, Some(initSearch))
   }

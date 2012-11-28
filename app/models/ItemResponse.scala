@@ -3,82 +3,121 @@ package models
 import play.api.libs.json._
 import play.api.libs.json.JsString
 import play.api.libs.json.JsObject
+import play.api.libs.json.Json._
+import com.novus.salat.annotations.raw.Salat
 
 /**
  * Case class representing a user's response to an indvidual qusetion in an item
- *
- * e.g.
+ * {{{
  * {
- *      id: "question1",
- *      value: "choice1",
- *      outcome: {
- *          "$score": 1
- *      }
+ *  id: "question1",
+ *  value: "a",
+ *  outcome: {
+ *    score: 1,
+ *    report: {
+ *      a: true
+ *    }
  *  }
+ * }
+ * }}}
  *
  * @param id  the id defined in the QTI markup that identifies the question within the item
- * @param value string response, may be json-formatted. Format and type depends on the question type
  * @param outcome  this is the outcome of the user interaction as calculated by the server. usually 'SCORE' property
  */
-case class ItemResponse(id: String, value: String, outcome: String = "")
 
-object ItemResponse {
-   val value = "value"
-   val id = "id"
-   val outcome = "outcome"
+@Salat
+abstract class ItemResponse(val id: String, val outcome: Option[ItemResponseOutcome] = None) {
+  def value : String
+
+  def getIdValueIndex : Seq[(String,String,Int)]
+}
+
+case class StringItemResponse(override val id: String, responseValue: String, override val outcome: Option[ItemResponseOutcome] = None) extends ItemResponse(id, outcome) {
+  override def value = responseValue
 
   /**
-   * Saving the array with a simple delimiter like ',' could cause problems
-   * As there should be used in the answer if its a single value.
-   * Instead use this delimiter to guarantee that the items are read/written correctly as arrays if needed.
+   * Return the response as a sequence of id, value, index
+   * @return
    */
-   val Delimiter = " _item_response_delimiter_ "
+  def getIdValueIndex = Seq((id,responseValue,0))
+}
+
+case class ArrayItemResponse(override val id: String, responseValue: Seq[String], override val outcome: Option[ItemResponseOutcome] = None) extends ItemResponse(id, outcome) {
+  override def value = responseValue.mkString(",")
+
+  def getIdValueIndex = responseValue.view.zipWithIndex.map((f:(String,Int)) => (id,f._1, f._2))
+}
+
+case class ItemResponseOutcome(score: Float = 0, comment: Option[String] = None) {
+  def isCorrect = score == 1
+}
+
+object ItemResponseOutcome {
+  implicit object Writes extends Writes[ItemResponseOutcome] {
+    def writes(iro: ItemResponseOutcome): JsValue = {
+      val json = com.codahale.jerkson.Json.generate(iro)
+      Json.parse(json)
+    }
+  }
+
+}
+
+object ItemResponse {
+  val value = "value"
+  val id = "id"
+  val outcome = "outcome"
+  val report = "report"
+
+  def apply(r: ItemResponse, outcome: Option[ItemResponseOutcome]): ItemResponse =
+    r match {
+      case StringItemResponse(i, v, out) => StringItemResponse(i, v, outcome)
+      case ArrayItemResponse(i, v, out) => ArrayItemResponse(i, v, outcome)
+    }
+
+  def containsValue(r:ItemResponse, s : String) : Boolean = r match {
+    case StringItemResponse(_, v, _) => s == v
+    case ArrayItemResponse(_, v, _) => v.contains(s)
+  }
 
   implicit object ItemResponseWrites extends Writes[ItemResponse] {
     def writes(response: ItemResponse) = {
 
-      def createValue( storedValue : String ) : JsValue = {
-        storedValue.split(Delimiter).toSeq match {
-          case Seq(s) => JsString(s)
-          case l : Seq[_]  => JsArray(l.map( JsString(_)))
+      val seq : Seq[Option[(String,JsValue)]] = response match {
+        case StringItemResponse(id,v,outcome) => {
+          Seq(Some("id" -> JsString(id)),
+            Some("value" -> JsString(v)),
+            outcome.map(("outcome" -> toJson(_)))
+          )
+        }
+        case ArrayItemResponse(id,v,outcome) => {
+          Seq(
+          Some("id" -> JsString(id)),
+          Some("value" -> JsArray(v.map(JsString(_)))),
+          outcome.map(("outcome" -> toJson(_)))
+          )
         }
       }
-
-      JsObject(
-        List(
-          "id" -> JsString(response.id.toString),
-          "value" -> createValue(response.value.toString) ,
-          "outcome" -> JsString(response.outcome.toString)
-        )
-      )
+      JsObject(seq.flatten)
     }
   }
 
 
   implicit object ItemResponseReads extends Reads[ItemResponse] {
 
-    def reads(json: JsValue):ItemResponse = {
+    /**
+     * We don't read the outcome from json - its generated from the qti
+     * @param json
+     * @return
+     */
+    def reads(json: JsValue): ItemResponse = {
 
-      //The value can either be a single string or an array of strings
-      def getValue(js : JsValue) : String = {
-        if ( js.asOpt[String].isDefined ){
-          js.as[String]
-        } else {
-          if( js.asOpt[Seq[String]].isDefined){
-           js.as[Seq[String]].mkString(Delimiter)
-          } else {
-            ""
-          }
-        }
+      val id = (json\"id").as[String]
+
+      (json\"value") match {
+        case JsArray(seq) => ArrayItemResponse(id,seq.map(_.as[String]))
+        case JsString(s) => StringItemResponse(id, s)
+        case _ => StringItemResponse(id, (json\"value").as[String])
       }
-
-      new ItemResponse(
-        id = (json \ "id").asOpt[String].getOrElse(""),
-        value = getValue( (json\"value")),
-        outcome = (json \ "outcome").asOpt[String].getOrElse("")
-      )
-
     }
   }
-
 }

@@ -1,18 +1,24 @@
-function HomeController($scope, $rootScope, $timeout, $http, $location, AccessToken, ItemService, ServiceLookup, SupportingMaterial, SearchService) {
+function HomeController($scope, $rootScope, $timeout, $http, $location, ItemService, ServiceLookup, SupportingMaterial, SearchService, Collection) {
     $http.defaults.headers.get = ($http.defaults.headers.get || {});
     $http.defaults.headers.get['Content-Type'] = 'application/json';
 
     $scope.$root.mode = "home";
 
-    $scope.accessToken = AccessToken;
+    $scope.pagerText = "hello";
 
     $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
+
+
+    var init = function(){
+        $scope.search();
+        loadCollections();
+    };
 
     $scope.search = function() {
         SearchService.search($scope.searchParams, function(res){
             $scope.items = res;
         });
-    }
+    };
 
     $scope.loadMore = function () {
         SearchService.loadMore(function () {
@@ -26,6 +32,15 @@ function HomeController($scope, $rootScope, $timeout, $http, $location, AccessTo
             }
         );
     };
+
+    function loadCollections() {
+        Collection.get({}, function (data) {
+                $scope.collections = data;
+            },
+            function () {
+                console.log("load collections: error: " + arguments);
+            });
+    }
 
 
 
@@ -158,17 +173,20 @@ function HomeController($scope, $rootScope, $timeout, $http, $location, AccessTo
      * called from the repeater. scope (this) is the current item
      */
     $scope.openEditView = function () {
-        $location.url('/view/' + this.item.id);
+        $location.url('/edit/' + this.item.id);
     };
 
-    $scope.$watch('accessToken.token', function (newValue, oldValue) {
-        if (newValue) {
-            $timeout(function () {
-                $scope.search();
-            });
-        }
-    });
+    init();
 }
 
-HomeController.$inject = ['$scope', '$rootScope','$timeout', '$http', '$location', 'AccessToken', 'ItemService', 'ServiceLookup', 'SupportingMaterial','SearchService'];
+HomeController.$inject = ['$scope',
+    '$rootScope',
+    '$timeout',
+    '$http',
+    '$location',
+    'ItemService',
+    'ServiceLookup',
+    'SupportingMaterial',
+    'SearchService',
+    'Collection'];
 

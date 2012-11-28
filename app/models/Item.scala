@@ -3,7 +3,6 @@ package models
 import play.api.Play.current
 import org.bson.types.ObjectId
 import play.api.libs.json._
-import com.novus.salat.dao.{SalatDAOUpdateError, SalatDAO, ModelCompanion}
 import com.mongodb.casbah.Imports._
 import controllers._
 import collection.{SeqProxy, mutable}
@@ -20,6 +19,7 @@ import web.views.html.partials._edit._metadata._formWithLegend
 import com.novus.salat.annotations.raw.Salat
 import play.api.libs.json._
 import com.novus.salat._
+import dao.{SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
 import models.Workflow.WorkflowWrites
 import controllers.auth.Permission
 
@@ -40,19 +40,19 @@ case class ContributorDetails(
 case class Workflow(var setup: Boolean = false,
                     var tagged: Boolean = false,
                     var standardsAligned: Boolean = false,
-                    var qaReview: Boolean = false )
+                    var qaReview: Boolean = false)
 
 object Workflow {
-  val setup : String = "setup"
-  val tagged : String = "tagged"
-  val standardsAligned : String = "standardsAligned"
-  val qaReview : String = "qaReview"
+  val setup: String = "setup"
+  val tagged: String = "tagged"
+  val standardsAligned: String = "standardsAligned"
+  val qaReview: String = "qaReview"
 
   implicit object WorkflowWrites extends Writes[Workflow] {
 
     def writes(workflow: Workflow) = {
 
-      JsObject( Seq(
+      JsObject(Seq(
         setup -> JsBoolean(workflow.setup),
         tagged -> JsBoolean(workflow.tagged),
         standardsAligned -> JsBoolean(workflow.standardsAligned),
@@ -63,16 +63,17 @@ object Workflow {
   }
 
   implicit object WorkflowReads extends Reads[Workflow] {
-    def reads( json : JsValue ) : Workflow = {
+    def reads(json: JsValue): Workflow = {
 
       Workflow(
         setup = (json \ setup).asOpt[Boolean].getOrElse(false),
         tagged = (json \ tagged).asOpt[Boolean].getOrElse(false),
-        standardsAligned = (json\standardsAligned).asOpt[Boolean].getOrElse(false),
-        qaReview = (json\qaReview).asOpt[Boolean].getOrElse(false)
+        standardsAligned = (json \ standardsAligned).asOpt[Boolean].getOrElse(false),
+        qaReview = (json \ qaReview).asOpt[Boolean].getOrElse(false)
       )
     }
   }
+
 }
 
 
@@ -84,6 +85,7 @@ case class Item(var collectionId: String = "",
                 var keySkills: Seq[String] = Seq(),
                 var subjects: Option[Subjects] = None,
                 var priorUse: Option[String] = None,
+                var priorGradeLevel: Seq[String] = Seq(),
                 var reviewsPassed: Seq[String] = Seq(),
                 var standards: Seq[ObjectId] = Seq(),
                 var pValue: Option[String] = None,
@@ -123,6 +125,7 @@ object Item extends DBQueryable[Item] {
   val credentials = "credentials"
   val files = "files"
   val gradeLevel = "gradeLevel"
+  val priorGradeLevel = "priorGradeLevel"
   val relatedCurriculum = "relatedCurriculum"
   val itemType = "itemType"
   val keySkills = "keySkills"
@@ -151,7 +154,7 @@ object Item extends DBQueryable[Item] {
 
       var iseq: Seq[(String, JsValue)] = Seq("id" -> JsString(item.id.toString))
 
-      if ( item.workflow.isDefined ) iseq = iseq :+ (workflow -> WorkflowWrites.writes(item.workflow.get))
+      if (item.workflow.isDefined) iseq = iseq :+ (workflow -> WorkflowWrites.writes(item.workflow.get))
 
       //ContributorDetails
       item.contributorDetails match {
@@ -222,6 +225,7 @@ object Item extends DBQueryable[Item] {
       }
 
       item.priorUse.foreach(v => iseq = iseq :+ (priorUse -> JsString(v)))
+      if (!item.priorGradeLevel.isEmpty) iseq = iseq :+ (priorGradeLevel -> JsArray(item.priorGradeLevel.map(JsString(_))))
       if (!item.reviewsPassed.isEmpty) iseq = iseq :+ (reviewsPassed -> JsArray(item.reviewsPassed.map(JsString(_))))
       if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards.
         foldRight[Seq[Standard]](Seq[Standard]())((sid, acc) => Standard.findOneById(sid) match {
@@ -245,7 +249,7 @@ object Item extends DBQueryable[Item] {
       item.collectionId = (json \ collectionId).asOpt[String].getOrElse("") //must do checking outside of json deserialization
       item.lexile = (json \ lexile).asOpt[String]
 
-      item.workflow = (json\workflow).asOpt[Workflow]
+      item.workflow = (json \ workflow).asOpt[Workflow]
 
       item.demonstratedKnowledge = getValidatedValue(fieldValues.demonstratedKnowledge)(json, demonstratedKnowledge)
       item.bloomsTaxonomy = getValidatedValue(fieldValues.bloomsTaxonomy)(json, bloomsTaxonomy)
@@ -311,7 +315,6 @@ object Item extends DBQueryable[Item] {
       }
 
       item.supportingMaterials = (json \ supportingMaterials).asOpt[Seq[Resource]].getOrElse(Seq())
-      item.gradeLevel = (json \ gradeLevel).asOpt[Seq[String]].getOrElse(Seq.empty)
 
       (json \ itemType).asOpt[String] match {
         case Some(foundType) => item.itemType = Some(foundType)
@@ -327,6 +330,8 @@ object Item extends DBQueryable[Item] {
       item.subjects = getSubjects(json)
 
       item.priorUse = (json \ priorUse).asOpt[String]
+      item.priorGradeLevel = (json \ priorGradeLevel).asOpt[Seq[String]].
+              map(v => if (v.foldRight[Boolean](true)((g, acc) => fieldValues.gradeLevels.exists(_.key == g) && acc)) v else throw new JsonValidationException(priorGradeLevel)).getOrElse(Seq.empty)
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
       try {
         item.standards = (json \ standards).asOpt[Seq[String]].map(_.map(new ObjectId(_))).getOrElse(Seq.empty)
@@ -345,15 +350,16 @@ object Item extends DBQueryable[Item] {
     }
   }
 
-  def updateItem(oid: ObjectId, newItem: Item,fields: Option[DBObject],requesterOrgId:ObjectId): Either[InternalError, Item] = {
+  def updateItem(oid: ObjectId, newItem: Item, fields: Option[DBObject], requesterOrgId: ObjectId): Either[InternalError, Item] = {
     try {
       import com.novus.salat.grater
+
       //newItem.id = oid
-      val toUpdate = if(newItem.collectionId != "") {
-        if(ContentCollection.isAuthorized(requesterOrgId, new ObjectId(newItem.collectionId),Permission.All)){
-          ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials)
-        }else throw new RuntimeException("not authorized")
-      }else ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials) - collectionId
+      val toUpdate = if (newItem.collectionId != "") {
+        if (ContentCollection.isAuthorized(requesterOrgId, new ObjectId(newItem.collectionId), Permission.All)) {
+          ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials - data)
+        } else throw new RuntimeException("not authorized")
+      } else ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials) - collectionId
       Item.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> toUpdate), upsert = false, multi = false, wc = Item.collection.writeConcern)
       fields.map(Item.collection.findOneByID(oid, _)).getOrElse(Item.collection.findOneByID(oid)) match {
         case Some(dbo) => Right(grater[Item].asObject(dbo))
@@ -361,9 +367,31 @@ object Item extends DBQueryable[Item] {
       }
     } catch {
       case e: SalatDAOUpdateError => Left(InternalError(e.getMessage, LogType.printFatal, false, Some("error occured while updating")))
-      case e:IllegalArgumentException => Left(InternalError(e.getMessage,clientOutput = Some("destination collection id was not a valid id")))
-      case e: RuntimeException => Left(InternalError(e.getMessage,addMessageToClientOutput = true))
+      case e: IllegalArgumentException => Left(InternalError(e.getMessage, clientOutput = Some("destination collection id was not a valid id")))
+      case e: RuntimeException => Left(InternalError(e.getMessage, addMessageToClientOutput = true))
     }
+  }
+
+  def cloneItem(item: Item): Option[Item] = {
+    item.id = new ObjectId()
+    Item.save(item)
+    Some(item)
+  }
+
+  def countItems(query: Option[DBObject] = None, fields : Option[String] = None ) : Int = {
+    val queryDbo = query.getOrElse( new BasicDBObject())//.asInstanceOf[DBObject]
+    val fieldsDbo = JSON.parse(fields.getOrElse("{}")).asInstanceOf[BasicDBObject]
+    val result : SalatMongoCursor[Item] = Item.find( queryDbo, fieldsDbo)
+    result.count
+  }
+
+  def list(query: Option[DBObject] = None, fields: Option[String] = None, skip: Int = 0, limit: Int = 200) : List[Item] = {
+    val queryDbo = query.getOrElse( new BasicDBObject())//.asInstanceOf[DBObject]
+    val fieldsDbo = JSON.parse(fields.getOrElse("{}")).asInstanceOf[BasicDBObject]
+    val result : SalatMongoCursor[Item] = Item.find( queryDbo, fieldsDbo)
+    result.limit(limit)
+    result.skip(skip)
+    result.toList
   }
 
   def queryValueFn(name: String, seq: Seq[KeyValue])(c: Any) = {
@@ -416,10 +444,11 @@ object Item extends DBQueryable[Item] {
       }
     }),
 
-  QueryFieldString[Item](workflow + "." + Workflow.qaReview, _.workflow.map(_.qaReview)),
-  QueryFieldString[Item](workflow + "." + Workflow.setup, _.workflow.map(_.setup)),
-  QueryFieldString[Item](workflow + "." + Workflow.tagged, _.workflow.map(_.tagged)),
-  QueryFieldString[Item](workflow + "." + Workflow.standardsAligned, _.workflow.map(_.standardsAligned)),
+    QueryFieldString[Item](workflow + "." + Workflow.qaReview, _.workflow.map(_.qaReview)),
+    QueryFieldString[Item](workflow + "." + Workflow.setup, _.workflow.map(_.setup)),
+    QueryFieldString[Item](workflow + "." + Workflow.tagged, _.workflow.map(_.tagged)),
+    QueryFieldString[Item](workflow + "." + Workflow.standardsAligned, _.workflow.map(_.standardsAligned)),
+
     /**
      * TODO: Check with Evan/Josh about item types.
      */
@@ -432,12 +461,11 @@ object Item extends DBQueryable[Item] {
     ),
     QueryFieldString[Item](bloomsTaxonomy, _.bloomsTaxonomy, queryValueFn(bloomsTaxonomy, fieldValues.bloomsTaxonomy)),
     QueryFieldString[Item](licenseType, _.contributorDetails.map(_.licenseType), queryValueFn(licenseType, fieldValues.licenseTypes)),
-
     QueryFieldObject[Item](primarySubject, _.subjects.map(_.primary), _ match {
       case x: String => try {
         Right(new ObjectId(x))
       } catch {
-        case e: IllegalArgumentException => Left(InternalError("invalid object id format for standards"))
+        case e: IllegalArgumentException => Left(InternalError("invalid object id format for primarySubject"))
       }
       case _ => Left(InternalError("uknown value type for standards"))
     }, Subject.queryFields),
@@ -445,7 +473,7 @@ object Item extends DBQueryable[Item] {
       case x: String => try {
         Right(new ObjectId(x))
       } catch {
-        case e: IllegalArgumentException => Left(InternalError("invalid object id format for standards"))
+        case e: IllegalArgumentException => Left(InternalError("invalid object id format for relatedSubject"))
       }
       case _ => Left(InternalError("uknown value type for standards"))
     }, Subject.queryFields),
@@ -489,24 +517,6 @@ object Item extends DBQueryable[Item] {
   )
 
   override def preParse(dbo: DBObject): QueryParser = {
-    //    val qp = QueryParser.buildQuery(dbo, QueryParser(), Seq(queryFields.find(_.key == standards).get))
-    //    qp.result match {
-    //      case Right(query) =>
-    //        val dbquery = query.result()
-    //        QueryParser.replaceKeys(dbquery, Standard.queryFields.map(qf => standards + "." + qf.key -> qf.key))
-    //        val builder = MongoDBObject.newBuilder
-    //        if (!dbquery.isEmpty) {
-    //          val c = Standard.find(dbquery, MongoDBObject("_id" -> 1))
-    //          val builderList = MongoDBList.newBuilder
-    //          if (!c.isEmpty) {
-    //            c.foreach(builderList += _.id)
-    //            builder += (standards -> MongoDBObject("$in" -> builderList.result()))
-    //          }
-    //        }
-    //        QueryParser.removeKeys(dbo, Standard.queryFields.foldRight[Seq[String]](Seq(standards))((qf, acc) => acc :+ standards + "." + qf.key))
-    //        QueryParser(Right(builder))
-    //      case Left(e) => QueryParser(Left(e))
-    //    }
     parseProperty[Standard](dbo, standards, Standard) match {
       case Right(builder1) =>
         parseProperty[Subject](dbo, primarySubject, Subject) match {

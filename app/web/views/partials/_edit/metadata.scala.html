@@ -1,8 +1,8 @@
 <div ng-show="currentPanel == 'metadata'">
 
-    @_metadata.basics()
     @_metadata.contributorDetails()
     @_metadata.priorUseAndPerformance()
+    @_metadata.basics()
     @_metadata.alignedStandards()
     @_metadata.otherAlignments()
 
@@ -11,7 +11,7 @@
 
         <div class="controls">
             <button class="btn btn-danger"
-                    ng-click="showConfirmDestroyModal=true">Delete
+                    ng-click="deleteItem(itemData)">Delete
             </button>
 
         </div>

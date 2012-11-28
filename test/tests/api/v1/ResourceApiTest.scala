@@ -81,10 +81,10 @@ class ResourceApiTest extends BaseTest {
       assertDelete(create, delete, rubric, file)
     }
 
-    def assertDelete(create : Call, delete : Call, resource : Resource, file : VirtualFile) = {
+    def assertDelete(create : Call, delete : Call, resource : => Resource, file : VirtualFile) = {
       val initialLength = resource.files.length
       makeFileRequest(file, create.url, create.method)
-      val length = rubric.files.length
+      val length = resource.files.length
       length must equalTo(initialLength + 1)
       makeFileRequest(file, delete.url, delete.method)
       resource.files.length must equalTo(initialLength)

@@ -13,6 +13,22 @@
         </select>
     </div>
 </div>
+
+<div class="control-group">
+    <label class="control-label" for="priorGradeLevel">Grade Level</label>
+
+    <div class="controls" id="priorGradeLevel">
+        <div class="btn-group">
+            <button ng-repeat="gl in itemData.$priorGradeLevelDataProvider"
+                    button-toggle="active"
+                    class="btn tight"
+                    title="{{gl.state.label}}"
+                    ng-model="gl.state.selected">{{gl.state.key}}
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="control-group">
     <label class="control-label">Reviews Passed</label>
 
@@ -52,5 +68,5 @@
 
 }
 
-@_formWithLegend( html, "Prior Use & Performance")
+@_formWithLegend( html )
 

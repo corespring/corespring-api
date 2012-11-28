@@ -1,0 +1,67 @@
+{
+    "_id" : { "$oid" :  "50aa06df3004e80fd99ceaff" },
+    "attempts" : 1,
+    "feedbackIdLookup" : [
+        {
+            "csFeedbackId" : "1",
+            "outcomeIdentifier" : "",
+            "identifier" : "obama"
+        },
+        {
+            "csFeedbackId" : "2",
+            "outcomeIdentifier" : "",
+            "identifier" : "cameron"
+        },
+        {
+            "csFeedbackId" : "3",
+            "outcomeIdentifier" : "",
+            "identifier" : "calderon"
+        },
+        {
+            "csFeedbackId" : "4",
+            "outcomeIdentifier" : "",
+            "identifier" : "blue"
+        },
+        {
+            "csFeedbackId" : "5",
+            "outcomeIdentifier" : "",
+            "identifier" : "violet"
+        },
+        {
+            "csFeedbackId" : "6",
+            "outcomeIdentifier" : "",
+            "identifier" : "white"
+        },
+        {
+            "csFeedbackId" : "7",
+            "outcomeIdentifier" : "",
+            "identifier" : "red"
+        }
+    ],
+    "itemId" :  { "$oid" : "506c9fbda0eee22b21788986" },
+    "responses" : [
+        {
+            "_t" : "models.StringItemResponse",
+            "_id" : "mexicanPresident",
+            "responseValue" : "cameron"
+        },
+        {
+            "_t" : "models.ArrayItemResponse",
+            "_id" : "rainbowColors",
+            "responseValue" : [
+                "blue", "violet"
+            ]
+        }
+    ],
+    "settings" : {
+        "maxNoOfAttempts" : 0,
+        "highlightUserResponse" : true,
+        "highlightCorrectResponse" : true,
+        "showFeedback" : false,
+        "allowEmptyResponses" : false,
+        "submitCompleteMessage" : "Ok!",
+        "submitIncorrectMessage" : "You may revise your work before you submit it."
+    },
+    "start" : { "$date" :  1353320165236 }, 
+    "finish" : { "$date": 1353321649554 }
+}

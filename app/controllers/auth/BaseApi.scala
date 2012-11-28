@@ -32,7 +32,7 @@ trait BaseApi extends Controller {
    * @param r - the Request
    * @tparam A - the type determining the type of the body parser (eg: AnyContent)
    */
-  case class ApiRequest[A](ctx: AuthorizationContext, r: Request[A]) extends WrappedRequest(r)
+  case class ApiRequest[A](ctx: AuthorizationContext, r: Request[A], token : String) extends WrappedRequest(r)
 
 
   /**
@@ -112,14 +112,14 @@ trait BaseApi extends Controller {
       request =>
         fakeContext(request).fold(
           error => BadRequest(Json.toJson(new ApiError(1, "The id specified is not a valid UUID"))),
-          optionalCtx => optionalCtx.map(ctx => f(ApiRequest(ctx, request))).getOrElse {
+          optionalCtx => optionalCtx.map(ctx => f(ApiRequest(ctx, request, "fake_token"))).getOrElse {
             SecureSocial.currentUser(request).map { u =>
               invokeAsUser(u.id.id, u.id.providerId, request)(f)
             }.getOrElse {
               tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
                 OAuthProvider.getAuthorizationContext(token).fold(
                   error => Forbidden(Json.toJson(error)).as(JSON),
-                  ctx => { val result: PlainResult = f(ApiRequest(ctx, request)).asInstanceOf[PlainResult]
+                  ctx => { val result: PlainResult = f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
                     result
                   }
                 )
@@ -142,9 +142,10 @@ trait BaseApi extends Controller {
     def invokeAsUser[A](username: String, provider:String, request: Request[A])(f: ApiRequest[A]=>Result) = {
       User.getUser(username, provider).map { user =>
         Logger.debug("Using user in Play's session = " + username)
-        // todo: check orgId is right
+        //TODO: check orgId is right
         val ctx = new AuthorizationContext(user.orgs.head.orgId, Option(username))
-        f( ApiRequest(ctx, request))
+        //TODO: tidy up token apiRequest
+        f( ApiRequest(ctx, request, "fake_token"))
       }.getOrElse(
         Forbidden( Json.toJson(MissingCredentials) ).as(JSON)
       )

@@ -1,7 +1,7 @@
 package api.v1
 
 import controllers.auth.{Permission, BaseApi}
-import play.api.libs.json.Json
+import play.api.libs.json.Json._
 import api.ApiError
 import org.bson.types.ObjectId
 import models._
@@ -13,7 +13,8 @@ import scala.Right
 import xml.Elem
 import play.api.Play.current
 import play.api.Logger
-import api.processors.FeedbackProcessor
+import qti.processors.FeedbackProcessor
+import play.api.mvc.{Action, AnyContent}
 
 
 /**
@@ -26,69 +27,65 @@ object ItemSessionApi extends BaseApi {
     request =>
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.All)) {
         val cursor = ItemSession.find(MongoDBObject(ItemSession.itemId -> itemId))
-        Ok(Json.toJson(Utils.toSeq(cursor)))
-      } else Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
+        Ok(toJson(Utils.toSeq(cursor)))
+      } else Unauthorized(toJson(ApiError.UnauthorizedItemSession))
   }
 
+
+  def update(itemId:ObjectId, sessionId:ObjectId, action : Option[String]) = action match {
+    case Some("begin") => begin(itemId, sessionId)
+    case Some("updateSettings") => updateSettings(itemId,sessionId)
+    case _ => processResponse(itemId, sessionId)
+  }
+
+
   /**
-   *
-   * Serves GET request
    * @param sessionId
    * @return
    */
-  def getItemSession(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
+  def get(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
     request =>
-      ItemSession.findOneById(sessionId) match {
-        case Some(itemSession) => {
-          if (Content.isAuthorized(request.ctx.organization, itemSession.itemId, Permission.All)) {
-            if (itemSession.finish.isDefined) {
-
-              //val cachedXml: Option[Elem] = ItemSessionXmlStore.getCachedXml(itemId.toString, sessionId.toString)
-              ItemSession.getXmlWithFeedback(itemId,itemSession.feedbackIdLookup) match {
-                case Right(xml) => {
-                  itemSession.sessionData = ItemSession.getSessionData(xml, itemSession.responses)
-                }
-                case Left(e) => NotFound(Json.toJson(ApiError.ItemSessionNotFound(e.clientOutput)))
-              }
-            }
-            Ok(Json.toJson(itemSession))
-          }
-          else {
-            Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
+      ItemSession.get(sessionId) match {
+        case Some(session) => {
+          if (Content.isAuthorized(request.ctx.organization, session.itemId, Permission.All)) {
+            Ok(toJson(session))
+          } else {
+           Unauthorized(toJson(ApiError.UnauthorizedItemSession))
           }
         }
-        case None => NotFound
+        case _ => NotFound
       }
-
   }
 
   /**
-   * Serves POST request
    * Creates an itemSession.
-   * Does not require a json body, by default will create an 'empty' session for the item id
    *
    * @return json for the created item session
    */
-  def createItemSession(itemId: ObjectId) = ApiAction {
+  def create(itemId: ObjectId) = ApiAction {
     request =>
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.All)) {
         val newSession = request.body.asJson match {
-          case Some(jssession) => Json.fromJson[ItemSession](jssession)
+          case Some(json) => {
+            val jsonSession = fromJson[ItemSession](json)
+            //We only pull in the settings from the request
+            ItemSession( itemId = itemId, settings = jsonSession.settings )
+          }
           case None => ItemSession(itemId)
         }
         getQtiXml(itemId) match {
           case Some(xml) => {
-            val (xmlWithFeedbackIds,mapping) = FeedbackProcessor.addFeedbackIds(xml)
+            val (_, mapping) = FeedbackProcessor.addFeedbackIds(xml)
             newSession.feedbackIdLookup = mapping
           }
           case _ =>
         }
-        ItemSession.newItemSession(itemId, newSession) match {
-          case Right(session) => Ok(Json.toJson(session))
-          case Left(error) => InternalServerError(Json.toJson(ApiError.CreateItemSession(error.clientOutput)))
+        ItemSession.newSession(itemId, newSession) match {
+          case Right(session) => Ok(toJson(session))
+          case Left(error) => InternalServerError(toJson(ApiError.CreateItemSession(error.clientOutput)))
         }
       } else {
-        Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
+        Unauthorized(toJson(ApiError.UnauthorizedItemSession))
       }
   }
 
@@ -106,53 +103,120 @@ object ItemSessionApi extends BaseApi {
     }
   }
 
-//  private def getSessionFeedback(itemId: ObjectId, itemSession: ItemSession): Map[String, String] = {
-//    Item.getQti(itemId) match {
-//      case Right(xmlData) => optMap[String, String](
-//        new QtiItem(scala.xml.XML.loadString(xmlData)).feedback(itemSession.responses).map(feedback => (feedback.csFeedbackId, feedback.body))
-//      ).getOrElse(Map[String, String]())
-//      case Left(error) => Map()
-//    }
-//  }
+  def begin(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
+    request =>
+      findSessionAndCheckAuthorization(sessionId, itemId, request.ctx.organization) match {
+        case Right(s) => {
+          ItemSession.begin(s) match {
+            case Left(error) => BadRequest(error.message)
+            case Right(started) => Ok(toJson(started))
+          }
+        }
+        case Left(error) => BadRequest(toJson(error))
+      }
+  }
 
   /**
-   * Serves the PUT request for an item session
+   * Find the session and check the user is authorized to manipulate it.
+   * @param sessionId
+   * @param itemId
+   * @param orgId
+   * @return
+   */
+  private def findSessionAndCheckAuthorization(sessionId: ObjectId, itemId: ObjectId, orgId: ObjectId): Either[ApiError, ItemSession] = ItemSession.findOneById(sessionId) match {
+    case Some(s) => Content.isAuthorized(orgId, itemId, Permission.All) match {
+      case true => Right(s)
+      case false => Left(ApiError.UnauthorizedItemSession)
+    }
+    case None => Left(ApiError.ItemSessionNotFound)
+  }
+
+
+  /**
+   * Update the item session - note this only updates the settings
+   * It is different from when a user submits responses for this session
+   * @param itemId
+   * @param sessionId
+   * @return
+   */
+  def updateSettings(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
+    request =>
+      findSessionAndCheckAuthorization(sessionId, itemId, request.ctx.organization)
+      match {
+        case Left(error) => BadRequest(toJson(error))
+        case Right(dbSession) => {
+          requestAsData(request, ApiError.ItemSessionRequiredFields) match {
+            case Left(error) => BadRequest(toJson(error))
+            case Right(update) => {
+              ItemSession.update(update) match {
+                case Left(error) => BadRequest(toJson(ApiError.CantSave))
+                case Right(updatedSession) => Ok(toJson(updatedSession))
+              }
+            }
+          }
+        }
+      }
+  }
+
+  /**
+   * Parse the request body as an ItemSession
+   * @param request
+   * @return
+   */
+  private def requestAsData(request: ApiRequest[AnyContent], error : ApiError): Either[ApiError, ItemSession] = {
+    request.body.asJson match {
+      case Some(json) => {
+        json.asOpt[ItemSession] match {
+          case Some(is) => Right(is)
+          case _ => Left(error)
+        }
+      }
+      case _ => Left(error)
+    }
+  }
+
+  /**
+   * Process the user response - this counts as an attempt at the question
+   * Return sessionData and ItemResponseOutcomes
    * @param itemId
    */
-  def updateItemSession(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
+  def processResponse(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
     request =>
+
+      Log.d("processResponse: " + sessionId)
+
       ItemSession.findOneById(sessionId) match {
         case Some(dbSession) => Content.isAuthorized(request.ctx.organization, dbSession.itemId, Permission.All) match {
           case true => request.body.asJson match {
             case Some(jsonSession) => {
 
               if (dbSession.finish.isDefined) {
-                BadRequest(Json.toJson(ApiError.ItemSessionFinished))
+                BadRequest(toJson(ApiError.ItemSessionFinished))
               } else {
 
-                val clientSession = Json.fromJson[ItemSession](jsonSession)
+                val clientSession = fromJson[ItemSession](jsonSession)
                 dbSession.finish = clientSession.finish
                 dbSession.responses = clientSession.responses
 
-                ItemSession.getXmlWithFeedback(itemId,dbSession.feedbackIdLookup) match {
+                ItemSession.getXmlWithFeedback(dbSession) match {
                   case Right(xmlWithCsFeedbackIds) => {
-                    ItemSession.updateItemSession(dbSession, xmlWithCsFeedbackIds) match {
+                    ItemSession.process(dbSession, xmlWithCsFeedbackIds) match {
                       case Right(newSession) => {
-                        val json = Json.toJson(newSession)
+                        val json = toJson(newSession)
                         Ok(json)
                       }
-                      case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateItemSession(error.clientOutput)))
+                      case Left(error) => InternalServerError(toJson(ApiError.UpdateItemSession(error.clientOutput)))
                     }
                   }
-                  case Left(e) => InternalServerError(Json.toJson(ApiError.UpdateItemSession(e.clientOutput)))
+                  case Left(e) => InternalServerError(toJson(ApiError.UpdateItemSession(e.clientOutput)))
                 }
               }
             }
-            case None => BadRequest(Json.toJson(ApiError.JsonExpected))
+            case None => BadRequest(toJson(ApiError.JsonExpected))
           }
-          case false => Unauthorized(Json.toJson(ApiError.UnauthorizedItemSession))
+          case false => Unauthorized(toJson(ApiError.UnauthorizedItemSession))
         }
-        case None => BadRequest(Json.toJson(ApiError.ItemSessionNotFound))
+        case None => BadRequest(toJson(ApiError.ItemSessionNotFound))
       }
   }
 

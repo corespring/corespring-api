@@ -52,8 +52,12 @@
 	"title" : "The diagram shows living things in a pond. Which living thing changes the energy from sunlight into food energy?",
 	"demonstratedKnowledge" : "Conceptual",
 	"materialType" : "Assessment Item",
-	"bloomsTaxonomy" : "Knowledge (Remember)",
+	"bloomsTaxonomy" : "Remembering",
 	"priorUse" : "Summative",
+	"priorGradeLevel" : [
+		"03",
+		"04"
+	],
 	"reviewsPassed" : [
 		"Editorial",
 		"Bias",

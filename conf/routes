@@ -11,6 +11,14 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 POST    /auth/register                          controllers.auth.AuthController.register
 POST    /auth/access_token                      controllers.auth.AuthController.getAccessToken
 
+#Public site
+GET     /                                      publicsite.controllers.Application.index
+GET     /public/collection                             publicsite.controllers.Application.collection
+GET     /public/contact                                publicsite.controllers.Application.contact
+GET     /public/partnerships                           publicsite.controllers.Application.partnerships
+GET     /public/team                                   publicsite.controllers.Application.team
+GET     /public/items                                  publicsite.controllers.Application.getItems
+
 #
 # V1 API
 #
@@ -46,15 +54,20 @@ GET     /api/v1/organizations/:orgId/users             api.v1.UserApi.getUsersBy
 # Items API
 GET     /api/v1/items                           api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
 GET     /api/v1/organizations/:orgId/items      api.v1.ItemApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
-GET     /api/v1/items/:id                       api.v1.ItemApi.getItem(id: ObjectId)
+GET     /api/v1/items/:id                       api.v1.ItemApi.get(id: ObjectId)
 GET     /api/v1/collections/:collId/items       api.v1.ItemApi.listWithColl(collId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
-DELETE  /api/v1/items/:id                       api.v1.ItemApi.deleteItem(id: ObjectId)
-GET     /api/v1/items/:id/detail                api.v1.ItemApi.getItemDetail(id: ObjectId)
-GET     /api/v1/items/:id/data                  api.v1.ItemApi.getItemData(id: ObjectId)
-POST    /api/v1/items                           api.v1.ItemApi.createItem
-PUT     /api/v1/items/:id                       api.v1.ItemApi.updateItem(id: ObjectId)
+DELETE  /api/v1/items/:id                       api.v1.ItemApi.delete(id: ObjectId)
+GET     /api/v1/items/:id/detail                api.v1.ItemApi.getDetail(id: ObjectId)
+GET     /api/v1/items/:id/data                  api.v1.ItemApi.getData(id: ObjectId)
+POST    /api/v1/items                           api.v1.ItemApi.create
+PUT     /api/v1/items/:id                       api.v1.ItemApi.update(id: ObjectId)
+POST    /api/v1/items/:id                       api.v1.ItemApi.cloneItem(id:ObjectId)
 GET     /api/v1/collections/:collId/items       api.v1.ItemApi.getItemsInCollection(collId: ObjectId)
 GET     /api/v1/items/:itemId/assets/:fileName  api.v1.FilesApi.getFile(itemId:String,fileName:String)
+
+# Exporter api
+GET     /api/v1/items/multiple/scorm-2004.zip       api.v1.ExporterApi.multiItemScorm2004(ids:String)
+GET     /api/v1/items/multiple/item_launch.imscc    api.v1.ExporterApi.multiItemLti(ids:String)
 
 # Resource api
 GET     /api/v1/items/:itemId/materials          api.v1.ResourceApi.getSupportingMaterials(itemId:String)
@@ -73,23 +86,33 @@ DELETE  /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.deleteDa
 
 # Field Values API
 GET     /api/v1/field_values                   api.v1.FieldValuesApi.getAllAvailable
+GET     /api/v1/field_values/multiple        api.v1.FieldValuesApi.multiple(fieldNames:String, fieldOptions: Option[String] ?= None, c ?= "false" )
 GET     /api/v1/field_values/:fieldName        api.v1.FieldValuesApi.getFieldValues(fieldName:String, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
 
 # Item Session API
 
-POST    /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.createItemSession(itemId: ObjectId)
-PUT     /api/v1/items/:itemId/sessions/:sessionId         api.v1.ItemSessionApi.updateItemSession(itemId: ObjectId, sessionId: ObjectId)
-GET     /api/v1/items/:itemId/sessions/:sessionId         api.v1.ItemSessionApi.getItemSession(itemId:ObjectId, sessionId: ObjectId)
-GET     /api/v1/items/:itemId/sessions                    api.v1.ItemSessionApi.list(itemId:ObjectId)
+POST    /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.create(itemId: ObjectId)
+GET     /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.list(itemId:ObjectId)
+GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.get(itemId:ObjectId, sessionId: ObjectId)
+PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId: ObjectId, sessionId: ObjectId, action : Option[String] ?= None)
 
 # Item Rendering
-GET    /testplayer/item/:itemId/run                 controllers.testplayer.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false)
-GET    /testplayer/item/:itemId/:filename           controllers.testplayer.ItemPlayer.getDataFile(itemId, filename)
-GET    /testplayer/item/:itemId/feedback/:responseIdentifier/:identifier  controllers.testplayer.ItemPlayer.getFeedbackInline(itemId, responseIdentifier, identifier)
+GET    /testplayer/item/:itemId/render              testplayer.controllers.ItemPlayer.renderItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
+GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
+GET    /testplayer/item/:itemId/:filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
+GET    /testplayer/session/:sessionId/run           testplayer.controllers.ItemPlayer.previewItemBySessionId(sessionId, printMode: Boolean ?= false)
+GET    /testplayer/session/:sessionId/render        testplayer.controllers.ItemPlayer.renderItemBySessionId(sessionId, printMode: Boolean ?= false)
+GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
+GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes
+
+GET    /scorm-player/item/:itemId/run               scorm.controllers.ScormPlayer.runByItemId(itemId : ObjectId)
+GET    /scorm-player/item/:itemId/:filename         scorm.controllers.ScormPlayer.getDataFile(itemId, filename)
+GET    /scorm-player/session/:sessionId/run         scorm.controllers.ScormPlayer.runBySessionId(sessionId : ObjectId)
+GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : ObjectId, filename)
 
 # Example content
 GET    /example-content                        web.controllers.ExampleContent.index
-GET    /example-content/items                  web.controllers.ExampleContent.items
+GET    /example-content/items                  web.controllers.ExampleContent.items(q: Option[String] ?= None)
 
 # Web tier
 GET    /web                                    web.controllers.Main.index
@@ -116,7 +139,20 @@ GET    /web/print-resource-profile/:itemId                  web.controllers.Main
 #
 # BasicLTI
 #
-POST    /basiclti                               basiclti.LtiController.launch
+POST    /lti/assignment/launch/:itemId          basiclti.controllers.AssignmentLauncher.launch(itemId:ObjectId)
+GET     /lti/assignment/error/authorization     basiclti.controllers.AssignmentLauncher.authorizationError
+GET     /lti/assignment/:assignmentId/process   basiclti.controllers.AssignmentLauncher.process(assignmentId:ObjectId)
+GET     /lti/assignment/:assignmentId/run       basiclti.controllers.AssignmentPlayer.runByAssignmentId(assignmentId:ObjectId)
+GET     /lti/assignment/:assignmentId/:filename basiclti.controllers.AssignmentPlayer.getDataFileByAssignmentId(assignmentId:ObjectId, filename:String)
+
+# Reporting
+GET    /reports                                     reporting.controllers.Reports.index
+GET    /reports/:collection/:queryType.csv          reporting.controllers.Reports.getCsv(collection,queryType)
+GET    /reports/standard-item-report.csv            reporting.controllers.Reports.getStandardItemReport
+GET    /reports/primary-subject-item-report.csv     reporting.controllers.Reports.getPrimarySubjectItemReport
+GET    /reports/contributor-item-report.csv         reporting.controllers.Reports.getContributorReport
+GET    /reports/collection-item-report.csv          reporting.controllers.Reports.getCollectionReport
+
 
 #
 # SecureSocial routes

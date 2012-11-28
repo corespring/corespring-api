@@ -1,19 +1,4 @@
 'use strict';
-/*
- * resource for returning inline feedback on a given choice id in QTI document
- */
-qtiServices
-    .factory('InlineFeedback', ['$resource', function ($resource) {
-    return $resource(
-        '/testplayer/item/:itemId/feedback' + '/:responseIdentifier/:identifier',
-        {},
-        {   get:{method:'GET', isArray:false},
-            save:{method:'PUT'}
-        }
-    );
-
-}]
-);
 
 qtiServices.factory('AssessmentSessionService', ['$resource', function ($resource) {
 
@@ -27,21 +12,23 @@ qtiServices.factory('AssessmentSessionService', ['$resource', function ($resourc
       }
     };
 
-    var baseUrl = '/api/v1/items/:itemId/sessions';
+    var api = TestPlayerRoutes.api.v1.ItemSessionApi;
+    var calls  = {
+        get: api.get(":itemId", ":sessionId"),
+        create: api.create(":itemId"),
+        update: api.update(":itemId", ":sessionId")
+    };
 
     var AssessmentSessionService = $resource(
-        baseUrl + '/:sessionId',
+        calls.get.url,
         {},
         {
-            get:{method:'GET', isArray:false},
-            save:{method:'PUT'},
-            create: {method: 'POST', params : {} }
+            create: calls.create,
+            save: calls.update,
+            begin: { method: calls.update.method, params: { action: "begin"} },
+            updateSettings: { method: calls.update.method, params: { action: "updateSettings"} }
         }
     );
-
-    AssessmentSessionService.getCreateUrl = function( itemId, accessToken ){
-        return baseUrl.replace(":itemId", itemId) + "?access_token=" + accessToken;
-    };
 
     return AssessmentSessionService;
 }]);
@@ -91,6 +78,13 @@ qtiServices
             return null;
         };
 
+
+        QtiUtils.isResponseCorrect = function(response) {
+            if(!response || !response.outcome){
+                return false;
+            }
+            return response.outcome.score == 1;
+        };
 
         /**
          * Get the value from the response object

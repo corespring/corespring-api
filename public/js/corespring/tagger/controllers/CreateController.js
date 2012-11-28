@@ -2,52 +2,32 @@
  * Controller for creating new item, in practice after the object is persisted
  * Control moves to the EditCtrl
  */
-function CreateCtrl($scope, ItemService, NewItemTemplates, Collection, AccessToken) {
+function CreateCtrl($scope, $routeParams, ItemService, NewItemTemplates) {
 
-    $scope.$root.$broadcast("createNewItem");
+    if (angular.isUndefined($routeParams.type) || angular.isUndefined(NewItemTemplates[$routeParams.type]))
+        return false;
 
-    $scope.templates = [];
-    for (var t in NewItemTemplates) $scope.templates.push(NewItemTemplates[t]);
-    $scope.selectedTemplate = $scope.templates[0];
+    var item = new ItemService();
+    item.data = {
+        name: "qtiItem",
+        files: [{
+            name: "qti.xml",
+            "default": true,
+            contentType: "text/xml",
+            content: NewItemTemplates[$routeParams.type].xmlData
+        }]
+    };
 
-    // TODO: this should be filtered so that only writable collections appear
-    $scope.collections = Collection.query({ access_token : AccessToken.token },
-        function() {
-            console.log("Done");
-            $scope.selectedCollection = $scope.collections[0];
-        });
 
+    item.$save({},
+        function onItemSaved(itemData) {
+            window.location.href = '/web#/edit/' + itemData.id;
+        },
+        function onError(e) {
+            alert("Error Saving Item: "+ e.data.message);
+        }
+    );
 
-    $scope.createItem = function() {
-        if (angular.isUndefined($scope.selectedCollection) || angular.isUndefined($scope.selectedTemplate))
-            return false;
-
-        var item = new ItemService();
-        item.collectionId = $scope.selectedCollection.id;
-        item.data = {
-            name: "qtiItem",
-            files: [{
-                name: "qti.xml",
-                default: true,
-                contentType: "text/xml",
-                content: $scope.selectedTemplate.xmlData
-            }]
-        };
-
-        item.$save({access_token: AccessToken.token},
-            function onItemSaved(itemData) {
-                console.log("Item Saved");
-                console.log(itemData);
-                window.location.href = '/web#/edit/' + itemData.id;
-            },
-            function onError(e) {
-                alert("Error Saving Item: "+ e.data.message);
-            }
-        );
-
-        return item;
-
-    }
 }
 
-CreateCtrl.$inject = ['$scope', 'ItemService','NewItemTemplates','Collection','AccessToken'];
+CreateCtrl.$inject = ['$scope', '$routeParams','ItemService','NewItemTemplates'];

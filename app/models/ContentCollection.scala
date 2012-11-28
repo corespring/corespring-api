@@ -28,28 +28,28 @@ case class ContentCollection(var name: String = "", var isPrivate: Boolean = fal
 object ContentCollection extends DBQueryable[ContentCollection]{
   val name = "name"
   val isPrivate = "isPrivate"
+  val DEFAULT = "default" //used as the value for name when the content collection is a default collection
 
   val collection = mongoCollection("contentcolls")
   val dao = new SalatDAO[ContentCollection, ObjectId](collection = collection) {}
 
   def insert(orgId: ObjectId, coll: ContentCollection): Either[InternalError, ContentCollection] = {
-    if(Play.isProd) coll.id = new ObjectId()
-    try {
-      super.insert(coll) match   {
-        case Some(_) => try {
-          Organization.update(MongoDBObject("_id" -> orgId),
-            MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> grater[ContentCollRef].asDBObject(new ContentCollRef(coll.id)))),
-            false, false, Organization.collection.writeConcern)
-          Right(coll)
-        } catch {
-          case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update organization with collection")))
+      if(Play.isProd) coll.id = new ObjectId()
+      try {
+        super.insert(coll) match   {
+          case Some(_) => try {
+            Organization.update(MongoDBObject("_id" -> orgId),
+              MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> grater[ContentCollRef].asDBObject(new ContentCollRef(coll.id)))),
+              false, false, Organization.collection.writeConcern)
+            Right(coll)
+          } catch {
+            case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update organization with collection")))
+          }
+          case None => Left(InternalError("failed to insert content collection",LogType.printFatal,true))
         }
-        case None => Left(InternalError("failed to insert content collection",LogType.printFatal,true))
+      } catch {
+        case e: SalatInsertError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to insert content collection")))
       }
-    } catch {
-      case e: SalatInsertError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to insert content collection")))
-    }
-
   }
 
   def removeCollection(collId: ObjectId): Either[InternalError, Unit] = {

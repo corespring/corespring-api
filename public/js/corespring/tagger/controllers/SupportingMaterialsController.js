@@ -1,6 +1,6 @@
 /**
  */
-function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeout, SupportingMaterial, ServiceLookup, AccessToken) {
+function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeout, SupportingMaterial, ServiceLookup) {
 
     $scope.showAddResourceModal = false;
     $scope.newResourceType = "upload";
@@ -81,14 +81,14 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
                     {
                         name:"index.html",
                         content:"<html><body>hello world</body></html>",
-                        default:true,
+                        "default":true,
                         contentType:"text/html"
                     }
                 ]
             }
         );
 
-        newHtml.$save({ itemId:$routeParams.itemId, access_token: AccessToken.token }, function (data) {
+        newHtml.$save({ itemId:$routeParams.itemId}, function (data) {
             $scope.supportingMaterials.push(data);
             $scope.showResource(data);
             $scope.showAddResourceModal = false;
@@ -110,7 +110,6 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
         };
 
         var url = ServiceLookup.getUrlFor('uploadSupportingMaterial', substitutions);
-        url += "?access_token=" + AccessToken.token;
         console.log("upload url: " + url);
         return url;
     };
@@ -175,26 +174,51 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
         $scope.isEditorActive = false;
     });
 
-    $scope.removeResource = function (resource) {
 
+    $scope.confirmRemoveFile = function () {
+        var f = $scope.fileToRemove;
+        if(!f) {
+            return;
+        }
+        SupportingMaterial.delete(
+            {
+                itemId: $routeParams.itemId,
+                resourceName: f.name
+            },
+            function onLoaded() {
+                $scope.supportingMaterials.removeItem(f);
+                $scope.showRemoveFileModal = false;
+                $scope.fileToRemove = null;
+            },
+            function error() {
+                alert("Error removing item");
+                $scope.showRemoveFileModal = false;
+                $scope.fileToRemove = null;
+            }
+        );
+    };
+
+    $scope.cancelRemoveFile = function () {
+        $scope.showRemoveFileModal = false;
+        $scope.fileToRemove = null;
+    };
+
+
+    $scope.removeResource = function (resource) {
         if ($scope.supportingMaterials == null) {
             throw "Can't remove from null array";
         }
-
         if (!resource) {
             return;
         }
-
-        resource.$delete({itemId:$routeParams.itemId, resourceName:resource.name}, function (data) {
-            $scope.supportingMaterials.removeItem(data);
-        });
+        $scope.fileToRemove = resource;
+        $scope.showRemoveFileModal = true;
     };
 
     $scope.loadMaterials = function () {
         SupportingMaterial.query(
             {
-                itemId:$routeParams.itemId,
-                access_token:AccessToken.token
+                itemId:$routeParams.itemId
             },
             function onLoaded(data) {
                 $scope.supportingMaterials = data;
@@ -211,4 +235,4 @@ SupportingMaterialsController.$inject = [
     '$timeout',
     'SupportingMaterial',
     'ServiceLookup',
-    'AccessToken'];
+    ];

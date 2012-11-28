@@ -5,7 +5,7 @@
 var feedbackDirectiveFunction = function (QtiUtils) {
 
     return {
-        restrict:'E',
+        restrict:'ACE',
         template:'<span class="{{cssClass}}" ng-bind-html-unsafe="feedback"></span>',
         scope:true,
         require:'^assessmentitem',
@@ -20,7 +20,8 @@ var feedbackDirectiveFunction = function (QtiUtils) {
             scope.cssClass = element[0].localName;
 
             scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
-                if (!responses || scope.isFeedbackEnabled() == false) return;
+
+                if(!responses || !scope.isFeedbackEnabled()) return;
 
                 var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
                 scope.feedback = ( feedback || "" );

@@ -1,21 +1,19 @@
 import _root_.controllers.S3Service
-import _root_.models.auth.AccessToken
+import play.api.mvc.Results._
+import web.controllers.utils.ConfigLoader
+import common.seed.SeedDb._
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import org.bson.types.ObjectId
-import org.joda.time.DateTime
 import play.api._
 import mvc._
 import mvc.SimpleResult
 import play.api.Play.current
 import play.api.Application
-import web.controllers.utils.ConfigLoader
-import seed.SeedDb._
 
 /**
   */
 object Global extends GlobalSettings {
 
-  val AUTO_RESTART: String = "AUTO_RESTART"
   val INIT_DATA: String = "INIT_DATA"
 
   val h = securesocial.core.providers.utils.RoutesHelper
@@ -49,6 +47,20 @@ object Global extends GlobalSettings {
     }
   }
 
+  // 500 - internal server error
+  override def onError(request: RequestHeader, throwable: Throwable) = {
+
+    val uid = new ObjectId().toString
+    Logger.error(uid)
+    Logger.error(throwable.getMessage)
+
+    if (Logger.isDebugEnabled) {
+      throwable.printStackTrace()
+    }
+    InternalServerError(common.views.html.onError(uid, throwable))
+  }
+
+
   override def onHandlerNotFound(request: play.api.mvc.RequestHeader): Result = {
     val result = super.onHandlerNotFound(request)
 
@@ -67,8 +79,10 @@ object Global extends GlobalSettings {
   }
 
   override def onStart(app: Application) {
+
     // support JodaTime
     RegisterJodaTimeConversionHelpers()
+
     val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
     S3Service.init(amazonProperties)
 
@@ -88,24 +102,21 @@ object Global extends GlobalSettings {
     } else if (Play.isProd(app)) {
       if (initData) seedDevData()
     }
-
   }
 
   private def isLocalDb: Boolean = {
-
     ConfigLoader.get("mongodb.default.uri") match {
-      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907-a.mongolab.com:35907/sib")
+      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907.mongolab.com:35907/sib")
       case None => false
     }
   }
 
-  val MockToken : String = "34dj45a769j4e1c0h4wb"
 
   private def seedTestData() {
     emptyData()
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/test")
-    addMockAccessToken(MockToken, None)
+    addMockAccessToken(common.mock.MockToken, None)
   }
 
   private def seedDevData() {
@@ -113,15 +124,7 @@ object Global extends GlobalSettings {
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/dev")
     seedData("conf/seed-data/exemplar-content")
-    addMockAccessToken(MockToken, None)
-  }
-
-
-  def addMockAccessToken(token: String, scope:Option[String]) = {
-    AccessToken.collection.drop()
-    val creationDate = DateTime.now()
-    val accessToken = AccessToken(new ObjectId("502404dd0364dc35bb393397"), scope, token, creationDate, creationDate.plusHours(24))
-    AccessToken.insert(accessToken)
+    addMockAccessToken(common.mock.MockToken, None)
   }
 
 }

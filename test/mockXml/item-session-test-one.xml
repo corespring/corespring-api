@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+                title="" adaptive="false" timeDependent="false">
+
+    <correctResponseFeedback>Correct!</correctResponseFeedback>
+    <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>
+
+    <responseDeclaration identifier="RESPONSE" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>ChoiceC</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="integer">
+        <defaultValue>
+            <value>0</value>
+        </defaultValue>
+    </outcomeDeclaration>
+    <itemBody>
+
+        <choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="1">
+            <prompt>hello</prompt>
+            <simpleChoice identifier="ChoiceA"> a
+                <feedbackInline csFeedbackId="4" identifier="ChoiceA" showHide="show" defaultFeedback="true"></feedbackInline>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceB"> b
+                <feedbackInline csFeedbackId="5" identifier="ChoiceB" showHide="show" defaultFeedback="true"></feedbackInline>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceC"> c
+                <feedbackInline csFeedbackId="6" identifier="ChoiceC" showHide="show" defaultFeedback="true"></feedbackInline>
+            </simpleChoice>
+
+        </choiceInteraction>
+    </itemBody>
+
+</assessmentItem>

@@ -16,7 +16,7 @@ if (Array.prototype.removeItem == null) Array.prototype.removeItem = function (i
 /**
  * Controller for editing Item
  */
-function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, AccessToken) {
+function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, $timeout) {
 
     function loadStandardsSelectionData() {
         $http.get(ServiceLookup.getUrlFor('standardsTree')).success(function (data) {
@@ -25,15 +25,16 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     }
 
     function loadCollections() {
-        Collection.get({ access_token:AccessToken.token }, function (data) {
+        Collection.get({}, function (data) {
                 $scope.collections = data;
             },
             function () {
-                console.log("load collections: error: " + arguments)
+                console.log("load collections: error: " + arguments);
             });
     }
 
     function initPane($routeParams) {
+        $scope.$root.mode = 'edit';
         var panelName = 'metadata';
         if ($routeParams.panel) {
             panelName = $routeParams.panel;
@@ -43,12 +44,54 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         loadCollections();
         $scope.$watch(
             function () {
-                return $location.url()
+                return $location.url();
             },
             function (path) {
                 $scope.changePanel($location.search().panel);
             });
     }
+
+    $scope.refreshPreview = function() {
+        // Trigger iframe reload
+        var oldvalue = $scope.corespringApiUrl;
+        $scope.corespringApiUrl = "";
+        $timeout(function() {
+            $scope.corespringApiUrl = oldvalue;
+        });
+    }
+
+    $scope.togglePreview = function() {
+        $scope.previewVisible = !$scope.previewVisible;
+        $scope.$broadcast("panelOpen");
+    }
+
+    $scope.$watch("previewVisible", function (newValue) {
+        $scope.previewClassName = newValue ? "preview-open" : "preview-closed";
+        $scope.corespringApiUrl = newValue ? ("/testplayer/item/" + $routeParams.itemId + "/run") : "";
+        $scope.fullPreviewUrl = "/web/item-preview/" + $routeParams.itemId;
+    });
+
+    $scope.deleteItem = function(item) {
+        $scope.itemToDelete = item;
+        $scope.showConfirmDestroyModal = true;
+    };
+
+    $scope.deleteConfirmed = function(){
+        var deletingId = $scope.itemToDelete.id;
+        ItemService.remove({id: $scope.itemToDelete.id},
+            function(result) {
+                $scope.itemToDelete = null;
+                $location.path("/web");
+            }
+        );
+        $scope.itemToDelete = null;
+        $scope.showConfirmDestroyModal = false;
+    };
+
+    $scope.deleteCancelled = function(){
+       $scope.itemToDelete = null;
+       $scope.showConfirmDestroyModal = false;
+    };
 
     /**
      * Update the location search settings to reflect the ui state
@@ -134,7 +177,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
     $scope.processData = function (rawData, itemId, itemFiles) {
 
-        if (itemFiles == undefined) {
+        if (!itemFiles) {
             return;
         }
         var out = rawData;
@@ -151,7 +194,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $rootScope.$broadcast('onEditViewOpened');
 
     $scope.loadItem = function () {
-        ItemService.get({id:$routeParams.itemId, access_token:AccessToken.token}, function onItemLoaded(itemData) {
+        ItemService.get({id:$routeParams.itemId}, function onItemLoaded(itemData) {
             $scope.itemData = itemData;
             enterEditorIfInContentPanel();
             initItemType();
@@ -159,7 +202,11 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         });
     };
 
-    $scope.accessToken = AccessToken;
+    $scope.clone = function(){
+        $scope.itemData.clone({id:$scope.itemData.id}, function onCloneSuccess(data){
+            $location.path('/edit/' + data.id);
+        });
+    };
 
     $scope.loadItem();
 
@@ -190,7 +237,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
     $scope.processValidationResults = function (result) {
 
-        if (result != null && result.success == false) {
+        if (result && result.success === false) {
             $scope.showExceptions = true;
             $scope.validationResult = { exceptions:angular.copy(result.exceptions) };
         }
@@ -199,8 +246,13 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         }
     };
 
+    $scope.saveSelectedFileFinished = function() {
+        $scope.isSaving = false;
+        $scope.suppressSave = false;
+    };
 
     $scope.save = function () {
+
         if (!$scope.itemData) {
             return;
         }
@@ -209,9 +261,14 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             $scope.isSaving = true;
         }
 
+        if ($scope.showResourceEditor) {
+            $scope.$broadcast("saveSelectedFile");
+            return;
+        }
+
         $scope.validationResult = {};
 
-        $scope.itemData.update({access_token:$scope.accessToken.token}, function (data) {
+        $scope.itemData.update({}, function (data) {
                 $scope.isSaving = false;
                 $scope.suppressSave = false;
                 $scope.processValidationResults(data["$validationResult"]);
@@ -386,5 +443,6 @@ ItemController.$inject = [
     'Collection',
     'ServiceLookup',
     '$http',
-    'AccessToken'];
+    '$timeout'
+    ];
 

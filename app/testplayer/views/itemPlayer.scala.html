@@ -1,0 +1,40 @@
+@(itemId: String, itemBody: String, previewEnabled : Boolean = true, sessionId:String = "")
+@cssClass = @{
+    if(previewEnabled) "assessment-page" else "student-assessment-page"
+}
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html ng-app="qti">
+<head>
+    <title>@itemId</title>
+    @common.views.html.partials.ieEightSupport()
+    @partials.scripts(itemBody)
+
+    <script type="text/javascript">
+        angular.module('qti.services').factory('Config', [function(){
+            return {
+                itemId : "@itemId",
+                sessionId : "@sessionId"
+            }
+        }]);
+    </script>
+
+    <script src="/assets/js/corespring/qti/controllers/QtiAppController.js"></script>
+
+</head>
+<body ng-controller="QtiAppController">
+
+    @if( previewEnabled ){
+
+        @partials.controlBar()
+        
+        <div class="student-view-header" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">Student View</div>
+    } else {
+        <br/>
+    }
+
+    <div class="@cssClass" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">
+        @Html(itemBody)
+    </div>
+</body>
+</html>

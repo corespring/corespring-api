@@ -18,52 +18,24 @@ com.corespring.model.ItemDataProcessor = function () {
     this.createDTO = function (itemData) {
         var dto = {};
         var processedData = { _id:undefined };
+        processedData.priorGradeLevel = this.buildDtoKeyArray(itemData.$priorGradeLevelDataProvider);
         processedData.gradeLevel = this.buildDtoKeyArray(itemData.$gradeLevelDataProvider);
         processedData.reviewsPassed = this.buildDtoKeyArray(itemData.$reviewsPassedDataProvider);
+        processedData.primarySubject = this.convertEmbeddedToOid(itemData.primarySubject);
+        processedData.relatedSubject = this.convertEmbeddedToOid(itemData.relatedSubject);
+        processedData.standards = _.map(itemData.standards, this.convertEmbeddedToOid);
+        processedData.costForResource = parseInt(itemData.costForResource);
         angular.extend(dto, itemData, processedData);
-
-        this.processOids(dto, false);
+        dto.id = null;
         return dto;
     };
 
-    this.arraysThatNeedProcessing = ["primarySubject", "relatedSubject", "standards"];
-    /**
-     * look for any objects that are objects from another collection
-     * aka they have an _id.$oid property.
-     * hang onto the id but move it to refId instead.
-     * @param data
-     */
-    this.processOids = function (data, processUnderscoreId) {
-
-        function _processIdObject(objectWithId) {
-
-            if (objectWithId == undefined || objectWithId == null) {
-                return;
-            }
-
-            if (objectWithId.hasOwnProperty("_id") && objectWithId._id != null && objectWithId._id.$oid !== undefined) {
-                objectWithId.refId = objectWithId._id.$oid;
-                delete objectWithId._id
-            }
-            else {
-                if (objectWithId.refId != null) {
-                    //it already processed
-                } else {
-                    console.warn("couldn't process object: " + objectWithId);
-                }
-            }
+    this.convertEmbeddedToOid = function (item) {
+        if (!item || !item.id) {
+            return null;
         }
-
-        _processIdObject(data["primarySubject"]);
-        _processIdObject(data["relatedSubject"]);
-
-        if (data["standards"] !== undefined) {
-            for (var i = 0; i < data["standards"].length; i++) {
-                _processIdObject(data["standards"][i]);
-            }
-
-        }
-    };
+        return  item.id;
+    }
 
     /**
      *
@@ -118,6 +90,7 @@ com.corespring.model.ItemDataProcessor = function () {
          * @type {Array}
          */
         item.$gradeLevelDataProvider = this.buildNgDataProvider(this.$defaults.gradeLevels, item.gradeLevel);
+        item.$priorGradeLevelDataProvider = this.buildNgDataProvider(this.$defaults.gradeLevels, item.priorGradeLevel);
         item.$reviewsPassedDataProvider = this.buildNgDataProvider(this.$defaults.reviewsPassed, item.reviewsPassed);
         item.$priorUseDataProvider = _.map(window.fieldValues.priorUses, getKey);
         item.$credentialsDataProvider = _.map(window.fieldValues.credentials, getKey);

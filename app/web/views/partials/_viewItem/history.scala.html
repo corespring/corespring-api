@@ -39,7 +39,7 @@
             <td class="key-label" width="50%">Prior Use<br/>
                 <span class="key-value">
                     <span ng-show="!itemData.priorUse" style="color: #888; font-style: italic;">Not Assigned</span>
-                    {{itemData.priorUse}}
+                    {{itemData.priorUse}}<span ng-repeat="s in itemData.priorGradeLevel">, Grade {{s}}</span>
                 </span>
             </td>
         </tr>
