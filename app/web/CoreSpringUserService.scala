@@ -26,7 +26,15 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
 
   def save(user: SocialUser) {
    if ( User.getUser(user.id.id).isEmpty ) {
-      val corespringUser = User(user.id.id, user.fullName, user.email.get, Seq(), user.passwordInfo.get.password, new ObjectId())
+      val corespringUser =
+        User(
+          user.id.id,
+          user.fullName,
+          user.email.getOrElse(""),
+          Seq(),
+          user.passwordInfo.getOrElse(PasswordInfo("")).password,
+          new ObjectId())
+
       // hardcode this org id for now?
       val corespringId = new ObjectId("502404dd0364dc35bb39339a")
       User.insertUser(corespringUser, corespringId, Permission.All, checkOrgId = false)
