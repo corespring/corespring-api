@@ -146,13 +146,11 @@ GET     /web/access_token                      web.controllers.Main.getAccessTok
 #
 # BasicLTI
 #
-POST    /basiclti                               basiclti.LtiController.launch
 POST    /lti/assignment/launch/:itemId          basiclti.controllers.AssignmentLauncher.launch(itemId:ObjectId)
 GET     /lti/assignment/error/authorization     basiclti.controllers.AssignmentLauncher.authorizationError
 GET     /lti/assignment/:assignmentId/process   basiclti.controllers.AssignmentLauncher.process(assignmentId:ObjectId)
 GET     /lti/assignment/:assignmentId/run       basiclti.controllers.AssignmentPlayer.runByAssignmentId(assignmentId:ObjectId)
 GET     /lti/assignment/:assignmentId/:filename basiclti.controllers.AssignmentPlayer.getDataFileByAssignmentId(assignmentId:ObjectId, filename:String)
-POST    /basiclti/items                         basiclti.LtiController.launchList
 
 # Reporting
 GET    /reports                                     reporting.controllers.Reports.index

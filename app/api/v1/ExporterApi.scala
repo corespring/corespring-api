@@ -33,7 +33,7 @@ object ExporterApi extends BaseApi {
 
 
   def multiItemLti(ids: String) = ApiAction { request =>
-    binaryResultFromIds( ids, request.ctx.organization, (i) => CCExporter.packageItems(i.map(_.id.toString)) )
+    binaryResultFromIds( ids, request.ctx.organization, (i) => CCExporter.packageItems(i.map(_.id.toString), BaseUrl(request)) )
   }
 
   private def binaryResultFromIds(ids:String, orgId : ObjectId, itemsToByteArray : (List[Item] => Array[Byte])) : Result = {

@@ -2,13 +2,6 @@ package basiclti.export
 
 import xml.Elem
 
-/**
- * Created with IntelliJ IDEA.
- * User: josh
- * Date: 11/26/12
- * Time: 11:13 AM
- * To change this template use File | Settings | File Templates.
- */
 case class CCAssignmentGroups(groups:Seq[CCAssignmentGroup]) {
   def toXml:Elem = {
     val outer = <assignmentGroups xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -18,6 +11,7 @@ case class CCAssignmentGroups(groups:Seq[CCAssignmentGroup]) {
     new Elem(outer.prefix, outer.label, outer.attributes, outer.scope, (outer.child ++ groups.map(_.toXml)) : _*)
   }
 }
+
 case class CCAssignmentGroup(identifier: String, title: String){
   def toXml:Elem = <assignmentGroup identifier={identifier}>
     <title>{title}</title>
@@ -25,6 +19,7 @@ case class CCAssignmentGroup(identifier: String, title: String){
     <group_weight>0</group_weight>
   </assignmentGroup>
 }
+
 case class CCExternalToolAssignmentSettings(identifier:String,title:String, assignmentGroupId:String, externalToolUrl:String, maxPoints:String = "10"){
   def toXml:Elem = <assignment identifier={identifier} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://canvas.instructure.com/xsd/cccv1p0" xsi:schemaLocation="http://canvas.instructure.com/xsd/cccv1p0 http://canvas.instructure.com/xsd/cccv1p0.xsd">
     <title>{title}</title>
