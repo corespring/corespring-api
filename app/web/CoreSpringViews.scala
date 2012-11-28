@@ -32,7 +32,8 @@ class CoreSpringViews(application: Application) extends TemplatesPlugin {
    * @tparam A
    * @return
    */
-  def getSignUpPage[A](implicit request: Request[A], form: Form[RegistrationInfo], token: String) = null
+  def getSignUpPage[A](implicit request: Request[A], form: Form[RegistrationInfo], token: String) =
+    web.views.html.ss.signup(form)
 
   /**
    * Returns the html for the start signup page
@@ -41,9 +42,10 @@ class CoreSpringViews(application: Application) extends TemplatesPlugin {
    * @tparam A
    * @return
    */
-  def getStartSignUpPage[A](implicit request: Request[A], form: Form[String]) = null
+  def getStartSignUpPage[A](implicit request: Request[A], form: Form[String]) =
+    web.views.html.ss.startSignup(form)
 
-  /**
+    /**
    * Returns the html for the reset password page
    *
    * @param request
