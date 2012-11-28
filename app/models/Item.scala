@@ -353,10 +353,11 @@ object Item extends DBQueryable[Item] {
   def updateItem(oid: ObjectId, newItem: Item, fields: Option[DBObject], requesterOrgId: ObjectId): Either[InternalError, Item] = {
     try {
       import com.novus.salat.grater
+
       //newItem.id = oid
       val toUpdate = if (newItem.collectionId != "") {
         if (ContentCollection.isAuthorized(requesterOrgId, new ObjectId(newItem.collectionId), Permission.All)) {
-          ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials)
+          ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials - data)
         } else throw new RuntimeException("not authorized")
       } else ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials) - collectionId
       Item.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> toUpdate), upsert = false, multi = false, wc = Item.collection.writeConcern)
