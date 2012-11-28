@@ -114,7 +114,7 @@ trait BaseApi extends Controller {
           error => BadRequest(Json.toJson(new ApiError(1, "The id specified is not a valid UUID"))),
           optionalCtx => optionalCtx.map(ctx => f(ApiRequest(ctx, request))).getOrElse {
             SecureSocial.currentUser(request).map { u =>
-              invokeAsUser(CoreSpringUserService.uid(u.id), request)(f)
+              invokeAsUser(u.id.id, u.id.providerId, request)(f)
             }.getOrElse {
               tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
                 OAuthProvider.getAuthorizationContext(token).fold(
@@ -139,13 +139,15 @@ trait BaseApi extends Controller {
    * @tparam A
    * @return
    */
-    def invokeAsUser[A](username: String, request: Request[A])(f: ApiRequest[A]=>Result) = {
-      User.getUser(username).map { user =>
+    def invokeAsUser[A](username: String, provider:String, request: Request[A])(f: ApiRequest[A]=>Result) = {
+      User.getUser(username, provider).map { user =>
         Logger.debug("Using user in Play's session = " + username)
         // todo: check orgId is right
         val ctx = new AuthorizationContext(user.orgs.head.orgId, Option(username))
         f( ApiRequest(ctx, request))
-      }.getOrElse(Forbidden( Json.toJson(MissingCredentials) ).as(JSON))
+      }.getOrElse(
+        Forbidden( Json.toJson(MissingCredentials) ).as(JSON)
+      )
     }
 
   /**

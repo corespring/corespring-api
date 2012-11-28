@@ -10,10 +10,8 @@ import providers.Token
 import securesocial.core.UserId
 import securesocial.core.SocialUser
 import scala.Some
+import com.mongodb.casbah.commons.MongoDBObject
 
-object CoreSpringUserService{
-  def uid(id:UserId) = id.id + "|" + id.providerId
-}
 /**
  * An implementation of the UserService
  */
@@ -23,21 +21,35 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
   def find(id: UserId): Option[SocialUser] = {
     // id.id has the username
     Log.i("looking for %s(%s)".format(id.id, id.providerId))
-    User.getUser(CoreSpringUserService.uid(id)).map( u => {
-      Log.i("found user = " + u.userName)
-      SocialUser(id, "", "", u.fullName, Some(u.email), None, AuthenticationMethod.UserPassword, passwordInfo = Some(PasswordInfo(u.password)) )
-    })
+
+    User.getUser(id.id, id.providerId) map {
+      u =>
+        Log.i("found user = " + u.userName)
+        SocialUser(
+          id,
+          "",
+          "",
+          u.fullName,
+          Some(u.email),
+          None,
+          AuthenticationMethod.UserPassword,
+          passwordInfo = Some(PasswordInfo(u.password)
+          )
+        )
+    }
   }
 
+
   def save(user: SocialUser) {
-   if ( User.getUser(user.id.id).isEmpty ) {
+    if (User.getUser(user.id.id).isEmpty) {
       val corespringUser =
         User(
-          CoreSpringUserService.uid(user.id),
+          user.id.id,
           user.fullName,
           user.email.getOrElse(""),
           Seq(),
           user.passwordInfo.getOrElse(PasswordInfo("")).password,
+          user.id.providerId,
           new ObjectId())
 
       // hardcode this org id for now?
@@ -46,7 +58,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
     }
   }
 
-  def findByEmailAndProvider(email:String, providerId:String) = None
+  def findByEmailAndProvider(email: String, providerId: String) = None
 
   /**
    * Finds a Social user by email and provider id.
