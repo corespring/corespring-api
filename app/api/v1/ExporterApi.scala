@@ -5,11 +5,17 @@ import org.bson.types.ObjectId
 import models.{Content, Item}
 import scorm.utils.ScormExporter
 import play.api.libs.iteratee.Enumerator
-import play.api.mvc.{AnyContent, Request, ResponseHeader, SimpleResult}
+import play.api.mvc._
 import common.mock._
 import com.mongodb.casbah.commons.MongoDBObject
+import basiclti.export.CCExporter
+import scala.Some
+import play.api.mvc.SimpleResult
+import play.api.mvc.ResponseHeader
 
 object ExporterApi extends BaseApi {
+
+  val OctetStream: String = "application/octet-stream"
 
   object BaseUrl{
     def apply(r:Request[AnyContent]) : String = {
@@ -18,68 +24,51 @@ object ExporterApi extends BaseApi {
     }
   }
 
-  val OctetStream: String = "application/octet-stream"
-
-  def scorm2004(id: ObjectId) = ApiAction {
-    request =>
-      Item.findOneById(id) match {
-        case Some(item) => {
-          if (Content.isCollectionAuthorized(request.ctx.organization, item.collectionId, Permission.All)) {
-            //TODO: Need to associate a non expiring token with this users' org and pass it in here.
-
-            val data = ScormExporter.makeMultiScormPackage(List(item), MockToken, BaseUrl(request))
-            Binary(data, None, OctetStream)
-          } else {
-            BadRequest("You don't have access to this item")
-          }
-        }
-        case _ => NotFound("can't find item")
-      }
-  }
-
   /** Build a multi item scorm .zip
    * @param ids - comma delimited list of ids
    */
-  def multiItemScorm2004(ids: String) = ApiAction {
-    request =>
-
-      val validIds = ids.split(",").toList.map {
-        rawId =>
-          try {
-            Some(new ObjectId(rawId))
-          } catch {
-            case e: Throwable => None
-          }
-      }.flatten
-
-      def access(orgId: ObjectId)(item: Item): Boolean = Content.isCollectionAuthorized(orgId, item.collectionId, Permission.All)
-
-      val items = Item.find(MongoDBObject("_id" -> MongoDBObject("$in" -> validIds))).toList
-
-      items match {
-        case List() => NotFound("No items found")
-        case _ => {
-           items.filter(access(request.ctx.organization)) match {
-            case List() => Unauthorized("You don't have access to these items")
-            case _ => {
-              val data = ScormExporter.makeMultiScormPackage(items, MockToken, BaseUrl(request))
-              Binary(data, None, OctetStream)
-            }
-          }
-        }
-      }
+  def multiItemScorm2004(ids: String) = ApiAction{ request =>
+    binaryResultFromIds(ids, request.ctx.organization, ScormExporter.makeMultiScormPackage(_,MockToken,BaseUrl(request)))
   }
 
 
+  def multiItemLti(ids: String) = ApiAction { request =>
+    binaryResultFromIds( ids, request.ctx.organization, (i) => CCExporter.packageItems(i.map(_.id.toString), BaseUrl(request)) )
+  }
+
+  private def binaryResultFromIds(ids:String, orgId : ObjectId, itemsToByteArray : (List[Item] => Array[Byte])) : Result = {
+    val validIds = validObjectIds(ids)
+    val items = Item.find(MongoDBObject("_id" -> MongoDBObject("$in" -> validIds))).toList
+    items match {
+      case List() => NotFound("No items found")
+      case _ => {
+        items.filter(access(orgId)) match {
+          case List() => Unauthorized("You don't have access to these items")
+          case _ => Binary(itemsToByteArray(items), None, OctetStream)
+        }
+      }
+    }
+  }
+
+  private def validObjectIds(ids:String) : List[ObjectId] = {
+    ids.split(",").toList.map {
+      rawId =>
+        try {
+          Some(new ObjectId(rawId))
+        } catch {
+          case e: Throwable => None
+        }
+    }.flatten
+  }
+
+  private def access(orgId: ObjectId)(item: Item): Boolean = Content.isCollectionAuthorized(orgId, item.collectionId, Permission.All)
+
   private def Binary(data: Array[Byte], length: Option[Long] = None, contentType: String = "application/octet-stream") = {
-
     val e = Enumerator(data)
-
     SimpleResult[Array[Byte]](header = ResponseHeader(
       OK,
       Map(CONTENT_TYPE -> contentType) ++ length.map(length =>
         Map(CONTENT_LENGTH -> (length.toString))).getOrElse(Map.empty)),
       body = e)
-
   }
 }

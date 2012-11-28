@@ -13,6 +13,7 @@ import models.StringItemResponse
 import scala.Some
 import scala.Right
 import org.joda.time.DateTime
+import xml.Elem
 
 class ItemSessionTest extends Specification {
 
@@ -286,4 +287,42 @@ class ItemSessionTest extends Specification {
     }
   }
 
+  "get total score" should {
+    "return the correct score" in {
+
+      val item = new Item(
+        id = new ObjectId(),
+        data = Some(Resource(
+          "data",
+          files =
+            Seq(
+              VirtualFile(
+                name="qti.xml",
+                contentType = "text/xml",
+                isMain = true,
+                content = MockXml.AllItems.mkString("\n"))
+            )
+        ))
+      )
+
+      Item.save(item)
+
+      val session = ItemSession(itemId = item.id)
+
+      session.responses = Seq(
+        ArrayItemResponse("rainbowColors", Seq("blue","violet","red")),
+        StringItemResponse("winterDiscontent", "york")
+      )
+
+      val xml : Elem = ItemSession.getXmlWithFeedback(session).right.get
+
+      session.finish = Some(new DateTime())
+      ItemSession.process(session, xml)
+
+      val (score,maxScore) = ItemSession.getTotalScore(session)
+
+      score === 2.0
+      maxScore === 7.0
+    }
+  }
 }

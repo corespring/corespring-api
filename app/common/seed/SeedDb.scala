@@ -11,6 +11,7 @@ import play.api._
 import play.api.Play.current
 import JsonImporter._
 import web.models.QtiTemplate
+import basiclti.models.Assignment
 
 object SeedDb {
 
@@ -26,7 +27,8 @@ object SeedDb {
     ItemSession.collection,
     User.collection,
     Organization.collection,
-    QtiTemplate.collection)
+    QtiTemplate.collection,
+    Assignment.collection)
 
 
   abstract class SeedFormat
