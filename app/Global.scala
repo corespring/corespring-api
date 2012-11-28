@@ -1,5 +1,8 @@
 import _root_.controllers.S3Service
+import _root_.models.auth.AccessToken
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
+import org.bson.types.ObjectId
+import org.joda.time.DateTime
 import play.api._
 import mvc._
 import mvc.SimpleResult
@@ -96,11 +99,13 @@ object Global extends GlobalSettings {
     }
   }
 
+  val MockToken : String = "34dj45a769j4e1c0h4wb"
+
   private def seedTestData() {
     emptyData()
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/test")
-    addMockAccessToken(common.mock.MockToken, None)
+    addMockAccessToken(MockToken, None)
   }
 
   private def seedDevData() {
@@ -108,6 +113,15 @@ object Global extends GlobalSettings {
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/dev")
     seedData("conf/seed-data/exemplar-content")
+    addMockAccessToken(MockToken, None)
+  }
+
+
+  def addMockAccessToken(token: String, scope:Option[String]) = {
+    AccessToken.collection.drop()
+    val creationDate = DateTime.now()
+    val accessToken = AccessToken(new ObjectId("502404dd0364dc35bb393397"), scope, token, creationDate, creationDate.plusHours(24))
+    AccessToken.insert(accessToken)
   }
 
 }
