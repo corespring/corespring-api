@@ -23,7 +23,7 @@ case class User(var userName: String = "",
                  var email: String = "",
                  var orgs: Seq[UserOrg] = Seq(),
                  var password: String = "",
-                 var provider : String = "",
+                 var provider : String = "userpass",
                  var id: ObjectId = new ObjectId()
                ) extends Identifiable
 

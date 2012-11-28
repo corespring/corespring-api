@@ -16,7 +16,12 @@ import play.api.libs.json.{JsString, JsValue, JsObject, Writes}
  * @see ApiClient
  */
 
-case class AccessToken(organization: ObjectId, scope: Option[String], var tokenId: String, creationDate: DateTime, expirationDate: DateTime) {
+//case class AccessToken(organization: ObjectId, scope: Option[String], var tokenId: String, creationDate: DateTime = new DateTime(), expirationDate: DateTime = new DateTime(DateTime.now().plusHours(6))) {
+  case class AccessToken( organization: ObjectId,
+                          scope: Option[String],
+                          var tokenId: String,
+                          creationDate: DateTime,
+                          expirationDate: DateTime ) {
   def isExpired:Boolean = {
     DateTime.now().isAfter(expirationDate)
   }

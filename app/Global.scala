@@ -100,6 +100,7 @@ object Global extends GlobalSettings {
     emptyData()
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/test")
+    addMockAccessToken(common.mock.MockToken, None)
   }
 
   private def seedDevData() {
