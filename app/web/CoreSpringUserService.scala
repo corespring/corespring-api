@@ -33,6 +33,8 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
     }
   }
 
+  def findByEmailAndProvider(email:String, providerId:String) = None
+
   /**
    * Finds a Social user by email and provider id.
    *

@@ -15,6 +15,8 @@ object Global extends GlobalSettings {
   val AUTO_RESTART: String = "AUTO_RESTART"
   val INIT_DATA: String = "INIT_DATA"
 
+  val h = securesocial.core.providers.utils.RoutesHelper
+
   val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
 
   def AccessControlAction[A](action: Action[A]): Action[A] = Action(action.parser) {

@@ -1,7 +1,7 @@
 package web
 
 import securesocial.controllers.TemplatesPlugin
-import securesocial.core.SocialUser
+import securesocial.core.{SecuredRequest, SocialUser}
 import play.api.mvc.{Request, RequestHeader}
 import play.api.data.Form
 import securesocial.controllers.Registration.RegistrationInfo
@@ -115,4 +115,8 @@ class CoreSpringViews(application: Application) extends TemplatesPlugin {
    * @return a String with the html code for the email
    */
   def getPasswordChangedNotice(user: SocialUser)(implicit request: RequestHeader) = null
+
+  def getPasswordChangePage[A](implicit request : SecuredRequest[A], form :Form[securesocial.controllers.PasswordChange.ChangeInfo] ) : Html = null
+
+  def getPasswordChangedNoticeEmail(user : securesocial.core.SocialUser)(implicit request : play.api.mvc.RequestHeader) : scala.Predef.String = "TODO"
 }

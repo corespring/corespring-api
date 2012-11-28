@@ -135,6 +135,9 @@ POST    /reset                      securesocial.controllers.Registration.handle
 GET     /reset/:token               securesocial.controllers.Registration.resetPassword(token)
 POST    /reset/:token               securesocial.controllers.Registration.handleResetPassword(token)
 
+GET     /password                   securesocial.controllers.PasswordChange.page
+POST    /password                   securesocial.controllers.PasswordChange.handlePasswordChange
+
 # Providers entry points
 GET     /authenticate/:provider     securesocial.controllers.ProviderController.authenticate(provider)
 POST    /authenticate/:provider     securesocial.controllers.ProviderController.authenticateByPost(provider)
