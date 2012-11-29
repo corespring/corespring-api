@@ -11,6 +11,7 @@ import securesocial.core.UserId
 import securesocial.core.SocialUser
 import scala.Some
 import com.mongodb.casbah.commons.MongoDBObject
+import org.joda.time.DateTime
 
 /**
  * An implementation of the UserService
@@ -38,7 +39,6 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
         )
     }
   }
-
 
   def save(user: SocialUser) {
     if (User.getUser(user.id.id).isEmpty) {
@@ -73,7 +73,6 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
       None
     else {
       val regToken = cursor.toList.head
-      println("Found token: ", regToken)
       Some(Token(regToken.uuid, regToken.email, regToken.creationTime.get, regToken.expirationTime.get, true))
     }
   }
@@ -86,6 +85,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
   }
 
   def deleteExpiredTokens() {
-    println("Deleting expired tokens")
+    val currentTime = new DateTime()
+    RegistrationToken.remove(MongoDBObject(RegistrationToken.Expires -> MongoDBObject("$lt" -> currentTime)))
   }
 }
