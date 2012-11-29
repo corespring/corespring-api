@@ -262,7 +262,7 @@ background: url("../images/header-light-grey-br.gif") repeat scroll center top t
 	margin-bottom: 10px;
 	padding: 15px;
 }
-.logo {
+.logo-new {
     float: left;
     margin-right: 98px;
     width: 211px;
@@ -402,22 +402,58 @@ display:block;
 
 .container div.span12.lead-in p {
     color: #00ACCE;
-    font: 500 20px/26px "Ubuntu",Arial,Helvetica,sans-serif;
+    font: 300 19px/27px "Ubuntu",Arial,Helvetica,sans-serif;
     word-spacing: normal;
 }
 
-.container div.span12.lead-in.partner {
-    background: url("../images/icon-sprite-xl.png") no-repeat scroll 0 -253px transparent;
+
+
+/*background: url("../images/icon-sprite-xl.png") no-repeat scroll 0 -166px transparent;*/
+
+.container div.span12.lead-in.about, .container div.span12.lead-in.contact,.container div.span12.lead-in.partner, .container div.span12.lead-in.developer, .container div.span12.lead-in.educator  {
     margin-left: 0;
-    padding-left: 105px;
 }
 
-.container div.span12.lead-in.about {
-    background: url("../images/icon-sprite-xl.png") no-repeat scroll 0 -166px transparent;
-    margin-left: 0;
-    padding-left: 105px;
+
+.about .intro-logo {
+    background: url("../images/icon-sprite-xl.png") no-repeat scroll -15px -163px transparent;
+    display: inline-block;
+    float: left;
+    height: 75px;
+    margin-bottom: 40px;
+    margin-right: 20px;
+    width: 70px;
 }
 
+.contact .intro-logo {
+    background: url("../images/icon-sprite-xl.png") no-repeat scroll -15px -331px transparent;
+    display: inline-block;
+    float: left;
+    height: 75px;
+    margin-bottom: 40px;
+    margin-right: 20px;
+    width: 70px;
+}
+
+.partner .intro-logo {
+    background: url("../images/icon-sprite-xl.png") no-repeat scroll 0 -250px transparent;
+    display: inline-block;
+    float: left;
+    height: 75px;
+    margin-bottom: 40px;
+    margin-right: 20px;
+    width: 85px;
+}
+
+.educator .intro-logo {
+    background: url("../images/icon-sprite-xl.png") no-repeat scroll 0 2px transparent;
+    display: inline-block;
+    float: left;
+    height: 75px;
+    margin-bottom: 40px;
+    margin-right: 22px;
+    width: 85px;
+}
 	
 .justify p {
 text-align: justify;
@@ -434,6 +470,21 @@ text-justify:inter-cluster;
 .span6 {
     margin-right: 30px;
     width: 430px;
+}
+
+.container div.span12.subhead p {
+    color: #00ACCE;
+    font: 300 20px/20px "Ubuntu",Arial,Helvetica,sans-serif;
+    word-spacing: normal;
+}
+
+.span12.subhead {
+margin-left:0px;
+}
+
+.container div.span12 span.contact-info p {
+font-size:14px;
+color: #5B5B5B;
 }
 
 
@@ -473,7 +524,17 @@ body, body p, p {
     padding-top: 5px;
 }
 
-	
+	hr {
+    -moz-border-bottom-colors: none;
+    -moz-border-left-colors: none;
+    -moz-border-right-colors: none;
+    -moz-border-top-colors: none;
+    border-color: #EEEEEE -moz-use-text-color #92D400 !important;
+    border-image: none;
+    border-style: solid none;
+    border-width: 1px 0;
+    margin: 20px 0;
+}
 
 /*
 .row {
