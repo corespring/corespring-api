@@ -2,7 +2,7 @@ package web
 
 import _root_.controllers.auth.Permission
 import _root_.controllers.Log
-import _root_.models.{UserOrg, User}
+import _root_.models.{User, RegistrationToken}
 import securesocial.core._
 import play.api.Application
 import org.bson.types.ObjectId
@@ -60,57 +60,32 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
 
   def findByEmailAndProvider(email: String, providerId: String) = None
 
-  /**
-   * Finds a Social user by email and provider id.
-   *
-   * Note: If you do not plan to use the UsernamePassword provider just provide en empty
-   * implementation.
-   *
-   * @param email - the user email
-   * @param providerId - the provider id
-   * @return
-   */
   def findByEmail(email: String, providerId: String) = None
 
-  /**
-   * Saves a token.  This is needed for users that
-   * are creating an account in the system instead of using one in a 3rd party system.
-   *
-   * Note: If you do not plan to use the UsernamePassword provider just provide en empty
-   * implementation
-   *
-   * @param token The token to save
-   * @return A string with a uuid that will be embedded in the welcome email.
-   */
-  def save(token: Token) {}
+  def save(token: Token) {
+    val newToken = RegistrationToken(token.uuid, token.email, Some(token.creationTime), Some(token.expirationTime))
+    RegistrationToken.insert(newToken)
+  }
 
-  /**
-   * Finds a token
-   *
-   * Note: If you do not plan to use the UsernamePassword provider just provide en empty
-   * implementation
-   *
-   * @param token the token id
-   * @return
-   */
-  def findToken(token: String) = None
+  def findToken(token: String) = {
+    val cursor = RegistrationToken.find(MongoDBObject(RegistrationToken.Uuid -> token))
+    if (cursor.isEmpty)
+      None
+    else {
+      val regToken = cursor.toList.head
+      println("Found token: ", regToken)
+      Some(Token(regToken.uuid, regToken.email, regToken.creationTime.get, regToken.expirationTime.get, true))
+    }
+  }
 
-  /**
-   * Deletes a token
-   *
-   * Note: If you do not plan to use the UsernamePassword provider just provide en empty
-   * implementation
-   *
-   * @param uuid the token id
-   */
-  def deleteToken(uuid: String) {}
+  def deleteToken(uuid: String) {
+    RegistrationToken.findOne(MongoDBObject(RegistrationToken.Uuid -> uuid)) match {
+      case Some(regToken) => RegistrationToken.remove(regToken)
+      case _ => println("No such token found")
+    }
+  }
 
-  /**
-   * Deletes all expired tokens
-   *
-   * Note: If you do not plan to use the UsernamePassword provider just provide en empty
-   * implementation
-   *
-   */
-  def deleteExpiredTokens() {}
+  def deleteExpiredTokens() {
+    println("Deleting expired tokens")
+  }
 }

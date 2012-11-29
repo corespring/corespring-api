@@ -28,7 +28,9 @@ object SeedDb {
     User.collection,
     Organization.collection,
     QtiTemplate.collection,
-    Assignment.collection)
+    Assignment.collection,
+    RegistrationToken.collection
+  )
 
 
   abstract class SeedFormat
