@@ -18,15 +18,15 @@ object Application extends Controller{
   def contact = Action {
     Ok(publicsite.views.html.contact())
   }
-  def collection = Action {
-    Ok(publicsite.views.html.collection())
+  def educators = Action {
+    Ok(publicsite.views.html.educators())
     .withSession(OAuthConstants.AccessToken -> common.mock.MockToken)
   }
   def partnerships = Action {
     Ok(publicsite.views.html.partnerships())
   }
-  def team = Action {
-    Ok(publicsite.views.html.team())
+  def about = Action {
+    Ok(publicsite.views.html.about())
   }
   def getItems = Action {
     Ok(Json.parse(io.Source.fromFile(Play.getFile("public/public/conf/items.json"))(new Codec(Charset.forName("UTF-8"))).mkString))

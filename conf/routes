@@ -13,10 +13,10 @@ POST    /auth/access_token                      controllers.auth.AuthController.
 
 #Public site
 GET     /                                      publicsite.controllers.Application.index
-GET     /public/collection                             publicsite.controllers.Application.collection
+GET     /public/educators                             publicsite.controllers.Application.educators
 GET     /public/contact                                publicsite.controllers.Application.contact
 GET     /public/partnerships                           publicsite.controllers.Application.partnerships
-GET     /public/team                                   publicsite.controllers.Application.team
+GET     /public/about                                   publicsite.controllers.Application.about
 GET     /public/items                                  publicsite.controllers.Application.getItems
 
 #
