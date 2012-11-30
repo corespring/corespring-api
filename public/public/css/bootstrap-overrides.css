@@ -306,6 +306,8 @@ p {
 	border: none;
 	outline: none;
 }
+
+
 .nav li a#edu-nav, .nav li a#dev-nav, .nav li a#partner-nav, .nav li a#about-nav, .nav li a#contact-nav {
 	display: block;
 	float: left;
@@ -315,7 +317,11 @@ p {
 	padding: 45px 0px 0px;
 	text-transform: uppercase;
 	vertical-align: bottom;
+	height:1px;
 }
+
+/*PRE-SPRITE NAV -- DISABLED */
+/*
 .nav li a#edu-nav {
 	background: url("/assets/public/images/ed-icon.png") no-repeat scroll center 4px transparent;
 }
@@ -346,6 +352,61 @@ p {
 .navbar .nav-collapse .nav > li > a#contact-nav:hover, .navbar .nav-collapse .nav > li > #contact-nav.active {
 	background: url("/assets/public/images/mail-icon-green.png") no-repeat scroll center 7px transparent;
 }
+*/
+
+
+/*NEW FOR NAV SPRITE */
+
+.nav li a#edu-nav, .nav li a#dev-nav, .nav li a#partner-nav, .nav li a#about-nav, .nav li a#contact-nav{
+    display: block;
+    height: 1px;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    position: relative;
+}
+
+.nav li a#edu-nav {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll 23px -109px transparent;
+}
+
+.navbar .nav-collapse .nav > li > a#edu-nav:hover, .navbar .nav-collapse .nav > li > #edu-nav.active {
+   background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll 23px -54px transparent;
+}
+
+
+.nav li a#dev-nav {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -44px -109px transparent;
+}
+.navbar .nav-collapse .nav > li > a#dev-nav:hover, .navbar .nav-collapse .nav > li > #dev-nav.active {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -44px -54px transparent;
+}
+
+.nav li a#partner-nav {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -115px -106px transparent;
+}
+.navbar .nav-collapse .nav > li > a#partner-nav:hover, .navbar .nav-collapse .nav > li > #partner-nav.active {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -115px -51px transparent;
+}
+
+
+.nav li a#about-nav {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -216px -107px transparent;
+}
+.navbar .nav-collapse .nav > li > a#about-nav:hover, .navbar .nav-collapse .nav > li > #about-nav.active {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -216px -51px transparent;
+}
+
+
+.nav li a#contact-nav {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -278px -106px transparent;
+}
+.navbar .nav-collapse .nav > li > a#contact-nav:hover, .navbar .nav-collapse .nav > li > #contact-nav.active {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -278px -51px transparent;
+}
+
+/*--end of nav sprites */
+
+
 .container div.span12 p {
 	color: #00ACCE;
 	font: italic 500 27px/20px "Ubuntu", Arial, Helvetica, sans-serif;
