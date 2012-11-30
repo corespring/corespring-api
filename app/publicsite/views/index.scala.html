@@ -1,15 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CoreSpring</title>
+    @partials.headNode()
+</head>
 
-@mainContent = {
+@partials.header()
+
+<div class="title-wrap">
+</div>
+
+
+<!--main contents area starts here -->
 <div class="container main-wrap">
-    <div class="span12 intro">
-        <p> Curated Collections. College-Ready Content. Innovative Design and Delivery. </p>
-    </div>
-    <div class="container">
+<div class="span12 intro">
+<p> Curated Collections. College-Ready Content. Innovative Design and Delivery. </p>
+</div>
+	<div class="container">
         <div class="main">
 
-
-            <div class="row">
-                <div class="span4 about">
+        	
+          <div class="row">
+            	<div class="span4 about">
                 <span class="col-header"> Share in the <br>
                 Wealth of Knowledge </span>
                     <p>CoreSpring is building a bank of formative assessment items designed to promote college and career readiness; assessment items can be shared beyond the borders of state, district, school, or classroom. CoreSpring will serve as a trusted clearinghouse for quality content.
@@ -17,8 +29,8 @@
                 <span class="col-btn">
 <a href="/public/about" class="btn btn-primary btn-large">Learn about CoreSpring</a>
                     </span>
-                </div>
-
+</div>
+         
                 <div class="span4 ed">
                 <span class="col-header"> Everyday Support <br>
                 for Teachers</span>
@@ -28,21 +40,23 @@
                 <a href="/public/educators" class="btn btn-primary btn-large">Browse the Samples</a>
                     </span>
                 </div>
-
+                 
                 <div class="span4 dev">
                 <span class="col-header">Smart <br>
                 Design</span>
-                    <p>CoreSpring eliminates the need for conducting multiple searches through numerous sites and databases to get great content; we locate it all in one place. CoreSpring's test player and developer tools enable a predictable and consistent look and feel of simple and innovative item types. </p>
+                <p>CoreSpring eliminates the need for conducting multiple searches through numerous sites and databases to get great content; we locate it all in one place. CoreSpring's test player and developer tools enable a predictable and consistent look and feel of simple and innovative item types. </p>
                 <span class="col-btn">
                 <a href="/public/contact" class="btn btn-primary btn-large">Connect with CoreSpring</a>
                     </span>
-                </div>
+            </div>
             </div><!--row -->
+</div>
+        
         </div>
-
     </div>
 </div>
-</div>
+<!--main content area (except header,footer) ends -->
 
-}
-@base( "Corespring", mainContent)
+@partials.footer()
+</body>
+</html>
