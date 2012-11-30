@@ -260,13 +260,18 @@ p {
 	width: 100%;
 }
 .well a.btn {
-	margin: 5px 5px 3px;
+    font-size: 13px;
+    line-height: 14px;
+    margin: 4px 4px 0;
+    padding: 4px;
 }
+
 .well .button-cell {
 	text-align: right;
 }
 .well table td {
 	vertical-align: top;
+	font-size:13px;
 }
 .item td.value {
 	color: #333333;
@@ -506,12 +511,12 @@ p {
 	width: 85px;
 }
 .educator .intro-logo {
-	background: url("../images/icon-sprite-xl.png") no-repeat scroll 0px 2px transparent;
-	display: inline-block;
-	float: left;
-	height: 75px;
-	margin-right: 22px;
-	width: 85px;
+    background: url("../images/icon-sprite-xl.png") no-repeat scroll -30px 2px transparent;
+    display: inline-block;
+    float: left;
+    height: 75px;
+    margin-right: 22px;
+    width: 54px;
 }
 .justify p {
 	text-align: justify;
@@ -548,8 +553,8 @@ p {
 	text-align: left;
 }
 .well {
-	margin-bottom: 1px;
-	padding: 5px 10px;
+    margin-bottom: 1px;
+    padding: 5px 10px 7px;
 }
 .item td {
 	padding-bottom: 0px;
