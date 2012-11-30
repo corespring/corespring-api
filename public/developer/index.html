@@ -49,19 +49,18 @@
       window.com = ( window.com || {} );
       window.com.linkDump = (com.linkDump || {} );
 
-      function navigateToLink( hash ){
+      function navigateToLink( hash, nudge ){
+
+        nudge = (nudge || 0);
 
         var $target = $(hash);
         $target = $target.length && $target || $('[name=' + hash.slice(1) +']');
         if ($target.length) {
-          var targetOffset = $target.offset().top - 70;
+          var targetOffset = $target.offset().top - 120 + nudge;
           $('html,body').animate({scrollTop: targetOffset}, 200);
           return false;
         }
       }
-
-
-
 
 
       $(document).ready(function(){
@@ -75,6 +74,7 @@
 
           if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') 
               && location.hostname == this.hostname) {
+            console.log("navigateToLink: " + this.hash)
             navigateToLink(this.hash);
             window.location.hash = this.hash;
             return false;
@@ -151,7 +151,7 @@
 
           setTimeout( initWaypoints, 200 );
 
-          setTimeout( function() { navigateToLink( window.location.hash ) }, 200 );
+          setTimeout( function() { navigateToLink( window.location.hash, -10 ) }, 300 );
 
       });
     </script>
@@ -201,10 +201,7 @@
 
       <div class="well api-well" style="padding: 8px 0; width: 240px;">
         <ul class="nav nav-list">
-  <li><a href="#about" class="main-menu">About</a></li>
-  <li><a href="#release-schedule" class="main-menu">Release Schedule</a></li>
-  <li><a href="#status" class="main-menu">Status</a></li>
-  <li class="divider"></li>
+
   <li class="nav-header" style="color: white;"><span class="caps">REST</span> Api</li>
 </ul>
 <div id="accordianHolder">
@@ -325,19 +322,16 @@ Users
       </div> 
       <!-- main content -->
       <div class="main-content">
-          <h1><a name="about" id="about" class="waypoint"></a>About</h1>
+          <br/>
 
-<p>CoreSpring is an organization that is building a library of open formative assessment items. It is a new platform for storing, finding and delivering quiz items.</p>
 
-<p>This site contains information for developers about working with our APIs and Test Player / Item Player.</p>
+<div class="span9 lead-in" style="margin-left: 0px;"> 
+    <span class="dev-logo"></span>
+    <p>
+Our developer tools include a set of APIs for finding and managing collections of content for formative assessment, these are described on these pages.
+        </p>
+  </div>
 
-<p>For more information about CoreSpring please visit <a href="http://www.corespring.org" target="_top">www.corespring.org</a>.</p>
-
-<p>Our developer tools include a set of APIs for finding and managing collections of content for formative assessment, these are described on these pages.</p>
-
-<p>In addition we are developing an Item Player and supporting APIs that will render and administer items from simple multiple-choice to more advanced innovative and performance items. The documentation for working with and integrating the player will be added to this site and continually updated over the course of our release schedule (see below).</p>
-
-<p>Please <a href="mailto:developers@corespring.org">send us an email</a> if you want us to keep you posted about developer updates.</p>
 
 <h1><a name="release-schedule" class="waypoint"></a>Release Schedule</h1>
 
@@ -352,11 +346,9 @@ Users
 <blockquote class="nb"><p>We will be publishing new milestones between 3 and 4 (1.0 Final)</p></blockquote>
 
 
-<h1><a name="status" class="waypoint"></a>Status</h1>
+<p>We have released a live test server with some mock data for testing the API. As you browse through the documentation below, you will see our interactive API widget which allows you to call the various endpoints and see them in action. The mock data will be reset every 24 hours, so don't worry about breaking anything!</p>
 
-<p>We have released a live test server with some mock data for testing the API. As you browse through the documentation below, you will see our <strong>interactive API widget</strong> which allows you to call the various endpoints and see them in action. The mock data will be reset every 24 hours, so don't worry about breaking anything!</p>
-
-<p>The APIs are still in active development and we welcome your <a href="mailto:developers@corespring.org">feedback</a></p>
+<p>The APIs are still in active development and we welcome your feedback</p>
 
 <h2>IE Users</h2>
 
@@ -1395,7 +1387,7 @@ who may be interested in using this functionality.</p></blockquote>
 
 <hr />
 
-<p>date:  11/30/2012 03:26PM</p>
+<p>date:  11/30/2012 04:04PM</p>
  
       </div>
     </body>
