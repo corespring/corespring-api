@@ -84,7 +84,7 @@ blockquote p {
   position: fixed;
   max-height: 700px;
   overflow-y: auto;
-  top: 70px;
+  top: 120px;
   background-color: #3a3a3a;
   -moz-box-shadow: inset 0 0 3px 3px #282828;
   -webkit-box-shadow: inset 0 0 3px 3px #282828;
@@ -136,6 +136,7 @@ blockquote p {
   padding-left: 12px;
 }
 #accordianHolder .header {
+  text-align: left;
   padding-top: 8px;
   padding-bottom: 2px;
 }
@@ -197,7 +198,7 @@ blockquote p {
   font-size: 13px;
 }
 .main-container {
-  top: 70px;
+  top: 100px;
   position: relative;
 }
 .developer {
