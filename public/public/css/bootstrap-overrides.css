@@ -404,7 +404,7 @@ p {
 	font-weight: 500;
 	letter-spacing: 0.5px;
 	line-height: normal;
-	padding: 5px 20px;
+	padding: 5px 0px;
 	width: 274px;
 }
 .span4 span.col-btn button.btn {
