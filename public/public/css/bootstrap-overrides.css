@@ -318,9 +318,21 @@ p {
      width: 211px;
 }
 
+.img-link:visited,
+.img-link:active,
+.img-link:hover,
+.img-link img,
+.img-link {
+   border: none;
+   outline: none;
+}
+
+
 .nav li a#edu-nav, .nav li a#dev-nav, .nav li a#partner-nav, .nav li a#about-nav, .nav li a#contact-nav {
      display: block;
      float: left;
+    outline: none;
+    border: none;
      margin: 0px 48px 0px 0px;
      padding: 45px 0px 0px;
      text-transform: uppercase;
