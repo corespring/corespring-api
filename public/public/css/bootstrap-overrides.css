@@ -357,7 +357,7 @@ p {
 }
 .main div.row div.span4.about {
 	background: url("../images/about-icon-lrg.png") no-repeat scroll center 5px transparent;
-	margin-left: 0px;
+	margin-left: 20px;
 	padding-top: 60px;
 }
 .main div.row div.span4.ed {
@@ -415,7 +415,7 @@ p {
 	font: 300 19px/27px "Ubuntu", Arial, Helvetica, sans-serif;
 	word-spacing: normal;
 }
-.container div.lead-in.about, .container div.span12.lead-in.contact, .container div.span12.lead-in.partner, .container div.span12.lead-in.developer, .container div.span12.lead-in.educator {
+.container div.lead-in.about, .container div.span12.lead-in.contact, .container div.span12.lead-in.partner, .container div.span9.lead-in.developer, .container div.span12.lead-in.educator {
 	margin-left: 0px;
 }
 .about .intro-logo {
