@@ -455,13 +455,13 @@ p {
     height: 30px;
 }
 
-.container div.span12.lead-in p {
+.container div.lead-in p {
      color: #00ACCE;
      font: 300 19px/27px "Ubuntu",Arial,Helvetica,sans-serif;
      word-spacing: normal;
 }
 
-.container div.span12.lead-in.about, .container div.span12.lead-in.contact, .container div.span12.lead-in.partner, .container div.span12.lead-in.developer, .container div.span12.lead-in.educator {
+.container div.lead-in.about, .container div.span12.lead-in.contact, .container div.span12.lead-in.partner, .container div.span12.lead-in.developer, .container div.span12.lead-in.educator {
      margin-left: 0px;
 }
 
