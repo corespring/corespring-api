@@ -73,13 +73,6 @@ object ItemSessionApi extends BaseApi {
           }
           case None => ItemSession(itemId)
         }
-        getQtiXml(itemId) match {
-          case Some(xml) => {
-            val (_, mapping) = FeedbackProcessor.addFeedbackIds(xml)
-            newSession.feedbackIdLookup = mapping
-          }
-          case _ =>
-        }
         ItemSession.newSession(itemId, newSession) match {
           case Right(session) => Ok(toJson(session))
           case Left(error) => InternalServerError(toJson(ApiError.CreateItemSession(error.clientOutput)))
@@ -90,18 +83,6 @@ object ItemSessionApi extends BaseApi {
   }
 
 
-  private def getQtiXml(itemId: ObjectId): Option[Elem] = {
-    Item.findOneById(itemId) match {
-      case Some(item) => {
-        val dataResource = item.data.get
-        dataResource.files.find(_.name == Resource.QtiXml) match {
-          case Some(qtiXml) => Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
-          case _ => None
-        }
-      }
-      case _ => None
-    }
-  }
 
   def begin(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
     request =>

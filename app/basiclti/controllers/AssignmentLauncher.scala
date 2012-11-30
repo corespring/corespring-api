@@ -49,7 +49,7 @@ object AssignmentLauncher extends Controller {
         case Some(a) => makeAssignment(data,a.itemSessionId,a.id)
         case _ => {
           val newSession = new ItemSession( itemId = itemId, settings = defaultSessionSettings )
-          ItemSession.save(newSession)
+          ItemSession.newSession( itemId, newSession)
           makeAssignment(data, newSession.id)
         }
       }

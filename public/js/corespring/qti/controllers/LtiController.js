@@ -14,10 +14,11 @@ function LtiController($scope, $http, Config){
 
       $http.get("/lti/assignment/" + Config.assignmentId + "/process")
         .success(function(data, status, headers, config) {
+          //console.log("success...");
           document.location.href = data.returnUrl;
         }).error(function(data, status, headers, config) {
           $scope.status = status;
-          console.warn("Error occurred: " + data );
+          //console.warn("Error occurred: " + data );
         });
     }
   });

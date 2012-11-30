@@ -18,15 +18,19 @@ object AssignmentPlayer extends BaseApi with QtiRenderer with ItemResources {
           ItemSession.findOneById(assignment.itemSessionId) match {
             case Some(session) => {
               getItemXMLByObjectId(session.itemId.toString, request.ctx.organization) match {
-                case Some(qti) => Ok(
-                  basiclti.views.html.player(
-                    prepareQti(qti),
-                    session.itemId.toString,
-                    session.id.toString,
-                    request.token,
-                    assignment.id.toString)
+                case Some(qti) => {
+                  val finalXml = prepareQti(qti)
+                  println(finalXml)
+                  Ok(
+                    basiclti.views.html.player(
+                      finalXml,
+                      session.itemId.toString,
+                      session.id.toString,
+                      request.token,
+                      assignment.id.toString)
 
-                ).withSession(("access_token", common.mock.MockToken))
+                  ).withSession(("access_token", common.mock.MockToken))
+                }
 
                 case _ => NotFound("can't find item with id: " + session.itemId.toString)
               }
