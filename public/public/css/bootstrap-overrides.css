@@ -429,15 +429,18 @@ p {
      line-height: 24px;
 }
 
+.span4 span.col-btn a.btn,
 .span4 span.col-btn button.btn {
      border-radius: 5px 5px 5px 5px;
      font-size: 15px;
      font-weight: 500;
-     height: 30px;
      letter-spacing: 0.5px;
      line-height: normal;
      padding: 5px 20px;
      width: 274px;
+}
+.span4 span.col-btn button.btn {
+    height: 30px;
 }
 
 .container div.span12.lead-in p {

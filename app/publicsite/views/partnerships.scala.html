@@ -1,32 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="google-site-verification" content="-wfxFrZYKKRpF5_-V-G9g1wk5e8HrF2zKc-FKJ-NhNE" />
     <title>Partnership Opportunities</title>
-    
-    <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
-     <link href="/assets/public/bootstrap/2.1.1/css/bootstrap.css" rel="stylesheet" type="text/css" media="all" />
-    <link href="/assets/public/css/bootstrap-overrides.css" rel="stylesheet" type="text/css" media="all" />
-    
-    
-    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
-    
-    <!--[if lte IE 8]>
-    <link type="text/css" rel="stylesheet" href="css/ie.css" />
-    <script src="/assets/public/js/html5.js" type="text/javascript"></script>
-    <![endif]-->
-    
-    <!--[if lte IE 6]>
-    <script src="/assets/public/js/belated.js" type="text/javascript"></script>
-    <![endif]-->
-    
+    @partials.headNode()
 </head>
-
 <body>
 
-@header()
+@partials.header()
 
 <div class="title-wrap">
   <div class="container"> </div>
@@ -63,18 +43,6 @@
 </div>
 
 <!--main content area (except header,footer) ends --> 
-
-<!--footer area starts here -->
-<div class="footer-wrap-bar"> </div>
-<div class="footer-wrap">
-  <div class="page">
-    <footer class="footer"> &copy; 2012  CoreSpring </footer>
-  </div>
-</div>
-<!--footer ends--> 
-
-<script type="text/javascript" src="js/jquery.js"></script> 
-<script type="text/javascript" src="js/widgets.js"></script> 
-<script type="text/javascript" src="js/bootstrap.js"></script>
+@partials.footer()
 </body>
 </html>
