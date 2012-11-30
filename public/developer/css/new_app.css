@@ -322,49 +322,6 @@ pre {
     padding: 45px 0 0;
 }
 
-/*Ed-Nav*/
-.nav li a#edu-nav {
-    background: url("../images/ed-icon.png") no-repeat scroll center 4px transparent;
-}
-.navbar .nav-collapse .nav > li > a#edu-nav:hover, .navbar .nav-collapse .nav > li > #edu-nav.active {
-    background: url("../images/ed-icon-green.png") no-repeat scroll center 4px transparent;
-}
-
-/*Dev-Nav*/
-.nav li a#dev-nav {
-    background: url("../images/dev-icon.png") no-repeat scroll center 0px transparent;
-
-}
-.navbar .nav-collapse .nav > li > a#dev-nav:hover, .navbar .nav-collapse .nav > li > #dev-nav.active {
-    background: url("../images/dev-icon-green.png") no-repeat scroll center 0px transparent;
-    
-}
-
-/*Partner-Nav*/
-.nav li a#partner-nav {
-    background: url("../images/partner-icon.png") no-repeat scroll center 7px transparent;
-
-}
-.navbar .nav-collapse .nav > li > a#partner-nav:hover, .navbar .nav-collapse .nav > li > #partner-nav.active {
-    background: url("../images/partner-icon-green.png") no-repeat scroll center 7px transparent;
-}
-
-/*About-Nav*/
-.nav li a#about-nav {
-    background: url("../images/about-icon.png") no-repeat scroll center 6px transparent;
-
-}
-.navbar .nav-collapse .nav > li > a#about-nav:hover, .navbar .nav-collapse .nav > li > #about-nav.active {
-    background: url("../images/about-icon-green.png") no-repeat scroll center 6px transparent;
-}
-/*Contact-Nav*/
-.nav li a#contact-nav {
-    background: url("../images/mail-icon.png") no-repeat scroll center 7px transparent;
-}
-
-.navbar .nav-collapse .nav > li > a#contact-nav:hover, .navbar .nav-collapse .nav > li > #contact-nav.active {
-    background: url("../images/mail-icon-green.png") no-repeat scroll center 7px transparent;
-}
 
 .navbar {
     margin-bottom: 0px;
