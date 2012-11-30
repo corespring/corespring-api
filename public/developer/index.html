@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html ng-app="corespring-dev">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="google-site-verification" content="-wfxFrZYKKRpF5_-V-G9g1wk5e8HrF2zKc-FKJ-NhNE" />
+    <title>Index | CoreSpring</title>
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" media="all" />
+    <link href="css/app.css" rel="stylesheet" type="text/css" media="all" />
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
+    <script type="text/javascript" src="js/vendor/less/1.3.0/less-1.3.0.min.js"></script>
+    <script type="text/javascript" src="js/vendor/jquery/1.8.0/jquery-1.8.0.min.js"></script>
+    <script type="text/javascript" src="js/vendor/ie.support/jQuery.XDomainRequest.js"></script>
+    <script type="text/javascript" src="bootstrap/js/bootstrap.js"></script>
+    <script type="text/javascript" src="js/vendor/underscore/1.3.3/underscore-min.js"></script>
+    <script type="text/javascript" src="js/vendor/angular/1.0.1/angular-1.0.1.js"></script>
+    <script type="text/javascript" src="js/vendor/waypoint/waypoints.js"></script>
+    <script type="text/javascript" src="js/corespring/directives.js"></script>
+    <script type="text/javascript" src="js/corespring/app.js"></script>
+
+    <script type="text/javascript">
+
+      //support ie cross domain calls
+      $.support.cors = true;
+
+
+      window.com = ( window.com || {} );
+      window.com.linkDump = (com.linkDump || {} );
+
+      function navigateToLink( hash ){
+
+        var $target = $(hash);
+        $target = $target.length && $target || $('[name=' + hash.slice(1) +']');
+        if ($target.length) {
+          var targetOffset = $target.offset().top - 70;
+          $('html,body').animate({scrollTop: targetOffset}, 200);
+          return false;
+        }
+      }
+
+
+
+
+
+      $(document).ready(function(){
+
+
+        $('a[href*=#]').click(function() {
+          
+          if( this.hash.indexOf("acc") == 1 ){
+            return true;
+          }
+
+          if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') 
+              && location.hostname == this.hostname) {
+            navigateToLink(this.hash);
+            window.location.hash = this.hash;
+            return false;
+          }
+        });
+
+
+          function setContentDivHeight(){
+            //$(".main-content").height( $(window).height() - 70);
+          }
+
+          $(window).bind('resize', function(){
+              setContentDivHeight();
+          }); 
+
+          setContentDivHeight();
+
+          $(".accordion-body").on("shown", function() {
+            com.linkDump.activeAccordion = this;
+          });
+
+          $(".api-well").find("a").click(function(){
+
+            $(".api-well").find("a").parent().removeClass("active");
+            $(this).parent().addClass("active");
+
+            $(".waypoint").waypoint('destroy');
+            setTimeout( initWaypoints, 200);
+          });
+
+          function initWaypoints(){
+            /**
+             * Disabling this for now as its a bit ropey.
+             */
+            //$(".waypoint").waypoint( waypointHandler, { context: $(".main-content"), onlyOnScroll: true });
+          };
+          
+
+          function activateLinkAndOpenAccordian( $link ){
+
+            $link.parent().addClass("active");
+            var incomingAccordion = $link.closest(".accordion-body")[0];
+
+           
+
+            if( com.linkDump.activeAccordion == incomingAccordion ){
+              return;
+            }
+
+            $(com.linkDump.activeAccordion).collapse("hide");
+
+            setTimeout( function(){
+              $(incomingAccordion).collapse("show");
+              com.linkDump.activeAccordion = incomingAccordion;
+              }, 200 );
+          }
+
+
+
+          function waypointHandler(event,direction){
+            var name = $(event.currentTarget).attr('name');
+            //window.location.hash = name;
+            //console.log("name: " + name)
+            $(".api-well").find("a").parent().removeClass("active");
+            var $menuLink = $(".api-well").find( 'a[href$="'+name+'"]');
+            activateLinkAndOpenAccordian($menuLink);
+          }
+
+          if( window.location.hash ){
+
+            var activeLink = $(".api-well").find('a[href$="'+ window.location.hash+'"]');
+            activateLinkAndOpenAccordian(activeLink);
+          }
+
+          setTimeout( initWaypoints, 200 );
+
+          setTimeout( function() { navigateToLink( window.location.hash ) }, 200 );
+
+      });
+    </script>
+  </head>
+
+  <body ng-controller="MainController">
+
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/"> 
+            <img src="images/cs-white-logo-11px.png" alt="Corespring Content Tagger"/>
+            <span class="developer">Developer</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container main-container">
+
+      <div class="well api-well" style="padding: 8px 0; width: 240px;">
+        <ul class="nav nav-list">
+  <li><a href="#about" class="main-menu">About</a></li>
+  <li><a href="#release-schedule" class="main-menu">Release Schedule</a></li>
+  <li><a href="#status" class="main-menu">Status</a></li>
+  <li class="divider"></li>
+  <li class="nav-header" style="color: white;"><span class="caps">REST</span> Api</li>
+</ul>
+<div id="accordianHolder">
+<div>
+<div class="header">
+<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordianHolder" href="#accAuthentication">
+Authentication
+</a>
+</div>
+<div id="accAuthentication" class="accordion-body collapse" style="height: 0px;">
+<div class="">
+<ul class="nav nav-list">
+          <li><a href="#authentication-register">Registering to use the <span class="caps">API</span></a></li>
+          <li><a href="#authentication-get-token">Getting an Access Token</a></li>
+          <li><a href="#authentication-calling-api">Using the Access Token</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div >
+<div class="header">
+<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordianHolder" href="#accOrganizations">
+Organizations
+</a>
+</div>
+<div id="accOrganizations" class="accordion-body collapse" style="height: 0px;">
+<div>
+<ul class="nav nav-list">
+          <li><a href="#organizations-index">Overview</a></li>
+          <li><a href="#organizations-get-list">Getting a List of Organizations</a></li>
+          <li><a href="#organizations-get">Getting an Organization by Id</a></li>
+          <li><a href="#organizations-get-default">Getting a default Organization</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div >
+<div class="header">
+<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordianHolder" href="#acc-collections">
+Collections
+</a>
+</div>
+<div id="acc-collections" class="accordion-body collapse" style="height: 0px;">
+<div>
+<ul class="nav nav-list">
+          <li><a href="#collections-index">Overview</a></li>
+          <li><a href="#collections-get">Getting a Collection</a></li>
+          <li><a href="#collections-get-list">Getting a list of Collections</a></li>
+          <li><a href="#collections-create">Create a Collection</a></li>
+          <li><a href="#collections-update">Update a Collection</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div >
+<div class="header">
+<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordianHolder" href="#accItems">
+Items
+</a>
+</div>
+<div id="accItems" class="accordion-body collapse" style="height: 0px;">
+<div>
+<ul class="nav nav-list">
+          <li><a href="#items-index">Overview</a></li>
+          <li><a href="#items-get">Getting an Item</a></li>
+          <li><a href="#items-get-list">Getting a list of Items</a></li>
+          <li><a href="#items-create">Create an Item</a></li>
+          <li><a href="#items-update">Update an Item</a></li>
+          <li><a href="#items-delete">Delete an Item</a></li>
+          <li><a href="#items-model">Item model</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div >
+<div class="header">
+<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordianHolder" href="#accItemSessions">
+Item Sessions
+</a>
+</div>
+<div id="accItemSessions" class="accordion-body collapse" style="height: 0px;">
+<div>
+<ul class="nav nav-list">
+          <li><a href="#item-session-index">Overview</a></li>
+          <li><a href="#item-session-get">Getting an Item Session</a></li>
+          <li><a href="#item-session-get-list">Getting a list of Item Sessions</a></li>
+          <li><a href="#item-session-create">Create an Item Session</a></li>
+          <li><a href="#item-session-update">Update an Item Session</a></li>
+          <li><a href="#item-session-response-model">Item Session response model</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div >
+<div class="header">
+<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordianHolder" href="#accUsers">
+Users
+</a>
+</div>
+<div id="accUsers" class="accordion-body collapse" style="height: 0px;">
+<div>
+<ul class="nav nav-list">
+          <li><a href="#users-index">Overview</a></li>
+          <li><a href="#users-get">Getting a User</a></li>
+          <li><a href="#users-get-list">Getting a list of Users</a></li>
+          <li><a href="#users-create">Create a User</a></li>
+          <li><a href="#users-update">Update a User</a></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<ul class="nav nav-list">
+  <li><a href="#list-queries" class="main-menu">List Queries</a></li>
+  <li><a href="#extended-metadata" class="main-menu">Extended Metadata</a></li>
+  <li><a href="#item-statistics" class="main-menu">Item Statistics</a></li>
+</ul>
+      </div> 
+      <!-- main content -->
+      <div class="main-content">
+          <h1><a name="about" id="about" class="waypoint"></a>About</h1>
+
+<p>CoreSpring is an organization that is building a library of open formative assessment items. It is a new platform for storing, finding and delivering quiz items.</p>
+
+<p>This site contains information for developers about working with our APIs and Test Player / Item Player.</p>
+
+<p>For more information about CoreSpring please visit <a href="http://www.corespring.org" target="_top">www.corespring.org</a>.</p>
+
+<p>Our developer tools include a set of APIs for finding and managing collections of content for formative assessment, these are described on these pages.</p>
+
+<p>In addition we are developing an Item Player and supporting APIs that will render and administer items from simple multiple-choice to more advanced innovative and performance items. The documentation for working with and integrating the player will be added to this site and continually updated over the course of our release schedule (see below).</p>
+
+<p>Please <a href="mailto:developers@corespring.org">send us an email</a> if you want us to keep you posted about developer updates.</p>
+
+<h1><a name="release-schedule" class="waypoint"></a>Release Schedule</h1>
+
+<ul>
+<li><p><del>Milestone 1: Draft API, Request for Comment (July 2012)</del></p></li>
+<li><p><del>Milestone 2: Live test server &amp; test fixtures (August 2012)</del></p></li>
+<li><p><strong>Milestone 3: Beta Release of 1.0 API, Alpha Item Player (September/October 2012)</strong></p></li>
+<li><p>Milestone 4: 1.0 Final API (Spring 2013)</p></li>
+</ul>
+
+
+<blockquote class="nb"><p>We will be publishing new milestones between 3 and 4 (1.0 Final)</p></blockquote>
+
+
+<h1><a name="status" class="waypoint"></a>Status</h1>
+
+<p>We have released a live test server with some mock data for testing the API. As you browse through the documentation below, you will see our <strong>interactive API widget</strong> which allows you to call the various endpoints and see them in action. The mock data will be reset every 24 hours, so don't worry about breaking anything!</p>
+
+<p>The APIs are still in active development and we welcome your <a href="mailto:developers@corespring.org">feedback</a></p>
+
+<h2>IE Users</h2>
+
+<p>To use the widget you need to allow cross domain scripts access. For IE 9 that means enabling the following: <code>Tools -&gt; Internet Options -&gt; Security -&gt; Custom Level -&gt; “Access data sources across domains”</code>.</p>
+
+<h1>REST API</h1>
+
+<hr />
+
+<h1>Authentication &amp; Authorization</h1>
+
+<hr />
+
+<h2><a name="authentication-register" class="waypoint"></a> Registering to Use the API</h2>
+
+<p>To use the Corespring API you must first create and register an Organization in the system.
+(We will provide the registration page at a later date, but for now have provided fixture data for testing with our live testing server.)</p>
+
+<p>All calls to the API are performed in the context of this Orgnization.</p>
+
+<p>Upon registering your organization to access the CoreSpring API you will be given a <code>client_id</code> and <code>client_secret</code>.
+Using these parameters you can generate an access token that can be used to authorize calls to the API.</p>
+
+<blockquote><p>In the live test server, the access_token: "34dj45a769j4e1c0h4wb" may be used to test the API calls.
+The interactive API widget is pre-configured to use this access token.</p></blockquote>
+
+<h2><a name="authentication-get-token" class="waypoint"></a> Getting an Access Token</h2>
+
+<p>Once you have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL.</p>
+
+<br/>
+
+
+<div style="padding-bottom: 10px;">
+  <rest-widget
+    method="POST"
+    disabled="true"
+    disabled-message="currently disabled to ensure the fixture data stays in the correct state"
+    path="/auth/access_token"
+    form-params="client_id=502424ca0364b3c1c30dec64&client_secret=26bn1r8cmlso1tmm1kw1&grant_type=client_credentials"
+    url="http://api-test.corespring.org/auth/access_token">
+  </rest-widget>
+</div>
+
+
+<blockquote><p>The access_token will remain valid for 24 hours after time of issue.</p></blockquote>
+
+<h2><a name="authentication-calling-api" class="waypoint"></a> Using the Access Token</h2>
+
+<p>Once the access token has been obtained it can be used by passing it in the Authorization header of an API.</p>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget
+    method="GET"
+    path="/items"
+    url="http://api-test.corespring.org/api/v1/items"
+    request-headers="Authorization: Bearer 34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<br/>
+
+
+<p>Or by passing it in the query string to a request:</p>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget
+    method="GET"
+    path="/items?access_token=${access_token}"
+    url="http://api-test.corespring.org/api/v1/items?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<h1><a name="organizations-index" class="waypoint"></a>Organizations</h1>
+
+<hr />
+
+<p>Organizations are objects in the system that represent real-world organizations. For example they might be owned/managed by software developers or school districts.</p>
+
+<p>Organizations can have Content Collections and Users associated with them.</p>
+
+<p>Organizations support hierarchy, so they may have children/parents.</p>
+
+<h2><a name="organizations-get-list" class="waypoint"></a> Getting a List of Organizations</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path="/organizations" 
+    url="http://api-test.corespring.org/api/v1/organizations?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Returns an array of all Organizations and child Organizations that are available to the caller. Callers will be making this call in the context of their own Organization.</p>
+
+<p><strong>Params</strong>
+The standard <a href="#list-queries">List Queries</a> parameters are available for this operation.</p>
+
+<h2><a name="organizations-get" class="waypoint"></a> Getting an Organization by id</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path="/organizations/:organizationId" 
+    url="http://api-test.corespring.org/api/v1/organizations/502404dd0364dc35bb39339a?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Returns the Organization for the specified <em>:organizationId</em>.</p>
+
+<h2><a name="organizations-get-default" class="waypoint"></a> Getting a default organization</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path="/organizations/default" 
+    url="http://api-test.corespring.org/api/v1/organizations/default?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Returns the default context organization.</p>
+
+<h1><a name="collections-index" class="waypoint"></a> Collections</h1>
+
+<hr />
+
+<p>Collections are sets of Items and may be associated with Organizations.</p>
+
+<h2><a name="collections-get" class="waypoint"></a>Getting a Collection</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path="/collections/:collectionId" 
+    url="http://api-test.corespring.org/api/v1/collections/5001bb0ee4b0d7c9ec3210a2?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Returns the Collection for the specified <em>:collectionId</em>.</p>
+
+<h2><a name="collections-get-list" class="waypoint"></a>Getting a list of Collections</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path="/collections" 
+    url="http://api-test.corespring.org/api/v1/collections?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Returns an array of all Collections available to the caller (Collections attached to any organization the caller has access to).</p>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path="/organizations/:organizationId/collections" 
+    url="http://api-test.corespring.org/api/v1/organizations/502404dd0364dc35bb39339a/collections?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Returns an array of all Collections associated with the specified <em>:organizationId</em>.</p>
+
+<p><strong>Params</strong>
+The standard <a href="#list-queries">List Queries</a> parameters are available for these operations.</p>
+
+<h2><a name="collections-create" class="waypoint"></a>Create a Collection</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="POST" 
+    path="/collections" 
+    request-body='{ "name" : "My Collection", "organizations": ["502404dd0364dc35bb39339a"] }'
+    url="http://api-test.corespring.org/api/v1/collections?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Creates a Collection and returns the newly created Collection.</p>
+
+<p><strong>Params</strong> Takes JSON Collection in the body of the request.
+The collection must have a name and must provide an array of organization ids with which to associate the collection.</p>
+
+<h2><a name="collections-update" class="waypoint"></a>Update a Collection</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="PUT" 
+    path="/collections/:id" 
+    request-body='{ "name" : "My Collection", "organizations": ["502404dd0364dc35bb39339a"] }'
+    url="http://api-test.corespring.org/api/v1/collections/5001bb0ee4b0d7c9ec3210a2?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Will update the collection specified by the given id.</p>
+
+<p><strong>Params</strong> Takes JSON Collection in the body of the request.
+The collection must have a name.
+If no array of organization ids is provided the current array will be unmodified.</p>
+
+<h1><a name="items-index" class="waypoint"></a>Items</h1>
+
+<hr />
+
+<p>The Items API allows CRUD operations on Assessment Items.</p>
+
+<p>All the API resources described here return an Item or list of Items and some subset of the properties of Item.
+This complete model for Item is described at the end of this section.</p>
+
+<h2><a name="items-get" class="waypoint"></a>Getting an Item</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget method="GET" path="/items/:itemId" url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Returns the Item for the specified <em>:itemId</em>. Does not return every field (see below).</p>
+
+<br/>
+
+
+
+
+<div style="padding-bottom: 10px;">
+  <rest-widget
+    method="GET"
+    path="/items/:itemId/detail"
+    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/detail?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Returns the Item for the specified <em>:itemId</em>. Returns <em>all</em> properties of the Item model.</p>
+
+<br/>
+
+
+<br/>
+
+
+<div style="padding-bottom: 10px;">
+  <rest-widget
+    method="GET"
+    path="/items/:itemId/assets/:fileName"
+    result-type="file"
+    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/assets/cute-kitten.jpg?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+</div>
+
+
+<p>Returns the file associated with the specified <em>:id</em> and <em>:fileName</em>.</p>
+
+<br/>
+
+
+<h3>Item Versions</h3>
+
+<p>By default the most recent version of an Item will be returned by the above calls. If there have been revisions made to an item, a previous version of the item may be retrieved by specifying the query parameter 'v' with the revision number.</p>
+
+<br/>
+
+
+<div style="padding-bottom: 10px;">
+  <rest-widget
+    method="GET"
+    disabled="true"
+    path="/items/:itemId?v=0"
+    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?v=0&access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+</div>
+
+
+<p><em>In the case of CoreSpring open library assets, versions will generally be avoided and new items created if there is a material difference between items.</em></p>
+
+<h2><a name="items-get-list" class="waypoint"></a>Getting a List of Items</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget
+    method="GET"
+    path="/items"
+    url="http://api-test.corespring.org/api/v1/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+</div>
+
+
+<p>Returns an array of all Items available to the caller. These Items are contained within the Collections available to their context Organization.</p>
+
+<blockquote class="nb"><p>There may be a lot of items, it is recommended to use parameters available for <a href="#list-queries">List Queries</a> to filter/limit results. The default limit will be 50 items and the maximum 200. If the result has more than 200 items an error response will be returned.
+</p></blockquote>
+
+
+
+
+<br/>
+
+
+<div style="padding-bottom: 10px;">
+  <rest-widget
+    method="GET"
+    path="/collections/:collectionId/items"
+    url="http://api-test.corespring.org/api/v1/collections/5001bb0ee4b0d7c9ec3210a2/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+</div>
+
+
+<p>Returns an array of all Items for the specified <em>:collectionId</em>.</p>
+
+<br/>
+
+
+<div style="padding-bottom: 10px;">
+  <rest-widget
+    method="GET"
+    path="/organizations/:organizationId/items"
+    url="http://api-test.corespring.org/api/v1/organizations/502404dd0364dc35bb39339a/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+</div>
+
+
+<p>Returns an array of all Items available for the specified <em>:organizationId</em>.</p>
+
+<p>See <a href="#list-queries">List Queries</a> for standard parameters for filtering/limiting, and managing array results.</p>
+
+<blockquote class="nb"><p>Item list queries will return the summary properties for the Item model. This behavior can be overridden by specifying which fields to return in the model (see <a href="#list-queries">List Queries</a>).</blockquote>
+
+
+<h2><a name="items-create" class="waypoint"></a>Creating an item</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget
+    method="POST"
+    path="/items"
+    request-body='{ "collId": "5001bb0ee4b0d7c9ec3210a2", "itemType": "Multiple Choice"}'
+    url="http://api-test.corespring.org/api/v1/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+</div>
+
+
+<p><strong>Params</strong>
+Takes JSON Item in the body of the request. See the <a href="#items-model">Item Model</a> below for property reference.</p>
+
+<h2><a name="items-update" class="waypoint"></a>Updating an item</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget
+    method="PUT"
+    path="/items/:itemId"
+    request-body='{"itemType": "Multiple Choice"}'
+    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+</div>
+
+
+<p><strong>Params</strong>
+Takes JSON Item in the body of the request. See the Item Model below for property reference.</p>
+
+<h2><a name="items-delete" class="waypoint"></a>Deleting an item</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget
+    disabled="true"
+    disabled-message="disabled so these docs will work for everyone"
+    disabled-class="ok"
+    method="DELETE"
+    path="/items/:itemId"
+    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+</div>
+
+
+<p>Deletes with the specified <em>:itemId</em>. Write permission on the Collection that contains the item will be required.</p>
+
+<h2><a name="items-model"></a>Item Model</h2>
+
+<p>This is the complete set of properties returned in the model for Items.
+When retrieving individual items a subset of the item properties are returned by default. All properties will be returned if accessing the 'detail' path for the item (See <a href="#items-index">Items</a>)</p>
+
+<p>When calling resources that list Items, subsets of fields may be used by adding the 'f' query string parameter. See <a href="#list-queries">List Queries</a>.</p>
+
+<table class="table table-striped table-bordered table-condensed">
+  <tr>
+    <th>Property</th>
+    <th>Description</th>
+    <th>Type</th>
+    <th>Detail only</th>
+  </tr>
+  <tr>
+    <td>id</td>
+    <td>unique identifier for the item</td>
+    <td>string</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>version</td>
+    <td>The revision number of the item. Defaults to 0.</td>
+    <td>number</td>
+    <td>true</td>
+  </tr>
+  <tr>
+    <td>author</td>
+    <td>The original item author</td>
+    <td>String</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>title</td>
+    <td>organization name or author name</td>
+    <td>String</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>primarySubject</td>
+    <td>The primary subject associated with the item</td>
+    <td>JSON Object, e.g. {subject:"Algebra", category:"Mathematics"}</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>relatedSubject</td>
+    <td>organization name or author name</td>
+    <td>JSON Object, e.g. {subject:"Algebra", category:"Mathematics"}</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>copyrightOwner</td>
+    <td>organization name or author name of the copyright owner</td>
+    <td>String</td>
+    <td>true</td>
+  </tr>
+  <tr>
+    <td>credentials</td>
+    <td>[Assessment Developer, Test Item Writer, State Department of Education, District Item Writer, Teacher , Student, Other]</td>
+    <td>String</td>
+    <td>true</td>
+  </tr>
+  <tr>
+    <td>gradeLevel</td>
+    <td>The grade level(s) associated with the item</td>
+    <td>Array[String]: e.g. ["K","1"]</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>itemType</td>
+    <td>The type of the item: [Standard Multiple Choice, Matching, Ordering, True/False, Yes/No, True/False, Multiple True/False, Categorize, Complete a Matrix, Constructed Response - Short Answer, Constructed Response - Open Ended, Project, Portfolio] </td>
+    <td>String</td>
+    <td></td>
+  </tr>
+ <tr>
+    <td>files</td>
+    <td>list of files/assets associated with the item.</td>
+    <td>Array[{Json Object}]: e.g. 
+`
+[
+        {
+            "filename": "1.jpg"
+        },
+        {
+            "filename": "2.png"
+        }
+    ]
+`
+</td>
+    <td>true</td>
+  </tr>
+  <tr>
+    <td>pValue</td>
+    <td>The pValue associated with the item</td>
+    <td>number [1-100]</td>
+    <td>true</td>
+  </tr>
+  <tr>
+    <td>ccStandard</td>
+    <td>The primary Common Core standard associated with the item</td>
+    <td>Json Object (see example response)</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>keySkills</td>
+    <td>The skills associated with the item: [define, duplicate, list, memorize, recall, repeat, reproduce state, classify, describe, discuss, explain, identify, locate, recognize, report, select, translate, paraphrase, choose, demonstrate, dramatize, employ, illustrate, interpret, operate, schedule, sketch, solve, use, write, appraise, compare, contrast, criticize, differentiate, discriminate, distinguish, examine, experiment, question, test, appraise, argue, defend, judge, select, support, value, evaluate, assemble, construct, create, design, develop, formulate, write]</td>
+    <td>Array[String] e.g. ["recall","repeat","state"]</td>
+    <td>true</td>
+  </tr>
+  <tr>
+    <td>bloomsTaxonomy</td>
+    <td>Blooms Taxonomy associated with the item: [Knowledge (Remember), Understand (Describe, dramatize), Apply, Analyze, Evaluate, Create]</td>
+    <td>String</td>
+    <td>true</td>
+  </tr>
+  <tr>
+    <td>contentType</td>
+    <td>The type of raw content data associated with the item: [QTI2]</td>
+    <td>String</td>
+    <td>true</td>
+  </tr>
+  <tr>
+    <td>priorUse</td>
+    <td>Object with properties as described for the original use of the item. See extra definition below.</td>
+    <td>Object</td>
+    <td></td>
+  </tr>
+</table>
+
+
+<h2>Prior Use Model</h2>
+
+<p>Many items in the CoreSpring system may have had original use as interim/summative items.
+The <code>priorUse</code> property in the item model may have the following properties set which holds the values for
+these properties as was originally set by the contributor of the item:</p>
+
+<table class="table table-striped table-bordered table-condensed">
+    <tr>
+        <th>Property</th>
+        <th>Description</th>
+        <th>Type</th>
+    </tr>
+    <tr>
+        <td>contributorName</td>
+        <td>name of the organization that contributed the item</td>
+        <td>string</td>
+    </tr>
+    <tr>
+        <td>credentials</td>
+        <td>e.g. Assessment Developer, State DOE</td>
+        <td>string</td>
+    </tr>
+    <tr>
+        <td>gradeLevel</td>
+        <td>the grade level for the item</td>
+        <td>string</td>
+    </tr>
+    <tr>
+        <td>primarySubject</td>
+        <td>the primary subject for the item</td>
+        <td>string</td>
+    </tr>
+    <tr>
+        <td>relatedSubject</td>
+        <td>the related subject for the item</td>
+        <td>string</td>
+    </tr>
+    <tr>
+        <td>sourceUrl</td>
+        <td>url for the organization that contributed the item</td>
+        <td>string</td>
+    </tr>
+    <tr>
+        <td>reviewsPassed</td>
+        <td>reviews the item passed: Editorial, Bias, Fairness, Content, Psychometric</td>
+        <td>string Array</td>
+    </tr>
+    <tr>
+        <td>use</td>
+        <td>the original context the item was used for: [Formative, Interim, Benchmark, Summative, Other]</td>
+        <td>string</td>
+    </tr>
+    <tr>
+        <td>pValue</td>
+        <td>the IRT p-value for the item</td>
+        <td>string</td>
+    </tr>
+
+</table>
+
+
+<h1><a name="item-session-index" class="waypoint"></a>Item Sessions</h1>
+
+<hr />
+
+<p>The Item Session API is used for handling a student's interaction with an item and persisting data gathered as part of that interaction.</p>
+
+<h2><a name="item-session-get" class="waypoint"></a>Getting an Item Session</h2>
+
+<div style="padding-bottom: 10px;">
+    <rest-widget
+      method="GET"
+      path="/items/:itemId/sessions/:sessionId"
+      url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/sessions/502d627230048a31ef37a3f8?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+</div>
+
+
+<p>Returns the Item Session specified by the <em>:sessionId</em>.</p>
+
+<h2><a name="item-session-get-list" class="waypoint"></a>Getting a list of Item Sessions</h2>
+
+<div style="padding-bottom: 10px;">
+    <rest-widget
+      method="GET"
+      path="/items/:itemId/sessions"
+      url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/sessions?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+</div>
+
+
+<p>Returns a list of Item Sessions. The standard <a href="#list-queries">List Queries</a> options apply.</p>
+
+<h2><a name="item-session-create" class="waypoint"></a>Create an Item Session</h2>
+
+<div style="padding-bottom: 10px;">
+    <rest-widget
+      method="POST"
+      path="/items/:itemId/sessions"
+      url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/sessions?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+</div>
+
+
+<p>Returns the Item Session for the specified <em>:itemId</em>.</p>
+
+<h2><a name="item-session-update" class="waypoint"></a>Update an Item Session</h2>
+
+<div style="padding-bottom: 10px;">
+    <rest-widget
+      method="PUT"
+      request-body='{"finish" : 1345727522, "responses": [{"id":"question1", "value":"choiceA"}]}'
+      path="/items/:itemId/sessions/:sessionId"
+      url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/sessions/502d627230048a31ef37a3f8?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+</div>
+
+
+<p>Returns the Item Session. Note: Any of the properties (except id) may be updated.</p>
+
+<h2><a name="item-session-response-model"></a>Item Session Response Model</h2>
+
+<p>The reponse model depends on the content type of the item.
+Items in the CoreSpring Library will in general be of the content-type QTI2.</p>
+
+<p>There may be multiple questions defined in an item. Below is an example of a session response for a composite item with questions of different types.</p>
+
+<p>In the case of items of 'QTI2.1' contentType the API will validate that the response identifiers and data-type
+align with the QTI definedinition in the content. An error will be returned in the event of a failure in this validation.</p>
+
+<p>The 'outcome' variables of the response can be passed to the API but is not required for the initial set of QTI2.1 interactions that use qti 'correctResponse' elements.
+In the absence of response processing, the outcome by default will be processed and stored as '$score' on our servers based on 'correctResponse' elements. 0=incorrect, 1=correct.</p>
+
+<p>Example Response:</p>
+
+<div>
+<json-highlight>
+
+[
+  {
+    "id" : "question1",
+    "value" : "choice1",
+    "outcome" : {
+        "$score": 1,
+        "comment" : "optional - will be calculated by server"
+    }
+  },
+  {
+    "id": "question2",
+    "value": "ChoiceA", 
+        "outcome": {
+            "$score": 0 
+        }
+  },  
+  {
+    "id": "question23",
+    "value": [["choiceA", "choiceAA"], ["choiceB","choiceBB"]] ,
+        "outcome": {
+            "$score": 1.5 
+        }
+  },
+  {
+    "id": "question4",
+    "value": "text entered by user" 
+  }
+]
+</json-highlight>
+</div>
+
+
+
+
+<br/>
+
+
+<h1><a name="users-index" class="waypoint"></a>Users</h1>
+
+<hr />
+
+<p>Users may be created and associated with Organizations.</p>
+
+<p><a name="users-get" class="waypoint"></a></p>
+
+<h2>Getting a User</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path="/users/:userId" 
+    url="http://api-test.corespring.org/api/v1/users/502d46ce0364068384f217a5?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Returns the user for the specified <em>:userId</em>.</p>
+
+<p><a name="users-get-list" class="waypoint"></a></p>
+
+<h2>Getting a List of Users</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path="/users" 
+    url="http://api-test.corespring.org/api/v1/users?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Returns all users available to the caller. The number of responses will be limited - using a <a href="#list-queries">list query</a> recommended.</p>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path="/organizations/:orgId/users" 
+    url="http://api-test.corespring.org/api/v1/organizations/502404dd0364dc35bb39339a/users?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Returns the users associated with a specific organization.</p>
+
+<p><strong>Params</strong>
+The standard <a href="#list-queries">List Queries</a> parameters are available for these operations.</p>
+
+<p><a name="users-create" class="waypoint"></a></p>
+
+<h2>Creating a User</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="POST" 
+    path="/users" 
+    request-body='{ "userName" : "fredFlinstone", "fullName" : "Fred", "email" : "fredf@bedrock.org", "organizations" : [ { "id" : "502404dd0364dc35bb39339a" , "permissions" : ["WRITE_USER", "WRITE_COLLECTION", "WRITE_ORGANIZATION"]} ] }' url="http://api-test.corespring.org/api/v1/users?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Creates a user by passing a User JSON object to the /user resource. Returns the user object.</p>
+
+<p><a name="users-update" class="waypoint"></a></p>
+
+<h2>Updating a User</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="PUT" 
+    path="/users/:id" 
+    request-body='{ "fullName" : "Fred Flinstone" }' url="http://api-test.corespring.org/api/v1/users/502d46ce0364068384f217a5?access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p> Updates a user by passing a User JSON object to the /user/:id resource. Returns the updated user object.</p>
+
+<h2><a name="list-queries"></a>List Queries</h2>
+
+<hr />
+
+<p>Several of the CoreSpring REST APIs return an array of JSON objects.
+Each of these API resources support parameters to help with querying / filtering results.</p>
+
+<h2>Query Parameters for Resources with Array Response</h2>
+
+<table class="table table-striped table-bordered table-condensed">
+    <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Optional</th>
+    </tr>
+    <tr>
+        <td>q</td>
+        <td>Query: The query to use to search the resources. (see below for details)</td>
+        <td>true</td>
+    </tr>
+    <tr>
+        <td>f</td>
+        <td>Fields: Indicates fields to include in the result. For example f={"name": 1, "description":1}<br/> 
+(1—include; 0—exclude)<br/>
+       e.g. { "name" : 1, "email": 1 } OR <br/>
+       e.g. { "comments" : 0 } </td>
+        <td>true</td>
+    </tr>
+    <tr>
+        <td>c</td>
+        <td>Count: If set the response will be a number with the count for the number of results the query would produce in total.</td>
+        <td>true</td>
+    </tr>
+    <tr>
+        <td>sk</td>
+        <td>Skip: a number indicating how many results to skip in the result set</td>
+        <td>true</td>
+    </tr>
+    <tr>
+        <td>l</td>
+        <td>Limit: a number indicating how many results to include in the result set. If this is not set explicitly, and implicit value of 100 will be used. The maximum is 200, a request resulting in > 200 elements in the array will result in an error response.</td>
+        <td>true</td>
+    </tr>
+</table>
+
+
+<h2>Examples</h2>
+
+<hr />
+
+<h3>'q' Query Parameter</h3>
+
+<p>This parameter is used for defining a query to use against the list of objects. It is formatted as a JSON object and allows you to specify filters on fields in the target object.
+For example, in a call to the /items resource you could return only items of type 'Multiple Choice' adding a query parameter like this:</p>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path='/items?q={"itemType":"Multiple+Choice"}'
+    url='http://api-test.corespring.org/api/v1/items?q={"itemType":"Multiple+Choice"}&l=2&access_token=34dj45a769j4e1c0h4wb'>
+  </rest-widget>
+</div>
+
+
+<p>-AND/OR Parameters</p>
+
+<p>By default results will only be returned if all parameters match (AND), however you can specify that results should match if any of a given set of parameters match (OR). You do this by combining the parameters in an array and using the $or keyword.</p>
+
+<p>For example the following query would get a list of items where the subject was 'Mathematics' AND the grade was either "K" OR "1"</p>
+
+<pre><code>/items?q={primarySubject:"Mathematics",$or:[{gradeLevel:"K"},{gradeLevel:"K1"}]}
+</code></pre>
+
+<blockquote><p>The AND / OR querying is not yet implemented in the live api test.</p></blockquote>
+
+<p><em>(If you are familiar with MongoDb the above will look familiar. The query syntax is based on Mongo queries. However it should be noted that we do not support all the Mongo Syntax, only parameters specified in these documents will work)</em></p>
+
+<h3>'f' Fields Parameter</h3>
+
+<p>The Fields parameter allows you to specify which fields of the target object you would like returned with the result.
+For example, if you only wanted the Item Title and Primary Subject Fields for the items in the query defined above, you could add the 'f' parameter:</p>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path='/items?q={"itemType":"Multiple+Choice"}&f={title:1,gradeLevel:1,primarySubject:1}'
+    url='http://api-test.corespring.org/api/v1/items?q={"itemType":"Multiple+Choice"}&f={title:1,gradeLevel:1,primarySubject:1}&l=2&access_token=34dj45a769j4e1c0h4wb'>
+  </rest-widget>
+</div>
+
+
+<h1><a name="extended-metadata"></a>Extended Metadata</h1>
+
+<hr />
+
+<p>The CoreSpring API will support the storage of custom metadata against Items in our repository.</p>
+
+<p>Developers can store JSON-formatted data with the Item, and this data will be made available in the JSON response for an item requested from our APIs (if the appropriate flag is specified).</p>
+
+<blockquote><p>This feature is at an early stage of development and we encourage discussion and input from developers
+who may be interested in using this functionality.</p></blockquote>
+
+<h2>Extended Metadata Key</h2>
+
+<p>Corespring will allow developers to register a unique key for storing metadata with items. This key must be unique within the CoreSpring system.</p>
+
+<p>We recommend using a human-readable format, like a domain name or path, for example: <code>com_mydomainname</code>.</p>
+
+<blockquote><p>Keys must be valid JSON/Javacript variable names. So if using domain name, consider using underscores instead or periods.</p></blockquote>
+
+<h2>Get items with extended metadata</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    disabled="true"
+    disabled-message="Coming Soon!"
+    path="/items/:itemId?ext=true" 
+    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?ext=true&access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Returns the item model with all the extended metadata included.</p>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    disabled="true"
+    disabled-message="Coming Soon!" 
+    path="/items/:itemId?ext=:key" 
+    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?ext=_key_here_&access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Returns the item model with extended metadata for the specified key.</p>
+
+<h2>Resource Paths for Accessing / Updating Extended Metadata</h2>
+
+<p>The following paths support CRUD operations on Extended Metadata.</p>
+
+<blockquote><p>We will register metadata keys with organizations, so that only the organization who owns the key may write this metadata (unless the key owner allows universal write).</p></blockquote>
+
+<br/>
+
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    disabled="true"
+    disabled-message="Coming Soon!" 
+    path="/items/:itemId/ext/:key" 
+    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/ext/_key_here_?&access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Returns just the metadata specified by the given :key.</p>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="POST" 
+    disabled="true"
+    disabled-message="Coming Soon!" 
+    path="/items/:itemId/ext/:key" 
+    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/ext/_key_here_?&access_token=34dj45a769j4e1c0h4wb">
+  </rest-widget>
+</div>
+
+
+<p>Writes the supplied JSON formatted data to the given key.</p>
+
+<h2>Limitations</h2>
+
+<p>There will be limits on the size of extended metadata that may be added to an item.</p>
+
+<h2><a name="item-statistics"></a>Item Statistics</h2>
+
+<p>The item statistics resource returns aggregate usage information for an item, and an overall user rating where applicable.</p>
+
+<p>The CoreSpring system will initially only provide aggregated usage statistics for items with a QTI2.1 response model.</p>
+
+<blockquote><p>Statistics for the entire set of QTI interactions will not be immediately supported, but we intend to roll out more and more over time.</p></blockquote>
+
+<p>The first set of interaction types with usage statistics will be multi-choice, matching, and ordering.</p>
+
+<blockquote><p>responseProcessing is not required in the QTI content for these item types. Scores will be calculated as 1=correct, 0=incorrect and stored as 'score' using the 'correctResponse definition.</p></blockquote>
+
+<h2>Get an Item's statistics</h2>
+
+<div style="padding-bottom: 10px;">
+    <rest-widget
+      method="GET" 
+      disabled="true"
+      disabled-message="Coming Soon!"
+      path="/items/:itemId/statistics"
+      url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/statistics?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+</div>
+
+
+
+
+<br/>
+
+
+
+
+<div style="padding-bottom: 10px;">
+    <rest-widget
+      method="GET" 
+      disabled="true"
+      disabled-message="Coming Soon!"
+      path="/items/:itemId/stats=true"
+      url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?stats=true&access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+</div>
+
+
+<p>Returns an array representing each question identified in the content. The following properties are provided:</p>
+
+<ul>
+<li>'outcome' lists the outcome variables for the item, and the aggregate percentage for each outcome.</li>
+<li>'response' lists the total set of responses provided, and the aggregate percentage for each response.</li>
+<li>'rating' is a user - supplied rating, allowing users to rate items is a feature of the CoreSpring.org web platform.</li>
+</ul>
+
+
+<p>Example Response:</p>
+
+<div>
+<json-highlight>
+[
+    {
+        "id": "question1",
+        "outcome":
+        {
+            "$score":
+            {
+                "$1": 80,
+                "$0": 20
+            }
+        },
+        "response": {
+            "$choice1": 80,
+            "$choice2": 20
+        },
+        "rating": 4.2
+    },
+    {
+        "id": "question2",
+        "outcome":
+        {
+            "$score":
+            {
+                "$1": 65,
+                "$0": 35
+            }
+        },
+        "response": {
+            "$choiceA": 65,
+            "$choiceB": 20,
+            "$choiceC": 10,
+            "$choiceD": 5
+        },
+        "rating": 3.2
+    }
+]
+</json-highlight>
+</div>
+
+
+<br/>
+
+
+<blockquote><p>When using the <code>?stats=true</code> parameter for item the above data will be returned with the 'stats' property in the item model.</p></blockquote>
+
+<blockquote class="nb"><p>Property names are required to be valid javascript variables. This is validated on item creation.</p></blockquote>
+
+
+<blockquote class="nb"><p>Any variable that may be arbitrarily specified in the content will be prefixed with '$', add this prefix to read the property.</p></blockquote>
+
+
+<hr />
+
+<p>date:  11/30/2012 02:24PM</p>
+ 
+      </div>
+    </body>
+  </html>
+
