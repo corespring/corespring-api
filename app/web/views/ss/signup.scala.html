@@ -4,10 +4,9 @@
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(securesocial.views.html.inputFieldConstructor.f) }
 
-@securesocial.views.html.main( Messages("securesocial.signup.title") ) {
-    <div class="page-header">
-        <h1>@Messages("securesocial.signup.title")</h1>
-    </div>
+@main("Signup") {
+    <div class="container" style="width: 960px;">
+        <div class="well" style="position: relative; top: 100px; width:500px;">
 
     @request.flash.get("error").map { msg =>
         <div class="alert alert-error">
@@ -60,4 +59,6 @@
             </div>
         </fieldset>
     </form>
+    </div>
+    </div>
 }

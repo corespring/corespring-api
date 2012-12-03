@@ -70,7 +70,7 @@ class CoreSpringViews(application: Application) extends TemplatesPlugin {
    * @return a String with the html code for the email
    */
   def getSignUpEmail(token: String)(implicit request: RequestHeader) = {
-    securesocial.views.html.mails.signUpEmail(token).body
+    web.views.html.ss.mails.signUpEmail(token).body
   }
 
   /**
@@ -81,7 +81,7 @@ class CoreSpringViews(application: Application) extends TemplatesPlugin {
    * @return a String with the html code for the email
    */
   def getAlreadyRegisteredEmail(user: SocialUser)(implicit request: RequestHeader) = {
-    securesocial.views.html.mails.alreadyRegisteredEmail(user).body
+    web.views.html.ss.mails.alreadyRegisteredEmail(user).body
   }
 
   /**
@@ -92,7 +92,7 @@ class CoreSpringViews(application: Application) extends TemplatesPlugin {
    * @return a String with the html code for the email
    */
   def getWelcomeEmail(user: SocialUser)(implicit request: RequestHeader) = {
-    securesocial.views.html.mails.welcomeEmail(user).body
+    web.views.html.ss.mails.welcomeEmail(user).body
   }
 
   /**
@@ -103,7 +103,7 @@ class CoreSpringViews(application: Application) extends TemplatesPlugin {
    * @return a String with the html code for the email
    */
   def getUnknownEmailNotice()(implicit request: RequestHeader) = {
-    securesocial.views.html.mails.unknownEmailNotice(request).body
+    web.views.html.ss.mails.unknownEmailNotice(request).body
   }
 
   /**
@@ -115,7 +115,7 @@ class CoreSpringViews(application: Application) extends TemplatesPlugin {
    * @return a String with the html code for the email
    */
   def getSendPasswordResetEmail(user: SocialUser, token: String)(implicit request: RequestHeader) = {
-    securesocial.views.html.mails.passwordResetEmail(user, token).body
+    web.views.html.ss.mails.passwordResetEmail(user, token).body
   }
 
   /**
@@ -130,6 +130,6 @@ class CoreSpringViews(application: Application) extends TemplatesPlugin {
   def getPasswordChangePage[A](implicit request: SecuredRequest[A], form: Form[securesocial.controllers.PasswordChange.ChangeInfo]): Html = null
 
   def getPasswordChangedNoticeEmail(user: securesocial.core.SocialUser)(implicit request: play.api.mvc.RequestHeader): scala.Predef.String = {
-    securesocial.views.html.mails.passwordChangedNotice(user).body
+    web.views.html.ss.mails.passwordChangedNotice(user).body
   }
 }

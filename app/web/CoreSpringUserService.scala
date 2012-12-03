@@ -25,7 +25,6 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
 
     User.getUser(id.id, id.providerId) map {
       u =>
-        Log.i("found user = " + u.userName)
         SocialUser(
           id,
           "",
@@ -58,9 +57,25 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
     }
   }
 
-  def findByEmailAndProvider(email: String, providerId: String) = None
-
-  def findByEmail(email: String, providerId: String) = None
+  def findByEmailAndProvider(email: String, providerId: String) =
+  {
+    val cursor = User.find(MongoDBObject(User.email -> email))
+    if (cursor.isEmpty)
+      None
+    else {
+      val u = cursor.toList.head
+      Some(SocialUser(
+                UserId(u.id.toString, u.provider),
+                "",
+                "",
+                u.fullName,
+                Some(u.email),
+                None,
+                AuthenticationMethod.UserPassword,
+                passwordInfo = Some(PasswordInfo(u.password))
+              ))
+    }
+  }
 
   def save(token: Token) {
     val newToken = RegistrationToken(token.uuid, token.email, Some(token.creationTime), Some(token.expirationTime))
