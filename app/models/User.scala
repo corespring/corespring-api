@@ -22,6 +22,8 @@ case class User(var userName: String = "",
                  var fullName: String = "",
                  var email: String = "",
                  var orgs: Seq[UserOrg] = Seq(),
+                 var password: String = "",
+                 var provider : String = "userpass",
                  var id: ObjectId = new ObjectId()
                ) extends Identifiable
 
@@ -30,6 +32,8 @@ object User extends DBQueryable[User]{
   val fullName = "fullName"
   val email = "email"
   val orgs = "orgs"
+  val password = "password"
+  val provider = "provider"
 
   val collection = mongoCollection("users")
   val dao = new SalatDAO[User, ObjectId](collection = collection) {}
@@ -74,7 +78,7 @@ object User extends DBQueryable[User]{
   def updateUser(user: User): Either[InternalError, User] = {
     try {
       User.update(MongoDBObject("_id" -> user.id), MongoDBObject("$set" ->
-        MongoDBObject(User.userName -> user.userName, User.fullName -> user.fullName, User.email -> user.email)),
+        MongoDBObject(User.userName -> user.userName, User.fullName -> user.fullName, User.email -> user.email, User.password -> user.password)),
         false, false, User.collection.writeConcern)
       User.findOneById(user.id) match {
         case Some(u) => Right(u)
@@ -92,6 +96,10 @@ object User extends DBQueryable[User]{
    */
   def getUser(username: String): Option[User] = User.findOne(MongoDBObject(User.userName -> username))
 
+  def getUser(username:String, provider:String) : Option[User] =
+    User.findOne(
+      MongoDBObject(User.userName -> username, User.provider -> provider)
+    )
   def getUsers(orgId: ObjectId): Either[InternalError, Seq[User]] = {
     val c: SalatMongoCursor[User] = User.find(MongoDBObject(User.orgs + "." + UserOrg.orgId -> orgId))
     val returnValue = Right(c.toSeq)

@@ -38,15 +38,6 @@ abstract class BaseTest extends Specification {
 
   def tokenize(url: String): String = url + "?access_token=" + token
 
-  /**
-   * Create a tokenized request
-   * @param method
-   * @param uri
-   * @param headers
-   * @param body
-   * @tparam A
-   * @return
-   */
   def tokenFakeRequest[A](method: String, uri: String, headers: FakeHeaders = FakeHeaders(), body: A = AnyContentAsText("")): FakeRequest[A] = {
     FakeRequest(method, tokenize(uri), headers, body)
   }

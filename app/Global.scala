@@ -16,7 +16,7 @@ object Global extends GlobalSettings {
 
   val INIT_DATA: String = "INIT_DATA"
 
-  val MOCK_ACCESS_TOKEN_SCOPE: Option[String] = Some("homer")
+  val h = securesocial.core.providers.utils.RoutesHelper
 
   val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
 
@@ -110,6 +110,7 @@ object Global extends GlobalSettings {
       case None => false
     }
   }
+
 
   private def seedTestData() {
     emptyData()
