@@ -260,13 +260,18 @@ p {
 	width: 100%;
 }
 .well a.btn {
-	margin: 5px 5px 3px;
+    font-size: 13px;
+    line-height: 14px;
+    margin: 4px 4px 0;
+    padding: 4px;
 }
+
 .well .button-cell {
 	text-align: right;
 }
 .well table td {
 	vertical-align: top;
+	font-size:13px;
 }
 .item td.value {
 	color: #333333;
@@ -306,6 +311,8 @@ p {
 	border: none;
 	outline: none;
 }
+
+
 .nav li a#edu-nav, .nav li a#dev-nav, .nav li a#partner-nav, .nav li a#about-nav, .nav li a#contact-nav {
 	display: block;
 	float: left;
@@ -315,7 +322,11 @@ p {
 	padding: 45px 0px 0px;
 	text-transform: uppercase;
 	vertical-align: bottom;
+	height:1px;
 }
+
+/*PRE-SPRITE NAV -- DISABLED */
+/*
 .nav li a#edu-nav {
 	background: url("/assets/public/images/ed-icon.png") no-repeat scroll center 4px transparent;
 }
@@ -346,6 +357,61 @@ p {
 .navbar .nav-collapse .nav > li > a#contact-nav:hover, .navbar .nav-collapse .nav > li > #contact-nav.active {
 	background: url("/assets/public/images/mail-icon-green.png") no-repeat scroll center 7px transparent;
 }
+*/
+
+
+/*NEW FOR NAV SPRITE */
+
+.nav li a#edu-nav, .nav li a#dev-nav, .nav li a#partner-nav, .nav li a#about-nav, .nav li a#contact-nav{
+    display: block;
+    height: 1px;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    position: relative;
+}
+
+.nav li a#edu-nav {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll 23px -109px transparent;
+}
+
+.navbar .nav-collapse .nav > li > a#edu-nav:hover, .navbar .nav-collapse .nav > li > #edu-nav.active {
+   background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll 23px -54px transparent;
+}
+
+
+.nav li a#dev-nav {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -44px -109px transparent;
+}
+.navbar .nav-collapse .nav > li > a#dev-nav:hover, .navbar .nav-collapse .nav > li > #dev-nav.active {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -44px -54px transparent;
+}
+
+.nav li a#partner-nav {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -115px -106px transparent;
+}
+.navbar .nav-collapse .nav > li > a#partner-nav:hover, .navbar .nav-collapse .nav > li > #partner-nav.active {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -115px -51px transparent;
+}
+
+
+.nav li a#about-nav {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -216px -107px transparent;
+}
+.navbar .nav-collapse .nav > li > a#about-nav:hover, .navbar .nav-collapse .nav > li > #about-nav.active {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -216px -51px transparent;
+}
+
+
+.nav li a#contact-nav {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -278px -106px transparent;
+}
+.navbar .nav-collapse .nav > li > a#contact-nav:hover, .navbar .nav-collapse .nav > li > #contact-nav.active {
+    background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -278px -51px transparent;
+}
+
+/*--end of nav sprites */
+
+
 .container div.span12 p {
 	color: #00ACCE;
 	font: italic 500 27px/20px "Ubuntu", Arial, Helvetica, sans-serif;
@@ -357,7 +423,7 @@ p {
 }
 .main div.row div.span4.about {
 	background: url("../images/about-icon-lrg.png") no-repeat scroll center 5px transparent;
-	margin-left: 0px;
+	margin-left: 20px;
 	padding-top: 60px;
 }
 .main div.row div.span4.ed {
@@ -415,7 +481,7 @@ p {
 	font: 300 19px/27px "Ubuntu", Arial, Helvetica, sans-serif;
 	word-spacing: normal;
 }
-.container div.lead-in.about, .container div.span12.lead-in.contact, .container div.span12.lead-in.partner, .container div.span12.lead-in.developer, .container div.span12.lead-in.educator {
+.container div.lead-in.about, .container div.span12.lead-in.contact, .container div.span12.lead-in.partner, .container div.span9.lead-in.developer, .container div.span12.lead-in.educator {
 	margin-left: 0px;
 }
 .about .intro-logo {
@@ -445,12 +511,12 @@ p {
 	width: 85px;
 }
 .educator .intro-logo {
-	background: url("../images/icon-sprite-xl.png") no-repeat scroll 0px 2px transparent;
-	display: inline-block;
-	float: left;
-	height: 75px;
-	margin-right: 22px;
-	width: 85px;
+    background: url("../images/icon-sprite-xl.png") no-repeat scroll -30px 2px transparent;
+    display: inline-block;
+    float: left;
+    height: 75px;
+    margin-right: 22px;
+    width: 54px;
 }
 .justify p {
 	text-align: justify;
@@ -487,8 +553,8 @@ p {
 	text-align: left;
 }
 .well {
-	margin-bottom: 1px;
-	padding: 5px 10px;
+    margin-bottom: 1px;
+    padding: 5px 10px 7px;
 }
 .item td {
 	padding-bottom: 0px;
