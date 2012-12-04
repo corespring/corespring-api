@@ -5,6 +5,7 @@ function HomeController($scope, $rootScope, $timeout, $http, $location, ItemServ
     $scope.$root.mode = "home";
 
     $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
+    $rootScope.$broadcast('onListViewOpened');
 
 
     var init = function(){
