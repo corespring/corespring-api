@@ -4,8 +4,6 @@ function HomeController($scope, $rootScope, $timeout, $http, $location, ItemServ
 
     $scope.$root.mode = "home";
 
-    $scope.pagerText = "hello";
-
     $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
 
 
@@ -173,6 +171,7 @@ function HomeController($scope, $rootScope, $timeout, $http, $location, ItemServ
      * called from the repeater. scope (this) is the current item
      */
     $scope.openEditView = function () {
+        SearchService.currentItem = this.item;
         $location.url('/edit/' + this.item.id);
     };
 

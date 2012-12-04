@@ -28,10 +28,10 @@
                 </span>
 
 
-                <ul id="resultPager" class="nav pull-right" results-pager ng-show="mode == 'home'">
+                <ul id="resultPager" class="nav pull-right" results-pager ng-show="pagerText">
                     <li>
                         <div class="pager">
-                            <div class="muted pager-text">{{pagerText}} results</div>
+                            <div class="muted pager-text">{{pagerText}}</div>
                             <div class="progress progress-success progress-striped
                                  active pager-progress-bar" network-progress ng-show="isLoading">
                                 <div class="bar"></div>
