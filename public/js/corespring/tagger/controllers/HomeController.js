@@ -173,7 +173,7 @@ function HomeController($scope, $rootScope, $timeout, $http, $location, ItemServ
      * called from the repeater. scope (this) is the current item
      */
     $scope.openEditView = function () {
-        $location.url('/edit/' + this.item.id);
+        $location.url('/edit/' + this.item.id + "?panel=metadata");
     };
 
     init();

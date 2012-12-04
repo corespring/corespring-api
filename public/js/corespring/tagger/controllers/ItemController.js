@@ -47,7 +47,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
                 return $location.url();
             },
             function (path) {
-                $scope.changePanel($location.search().panel);
+              var panel = $location.search().panel;
+              if(panel){
+                $scope.changePanel(panel);
+              }
             });
     }
 
@@ -58,12 +61,12 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         $timeout(function() {
             $scope.corespringApiUrl = oldvalue;
         });
-    }
+    };
 
     $scope.togglePreview = function() {
         $scope.previewVisible = !$scope.previewVisible;
         $scope.$broadcast("panelOpen");
-    }
+    };
 
     $scope.$watch("previewVisible", function (newValue) {
         $scope.previewClassName = newValue ? "preview-open" : "preview-closed";
@@ -99,6 +102,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
      * @param panelName
      */
     function updateLocation(panelName) {
+      console.log(">> update Location");
         var current = $location.search();
 
         if (current.panel == panelName) {
