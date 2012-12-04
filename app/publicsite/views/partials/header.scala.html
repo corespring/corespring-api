@@ -1,0 +1,33 @@
+@(active: String = "")
+<div class="header-wrap">
+    <div class="container">
+        <header class="header">
+            <div class="logo-new">
+                <a class="img-link" href="/">
+                <img src="/assets/public/images/logo-new.png" alt="CoreSpring">
+                </a>
+            </div>
+
+            <nav class="nav" align="right">
+                <div class="navbar">
+                    <div class="">
+                        <div class="container">
+
+                            <div class="nav-collapse">
+                                <ul class="nav">
+                                    <li><a id="edu-nav" @if(active == "edu") { class='active' } href="/public/educators">Educators</a></li>
+                                    <li><a id="dev-nav" @if(active == "dev") { class='active' } href="/developer/home">developers</a></li>
+                                    <li><a id="partner-nav" @if(active == "partner") { class='active' }href="/public/partnerships">partnerships</a></li>
+                                    <li><a id="about-nav" @if(active == "about") { class='active' }href="/public/about">about</a></li>
+                                    <li><a id="contact-nav" @if(active == "contact") { class='active' }href="/public/contact">contact</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+        </header>
+    </div>
+</div>
+

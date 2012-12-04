@@ -39,7 +39,8 @@ end
 
 
 
-db_name = "tdb"
+db_name = "cs-api-test"
+#db_name = "cs-api-test"
 output_path = "../conf/seed-data/exemplar-content/content"
 collection_name = "Beta Items"
 
@@ -50,8 +51,8 @@ items = []
 #
 # NOTE: When doing the full import - run with all_items not just beta_items
 #
-all_items( db_name ).each do |bi|
-#beta_items(db_name, collection_name ).each do |bi|
+#all_items( db_name ).each do |bi|
+beta_items(db_name, collection_name ).each do |bi|
     items << { "item_id" => bi["_id"].to_s, "path" => "../../corespring-content" }
 end
 
@@ -60,7 +61,7 @@ puts "Found #{items.length} items to update"
 
 uploader = AmazonUploader.new( "AKIAJNPUNTVH2HMFWVVA", "sl+sXsuq8Xkbl4NvlLuyHRZtrVJp+BXEoH7XlLPm", "corespring-assets")
 
-generate_json = false
+generate_json = true 
 
 items.each do |i|
   updater = CorespringContentUpdater.new(i["item_id"], db_name, i["path"], uploader, output_path, generate_json)

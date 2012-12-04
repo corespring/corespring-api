@@ -140,6 +140,24 @@ class ItemSessionTest extends Specification {
       true must equalTo(true)
     }
 
+
+    "automatically finish an item if only one attempt is allowed" in {
+
+      val settings = ItemSessionSettings(maxNoOfAttempts = 1)
+      val session = ItemSession(itemId = new ObjectId(), settings = settings)
+
+      ItemSession.begin(session)
+      ItemSession.process(session, DummyXml)
+
+      ItemSession.findOneById(session.id) match {
+        case Some(s) => {
+          s.isFinished === true
+        }
+        case _ => failure
+      }
+      true === true
+    }
+
     "automatically finish an item if the max number of attempts has been reached" in {
       val settings = ItemSessionSettings(maxNoOfAttempts = 2)
       val session = ItemSession(itemId = new ObjectId(), settings = settings)

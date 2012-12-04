@@ -7,7 +7,7 @@ import play.api.libs.ws.WS
 import play.api.libs.oauth.{RequestToken, ConsumerKey, OAuthCalculator}
 import org.bson.types.ObjectId
 import com.mongodb.casbah.commons.MongoDBObject
-import models.ItemSession
+import models.{ItemSessionSettings, ItemSession}
 import play.api.libs.json.Json._
 
 import testplayer.controllers.routes.{ ItemPlayer => ItemPlayerRoutes }
@@ -17,6 +17,14 @@ import basiclti.controllers.routes.{ AssignmentLauncher => AssignmentLauncherRou
 object AssignmentLauncher extends Controller {
 
   private def tokenize(url:String,token:String) = "%s?access_token=%s".format(url,token)
+
+  val defaultSessionSettings = ItemSessionSettings(
+    maxNoOfAttempts = 1,
+    showFeedback = true,
+    highlightCorrectResponse = true,
+    highlightUserResponse = true,
+    allowEmptyResponses = true
+  )
 
   def launch(itemId:ObjectId) = Action{ request =>
 
@@ -40,8 +48,8 @@ object AssignmentLauncher extends Controller {
       Assignment.findOne( MongoDBObject("resultSourcedId" -> data.resultSourcedId )) match {
         case Some(a) => makeAssignment(data,a.itemSessionId,a.id)
         case _ => {
-          val newSession = new ItemSession( itemId = itemId )
-          ItemSession.save(newSession)
+          val newSession = new ItemSession( itemId = itemId, settings = defaultSessionSettings )
+          ItemSession.newSession( itemId, newSession)
           makeAssignment(data, newSession.id)
         }
       }

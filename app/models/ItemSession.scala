@@ -52,14 +52,22 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
   val collection = mongoCollection("itemsessions")
   val dao = new SalatDAO[ItemSession, ObjectId](collection = collection) {}
 
+
   /**
-   *
    * @param itemId - create the item session based on this contentId
    * @return - the newly created item session
    */
   def newSession(itemId: ObjectId, session: ItemSession): Either[InternalError, ItemSession] = {
     if (Play.isProd) session.id = new ObjectId()
     session.itemId = itemId
+
+    getQtiXml(itemId) match {
+      case Some(xml) => {
+        val (_, mapping) = FeedbackProcessor.addFeedbackIds(xml)
+        session.feedbackIdLookup = mapping
+      }
+      case _ =>
+    }
 
     try {
       ItemSession.insert(session, collection.writeConcern) match {
@@ -68,6 +76,19 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
       }
     } catch {
       case e: SalatInsertError => Left(InternalError("error inserting item session: " + e.getMessage, LogType.printFatal))
+    }
+  }
+
+  private def getQtiXml(itemId: ObjectId): Option[Elem] = {
+    Item.findOneById(itemId) match {
+      case Some(item) => {
+        val dataResource = item.data.get
+        dataResource.files.find(_.name == Resource.QtiXml) match {
+          case Some(qtiXml) => Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
+          case _ => None
+        }
+      }
+      case _ => None
     }
   }
 

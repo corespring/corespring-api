@@ -1,5 +1,19 @@
 {
 	"_id" : { "$oid" : "504e9571e4b07f3e2e432371" },
+	"bloomsTaxonomy" : "Understanding",
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"contentType" : "item",
+	"contributorDetails" : {
+		"contributor" : "New England Common Assessment Program",
+		"credentials" : "State Department of Education",
+		"copyright" : {
+			"owner" : "New England Common Assessment Program",
+			"year" : "2009"
+		},
+		"author" : "New England Common Assessment Program",
+		"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
+		"licenseType" : "CC BY"
+	},
 	"data" : {
 		"name" : "data",
 		"files" : [
@@ -47,38 +61,12 @@
 			}
 		]
 	},
-	"collectionId" : "505777f5e4b05f7845735bc1",
-	"subjects" : {
-		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2d1" }
-	},
-	"standards" : [ ],
-	"itemType" : "Ordering",
-	"contributorDetails" : {
-		"contributor" : "New England Common Assessment Program",
-		"credentials" : "State Department of Education",
-		"author" : "New England Common Assessment Program",
-		"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
-		"licenseType" : "CC BY",
-		"costForResource" : null,
-		"copyright" : {
-			"owner" : "New England Common Assessment Program",
-			"year" : "2009"
-		}
-	},
+	"dateModified" : 1353498105617,
+	"demonstratedKnowledge" : "Factual",
 	"gradeLevel" : [
 		"04"
 	],
-	"workflow" : {
-		"setup" : true,
-		"tagged" : true,
-		"standardsAligned" : false,
-		"qaReview" : false
-	},
-	"title" : "The life cycle of butterﬂies has four stages. Arrange the stages of life of a butterfly in order from beginning to end.",
-	"demonstratedKnowledge" : "Factual",
-	"materialType" : "Assessment Item",
-	"bloomsTaxonomy" : "Understanding",
-	"priorUse" : "Summative",
+	"itemType" : "Ordering",
 	"keySkills" : [
 		"Arrange",
 		"Describe",
@@ -87,6 +75,10 @@
 		"Recall",
 		"Classify"
 	],
+	"materialType" : "Assessment Item",
+	"priorGradeLevel" : [ ],
+	"priorUse" : "Summative",
+	"relatedCurriculum" : "New England Common Assessment Program Released Items",
 	"reviewsPassed" : [
 		"Editorial",
 		"Bias",
@@ -94,5 +86,15 @@
 		"Content",
 		"Psychometric"
 	],
-	"relatedCurriculum" : "New England Common Assessment Program Released Items"
+	"standards" : [ ],
+	"subjects" : {
+		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2d9" }
+	},
+	"title" : "The life cycle of butterﬂies has four stages. Arrange the stages of life of a butterfly in order from beginning to end.",
+	"workflow" : {
+		"setup" : true,
+		"tagged" : true,
+		"standardsAligned" : false,
+		"qaReview" : false
+	}
 }

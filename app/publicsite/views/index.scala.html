@@ -1,142 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="google-site-verification" content="-wfxFrZYKKRpF5_-V-G9g1wk5e8HrF2zKc-FKJ-NhNE" />
-    <title>About</title>
-    
-    <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
-
-
-    <link href="/assets/public/bootstrap/2.1.1/css/bootstrap.css" rel="stylesheet" type="text/css" media="all" />
-    <link href="/assets/public/css/bootstrap-overrides.css" rel="stylesheet" type="text/css" media="all" />
-
-    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
-    
-    <!--[if lte IE 8]>
-    <link type="text/css" rel="stylesheet" href="css/ie.css" />
-    <script src="/assets/public/js/html5.js" type="text/javascript"></script>
-    <![endif]-->
-    
-    <!--[if lte IE 6]>
-    <script src="/assets/public/js/belated.js" type="text/javascript"></script>
-    <![endif]-->
-    
+    <title>CoreSpring</title>
+    @partials.headNode()
 </head>
-
 <body>
-<!-- APP/PUBLICSITE/INDEXSCALA.HTML -->		
-<!--header starts here -->
-<div class="header-wrap">
-	<div class="page">
-                <header class="header">
-            <div class="logo"><a href="/"><img src="/assets/public/images/logo.png" alt=""></a></div>
-            <nav class="nav" align="right">
-                <div class="navbar">
-                    <div class="">
-                        <div class="container">
-                                
-                            <div class="nav-collapse">
-                                <ul class="nav">
-                                    <li><a href="/public/collection">collection</a></li>
-                                    <li><a href="/public/partnerships">partnerships</a></li>
-                                     <li><a href="/public/team">team</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-            
-        </header>
-    </div>
-</div>
-<!--header ends -->
+
+@partials.header()
 
 <div class="title-wrap">
-	<div class="container">
-    	<div class="title">
-        	<h1>
-            	Curated Collections. College-Ready Content. <br>
-                Innovative Design and Delivery.
-            </h1>
-        </div>
-    </div>
 </div>
 
 
 <!--main contents area starts here -->
-<div class="main-wrap">
+<div class="container main-wrap">
+<div class="span12 intro">
+<p> Curated Collections. College-Ready Content. Innovative Design and Delivery. </p>
+</div>
 	<div class="container">
         <div class="main">
 
         	
-            <div class="row">
-            	<div class="span1">&nbsp;</div>
-            	<div class="span5">
-                	<h2>Save Time</h2>
-                    <p>
-                    	Make quizzes aligned with instructional objectives by searching for and finding content
-			in CoreSpring's open collection of items and activities or, create items from scratch.
-			Over time, CoreSpring community members will have access to a range of content across a
-			full range of grades and subjects. 
+          <div class="row">
+            	<div class="span4 about">
+                <span class="col-header"> Share in the <br>
+                Wealth of Knowledge </span>
+                    <p>CoreSpring is building a bank of formative assessment items designed to promote college and career readiness; assessment items can be shared beyond the borders of state, district, school, or classroom. CoreSpring will serve as a trusted clearinghouse for quality content.
                     </p>
-                    <h2>Focus on the Future</h2>
-                    <p>
-                    	With the nation's focus on higher levels of performance required for success in college,
-			CoreSpring helps to prepare students for the future by delivering a variety of item types -including performance items.
-			The content can be delivered online through other data platforms using our APIs and/or via the CoreSpring website.
-			The technology collects usage data and aggregates it to help develop a picture of what is or isn't working for students. 
+                <span class="col-btn">
+<a href="/public/about" class="btn btn-primary btn-large">Learn about CoreSpring</a>
+                    </span>
+</div>
+         
+                <div class="span4 ed">
+                <span class="col-header"> Everyday Support <br>
+                for Teachers</span>
+                    <p>Educators can save time and effort using CoreSpring’s bank. Teachers can be confident that the content in CoreSpring has been reviewed for quality and is aligned to well-established teaching and learning frameworks.
                     </p>
+                <span class="col-btn">
+                <a href="/public/educators" class="btn btn-primary btn-large">Browse the Samples</a>
+                    </span>
                 </div>
-                <div class="span5">
-                	<h2>Be Confident</h2>
-                    <p>
-                    	Quality content is an essential input to effective data-driven instructional environments. To ensure quality,
-			CoreSpring organizes assessment items using a common template. The template aligns items and activities against standards
-			such as the Common Core State Standards, frameworks that identify the targeted cognitive ability such as Bloom's taxonomy,
-			and presents community feedback so that community members can make informed choices. 
-                    </p>
-                    <h2>Eliminate the Headaches</h2>
-                    <p>
-                    	We're working with leaders in the education field to develop a comprehensive collection located in one place.
-			You won't need to search through multiple sites and databases or deal with different formats
-			to find the good stuff. In addition, CoreSpring's test player presents a predictable and consistent look
-			and feel-what you see is what you get.   
-                    </p>
-                </div>
-                <div class="span1">&nbsp;</div>
-            </div><!--row -->
-            
-
-            
-             <div class="learn-section">
-                        <span>
-                            Interested in getting involved?<br>
-                            Click <a href="mailto:&#105;&#110;&#102;&#111;&#064;&#099;&#111;&#114;&#101;&#115;&#112;&#114;&#105;&#110;&#103;&#046;&#111;&#114;&#103;">here</a> to get in touch.</div>
+                 
+                <div class="span4 dev">
+                <span class="col-header">Smart <br>
+                Design</span>
+                <p>CoreSpring eliminates the need for conducting multiple searches through numerous sites and databases to get great content; we locate it all in one place. CoreSpring's test player and developer tools enable a predictable and consistent look and feel of simple and innovative item types. </p>
+                <span class="col-btn">
+                <a href="/developer/home" class="btn btn-primary btn-large">Connect with CoreSpring</a>
+                    </span>
             </div>
+            </div><!--row -->
+</div>
         
         </div>
     </div>
 </div>
 <!--main content area (except header,footer) ends -->
 
-
-
-<!--footer area starts here -->
-<div class="footer-wrap">
-	<div class="page">
-        <footer class="footer">
-        	&copy; 2012  CoreSpring 
-        </footer>
-    </div>
-</div>
-<!--footer ends-->
-
-<script type="text/javascript" src="/assets/public/js/jquery.js"></script>
-<script type="text/javascript" src="/assets/public/js/widgets.js"></script>
-<script type="text/javascript" src="/assets/public/js/bootstrap.js"></script>
-
+@partials.footer()
 </body>
 </html>

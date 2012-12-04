@@ -1,0 +1,19 @@
+<div class="rest-widget" ng-class="widgetCssClass"> 
+  <code>{{method + ' ' + path}}</code> 
+  <a class="pull-right btn btn-mini btn-info" id='tryBtn' ng-show="!disabled"><i class="icon icon-white" ng-class="iconClass"></i>{{toggleLabel}}</a>
+  <label class="pull-right" ng-show="disabled">{{disabledMessage}}</label>
+  <div id='runner'>
+    <textarea id='urlInput'></textarea>
+    <span ng-repeat="f in formParams">
+      <label style="float:left; width: 200px;">{{f.name}}</label><input type="text" value="{{f.value}}"></input><br/>
+    </span>
+    <span ng-show="showRequestHeaders">
+      <label style="float:left; width: 200px;">Headers:</label><input type="text" value="{{requestHeaders}}"></input>
+    </span>
+    <textarea id='requestBody' ng-bind-html-unsafe="requestBody" ng-show="showRequestBody"></textarea>
+    <div class='responseHolder' ng-show="showResponseBox">
+      <pre id='responseBox' style='height: 200px;'></pre>
+    </div>
+    <a id='goBtn' class="btn btn-info btn-mini">Go</a>
+  </div>
+</div>
