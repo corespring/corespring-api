@@ -172,7 +172,7 @@ function HomeController($scope, $rootScope, $timeout, $http, $location, ItemServ
      */
     $scope.openEditView = function () {
         SearchService.currentItem = this.item;
-        $location.url('/edit/' + this.item.id);
+        $location.url('/edit/' + this.item.id + "?panel=metadata");
     };
 
     init();
