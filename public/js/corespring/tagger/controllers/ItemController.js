@@ -80,7 +80,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     };
 
     $scope.deleteConfirmed = function(){
-        var deletingId = $scope.itemToDelete.id;
         ItemService.remove({id: $scope.itemToDelete.id},
             function(result) {
                 $scope.itemToDelete = null;
