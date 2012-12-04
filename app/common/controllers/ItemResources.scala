@@ -86,5 +86,10 @@ trait ItemResources {
   }
 
 
-  private def addDefaultCss(html : String) : String = """<head>""".r.replaceAllIn(html, "<head>\n" + DefaultCss.DEFAULT_CSS + "\n" )
+  private def addDefaultCss(html : String) : String ={
+    val css = Seq(DefaultCss.BOOTSTRAP, DefaultCss.UBUNTU, DefaultCss.DEFAULT_CSS).mkString("\n")
+    val replacement = "<head>\n%s".format(css)
+    """<head>""".r.replaceAllIn(html, replacement )
+  }
+
 }
