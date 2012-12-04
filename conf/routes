@@ -3,6 +3,15 @@
 # ~~~~
 
 # Map static developer site..
+
+
+# Login page
+GET     /developer/login            securesocial.controllers.LoginPage.login
+GET     /developer/logout           securesocial.controllers.LoginPage.logout
+
+# User Registration
+GET     /developer/register                     securesocial.controllers.Registration.startSignUp
+
 GET     /developer/home             developer.controllers.Developer.at(path="/public/developer", file="index.html")
 GET     /developer/*file            developer.controllers.Developer.at(path="/public/developer", file)
 
