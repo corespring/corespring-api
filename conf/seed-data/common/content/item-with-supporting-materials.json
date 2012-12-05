@@ -34,11 +34,7 @@
     }
   },
 
-  "standards": [
-    {
-      "$oid": "4ff47f6a6bb41e469c0be626"
-    }
-  ],
+  "standards": [ "RI.1.1" ],
 
   "bloomsTaxonomy": "Applying",
   "itemType": "Multiple Choice",

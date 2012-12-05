@@ -88,7 +88,7 @@ case class Item(var collectionId: String = "",
                 var priorUse: Option[String] = None,
                 var priorGradeLevel: Seq[String] = Seq(),
                 var reviewsPassed: Seq[String] = Seq(),
-                var standards: Seq[ObjectId] = Seq(),
+                var standards: Seq[String] = Seq(),
                 var pValue: Option[String] = None,
                 var lexile: Option[String] = None,
                 var title: Option[String] = None,
@@ -109,6 +109,7 @@ object Item extends DBQueryable[Item] {
   val FieldValuesVersion = "0.0.1"
 
   val collection = Content.collection
+
   val dao = new SalatDAO[Item, ObjectId](collection = collection) {}
 
   val id = "id"
@@ -229,11 +230,11 @@ object Item extends DBQueryable[Item] {
       if (!item.priorGradeLevel.isEmpty) iseq = iseq :+ (priorGradeLevel -> JsArray(item.priorGradeLevel.map(JsString(_))))
       if (!item.reviewsPassed.isEmpty) iseq = iseq :+ (reviewsPassed -> JsArray(item.reviewsPassed.map(JsString(_))))
       if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards.
-        foldRight[Seq[Standard]](Seq[Standard]())((sid, acc) => Standard.findOneById(sid) match {
+        foldRight[Seq[Standard]](Seq[Standard]())((dn, acc) => Standard.findOne( MongoDBObject("dotNotation" -> dn)) match {
         case Some(standard) => acc :+ standard
         case None => {
           //throw new RuntimeException("ItemWrites: no standard found given id: " + sid); acc
-          Logger.warn("no standard found for id: " + sid + ", item id: " + item.id )
+          Logger.warn("no standard found for id: " + dn + ", item id: " + item.id )
           acc
           }
       })))
@@ -339,7 +340,7 @@ object Item extends DBQueryable[Item] {
               map(v => if (v.foldRight[Boolean](true)((g, acc) => fieldValues.gradeLevels.exists(_.key == g) && acc)) v else throw new JsonValidationException(priorGradeLevel)).getOrElse(Seq.empty)
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
       try {
-        item.standards = (json \ standards).asOpt[Seq[String]].map(_.map(new ObjectId(_))).getOrElse(Seq.empty)
+        item.standards = (json \ standards).asOpt[Seq[String]].getOrElse(Seq.empty)
       } catch {
         case e: IllegalArgumentException => throw new JsonValidationException(standards)
       }
