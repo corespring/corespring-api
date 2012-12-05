@@ -101,7 +101,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
      * @param panelName
      */
     function updateLocation(panelName) {
-      console.log(">> update Location");
         var current = $location.search();
 
         if (current.panel == panelName) {
