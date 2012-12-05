@@ -10,7 +10,7 @@ import dao._
 import dao.SalatDAOUpdateError
 import dao.SalatInsertError
 import dao.SalatRemoveError
-import controllers.{Log, LogType, InternalError}
+import controllers.{Utils, Log, LogType, InternalError}
 import scala.Left
 import play.api.libs.json.JsString
 import scala.Some
@@ -23,11 +23,11 @@ import controllers.auth.Permission
 /**
  * A ContentCollection
  */
-case class ContentCollection(var name: String = "", var isPrivate: Boolean = false, var id: ObjectId = new ObjectId()) extends Identifiable
+case class ContentCollection(var name: String = "", var isPublic: Boolean = false, var id: ObjectId = new ObjectId()) extends Identifiable
 
 object ContentCollection extends DBQueryable[ContentCollection]{
   val name = "name"
-  val isPrivate = "isPrivate"
+  val isPublic = "isPublic"
   val DEFAULT = "default" //used as the value for name when the content collection is a default collection
 
   val collection = mongoCollection("contentcolls")
@@ -51,7 +51,25 @@ object ContentCollection extends DBQueryable[ContentCollection]{
         case e: SalatInsertError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to insert content collection")))
       }
   }
-
+  def insertPublic(coll:ContentCollection): Either[InternalError, ContentCollection] = {
+    if(Play.isProd) coll.id = new ObjectId()
+    coll.isPublic = true;
+    try {
+      super.insert(coll) match   {
+        case Some(_) => try {
+          Organization.update(MongoDBObject(),
+            MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> coll.id)),
+            false,false,Organization.defaultWriteConcern)
+          Right(coll)
+        } catch {
+          case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update organization with collection")))
+        }
+        case None => Left(InternalError("failed to insert content collection",LogType.printFatal,true))
+      }
+    } catch {
+      case e: SalatInsertError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to insert content collection")))
+    }
+  }
   def removeCollection(collId: ObjectId): Either[InternalError, Unit] = {
     ContentCollection.moveToArchive(collId) match {
       case Right(_) => try {
@@ -70,11 +88,15 @@ object ContentCollection extends DBQueryable[ContentCollection]{
     }
 
   }
-
+  //TODO if public content collection, use two-phase commit and add possibility for rollback
   def updateCollection(coll: ContentCollection): Either[InternalError, ContentCollection] = {
     try {
-      ContentCollection.update(MongoDBObject("_id" -> coll.id), MongoDBObject("$set" ->
-        MongoDBObject(ContentCollection.name -> coll.name)), false, false, ContentCollection.collection.writeConcern)
+      ContentCollection.update(MongoDBObject("_id" -> coll.id), coll, false, false, ContentCollection.collection.writeConcern)
+      if (coll.isPublic){
+        Organization.update(MongoDBObject(),
+          MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> coll.id)),
+          false,false,Organization.defaultWriteConcern)
+      }
       ContentCollection.findOneById(coll.id) match {
         case Some(coll) => Right(coll)
         case None => Left(InternalError("could not find the collection that was just updated",LogType.printFatal,true))
@@ -105,7 +127,10 @@ object ContentCollection extends DBQueryable[ContentCollection]{
     cursor.close()
     seqcollid
   }
-
+  def getPublicCollections:Seq[ContentCollection] = {
+    val cursor = ContentCollection.find(MongoDBObject(isPublic -> true))
+    Utils.toSeq(cursor)
+  }
   def addOrganizations(orgIds: Seq[ObjectId], collId: ObjectId, p: Permission): Either[InternalError, Unit] = {
     val errors = orgIds.map(oid => Organization.addCollection(oid, collId, p)).filter(_.isLeft)
     if (errors.size > 0) Left(errors(0).left.get)
