@@ -11,33 +11,32 @@
 				"items" : [ ]
 			},
 			{
-				"name" : "Reading Literature",
+				"name" : "Reading: Literature",
 				"items" : [
 					"All",
 					"Key Ideas and Details",
 					"Craft and Structure",
 					"Integration of Knowledge and Ideas",
-					"Range of Reading and Level of Text Complexity",
-					"Range of Reading and Complexity of Text"
+					"Range of Reading and Level of Text Complexity"
 				]
 			},
 			{
-				"name" : "Reading Informational",
+				"name" : "Reading: Informational Text",
 				"items" : [
 					"All",
 					"Key Ideas and Details",
-					"Range of Reading and Level of Text Complexity",
 					"Craft and Structure",
-					"Integration of Knowledge and Ideas"
+					"Integration of Knowledge and Ideas",
+					"Range of Reading and Level of Text Complexity"
 				]
 			},
 			{
-				"name" : "Reading Foundational Skills",
+				"name" : "Reading: Foundational Skills",
 				"items" : [
 					"All",
 					"Print Concepts",
-					"Phonological awareness",
-					"Phonics and Word recognition",
+					"Phonological Awareness",
+					"Phonics and Word Recognition",
 					"Fluency"
 				]
 			},
@@ -48,7 +47,27 @@
 					"Text Types and Purposes",
 					"Production and Distribution of Writing",
 					"Research to Build and Present Knowledge",
-					"Range of Writing"
+					"Range of Writing",
+					"Text Types and Purposes (continued)"
+				]
+			},
+			{
+				"name" : "English Language Arts Standards » Anchor Standards",
+				"items" : [
+					"All",
+					"Research to Build and Present Knowledge",
+					"Conventions of Standard English",
+					"Vocabulary Acquisition and Use",
+					"Integration of Knowledge and Ideas",
+					"Range of Writing",
+					"Production and Distribution of Writing",
+					"Key Ideas and Details",
+					"Craft and Structure",
+					"Range of Reading and Level of Text Complexity",
+					"Text Types and Purposes1",
+					"Comprehension and Collaboration",
+					"Presentation of Knowledge and Ideas",
+					"Knowledge of Language"
 				]
 			},
 			{
@@ -56,7 +75,6 @@
 				"items" : [
 					"All",
 					"Comprehension and Collaboration",
-					"Continue a conversation through multiple exchanges.",
 					"Presentation of Knowledge and Ideas"
 				]
 			},
@@ -64,14 +82,13 @@
 				"name" : "Language",
 				"items" : [
 					"All",
-					"Knowledge of Language",
 					"Conventions of Standard English",
 					"Vocabulary Acquisition and Use",
-					"Vocabulary acquisition and Use"
+					"Knowledge of Language"
 				]
 			},
 			{
-				"name" : "Reading History/Social Studies",
+				"name" : "English Language Arts Standards » History/Social Studies",
 				"items" : [
 					"All",
 					"Key Ideas and Details",
@@ -81,7 +98,7 @@
 				]
 			},
 			{
-				"name" : "Reading Science/Technical",
+				"name" : "Science & Technical Subjects",
 				"items" : [
 					"All",
 					"Key Ideas and Details",
@@ -91,7 +108,7 @@
 				]
 			},
 			{
-				"name" : "Writing HS/S/T",
+				"name" : "English Language Arts Standards » Writing",
 				"items" : [
 					"All",
 					"Text Types and Purposes",
@@ -99,12 +116,22 @@
 					"Research to Build and Present Knowledge",
 					"Range of Writing"
 				]
+			}
+		]
+	},
+	{
+		"name" : "ELA",
+		"items" : [
+			{
+				"name" : "All",
+				"items" : [ ]
 			},
 			{
-				"name" : "Operations And Algebraic Thinking",
+				"name" : "Writing",
 				"items" : [
 					"All",
-					"Multiply And Divide Within 100."
+					"Research to Build and Present Knowledge",
+					"Text Types and Purposes"
 				]
 			}
 		]
@@ -117,339 +144,350 @@
 				"items" : [ ]
 			},
 			{
-				"name" : "Counting And Cardinality",
+				"name" : "Counting & Cardinality",
 				"items" : [
 					"All",
-					"Know Number Names And The Count Sequence.",
-					"Count To Tell The Number Of Objects.",
-					"Compare Numbers."
+					"Know number names and the count sequence.",
+					"Count to tell the number of objects.",
+					"Compare numbers."
 				]
 			},
 			{
-				"name" : "Operations And Algebraic Thinking",
+				"name" : "Operations & Algebraic Thinking",
 				"items" : [
 					"All",
-					"Understand Addition As Putting Together And Adding To, And Under- Stand Subtraction As Taking Apart And Taking From.",
-					"Represent And Solve Problems Involving Addition And Subtraction.",
-					"Understand And Apply Properties Of Operations And The Relationship Between Addition And Subtraction.",
-					"Add And Subtract Within 20.",
-					"Work With Addition And Subtraction Equations.",
-					"Work With Equal Groups Of Objects To Gain Foundations For Multiplication.",
-					"Represent And Solve Problems Involving Multiplication And Division.",
-					"Understand Properties Of Multiplication And The Relationship Between Multiplication And Division.",
-					"Solve Problems Involving The Four Operations, And Identify And Explain Patterns In Arithmetic.",
-					"Use The Four Operations With Whole Numbers To Solve Problems.",
-					"Gain Familiarity With Factors And Multiples.",
-					"Generate And Analyze Patterns.",
-					"Write And Interpret Numerical Expressions.",
-					"Analyze Patterns And Relationships."
+					"Understand addition, and understand subtraction.",
+					"Represent and solve problems involving addition and subtraction.",
+					"Understand and apply properties of operations and the relationship between addition and subtraction.",
+					"Add and subtract within 20.",
+					"Work with addition and subtraction equations.",
+					"Work with equal groups of objects to gain foundations for multiplication.",
+					"Represent and solve problems involving multiplication and division.",
+					"Understand properties of multiplication and the relationship between multiplication and division.",
+					"Multiply and divide within 100.",
+					"Solve problems involving the four operations, and identify and explain patterns in arithmetic.",
+					"Use the four operations with whole numbers to solve problems.",
+					"Gain familiarity with factors and multiples.",
+					"Generate and analyze patterns.",
+					"Write and interpret numerical expressions.",
+					"Analyze patterns and relationships."
 				]
 			},
 			{
-				"name" : "Number And Operations In Base Ten",
+				"name" : "Number & Operations in Base Ten",
 				"items" : [
 					"All",
-					"Work With Numbers 11Ð19 To Gain Foundations For Place Value.",
-					"Extend The Counting Sequence.",
-					"Understand Place Value.",
-					"Use Place Value Understanding And Properties Of Operations To Add And Subtract.",
-					"Use Place Value Understanding And Properties Of Operations To Perform Multi-Digit Arithmetic.4",
-					"Generalize Place Value Understanding For Multi-Digit Whole Numbers.",
-					"Use Place Value Understanding And Properties Of Operations To Perform Multi-Digit Arithmetic.",
-					"Understand The Place Value System.",
-					"Perform Operations With Multi-Digit Whole Numbers And With Decimals To Hundredths."
+					"Work with numbers 11-19 to gain foundations for place value.",
+					"Extend the counting sequence.",
+					"Understand place value.",
+					"Use place value understanding and properties of operations to add and subtract.",
+					"Use place value understanding and properties of operations to perform multi-digit arithmetic.1",
+					"Understand the place value system.",
+					"Perform operations with multi-digit whole numbers and with decimals to hundredths."
 				]
 			},
 			{
-				"name" : "Measurement And Data",
+				"name" : "Measurement & Data",
 				"items" : [
 					"All",
-					"Describe And Compare Measurable Attributes.",
-					"Classify Objects And Count The Number Of Objects In Each Category.",
-					"Measure Lengths Indirectly And By Iterating Length Units.",
-					"Tell And Write Time.",
-					"Represent And Interpret Data.",
-					"Measure And Estimate Lengths In Standard Units.",
-					"Relate Addition And Subtraction To Length.",
-					"Work With Time And Money.",
-					"Solve Problems Involving Measurement And Estimation Of Intervals Of Time, Liquid Volumes, And Masses Of Objects.",
-					"Geometric Measurement: Understand Concepts Of Area And Relate Area To Multiplication And To Addition.",
-					"Geometric Measurement: Recognize Perimeter As An Attribute Of Plane Figures And Distinguish Between Linear And Area Measures.",
-					"Solve Problems Involving Measurement And Conversion Of Measurements From A Larger Unit To A Smaller Unit.",
-					"Geometric Measurement: Understand Concepts Of Angle And Measure Angles.",
-					"Convert Like Measurement Units Within A Given Measurement System.",
-					"Geometric Measurement: Understand Concepts Of Volume And Relate Volume To Multiplication And To Addition."
+					"Describe and compare measurable attributes.",
+					"Classify objects and count the number of objects in each category.",
+					"Measure lengths indirectly and by iterating length units.",
+					"Tell and write time.",
+					"Represent and interpret data.",
+					"Measure and estimate lengths in standard units.",
+					"Relate addition and subtraction to length.",
+					"Work with time and money.",
+					"Solve problems involving measurement and estimation.",
+					"Geometric measurement: understand concepts of area and relate area to multiplication and to addition.",
+					"Geometric measurement: recognize perimeter.",
+					"Solve problems involving measurement and conversion of measurements.",
+					"Geometric measurement: understand concepts of angle and measure angles.",
+					"Convert like measurement units within a given measurement system.",
+					"Geometric measurement: understand concepts of volume."
 				]
 			},
 			{
 				"name" : "Geometry",
 				"items" : [
 					"All",
-					"Identify And Describe Shapes (Squares, Circles, Triangles, Rectangles, Hexagons, Cubes, Cones, Cylinders, And Spheres).",
-					"Analyze, Compare, Create, And Compose Shapes.",
-					"Reason With Shapes And Their Attributes.",
-					"Draw And Identify Lines And Angles, And Classify Shapes By Properties Of Their Lines And Angles.",
-					"Graph Points On The Coordinate Plane To Solve Real-World And Mathematical Problems.",
-					"Classify Two-Dimensional Figures Into Categories Based On Their Properties.",
-					"Solve Real-World And Mathematical Problems Involving Area, Surface Area, And Volume.",
-					"Draw, Construct, And Describe Geometrical Figures And Describe The Relationships Between Them.",
-					"Solve Real-Life And Mathematical Problems Involving Angle Measure, Area, Surface Area, And Volume.",
-					"Understand Congruence And Similarity Using Physical Models, Trans- Parencies, Or Geometry Software.",
-					"Understand And Apply The Pythagorean Theorem.",
-					"Solve Real-World And Mathematical Problems Involving Volume Of Cylinders, Cones, And Spheres."
+					"Identify and describe shapes.",
+					"Analyze, compare, create, and compose shapes.",
+					"Reason with shapes and their attributes.",
+					"Draw and identify lines and angles, and classify shapes by properties of their lines and angles.",
+					"Graph points on the coordinate plane to solve real-world and mathematical problems.",
+					"Classify two-dimensional figures into categories based on their properties.",
+					"Solve real-world and mathematical problems involving area, surface area, and volume.",
+					"Draw construct, and describe geometrical figures and describe the relationships between them.",
+					"Solve real-life and mathematical problems involving angle measure, area, surface area, and volume.",
+					"Understand congruence and similarity using physical models, transparencies, or geometry software.",
+					"Understand and apply the Pythagorean Theorem.",
+					"Solve real-world and mathematical problems involving volume of cylinders, cones, and spheres."
 				]
 			},
 			{
-				"name" : "Number And Operations - Fractions",
+				"name" : "Number & Operationsâ€”FractionsÂ¹",
 				"items" : [
 					"All",
-					"Develop Understanding Of Fractions As Numbers.",
-					"Extend Understanding Of Fraction Equivalence And Ordering.",
-					"Build Fractions From Unit Fractions By Applying And Extending Previous Understandings Of Operations On Whole Numbers.",
-					"Understand Decimal Notation For Fractions, And Compare Decimal Fractions.",
-					"Use Equivalent Fractions As A Strategy To Add And Subtract Fractions.",
-					"Apply And Extend Previous Understandings Of Multiplication And Division To Multiply And Divide Fractions."
+					"Develop understanding of fractions as numbers.",
+					"Extend understanding of fraction equivalence and ordering.",
+					"Build fractions from unit fractions",
+					"Understand decimal notation for fractions, and compare decimal fractions."
 				]
 			},
 			{
-				"name" : "Ratios And Proportional Relationships",
+				"name" : "Number & Operations in Base TenÂ¹",
 				"items" : [
 					"All",
-					"Understand Ratio Concepts And Use Ratio Reasoning To Solve Problems.",
-					"Analyze Proportional Relationships And Use Them To Solve Real-World And Mathematical Problems."
+					"Generalize place value understanding for multi-digit whole numbers.",
+					"Use place value understanding and properties of operations to perform multi-digit arithmetic."
+				]
+			},
+			{
+				"name" : "Number & Operationsâ€”Fractions",
+				"items" : [
+					"All",
+					"Use equivalent fractions as a strategy to add and subtract fractions.",
+					"Apply and extend previous understandings of multiplication and division."
+				]
+			},
+			{
+				"name" : "Ratios & Proportional Relationships",
+				"items" : [
+					"All",
+					"Understand ratio concepts and use ratio reasoning to solve problems.",
+					"Analyze proportional relationships and use them to solve real-world and mathematical problems."
 				]
 			},
 			{
 				"name" : "The Number System",
 				"items" : [
 					"All",
-					"Apply And Extend Previous Understandings Of Multiplication And Division To Divide Fractions By Fractions.",
-					"Compute Fluently With Multi-Digit Numbers And Find Common Factors And Multiples.",
-					"Apply And Extend Previous Understandings Of Numbers To The System Of Rational Numbers.",
-					"Apply And Extend Previous Understandings Of Operations With Fractions To Add, Subtract, Multiply, And Divide Rational Numbers.",
-					"Know That There Are Numbers That Are Not Rational, And Approximate Them By Rational Numbers."
+					"Apply and extend previous understandings of multiplication and division.",
+					"Compute fluently with multi-digit numbers and find common factors and multiples.",
+					"Apply and extend previous understandings of numbers to the system of rational numbers.",
+					"Apply and extend previous understandings of operations with fractions.",
+					"Know that there are numbers that are not rational, and approximate them by rational numbers."
 				]
 			},
 			{
-				"name" : "Expressions And Equations",
+				"name" : "Expressions & Equations",
 				"items" : [
 					"All",
-					"Apply And Extend Previous Understandings Of Arithmetic To Algebraic Expressions.",
-					"For Example, Apply The Distributive Property To The Expression 3 (2 + X) To Produce The Equivalent Expression 6 + 3X; Apply The Distributive Property To The Expression 24X + 18Y To Produce The Equivalent Expression 6 (4X + 3Y); Apply Properties Of Operations To Y + Y + Y To Produce The Equivalent Expression 3Y.",
-					"Reason About And Solve One-Variable Equations And Inequalities.",
-					"Represent And Analyze Quantitative Relationships Between Dependent And Independent Variables.",
-					"Use Properties Of Operations To Generate Equivalent Expressions.",
-					"Solve Real-Life And Mathematical Problems Using Numerical And Algebraic Expressions And Equations.",
-					"Work With Radicals And Integer Exponents.",
-					"Understand The Connections Between Proportional Relationships, Lines, And Linear Equations.",
-					"Analyze And Solve Linear Equations And Pairs Of Simultaneous Linear Equations."
+					"Apply and extend previous understandings of arithmetic to algebraic expressions.",
+					"Reason about and solve one-variable equations and inequalities.",
+					"Represent and analyze quantitative relationships between dependent and independent variables.",
+					"Use properties of operations to generate equivalent expressions.",
+					"Solve real-life and mathematical problems using numerical and algebraic expressions and equations.",
+					"Expressions and Equations Work with radicals and integer exponents.",
+					"Understand the connections between proportional relationships, lines, and linear equations.",
+					"Analyze and solve linear equations and pairs of simultaneous linear equations."
 				]
 			},
 			{
-				"name" : "Statistics And Probability",
+				"name" : "Statistics & Probability",
 				"items" : [
 					"All",
-					"Develop Understanding Of Statistical Variability.",
-					"Summarize And Describe Distributions.",
-					"Use Random Sampling To Draw Inferences About A Population.",
-					"Draw Informal Comparative Inferences About Two Populations.",
-					"Investigate Chance Processes And Develop, Use, And Evaluate Probability Models.",
-					"Investigate Patterns Of Association In Bivariate Data."
+					"Develop understanding of statistical variability.",
+					"Summarize and describe distributions.",
+					"Use random sampling to draw inferences about a population.",
+					"Draw informal comparative inferences about two populations.",
+					"Investigate chance processes and develop, use, and evaluate probability models.",
+					"Investigate patterns of association in bivariate data."
 				]
 			},
 			{
 				"name" : "Functions",
 				"items" : [
 					"All",
-					"Define, Evaluate, And Compare Functions.",
-					"Use Functions To Model Relationships Between Quantities."
+					"Define, evaluate, and compare functions.",
+					"Use functions to model relationships between quantities."
 				]
 			},
 			{
 				"name" : "The Real Number System",
 				"items" : [
 					"All",
-					"Extend The Properties Of Exponents To Rational Exponents.",
-					"Use Properties Of Rational And Irrational Numbers."
+					"Extend the properties of exponents to rational exponents.",
+					"Use properties of rational and irrational numbers."
 				]
 			},
 			{
-				"name" : "Quantities",
+				"name" : "Quantities*",
 				"items" : [
 					"All",
-					"Reason Quantitatively And Use Units To Solve Problems."
+					"Reason quantitatively and use units to solve problems."
 				]
 			},
 			{
 				"name" : "The Complex Number System",
 				"items" : [
 					"All",
-					"Perform Arithmetic Operations With Complex Numbers.",
-					"Represent Complex Numbers And Their Operations On The Complex Plane.",
-					"Use Complex Numbers In Polynomial Identities And Equations."
+					"Perform arithmetic operations with complex numbers.",
+					"Represent complex numbers and their operations on the complex plane.",
+					"Use complex numbers in polynomial identities and equations."
 				]
 			},
 			{
-				"name" : "Vector And Matrix Quantities",
+				"name" : "Vector & Matrix Quantities",
 				"items" : [
 					"All",
-					"Represent And Model With Vector Quantities.",
-					"Perform Operations On Vectors.",
-					"Perform Operations On Matrices And Use Matrices In Applications."
+					"Represent and model with vector quantities.",
+					"Perform operations on vectors.",
+					"Perform operations on matrices and use matrices in applications."
 				]
 			},
 			{
-				"name" : "Seeing Structure In Expressions",
+				"name" : "Seeing Structure in Expressions",
 				"items" : [
 					"All",
-					"Interpret The Structure Of Expressions",
-					"Write Expressions In Equivalent Forms To Solve Problems"
+					"Interpret the structure of expressions.",
+					"Write expressions in equivalent forms to solve problems."
 				]
 			},
 			{
-				"name" : "Arithmetic With Polynomials And Rational Expressions",
+				"name" : "Arithmetic with Polynomials & Rational Expressions",
 				"items" : [
 					"All",
-					"Perform Arithmetic Operations On Polynomials",
-					"Understand The Relationship Between Zeros And Factors Of Polynomials",
-					"Use Polynomial Identities To Solve Problems",
-					"Rewrite Rational Expressions"
+					"Perform arithmetic operations on polynomials.",
+					"Understand the relationship between zeros and factors of polynomials.",
+					"Use polynomial identities to solve problems.",
+					"Rewrite rational expressions."
 				]
 			},
 			{
-				"name" : "Creating Equations",
+				"name" : "Creating Equations*",
 				"items" : [
 					"All",
-					"Create Equations That Describe Numbers Or Relationships"
+					"Create equations that describe numbers or relationships."
 				]
 			},
 			{
-				"name" : "Reasoning With Equations And Inequalities",
+				"name" : "Reasoning with Equations & Inequalities",
 				"items" : [
 					"All",
-					"Understand Solving Equations As A Process Of Reasoning And Explain The Reasoning",
-					"Solve Equations And Inequalities In One Variable",
-					"Solve Systems Of Equations",
-					"Represent And Solve Equations And Inequalities Graphically"
+					"Understand solving equations as a process of reasoning and explain the reasoning.",
+					"Solve equations and inequalities in one variable.",
+					"Solve systems of equations.",
+					"Represent and solve equations and inequalities graphically."
 				]
 			},
 			{
 				"name" : "Interpreting Functions",
 				"items" : [
 					"All",
-					"Understand The Concept Of A Function And Use Function Notation",
-					"Interpret Functions That Arise In Applications In Terms Of The Context",
-					"Analyze Functions Using Different Representations"
+					"Understand the concept of a function and use function notation.",
+					"Interpret functions that arise in applications in terms of the context.",
+					"Analyze functions using different representations."
 				]
 			},
 			{
 				"name" : "Building Functions",
 				"items" : [
 					"All",
-					"Build A Function That Models A Relationship Between Two Quantities",
-					"Build New Functions From Existing Functions"
+					"Build a function that models a relationship between two quantities.",
+					"Build new functions from existing functions."
 				]
 			},
 			{
-				"name" : "Linear, Quadratic, And Exponential Models_",
+				"name" : "Linear, Quadratic, & Exponential Models*",
 				"items" : [
 					"All",
-					"Construct And Compare Linear, Quadratic, And Exponential Models And Solve Problems",
-					"Interpret Expressions For Functions In Terms Of The Situation They Model"
+					"Construct and compare linear, quadratic, and exponential models and solve problems.",
+					"Interpret expressions for functions in terms of the situation they model."
 				]
 			},
 			{
 				"name" : "Trigonometric Functions",
 				"items" : [
 					"All",
-					"Extend The Domain Of Trigonometric Functions Using The Unit Circle",
-					"Model Periodic Phenomena With Trigonometric Functions",
-					"Prove And Apply Trigonometric Identities"
+					"Extend the domain of trigonometric functions using the unit circle.",
+					"Model periodic phenomena with trigonometric functions.",
+					"Prove and apply trigonometric identities."
 				]
 			},
 			{
 				"name" : "Congruence",
 				"items" : [
 					"All",
-					"Experiment With Transformations In The Plane",
-					"Understand Congruence In Terms Of Rigid Motions",
-					"Prove Geometric Theorems",
-					"Make Geometric Constructions"
+					"Experiment with transformations in the plane",
+					"Understand congruence in terms of rigid motions",
+					"Prove geometric theorems",
+					"Make geometric constructions"
 				]
 			},
 			{
-				"name" : "Similarity, Right Triangles, And Trigonometry",
+				"name" : "Similarity, Right Triangles, & Trigonometry",
 				"items" : [
 					"All",
-					"Understand Similarity In Terms Of Similarity Transformations",
-					"Prove Theorems Involving Similarity",
-					"Define Trigonometric Ratios And Solve Problems Involving Right Triangles",
-					"Apply Trigonometry To General Triangles"
+					"Understand similarity in terms of similarity transformations",
+					"Define trigonometric ratios and solve problems involving right triangles",
+					"Apply trigonometry to general triangles",
+					"Prove theorems involving similarity"
 				]
 			},
 			{
 				"name" : "Circles",
 				"items" : [
 					"All",
-					"Understand And Apply Theorems About Circles",
-					"Find Arc Lengths And Areas Of Sectors Of Circles"
+					"Understand and apply theorems about circles",
+					"Find arc lengths and areas of sectors of circles"
 				]
 			},
 			{
-				"name" : "Expressing Geometric Properties With Equations",
+				"name" : "Expressing Geometric Properties with Equations",
 				"items" : [
 					"All",
-					"Translate Between The Geometric Description And The Equation For A Conic Section",
-					"Use Coordinates To Prove Simple Geometric Theorems Algebraically"
+					"Translate between the geometric description and the equation for a conic section",
+					"Use coordinates to prove simple geometric theorems algebraically"
 				]
 			},
 			{
-				"name" : "Geometric Measurement And Dimension",
+				"name" : "Geometric Measurement & Dimension",
 				"items" : [
 					"All",
-					"Explain Volume Formulas And Use Them To Solve Problems",
-					"Visualize Relationships Between Two-Dimensional And Three- Dimensional Objects"
+					"Explain volume formulas and use them to solve problems",
+					"Visualize relationships between two-dimensional and three-dimensional objects"
 				]
 			},
 			{
-				"name" : "Modeling With Geometry",
+				"name" : "Modeling with Geometry",
 				"items" : [
 					"All",
-					"Apply Geometric Concepts In Modeling Situations"
+					"Apply geometric concepts in modeling situations"
 				]
 			},
 			{
-				"name" : "Interpreting Categorical And Quantitative Data",
+				"name" : "Interpreting Categorical & Quantitative Data",
 				"items" : [
 					"All",
-					"Summarize, Represent, And Interpret Data On A Single Count Or Measurement Variable",
-					"Summarize, Represent, And Interpret Data On Two Categorical And Quantitative Variables",
-					"Interpret Linear Models"
+					"Summarize, represent, and interpret data on a single count or measurement variable",
+					"Summarize, represent, and interpret data on two categorical and quantitative variables",
+					"Interpret linear models"
 				]
 			},
 			{
-				"name" : "Making Inferences And Justifying Conclusions",
+				"name" : "Making Inferences & Justifying Conclusions",
 				"items" : [
 					"All",
-					"Understand And Evaluate Random Processes Underlying Statistical Experiments",
-					"Make Inferences And Justify Conclusions From Sample Surveys, Experiments, And Observational Studies"
+					"Understand and evaluate random processes underlying statistical experiments",
+					"Make inferences and justify conclusions from sample surveys, experiments, and observational studies"
 				]
 			},
 			{
-				"name" : "Conditional Probability And The Rules Of Probability",
+				"name" : "Conditional Probability & the Rules of Probability",
 				"items" : [
 					"All",
-					"Understand Independence And Conditional Probability And Use Them To Interpret Data",
-					"Use The Rules Of Probability To Compute Probabilities Of Compound Events In A Uniform Probability Model"
+					"Understand independence and conditional probability and use them to interpret data",
+					"Use the rules of probability to compute probabilities of compound events."
 				]
 			},
 			{
-				"name" : "Using Probability To Make Decisions",
+				"name" : "Using Probability to Make Decisions",
 				"items" : [
 					"All",
-					"Calculate Expected Values And Use Them To Solve Problems",
-					"All Five Questions Of A Multiple-Choice Test Where Each Question Has Four Choices, And Find The Expected Grade Under Various Grading Schemes.",
-					"Use Probability To Evaluate Outcomes Of Decisions"
+					"Calculate expected values and use them to solve problems",
+					"Use probability to evaluate outcomes of decisions"
 				]
 			}
 		]

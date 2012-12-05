@@ -1,0 +1,24 @@
+@(user:_root_.securesocial.core.SocialUser)
+@headContent = {
+    <script type="text/javascript" src="/developer/js/corespring/orgs-app.js"></script>
+}
+
+@content = {
+
+<div class="title-wrap">
+</div>
+<div class="nav-bar">
+    <span>hi @user.fullName</span>
+</div>
+<div class="container main-wrap" ng-app="dev-orgs-app" ng-controller="DeveloperOrgsController">
+    <div class="span12 intro">
+        <h5>Your Organizations:</h5>
+
+        <div ng-repeat="o in orgs">
+            <span>{{o.name}}</span>
+        </div>
+    </div>
+</div>
+}
+
+@_root_.web.views.html.main("Organizations")(content, headContent)

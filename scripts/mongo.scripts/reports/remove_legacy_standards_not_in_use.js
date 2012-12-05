@@ -2,9 +2,11 @@
 
 var canRemove = 0;
 
+print("before count: " + db.ccstandards_new.count());
+
 function removeIfNotUsed(standard){
 
-    var itemsThatUseStandardCount = db.content.count( {standards: {"$in" : [standard._id ]}});
+    var itemsThatUseStandardCount = db.content.count( {standards: standard._id });
 
     if(itemsThatUseStandardCount === 0){
         //print("safe to remove: " + standard.dotNotation);
@@ -29,5 +31,7 @@ function printColumns(s){
 }
 
 db.ccstandards_new.find({ source: "LegacyOnly" }).forEach( printColumns );
+var count = db.ccstandards_new.count({ source: "LegacyOnly" })
+print(count);
 
-
+print("after count: " + db.ccstandards_new.count());

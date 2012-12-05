@@ -3,11 +3,22 @@
 # ~~~~
 
 # Map static developer site..
-GET     /developer/home             developer.controllers.Developer.at(path="/public/developer", file="index.html")
-GET     /developer/*file            developer.controllers.Developer.at(path="/public/developer", file)
+
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+GET     /developer/orgs    developer.controllers.Developer.organizations
+
+# Login page
+GET     /developer/login            securesocial.controllers.LoginPage.login
+GET     /developer/logout           securesocial.controllers.LoginPage.logout
+# User Registration
+GET     /developer/register         securesocial.controllers.Registration.startSignUp
+
+GET     /developer/home             developer.controllers.Developer.at(path="/public/developer", file="index.html")
+GET     /developer/*file            developer.controllers.Developer.at(path="/public/developer", file)
+
 
 
 #

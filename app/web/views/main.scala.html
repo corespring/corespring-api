@@ -1,15 +1,22 @@
-@(title: String)(content: Html)
+@(title: String)(content: Html, headContent : Html = Html("") )
 
 <!DOCTYPE html>
 
 <html>
     <head>
         <title>@title</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-        <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript"></script>
+
+        <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
+        <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
+        @head.coreJs()
+        @head.bootstrap()
+        @head.angular()
+        @_root_.publicsite.views.html.partials.headNode()
+        @headContent
     </head>
     <body>
+        @_root_.publicsite.views.html.partials.header("dev")
         @content
     </body>
 </html>
