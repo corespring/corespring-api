@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+                title="" adaptive="false" timeDependent="false">
+
+
+    <responseDeclaration identifier="alphabet1" cardinality="ordered" baseType="identifier">
+        <correctResponse>
+            <value>a</value>
+            <value>b</value>
+            <value>c</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+        <orderInteraction responseIdentifier="alphabet1" shuffle="true" csOrderingType="placement"
+                          orientation="vertical">
+            <prompt>Please select the letters of the alphabet and put them into ascending order:</prompt>
+            <simpleChoice identifier="a" fixed="true">A</simpleChoice>
+            <simpleChoice identifier="b">B</simpleChoice>
+            <simpleChoice identifier="c">C</simpleChoice>
+            <simpleChoice identifier="n1">1</simpleChoice>
+            <simpleChoice identifier="n2">2</simpleChoice>
+            <simpleChoice identifier="n3">3</simpleChoice>
+            <simpleChoice identifier="n4">4</simpleChoice>
+        </orderInteraction>
+
+    </itemBody>
+
+
+</assessmentItem>
+
+

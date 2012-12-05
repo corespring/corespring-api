@@ -66,12 +66,12 @@ qtiDirectives.directive('choiceinteraction', function () {
     var isHorizontal = attrs["orientation"] === "horizontal";
     var html = element.html();
 
-    var promptMatch = html.match(/<:*prompt>(.*?)<\/:*prompt>/);
+    var promptMatch = html.match(/<:*prompt>((.|[\r\n])*?)<\/:*prompt>/);
     var prompt = "<span class=\"prompt\">" + ((promptMatch && promptMatch.length > 0) ? promptMatch[1] : "") + "</span>";
 
     // We convert custom elements to attributes in order to support IE8
     var finalContents = (shuffle ? getShuffledContents(html) : html)
-      .replace(/<:*prompt>.*?<\/:*prompt>/gi, "")
+      .replace(/<:*prompt>(.|[\r\n])*?<\/:*prompt>/gim, "")
       .replace(/<:*simpleChoice/gi, "<span simplechoice").replace(/<\/:*simpleChoice>/gi, "</span>")
       .replace(/<:*feedbackInline/gi, "<span feedbackinline").replace(/<\/:*feedbackInline>/gi, "</span>");
 

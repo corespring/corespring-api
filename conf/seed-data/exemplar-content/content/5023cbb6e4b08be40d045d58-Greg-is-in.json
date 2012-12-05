@@ -76,9 +76,10 @@
 		"Content",
 		"Psychometric"
 	],
-	"bloomsTaxonomy" : "Analyze",
+	"bloomsTaxonomy" : "Analyzing",
 	"demonstratedKnowledge" : "Procedural",
 	"relatedCurriculum" : "New England Common Assessment Program Released Items",
+	"dateModified" : 1353498114071,
 	"supportingMaterials" : [
 		{
 			"name" : "ScoringGuide",

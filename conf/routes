@@ -2,8 +2,13 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
+# Map static developer site..
+GET     /developer/home             developer.controllers.Developer.at(path="/public/developer", file="index.html")
+GET     /developer/*file            developer.controllers.Developer.at(path="/public/developer", file)
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
 
 #
 # Auth endpoints
@@ -13,10 +18,10 @@ POST    /auth/access_token                      controllers.auth.AuthController.
 
 #Public site
 GET     /                                      publicsite.controllers.Application.index
-GET     /public/collection                             publicsite.controllers.Application.collection
+GET     /public/educators                             publicsite.controllers.Application.educators
 GET     /public/contact                                publicsite.controllers.Application.contact
 GET     /public/partnerships                           publicsite.controllers.Application.partnerships
-GET     /public/team                                   publicsite.controllers.Application.team
+GET     /public/about                                   publicsite.controllers.Application.about
 GET     /public/items                                  publicsite.controllers.Application.getItems
 
 #
@@ -67,7 +72,7 @@ GET     /api/v1/items/:itemId/assets/:fileName  api.v1.FilesApi.getFile(itemId:S
 
 # Exporter api
 GET     /api/v1/items/multiple/scorm-2004.zip       api.v1.ExporterApi.multiItemScorm2004(ids:String)
-GET     /api/v1/items/:id/scorm-2004.zip            api.v1.ExporterApi.scorm2004(id:ObjectId)
+GET     /api/v1/items/multiple/item_launch.imscc    api.v1.ExporterApi.multiItemLti(ids:String)
 
 # Resource api
 GET     /api/v1/items/:itemId/materials          api.v1.ResourceApi.getSupportingMaterials(itemId:String)
@@ -101,6 +106,7 @@ GET    /testplayer/item/:itemId/render              testplayer.controllers.ItemP
 GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
 GET    /testplayer/item/:itemId/:filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
 GET    /testplayer/session/:sessionId/run           testplayer.controllers.ItemPlayer.previewItemBySessionId(sessionId, printMode: Boolean ?= false)
+GET    /testplayer/session/:sessionId/render        testplayer.controllers.ItemPlayer.renderItemBySessionId(sessionId, printMode: Boolean ?= false)
 GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
 GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes
 
@@ -145,8 +151,11 @@ GET     /web/access_token                      web.controllers.Main.getAccessTok
 #
 # BasicLTI
 #
-POST    /basiclti                               basiclti.LtiController.launch
-POST    /basiclti/items                         basiclti.LtiController.launchList
+POST    /lti/assignment/launch/:itemId          basiclti.controllers.AssignmentLauncher.launch(itemId:ObjectId)
+GET     /lti/assignment/error/authorization     basiclti.controllers.AssignmentLauncher.authorizationError
+GET     /lti/assignment/:assignmentId/process   basiclti.controllers.AssignmentLauncher.process(assignmentId:ObjectId)
+GET     /lti/assignment/:assignmentId/run       basiclti.controllers.AssignmentPlayer.runByAssignmentId(assignmentId:ObjectId)
+GET     /lti/assignment/:assignmentId/:filename basiclti.controllers.AssignmentPlayer.getDataFileByAssignmentId(assignmentId:ObjectId, filename:String)
 
 # Reporting
 GET    /reports                                     reporting.controllers.Reports.index

@@ -19,7 +19,7 @@
 @cs-file-list-width: 180px;
 @cs-top-bar-height: 40px;
 @cs-subnav-height: 40px;
-@cs-resource-header-height: 20px;
+@cs-resource-header-height: 5px;
 @cs-preview-width: 500px;
 
 /* nav pills */
@@ -207,7 +207,6 @@
         .preview-container{
 
             .mixin-box-shadow( 10px);
-            overflow: auto;
             height: 90%;
             background-color: #fff;
 
@@ -621,7 +620,7 @@ body{
 }
 
 .icon-preview{
-    background-image: url('/images/preview2.png');
+    background-image: url('/assets/images/preview2.png');
     background-repeat: no-repeat;
     background-position: 0px 0px;
     width: 32px;
@@ -632,7 +631,7 @@ body{
 }
 
 .icon-preview.preview-open{
-    background-image: url('/images/preview2_disabled.png');
+    background-image: url('/assets/images/preview2_disabled.png');
 }
 
 .icon-file.file-list-open,
@@ -885,13 +884,4 @@ body{
 .createNewItemPanel {
     padding-top: 50px;
     line-height: 200%;
-}
-
-.preview-container{
-    position: absolute;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
-    top: 40px;
-
 }

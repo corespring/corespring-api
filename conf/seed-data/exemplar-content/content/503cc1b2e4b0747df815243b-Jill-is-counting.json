@@ -53,7 +53,7 @@
 	],
 	"title" : "Jill is counting bundles of pennies. Each bundle has 100 pennies and she has 8 bundles. Which shows the best way to count all of the pennies?",
 	"priorUse" : "Formative",
-	"bloomsTaxonomy" : "Apply",
+	"bloomsTaxonomy" : "Applying",
 	"relatedCurriculum" : "New Jersey Model Curriculum",
 	"gradeLevel" : [
 		"02"
@@ -61,5 +61,6 @@
 	"reviewsPassed" : [
 		"Editorial"
 	],
-	"demonstratedKnowledge" : "Conceptual"
+	"demonstratedKnowledge" : "Conceptual",
+	"dateModified" : 1353498104686
 }

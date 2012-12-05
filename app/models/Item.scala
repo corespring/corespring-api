@@ -22,6 +22,7 @@ import com.novus.salat._
 import dao.{SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
 import models.Workflow.WorkflowWrites
 import controllers.auth.Permission
+import play.api.Logger
 
 case class Copyright(owner: Option[String] = None, year: Option[String] = None, expirationDate: Option[String] = None, imageName: Option[String] = None)
 
@@ -230,7 +231,11 @@ object Item extends DBQueryable[Item] {
       if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards.
         foldRight[Seq[Standard]](Seq[Standard]())((sid, acc) => Standard.findOneById(sid) match {
         case Some(standard) => acc :+ standard
-        case None => throw new RuntimeException("ItemWrites: no standard found given id: " + sid); acc
+        case None => {
+          //throw new RuntimeException("ItemWrites: no standard found given id: " + sid); acc
+          Logger.warn("no standard found for id: " + sid + ", item id: " + item.id )
+          acc
+          }
       })))
       item.title.foreach(v => iseq = iseq :+ (title -> JsString(v)))
       item.data.foreach(v => iseq = iseq :+ (data -> Json.toJson(v)))
@@ -353,10 +358,11 @@ object Item extends DBQueryable[Item] {
   def updateItem(oid: ObjectId, newItem: Item, fields: Option[DBObject], requesterOrgId: ObjectId): Either[InternalError, Item] = {
     try {
       import com.novus.salat.grater
+
       //newItem.id = oid
       val toUpdate = if (newItem.collectionId != "") {
         if (ContentCollection.isAuthorized(requesterOrgId, new ObjectId(newItem.collectionId), Permission.All)) {
-          ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials)
+          ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials - data)
         } else throw new RuntimeException("not authorized")
       } else ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials) - collectionId
       Item.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> toUpdate), upsert = false, multi = false, wc = Item.collection.writeConcern)

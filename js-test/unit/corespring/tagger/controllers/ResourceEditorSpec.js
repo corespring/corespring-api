@@ -30,7 +30,8 @@ describe('ResourceEditor should', function () {
 
         var urls = [
             {method:'PUT', url:/.*/, response:{ ok:true }},
-            {method:'POST', url:/.*/, data: {}, response:{ ok:true }}
+            {method:'POST', url:/.*/, data: {}, response:{ ok:true }},
+            {method:'DELETE', url:/.*/, data: {}, response:{ ok:true }}
         ];
 
         for (var i = 0; i < urls.length; i++) {
@@ -117,6 +118,18 @@ describe('ResourceEditor should', function () {
         $httpBackend.flush();
         expect(resource.files.length).toEqual(3);
         expect(scope.selectedFile).toBe(resource.files[2]);
+    }));
+
+    it('removing file needs confirmation', inject(function ($rootScope) {
+        var resource = { name:"testResource", files:[
+            { name:"testFile.xml", contentType:"xml", content:"<root/>", default:true}
+        ]};
+        broadcastEnterEditor($rootScope, resource);
+        scope.removeFile(scope.selectedFile);
+        expect(scope.showRemoveFileModal).toEqual(true);
+        scope.confirmRemoveFile();
+        $httpBackend.flush();
+        expect(scope.resource.files.length).toEqual(0);
     }));
 
 });

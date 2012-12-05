@@ -4,9 +4,8 @@ function HomeController($scope, $rootScope, $timeout, $http, $location, ItemServ
 
     $scope.$root.mode = "home";
 
-    $scope.pagerText = "hello";
-
     $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
+    $rootScope.$broadcast('onListViewOpened');
 
 
     var init = function(){
@@ -173,7 +172,8 @@ function HomeController($scope, $rootScope, $timeout, $http, $location, ItemServ
      * called from the repeater. scope (this) is the current item
      */
     $scope.openEditView = function () {
-        $location.url('/edit/' + this.item.id);
+        SearchService.currentItem = this.item;
+        $location.url('/edit/' + this.item.id + "?panel=metadata");
     };
 
     init();

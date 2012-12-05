@@ -174,19 +174,45 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
         $scope.isEditorActive = false;
     });
 
-    $scope.removeResource = function (resource) {
 
+    $scope.confirmRemoveFile = function () {
+        var f = $scope.fileToRemove;
+        if(!f) {
+            return;
+        }
+        SupportingMaterial.delete(
+            {
+                itemId: $routeParams.itemId,
+                resourceName: f.name
+            },
+            function onLoaded() {
+                $scope.supportingMaterials.removeItem(f);
+                $scope.showRemoveFileModal = false;
+                $scope.fileToRemove = null;
+            },
+            function error() {
+                alert("Error removing item");
+                $scope.showRemoveFileModal = false;
+                $scope.fileToRemove = null;
+            }
+        );
+    };
+
+    $scope.cancelRemoveFile = function () {
+        $scope.showRemoveFileModal = false;
+        $scope.fileToRemove = null;
+    };
+
+
+    $scope.removeResource = function (resource) {
         if ($scope.supportingMaterials == null) {
             throw "Can't remove from null array";
         }
-
         if (!resource) {
             return;
         }
-
-        resource.$delete({itemId:$routeParams.itemId, resourceName:resource.name}, function (data) {
-            $scope.supportingMaterials.removeItem(data);
-        });
+        $scope.fileToRemove = resource;
+        $scope.showRemoveFileModal = true;
     };
 
     $scope.loadMaterials = function () {

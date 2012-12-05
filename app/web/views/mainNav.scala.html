@@ -24,13 +24,14 @@
                 
                 <span class="pull-right" style="padding-left: 10px; padding-top: 10px;">hi @username&nbsp;
                     <a class="logout-icon" title="logout" href="@root/logout"><i class="icon-share icon-white"></i></a>
+                    <a href="/reports">Reports</a>
                 </span>
 
 
-                <ul id="resultPager" class="nav pull-right" results-pager ng-show="mode == 'home'">
+                <ul id="resultPager" class="nav pull-right" results-pager ng-show="pagerText">
                     <li>
                         <div class="pager">
-                            <div class="muted pager-text">{{pagerText}} results</div>
+                            <div class="muted pager-text">{{pagerText}}</div>
                             <div class="progress progress-success progress-striped
                                  active pager-progress-bar" network-progress ng-show="isLoading">
                                 <div class="bar"></div>

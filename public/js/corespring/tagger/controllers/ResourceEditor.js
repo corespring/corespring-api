@@ -23,6 +23,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
 
     $scope.selectedFileImageUrl = '/assets/images/empty.png';
     $scope.showEditor = false;
+    $scope.previewVisible = false;
 
     $scope.$on('leaveEditor', function (event) {
         $scope.resourceToEdit = null;
@@ -102,7 +103,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
 
         if (imageContentTypes.indexOf(f.contentType.toLowerCase()) != -1) {
             var templateUrl = ServiceLookup.getUrlFor('previewFile');
-            return templateUrl.replace("{key}", $routeParams.itemId + "/" + $scope.resource.name + "/" + f.name);
+            return templateUrl.replace("{key}", $routeParams.itemId + "/data/" + f.name);
         } else {
             return '/assets/images/empty.png';
         }
@@ -200,11 +201,15 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
         $scope.update(f);
     };
 
+    $scope.$on("saveSelectedFile", function() {
+       $scope.update($scope.selectedFile);
+    });
     /**
      * Update the file on the server
      * @param file
      */
     $scope.update = function(file, filename) {
+
         if( !filename ){
             filename = file.name;
         }
@@ -215,7 +220,9 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
             data:file
         }).success(function (data, status, headers, config) {
                 $scope.showFile(file);
+                $scope.saveSelectedFileFinished();
             }).error(function (data, status, headers, config) {
+                $scope.saveSelectedFileFinished();
                 throw "Error updating file";
             });
 
@@ -230,20 +237,38 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
         return "/api/v1/files/{storageKey}"
     };
 
-    $scope.removeFile = function (f) {
+    $scope.confirmRemoveFile = function () {
+        var f = $scope.fileToRemove;
+
 
         if(!f){
             return;
         }
 
+
         $http({
-            url: tokenize($scope.urls.deleteFile.replace("{filename}", f.name)),
+            url:tokenize($scope.urls.deleteFile.replace("{filename}", f.name)),
             method:"DELETE"
         }).success(function (data, status, headers, config) {
-                $scope.resource.files.removeItem(f);
-            }).error(function (data, status, headers, config) {
-                throw "Error deleting file";
-            });
+            $scope.resource.files.removeItem(f);
+            $scope.showRemoveFileModal = false;
+            $scope.fileToRemove = null;
+        }).error(function (data, status, headers, config) {
+            $scope.showRemoveFileModal = false;
+            $scope.fileToRemove = null;
+            alert("Error deleting file");
+        });
+    };
+
+    $scope.cancelRemoveFile = function () {
+        $scope.showRemoveFileModal = false;
+        $scope.fileToRemove = null;
+    };
+
+
+    $scope.removeFile = function (f) {
+        $scope.fileToRemove = f;
+        $scope.showRemoveFileModal = true;
     };
 
 

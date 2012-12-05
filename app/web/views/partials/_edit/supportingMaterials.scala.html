@@ -1,6 +1,18 @@
 <div ng-show="currentPanel == 'supportingMaterials'" class="supporting-materials-panel"
      ng-controller="SupportingMaterialsController">
 
+
+    <div ui-modal ng-model="showRemoveFileModal" style="padding: 10px">
+        <h3>Delete {{fileToRemove.name}}</h3>
+
+        <button ng-click="confirmRemoveFile()"
+                class="btn btn-success">Ok
+        </button>
+        <button class="btn btn-info"
+                ng-click="cancelRemoveFile()">Cancel
+        </button>
+    </div>
+
     <div ui-modal ng-model="showAddResourceModal" id="myModal" style="padding: 20px">
         <h2>Add Supporting Material</h2>
         <br/>

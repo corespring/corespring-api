@@ -140,7 +140,7 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
 
     localScope.responseIdentifier = attrs["responseidentifier"];
 
-    scope.controller.registerInteraction(element.attr('responseIdentifier'), element.find('.prompt').html(), "sequencing");
+    AssessmentItemCtrl.registerInteraction(element.attr('responseIdentifier'), element.find('.prompt').html(), "sequencing");
 
 
     var updateAssessmentItem = function (orderedList) {
@@ -465,6 +465,7 @@ qtiDirectives.directive("sortable", function () {
       });
 
 
+      console.log(el);
       $(el).sortable({
         items: 'div:not(:has(div.complete))',
         stop: function (event, ui) {

@@ -1,0 +1,8 @@
+{
+    "_id":{
+        "$oid":"5059ad353004d9b123a22b2b"
+    },
+    "label":"QTI2 Ordering Interaction",
+    "code":"order",
+    "xmlData":"$[interpolate{conf/qti-templates/ordering-interaction.xml}]"
+}

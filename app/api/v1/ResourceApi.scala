@@ -8,9 +8,10 @@ import controllers.S3Service
 import com.typesafe.config.ConfigFactory
 import play.api.libs.json.Json._
 import api.ApiError
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import scala.Some
 import com.mongodb.casbah.commons.MongoDBObject
+import play.Logger
 
 object ResourceApi extends BaseApi {
 
@@ -35,7 +36,9 @@ object ResourceApi extends BaseApi {
   case class ItemRequest[A](item: Item, r: Request[A]) extends WrappedRequest(r)
 
   /**
-   * A wrapping Action that checks that an Item with the given id exists.
+   * TODO: This is not working as expected - needs a rewrite.
+   * Because ApiAction(p) is passing the bodyparser straight through -aka- it gets run first.
+   * A wrapping Action that checks that an Item with the given id exists before executing the action body.
    * @param itemId - the item id
    * @param additionalChecks - a sequence of additional checks beyond checking for the item.
    * @param action - the action to invoke
@@ -46,7 +49,7 @@ object ResourceApi extends BaseApi {
                   additionalChecks: Seq[Item => Option[ApiError]],
                   p: BodyParser[A])(
     action: ItemRequest[A] => Result
-    ) = ApiAction(p: BodyParser[A]) { request =>
+    ) = ApiAction(p) { request =>
       objectId(itemId) match {
         case Some(validId) => {
           Item.findOneById(validId) match {
@@ -87,19 +90,11 @@ object ResourceApi extends BaseApi {
   private def removeFileFromResource(item: Item, resource: Resource, filename: String): Result = {
     resource.files.find(_.name == filename) match {
       case Some(f) => {
-        resource.files = resource.files.filter(_.name != filename)
-        if (f.isInstanceOf[StoredFile]) {
-          S3Service.delete(AMAZON_ASSETS_BUCKET, f.asInstanceOf[StoredFile].storageKey)
+        resource.files = resource.files.filterNot(_.name == filename)
+        f match {
+          case StoredFile(_,_,_,key) => S3Service.delete(AMAZON_ASSETS_BUCKET,key)
+          case _ => //do nothing
         }
-        if (f.isMain && resource.files.length > 0) {
-          var isMainValue = true
-          resource.files = resource.files.map((bf: BaseFile) => {
-            val copy = copyFile(bf, Some(isMainValue))
-            isMainValue = false
-            copy
-          })
-        }
-
         Item.save(item)
         Ok
       }
@@ -193,25 +188,22 @@ object ResourceApi extends BaseApi {
   }
 
   /**
-   * Copy the file and optionally override the isMain attribute
+   * Copy the file and okoptionally override the isMain attribute
    * @param file
    * @param enforceIsMain
    * @return
    */
   private def copyFile(file: BaseFile, enforceIsMain: Option[Boolean]): BaseFile = {
 
-    def _copy(file: BaseFile, isMain: Boolean): BaseFile = {
-      if (file.isInstanceOf[VirtualFile])
-        VirtualFile(file.name, file.contentType, isMain = isMain, content = file.asInstanceOf[VirtualFile].content)
-      else if (file.isInstanceOf[StoredFile])
-        StoredFile(file.name, file.contentType, isMain = isMain, storageKey = file.asInstanceOf[StoredFile].storageKey)
-      else
-        throw new RuntimeException("Unknown file type")
+    def copy(file: BaseFile, isMain: Boolean): BaseFile = file match {
+      case VirtualFile(name,contentType,_,contents) => VirtualFile(name,contentType,isMain, contents)
+      case StoredFile(name,contentType,_,key) => StoredFile(name,contentType,isMain,key)
+      case _ =>  throw new RuntimeException("Unknown file type")
     }
 
     enforceIsMain match {
-      case Some(b) => _copy(file, b)
-      case _ => _copy(file, file.isMain)
+      case Some(b) => copy(file, b)
+      case _ => copy(file, file.isMain)
     }
   }
 
@@ -311,7 +303,7 @@ object ResourceApi extends BaseApi {
             case Some(r) => r
             case _ => item.data = Some(Resource(name = "data", files = Seq())); item.data.get
         }
-
+        request.item
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
 
         val resource = getDataResource(item)
@@ -384,7 +376,8 @@ object ResourceApi extends BaseApi {
       })
     }
 
-    def createSupportingMaterial(itemId: String) = HasItem(itemId,Seq(), Action { request =>
+    def createSupportingMaterial(itemId: String) = HasItem(itemId,Seq(), Action { request  =>
+
       request.body.asJson match {
         case Some(json) => {
           json.asOpt[Resource] match {
@@ -419,13 +412,9 @@ object ResourceApi extends BaseApi {
 
   private def unsetIsMain(resource: Resource) {
     resource.files = resource.files.map((f: BaseFile) => {
-      if (f.isInstanceOf[VirtualFile]) {
-        val vf = f.asInstanceOf[VirtualFile]
-        VirtualFile(f.name, f.contentType, isMain = false, content = vf.content)
-      }
-      else {
-        val sf = f.asInstanceOf[StoredFile]
-        StoredFile(f.name, f.contentType, isMain = false, storageKey = sf.storageKey)
+      f match {
+        case VirtualFile(n,ct,_,k) => VirtualFile(n,ct, false, k)
+        case StoredFile(n,ct,_,c) => StoredFile(n,ct, false, c)
       }
     })
   }
