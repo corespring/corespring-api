@@ -18,7 +18,12 @@ var dateNumber = d.getTime() + (d.getTimezoneOffset() * 60000);
 print(d);
 print(dateNumber);
 
-var query = {dateModified: { $gte: dateNumber }};
+var query = { dateModified: { $gte: dateNumber }}; 
+//var query = { 
+//    dateModified: {$lt: dateNumber },
+//    $or: [
+//        { title: /.*ROSEMARY.*/}, {title: /.*Rosemary.*/ }
+//    ]};
 
 print(">>> --- count: " + corespringLiveDb.mcas3.count(query));
 
