@@ -236,7 +236,9 @@ function convertLiveItemToApiItem(item) {
             //print("ignoring");
         }
     }
-    apiDevDb["content"].insert(target);
+    print("inserting: ");
+    print(target.title);
+    apiDevDb["content"].save(target);
 }
 
 
