@@ -1,4 +1,4 @@
-@(itemId: String, itemBody: String, previewEnabled : Boolean = true, sessionId:String = "")
+@(itemId: String, itemBody: String, previewEnabled : Boolean = true, sessionId:String = "", token : String = "")
 @cssClass = @{
     if(previewEnabled) "assessment-page" else "student-assessment-page"
 }
@@ -14,7 +14,8 @@
         angular.module('qti.services').factory('Config', [function(){
             return {
                 itemId : "@itemId",
-                sessionId : "@sessionId"
+                sessionId : "@sessionId",
+                token : "@token"
             }
         }]);
     </script>
