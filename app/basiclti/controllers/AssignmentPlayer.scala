@@ -20,7 +20,6 @@ object AssignmentPlayer extends BaseApi with QtiRenderer with ItemResources {
               getItemXMLByObjectId(session.itemId.toString, request.ctx.organization) match {
                 case Some(qti) => {
                   val finalXml = prepareQti(qti)
-                  println(finalXml)
                   Ok(
                     basiclti.views.html.player(
                       finalXml,
