@@ -5,21 +5,32 @@ angular.module("services")
   .factory("Organizations", [ '$resource', function($resource){
 
     return $resource(
-     '/api/v1/organizations',
+     '/developer/orgs',
       {},
       { get: {method: 'GET', isArray: true}}
     );
+
 }]);
 
+
+
 function DeveloperOrgsController($scope, Organizations){
-  $scope.message = "hi from the controller";
-  console.log("DeveloperOrgsController");
+  var populate = function() {
+      Organizations.get(function(data){
+        console.log("Orgs: " + JSON.stringify(data));
+        $scope.orgs = data;
+      })
+  };
+  populate();
 
-  Organizations.get(function(data){
-
-    console.log("Orgs: " + data);
-    $scope.orgs = data;
-  });
+  $scope.addOrg = function(orgName) {
+    console.log("adding organization "+orgName);
+    var org = {name : orgName};
+    Organizations.save({},org, function(data){
+        console.log(JSON.stringify(data));
+        populate();
+    });
+  }
 }
 
 DeveloperOrgsController.$inject = [

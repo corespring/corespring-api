@@ -31,6 +31,8 @@ case class Organization(var name: String = "",
 }
 
 object Organization extends DBQueryable[Organization]{
+  val CORESPRING_ORGANIZATION_ID = "502404dd0364dc35bb39339a"
+
   val name: String = "name"
   val path: String = "path"
   val contentcolls: String = "contentcolls"

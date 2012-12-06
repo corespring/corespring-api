@@ -1,13 +1,13 @@
-{ "name" : "Collection A" , "isPrivate" : false , "_id" : { "$oid" : "5021814ce4b03e00504e4741"}}
-{ "name" : "Collection B" , "isPrivate" : false , "_id" : { "$oid" : "50218190e4b03e00504e4742"}}
-{ "name" : "Collection C" , "isPrivate" : false , "_id" : { "$oid" : "5001a66ce4b0d7c9ec320f2e"}}
-{ "name" : "Collection D" , "isPrivate" : false , "_id" : { "$oid" : "5001b6f3e4b0d7c9ec321065"}}
-{ "name" : "Collection E" , "isPrivate" : false , "_id" : { "$oid" : "5001b7ade4b0d7c9ec321070"}}
-{ "name" : "Collection F" , "isPrivate" : false , "_id" : { "$oid" : "5001b9b9e4b035d491c268c3"}}
-{ "name" : "Collection G" , "isPrivate" : false , "_id" : { "$oid" : "5001bb0ee4b0d7c9ec3210a2"}}
-{ "name" : "Beta Items" , "isPrivate" : false , "_id" : { "$oid" : "505777f5e4b05f7845735bc1"}}
-{ "name" : "Collection H" , "isPrivate" : false , "_id" : { "$oid" : "4ff2e56fe4b077b9e3168a05"}}
-{ "name" : "Temporary Collection" , "isPrivate" : false , "_id" : { "$oid" : "5072e73b1c00df6fdd627594"}}
-{ "_id" : { "$oid" : "50a22ccc300479fa2a5a66ac"}, "name" : "default", "isPrivate" : false }
+{ "name" : "Collection A" , "isPublic" : false , "_id" : { "$oid" : "5021814ce4b03e00504e4741"}}
+{ "name" : "Collection B" , "isPublic" : false , "_id" : { "$oid" : "50218190e4b03e00504e4742"}}
+{ "name" : "Collection C" , "isPublic" : false , "_id" : { "$oid" : "5001a66ce4b0d7c9ec320f2e"}}
+{ "name" : "Collection D" , "isPublic" : false , "_id" : { "$oid" : "5001b6f3e4b0d7c9ec321065"}}
+{ "name" : "Collection E" , "isPublic" : false , "_id" : { "$oid" : "5001b7ade4b0d7c9ec321070"}}
+{ "name" : "Collection F" , "isPublic" : false , "_id" : { "$oid" : "5001b9b9e4b035d491c268c3"}}
+{ "name" : "Collection G" , "isPublic" : false , "_id" : { "$oid" : "5001bb0ee4b0d7c9ec3210a2"}}
+{ "name" : "Beta Items" , "isPublic" : true , "_id" : { "$oid" : "505777f5e4b05f7845735bc1"}}
+{ "name" : "Collection H" , "isPublic" : false , "_id" : { "$oid" : "4ff2e56fe4b077b9e3168a05"}}
+{ "name" : "Temporary Collection" , "isPublic" : false , "_id" : { "$oid" : "5072e73b1c00df6fdd627594"}}
+{ "_id" : { "$oid" : "50a22ccc300479fa2a5a66ac"}, "name" : "default", "isPublic" : false }
 
 

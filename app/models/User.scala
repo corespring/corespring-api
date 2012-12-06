@@ -10,9 +10,21 @@ import play.api.libs.json.JsObject
 import com.mongodb.casbah.Imports._
 import api.ApiError
 import controllers.auth.Permission
-import controllers.{QueryParser, InternalError, LogType, Log}
+import controllers._
 import play.api.Play
 import collection.mutable
+import securesocial.core.UserId
+import com.novus.salat._
+import controllers.InternalError
+import dao.SalatDAOUpdateError
+import dao.SalatMongoCursor
+import dao.SalatRemoveError
+import scala.Left
+import play.api.libs.json.JsString
+import scala.Some
+import scala.Right
+import securesocial.core.UserId
+import play.api.libs.json.JsObject
 
 
 /**
@@ -89,13 +101,30 @@ object User extends DBQueryable[User]{
     }
   }
 
+  def addOrganization(userId: ObjectId, orgId: ObjectId, p : Permission):Either[InternalError,Unit] = {
+    val userOrg = UserOrg(orgId,p.value)
+    try{
+      User.update(MongoDBObject("_id" -> userId),MongoDBObject("$addToSet" -> MongoDBObject("orgs" -> grater[UserOrg].asDBObject(userOrg))),false,false,defaultWriteConcern);
+      Right(())
+    }catch{
+      case e:SalatDAOUpdateError => Left(InternalError("could add organization to user", addMessageToClientOutput = true))
+    }
+  }
+
+  def getOrganizations(user: User, p: Permission):Seq[Organization] = {
+    val orgs:Seq[ObjectId] = user.orgs.filter(uo => uo.pval == p.value).map(uo => uo.orgId)
+    Utils.toSeq(Organization.find(MongoDBObject("_id" -> MongoDBObject("$in" -> orgs))))
+  }
   /**
    * return the user from the database based on the given username, or None if the user wasn't found
    * @param username
    * @return
    */
   def getUser(username: String): Option[User] = User.findOne(MongoDBObject(User.userName -> username))
-
+  def getUser(userId: UserId) : Option[User] =
+    User.findOne(
+      MongoDBObject(User.userName -> userId.id, User.provider -> userId.providerId)
+    )
   def getUser(username:String, provider:String) : Option[User] =
     User.findOne(
       MongoDBObject(User.userName -> username, User.provider -> provider)

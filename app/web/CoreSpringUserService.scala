@@ -1,7 +1,7 @@
 package web
 
 import _root_.controllers.auth.Permission
-import _root_.controllers.Log
+import _root_.controllers.{Utils, Log}
 import _root_.models.{User, RegistrationToken}
 import securesocial.core._
 import play.api.Application
@@ -17,7 +17,6 @@ import org.joda.time.DateTime
  * An implementation of the UserService
  */
 class CoreSpringUserService(application: Application) extends UserServicePlugin(application) {
-
 
   def find(id: UserId): Option[SocialUser] = {
     // id.id has the username
@@ -59,22 +58,18 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
 
   def findByEmailAndProvider(email: String, providerId: String) =
   {
-    val cursor = User.find(MongoDBObject(User.email -> email))
-    if (cursor.isEmpty)
-      None
-    else {
-      val u = cursor.toList.head
-      Some(SocialUser(
-                UserId(u.id.toString, u.provider),
-                "",
-                "",
-                u.fullName,
-                Some(u.email),
-                None,
-                AuthenticationMethod.UserPassword,
-                passwordInfo = Some(PasswordInfo(u.password))
-              ))
-    }
+    User.findOne(MongoDBObject(User.email -> email)).map(u =>
+      SocialUser(
+        UserId(u.id.toString, u.provider),
+        "",
+        "",
+        u.fullName,
+        Some(u.email),
+        None,
+        AuthenticationMethod.UserPassword,
+        passwordInfo = Some(PasswordInfo(u.password))
+      )
+    )
   }
 
   def save(token: Token) {
@@ -83,19 +78,15 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
   }
 
   def findToken(token: String) = {
-    val cursor = RegistrationToken.find(MongoDBObject(RegistrationToken.Uuid -> token))
-    if (cursor.isEmpty)
-      None
-    else {
-      val regToken = cursor.toList.head
-      Some(Token(regToken.uuid, regToken.email, regToken.creationTime.get, regToken.expirationTime.get, true))
-    }
+    RegistrationToken.findOne(MongoDBObject(RegistrationToken.Uuid -> token)).map(regToken =>
+      Token(regToken.uuid, regToken.email, regToken.creationTime.get, regToken.expirationTime.get, true)
+    )
   }
 
   def deleteToken(uuid: String) {
     RegistrationToken.findOne(MongoDBObject(RegistrationToken.Uuid -> uuid)) match {
       case Some(regToken) => RegistrationToken.remove(regToken)
-      case _ => println("No such token found")
+      case _ => Log.i("No such token found")
     }
   }
 
