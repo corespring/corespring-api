@@ -1,5 +1,4 @@
 function LtiController($scope, $http, Config){
-  console.log("I'm an extend function added to QtiAppController.init");
 
   var hasSubmitted = false;
 
