@@ -5,7 +5,7 @@ angular.module("services")
   .factory("Organizations", [ '$resource', function($resource){
 
     return $resource(
-     '/developer/orgs',
+     '/developer/org',
       {},
       { get: {method: 'GET', isArray: true}}
     );
@@ -14,25 +14,17 @@ angular.module("services")
 
 
 
-function DeveloperOrgsController($scope, Organizations){
-  var populate = function() {
-      Organizations.get(function(data){
-        console.log("Orgs: " + JSON.stringify(data));
-        $scope.orgs = data;
-      })
-  };
-  populate();
-
+function DeveloperOrgsController($scope, $window, Organizations){
   $scope.addOrg = function(orgName) {
     console.log("adding organization "+orgName);
     var org = {name : orgName};
     Organizations.save({},org, function(data){
         console.log(JSON.stringify(data));
-        populate();
+        $window.location = "/developer/home"
     });
   }
 }
 
 DeveloperOrgsController.$inject = [
-  '$scope', 'Organizations'
+  '$scope', $window, 'Organizations'
 ];

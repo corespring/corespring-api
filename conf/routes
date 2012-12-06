@@ -8,10 +8,12 @@
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
-GET     /developer/info         developer.controllers.Developer.organizations
-GET     /developer/orgs         developer.controllers.Developer.getOrganizations
-POST    /developer/orgs         developer.controllers.Developer.createOrganization
-GET     /developer/orgs/:orgid  developer.controllers.Developer.getOrganizationCredentials(orgid: ObjectId)
+GET     /developer/auth         developer.controllers.Developer.index
+GET     /developer/isauth       developer.controllers.Developer.isLoggedIn
+GET     /developer/org         developer.controllers.Developer.getOrganization
+GET     /developer/org/form     developer.controllers.Developer.createOrganizationForm
+POST    /developer/org         developer.controllers.Developer.createOrganization
+GET     /developer/org/:orgid  developer.controllers.Developer.getOrganizationCredentials(orgid: ObjectId)
 
 # Login page
 GET     /developer/login            securesocial.controllers.LoginPage.login
@@ -47,7 +49,6 @@ GET     /api/v1/organizations                   api.v1.OrganizationApi.list(q: O
 GET     /api/v1/organizations/children          api.v1.OrganizationApi.getChildren(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100)
 GET     /api/v1/organizations/default           api.v1.OrganizationApi.getDefaultOrganization
 GET     /api/v1/organizations/:id               api.v1.OrganizationApi.getOrganization(id: ObjectId)
-POST    /api/v1/organizations                   api.v1.OrganizationApi.createOrganization
 PUT     /api/v1/organizations/:id               api.v1.OrganizationApi.updateOrganization(id: ObjectId)
 DELETE  /api/v1/organizations/:id               api.v1.OrganizationApi.deleteOrganization(id: ObjectId)
 GET     /api/v1/organizations/:id/tree          api.v1.OrganizationApi.listWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100)

@@ -15,13 +15,6 @@
         <input class="span2" type="text" placeholder="Organization name..." ng-model="orgName"/>
         <button class="btn" type="button" ng-click="addOrg(orgName)">Add Organization</button>
     </div>
-    <div class="span12 intro">
-        <h5>Your Organizations:</h5>
-
-        <div ng-repeat="o in orgs">
-            <a ng-href="/developer/orgs/{{o.id}}"><span>{{o.name}}</span></a>
-        </div>
-    </div>
 </div>
 }
 
