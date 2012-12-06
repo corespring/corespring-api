@@ -29,6 +29,7 @@ object Builder {
 
       <organizations default="some_test_org">
         <organization>
+          <title>My Corespring Items</title>
           <item identifier="section_one">
             <title>Section One</title>{for (i <- items) yield ItemNode(i, config)}
           </item>
