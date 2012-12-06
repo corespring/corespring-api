@@ -23,9 +23,7 @@
 	"subjects" : {
 		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2c2" }
 	},
-	"standards" : [
-		{ "$oid" : "50bca7cd30047de5a0f50688" }
-	],
+	"standards" : [ "7.NS.A.3" ],
 	"itemType" : "Constructed Response - Short Answer",
 	"contributorDetails" : {
 		"contributor" : "Illustrative Mathematics",

@@ -23,9 +23,7 @@
 	"subjects" : {
 		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2c2" }
 	},
-	"standards" : [
-		{ "$oid" : "50bca7d930047de5a0f5068f" }
-	],
+	"standards" : [ "8.G.A.4" ],
 	"itemType" : "Constructed Response - Short Answer",
 	"contributorDetails" : {
 		"contributor" : "New England Common Assessment Program",
