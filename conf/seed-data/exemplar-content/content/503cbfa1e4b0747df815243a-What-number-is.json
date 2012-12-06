@@ -23,9 +23,7 @@
 	"subjects" : {
 		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2c2" }
 	},
-	"standards" : [
-		{ "$oid" : "4ff47f6d6bb41e469c0bea32" }
-	],
+	"standards" : [ "2.NBT.A.1" ],
 	"itemType" : "Constructed Response - Short Answer",
 	"contributorDetails" : {
 		"contributor" : "State of New Jersey Department of Education",

@@ -20,7 +20,8 @@ case class Standard(var dotNotation: Option[String] = None,
 
 object Standard extends DBQueryable[Standard]{
 
-  val collection = mongoCollection("ccstandards_new")
+  val collection = mongoCollection("ccstandards")
+
   val dao = new SalatDAO[Standard, ObjectId](collection = collection) {}
 
   val Id = "id"
@@ -30,6 +31,9 @@ object Standard extends DBQueryable[Standard]{
   val SubCategory = "subCategory"
   val Standard = "standard"
   val guid = "guid"
+
+  //Ensure dotNotation is unique
+  collection.ensureIndex(DotNotation)
 
   implicit object StandardWrites extends Writes[Standard] {
     def writes(obj: Standard) = {

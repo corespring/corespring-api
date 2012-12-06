@@ -23,9 +23,7 @@
 	"subjects" : {
 		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2c2" }
 	},
-	"standards" : [
-		{ "$oid" : "50bca7a130047de5a0f50675" }
-	],
+	"standards" : ["2.OA.A.1" ],
 	"itemType" : "Performance Task",
 	"contributorDetails" : {
 		"contributor" : "State of New Jersey Department of Education",
