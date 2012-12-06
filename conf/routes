@@ -23,6 +23,8 @@ GET     /public/contact                                publicsite.controllers.Ap
 GET     /public/partnerships                           publicsite.controllers.Application.partnerships
 GET     /public/about                                   publicsite.controllers.Application.about
 GET     /public/items                                  publicsite.controllers.Application.getItems
+# Example content
+GET    /example-content/items                  publicsite.controllers.ExampleContent.items(q: Option[String] ?= None)
 
 #
 # V1 API
@@ -115,9 +117,6 @@ GET    /scorm-player/item/:itemId/:filename         scorm.controllers.ScormPlaye
 GET    /scorm-player/session/:sessionId/run         scorm.controllers.ScormPlayer.runBySessionId(sessionId : ObjectId)
 GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : ObjectId, filename)
 
-# Example content
-GET    /example-content                        web.controllers.ExampleContent.index
-GET    /example-content/items                  web.controllers.ExampleContent.items(q: Option[String] ?= None)
 
 # Web tier
 GET    /web                                    web.controllers.Main.index
