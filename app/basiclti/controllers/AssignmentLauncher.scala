@@ -13,6 +13,7 @@ import play.api.libs.json.Json._
 import testplayer.controllers.routes.{ ItemPlayer => ItemPlayerRoutes }
 import basiclti.controllers.routes.{ AssignmentPlayer => AssignmentPlayerRoutes }
 import basiclti.controllers.routes.{ AssignmentLauncher => AssignmentLauncherRoutes }
+import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
 
 object AssignmentLauncher extends Controller {
 
@@ -25,6 +26,20 @@ object AssignmentLauncher extends Controller {
     highlightUserResponse = true,
     allowEmptyResponses = true
   )
+
+  private def isSignedCorrectly(request:Request[AnyContent]) : Boolean = {
+
+    val requestSignature = request.body.asFormUrlEncoded.get("oauth_signature").head
+
+    val consumer = new LtiOAuthConsumer("1234", "secret")
+    consumer.sign(request)
+    consumer.setSigningStrategy(new AuthorizationHeaderSigningStrategy())
+
+    consumer.getOAuthSignature() match {
+      case Some(signature) => signature.equals( requestSignature )
+      case _ => false
+    }
+  }
 
   def launch(itemId:ObjectId) = Action{ request =>
 
@@ -55,21 +70,23 @@ object AssignmentLauncher extends Controller {
       }
     }
 
-    //TODO: Token access?
-
-    LtiData(request) match {
-      case Some(d) => {
-        require(d.outcomeUrl.isDefined, "no outcome url is defined")
-        require(d.resultSourcedId.isDefined, "sourcedid is defined")
-        val assignment = getOrCreateAssignment(d)
-        val call = AssignmentPlayerRoutes.runByAssignmentId(assignment.id)
-        Redirect( tokenize(call.url, common.mock.MockToken ) )
+    if ( isSignedCorrectly(request) ){
+      LtiData(request) match {
+        case Some(d) => {
+          require(d.outcomeUrl.isDefined, "no outcome url is defined")
+          require(d.resultSourcedId.isDefined, "sourcedid is defined")
+          val assignment = getOrCreateAssignment(d)
+          val call = AssignmentPlayerRoutes.runByAssignmentId(assignment.id)
+          Redirect( tokenize(call.url, common.mock.MockToken ) )
+        }
+        case _ => {
+          Logger.info("its a teacher")
+          val testPlayerCall = ItemPlayerRoutes.previewItem(itemId.toString)
+          Redirect( tokenize(testPlayerCall.url, common.mock.MockToken))
+        }
       }
-      case _ => {
-        Logger.info("its a teacher")
-        val testPlayerCall = ItemPlayerRoutes.previewItem(itemId.toString)
-        Redirect( tokenize(testPlayerCall.url, common.mock.MockToken))
-      }
+    } else {
+      BadRequest("Invalid oauth signature")
     }
   }
 
