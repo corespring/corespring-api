@@ -87,39 +87,6 @@ object OrganizationApi extends BaseApi {
     Ok(Json.toJson(Organization.findOneById( request.ctx.organization )))
   }
 
-  /**
-   * Creates an organization
-   *
-   * @return
-   */
-  def createOrganization = ApiAction { request =>
-    //
-    // deserialize the organization and assign the caller's organization as the parent
-    // todo: confirm with evan this is what we want.
-    //
-    request.body.asJson match {
-      case Some(json) => {
-        (json \ "id").asOpt[String] match {
-          case Some(id) => BadRequest(Json.toJson(ApiError.IdNotNeeded))
-          case _ => {
-            val name = (json \ "name").asOpt[String]
-            if ( name.isEmpty ) {
-              BadRequest( Json.toJson(ApiError.OrgNameMissing))
-            } else {
-              val optParent:Option[ObjectId] = (json \ "parent_id").asOpt[String].map(new ObjectId(_))
-              val organization = Organization(name.get)
-              Organization.insert(organization,optParent) match {
-                case Right(org) => Ok(Json.toJson(org))
-                case Left(e) => InternalServerError(Json.toJson(ApiError.InsertOrganization(e.clientOutput)))
-              }
-            }
-          }
-        }
-      }
-      case _ => jsonExpected
-    }
-  }
-
   private def unknownOrganization = NotFound(Json.toJson(ApiError.UnknownOrganization))
   private def parseChildren(json: JsValue, elseValue: Seq[ObjectId]):Seq[ObjectId] = {
     (json \ "children").asOpt[Seq[String]].map( seq => seq.map( new ObjectId(_)) ).getOrElse(elseValue)

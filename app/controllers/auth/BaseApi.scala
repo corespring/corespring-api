@@ -6,6 +6,9 @@ import api.ApiError
 import api.ApiError._
 import play.api.libs.json.Json
 import org.bson.types.ObjectId
+import models.User
+import securesocial.core.SecureSocial
+import web.CoreSpringUserService
 
 
 /**
@@ -109,23 +112,44 @@ trait BaseApi extends Controller {
       request =>
         fakeContext(request).fold(
           error => BadRequest(Json.toJson(new ApiError(1, "The id specified is not a valid UUID"))),
-          optionalCtx => optionalCtx.map(ctx => f(ApiRequest(ctx, request, "fake"))).getOrElse {
-            //            request.session.get("connected").map {
-            //              invokeAsUser(_, request)(f)
-            //            }.getOrElse {
-            tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
-              OAuthProvider.getAuthorizationContext(token).fold(
-                error => Forbidden(Json.toJson(error)).as(JSON),
-                ctx => { val result: PlainResult = f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
-                  result
-                }
+          optionalCtx => optionalCtx.map(ctx => f(ApiRequest(ctx, request, "fake_token"))).getOrElse {
+            SecureSocial.currentUser(request).map { u =>
+              invokeAsUser(u.id.id, u.id.providerId, request)(f)
+            }.getOrElse {
+              tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
+                OAuthProvider.getAuthorizationContext(token).fold(
+                  error => Forbidden(Json.toJson(error)).as(JSON),
+                  ctx => { val result: PlainResult = f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
+                    result
+                  }
+                )
               )
-            )
-            //}
+            }
           }
         )
     }
   }
+
+  /**
+   * Invokes the action by passing an authorization context created from the Play's session informatino
+   *
+   * @param username
+   * @param request
+   * @param f
+   * @tparam A
+   * @return
+   */
+    def invokeAsUser[A](username: String, provider:String, request: Request[A])(f: ApiRequest[A]=>Result) = {
+      User.getUser(username, provider).map { user =>
+        Logger.debug("Using user in Play's session = " + username)
+        //TODO: check orgId is right
+        val ctx = new AuthorizationContext(user.orgs.head.orgId, Option(username))
+        //TODO: tidy up token apiRequest
+        f( ApiRequest(ctx, request, "fake_token"))
+      }.getOrElse(
+        Forbidden( Json.toJson(MissingCredentials) ).as(JSON)
+      )
+    }
 
   /**
    * A helper method to create an action for API calls

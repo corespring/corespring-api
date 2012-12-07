@@ -10,9 +10,21 @@ import play.api.libs.json.JsObject
 import com.mongodb.casbah.Imports._
 import api.ApiError
 import controllers.auth.Permission
-import controllers.{QueryParser, InternalError, LogType, Log}
+import controllers._
 import play.api.Play
 import collection.mutable
+import securesocial.core.UserId
+import com.novus.salat._
+import controllers.InternalError
+import dao.SalatDAOUpdateError
+import dao.SalatMongoCursor
+import dao.SalatRemoveError
+import scala.Left
+import play.api.libs.json.JsString
+import scala.Some
+import scala.Right
+import securesocial.core.UserId
+import play.api.libs.json.JsObject
 
 
 /**
@@ -22,6 +34,8 @@ case class User(var userName: String = "",
                  var fullName: String = "",
                  var email: String = "",
                  var orgs: Seq[UserOrg] = Seq(),
+                 var password: String = "",
+                 var provider : String = "userpass",
                  var id: ObjectId = new ObjectId()
                ) extends Identifiable
 
@@ -30,6 +44,8 @@ object User extends DBQueryable[User]{
   val fullName = "fullName"
   val email = "email"
   val orgs = "orgs"
+  val password = "password"
+  val provider = "provider"
 
   val collection = mongoCollection("users")
   val dao = new SalatDAO[User, ObjectId](collection = collection) {}
@@ -74,7 +90,7 @@ object User extends DBQueryable[User]{
   def updateUser(user: User): Either[InternalError, User] = {
     try {
       User.update(MongoDBObject("_id" -> user.id), MongoDBObject("$set" ->
-        MongoDBObject(User.userName -> user.userName, User.fullName -> user.fullName, User.email -> user.email)),
+        MongoDBObject(User.userName -> user.userName, User.fullName -> user.fullName, User.email -> user.email, User.password -> user.password)),
         false, false, User.collection.writeConcern)
       User.findOneById(user.id) match {
         case Some(u) => Right(u)
@@ -85,13 +101,34 @@ object User extends DBQueryable[User]{
     }
   }
 
+  def addOrganization(userId: ObjectId, orgId: ObjectId, p : Permission):Either[InternalError,Unit] = {
+    val userOrg = UserOrg(orgId,p.value)
+    try{
+      User.update(MongoDBObject("_id" -> userId),MongoDBObject("$addToSet" -> MongoDBObject("orgs" -> grater[UserOrg].asDBObject(userOrg))),false,false,defaultWriteConcern);
+      Right(())
+    }catch{
+      case e:SalatDAOUpdateError => Left(InternalError("could add organization to user", addMessageToClientOutput = true))
+    }
+  }
+
+  def getOrganizations(user: User, p: Permission):Seq[Organization] = {
+    val orgs:Seq[ObjectId] = user.orgs.filter(uo => uo.pval == p.value).map(uo => uo.orgId)
+    Utils.toSeq(Organization.find(MongoDBObject("_id" -> MongoDBObject("$in" -> orgs))))
+  }
   /**
    * return the user from the database based on the given username, or None if the user wasn't found
    * @param username
    * @return
    */
   def getUser(username: String): Option[User] = User.findOne(MongoDBObject(User.userName -> username))
-
+  def getUser(userId: UserId) : Option[User] =
+    User.findOne(
+      MongoDBObject(User.userName -> userId.id, User.provider -> userId.providerId)
+    )
+  def getUser(username:String, provider:String) : Option[User] =
+    User.findOne(
+      MongoDBObject(User.userName -> username, User.provider -> provider)
+    )
   def getUsers(orgId: ObjectId): Either[InternalError, Seq[User]] = {
     val c: SalatMongoCursor[User] = User.find(MongoDBObject(User.orgs + "." + UserOrg.orgId -> orgId))
     val returnValue = Right(c.toSeq)

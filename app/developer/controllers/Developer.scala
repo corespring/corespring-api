@@ -1,189 +1,109 @@
 package developer.controllers
 
+import play.api.mvc.{Action, Controller}
+import controllers.Assets
+import securesocial.core.SecureSocial
+import play.api.libs.json._
+import api.ApiError
+import org.bson.types.ObjectId
+import models.{User, Organization}
+import controllers.auth.{OAuthProvider, Permission}
+import scala.Left
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsBoolean
+import scala.Some
+import scala.Right
 
-import play.api._
-import play.api.mvc._
-import play.api.libs._
-import play.api.libs.iteratee._
+object Developer extends Controller with SecureSocial{
 
-import Play.current
+  def at(path:String,file:String) = Assets.at(path,file)
 
-import java.io._
-import java.net.JarURLConnection
-import scalax.io.{ Resource }
-import org.joda.time.format.{DateTimeFormatter, DateTimeFormat}
-import org.joda.time.DateTimeZone
-import collection.JavaConverters._
-
-/**
- * Controller that serves static resources.
- *
- * Resources are searched in the classpath.
- *
- * It handles Last-Modified and ETag header automatically.
- * If a gzipped version of a resource is found (Same resource name with the .gz suffix), it is served instead.
- *
- * You can set a custom Cache directive for a particular resource if needed. For example in your application.conf file:
- *
- * {{{
- * "assets.cache./public/images/logo.png" = "max-age=3600"
- * }}}
- *
- * You can use this controller in any application, just by declaring the appropriate route. For example:
- * {{{
- * GET     /assets/\uFEFF*file               controllers.Assets.at(path="/public", file)
- * }}}
- */
-object Developer extends Controller {
-
-  private val timeZoneCode = "GMT"
-
-  //Dateformatter is immutable and threadsafe
-  private val df: DateTimeFormatter =
-    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss '"+timeZoneCode+"'").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.forID(timeZoneCode))
-
-  //Dateformatter is immutable and threadsafe
-  private val dfp: DateTimeFormatter =
-    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.forID(timeZoneCode))
-
-  private val parsableTimezoneCode = " "+timeZoneCode
-
-  /**
-   * Generates an `Action` that serves a static resource.
-   *
-   * @param path the root folder for searching the static resource files, such as `"/public"`
-   * @param file the file part extracted from the URL
-   */
-  def at(path: String, file: String): Action[AnyContent] = Action { request =>
-  // -- LastModified handling
-
-
-    def parseDate(date: String): Option[java.util.Date] = try {
-      //jodatime does not parse timezones, so we handle that manually
-      val d = dfp.parseDateTime(date.replace(parsableTimezoneCode,"")).toDate
-      Some(d)
-    } catch {
-      case _: Exception => None
+  def login = Action{ request =>
+    Redirect("/login").withSession(request.session + ("securesocial.originalUrl" -> "/developer/home"));
+  }
+  def isLoggedIn = Action { request =>
+    val user = request.session.get(SecureSocial.UserKey)
+    if(user.isDefined){
+      Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(user.get))))
+    }else{
+      Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(false))))
     }
-
-    val resourceName = Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
-
-    if (new File(resourceName).isDirectory || !new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath)) {
-      NotFound
-    } else {
-
-      val resource = {
-        Play.resource(resourceName + ".gz").map(_ -> true)
-          .filter(_ => request.headers.get(ACCEPT_ENCODING).map(_.split(',').exists(_ == "gzip" && Play.isProd)).getOrElse(false))
-          .orElse(Play.resource(resourceName).map(_ -> false))
+  }
+  def register = Action { request =>
+    Redirect("/signup").withSession(request.session + ("securesocial.originalUrl" -> "/developer/home"));
+  }
+  def logout = Action {implicit request =>
+    Redirect("/developer/home").withSession(session - SecureSocial.UserKey - SecureSocial.ProviderKey)
+  }
+  def getOrganization = SecuredAction(){ request =>
+    User.getUser(request.user.id) match {
+      case Some(user) => {
+        val orgs = User.getOrganizations(user,Permission.All)
+        //get the first organization besides the public corespring organization. for now, we assume that the person is only registered to one private organization
+        orgs.find(o => o.id.toString != Organization.CORESPRING_ORGANIZATION_ID) match {
+          case Some(o) => Ok(Json.toJson(o))
+          case None => NotFound(Json.toJson(ApiError.MissingOrganization))
+        }
       }
-
-      resource.map {
-
-        case (url, _) if new File(url.getFile).isDirectory => NotFound
-
-        case (url, isGzipped) => {
-
-          lazy val (length, resourceData) = {
-            val stream = url.openStream()
-            try {
-              (stream.available, Enumerator.fromStream(stream))
-            } catch {
-              case _ => (0, Enumerator[Array[Byte]]())
-            }
-          }
-
-          if(length == 0) {
-            NotFound
-          } else {
-            request.headers.get(IF_NONE_MATCH).flatMap { ifNoneMatch =>
-              etagFor(url).filter(_ == ifNoneMatch)
-            }.map (_ => NotModified).getOrElse {
-              request.headers.get(IF_MODIFIED_SINCE).flatMap(parseDate).flatMap { ifModifiedSince =>
-                lastModifiedFor(url).flatMap(parseDate).filterNot(lastModified => lastModified.after(ifModifiedSince))
-              }.map (_ => NotModified.withHeaders(
-                DATE -> df.print({new java.util.Date}.getTime)
-              )).getOrElse {
-
-                // Prepare a streamed response
-                val response = SimpleResult(
-                  header = ResponseHeader(OK, Map(
-                    CONTENT_LENGTH -> length.toString,
-                    CONTENT_TYPE -> MimeTypes.forFileName(file).getOrElse(BINARY),
-                    DATE -> df.print({new java.util.Date}.getTime)
-                  )),
-                  resourceData
-                )
-
-                // Is Gzipped?
-                val gzippedResponse = if (isGzipped) {
-                  response.withHeaders(CONTENT_ENCODING -> "gzip")
-                } else {
-                  response
+      case None => InternalServerError("could not find user...after authentication. something is very wrong")
+    }
+  }
+  def createOrganizationForm = SecuredAction(){ request =>
+    Ok(developer.views.html.org_new(request.user))
+  }
+  //TODO requires two phase commit, one part updating the users and the other updating organizations
+  def createOrganization = SecuredAction(){ request =>
+    request.body.asJson match {
+      case Some(json) => {
+        (json \ "id").asOpt[String] match {
+          case Some(id) => BadRequest(Json.toJson(ApiError.IdNotNeeded))
+          case _ => {
+            val name = (json \ "name").asOpt[String]
+            if ( name.isEmpty ) {
+              BadRequest( Json.toJson(ApiError.OrgNameMissing))
+            } else {
+              val optParent:Option[ObjectId] = (json \ "parent_id").asOpt[String].map(new ObjectId(_))
+              val organization = Organization(name.get)
+              Organization.insert(organization,optParent) match {
+                case Right(org) => {
+                  User.getUser(request.user.id) match {
+                    case Some(user) => {
+                      User.addOrganization(user.id,org.id,Permission.All) match {
+                        case Right(_) => Ok(Json.toJson(org))
+                        case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateUser(error.clientOutput)))
+                      }
+                    }
+                    case None => InternalServerError("an error that should never happen happened")
+                  }
+                  Ok(Json.toJson(org))
                 }
-
-                // Add Etag if we are able to compute it
-                val taggedResponse = etagFor(url).map(etag => gzippedResponse.withHeaders(ETAG -> etag)).getOrElse(gzippedResponse)
-                val lastModifiedResponse = lastModifiedFor(url).map(lastModified => taggedResponse.withHeaders(LAST_MODIFIED -> lastModified)).getOrElse(taggedResponse)
-
-                // Add Cache directive if configured
-                val cachedResponse = lastModifiedResponse.withHeaders(CACHE_CONTROL -> {
-                  Play.configuration.getString("\"assets.cache." + resourceName + "\"").getOrElse(Play.mode match {
-                    case Mode.Prod => Play.configuration.getString("assets.defaultCache").getOrElse("max-age=3600")
-                    case _ => "no-cache"
-                  })
-                })
-
-                cachedResponse
-
-              }:Result
-
+                case Left(e) => InternalServerError(Json.toJson(ApiError.InsertOrganization(e.clientOutput)))
+              }
             }
-
-          }
-
-        }
-
-      }.getOrElse(NotFound)
-
-    }
-
-  }
-
-  private val lastModifieds = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
-
-  private def lastModifiedFor(resource: java.net.URL): Option[String] = {
-    lastModifieds.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
-      val maybeLastModified = resource.getProtocol match {
-        case "file" => Some(df.print({new java.util.Date(new java.io.File(resource.getPath).lastModified).getTime}))
-        case "jar" => {
-          resource.getPath.split('!').drop(1).headOption.flatMap { fileNameInJar =>
-            Option(resource.openConnection)
-              .collect { case c: JarURLConnection => c }
-              .flatMap(c => Option(c.getJarFile.getJarEntry(fileNameInJar.drop(1))))
-              .map(_.getTime)
-              .filterNot(_ == 0)
-              .map(lastModified => df.print({new java.util.Date(lastModified)}.getTime))
           }
         }
-        case _ => None
       }
-      maybeLastModified.foreach(lastModifieds.put(resource.toExternalForm, _))
-      maybeLastModified
+      case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
     }
   }
 
-  // -- ETags handling
-
-  private val etags = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
-
-  private def etagFor(resource: java.net.URL): Option[String] = {
-    etags.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
-      val maybeEtag = lastModifiedFor(resource).map(_ + " -> " + resource.toExternalForm).map("\""+Codecs.sha1(_)+"\"")
-      maybeEtag.foreach(etags.put(resource.toExternalForm, _))
-      maybeEtag
+  def getOrganizationCredentials(orgId: ObjectId) = SecuredAction(){ request =>
+    User.getUser(request.user.id) match {
+      case Some(user) => {
+        if(user.orgs.exists(uo => uo.orgId == orgId)){
+          Organization.findOneById(orgId) match {
+            case Some(org) => {
+              OAuthProvider.register(org.id) match {
+                case Right(client) => Ok(developer.views.html.org_credentials(client.clientId.toString,client.clientSecret,org.name))
+                case Left(error) => BadRequest(Json.toJson(error))
+              }
+            }
+            case None => InternalServerError("could not find organization, after authentication. this should never occur")
+          }
+        }else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
+      }
+      case None => InternalServerError("could not find user...after authentication. something is very wrong")
     }
   }
-
 }
 

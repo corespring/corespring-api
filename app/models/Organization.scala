@@ -31,6 +31,8 @@ case class Organization(var name: String = "",
 }
 
 object Organization extends DBQueryable[Organization]{
+  val CORESPRING_ORGANIZATION_ID = "502404dd0364dc35bb39339a"
+
   val name: String = "name"
   val path: String = "path"
   val contentcolls: String = "contentcolls"
@@ -59,6 +61,7 @@ object Organization extends DBQueryable[Organization]{
         findOneById(parentId) match {
           case Some(parent) => {
             org.path = Seq(org.id) ++ parent.path
+            org.contentcolls = org.contentcolls ++ ContentCollection.getPublicCollections.map(cc => ContentCollRef(cc.id,Permission.All.value))
             insert(org) match {
               case Some(id) => Right(org)
               case None => Left(InternalError("error inserting organization",LogType.printFatal,true))

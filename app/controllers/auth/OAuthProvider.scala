@@ -38,24 +38,6 @@ object OAuthProvider {
     }
   }
 
-  def register(orgId:ObjectId, userId:ObjectId, pass:String): Either[ApiError, ApiClient] = {
-    // check we got an existing org id
-    Organization.findOneById(orgId) match {
-      case Some(org) =>
-        val apiClient = ApiClient(orgId, userId, pass)
-        try {
-          ApiClient.save(apiClient)
-          Right(apiClient)
-        } catch {
-          case e: SalatSaveError => {
-            Logger.error("Error registering ortganization %s".format(orgId), e)
-            Left(ApiError.OperationError)
-          }
-        }
-      case None => Left(UnknownOrganization)
-    }
-  }
-
   /**
    * Creates an access token to invoke the APIs protected by BaseApi.
    *
