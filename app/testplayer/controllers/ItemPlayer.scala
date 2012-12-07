@@ -30,14 +30,14 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
 
   def renderItemBySessionId(sessionId:String, printMode : Boolean = false) = {
     callRenderBySessionId(
-      _renderItem(_,_, previewEnabled = false, sessionSettings = ""),
+      _renderItem(_,_, previewEnabled = false, sessionSettings = "", sessionId = sessionId),
       sessionId,
       printMode)
   }
 
   def previewItemBySessionId(sessionId: String, printMode: Boolean = false) = {
     callRenderBySessionId(
-      _renderItem(_,_, previewEnabled = true, sessionSettings = ""),
+      _renderItem(_,_, previewEnabled = true, sessionSettings = "", sessionId = sessionId),
       sessionId,
       printMode)
   }
@@ -66,7 +66,7 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
     _renderItem(itemId, printMode, previewEnabled = false, sessionSettings = sessionSettings)
 
 
-  private def _renderItem(itemId: String, printMode: Boolean = false, previewEnabled: Boolean = false, sessionSettings: String = "") = ApiAction {
+  private def _renderItem(itemId: String, printMode: Boolean = false, previewEnabled: Boolean = false, sessionSettings: String = "", sessionId:String = "") = ApiAction {
     request =>
       try {
         getItemXMLByObjectId(itemId, request.ctx.organization) match {
@@ -74,12 +74,12 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
 
             val finalXml = prepareQti(xmlData, printMode)
 
-            if(Play.isDev(play.api.Play.current) && request.session.get("access_token") == null){
-              Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled))
-               .withSession("access_token" -> common.mock.MockToken)
+            if(Play.isDev(play.api.Play.current) && request.token == null){
+              println("Mock Token Session")
+              Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled, sessionId, common.mock.MockToken))
             }
             else {
-              Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled))
+              Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled, sessionId, request.token))
             } 
 
           case None =>

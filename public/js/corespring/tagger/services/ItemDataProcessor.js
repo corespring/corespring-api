@@ -23,7 +23,7 @@ com.corespring.model.ItemDataProcessor = function () {
         processedData.reviewsPassed = this.buildDtoKeyArray(itemData.$reviewsPassedDataProvider);
         processedData.primarySubject = this.convertEmbeddedToOid(itemData.primarySubject);
         processedData.relatedSubject = this.convertEmbeddedToOid(itemData.relatedSubject);
-        processedData.standards = _.map(itemData.standards, this.convertEmbeddedToOid);
+        processedData.standards = _.map(itemData.standards, function(s){ return s.dotNotation; } );
         processedData.costForResource = parseInt(itemData.costForResource);
         angular.extend(dto, itemData, processedData);
         dto.id = null;

@@ -16,9 +16,7 @@
 	"subjects" : {
 		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2ac" }
 	},
-	"standards" : [
-		{ "$oid" : "4ff47f6b6bb41e469c0be83c" }
-	],
+	"standards" : [ "RL.11-12.4" ],
 	"itemType" : "Text with Questions",
 	"contributorDetails" : {
 		"contributor" : "State of New Jersey Department of Education",

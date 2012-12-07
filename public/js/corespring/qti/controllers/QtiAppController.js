@@ -37,8 +37,9 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
 
       var params = {
         itemId: itemSession.itemId,
-        sessionId: itemSession.id
-        };
+        sessionId: itemSession.id,
+        access_token: Config.token
+     };
 
       AssessmentSessionService.save(params, itemSession, function (data) {
           $scope.itemSession = data;

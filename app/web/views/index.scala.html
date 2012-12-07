@@ -15,12 +15,13 @@
     <meta name="description" content="CoreSpring Content Tagger"/>
     <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
 
-    @head.coreJs()
-    @head.mathMl()
-    @head.bootstrap()
-    @head.angular()
-    @head.select2()
-    @head.aceEditor()
+    @common.views.html.head.coreJs()
+    @common.views.html.head.mathMl()
+    <!-- TODO: move to 2.1.1 -->
+    @common.views.html.head.bootstrap("2.0.3")
+    @common.views.html.head.angular()
+    @common.views.html.head.select2()
+    @common.views.html.head.aceEditor()
     @head.taggerApp()
 
     <link href="/assets/stylesheets/app.css" rel="stylesheet"/>

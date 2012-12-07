@@ -1,4 +1,4 @@
-package web.controllers
+package publicsite.controllers
 
 import play.api.mvc.{Action, Controller}
 import models.{Item, ContentCollection, Content}
@@ -11,11 +11,6 @@ import com.mongodb.util.JSONParseException
 import com.mongodb.casbah.Imports._
 
 object ExampleContent extends Controller {
-
-  def index = Action {
-    request =>
-      Ok(web.views.html.exampleContent())
-  }
 
   val EXAMPLE_CONTENT_COLLECTION_NAME = "Beta Items"
 

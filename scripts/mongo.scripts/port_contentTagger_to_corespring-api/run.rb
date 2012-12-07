@@ -9,10 +9,10 @@
 puts ">>> Running port script"
 
 from = ARGV[1] || "corespring-live"
-to = ARGV[2] || "tdb"
+to = ARGV[2] || "cs-api-test"
 puts "from: #{from}"
 puts "to: #{to}"
-date = ARGV[3] || "2012.11.21"
+date = ARGV[3] || "2012.11.22"
 
 if ARGV[0] == "true"
     puts "dropping the db"
@@ -28,10 +28,10 @@ scripts = [
  ]
 
 
-scripts.each do |s|
-    puts "!!! Running: #{s}"
-    puts `mongo #{s} --eval 'var from = "#{from}"; var to = "#{to}"'`
-end
+#scripts.each do |s|
+#    puts "!!! Running: #{s}"
+#    puts `mongo #{s} --eval 'var from = "#{from}"; var to = "#{to}"'`
+#end
 
 ct_to_cs_api = "portContentTagger_to_CorespringApi.js"
 

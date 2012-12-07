@@ -1,15 +1,15 @@
 @(itemId:String, accessToken : String )
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
-<html ng-app="item-preview">
+<html ng-app="item-preview" style="height: 100%">
 <head>
     <title>Item Preview</title>
     <meta name="description" content="CoreSpring Content Tagger"/>
-    <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
-    @head.coreJs()
-    @head.mathMl()
-    @head.bootstrap()
-    @head.angular()
+    @common.views.html.head.ubuntu()
+    @common.views.html.head.coreJs()
+    @common.views.html.head.mathMl()
+    @common.views.html.head.bootstrap()
+    @common.views.html.head.angular()
     @head.previewApp()
 
 
@@ -29,7 +29,7 @@
     <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
     <script src="/assets/js/vendor/corespring-ng-components/corespring-ng-components.js" type="text/javascript" ></script>
 </head>
-<body ng-controller="PreviewController">
+<body ng-controller="PreviewController" style="height: 100%">
 
 <div class="sub-nav">
     <div class="container" style="width: 600px;">
@@ -61,7 +61,6 @@
     </div>
 </div>
 
-<div>
 
     <div id='itemView' class="preview-container"
             ng-show="currentPanel=='item'" >
@@ -87,7 +86,6 @@
         </div>
     </div>
 
-</div>
 
 </body>
 </html>

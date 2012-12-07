@@ -80,7 +80,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     };
 
     $scope.deleteConfirmed = function(){
-        var deletingId = $scope.itemToDelete.id;
         ItemService.remove({id: $scope.itemToDelete.id},
             function(result) {
                 $scope.itemToDelete = null;
@@ -102,7 +101,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
      * @param panelName
      */
     function updateLocation(panelName) {
-      console.log(">> update Location");
         var current = $location.search();
 
         if (current.panel == panelName) {
