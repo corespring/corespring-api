@@ -1,0 +1,36 @@
+@(selectionDirective:String, returnUrl:String, launchPath:String)
+<html>
+<head>
+</head>
+<body>
+<div id="not_named">
+    Enter an item id:
+    <input type="text" id="name">
+    <button type="button" id="save">Save</button>
+</div>
+<script>
+    (function() {
+        var params = {
+           selectionDirective: "@selectionDirective",
+           returnUrl : "@returnUrl"
+        };
+
+        console.log(params);
+
+        document.getElementById('save').addEventListener('click', function(e) {
+
+            if(!params.returnUrl.match(/\?/)) {
+                params.returnUrl = params.returnUrl + "?";
+            }
+
+            var args = [];
+            args.push("embed_type=basic_lti");
+            var launchPath = "@launchPath";
+            var url = location.protocol + "//" + location.host + launchPath + "?itemId=" + encodeURIComponent(document.getElementById('name').value);
+            args.push("url=" + encodeURIComponent(url));
+            location.href = params.returnUrl + args.join('&');
+        });
+    })();
+</script>
+</body>
+</html>

@@ -150,6 +150,8 @@ GET     /web/access_token                      web.controllers.Main.getAccessTok
 #
 # BasicLTI
 #
+POST    /lti/item-chooser                       basiclti.controllers.ItemChooser.choose
+POST    /lti/assignment/launch-by-id            basiclti.controllers.AssignmentLauncher.launchById(itemId: Option[ObjectId] ?= None )
 POST    /lti/assignment/launch/:itemId          basiclti.controllers.AssignmentLauncher.launch(itemId:ObjectId)
 GET     /lti/assignment/error/authorization     basiclti.controllers.AssignmentLauncher.authorizationError
 GET     /lti/assignment/:assignmentId/process   basiclti.controllers.AssignmentLauncher.process(assignmentId:ObjectId)

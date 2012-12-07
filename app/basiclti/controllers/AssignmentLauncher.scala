@@ -36,9 +36,18 @@ object AssignmentLauncher extends Controller {
     consumer.setSigningStrategy(new AuthorizationHeaderSigningStrategy())
 
     consumer.getOAuthSignature() match {
-      case Some(signature) => signature.equals( requestSignature )
+      case Some(signature) => {
+        Logger.debug("signature: " + signature)
+        Logger.debug("requestSignature: " + requestSignature)
+        signature.equals( requestSignature )
+      }
       case _ => false
     }
+  }
+
+  def launchById(maybeId : Option[ObjectId]) = maybeId match {
+    case Some(id) => launch(id)
+    case _ => Action(request => BadRequest("No id specified"))
   }
 
   def launch(itemId:ObjectId) = Action{ request =>
