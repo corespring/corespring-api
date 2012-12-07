@@ -193,21 +193,21 @@
                           <div ng-switch-when="noauth">
                               <ul>
                                   <li>
-                                      <span><a href="/developer/auth">Login</a> | <a href="/developer/register">Register</a></span>
+                                      <span><a href="/developer/login">Login</a> | <a href="/developer/register">Register</a></span>
                                   </li>
                               </ul>
                           </div>
                           <div ng-switch-when="noorg">
                               <ul>
                                   <li>
-                                      <span><a href="/developer/logout">Logout</a> | <a href="/developer/org/form">Register</a></span>
+                                      <span>{{username}} <a href="/developer/logout">logout</a> | <a href="/developer/org/form">register organization</a></span>
                                   </li>
                               </ul>
                           </div>
                           <div ng-switch-when="registered">
                               <ul>
                                   <li>
-                                      <span><a href="/developer/logout">Logout</a> | <a ng-href="/developer/org/{{org.id}}">{{org.name}}</a></span>
+                                      <span>{{username}} [<a ng-href="/developer/org/{{org.id}}">{{org.name}}</a>] | <a href="/developer/logout">Logout</a></span>
                                   </li>
                               </ul>
                           </div>

@@ -8,18 +8,15 @@
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
-GET     /developer/auth         developer.controllers.Developer.index
-GET     /developer/isauth       developer.controllers.Developer.isLoggedIn
+#developer home page with secure social integration
+GET     /developer/login         developer.controllers.Developer.login
+GET     /developer/register      developer.controllers.Developer.register
+GET     /developer/isloggedin       developer.controllers.Developer.isLoggedIn
+GET     /developer/logout  developer.controllers.Developer.logout
 GET     /developer/org         developer.controllers.Developer.getOrganization
 GET     /developer/org/form     developer.controllers.Developer.createOrganizationForm
 POST    /developer/org         developer.controllers.Developer.createOrganization
 GET     /developer/org/:orgid  developer.controllers.Developer.getOrganizationCredentials(orgid: ObjectId)
-
-# Login page
-GET     /developer/login            securesocial.controllers.LoginPage.login
-GET     /developer/logout           securesocial.controllers.LoginPage.logout
-# User Registration
-GET     /developer/register         securesocial.controllers.Registration.startSignUp
 
 GET     /developer/home             developer.controllers.Developer.at(path="/public/developer", file="index.html")
 GET     /developer/*file            developer.controllers.Developer.at(path="/public/developer", file)

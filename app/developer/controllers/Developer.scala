@@ -3,26 +3,43 @@ package developer.controllers
 import play.api.mvc.{Action, Controller}
 import controllers.Assets
 import securesocial.core.SecureSocial
-import play.api.libs.json.{JsObject, JsValue, JsBoolean, Json}
+import play.api.libs.json._
 import api.ApiError
 import org.bson.types.ObjectId
 import models.{User, Organization}
 import controllers.auth.{OAuthProvider, Permission}
+import scala.Left
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsBoolean
+import scala.Some
+import scala.Right
 
 object Developer extends Controller with SecureSocial{
 
   def at(path:String,file:String) = Assets.at(path,file)
 
-  def index = SecuredAction(){ request =>
-    Redirect("/developer/home");
+  def login = Action{ request =>
+    Redirect("/login").withSession(request.session + ("securesocial.originalUrl" -> "/developer/home"));
   }
   def isLoggedIn = Action { request =>
-    Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(request.session.get(SecureSocial.UserKey).isDefined))))
+    val user = request.session.get(SecureSocial.UserKey)
+    if(user.isDefined){
+      Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(user.get))))
+    }else{
+      Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(false))))
+    }
+  }
+  def register = Action { request =>
+    Redirect("/signup").withSession(request.session + ("securesocial.originalUrl" -> "/developer/home"));
+  }
+  def logout = Action {implicit request =>
+    Redirect("/developer/home").withSession(session - SecureSocial.UserKey - SecureSocial.ProviderKey)
   }
   def getOrganization = SecuredAction(){ request =>
     User.getUser(request.user.id) match {
       case Some(user) => {
         val orgs = User.getOrganizations(user,Permission.All)
+        //get the first organization besides the public corespring organization. for now, we assume that the person is only registered to one private organization
         orgs.find(o => o.id.toString != Organization.CORESPRING_ORGANIZATION_ID) match {
           case Some(o) => Ok(Json.toJson(o))
           case None => NotFound(Json.toJson(ApiError.MissingOrganization))

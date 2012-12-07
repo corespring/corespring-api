@@ -10,7 +10,7 @@ angular.module('corespring-dev').factory("Developer", ['$resource',function($res
         '/developer/:func',
         {},
         {
-            isLoggedIn : {method : 'GET', params : {func : 'isauth'}, isArray : false},
+            isLoggedIn : {method : 'GET', params : {func : 'isloggedin'}, isArray : false},
             getOrg : {method : 'GET', params : {func : 'org'}, isArray : false}
         }
     );
@@ -22,14 +22,16 @@ function DeveloperCtrl($scope,Developer) {
 
     $scope.authState = "noauth";
     $scope.org = {name : ""};
+    $scope.username = "";
     (function(){
         Developer.isLoggedIn({},function(data) {
             console.log(JSON.stringify(data))
             if(data.isLoggedIn == true){
                 $scope.authState = "noorg";
-                Developer.getOrg({},function(data){
-                    console.log(data)
-                    $scope.org = data;
+                $scope.username = data.username
+                Developer.getOrg({},function(org){
+                    console.log(org)
+                    $scope.org = org;
                     $scope.authState = "registered"
                 }) ;
             } else $scope.authState = "noauth";
