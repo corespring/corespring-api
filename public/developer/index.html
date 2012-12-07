@@ -218,7 +218,7 @@
           </header>
       </div>
     </div>
-    
+
     <div class="title-wrap">
     </div>
 
@@ -347,7 +347,7 @@ Users
   <li><a href="#extended-metadata" class="main-menu">Extended Metadata</a></li>
   <li><a href="#item-statistics" class="main-menu">Item Statistics</a></li>
 </ul>
-      </div> 
+      </div>
       <!-- main content -->
       <div class="main-content">
           <br/>
@@ -465,9 +465,9 @@ The interactive API widget is pre-configured to use this access token.</p></bloc
 <h2><a name="organizations-get-list" class="waypoint"></a> Getting a List of Organizations</h2>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/organizations" 
+  <rest-widget
+    method="GET"
+    path="/organizations"
     url="http://api-test.corespring.org/api/v1/organizations?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -481,9 +481,9 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
 <h2><a name="organizations-get" class="waypoint"></a> Getting an Organization by id</h2>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/organizations/:organizationId" 
+  <rest-widget
+    method="GET"
+    path="/organizations/:organizationId"
     url="http://api-test.corespring.org/api/v1/organizations/502404dd0364dc35bb39339a?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -494,9 +494,9 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
 <h2><a name="organizations-get-default" class="waypoint"></a> Getting a default organization</h2>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/organizations/default" 
+  <rest-widget
+    method="GET"
+    path="/organizations/default"
     url="http://api-test.corespring.org/api/v1/organizations/default?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -513,9 +513,9 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
 <h2><a name="collections-get" class="waypoint"></a>Getting a Collection</h2>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/collections/:collectionId" 
+  <rest-widget
+    method="GET"
+    path="/collections/:collectionId"
     url="http://api-test.corespring.org/api/v1/collections/5001bb0ee4b0d7c9ec3210a2?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -526,9 +526,9 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
 <h2><a name="collections-get-list" class="waypoint"></a>Getting a list of Collections</h2>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/collections" 
+  <rest-widget
+    method="GET"
+    path="/collections"
     url="http://api-test.corespring.org/api/v1/collections?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -537,9 +537,9 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
 <p>Returns an array of all Collections available to the caller (Collections attached to any organization the caller has access to).</p>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/organizations/:organizationId/collections" 
+  <rest-widget
+    method="GET"
+    path="/organizations/:organizationId/collections"
     url="http://api-test.corespring.org/api/v1/organizations/502404dd0364dc35bb39339a/collections?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -553,9 +553,9 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
 <h2><a name="collections-create" class="waypoint"></a>Create a Collection</h2>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="POST" 
-    path="/collections" 
+  <rest-widget
+    method="POST"
+    path="/collections"
     request-body='{ "name" : "My Collection", "organizations": ["502404dd0364dc35bb39339a"] }'
     url="http://api-test.corespring.org/api/v1/collections?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
@@ -570,9 +570,9 @@ The collection must have a name and must provide an array of organization ids wi
 <h2><a name="collections-update" class="waypoint"></a>Update a Collection</h2>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="PUT" 
-    path="/collections/:id" 
+  <rest-widget
+    method="PUT"
+    path="/collections/:id"
     request-body='{ "name" : "My Collection", "organizations": ["502404dd0364dc35bb39339a"] }'
     url="http://api-test.corespring.org/api/v1/collections/5001bb0ee4b0d7c9ec3210a2?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
@@ -827,7 +827,7 @@ When retrieving individual items a subset of the item properties are returned by
  <tr>
     <td>files</td>
     <td>list of files/assets associated with the item.</td>
-    <td>Array[{Json Object}]: e.g. 
+    <td>Array[{Json Object}]: e.g.
 `
 [
         {
@@ -1025,21 +1025,21 @@ In the absence of response processing, the outcome by default will be processed 
   },
   {
     "id": "question2",
-    "value": "ChoiceA", 
+    "value": "ChoiceA",
         "outcome": {
-            "$score": 0 
+            "$score": 0
         }
-  },  
+  },
   {
     "id": "question23",
     "value": [["choiceA", "choiceAA"], ["choiceB","choiceBB"]] ,
         "outcome": {
-            "$score": 1.5 
+            "$score": 1.5
         }
   },
   {
     "id": "question4",
-    "value": "text entered by user" 
+    "value": "text entered by user"
   }
 ]
 </json-highlight>
@@ -1062,9 +1062,9 @@ In the absence of response processing, the outcome by default will be processed 
 <h2>Getting a User</h2>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/users/:userId" 
+  <rest-widget
+    method="GET"
+    path="/users/:userId"
     url="http://api-test.corespring.org/api/v1/users/502d46ce0364068384f217a5?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -1077,9 +1077,9 @@ In the absence of response processing, the outcome by default will be processed 
 <h2>Getting a List of Users</h2>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/users" 
+  <rest-widget
+    method="GET"
+    path="/users"
     url="http://api-test.corespring.org/api/v1/users?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -1088,9 +1088,9 @@ In the absence of response processing, the outcome by default will be processed 
 <p>Returns all users available to the caller. The number of responses will be limited - using a <a href="#list-queries">list query</a> recommended.</p>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/organizations/:orgId/users" 
+  <rest-widget
+    method="GET"
+    path="/organizations/:orgId/users"
     url="http://api-test.corespring.org/api/v1/organizations/502404dd0364dc35bb39339a/users?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -1106,9 +1106,9 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
 <h2>Creating a User</h2>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="POST" 
-    path="/users" 
+  <rest-widget
+    method="POST"
+    path="/users"
     request-body='{ "userName" : "fredFlinstone", "fullName" : "Fred", "email" : "fredf@bedrock.org", "organizations" : [ { "id" : "502404dd0364dc35bb39339a" , "permissions" : ["WRITE_USER", "WRITE_COLLECTION", "WRITE_ORGANIZATION"]} ] }' url="http://api-test.corespring.org/api/v1/users?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -1121,9 +1121,9 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
 <h2>Updating a User</h2>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="PUT" 
-    path="/users/:id" 
+  <rest-widget
+    method="PUT"
+    path="/users/:id"
     request-body='{ "fullName" : "Fred Flinstone" }' url="http://api-test.corespring.org/api/v1/users/502d46ce0364068384f217a5?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -1153,7 +1153,7 @@ Each of these API resources support parameters to help with querying / filtering
     </tr>
     <tr>
         <td>f</td>
-        <td>Fields: Indicates fields to include in the result. For example f={"name": 1, "description":1}<br/> 
+        <td>Fields: Indicates fields to include in the result. For example f={"name": 1, "description":1}<br/>
 (1—include; 0—exclude)<br/>
        e.g. { "name" : 1, "email": 1 } OR <br/>
        e.g. { "comments" : 0 } </td>
@@ -1187,8 +1187,8 @@ Each of these API resources support parameters to help with querying / filtering
 For example, in a call to the /items resource you could return only items of type 'Multiple Choice' adding a query parameter like this:</p>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
+  <rest-widget
+    method="GET"
     path='/items?q={"itemType":"Multiple+Choice"}'
     url='http://api-test.corespring.org/api/v1/items?q={"itemType":"Multiple+Choice"}&l=2&access_token=34dj45a769j4e1c0h4wb'>
   </rest-widget>
@@ -1214,8 +1214,8 @@ For example, in a call to the /items resource you could return only items of typ
 For example, if you only wanted the Item Title and Primary Subject Fields for the items in the query defined above, you could add the 'f' parameter:</p>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
+  <rest-widget
+    method="GET"
     path='/items?q={"itemType":"Multiple+Choice"}&f={title:1,gradeLevel:1,primarySubject:1}'
     url='http://api-test.corespring.org/api/v1/items?q={"itemType":"Multiple+Choice"}&f={title:1,gradeLevel:1,primarySubject:1}&l=2&access_token=34dj45a769j4e1c0h4wb'>
   </rest-widget>
@@ -1244,11 +1244,11 @@ who may be interested in using this functionality.</p></blockquote>
 <h2>Get items with extended metadata</h2>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
+  <rest-widget
+    method="GET"
     disabled="true"
     disabled-message="Coming Soon!"
-    path="/items/:itemId?ext=true" 
+    path="/items/:itemId?ext=true"
     url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?ext=true&access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -1257,11 +1257,11 @@ who may be interested in using this functionality.</p></blockquote>
 <p>Returns the item model with all the extended metadata included.</p>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
+  <rest-widget
+    method="GET"
     disabled="true"
-    disabled-message="Coming Soon!" 
-    path="/items/:itemId?ext=:key" 
+    disabled-message="Coming Soon!"
+    path="/items/:itemId?ext=:key"
     url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?ext=_key_here_&access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -1279,11 +1279,11 @@ who may be interested in using this functionality.</p></blockquote>
 
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
+  <rest-widget
+    method="GET"
     disabled="true"
-    disabled-message="Coming Soon!" 
-    path="/items/:itemId/ext/:key" 
+    disabled-message="Coming Soon!"
+    path="/items/:itemId/ext/:key"
     url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/ext/_key_here_?&access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -1292,11 +1292,11 @@ who may be interested in using this functionality.</p></blockquote>
 <p>Returns just the metadata specified by the given :key.</p>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="POST" 
+  <rest-widget
+    method="POST"
     disabled="true"
-    disabled-message="Coming Soon!" 
-    path="/items/:itemId/ext/:key" 
+    disabled-message="Coming Soon!"
+    path="/items/:itemId/ext/:key"
     url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/ext/_key_here_?&access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -1324,7 +1324,7 @@ who may be interested in using this functionality.</p></blockquote>
 
 <div style="padding-bottom: 10px;">
     <rest-widget
-      method="GET" 
+      method="GET"
       disabled="true"
       disabled-message="Coming Soon!"
       path="/items/:itemId/statistics"
@@ -1341,7 +1341,7 @@ who may be interested in using this functionality.</p></blockquote>
 
 <div style="padding-bottom: 10px;">
     <rest-widget
-      method="GET" 
+      method="GET"
       disabled="true"
       disabled-message="Coming Soon!"
       path="/items/:itemId/stats=true"
@@ -1415,12 +1415,8 @@ who may be interested in using this functionality.</p></blockquote>
 
 <hr />
 
-<<<<<<< HEAD
-<p>date:  12/04/2012 02:25PM</p>
-=======
 <p>date:  12/05/2012 05:52PM</p>
->>>>>>> origin/master
- 
+
       </div>
     </body>
   </html>
