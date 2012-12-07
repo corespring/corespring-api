@@ -2,6 +2,7 @@ package basiclti.models
 
 import play.api.mvc.{AnyContent, Request}
 import oauth.signpost.http.HttpRequest
+import java.net.URLEncoder
 
 case class LtiRequestAdapter(request: Request[_], params:Map[String, String]) extends HttpRequest {
   var headers = Map[String,String]()
@@ -9,11 +10,20 @@ case class LtiRequestAdapter(request: Request[_], params:Map[String, String]) ex
   def getMethod = request.method
 
 
-  def getRequestUrl = {
-    "todo"
-    /*val url = LaunchData.BaseUrl+request.path
-    val args = if ( !params.isEmpty ) Some(params.map( s => "%s=%s".format(URLEncoder.encode(s._1, "utf-8") ,URLEncoder.encode(s._2, "utf-8"))).mkString("&")) else None
-    args.map(url + "?" + _).getOrElse(url)*/
+  def getRequestUrl : String = {
+
+    def e(s:String) = URLEncoder.encode(s,"utf-8")
+
+    //TODO: How to decide on http/https?
+    val url = "http://" + request.host + request.path
+
+    if (params.isEmpty){
+      url
+    } else {
+      //Note: only encode the name and value not the = or &
+      val paramString = params.toList.map( (kv) => e(kv._1) + "=" + e(kv._2) ).mkString("&")
+      url + "?" + paramString
+    }
   }
 
   def setRequestUrl(url: String) {
