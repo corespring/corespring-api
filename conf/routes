@@ -3,11 +3,24 @@
 # ~~~~
 
 # Map static developer site..
-GET     /developer/home             developer.controllers.Developer.at(path="/public/developer", file="index.html")
-GET     /developer/*file            developer.controllers.Developer.at(path="/public/developer", file)
+
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+#developer home page with secure social integration
+GET     /developer/login         developer.controllers.Developer.login
+GET     /developer/register      developer.controllers.Developer.register
+GET     /developer/isloggedin       developer.controllers.Developer.isLoggedIn
+GET     /developer/logout  developer.controllers.Developer.logout
+GET     /developer/org         developer.controllers.Developer.getOrganization
+GET     /developer/org/form     developer.controllers.Developer.createOrganizationForm
+POST    /developer/org         developer.controllers.Developer.createOrganization
+GET     /developer/org/:orgid  developer.controllers.Developer.getOrganizationCredentials(orgid: ObjectId)
+
+GET     /developer/home             developer.controllers.Developer.at(path="/public/developer", file="index.html")
+GET     /developer/*file            developer.controllers.Developer.at(path="/public/developer", file)
+
 
 
 #
@@ -35,7 +48,6 @@ GET     /api/v1/organizations                   api.v1.OrganizationApi.list(q: O
 GET     /api/v1/organizations/children          api.v1.OrganizationApi.getChildren(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100)
 GET     /api/v1/organizations/default           api.v1.OrganizationApi.getDefaultOrganization
 GET     /api/v1/organizations/:id               api.v1.OrganizationApi.getOrganization(id: ObjectId)
-POST    /api/v1/organizations                   api.v1.OrganizationApi.createOrganization
 PUT     /api/v1/organizations/:id               api.v1.OrganizationApi.updateOrganization(id: ObjectId)
 DELETE  /api/v1/organizations/:id               api.v1.OrganizationApi.deleteOrganization(id: ObjectId)
 GET     /api/v1/organizations/:id/tree          api.v1.OrganizationApi.listWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100)
@@ -140,13 +152,6 @@ GET    /web/print-resource/:itemId/:resourceName/:filename  web.controllers.Show
 GET    /web/print-resource/:itemId/:resourceName            web.controllers.ShowResource.renderResource(itemId,resourceName)
 GET    /web/print-resource-profile/:itemId                  web.controllers.Main.renderProfile(itemId:String)
 
-# Authentication
-GET     /web/login                             web.controllers.Main.login
-POST    /web/login                             web.controllers.Main.authenticate
-GET     /web/logout                            web.controllers.Main.logout
-GET     /web/user/info                         web.controllers.Main.userInfo
-GET     /web/access_token                      web.controllers.Main.getAccessToken
-
 #
 # BasicLTI
 #
@@ -167,3 +172,26 @@ GET    /reports/contributor-item-report.csv         reporting.controllers.Report
 GET    /reports/collection-item-report.csv          reporting.controllers.Reports.getCollectionReport
 
 
+#
+# SecureSocial routes
+#
+# Login page
+GET     /login                      securesocial.controllers.LoginPage.login
+GET     /logout                     securesocial.controllers.LoginPage.logout
+
+# User Registration
+GET     /signup                     securesocial.controllers.Registration.startSignUp
+POST    /signup                     securesocial.controllers.Registration.handleStartSignUp
+GET     /signup/:token              securesocial.controllers.Registration.signUp(token)
+POST    /signup/:token              securesocial.controllers.Registration.handleSignUp(token)
+GET     /reset                      securesocial.controllers.Registration.startResetPassword
+POST    /reset                      securesocial.controllers.Registration.handleStartResetPassword
+GET     /reset/:token               securesocial.controllers.Registration.resetPassword(token)
+POST    /reset/:token               securesocial.controllers.Registration.handleResetPassword(token)
+
+GET     /password                   securesocial.controllers.PasswordChange.page
+POST    /password                   securesocial.controllers.PasswordChange.handlePasswordChange
+
+# Providers entry points
+GET     /authenticate/:provider     securesocial.controllers.ProviderController.authenticate(provider)
+POST    /authenticate/:provider     securesocial.controllers.ProviderController.authenticateByPost(provider)
