@@ -9,14 +9,14 @@
 
         <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
         <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
-        @head.coreJs()
-        @head.bootstrap()
-        @head.angular()
-        @_root_.publicsite.views.html.partials.headNode()
+        @common.views.html.head.coreJs()
+        @common.views.html.head.bootstrap()
+        @common.views.html.head.angular()
+        @publicsite.views.html.partials.headNode()
         @headContent
     </head>
     <body>
-        @_root_.publicsite.views.html.partials.header("dev")
+        @publicsite.views.html.partials.header("dev")
         @content
     </body>
 </html>
