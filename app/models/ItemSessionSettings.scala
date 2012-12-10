@@ -1,6 +1,7 @@
 package models
 
 import play.api.libs.json._
+import common.models.json.jerkson.{JerksonWrites, JerksonReads}
 
 /**
  * Configuration settings for an ItemSession
@@ -23,19 +24,10 @@ object ItemSessionSettings {
   val SubmitComplete : String = "Ok!"
   val SubmitIncorrect: String = "You may revise your work before you submit it."
 
-  implicit object Reads extends Reads[ItemSessionSettings] {
-    def reads( js : JsValue) : ItemSessionSettings = {
-      val string = Json.stringify(js)
-      com.codahale.jerkson.Json.parse[ItemSessionSettings](string)
-    }
+  implicit object Reads extends JerksonReads[ItemSessionSettings] {
+    def manifest = Manifest.classType( new ItemSessionSettings().getClass)
   }
-
-  implicit object Writes extends Writes[ItemSessionSettings] {
-    def writes( settings : ItemSessionSettings ) : JsValue = {
-      val string = com.codahale.jerkson.Json.generate(settings)
-      Json.parse(string)
-    }
-  }
+  implicit object Writes extends JerksonWrites[ItemSessionSettings]
 }
 
 

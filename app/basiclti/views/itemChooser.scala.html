@@ -1,36 +1,63 @@
-@(item:Option[Item], selectionDirective:String, returnUrl:String, launchPath:String)
-<html>
+@(configId:ObjectId, selectionDirective:String, returnUrl:String, launchPath:String)
+
+@json( o : Option[ItemSessionSettings] ) = @{
+    o match {
+    case Some(s) =>  play.api.libs.json.Json.toJson(o).toString()
+    case _ => "{}"
+   }
+}
+<html ng-app="lti-chooser">
 <head>
+    @common.views.html.head.coreJs()
+    @common.views.html.head.bootstrap()
+    @common.views.html.head.angular()
+
+    <script type="text/javascript" src="/assets/js/corespring/lti-chooser/app.js"></script>
+
+    <script>
+        (function() {
+
+            angular.module('lti-chooser')
+                    .factory("Config", function(){
+                        return {
+                            configurationId: "@configId",
+                            selectionDirective: "@selectionDirective",
+                            returnUrl : "@returnUrl"
+                        };
+                    });
+
+            /*document.getElementById('save').addEventListener('click', function(e) {
+
+                if(!params.returnUrl.match(/\?/)) {
+                    params.returnUrl = params.returnUrl + "?";
+                }
+
+                var args = [];
+                args.push("embed_type=basic_lti");
+                var launchPath = "@launchPath";
+                var url = location.protocol + "//" + location.host + launchPath + "?itemId=" + encodeURIComponent(document.getElementById('name').value);
+                args.push("url=" + encodeURIComponent(url));
+                location.href = params.returnUrl + args.join('&');
+            });*/
+        })();
+    </script>
 </head>
-<body>
-<div id="not_named">
-    Enter an item id:
-    <input type="text" id="name">
-    <button type="button" id="save">Save</button>
+<body ng-controller="LtiChooserController">
+<p>{{configurationId}}</p>
+<p>{{itemId}}</p>
+
+<div ng-show="!hasItem">
+    <h1>Search:..</h1>
+    <div>
+        Enter an item id:
+        <input type="text" ng-model="config.itemId" id="name">
+        <button type="button" class="btn" ng-click="saveItem()" id="save">Save</button>
+    </div>
+
+    @testplayer.views.html.partials.sessionSettings("config.sessionSettings")
 </div>
-<script>
-    (function() {
-        var params = {
-           selectionDirective: "@selectionDirective",
-           returnUrl : "@returnUrl"
-        };
-
-        console.log(params);
-
-        document.getElementById('save').addEventListener('click', function(e) {
-
-            if(!params.returnUrl.match(/\?/)) {
-                params.returnUrl = params.returnUrl + "?";
-            }
-
-            var args = [];
-            args.push("embed_type=basic_lti");
-            var launchPath = "@launchPath";
-            var url = location.protocol + "//" + location.host + launchPath + "?itemId=" + encodeURIComponent(document.getElementById('name').value);
-            args.push("url=" + encodeURIComponent(url));
-            location.href = params.returnUrl + args.join('&');
-        });
-    })();
-</script>
+<div ng-show="hasItem">
+    <h1>You have an item: {{itemId}}</h1>
+</div>
 </body>
 </html>

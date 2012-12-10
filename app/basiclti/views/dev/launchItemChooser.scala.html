@@ -1,0 +1,16 @@
+@(launchUrl:String)
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <h1>Launch item-chooser</h1>
+
+    <form action="@launchUrl" method="POST">
+        <input type="text" name="resource_link_id"/>
+        <input type="hidden" name="selection_directive" value="select_link"/>
+        <input type="submit"/>
+    </form>
+</body>
+</html>

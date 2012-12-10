@@ -4,7 +4,8 @@ import play.api.mvc.{Action, Controller}
 import common.controllers.utils.BaseUrl
 import basiclti.models.LtiLaunchConfiguration
 import com.mongodb.casbah.commons.MongoDBObject
-import models.Item
+import models.{ItemSessionSettings, ItemSession, Item}
+import org.bson.types.ObjectId
 
 object ItemChooser extends Controller {
 
@@ -24,29 +25,35 @@ object ItemChooser extends Controller {
     }
   }
 
-
-  def choose = Action{ request =>
-
-    val params = Params(request.body.asFormUrlEncoded.get)
-
+  private def getOrCreateConfig(params:Params) : LtiLaunchConfiguration = {
     LtiLaunchConfiguration.findByResourceLinkId(params.resourceLinkId) match {
-      case Some(launchConfig) => {
-
-        launchConfig.templateSession match {
-          case Some(s) => {
-            val item = Item.findOneById(s.itemId)
-            Ok(basiclti.views.html.itemChooser(item, params.selectionDirective, params.launchPresentationReturnUrl)
-          }
-          case _ => {
-            Ok(basiclti.views.html.itemChooser(None, params.selectionDirective, params.launchPresentationReturnUrl)
-          }
-        }
-      }
+      case Some(c) => c
       case _ => {
-        val call = basiclti.controllers.routes.AssignmentLauncher.launchById(None)
-        Ok(basiclti.views.html.itemChooser(params.selectionDirective, params.launchPresentationReturnUrl, call.url))
+        val newConfig = new LtiLaunchConfiguration(
+          resourceLinkId = params.resourceLinkId,
+          itemId = None,
+          sessionSettings = Some(new ItemSessionSettings()))
+        LtiLaunchConfiguration.save(newConfig)
+        newConfig
       }
     }
+  }
+
+  /**
+   * Just for development - to be removed.
+   * @return
+   */
+  def mockLauncher = Action{ request =>
+    val url = basiclti.controllers.routes.ItemChooser.choose().url
+    Ok(basiclti.views.html.dev.launchItemChooser(url))
+  }
+
+
+  def choose = Action{ request =>
+    val params = Params(request.body.asFormUrlEncoded.get)
+    val config = getOrCreateConfig(params)
+    val call = basiclti.controllers.routes.AssignmentLauncher.launchById(None)
+    Ok(basiclti.views.html.itemChooser(config.id, params.selectionDirective, params.launchPresentationReturnUrl, call.url))
   }
 
   def xml(title:String, description:String, url:String, width:Int, height:Int) = {

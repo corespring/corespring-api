@@ -155,6 +155,9 @@ GET    /web/print-resource-profile/:itemId                  web.controllers.Main
 #
 # BasicLTI
 #
+GET     /lti/launch-config/:id                  basiclti.controllers.LaunchConfig.get(id:ObjectId)
+PUT     /lti/launch-config/:id                  basiclti.controllers.LaunchConfig.update(id:ObjectId)
+GET     /lti/dev/launch-item-chooser            basiclti.controllers.ItemChooser.mockLauncher
 GET     /lti/item-chooser.xml                   basiclti.controllers.ItemChooser.xmlConfiguration
 POST    /lti/item-chooser                       basiclti.controllers.ItemChooser.choose
 POST    /lti/assignment/launch-by-id            basiclti.controllers.AssignmentLauncher.launchById(itemId: Option[ObjectId] ?= None )
