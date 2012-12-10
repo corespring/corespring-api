@@ -12,17 +12,12 @@ import basiclti.export.CCExporter
 import scala.Some
 import play.api.mvc.SimpleResult
 import play.api.mvc.ResponseHeader
+import common.controllers.utils.BaseUrl
 
 object ExporterApi extends BaseApi {
 
   val OctetStream: String = "application/octet-stream"
 
-  object BaseUrl{
-    def apply(r:Request[AnyContent]) : String = {
-      val protocol = if(r.uri.startsWith("https")) "https" else "http"
-      protocol + "://" + r.host
-    }
-  }
 
   /** Build a multi item scorm .zip
    * @param ids - comma delimited list of ids
