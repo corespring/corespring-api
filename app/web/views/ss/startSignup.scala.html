@@ -6,7 +6,8 @@
 @main("Signup") {
     <div class="container" style="width: 960px;">
         <div style="position: relative; top: 100px; width:500px;">
-            <p class="lead">To register, enter your email address below. An email will be sent to you with a link
+            <h3>Developer Registration</h3>
+            <p class="lead">To register for a developer account, enter your email address below. An email will be sent to you with a link
             to complete your registration.</p>
         </div>
         <div class="well" style="position: relative; top: 100px; width:500px;">
@@ -37,6 +38,10 @@
 
         </fieldset>
     </form>
+
+            <h6>Or login with: </h6>
+            @securesocial.views.html.provider("twitter")
+            @securesocial.views.html.provider("google")
 
     </div>
     </div>
