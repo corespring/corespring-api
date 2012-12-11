@@ -7,7 +7,8 @@ case class LtiData(outcomeUrl: Option[String],
                    returnUrl: Option[String],
                    resourceLinkId: Option[String],
                    roles: Seq[String],
-                   selectionDirective: Option[String])
+                   selectionDirective: Option[String],
+                   oauthConsumerKey:Option[String])
 
 object LtiData {
   def apply(request: Request[AnyContent]): Option[LtiData] = request.body.asFormUrlEncoded match {
@@ -20,7 +21,8 @@ object LtiData {
           returnUrl = getString(form.get("launch_presentation_return_url")),
           resourceLinkId = getString(form.get("resource_link_id")),
           roles = getSeq(form.get("roles")),
-          selectionDirective = getString(form.get("selection_directive"))
+          selectionDirective = getString(form.get("selection_directive")),
+          oauthConsumerKey = getString(form.get("oauth_consumer_key"))
         )
       )
     }

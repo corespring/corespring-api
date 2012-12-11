@@ -25,13 +25,14 @@ import com.mongodb.casbah.MongoCollection
 case class LtiLaunchConfiguration(resourceLinkId:String,
                                   itemId:Option[ObjectId],
                                   sessionSettings:Option[ItemSessionSettings],
+                                  oauthConsumerKey:Option[String],
                                   assignments : Seq[Assignment] = Seq(),
                                   id:ObjectId = new ObjectId())
 {
 
 
 
-  def addAssignment(resultSourcedId:String, passbackUrl:String, finishedUrl:String) : LtiLaunchConfiguration = {
+  def addAssignmentIfNew(resultSourcedId:String, passbackUrl:String, finishedUrl:String) : LtiLaunchConfiguration = {
     assignments.find( _.resultSourcedId == resultSourcedId) match {
       case Some(a) => this
       case _ => {
@@ -54,6 +55,7 @@ case class LtiLaunchConfiguration(resourceLinkId:String,
           this.resourceLinkId,
           this.itemId,
           this.sessionSettings,
+          this.oauthConsumerKey,
           newAssignments,
           this.id)
         LtiLaunchConfiguration.update(newConfig)
@@ -76,7 +78,7 @@ object LtiLaunchConfiguration {
   implicit object Writes extends JerksonWrites[LtiLaunchConfiguration]
 
   implicit object Reads extends JerksonReads[LtiLaunchConfiguration] {
-    def manifest = Manifest.classType( new LtiLaunchConfiguration("",None, None).getClass)
+    def manifest = Manifest.classType( new LtiLaunchConfiguration("",None, None, None).getClass)
   }
 
   /**

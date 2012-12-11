@@ -167,7 +167,7 @@ object ItemApi extends BaseApi {
         }
         case _ => Forbidden
       }
-      case _ => NotFound
+      case _ => NotFound("Item not found: " + id.toString)
     }
   }
 
