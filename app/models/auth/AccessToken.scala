@@ -8,6 +8,7 @@ import play.api.Play.current
 import models.mongoContext._
 import org.joda.time.DateTime
 import play.api.libs.json.{JsString, JsValue, JsObject, Writes}
+import models.Organization
 
 
 /**
@@ -54,5 +55,24 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
     query += (organization -> orgId)
     if (scope.isDefined) query += (this.scope -> scope.get)
     findOne(query.result())
+  }
+
+  def getTokenForOrg(org:Organization) : AccessToken = {
+
+    AccessToken.find(org.id, None) match {
+      case Some(t) if(!t.isExpired) => t
+      case _ => {
+        val now = DateTime.now()
+        val token: AccessToken = new AccessToken(
+          organization = org.id,
+          scope = None,
+          tokenId = new ObjectId().toString,
+          creationDate = now,
+          expirationDate = now.plusHours(1))
+        AccessToken.insert(token)
+        token
+      }
+    }
+
   }
 }

@@ -7,7 +7,7 @@ import play.api.libs.ws.WS
 import play.api.libs.oauth.{RequestToken, ConsumerKey, OAuthCalculator}
 import org.bson.types.ObjectId
 import com.mongodb.casbah.commons.MongoDBObject
-import models.{ItemSessionSettings, ItemSession}
+import models.{Organization, ItemSessionSettings, ItemSession}
 import play.api.libs.json.Json._
 
 import testplayer.controllers.routes.{ItemPlayer => ItemPlayerRoutes}
@@ -15,6 +15,8 @@ import basiclti.controllers.routes.{AssignmentPlayer => AssignmentPlayerRoutes}
 import basiclti.controllers.routes.{AssignmentLauncher => AssignmentLauncherRoutes}
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
 import common.controllers.utils.BaseUrl
+import models.auth.{AccessToken, ApiClient}
+import org.joda.time.DateTime
 
 object AssignmentLauncher extends Controller {
 
@@ -28,21 +30,32 @@ object AssignmentLauncher extends Controller {
     allowEmptyResponses = true
   )
 
-  private def isSignedCorrectly(request: Request[AnyContent]): Boolean = {
+  private def getOrgFromOauthSignature(request: Request[AnyContent]): Option[Organization] = {
 
-    val requestSignature = request.body.asFormUrlEncoded.get("oauth_signature").head
+    val clientId : String = request.body.asFormUrlEncoded.get("oauth_consumer_key").head
 
-    val consumer = new LtiOAuthConsumer("1234", "secret")
-    consumer.sign(request)
-    consumer.setSigningStrategy(new AuthorizationHeaderSigningStrategy())
+    ApiClient.findOne(MongoDBObject(ApiClient.clientId -> new ObjectId(clientId))) match {
+      case Some(apiClient) => {
+        val requestSignature = request.body.asFormUrlEncoded.get("oauth_signature").head
 
-    consumer.getOAuthSignature() match {
-      case Some(signature) => {
-        Logger.debug("signature: " + signature)
-        Logger.debug("requestSignature: " + requestSignature)
-        signature.equals(requestSignature)
+        val consumer = new LtiOAuthConsumer(apiClient.clientId.toString, apiClient.clientSecret)
+        consumer.sign(request)
+        consumer.setSigningStrategy(new AuthorizationHeaderSigningStrategy())
+
+        consumer.getOAuthSignature() match {
+          case Some(signature) => {
+            Logger.debug("signature: " + signature)
+            Logger.debug("requestSignature: " + requestSignature)
+            if (signature.equals(requestSignature)) {
+              Organization.findOneById(apiClient.orgId)
+            } else {
+              None
+            }
+          }
+          case _ => None
+        }
       }
-      case _ => false
+      case _ => None
     }
   }
 
@@ -66,9 +79,16 @@ object AssignmentLauncher extends Controller {
           } else {
             require(data.outcomeUrl.isDefined, "no outcome url is defined")
             require(data.resultSourcedId.isDefined, "sourcedid is defined")
-            val updatedConfig = config.addAssignment(data.resultSourcedId.get, data.outcomeUrl.get, data.returnUrl.get)
-            val call = AssignmentPlayerRoutes.run(updatedConfig.id, data.resultSourcedId.get)
-            Redirect(call.url)
+
+            getOrgFromOauthSignature(request) match {
+              case Some(org) => {
+                val updatedConfig = config.addAssignment(data.resultSourcedId.get, data.outcomeUrl.get, data.returnUrl.get)
+                val call = AssignmentPlayerRoutes.run(updatedConfig.id, data.resultSourcedId.get)
+                val token : AccessToken = AccessToken.getTokenForOrg(org)
+                Redirect(call.url).withSession(("access_token", token.tokenId))
+              }
+              case _ => NotFound("Bad signature")
+            }
           }
         }
         case _ => BadRequest("bad launch data")
@@ -91,8 +111,6 @@ object AssignmentLauncher extends Controller {
     }
     case _ => throw new RuntimeException("no link id specified")
   }
-
-
 
 
   def responseXml(sourcedId: String, score: String) = <imsx_POXEnvelopeRequest>
@@ -124,7 +142,7 @@ object AssignmentLauncher extends Controller {
   </imsx_POXEnvelopeRequest>
 
 
-  private def assignment(configId:ObjectId, resultSourcedId:String) : Option[Assignment] = LtiLaunchConfiguration.findOneById(configId) match {
+  private def assignment(configId: ObjectId, resultSourcedId: String): Option[Assignment] = LtiLaunchConfiguration.findOneById(configId) match {
     case Some(config) => config.assignments.find(_.resultSourcedId == resultSourcedId)
     case _ => None
   }
@@ -144,7 +162,7 @@ object AssignmentLauncher extends Controller {
     case _ => Left("Can't find config")
   }
 
-  private def sendScore(session:ItemSession, assignment:Assignment) = {
+  private def sendScore(session: ItemSession, assignment: Assignment) = {
 
     val consumer = new LtiOAuthConsumer("1234", "secret")
     val score = getScore(session)
@@ -177,7 +195,7 @@ object AssignmentLauncher extends Controller {
    * TODO: token secret
    * @return
    */
-  def process(configId: ObjectId, resultSourcedId:String) = Action {
+  def process(configId: ObjectId, resultSourcedId: String) = Action {
     request =>
       session(configId, resultSourcedId) match {
         case Left(msg) => BadRequest(msg)
@@ -205,24 +223,35 @@ object AssignmentLauncher extends Controller {
    * Just for development - to be removed.
    * @return
    */
-  def mockLauncher = Action{ request =>
-    val url = basiclti.controllers.routes.AssignmentLauncher.launch().url
-    Ok(basiclti.views.html.dev.launchItemChooser(url))
+  def mockLauncher = Action {
+    request =>
+      val url = basiclti.controllers.routes.AssignmentLauncher.launch().url
+      Ok(basiclti.views.html.dev.launchItemChooser(url))
   }
 
 
-  def xml(title:String, description:String, url:String, width:Int, height:Int) = {
+  def xml(title: String, description: String, url: String, width: Int, height: Int) = {
     <cartridge_basiclti_link xmlns="http://www.imsglobal.org/xsd/imslticc_v1p0" xmlns:blti="http://www.imsglobal.org/xsd/imsbasiclti_v1p0" xmlns:lticm="http://www.imsglobal.org/xsd/imslticm_v1p0" xmlns:lticp="http://www.imsglobal.org/xsd/imslticp_v1p0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd">
-      <blti:title>{title}</blti:title>
-      <blti:description>{description}</blti:description>
+      <blti:title>
+        {title}
+      </blti:title>
+      <blti:description>
+        {description}
+      </blti:description>
       <blti:extensions platform="canvas.instructure.com">
         <lticm:property name="tool_id">corespring_resource_selection</lticm:property>
         <lticm:property name="privacy_level">anonymous</lticm:property>
         <lticm:options name="resource_selection">
-          <lticm:property name="url">{url}</lticm:property>
+          <lticm:property name="url">
+            {url}
+          </lticm:property>
           <lticm:property name="text">???</lticm:property>
-          <lticm:property name="selection_width">{width}</lticm:property>
-          <lticm:property name="selection_height">{height}</lticm:property>
+          <lticm:property name="selection_width">
+            {width}
+          </lticm:property>
+          <lticm:property name="selection_height">
+            {height}
+          </lticm:property>
         </lticm:options>
       </blti:extensions>
       <cartridge_bundle identifierref="BLTI001_Bundle"/>
@@ -230,9 +259,10 @@ object AssignmentLauncher extends Controller {
     </cartridge_basiclti_link>
   }
 
-  def xmlConfiguration = Action{ request =>
-    val url = basiclti.controllers.routes.AssignmentLauncher.launch().url
-    val root = BaseUrl(request)
-    Ok(xml("item-chooser", "choose an item", root + url, 600, 500)).withHeaders((CONTENT_TYPE, "application/xml"))
+  def xmlConfiguration = Action {
+    request =>
+      val url = basiclti.controllers.routes.AssignmentLauncher.launch().url
+      val root = BaseUrl(request)
+      Ok(xml("item-chooser", "choose an item", root + url, 600, 500)).withHeaders((CONTENT_TYPE, "application/xml"))
   }
 }
