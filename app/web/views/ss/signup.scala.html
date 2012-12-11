@@ -6,6 +6,12 @@
 
 @main("Signup") {
     <div class="container" style="width: 960px;">
+        <div style="position: relative; top: 100px; width:500px;">
+            <h3>Developer Registration</h3>
+            <p class="lead">
+                To complete creating your account, please fill in the fields below. All fields are required.
+            </p>
+        </div>
         <div class="well" style="position: relative; top: 100px; width:500px;">
 
     @request.flash.get("error").map { msg =>

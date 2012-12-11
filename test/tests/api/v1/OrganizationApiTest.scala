@@ -127,49 +127,49 @@ class OrganizationApiTest extends BaseTest {
 
   }
 
-  "create, update and delete an organization" in {
-    val name = "Acme"
-
-    // create it
-    val toCreate = Map("name" -> name)
-    val fakeRequest = FakeRequest(POST, "/api/v1/organizations?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
-    val r = routeAndCall(fakeRequest)
-    if (r.isEmpty) {
-      failure("Failed to create an organization")
-    }
-    val result = r.get
-    status(result) must equalTo(OK)
-    charset(result) must beSome("utf-8")
-    contentType(result) must beSome("application/json")
-    val organization = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
-    (organization \ "name").as[String] must beEqualTo(name)
-
-    // update
-    val name2 = "Acme Corp"
-    val toUpdate = Map("name" -> name2)
-    val orgId = (organization \ "id").as[String]
-    val postRequest = FakeRequest(PUT, "/api/v1/organizations/%s?access_token=%s".format(orgId, token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
-    routeAndCall(postRequest) match {
-      case Some(result2) => {
-        status(result2) must equalTo(OK)
-        charset(result2) must beSome("utf-8")
-        contentType(result2) must beSome("application/json")
-        val updatedOrganization = Json.fromJson[JsValue](Json.parse(contentAsString(result2)))
-        (updatedOrganization \ "id").as[String] must beEqualTo(orgId)
-        (updatedOrganization \ "name").as[String] must beEqualTo(name2)
-
-        // delete
-        val deleteRequest = FakeRequest(DELETE, "/api/v1/organizations/%s?access_token=%s".format(orgId, token))
-        val Some(result3) = routeAndCall(deleteRequest)
-        status(result3) must equalTo(OK)
-        charset(result3) must beSome("utf-8")
-        contentType(result3) must beSome("application/json")
-
-        val Some(result4) = routeAndCall(FakeRequest(GET, "/api/v1/organizations/%s?access_token=%s".format(orgId, token)))
-        status(result4) must equalTo(NOT_FOUND)
-      }
-      case None => failure("failed to update an organization")
-    }
-  }
+//  "create, update and delete an organization" in {
+//    val name = "Acme"
+//
+//    // create it
+//    val toCreate = Map("name" -> name)
+//    val fakeRequest = FakeRequest(POST, "/api/v1/organizations?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
+//    val r = routeAndCall(fakeRequest)
+//    if (r.isEmpty) {
+//      failure("Failed to create an organization")
+//    }
+//    val result = r.get
+//    status(result) must equalTo(OK)
+//    charset(result) must beSome("utf-8")
+//    contentType(result) must beSome("application/json")
+//    val organization = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
+//    (organization \ "name").as[String] must beEqualTo(name)
+//
+//    // update
+//    val name2 = "Acme Corp"
+//    val toUpdate = Map("name" -> name2)
+//    val orgId = (organization \ "id").as[String]
+//    val postRequest = FakeRequest(PUT, "/api/v1/organizations/%s?access_token=%s".format(orgId, token), FakeHeaders(), AnyContentAsJson(Json.toJson(toUpdate)))
+//    routeAndCall(postRequest) match {
+//      case Some(result2) => {
+//        status(result2) must equalTo(OK)
+//        charset(result2) must beSome("utf-8")
+//        contentType(result2) must beSome("application/json")
+//        val updatedOrganization = Json.fromJson[JsValue](Json.parse(contentAsString(result2)))
+//        (updatedOrganization \ "id").as[String] must beEqualTo(orgId)
+//        (updatedOrganization \ "name").as[String] must beEqualTo(name2)
+//
+//        // delete
+//        val deleteRequest = FakeRequest(DELETE, "/api/v1/organizations/%s?access_token=%s".format(orgId, token))
+//        val Some(result3) = routeAndCall(deleteRequest)
+//        status(result3) must equalTo(OK)
+//        charset(result3) must beSome("utf-8")
+//        contentType(result3) must beSome("application/json")
+//
+//        val Some(result4) = routeAndCall(FakeRequest(GET, "/api/v1/organizations/%s?access_token=%s".format(orgId, token)))
+//        status(result4) must equalTo(NOT_FOUND)
+//      }
+//      case None => failure("failed to update an organization")
+//    }
+//  }
 
 }
