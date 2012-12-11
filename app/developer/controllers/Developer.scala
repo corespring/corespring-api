@@ -22,9 +22,18 @@ object Developer extends Controller with SecureSocial{
     Redirect("/login").withSession(request.session + ("securesocial.originalUrl" -> "/developer/home"));
   }
   def isLoggedIn = Action { request =>
-    val user = request.session.get(SecureSocial.UserKey)
-    if(user.isDefined){
-      Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(user.get))))
+    val username = request.session.get(SecureSocial.UserKey)
+    if(username.isDefined){
+      User.getUser(username.get) match {
+        case Some(user) => {
+          if (user.provider == "userpass"){
+            Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(user.userName))))
+          }else{
+            Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(user.fullName.split(" ")(0)))))
+          }
+        }
+        case None => Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(username.get), "firstname" -> JsString(username.get))))
+      }
     }else{
       Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(false))))
     }
