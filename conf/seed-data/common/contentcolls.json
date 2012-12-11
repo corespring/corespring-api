@@ -3,7 +3,7 @@
 { "name" : "Collection C" , "isPublic" : false , "_id" : { "$oid" : "5001a66ce4b0d7c9ec320f2e"}}
 { "name" : "Collection D" , "isPublic" : false , "_id" : { "$oid" : "5001b6f3e4b0d7c9ec321065"}}
 { "name" : "Collection E" , "isPublic" : false , "_id" : { "$oid" : "5001b7ade4b0d7c9ec321070"}}
-{ "name" : "Collection F" , "isPublic" : false , "_id" : { "$oid" : "5001b9b9e4b035d491c268c3"}}
+{ "name" : "Collection F" , "isPublic" : true , "_id" : { "$oid" : "5001b9b9e4b035d491c268c3"}}
 { "name" : "Collection G" , "isPublic" : false , "_id" : { "$oid" : "5001bb0ee4b0d7c9ec3210a2"}}
 { "name" : "Beta Items" , "isPublic" : true , "_id" : { "$oid" : "505777f5e4b05f7845735bc1"}}
 { "name" : "Collection H" , "isPublic" : false , "_id" : { "$oid" : "4ff2e56fe4b077b9e3168a05"}}
