@@ -72,6 +72,7 @@ object Organization extends DBQueryable[Organization]{
       }
       case None => {
         org.path = Seq(org.id)
+        org.contentcolls = org.contentcolls ++ ContentCollection.getPublicCollections.map(cc => ContentCollRef(cc.id,Permission.All.value))
         insert(org) match {
           case Some(id) => Right(org)
           case None => Left(InternalError("error inserting organization",LogType.printFatal,true))
