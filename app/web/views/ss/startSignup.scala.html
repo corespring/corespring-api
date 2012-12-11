@@ -5,13 +5,19 @@
 
 @main("Signup") {
     <div class="container" style="width: 960px;">
+        <div style="position: relative; top: 100px; width:500px;">
+            <p class="lead">To register, enter your email address below. An email will be sent to you with a link
+            to complete your registration.</p>
+        </div>
         <div class="well" style="position: relative; top: 100px; width:500px;">
 
-    @request.flash.get("error").map { msg =>
-    <div class="alert alert-error">
-        @Messages(msg)
-    </div>
+        @request.flash.get("error").map { msg =>
+        <div class="alert alert-error">
+            @Messages(msg)
+        </div>
     }
+
+
 
     <form action="@securesocial.core.providers.utils.RoutesHelper.handleStartSignUp().absoluteURL(IdentityProvider.sslEnabled)"
           class="form-horizontal"
