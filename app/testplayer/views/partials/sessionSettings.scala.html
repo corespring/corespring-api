@@ -1,23 +1,27 @@
-@(settingsName:String)
+@(settingsName:String, disabled : Boolean = false)
 <div class="container">
 
     <div class="span2">
-        <input type="radio" int-type ng-model="@(settingsName +".maxNoOfAttempts")" value="0"> Multiple Tries</input>
+        <input type="radio" ng-disabled="@disabled" int-type ng-model="@(settingsName +".maxNoOfAttempts")" value="0"> Multiple Tries</input>
         <br/>
-        <input type="radio" ng-model="@(settingsName +".maxNoOfAttempts")" ng-validate="int" value="1"> Single Try</input>
+        <input type="radio" ng-disabled="@disabled" ng-model="@(settingsName +".maxNoOfAttempts")" ng-validate="int" value="1"> Single Try</input>
     </div>
 
     <div class="span4">
         <input type="checkbox"
+               ng-disabled="@disabled"
                ng-model="@(settingsName + ".highlightUserResponse")"> Highlight the student’s answer</input>
         <br/>
         <input type="checkbox"
+               ng-disabled="@disabled"
                ng-model="@(settingsName + ".highlightCorrectResponse")"> Highlight the correct answer</input>
         <br/>
         <input type="checkbox"
+               ng-disabled="@disabled"
                ng-model="@(settingsName + ".showFeedback")"> Show the feedback text for all answers (if available)</input>
         <br/>
         <input type="checkbox"
+               ng-disabled="@disabled"
                ng-model="@(settingsName + ".allowEmptyResponses")"> Accept incomplete work</input>
         <br/>
     </div>

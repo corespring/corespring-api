@@ -1,7 +1,7 @@
 package basiclti.controllers
 
 import testplayer.controllers.QtiRenderer
-import basiclti.models.Assignment
+import basiclti.models.{LtiLaunchConfiguration, Assignment}
 import play.api.mvc.Action
 import models.ItemSession
 import controllers.auth.BaseApi
@@ -10,48 +10,54 @@ import org.bson.types.ObjectId
 
 object AssignmentPlayer extends BaseApi with QtiRenderer with ItemResources {
 
-  def runByAssignmentId(assignmentId: ObjectId) = ApiAction {
+  def run(configId: ObjectId, resultSourcedId: String) = ApiAction {
     request =>
 
-      Assignment.findOneById(assignmentId) match {
-        case Some(assignment) => {
-          ItemSession.findOneById(assignment.itemSessionId) match {
-            case Some(session) => {
-              getItemXMLByObjectId(session.itemId.toString, request.ctx.organization) match {
-                case Some(qti) => {
-                  val finalXml = prepareQti(qti)
-                  Ok(
-                    basiclti.views.html.player(
-                      finalXml,
-                      session.itemId.toString,
-                      session.id.toString,
-                      request.token,
-                      assignment.id.toString)
+      session(configId, resultSourcedId) match {
+        case Left(msg) => BadRequest(msg)
+        case Right(session) => {
 
-                  ).withSession(("access_token", common.mock.MockToken))
-                }
 
-                case _ => NotFound("can't find item with id: " + session.itemId.toString)
-              }
+          getItemXMLByObjectId(session.itemId.toString, request.ctx.organization) match {
+            case Some(qti) => {
+              val finalXml = prepareQti(qti)
+              Ok(
+                basiclti.views.html.player(
+                  finalXml,
+                  session.itemId.toString,
+                  session.id.toString,
+                  request.token,
+                  configId.toString,
+                  resultSourcedId
+                )
+
+              ).withSession(("access_token", common.mock.MockToken))
             }
-            case _ => NotFound("Can't find Item by Session " + assignmentId.toString)
+            case _ => BadRequest("??")
           }
         }
-        case _ => NotFound("Can't find assigmnent with that id")
       }
   }
 
-  def getDataFileByAssignmentId(assignmentId: ObjectId, filename: String) =
-    Assignment.findOneById(assignmentId) match {
-      case Some(assignment) => {
-        ItemSession.findOneById(assignment.itemSessionId) match {
-          case Some(session) => {
-            getDataFile(session.itemId.toString, filename)
+  private def session(configId: ObjectId, resultSourcedId: String): Either[String, ItemSession] = LtiLaunchConfiguration.findOneById(configId) match {
+    case Some(config) => {
+      config.assignments.find(_.resultSourcedId == resultSourcedId) match {
+        case Some(assignment) => {
+          ItemSession.findOneById(assignment.itemSessionId) match {
+            case Some(session) => Right(session)
+            case _ => Left("can't find session")
           }
-          case _ => Action(request => NotFound("Can't find item session"))
         }
+        case _ => Left("Can't find assignment")
       }
-      case _ => Action(request => NotFound("can't find assignment by id: " + assignmentId))
     }
+    case _ => Left("Can't find config")
+  }
+
+
+  def getDataFileForAssignment(configId: ObjectId, resultSourcedId: String, filename: String) = session(configId,resultSourcedId) match {
+    case Left(msg) => Action(request => NotFound(msg))
+    case Right(session) => getDataFile(session.itemId.toString, filename)
+  }
 
 }

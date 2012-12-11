@@ -1,11 +1,5 @@
-@(configId:ObjectId, selectionDirective:String, returnUrl:String, launchPath:String)
+@(configId:ObjectId, selectionDirective:String, returnUrl:String)
 
-@json( o : Option[ItemSessionSettings] ) = @{
-    o match {
-    case Some(s) =>  play.api.libs.json.Json.toJson(o).toString()
-    case _ => "{}"
-   }
-}
 <html ng-app="lti-chooser">
 <head>
     @common.views.html.head.coreJs()
@@ -18,46 +12,31 @@
         (function() {
 
             angular.module('lti-chooser')
-                    .factory("Config", function(){
-                        return {
-                            configurationId: "@configId",
-                            selectionDirective: "@selectionDirective",
-                            returnUrl : "@returnUrl"
-                        };
-                    });
-
-            /*document.getElementById('save').addEventListener('click', function(e) {
-
-                if(!params.returnUrl.match(/\?/)) {
-                    params.returnUrl = params.returnUrl + "?";
-                }
-
-                var args = [];
-                args.push("embed_type=basic_lti");
-                var launchPath = "@launchPath";
-                var url = location.protocol + "//" + location.host + launchPath + "?itemId=" + encodeURIComponent(document.getElementById('name').value);
-                args.push("url=" + encodeURIComponent(url));
-                location.href = params.returnUrl + args.join('&');
-            });*/
+                .factory("Config", function(){
+                    return {
+                        configurationId: "@configId",
+                        selectionDirective: "@selectionDirective",
+                        returnUrl : "@returnUrl"
+                    };
+                });
         })();
     </script>
 </head>
-<body ng-controller="LtiChooserController">
-<p>{{configurationId}}</p>
-<p>{{itemId}}</p>
-
+<body style="padding:20px;" ng-controller="LtiChooserController">
 <div ng-show="!hasItem">
-    <h1>Search:..</h1>
     <div>
         Enter an item id:
         <input type="text" ng-model="config.itemId" id="name">
         <button type="button" class="btn" ng-click="saveItem()" id="save">Save</button>
     </div>
-
     @testplayer.views.html.partials.sessionSettings("config.sessionSettings")
 </div>
 <div ng-show="hasItem">
-    <h1>You have an item: {{itemId}}</h1>
+    <p>{{item.title}}</p>
+    @testplayer.views.html.partials.sessionSettings("config.sessionSettings", true)
+    <button class="btn" ng-click="change()">Change</button>
+    <button class="btn" ng-click="done()">Done</button>
+
 </div>
 </body>
 </html>

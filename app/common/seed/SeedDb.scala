@@ -11,7 +11,7 @@ import play.api._
 import play.api.Play.current
 import JsonImporter._
 import web.models.QtiTemplate
-import basiclti.models.Assignment
+import basiclti.models.{LtiLaunchConfiguration, Assignment}
 
 object SeedDb {
 
@@ -28,7 +28,7 @@ object SeedDb {
     User.collection,
     Organization.collection,
     QtiTemplate.collection,
-    Assignment.collection,
+    LtiLaunchConfiguration.collection,
     RegistrationToken.collection
   )
 

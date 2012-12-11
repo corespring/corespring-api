@@ -13,6 +13,7 @@ object LaunchConfig extends BaseApi {
 
   def get(id: ObjectId) = ApiAction {
     request =>
+
       LtiLaunchConfiguration.findOneById(id) match {
         case Some(c) => Ok(toJson(c))
         case _ => NotFound("Can't find launch config with that id")

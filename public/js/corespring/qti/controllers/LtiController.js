@@ -11,13 +11,11 @@ function LtiController($scope, $http, Config){
     if(newValue && hasSubmitted){
       console.log("the session is finished - notify the LTI App");
 
-      $http.get("/lti/assignment/" + Config.assignmentId + "/process")
+      $http.get("/lti/assignment/" + Config.configId + "/" + Config.resultSourcedId + "/process")
         .success(function(data, status, headers, config) {
-          //console.log("success...");
           document.location.href = data.returnUrl;
         }).error(function(data, status, headers, config) {
           $scope.status = status;
-          //console.warn("Error occurred: " + data );
         });
     }
   });

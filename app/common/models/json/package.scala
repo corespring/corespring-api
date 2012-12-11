@@ -3,7 +3,6 @@ package common.models
 import play.api.libs.json.{Reads, JsValue, Writes}
 import play.api.libs.json.Json._
 import org.codehaus.jackson.map.module.SimpleModule
-import play.Logger
 
 
 package object json {
@@ -15,18 +14,16 @@ package object json {
 
     trait JerksonWrites[A] extends Writes[A] {
       def writes(c: A) = {
-        Logger.debug("JerksonWrites: " + c)
         play.api.libs.json.Json.parse(CorespringJson.generate(c))
       }
     }
 
     trait JerksonReads[A] extends Reads[A] {
 
+      //TODO: Any way we can avoid having to do this?
       def manifest : Manifest[A]
 
       def reads(js: JsValue ): A = {
-        Logger.debug("JerksonReads: " + js)
-        Logger.debug("A: " )
         CorespringJson.parse[A](stringify(js))(manifest)
       }
     }

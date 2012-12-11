@@ -8,13 +8,13 @@ import org.bson.types.ObjectId
 import com.novus.salat.dao.{SalatDAO, ModelCompanion}
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
-import models.{ItemSessionSettings, ItemSession, mongoContext}
+import models.{ItemSession, ItemSessionSettings, mongoContext}
 import mongoContext._
 import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
 import api.ApiError
-import play.api.libs.json.Writes
 import common.models.json.jerkson.{JerksonReads, JerksonWrites}
+import com.mongodb.casbah.MongoCollection
 
 
 /**
@@ -25,9 +25,53 @@ import common.models.json.jerkson.{JerksonReads, JerksonWrites}
 case class LtiLaunchConfiguration(resourceLinkId:String,
                                   itemId:Option[ObjectId],
                                   sessionSettings:Option[ItemSessionSettings],
+                                  assignments : Seq[Assignment] = Seq(),
                                   id:ObjectId = new ObjectId())
+{
+
+
+
+  def addAssignment(resultSourcedId:String, passbackUrl:String, finishedUrl:String) : LtiLaunchConfiguration = {
+    assignments.find( _.resultSourcedId == resultSourcedId) match {
+      case Some(a) => this
+      case _ => {
+
+        require(itemId.isDefined, "No itemId is defined")
+
+        val session = new ItemSession(
+          itemId = itemId.get,
+          settings = sessionSettings.getOrElse(LtiLaunchConfiguration.defaultSessionSettings) )
+        ItemSession.save(session)
+
+        val newAssignment = new Assignment(
+          itemSessionId = session.id,
+          resultSourcedId = resultSourcedId,
+          gradePassbackUrl = passbackUrl,
+          onFinishedUrl = finishedUrl
+        )
+        val newAssignments = this.assignments :+ newAssignment
+        val newConfig = new LtiLaunchConfiguration(
+          this.resourceLinkId,
+          this.itemId,
+          this.sessionSettings,
+          newAssignments,
+          this.id)
+        LtiLaunchConfiguration.update(newConfig)
+        newConfig
+      }
+    }
+  }
+}
 
 object LtiLaunchConfiguration {
+
+  val defaultSessionSettings = ItemSessionSettings(
+    maxNoOfAttempts = 1,
+    showFeedback = true,
+    highlightCorrectResponse = true,
+    highlightUserResponse = true,
+    allowEmptyResponses = true
+  )
 
   implicit object Writes extends JerksonWrites[LtiLaunchConfiguration]
 
@@ -48,6 +92,8 @@ object LtiLaunchConfiguration {
     val resourceLinkId:String = "resourceLinkId"
   }
 
+  def collection : MongoCollection = ModelCompanion.collection
+
   def findOne(q:DBObject) = ModelCompanion.findOne(q)
 
   def findOneById(id:ObjectId) = ModelCompanion.findOneById(id)
@@ -56,7 +102,7 @@ object LtiLaunchConfiguration {
     findOne(MongoDBObject(Keys.resourceLinkId -> linkId))
   }
 
-  def save(c:LtiLaunchConfiguration) {
+  def create(c:LtiLaunchConfiguration) {
     ModelCompanion.insert(c)
   }
 

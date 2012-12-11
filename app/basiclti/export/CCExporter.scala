@@ -30,7 +30,7 @@ object CCExporter {
   private def buildLti(ids: Seq[String], cf: ConfigFiles, domain : String) {
     var count = 1
     ids.foreach(id => {
-      val url = domain + AssignmentLauncherRoutes.launch(new ObjectId(id))
+      val url = domain + AssignmentLauncherRoutes.launch()
       val content = xmlToString(LtiItemOutcomes(url, "item" + count, None).toXml)
       cf.virtualFiles += LtiFile("item" + count + ".xml", "item" + count, content)
       cf.resources += CCLtiResource(IdGen(), Seq(CCResourceFile("item" + count + ".xml")))
@@ -49,7 +49,7 @@ object CCExporter {
     ids.foreach(id => {
       val folderId = IdGen()
       count += 1
-      val externalToolUrl = domain + AssignmentLauncherRoutes.launch(new ObjectId(id))
+      val externalToolUrl = domain + AssignmentLauncherRoutes.launch()
       val as = CCExternalToolAssignmentSettings(folderId, "Assignment " + count, ag.identifier, externalToolUrl)
       cf.virtualFiles += CCFile(folderId + "/assignment_settings.xml", xmlToString(as.toXml))
       val ha = CCHtmlAssignment("Assignment " + count)
