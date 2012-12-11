@@ -30,8 +30,13 @@ case class LtiLaunchConfiguration(resourceLinkId:String,
                                   id:ObjectId = new ObjectId())
 {
 
-
-
+  /**
+   * Add an assignment if its new
+   * @param resultSourcedId - the uid of the assignment
+   * @param passbackUrl
+   * @param finishedUrl
+   * @return
+   */
   def addAssignmentIfNew(resultSourcedId:String, passbackUrl:String, finishedUrl:String) : LtiLaunchConfiguration = {
     assignments.find( _.resultSourcedId == resultSourcedId) match {
       case Some(a) => this

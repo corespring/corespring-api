@@ -1,22 +1,18 @@
 package basiclti.controllers
 
-import play.api.mvc.{AnyContent, Request, Action, Controller}
+import play.api.mvc.{AnyContent, Request, Action}
 import play.Logger
 import basiclti.models.{LtiLaunchConfiguration, LtiData, Assignment, LtiOAuthConsumer}
 import play.api.libs.ws.WS
 import play.api.libs.oauth.{RequestToken, ConsumerKey, OAuthCalculator}
 import org.bson.types.ObjectId
-import com.mongodb.casbah.commons.MongoDBObject
 import models.{Organization, ItemSessionSettings, ItemSession}
 import play.api.libs.json.Json._
-
-import testplayer.controllers.routes.{ItemPlayer => ItemPlayerRoutes}
 import basiclti.controllers.routes.{AssignmentPlayer => AssignmentPlayerRoutes}
 import basiclti.controllers.routes.{AssignmentLauncher => AssignmentLauncherRoutes}
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
 import common.controllers.utils.BaseUrl
 import models.auth.{AccessToken, ApiClient}
-import org.joda.time.DateTime
 import controllers.auth.{OAuthConstants, BaseApi}
 
 object AssignmentLauncher extends BaseApi {
@@ -82,8 +78,9 @@ object AssignmentLauncher extends BaseApi {
               val token : AccessToken = AccessToken.getTokenForOrg(org)
               val tokenSession = (OAuthConstants.AccessToken, token.tokenId)
 
-              if (data.roles.exists(_ == LtiKeys.Instructor)) {
+              def isInstructor = data.roles.exists(_ == LtiKeys.Instructor)
 
+              if (isInstructor) {
                 Ok( basiclti.views.html.itemChooser(
                     config.id,
                     data.selectionDirective.getOrElse(""),
