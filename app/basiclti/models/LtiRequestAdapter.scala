@@ -15,6 +15,7 @@ case class LtiRequestAdapter(request: Request[_], params:Map[String, String]) ex
     def e(s:String) = URLEncoder.encode(s,"utf-8")
 
     //TODO: How to decide on http/https?
+    //val host = if(request.host == null || request.host.isEmpty) "localhost:9000" else request.host
     val url = "http://" + request.host + request.path
 
     if (params.isEmpty){
