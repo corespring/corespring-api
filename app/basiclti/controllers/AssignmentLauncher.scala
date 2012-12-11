@@ -17,7 +17,7 @@ import controllers.auth.{OAuthConstants, BaseApi}
 
 object AssignmentLauncher extends BaseApi {
 
-  private object LtiKeys {
+  object LtiKeys {
     val ConsumerKey: String = "oauth_consumer_key"
     val Signature:String = "oauth_signature"
     val Instructor:String = "Instructor"
@@ -105,23 +105,31 @@ object AssignmentLauncher extends BaseApi {
       }
   }
 
-  private def getOrCreateConfig(data: LtiData): LtiLaunchConfiguration = data.resourceLinkId match {
-    case Some(id) => {
-      LtiLaunchConfiguration.findByResourceLinkId(id) match {
-        case Some(config) => config
-        case _ => {
-          val newConfig = new LtiLaunchConfiguration(
-            resourceLinkId = id,
-            itemId = None,
-            sessionSettings = Some(new ItemSessionSettings()),
-            oauthConsumerKey = data.oauthConsumerKey
-          )
-          LtiLaunchConfiguration.create(newConfig)
-          newConfig
-        }
+  private def getOrCreateConfig(data: LtiData): LtiLaunchConfiguration = {
+
+    require(data.resourceLinkId.isDefined)
+
+    def canvasResourceLinkId(configId:ObjectId) : Option[String] = LtiLaunchConfiguration.findOneById(configId).map(_.resourceLinkId)
+
+    val id : String = data.canvasConfigId match {
+      case Some(configId) => canvasResourceLinkId(new ObjectId(configId)).getOrElse(data.resourceLinkId.get)
+      case _ => data.resourceLinkId.get
+    }
+
+    LtiLaunchConfiguration.findByResourceLinkId(id) match {
+      case Some(config) => config
+      case _ => {
+        val newConfig = new LtiLaunchConfiguration(
+          resourceLinkId = id,
+          itemId = None,
+          sessionSettings = Some(new ItemSessionSettings()),
+          oauthConsumerKey = data.oauthConsumerKey
+        )
+        LtiLaunchConfiguration.create(newConfig)
+        newConfig
       }
     }
-    case _ => throw new RuntimeException("no link id specified")
+
   }
 
 

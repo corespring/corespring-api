@@ -57,8 +57,13 @@ function LtiChooserController($scope, Config, LaunchConfigService, ItemService){
     var args = [];
     args.push("embed_type=basic_lti");
     var url = document.location.href;
-    args.push("url=" + encodeURIComponent(url));
+    args.push("url=" + encodeURIComponent(url + "?canvas_config_id=" + $scope.config.id));
     location.href = Config.returnUrl + args.join('&');
+  };
+
+  $scope.getNumberOfAssignments = function(config){
+    if(config && config.assignments) return config.assignments.length;
+    return 0;
   };
 
   init();

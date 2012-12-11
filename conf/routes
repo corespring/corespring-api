@@ -159,7 +159,7 @@ GET     /lti/launch-config/:id                  basiclti.controllers.LaunchConfi
 PUT     /lti/launch-config/:id                  basiclti.controllers.LaunchConfig.update(id:ObjectId)
 GET     /lti/dev/launch-item-chooser            basiclti.controllers.AssignmentLauncher.mockLauncher
 GET     /lti/item-chooser.xml                   basiclti.controllers.AssignmentLauncher.xmlConfiguration
-POST    /lti/assignment/launch                  basiclti.controllers.AssignmentLauncher.launch
+POST    /lti/assignment/launch                  basiclti.controllers.AssignmentLauncher.launch()
 GET     /lti/assignment/error/authorization     basiclti.controllers.AssignmentLauncher.authorizationError
 GET     /lti/assignment/:configId/:resultSourcedId/process   basiclti.controllers.AssignmentLauncher.process(configId:ObjectId,resultSourcedId:String)
 GET     /lti/assignment/:configId/:resultSourcedId/run       basiclti.controllers.AssignmentPlayer.run(configId:ObjectId,resultSourcedId:String)

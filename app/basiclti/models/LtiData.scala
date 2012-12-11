@@ -1,6 +1,7 @@
 package basiclti.models
 
 import play.api.mvc.{AnyContent, Request}
+import basiclti.models.LtiLaunchConfiguration.Keys
 
 case class LtiData(outcomeUrl: Option[String],
                    resultSourcedId: Option[String],
@@ -8,21 +9,38 @@ case class LtiData(outcomeUrl: Option[String],
                    resourceLinkId: Option[String],
                    roles: Seq[String],
                    selectionDirective: Option[String],
-                   oauthConsumerKey:Option[String])
+                   oauthConsumerKey: Option[String],
+                   canvasConfigId: Option[String])
 
 object LtiData {
+
+  object Keys {
+
+    val OutcomeServiceUrl: String = "lis_outcome_service_url"
+    val ResultSourcedId: String = "lis_result_sourcedid"
+    val LaunchPresentationReturnUrl: String = "launch_presentation_url"
+    val ResourceLinkId: String = "resource_link_id"
+    val Roles: String = "roles"
+    //TODO: still need this?
+    val SelectionDirective: String = "selection_directive"
+    val CanvasConfigId: String = "canvas_config_id"
+    val OAuthConsumerKey: String = "oauth_consumer_key"
+  }
+
+
   def apply(request: Request[AnyContent]): Option[LtiData] = request.body.asFormUrlEncoded match {
     case Some(form) => {
 
       Some(
         new LtiData(
-          outcomeUrl = getString(form.get("lis_outcome_service_url")),
-          resultSourcedId = getString(form.get("lis_result_sourcedid")),
-          returnUrl = getString(form.get("launch_presentation_return_url")),
-          resourceLinkId = getString(form.get("resource_link_id")),
-          roles = getSeq(form.get("roles")),
-          selectionDirective = getString(form.get("selection_directive")),
-          oauthConsumerKey = getString(form.get("oauth_consumer_key"))
+          outcomeUrl = getString(form.get(Keys.OutcomeServiceUrl)),
+          resultSourcedId = getString(form.get(Keys.ResultSourcedId)),
+          returnUrl = getString(form.get(Keys.LaunchPresentationReturnUrl)),
+          resourceLinkId = getString(form.get(Keys.ResourceLinkId)),
+          roles = getSeq(form.get(Keys.Roles)),
+          selectionDirective = getString(form.get(Keys.SelectionDirective)),
+          oauthConsumerKey = getString(form.get(Keys.OAuthConsumerKey)),
+          canvasConfigId = getString(form.get(Keys.CanvasConfigId))
         )
       )
     }
