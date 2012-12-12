@@ -4,14 +4,17 @@ import org.specs2.mutable.Specification
 import tests.PlaySingleton
 import play.api.test.{FakeHeaders, FakeRequest}
 import basiclti.controllers.AssignmentLauncher
-import basiclti.models.LtiData
+import basiclti.models.{LtiLaunchConfiguration, LtiRequestAdapter, LtiOAuthConsumer, LtiData}
 import play.api.test.Helpers._
-import play.api.mvc.{AnyContentAsFormUrlEncoded, AnyContent}
+import play.api.mvc._
 import models.{ContentCollection, Organization}
-import play.api.mvc.Result
 import models.auth.ApiClient
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
+import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
+import play.api.test.FakeHeaders
+import scala.Some
+import play.api.mvc.AnyContentAsFormUrlEncoded
 
 class AssignmentLauncherTest extends Specification {
 
@@ -34,47 +37,113 @@ class AssignmentLauncherTest extends Specification {
 
   val Call = basiclti.controllers.routes.AssignmentLauncher.launch()
 
-  def callWithOrg( org : Organization, params : (String,String)* ) : Option[Result] = {
+  /**
+   * Execute a POST Form request w/ oauth_signature for the given org.
+   * @param params - additional params to send
+   * @return
+   */
+  def callWithApiClient( apiClient : ApiClient, params : (String,String)* ) : Option[Result] = {
 
-    val apiClient : ApiClient = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> org.id)).get
-
-    val defaultParams : Seq[(String, String)] = Seq(
-      (AssignmentLauncher.LtiKeys.ConsumerKey, apiClient.clientId.toString),
-      (LtiData.Keys.OutcomeServiceUrl, "service_url"),
-      ("oauth_signature", "blah"),
-      ("oauth_signature_method", "HMAC-SHA1"),
-      ("oauth_callback", "about%3Ablank"),
-      ("oauth_timestamp", "1355143263"),
-      ("oauth_nonce", "NNRHA0eRjU0mhTxjByFrINfn4Z1dmBmVIuJiFg")
+    val defaultParams : Map[String, String] = Map(
+      AssignmentLauncher.LtiKeys.ConsumerKey -> apiClient.clientId.toString,
+      LtiData.Keys.OutcomeServiceUrl -> "service_url",
+      "oauth_signature_method" -> "HMAC-SHA1",
+      "oauth_callback" -> "about%3Ablank",
+      "oauth_timestamp" -> "1355143263",
+      "oauth_nonce" -> "NNRHA0eRjU0mhTxjByFrINfn4Z1dmBmVIuJiFg"
     )
 
-    val allParams : Seq[(String,String)] = defaultParams ++ params
-    val out: Seq[(String,Seq[String])] = allParams.map( (kv) => (kv._1, Seq(kv._2)))
-    val request : FakeRequest[AnyContentAsFormUrlEncoded] =
-    new FakeRequestWithHost(Call.method, Call.url, new FakeHeaders(), AnyContentAsFormUrlEncoded(out.toMap), hostOverride = "http://localhost:9000" )
-    routeAndCall(request)
+    val allParams : Map[String,String] = defaultParams ++ params
+
+    def asForm(m:Map[String,String]) : Map[String,Seq[String]] = m.map( (kv) => (kv._1, Seq(kv._2)))
+
+    def makeFake(c:Call, form:Map[String,Seq[String]]) : FakeRequest[AnyContentAsFormUrlEncoded] = {
+        new FakeRequestWithHost(c.method, c.url, new FakeHeaders(), AnyContentAsFormUrlEncoded(form), hostOverride = "localhost:9000" )
+    }
+
+    def getSignature(key:String, secret : String, request:Request[AnyContent]) : String = {
+      val consumer : LtiOAuthConsumer = new LtiOAuthConsumer(key, secret)
+      consumer.sign(request)
+      consumer.setSigningStrategy(new AuthorizationHeaderSigningStrategy())
+      consumer.getOAuthSignature().get
+    }
+
+    val request = makeFake(Call,asForm(allParams))
+    val signature = getSignature(apiClient.clientId.toString, apiClient.clientSecret, request)
+    val finalParams = allParams + ("oauth_signature" -> signature )
+    val finalRequest = makeFake(Call, asForm(finalParams))
+    routeAndCall(finalRequest)
   }
 
   def getOrg : Organization = Organization.findOneById(MockOrgId).get
 
+  def configureLaunchConfig(resourceLinkId:String, itemId:ObjectId, key : String ) : LtiLaunchConfiguration = {
+    LtiLaunchConfiguration.findByResourceLinkId(resourceLinkId) match {
+      case Some(config) => {
+        val newConfig = LtiLaunchConfiguration.copy(config,
+          Map(LtiLaunchConfiguration.Keys.itemId -> Some(itemId))
+        )
+        LtiLaunchConfiguration.update(newConfig)
+        newConfig
+      }
+      case _ => {
+        val newConfig = new LtiLaunchConfiguration(
+          resourceLinkId = resourceLinkId,
+          itemId = Some(itemId),
+          oauthConsumerKey = Some(key),
+          sessionSettings = None)
+        LtiLaunchConfiguration.create(newConfig)
+        newConfig
+      }
+    }
+  }
+
   "Assignment launcher" should {
 
-    "parse the request info" in {
+    "launching as an instructor creates a new launch config" in {
 
       val org = getOrg
+      val apiClient : ApiClient = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> org.id)).get
 
-      val result = callWithOrg(org,
+      val result = callWithApiClient(apiClient,
         (LtiData.Keys.Roles, "Instructor"),
         (LtiData.Keys.ResourceLinkId, "1") )
 
-      println("result -->")
-      println(contentAsString(result.get))
       result match {
-        case Some(r) => status(r) === OK
-        case _ => failure
+        case Some(r) => {
+          LtiLaunchConfiguration.findByResourceLinkId("1") match {
+            case Some(config) => {
+              config.oauthConsumerKey === Some(apiClient.clientId.toString)
+              config.itemId === None
+            }
+            case _ => failure("no launch config found")
+          }
+          status(r) === OK
+        }
+        case _ => failure("no result")
       }
+    }
 
-      true === true
+
+    "launching as a student returns a redirect to the player if the teacher has configured an item id" in {
+      val org = getOrg
+      val apiClient = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> org.id)).get
+      val config = configureLaunchConfig("1", new ObjectId(), apiClient.clientId.toString)
+      val expectedRedirectCall = basiclti.controllers.routes.AssignmentPlayer.run(config.id, "1")
+
+      val result = callWithApiClient(apiClient,
+        (LtiData.Keys.Roles -> "Student"),
+        (LtiData.Keys.ResourceLinkId -> "1"),
+        (LtiData.Keys.ResultSourcedId -> "1"),
+        (LtiData.Keys.LaunchPresentationReturnUrl -> "some_return_url")
+      )
+      result match {
+        case Some(r) => {
+          status(r) === SEE_OTHER
+          header("Location", r).getOrElse("?") === expectedRedirectCall.url
+        }
+        case _ => failure("no result returned")
+      }
     }
   }
 

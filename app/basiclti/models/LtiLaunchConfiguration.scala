@@ -97,6 +97,11 @@ object LtiLaunchConfiguration {
 
   object Keys{
     val resourceLinkId:String = "resourceLinkId"
+    val oauthConsumerKey : String = "oauthConsumerKey"
+    val sessionSettings: String = "sessionSettings"
+    val itemId: String = "itemId"
+    val assignments: String = "assignments"
+    val id : String = "id"
   }
 
   def collection : MongoCollection = ModelCompanion.collection
@@ -123,6 +128,17 @@ object LtiLaunchConfiguration {
    }
   }
 
+
+  def copy(config:LtiLaunchConfiguration, map : Map[String,Any]) : LtiLaunchConfiguration = {
+    new LtiLaunchConfiguration(
+      resourceLinkId = map.get(Keys.resourceLinkId).getOrElse(config.resourceLinkId).asInstanceOf[String],
+      oauthConsumerKey = map.get(Keys.oauthConsumerKey).getOrElse(config.oauthConsumerKey).asInstanceOf[Option[String]],
+      assignments = map.get(Keys.assignments).getOrElse(config.assignments).asInstanceOf[Seq[Assignment]],
+      sessionSettings = map.get(Keys.sessionSettings).getOrElse(config.sessionSettings).asInstanceOf[Option[ItemSessionSettings]],
+      itemId = map.get(Keys.itemId).getOrElse(config.itemId).asInstanceOf[Option[ObjectId]],
+      id = config.id
+    )
+  }
 
 }
 
