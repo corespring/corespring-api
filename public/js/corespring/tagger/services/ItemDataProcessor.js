@@ -104,16 +104,23 @@ com.corespring.model.ItemDataProcessor = function () {
         }
     };
 
-    this.$defaults = {
-        keySkills:_.map(window.fieldValues.keySkills, function (k) {
-            return {header:k.key, list:k.value}
-        }),
-        reviewsPassed:_.map(window.fieldValues.reviewsPassed, function (g) {
-            return {key:g.key, label:g.value}
-        }),
-        gradeLevels:_.map(window.fieldValues.gradeLevels, function (g) {
-            return {key:g.key, label:g.value}
-        })
+    this.$defaults = function(){
+
+        if(!window.fieldValues){
+          return {};
+        }
+
+        return {
+          keySkills:_.map(window.fieldValues.keySkills, function (k) {
+              return {header:k.key, list:k.value}
+          }),
+          reviewsPassed:_.map(window.fieldValues.reviewsPassed, function (g) {
+              return {key:g.key, label:g.value}
+          }),
+          gradeLevels:_.map(window.fieldValues.gradeLevels, function (g) {
+              return {key:g.key, label:g.value}
+          })
+        }
     };
 
     this.createWorkflowObject = function () {

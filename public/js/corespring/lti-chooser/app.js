@@ -1,25 +1,73 @@
-angular.module("lti-chooser", ['lti-services', 'ngResource']);
+angular.module("lti-chooser", ['tagger.services','lti-services', 'ngResource']);
 
 angular.module("lti-services", ['ngResource'])
   .factory("LaunchConfigService", [ '$resource', function($resource){
     return $resource("/lti/launch-config/:id", {}, { save: { method: "PUT"}});
   }])
 
-  .factory("ItemService", ['$resource', function($resource){
+  .factory("LtiItemService", ['$resource', function($resource){
     return $resource("/api/v1/items/:id", {} );
   }]);
 
 
+function SearchController($scope, $rootScope, $http, ItemService, SearchService, Collection) {
+  $http.defaults.headers.get = ($http.defaults.headers.get || {});
+  $http.defaults.headers.get['Content-Type'] = 'application/json';
 
-function LtiChooserController($scope, Config, LaunchConfigService, ItemService){
+  $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
+
+  var init = function(){
+    $scope.search();
+    loadCollections();
+  };
+
+  $scope.search = function() {
+    SearchService.search($scope.searchParams, function(res){
+      $rootScope.items = res;
+    });
+  };
+
+  $scope.loadMore = function () {
+    SearchService.loadMore(function () {
+        // re-bind the scope collection to the services model after result comes back
+        $rootScope.items = SearchService.itemDataCollection;
+      }
+    );
+  };
+
+  function loadCollections() {
+    Collection.get({}, function (data) {
+        $scope.collections = data;
+      },
+      function () {
+        console.log("load collections: error: " + arguments);
+      });
+  }
+  init();
+}
+SearchController.$inject = ['$scope',
+  '$rootScope',
+  '$http',
+  'ItemService',
+  'SearchService',
+  'Collection'];
+
+
+function LtiChooserController($scope, Config, LaunchConfigService, LtiItemService){
   //console.log("lti chooser controller: " + $scope + $resource, Config);
+
+  $scope.showTip = true;
+
+  $scope.$on('searchCompleted', function(event, items){
+    $scope.items = items;
+  });
 
   $scope.updateHasItem = function(){
 
     $scope.hasItem  = $scope.config.itemId !== undefined;
 
     if($scope.hasItem){
-      ItemService.get({id:$scope.config.itemId}, function(data){
+      LtiItemService.get({id:$scope.config.itemId}, function(data){
         $scope.item = data;
       });
     }
@@ -69,4 +117,4 @@ function LtiChooserController($scope, Config, LaunchConfigService, ItemService){
   init();
 }
 
-LtiChooserController.$inject = ['$scope', 'Config', 'LaunchConfigService', 'ItemService'];
+LtiChooserController.$inject = ['$scope', 'Config', 'LaunchConfigService', 'LtiItemService'];

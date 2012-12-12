@@ -1,0 +1,46 @@
+@navbar-height: 40px;
+@max-width: 400px;
+
+td.small-title{
+  font-size: 12px;
+}
+
+.main-content {
+  position:relative;
+  top: 80px;
+
+  .item-list {
+    max-width: @max-width;
+  }
+}
+
+.sub-nav{
+  position: fixed;
+  z-index: 10003;
+
+  .container{
+    max-width: 400px;
+    margin: 0 auto;
+    width: 400px;
+
+    input, select{
+      margin-left: 10px;
+    }
+  }
+}
+
+.navbar {
+  height: @navbar-height;
+
+  .navbar-inner{
+    height: @navbar-height;
+
+    .container{
+      padding-top: 8px;
+    }
+  }
+
+  .search-input{
+    height: 30px;
+  }
+}

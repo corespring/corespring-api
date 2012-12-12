@@ -3,7 +3,7 @@ package basiclti.controllers.dev
 import play.api.mvc._
 import securesocial.core.SecureSocial
 import models.auth.ApiClient
-import controllers.auth.BaseApi
+import controllers.auth.{OAuthConstants, BaseApi}
 import basiclti.controllers.AssignmentLauncher
 import basiclti.models.{LtiOAuthConsumer, LtiData}
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
@@ -11,6 +11,7 @@ import scala.Some
 import org.jboss.netty.handler.codec.http.HttpMethod
 import org.bson.types.ObjectId
 import play.Logger
+import play.api.Play
 
 object TestHarness extends BaseApi with SecureSocial {
 
@@ -18,10 +19,21 @@ object TestHarness extends BaseApi with SecureSocial {
    * The initial form where you can set up your settings
    * @return
    */
-  def begin = SecuredAction() {
-    request =>
-      val url = basiclti.controllers.dev.routes.TestHarness.prepare().url
-      Ok(basiclti.views.html.dev.launchItemChooser(url))
+  def begin = {
+    val url = basiclti.controllers.dev.routes.TestHarness.prepare().url
+
+    if(Play.isDev(Play.current)){
+      Action{ request =>
+        Ok(basiclti.views.html.dev.launchItemChooser(url))
+          .withSession(OAuthConstants.AccessToken -> common.mock.MockToken)
+      }
+    }
+    else {
+      SecuredAction() {
+        request =>
+          Ok(basiclti.views.html.dev.launchItemChooser(url))
+    }
+  }
   }
 
   /**

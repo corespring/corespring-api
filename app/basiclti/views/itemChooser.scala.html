@@ -4,43 +4,74 @@
 <head>
     @common.views.html.head.coreJs()
     @common.views.html.head.bootstrap()
+    @common.views.html.head.ubuntu()
     @common.views.html.head.angular()
+    @web.views.html.head.taggerApp()
+
+    <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
+    <link href="/assets/stylesheets/lti-item-chooser.css" rel="stylesheet"/>
 
     <script type="text/javascript" src="/assets/js/corespring/lti-chooser/app.js"></script>
 
     <script>
-        (function() {
+        (function () {
 
             angular.module('lti-chooser')
-                .factory("Config", function(){
-                    return {
-                        configurationId: "@configId",
-                        selectionDirective: "@selectionDirective",
-                        returnUrl : "@returnUrl"
-                    };
-                });
+                    .factory("Config", function () {
+                        return {
+                            configurationId: "@configId",
+                            selectionDirective: "@selectionDirective",
+                            returnUrl: "@returnUrl"
+                        };
+                    });
         })();
     </script>
 </head>
 <body style="padding:20px;" ng-controller="LtiChooserController">
-<div ng-show="!hasItem">
-    <div>
-        Enter an item id:
-        <input type="text" ng-model="config.itemId" id="name">
-        <button type="button" class="btn" ng-click="saveItem()" id="save">Save</button>
+<div class="navbar navbar-fixed-top">
+
+    <div class="navbar-inner">
+        <div class="container">
+            <img src="/assets/images/cs-white-logo-11px.png"
+                 alt="Corespring"/>
+        </div>
     </div>
-    @testplayer.views.html.partials.sessionSettings("config.sessionSettings")
 </div>
-<div ng-show="hasItem">
-    <p>{{item.title}}</p>
-    @testplayer.views.html.partials.sessionSettings("config.sessionSettings", true)
-    <button class="btn" ng-click="change()">Change</button>
-    <button class="btn" ng-click="done()">Done</button>
 
-    <br/>
-    {{getNumberOfAssignments(config)}} student(s) has taken this assignment
+@web.views.html.partials._home.subNav(
+     Html(<select style="max-width: 50px;" ng-options="grade.key for grade in gradeLevelDataProvider"
+            ng-model="searchParams.gradeLevel"
+            ng-change="search()">
+        <option value="">All</option>
+    </select>.toString),
+    "SearchController"
+)
 
+<div class="main-content">
+    <span ng-show="!items"><h3>Use the search bar to search for items...</h3></span>
 
+    @web.views.html.partials._home.itemList(
+         (<th>title</th>).mkString("\n"),
+         (<td class="small-title">{{item.title}}</td>).mkString("\n") )
+    <!--
+    <div ng-show="!hasItem">
+        <div>
+            Enter an item id:
+            <input type="text" ng-model="config.itemId" id="name">
+            <button type="button" class="btn" ng-click="saveItem()" id="save">Save</button>
+        </div>
+        @testplayer.views.html.partials.sessionSettings("config.sessionSettings")
+    </div>
+    -->
+    <div ng-show="hasItem">
+        <p>{{item.title}}</p>
+        @testplayer.views.html.partials.sessionSettings("config.sessionSettings", true)
+        <button class="btn" ng-click="change()">Change</button>
+        <button class="btn" ng-click="done()">Done</button>
+
+        <br/>
+        {{getNumberOfAssignments(config)}} student(s) has taken this assignment
+    </div>
 </div>
 </body>
 </html>
