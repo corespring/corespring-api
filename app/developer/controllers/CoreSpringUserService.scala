@@ -1,7 +1,7 @@
-package web
+package developer.controllers
 
 import _root_.controllers.auth.Permission
-import _root_.controllers.{Utils, Log}
+import _root_.controllers.Log
 import _root_.models.{User, RegistrationToken}
 import securesocial.core._
 import play.api.Application

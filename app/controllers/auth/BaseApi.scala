@@ -8,7 +8,6 @@ import play.api.libs.json.Json
 import org.bson.types.ObjectId
 import models.User
 import securesocial.core.SecureSocial
-import web.CoreSpringUserService
 
 
 /**

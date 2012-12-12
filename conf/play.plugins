@@ -1,8 +1,8 @@
 500:se.radley.plugin.salat.SalatPlugin
 1500:com.typesafe.plugin.CommonsMailerPlugin
 9996:securesocial.core.providers.utils.DefaultPasswordValidator
-9997:web.CoreSpringViews
-9998:web.CoreSpringUserService
+9997:developer.controllers.CoreSpringViews
+9998:developer.controllers.CoreSpringUserService
 9999:securesocial.core.providers.utils.BCryptPasswordHasher
 10000:securesocial.core.providers.UsernamePasswordProvider
 10001:securesocial.core.providers.TwitterProvider

@@ -144,7 +144,7 @@ object Developer extends Controller with SecureSocial{
     val action = securesocial.controllers.Registration.handleStartSignUp(request)
     action match {
       case BadRequest => action
-      case _ => Ok(web.views.html.ss.registerDone())
+      case _ => Ok(developer.views.html.registerDone())
     }
   }
   def handleSignUp(token:String) = Action { request =>
