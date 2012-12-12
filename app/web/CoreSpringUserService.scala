@@ -48,6 +48,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
           Seq(),
           user.passwordInfo.getOrElse(PasswordInfo("")).password,
           user.id.providerId,
+          false,
           new ObjectId())
 
       // hardcode this org id for now?

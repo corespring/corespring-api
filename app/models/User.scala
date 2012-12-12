@@ -36,6 +36,7 @@ case class User(var userName: String = "",
                  var orgs: Seq[UserOrg] = Seq(),
                  var password: String = "",
                  var provider : String = "userpass",
+                 var hasRegisteredOrg:Boolean = false,
                  var id: ObjectId = new ObjectId()
                ) extends Identifiable
 
@@ -46,6 +47,7 @@ object User extends DBQueryable[User]{
   val orgs = "orgs"
   val password = "password"
   val provider = "provider"
+  val hasRegisteredOrg = "hasRegisteredOrg";
 
   val collection = mongoCollection("users")
   val dao = new SalatDAO[User, ObjectId](collection = collection) {}
@@ -104,7 +106,9 @@ object User extends DBQueryable[User]{
   def addOrganization(userId: ObjectId, orgId: ObjectId, p : Permission):Either[InternalError,Unit] = {
     val userOrg = UserOrg(orgId,p.value)
     try{
-      User.update(MongoDBObject("_id" -> userId),MongoDBObject("$addToSet" -> MongoDBObject("orgs" -> grater[UserOrg].asDBObject(userOrg))),false,false,defaultWriteConcern);
+      User.update(MongoDBObject("_id" -> userId),
+        MongoDBObject("$set" -> MongoDBObject(hasRegisteredOrg -> true), "$addToSet" -> MongoDBObject("orgs" -> grater[UserOrg].asDBObject(userOrg))),
+        false,false,defaultWriteConcern);
       Right(())
     }catch{
       case e:SalatDAOUpdateError => Left(InternalError("could add organization to user", addMessageToClientOutput = true))

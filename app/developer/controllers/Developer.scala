@@ -13,7 +13,6 @@ import play.api.libs.json.JsObject
 import play.api.libs.json.JsBoolean
 import scala.Some
 import scala.Right
-import securesocial.controllers.Registration
 import scala.Left
 import securesocial.core.SocialUser
 import play.api.libs.json.JsString
@@ -32,7 +31,7 @@ object Developer extends Controller with SecureSocial{
       case Some(username) =>
         User.getUser(username) match {
         case Some(user) =>
-          if(user.orgs.size <= 1){
+          if(!user.hasRegisteredOrg){
           Redirect("/developer/org/form")
         }else{
           Assets.at("/public/developer", "index.html")(request)
@@ -141,14 +140,15 @@ object Developer extends Controller with SecureSocial{
     }
   }
 
-
-
   def handleStartSignUp = Action { implicit request =>
-    val action = Registration.handleStartSignUp(request)
+    val action = securesocial.controllers.Registration.handleStartSignUp(request)
     action match {
       case BadRequest => action
       case _ => Ok(web.views.html.ss.registerDone())
     }
+  }
+  def handleSignUp(token:String) = Action { request =>
+    MyRegistration.handleSignUp(token)(request)
   }
 }
 

@@ -181,7 +181,7 @@ GET     /logout                     securesocial.controllers.LoginPage.logout
 GET     /signup                     securesocial.controllers.Registration.startSignUp
 POST    /signup                     developer.controllers.Developer.handleStartSignUp
 GET     /signup/:token              securesocial.controllers.Registration.signUp(token)
-POST    /signup/:token              securesocial.controllers.Registration.handleSignUp(token)
+POST    /signup/:token              developer.controllers.Developer.handleSignUp(token)
 GET     /reset                      securesocial.controllers.Registration.startResetPassword
 POST    /reset                      securesocial.controllers.Registration.handleStartResetPassword
 GET     /reset/:token               securesocial.controllers.Registration.resetPassword(token)
