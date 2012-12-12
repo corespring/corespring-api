@@ -9,6 +9,7 @@ import scala.Right
 import org.bson.types.ObjectId
 import com.mongodb.util.JSON
 import models.QueryField
+import play.api.libs.json.{JsString, JsObject}
 
 /**
  * Created with IntelliJ IDEA.
@@ -30,5 +31,6 @@ object Utils {
     c.close()
     seq
   }
+
 }
 case class JsonValidationException(field:String) extends RuntimeException("invalid value for: "+field)

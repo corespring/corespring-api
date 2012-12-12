@@ -21,6 +21,7 @@ class CoreSpringViews(application: Application) extends TemplatesPlugin {
    */
   override def getLoginPage[A](implicit request: Request[A], form: Form[(String, String)],
                                msg: Option[String] = None): Html = {
+
     web.views.html.ss.login(form, msg)
   }
 
