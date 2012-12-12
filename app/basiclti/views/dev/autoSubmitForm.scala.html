@@ -1,0 +1,19 @@
+@(url:String, params : Map[String,String])
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auto submit form</title>
+</head>
+<body>
+
+@helper.form(basiclti.controllers.routes.AssignmentLauncher.launch) {
+
+    @params.map { p =>
+        @p._1 : <input name="@p._1" value="@p._2" type="text"/><br/>
+    }
+
+    <input type="submit"/>
+
+}
+</body>
+</html>

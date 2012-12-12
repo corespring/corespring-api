@@ -40,4 +40,5 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
     case Some(id) => findOne(MongoDBObject(ApiClient.orgId -> id))
     case _ => None
   }
+
 }

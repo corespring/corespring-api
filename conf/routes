@@ -157,7 +157,8 @@ GET    /web/print-resource-profile/:itemId                  web.controllers.Main
 #
 GET     /lti/launch-config/:id                  basiclti.controllers.LaunchConfig.get(id:ObjectId)
 PUT     /lti/launch-config/:id                  basiclti.controllers.LaunchConfig.update(id:ObjectId)
-GET     /lti/dev/launch-item-chooser            basiclti.controllers.AssignmentLauncher.mockLauncher
+GET     /lti/dev/test-harness                   basiclti.controllers.dev.TestHarness.begin
+POST    /lti/dev/prepare                        basiclti.controllers.dev.TestHarness.prepare
 GET     /lti/item-chooser.xml                   basiclti.controllers.AssignmentLauncher.xmlConfiguration
 POST    /lti/assignment/launch                  basiclti.controllers.AssignmentLauncher.launch()
 GET     /lti/assignment/error/authorization     basiclti.controllers.AssignmentLauncher.authorizationError

@@ -1,4 +1,4 @@
-@(launchUrl:String)
+@(prepareFormUrl:String)
 <!DOCTYPE html>
 <html>
 <head>
@@ -45,7 +45,7 @@ itemId=5020025fe4b0b0fa073aa3d7
           selectionDirective = getString(form.get("selection_directive"))
 -->
 
-    <form action="@launchUrl" method="POST">
+    <form action="@prepareFormUrl" method="POST">
         <input type="radio" name="roles" value="Instructor">Instructor</input>
         <br/>
         <input type="radio" name="roles" value="Student">Student</input>
