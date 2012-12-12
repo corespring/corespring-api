@@ -13,6 +13,7 @@ import play.api.libs.json.JsObject
 import play.api.libs.json.JsBoolean
 import scala.Some
 import scala.Right
+import securesocial.controllers.Registration
 
 object Developer extends Controller with SecureSocial{
 
@@ -112,6 +113,16 @@ object Developer extends Controller with SecureSocial{
         }else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
       }
       case None => InternalServerError("could not find user...after authentication. something is very wrong")
+    }
+  }
+
+
+
+  def handleStartSignUp = Action { implicit request =>
+    val action = Registration.handleStartSignUp(request)
+    action match {
+      case BadRequest => action
+      case _ => Ok(web.views.html.ss.registerDone())
     }
   }
 }
