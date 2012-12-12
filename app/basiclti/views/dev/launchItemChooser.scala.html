@@ -2,11 +2,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
+    <title>Corespring LTI Test Harness</title>
+    @common.views.html.head.coreJs()
+    @common.views.html.head.ubuntu()
+    @common.views.html.head.bootstrap()
 </head>
-<body>
-    <h1>Launch item-chooser</h1>
-
+<body style="padding: 20px">
+    <h1>Corespring LTI Test Harness</h1>
+    <h6>To trigger a simulated LTI launch, enter the information you with to test below.</h6>
     <!--
     context_title=eeeeeee
 context_id=c4d47e01edf2eb617801ce7a1ee72d1b2ca98432
@@ -45,20 +48,40 @@ itemId=5020025fe4b0b0fa073aa3d7
           selectionDirective = getString(form.get("selection_directive"))
 -->
 
-    <form action="@prepareFormUrl" method="POST">
-        <input type="radio" name="roles" value="Instructor">Instructor</input>
-        <br/>
-        <input type="radio" name="roles" value="Student">Student</input>
-        <br/>
-        Resource link id: <input type="text" name="resource_link_id"/>
-        <br/>
-        <br/>
-        result sourced id: <input type="text" name="lis_result_sourcedid"/>
-        <br/>
-        <input type="hidden" name="selection_directive" value="select_link"/>
-        <input type="hidden" name="lis_outcome_service_url" value="???"/>
-        <input type="hidden" name="launch_presentation_return_url" value="???"/>
-        <input type="submit"/>
+    <form action="@prepareFormUrl" method="POST" class="form-horizontal">
+        <div class="control-group">
+            <label class="control-label">Role</label>
+            <div class="controls">
+                <label class="radio">
+                    <input type="radio" name="roles" value="Instructor"/>
+                    Instructor
+                </label>
+                <label class="radio">
+                    <input type="radio" name="roles" value="Student"/>
+                    Student
+                </label>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Resource link id</label>
+            <div class="controls">
+                 <input type="text" name="resource_link_id"/>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Result Sourced id</label>
+            <div class="controls">
+                 <input type="text" name="lis_result_sourcedid"/>
+            </div>
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <input type="hidden" name="selection_directive" value="select_link"/>
+                <input type="hidden" name="lis_outcome_service_url" value="???"/>
+                <input type="hidden" name="launch_presentation_url" value="http://localhost:9000/lti/dev/test-harness"/>
+                <button type="submit" class="btn">Go!</button>
+            </div>
+        </div>
     </form>
 </body>
 </html>
