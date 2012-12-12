@@ -25,7 +25,7 @@ import com.mongodb.casbah.MongoCollection
 case class LtiLaunchConfiguration(resourceLinkId:String,
                                   itemId:Option[ObjectId],
                                   sessionSettings:Option[ItemSessionSettings],
-                                  oauthConsumerKey:Option[String],
+                                  orgId:Option[ObjectId],
                                   assignments : Seq[Assignment] = Seq(),
                                   id:ObjectId = new ObjectId())
 {
@@ -60,7 +60,7 @@ case class LtiLaunchConfiguration(resourceLinkId:String,
           this.resourceLinkId,
           this.itemId,
           this.sessionSettings,
-          this.oauthConsumerKey,
+          this.orgId,
           newAssignments,
           this.id)
         LtiLaunchConfiguration.update(newConfig)
@@ -97,7 +97,7 @@ object LtiLaunchConfiguration {
 
   object Keys{
     val resourceLinkId:String = "resourceLinkId"
-    val oauthConsumerKey : String = "oauthConsumerKey"
+    val orgId : String = "orgId"
     val sessionSettings: String = "sessionSettings"
     val itemId: String = "itemId"
     val assignments: String = "assignments"
@@ -112,6 +112,11 @@ object LtiLaunchConfiguration {
 
   def findByResourceLinkId(linkId:String) : Option[LtiLaunchConfiguration] = {
     findOne(MongoDBObject(Keys.resourceLinkId -> linkId))
+  }
+
+  def canUpdate(id:ObjectId, orgId : ObjectId) : Boolean =  LtiLaunchConfiguration.findOneById(id) match {
+    case Some(dbConfig) => dbConfig.orgId.isDefined && dbConfig.orgId.get == orgId
+    case _ => false
   }
 
   def create(c:LtiLaunchConfiguration) {
@@ -132,7 +137,7 @@ object LtiLaunchConfiguration {
   def copy(config:LtiLaunchConfiguration, map : Map[String,Any]) : LtiLaunchConfiguration = {
     new LtiLaunchConfiguration(
       resourceLinkId = map.get(Keys.resourceLinkId).getOrElse(config.resourceLinkId).asInstanceOf[String],
-      oauthConsumerKey = map.get(Keys.oauthConsumerKey).getOrElse(config.oauthConsumerKey).asInstanceOf[Option[String]],
+      orgId = map.get(Keys.orgId).getOrElse(config.orgId).asInstanceOf[Option[ObjectId]],
       assignments = map.get(Keys.assignments).getOrElse(config.assignments).asInstanceOf[Seq[Assignment]],
       sessionSettings = map.get(Keys.sessionSettings).getOrElse(config.sessionSettings).asInstanceOf[Option[ItemSessionSettings]],
       itemId = map.get(Keys.itemId).getOrElse(config.itemId).asInstanceOf[Option[ObjectId]],

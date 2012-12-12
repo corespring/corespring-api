@@ -120,11 +120,16 @@ object AssignmentLauncher extends BaseApi {
     LtiLaunchConfiguration.findByResourceLinkId(id) match {
       case Some(config) => config
       case _ => {
+
+        require(data.oauthConsumerKey.isDefined, "oauth consumer must be defined")
+
+        val client = ApiClient.findByKey(data.oauthConsumerKey.get)
+
         val newConfig = new LtiLaunchConfiguration(
           resourceLinkId = id,
           itemId = None,
           sessionSettings = Some(new ItemSessionSettings()),
-          oauthConsumerKey = data.oauthConsumerKey
+          orgId = client.map( _.orgId )
         )
         LtiLaunchConfiguration.create(newConfig)
         newConfig
@@ -174,49 +179,12 @@ object AssignmentLauncher extends BaseApi {
     case _ => Left("Can't find config")
   }
 
-  private def sendScore(session: ItemSession, assignment: Assignment, key: String) = {
-
-    def sendResultsToPassback(consumer: LtiOAuthConsumer, score: String) = {
-      WS.url(assignment.gradePassbackUrl)
-        .sign(
-        OAuthCalculator(ConsumerKey(consumer.getConsumerKey, consumer.getConsumerSecret),
-          RequestToken(consumer.getToken, consumer.getTokenSecret)))
-        .withHeaders(("Content-Type", "application/xml"))
-        .post(responseXml(assignment.resultSourcedId, score))
-    }
-
-
-    ApiClient.findByKey(key) match {
-      case Some(client) => {
-
-        val consumer = LtiOAuthConsumer(client)
-        val score = getScore(session)
-
-        sendResultsToPassback(consumer, score).await(10000).fold(
-          error => throw new RuntimeException(error.getMessage),
-          response => {
-            val returnUrl = response.body match {
-              case e: String if e.contains("Invalid authorization header") => {
-                AssignmentLauncherRoutes.authorizationError().url
-              }
-              case _ => assignment.onFinishedUrl
-            }
-            Ok(toJson(Map("returnUrl" -> returnUrl)))
-          }
-        )
-      }
-      case _ => NotFound("Can't find api client")
-    }
-  }
-
   /**
-   * TODO: token secret
-   * @return
    */
   def process(configId: ObjectId, resultSourcedId: String) = ApiAction {
     request =>
 
-      require(!resultSourcedId.isEmpty)
+      require(!resultSourcedId.isEmpty, "no resultSourcedId specified - can't process")
 
       session(configId, resultSourcedId) match {
         case Left(msg) => BadRequest(msg)
@@ -225,10 +193,13 @@ object AssignmentLauncher extends BaseApi {
           LtiLaunchConfiguration.findOneById(configId) match {
             case Some(config) => {
 
-              require(config.oauthConsumerKey.isDefined)
+              require(config.orgId.isDefined)
 
               config.assignments.find(_.resultSourcedId == resultSourcedId) match {
-                case Some(a) => sendScore(session, a, config.oauthConsumerKey.get)
+                case Some(a) => {
+                  val client : Option[ApiClient] = ApiClient.findByOrgId(config.orgId)
+                  sendScore(session, a, client)
+                }
                 case _ => NotFound("Can't find assignment")
               }
             }
@@ -236,6 +207,46 @@ object AssignmentLauncher extends BaseApi {
           }
         }
       }
+  }
+
+  /**
+   * Send score to the LMS via a signed POST
+   * @see https://canvas.instructure.com/doc/api/file.assignment_tools.html
+   * @param session
+   * @param assignment
+   * @param maybeClient
+   * @return
+   */
+  private def sendScore(session: ItemSession, assignment: Assignment, maybeClient : Option[ApiClient] ) = maybeClient match {
+
+    case Some(client) => {
+
+      def sendResultsToPassback(consumer: LtiOAuthConsumer, score: String) = {
+        WS.url(assignment.gradePassbackUrl)
+          .sign(
+          OAuthCalculator(ConsumerKey(consumer.getConsumerKey, consumer.getConsumerSecret),
+            RequestToken(consumer.getToken, consumer.getTokenSecret)))
+          .withHeaders(("Content-Type", "application/xml"))
+          .post(responseXml(assignment.resultSourcedId, score))
+      }
+
+      val consumer = LtiOAuthConsumer(client)
+      val score = getScore(session)
+
+      sendResultsToPassback(consumer, score).await(10000).fold(
+        error => throw new RuntimeException(error.getMessage),
+        response => {
+          val returnUrl = response.body match {
+            case e: String if e.contains("Invalid authorization header") => {
+              AssignmentLauncherRoutes.authorizationError().url
+            }
+            case _ => assignment.onFinishedUrl
+          }
+          Ok(toJson(Map("returnUrl" -> returnUrl)))
+        }
+      )
+    }
+    case _ => throw new RuntimeException("Unable to send score - no client found")
   }
 
   def authorizationError = Action {

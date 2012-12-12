@@ -35,4 +35,9 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
   def findByKey(key:String) : Option[ApiClient] = {
     findOne(MongoDBObject(ApiClient.clientId -> new ObjectId(key)))
   }
+
+  def findByOrgId( oid:Option[ObjectId]) : Option[ApiClient] = oid match {
+    case Some(id) => findOne(MongoDBObject(ApiClient.orgId -> id))
+    case _ => None
+  }
 }

@@ -77,7 +77,7 @@ class AssignmentLauncherTest extends Specification {
 
   def getOrg : Organization = Organization.findOneById(MockOrgId).get
 
-  def configureLaunchConfig(resourceLinkId:String, itemId:ObjectId, key : String ) : LtiLaunchConfiguration = {
+  def configureLaunchConfig(resourceLinkId:String, itemId:ObjectId, client : ApiClient ) : LtiLaunchConfiguration = {
     LtiLaunchConfiguration.findByResourceLinkId(resourceLinkId) match {
       case Some(config) => {
         val newConfig = LtiLaunchConfiguration.copy(config,
@@ -90,7 +90,7 @@ class AssignmentLauncherTest extends Specification {
         val newConfig = new LtiLaunchConfiguration(
           resourceLinkId = resourceLinkId,
           itemId = Some(itemId),
-          oauthConsumerKey = Some(key),
+          orgId = Some(client.orgId),
           sessionSettings = None)
         LtiLaunchConfiguration.create(newConfig)
         newConfig
@@ -113,7 +113,7 @@ class AssignmentLauncherTest extends Specification {
         case Some(r) => {
           LtiLaunchConfiguration.findByResourceLinkId("1") match {
             case Some(config) => {
-              config.oauthConsumerKey === Some(apiClient.clientId.toString)
+              config.orgId === Some(apiClient.orgId)
               config.itemId === None
             }
             case _ => failure("no launch config found")
@@ -128,7 +128,7 @@ class AssignmentLauncherTest extends Specification {
     "launching as a student returns a redirect to the player if the teacher has configured an item id" in {
       val org = getOrg
       val apiClient = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> org.id)).get
-      val config = configureLaunchConfig("1", new ObjectId(), apiClient.clientId.toString)
+      val config = configureLaunchConfig("1", new ObjectId(), apiClient)
       val expectedRedirectCall = basiclti.controllers.routes.AssignmentPlayer.run(config.id, "1")
 
       val result = callWithApiClient(apiClient,

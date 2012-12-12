@@ -23,25 +23,28 @@ object LaunchConfig extends BaseApi {
   def update(id: ObjectId) = ApiAction {
     request =>
 
-      println(request.body)
-      config(request) match {
-        case Some(config) => {
-          if (id != config.id) {
-            BadRequest("the json id doesn't match the url id")
-          } else {
-            LtiLaunchConfiguration.update(config) match {
+      def canUpdate: Boolean = LtiLaunchConfiguration.canUpdate(id,request.ctx.organization)
+
+      if (canUpdate) {
+        config(request) match {
+          case Some(cfg) if (id != cfg.id) => BadRequest("the json id doesn't match the url id")
+          case Some(cfg) => {
+            LtiLaunchConfiguration.update(cfg) match {
               case Left(e) => BadRequest("Error updating")
               case Right(updatedConfig) => {
                 Ok(toJson(updatedConfig))
               }
             }
           }
+          case _ => BadRequest("Invalid json provided")
         }
-        case _ => BadRequest("Invalid json provided")
+      }
+      else {
+       BadRequest("You don't have the authority to update this configuration")
       }
   }
 
-  private def config(request : Request[AnyContent]) : Option[LtiLaunchConfiguration] = {
+  private def config(request: Request[AnyContent]): Option[LtiLaunchConfiguration] = {
     request.body.asJson match {
       case Some(json) => {
         try {
@@ -49,7 +52,7 @@ object LaunchConfig extends BaseApi {
           out
         }
         catch {
-          case e : Throwable => {
+          case e: Throwable => {
             play.Logger.warn(e.getMessage)
             None
           }
