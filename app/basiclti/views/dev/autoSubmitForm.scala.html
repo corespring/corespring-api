@@ -3,17 +3,22 @@
 <html>
 <head>
     <title>Auto submit form</title>
+    @common.views.html.head.coreJs()
+    <script type="text/javascript">
+
+        $(document).ready(function(){
+            $("form").submit();
+        })
+
+    </script>
 </head>
 <body>
 
 @helper.form(basiclti.controllers.routes.AssignmentLauncher.launch) {
 
     @params.map { p =>
-        @p._1 : <input name="@p._1" value="@p._2" type="text"/><br/>
+        <input name="@p._1" value="@p._2" type="hidden"/><br/>
     }
-
-    <input type="submit"/>
-
 }
 </body>
 </html>
