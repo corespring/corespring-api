@@ -10,7 +10,7 @@ import controllers.Log
 import controllers.auth.OAuthConstants
 
 
-object Application extends Controller{
+object Application extends Controller with securesocial.core.SecureSocial {
 
   def index = Action {
     Ok(publicsite.views.html.index())
@@ -18,9 +18,11 @@ object Application extends Controller{
   def contact = Action {
     Ok(publicsite.views.html.contact())
   }
-  def educators = Action {
-    Ok(publicsite.views.html.educators())
-    .withSession(OAuthConstants.AccessToken -> common.mock.MockToken)
+  def educators = UserAwareAction { implicit request =>
+    request.user match {
+      case Some(user) => Ok(publicsite.views.html.educators())
+      case _ => Ok(publicsite.views.html.educators()).withSession(OAuthConstants.AccessToken -> common.mock.MockToken)
+    }
   }
   def partnerships = Action {
     Ok(publicsite.views.html.partnerships())
