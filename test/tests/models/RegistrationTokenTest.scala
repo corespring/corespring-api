@@ -15,7 +15,8 @@ class RegistrationTokenTest extends BaseTest {
         uuid = "uuid",
         email = "email",
         creationTime = Some(new DateTime()),
-        expirationTime = Some(new DateTime() plusHours 1)
+        expirationTime = Some(new DateTime() plusHours 1),
+        isSignUp = true
       )
 
       val json = Json.toJson(token)
@@ -23,6 +24,7 @@ class RegistrationTokenTest extends BaseTest {
       (json \ RegistrationToken.Uuid).asOpt[String] must equalTo(Some("uuid"))
       (json \ RegistrationToken.Email).asOpt[String] must equalTo(Some("email"))
       (json \ RegistrationToken.Created).as[Long] must equalTo(token.creationTime.get.getMillis)
+      (json \ RegistrationToken.IsSignUp).as[Boolean] must equalTo(true)
     }
 
     "deserializing from json" in {
@@ -30,7 +32,8 @@ class RegistrationTokenTest extends BaseTest {
               uuid = "uuid",
               email = "email",
               creationTime = Some(new DateTime()),
-              expirationTime = Some(new DateTime() plusHours 1)
+              expirationTime = Some(new DateTime() plusHours 1),
+              isSignUp = true
             )
 
       val json = Json.toJson(token)
@@ -40,6 +43,7 @@ class RegistrationTokenTest extends BaseTest {
       parsed.email must equalTo(token.email)
       parsed.creationTime must equalTo(token.creationTime)
       parsed.expirationTime must equalTo(token.expirationTime)
+      parsed.isSignUp must equalTo(token.isSignUp)
     }
   }
 }

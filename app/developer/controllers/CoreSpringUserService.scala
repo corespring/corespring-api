@@ -39,29 +39,33 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
   }
 
   def save(user: SocialUser) {
-    if (User.getUser(user.id.id).isEmpty) {
-      val corespringUser =
-        User(
-          user.id.id,
-          user.fullName,
-          user.email.getOrElse(""),
-          Seq(),
-          user.passwordInfo.getOrElse(PasswordInfo("")).password,
-          user.id.providerId,
-          false,
-          new ObjectId())
+    User.getUser(user.id.id, user.id.providerId) match {
+      case None =>
+        val corespringUser =
+          User(
+            user.id.id,
+            user.fullName,
+            user.email.getOrElse(""),
+            Seq(),
+            user.passwordInfo.getOrElse(PasswordInfo("")).password,
+            user.id.providerId,
+            false,
+            new ObjectId())
 
-      // hardcode this org id for now?
-      val corespringId = new ObjectId("502404dd0364dc35bb39339a")
-      User.insertUser(corespringUser, corespringId, Permission.All, checkOrgId = false)
+        // hardcode this org id for now?
+        val corespringId = new ObjectId("502404dd0364dc35bb39339a")
+
+        User.insertUser(corespringUser, corespringId, Permission.All, checkOrgId = false)
+      case Some(existingUser) =>
+        existingUser.password = user.passwordInfo.getOrElse(PasswordInfo("")).password
+        User.save(existingUser)
     }
   }
 
-  def findByEmailAndProvider(email: String, providerId: String) =
-  {
+  def findByEmailAndProvider(email: String, providerId: String) = {
     User.findOne(MongoDBObject(User.email -> email)).map(u =>
       SocialUser(
-        UserId(u.id.toString, u.provider),
+        UserId(u.userName, u.provider),
         "",
         "",
         u.fullName,
@@ -74,13 +78,13 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
   }
 
   def save(token: Token) {
-    val newToken = RegistrationToken(token.uuid, token.email, Some(token.creationTime), Some(token.expirationTime))
+    val newToken = RegistrationToken(token.uuid, token.email, Some(token.creationTime), Some(token.expirationTime), token.isSignUp)
     RegistrationToken.insert(newToken)
   }
 
   def findToken(token: String) = {
     RegistrationToken.findOne(MongoDBObject(RegistrationToken.Uuid -> token)).map(regToken =>
-      Token(regToken.uuid, regToken.email, regToken.creationTime.get, regToken.expirationTime.get, true)
+      Token(regToken.uuid, regToken.email, regToken.creationTime.get, regToken.expirationTime.get, regToken.isSignUp)
     )
   }
 

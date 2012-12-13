@@ -52,7 +52,8 @@ class CoreSpringViews(application: Application) extends TemplatesPlugin {
    * @tparam A
    * @return
    */
-  def getResetPasswordPage[A](implicit request: Request[A], form: Form[(String, String)], token: String) = null
+  def getResetPasswordPage[A](implicit request: Request[A], form: Form[(String, String)], token: String) =
+    developer.views.html.resetPasswordPage(form, token)
 
   /**
    * Returns the html for the start reset page
@@ -61,7 +62,8 @@ class CoreSpringViews(application: Application) extends TemplatesPlugin {
    * @tparam A
    * @return
    */
-  def getStartResetPasswordPage[A](implicit request: Request[A], form: Form[String]) = null
+  def getStartResetPasswordPage[A](implicit request: Request[A], form: Form[String]) =
+    developer.views.html.startResetPassword(form)
 
   /**
    * Returns the email sent when a user starts the sign up process
