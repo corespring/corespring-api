@@ -30,7 +30,6 @@ function DeveloperCtrl($scope,Developer) {
                 $scope.authState = "noorg";
                 $scope.username = data.username
                 Developer.getOrg({},function(org){
-                    console.log(org)
                     $scope.org = org;
                     $scope.authState = "registered"
                 }) ;

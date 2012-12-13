@@ -184,7 +184,7 @@
             <div ng-switch-when="noauth">
                 <ul>
                     <li>
-                        <span><a href="/developer/login">Login</a> | <a href="/developer/register">Sign Up</a></span>
+                        <span><a href="/developer/login">Login</a> | <a href="/developer/register">Register</a></span>
                     </li>
                 </ul>
             </div>
@@ -337,10 +337,21 @@ Users
 
 
 <div class="span9 lead-in developer" style="margin-left: 0px;">
+
     <span class="dev-logo"></span>
     <p>
 Our developer tools include a set of APIs for finding and managing collections of content for formative assessment, these are described on these pages.
         </p>
+  <div ng-controller="DeveloperCtrl">
+          <div ng-switch on="authState">
+              <div ng-switch-when="registered">
+                  <span><a ng-href="/developer/org/{{org.id}}">Click here for your Client ID and Secret</a></span>
+              </div>
+          </div>
+      </div>
+
+ 
+
   </div>
 
 
@@ -1399,7 +1410,7 @@ who may be interested in using this functionality.</p></blockquote>
 
 <hr />
 
-<p>date:  12/12/2012 09:54AM</p>
+<p>date:  12/13/2012 01:14PM</p>
 
       </div>
     </body>

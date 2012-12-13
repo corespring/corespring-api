@@ -16,10 +16,8 @@ angular.module("services")
 
 function DeveloperOrgsController($scope, $window, Organizations){
   $scope.addOrg = function(orgName) {
-    console.log("adding organization "+orgName);
     var org = {name : orgName};
     Organizations.save({},org, function(data){
-        console.log(JSON.stringify(data));
         $window.location = "/developer/home"
     });
   }
