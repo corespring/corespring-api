@@ -159,6 +159,7 @@ GET     /lti/launch-config/:id                  basiclti.controllers.LaunchConfi
 PUT     /lti/launch-config/:id                  basiclti.controllers.LaunchConfig.update(id:ObjectId)
 GET     /lti/dev/test-harness                   basiclti.controllers.dev.TestHarness.begin
 POST    /lti/dev/prepare                        basiclti.controllers.dev.TestHarness.prepare
+POST    /lti/dev/grade-passback                 basiclti.controllers.dev.TestHarness.gradePassback
 GET     /lti/item-chooser.xml                   basiclti.controllers.AssignmentLauncher.xmlConfiguration
 POST    /lti/assignment/launch                  basiclti.controllers.AssignmentLauncher.launch()
 GET     /lti/assignment/error/authorization     basiclti.controllers.AssignmentLauncher.authorizationError

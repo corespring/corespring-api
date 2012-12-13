@@ -233,18 +233,25 @@ object AssignmentLauncher extends BaseApi {
       val consumer = LtiOAuthConsumer(client)
       val score = getScore(session)
 
-      sendResultsToPassback(consumer, score).await(10000).fold(
-        error => throw new RuntimeException(error.getMessage),
-        response => {
-          val returnUrl = response.body match {
-            case e: String if e.contains("Invalid authorization header") => {
-              AssignmentLauncherRoutes.authorizationError().url
+      def emptyOrNull(s:String) : Boolean = (s == null || s.isEmpty)
+
+      if (emptyOrNull(assignment.gradePassbackUrl)){
+        Logger.warn("Not sending passback for assignment: " + assignment.resultSourcedId)
+        Ok(toJson(Map("returnUrl" -> assignment.onFinishedUrl)))
+      } else {
+        sendResultsToPassback(consumer, score).await(10000).fold(
+          error => throw new RuntimeException(error.getMessage),
+          response => {
+            val returnUrl = response.body match {
+              case e: String if e.contains("Invalid authorization header") => {
+                AssignmentLauncherRoutes.authorizationError().url
+              }
+              case _ => assignment.onFinishedUrl
             }
-            case _ => assignment.onFinishedUrl
+            Ok(toJson(Map("returnUrl" -> returnUrl)))
           }
-          Ok(toJson(Map("returnUrl" -> returnUrl)))
-        }
-      )
+        )
+      }
     }
     case _ => throw new RuntimeException("Unable to send score - no client found")
   }

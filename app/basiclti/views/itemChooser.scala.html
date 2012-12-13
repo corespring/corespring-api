@@ -37,6 +37,7 @@
         </div>
     </div>
 </div>
+<div ng-show="!hasItem">
 
 @web.views.html.partials._home.subNav(
      Html(<select style="max-width: 50px;" ng-options="grade.key for grade in gradeLevelDataProvider"
@@ -46,29 +47,25 @@
     </select>.toString),
     "SearchController"
 )
+</div>
 
 <div class="main-content">
-    <span ng-show="!items"><h3>Use the search bar to search for items...</h3></span>
 
-    @web.views.html.partials._home.itemList(
-         (<th>title</th>).mkString("\n"),
-         (<td class="small-title">{{item.title}}</td>).mkString("\n") )
-    <!--
     <div ng-show="!hasItem">
-        <div>
-            Enter an item id:
-            <input type="text" ng-model="config.itemId" id="name">
-            <button type="button" class="btn" ng-click="saveItem()" id="save">Save</button>
-        </div>
-        @testplayer.views.html.partials.sessionSettings("config.sessionSettings")
+      @web.views.html.partials._home.itemList(
+         (<th>title</th>).mkString("\n"),
+         (<td class="small-title"><a ng-click="selectItem(item)">{{item.title}}</a></td>).mkString("\n") )
     </div>
-    -->
     <div ng-show="hasItem">
-        <p>{{item.title}}</p>
-        @testplayer.views.html.partials.sessionSettings("config.sessionSettings", true)
-        <button class="btn" ng-click="change()">Change</button>
-        <button class="btn" ng-click="done()">Done</button>
 
+        <div class="well">
+            {{item.title}}
+        </div>
+
+        <div>Configuration:</div>
+        @testplayer.views.html.partials.sessionSettings("config.sessionSettings", false)
+        <button class="btn" ng-click="change()">Change</button>
+        <button class="btn" ng-click="done()">Save</button>
         <br/>
         {{getNumberOfAssignments(config)}} student(s) has taken this assignment
     </div>

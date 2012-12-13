@@ -80,14 +80,21 @@ function LtiChooserController($scope, Config, LaunchConfigService, LtiItemServic
     });
   };
 
+  $scope.selectItem = function(item){
+    $scope.config.itemId = item.id;
+    $scope.updateHasItem();
+  };
+
   $scope.configurationId = Config.configurationId;
 
   $scope.settings = Config.settings;
 
-  $scope.saveItem = function(){
+  $scope.saveItem = function( onSaveCompleteCallback ){
     LaunchConfigService.save( {id: $scope.config.id}, $scope.config, function(data){
       $scope.config = data;
       $scope.updateHasItem();
+
+      if(onSaveCompleteCallback) onSaveCompleteCallback();
     });
   };
 
@@ -98,15 +105,17 @@ function LtiChooserController($scope, Config, LaunchConfigService, LtiItemServic
 
   $scope.done = function(){
 
-    if(!Config.returnUrl.match(/\?/)) {
-      Config.returnUrl = Config.returnUrl + "?";
-    }
+    $scope.saveItem( function(){
+      if(!Config.returnUrl.match(/\?/)) {
+        Config.returnUrl = Config.returnUrl + "?";
+      }
 
-    var args = [];
-    args.push("embed_type=basic_lti");
-    var url = document.location.href;
-    args.push("url=" + encodeURIComponent(url + "?canvas_config_id=" + $scope.config.id));
-    location.href = Config.returnUrl + args.join('&');
+      var args = [];
+      args.push("embed_type=basic_lti");
+      var url = document.location.href;
+      args.push("url=" + encodeURIComponent(url + "?canvas_config_id=" + $scope.config.id));
+      location.href = Config.returnUrl + args.join('&');
+    });
   };
 
   $scope.getNumberOfAssignments = function(config){

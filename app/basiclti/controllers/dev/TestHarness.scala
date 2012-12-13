@@ -24,14 +24,14 @@ object TestHarness extends BaseApi with SecureSocial {
 
     if(Play.isDev(Play.current)){
       Action{ request =>
-        Ok(basiclti.views.html.dev.launchItemChooser(url))
+        Ok(basiclti.views.html.dev.begin(url))
           .withSession(OAuthConstants.AccessToken -> common.mock.MockToken)
       }
     }
     else {
       SecuredAction() {
         request =>
-          Ok(basiclti.views.html.dev.launchItemChooser(url))
+          Ok(basiclti.views.html.dev.begin(url))
     }
   }
   }
@@ -47,12 +47,23 @@ object TestHarness extends BaseApi with SecureSocial {
       val uri = request.uri
       val host = request.host
       val orgId = request.ctx.organization
+      val referrer = request.headers.get("Referer")
 
       Logger.info("uri: " + uri)
       Logger.info("host: " + host)
+      Logger.info("referrer: " + referrer)
+
+      val protocol = referrer match {
+        case Some(r) => if(r.startsWith("https")) "https" else "http"
+        case _ => "http"
+      }
+
+      val root = protocol + "://" + host
 
       request.body.asFormUrlEncoded match {
         case Some(formParams) => {
+
+
           val url = basiclti.controllers.routes.AssignmentLauncher.launch().url
           val out = formParams.map((kv) => (kv._1, kv._2.head))
 
@@ -62,7 +73,9 @@ object TestHarness extends BaseApi with SecureSocial {
             "oauth_signature_method" -> "HMAC-SHA1",
             "oauth_callback" -> "about%3Ablank",
             "oauth_timestamp" -> "1355143263",
-            "oauth_nonce" -> "NNRHA0eRjU0mhTxjByFrINfn4Z1dmBmVIuJiFg"
+            "oauth_nonce" -> "NNRHA0eRjU0mhTxjByFrINfn4Z1dmBmVIuJiFg",
+            "lis_outcome_service_url" -> (root + basiclti.controllers.dev.routes.TestHarness.gradePassback().url),
+            "launch_presentation_url" -> (root + basiclti.controllers.dev.routes.TestHarness.begin().url)
           )
           val allParams = out ++ orgParams
           println(allParams)
@@ -79,6 +92,12 @@ object TestHarness extends BaseApi with SecureSocial {
         }
         case _ => Ok("Couldn't prepare form")
       }
+  }
+
+  def gradePassback = Action(parse.tolerantText){ request =>
+     println("gradePassback")
+     println(request.body.toString)
+     Ok("")
   }
 
   /**
