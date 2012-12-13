@@ -104,7 +104,7 @@ com.corespring.model.ItemDataProcessor = function () {
         }
     };
 
-    this.$defaults = function(){
+    this.$defaults = (function(){
 
         if(!window.fieldValues){
           return {};
@@ -121,7 +121,7 @@ com.corespring.model.ItemDataProcessor = function () {
               return {key:g.key, label:g.value}
           })
         }
-    };
+    }());
 
     this.createWorkflowObject = function () {
         return {
