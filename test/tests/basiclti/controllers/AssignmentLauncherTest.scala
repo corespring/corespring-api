@@ -145,6 +145,28 @@ class AssignmentLauncherTest extends Specification {
         case _ => failure("no result returned")
       }
     }
+
+    def getTestApiClient = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> getOrg.id)).get
+
+    "launching with 'select_link' shows the chooser and doesn't store a link id" in {
+
+      val client = getTestApiClient
+
+      val linkId = "some_id_that_should_be_ignored"
+      val result = callWithApiClient(client,
+        (LtiData.Keys.SelectionDirective -> "select_link"),
+        (LtiData.Keys.ResourceLinkId -> linkId)
+      )
+
+
+      result match {
+        case Some(r) => {
+          status(r) === OK
+          LtiLaunchConfiguration.findByResourceLinkId(linkId) === None
+        }
+        case _ => failure("should get OK")
+      }
+    }
   }
 
 }

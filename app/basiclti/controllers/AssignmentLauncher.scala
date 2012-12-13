@@ -75,12 +75,14 @@ object AssignmentLauncher extends BaseApi {
           getOrgFromOauthSignature(request) match {
             case Some(org) => {
 
+
               val token : AccessToken = AccessToken.getTokenForOrg(org)
               val tokenSession = (OAuthConstants.AccessToken, token.tokenId)
 
               def isInstructor = data.roles.exists(_ == LtiKeys.Instructor)
 
               if (isInstructor) {
+
                 Ok( basiclti.views.html.itemChooser(
                     config.id,
                     data.selectionDirective.getOrElse(""),
@@ -110,32 +112,44 @@ object AssignmentLauncher extends BaseApi {
 
     require(data.resourceLinkId.isDefined)
 
-    def canvasResourceLinkId(configId:ObjectId) : Option[String] = LtiLaunchConfiguration.findOneById(configId).map(_.resourceLinkId)
+    /**
+     * Create a new LaunchConfig
+     * @param linkId
+     * @return
+     */
+    def newConfig(linkId:String) : LtiLaunchConfiguration = {
+      require(data.oauthConsumerKey.isDefined, "oauth consumer must be defined")
+      val client = ApiClient.findByKey(data.oauthConsumerKey.get)
 
-    val id : String = data.canvasConfigId match {
-      case Some(configId) => canvasResourceLinkId(new ObjectId(configId)).getOrElse(data.resourceLinkId.get)
-      case _ => data.resourceLinkId.get
+      val out = new LtiLaunchConfiguration(
+        resourceLinkId = linkId,
+        itemId = None,
+        sessionSettings = Some(new ItemSessionSettings()),
+        orgId = client.map( _.orgId )
+      )
+      LtiLaunchConfiguration.create(out)
+      out
     }
 
-    LtiLaunchConfiguration.findByResourceLinkId(id) match {
-      case Some(config) => config
-      case _ => {
+    def findByCanvasConfigId(id:String) : LtiLaunchConfiguration = LtiLaunchConfiguration.findOneById(new ObjectId(id)) match {
+      case Some(c) => c
+      case _ => throw new RuntimeException("A canvas config id was specified but can't be found")
+    }
 
-        require(data.oauthConsumerKey.isDefined, "oauth consumer must be defined")
-
-        val client = ApiClient.findByKey(data.oauthConsumerKey.get)
-
-        val newConfig = new LtiLaunchConfiguration(
-          resourceLinkId = id,
-          itemId = None,
-          sessionSettings = Some(new ItemSessionSettings()),
-          orgId = client.map( _.orgId )
-        )
-        LtiLaunchConfiguration.create(newConfig)
-        newConfig
+    if (data.selectionDirective == Some("select_link")){
+      newConfig("select_link")
+    } else {
+      data.canvasConfigId match {
+        case Some(canvasId) => findByCanvasConfigId(canvasId)
+        case _ => {
+          val rId = data.resourceLinkId.get
+          LtiLaunchConfiguration.findByResourceLinkId(rId) match {
+            case Some(config) => config
+            case _ => newConfig(rId)
+          }
+        }
       }
     }
-
   }
 
 
