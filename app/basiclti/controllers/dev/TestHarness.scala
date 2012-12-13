@@ -74,8 +74,8 @@ object TestHarness extends BaseApi with SecureSocial {
             "oauth_callback" -> "about%3Ablank",
             "oauth_timestamp" -> "1355143263",
             "oauth_nonce" -> "NNRHA0eRjU0mhTxjByFrINfn4Z1dmBmVIuJiFg",
-            "lis_outcome_service_url" -> (root + basiclti.controllers.dev.routes.TestHarness.gradePassback().url),
-            "launch_presentation_url" -> (root + basiclti.controllers.dev.routes.TestHarness.begin().url)
+            LtiData.Keys.OutcomeServiceUrl -> (root + basiclti.controllers.dev.routes.TestHarness.gradePassback().url),
+            LtiData.Keys.LaunchPresentationReturnUrl -> (root + basiclti.controllers.dev.routes.TestHarness.begin().url)
           )
           val allParams = out ++ orgParams
           println(allParams)

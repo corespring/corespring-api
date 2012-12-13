@@ -18,7 +18,7 @@ object LtiData {
 
     val OutcomeServiceUrl: String = "lis_outcome_service_url"
     val ResultSourcedId: String = "lis_result_sourcedid"
-    val LaunchPresentationReturnUrl: String = "launch_presentation_url"
+    val LaunchPresentationReturnUrl: String = "launch_presentation_return_url"
     val ResourceLinkId: String = "resource_link_id"
     val Roles: String = "roles"
     //TODO: still need this?
