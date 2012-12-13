@@ -882,26 +882,33 @@ div.text-box-content {
 	padding-top:20px;
 }
 
-.student-assessment-page,
-.assessment-page {
-	width:600px;
-	margin:20px auto;
-	margin-top: 0px;
-	padding: 16px 13px;
-	border: 2px #EAEAEA dashed;
-	border-top: 2px #EAEAEA solid;
+.student-assessment-page, .assessment-page {
+border: 2px dashed #EAEAEA;
+margin: 0 auto 20px;
+padding: 40px 13px 16px;
+width: 600px;
 }
+
+
 .student-assessment-page{
     border: 0;
 }
 
 .student-view-header {
-	margin: auto;
-    width: 600px;
-    background-color: #EAEAEA;
-    padding: 15px;
-    margin-bottom: 0px;
+    background-color: #FFFFFF;
+    border: 2px dashed #DDDDDD;
+    font-size: 16px;
+    font-weight: bold;
+    margin: auto auto 0;
+    padding: 8px;
+    position: relative;
+    text-align: center;
+    text-transform: uppercase;
+    top: 18px;
+    width: 160px;
 }
+
+
 
 .flowBox {
 
