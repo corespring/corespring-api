@@ -1,0 +1,11 @@
+.selectable {
+}
+
+.selectable:hover {
+    background-color: yellow;
+    cursor: hand; cursor: pointer;
+}
+
+.selectable .selected {
+    background-color: red;
+}

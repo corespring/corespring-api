@@ -24,6 +24,12 @@ class QtiItemTest extends Specification {
       <value>14</value> <value>Fourteen</value>,
         <textEntryInteraction responseIdentifier="id" expectedLength="1"/>))
 
+    val selectText = QtiItem(xml(
+      "id",
+      "single",
+      <value>14</value>,
+     <selectTextPassage responseIdentifier="id" selectionType="sentence" minSelections="2" maxSelections="2" />))
+
     val single = QtiItem(xml("id", "single", <value>1</value>))
     val multiple = QtiItem(xml("id", "multiple", <value>1</value> <value>2</value>))
     val ordered = QtiItem(xml("id", "ordered", <value>1</value> <value>2</value>))
@@ -36,6 +42,10 @@ class QtiItemTest extends Specification {
 
     "parse a response that is for a textEntryInteraction as a CorrectResponseAny" in {
       assertParse(textEntryOne, CorrectResponseAny.getClass) must equalTo(true)
+    }
+
+    "parse a response that is for a selectTextInteraction as a CorrectResponseAny" in {
+      assertParse(selectText, CorrectResponseAny.getClass) must equalTo(true)
     }
 
     "parse a correctResponse single" in {

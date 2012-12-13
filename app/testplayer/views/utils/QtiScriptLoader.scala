@@ -46,6 +46,7 @@ object QtiScriptLoader {
       "orderInteraction" -> createScripts("orderInteraction", isPrintMode),
       "textEntryInteraction" -> createScripts("textEntryInteraction", isPrintMode),
       "extendedTextInteraction" -> createScripts("extendedTextInteraction", isPrintMode),
+      "selectTextInteraction" -> createScripts("selectTextInteraction", isPrintMode),
       "tabs" -> createScripts("tabs", isPrintMode),
       "cs-tabs" -> createScripts("tabs", isPrintMode),
       "math" -> script("http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")

@@ -1,0 +1,22 @@
+<assessmentItem>
+    <responseDeclaration identifier="selectText" cardinality="multiple" baseType="identifier">
+        <correctResponse>
+            <value>turns</value>
+            <value>out</value>
+        </correctResponse>
+    </responseDeclaration>
+
+
+
+    <itemBody>
+
+        <selectTextInteraction responseIdentifier="selectText" selectionType="word" minSelections="2" maxSelections="2">
+             "It turns out my mother loved the name Ruth. That's how I got my name and how my father got these: he let Ty Cobb name me after Babe Ruth."
+                 I tried to swallow <b>but</b> couldn't! I hoped that she wasn't going to say what I thought she was going to say.
+                 Then she said it?<br/>
+                 "In this shoebox are the ten baseballs Ty Cobb gave my father. They are signed by some of the most famous ballplayers in history, including one that has one single signature on it: Babe Ruth's."
+        </selectTextInteraction>
+
+    </itemBody>
+</assessmentItem>
+

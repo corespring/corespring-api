@@ -243,6 +243,7 @@ object CorrectResponse {
     if (interaction.isDefined) {
       interaction.get match {
         case TextEntryInteraction(_, _, _) => CorrectResponseAny(node)
+        case SelectTextInteraction(_, _, _, _) => CorrectResponseAny(node)
         case _ => CorrectResponse(node, cardinality)
       }
     }
@@ -295,9 +296,15 @@ object CorrectResponseMultiple {
 }
 
 case class CorrectResponseAny(value: Seq[String]) extends CorrectResponse {
-  def isCorrect(responseValue: String) = value.find(_ == responseValue).isDefined
+  def isCorrect(responseValue: String) = {
+    println("Findinging ", responseValue)
+    value.find(_ == responseValue).isDefined
+  }
 
-  def isValueCorrect(v: String, index: Int) = value.contains(v)
+  def isValueCorrect(v: String, index: Int) = {
+    println("Is Value Correct ", v, index)
+    value.contains(v)
+  }
 }
 
 object CorrectResponseAny {
@@ -360,7 +367,8 @@ object ItemBody {
       ("inlineChoiceInteraction", InlineChoiceInteraction(_)),
       ("textEntryInteraction", TextEntryInteraction(_, feedbackBlocks)),
       ("choiceInteraction", ChoiceInteraction(_)),
-      ("orderInteraction", OrderInteraction(_))
+      ("orderInteraction", OrderInteraction(_)),
+      ("selectTextPassage", SelectTextInteraction(_))
     ))
 
     ItemBody(interactions, feedbackBlocks)
@@ -536,5 +544,18 @@ object FeedbackInline {
     }
   }
 
+}
+
+case class SelectTextInteraction(responseIdentifier: String, selectionType: String, minSelection: Int, maxSelection: Int) extends Interaction {
+  def getChoice(identifier: String) = None
+}
+
+object SelectTextInteraction {
+  def apply(node: Node): SelectTextInteraction = SelectTextInteraction(
+    (node \ "@responseIdentifier").text,
+    (node \ "@selectionType").text,
+    (node \ "@minSelections").text.toInt,
+    (node \ "@maxSelections").text.toInt
+  )
 }
 
