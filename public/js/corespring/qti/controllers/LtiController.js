@@ -1,5 +1,6 @@
 function LtiController($scope, $http, Config){
 
+
   var hasSubmitted = false;
 
   $scope.$on('assessmentItem_submit', function (event, itemSession, onSuccess, onError) {

@@ -1,74 +1,127 @@
-@(configId:ObjectId, selectionDirective:String, returnUrl:String)
+@(configId: ObjectId, selectionDirective: String, returnUrl: String)
 
 <html ng-app="lti-chooser">
-<head>
+  <head>
     @common.views.html.head.coreJs()
     @common.views.html.head.bootstrap()
     @common.views.html.head.ubuntu()
     @common.views.html.head.angular()
     @web.views.html.head.taggerApp()
 
-    <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
-    <link href="/assets/stylesheets/lti-item-chooser.css" rel="stylesheet"/>
+  <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
+  <link href="/assets/stylesheets/lti-item-chooser.css" rel="stylesheet"/>
 
     <script type="text/javascript" src="/assets/js/corespring/lti-chooser/app.js"></script>
 
-    <script>
-        (function () {
-
-            angular.module('lti-chooser')
-                    .factory("Config", function () {
-                        return {
-                            configurationId: "@configId",
-                            selectionDirective: "@selectionDirective",
-                            returnUrl: "@returnUrl"
-                        };
-                    });
-        })();
+    <script type="text/javascript">
+      (function () {
+          angular.module('lti-chooser')
+            .factory("Config", function () {
+                return {
+                  configurationId: "@configId",
+                  selectionDirective: "@selectionDirective",
+                  returnUrl: "@returnUrl"
+                };
+            });
+      })();
     </script>
-</head>
-<body style="padding:20px;" ng-controller="LtiChooserController">
-<div class="navbar navbar-fixed-top">
+  </head>
+  <body style="padding:20px;" ng-controller="LtiChooserController">
+    <div class="navbar navbar-fixed-top">
 
-    <div class="navbar-inner">
-        <div class="container">
-            <img src="/assets/images/cs-white-logo-11px.png"
-                 alt="Corespring"/>
+    <div class="container">
+      <div class="row" ng-controller="SearchController">
+        <img
+          src="/assets/images/cs-white-logo-11px.png"
+          alt="Corespring"/>
+        <div class="input-append">
+
+          <input placeholder="Search"
+            ng-model="searchParams.searchText"
+            ng-change="search() "
+            class="span2 search-input"
+            id="appendedInput"
+            type="text"/>
+          <span class="add-on">
+            <i class="icon-search"></i>
+          </span>
+
+
+          <select
+              style="max-width: 140px;"
+              ng-options="collection.name for collection in collections"
+              ng-model="searchParams.collection"
+              ng-change="search()">
+            <option value="">All Collections</option>
+          </select>
+
+          <select style="max-width: 50px;" ng-options="grade.key for grade in gradeLevelDataProvider"
+              ng-model="searchParams.gradeLevel"
+              ng-change="search()">
+            <option value="">All</option>
+          </select>
+
         </div>
+      </div>
     </div>
-</div>
-<div ng-show="!hasItem">
+  </div>
+    <div class="main-content">
 
-@web.views.html.partials._home.subNav(
-     Html(<select style="max-width: 50px;" ng-options="grade.key for grade in gradeLevelDataProvider"
-            ng-model="searchParams.gradeLevel"
-            ng-change="search()">
-        <option value="">All</option>
-    </select>.toString),
-    "SearchController"
-)
-</div>
-
-<div class="main-content">
-
-    <div ng-show="!hasItem">
-      @web.views.html.partials._home.itemList(
-         (<th>title</th>).mkString("\n"),
-         (<td class="small-title"><a ng-click="selectItem(item)">{{item.title}}</a></td>).mkString("\n") )
-    </div>
-    <div ng-show="hasItem">
+      <div class="start-pod" ng-show="mode=='start'">
 
         <div class="well">
-            {{item.title}}
+          Select a collection and/or grade to find Items for assignments
         </div>
+      </div>
+
+      <div ng-show="mode=='find'">
+         <div class="table-header">
+          <table border="0">
+            <tr>
+              <th class="primary-subject">Primary Subject</th>
+              <th class="ccss">CCSS</th>
+              <th class="title">Title</th>
+              <th class="grade">Grade</th>
+              <th class="type">Type</th>
+              <th class="source">Source</th>
+            </tr>
+        </table>
+         </div>
+        <div class="table-content">
+          <table border="0">
+            <tr>
+              <th class="primary-subject">Primary Subject</th>
+              <th class="ccss">CCSS</th>
+              <th class="title">Title</th>
+              <th class="grade">Grade</th>
+              <th class="type">Type</th>
+              <th class="source">Source</th>
+            </tr>
+            <tr ng-click="selectItem(i)" ng-repeat="i in items" ng-class="{even: $index % 2 == 0}">
+              <td class="primary-subject">Subj</td>
+              <td class="ccss">std</td>
+              <td  class="title" ng-bind-html-unsafe="i.title.substring(0, 60)"></td>
+              <td class="grade">{{showGradeLevel()}}</td>
+              <td class="type">{{i.type}}</td>
+              <td class="source">{{i.source}}</td>
+            </tr>
+          </table>
+        </div>
+
+      </div>
+
+      <div class="has-item-pod" ng-show="mode=='hasItem'">
+
+        <div class="well" ng-bind-html-unsafe="item.title"> </div>
 
         <div>Configuration:</div>
         @testplayer.views.html.partials.sessionSettings("config.sessionSettings", false)
         <button class="btn" ng-click="change()">Change</button>
         <button class="btn" ng-click="done()">Save</button>
-        <br/>
+      <br/>
         {{getNumberOfAssignments(config)}} student(s) has taken this assignment
+      </div>
     </div>
-</div>
-</body>
+
+  </body>
 </html>

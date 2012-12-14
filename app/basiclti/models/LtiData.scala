@@ -24,6 +24,7 @@ object LtiData {
     val SelectionDirective: String = "selection_directive"
     val CanvasConfigId: String = "canvas_config_id"
     val OAuthConsumerKey: String = "oauth_consumer_key"
+    val ContextLabel : String = "context_label"
   }
 
 

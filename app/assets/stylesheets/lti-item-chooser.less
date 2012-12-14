@@ -1,45 +1,110 @@
 @navbar-height: 40px;
-@max-width: 400px;
-
+@max-width: 600px;
+body{
+  background-color: #c4e3f3;
+}
 td.small-title{
   font-size: 12px;
 }
 
+.table-content,
+.table-header{
+  table{
+    max-width: @max-width;
+  }
+}
+
+.table-header{
+  position: fixed;
+  z-index: 10004;
+  background-color: #ffffff;
+  max-width: @max-width;
+  top: 40px;
+}
+
+.table-content{
+  position: relative;
+  padding-top: 0px;
+  top: 0px;
+  height: 100%;
+  overflow-y: scroll;
+
+  tr{
+    &:hover{
+      background-color: #f2f9e5;
+    }
+  }
+  tr.even{
+      background-color: #c4e3f3;
+    &:hover{
+      background-color: #f2f9e5;
+    }
+  }
+}
+
+th, td{
+  padding: 5px;
+  font-weight: normal;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+
+th.grade,
+th.type,
+th.ccss,
+th.source,
+th.primary-subject,
+td.grade,
+td.type,
+td.ccss,
+td.source,
+td.primary-subject{
+ min-width: 40px;
+ width: 40px;
+ max-width: 40px;
+}
+
+th.title,
+td.title{
+  width: 100%;
+}
+
+.row{
+  img{ float: left; }
+}
 .main-content {
+  background-color: #ffffff;
+  height: 100%;
   position:relative;
-  top: 80px;
+  top: 20px;
   width: @max-width;
   margin: 0 auto;
+
+  .start-pod,
+  .has-item-pod{
+    padding: 10px;
+  }
+
   .item-list {
     max-width: @max-width;
   }
 }
 
-.sub-nav{
-  position: fixed;
-  z-index: 10003;
-
-  .container{
-    max-width: 400px;
-    margin: 0 auto;
-    width: 400px;
-
-    input, select{
-      margin-left: 10px;
-    }
-  }
-}
 
 .navbar {
   height: @navbar-height;
-
-  .navbar-inner{
-    height: @navbar-height;
+  background-color: #99ff00;
 
     .container{
-      padding-top: 8px;
+      max-width: @max-width;
+      margin: 0 auto;
+      padding-top: 4px;
+
+      input, select{
+        margin-left: 10px;
+      }
     }
-  }
 
   .search-input{
     height: 30px;

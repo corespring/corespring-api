@@ -17,11 +17,12 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
   $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
 
   var init = function(){
-    $scope.search();
+    //$scope.search();
     loadCollections();
   };
 
   $scope.search = function() {
+    $rootScope.$broadcast("beginSearch");
     SearchService.search($scope.searchParams, function(res){
       $rootScope.items = res;
     });
@@ -57,6 +58,11 @@ function LtiChooserController($scope, Config, LaunchConfigService, LtiItemServic
   //console.log("lti chooser controller: " + $scope + $resource, Config);
 
   $scope.showTip = true;
+  $scope.mode = "start";
+
+  $scope.$on('beginSearch', function(event, items){
+    $scope.mode = "find";
+  });
 
   $scope.$on('searchCompleted', function(event, items){
     $scope.items = items;
@@ -64,9 +70,9 @@ function LtiChooserController($scope, Config, LaunchConfigService, LtiItemServic
 
   $scope.updateHasItem = function(){
 
-    $scope.hasItem  = $scope.config.itemId !== undefined;
+    $scope.mode = ($scope.config.itemId !== undefined) ? 'hasItem' : 'start';
 
-    if($scope.hasItem){
+    if($scope.mode == 'hasItem'){
       LtiItemService.get({id:$scope.config.itemId}, function(data){
         $scope.item = data;
       });
@@ -100,7 +106,7 @@ function LtiChooserController($scope, Config, LaunchConfigService, LtiItemServic
 
   $scope.change = function(){
     $scope.config.itemId = null;
-    $scope.hasItem = false;
+    $scope.mode = 'start';
   };
 
   $scope.done = function(){
