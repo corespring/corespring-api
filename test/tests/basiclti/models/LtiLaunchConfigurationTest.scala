@@ -25,6 +25,15 @@ class LtiLaunchConfigurationTest extends Specification{
 
       finalUpdate.assignments.length === 2
     }
+
+    "can update works" in {
+
+      val config = new LtiLaunchConfiguration("1", Some(new ObjectId()), None, orgId = Some(new ObjectId()))
+      LtiLaunchConfiguration.create(config)
+
+      LtiLaunchConfiguration.canUpdate(config.id, config.orgId.get) === true
+      LtiLaunchConfiguration.canUpdate(config.id, new ObjectId()) === false
+    }
   }
 
 }
