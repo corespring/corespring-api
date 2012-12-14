@@ -603,3 +603,75 @@ hr {
 	border-width: 1px 0px;
 	margin: 20px 0px;
 }
+
+/* print button*/
+.nav li a.prev-print {
+background-color:transparent;
+border: none;
+}
+
+/* CSS FOR PUBLIC SITE FLOAT WINDOW PLAYER */
+
+/*active tab*/
+.nav-tabs > .active > a, .nav-tabs > .active > a:hover {
+    -moz-border-left-colors: none;
+    -moz-border-right-colors: none;
+    -moz-border-top-colors: none;
+    background-color: #FFFFFF;
+   border-color: #433f43 #433f43 transparent;
+    border-image: none;
+    border-style: solid;
+    border-width: 1px;
+    color: #000000;
+    cursor: default;
+    font-weight: bold;
+    text-transform: uppercase;
+	border-bottom: 0px solid white;
+	padding-bottom: 8px;
+	margin-top:0px;
+}
+
+/* inactive tab */
+.nav-tabs > li > a {
+     background-color: #E1E1E1;
+     border-radius: 4px 4px 0px 0px;
+     border: 1px solid #433f43;
+    color: rgba(0,0,0,0.6);
+    text-shadow: 2px 2px 3px rgba(255,255,255,0.1);
+     font-weight: bold;
+     line-height: 20px;
+     padding-bottom: 6px;
+     padding-top: 8px;
+	 margin-top:1px;
+
+}
+
+.nav-tabs {
+border-bottom: transparent;
+}
+
+.sub-nav {
+-webkit-box-shadow: none !important;
+-moz-box-shadow: none !important;;
+box-shadow: none !important;
+border-bottom: 1px solid #433f43 !important;
+}
+
+.sub-nav .nav > li > a {
+padding-top: 6px !important;
+}
+
+/*admin bar */
+.itemplayer-control-bar {    
+background: none repeat scroll 0 0 #EEEEEE;
+
+    display: block;
+
+    font-size: 12px;
+
+    padding: 10px;
+
+     border-radius: 4px 4px 4px 4px;
+
+}
+
