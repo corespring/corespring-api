@@ -21,7 +21,6 @@ object LtiData {
     val LaunchPresentationReturnUrl: String = "launch_presentation_return_url"
     val ResourceLinkId: String = "resource_link_id"
     val Roles: String = "roles"
-    //TODO: still need this?
     val SelectionDirective: String = "selection_directive"
     val CanvasConfigId: String = "canvas_config_id"
     val OAuthConsumerKey: String = "oauth_consumer_key"
