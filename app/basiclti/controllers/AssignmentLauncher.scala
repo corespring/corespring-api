@@ -95,8 +95,9 @@ object AssignmentLauncher extends BaseApi {
               } else {
                 if(config.itemId.isDefined){
                   require(data.outcomeUrl.isDefined, "outcome url must be defined: config id: " + config.id)
-                  require(data.resultSourcedId.isDefined, "sourcedid must be defined")
-                  require(data.returnUrl.isDefined, "return url must be defined")
+                  require(data.resultSourcedId.isDefined, "sourcedid must be defined: config id: " + config.id)
+                  require(data.returnUrl.isDefined, "return url must be defined: config id: " + config.id)
+
                   val updatedConfig = config.addAssignmentIfNew(data.resultSourcedId.get, data.outcomeUrl.get, data.returnUrl.get)
                   val call = AssignmentPlayerRoutes.run(updatedConfig.id, data.resultSourcedId.get)
                   Redirect(call.url).withSession(tokenSession)
