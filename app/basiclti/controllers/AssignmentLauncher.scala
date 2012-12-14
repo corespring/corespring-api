@@ -15,6 +15,10 @@ import common.controllers.utils.BaseUrl
 import models.auth.{AccessToken, ApiClient}
 import controllers.auth.{OAuthConstants, BaseApi}
 
+/**
+ * Handles the launching of corespring items via the LTI 1.1 launch specification.
+ * Also supports the canvas 'select_link' selection directive.
+ */
 object AssignmentLauncher extends BaseApi {
 
   object LtiKeys {
@@ -90,7 +94,7 @@ object AssignmentLauncher extends BaseApi {
                   ) ).withSession(tokenSession)
               } else {
                 if(config.itemId.isDefined){
-                  require(data.outcomeUrl.isDefined, "outcome url must be defined")
+                  require(data.outcomeUrl.isDefined, "outcome url must be defined: config id: " + config.id)
                   require(data.resultSourcedId.isDefined, "sourcedid must be defined")
                   require(data.returnUrl.isDefined, "return url must be defined")
                   val updatedConfig = config.addAssignmentIfNew(data.resultSourcedId.get, data.outcomeUrl.get, data.returnUrl.get)
