@@ -36,7 +36,7 @@ abstract class BaseTest extends Specification {
 
   PlaySingleton.start()
 
-  def tokenize(url: String): String = url + "?access_token=" + token
+  def tokenize(url: String, tkn : String = token): String = url + "?access_token=" + tkn
 
   def tokenFakeRequest[A](method: String, uri: String, headers: FakeHeaders = FakeHeaders(), body: A = AnyContentAsText("")): FakeRequest[A] = {
     FakeRequest(method, tokenize(uri), headers, body)
