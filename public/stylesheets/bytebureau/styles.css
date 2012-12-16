@@ -865,7 +865,7 @@ div.text-box-content {
 .student-assessment-page {
 	border: 0;
 }
-.student-view-header {
+.itemplayer-control-bar div.student-view-header {
 	background-color: #FFFFFF;
 	border: 2px dashed #DDDDDD;
 	font-size: 16px;
@@ -1210,12 +1210,13 @@ margin: 50px auto -8px;
 	border-radius: 4px;
 	padding: 6px 6px 9px;
 	border: 1px solid #ccc;
+	width:600px
 }
 .itemplayer-control-bar div a {
 	color: #000;
 	font-size: 13px;
 }
-.itemplayer-control-bar .admin-col div {
+div.span4.admin-col div, div.span2.admin-col div {
 	font-weight: bold;
 	margin: 0px 0 8px 0;
 	text-transform:uppercase;
@@ -1228,4 +1229,32 @@ margin: 50px auto -8px;
 	border-radius: 0px 0px 4px 4px;
 	position: relative;
 	top: -2px;
+}
+
+div.admin-col input[type="radio"], 
+div.admin-col input[type="checkbox"] {
+margin: 4px 2px 5px 0px;
+}
+
+div.span4.admin-col{
+	width:280px;
+}
+
+div.span1.admin-col{
+	margin-left:0px;
+	clear:right;
+}
+
+div.span1.admin-col div.alert.alert-info{
+padding: 10px;
+margin-bottom: 0px;
+margin-top:10px;
+width: 100px;
+line-height: 15px;
+}
+
+
+div.span1.admin-col a.btn.btn-primary {
+	 width: 100px;
+	 color: #fff;
 }

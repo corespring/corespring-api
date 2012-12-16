@@ -625,6 +625,12 @@ hr {
 	padding-top: 8px;
 	margin-top:1px;
 }
+
+/*hover tabs */
+.nav-tabs > li > a:hover {
+background-color: #eee;
+}
+
 .nav-tabs {
 	border-bottom: transparent;
 }
