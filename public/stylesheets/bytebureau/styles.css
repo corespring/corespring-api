@@ -1229,6 +1229,7 @@ div.span4.admin-col div, div.span2.admin-col div {
 	border-radius: 0px 0px 4px 4px;
 	position: relative;
 	top: -2px;
+	width: 612px;
 }
 
 div.admin-col input[type="radio"], 
