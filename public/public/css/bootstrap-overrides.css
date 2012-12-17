@@ -592,6 +592,18 @@ hr {
 	background-color:transparent;
 	border: none;
 }
+<<<<<<< HEAD
+=======
+/* CSS FOR PUBLIC SITE FLOAT ITEM PLAYER */
+
+.preview-container {
+	padding-top: 55px;
+}
+
+.row {
+margin-left: 45px;
+}
+>>>>>>> Size Adjustments for Item Preview & Tabs (& FancyBox)
 
 /*active tab*/
 .nav-tabs > .active > a, .nav-tabs > .active > a:hover {
@@ -644,4 +656,28 @@ background-color: #eee;
 	padding-top: 6px !important;
 }
 
+.profile .item-type {
+margin-top: 5px;
+}
+
+
+/*REDUCE SIZE OF PROFILE */
+.profile {
+width: 580px;
+font-family: "Ubuntu", Arial, Helvetica, sans-serif;
+padding: 0 10px;
+}
+
+.profile p.profile-h1 {
+padding-top: 5px;
+}
+
+
+.fancybox-wrap.fancybox-desktop.fancybox-type-iframe.fancybox-opened{
+width: 660px !important;
+}
+
+.fancybox-inner {
+width:640px !important;
+}
 
