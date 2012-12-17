@@ -247,15 +247,11 @@ p {
 	visibility: hidden;
 }
 .well p.title {
-	color: #000000;
-	font: 300 14px/20px "Ubuntu", Arial, Helvetica, sans-serif;
-	margin: 0 0 10px;
-	max-width: 75%;
-	padding-bottom: 0;
-	padding-top: 0;
-}
-.well table {
-	width: 100%;
+color: #000000;
+font: 300 14px/20px "Ubuntu", Arial, Helvetica, sans-serif;
+margin: 0 0 10px;
+padding-bottom: 0;
+padding-top: 10px;
 }
 .well a.btn {
 	font-size: 13px;
