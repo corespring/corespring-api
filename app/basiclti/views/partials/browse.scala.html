@@ -1,0 +1,26 @@
+<div>
+<div class="table-header">
+  <table border="0">
+    <tr>
+      <th class="primary-subject">Primary Subject</th>
+      <th class="ccss">CCSS</th>
+      <th class="title">Title</th>
+      <th class="grade">Grade</th>
+      <th class="type">Type</th>
+      <th class="source">Source</th>
+    </tr>
+  </table>
+</div>
+<div class="table-content">
+  <table border="0">
+    <tr ng-click="selectItem(i)" ng-repeat="i in items" ng-class="{even: $index % 2 == 0}">
+      <td class="primary-subject">Subj</td>
+      <td class="ccss">std</td>
+      <td class="title"><div class="title-holder" ng-bind-html-unsafe="i.title"></div></td>
+      <td class="grade">{{showGradeLevel()}}</td>
+      <td class="type">{{i.type}}</td>
+      <td class="source">{{i.source}}</td>
+    </tr>
+  </table>
+</div>
+</div>

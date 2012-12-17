@@ -166,7 +166,9 @@ GET     /lti/assignment/error/authorization     basiclti.controllers.AssignmentL
 GET     /lti/assignment/:configId/:resultSourcedId/process   basiclti.controllers.AssignmentLauncher.process(configId:ObjectId,resultSourcedId:String)
 GET     /lti/assignment/:configId/:resultSourcedId/run       basiclti.controllers.AssignmentPlayer.run(configId:ObjectId,resultSourcedId:String)
 GET     /lti/assignment/:configId/:resultSourcedId/:filename basiclti.controllers.AssignmentPlayer.getDataFileForAssignment(configId:ObjectId, resultSourcedId:String, filename:String)
-
+GET     /lti/chooser/partials/main              basiclti.controllers.Partials.main
+GET     /lti/chooser/partials/browse            basiclti.controllers.Partials.browse
+GET     /lti/chooser/partials/view              basiclti.controllers.Partials.view
 # Reporting
 GET    /reports                                     reporting.controllers.Reports.index
 GET    /reports/:collection/:queryType.csv          reporting.controllers.Reports.getCsv(collection,queryType)

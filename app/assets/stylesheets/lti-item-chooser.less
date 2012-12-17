@@ -1,5 +1,11 @@
+@import 'mixins';
+
 @navbar-height: 40px;
 @max-width: 600px;
+@cs-navbar-color: #ff00ff;
+@cs-dark-grey: #888888;
+
+
 body{
   background-color: #c4e3f3;
 }
@@ -15,7 +21,7 @@ td.small-title{
 }
 
 .table-header{
-  position: fixed;
+  /*position: fixed;*/
   z-index: 10004;
   background-color: #ffffff;
   max-width: @max-width;
@@ -64,7 +70,12 @@ td.primary-subject{
  width: 40px;
  max-width: 40px;
 }
-
+.title-holder{
+  width: 350px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 th.title,
 td.title{
   width: 100%;
@@ -73,11 +84,20 @@ td.title{
 .row{
   img{ float: left; }
 }
+
+.main-content-holder{
+  width: @max-width;
+  margin: 0 auto;
+}
+
 .main-content {
   background-color: #ffffff;
   height: 100%;
-  position:relative;
-  top: 20px;
+  top:40px;
+  position: fixed;
+/*
+position:relative;
+*/
   width: @max-width;
   margin: 0 auto;
 
@@ -110,3 +130,39 @@ td.title{
     height: 30px;
   }
 }
+
+.pager{
+  margin-top: 0px;
+  padding-top:0px;
+  .pager-text{
+    color: #ff00ff;
+  }
+}
+
+#resultPager{
+}
+
+#resultPager:after{
+  clear:both;
+}
+
+
+a.cs-icon-link {
+  float: none;
+  background-color: darken(@cs-navbar-color, 10%);
+  margin: 2px;
+  padding: 3px;
+  margin-top: 6px;
+  border-radius: 14px;
+  padding-left: 6px;
+  padding-right: 6px;
+  line-height: 19px;
+  color: #999999;
+  text-decoration: none;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  &:hover{
+    .mixin-inner-shadow( 2px, fade( @cs-dark-grey, 15%));
+    background-color: darken(@cs-navbar-color, 20%);
+  }
+}
+

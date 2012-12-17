@@ -1,4 +1,13 @@
-angular.module("lti-chooser", ['tagger.services','lti-services', 'ngResource']);
+window.ltiChooser = (window.ltiChooser || {});
+
+angular.module("lti-chooser", ['tagger.services','lti-services', 'ngResource', 'corespring-directives']);
+
+angular.module("lti-chooser").config(['$routeProvider', function ($routeProvider) {
+    $routeProvider.when('/main', {templateUrl:'/lti/chooser/partials/main', controller:MainController});
+    $routeProvider.when('/browse', {templateUrl:'/lti/chooser/partials/browse', controller:BrowseController});
+    $routeProvider.when('/view/:itemId', {templateUrl:'/lti/chooser/partials/view', controller: ltiChooser.ViewItemController});
+    $routeProvider.otherwise({redirectTo:'/main'});
+  }]);
 
 angular.module("lti-services", ['ngResource'])
   .factory("LaunchConfigService", [ '$resource', function($resource){
@@ -10,126 +19,65 @@ angular.module("lti-services", ['ngResource'])
   }]);
 
 
-function SearchController($scope, $rootScope, $http, ItemService, SearchService, Collection) {
-  $http.defaults.headers.get = ($http.defaults.headers.get || {});
-  $http.defaults.headers.get['Content-Type'] = 'application/json';
+function LtiChooserController( $scope, $rootScope, $location ){
 
-  $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
-
-  var init = function(){
-    //$scope.search();
-    loadCollections();
+  $scope.returnToSearch = function(){
+    $location.url("/browse");
   };
 
-  $scope.search = function() {
-    $rootScope.$broadcast("beginSearch");
-    SearchService.search($scope.searchParams, function(res){
-      $rootScope.items = res;
-    });
+  $scope.showSearch = function(){
+     return $location.url() == "/browse";
   };
 
-  $scope.loadMore = function () {
-    SearchService.loadMore(function () {
-        // re-bind the scope collection to the services model after result comes back
-        $rootScope.items = SearchService.itemDataCollection;
-      }
-    );
+  $scope.showPager = function(){
+    return $location.url().indexOf("/view/") === 0;
   };
 
-  function loadCollections() {
-    Collection.get({}, function (data) {
-        $scope.collections = data;
-      },
-      function () {
-        console.log("load collections: error: " + arguments);
-      });
-  }
-  init();
-}
-SearchController.$inject = ['$scope',
-  '$rootScope',
-  '$http',
-  'ItemService',
-  'SearchService',
-  'Collection'];
-
-
-function LtiChooserController($scope, Config, LaunchConfigService, LtiItemService){
-  //console.log("lti chooser controller: " + $scope + $resource, Config);
-
-  $scope.showTip = true;
-  $scope.mode = "start";
-
-  $scope.$on('beginSearch', function(event, items){
-    $scope.mode = "find";
-  });
-
-  $scope.$on('searchCompleted', function(event, items){
-    $scope.items = items;
-  });
-
-  $scope.updateHasItem = function(){
-
-    $scope.mode = ($scope.config.itemId !== undefined) ? 'hasItem' : 'start';
-
-    if($scope.mode == 'hasItem'){
-      LtiItemService.get({id:$scope.config.itemId}, function(data){
-        $scope.item = data;
-      });
-    }
-  };
-
-  var init = function(){
-    LaunchConfigService.get({id: $scope.configurationId}, function(data){
-      $scope.config = data;
-      $scope.updateHasItem();
-    });
-  };
-
-  $scope.selectItem = function(item){
-    $scope.config.itemId = item.id;
-    $scope.updateHasItem();
-  };
-
-  $scope.configurationId = Config.configurationId;
-
-  $scope.settings = Config.settings;
-
-  $scope.saveItem = function( onSaveCompleteCallback ){
-    LaunchConfigService.save( {id: $scope.config.id}, $scope.config, function(data){
-      $scope.config = data;
-      $scope.updateHasItem();
-
-      if(onSaveCompleteCallback) onSaveCompleteCallback();
-    });
+  $scope.loadItem = function(id){
+    console.log("loadItem - id: " + id);
+    $location.url("/view/" + id);
   };
 
   $scope.change = function(){
+    $location.url("/browse");
+  };
+
+  $scope.getAssignRemoveLabel = function(){
+    return $scope.isAssigned() ? "Remove" : "Assign";
+  };
+
+  $scope.assignOrRemove = function(){
+    if($scope.isAssigned()){
+      $scope.remove();
+    }
+    else{
+      $scope.assign();
+    }
+  };
+
+  $scope.isAssigned = function(){
+    if(!$scope.config){
+      return true;
+    }
+
+    if(!$scope.item){
+      return true;
+    }
+    return $scope.config.itemId === $scope.item.id;
+  };
+
+  $scope.remove = function(){
     $scope.config.itemId = null;
-    $scope.mode = 'start';
+    $rootScope.$broadcast('saveConfig', { redirect: false });
+    $location.url("/browse");
   };
 
-  $scope.done = function(){
-
-    $scope.saveItem( function(){
-      if(!Config.returnUrl.match(/\?/)) {
-        Config.returnUrl = Config.returnUrl + "?";
-      }
-
-      var args = [];
-      args.push("embed_type=basic_lti");
-      var url = document.location.href;
-      args.push("url=" + encodeURIComponent(url + "?canvas_config_id=" + $scope.config.id));
-      location.href = Config.returnUrl + args.join('&');
-    });
+  $scope.assign = function(){
+    $scope.config.itemId = $scope.item.id;
+    $rootScope.$broadcast('saveConfig');
   };
-
-  $scope.getNumberOfAssignments = function(config){
-    if(config && config.assignments) return config.assignments.length;
-    return 0;
-  };
-
-  init();
 }
 
-LtiChooserController.$inject = ['$scope', 'Config', 'LaunchConfigService', 'LtiItemService'];
+LtiChooserController.$inject = ['$scope', '$rootScope', '$location'];
+
+

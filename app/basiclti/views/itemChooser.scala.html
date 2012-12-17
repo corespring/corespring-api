@@ -1,5 +1,7 @@
 @(configId: ObjectId, selectionDirective: String, returnUrl: String)
 
+@import org.bson.types.ObjectId
+
 <html ng-app="lti-chooser">
   <head>
     @common.views.html.head.coreJs()
@@ -12,7 +14,12 @@
   <link href="/assets/stylesheets/lti-item-chooser.css" rel="stylesheet"/>
 
     <script type="text/javascript" src="/assets/js/corespring/lti-chooser/app.js"></script>
-
+    <script type="text/javascript" src="/assets/js/corespring/lti-chooser/directives/ResultPager.js"></script>
+    <script type="text/javascript" src="/assets/js/corespring/lti-chooser/controllers/MainController.js"></script>
+    <script type="text/javascript" src="/assets/js/corespring/lti-chooser/controllers/BrowseController.js"></script>
+    <script type="text/javascript" src="/assets/js/corespring/lti-chooser/controllers/SearchController.js"></script>
+    <script type="text/javascript" src="/assets/js/corespring/lti-chooser/controllers/ViewItemController.js"></script>
+    <script type="text/html" src="/lti/chooser/partials/view"></script>
     <script type="text/javascript">
       (function () {
           angular.module('lti-chooser')
@@ -26,14 +33,15 @@
       })();
     </script>
   </head>
-  <body style="padding:20px;" ng-controller="LtiChooserController">
+  <body style="padding:0px;" ng-controller="LtiChooserController">
     <div class="navbar navbar-fixed-top">
 
     <div class="container">
-      <div class="row" ng-controller="SearchController">
         <img
+          style="float:left"
           src="/assets/images/cs-white-logo-11px.png"
           alt="Corespring"/>
+      <div class="row" ng-controller="SearchController" ng-show="showSearch()">
         <div class="input-append">
 
           <input placeholder="Search"
@@ -63,65 +71,39 @@
 
         </div>
       </div>
+
+
+      <div class="pager-holder"
+        ng-show="showPager()"
+          result-pager
+          load-item="loadItem"
+          load-more="loadMore"
+          list-model="items"
+          item-count="itemCount"
+          current-item="item">
+            <a class="pull-left" ng-click="returnToSearch()">Back</a>
+            <ul class="pager">
+
+              <li class="pull-right">
+                <a class="cs-icon-link" ng-click="next()">
+                  <i class="icon-white icon-arrow-right"></i>
+                </a>
+              </li>
+              <li class="pull-right">
+                <a class="cs-icon-link" ng-click="previous()">
+                  <i class="icon-white icon-arrow-left"></i>
+                </a>
+              </li>
+
+              <li class="pull-right"><div class="pager-text">{{pagerText}}</div></li>
+            </ul>
+      </div>
     </div>
   </div>
+    <div class="main-content-holder">
     <div class="main-content">
-
-      <div class="start-pod" ng-show="mode=='start'">
-
-        <div class="well">
-          Select a collection and/or grade to find Items for assignments
-        </div>
-      </div>
-
-      <div ng-show="mode=='find'">
-         <div class="table-header">
-          <table border="0">
-            <tr>
-              <th class="primary-subject">Primary Subject</th>
-              <th class="ccss">CCSS</th>
-              <th class="title">Title</th>
-              <th class="grade">Grade</th>
-              <th class="type">Type</th>
-              <th class="source">Source</th>
-            </tr>
-        </table>
-         </div>
-        <div class="table-content">
-          <table border="0">
-            <tr>
-              <th class="primary-subject">Primary Subject</th>
-              <th class="ccss">CCSS</th>
-              <th class="title">Title</th>
-              <th class="grade">Grade</th>
-              <th class="type">Type</th>
-              <th class="source">Source</th>
-            </tr>
-            <tr ng-click="selectItem(i)" ng-repeat="i in items" ng-class="{even: $index % 2 == 0}">
-              <td class="primary-subject">Subj</td>
-              <td class="ccss">std</td>
-              <td  class="title" ng-bind-html-unsafe="i.title.substring(0, 60)"></td>
-              <td class="grade">{{showGradeLevel()}}</td>
-              <td class="type">{{i.type}}</td>
-              <td class="source">{{i.source}}</td>
-            </tr>
-          </table>
-        </div>
-
-      </div>
-
-      <div class="has-item-pod" ng-show="mode=='hasItem'">
-
-        <div class="well" ng-bind-html-unsafe="item.title"> </div>
-
-        <div>Configuration:</div>
-        @testplayer.views.html.partials.sessionSettings("config.sessionSettings", false)
-        <button class="btn" ng-click="change()">Change</button>
-        <button class="btn" ng-click="done()">Save</button>
-      <br/>
-        {{getNumberOfAssignments(config)}} student(s) has taken this assignment
-      </div>
+      <div ng-view></div>
     </div>
-
+  </div>
   </body>
 </html>
