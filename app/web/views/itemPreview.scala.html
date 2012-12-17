@@ -27,7 +27,7 @@
     </script>
   
     <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
-    <link media="all" type="text/css" rel="stylesheet" href="/assets/public/css/bootstrap-overrides.css"> <!--JM ADDED 12-14TODO -- REMOVE AND CONSOLIDATE THAT FILE -->
+    <link media="all" type="text/css" rel="stylesheet" href="/assets/public/css/bootstrap-overrides.css"> <!--JM ADDED 12-14 TODO -- REMOVE AND CONSOLIDATE THAT FILE -->
     <script src="/assets/js/vendor/corespring-ng-components/corespring-ng-components.js" type="text/javascript" ></script>
 </head>
 <body ng-controller="PreviewController" style="height: 100%">
@@ -42,7 +42,7 @@
                 </li>
 
                 <li ng-class="{true:'active', false:''}[currentPanel=='item']">
-                    <a ng-click="changePanel('item')">Play It</a>
+                    <a ng-click="changePanel('item')">Preview</a>
                 </li>
 
                 <li ng-repeat="sm in itemData.supportingMaterials"
