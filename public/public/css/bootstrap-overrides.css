@@ -594,6 +594,11 @@ hr {
 }
 /* CSS FOR PUBLIC SITE FLOAT ITEM PLAYER */
 
+.preview-container {
+	padding-top: 30px;
+}
+
+
 /*active tab*/
 .nav-tabs > .active > a, .nav-tabs > .active > a:hover {
 	-moz-border-left-colors: none;
@@ -645,7 +650,4 @@ background-color: #eee;
 	padding-top: 6px !important;
 }
 
-.profile .item-type {
-position: relative;
-top: 20px;
-}
+

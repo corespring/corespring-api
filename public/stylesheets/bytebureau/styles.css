@@ -1195,7 +1195,7 @@ orderinteraction.ng-scope div.dragArea div#draggableItems {
 	display: block;
 	font-size: 12px;
 	padding: 10px;
-margin: 50px auto -8px;
+margin: 20px auto -8px;
 }
 .itemplayer-control-bar a.gear-icon {
 	background: url("/assets/public/images/gear-icon-18x18.png") no-repeat scroll 0px -0px transparent;
