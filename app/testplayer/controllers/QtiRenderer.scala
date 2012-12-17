@@ -2,6 +2,7 @@ package testplayer.controllers
 
 import xml.Elem
 import qti.processors.FeedbackProcessor._
+import qti.processors.SelectTextInteractionProcessor._
 
 trait QtiRenderer {
 
@@ -12,6 +13,15 @@ trait QtiRenderer {
   def prepareQti(qti:Elem, printMode : Boolean = false) : String = {
     val (xmlWithCsFeedbackIds, _) = addFeedbackIds(qti)
     val itemBody = filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds) \ "itemBody")
+    val qtiXml = <assessmentItem print-mode={printMode.toString}>{itemBody}</assessmentItem>
+    removeNamespaces(qtiXml)
+  }
+
+  /** Prepare the raw qti xml for rendering. Remove answers and add csFeedbackIds
+   */
+  def prepareSelectText(qti:Elem, printMode : Boolean = false) : String = {
+    val (xmlWithCsFeedbackIds, _) = addFeedbackIds(qti)
+    val itemBody = tokenizeSelectText(filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds) \ "itemBody"))
     val qtiXml = <assessmentItem print-mode={printMode.toString}>{itemBody}</assessmentItem>
     removeNamespaces(qtiXml)
   }

@@ -1,11 +1,11 @@
-.selectable {
+[selectable] {
 }
 
-.selectable:hover {
+[selectable]:hover {
     background-color: yellow;
     cursor: hand; cursor: pointer;
 }
 
-.selectable .selected {
+[selectable] .selected {
     background-color: red;
 }

@@ -1,5 +1,4 @@
 qtiDirectives.directive('selecttextinteraction', function factory() {
-
     return {
         restrict: 'ACE',
         scope: true,
@@ -9,54 +8,46 @@ qtiDirectives.directive('selecttextinteraction', function factory() {
             $scope.addSelection = function (selection) {
                 $scope.selections.push(selection);
                 console.log($scope.selections);
-            };
+            }
             $scope.removeSelection = function (selection) {
                 var newSelections = [];
                 for (var i = 0; i < $scope.selections.length; i++)
                     if ($scope.selections[i] != selection) newSelections.push($scope.selections[i]);
                 $scope.selections = newSelections;
                 console.log($scope.selections);
-            };
-        },
-        compile: function compile(tElement, tAttrs) {
-            var sentenceRegExp = /\n|([^\r\n.!?]+([.!?]+|$))/gim;
-            var wordRegExp = /\b[a-zA-Z_']+\b/gim;
-            var regExp = (tAttrs.selectiontype == "word") ? wordRegExp : sentenceRegExp;
-            var html = tElement.html();
-            tElement.html(html.replace(regExp, function (match, b1, b2) {
-                if (tAttrs.selectiontype == "word" && "</".indexOf(b2.charAt(b1-1)) >= 0)
-                    return match
-                else
-                    return "<span class='selectable'>" + match + "</span>";
-            }));
-            return function link(scope, iElement, attrs, AssessmentItemController) {
-                var responseIdentifier = attrs.responseidentifier;
-                scope.controller = AssessmentItemController;
-                scope.$watch('selections.length', function () {
-                    console.log("Selection changed");
-                    scope.controller.setResponse(responseIdentifier, scope.selections);
-                });
             }
+        },
+        link: function(scope, element, attrs, AssessmentItemController) {
+            scope.controller = AssessmentItemController;
+            var responseIdentifier = attrs.responseidentifier;
+            scope.$watch('selections.length', function () {
+                scope.controller.setResponse(responseIdentifier, scope.selections);
+                scope.noResponse = false;//(scope.isEmptyItem(scope.selections) && scope.showNoResponseFeedback);
+            });
         }
     };
 });
 
 qtiDirectives.directive('selectable', function factory() {
     return {
-        restrict: 'C',
+        restrict: 'ACE',
         scope: true,
-        requires: "^selectTextInteraction",
+        replace: false,
+        template: "<span ng-click='toggle()' ng-class='{selected: isSelected}' ng-transclude></span>",
+        transclude: true,
+        require: "^selecttextinteraction",
         compile: function compile(tElement, tAttrs) {
-            var trimmedHtml = tElement.html().replace(/^[^a-zA-Z]*?([a-zA-Z])/, "$1").replace(/([a-zA-Z])[^a-zA-Z]*?$/,"$1");
-            tElement.html("<span ng-click=\"toggle()\" ng-class=\"{selected: isSelected}\">"+tElement.html()+"</span>");
+            var outerHtml = tElement[0].outerHTML;
+
             return function link(scope, iElement, iAttrs) {
                 scope.isSelected = false;
+                scope.id = /id=".([0-9]+)"/gim.exec(outerHtml)[1];
                 scope.toggle = function () {
                     scope.isSelected = !scope.isSelected;
                     if (scope.isSelected)
-                        scope.addSelection(trimmedHtml);
+                        scope.addSelection(scope.id);
                     else
-                        scope.removeSelection(trimmedHtml);
+                        scope.removeSelection(scope.id);
                 }
             }
         }

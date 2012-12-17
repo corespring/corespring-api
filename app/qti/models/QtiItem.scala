@@ -3,6 +3,7 @@ package qti.models
 import scala.xml._
 import play.api.libs.json.{JsString, JsObject, JsValue, Writes}
 import qti.models.QtiItem.Correctness
+import qti.processors.SelectTextInteractionProcessor._
 
 case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline]) {
   var defaultCorrect = "That is correct!"
@@ -145,11 +146,23 @@ object QtiItem {
     qtiItem
   }
 
+  // TODO: this should go to the interaction processor
+  private def getSelectTextResponseDeclarations(n:Node) = {
+    val selectTextNodes:NodeSeq = (n \ "itemBody" \ "selectTextInteraction")
+    selectTextNodes.map {
+      node =>
+        val id = (node \ "@responseIdentifier").text
+        val correctAnswers = parseCorrectResponses(node)
+        val cra = CorrectResponseMultiple(correctAnswers)
+        ResponseDeclaration(identifier = id, cardinality ="multiple", correctResponse = Some(cra), mapping = None)
+    }
+  }
+
   private def createItem(n: Node): QtiItem = {
     val itemBody = ItemBody((n \ "itemBody").head)
 
     QtiItem(
-      responseDeclarations = (n \ "responseDeclaration").map(ResponseDeclaration(_, itemBody)),
+      responseDeclarations = (n \ "responseDeclaration").map(ResponseDeclaration(_, itemBody)) ++ getSelectTextResponseDeclarations(n),
       itemBody = itemBody,
       modalFeedbacks = (n \ "modalFeedbacks").map(FeedbackInline(_, None))
     )
@@ -297,12 +310,10 @@ object CorrectResponseMultiple {
 
 case class CorrectResponseAny(value: Seq[String]) extends CorrectResponse {
   def isCorrect(responseValue: String) = {
-    println("Findinging ", responseValue)
     value.find(_ == responseValue).isDefined
   }
 
   def isValueCorrect(v: String, index: Int) = {
-    println("Is Value Correct ", v, index)
     value.contains(v)
   }
 }
@@ -368,7 +379,7 @@ object ItemBody {
       ("textEntryInteraction", TextEntryInteraction(_, feedbackBlocks)),
       ("choiceInteraction", ChoiceInteraction(_)),
       ("orderInteraction", OrderInteraction(_)),
-      ("selectTextPassage", SelectTextInteraction(_))
+      ("selectTextInteraction", SelectTextInteraction(_))
     ))
 
     ItemBody(interactions, feedbackBlocks)
