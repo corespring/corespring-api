@@ -4,7 +4,8 @@ import xml._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 import scala.Some
 import models.FeedbackIdMapEntry
-import qti.models.{OrderInteraction, ChoiceInteraction, QtiItem}
+import qti.models.{QtiItem}
+import qti.models.interactions.{OrderInteraction, ChoiceInteraction}
 
 /**
  * Provides transformations on JSON strings to add/remove csFeedbackIds to feedback elements, as well as validation for
