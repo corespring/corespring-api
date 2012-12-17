@@ -14,12 +14,16 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
     SearchService.search($scope.searchParams, function(res){
       $rootScope.items = res;
     });
-
-    SearchService.count($scope.searchParams, function(count){
-
-      $rootScope.itemCount = count;
-    });
   };
+
+  $rootScope.$on('onSearchCountComplete', function(event,count){
+    $rootScope.itemCount = count;
+  });
+
+  $rootScope.$on('loadMoreSearchResults', function(event){
+    console.log("SearchController - on - loadMore");
+    $scope.loadMore();
+  });
 
   $scope.loadMore = function () {
     SearchService.loadMore(function () {

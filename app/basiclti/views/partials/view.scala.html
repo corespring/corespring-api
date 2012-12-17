@@ -1,4 +1,4 @@
-<div style="height: 32px; background-color: #005500;">
+<div class="sub-nav-bar">
 
     <ul class="span6 nav nav-pills">
       <li
@@ -20,9 +20,13 @@
       </li>
     </ul>
 
-    <button class="btn pull-right" ng-click="assignOrRemove()">{{getAssignRemoveLabel()}}</button>
+    <button class="btn pull-right btn-mini btn-primary" style="margin-right: 5px; margin-top: 2px;" ng-click="assignOrRemove()">{{getAssignRemoveLabel()}}</button>
   </div>
-<div style="width: 600px; height: 100%;">
+
+<div class="view-item-loading" ng-show="!item">
+
+</div>
+<div class="view-item-container" ng-show="item">
 
     <span ng-show="currentPanel == 'preview'">
       <iframe

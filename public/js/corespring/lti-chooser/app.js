@@ -38,6 +38,10 @@ function LtiChooserController( $scope, $rootScope, $location ){
     $location.url("/view/" + id);
   };
 
+  $scope.loadMore = function(){
+    $rootScope.$broadcast('loadMoreSearchResults');
+  };
+
   $scope.change = function(){
     $location.url("/browse");
   };

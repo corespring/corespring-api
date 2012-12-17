@@ -112,6 +112,7 @@ angular.module('tagger.services').factory('SearchService',
         },
 
         count:function (queryText, callback) {
+          console.warn("SearchService.count - this is deprecated..");
            ItemService.count({q:queryText, c:true}, function (count) {
                // angular treats a raw string like a json object and copies it (see copy() method in angular)
                // this mean "21" will come back as {0:"2", 1:"1"}
