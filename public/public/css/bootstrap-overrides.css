@@ -592,8 +592,7 @@ hr {
 	background-color:transparent;
 	border: none;
 }
-<<<<<<< HEAD
-=======
+
 /* CSS FOR PUBLIC SITE FLOAT ITEM PLAYER */
 
 .preview-container {
@@ -601,7 +600,7 @@ hr {
 }
 
 .row {
-margin-left: 45px;
+margin-left: 13px;
 }
 >>>>>>> Size Adjustments for Item Preview & Tabs (& FancyBox)
 
@@ -648,7 +647,6 @@ background-color: #eee;
 .sub-nav {
 	-webkit-box-shadow: none !important;
 	-moz-box-shadow: none !important;
-	;
 	box-shadow: none !important;
 	border-bottom: 1px solid #433f43 !important;
 }
