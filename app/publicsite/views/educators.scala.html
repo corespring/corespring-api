@@ -110,13 +110,19 @@
                             <span ng-show="!i.standards || i.length == 0" style="color: #888; font-style: italic;">Not Assigned</span>
                             <span ng-repeat="s in i.standards" ui-jq="tooltip"
                                   ui-options="{title: s.standard}">{{s.dotNotation}}&nbsp;</span></td>
-                                <td class="button-cell"><a class="btn btn-success fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/web/item-preview/{{i.id}}">Profile</a>
-                <a class="btn btn-primary fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/testplayer/item/{{i.id}}/run?access_token=34dj45a769j4e1c0h4wb" >Play it!</a></td>
+                                <td class="button-cell">
+                                    <!--
+                                    <a class="btn btn-success fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/web/item-preview/{{i.id}}">Profile</a>
+                                     <a class="btn btn-primary fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/testplayer/item/{{i.id}}/run?access_token=34dj45a769j4e1c0h4wb" >Play it!</a>
+                                -->
+                                </td>
 
                     </tr>
 
                 </table>
-                <p class="title" ng-bind-html-unsafe="i.title"></p>
+                <a class="fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/web/item-preview/{{i.id}}">
+                    <p class="title" ng-bind-html-unsafe="i.title"></p>
+                </a>
                 <table>
                     <tr>
                         <td width="33%">Primary Subject</td>
