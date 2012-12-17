@@ -592,12 +592,6 @@ hr {
 	background-color:transparent;
 	border: none;
 }
-/* CSS FOR PUBLIC SITE FLOAT ITEM PLAYER */
-
-.preview-container {
-	padding-top: 30px;
-}
-
 
 /*active tab*/
 .nav-tabs > .active > a, .nav-tabs > .active > a:hover {
