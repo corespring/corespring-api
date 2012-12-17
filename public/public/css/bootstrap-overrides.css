@@ -595,10 +595,11 @@ hr {
 	padding-top: 55px;
 }
 
-.row {
+div.sub-nav div.container div.row.row {
 margin-left: 13px;
 }
->>>>>>> Size Adjustments for Item Preview & Tabs (& FancyBox)
+
+/*Size Adjustments for Item Preview & Tabs (& FancyBox) */
 
 /*active tab*/
 .nav-tabs > .active > a, .nav-tabs > .active > a:hover {
