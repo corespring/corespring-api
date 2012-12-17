@@ -10,10 +10,10 @@ function ControlBarController($scope) {
 ControlBarController.$inject = ['$scope'];
 
 // base directive include for all QTI items
-qtiDirectives.directive('assessmentitem', function () {
+qtiDirectives.directive('assessmentitem', function ($rootScope) {
     return {
         restrict:'E',
-        controller:function ($scope, $element, $attrs, $timeout) {
+        controller:function ($scope, $element, $attrs, $timeout, $rootScope) {
 
             var itemId = null;
             var sessionId = null;
@@ -148,7 +148,7 @@ qtiDirectives.directive('assessmentitem', function () {
                   console.log("onError...")
                 };
 
-                $scope.$broadcast('assessmentItem_submit', $scope.itemSession, onSuccess, onError);
+                $rootScope.$broadcast('assessmentItem_submit', $scope.itemSession, onSuccess, onError);
             };
 
             var isSettingEnabled = function (name) {
