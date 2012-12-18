@@ -271,9 +271,10 @@ input[type="submit"] {
 	font-size:14px;
 }
 .choice-content {
-	line-height:20px;
-	width: 540px;
+line-height: 20px;
+width: 510px;
 }
+
 .correct-response, .correct-response-horizontal {
 	color: #95C444;
 }
@@ -866,7 +867,7 @@ div.text-box-content {
 .student-assessment-page {
 	border: 0;
 }
-.itemplayer-control-bar div.student-view-header {
+.student-view-header {
 	background-color: #FFFFFF;
 	border: 2px dashed #DDDDDD;
 	font-size: 16px;
@@ -1275,8 +1276,8 @@ background: none;
 border: none;
 display: block;
 font-size: 12px;
-padding: 10px;
-margin: -5px 3px 5px 3px;
+padding: 35px 10px 5px 10px;
+margin: 0px 10px 5px 10px;
 width: 560px;
 }
 
