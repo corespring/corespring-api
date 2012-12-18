@@ -584,9 +584,12 @@ hr {
 	margin: 20px 0px;
 }
 /* print button*/
-.nav li a.prev-print {
+.nav li a.prev-print, .nav li a.prev-print:hover {
 	background-color:transparent;
 	border: none;
+}
+.sub-nav .nav li a.prev-print:hover {
+	padding-top:8px !important;
 }
 
 /* CSS FOR PUBLIC SITE FLOAT ITEM PLAYER */
@@ -619,6 +622,7 @@ margin-left: 13px;
 	border-bottom: 0px solid white;
 	padding-bottom: 8px;
 	margin-top:0px;
+	text-decoration:none;
 }
 /* inactive tab */
 .nav-tabs > li > a {
@@ -636,7 +640,11 @@ margin-left: 13px;
 
 /*hover tabs */
 .nav-tabs > li > a:hover {
-background-color: #eee;
+background-color: #E1E1E1;
+border-color: #433f43 #433f43 #000;
+color: rgba(0,0,0,1.0);
+text-shadow: 2px 2px 3px rgba(255,255,255,0.1);
+text-decoration:underline;
 }
 
 .nav-tabs {
