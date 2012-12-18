@@ -1,6 +1,7 @@
 window.ltiChooser = (window.ltiChooser || {});
 
-angular.module("lti-chooser", ['tagger.services','lti-services', 'ngResource', 'corespring-directives']);
+angular.module("lti-chooser",
+  ['tagger.services','lti-services', 'ngResource', 'corespring-directives', 'corespring-utils', 'ui']);
 
 angular.module("lti-chooser").config(['$routeProvider', function ($routeProvider) {
     $routeProvider.when('/main', {templateUrl:'/lti/chooser/partials/main', controller:MainController});

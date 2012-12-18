@@ -4,7 +4,10 @@ function BrowseController(
   $location,
   Config,
   LaunchConfigService,
-  LtiItemService){
+  ItemFormattingUtils){
+
+  //Mixin ItemFormattingUtils
+  angular.extend($scope, ItemFormattingUtils);
 
   $scope.showTip = true;
 
@@ -19,7 +22,6 @@ function BrowseController(
     $location.url("/view/" + item.id);
   };
 
-  //$scope.configurationId = Config.configurationId;
 
   $scope.settings = Config.settings;
 
@@ -41,7 +43,11 @@ function BrowseController(
     if(config && config.assignments) return config.assignments.length;
     return 0;
   };
-
 }
 
-BrowseController.$inject = ['$scope', '$rootScope', '$location', 'Config', 'LaunchConfigService', 'LtiItemService'];
+BrowseController.$inject = ['$scope',
+  '$rootScope',
+  '$location',
+  'Config',
+  'LaunchConfigService',
+  'ItemFormattingUtils'];
