@@ -1,4 +1,17 @@
-<div>
+<div ng-show="isSearching" class="view-item-loading">
+    <div id="spinner"></div>
+</div>
+
+<script type="text/javascript">
+  var opts = {
+  color: '#444', // #rgb or #rrggbb
+  top: '150px'
+  };
+  var target = document.getElementById('spinner');
+  var spinner = new Spinner(opts).spin(target);
+</script>
+
+<div ng-show="!isSearching">
 <div class="table-header">
   <table border="0">
     <tr>

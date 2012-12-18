@@ -22,6 +22,7 @@ angular.module("lti-services", ['ngResource'])
 function LtiChooserController( $scope, $rootScope, $location ){
 
   $scope.returnToSearch = function(){
+    $rootScope.item = null;
     $location.url("/browse");
   };
 

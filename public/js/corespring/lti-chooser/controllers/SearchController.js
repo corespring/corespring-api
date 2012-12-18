@@ -16,8 +16,13 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
     });
   };
 
+  $rootScope.$on('onNetworkLoading', function(event,count){
+    $rootScope.isSearching = true;
+  });
+
   $rootScope.$on('onSearchCountComplete', function(event,count){
     $rootScope.itemCount = count;
+    $rootScope.isSearching = false;
   });
 
   $rootScope.$on('loadMoreSearchResults', function(event){

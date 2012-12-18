@@ -2,9 +2,8 @@ window.ltiChooser = (window.ltiChooser || {});
 
 ltiChooser.ViewItemController = function ($scope, $rootScope, $routeParams, $location, LtiItemService, ServiceLookup){
 
-  console.log("ViewItemController: " + $routeParams);
-
-  $scope.currentPanel = "item";
+  console.log("ViewItemController: " );
+  $rootScope.item = null;
   $scope.itemPreviewUrl = null;
 
   $scope.changePanel = function(name){

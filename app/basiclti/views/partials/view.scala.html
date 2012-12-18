@@ -1,4 +1,17 @@
-<div class="sub-nav-bar">
+<div class="view-item-loading" ng-show="!item">
+    <div id="spinner"></div>
+</div>
+
+<script type="text/javascript">
+  var opts = {
+  color: '#444', // #rgb or #rrggbb
+   top: '150px'
+  };
+  var target = document.getElementById('spinner');
+  var spinner = new Spinner(opts).spin(target);
+</script>
+
+<div class="sub-nav-bar" ng-show="item">
 
     <ul class="span6 nav nav-pills">
       <li
@@ -23,9 +36,6 @@
     <button class="btn pull-right btn-mini btn-primary" style="margin-right: 5px; margin-top: 2px;" ng-click="assignOrRemove()">{{getAssignRemoveLabel()}}</button>
   </div>
 
-<div class="view-item-loading" ng-show="!item">
-
-</div>
 <div class="view-item-container" ng-show="item">
 
     <span ng-show="currentPanel == 'preview'">

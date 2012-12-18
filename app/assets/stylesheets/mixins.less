@@ -41,3 +41,15 @@
   filter: progid:dximagetransform.microsoft.gradient(startColorstr='@top', endColorstr='@bottom', GradientType=0);
   filter: progid:dximagetransform.microsoft.gradient(enabled=false);
 }
+.mixin-bg-carbon( @size, @color) {
+
+  @dark : darken(@color, 6%);
+  background:
+    -webkit-radial-gradient(@dark 15%, transparent 16%) 0 0,
+    -webkit-radial-gradient(@dark 15%, transparent 16%) @size @size,
+    -webkit-radial-gradient(rgba(255,255,255,.1) 15%, transparent 15%) 0 1px,
+    -webkit-radial-gradient(rgba(255,255,255,.1) 15%, transparent 15%) @size (@size + 1);
+  background-color:@color;
+  @double: (@size * 2);
+  background-size:@double @double;
+}
