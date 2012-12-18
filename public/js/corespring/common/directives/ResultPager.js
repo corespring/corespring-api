@@ -7,7 +7,7 @@ function loadModule(name){
   }
 }
 
-var module = loadModule('corespring-directives');
+var corespringDirectivesModule = loadModule('corespring-directives');
 
 /**
  * A paging directive - displays the current item selected out of an array of items.
@@ -30,7 +30,7 @@ var module = loadModule('corespring-directives');
                   ></ul>
  * }}}
  */
-module.directive("resultPager", function(){
+corespringDirectivesModule.directive("resultPager", function(){
 
   return {
     link: function($scope, $element, $attrs){

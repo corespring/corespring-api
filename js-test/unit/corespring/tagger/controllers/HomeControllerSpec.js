@@ -26,7 +26,7 @@ describe('HomeController', function () {
                 }
             });
 
-        });
+        }, 'corespring-utils');
     });
 
     var scope, ctrl, $httpBackend;
