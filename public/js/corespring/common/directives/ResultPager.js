@@ -1,8 +1,10 @@
-function loadModule(name){
+'use strict';
+
+function loadModule(name) {
   try {
     return angular.module(name);
   }
-  catch (e){
+  catch (e) {
     return angular.module(name, []);
   }
 }
@@ -30,10 +32,13 @@ var corespringDirectivesModule = loadModule('corespring-directives');
                   ></ul>
  * }}}
  */
-corespringDirectivesModule.directive("resultPager", function(){
+
+corespringDirectivesModule.directive("resultPager", function () {
 
   return {
-    link: function($scope, $element, $attrs){
+    link: function ($scope, $element, $attrs) {
+
+      $scope.pagerText = null;
 
       var listModel = $attrs['listModel'];
       var currentItem = $attrs['currentItem'];
@@ -43,24 +48,24 @@ corespringDirectivesModule.directive("resultPager", function(){
 
       var totalNoOfItems = 0;
 
-      $scope.$watch(itemCount, function(newItemCount){
+      $scope.$watch(itemCount, function (newItemCount) {
         totalNoOfItems = newItemCount;
         updatePageText(0);
       });
 
-      $scope.$watch(listModel, function(newValue){
+      $scope.$watch(listModel, function (newValue) {
         updatePageText(0);
       });
 
-      $scope.$watch(currentItem, function(newCurrentItem){
+      $scope.$watch(currentItem, function (newCurrentItem) {
         var index = getIndexByKey($scope[listModel], "id", $scope[currentItem]);
         updatePageText(index);
       });
 
-      var updatePageText = function(index){
-        if(!totalNoOfItems || totalNoOfItems == 0){
+      var updatePageText = function (index) {
+        if (!totalNoOfItems || totalNoOfItems == 0) {
           $scope.pagerText = null;
-        } else if(index == -1) {
+        } else if (index == -1) {
           $scope.pagerText = null;
         } else {
           $scope.pagerText = (index + 1) + " of " + totalNoOfItems;
@@ -77,19 +82,19 @@ corespringDirectivesModule.directive("resultPager", function(){
         changePage(-1);
       };
 
-      function getIndexByKey(items, key, obj){
+      function getIndexByKey(items, key, obj) {
 
-          if(!items){
-            return -1;
-          }
-
-          for(var i = 0 ; i < items.length; i++){
-             if(items[i][key] == obj[key]){
-               return i;
-             }
-          }
+        if (!items || !obj) {
           return -1;
         }
+
+        for (var i = 0; i < items.length; i++) {
+          if (items[i][key] == obj[key]) {
+            return i;
+          }
+        }
+        return -1;
+      }
 
 
       function changePage(number) {
@@ -99,12 +104,12 @@ corespringDirectivesModule.directive("resultPager", function(){
 
         var proposedIndex = currentIndex + number;
 
-        if(proposedIndex < 0){
+        if (proposedIndex < 0) {
           //console.log("currentIndex is < 0");
           return;
         }
 
-        if(proposedIndex > totalNoOfItems -1 ){
+        if (proposedIndex > totalNoOfItems - 1) {
           //console.log("currentIndex is > than totalNoOfItems");
           return;
         }
@@ -117,11 +122,11 @@ corespringDirectivesModule.directive("resultPager", function(){
         if (nextItem) {
           $scope[loadItemFn](nextItem.id);
         } else {
-          
-          var onMoreLoaded = function(){
+
+          var onMoreLoaded = function () {
             var loadedNextItem = $scope[listModel][proposedIndex];
-            
-            if(!loadedNextItem){
+
+            if (!loadedNextItem) {
               throw "No more items loaded";
             }
 
