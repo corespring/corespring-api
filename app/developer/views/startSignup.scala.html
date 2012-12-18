@@ -1,7 +1,7 @@
 @(startForm:Form[String])(implicit request: RequestHeader)
 @import helper._
 @import securesocial.core.IdentityProvider
-@implicitFieldConstructor = @{ FieldConstructor(securesocial.views.html.inputFieldConstructor.f) }
+@implicitFieldConstructor = @{ FieldConstructor(developer.views.html.inputFieldConstructor.f) }
 
 @main("Signup") {
     <div class="container" style="width: 960px;">
@@ -20,7 +20,7 @@
 
 
 
-    <form action="@securesocial.core.providers.utils.RoutesHelper.handleStartSignUp().absoluteURL(IdentityProvider.sslEnabled)"
+    <form action="/signup"
           class="form-horizontal"
           autocomplete="off" method="post"
     >

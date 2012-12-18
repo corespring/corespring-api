@@ -1,0 +1,32 @@
+@(errorMsg: Option[String] = None)(implicit request: RequestHeader)
+
+@import helper._
+@import securesocial.core.ProviderRegistry
+@import securesocial.core.AuthenticationMethod._
+@import securesocial.core.providers.UsernamePasswordProvider.UsernamePassword
+
+@main("Registartion Done") {
+    <div class="container" style="width: 960px;">
+        <div class="well" style="position: relative; top: 100px; width:500px;">
+
+            <h3>Thank you for registering!</h3>
+            <br/>
+            @errorMsg.map { msg =>
+            <div class="alert alert-error">
+                @Messages(msg)
+            </div>
+            }
+
+            @Messages("securesocial.signup.thankYouCheckEmail")
+
+            <br/>
+            <br/>
+            <a class="btn-link" href="/">Back to main Site</a>
+        </div>
+    </div>
+}
+
+
+
+
+

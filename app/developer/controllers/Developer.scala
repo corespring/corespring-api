@@ -2,7 +2,7 @@ package developer.controllers
 
 import play.api.mvc.{Action, Controller}
 import controllers.Assets
-import securesocial.core.SecureSocial
+import securesocial.core._
 import play.api.libs.json._
 import api.ApiError
 import org.bson.types.ObjectId
@@ -13,10 +13,34 @@ import play.api.libs.json.JsObject
 import play.api.libs.json.JsBoolean
 import scala.Some
 import scala.Right
+import scala.Left
+import securesocial.core.SocialUser
+import play.api.libs.json.JsString
+import play.api.libs.json.JsBoolean
+import scala.Some
+import scala.Right
+import securesocial.core.PasswordInfo
+import play.api.libs.json.JsObject
 
 object Developer extends Controller with SecureSocial{
 
   def at(path:String,file:String) = Assets.at(path,file)
+
+  def home = Action{request =>
+    request.session.get(SecureSocial.UserKey) match {
+      case Some(username) =>
+        User.getUser(username) match {
+        case Some(user) =>
+          if(!user.hasRegisteredOrg){
+          Redirect("/developer/org/form")
+        }else{
+          Assets.at("/public/developer", "index.html")(request)
+        }
+        case None => Assets.at("/public/developer", "index.html")(request)
+      }
+      case None => Assets.at("/public/developer", "index.html")(request)
+    }
+  }
 
   def login = Action{ request =>
     Redirect("/login").withSession(request.session + ("securesocial.originalUrl" -> "/developer/home"));
@@ -32,7 +56,7 @@ object Developer extends Controller with SecureSocial{
             Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(user.fullName.split(" ")(0)))))
           }
         }
-        case None => Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(username.get), "firstname" -> JsString(username.get))))
+        case None => Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(false))))    //this can occur if the cookies are still set but the user has been deleted
       }
     }else{
       Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(false))))
@@ -44,6 +68,7 @@ object Developer extends Controller with SecureSocial{
   def logout = Action {implicit request =>
     Redirect("/developer/home").withSession(session - SecureSocial.UserKey - SecureSocial.ProviderKey)
   }
+
   def getOrganization = SecuredAction(){ request =>
     User.getUser(request.user.id) match {
       case Some(user) => {
@@ -113,6 +138,17 @@ object Developer extends Controller with SecureSocial{
       }
       case None => InternalServerError("could not find user...after authentication. something is very wrong")
     }
+  }
+
+  def handleStartSignUp = Action { implicit request =>
+    val action = securesocial.controllers.Registration.handleStartSignUp(request)
+    action match {
+      case BadRequest => action
+      case _ => Ok(developer.views.html.registerDone())
+    }
+  }
+  def handleSignUp(token:String) = Action { request =>
+    MyRegistration.handleSignUp(token)(request)
   }
 }
 

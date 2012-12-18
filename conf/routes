@@ -18,7 +18,7 @@ GET     /developer/org/form     developer.controllers.Developer.createOrganizati
 POST    /developer/org         developer.controllers.Developer.createOrganization
 GET     /developer/org/:orgid  developer.controllers.Developer.getOrganizationCredentials(orgid: ObjectId)
 
-GET     /developer/home             developer.controllers.Developer.at(path="/public/developer", file="index.html")
+GET     /developer/home             developer.controllers.Developer.home
 GET     /developer/*file            developer.controllers.Developer.at(path="/public/developer", file)
 
 
@@ -187,9 +187,9 @@ GET     /logout                     securesocial.controllers.LoginPage.logout
 
 # User Registration
 GET     /signup                     securesocial.controllers.Registration.startSignUp
-POST    /signup                     securesocial.controllers.Registration.handleStartSignUp
+POST    /signup                     developer.controllers.Developer.handleStartSignUp
 GET     /signup/:token              securesocial.controllers.Registration.signUp(token)
-POST    /signup/:token              securesocial.controllers.Registration.handleSignUp(token)
+POST    /signup/:token              developer.controllers.Developer.handleSignUp(token)
 GET     /reset                      securesocial.controllers.Registration.startResetPassword
 POST    /reset                      securesocial.controllers.Registration.handleStartResetPassword
 GET     /reset/:token               securesocial.controllers.Registration.resetPassword(token)

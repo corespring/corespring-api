@@ -2,7 +2,7 @@
 @import securesocial.core.providers.UsernamePasswordProvider
 @import securesocial.core.IdentityProvider
 @import helper._
-@implicitFieldConstructor = @{ FieldConstructor(securesocial.views.html.inputFieldConstructor.f) }
+@implicitFieldConstructor = @{ FieldConstructor(developer.views.html.inputFieldConstructor.f) }
 
 @main("Signup") {
     <div class="container" style="width: 960px;">
@@ -20,7 +20,7 @@
         </div>
     }
 
-    <form action="@securesocial.core.providers.utils.RoutesHelper.handleSignUp(token).absoluteURL(IdentityProvider.sslEnabled)"
+    <form action=@{"/signup/"+token}
           class="form-horizontal"
           autocomplete= "off"
           method="POST"
@@ -43,6 +43,12 @@
             @helper.inputText(
                 signUpForm("lastName"),
                 '_label -> Messages("securesocial.signup.lastName"),
+                'class -> "input-xlarge"
+            )
+
+            @helper.inputText(
+                signUpForm("organization"),
+                '_label -> "Organization",
                 'class -> "input-xlarge"
             )
 

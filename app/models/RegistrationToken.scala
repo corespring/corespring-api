@@ -17,6 +17,7 @@ case class RegistrationToken(var uuid: String = "",
                  var email: String = "",
                  var creationTime: Option[DateTime] = None,
                  var expirationTime: Option[DateTime] = None,
+                 var isSignUp: Boolean,
                  var id: ObjectId = new ObjectId()) extends Identifiable
 
 object RegistrationToken extends DBQueryable[RegistrationToken] {
@@ -29,6 +30,7 @@ object RegistrationToken extends DBQueryable[RegistrationToken] {
   val Email = "email"
   val Created = "creationTime"
   val Expires = "expirationTime"
+  val IsSignUp = "isSignUp"
 
   implicit object RegistrationTokenWrites extends Writes[RegistrationToken] {
     def writes(token: RegistrationToken) = {
@@ -37,6 +39,7 @@ object RegistrationToken extends DBQueryable[RegistrationToken] {
       if ( token.email.nonEmpty ) list = (Email -> JsString(token.email)) :: list
       if ( token.creationTime.isDefined ) list = (Created -> JsNumber(token.creationTime.get.getMillis)) :: list
       if ( token.expirationTime.isDefined ) list = (Expires -> JsNumber(token.expirationTime.get.getMillis)) :: list
+      list = (IsSignUp -> JsBoolean(token.isSignUp)) :: list
       list =  "id" -> JsString(token.id.toString) :: list
       JsObject(list)
     }
@@ -48,7 +51,8 @@ object RegistrationToken extends DBQueryable[RegistrationToken] {
           uuid = (json \ Uuid).asOpt[String].getOrElse(""),
           email = (json \ Email).asOpt[String].getOrElse(""),
           creationTime = (json \ Created).asOpt[Long].map(new DateTime(_)),
-          expirationTime = (json \ Expires).asOpt[Long].map(new DateTime(_))
+          expirationTime = (json \ Expires).asOpt[Long].map(new DateTime(_)),
+          isSignUp = (json \ IsSignUp).asOpt[Boolean].getOrElse(false)
         )
       }
     }
