@@ -197,7 +197,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
     $scope.loadItem = function () {
         ItemService.get({id:$routeParams.itemId}, function onItemLoaded(itemData) {
-            $scope.itemData = itemData;
+            $rootScope.itemData = itemData;
             enterEditorIfInContentPanel();
             initItemType();
             $scope.$broadcast("dataLoaded");
@@ -274,7 +274,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
                 $scope.isSaving = false;
                 $scope.suppressSave = false;
                 $scope.processValidationResults(data["$validationResult"]);
-                $scope.itemData = data;
+                $rootScope.itemData = data;
             },
             function onError() {
                 console.log("Error saving item");

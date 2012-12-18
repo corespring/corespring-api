@@ -27,14 +27,14 @@ function HomeController(
 
     $scope.search = function() {
         SearchService.search($scope.searchParams, function(res){
-            $scope.items = res;
+            $rootScope.items = res;
         });
     };
 
     $scope.loadMore = function () {
         SearchService.loadMore(function () {
                 // re-bind the scope collection to the services model after result comes back
-                $scope.items = SearchService.itemDataCollection;
+                $rootScope.items = SearchService.itemDataCollection;
                 //Trigger MathJax
                 setTimeout(function(){
                     MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
@@ -43,6 +43,8 @@ function HomeController(
             }
         );
     };
+
+
 
     function loadCollections() {
         Collection.get({}, function (data) {

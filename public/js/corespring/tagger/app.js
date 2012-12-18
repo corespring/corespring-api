@@ -8,6 +8,7 @@ var taggerApp = angular.module('tagger',
       'buttonToggle',
       'templates',
       'corespring-utils',
+      'corespring-directives',
       'ui']);
 
 taggerApp.

@@ -11,7 +11,14 @@ angular.module('tagger.services').factory('SearchService',
       resultCount: "",
       itemDataCollection: {},
       searchId: 0,
-      resultFields: ['originId', 'title', 'primarySubject', 'gradeLevel', 'itemType', 'standards', 'subjects'],
+      resultFields: [
+        'originId',
+        'title',
+        'primarySubject',
+        'gradeLevel',
+        'itemType',
+        'standards',
+        'subjects'],
       searchFields: [
         'originId',
         'title',
@@ -56,6 +63,7 @@ angular.module('tagger.services').factory('SearchService',
               count(JSON.stringify(query), function (resultCount) {
                 searchService.resultCount = parseInt(resultCount);
                 $rootScope.$broadcast('onSearchCountComplete', resultCount);
+                $rootScope.$broadcast('onNetworkComplete');
               });
             }
           );

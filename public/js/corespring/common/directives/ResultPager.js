@@ -10,14 +10,30 @@ function loadModule(name){
 var module = loadModule('corespring-directives');
 
 /**
- * A mod of the tagger result pager.
- * It delegates out more if its functionality to allow for reusability.
+ * A paging directive - displays the current item selected out of an array of items.
+ * @params:
+ * @list-model - the array property on the scope that contains the items
+ * @load-item - [loadItem(id)]- a function that loads an item
+ * @load-more - [loadMore(proposedIndex, onLoadComplete)] - a function that loads more items and callsback to the directive.
+ * @item-count - the property on the scope that contains the item count
+ * @current-item - the property on the scope that is the current item - this item must be contained within the item-list array.
+ *
+ * Usage:
+ * {{{
+ *  <ul id="resultPager"
+                  result-pager
+                  load-item="goToItem"
+                  load-more="loadMore"
+                  list-model="items"
+                  item-count="resultCount"
+                  current-item="itemData"
+                  ></ul>
+ * }}}
  */
 module.directive("resultPager", function(){
 
   return {
     link: function($scope, $element, $attrs){
-      console.log("lti result pager");
 
       var listModel = $attrs['listModel'];
       var currentItem = $attrs['currentItem'];
@@ -28,8 +44,11 @@ module.directive("resultPager", function(){
       var totalNoOfItems = 0;
 
       $scope.$watch(itemCount, function(newItemCount){
-        console.log("totalNoOfItems: " + newItemCount);
         totalNoOfItems = newItemCount;
+        updatePageText(0);
+      });
+
+      $scope.$watch(listModel, function(newValue){
         updatePageText(0);
       });
 
@@ -39,7 +58,13 @@ module.directive("resultPager", function(){
       });
 
       var updatePageText = function(index){
-        $scope.pagerText = (index + 1) + " of " + totalNoOfItems;
+        if(!totalNoOfItems || totalNoOfItems == 0){
+          $scope.pagerText = null;
+        } else if(index == -1) {
+          $scope.pagerText = null;
+        } else {
+          $scope.pagerText = (index + 1) + " of " + totalNoOfItems;
+        }
       };
 
       var uid = ($attrs['uid'] || "id");
@@ -75,18 +100,18 @@ module.directive("resultPager", function(){
         var proposedIndex = currentIndex + number;
 
         if(proposedIndex < 0){
-          console.log("currentIndex is < 0");
+          //console.log("currentIndex is < 0");
           return;
         }
 
         if(proposedIndex > totalNoOfItems -1 ){
-          console.log("currentIndex is > than totalNoOfItems");
+          //console.log("currentIndex is > than totalNoOfItems");
           return;
         }
 
         updatePageText(proposedIndex);
 
-        console.log("proposedIndex: "  + proposedIndex);
+        //console.log("proposedIndex: "  + proposedIndex);
 
         var nextItem = $scope[listModel][proposedIndex];
         if (nextItem) {

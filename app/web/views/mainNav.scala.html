@@ -28,19 +28,27 @@
                 </span>
 
 
-                <ul id="resultPager" class="nav pull-right" results-pager ng-show="pagerText">
+                <ul id="resultPager"
+                  class="nav pull-right"
+                  result-pager
+                  load-item="goToItem"
+                  load-more="loadMore"
+                  list-model="items"
+                  item-count="resultCount"
+                  current-item="itemData"
+                  >
                     <li>
                         <div class="pager">
-                            <div class="muted pager-text">{{pagerText}}</div>
+                            <div ng-show="pagerText" class="muted pager-text">{{pagerText}}</div>
                             <div class="progress progress-success progress-striped
                                  active pager-progress-bar" network-progress ng-show="isLoading">
                                 <div class="bar"></div>
                             </div>
                         </div>
                     </li>
-                    <li>
-                        <a class="cs-icon-link" style="float:left;" ng-click="previous()" ng-show="editViewOpen"><i class="icon-white icon-arrow-left"></i></a>
-                        <a class="cs-icon-link" style="float:left;" ng-click="next()" ng-show="editViewOpen"><i class="icon-white icon-arrow-right"></i></a>
+                    <li ng-show="editViewOpen">
+                        <a class="cs-icon-link" ng-show="pagerText" style="float:left;" ng-click="previous()" ><i class="icon-white icon-arrow-left"></i></a>
+                        <a class="cs-icon-link" ng-show="pagerText" style="float:left;" ng-click="next()" ><i class="icon-white icon-arrow-right"></i></a>
                     </li>
                 </ul>
             }
