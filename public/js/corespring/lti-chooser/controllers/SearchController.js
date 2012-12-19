@@ -5,11 +5,21 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
   $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
 
   var init = function(){
-    $scope.search();
+    var defaults = new com.corespring.model.Defaults();
+    $scope.gradeLevelDataProvider = defaults.buildNgDataProvider("gradeLevels");
     loadCollections();
   };
 
   $scope.search = function() {
+
+    function isEmpty(p){ return !p.gradeLevel && !p.searchText && !p.collection; }
+
+    if(isEmpty($scope.searchParams)){
+      $rootScope.items = undefined;
+      $rootScope.itemCount = 0;
+      return;
+    }
+
     $rootScope.$broadcast("beginSearch");
     SearchService.search($scope.searchParams, function(res){
       $rootScope.items = res;
@@ -37,6 +47,15 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
       }
     );
   };
+
+
+  $scope.getItemCountLabel = function(count){
+    if(!count){
+      return "";
+    }
+    return count + " results";
+  };
+
 
   function loadCollections() {
     Collection.get({}, function (data) {

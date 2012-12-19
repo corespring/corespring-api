@@ -43,6 +43,7 @@ function BrowseController(
     if(config && config.assignments) return config.assignments.length;
     return 0;
   };
+
 }
 
 BrowseController.$inject = ['$scope',

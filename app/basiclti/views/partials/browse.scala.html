@@ -12,7 +12,15 @@
 </script>
 
 <div ng-show="!isSearching">
-<div class="table-header">
+
+<div ng-show="!items">
+   <br/>
+  <div class="well">
+    Search above..
+  </div>
+</div>
+
+<div class="table-header" ng-show="items">
   <table border="0">
     <tr>
       <th class="primary-subject"><div>Primary Subject</div></th>
@@ -24,7 +32,7 @@
     </tr>
   </table>
 </div>
-<div class="table-content">
+<div class="table-content" ng-show="items">
   <table border="0">
     <tr ng-click="selectItem(i)" ng-repeat="i in items" ng-class="{even: $index % 2 == 0}">
       <td class="primary-subject"><div title="{{getPrimarySubjectLabel(i.primarySubject)}}">{{getPrimarySubjectLabel(i.primarySubject)}}</div></td>

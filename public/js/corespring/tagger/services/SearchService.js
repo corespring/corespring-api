@@ -94,6 +94,10 @@ angular.module('tagger.services').factory('SearchService',
           addIfTrue(query, searchParams.standardsAligned, "workflow.standardsAligned");
         }
 
+        if(searchParams.gradeLevel){
+          query.gradeLevel = searchParams.gradeLevel.key;
+        }
+
         if (searchParams.collection && searchParams.collection.id) {
           query.collectionId = searchParams.collection.id;
         }

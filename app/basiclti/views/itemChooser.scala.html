@@ -45,7 +45,7 @@
           src="/assets/images/cs-white-logo-11px.png"
           alt="Corespring"/>
       <div class="row" ng-controller="SearchController" ng-show="showSearch()">
-        <div class="input-append">
+        <div class="input-append span2">
 
           <input placeholder="Search"
             ng-model="searchParams.searchText"
@@ -56,8 +56,12 @@
           <span class="add-on">
             <i class="icon-search"></i>
           </span>
+        </div>
 
-
+          &nbsp;
+          &nbsp;
+          &nbsp;
+          &nbsp;
           <select
               style="max-width: 140px;"
               ng-options="collection.name for collection in collections"
@@ -72,9 +76,15 @@
             <option value="">All</option>
           </select>
 
+
+        <div class="item-count" ng-show="!showPager()">
+          {{getItemCountLabel(itemCount)}}
         </div>
+
+
       </div>
 
+      
 
       <div class="pager-holder"
         ng-show="showPager()"
