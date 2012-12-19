@@ -13,10 +13,15 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
   $scope.search = function() {
 
     function isEmpty(p){ return !p.gradeLevel && !p.searchText && !p.collection; }
+    function shorterThan(s, count){ return !s || s.length < count; }
 
     if(isEmpty($scope.searchParams)){
       $rootScope.items = undefined;
       $rootScope.itemCount = 0;
+      return;
+    }
+
+    if( shorterThan($scope.searchParams.searchText, 3) ){
       return;
     }
 
