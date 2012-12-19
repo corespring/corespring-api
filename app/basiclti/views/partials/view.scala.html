@@ -39,11 +39,18 @@
 <div class="view-item-container" ng-show="item">
 
     <span ng-show="currentPanel == 'preview'">
+
+      <div class="well">
+        <div class="admin-container">
+          @testplayer.views.html.partials.sessionSettings("config.settings")
+        </div>
+      </div>
+
       <iframe
         frameBorder="0"
-        class="iframe-preview"
         ng-show="item"
-        ng-src="{{getItemUrl()}}"></iframe>
+        class="lti-iframe-preview"
+        ng-src="{{previewItemUrl}}"></iframe>
     </span>
 
   <span ng-show="currentPanel == 'profile'">@web.views.html.partials._viewItem.corespringData()</span>
@@ -54,6 +61,7 @@
     ng-show="currentSm==sm">
     <iframe
       frameBorder="0"
+      class="lti-iframe-preview"
       ng-src="{{getSmSrc(sm)}}"
       align="center"
       class="iframe-preview"></iframe>

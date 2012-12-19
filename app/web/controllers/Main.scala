@@ -39,7 +39,7 @@ object Main extends Controller with SecureSocial {
       Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName,  common.mock.MockToken))
   }
 
-  private def getDbName(uri: Option[String]): Tuple2[String, String] = uri match {
+  private def getDbName(uri: Option[String]): (String, String) = uri match {
     case Some(url) => {
       if (!url.contains("@")) {
         val noAt = """mongodb://(.*)/(.*)""".r

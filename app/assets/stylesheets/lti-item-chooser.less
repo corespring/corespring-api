@@ -151,11 +151,14 @@ td.title {
       }
     }
 
-    .view-item-container {
-      width: 600px;
-      height: 100%;
-    }
 
+  }
+
+  .view-item-container {
+    position: relative;
+    top: 25px;
+    width: 600px;
+    height: 100%;
   }
 /*
 position:relative;
@@ -246,3 +249,26 @@ a.cs-icon-link {
   position: absolute;
 }
 
+
+.admin-container {
+  width: 560px;
+  padding: 0px;
+  margin-right: 0px;
+  margin-left: 0px;
+  display: block;
+}
+
+.admin-container::before, .admin-container::after {
+  display: table;
+  line-height: 0;
+  content: "";
+}
+
+.admin-container::after {
+  clear: both;
+}
+
+.lti-iframe-preview{
+  width: @max-width;
+  height: 100%;
+}
