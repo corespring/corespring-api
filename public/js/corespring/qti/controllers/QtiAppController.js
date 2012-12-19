@@ -1,4 +1,25 @@
-function QtiAppController($scope, $timeout, $location, AssessmentSessionService, Config) {
+function QtiAppController($scope, $timeout, $location, AssessmentSessionService, Config, MessageBridge) {
+
+
+  $scope.onMessageReceived = function(e){
+   console.log(e);
+
+    var obj = JSON.parse(e.data);
+    console.log(obj);
+
+    if(obj.message === "update"){
+
+      $scope.originalSettings = angular.copy(obj.settings);
+
+      if($scope.itemSession){
+        $scope.itemSession.settings = obj.settings;
+      } else{
+        $scope.pendingSettings = obj.settings;
+      }
+    }
+  };
+
+  MessageBridge.addMessageListener($scope.onMessageReceived);
 
   $timeout(function () {
     if (typeof(MathJax) != "undefined") {
@@ -11,6 +32,8 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
   };
 
   $scope.init = function () {
+
+    MessageBridge.sendMessage("parent", { message: "ready"});
 
     var params = {
       itemId: Config.itemId,
@@ -91,10 +114,19 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
    * So we are going to be creating a new item session.
    */
   $scope.reloadItem = function () {
+
+    MessageBridge.sendMessage( "parent",  { message: "update", settings: $scope.itemSession.settings });
+
     AssessmentSessionService.create({itemId: $scope.itemSession.itemId}, $scope.itemSession, function (data) {
       $scope.reset();
       $scope.$broadcast('unsetSelection');
       $scope.itemSession = data;
+
+      if($scope.pendingSettings){
+        $scope.itemSession.settings = $scope.pendingSettings;
+        $scope.pendingSettings = null;
+      }
+
       $scope.setUpChangeWatcher();
       // Empty out the responses
       for (var i = 0; i < $scope.responses.length; i++)
@@ -106,5 +138,5 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
 
 }
 
-QtiAppController.$inject = ['$scope', '$timeout', '$location', 'AssessmentSessionService', 'Config'];
+QtiAppController.$inject = ['$scope', '$timeout', '$location', 'AssessmentSessionService', 'Config', 'MessageBridge'];
 

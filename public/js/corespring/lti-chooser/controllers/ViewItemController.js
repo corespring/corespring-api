@@ -1,6 +1,38 @@
 window.ltiChooser = (window.ltiChooser || {});
 
-ltiChooser.ViewItemController = function ($scope, $rootScope, $routeParams, $location, LtiItemService, ServiceLookup){
+ltiChooser.ViewItemController = function ($scope, $rootScope, $routeParams, $location, LtiItemService, ServiceLookup, MessageBridge){
+
+  $scope.previewPageIsReady = false;
+
+  $scope.onMessageReceived = function(e){
+    console.log("handleBridgeMessage:  "+ e);
+
+    var data = JSON.parse(e.data);
+
+    if(data.message === "ready"){
+      $scope.previewPageIsReady = true;
+
+      $scope.sendSessionSettings();
+    } else if(data.message === "update"){
+      $scope.config.sessionSettings = data.settings;
+      $rootScope.$broadcast('saveConfig', {redirect: false});
+    }
+  };
+
+  MessageBridge.addMessageListener($scope.onMessageReceived);
+
+  $scope.sendSessionSettings = function(){
+    if(!$scope.previewPageIsReady || !$scope.config)  {
+      return;
+    }
+    MessageBridge.sendMessage("previewIframe", {message:"update", settings: $scope.config.sessionSettings});
+  };
+
+  $rootScope.$watch("config", function(newValue){
+    if(newValue){
+      $scope.sendSessionSettings();
+    }
+  });
 
   $scope.previewItemUrl = null;
   $rootScope.item = null;
@@ -18,7 +50,8 @@ ltiChooser.ViewItemController = function ($scope, $rootScope, $routeParams, $loc
 
   $scope.getItemUrl = function(){
     if (!$scope.item || $scope.currentPanel != 'preview') return null;
-    return "/web/show-resource/" + $scope.item.id;
+    return WebRoutes.web.controllers.ShowResource.renderDataResource($scope.item.id).url;
+    //return "/web/show-resource/" + $scope.item.id + "/data/main";
   };
 
 
@@ -38,4 +71,4 @@ ltiChooser.ViewItemController = function ($scope, $rootScope, $routeParams, $loc
 };
 
 
-ltiChooser.ViewItemController.$inject = ['$scope', '$rootScope', '$routeParams', '$location', 'LtiItemService', 'ServiceLookup'];
+ltiChooser.ViewItemController.$inject = ['$scope', '$rootScope', '$routeParams', '$location', 'LtiItemService', 'ServiceLookup', 'MessageBridge'];

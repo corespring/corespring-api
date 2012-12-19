@@ -1,7 +1,13 @@
 window.ltiChooser = (window.ltiChooser || {});
 
 angular.module("lti-chooser",
-  ['tagger.services','lti-services', 'ngResource', 'corespring-directives', 'corespring-utils', 'ui']);
+  ['tagger.services',
+    'lti-services',
+    'ngResource',
+    'corespring-directives',
+    'corespring-services',
+    'corespring-utils',
+    'ui']);
 
 angular.module("lti-chooser").config(['$routeProvider', function ($routeProvider) {
     $routeProvider.when('/main', {templateUrl:'/lti/chooser/partials/main', controller:MainController});
@@ -20,7 +26,7 @@ angular.module("lti-services", ['ngResource'])
   }]);
 
 
-function LtiChooserController( $scope, $rootScope, $location ){
+function LtiChooserController( $scope, $rootScope, $location, LaunchConfigService, Config ){
 
   $scope.returnToSearch = function(){
     $rootScope.item = null;
@@ -63,11 +69,11 @@ function LtiChooserController( $scope, $rootScope, $location ){
 
   $scope.isAssigned = function(){
     if(!$scope.config){
-      return true;
+      return false;
     }
 
     if(!$scope.item){
-      return true;
+      return false;
     }
     return $scope.config.itemId === $scope.item.id;
   };
@@ -82,8 +88,55 @@ function LtiChooserController( $scope, $rootScope, $location ){
     $scope.config.itemId = $scope.item.id;
     $rootScope.$broadcast('saveConfig');
   };
+
+  $scope.init = function(){
+
+
+    $scope.configurationId = Config.configurationId;
+
+    console.log("configurationId: " + $scope.configurationId);
+
+    if (!$scope.configurationId) {
+      throw "No configurationId defined - can't load configuration";
+    }
+
+    LaunchConfigService.get({id: $scope.configurationId}, function (data) {
+      $rootScope.config = data;
+    });
+  };
+
+  $scope.saveItem = function (onSaveCompleteCallback) {
+    LaunchConfigService.save({id: $scope.config.id}, $scope.config, function (data) {
+      $scope.config = data;
+      if (onSaveCompleteCallback) onSaveCompleteCallback();
+    });
+  };
+
+  $rootScope.$on('saveConfig', function (event, object) {
+
+    var doRedirect = (object && object.redirect === false) ? false : true;
+
+    var onSaveCompleted = function () {
+      if (!Config.returnUrl.match(/\?/)) {
+        Config.returnUrl = Config.returnUrl + "?";
+      }
+      var args = [];
+      args.push("embed_type=basic_lti");
+      var url = document.location.href;
+      args.push("url=" + encodeURIComponent(url + "?canvas_config_id=" + $scope.config.id));
+      location.href = Config.returnUrl + args.join('&');
+    };
+
+    if (doRedirect) {
+      $scope.saveItem(onSaveCompleted);
+    } else {
+      $scope.saveItem();
+    }
+  });
+
+  $scope.init();
 }
 
-LtiChooserController.$inject = ['$scope', '$rootScope', '$location'];
+LtiChooserController.$inject = ['$scope', '$rootScope', '$location', 'LaunchConfigService', 'Config'];
 
 
