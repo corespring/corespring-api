@@ -511,7 +511,6 @@ div.floated-para {
 TEXT BOXES
 ------------------------------*/
 textarea {
-	min-width: 97%;
 	display:block;
 	margin:0 0 30px;
 	border:1px solid #797979;
@@ -523,7 +522,7 @@ textarea {
 	font:14px 'Ubuntu', Arial, Helvetica, sans-serif;
 	color:#333;
 	resize:none;
-    max-width: 400px;
+    max-width: 95%;
 }
 input, textarea, select, .uneditable-input {
     width: auto;
