@@ -251,7 +251,7 @@ color: #000000;
 font: 300 14px/20px "Ubuntu", Arial, Helvetica, sans-serif;
 margin: 0 0 10px;
 padding-bottom: 0;
-padding-top: 10px;
+padding-top: 10px;  #0088cc;
 }
 .well a.btn {
 	font-size: 13px;
@@ -266,6 +266,11 @@ padding-top: 10px;
 	vertical-align: top;
 	font-size:13px;
 }
+
+.well.item .fancybox:hover .title{
+color: #0088cc;
+}
+
 .item td.value {
 	color: #333333;
 	font-size: 13px;
@@ -589,14 +594,18 @@ hr {
 	border: none;
 }
 .sub-nav .nav li a.prev-print:hover {
+	padding-top:7px !important;
+}
+
+.sub-nav .nav li a.prev-print:focus {
 	padding-top:8px !important;
 }
 
 /* CSS FOR PUBLIC SITE FLOAT ITEM PLAYER */
 
 .preview-container {
-	padding-top: 0px;
-	height: 665px;
+padding-top: 0px;
+height: 690px;
 }
 
 div.sub-nav div.container div.row.row {
@@ -664,6 +673,10 @@ text-decoration:underline;
 margin-top: 5px;
 }
 
+.profile .item-type {
+margin-bottom: 5px;
+}
+
 
 /*REDUCE SIZE OF PROFILE */
 .profile {
@@ -672,6 +685,12 @@ font-family: "Ubuntu", Arial, Helvetica, sans-serif;
 padding: 60px 10px 10px 10px;
 }
 
+div.container.profile.profileSource {
+padding: 10px 10px 10px 10px;
+margin-bottom: 60px;
+}
+	
+	
 .profile p.profile-h1 {
 padding-top: 5px;
 }
@@ -683,10 +702,11 @@ width: 660px !important;
 
 .fancybox-inner {
 width:640px !important;
+height: 695px; !important;
 }
 
 
 .iframe-preview {
 padding-top: 30px;
 }
-
+/* end of sizing */
