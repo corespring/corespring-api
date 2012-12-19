@@ -1,4 +1,4 @@
-@(templates: List[_root_.web.models.QtiTemplate], dbServer : String, dbName : String, username:String, jsonString:String, accessToken:String)
+@(templates: List[_root_.web.models.QtiTemplate], dbServer : String, dbName : String, username:String, accessToken:String)
 
 @htmlSafe(s:String) = @{
     var out = s.replace("\\", "\\\\")
@@ -23,6 +23,7 @@
     @common.views.html.head.select2()
     @common.views.html.head.aceEditor()
     @common.views.html.head.corespringCommon()
+    @common.views.html.head.fieldValues()
     @head.taggerApp()
 
     <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
@@ -30,8 +31,6 @@
     <script src="/assets/js/vendor/corespring-ng-components/corespring-ng-components.js" type="text/javascript" ></script>
 
     <script type="text/javascript">
-
-        window.fieldValues = @Html(jsonString);
 
         //init the bootstrap dropdowns - TODO: make this a directive?
         $('.dropdown-toggle').dropdown();

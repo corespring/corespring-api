@@ -132,27 +132,27 @@
     ],
     "itemTypes":[
         {
-            "key":"Multiple Choice",
+            "key":"MC",
             "value":"Multiple Choice"
         },
         {
-            "key":"Text with Questions",
+            "key":"TQ",
             "value":"Text with Questions"
         },
         {
-            "key":"Performance Task",
+            "key":"PT",
             "value":"Performance Task"
         },
         {
-            "key":"Activity",
+            "key":"ACT",
             "value":"Activity"
         },
         {
-            "key":"Constructed Response - Short Answer",
+            "key":"CR-SA",
             "value":"Constructed Response - Short Answer"
         },
         {
-            "key":"Constructed Response - Open Ended",
+            "key":"CR-OE",
             "value":"Constructed Response - Open Ended"
         }
     ],

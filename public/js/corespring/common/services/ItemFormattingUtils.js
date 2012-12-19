@@ -78,7 +78,7 @@ angular.module('corespring-utils')
 
         for (var i = 0; i < standards.length; i++) {
 
-          if (standards[i] == undefined || standards[i].standard == undefined) {
+          if (!standards[i] || !standards[i].standard ) {
             return "";
           }
           var wordArray = standards[i].standard.split(/\W+/);
@@ -95,8 +95,24 @@ angular.module('corespring-utils')
           return item.itemType;
         }
         return item.itemType + ": " + item.itemTypeOther;
+      },
+
+      showItemTypeAbbreviated: function(item){
+        if(!window.fieldValues || !window.fieldValues.itemTypes){
+          return "??";
+        }
+
+        if (item.itemType != "Other") {
+          for(var x in window.fieldValues.itemTypes){
+            var keyValue = window.fieldValues.itemTypes[x];
+             if( keyValue.value == item.itemType){
+               return keyValue.key;
+             }
+          }
+        }
+        return "OTH";
       }
 
-    }
+    };
   }]);
 //ItemFormattingUtils.js

@@ -35,15 +35,8 @@ object Main extends Controller with SecureSocial {
 
 
   def index = SecuredAction() { request =>
-      val jsonString = getFieldValueJsonString
       val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
-      Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName, jsonString, common.mock.MockToken))
-  }
-
-  private def getFieldValueJsonString: String = {
-    val all = FieldValue.findAll().toList
-    val first = all(0)
-    com.codahale.jerkson.Json.generate(first)
+      Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName,  common.mock.MockToken))
   }
 
   private def getDbName(uri: Option[String]): Tuple2[String, String] = uri match {
