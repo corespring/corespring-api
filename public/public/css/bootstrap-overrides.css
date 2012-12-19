@@ -710,3 +710,9 @@ height: 695px; !important;
 padding-top: 30px;
 }
 /* end of sizing */
+
+
+div.well.item a.fancybox:hover {
+color: #0088cc !important;
+text-decoration: underline;
+}
