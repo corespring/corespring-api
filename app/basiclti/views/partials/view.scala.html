@@ -40,13 +40,8 @@
 
     <span ng-show="currentPanel == 'preview'">
 
-      <div class="well">
-        <div class="admin-container">
-          @testplayer.views.html.partials.sessionSettings("config.settings")
-        </div>
-      </div>
-
       <iframe
+        id="previewIframe"
         frameBorder="0"
         ng-show="item"
         class="lti-iframe-preview"
