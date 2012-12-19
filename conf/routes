@@ -141,10 +141,12 @@ GET    /web/partials/createItem                web.controllers.Partials.createIt
 GET    /web/partials/home                      web.controllers.Partials.home
 GET    /web/partials/viewItem                  web.controllers.Partials.viewItem
 
+
+GET    /web/javascripts/routes                             web.controllers.ShowResource.javascriptRoutes
+GET    /web/show-resource/:itemId/data/main                web.controllers.ShowResource.renderDataResource(itemId)
 GET    /web/show-resource/:itemId/data/:filename           web.controllers.ShowResource.getDataFile(itemId:String,filename:String)
-GET    /web/show-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId:String,resourceName:String,filename:String)
-GET    /web/show-resource/:itemId                          web.controllers.ShowResource.renderDataResource(itemId)
 GET    /web/show-resource/:itemId/:resourceName            web.controllers.ShowResource.renderResource(itemId,resourceName)
+GET    /web/show-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId:String,resourceName:String,filename:String)
 
 GET    /web/print-resource/:itemId                          web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
 GET    /web/print-resource/:itemId/data/:filename           web.controllers.ShowResource.getDataFile(itemId:String,filename:String)
