@@ -1,9 +1,10 @@
 package qti.models.interactions
 
 import choices.SimpleChoice
-import xml.Node
+import xml.{NodeSeq, Elem, Node}
+import qti.processors.FeedbackProcessor
 
-case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends Interaction {
+case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices {
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)
 }
 
@@ -19,5 +20,9 @@ object OrderInteraction extends InteractionCompanion[OrderInteraction]{
     }else{
       interactions.map(node => OrderInteraction(node,Some(itemBody)))
     }
+  }
+  def interactionMatch(e:Elem):Boolean = e.label == "orderInteraction"
+  override def preProcessXml(interactionXml:Elem):NodeSeq = {
+    new InteractionProcessing.FeedbackOutcomeIdentifierInserter(OrderInteraction(interactionXml,None)).transform(interactionXml)
   }
 }

@@ -1,7 +1,7 @@
 package qti.models.interactions
 
 import choices.{InlineChoice, Choice}
-import xml.Node
+import xml.{Elem, Node}
 
 case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[InlineChoice]) extends Interaction {
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)
@@ -21,5 +21,6 @@ object InlineChoiceInteraction extends InteractionCompanion[InlineChoiceInteract
       interactions.map(node => InlineChoiceInteraction(node,Some(itemBody)))
     }
   }
+  def interactionMatch(e:Elem):Boolean = e.label == "inlineChoiceInteraction"
 }
 

@@ -4,5 +4,8 @@ import play.api.libs.json.{JsString, JsObject, JsValue, Writes}
 import qti.models.interactions.FeedbackInline
 
 trait Choice {
-  def getFeedback: Option[FeedbackInline]
+  val identifier:String
+  val responseIdentifier:String
+  val feedbackInline: Option[FeedbackInline];
+  def getFeedback:Option[FeedbackInline] = feedbackInline;
 }

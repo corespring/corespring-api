@@ -71,7 +71,7 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
              getItemXMLByObjectId("5f6c9fbdc01de23b24788176", request.ctx.organization) match {
                case Some(xmlData: Elem) =>
                  println("Rendering QTI")
-                 val finalXml = prepareSelectText(xmlData, false)
+                 val finalXml = prepareQti(xmlData, false)
                 Ok(testplayer.views.html.itemPlayer("5f6c9fbdc01de23b24788176", finalXml, true, "", common.mock.MockToken))
              }
       }catch {

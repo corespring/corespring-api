@@ -1,10 +1,18 @@
 package qti.models.interactions
 
-import choices.SimpleChoice
-import xml.Node
+import choices.{Choice, SimpleChoice}
+import xml._
+import models.{ItemResponseOutcome, ItemResponse}
+import scala.Some
+import xml.transform.{RewriteRule, RuleTransformer}
+import scala.Null
+import scala.Some
+import xml.Text
+import scala.Some
+import qti.processors.FeedbackProcessor
 
-case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends Interaction {
-  def getChoice(identifier: String) = choices.find(_.identifier == identifier)
+case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices{
+  def getChoice(identifier: String):Option[Choice] = choices.find(_.identifier == identifier)
 }
 
 object ChoiceInteraction extends InteractionCompanion[ChoiceInteraction]{
@@ -19,5 +27,9 @@ object ChoiceInteraction extends InteractionCompanion[ChoiceInteraction]{
     }else{
       interactions.map(node => ChoiceInteraction(node,Some(itemBody)))
     }
+  }
+  def interactionMatch(e:Elem) = e.label == "choiceInteraction"
+  override def preProcessXml(interactionXml:Elem):NodeSeq = {
+    new InteractionProcessing.FeedbackOutcomeIdentifierInserter(ChoiceInteraction(interactionXml,None)).transform(interactionXml)
   }
 }

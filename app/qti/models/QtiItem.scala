@@ -111,9 +111,9 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
 
   private def getFeedbackInline(id: String, value: String): Option[FeedbackInline] = {
 
-    itemBody.interactions.find(_.responseIdentifier == id) match {
+    itemBody.interactions.find(i => i.isInstanceOf[InteractionWithChoices] &&  i.responseIdentifier == id) match {
       case Some(i) => {
-        i.getChoice(value) match {
+        i.asInstanceOf[InteractionWithChoices].getChoice(value) match {
           case Some(choice) => {
             val fb = choice.getFeedback
             fb
@@ -127,7 +127,9 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
 }
 
 object QtiItem {
-
+  val interactionModels:Seq[InteractionCompanion[_ <: Interaction]] = Seq(
+    TextEntryInteraction,InlineChoiceInteraction,ChoiceInteraction,OrderInteraction,SelectTextInteraction
+  );
   /**
    * An enumeration of the possible Correctness of a question
    */
@@ -362,16 +364,12 @@ case class ItemBody(interactions: Seq[Interaction], feedbackBlocks: Seq[Feedback
 }
 
 object ItemBody {
-  val interactions:Seq[InteractionCompanion[_ <: Interaction]] = Seq(
-    TextEntryInteraction,InlineChoiceInteraction,ChoiceInteraction,OrderInteraction,SelectTextInteraction
-  );
   def apply(node: Node): ItemBody = {
 
     val feedbackBlocks = buildTypes[FeedbackInline](node, Seq(
       ("feedbackBlock", FeedbackInline(_, None))
     ))
-
-    ItemBody(interactions.map(_.parse(node)).flatten, feedbackBlocks)
+    ItemBody(QtiItem.interactionModels.map(_.parse(node)).flatten, feedbackBlocks)
   }
 
   private def buildTypes[T](node: Node, names: Seq[(String, (Node) => T)]): List[T] = {
