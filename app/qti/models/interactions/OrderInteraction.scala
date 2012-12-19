@@ -7,6 +7,7 @@ import qti.models.ResponseDeclaration
 import models.{ArrayItemResponse, ItemResponseOutcome, ItemResponse}
 import qti.models.QtiItem.Correctness
 import controllers.Log
+import testplayer.views.utils.QtiScriptLoader
 
 case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices {
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)
@@ -58,4 +59,13 @@ object OrderInteraction extends InteractionCompanion[OrderInteraction]{
   override def preProcessXml(interactionXml:Elem):NodeSeq = {
     new InteractionProcessing.FeedbackOutcomeIdentifierInserter(OrderInteraction(interactionXml,None)).transform(interactionXml)
   }
+  def getHeadHtml(toPrint:Boolean):String = {
+    val jspath = if (toPrint) QtiScriptLoader.JS_PRINT_PATH else QtiScriptLoader.JS_PATH
+    val csspath = if (toPrint) QtiScriptLoader.CSS_PRINT_PATH else QtiScriptLoader.CSS_PATH
+
+    def jsAndCss(name:String) = Seq(script(jspath + name + ".js"), css(csspath + name + ".css")).mkString("\n")
+    jsAndCss("orderInteraction")+"\n"
+  }
+  private def css(url: String): String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
+  private def script(url: String): String = """<script type="text/javascript" src="%s"></script>""".format(url)
 }

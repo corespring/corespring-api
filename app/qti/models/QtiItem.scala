@@ -128,7 +128,7 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
 
 object QtiItem {
   val interactionModels:Seq[InteractionCompanion[_ <: Interaction]] = Seq(
-    TextEntryInteraction,InlineChoiceInteraction,ChoiceInteraction,OrderInteraction,SelectTextInteraction
+    TextEntryInteraction,InlineChoiceInteraction,ChoiceInteraction,OrderInteraction,ExtendedTextInteraction,SelectTextInteraction
   );
   /**
    * An enumeration of the possible Correctness of a question
@@ -201,6 +201,7 @@ case class ResponseDeclaration(identifier: String, cardinality: String, correctR
     case Some(m) => m.mappedValue(mapKey)
     case None => throw new RuntimeException("no mapping for this response declaration")
   }
+
 }
 
 object ResponseDeclaration {
@@ -366,9 +367,7 @@ object ItemBody {
     val feedbackBlocks = buildTypes[FeedbackInline](node, Seq(
       ("feedbackBlock", FeedbackInline(_, None))
     ))
-    ItemBody(QtiItem.interactionModels.map(im => {
-      im.parse(node)
-    }).flatten, feedbackBlocks)
+    ItemBody(QtiItem.interactionModels.map(_.parse(node)).flatten, feedbackBlocks)
   }
 
   private def buildTypes[T](node: Node, names: Seq[(String, (Node) => T)]): List[T] = {

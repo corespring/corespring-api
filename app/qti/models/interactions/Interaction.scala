@@ -17,6 +17,7 @@ trait InteractionCompanion[T <: Interaction]{
   def parse(itemBody:Node):Seq[Interaction];
   def interactionMatch(e:Elem):Boolean
   def preProcessXml(interactionXml:Elem):NodeSeq = interactionXml
+  def getHeadHtml(toPrint:Boolean):String
 }
 object Interaction {
   def responseIdentifier(n: Node) = (n \ "@responseIdentifier").text

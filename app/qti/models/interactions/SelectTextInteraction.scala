@@ -5,6 +5,7 @@ import xml.transform.{RuleTransformer, RewriteRule}
 import util.matching.Regex
 import qti.models.ResponseDeclaration
 import models.{ItemResponseOutcome, ItemResponse}
+import testplayer.views.utils.QtiScriptLoader
 
 case class SelectTextInteraction(responseIdentifier: String, selectionType: String, minSelection: Int, maxSelection: Int) extends Interaction {
   def getChoice(identifier: String) = None
@@ -71,4 +72,14 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
       }
     }
   }
+
+  def getHeadHtml(toPrint:Boolean):String = {
+    val jspath = if (toPrint) QtiScriptLoader.JS_PRINT_PATH else QtiScriptLoader.JS_PATH
+    val csspath = if (toPrint) QtiScriptLoader.CSS_PRINT_PATH else QtiScriptLoader.CSS_PATH
+
+    def jsAndCss(name:String) = Seq(script(jspath + name + ".js"), css(csspath + name + ".css")).mkString("\n")
+    jsAndCss("selectTextInteraction")+"\n"
+  }
+  private def css(url: String): String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
+  private def script(url: String): String = """<script type="text/javascript" src="%s"></script>""".format(url)
 }

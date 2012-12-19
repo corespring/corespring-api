@@ -10,6 +10,7 @@ import org.bson.types.ObjectId
 import com.mongodb.util.JSON
 import models.QueryField
 import play.api.libs.json.{JsString, JsObject}
+import xml.{Elem, Node}
 
 /**
  * Created with IntelliJ IDEA.
@@ -32,5 +33,26 @@ object Utils {
     seq
   }
 
+  /**
+   * traverse the given xml and apply the accumulator function to each element.
+   * if the accumulator function returns Some(Seq[T]), then the resulting sequence will appended to accumulator and traverse the next node on that element's level.
+   * If it returns None, then it will continue to traverse within that element
+   * @param node - the given xml
+   * @param accFn - accumulator function
+   * @tparam T - the object type of the returned sequence of objects
+   * @return -  accumulator
+   */
+  def traverseElements[T](node:Node)(accFn:(Elem)=>Option[Seq[T]]):Seq[T] = {
+    traverseElementsRec(node,accFn,Seq())
+  }
+  private def traverseElementsRec[T](node:Node, accFn:(Elem)=>Option[Seq[T]], acc:Seq[T]):Seq[T] = {
+    node match {
+      case e:Elem => accFn(e) match {
+        case Some(accadd) => acc ++ accadd
+        case None => e.child.map(child => traverseElementsRec(child,accFn,acc)).flatten
+      }
+      case other => other.child.map(child => traverseElementsRec(child,accFn,acc)).flatten
+    }
+  }
 }
 case class JsonValidationException(field:String) extends RuntimeException("invalid value for: "+field)
