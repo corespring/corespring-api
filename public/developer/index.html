@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html ng-app="corespring-dev">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="google-site-verification" content="-wfxFrZYKKRpF5_-V-G9g1wk5e8HrF2zKc-FKJ-NhNE" />
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="google-site-verification" content="-wfxFrZYKKRpF5_-V-G9g1wk5e8HrF2zKc-FKJ-NhNE"/>
     <title>Developers</title>
     <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
-    <link href="bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" media="all" />
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" media="all"/>
     <link href="/assets/public/css/bootstrap-overrides.css" rel="stylesheet" type="text/css" media="all">
 
     <!--
     <link href="css/app.css" rel="stylesheet" type="text/css" media="all" />
     -->
-    <link href="css/new_app.css" rel="stylesheet" type="text/css" media="all" />
-    <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/x-icon" />
+    <link href="css/new_app.css" rel="stylesheet" type="text/css" media="all"/>
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/x-icon"/>
     <script type="text/javascript" src="js/vendor/less/1.3.0/less-1.3.0.min.js"></script>
     <script type="text/javascript" src="js/vendor/jquery/1.8.0/jquery-1.8.0.min.js"></script>
     <script type="text/javascript" src="js/vendor/ie.support/jQuery.XDomainRequest.js"></script>
@@ -26,191 +26,161 @@
 
     <script type="text/javascript">
 
-      //support ie cross domain calls
-      $.support.cors = true;
+        //support ie cross domain calls
+        $.support.cors = true;
 
 
-      window.com = ( window.com || {} );
-      window.com.linkDump = (com.linkDump || {} );
+        window.com = ( window.com || {} );
+        window.com.linkDump = (com.linkDump || {} );
 
-      function navigateToLink( hash, nudge ){
+        function navigateToLink(hash, nudge) {
 
-        nudge = (nudge || 0);
+            nudge = (nudge || 0);
 
-        var $target = $(hash);
-        $target = $target.length && $target || $('[name=' + hash.slice(1) +']');
-        if ($target.length) {
-          var targetOffset = $target.offset().top - 120 + nudge;
-          $('html,body').animate({scrollTop: targetOffset}, 200);
-          return false;
+            var $target = $(hash);
+            $target = $target.length && $target || $('[name=' + hash.slice(1) + ']');
+            if ($target.length) {
+                var targetOffset = $target.offset().top - 120 + nudge;
+                $('html,body').animate({scrollTop: targetOffset}, 200);
+                return false;
+            }
         }
-      }
 
 
-      $(document).ready(function(){
+        $(document).ready(function () {
 
 
-        $('a[href*=#]').click(function() {
-          
-          if( this.hash.indexOf("acc") == 1 ){
-            return true;
-          }
+            $('a[href*=#]').click(function () {
 
-          if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') 
-              && location.hostname == this.hostname) {
-            console.log("navigateToLink: " + this.hash)
-            navigateToLink(this.hash);
-            window.location.hash = this.hash;
-            return false;
-          }
-        });
+                if (this.hash.indexOf("acc") == 1) {
+                    return true;
+                }
+
+                if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '')
+                        && location.hostname == this.hostname) {
+                    console.log("navigateToLink: " + this.hash)
+                    navigateToLink(this.hash);
+                    window.location.hash = this.hash;
+                    return false;
+                }
+            });
 
 
-          function setContentDivHeight(){
-            //$(".main-content").height( $(window).height() - 70);
-          }
-
-          $(window).bind('resize', function(){
-              setContentDivHeight();
-          }); 
-
-          setContentDivHeight();
-
-          $(".accordion-body").on("shown", function() {
-            com.linkDump.activeAccordion = this;
-          });
-
-          $(".api-well").find("a").click(function(){
-
-            $(".api-well").find("a").parent().removeClass("active");
-            $(this).parent().addClass("active");
-
-            $(".waypoint").waypoint('destroy');
-            setTimeout( initWaypoints, 200);
-          });
-
-          function initWaypoints(){
-            /**
-             * Disabling this for now as its a bit ropey.
-             */
-            //$(".waypoint").waypoint( waypointHandler, { context: $(".main-content"), onlyOnScroll: true });
-          };
-          
-
-          function activateLinkAndOpenAccordian( $link ){
-
-            $link.parent().addClass("active");
-            var incomingAccordion = $link.closest(".accordion-body")[0];
-
-           
-
-            if( com.linkDump.activeAccordion == incomingAccordion ){
-              return;
+            function setContentDivHeight() {
+                //$(".main-content").height( $(window).height() - 70);
             }
 
-            $(com.linkDump.activeAccordion).collapse("hide");
+            $(window).bind('resize', function () {
+                setContentDivHeight();
+            });
 
-            setTimeout( function(){
-              $(incomingAccordion).collapse("show");
-              com.linkDump.activeAccordion = incomingAccordion;
-              }, 200 );
-          }
+            setContentDivHeight();
+
+            $(".accordion-body").on("shown", function () {
+                com.linkDump.activeAccordion = this;
+            });
+
+            $(".api-well").find("a").click(function () {
+
+                $(".api-well").find("a").parent().removeClass("active");
+                $(this).parent().addClass("active");
+
+                $(".waypoint").waypoint('destroy');
+                setTimeout(initWaypoints, 200);
+            });
+
+            function initWaypoints() {
+                /**
+                 * Disabling this for now as its a bit ropey.
+                 */
+                //$(".waypoint").waypoint( waypointHandler, { context: $(".main-content"), onlyOnScroll: true });
+            };
 
 
+            function activateLinkAndOpenAccordian($link) {
 
-          function waypointHandler(event,direction){
-            var name = $(event.currentTarget).attr('name');
-            //window.location.hash = name;
-            //console.log("name: " + name)
-            $(".api-well").find("a").parent().removeClass("active");
-            var $menuLink = $(".api-well").find( 'a[href$="'+name+'"]');
-            activateLinkAndOpenAccordian($menuLink);
-          }
+                $link.parent().addClass("active");
+                var incomingAccordion = $link.closest(".accordion-body")[0];
 
-          if( window.location.hash ){
 
-            var activeLink = $(".api-well").find('a[href$="'+ window.location.hash+'"]');
-            activateLinkAndOpenAccordian(activeLink);
-          }
+                if (com.linkDump.activeAccordion == incomingAccordion) {
+                    return;
+                }
 
-          setTimeout( initWaypoints, 200 );
+                $(com.linkDump.activeAccordion).collapse("hide");
 
-          setTimeout( function() { navigateToLink( window.location.hash, -10 ) }, 300 );
+                setTimeout(function () {
+                    $(incomingAccordion).collapse("show");
+                    com.linkDump.activeAccordion = incomingAccordion;
+                }, 200);
+            }
 
-      });
+
+            function waypointHandler(event, direction) {
+                var name = $(event.currentTarget).attr('name');
+                //window.location.hash = name;
+                //console.log("name: " + name)
+                $(".api-well").find("a").parent().removeClass("active");
+                var $menuLink = $(".api-well").find('a[href$="' + name + '"]');
+                activateLinkAndOpenAccordian($menuLink);
+            }
+
+            if (window.location.hash) {
+
+                var activeLink = $(".api-well").find('a[href$="' + window.location.hash + '"]');
+                activateLinkAndOpenAccordian(activeLink);
+            }
+
+            setTimeout(initWaypoints, 200);
+
+            setTimeout(function () {
+                navigateToLink(window.location.hash, -10)
+            }, 300);
+
+        });
     </script>
-  </head>
+</head>
 
-  <body ng-controller="MainController">
-    
-    <div class="header-wrap">
-      <div class="container">
-          <header class="header">
-              <div class="logo-new">
-                  <a class="img-link" href="/">
-                  <img src="/assets/public/images/logo-new.png" alt="CoreSpring">
-                  </a>
-              </div>
+<body ng-controller="MainController">
 
-              <nav class="nav" align="right">
-                  <div class="navbar">
-                      <div class="">
-                          <div class="container">
-
-                              <div class="nav-collapse">
-                                  <ul class="nav">
-                                      <li><a id="edu-nav" href="/public/educators">Educators</a></li>
-                                      <li><a id="dev-nav" class="active" href="/developer/home">developers</a></li>
-                                      <li><a id="partner-nav" href="/public/partnerships">partnerships</a></li>
-                                      <li><a id="about-nav" href="/public/about">about</a></li>
-                                      <li><a id="contact-nav" href="/public/contact">contact</a></li>
-                                  </ul>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-              </nav>
-
-          </header>
-      </div>
-    </div>
-    
-    <div class="title-wrap">
-    </div>
-
-
-    <div class="dev-login-box" ng-controller="DeveloperCtrl">
-        <div ng-switch on="authState">
-            <div ng-switch-when="noauth">
-                <ul>
-                    <li>
-                        <span><a href="/developer/login">Login</a> | <a href="/developer/register">Register</a></span>
-                    </li>
-                </ul>
+<div class="header-wrap">
+    <div class="container">
+        <header class="header">
+            <div class="logo-new">
+                <a class="img-link" href="/">
+                    <img src="/assets/public/images/logo-new.png" alt="CoreSpring">
+                </a>
             </div>
-            <div ng-switch-when="noorg">
-                <ul>
-                    <li>
-                        <span>{{username}} <a href="/developer/logout">logout</a> | <a href="/developer/org/form">register organization</a></span>
-                    </li>
-                </ul>
-            </div>
-            <div ng-switch-when="registered">
-                <ul>
-                    <li>
-                        <span>{{username}} [<a ng-href="/developer/org/{{org.id}}">{{org.name}}</a>] | <a href="/developer/logout">Logout</a></span>
-                    </li>
-                </ul>
-            </div>
-        </div>
+
+            <nav class="nav" align="right">
+                <div class="navbar">
+                    <div class="">
+                        <div class="container">
+
+                            <div class="nav-collapse">
+                                <ul class="nav">
+                                    <li><a id="edu-nav" href="/public/educators">Educators</a></li>
+                                    <li><a id="dev-nav" class="active" href="/developer/home">developers</a></li>
+                                    <li><a id="partner-nav" href="/public/partnerships">partnerships</a></li>
+                                    <li><a id="about-nav" href="/public/about">about</a></li>
+                                    <li><a id="contact-nav" href="/public/contact">contact</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+        </header>
     </div>
+</div>
+
+<div class="title-wrap">
+</div>
 
 
-
-
-    <div class="container main-container">
-
-      <div class="well api-well" style="padding: 8px 0; width: 240px;">
+<div class="container main-container">
+    <div class="well api-well" style="padding: 8px 0; width: 240px;">
         <ul class="nav nav-list">
 
   <li class="nav-header" style="color: white;"><span class="caps">REST</span> Api</li>
@@ -330,10 +300,10 @@ Users
   <li><a href="#extended-metadata" class="main-menu">Extended Metadata</a></li>
   <li><a href="#item-statistics" class="main-menu">Item Statistics</a></li>
 </ul>
-      </div> 
-      <!-- main content -->
-      <div class="main-content">
-          <br/>
+    </div>
+    <!-- main content -->
+    <div class="main-content">
+        <br/>
 
 
 <div class="span9 lead-in developer" style="margin-left: 0px;">
@@ -1410,9 +1380,39 @@ who may be interested in using this functionality.</p></blockquote>
 
 <hr />
 
-<p>date:  12/13/2012 01:14PM</p>
+<p>date:  12/19/2012 05:29PM</p>
 
-      </div>
-    </body>
-  </html>
+    </div>
+    <div class="dev-login-box" ng-controller="DeveloperCtrl">
+        <div ng-switch on="authState">
+            <div ng-switch-when="noauth">
+                <ul>
+                    <li>
+                            <span><a href="/developer/login">Login</a> | <a
+                                    href="/developer/register">Register</a></span>
+                    </li>
+                </ul>
+            </div>
+            <div ng-switch-when="noorg">
+                <ul>
+                    <li>
+                            <span>{{username}} <a href="/developer/logout">logout</a> | <a
+                                    href="/developer/org/form">register organization</a></span>
+                    </li>
+                </ul>
+            </div>
+            <div ng-switch-when="registered">
+                <ul>
+                    <li>
+                            <span>{{username}} [<a
+                                    ng-href="/developer/org/{{org.id}}">{{org.name}}</a>] | <a
+                                    href="/developer/logout">Logout</a></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
 
