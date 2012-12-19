@@ -1,9 +1,30 @@
 package qti.models.interactions
 
 import xml.{NodeSeq, Elem, Node}
+import qti.models.ResponseDeclaration
+import models.{StringItemResponse, ItemResponseOutcome, ItemResponse}
+import qti.models.QtiItem.Correctness
+import controllers.Log
 
 case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int, feedbackBlocks: Seq[FeedbackInline]) extends Interaction {
   def getChoice(identifier: String) = None
+  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
+    response match {
+      case StringItemResponse(_,responseValue,_) => responseDeclaration match {
+        case Some(rd) => rd.mapping match {
+          case Some(mapping) => Some(ItemResponseOutcome(mapping.mappedValue(response.value)))
+          case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
+            Some(ItemResponseOutcome(1))
+          } else Some(ItemResponseOutcome(0))
+        }
+        case None => None
+      }
+      case _ => {
+        Log.e("received a response that was not a string response in TextEntryInteraction.getOutcome")
+        None
+      }
+    }
+  }
 }
 
 object TextEntryInteraction extends InteractionCompanion[TextEntryInteraction]{
@@ -19,7 +40,7 @@ object TextEntryInteraction extends InteractionCompanion[TextEntryInteraction]{
     )
   }
   def parse(itemBody:Node):Seq[Interaction] = {
-    val interactions = (itemBody \ "textEntryInteraction")
+    val interactions = (itemBody \\ "textEntryInteraction")
     if (interactions.isEmpty){
       Seq()
     }else{

@@ -3,9 +3,12 @@ package qti.models.interactions
 import xml.{XML, NodeSeq, Elem, Node}
 import xml.transform.{RuleTransformer, RewriteRule}
 import util.matching.Regex
+import qti.models.ResponseDeclaration
+import models.{ItemResponseOutcome, ItemResponse}
 
 case class SelectTextInteraction(responseIdentifier: String, selectionType: String, minSelection: Int, maxSelection: Int) extends Interaction {
   def getChoice(identifier: String) = None
+  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = None
 }
 
 object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]{
@@ -16,7 +19,7 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
     (node \ "@maxSelections").text.toInt
   )
   def parse(itemBody:Node):Seq[Interaction] = {
-    val interactions = (itemBody \ "selectTextInteraction")
+    val interactions = (itemBody \\ "selectTextInteraction")
     if (interactions.isEmpty){
       Seq()
     }else{

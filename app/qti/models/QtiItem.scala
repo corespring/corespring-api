@@ -61,7 +61,7 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
    */
   def isValueCorrect(responseIdentifier: String, value: String, index: Int = 0): Boolean = {
     responseDeclarations.find(_.identifier == responseIdentifier) match {
-      case Some(rd) => rd.isValueCorrect(value, index)
+      case Some(rd) => rd.isValueCorrect(value, Some(index))
       case _ => false
     }
   }
@@ -193,13 +193,11 @@ case class ResponseDeclaration(identifier: String, cardinality: String, correctR
     case Some(cr) => if (cr.isCorrect(responseValue)) Correctness.Correct else Correctness.Incorrect
     case None => Correctness.Unknown
   }
-
-  def isValueCorrect(value: String, index: Int): Boolean = correctResponse match {
+  def isValueCorrect(value: String, index: Option[Int]): Boolean = correctResponse match {
     case Some(cr) => cr.isValueCorrect(value, index)
     case None => false
   }
-
-  def mappedValue(mapKey: String): String = mapping match {
+  def mappedValue(mapKey: String): Float = mapping match {
     case Some(m) => m.mappedValue(mapKey)
     case None => throw new RuntimeException("no mapping for this response declaration")
   }
@@ -234,7 +232,7 @@ object ResponseDeclaration {
 trait CorrectResponse {
   def isCorrect(responseValue: String): Boolean
 
-  def isValueCorrect(value: String, index: Int): Boolean
+  def isValueCorrect(value: String, index: Option[Int]): Boolean
 }
 
 object CorrectResponse {
@@ -272,7 +270,7 @@ object CorrectResponse {
 case class CorrectResponseSingle(value: String) extends CorrectResponse {
   def isCorrect(responseValue: String): Boolean = responseValue == value
 
-  def isValueCorrect(v: String, index: Int) = v == value
+  def isValueCorrect(v: String, index: Option[Int]) = v == value
 }
 
 object CorrectResponseSingle {
@@ -294,7 +292,7 @@ case class CorrectResponseMultiple(value: Seq[String]) extends CorrectResponse {
     value.sortWith(_ < _) == responseList.sortWith(_ < _)
   }
 
-  def isValueCorrect(v: String, index: Int) = value.contains(v)
+  def isValueCorrect(v: String, index: Option[Int]) = value.contains(v)
 
 }
 
@@ -305,15 +303,9 @@ object CorrectResponseMultiple {
 }
 
 case class CorrectResponseAny(value: Seq[String]) extends CorrectResponse {
-  def isCorrect(responseValue: String) = {
-    value.find(_ == responseValue).isDefined
-  }
-
-  def isValueCorrect(v: String, index: Int) = {
-    value.contains(v)
-  }
+  def isCorrect(responseValue: String) = value.find(_ == responseValue).isDefined
+  def isValueCorrect(v: String, index: Option[Int]) = value.contains(v)
 }
-
 object CorrectResponseAny {
   def apply(node: Node): CorrectResponseAny = CorrectResponseAny((node \ "value").map(_.text))
 }
@@ -324,7 +316,12 @@ case class CorrectResponseOrdered(value: Seq[String]) extends CorrectResponse {
     value == responseList
   }
 
-  def isValueCorrect(v: String, index: Int) = value.length > index && value(index) == v
+  def isValueCorrect(v: String, index: Option[Int]) = {
+    index match {
+      case Some(i) => value.length > i && value(i) == v
+      case None => false
+    }
+  }
 }
 
 object CorrectResponseOrdered {
@@ -333,8 +330,8 @@ object CorrectResponseOrdered {
   )
 }
 
-case class Mapping(mapEntries: Map[String, String], defaultValue: Option[String]) {
-  def mappedValue(mapKey: String): String = {
+case class Mapping(mapEntries: Map[String, Float], defaultValue: Option[Float]) {
+  def mappedValue(mapKey: String): Float = {
     mapEntries.get(mapKey) match {
       case Some(mappedValue) => mappedValue
       case None => defaultValue match {
@@ -348,11 +345,11 @@ case class Mapping(mapEntries: Map[String, String], defaultValue: Option[String]
 object Mapping {
   def apply(node: Node): Mapping = {
     val defaultValue = (node \ "@defaultValue").text match {
-      case x: String if x.nonEmpty => Some(x)
+      case x: String if x.nonEmpty => Some(x.toFloat)
       case _ => None
     }
-    val mapEntries = (node \ "mapEntry").foldRight[Map[String, String]](Map())((node, acc) =>
-      acc + ((node \ "@mapKey").text -> (node \ "@mappedValue").text)
+    val mapEntries = (node \ "mapEntry").foldRight[Map[String, Float]](Map())((node, acc) =>
+      acc + ((node \ "@mapKey").text -> (node \ "@mappedValue").text.toFloat)
     )
     Mapping(mapEntries, defaultValue)
   }
@@ -369,7 +366,9 @@ object ItemBody {
     val feedbackBlocks = buildTypes[FeedbackInline](node, Seq(
       ("feedbackBlock", FeedbackInline(_, None))
     ))
-    ItemBody(QtiItem.interactionModels.map(_.parse(node)).flatten, feedbackBlocks)
+    ItemBody(QtiItem.interactionModels.map(im => {
+      im.parse(node)
+    }).flatten, feedbackBlocks)
   }
 
   private def buildTypes[T](node: Node, names: Seq[(String, (Node) => T)]): List[T] = {
