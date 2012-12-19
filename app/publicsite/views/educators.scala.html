@@ -18,10 +18,12 @@
         $(document).ready(function() {
             $(".fancybox").fancybox(
                 {
-                   minWidth: 700,
-                   height : 720,
-                   fitToView : false,
-                   autoSize : false
+                    fitToView : false,
+                    autoSize : false,
+                    beforeShow: function(){
+                        this.width = $('.fancybox-iframe').contents().find('html').width();
+                        this.height = $('.fancybox-iframe').contents().find('html').height();
+                    }
                 }
                 );
         });
