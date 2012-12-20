@@ -41,6 +41,58 @@
   filter: progid:dximagetransform.microsoft.gradient(startColorstr='@top', endColorstr='@bottom', GradientType=0);
   filter: progid:dximagetransform.microsoft.gradient(enabled=false);
 }
+
+.mixin-diagonal-stripes(@angle: -45deg, @color, @size, @alpha){
+  @multiple: 25%;
+  background-size: @size @size;
+  background-color: @color;
+
+  background-image:
+    -webkit-linear-gradient(@angle,
+      rgba(255, 255, 255, @alpha) @multiple,
+      transparent @multiple,
+      transparent (@multiple * 2),
+      rgba(255, 255, 255, @alpha) (@multiple * 2),
+      rgba(255, 255, 255, @alpha) (@multiple * 3),
+      transparent (@multiple * 3), transparent);
+
+  background-image:
+    -moz-linear-gradient(@angle,
+    rgba(255, 255, 255, @alpha) @multiple,
+    transparent @multiple,
+    transparent (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 3),
+    transparent (@multiple * 3), transparent);
+
+  background-image:
+    -ms-linear-gradient(@angle,
+    rgba(255, 255, 255, @alpha) @multiple,
+    transparent @multiple,
+    transparent (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 3),
+    transparent (@multiple * 3), transparent);
+
+  background-image:
+    -o-linear-gradient(@angle,
+    rgba(255, 255, 255, @alpha) @multiple,
+    transparent @multiple,
+    transparent (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 3),
+    transparent (@multiple * 3), transparent);
+
+  background-image:
+    linear-gradient(@angle,
+    rgba(255, 255, 255, @alpha) @multiple,
+    transparent @multiple,
+    transparent (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 3),
+    transparent (@multiple * 3), transparent);
+}
+
 .mixin-bg-carbon( @size, @color) {
 
   @dark : darken(@color, 6%);

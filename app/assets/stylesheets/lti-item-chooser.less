@@ -58,11 +58,10 @@ th, td {
   text-align: left;
 }
 
-
-.local-fix-width(@w){
+.local-fix-width(@w) {
   min-width: @w;
   width: @w;
-  div{
+  div {
     width: @w;
     overflow: hidden;
     white-space: nowrap;
@@ -71,22 +70,22 @@ th, td {
 }
 
 th.primary-subject,
-td.primary-subject{
+td.primary-subject {
   .local-fix-width(80px);
 }
 
 td.grade,
-th.grade{
+th.grade {
   .local-fix-width(40px);
 }
 
 th.ccss,
-td.ccss{
+td.ccss {
   .local-fix-width(50px);
 }
 
 th.type,
-td.type{
+td.type {
   .local-fix-width(40px);
 }
 
@@ -151,7 +150,6 @@ td.title {
       }
     }
 
-
   }
 
   .view-item-container {
@@ -173,16 +171,47 @@ position:relative;
     max-width: @max-width;
   }
 }
-.item-count{
-  float:right;
-  margin-top:5px;
+
+.item-count {
+  float: right;
+  margin-top: 5px;
   color: #ffffff;
+}
+
+.no-items-info-pane {
+  padding-top: 20px;
+  height: 100%;
+  background-image: url('/assets/images/corespring-faded-bg.jpg');
+  background-repeat: no-repeat;
+  background-position: center;
+  .info-well {
+    text-align: center;
+    color: darken(@cs-green, 4%);
+    font-weight: bold;
+    .info-icon {
+      margin: 0 auto;
+      height: 42px;
+      width: 42px;
+      padding-bottom: 20px;
+      background: url("/assets/images/info-icon-37x37.png") no-repeat scroll 3px center transparent;
+    }
+  }
 }
 
 .navbar {
   height: @navbar-height;
+  padding-bottom: 5px;
   background-color: darken(@cs-navbar-color, 20%);
-  .mixin-bg-carbon(4px, darken(@cs-navbar-color, 20%));
+  .mixin-diagonal-stripes(-45deg, rgb(235,235,235), 10px, 0.2);
+
+  .navbar-bottom {
+    width: 100%;
+    height: 4px;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    .mixin-diagonal-stripes(45deg, @cs-green, 10px, 0.2);
+  }
   .mixin-box-shadow;
 
   .container {
@@ -199,8 +228,9 @@ position:relative;
     height: 30px;
   }
 }
-.pager-holder{
-  a{
+
+.pager-holder {
+  a {
     color: lighten(@cs-navbar-color, 40%);
   }
 }
@@ -240,13 +270,12 @@ a.cs-icon-link {
   }
 }
 
-.view-item-loading{
+.view-item-loading {
   background-color: #ffffff;
   width: 100%;
   height: 100%;
   position: absolute;
 }
-
 
 .admin-container {
   width: 560px;
@@ -266,7 +295,7 @@ a.cs-icon-link {
   clear: both;
 }
 
-.lti-iframe-preview{
+.lti-iframe-preview {
   width: @max-width;
   height: 100%;
 }
