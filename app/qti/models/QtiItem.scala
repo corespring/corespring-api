@@ -158,8 +158,9 @@ object QtiItem {
 
   private def createItem(n: Node): QtiItem = {
     val itemBody = ItemBody((n \ "itemBody").head)
+    val customResponseDeclarations = itemBody.interactions.map(i=>i.getResponseDeclaration.getOrElse(ResponseDeclaration("", "", None, None))).filterNot(_.identifier == "")
     QtiItem(
-      responseDeclarations = (n \ "responseDeclaration").map(ResponseDeclaration(_, itemBody)),
+      responseDeclarations = (n \ "responseDeclaration").map(ResponseDeclaration(_, itemBody)) ++ customResponseDeclarations,
       itemBody = itemBody,
       modalFeedbacks = (n \ "modalFeedbacks").map(FeedbackInline(_, None))
     )

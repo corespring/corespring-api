@@ -31,6 +31,14 @@ case class SelectTextInteraction(representingNode: Node, responseIdentifier: Str
       }
     }
   }
+
+  override def getResponseDeclaration: Option[ResponseDeclaration] = {
+    val id = (representingNode \ "@responseIdentifier").text
+    val correctAnswers = SelectTextInteraction.parseCorrectResponses(representingNode)
+    val cra = CorrectResponseMultiple(correctAnswers)
+    Some(ResponseDeclaration(identifier = id, cardinality = "multiple", correctResponse = Some(cra), mapping = None))
+  }
+
 }
 
 object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction] {

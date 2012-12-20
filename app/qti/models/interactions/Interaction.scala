@@ -12,6 +12,7 @@ trait Interaction {
   val representingNode: Node
   //def getChoice(identifier: String): Option[Choice]
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome]
+  def getResponseDeclaration:Option[ResponseDeclaration] = None
   def validate(qtiItem:QtiItem):(Boolean, String) = {
     val isValid = !(qtiItem.responseDeclarations.find(_.identifier == responseIdentifier).isEmpty)
     val msg = if (isValid) "Ok" else "Missing response declartaion for " + responseIdentifier
