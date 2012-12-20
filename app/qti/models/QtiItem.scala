@@ -4,7 +4,6 @@ import interactions._
 import scala.xml._
 import play.api.libs.json.{JsString, JsObject, JsValue, Writes}
 import qti.models.QtiItem.Correctness
-import qti.processors.SelectTextInteractionProcessor._
 import scala.Some
 
 case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline]) {
@@ -29,7 +28,7 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
    * @param id - the interaction id
    */
   def isCorrectResponseApplicable(id: String): Boolean = itemBody.getInteraction(id) match {
-    case Some(TextEntryInteraction(_, _, _)) => false
+    case Some(TextEntryInteraction(_, _, _, _)) => false
     case _ => true
   }
 
@@ -90,7 +89,7 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
 
   private def getFeedbackWithIncorrectResponse(id: String): Option[FeedbackInline] = {
     itemBody.interactions.find(_.responseIdentifier == id) match {
-      case Some(TextEntryInteraction(_, _, blocks)) => {
+      case Some(TextEntryInteraction(_, _, _, blocks)) => {
         val fb = blocks.find(_.incorrectResponse)
         fb
       }
@@ -144,29 +143,18 @@ object QtiItem {
    * @return
    */
   def apply(node: Node): QtiItem = {
+    println("Applying")
     val qtiItem = createItem(node)
     addCorrectResponseFeedback(qtiItem, node)
     addIncorrectResponseFeedback(qtiItem, node)
     qtiItem
   }
 
-  // TODO: this should go to the interaction processor
-  private def getSelectTextResponseDeclarations(n:Node) = {
-    val selectTextNodes:NodeSeq = (n \ "itemBody" \ "selectTextInteraction")
-    selectTextNodes.map {
-      node =>
-        val id = (node \ "@responseIdentifier").text
-        val correctAnswers = parseCorrectResponses(node)
-        val cra = CorrectResponseMultiple(correctAnswers)
-        ResponseDeclaration(identifier = id, cardinality ="multiple", correctResponse = Some(cra), mapping = None)
-    }
-  }
-
   private def createItem(n: Node): QtiItem = {
     val itemBody = ItemBody((n \ "itemBody").head)
-
+    val customResponseDeclarations = itemBody.interactions.map(i=>i.getResponseDeclaration.get)
     QtiItem(
-      responseDeclarations = (n \ "responseDeclaration").map(ResponseDeclaration(_, itemBody)) ++ getSelectTextResponseDeclarations(n),
+      responseDeclarations = (n \ "responseDeclaration").map(ResponseDeclaration(_, itemBody)) ++ customResponseDeclarations,
       itemBody = itemBody,
       modalFeedbacks = (n \ "modalFeedbacks").map(FeedbackInline(_, None))
     )
@@ -250,8 +238,8 @@ object CorrectResponse {
 
     if (interaction.isDefined) {
       interaction.get match {
-        case TextEntryInteraction(_, _, _) => CorrectResponseAny(node)
-        case SelectTextInteraction(_, _, _, _) => CorrectResponseAny(node)
+        case TextEntryInteraction(_, _, _, _) => CorrectResponseAny(node)
+        case SelectTextInteraction(_, _, _, _, _) => CorrectResponseAny(node)
         case _ => CorrectResponse(node, cardinality)
       }
     }

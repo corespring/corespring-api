@@ -2,7 +2,6 @@ package testplayer.controllers
 
 import xml.{Node, Elem}
 import qti.processors.FeedbackProcessor._
-import qti.processors.SelectTextInteractionProcessor._
 import xml.transform.{RuleTransformer, RewriteRule}
 import qti.models.QtiItem
 
@@ -20,15 +19,6 @@ trait QtiRenderer {
     val qtiXml = <assessmentItem print-mode={printMode.toString}>{itemBody}</assessmentItem>
     removeNamespaces(qtiXml)
   }
-
-//  /** Prepare the raw qti xml for rendering. Remove answers and add csFeedbackIds
-//   */
-//  def prepareSelectText(qti:Elem, printMode : Boolean = false) : String = {
-//    val (xmlWithCsFeedbackIds, _) = addFeedbackIds(qti)
-//    val itemBody = tokenizeSelectText(filterFeedbackContent(addOutcomeIdentifiers(xmlWithCsFeedbackIds) \ "itemBody"))
-//    val qtiXml = <assessmentItem print-mode={printMode.toString}>{itemBody}</assessmentItem>
-//    removeNamespaces(qtiXml)
-//  }
 
   /** remove the namespaces - Note: this is necessary to support correct rendering in IE8
    */

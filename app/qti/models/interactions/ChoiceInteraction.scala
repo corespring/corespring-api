@@ -15,7 +15,8 @@ import qti.models.QtiItem.Correctness
 import controllers.Log
 import testplayer.views.utils.QtiScriptLoader
 
-case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices{
+case class ChoiceInteraction(representingNode: Node, responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices{
+  def getResponseDeclaration: Option[ResponseDeclaration] = None
   def getChoice(identifier: String):Option[Choice] = choices.find(_.identifier == identifier)
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
     response match {
@@ -38,6 +39,7 @@ case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoi
 
 object ChoiceInteraction extends InteractionCompanion[ChoiceInteraction]{
   def apply(interaction: Node, itemBody: Option[Node]): ChoiceInteraction = ChoiceInteraction(
+    interaction,
     (interaction \ "@responseIdentifier").text,
     (interaction \ "simpleChoice").map(SimpleChoice(_, (interaction \ "@responseIdentifier").text))
   )

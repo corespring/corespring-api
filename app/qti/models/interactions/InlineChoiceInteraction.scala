@@ -8,7 +8,8 @@ import qti.models.QtiItem.Correctness
 import controllers.Log
 import testplayer.views.utils.QtiScriptLoader
 
-case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[InlineChoice]) extends Interaction {
+case class InlineChoiceInteraction(representingNode:Node, responseIdentifier: String, choices: Seq[InlineChoice]) extends Interaction {
+  def getResponseDeclaration: Option[ResponseDeclaration] = None
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
     response match {
@@ -31,7 +32,7 @@ case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[Inli
 
 object InlineChoiceInteraction extends InteractionCompanion[InlineChoiceInteraction]{
   def apply(interaction: Node, itemBody:Option[Node]): InlineChoiceInteraction = InlineChoiceInteraction(
-
+    interaction,
     (interaction \ "@responseIdentifier").text,
     (interaction \ "inlineChoice").map(InlineChoice(_, (interaction \ "@responseIdentifier").text))
   )
@@ -53,5 +54,6 @@ object InlineChoiceInteraction extends InteractionCompanion[InlineChoiceInteract
   }
   private def css(url: String): String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
   private def script(url: String): String = """<script type="text/javascript" src="%s"></script>""".format(url)
+
 }
 

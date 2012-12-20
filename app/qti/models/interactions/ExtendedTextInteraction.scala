@@ -7,14 +7,15 @@ import qti.models.QtiItem.Correctness
 import controllers.Log
 import testplayer.views.utils.QtiScriptLoader
 
-case class ExtendedTextInteraction(responseIdentifier: String) extends Interaction {
+case class ExtendedTextInteraction(representingNode:Node, responseIdentifier: String) extends Interaction {
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = None
+  def getResponseDeclaration: Option[ResponseDeclaration] = None
 }
 
 object ExtendedTextInteraction extends InteractionCompanion[ExtendedTextInteraction]{
   def apply(node: Node, itemBody:Option[Node]): ExtendedTextInteraction = {
     val responseIdentifier = Interaction.responseIdentifier(node)
-    ExtendedTextInteraction(responseIdentifier = responseIdentifier)
+    ExtendedTextInteraction(representingNode = node, responseIdentifier = responseIdentifier)
   }
   def parse(itemBody:Node):Seq[Interaction] = {
     val interactions = (itemBody \\ "extendedTextInteraction")
@@ -36,4 +37,6 @@ object ExtendedTextInteraction extends InteractionCompanion[ExtendedTextInteract
   }
   private def css(url: String): String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
   private def script(url: String): String = """<script type="text/javascript" src="%s"></script>""".format(url)
+
+
 }

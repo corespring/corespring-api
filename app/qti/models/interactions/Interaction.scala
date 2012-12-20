@@ -9,12 +9,14 @@ import qti.models.ResponseDeclaration
 
 trait Interaction {
   val responseIdentifier: String
+  val representingNode: Node
   //def getChoice(identifier: String): Option[Choice]
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome]
+  def getResponseDeclaration:Option[ResponseDeclaration]
 }
 trait InteractionCompanion[T <: Interaction]{
-  def apply(interaction:Node, itemBody:Option[Node]):T;
-  def parse(itemBody:Node):Seq[Interaction];
+  def apply(interaction:Node, itemBody:Option[Node]):T
+  def parse(itemBody:Node):Seq[Interaction]
   def interactionMatch(e:Elem):Boolean
   def preProcessXml(interactionXml:Elem):NodeSeq = interactionXml
   def getHeadHtml(toPrint:Boolean):String

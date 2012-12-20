@@ -9,7 +9,8 @@ import qti.models.QtiItem.Correctness
 import controllers.Log
 import testplayer.views.utils.QtiScriptLoader
 
-case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices {
+case class OrderInteraction(representingNode:Node, responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices {
+  def getResponseDeclaration: Option[ResponseDeclaration] = None
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
     response match {
@@ -44,6 +45,7 @@ case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoic
 
 object OrderInteraction extends InteractionCompanion[OrderInteraction]{
   def apply(node: Node, itemBody:Option[Node]): OrderInteraction = OrderInteraction(
+    node,
     (node \ "@responseIdentifier").text,
     (node \ "simpleChoice").map(SimpleChoice(_, (node \ "@responseIdentifier").text))
   )
@@ -68,4 +70,5 @@ object OrderInteraction extends InteractionCompanion[OrderInteraction]{
   }
   private def css(url: String): String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
   private def script(url: String): String = """<script type="text/javascript" src="%s"></script>""".format(url)
+
 }

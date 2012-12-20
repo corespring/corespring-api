@@ -65,26 +65,6 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
   def renderItem(itemId: String, printMode: Boolean = false, sessionSettings: String = "") =
     _renderItem(itemId, printMode, previewEnabled = false, sessionSettings = sessionSettings)
 
-  def renderSelectTextItem() = ApiAction {
-    request =>
-      try {
-             getItemXMLByObjectId("5f6c9fbdc01de23b24788176", request.ctx.organization) match {
-               case Some(xmlData: Elem) =>
-                 println("Rendering QTI")
-                 val finalXml = prepareQti(xmlData, false)
-                Ok(testplayer.views.html.itemPlayer("5f6c9fbdc01de23b24788176", finalXml, true, "", common.mock.MockToken))
-             }
-      }catch {
-              case e: SAXParseException => {
-                val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
-                Ok(testplayer.views.html.itemPlayerError(errorInfo))
-              }
-              case e: Exception => throw new RuntimeException("ItemPlayer.renderItem: " + e.getMessage, e)
-        }
-
-  }
-
-
   private def _renderItem(itemId: String, printMode: Boolean = false, previewEnabled: Boolean = false, sessionSettings: String = "", sessionId:String = "") = ApiAction {
     request =>
       try {
