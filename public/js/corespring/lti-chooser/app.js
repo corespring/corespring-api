@@ -72,7 +72,7 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
       return false;
     }
 
-    if(!$scope.item){
+    if(!$scope.config.itemId){
       return false;
     }
     return $scope.config.itemId === $scope.item.id;
@@ -122,8 +122,9 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
       }
       var args = [];
       args.push("embed_type=basic_lti");
-      var url = document.location.href;
-      args.push("url=" + encodeURIComponent(url + "?canvas_config_id=" + $scope.config.id));
+      var url = document.location.href.replace( document.location.hash, "");
+      var encodedUrl =  encodeURIComponent(url + "?canvas_config_id=" + $scope.config.id);
+      args.push("url=" + encodedUrl );
       location.href = Config.returnUrl + args.join('&');
     };
 
