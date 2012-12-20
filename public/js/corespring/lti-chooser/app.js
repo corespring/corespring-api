@@ -4,6 +4,7 @@ angular.module("lti-chooser",
   ['tagger.services',
     'lti-services',
     'ngResource',
+    'cs',
     'corespring-directives',
     'corespring-services',
     'corespring-utils',
@@ -111,6 +112,9 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
       if (onSaveCompleteCallback) onSaveCompleteCallback();
     });
   };
+
+  $scope.getTitle = function(o){ return o.key };
+  $scope.getSelectedTitle = function(o){ return o.key };
 
   $rootScope.$on('saveConfig', function (event, object) {
 

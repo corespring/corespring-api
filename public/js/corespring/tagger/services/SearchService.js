@@ -95,7 +95,15 @@ angular.module('tagger.services').factory('SearchService',
         }
 
         if(searchParams.gradeLevel){
-          query.gradeLevel = searchParams.gradeLevel.key;
+          if(searchParams.gradeLevel.indexOf){
+            var inArray = [];
+            for( var x = 0; x < searchParams.gradeLevel.length; x++){
+              inArray.push(searchParams.gradeLevel[x].key);
+            }
+            query.gradeLevel = { $in: inArray};
+          } else {
+            query.gradeLevel = searchParams.gradeLevel.key;
+          }
         }
 
         if (searchParams.collection && searchParams.collection.id) {

@@ -299,3 +299,38 @@ a.cs-icon-link {
   width: @max-width;
   height: 100%;
 }
+
+.multi-select {
+  padding: 5px;
+  .no-items {
+    background-color: none;
+    margin-left: 0px;
+  }
+
+  .items {
+    margin-left: 0px;
+    padding: 5px;
+    background-color: fadeout(lighten(@cs-green, 30%), 70%);
+    .item{
+      margin: 4px;
+    }
+  }
+
+  .chooser {
+    background: lighten(@cs-green, 30%);
+
+    -moz-box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.2);
+    -webkit-box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.2);
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.2);
+
+    ul {
+      margin: 0px;
+      padding: 0px;
+    }
+
+    li {
+      list-style: none;
+      margin: 0px;
+    }
+  }
+}

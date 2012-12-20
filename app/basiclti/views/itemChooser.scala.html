@@ -10,6 +10,7 @@
     @common.views.html.head.angular()
     @common.views.html.head.corespringCommon()
     @common.views.html.head.fieldValues()
+    @common.views.html.head.corespringNgComponents()
     @web.views.html.head.taggerApp()
 
     <script type="text/javascript" src="http://fgnass.github.com/spin.js/dist/spin.min.js"></script>
@@ -70,12 +71,21 @@
             <option value="">All Collections</option>
           </select>
 
+
+
+          <span multi-select
+            multi-get-title="getTitle"
+            multi-get-selected-title="getSelectedTitle"
+            multi-options="gradeLevelDataProvider"
+            multi-model="searchParams.gradeLevel">
+          </span>
+          <!--
           <select style="max-width: 50px;" ng-options="grade.key for grade in gradeLevelDataProvider"
               ng-model="searchParams.gradeLevel"
               ng-change="search()">
             <option value="">All</option>
           </select>
-
+          -->
 
         <div class="item-count" ng-show="!showPager()">
           {{getItemCountLabel(itemCount)}}
