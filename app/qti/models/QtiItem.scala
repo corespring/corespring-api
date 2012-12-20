@@ -20,8 +20,15 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
     }
 
 
-  require(interactionsWithNoResponseDeclaration.length == 0,
-    "Invalid QTI: You are missing some responseIdentifiers: " + interactionsWithNoResponseDeclaration.map(_.responseIdentifier).toString)
+  val isQtiValid:(Boolean, Seq[String]) = {
+    val messages = itemBody.interactions.collect {
+      case s => s.validate(this)._2
+    }
+    (itemBody.interactions.foldLeft(true)(_ && _.validate(this)._1), messages)
+  }
+
+  require(isQtiValid._1,
+    "Invalid QTI: " + isQtiValid._2.mkString(", "))
 
   /**
    * Does the given interaction need correct responses?
@@ -143,7 +150,6 @@ object QtiItem {
    * @return
    */
   def apply(node: Node): QtiItem = {
-    println("Applying")
     val qtiItem = createItem(node)
     addCorrectResponseFeedback(qtiItem, node)
     addIncorrectResponseFeedback(qtiItem, node)
@@ -152,9 +158,8 @@ object QtiItem {
 
   private def createItem(n: Node): QtiItem = {
     val itemBody = ItemBody((n \ "itemBody").head)
-    val customResponseDeclarations = itemBody.interactions.map(i=>i.getResponseDeclaration.get)
     QtiItem(
-      responseDeclarations = (n \ "responseDeclaration").map(ResponseDeclaration(_, itemBody)) ++ customResponseDeclarations,
+      responseDeclarations = (n \ "responseDeclaration").map(ResponseDeclaration(_, itemBody)),
       itemBody = itemBody,
       modalFeedbacks = (n \ "modalFeedbacks").map(FeedbackInline(_, None))
     )

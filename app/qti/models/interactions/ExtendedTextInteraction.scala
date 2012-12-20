@@ -9,7 +9,6 @@ import testplayer.views.utils.QtiScriptLoader
 
 case class ExtendedTextInteraction(representingNode:Node, responseIdentifier: String) extends Interaction {
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = None
-  def getResponseDeclaration: Option[ResponseDeclaration] = None
 }
 
 object ExtendedTextInteraction extends InteractionCompanion[ExtendedTextInteraction]{

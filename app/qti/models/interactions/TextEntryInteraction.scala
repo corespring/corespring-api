@@ -8,7 +8,6 @@ import controllers.Log
 import testplayer.views.utils.QtiScriptLoader
 
 case class TextEntryInteraction(representingNode:Node, responseIdentifier: String, expectedLength: Int, feedbackBlocks: Seq[FeedbackInline]) extends Interaction {
-  def getResponseDeclaration: Option[ResponseDeclaration] = None
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
     response match {
       case StringItemResponse(_,responseValue,_) => responseDeclaration match {

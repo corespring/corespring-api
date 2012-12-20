@@ -10,7 +10,6 @@ import controllers.Log
 import testplayer.views.utils.QtiScriptLoader
 
 case class OrderInteraction(representingNode:Node, responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices {
-  def getResponseDeclaration: Option[ResponseDeclaration] = None
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
     response match {

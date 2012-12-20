@@ -3,40 +3,34 @@ package qti.models.interactions
 import xml.{XML, NodeSeq, Elem, Node}
 import xml.transform.{RuleTransformer, RewriteRule}
 import util.matching.Regex
-import qti.models.{CorrectResponseMultiple, ResponseDeclaration}
+import qti.models.{QtiItem, CorrectResponseMultiple, ResponseDeclaration}
 import models.{ArrayItemResponse, ItemResponseOutcome, ItemResponse}
 import testplayer.views.utils.QtiScriptLoader
 import scala.Some
-import qti.models.QtiItem.Correctness
 import controllers.Log
 
 case class SelectTextInteraction(representingNode: Node, responseIdentifier: String, selectionType: String, minSelection: Int, maxSelection: Int) extends Interaction {
+
+  override def validate(qtiItem: QtiItem) = {
+    (true, "Ok")
+  }
+
   def getChoice(identifier: String) = None
 
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
+    val correctAnswers = CorrectResponseMultiple(SelectTextInteraction.parseCorrectResponses(representingNode))
     response match {
-      case ArrayItemResponse(_, responseValue, _) => responseDeclaration match {
-        case Some(rd) =>
-          if (rd.isCorrect(response.value) == Correctness.Correct)
-            Some(ItemResponseOutcome(1))
-          else
-            Some(ItemResponseOutcome(0))
-        case None => None
-      }
+      case ArrayItemResponse(_, responseValue, _) =>
+        if (correctAnswers.isCorrect(response.value))
+          Some(ItemResponseOutcome(1))
+        else
+          Some(ItemResponseOutcome(0))
       case _ => {
         Log.e("received a response that was not an array response in SelectTextInteraction.getOutcome")
         None
       }
     }
   }
-
-  def getResponseDeclaration: Option[ResponseDeclaration] = {
-    val id = (representingNode \ "@responseIdentifier").text
-    val correctAnswers = SelectTextInteraction.parseCorrectResponses(representingNode)
-    val cra = CorrectResponseMultiple(correctAnswers)
-    Some(ResponseDeclaration(identifier = id, cardinality = "multiple", correctResponse = Some(cra), mapping = None))
-  }
-
 }
 
 object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction] {
@@ -62,22 +56,22 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
 
   override def preProcessXml(interactionXml: Elem): NodeSeq = tokenizeSelectText(interactionXml)
 
-  def parseCorrectResponses(selectnodeXml:NodeSeq):Seq[String] = {
-      val isWord = (selectnodeXml  \ "@selectionType").text == "word"
-      val taggedXml = if (isWord) performOnText(selectnodeXml, tagWords) else performOnText(selectnodeXml, tagSentences)
-      val idRegexp = new Regex("id=\".([0-9]+)", "match")
-      val correctIndexes =
-        if (isWord) {
-          (taggedXml \ "correct").map(n => idRegexp.findFirstMatchIn(n.mkString).get.group("match"))
-        } else {
-         (taggedXml
-            \ "span"
-            filterNot (_ \ "@selectable" isEmpty)
-            filterNot (_ \ "correct" isEmpty)
+  def parseCorrectResponses(selectnodeXml: NodeSeq): Seq[String] = {
+    val isWord = (selectnodeXml \ "@selectionType").text == "word"
+    val taggedXml = if (isWord) performOnText(selectnodeXml, tagWords) else performOnText(selectnodeXml, tagSentences)
+    val idRegexp = new Regex("id=\".([0-9]+)", "match")
+    val correctIndexes =
+      if (isWord) {
+        (taggedXml \ "correct").map(n => idRegexp.findFirstMatchIn(n.mkString).get.group("match"))
+      } else {
+        (taggedXml
+          \ "span"
+          filterNot (_ \ "@selectable" isEmpty)
+          filterNot (_ \ "correct" isEmpty)
           ).map(n => idRegexp.findFirstMatchIn(n.mkString).get.group("match"))
-        }
-      correctIndexes
-    }
+      }
+    correctIndexes
+  }
 
   private def tokenizeSelectText(interactionXml: NodeSeq): NodeSeq = {
     val isWord = (interactionXml \ "@selectionType").text == "word"
@@ -108,7 +102,8 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
     // Filter out names like Vikram S. Pandit as they break the sentence parsing
     val namesParsed = "([A-Z][a-z]+ [A-Z])\\.( [A-Z][a-z]+)".r.replaceAllIn(s, "$1&#46;$2")
     val res = regExp.replaceAllIn(namesParsed, m => {
-      idx = idx + 1; "<span selectable=\"\" id=\"s" + idx.toString + "\">" + m.group("match") + "</span>"
+      idx = idx + 1;
+      "<span selectable=\"\" id=\"s" + idx.toString + "\">" + m.group("match") + "</span>"
     })
     res
   }
@@ -117,7 +112,8 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
     val regExp = new Regex("(?<![</&])\\b([a-zA-Z_']+)\\b", "match")
     var idx = 0
     regExp.replaceAllIn(s, m => {
-      idx = idx + 1; "<span selectable=\"\" id=\"s" + idx.toString + "\">" + m.group("match") + "</span>"
+      idx = idx + 1;
+      "<span selectable=\"\" id=\"s" + idx.toString + "\">" + m.group("match") + "</span>"
     })
   }
 
