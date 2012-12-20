@@ -3,13 +3,14 @@ package qti.models.interactions
 import xml.{XML, NodeSeq, Elem, Node}
 import xml.transform.{RuleTransformer, RewriteRule}
 import util.matching.Regex
-import qti.models.{QtiItem, CorrectResponseMultiple, ResponseDeclaration}
-import models.{ArrayItemResponse, ItemResponseOutcome, ItemResponse}
+import qti.models._
+import models.{ItemResponseOutcome, ItemResponse}
 import testplayer.views.utils.QtiScriptLoader
-import scala.Some
 import controllers.Log
+import scala.Some
+import models.ArrayItemResponse
 
-case class SelectTextInteraction(representingNode: Node, responseIdentifier: String, selectionType: String, minSelection: Int, maxSelection: Int) extends Interaction {
+case class SelectTextInteraction(responseIdentifier: String, selectionType: String, minSelection: Int, maxSelection: Int, correctResponse: Option[CorrectResponse], responseDeclaration: Option[ResponseDeclaration]) extends Interaction {
 
   override def validate(qtiItem: QtiItem) = {
     (true, "Ok")
@@ -18,13 +19,14 @@ case class SelectTextInteraction(representingNode: Node, responseIdentifier: Str
   def getChoice(identifier: String) = None
 
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
-    val correctAnswers = CorrectResponseMultiple(SelectTextInteraction.parseCorrectResponses(representingNode))
     response match {
-      case ArrayItemResponse(_, responseValue, _) =>
-        if (correctAnswers.isCorrect(response.value))
+      case ArrayItemResponse(_, responseValue, _) => correctResponse match {
+        case Some(cr) => if (cr.isCorrect(response.value))
           Some(ItemResponseOutcome(1))
         else
           Some(ItemResponseOutcome(0))
+        case _ => None
+      }
       case _ => {
         Log.e("received a response that was not an array response in SelectTextInteraction.getOutcome")
         None
@@ -33,21 +35,25 @@ case class SelectTextInteraction(representingNode: Node, responseIdentifier: Str
   }
 
   override def getResponseDeclaration: Option[ResponseDeclaration] = {
-    val id = (representingNode \ "@responseIdentifier").text
-    val correctAnswers = SelectTextInteraction.parseCorrectResponses(representingNode)
-    val cra = CorrectResponseMultiple(correctAnswers)
-    Some(ResponseDeclaration(identifier = id, cardinality = "multiple", correctResponse = Some(cra), mapping = None))
+    responseDeclaration
   }
 
 }
 
 object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction] {
   def apply(node: Node, itemBody: Option[Node]): SelectTextInteraction = {
-    SelectTextInteraction(node,
+
+    val correctAnswers = Some(CorrectResponseMultiple(SelectTextInteraction.parseCorrectResponses(node)))
+    val id = (node \ "@responseIdentifier").text
+    val responseDeclaration = Some(ResponseDeclaration(identifier = id, cardinality = "multiple", correctResponse = correctAnswers, mapping = None))
+
+    SelectTextInteraction(
       (node \ "@responseIdentifier").text,
       (node \ "@selectionType").text,
       (node \ "@minSelections").text.toInt,
-      (node \ "@maxSelections").text.toInt
+      (node \ "@maxSelections").text.toInt,
+      correctAnswers,
+      responseDeclaration
     )
   }
 

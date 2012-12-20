@@ -7,14 +7,14 @@ import qti.models.QtiItem.Correctness
 import controllers.Log
 import testplayer.views.utils.QtiScriptLoader
 
-case class ExtendedTextInteraction(representingNode:Node, responseIdentifier: String) extends Interaction {
+case class ExtendedTextInteraction(responseIdentifier: String) extends Interaction {
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = None
 }
 
 object ExtendedTextInteraction extends InteractionCompanion[ExtendedTextInteraction]{
   def apply(node: Node, itemBody:Option[Node]): ExtendedTextInteraction = {
     val responseIdentifier = Interaction.responseIdentifier(node)
-    ExtendedTextInteraction(representingNode = node, responseIdentifier = responseIdentifier)
+    ExtendedTextInteraction(responseIdentifier = responseIdentifier)
   }
   def parse(itemBody:Node):Seq[Interaction] = {
     val interactions = (itemBody \\ "extendedTextInteraction")

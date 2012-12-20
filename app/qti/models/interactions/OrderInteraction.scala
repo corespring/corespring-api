@@ -9,7 +9,7 @@ import qti.models.QtiItem.Correctness
 import controllers.Log
 import testplayer.views.utils.QtiScriptLoader
 
-case class OrderInteraction(representingNode:Node, responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices {
+case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices {
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
     response match {
@@ -44,7 +44,6 @@ case class OrderInteraction(representingNode:Node, responseIdentifier: String, c
 
 object OrderInteraction extends InteractionCompanion[OrderInteraction]{
   def apply(node: Node, itemBody:Option[Node]): OrderInteraction = OrderInteraction(
-    node,
     (node \ "@responseIdentifier").text,
     (node \ "simpleChoice").map(SimpleChoice(_, (node \ "@responseIdentifier").text))
   )

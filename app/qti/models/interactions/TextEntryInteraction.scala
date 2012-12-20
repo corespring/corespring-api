@@ -7,7 +7,7 @@ import qti.models.QtiItem.Correctness
 import controllers.Log
 import testplayer.views.utils.QtiScriptLoader
 
-case class TextEntryInteraction(representingNode:Node, responseIdentifier: String, expectedLength: Int, feedbackBlocks: Seq[FeedbackInline]) extends Interaction {
+case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int, feedbackBlocks: Seq[FeedbackInline]) extends Interaction {
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
     response match {
       case StringItemResponse(_,responseValue,_) => responseDeclaration match {
@@ -31,7 +31,6 @@ object TextEntryInteraction extends InteractionCompanion[TextEntryInteraction]{
   def apply(node: Node, itemBody:Option[Node]): TextEntryInteraction = {
     val responseIdentifier = Interaction.responseIdentifier(node)
     TextEntryInteraction(
-      representingNode = node,
       responseIdentifier = responseIdentifier,
       expectedLength = expectedLength(node),
       feedbackBlocks = itemBody match {

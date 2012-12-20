@@ -9,7 +9,6 @@ import qti.models.{QtiItem, ResponseDeclaration}
 
 trait Interaction {
   val responseIdentifier: String
-  val representingNode: Node
   //def getChoice(identifier: String): Option[Choice]
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome]
   def getResponseDeclaration:Option[ResponseDeclaration] = None

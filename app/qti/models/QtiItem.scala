@@ -35,7 +35,7 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
    * @param id - the interaction id
    */
   def isCorrectResponseApplicable(id: String): Boolean = itemBody.getInteraction(id) match {
-    case Some(TextEntryInteraction(_, _, _, _)) => false
+    case Some(TextEntryInteraction(_, _, _)) => false
     case _ => true
   }
 
@@ -96,7 +96,7 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
 
   private def getFeedbackWithIncorrectResponse(id: String): Option[FeedbackInline] = {
     itemBody.interactions.find(_.responseIdentifier == id) match {
-      case Some(TextEntryInteraction(_, _, _, blocks)) => {
+      case Some(TextEntryInteraction(_, _, blocks)) => {
         val fb = blocks.find(_.incorrectResponse)
         fb
       }
@@ -244,8 +244,8 @@ object CorrectResponse {
 
     if (interaction.isDefined) {
       interaction.get match {
-        case TextEntryInteraction(_, _, _, _) => CorrectResponseAny(node)
-        case SelectTextInteraction(_, _, _, _, _) => CorrectResponseAny(node)
+        case TextEntryInteraction(_, _, _) => CorrectResponseAny(node)
+        case SelectTextInteraction(_, _, _, _, _, _) => CorrectResponseAny(node)
         case _ => CorrectResponse(node, cardinality)
       }
     }

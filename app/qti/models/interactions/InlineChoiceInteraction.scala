@@ -8,7 +8,7 @@ import qti.models.QtiItem.Correctness
 import controllers.Log
 import testplayer.views.utils.QtiScriptLoader
 
-case class InlineChoiceInteraction(representingNode:Node, responseIdentifier: String, choices: Seq[InlineChoice]) extends Interaction {
+case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[InlineChoice]) extends Interaction {
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
     response match {
@@ -31,7 +31,6 @@ case class InlineChoiceInteraction(representingNode:Node, responseIdentifier: St
 
 object InlineChoiceInteraction extends InteractionCompanion[InlineChoiceInteraction]{
   def apply(interaction: Node, itemBody:Option[Node]): InlineChoiceInteraction = InlineChoiceInteraction(
-    interaction,
     (interaction \ "@responseIdentifier").text,
     (interaction \ "inlineChoice").map(InlineChoice(_, (interaction \ "@responseIdentifier").text))
   )
