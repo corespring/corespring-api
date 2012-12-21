@@ -578,7 +578,7 @@ https://github.com/edeustace/inplace-image-changer
       replace: true,
       restrict: 'A',
       scope: 'isolate',
-      template: "<span class=\"multi-select\">\n  <span class=\"items\" ng-click=\"showChooser=!showChooser\">\n    <span class=\"item\" ng-bind-html-unsafe=\"multiGetSelectedTitle(selected)\"></span>\n  </span>\n  <div class=\"chooser\" ng-show=\"showChooser\">\n   <ul>\n     <li ng-repeat=\"o in options\" >\n       <input type=\"checkbox\" ng-click=\"toggleItem(o)\"></input>\n       {{multiGetTitle(o)}}\n     </li>\n   </ul>\n  </div>\n</span>",
+      template: "<span class=\"multi-select\">\n  <div \n    class=\"items\" \n    ng-click=\"showChooser=!showChooser\"\n    ng-bind-html-unsafe=\"multiGetSelectedTitle(selected)\">\n  </div>\n  <div class=\"chooser\" ng-show=\"showChooser\">\n   <ul>\n     <li ng-repeat=\"o in options\" >\n       <input type=\"checkbox\" ng-click=\"toggleItem(o)\"></input>\n       {{multiGetTitle(o)}}\n     </li>\n   </ul>\n  </div>\n</span>",
       link: function(scope, element, attrs) {
         var applyValue, changeCallback, getSelectedTitleProp, getTitleProp, modelProp, optionsProp;
         console.log("multi-select");
