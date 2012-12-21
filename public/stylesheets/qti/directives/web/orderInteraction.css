@@ -40,6 +40,17 @@ ul {
    	padding:8px;
 }
 
+.placement-destination-inner > .draggable-item,
+.placed {
+    margin: 0px auto;
+    background-color: #eee;
+    border-radius:4px;
+   	border:1px solid #333;
+    padding:8px;
+    display: inline-block;
+    float: none;
+}
+
 .vertical {
     float: left;
 }
@@ -49,14 +60,12 @@ ul {
     float: none;
 }
 
-.placement-destination > .draggable-item.order-correct {
+.placement-destination-inner > .draggable-item.order-correct {
 	border: 2px solid #53C516;
-    margin: 9px;
 }
 
-.placement-destination > .draggable-item.order-incorrect {
+.placement-destination-inner > .draggable-item.order-incorrect {
 	border: 2px solid #F8A31A;
-    margin: 9px;
 }
 
 .placement-destination-holder {
@@ -70,6 +79,11 @@ ul {
     border: 1px solid #eee;
     display: inline-block;
     margin: 10px;
+    vertical-align: middle;
+}
+
+.placement-destination-inner {
+    display: table-cell;
     vertical-align: middle;
 }
 
@@ -96,7 +110,6 @@ ul {
     padding: 5px;
 
 }
-
 
 .numbering {
     height: 100%;
