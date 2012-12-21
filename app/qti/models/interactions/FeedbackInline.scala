@@ -9,6 +9,7 @@ case class FeedbackInline(csFeedbackId: String,
                           outcomeIdentifier: String,
                           identifier: String,
                           content: String,
+                          outcomeAttrs:Seq[String],
                           var defaultFeedback: Boolean = false,
                           var incorrectResponse: Boolean = false) {
   def defaultContent(qtiItem: QtiItem): String =
@@ -41,21 +42,26 @@ object FeedbackInline {
     if (node.label == "feedbackInline")
       require(!isNullOrEmpty((node \ "@identifier").text),
         "feedbackInline node doesn't have an identifier: " + node)
-
     val childBody = new StringBuilder
     node.child.map(
       node => childBody.append(node.toString()))
     def contents: String = childBody.toString()
+    val outcomeIdentifier = (node \ "@outcomeIdentifier").text;
+    val outcomeAttrs = outcomeIdentifier.split("outcome")(1)
+
     val feedbackInline = responseIdentifier match {
       case Some(ri) => FeedbackInline((node \ "@csFeedbackId").text,
         ri,
-        (node \ "@identifier").text, contents,
+        (node \ "@identifier").text,
+        contents,
+        outcomeAttrs.split('.'),
         (node \ "@defaultFeedback").text == "true",
         (node \ "@incorrectResponse").text == "true")
       case None => FeedbackInline((node \ "@csFeedbackId").text,
-        (node \ "@outcomeIdentifier").text.split('.')(1),
+        outcomeIdentifier.split('.')(1),
         (node \ "@identifier").text,
         contents.trim,
+        outcomeAttrs.split('.'),
         (node \ "@defaultFeedback").text == "true",
         (node \ "@incorrectResponse").text == "true")
     }
