@@ -63,12 +63,19 @@ object SessionData {
           (userResponses.toList ::: correctResponses.toList).distinct
 
         val feedbackTuples: List[(String, String)] = responsesToGiveFeedbackOn.map(createFeedback).flatten
-        feedbackTuples.toMap[String, String]
+        feedbackTuples.toMap[String, String] ++ buildOutcomeFeedbackContents
       } else {
         Map()
       }
     }
-
+    def buildOutcomeFeedbackContents:Map[String,String] = {
+      var outcomeFeedback:Map[String,String] = Map();
+      val responses = session.responses.filter(_.outcome.isDefined);
+      for (response <- responses){
+        outcomeFeedback = outcomeFeedback ++ response.outcome.get.getOutcomeBasedFeedbackContents(qti,response.id)
+      }
+      outcomeFeedback
+    }
     def makeCorrectResponseList : Seq[(String,String,Int)] = {
 
       def getIdValueIndexIfApplicable(response:ItemResponse) : Seq[IdValueIndex] = {

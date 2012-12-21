@@ -89,7 +89,7 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
           val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
           Ok(testplayer.views.html.itemPlayerError(errorInfo))
         }
-        case e: Exception => throw new RuntimeException("ItemPlayer.renderItem: " + e.getMessage, e)
+        //case e: Exception => throw new RuntimeException("ItemPlayer.renderItem: " + e.getMessage, e)
       }
   }
 

@@ -19,12 +19,18 @@ case class SelectTextInteraction(responseIdentifier: String, selectionType: Stri
   def getChoice(identifier: String) = None
 
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
+    var score:Float = 0;
+    var outcomeProperties:Map[String,Boolean] = Map();
     response match {
       case ArrayItemResponse(_, responseValue, _) => correctResponse match {
-        case Some(cr) => if (cr.isCorrect(response.value))
-          Some(ItemResponseOutcome(1))
-        else
-          Some(ItemResponseOutcome(0))
+        case Some(cr) => {
+          if (cr.isCorrect(response.value)) score = 1
+          if (responseValue.size > maxSelection) outcomeProperties = outcomeProperties + ("responsesExceedMax" -> true)
+          else outcomeProperties = outcomeProperties + ("responsesExceedMax" -> false)
+          if (responseValue.size < minSelection) outcomeProperties = outcomeProperties + ("responsesBelowMin" -> true)
+          else outcomeProperties = outcomeProperties + ("responsesExceedMax" -> false)
+          Some(ItemResponseOutcome(score,None,outcomeProperties))
+        }
         case _ => None
       }
       case _ => {

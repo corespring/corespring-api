@@ -5,6 +5,7 @@ import play.api.libs.json.JsString
 import play.api.libs.json.JsObject
 import play.api.libs.json.Json._
 import com.novus.salat.annotations.raw.Salat
+import qti.models.QtiItem
 
 /**
  * Case class representing a user's response to an indvidual qusetion in an item
@@ -48,18 +49,28 @@ case class ArrayItemResponse(override val id: String, responseValue: Seq[String]
   def getIdValueIndex = responseValue.view.zipWithIndex.map((f:(String,Int)) => (id,f._1, f._2))
 }
 
-case class ItemResponseOutcome(score: Float = 0, comment: Option[String] = None) {
+case class ItemResponseOutcome(score: Float = 0, comment: Option[String] = None, outcomeProperties:Map[String,Boolean] = Map()) {
   def isCorrect = score == 1
+  def getOutcomeBasedFeedbackContents(qti:QtiItem, responseIdentifier:String):Map[String,String] = {
+    val feedbacks = (qti.modalFeedbacks ++ qti.itemBody.feedbackBlocks).filter(_.identifier == responseIdentifier)
+    outcomeProperties.map(prop =>{
+      feedbacks.find(_.outcomeAttrs.contains(prop._1) && prop._2) match {
+        case Some(fi) => (fi.csFeedbackId -> fi.content)
+        case None => (""->"")
+      }
+    }).filter(_._1.nonEmpty).toMap[String,String]
+  }
 }
 
 object ItemResponseOutcome {
   implicit object Writes extends Writes[ItemResponseOutcome] {
     def writes(iro: ItemResponseOutcome): JsValue = {
-      val json = com.codahale.jerkson.Json.generate(iro)
-      Json.parse(json)
+      var jsseq:Seq[(String,JsValue)] = Seq("score" -> JsNumber(iro.score))
+      if (iro.comment.isDefined) jsseq = jsseq :+ ("comment" -> JsString(iro.comment.get))
+      jsseq = jsseq ++ iro.outcomeProperties.toSeq.map(prop => (prop._1 -> JsBoolean(prop._2)))
+      JsObject(jsseq)
     }
   }
-
 }
 
 object ItemResponse {

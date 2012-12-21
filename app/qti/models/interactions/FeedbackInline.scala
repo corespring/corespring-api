@@ -9,7 +9,7 @@ case class FeedbackInline(csFeedbackId: String,
                           outcomeIdentifier: String,
                           identifier: String,
                           content: String,
-                          outcomeAttrs:Seq[String],
+                          outcomeAttrs:Seq[String] = Seq(),
                           var defaultFeedback: Boolean = false,
                           var incorrectResponse: Boolean = false) {
   def defaultContent(qtiItem: QtiItem): String =
@@ -46,24 +46,30 @@ object FeedbackInline {
     node.child.map(
       node => childBody.append(node.toString()))
     def contents: String = childBody.toString()
-    val outcomeIdentifier = (node \ "@outcomeIdentifier").text;
-    val outcomeAttrs = outcomeIdentifier.split("outcome")(1)
 
     val feedbackInline = responseIdentifier match {
       case Some(ri) => FeedbackInline((node \ "@csFeedbackId").text,
         ri,
         (node \ "@identifier").text,
         contents,
-        outcomeAttrs.split('.'),
+        Seq(),
         (node \ "@defaultFeedback").text == "true",
         (node \ "@incorrectResponse").text == "true")
-      case None => FeedbackInline((node \ "@csFeedbackId").text,
-        outcomeIdentifier.split('.')(1),
-        (node \ "@identifier").text,
-        contents.trim,
-        outcomeAttrs.split('.'),
-        (node \ "@defaultFeedback").text == "true",
-        (node \ "@incorrectResponse").text == "true")
+      case None => {
+        val outcomeIdentifier = (node \ "@outcomeIdentifier").text;
+        val outcomeAttrs:Seq[String] = outcomeIdentifier.split("outcome").toList match {
+          case Nil => Seq()
+          case head::Nil => Seq()
+          case head::tail => tail(0).split('.')
+        }
+        FeedbackInline((node \ "@csFeedbackId").text,
+          outcomeIdentifier.split('.')(1),
+          (node \ "@identifier").text,
+          contents.trim,
+          outcomeAttrs,
+          (node \ "@defaultFeedback").text == "true",
+          (node \ "@incorrectResponse").text == "true")
+      }
     }
     feedbackInline
   }
