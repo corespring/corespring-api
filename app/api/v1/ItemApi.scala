@@ -40,8 +40,6 @@ object ItemApi extends BaseApi {
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction {
     request =>
-
-      print(q)
       val query = QueryCleaner.clean(q, request.ctx.organization)
 
       if ("true".equalsIgnoreCase(c)) {
