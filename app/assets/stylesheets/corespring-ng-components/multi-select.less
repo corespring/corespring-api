@@ -1,20 +1,18 @@
-.multi-select {
-  position: absolute;
-  z-index: 100003;
-  .no-items {
-    cursor: pointer;
-    margin: 15px;
-  }
+@import "../mixins";
 
+.multi-select {
+  position: relative;
+  z-index: 100003;
   .items {
     margin: 15px;
     cursor: pointer;
+    .mixin-text-non-selectable;
   }
 
   .chooser {
     position: absolute;
-    min-width: 60px;
-    padding: 10px;
+    min-width: 100px;
+    padding: 5px;
     border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;

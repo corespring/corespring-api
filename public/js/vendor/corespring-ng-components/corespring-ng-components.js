@@ -578,7 +578,7 @@ https://github.com/edeustace/inplace-image-changer
       replace: true,
       restrict: 'A',
       scope: 'isolate',
-      template: "<span class=\"multi-select\">\n  <span class=\"no-items\" ng-click=\"showChooser=!showChooser\" ng-show=\"!selected || selected.length == 0\">{{noneSelected}}</span>\n  <span class=\"items\" ng-click=\"showChooser=!showChooser\" ng-show=\"selected.length > 0\">\n    <span class=\"item\" ng-repeat=\"s in selected\">{{multiGetSelectedTitle(s)}}</span>\n  </span>\n  <div class=\"chooser\" ng-show=\"showChooser\">\n   <ul>\n     <li ng-repeat=\"o in options\" >\n       <input type=\"checkbox\" ng-click=\"toggleItem(o)\"></input>\n       {{multiGetTitle(o)}}\n     </li>\n   </ul>\n  </div>\n</span>",
+      template: "<span class=\"multi-select\">\n  <span class=\"items\" ng-click=\"showChooser=!showChooser\">\n    <span class=\"item\" ng-bind-html-unsafe=\"multiGetSelectedTitle(selected)\"></span>\n  </span>\n  <div class=\"chooser\" ng-show=\"showChooser\">\n   <ul>\n     <li ng-repeat=\"o in options\" >\n       <input type=\"checkbox\" ng-click=\"toggleItem(o)\"></input>\n       {{multiGetTitle(o)}}\n     </li>\n   </ul>\n  </div>\n</span>",
       link: function(scope, element, attrs) {
         var applyValue, getSelectedTitleProp, getTitleProp, modelProp, optionsProp;
         console.log("multi-select");
@@ -638,8 +638,8 @@ https://github.com/edeustace/inplace-image-changer
           applyValue(scope, modelProp, arr.sort(sortFn));
           return null;
         };
-        scope.multiGetSelectedTitle = function(t) {
-          return scope[getSelectedTitleProp](t);
+        scope.multiGetSelectedTitle = function(items) {
+          return scope[getSelectedTitleProp](items);
         };
         scope.multiGetTitle = function(t) {
           return scope[getTitleProp](t);

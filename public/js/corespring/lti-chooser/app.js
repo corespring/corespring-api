@@ -113,8 +113,38 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
     });
   };
 
+  $scope.getCollectionTitle = function(c){
+    return c.name;
+  };
+
   $scope.getTitle = function(o){ return o.key };
-  $scope.getSelectedTitle = function(o){ return o.key };
+
+  $scope.getCollectionSelectedTitle = function(items){
+    return getMessage(items);
+  };
+
+  $scope.getSelectedTitle = function(items){
+    return getMessage(items);
+  };
+
+  var template = ["<span style='float: left;'>{title}</span>",
+    "<span style='float:left;'>{msg}</span>"].join("\n");
+
+  var getMessage = function(items){
+    var msg = "";
+    if(items && items.length > 0){
+      msg = items.length + " selected";
+    } else {
+      msg = "None selected";
+    }
+    return msg;
+  };
+
+  var getTitleWithPrefix = function(prefix, items){
+    return template
+      .replace("{title}", prefix)
+      .replace("{msg}", getMessage(items));
+  };
 
   $rootScope.$on('saveConfig', function (event, object) {
 
