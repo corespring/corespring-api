@@ -1,11 +1,29 @@
 [selectable] {
 }
 
-[selectable]:hover {
-    background-color: yellow;
+[selectable] .hover {
+    background-color: rgb(172, 211, 115);
+    background-color: rgba(172, 211, 115, 0.2);
+
+    cursor: hand; cursor: pointer;
+}
+
+[selectable] .hand {
     cursor: hand; cursor: pointer;
 }
 
 [selectable] .selected {
-    background-color: red;
+    background-color: #cce3a9;
+}
+
+[selectable] .selected.shouldNotHaveBeenSelected {
+    background-color: #cd5c5c;
+}
+
+[selectable] .shouldHaveBeenSelected {
+    background-color: #00ffff;
+}
+
+[selectable] .selected.shouldHaveBeenSelected {
+    background-color: #2e8b57;
 }

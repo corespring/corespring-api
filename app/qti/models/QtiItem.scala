@@ -4,7 +4,6 @@ import interactions._
 import scala.xml._
 import play.api.libs.json.{JsString, JsObject, JsValue, Writes}
 import qti.models.QtiItem.Correctness
-import qti.processors.SelectTextInteractionProcessor._
 import scala.Some
 
 case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline]) {
@@ -21,8 +20,15 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
     }
 
 
-  require(interactionsWithNoResponseDeclaration.length == 0,
-    "Invalid QTI: You are missing some responseIdentifiers: " + interactionsWithNoResponseDeclaration.map(_.responseIdentifier).toString)
+  val isQtiValid:(Boolean, Seq[String]) = {
+    val messages = itemBody.interactions.collect {
+      case s => s.validate(this)._2
+    }
+    (itemBody.interactions.foldLeft(true)(_ && _.validate(this)._1), messages)
+  }
+
+  require(isQtiValid._1,
+    "Invalid QTI: " + isQtiValid._2.mkString(", "))
 
   /**
    * Does the given interaction need correct responses?
@@ -150,23 +156,11 @@ object QtiItem {
     qtiItem
   }
 
-  // TODO: this should go to the interaction processor
-  private def getSelectTextResponseDeclarations(n:Node) = {
-    val selectTextNodes:NodeSeq = (n \ "itemBody" \ "selectTextInteraction")
-    selectTextNodes.map {
-      node =>
-        val id = (node \ "@responseIdentifier").text
-        val correctAnswers = parseCorrectResponses(node)
-        val cra = CorrectResponseMultiple(correctAnswers)
-        ResponseDeclaration(identifier = id, cardinality ="multiple", correctResponse = Some(cra), mapping = None)
-    }
-  }
-
   private def createItem(n: Node): QtiItem = {
     val itemBody = ItemBody((n \ "itemBody").head)
-
+    val customResponseDeclarations = itemBody.interactions.map(i=>i.getResponseDeclaration.getOrElse(ResponseDeclaration("", "", None, None))).filterNot(_.identifier == "")
     QtiItem(
-      responseDeclarations = (n \ "responseDeclaration").map(ResponseDeclaration(_, itemBody)) ++ getSelectTextResponseDeclarations(n),
+      responseDeclarations = (n \ "responseDeclaration").map(ResponseDeclaration(_, itemBody)) ++ customResponseDeclarations,
       itemBody = itemBody,
       modalFeedbacks = (n \ "modalFeedbacks").map(FeedbackInline(_, None))
     )
@@ -251,7 +245,7 @@ object CorrectResponse {
     if (interaction.isDefined) {
       interaction.get match {
         case TextEntryInteraction(_, _, _) => CorrectResponseAny(node)
-        case SelectTextInteraction(_, _, _, _) => CorrectResponseAny(node)
+        case SelectTextInteraction(_, _, _, _, _, _) => CorrectResponseAny(node)
         case _ => CorrectResponse(node, cardinality)
       }
     }

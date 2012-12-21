@@ -68,4 +68,5 @@ object OrderInteraction extends InteractionCompanion[OrderInteraction]{
   }
   private def css(url: String): String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
   private def script(url: String): String = """<script type="text/javascript" src="%s"></script>""".format(url)
+
 }
