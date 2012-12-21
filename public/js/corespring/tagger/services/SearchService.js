@@ -94,22 +94,34 @@ angular.module('tagger.services').factory('SearchService',
           addIfTrue(query, searchParams.standardsAligned, "workflow.standardsAligned");
         }
 
-        if(searchParams.gradeLevel){
-          if(searchParams.gradeLevel.indexOf){
-            var inArray = [];
-            for( var x = 0; x < searchParams.gradeLevel.length; x++){
-              inArray.push(searchParams.gradeLevel[x].key);
-            }
-            query.gradeLevel = { $in: inArray};
+        /**
+         * Create mongo $in array
+         * @return {{$in: Array}}
+         */
+        var inArray = function (arr, key) {
+          var out = [];
+          for (var x = 0; x < arr.length; x++) {
+            out.push(arr[x][key]);
+          }
+          return { $in: out};
+        };
+
+        if (searchParams.gradeLevel) {
+          if (searchParams.gradeLevel.indexOf) {
+            query.gradeLevel = inArray(searchParams.gradeLevel, "key");
           } else {
             query.gradeLevel = searchParams.gradeLevel.key;
           }
         }
 
-        if (searchParams.collection && searchParams.collection.id) {
-          query.collectionId = searchParams.collection.id;
+        if (searchParams.collection) {
+          if (searchParams.collection.indexOf) {
+            query.collectionId = inArray(searchParams.collection, "id");
+          } else {
+            query.collectionId = searchParams.collection.id;
+          }
         }
-
+        console.log(query);
         return query;
       },
 

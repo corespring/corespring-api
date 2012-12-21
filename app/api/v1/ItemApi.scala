@@ -2,6 +2,7 @@ package api.v1
 
 import controllers.auth.{Permission, BaseApi}
 import api.{ApiError, QueryHelper}
+import item.QueryCleaner
 import models._
 import com.mongodb.util.JSONParseException
 import org.bson.types.ObjectId
@@ -40,7 +41,8 @@ object ItemApi extends BaseApi {
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction {
     request =>
 
-      val query = makeQuery(q, request.ctx.organization)
+      print(q)
+      val query = QueryCleaner.clean(q, request.ctx.organization)
 
       if ("true".equalsIgnoreCase(c)) {
         Ok(toJson(Item.countItems(Some(query), f)))
@@ -50,62 +52,7 @@ object ItemApi extends BaseApi {
       }
   }
 
-  private def restrictedQueryForOrg(orgId: ObjectId): MongoDBObject = {
-    val collectionIds = getCollectionIdsForOrg(orgId).map(_.toString)
-    MongoDBObject("collectionId" -> MongoDBObject("$in" -> collectionIds))
-  }
 
-  private def getCollectionIdsForOrg(orgId: ObjectId): Seq[ObjectId] = ContentCollection.getCollectionIds(orgId, Permission.All, false)
-
-
-  private def makeQuery(q: Option[String], orgId: ObjectId): DBObject = {
-
-    val enforcedQuery = restrictedQueryForOrg(orgId)
-
-    /** add the required query attributes to the dbo
-      */
-    def processDbo(dbo: DBObject): DBObject = {
-
-      if (!dbo.contains("collectionId")) {
-        dbo.putAll(enforcedQuery.toMap)
-      } else {
-        val requestedCollectionId: String = dbo.get("collectionId").asInstanceOf[String]
-        if (!isValidCollectionId(requestedCollectionId, orgId)) {
-          throw new RuntimeException("Invalid collection id")
-        }
-      }
-      dbo
-    }
-
-    q match {
-      case Some(s) => {
-        try {
-          val obj: Any = com.mongodb.util.JSON.parse(s)
-          processDbo(obj.asInstanceOf[DBObject])
-        }
-        catch {
-          case e: Throwable => new BasicDBObject(enforcedQuery.toMap)
-        }
-      }
-      case _ => new BasicDBObject(enforcedQuery.toMap)
-    }
-  }
-
-  private def isValidCollectionId(collectionId: String, orgId: ObjectId): Boolean = {
-    getCollectionIdsForOrg(orgId).map(_.toString).contains(collectionId)
-  }
-
-
-  private def getCollectionId(q: Option[String]): Option[ObjectId] = q match {
-    case Some(s) => {
-      val js: JsValue = Json.parse(s)
-      (js \ "collectionId") match {
-        case JsString(id) => Some(new ObjectId(id))
-        case _ => None
-      }
-    }
-    case _ => None
-  }
 
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction {
     request =>
