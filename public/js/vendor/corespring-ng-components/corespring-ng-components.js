@@ -580,19 +580,22 @@ https://github.com/edeustace/inplace-image-changer
       scope: 'isolate',
       template: "<span class=\"multi-select\">\n  <span class=\"items\" ng-click=\"showChooser=!showChooser\">\n    <span class=\"item\" ng-bind-html-unsafe=\"multiGetSelectedTitle(selected)\"></span>\n  </span>\n  <div class=\"chooser\" ng-show=\"showChooser\">\n   <ul>\n     <li ng-repeat=\"o in options\" >\n       <input type=\"checkbox\" ng-click=\"toggleItem(o)\"></input>\n       {{multiGetTitle(o)}}\n     </li>\n   </ul>\n  </div>\n</span>",
       link: function(scope, element, attrs) {
-        var applyValue, getSelectedTitleProp, getTitleProp, modelProp, optionsProp;
+        var applyValue, changeCallback, getSelectedTitleProp, getTitleProp, modelProp, optionsProp;
         console.log("multi-select");
         optionsProp = attrs['multiOptions'];
         modelProp = attrs['multiModel'];
         getTitleProp = attrs['multiGetTitle'];
         getSelectedTitleProp = attrs['multiGetSelectedTitle'];
+        changeCallback = attrs['multiChange'];
         scope.noneSelected = "None selected";
         scope.showChooser = false;
         scope.$watch(optionsProp, function(newValue) {
-          return scope.options = newValue;
+          scope.options = newValue;
+          return null;
         });
         scope.$watch(modelProp, function(newValue) {
-          return scope.selected = newValue;
+          scope.selected = newValue;
+          return null;
         });
         /*
               Apply a nested value..
@@ -636,6 +639,10 @@ https://github.com/edeustace/inplace-image-changer
             return aIndex - bIndex;
           };
           applyValue(scope, modelProp, arr.sort(sortFn));
+          console.log(">> " + (scope.$eval(modelProp)));
+          if (changeCallback != null) {
+            scope[changeCallback]();
+          }
           return null;
         };
         scope.multiGetSelectedTitle = function(items) {
