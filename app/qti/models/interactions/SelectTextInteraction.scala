@@ -25,10 +25,16 @@ case class SelectTextInteraction(responseIdentifier: String, selectionType: Stri
       case ArrayItemResponse(_, responseValue, _) => correctResponse match {
         case Some(cr) => {
           if (cr.isCorrect(response.value)) score = 1
-          if (responseValue.size > maxSelection) outcomeProperties = outcomeProperties + ("responsesExceedMax" -> true)
-          else outcomeProperties = outcomeProperties + ("responsesExceedMax" -> false)
-          if (responseValue.size < minSelection) outcomeProperties = outcomeProperties + ("responsesBelowMin" -> true)
-          else outcomeProperties = outcomeProperties + ("responsesExceedMax" -> false)
+          if (responseValue.size > maxSelection){
+            outcomeProperties = outcomeProperties + ("responsesExceedMax" -> true)
+          }else{
+            outcomeProperties = outcomeProperties + ("responsesExceedMax" -> false)
+          }
+          if (responseValue.size < minSelection) {
+            outcomeProperties = outcomeProperties + ("responsesBelowMin" -> true)
+          }else{
+            outcomeProperties = outcomeProperties + ("responsesBelowMin" -> false)
+          }
           Some(ItemResponseOutcome(score,None,outcomeProperties))
         }
         case _ => None

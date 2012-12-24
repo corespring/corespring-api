@@ -52,7 +52,9 @@ case class ArrayItemResponse(override val id: String, responseValue: Seq[String]
 case class ItemResponseOutcome(score: Float = 0, comment: Option[String] = None, outcomeProperties:Map[String,Boolean] = Map()) {
   def isCorrect = score == 1
   def getOutcomeBasedFeedbackContents(qti:QtiItem, responseIdentifier:String):Map[String,String] = {
-    val feedbacks = (qti.modalFeedbacks ++ qti.itemBody.feedbackBlocks).filter(_.identifier == responseIdentifier)
+    val modalFeedbacks = qti.modalFeedbacks;
+    val feedbackBlocks = qti.itemBody.feedbackBlocks
+    val feedbacks = (modalFeedbacks ++ feedbackBlocks).filter(_.outcomeIdentifier == responseIdentifier)
     outcomeProperties.map(prop =>{
       feedbacks.find(_.outcomeAttrs.contains(prop._1) && prop._2) match {
         case Some(fi) => (fi.csFeedbackId -> fi.content)

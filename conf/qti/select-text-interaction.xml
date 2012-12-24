@@ -9,11 +9,11 @@
                  "<correct>In this shoebox are the ten baseballs Ty Cobb gave my father</correct>. They are signed by some of the most famous ballplayers in history, including one that has one single signature on it: Babe Ruth's."
         </selectTextInteraction>
 
-        <feedbackBlock outcomeIdentifier="responses.selectText.value" identifier="tooFewSelected">
+        <feedbackBlock outcomeIdentifier="responses.selectText.outcome.responsesBelowMin" identifier="tooFewSelected">
             <div class="feedback-block-incorrect">You selected too few sentences!</div>
         </feedbackBlock>
 
-        <feedbackBlock outcomeIdentifier="responses.selectText.value" identifier="tooManySelected">
+        <feedbackBlock outcomeIdentifier="responses.selectText.outcome.responsesExceedMax" identifier="tooManySelected">
             <div class="feedback-block-incorrect">You selected too many sentences!</div>
         </feedbackBlock>
 
@@ -31,7 +31,7 @@
             <div class="feedback-block-incorrect">You selected too few words!</div>
         </feedbackBlock>
 
-        <feedbackBlock outcomeIdentifier="responses.selectText2.value" identifier="tooManySelected">
+        <feedbackBlock outcomeIdentifier="responses.selectText2.outcome.responsesExceedMax" identifier="tooManySelected">
             <div class="feedback-block-incorrect">You selected too many words!</div>
         </feedbackBlock>
 
