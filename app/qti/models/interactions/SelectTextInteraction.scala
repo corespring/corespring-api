@@ -19,12 +19,15 @@ case class SelectTextInteraction(responseIdentifier: String, selectionType: Stri
   def getChoice(identifier: String) = None
 
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
-    var score:Float = 0;
-    var outcomeProperties:Map[String,Boolean] = Map();
+    var score:Float = 0
+    var outcomeProperties:Map[String,Boolean] = Map()
     response match {
       case ArrayItemResponse(_, responseValue, _) => correctResponse match {
         case Some(cr) => {
-          if (cr.isCorrect(response.value)) score = 1
+          if (cr.isCorrect(response.value)) {
+            score = 1
+            outcomeProperties = outcomeProperties + ("responsesCorrect" -> true)
+          }
           if (responseValue.size > maxSelection){
             outcomeProperties = outcomeProperties + ("responsesExceedMax" -> true)
           }else{
@@ -118,27 +121,28 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
 
     val transformedText = fn(resultText)
 
+
     XML.loadString(openString + transformedText + closeString)
   }
 
-  def tagSentences(s: String): String = {
-    val regExp = new Regex("(?s)(.*?[.!?](<\\/correct>)*)", "match")
+  private def tagSentences(s: String): String = {
+    val regExp = new Regex("(?s)(.*?[.!?]([^a-zA-Z]*<\\/correct>)*)", "match")
     var idx = 0
 
     // Filter out names like Vikram S. Pandit as they break the sentence parsing
     val namesParsed = "([A-Z][a-z]+ [A-Z])\\.( [A-Z][a-z]+)".r.replaceAllIn(s, "$1&#46;$2")
     val res = regExp.replaceAllIn(namesParsed, m => {
-      idx = idx + 1;
+      idx = idx + 1
       "<span selectable=\"\" id=\"s" + idx.toString + "\">" + m.group("match") + "</span>"
     })
     res
   }
 
-  def tagWords(s: String): String = {
+  private def tagWords(s: String): String = {
     val regExp = new Regex("(?<![</&])\\b([a-zA-Z_']+)\\b", "match")
     var idx = 0
     regExp.replaceAllIn(s, m => {
-      idx = idx + 1;
+      idx = idx + 1
       "<span selectable=\"\" id=\"s" + idx.toString + "\">" + m.group("match") + "</span>"
     })
   }
