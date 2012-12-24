@@ -10,7 +10,7 @@ import controllers.Log
 import scala.Some
 import models.ArrayItemResponse
 
-case class SelectTextInteraction(responseIdentifier: String, selectionType: String, minSelection: Int, maxSelection: Int, correctResponse: Option[CorrectResponse], responseDeclaration: Option[ResponseDeclaration]) extends Interaction {
+case class SelectTextInteraction(responseIdentifier: String, selectionType: String, minSelection: Int, maxSelection: Int, correctResponse: Option[CorrectResponseMultiple]) extends Interaction {
 
   override def validate(qtiItem: QtiItem) = {
     (true, "Ok")
@@ -46,10 +46,6 @@ case class SelectTextInteraction(responseIdentifier: String, selectionType: Stri
     }
   }
 
-  override def getResponseDeclaration: Option[ResponseDeclaration] = {
-    responseDeclaration
-  }
-
 }
 
 object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction] {
@@ -64,8 +60,7 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
       (node \ "@selectionType").text,
       (node \ "@minSelections").text.toInt,
       (node \ "@maxSelections").text.toInt,
-      correctAnswers,
-      responseDeclaration
+      correctAnswers
     )
   }
 
@@ -82,7 +77,7 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
 
   override def preProcessXml(interactionXml: Elem): NodeSeq = tokenizeSelectText(interactionXml)
 
-  def parseCorrectResponses(selectnodeXml: NodeSeq): Seq[String] = {
+  private def parseCorrectResponses(selectnodeXml: NodeSeq): Seq[String] = {
     val isWord = (selectnodeXml \ "@selectionType").text == "word"
     val taggedXml = if (isWord) performOnText(selectnodeXml, tagWords) else performOnText(selectnodeXml, tagSentences)
     val idRegexp = new Regex("id=\".([0-9]+)", "match")

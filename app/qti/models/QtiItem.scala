@@ -158,9 +158,9 @@ object QtiItem {
 
   private def createItem(n: Node): QtiItem = {
     val itemBody = ItemBody((n \ "itemBody").head)
-    val customResponseDeclarations = itemBody.interactions.map(i=>i.getResponseDeclaration.getOrElse(ResponseDeclaration("", "", None, None))).filterNot(_.identifier == "")
+ //   val customResponseDeclarations = itemBody.interactions.map(i=>i.getResponseDeclaration.getOrElse(ResponseDeclaration("", "", None, None))).filterNot(_.identifier == "")
     QtiItem(
-      responseDeclarations = (n \ "responseDeclaration").map(ResponseDeclaration(_, itemBody)) ++ customResponseDeclarations,
+      responseDeclarations = (n \ "responseDeclaration").map(ResponseDeclaration(_, itemBody)),
       itemBody = itemBody,
       modalFeedbacks = (n \ "modalFeedbacks").map(FeedbackInline(_, None))
     )
@@ -245,7 +245,7 @@ object CorrectResponse {
     if (interaction.isDefined) {
       interaction.get match {
         case TextEntryInteraction(_, _, _) => CorrectResponseAny(node)
-        case SelectTextInteraction(_, _, _, _, _, _) => CorrectResponseAny(node)
+        case SelectTextInteraction(_, _, _, _, _) => CorrectResponseAny(node)
         case _ => CorrectResponse(node, cardinality)
       }
     }
