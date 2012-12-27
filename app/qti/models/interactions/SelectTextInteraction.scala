@@ -55,8 +55,6 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
   def apply(node: Node, itemBody: Option[Node]): SelectTextInteraction = {
 
     val correctAnswers = Some(CorrectResponseMultiple(SelectTextInteraction.parseCorrectResponses(node)))
-    val id = (node \ "@responseIdentifier").text
-  //  val responseDeclaration = Some(ResponseDeclaration(identifier = id, cardinality = "multiple", correctResponse = correctAnswers, mapping = None))
 
     SelectTextInteraction(
       (node \ "@responseIdentifier").text,
