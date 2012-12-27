@@ -139,9 +139,10 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
     if(items && items.length > 0){
       msg = items.length + " selected";
     } else {
-      msg = "None selected";
+      msg = "0 selected";
     }
-    return msg;
+    var b = '<button class="btn btn-mini dropdown-toggle nav-button" data-toggle="dropdown">{msg}<span class="caret"></span></button>';
+    return b.replace("{msg}", msg);
   };
 
   $rootScope.$on('saveConfig', function (event, object) {

@@ -69,6 +69,8 @@ th, td {
 td.nav-title{
   /*text-align: right;*/
   color: @cs-dark-grey;
+  font-variant-caps: all-small-caps;
+  font-weight: bold;
 }
 
 td.nav-vr{
@@ -336,15 +338,20 @@ a.cs-icon-link {
   .items {
     margin-left: 0px;
     padding: 0px;
+    width: 80px;
     background-color: fadeout(lighten(@cs-green, 50%), 70%);
+
+    button{
+      min-width: 80px;
+    }
   }
 
   .chooser {
     background: lighten(@cs-green, 50%);
-
-    -moz-box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.2);
-    -webkit-box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.2);
-    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.2);
+    border: solid 1px desaturate(lighten(@cs-green, 30%), 40%);
+    -moz-box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.1);
+    -webkit-box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.1);
 
     ul {
       display: block;
