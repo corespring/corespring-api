@@ -5,13 +5,11 @@ ltiChooser.ViewItemController = function ($scope, $rootScope, $routeParams, $loc
   $scope.previewPageIsReady = false;
 
   $scope.onMessageReceived = function(e){
-    console.log("handleBridgeMessage:  "+ e);
 
     var data = JSON.parse(e.data);
 
     if(data.message === "ready"){
       $scope.previewPageIsReady = true;
-
       $scope.sendSessionSettings();
     } else if(data.message === "update"){
       $scope.config.sessionSettings = data.settings;

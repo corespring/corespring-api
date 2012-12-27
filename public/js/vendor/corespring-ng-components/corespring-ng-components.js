@@ -581,7 +581,6 @@ https://github.com/edeustace/inplace-image-changer
       template: "<span class=\"multi-select\">\n  <div \n    class=\"items\" \n    ng-click=\"showChooser=!showChooser\"\n    ng-bind-html-unsafe=\"multiGetSelectedTitle(selected)\">\n  </div>\n  <div class=\"chooser\" ng-show=\"showChooser\">\n   <ul>\n     <li ng-repeat=\"o in options\" >\n       <input type=\"checkbox\" ng-click=\"toggleItem(o)\"></input>\n       {{multiGetTitle(o)}}\n     </li>\n   </ul>\n  </div>\n</span>",
       link: function(scope, element, attrs) {
         var applyValue, changeCallback, getSelectedTitleProp, getTitleProp, modelProp, optionsProp;
-        console.log("multi-select");
         optionsProp = attrs['multiOptions'];
         modelProp = attrs['multiModel'];
         getTitleProp = attrs['multiGetTitle'];
@@ -639,7 +638,6 @@ https://github.com/edeustace/inplace-image-changer
             return aIndex - bIndex;
           };
           applyValue(scope, modelProp, arr.sort(sortFn));
-          console.log(">> " + (scope.$eval(modelProp)));
           if (changeCallback != null) {
             scope[changeCallback]();
           }

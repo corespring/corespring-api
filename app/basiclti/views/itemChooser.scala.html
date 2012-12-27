@@ -39,14 +39,13 @@
   </head>
   <body style="padding:0px;" ng-controller="LtiChooserController">
     <div class="navbar navbar-fixed-top" ng-controller="SearchController">
-      <div class="header">
+      <div class="header" ng-show="showSearch()">
       <table style="width: 100%">
         <tr>
           <td valign="center">
             <img
             src="/assets/images/round_logo.png"
             alt="Corespring"/>
-            <span>HOME</span>
           </td>
           <td valign="center">
             <b>COLLECTION</b>
@@ -88,6 +87,42 @@
        </tr>
       </table>
       </div>
+
+      <div class="header"
+           result-pager
+           load-item="loadItem"
+           load-more="loadMore"
+           list-model="items"
+           item-count="itemCount"
+           current-item="item"
+          ng-show="showPager()">
+         <table style="width:100%">
+             <tr>
+                 <td valign="center">
+                   <img
+                     src="/assets/images/round_logo.png"
+                     alt="Corespring"/>
+                   <span><a ng-click="returnToSearch()">HOME</a></span>
+                 </td>
+                 <td>
+                     <ul class="pager" ng-show="items">
+                         <li class="pull-right">
+                             <a class="cs-icon-link" ng-click="next()">
+                                 <i class="icon-white icon-arrow-right"></i>
+                             </a>
+                         </li>
+                         <li class="pull-right">
+                             <a class="cs-icon-link" ng-click="previous()">
+                                 <i class="icon-white icon-arrow-left"></i>
+                             </a>
+                         </li>
+                         <li class="pull-right"><div class="pager-text">{{pagerText}}</div></li>
+                     </ul>
+                 </td>
+             </tr>
+         </table>
+      </div>
+
       <div class="navbar-bottom"></div>
 
     </div>

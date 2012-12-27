@@ -2,10 +2,8 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
 
 
   $scope.onMessageReceived = function(e){
-   console.log(e);
 
     var obj = JSON.parse(e.data);
-    console.log(obj);
 
     if(obj.message === "update"){
 
