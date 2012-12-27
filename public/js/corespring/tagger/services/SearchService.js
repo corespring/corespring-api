@@ -27,7 +27,7 @@ angular.module('tagger.services').factory('SearchService',
         'contributorDetails.author'
       ],
 
-      search: function (searchParams, resultHandler) {
+      search: function (searchParams, resultHandler, errorHandler) {
         this.searchParams = searchParams;
         $rootScope.$broadcast('onNetworkLoading');
         this.loaded = 0;
@@ -49,12 +49,13 @@ angular.module('tagger.services').factory('SearchService',
 
         var query = this.buildQueryObject(searchParams, this.searchFields);
         searchService.searchId = new Date().getTime();
-        (function (id) {
+        var executeQuery = function (id) {
           ItemService.query({
               l: searchService.limit,
               q: JSON.stringify(query),
               f: JSON.stringify(mongoQuery.buildFilter(searchService.resultFields))
-            }, function (data) {
+            },
+            function (data) {
               if (id != searchService.searchId) {
                 return;
               }
@@ -65,9 +66,14 @@ angular.module('tagger.services').factory('SearchService',
                 $rootScope.$broadcast('onSearchCountComplete', resultCount);
                 $rootScope.$broadcast('onNetworkComplete');
               });
+            },
+            function onError(data){
+              console.warn("error occurred: " + data);
+              if(errorHandler) errorHandler(data);
             }
           );
-        })(searchService.searchId);
+        };
+        executeQuery(searchService.searchId);
 
         this.loaded = this.loaded + this.limit;
       },

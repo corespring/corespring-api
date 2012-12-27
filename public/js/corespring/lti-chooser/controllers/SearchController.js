@@ -26,8 +26,12 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
     }
 
     $rootScope.$broadcast("beginSearch");
-    SearchService.search($scope.searchParams, function(res){
+    SearchService.search($scope.searchParams, function onSuccess(res){
       $rootScope.items = res;
+    },
+    function onError(data){
+      $rootScope.$broadcast("searchFailed");
+      alert("there was an error searching");
     });
   };
 

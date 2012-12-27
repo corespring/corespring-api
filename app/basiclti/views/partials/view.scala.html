@@ -3,77 +3,79 @@
 </div>
 
 <script type="text/javascript">
-  var opts = {
-  color: '#444', // #rgb or #rrggbb
-   top: '150px'
-  };
-  var target = document.getElementById('spinner');
-  var spinner = new Spinner(opts).spin(target);
+    var opts = {
+        color: '#444', // #rgb or #rrggbb
+        top: '150px'
+    };
+    var target = document.getElementById('spinner');
+    var spinner = new Spinner(opts).spin(target);
 </script>
 
 <div class="sub-nav-bar" ng-show="item">
+    <div class="contents">
 
-    <ul class="span6 nav nav-pills">
-      <li
-      ng-class="{true:'active', false:''}[currentPanel=='preview']">
-        <a
-        href="javascript:void(1)"
-        ng-click="changePanel('preview')">Preview</a>
-      </li>
-      <li
-      ng-class="{true:'active', false:''}[currentPanel=='profile']">
-        <a
-        href="javascript:void(1)"
-        ng-click="changePanel('profile')">Profile</a>
-      </li>
+        <ul class="span6 nav nav-tabs">
+            <li
+                    ng-class="{true:'active', false:''}[currentPanel=='preview']">
+                <a
+                        href="javascript:void(1)"
+                        ng-click="changePanel('preview')">Preview</a>
+            </li>
+            <li
+                    ng-class="{true:'active', false:''}[currentPanel=='profile']">
+                <a
+                        href="javascript:void(1)"
+                        ng-click="changePanel('profile')">Profile</a>
+            </li>
 
-      <li ng-repeat="sm in item.supportingMaterials"
-            ng-class="{true: 'active', false:''}[currentSm==sm]">
-        <a ng-click="changeSupportingMaterialPanel(sm)">{{sm.name}}</a>
-      </li>
-    </ul>
+            <li ng-repeat="sm in item.supportingMaterials"
+                ng-class="{true: 'active', false:''}[currentSm==sm]">
+                <a ng-click="changeSupportingMaterialPanel(sm)">{{sm.name}}</a>
+            </li>
+        </ul>
 
-    <button
-            ng-show="isAssigned()"
-            ui-jq="tooltip"
-            ui-options="{title: getRemoveTooltip()}"
-            class="btn pull-right btn-mini btn-primary"
-            style="margin-right: 5px; margin-top: 2px;"
-            ng-click="remove()">Remove</button>
+        <button
+                ng-show="isAssigned()"
+                ui-jq="tooltip"
+                ui-options="{title: getRemoveTooltip()}"
+                class="btn pull-right btn-mini btn-primary"
+                style="margin-right: 5px; margin-top: 2px;"
+                ng-click="remove()">Remove
+        </button>
 
-    <button
-            ng-show="!isAssigned()"
-            class="btn pull-right btn-mini btn-primary"
-            style="margin-right: 5px; margin-top: 2px;"
-            ng-click="assign()">Assign</button>
-  </div>
-
+        <button
+                ng-show="!isAssigned()"
+                class="btn pull-right btn-mini btn-primary"
+                style="margin-right: 5px; margin-top: 2px;"
+                ng-click="assign()">Assign
+        </button>
+    </div>
+</div>
 <div class="view-item-container" ng-show="item">
 
     <span ng-show="currentPanel == 'preview'">
 
       <iframe
-        id="previewIframe"
-        frameBorder="0"
-        ng-show="item"
-        class="lti-iframe-preview"
-        ng-src="{{previewItemUrl}}"></iframe>
+              id="previewIframe"
+              frameBorder="0"
+              ng-show="item"
+              class="lti-iframe-preview"
+              ng-src="{{previewItemUrl}}"></iframe>
     </span>
 
-  <span ng-show="currentPanel == 'profile'">@web.views.html.partials._viewItem.corespringData()</span>
+    <span ng-show="currentPanel == 'profile'">@web.views.html.partials._viewItem.corespringData()</span>
 
-  <div id='supportingMaterialView'
-    class="preview-container"
-    ng-repeat="sm in item.supportingMaterials"
-    ng-show="currentSm==sm">
-    <iframe
-      frameBorder="0"
-      class="lti-iframe-preview"
-      ng-src="{{getSmSrc(sm)}}"
-      align="center"
-      class="iframe-preview"></iframe>
-  </div>
+    <div id='supportingMaterialView'
+         class="preview-container"
+         ng-repeat="sm in item.supportingMaterials"
+         ng-show="currentSm==sm">
+        <iframe
+                frameBorder="0"
+                class="lti-iframe-preview"
+                ng-src="{{getSmSrc(sm)}}"
+                align="center"
+                class="iframe-preview"></iframe>
+    </div>
 
 </div>
-
 

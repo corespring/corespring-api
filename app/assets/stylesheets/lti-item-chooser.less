@@ -17,7 +17,7 @@ td.small-title {
 .table-content,
 .table-header {
   table {
-    max-width: @max-width;
+    margin: 0 auto;
 
     th{
       -webkit-touch-callout: none;
@@ -31,18 +31,18 @@ td.small-title {
 }
 
 .table-header {
-/*position: fixed;*/
+  position: fixed;
+  width: 100%;
   z-index: 10004;
   background-color: #ffffff;
-  max-width: @max-width;
-  top: @navbar-height;
+  top: @navbar-height + 5;
   .mixin-box-shadow( 6px );
 }
 
 .table-content {
   position: relative;
   padding-top: 0px;
-  top: 0px;
+  top: 25px;
   height: 100%;
   overflow-y: scroll;
 
@@ -144,20 +144,42 @@ td.title {
 }
 
 .main-content-holder {
-  width: @max-width;
+  width: 100%;
   margin: 0 auto;
 }
-
+.nav-tabs{
+  li{
+    a{
+      color: #ffffff;
+      &:hover{
+        background: none;
+        color: darken(#ffffff, 20%);
+        border: none;
+      }
+    }
+  }
+  li.active{
+    a{
+      color: @cs-dark-grey;
+    }
+  }
+}
 .main-content {
+  width: 100%;
   background-color: #ffffff;
   height: 100%;
   top: @navbar-height + 5;
   position: fixed;
   .sub-nav-bar {
+    padding-top: 5px;
     background-color: lighten(@cs-navbar-color, 20%);
+    .contents{
+      max-width: @max-width;
+      margin: 0 auto;
+    }
     .mixin-box-shadow;
-    .mixin-bg-gradient( lighten(@cs-navbar-color, 10%), lighten(@cs-navbar-color, 5%));
-    height: 30px;
+    .mixin-bg-gradient( darken(@cs-dark-grey, 30%), darken(@cs-dark-grey, 20%));
+    height: 35px;
 
     .nav-pills {
       li.active {
@@ -180,13 +202,10 @@ td.title {
   }
 
   .view-item-container {
+    margin: 0 auto;
     width: 600px;
     height: 100%;
   }
-/*
-position:relative;
-*/
-  width: @max-width;
   margin: 0 auto;
 
   .start-pod,
