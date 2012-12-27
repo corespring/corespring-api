@@ -1,0 +1,56 @@
+<assessmentItem>
+
+    <itemBody>
+        Word Example (Count match only): Select 3-5 words: <br/>
+       <selectTextInteraction responseIdentifier="selectText" selectionType="word" minSelections="3" maxSelections="5">
+            "It turns out my mother loved the name Ruth. That's how I got my name and how my father got these: he let Ty Cobb name me after Babe Ruth."
+                I tried to swallow but couldn't! I hoped that she wasn't going to say what I thought she was going to say.
+                Then she said it?<br/>
+                "In this shoebox are the ten baseballs Ty Cobb gave my father. They are signed by some of the most famous ballplayers in history, including one that has one single signature on it: Babe Ruth's."
+       </selectTextInteraction>
+
+        <feedbackBlock outcomeIdentifier="responses.selectText.outcome.responsesBelowMin" identifier="ida1">
+            <div class="feedback-block-incorrect">You selected too few words!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.selectText.outcome.responsesExceedMax" identifier="ida2">
+            <div class="feedback-block-incorrect">You selected too many words!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.selectText.outcome.responsesCorrect" identifier="ida3">
+            <div class="feedback-block-correct">Well done you have selected the right words!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.selectText.outcome.responsesIncorrect" identifier="ida4">
+            <div class="feedback-block-incorrect">Some of your selection is not right!</div>
+        </feedbackBlock>
+
+        <br/><br/>
+
+        Word Example (Correctness match too): Select 1-2 correct words:<br/>
+        <selectTextInteraction responseIdentifier="selectText2" checkIfCorrect="yes" selectionType="word" minSelections="1" maxSelections="2">
+             "It turns out my <correct>mother</correct> loved the name Ruth. That's how I got my <correct>name</correct> and how my father got these: he let Ty Cobb name me after Babe Ruth."
+                 I tried to swallow but couldn't! I hoped that she wasn't going to say what I thought she was going to say.
+                 Then she said it?<br/>
+                 "In this shoebox are the ten baseballs Ty Cobb gave my father. They are signed by some of the most famous ballplayers in history, including one that has one single signature on it: Babe Ruth's."
+        </selectTextInteraction>
+
+        <feedbackBlock outcomeIdentifier="responses.selectText2.outcome.responsesBelowMin" identifier="idb1">
+            <div class="feedback-block-incorrect">You selected too few words!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.selectText2.outcome.responsesExceedMax" identifier="idb2">
+            <div class="feedback-block-incorrect">You selected too many words!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.selectText2.outcome.responsesCorrect" identifier="idb3">
+            <div class="feedback-block-correct">Well done you have selected the right words!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.selectText2.outcome.responsesIncorrect" identifier="idb4">
+            <div class="feedback-block-incorrect">Some of your selection is not right!</div>
+        </feedbackBlock>
+
+    </itemBody>
+</assessmentItem>
+

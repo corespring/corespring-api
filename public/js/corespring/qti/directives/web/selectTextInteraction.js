@@ -8,23 +8,28 @@ qtiDirectives.directive('selecttextinteraction', function factory() {
             $scope.addSelection = function (selection) {
                 $scope.selections.push(selection);
                 console.log($scope.selections);
-            }
+            };
             $scope.removeSelection = function (selection) {
                 var newSelections = [];
                 for (var i = 0; i < $scope.selections.length; i++)
                     if ($scope.selections[i] != selection) newSelections.push($scope.selections[i]);
                 $scope.selections = newSelections;
                 console.log($scope.selections);
-            }
+            };
         },
         link: function link(scope, element, attrs, AssessmentItemController) {
             scope.controller = AssessmentItemController;
+            scope.onlyCountMatch = attrs.checkifcorrect == undefined;
             var responseIdentifier = attrs.responseidentifier;
             scope.responseIdentifier = responseIdentifier;
             scope.$watch('selections.length', function () {
                 scope.controller.setResponse(responseIdentifier, scope.selections);
                 scope.noResponse = (scope.isEmptyItem(scope.selections) && scope.showNoResponseFeedback);
             });
+            scope.$on('unsetSelection', function (event) {
+                scope.selections = [];
+            });
+
         }
     };
 });
@@ -43,7 +48,6 @@ qtiDirectives.directive('selectable', function factory(QtiUtils) {
             return function link(scope, iElement, iAttrs) {
                 iAttrs.$set("enabled", "true");
                 scope.isSelected = false;
-
                 scope.id = /id=[^0-9]*([0-9]+)/gim.exec(outerHtml)[1];
 
                 function switchClass(className) {
@@ -93,8 +97,8 @@ qtiDirectives.directive('selectable', function factory(QtiUtils) {
 
                     scope.isSelected = (givenResponse.indexOf(scope.id)>=0);
                     if (scope.isSelected)
-                        scope.shouldHaveBeenSelected = correctResponse.indexOf(scope.id) >= 0;
-                    scope.shouldNotHaveBeenSelected = (scope.isSelected && correctResponse.indexOf(scope.id) < 0);
+                        scope.shouldHaveBeenSelected = !scope.onlyCountMatch && correctResponse.indexOf(scope.id) >= 0;
+                    scope.shouldNotHaveBeenSelected = !scope.onlyCountMatch && (scope.isSelected && correctResponse.indexOf(scope.id) < 0);
                 });
 
                 // Final submission - highlight the correct answers as well even if they did not get chosen
@@ -105,9 +109,17 @@ qtiDirectives.directive('selectable', function factory(QtiUtils) {
                     scope.disabled = true;
                     iAttrs.$set("enabled", "false");
                     scope.isSelected = (givenResponse.indexOf(scope.id)>=0);
-                    scope.shouldHaveBeenSelected = correctResponse.indexOf(scope.id) >= 0;
-                    scope.shouldNotHaveBeenSelected = (scope.isSelected && correctResponse.indexOf(scope.id) < 0);
+                    scope.shouldHaveBeenSelected = !scope.onlyCountMatch && correctResponse.indexOf(scope.id) >= 0;
+                    scope.shouldNotHaveBeenSelected = !scope.onlyCountMatch && (scope.isSelected && correctResponse.indexOf(scope.id) < 0);
                 });
+
+                scope.$on('unsetSelection', function (event) {
+                    scope.isSelected = false;
+                    scope.shouldHaveBeenSelected = false;
+                    scope.shouldNotHaveBeenSelected = false;
+                    iAttrs.$set("enabled", "true");
+                });
+
 
             }
         }

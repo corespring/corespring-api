@@ -10,7 +10,7 @@ import controllers.Log
 import scala.Some
 import models.ArrayItemResponse
 
-case class SelectTextInteraction(responseIdentifier: String, selectionType: String, minSelection: Int, maxSelection: Int, correctResponse: Option[CorrectResponseMultiple]) extends Interaction {
+case class SelectTextInteraction(responseIdentifier: String, selectionType: String, checkIfCorrect:Boolean, minSelection: Int, maxSelection: Int, correctResponse: Option[CorrectResponseMultiple]) extends Interaction {
 
   override def validate(qtiItem: QtiItem) = {
     (true, "Ok")
@@ -24,7 +24,16 @@ case class SelectTextInteraction(responseIdentifier: String, selectionType: Stri
     response match {
       case ArrayItemResponse(_, responseValue, _) => correctResponse match {
         case Some(cr) => {
-          if (cr.isCorrect(response.value)) {
+          def isCorrect = {
+            if (checkIfCorrect) {
+              if (!cr.isPartOfCorrect(response.value))
+                outcomeProperties = outcomeProperties + ("responsesIncorrect" -> true)
+              cr.isPartOfCorrect(response.value) && responseValue.size >= minSelection && responseValue.size <= maxSelection
+            }
+            else
+              responseValue.size >= minSelection && responseValue.size <= maxSelection
+          }
+          if (isCorrect) {
             score = 1
             outcomeProperties = outcomeProperties + ("responsesCorrect" -> true)
           }
@@ -59,6 +68,7 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
     SelectTextInteraction(
       (node \ "@responseIdentifier").text,
       (node \ "@selectionType").text,
+      (node \ "@checkIfCorrect").nonEmpty,
       (node \ "@minSelections").text.toInt,
       (node \ "@maxSelections").text.toInt,
       correctAnswers
