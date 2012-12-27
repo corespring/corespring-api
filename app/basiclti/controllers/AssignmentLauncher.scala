@@ -132,7 +132,7 @@ object AssignmentLauncher extends BaseApi {
         sessionSettings = Some(new ItemSessionSettings()),
         orgId = client.map( _.orgId )
       )
-      LtiLaunchConfiguration.create(out)
+      LtiLaunchConfiguration.insert(out)
       out
     }
 

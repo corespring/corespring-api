@@ -83,7 +83,7 @@ class AssignmentLauncherTest extends Specification {
         val newConfig = LtiLaunchConfiguration.copy(config,
           Map(LtiLaunchConfiguration.Keys.itemId -> Some(itemId))
         )
-        LtiLaunchConfiguration.update(newConfig)
+        LtiLaunchConfiguration.update(newConfig, newConfig.orgId.get)
         newConfig
       }
       case _ => {
@@ -92,7 +92,7 @@ class AssignmentLauncherTest extends Specification {
           itemId = Some(itemId),
           orgId = Some(client.orgId),
           sessionSettings = None)
-        LtiLaunchConfiguration.create(newConfig)
+        LtiLaunchConfiguration.insert(newConfig)
         newConfig
       }
     }

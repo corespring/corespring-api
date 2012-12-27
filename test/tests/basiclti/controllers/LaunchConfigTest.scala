@@ -26,7 +26,7 @@ class LaunchConfigTest extends BaseTest {
       itemId = None,
       sessionSettings = None,
       orgId = Some(getOrg.id))
-    LtiLaunchConfiguration.create(c)
+    LtiLaunchConfiguration.insert(c)
     c
   }
 

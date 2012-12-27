@@ -22,13 +22,12 @@ import com.mongodb.casbah.MongoCollection
  * Contains an item session template and an item id
  * @param resourceLinkId
  */
-case class LtiLaunchConfiguration(resourceLinkId:String,
-                                  itemId:Option[ObjectId],
-                                  sessionSettings:Option[ItemSessionSettings],
-                                  orgId:Option[ObjectId],
-                                  assignments : Seq[Assignment] = Seq(),
-                                  id:ObjectId = new ObjectId())
-{
+case class LtiLaunchConfiguration(resourceLinkId: String,
+                                  itemId: Option[ObjectId],
+                                  sessionSettings: Option[ItemSessionSettings],
+                                  orgId: Option[ObjectId],
+                                  assignments: Seq[Assignment] = Seq(),
+                                  id: ObjectId = new ObjectId()) {
 
   /**
    * Add an assignment if its new
@@ -37,8 +36,8 @@ case class LtiLaunchConfiguration(resourceLinkId:String,
    * @param finishedUrl
    * @return
    */
-  def addAssignmentIfNew(resultSourcedId:String, passbackUrl:String, finishedUrl:String) : LtiLaunchConfiguration = {
-    assignments.find( _.resultSourcedId == resultSourcedId) match {
+  def addAssignmentIfNew(resultSourcedId: String, passbackUrl: String, finishedUrl: String): LtiLaunchConfiguration = {
+    assignments.find(_.resultSourcedId == resultSourcedId) match {
       case Some(a) => this
       case _ => {
 
@@ -46,7 +45,7 @@ case class LtiLaunchConfiguration(resourceLinkId:String,
 
         val session = new ItemSession(
           itemId = itemId.get,
-          settings = sessionSettings.getOrElse(LtiLaunchConfiguration.defaultSessionSettings) )
+          settings = sessionSettings.getOrElse(LtiLaunchConfiguration.defaultSessionSettings))
         ItemSession.save(session)
 
         val newAssignment = new Assignment(
@@ -63,11 +62,15 @@ case class LtiLaunchConfiguration(resourceLinkId:String,
           this.orgId,
           newAssignments,
           this.id)
-        LtiLaunchConfiguration.update(newConfig)
-        newConfig
+        LtiLaunchConfiguration.updateNoValidation(newConfig) match {
+          case Left(e) => throw new RuntimeException("Error updating launch config: " + newConfig.id)
+          case Right(updated) => updated
+        }
       }
     }
   }
+
+  def hasAssignments = this.assignments.length > 0
 }
 
 object LtiLaunchConfiguration {
@@ -83,66 +86,67 @@ object LtiLaunchConfiguration {
   implicit object Writes extends JerksonWrites[LtiLaunchConfiguration]
 
   implicit object Reads extends JerksonReads[LtiLaunchConfiguration] {
-    def manifest = Manifest.classType( new LtiLaunchConfiguration("",None, None, None).getClass)
+    def manifest = Manifest.classType(new LtiLaunchConfiguration("", None, None, None).getClass)
   }
 
   /**
    * Hide the ModelCompanion from the client code as it provides too many operations.
    */
-  private object ModelCompanion extends ModelCompanion[LtiLaunchConfiguration,ObjectId] {
+  private object ModelCompanion extends ModelCompanion[LtiLaunchConfiguration, ObjectId] {
     val collection = mongoCollection("lti_launch_configurations")
     collection.ensureIndex(Keys.resourceLinkId)
     val dao = new SalatDAO[LtiLaunchConfiguration, ObjectId](collection = collection) {}
   }
 
-  object Keys{
-    val resourceLinkId:String = "resourceLinkId"
-    val orgId : String = "orgId"
+  object Keys {
+    val resourceLinkId: String = "resourceLinkId"
+    val orgId: String = "orgId"
     val sessionSettings: String = "sessionSettings"
     val itemId: String = "itemId"
     val assignments: String = "assignments"
-    val id : String = "id"
+    val id: String = "id"
   }
 
-  def collection : MongoCollection = ModelCompanion.collection
+  def collection: MongoCollection = ModelCompanion.collection
 
-  def findOne(q:DBObject) = ModelCompanion.findOne(q)
+  def findOne(q: DBObject) = ModelCompanion.findOne(q)
 
-  def findOneById(id:ObjectId) = ModelCompanion.findOneById(id)
+  def findOneById(id: ObjectId) = ModelCompanion.findOneById(id)
 
-  def findByResourceLinkId(linkId:String) : Option[LtiLaunchConfiguration] = {
+  def findByResourceLinkId(linkId: String): Option[LtiLaunchConfiguration] = {
     findOne(MongoDBObject(Keys.resourceLinkId -> linkId))
   }
 
-  def canUpdate(id:ObjectId, orgId : ObjectId) : Boolean =  LtiLaunchConfiguration.findOneById(id) match {
-    case Some(dbConfig) => dbConfig.orgId.isDefined && dbConfig.orgId.get == orgId
+  def canUpdate(proposedChange: LtiLaunchConfiguration, orgId: ObjectId): Boolean = LtiLaunchConfiguration.findOneById(proposedChange.id) match {
+    case Some(dbConfig) => {
+      val orgIdMatches = dbConfig.orgId.isDefined && dbConfig.orgId.get == orgId
+      val isUnassigning = dbConfig.itemId.isDefined && proposedChange.itemId.isEmpty
+      val hasAssignments = dbConfig.assignments.length > 0
+      def canUnassign = if (isUnassigning) !hasAssignments else true
+      orgIdMatches && canUnassign
+    }
     case _ => false
   }
 
-  def create(c:LtiLaunchConfiguration) {
+  def insert(c: LtiLaunchConfiguration) {
     ModelCompanion.insert(c)
   }
 
-  def update(update : LtiLaunchConfiguration) : Either[ApiError,LtiLaunchConfiguration] = {
-   ModelCompanion.findOneById(update.id) match {
-     case Some(c) => {
-       ModelCompanion.save(update)
-       Right(update)
-     }
-     case _ => Left(new ApiError(9900, ""))
-   }
+  def update(update: LtiLaunchConfiguration, orgId: ObjectId): Either[ApiError, LtiLaunchConfiguration] = {
+
+    if (!canUpdate(update, orgId)) {
+      Left(new ApiError(9900, "TODO"))
+    } else {
+      updateNoValidation(update)
+    }
   }
 
-
-  def copy(config:LtiLaunchConfiguration, map : Map[String,Any]) : LtiLaunchConfiguration = {
-    new LtiLaunchConfiguration(
-      resourceLinkId = map.get(Keys.resourceLinkId).getOrElse(config.resourceLinkId).asInstanceOf[String],
-      orgId = map.get(Keys.orgId).getOrElse(config.orgId).asInstanceOf[Option[ObjectId]],
-      assignments = map.get(Keys.assignments).getOrElse(config.assignments).asInstanceOf[Seq[Assignment]],
-      sessionSettings = map.get(Keys.sessionSettings).getOrElse(config.sessionSettings).asInstanceOf[Option[ItemSessionSettings]],
-      itemId = map.get(Keys.itemId).getOrElse(config.itemId).asInstanceOf[Option[ObjectId]],
-      id = config.id
-    )
+  private def updateNoValidation(update: LtiLaunchConfiguration): Either[ApiError, LtiLaunchConfiguration] = ModelCompanion.findOneById(update.id) match {
+    case Some(c) => {
+      ModelCompanion.save(update)
+      Right(update)
+    }
+    case _ => Left(new ApiError(9900, ""))
   }
 
 }

@@ -23,24 +23,15 @@ object LaunchConfig extends BaseApi {
   def update(id: ObjectId) = ApiAction {
     request =>
 
-      def canUpdate: Boolean = LtiLaunchConfiguration.canUpdate(id,request.ctx.organization)
-
-      if (canUpdate) {
-        config(request) match {
-          case Some(cfg) if (id != cfg.id) => BadRequest("the json id doesn't match the url id")
-          case Some(cfg) => {
-            LtiLaunchConfiguration.update(cfg) match {
-              case Left(e) => BadRequest("Error updating")
-              case Right(updatedConfig) => {
-                Ok(toJson(updatedConfig))
-              }
-            }
+      config(request) match {
+        case Some(cfg) if (id != cfg.id) => BadRequest("the json id doesn't match the url id")
+        case Some(cfg) => {
+          LtiLaunchConfiguration.update(cfg, request.ctx.organization) match {
+            case Left(e) => BadRequest("Error updating")
+            case Right(updatedConfig) => Ok(toJson(updatedConfig))
           }
-          case _ => BadRequest("Invalid json provided")
         }
-      }
-      else {
-       BadRequest("You don't have the authority to update this configuration")
+        case _ => BadRequest("Invalid json provided")
       }
   }
 
