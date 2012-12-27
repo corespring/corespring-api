@@ -33,7 +33,19 @@
       </li>
     </ul>
 
-    <button class="btn pull-right btn-mini btn-primary" style="margin-right: 5px; margin-top: 2px;" ng-click="assignOrRemove()">{{getAssignRemoveLabel()}}</button>
+    <button
+            ng-show="isAssigned()"
+            ui-jq="tooltip"
+            ui-options="{title: getRemoveTooltip()}"
+            class="btn pull-right btn-mini btn-primary"
+            style="margin-right: 5px; margin-top: 2px;"
+            ng-click="remove()">Remove</button>
+
+    <button
+            ng-show="!isAssigned()"
+            class="btn pull-right btn-mini btn-primary"
+            style="margin-right: 5px; margin-top: 2px;"
+            ng-click="assign()">Assign</button>
   </div>
 
 <div class="view-item-container" ng-show="item">

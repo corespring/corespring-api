@@ -1,5 +1,3 @@
-window.ltiChooser = (window.ltiChooser || {});
-
 angular.module("lti-chooser",
   ['tagger.services',
     'lti-services',
@@ -59,13 +57,15 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
     return $scope.isAssigned() ? "Remove" : "Assign";
   };
 
-  $scope.assignOrRemove = function(){
-    if($scope.isAssigned()){
-      $scope.remove();
+  $scope.getRemoveTooltip = function(){
+    if($scope.isRemoveDisabled()){
+      return "Can't unassign because students have interacted with this item";
     }
-    else{
-      $scope.assign();
-    }
+    return "";
+  };
+
+  $scope.isRemoveDisabled = function(){
+   return $scope.config && $scope.config.assignments && $scope.config.assignments.length > 0;
   };
 
   $scope.isAssigned = function(){
@@ -76,10 +76,20 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
     if(!$scope.config.itemId){
       return false;
     }
+
+    if(!$scope.item){
+      return false;
+    }
+
     return $scope.config.itemId === $scope.item.id;
   };
 
   $scope.remove = function(){
+
+    if($scope.isRemoveDisabled()){
+      return;
+    }
+
     $scope.config.itemId = null;
     $rootScope.$broadcast('saveConfig', { redirect: false });
     $location.url("/browse");
@@ -92,10 +102,7 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
 
   $scope.init = function(){
 
-
     $scope.configurationId = Config.configurationId;
-
-    console.log("configurationId: " + $scope.configurationId);
 
     if (!$scope.configurationId) {
       throw "No configurationId defined - can't load configuration";
@@ -127,9 +134,6 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
     return getMessage(items);
   };
 
-  var template = ["<span style='float: left;'>{title}</span>",
-    "<span style='float:left;'>{msg}</span>"].join("\n");
-
   var getMessage = function(items){
     var msg = "";
     if(items && items.length > 0){
@@ -138,12 +142,6 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
       msg = "None selected";
     }
     return msg;
-  };
-
-  var getTitleWithPrefix = function(prefix, items){
-    return template
-      .replace("{title}", prefix)
-      .replace("{msg}", getMessage(items));
   };
 
   $rootScope.$on('saveConfig', function (event, object) {
