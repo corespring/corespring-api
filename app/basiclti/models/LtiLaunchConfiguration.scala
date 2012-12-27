@@ -55,13 +55,9 @@ case class LtiLaunchConfiguration(resourceLinkId: String,
           onFinishedUrl = finishedUrl
         )
         val newAssignments = this.assignments :+ newAssignment
-        val newConfig = new LtiLaunchConfiguration(
-          this.resourceLinkId,
-          this.itemId,
-          this.sessionSettings,
-          this.orgId,
-          newAssignments,
-          this.id)
+
+        val newConfig = this.copy(assignments = newAssignments)
+
         LtiLaunchConfiguration.updateNoValidation(newConfig) match {
           case Left(e) => throw new RuntimeException("Error updating launch config: " + newConfig.id)
           case Right(updated) => updated
