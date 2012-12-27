@@ -65,7 +65,6 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
   def renderItem(itemId: String, printMode: Boolean = false, sessionSettings: String = "") =
     _renderItem(itemId, printMode, previewEnabled = false, sessionSettings = sessionSettings)
 
-
   private def _renderItem(itemId: String, printMode: Boolean = false, previewEnabled: Boolean = false, sessionSettings: String = "", sessionId:String = "") = ApiAction {
     request =>
       try {
@@ -90,7 +89,7 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
           val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
           Ok(testplayer.views.html.itemPlayerError(errorInfo))
         }
-        case e: Exception => throw new RuntimeException("ItemPlayer.renderItem: " + e.getMessage, e)
+        //case e: Exception => throw new RuntimeException("ItemPlayer.renderItem: " + e.getMessage, e)
       }
   }
 

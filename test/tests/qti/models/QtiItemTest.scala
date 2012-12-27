@@ -4,6 +4,7 @@ import org.specs2.mutable.Specification
 import io.Codec
 import java.nio.charset.Charset
 import qti.models._
+import interactions.{FeedbackInline, Interaction, TextEntryInteraction}
 import scala.xml._
 import utils.MockXml
 import qti.models.QtiItem.Correctness
@@ -24,6 +25,12 @@ class QtiItemTest extends Specification {
       <value>14</value> <value>Fourteen</value>,
         <textEntryInteraction responseIdentifier="id" expectedLength="1"/>))
 
+    val selectText = QtiItem(xml(
+      "id",
+      "single",
+      <value>14</value>,
+     <selectTextInteraction responseIdentifier="id" selectionType="sentence" minSelections="2" maxSelections="2" />))
+
     val single = QtiItem(xml("id", "single", <value>1</value>))
     val multiple = QtiItem(xml("id", "multiple", <value>1</value> <value>2</value>))
     val ordered = QtiItem(xml("id", "ordered", <value>1</value> <value>2</value>))
@@ -36,6 +43,10 @@ class QtiItemTest extends Specification {
 
     "parse a response that is for a textEntryInteraction as a CorrectResponseAny" in {
       assertParse(textEntryOne, CorrectResponseAny.getClass) must equalTo(true)
+    }
+
+    "parse a response that is for a selectTextInteraction as a CorrectResponseAny" in {
+      assertParse(selectText, CorrectResponseAny.getClass) must equalTo(true)
     }
 
     "parse a correctResponse single" in {
@@ -89,7 +100,7 @@ class QtiItemTest extends Specification {
 
     "find a feedback block for an incorrect response" in {
       item.getFeedback("Q_03", "8") match {
-        case Some(FeedbackInline(csFeedbackId,outcomeId,_,_,_,_)) => {
+        case Some(FeedbackInline(csFeedbackId,outcomeId,_,_,_,_,_)) => {
           csFeedbackId === "2"
           outcomeId === "Q_03"
         }
@@ -216,9 +227,9 @@ class CorrectResponseTest extends Specification {
     }
 
     "single - is value correct" in {
-      CorrectResponseSingle("A").isValueCorrect("A", 0) must equalTo(true)
-      CorrectResponseSingle("A").isValueCorrect("A", 10) must equalTo(true)
-      CorrectResponseSingle("A").isValueCorrect("B", 10) must equalTo(false)
+      CorrectResponseSingle("A").isValueCorrect("A", Some(0)) must equalTo(true)
+      CorrectResponseSingle("A").isValueCorrect("A", Some(10)) must equalTo(true)
+      CorrectResponseSingle("A").isValueCorrect("B", Some(10)) must equalTo(false)
     }
 
     "multiple - return correct" in {
@@ -231,10 +242,10 @@ class CorrectResponseTest extends Specification {
     }
 
     "multiple - is value correct" in {
-      CorrectResponseMultiple(Seq("A", "B")).isValueCorrect("A", 0) === true
-      CorrectResponseMultiple(Seq("A", "B")).isValueCorrect("A", 1) === true
-      CorrectResponseMultiple(Seq("A", "B")).isValueCorrect("B", 0) === true
-      CorrectResponseMultiple(Seq("A", "B")).isValueCorrect("C", 0) === false
+      CorrectResponseMultiple(Seq("A", "B")).isValueCorrect("A", Some(0)) === true
+      CorrectResponseMultiple(Seq("A", "B")).isValueCorrect("A", Some(1)) === true
+      CorrectResponseMultiple(Seq("A", "B")).isValueCorrect("B", Some(0)) === true
+      CorrectResponseMultiple(Seq("A", "B")).isValueCorrect("C", Some(0)) === false
     }
 
     "any - return correct" in {
@@ -247,10 +258,10 @@ class CorrectResponseTest extends Specification {
 
     "any - is value correct" in {
       val response = CorrectResponseAny(Seq("A", "B"))
-      response.isValueCorrect("A", 0) === true
-      response.isValueCorrect("A", 1) === true
-      response.isValueCorrect("B", 0) === true
-      response.isValueCorrect("C", 0) === false
+      response.isValueCorrect("A", Some(0)) === true
+      response.isValueCorrect("A", Some(1)) === true
+      response.isValueCorrect("B", Some(0)) === true
+      response.isValueCorrect("C", Some(0)) === false
     }
 
     "ordered - return correct" in {
@@ -265,10 +276,10 @@ class CorrectResponseTest extends Specification {
 
     "ordered - is value correct" in {
       val response = CorrectResponseOrdered(Seq("A", "B", "C"))
-      response.isValueCorrect("A", 0) === true
-      response.isValueCorrect("A", 1) === false
-      response.isValueCorrect("B", 1) === true
-      response.isValueCorrect("D", 1) === false
+      response.isValueCorrect("A", Some(0)) === true
+      response.isValueCorrect("A", Some(1)) === false
+      response.isValueCorrect("B", Some(1)) === true
+      response.isValueCorrect("D", Some(1)) === false
     }
 
   }

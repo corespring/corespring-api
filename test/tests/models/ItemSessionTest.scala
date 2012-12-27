@@ -277,8 +277,8 @@ class ItemSessionTest extends Specification {
         case Left(e) => failure("error: " + e.message)
         case Right(s) => {
           s.responses(0).outcome must beSome
-          s.responses(0).outcome.get.score must equalTo(1)
-          s.responses(1).outcome.get.score must equalTo(1)
+          s.responses(0).outcome.get.score must equalTo(3)
+          s.responses(1).outcome.get.score must equalTo(0.5)
         }
       }
     }
@@ -339,7 +339,7 @@ class ItemSessionTest extends Specification {
 
       val (score,maxScore) = ItemSession.getTotalScore(session)
 
-      score === 2.0
+      score === 3.5
       maxScore === 7.0
     }
   }

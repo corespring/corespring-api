@@ -3,6 +3,7 @@ package models.itemSession
 import models._
 import play.api.libs.json.Json._
 import qti.models._
+import interactions.SelectTextInteraction
 import play.api.libs.json._
 import play.api.libs.json.JsArray
 import models.StringItemResponse
@@ -33,11 +34,22 @@ object SessionData {
     def showCorrectResponses = session.settings.highlightCorrectResponse
     def showFeedback = session.settings.showFeedback
 
-    val allCorrectResponses = declarationsToItemResponse(qti.responseDeclarations)
+    //we need to get the correct responses from SelectTextInteraction manually,
+    // because there are no response declaration for that interaction. the correct response is within the interaction
+    val selectTextInteractionCorrectResponses:Seq[ItemResponse] = qti.itemBody.interactions.filter(i => i.isInstanceOf[SelectTextInteraction]).
+      map(_.asInstanceOf[SelectTextInteraction]).
+      filter(_.correctResponse.isDefined).
+      map(sti => ArrayItemResponse(sti.responseIdentifier,sti.correctResponse.get.value))
+
+
+
+    val allCorrectResponses:List[ItemResponse] = declarationsToItemResponse(qti.responseDeclarations) ++ selectTextInteractionCorrectResponses
+
 
     def createFeedback( idValueIndex : (String, String, Int)): Option[(String, String)] = {
       val (id,value, index) = idValueIndex
-      qti.getFeedback(id, value) match {
+      val feedback = qti.getFeedback(id,value)
+      feedback match {
         case Some(fb) => {
           if (fb.defaultFeedback)
             Some(fb.csFeedbackId, getDefaultFeedback(id, value, index))
@@ -63,12 +75,19 @@ object SessionData {
           (userResponses.toList ::: correctResponses.toList).distinct
 
         val feedbackTuples: List[(String, String)] = responsesToGiveFeedbackOn.map(createFeedback).flatten
-        feedbackTuples.toMap[String, String]
+        feedbackTuples.toMap[String, String] ++ buildOutcomeFeedbackContents
       } else {
         Map()
       }
     }
-
+    def buildOutcomeFeedbackContents:Map[String,String] = {
+      var outcomeFeedback:Map[String,String] = Map();
+      val responses = session.responses.filter(_.outcome.isDefined);
+      for (response <- responses){
+        outcomeFeedback = outcomeFeedback ++ response.outcome.get.getOutcomeBasedFeedbackContents(qti,response.id)
+      }
+      outcomeFeedback
+    }
     def makeCorrectResponseList : Seq[(String,String,Int)] = {
 
       def getIdValueIndexIfApplicable(response:ItemResponse) : Seq[IdValueIndex] = {
