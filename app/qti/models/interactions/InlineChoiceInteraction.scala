@@ -8,7 +8,7 @@ import qti.models.QtiItem.Correctness
 import controllers.Log
 import testplayer.views.utils.QtiScriptLoader
 
-case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[InlineChoice]) extends Interaction {
+case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[InlineChoice]) extends InteractionWithChoices {
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
     response match {

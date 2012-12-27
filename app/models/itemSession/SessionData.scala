@@ -48,7 +48,8 @@ object SessionData {
 
     def createFeedback( idValueIndex : (String, String, Int)): Option[(String, String)] = {
       val (id,value, index) = idValueIndex
-      qti.getFeedback(id, value) match {
+      val feedback = qti.getFeedback(id,value)
+      feedback match {
         case Some(fb) => {
           if (fb.defaultFeedback)
             Some(fb.csFeedbackId, getDefaultFeedback(id, value, index))

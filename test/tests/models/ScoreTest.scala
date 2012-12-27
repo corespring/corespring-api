@@ -50,9 +50,7 @@ class ScoreTest extends Specification {
         StringItemResponse(
           id = "q1",
           responseValue = "q1Answer",
-          outcome = Some(
-            ItemResponseOutcome(score = 1)
-          )
+          outcome = None
         )
       )
       result must equalTo(expected)
@@ -67,9 +65,7 @@ class ScoreTest extends Specification {
         ArrayItemResponse(
           id = "q3",
           responseValue = Seq("q3_answer_1", "q3_answer_2"),
-          outcome = Some(
-            ItemResponseOutcome(score = 0)
-          )
+          outcome = None
         ))
       result must equalTo(expected)
     }
@@ -84,9 +80,7 @@ class ScoreTest extends Specification {
         StringItemResponse(
           id = "q1",
           responseValue = "q1Answer",
-          outcome = Some(
-            ItemResponseOutcome(score = 1)
-          )
+          outcome = None
         ),
         StringItemResponse(id = "q2", responseValue = "blah", outcome = None))
       result must equalTo(expected)

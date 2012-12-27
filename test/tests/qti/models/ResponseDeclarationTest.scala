@@ -54,13 +54,13 @@ class ResponseDeclarationTest extends Specification {
     val responseDeclaration = ResponseDeclaration(xml, itemBody)
 
     "provide default for unmapped keys" in {
-      if (responseDeclaration.mappedValue("tests") equals defaultValue.toString) success else failure
+      if (responseDeclaration.mappedValue("tests") == defaultValue) success else failure
     }
 
     "calculate response values correctly" in {
-      if (responseDeclaration.mappedValue("H") equals "1") success else failure
-      if (responseDeclaration.mappedValue("O") equals "2") success else failure
-      if (responseDeclaration.mappedValue("Cl") equals "-1") success else failure
+      if (responseDeclaration.mappedValue("H") == 1) success else failure
+      if (responseDeclaration.mappedValue("O") == 2) success else failure
+      if (responseDeclaration.mappedValue("Cl") == -1) success else failure
     }
 
   }
