@@ -121,7 +121,6 @@ angular.module('tagger.services').factory('SearchService',
             query.collectionId = searchParams.collection.id;
           }
         }
-        console.log(query);
         return query;
       },
 

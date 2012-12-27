@@ -24,8 +24,8 @@
 <div class="table-header" ng-show="items">
   <table border="0">
     <tr>
-      <th class="primary-subject"><div>Primary Subject</div></th>
-      <th class="ccss">CCSS</th>
+      <th class="primary-subject" ng-click="predicate = 'primarySubject.category'; reverse=!reverse"><div>Primary Subject</div></th>
+      <th class="ccss" ng-click="predicate = 'standards'; reverse=!reverse">CCSS</th>
       <th class="title"><div class="title-holder">Title</div></th>
       <th class="grade" ng-click="predicate = 'gradeLevel'; reverse=!reverse">Grade</th>
       <th class="type" ng-click="predicate = 'itemType'; reverse=!reverse">Type</th>
