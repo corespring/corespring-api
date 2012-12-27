@@ -1,5 +1,5 @@
 {
-    "_id" : { "$oid" : "5f6c9fbdc01de23b24788176" },
+    "_id" : { "$oid" : "5f6c9fbdc01de23b24788177" },
     "data": {
          "name":"qti.xml",
          "files":[
@@ -8,7 +8,7 @@
                  "name" : "qti.xml",
                  "contentType":"text/xml",
                  "isMain":true,
-                 "content": "$[interpolate{/conf/qti/select-text-interaction.xml}]"
+                 "content": "$[interpolate{/conf/qti/select-text-interaction-word.xml}]"
              }
          ]
     },

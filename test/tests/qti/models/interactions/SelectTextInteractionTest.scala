@@ -52,11 +52,6 @@ class SelectTextInteractionTest extends Specification {
       interaction.validate(null) must equalTo((true, "Ok"))
     }
 
-//    "has a valid response declaration" in {
-//      val rd = interaction.responseDeclaration.get
-//      rd.correctResponse.get must equalTo(CorrectResponseMultiple(Seq("2","3")))
-//    }
-
     "too few selection is reflected in response object" in {
       val rd = ResponseDeclaration("selectText","multiple",Some(CorrectResponseMultiple(List("2", "3", "7"))),None)
       val response = ArrayItemResponse("selectText", Seq("3"), Some(ItemResponseOutcome(0, Some("Comment"))))
