@@ -4,10 +4,10 @@ import org.specs2.mutable.Specification
 import io.Codec
 import java.nio.charset.Charset
 import qti.models._
-import interactions.{FeedbackInline, Interaction, TextEntryInteraction}
 import scala.xml._
 import utils.MockXml
 import qti.models.QtiItem.Correctness
+import qti.models.interactions.{FeedbackInline, Interaction, TextEntryInteraction}
 
 class QtiItemTest extends Specification {
 
