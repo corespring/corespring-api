@@ -42,9 +42,18 @@ td.small-title {
 .table-content {
   position: relative;
   padding-top: 0px;
+  margin: 0 auto;
   top: 25px;
   height: 100%;
-  overflow-y: scroll;
+  width: @max-width;
+
+  .inner{
+    position: absolute;
+    bottom: 70px;
+    top: 0;
+    position: absolute;
+    overflow-y: scroll;
+  }
 
   tr {
     &:hover {
