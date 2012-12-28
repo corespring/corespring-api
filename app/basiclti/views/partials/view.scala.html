@@ -50,7 +50,7 @@
 </div>
 <div class="view-item-container" ng-show="item">
 
-    <span ng-show="currentPanel == 'preview'">
+    <div ng-show="currentPanel == 'preview'" class="lti-iframe-holder">
 
       <iframe
               id="previewIframe"
@@ -58,7 +58,7 @@
               ng-show="item"
               class="lti-iframe-preview"
               ng-src="{{previewItemUrl}}"></iframe>
-    </span>
+    </div>
 
     <span ng-show="currentPanel == 'profile'">@web.views.html.partials._viewItem.corespringData("item")</span>
 
