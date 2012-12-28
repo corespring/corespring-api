@@ -10,7 +10,7 @@ import controllers.Log
 import scala.Some
 import models.ArrayItemResponse
 
-case class SelectTextInteraction(responseIdentifier: String, selectionType: String, checkIfCorrect:Boolean, minSelection: Int, maxSelection: Int, correctResponse: Option[CorrectResponseMultiple]) extends Interaction {
+case class SelectTextInteraction(responseIdentifier: String, selectionType: String, checkIfCorrect: Boolean, minSelection: Int, maxSelection: Int, correctResponse: Option[CorrectResponseMultiple]) extends Interaction {
 
   override def validate(qtiItem: QtiItem) = {
     (true, "Ok")
@@ -19,35 +19,46 @@ case class SelectTextInteraction(responseIdentifier: String, selectionType: Stri
   def getChoice(identifier: String) = None
 
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
-    var score:Float = 0
-    var outcomeProperties:Map[String,Boolean] = Map()
+    var score: Float = 0
+    var outcomeProperties: Map[String, Boolean] = Map()
     response match {
       case ArrayItemResponse(_, responseValue, _) => correctResponse match {
         case Some(cr) => {
-          def isCorrect = {
+          val isNumberOfSelectionCorrect = responseValue.size >= minSelection && responseValue.size <= maxSelection
+
+          val isCorrect = (
             if (checkIfCorrect) {
-              if (!cr.isPartOfCorrect(response.value))
+              // We need to check for correctness as well
+              val isEverySelectedCorrect = cr.isPartOfCorrect(response.value)
+              if (!isEverySelectedCorrect)
                 outcomeProperties = outcomeProperties + ("responsesIncorrect" -> true)
-              cr.isPartOfCorrect(response.value) && responseValue.size >= minSelection && responseValue.size <= maxSelection
+
+              isEverySelectedCorrect && isNumberOfSelectionCorrect
             }
-            else
-              responseValue.size >= minSelection && responseValue.size <= maxSelection
-          }
+            else {
+              // We only need whether the number of selection is within range of [minSelection,maxSelection]
+              isNumberOfSelectionCorrect
+            }
+          )
+
+          if (isNumberOfSelectionCorrect)
+            outcomeProperties = outcomeProperties + ("responsesNumberCorrect" -> true)
+
           if (isCorrect) {
             score = 1
             outcomeProperties = outcomeProperties + ("responsesCorrect" -> true)
           }
-          if (responseValue.size > maxSelection){
+          if (responseValue.size > maxSelection) {
             outcomeProperties = outcomeProperties + ("responsesExceedMax" -> true)
-          }else{
+          } else {
             outcomeProperties = outcomeProperties + ("responsesExceedMax" -> false)
           }
           if (responseValue.size < minSelection) {
             outcomeProperties = outcomeProperties + ("responsesBelowMin" -> true)
-          }else{
+          } else {
             outcomeProperties = outcomeProperties + ("responsesBelowMin" -> false)
           }
-          Some(ItemResponseOutcome(score,None,outcomeProperties))
+          Some(ItemResponseOutcome(score, None, outcomeProperties))
         }
         case _ => None
       }

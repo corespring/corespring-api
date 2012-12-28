@@ -51,7 +51,11 @@
             <div class="feedback-block-correct">Well done you have selected the right sentences!</div>
         </feedbackBlock>
 
-        <feedbackBlock outcomeIdentifier="responses.selectText2.outcome.responsesIncorrect" identifier="idb4">
+        <feedbackBlock outcomeIdentifier="responses.selectText2.outcome.responsesNumberCorrect" identifier="idb4">
+            <div class="feedback-block-correct">Well done you have selected the right number of sentences!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.selectText2.outcome.responsesIncorrect" identifier="idb6">
             <div class="feedback-block-incorrect">Some of your selection is not right!</div>
         </feedbackBlock>
 

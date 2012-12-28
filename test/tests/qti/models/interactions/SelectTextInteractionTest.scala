@@ -17,6 +17,14 @@ class SelectTextInteractionTest extends Specification {
     <correct>I tried to swallow Vikram S. Pandit but couldn't</correct>.
   </selectTextInteraction>
 
+  val sentenceInteractionWithCorrectCheckXml =
+  <selectTextInteraction responseIdentifier="selectText" selectionType="sentence" checkIfCorrect="yes" minSelections="2" maxSelections="2">
+    "It turns out my mother loved the name Ruth.
+    <correct>That's how I got my name and how my father got these: he let Ty Cobb name me after Babe Ruth.</correct>
+    "
+    <correct>I tried to swallow Vikram S. Pandit but couldn't</correct>.
+  </selectTextInteraction>
+
   val wordInteractionXml =
   <selectTextInteraction responseIdentifier="selectText" selectionType="word" minSelections="3" maxSelections="3">
     "It turns out my mother loved the name Ruth.
@@ -28,8 +36,8 @@ class SelectTextInteractionTest extends Specification {
 
   "Select Text Interaction" should {
 
-
     val interaction = SelectTextInteraction(sentenceInteractionXml, None)
+    val interactionChecked = SelectTextInteraction(sentenceInteractionWithCorrectCheckXml, None)
 
     "parses" in {
       interaction mustNotEqual null
@@ -73,12 +81,51 @@ class SelectTextInteractionTest extends Specification {
       outcome.outcomeProperties.get("responsesCorrect").get must beTrue
     }
 
+    "if no correctness checking then response should be correct regardless of answer" in {
+      val rd = ResponseDeclaration("selectText","multiple",Some(CorrectResponseMultiple(List("2", "3"))),None)
+      val response = ArrayItemResponse("selectText", Seq("1","4"), Some(ItemResponseOutcome(0, Some("Comment"))))
+      val outcome = interaction.getOutcome(Some(rd), response).get
+      outcome.outcomeProperties.get("responsesCorrect").get must beTrue
+    }
+
+    "correct number of selection is reflected in response object" in {
+      val rd = ResponseDeclaration("selectText","multiple",Some(CorrectResponseMultiple(List("2", "3"))),None)
+      val response = ArrayItemResponse("selectText", Seq("2","3"), Some(ItemResponseOutcome(0, Some("Comment"))))
+      val outcome = interaction.getOutcome(Some(rd), response).get
+      outcome.outcomeProperties.get("responsesNumberCorrect").get must beTrue
+    }
+
+    "correct number of selection with some incorrect anwsers is reflected in response object" in {
+      val rd = ResponseDeclaration("selectText","multiple",Some(CorrectResponseMultiple(List("2", "3"))),None)
+      val response = ArrayItemResponse("selectText", Seq("2","4"), Some(ItemResponseOutcome(0, Some("Comment"))))
+      val outcome = interactionChecked.getOutcome(Some(rd), response).get
+      outcome.outcomeProperties.get("responsesCorrect") must beNone
+      outcome.outcomeProperties.get("responsesIncorrect").get must beTrue
+      outcome.outcomeProperties.get("responsesNumberCorrect").get must beTrue
+    }
+
+    "incorrect selection is reflected in response object" in {
+      val rd = ResponseDeclaration("selectText","multiple",Some(CorrectResponseMultiple(List("2", "3"))),None)
+      val response = ArrayItemResponse("selectText", Seq("1","4"), Some(ItemResponseOutcome(0, Some("Comment"))))
+      val outcome = interactionChecked.getOutcome(Some(rd), response).get
+      outcome.outcomeProperties.get("responsesCorrect") must beNone
+      outcome.outcomeProperties.get("responsesIncorrect").get must beTrue
+    }
+
+    "incorrect selection and incorrent number of selection should both be reflected in response object" in {
+      val rd = ResponseDeclaration("selectText","multiple",Some(CorrectResponseMultiple(List("2", "3"))),None)
+      val response = ArrayItemResponse("selectText", Seq("1"), Some(ItemResponseOutcome(0, Some("Comment"))))
+      val outcome = interactionChecked.getOutcome(Some(rd), response).get
+      outcome.outcomeProperties.get("responsesCorrect") must beNone
+      outcome.outcomeProperties.get("responsesIncorrect").get must beTrue
+      outcome.outcomeProperties.get("responsesBelowMin").get must beTrue
+    }
+
     "parse correct responses correctly" in {
       interaction.correctResponse.get.value
       interaction.correctResponse.get.value must beEqualTo(Seq("2", "3"))
     }
 
   }
-
 
 }
