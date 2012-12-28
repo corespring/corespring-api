@@ -19,8 +19,8 @@ class ScoreTest extends Specification {
     val qti = QtiItem(
       itemBody = ItemBody(
         interactions = Seq(
-//          new ChoiceInteraction("q1",Seq(new SimpleChoice("q1Answer","q1",None),new SimpleChoice("other","q1",None))),
-//          new ChoiceInteraction("q3",Seq(new SimpleChoice("q3_answer_1","q3",None),new SimpleChoice("q3_answer_3","q3",None)))
+          new ChoiceInteraction("q1",Seq(new SimpleChoice("q1Answer","q1",None),new SimpleChoice("other","q1",None))),
+          new ChoiceInteraction("q3",Seq(new SimpleChoice("q3_answer_1","q3",None),new SimpleChoice("q3_answer_3","q3",None)))
         ),
         feedbackBlocks = Seq()
       ),
@@ -55,7 +55,7 @@ class ScoreTest extends Specification {
         StringItemResponse(
           id = "q1",
           responseValue = "q1Answer",
-          outcome = None
+          outcome = Some(ItemResponseOutcome(1,None,Map()))
         )
       )
       result must equalTo(expected)
@@ -70,7 +70,7 @@ class ScoreTest extends Specification {
         ArrayItemResponse(
           id = "q3",
           responseValue = Seq("q3_answer_1", "q3_answer_2"),
-          outcome = None
+          outcome = Some(ItemResponseOutcome(0,None,Map()))
         ))
       result must equalTo(expected)
     }
@@ -85,7 +85,7 @@ class ScoreTest extends Specification {
         StringItemResponse(
           id = "q1",
           responseValue = "q1Answer",
-          outcome = None
+          outcome = Some(ItemResponseOutcome(1,None,Map()))
         ),
         StringItemResponse(id = "q2", responseValue = "blah", outcome = None))
       result must equalTo(expected)
