@@ -1,0 +1,35 @@
+@(configId: ObjectId, selectionDirective: String, returnUrl: String)
+
+@import org.bson.types.ObjectId
+
+<html ng-app="lti-chooser" xmlns:ng="http://angularjs.org">
+  <head>
+    @common.views.html.head.coreJs()
+    @common.views.html.head.angular()
+    @common.views.html.head.bootstrap()
+    @common.views.html.head.ubuntu()
+    @common.views.html.head.corespringCommon()
+    @common.views.html.head.fieldValues()
+    @common.views.html.head.corespringNgComponents()
+    @web.views.html.head.taggerApp(Seq())
+
+</head>
+<body>
+<div ng-controller="LtiChooserController">
+ie..
+</div>
+  <script type="text/javascript">
+
+    console.log("initing lti-chooser");
+
+   var m = angular.module("lti-chooser", []);
+    console.log(m);
+
+    function LtiChooserController($scope){
+    console.log("LtiChooserController");
+    }
+    console.log("end initing lti-chooser");
+
+  </script>
+</body>
+</html>

@@ -68,6 +68,15 @@ object AssignmentLauncher extends BaseApi {
     }
   }
 
+  def ieLaunch = Action{ request =>
+      Ok(
+        basiclti.views.html.itemChooserIE(
+          new ObjectId(),
+          "",
+          "" )
+      ).withSession((OAuthConstants.AccessToken, common.mock.MockToken))
+  }
+
   def launch() = Action {
     request =>
 
