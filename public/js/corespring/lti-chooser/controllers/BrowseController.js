@@ -48,8 +48,12 @@ function BrowseController($scope, $rootScope, $location, Config, LaunchConfigSer
     } else {
       return "selectedColumnAsc";
     }
-  }
+  };
 
+  $scope.loadMore = function(){
+    console.log("loadMore");
+    $rootScope.$broadcast("loadMore");
+  }
 
 }
 

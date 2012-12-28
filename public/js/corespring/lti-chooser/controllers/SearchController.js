@@ -21,9 +21,9 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
       return;
     }
 
-    if( shorterThan($scope.searchParams.searchText, 3) ){
-      return;
-    }
+    //if( shorterThan($scope.searchParams.searchText, 3) ){
+    //  return;
+    //}
 
     $rootScope.$broadcast("beginSearch");
     SearchService.search($scope.searchParams, function onSuccess(res){
@@ -49,10 +49,16 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
     $scope.loadMore();
   });
 
+  $scope.$on('loadMore', function(event){
+    $scope.loadMore();
+  });
+
   $scope.loadMore = function () {
     SearchService.loadMore(function () {
         // re-bind the scope collection to the services model after result comes back
         $rootScope.items = SearchService.itemDataCollection;
+
+        $rootScope.isSearching = false;
       }
     );
   };
