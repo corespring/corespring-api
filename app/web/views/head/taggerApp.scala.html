@@ -1,3 +1,15 @@
+@(controllers: Seq[String] = Seq("MainNavController",
+  "CreateController",
+  "HomeController",
+  "ItemController",
+  "ViewItemController",
+  "SupportingMaterialsController",
+  "ResourceEditor"))
+
+@controller(name: String) = @{
+  "<script src='/assets/js/corespring/tagger/controllers/" + name + ".js'></script>"
+}
+
 <script src="/assets/js/corespring/tagger/select2/Select2Adapter.js"></script>
 <script src="/assets/js/corespring/tagger/mongo/MongoQuery.js"></script>
 
@@ -10,14 +22,10 @@
 <script src="/assets/js/corespring/tagger/services/ItemDataProcessor.js"></script>
 <script src="/assets/js/corespring/tagger/services/ItemService.js"></script>
 <script src="/assets/js/corespring/tagger/services/SearchService.js"></script>
+  <!-- controllers -->
+  @controllers.map { c =>
+    @Html(controller(c))
+  }
 
-<script src="/assets/js/corespring/tagger/controllers/MainNavController.js"></script>
-<script src="/assets/js/corespring/tagger/controllers/CreateController.js"></script>
-<script src="/assets/js/corespring/tagger/controllers/HomeController.js"></script>
-<script src="/assets/js/corespring/tagger/controllers/ItemController.js"></script>
-<script src="/assets/js/corespring/tagger/controllers/ViewItemController.js"></script>
-<script src="/assets/js/corespring/tagger/controllers/SupportingMaterialsController.js"></script>
-<script src="/assets/js/corespring/tagger/controllers/ResourceEditor.js"></script>
-
-<script type="text/javascript" src="@web.controllers.routes.ShowResource.javascriptRoutes"></script>
+  <script type="text/javascript" src="@web.controllers.routes.ShowResource.javascriptRoutes"></script>
 
