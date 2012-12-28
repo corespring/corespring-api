@@ -381,7 +381,7 @@ The interactive API widget is pre-configured to use this access token.</p></bloc
     disabled-message="currently disabled to ensure the fixture data stays in the correct state"
     path="/auth/access_token"
     form-params="client_id=502424ca0364b3c1c30dec64&client_secret=26bn1r8cmlso1tmm1kw1&grant_type=client_credentials"
-    url="http://corespring-devt.herokuapp.com/auth/access_token">
+    url="http://api-test.corespring.org/auth/access_token">
   </rest-widget>
 </div>
 
@@ -396,7 +396,7 @@ The interactive API widget is pre-configured to use this access token.</p></bloc
   <rest-widget
     method="GET"
     path="/items"
-    url="http://corespring-devt.herokuapp.com/api/v1/items"
+    url="http://api-test.corespring.org/api/v1/items"
     request-headers="Authorization: Bearer 34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
@@ -411,7 +411,7 @@ The interactive API widget is pre-configured to use this access token.</p></bloc
   <rest-widget
     method="GET"
     path="/items?access_token=${access_token}"
-    url="http://corespring-devt.herokuapp.com/api/v1/items?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/items?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -432,7 +432,7 @@ The interactive API widget is pre-configured to use this access token.</p></bloc
   <rest-widget 
     method="GET" 
     path="/organizations" 
-    url="http://corespring-devt.herokuapp.com/api/v1/organizations?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/organizations?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -448,7 +448,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
   <rest-widget 
     method="GET" 
     path="/organizations/:organizationId" 
-    url="http://corespring-devt.herokuapp.com/api/v1/organizations/502404dd0364dc35bb39339a?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/organizations/502404dd0364dc35bb39339a?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -461,7 +461,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
   <rest-widget 
     method="GET" 
     path="/organizations/default" 
-    url="http://corespring-devt.herokuapp.com/api/v1/organizations/default?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/organizations/default?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -480,7 +480,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
   <rest-widget 
     method="GET" 
     path="/collections/:collectionId" 
-    url="http://corespring-devt.herokuapp.com/api/v1/collections/5001b9b9e4b035d491c268c3?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/collections/5001b9b9e4b035d491c268c3?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -493,7 +493,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
   <rest-widget 
     method="GET" 
     path="/collections" 
-    url="http://corespring-devt.herokuapp.com/api/v1/collections?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/collections?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -504,7 +504,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
   <rest-widget 
     method="GET" 
     path="/organizations/:organizationId/collections" 
-    url="http://corespring-devt.herokuapp.com/api/v1/organizations/502404dd0364dc35bb39339a/collections?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/organizations/502404dd0364dc35bb39339a/collections?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -521,7 +521,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
     method="POST" 
     path="/collections" 
     request-body='{ "name" : "My Collection", "organizations": ["502404dd0364dc35bb39339a"] }'
-    url="http://corespring-devt.herokuapp.com/api/v1/collections?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/collections?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -538,7 +538,7 @@ The collection must have a name and must provide an array of organization ids wi
     method="PUT" 
     path="/collections/:id" 
     request-body='{ "name" : "My Collection", "organizations": ["502404dd0364dc35bb39339a"] }'
-    url="http://corespring-devt.herokuapp.com/api/v1/collections/5001b9b9e4b035d491c268c3?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/collections/5001b9b9e4b035d491c268c3?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -561,7 +561,7 @@ This complete model for Item is described at the end of this section.</p>
 <h2><a name="items-get" class="waypoint"></a>Getting an Item</h2>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget method="GET" path="/items/:itemId" url="http://corespring-devt.herokuapp.com/api/v1/items/50083ba9e4b071cb5ef79101?access_token=34dj45a769j4e1c0h4wb">
+  <rest-widget method="GET" path="/items/:itemId" url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -577,7 +577,7 @@ This complete model for Item is described at the end of this section.</p>
   <rest-widget
     method="GET"
     path="/items/:itemId/detail"
-    url="http://corespring-devt.herokuapp.com/api/v1/items/50083ba9e4b071cb5ef79101/detail?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/detail?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -595,7 +595,7 @@ This complete model for Item is described at the end of this section.</p>
     method="GET"
     path="/items/:itemId/assets/:fileName"
     result-type="file"
-    url="http://corespring-devt.herokuapp.com/api/v1/items/4ffd8645e4b0031d54b5ab90/assets/cute-kitten.jpg?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/assets/cute-kitten.jpg?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -616,7 +616,7 @@ This complete model for Item is described at the end of this section.</p>
     method="GET"
     disabled="true"
     path="/items/:itemId?v=0"
-    url="http://corespring-devt.herokuapp.com/api/v1/items/50083ba9e4b071cb5ef79101?v=0&access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?v=0&access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -628,7 +628,7 @@ This complete model for Item is described at the end of this section.</p>
   <rest-widget
     method="GET"
     path="/items"
-    url="http://corespring-devt.herokuapp.com/api/v1/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="http://api-test.corespring.org/api/v1/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -647,7 +647,7 @@ This complete model for Item is described at the end of this section.</p>
   <rest-widget
     method="GET"
     path="/collections/:collectionId/items"
-    url="http://corespring-devt.herokuapp.com/api/v1/collections/5001b9b9e4b035d491c268c3/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="http://api-test.corespring.org/api/v1/collections/5001b9b9e4b035d491c268c3/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -660,7 +660,7 @@ This complete model for Item is described at the end of this section.</p>
   <rest-widget
     method="GET"
     path="/organizations/:organizationId/items"
-    url="http://corespring-devt.herokuapp.com/api/v1/organizations/502404dd0364dc35bb39339a/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="http://api-test.corespring.org/api/v1/organizations/502404dd0364dc35bb39339a/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -678,7 +678,7 @@ This complete model for Item is described at the end of this section.</p>
     method="POST"
     path="/items"
     request-body='{ "collId": "5001b9b9e4b035d491c268c3", "itemType": "Multiple Choice"}'
-    url="http://corespring-devt.herokuapp.com/api/v1/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="http://api-test.corespring.org/api/v1/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -692,7 +692,7 @@ Takes JSON Item in the body of the request. See the <a href="#items-model">Item 
     method="PUT"
     path="/items/:itemId"
     request-body='{"itemType": "Multiple Choice"}'
-    url="http://corespring-devt.herokuapp.com/api/v1/items/50083ba9e4b071cb5ef79101?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -708,7 +708,7 @@ Takes JSON Item in the body of the request. See the Item Model below for propert
     disabled-class="ok"
     method="DELETE"
     path="/items/:itemId"
-    url="http://corespring-devt.herokuapp.com/api/v1/items/50083ba9e4b071cb5ef79101?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -917,7 +917,7 @@ these properties as was originally set by the contributor of the item:</p>
     <rest-widget
       method="GET"
       path="/items/:itemId/sessions/:sessionId"
-      url="http://corespring-devt.herokuapp.com/api/v1/items/50083ba9e4b071cb5ef79101/sessions/502d627230048a31ef37a3f8?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/sessions/502d627230048a31ef37a3f8?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -929,7 +929,7 @@ these properties as was originally set by the contributor of the item:</p>
     <rest-widget
       method="GET"
       path="/items/:itemId/sessions"
-      url="http://corespring-devt.herokuapp.com/api/v1/items/50083ba9e4b071cb5ef79101/sessions?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/sessions?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -941,7 +941,7 @@ these properties as was originally set by the contributor of the item:</p>
     <rest-widget
       method="POST"
       path="/items/:itemId/sessions"
-      url="http://corespring-devt.herokuapp.com/api/v1/items/50083ba9e4b071cb5ef79101/sessions?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/sessions?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -954,7 +954,7 @@ these properties as was originally set by the contributor of the item:</p>
       method="PUT"
       request-body='{"finish" : 1345727522, "responses": [{"id":"question1", "value":"choiceA"}]}'
       path="/items/:itemId/sessions/:sessionId"
-      url="http://corespring-devt.herokuapp.com/api/v1/items/50083ba9e4b071cb5ef79101/sessions/502d627230048a31ef37a3f8?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/sessions/502d627230048a31ef37a3f8?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -1029,7 +1029,7 @@ In the absence of response processing, the outcome by default will be processed 
   <rest-widget 
     method="GET" 
     path="/users/:userId" 
-    url="http://corespring-devt.herokuapp.com/api/v1/users/502d46ce0364068384f217a5?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/users/502d46ce0364068384f217a5?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -1044,7 +1044,7 @@ In the absence of response processing, the outcome by default will be processed 
   <rest-widget 
     method="GET" 
     path="/users" 
-    url="http://corespring-devt.herokuapp.com/api/v1/users?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/users?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -1055,7 +1055,7 @@ In the absence of response processing, the outcome by default will be processed 
   <rest-widget 
     method="GET" 
     path="/organizations/:orgId/users" 
-    url="http://corespring-devt.herokuapp.com/api/v1/organizations/502404dd0364dc35bb39339a/users?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/organizations/502404dd0364dc35bb39339a/users?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -1073,7 +1073,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
   <rest-widget 
     method="POST" 
     path="/users" 
-    request-body='{ "userName" : "fredFlinstone", "fullName" : "Fred", "email" : "fredf@bedrock.org", "organizations" : [ { "id" : "502404dd0364dc35bb39339a" , "permissions" : ["WRITE_USER", "WRITE_COLLECTION", "WRITE_ORGANIZATION"]} ] }' url="http://corespring-devt.herokuapp.com/api/v1/users?access_token=34dj45a769j4e1c0h4wb">
+    request-body='{ "userName" : "fredFlinstone", "fullName" : "Fred", "email" : "fredf@bedrock.org", "organizations" : [ { "id" : "502404dd0364dc35bb39339a" , "permissions" : ["WRITE_USER", "WRITE_COLLECTION", "WRITE_ORGANIZATION"]} ] }' url="http://api-test.corespring.org/api/v1/users?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -1088,7 +1088,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
   <rest-widget 
     method="PUT" 
     path="/users/:id" 
-    request-body='{ "fullName" : "Fred Flinstone" }' url="http://corespring-devt.herokuapp.com/api/v1/users/502d46ce0364068384f217a5?access_token=34dj45a769j4e1c0h4wb">
+    request-body='{ "fullName" : "Fred Flinstone" }' url="http://api-test.corespring.org/api/v1/users/502d46ce0364068384f217a5?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -1154,7 +1154,7 @@ For example, in a call to the /items resource you could return only items of typ
   <rest-widget 
     method="GET" 
     path='/items?q={"itemType":"Multiple+Choice"}'
-    url='http://corespring-devt.herokuapp.com/api/v1/items?q={"itemType":"Multiple+Choice"}&l=2&access_token=34dj45a769j4e1c0h4wb'>
+    url='http://api-test.corespring.org/api/v1/items?q={"itemType":"Multiple+Choice"}&l=2&access_token=34dj45a769j4e1c0h4wb'>
   </rest-widget>
 </div>
 
@@ -1181,7 +1181,7 @@ For example, if you only wanted the Item Title and Primary Subject Fields for th
   <rest-widget 
     method="GET" 
     path='/items?q={"itemType":"Multiple+Choice"}&f={title:1,gradeLevel:1,primarySubject:1}'
-    url='http://corespring-devt.herokuapp.com/api/v1/items?q={"itemType":"Multiple+Choice"}&f={title:1,gradeLevel:1,primarySubject:1}&l=2&access_token=34dj45a769j4e1c0h4wb'>
+    url='http://api-test.corespring.org/api/v1/items?q={"itemType":"Multiple+Choice"}&f={title:1,gradeLevel:1,primarySubject:1}&l=2&access_token=34dj45a769j4e1c0h4wb'>
   </rest-widget>
 </div>
 
@@ -1213,7 +1213,7 @@ who may be interested in using this functionality.</p></blockquote>
     disabled="true"
     disabled-message="Coming Soon!"
     path="/items/:itemId?ext=true" 
-    url="http://corespring-devt.herokuapp.com/api/v1/items/50083ba9e4b071cb5ef79101?ext=true&access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?ext=true&access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -1226,7 +1226,7 @@ who may be interested in using this functionality.</p></blockquote>
     disabled="true"
     disabled-message="Coming Soon!" 
     path="/items/:itemId?ext=:key" 
-    url="http://corespring-devt.herokuapp.com/api/v1/items/50083ba9e4b071cb5ef79101?ext=_key_here_&access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?ext=_key_here_&access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -1248,7 +1248,7 @@ who may be interested in using this functionality.</p></blockquote>
     disabled="true"
     disabled-message="Coming Soon!" 
     path="/items/:itemId/ext/:key" 
-    url="http://corespring-devt.herokuapp.com/api/v1/items/50083ba9e4b071cb5ef79101/ext/_key_here_?&access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/ext/_key_here_?&access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -1261,7 +1261,7 @@ who may be interested in using this functionality.</p></blockquote>
     disabled="true"
     disabled-message="Coming Soon!" 
     path="/items/:itemId/ext/:key" 
-    url="http://corespring-devt.herokuapp.com/api/v1/items/50083ba9e4b071cb5ef79101/ext/_key_here_?&access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/ext/_key_here_?&access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -1292,7 +1292,7 @@ who may be interested in using this functionality.</p></blockquote>
       disabled="true"
       disabled-message="Coming Soon!"
       path="/items/:itemId/statistics"
-      url="http://corespring-devt.herokuapp.com/api/v1/items/50083ba9e4b071cb5ef79101/statistics?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/statistics?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -1309,7 +1309,7 @@ who may be interested in using this functionality.</p></blockquote>
       disabled="true"
       disabled-message="Coming Soon!"
       path="/items/:itemId/stats=true"
-      url="http://corespring-devt.herokuapp.com/api/v1/items/50083ba9e4b071cb5ef79101?stats=true&access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?stats=true&access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -1379,7 +1379,7 @@ who may be interested in using this functionality.</p></blockquote>
 
 <hr />
 
-<p>date:  12/28/2012 11:40AM</p>
+<p>date:  12/28/2012 02:55PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
