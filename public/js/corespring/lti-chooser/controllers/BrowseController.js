@@ -13,6 +13,7 @@ function BrowseController($scope, $rootScope, $location, Config, LaunchConfigSer
   });
 
   $scope.selectItem = function (item) {
+    $(".tooltip").remove();
     $location.url("/view/" + item.id);
   };
 
