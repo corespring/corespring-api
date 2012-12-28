@@ -31,19 +31,19 @@ td.small-title {
 }
 
 .table-header {
-  position: fixed;
+  position: relative;
   width: 100%;
-  z-index: 10004;
+
+  z-index: 11;
   background-color: #ffffff;
-  top: @navbar-height + 5;
   .mixin-box-shadow( 6px );
 }
 
 .table-content {
   position: relative;
+  z-index: 10;
   padding-top: 0px;
   margin: 0 auto;
-  top: 25px;
   height: 100%;
   width: @max-width;
 
@@ -358,20 +358,27 @@ a.cs-icon-link {
 .lti-iframe-holder{
   position: absolute ;
   width: @max-width;
-  bottom: 60px;
+  bottom: 0px;
   top: 43px;
 
 }
 .lti-iframe-preview {
   position: absolute;
   width: @max-width;
-  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: 96%;
   left: 0px;
   right: 0px;
   bottom: 0px;
   top: 0px;
+}
 
-
+.lti-preview-container {
+  position: relative;
+  height: 100%;
+  top: 2px;
+  padding-top: 0px;
 }
 
 .multi-select {
