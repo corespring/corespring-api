@@ -751,27 +751,54 @@ Usage:
 */
 
 
+/*
+infinite scrolling module
+Triggers a callback to the $scope.
+Usage: 
+<div when-scrolled="doSomething()" scrolled-mode="div|window(default)"/>
+*/
+
+
 (function() {
 
   angular.module('cs.directives').directive('whenScrolled', function() {
-    var fn;
-    fn = function(scope, elm, attr) {
-      var funCheckBounds, raw;
-      raw = elm[0];
-      funCheckBounds = function() {
+    var linkFn;
+    linkFn = function($scope, $elm, $attrs) {
+      var mode, onDivScroll, onWindowScroll, raw;
+      raw = $elm[0];
+      onDivScroll = function() {
+        var rectObject, scrollTop, scrolledTotal;
+        rectObject = raw.getBoundingClientRect();
+        if (rectObject.height === 0) {
+          return;
+        }
+        scrollTop = $elm.scrollTop();
+        scrolledTotal = $elm.scrollTop() + $elm.innerHeight();
+        if (scrolledTotal >= raw.scrollHeight) {
+          $scope.$apply($attrs.whenScrolled);
+        }
+        return null;
+      };
+      onWindowScroll = function() {
         var rectObject;
         rectObject = raw.getBoundingClientRect();
         if (rectObject.height === 0) {
           return;
         }
         if (rectObject.bottom <= window.innerHeight) {
-          scope.$apply(attr.whenScrolled);
+          $scope.$apply($attrs.whenScrolled);
         }
         return null;
       };
-      return angular.element(window).bind('scroll', funCheckBounds);
+      mode = $attrs['scrolledMode'] || 'window';
+      if (mode === "window") {
+        angular.element(window).bind('scroll', onWindowScroll);
+      } else {
+        $elm.bind('scroll', onDivScroll);
+      }
+      return null;
     };
-    return fn;
+    return linkFn;
   });
 
 }).call(this);
