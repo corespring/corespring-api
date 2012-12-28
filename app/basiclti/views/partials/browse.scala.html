@@ -24,11 +24,22 @@
 <div class="table-header" ng-show="items">
   <table border="0">
     <tr>
-      <th class="primary-subject" ng-click="predicate = 'primarySubject.category'; reverse=!reverse"><div>Primary Subject</div></th>
-      <th class="ccss" ng-click="predicate = 'standards'; reverse=!reverse">CCSS</th>
+      <th class="primary-subject"
+          ng-click="predicate = 'primarySubject.category'; reverse=!reverse">
+          <div ng-class="selectColumn('primarySubject.category')">Subject</div>
+      </th>
+      <th class="ccss" ng-click="predicate = 'standards'; reverse=!reverse">
+          <div ng-class="selectColumn('standards')">CCSS</div>
+      </th>
       <th class="title"><div class="title-holder">Title</div></th>
-      <th class="grade" ng-click="predicate = 'gradeLevel'; reverse=!reverse">Grade</th>
-      <th class="type" ng-click="predicate = 'itemType'; reverse=!reverse">Type</th>
+
+      <th class="grade" ng-click="predicate = 'gradeLevel'; reverse=!reverse">
+          <div ng-class="selectColumn('gradeLevel')" >Grade</div>
+      </th>
+
+        <th class="type" ng-click="predicate = 'itemType'; reverse=!reverse">
+            <div ng-class="selectColumn('itemType')" >Type</div>
+        </th>
       <th class="source">Source</th>
     </tr>
   </table>
@@ -36,7 +47,7 @@
 <div class="table-content" ng-show="items">
   <table border="0">
     <tr ng-click="selectItem(i)" ng-repeat="i in items | orderBy:predicate:reverse" ng-class="{even: $index % 2 == 0}">
-      <td class="primary-subject"><div title="{{getPrimarySubjectLabel(i.primarySubject)}}">{{getPrimarySubjectLabel(i.primarySubject)}}</div></td>
+      <td class="primary-subject"><div title="{{getPrimarySubjectLabel(i.primarySubject)}}">{{getShortSubjectLabel(i.primarySubject)}}</div></td>
       <td class="ccss">
         <div>
         <a ui-jq="tooltip"

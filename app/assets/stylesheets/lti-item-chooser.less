@@ -390,3 +390,44 @@ a.cs-icon-link {
     }
   }
 }
+
+.mixin-up-caret(@color){
+  float:left;
+  width: 0;
+  height: 0;
+  vertical-align: top;
+  border-bottom: 4px solid @color;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+  content: "";
+}
+
+.mixin-down-caret(@color) {
+  float:left;
+  width: 0;
+  height: 0;
+  vertical-align: top;
+  border-top: 4px solid @color;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+  content: "";
+}
+
+.sortableColumn:before{
+  .mixin-up-caret( lighten(@cs-dark-grey, 30%) );
+  margin-right: 3px;
+  margin-top: 5px;
+}
+
+.selectedColumnDesc:before{
+ .mixin-up-caret( #000000 );
+  margin-right: 3px;
+  margin-top: 5px;
+}
+
+.selectedColumnAsc:before{
+  .mixin-down-caret( #000000);
+  margin-right: 3px;
+  margin-top: 5px;
+}
+

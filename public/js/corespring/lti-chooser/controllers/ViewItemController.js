@@ -47,7 +47,7 @@ ltiChooser.ViewItemController = function ($scope, $rootScope, $routeParams, $loc
 
 
   $scope.getItemUrl = function(){
-    if (!$scope.item || $scope.currentPanel != 'preview') return null;
+    if (!$scope.item ) return null;
     return WebRoutes.web.controllers.ShowResource.renderDataResource($scope.item.id).url;
     //return "/web/show-resource/" + $scope.item.id + "/data/main";
   };
@@ -62,8 +62,9 @@ ltiChooser.ViewItemController = function ($scope, $rootScope, $routeParams, $loc
 
   LtiItemService.get({id: $routeParams.itemId}, function onSuccess(data){
      $rootScope.item = data;
-     $scope.changePanel('preview');
+     $scope.changePanel('profile');
      $scope.previewItemUrl = $scope.getItemUrl();
+     console.log("previewItemUrl: " + $scope.previewItemUrl);
   });
 
 };

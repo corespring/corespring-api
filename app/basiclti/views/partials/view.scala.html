@@ -15,17 +15,14 @@
     <div class="contents">
 
         <ul class="span6 nav nav-tabs">
-            <li
-                    ng-class="{true:'active', false:''}[currentPanel=='preview']">
-                <a
-                        href="javascript:void(1)"
-                        ng-click="changePanel('preview')">Preview</a>
+            <li ng-class="{true:'active', false:''}[currentPanel=='profile']">
+                <a href="javascript:void(1)"
+                   ng-click="changePanel('profile')">Profile</a>
             </li>
-            <li
-                    ng-class="{true:'active', false:''}[currentPanel=='profile']">
-                <a
-                        href="javascript:void(1)"
-                        ng-click="changePanel('profile')">Profile</a>
+
+            <li ng-class="{true:'active', false:''}[currentPanel=='preview']">
+                <a href="javascript:void(1)"
+                   ng-click="changePanel('preview')">Preview</a>
             </li>
 
             <li ng-repeat="sm in item.supportingMaterials"
@@ -40,7 +37,7 @@
                 ui-options="{title: getRemoveTooltip()}"
                 class="btn pull-right btn-mini btn-primary"
                 style="margin-right: 5px; margin-top: 2px;"
-                ng-click="remove()">Remove
+                ng-click="remove()">Unassign
         </button>
 
         <button

@@ -20,6 +20,13 @@ angular.module('corespring-utils')
         return out.join(": ");
       },
 
+      getShortSubjectLabel: function(subject){
+       var out = this.getPrimarySubjectLabel(subject);
+        return out
+          .replace("Mathematics", "Math")
+          .replace("English Language Arts", "ELA");
+
+      },
 
       createGradeLevelString: function (gradeLevels) {
 
