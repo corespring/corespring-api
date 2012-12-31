@@ -1,15 +1,12 @@
 qtiDirectives.directive('focustaskinteraction', function () {
 
-    var simpleChoiceRegex = /(<:*focusChoice[\s\S]*?>[\s\S]*?<\/:*focusChoice>)/gmi;
+    var choiceRegex = /(<:*focusChoice[\s\S]*?>[\s\S]*?<\/:*focusChoice>)/gmi;
 
     var getSimpleChoicesArray = function (html) {
-        var nodes = html.match(simpleChoiceRegex);
-
+        var nodes = html.match(choiceRegex);
         if (!nodes) {
             return [];
         }
-
-
         return nodes;
     };
 
@@ -18,7 +15,6 @@ qtiDirectives.directive('focustaskinteraction', function () {
     };
 
     var getFixedIndexes = function (simpleChoiceNodes) {
-
         var out = [];
         for (var i = 0; i < simpleChoiceNodes.length; i++) {
             var node = simpleChoiceNodes[i];
@@ -31,19 +27,12 @@ qtiDirectives.directive('focustaskinteraction', function () {
     };
 
     var getShuffledContents = function (html) {
-
         var TOKEN = "__SHUFFLED_CHOICES__";
-        var simpleChoicesArray = getSimpleChoicesArray(html);
-        var fixedIndexes = getFixedIndexes(simpleChoicesArray);
-
-
+        var choicesArray = getSimpleChoicesArray(html);
+        var fixedIndexes = getFixedIndexes(choicesArray);
         var contentsWithChoicesStripped =
             html.replace(/<:*focusChoice[\s\S]*?>[\s\S]*<\/:*focusChoice>/gmi, TOKEN);
-
-
-        var shuffled = simpleChoicesArray.shuffle(fixedIndexes);
-
-
+        var shuffled = choicesArray.shuffle(fixedIndexes);
         return contentsWithChoicesStripped.replace(TOKEN, shuffled.join("\n"));
     };
 
@@ -73,7 +62,9 @@ qtiDirectives.directive('focustaskinteraction', function () {
         scope.controller = AssessmentItemCtrl;
         scope.controller.registerInteraction(element.attr('responseIdentifier'), element.find('.prompt').html(), "choice");
         var modelToUpdate = attrs["responseidentifier"];
+        scope.responseIdentifier = modelToUpdate;
         scope.controller.setResponse(modelToUpdate, undefined);
+        scope.onlyCountMatch = attrs.checkifcorrect != "yes";
         scope.$watch('showNoResponseFeedback', function (newVal, oldVal) {
             scope.noResponse = (scope.isEmptyItem(scope.chosenItem) && scope.showNoResponseFeedback);
         });
@@ -94,7 +85,6 @@ qtiDirectives.directive('focustaskinteraction', function () {
         });
 
         scope.setChosenItem = function (value, isChosen) {
-            console.log("[Parent] Setting ",value," to ",isChosen);
             if (isChosen === undefined) {
                 throw "You have to specify 'isChosen' either true/false";
             }
@@ -124,27 +114,49 @@ qtiDirectives.directive('focustaskinteraction', function () {
 
 qtiDirectives.directive('focuschoice', function (QtiUtils) {
 
-    var linkFn = function (scope, element, attrs, focusTaskInteractionController) {
+    var linkFn = function (scope, iElement, attrs, focusTaskInteractionController) {
         scope.selected = false;
         scope.controller = focusTaskInteractionController;
         scope.click = function () {
-            console.log("Setting ",scope.value," to ",!scope.selected);
+            if (scope.disabled) return;
             scope.setChosenItem(scope.value, !scope.selected);
+            scope.shouldHaveBeenSelected = scope.shouldNotHaveBeenSelected = false;
         };
         scope.disabled = false;
         scope.value = attrs.identifier;
 
         scope.$watch('chosenItem.length', function (newValue) {
-            console.log("Chosen item chgd", newValue);
             if (!scope.chosenItem) return;
             scope.selected = scope.chosenItem.indexOf(scope.value) != -1;
         });
 
-        var isSelected = function () {
-            var responseValue = QtiUtils.getResponseValue(responseIdentifier, scope.responses, "");
-            return QtiUtils.compare(scope.value, responseValue);
-        };
+        // Not final submission - highlight only whether the given answers are correct or not
+        scope.$watch('itemSession.sessionData', function () {
+            if (!scope.itemSession || !scope.itemSession.sessionData || !scope.itemSession.sessionData.correctResponses) return;
+            var correctResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.sessionData.correctResponses, "");
+            var givenResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.responses, "");
+            scope.selected = (givenResponse.indexOf(scope.value)>=0);
+            scope.shouldHaveBeenSelected = !scope.onlyCountMatch && correctResponse.indexOf(scope.value) >= 0;
+            scope.shouldNotHaveBeenSelected = !scope.onlyCountMatch && (scope.selected && correctResponse.indexOf(scope.value) < 0);
+        });
 
+        scope.$on('formSubmitted', function () {
+            var correctResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.sessionData.correctResponses, "");
+            var givenResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.responses, "");
+
+            scope.disabled = true;
+            attrs.$set("enabled", "false");
+            scope.selected = (givenResponse.indexOf(scope.value)>=0);
+            scope.shouldHaveBeenSelected = (!scope.onlyCountMatch && correctResponse.indexOf(scope.value) >= 0) || (scope.onlyCountMatch && scope.selected);
+            scope.shouldNotHaveBeenSelected = !scope.onlyCountMatch && (scope.selected && correctResponse.indexOf(scope.value) < 0);
+        });
+
+        scope.$on('unsetSelection', function (event) {
+            scope.selected = false;
+            scope.shouldHaveBeenSelected = false;
+            scope.shouldNotHaveBeenSelected = false;
+            attrs.$set("enabled", "true");
+        });
     };
 
     return {
@@ -152,7 +164,7 @@ qtiDirectives.directive('focuschoice', function (QtiUtils) {
         require: '^focustaskinteraction',
         replace: true,
         scope: true,
-        template: "<div class='focus-element' ng-class='{selected: selected}' ng-click='click()'><span class='inner' ng-transclude /></div>",
+        template: "<div class='focus-element' ng-class='{selected: selected, shouldHaveBeenSelected: shouldHaveBeenSelected, shouldNotHaveBeenSelected: shouldNotHaveBeenSelected}' ng-click='click()'><span class='inner' ng-transclude /></div>",
         transclude: true,
         link: linkFn
 
