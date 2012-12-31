@@ -199,6 +199,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
           u.responses = Score.scoreResponses(u.responses, qtiItem)
           finishSessionIfNeeded(u)
           //TODO: We need to be careful with session data - you can't persist it
+
           u.sessionData = Some(SessionData(qtiItem, u))
         })
 

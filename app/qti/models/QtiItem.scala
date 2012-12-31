@@ -1,8 +1,10 @@
 package qti.models
 
+import interactions._
 import scala.xml._
 import play.api.libs.json.{JsString, JsObject, JsValue, Writes}
 import qti.models.QtiItem.Correctness
+import scala.Some
 
 case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline]) {
   var defaultCorrect = "That is correct!"
@@ -18,8 +20,15 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
     }
 
 
-  require(interactionsWithNoResponseDeclaration.length == 0,
-    "Invalid QTI: You are missing some responseIdentifiers: " + interactionsWithNoResponseDeclaration.map(_.responseIdentifier).toString)
+  val isQtiValid:(Boolean, Seq[String]) = {
+    val messages = itemBody.interactions.collect {
+      case s => s.validate(this)._2
+    }
+    (itemBody.interactions.foldLeft(true)(_ && _.validate(this)._1), messages)
+  }
+
+  require(isQtiValid._1,
+    "Invalid QTI: " + isQtiValid._2.mkString(", "))
 
   /**
    * Does the given interaction need correct responses?
@@ -58,7 +67,7 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
    */
   def isValueCorrect(responseIdentifier: String, value: String, index: Int = 0): Boolean = {
     responseDeclarations.find(_.identifier == responseIdentifier) match {
-      case Some(rd) => rd.isValueCorrect(value, index)
+      case Some(rd) => rd.isValueCorrect(value, Some(index))
       case _ => false
     }
   }
@@ -108,9 +117,9 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
 
   private def getFeedbackInline(id: String, value: String): Option[FeedbackInline] = {
 
-    itemBody.interactions.find(_.responseIdentifier == id) match {
+    itemBody.interactions.find(i => i.isInstanceOf[InteractionWithChoices] &&  i.responseIdentifier == id) match {
       case Some(i) => {
-        i.getChoice(value) match {
+        i.asInstanceOf[InteractionWithChoices].getChoice(value) match {
           case Some(choice) => {
             val fb = choice.getFeedback
             fb
@@ -124,7 +133,9 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
 }
 
 object QtiItem {
-
+  val interactionModels:Seq[InteractionCompanion[_ <: Interaction]] = Seq(
+    TextEntryInteraction,InlineChoiceInteraction,ChoiceInteraction,OrderInteraction,ExtendedTextInteraction,SelectTextInteraction
+  );
   /**
    * An enumeration of the possible Correctness of a question
    */
@@ -147,7 +158,7 @@ object QtiItem {
 
   private def createItem(n: Node): QtiItem = {
     val itemBody = ItemBody((n \ "itemBody").head)
-
+ //   val customResponseDeclarations = itemBody.interactions.map(i=>i.getResponseDeclaration.getOrElse(ResponseDeclaration("", "", None, None))).filterNot(_.identifier == "")
     QtiItem(
       responseDeclarations = (n \ "responseDeclaration").map(ResponseDeclaration(_, itemBody)),
       itemBody = itemBody,
@@ -169,14 +180,6 @@ object QtiItem {
     }
   }
 
-
-  def getAllFeedback(qtiItem: QtiItem): Seq[FeedbackInline] = {
-    qtiItem.modalFeedbacks ++ qtiItem.itemBody.feedbackBlocks ++ qtiItem.itemBody.interactions.map(_ match {
-      case ChoiceInteraction(_, choices) => choices.map(sc => sc.feedbackInline)
-      case OrderInteraction(_, choices) => choices.map(sc => sc.feedbackInline)
-      case _ => Seq()
-    }).flatten.flatten
-  }
 }
 
 case class ResponseDeclaration(identifier: String, cardinality: String, correctResponse: Option[CorrectResponse], mapping: Option[Mapping]) {
@@ -184,16 +187,15 @@ case class ResponseDeclaration(identifier: String, cardinality: String, correctR
     case Some(cr) => if (cr.isCorrect(responseValue)) Correctness.Correct else Correctness.Incorrect
     case None => Correctness.Unknown
   }
-
-  def isValueCorrect(value: String, index: Int): Boolean = correctResponse match {
+  def isValueCorrect(value: String, index: Option[Int]): Boolean = correctResponse match {
     case Some(cr) => cr.isValueCorrect(value, index)
     case None => false
   }
-
-  def mappedValue(mapKey: String): String = mapping match {
+  def mappedValue(mapKey: String): Float = mapping match {
     case Some(m) => m.mappedValue(mapKey)
     case None => throw new RuntimeException("no mapping for this response declaration")
   }
+
 }
 
 object ResponseDeclaration {
@@ -225,7 +227,7 @@ object ResponseDeclaration {
 trait CorrectResponse {
   def isCorrect(responseValue: String): Boolean
 
-  def isValueCorrect(value: String, index: Int): Boolean
+  def isValueCorrect(value: String, index: Option[Int]): Boolean
 }
 
 object CorrectResponse {
@@ -243,6 +245,7 @@ object CorrectResponse {
     if (interaction.isDefined) {
       interaction.get match {
         case TextEntryInteraction(_, _, _) => CorrectResponseAny(node)
+        case SelectTextInteraction(_, _, _, _, _, _) => CorrectResponseAny(node)
         case _ => CorrectResponse(node, cardinality)
       }
     }
@@ -262,7 +265,7 @@ object CorrectResponse {
 case class CorrectResponseSingle(value: String) extends CorrectResponse {
   def isCorrect(responseValue: String): Boolean = responseValue == value
 
-  def isValueCorrect(v: String, index: Int) = v == value
+  def isValueCorrect(v: String, index: Option[Int]) = v == value
 }
 
 object CorrectResponseSingle {
@@ -284,7 +287,12 @@ case class CorrectResponseMultiple(value: Seq[String]) extends CorrectResponse {
     value.sortWith(_ < _) == responseList.sortWith(_ < _)
   }
 
-  def isValueCorrect(v: String, index: Int) = value.contains(v)
+  def isPartOfCorrect(responseValue: String):Boolean = {
+    val responseList = responseValue.split(",").toList
+    responseList.foldLeft(true)((acc,r)=>acc && value.contains(r))
+  }
+
+  def isValueCorrect(v: String, index: Option[Int]) = value.contains(v)
 
 }
 
@@ -296,10 +304,8 @@ object CorrectResponseMultiple {
 
 case class CorrectResponseAny(value: Seq[String]) extends CorrectResponse {
   def isCorrect(responseValue: String) = value.find(_ == responseValue).isDefined
-
-  def isValueCorrect(v: String, index: Int) = value.contains(v)
+  def isValueCorrect(v: String, index: Option[Int]) = value.contains(v)
 }
-
 object CorrectResponseAny {
   def apply(node: Node): CorrectResponseAny = CorrectResponseAny((node \ "value").map(_.text))
 }
@@ -310,7 +316,12 @@ case class CorrectResponseOrdered(value: Seq[String]) extends CorrectResponse {
     value == responseList
   }
 
-  def isValueCorrect(v: String, index: Int) = value.length > index && value(index) == v
+  def isValueCorrect(v: String, index: Option[Int]) = {
+    index match {
+      case Some(i) => value.length > i && value(i) == v
+      case None => false
+    }
+  }
 }
 
 object CorrectResponseOrdered {
@@ -319,8 +330,8 @@ object CorrectResponseOrdered {
   )
 }
 
-case class Mapping(mapEntries: Map[String, String], defaultValue: Option[String]) {
-  def mappedValue(mapKey: String): String = {
+case class Mapping(mapEntries: Map[String, Float], defaultValue: Option[Float]) {
+  def mappedValue(mapKey: String): Float = {
     mapEntries.get(mapKey) match {
       case Some(mappedValue) => mappedValue
       case None => defaultValue match {
@@ -334,11 +345,11 @@ case class Mapping(mapEntries: Map[String, String], defaultValue: Option[String]
 object Mapping {
   def apply(node: Node): Mapping = {
     val defaultValue = (node \ "@defaultValue").text match {
-      case x: String if x.nonEmpty => Some(x)
+      case x: String if x.nonEmpty => Some(x.toFloat)
       case _ => None
     }
-    val mapEntries = (node \ "mapEntry").foldRight[Map[String, String]](Map())((node, acc) =>
-      acc + ((node \ "@mapKey").text -> (node \ "@mappedValue").text)
+    val mapEntries = (node \ "mapEntry").foldRight[Map[String, Float]](Map())((node, acc) =>
+      acc + ((node \ "@mapKey").text -> (node \ "@mappedValue").text.toFloat)
     )
     Mapping(mapEntries, defaultValue)
   }
@@ -355,15 +366,7 @@ object ItemBody {
     val feedbackBlocks = buildTypes[FeedbackInline](node, Seq(
       ("feedbackBlock", FeedbackInline(_, None))
     ))
-
-    val interactions = buildTypes[Interaction](node, Seq(
-      ("inlineChoiceInteraction", InlineChoiceInteraction(_)),
-      ("textEntryInteraction", TextEntryInteraction(_, feedbackBlocks)),
-      ("choiceInteraction", ChoiceInteraction(_)),
-      ("orderInteraction", OrderInteraction(_))
-    ))
-
-    ItemBody(interactions, feedbackBlocks)
+    ItemBody(QtiItem.interactionModels.map(_.parse(node)).flatten, feedbackBlocks)
   }
 
   private def buildTypes[T](node: Node, names: Seq[(String, (Node) => T)]): List[T] = {
@@ -376,165 +379,5 @@ object ItemBody {
       interactions.toList ::: buildTypes[T](node, names.tail)
     }
   }
-}
-
-trait Interaction {
-  val responseIdentifier: String
-
-  def getChoice(identifier: String): Option[Choice]
-}
-
-object Interaction {
-  def responseIdentifier(n: Node) = (n \ "@responseIdentifier").text
-}
-
-case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int, feedbackBlocks: Seq[FeedbackInline]) extends Interaction {
-  def getChoice(identifier: String) = None
-}
-
-object TextEntryInteraction {
-  def apply(node: Node, feedbackBlocks: Seq[FeedbackInline]): TextEntryInteraction = {
-    val responseIdentifier = Interaction.responseIdentifier(node)
-    TextEntryInteraction(
-      responseIdentifier = responseIdentifier,
-      expectedLength = expectedLength(node),
-      feedbackBlocks = feedbackBlocks.filter(_.outcomeIdentifier == responseIdentifier)
-    )
-  }
-
-  private def expectedLength(n: Node): Int = (n \ "@expectedLength").text.toInt
-}
-
-case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[InlineChoice]) extends Interaction {
-  def getChoice(identifier: String) = choices.find(_.identifier == identifier)
-}
-
-object InlineChoiceInteraction {
-  def apply(node: Node): InlineChoiceInteraction = InlineChoiceInteraction(
-
-    (node \ "@responseIdentifier").text,
-    (node \ "inlineChoice").map(InlineChoice(_, (node \ "@responseIdentifier").text))
-  )
-}
-
-case class InlineChoice(identifier: String, responseIdentifier: String, feedbackInline: Option[FeedbackInline]) extends Choice {
-  def getFeedback = feedbackInline
-}
-
-object InlineChoice {
-  def apply(node: Node, responseIdentifier: String): InlineChoice = InlineChoice(
-    (node \ "@identifier").text,
-    responseIdentifier,
-    (node \ "feedbackInline").headOption.map(FeedbackInline(_, Some(responseIdentifier)))
-  )
-}
-
-
-case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends Interaction {
-  def getChoice(identifier: String) = choices.find(_.identifier == identifier)
-}
-
-object ChoiceInteraction {
-  def apply(node: Node): ChoiceInteraction = ChoiceInteraction(
-    (node \ "@responseIdentifier").text,
-    (node \ "simpleChoice").map(SimpleChoice(_, (node \ "@responseIdentifier").text))
-  )
-}
-
-case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends Interaction {
-  def getChoice(identifier: String) = choices.find(_.identifier == identifier)
-}
-
-object OrderInteraction {
-  def apply(node: Node): OrderInteraction = OrderInteraction(
-    (node \ "@responseIdentifier").text,
-    (node \ "simpleChoice").map(SimpleChoice(_, (node \ "@responseIdentifier").text))
-  )
-}
-
-trait Choice {
-  def getFeedback: Option[FeedbackInline]
-}
-
-case class SimpleChoice(identifier: String, responseIdentifier: String, feedbackInline: Option[FeedbackInline]) extends Choice {
-  def getFeedback = feedbackInline
-}
-
-object SimpleChoice {
-  def apply(node: Node, responseIdentifier: String): SimpleChoice = SimpleChoice(
-    (node \ "@identifier").text,
-    responseIdentifier,
-    (node \ "feedbackInline").headOption.map(FeedbackInline(_, Some(responseIdentifier)))
-  )
-}
-
-case class FeedbackInline(csFeedbackId: String,
-                          outcomeIdentifier: String,
-                          identifier: String,
-                          content: String,
-                          var defaultFeedback: Boolean = false,
-                          var incorrectResponse: Boolean = false) {
-  def defaultContent(qtiItem: QtiItem): String =
-    qtiItem.responseDeclarations.find(_.identifier == outcomeIdentifier) match {
-      case Some(rd) =>
-        rd.isCorrect(identifier) match {
-          case Correctness.Correct => qtiItem.defaultCorrect
-          case Correctness.Incorrect => qtiItem.defaultIncorrect
-          case _ => ""
-        }
-      case None => ""
-    }
-
-  override def toString = """[FeedbackInline csFeedbackId: %s,  identifier: %s, content:%s ]"""
-    .format(csFeedbackId, identifier, content)
-}
-
-object FeedbackInline {
-  /**
-   * if this feedbackInline is within a interaction, responseIdentifier should be pased in
-   * otherwise, if the feedbackInline is within itemBody, then the feedbackInline must have an outcomeIdentifier (equivalent to responseIdentifier) which must be parsed
-   * @param node
-   * @param responseIdentifier
-   * @return
-   */
-  def apply(node: Node, responseIdentifier: Option[String]): FeedbackInline = {
-
-    def isNullOrEmpty(s: String): Boolean = (s == null || s.length == 0)
-
-    if (node.label == "feedbackInline")
-      require(!isNullOrEmpty((node \ "@identifier").text),
-        "feedbackInline node doesn't have an identifier: " + node)
-
-    val childBody = new StringBuilder
-    node.child.map(
-      node => childBody.append(node.toString()))
-    def contents: String = childBody.toString()
-    val feedbackInline = responseIdentifier match {
-      case Some(ri) => FeedbackInline((node \ "@csFeedbackId").text,
-        ri,
-        (node \ "@identifier").text, contents,
-        (node \ "@defaultFeedback").text == "true",
-        (node \ "@incorrectResponse").text == "true")
-      case None => FeedbackInline((node \ "@csFeedbackId").text,
-        (node \ "@outcomeIdentifier").text.split('.')(1),
-        (node \ "@identifier").text,
-        contents.trim,
-        (node \ "@defaultFeedback").text == "true",
-        (node \ "@incorrectResponse").text == "true")
-    }
-    feedbackInline
-  }
-
-  implicit object FeedbackInlineWrites extends Writes[FeedbackInline] {
-    override def writes(fi: FeedbackInline): JsValue = {
-      JsObject(Seq(
-        "csFeedbackId" -> JsString(fi.csFeedbackId),
-        "responseIdentifier" -> JsString(fi.outcomeIdentifier),
-        "identifier" -> JsString(fi.identifier),
-        "body" -> JsString(fi.content)
-      ))
-    }
-  }
-
 }
 

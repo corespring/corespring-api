@@ -4,7 +4,8 @@ import xml._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 import scala.Some
 import models.FeedbackIdMapEntry
-import qti.models.{OrderInteraction, ChoiceInteraction, QtiItem}
+import qti.models.{QtiItem}
+import qti.models.interactions.{OrderInteraction, ChoiceInteraction}
 
 /**
  * Provides transformations on JSON strings to add/remove csFeedbackIds to feedback elements, as well as validation for
@@ -20,9 +21,9 @@ object FeedbackProcessor extends XmlValidator {
     List(FEEDBACK_INLINE, FEEDBACK_BLOCK, MODAL_FEEDBACK)
   }
 
-  private val csFeedbackId = "csFeedbackId"
-  private val identifier = "identifier"
-  private val outcomeIdentifier = "outcomeIdentifier"
+  val csFeedbackId = "csFeedbackId"
+  val identifier = "identifier"
+  val outcomeIdentifier = "outcomeIdentifier"
 
   private val removeResponsesTransformer = new RuleTransformer(
     new RewriteRule {
@@ -110,10 +111,10 @@ object FeedbackProcessor extends XmlValidator {
    */
   def removeFeedbackIds(qtiXml: String): String = applyRewriteRuleToXml(qtiXml, feedbackIdentifierRemoverRule)
 
-  def addOutcomeIdentifiers(qtiXml: Elem): NodeSeq = {
-    val newXml = applyRewriteRuleToXml(qtiXml, new FeedbackOutcomeIdentifierInserter(QtiItem(qtiXml)))
-    newXml
-  }
+//  def addOutcomeIdentifiers(qtiXml: Elem): NodeSeq = {
+//    val newXml = applyRewriteRuleToXml(qtiXml, new FeedbackOutcomeIdentifierInserter(QtiItem(qtiXml)))
+//    newXml
+//  }
 
   def filterFeedbackContent(xml: NodeSeq):NodeSeq = removeResponsesTransformer.transform(xml)
 
@@ -164,59 +165,59 @@ object FeedbackProcessor extends XmlValidator {
 
   }
 
-  /**
-   * Appends outcomeIdentifier to all feedbackInline elements with value responses.[responseIdentifier].value, unless
-   * already present.
-   *
-   * @param qtiItem used to query the item structure for response identifier
-   */
-  private class FeedbackOutcomeIdentifierInserter(qtiItem: QtiItem) extends RewriteRule {
-
-    override def transform(node: Node): Seq[Node] = node match {
-      case elem: Elem => {
-        if (elem.label equals FEEDBACK_INLINE) {
-          elem.attribute(FeedbackProcessor.csFeedbackId) match {
-            case Some(csFeedbackId) => {
-              val optIdentifiers:Option[(String,String)] = qtiItem.itemBody.interactions.map(i =>
-                i match {
-                case ChoiceInteraction(responseIdentifier,choices) =>
-                  choices.find(_.feedbackInline.exists(_.csFeedbackId == csFeedbackId.text)) match {
-                    case Some(sc) => Some((responseIdentifier -> sc.identifier))
-                    case None => None
-                  }
-                case OrderInteraction(responseIdentifier,choices) =>
-                  choices.find(_.feedbackInline.exists(_.csFeedbackId == csFeedbackId.text)) match {
-                    case Some(sc) => Some((responseIdentifier -> sc.identifier))
-                    case None => None
-                  }
-                case _ => None
-              }).find(_.isDefined).getOrElse(None)
-              optIdentifiers match {
-                case Some(identifiers) => addIdentifiersToElem(elem, identifiers._1, identifiers._2)
-                case None => elem
-              }
-            }
-            case None => elem
-          }
-        }
-        else {
-          elem
-        }
-      }
-      case other => other
-    }
-
-    private def addIdentifiersToElem(elem: Elem, outcomeIdentifier: String, identifier: String): Elem = {
-      var elementWithIdentifiers = elem
-      if ((elem \ "@identifier").isEmpty) {
-        elementWithIdentifiers = elementWithIdentifiers % Attribute(None, FeedbackProcessor.identifier, Text(identifier), Null)
-      }
-      if ((elem \ "@outcomeIdentifier").isEmpty) {
-        elementWithIdentifiers = elementWithIdentifiers % Attribute(None, FeedbackProcessor.outcomeIdentifier, Text("responses.%s.value".format(outcomeIdentifier)), Null)
-      }
-      elementWithIdentifiers
-    }
-  }
+//  /**
+//   * Appends outcomeIdentifier to all feedbackInline elements with value responses.[responseIdentifier].value, unless
+//   * already present.
+//   *
+//   * @param qtiItem used to query the item structure for response identifier
+//   */
+//  private class FeedbackOutcomeIdentifierInserter(qtiItem: QtiItem) extends RewriteRule {
+//
+//    override def transform(node: Node): Seq[Node] = node match {
+//      case elem: Elem => {
+//        if (elem.label equals FEEDBACK_INLINE) {
+//          elem.attribute(FeedbackProcessor.csFeedbackId) match {
+//            case Some(csFeedbackId) => {
+//              val optIdentifiers:Option[(String,String)] = qtiItem.itemBody.interactions.map(i =>
+//                i match {
+//                case ChoiceInteraction(responseIdentifier,choices) =>
+//                  choices.find(_.feedbackInline.exists(_.csFeedbackId == csFeedbackId.text)) match {
+//                    case Some(sc) => Some((responseIdentifier -> sc.identifier))
+//                    case None => None
+//                  }
+//                case OrderInteraction(responseIdentifier,choices) =>
+//                  choices.find(_.feedbackInline.exists(_.csFeedbackId == csFeedbackId.text)) match {
+//                    case Some(sc) => Some((responseIdentifier -> sc.identifier))
+//                    case None => None
+//                  }
+//                case _ => None
+//              }).find(_.isDefined).getOrElse(None)
+//              optIdentifiers match {
+//                case Some(identifiers) => addIdentifiersToElem(elem, identifiers._1, identifiers._2)
+//                case None => elem
+//              }
+//            }
+//            case None => elem
+//          }
+//        }
+//        else {
+//          elem
+//        }
+//      }
+//      case other => other
+//    }
+//
+//    private def addIdentifiersToElem(elem: Elem, outcomeIdentifier: String, identifier: String): Elem = {
+//      var elementWithIdentifiers = elem
+//      if ((elem \ "@identifier").isEmpty) {
+//        elementWithIdentifiers = elementWithIdentifiers % Attribute(None, FeedbackProcessor.identifier, Text(identifier), Null)
+//      }
+//      if ((elem \ "@outcomeIdentifier").isEmpty) {
+//        elementWithIdentifiers = elementWithIdentifiers % Attribute(None, FeedbackProcessor.outcomeIdentifier, Text("responses.%s.value".format(outcomeIdentifier)), Null)
+//      }
+//      elementWithIdentifiers
+//    }
+//  }
 
 }
 

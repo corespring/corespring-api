@@ -29,7 +29,7 @@ object Main extends Controller with SecureSocial {
     }
   }
 
-  def renderProfile(itemId:String) = SecuredAction(){ request =>
+  def renderProfile(itemId:String) = Action { request =>
     Ok(web.views.html.profilePrint(itemId, common.mock.MockToken))
   }
 
