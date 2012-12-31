@@ -2,10 +2,6 @@ qtiDirectives.directive('focustaskinteraction', function () {
 
     var simpleChoiceRegex = /(<:*focusChoice[\s\S]*?>[\s\S]*?<\/:*focusChoice>)/gmi;
 
-    /**
-     * @param html
-     * @return {String}
-     */
     var getSimpleChoicesArray = function (html) {
         var nodes = html.match(simpleChoiceRegex);
 
@@ -34,12 +30,6 @@ qtiDirectives.directive('focustaskinteraction', function () {
         return out;
     };
 
-    /**
-     * Get the simplechoice nodes - shuffle those that need shuffling,
-     * then add the back to the original html
-     * @param html
-     * @return {*}
-     */
     var getShuffledContents = function (html) {
 
         var TOKEN = "__SHUFFLED_CHOICES__";
@@ -57,13 +47,9 @@ qtiDirectives.directive('focustaskinteraction', function () {
         return contentsWithChoicesStripped.replace(TOKEN, shuffled.join("\n"));
     };
 
-    /**
-     * shuffle the nodes if shuffle="true"
-     */
-    var compile = function (element, attrs, transclude) {
+    var compile = function (element, attrs) {
 
         var shuffle = attrs["shuffle"] === "true";
-        var isHorizontal = attrs["orientation"] === "horizontal";
         var html = element.html();
 
         var promptMatch = html.match(/<:*prompt>((.|[\r\n])*?)<\/:*prompt>/);
@@ -85,14 +71,9 @@ qtiDirectives.directive('focustaskinteraction', function () {
     var link = function (scope, element, attrs, AssessmentItemCtrl, $timeout) {
 
         scope.controller = AssessmentItemCtrl;
-
         scope.controller.registerInteraction(element.attr('responseIdentifier'), element.find('.prompt').html(), "choice");
-
         var modelToUpdate = attrs["responseidentifier"];
-
-
         scope.controller.setResponse(modelToUpdate, undefined);
-
         scope.$watch('showNoResponseFeedback', function (newVal, oldVal) {
             scope.noResponse = (scope.isEmptyItem(scope.chosenItem) && scope.showNoResponseFeedback);
         });
@@ -112,9 +93,8 @@ qtiDirectives.directive('focustaskinteraction', function () {
             scope.chosenItem = [];
         });
 
-
         scope.setChosenItem = function (value, isChosen) {
-
+            console.log("[Parent] Setting ",value," to ",isChosen);
             if (isChosen === undefined) {
                 throw "You have to specify 'isChosen' either true/false";
             }
@@ -144,15 +124,32 @@ qtiDirectives.directive('focustaskinteraction', function () {
 
 qtiDirectives.directive('focuschoice', function (QtiUtils) {
 
-    var linkFn = function (scope) {
+    var linkFn = function (scope, element, attrs, focusTaskInteractionController) {
         scope.selected = false;
+        scope.controller = focusTaskInteractionController;
         scope.click = function () {
-            scope.selected = !scope.selected;
-        }
+            console.log("Setting ",scope.value," to ",!scope.selected);
+            scope.setChosenItem(scope.value, !scope.selected);
+        };
+        scope.disabled = false;
+        scope.value = attrs.identifier;
+
+        scope.$watch('chosenItem.length', function (newValue) {
+            console.log("Chosen item chgd", newValue);
+            if (!scope.chosenItem) return;
+            scope.selected = scope.chosenItem.indexOf(scope.value) != -1;
+        });
+
+        var isSelected = function () {
+            var responseValue = QtiUtils.getResponseValue(responseIdentifier, scope.responses, "");
+            return QtiUtils.compare(scope.value, responseValue);
+        };
+
     };
 
     return {
         restrict: 'ACE',
+        require: '^focustaskinteraction',
         replace: true,
         scope: true,
         template: "<div class='focus-element' ng-class='{selected: selected}' ng-click='click()'><span class='inner' ng-transclude /></div>",

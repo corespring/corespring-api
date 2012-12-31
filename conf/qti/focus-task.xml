@@ -8,15 +8,22 @@
 
     <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float"/>
 
+    <responseDeclaration identifier="RESPONSE" cardinality="multiple" baseType="identifier">
+        <correctResponse>
+            <value>A</value>
+            <value>D</value>
+        </correctResponse>
+    </responseDeclaration>
+
     <itemBody>
         <focusTaskInteraction responseIdentifier="RESPONSE" choices="3">
             <prompt>Here is an item prompt which is asking the student to select FIVE of the elements below.</prompt>
-            <focusChoice identifier="A">Option 1</focusChoice>
-            <focusChoice identifier="B">Option 2</focusChoice>
-            <focusChoice identifier="C">Option 3</focusChoice>
-            <focusChoice identifier="D">Option 4</focusChoice>
-            <focusChoice identifier="E">Option 5</focusChoice>
-            <focusChoice identifier="F">Option 6</focusChoice>
+            <focusChoice identifier="A">Option A</focusChoice>
+            <focusChoice identifier="B">Option B</focusChoice>
+            <focusChoice identifier="C">Option C</focusChoice>
+            <focusChoice identifier="D">Option D</focusChoice>
+            <focusChoice identifier="E">Option E</focusChoice>
+            <focusChoice identifier="F">Option F</focusChoice>
         </focusTaskInteraction>
     </itemBody>
 </assessmentItem>
