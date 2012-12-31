@@ -281,7 +281,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     def finishIfThereAreNoIncorrectResponses() {
       val incorrectResponses = session.responses.filter(_.outcome match {
         case None => false
-        case Some(o) => if (o.score == 0) true else false
+        case Some(o) => if (o.score <= 0) true else false
       })
 
       if (incorrectResponses.length == 0) {
