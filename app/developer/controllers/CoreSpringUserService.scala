@@ -12,6 +12,7 @@ import securesocial.core.SocialUser
 import scala.Some
 import com.mongodb.casbah.commons.MongoDBObject
 import org.joda.time.DateTime
+import se.radley.plugin.salat.SalatPlugin
 
 /**
  * An implementation of the UserService
@@ -97,6 +98,10 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
 
   def deleteExpiredTokens() {
     val currentTime = new DateTime()
-    RegistrationToken.remove(MongoDBObject(RegistrationToken.Expires -> MongoDBObject("$lt" -> currentTime)))
+    try{
+      RegistrationToken.remove(MongoDBObject(RegistrationToken.Expires -> MongoDBObject("$lt" -> currentTime)))
+    }catch{
+      case e:IllegalStateException => //this occurs if the app closes before this is called. should be safe to ignore
+    }
   }
 }
