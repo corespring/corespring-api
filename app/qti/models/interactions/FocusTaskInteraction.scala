@@ -4,18 +4,26 @@ import choices.{Choice, SimpleChoice}
 import xml._
 import models.{ArrayItemResponse, ItemResponseOutcome, ItemResponse}
 import scala.Some
-import qti.models.{CorrectResponseMultiple, ResponseDeclaration}
-import qti.models.QtiItem.Correctness
+import qti.models.{QtiItem, CorrectResponseMultiple, ResponseDeclaration}
 import controllers.Log
 import testplayer.views.utils.QtiScriptLoader
 
 case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleChoice], checkIfCorrect: Boolean, minSelections: Int, maxSelections: Int) extends InteractionWithChoices {
+  override def validate(qtiItem: QtiItem) = {
+    val hasResponse = !(qtiItem.responseDeclarations.find(_.identifier == responseIdentifier).isEmpty)
+    if (!checkIfCorrect || (checkIfCorrect && hasResponse))
+      (true, "Ok")
+    else
+      (false, "Missing response declartaion for " + responseIdentifier)
+  }
+
   def getChoice(identifier: String): Option[Choice] = choices.find(_.identifier == identifier)
 
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
     var outcomeProperties: Map[String, Boolean] = Map()
     var score: Float = 0
     var isResponseCorrect: Boolean = true
+    var isResponseIncorrect: Boolean = false
     response match {
       case ArrayItemResponse(_, responseValues, _) =>
         val isNumberOfSelectionCorrect = responseValues.size >= minSelections && responseValues.size <= maxSelections
@@ -26,6 +34,7 @@ case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleC
               rd.correctResponse match {
                 case Some(cr: CorrectResponseMultiple) =>
                   isResponseCorrect = cr.isPartOfCorrect(response.value)
+                  isResponseIncorrect = !isResponseCorrect
               }
             } else {
               isResponseCorrect = isNumberOfSelectionCorrect
@@ -37,10 +46,13 @@ case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleC
               case _ =>
                 if (isResponseCorrect) 1 else 0
             }
+          case None =>
+            isResponseCorrect = isNumberOfSelectionCorrect
+            score = if (isResponseCorrect) 1 else 0
         }
 
         outcomeProperties = outcomeProperties + ("responsesNumberCorrect" -> isNumberOfSelectionCorrect)
-        outcomeProperties = outcomeProperties + ("responsesIncorrect" -> !isResponseCorrect)
+        outcomeProperties = outcomeProperties + ("responsesIncorrect" -> isResponseIncorrect)
         outcomeProperties = outcomeProperties + ("responsesCorrect" -> (isResponseCorrect && isNumberOfSelectionCorrect))
         outcomeProperties = outcomeProperties + ("responsesExceedMax" -> (responseValues.size > maxSelections))
         outcomeProperties = outcomeProperties + ("responsesBelowMin" -> (responseValues.size < minSelections))
