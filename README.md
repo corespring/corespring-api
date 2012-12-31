@@ -58,14 +58,20 @@ At which point you can access the API like so:
         "sourceUrl": "http://statedoe.gov",
         "title": "Trevor has $6 to spend on raisins and peanuts. Raisins cost $1 per pound, and peanuts cost $2 per pound. Which graph shows the relationship between the number of pounds of raisins and the number of pounds of peanuts that Trevor can buy?"
     }
+    
+#Heroku Settings
+    
+# Heroku Add-ons
 
-# Production Environment Variables
+SendGrid
+
+# Heroku Production Environment Variables
 
 EMAIL_HOST:                 smtp.sendgrid.net
 
-EMAIL_PASSWORD:             j4r1qjnm
+EMAIL_PASSWORD:             ${SENDGRID_PASSWORD}
 
-EMAIL_USER:                 app8091788@heroku.com
+EMAIL_USER:                 ${SENDGRID_USERNAME}
 
 ENV_INIT_DATA:              false
 
@@ -75,9 +81,17 @@ GOOGLE_CLIENT_ID:           1091241109207.apps.googleusercontent.com
 
 GOOGLE_CLIENT_SECRET:       MXuLdNojHZYY4ciVWndrNRml
 
-SENDGRID_PASSWORD:          j4r1qjnm
 
-SENDGRID_USERNAME:          app8091788@heroku.com
+#Heroku Development Environment Variables
 
+EMAIL_HOST:                   smtp.sendgrid.net
+
+EMAIL_PASSWORD:               ${SENDGRID_PASSWORD}
+
+EMAIL_USER:                   ${SENDGRID_USERNAME}
+
+ENV_MONGO_URI:                mongodb://ed:hello@ds039007.mongolab.com:39007/corespring-api-devt
+
+INIT_DATA:                    true
 
 
