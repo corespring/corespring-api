@@ -6,7 +6,7 @@
 
     <itemBody>
         Word Example: <br/>
-        <selectTextInteraction responseIdentifier="selectText" selectionType="word" minSelections="2" maxSelections="2">
+        <selectTextInteraction responseIdentifier="selectText" selectionType="word" checkIfCorrect="yes" minSelections="2" maxSelections="2">
              "It turns out my <correct>mother</correct> loved the name Ruth. That's how I got my <correct>name</correct> and how my father got these: he let Ty Cobb name me after Babe Ruth."
                  I tried to swallow but couldn't! I hoped that she wasn't going to say what I thought she was going to say.
                  Then she said it?<br/>
@@ -23,6 +23,14 @@
 
         <feedbackBlock outcomeIdentifier="responses.selectText.outcome.responsesCorrect" identifier="id3">
             <div class="feedback-block-correct">Well done you have selected the right words!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.selectText.outcome.responsesIncorrect" identifier="idb4">
+           <div class="feedback-block-incorrect">Some of your selection is not right!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.selectText.outcome.responsesNumberCorrect" identifier="idb4">
+            <div class="feedback-block-correct">Well done you have selected the right number of sentences!</div>
         </feedbackBlock>
 
     </itemBody>

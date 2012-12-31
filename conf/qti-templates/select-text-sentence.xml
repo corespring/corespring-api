@@ -28,6 +28,12 @@
         <feedbackBlock outcomeIdentifier="responses.selectText.outcome.responsesIncorrect" identifier="idb4">
            <div class="feedback-block-incorrect">Some of your selection is not right!</div>
         </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.selectText.outcome.responsesNumberCorrect" identifier="idb4">
+            <div class="feedback-block-correct">Well done you have selected the right number of sentences!</div>
+        </feedbackBlock>
+
+
     </itemBody>
 
 </assessmentItem>
