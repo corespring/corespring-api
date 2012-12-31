@@ -62,13 +62,22 @@ At which point you can access the API like so:
 # Production Environment Variables
 
 EMAIL_HOST:                 smtp.sendgrid.net
+
 EMAIL_PASSWORD:             j4r1qjnm
+
 EMAIL_USER:                 app8091788@heroku.com
+
 ENV_INIT_DATA:              false
+
 ENV_MONGO_URI:              mongodb://corespring:cccrcId4d@ds039017.mongolab.com:39017/corespring-app
+
 GOOGLE_CLIENT_ID:           1091241109207.apps.googleusercontent.com
+
 GOOGLE_CLIENT_SECRET:       MXuLdNojHZYY4ciVWndrNRml
+
 SENDGRID_PASSWORD:          j4r1qjnm
+
 SENDGRID_USERNAME:          app8091788@heroku.com
+
 
 
