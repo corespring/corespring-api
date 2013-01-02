@@ -99,7 +99,26 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
     $rootScope.$broadcast('saveConfig');
   };
 
+  $scope.loadSavedSearchParams = function(){
+    var params =  null;
+    if( localStorage ) {
+      params = localStorage.getItem("item-chooser-search-params")
+    }
+    if(params){
+      $rootScope.searchParams = JSON.parse(params);
+    }
+  };
+
+  $scope.watchSearchParams = function(){
+    $rootScope.$on("beginSearch", function(event){
+      localStorage.setItem("item-chooser-search-params", JSON.stringify($rootScope.searchParams));
+    });
+  };
+
   $scope.init = function(){
+
+    $scope.loadSavedSearchParams();
+    $scope.watchSearchParams();
 
     $scope.configurationId = Config.configurationId;
 
