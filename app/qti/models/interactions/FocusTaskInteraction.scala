@@ -27,28 +27,27 @@ case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleC
     response match {
       case ArrayItemResponse(_, responseValues, _) =>
         val isNumberOfSelectionCorrect = responseValues.size >= minSelections && responseValues.size <= maxSelections
+        isResponseCorrect = isNumberOfSelectionCorrect
+
         responseDeclaration match {
           case Some(rd) =>
-
             if (checkIfCorrect) {
               rd.correctResponse match {
                 case Some(cr: CorrectResponseMultiple) =>
                   isResponseCorrect = cr.isPartOfCorrect(response.value)
                   isResponseIncorrect = !isResponseCorrect
+                case _ =>
               }
-            } else {
-              isResponseCorrect = isNumberOfSelectionCorrect
             }
 
             score = rd.mapping match {
               case Some(mapping) =>
                 responseValues.foldRight[Float](0)((responseValue, sum) => sum + mapping.mappedValue(responseValue))
               case _ =>
-                if (isResponseCorrect) 1 else 0
+                if (isResponseCorrect && isNumberOfSelectionCorrect) 1 else 0
             }
           case None =>
-            isResponseCorrect = isNumberOfSelectionCorrect
-            score = if (isResponseCorrect) 1 else 0
+            score = if (isResponseCorrect && isNumberOfSelectionCorrect) 1 else 0
         }
 
         outcomeProperties = outcomeProperties + ("responsesNumberCorrect" -> isNumberOfSelectionCorrect)
@@ -57,10 +56,8 @@ case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleC
         outcomeProperties = outcomeProperties + ("responsesExceedMax" -> (responseValues.size > maxSelections))
         outcomeProperties = outcomeProperties + ("responsesBelowMin" -> (responseValues.size < minSelections))
 
-      case _ => {
+      case _ =>
         Log.e("received a response that was not an array response in FocusTaskInteraction.getOutcome")
-        false
-      }
     }
 
 

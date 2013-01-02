@@ -135,9 +135,12 @@ qtiDirectives.directive('focuschoice', function (QtiUtils) {
             if (!scope.itemSession || !scope.itemSession.sessionData || !scope.itemSession.sessionData.correctResponses) return;
             var correctResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.sessionData.correctResponses, "");
             var givenResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.responses, "");
+            var response = QtiUtils.getResponseById(scope.responseIdentifier, scope.itemSession.responses);
             scope.selected = (givenResponse.indexOf(scope.value)>=0);
-            scope.shouldHaveBeenSelected = !scope.onlyCountMatch && correctResponse.indexOf(scope.value) >= 0;
-            scope.shouldNotHaveBeenSelected = !scope.onlyCountMatch && (scope.selected && correctResponse.indexOf(scope.value) < 0);
+            if (!response.outcome.responsesBelowMin && !response.outcome.responsesExceedMax) {
+                scope.shouldHaveBeenSelected = scope.selected && !scope.onlyCountMatch && correctResponse.indexOf(scope.value) >= 0;
+                scope.shouldNotHaveBeenSelected = !scope.onlyCountMatch && (scope.selected && correctResponse.indexOf(scope.value) < 0);
+            }
         });
 
         scope.$on('formSubmitted', function () {
