@@ -165,6 +165,7 @@ qtiDirectives.directive('focuschoice', function (QtiUtils) {
 
         scope.$on('unsetSelection', function (event) {
             scope.selected = false;
+            scope.disabled = false;
             scope.shouldHaveBeenSelected = false;
             scope.shouldNotHaveBeenSelected = false;
             attrs.$set("enabled", "true");
