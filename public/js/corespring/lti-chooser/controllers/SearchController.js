@@ -2,7 +2,7 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
   //$http.defaults.headers.get = ($http.defaults.headers.get || {});
   //$http.defaults.headers.get['Content-Type'] = 'application/json';
 
-  $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
+  $rootScope.searchParams = ($rootScope.searchParams || ItemService.createWorkflowObject() );
 
   var init = function(){
     var defaults = new com.corespring.model.Defaults();
@@ -75,6 +75,8 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
   function loadCollections() {
     Collection.get({}, function (data) {
         $scope.collections = data;
+
+        $scope.search();
       },
       function () {
         console.log("load collections: error: " + arguments);
