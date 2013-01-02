@@ -113,7 +113,7 @@ angular.module('tagger.services').factory('SearchService',
         };
 
         if (searchParams.gradeLevel) {
-          if (searchParams.gradeLevel.indexOf) {
+          if (searchParams.gradeLevel.indexOf && searchParams.gradeLevel.length > 0) {
             query.gradeLevel = inArray(searchParams.gradeLevel, "key");
           } else {
             query.gradeLevel = searchParams.gradeLevel.key;
@@ -121,7 +121,7 @@ angular.module('tagger.services').factory('SearchService',
         }
 
         if (searchParams.collection) {
-          if (searchParams.collection.indexOf) {
+          if (searchParams.collection.indexOf && searchParams.collection.length > 0) {
             query.collectionId = inArray(searchParams.collection, "id");
           } else {
             query.collectionId = searchParams.collection.id;
