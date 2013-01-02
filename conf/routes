@@ -160,7 +160,6 @@ GET    /web/print-resource-profile/:itemId                  web.controllers.Main
 GET     /lti/launch-config/:id                  basiclti.controllers.LaunchConfig.get(id:ObjectId)
 PUT     /lti/launch-config/:id                  basiclti.controllers.LaunchConfig.update(id:ObjectId)
 GET     /lti/dev/test-harness                   basiclti.controllers.dev.TestHarness.begin
-GET     /lti/dev/ie-launch                      basiclti.controllers.AssignmentLauncher.ieLaunch
 POST    /lti/dev/prepare                        basiclti.controllers.dev.TestHarness.prepare
 POST    /lti/dev/grade-passback                 basiclti.controllers.dev.TestHarness.gradePassback
 GET     /lti/item-chooser.xml                   basiclti.controllers.AssignmentLauncher.xmlConfiguration
