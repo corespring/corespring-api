@@ -182,6 +182,7 @@
 <div class="container main-container">
     <div class="well api-well" style="padding: 8px 0; width: 240px;">
         <ul class="nav nav-list">
+
   <li class="nav-header" style="color: white;"><span class="caps">REST</span> Api</li>
 </ul>
 <div id="accordianHolder">
@@ -327,10 +328,7 @@ Our developer tools include a set of APIs for finding and managing collections o
 <h1><a name="release-schedule" class="waypoint"></a>Release Schedule</h1>
 
 <ul>
-<li><p><del>Milestone 1: Draft API, Request for Comment (July 2012)</del></p></li>
-<li><p><del>Milestone 2: Live test server &amp; test fixtures (August 2012)</del></p></li>
-<li><p><del>Milestone 3: Beta Release of 1.0 API, Alpha Item Player (September/October 2012)</del></p></li>
-<li><p><strong>Milestone 4: Developer Documents and Example Conent for Item Player Integration (Nov/Early Dec 2012) </strong></p></li>
+<li><p><del>Milestone 4: Developer Documents and Example Content for Item Player Integration (Nov/Early Dec 2012) </del></p></li>
 <li><p>1.0 Final API (Spring 2013)</p></li>
 </ul>
 
@@ -356,8 +354,7 @@ Our developer tools include a set of APIs for finding and managing collections o
 
 <h2><a name="authentication-register" class="waypoint"></a> Registering to Use the API</h2>
 
-<p>To use the Corespring API you must first create and register an Organization in the system.
-(We will provide the registration page at a later date, but for now have provided fixture data for testing with our live testing server.)</p>
+<p>To use the Corespring API you must first create and <a href="/developer/register">register</a> an Organization in the system.</p>
 
 <p>All calls to the API are performed in the context of this Orgnization.</p>
 
@@ -369,7 +366,7 @@ The interactive API widget is pre-configured to use this access token.</p></bloc
 
 <h2><a name="authentication-get-token" class="waypoint"></a> Getting an Access Token</h2>
 
-<p>Once you have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL.</p>
+<p>Once you have <a href="/developer/register">registered</a> and have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL. The client_id and secret pre-set below are for demo purposes and can access some demo content. For more complete access register and enter your own client_id and secret below.</p>
 
 <br/>
 
@@ -377,7 +374,7 @@ The interactive API widget is pre-configured to use this access token.</p></bloc
 <div style="padding-bottom: 10px;">
   <rest-widget
     method="POST"
-    disabled="true"
+    disabled="false"
     disabled-message="currently disabled to ensure the fixture data stays in the correct state"
     path="/auth/access_token"
     form-params="client_id=502424ca0364b3c1c30dec64&client_secret=26bn1r8cmlso1tmm1kw1&grant_type=client_credentials"
@@ -787,23 +784,6 @@ When retrieving individual items a subset of the item properties are returned by
     <td>The type of the item: [Standard Multiple Choice, Matching, Ordering, True/False, Yes/No, True/False, Multiple True/False, Categorize, Complete a Matrix, Constructed Response - Short Answer, Constructed Response - Open Ended, Project, Portfolio] </td>
     <td>String</td>
     <td></td>
-  </tr>
- <tr>
-    <td>files</td>
-    <td>list of files/assets associated with the item.</td>
-    <td>Array[{Json Object}]: e.g. 
-`
-[
-        {
-            "filename": "1.jpg"
-        },
-        {
-            "filename": "2.png"
-        }
-    ]
-`
-</td>
-    <td>true</td>
   </tr>
   <tr>
     <td>pValue</td>
@@ -1379,7 +1359,7 @@ who may be interested in using this functionality.</p></blockquote>
 
 <hr />
 
-<p>date:  12/28/2012 02:55PM</p>
+<p>date:  01/02/2013 05:44PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
