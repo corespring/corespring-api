@@ -90,6 +90,10 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
     }
 
     $scope.config.itemId = null;
+  };
+
+  //callback for confirm-popup directive
+  $scope.onUnassignConfirmed = function(){
     $rootScope.$broadcast('saveConfig', { redirect: false });
     $location.url("/browse");
   };

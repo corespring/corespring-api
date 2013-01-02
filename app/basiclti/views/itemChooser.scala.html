@@ -38,6 +38,16 @@
     </script>
   </head>
   <body style="padding:0px;" ng-controller="LtiChooserController">
+
+    <div confirm-popup
+      ng-model="config.itemId"
+      confirmed="onUnassignConfirmed" class="confirm-popup">
+      <h2>Unassign</h2>
+      <p>Are you sure?</p>
+      <button id="confirm">Yes</button>
+      <button id="cancel">No</button>
+    </div>
+
     <div class="navbar navbar-fixed-top" ng-controller="SearchController">
       <div class="header" ng-show="showSearch()">
       <table style="width: 100%">
