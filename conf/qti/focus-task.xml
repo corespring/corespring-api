@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+                title="" adaptive="false" timeDependent="false">
+    <correctResponseFeedback>Correct!</correctResponseFeedback>
+    <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>
+
+    <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float"/>
+
+    <responseDeclaration identifier="rid" cardinality="multiple" baseType="identifier">
+        <correctResponse>
+            <value>A</value>
+            <value>D</value>
+            <value>E</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+        <focusTaskInteraction responseIdentifier="rid" checkIfCorrect="yes" minSelections="2" maxSelections="3" shuffle="false">
+            <prompt>Here is an item prompt which is asking the student to select FIVE of the elements below.</prompt>
+            <focusChoice identifier="A">Option A</focusChoice>
+            <focusChoice identifier="B">Option B</focusChoice>
+            <focusChoice identifier="C">Option C</focusChoice>
+            <focusChoice identifier="D" fixed="true">Option D</focusChoice>
+            <focusChoice identifier="E">Option E</focusChoice>
+            <focusChoice identifier="F">Option F</focusChoice>
+        </focusTaskInteraction>
+
+        <feedbackBlock outcomeIdentifier="responses.rid.outcome.responsesBelowMin" identifier="id1">
+            <div class="feedback-block-incorrect">You selected too few items!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.rid.outcome.responsesExceedMax" identifier="id2">
+            <div class="feedback-block-incorrect">You selected too many items!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.rid.outcome.responsesCorrect" identifier="id3">
+            <div class="feedback-block-correct">Your selection is correct!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.rid.outcome.responsesIncorrect" identifier="idb4">
+           <div class="feedback-block-incorrect">Some of your selection is not right!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.rid.outcome.responsesNumberCorrect" identifier="idb4">
+            <div class="feedback-block-correct">Well done you have selected the right number of items!</div>
+        </feedbackBlock>
+
+
+    </itemBody>
+</assessmentItem>

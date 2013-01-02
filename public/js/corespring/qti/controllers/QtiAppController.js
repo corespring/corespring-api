@@ -43,8 +43,6 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
 
       AssessmentSessionService.save(params, itemSession, function (data) {
           $scope.itemSession = data;
-          console.log("Received:");
-              console.log(data);
           onSuccess();
           //$scope.$broadcast("saveSuccessful")
         },
