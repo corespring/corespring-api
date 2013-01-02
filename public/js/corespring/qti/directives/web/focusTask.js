@@ -26,26 +26,35 @@ qtiDirectives.directive('focustaskinteraction', function () {
         return out;
     };
 
-    var getShuffledContents = function (html) {
+
+    var insertRowSeparatos = function(choices) {
+        var result = ['<div class="focus-row">'];
+        for (var i = 0; i < choices.length; i++) {
+            result.push(choices[i]);
+            if (i % 5 == 4)
+                result.push('</div><div class="focus-row">');
+        }
+        result.push("</div>");
+
+        return result;
+    };
+
+    var getContents = function (html, shuffle) {
         var TOKEN = "__SHUFFLED_CHOICES__";
         var choicesArray = getSimpleChoicesArray(html);
-        var fixedIndexes = getFixedIndexes(choicesArray);
-        var contentsWithChoicesStripped =
-            html.replace(/<:*focusChoice[\s\S]*?>[\s\S]*<\/:*focusChoice>/gmi, TOKEN);
-        var shuffled = choicesArray.shuffle(fixedIndexes);
-        return contentsWithChoicesStripped.replace(TOKEN, shuffled.join("\n"));
+
+        var resultArray = insertRowSeparatos(shuffle ? choicesArray.shuffle(getFixedIndexes(choicesArray)) : choicesArray);
+        var contentsWithChoicesStripped = html.replace(/<:*focusChoice[\s\S]*?>[\s\S]*<\/:*focusChoice>/gmi, TOKEN);
+        return contentsWithChoicesStripped.replace(TOKEN, resultArray.join("\n"));
     };
 
     var compile = function (element, attrs) {
-
         var shuffle = attrs["shuffle"] === "true";
         var html = element.html();
-
         var promptMatch = html.match(/<:*prompt>((.|[\r\n])*?)<\/:*prompt>/);
         var prompt = "<span class=\"prompt\">" + ((promptMatch && promptMatch.length > 0) ? promptMatch[1] : "") + "</span>";
 
-        // We convert custom elements to attributes in order to support IE8
-        var finalContents = (shuffle ? getShuffledContents(html) : html)
+        var finalContents = getContents(html, shuffle)
             .replace(/<:*prompt>(.|[\r\n])*?<\/:*prompt>/gim, "")
             .replace(/<:*focusChoice/gi, "<span focuschoice").replace(/<\/:*focusChoice>/gi, "</span>");
 
@@ -167,7 +176,7 @@ qtiDirectives.directive('focuschoice', function (QtiUtils) {
         require: '^focustaskinteraction',
         replace: true,
         scope: true,
-        template: "<div class='focus-element' ng-class='{selected: selected, shouldHaveBeenSelected: shouldHaveBeenSelected, shouldNotHaveBeenSelected: shouldNotHaveBeenSelected}' ng-click='click()'><span class='inner' ng-transclude /></div>",
+        template: "<div class='focus-element' ng-class='{selected: selected, shouldHaveBeenSelected: shouldHaveBeenSelected, shouldNotHaveBeenSelected: shouldNotHaveBeenSelected}' ng-click='click()' ng-transclude></div>",
         transclude: true,
         link: linkFn
 
