@@ -1,11 +1,8 @@
-function MainController($scope, $rootScope, $location, Config, LaunchConfigService ) {
-
-  console.log("MainController");
-
+function MainController($scope,  $location ) {
 
   var init = function () {
 
-    $scope.$watch('config', function(newValue){
+    $scope.$watch('config', function(){
 
       if ($scope.config.itemId) {
         $location.url("/view/" + $scope.config.itemId);
@@ -13,13 +10,9 @@ function MainController($scope, $rootScope, $location, Config, LaunchConfigServi
       else {
         $location.url("/browse");
       }
-
     });
-
   };
-
-
   init();
 }
 
-MainController.$inject = ['$scope', '$rootScope', '$location', 'Config', 'LaunchConfigService'];
+MainController.$inject = ['$scope',  '$location'];

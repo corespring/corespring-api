@@ -37,13 +37,18 @@ td.small-title {
   z-index: 10;
   padding-top: 0px;
   margin: 0 auto;
-  height: 100%;
   width: @max-width;
+
+  bottom: @navbar-height;
+  top: 0px;
+  position: absolute;
+  left: 0px;
+  right: 0px;
 
   .inner{
     position: absolute;
-    bottom: 70px;
-    top: 0;
+    bottom: 0px;
+    top: 30px;
     position: absolute;
     overflow-y: scroll;
   }
@@ -69,14 +74,12 @@ th, td {
   text-align: left;
 }
 td.nav-title{
-  /*text-align: right;*/
   color: @cs-dark-grey;
   font-variant-caps: all-small-caps;
   font-weight: bold;
 }
 
 td.nav-vr{
-
   div{
     height: @navbar-height - 15;
     border-left: solid 1px lighten(@cs-dark-grey, 20%);
@@ -103,27 +106,18 @@ td.primary-subject {
   .local-fix-width(80px);
 }
 
-td.grade,
-th.grade {
-  .local-fix-width(40px);
-}
-
 th.ccss,
 td.ccss {
   .local-fix-width(50px);
 }
 
+td.grade,
+th.grade,
 th.type,
-td.type {
-  .local-fix-width(40px);
-}
-
+td.type,
 th.source,
 td.source {
-
-  min-width: 40px;
-  width: 40px;
-  max-width: 40px;
+  .local-fix-width(40px);
 }
 
 .title-holder {
@@ -174,12 +168,12 @@ td.title {
   position: fixed;
   .sub-nav-bar {
     padding-top: 5px;
-    background-color: lighten(@cs-navbar-color, 20%);
     .contents{
       max-width: @max-width;
       margin: 0 auto;
     }
     .mixin-box-shadow;
+    background-color: darken(@cs-dark-grey, 20%);
     .mixin-bg-gradient( darken(@cs-dark-grey, 30%), darken(@cs-dark-grey, 20%));
     height: 35px;
 
@@ -205,9 +199,10 @@ td.title {
 
   .view-item-container {
     margin: 0 auto;
-    width: 600px;
+    width: @max-width;
     height: 100%;
   }
+
   margin: 0 auto;
 
   .start-pod,
@@ -228,7 +223,7 @@ td.title {
 
 .no-items-info-pane {
   padding-top: 20px;
-  height: 100%;
+  height: 500px;
   background-image: url('/assets/images/corespring-faded-bg.jpg');
   background-repeat: no-repeat;
   background-position: center;
@@ -252,10 +247,16 @@ td.title {
   background-color: darken(@cs-navbar-color, 20%);
   .mixin-diagonal-stripes(-45deg, rgb(235,235,235), 10px, 0.2);
 
+  .btn{
+    margin-top: 0px;
+  }
 
   .header{
     margin: 0 auto;
     max-width: @max-width;
+    input {
+      height: 20px;
+    }
   }
 
   .navbar-bottom {
@@ -305,19 +306,12 @@ td.title {
 }
 
 a.cs-icon-link {
-  float: none;
+  padding-top: 0px;
+  padding-bottom: 2px;
+  padding-left: 4px;
+  padding-right: 4px;
+  margin-top: 0px;
   background-color: darken(@cs-navbar-color, 10%);
-  margin: 2px;
-  padding: 3px;
-  border-radius: 14px;
-  padding-right: 6px;
-  line-height: 19px;
-  color: #999999;
-  text-decoration: none;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-  width: 11px;
-  padding-left: 3px;
-  padding-top: 2px;
   &:hover {
     .mixin-inner-shadow( 2px, fade( @cs-dark-grey, 15%));
     background-color: darken(@cs-navbar-color, 20%);

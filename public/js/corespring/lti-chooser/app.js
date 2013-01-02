@@ -41,7 +41,6 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
   };
 
   $scope.loadItem = function(id){
-    console.log("loadItem - id: " + id);
     $location.url("/view/" + id);
   };
 
