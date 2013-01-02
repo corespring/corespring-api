@@ -28,8 +28,8 @@ object ItemApi extends BaseApi {
   val excludedFieldsByDefault = Some(MongoDBObject(
     Item.copyrightOwner -> 0,
     Item.credentials -> 0,
-    Item.contentType -> 0,
-    Item.data -> 0
+    // TODO: Putting this back temporarily so content team can edit items until it's fixed properly
+    Item.contentType -> 0
   ))
 
   val dataField = MongoDBObject(Item.data -> 1, Item.collectionId -> 1)
