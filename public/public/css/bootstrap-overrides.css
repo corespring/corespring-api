@@ -377,7 +377,7 @@ color: #0088cc;
 	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -44px -54px transparent;
 }
 .nav li a#partner-nav {
-	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -115px -106px transparent;
+	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -114px -106px transparent;
 }
 .navbar .nav-collapse .nav > li > a#partner-nav:hover, .navbar .nav-collapse .nav > li > #partner-nav.active {
 	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -115px -51px transparent;
@@ -389,7 +389,7 @@ color: #0088cc;
 	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -216px -51px transparent;
 }
 .nav li a#contact-nav {
-	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -278px -106px transparent;
+	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -278px -106px transparent; margin-right:0px;
 }
 .navbar .nav-collapse .nav > li > a#contact-nav:hover, .navbar .nav-collapse .nav > li > #contact-nav.active {
 	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -278px -51px transparent;
