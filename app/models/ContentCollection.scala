@@ -34,12 +34,13 @@ object ContentCollection extends DBQueryable[ContentCollection]{
   val dao = new SalatDAO[ContentCollection, ObjectId](collection = collection) {}
 
   def insert(orgId: ObjectId, coll: ContentCollection): Either[InternalError, ContentCollection] = {
+    //TODO: apply two-phase commit
       if(Play.isProd) coll.id = new ObjectId()
       try {
         super.insert(coll) match   {
           case Some(_) => try {
             Organization.update(MongoDBObject("_id" -> orgId),
-              MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> grater[ContentCollRef].asDBObject(new ContentCollRef(coll.id)))),
+              MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> grater[ContentCollRef].asDBObject(new ContentCollRef(coll.id,Permission.Write.value)))),
               false, false, Organization.collection.writeConcern)
             Right(coll)
           } catch {
@@ -113,12 +114,19 @@ object ContentCollection extends DBQueryable[ContentCollection]{
     }
   }
   def moveToArchive(collId:ObjectId):Either[InternalError,Unit] = {
+    //TODO: two phase commit should be added here too
     try{
       Content.collection.update(MongoDBObject(Content.collectionId -> collId), MongoDBObject("$set" -> MongoDBObject(Content.collectionId -> ContentCollection.archiveCollId.toString)),
         false, false, Content.collection.writeConcern)
+      ContentCollection.removeById(collId)
+      Organization.update(MongoDBObject(Organization.contentcolls+"."+ContentCollRef.collectionId -> collId),
+        MongoDBObject("$set" -> MongoDBObject(Organization.contentcolls+".$" -> null)),false,false,Organization.defaultWriteConcern)
+      Organization.update(MongoDBObject(),MongoDBObject("$pull" -> MongoDBObject(Organization.contentcolls -> null)),
+        false,false,Organization.defaultWriteConcern)
       Right(())
     }catch{
       case e:SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to transfer collection to archive")))
+      case e:SalatRemoveError => Left(InternalError(e.getMessage))
     }
   }
   def getCollectionIds(orgId: ObjectId, p:Permission, deep:Boolean = true): Seq[ObjectId] = {

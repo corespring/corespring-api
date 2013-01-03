@@ -114,11 +114,9 @@ object Organization extends DBQueryable[Organization]{
    * @param parentId
    * @return
    */
-  def getTree(parentId: ObjectId): List[Organization] = {
+  def getTree(parentId: ObjectId): Seq[Organization] = {
     val c = Organization.find(MongoDBObject(Organization.path -> parentId))
-    val orgList = c.toList
-    c.close
-    orgList
+    Utils.toSeq(c)
   }
 
   def isChild(parentId: ObjectId, childId: ObjectId): Boolean = {
@@ -135,6 +133,19 @@ object Organization extends DBQueryable[Organization]{
       Organization.contentcolls -> MongoDBObject("$elemMatch" ->
         MongoDBObject(ContentCollRef.collectionId -> collRef.collectionId, ContentCollRef.pval -> collRef.pval)))).isDefined
   }
+  def removeCollection(orgId:ObjectId, collId: ObjectId):Either[InternalError,Unit] = {
+    //TODO: two phase commit should be added here too
+    try {
+      Organization.update(MongoDBObject("_id" -> orgId, Organization.contentcolls+"."+ContentCollRef.collectionId -> collId),
+        MongoDBObject("$set" -> MongoDBObject(Organization.contentcolls+".$" -> null)),false,false,Organization.defaultWriteConcern)
+      Organization.update(MongoDBObject("_id" -> orgId),MongoDBObject("$pull" -> MongoDBObject(Organization.contentcolls -> null)),
+      false,false,Organization.defaultWriteConcern)
+      Right(())
+    }catch {
+      case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
+    }
+  }
+
   def getPermissions(orgId: ObjectId, collId: ObjectId):Permission = {
     getTree(orgId).foldRight[Permission](Permission.None)((o,p) => {
       o.contentcolls.find(_.collectionId == collId) match {
@@ -159,7 +170,7 @@ object Organization extends DBQueryable[Organization]{
     }
   }
   def getDefaultCollection(orgId: ObjectId):Either[InternalError,ContentCollection] = {
-    val collections = ContentCollection.getCollectionIds(orgId,Permission.Read,false);
+    val collections = ContentCollection.getCollectionIds(orgId,Permission.Write,false);
     if (collections.isEmpty){
       ContentCollection.insert(orgId,ContentCollection(ContentCollection.DEFAULT));
     }else{

@@ -8,6 +8,7 @@ import play.api.Play.current
 import models.mongoContext._
 import org.joda.time.DateTime
 import play.api.libs.json.{JsString, JsValue, JsObject, Writes}
+import controllers.auth.Permission
 
 
 /**
@@ -20,7 +21,7 @@ import play.api.libs.json.{JsString, JsValue, JsObject, Writes}
                           scope: Option[String],
                           var tokenId: String,
                           creationDate: DateTime,
-                          expirationDate: DateTime ) {
+                          expirationDate: DateTime) {
   def isExpired:Boolean = {
     DateTime.now().isAfter(expirationDate)
   }

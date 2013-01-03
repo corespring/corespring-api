@@ -22,11 +22,11 @@ object CollectionApi extends BaseApi {
    *
    * @return
    */
-  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
-    doList(request.ctx.organization, q, f, c, sk, l)
+  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
+      doList(request.ctx.organization, q, f, c, sk, l)
   }
 
-  def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+  def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
     if (Organization.isChild(request.ctx.organization, orgId)) {
       doList(orgId, q, f, c, sk, l)
     } else
@@ -46,7 +46,7 @@ object CollectionApi extends BaseApi {
    * @param id The collection id
    * @return
    */
-  def getCollection(id: ObjectId) = ApiAction { request =>
+  def getCollection(id: ObjectId) = ApiActionRead { request =>
     ContentCollection.findOneById(id) match {
       case Some(org) =>  {
         // todo: check if this collection is visible to the caller?
@@ -61,7 +61,7 @@ object CollectionApi extends BaseApi {
    *
    * @return
    */
-  def createCollection = ApiAction { request =>
+  def createCollection = ApiActionWrite { request =>
     request.body.asJson match {
       case Some(json) => {
         (json \ "id").asOpt[String] match {
@@ -107,7 +107,7 @@ object CollectionApi extends BaseApi {
    *
    * @return
    */
-  def updateCollection(id: ObjectId) = ApiAction { request =>
+  def updateCollection(id: ObjectId) = ApiActionWrite { request =>
     ContentCollection.findOneById(id).map( original => {
       request.body.asJson match {
         case Some(json) => {
@@ -135,13 +135,10 @@ object CollectionApi extends BaseApi {
   /**
    * Deletes a collection
    */
-  def deleteCollection(id: ObjectId) = ApiAction { request =>
-    ContentCollection.findOneById(id) match {
-      case Some(toDelete) => {
-        ContentCollection.removeById(id)
-        Ok(Json.toJson(toDelete))
-      }
-      case _ => unknownCollection
+  def deleteCollection(id: ObjectId) = ApiActionWrite { request =>
+    ContentCollection.moveToArchive(id) match {
+      case Right(_) => Ok()
+      case Left(e) => InternalServerError(Json.toJson(ApiError.DeleteCollection(e.clientOutput)))
     }
   }
 }
