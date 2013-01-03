@@ -3,14 +3,18 @@
     height: auto;
     display: table;
     background-color: #000;
-    border-spacing:15px;
-    table-layout:fixed;
+    border-spacing: 15px;
+    table-layout: fixed;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .focus-row {
-	width: 100%;
-	height: 100%;
-	display: table-row;
+    width: 100%;
+    height: 100%;
+    display: table-row;
 }
 
 .focus-element {
@@ -19,44 +23,46 @@
     display: table-cell;
     color: #fff;
     background: #808080;
-    border:2px solid #BFBFBF;
-    vertical-align:middle;
-    text-align:center;
+    border: 2px solid #BFBFBF;
+    vertical-align: middle;
+    text-align: center;
     font-family: "Ubuntu", Arial, Helvetica, sans-serif;
-    font-size:14px;
+    font-size: 14px;
     text-shadow: 0px 2px 1px rgba(0, 0, 0, 1);
-    max-width:94px;
+    max-width: 94px;
 }
 
 .focus-element.square {
-    -moz-border-radius:10px;
-    -webkit-border-radius:10px;
-    border-radius:10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
 }
 
 .focus-element.circle {
-    -moz-border-radius:94px;
-    -webkit-border-radius:94px;
-    border-radius:94px;
+    -moz-border-radius: 94px;
+    -webkit-border-radius: 94px;
+    border-radius: 94px;
 }
 
 .focus-element:hover {
     border: 2px solid #00ACCE;
     background: #CCC;
-    color:#000;
-    text-shadow:none;
-    cursor: hand; cursor: pointer;
+    color: #000;
+    text-shadow: none;
+    cursor: hand;
+    cursor: pointer;
 }
 
 .focus-element.selected {
     border: 2px solid #00ACCE;
     background: #fff;
-    color:#000;
-    text-shadow:none;
+    color: #000;
+    text-shadow: none;
     -moz-box-shadow: 0px 0px 21px #f7ff00;
     -webkit-box-shadow: 0px 0px 21px #f7ff00;
     box-shadow: 0px 0px 21px #f7ff00;
-    font-weight:500;}
+    font-weight: 500;
+}
 
 .focus-element.selected.shouldHaveBeenSelected {
     background-color: #53C516;
