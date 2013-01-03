@@ -5,6 +5,10 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
 
   var init = function(){
     var defaultsFactory = new com.corespring.model.Defaults();
+
+    /**
+     * Only allow KG->8 and add HS for 09->13
+     */
     function processDefaults(defaults) {
      var validKeys = "KG,01,02,03,04,05,06,07,08".split(",");
      var highschool = "09,10,11,12,13".split(",");

@@ -22,6 +22,7 @@ angular.module('tagger.services').factory('SearchService',
       searchFields: [
         'originId',
         'title',
+        'standards',
         'contributorDetails.copyright.owner',
         'contributorDetails.contributor',
         'contributorDetails.author'
