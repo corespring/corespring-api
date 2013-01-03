@@ -30,7 +30,8 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
   };
 
   $scope.init = function () {
-
+    $scope.settingsHaveChanged = false;
+    
     MessageBridge.sendMessage("parent", { message: "ready"});
 
     var params = {

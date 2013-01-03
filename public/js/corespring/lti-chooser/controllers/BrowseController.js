@@ -3,11 +3,6 @@ function BrowseController($scope, $rootScope, $location, Config, LaunchConfigSer
   //Mixin ItemFormattingUtils
   angular.extend($scope, ItemFormattingUtils);
 
-  $scope.showTip = true;
-
-  $scope.$on('beginSearch', function (event, items) {
-  });
-
   $scope.$on('searchCompleted', function (event, items) {
     $rootScope.items = items;
   });
@@ -17,13 +12,11 @@ function BrowseController($scope, $rootScope, $location, Config, LaunchConfigSer
     $location.url("/view/" + item.id);
   };
 
-
   $scope.settings = Config.settings;
 
   $scope.saveItem = function (onSaveCompleteCallback) {
     LaunchConfigService.save({id: $scope.config.id}, $scope.config, function (data) {
       $scope.config = data;
-      $scope.updateHasItem();
 
       if (onSaveCompleteCallback) onSaveCompleteCallback();
     });
@@ -52,9 +45,8 @@ function BrowseController($scope, $rootScope, $location, Config, LaunchConfigSer
   };
 
   $scope.loadMore = function(){
-    console.log("loadMore");
     $rootScope.$broadcast("loadMore");
-  }
+  };
 
 }
 
