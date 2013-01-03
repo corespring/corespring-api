@@ -4,7 +4,7 @@ function MainController($scope,  $location ) {
 
     $scope.$watch('config', function(){
 
-      if ($scope.config.itemId) {
+      if ($scope.config && $scope.config.itemId) {
         $location.url("/view/" + $scope.config.itemId);
       }
       else {
