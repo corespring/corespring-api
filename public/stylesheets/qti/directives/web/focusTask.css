@@ -22,13 +22,22 @@
     border:2px solid #BFBFBF;
     vertical-align:middle;
     text-align:center;
-    -moz-border-radius:10px;
-    -webkit-border-radius:10px;
-    border-radius:10px;
     font-family: "Ubuntu", Arial, Helvetica, sans-serif;
     font-size:14px;
     text-shadow: 0px 2px 1px rgba(0, 0, 0, 1);
     max-width:94px;
+}
+
+.focus-element.square {
+    -moz-border-radius:10px;
+    -webkit-border-radius:10px;
+    border-radius:10px;
+}
+
+.focus-element.circle {
+    -moz-border-radius:94px;
+    -webkit-border-radius:94px;
+    border-radius:94px;
 }
 
 .focus-element:hover {
