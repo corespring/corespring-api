@@ -27,6 +27,7 @@ angular.module('tagger.services').factory('SearchService',
         'contributorDetails.contributor',
         'contributorDetails.author'
       ],
+      
 
       search: function (searchParams, resultHandler, errorHandler) {
         this.searchParams = searchParams;

@@ -652,18 +652,17 @@ usage:
   angular.module('cs.directives').directive('multiSelect', [
     '$timeout', 'Utils', function($timeout, Utils) {
       var compile, definition, link, template;
-      template = "<span class=\"multi-select\">\n  <div \n    class=\"items\" \n    ng-click=\"showChooser=!showChooser\"\n    ng-bind-html-unsafe=\"multiGetSelectedTitle(selected)\">\n  </div>\n  <div class=\"chooser\" ng-show=\"showChooser\">\n   <ul>\n     <li ng-repeat=\"o in options\" >\n       <input type=\"checkbox\" ng-model=\"selectedArr[o.${uidKey}]\" ng-click=\"toggleItem(o)\"></input>\n       {{multiGetTitle(o)}}\n     </li>\n   </ul>\n  </div>\n</span>";
+      template = "<span class=\"multi-select\">\n ${summaryHtml}\n  <div class=\"chooser\" ng-show=\"showChooser\">\n   <ul>\n     <li ng-repeat=\"o in options\" >\n       <input type=\"checkbox\" ng-model=\"selectedArr[o.${uidKey}]\" ng-click=\"toggleItem(o)\"></input>\n       {{multiGetTitle(o)}}\n     </li>\n   </ul>\n  </div>\n</span>";
       /*
         Linking function
       */
 
       link = function(scope, element, attrs) {
-        var changeCallback, getSelectedTitleProp, getTitleProp, modelProp, optionsProp, uidKey, updateSelection;
+        var changeCallback, getTitleProp, modelProp, optionsProp, uidKey, updateSelection;
         optionsProp = attrs['multiOptions'];
         uidKey = attrs['multiUid'] || "key";
         modelProp = attrs['multiModel'];
         getTitleProp = attrs['multiGetTitle'];
-        getSelectedTitleProp = attrs['multiGetSelectedTitle'];
         changeCallback = attrs['multiChange'];
         scope.noneSelected = "None selected";
         scope.showChooser = false;
@@ -733,9 +732,6 @@ usage:
           }
           return null;
         };
-        scope.multiGetSelectedTitle = function(items) {
-          return scope[getSelectedTitleProp](items);
-        };
         scope.multiGetTitle = function(t) {
           return scope[getTitleProp](t);
         };
@@ -746,9 +742,18 @@ usage:
       */
 
       compile = function(element, attrs, transclude) {
-        var prepped, uidKey;
+        var outer, prepped, summaryHtml, uidKey;
         uidKey = attrs['multiUid'] || "key";
-        prepped = template.replace("${uidKey}", uidKey);
+        outer = null;
+        element.find("#summary").each(function() {
+          return outer = $(this).clone().wrap('<p>').parent().html();
+        });
+        summaryHtml = outer;
+        if (!(summaryHtml != null)) {
+          throw "You need to add a summary node to the multi-select: eg: <div id='summary'>...</div>";
+        }
+        summaryHtml = summaryHtml.replace(/(<.*?)(>)/, "$1 ng-click='showChooser=!showChooser' $2");
+        prepped = template.replace("${uidKey}", uidKey).replace("${summaryHtml}", summaryHtml);
         element.html(prepped);
         return link;
       };

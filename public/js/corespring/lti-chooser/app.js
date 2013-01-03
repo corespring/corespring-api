@@ -149,11 +149,13 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
   $scope.getTitle = function(o){ return o.key };
 
   $scope.getCollectionSelectedTitle = function(items){
-    return getMessage(items);
+    var out = _.map(items, function(i){ return i.name});
+    return out.join(", ");
   };
 
   $scope.getSelectedTitle = function(items){
-    return getMessage(items);
+    var out = _.map(items, function(i){return i.key});
+    return out.join(", ");
   };
 
   var getMessage = function(items){

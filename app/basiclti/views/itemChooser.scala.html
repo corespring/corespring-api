@@ -58,19 +58,20 @@
             alt="Corespring"/>
           </td>
           <td class="nav-vr"><div></div></td>
-          <td valign="center" class="nav-title">COLLECTION</td>
           <td>
             <span multi-select
               multi-get-title="getCollectionTitle"
-              multi-get-selected-title="getCollectionSelectedTitle"
               multi-options="collections"
               multi-change="search"
               multi-uid="name"
               multi-model="searchParams.collection">
+              <div id="summary">
+                COLLECTION
+                <span ng-bind-html-unsafe="getCollectionSelectedTitle(selected)"></span>
+              </div>
             </span>
           </td>
           <td class="nav-vr"><div></div></td>
-          <td class="nav-title" style="width: 85px;">GRADE LEVEL</td>
           <td valign="center" style="width: 40px;">
             <span multi-select
               multi-get-title="getTitle"
@@ -78,6 +79,10 @@
               multi-options="gradeLevelDataProvider"
               multi-change="search"
               multi-model="searchParams.gradeLevel">
+              <div id="summary">
+                GRADE LEVEL
+                <span ng-bind-html-unsafe="getSelectedTitle(selected)"></span>
+              </div>
             </span>
           </td>
           <td class="nav-vr"><div></div></td>
@@ -94,6 +99,9 @@
                 <i class="icon-search"></i>
               </span>
             </div>
+          </td>
+          <td>
+            <div class="item-count">{{getItemCountLabel(itemCount)}}</div>
           </td>
        </tr>
       </table>
