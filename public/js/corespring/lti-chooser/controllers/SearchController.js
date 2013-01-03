@@ -1,6 +1,4 @@
 function SearchController($scope, $rootScope, $http, ItemService, SearchService, Collection) {
-  //$http.defaults.headers.get = ($http.defaults.headers.get || {});
-  //$http.defaults.headers.get['Content-Type'] = 'application/json';
 
   $rootScope.searchParams = ($rootScope.searchParams || ItemService.createWorkflowObject() );
 
@@ -20,10 +18,6 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
       $rootScope.itemCount = 0;
       return;
     }
-
-    //if( shorterThan($scope.searchParams.searchText, 3) ){
-    //  return;
-    //}
 
     $rootScope.$broadcast("beginSearch");
     SearchService.search($scope.searchParams, function onSuccess(res){

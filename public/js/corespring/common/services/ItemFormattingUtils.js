@@ -122,4 +122,3 @@ angular.module('corespring-utils')
 
     };
   }]);
-//ItemFormattingUtils.js
