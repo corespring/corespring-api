@@ -65,7 +65,7 @@ function HomeController(
     $scope.deleteItem = function(item) {
         $scope.itemToDelete = item;
         $scope.showConfirmDestroyModal = true;
-    }
+    };
 
     $scope.deleteConfirmed = function(){
         var deletingId = $scope.itemToDelete.id;
