@@ -1,26 +1,72 @@
 function SearchController($scope, $rootScope, $http, ItemService, SearchService, Collection) {
 
   $rootScope.searchParams = ($rootScope.searchParams || ItemService.createWorkflowObject() );
+  $scope.unpreppedGradeLevel = [];
 
   var init = function(){
-    var defaults = new com.corespring.model.Defaults();
-    $scope.gradeLevelDataProvider = defaults.buildNgDataProvider("gradeLevels");
+    var defaultsFactory = new com.corespring.model.Defaults();
+    function processDefaults(defaults) {
+     var validKeys = "KG,01,02,03,04,05,06,07,08".split(",");
+     var highschool = "09,10,11,12,13".split(",");
+
+     var out = [];
+     var hs = { key: "HS", value: ""};
+     for( var i = 0 ; i < defaults.length ; i++ ){
+       var d = defaults[i];
+
+       if(highschool.indexOf(d.key) != -1){
+          if(!hs.value){
+            hs.value = [];
+          }
+          hs.value.push(d);
+       }
+       if(validKeys.indexOf(d.key) != -1){
+         out.push(d);
+       }
+     }
+     out.push(hs);
+     return out;
+    }
+
+    var defaults = defaultsFactory.buildNgDataProvider("gradeLevels");
+    var dataProvider = processDefaults(defaults);
+    $scope.gradeLevelDataProvider = dataProvider;
     loadCollections();
   };
 
+  $scope.processGradeLevel = function(gradeLevels){
+    var out = [];
+
+    if(!gradeLevels){
+      return out;
+    }
+
+    for(var i = 0 ; i < gradeLevels.length; i++ ){
+      var gl = gradeLevels[i];
+      if(gl.key == "HS"){
+        out = out.concat( gl.value );
+      } else {
+        out.push(gl);
+      }
+    }
+    return out;
+  };
+
   $scope.search = function() {
+    var params = angular.copy($scope.searchParams);
+    params.gradeLevel = $scope.processGradeLevel(params.gradeLevel);
 
     function isEmpty(p){ return !p.gradeLevel && !p.searchText && !p.collection; }
     function shorterThan(s, count){ return !s || s.length < count; }
 
-    if(isEmpty($scope.searchParams)){
+    if(isEmpty(params)){
       $rootScope.items = undefined;
       $rootScope.itemCount = 0;
       return;
     }
 
     $rootScope.$broadcast("beginSearch");
-    SearchService.search($scope.searchParams, function onSuccess(res){
+    SearchService.search(params, function onSuccess(res){
       $rootScope.items = res;
     },
     function onError(data){
