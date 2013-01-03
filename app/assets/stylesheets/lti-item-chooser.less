@@ -67,9 +67,9 @@ td.small-title {
 }
 
 th, td {
-  padding: 5px;
+ padding: 5px 2px 5px 2px;
   font-weight: normal;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   text-align: left;
 }
@@ -247,10 +247,12 @@ td.title {
 }
 
 .navbar {
-  height: @navbar-height;
+  height: 45px;
   padding-bottom: 5px;
-  background-color: darken(@cs-navbar-color, 20%);
-  .mixin-diagonal-stripes(-45deg, rgb(235,235,235), 10px, 0.2);
+  background: url("/assets/images/header-light-grey-br.gif") repeat scroll center top transparent;
+  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 
   .btn{
     margin-top: 0px;
@@ -270,7 +272,7 @@ td.title {
     position: absolute;
     bottom: 0px;
     left: 0px;
-    .mixin-diagonal-stripes(45deg, @cs-green, 10px, 0.2);
+    .mixin-diagonal-stripes(45deg, @cs-green, 6px, 0.2);
   }
   .mixin-box-shadow;
 
