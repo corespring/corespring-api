@@ -23,7 +23,7 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
     if (typeof(MathJax) != "undefined") {
       MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
     }
-  }, 200);
+  }, 500);
 
   $scope.reset = function () {
     $scope.$broadcast('reset');
