@@ -155,10 +155,12 @@ qtiDirectives.directive('focuschoice', function (QtiUtils) {
             if (!responses) return;
             if (!scope.itemSession || !scope.itemSession.sessionData || !scope.itemSession.sessionData.correctResponses) return;
             var correctResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.sessionData.correctResponses, "");
+            console.log(correctResponse);
             var response = QtiUtils.getResponseById(scope.responseIdentifier, scope.itemSession.responses);
             var withinLimits = response.outcome && !response.outcome.responsesBelowMin && !response.outcome.responsesExceedMax;
             if (withinLimits) {
                 var isCorrect = correctResponse.indexOf(scope.value) >= 0;
+                console.log(scope.highlightUserResponse() , scope.selected , !scope.onlyCountMatch , isCorrect);
                 scope.shouldHaveBeenSelected = scope.highlightUserResponse() && scope.selected && !scope.onlyCountMatch && isCorrect;
                 scope.shouldHaveBeenSelected |= !scope.onlyCountMatch && scope.highlightCorrectResponse() && isCorrect ;
                 scope.shouldHaveBeenSelected |= scope.onlyCountMatch && scope.selected;
