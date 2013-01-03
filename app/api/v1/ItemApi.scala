@@ -4,7 +4,7 @@ import controllers.auth.{Permission, BaseApi}
 import api.{ApiError, QueryHelper}
 import item.QueryCleaner
 import models._
-import com.mongodb.util.JSONParseException
+import com.mongodb.util.{JSONParseException}
 import org.bson.types.ObjectId
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
@@ -29,6 +29,7 @@ object ItemApi extends BaseApi {
   val excludedFieldsByDefault = Some(MongoDBObject(
     Item.copyrightOwner -> 0,
     Item.credentials -> 0,
+    // TODO: Putting this back temporarily so content team can edit items until it's fixed properly
     Item.contentType -> 0
   ))
 
@@ -66,13 +67,27 @@ object ItemApi extends BaseApi {
   private def listWithCollection(request: ApiRequest[AnyContent], collectionId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int): Result = {
     if (ContentCollection.isAuthorized(request.ctx.organization, collectionId, Permission.All)) {
       val initSearch = MongoDBObject(Content.collectionId -> collectionId.toString)
-      QueryHelper.list(q, f, c, sk, l, Item, Some(initSearch))
+      val fieldsDbo:BasicDBObject = f.map(com.mongodb.util.JSON.parse(_).asInstanceOf[BasicDBObject]) match {
+        case Some(dbo) => {
+          dbo.remove(Item.data)
+          dbo
+        }
+        case None =>new BasicDBObject().append(Item.data,0)
+      }
+      QueryHelper.listSimple(Item, q, Some(fieldsDbo), c == "true", sk, l, Some(initSearch))
     } else Forbidden(toJson(ApiError.UnauthorizedOrganization))
   }
 
-  private def listWithFields(orgId: ObjectId, q: Option[String], f: Option[Object], c: String, sk: Int, l: Int) = {
+  private def listWithFields(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = {
     val initSearch = MongoDBObject(Content.collectionId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(orgId, Permission.All).map(_.toString)))
-    QueryHelper.list(q, f, c, sk, l, Item, Some(initSearch))
+    val fieldsDbo:BasicDBObject = f.map(com.mongodb.util.JSON.parse(_).asInstanceOf[BasicDBObject]) match {
+      case Some(dbo) => {
+        dbo.remove(Item.data)
+        dbo
+      }
+      case None =>new BasicDBObject().append(Item.data,0)
+    }
+    QueryHelper.listSimple(Item, q, Some(fieldsDbo), c == "true", sk, l, Some(initSearch))
   }
 
   /**

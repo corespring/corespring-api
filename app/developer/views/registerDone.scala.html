@@ -5,11 +5,11 @@
 @import securesocial.core.AuthenticationMethod._
 @import securesocial.core.providers.UsernamePasswordProvider.UsernamePassword
 
-@main("Registartion Done") {
+@main("Registration") {
     <div class="container" style="width: 960px;">
         <div class="well" style="position: relative; top: 100px; width:500px;">
 
-            <h3>Thank you for registering!</h3>
+            <h3>Thank you!</h3>
             <br/>
             @errorMsg.map { msg =>
             <div class="alert alert-error">
@@ -21,7 +21,7 @@
 
             <br/>
             <br/>
-            <a class="btn-link" href="/">Back to main Site</a>
+            <a class="btn-link" href="/developer/home">Return to the CoreSpring Developer Page</a>
         </div>
     </div>
 }

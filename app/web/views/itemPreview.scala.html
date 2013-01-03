@@ -1,7 +1,7 @@
 @(itemId:String, accessToken : String )
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
-<html ng-app="item-preview" style="height: 100%">
+<html ng-app="item-preview">
 <head>
     <title>Item Preview</title>
     <meta name="description" content="CoreSpring Content Tagger"/>
@@ -30,7 +30,7 @@
     <link media="all" type="text/css" rel="stylesheet" href="/assets/public/css/bootstrap-overrides.css"> <!--JM ADDED 12-14 TODO -- REMOVE AND CONSOLIDATE THAT FILE -->
     <script src="/assets/js/vendor/corespring-ng-components/corespring-ng-components.js" type="text/javascript" ></script>
 </head>
-<body ng-controller="PreviewController" style="height: 100%">
+<body ng-controller="PreviewController">
 
 <div class="sub-nav">
     <div class="container" style="width: 600px;">
@@ -80,7 +80,7 @@
                 class="iframe-preview"></iframe>
     </div>
 
-    <div id='profileView' ng-show="currentPanel=='profile'" class="preview-container" style="overflow-y: auto;" >
+    <div id='profileView' ng-show="currentPanel=='profile'" class="preview-container">
         <div class="container" style="width: 600px; margin-bottom: 50px;" >
             @web.views.html.partials._viewItem.corespringData()
             @web.views.html.partials._viewItem.history()

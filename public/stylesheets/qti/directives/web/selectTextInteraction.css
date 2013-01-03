@@ -1,0 +1,33 @@
+[selectable] {
+}
+
+[selectable] .hover {
+    background-color: rgb(191, 191, 191);
+    background-color: rgba(191, 191, 191, 0.2);
+
+    cursor: hand; cursor: pointer;
+}
+
+[selectable] .hand {
+    cursor: hand; cursor: pointer;
+}
+
+/* Selected answer - correctness not known */
+[selectable] .selected {
+    background-color: rgb(139,141,142);
+}
+
+/* Selected Incorrect Answer */
+[selectable] .selected.shouldNotHaveBeenSelected {
+    background-color: #F8A31A;
+}
+
+/* Not selected Correct Answer */
+[selectable] .shouldHaveBeenSelected {
+    background-color: #F8A31A;
+}
+
+/* Selected Correct Answer */
+[selectable] .selected.shouldHaveBeenSelected {
+    background-color: #53C516;
+}

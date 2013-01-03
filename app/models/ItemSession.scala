@@ -199,6 +199,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
           u.responses = Score.scoreResponses(u.responses, qtiItem)
           finishSessionIfNeeded(u)
           //TODO: We need to be careful with session data - you can't persist it
+
           u.sessionData = Some(SessionData(qtiItem, u))
         })
 
@@ -280,7 +281,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     def finishIfThereAreNoIncorrectResponses() {
       val incorrectResponses = session.responses.filter(_.outcome match {
         case None => false
-        case Some(o) => if (o.score == 0) true else false
+        case Some(o) => if (o.score <= 0) true else false
       })
 
       if (incorrectResponses.length == 0) {

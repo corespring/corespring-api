@@ -1,7 +1,7 @@
 package tests.qti.models
 
 import org.specs2.mutable._
-import qti.models.FeedbackInline
+import qti.models.interactions.FeedbackInline
 
 class FeedbackElementTest extends Specification {
 

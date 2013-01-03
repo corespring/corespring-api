@@ -251,7 +251,7 @@ color: #000000;
 font: 300 14px/20px "Ubuntu", Arial, Helvetica, sans-serif;
 margin: 0 0 10px;
 padding-bottom: 0;
-padding-top: 10px;
+padding-top: 10px;  #0088cc;
 }
 .well a.btn {
 	font-size: 13px;
@@ -266,6 +266,11 @@ padding-top: 10px;
 	vertical-align: top;
 	font-size:13px;
 }
+
+.well.item .fancybox:hover .title{
+color: #0088cc;
+}
+
 .item td.value {
 	color: #333333;
 	font-size: 13px;
@@ -372,7 +377,7 @@ padding-top: 10px;
 	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -44px -54px transparent;
 }
 .nav li a#partner-nav {
-	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -115px -106px transparent;
+	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -114px -106px transparent;
 }
 .navbar .nav-collapse .nav > li > a#partner-nav:hover, .navbar .nav-collapse .nav > li > #partner-nav.active {
 	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -115px -51px transparent;
@@ -384,7 +389,7 @@ padding-top: 10px;
 	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -216px -51px transparent;
 }
 .nav li a#contact-nav {
-	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -278px -106px transparent;
+	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -278px -106px transparent; margin-right:0px;
 }
 .navbar .nav-collapse .nav > li > a#contact-nav:hover, .navbar .nav-collapse .nav > li > #contact-nav.active {
 	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -278px -51px transparent;
@@ -584,15 +589,23 @@ hr {
 	margin: 20px 0px;
 }
 /* print button*/
-.nav li a.prev-print {
+.nav li a.prev-print, .nav li a.prev-print:hover {
 	background-color:transparent;
 	border: none;
+}
+.sub-nav .nav li a.prev-print:hover {
+	padding-top:7px !important;
+}
+
+.sub-nav .nav li a.prev-print:focus {
+	padding-top:8px !important;
 }
 
 /* CSS FOR PUBLIC SITE FLOAT ITEM PLAYER */
 
 .preview-container {
-	padding-top: 55px;
+padding-top: 0px;
+height: 690px;
 }
 
 div.sub-nav div.container div.row.row {
@@ -618,6 +631,7 @@ margin-left: 13px;
 	border-bottom: 0px solid white;
 	padding-bottom: 8px;
 	margin-top:0px;
+	text-decoration:none;
 }
 /* inactive tab */
 .nav-tabs > li > a {
@@ -635,7 +649,11 @@ margin-left: 13px;
 
 /*hover tabs */
 .nav-tabs > li > a:hover {
-background-color: #eee;
+background-color: #E1E1E1;
+border-color: #433f43 #433f43 #000;
+color: rgba(0,0,0,1.0);
+text-shadow: 2px 2px 3px rgba(255,255,255,0.1);
+text-decoration:underline;
 }
 
 .nav-tabs {
@@ -655,14 +673,24 @@ background-color: #eee;
 margin-top: 5px;
 }
 
+.profile .item-type {
+margin-bottom: 5px;
+}
+
 
 /*REDUCE SIZE OF PROFILE */
 .profile {
 width: 580px;
 font-family: "Ubuntu", Arial, Helvetica, sans-serif;
-padding: 0 10px;
+padding: 60px 10px 10px 10px;
 }
 
+div.container.profile.profileSource {
+padding: 10px 10px 10px 10px;
+margin-bottom: 60px;
+}
+	
+	
 .profile p.profile-h1 {
 padding-top: 5px;
 }
@@ -674,5 +702,17 @@ width: 660px !important;
 
 .fancybox-inner {
 width:640px !important;
+height: 695px; !important;
 }
 
+
+.iframe-preview {
+padding-top: 30px;
+}
+/* end of sizing */
+
+
+div.well.item a.fancybox:hover {
+color: #0088cc !important;
+text-decoration: underline;
+}

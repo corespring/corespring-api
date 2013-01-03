@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html ng-app="corespring-dev">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="google-site-verification" content="-wfxFrZYKKRpF5_-V-G9g1wk5e8HrF2zKc-FKJ-NhNE" />
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="google-site-verification" content="-wfxFrZYKKRpF5_-V-G9g1wk5e8HrF2zKc-FKJ-NhNE"/>
     <title>Developers</title>
     <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
-    <link href="bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" media="all" />
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" media="all"/>
     <link href="/assets/public/css/bootstrap-overrides.css" rel="stylesheet" type="text/css" media="all">
 
     <!--
     <link href="css/app.css" rel="stylesheet" type="text/css" media="all" />
     -->
-    <link href="css/new_app.css" rel="stylesheet" type="text/css" media="all" />
-    <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/x-icon" />
+    <link href="css/new_app.css" rel="stylesheet" type="text/css" media="all"/>
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/x-icon"/>
     <script type="text/javascript" src="js/vendor/less/1.3.0/less-1.3.0.min.js"></script>
     <script type="text/javascript" src="js/vendor/jquery/1.8.0/jquery-1.8.0.min.js"></script>
     <script type="text/javascript" src="js/vendor/ie.support/jQuery.XDomainRequest.js"></script>
@@ -26,191 +26,161 @@
 
     <script type="text/javascript">
 
-      //support ie cross domain calls
-      $.support.cors = true;
+        //support ie cross domain calls
+        $.support.cors = true;
 
 
-      window.com = ( window.com || {} );
-      window.com.linkDump = (com.linkDump || {} );
+        window.com = ( window.com || {} );
+        window.com.linkDump = (com.linkDump || {} );
 
-      function navigateToLink( hash, nudge ){
+        function navigateToLink(hash, nudge) {
 
-        nudge = (nudge || 0);
+            nudge = (nudge || 0);
 
-        var $target = $(hash);
-        $target = $target.length && $target || $('[name=' + hash.slice(1) +']');
-        if ($target.length) {
-          var targetOffset = $target.offset().top - 120 + nudge;
-          $('html,body').animate({scrollTop: targetOffset}, 200);
-          return false;
+            var $target = $(hash);
+            $target = $target.length && $target || $('[name=' + hash.slice(1) + ']');
+            if ($target.length) {
+                var targetOffset = $target.offset().top - 120 + nudge;
+                $('html,body').animate({scrollTop: targetOffset}, 200);
+                return false;
+            }
         }
-      }
 
 
-      $(document).ready(function(){
+        $(document).ready(function () {
 
 
-        $('a[href*=#]').click(function() {
-          
-          if( this.hash.indexOf("acc") == 1 ){
-            return true;
-          }
+            $('a[href*=#]').click(function () {
 
-          if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') 
-              && location.hostname == this.hostname) {
-            console.log("navigateToLink: " + this.hash)
-            navigateToLink(this.hash);
-            window.location.hash = this.hash;
-            return false;
-          }
-        });
+                if (this.hash.indexOf("acc") == 1) {
+                    return true;
+                }
+
+                if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '')
+                        && location.hostname == this.hostname) {
+                    console.log("navigateToLink: " + this.hash)
+                    navigateToLink(this.hash);
+                    window.location.hash = this.hash;
+                    return false;
+                }
+            });
 
 
-          function setContentDivHeight(){
-            //$(".main-content").height( $(window).height() - 70);
-          }
-
-          $(window).bind('resize', function(){
-              setContentDivHeight();
-          }); 
-
-          setContentDivHeight();
-
-          $(".accordion-body").on("shown", function() {
-            com.linkDump.activeAccordion = this;
-          });
-
-          $(".api-well").find("a").click(function(){
-
-            $(".api-well").find("a").parent().removeClass("active");
-            $(this).parent().addClass("active");
-
-            $(".waypoint").waypoint('destroy');
-            setTimeout( initWaypoints, 200);
-          });
-
-          function initWaypoints(){
-            /**
-             * Disabling this for now as its a bit ropey.
-             */
-            //$(".waypoint").waypoint( waypointHandler, { context: $(".main-content"), onlyOnScroll: true });
-          };
-          
-
-          function activateLinkAndOpenAccordian( $link ){
-
-            $link.parent().addClass("active");
-            var incomingAccordion = $link.closest(".accordion-body")[0];
-
-           
-
-            if( com.linkDump.activeAccordion == incomingAccordion ){
-              return;
+            function setContentDivHeight() {
+                //$(".main-content").height( $(window).height() - 70);
             }
 
-            $(com.linkDump.activeAccordion).collapse("hide");
+            $(window).bind('resize', function () {
+                setContentDivHeight();
+            });
 
-            setTimeout( function(){
-              $(incomingAccordion).collapse("show");
-              com.linkDump.activeAccordion = incomingAccordion;
-              }, 200 );
-          }
+            setContentDivHeight();
+
+            $(".accordion-body").on("shown", function () {
+                com.linkDump.activeAccordion = this;
+            });
+
+            $(".api-well").find("a").click(function () {
+
+                $(".api-well").find("a").parent().removeClass("active");
+                $(this).parent().addClass("active");
+
+                $(".waypoint").waypoint('destroy');
+                setTimeout(initWaypoints, 200);
+            });
+
+            function initWaypoints() {
+                /**
+                 * Disabling this for now as its a bit ropey.
+                 */
+                //$(".waypoint").waypoint( waypointHandler, { context: $(".main-content"), onlyOnScroll: true });
+            };
 
 
+            function activateLinkAndOpenAccordian($link) {
 
-          function waypointHandler(event,direction){
-            var name = $(event.currentTarget).attr('name');
-            //window.location.hash = name;
-            //console.log("name: " + name)
-            $(".api-well").find("a").parent().removeClass("active");
-            var $menuLink = $(".api-well").find( 'a[href$="'+name+'"]');
-            activateLinkAndOpenAccordian($menuLink);
-          }
+                $link.parent().addClass("active");
+                var incomingAccordion = $link.closest(".accordion-body")[0];
 
-          if( window.location.hash ){
 
-            var activeLink = $(".api-well").find('a[href$="'+ window.location.hash+'"]');
-            activateLinkAndOpenAccordian(activeLink);
-          }
+                if (com.linkDump.activeAccordion == incomingAccordion) {
+                    return;
+                }
 
-          setTimeout( initWaypoints, 200 );
+                $(com.linkDump.activeAccordion).collapse("hide");
 
-          setTimeout( function() { navigateToLink( window.location.hash, -10 ) }, 300 );
+                setTimeout(function () {
+                    $(incomingAccordion).collapse("show");
+                    com.linkDump.activeAccordion = incomingAccordion;
+                }, 200);
+            }
 
-      });
+
+            function waypointHandler(event, direction) {
+                var name = $(event.currentTarget).attr('name');
+                //window.location.hash = name;
+                //console.log("name: " + name)
+                $(".api-well").find("a").parent().removeClass("active");
+                var $menuLink = $(".api-well").find('a[href$="' + name + '"]');
+                activateLinkAndOpenAccordian($menuLink);
+            }
+
+            if (window.location.hash) {
+
+                var activeLink = $(".api-well").find('a[href$="' + window.location.hash + '"]');
+                activateLinkAndOpenAccordian(activeLink);
+            }
+
+            setTimeout(initWaypoints, 200);
+
+            setTimeout(function () {
+                navigateToLink(window.location.hash, -10)
+            }, 300);
+
+        });
     </script>
-  </head>
+</head>
 
-  <body ng-controller="MainController">
-    
-    <div class="header-wrap">
-      <div class="container">
-          <header class="header">
-              <div class="logo-new">
-                  <a class="img-link" href="/">
-                  <img src="/assets/public/images/logo-new.png" alt="CoreSpring">
-                  </a>
-              </div>
+<body ng-controller="MainController">
 
-              <nav class="nav" align="right">
-                  <div class="navbar">
-                      <div class="">
-                          <div class="container">
-
-                              <div class="nav-collapse">
-                                  <ul class="nav">
-                                      <li><a id="edu-nav" href="/public/educators">Educators</a></li>
-                                      <li><a id="dev-nav" class="active" href="/developer/home">developers</a></li>
-                                      <li><a id="partner-nav" href="/public/partnerships">partnerships</a></li>
-                                      <li><a id="about-nav" href="/public/about">about</a></li>
-                                      <li><a id="contact-nav" href="/public/contact">contact</a></li>
-                                  </ul>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-              </nav>
-
-          </header>
-      </div>
-    </div>
-    
-    <div class="title-wrap">
-    </div>
-
-
-    <div class="dev-login-box" ng-controller="DeveloperCtrl">
-        <div ng-switch on="authState">
-            <div ng-switch-when="noauth">
-                <ul>
-                    <li>
-                        <span><a href="/developer/login">Login</a> | <a href="/developer/register">Register</a></span>
-                    </li>
-                </ul>
+<div class="header-wrap">
+    <div class="container">
+        <header class="header">
+            <div class="logo-new">
+                <a class="img-link" href="/">
+                    <img src="/assets/public/images/logo-new.png" alt="CoreSpring">
+                </a>
             </div>
-            <div ng-switch-when="noorg">
-                <ul>
-                    <li>
-                        <span>{{username}} <a href="/developer/logout">logout</a> | <a href="/developer/org/form">register organization</a></span>
-                    </li>
-                </ul>
-            </div>
-            <div ng-switch-when="registered">
-                <ul>
-                    <li>
-                        <span>{{username}} [<a ng-href="/developer/org/{{org.id}}">{{org.name}}</a>] | <a href="/developer/logout">Logout</a></span>
-                    </li>
-                </ul>
-            </div>
-        </div>
+
+            <nav class="nav" align="right">
+                <div class="navbar">
+                    <div class="">
+                        <div class="container">
+
+                            <div class="nav-collapse">
+                                <ul class="nav">
+                                    <li><a id="edu-nav" href="/public/educators">Educators</a></li>
+                                    <li><a id="dev-nav" class="active" href="/developer/home">developers</a></li>
+                                    <li><a id="partner-nav" href="/public/partnerships">partnerships</a></li>
+                                    <li><a id="about-nav" href="/public/about">about</a></li>
+                                    <li><a id="contact-nav" href="/public/contact">contact</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+        </header>
     </div>
+</div>
+
+<div class="title-wrap">
+</div>
 
 
-
-
-    <div class="container main-container">
-
-      <div class="well api-well" style="padding: 8px 0; width: 240px;">
+<div class="container main-container">
+    <div class="well api-well" style="padding: 8px 0; width: 240px;">
         <ul class="nav nav-list">
 
   <li class="nav-header" style="color: white;"><span class="caps">REST</span> Api</li>
@@ -330,10 +300,10 @@ Users
   <li><a href="#extended-metadata" class="main-menu">Extended Metadata</a></li>
   <li><a href="#item-statistics" class="main-menu">Item Statistics</a></li>
 </ul>
-      </div> 
-      <!-- main content -->
-      <div class="main-content">
-          <br/>
+    </div>
+    <!-- main content -->
+    <div class="main-content">
+        <br/>
 
 
 <div class="span9 lead-in developer" style="margin-left: 0px;">
@@ -358,10 +328,7 @@ Our developer tools include a set of APIs for finding and managing collections o
 <h1><a name="release-schedule" class="waypoint"></a>Release Schedule</h1>
 
 <ul>
-<li><p><del>Milestone 1: Draft API, Request for Comment (July 2012)</del></p></li>
-<li><p><del>Milestone 2: Live test server &amp; test fixtures (August 2012)</del></p></li>
-<li><p><del>Milestone 3: Beta Release of 1.0 API, Alpha Item Player (September/October 2012)</del></p></li>
-<li><p><strong>Milestone 4: Developer Documents and Example Conent for Item Player Integration (Nov/Early Dec 2012) </strong></p></li>
+<li><p><del>Milestone 4: Developer Documents and Example Content for Item Player Integration (Nov/Early Dec 2012) </del></p></li>
 <li><p>1.0 Final API (Spring 2013)</p></li>
 </ul>
 
@@ -387,8 +354,7 @@ Our developer tools include a set of APIs for finding and managing collections o
 
 <h2><a name="authentication-register" class="waypoint"></a> Registering to Use the API</h2>
 
-<p>To use the Corespring API you must first create and register an Organization in the system.
-(We will provide the registration page at a later date, but for now have provided fixture data for testing with our live testing server.)</p>
+<p>To use the Corespring API you must first create and <a href="/developer/register">register</a> an Organization in the system.</p>
 
 <p>All calls to the API are performed in the context of this Orgnization.</p>
 
@@ -400,7 +366,7 @@ The interactive API widget is pre-configured to use this access token.</p></bloc
 
 <h2><a name="authentication-get-token" class="waypoint"></a> Getting an Access Token</h2>
 
-<p>Once you have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL.</p>
+<p>Once you have <a href="/developer/register">registered</a> and have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL. The client_id and secret pre-set below are for demo purposes and can access some demo content. For more complete access register and enter your own client_id and secret below.</p>
 
 <br/>
 
@@ -408,7 +374,7 @@ The interactive API widget is pre-configured to use this access token.</p></bloc
 <div style="padding-bottom: 10px;">
   <rest-widget
     method="POST"
-    disabled="true"
+    disabled="false"
     disabled-message="currently disabled to ensure the fixture data stays in the correct state"
     path="/auth/access_token"
     form-params="client_id=502424ca0364b3c1c30dec64&client_secret=26bn1r8cmlso1tmm1kw1&grant_type=client_credentials"
@@ -511,7 +477,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
   <rest-widget 
     method="GET" 
     path="/collections/:collectionId" 
-    url="http://api-test.corespring.org/api/v1/collections/5001bb0ee4b0d7c9ec3210a2?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/collections/5001b9b9e4b035d491c268c3?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -569,7 +535,7 @@ The collection must have a name and must provide an array of organization ids wi
     method="PUT" 
     path="/collections/:id" 
     request-body='{ "name" : "My Collection", "organizations": ["502404dd0364dc35bb39339a"] }'
-    url="http://api-test.corespring.org/api/v1/collections/5001bb0ee4b0d7c9ec3210a2?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/collections/5001b9b9e4b035d491c268c3?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -592,7 +558,7 @@ This complete model for Item is described at the end of this section.</p>
 <h2><a name="items-get" class="waypoint"></a>Getting an Item</h2>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget method="GET" path="/items/:itemId" url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?access_token=34dj45a769j4e1c0h4wb">
+  <rest-widget method="GET" path="/items/:itemId" url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -608,7 +574,7 @@ This complete model for Item is described at the end of this section.</p>
   <rest-widget
     method="GET"
     path="/items/:itemId/detail"
-    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/detail?access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/detail?access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -647,7 +613,7 @@ This complete model for Item is described at the end of this section.</p>
     method="GET"
     disabled="true"
     path="/items/:itemId?v=0"
-    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?v=0&access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?v=0&access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -678,7 +644,7 @@ This complete model for Item is described at the end of this section.</p>
   <rest-widget
     method="GET"
     path="/collections/:collectionId/items"
-    url="http://api-test.corespring.org/api/v1/collections/5001bb0ee4b0d7c9ec3210a2/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="http://api-test.corespring.org/api/v1/collections/5001b9b9e4b035d491c268c3/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -708,7 +674,7 @@ This complete model for Item is described at the end of this section.</p>
   <rest-widget
     method="POST"
     path="/items"
-    request-body='{ "collId": "5001bb0ee4b0d7c9ec3210a2", "itemType": "Multiple Choice"}'
+    request-body='{ "collId": "5001b9b9e4b035d491c268c3", "itemType": "Multiple Choice"}'
     url="http://api-test.corespring.org/api/v1/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
@@ -723,7 +689,7 @@ Takes JSON Item in the body of the request. See the <a href="#items-model">Item 
     method="PUT"
     path="/items/:itemId"
     request-body='{"itemType": "Multiple Choice"}'
-    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -739,7 +705,7 @@ Takes JSON Item in the body of the request. See the Item Model below for propert
     disabled-class="ok"
     method="DELETE"
     path="/items/:itemId"
-    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -818,23 +784,6 @@ When retrieving individual items a subset of the item properties are returned by
     <td>The type of the item: [Standard Multiple Choice, Matching, Ordering, True/False, Yes/No, True/False, Multiple True/False, Categorize, Complete a Matrix, Constructed Response - Short Answer, Constructed Response - Open Ended, Project, Portfolio] </td>
     <td>String</td>
     <td></td>
-  </tr>
- <tr>
-    <td>files</td>
-    <td>list of files/assets associated with the item.</td>
-    <td>Array[{Json Object}]: e.g. 
-`
-[
-        {
-            "filename": "1.jpg"
-        },
-        {
-            "filename": "2.png"
-        }
-    ]
-`
-</td>
-    <td>true</td>
   </tr>
   <tr>
     <td>pValue</td>
@@ -948,7 +897,7 @@ these properties as was originally set by the contributor of the item:</p>
     <rest-widget
       method="GET"
       path="/items/:itemId/sessions/:sessionId"
-      url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/sessions/502d627230048a31ef37a3f8?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/sessions/502d627230048a31ef37a3f8?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -960,7 +909,7 @@ these properties as was originally set by the contributor of the item:</p>
     <rest-widget
       method="GET"
       path="/items/:itemId/sessions"
-      url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/sessions?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/sessions?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -972,7 +921,7 @@ these properties as was originally set by the contributor of the item:</p>
     <rest-widget
       method="POST"
       path="/items/:itemId/sessions"
-      url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/sessions?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/sessions?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -985,7 +934,7 @@ these properties as was originally set by the contributor of the item:</p>
       method="PUT"
       request-body='{"finish" : 1345727522, "responses": [{"id":"question1", "value":"choiceA"}]}'
       path="/items/:itemId/sessions/:sessionId"
-      url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/sessions/502d627230048a31ef37a3f8?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/sessions/502d627230048a31ef37a3f8?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -1244,7 +1193,7 @@ who may be interested in using this functionality.</p></blockquote>
     disabled="true"
     disabled-message="Coming Soon!"
     path="/items/:itemId?ext=true" 
-    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?ext=true&access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?ext=true&access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -1257,7 +1206,7 @@ who may be interested in using this functionality.</p></blockquote>
     disabled="true"
     disabled-message="Coming Soon!" 
     path="/items/:itemId?ext=:key" 
-    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?ext=_key_here_&access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?ext=_key_here_&access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -1279,7 +1228,7 @@ who may be interested in using this functionality.</p></blockquote>
     disabled="true"
     disabled-message="Coming Soon!" 
     path="/items/:itemId/ext/:key" 
-    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/ext/_key_here_?&access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/ext/_key_here_?&access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -1292,7 +1241,7 @@ who may be interested in using this functionality.</p></blockquote>
     disabled="true"
     disabled-message="Coming Soon!" 
     path="/items/:itemId/ext/:key" 
-    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/ext/_key_here_?&access_token=34dj45a769j4e1c0h4wb">
+    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/ext/_key_here_?&access_token=34dj45a769j4e1c0h4wb">
   </rest-widget>
 </div>
 
@@ -1323,7 +1272,7 @@ who may be interested in using this functionality.</p></blockquote>
       disabled="true"
       disabled-message="Coming Soon!"
       path="/items/:itemId/statistics"
-      url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/statistics?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/statistics?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -1340,7 +1289,7 @@ who may be interested in using this functionality.</p></blockquote>
       disabled="true"
       disabled-message="Coming Soon!"
       path="/items/:itemId/stats=true"
-      url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90?stats=true&access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?stats=true&access_token=34dj45a769j4e1c0h4wb"></rest-widget>
 </div>
 
 
@@ -1410,9 +1359,39 @@ who may be interested in using this functionality.</p></blockquote>
 
 <hr />
 
-<p>date:  12/13/2012 01:14PM</p>
+<p>date:  01/02/2013 05:44PM</p>
 
-      </div>
-    </body>
-  </html>
+    </div>
+    <div class="dev-login-box" ng-controller="DeveloperCtrl">
+        <div ng-switch on="authState">
+            <div ng-switch-when="noauth">
+                <ul>
+                    <li>
+                            <span><a href="/developer/login">Login</a> | <a
+                                    href="/developer/register">Register</a></span>
+                    </li>
+                </ul>
+            </div>
+            <div ng-switch-when="noorg">
+                <ul>
+                    <li>
+                            <span>{{username}} <a href="/developer/logout">logout</a> | <a
+                                    href="/developer/org/form">register organization</a></span>
+                    </li>
+                </ul>
+            </div>
+            <div ng-switch-when="registered">
+                <ul>
+                    <li>
+                            <span>{{username}} [<a
+                                    ng-href="/developer/org/{{org.id}}">{{org.name}}</a>] | <a
+                                    href="/developer/logout">Logout</a></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
 
