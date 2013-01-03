@@ -116,7 +116,7 @@ object User extends DBQueryable[User]{
   }
 
   def getOrganizations(user: User, p: Permission):Seq[Organization] = {
-    val orgs:Seq[ObjectId] = user.orgs.filter(uo => uo.pval == p.value).map(uo => uo.orgId)
+    val orgs:Seq[ObjectId] = user.orgs.filter(uo => (uo.pval&p.value) == p.value).map(uo => uo.orgId)
     Utils.toSeq(Organization.find(MongoDBObject("_id" -> MongoDBObject("$in" -> orgs))))
   }
   /**

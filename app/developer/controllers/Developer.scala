@@ -72,7 +72,7 @@ object Developer extends Controller with SecureSocial{
   def getOrganization = SecuredAction(){ request =>
     User.getUser(request.user.id) match {
       case Some(user) => {
-        val orgs = User.getOrganizations(user,Permission.All)
+        val orgs = User.getOrganizations(user,Permission.Read)
         //get the first organization besides the public corespring organization. for now, we assume that the person is only registered to one private organization
         orgs.find(o => o.id.toString != Organization.CORESPRING_ORGANIZATION_ID) match {
           case Some(o) => Ok(Json.toJson(o))
@@ -102,7 +102,7 @@ object Developer extends Controller with SecureSocial{
                 case Right(org) => {
                   User.getUser(request.user.id) match {
                     case Some(user) => {
-                      User.addOrganization(user.id,org.id,Permission.All) match {
+                      User.addOrganization(user.id,org.id,Permission.Write) match {
                         case Right(_) => Ok(Json.toJson(org))
                         case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateUser(error.clientOutput)))
                       }

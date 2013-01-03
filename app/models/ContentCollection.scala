@@ -131,8 +131,15 @@ object ContentCollection extends DBQueryable[ContentCollection]{
     val cursor = ContentCollection.find(MongoDBObject(isPublic -> true))
     Utils.toSeq(cursor)
   }
-  def addOrganizations(orgIds: Seq[ObjectId], collId: ObjectId, p: Permission): Either[InternalError, Unit] = {
-    val errors = orgIds.map(oid => Organization.addCollection(oid, collId, p)).filter(_.isLeft)
+
+  /**
+   *
+   * @param orgs contains a sequence of (organization id -> permission) tuples
+   * @param collId
+   * @return
+   */
+  def addOrganizations(orgs: Seq[(ObjectId,Permission)], collId: ObjectId): Either[InternalError, Unit] = {
+    val errors = orgs.map(org => Organization.addCollection(org._1, collId, org._2)).filter(_.isLeft)
     if (errors.size > 0) Left(errors(0).left.get)
     else Right(())
   }

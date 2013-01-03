@@ -1,6 +1,6 @@
 package api.v1
 
-import controllers.auth.{OAuthConstants, OAuthProvider, Permission, BaseApi}
+import controllers.auth.{Permission, BaseApi}
 import play.api.libs.json.{JsString, JsObject, Json}
 import models.{Organization, UserOrg, User}
 import org.bson.types.ObjectId
@@ -57,12 +57,13 @@ object UserApi extends BaseApi {
             val userInfo = for (
               userName <- (json \ "userName").asOpt[String] ;
               fullName <- (json \ "fullName").asOpt[String] ;
-              email    <- (json \ "email").asOpt[String]
-            ) yield ( (userName, fullName, email) )
+              email    <- (json \ "email").asOpt[String] ;
+              p        <- Permission.fromLong((json \ "permissions").asOpt[Long].getOrElse(Permission.Read.value))
+            ) yield ( (userName, fullName, email, p) )
             userInfo match {
-              case Some((username, fullName, email)) => {
+              case Some((username, fullName, email, p)) => {
                 val user = User(username, fullName, email)
-                User.insertUser(user,request.ctx.organization,Permission.All,false) match {
+                User.insertUser(user,request.ctx.organization,p,false) match {
                   case Right(u) => Ok(Json.toJson(u))
                   case Left(e) => InternalServerError(Json.toJson(ApiError.CreateUser(e.clientOutput)))
                 }

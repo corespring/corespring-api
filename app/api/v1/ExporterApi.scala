@@ -61,7 +61,7 @@ object ExporterApi extends BaseApi {
     }.flatten
   }
 
-  private def access(orgId: ObjectId)(item: Item): Boolean = Content.isCollectionAuthorized(orgId, item.collectionId, Permission.All)
+  private def access(orgId: ObjectId)(item: Item): Boolean = Content.isCollectionAuthorized(orgId, item.collectionId, Permission.Read)
 
   private def Binary(data: Array[Byte], length: Option[Long] = None, contentType: String = "application/octet-stream") = {
     val e = Enumerator(data)

@@ -61,7 +61,7 @@ object Organization extends DBQueryable[Organization]{
         findOneById(parentId) match {
           case Some(parent) => {
             org.path = Seq(org.id) ++ parent.path
-            org.contentcolls = org.contentcolls ++ ContentCollection.getPublicCollections.map(cc => ContentCollRef(cc.id,Permission.All.value))
+            org.contentcolls = org.contentcolls ++ ContentCollection.getPublicCollections.map(cc => ContentCollRef(cc.id,Permission.Read.value))
             insert(org) match {
               case Some(id) => Right(org)
               case None => Left(InternalError("error inserting organization",LogType.printFatal,true))
@@ -72,7 +72,7 @@ object Organization extends DBQueryable[Organization]{
       }
       case None => {
         org.path = Seq(org.id)
-        org.contentcolls = org.contentcolls ++ ContentCollection.getPublicCollections.map(cc => ContentCollRef(cc.id,Permission.All.value))
+        org.contentcolls = org.contentcolls ++ ContentCollection.getPublicCollections.map(cc => ContentCollRef(cc.id,Permission.Read.value))
         insert(org) match {
           case Some(id) => Right(org)
           case None => Left(InternalError("error inserting organization",LogType.printFatal,true))
@@ -107,28 +107,6 @@ object Organization extends DBQueryable[Organization]{
       case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("unable to update organization")))
     }
   }
-//  /**
-//   * get the path of the given organization in descending order. e.g. Massachusetts Board of Education -> Some Mass. District -> Some Mass. School
-//   * @param org: the organization in which to retrieve all parents from
-//   */
-//  def getPath(org: Organization): Seq[Organization] = {
-//    val c = Organization.find(MongoDBObject("_id" -> MongoDBObject("$in" -> org.path)))
-//    Utils.toSeq(c)
-//  }
-
-//  /**
-//   * get immediate sub-nodes of given organization, exactly one depth greather than parent.
-//   * if none, or parent could not be found in database, returns empty list
-//   * @param parentId
-//   * @return
-//   */
-//  def getChildren(parentId: ObjectId): List[Organization] = {
-//    val c = Organization.find(MongoDBObject(Organization.path+".1" -> parentId))
-//
-//    val orgList = c.filter(o => if (o.path.size >= 2) o.path(o.path.size - 2) == parentId else false).toList
-//    c.close()
-//    orgList
-//  }
 
   /**
    * get all sub-nodes of given organization.
@@ -157,7 +135,14 @@ object Organization extends DBQueryable[Organization]{
       Organization.contentcolls -> MongoDBObject("$elemMatch" ->
         MongoDBObject(ContentCollRef.collectionId -> collRef.collectionId, ContentCollRef.pval -> collRef.pval)))).isDefined
   }
-
+  def getPermissions(orgId: ObjectId, collId: ObjectId):Permission = {
+    getTree(orgId).foldRight[Permission](Permission.None)((o,p) => {
+      o.contentcolls.find(_.collectionId == collId) match {
+        case Some(ccr) => Permission.fromLong(ccr.pval).getOrElse(p)
+        case None => p
+      }
+    })
+  }
   def addCollection(orgId: ObjectId, collId: ObjectId, p: Permission): Either[InternalError, ContentCollRef] = {
     try {
       val collRef = new ContentCollRef(collId, p.value)
@@ -174,7 +159,7 @@ object Organization extends DBQueryable[Organization]{
     }
   }
   def getDefaultCollection(orgId: ObjectId):Either[InternalError,ContentCollection] = {
-    val collections = ContentCollection.getCollectionIds(orgId,Permission.All,false);
+    val collections = ContentCollection.getCollectionIds(orgId,Permission.Read,false);
     if (collections.isEmpty){
       ContentCollection.insert(orgId,ContentCollection(ContentCollection.DEFAULT));
     }else{
@@ -198,7 +183,7 @@ object Organization extends DBQueryable[Organization]{
   }
 }
 
-case class ContentCollRef(var collectionId: ObjectId, var pval: Long = Permission.All.value)
+case class ContentCollRef(var collectionId: ObjectId, var pval: Long = Permission.Read.value)
 
 object ContentCollRef {
   val pval: String = "pval"

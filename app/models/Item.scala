@@ -362,7 +362,7 @@ object Item extends DBQueryable[Item] {
 
       //newItem.id = oid
       val toUpdate = if (newItem.collectionId != "") {
-        if (ContentCollection.isAuthorized(requesterOrgId, new ObjectId(newItem.collectionId), Permission.All)) {
+        if (ContentCollection.isAuthorized(requesterOrgId, new ObjectId(newItem.collectionId), Permission.Write)) {
           ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials - data)
         } else throw new RuntimeException("not authorized")
       } else ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials) - collectionId

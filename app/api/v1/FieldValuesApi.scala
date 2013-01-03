@@ -1,27 +1,15 @@
 package api.v1
 
 import fieldValues.{Options, QueryOptions}
-import controllers.auth.BaseApi
 import play.api.libs.json.Json._
 import play.api.mvc.Action
 import play.api.Play.current
-import models.KeyValue.KeyValueWrites
 import play.api.libs.json
 import play.api.libs.json._
 import models._
-import com.novus.salat._
-import com.novus.salat.global._
-import controllers.auth.{Permission, BaseApi}
-import play.api.Logger
-import api.{InvalidFieldException, ApiError, QueryHelper}
-import com.mongodb.util.JSONParseException
-import org.bson.types.ObjectId
+import controllers.auth.{BaseApi}
+import api.{QueryHelper}
 import com.mongodb.casbah.Imports._
-import com.novus.salat._
-import com.novus.salat.global._
-import play.api.templates.Xml
-import play.api.mvc.Result
-import com.typesafe.config.ConfigFactory
 import scala.Some
 import play.api.cache.Cache
 
