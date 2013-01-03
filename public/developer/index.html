@@ -182,8 +182,30 @@
 <div class="container main-container">
     <div class="well api-well" style="padding: 8px 0; width: 240px;">
         <ul class="nav nav-list">
-
-  <li class="nav-header" style="color: white;"><span class="caps">REST</span> Api</li>
+  <li class="nav-header" style="color: white;">Overview</li>
+</ul>
+<ul class="nav nav-list">
+  <li><a href="#corespring-platform" class="main-menu">CoreSpring Platform</a></li>
+</ul>
+<div id="accordianHolder">
+<div>
+<div class="header">
+<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordianHolder" href="#accAuthentication">
+Integration
+</a>
+</div>
+<div id="accAuthentication" class="accordion-body collapse" style="height: 0px;">
+<div class="">
+<ul class="nav nav-list">
+          <li><a href="#integration-lti"><span class="caps">LTI</span> Integration</a></li>
+          <li><a href="#integration-direct">Direct Integration</a></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<ul class="nav nav-list">
+  <li class="nav-header" style="color: white;"><span class="caps">REST</span> Api Documentation</li>
 </ul>
 <div id="accordianHolder">
 <div>
@@ -310,7 +332,7 @@ Users
 
     <span class="dev-logo"></span>
     <p>
-Our developer tools include a set of APIs for finding and managing collections of content for formative assessment, these are described on these pages.
+Our developer tools include a set of APIs for discovering, managing and deploying content for formative assessment, these are described on these pages.
         </p>
   <div ng-controller="DeveloperCtrl">
           <div ng-switch on="authState">
@@ -325,26 +347,65 @@ Our developer tools include a set of APIs for finding and managing collections o
   </div>
 
 
-<h1><a name="release-schedule" class="waypoint"></a>Release Schedule</h1>
+<h1>Overview</h1>
 
-<ul>
-<li><p><del>Milestone 4: Developer Documents and Example Content for Item Player Integration (Nov/Early Dec 2012) </del></p></li>
-<li><p>1.0 Final API (Spring 2013)</p></li>
-</ul>
+<blockquote><p>The CoreSpring Platform is currently in beta, the 1.0 final will be released in Spring 2013.
+<a target="_top" href="mailto:developers@corespring.org">Get in touch</a> to be notified about our releases.</p></blockquote>
+
+<h2><a name="corespring-platform" class="waypoint"></a> CoreSpring Platform </h2>
+
+<p>The CoreSpring Platform provides access to collections of assessment items that can be embedded into any learning system. These items contain questions/activities for students. Sometimes just one question/activity will be contained within an assessment item, but sometimes several may be included in what is called a 'composite' item.</p>
+
+<p>Developers can find assessment items (searching by grade, Common Core Standard etc) using our REST API or our search interface, and can then render the items to their users with the CoreSpring Item player. Most items support computer-based administration, and most can also be printed.</p>
+
+<p>The CoreSpring Item Player is launched from the 3rd party system (typically in a frame/iFrame) and handles the user interaction with the item. When the interaction is complete, the outcome of the user's interaction with the item is stored in the CoreSpring platform (this interaction data is called an Item Session.) This data is then made available to the calling system at a REST URL, or is posted back to the client via a callback.</p>
+
+<p>You can see some examples of items and our Item Player <a href="/public/educators">here</a>.</p>
+
+<h1>Integration</h1>
+
+<p>There are two primary means of integrating CoreSpring content into your system:</p>
+
+<ol>
+<li>Standards-based integration using IMS LTI 1.x (and in future LTI 2.0)</li>
+<li>Direct integration using the CoreSpring REST API and Item Player</li>
+</ol>
 
 
-<blockquote class="nb"><p>We will be publishing new milestones between 3 and 4 (1.0 Final)</p></blockquote>
+<p>If you are maintaining or implementing a system that supports LTI (Learning Tools Interopability) standards, then this may be the simplest option for you, and may not require writing any custom code on your system.</p>
+
+<p>If you are not implementing LTI, or just want more power and flexibility in how you integrate with CoreSpring. A direct integration using our APIs can be implemented. You can of course combine both options.</p>
+
+<blockquote><p>We are also looking into supporting reporting of outcomes to Tin Can API Learning Record Stores. Please <a href="mailto:developers@corespring.org">get in touch</a> if this is of interest to you</p></blockquote>
+
+<h2><a name="integration-lti" class="waypoint"></a> LTI Integration</h2>
+
+<p><a target="_top" href="http://www.imsglobal.org/toolsinteroperability2.cfm">IMS LTI</a> (Learning Tools Interopability) is a standard for interopability between learning systems.</p>
+
+<p>If your system supports IMS LTI, you can discover and launch assessment items in the CoreSpring Item Player using this standard.</p>
+
+<blockquote><p>TODO describe steps to integrate with Canvas/any LTI LMS here.</p></blockquote>
+
+<h2><a name="integration-direct" class="waypoint"></a> Direct Integration</h2>
+
+<p>Direct integration using the CoreSpring REST APIs and Item Player gives you a lot of flexibility in how to integrate the content into your system. The API documentation and an API testing console is included in the documentation below, but in summary the steps involved in deploying CoreSpring content in your system are:</p>
+
+<ol>
+<li>Finding an Item</li>
+<li>Launching the player to render the interaction with an Item, or render the Item Profile/Preview for an instructor.</li>
+<li>Accessing the outcomes of student's interaction with an Item</li>
+</ol>
 
 
-<p>We have released a live test server with some mock data for testing the API. As you browse through the documentation below, you will see our interactive API widget which allows you to call the various endpoints and see them in action. The mock data will be reset every 24 hours, so don't worry about breaking anything!</p>
+<p>You can use our REST/JSON API to find items, and or render the results of searching to your users.</p>
 
-<p>The APIs are still in active development and we welcome your feedback</p>
+<p>Once you have an item which you want to launch for a user, you can configure some settings for the item and launch the Item Player to deliver the interaction UI to a student. Each individual interaction with an Item is called an Item Session, and data about the settings and outcomes of that session are persisted on the CoreSpring Platform.</p>
 
-<h2>IE Users</h2>
+<p>When the student interaction is complete, you can access the outcome information by retrieving the Item Session.</p>
 
-<p>To use the widget you need to allow cross domain scripts access. For IE 9 that means enabling the following: <code>Tools -&gt; Internet Options -&gt; Security -&gt; Custom Level -&gt; “Access data sources across domains”</code>.</p>
+<p>We have created some sample code (in node.js and Ruby) that demonstrate these steps. The sample code can be found on <a href="#linkME">github</a></p>
 
-<h1>REST API</h1>
+<h1>REST API Documentation</h1>
 
 <hr />
 
@@ -1359,7 +1420,7 @@ who may be interested in using this functionality.</p></blockquote>
 
 <hr />
 
-<p>date:  01/02/2013 05:44PM</p>
+<p>date:  01/03/2013 03:01PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
