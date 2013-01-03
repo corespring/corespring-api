@@ -674,6 +674,8 @@ usage:
         scope.$watch(modelProp, function(newValue) {
           if (newValue != null) {
             scope.selected = newValue;
+          } else {
+            scope.selected = [];
           }
           updateSelection();
           return null;

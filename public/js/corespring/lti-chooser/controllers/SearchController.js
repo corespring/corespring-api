@@ -60,7 +60,8 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
     var params = angular.copy($scope.searchParams);
     params.gradeLevel = $scope.processGradeLevel(params.gradeLevel);
 
-    function isEmpty(p){ return !p.gradeLevel && !p.searchText && !p.collection; }
+    function arrayIsEmpty(arr){ return (!arr || arr.length == 0); }
+    function isEmpty(p){ return arrayIsEmpty(p.gradeLevel) && !p.searchText && arrayIsEmpty(p.collection); }
     function shorterThan(s, count){ return !s || s.length < count; }
 
     if(isEmpty(params)){
@@ -87,6 +88,13 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
     $rootScope.itemCount = count;
     $rootScope.isSearching = false;
   });
+
+  $scope.clear = function(){
+    $rootScope.searchParams = {};
+    $rootScope.items = null;
+    SearchService.resetDataCollection();
+    $rootScope.$broadcast("beginSearch");
+  };
 
   $rootScope.$on('loadMoreSearchResults', function(event){
     console.log("SearchController - on - loadMore");
