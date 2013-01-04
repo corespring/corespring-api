@@ -32,6 +32,8 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
      return out;
     }
 
+
+
     var defaults = defaultsFactory.buildNgDataProvider("gradeLevels");
     var dataProvider = processDefaults(defaults);
     $scope.gradeLevelDataProvider = dataProvider;
@@ -39,30 +41,32 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
   };
 
   $scope.processGradeLevel = function(gradeLevels){
-    var out = [];
+    return $scope.processItems("key", "HS", gradeLevels);
+  };
 
-    if(!gradeLevels){
-      return out;
-    }
+  $scope.processCollections = function(collection){
+    return $scope.processItems("name", "All", collection);
+  };
 
-    for(var i = 0 ; i < gradeLevels.length; i++ ){
-      var gl = gradeLevels[i];
-      if(gl.key == "HS"){
-        out = out.concat( gl.value );
-      } else {
-        out.push(gl);
+  $scope.processItems = function( prop, value, items, returnProp){
+    function mapFn(i){
+      if(i[prop] == value){
+        return i.value;
       }
+      return i;
     }
-    return out;
+    return _.flatten(_.map(items, mapFn));
   };
 
   $scope.search = function() {
     var params = angular.copy($scope.searchParams);
     params.gradeLevel = $scope.processGradeLevel(params.gradeLevel);
+    params.collection = $scope.processCollections(params.collection);
 
     function arrayIsEmpty(arr){ return (!arr || arr.length == 0); }
     function isEmpty(p){ return arrayIsEmpty(p.gradeLevel) && !p.searchText && arrayIsEmpty(p.collection); }
     function shorterThan(s, count){ return !s || s.length < count; }
+
 
     if(isEmpty(params)){
       $rootScope.items = undefined;
@@ -126,8 +130,19 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
 
   function loadCollections() {
     Collection.get({}, function (data) {
-        $scope.collections = data;
 
+        /**
+         * For now restrict the filters to corespring Mathematics + Corespring ELA
+         */
+        function preProcess(c){
+          return _.filter(c, function(i){ 
+            return i.name == "CoreSpring Mathematics"
+             || i.name == "CoreSpring ELA"
+          })
+        }
+        var processed = preProcess(data);
+
+        $scope.collections = [{ name: "All", value: processed} ].concat(processed);
         $scope.search();
       },
       function () {
