@@ -27,7 +27,7 @@ qtiDirectives.directive('focustaskinteraction', function () {
     };
 
 
-    var insertRowSeparatos = function(choices) {
+    var insertRowSeparatos = function (choices) {
         var result = ['<div class="focus-row">'];
         for (var i = 0; i < choices.length; i++) {
             result.push(choices[i]);
@@ -74,6 +74,8 @@ qtiDirectives.directive('focustaskinteraction', function () {
         scope.responseIdentifier = modelToUpdate;
         scope.controller.setResponse(modelToUpdate, undefined);
         scope.onlyCountMatch = attrs.checkifcorrect != "yes";
+        scope.itemShape = attrs.itemshape || "square";
+
         scope.$watch('showNoResponseFeedback', function (newVal, oldVal) {
             scope.noResponse = (scope.isEmptyItem(scope.chosenItem) && scope.showNoResponseFeedback);
         });
@@ -134,37 +136,52 @@ qtiDirectives.directive('focuschoice', function (QtiUtils) {
         scope.disabled = false;
         scope.value = attrs.identifier;
 
+        scope.$watch('itemShape', function (newValue) {
+            scope.square = (newValue == 'square');
+            scope.circle = !scope.square;
+        });
+
         scope.$watch('chosenItem.length', function (newValue) {
             if (!scope.chosenItem) return;
             scope.selected = scope.chosenItem.indexOf(scope.value) != -1;
         });
 
-        // Not final submission - highlight only whether the given answers are correct or not
-        scope.$watch('itemSession.sessionData', function () {
+        scope.$on('highlightUserResponses', function (event) {
+            var givenResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.responses, "");
+            scope.selected = (givenResponse.indexOf(scope.value) >= 0);
+        });
+
+        scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
+            if (!responses) return;
             if (!scope.itemSession || !scope.itemSession.sessionData || !scope.itemSession.sessionData.correctResponses) return;
             var correctResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.sessionData.correctResponses, "");
-            var givenResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.responses, "");
+            console.log(correctResponse);
             var response = QtiUtils.getResponseById(scope.responseIdentifier, scope.itemSession.responses);
-            scope.selected = (givenResponse.indexOf(scope.value)>=0);
-            if (!response.outcome.responsesBelowMin && !response.outcome.responsesExceedMax) {
-                scope.shouldHaveBeenSelected = scope.selected && !scope.onlyCountMatch && correctResponse.indexOf(scope.value) >= 0;
-                scope.shouldNotHaveBeenSelected = !scope.onlyCountMatch && (scope.selected && correctResponse.indexOf(scope.value) < 0);
+            var withinLimits = response.outcome && !response.outcome.responsesBelowMin && !response.outcome.responsesExceedMax;
+            if (withinLimits) {
+                var isCorrect = correctResponse.indexOf(scope.value) >= 0;
+                console.log(scope.highlightUserResponse() , scope.selected , !scope.onlyCountMatch , isCorrect);
+                scope.shouldHaveBeenSelected = scope.highlightUserResponse() && scope.selected && !scope.onlyCountMatch && isCorrect;
+                scope.shouldHaveBeenSelected |= !scope.onlyCountMatch && scope.highlightCorrectResponse() && isCorrect ;
+                scope.shouldHaveBeenSelected |= scope.onlyCountMatch && scope.selected;
+                scope.shouldNotHaveBeenSelected = !scope.onlyCountMatch && scope.highlightUserResponse() && !scope.onlyCountMatch && scope.selected && !isCorrect;
+            } else {
+                scope.shouldHaveBeenSelected = scope.shouldNotHaveBeenSelected = false;
             }
         });
 
-        scope.$on('formSubmitted', function () {
-            var correctResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.sessionData.correctResponses, "");
-            var givenResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.responses, "");
+        scope.$watch('formSubmitted', function (newValue) {
+            scope.disabled = newValue;
+        });
 
-            scope.disabled = true;
-            attrs.$set("enabled", "false");
-            scope.selected = (givenResponse.indexOf(scope.value)>=0);
-            scope.shouldHaveBeenSelected = (!scope.onlyCountMatch && correctResponse.indexOf(scope.value) >= 0) || (scope.onlyCountMatch && scope.selected);
-            scope.shouldNotHaveBeenSelected = !scope.onlyCountMatch && (scope.selected && correctResponse.indexOf(scope.value) < 0);
+        scope.$on('resetUI', function (event) {
+            scope.shouldHaveBeenSelected = false;
+            scope.shouldNotHaveBeenSelected = false;
         });
 
         scope.$on('unsetSelection', function (event) {
             scope.selected = false;
+            scope.disabled = false;
             scope.shouldHaveBeenSelected = false;
             scope.shouldNotHaveBeenSelected = false;
             attrs.$set("enabled", "true");
@@ -176,7 +193,7 @@ qtiDirectives.directive('focuschoice', function (QtiUtils) {
         require: '^focustaskinteraction',
         replace: true,
         scope: true,
-        template: "<div class='focus-element' ng-class='{selected: selected, shouldHaveBeenSelected: shouldHaveBeenSelected, shouldNotHaveBeenSelected: shouldNotHaveBeenSelected}' ng-click='click()' ng-transclude></div>",
+        template: "<div class='focus-element' ng-class='{square: square, circle: circle, selected: selected, shouldHaveBeenSelected: shouldHaveBeenSelected, shouldNotHaveBeenSelected: shouldNotHaveBeenSelected}' ng-click='click()' ng-transclude></div>",
         transclude: true,
         link: linkFn
 
