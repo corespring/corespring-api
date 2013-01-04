@@ -138,6 +138,38 @@ object User extends DBQueryable[User]{
     val returnValue = Right(c.toSeq)
     c.close(); returnValue
   }
+  def removeOrganization(userId:ObjectId, orgId:ObjectId):Either[InternalError,Unit] = {
+    //todo: add two-phase commit
+    try{
+      User.update(MongoDBObject("_id" -> userId, User.orgs+"."+UserOrg.orgId -> orgId), MongoDBObject("$set" ->MongoDBObject(User.orgs+".$" -> null)),
+        false,false,User.defaultWriteConcern)
+      User.update(MongoDBObject("_id"->userId),MongoDBObject("$pull" -> MongoDBObject(User.orgs -> null)),false,false,User.defaultWriteConcern)
+      Right(())
+    }catch {
+      case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
+    }
+  }
+  def getPermissions(userId:ObjectId, orgId:ObjectId):Either[InternalError,Permission] = {
+    User.findOne(MongoDBObject("_id" -> userId, User.orgs+"."+UserOrg.orgId -> orgId)) match {
+      case Some(u) => getPermissions(u,orgId)
+      case None => Left(InternalError("could not find user with access to given organization",addMessageToClientOutput = true))
+    }
+  }
+  def getPermissions(username:String, orgId:ObjectId):Either[InternalError,Permission] = {
+    User.findOne(MongoDBObject(User.userName -> username, User.orgs+"."+UserOrg.orgId -> orgId)) match {
+      case Some(u) => getPermissions(u,orgId)
+      case None => Left(InternalError("could not find user with access to given organization",addMessageToClientOutput = true))
+    }
+  }
+  private def getPermissions(user:User, orgId:ObjectId):Either[InternalError,Permission] = {
+    user.orgs.find(_.orgId == orgId) match {
+      case Some(uo) => Permission.fromLong(uo.pval) match {
+        case Some(p) => Right(p)
+        case None => Left(InternalError("uknown permission retrieved",addMessageToClientOutput = true))
+      }
+      case None => Left(InternalError("userorg not found even though it was part of search requirement. this should never happen"))
+    }
+  }
   //
   implicit object UserWrites extends Writes[User] {
     def writes(user: User) = {

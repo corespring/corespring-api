@@ -21,7 +21,7 @@ object UserApi extends BaseApi {
    *
    * @return
    */
-  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
     val orgIds:List[ObjectId] = Organization.getTree(request.ctx.organization).map(_.id)
     val initSearch = MongoDBObject(User.orgs + "." + UserOrg.orgId -> MongoDBObject("$in" -> orgIds))
     QueryHelper.list(q, f, c, sk, l, User, Some(initSearch))
@@ -33,11 +33,13 @@ object UserApi extends BaseApi {
    * @param id The user id
    * @return
    */
-  def getUser(id: ObjectId) = ApiAction { request =>
+  def getUser(id: ObjectId) = ApiActionRead { request =>
     User.findOneById(id) match {
-      case Some(org) =>  {
-        // todo: check if this user is visible to the caller?
-        Ok(Json.toJson(org))
+      case Some(user) =>  {
+        val tree = Organization.getTree(request.ctx.organization)
+        if(user.orgs.exists(uo => tree.exists(_.id == uo.orgId))){
+          Ok(Json.toJson(user))
+        }else Unauthorized
       }
       case _ => NotFound
     }
@@ -48,7 +50,7 @@ object UserApi extends BaseApi {
    *
    * @return
    */
-  def createUser = ApiAction { request =>
+  def createUser = ApiActionWrite { request =>
     request.body.asJson match {
       case Some(json) => {
         (json \ "id").asOpt[String] match {
@@ -82,7 +84,7 @@ object UserApi extends BaseApi {
    *
    * @return
    */
-  def updateUser(id: ObjectId) = ApiAction { request =>
+  def updateUser(id: ObjectId) = ApiActionWrite { request =>
     User.findOneById(id).map( original =>
     {
       request.body.asJson match {

@@ -1,1 +1,1 @@
-{ "organization" : { "$oid" : "502404dd0364dc35bb393397"} , "tokenId" : "34dj45a769j4e1c0h4wb"}
+{ "organization" : { "$oid" : "502404dd0364dc35bb393397"} , "tokenId" : "demo_token", "scope" : "demo_user"}

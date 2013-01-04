@@ -147,7 +147,7 @@ object ItemApi extends BaseApi {
   /**
    * Returns an Item.  Only the default fields are rendered back.
    */
-  def get(id: ObjectId) = ApiAction {
+  def get(id: ObjectId) = ApiActionRead {
     request =>
       getWithFields(request.ctx.organization, id, excludedFieldsByDefault)
   }
@@ -158,7 +158,7 @@ object ItemApi extends BaseApi {
    * @param id
    * @return
    */
-  def getDetail(id: ObjectId) = ApiAction {
+  def getDetail(id: ObjectId) = ApiActionRead {
     request =>
       getWithFields(request.ctx.organization, id, excludeData)
   }
@@ -263,7 +263,7 @@ object ItemApi extends BaseApi {
     case None => Left(ApiError.Item.NotFound)
   }
 
-  def create = ApiAction {
+  def create = ApiActionWrite {
     request =>
       request.body.asJson match {
         case Some(json) => {

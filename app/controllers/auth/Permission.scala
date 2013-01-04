@@ -4,13 +4,12 @@ package controllers.auth
  * A Permission
  */
 case class Permission(value: Long, name: String) {
-  Permission.add(this)
+  def has(p: Permission):Boolean = {
+    (value&p.value) == p.value
+  }
 }
 
 object Permission {
-  private var byValue = Map.empty[Long, Permission]
-  private var byName = Map.empty[String, Permission]
-
 //  val CreateUser = new Permission(1, "create_user")
 //  val PostContent = new Permission(1 << 1, "post_content")
 //  val AddCollection = new Permission(1 << 2, "add_collection")
@@ -24,11 +23,6 @@ object Permission {
   val None = new Permission(0, "none")
   val Read = new Permission(1, "read")
   val Write = new Permission(3, "write") // write is 3 instead of two (11 instead of 10) because read permission is implied in write
-
-  private def add(p: Permission) {
-    byValue += (p.value -> p)
-    byName += (p.name -> p)
-  }
 
   def fromLong(value: Long): Option[Permission] = byValue.get(value)
 

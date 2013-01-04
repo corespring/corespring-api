@@ -102,14 +102,16 @@ object Developer extends Controller with SecureSocial{
                 case Right(org) => {
                   User.getUser(request.user.id) match {
                     case Some(user) => {
-                      User.addOrganization(user.id,org.id,Permission.Write) match {
-                        case Right(_) => Ok(Json.toJson(org))
+                      User.removeOrganization(user.id,new ObjectId(Organization.CORESPRING_ORGANIZATION_ID)) match {
+                        case Right(_) => User.addOrganization(user.id,org.id,Permission.Write) match {
+                          case Right(_) => Ok(Json.toJson(org))
+                          case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateUser(error.clientOutput)))
+                        }
                         case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateUser(error.clientOutput)))
                       }
                     }
                     case None => InternalServerError("an error that should never happen happened")
                   }
-                  Ok(Json.toJson(org))
                 }
                 case Left(e) => InternalServerError(Json.toJson(ApiError.InsertOrganization(e.clientOutput)))
               }
