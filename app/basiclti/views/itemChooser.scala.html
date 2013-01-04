@@ -50,16 +50,16 @@
 
     <div class="navbar navbar-fixed-top" ng-controller="SearchController">
       <div class="header" ng-show="showSearch()">
-      <table style="width: 100%">
+      <table style= "width:100%; margin-top:3px;">
         <tr>
-          <td valign="center">
+          <td valign="center" style="min-width:80px; max-width:80px;text-align:center;">
             <img
             src="/assets/images/cs-primary-web77x28.png"
             alt="Corespring"/>
           </td>
-          <td><a ng-click="clear()">Clear</a></td>
+          <td class="lti-reset"><a ng-click="clear()">Clear</a></td>
           <td class="nav-vr"><div></div></td>
-          <td>
+          <td valign="center" style="min-width:150px; max-width:150px; padding: 5px 0 5px 0px;">
             <span multi-select
               multi-get-title="getCollectionTitle"
               multi-options="collections"
@@ -67,13 +67,13 @@
               multi-uid="name"
               multi-model="searchParams.collection">
               <div id="summary">
-                COLLECTION
-                <span class="lti-summary" ng-bind-html-unsafe="getCollectionSelectedTitle(selected)"></span>
+                <div class="multi-title-text"> COLLECTION</div>
+                <div class="selected-multi-options" ng-bind-html-unsafe="getCollectionSelectedTitle(selected)"></div>
               </div>
             </span>
           </td>
           <td class="nav-vr"><div></div></td>
-          <td valign="center" style="width: 40px;">
+          <td valign="center" style="min-width:150px; max-width:150px; padding: 5px 0 5px 0px;">
             <span multi-select
               multi-get-title="getTitle"
               multi-get-selected-title="getSelectedTitle"
@@ -81,14 +81,14 @@
               multi-change="search"
               multi-model="searchParams.gradeLevel">
               <div id="summary">
-                GRADE LEVEL
-                <span ng-bind-html-unsafe="getSelectedTitle(selected)"></span>
+                <div class="multi-title-text">GRADE LEVEL</div>
+                <div class="selected-multi-options" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
               </div>
             </span>
           </td>
           <td class="nav-vr"><div></div></td>
-          <td>
-            <div class="input-append span2 pull-right">
+          <td valign="center" style="min-width:126px;, max-width:126px;">
+            <div class="input-append pull-left">
 
             <input placeholder="Search"
               ng-model="searchParams.searchText"
@@ -101,7 +101,7 @@
               </span>
             </div>
           </td>
-          <td>
+          <td style="min-width:45px, max-width:45px">
             <div class="item-count">{{getItemCountLabel(itemCount)}}</div>
           </td>
        </tr>
