@@ -368,22 +368,46 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <h2><a name="integration-direct" class="waypoint"></a> Direct Integration</h2>
 
-<p>Direct integration using the CoreSpring REST APIs and Item Player gives you a lot of flexibility in how to integrate the content into your system. The API documentation and an API testing console is included in the documentation below, but in summary the steps involved in deploying CoreSpring content in your system are:</p>
+<p>Direct integration using the CoreSpring REST APIs and Item Player gives you a lot of flexibility in how to integrate the content into your system.</p>
+
+<p>The steps involved in deploying CoreSpring content in your system are:</p>
 
 <ol>
 <li>Finding an Item</li>
-<li>Launching the player to render the interaction with an Item, or render the Item Profile/Preview for an instructor.</li>
+<li>Launching the player to render the interaction with an Item, or render the Item profile/preview for an instructor.</li>
 <li>Accessing the outcomes of student's interaction with an Item</li>
 </ol>
 
 
-<p>You can use our REST/JSON API to find items, and or render the results of searching to your users.</p>
+<p>We have created some <a href="https://github.com/thesib/example-app">sample code</a> in Ruby and Node.js, that demonstrates these steps.</p>
 
-<p>Once you have an item which you want to launch for a user, you can configure some settings for the item and launch the Item Player to deliver the interaction UI to a student. Each individual interaction with an Item is called an Item Session, and data about the settings and outcomes of that session are persisted on the CoreSpring Platform.</p>
+<p><strong>Finding an Item</strong></p>
 
-<p>When the student interaction is complete, you can access the outcome information by retrieving the Item Session.</p>
+<p>You can use our REST/JSON API to find items, and or render the results of searching to your users. See the API documentation below or look at the sample code for information on finding items.</p>
 
-<p>We have created some sample code (in node.js and Ruby) that demonstrate these steps. The sample code can be found on <a href="#linkME">github</a></p>
+<p><strong>Launching the Item Player</strong></p>
+
+<p>You can launch an item for an instructor to preview by adding your auth token to the following url:</p>
+
+<blockquote><p>/testplayer/item/{itemId}/run</p></blockquote>
+
+<p>Once you have an item which you want to deliver to a student, you can configure some settings for the item and launch the Item Player to deliver the interaction UI. Each individual interaction with an Item is called an Item Session, and data about the settings and outcomes of that session are persisted on the CoreSpring Platform.</p>
+
+<p>To launch an Item for a student, you first create an Item Session by making a POST call to the url:</p>
+
+<blockquote><p>/items/:itemId/sessions</p></blockquote>
+
+<p>An Item Session will be returned in the response with a unique identifier property 'id', you then launch the item delivery view by putting this Item Session id in the following URL:</p>
+
+<blockquote><p>/testplayer/session/{sessionId}/run?access_token={your_token}</p></blockquote>
+
+<p><strong>Accessing the Outcomes</strong></p>
+
+<p>When the student interaction is complete, you can access the outcome information by retrieving the Item Session with a GET request:</p>
+
+<blockquote><p>GET /items/{itemId}/sessions/{sessionId}</p></blockquote>
+
+<p>Please see the <a href="https://github.com/thesib/example-app">sample code</a> on Github for a demonstration of how above steps work.</p>
 
 <h1>REST API</h1>
 
@@ -1016,7 +1040,7 @@ For example, if you only wanted the Item Title and Primary Subject Fields for th
 
 <hr />
 
-<p>date:  01/04/2013 10:57AM</p>
+<p>date:  01/04/2013 12:16PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
