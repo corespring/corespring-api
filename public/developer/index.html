@@ -187,25 +187,11 @@
 <ul class="nav nav-list">
   <li><a href="#corespring-platform" class="main-menu">CoreSpring Platform</a></li>
 </ul>
-<div id="accordianHolder">
-<div>
-<div class="header">
-<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordianHolder" href="#accIntegration">
-Integration
-</a>
-</div>
-<div id="accIntegration" class="accordion-body collapse" style="height: 0px;">
-<div class="">
 <ul class="nav nav-list">
-          <li><a href="#integration-lti"><span class="caps">LTI</span> Integration</a></li>
-          <li><a href="#integration-direct">Direct Integration</a></li>
+  <li><a href="#integration" class="main-menu">Integration</a></li>
 </ul>
-</div>
-</div>
-</div>
-</div>
 <ul class="nav nav-list">
-  <li class="nav-header" style="color: white;"><span class="caps">REST</span> Api Documentation</li>
+  <li class="nav-header" style="color: white;"><span class="caps">REST</span> Api</li>
 </ul>
 <div id="accordianHolder">
 <div>
@@ -220,6 +206,41 @@ Authentication
           <li><a href="#authentication-register">Registering to use the <span class="caps">API</span></a></li>
           <li><a href="#authentication-get-token">Getting an Access Token</a></li>
           <li><a href="#authentication-calling-api">Using the Access Token</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div >
+<div class="header">
+<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordianHolder" href="#accItems">
+Items
+</a>
+</div>
+<div id="accItems" class="accordion-body collapse" style="height: 0px;">
+<div>
+<ul class="nav nav-list">
+          <li><a href="#items-index">Overview</a></li>
+          <li><a href="#items-get">Getting an Item</a></li>
+          <li><a href="#items-get-list">Getting a list of Items</a></li>
+          <li><a href="#items-model">Item model</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div >
+<div class="header">
+<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordianHolder" href="#accItemSessions">
+Item Sessions
+</a>
+</div>
+<div id="accItemSessions" class="accordion-body collapse" style="height: 0px;">
+<div>
+<ul class="nav nav-list">
+          <li><a href="#item-session-index">Overview</a></li>
+          <li><a href="#item-session-get">Getting an Item Session</a></li>
+          <li><a href="#item-session-get-list">Getting a list of Item Sessions</a></li>
+          <li><a href="#item-session-create">Create an Item Session</a></li>
+          <li><a href="#item-session-response-model">Item Session response model</a></li>
 </ul>
 </div>
 </div>
@@ -253,65 +274,6 @@ Collections
           <li><a href="#collections-index">Overview</a></li>
           <li><a href="#collections-get">Getting a Collection</a></li>
           <li><a href="#collections-get-list">Getting a list of Collections</a></li>
-          <li><a href="#collections-create">Create a Collection</a></li>
-          <li><a href="#collections-update">Update a Collection</a></li>
-</ul>
-</div>
-</div>
-</div>
-<div >
-<div class="header">
-<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordianHolder" href="#accItems">
-Items
-</a>
-</div>
-<div id="accItems" class="accordion-body collapse" style="height: 0px;">
-<div>
-<ul class="nav nav-list">
-          <li><a href="#items-index">Overview</a></li>
-          <li><a href="#items-get">Getting an Item</a></li>
-          <li><a href="#items-get-list">Getting a list of Items</a></li>
-          <li><a href="#items-create">Create an Item</a></li>
-          <li><a href="#items-update">Update an Item</a></li>
-          <li><a href="#items-delete">Delete an Item</a></li>
-          <li><a href="#items-model">Item model</a></li>
-</ul>
-</div>
-</div>
-</div>
-<div >
-<div class="header">
-<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordianHolder" href="#accItemSessions">
-Item Sessions
-</a>
-</div>
-<div id="accItemSessions" class="accordion-body collapse" style="height: 0px;">
-<div>
-<ul class="nav nav-list">
-          <li><a href="#item-session-index">Overview</a></li>
-          <li><a href="#item-session-get">Getting an Item Session</a></li>
-          <li><a href="#item-session-get-list">Getting a list of Item Sessions</a></li>
-          <li><a href="#item-session-create">Create an Item Session</a></li>
-          <li><a href="#item-session-update">Update an Item Session</a></li>
-          <li><a href="#item-session-response-model">Item Session response model</a></li>
-</ul>
-</div>
-</div>
-</div>
-<div >
-<div class="header">
-<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordianHolder" href="#accUsers">
-Users
-</a>
-</div>
-<div id="accUsers" class="accordion-body collapse" style="height: 0px;">
-<div>
-<ul class="nav nav-list">
-          <li><a href="#users-index">Overview</a></li>
-          <li><a href="#users-get">Getting a User</a></li>
-          <li><a href="#users-get-list">Getting a list of Users</a></li>
-          <li><a href="#users-create">Create a User</a></li>
-          <li><a href="#users-update">Update a User</a></li>
 </ul>
 </div>
 </div>
@@ -319,8 +281,6 @@ Users
 </div>
 <ul class="nav nav-list">
   <li><a href="#list-queries" class="main-menu">List Queries</a></li>
-  <li><a href="#extended-metadata" class="main-menu">Extended Metadata</a></li>
-  <li><a href="#item-statistics" class="main-menu">Item Statistics</a></li>
 </ul>
     </div>
     <!-- main content -->
@@ -349,20 +309,38 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <h1>Overview</h1>
 
-<blockquote><p>The CoreSpring Platform is currently in beta, the 1.0 final will be released in Spring 2013.
+<blockquote><p>CoreSpring Platform 1.0 be released in Spring 2013.
 <a target="_top" href="mailto:developers@corespring.org">Get in touch</a> to be notified about our releases.</p></blockquote>
 
 <h2><a name="corespring-platform" class="waypoint"></a> CoreSpring Platform </h2>
 
-<p>The CoreSpring Platform provides access to collections of assessment items that can be embedded into any learning system. These items contain questions/activities for students. Sometimes just one question/activity will be contained within an assessment item, but sometimes several may be included in what is called a 'composite' item.</p>
+<p>The CoreSpring Platform provides access to assessment items that can be embedded into any learning system. These items contain questions/activities for students. Sometimes just one question/activity will be contained within an assessment item, but sometimes several may be included in what is called a 'composite' item.</p>
 
-<p>Developers can find assessment items (searching by grade, Common Core Standard etc) using our REST API or our search interface, and can then render the items to their users with the CoreSpring Item player. Most items support computer-based administration, and most can also be printed.</p>
+<p>Developers can find assessment items (searching by grade, Common Core Standard etc) using our REST API and can render the items to their users with the CoreSpring Item player. All items support computer-based administration, and most can also be printed.</p>
 
-<p>The CoreSpring Item Player is launched from the 3rd party system (typically in a frame/iFrame) and handles the user interaction with the item. When the interaction is complete, the outcome of the user's interaction with the item is stored in the CoreSpring platform (this interaction data is called an Item Session.) This data is then made available to the calling system at a REST URL, or is posted back to the client via a callback.</p>
+<p>Items have an instructor preview view - which allows a teacher to view some extra information about the item, view supporting materials like examples of student work or scoring guides, and to preview how an item would look for a student.</p>
+
+<p>Items have also have a student view - which is how the Item appears to the student when they are 'taking' the item.</p>
+
+<p>The CoreSpring Item Player is launched from the 3rd party system (typically in a frame/iFrame) and it handles the user interaction with the item. When the interaction is complete, the outcome of the user's interaction with the item is stored in the CoreSpring Platform (this interaction data is called an Item Session.) This data is then made available to the calling system at a REST URL, or is posted back to the client via a callback.</p>
 
 <p>You can see some examples of items and our Item Player <a href="/public/educators">here</a>.</p>
 
-<h1>Integration</h1>
+<h3>Organizations, Collections, Items</h3>
+
+<p>Organizations and Collections are the means by which the Items are organized within the CoreSpring Platform.</p>
+
+<p>Each Organization represents an institution (for example: developer, publisher, school or distict).</p>
+
+<p>Collections are sets of Assessment Items, for example 'ELA' or 'Math' could be collections of items arranged by subject.</p>
+
+<p>An Organization may be granted access to a number of collections, and may create collections owned by that Organization which can then be shared with other Organizations*</p>
+
+<p>CoreSpring maintains and curates a set of content collections of content which will be made available to all organizations. When you register as a developer Organization you will have access to these collections.</p>
+
+<blockquote><p>*Content creation and publishing is a feature of CoreSpring that will be introduced after our initial 1.0 release</p></blockquote>
+
+<h1><a name="integration" class="waypoint"></a>Integration</h1>
 
 <p>There are two primary means of integrating CoreSpring content into your system:</p>
 
@@ -381,6 +359,8 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 <h2><a name="integration-lti" class="waypoint"></a> LTI Integration</h2>
 
 <p><a target="_top" href="http://www.imsglobal.org/toolsinteroperability2.cfm">IMS LTI</a> (Learning Tools Interopability) is a standard for interopability between learning systems.</p>
+
+<p>It defines a mechanism for authorization and launching of URLs</p>
 
 <p>If your system supports IMS LTI, you can discover and launch assessment items in the CoreSpring Item Player using this standard.</p>
 
@@ -405,7 +385,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <p>We have created some sample code (in node.js and Ruby) that demonstrate these steps. The sample code can be found on <a href="#linkME">github</a></p>
 
-<h1>REST API Documentation</h1>
+<h1>REST API</h1>
 
 <hr />
 
@@ -427,7 +407,7 @@ The interactive API widget is pre-configured to use this access token but you ca
 
 <h2><a name="authentication-get-token" class="waypoint"></a> Getting an Access Token</h2>
 
-<p>Once you have <a href="/developer/register">registered</a> and have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL. The client_id and secret pre-set below are for demo purposes and can access some demo content. For more complete access register and enter your own client_id and secret below.</p>
+<p>Once you have <a href="/developer/register">registered</a> and have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL. You can access the authorization url to receive your auth token using the widget below.</p>
 
 <br/>
 
@@ -438,7 +418,7 @@ The interactive API widget is pre-configured to use this access token but you ca
     disabled="false"
     disabled-message="currently disabled to ensure the fixture data stays in the correct state"
     path="/auth/access_token"
-    form-params="client_id=Enter client_id&client_secret=Enter client_secret&grant_type=client_credentials"
+    form-params="client_id=client_id&client_secret=client_secret&grant_type=client_credentials"
     url="/auth/access_token">
   </rest-widget>
 </div>
@@ -473,139 +453,6 @@ The interactive API widget is pre-configured to use this access token but you ca
   </rest-widget>
 </div>
 
-
-<h1><a name="organizations-index" class="waypoint"></a>Organizations</h1>
-
-<hr />
-
-<p>Organizations are objects in the system that represent real-world organizations. For example they might be owned/managed by software developers or school districts.</p>
-
-<p>Organizations can have Content Collections and Users associated with them.</p>
-
-<p>Organizations support hierarchy, so they may have children/parents.</p>
-
-<h2><a name="organizations-get-list" class="waypoint"></a> Getting a List of Organizations</h2>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/organizations" 
-    url="/api/v1/organizations?access_token=demo_token">
-  </rest-widget>
-</div>
-
-
-<p>Returns an array of all Organizations and child Organizations that are available to the caller. Callers will be making this call in the context of their own Organization.</p>
-
-<p><strong>Params</strong>
-The standard <a href="#list-queries">List Queries</a> parameters are available for this operation.</p>
-
-<h2><a name="organizations-get" class="waypoint"></a> Getting an Organization by id</h2>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/organizations/:organizationId" 
-    url="/api/v1/organizations/502404dd0364dc35bb39339a?access_token=demo_token">
-  </rest-widget>
-</div>
-
-
-<p>Returns the Organization for the specified <em>:organizationId</em>.</p>
-
-<h2><a name="organizations-get-default" class="waypoint"></a> Getting a default organization</h2>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/organizations/default" 
-    url="/api/v1/organizations/default?access_token=demo_token">
-  </rest-widget>
-</div>
-
-
-<p>Returns the default context organization.</p>
-
-<h1><a name="collections-index" class="waypoint"></a> Collections</h1>
-
-<hr />
-
-<p>Collections are sets of Items and may be associated with Organizations.</p>
-
-<h2><a name="collections-get" class="waypoint"></a>Getting a Collection</h2>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/collections/:collectionId" 
-    url="/api/v1/collections/5001b9b9e4b035d491c268c3?access_token=demo_token">
-  </rest-widget>
-</div>
-
-
-<p>Returns the Collection for the specified <em>:collectionId</em>.</p>
-
-<h2><a name="collections-get-list" class="waypoint"></a>Getting a list of Collections</h2>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/collections" 
-    url="/api/v1/collections?access_token=demo_token">
-  </rest-widget>
-</div>
-
-
-<p>Returns an array of all Collections available to the caller (Collections attached to any organization the caller has access to).</p>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/organizations/:organizationId/collections" 
-    url="/api/v1/organizations/502404dd0364dc35bb39339a/collections?access_token=demo_token">
-  </rest-widget>
-</div>
-
-
-<p>Returns an array of all Collections associated with the specified <em>:organizationId</em>.</p>
-
-<p><strong>Params</strong>
-The standard <a href="#list-queries">List Queries</a> parameters are available for these operations.</p>
-
-<h2><a name="collections-create" class="waypoint"></a>Create a Collection</h2>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="POST" 
-    path="/collections" 
-    request-body='{ "name" : "My Collection", "organizations": ["502404dd0364dc35bb39339a"] }'
-    url="/api/v1/collections?access_token=demo_token">
-  </rest-widget>
-</div>
-
-
-<p>Creates a Collection and returns the newly created Collection.</p>
-
-<p><strong>Params</strong> Takes JSON Collection in the body of the request.
-The collection must have a name and must provide an array of organization ids with which to associate the collection.</p>
-
-<h2><a name="collections-update" class="waypoint"></a>Update a Collection</h2>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="PUT" 
-    path="/collections/:id" 
-    request-body='{ "name" : "My Collection", "organizations": ["502404dd0364dc35bb39339a"] }'
-    url="/api/v1/collections/5001b9b9e4b035d491c268c3?access_token=demo_token">
-  </rest-widget>
-</div>
-
-
-<p>Will update the collection specified by the given id.</p>
-
-<p><strong>Params</strong> Takes JSON Collection in the body of the request.
-The collection must have a name.
-If no array of organization ids is provided the current array will be unmodified.</p>
 
 <h1><a name="items-index" class="waypoint"></a>Items</h1>
 
@@ -662,24 +509,6 @@ This complete model for Item is described at the end of this section.</p>
 <br/>
 
 
-<h3>Item Versions</h3>
-
-<p>By default the most recent version of an Item will be returned by the above calls. If there have been revisions made to an item, a previous version of the item may be retrieved by specifying the query parameter 'v' with the revision number.</p>
-
-<br/>
-
-
-<div style="padding-bottom: 10px;">
-  <rest-widget
-    method="GET"
-    disabled="true"
-    path="/items/:itemId?v=0"
-    url="/api/v1/items/50083ba9e4b071cb5ef79101?v=0&access_token=demo_token"></rest-widget>
-</div>
-
-
-<p><em>In the case of CoreSpring open library assets, versions will generally be avoided and new items created if there is a material difference between items.</em></p>
-
 <h2><a name="items-get-list" class="waypoint"></a>Getting a List of Items</h2>
 
 <div style="padding-bottom: 10px;">
@@ -728,49 +557,6 @@ This complete model for Item is described at the end of this section.</p>
 
 <blockquote class="nb"><p>Item list queries will return the summary properties for the Item model. This behavior can be overridden by specifying which fields to return in the model (see <a href="#list-queries">List Queries</a>).</blockquote>
 
-
-<h2><a name="items-create" class="waypoint"></a>Creating an item</h2>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget
-    method="POST"
-    path="/items"
-    request-body='{ "collId": "5001b9b9e4b035d491c268c3", "itemType": "Multiple Choice"}'
-    url="/api/v1/items?access_token=demo_token"></rest-widget>
-</div>
-
-
-<p><strong>Params</strong>
-Takes JSON Item in the body of the request. See the <a href="#items-model">Item Model</a> below for property reference.</p>
-
-<h2><a name="items-update" class="waypoint"></a>Updating an item</h2>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget
-    method="PUT"
-    path="/items/:itemId"
-    request-body='{"itemType": "Multiple Choice"}'
-    url="/api/v1/items/50083ba9e4b071cb5ef79101?access_token=demo_token"></rest-widget>
-</div>
-
-
-<p><strong>Params</strong>
-Takes JSON Item in the body of the request. See the Item Model below for property reference.</p>
-
-<h2><a name="items-delete" class="waypoint"></a>Deleting an item</h2>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget
-    disabled="true"
-    disabled-message="disabled so these docs will work for everyone"
-    disabled-class="ok"
-    method="DELETE"
-    path="/items/:itemId"
-    url="/api/v1/items/50083ba9e4b071cb5ef79101?access_token=demo_token"></rest-widget>
-</div>
-
-
-<p>Deletes with the specified <em>:itemId</em>. Write permission on the Collection that contains the item will be required.</p>
 
 <h2><a name="items-model"></a>Item Model</h2>
 
@@ -988,31 +774,15 @@ these properties as was originally set by the contributor of the item:</p>
 
 <p>Returns the Item Session for the specified <em>:itemId</em>.</p>
 
-<h2><a name="item-session-update" class="waypoint"></a>Update an Item Session</h2>
-
-<div style="padding-bottom: 10px;">
-    <rest-widget
-      method="PUT"
-      request-body='{"finish" : 1345727522, "responses": [{"id":"question1", "value":"choiceA"}]}'
-      path="/items/:itemId/sessions/:sessionId"
-      url="/api/v1/items/50083ba9e4b071cb5ef79101/sessions/502d627230048a31ef37a3f8?access_token=demo_token"></rest-widget>
-</div>
-
-
-<p>Returns the Item Session. Note: Any of the properties (except id) may be updated.</p>
-
 <h2><a name="item-session-response-model"></a>Item Session Response Model</h2>
 
-<p>The reponse model depends on the content type of the item.
-Items in the CoreSpring Library will in general be of the content-type QTI2.</p>
+<p>The Item Session Response contains response information for each question in the item.</p>
+
+<p>The model for each response depends on the type of interaction, for example a single choice question might have one value in the response model indicating the choice made. A multi-choice item would have an array of values, and ordering question would also have an array (in which the sequence was important.)</p>
 
 <p>There may be multiple questions defined in an item. Below is an example of a session response for a composite item with questions of different types.</p>
 
-<p>In the case of items of 'QTI2.1' contentType the API will validate that the response identifiers and data-type
-align with the QTI definedinition in the content. An error will be returned in the event of a failure in this validation.</p>
-
-<p>The 'outcome' variables of the response can be passed to the API but is not required for the initial set of QTI2.1 interactions that use qti 'correctResponse' elements.
-In the absence of response processing, the outcome by default will be processed and stored as '$score' on our servers based on 'correctResponse' elements. 0=incorrect, 1=correct.</p>
+<blockquote><p>NB boolean properties for 'correct' and 'complete' will be added to the model</p></blockquote>
 
 <p>Example Response:</p>
 
@@ -1024,23 +794,22 @@ In the absence of response processing, the outcome by default will be processed 
     "id" : "question1",
     "value" : "choice1",
     "outcome" : {
-        "$score": 1,
-        "comment" : "optional - will be calculated by server"
+        "$score": 1
     }
   },
   {
     "id": "question2",
     "value": "ChoiceA", 
-        "outcome": {
-            "$score": 0 
-        }
+    "outcome": {
+        "$score": 0 
+    }
   },  
   {
     "id": "question23",
     "value": [["choiceA", "choiceAA"], ["choiceB","choiceBB"]] ,
-        "outcome": {
-            "$score": 1.5 
-        }
+    "outcome": {
+        "$score": 1.5 
+    }
   },
   {
     "id": "question4",
@@ -1056,85 +825,103 @@ In the absence of response processing, the outcome by default will be processed 
 <br/>
 
 
-<h1><a name="users-index" class="waypoint"></a>Users</h1>
+<h1><a name="organizations-index" class="waypoint"></a>Organizations</h1>
 
 <hr />
 
-<p>Users may be created and associated with Organizations.</p>
+<p>Organizations are objects in the system that represent real-world organizations. For example they might be owned/managed by software developers or school districts.</p>
 
-<p><a name="users-get" class="waypoint"></a></p>
+<p>Organizations can have Content Collections and Users associated with them.</p>
 
-<h2>Getting a User</h2>
+<p>Organizations support hierarchy, so they may have children/parents.</p>
 
-<div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    path="/users/:userId" 
-    url="/api/v1/users/502d46ce0364068384f217a5?access_token=demo_token">
-  </rest-widget>
-</div>
-
-
-<p>Returns the user for the specified <em>:userId</em>.</p>
-
-<p><a name="users-get-list" class="waypoint"></a></p>
-
-<h2>Getting a List of Users</h2>
+<h2><a name="organizations-get-list" class="waypoint"></a> Getting a List of Organizations</h2>
 
 <div style="padding-bottom: 10px;">
   <rest-widget 
     method="GET" 
-    path="/users" 
-    url="/api/v1/users?access_token=demo_token">
+    path="/organizations" 
+    url="/api/v1/organizations?access_token=demo_token">
   </rest-widget>
 </div>
 
 
-<p>Returns all users available to the caller. The number of responses will be limited - using a <a href="#list-queries">list query</a> recommended.</p>
+<p>Returns an array of all Organizations and child Organizations that are available to the caller. Callers will be making this call in the context of their own Organization.</p>
+
+<p><strong>Params</strong>
+The standard <a href="#list-queries">List Queries</a> parameters are available for this operation.</p>
+
+<h2><a name="organizations-get" class="waypoint"></a> Getting an Organization by id</h2>
 
 <div style="padding-bottom: 10px;">
   <rest-widget 
     method="GET" 
-    path="/organizations/:orgId/users" 
-    url="/api/v1/organizations/502404dd0364dc35bb39339a/users?access_token=demo_token">
+    path="/organizations/:organizationId" 
+    url="/api/v1/organizations/502404dd0364dc35bb39339a?access_token=demo_token">
   </rest-widget>
 </div>
 
 
-<p>Returns the users associated with a specific organization.</p>
+<p>Returns the Organization for the specified <em>:organizationId</em>.</p>
+
+<h2><a name="organizations-get-default" class="waypoint"></a> Getting a default organization</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path="/organizations/default" 
+    url="/api/v1/organizations/default?access_token=demo_token">
+  </rest-widget>
+</div>
+
+
+<p>Returns the default context organization.</p>
+
+<h1><a name="collections-index" class="waypoint"></a> Collections</h1>
+
+<hr />
+
+<p>Collections are sets of Items and may be associated with Organizations.</p>
+
+<h2><a name="collections-get" class="waypoint"></a>Getting a Collection</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path="/collections/:collectionId" 
+    url="/api/v1/collections/5001b9b9e4b035d491c268c3?access_token=demo_token">
+  </rest-widget>
+</div>
+
+
+<p>Returns the Collection for the specified <em>:collectionId</em>.</p>
+
+<h2><a name="collections-get-list" class="waypoint"></a>Getting a list of Collections</h2>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path="/collections" 
+    url="/api/v1/collections?access_token=demo_token">
+  </rest-widget>
+</div>
+
+
+<p>Returns an array of all Collections available to the caller (Collections attached to any organization the caller has access to).</p>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path="/organizations/:organizationId/collections" 
+    url="/api/v1/organizations/502404dd0364dc35bb39339a/collections?access_token=demo_token">
+  </rest-widget>
+</div>
+
+
+<p>Returns an array of all Collections associated with the specified <em>:organizationId</em>.</p>
 
 <p><strong>Params</strong>
 The standard <a href="#list-queries">List Queries</a> parameters are available for these operations.</p>
-
-<p><a name="users-create" class="waypoint"></a></p>
-
-<h2>Creating a User</h2>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="POST" 
-    path="/users" 
-    request-body='{ "userName" : "fredFlinstone", "fullName" : "Fred", "email" : "fredf@bedrock.org", "organizations" : [ { "id" : "502404dd0364dc35bb39339a" , "permissions" : ["WRITE_USER", "WRITE_COLLECTION", "WRITE_ORGANIZATION"]} ] }' url="/api/v1/users?access_token=demo_token">
-  </rest-widget>
-</div>
-
-
-<p>Creates a user by passing a User JSON object to the /user resource. Returns the user object.</p>
-
-<p><a name="users-update" class="waypoint"></a></p>
-
-<h2>Updating a User</h2>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="PUT" 
-    path="/users/:id" 
-    request-body='{ "fullName" : "Fred Flinstone" }' url="/api/v1/users/502d46ce0364068384f217a5?access_token=demo_token">
-  </rest-widget>
-</div>
-
-
-<p> Updates a user by passing a User JSON object to the /user/:id resource. Returns the updated user object.</p>
 
 <h2><a name="list-queries"></a>List Queries</h2>
 
@@ -1227,200 +1014,9 @@ For example, if you only wanted the Item Title and Primary Subject Fields for th
 </div>
 
 
-<h1><a name="extended-metadata"></a>Extended Metadata</h1>
-
 <hr />
 
-<p>The CoreSpring API will support the storage of custom metadata against Items in our repository.</p>
-
-<p>Developers can store JSON-formatted data with the Item, and this data will be made available in the JSON response for an item requested from our APIs (if the appropriate flag is specified).</p>
-
-<blockquote><p>This feature is at an early stage of development and we encourage discussion and input from developers
-who may be interested in using this functionality.</p></blockquote>
-
-<h2>Extended Metadata Key</h2>
-
-<p>Corespring will allow developers to register a unique key for storing metadata with items. This key must be unique within the CoreSpring system.</p>
-
-<p>We recommend using a human-readable format, like a domain name or path, for example: <code>com_mydomainname</code>.</p>
-
-<blockquote><p>Keys must be valid JSON/Javacript variable names. So if using domain name, consider using underscores instead or periods.</p></blockquote>
-
-<h2>Get items with extended metadata</h2>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    disabled="true"
-    disabled-message="Coming Soon!"
-    path="/items/:itemId?ext=true" 
-    url="/api/v1/items/50083ba9e4b071cb5ef79101?ext=true&access_token=demo_token">
-  </rest-widget>
-</div>
-
-
-<p>Returns the item model with all the extended metadata included.</p>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    disabled="true"
-    disabled-message="Coming Soon!" 
-    path="/items/:itemId?ext=:key" 
-    url="/api/v1/items/50083ba9e4b071cb5ef79101?ext=_key_here_&access_token=demo_token">
-  </rest-widget>
-</div>
-
-
-<p>Returns the item model with extended metadata for the specified key.</p>
-
-<h2>Resource Paths for Accessing / Updating Extended Metadata</h2>
-
-<p>The following paths support CRUD operations on Extended Metadata.</p>
-
-<blockquote><p>We will register metadata keys with organizations, so that only the organization who owns the key may write this metadata (unless the key owner allows universal write).</p></blockquote>
-
-<br/>
-
-
-<div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="GET" 
-    disabled="true"
-    disabled-message="Coming Soon!" 
-    path="/items/:itemId/ext/:key" 
-    url="/api/v1/items/50083ba9e4b071cb5ef79101/ext/_key_here_?&access_token=demo_token">
-  </rest-widget>
-</div>
-
-
-<p>Returns just the metadata specified by the given :key.</p>
-
-<div style="padding-bottom: 10px;">
-  <rest-widget 
-    method="POST" 
-    disabled="true"
-    disabled-message="Coming Soon!" 
-    path="/items/:itemId/ext/:key" 
-    url="/api/v1/items/50083ba9e4b071cb5ef79101/ext/_key_here_?&access_token=demo_token">
-  </rest-widget>
-</div>
-
-
-<p>Writes the supplied JSON formatted data to the given key.</p>
-
-<h2>Limitations</h2>
-
-<p>There will be limits on the size of extended metadata that may be added to an item.</p>
-
-<h2><a name="item-statistics"></a>Item Statistics</h2>
-
-<p>The item statistics resource returns aggregate usage information for an item, and an overall user rating where applicable.</p>
-
-<p>The CoreSpring system will initially only provide aggregated usage statistics for items with a QTI2.1 response model.</p>
-
-<blockquote><p>Statistics for the entire set of QTI interactions will not be immediately supported, but we intend to roll out more and more over time.</p></blockquote>
-
-<p>The first set of interaction types with usage statistics will be multi-choice, matching, and ordering.</p>
-
-<blockquote><p>responseProcessing is not required in the QTI content for these item types. Scores will be calculated as 1=correct, 0=incorrect and stored as 'score' using the 'correctResponse definition.</p></blockquote>
-
-<h2>Get an Item's statistics</h2>
-
-<div style="padding-bottom: 10px;">
-    <rest-widget
-      method="GET" 
-      disabled="true"
-      disabled-message="Coming Soon!"
-      path="/items/:itemId/statistics"
-      url="/api/v1/items/50083ba9e4b071cb5ef79101/statistics?access_token=demo_token"></rest-widget>
-</div>
-
-
-
-
-<br/>
-
-
-
-
-<div style="padding-bottom: 10px;">
-    <rest-widget
-      method="GET" 
-      disabled="true"
-      disabled-message="Coming Soon!"
-      path="/items/:itemId/stats=true"
-      url="/api/v1/items/50083ba9e4b071cb5ef79101?stats=true&access_token=demo_token"></rest-widget>
-</div>
-
-
-<p>Returns an array representing each question identified in the content. The following properties are provided:</p>
-
-<ul>
-<li>'outcome' lists the outcome variables for the item, and the aggregate percentage for each outcome.</li>
-<li>'response' lists the total set of responses provided, and the aggregate percentage for each response.</li>
-<li>'rating' is a user - supplied rating, allowing users to rate items is a feature of the CoreSpring.org web platform.</li>
-</ul>
-
-
-<p>Example Response:</p>
-
-<div>
-<json-highlight>
-[
-    {
-        "id": "question1",
-        "outcome":
-        {
-            "$score":
-            {
-                "$1": 80,
-                "$0": 20
-            }
-        },
-        "response": {
-            "$choice1": 80,
-            "$choice2": 20
-        },
-        "rating": 4.2
-    },
-    {
-        "id": "question2",
-        "outcome":
-        {
-            "$score":
-            {
-                "$1": 65,
-                "$0": 35
-            }
-        },
-        "response": {
-            "$choiceA": 65,
-            "$choiceB": 20,
-            "$choiceC": 10,
-            "$choiceD": 5
-        },
-        "rating": 3.2
-    }
-]
-</json-highlight>
-</div>
-
-
-<br/>
-
-
-<blockquote><p>When using the <code>?stats=true</code> parameter for item the above data will be returned with the 'stats' property in the item model.</p></blockquote>
-
-<blockquote class="nb"><p>Property names are required to be valid javascript variables. This is validated on item creation.</p></blockquote>
-
-
-<blockquote class="nb"><p>Any variable that may be arbitrarily specified in the content will be prefixed with '$', add this prefix to read the property.</p></blockquote>
-
-
-<hr />
-
-<p>date:  01/03/2013 04:17PM</p>
+<p>date:  01/04/2013 10:57AM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
