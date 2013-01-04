@@ -1,4 +1,9 @@
-[selectable] {
+selectTextInteraction {
+    margin: 0;
+   	font:14px/20px "Ubuntu", Arial, Helvetica, sans-serif !important;
+   	font-size:14px;
+   	line-height:20px;
+   	padding:0 0 18px;
 }
 
 [selectable] .hover {

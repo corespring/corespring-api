@@ -182,8 +182,30 @@
 <div class="container main-container">
     <div class="well api-well" style="padding: 8px 0; width: 240px;">
         <ul class="nav nav-list">
-
-  <li class="nav-header" style="color: white;"><span class="caps">REST</span> Api</li>
+  <li class="nav-header" style="color: white;">Overview</li>
+</ul>
+<ul class="nav nav-list">
+  <li><a href="#corespring-platform" class="main-menu">CoreSpring Platform</a></li>
+</ul>
+<div id="accordianHolder">
+<div>
+<div class="header">
+<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordianHolder" href="#accIntegration">
+Integration
+</a>
+</div>
+<div id="accIntegration" class="accordion-body collapse" style="height: 0px;">
+<div class="">
+<ul class="nav nav-list">
+          <li><a href="#integration-lti"><span class="caps">LTI</span> Integration</a></li>
+          <li><a href="#integration-direct">Direct Integration</a></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<ul class="nav nav-list">
+  <li class="nav-header" style="color: white;"><span class="caps">REST</span> Api Documentation</li>
 </ul>
 <div id="accordianHolder">
 <div>
@@ -310,7 +332,7 @@ Users
 
     <span class="dev-logo"></span>
     <p>
-Our developer tools include a set of APIs for finding and managing collections of content for formative assessment, these are described on these pages.
+Our developer tools include a set of APIs for discovering, managing and deploying content for formative assessment, these are described on these pages.
         </p>
   <div ng-controller="DeveloperCtrl">
           <div ng-switch on="authState">
@@ -325,26 +347,65 @@ Our developer tools include a set of APIs for finding and managing collections o
   </div>
 
 
-<h1><a name="release-schedule" class="waypoint"></a>Release Schedule</h1>
+<h1>Overview</h1>
 
-<ul>
-<li><p><del>Milestone 4: Developer Documents and Example Content for Item Player Integration (Nov/Early Dec 2012) </del></p></li>
-<li><p>1.0 Final API (Spring 2013)</p></li>
-</ul>
+<blockquote><p>The CoreSpring Platform is currently in beta, the 1.0 final will be released in Spring 2013.
+<a target="_top" href="mailto:developers@corespring.org">Get in touch</a> to be notified about our releases.</p></blockquote>
+
+<h2><a name="corespring-platform" class="waypoint"></a> CoreSpring Platform </h2>
+
+<p>The CoreSpring Platform provides access to collections of assessment items that can be embedded into any learning system. These items contain questions/activities for students. Sometimes just one question/activity will be contained within an assessment item, but sometimes several may be included in what is called a 'composite' item.</p>
+
+<p>Developers can find assessment items (searching by grade, Common Core Standard etc) using our REST API or our search interface, and can then render the items to their users with the CoreSpring Item player. Most items support computer-based administration, and most can also be printed.</p>
+
+<p>The CoreSpring Item Player is launched from the 3rd party system (typically in a frame/iFrame) and handles the user interaction with the item. When the interaction is complete, the outcome of the user's interaction with the item is stored in the CoreSpring platform (this interaction data is called an Item Session.) This data is then made available to the calling system at a REST URL, or is posted back to the client via a callback.</p>
+
+<p>You can see some examples of items and our Item Player <a href="/public/educators">here</a>.</p>
+
+<h1>Integration</h1>
+
+<p>There are two primary means of integrating CoreSpring content into your system:</p>
+
+<ol>
+<li>Standards-based integration using IMS LTI 1.x (and in future LTI 2.0)</li>
+<li>Direct integration using the CoreSpring REST API and Item Player</li>
+</ol>
 
 
-<blockquote class="nb"><p>We will be publishing new milestones between 3 and 4 (1.0 Final)</p></blockquote>
+<p>If you are maintaining or implementing a system that supports LTI (Learning Tools Interopability) standards, then this may be the simplest option for you, and may not require writing any custom code on your system.</p>
+
+<p>If you are not implementing LTI, or just want more power and flexibility in how you integrate with CoreSpring. A direct integration using our APIs can be implemented. You can of course combine both options.</p>
+
+<blockquote><p>We are also looking into supporting reporting of outcomes to Tin Can API Learning Record Stores. Please <a href="mailto:developers@corespring.org">get in touch</a> if this is of interest to you</p></blockquote>
+
+<h2><a name="integration-lti" class="waypoint"></a> LTI Integration</h2>
+
+<p><a target="_top" href="http://www.imsglobal.org/toolsinteroperability2.cfm">IMS LTI</a> (Learning Tools Interopability) is a standard for interopability between learning systems.</p>
+
+<p>If your system supports IMS LTI, you can discover and launch assessment items in the CoreSpring Item Player using this standard.</p>
+
+<blockquote><p>TODO describe steps to integrate with Canvas/any LTI LMS here.</p></blockquote>
+
+<h2><a name="integration-direct" class="waypoint"></a> Direct Integration</h2>
+
+<p>Direct integration using the CoreSpring REST APIs and Item Player gives you a lot of flexibility in how to integrate the content into your system. The API documentation and an API testing console is included in the documentation below, but in summary the steps involved in deploying CoreSpring content in your system are:</p>
+
+<ol>
+<li>Finding an Item</li>
+<li>Launching the player to render the interaction with an Item, or render the Item Profile/Preview for an instructor.</li>
+<li>Accessing the outcomes of student's interaction with an Item</li>
+</ol>
 
 
-<p>We have released a live test server with some mock data for testing the API. As you browse through the documentation below, you will see our interactive API widget which allows you to call the various endpoints and see them in action. The mock data will be reset every 24 hours, so don't worry about breaking anything!</p>
+<p>You can use our REST/JSON API to find items, and or render the results of searching to your users.</p>
 
-<p>The APIs are still in active development and we welcome your feedback</p>
+<p>Once you have an item which you want to launch for a user, you can configure some settings for the item and launch the Item Player to deliver the interaction UI to a student. Each individual interaction with an Item is called an Item Session, and data about the settings and outcomes of that session are persisted on the CoreSpring Platform.</p>
 
-<h2>IE Users</h2>
+<p>When the student interaction is complete, you can access the outcome information by retrieving the Item Session.</p>
 
-<p>To use the widget you need to allow cross domain scripts access. For IE 9 that means enabling the following: <code>Tools -&gt; Internet Options -&gt; Security -&gt; Custom Level -&gt; “Access data sources across domains”</code>.</p>
+<p>We have created some sample code (in node.js and Ruby) that demonstrate these steps. The sample code can be found on <a href="#linkME">github</a></p>
 
-<h1>REST API</h1>
+<h1>REST API Documentation</h1>
 
 <hr />
 
@@ -356,13 +417,13 @@ Our developer tools include a set of APIs for finding and managing collections o
 
 <p>To use the Corespring API you must first create and <a href="/developer/register">register</a> an Organization in the system.</p>
 
-<p>All calls to the API are performed in the context of this Orgnization.</p>
+<p>All calls to the API are performed in the context of this Organization.</p>
 
-<p>Upon registering your organization to access the CoreSpring API you will be given a <code>client_id</code> and <code>client_secret</code>.
+<p>Upon registering your organization to access the CoreSpring API you will be given a <code>client_id</code> and <code>client_secret</code>.<br/>
 Using these parameters you can generate an access token that can be used to authorize calls to the API.</p>
 
-<blockquote><p>In the live test server, the access_token: "34dj45a769j4e1c0h4wb" may be used to test the API calls.
-The interactive API widget is pre-configured to use this access token.</p></blockquote>
+<blockquote><p>To test the APIs on this page, the access_token: "demo_token" may be used. This provides read-only access to some test data.
+The interactive API widget is pre-configured to use this access token but you can replace it with your own token to access real data.</p></blockquote>
 
 <h2><a name="authentication-get-token" class="waypoint"></a> Getting an Access Token</h2>
 
@@ -377,8 +438,8 @@ The interactive API widget is pre-configured to use this access token.</p></bloc
     disabled="false"
     disabled-message="currently disabled to ensure the fixture data stays in the correct state"
     path="/auth/access_token"
-    form-params="client_id=502424ca0364b3c1c30dec64&client_secret=26bn1r8cmlso1tmm1kw1&grant_type=client_credentials"
-    url="http://api-test.corespring.org/auth/access_token">
+    form-params="client_id=Enter client_id&client_secret=Enter client_secret&grant_type=client_credentials"
+    url="/auth/access_token">
   </rest-widget>
 </div>
 
@@ -393,8 +454,8 @@ The interactive API widget is pre-configured to use this access token.</p></bloc
   <rest-widget
     method="GET"
     path="/items"
-    url="http://api-test.corespring.org/api/v1/items"
-    request-headers="Authorization: Bearer 34dj45a769j4e1c0h4wb">
+    url="/api/v1/items"
+    request-headers="Authorization: Bearer demo_token">
   </rest-widget>
 </div>
 
@@ -408,7 +469,7 @@ The interactive API widget is pre-configured to use this access token.</p></bloc
   <rest-widget
     method="GET"
     path="/items?access_token=${access_token}"
-    url="http://api-test.corespring.org/api/v1/items?access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/items?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -429,7 +490,7 @@ The interactive API widget is pre-configured to use this access token.</p></bloc
   <rest-widget 
     method="GET" 
     path="/organizations" 
-    url="http://api-test.corespring.org/api/v1/organizations?access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/organizations?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -445,7 +506,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
   <rest-widget 
     method="GET" 
     path="/organizations/:organizationId" 
-    url="http://api-test.corespring.org/api/v1/organizations/502404dd0364dc35bb39339a?access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/organizations/502404dd0364dc35bb39339a?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -458,7 +519,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
   <rest-widget 
     method="GET" 
     path="/organizations/default" 
-    url="http://api-test.corespring.org/api/v1/organizations/default?access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/organizations/default?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -477,7 +538,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
   <rest-widget 
     method="GET" 
     path="/collections/:collectionId" 
-    url="http://api-test.corespring.org/api/v1/collections/5001b9b9e4b035d491c268c3?access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/collections/5001b9b9e4b035d491c268c3?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -490,7 +551,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
   <rest-widget 
     method="GET" 
     path="/collections" 
-    url="http://api-test.corespring.org/api/v1/collections?access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/collections?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -501,7 +562,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
   <rest-widget 
     method="GET" 
     path="/organizations/:organizationId/collections" 
-    url="http://api-test.corespring.org/api/v1/organizations/502404dd0364dc35bb39339a/collections?access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/organizations/502404dd0364dc35bb39339a/collections?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -518,7 +579,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
     method="POST" 
     path="/collections" 
     request-body='{ "name" : "My Collection", "organizations": ["502404dd0364dc35bb39339a"] }'
-    url="http://api-test.corespring.org/api/v1/collections?access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/collections?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -535,7 +596,7 @@ The collection must have a name and must provide an array of organization ids wi
     method="PUT" 
     path="/collections/:id" 
     request-body='{ "name" : "My Collection", "organizations": ["502404dd0364dc35bb39339a"] }'
-    url="http://api-test.corespring.org/api/v1/collections/5001b9b9e4b035d491c268c3?access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/collections/5001b9b9e4b035d491c268c3?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -558,7 +619,7 @@ This complete model for Item is described at the end of this section.</p>
 <h2><a name="items-get" class="waypoint"></a>Getting an Item</h2>
 
 <div style="padding-bottom: 10px;">
-  <rest-widget method="GET" path="/items/:itemId" url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?access_token=34dj45a769j4e1c0h4wb">
+  <rest-widget method="GET" path="/items/:itemId" url="/api/v1/items/50083ba9e4b071cb5ef79101?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -574,7 +635,7 @@ This complete model for Item is described at the end of this section.</p>
   <rest-widget
     method="GET"
     path="/items/:itemId/detail"
-    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/detail?access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/items/50083ba9e4b071cb5ef79101/detail?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -592,7 +653,7 @@ This complete model for Item is described at the end of this section.</p>
     method="GET"
     path="/items/:itemId/assets/:fileName"
     result-type="file"
-    url="http://api-test.corespring.org/api/v1/items/4ffd8645e4b0031d54b5ab90/assets/cute-kitten.jpg?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="/api/v1/items/4ffd8645e4b0031d54b5ab90/assets/cute-kitten.jpg?access_token=demo_token"></rest-widget>
 </div>
 
 
@@ -613,7 +674,7 @@ This complete model for Item is described at the end of this section.</p>
     method="GET"
     disabled="true"
     path="/items/:itemId?v=0"
-    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?v=0&access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="/api/v1/items/50083ba9e4b071cb5ef79101?v=0&access_token=demo_token"></rest-widget>
 </div>
 
 
@@ -625,7 +686,7 @@ This complete model for Item is described at the end of this section.</p>
   <rest-widget
     method="GET"
     path="/items"
-    url="http://api-test.corespring.org/api/v1/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="/api/v1/items?access_token=demo_token"></rest-widget>
 </div>
 
 
@@ -644,7 +705,7 @@ This complete model for Item is described at the end of this section.</p>
   <rest-widget
     method="GET"
     path="/collections/:collectionId/items"
-    url="http://api-test.corespring.org/api/v1/collections/5001b9b9e4b035d491c268c3/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="/api/v1/collections/5001b9b9e4b035d491c268c3/items?access_token=demo_token"></rest-widget>
 </div>
 
 
@@ -657,7 +718,7 @@ This complete model for Item is described at the end of this section.</p>
   <rest-widget
     method="GET"
     path="/organizations/:organizationId/items"
-    url="http://api-test.corespring.org/api/v1/organizations/502404dd0364dc35bb39339a/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="/api/v1/organizations/502404dd0364dc35bb39339a/items?access_token=demo_token"></rest-widget>
 </div>
 
 
@@ -675,7 +736,7 @@ This complete model for Item is described at the end of this section.</p>
     method="POST"
     path="/items"
     request-body='{ "collId": "5001b9b9e4b035d491c268c3", "itemType": "Multiple Choice"}'
-    url="http://api-test.corespring.org/api/v1/items?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="/api/v1/items?access_token=demo_token"></rest-widget>
 </div>
 
 
@@ -689,7 +750,7 @@ Takes JSON Item in the body of the request. See the <a href="#items-model">Item 
     method="PUT"
     path="/items/:itemId"
     request-body='{"itemType": "Multiple Choice"}'
-    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="/api/v1/items/50083ba9e4b071cb5ef79101?access_token=demo_token"></rest-widget>
 </div>
 
 
@@ -705,7 +766,7 @@ Takes JSON Item in the body of the request. See the Item Model below for propert
     disabled-class="ok"
     method="DELETE"
     path="/items/:itemId"
-    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+    url="/api/v1/items/50083ba9e4b071cb5ef79101?access_token=demo_token"></rest-widget>
 </div>
 
 
@@ -897,7 +958,7 @@ these properties as was originally set by the contributor of the item:</p>
     <rest-widget
       method="GET"
       path="/items/:itemId/sessions/:sessionId"
-      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/sessions/502d627230048a31ef37a3f8?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="/api/v1/items/50083ba9e4b071cb5ef79101/sessions/502d627230048a31ef37a3f8?access_token=demo_token"></rest-widget>
 </div>
 
 
@@ -909,7 +970,7 @@ these properties as was originally set by the contributor of the item:</p>
     <rest-widget
       method="GET"
       path="/items/:itemId/sessions"
-      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/sessions?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="/api/v1/items/50083ba9e4b071cb5ef79101/sessions?access_token=demo_token"></rest-widget>
 </div>
 
 
@@ -921,7 +982,7 @@ these properties as was originally set by the contributor of the item:</p>
     <rest-widget
       method="POST"
       path="/items/:itemId/sessions"
-      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/sessions?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="/api/v1/items/50083ba9e4b071cb5ef79101/sessions?access_token=demo_token"></rest-widget>
 </div>
 
 
@@ -934,7 +995,7 @@ these properties as was originally set by the contributor of the item:</p>
       method="PUT"
       request-body='{"finish" : 1345727522, "responses": [{"id":"question1", "value":"choiceA"}]}'
       path="/items/:itemId/sessions/:sessionId"
-      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/sessions/502d627230048a31ef37a3f8?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="/api/v1/items/50083ba9e4b071cb5ef79101/sessions/502d627230048a31ef37a3f8?access_token=demo_token"></rest-widget>
 </div>
 
 
@@ -1009,7 +1070,7 @@ In the absence of response processing, the outcome by default will be processed 
   <rest-widget 
     method="GET" 
     path="/users/:userId" 
-    url="http://api-test.corespring.org/api/v1/users/502d46ce0364068384f217a5?access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/users/502d46ce0364068384f217a5?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -1024,7 +1085,7 @@ In the absence of response processing, the outcome by default will be processed 
   <rest-widget 
     method="GET" 
     path="/users" 
-    url="http://api-test.corespring.org/api/v1/users?access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/users?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -1035,7 +1096,7 @@ In the absence of response processing, the outcome by default will be processed 
   <rest-widget 
     method="GET" 
     path="/organizations/:orgId/users" 
-    url="http://api-test.corespring.org/api/v1/organizations/502404dd0364dc35bb39339a/users?access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/organizations/502404dd0364dc35bb39339a/users?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -1053,7 +1114,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
   <rest-widget 
     method="POST" 
     path="/users" 
-    request-body='{ "userName" : "fredFlinstone", "fullName" : "Fred", "email" : "fredf@bedrock.org", "organizations" : [ { "id" : "502404dd0364dc35bb39339a" , "permissions" : ["WRITE_USER", "WRITE_COLLECTION", "WRITE_ORGANIZATION"]} ] }' url="http://api-test.corespring.org/api/v1/users?access_token=34dj45a769j4e1c0h4wb">
+    request-body='{ "userName" : "fredFlinstone", "fullName" : "Fred", "email" : "fredf@bedrock.org", "organizations" : [ { "id" : "502404dd0364dc35bb39339a" , "permissions" : ["WRITE_USER", "WRITE_COLLECTION", "WRITE_ORGANIZATION"]} ] }' url="/api/v1/users?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -1068,7 +1129,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
   <rest-widget 
     method="PUT" 
     path="/users/:id" 
-    request-body='{ "fullName" : "Fred Flinstone" }' url="http://api-test.corespring.org/api/v1/users/502d46ce0364068384f217a5?access_token=34dj45a769j4e1c0h4wb">
+    request-body='{ "fullName" : "Fred Flinstone" }' url="/api/v1/users/502d46ce0364068384f217a5?access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -1134,7 +1195,7 @@ For example, in a call to the /items resource you could return only items of typ
   <rest-widget 
     method="GET" 
     path='/items?q={"itemType":"Multiple+Choice"}'
-    url='http://api-test.corespring.org/api/v1/items?q={"itemType":"Multiple+Choice"}&l=2&access_token=34dj45a769j4e1c0h4wb'>
+    url='/api/v1/items?q={"itemType":"Multiple+Choice"}&l=2&access_token=demo_token'>
   </rest-widget>
 </div>
 
@@ -1161,7 +1222,7 @@ For example, if you only wanted the Item Title and Primary Subject Fields for th
   <rest-widget 
     method="GET" 
     path='/items?q={"itemType":"Multiple+Choice"}&f={title:1,gradeLevel:1,primarySubject:1}'
-    url='http://api-test.corespring.org/api/v1/items?q={"itemType":"Multiple+Choice"}&f={title:1,gradeLevel:1,primarySubject:1}&l=2&access_token=34dj45a769j4e1c0h4wb'>
+    url='/api/v1/items?q={"itemType":"Multiple+Choice"}&f={title:1,gradeLevel:1,primarySubject:1}&l=2&access_token=34dj45a769j4e1c0h4wb'>
   </rest-widget>
 </div>
 
@@ -1193,7 +1254,7 @@ who may be interested in using this functionality.</p></blockquote>
     disabled="true"
     disabled-message="Coming Soon!"
     path="/items/:itemId?ext=true" 
-    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?ext=true&access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/items/50083ba9e4b071cb5ef79101?ext=true&access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -1206,7 +1267,7 @@ who may be interested in using this functionality.</p></blockquote>
     disabled="true"
     disabled-message="Coming Soon!" 
     path="/items/:itemId?ext=:key" 
-    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?ext=_key_here_&access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/items/50083ba9e4b071cb5ef79101?ext=_key_here_&access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -1228,7 +1289,7 @@ who may be interested in using this functionality.</p></blockquote>
     disabled="true"
     disabled-message="Coming Soon!" 
     path="/items/:itemId/ext/:key" 
-    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/ext/_key_here_?&access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/items/50083ba9e4b071cb5ef79101/ext/_key_here_?&access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -1241,7 +1302,7 @@ who may be interested in using this functionality.</p></blockquote>
     disabled="true"
     disabled-message="Coming Soon!" 
     path="/items/:itemId/ext/:key" 
-    url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/ext/_key_here_?&access_token=34dj45a769j4e1c0h4wb">
+    url="/api/v1/items/50083ba9e4b071cb5ef79101/ext/_key_here_?&access_token=demo_token">
   </rest-widget>
 </div>
 
@@ -1272,7 +1333,7 @@ who may be interested in using this functionality.</p></blockquote>
       disabled="true"
       disabled-message="Coming Soon!"
       path="/items/:itemId/statistics"
-      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101/statistics?access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="/api/v1/items/50083ba9e4b071cb5ef79101/statistics?access_token=demo_token"></rest-widget>
 </div>
 
 
@@ -1289,7 +1350,7 @@ who may be interested in using this functionality.</p></blockquote>
       disabled="true"
       disabled-message="Coming Soon!"
       path="/items/:itemId/stats=true"
-      url="http://api-test.corespring.org/api/v1/items/50083ba9e4b071cb5ef79101?stats=true&access_token=34dj45a769j4e1c0h4wb"></rest-widget>
+      url="/api/v1/items/50083ba9e4b071cb5ef79101?stats=true&access_token=demo_token"></rest-widget>
 </div>
 
 
@@ -1359,7 +1420,7 @@ who may be interested in using this functionality.</p></blockquote>
 
 <hr />
 
-<p>date:  01/02/2013 05:44PM</p>
+<p>date:  01/03/2013 04:17PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">

@@ -5,7 +5,7 @@
   <div id='runner'>
     <textarea id='urlInput'></textarea>
     <span ng-repeat="f in formParams">
-      <label style="float:left; width: 200px;">{{f.name}}</label><input type="text" value="{{f.value}}"></input><br/>
+      <label style="float:left; width: 200px;">{{f.name}}</label><input type="text" ng-model="f.value"></input><br/>
     </span>
     <span ng-show="showRequestHeaders">
       <label style="float:left; width: 200px;">Headers:</label><input type="text" value="{{requestHeaders}}"></input>
