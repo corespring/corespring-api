@@ -22,6 +22,11 @@ selectTextInteraction {
     background-color: rgb(139,141,142);
 }
 
+[selectable] .selected.unknown {
+    background-color: #4055f8;
+    color: #fff;
+}
+
 /* Selected Incorrect Answer */
 [selectable] .selected.shouldNotHaveBeenSelected {
     background-color: #F8A31A;

@@ -51,7 +51,9 @@ object SessionData {
       val feedback = qti.getFeedback(id,value)
       feedback match {
         case Some(fb) => {
-          if (fb.defaultFeedback)
+          if (!showCorrectResponses)
+            Some((fb.csFeedbackId, "Your response has been received"))
+          else if (fb.defaultFeedback)
             Some(fb.csFeedbackId, getDefaultFeedback(id, value, index))
           else
             Some((fb.csFeedbackId, fb.content))

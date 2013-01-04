@@ -64,6 +64,10 @@
     font-weight: 500;
 }
 
+.focus-element.selected.unknown {
+    background-color: #4055f8;
+}
+
 .focus-element.selected.shouldHaveBeenSelected {
     background-color: #53C516;
 }
