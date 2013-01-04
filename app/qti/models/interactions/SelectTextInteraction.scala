@@ -140,7 +140,7 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
   }
 
   private def tagSentences(s: String): String = {
-    val regExp = new Regex("(?s)(.*?[.!?]([^a-zA-Z]*<\\/correct>)*)", "match")
+    val regExp = new Regex("(?s)(.*?[.!?]([^ \\t])*)", "match")
     var idx = 0
 
     // Filter out names like Vikram S. Pandit as they break the sentence parsing
