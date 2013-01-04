@@ -147,7 +147,7 @@ object ItemApi extends BaseApi {
   /**
    * Returns an Item.  Only the default fields are rendered back.
    */
-  def get(id: ObjectId) = ApiActionRead {
+  def get(id: ObjectId) = ApiAction {
     request =>
       getWithFields(request.ctx.organization, id, excludedFieldsByDefault)
   }
@@ -158,7 +158,7 @@ object ItemApi extends BaseApi {
    * @param id
    * @return
    */
-  def getDetail(id: ObjectId) = ApiActionRead {
+  def getDetail(id: ObjectId) = ApiAction {
     request =>
       getWithFields(request.ctx.organization, id, excludeData)
   }

@@ -138,13 +138,12 @@ trait BaseApi extends Controller {
             if(ctx.permission.has(access)) f(ApiRequest(ctx, request, "fake_token"))
             else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
           }).getOrElse {
-            SecureSocial.currentUser(request).map { u =>
+            SecureSocial.currentUser(request).map( u => {
               invokeAsUser(u.id.id, u.id.providerId, request){request =>
                 if(request.ctx.permission.has(access)) f(request)
                 else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
               }
-            }.getOrElse {
-              tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
+            }).getOrElse( tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
                 OAuthProvider.getAuthorizationContext(token).fold(
                   error => Forbidden(Json.toJson(error)).as(JSON),
                   ctx => {
@@ -153,8 +152,7 @@ trait BaseApi extends Controller {
                     result
                   }
                 )
-              )
-            }
+            ))
           }
         )
     }

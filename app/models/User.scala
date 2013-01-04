@@ -141,9 +141,9 @@ object User extends DBQueryable[User]{
   def removeOrganization(userId:ObjectId, orgId:ObjectId):Either[InternalError,Unit] = {
     //todo: add two-phase commit
     try{
-      User.update(MongoDBObject("_id" -> userId, User.orgs+"."+UserOrg.orgId -> orgId), MongoDBObject("$set" ->MongoDBObject(User.orgs+".$" -> null)),
+      User.update(MongoDBObject("_id" -> userId, User.orgs+"."+UserOrg.orgId -> orgId), MongoDBObject("$set" ->MongoDBObject(User.orgs+".$" -> "tbr")),
         false,false,User.defaultWriteConcern)
-      User.update(MongoDBObject("_id"->userId),MongoDBObject("$pull" -> MongoDBObject(User.orgs -> null)),false,false,User.defaultWriteConcern)
+      User.update(MongoDBObject("_id"->userId),MongoDBObject("$pull" -> MongoDBObject(User.orgs -> "tbr")),false,false,User.defaultWriteConcern)
       Right(())
     }catch {
       case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))

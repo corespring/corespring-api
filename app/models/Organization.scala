@@ -137,8 +137,8 @@ object Organization extends DBQueryable[Organization]{
     //TODO: two phase commit should be added here too
     try {
       Organization.update(MongoDBObject("_id" -> orgId, Organization.contentcolls+"."+ContentCollRef.collectionId -> collId),
-        MongoDBObject("$set" -> MongoDBObject(Organization.contentcolls+".$" -> null)),false,false,Organization.defaultWriteConcern)
-      Organization.update(MongoDBObject("_id" -> orgId),MongoDBObject("$pull" -> MongoDBObject(Organization.contentcolls -> null)),
+        MongoDBObject("$set" -> MongoDBObject(Organization.contentcolls+".$" -> "tbr")),false,false,Organization.defaultWriteConcern)
+      Organization.update(MongoDBObject("_id" -> orgId),MongoDBObject("$pull" -> MongoDBObject(Organization.contentcolls -> "tbr")),
       false,false,Organization.defaultWriteConcern)
       Right(())
     }catch {

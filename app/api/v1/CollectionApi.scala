@@ -27,7 +27,7 @@ object CollectionApi extends BaseApi {
   }
 
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
-    if (Organization.isChild(request.ctx.organization, orgId)) {
+    if (Organization.getTree(request.ctx.organization).exists(_.id == orgId)) {
       doList(orgId, q, f, c, sk, l)
     } else
       Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
@@ -136,9 +136,12 @@ object CollectionApi extends BaseApi {
    * Deletes a collection
    */
   def deleteCollection(id: ObjectId) = ApiActionWrite { request =>
-    ContentCollection.moveToArchive(id) match {
-      case Right(_) => Ok()
-      case Left(e) => InternalServerError(Json.toJson(ApiError.DeleteCollection(e.clientOutput)))
+    ContentCollection.findOneById(id) match {
+      case Some(coll) => ContentCollection.moveToArchive(id) match {
+        case Right(_) => Ok(Json.toJson(coll))
+        case Left(e) => InternalServerError(Json.toJson(ApiError.DeleteCollection(e.clientOutput)))
+      }
+      case None => BadRequest(Json.toJson(ApiError.DeleteCollection))
     }
   }
 }

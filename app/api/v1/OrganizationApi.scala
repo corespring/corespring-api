@@ -67,14 +67,13 @@ object OrganizationApi extends BaseApi {
           if (request.ctx.organization == org.id){
             Ok(Json.toJson(org))
           }else{
-            Organization.getTree(request.ctx.organization).find(_ == org.id) match {
+            Organization.getTree(request.ctx.organization).find(_.id == org.id) match {
               case Some(_) => Ok(Json.toJson(org))
-              case None => Unauthorized
+              case None => Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
             }
           }
-          Ok(Json.toJson(org))
         }
-        case _ => NotFound
+        case None => NotFound(Json.toJson(ApiError.UnknownOrganization))
     }
   }
 
@@ -83,7 +82,7 @@ object OrganizationApi extends BaseApi {
    *
    * @return
    */
-  def getDefaultOrganization = ApiAction { request =>
+  def getDefaultOrganization = ApiActionRead { request =>
     Ok(Json.toJson(Organization.findOneById( request.ctx.organization )))
   }
 

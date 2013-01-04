@@ -25,7 +25,7 @@ object UserApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    users must have size 3
+    users must have size 4
   }
 
 
@@ -36,7 +36,7 @@ object UserApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    users must have size 2
+    users must have size 3
     (users(0) \ "userName").as[String] must beEqualTo("marge")
   }
 
@@ -63,7 +63,7 @@ object UserApiTest extends BaseTest {
       (u \ "fullName").asOpt[String] must beNone
       (u \ "email").asOpt[String] must beNone
     })
-    users must have size 3
+    users must have size 4
   }
 
   "find a user with userName equal to 'homer'" in {

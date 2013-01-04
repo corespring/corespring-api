@@ -119,9 +119,10 @@ object ContentCollection extends DBQueryable[ContentCollection]{
       Content.collection.update(MongoDBObject(Content.collectionId -> collId), MongoDBObject("$set" -> MongoDBObject(Content.collectionId -> ContentCollection.archiveCollId.toString)),
         false, false, Content.collection.writeConcern)
       ContentCollection.removeById(collId)
+
       Organization.update(MongoDBObject(Organization.contentcolls+"."+ContentCollRef.collectionId -> collId),
-        MongoDBObject("$set" -> MongoDBObject(Organization.contentcolls+".$" -> null)),false,false,Organization.defaultWriteConcern)
-      Organization.update(MongoDBObject(),MongoDBObject("$pull" -> MongoDBObject(Organization.contentcolls -> null)),
+        MongoDBObject("$set" -> MongoDBObject(Organization.contentcolls+".$" -> "tbr")),false,false,Organization.defaultWriteConcern)
+      Organization.update(MongoDBObject(),MongoDBObject("$pull" -> MongoDBObject(Organization.contentcolls -> "tbr")),
         false,false,Organization.defaultWriteConcern)
       Right(())
     }catch{
