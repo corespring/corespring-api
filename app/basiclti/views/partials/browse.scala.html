@@ -22,7 +22,7 @@
 </div>
 
 <div class="table-header" ng-show="items">
-  <table border="0">
+  <table class="fixed" border="0">
     <tr>
       <th class="primary-subject"
           ng-click="predicate = 'primarySubject.category'; reverse=!reverse">
@@ -47,7 +47,7 @@
 <div class="table-content" ng-show="items">
     <div class="inner" when-scrolled="loadMore()" scrolled-mode="div">
 
-  <table border="0">
+  <table class="fixed" border="0">
     <tr ng-click="selectItem(i)" ng-repeat="i in items | orderBy:predicate:reverse" ng-class="{even: $index % 2 == 0}">
       <td class="primary-subject"><div title="{{getPrimarySubjectLabel(i.primarySubject)}}">{{getShortSubjectLabel(i.primarySubject)}}</div></td>
       <td class="ccss">
