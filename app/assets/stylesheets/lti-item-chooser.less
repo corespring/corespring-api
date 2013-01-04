@@ -52,6 +52,7 @@ td.small-title {
     top: 30px;
     position: absolute;
     overflow-y: scroll;
+	width:100%;
   }
 
   tr {
@@ -60,7 +61,7 @@ td.small-title {
     }
   }
   tr.even {
-    background-color: lighten(@cs-navbar-color, 50%);
+    background-color: #EEE;
     &:hover {
       background-color: lighten(@cs-navbar-color, 20%);
     }
@@ -81,13 +82,13 @@ td.nav-title {
   font-weight: bold;
 }
 
-td.nav-vr {
+table.fixed.lti-nav td.nav-vr {
   div {
     height: @navbar-height - 15;
     border-left: solid 1px lighten(@cs-dark-grey, 20%);
   }
-  padding-left: 5px;
-  padding-right: 5px;
+  padding-left: 3px;
+  padding-right: 3px;
   margin: 0px;
   width: 1px;
 }
@@ -96,7 +97,6 @@ td.nav-vr {
   min-width: @w;
   width: @w;
   div {
-    width: @w;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -105,12 +105,12 @@ td.nav-vr {
 
 th.primary-subject,
 td.primary-subject {
-  .local-fix-width(80px);
+  .local-fix-width(15%);
 }
 
 th.ccss,
 td.ccss {
-  .local-fix-width(50px);
+  .local-fix-width(15%);
 }
 
 td.grade,
@@ -119,16 +119,15 @@ th.type,
 td.type,
 th.source,
 td.source {
-  .local-fix-width(40px);
+  .local-fix-width(10%);
 }
 
 td.grade,
 td.type {
-  text-align: center;
+  text-align: left;
 }
 
 .title-holder {
-  width: 280px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -136,8 +135,7 @@ td.type {
 
 th.title,
 td.title {
-  max-width: 300px;
-  width: 300px;
+  width: 40%;
 }
 
 .row {
@@ -225,8 +223,8 @@ td.title {
 }
 
 .item-count {
-  float: right;
-  margin-top: 5px;
+  float: left;
+  margin-top: 0px;
   color: #ffffff;
 }
 
@@ -468,6 +466,9 @@ a.cs-icon-link {
   display: none;
 }
 
+table.fixed { table-layout:fixed; 
+}
+
 .multi-select {
   #summary {
     display: table;
@@ -485,19 +486,36 @@ a.cs-icon-link {
     vertical-align: middle;
     font-size: 11px;
     line-height: 12px;
+	text-align: left;
   }
+  
+.multi-title-text.collection{
+width: 30%;
+}
+.selected-multi-options.collection{
+width:70%;
+} 
+
+.multi-title-text.grade-level{ 
+width: 45%;
+}
+
+.selected-multi-options.grade-level{
+width: 55%;
+}
 
   .selected-multi-options {
     font-size: 10px;
     line-height: 14px;
     font-style: italic;
     font-weight: normal;
-    padding-left: 10px;
+    padding-left: 5px;
+	text-align: left;
   }
 }
 
 div.input-append input#appendedInput.span2 {
-  width: 80px;
+  width: 60px;
   height: 16px;
   margin-bottom: 0px;
   font-size: 11px;
@@ -505,10 +523,10 @@ div.input-append input#appendedInput.span2 {
 }
 
 div.input-append span.add-on {
-  height: 16px;
-  width: 10px;
-  margin-bottom: 0px;
-
+height: 20px;
+width: 14px;
+margin-bottom: 0px;
+padding: 2px;
 }
 
 .item-count {
@@ -520,3 +538,28 @@ div.input-append span.add-on {
   vertical-align: top;
 }
 
+.input-append .add-on, .input-prepend .add-on {
+min-width: 10px;
+}
+
+table.fixed.lti-nav td{
+padding:5px 0px 5px 0px;
+}
+
+div.table-header table th {
+    font-weight:bold;
+    color:#777777;
+}
+
+.table-header table.fixed, .table-content table.fixed {
+width:600px
+}
+
+.table-content .inner table.fixed td {
+text-align:left;
+padding-left:10px;
+}
+
+th.title div.title-holder {
+padding-left:10px;
+}
