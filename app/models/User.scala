@@ -139,14 +139,15 @@ object User extends DBQueryable[User]{
     c.close(); returnValue
   }
   def removeOrganization(userId:ObjectId, orgId:ObjectId):Either[InternalError,Unit] = {
-    //todo: add two-phase commit
-    try{
-      User.update(MongoDBObject("_id" -> userId, User.orgs+"."+UserOrg.orgId -> orgId), MongoDBObject("$set" ->MongoDBObject(User.orgs+".$" -> "tbr")),
-        false,false,User.defaultWriteConcern)
-      User.update(MongoDBObject("_id"->userId),MongoDBObject("$pull" -> MongoDBObject(User.orgs -> "tbr")),false,false,User.defaultWriteConcern)
-      Right(())
-    }catch {
-      case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
+    User.findOneById(userId) match {
+      case Some(user) => try{
+        user.orgs = user.orgs.filter(_.orgId != orgId)
+        User.update(MongoDBObject("_id"->userId),user,false,false,User.defaultWriteConcern)
+        Right(())
+      }catch {
+        case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
+      }
+      case None => Left(InternalError("could not find user", addMessageToClientOutput = true))
     }
   }
   def getPermissions(userId:ObjectId, orgId:ObjectId):Either[InternalError,Permission] = {

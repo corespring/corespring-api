@@ -1,26 +1,18 @@
 package tests.api.v1
 
-import controllers.auth.Permission
-import controllers.Log
-import models.ContentCollection
-import org.bson.types.ObjectId
-import org.specs2.mutable._
 import play.api.libs.json.{JsNull, Json, JsValue}
-import play.api.Logger
-import play.api.mvc.AnyContentAsJson
 import play.api.test._
 import play.api.test.Helpers._
 import scala._
 import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
-import play.api.test.FakeHeaders
-import play.api.mvc.AnyContentAsJson
-import play.api.test.FakeHeaders
-import play.api.mvc.AnyContentAsJson
-import play.api.test.FakeHeaders
-import play.api.mvc.AnyContentAsJson
 import scala.Some
 import tests.BaseTest
+import com.mongodb.casbah.Imports._
+import com.novus.salat._
+import controllers.auth.Permission
+import models.User
+import models.UserOrg
 
 
 class CollectionApiTest extends BaseTest {
@@ -81,7 +73,9 @@ class CollectionApiTest extends BaseTest {
 
   "create, update and delete a collection" in {
     val name = "test collection"
-
+    User.update(
+      MongoDBObject(User.userName -> "demo_user", User.orgs+"."+UserOrg.orgId -> new ObjectId("502404dd0364dc35bb393397")),
+      MongoDBObject("$set" -> MongoDBObject(User.orgs+".$."+UserOrg.pval -> Permission.Write.value)),false,false,User.defaultWriteConcern)
     // create it
     val toCreate = Map("name" -> name)
     val fakeRequest = FakeRequest(POST, "/api/v1/collections?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
@@ -122,6 +116,9 @@ class CollectionApiTest extends BaseTest {
       }
       case None => failure("failed to delete collection")
     }
+    User.update(
+      MongoDBObject(User.userName -> "demo_user", User.orgs+"."+UserOrg.orgId -> new ObjectId("502404dd0364dc35bb393397")),
+      MongoDBObject("$set" -> MongoDBObject(User.orgs+".$."+UserOrg.pval -> Permission.Read.value)),false,false,User.defaultWriteConcern)
   }
 
 

@@ -134,15 +134,17 @@ object Organization extends DBQueryable[Organization]{
         MongoDBObject(ContentCollRef.collectionId -> collRef.collectionId, ContentCollRef.pval -> collRef.pval)))).isDefined
   }
   def removeCollection(orgId:ObjectId, collId: ObjectId):Either[InternalError,Unit] = {
-    //TODO: two phase commit should be added here too
-    try {
-      Organization.update(MongoDBObject("_id" -> orgId, Organization.contentcolls+"."+ContentCollRef.collectionId -> collId),
-        MongoDBObject("$set" -> MongoDBObject(Organization.contentcolls+".$" -> "tbr")),false,false,Organization.defaultWriteConcern)
-      Organization.update(MongoDBObject("_id" -> orgId),MongoDBObject("$pull" -> MongoDBObject(Organization.contentcolls -> "tbr")),
-      false,false,Organization.defaultWriteConcern)
-      Right(())
-    }catch {
-      case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
+    Organization.findOneById(orgId) match {
+      case Some(org) => {
+        org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
+        try {
+          Organization.update(MongoDBObject("_id" -> orgId),org,false,false,Organization.defaultWriteConcern)
+          Right(())
+        }catch {
+          case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
+        }
+      }
+      case None => Left(InternalError("could not find organization",addMessageToClientOutput = true))
     }
   }
 

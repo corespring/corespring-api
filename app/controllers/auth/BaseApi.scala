@@ -147,6 +147,7 @@ trait BaseApi extends Controller {
                 OAuthProvider.getAuthorizationContext(token).fold(
                   error => Forbidden(Json.toJson(error)).as(JSON),
                   ctx => {
+                    ctx.permission.has(access)
                     val result: PlainResult = if(ctx.permission.has(access))f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
                                               else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
                     result
@@ -181,7 +182,7 @@ trait BaseApi extends Controller {
       User.getUser(username, provider).map { user =>
         Logger.debug("Using user in Play's session = " + username)
         //TODO: check orgId is right
-        val ctx = new AuthorizationContext(user.orgs.head.orgId, Option(username))
+        val ctx = new AuthorizationContext(user.orgs.head.orgId, Option(username),true)
         f( ApiRequest(ctx, request, ""))
       }.getOrElse(
         Forbidden( Json.toJson(MissingCredentials) ).as(JSON)

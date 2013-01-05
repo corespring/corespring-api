@@ -9,7 +9,7 @@ import controllers.{Log, InternalError}
  *
  * @see BaseApi
  */
-class AuthorizationContext(val organization: ObjectId, val user: Option[String] = None) {
+class AuthorizationContext(val organization: ObjectId, val user: Option[String] = None, val isSSLogin:Boolean = false) {
   lazy val permission:Permission = user match {
     case Some(username) => User.getPermissions(username,organization) match {
       case Right(p) => p
@@ -17,6 +17,7 @@ class AuthorizationContext(val organization: ObjectId, val user: Option[String] 
     }
     case None => Permission.Write
   }
+  lazy val isLoggedIn:Boolean = isSSLogin
 //  /**
 //   * Checks whether the passed Permission is granted over the target
 //   *

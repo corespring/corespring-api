@@ -114,17 +114,22 @@ object ContentCollection extends DBQueryable[ContentCollection]{
     }
   }
   def moveToArchive(collId:ObjectId):Either[InternalError,Unit] = {
-    //TODO: two phase commit should be added here too
+    //todo: roll backs after detecting error in organization update
     try{
       Content.collection.update(MongoDBObject(Content.collectionId -> collId), MongoDBObject("$set" -> MongoDBObject(Content.collectionId -> ContentCollection.archiveCollId.toString)),
         false, false, Content.collection.writeConcern)
       ContentCollection.removeById(collId)
-
-      Organization.update(MongoDBObject(Organization.contentcolls+"."+ContentCollRef.collectionId -> collId),
-        MongoDBObject("$set" -> MongoDBObject(Organization.contentcolls+".$" -> "tbr")),false,false,Organization.defaultWriteConcern)
-      Organization.update(MongoDBObject(),MongoDBObject("$pull" -> MongoDBObject(Organization.contentcolls -> "tbr")),
-        false,false,Organization.defaultWriteConcern)
-      Right(())
+      Organization.find(MongoDBObject(Organization.contentcolls+"."+ContentCollRef.collectionId -> collId)).foldRight[Either[InternalError,Unit]](Right(()))((org,result) => {
+        if (result.isRight){
+          org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
+          try {
+            Organization.update(MongoDBObject("_id" -> org.id),org,false,false,Organization.defaultWriteConcern)
+            Right(())
+          }catch {
+            case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
+          }
+        }else result
+      })
     }catch{
       case e:SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to transfer collection to archive")))
       case e:SalatRemoveError => Left(InternalError(e.getMessage))

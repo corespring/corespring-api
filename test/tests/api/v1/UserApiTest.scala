@@ -10,6 +10,13 @@ import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
 import scala.Some
 import tests.BaseTest
+import models.{UserOrg, User}
+import com.mongodb.casbah.Imports._
+import play.api.test.FakeHeaders
+import scala.Some
+import play.api.mvc.AnyContentAsJson
+import org.bson.types.ObjectId
+import controllers.auth.Permission
 
 /**
  * User API Tests
@@ -90,6 +97,9 @@ object UserApiTest extends BaseTest {
   }
 
   "create, update and delete a user" in {
+    User.update(
+      MongoDBObject(User.userName -> "demo_user", User.orgs+"."+UserOrg.orgId -> new ObjectId("502404dd0364dc35bb393397")),
+      MongoDBObject("$set" -> MongoDBObject(User.orgs+".$."+UserOrg.pval -> Permission.Write.value)),false,false,User.defaultWriteConcern)
     val name = "john"
     val fullName = "John Doe"
     val email = "john.doe@corespring.org"
@@ -141,5 +151,8 @@ object UserApiTest extends BaseTest {
       }
       case None => failure("failed to update user")
     }
+    User.update(
+      MongoDBObject(User.userName -> "demo_user", User.orgs+"."+UserOrg.orgId -> new ObjectId("502404dd0364dc35bb393397")),
+      MongoDBObject("$set" -> MongoDBObject(User.orgs+".$."+UserOrg.pval -> Permission.Read.value)),false,false,User.defaultWriteConcern)
   }
 }

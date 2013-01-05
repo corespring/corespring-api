@@ -26,8 +26,8 @@ object Permission {
 
   def fromLong(value: Long): Option[Permission] = value match {
     case 0 => Some(None)
-    case x if((x&Read.value)==Read.value) => Some(Read)
     case x if((x&Write.value)==Write.value) => Some(Write)
+    case x if((x&Read.value)==Read.value) => Some(Read)
     case _ => scala.None
   }
 
