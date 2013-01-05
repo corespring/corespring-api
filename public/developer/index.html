@@ -345,7 +345,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 <p>There are two primary means of integrating CoreSpring content into your system:</p>
 
 <ol>
-<li>Standards-based integration using IMS LTI 1.x (and in future LTI 2.0)</li>
+<li>Integration using IMS Learning Tools Interopability (LTI) 1.x (and in future LTI 2.0)</li>
 <li>Direct integration using the CoreSpring REST API and Item Player</li>
 </ol>
 
@@ -360,11 +360,26 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <p><a target="_top" href="http://www.imsglobal.org/toolsinteroperability2.cfm">IMS LTI</a> (Learning Tools Interopability) is a standard for interopability between learning systems.</p>
 
-<p>It defines a mechanism for authorization and launching of URLs</p>
+<p>It is supported by many LMS systems like Blackboard, Moodle and CanvasLMS. It allows these systems to launch external tools like CoreSpring within their platforms. Systems like these LMSes are called Tool Consumers (TC) in LTI, and systems like CoreSpring are called Tool Providers (TP). That is, systems that provide tools that can be used within the TC system.</p>
 
-<p>If your system supports IMS LTI, you can discover and launch assessment items in the CoreSpring Item Player using this standard.</p>
+<p>The flow of events that occurs to deliver items is with the CoreSpring LTI tool is:</p>
 
-<blockquote><p>TODO describe steps to integrate with Canvas/any LTI LMS here.</p></blockquote>
+<ol>
+<li>CoreSpring Tool is configured as an LTI TP on the TC system</li>
+<li>Instructor adds an instance of the CoreSpring Tool to a course</li>
+<li>Instructor finds and configures the item to be rendered in the course by the CoreSpring Tool</li>
+<li>Student 'takes' the item</li>
+<li>Instructor can view the outcome and response for each student's Item Session*</li>
+</ol>
+
+
+<p><em>* The TC system needs to support LTI outcomes service for the outcomes to be sent back to the TC system</em></p>
+
+<p>The instructions for how to configure LTI Tools might vary somewhat from system to system. By way of reference, we will describe how to configure CoreSpring with CanvasLMS here:</p>
+
+<h3>Using CoreSpring in Canvas with LTI</h3>
+
+<blockquote><p>TODO fill in canvas instructions here</p></blockquote>
 
 <h2><a name="integration-direct" class="waypoint"></a> Direct Integration</h2>
 
@@ -1040,7 +1055,7 @@ For example, if you only wanted the Item Title and Primary Subject Fields for th
 
 <hr />
 
-<p>date:  01/04/2013 12:16PM</p>
+<p>date:  01/04/2013 02:43PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
