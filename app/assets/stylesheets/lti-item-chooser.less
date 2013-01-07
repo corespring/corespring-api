@@ -62,7 +62,7 @@ table.fixed { table-layout:fixed;
     line-height: 14px;
     font-style: italic;
     font-weight: normal;
-   padding:2px 0 0 5px;
+    padding:2px 0 0 5px;
 	text-align: center;
   }
 }
@@ -71,6 +71,7 @@ table.fixed { table-layout:fixed;
 .table-header {
   table {
     margin: 0 auto;
+    width: @max-width;
     th {
       .mixin-text-non-selectable;
     }
@@ -107,6 +108,13 @@ table.fixed { table-layout:fixed;
 	overflow-x: hidden;
     overflow-y: scroll;
 	width:100%;
+
+    table{
+      td{
+        text-align:left;
+        padding-left:12px;
+      }
+    }
   }
 
   tr {
@@ -194,6 +202,12 @@ td.title {
   width: 40%;
 }
 
+th.title{
+  .title-holder{
+    padding-left: 10px;
+  }
+}
+
 .row {
   img {
     float: left;
@@ -256,6 +270,13 @@ td.title {
     .contents {
       max-width: @max-width;
       margin: 0 auto;
+
+      .btn-mini.btn-primary {
+        font-family:inherit;
+        font-size: 13px;
+        letter-spacing: .05em;
+        margin-top:4px;
+      }
     }
 
     background-color: darken(@cs-dark-grey, 20%);
@@ -623,26 +644,7 @@ div.table-header table th {
     color:#777777;
 }
 
-.table-header table.fixed, .table-content table.fixed {
-width:@max-width;
-}
 
-
-.table-content .inner table.fixed td {
-text-align:left;
-padding-left:12px;
-}
-
-th.title div.title-holder {
-padding-left:10px;
-}
-
-div.contents .btn-mini.btn-primary {
-font-family:inherit;
-font-size: 13px;
-letter-spacing: .05em;
-margin-top:4px;
-}
 
 #previewiframe div.itemplayer-control-bar {
 display:none !important;
@@ -656,17 +658,21 @@ background-position: -240px -97px;
 background-position: -264px -97px;
 }
 
-.lti-grade-level div.chooser {
-width: 145px;
-padding: 5px 5px 0px 10px;
-}
+.lti-grade-level {
+  .chooser {
+    width: 145px;
+    padding: 5px 5px 0px 10px;
 
-.lti-grade-level div.chooser ul li{
-text-align: left;
-float: left;
-list-style: none;
-height: 30px;
-width: 36px;
+    ul{
+      li{
+        text-align: left;
+        float: left;
+        list-style: none;
+        height: 30px;
+        width: 36px;
+      }
+    }
+  }
 }
 
 .icon-search {
@@ -675,9 +681,9 @@ margin-top: -4px;
 }
 
 .lti-search {
-padding:0px;
+  padding:0px;
+  .input-append.pull-left{
+    margin:0px;
+  }
 }
 
-.lti-search div.input-append.pull-left  {
-margin:0px;
-}
