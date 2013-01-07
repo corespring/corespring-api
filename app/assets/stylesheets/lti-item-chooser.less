@@ -359,11 +359,44 @@ th.title{
 
   .view-item-container {
     margin: 0 auto;
-    width: 600px;
-    height: 100%;
+    width: 100%;
+    min-width: @min-width;
+    position: absolute;
+    bottom: 50px;
+    top: 40px;
+
+    .profile-holder{
+      position: absolute;
+      overflow-y: scroll;
+      bottom: 6px;
+      top: 3px;
+      width: 100%;
+    }
+
+    .lti-iframe-holder {
+      position: absolute;
+      bottom: 0px;
+      top: 0px;
+      width: 100%;
+      min-width: @min-width;
+      left: 0px;
+
+      .lti-iframe-preview {
+        position: absolute;
+        width: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+        height: 100%;
+        left: 0px;
+        right: 0px;
+        bottom: 0px;
+        top: 0px;
+        padding: 0 15px 0 0px;
+      }
+
+    }
   }
 
-  margin: 0 auto;
 
   .start-pod,
   .has-item-pod {
@@ -512,34 +545,6 @@ a.cs-icon-link {
   clear: both;
 }
 
-.lti-iframe-holder {
-  position: absolute;
-  bottom: 0px;
-  top: 43px;
-  width: 100%;
-  min-width: @min-width;
-  left: 0px;
-}
-
-.lti-iframe-preview {
-  position: absolute;
-  width: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
-  height: 96%;
-  left: 0px;
-  right: 0px;
-  bottom: 0px;
-  top: 0px;
-  padding: 0 15px 0 0px;
-}
-
-.lti-preview-container {
-  position: relative;
-  height: 100%;
-  top: 2px;
-  padding-top: 0px;
-}
 
 .multi-select {
   padding: 0px;
