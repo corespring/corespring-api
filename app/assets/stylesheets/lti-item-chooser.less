@@ -52,7 +52,7 @@ body {
 }
 
 td.lti-logo {
-  width:14%;
+  width:16%;
 }
 
 td.lti-collections {
@@ -64,7 +64,7 @@ td.lti-grade-level {
 }
 
 td.lti-search {
-  width: 27%;
+  width: 25%;
 }
 
 
@@ -107,7 +107,7 @@ table.fixed {
     line-height: 14px;
     font-style: italic;
     font-weight: normal;
-    padding:2px 0 0 5px;
+    padding:2px 0 0 0px;
 	text-align: center;
   }
 }
@@ -553,6 +553,7 @@ a.cs-icon-link {
     -moz-box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.1);
     -webkit-box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.1);
     box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.1);
+	padding: 5px 5px 5px 10px;
 
     ul {
       display: block;
@@ -641,21 +642,32 @@ a.cs-icon-link {
 
 .lti-grade-level {
   .chooser {
-    width: 145px;
-    padding: 5px 5px 0px 10px;
+    width: 138px;
 
     ul{
       li{
         text-align: left;
         float: left;
         list-style: none;
-        height: 30px;
+        height: 23px;
         width: 36px;
       }
     }
   }
 }
 
+.lti-collections {
+  .chooser{
+margin-left: 25px;
+width: 90px;
+
+	ul{
+      li{
+        height: 23px;
+	  }
+	}
+}
+}
 
 .lti-search {
   padding:0px;
@@ -663,7 +675,7 @@ a.cs-icon-link {
     margin:0px;
     margin-left: 2px;
     input{
-      width: 56%;
+      width: 51%;
       height:10px;
       margin-bottom: 0px;
       font-size: 11px;
