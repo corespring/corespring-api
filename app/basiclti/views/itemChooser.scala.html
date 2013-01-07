@@ -42,11 +42,12 @@
     <div confirm-popup
       ng-model="config.itemId"
       confirmed="onUnassignConfirmed" class="confirm-popup">
+      <span class="unassign-icon"><img src="/assets/images/warning-icon-37x37.png" width="37" height="37" alt="Warning"> </span>
       <h2>Unassign</h2>
       <p>Are you sure you want to remove this item from the current assignment?</p>
       <button class="btn" id="confirm">Yes</button>
       <button class="btn" id="cancel">No</button>
-    </div>
+  </div>
 
     <div class="navbar navbar-fixed-top" ng-controller="SearchController">
       <div class="header" ng-show="showSearch()">
