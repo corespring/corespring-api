@@ -2,6 +2,7 @@
 
 @navbar-height: 48px;
 @max-width: 570px;
+@min-width: 600px;
 @cs-green: #80b312;
 @cs-navbar-color: @cs-green;
 @cs-dark-grey: #888888;
@@ -510,9 +511,11 @@ a.cs-icon-link {
 
 .lti-iframe-holder {
   position: absolute;
-  width: 600px;
   bottom: 0px;
   top: 43px;
+  width: 100%;
+  min-width: @min-width;
+  left: 0px;
 }
 
 .lti-iframe-preview {
