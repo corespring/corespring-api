@@ -43,23 +43,22 @@
       ng-model="config.itemId"
       confirmed="onUnassignConfirmed" class="confirm-popup">
       <h2>Unassign</h2>
-      <p>Are you sure?</p>
-      <button id="confirm">Yes</button>
-      <button id="cancel">No</button>
+      <p>Are you sure you want to unassign this item?</p>
+      <button class="btn" id="confirm">Yes</button>
+      <button class="btn" id="cancel">No</button>
     </div>
 
     <div class="navbar navbar-fixed-top" ng-controller="SearchController">
       <div class="header" ng-show="showSearch()">
       <table class="fixed lti-nav" style= "width:100%; margin-top:3px;">
         <tr>
-          <td style="width:78px;text-align:right;">
+          <td class="lti-logo">
             <img
             src="/assets/images/cs-primary-web77x28.png"
             alt="Corespring" height="28" width="77"/>
           </td>
-          <td class="lti-reset"><a ng-click="clear()">Clear</a></td>
           <td class="nav-vr"><div></div></td>
-          <td style="width:120px;">
+          <td class="lti-collections">
             <span multi-select
               multi-get-title="getCollectionTitle"
               multi-options="collections"
@@ -73,7 +72,7 @@
             </span>
           </td>
           <td class="nav-vr"><div></div></td>
-          <td style="width:130px;">
+          <td class="lti-grade-level">
             <span multi-select
               multi-get-title="getTitle"
               multi-get-selected-title="getSelectedTitle"
@@ -87,7 +86,7 @@
             </span>
           </td>
           <td class="nav-vr"><div></div></td>
-          <td style="width:75px">
+          <td class="lti-search">
             <div class="input-append pull-left">
 
             <input placeholder="Search"
@@ -100,9 +99,8 @@
                 <i class="icon-search"></i>
               </span>
             </div>
-          </td>
-          <td style="width:45px;">
             <div class="item-count">{{getItemCountLabel(itemCount)}}</div>
+            <div class="lti-reset"><a ng-click="clear()">Clear</a></div>
           </td>
        </tr>
       </table>
@@ -116,14 +114,13 @@
            item-count="itemCount"
            current-item="item"
           ng-show="showPager()">
-         <table style="width:100%">
+         <table class="fixed lti-nav" style= "width:100%; margin-top:4px;">
              <tr>
-                 <td valign="center">
-                   <img
-                     src="/assets/images/round_logo.png"
-                     alt="Corespring"/>
-                   <span><a ng-show="items" ng-click="returnToSearch()">HOME</a></span>
-                 </td>
+             <td class="lti-logo">
+                              <a ng-show="items" ng-click="returnToSearch()"><img
+            src="/assets/images/cs-primary-web77x28.png"
+            alt="Corespring" height="28" width="77"/></a>
+          </td>
                  <td>
                      <ul class="pager" ng-show="items">
                          <li class="pull-right">
