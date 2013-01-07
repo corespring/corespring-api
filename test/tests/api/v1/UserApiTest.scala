@@ -23,7 +23,7 @@ import controllers.auth.Permission
  */
 
 object UserApiTest extends BaseTest {
-  val userId = "502d46ce0364068384f217a3"
+  val userId = "502d46ce0364068384f217a4"
 
   "list all visible users" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/users?access_token=%s".format(token))
@@ -32,7 +32,7 @@ object UserApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    users must have size 4
+    users must have size 3
   }
 
 
@@ -43,8 +43,8 @@ object UserApiTest extends BaseTest {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    users must have size 3
-    (users(0) \ "userName").as[String] must beEqualTo("marge")
+    users must have size 2
+    (users(0) \ "userName").as[String] must beEqualTo("bart")
   }
 
 
@@ -70,18 +70,18 @@ object UserApiTest extends BaseTest {
       (u \ "fullName").asOpt[String] must beNone
       (u \ "email").asOpt[String] must beNone
     })
-    users must have size 4
+    users must have size 3
   }
 
-  "find a user with userName equal to 'homer'" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/users?access_token=%s&q={\"userName\":\"homer\"}".format(token))
+  "find a user with userName equal to 'marge'" in {
+    val fakeRequest = FakeRequest(GET, "/api/v1/users?access_token=%s&q={\"userName\":\"marge\"}".format(token))
     val Some(result) = routeAndCall(fakeRequest)
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
     users must have size 1
-    (users(0) \ "userName").as[String] must beEqualTo("homer")
+    (users(0) \ "userName").as[String] must beEqualTo("marge")
   }
 
   "find user with id %s".format(userId) in {
@@ -92,7 +92,7 @@ object UserApiTest extends BaseTest {
     contentType(result) must beSome("application/json")
     val user = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
     (user \ "id").as[String] must beEqualTo(userId)
-    (user \ "userName").as[String] must beEqualTo("homer")
+    (user \ "userName").as[String] must beEqualTo("marge")
 
   }
 

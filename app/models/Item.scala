@@ -384,16 +384,14 @@ object Item extends DBQueryable[Item] {
     Some(item)
   }
 
-  def countItems(query: Option[DBObject] = None, fields : Option[String] = None ) : Int = {
-    val queryDbo = query.getOrElse( new BasicDBObject())//.asInstanceOf[DBObject]
+  def countItems(query: DBObject, fields : Option[String] = None ) : Int = {
     val fieldsDbo = JSON.parse(fields.getOrElse("{}")).asInstanceOf[BasicDBObject]
-    val result : SalatMongoCursor[Item] = Item.find( queryDbo, fieldsDbo)
+    val result : SalatMongoCursor[Item] = Item.find( query, fieldsDbo)
     result.count
   }
 
-  def list(query: Option[DBObject] = None, fields: BasicDBObject = new BasicDBObject(), skip: Int = 0, limit: Int = 200) : List[Item] = {
-    val queryDbo = query.getOrElse( new BasicDBObject())//.asInstanceOf[DBObject]
-    val result : SalatMongoCursor[Item] = Item.find( queryDbo, fields)
+  def list(query: DBObject, fields: BasicDBObject = new BasicDBObject(), skip: Int = 0, limit: Int = 200) : List[Item] = {
+    val result : SalatMongoCursor[Item] = Item.find( query, fields)
     result.limit(limit)
     result.skip(skip)
     result.toList
