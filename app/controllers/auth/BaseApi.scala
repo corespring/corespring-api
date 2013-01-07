@@ -112,7 +112,7 @@ trait BaseApi extends Controller {
         fakeContext(request).fold(
           error => BadRequest(Json.toJson(new ApiError(1, "The id specified is not a valid UUID"))),
           optionalCtx => optionalCtx.map(ctx => f(ApiRequest(ctx, request, "fake_token"))).getOrElse {
-            SecureSocial.currentUser(request).map { u =>
+            SecureSocial.currentUser(request).find(_ => request.headers.get("CoreSpring-IgnoreSession").isEmpty).map { u =>
               invokeAsUser(u.id.id, u.id.providerId, request)(f)
             }.getOrElse {
               tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
@@ -138,7 +138,7 @@ trait BaseApi extends Controller {
             if(ctx.permission.has(access)) f(ApiRequest(ctx, request, "fake_token"))
             else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
           }).getOrElse {
-            SecureSocial.currentUser(request).map( u => {
+            SecureSocial.currentUser(request).find(_ => request.headers.get("CoreSpring-IgnoreSession").isEmpty).map( u => {
               invokeAsUser(u.id.id, u.id.providerId, request){request =>
                 if(request.ctx.permission.has(access)) f(request)
                 else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
