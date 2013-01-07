@@ -204,6 +204,7 @@ class ItemSessionTest extends Specification {
 
     "don't automatically finish an item if there is any incorrect responses" in {
       val session = ItemSession(itemId = new ObjectId())
+      session.settings.maxNoOfAttempts = 0 // no max... multiple attempts allowed
       ItemSession.begin(session)
       session.responses = Seq( StringItemResponse("a", "b") )
       ItemSession.process(session, SimpleXml) match {
