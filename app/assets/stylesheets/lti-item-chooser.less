@@ -1,6 +1,6 @@
 @import 'mixins';
 
-@navbar-height: 45px;
+@navbar-height: 48px;
 @max-width: 570px;
 @cs-green: #80b312;
 @cs-navbar-color: @cs-green;
@@ -17,21 +17,17 @@ width:14%;
 }
 
 td.lti-collections {
-width:26%;
+width:27%;
 }
 
 td.lti-grade-level {
-width:28%;
+width:27%;
 }
 
 td.lti-search {
-width: 20%;
+width: 27%;
 }
 
-td.lti-item-count-cell{
-width: 7%;
-text-align: right;
-}
 
 td.small-title {
   font-size: 12px;
@@ -42,13 +38,13 @@ table.fixed { table-layout:fixed;
 
 .multi-select {
   #summary {
-    display: table;
+    display: block;
   }
 
   .multi-title-text,
   .selected-multi-options{
     text-align: center;
-    display: table-cell;
+    display: block;
     .mixin-text-non-selectable;
   }
 
@@ -57,31 +53,17 @@ table.fixed { table-layout:fixed;
     vertical-align: middle;
     font-size: 11px;
     line-height: 12px;
-	text-align: left;
+	text-align: center;
   }
   
-.multi-title-text.collection{
-width: 30%;
-}
-.selected-multi-options.collection{
-width:70%;
-} 
-
-.multi-title-text.grade-level{ 
-width: 50%;
-}
-
-.selected-multi-options.grade-level{
-width: 50%;
-}
 
   .selected-multi-options {
     font-size: 10px;
     line-height: 14px;
     font-style: italic;
     font-weight: normal;
-    padding-left: 5px;
-	text-align: left;
+   padding:2px 0 0 5px;
+	text-align: center;
   }
 }
 
@@ -156,7 +138,7 @@ td.nav-title {
 
 table.fixed.lti-nav td.nav-vr {
   div {
-    height: @navbar-height - 15;
+    height: @navbar-height - 12;
     border-left: solid 1px lighten(@cs-dark-grey, 20%);
   }
   padding-left: 4px;
@@ -324,6 +306,15 @@ border-bottom: none;
 
 .item-count {
   margin-top: 0px;
+  float:left;
+  position: relative;
+top: 6px;
+}
+
+.lti-reset{ 
+float:right;
+position: relative;
+top: 3px;
 }
 
 .no-items-info-pane {
@@ -347,7 +338,7 @@ border-bottom: none;
 }
 
 .navbar {
-  height: 45px;
+  height: 48px;
   padding-bottom: 5px;
   background: url("/assets/images/header-light-grey-br.gif") repeat scroll center top transparent;
   -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
@@ -488,7 +479,6 @@ a.cs-icon-link {
     padding: 0px;
     width: 80px;
     background-color: fadeout(lighten(@cs-green, 50%), 70%);
-
     button {
       min-width: 80px;
     }
@@ -519,6 +509,7 @@ a.cs-icon-link {
     }
   }
 }
+
 
 .mixin-up-caret(@color) {
   float: left;
@@ -590,21 +581,18 @@ margin: 0px 0 0 -280px;
 	font-family:inherit;
 }
 
-.lti-reset {
-  display: none;
-}
-
 div.input-append.pull-left {
-width: 100%;
 margin-left: 2px;
 }
 
 div.input-append input#appendedInput.span2 {
-  width: 65%;
-  height: 16px;
+  width: 70%;
+    height:10px;
   margin-bottom: 0px;
   font-size: 11px;
   font-family: "Ubuntu" Arial, sans-serif;
+  position: relative;
+top: 4px;
 }
 
 div.input-append span.add-on {
@@ -612,6 +600,10 @@ height: 20px;
 width: 14px;
 margin-bottom: 0px;
 padding: 2px;
+height:10px;
+padding: 4px 3px;
+position: relative;
+top: 4px;
 }
 
 .item-count {
@@ -624,10 +616,6 @@ vertical-align: top;
 
 .input-append .add-on, .input-prepend .add-on {
 min-width: 10px;
-}
-
-table.fixed.lti-nav td{
-padding:5px 0px 5px 0px;
 }
 
 div.table-header table th {
@@ -666,4 +654,30 @@ background-position: -240px -97px;
 
 .icon-arrow-right{
 background-position: -264px -97px;
+}
+
+.lti-grade-level div.chooser {
+width: 145px;
+padding: 5px 5px 0px 10px;
+}
+
+.lti-grade-level div.chooser ul li{
+text-align: left;
+float: left;
+list-style: none;
+height: 30px;
+width: 36px;
+}
+
+.icon-search {
+background-position: -48px 0px;
+margin-top: -4px;
+}
+
+.lti-search {
+padding:0px;
+}
+
+.lti-search div.input-append.pull-left  {
+margin:0px;
 }
