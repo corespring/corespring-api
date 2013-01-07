@@ -163,7 +163,10 @@ table.fixed {
 	
       td{
         text-align:left;
-        padding-left:12px;
+        padding-left:0px;
+        div{
+          margin-left: 12px;
+        }
       }
     }
   }
@@ -367,7 +370,7 @@ th.title{
 
     .profile-holder{
       position: absolute;
-      overflow-y: scroll;
+      overflow-y: auto;
       bottom: 6px;
       top: 3px;
       width: 100%;
@@ -458,6 +461,7 @@ th.title{
 .header {
   margin: 0 auto;
   max-width: @max-width;
+  min-width: @max-width;
   padding: 0px 15px 0px 15px;
 }
 	
