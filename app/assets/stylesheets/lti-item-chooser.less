@@ -74,6 +74,8 @@ table.fixed { table-layout:fixed;
     width: @max-width;
     th {
       .mixin-text-non-selectable;
+      font-weight:bold;
+      color:#777777;
     }
   }
 }
@@ -573,78 +575,42 @@ a.cs-icon-link {
 }
 
 .confirm-popup  {
-    background: url("/assets/images/header-light-grey-br.gif") repeat scroll center top transparent;
+  background: url("/assets/images/header-light-grey-br.gif") repeat scroll center top transparent;
   padding: 5px 0px 22px 0px;
   width: 570px;
-text-align: center;
-position: fixed;
-top: 25%;
-left: 50%;
-z-index: 1050;
-width: 560px;
-margin: 0px 0 0 -280px;
-}
+  text-align: center;
+  position: fixed;
+  top: 25%;
+  left: 50%;
+  z-index: 1050;
+  width: 560px;
+  margin: 0px 0 0 -280px;
 
-.confirm-popup h2 {
-  padding:0px;
-  margin-bottom: 15px;
-  line-height:30px;
-}
+  h2 {
+    padding:0px;
+    margin-bottom: 15px;
+    line-height:30px;
+  }
 
-.confirm-popup p {
- margin:0 0 15px;
-}
+  p {
+    margin:0 0 15px;
+  }
 
-.confirm-popup .btn {
+  .btn {
     margin:0 5px 0 5px;
     padding:3px 10px;
-	font-weight:bold;
-	font-family:inherit;
-}
-
-div.input-append.pull-left {
-margin-left: 2px;
-}
-
-div.input-append input#appendedInput.span2 {
-  width: 70%;
-    height:10px;
-  margin-bottom: 0px;
-  font-size: 11px;
-  font-family: "Ubuntu" Arial, sans-serif;
-  position: relative;
-top: 4px;
-}
-
-div.input-append span.add-on {
-height: 20px;
-width: 14px;
-margin-bottom: 0px;
-padding: 2px;
-height:10px;
-padding: 4px 3px;
-position: relative;
-top: 4px;
+    font-weight:bold;
+    font-family:inherit;
+  }
 }
 
 .item-count {
-color:@cs-blue;
-word-wrap: break-word;
-text-align: center;
-line-height: 13px;
-vertical-align: top;
+  color:@cs-blue;
+  word-wrap: break-word;
+  text-align: center;
+  line-height: 13px;
+  vertical-align: top;
 }
-
-.input-append .add-on, .input-prepend .add-on {
-min-width: 10px;
-}
-
-div.table-header table th {
-    font-weight:bold;
-    color:#777777;
-}
-
-
 
 #previewiframe div.itemplayer-control-bar {
 display:none !important;
@@ -676,14 +642,35 @@ background-position: -264px -97px;
 }
 
 .icon-search {
-background-position: -48px 0px;
-margin-top: -4px;
+  background-position: -48px 0px;
+  margin-top: -4px;
 }
 
 .lti-search {
   padding:0px;
-  .input-append.pull-left{
+  .input-append{
     margin:0px;
+    margin-left: 2px;
+    input{
+      width: 70%;
+      height:10px;
+      margin-bottom: 0px;
+      font-size: 11px;
+      font-family: "Ubuntu" Arial, sans-serif;
+      position: relative;
+      top: 4px;
+    }
+    .add-on{
+      height: 20px;
+      width: 14px;
+      margin-bottom: 0px;
+      padding: 2px;
+      height:10px;
+      padding: 4px 3px;
+      position: relative;
+      top: 4px;
+      min-width: 10px;
+    }
   }
 }
 
