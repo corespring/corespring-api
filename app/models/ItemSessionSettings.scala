@@ -5,14 +5,14 @@ import play.api.libs.json._
 /**
  * Configuration settings for an ItemSession
  */
-case class ItemSessionSettings( var maxNoOfAttempts : Int = 0,
+case class ItemSessionSettings( var maxNoOfAttempts : Int = 1,
                                 var highlightUserResponse : Boolean = true,
 
                                 /**
                                  * Only applicable when the session is finished
                                  */
                                 var highlightCorrectResponse : Boolean = true,
-                                var showFeedback : Boolean = false,
+                                var showFeedback : Boolean = true,
                                 var allowEmptyResponses : Boolean = false,
                                 var submitCompleteMessage : String = ItemSessionSettings.SubmitComplete,
                                 var submitIncorrectMessage : String = ItemSessionSettings.SubmitIncorrect)
