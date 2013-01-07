@@ -1096,19 +1096,6 @@ For example, in a call to the /items resource you could return only items of typ
 </div>
 
 
-<p>-AND/OR Parameters</p>
-
-<p>By default results will only be returned if all parameters match (AND), however you can specify that results should match if any of a given set of parameters match (OR). You do this by combining the parameters in an array and using the $or keyword.</p>
-
-<p>For example the following query would get a list of items where the subject was 'Mathematics' AND the grade was either "K" OR "1"</p>
-
-<pre><code>/items?q={primarySubject:"Mathematics",$or:[{gradeLevel:"K"},{gradeLevel:"K1"}]}
-</code></pre>
-
-<blockquote><p>The AND / OR querying is not yet implemented in the live api test.</p></blockquote>
-
-<p><em>(If you are familiar with MongoDb the above will look familiar. The query syntax is based on Mongo queries. However it should be noted that we do not support all the Mongo Syntax, only parameters specified in these documents will work)</em></p>
-
 <h3>'f' Fields Parameter</h3>
 
 <p>The Fields parameter allows you to specify which fields of the target object you would like returned with the result.
@@ -1125,7 +1112,7 @@ For example, if you only wanted the Item Title and Primary Subject Fields for th
 
 <hr />
 
-<p>date:  01/07/2013 01:04PM</p>
+<p>date:  01/07/2013 05:01PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
