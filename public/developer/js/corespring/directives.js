@@ -226,7 +226,9 @@ angular.module('cs.directives').directive('restWidget', function($http) {
             error: function(jqXHR, textStatus, errorThrown){ scope.onError.call(scope, jqXHR, textStatus, errorThrown)},
             dataType: scope.resultType, 
             beforeSend: function(request){
-
+              // special header to let the server know to ignore user session
+              request.setRequestHeader("CoreSpring-IgnoreSession", "true");
+              
               if( scope.requestHeaders ){
 
                 var headers = scope.requestHeaders.split("&");
