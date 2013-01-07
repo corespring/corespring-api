@@ -33,4 +33,6 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
     val idsObj = MongoDBObject(clientId -> new ObjectId(id), clientSecret -> secret)
     findOne(idsObj)
   }
+
+  def findOneByOrgId(orgId:ObjectId):Option[ApiClient] = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> orgId))
 }

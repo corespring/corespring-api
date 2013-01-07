@@ -74,7 +74,7 @@ object CollectionApi extends BaseApi {
             } else {
               val organizations = parseOrganizations(json, Seq.empty)
               val collection = ContentCollection(id = newId, name = name.get)
-              ContentCollection.insert(request.ctx.organization,collection) match {
+              ContentCollection.insertCollection(request.ctx.organization,collection,Permission.Write) match {
                 case Right(coll) => Ok(Json.toJson(coll))
                 case Left(e) => InternalServerError(Json.toJson(ApiError.InsertCollection(e.clientOutput)))
               }

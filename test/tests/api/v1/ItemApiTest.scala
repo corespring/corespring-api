@@ -30,9 +30,9 @@ class ItemApiTest extends BaseTest {
 
   val ItemRoutes = api.v1.routes.ItemApi
 
-  val accessToken = new AccessToken(new ObjectId("502404dd0364dc35bb39339c"),Some("homer"),"test_token",DateTime.now(),DateTime.now().plusMinutes(5));
+  val accessToken = new AccessToken(new ObjectId("502404dd0364dc35bb39339c"),Some("homer"),"itemapi_test_token",DateTime.now(),DateTime.now().plusMinutes(5));
   AccessToken.insert(accessToken)
-  override val token = "test_token"
+  override val token = "itemapi_test_token"
 
   "list all items" in {
     val call = ItemRoutes.list()
@@ -112,20 +112,21 @@ class ItemApiTest extends BaseTest {
     (item \ "id").as[String] must beEqualTo(id)
   }
 
-  "create does not require a collection id" in {
-    val toCreate = xmlBody("<html></html>")
-    val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
-    val result = routeAndCall(fakeRequest).get
-    status(result) must equalTo(OK)
-    val collectionId = (Json.fromJson[JsValue](Json.parse(contentAsString(result))) \ "collectionId").as[String]
-    ContentCollection.findOneById(new ObjectId(collectionId)).get.name must beEqualTo(ContentCollection.DEFAULT)
-  }
+  //create now requires a collection id
+//  "create does not require a collection id" in {
+//    val toCreate = xmlBody("<html></html>")
+//    val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
+//    val result = routeAndCall(fakeRequest).get
+//    status(result) must equalTo(OK)
+//    val collectionId = (Json.fromJson[JsValue](Json.parse(contentAsString(result))) \ "collectionId").as[String]
+//    ContentCollection.findOneById(new ObjectId(collectionId)).get.name must beEqualTo(ContentCollection.DEFAULT)
+//  }
 
   "create requires an authorized collection id" in {
     val toCreate = xmlBody("<html></html>", Map("collectionId" -> "something"))
     val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
     val result = routeAndCall(fakeRequest).get
-    status(result) must equalTo(FORBIDDEN)
+    status(result) must equalTo(UNAUTHORIZED)
     val collection = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
     (collection \ "code").as[Int] must equalTo(ApiError.CollectionUnauthorized.code)
   }

@@ -110,6 +110,8 @@ object ApiError {
   val ItemSessionNotFound = ApiError(605, "item session specified could not be found")
   val ItemSessionFinished = ApiError(606, "item session is alredy finished - can't update it")
 
+  //Item API
+  val CollectionIdMissing = ApiError(700, "collection id is missing in given json")
 
   //amazon s3
   val AmazonS3Client          = ApiError(800, "an exception occured on the when communicating with S3")

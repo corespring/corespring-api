@@ -174,14 +174,14 @@ object Organization extends DBQueryable[Organization]{
   def getDefaultCollection(orgId: ObjectId):Either[InternalError,ContentCollection] = {
     val collections = ContentCollection.getCollectionIds(orgId,Permission.Write,false);
     if (collections.isEmpty){
-      ContentCollection.insert(orgId,ContentCollection(ContentCollection.DEFAULT));
+      ContentCollection.insertCollection(orgId,ContentCollection(ContentCollection.DEFAULT),Permission.Write);
     }else{
       ContentCollection.findOne(
         MongoDBObject("_id" -> MongoDBObject("$in" -> collections), ContentCollection.name -> ContentCollection.DEFAULT)
       ) match {
         case Some(default) => Right(default)
         case None =>
-          ContentCollection.insert(orgId,ContentCollection(ContentCollection.DEFAULT));
+          ContentCollection.insertCollection(orgId,ContentCollection(ContentCollection.DEFAULT),Permission.Write);
       }
     }
   }
