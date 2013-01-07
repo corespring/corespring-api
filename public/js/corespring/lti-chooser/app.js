@@ -143,17 +143,23 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
   };
 
   $scope.getCollectionTitle = function(c){
-    return c.name;
+    return c.name.replace("CoreSpring", "");
   };
 
   $scope.getTitle = function(o){ return o.key };
 
   $scope.getCollectionSelectedTitle = function(items){
+    if(!items || items.length == 0){
+      return "None Selected";
+    }
     var out = _.map(items, function(i){ return i.name});
-    return out.join(", ");
+    return out.join(", ").replace(/CoreSpring/g, "");
   };
 
   $scope.getSelectedTitle = function(items){
+    if(!items || items.length == 0){
+      return "None Selected";
+    }
     var out = _.map(items, function(i){return i.key});
     return out.join(", ");
   };

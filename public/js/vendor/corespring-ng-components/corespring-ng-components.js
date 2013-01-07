@@ -747,7 +747,7 @@ usage:
         var outer, prepped, summaryHtml, uidKey;
         uidKey = attrs['multiUid'] || "key";
         outer = null;
-        element.find("#summary").each(function() {
+        element.find(".summary").each(function() {
           return outer = $(this).clone().wrap('<p>').parent().html();
         });
         summaryHtml = outer;

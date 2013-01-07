@@ -124,7 +124,9 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
     if(!count){
       return "";
     }
-    return count + " results";
+
+    var resultString = (count > 1) ? "results" : "result";
+    return count + " " + resultString;
   };
 
 
@@ -140,9 +142,9 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
              || i.name == "CoreSpring ELA"
           })
         }
-        var processed = preProcess(data);
+        var filtered = preProcess(data);
 
-        $scope.collections = [{ name: "All", value: processed} ].concat(processed);
+        $scope.collections = [{ name: "All", value: filtered } ].concat(filtered);
         $scope.search();
       },
       function () {

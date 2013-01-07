@@ -7,6 +7,27 @@
 @cs-dark-grey: #888888;
 @cs-blue: #00ACCE;
 
+.mixin-up-caret(@color) {
+  float: left;
+  width: 0;
+  height: 0;
+  vertical-align: top;
+  border-bottom: 4px solid @color;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+  content: "";
+}
+
+.mixin-down-caret(@color) {
+  float: left;
+  width: 0;
+  height: 0;
+  vertical-align: top;
+  border-top: 4px solid @color;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+  content: "";
+}
 
 body {
   background-color: #ffffff;
@@ -55,6 +76,11 @@ table.fixed {
     font-size: 11px;
     line-height: 12px;
 	text-align: center;
+
+    .caret {
+      border-top: 4px solid #777777;
+      margin-top: 4px;
+    }
   }
   
 
@@ -109,7 +135,7 @@ table.fixed {
     top: 30px;
     position: absolute;
 	overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
 	width:100%;
 
     table{
@@ -529,27 +555,6 @@ a.cs-icon-link {
 }
 
 
-.mixin-up-caret(@color) {
-  float: left;
-  width: 0;
-  height: 0;
-  vertical-align: top;
-  border-bottom: 4px solid @color;
-  border-right: 4px solid transparent;
-  border-left: 4px solid transparent;
-  content: "";
-}
-
-.mixin-down-caret(@color) {
-  float: left;
-  width: 0;
-  height: 0;
-  vertical-align: top;
-  border-top: 4px solid @color;
-  border-right: 4px solid transparent;
-  border-left: 4px solid transparent;
-  content: "";
-}
 
 .sortableColumn:before {
   .mixin-up-caret( lighten(@cs-dark-grey, 30%) );
