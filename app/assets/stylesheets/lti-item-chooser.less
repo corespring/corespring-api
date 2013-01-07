@@ -117,7 +117,7 @@ table.fixed {
 .table-header {
   table {
     margin: 0 auto;
-    width: @max-width;
+    width:100%;
     th {
       .mixin-text-non-selectable;
       font-weight:bold;
@@ -128,6 +128,7 @@ table.fixed {
 
 .table-header {
   position: relative;
+  min-width: @min-width;
   width: 100%;
 
   z-index: 11;
@@ -140,7 +141,8 @@ table.fixed {
   z-index: 10;
   padding-top: 0px;
   margin: 0 auto;
-  width: @max-width;
+  min-width: @min-width;
+  width: 100%;
 
   bottom: @navbar-height;
   top: 0px;
@@ -158,6 +160,7 @@ table.fixed {
 	width:100%;
 
     table{
+	
       td{
         text-align:left;
         padding-left:12px;
@@ -166,6 +169,7 @@ table.fixed {
   }
 
   tr {
+    background-color:#FFF;
     &:hover {
       background-color: lighten(@cs-navbar-color, 20%);
     }
@@ -305,7 +309,7 @@ th.title{
 
 .main-content {
   width: 100%;
-  background-color: #ffffff;
+  background-color: #777;
   height: 100%;
   top: @navbar-height + 5;
   position: fixed;
@@ -598,16 +602,17 @@ a.cs-icon-link {
 }
 
 .confirm-popup  {
-  background: url("/assets/images/header-light-grey-br.gif") repeat scroll center top transparent;
-  padding: 5px 0px 22px 0px;
-  width: 570px;
+  background: url("/assets/images/warning-icon-37x37.png") no-repeat scroll 250px 20px;
+  padding: 60px 0px 22px 0px;
+  width: 500px;
   text-align: center;
   position: fixed;
   top: 25%;
   left: 50%;
   z-index: 1050;
   width: 560px;
-  margin: 0px 0 0 -280px;
+  margin: 0px 0 0 -265px;
+  .mixin-diagonal-stripes(45deg, @cs-blue, 6px, 0.2);
 
   h2 {
     padding:0px;
