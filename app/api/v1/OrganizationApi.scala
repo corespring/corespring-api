@@ -23,11 +23,11 @@ object OrganizationApi extends BaseApi {
    *
    * @return
    */
-  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
     doList(request.ctx.organization, q, f, c, sk, l)
   }
 
-  def listWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+  def listWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
     if(orgId == request.ctx.organization || Organization.isChild(request.ctx.organization,orgId))
       doList(orgId, q, f, c, sk, l)
     else
@@ -45,11 +45,11 @@ object OrganizationApi extends BaseApi {
    *
    * @return
    */
-  def getChildren(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+  def getChildren(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
     doList(request.ctx.organization, q, f, c, sk, l, childrenOnly =  true)
   }
 
-  def getChildrenWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+  def getChildrenWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
     if(orgId == request.ctx.organization || Organization.isChild(request.ctx.organization,orgId))
       doList(orgId, q, f, c, sk, l, childrenOnly = true)
     else
@@ -61,20 +61,19 @@ object OrganizationApi extends BaseApi {
    * @param id The organization id
    * @return
    */
-  def getOrganization(id: ObjectId) = ApiAction { request =>
+  def getOrganization(id: ObjectId) = ApiActionRead { request =>
     Organization.findOneById(id) match {
         case Some(org) =>  {
           if (request.ctx.organization == org.id){
             Ok(Json.toJson(org))
           }else{
-            Organization.getTree(request.ctx.organization).find(_ == org.id) match {
+            Organization.getTree(request.ctx.organization).find(_.id == org.id) match {
               case Some(_) => Ok(Json.toJson(org))
-              case None => Unauthorized
+              case None => Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
             }
           }
-          Ok(Json.toJson(org))
         }
-        case _ => NotFound
+        case None => NotFound(Json.toJson(ApiError.UnknownOrganization))
     }
   }
 
@@ -83,7 +82,7 @@ object OrganizationApi extends BaseApi {
    *
    * @return
    */
-  def getDefaultOrganization = ApiAction { request =>
+  def getDefaultOrganization = ApiActionRead { request =>
     Ok(Json.toJson(Organization.findOneById( request.ctx.organization )))
   }
 

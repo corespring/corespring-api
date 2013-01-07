@@ -177,7 +177,7 @@ class ItemTest extends BaseTest {
 
     "list works" in {
 
-      val result  = Item.list()
+      val result  = Item.list(new BasicDBObject())
 
       (result.length > 0) === true
     }

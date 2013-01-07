@@ -1,12 +1,16 @@
 package api.v1
 
 import controllers.auth.{Permission, BaseApi}
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json._
 import models.{ContentCollection, Organization}
 import org.bson.types.ObjectId
 import api.{QueryHelper, ApiError}
 import com.mongodb.casbah.commons.MongoDBObject
-import controllers.Utils
+import controllers.{InternalError, Utils}
+import scala.Left
+import play.api.libs.json.JsArray
+import scala.Some
+import scala.Right
 
 /**
  * The Collections API
@@ -18,19 +22,19 @@ object CollectionApi extends BaseApi {
    *
    * @return
    */
-  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
-    doList(request.ctx.organization, q, f, c, sk, l)
+  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
+      doList(request.ctx.organization, q, f, c, sk, l)
   }
 
-  def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
-    if (Organization.isChild(request.ctx.organization, orgId)) {
+  def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
+    if (Organization.getTree(request.ctx.organization).exists(_.id == orgId)) {
       doList(orgId, q, f, c, sk, l)
     } else
       Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
   private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = {
-    val collids = ContentCollection.getCollectionIds(orgId,Permission.All, false)
+    val collids = ContentCollection.getCollectionIds(orgId,Permission.Read, true)
     println(collids)
     val initSearch = MongoDBObject("_id" -> MongoDBObject("$in" -> collids))
     QueryHelper.list(q, f, c, sk, l, ContentCollection, Some(initSearch))
@@ -42,7 +46,7 @@ object CollectionApi extends BaseApi {
    * @param id The collection id
    * @return
    */
-  def getCollection(id: ObjectId) = ApiAction { request =>
+  def getCollection(id: ObjectId) = ApiActionRead { request =>
     ContentCollection.findOneById(id) match {
       case Some(org) =>  {
         // todo: check if this collection is visible to the caller?
@@ -57,7 +61,7 @@ object CollectionApi extends BaseApi {
    *
    * @return
    */
-  def createCollection = ApiAction { request =>
+  def createCollection = ApiActionWrite { request =>
     request.body.asJson match {
       case Some(json) => {
         (json \ "id").asOpt[String] match {
@@ -90,29 +94,38 @@ object CollectionApi extends BaseApi {
 
   private def unknownCollection = NotFound(Json.toJson(ApiError.UnknownCollection))
 
+  private def addCollectionToOrganizations(values:Seq[JsValue], collId:ObjectId):Either[controllers.InternalError,Unit] = {
+    val orgs:Seq[(ObjectId,Permission)] = values.map(v => v match {
+      case JsString(strval) => (new ObjectId(strval) -> Permission.Read)
+      case JsObject(orgWithPerm) => (new ObjectId(orgWithPerm(1)._1) -> Permission.fromLong(orgWithPerm(1)._2.as[Long]).get)
+      case _ => return Right(InternalError("incorrect format for organizations",addMessageToClientOutput = true))
+    })
+    ContentCollection.addOrganizations(orgs,collId)
+  }
   /**
    * Updates a collection
    *
    * @return
    */
-  def updateCollection(id: ObjectId) = ApiAction { request =>
-    ContentCollection.findOneById(id).map( original =>
-    {
+  def updateCollection(id: ObjectId) = ApiActionWrite { request =>
+    ContentCollection.findOneById(id).map( original => {
       request.body.asJson match {
         case Some(json) => {
           val name = (json \ "name").asOpt[String].getOrElse(original.name)
           val toUpdate = ContentCollection( name, id = original.id)
-          ContentCollection.updateCollection(toUpdate) match {
-            case Right(coll) => (json \ "organizations").asOpt[Seq[String]].map( seq => seq.map( new ObjectId(_)) ) match {
-              case Some(orgIds) => ContentCollection.addOrganizations(orgIds, id, Permission.All) match {
-                case Right(_) => Ok(Json.toJson(coll))
-                case Left(e) => InternalServerError(Json.toJson(ApiError.AddToOrganization(e.clientOutput)))
+          if((Organization.getPermissions(request.ctx.organization,original.id).value&Permission.Read.value) == Permission.Read.value) {
+            ContentCollection.updateCollection(toUpdate) match {
+              case Right(coll) => (json \ "organizations") match {
+                case JsArray(values) => addCollectionToOrganizations(values,id) match {
+                  case Right(_) => Ok(Json.toJson(coll))
+                  case Left(e) => InternalServerError(Json.toJson(ApiError.AddToOrganization(e.clientOutput)))
+                }
+                case JsUndefined(_) => Ok(Json.toJson(coll))
+                case _ => BadRequest(Json.toJson(ApiError.UpdateCollection(Some("organizations was included but was not the right format"))))
               }
-              case None => Ok(Json.toJson(coll))
+              case Left(e) => InternalServerError(Json.toJson(ApiError.UpdateCollection(e.clientOutput)))
             }
-            case Left(e) => InternalServerError(Json.toJson(ApiError.UpdateCollection(e.clientOutput)))
-          }
-
+          }else Unauthorized(Json.toJson(ApiError.UpdateCollection(Some("you do not have permission to update this collection"))))
         }
         case _ => jsonExpected
       }
@@ -122,13 +135,13 @@ object CollectionApi extends BaseApi {
   /**
    * Deletes a collection
    */
-  def deleteCollection(id: ObjectId) = ApiAction { request =>
+  def deleteCollection(id: ObjectId) = ApiActionWrite { request =>
     ContentCollection.findOneById(id) match {
-      case Some(toDelete) => {
-        ContentCollection.removeById(id)
-        Ok(Json.toJson(toDelete))
+      case Some(coll) => ContentCollection.moveToArchive(id) match {
+        case Right(_) => Ok(Json.toJson(coll))
+        case Left(e) => InternalServerError(Json.toJson(ApiError.DeleteCollection(e.clientOutput)))
       }
-      case _ => unknownCollection
+      case None => BadRequest(Json.toJson(ApiError.DeleteCollection))
     }
   }
 }

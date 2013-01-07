@@ -70,7 +70,7 @@ trait ItemResources {
   def getItemXMLByObjectId(itemId: String, callerOrg: ObjectId): Option[Elem] = {
     Item.findOneById(new ObjectId(itemId)) match {
       case Some(item) => {
-        if (Content.isCollectionAuthorized(callerOrg, item.collectionId, Permission.All)) {
+        if (Content.isCollectionAuthorized(callerOrg, item.collectionId, Permission.Read)) {
           val dataResource = item.data.get
 
           dataResource.files.find(_.name == Resource.QtiXml) match {

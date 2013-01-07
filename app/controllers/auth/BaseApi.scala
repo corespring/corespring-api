@@ -129,6 +129,46 @@ trait BaseApi extends Controller {
     }
   }
 
+  private def ApiActionPermissions[A](p: BodyParser[A])(access:Permission)(f: ApiRequest[A] => Result)= {
+    Action(p) {
+      request =>
+        fakeContext(request).fold(
+          error => BadRequest(Json.toJson(new ApiError(1, "The id specified is not a valid UUID"))),
+          optionalCtx => optionalCtx.map(ctx => {
+            if(ctx.permission.has(access)) f(ApiRequest(ctx, request, "fake_token"))
+            else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
+          }).getOrElse {
+            SecureSocial.currentUser(request).map( u => {
+              invokeAsUser(u.id.id, u.id.providerId, request){request =>
+                if(request.ctx.permission.has(access)) f(request)
+                else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
+              }
+            }).getOrElse( tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
+                OAuthProvider.getAuthorizationContext(token).fold(
+                  error => Forbidden(Json.toJson(error)).as(JSON),
+                  ctx => {
+                    ctx.permission.has(access)
+                    val result: PlainResult = if(ctx.permission.has(access))f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
+                                              else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
+                    result
+                  }
+                )
+            ))
+          }
+        )
+    }
+  }
+  /**
+   * A helper method to create an action for the API calls
+   *
+   * @param p - the body parser
+   * @param f - the method that gets executed if the credentials are ok
+   * @tparam A - the type of the body parser (eg: AnyContent)
+   * @return a Result or BadRequest if the credentials are invalid
+   */
+  def ApiActionRead[A](p: BodyParser[A])(f: ApiRequest[A] => Result) = ApiActionPermissions[A](p)(Permission.Read)(f)
+  def ApiActionWrite[A](p: BodyParser[A])(f: ApiRequest[A] => Result) = ApiActionPermissions[A](p)(Permission.Write)(f)
+
   /**
    * Invokes the action by passing an authorization context created from the Play's session informatino
    *
@@ -142,9 +182,8 @@ trait BaseApi extends Controller {
       User.getUser(username, provider).map { user =>
         Logger.debug("Using user in Play's session = " + username)
         //TODO: check orgId is right
-        val ctx = new AuthorizationContext(user.orgs.head.orgId, Option(username))
-        //TODO: tidy up token apiRequest
-        f( ApiRequest(ctx, request, "fake_token"))
+        val ctx = new AuthorizationContext(user.orgs.head.orgId, Option(username),true)
+        f( ApiRequest(ctx, request, ""))
       }.getOrElse(
         Forbidden( Json.toJson(MissingCredentials) ).as(JSON)
       )
@@ -159,6 +198,8 @@ trait BaseApi extends Controller {
   def ApiAction(f: ApiRequest[AnyContent] => Result): Action[AnyContent] = {
     ApiAction(parse.anyContent)(f)
   }
+  def ApiActionRead(f: ApiRequest[AnyContent] => Result) = ApiActionPermissions(parse.anyContent)(Permission.Read)(f)
+  def ApiActionWrite(f: ApiRequest[AnyContent] => Result) = ApiActionPermissions(parse.anyContent)(Permission.Write)(f)
 
   /**
    * An action that makes sure the is a user in the authorization context.

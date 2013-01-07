@@ -27,12 +27,12 @@ object ExporterApi extends BaseApi {
   /** Build a multi item scorm .zip
    * @param ids - comma delimited list of ids
    */
-  def multiItemScorm2004(ids: String) = ApiAction{ request =>
+  def multiItemScorm2004(ids: String) = ApiActionRead{ request =>
     binaryResultFromIds(ids, request.ctx.organization, ScormExporter.makeMultiScormPackage(_,MockToken,BaseUrl(request)))
   }
 
 
-  def multiItemLti(ids: String) = ApiAction { request =>
+  def multiItemLti(ids: String) = ApiActionRead { request =>
     binaryResultFromIds( ids, request.ctx.organization, (i) => CCExporter.packageItems(i.map(_.id.toString), BaseUrl(request)) )
   }
 
@@ -61,7 +61,7 @@ object ExporterApi extends BaseApi {
     }.flatten
   }
 
-  private def access(orgId: ObjectId)(item: Item): Boolean = Content.isCollectionAuthorized(orgId, item.collectionId, Permission.All)
+  private def access(orgId: ObjectId)(item: Item): Boolean = Content.isCollectionAuthorized(orgId, item.collectionId, Permission.Read)
 
   private def Binary(data: Array[Byte], length: Option[Long] = None, contentType: String = "application/octet-stream") = {
     val e = Enumerator(data)

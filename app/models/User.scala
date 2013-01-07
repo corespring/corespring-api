@@ -116,7 +116,7 @@ object User extends DBQueryable[User]{
   }
 
   def getOrganizations(user: User, p: Permission):Seq[Organization] = {
-    val orgs:Seq[ObjectId] = user.orgs.filter(uo => uo.pval == p.value).map(uo => uo.orgId)
+    val orgs:Seq[ObjectId] = user.orgs.filter(uo => (uo.pval&p.value) == p.value).map(uo => uo.orgId)
     Utils.toSeq(Organization.find(MongoDBObject("_id" -> MongoDBObject("$in" -> orgs))))
   }
   /**
@@ -137,6 +137,39 @@ object User extends DBQueryable[User]{
     val c: SalatMongoCursor[User] = User.find(MongoDBObject(User.orgs + "." + UserOrg.orgId -> orgId))
     val returnValue = Right(c.toSeq)
     c.close(); returnValue
+  }
+  def removeOrganization(userId:ObjectId, orgId:ObjectId):Either[InternalError,Unit] = {
+    User.findOneById(userId) match {
+      case Some(user) => try{
+        user.orgs = user.orgs.filter(_.orgId != orgId)
+        User.update(MongoDBObject("_id"->userId),user,false,false,User.defaultWriteConcern)
+        Right(())
+      }catch {
+        case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
+      }
+      case None => Left(InternalError("could not find user", addMessageToClientOutput = true))
+    }
+  }
+  def getPermissions(userId:ObjectId, orgId:ObjectId):Either[InternalError,Permission] = {
+    User.findOne(MongoDBObject("_id" -> userId, User.orgs+"."+UserOrg.orgId -> orgId)) match {
+      case Some(u) => getPermissions(u,orgId)
+      case None => Left(InternalError("could not find user with access to given organization",addMessageToClientOutput = true))
+    }
+  }
+  def getPermissions(username:String, orgId:ObjectId):Either[InternalError,Permission] = {
+    User.findOne(MongoDBObject(User.userName -> username, User.orgs+"."+UserOrg.orgId -> orgId)) match {
+      case Some(u) => getPermissions(u,orgId)
+      case None => Left(InternalError("could not find user with access to given organization",addMessageToClientOutput = true))
+    }
+  }
+  private def getPermissions(user:User, orgId:ObjectId):Either[InternalError,Permission] = {
+    user.orgs.find(_.orgId == orgId) match {
+      case Some(uo) => Permission.fromLong(uo.pval) match {
+        case Some(p) => Right(p)
+        case None => Left(InternalError("uknown permission retrieved",addMessageToClientOutput = true))
+      }
+      case None => Left(InternalError("userorg not found even though it was part of search requirement. this should never happen"))
+    }
   }
   //
   implicit object UserWrites extends Writes[User] {

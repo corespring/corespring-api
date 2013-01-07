@@ -8,6 +8,7 @@ import org.bson.types.ObjectId
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import dao.SalatInsertError
+import dao.SalatInsertError
 import play.api.templates.Xml
 import play.api.mvc.{AnyContent, Result}
 import play.api.libs.json.Json._
@@ -17,7 +18,13 @@ import scala.Some
 import scala.Right
 import api.InvalidFieldException
 import controllers.JsonValidationException
-import play.api.libs.json.{JsString, Json, JsValue}
+import play.api.libs.json._
+import scala.Left
+import scala.Some
+import scala.Right
+import api.InvalidFieldException
+import controllers.JsonValidationException
+import play.api.libs.json.JsObject
 
 /**
  * Items API
@@ -41,115 +48,111 @@ object ItemApi extends BaseApi {
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction {
     request =>
 
-      val query = makeQuery(q, request.ctx.organization)
-      if ("true".equalsIgnoreCase(c)) {
-        Ok(toJson(Item.countItems(Some(query), f)))
-      } else {
-        val result = Item.list(Some(query), f, sk, l)
-        Ok(toJson(result))
-      }
-  }
-
-  private def restrictedQueryForOrg(orgId: ObjectId): MongoDBObject = {
-    val collectionIds = getCollectionIdsForOrg(orgId).map(_.toString)
-    MongoDBObject("collectionId" -> MongoDBObject("$in" -> collectionIds))
-  }
-
-  private def getCollectionIdsForOrg(orgId: ObjectId): Seq[ObjectId] = ContentCollection.getCollectionIds(orgId, Permission.All, false)
-
-
-  private def makeQuery(q: Option[String], orgId: ObjectId): DBObject = {
-
-    val enforcedQuery = restrictedQueryForOrg(orgId)
-
-    /** add the required query attributes to the dbo
-      */
-    def processDbo(dbo: DBObject): DBObject = {
-
-      if (!dbo.contains("collectionId")) {
-        dbo.putAll(enforcedQuery.toMap)
-      } else {
-        val requestedCollectionId: String = dbo.get("collectionId").asInstanceOf[String]
-        if (!isValidCollectionId(requestedCollectionId, orgId)) {
-          throw new RuntimeException("Invalid collection id")
+      makeQuery(q, request.ctx.organization) match {
+        case Some(query) => if ("true".equalsIgnoreCase(c)) {
+          Ok(toJson(Item.countItems(query, f)))
+        } else {
+          val fields = f.flatMap(fields => com.mongodb.util.JSON.parse(fields) match {
+            case dbo:BasicDBObject => Some(dbo)
+            case _ => None
+          }).getOrElse(new BasicDBObject())
+          if (!request.ctx.isLoggedIn) stripDataField(fields)
+          val result = Item.list(query, fields, sk, l)
+          Ok(toJson(result))
         }
+        case None => if("true".equalsIgnoreCase(c)) Ok(JsObject(Seq("count" -> JsNumber(0))))
+                     else Ok(JsObject(Seq()))
       }
-      dbo
+  }
+  private def stripDataField(fields: BasicDBObject) = {
+    if(fields.values().contains(1)) fields.remove(Item.data)
+    else fields.append(Item.data, 0)
+  }
+  private def makeQuery(q: Option[String], orgId: ObjectId): Option[DBObject] = {
+    makeQuery(q, ContentCollection.getCollectionIds(orgId,Permission.Read,true))
+  }
+  private def makeQuery(q:Option[String], collectionIds:Seq[ObjectId]):Option[DBObject] = {
+    val optenforcedQuery = if(collectionIds.size > 1){
+      Some(MongoDBObject("collectionId" -> MongoDBObject("$in" -> collectionIds.map(_.toString))))
+    }else if(collectionIds.size == 1){
+      Some(MongoDBObject("collectionId" -> collectionIds(0).toString))
+    }else{
+      None
     }
-
-    q match {
-      case Some(s) => {
-        try {
-          val obj: Any = com.mongodb.util.JSON.parse(s)
-          processDbo(obj.asInstanceOf[DBObject])
+    optenforcedQuery match {
+      case Some(enforcedQuery) => q match {
+        case Some(s) => {
+          val optdbo: Option[DBObject] = try{
+            Some(com.mongodb.util.JSON.parse(s).asInstanceOf[DBObject])
+          }catch{
+            case e:Throwable => None
+          }
+          optdbo match {
+            case Some(dbo) => {
+              if (!dbo.contains("collectionId")) {
+                dbo.putAll(enforcedQuery.toMap)
+              } else {
+                val requestedCollectionId: String = dbo.get("collectionId").asInstanceOf[String]
+                if (!collectionIds.contains(new ObjectId(requestedCollectionId))) {
+                  throw new RuntimeException("Invalid collection id")
+                }
+              }
+              Some(dbo)
+            }
+            case None => Some(enforcedQuery)
+          }
         }
-        catch {
-          case e: Throwable => new BasicDBObject(enforcedQuery.toMap)
+        case _ => Some(enforcedQuery)
+      }
+      case None => None
+    }
+  }
+
+  def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
+      if (Organization.getTree(request.ctx.organization).exists(_.id == orgId)) {
+        val query = makeQuery(q, orgId)
+        if ("true".equalsIgnoreCase(c)) {
+          if(query.isDefined) Ok(toJson(Item.countItems(query.get, f)))
+          else Ok(JsObject(Seq("count" -> JsNumber(0))))
+        } else {
+          val fields = f.flatMap(fields => com.mongodb.util.JSON.parse(fields) match {
+            case dbo:BasicDBObject => Some(dbo)
+            case _ => None
+          }).getOrElse(new BasicDBObject())
+          if (!request.ctx.isLoggedIn) stripDataField(fields)
+          val result = if(query.isDefined) Item.list(query.get, fields, sk, l) else Seq()
+          Ok(toJson(result))
         }
-      }
-      case _ => new BasicDBObject(enforcedQuery.toMap)
-    }
-  }
-
-  private def isValidCollectionId(collectionId: String, orgId: ObjectId): Boolean = {
-    getCollectionIdsForOrg(orgId).map(_.toString).contains(collectionId)
-  }
-
-
-  private def getCollectionId(q: Option[String]): Option[ObjectId] = q match {
-    case Some(s) => {
-      val js: JsValue = Json.parse(s)
-      (js \ "collectionId") match {
-        case JsString(id) => Some(new ObjectId(id))
-        case _ => None
-      }
-    }
-    case _ => None
-  }
-
-  def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction {
-    request =>
-      if (Organization.isChild(request.ctx.organization, orgId)) {
-        listWithFields(orgId, q, f, c, sk, l)
       } else Forbidden(toJson(ApiError.UnauthorizedOrganization))
   }
 
-  def listWithColl(collId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction {
-    request => listWithCollection(request, collId, q, f, c, sk, l)
-  }
-
-  private def listWithCollection(request: ApiRequest[AnyContent], collectionId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int): Result = {
-    if (ContentCollection.isAuthorized(request.ctx.organization, collectionId, Permission.All)) {
-      val initSearch = MongoDBObject(Content.collectionId -> collectionId.toString)
-      val fieldsDbo:BasicDBObject = f.map(com.mongodb.util.JSON.parse(_).asInstanceOf[BasicDBObject]) match {
-        case Some(dbo) => {
-          dbo.remove(Item.data)
-          dbo
-        }
-        case None =>new BasicDBObject().append(Item.data,0)
+  def listWithColl(collId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction {request =>
+    if (ContentCollection.isAuthorized(request.ctx.organization, collId, Permission.Read)) {
+      val query = makeQuery(q, Seq(collId))
+      if ("true".equalsIgnoreCase(c)) {
+        if(query.isDefined) Ok(toJson(Item.countItems(query.get, f)))
+        else Ok(JsObject(Seq("count" -> JsNumber(0))))
+      } else {
+        val fields = f.flatMap(fields => com.mongodb.util.JSON.parse(fields) match {
+          case dbo:BasicDBObject => Some(dbo)
+          case _ => None
+        }).getOrElse(new BasicDBObject())
+        if (!request.ctx.isLoggedIn) stripDataField(fields)
+        val result = if(query.isDefined) Item.list(query.get, fields, sk, l)
+                     else Seq()
+        Ok(toJson(result))
       }
-      QueryHelper.listSimple(Item, q, Some(fieldsDbo), c == "true", sk, l, Some(initSearch))
     } else Forbidden(toJson(ApiError.UnauthorizedOrganization))
   }
 
-  private def listWithFields(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = {
-    val initSearch = MongoDBObject(Content.collectionId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(orgId, Permission.All).map(_.toString)))
-    val fieldsDbo:BasicDBObject = f.map(com.mongodb.util.JSON.parse(_).asInstanceOf[BasicDBObject]) match {
-      case Some(dbo) => {
-        dbo.remove(Item.data)
-        dbo
-      }
-      case None =>new BasicDBObject().append(Item.data,0)
-    }
-    QueryHelper.listSimple(Item, q, Some(fieldsDbo), c == "true", sk, l, Some(initSearch))
-  }
 
   /**
    * Returns an Item.  Only the default fields are rendered back.
    */
   def get(id: ObjectId) = ApiAction {
     request =>
-      getWithFields(request.ctx.organization, id, excludedFieldsByDefault)
+      val fields = if (request.ctx.isLoggedIn) excludedFieldsByDefault else Some(MongoDBObject(Item.data -> 0) ++ excludedFieldsByDefault.get)
+      getWithFields(request.ctx.organization, id, fields)
   }
 
   /**
@@ -173,7 +176,7 @@ object ItemApi extends BaseApi {
   private def getWithFields(callerOrg: ObjectId, id: ObjectId, fields: Option[DBObject]): Result = {
     fields.map(Item.collection.findOneByID(id, _)).getOrElse(Item.collection.findOneByID(id)) match {
       case Some(o) => o.get(Item.collectionId) match {
-        case collId: String => if (Content.isCollectionAuthorized(callerOrg, collId, Permission.All)) {
+        case collId: String => if (Content.isCollectionAuthorized(callerOrg, collId, Permission.Read)) {
           val i = grater[Item].asObject(o)
           Ok(toJson(i))
         } else {
@@ -195,7 +198,7 @@ object ItemApi extends BaseApi {
     request =>
       Item.collection.findOneByID(id, dataField) match {
         case Some(o) => o.get(Item.collectionId) match {
-          case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, collId, Permission.All)) {
+          case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, collId, Permission.Read)) {
             // added this to prevent a NPE when the data is not available in the item
             // this is temporary until bleezmo finishes working on this operation
             if (o.contains(Item.data))
@@ -221,7 +224,7 @@ object ItemApi extends BaseApi {
     request =>
       Item.collection.findOneByID(id, MongoDBObject(Item.collectionId -> 1)) match {
         case Some(o) => o.get(Item.collectionId) match {
-          case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, collId, Permission.All)) {
+          case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, collId, Permission.Write)) {
             Content.moveToArchive(id) match {
               case Right(_) => Ok(com.mongodb.util.JSON.serialize(o))
               case Left(error) => InternalServerError(toJson(ApiError.Item.Delete(error.clientOutput)))
@@ -243,7 +246,7 @@ object ItemApi extends BaseApi {
    */
   def cloneItem(id: ObjectId) = ApiAction {
     request =>
-      findAndCheckAuthorization(request.ctx.organization, id) match {
+      findAndCheckAuthorization(request.ctx.organization, id, Permission.Write) match {
         case Left(e) => BadRequest(toJson(e))
         case Right(item) => {
           Item.cloneItem(item) match {
@@ -255,8 +258,8 @@ object ItemApi extends BaseApi {
   }
 
 
-  private def findAndCheckAuthorization(orgId: ObjectId, id: ObjectId): Either[ApiError, Item] = Item.findOneById(id) match {
-    case Some(s) => Content.isCollectionAuthorized(orgId, s.collectionId, Permission.All) match {
+  private def findAndCheckAuthorization(orgId: ObjectId, id: ObjectId, p: Permission): Either[ApiError, Item] = Item.findOneById(id) match {
+    case Some(s) => Content.isCollectionAuthorized(orgId, s.collectionId, p) match {
       case true => Right(s)
       case false => Left(ApiError.CollectionUnauthorized)
     }
@@ -283,7 +286,7 @@ object ItemApi extends BaseApi {
                   }
                   case Left(error) => InternalServerError(toJson(ApiError.CantSave(error.clientOutput)))
                 }
-              } else if (Content.isCollectionAuthorized(request.ctx.organization, i.collectionId, Permission.All)) {
+              } else if (Content.isCollectionAuthorized(request.ctx.organization, i.collectionId, Permission.Write)) {
                 Item.insert(i) match {
                   case Some(_) => Ok(toJson(i))
                   case None => InternalServerError(toJson(ApiError.CantSave))
@@ -304,7 +307,7 @@ object ItemApi extends BaseApi {
 
   def update(id: ObjectId) = ApiAction {
     request =>
-      if (Content.isAuthorized(request.ctx.organization, id, Permission.All)) {
+      if (Content.isAuthorized(request.ctx.organization, id, Permission.Write)) {
         request.body.asJson match {
           case Some(json) => {
             if ((json \ Item.id).asOpt[String].isDefined) {

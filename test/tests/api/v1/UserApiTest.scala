@@ -10,13 +10,20 @@ import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
 import scala.Some
 import tests.BaseTest
+import models.{UserOrg, User}
+import com.mongodb.casbah.Imports._
+import play.api.test.FakeHeaders
+import scala.Some
+import play.api.mvc.AnyContentAsJson
+import org.bson.types.ObjectId
+import controllers.auth.Permission
 
 /**
  * User API Tests
  */
 
 object UserApiTest extends BaseTest {
-  val userId = "502d46ce0364068384f217a3"
+  val userId = "502d46ce0364068384f217a4"
 
   "list all visible users" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/users?access_token=%s".format(token))
@@ -37,7 +44,7 @@ object UserApiTest extends BaseTest {
     contentType(result) must beSome("application/json")
     val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
     users must have size 2
-    (users(0) \ "userName").as[String] must beEqualTo("marge")
+    (users(0) \ "userName").as[String] must beEqualTo("bart")
   }
 
 
@@ -66,15 +73,15 @@ object UserApiTest extends BaseTest {
     users must have size 3
   }
 
-  "find a user with userName equal to 'homer'" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/users?access_token=%s&q={\"userName\":\"homer\"}".format(token))
+  "find a user with userName equal to 'marge'" in {
+    val fakeRequest = FakeRequest(GET, "/api/v1/users?access_token=%s&q={\"userName\":\"marge\"}".format(token))
     val Some(result) = routeAndCall(fakeRequest)
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
     users must have size 1
-    (users(0) \ "userName").as[String] must beEqualTo("homer")
+    (users(0) \ "userName").as[String] must beEqualTo("marge")
   }
 
   "find user with id %s".format(userId) in {
@@ -85,11 +92,14 @@ object UserApiTest extends BaseTest {
     contentType(result) must beSome("application/json")
     val user = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
     (user \ "id").as[String] must beEqualTo(userId)
-    (user \ "userName").as[String] must beEqualTo("homer")
+    (user \ "userName").as[String] must beEqualTo("marge")
 
   }
 
   "create, update and delete a user" in {
+    User.update(
+      MongoDBObject(User.userName -> "demo_user", User.orgs+"."+UserOrg.orgId -> new ObjectId("502404dd0364dc35bb393397")),
+      MongoDBObject("$set" -> MongoDBObject(User.orgs+".$."+UserOrg.pval -> Permission.Write.value)),false,false,User.defaultWriteConcern)
     val name = "john"
     val fullName = "John Doe"
     val email = "john.doe@corespring.org"
@@ -141,5 +151,8 @@ object UserApiTest extends BaseTest {
       }
       case None => failure("failed to update user")
     }
+    User.update(
+      MongoDBObject(User.userName -> "demo_user", User.orgs+"."+UserOrg.orgId -> new ObjectId("502404dd0364dc35bb393397")),
+      MongoDBObject("$set" -> MongoDBObject(User.orgs+".$."+UserOrg.pval -> Permission.Read.value)),false,false,User.defaultWriteConcern)
   }
 }
