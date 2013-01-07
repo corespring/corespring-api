@@ -606,17 +606,29 @@ a.cs-icon-link {
 }
 
 .confirm-popup  {
-  background: url("/assets/images/warning-icon-37x37.png") no-repeat scroll 250px 20px;
-  padding: 60px 0px 22px 0px;
+color:#fff;
+text-shadow:0px 1px 1px #000;
+ background-color: #00acce;
+background-image: -ms-linear-gradient(top, #00acce, #0086a0);
+background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#00acce), to(#0086a0));
+background-image: -webkit-linear-gradient(top, #00acce, #0086a0);
+background-image: -o-linear-gradient(top, #00acce, #0086a0);
+background-image: -moz-linear-gradient(top, #00acce, #0086a0);
+background-image: linear-gradient(top, #00acce, #0086a0);
+filter: progid:dximagetransform.microsoft.gradient(startColorstr='@top', endColorstr='@bottom', GradientType=0);
+filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+background-repeat: repeat-x;
+border-color: #0097b5 #00819b #00819b;
+border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+  padding: 20px 0px 22px 0px;
   width: 500px;
   text-align: center;
   position: fixed;
   top: 25%;
   left: 50%;
   z-index: 1050;
-  width: 560px;
-  margin: 0px 0 0 -265px;
-  .mixin-diagonal-stripes(45deg, @cs-blue, 6px, 0.2);
+  margin: 0px 0 0 -250px;
+
 
   h2 {
     padding:0px;
@@ -626,6 +638,7 @@ a.cs-icon-link {
 
   p {
     margin:0 0 15px;
+	color:#fff;
   }
 
   .btn {
