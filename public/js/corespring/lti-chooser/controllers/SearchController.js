@@ -125,7 +125,7 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
       return "";
     }
 
-    var resultString = (count > 1) ? "results" : "result";
+    var resultString = (count == 1) ? "result" : "results";
     return count + " " + resultString;
   };
 

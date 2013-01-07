@@ -146,7 +146,7 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
     return c.name.replace("CoreSpring", "");
   };
 
-  $scope.getTitle = function(o){ return o.key };
+  $scope.getTitle = function(o){ return o.key.replace(/^0/, "") };
 
   $scope.getCollectionSelectedTitle = function(items){
     if(!items || items.length == 0){
@@ -161,7 +161,7 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
       return "None Selected";
     }
     var out = _.map(items, function(i){return i.key});
-    return out.join(", ");
+    return out.join(", ").replace(/0/g, "");
   };
 
   var getMessage = function(items){

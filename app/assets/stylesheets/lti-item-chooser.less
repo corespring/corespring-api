@@ -7,27 +7,45 @@
 @cs-dark-grey: #888888;
 @cs-blue: #00ACCE;
 
-.mixin-up-caret(@color) {
+.mixin-caret-base{
   float: left;
   width: 0;
   height: 0;
   vertical-align: top;
+  content: "";
+  display: inline-block;
+}
+
+.mixin-up-caret(@color) {
+  .mixin-caret-base;
   border-bottom: 4px solid @color;
   border-right: 4px solid transparent;
   border-left: 4px solid transparent;
-  content: "";
 }
 
 .mixin-down-caret(@color) {
-  float: left;
-  width: 0;
-  height: 0;
-  vertical-align: top;
+  .mixin-caret-base;
   border-top: 4px solid @color;
   border-right: 4px solid transparent;
   border-left: 4px solid transparent;
-  content: "";
 }
+
+.mixin-right-caret(@color){
+  .mixin-caret-base;
+  border-left: 4px solid @color;
+  border-right: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  float: none;
+  margin-top: 2px;
+  margin-left: 2px;
+}
+
+.caret-right{
+
+  .mixin-right-caret(#777777);
+}
+
 
 body {
   background-color: #ffffff;
