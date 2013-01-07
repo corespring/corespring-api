@@ -145,7 +145,6 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
         var filtered = preProcess(data);
 
         $scope.collections = [{ name: "All", value: filtered } ].concat(filtered);
-        $scope.search();
       },
       function () {
         console.log("load collections: error: " + arguments);

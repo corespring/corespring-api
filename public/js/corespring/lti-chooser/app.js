@@ -36,8 +36,12 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
      return $location.url() == "/browse";
   };
 
-  $scope.showPager = function(){
+  $scope.showSearchHeader = function(){
     return $location.url().indexOf("/view/") === 0;
+  };
+
+  $scope.showPager = function(){
+    return ($scope.config && !$scope.config.itemId) && $scope.itemCount;
   };
 
   $scope.loadItem = function(id){
@@ -132,6 +136,10 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
 
     LaunchConfigService.get({id: $scope.configurationId}, function (data) {
       $rootScope.config = data;
+
+      if(!$rootScope.config.itemId){
+        $rootScope.$broadcast('beginSearch');
+      }
     });
   };
 

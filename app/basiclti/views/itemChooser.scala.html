@@ -111,14 +111,15 @@
            list-model="items"
            item-count="itemCount"
            current-item="item"
-          ng-show="showPager()">
+           ng-show="showSearchHeader()"
+          >
          <table class="fixed lti-nav" style= "width:100%; margin-top:6px;">
              <tr>
              <td class="lti-logo">
-                              <a ng-show="items" ng-click="returnToSearch()"><img src="/assets/images/cs-primary-small-web33x82.png" alt="Corespring" height="33" width="82"></a>
+                              <a ng-click="returnToSearch()"><img src="/assets/images/cs-primary-small-web33x82.png" alt="Corespring" height="33" width="82"></a>
           </td>
                  <td>
-                     <ul class="pager" ng-show="items">
+                     <ul class="pager" ng-show="showPager()">
                          <li class="pull-right">
                              <a class="cs-icon-link" ng-click="next()">
                                  <i class="icon-white icon-arrow-right"></i>
