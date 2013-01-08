@@ -1,3 +1,4 @@
+//TODO: Merge or extract what is common - with lti chooser view item controller.
 function ViewItemController($scope, $routeParams, $location, ItemService) {
 
     /**
@@ -54,7 +55,7 @@ function ViewItemController($scope, $routeParams, $location, ItemService) {
 
     $scope.getItemUrl = function () {
         if (!$scope.itemData) return null;
-        return "/web/show-resource/" + $scope.itemData.id;
+        return WebRoutes.web.controllers.ShowResource.renderDataResource($scope.itemData.id).url;
     };
 
     $scope.prependHttp = function (url) {

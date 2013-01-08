@@ -12,7 +12,7 @@ import controllers.auth.Permission
 /**
  * An API client.  This gets created for each organization that is allowed API access
  */
-case class ApiClient(orgId: ObjectId, clientId: ObjectId, clientSecret: String, username:Option[String] = None)
+case class ApiClient(orgId: ObjectId, clientId: ObjectId, clientSecret: String)
 
 object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
   val orgId = "orgId"
@@ -33,10 +33,10 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
     val idsObj = MongoDBObject(clientId -> new ObjectId(id), clientSecret -> secret)
     findOne(idsObj)
   }
-  def findOne(orgId:ObjectId, optusername:Option[String]):Option[ApiClient] = {
-    optusername match {
-      case Some(username) => ApiClient.findOne(MongoDBObject(ApiClient.orgId -> orgId, ApiClient.username -> username))
-      case None => ApiClient.findOne(MongoDBObject(ApiClient.orgId -> orgId))
-    }
+
+  def findByKey(key:String) : Option[ApiClient] = {
+    findOne(MongoDBObject(ApiClient.clientId -> new ObjectId(key)))
   }
+
+  def findOneByOrgId(orgId:ObjectId):Option[ApiClient] = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> orgId))
 }

@@ -129,7 +129,7 @@ object Developer extends Controller with SecureSocial{
         if(user.orgs.exists(uo => uo.orgId == orgId)){
           Organization.findOneById(orgId) match {
             case Some(org) => {
-              OAuthProvider.register(org.id,user.userName) match {
+              OAuthProvider.register(org.id) match {
                 case Right(client) => Ok(developer.views.html.org_credentials(client.clientId.toString,client.clientSecret,org.name))
                 case Left(error) => BadRequest(Json.toJson(error))
               }

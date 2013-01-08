@@ -1,3 +1,5 @@
+@import 'mixins';
+
 @cs-grey: #dbd9db;
 @cs-green: #80b312;
 @cs-blue: #00acce;
@@ -28,49 +30,6 @@
 @cs-pills-color: #ffffff;
 
 
-/* -- Mixins -- */
-.mixin-bg-gradient(@bottom, @top){
-    background-image: -moz-linear-gradient(top, @bottom, @top);
-    background-image: -ms-linear-gradient(top, @bottom, @top);
-    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(@bottom), to(@top));
-    background-image: -webkit-linear-gradient(top, @bottom, @top);
-    background-image: -o-linear-gradient(top, @bottom, @top);
-    background-image: linear-gradient(top, @bottom, @top);
-    //filter: progid:dximagetransform.microsoft.gradient(startColorstr='@{bottom}', endColorstr='@{top}', GradientType=0);
-    background-repeat: repeat-x;
-}
-
-.mixin-box-shadow( @radius : 3px ){
-    -webkit-box-shadow: 0 1px @radius rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-    -moz-box-shadow: 0 1px @radius rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-    box-shadow: 0 1px @radius rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-}
-
-/**
-* Less subtle than the one above.
-*/
-.mixin-simple-box-shadow( @color: #000000, @radius: 5px, @alpha: 30% ){
-    -moz-box-shadow: 0 0 @radius @radius fade(@color, @alpha);
-    -webkit-box-shadow: 0 0 @radius @radius fade(@color, @alpha);
-    box-shadow: 0 0 @radius @radius fade(@color,@alpha);
-}
-
-.mixin-inner-shadow(@radius: 5px, @color: #888){
-    -moz-box-shadow: inset 0 0 @radius @radius @color;
-    -webkit-box-shadow: inset 0 0 @radius @radius @color;
-    box-shadow: inset 0 0 @radius @radius @color;
-}
-
-.mixin-background-image-gradient(@top, @bottom){
-    background-image: -ms-linear-gradient(top, @top, @bottom);
-    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(@top), to(@bottom));
-    background-image: -webkit-linear-gradient(top, @top, @bottom);
-    background-image: -o-linear-gradient(top, @top, @bottom);
-    background-image: -moz-linear-gradient(top, @top, @bottom);
-    background-image: linear-gradient(top, @top, @bottom);
-    filter: progid:dximagetransform.microsoft.gradient(startColorstr='@top', endColorstr='@bottom', GradientType=0);
-    filter: progid:dximagetransform.microsoft.gradient(enabled=false);
-}
 
 
 .iframe-preview {
@@ -649,11 +608,13 @@ body{
 /*
  * Icon links up the top right.
  */
+
 .navbar .nav > li > a.cs-icon-link {
     float: none;
     background-color: darken(@cs-navbar-color, 10%);
     margin: 2px;
-    padding: 3px;
+    padding-top: 3px;
+    padding-bottom: 3px;
     margin-top: 6px;
     border-radius: 14px;
     padding-left: 6px;
@@ -809,6 +770,11 @@ body{
         font-weight: normal;
         color: #333;
     }
+	
+.key-label span.key-value {
+color: rgb(136, 136, 136);
+font-style: italic;
+}
 
     .item-type {
         background-color: #80B312;
@@ -820,7 +786,7 @@ body{
         height:40px;
         line-height:38px;
         margin-right:5px;
-        margin-top: 40px;
+        margin-top: 20px;
         padding:4px;
         text-align: center;
         width:40px;

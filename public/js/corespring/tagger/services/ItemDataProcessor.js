@@ -1,6 +1,51 @@
 window.com = (window.com || {});
 com.corespring = (com.corespring || {});
 com.corespring.model = (com.corespring.model || {});
+
+com.corespring.model.Defaults = function(){
+    
+    this.$defaults = (function(){
+
+        if(!window.fieldValues){
+          return {};
+        }
+
+        return {
+          keySkills:_.map(window.fieldValues.keySkills, function (k) {
+              return {header:k.key, list:k.value};
+          }),
+          reviewsPassed:_.map(window.fieldValues.reviewsPassed, function (g) {
+              return {key:g.key, label:g.value};
+          }),
+          gradeLevels:_.map(window.fieldValues.gradeLevels, function (g) {
+              return {key:g.key, label:g.value};
+          })
+        };
+    }());
+
+
+    this.buildNgDataProvider = function(name){
+
+     var _buildNgDataProvider = function (defaults) {
+
+        var out = [];
+        for (var x = 0; x < defaults.length; x++) {
+            var definition = defaults[x];
+            var item = {state:{}};
+            angular.extend(item, definition);
+            out.push(item);
+        }
+        return out;
+      };
+
+      if(this.$defaults[name]){
+          return _buildNgDataProvider(this.$defaults[name]);
+      } else {
+          return [];
+      }
+    };
+
+};
 /**
  * Manipulates the incoming and outgoing data.
  * Incoming - so it works for the controller.
@@ -104,17 +149,24 @@ com.corespring.model.ItemDataProcessor = function () {
         }
     };
 
-    this.$defaults = {
-        keySkills:_.map(window.fieldValues.keySkills, function (k) {
-            return {header:k.key, list:k.value}
-        }),
-        reviewsPassed:_.map(window.fieldValues.reviewsPassed, function (g) {
-            return {key:g.key, label:g.value}
-        }),
-        gradeLevels:_.map(window.fieldValues.gradeLevels, function (g) {
-            return {key:g.key, label:g.value}
-        })
-    };
+    this.$defaults = (function(){
+
+        if(!window.fieldValues){
+          return {};
+        }
+
+        return {
+          keySkills:_.map(window.fieldValues.keySkills, function (k) {
+              return {header:k.key, list:k.value}
+          }),
+          reviewsPassed:_.map(window.fieldValues.reviewsPassed, function (g) {
+              return {key:g.key, label:g.value}
+          }),
+          gradeLevels:_.map(window.fieldValues.gradeLevels, function (g) {
+              return {key:g.key, label:g.value}
+          })
+        }
+    }());
 
     this.createWorkflowObject = function () {
         return {
@@ -157,7 +209,7 @@ com.corespring.model.ItemDataProcessor = function () {
 
             if (dtoArray.indexOf !== undefined) {
                 var index = dtoArray.indexOf(key);
-                return index != -1
+                return index != -1;
             }
             else {
                 /**

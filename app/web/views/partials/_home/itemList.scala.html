@@ -1,0 +1,48 @@
+@(ths: String =
+(
+<th>Title</th>
+<th>Primary Subject</th>
+<th>Grade</th>
+<th>Item Type</th>
+<th>Standard(s)</th>
+<th>Actions</th>
+).mkString("\n"),
+tds: String =  (
+<td ng-click="openEditView()" ng-bind-html-unsafe="item.title"></td>
+<td ng-click="openEditView()" width="100">{{getPrimarySubjectLabel(item.primarySubject)}}</td>
+<td ng-click="openEditView()">
+    {{showGradeLevel()}}
+</td>
+<td ng-click="openEditView()">{{showItemType(item)}}</td>
+<td ng-click="openEditView()">
+    <a ui-jq="tooltip"
+       ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
+</td>
+<td>
+    <button class="btn btn-danger btn-mini" href="javascript:void(1)" ng-click="deleteItem(item)">
+        Delete
+    </button>
+</td>
+).mkString("\n")
+)
+
+@restoreBraces(html:String) = @{
+    import scala.util.matching.Regex
+    val open = new Regex(""">[\w|\s]*?\{{1}(.*?)\}{1}[\w|\s]*?<""", "varname")
+    Html(open.replaceAllIn(html, m => ">{{" + m.group("varname") + "}}<" ))
+}
+
+<div class="container item-list" when-scrolled="loadMore()" watch="itemDataCollection">
+    <table class="table">
+        <thead>
+        <tr>
+            @restoreBraces(ths)
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="item in items" style="cursor: pointer;">
+            @restoreBraces(tds)
+        </tr>
+        </tbody>
+    </table>
+</div>

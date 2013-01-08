@@ -35,15 +35,35 @@ window.fieldValues = {"version":"0.0.1", "gradeLevels":[
     {"key":"Analyze", "value":["Analyze", "Appraise", "Breakdown", "Calculate", "Categorize", "Compare", "Contrast", "Criticize", "Diagram", "Differentiate", "Discriminate", "Examine", "Experiment", "Infer", "Model", "Point-Out", "Question", "Separate", "Test"]},
     {"key":"Evaluate", "value":["Assemble", "Collect", "Combine", "Comply", "Devise", "Evaluate", "Explain", "Formulate", "Generate", "Plan", "Rearrange"]},
     {"key":"Create", "value":["Create", "Compose", "Construct", "Create", "Design", "Develop"]}
-], "itemTypes":[
-    {"key":"Multiple Choice", "value":"Multiple Choice"},
-    {"key":"Text with Questions", "value":"Text with Questions"},
-    {"key":"Performance Task", "value":"Performance Task"},
-    {"key":"Activity", "value":"Activity"},
-    {"key":"Constructed Response - Short Answer", "value":"Constructed Response - Short Answer"},
-    {"key":"Constructed Response - Open Ended", "value":"Constructed Response - Open Ended"},
-    {"key":"Other (Please Identify)", "value":"Other"}
-], "licenseTypes":[
+],
+"itemTypes":[
+        {
+            "key":"MC",
+            "value":"Multiple Choice"
+        },
+        {
+            "key":"TQ",
+            "value":"Text with Questions"
+        },
+        {
+            "key":"PT",
+            "value":"Performance Task"
+        },
+        {
+            "key":"ACT",
+            "value":"Activity"
+        },
+        {
+            "key":"CR-SA",
+            "value":"Constructed Response - Short Answer"
+        },
+        {
+            "key":"CR-OE",
+            "value":"Constructed Response - Open Ended"
+        }
+    ],
+
+"licenseTypes":[
     {"key":"CC BY", "value":"CC BY"},
     {"key":"CC BY-SA", "value":"CC BY-SA"},
     {"key":"CC BY-NC", "value":"CC BY-NC"},

@@ -141,10 +141,12 @@ GET    /web/partials/createItem                web.controllers.Partials.createIt
 GET    /web/partials/home                      web.controllers.Partials.home
 GET    /web/partials/viewItem                  web.controllers.Partials.viewItem
 
+
+GET    /web/javascripts/routes                             web.controllers.ShowResource.javascriptRoutes
+GET    /web/show-resource/:itemId/data/main                web.controllers.ShowResource.renderDataResource(itemId)
 GET    /web/show-resource/:itemId/data/:filename           web.controllers.ShowResource.getDataFile(itemId:String,filename:String)
-GET    /web/show-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId:String,resourceName:String,filename:String)
-GET    /web/show-resource/:itemId                          web.controllers.ShowResource.renderDataResource(itemId)
 GET    /web/show-resource/:itemId/:resourceName            web.controllers.ShowResource.renderResource(itemId,resourceName)
+GET    /web/show-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId:String,resourceName:String,filename:String)
 
 GET    /web/print-resource/:itemId                          web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
 GET    /web/print-resource/:itemId/data/:filename           web.controllers.ShowResource.getDataFile(itemId:String,filename:String)
@@ -155,12 +157,20 @@ GET    /web/print-resource-profile/:itemId                  web.controllers.Main
 #
 # BasicLTI
 #
-POST    /lti/assignment/launch/:itemId          basiclti.controllers.AssignmentLauncher.launch(itemId:ObjectId)
+GET     /lti/launch-config/:id                  basiclti.controllers.LaunchConfig.get(id:ObjectId)
+PUT     /lti/launch-config/:id                  basiclti.controllers.LaunchConfig.update(id:ObjectId)
+GET     /lti/dev/test-harness                   basiclti.controllers.dev.TestHarness.begin
+POST    /lti/dev/prepare                        basiclti.controllers.dev.TestHarness.prepare
+POST    /lti/dev/grade-passback                 basiclti.controllers.dev.TestHarness.gradePassback
+GET     /lti/item-chooser.xml                   basiclti.controllers.AssignmentLauncher.xmlConfiguration
+POST    /lti/assignment/launch                  basiclti.controllers.AssignmentLauncher.launch()
 GET     /lti/assignment/error/authorization     basiclti.controllers.AssignmentLauncher.authorizationError
-GET     /lti/assignment/:assignmentId/process   basiclti.controllers.AssignmentLauncher.process(assignmentId:ObjectId)
-GET     /lti/assignment/:assignmentId/run       basiclti.controllers.AssignmentPlayer.runByAssignmentId(assignmentId:ObjectId)
-GET     /lti/assignment/:assignmentId/:filename basiclti.controllers.AssignmentPlayer.getDataFileByAssignmentId(assignmentId:ObjectId, filename:String)
-
+GET     /lti/assignment/:configId/:resultSourcedId/process   basiclti.controllers.AssignmentLauncher.process(configId:ObjectId,resultSourcedId:String)
+GET     /lti/assignment/:configId/:resultSourcedId/run       basiclti.controllers.AssignmentPlayer.run(configId:ObjectId,resultSourcedId:String)
+GET     /lti/assignment/:configId/:resultSourcedId/:filename basiclti.controllers.AssignmentPlayer.getDataFileForAssignment(configId:ObjectId, resultSourcedId:String, filename:String)
+GET     /lti/chooser/partials/main              basiclti.controllers.Partials.main
+GET     /lti/chooser/partials/browse            basiclti.controllers.Partials.browse
+GET     /lti/chooser/partials/view              basiclti.controllers.Partials.view
 # Reporting
 GET    /reports                                     reporting.controllers.Reports.index
 GET    /reports/:collection/:queryType.csv          reporting.controllers.Reports.getCsv(collection,queryType)

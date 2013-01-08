@@ -20,14 +20,14 @@ object OAuthProvider {
    * @param orgId - the organization id
    * @return returns an ApiClient or ApiError if the ApiClient could not be created.
    */
-  def register(orgId: ObjectId, username:String): Either[ApiError, ApiClient] = {
-    ApiClient.findOne(orgId,Some(username)) match {
+  def register(orgId: ObjectId): Either[ApiError, ApiClient] = {
+    ApiClient.findOneByOrgId(orgId) match {
       case Some(apiClient) => Right(apiClient)
       case None => {
         // check we got an existing org id
         Organization.findOneById(orgId) match {
           case Some(org) =>
-            val apiClient = ApiClient(orgId, new ObjectId(), generateToken, Some(username))
+            val apiClient = ApiClient(orgId, new ObjectId(), generateToken)
             try {
               ApiClient.save(apiClient)
               Right(apiClient)

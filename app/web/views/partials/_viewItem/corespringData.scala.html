@@ -1,3 +1,4 @@
+@(name:String = "itemData")
 <div class="container profile">
     <div class="item-type">Task</div>
     <br/>
@@ -8,70 +9,70 @@
         <tr>
             <td width="120px" class="key-label">Grade:
             <span class="key-value">
-                <span ng-show="!itemData.gradeLevel" style="color: #888; font-style: italic;">Not Assigned</span>
-                {{itemData.gradeLevel.join(', ')}}
+                <span ng-show='@("!" + name + ".gradeLevel")' style="color: #888; font-style: italic;">Not Assigned</span>
+                {{ @(name + ".gradeLevel.join(', ') ") }}
              </span>
             </td>
             <td width="300px" class="key-label">CCSS:
                 <span class="key-value">
-                    <span ng-show="!itemData.standards || itemData.standards.length == 0" style="color: #888; font-style: italic;">Not Assigned</span>
-                    <a style="margin-right: 7px;" ng-repeat="s in itemData.standards" ui-jq="tooltip"
-                       ui-options="{title: s.standard}">{{s.dotNotation}}</a>
+                    <span ng-show='@("!" + name + ".standards || " + name + ".standards.length == 0")' style="color: #888; font-style: italic;">Not Assigned</span>
+                    <a style="margin-right: 7px;" ng-repeat='@("s in " + name + ".standards")' ui-jq="tooltip"
+                       ui-options="{title: s.standard}">{{ s.dotNotation}}</a>
                 </span>
             </td>
 
             <td width="150px" class="key-label" style="text-align: right">License:
                 <span class="key-value">
-                    <span ng-show="!itemData.licenseType" style="color: #888; font-style: italic;">Not Assigned</span>
-                    <img ng-show="itemData.licenseType" ng-src="/assets/images/licenseTypes/{{itemData.licenseType}}.png"/>
+                    <span ng-show='@("!" + name +".licenseType")' style="color: #888; font-style: italic;">Not Assigned</span>
+                    <img ng-show='@(name + ".licenseType")' ng-src='@("/assets/images/licenseTypes/{{" + name + ".licenseType}}.png")'/>
                  </span>
             </td>
         </tr>
 
     </table>
 
-    <p class="title" ng-bind-html-unsafe="itemData.title"/>
+    <p class="title" ng-bind-html-unsafe='@(name + ".title")'/>
 
     <table width="100%">
         <tr>
             <td class="key-label" width="50%">Primary Subject<br/>
                 <span class="key-value">
-                    <span ng-show="!itemData.primarySubject" style="color: #888; font-style: italic;">Not Assigned</span>
-                    {{itemData.primarySubject.category}}: {{itemData.primarySubject.subject}}
+                    <span ng-show='@("!" + name + ".primarySubject")' style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{ @(name + ".primarySubject.category") }}: {{ @(name + ".primarySubject.subject") }}
                 </span>
             </td>
             <td class="key-label" width="50%">Related Subject<br/>
                 <span class="key-value">
-                    <span ng-show="!itemData.relatedSubject" style="color: #888; font-style: italic;">Not Assigned</span>
-                    {{itemData.relatedSubject.category}}
+                    <span ng-show='@("!" + name + ".relatedSubject")' style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{ @(name + ".relatedSubject.category") }}
                 </span>
             </td>
         </tr>
         <tr>
             <td class="key-label" width="50%">Item Type<br/>
                 <span class="key-value">
-                    <span ng-show="!itemData.itemType" style="color: #888; font-style: italic;">Not Assigned</span>
-                    {{itemData.itemType}}
+                    <span ng-show='@("!" + name + ".itemType")' style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{ @(name + ".itemType") }}
                 </span>
             </td>
             <td class="key-label" width="50%">Key Skills<br/>
                 <span class="key-value">
-                    <span ng-show="!itemData.keySkills || itemData.keySkills.length == 0" style="color: #888; font-style: italic;">Not Assigned</span>
-                    {{itemData.keySkills.join(', ')}}
+                    <span ng-show='!@( name + ".keySkills || " + name + ".keySkills.length == 0")' style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{ @( name + ".keySkills.join(', ')") }}
                 </span>
             </td>
         </tr>
         <tr>
             <td class="key-label" width="50%">Bloom's<br/>
                 <span class="key-value">
-                    <span ng-show="!itemData.bloomsTaxonomy" style="color: #888; font-style: italic;">Not Assigned</span>
-                    {{itemData.bloomsTaxonomy}}
+                    <span ng-show='@("!" + name + ".bloomsTaxonomy")' style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{ @( name + ".bloomsTaxonomy") }}
                 </span>
             </td>
             <td class="key-label" width="50%">Demonstrated Knowledge<br/>
-                <span class="key-value"><span ng-show="!itemData.demonstratedKnowledge"
+                <span class="key-value"><span ng-show='@("!" + name + ".demonstratedKnowledge")'
                                                         style="color: #888; font-style: italic;">Not Assigned</span>
-                    {{itemData.demonstratedKnowledge}}
+                    {{ @(name + ".demonstratedKnowledge") }}
                 </span>
             </td>
         </tr>

@@ -3,6 +3,9 @@ describe('qtiDirectives.assessmentItem', function () {
 
   var ctrl, scope, $httpBackend;
 
+  beforeEach(module('corespring-services'));
+
+
   // Mock dependencies
   var MockAssessmentSessionService = function () {};
 
@@ -29,7 +32,7 @@ describe('qtiDirectives.assessmentItem', function () {
   beforeEach(function () {
     module(function ($provide) {
       $provide.value('AssessmentSessionService', MockAssessmentSessionService);
-      $provide.value('Config', { itemId: "1"});
+      $provide.value('Config', {itemId: "1"});
     });
   });
 
