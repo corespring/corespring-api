@@ -280,8 +280,17 @@ object ItemApi extends BaseApi {
               BadRequest(toJson(ApiError.IdNotNeeded))
             } else {
               val i: Item = fromJson[Item](json)
-              if (i.collectionId.isEmpty) {
-                BadRequest(toJson(ApiError.CollectionIdMissing))
+              if (i.collectionId.isEmpty && request.ctx.permission.has(Permission.Write)) {
+                Organization.getDefaultCollection(request.ctx.organization) match {
+                  case Right(default) => {
+                    i.collectionId = default.id.toString;
+                    Item.insert(i) match {
+                      case Some(_) => Ok(toJson(i))
+                      case None => InternalServerError(toJson(ApiError.CantSave))
+                    }
+                  }
+                  case Left(error) => InternalServerError(toJson(ApiError.CantSave(error.clientOutput)))
+                }
               } else if (Content.isCollectionAuthorized(request.ctx.organization, i.collectionId, Permission.Write)) {
                 Item.insert(i) match {
                   case Some(_) => Ok(toJson(i))
