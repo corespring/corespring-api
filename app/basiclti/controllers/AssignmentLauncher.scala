@@ -308,6 +308,6 @@ object AssignmentLauncher extends BaseApi {
     request =>
       val url = basiclti.controllers.routes.AssignmentLauncher.launch().url
       val root = BaseUrl(request)
-      Ok(xml("item-chooser", "choose an item", root + url, 700, 600)).withHeaders((CONTENT_TYPE, "application/xml"))
+      Ok(xml("CoreSpring Item Bank", "choose an item", root + url, 700, 600)).withHeaders((CONTENT_TYPE, "application/xml"))
   }
 }

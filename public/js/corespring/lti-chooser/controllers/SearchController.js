@@ -45,6 +45,9 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
   };
 
   $scope.processCollections = function(collection){
+    if(!collection || collection.length == 0){
+      collection = _.filter($scope.collections, function(c){ return c.name == "All"});
+    }
     return $scope.processItems("name", "All", collection);
   };
 
@@ -58,10 +61,16 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
     return _.flatten(_.map(items, mapFn));
   };
 
+  $scope.$on('search', function(){ $scope.search(); });
+
   $scope.search = function() {
     var params = angular.copy($scope.searchParams);
     params.gradeLevel = $scope.processGradeLevel(params.gradeLevel);
     params.collection = $scope.processCollections(params.collection);
+
+    if(params.collection.length == 0){
+      return;
+    }
 
     function arrayIsEmpty(arr){ return (!arr || arr.length == 0); }
     function isEmpty(p){ return arrayIsEmpty(p.gradeLevel) && !p.searchText && arrayIsEmpty(p.collection); }
@@ -96,6 +105,7 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
   $scope.clear = function(){
     $rootScope.searchParams = {};
     $rootScope.items = null;
+    $rootScope.itemCount = null;
     SearchService.resetDataCollection();
     $rootScope.$broadcast("beginSearch");
   };
@@ -145,6 +155,8 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
         var filtered = preProcess(data);
 
         $scope.collections = [{ name: "All", value: filtered } ].concat(filtered);
+
+        $scope.search();
       },
       function () {
         console.log("load collections: error: " + arguments);

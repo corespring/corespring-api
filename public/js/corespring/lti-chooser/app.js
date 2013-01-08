@@ -138,7 +138,7 @@ function LtiChooserController( $scope, $rootScope, $location, LaunchConfigServic
       $rootScope.config = data;
 
       if(!$rootScope.config.itemId){
-        $rootScope.$broadcast('beginSearch');
+        $rootScope.$broadcast('search');
       }
     });
   };
