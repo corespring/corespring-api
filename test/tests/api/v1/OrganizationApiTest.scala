@@ -36,7 +36,6 @@ class OrganizationApiTest extends BaseTest {
     contentType(result) must beSome("application/json")
     val organizations = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
     organizations must have size 1
-    (organizations(0) \ "name").as[String] must beEqualTo("Organization G")
   }
 
   "list all visible organizations limit results to 2" in {
