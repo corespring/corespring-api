@@ -124,7 +124,10 @@ object AssignmentLauncher extends BaseApi {
      */
     def newConfig(linkId:String) : LtiLaunchConfiguration = {
       require(data.oauthConsumerKey.isDefined, "oauth consumer must be defined")
+
       val client = ApiClient.findByKey(data.oauthConsumerKey.get)
+
+      require(client.isDefined, "the api client must be defined")
 
       val out = new LtiLaunchConfiguration(
         resourceLinkId = linkId,

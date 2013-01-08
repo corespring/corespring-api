@@ -124,9 +124,7 @@ object LtiLaunchConfiguration {
     case _ => false
   }
 
-  def insert(c: LtiLaunchConfiguration) {
-    ModelCompanion.insert(c)
-  }
+  def insert(c: LtiLaunchConfiguration) { ModelCompanion.insert(c) }
 
   def update(update: LtiLaunchConfiguration, orgId: ObjectId): Either[ApiError, LtiLaunchConfiguration] = {
 

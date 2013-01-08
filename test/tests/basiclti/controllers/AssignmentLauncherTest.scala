@@ -81,7 +81,7 @@ class AssignmentLauncherTest extends Specification {
     LtiLaunchConfiguration.findByResourceLinkId(resourceLinkId) match {
       case Some(config) => {
         val newConfig = config.copy(itemId = Some(itemId))
-        LtiLaunchConfiguration.update(newConfig, newConfig.orgId.get)
+        LtiLaunchConfiguration.update(newConfig, client.orgId)
         newConfig
       }
       case _ => {
@@ -103,13 +103,15 @@ class AssignmentLauncherTest extends Specification {
       val org = getOrg
       val apiClient : ApiClient = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> org.id)).get
 
+      val uid = "launch_as_instructor"
+
       val result = callWithApiClient(apiClient,
         (LtiData.Keys.Roles, "Instructor"),
-        (LtiData.Keys.ResourceLinkId, "1") )
+        (LtiData.Keys.ResourceLinkId, uid) )
 
       result match {
         case Some(r) => {
-          LtiLaunchConfiguration.findByResourceLinkId("1") match {
+          LtiLaunchConfiguration.findByResourceLinkId(uid) match {
             case Some(config) => {
               config.orgId === Some(apiClient.orgId)
               config.itemId === None
