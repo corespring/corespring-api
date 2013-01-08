@@ -25,7 +25,7 @@ object ItemSessionApi extends BaseApi {
 
   def list(itemId: ObjectId) = ApiAction {
     request =>
-      if (Content.isAuthorized(request.ctx.organization, itemId, Permission.All)) {
+      if (Content.isAuthorized(request.ctx.organization, itemId, Permission.Read)) {
         val cursor = ItemSession.find(MongoDBObject(ItemSession.itemId -> itemId))
         Ok(toJson(Utils.toSeq(cursor)))
       } else Unauthorized(toJson(ApiError.UnauthorizedItemSession))
@@ -47,7 +47,7 @@ object ItemSessionApi extends BaseApi {
     request =>
       ItemSession.get(sessionId) match {
         case Some(session) => {
-          if (Content.isAuthorized(request.ctx.organization, session.itemId, Permission.All)) {
+          if (Content.isAuthorized(request.ctx.organization, session.itemId, Permission.Read)) {
             Ok(toJson(session))
           } else {
            Unauthorized(toJson(ApiError.UnauthorizedItemSession))
@@ -64,7 +64,7 @@ object ItemSessionApi extends BaseApi {
    */
   def create(itemId: ObjectId) = ApiAction {
     request =>
-      if (Content.isAuthorized(request.ctx.organization, itemId, Permission.All)) {
+      if (Content.isAuthorized(request.ctx.organization, itemId, Permission.Read)) {
         val newSession = request.body.asJson match {
           case Some(json) => {
             val jsonSession = fromJson[ItemSession](json)
@@ -105,7 +105,7 @@ object ItemSessionApi extends BaseApi {
    * @return
    */
   private def findSessionAndCheckAuthorization(sessionId: ObjectId, itemId: ObjectId, orgId: ObjectId): Either[ApiError, ItemSession] = ItemSession.findOneById(sessionId) match {
-    case Some(s) => Content.isAuthorized(orgId, itemId, Permission.All) match {
+    case Some(s) => Content.isAuthorized(orgId, itemId, Permission.Read) match {
       case true => Right(s)
       case false => Left(ApiError.UnauthorizedItemSession)
     }
@@ -167,7 +167,7 @@ object ItemSessionApi extends BaseApi {
       Log.d("processResponse: " + sessionId)
 
       ItemSession.findOneById(sessionId) match {
-        case Some(dbSession) => Content.isAuthorized(request.ctx.organization, dbSession.itemId, Permission.All) match {
+        case Some(dbSession) => Content.isAuthorized(request.ctx.organization, dbSession.itemId, Permission.Read) match {
           case true => request.body.asJson match {
             case Some(jsonSession) => {
 

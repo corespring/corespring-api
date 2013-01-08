@@ -21,20 +21,25 @@ object OAuthProvider {
    * @return returns an ApiClient or ApiError if the ApiClient could not be created.
    */
   def register(orgId: ObjectId): Either[ApiError, ApiClient] = {
-    // check we got an existing org id
-    Organization.findOneById(orgId) match {
-      case Some(org) =>
-        val apiClient = ApiClient(orgId, new ObjectId(), generateToken)
-        try {
-          ApiClient.save(apiClient)
-          Right(apiClient)
-        } catch {
-          case e: SalatSaveError => {
-            Logger.error("Error registering ortganization %s".format(orgId), e)
-            Left(ApiError.OperationError)
-          }
+    ApiClient.findOneByOrgId(orgId) match {
+      case Some(apiClient) => Right(apiClient)
+      case None => {
+        // check we got an existing org id
+        Organization.findOneById(orgId) match {
+          case Some(org) =>
+            val apiClient = ApiClient(orgId, new ObjectId(), generateToken)
+            try {
+              ApiClient.save(apiClient)
+              Right(apiClient)
+            } catch {
+              case e: SalatSaveError => {
+                Logger.error("Error registering ortganization %s".format(orgId), e)
+                Left(ApiError.OperationError)
+              }
+            }
+          case None => Left(UnknownOrganization)
         }
-      case None => Left(UnknownOrganization)
+      }
     }
   }
 

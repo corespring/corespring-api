@@ -6,6 +6,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import tests.BaseTest
 import models._
+import auth.AccessToken
 import org.bson.types.ObjectId
 import controllers.Log
 import scala.xml._
@@ -14,13 +15,24 @@ import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
 import api.ApiError
+import com.mongodb.casbah.Imports._
+import play.api.test.FakeHeaders
+import scala.Some
+import play.api.mvc.AnyContentAsJson
+import play.api.libs.json.JsObject
+import controllers.auth.Permission
+import org.joda.time.DateTime
 
 class ItemApiTest extends BaseTest {
 
   val TEST_COLLECTION_ID: String = "5001bb0ee4b0d7c9ec3210a2"
-  val OTHER_TEST_COLLECTION_ID: String = "5001a66ce4b0d7c9ec320f2e"
+  //val OTHER_TEST_COLLECTION_ID: String = "5001a66ce4b0d7c9ec320f2e"
 
   val ItemRoutes = api.v1.routes.ItemApi
+
+  val accessToken = new AccessToken(new ObjectId("502404dd0364dc35bb39339c"),Some("homer"),"itemapi_test_token",DateTime.now(),DateTime.now().plusMinutes(5));
+  AccessToken.insert(accessToken)
+  override val token = "itemapi_test_token"
 
   "list all items" in {
     val call = ItemRoutes.list()
@@ -100,20 +112,21 @@ class ItemApiTest extends BaseTest {
     (item \ "id").as[String] must beEqualTo(id)
   }
 
-  "create does not require a collection id" in {
-    val toCreate = xmlBody("<html></html>")
-    val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
-    val result = routeAndCall(fakeRequest).get
-    status(result) must equalTo(OK)
-    val collectionId = (Json.fromJson[JsValue](Json.parse(contentAsString(result))) \ "collectionId").as[String]
-    ContentCollection.findOneById(new ObjectId(collectionId)).get.name must beEqualTo(ContentCollection.DEFAULT)
-  }
+  //create now requires a collection id
+//  "create does not require a collection id" in {
+//    val toCreate = xmlBody("<html></html>")
+//    val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
+//    val result = routeAndCall(fakeRequest).get
+//    status(result) must equalTo(OK)
+//    val collectionId = (Json.fromJson[JsValue](Json.parse(contentAsString(result))) \ "collectionId").as[String]
+//    ContentCollection.findOneById(new ObjectId(collectionId)).get.name must beEqualTo(ContentCollection.DEFAULT)
+//  }
 
   "create requires an authorized collection id" in {
     val toCreate = xmlBody("<html></html>", Map("collectionId" -> "something"))
     val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
     val result = routeAndCall(fakeRequest).get
-    status(result) must equalTo(FORBIDDEN)
+    status(result) must equalTo(UNAUTHORIZED)
     val collection = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
     (collection \ "code").as[Int] must equalTo(ApiError.CollectionUnauthorized.code)
   }
@@ -149,13 +162,13 @@ class ItemApiTest extends BaseTest {
     status(createResult) must equalTo(OK)
 
     val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
-    val toUpdate = xmlBody("<root2/>", Map(Item.collectionId -> OTHER_TEST_COLLECTION_ID))
+    val toUpdate = xmlBody("<root2/>", Map(Item.collectionId -> TEST_COLLECTION_ID))
     val updateCall = api.v1.routes.ItemApi.update(new ObjectId(id))
 
     val updateResult = routeAndCall(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
     status(updateResult) must equalTo(OK)
     val item: Item = Json.parse(contentAsString(updateResult)).as[Item]
-    item.collectionId must equalTo(OTHER_TEST_COLLECTION_ID)
+    item.collectionId must equalTo(TEST_COLLECTION_ID)
   }
 
 
@@ -269,6 +282,4 @@ class ItemApiTest extends BaseTest {
     }
     feedback
   }
-
-
 }

@@ -14,6 +14,10 @@
     cursor: move;
 }
 
+.sortable-item.order-unknown {
+    border: 2px solid #4055f8;
+}
+
 .sortable-item.order-correct {
 	border: 2px solid #53C516;
 }
@@ -58,6 +62,10 @@ ul {
 .vertical > .draggable-item {
     display: table;
     float: none;
+}
+
+.placement-destination-inner > .draggable-item.order-unknown {
+	border: 2px solid #4055f8;
 }
 
 .placement-destination-inner > .draggable-item.order-correct {

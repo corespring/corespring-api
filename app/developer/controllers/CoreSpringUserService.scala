@@ -56,7 +56,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
         // hardcode this org id for now?
         val corespringId = new ObjectId("502404dd0364dc35bb39339a")
 
-        User.insertUser(corespringUser, corespringId, Permission.All, checkOrgId = false)
+        User.insertUser(corespringUser, corespringId, Permission.Read, checkOrgId = false)
       case Some(existingUser) =>
         existingUser.password = user.passwordInfo.getOrElse(PasswordInfo("")).password
         User.save(existingUser)

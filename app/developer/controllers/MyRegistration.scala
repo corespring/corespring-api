@@ -106,11 +106,11 @@ object MyRegistration extends Controller {
             case Some(orgName) => models.Organization.insert(models.Organization(orgName),None) match {
               case Right(org) => {
                 user.hasRegisteredOrg = true;
-                User.insertUser(user,org.id,Permission.All,false)
+                User.insertUser(user,org.id,Permission.Write,false)
               }
               case Left(error) => Left(error)
             }
-            case None => User.insertUser(user,new ObjectId(models.Organization.CORESPRING_ORGANIZATION_ID),Permission.All,false)
+            case None => User.insertUser(user,new ObjectId(models.Organization.CORESPRING_ORGANIZATION_ID),Permission.Read,false)
           }) match {
             case Right(dbuser) => {
               val socialUser = SocialUser(

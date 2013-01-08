@@ -258,8 +258,8 @@ var commonLinkFn = function ($scope, element, attrs, AssessmentItemCtrl, QtiUtil
 
     var that = this;
 
-    var setAllIncorrect = function () {
-        applyCssNameToAll("order-incorrect");
+    var setAllIncorrect = function (style) {
+        applyCssNameToAll(style);
     };
 
     var applyCssNameToAll = function (name) {
@@ -269,7 +269,7 @@ var commonLinkFn = function ($scope, element, attrs, AssessmentItemCtrl, QtiUtil
     };
 
     var applyCss = function (correctResponse, ourResponse) {
-        setAllIncorrect();
+        setAllIncorrect(correctResponse.length == 0 ? "order-unknown" : "order-incorrect");
         for (var i = 0; i < correctResponse.length; i++) {
             if (correctResponse[i] == ourResponse[i]) {
                 for (var x = 0; x < $scope.items.length; x++) {

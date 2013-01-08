@@ -921,7 +921,7 @@ prompt, .choice-prompt {
 	display: block;
 	color: green;
 }
-inlinechoiceinteraction.incorrect-response, inlinechoiceinteraction.correct-response {
+inlinechoiceinteraction.incorrect-response, inlinechoiceinteraction.correct-response, inlinechoiceinteraction.received-response {
 	display: inline;
 }
 inlinechoiceinteraction.correct-response > .feedback-float.show, inlinechoiceinteraction.incorrect-response > .feedback-float.show {
@@ -933,6 +933,13 @@ inlinechoiceinteraction.correct-response > .feedback-float.show, inlinechoiceint
 	display: inline-block;
 	cursor: pointer;
 }
+
+inlinechoiceinteraction.received-response > .feedback-float.show {
+    position: relative;
+   	top: 0px;
+   	display: inline-block;
+}
+
 inlinechoiceinteraction.correct-response > .feedback-float.show {
 	background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
 }
@@ -941,6 +948,9 @@ inlinechoiceinteraction.incorrect-response > .feedback-float.show {
 }
 .feedback-float.hide {
 	display: none;
+}
+inlinechoiceinteraction.received-response > select {
+	border: solid 2px #4055f8;
 }
 inlinechoiceinteraction.correct-response > select {
 	border: solid 2px #53C516;
@@ -990,6 +1000,11 @@ table th, table td {
 	vertical-align:middle;
 	min-width:50px;
 }
+.text-entry-interaction.received-response > input {
+	border-color: #4055f8;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 4px rgba(64, 85, 248, 0.8);
+	outline: 0px none;
+}
 .text-entry-interaction.incorrect-response > input {
 	border-color: #F8A31A;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 4px rgba(248, 163, 26, 0.8);
@@ -1014,10 +1029,10 @@ table th, table td {
 .feedback-container {
 	display: none;
 }
-.incorrect-response > .feedback-container, .correct-response > .feedback-container {
+.incorrect-response > .feedback-container, .correct-response > .feedback-container, .received-response > .feedback-container {
 	display: block;
 }
-.incorrect-response > .feedback-container > [feedbackinline], .correct-response > .feedback-container > [feedbackinline] {
+.incorrect-response > .feedback-container > [feedbackinline], .correct-response > .feedback-container > [feedbackinline], .received-response > .feedback-container > [feedbackinline] {
  height: 12px;
  padding: 5px;
  padding-left: 25px;
@@ -1045,11 +1060,21 @@ table th, table td {
 simplechoice {
 	width: 100%;
 }
+.received-response .choice-content {
+	border:2px solid #4055f8;
+	display:block;
+	border-radius: 6px;
+	margin-bottom:5px;
+}
 .incorrect-response .choice-content {
 	border:2px solid #f8a31a;
 	display:block;
 	border-radius: 6px;
 	margin-bottom:5px;
+}
+.received-response-horizontal .simple-choice-inner-horizontal {
+	border:2px solid #4055f8;
+	border-radius: 6px;
 }
 .incorrect-response-horizontal .simple-choice-inner-horizontal {
 	border:2px solid #f8a31a;

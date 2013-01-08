@@ -6,6 +6,7 @@ import com.novus.salat.dao._
 import play.api.Play.current
 import se.radley.plugin.salat._
 import models.mongoContext._
+import controllers.auth.Permission
 
 
 /**
@@ -17,6 +18,7 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
   val orgId = "orgId"
   val clientId = "clientId"
   val clientSecret = "clientSecret"
+  val pval = "pval"
 
   val collection = mongoCollection("apiClients")
   val dao = new SalatDAO[ApiClient, ObjectId](collection = collection) {}
@@ -36,9 +38,5 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
     findOne(MongoDBObject(ApiClient.clientId -> new ObjectId(key)))
   }
 
-  def findByOrgId( oid:Option[ObjectId]) : Option[ApiClient] = oid match {
-    case Some(id) => findOne(MongoDBObject(ApiClient.orgId -> id))
-    case _ => None
-  }
-
+  def findOneByOrgId(orgId:ObjectId):Option[ApiClient] = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> orgId))
 }

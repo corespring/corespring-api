@@ -2,7 +2,7 @@ qtiDirectives.directive('selecttextinteraction', function factory() {
     return {
         restrict: 'E',
         scope: true,
-        require:'^assessmentitem',
+        require: '^assessmentitem',
         controller: function ($scope) {
             $scope.selections = [];
             $scope.addSelection = function (selection) {
@@ -51,7 +51,7 @@ qtiDirectives.directive('selectable', function factory(QtiUtils) {
                 scope.id = /id=[^0-9]*([0-9]+)/gim.exec(outerHtml)[1];
 
                 function switchClass(className) {
-                    return function(newVal,oldVal) {
+                    return function (newVal, oldVal) {
                         if (newVal == oldVal) return;
 
                         if (newVal && !$(iElement).children("span").hasClass(className)) {
@@ -62,16 +62,18 @@ qtiDirectives.directive('selectable', function factory(QtiUtils) {
                         }
                     }
                 }
+
                 scope.$watch("isSelected", switchClass("selected"));
                 scope.$watch("shouldHaveBeenSelected", switchClass("shouldHaveBeenSelected"));
                 scope.$watch("shouldNotHaveBeenSelected", switchClass("shouldNotHaveBeenSelected"));
+                scope.$watch("unknown", switchClass("unknown"));
 
-                var mouseOver = function() {
+                var mouseOver = function () {
                     if (scope.disabled) return;
                     $(iElement).children("span").switchClass("", "hover", 200);
                     $(iElement).children("span").addClass("hand");
                 }
-                var mouseOut = function() {
+                var mouseOut = function () {
                     if (scope.disabled) return;
                     $(iElement).children("span").switchClass("hover", "", 200);
                     $(iElement).children("span").removeClass("hand");
@@ -95,10 +97,15 @@ qtiDirectives.directive('selectable', function factory(QtiUtils) {
                     var correctResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.sessionData.correctResponses, "");
                     var givenResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.responses, "");
 
-                    scope.isSelected = (givenResponse.indexOf(scope.id)>=0);
-                    if (scope.isSelected)
-                        scope.shouldHaveBeenSelected = !scope.onlyCountMatch && correctResponse.indexOf(scope.id) >= 0;
-                    scope.shouldNotHaveBeenSelected = !scope.onlyCountMatch && (scope.isSelected && correctResponse.indexOf(scope.id) < 0);
+                    scope.isSelected = (givenResponse.indexOf(scope.id) >= 0);
+
+                    if (scope.itemSession.sessionData.correctResponses.length == 0) {
+                        scope.unknown = true;
+                    } else {
+                        if (scope.isSelected)
+                            scope.shouldHaveBeenSelected = !scope.onlyCountMatch && correctResponse.indexOf(scope.id) >= 0;
+                        scope.shouldNotHaveBeenSelected = !scope.onlyCountMatch && (scope.isSelected && correctResponse.indexOf(scope.id) < 0);
+                    }
                 });
 
                 // Final submission - highlight the correct answers as well even if they did not get chosen
@@ -108,9 +115,13 @@ qtiDirectives.directive('selectable', function factory(QtiUtils) {
 
                     scope.disabled = true;
                     iAttrs.$set("enabled", "false");
-                    scope.isSelected = (givenResponse.indexOf(scope.id)>=0);
-                    scope.shouldHaveBeenSelected = !scope.onlyCountMatch && correctResponse.indexOf(scope.id) >= 0;
-                    scope.shouldNotHaveBeenSelected = !scope.onlyCountMatch && (scope.isSelected && correctResponse.indexOf(scope.id) < 0);
+                    scope.isSelected = (givenResponse.indexOf(scope.id) >= 0);
+                    if (scope.itemSession.sessionData.correctResponses.length == 0) {
+                        scope.unknown = true;
+                    } else {
+                        scope.shouldHaveBeenSelected = !scope.onlyCountMatch && correctResponse.indexOf(scope.id) >= 0;
+                        scope.shouldNotHaveBeenSelected = !scope.onlyCountMatch && (scope.isSelected && correctResponse.indexOf(scope.id) < 0);
+                    }
                 });
 
                 scope.$on('unsetSelection', function (event) {

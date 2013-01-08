@@ -16,10 +16,10 @@ class ItemSessionSettingsTest extends Specification {
 
       val json = Json.toJson(settings)
 
-      (json \ "maxNoOfAttempts").as[Int] must equalTo(0)
+      (json \ "maxNoOfAttempts").as[Int] must equalTo(1)
       (json \ "highlightUserResponse").as[Boolean] must equalTo(true)
       (json \ "highlightCorrectResponse").as[Boolean] must equalTo(true)
-      (json \ "showFeedback").as[Boolean] must equalTo(false)
+      (json \ "showFeedback").as[Boolean] must equalTo(true)
       (json \ "allowEmptyResponses").as[Boolean] must equalTo(false)
       (json \ "submitCompleteMessage").as[String] must equalTo(ItemSessionSettings.SubmitComplete)
       (json \ "submitIncorrectMessage").as[String] must equalTo(ItemSessionSettings.SubmitIncorrect)

@@ -80,28 +80,30 @@ abstract class BaseTest extends Specification {
    * top-level attributes that get added to the request.
    */
   def xmlBody(xml: String, attributes: Map[String, String] = Map()): JsValue = {
-    Json.toJson(
-      attributes.iterator.foldLeft(
-        Map(
-          Item.data -> Json.toJson(
-            Map(
-              "name" -> JsString("qtiItem"),
-              "files" -> Json.toJson(
-                Seq(
-                  Json.toJson(
-                    Map(
-                      "name" -> Json.toJson("qti.xml"),
-                      "default" -> Json.toJson(false),
-                      "contentType" -> Json.toJson("text/xml"),
-                      "content" -> Json.toJson(xml)
-                    )
-                  )
-                )
-              )
-            )
-          )
-        ))((map, entry) => map + ((entry._1, Json.toJson(entry._2))))
-    )
+    Json.toJson(attributes)
+    //removed because new item retrieval does not return data
+//    Json.toJson(
+//      attributes.iterator.foldLeft(
+//        Map(
+//          Item.data -> Json.toJson(
+//            Map(
+//              "name" -> JsString("qtiItem"),
+//              "files" -> Json.toJson(
+//                Seq(
+//                  Json.toJson(
+//                    Map(
+//                      "name" -> Json.toJson("qti.xml"),
+//                      "default" -> Json.toJson(false),
+//                      "contentType" -> Json.toJson("text/xml"),
+//                      "content" -> Json.toJson(xml)
+//                    )
+//                  )
+//                )
+//              )
+//            )
+//          )
+//        ))((map, entry) => map + ((entry._1, Json.toJson(entry._2))))
+//    )
   }
 
   def getXMLContentFromResponse(jsonResponse: String): Seq[String] = {

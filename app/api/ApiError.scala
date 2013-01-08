@@ -91,6 +91,7 @@ object ApiError {
   val UpdateCollection      = ApiError(403, "Failed to update collection")
   val AddToOrganization     = ApiError(404, "Failed to link collection to organization(s)")
   val CollectionUnauthorized = ApiError(405, "You do not have permissions for the specified collection")
+  val DeleteCollection      = ApiError(406, "An error occurred while trying to delete collection")
 
   // User API
   val UserRequiredFields    = ApiError(500, "userName, fullName and email are required")
@@ -109,6 +110,8 @@ object ApiError {
   val ItemSessionNotFound = ApiError(605, "item session specified could not be found")
   val ItemSessionFinished = ApiError(606, "item session is alredy finished - can't update it")
 
+  //Item API
+  val CollectionIdMissing = ApiError(700, "collection id is missing in given json")
 
   //amazon s3
   val AmazonS3Client          = ApiError(800, "an exception occured on the when communicating with S3")

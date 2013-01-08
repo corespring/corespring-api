@@ -51,7 +51,7 @@ case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleC
         }
 
         outcomeProperties = outcomeProperties + ("responsesNumberCorrect" -> isNumberOfSelectionCorrect)
-        outcomeProperties = outcomeProperties + ("responsesIncorrect" -> isResponseIncorrect)
+        outcomeProperties = outcomeProperties + ("responsesIncorrect" -> (isResponseIncorrect && isNumberOfSelectionCorrect))
         outcomeProperties = outcomeProperties + ("responsesCorrect" -> (isResponseCorrect && isNumberOfSelectionCorrect))
         outcomeProperties = outcomeProperties + ("responsesExceedMax" -> (responseValues.size > maxSelections))
         outcomeProperties = outcomeProperties + ("responsesBelowMin" -> (responseValues.size < minSelections))

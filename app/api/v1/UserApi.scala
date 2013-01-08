@@ -1,6 +1,6 @@
 package api.v1
 
-import controllers.auth.{OAuthConstants, OAuthProvider, Permission, BaseApi}
+import controllers.auth.{Permission, BaseApi}
 import play.api.libs.json.{JsString, JsObject, Json}
 import models.{Organization, UserOrg, User}
 import org.bson.types.ObjectId
@@ -21,8 +21,8 @@ object UserApi extends BaseApi {
    *
    * @return
    */
-  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction { request =>
-    val orgIds:List[ObjectId] = Organization.getTree(request.ctx.organization).map(_.id)
+  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
+    val orgIds:Seq[ObjectId] = Organization.getTree(request.ctx.organization).map(_.id)
     val initSearch = MongoDBObject(User.orgs + "." + UserOrg.orgId -> MongoDBObject("$in" -> orgIds))
     QueryHelper.list(q, f, c, sk, l, User, Some(initSearch))
   }
@@ -33,11 +33,13 @@ object UserApi extends BaseApi {
    * @param id The user id
    * @return
    */
-  def getUser(id: ObjectId) = ApiAction { request =>
+  def getUser(id: ObjectId) = ApiActionRead { request =>
     User.findOneById(id) match {
-      case Some(org) =>  {
-        // todo: check if this user is visible to the caller?
-        Ok(Json.toJson(org))
+      case Some(user) =>  {
+        val tree = Organization.getTree(request.ctx.organization)
+        if(user.orgs.exists(uo => tree.exists(_.id == uo.orgId))){
+          Ok(Json.toJson(user))
+        }else Unauthorized
       }
       case _ => NotFound
     }
@@ -48,7 +50,7 @@ object UserApi extends BaseApi {
    *
    * @return
    */
-  def createUser = ApiAction { request =>
+  def createUser = ApiActionWrite { request =>
     request.body.asJson match {
       case Some(json) => {
         (json \ "id").asOpt[String] match {
@@ -57,12 +59,13 @@ object UserApi extends BaseApi {
             val userInfo = for (
               userName <- (json \ "userName").asOpt[String] ;
               fullName <- (json \ "fullName").asOpt[String] ;
-              email    <- (json \ "email").asOpt[String]
-            ) yield ( (userName, fullName, email) )
+              email    <- (json \ "email").asOpt[String] ;
+              p        <- Permission.fromLong((json \ "permissions").asOpt[Long].getOrElse(Permission.Read.value))
+            ) yield ( (userName, fullName, email, p) )
             userInfo match {
-              case Some((username, fullName, email)) => {
+              case Some((username, fullName, email, p)) => {
                 val user = User(username, fullName, email)
-                User.insertUser(user,request.ctx.organization,Permission.All,false) match {
+                User.insertUser(user,request.ctx.organization,p,false) match {
                   case Right(u) => Ok(Json.toJson(u))
                   case Left(e) => InternalServerError(Json.toJson(ApiError.CreateUser(e.clientOutput)))
                 }
@@ -81,7 +84,7 @@ object UserApi extends BaseApi {
    *
    * @return
    */
-  def updateUser(id: ObjectId) = ApiAction { request =>
+  def updateUser(id: ObjectId) = ApiActionWrite { request =>
     User.findOneById(id).map( original =>
     {
       request.body.asJson match {

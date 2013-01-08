@@ -362,7 +362,7 @@ object Item extends DBQueryable[Item] {
 
       //newItem.id = oid
       val toUpdate = if (newItem.collectionId != "") {
-        if (ContentCollection.isAuthorized(requesterOrgId, new ObjectId(newItem.collectionId), Permission.All)) {
+        if (ContentCollection.isAuthorized(requesterOrgId, new ObjectId(newItem.collectionId), Permission.Write)) {
           ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials - data)
         } else throw new RuntimeException("not authorized")
       } else ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials) - collectionId
@@ -384,23 +384,14 @@ object Item extends DBQueryable[Item] {
     Some(item)
   }
 
-  def countItems(query: Option[DBObject] = None, fields : Option[String] = None ) : Int = {
-    val queryDbo = query.getOrElse( new BasicDBObject())//.asInstanceOf[DBObject]
+  def countItems(query: DBObject, fields : Option[String] = None ) : Int = {
     val fieldsDbo = JSON.parse(fields.getOrElse("{}")).asInstanceOf[BasicDBObject]
-    val result : SalatMongoCursor[Item] = Item.find( queryDbo, fieldsDbo)
+    val result : SalatMongoCursor[Item] = Item.find( query, fieldsDbo)
     result.count
   }
 
-  def list(query: Option[DBObject] = None, fields: Option[String] = None, skip: Int = 0, limit: Int = 200) : List[Item] = {
-    val queryDbo = query.getOrElse( new BasicDBObject())//.asInstanceOf[DBObject]
-    val fieldsDbo:BasicDBObject = fields.map(JSON.parse(_).asInstanceOf[BasicDBObject]) match {
-      case Some(dbo) => {
-        dbo.remove(Item.data)
-        dbo
-      }
-      case None =>new BasicDBObject().append(Item.data,0)
-    }
-    val result : SalatMongoCursor[Item] = Item.find( queryDbo, fieldsDbo)
+  def list(query: DBObject, fields: BasicDBObject = new BasicDBObject(), skip: Int = 0, limit: Int = 200) : List[Item] = {
+    val result : SalatMongoCursor[Item] = Item.find( query, fields)
     result.limit(limit)
     result.skip(skip)
     result.toList
