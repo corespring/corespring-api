@@ -45,7 +45,9 @@ describe('lti-chooser.SearchController', function () {
     });
 
     it('should return item count', function(){
-      expect(scope.getItemCountLabel(1)).toBe("1 results");
+      expect(scope.getItemCountLabel(0)).toBe("0 results");
+      expect(scope.getItemCountLabel(1)).toBe("1 result");
+      expect(scope.getItemCountLabel(2)).toBe("2 results");
     })
  });
 });
