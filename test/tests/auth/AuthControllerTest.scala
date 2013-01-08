@@ -9,7 +9,7 @@ import securesocial.core.SecureSocial
 import controllers.auth.{Permission, OAuthConstants}
 import models.{User, Organization}
 import play.api.libs.json.Json
-import models.auth.ApiClient
+import models.auth.{AccessToken, ApiClient}
 import scala.Left
 import scala.Right
 import com.mongodb.casbah.commons.MongoDBObject
@@ -131,10 +131,11 @@ class AuthControllerTest extends BaseTest{
           val tokenResult = routeAndCall(tokenRequest).get
           val jstoken = Json.parse(contentAsString(tokenResult))
           val token = (jstoken \ OAuthConstants.AccessToken).as[String]
+          AccessToken.removeToken(token)
           ApiClient.remove(MongoDBObject(ApiClient.clientId -> new ObjectId(clientId), ApiClient.clientSecret -> clientSecret))
           User.removeUser(user.id)
           Organization.delete(org.id)
-          pending
+          status(tokenResult) must equalTo(OK)
         }
         case Left(error) => failure(error.message)
       }
@@ -143,6 +144,40 @@ class AuthControllerTest extends BaseTest{
   }
 
   "can use auth token to retrieve list of organizations" in {
-   pending
+    Organization.insert(new Organization("test"),None) match {
+      case Right(org) => User.insertUser(new User("testoplenty"),org.id,Permission.Write) match {
+        case Right(user) => {
+          val fakeRequest = FakeRequest(POST, "/auth/register").withSession(
+            (SecureSocial.UserKey -> user.userName),
+            (SecureSocial.ProviderKey -> "userpass")
+          ).withFormUrlEncodedBody(OAuthConstants.Organization -> org.id.toString)
+          val result = routeAndCall(fakeRequest).get
+          val json = Json.parse(contentAsString(result))
+          val clientId = (json \ OAuthConstants.ClientId).as[String]
+          val clientSecret = (json \ OAuthConstants.ClientSecret).as[String]
+          val tokenRequest = FakeRequest(POST, "/auth/access_token").withSession(
+            (SecureSocial.UserKey -> user.userName),
+            (SecureSocial.ProviderKey -> "userpass")
+          ).withFormUrlEncodedBody(
+            (OAuthConstants.GrantType -> OAuthConstants.ClientCredentials),
+            (OAuthConstants.ClientId -> clientId),
+            (OAuthConstants.ClientSecret -> clientSecret),
+            (OAuthConstants.Scope -> user.userName)
+          )
+          val tokenResult = routeAndCall(tokenRequest).get
+          val jstoken = Json.parse(contentAsString(tokenResult))
+          val token = (jstoken \ OAuthConstants.AccessToken).as[String]
+          val orgRequest = FakeRequest(GET, "/api/v1/organizations?access_token=%s".format(token))
+          val Some(orgresult) = routeAndCall(orgRequest)
+          AccessToken.removeToken(token)
+          ApiClient.remove(MongoDBObject(ApiClient.clientId -> new ObjectId(clientId), ApiClient.clientSecret -> clientSecret))
+          User.removeUser(user.id)
+          Organization.delete(org.id)
+          status(orgresult) must equalTo(OK)
+        }
+        case Left(error) => failure(error.message)
+      }
+      case Left(error) => failure(error.message)
+    }
   }
 }
