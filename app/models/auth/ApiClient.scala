@@ -12,13 +12,13 @@ import controllers.auth.Permission
 /**
  * An API client.  This gets created for each organization that is allowed API access
  */
-case class ApiClient(orgId: ObjectId, clientId: ObjectId, clientSecret: String)
+case class ApiClient(orgId: ObjectId, clientId: ObjectId, clientSecret: String, username:Option[String] = None)
 
 object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
   val orgId = "orgId"
   val clientId = "clientId"
   val clientSecret = "clientSecret"
-  val pval = "pval"
+  val username = "username"
 
   val collection = mongoCollection("apiClients")
   val dao = new SalatDAO[ApiClient, ObjectId](collection = collection) {}
@@ -33,6 +33,10 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
     val idsObj = MongoDBObject(clientId -> new ObjectId(id), clientSecret -> secret)
     findOne(idsObj)
   }
-
-  def findOneByOrgId(orgId:ObjectId):Option[ApiClient] = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> orgId))
+  def findOne(orgId:ObjectId, optusername:Option[String]):Option[ApiClient] = {
+    optusername match {
+      case Some(username) => ApiClient.findOne(MongoDBObject(ApiClient.orgId -> orgId, ApiClient.username -> username))
+      case None => ApiClient.findOne(MongoDBObject(ApiClient.orgId -> orgId))
+    }
+  }
 }

@@ -37,7 +37,7 @@ object AuthController extends Controller with SecureSocial{
           User.getUser(username) match {
             case Some(user) => if(user.orgs.exists(uo => uo.orgId == orgId && (uo.pval&Permission.Write.value) == Permission.Write.value)){
               try {
-                OAuthProvider.register(orgId).fold(
+                OAuthProvider.register(orgId,username).fold(
                   error => BadRequest(Json.toJson(error)),
                   client => Ok(Json.toJson(Map(OAuthConstants.ClientId -> client.clientId.toString, OAuthConstants.ClientSecret -> client.clientSecret)))
                 )
