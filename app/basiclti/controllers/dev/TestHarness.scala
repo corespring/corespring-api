@@ -106,7 +106,7 @@ object TestHarness extends BaseApi with SecureSocial {
    * @return
    */
   def getOrCreate(orgId:ObjectId) : ApiClient = {
-    ApiClient.findByOrgId(Some(orgId)) match {
+    ApiClient.findOneByOrgId(orgId) match {
       case Some(c) => c
       case _ => {
         val c = new ApiClient(orgId, new ObjectId(), new ObjectId().toString)

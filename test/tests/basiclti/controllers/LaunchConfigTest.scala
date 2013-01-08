@@ -67,9 +67,7 @@ class LaunchConfigTest extends BaseTest {
 
     "update a config" in {
       val c = getMockConfig
-      val copiedConfig = LtiLaunchConfiguration.copy(c,
-        Map(LtiLaunchConfiguration.Keys.itemId -> Some(new ObjectId()))
-      )
+      val copiedConfig = c.copy( itemId = Some(new ObjectId()))
       update(copiedConfig).itemId === copiedConfig.itemId
     }
 
@@ -77,11 +75,7 @@ class LaunchConfigTest extends BaseTest {
 
     "not allow an update if the user org doesn't match the db org" in {
       val c = getMockConfig
-      val copiedConfig = LtiLaunchConfiguration.copy(c,
-        Map(
-          LtiLaunchConfiguration.Keys.itemId -> Some(new ObjectId())
-        )
-      )
+      val copiedConfig = c.copy( itemId = Some(new ObjectId()) )
 
       val newOrg = new Organization(id = new ObjectId(), name = "some new org")
       val token : AccessToken = getAccessTokenForOrg(newOrg)

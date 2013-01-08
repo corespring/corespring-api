@@ -80,9 +80,7 @@ class AssignmentLauncherTest extends Specification {
   def configureLaunchConfig(resourceLinkId:String, itemId:ObjectId, client : ApiClient ) : LtiLaunchConfiguration = {
     LtiLaunchConfiguration.findByResourceLinkId(resourceLinkId) match {
       case Some(config) => {
-        val newConfig = LtiLaunchConfiguration.copy(config,
-          Map(LtiLaunchConfiguration.Keys.itemId -> Some(itemId))
-        )
+        val newConfig = config.copy(itemId = Some(itemId))
         LtiLaunchConfiguration.update(newConfig, newConfig.orgId.get)
         newConfig
       }

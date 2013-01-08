@@ -216,8 +216,14 @@ object AssignmentLauncher extends BaseApi {
 
               config.assignments.find(_.resultSourcedId == resultSourcedId) match {
                 case Some(a) => {
-                  val client : Option[ApiClient] = ApiClient.findByOrgId(config.orgId)
-                  sendScore(session, a, client)
+
+                  config.orgId match {
+                    case Some(orgId) => {
+                      val client : Option[ApiClient] = ApiClient.findOneByOrgId(orgId)
+                      sendScore(session, a, client)
+                    }
+                    case _ => NotFound("Can't find org id")
+                  }
                 }
                 case _ => NotFound("Can't find assignment")
               }

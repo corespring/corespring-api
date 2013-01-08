@@ -66,6 +66,6 @@ object QueryCleaner {
   }
 
   private def collectionIdsForOrg(orgId: ObjectId): Seq[ObjectId] =
-    ContentCollection.getCollectionIds(orgId, Permission.All, false)
+    ContentCollection.getCollectionIds(orgId, Permission.Read, false)
 
 }
