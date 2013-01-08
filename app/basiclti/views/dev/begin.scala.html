@@ -1,0 +1,76 @@
+@(prepareFormUrl:String)
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Corespring LTI Test Harness</title>
+    @common.views.html.head.coreJs()
+    @common.views.html.head.ubuntu()
+    @common.views.html.head.bootstrap()
+</head>
+<body style="padding: 20px">
+    <h1>Corespring LTI Test Harness</h1>
+    <h6>To trigger a simulated LTI launch, enter the information you with to test below.</h6>
+    <!--
+    context_title=eeeeeee
+context_id=c4d47e01edf2eb617801ce7a1ee72d1b2ca98432
+oauth_signature_method=HMAC-SHA1
+oauth_nonce=FTmaDMTaAxmXpywL6oCpKSJXy4RK0bERNOf2Pzaw
+oauth_callback=about%3Ablank
+context_label=eeeeeee
+roles=Instructor
+resource_link_id=119a20ff4564ec0a1b6b53ec3562bd7cb4242f32
+oauth_timestamp=1355143151
+oauth_version=1.0
+tool_consumer_info_version=cloud
+launch_presentation_document_target=iframe
+resource_link_title=item-chooser
+oauth_signature=rbOjTJ2vls9PtqDTzTUTH56MRJ8%3D
+tool_consumer_instance_name=Free+For+Teachers
+tool_consumer_instance_contact_email=notifications%40instructure.com
+launch_presentation_locale=en
+lti_message_type=basic-lti-launch-request
+tool_consumer_info_product_family_code=canvas
+launch_presentation_return_url=https%3A%2F%2Fcanvas.instructure.com%2Fcourses%2F775048%2Fexternal_tools%2F8731%2Ffinished
+launch_presentation_height=400
+launch_presentation_width=600
+user_id=c5c02ed889cea646eca414c8dcae29edeeb33999
+lti_version=LTI-1p0
+tool_consumer_instance_guid=07adb3e60637ff02d9ea11c7c74f1ca921699bd7.canvas.instructure.com
+oauth_consumer_key=1234
+itemId=5020025fe4b0b0fa073aa3d7
+-->
+
+    <form action="@prepareFormUrl" method="POST" class="form-horizontal">
+        <div class="control-group">
+            <label class="control-label">Role</label>
+            <div class="controls">
+                <label class="radio">
+                    <input type="radio" name="roles" value="Instructor"/>
+                    Instructor
+                </label>
+                <label class="radio">
+                    <input type="radio" name="roles" value="Student"/>
+                    Student
+                </label>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Resource link id</label>
+            <div class="controls">
+                 <input type="text" name="resource_link_id"/>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Result Sourced id</label>
+            <div class="controls">
+                 <input type="text" name="lis_result_sourcedid"/>
+            </div>
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <button type="submit" class="btn">Go!</button>
+            </div>
+        </div>
+    </form>
+</body>
+</html>

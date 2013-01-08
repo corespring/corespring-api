@@ -1,0 +1,44 @@
+@import "../mixins";
+
+.multi-select {
+  position: relative;
+  z-index: 100003;
+  padding: 0px;
+  .items {
+
+    .caret{
+      margin-left: 5px;
+    }
+    margin: 0px;
+    cursor: pointer;
+    .mixin-text-non-selectable;
+    &:hover{
+      opacity: 0.9;
+    }
+  }
+
+  .chooser {
+    position: absolute;
+    z-index: 100006;
+    padding: 5px;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    -moz-box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.3);
+    -webkit-box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.3);
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.3);
+
+
+    ul {
+      margin: 0px;
+      padding: 0px;
+      white-space: nowrap;
+    }
+
+    li {
+      list-style: none;
+      white-space: nowrap;
+      margin: 0px;
+    }
+  }
+}

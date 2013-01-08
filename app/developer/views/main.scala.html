@@ -4,8 +4,13 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>@title</title>
-    <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
-    @common.views.html.head.bootstrap()
+    @common.views.html.head.ubuntu()
+    @common.views.html.head.coreJs()
+    @common.views.html.head.mathMl()
+    <!-- TODO: move to 2.1.1 -->
+    @common.views.html.head.bootstrap("2.0.3")
+    @common.views.html.head.angular()
+    @common.views.html.head.select2()
     <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
 
 </head>

@@ -1,4 +1,13 @@
 @(errorId: String, throwable : Throwable)
+
+
+@stackTrace(t:Throwable) = @{
+    val sw = new java.io.StringWriter()
+    val pw = new java.io.PrintWriter(sw)
+    t.printStackTrace(pw)
+    Html(sw.toString())
+}
+
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -28,9 +37,10 @@
     <h1>Something went wrong</h1>
     <p>Something has caused the application to fail. Please try again.</p>
     <p>Error id: @errorId</p>
+    <p>@throwable.getMessage</p>
 
     @if( play.api.Play.isDev(play.api.Play.current) ) {
-        <p>@throwable.getMessage</p>
+        <pre style="font-size: 11px;">@stackTrace(throwable)</pre>
     }
     </div>
   </body>

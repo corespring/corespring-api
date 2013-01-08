@@ -26,7 +26,7 @@ describe('HomeController', function () {
                 }
             });
 
-        });
+        }, 'corespring-utils');
     });
 
     var scope, ctrl, $httpBackend;
@@ -67,70 +67,7 @@ describe('HomeController', function () {
             expect(ctrl).not.toBeNull();
         });
 
-        it("creates a sorted grade level string", function(){
-
-            expect(
-                scope.createGradeLevelString(["01","KG","Other"]) )
-                .toEqual( "KG,01,Other")
-        });
-
-        it("creates a primary subject label", function(){
-
-            var subj = {
-                category: "Category",
-                subject: "Subject"
-            };
-
-            expect(
-                scope.getPrimarySubjectLabel( subj )
-            ).toBe( subj.category + ": " + subj.subject);
-
-            var subjNoCategory = {
-                subject: "Subject"
-            };
-
-            expect(
-                scope.getPrimarySubjectLabel(subjNoCategory)
-            ).toBe(subjNoCategory.subject);
-
-            var subjNoSubject = {
-                category: "Category"
-            };
-
-            expect(
-                scope.getPrimarySubjectLabel(subjNoSubject)
-            ).toBe(subjNoSubject.category);
-        });
-
-        it("builds a standard label", function(){
-
-            expect(scope.buildStandardLabel([])).toBe("");
-
-            var s = [
-                { dotNotation: "dotNotation"}
-            ];
-
-            expect(scope.buildStandardLabel(s)).toBe(s[0].dotNotation);
-
-            s.push( { dotNotation: "dotNotation" } );
-
-            expect(scope.buildStandardLabel(s)).toBe(s[0].dotNotation + " plus 1 more");
-        });
-
-        it("builds a standards tooltip", function(){
-
-            expect(scope.buildStandardTooltip([])).toBe("");
-
-            var s = [
-                { standard: "s", dotNotation: "dn"}
-            ];
-
-            expect(scope.buildStandardTooltip(s)).toBe("s");
-
-            s.push({ standard: "a b c d e f g", dotNotation: "dn2"});
-
-            expect(scope.buildStandardTooltip(s)).toBe("dn: s, dn2: a b c d e f...");
-        });
+       
 
         it("Search should invoke search service", function() {
             MockSearchService.search = jasmine.createSpy("Search").andCallFake(function(params, handler) {

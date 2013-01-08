@@ -18,18 +18,13 @@ class ShowResourceTest extends BaseTest{
 
   "show resource" should {
 
-    "redirect qti content to the ItemPlayer" in {
+    "show qti content in the ItemPlayer" in {
 
       val url = web.controllers.routes.ShowResource.renderDataResource(testItem.id.toString).url
       val request = tokenFakeRequest(GET,  url )
 
       routeAndCall(request) match {
-        case Some(result) => {
-          status(result) must equalTo(SEE_OTHER)
-          val resultHeaders = headers(result)
-          val expectedUrl = ItemPlayerRoutes.previewItem(testItem.id.toString).url
-          resultHeaders.get("Location") must equalTo(Some(expectedUrl))
-        }
+        case Some(result) => status(result) must equalTo(OK)
         case _ => failure("request failed")
       }
     }
