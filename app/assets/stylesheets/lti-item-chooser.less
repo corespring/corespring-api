@@ -66,7 +66,7 @@ td.lti-grade-level {
 }
 
 td.lti-search {
-  width: 25%;
+  width: 26%;
 }
 
 
@@ -175,13 +175,13 @@ table.fixed {
   tr {
     background-color:#FFF;
     &:hover {
-      background-color: lighten(@cs-navbar-color, 20%);
+      background-color: lighten(@cs-navbar-color, 15%);
     }
   }
   tr.even {
     background-color: #EEE;
     &:hover {
-      background-color: lighten(@cs-navbar-color, 20%);
+      background-color: lighten(@cs-navbar-color, 15%);
     }
   }
 }
@@ -367,7 +367,7 @@ th.title{
     min-width: @min-width;
     position: absolute;
     bottom: 50px;
-    top: 40px;
+    top: 41px;
 
     .profile-holder{
       position: absolute;
@@ -502,11 +502,18 @@ input {
 .pager {
   margin-top: 0px;
   padding-top: 3px;
+  
+  li.pull-right{
+  padding-left: 3px;
+  }
+  
   .pager-text {
     color: @cs-dark-grey;
 	font-weight:bold;
+	padding: 2px 2px;
+	}
   }
-}
+
 
 #resultPager:after {
   clear: both;
@@ -569,7 +576,7 @@ a.cs-icon-link {
     -moz-box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.1);
     -webkit-box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.1);
     box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.1);
-	padding: 5px 5px 5px 10px;
+	padding: 5px 0px 5px 9px;
 
     ul {
       display: block;
@@ -665,7 +672,7 @@ display: block;
 
 .lti-grade-level {
   .chooser {
-    width: 138px;
+    width: 145px;
 
     ul{
       li{
@@ -698,7 +705,7 @@ display: block;
     margin:0px;
     margin-left: 2px;
     input{
-      width: 51%;
+      width: 53%;
       height:10px;
       margin-bottom: 0px;
       font-size: 11px;
