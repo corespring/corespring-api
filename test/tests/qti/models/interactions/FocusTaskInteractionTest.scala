@@ -107,6 +107,16 @@ class FocusTaskInteractionTest extends Specification {
       outcome.score must equalTo(0.0)
     }
 
+    "selection is not incorrect if checking for selection correctness but response number is incorrect" in {
+      val rd = ResponseDeclaration("rid","multiple",Some(CorrectResponseMultiple(List("A", "B","C"))),None)
+      val response = ArrayItemResponse("rid", Seq("A"), Some(ItemResponseOutcome(0, Some("Comment"))))
+      val outcome = interactionChecked.getOutcome(Some(rd), response).get
+      outcome.outcomeProperties.get("responsesCorrect").get must beFalse
+      outcome.outcomeProperties.get("responsesIncorrect").get must beFalse
+      outcome.outcomeProperties.get("responsesNumberCorrect").get must beFalse
+      outcome.score must equalTo(0.0)
+    }
+
   }
 
 }

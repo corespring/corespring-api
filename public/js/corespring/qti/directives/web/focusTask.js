@@ -126,6 +126,7 @@ qtiDirectives.directive('focustaskinteraction', function () {
 qtiDirectives.directive('focuschoice', function (QtiUtils) {
 
     var linkFn = function (scope, iElement, attrs, focusTaskInteractionController) {
+        attrs.$set("enabled", "true");
         scope.selected = false;
         scope.unknown = false;
         scope.controller = focusTaskInteractionController;
@@ -165,7 +166,6 @@ qtiDirectives.directive('focuschoice', function (QtiUtils) {
             }
             else if (withinLimits) {
                 var isCorrect = correctResponse.indexOf(scope.value) >= 0;
-                console.log(scope.highlightUserResponse() , scope.selected , !scope.onlyCountMatch , isCorrect);
                 scope.shouldHaveBeenSelected = scope.highlightUserResponse() && scope.selected && !scope.onlyCountMatch && isCorrect;
                 scope.shouldHaveBeenSelected |= !scope.onlyCountMatch && scope.highlightCorrectResponse() && isCorrect ;
                 scope.shouldHaveBeenSelected |= scope.onlyCountMatch && scope.selected;
@@ -175,8 +175,9 @@ qtiDirectives.directive('focuschoice', function (QtiUtils) {
             }
         });
 
-        scope.$watch('formSubmitted', function (newValue) {
+        scope.$on('formSubmitted', function (newValue) {
             scope.disabled = newValue;
+            attrs.$set("enabled", "false");
         });
 
         scope.$on('resetUI', function (event) {
