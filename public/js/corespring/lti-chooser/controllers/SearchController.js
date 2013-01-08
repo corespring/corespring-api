@@ -131,7 +131,7 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
 
 
   $scope.getItemCountLabel = function(count){
-    if(!count){
+    if(!count && count !== 0){
       return "";
     }
 
