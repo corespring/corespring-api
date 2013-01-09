@@ -37,7 +37,8 @@ describe('qtiDirectives.feedbackinline', function () {
             rootScope.itemSession= {};
             rootScope.itemSession.sessionData = {};
 
-            helper.setFeedbackEnabled(rootScope,rootScope.itemSession, true);
+            helper.setSessionSettings(rootScope, {showFeedback: true, highlightUserResponse: true, highlightCorrectResponse: true });
+            helper.finishSession(rootScope, true);
 
             rootScope.$apply(function () {
                 rootScope.itemSession.sessionData.feedbackContents = { a: "correct!"};
@@ -80,7 +81,9 @@ describe('qtiDirectives.feedbackinline', function () {
             rootScope.itemSession= {};
             rootScope.itemSession.sessionData = {};
 
-            helper.setFeedbackEnabled(rootScope,rootScope.itemSession, true);
+
+            helper.setSessionSettings(rootScope, {showFeedback: true, highlightUserResponse: true, highlightCorrectResponse: true });
+            helper.finishSession(rootScope, true);
 
             rootScope.$apply(function () {
                 rootScope.itemSession.sessionData.feedbackContents = { a: "correct!"};

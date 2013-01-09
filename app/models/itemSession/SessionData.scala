@@ -52,7 +52,7 @@ object SessionData {
       feedback match {
         case Some(fb) => {
           if (!showCorrectResponses)
-            Some((fb.csFeedbackId, "Your response has been received"))
+            None
           else if (fb.defaultFeedback)
             Some(fb.csFeedbackId, getDefaultFeedback(id, value, index))
           else
