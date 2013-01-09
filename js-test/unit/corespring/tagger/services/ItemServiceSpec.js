@@ -57,7 +57,7 @@ describe('ItemService', function () {
     describe("queries", function(){
         it("queries correctly", function(){
             expect(service).not.toBeNull();
-            $httpBackend.expectGET('/api/v1/items/3/detail').respond([{id: 0, name: 'Jack'}, {id:1, name: 'Bill'}]);
+            $httpBackend.expectGET('/api/v1/items/3').respond([{id: 0, name: 'Jack'}, {id:1, name: 'Bill'}]);
             var items = service.query({id: '3'});
             $httpBackend.flush();
             expect(items[0].id).toEqual(0);
