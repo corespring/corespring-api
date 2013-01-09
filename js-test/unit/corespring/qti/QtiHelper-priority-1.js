@@ -55,6 +55,15 @@
       });
     };
 
+    this.finishSession = function ($rootScope, value) {
+
+      $rootScope.itemSession = ($rootScope.itemSession || {});
+
+      $rootScope.$apply(function () {
+        $rootScope.itemSession.isFinished = value;
+      });
+    };
+
     this.setFeedbackEnabled = function ($rootScope, itemSession, show) {
       this.setSessionSettings($rootScope, {showFeedback: show});
     };

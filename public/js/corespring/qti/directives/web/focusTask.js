@@ -158,7 +158,6 @@ qtiDirectives.directive('focuschoice', function (QtiUtils) {
             if (!responses) return;
             if (!scope.itemSession || !scope.itemSession.sessionData || !scope.itemSession.sessionData.correctResponses) return;
             var correctResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.sessionData.correctResponses, "");
-            console.log(correctResponse);
             var response = QtiUtils.getResponseById(scope.responseIdentifier, scope.itemSession.responses);
             var withinLimits = response.outcome && !response.outcome.responsesBelowMin && !response.outcome.responsesExceedMax;
             if (responses.length == 0) {

@@ -15,6 +15,8 @@ files = [
     'public/js/vendor/underscore/1.3.3/underscore.js',
     'public/js/vendor/angular-bootstrap-ui/angular-bootstrap-ui.js',
     'public/js/vendor/corespring-ng-components/corespring-ng-components.js',
+    'public/js/corespring/common/directives/*.js',
+    'public/js/corespring/common/services/*.js',
     'public/js/corespring/tagger/select2/*.js',
     'public/js/corespring/tagger/mongo/*.js',
     'public/js/corespring/tagger/*.js',
@@ -40,7 +42,7 @@ exclude = [];
 // use dots reporter, as travis terminal does not support escaping sequences
 // possible values: 'dots' || 'progress'
 reporter = 'dots';
-browsers = ['PhantomJS'];
+browsers = ['Firefox'];
 // these are default values, just to show available options
 // web server port
 port = 8080;

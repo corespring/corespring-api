@@ -21,7 +21,7 @@ var feedbackDirectiveFunction = function (QtiUtils) {
 
             scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
 
-                if(!responses || !scope.isFeedbackEnabled()) return;
+                if(!responses || !scope.isFeedbackEnabled() || !scope.highlightCorrectResponse()) return;
 
                 var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
                 scope.feedback = ( feedback || "" );

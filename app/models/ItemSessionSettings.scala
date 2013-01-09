@@ -21,8 +21,8 @@ case class ItemSessionSettings( var maxNoOfAttempts : Int = 1,
 
 object ItemSessionSettings {
 
-  val SubmitComplete : String = "Ok!"
-  val SubmitIncorrect: String = "You may revise your work before you submit it."
+  val SubmitComplete : String = "Ok! Your response was submitted."
+  val SubmitIncorrect: String = "You may revise your work before you submit your final response."
 
   implicit object Reads extends JerksonReads[ItemSessionSettings] {
     def manifest = Manifest.classType( new ItemSessionSettings().getClass)
