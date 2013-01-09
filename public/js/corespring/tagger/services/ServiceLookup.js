@@ -26,7 +26,7 @@ angular.module('tagger.services')
 
                 previewFile:'/web/show-resource/{key}',
                 renderResource:'/web/show-resource/{key}',
-                printResource:'/web/print-resource/{key}',
+                printResource:'/web/print-resource/{key}/data/main',
                 printProfile:'/web/print-resource-profile/{key}',
 
                 createDataFile: '/api/v1/items/{itemId}/data',

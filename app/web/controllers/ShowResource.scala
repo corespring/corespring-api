@@ -51,7 +51,7 @@ object ShowResource extends BaseApi with ObjectIdParser with ItemResources with 
    * @return
    */
   def renderDataResourceForPrinting(itemId: String) = {
-    renderDataResource(itemId, true)
+    renderDataResource(itemId, toPrint = true)
   }
 
   /**
@@ -76,8 +76,8 @@ object ShowResource extends BaseApi with ObjectIdParser with ItemResources with 
                   request =>
                     getItemXMLByObjectId(itemId, request.ctx.organization) match {
                       case Some(xmlData: Elem) => {
-                        val finalXml = prepareQti(xmlData, false)
-                        Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled = true, sessionId = "", request.token))
+                        val finalXml = prepareQti(xmlData, toPrint)
+                        Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled = !toPrint, sessionId = "", request.token))
                       }
                       case None => NotFound("Can't find item")
                     }

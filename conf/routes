@@ -148,7 +148,7 @@ GET    /web/show-resource/:itemId/data/:filename           web.controllers.ShowR
 GET    /web/show-resource/:itemId/:resourceName            web.controllers.ShowResource.renderResource(itemId,resourceName)
 GET    /web/show-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId:String,resourceName:String,filename:String)
 
-GET    /web/print-resource/:itemId                          web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
+GET    /web/print-resource/:itemId/data/main                web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
 GET    /web/print-resource/:itemId/data/:filename           web.controllers.ShowResource.getDataFile(itemId:String,filename:String)
 GET    /web/print-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId:String,resourceName:String,filename:String)
 GET    /web/print-resource/:itemId/:resourceName            web.controllers.ShowResource.renderResource(itemId,resourceName)
