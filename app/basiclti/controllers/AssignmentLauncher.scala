@@ -87,11 +87,16 @@ object AssignmentLauncher extends BaseApi {
 
               if (isInstructor) {
 
+                /**
+                 * Note: For Any content hosted in an iframe to support IE we need to add some p3p tags
+                 * @see: http://stackoverflow.com/questions/389456/cookie-blocked-not-saved-in-iframe-in-internet-explorer
+                 */
                 Ok( basiclti.views.html.itemChooser(
                     config.id,
                     data.selectionDirective.getOrElse(""),
                     data.returnUrl.getOrElse("")
                   ) ).withSession(tokenSession)
+                     .withHeaders(("P3P", """CP="NOI ADM DEV COM NAV OUR STP""""))
               } else {
                 if(config.itemId.isDefined){
                   require(data.outcomeUrl.isDefined, "outcome url must be defined: config id: " + config.id)
