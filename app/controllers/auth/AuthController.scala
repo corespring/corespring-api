@@ -21,13 +21,16 @@ object AuthController extends Controller with SecureSocial{
 
   val registerInfo = Form(OAuthConstants.Organization -> text)
 
+  val blerg = AccessTokenRequest("ad","adf","adfaf",Some("adf"))
+
   val accessTokenForm = Form(
     mapping(
-      OAuthConstants.GrantType -> nonEmptyText,
+      OAuthConstants.GrantType -> optional(text),
       OAuthConstants.ClientId -> nonEmptyText,
       OAuthConstants.ClientSecret -> nonEmptyText,
       OAuthConstants.Scope -> optional(text)
-    )(AccessTokenRequest.apply)(AccessTokenRequest.unapply)
+    )((grantType,clientId,clientSecret,scope) => AccessTokenRequest.apply(grantType.getOrElse(OAuthConstants.ClientCredentials),clientId,clientSecret,scope))
+      (AccessTokenRequest.unapply(_).map((atrtuple => (Some(atrtuple._1),atrtuple._2,atrtuple._3,atrtuple._4))))
   )
 
   def register = SecuredAction() { implicit request =>
