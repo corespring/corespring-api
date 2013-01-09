@@ -82,21 +82,23 @@ object AssignmentLauncher extends BaseApi {
 
               val token : AccessToken = AccessToken.getTokenForOrg(org)
               val tokenSession = (OAuthConstants.AccessToken, token.tokenId)
+              /**
+               * Note: For Any content hosted in an iframe to support IE we need to add some p3p tags
+               * @see: http://stackoverflow.com/questions/389456/cookie-blocked-not-saved-in-iframe-in-internet-explorer
+               */
+              val p3pHeaders = ("P3P", """CP="NOI ADM DEV COM NAV OUR STP"""")
+
 
               def isInstructor = data.roles.exists(_ == LtiKeys.Instructor)
 
               if (isInstructor) {
 
-                /**
-                 * Note: For Any content hosted in an iframe to support IE we need to add some p3p tags
-                 * @see: http://stackoverflow.com/questions/389456/cookie-blocked-not-saved-in-iframe-in-internet-explorer
-                 */
                 Ok( basiclti.views.html.itemChooser(
                     config.id,
                     data.selectionDirective.getOrElse(""),
                     data.returnUrl.getOrElse("")
                   ) ).withSession(tokenSession)
-                     .withHeaders(("P3P", """CP="NOI ADM DEV COM NAV OUR STP""""))
+                     .withHeaders(p3pHeaders)
               } else {
                 if(config.itemId.isDefined){
                   require(data.outcomeUrl.isDefined, "outcome url must be defined: config id: " + config.id)
@@ -105,7 +107,9 @@ object AssignmentLauncher extends BaseApi {
 
                   val updatedConfig = config.addAssignmentIfNew(data.resultSourcedId.get, data.outcomeUrl.get, data.returnUrl.get)
                   val call = AssignmentPlayerRoutes.run(updatedConfig.id, data.resultSourcedId.get)
-                  Redirect(call.url).withSession(tokenSession)
+                  Redirect(call.url)
+                    .withSession(tokenSession)
+                    .withHeaders(p3pHeaders)
                 }else {
                   Ok(basiclti.views.html.itemNotReady())
                 }
