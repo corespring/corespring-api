@@ -373,7 +373,11 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <p><em>* The TC system needs to support LTI outcomes service for the outcomes to be sent back to the TC system</em></p>
 
-<p><a href="/developer/canvas-integration.html">Here is a walkthrough of configuring CoreSpring with Canvas</a></p>
+<h3>Using CoreSpring in Canvas with LTI</h3>
+
+<p>The instructions for how to configure LTI Tools might vary somewhat from system to system. By way of reference, we will describe how to configure CoreSpring with CanvasLMS here:</p>
+
+<p><a href="/developer/canvas-integration.html">Configuring CoreSpring with Canvas</a></p>
 
 <h2><a name="integration-direct" class="waypoint"></a> Direct Integration</h2>
 
@@ -460,7 +464,7 @@ The interactive API widget is pre-configured to use this access token but you ca
     disabled="false"
     disabled-message="currently disabled to ensure the fixture data stays in the correct state"
     path="/auth/access_token"
-    form-params="client_id=client_id&client_secret=client_secret&grant_type=client_credentials"
+    form-params="client_id=client_id&client_secret=client_secret"
     url="/auth/access_token">
   </rest-widget>
 </div>
@@ -1108,7 +1112,7 @@ For example, if you only wanted the Item Title and Primary Subject Fields for th
 
 <hr />
 
-<p>date:  01/09/2013 04:36PM</p>
+<p>date:  01/09/2013 11:11AM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
