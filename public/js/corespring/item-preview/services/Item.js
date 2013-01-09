@@ -5,7 +5,7 @@ angular.module('preview.services')
     [ '$resource', 'ServiceLookup',
         function ($resource, ServiceLookup) {
             return $resource(
-                ServiceLookup.getUrlFor('items'),
+                ServiceLookup.getUrlFor('itemDetails'),
                 {},
                 {
                     query:{ method:'GET', isArray:true},

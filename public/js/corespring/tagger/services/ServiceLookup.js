@@ -21,7 +21,8 @@ angular.module('tagger.services')
                 updateSupportingMaterialFile: '/api/v1/items/{itemId}/materials/{resourceName}/{filename}',
                 uploadSupportingMaterialFile:'/api/v1/items/{itemId}/materials/{resourceName}/{filename}/upload',
 
-                items:'/api/v1/items/:id/detail',
+                items:'/api/v1/items/:id',
+                itemDetails:'/api/v1/items/:id/detail',
                 getAccessToken:'/web/access_token',
 
                 previewFile:'/web/show-resource/{key}',
