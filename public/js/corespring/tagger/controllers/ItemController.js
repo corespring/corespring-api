@@ -196,6 +196,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $rootScope.$broadcast('onEditViewOpened');
 
     $scope.loadItem = function () {
+        if (angular.isUndefined($routeParams.itemId)) return;
+
         ItemService.get({id:$routeParams.itemId}, function onItemLoaded(itemData) {
             $rootScope.itemData = itemData;
             enterEditorIfInContentPanel();
