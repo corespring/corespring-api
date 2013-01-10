@@ -31,11 +31,15 @@
             </li>
         </ul>
 
+        <span>
+
+        </span>
         <button
                 ng-show="isAssigned()"
                 ui-jq="tooltip"
                 ui-options="{title: getRemoveTooltip()}"
                 class="btn pull-right btn-mini btn-primary"
+                ng-class="{true: 'disable-btn', false: ''}[isRemoveDisabled()]"
                 style="margin-right: 5px; margin-top: 2px;"
                 ng-click="remove()">Unassign
         </button>
