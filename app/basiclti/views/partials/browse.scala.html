@@ -61,7 +61,7 @@
       <td class="title"><div class="title-holder" ui-jq="tooltip" ui-options="{title:i.title}" ng-bind-html-unsafe="i.title"></div></td>
       <td class="grade"><div title="{{createGradeLevelString(i.gradeLevel)}}">{{createGradeLevelString(i.gradeLevel)}}</div></td>
       <td class="type"><div title="{{showItemType(i)}}">{{showItemTypeAbbreviated(i)}}</div></td>
-      <td class="source">{{i.source}}</td>
+      <td class="source"><div class="title-holder" style="margin-left: 0px;" ui-jq="tooltip" ui-options="{title:i.author}">{{getAuthorAbbreviation(i.author)}}</div></td>
     </tr>
   </table>
     </div>

@@ -127,6 +127,26 @@ angular.module('corespring-utils')
             url = 'http://' + url;
         }
         return url;
+      },
+
+      getAuthorAbbreviation : function(author){
+        var contributorNameToAbbreviationMap = {
+          "State of New Jersey Department of Education":  "NJDOE",
+          "New York State Education Department" : "NYSED",
+          "Illustrative Mathematics" : "Illustrative"
+        };
+
+        if( contributorNameToAbbreviationMap[author] ){
+          return contributorNameToAbbreviationMap[author];
+        }
+
+        var abbreviate = function(s){
+          var words = s.split(" ");
+          var firstLetters = _.map(words, function(w){ return w.substring(0,1) });
+          return firstLetters.join("").toUpperCase();
+        };
+
+        return author.indexOf(" ") != -1 ? abbreviate(author) : author;
       }
 
     };
