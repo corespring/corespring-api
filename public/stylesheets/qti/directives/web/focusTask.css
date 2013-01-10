@@ -73,7 +73,11 @@
 }
 
 .focus-element.shouldHaveBeenSelected {
-    background-color: #F8A31A;
+    background-color: #FFF;
+    border: 2px solid #53C516;
+    color: #000;
+    text-shadow: none;
+
 }
 
 .focus-element.shouldNotHaveBeenSelected {
