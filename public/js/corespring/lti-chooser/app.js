@@ -21,7 +21,7 @@ angular.module("lti-services", ['ngResource'])
   }])
 
   .factory("LtiItemService", ['$resource', function($resource){
-    return $resource("/api/v1/items/:id", {} );
+    return $resource("/api/v1/items/:id/detail", {} );
   }]);
 
 
