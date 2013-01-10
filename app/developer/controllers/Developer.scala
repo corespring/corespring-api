@@ -1,13 +1,13 @@
 package developer.controllers
 
-import play.api.mvc.{Action, Controller}
-import controllers.Assets
+import play.api.mvc._
+import controllers.{Log, Assets}
 import securesocial.core._
 import play.api.libs.json._
 import api.ApiError
 import org.bson.types.ObjectId
 import models.{User, Organization}
-import controllers.auth.{OAuthProvider, Permission}
+import controllers.auth.{OAuthConstants, OAuthProvider, Permission}
 import scala.Left
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsBoolean
@@ -21,17 +21,23 @@ import scala.Some
 import scala.Right
 import securesocial.core.PasswordInfo
 import play.api.libs.json.JsObject
+import scala.Left
+import play.api.libs.json.JsString
+import play.api.libs.json.JsBoolean
+import scala.Some
+import scala.Right
+import play.api.mvc.SimpleResult
+import play.api.libs.json.JsObject
 
 object Developer extends Controller with SecureSocial{
 
   def at(path:String,file:String) = Assets.at(path,file)
 
-  def home = Action{request =>
+  def home = Action{implicit request =>
     request.session.get(SecureSocial.UserKey) match {
       case Some(username) =>
         User.getUser(username) match {
-        case Some(user) =>
-          if(!user.hasRegisteredOrg){
+        case Some(user) => if(!user.hasRegisteredOrg){
           Redirect("/developer/org/form")
         }else{
           Assets.at("/public/developer", "index.html")(request)
@@ -39,6 +45,24 @@ object Developer extends Controller with SecureSocial{
         case None => Assets.at("/public/developer", "index.html")(request)
       }
       case None => Assets.at("/public/developer", "index.html")(request)
+    }
+  }
+
+  private def addAccessToken(result:SimpleResult[AnyContent],user:User)(implicit request:RequestHeader):Result = {
+    OAuthProvider.register(user.orgs(0).orgId) match {
+      case Right(apiClient) => OAuthProvider.getAccessToken(OAuthConstants.ClientCredentials,
+        apiClient.clientId.toString,
+        apiClient.clientSecret,Some(user.userName)) match {
+        case Right(accessToken) => result.withHeaders(request.headers + "access_token" -> accessToken.tokenId)
+        case Left(error) => {
+          Log.e(error.message)
+          result
+        }
+      }
+      case Left(error) => {
+        Log.e(error.message)
+        result
+      }
     }
   }
 

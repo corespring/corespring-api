@@ -125,6 +125,7 @@ qtiDirectives.directive('selectable', function factory(QtiUtils) {
                 });
 
                 scope.$on('unsetSelection', function (event) {
+                    scope.disabled = false;
                     scope.isSelected = false;
                     scope.shouldHaveBeenSelected = false;
                     scope.shouldNotHaveBeenSelected = false;
