@@ -118,6 +118,15 @@ angular.module('corespring-utils')
           }
         }
         return "OTH";
+      },
+
+      prependHttp: function(url) {
+        if (!url) return "";
+        if (!url.match(/^[a-zA-Z]+:\/\//))
+        {
+            url = 'http://' + url;
+        }
+        return url;
       }
 
     };

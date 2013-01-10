@@ -1,7 +1,9 @@
 window.ltiChooser = (window.ltiChooser || {});
 
-ltiChooser.ViewItemController = function ($scope, $rootScope, $routeParams, $location, LtiItemService, ServiceLookup, MessageBridge){
+ltiChooser.ViewItemController = function ($scope, $rootScope, $routeParams, $location, LtiItemService, ServiceLookup, MessageBridge, ItemFormattingUtils){
 
+  $scope.prependHttp = ItemFormattingUtils.prependHttp;
+  
   $scope.previewPageIsReady = false;
 
   $scope.onMessageReceived = function(e){
@@ -58,6 +60,7 @@ ltiChooser.ViewItemController = function ($scope, $rootScope, $routeParams, $loc
     //empty it so we trigger a refresh
     return templateUrl.replace("{key}", key);
   };
+ 
 
   LtiItemService.get({id: $routeParams.itemId}, function onSuccess(data){
      $rootScope.item = data;
@@ -68,4 +71,4 @@ ltiChooser.ViewItemController = function ($scope, $rootScope, $routeParams, $loc
 };
 
 
-ltiChooser.ViewItemController.$inject = ['$scope', '$rootScope', '$routeParams', '$location', 'LtiItemService', 'ServiceLookup', 'MessageBridge'];
+ltiChooser.ViewItemController.$inject = ['$scope', '$rootScope', '$routeParams', '$location', 'LtiItemService', 'ServiceLookup', 'MessageBridge', 'ItemFormattingUtils'];

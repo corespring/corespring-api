@@ -1,4 +1,4 @@
-function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
+function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFormattingUtils) {
 
     $scope.changeSupportingMaterialPanel = function (sm) {
         $scope.changePanel(sm.name);
@@ -48,16 +48,9 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
     $scope.getItemUrl = function() {
         if (!$scope.itemData || $scope.currentPanel != 'item') return null;
         return "/web/show-resource/" + $scope.itemData.id + "/data/main";
-    }
+    };
 
-    $scope.prependHttp = function(url) {
-        if (!url) return "";
-        if (!url.match(/^[a-zA-Z]+:\/\//))
-        {
-            url = 'http://' + url;
-        }
-        return url;
-    }
+    $scope.prependHttp = ItemFormattingUtils.prependHttp;
 
     $scope.loadItem = function () {
         Item.get(
@@ -79,4 +72,4 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup) {
     $scope.currentPanel = "profile";
 }
 
-PreviewController.$inject = ['$scope', '$timeout', 'Config', 'Item', 'ServiceLookup'];
+PreviewController.$inject = ['$scope', '$timeout', 'Config', 'Item', 'ServiceLookup', 'ItemFormattingUtils'];
