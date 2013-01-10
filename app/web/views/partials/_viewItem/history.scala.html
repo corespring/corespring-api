@@ -1,15 +1,17 @@
+@(name:String = "itemData")
+
 <div class="container profile profileSource">
 
 
     <p class="profile-h1"> Source </p>
 
 
-    <img ng-show="itemData.copyrightImageName" class="copyright-logo"
-         ng-src="/assets/images/copyright/{{itemData.copyrightImageName}}"/>
+    <img ng-show='@(name + ".copyrightImageName")' class="copyright-logo"
+         ng-src='@("/assets/images/copyright/{{" + name + ".copyrightImageName}}")'/>
 
-    <div class="copyright-graph" ng-show="itemData.copyrightOwner">
+    <div class="copyright-graph" ng-show='@(name + ".copyrightOwner")'>
         <p>
-            This item was made available to CoreSpring users courtesy of the {{itemData.copyrightOwner}}.
+            This item was made available to CoreSpring users courtesy of the {{ @(name + ".copyrightOwner") }}.
             Information related to this specific item is presented below.
         </p>
     </div>
@@ -18,42 +20,42 @@
         <tr>
             <td class="key-label" width="50%">Copyright Year<br/>
                 <span class="key-value">
-                    <span ng-show="!itemData.copyrightYear" style="color: #888; font-style: italic;">Not Assigned</span>
-                    {{itemData.copyrightYear}}
+                    <span ng-show='@("!" +name + ".copyrightYear")' style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{ @(name + ".copyrightYear") }}
                 </span>
             </td>
             <td class="key-label" width="50%">Credentials<br/>
                 <span class="key-value">
-                    <span ng-show="!itemData.credentials" style="color: #888; font-style: italic;">Not Assigned</span>
-                    {{itemData.credentials}}
+                    <span ng-show='@("!" +name + ".credentials")' style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{ @(name + ".credentials") }}
                 </span>
             </td>
         </tr>
         <tr>
             <td class="key-label" width="50%">Reviews Passed<br/>
                 <span class="key-value">
-                    <span ng-show="!itemData.reviewsPassed" style="color: #888; font-style: italic;">Not Assigned</span>
-                    {{itemData.reviewsPassed.join(", ")}}
+                    <span ng-show='@("!" +name + ".reviewsPassed")' style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{ @(name + ".reviewsPassed.join(\", \")") }}
                 </span>
             </td>
             <td class="key-label" width="50%">Prior Use<br/>
                 <span class="key-value">
-                    <span ng-show="!itemData.priorUse" style="color: #888; font-style: italic;">Not Assigned</span>
-                    {{itemData.priorUse}}<span ng-repeat="s in itemData.priorGradeLevel">, Grade {{s}}</span>
+                    <span ng-show='@("!" +name + ".priorUse")' style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{ @(name + ".priorUse") }}<span ng-repeat="s in itemData.priorGradeLevel">, Grade {{s}}</span>
                 </span>
             </td>
         </tr>
         <tr>
             <td class="key-label" width="50%">Related Materials<br/>
                 <span class="key-value">
-                    <span ng-show="!itemData.relatedCurriculum" style="color: #888; font-style: italic;">Not Assigned</span>
-                    {{itemData.relatedCurriculum}}
+                    <span ng-show='@("!" +name + ".relatedCurriculum")' style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{ @(name + ".relatedCurriculum") }}
                 </span>
             </td>
             <td class="key-label" width="50%" style="max-width: 200px">Source<br/>
                 <span class="key-value">
-                    <span ng-show="!itemData.sourceUrl" style="color: #888; font-style: italic;">Not Assigned</span>
-                    <a ng-href="{{prependHttp(itemData.sourceUrl)}}" target="_blank">{{prependHttp(itemData.sourceUrl)}}</a>
+                    <span ng-show='@("!" +name + ".sourceUrl")' style="color: #888; font-style: italic;">Not Assigned</span>
+                    <a ng-href='@("{{prependHttp(" + name + ".sourceUrl)}}")' target="_blank">{{ @( "prependHttp(" + name + ".sourceUrl)") }}</a>
                 </span>
             </td>
         </tr>

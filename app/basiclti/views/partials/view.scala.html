@@ -60,7 +60,10 @@
               ng-src="{{previewItemUrl}}"></iframe>
     </div>
 
-    <div class="profile-holder" ng-show="currentPanel == 'profile'">@web.views.html.partials._viewItem.corespringData("item")</div>
+    <div class="profile-holder" ng-show="currentPanel == 'profile'">
+      @web.views.html.partials._viewItem.corespringData("item")
+      @web.views.html.partials._viewItem.history("item")
+    </div>
 
     <div id='supportingMaterialView'
          class="lti-iframe-holder"
