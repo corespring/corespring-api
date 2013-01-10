@@ -55,9 +55,9 @@ angular.module('cs.directives').directive('jsonHighlight', function($http) {
     transclude: false,
     scope: true,
     link: function( scope, element, attrs){
-      var object = JSON.parse($(element).html());
-      var jsonFormatted = com.cs.utils.syntaxHighlightJson(object);
-      $(element).html("<div class='responseHolder'><pre>" + jsonFormatted + "</pre></div>");
+      //var object = JSON.parse($(element).html());
+      //var jsonFormatted = com.cs.utils.syntaxHighlightJson(object);
+      //$(element).html("<div class='responseHolder'><pre>" + jsonFormatted + "</pre></div>");
     }
   };
   return definition;
@@ -79,7 +79,7 @@ angular.module('cs.directives').directive('jsonHighlight', function($http) {
  * @requestHeaders - a & delimited list of request headers to add to the call - shown to the user in a text input
  * @formParams - a & delimited list of form parameters for the request - shown to the user as text inputs.
  */
-angular.module('cs.directives').directive('restWidget', function($http) {
+angular.module('cs.directives').directive('restWidget', function($http,$rootScope) {
 
   var definition = {   
     replace: true,
@@ -159,9 +159,11 @@ angular.module('cs.directives').directive('restWidget', function($http) {
         scope.formParams =  buildFormParams( (attrs["formParams"] || "") );
 
         scope.onSuccess = function( result ){
-
           scope.loading = false;
-
+          if(result.access_token){
+            $rootScope.access_token = result.access_token
+            $rootScope.$broadcast('insertAccessToken')
+          }
           var body = ( scope.resultType == "xml" ) ? com.cs.utils.xmlToString(result) : com.cs.utils.syntaxHighlightJson(result);
           scope.$apply( function() {
             scope.responseBody = body;
@@ -268,9 +270,27 @@ angular.module('cs.directives').directive('restWidget', function($http) {
         };
 
         var url = attrs["url"];
+        var insertAccessToken = function(){
+          if($rootScope.access_token){
+            var atindex = url.indexOf("access_token=")
+            if(atindex != -1){
+              var endindex = url.indexOf("&",atindex)
+              if(endindex == -1) {
+                var oldat = url.substring(atindex+13)
+                return url.replace(oldat,$rootScope.access_token)
+              }else{
+                var oldat = url.substring(atindex+13,endindex)
+                return url.replace(oldat,$rootScope.access_token)
+              }
+            }
+          }
+          return url
+        }
+        $(element).find("#urlInput").val(insertAccessToken());
+        scope.$on('insertAccessToken', function(){
+            $(element).find('#urlInput').val(insertAccessToken())
+        });
 
-        $(element).find("#urlInput").val(url); 
-        
         var responseDiv = "<div style='width:100%; height: 200px;'></div>";
         scope.showRunner = false;
 
