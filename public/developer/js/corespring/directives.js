@@ -163,6 +163,27 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
         }
 
         scope.formParams =  buildFormParams( (attrs["formParams"] || "") );
+        //test if the form param contain client id and secret. if so, then we know this widget is the access token widget
+        var hasClientIdAndSecret = function(){
+          var hasClientSecret = typeof _.find(scope.formParams,function(formParam){
+                                        return formParam.name === "client_secret"
+                                      }) !== "undefined"
+          var hasClientId = typeof _.find(scope.formParams,function(formParam){
+                                                 return formParam.name === "client_id"
+                                               }) !== "undefined"
+          return hasClientSecret && hasClientId
+        }
+        if(hasClientIdAndSecret()){
+          //set the broadcast receiver to set the form params once the api client has been received
+          scope.$on('setApiClient',function(){
+            if($rootScope.apiClient){
+              scope.formParams = [
+                {name: "client_id", value: $rootScope.apiClient.clientId},
+                {name: "client_secret", value: $rootScope.apiClient.clientSecret}
+              ]
+            }
+          })
+        }
 
         scope.onSuccess = function( result ){
           scope.loading = false;
@@ -274,8 +295,8 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
 
           $.ajax(request);
         };
-
         var url = attrs["url"];
+        //insert  new token if it exists. if not, use default (demo_token)
         var insertAccessToken = function(){
           if($rootScope.access_token){
             var atindex = url.indexOf("access_token=")
@@ -293,6 +314,7 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
           return url
         }
         $(element).find("#urlInput").val(insertAccessToken());
+        //listen for access token changes
         scope.$on('insertAccessToken', function(){
             $(element).find('#urlInput').val(insertAccessToken())
         });
