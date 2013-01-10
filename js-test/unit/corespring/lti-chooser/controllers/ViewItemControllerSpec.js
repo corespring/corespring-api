@@ -33,6 +33,7 @@ describe('lti-chooser.ViewItemController', function () {
     beforeEach(module('lti-services'));
     beforeEach(module('corespring-services'));
     beforeEach(module('tagger.services'));
+    beforeEach(module('corespring-utils'));
 
     beforeEach(function () {
     module(function ($provide) {
