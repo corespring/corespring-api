@@ -25,7 +25,6 @@ function DeveloperCtrl($scope,Developer) {
     $scope.username = "";
     (function(){
         Developer.isLoggedIn({},function(data) {
-            console.log(JSON.stringify(data))
             if(data.isLoggedIn == true){
                 $scope.authState = "noorg";
                 $scope.username = data.username

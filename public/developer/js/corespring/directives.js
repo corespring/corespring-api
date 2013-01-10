@@ -55,7 +55,13 @@ angular.module('cs.directives').directive('jsonHighlight', function($http) {
     transclude: false,
     scope: true,
     link: function( scope, element, attrs){
-      var object = JSON.parse($(element).html());
+      var html = $(element).html();
+      try{
+        var object = JSON.parse(html);
+      }
+      catch (e){
+        console.log("Error parsing html: " + html);
+      }
       var jsonFormatted = com.cs.utils.syntaxHighlightJson(object);
       $(element).html("<div class='responseHolder'><pre>" + jsonFormatted + "</pre></div>");
     }
