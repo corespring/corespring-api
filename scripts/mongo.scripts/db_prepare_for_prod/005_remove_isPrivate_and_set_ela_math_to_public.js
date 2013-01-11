@@ -4,7 +4,7 @@ db.contentcolls.update( { isPrivate: { $exists: true } }, {$unset: { isPrivate :
 db.contentcolls.update(
   {
     name: {
-      $in: ["CoreSpring Mathematics", "CoreSpring ELA"]
+      $in: ["CoreSpring Mathematics", "CoreSpring ELA", "Beta Items"]
     }
   },
   {
