@@ -79,7 +79,7 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
     SelectTextInteraction(
       (node \ "@responseIdentifier").text,
       (node \ "@selectionType").text,
-      (node \ "@checkIfCorrect").nonEmpty,
+      (node \ "@checkIfCorrect").text.toLowerCase == "yes",
       (node \ "@minSelections").text.toInt,
       (node \ "@maxSelections").text.toInt,
       correctAnswers

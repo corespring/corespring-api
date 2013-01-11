@@ -19,7 +19,7 @@ qtiDirectives.directive('selecttextinteraction', function factory() {
         },
         link: function link(scope, element, attrs, AssessmentItemController) {
             scope.controller = AssessmentItemController;
-            scope.onlyCountMatch = attrs.checkifcorrect == undefined;
+            scope.onlyCountMatch = attrs.checkifcorrect != "yes";
             var responseIdentifier = attrs.responseidentifier;
             scope.responseIdentifier = responseIdentifier;
             scope.$watch('selections.length', function () {
