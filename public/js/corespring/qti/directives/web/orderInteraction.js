@@ -34,7 +34,7 @@ var parsePrompt = function (element) {
         prompt = promptElem.html();
     }
     return prompt;
-}
+};
 
 
 var compileNormalOrderInteraction = function (tElement, QtiUtils) {
@@ -314,6 +314,7 @@ var commonLinkFn = function ($scope, element, attrs, AssessmentItemCtrl, QtiUtil
         };
 
         var value = QtiUtils.getResponseValue($scope.responseIdentifier, $scope.itemSession.responses, "");
+        $scope.highlightingUserResponse = true;
         $scope.orderedList = buildFromResponse(value);
     });
 
@@ -483,7 +484,13 @@ qtiDirectives.directive("sortable", function () {
             });
 
             scope.$watch("orderedList", function (newValue) {
-                scope.items = newValue;
+              /**
+               * Only set the items if we are highlighting a user response aka the item is closed
+               * Otherwise this will cause unpredictable behaviour
+               */
+               if( scope.highlightingUserResponse ){
+                 scope.items = newValue;
+               }
             });
 
 

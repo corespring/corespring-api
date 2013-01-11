@@ -1,5 +1,6 @@
 function BrowseController($scope, $rootScope, $location, Config, LaunchConfigService, ItemFormattingUtils) {
 
+
   //Mixin ItemFormattingUtils
   angular.extend($scope, ItemFormattingUtils);
 

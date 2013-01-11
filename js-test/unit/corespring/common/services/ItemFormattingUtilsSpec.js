@@ -122,6 +122,16 @@ describe('common.ItemFormattingUtils', function () {
         ).toBe("OTH");
     });
 
+    it('abbreviates contributor names', function(){
+
+      expect( scope.getAuthorAbbreviation("Ed")).toBe("Ed");
+      expect( scope.getAuthorAbbreviation("Ed is cool")).toBe("EIC");
+      expect( scope.getAuthorAbbreviation("State of New Jersey Department of Education")).toBe("NJDOE");
+      expect( scope.getAuthorAbbreviation("New York State Education Department")).toBe("NYSED");
+      expect( scope.getAuthorAbbreviation("Illustrative Mathematics")).toBe("Illustrative");
+      expect( scope.getAuthorAbbreviation("TIMSS")).toBe("TIMSS");
+    });
+
   });
 
 });
