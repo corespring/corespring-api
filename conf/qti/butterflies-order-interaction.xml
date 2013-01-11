@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+                title="" adaptive="false" timeDependent="false">
+    <responseDeclaration identifier="RESPONSE" cardinality="ordered" baseType="identifier">
+        <correctResponse>
+            <value>ChoiceC</value>
+            <value>ChoiceA</value>
+            <value>ChoiceB</value>
+            <value>ChoiceD</value>
+        </correctResponse>
+    </responseDeclaration>
+    <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="integer"/>
+    <itemBody>
+
+        <p class="intro-2">The life cycle of butterﬂies has four stages. One of these stages is pictured below.</p>\rn
+        <div class="image-wrapper">
+            <img src="7.butterfly.png"/>
+        </div>
+
+
+        <orderInteraction responseIdentifier="RESPONSE" shuffle="true">
+            <prompt>Arrange the stages of life of a butterfly in order from beginning to end.</prompt>
+            <simpleChoice identifier="ChoiceA">
+                <!--
+                <img src="caterpillar.png"/>
+                -->
+                <img src="http://stuffpoint.com/dogs/image/59240-dogs-4plus-pugs.jpg"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceB">
+                <img src="cocoon2.png"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceC">
+                <img src="egg2.png"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceD">
+                <img src="butterfly2.png"/>
+            </simpleChoice>
+        </orderInteraction>
+
+    </itemBody>
+
+</assessmentItem>
+
