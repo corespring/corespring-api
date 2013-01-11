@@ -8,6 +8,7 @@
 
     @partials.headNode()
     @common.views.html.head.angular()
+    @common.views.html.head.corespringCommon()
     @publicsite.head.html.fancybox()
 
     <script src="/assets/js/corespring/tagger/mongo/MongoQuery.js"></script>
@@ -132,7 +133,7 @@
                         <td width="33%">Source</td>
                     </tr>
                        <tr>
-                        <td width="auto" class="value">{{i.primarySubject.category}}: {{i.primarySubject.subject}}</td>
+                        <td width="auto" class="value">{{getPrimarySubjectLabel(i.primarySubject)}}</td>
                         <td width="auto" class="value">{{i.itemType}}</td>
                         <td width="auto" class="value">{{i.contributor}}</td>
                     </tr>

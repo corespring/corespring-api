@@ -1,8 +1,10 @@
-var app = angular.module('app', ['itemResource', 'fieldValuesResource', 'ui']);
+var app = angular.module('app', ['itemResource', 'fieldValuesResource', 'ui', 'corespring-utils']);
 
 
-function ItemsCtrl($scope, $timeout, Items, MultipleFieldValues) {
+function ItemsCtrl($scope, $timeout, Items, MultipleFieldValues, ItemFormattingUtils) {
 
+
+    angular.extend($scope, ItemFormattingUtils);
     var query = new com.corespring.mongo.MongoQuery();
 
     $scope.searchFields = {
@@ -137,4 +139,4 @@ function ItemsCtrl($scope, $timeout, Items, MultipleFieldValues) {
 
     $scope.getItems({});
 }
-ItemsCtrl.$inject = ['$scope', '$timeout', 'Items', 'MultipleFieldValues'];
+ItemsCtrl.$inject = ['$scope', '$timeout', 'Items', 'MultipleFieldValues', 'ItemFormattingUtils'];
