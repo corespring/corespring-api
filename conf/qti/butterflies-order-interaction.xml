@@ -15,7 +15,7 @@
     <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="integer"/>
     <itemBody>
 
-        <p class="intro-2">The life cycle of butterﬂies has four stages. One of these stages is pictured below.</p>\rn
+        <p class="intro-2">The life cycle of butterﬂies has four stages. One of these stages is pictured below.</p>
         <div class="image-wrapper">
             <img src="7.butterfly.png"/>
         </div>
@@ -24,10 +24,7 @@
         <orderInteraction responseIdentifier="RESPONSE" shuffle="true">
             <prompt>Arrange the stages of life of a butterfly in order from beginning to end.</prompt>
             <simpleChoice identifier="ChoiceA">
-                <!--
                 <img src="caterpillar.png"/>
-                -->
-                <img src="http://stuffpoint.com/dogs/image/59240-dogs-4plus-pugs.jpg"/>
             </simpleChoice>
             <simpleChoice identifier="ChoiceB">
                 <img src="cocoon2.png"/>
