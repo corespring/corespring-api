@@ -5,11 +5,13 @@
 <head>
     <title>Item Profile</title>
     <meta name="description" content="CoreSpring Content Tagger"/>
-    @common.views.html.head.ubuntu()
-    @common.views.html.head.mathMl()
-    @common.views.html.head.coreJs()
-    @common.views.html.head.bootstrap()
-    @common.views.html.head.angular()
+    @import common.views.html.head._
+    @ubuntu()
+    @mathMl()
+    @coreJs()
+    @bootstrap()
+    @angular()
+    @corespringCommon()
     @head.previewApp()
 
     <script type="text/javascript">
