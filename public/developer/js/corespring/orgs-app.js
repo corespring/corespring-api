@@ -13,16 +13,16 @@ angular.module("services")
 }]);
 
 
-
+//TODO: use $location.path('/developer/home') instead of $window.location = '/developer/home'
 function DeveloperOrgsController($scope, $window, Organizations){
   $scope.addOrg = function(orgName) {
     var org = {name : orgName};
     Organizations.save({},org, function(data){
-        $window.location = "/developer/home"
+        $window.location = "/developer/home";
     });
   }
 }
 
 DeveloperOrgsController.$inject = [
-  '$scope', $window, 'Organizations'
+  '$scope', '$window', 'Organizations'
 ];
