@@ -23,9 +23,9 @@ import controllers.auth.Permission
 /**
  * A ContentCollection
  */
-case class ContentCollection(var name: String = "", var isPublic: Boolean = false, var id: ObjectId = new ObjectId()) extends Identifiable
+case class ContentCollection(var name: String = "", var isPublic: Boolean = false, var id: ObjectId = new ObjectId())
 
-object ContentCollection extends DBQueryable[ContentCollection]{
+object ContentCollection extends ModelCompanion[ContentCollection,ObjectId]{
   val name = "name"
   val isPublic = "isPublic"
   val DEFAULT = "default" //used as the value for name when the content collection is a default collection
@@ -175,10 +175,5 @@ object ContentCollection extends DBQueryable[ContentCollection]{
       JsObject( list )
     }
   }
-
-  val queryFields:Seq[QueryField[ContentCollection]] = Seq(
-    QueryFieldObject[ContentCollection]("id",_.id,QueryField.valuefuncid),
-    QueryFieldString[ContentCollection](name,_.name)
-  )
 
 }

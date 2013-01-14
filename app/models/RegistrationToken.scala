@@ -18,9 +18,9 @@ case class RegistrationToken(var uuid: String = "",
                  var creationTime: Option[DateTime] = None,
                  var expirationTime: Option[DateTime] = None,
                  var isSignUp: Boolean,
-                 var id: ObjectId = new ObjectId()) extends Identifiable
+                 var id: ObjectId = new ObjectId())
 
-object RegistrationToken extends DBQueryable[RegistrationToken] {
+object RegistrationToken extends ModelCompanion[RegistrationToken,ObjectId] {
 
   val collection = mongoCollection("regtokens")
   val dao = new SalatDAO[RegistrationToken, ObjectId](collection = collection) {}
@@ -56,14 +56,6 @@ object RegistrationToken extends DBQueryable[RegistrationToken] {
         )
       }
     }
-
-  val queryFields: Seq[QueryField[RegistrationToken]] = Seq(
-    QueryFieldString[RegistrationToken](Uuid, _.uuid),
-    QueryFieldString[RegistrationToken](Email, _.email),
-    QueryFieldString[RegistrationToken](Created, _.creationTime),
-    QueryFieldString[RegistrationToken](Expires, _.expirationTime),
-    QueryFieldObject[RegistrationToken](Id, _.id, QueryField.valuefuncid)
-  )
 
   val description = "Tokens"
 }

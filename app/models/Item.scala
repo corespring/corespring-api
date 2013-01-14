@@ -8,7 +8,7 @@ import controllers._
 import collection.{SeqProxy, mutable}
 import scala.Either
 import mongoContext._
-import com.mongodb.util.JSON
+import com.mongodb.util.{JSONParseException, JSON}
 import controllers.InternalError
 import scala.Left
 import play.api.libs.json.JsArray
@@ -19,10 +19,11 @@ import web.views.html.partials._edit._metadata._formWithLegend
 import com.novus.salat.annotations.raw.Salat
 import play.api.libs.json._
 import com.novus.salat._
-import dao.{SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
+import dao.{ModelCompanion, SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
 import models.Workflow.WorkflowWrites
 import controllers.auth.Permission
 import play.api.Logger
+import java.util.regex.Pattern
 
 case class Copyright(owner: Option[String] = None, year: Option[String] = None, expirationDate: Option[String] = None, imageName: Option[String] = None)
 
@@ -37,13 +38,22 @@ case class ContributorDetails(
                                var licenseType: Option[String] = None,
                                var costForResource: Option[Int] = None
                                )
+object ContributorDetails{
+  val contributor = "contributor"
+  val credentials = "credentials"
+  val copyright = "copyright"
+  val author = "author"
+  val sourceUrl = "sourceUrl"
+  val licenseType = "licenseType"
+  val costForResource = "costForResource"
+}
 
 case class Workflow(var setup: Boolean = false,
                     var tagged: Boolean = false,
                     var standardsAligned: Boolean = false,
                     var qaReview: Boolean = false)
 
-object Workflow {
+object Workflow extends Searchable{
   val setup: String = "setup"
   val tagged: String = "tagged"
   val standardsAligned: String = "standardsAligned"
@@ -75,6 +85,25 @@ object Workflow {
     }
   }
 
+  def toSearchObj(query:AnyRef):Either[InternalError,MongoDBObject] = {
+    def isBooleanCheck(key:String,value:AnyRef,searchobj:MongoDBObject):Either[InternalError,MongoDBObject] = if(value.isInstanceOf[Boolean]){
+      Right(searchobj += key -> value)
+    } else {
+      Left(InternalError("Workflow.setup did not have value of type boolean",addMessageToClientOutput = true))
+    }
+    query match {
+      case dbquery:BasicDBObject => dbquery.foldRight[Either[InternalError,MongoDBObject]](Right(MongoDBObject()))((field,result) => result match {
+        case Right(searchobj) => field._1 match {
+          case Workflow.setup => isBooleanCheck(Workflow.setup,field._2,searchobj)
+          case Workflow.tagged => isBooleanCheck(Workflow.tagged,field._2,searchobj)
+          case Workflow.standardsAligned => isBooleanCheck(Workflow.standardsAligned,field._2,searchobj)
+          case Workflow.qaReview => isBooleanCheck(Workflow.qaReview,field._2,searchobj)
+        }
+        case Left(e) => Left(e)
+      })
+      case _ => Left(InternalError("invalid search object",LogType.printFatal,addMessageToClientOutput = true))
+    }
+  }
 }
 
 
@@ -105,7 +134,7 @@ case class Item(var collectionId: String = "",
 /**
  * An Item model
  */
-object Item extends DBQueryable[Item] {
+object Item extends ModelCompanion[Item,ObjectId] with Searchable{
   val FieldValuesVersion = "0.0.1"
 
   val collection = Content.collection
@@ -117,6 +146,7 @@ object Item extends DBQueryable[Item] {
   val author = "author"
   val collectionId = Content.collectionId
   val contentType = Content.contentType
+  val contributorDetails = "contributorDetails"
   val contributor = "contributor"
   val copyright = "copyright"
   val copyrightOwner = "copyrightOwner"
@@ -422,142 +452,72 @@ object Item extends DBQueryable[Item] {
     }
   }
 
-  val queryFields: Seq[QueryField[Item]] = Seq[QueryField[Item]](
-    QueryFieldObject[Item](id, _.id, QueryField.valuefuncid),
-    QueryFieldString[Item](author, _.contributorDetails.map(_.author)),
-    QueryFieldString[Item](collectionId, _.collectionId),
-    QueryFieldString[Item](originId, _.originId),
-    QueryFieldString[Item](contentType, _.contentType, _ match {
-      case x: String if x == ContentType.item => Right(x)
-      case _ => Left(InternalError("incorrect content type"))
-    }),
-    QueryFieldString[Item](contributor, _.contributorDetails.map(_.contributor)),
-    QueryFieldString[Item](copyrightOwner, _.contributorDetails.map(_.copyright.map(_.owner))),
-    QueryFieldString[Item](copyrightYear, _.contributorDetails.map(_.copyright.map(_.year))),
-    QueryFieldString[Item](credentials, _.contributorDetails.map(_.credentials), queryValueFn("credentials", fieldValues.credentials)),
-    QueryFieldStringArray[Item](gradeLevel, _.gradeLevel, value => {
-      value match {
-        case grades: BasicDBList =>
-          if (grades.foldRight[Boolean](true)((grade, acc) => fieldValues.gradeLevels.exists(_.key == grade.toString) && acc)) Right(value)
-          else Left(InternalError("gradeLevel contained invalid grade formats for values"))
-        case grade: String =>
-          if (fieldValues.gradeLevels.exists(_.key == grade.toString)) Right(grade) else Left(InternalError("gradeLevel contained invalid grade formats for values"))
-        case _ =>
-          Left(InternalError("invalid type for value in gradeLevel"))
+  def toSearchObj(query: AnyRef):Either[InternalError,MongoDBObject] = {
+    query match {
+      case strquery:String => try{
+        val parsedobj:BasicDBObject = JSON.parse(strquery).asInstanceOf[BasicDBObject]
+        toSearchObj(parsedobj)
+      }catch {
+        case e:JSONParseException => Left(InternalError(e.getMessage,clientOutput = Some("could not parse search string")))
       }
-    }),
-
-    QueryFieldString[Item](workflow + "." + Workflow.qaReview, _.workflow.map(_.qaReview)),
-    QueryFieldString[Item](workflow + "." + Workflow.setup, _.workflow.map(_.setup)),
-    QueryFieldString[Item](workflow + "." + Workflow.tagged, _.workflow.map(_.tagged)),
-    QueryFieldString[Item](workflow + "." + Workflow.standardsAligned, _.workflow.map(_.standardsAligned)),
-
-    /**
-     * TODO: Check with Evan/Josh about item types.
-     */
-    QueryFieldString[Item](itemType, _.itemType),
-    QueryFieldStringArray[Item](keySkills, _.keySkills, value => value match {
-      case skills: BasicDBList => if (skills.foldRight[Boolean](true)((skill, acc) => fieldValues.keySkills.exists(_.key == skill.toString) && acc)) Right(value)
-      else Left(InternalError("key skill not found for given value"))
-      case _ => Left(InternalError("invalid value type for keySkills"))
-    }
-    ),
-    QueryFieldString[Item](bloomsTaxonomy, _.bloomsTaxonomy, queryValueFn(bloomsTaxonomy, fieldValues.bloomsTaxonomy)),
-    QueryFieldString[Item](licenseType, _.contributorDetails.map(_.licenseType), queryValueFn(licenseType, fieldValues.licenseTypes)),
-    QueryFieldObject[Item](primarySubject, _.subjects.map(_.primary), _ match {
-      case x: String => try {
-        Right(new ObjectId(x))
-      } catch {
-        case e: IllegalArgumentException => Left(InternalError("invalid object id format for primarySubject"))
-      }
-      case _ => Left(InternalError("uknown value type for standards"))
-    }, Subject.queryFields),
-    QueryFieldObject[Item](relatedSubject, _.subjects.map(_.related), _ match {
-      case x: String => try {
-        Right(new ObjectId(x))
-      } catch {
-        case e: IllegalArgumentException => Left(InternalError("invalid object id format for relatedSubject"))
-      }
-      case _ => Left(InternalError("uknown value type for standards"))
-    }, Subject.queryFields),
-    QueryFieldStringArray[Item](priorUse, _.priorUse, value => value match {
-      case x: String => if (fieldValues.priorUses.exists(_.key == x)) Right(value) else Left(InternalError("priorUse not found"))
-      case _ => Left(InternalError("invalid value type for priorUse"))
-    }
-    ),
-    QueryFieldStringArray[Item](reviewsPassed, _.reviewsPassed, value => value match {
-      case reviews: BasicDBList => if (reviews.foldRight[Boolean](true)((review, acc) => fieldValues.reviewsPassed.exists(_.key == review.toString) && acc)) Right(value)
-      else Left(InternalError("review not found"))
-      case _ => Left(InternalError("invalid value type for reviewsPassed"))
-    }
-    ),
-    QueryFieldString[Item](sourceUrl, _.contributorDetails.map(_.sourceUrl)),
-    QueryFieldObjectArray[Item](standards, _.standards, _ match {
-      case x: BasicDBList => x.foldRight[Either[InternalError, Seq[ObjectId]]](Right(Seq()))((standard, acc) => {
-        acc match {
-          case Right(ids) => standard match {
-            case x: String => try {
-              Right(ids :+ new ObjectId(x))
-            } catch {
-              case e: IllegalArgumentException => Left(InternalError("invalid object id format for standards"))
+      case dbquery:BasicDBObject => {
+        dbquery.foldRight[Either[InternalError,MongoDBObject]](Right(MongoDBObject()))((field,result) => result match {
+          case Right(searchobj) => field._1 match {
+            case Item.workflow => Workflow.toSearchObj(field._2) match {
+              case Right(subobj) => Right(searchobj ++ subobj.asDBObject)
+              case Left(e) => Left(e)
             }
+            case Item.author => field._2 match {
+              case strval:String => Right(searchobj += Item.contributorDetails+"."+ContributorDetails.author -> Pattern.compile(strval,Pattern.CASE_INSENSITIVE))
+              case _ => Left(InternalError("invalid value when parsing search for author",addMessageToClientOutput = true))
+            }
+            case Item.contributor => field._2 match {
+              case strval:String => Right(searchobj += Item.contributorDetails+"."+ContributorDetails.contributor -> Pattern.compile(strval,Pattern.CASE_INSENSITIVE))
+              case _ => Left(InternalError("invalid value when parsing search for contributor",addMessageToClientOutput = true))
+            }
+            case Item.costForResource => field._2 match {
+              case strval:String => Right(searchobj += Item.contributorDetails+"."+ContributorDetails.costForResource -> Pattern.compile(strval,Pattern.CASE_INSENSITIVE))
+              case _ => Left(InternalError("invalid value when parsing search for costForResource",addMessageToClientOutput = true))
+            }
+            case Item.credentials => field._2 match {
+              case strval:String => Right(searchobj += Item.contributorDetails+"."+ContributorDetails.credentials -> Pattern.compile(strval,Pattern.CASE_INSENSITIVE))
+              case _ => Left(InternalError("invalid value when parsing search for credentials",addMessageToClientOutput = true))
+            }
+            case Item.licenseType => field._2 match {
+              case strval:String => Right(searchobj += Item.contributorDetails+"."+ContributorDetails.licenseType -> Pattern.compile(strval,Pattern.CASE_INSENSITIVE))
+              case _ => Left(InternalError("invalid value when parsing search for licenseType",addMessageToClientOutput = true))
+            }
+            case Item.sourceUrl => field._2 match {
+              case strval:String => Right(searchobj += Item.contributorDetails+"."+ContributorDetails.sourceUrl -> Pattern.compile(strval,Pattern.CASE_INSENSITIVE))
+              case _ => Left(InternalError("invalid value when parsing search for sourceUrl",addMessageToClientOutput = true))
+            }
+            case Item.copyrightOwner => Right(searchobj)
+            case Item.copyrightYear => Right(searchobj)
+            case Item.copyrightExpirationDate => Right(searchobj)
+            case Item.copyrightImageName => Right(searchobj)
+            case Item.lexile => Right(searchobj)
+            case Item.demonstratedKnowledge => Right(searchobj)
+            case Item.originId => Right(searchobj)
+            case Item.collectionId => Right(searchobj)
+            case Item.contentType => Right(searchobj)
+            case Item.pValue => Right(searchobj)
+            case Item.relatedCurriculum => Right(searchobj)
+            case Item.supportingMaterials => Right(searchobj)
+            case Item.gradeLevel => Right(searchobj)
+            case Item.itemType => Right(searchobj)
+            case Item.keySkills => Right(searchobj)
+            case Item.primarySubject => Right(searchobj)
+            case Item.relatedSubject => Right(searchobj)
+            case Item.priorUse => Right(searchobj)
+            case Item.priorGradeLevel => Right(searchobj)
+            case Item.reviewsPassed => Right(searchobj)
+            case Item.standards => Right(searchobj)
           }
           case Left(e) => Left(e)
-        }
-      })
-      case x: String => try {
-        Right(new ObjectId(x))
-      } catch {
-        case e: IllegalArgumentException => Left(InternalError("invalid object id format for standards"))
+        })
       }
-      case _ => Left(InternalError("uknown value type for standards"))
-    }, Standard.queryFields),
-    QueryFieldString[Item](title, _.title),
-    QueryFieldString[Item](lexile, _.lexile),
-    QueryFieldString[Item](demonstratedKnowledge, _.demonstratedKnowledge, queryValueFn(demonstratedKnowledge, fieldValues.demonstratedKnowledge)),
-    QueryFieldString[Item](pValue, _.pValue),
-    QueryFieldString[Item](relatedCurriculum, _.relatedCurriculum)
-  )
-
-  override def preParse(dbo: DBObject): QueryParser = {
-    parseProperty[Standard](dbo, standards, Standard) match {
-      case Right(builder1) =>
-        parseProperty[Subject](dbo, primarySubject, Subject) match {
-          case Right(builder2) =>
-            parseProperty[Subject](dbo, relatedSubject, Subject) match {
-              case Right(builder3) => {
-                val builder = MongoDBObject.newBuilder
-                builder1.foreach(field => builder += field)
-                builder2.foreach(field => builder += field)
-                builder3.foreach(field => builder += field)
-                QueryParser(Right(builder))
-              }
-              case Left(e) => QueryParser(Left(e))
-            }
-          case Left(e) => QueryParser(Left(e))
-        }
-      case Left(e) => QueryParser(Left(e))
+      case _ => Left(InternalError("invalid search object",LogType.printFatal,addMessageToClientOutput = true))
     }
-  }
 
-  private def parseProperty[T <: Identifiable](dbo: DBObject, key: String, joinedQueryable: DBQueryable[T]): Either[InternalError, Seq[(String, Any)]] = {
-    val qp = QueryParser.buildQuery(dbo, QueryParser(), Seq(queryFields.find(_.key == key).get))
-    qp.result match {
-      case Right(query) =>
-        val dbquery = query.result()
-        QueryParser.replaceKeys(dbquery, joinedQueryable.queryFields.map(qf => key + "." + qf.key -> qf.key))
-        var builder: Seq[(String, Any)] = Seq()
-        if (!dbquery.isEmpty) {
-          val c = joinedQueryable.find(dbquery, MongoDBObject("_id" -> 1))
-          val builderList = MongoDBList.newBuilder
-          if (!c.isEmpty) {
-            c.foreach(builderList += _.id)
-            builder = builder :+ (key -> MongoDBObject("$in" -> builderList.result()))
-          }
-        }
-        QueryParser.removeKeys(dbo, joinedQueryable.queryFields.foldRight[Seq[String]](Seq(key))((qf, acc) => acc :+ key + "." + qf.key))
-        Right(builder)
-      case Left(e) => Left(e)
-    }
   }
 }

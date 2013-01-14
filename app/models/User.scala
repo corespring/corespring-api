@@ -38,9 +38,9 @@ case class User(var userName: String = "",
                  var provider : String = "userpass",
                  var hasRegisteredOrg:Boolean = false,
                  var id: ObjectId = new ObjectId()
-               ) extends Identifiable
+               )
 
-object User extends DBQueryable[User]{
+object User extends ModelCompanion[User,ObjectId]{
   val userName = "userName"
   val fullName = "fullName"
   val email = "email"
@@ -183,12 +183,6 @@ object User extends DBQueryable[User]{
     }
   }
 
-  val queryFields:Seq[QueryField[User]] = Seq(
-    QueryFieldObject[User]("_id",_.id, QueryField.valuefuncid),
-    QueryFieldString[User](userName,_.userName),
-    QueryFieldString[User](fullName,_.fullName),
-    QueryFieldString[User](email,_.email)
-  )
 }
 
 case class UserOrg(var orgId: ObjectId, var pval: Long)

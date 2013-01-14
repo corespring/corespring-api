@@ -25,12 +25,12 @@ import play.api.libs.json.JsObject
 case class Organization(var name: String = "",
                         var path: Seq[ObjectId] = Seq(),
                         var contentcolls: Seq[ContentCollRef] = Seq(),
-                        var id: ObjectId = new ObjectId()) extends Identifiable{
+                        var id: ObjectId = new ObjectId()){
 
   def this() = this("")
 }
 
-object Organization extends DBQueryable[Organization]{
+object Organization extends ModelCompanion[Organization,ObjectId]{
   val CORESPRING_ORGANIZATION_ID = "502404dd0364dc35bb39339a"
 
   val name: String = "name"

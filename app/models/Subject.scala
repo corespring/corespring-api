@@ -13,9 +13,9 @@ import controllers.QueryParser
 
 case class Subject(var subject: Option[String] = None,
                    var category: Option[String] = None,
-                   var id: ObjectId = new ObjectId()) extends Identifiable
+                   var id: ObjectId = new ObjectId())
 
-object Subject extends DBQueryable[Subject] {
+object Subject extends ModelCompanion[Subject,ObjectId] {
 
   val collection = mongoCollection("subjects")
   val dao = new SalatDAO[Subject, ObjectId](collection = collection) {}

@@ -16,9 +16,9 @@ case class Standard(var dotNotation: Option[String] = None,
                      var subCategory: Option[String] = None,
                      var standard: Option[String] = None,
                      var id: ObjectId = new ObjectId()
-                     ) extends Identifiable
+                     )
 
-object Standard extends DBQueryable[Standard]{
+object Standard extends ModelCompanion[Standard,ObjectId]{
 
   val collection = mongoCollection("ccstandards")
 
@@ -62,16 +62,6 @@ object Standard extends DBQueryable[Standard]{
       standard
     }
   }
-
-  val queryFields:Seq[QueryField[Standard]] = Seq(
-    QueryFieldObject[Standard](Id,_.id,QueryField.valuefuncid),
-    QueryFieldString[Standard](DotNotation, _.dotNotation),
-    QueryFieldString[Standard](Subject, _.subject),
-    QueryFieldString[Standard](Category, _.category),
-    QueryFieldString[Standard](SubCategory, _.subCategory),
-    QueryFieldString[Standard](Standard, _.standard)
-  )
-
   val description = "common core state standards"
 }
 
