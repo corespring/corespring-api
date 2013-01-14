@@ -146,7 +146,6 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
         scope.$on('insertAccessTokenHeader', function(){
           insertAccessTokenHeader();
         });
-
         function showPostField( property, allowedMethods ){
           if( !property || property == "" ){
               return false;
