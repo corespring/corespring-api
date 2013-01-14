@@ -32,10 +32,10 @@ function DeveloperCtrl($scope,$http,$rootScope,Developer) {
                     $scope.org = org;
                     $scope.authState = "registered"
                     $http.post('/auth/register',{organization: org.id}).success(function(data,status,headers,config){
-                      if(data.client_id && data.client_secret){
-                        $rootScope.apiClient = {clientId: data.client_id, clientSecret: data.client_secret}
-                        $rootScope.$broadcast('setApiClient')
-                      }
+                        if(data.client_id && data.client_secret){
+                            $rootScope.apiClient = {clientId: data.client_id, clientSecret: data.client_secret}
+                            $rootScope.$broadcast('setApiClient')
+                        }
                     });
                 }) ;
             } else $scope.authState = "noauth";

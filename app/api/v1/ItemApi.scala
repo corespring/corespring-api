@@ -35,7 +35,6 @@ object ItemApi extends BaseApi {
 
 
   val summaryFields: Seq[String] = Seq(Item.collectionId, Item.gradeLevel, Item.itemType, Item.keySkills, Item.subjects, Item.standards, Item.title)
-  val detailsExcludeFields: Seq[String] = Seq(Item.data, Item.supportingMaterials)
 
   private def count(c:String) : Boolean = "true".equalsIgnoreCase(c)
 
@@ -184,6 +183,8 @@ object ItemApi extends BaseApi {
    */
   def getDetail(id: ObjectId) = ApiAction {
     request =>
+      val detailsExcludeFields: Seq[String] = Seq(Item.data)
+
       getWithFields(request.ctx.organization, id,
         if (request.ctx.isLoggedIn) None else Some(excludeFields(new BasicDBObject(), detailsExcludeFields)))
   }

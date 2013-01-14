@@ -12,6 +12,7 @@ import org.jboss.netty.handler.codec.http.HttpMethod
 import org.bson.types.ObjectId
 import play.Logger
 import play.api.Play
+import common.controllers.utils.BaseUrl
 
 object TestHarness extends BaseApi with SecureSocial {
 
@@ -22,18 +23,19 @@ object TestHarness extends BaseApi with SecureSocial {
   def begin = {
     val url = basiclti.controllers.dev.routes.TestHarness.prepare().url
 
-    if(Play.isDev(Play.current)){
-      Action{ request =>
-        Ok(basiclti.views.html.dev.begin(url))
-          .withSession(OAuthConstants.AccessToken -> common.mock.MockToken)
+    if (Play.isDev(Play.current)) {
+      Action {
+        request =>
+          Ok(basiclti.views.html.dev.begin(url))
+            .withSession(OAuthConstants.AccessToken -> common.mock.MockToken)
       }
     }
     else {
       SecuredAction() {
         request =>
           Ok(basiclti.views.html.dev.begin(url))
+      }
     }
-  }
   }
 
   /**
@@ -49,16 +51,8 @@ object TestHarness extends BaseApi with SecureSocial {
       val orgId = request.ctx.organization
       val referrer = request.headers.get("Referer")
 
-      Logger.info("uri: " + uri)
-      Logger.info("host: " + host)
-      Logger.info("referrer: " + referrer)
-
-      val protocol = referrer match {
-        case Some(r) => if(r.startsWith("https")) "https" else "http"
-        case _ => "http"
-      }
-
-      val root = protocol + "://" + host
+      val root = BaseUrl(request)
+      Logger.info("root: " + root)
 
       request.body.asFormUrlEncoded match {
         case Some(formParams) => {
@@ -79,13 +73,25 @@ object TestHarness extends BaseApi with SecureSocial {
           )
           val allParams = out ++ orgParams
           println(allParams)
-          def asForm(m:Map[String,String]) : Map[String,Seq[String]] = m.map( (kv) => (kv._1, Seq(kv._2)))
+          def asForm(m: Map[String, String]): Map[String, Seq[String]] = m.map((kv) => (kv._1, Seq(kv._2)))
           val form = asForm(allParams)
+
+          val protocol = if (root.startsWith("https")) "https" else "http"
+
+          val mockHeaders = new Headers {
+            def keys: Set[String] = Set("x-forward-proto=" + protocol)
+            def getAll(key: String): Seq[String] = {
+              Seq(protocol)
+            }
+          }
+
           val request = new SimplePostRequest[AnyContentAsFormUrlEncoded](
             url,
             url,
             AnyContentAsFormUrlEncoded(form),
+            mockHeaders,
             host)
+
           val signature = getSignature(client.clientId.toString, client.clientSecret, request)
 
           Ok(basiclti.views.html.dev.autoSubmitForm(url, allParams + ("oauth_signature" -> signature)))
@@ -94,10 +100,11 @@ object TestHarness extends BaseApi with SecureSocial {
       }
   }
 
-  def gradePassback = Action(parse.tolerantText){ request =>
-     println("gradePassback")
-     println(request.body.toString)
-     Ok("")
+  def gradePassback = Action(parse.tolerantText) {
+    request =>
+      println("gradePassback")
+      println(request.body.toString)
+      Ok("")
   }
 
   /**
@@ -105,7 +112,7 @@ object TestHarness extends BaseApi with SecureSocial {
    * @param orgId
    * @return
    */
-  def getOrCreate(orgId:ObjectId) : ApiClient = {
+  def getOrCreate(orgId: ObjectId): ApiClient = {
     ApiClient.findOneByOrgId(orgId) match {
       case Some(c) => c
       case _ => {
@@ -117,20 +124,24 @@ object TestHarness extends BaseApi with SecureSocial {
   }
 
 
-  case class SimplePostRequest[A](uri:String, path:String, body:A, hostOverride : String = "localhost:9000") extends Request[A] {
+  case class SimplePostRequest[A](uri: String, path: String, body: A, headers: Headers, hostOverride: String = "localhost:9000") extends Request[A] {
 
     def queryString: Map[String, Seq[String]] = Map()
-    def remoteAddress : String = ""
-    def method : String = HttpMethod.POST.toString
-    override lazy val host : String = hostOverride
-    def headers : Headers = new Headers {
+
+    def remoteAddress: String = ""
+
+    def method: String = HttpMethod.POST.toString
+
+    override lazy val host: String = hostOverride
+    /*def headers : Headers = new Headers {
       def keys: Set[String] = Set()
       def getAll(key: String): Seq[String] = Seq()
-    }
+    }*/
   }
 
-  private def getSignature(key:String, secret : String, request:Request[AnyContent]) : String = {
-    val consumer : LtiOAuthConsumer = new LtiOAuthConsumer(key, secret)
+  private def getSignature(key: String, secret: String, request: Request[AnyContent]): String = {
+    Logger.info("TestHarness:getSignature")
+    val consumer: LtiOAuthConsumer = new LtiOAuthConsumer(key, secret)
     consumer.sign(request)
     consumer.setSigningStrategy(new AuthorizationHeaderSigningStrategy())
     consumer.getOAuthSignature().get
