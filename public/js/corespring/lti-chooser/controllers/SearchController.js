@@ -111,7 +111,6 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
   };
 
   $rootScope.$on('loadMoreSearchResults', function(event){
-    console.log("SearchController - on - loadMore");
     $scope.loadMore();
   });
 
@@ -159,7 +158,7 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
         $scope.search();
       },
       function () {
-        console.log("load collections: error: " + arguments);
+        alert("load collections: error: " + arguments);
       });
   }
   init();

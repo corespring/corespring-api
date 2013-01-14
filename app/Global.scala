@@ -34,6 +34,19 @@ object Global extends GlobalSettings {
       }
   }
 
+  def AjaxFilterAction[A](action: Action[A]) : Action[A] = Action(action.parser){
+    request =>
+      if (request.headers.get("X-Requested-With") == Some("XMLHttpRequest") ){
+        action(request) match{
+          case s : SimpleResult[_] => s.withHeaders(("Cache-Control","no-cache"))
+          case result => result
+        }
+      }
+      else {
+        action(request)
+      }
+  }
+
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
 
     request.method match {
@@ -41,7 +54,7 @@ object Global extends GlobalSettings {
       case "OPTIONS" => Some(AccessControlAction(Action(new play.api.mvc.Results.Status(200))))
       case _ => {
         super.onRouteRequest(request).map {
-          case action: Action[_] => AccessControlAction(action)
+          case action: Action[_] => AjaxFilterAction(AccessControlAction(action))
           case other => other
         }
       }

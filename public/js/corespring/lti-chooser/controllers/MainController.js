@@ -2,8 +2,7 @@ function MainController($scope,  $location ) {
 
   var init = function () {
 
-    $scope.$watch('config', function(){
-
+    $scope.$watch('config', function(newConfig,oldConfig){
       if ($scope.config && $scope.config.itemId) {
         $location.url("/view/" + $scope.config.itemId);
       }
