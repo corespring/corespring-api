@@ -16,7 +16,7 @@ case class Standard(var dotNotation: Option[String] = None,
                      var subCategory: Option[String] = None,
                      var standard: Option[String] = None,
                      var id: ObjectId = new ObjectId()
-                     )
+                     ) extends Identifiable
 
 object Standard extends ModelCompanion[Standard,ObjectId]{
 

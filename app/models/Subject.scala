@@ -13,7 +13,7 @@ import controllers.QueryParser
 
 case class Subject(var subject: Option[String] = None,
                    var category: Option[String] = None,
-                   var id: ObjectId = new ObjectId())
+                   var id: ObjectId = new ObjectId()) extends Identifiable
 
 object Subject extends ModelCompanion[Subject,ObjectId] {
 
@@ -32,12 +32,6 @@ object Subject extends ModelCompanion[Subject,ObjectId] {
       JsObject(iseq)
     }
   }
-
-  val queryFields:Seq[QueryField[Subject]] = Seq(
-    QueryFieldString[Subject](Subject,  _.subject),
-    QueryFieldString[Subject](Category, _.category),
-    QueryFieldObject[Subject](Id, _.id, QueryField.valuefuncid)
-  )
 
   val description = "Subjects"
 }
