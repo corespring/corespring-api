@@ -1,111 +1,52 @@
 package models
 
-import play.api.Play.current
-import org.bson.types.ObjectId
-import play.api.libs.json._
 import com.mongodb.casbah.Imports._
 import controllers._
-import collection.{SeqProxy, mutable}
 import scala.Either
 import mongoContext._
 import com.mongodb.util.JSON
 import controllers.InternalError
 import scala.Left
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsString
 import scala.Right
-import com.mongodb.QueryBuilder
-import web.views.html.partials._edit._metadata._formWithLegend
-import com.novus.salat.annotations.raw.Salat
 import play.api.libs.json._
 import com.novus.salat._
 import dao.{SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
-import models.Workflow.WorkflowWrites
 import controllers.auth.Permission
 import play.api.Logger
-
-case class Copyright(owner: Option[String] = None, year: Option[String] = None, expirationDate: Option[String] = None, imageName: Option[String] = None)
-
-case class Subjects(var primary: Option[ObjectId] = None, var related: Option[ObjectId] = None)
-
-case class ContributorDetails(
-                               var contributor: Option[String] = None,
-                               var credentials: Option[String] = None,
-                               var copyright: Option[Copyright] = None,
-                               var author: Option[String] = None,
-                               var sourceUrl: Option[String] = None,
-                               var licenseType: Option[String] = None,
-                               var costForResource: Option[Int] = None
-                               )
-
-case class Workflow(var setup: Boolean = false,
-                    var tagged: Boolean = false,
-                    var standardsAligned: Boolean = false,
-                    var qaReview: Boolean = false)
-
-object Workflow {
-  val setup: String = "setup"
-  val tagged: String = "tagged"
-  val standardsAligned: String = "standardsAligned"
-  val qaReview: String = "qaReview"
-
-  implicit object WorkflowWrites extends Writes[Workflow] {
-
-    def writes(workflow: Workflow) = {
-
-      JsObject(Seq(
-        setup -> JsBoolean(workflow.setup),
-        tagged -> JsBoolean(workflow.tagged),
-        standardsAligned -> JsBoolean(workflow.standardsAligned),
-        qaReview -> JsBoolean(workflow.qaReview)
-      ))
-    }
-
-  }
-
-  implicit object WorkflowReads extends Reads[Workflow] {
-    def reads(json: JsValue): Workflow = {
-
-      Workflow(
-        setup = (json \ setup).asOpt[Boolean].getOrElse(false),
-        tagged = (json \ tagged).asOpt[Boolean].getOrElse(false),
-        standardsAligned = (json \ standardsAligned).asOpt[Boolean].getOrElse(false),
-        qaReview = (json \ qaReview).asOpt[Boolean].getOrElse(false)
-      )
-    }
-  }
-
-}
+import org.joda.time.DateTime
+import models.item._
+import collection.SeqProxy
 
 
-case class Item(var collectionId: String = "",
-                var contributorDetails: Option[ContributorDetails] = None,
-                var contentType: String = "item",
-                var gradeLevel: Seq[String] = Seq(),
-                var itemType: Option[String] = None,
-                var keySkills: Seq[String] = Seq(),
-                var subjects: Option[Subjects] = None,
-                var priorUse: Option[String] = None,
-                var priorGradeLevel: Seq[String] = Seq(),
-                var reviewsPassed: Seq[String] = Seq(),
-                var standards: Seq[String] = Seq(),
-                var pValue: Option[String] = None,
-                var lexile: Option[String] = None,
-                var title: Option[String] = None,
-                var data: Option[Resource] = None,
-                var originId: Option[String] = None,
-                var relatedCurriculum: Option[String] = None,
-                var demonstratedKnowledge: Option[String] = None,
-                var bloomsTaxonomy: Option[String] = None,
-                var supportingMaterials: Seq[Resource] = Seq(),
-                var workflow: Option[Workflow] = None,
-                var id: ObjectId = new ObjectId()) extends Content {
+case class Item(
+                 var collectionId: String = "",
+                 var contributorDetails: Option[ContributorDetails] = None,
+                 var contentType: String = "item",
+                 var priorUse: Option[String] = None,
+                 var priorGradeLevel: Seq[String] = Seq(),
+                 var reviewsPassed: Seq[String] = Seq(),
+                 var standards: Seq[String] = Seq(),
+                 var pValue: Option[String] = None,
+                 var lexile: Option[String] = None,
+                 var data: Option[Resource] = None,
+                 var originId: Option[String] = None,
+                 var supportingMaterials: Seq[Resource] = Seq(),
+                 var workflow: Option[Workflow] = None,
+                 var dateModified: Option[DateTime] = Some(new DateTime()),
+                 var taskInfo: Option[TaskInfo] = None,
+                 var otherAlignments: Option[Alignments] = None,
+                 var id: ObjectId = new ObjectId()) extends Content {
 }
 
 /**
  * An Item model
  */
 object Item extends DBQueryable[Item] {
+
+  import com.mongodb.casbah.commons.conversions.scala._
+
+  RegisterJodaTimeConversionHelpers()
+
   val FieldValuesVersion = "0.0.1"
 
   val collection = Content.collection
@@ -147,100 +88,49 @@ object Item extends DBQueryable[Item] {
   val supportingMaterials = "supportingMaterials"
   val bloomsTaxonomy = "bloomsTaxonomy"
   val workflow = "workflow"
+  val dateModified = "dateModified"
 
-  lazy val fieldValues = FieldValue.findOne(MongoDBObject(FieldValue.Version -> FieldValuesVersion)).getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
+  lazy val fieldValues = FieldValue.current
 
   implicit object ItemWrites extends Writes[Item] {
 
-    def writes(item: Item) = {
+    def writes(item: Item): JsValue = {
+
+      import models.item.Workflow._
 
       var iseq: Seq[(String, JsValue)] = Seq("id" -> JsString(item.id.toString))
+      iseq = iseq :+ (collectionId -> JsString(item.collectionId))
 
       if (item.workflow.isDefined) iseq = iseq :+ (workflow -> WorkflowWrites.writes(item.workflow.get))
 
-      //ContributorDetails
-      item.contributorDetails match {
-        case Some(cd) => {
-          cd.author.foreach(v => iseq = iseq :+ (author -> JsString(v)))
-          cd.contributor.foreach(v => iseq = iseq :+ (contributor -> JsString(v)))
-          cd.costForResource.foreach(v => iseq = iseq :+ (costForResource -> JsNumber(v)))
-          cd.credentials.foreach(v => iseq = iseq :+ (credentials -> JsString(v)))
-          cd.licenseType.foreach(v => iseq = iseq :+ (licenseType -> JsString(v)))
-          cd.sourceUrl.foreach(v => iseq = iseq :+ (sourceUrl -> JsString(v)))
-          cd.copyright match {
-            case Some(c) => {
-              c.owner.foreach(v => iseq = iseq :+ (copyrightOwner -> JsString(v)))
-              c.year.foreach(v => iseq = iseq :+ (copyrightYear -> JsString(v)))
-              c.expirationDate.foreach(v => iseq = iseq :+ (copyrightExpirationDate -> JsString(v)))
-              c.imageName.foreach(v => iseq = iseq :+ (copyrightImageName -> JsString(v)))
-            }
-            case _ => //do nothing
-          }
-        }
-        case _ => //do nothing
-      }
+      val details: Seq[(String, JsValue)] = item.contributorDetails.map(ContributorDetails.json).getOrElse(Seq())
+      val taskInfo: Seq[(String, JsValue)] = item.taskInfo.map(TaskInfo.json).getOrElse(Seq())
+      val alignments: Seq[(String, JsValue)] = item.otherAlignments.map(Alignments.json).getOrElse(Seq())
 
       item.lexile.foreach(v => iseq = iseq :+ (lexile -> JsString(v)))
 
-      item.demonstratedKnowledge.foreach(v => iseq = iseq :+ (demonstratedKnowledge -> JsString(v)))
-
       if (item.originId.isDefined) iseq = iseq :+ (originId -> JsString(item.originId.get))
 
-      iseq = iseq :+ (collectionId -> JsString(item.collectionId))
       iseq = iseq :+ (contentType -> JsString(ContentType.item))
       item.pValue.foreach(v => iseq = iseq :+ (pValue -> JsString(v)))
-      item.relatedCurriculum.foreach(v => iseq = iseq :+ (relatedCurriculum -> JsString(v)))
-
-      item.bloomsTaxonomy.foreach(v => iseq = iseq :+ (bloomsTaxonomy -> JsString(v)))
 
       if (!item.supportingMaterials.isEmpty) iseq = iseq :+ (supportingMaterials -> JsArray(item.supportingMaterials.map(Json.toJson(_))))
-      if (!item.gradeLevel.isEmpty) iseq = iseq :+ (gradeLevel -> JsArray(item.gradeLevel.map(JsString(_))))
-      item.itemType.foreach(v => iseq = iseq :+ (itemType -> JsString(v)))
-      if (!item.keySkills.isEmpty) iseq = iseq :+ (keySkills -> JsArray(item.keySkills.map(JsString(_))))
-
-
-      item.subjects match {
-        case Some(s) => {
-
-          def getSubject(id: Option[ObjectId]): Option[JsValue] = id match {
-            case Some(foundId) => {
-              Subject.findOneById(foundId) match {
-                case Some(subj) => Some(Json.toJson(subj))
-                case _ => throw new RuntimeException("Can't find subject with id: " + foundId + " in item: " + item.id)
-              }
-            }
-            case _ => None
-          }
-
-          var seqsubjects: Seq[(String, JsValue)] = Seq()
-
-          getSubject(s.primary) match {
-            case Some(found) => iseq = iseq :+ (primarySubject -> Json.toJson(found))
-            case _ => //do nothing
-          }
-          getSubject(s.related) match {
-            case Some(found) => iseq = iseq :+ (relatedSubject -> Json.toJson(found))
-            case _ => //do nothing
-          }
-        }
-        case _ => //
-      }
 
       item.priorUse.foreach(v => iseq = iseq :+ (priorUse -> JsString(v)))
       if (!item.priorGradeLevel.isEmpty) iseq = iseq :+ (priorGradeLevel -> JsArray(item.priorGradeLevel.map(JsString(_))))
       if (!item.reviewsPassed.isEmpty) iseq = iseq :+ (reviewsPassed -> JsArray(item.reviewsPassed.map(JsString(_))))
       if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards.
-        foldRight[Seq[Standard]](Seq[Standard]())((dn, acc) => Standard.findOne( MongoDBObject("dotNotation" -> dn)) match {
+        foldRight[Seq[Standard]](Seq[Standard]())((dn, acc) => Standard.findOne(MongoDBObject("dotNotation" -> dn)) match {
         case Some(standard) => acc :+ standard
         case None => {
           //throw new RuntimeException("ItemWrites: no standard found given id: " + sid); acc
-          Logger.warn("no standard found for id: " + dn + ", item id: " + item.id )
+          Logger.warn("no standard found for id: " + dn + ", item id: " + item.id)
           acc
-          }
+        }
       })))
-      item.title.foreach(v => iseq = iseq :+ (title -> JsString(v)))
       item.data.foreach(v => iseq = iseq :+ (data -> Json.toJson(v)))
-      JsObject(iseq)
+      val finalSeq: Seq[(String, JsValue)] = (iseq ++ details ++ taskInfo ++ alignments)
+      JsObject(finalSeq)
     }
   }
 
@@ -251,100 +141,34 @@ object Item extends DBQueryable[Item] {
 
   implicit object ItemReads extends Reads[Item] {
     def reads(json: JsValue): Item = {
-      val item = Item("")
-      item.collectionId = (json \ collectionId).asOpt[String].getOrElse("") //must do checking outside of json deserialization
-      item.lexile = (json \ lexile).asOpt[String]
+      val item = Item()
 
+      /**
+       * must do checking outside of json deserialization
+       */
+      item.collectionId = (json \ collectionId).asOpt[String].getOrElse("")
+
+      item.taskInfo = TaskInfo.obj(json)
+      item.otherAlignments = Alignments.obj(json)
       item.workflow = (json \ workflow).asOpt[Workflow]
+      item.contributorDetails = ContributorDetails.obj(json)
 
-      item.demonstratedKnowledge = getValidatedValue(fieldValues.demonstratedKnowledge)(json, demonstratedKnowledge)
-      item.bloomsTaxonomy = getValidatedValue(fieldValues.bloomsTaxonomy)(json, bloomsTaxonomy)
+      item.lexile = (json \ lexile).asOpt[String]
       item.pValue = (json \ pValue).asOpt[String]
-      item.relatedCurriculum = (json \ relatedCurriculum).asOpt[String]
-
       item.originId = (json \ originId).asOpt[String]
 
-      item.contributorDetails = Some(
-        ContributorDetails(
-          author = (json \ author).asOpt[String],
-          contributor = (json \ contributor).asOpt[String],
-          costForResource = (json \ costForResource).asOpt[Int],
-          copyright = getCopyright(json),
-          sourceUrl = (json \ sourceUrl).asOpt[String],
-          licenseType = (json \ licenseType).asOpt[String],
-          credentials = (json \ credentials).asOpt[String].
-            map(v => if (fieldValues.credentials.exists(_.key == v)) v else throw new JsonValidationException(credentials))
-        ))
-
-
-      def getCopyright(json: JsValue): Option[Copyright] = {
-        get[Copyright](
-          json,
-          Seq(copyrightOwner, copyrightYear, copyrightExpirationDate, copyrightImageName),
-          (s: Seq[Option[String]]) => Copyright(s(0), s(1), s(2), s(3)))
-      }
-
-      def getSubjects(json: JsValue): Option[Subjects] = {
-        try {
-
-          get[Subjects](
-            json,
-            Seq(primarySubject, relatedSubject),
-            (s: Seq[Option[String]]) => s.find(_.isDefined) match {
-              case Some(_) => Subjects(s(0).map(new ObjectId(_)), s(1).map(new ObjectId(_)))
-              case _ => null
-            }
-          )
-        }
-        catch {
-          case e: IllegalArgumentException => throw new JsonValidationException(e.getMessage)
-        }
-      }
-
-
-      def get[A](json: JsValue, names: Seq[String], fn: (Seq[Option[String]] => A)): Option[A] = {
-        val vals: Seq[Option[String]] = names.map((n: String) => {
-          (json \ n).asOpt[String]
-        })
-
-        vals.find(_.isDefined) match {
-          case Some(_) => {
-            val result: A = fn(vals)
-            if (result == null) {
-              None
-            } else {
-              Some(fn(vals))
-            }
-          }
-          case _ => None
-        }
-      }
-
       item.supportingMaterials = (json \ supportingMaterials).asOpt[Seq[Resource]].getOrElse(Seq())
-
-      (json \ itemType).asOpt[String] match {
-        case Some(foundType) => item.itemType = Some(foundType)
-        case _ => //do nothing
-      }
-
-
-      item.supportingMaterials = (json \ supportingMaterials).asOpt[Seq[Resource]].getOrElse(Seq())
-      item.gradeLevel = (json \ gradeLevel).asOpt[Seq[String]].
-        map(v => if (v.foldRight[Boolean](true)((g, acc) => fieldValues.gradeLevels.exists(_.key == g) && acc)) v else throw new JsonValidationException(gradeLevel)).getOrElse(Seq.empty)
-      item.keySkills = (json \ keySkills).asOpt[Seq[String]].getOrElse(Seq.empty)
-
-      item.subjects = getSubjects(json)
 
       item.priorUse = (json \ priorUse).asOpt[String]
       item.priorGradeLevel = (json \ priorGradeLevel).asOpt[Seq[String]].
-              map(v => if (v.foldRight[Boolean](true)((g, acc) => fieldValues.gradeLevels.exists(_.key == g) && acc)) v else throw new JsonValidationException(priorGradeLevel)).getOrElse(Seq.empty)
+        map(v => if (v.foldRight[Boolean](true)((g, acc) => fieldValues.gradeLevels.exists(_.key == g) && acc)) v else throw new JsonValidationException(priorGradeLevel)).getOrElse(Seq.empty)
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
+
       try {
         item.standards = (json \ standards).asOpt[Seq[String]].getOrElse(Seq.empty)
       } catch {
         case e: IllegalArgumentException => throw new JsonValidationException(standards)
       }
-      item.title = (json \ title).asOpt[String]
       item.data = (json \ data).asOpt[Resource]
 
       try {
@@ -352,6 +176,7 @@ object Item extends DBQueryable[Item] {
       } catch {
         case e: IllegalArgumentException => throw new JsonValidationException(id)
       }
+
       item
     }
   }
@@ -360,17 +185,30 @@ object Item extends DBQueryable[Item] {
     try {
       import com.novus.salat.grater
 
-      //newItem.id = oid
-      val toUpdate = if (newItem.collectionId != "") {
-        if (ContentCollection.isAuthorized(requesterOrgId, new ObjectId(newItem.collectionId), Permission.Write)) {
-          ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials - data)
-        } else throw new RuntimeException("not authorized")
-      } else ((grater[Item].asDBObject(newItem) - "_id") - supportingMaterials) - collectionId
+      def isAuthorized = ContentCollection.isAuthorized(requesterOrgId, new ObjectId(newItem.collectionId), Permission.Write)
+
+      if (!newItem.collectionId.isEmpty && !isAuthorized) {
+        throw new RuntimeException("collection not authorized: " + newItem.collectionId + ", orgId: " + requesterOrgId)
+      }
+
+      val copy = newItem.copy(dateModified = Some(new DateTime()))
+
+      val toUpdate = if (!copy.collectionId.isEmpty)
+        ((grater[Item].asDBObject(copy) - "_id") - supportingMaterials - data)
+      else
+        ((grater[Item].asDBObject(copy) - "_id") - supportingMaterials) - collectionId
+
       Item.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> toUpdate), upsert = false, multi = false, wc = Item.collection.writeConcern)
-      fields.map(Item.collection.findOneByID(oid, _)).getOrElse(Item.collection.findOneByID(oid)) match {
-        case Some(dbo) => Right(grater[Item].asObject(dbo))
+
+      def getItemWithFields = fields.map(Item.collection.findOneByID(oid, _))
+        .getOrElse(Item.collection.findOneByID(oid))
+        .map(grater[Item].asObject(_))
+
+      getItemWithFields match {
+        case Some(item) => Right(item)
         case None => Left(InternalError("somehow the document that was just updated could not be found", LogType.printFatal))
       }
+
     } catch {
       case e: SalatDAOUpdateError => Left(InternalError(e.getMessage, LogType.printFatal, false, Some("error occured while updating")))
       case e: IllegalArgumentException => Left(InternalError(e.getMessage, clientOutput = Some("destination collection id was not a valid id")))
@@ -379,19 +217,19 @@ object Item extends DBQueryable[Item] {
   }
 
   def cloneItem(item: Item): Option[Item] = {
-    item.id = new ObjectId()
-    Item.save(item)
-    Some(item)
+    val copy = item.copy(id = new ObjectId())
+    Item.save(copy)
+    Some(copy)
   }
 
-  def countItems(query: DBObject, fields : Option[String] = None ) : Int = {
+  def countItems(query: DBObject, fields: Option[String] = None): Int = {
     val fieldsDbo = JSON.parse(fields.getOrElse("{}")).asInstanceOf[BasicDBObject]
-    val result : SalatMongoCursor[Item] = Item.find( query, fieldsDbo)
+    val result: SalatMongoCursor[Item] = Item.find(query, fieldsDbo)
     result.count
   }
 
-  def list(query: DBObject, fields: BasicDBObject = new BasicDBObject(), skip: Int = 0, limit: Int = 200) : List[Item] = {
-    val result : SalatMongoCursor[Item] = Item.find( query, fields)
+  def list(query: DBObject, fields: BasicDBObject = new BasicDBObject(), skip: Int = 0, limit: Int = 200): List[Item] = {
+    val result: SalatMongoCursor[Item] = Item.find(query, fields)
     result.limit(limit)
     result.skip(skip)
     result.toList
@@ -435,7 +273,7 @@ object Item extends DBQueryable[Item] {
     QueryFieldString[Item](copyrightOwner, _.contributorDetails.map(_.copyright.map(_.owner))),
     QueryFieldString[Item](copyrightYear, _.contributorDetails.map(_.copyright.map(_.year))),
     QueryFieldString[Item](credentials, _.contributorDetails.map(_.credentials), queryValueFn("credentials", fieldValues.credentials)),
-    QueryFieldStringArray[Item](gradeLevel, _.gradeLevel, value => {
+    QueryFieldStringArray[Item](gradeLevel, _.taskInfo.map(_.gradeLevel), value => {
       value match {
         case grades: BasicDBList =>
           if (grades.foldRight[Boolean](true)((grade, acc) => fieldValues.gradeLevels.exists(_.key == grade.toString) && acc)) Right(value)
@@ -455,16 +293,16 @@ object Item extends DBQueryable[Item] {
     /**
      * TODO: Check with Evan/Josh about item types.
      */
-    QueryFieldString[Item](itemType, _.itemType),
-    QueryFieldStringArray[Item](keySkills, _.keySkills, value => value match {
+    QueryFieldString[Item](itemType, _.taskInfo.map(_.itemType)),
+    QueryFieldStringArray[Item](keySkills, _.otherAlignments.map(_.keySkills), value => value match {
       case skills: BasicDBList => if (skills.foldRight[Boolean](true)((skill, acc) => fieldValues.keySkills.exists(_.key == skill.toString) && acc)) Right(value)
       else Left(InternalError("key skill not found for given value"))
       case _ => Left(InternalError("invalid value type for keySkills"))
     }
     ),
-    QueryFieldString[Item](bloomsTaxonomy, _.bloomsTaxonomy, queryValueFn(bloomsTaxonomy, fieldValues.bloomsTaxonomy)),
+    QueryFieldString[Item](bloomsTaxonomy, _.otherAlignments.map(_.bloomsTaxonomy), queryValueFn(bloomsTaxonomy, fieldValues.bloomsTaxonomy)),
     QueryFieldString[Item](licenseType, _.contributorDetails.map(_.licenseType), queryValueFn(licenseType, fieldValues.licenseTypes)),
-    QueryFieldObject[Item](primarySubject, _.subjects.map(_.primary), _ match {
+    QueryFieldObject[Item](primarySubject, _.taskInfo.map(_.subjects.map(_.primary)), _ match {
       case x: String => try {
         Right(new ObjectId(x))
       } catch {
@@ -472,7 +310,7 @@ object Item extends DBQueryable[Item] {
       }
       case _ => Left(InternalError("uknown value type for standards"))
     }, Subject.queryFields),
-    QueryFieldObject[Item](relatedSubject, _.subjects.map(_.related), _ match {
+    QueryFieldObject[Item](relatedSubject, _.taskInfo.map(_.subjects.map(_.related)), _ match {
       case x: String => try {
         Right(new ObjectId(x))
       } catch {
@@ -512,11 +350,11 @@ object Item extends DBQueryable[Item] {
       }
       case _ => Left(InternalError("uknown value type for standards"))
     }, Standard.queryFields),
-    QueryFieldString[Item](title, _.title),
+    QueryFieldString[Item](title, _.taskInfo.map(_.title)),
     QueryFieldString[Item](lexile, _.lexile),
-    QueryFieldString[Item](demonstratedKnowledge, _.demonstratedKnowledge, queryValueFn(demonstratedKnowledge, fieldValues.demonstratedKnowledge)),
+    QueryFieldString[Item](demonstratedKnowledge, _.otherAlignments.map(_.demonstratedKnowledge), queryValueFn(demonstratedKnowledge, fieldValues.demonstratedKnowledge)),
     QueryFieldString[Item](pValue, _.pValue),
-    QueryFieldString[Item](relatedCurriculum, _.relatedCurriculum)
+    QueryFieldString[Item](relatedCurriculum, _.otherAlignments.map(_.relatedCurriculum))
   )
 
   override def preParse(dbo: DBObject): QueryParser = {
