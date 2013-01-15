@@ -28,12 +28,15 @@ import scala.Some
 import scala.Right
 import play.api.mvc.SimpleResult
 import play.api.libs.json.JsObject
+import play.api.cache.Cache
 
 object Developer extends Controller with SecureSocial{
 
   def at(path:String,file:String) = Assets.at(path,file)
 
   def home = Action{implicit request =>
+    Cache.set("blergl","MERGLE")
+    Log.i(Cache.get("blergl").toString)
     request.session.get(SecureSocial.UserKey) match {
       case Some(username) =>
         User.getUser(username) match {

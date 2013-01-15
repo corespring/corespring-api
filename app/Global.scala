@@ -118,8 +118,6 @@ object Global extends GlobalSettings {
       if (initData) seedDevData()
     }
     DbPatches.run(ConfigLoader.get("DB_VERSION").get)
-    Cache.set("blergl","MERGLE")
-    Log.i(Cache.get("blergl").toString)
   }
 
   private def isLocalDb: Boolean = {
