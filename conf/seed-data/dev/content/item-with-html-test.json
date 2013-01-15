@@ -1,66 +1,68 @@
 {
-    "_id":{
-        "$oid":"50083ba9e4b071cb5ef79102"
+    "_id": {
+        "$oid": "50083ba9e4b071cb5ef79102"
     },
     "data": {
-         "name":"data",
-         "files":[
-             {
-                 "_t" : "models.VirtualFile",
-                 "name" : "index.html",
-                 "contentType":"text/html",
-                 "isMain":true,
-                 "content": "<html><body>I'm a plain html test</body></html>"
-             }
-         ]
+        "name": "data",
+        "files": [
+            {
+                "_t": "models.VirtualFile",
+                "name": "index.html",
+                "contentType": "text/html",
+                "isMain": true,
+                "content": "<html><body>I'm a plain html test</body></html>"
+            }
+        ]
     },
-    "gradeLevel":[
-        "07"
-    ],
-    "title":"This item has html as its test data - not qti.xml",
-    "primarySubject":{
-        "subject":"",
-        "category":"Mathematics",
-        "refId":"4ffb535f6bb41e469c0bf2c2"
+    "primarySubject": {
+        "subject": "",
+        "category": "Mathematics",
+        "refId": "4ffb535f6bb41e469c0bf2c2"
     },
-    "itemType":"Multiple Choice",
-    "copyrightOwner":"State Department of Education",
-    "copyrightYear":"2010",
-    "materialType":"Assessment Item",
-    "contributor":"State Department of Education",
-    "credentials":"State Department of Education",
-    "author":"State Department of Education",
-    "licenseType":"CC BY",
-    "sourceUrl":"http://statedoe.gov",
-    "priorUse":"Summative",
-    "collectionId":"5001b9b9e4b035d491c268c3",
-    "contentType":"item",
-    "supportingMaterials" : [
+    "copyrightOwner": "State Department of Education",
+    "copyrightYear": "2010",
+    "materialType": "Assessment Item",
+    "contributor": "State Department of Education",
+    "credentials": "State Department of Education",
+    "author": "State Department of Education",
+    "licenseType": "CC BY",
+    "sourceUrl": "http://statedoe.gov",
+    "priorUse": "Summative",
+    "collectionId": "5001b9b9e4b035d491c268c3",
+    "contentType": "item",
+    "supportingMaterials": [
         {
-            "name" : "Rubric",
-            "files" : [
+            "name": "Rubric",
+            "files": [
                 {
-                    "_t" : "models.VirtualFile",
-                    "name" : "index.html",
-                    "contentType":"text/html",
-                    "content" : "<html><head><link rel=\"stylesheet\" href=\"my.css\"/></head><body><div class=\"blue\">hello world, here is a cute puppy<br/><img src=\"cute-puppy.jpg\"/></body></html>",
+                    "_t": "models.VirtualFile",
+                    "name": "index.html",
+                    "contentType": "text/html",
+                    "content": "<html><head><link rel=\"stylesheet\" href=\"my.css\"/></head><body><div class=\"blue\">hello world, here is a cute puppy<br/><img src=\"cute-puppy.jpg\"/></body></html>",
                     "isMain": true
                 },
                 {
-                    "_t" : "models.VirtualFile",
-                    "name" : "my.css",
-                    "contentType":"text/css",
-                    "content" : ".blue{ background-color: #0000ff;}",
+                    "_t": "models.VirtualFile",
+                    "name": "my.css",
+                    "contentType": "text/css",
+                    "content": ".blue{ background-color: #0000ff;}",
                     "isMain": false
                 },
-                 {
-                     "_t" : "models.StoredFile",
-                     "name":"cute-puppy.jpg",
-                     "contentType":"image/jpg",
-                     "storageKey":"test_images/cute-kittens1.jpg",
-                     "isMain":false
-                 }
+                {
+                    "_t": "models.StoredFile",
+                    "name": "cute-puppy.jpg",
+                    "contentType": "image/jpg",
+                    "storageKey": "test_images/cute-kittens1.jpg",
+                    "isMain": false
+                }
             ]
         }
-    ]
+    ],
+    "taskInfo": {
+        "gradeLevel": [
+            "07"
+        ],
+        "title": "This item has html as its test data - not qti.xml",
+        "itemType": "Multiple Choice"
+    }
 }
