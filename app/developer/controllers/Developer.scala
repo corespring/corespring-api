@@ -35,9 +35,6 @@ object Developer extends Controller with SecureSocial{
   def at(path:String,file:String) = Assets.at(path,file)
 
   def home = Action{implicit request =>
-    import play.api.Play.current
-    Cache.set("blergl","MERGLE")
-    Log.i(Cache.get("blergl").toString)
     request.session.get(SecureSocial.UserKey) match {
       case Some(username) =>
         User.getUser(username) match {
