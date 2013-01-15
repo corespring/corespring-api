@@ -80,7 +80,7 @@
 	"dateModified" : 1353498114071,
 	"supportingMaterials" : [
 		{
-			"name" : "ScoringGuide",
+			"name" : "Scoring Guide",
 			"files" : [
 				{
 					"_t" : "models.StoredFile",

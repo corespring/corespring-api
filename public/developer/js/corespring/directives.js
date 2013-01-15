@@ -126,7 +126,26 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
 
         scope.requestBody = ( attrs["requestBody"] || "")
         scope.requestHeaders = (attrs["requestHeaders"] || "")
-
+        var insertAccessTokenHeader = function(){
+            if($rootScope.access_token){
+                var atindex = scope.requestHeaders.indexOf("Authorization: Bearer ")
+                if(atindex != -1){
+                    var endindex = scope.requestHeaders.indexOf("&",atindex)
+                    if(endindex == -1) {
+                        var oldat = scope.requestHeaders.substring(atindex+22)
+                        scope.requestHeaders = scope.requestHeaders.replace(oldat,$rootScope.access_token)
+                    }else{
+                        var oldat = scope.requestHeaders.substring(atindex+22,endindex)
+                        scope.requestHeaders = scope.requestHeaders.replace(oldat,$rootScope.access_token)
+                    }
+                }
+            }
+            return url
+        }
+        insertAccessTokenHeader();
+        scope.$on('insertAccessTokenHeader', function(){
+          insertAccessTokenHeader();
+        });
         function showPostField( property, allowedMethods ){
           if( !property || property == "" ){
               return false;
@@ -190,6 +209,7 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
           if(result.access_token){
               $rootScope.access_token = result.access_token
               $rootScope.$broadcast('insertAccessToken')
+              $rootScope.$broadcast('insertAccessTokenHeader')
           }
           var body = ( scope.resultType == "xml" ) ? com.cs.utils.xmlToString(result) : com.cs.utils.syntaxHighlightJson(result);
           scope.$apply( function() {
