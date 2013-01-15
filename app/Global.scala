@@ -1,4 +1,4 @@
-import _root_.controllers.S3Service
+import _root_.controllers.{Log, S3Service}
 import patches.{DbPatches, InitPatch, DbPatch}
 import play.api.mvc.Results._
 import web.controllers.utils.ConfigLoader
@@ -6,6 +6,7 @@ import common.seed.SeedDb._
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import org.bson.types.ObjectId
 import play.api._
+import cache.Cache
 import mvc._
 import mvc.SimpleResult
 import play.api.Play.current
@@ -117,6 +118,8 @@ object Global extends GlobalSettings {
       if (initData) seedDevData()
     }
     DbPatches.run(ConfigLoader.get("DB_VERSION").get)
+    Cache.set("blergl","MERGLE")
+    Log.i(Cache.get("blergl").toString)
   }
 
   private def isLocalDb: Boolean = {
