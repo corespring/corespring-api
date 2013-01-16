@@ -18,8 +18,9 @@
 }
 
 .focus-element {
-    width: 90px;
-    height: 90px;
+    width: 82px;
+    height: 82px;
+    padding:4px;
     display: table-cell;
     color: #fff;
     background: #808080;
@@ -45,7 +46,8 @@
 }
 
 .focus-element[enabled="true"]:hover {
-    border: 2px solid #00ACCE;
+    border: 6px solid #00ACCE;
+    padding:0px;
     background: #CCC;
     color: #000;
     text-shadow: none;
@@ -54,7 +56,8 @@
 }
 
 .focus-element.selected {
-    border: 2px solid #00ACCE;
+    border: 6px solid #00ACCE;
+    padding:0px;
     background: #fff;
     color: #000;
     text-shadow: none;
@@ -69,18 +72,22 @@
 }
 
 .focus-element.selected.shouldHaveBeenSelected {
-    background-color: #53C516;
+    background-color: #80b312;
+    border: 6px solid #FFF;
+    padding:0px;
 }
 
 .focus-element.shouldHaveBeenSelected {
-    background-color: #FFF;
-    border: 2px solid #53C516;
-    color: #000;
-    text-shadow: none;
+    background-color: #80b312;
+    border: 2px solid #FFF;
+    color: #FFF;
+    text-shadow: 0px 2px 1px rgba(0, 0, 0, 1);
 
 }
 
 .focus-element.shouldNotHaveBeenSelected {
     background-color: #F8A31A;
+    border: 6px solid #FFF;
+    color: #FFF;
+    text-shadow: 0px 2px 1px rgba(0, 0, 0, 1);
 }
-
