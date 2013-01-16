@@ -1,17 +1,21 @@
 {
-    "_id" : { "$oid" : "5f6c9fbdc01de23b24788177" },
-    "data": {
-         "name":"qti.xml",
-         "files":[
-             {
-                 "_t" : "models.VirtualFile",
-                 "name" : "qti.xml",
-                 "contentType":"text/xml",
-                 "isMain":true,
-                 "content": "$[interpolate{/conf/qti/select-text-interaction-word.xml}]"
-             }
-         ]
+    "_id": {
+        "$oid": "5f6c9fbdc01de23b24788177"
     },
-    "title":"Select text interaction",
-    "collectionId":"5001b9b9e4b035d491c268c3"
+    "data": {
+        "name": "qti.xml",
+        "files": [
+            {
+                "_t": "models.VirtualFile",
+                "name": "qti.xml",
+                "contentType": "text/xml",
+                "isMain": true,
+                "content": "$[interpolate{/conf/qti/select-text-interaction-word.xml}]"
+            }
+        ]
+    },
+    "collectionId": "5001b9b9e4b035d491c268c3",
+    "taskInfo": {
+        "title": "Select text interaction"
+    }
 }

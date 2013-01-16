@@ -1,18 +1,22 @@
 {
-    "_id" : { "$oid" : "506af3fb3004b822549abb6c" },
-    "data" : {
-        "name" : "data",
-        "files" : [
+    "_id": {
+        "$oid": "506af3fb3004b822549abb6c"
+    },
+    "data": {
+        "name": "data",
+        "files": [
             {
-                "_t" : "models.VirtualFile",
-                "name" : "qti.xml",
-                "contentType" : "text/xml",
-                "isMain" : true,
-                "content" : "$[interpolate{conf/qti/mathml-sample.xml}]"
+                "_t": "models.VirtualFile",
+                "name": "qti.xml",
+                "contentType": "text/xml",
+                "isMain": true,
+                "content": "$[interpolate{conf/qti/mathml-sample.xml}]"
             }
         ]
     },
-    "collectionId" : "5001b9b9e4b035d491c268c3",
-    "itemType" : "Text with Questions",
-    "title" : "MathML Sample"
+    "collectionId": "5001b9b9e4b035d491c268c3",
+    "taskInfo": {
+        "title": "MathML Sample",
+        "itemType": "Text with Questions"
+    }
 }
