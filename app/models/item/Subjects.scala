@@ -1,62 +1,71 @@
 package models.item
 
 import com.mongodb.casbah.Imports._
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsObject, JsValue, Json, Reads, Writes}
 import models.Subject
 import controllers.JsonValidationException
 
 case class Subjects(var primary: Option[ObjectId] = None,
                     var related: Option[ObjectId] = None)
 
-object Subjects  extends ValueGetter{
+object Subjects extends ValueGetter {
 
   object Keys {
     val primarySubject = "primarySubject"
     val relatedSubject = "relatedSubject"
   }
 
-  def json(s: Subjects): Seq[(String, JsValue)] = {
+  implicit object Writes extends Writes[Subjects] {
+    def writes(s: Subjects): JsValue = {
 
-    import Keys._
+      import Keys._
 
-    def getSubject(id: Option[ObjectId]): Option[JsValue] = id match {
-      case Some(foundId) => {
-        Subject.findOneById(foundId) match {
-          case Some(subj) => Some(Json.toJson(subj))
-          case _ => throw new RuntimeException("Can't find subject with id: " + foundId)
+      /** Look up the subject in the database
+        *
+        * @param id
+        * @return
+        */
+      def getSubject(id: Option[ObjectId]): Option[JsValue] = id match {
+        case Some(foundId) => {
+          Subject.findOneById(foundId) match {
+            case Some(subj) => Some(Json.toJson(subj))
+            case _ => throw new RuntimeException("Can't find subject with id: " + foundId)
+          }
         }
+        case _ => None
       }
-      case _ => None
+
+      val foundSubjects: Seq[Option[(String, JsValue)]] = Seq(
+        getSubject(s.primary).map((primarySubject -> Json.toJson(_))),
+        getSubject(s.related).map((relatedSubject -> Json.toJson(_)))
+      )
+
+      JsObject(foundSubjects.flatten)
     }
-
-    val seqsubjects: Seq[Option[(String, JsValue)]] = Seq(
-      getSubject(s.primary).map {
-        found => (primarySubject -> Json.toJson(found))
-      },
-      getSubject(s.related).map {
-        found => (relatedSubject -> Json.toJson(found))
-      }
-    )
-
-    seqsubjects.flatten
   }
 
-  def obj(json: JsValue): Option[Subjects] = {
+  implicit object Reads extends Reads[Subjects] {
+    def reads(json: JsValue): Subjects = {
+      import Keys._
 
-    import Keys._
+      def buildSubjectFromSeq(s: Seq[Option[String]]) = {
+        if (s.isEmpty)
+          None
+        else
+          Some(Subjects(s(0).map(new ObjectId(_)), s(1).map(new ObjectId(_))))
+      }
 
-    def buildSubjectFromSeq(s: Seq[Option[String]]) = {
-      if (s.isEmpty)
-        None
-      else
-        Some(Subjects(s(0).map(new ObjectId(_)), s(1).map(new ObjectId(_))))
+      try {
+        val maybeSubjects = get[Subjects](json, Seq(primarySubject, relatedSubject), buildSubjectFromSeq)
+        maybeSubjects match {
+          case Some(s) => s
+          case _ => throw new RuntimeException("subjects expected")
+        }
+      }
+      catch {
+        case e: IllegalArgumentException => throw new JsonValidationException(e.getMessage)
+      }
     }
 
-    try {
-      get[Subjects](json, Seq(primarySubject, relatedSubject), buildSubjectFromSeq)
-    }
-    catch {
-      case e: IllegalArgumentException => throw new JsonValidationException(e.getMessage)
-    }
   }
 }

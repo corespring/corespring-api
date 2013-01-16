@@ -15,6 +15,7 @@ import controllers.auth.Permission
 import play.api.Logger
 import org.joda.time.DateTime
 import models.item._
+import models.item.ContributorDetails
 import collection.SeqProxy
 
 
@@ -35,8 +36,8 @@ case class Item(
                  var dateModified: Option[DateTime] = Some(new DateTime()),
                  var taskInfo: Option[TaskInfo] = None,
                  var otherAlignments: Option[Alignments] = None,
-                 var id: ObjectId = new ObjectId()) extends Content {
-}
+                 var id: ObjectId = new ObjectId()) extends Content
+
 
 /**
  * An Item model
@@ -92,45 +93,67 @@ object Item extends DBQueryable[Item] {
 
   lazy val fieldValues = FieldValue.current
 
-  implicit object ItemWrites extends Writes[Item] {
+  implicit object Writes extends Writes[Item] {
+
 
     def writes(item: Item): JsValue = {
 
-      import models.item.Workflow._
+      def toJsObject[T](a: Option[T])(implicit w: Writes[T]): Option[JsObject] = a.map(w.writes(_).asInstanceOf[JsObject])
 
-      var iseq: Seq[(String, JsValue)] = Seq("id" -> JsString(item.id.toString))
-      iseq = iseq :+ (collectionId -> JsString(item.collectionId))
+      val mainItem: JsObject = writeMainItem(item)
+      val details: Option[JsObject] = toJsObject(item.contributorDetails)
+      val taskInfo: Option[JsObject] = toJsObject(item.taskInfo)
+      val alignments: Option[JsObject] = toJsObject(item.otherAlignments)
 
-      if (item.workflow.isDefined) iseq = iseq :+ (workflow -> WorkflowWrites.writes(item.workflow.get))
+      val out = Seq(Some(mainItem), details, taskInfo, alignments).flatten
+      val jsObject = out.tail.foldRight(out.head)(_ ++ _)
+      jsObject
+    }
 
-      val details: Seq[(String, JsValue)] = item.contributorDetails.map(ContributorDetails.json).getOrElse(Seq())
-      val taskInfo: Seq[(String, JsValue)] = item.taskInfo.map(TaskInfo.json).getOrElse(Seq())
-      val alignments: Seq[(String, JsValue)] = item.otherAlignments.map(Alignments.json).getOrElse(Seq())
+    private def writeMainItem(item: Item): JsObject = {
 
-      item.lexile.foreach(v => iseq = iseq :+ (lexile -> JsString(v)))
+      val basics: Seq[Option[(String, JsValue)]] = Seq(
+        Some(("id" -> JsString(item.id.toString))),
+        item.workflow.map((workflow -> Json.toJson(_))),
+        item.data.map((data -> Json.toJson(_))),
+        Some((collectionId -> JsString(item.collectionId))),
+        Some(contentType -> JsString(ContentType.item))
+      )
 
-      if (item.originId.isDefined) iseq = iseq :+ (originId -> JsString(item.originId.get))
-
-      iseq = iseq :+ (contentType -> JsString(ContentType.item))
-      item.pValue.foreach(v => iseq = iseq :+ (pValue -> JsString(v)))
-
-      if (!item.supportingMaterials.isEmpty) iseq = iseq :+ (supportingMaterials -> JsArray(item.supportingMaterials.map(Json.toJson(_))))
-
-      item.priorUse.foreach(v => iseq = iseq :+ (priorUse -> JsString(v)))
-      if (!item.priorGradeLevel.isEmpty) iseq = iseq :+ (priorGradeLevel -> JsArray(item.priorGradeLevel.map(JsString(_))))
-      if (!item.reviewsPassed.isEmpty) iseq = iseq :+ (reviewsPassed -> JsArray(item.reviewsPassed.map(JsString(_))))
-      if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards.
-        foldRight[Seq[Standard]](Seq[Standard]())((dn, acc) => Standard.findOne(MongoDBObject("dotNotation" -> dn)) match {
-        case Some(standard) => acc :+ standard
-        case None => {
-          //throw new RuntimeException("ItemWrites: no standard found given id: " + sid); acc
-          Logger.warn("no standard found for id: " + dn + ", item id: " + item.id)
-          acc
+      def makeJsString(tuple: (String, Option[String])) = {
+        val (key, value) = tuple
+        value match {
+          case Some(s) => Some((key, JsString(s)))
+          case _ => None
         }
-      })))
-      item.data.foreach(v => iseq = iseq :+ (data -> Json.toJson(v)))
-      val finalSeq: Seq[(String, JsValue)] = (iseq ++ details ++ taskInfo ++ alignments)
-      JsObject(finalSeq)
+      }
+
+      val strings: Seq[Option[(String, JsValue)]] = Seq(
+        (lexile, item.lexile),
+        (originId, item.originId),
+        (pValue, item.pValue),
+        (priorUse, item.priorUse)
+      ).map(makeJsString)
+
+      def makeJsArray(tuple: (String, Seq[JsValue])) = {
+        val (key, value) = tuple
+        if (value.isEmpty)
+          None
+        else
+          Some(key, JsArray(value))
+      }
+
+      val validStandards = item.standards.map(Standard.findOneByDotNotation).flatten
+
+      val arrays: Seq[Option[(String, JsValue)]] = Seq(
+        (priorGradeLevel, item.priorGradeLevel.map(JsString(_))),
+        (reviewsPassed, item.reviewsPassed.map(JsString(_))),
+        (supportingMaterials, item.supportingMaterials.map(Json.toJson(_))),
+        (standards, validStandards.map(Json.toJson(_)))
+      ).map(makeJsArray)
+
+      val joined = (basics ++ strings ++ arrays).flatten
+      JsObject(joined)
     }
   }
 
@@ -139,7 +162,7 @@ object Item extends DBQueryable[Item] {
       .map(v => if (s.exists(_.key == v)) v else throw new JsonValidationException(key))
   }
 
-  implicit object ItemReads extends Reads[Item] {
+  implicit object Reads extends Reads[Item] {
     def reads(json: JsValue): Item = {
       val item = Item()
 
@@ -148,10 +171,10 @@ object Item extends DBQueryable[Item] {
        */
       item.collectionId = (json \ collectionId).asOpt[String].getOrElse("")
 
-      item.taskInfo = TaskInfo.obj(json)
-      item.otherAlignments = Alignments.obj(json)
+      item.taskInfo = json.asOpt[TaskInfo]
+      item.otherAlignments = json.asOpt[Alignments]
       item.workflow = (json \ workflow).asOpt[Workflow]
-      item.contributorDetails = ContributorDetails.obj(json)
+      item.contributorDetails = json.asOpt[ContributorDetails]
 
       item.lexile = (json \ lexile).asOpt[String]
       item.pValue = (json \ pValue).asOpt[String]

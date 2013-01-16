@@ -16,22 +16,33 @@ object Copyright extends ValueGetter {
     val copyrightImageName = "copyrightImageName"
   }
 
-  def json(c: Copyright): Seq[(String, JsValue)] = {
+  implicit object Reads extends Reads[Copyright] {
 
     import Keys._
-    Seq(
-      c.owner.map((copyrightOwner -> JsString(_))),
-      c.year.map((copyrightYear -> JsString(_))),
-      c.expirationDate.map((copyrightExpirationDate -> JsString(_))),
-      c.imageName.map((copyrightImageName -> JsString(_)))
-    ).flatten
+
+    def reads(json: JsValue): Copyright = {
+
+      val maybeCopyright = get[Copyright](
+        json,
+        Seq(copyrightOwner, copyrightYear, copyrightExpirationDate, copyrightImageName),
+        (s: Seq[Option[String]]) => Some(Copyright(s(0), s(1), s(2), s(3))))
+
+      maybeCopyright.get
+    }
   }
 
-  def obj(json: JsValue): Option[Copyright] = {
-    import Keys._
-    get[Copyright](
-      json,
-      Seq(copyrightOwner, copyrightYear, copyrightExpirationDate, copyrightImageName),
-      (s: Seq[Option[String]]) => Some(Copyright(s(0), s(1), s(2), s(3))))
+  implicit object Writes extends Writes[Copyright] {
+    def writes(copyright: Copyright): JsValue = {
+
+      import Keys._
+
+      JsObject(
+        Seq(
+          copyright.owner.map((copyrightOwner -> JsString(_))),
+          copyright.year.map((copyrightYear -> JsString(_))),
+          copyright.expirationDate.map((copyrightExpirationDate -> JsString(_))),
+          copyright.imageName.map((copyrightImageName -> JsString(_)))
+        ).flatten)
+    }
   }
 }

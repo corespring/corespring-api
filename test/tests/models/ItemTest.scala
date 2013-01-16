@@ -5,7 +5,7 @@ import models._
 import play.api.libs.json.{JsString, JsObject, Json}
 import org.bson.types.ObjectId
 import com.mongodb.{DBObject, BasicDBObject}
-import item.{Alignments, Copyright, ContributorDetails}
+import models.item.{Alignments, Copyright, ContributorDetails}
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import scala.Some
@@ -61,26 +61,12 @@ class ItemTest extends BaseTest {
       itemFromJson.workflow.get.qaReview must equalTo(true)
     }
 
-    "parse itemType" in {
-
-      val item = Item( taskInfo = Some(TaskInfo(itemType = Some("itemType"))))
+    "parses standards" in {
+      val item = Item(standards = Seq("RL.K.9"))
       val json = Json.toJson(item)
-      val parsedItem = json.as[Item]
-      parsedItem.taskInfo.get.itemType must equalTo(item.taskInfo.get.itemType)
+      json.as[Item].standards must equalTo(item.standards)
     }
 
-    "parses gradeLevel" in {
-      val item = Item( taskInfo = Some(TaskInfo(gradeLevel = Seq("03", "04"))))
-      val json = Json.toJson(item)
-      val parsedItem = json.as[Item]
-      parsedItem.taskInfo.get.gradeLevel must equalTo(item.taskInfo.get.gradeLevel)
-    }
-
-    "does not parse invalid gradeLevel" in {
-      val item = Item( taskInfo = Some(TaskInfo( gradeLevel = Seq("apple", "pear") )))
-      val json = Json.toJson(item)
-      json.as[Item] must throwA[JsonValidationException]
-    }
 
     "parses priorGradeLevel" in {
       val item = Item(priorGradeLevel = Seq("03", "04"))
@@ -109,6 +95,8 @@ class ItemTest extends BaseTest {
 
       parsed.taskInfo.get.subjects.get.primary must equalTo(subject.primary)
     }
+
+
 
     "parse subjects with primary and related" in {
       val dbSubject = Subject.findOne(new BasicDBObject())

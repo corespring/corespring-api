@@ -8,6 +8,7 @@ import com.novus.salat.dao.{SalatDAO, ModelCompanion}
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import mongoContext._
+import com.mongodb.casbah.commons.MongoDBObject
 
 case class Standard(var dotNotation: Option[String] = None,
                      var guid:Option[String] = None,
@@ -73,5 +74,16 @@ object Standard extends DBQueryable[Standard]{
   )
 
   val description = "common core state standards"
+
+  def findOneByDotNotation(dn:String) : Option[Standard] = findOne(MongoDBObject(DotNotation -> dn))
+
+  /** validate that the dotNotation exists
+   * @param dn
+   * @return true if its valid false if not
+   */
+  def isValidDotNotation(dn:String) : Boolean = findOne(MongoDBObject(DotNotation -> dn)) match {
+    case Some(s) => true
+    case _ => false
+  }
 }
 
