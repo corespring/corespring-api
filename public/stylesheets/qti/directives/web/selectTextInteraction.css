@@ -7,9 +7,8 @@ selectTextInteraction {
 }
 
 [selectable] .hover {
-    background-color: rgb(191, 191, 191);
-    background-color: rgba(191, 191, 191, 0.2);
-
+    background-color: rgb(206, 206, 206);
+    background-color: rgba(206, 206, 206, 0.4);
     cursor: hand; cursor: pointer;
 }
 
@@ -18,26 +17,39 @@ selectTextInteraction {
 }
 
 /* Selected answer - correctness not known */
-[selectable] .selected {
-    background-color: rgb(139,141,142);
+[selectable] .selected span {
+    background-color: rgb(206,206,206);
 }
 
-[selectable] .selected.unknown {
+[selectable] .selected.unknown span {
     background-color: #4055f8;
     color: #fff;
 }
 
 /* Selected Incorrect Answer */
-[selectable] .selected.shouldNotHaveBeenSelected {
+[selectable] .selected.shouldNotHaveBeenSelected span {
     background-color: #F8A31A;
+    border:none;
+    line-height:24px;
+    margin:0 2px 0 2px;
+    padding: 3px 4px;
 }
 
 /* Not selected Correct Answer */
-[selectable] .shouldHaveBeenSelected {
-    background-color: #F8A31A;
+[selectable] .shouldHaveBeenSelected span {
+    border: 2px solid #80B312;
+    line-height:24px;
+    margin:0 2px 0 2px;
+    padding:1px 2px;
+
 }
 
 /* Selected Correct Answer */
-[selectable] .selected.shouldHaveBeenSelected {
-    background-color: #53C516;
+[selectable] .selected.shouldHaveBeenSelected span {
+    background-color: #80B312;
+    border: none;
+    color:#fff;
+    line-height:24px;
+    margin:0 2px 0 2px;
+    padding: 3px 4px;
 }
