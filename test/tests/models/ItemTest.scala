@@ -64,7 +64,11 @@ class ItemTest extends BaseTest {
     "parses standards" in {
       val item = Item(standards = Seq("RL.K.9"))
       val json = Json.toJson(item)
-      val parsed = json.as[Item]
+      /*
+      * Our Js client only sends the dot notation back to the server when saving so mimic that.
+      */
+      val string = """{ "standards" : ["RL.K.9"] }"""
+      val parsed = Json.parse(string).as[Item]
       parsed.standards must equalTo(item.standards)
     }
 

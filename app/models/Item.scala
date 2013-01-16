@@ -186,14 +186,7 @@ object Item extends DBQueryable[Item] {
       item.priorGradeLevel = (json \ priorGradeLevel).asOpt[Seq[String]].
         map(v => if (v.foldRight[Boolean](true)((g, acc) => fieldValues.gradeLevels.exists(_.key == g) && acc)) v else throw new JsonValidationException(priorGradeLevel)).getOrElse(Seq.empty)
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
-
-      try {
-        val jsonStandards = (json \ standards).asOpt[Seq[Standard]].getOrElse(Seq())
-        val dotNotations = jsonStandards.map(_.dotNotation).flatten
-        item.standards = dotNotations
-      } catch {
-        case e: IllegalArgumentException => throw new JsonValidationException(standards)
-      }
+      item.standards = (json \ standards).asOpt[Seq[String]].getOrElse(Seq())
       item.data = (json \ data).asOpt[Resource]
 
       try {
