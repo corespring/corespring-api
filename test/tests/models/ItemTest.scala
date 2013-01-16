@@ -64,7 +64,8 @@ class ItemTest extends BaseTest {
     "parses standards" in {
       val item = Item(standards = Seq("RL.K.9"))
       val json = Json.toJson(item)
-      json.as[Item].standards must equalTo(item.standards)
+      val parsed = json.as[Item]
+      parsed.standards must equalTo(item.standards)
     }
 
 

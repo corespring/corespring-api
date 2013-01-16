@@ -188,7 +188,9 @@ object Item extends DBQueryable[Item] {
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
 
       try {
-        item.standards = (json \ standards).asOpt[Seq[String]].getOrElse(Seq.empty)
+        val jsonStandards = (json \ standards).asOpt[Seq[Standard]].getOrElse(Seq())
+        val dotNotations = jsonStandards.map(_.dotNotation).flatten
+        item.standards = dotNotations
       } catch {
         case e: IllegalArgumentException => throw new JsonValidationException(standards)
       }
