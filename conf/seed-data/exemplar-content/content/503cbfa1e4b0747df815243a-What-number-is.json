@@ -1,64 +1,73 @@
 {
-	"_id" : { "$oid" : "503cbfa1e4b0747df815243a" },
-	"data" : {
-		"name" : "data",
-		"files" : [
-			{
-				"_t" : "models.VirtualFile",
-				"name" : "qti.xml",
-				"contentType" : "text/xml",
-				"isMain" : true,
-				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value>435</value> \n            <value>four hundred and thirty five</value> \n            <value>435.0</value>\n            <value>Four Hundred and Thirty Five</value>\n        </correctResponse> \n    </responseDeclaration> \n    <itemBody>\n    <p class=\"prompt\">What number is shown by the base-ten blocks?</p>\n   <div class=\"image-wrapper\"><img src=\"basetenblocks.png\"/></div>\n        \n        <p> The number is <textEntryInteraction responseIdentifier=\"Q_01\" expectedLength=\"5\"/> </p>\n        \n        <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"435\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n    \n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"four hundred and thirty five\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n    \n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"435.0\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n    \n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"Four hundred and Thirty Five\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n \n    <!-- this is for any response not defined as a correct response in responseDeclaration -->\n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         incorrectResponse=\"true\">\n            <div class=\"feedback-block-incorrect\">Good try, but the number shown by the base-ten blocks is 435.</div>\n     </feedbackBlock>\n    </itemBody>\n</assessmentItem>"
-			},
-			{
-				"_t" : "models.StoredFile",
-				"name" : "basetenblocks.png",
-				"isMain" : false,
-				"storageKey" : "503cbfa1e4b0747df815243a/basetenblocks.png",
-				"contentType" : "image/png"
-			}
-		]
-	},
-	"collectionId" : "505777f5e4b05f7845735bc1",
-	"subjects" : {
-		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2c2" }
-	},
-	"standards" : [ "2.NBT.A.1" ],
-	"itemType" : "Constructed Response - Short Answer",
-	"contributorDetails" : {
-		"contributor" : "State of New Jersey Department of Education",
-		"credentials" : "State Department of Education",
-		"author" : "State of New Jersey Department of Education",
-		"sourceUrl" : "http://www.state.nj.us/education/modelcurriculum/math/2u1.shtml",
-		"licenseType" : "CC BY",
-		"costForResource" : null,
-		"copyright" : {
-			"owner" : "State of New Jersey Department of Education",
-			"imageName" : "njded.png",
-			"year" : "2012"
-		}
-	},
-	"workflow" : {
-		"setup" : true,
-		"tagged" : true,
-		"standardsAligned" : true,
-		"qaReview" : false
-	},
-	"keySkills" : [
-		"Classify",
-		"Choose",
-		"Demonstrate"
-	],
-	"title" : "What number is shown by the base-ten blocks?",
-	"priorUse" : "Formative",
-	"bloomsTaxonomy" : "Understanding",
-	"relatedCurriculum" : "New Jersey Department of Education Model",
-	"gradeLevel" : [
-		"02"
-	],
-	"reviewsPassed" : [
-		"Editorial"
-	],
-	"demonstratedKnowledge" : "Conceptual",
-	"dateModified" : 1353498104682
+    "_id": {
+        "$oid": "503cbfa1e4b0747df815243a"
+    },
+    "data": {
+        "name": "data",
+        "files": [
+            {
+                "_t": "models.VirtualFile",
+                "name": "qti.xml",
+                "contentType": "text/xml",
+                "isMain": true,
+                "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value>435</value> \n            <value>four hundred and thirty five</value> \n            <value>435.0</value>\n            <value>Four Hundred and Thirty Five</value>\n        </correctResponse> \n    </responseDeclaration> \n    <itemBody>\n    <p class=\"prompt\">What number is shown by the base-ten blocks?</p>\n   <div class=\"image-wrapper\"><img src=\"basetenblocks.png\"/></div>\n        \n        <p> The number is <textEntryInteraction responseIdentifier=\"Q_01\" expectedLength=\"5\"/> </p>\n        \n        <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"435\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n    \n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"four hundred and thirty five\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n    \n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"435.0\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n    \n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"Four hundred and Thirty Five\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n \n    <!-- this is for any response not defined as a correct response in responseDeclaration -->\n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         incorrectResponse=\"true\">\n            <div class=\"feedback-block-incorrect\">Good try, but the number shown by the base-ten blocks is 435.</div>\n     </feedbackBlock>\n    </itemBody>\n</assessmentItem>"
+            },
+            {
+                "_t": "models.StoredFile",
+                "name": "basetenblocks.png",
+                "isMain": false,
+                "storageKey": "503cbfa1e4b0747df815243a/basetenblocks.png",
+                "contentType": "image/png"
+            }
+        ]
+    },
+    "collectionId": "505777f5e4b05f7845735bc1",
+    "standards": [
+        "2.NBT.A.1"
+    ],
+    "contributorDetails": {
+        "contributor": "State of New Jersey Department of Education",
+        "credentials": "State Department of Education",
+        "author": "State of New Jersey Department of Education",
+        "sourceUrl": "http://www.state.nj.us/education/modelcurriculum/math/2u1.shtml",
+        "licenseType": "CC BY",
+        "costForResource": null,
+        "copyright": {
+            "owner": "State of New Jersey Department of Education",
+            "imageName": "njded.png",
+            "year": "2012"
+        }
+    },
+    "workflow": {
+        "setup": true,
+        "tagged": true,
+        "standardsAligned": true,
+        "qaReview": false
+    },
+    "priorUse": "Formative",
+    "reviewsPassed": [
+        "Editorial"
+    ],
+    "otherAlignments": {
+        "bloomsTaxonomy": "Understanding",
+        "keySkills": [
+            "Classify",
+            "Choose",
+            "Demonstrate"
+        ],
+        "demonstratedKnowledge": "Conceptual",
+        "relatedCurriculum": "New Jersey Department of Education Model"
+    },
+    "taskInfo": {
+        "subjects": {
+            "primary": {
+                "$oid": "4ffb535f6bb41e469c0bf2c2"
+            }
+        },
+        "gradeLevel": [
+            "02"
+        ],
+        "title": "What number is shown by the base-ten blocks?",
+        "itemType": "Constructed Response - Short Answer"
+    }
 }

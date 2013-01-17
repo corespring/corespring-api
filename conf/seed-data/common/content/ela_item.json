@@ -1,74 +1,74 @@
 {
-  "_id":{
-    "$oid":"50087e1de4b03c53174f7530"
-  },
-  "collectionId":"4ff2e4cae4b077b9e31689fd",
-  "contributorDetails":{
-    "contributor":"New York State Education Department",
-    "credentials":"State Department of Education",
-    "copyright":{
-      "owner":"New York State Education Department",
-      "year":"2012",
-      "imageName":"nysed.png"
+    "_id": {
+        "$oid": "50087e1de4b03c53174f7530"
     },
-    "author":"New York State Education Department",
-    "sourceUrl":"http://www.p12.nysed.gov/apda/common-core-sample-questions",
-    "licenseType":"CC BY"
-  },
-  "contentType":"item",
-  "gradeLevel":[
-    "03"
-  ],
-  "itemType":"Multiple Choice",
-  "keySkills":[
-    "Identify",
-    "Define",
-    "Classify"
-  ],
-  "subjects":{
-    "primary":{
-      "$oid":"4ffb535f6bb41e469c0bf2ac"
+    "collectionId": "4ff2e4cae4b077b9e31689fd",
+    "contributorDetails": {
+        "contributor": "New York State Education Department",
+        "credentials": "State Department of Education",
+        "copyright": {
+            "owner": "New York State Education Department",
+            "year": "2012",
+            "imageName": "nysed.png"
+        },
+        "author": "New York State Education Department",
+        "sourceUrl": "http://www.p12.nysed.gov/apda/common-core-sample-questions",
+        "licenseType": "CC BY"
+    },
+    "contentType": "item",
+    "priorUse": "Formative",
+    "priorGradeLevel": [],
+    "reviewsPassed": [
+        "Editorial"
+    ],
+    "standards": [
+        "RI.3.1"
+    ],
+    "data": {
+        "name": "data",
+        "files": [
+            {
+                "_t": "models.VirtualFile",
+                "name": "qti.xml",
+                "contentType": "text/xml",
+                "isMain": true,
+                "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n  \n  <correctResponseFeedback>Correct!</correctResponseFeedback>\n    <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>\n \n <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceC</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n    \n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceE</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n\n    <itemBody>\n\n<p class=\"intro-2\">Read the passage and then answer the questions below.</p>\n\n<cs-tabs>\n<cs-tab title=\"Passage\">\n<resource \n    type=\"passage\"\n    title=\"What's the Scoop on Soil?\"\n    copyrightOwner=\"NASA\"\n    licenseType=\"CC BY\"\n\turl=\"http://www.nasa.gov\"\n\t/>\n    \n    <h1 class=\"para-center\" >What’s the Scoop on Soil?</h1>\n\n\n<p class= \"p-indent-20\"><i>It’s easy to forget about soil. You have to look down on the ground to see it. Even then, soil may not seem to do very much. But there’s more to soil than you might think. It isn’t just dirt that gets on your shoes.</i></p>\n\n<div class=\"numbered-lines\">  \n\n<line>Trees and plants need soil to grow. Very few fruits, vegetables and grains would live without it. Many animals need soil, too. They eat the plants that grow in it. Some aals even live in the soil. Can you imagine a world without soil?</line>\n<line>Most soil comes from rocks. Over many years, weather causes rocks to break apart. The pieces get smaller and smaller as time goes on. Soil forms when bits of rock mix with things like dead leaves and dead bugs.</line>\n\n<resource \n    type=\"image\"\n\tcopyrightOwner=\"GLOBE\"\n\tlicenseType=\"CC BY/CC BY-NC/CC BY-ND/CC BY NC-SA\"\n\t/>\n\n<br/>\n\n<div class=\"imagewrapper\"><img src=\"Soil.png\"/></div>\n\n<p><i>The soil in Arizona, on the left, looks different from the soil from Texas, on the right. Credit: GLOBE</i></p>\n\n<line>Not all soil is the same. Soil comes in many colors. Some soil looks and feels different than other soil. The color and feel of soil often changes as you dig deeper into the ground. You can learn a lot by seeing and touching soil. In a way, soil is like a secret <b>decoder</b>.</line>\n<line>The color of soil can sometimes tell you where you are. For example, red soil can be \nfound in Arizona. Grey soil can be found in Nevada. Black soil can be found in Texas. Water also affects the color of soil. Wet soil is usually darker than dry soil.</line>\n<line>The feel of soil can tell you about its ingredients. Soil contains different amounts of sand, <b>silt</b> and clay. Soil in a forest might be gritty, which means more sand. Soil in a meadow might be smooth, which means more silt. Soil in a garden might be sticky, which means more clay.</line>\n<line>Did you know that squeezing soil can tell you about the weather? If soil  crumbles between your fingers, then the weather has probably been dry. If soil is wet and sticky—yuck!—then it might have rained not too long ago.</line>\n\n\n</div>\n\n<div class=\"note-tip\">nasa.gov</div>\n</cs-tab>\n</cs-tabs>\n\n<hr class=\"element-seperator\"/>\n      \n        <choiceInteraction responseIdentifier=\"Q_01\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>The passage explains all aspects of soil EXCEPT</prompt>\n            <simpleChoice identifier=\"ChoiceA\">what it feels like<feedbackInline identifier=\"ChoiceA\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">how much sand is in it<feedbackInline identifier=\"ChoiceB\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\">what it smells like<feedbackInline identifier=\"ChoiceC\" defaultFeedback=\"true\"/></simpleChoice>\n             <simpleChoice identifier=\"ChoiceD\">what lives in it<feedbackInline identifier=\"ChoiceD\" defaultFeedback=\"true\"/></simpleChoice>\n        </choiceInteraction>\n        \n        \n               <choiceInteraction responseIdentifier=\"Q_02\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>According to the passage, by squeezing soil, you can tell if</prompt>\n            <simpleChoice identifier=\"ChoiceE\">it has been raining<feedbackInline identifier=\"ChoiceE\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceF\">there are animals living in it<feedbackInline identifier=\"ChoiceF\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceG\">someone has been playing with it<feedbackInline identifier=\"ChoiceG\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceH\">it comes from Arizona or Texas<feedbackInline identifier=\"ChoiceH\" defaultFeedback=\"true\"/></simpleChoice>\n        </choiceInteraction>\n  \n        \n    </itemBody>\n\n</assessmentItem>\n"
+            },
+            {
+                "_t": "models.StoredFile",
+                "name": "Soil.png",
+                "contentType": "image/png",
+                "isMain": false,
+                "storageKey": "50087e1de4b03c53174f7530/Soil.png"
+            }
+        ]
+    },
+    "supportingMaterials": [],
+    "workflow": {
+        "setup": false,
+        "tagged": true,
+        "standardsAligned": true,
+        "qaReview": false
+    },
+    "otherAlignments": {
+        "bloomsTaxonomy": "Remembering",
+        "keySkills": [
+            "Identify",
+            "Define",
+            "Classify"
+        ],
+        "demonstratedKnowledge": "Factual"
+    },
+    "taskInfo": {
+        "subjects": {
+            "primary": {
+                "$oid": "4ffb535f6bb41e469c0bf2ac"
+            }
+        },
+        "gradeLevel": [
+            "03"
+        ],
+        "title": "[DEV] Read the passage <i>What's the Scoop on Soil?</i>. Which aspects of soil does the passage not explain? What can you tell about soil by squeezing it?",
+        "itemType": "Multiple Choice"
     }
-  },
-  "priorUse":"Formative",
-  "priorGradeLevel":[
-
-  ],
-  "reviewsPassed":[
-    "Editorial"
-  ],
-  "standards":[
-    "RI.3.1"
-  ],
-  "title":"[DEV] Read the passage <i>What's the Scoop on Soil?</i>. Which aspects of soil does the passage not explain? What can you tell about soil by squeezing it?",
-  "data":{
-    "name":"data",
-    "files":[
-      {
-        "_t":"models.VirtualFile",
-        "name":"qti.xml",
-        "contentType":"text/xml",
-        "isMain":true,
-        "content":"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n  \n  <correctResponseFeedback>Correct!</correctResponseFeedback>\n    <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>\n \n <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceC</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n    \n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceE</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n\n    <itemBody>\n\n<p class=\"intro-2\">Read the passage and then answer the questions below.</p>\n\n<cs-tabs>\n<cs-tab title=\"Passage\">\n<resource \n    type=\"passage\"\n    title=\"What's the Scoop on Soil?\"\n    copyrightOwner=\"NASA\"\n    licenseType=\"CC BY\"\n\turl=\"http://www.nasa.gov\"\n\t/>\n    \n    <h1 class=\"para-center\" >What’s the Scoop on Soil?</h1>\n\n\n<p class= \"p-indent-20\"><i>It’s easy to forget about soil. You have to look down on the ground to see it. Even then, soil may not seem to do very much. But there’s more to soil than you might think. It isn’t just dirt that gets on your shoes.</i></p>\n\n<div class=\"numbered-lines\">  \n\n<line>Trees and plants need soil to grow. Very few fruits, vegetables and grains would live without it. Many animals need soil, too. They eat the plants that grow in it. Some aals even live in the soil. Can you imagine a world without soil?</line>\n<line>Most soil comes from rocks. Over many years, weather causes rocks to break apart. The pieces get smaller and smaller as time goes on. Soil forms when bits of rock mix with things like dead leaves and dead bugs.</line>\n\n<resource \n    type=\"image\"\n\tcopyrightOwner=\"GLOBE\"\n\tlicenseType=\"CC BY/CC BY-NC/CC BY-ND/CC BY NC-SA\"\n\t/>\n\n<br/>\n\n<div class=\"imagewrapper\"><img src=\"Soil.png\"/></div>\n\n<p><i>The soil in Arizona, on the left, looks different from the soil from Texas, on the right. Credit: GLOBE</i></p>\n\n<line>Not all soil is the same. Soil comes in many colors. Some soil looks and feels different than other soil. The color and feel of soil often changes as you dig deeper into the ground. You can learn a lot by seeing and touching soil. In a way, soil is like a secret <b>decoder</b>.</line>\n<line>The color of soil can sometimes tell you where you are. For example, red soil can be \nfound in Arizona. Grey soil can be found in Nevada. Black soil can be found in Texas. Water also affects the color of soil. Wet soil is usually darker than dry soil.</line>\n<line>The feel of soil can tell you about its ingredients. Soil contains different amounts of sand, <b>silt</b> and clay. Soil in a forest might be gritty, which means more sand. Soil in a meadow might be smooth, which means more silt. Soil in a garden might be sticky, which means more clay.</line>\n<line>Did you know that squeezing soil can tell you about the weather? If soil  crumbles between your fingers, then the weather has probably been dry. If soil is wet and sticky—yuck!—then it might have rained not too long ago.</line>\n\n\n</div>\n\n<div class=\"note-tip\">nasa.gov</div>\n</cs-tab>\n</cs-tabs>\n\n<hr class=\"element-seperator\"/>\n      \n        <choiceInteraction responseIdentifier=\"Q_01\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>The passage explains all aspects of soil EXCEPT</prompt>\n            <simpleChoice identifier=\"ChoiceA\">what it feels like<feedbackInline identifier=\"ChoiceA\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">how much sand is in it<feedbackInline identifier=\"ChoiceB\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\">what it smells like<feedbackInline identifier=\"ChoiceC\" defaultFeedback=\"true\"/></simpleChoice>\n             <simpleChoice identifier=\"ChoiceD\">what lives in it<feedbackInline identifier=\"ChoiceD\" defaultFeedback=\"true\"/></simpleChoice>\n        </choiceInteraction>\n        \n        \n               <choiceInteraction responseIdentifier=\"Q_02\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>According to the passage, by squeezing soil, you can tell if</prompt>\n            <simpleChoice identifier=\"ChoiceE\">it has been raining<feedbackInline identifier=\"ChoiceE\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceF\">there are animals living in it<feedbackInline identifier=\"ChoiceF\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceG\">someone has been playing with it<feedbackInline identifier=\"ChoiceG\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceH\">it comes from Arizona or Texas<feedbackInline identifier=\"ChoiceH\" defaultFeedback=\"true\"/></simpleChoice>\n        </choiceInteraction>\n  \n        \n    </itemBody>\n\n</assessmentItem>\n"
-      },
-      {
-        "_t":"models.StoredFile",
-        "name":"Soil.png",
-        "contentType":"image/png",
-        "isMain":false,
-        "storageKey":"50087e1de4b03c53174f7530/Soil.png"
-      }
-    ]
-  },
-  "demonstratedKnowledge":"Factual",
-  "bloomsTaxonomy":"Remembering",
-  "supportingMaterials":[
-
-  ],
-  "workflow":{
-    "setup":false,
-    "tagged":true,
-    "standardsAligned":true,
-    "qaReview":false
-  }
 }

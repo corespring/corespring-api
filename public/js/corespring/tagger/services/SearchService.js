@@ -13,10 +13,10 @@ angular.module('tagger.services').factory('SearchService',
             searchId: 0,
             resultFields: [
                 'originId',
-                'title',
-                'primarySubject',
-                'gradeLevel',
-                'itemType',
+                'taskInfo.title',
+                'taskInfo.subjects.primary',
+                'taskInfo.gradeLevel',
+                'taskInfo.itemType',
                 'standards',
                 'contributorDetails.sourceUrl',
                 'contributorDetails.contributor',
@@ -92,9 +92,9 @@ angular.module('tagger.services').factory('SearchService',
 
                 var query = mongoQuery.fuzzyTextQuery(searchParams.searchText, searchFields);
 
-                var hasKey = function(element, key) {
-                    var foundElement = _.find(element, function(e) {
-                       return e.key == key;
+                var hasKey = function (element, key) {
+                    var foundElement = _.find(element, function (e) {
+                        return e.key == key;
                     });
                     console.log("Found: ", foundElement);
                     return angular.isDefined(foundElement);

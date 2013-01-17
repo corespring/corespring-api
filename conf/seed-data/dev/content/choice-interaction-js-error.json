@@ -1,17 +1,21 @@
 {
-    "_id" : { "$oid" : "507c44a330045e8a0bd291ba" },
-    "data": {
-         "name":"qti.xml",
-         "files":[
-             {
-                 "_t" : "models.VirtualFile",
-                 "name" : "qti.xml",
-                 "contentType":"text/xml",
-                 "isMain":true,
-                 "content": "$[interpolate{conf/qti/choice-interaction-js-error.xml}]"
-             }
-         ]
+    "_id": {
+        "$oid": "507c44a330045e8a0bd291ba"
     },
-    "title":"choice-interaction js error",
-    "collectionId":"5001b9b9e4b035d491c268c3"
+    "data": {
+        "name": "qti.xml",
+        "files": [
+            {
+                "_t": "models.VirtualFile",
+                "name": "qti.xml",
+                "contentType": "text/xml",
+                "isMain": true,
+                "content": "$[interpolate{conf/qti/choice-interaction-js-error.xml}]"
+            }
+        ]
+    },
+    "collectionId": "5001b9b9e4b035d491c268c3",
+    "taskInfo": {
+        "title": "choice-interaction js error"
+    }
 }
