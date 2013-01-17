@@ -56,7 +56,7 @@ function adjustDocs(item, save){
 }
 
 db.content.find().forEach(function(item){ adjustDocs(item, function(updatedObject){
-    printjson(item);
+    //printjson(item);
     db.content.save(updatedObject);
   });
 });
