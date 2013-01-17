@@ -21,9 +21,59 @@ function HomeController(
 
 
     var init = function(){
+
         $scope.search();
         loadCollections();
+
+        var defaultsFactory = new com.corespring.model.Defaults();
+        $scope.gradeLevelDataProvider = defaultsFactory.buildNgDataProvider("gradeLevels");
+        $scope.itemTypes = defaultsFactory.buildNgDataProvider("itemTypes");
+        $scope.contributors = [{name: "New England Common Assessment Program"},{name: "B"},{name: "C"}];
+        $scope.statuses = [
+            {label: "Setup", key: "setup"},
+            {label: "Tagged", key: "tagged"},
+            {label: "QA Review", key: "qaReview"},
+            {label: "Standards Aligned", key: "standardsAligned"},
+            {label: "Exact Match", key: "exactMatch"}
+        ];
+
     };
+
+    $scope.getContributorTitle = function(c){
+
+        return c.name;
+    };
+
+    $scope.getContributorSelectedTitle = function(items){
+        if(!items || items.length == 0){
+                return "None Selected";
+              }
+        return _.map(items, function(i){ return i.name}).join(",");
+    }
+
+    $scope.getCollectionTitle = function(c){
+      return c.name.replace("CoreSpring", "");
+    };
+
+    $scope.getTitle = function(o){ return o.key.replace(/^0/, "") };
+    $scope.getLabel = function(o){ return o.label };
+
+    $scope.getCollectionSelectedTitle = function(items){
+      if(!items || items.length == 0){
+        return "None Selected";
+      }
+      var out = _.map(items, function(i){ return i.name});
+      return out.join(", ").replace(/CoreSpring/g, "");
+    };
+
+    $scope.getSelectedTitle = function(items){
+      if(!items || items.length == 0){
+        return "None Selected";
+      }
+      var out = _.map(items, function(i){return i.key});
+      return out.join(", ").replace(/0/g, "");
+    };
+
 
     $scope.search = function() {
         SearchService.search($scope.searchParams, function(res){
@@ -48,6 +98,7 @@ function HomeController(
 
     function loadCollections() {
         Collection.get({}, function (data) {
+                console.log(data);
                 $scope.collections = data;
             },
             function () {
