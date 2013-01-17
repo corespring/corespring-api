@@ -173,6 +173,10 @@ margin-top: 35px;
     cursor: pointer;
 }
 
+.focus-container .focus-row .inner .focus-element[enabled="true"]:active {
+    background: #FFF;
+}
+
 .focus-container .focus-row .inner .focus-element.selected {
     border: 6px solid #00ACCE;
     padding:0px;
