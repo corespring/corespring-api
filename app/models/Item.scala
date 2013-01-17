@@ -63,7 +63,7 @@ case class Workflow(var setup: Boolean = false,
                     var standardsAligned: Boolean = false,
                     var qaReview: Boolean = false)
 
-object Workflow extends Searchable{
+object Workflow{
   val setup: String = "setup"
   val tagged: String = "tagged"
   val standardsAligned: String = "standardsAligned"
@@ -95,25 +95,6 @@ object Workflow extends Searchable{
     }
   }
 
-  def toSearchObj(query:AnyRef):Either[InternalError,MongoDBObject] = {
-    def isBooleanCheck(key:String,value:AnyRef,searchobj:MongoDBObject):Either[InternalError,MongoDBObject] = if(value.isInstanceOf[Boolean]){
-      Right(searchobj += key -> value)
-    } else {
-      Left(InternalError("Workflow.setup did not have value of type boolean",addMessageToClientOutput = true))
-    }
-    query match {
-      case dbquery:BasicDBObject => dbquery.foldRight[Either[InternalError,MongoDBObject]](Right(MongoDBObject()))((field,result) => result match {
-        case Right(searchobj) => field._1 match {
-          case Workflow.setup => isBooleanCheck(Workflow.setup,field._2,searchobj)
-          case Workflow.tagged => isBooleanCheck(Workflow.tagged,field._2,searchobj)
-          case Workflow.standardsAligned => isBooleanCheck(Workflow.standardsAligned,field._2,searchobj)
-          case Workflow.qaReview => isBooleanCheck(Workflow.qaReview,field._2,searchobj)
-        }
-        case Left(e) => Left(e)
-      })
-      case _ => Left(InternalError("invalid search object",LogType.printFatal,addMessageToClientOutput = true))
-    }
-  }
 }
 
 
@@ -144,7 +125,7 @@ case class Item(var collectionId: String = "",
 /**
  * An Item model
  */
-object Item extends ModelCompanion[Item,ObjectId] with Searchable{
+object Item extends ModelCompanion[Item,ObjectId]{
   val FieldValuesVersion = "0.0.1"
 
   val collection = Content.collection
@@ -460,97 +441,5 @@ object Item extends ModelCompanion[Item,ObjectId] with Searchable{
         case _ => Left(InternalError("data not an object"))
       }
     }
-  }
-
-  def toSearchObj(query: AnyRef):Either[QueryCancelled,MongoDBObject] = {
-    def formatStringQuery(key:String, value:AnyRef, searchobj:MongoDBObject):Either[QueryCancelled,MongoDBObject] = {
-      value match {
-        case strval:String => Right(searchobj += key -> Pattern.compile(strval,Pattern.CASE_INSENSITIVE))
-        case _ => Left(QueryCancelled(Some(InternalError("invalid value when parsing search for "+key))))
-      }
-    }
-    def formatBooleanQuery(key:String,value:AnyRef,searchobj:MongoDBObject):Either[QueryCancelled,MongoDBObject] = {
-      value match {
-        case boolval:Boolean => Right(searchobj += key -> value)
-        case _ => Left(QueryCancelled(Some(InternalError(key+" did not have value of type boolean",addMessageToClientOutput = true))))
-      }
-    }
-    def formatStringQuerySubjects(key:String,subjectsKey:String,value:AnyRef,searchobj:MongoDBObject):Either[QueryCancelled,MongoDBObject] = {
-      value match {
-        case strval:String => {
-          val ids = Subject.find(MongoDBObject(subjectsKey -> Pattern.compile(strval,Pattern.CASE_INSENSITIVE))).map(_.id)
-          if (ids.nonEmpty) Right(searchobj += key -> MongoDBObject("$in" -> ids))
-          else Left(QueryCancelled(None))
-        }
-        case _ => Left(QueryCancelled(Some(InternalError(key+" did not have value of type string",addMessageToClientOutput = true))))
-      }
-    }
-    def formatStringQueryStandards(standardsKey:String, value:AnyRef,searchobj:MongoDBObject):Either[QueryCancelled,MongoDBObject] = {
-      value match {
-        case strval:String => {
-          val standards = Standard.find(MongoDBObject(standardsKey -> Pattern.compile(strval,Pattern.CASE_INSENSITIVE))).map(_.dotNotation)
-          if (standards.nonEmpty) Right(searchobj += Item.standards -> MongoDBObject("$in" -> standards))
-          else Left(QueryCancelled(None))
-        }
-        case _ => Left(QueryCancelled(Some(InternalError(Item.standards+"."+standardsKey+" did not have value of type string",addMessageToClientOutput = true))))
-      }
-    }
-    query match {
-      case strquery:String => try{
-        val parsedobj:BasicDBObject = JSON.parse(strquery).asInstanceOf[BasicDBObject]
-        toSearchObj(parsedobj)
-      }catch {
-        case e:JSONParseException => Left(QueryCancelled(Some(InternalError(e.getMessage,clientOutput = Some("could not parse search string")))))
-      }
-      case dbquery:BasicDBObject => {
-        dbquery.foldRight[Either[QueryCancelled,MongoDBObject]](Right(MongoDBObject()))((field,result) => result match {
-          case Right(searchobj) => field._1 match {
-            case key if key == Item.workflow+"."+Workflow.setup => formatBooleanQuery(key,field._2,searchobj)
-            case key if key == Item.workflow+"."+Workflow.tagged => formatBooleanQuery(key,field._2,searchobj)
-            case key if key == Item.workflow+"."+Workflow.standardsAligned => formatBooleanQuery(key,field._2,searchobj)
-            case key if key == Item.workflow+"."+Workflow.qaReview => formatBooleanQuery(key,field._2,searchobj)
-            case Item.author => formatStringQuery(Item.contributorDetails+"."+ContributorDetails.author,field._2,searchobj)
-            case Item.contributor => formatStringQuery(Item.contributorDetails+"."+ContributorDetails.contributor,field._2,searchobj)
-            case Item.costForResource => formatStringQuery(Item.contributorDetails+"."+ContributorDetails.costForResource,field._2,searchobj)
-            case Item.credentials => formatStringQuery(Item.contributorDetails+"."+ContributorDetails.credentials,field._2,searchobj)
-            case Item.licenseType => formatStringQuery(Item.contributorDetails+"."+ContributorDetails.licenseType,field._2,searchobj)
-            case Item.sourceUrl => formatStringQuery(Item.contributorDetails+"."+ContributorDetails.sourceUrl,field._2,searchobj)
-            case Item.copyrightOwner => formatStringQuery(Item.contributorDetails+"."+ContributorDetails.copyright+"."+Copyright.owner,field._2,searchobj)
-            case Item.copyrightYear => formatStringQuery(Item.contributorDetails+"."+ContributorDetails.copyright+"."+Copyright.year,field._2,searchobj)
-            case Item.copyrightExpirationDate => formatStringQuery(Item.contributorDetails+"."+ContributorDetails.copyright+"."+Copyright.expirationDate,field._2,searchobj)
-            case Item.copyrightImageName => formatStringQuery(Item.contributorDetails+"."+ContributorDetails.copyright+"."+Copyright.imageName,field._2,searchobj)
-            case Item.lexile => formatStringQuery(Item.lexile,field._2,searchobj)
-            case Item.demonstratedKnowledge => formatStringQuery(Item.demonstratedKnowledge,field._2,searchobj)
-            case Item.originId => formatStringQuery(Item.originId,field._2,searchobj)
-            case Item.collectionId => formatStringQuery(Item.collectionId,field._2,searchobj)
-            case Item.contentType => Right(searchobj)
-            case Item.pValue => formatStringQuery(Item.pValue,field._2,searchobj)
-            case Item.relatedCurriculum => formatStringQuery(Item.relatedCurriculum,field._2,searchobj)
-            case Item.supportingMaterials => Left(QueryCancelled(Some(InternalError("cannot query on supportingMaterials",addMessageToClientOutput = true))))
-            case Item.gradeLevel => formatStringQuery(Item.gradeLevel,field._2,searchobj)
-            case Item.itemType => formatStringQuery(Item.itemType,field._2,searchobj)
-            case Item.keySkills => formatStringQuery(Item.keySkills,field._2,searchobj)
-            case key if key == Item.primarySubject+"."+Subject.Subject =>
-              formatStringQuerySubjects(Item.subjects+"."+Subjects.primary,Subject.Subject,field._2,searchobj)
-            case key if key == Item.primarySubject+"."+Subject.Category =>
-              formatStringQuerySubjects(Item.subjects+"."+Subjects.primary,Subject.Category,field._2,searchobj)
-            case key if key == Item.relatedSubject+"."+Subject.Subject =>
-              formatStringQuerySubjects(Item.subjects+"."+Subjects.related,Subject.Subject,field._2,searchobj)
-            case key if key == Item.relatedSubject+"."+Subject.Category =>
-              formatStringQuerySubjects(Item.subjects+"."+Subjects.related,Subject.Category,field._2,searchobj)
-            case Item.priorUse => formatStringQuery(Item.priorUse,field._2,searchobj)
-            case Item.priorGradeLevel => formatStringQuery(Item.priorGradeLevel,field._2,searchobj)
-            case Item.reviewsPassed => formatStringQuery(Item.reviewsPassed,field._2,searchobj)
-            case key if key == Item.standards+"."+Standard.DotNotation => formatStringQueryStandards(Standard.DotNotation,field._2,searchobj)
-            case key if key == Item.standards+"."+Standard.guid =>formatStringQueryStandards(Standard.guid,field._2,searchobj)
-            case key if key == Item.standards+"."+Standard.Subject =>formatStringQueryStandards(Standard.Subject,field._2,searchobj)
-            case key if key == Item.standards+"."+Standard.Category => formatStringQueryStandards(Standard.Category,field._2,searchobj)
-          }
-          case Left(e) => Left(e)
-        })
-      }
-      case _ => Left(QueryCancelled(Some(InternalError("invalid search object",LogType.printFatal,addMessageToClientOutput = true))))
-    }
-
   }
 }
