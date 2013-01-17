@@ -24,7 +24,7 @@ angular.module('tagger.services').factory('SearchService',
                 'subjects'],
             searchFields: [
                 'originId',
-                'title',
+                'taskInfo.title',
                 'standards',
                 'contributorDetails.copyright.owner',
                 'contributorDetails.contributor',
@@ -96,7 +96,6 @@ angular.module('tagger.services').factory('SearchService',
                     var foundElement = _.find(element, function (e) {
                         return e.key == key;
                     });
-                    console.log("Found: ", foundElement);
                     return angular.isDefined(foundElement);
 
                 };
@@ -134,9 +133,18 @@ angular.module('tagger.services').factory('SearchService',
 
                 if (searchParams.gradeLevel) {
                     if (searchParams.gradeLevel.indexOf && searchParams.gradeLevel.length > 0) {
-                        query.gradeLevel = inArray(searchParams.gradeLevel, "key");
+                        query['taskInfo.gradeLevel'] = inArray(searchParams.gradeLevel, "key");
                     } else {
-                        query.gradeLevel = searchParams.gradeLevel.key;
+                        query['taskInfo.gradeLevel'] = searchParams.gradeLevel.key;
+                    }
+                }
+
+                if (searchParams.itemType) {
+                    console.log("Item Type: ", searchParams.itemType);
+                    if (searchParams.itemType.indexOf && searchParams.itemType.length > 0) {
+                        query['taskInfo.itemType'] = inArray(searchParams.itemType, "label");
+                    } else {
+                        query['taskInfo.itemType'] = searchParams.itemType.label;
                     }
                 }
 
@@ -153,7 +161,6 @@ angular.module('tagger.services').factory('SearchService',
                 }
 
 
-                console.log(searchParams.statuses);
                 return query;
             },
 

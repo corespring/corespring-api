@@ -6,6 +6,7 @@ function HomeController(
   ItemService,
   SearchService,
   Collection,
+  Contributor,
   ItemFormattingUtils) {
 
     //Mixin ItemFormattingUtils
@@ -24,11 +25,11 @@ function HomeController(
 
         $scope.search();
         loadCollections();
+        loadContributors();
 
         var defaultsFactory = new com.corespring.model.Defaults();
         $scope.gradeLevelDataProvider = defaultsFactory.buildNgDataProvider("gradeLevels");
-        $scope.itemTypes = defaultsFactory.buildNgDataProvider("itemTypes");
-        $scope.contributors = [{name: "New England Common Assessment Program"},{name: "B"},{name: "C"}];
+        $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider("itemTypes");
         $scope.statuses = [
             {label: "Setup", key: "setup"},
             {label: "Tagged", key: "tagged"},
@@ -48,7 +49,7 @@ function HomeController(
         if(!items || items.length == 0){
                 return "None Selected";
               }
-        return _.map(items, function(i){ return i.name}).join(",");
+        return items.length+" Selected";
     }
 
     $scope.getCollectionTitle = function(c){
@@ -98,11 +99,19 @@ function HomeController(
 
     function loadCollections() {
         Collection.get({}, function (data) {
-                console.log(data);
                 $scope.collections = data;
             },
             function () {
                 console.log("load collections: error: " + arguments);
+            });
+    }
+
+    function loadContributors() {
+        Contributor.get({}, function (data) {
+                $scope.contributors = data;
+            },
+            function () {
+                console.log("load contributors: error: " + arguments);
             });
     }
 
@@ -155,5 +164,6 @@ HomeController.$inject = ['$scope',
     'ItemService',
     'SearchService',
     'Collection',
+    'Contributor',
     'ItemFormattingUtils'];
 
