@@ -26,7 +26,7 @@ import scala.Right
 import api.InvalidFieldException
 import controllers.JsonValidationException
 import play.api.libs.json.JsObject
-import play.api.Play.current
+
 /**
  * Items API
  */
@@ -37,11 +37,6 @@ object ItemApi extends BaseApi {
   val summaryFields: Seq[String] = Seq(Item.collectionId, Item.gradeLevel, Item.itemType, Item.keySkills, Item.subjects, Item.standards, Item.title)
 
   private def count(c:String) : Boolean = "true".equalsIgnoreCase(c)
-
-  def getContributorsList = Action { request =>
-    val collection = se.radley.plugin.salat.mongoCollection("content")
-    Ok(toJson(collection.distinct("contributorDetails.contributor").map(p=>JsObject(Seq("name"->JsString(p.toString))))))
-  }
 
   /**
    * List query implementation for Items
