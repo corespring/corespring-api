@@ -11,7 +11,7 @@ import play.api.Play.current
  * The Contributor API
  */
 object ContributorApi extends BaseApi {
-  def getContributorsList = Action {
+  def getContributorsList = ApiAction {
     request =>
       val collection = se.radley.plugin.salat.mongoCollection("content")
       Ok(toJson(collection.distinct("contributorDetails.contributor").map(p => JsObject(Seq("name" -> JsString(p.toString))))))

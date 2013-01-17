@@ -22,7 +22,14 @@ describe('HomeController', function () {
                     return ["collection1", "collection2"];
                 },
                 get: function() {
-
+                }
+            });
+            $provide.value('Contributor', {
+                query: function(data, result) {
+                    setTimeout(result, 0);
+                    return ["item1", "item2"];
+                },
+                get: function() {
                 }
             });
 
