@@ -12,11 +12,8 @@ import play.api.libs.json._
 import com.novus.salat._
 import dao.{SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
 import controllers.auth.Permission
-import play.api.Logger
 import org.joda.time.DateTime
 import models.item._
-import models.item.ContributorDetails
-import collection.SeqProxy
 
 
 case class Item(

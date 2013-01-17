@@ -115,6 +115,8 @@ object S3Service {
 
   def delete(bucket: String, keyName: String): S3DeleteResponse = {
 
+    Log.i("S3Service.delete: %s, %s".format(bucket, keyName))
+
     optS3 match {
       case Some(s3) => {
         try {
