@@ -22,7 +22,7 @@ object ExampleContent extends Controller {
         case Some(contentCollection) => {
           QueryHelper.listSimple(Item,
             q,
-            Some(MongoDBObject("title" -> 1, "itemType" -> 1, "subjects" -> 1, "gradeLevel" -> 1, "standards" -> 1, "contributorDetails" -> 1)),
+            Some(MongoDBObject("taskInfo.title" -> 1, "taskInfo.itemType" -> 1, "taskInfo.subjects" -> 1, "taskInfo.gradeLevel" -> 1, "standards" -> 1, "contributorDetails" -> 1)),
             false,
             initSearch = Some(MongoDBObject("collectionId" -> contentCollection.id.toString)))
         }
