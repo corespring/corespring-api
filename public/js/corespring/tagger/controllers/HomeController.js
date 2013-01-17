@@ -6,6 +6,7 @@ function HomeController(
   ItemService,
   SearchService,
   Collection,
+  Contributor,
   ItemFormattingUtils) {
 
     //Mixin ItemFormattingUtils
@@ -21,9 +22,59 @@ function HomeController(
 
 
     var init = function(){
+
         $scope.search();
         loadCollections();
+        loadContributors();
+
+        var defaultsFactory = new com.corespring.model.Defaults();
+        $scope.gradeLevelDataProvider = defaultsFactory.buildNgDataProvider("gradeLevels");
+        $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider("itemTypes");
+        $scope.statuses = [
+            {label: "Setup", key: "setup"},
+            {label: "Tagged", key: "tagged"},
+            {label: "QA Review", key: "qaReview"},
+            {label: "Standards Aligned", key: "standardsAligned"},
+            {label: "Exact Match", key: "exactMatch"}
+        ];
+
     };
+
+    $scope.getContributorTitle = function(c){
+
+        return c.name;
+    };
+
+    $scope.getContributorSelectedTitle = function(items){
+        if(!items || items.length == 0){
+                return "None Selected";
+              }
+        return items.length+" Selected";
+    }
+
+    $scope.getCollectionTitle = function(c){
+      return c.name.replace("CoreSpring", "");
+    };
+
+    $scope.getTitle = function(o){ return o.key.replace(/^0/, "") };
+    $scope.getLabel = function(o){ return o.label };
+
+    $scope.getCollectionSelectedTitle = function(items){
+      if(!items || items.length == 0){
+        return "None Selected";
+      }
+      var out = _.map(items, function(i){ return i.name});
+      return out.join(", ").replace(/CoreSpring/g, "");
+    };
+
+    $scope.getSelectedTitle = function(items){
+      if(!items || items.length == 0){
+        return "None Selected";
+      }
+      var out = _.map(items, function(i){return i.key});
+      return out.join(", ").replace(/0/g, "");
+    };
+
 
     $scope.search = function() {
         SearchService.search($scope.searchParams, function(res){
@@ -52,6 +103,15 @@ function HomeController(
             },
             function () {
                 console.log("load collections: error: " + arguments);
+            });
+    }
+
+    function loadContributors() {
+        Contributor.get({}, function (data) {
+                $scope.contributors = data;
+            },
+            function () {
+                console.log("load contributors: error: " + arguments);
             });
     }
 
@@ -104,5 +164,6 @@ HomeController.$inject = ['$scope',
     'ItemService',
     'SearchService',
     'Collection',
+    'Contributor',
     'ItemFormattingUtils'];
 

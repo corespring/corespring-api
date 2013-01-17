@@ -8,21 +8,94 @@
     <button class="btn btn-info" ng-click="deleteCancelled()">No</button>
 </div>
 
-<div class="sub-nav sub-nav-lower">
-    <div class="container" style="width: 940px;">
-        <div class="row navbar">
-            <div class="input-append span4" style="margin-left: 10px">
+        <div class="navbar-filter navbar-filter-top">
+
+        <table class="filter-nav">
+        <tbody>
+        <tr>
+            <td>
+                <span multi-select
+                  multi-get-title="getCollectionTitle"
+                  multi-options="collections"
+                  multi-change="search"
+                  multi-uid="name"
+                  multi-model="searchParams.collection">
+                  <div class="summary">
+                    <div class="multi-title-text collection"> COLLECTION <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                    <div class="selected-multi-options collection" ng-bind-html-unsafe="getCollectionSelectedTitle(selected)"></div>
+                  </div>
+                </span>
+            </td>
+            <td class="nav-vr"><div></div></td>
+            <td>
+                <span multi-select
+                  multi-get-title="getContributorTitle"
+                  multi-options="contributors"
+                  multi-change="search"
+                  multi-uid="name"
+                  multi-model="searchParams.contributor">
+                  <div class="summary">
+                    <div class="multi-title-text collection"> CONTRIBUTOR <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                    <div class="selected-multi-options collection" ng-bind-html-unsafe="getContributorSelectedTitle(selected)"></div>
+                  </div>
+                </span>
+            </td>
+            <td class="nav-vr"><div></div></td>
+            <td class="grade-level-chooser">
+                <span multi-select
+                  multi-get-title="getTitle"
+                  multi-get-selected-title="getSelectedTitle"
+                  multi-options="gradeLevelDataProvider"
+                  multi-change="search"
+                  multi-model="searchParams.gradeLevel">
+                  <div class="summary">
+                    <div class="multi-title-text grade-level">GRADE LEVEL<span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                    <div class="selected-multi-options grade-level" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
+                  </div>
+                </span>
+            </td>
+            <td class="nav-vr"><div></div></td>
+            <td>
+                <span multi-select
+                  multi-get-title="getLabel"
+                  multi-get-selected-title="getSelectedTitle"
+                  multi-options="itemTypeDataProvider"
+                  multi-change="search"
+                  multi-model="searchParams.itemType">
+                  <div class="summary">
+                    <div class="multi-title-text grade-level">TYPE<span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                    <div class="selected-multi-options grade-level" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
+                  </div>
+                </span>
+            </td>
+            <td class="nav-vr"><div></div></td>
+            <td>
+
+                <span multi-select
+                  multi-get-title="getLabel"
+                  multi-options="statuses"
+                  multi-change="search"
+                  multi-model="searchParams.statuses">
+                  <div class="summary">
+                    <div class="multi-title-text collection"> STATUS <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                    <div class="selected-multi-options collection" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
+                  </div>
+                </span>
+            </td>
+            <td class="nav-vr"><div></div></td>
+            <td>
+
                 <input placeholder="Search" ng-model="searchParams.searchText" ng-change="search() " class="input-small"
                        id="appendedInputButtons"
                        size="16" type="text"><span class="add-on"><i class="icon-search"></i></span>
+            </td>
+        </tr>
+        </tbody>
+        </table>
 
-                <select style="max-width: 140px;" ng-options="collection.name for collection in collections"
-                        ng-model="searchParams.collection"
-                        ng-change="search()">
-                    <option value="">All Collections</option>
-                </select>
-            </div>
-            <div style="padding-top: 5px;">
+
+
+            <!--<div style="padding-top: 5px;">
             <label class="inline" style="float:left;">Status:&nbsp;</label>
 
                 <input class="cb" type="checkbox" ng-model="searchParams.setup" ng-change="search()">
@@ -39,10 +112,8 @@
                 
                 <input class="cb" type="checkbox" ng-model="searchParams.exactMatch" ng-change="search()">
                 <label>Exact Match</label>
-            </div>
+            </div>-->
         </div>
-    </div>
-</div>
 
 <div class="row" style="padding-top: 90px">
     <div class="container" style="width: 960px;" when-scrolled="loadMore()" watch="itemDataCollection">

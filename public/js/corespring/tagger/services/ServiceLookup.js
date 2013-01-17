@@ -39,6 +39,7 @@ angular.module('tagger.services')
                 standards:'/api/v1/field_values/cc-standard',
                 subject:'/api/v1/field_values/subject',
                 collection:'/api/v1/collections',
+                contributor:'/api/v1/contributors',
                 uploadFile:'/tagger/upload/{itemId}/{fileName}',
                 viewFile:'/tagger/files/{itemId}/{fileName}',
                 deleteFile:'/tagger/delete/{itemId}/{fileName}'
