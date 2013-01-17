@@ -14,7 +14,7 @@ import controllers.{LogType, InternalError}
  */
 case class Resource(name: String, var files: Seq[BaseFile])
 
-object Resource extends Searchable{
+object Resource{
   val name = "name"
   val files = "files"
 
@@ -45,13 +45,6 @@ object Resource extends Searchable{
         }
       }))
       Resource(resourceName, files.getOrElse(Seq()))
-    }
-  }
-
-  def toSearchObj(query: AnyRef):Either[InternalError,MongoDBObject] = {
-    query match {
-      case dbquery:BasicDBObject =>
-      case _ => Left(InternalError("invalid search object in Resource",LogType.printFatal,addMessageToClientOutput = true))
     }
   }
 }

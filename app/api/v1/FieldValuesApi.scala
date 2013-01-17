@@ -8,7 +8,6 @@ import play.api.libs.json
 import play.api.libs.json._
 import models._
 import controllers.auth.{BaseApi}
-import api.{QueryHelper}
 import com.mongodb.casbah.Imports._
 import scala.Some
 import play.api.cache.Cache
@@ -95,12 +94,16 @@ object FieldValuesApi extends BaseApi {
 
     name match {
       case "subject" => {
-        val list = QueryHelper.listAsList(Subject, q, f, c.equalsIgnoreCase("true"), sk, l)
-        toJson(list)
+//        val list = QueryHelper.listAsList(Subject, q, f, c.equalsIgnoreCase("true"), sk, l)
+//        toJson(list)
+        //TODO: re-implement
+        JsNull
       }
       case "cc-standard" => {
-        val list = QueryHelper.listAsList(Standard, q, f, c.equalsIgnoreCase("true"), sk, l)
-        toJson(list)
+//        val list = QueryHelper.listAsList(Standard, q, f, c.equalsIgnoreCase("true"), sk, l)
+//        toJson(list)
+        //TODO: re-implement
+        JsNull
       }
       case _ => {
         Cache.getAs[FieldValue](FieldValueCacheKey) match {

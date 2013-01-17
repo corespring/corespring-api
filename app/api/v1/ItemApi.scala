@@ -1,7 +1,7 @@
 package api.v1
 
 import controllers.auth.{Permission, BaseApi}
-import api.{ApiError, QueryHelper}
+import api.{ApiError}
 import item.QueryCleaner
 import models._
 import com.mongodb.util.{JSONParseException}
@@ -17,15 +17,14 @@ import models.mongoContext._
 import scala.Left
 import scala.Some
 import scala.Right
-import api.InvalidFieldException
 import controllers.JsonValidationException
 import play.api.libs.json._
 import scala.Left
 import scala.Some
 import scala.Right
-import api.InvalidFieldException
 import controllers.JsonValidationException
 import play.api.libs.json.JsObject
+import search.ItemSearch
 
 /**
  * Items API
@@ -43,15 +42,20 @@ object ItemApi extends BaseApi {
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction {
     request =>
+      val collections = ContentCollection.getCollectionIds(request.ctx.organization,Permission.Read)
+      if (collections.nonEmpty){
+        val initSearch:MongoDBObject = MongoDBObject(Item.collectionId -> MongoDBObject("$in" -> collections))
 
+      }else Ok(toJson(JsObject(Seq())))
 
       val query : DBObject = QueryCleaner.clean(q, request.ctx.organization)
-
-
       if (count(c)) {
         Ok(toJson(Item.countItems(query, f)))
       } else {
         val fields = makeFields(f, request.ctx.isLoggedIn)
+        q.map(query => ItemSearch.toSearchObj(query,
+          Some(MongoDBObject(Item.collectionId -> MongoDBObject("$in" -> ContentCollection.getCollectionIds(request.ctx.organization,Permission.Read))))
+        ))
         val result = Item.list(query, fields, sk, l)
         Ok(toJson(result))
       }
@@ -318,7 +322,6 @@ object ItemApi extends BaseApi {
             }
           } catch {
             case parseEx: JSONParseException => BadRequest(toJson(ApiError.JsonExpected))
-            case invalidField: InvalidFieldException => BadRequest(toJson(ApiError.InvalidField.format(invalidField.field)))
             case e: SalatInsertError => InternalServerError(toJson(ApiError.CantSave))
           }
         }

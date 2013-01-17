@@ -9,11 +9,10 @@ import com.novus.salat.dao.{SalatDAO, ModelCompanion}
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import mongoContext._
-import controllers.QueryParser
 
 case class Subject(var subject: Option[String] = None,
                    var category: Option[String] = None,
-                   var id: ObjectId = new ObjectId()) extends Identifiable
+                   var id: ObjectId = new ObjectId())
 
 object Subject extends ModelCompanion[Subject,ObjectId] {
 

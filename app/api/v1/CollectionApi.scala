@@ -4,7 +4,7 @@ import controllers.auth.{Permission, BaseApi}
 import play.api.libs.json._
 import models.{ContentCollection, Organization}
 import org.bson.types.ObjectId
-import api.{QueryHelper, ApiError}
+import api.{ApiError}
 import com.mongodb.casbah.commons.MongoDBObject
 import controllers.{InternalError, Utils}
 import scala.Left
@@ -37,7 +37,9 @@ object CollectionApi extends BaseApi {
     val collids = ContentCollection.getCollectionIds(orgId,Permission.Read, true)
     println(collids)
     val initSearch = MongoDBObject("_id" -> MongoDBObject("$in" -> collids))
-    QueryHelper.list(q, f, c, sk, l, ContentCollection, Some(initSearch))
+    //QueryHelper.list(q, f, c, sk, l, ContentCollection, Some(initSearch))
+    //TODO: re-implement
+    NotImplemented
   }
 
   /**

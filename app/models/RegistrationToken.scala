@@ -8,9 +8,8 @@ import play.api.libs.json.JsString
 import com.novus.salat.dao.{SalatDAO, ModelCompanion}
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
-import mongoContext._
-import controllers.QueryParser
 import org.joda.time.DateTime
+import mongoContext._
 
 
 case class RegistrationToken(var uuid: String = "",
