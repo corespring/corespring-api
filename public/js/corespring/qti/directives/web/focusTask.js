@@ -28,11 +28,11 @@ qtiDirectives.directive('focustaskinteraction', function () {
 
 
     var insertRowSeparatos = function (choices) {
-        var result = ['<div class="focus-row">'];
+        var result = ['<div class="focus-row"><div class="inner">'];
         for (var i = 0; i < choices.length; i++) {
             result.push(choices[i]);
             if (i % 5 == 4)
-                result.push('</div><div class="focus-row">');
+                result.push('</div></div><div class="focus-row"><div class="inner">');
         }
         result.push("</div>");
 

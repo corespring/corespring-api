@@ -92,31 +92,10 @@
         </tr>
         </tbody>
         </table>
-
-
-
-            <!--<div style="padding-top: 5px;">
-            <label class="inline" style="float:left;">Status:&nbsp;</label>
-
-                <input class="cb" type="checkbox" ng-model="searchParams.setup" ng-change="search()">
-                <label>Set up</label>
-
-                <input class="cb" type="checkbox" ng-model="searchParams.tagged" ng-change="search()">
-                <label>Tagged</label> 
-           
-                <input class="cb" type="checkbox" ng-model="searchParams.standardsAligned" ng-change="search()">
-                <label>Standards aligned</label>
-
-                <input class="cb" type="checkbox" ng-model="searchParams.qaReview" ng-change="search()"> 
-                <label>QA</label>
-                
-                <input class="cb" type="checkbox" ng-model="searchParams.exactMatch" ng-change="search()">
-                <label>Exact Match</label>
-            </div>-->
-        </div>
+    </div>
 
 <div class="row" style="padding-top: 90px">
-    <div class="container" style="width: 960px;" when-scrolled="loadMore()" watch="itemDataCollection">
+    <div class="container" style="margin-left: 74px; width: 960px;" when-scrolled="loadMore()" watch="itemDataCollection">
         <table class="table">
             <thead>
             <tr>
@@ -125,6 +104,7 @@
                 <th>Grade</th>
                 <th>Item Type</th>
                 <th>Standard(s)</th>
+                <th>Source</th>
                 <th>Actions</th>
             </tr>
             </thead>
@@ -140,6 +120,7 @@
                     <a ui-jq="tooltip"
                        ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
                 </td>
+                <td ng-click="openEditView()">{{getAuthorAbbreviation(item.contributor)}}</td>
                 <td>
                     <button class="btn btn-danger btn-mini" href="javascript:void(1)" ng-click="deleteItem(item)">
                         Delete
