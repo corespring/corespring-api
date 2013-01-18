@@ -144,6 +144,8 @@ object S3Service {
    * @return
    */
   private def s3UploadSingle(bucket: String, keyName: String, contentLength: Int): Iteratee[Array[Byte], Either[Result, Int]] = {
+    Log.i("S3Service.s3UploadSingle bucket: " + bucket + " keyName: " + keyName)
+
     optS3 match {
       case Some(s3) => {
         val outputStream = new PipedOutputStream()
