@@ -154,6 +154,14 @@
         {
             "key":"CR-OE",
             "value":"Constructed Response - Open Ended"
+        },
+        {
+            "key":"FT",
+            "value":"Focus Task"
+        },
+        {
+            "key":"OR",
+            "value":"Ordering"
         }
     ],
 
