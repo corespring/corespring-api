@@ -1,5 +1,6 @@
 package models
 
+import json.ItemView
 import play.api.Play.current
 import org.bson.types.ObjectId
 import play.api.libs.json._
@@ -172,96 +173,8 @@ object Item extends ModelCompanion[Item,ObjectId]{
   lazy val fieldValues = FieldValue.findOne(MongoDBObject(FieldValue.Version -> FieldValuesVersion)).getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
 
   implicit object ItemWrites extends Writes[Item] {
-
     def writes(item: Item) = {
-
-      var iseq: Seq[(String, JsValue)] = Seq("id" -> JsString(item.id.toString))
-
-      if (item.workflow.isDefined) iseq = iseq :+ (workflow -> WorkflowWrites.writes(item.workflow.get))
-
-      //ContributorDetails
-      item.contributorDetails match {
-        case Some(cd) => {
-          cd.author.foreach(v => iseq = iseq :+ (author -> JsString(v)))
-          cd.contributor.foreach(v => iseq = iseq :+ (contributor -> JsString(v)))
-          cd.costForResource.foreach(v => iseq = iseq :+ (costForResource -> JsNumber(v)))
-          cd.credentials.foreach(v => iseq = iseq :+ (credentials -> JsString(v)))
-          cd.licenseType.foreach(v => iseq = iseq :+ (licenseType -> JsString(v)))
-          cd.sourceUrl.foreach(v => iseq = iseq :+ (sourceUrl -> JsString(v)))
-          cd.copyright match {
-            case Some(c) => {
-              c.owner.foreach(v => iseq = iseq :+ (copyrightOwner -> JsString(v)))
-              c.year.foreach(v => iseq = iseq :+ (copyrightYear -> JsString(v)))
-              c.expirationDate.foreach(v => iseq = iseq :+ (copyrightExpirationDate -> JsString(v)))
-              c.imageName.foreach(v => iseq = iseq :+ (copyrightImageName -> JsString(v)))
-            }
-            case _ => //do nothing
-          }
-        }
-        case _ => //do nothing
-      }
-
-      item.lexile.foreach(v => iseq = iseq :+ (lexile -> JsString(v)))
-
-      item.demonstratedKnowledge.foreach(v => iseq = iseq :+ (demonstratedKnowledge -> JsString(v)))
-
-      if (item.originId.isDefined) iseq = iseq :+ (originId -> JsString(item.originId.get))
-
-      iseq = iseq :+ (collectionId -> JsString(item.collectionId))
-      iseq = iseq :+ (contentType -> JsString(ContentType.item))
-      item.pValue.foreach(v => iseq = iseq :+ (pValue -> JsString(v)))
-      item.relatedCurriculum.foreach(v => iseq = iseq :+ (relatedCurriculum -> JsString(v)))
-
-      item.bloomsTaxonomy.foreach(v => iseq = iseq :+ (bloomsTaxonomy -> JsString(v)))
-
-      if (!item.supportingMaterials.isEmpty) iseq = iseq :+ (supportingMaterials -> JsArray(item.supportingMaterials.map(Json.toJson(_))))
-      if (!item.gradeLevel.isEmpty) iseq = iseq :+ (gradeLevel -> JsArray(item.gradeLevel.map(JsString(_))))
-      item.itemType.foreach(v => iseq = iseq :+ (itemType -> JsString(v)))
-      if (!item.keySkills.isEmpty) iseq = iseq :+ (keySkills -> JsArray(item.keySkills.map(JsString(_))))
-
-
-      item.subjects match {
-        case Some(s) => {
-
-          def getSubject(id: Option[ObjectId]): Option[JsValue] = id match {
-            case Some(foundId) => {
-              Subject.findOneById(foundId) match {
-                case Some(subj) => Some(Json.toJson(subj))
-                case _ => throw new RuntimeException("Can't find subject with id: " + foundId + " in item: " + item.id)
-              }
-            }
-            case _ => None
-          }
-
-          var seqsubjects: Seq[(String, JsValue)] = Seq()
-
-          getSubject(s.primary) match {
-            case Some(found) => iseq = iseq :+ (primarySubject -> Json.toJson(found))
-            case _ => //do nothing
-          }
-          getSubject(s.related) match {
-            case Some(found) => iseq = iseq :+ (relatedSubject -> Json.toJson(found))
-            case _ => //do nothing
-          }
-        }
-        case _ => //
-      }
-
-      item.priorUse.foreach(v => iseq = iseq :+ (priorUse -> JsString(v)))
-      if (!item.priorGradeLevel.isEmpty) iseq = iseq :+ (priorGradeLevel -> JsArray(item.priorGradeLevel.map(JsString(_))))
-      if (!item.reviewsPassed.isEmpty) iseq = iseq :+ (reviewsPassed -> JsArray(item.reviewsPassed.map(JsString(_))))
-      if (!item.standards.isEmpty) iseq = iseq :+ (standards -> Json.toJson(item.standards.
-        foldRight[Seq[Standard]](Seq[Standard]())((dn, acc) => Standard.findOne( MongoDBObject("dotNotation" -> dn)) match {
-        case Some(standard) => acc :+ standard
-        case None => {
-          //throw new RuntimeException("ItemWrites: no standard found given id: " + sid); acc
-          Logger.warn("no standard found for id: " + dn + ", item id: " + item.id )
-          acc
-          }
-      })))
-      item.title.foreach(v => iseq = iseq :+ (title -> JsString(v)))
-      item.data.foreach(v => iseq = iseq :+ (data -> Json.toJson(v)))
-      JsObject(iseq)
+      ItemView.ItemViewWrites.writes(ItemView(item,None))
     }
   }
 
@@ -411,12 +324,12 @@ object Item extends ModelCompanion[Item,ObjectId]{
     result.count
   }
 
-  def list(query: DBObject, fields: BasicDBObject = new BasicDBObject(), skip: Int = 0, limit: Int = 200) : List[Item] = {
-    val result : SalatMongoCursor[Item] = Item.find( query, fields)
-    result.limit(limit)
-    result.skip(skip)
-    result.toList
-  }
+//  def list(query: MongoDBObject, fields: MongoDBObject, skip: Int = 0, limit: Int = 200) : List[Item] = {
+//    val result : SalatMongoCursor[Item] = Item.find( query, fields)
+//    result.limit(limit)
+//    result.skip(skip)
+//    result.toList
+//  }
 
   def queryValueFn(name: String, seq: Seq[KeyValue])(c: Any) = {
     c match {

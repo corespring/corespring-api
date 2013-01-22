@@ -34,7 +34,7 @@ object ItemSearch extends Searchable{
             Left(InternalError("Wrong value for "+field._1+". Should have been "+method,addMessageToClientOutput = true))
           }
         }
-        dbfields.foldRight[Either[InternalError,SearchFields]](Right(SearchFields(inclusion = method == 1)))((field,result) => result match {
+        dbfields.foldRight[Either[InternalError,SearchFields]](Right(SearchFields(method = method)))((field,result) => result match {
           case Right(searchFields) => field._1 match {
             case key if key.startsWith(Item.workflow) => toSearchFieldObj(searchFields,field)
             case Item.author => toSearchFieldObj(searchFields,field,dbkey=Item.contributorDetails+"."+ContributorDetails.author)
@@ -66,6 +66,8 @@ object ItemSearch extends Searchable{
             case Item.reviewsPassed => toSearchFieldObj(searchFields,field)
             case Item.standards => toSearchFieldObj(searchFields,field)
             case key if key.startsWith(Item.standards) => toSearchFieldObj(searchFields,field,false)
+            case Item.title => toSearchFieldObj(searchFields,field)
+            case _ => Left(InternalError("unknown key contained in fields",addMessageToClientOutput = true))
           }
           case Left(e) => Left(e)
         })
@@ -197,6 +199,7 @@ object ItemSearch extends Searchable{
               case key if key == Item.standards+"."+Standard.guid =>formatStringQueryStandards(Standard.guid,field._2,searchobj)
               case key if key == Item.standards+"."+Standard.Subject =>formatStringQueryStandards(Standard.Subject,field._2,searchobj)
               case key if key == Item.standards+"."+Standard.Category => formatStringQueryStandards(Standard.Category,field._2,searchobj)
+              case Item.title => formatStringQuery(Item.title,field._2,searchobj)
               case _ => Left(SearchCancelled(Some(InternalError("unknown key contained in query",addMessageToClientOutput = true))))
             }
             case Left(e) => Left(e)
@@ -210,6 +213,60 @@ object ItemSearch extends Searchable{
         }
       }
       case _ => Left(SearchCancelled(Some(InternalError("invalid search object",LogType.printFatal,addMessageToClientOutput = true))))
+    }
+  }
+  def toSortObj(field:AnyRef):Either[InternalError,MongoDBObject] = {
+    def formatSortField(key:String,value:AnyRef):Either[InternalError,MongoDBObject] = {
+      value match {
+        case intval:java.lang.Integer => Right(MongoDBObject(key -> value))
+        case _ => Left(InternalError("sort value not a number",addMessageToClientOutput = true))
+      }
+    }
+    field match {
+      case strfield:String => try{
+        val parsedobj:BasicDBObject = JSON.parse(strfield).asInstanceOf[BasicDBObject]
+        toSortObj(parsedobj)
+      }catch {
+        case e:JSONParseException => Left(InternalError(e.getMessage,clientOutput = Some("could not parse sort string")))
+      }
+      case dbfield:BasicDBObject => {
+        if (dbfield.toSeq.size != 1){
+          Left(InternalError("cannot sort on multiple fields",addMessageToClientOutput = true))
+        }else{
+          val field = dbfield.toSeq.head
+          field._1 match {
+            case key if key == Item.workflow+"."+Workflow.setup => formatSortField(key,field._2)
+            case key if key == Item.workflow+"."+Workflow.tagged => formatSortField(key,field._2)
+            case key if key == Item.workflow+"."+Workflow.standardsAligned => formatSortField(key,field._2)
+            case key if key == Item.workflow+"."+Workflow.qaReview => formatSortField(key,field._2)
+            case Item.author => formatSortField(Item.contributorDetails+"."+ContributorDetails.author,field._2)
+            case Item.contributor => formatSortField(Item.contributorDetails+"."+ContributorDetails.contributor,field._2)
+            case Item.costForResource => formatSortField(Item.contributorDetails+"."+ContributorDetails.costForResource,field._2)
+            case Item.credentials => formatSortField(Item.contributorDetails+"."+ContributorDetails.credentials,field._2)
+            case Item.licenseType => formatSortField(Item.contributorDetails+"."+ContributorDetails.licenseType,field._2)
+            case Item.sourceUrl => formatSortField(Item.contributorDetails+"."+ContributorDetails.sourceUrl,field._2)
+            case Item.copyrightOwner => formatSortField(Item.contributorDetails+"."+ContributorDetails.copyright+"."+Copyright.owner,field._2)
+            case Item.copyrightYear => formatSortField(Item.contributorDetails+"."+ContributorDetails.copyright+"."+Copyright.year,field._2)
+            case Item.copyrightExpirationDate => formatSortField(Item.contributorDetails+"."+ContributorDetails.copyright+"."+Copyright.expirationDate,field._2)
+            case Item.copyrightImageName => formatSortField(Item.contributorDetails+"."+ContributorDetails.copyright+"."+Copyright.imageName,field._2)
+            case Item.lexile => formatSortField(Item.lexile,field._2)
+            case Item.demonstratedKnowledge => formatSortField(Item.demonstratedKnowledge,field._2)
+            case Item.originId => formatSortField(Item.originId,field._2)
+            case Item.contentType => formatSortField(Item.contentType,field._2)
+            case Item.pValue => formatSortField(Item.pValue,field._2)
+            case Item.relatedCurriculum => formatSortField(Item.relatedCurriculum,field._2)
+            case Item.gradeLevel => formatSortField(Item.gradeLevel,field._2)
+            case Item.itemType => formatSortField(Item.itemType,field._2)
+            case Item.keySkills => formatSortField(Item.keySkills,field._2)
+            case Item.priorUse => formatSortField(Item.priorUse,field._2)
+            case Item.priorGradeLevel => formatSortField(Item.priorGradeLevel,field._2)
+            case Item.reviewsPassed => formatSortField(Item.reviewsPassed,field._2)
+            case key if key == Item.standards+"."+Standard.DotNotation => formatSortField(Item.standards,field._2)
+            case Item.title => formatSortField(Item.title,field._2)
+            case _ => Left(InternalError("unknown or invalid key contained in sort field",addMessageToClientOutput = true))
+          }
+        }
+      }
     }
   }
 }

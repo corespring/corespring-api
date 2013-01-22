@@ -22,18 +22,18 @@ object CollectionApi extends BaseApi {
    *
    * @return
    */
-  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
-      doList(request.ctx.organization, q, f, c, sk, l)
+  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort:Option[String]) = ApiActionRead { request =>
+      doList(request.ctx.organization, q, f, c, sk, l, sort)
   }
 
-  def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
+  def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort:Option[String]) = ApiActionRead { request =>
     if (Organization.getTree(request.ctx.organization).exists(_.id == orgId)) {
-      doList(orgId, q, f, c, sk, l)
+      doList(orgId, q, f, c, sk, l, sort)
     } else
       Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
-  private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = {
+  private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort:Option[String]) = {
     val collids = ContentCollection.getCollectionIds(orgId,Permission.Read, true)
     println(collids)
     val initSearch = MongoDBObject("_id" -> MongoDBObject("$in" -> collids))

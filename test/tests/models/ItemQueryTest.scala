@@ -47,4 +47,5 @@ class ItemQueryTest extends BaseTest{
   "search items, excluding 'primarySubject.category' includes everything except the category portion of the primary subject" in {
     pending
   }
+
 }

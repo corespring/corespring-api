@@ -23,18 +23,18 @@ object OrganizationApi extends BaseApi {
    *
    * @return
    */
-  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
-    doList(request.ctx.organization, q, f, c, sk, l)
+  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort:Option[String]) = ApiActionRead { request =>
+    doList(request.ctx.organization, q, f, c, sk, l,sort)
   }
 
-  def listWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
+  def listWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort:Option[String]) = ApiActionRead { request =>
     if(orgId == request.ctx.organization || Organization.isChild(request.ctx.organization,orgId))
-      doList(orgId, q, f, c, sk, l)
+      doList(orgId, q, f, c, sk, l,sort)
     else
       Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
-  private def doList(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, childrenOnly: Boolean = false) = {
+  private def doList(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort:Option[String], childrenOnly: Boolean = false) = {
     val key = if ( childrenOnly ) childPath else Organization.path
     val initSearch = MongoDBObject(key -> orgId)
     //QueryHelper.list(q, f, c, sk,l, Organization, Some(initSearch))
@@ -47,13 +47,13 @@ object OrganizationApi extends BaseApi {
    *
    * @return
    */
-  def getChildren(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
-    doList(request.ctx.organization, q, f, c, sk, l, childrenOnly =  true)
+  def getChildren(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort:Option[String]) = ApiActionRead { request =>
+    doList(request.ctx.organization, q, f, c, sk, l, sort, childrenOnly =  true)
   }
 
-  def getChildrenWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
+  def getChildrenWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort:Option[String]) = ApiActionRead { request =>
     if(orgId == request.ctx.organization || Organization.isChild(request.ctx.organization,orgId))
-      doList(orgId, q, f, c, sk, l, childrenOnly = true)
+      doList(orgId, q, f, c, sk, l, sort, childrenOnly = true)
     else
       Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
   }

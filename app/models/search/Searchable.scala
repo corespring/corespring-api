@@ -9,6 +9,7 @@ import java.util.regex.Pattern
 trait Searchable {
   def toSearchObj(query: AnyRef, optInitSearch:Option[MongoDBObject]): Either[SearchCancelled,MongoDBObject]
   def toFieldsObj(fields: AnyRef):Either[InternalError,SearchFields]
+  def toSortObj(field:AnyRef):Either[InternalError,MongoDBObject]
   def formatSpecOp(dbobj:BasicDBObject):Either[InternalError,AnyRef] = {
     dbobj.toSeq.headOption match {
       case Some((key,value)) => key match {
@@ -28,15 +29,16 @@ trait Searchable {
     }
   }
 }
-
 case class SearchCancelled(error:Option[InternalError])
 
 /**
  *
  * @param dbfields
  * @param jsfields
- * @param inclusion
  */
-case class SearchFields(var dbfields:MongoDBObject = MongoDBObject(), var jsfields:Seq[String] = Seq(), val inclusion:Boolean = false)
+case class SearchFields(var dbfields:MongoDBObject = MongoDBObject(), var jsfields:Seq[String] = Seq(), method:Int){
+  val inclusion = method == 1
+  val exclusion = method == 0
+}
 
 
