@@ -1,15 +1,22 @@
 package api.v1
 
 import org.bson.types.ObjectId
-import models.Organization
-import play.api.libs.json.{JsValue, Json}
+import models.{User, Organization}
+import play.api.libs.json._
 import controllers.auth.BaseApi
 import api._
-import play.api.Logger
 import com.mongodb.casbah.Imports._
+import play.api.mvc.Result
+import models.search.{OrgSearch, SearchCancelled, UserSearch}
+import controllers.Utils
+import com.mongodb.casbah.commons.MongoDBObject
 import scala.Left
+import models.search.SearchCancelled
+import play.api.libs.json.JsArray
 import scala.Some
 import scala.Right
+import com.novus.salat.dao.SalatMongoCursor
+import play.api.libs.json.JsObject
 
 /**
  * The Organization API
@@ -34,12 +41,29 @@ object OrganizationApi extends BaseApi {
       Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
-  private def doList(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort:Option[String], childrenOnly: Boolean = false) = {
+  private def doList(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, optsort:Option[String], childrenOnly: Boolean = false) = {
     val key = if ( childrenOnly ) childPath else Organization.path
     val initSearch = MongoDBObject(key -> orgId)
-    //QueryHelper.list(q, f, c, sk,l, Organization, Some(initSearch))
-    //TODO: re-implement
-    NotImplemented
+    def applySort(orgs:SalatMongoCursor[Organization]):Result = {
+      optsort.map(UserSearch.toSortObj(_)) match {
+        case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(orgs.sort(sort).skip(sk).limit(l))))
+        case None => Ok(Json.toJson(Utils.toSeq(orgs.skip(sk).limit(l))))
+        case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
+      }
+    }
+    q.map(OrgSearch.toSearchObj(_,Some(initSearch))).getOrElse[Either[SearchCancelled,MongoDBObject]](Right(initSearch)) match {
+      case Right(query) => f.map(OrgSearch.toFieldsObj(_)) match {
+        case Some(Right(searchFields)) => if(c == "true") Ok(JsObject(Seq("count" -> JsNumber(Organization.find(query).count))))
+                                          else applySort(Organization.find(query,searchFields.dbfields))
+        case None => if(c == "true") Ok(JsObject(Seq("count" -> JsNumber(Organization.find(query).count))))
+                     else applySort(Organization.find(query))
+        case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidFields(error.clientOutput)))
+      }
+      case Left(sc) => sc.error match {
+        case None => Ok(JsArray(Seq()))
+        case Some(error) => BadRequest(Json.toJson(ApiError.InvalidQuery(error.clientOutput)))
+      }
+    }
   }
 
   /**

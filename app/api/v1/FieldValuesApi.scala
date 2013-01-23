@@ -2,7 +2,7 @@ package api.v1
 
 import fieldValues.{Options, QueryOptions}
 import play.api.libs.json.Json._
-import play.api.mvc.Action
+import play.api.mvc.{Result, Action}
 import play.api.Play.current
 import play.api.libs.json
 import play.api.libs.json._
@@ -11,6 +11,11 @@ import controllers.auth.{BaseApi}
 import com.mongodb.casbah.Imports._
 import scala.Some
 import play.api.cache.Cache
+import com.novus.salat.dao.SalatMongoCursor
+import search.{StandardSearch, SubjectSearch, SearchCancelled, UserSearch}
+import controllers.Utils
+import api.ApiError
+import com.mongodb.casbah.commons.MongoDBObject
 
 object FieldValuesApi extends BaseApi {
 
@@ -91,19 +96,36 @@ object FieldValuesApi extends BaseApi {
   }
 
   private def getFieldValuesAsJsValue(name: String, q: Option[String], f: Option[String], c: String, sk: Int, l: Int): JsValue = {
-
     name match {
       case "subject" => {
-//        val list = QueryHelper.listAsList(Subject, q, f, c.equalsIgnoreCase("true"), sk, l)
-//        toJson(list)
-        //TODO: re-implement
-        JsNull
+        q.map(SubjectSearch.toSearchObj(_,None)).getOrElse[Either[SearchCancelled,MongoDBObject]](Right(MongoDBObject())) match {
+          case Right(query) => f.map(SubjectSearch.toFieldsObj(_)) match {
+            case Some(Right(searchFields)) => if(c == "true") JsObject(Seq("count" -> JsNumber(Subject.find(query).count)))
+            else JsArray(Utils.toSeq(Subject.find(query,searchFields.dbfields)).map(Json.toJson(_)))
+            case None => if(c == "true") JsObject(Seq("count" -> JsNumber(Subject.find(query).count)))
+            else JsArray(Utils.toSeq(Subject.find(query)).map(Json.toJson(_)))
+            case Some(Left(error)) => JsNull
+          }
+          case Left(sc) => sc.error match {
+            case None => JsArray(Seq())
+            case Some(error) => JsNull
+          }
+        }
       }
       case "cc-standard" => {
-//        val list = QueryHelper.listAsList(Standard, q, f, c.equalsIgnoreCase("true"), sk, l)
-//        toJson(list)
-        //TODO: re-implement
-        JsNull
+        q.map(StandardSearch.toSearchObj(_,None)).getOrElse[Either[SearchCancelled,MongoDBObject]](Right(MongoDBObject())) match {
+          case Right(query) => f.map(StandardSearch.toFieldsObj(_)) match {
+            case Some(Right(searchFields)) => if(c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(query).count)))
+            else JsArray(Utils.toSeq(Standard.find(query,searchFields.dbfields)).map(Json.toJson(_)))
+            case None => if(c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(query).count)))
+            else JsArray(Utils.toSeq(Standard.find(query)).map(Json.toJson(_)))
+            case Some(Left(error)) => JsNull
+          }
+          case Left(sc) => sc.error match {
+            case None => JsArray(Seq())
+            case Some(error) => JsNull
+          }
+        }
       }
       case _ => {
         Cache.getAs[FieldValue](FieldValueCacheKey) match {
