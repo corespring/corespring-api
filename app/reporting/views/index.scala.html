@@ -16,10 +16,13 @@
 
         function updateLinks( collectionName ){
 
-            var items = ["collection", "contributor", "itemType", "credentials", "licenseType"];
+            var imap = {collection:"collectionId", contributor:"contributorDetails.contributor",
+                        itemType: "taskInfo.itemType", credentials: "contributorDetails.credentials",
+                        licenseType: "contributorDetails.licenseType"}
 
-            _.each(items, function(item){
-                $("#" + item).attr('href', '/reports/' + collectionName + '/' + item + '.csv');
+            _.each(imap, function(val, key){
+                console.log(val, key);
+                $("#" + key).attr('href', '/reports/' + collectionName + '/' + val + '.csv');
             })
         }
 
