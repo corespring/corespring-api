@@ -798,6 +798,7 @@ TABS
 	padding:10px;
 	border:1px #999 solid;
 	background:#EFEFEF;
+	border-radius: 4px;
 }
 .tab-box .paragraph-style {
 	color:#000;
