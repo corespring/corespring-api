@@ -194,6 +194,11 @@ object S3Service {
     }
   }
 
+  def cloneFile(bucket: String, keyName: String, newId:String) = {
+    Log.d("S3Service Cloning "+keyName+" to "+newId+"/"+keyName)
+    optS3.get.copyObject(bucket, keyName, bucket, newId+"/"+keyName)
+  }
+
   private case object Begin
 
   private case object EOF
