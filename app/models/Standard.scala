@@ -8,6 +8,7 @@ import com.novus.salat.dao.{SalatDAO, ModelCompanion}
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import mongoContext._
+import search.Searchable
 
 case class Standard(var dotNotation: Option[String] = None,
                      var guid:Option[String] = None,
@@ -18,7 +19,7 @@ case class Standard(var dotNotation: Option[String] = None,
                      var id: ObjectId = new ObjectId()
                      )
 
-object Standard extends ModelCompanion[Standard,ObjectId]{
+object Standard extends ModelCompanion[Standard,ObjectId] with Searchable{
 
   val collection = mongoCollection("ccstandards")
 
@@ -63,5 +64,13 @@ object Standard extends ModelCompanion[Standard,ObjectId]{
     }
   }
   val description = "common core state standards"
+  override val searchableFields = Seq(
+    DotNotation,
+    Subject,
+    Category,
+    SubCategory,
+    Standard,
+    guid
+  )
 }
 

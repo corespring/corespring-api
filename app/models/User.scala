@@ -13,6 +13,7 @@ import controllers.auth.Permission
 import controllers._
 import play.api.Play
 import collection.mutable
+import search.Searchable
 import securesocial.core.UserId
 import com.novus.salat._
 import controllers.InternalError
@@ -40,7 +41,7 @@ case class User(var userName: String = "",
                  var id: ObjectId = new ObjectId()
                )
 
-object User extends ModelCompanion[User,ObjectId]{
+object User extends ModelCompanion[User,ObjectId] with Searchable{
   val userName = "userName"
   val fullName = "fullName"
   val email = "email"
@@ -182,7 +183,11 @@ object User extends ModelCompanion[User,ObjectId]{
       JsObject(list)
     }
   }
-
+  override val searchableFields = Seq(
+    userName,
+    fullName,
+    email
+  )
 }
 
 case class UserOrg(var orgId: ObjectId, var pval: Long)

@@ -21,6 +21,7 @@ import play.api.libs.json.JsString
 import scala.Some
 import scala.Right
 import play.api.libs.json.JsObject
+import search.Searchable
 
 case class Organization(var name: String = "",
                         var path: Seq[ObjectId] = Seq(),
@@ -30,7 +31,7 @@ case class Organization(var name: String = "",
   def this() = this("")
 }
 
-object Organization extends ModelCompanion[Organization,ObjectId]{
+object Organization extends ModelCompanion[Organization,ObjectId] with Searchable{
   val CORESPRING_ORGANIZATION_ID = "502404dd0364dc35bb39339a"
 
   val name: String = "name"
@@ -190,6 +191,9 @@ object Organization extends ModelCompanion[Organization,ObjectId]{
       JsObject(list)
     }
   }
+  override val searchableFields = Seq(
+    name
+  )
 }
 
 case class ContentCollRef(var collectionId: ObjectId, var pval: Long = Permission.Read.value)

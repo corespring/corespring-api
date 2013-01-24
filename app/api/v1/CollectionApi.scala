@@ -13,7 +13,7 @@ import scala.Some
 import scala.Right
 import com.novus.salat.dao.SalatMongoCursor
 import play.api.mvc.Result
-import models.search.{CollectionSearch, SearchCancelled, UserSearch}
+import models.search.{SearchCancelled}
 
 /**
  * The Collections API
@@ -40,14 +40,14 @@ object CollectionApi extends BaseApi {
     val collids = ContentCollection.getCollectionIds(orgId,Permission.Read, true)
     val initSearch = MongoDBObject("_id" -> MongoDBObject("$in" -> collids))
     def applySort(colls:SalatMongoCursor[ContentCollection]):Result = {
-      optsort.map(CollectionSearch.toSortObj(_)) match {
+      optsort.map(ContentCollection.toSortObj(_)) match {
         case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(colls.sort(sort).skip(sk).limit(l))))
         case None => Ok(Json.toJson(Utils.toSeq(colls.skip(sk).limit(l))))
         case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
       }
     }
-    q.map(CollectionSearch.toSearchObj(_,Some(initSearch))).getOrElse[Either[SearchCancelled,MongoDBObject]](Right(initSearch)) match {
-      case Right(query) => f.map(UserSearch.toFieldsObj(_)) match {
+    q.map(ContentCollection.toSearchObj(_,Some(initSearch))).getOrElse[Either[SearchCancelled,MongoDBObject]](Right(initSearch)) match {
+      case Right(query) => f.map(ContentCollection.toFieldsObj(_)) match {
         case Some(Right(searchFields)) => if(c == "true") Ok(JsObject(Seq("count" -> JsNumber(ContentCollection.find(query).count))))
                                           else applySort(ContentCollection.find(query,searchFields.dbfields))
         case None => if(c == "true") Ok(JsObject(Seq("count" -> JsNumber(ContentCollection.find(query).count))))

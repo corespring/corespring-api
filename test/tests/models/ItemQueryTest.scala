@@ -11,32 +11,32 @@ class ItemQueryTest extends BaseTest{
 
   "filter search for author in contributorDetails" in {
     val author = "New England Common Assessment Program"
-    val call:Call = api.v1.routes.ItemApi.list(q = Some("{author:"+author+"}"))
-    val request = FakeRequest(call.method,tokenize(call.url))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{author:\""+author+"\"}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = routeAndCall(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
-    json match {
+    val jsonSuccess = json match {
       case JsArray(jsobjects) => {
-        jsobjects.size must beGreaterThanOrEqualTo(5)
+        jsobjects.size must beGreaterThanOrEqualTo(1)
         jsobjects.forall(jsobj => {
           (jsobj \ "author") match {
             case JsString(jsauthor) => jsauthor == author
             case _ => false
           }
-        }) must beTrue
+        })
       }
-      case _ => failure
+      case _ => false
     }
+    jsonSuccess must beTrue
   }
-  "filter search by gradeLevel" in {
-    val gradeLevel = "[\"02\"]"
-    val call:Call = api.v1.routes.ItemApi.list(q = Some("{gradeLevel:"+gradeLevel+"}"))
-    val request = FakeRequest(call.method,tokenize(call.url))
+  "filter search by gradeLevel matching multiple grades" in {
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{gradeLevel:{$all:[\"02\",\"04\"]}}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = routeAndCall(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
-    json match {
+    val jsonSuccess = json match {
       case JsArray(jsobjects) => {
         jsobjects.size must beGreaterThanOrEqualTo(3)
         jsobjects.forall(jsobj => {
@@ -44,19 +44,20 @@ class ItemQueryTest extends BaseTest{
             case JsArray(jsGradeLevel) => jsGradeLevel.contains(JsString("02"))
             case _ => false
           }
-        }) must beTrue
+        })
       }
-      case _ => failure
+      case _ => false
     }
+    jsonSuccess must beTrue
   }
   "filter search by subCategory in standards" in {
     val subCategory = "Key Ideas and Details"
-    val call:Call = api.v1.routes.ItemApi.list(q = Some("{standards.subCategory:"+subCategory+"}"))
-    val request = FakeRequest(call.method,tokenize(call.url))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{standards.subCategory:\""+subCategory+"\"}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = routeAndCall(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
-    json match {
+    val jsonSuccess = json match {
       case JsArray(jsobjects) => {
         jsobjects.size must beGreaterThanOrEqualTo(1)
         jsobjects.forall(jsobj => {
@@ -64,10 +65,11 @@ class ItemQueryTest extends BaseTest{
             case JsObject(props) => props.contains("subCategory" -> JsString(subCategory))
             case _ => false
           }
-        }) must beTrue
+        })
       }
-      case _ => failure
+      case _ => false
     }
+    jsonSuccess must beTrue
   }
   "filter search by subjects" in {
     pending
@@ -78,7 +80,7 @@ class ItemQueryTest extends BaseTest{
   "filter search by lexile AND originId" in {
     pending
   }
-  "filter search by workflow OR bloomsTaxonomy" in  {
+  "filter search by title OR primarySubject OR gradeLevel OR itemType OR standards.dotNotation OR contributorDetails.author" in  {
     pending
   }
   "filtering by supportingMaterials or data results in error" in {
@@ -102,7 +104,7 @@ class ItemQueryTest extends BaseTest{
   "search items, excluding 'primarySubject.category' includes everything except the category portion of the primary subject" in {
     pending
   }
-  "able to sort by any key within item" in {
+  "able to sort by grade within item" in {
     pending
   }
 }

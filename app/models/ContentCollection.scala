@@ -19,13 +19,14 @@ import play.api.libs.json.JsObject
 import play.api.Play.current
 import play.api.Play
 import controllers.auth.Permission
+import search.Searchable
 
 /**
  * A ContentCollection
  */
 case class ContentCollection(var name: String = "", var isPublic: Boolean = false, var id: ObjectId = new ObjectId())
 
-object ContentCollection extends ModelCompanion[ContentCollection,ObjectId]{
+object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with Searchable{
   val name = "name"
   val isPublic = "isPublic"
   val DEFAULT = "default" //used as the value for name when the content collection is a default collection
@@ -175,5 +176,7 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId]{
       JsObject( list )
     }
   }
-
+  override val searchableFields = Seq(
+    name
+  )
 }

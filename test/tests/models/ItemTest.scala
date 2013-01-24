@@ -175,13 +175,6 @@ class ItemTest extends BaseTest {
       }
     }
 
-    "list works" in {
-
-      val result  = Item.list(new BasicDBObject())
-
-      (result.length > 0) === true
-    }
-
     "list accepts fields" in {
       true === true
     }

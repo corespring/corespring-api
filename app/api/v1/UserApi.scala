@@ -6,7 +6,6 @@ import models.{Organization, UserOrg, User}
 import org.bson.types.ObjectId
 import api.{ApiError}
 import com.mongodb.casbah.Imports._
-import models.search.{UserSearch}
 import play.api.mvc.Result
 import controllers.Utils
 import scala.Left
@@ -31,14 +30,14 @@ object UserApi extends BaseApi {
     val orgIds:Seq[ObjectId] = Organization.getTree(request.ctx.organization).map(_.id)
     val initSearch = MongoDBObject(User.orgs + "." + UserOrg.orgId -> MongoDBObject("$in" -> orgIds))
     def applySort(users:SalatMongoCursor[User]):Result = {
-      optsort.map(UserSearch.toSortObj(_)) match {
+      optsort.map(User.toSortObj(_)) match {
         case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(users.sort(sort).skip(sk).limit(l))))
         case None => Ok(Json.toJson(Utils.toSeq(users.skip(sk).limit(l))))
         case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
       }
     }
-    q.map(UserSearch.toSearchObj(_,Some(initSearch))).getOrElse[Either[SearchCancelled,MongoDBObject]](Right(initSearch)) match {
-      case Right(query) => f.map(UserSearch.toFieldsObj(_)) match {
+    q.map(User.toSearchObj(_,Some(initSearch))).getOrElse[Either[SearchCancelled,MongoDBObject]](Right(initSearch)) match {
+      case Right(query) => f.map(User.toFieldsObj(_)) match {
         case Some(Right(searchFields)) => if(c == "true") Ok(JsObject(Seq("count" -> JsNumber(User.find(query).count))))
                                           else applySort(User.find(query,searchFields.dbfields))
         case None => if(c == "true") Ok(JsObject(Seq("count" -> JsNumber(User.find(query).count))))
