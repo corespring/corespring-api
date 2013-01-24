@@ -479,6 +479,4 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
   }
 }
 
-object ResourceApi extends api.v1.ResourceApi(ConcreteS3Service) {
-
-}
+object ResourceApi extends api.v1.ResourceApi(ConcreteS3Service)

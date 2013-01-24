@@ -22,6 +22,7 @@ trait S3Service {
   def s3upload(bucket: String, keyName: String): BodyParser[Int]
   def s3download(bucket: String, itemId: String, keyName: String): Result
   def delete(bucket: String, keyName: String): S3DeleteResponse
+  def cloneFile(bucket: String, keyName: String, newKeyName:String)
 }
 
 object ConcreteS3Service extends S3Service {
@@ -202,7 +203,7 @@ object ConcreteS3Service extends S3Service {
     }
   }
 
-  def cloneFile(bucket: String, keyName: String, newKeyName:String) = {
+  override def cloneFile(bucket: String, keyName: String, newKeyName:String) = {
     Log.d("S3Service Cloning "+keyName+" to "+newKeyName)
     optS3 match {
       case Some(s3) => s3.copyObject(bucket, keyName, bucket, newKeyName)

@@ -8,7 +8,7 @@ import tests.BaseTest
 import models._
 import auth.AccessToken
 import org.bson.types.ObjectId
-import controllers.Log
+import controllers.{S3Service, Log}
 import scala.xml._
 import scala.Some
 import play.api.test.FakeHeaders
@@ -22,8 +22,12 @@ import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
 import controllers.auth.Permission
 import org.joda.time.DateTime
+import org.specs2.mock.Mockito
+import api.v1.ItemApi
 
-class ItemApiTest extends BaseTest {
+class ItemApiTest extends BaseTest with Mockito {
+
+  val mockS3service = mock[S3Service]
 
   val TEST_COLLECTION_ID: String = "5001bb0ee4b0d7c9ec3210a2"
   //val OTHER_TEST_COLLECTION_ID: String = "5001a66ce4b0d7c9ec320f2e"
@@ -45,15 +49,15 @@ class ItemApiTest extends BaseTest {
     items.size must beEqualTo(50)
   }
 
-  "list items in a collection" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s".format(token))
-    val Some(result) = routeAndCall(fakeRequest)
-    status(result) must equalTo(OK)
-    charset(result) must beSome("utf-8")
-    contentType(result) must beSome("application/json")
-    val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items.size must beEqualTo(50)
-  }
+"list items in a collection" in {
+  val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s".format(token))
+  val Some(result) = routeAndCall(fakeRequest)
+  status(result) must equalTo(OK)
+  charset(result) must beSome("utf-8")
+  contentType(result) must beSome("application/json")
+  val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
+  items.size must beEqualTo(50)
+}
 
   "list all items skipping 30" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&sk=30".format(token))
@@ -281,4 +285,13 @@ class ItemApiTest extends BaseTest {
     }
     feedback
   }
+
+  "clone item" in {
+    val itemApi = new ItemApi(mockS3service)
+    val id = "50083ba9e4b071cb5ef79101"
+    val fakeRequest = FakeRequest(POST, "/api/v1/items/%s?access_token=%s".format(id, token))
+    val result = itemApi.cloneItem(new ObjectId(id))(fakeRequest)
+    there was atLeastTwo(mockS3service).cloneFile(anyString, anyString, anyString)
+  }
+
 }

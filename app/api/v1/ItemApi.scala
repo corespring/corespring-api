@@ -12,7 +12,7 @@ import play.api.templates.Xml
 import play.api.mvc.Result
 import play.api.libs.json.Json._
 import models.mongoContext._
-import controllers.{Log, S3Service, JsonValidationException}
+import controllers.{ConcreteS3Service, Log, S3Service, JsonValidationException}
 import play.api.libs.json._
 import scala.Left
 import scala.Some
@@ -24,8 +24,7 @@ import com.typesafe.config.ConfigFactory
 /**
  * Items API
  */
-
-object ItemApi extends BaseApi {
+class ItemApi(s3service:S3Service) extends BaseApi {
 
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
@@ -38,8 +37,6 @@ object ItemApi extends BaseApi {
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction {
     request =>
-
-
       val query: DBObject = QueryCleaner.clean(q, request.ctx.organization)
 
 
@@ -257,7 +254,7 @@ object ItemApi extends BaseApi {
   private def cloneS3File(sourceFile: StoredFile, newId: String):String = {
     Log.d("Cloning " + sourceFile.storageKey + " to " + newId)
     val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/","")
-    S3Service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, newId+"/"+oldStorageKeyIdRemoved)
+    s3service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, newId+"/"+oldStorageKeyIdRemoved)
     newId+"/"+oldStorageKeyIdRemoved
   }
 
@@ -286,6 +283,7 @@ object ItemApi extends BaseApi {
     } catch {
       case r: RuntimeException =>
         Log.e("Error cloning some of the S3 files: " + r.getMessage)
+        Log.e(r.getStackTrace.mkString("\n"))
         false
     }
 
@@ -392,3 +390,5 @@ object ItemApi extends BaseApi {
       NotImplemented
   }
 }
+
+object ItemApi extends api.v1.ItemApi(ConcreteS3Service)
