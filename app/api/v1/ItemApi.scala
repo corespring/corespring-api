@@ -254,21 +254,21 @@ object ItemApi extends BaseApi {
       }
   }
 
-  private def cloneS3File(sourceFile: StoredFile, newId: String) = {
-    println("Cloning ", sourceFile.storageKey, " to ", newId)
-    S3Service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, newId)
+  private def cloneS3File(sourceFile: StoredFile, newId: String):String = {
+    Log.d("Cloning " + sourceFile.storageKey + " to " + newId)
+    val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/","")
+    S3Service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, newId+"/"+oldStorageKeyIdRemoved)
+    newId+"/"+oldStorageKeyIdRemoved
   }
 
   private def cloneStoredFiles(oldItem: Item, newItem: Item): Boolean = {
     val newItemId = newItem.id.toString
-    println("Cloning S3 files to ", newItemId)
-
     try {
       newItem.data.get.files.foreach {
         file => file match {
           case sf: StoredFile =>
-            cloneS3File(sf, newItemId)
-            sf.storageKey = newItemId + "/" + sf.storageKey
+            val newKey = cloneS3File(sf, newItemId)
+            sf.storageKey = newKey
           case _ =>
         }
       }
@@ -277,8 +277,8 @@ object ItemApi extends BaseApi {
           sm.files.filter(_.isInstanceOf[StoredFile]).foreach {
             file =>
               val sf = file.asInstanceOf[StoredFile]
-              cloneS3File(sf, newItemId)
-              sf.storageKey = newItemId + "/" + sf.storageKey
+              val newKey = cloneS3File(sf, newItemId)
+              sf.storageKey = newKey
           }
       }
       Item.save(newItem)

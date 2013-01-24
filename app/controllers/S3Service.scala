@@ -194,9 +194,12 @@ object S3Service {
     }
   }
 
-  def cloneFile(bucket: String, keyName: String, newId:String) = {
-    Log.d("S3Service Cloning "+keyName+" to "+newId+"/"+keyName)
-    optS3.get.copyObject(bucket, keyName, bucket, newId+"/"+keyName)
+  def cloneFile(bucket: String, keyName: String, newKeyName:String) = {
+    Log.d("S3Service Cloning "+keyName+" to "+newKeyName)
+    optS3 match {
+      case Some(s3) => s3.copyObject(bucket, keyName, bucket, newKeyName)
+      case _ => throw new RuntimeException("Amazon S3 not initalized")
+    }
   }
 
   private case object Begin
