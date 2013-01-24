@@ -4,7 +4,6 @@ import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.Implicits._
 import com.mongodb.casbah.map_reduce._
 import com.mongodb.{BasicDBObject, DBObject}
-import play.api.Logger
 import reporting.models.ReportLineResult.{KeyCount, LineResult}
 import reporting.models.ReportLineResult
 import common.seed.StringUtils
@@ -17,6 +16,12 @@ class ReportsService(ItemCollection: MongoCollection,
                      StandardCollection: MongoCollection
                       ) {
 
+  ReportLineResult.ItemTypes = ItemCollection.distinct("taskInfo.itemType").map(_.toString).toList
+  ReportLineResult.GradeLevel = ItemCollection.distinct("taskInfo.gradeLevel").map(_.toString).toList
+  ReportLineResult.PriorUse = ItemCollection.distinct("priorUse").map(_.toString).toList
+  ReportLineResult.LicenseType = ItemCollection.distinct("contributorDetails.licenseType").map(_.toString).toList
+  ReportLineResult.Credentials = ItemCollection.distinct("contributorDetails.credentials").map(_.toString).toList
+
   def getCollections: List[(String, String)] = ContentCollection.findAll().toList.map {
     c => (c.name.toString, c.id.toString)
   }
@@ -28,11 +33,16 @@ class ReportsService(ItemCollection: MongoCollection,
             if( "${collectionId}" != "all" && (!this.collectionId || !(this.collectionId == "${collectionId}")) ){
               return;
             }
+            try {
             if(!this.${property}){
               emit("unknown", 1);
               return;
             }
             emit(this.${property}, 1);
+            } catch (e) {
+              emit("unknown", 1);
+              return;
+            }
           };"""
 
     val mapFn: JSFunction = interpolate(mapTemplateFn, Map("collectionId" -> collectionId, "property" -> queryType))
@@ -41,18 +51,37 @@ class ReportsService(ItemCollection: MongoCollection,
     val result: MapReduceResult = ItemCollection.mapReduce(cmd)
     val inlineResult: MapReduceInlineResult = result.asInstanceOf[MapReduceInlineResult]
 
-    val collectionName = ContentCollection.findOneById(new ObjectId(collectionId)) match {
-      case Some(c) => c.name
-      case _ => "?"
+
+    def collectionIdToName(id:String):String = {
+      ContentCollection.findOneById(new ObjectId(id)) match {
+        case Some(c) => c.name
+        case _ => "?"
+      }
     }
 
-    List((collectionName + ": " + queryType, "Total")) ::: inlineResult.map((dbo: Any) => {
-      dbo match {
-        case foundDbo: DBObject => {
-          (foundDbo.get("_id").toString, foundDbo.get("value").toString)
+    val collectionName = collectionId match {
+      case "all" => "?"
+      case _ => collectionIdToName(collectionId)
+    }
+
+    if (queryType.toLowerCase == "collectionid") {
+      List((collectionName + ": " + queryType, "Total")) ::: inlineResult.map((dbo: Any) => {
+        dbo match {
+          case foundDbo: DBObject => {
+            println(foundDbo.get("_id").toString)
+            (collectionIdToName(foundDbo.get("_id").toString), foundDbo.get("value").toString)
+          }
         }
-      }
-    }).toList
+      }).toList
+    } else {
+      List((collectionName + ": " + queryType, "Total")) ::: inlineResult.map((dbo: Any) => {
+        dbo match {
+          case foundDbo: DBObject => {
+            (foundDbo.get("_id").toString, foundDbo.get("value").toString)
+          }
+        }
+      }).toList
+    }
   }
 
   /**
@@ -68,7 +97,7 @@ class ReportsService(ItemCollection: MongoCollection,
       val finalKey = buildSubjectString(category, subject)
 
       val query = new BasicDBObject()
-      query.put("subjects.primary", dbo.get("_id").asInstanceOf[ObjectId])
+      query.put("taskInfo.subjects.primary", dbo.get("_id").asInstanceOf[ObjectId])
       buildLineResult(query, finalKey)
     }).toList
     ReportLineResult.buildCsv("Primary Subject", lineResults)
@@ -88,10 +117,10 @@ class ReportsService(ItemCollection: MongoCollection,
       val dotNotation = dbo.get("dotNotation").asInstanceOf[String]
       val subject = dbo.get("subject").asInstanceOf[String]
       val category = dbo.get("category").asInstanceOf[String]
-      val finalKey = List(dotNotation, subject, category ).filterNot(_.isEmpty).mkString(":")
+      val finalKey = List(dotNotation, subject, category).filterNot(_.isEmpty).mkString(":")
 
       val query = new BasicDBObject()
-      query.put("standards", dbo.get("_id").asInstanceOf[ObjectId])
+      query.put("standards", dbo.get("dotNotation").asInstanceOf[String])
       buildLineResult(query, finalKey)
     }).toList
     ReportLineResult.buildCsv("Standards", lineResults)
@@ -104,8 +133,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * @return
    */
   def buildContributorReport: String = {
-
-    val mapFn: JSFunction = interpolate(JSFunctions.SimplePropertyMapFnTemplate, Map("property" -> "contributor"))
+    val mapFn: JSFunction = interpolate(JSFunctions.SimplePropertyMapFnTemplate, Map("property" -> "contributorDetails.contributor"))
 
     val cmd = MapReduceCommand(ItemCollection.name, mapFn, JSFunctions.ReduceFn, MapReduceInlineOutput)
     val result: MapReduceResult = ItemCollection.mapReduce(cmd)
@@ -114,7 +142,7 @@ class ReportsService(ItemCollection: MongoCollection,
     val lineResults: List[LineResult] = inlineResult.map((dbo: DBObject) => {
       val query = new BasicDBObject()
       val finalKey = dbo.get("_id").asInstanceOf[String]
-      query.put("contributor", dbo.get("_id").asInstanceOf[String])
+      query.put("contributorDetails.contributor", dbo.get("_id").asInstanceOf[String])
       buildLineResult(query, finalKey)
     }).toList
     ReportLineResult.buildCsv("Contributor", lineResults)
@@ -199,8 +227,11 @@ class ReportsService(ItemCollection: MongoCollection,
   object JSFunctions {
 
     val SimplePropertyMapFnTemplate: JSFunction = """function m() {
+                                          try {
                                           if( this.${property} ){
                                             emit(this.${property}, 1);
+                                          }
+                                          } catch (e) {
                                           }
                                         };"""
 
@@ -232,7 +263,7 @@ class ReportsService(ItemCollection: MongoCollection,
   def buildLineResultFromQuery(query: BasicDBObject, total: Int, key: String): LineResult = {
 
     val itemTypeKeyCounts = ReportLineResult.zeroedKeyCountList(ReportLineResult.ItemTypes)
-    runMapReduceForProperty(itemTypeKeyCounts, "itemType", query)
+    runMapReduceForProperty(itemTypeKeyCounts, "taskInfo.itemType", query)
 
     val gradeLevelKeyCounts = ReportLineResult.zeroedKeyCountList(ReportLineResult.GradeLevel)
     runMapReduceForProperty(gradeLevelKeyCounts, "gradeLevel", query, JSFunctions.ArrayPropertyMapTemplateFn)

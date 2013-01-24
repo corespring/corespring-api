@@ -2,17 +2,11 @@ package reporting.models
 
 object ReportLineResult {
 
-
-  //TODO - These should really be in the db
-  val ItemTypes: List[String] = "Multiple Choice,True/False,Yes/No,Matching,Ordering,Text with Questions,Multiple True/False,Constructed Response - Short Answer,Constructed Response - Essay,Project,Performance Task,Activity,Other".split(",").toList
-
-  val GradeLevel: List[String] = "PK,KG,01,02,03,04,05,06,07,08,09,10,11,12,13,PS,AP,UG,Other".split(",").toList
-
-  val PriorUse: List[String] = "Formative,Interim,Benchmark,Summative,Other".split(",").toList
-
-  val LicenseType: List[String] = "CC BY,CC BY-SA,CC BY-NC,CC BY-ND,CC BY-NC-SA".split(",").toList
-
-  val Credentials: List[String] = "Assessment Developer,Test Item Writer,State Department of Education,District Item Writer,Teacher,Student,School Network,CMO,Other".split(",").toList
+  var ItemTypes: List[String] = List()
+  var GradeLevel: List[String] = List()
+  var PriorUse: List[String] = List()
+  var LicenseType: List[String] = List()
+  var Credentials: List[String] = List()
 
   class KeyCount(var key:String, var count: Int){
     override def toString = key + "," + count

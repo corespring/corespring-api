@@ -3,7 +3,7 @@ package reporting.controllers
 import play.api.Logger
 import controllers.auth.BaseApi
 import reporting.services.ReportsService
-import models.{Standard, Subject, ContentCollection, Item}
+import models._
 
 object Reports extends BaseApi {
 

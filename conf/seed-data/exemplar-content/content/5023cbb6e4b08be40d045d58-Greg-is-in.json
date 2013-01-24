@@ -27,9 +27,6 @@
 		]
 	},
 	"collectionId" : "505777f5e4b05f7845735bc1",
-	"subjects" : {
-		"primary" : { "$oid" : "4ffb535f6bb41e469c0bf2c2" }
-	},
 	"standards" : [ "7.RP.A.3" ],
 	"itemType" : "Constructed Response - Short Answer",
 	"contributorDetails" : {
@@ -50,23 +47,7 @@
 		"standardsAligned" : true,
 		"qaReview" : false
 	},
-	"keySkills" : [
-		"Analyze",
-		"Calculate",
-		"Compare",
-		"Examine",
-		"Apply",
-		"Choose",
-		"Compute",
-		"Explain"
-	],
 	"priorUse" : "Summative",
-	"title" : "Greg is in the market for some computer games and needs help finding the best price for one game and the regular price for another.",
-	"gradeLevel" : [
-		"07",
-		"08",
-		"09"
-	],
 	"reviewsPassed" : [
 		"Editorial",
 		"Bias",
@@ -74,13 +55,9 @@
 		"Content",
 		"Psychometric"
 	],
-	"bloomsTaxonomy" : "Analyzing",
-	"demonstratedKnowledge" : "Procedural",
-	"relatedCurriculum" : "New England Common Assessment Program Released Items",
-	"dateModified" : 1353498114071,
 	"supportingMaterials" : [
 		{
-			"name" : "ScoringGuide",
+			"name" : "Scoring Guide",
 			"files" : [
 				{
 					"_t" : "models.StoredFile",
@@ -147,5 +124,35 @@
 				}
 			]
 		}
-	]
+	],
+
+  "otherAlignments": {
+    "bloomsTaxonomy": "Analyzing",
+    "keySkills": [
+      "Analyze",
+      "Calculate",
+      "Compare",
+      "Examine",
+      "Apply",
+      "Choose",
+      "Compute",
+      "Explain"
+    ],
+    "demonstratedKnowledge": "Procedural",
+    "relatedCurriculum": "New England Common Assessment Program Released Items"
+  },
+  "taskInfo": {
+    "subjects": {
+      "primary": {
+        "$oid": "4ffb535f6bb41e469c0bf2c2"
+      }
+    },
+    "gradeLevel": [
+      "07",
+      "08",
+      "09"
+    ],
+    "title": "Greg is in the market for some computer games and needs help finding the best price for one game and the regular price for another.",
+    "itemType": "Constructed Response - Short Answer"
+  }
 }

@@ -170,7 +170,10 @@ var feedbackFloat = function (QtiUtils) {
                 if (feedback) {
                     scope.feedback = feedback;
 
-                    $(element).tooltip({ title: scope.feedback});
+                    $(element).tooltip({ title: scope.feedback });
+                    setTimeout(function() {
+                        $(element).tooltip('show');
+                    }, 100);
                 }
             });
             scope.feedback = "";

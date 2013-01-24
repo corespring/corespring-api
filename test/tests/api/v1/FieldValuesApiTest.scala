@@ -77,8 +77,6 @@ object FieldValuesApiTest extends Specification {
     "return multiple values with queries" in {
       val options = """{"subject" : { "q" : {"category": "Art"}} }"""
       val call = api.v1.routes.FieldValuesApi.multiple("subject,reviewsPassed", Some(options) )
-      println("call url: " + call.url)
-
       val request = FakeRequest(call.method, call.url)
 
       routeAndCall(request) match {

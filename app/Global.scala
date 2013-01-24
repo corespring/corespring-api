@@ -1,4 +1,4 @@
-import _root_.controllers.S3Service
+import _root_.controllers.{ConcreteS3Service, Log, S3Service}
 import patches.{DbPatches, InitPatch, DbPatch}
 import play.api.mvc.Results._
 import web.controllers.utils.ConfigLoader
@@ -6,6 +6,7 @@ import common.seed.SeedDb._
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import org.bson.types.ObjectId
 import play.api._
+import cache.Cache
 import mvc._
 import mvc.SimpleResult
 import play.api.Play.current
@@ -16,8 +17,6 @@ import play.api.Application
 object Global extends GlobalSettings {
 
   val INIT_DATA: String = "INIT_DATA"
-
-  val h = securesocial.core.providers.utils.RoutesHelper
 
   val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
 
@@ -98,7 +97,7 @@ object Global extends GlobalSettings {
     RegisterJodaTimeConversionHelpers()
 
     val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
-    S3Service.init(amazonProperties)
+    ConcreteS3Service.init(amazonProperties)
 
     val initData = ConfigLoader.get(INIT_DATA).getOrElse("true") == "true"
 

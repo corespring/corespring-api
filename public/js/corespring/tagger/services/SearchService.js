@@ -13,10 +13,10 @@ angular.module('tagger.services').factory('SearchService',
       searchId: 0,
       resultFields: [
         'originId',
-        'title',
-        'primarySubject',
-        'gradeLevel',
-        'itemType',
+        'taskInfo.title',
+        'taskInfo.subjects.primary',
+        'taskInfo.gradeLevel',
+        'taskInfo.itemType',
         'standards',
         'contributorDetails.sourceUrl',
         'contributorDetails.contributor',
@@ -24,13 +24,13 @@ angular.module('tagger.services').factory('SearchService',
         'subjects'],
       searchFields: [
         'originId',
-        'title',
+        'taskInfo.title',
         'standards',
         'contributorDetails.copyright.owner',
         'contributorDetails.contributor',
         'contributorDetails.author'
       ],
-      
+
 
       search: function (searchParams, resultHandler, errorHandler) {
         this.searchParams = searchParams;
@@ -72,9 +72,9 @@ angular.module('tagger.services').factory('SearchService',
                 $rootScope.$broadcast('onNetworkComplete');
               });
             },
-            function onError(data){
+            function onError(data) {
               console.warn("error occurred: " + data);
-              if(errorHandler) errorHandler(data);
+              if (errorHandler) errorHandler(data);
             }
           );
         };
@@ -92,17 +92,31 @@ angular.module('tagger.services').factory('SearchService',
 
         var query = mongoQuery.fuzzyTextQuery(searchParams.searchText, searchFields);
 
-        if (searchParams.exactMatch) {
-          query["workflow.setup"] = searchParams.setup;
-          query["workflow.tagged"] = searchParams.tagged;
-          query["workflow.qaReview"] = searchParams.qaReview;
-          query["workflow.standardsAligned"] = searchParams.standardsAligned;
+        var hasKey = function (element, key) {
+          var foundElement = _.find(element, function (e) {
+            return e.key == key;
+          });
+          return angular.isDefined(foundElement);
+
+        };
+
+        var isExactMatch = searchParams.exactMatch || hasKey(searchParams.statuses, "exactMatch");
+        var isSetup = searchParams.setup || hasKey(searchParams.statuses, "setup");
+        var isTagged = searchParams.tagged || hasKey(searchParams.statuses, "tagged");
+        var isQaReview = searchParams.qaReview || hasKey(searchParams.statuses, "qaReview");
+        var isStandardsAligned = searchParams.standardsAligned || hasKey(searchParams.statuses, "standardsAligned");
+
+        if (isExactMatch) {
+          query["workflow.setup"] = isSetup;
+          query["workflow.tagged"] = isTagged;
+          query["workflow.qaReview"] = isQaReview;
+          query["workflow.standardsAligned"] = isStandardsAligned;
 
         } else {
-          addIfTrue(query, searchParams.setup, "workflow.setup");
-          addIfTrue(query, searchParams.tagged, "workflow.tagged");
-          addIfTrue(query, searchParams.qaReview, "workflow.qaReview");
-          addIfTrue(query, searchParams.standardsAligned, "workflow.standardsAligned");
+          addIfTrue(query, isSetup, "workflow.setup");
+          addIfTrue(query, isTagged, "workflow.tagged");
+          addIfTrue(query, isQaReview, "workflow.qaReview");
+          addIfTrue(query, isStandardsAligned, "workflow.standardsAligned");
         }
 
         /**
@@ -119,9 +133,18 @@ angular.module('tagger.services').factory('SearchService',
 
         if (searchParams.gradeLevel) {
           if (searchParams.gradeLevel.indexOf && searchParams.gradeLevel.length > 0) {
-            query.gradeLevel = inArray(searchParams.gradeLevel, "key");
+            query['taskInfo.gradeLevel'] = inArray(searchParams.gradeLevel, "key");
           } else {
-            query.gradeLevel = searchParams.gradeLevel.key;
+            query['taskInfo.gradeLevel'] = searchParams.gradeLevel.key;
+          }
+        }
+
+        if (searchParams.itemType) {
+          console.log("Item Type: ", searchParams.itemType);
+          if (searchParams.itemType.indexOf && searchParams.itemType.length > 0) {
+            query['taskInfo.itemType'] = inArray(searchParams.itemType, "label");
+          } else {
+            query['taskInfo.itemType'] = searchParams.itemType.label;
           }
         }
 
@@ -132,6 +155,12 @@ angular.module('tagger.services').factory('SearchService',
             query.collectionId = searchParams.collection.id;
           }
         }
+
+        if (searchParams.contributor && searchParams.contributor.indexOf && searchParams.contributor.length > 0) {
+          query["contributorDetails.contributor"] = inArray(searchParams.contributor, "name");
+        }
+
+
         return query;
       },
 

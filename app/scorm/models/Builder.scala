@@ -71,7 +71,7 @@ object Builder {
 
       <item identifier={item.id.toString} identifierref={item.id.toString}>
         <title>
-          {item.title.getOrElse("?")}
+          {item.taskInfo.map( _.title.getOrElse("?"))}
         </title>
         <adlcp:dataFromLMS>
           {ItemLaunchData(item, config)}

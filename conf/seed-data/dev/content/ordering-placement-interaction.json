@@ -1,20 +1,22 @@
 {
-    "_id" : {
-        "$oid" : "5069a57130044a896c863f22"
+    "_id": {
+        "$oid": "5069a57130044a896c863f22"
     },
     "data": {
-        "name":"qti.xml",
-        "files":[
+        "name": "qti.xml",
+        "files": [
             {
-                "_t" : "models.VirtualFile",
-                "name" : "qti.xml",
-                "contentType":"text/xml",
-                "isMain":true,
+                "_t": "models.VirtualFile",
+                "name": "qti.xml",
+                "contentType": "text/xml",
+                "isMain": true,
                 "content": "$[interpolate{conf/qti/orderering-placement-interaction.xml}]"
             }
         ]
     },
-    "title":"Ordered Interaction only",
-    "collectionId":"5001b9b9e4b035d491c268c3",
-    "contentType":"item"
+    "collectionId": "5001b9b9e4b035d491c268c3",
+    "contentType": "item",
+    "taskInfo": {
+        "title": "Ordered Interaction only"
+    }
 }

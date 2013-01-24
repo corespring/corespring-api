@@ -17,7 +17,7 @@ object ExampleContent extends Controller {
   def items(q: Option[String]) = Action {
     request =>
       def applyQuery(dbquery:MongoDBObject):Result = {
-        val items = Item.find(dbquery,MongoDBObject("title" -> 1, "itemType" -> 1, "subjects" -> 1, "gradeLevel" -> 1, "standards" -> 1, "contributorDetails" -> 1))
+        val items = Item.find(dbquery,MongoDBObject("taskInfo.title" -> 1, "taskInfo.itemType" -> 1, "taskInfo.subjects" -> 1, "taskInfo.gradeLevel" -> 1, "standards" -> 1, "contributorDetails" -> 1))
         Ok(JsArray(Utils.toSeq(items).map(Json.toJson(_))))
       }
       ContentCollection.findOne(MongoDBObject(ContentCollection.name -> EXAMPLE_CONTENT_COLLECTION_NAME)) match {

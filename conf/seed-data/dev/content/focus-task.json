@@ -1,17 +1,21 @@
 {
-    "_id" : { "$oid" : "506c9fad1012d22b21788987" },
-    "data": {
-         "name":"qti.xml",
-         "files":[
-             {
-                 "_t" : "models.VirtualFile",
-                 "name" : "qti.xml",
-                 "contentType":"text/xml",
-                 "isMain":true,
-                 "content": "$[interpolate{conf/qti/focus-task.xml}]"
-             }
-         ]
+    "_id": {
+        "$oid": "506c9fad1012d22b21788987"
     },
-    "title":"Focus Task",
-    "collectionId":"5001b9b9e4b035d491c268c3"
+    "data": {
+        "name": "qti.xml",
+        "files": [
+            {
+                "_t": "models.VirtualFile",
+                "name": "qti.xml",
+                "contentType": "text/xml",
+                "isMain": true,
+                "content": "$[interpolate{conf/qti/focus-task.xml}]"
+            }
+        ]
+    },
+    "collectionId": "5001b9b9e4b035d491c268c3",
+    "taskInfo": {
+        "title": "Focus Task"
+    }
 }

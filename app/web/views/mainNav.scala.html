@@ -8,20 +8,7 @@
 
 
             @if( username != "" && username != null){
-            <span class="nav">
-                <li class="dropdown">
-                    <a href="#"
-                       data-toggle="dropdown"
-                       class="dropdown-toggle">Create Item <b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="#/new">Blank item</a></li>
-                        @templates.map{ template =>
-                        <li><a href="#/new/@template.code">@template.label</a></li>
-                        }
-                    </ul>
-                </li>
-            </span>
-                
+
                 <span class="pull-right" style="padding-left: 10px; padding-top: 10px;">hi @username&nbsp;
                     <a class="logout-icon" title="logout" href="@securesocial.controllers.routes.LoginPage.logout()"><i class="icon-share icon-white"></i></a>
                     <a href="/reports">Reports</a>
@@ -51,7 +38,24 @@
                         <a class="cs-icon-link" ng-show="pagerText" style="float:left;" ng-click="next()" ><i class="icon-white icon-arrow-right"></i></a>
                     </li>
                 </ul>
+
+                <span class="nav pull-right">
+                    <li class="dropdown">
+                        <a href="#"
+                        data-toggle="dropdown"
+                        class="dropdown-toggle">Create Item <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#/new">Blank item</a></li>
+                            @templates.map{ template =>
+                                <li><a href="#/new/@template.code">@template.label</a></li>
+                            }
+                        </ul>
+                    </li>
+                </span>
+
             }
+
+
 
 
         </div>
