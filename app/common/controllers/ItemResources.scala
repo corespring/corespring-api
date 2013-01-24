@@ -5,7 +5,7 @@ import models._
 import play.api.mvc.{Result, AnyContent, Request, Action}
 import org.bson.types.ObjectId
 import scala.Some
-import controllers.S3Service
+import controllers.{ConcreteS3Service, S3Service}
 import web.controllers.utils.ConfigLoader
 import xml.Elem
 import controllers.auth.Permission
@@ -53,7 +53,7 @@ trait ItemResources {
             Ok(text).withHeaders((ContentType, vFile.contentType))
           }
           case sFile: StoredFile => {
-            S3Service.download(AMAZON_ASSETS_BUCKET, sFile.storageKey, Some(request.headers))
+            ConcreteS3Service.download(AMAZON_ASSETS_BUCKET, sFile.storageKey, Some(request.headers))
           }
         }
       }

@@ -1,4 +1,4 @@
-import _root_.controllers.{Log, S3Service}
+import _root_.controllers.{ConcreteS3Service, Log, S3Service}
 import patches.{DbPatches, InitPatch, DbPatch}
 import play.api.mvc.Results._
 import web.controllers.utils.ConfigLoader
@@ -97,7 +97,7 @@ object Global extends GlobalSettings {
     RegisterJodaTimeConversionHelpers()
 
     val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
-    S3Service.init(amazonProperties)
+    ConcreteS3Service.init(amazonProperties)
 
     val initData = ConfigLoader.get(INIT_DATA).getOrElse("true") == "true"
 

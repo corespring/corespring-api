@@ -4,7 +4,7 @@ import play.api.mvc._
 import controllers.auth.BaseApi
 import models._
 import org.bson.types.ObjectId
-import controllers.S3Service
+import controllers.{ConcreteS3Service, S3Service}
 import com.typesafe.config.ConfigFactory
 import play.api.libs.json.Json._
 import api.ApiError
@@ -13,7 +13,7 @@ import scala.Some
 import com.mongodb.casbah.commons.MongoDBObject
 import play.Logger
 
-object ResourceApi extends BaseApi {
+class ResourceApi(s3service:S3Service) extends BaseApi {
 
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
@@ -48,26 +48,26 @@ object ResourceApi extends BaseApi {
                   itemId: String,
                   additionalChecks: Seq[Item => Option[ApiError]],
                   p: BodyParser[A])(
-    action: ItemRequest[A] => Result
-    ) = ApiAction(p) { request =>
-      objectId(itemId) match {
-        case Some(validId) => {
-          Item.findOneById(validId) match {
-            case Some(item) => {
-              val errors: Seq[ApiError] = additionalChecks.flatMap(_(item))
-              if (errors.length == 0) {
-                action(ItemRequest(item, request))
-              }
-              else {
-                //TODO: Only returning the first error
-                NotFound(toJson(errors(0)))
-              }
+                  action: ItemRequest[A] => Result
+                  ) = ApiAction(p) { request =>
+    objectId(itemId) match {
+      case Some(validId) => {
+        Item.findOneById(validId) match {
+          case Some(item) => {
+            val errors: Seq[ApiError] = additionalChecks.flatMap(_(item))
+            if (errors.length == 0) {
+              action(ItemRequest(item, request))
             }
-            case _ => NotFound
+            else {
+              //TODO: Only returning the first error
+              NotFound(toJson(errors(0)))
+            }
           }
+          case _ => NotFound
         }
-        case _ => NotFound
       }
+      case _ => NotFound
+    }
   }
 
   /**
@@ -92,7 +92,7 @@ object ResourceApi extends BaseApi {
       case Some(f) => {
         resource.files = resource.files.filterNot(_.name == filename)
         f match {
-          case StoredFile(_,_,_,key) => S3Service.delete(AMAZON_ASSETS_BUCKET,key)
+          case StoredFile(_,_,_,key) => s3service.delete(AMAZON_ASSETS_BUCKET,key)
           case _ => //do nothing
         }
         Item.save(item)
@@ -295,13 +295,13 @@ object ResourceApi extends BaseApi {
     HasItem(
       itemId,
       Seq(isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_)),
-      S3Service.s3upload(AMAZON_ASSETS_BUCKET, key(itemId, DATA_PATH, filename)))(
+      s3service.s3upload(AMAZON_ASSETS_BUCKET, key(itemId, DATA_PATH, filename)))(
     {
       request =>
 
         def getDataResource(item:Item) : Resource = item.data match {
-            case Some(r) => r
-            case _ => item.data = Some(Resource(name = "data", files = Seq())); item.data.get
+          case Some(r) => r
+          case _ => item.data = Some(Resource(name = "data", files = Seq())); item.data.get
         }
         request.item
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
@@ -334,7 +334,7 @@ object ResourceApi extends BaseApi {
         canFindResource(materialName)(_),
         isFilenameTaken(filename, materialName)(_)
       ),
-      S3Service.s3upload(AMAZON_ASSETS_BUCKET, storageKey(itemId, materialName, filename)))(
+      s3service.s3upload(AMAZON_ASSETS_BUCKET, storageKey(itemId, materialName, filename)))(
     {
       request =>
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
@@ -358,46 +358,46 @@ object ResourceApi extends BaseApi {
   })
 
   def createSupportingMaterialWithFile(itemId: String, name: String, filename: String) = {
-      val s3Key = storageKey(itemId, name, filename)
-      HasItem(itemId,Seq(), S3Service.s3upload(AMAZON_ASSETS_BUCKET, s3Key))(
-      {
-        request =>
-          val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-          item.supportingMaterials.find(_.name == name) match {
-            case Some(foundResource) => NotAcceptable(toJson(ApiError.ResourceNameTaken))
-            case _ => {
-              val file = new StoredFile(filename, contentType(filename), true, s3Key)
-              val resource = Resource(name, Seq(file))
-              item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
-              Item.save(item)
-              Ok(toJson(resource))
-            }
-          }
-      })
-    }
-
-    def createSupportingMaterial(itemId: String) = HasItem(itemId,Seq(), Action { request  =>
-
-      request.body.asJson match {
-        case Some(json) => {
-          json.asOpt[Resource] match {
-            case Some(foundResource) => {
-              val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-              isResourceNameTaken(foundResource.name)(item) match {
-                case Some(error) => NotAcceptable(toJson(error))
-                case _ => {
-                  item.supportingMaterials = item.supportingMaterials ++ Seq[Resource](foundResource)
-                  Item.save(item)
-                  Ok(toJson(foundResource))
-                }
-              }
-            }
-            case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
+    val s3Key = storageKey(itemId, name, filename)
+    HasItem(itemId,Seq(), s3service.s3upload(AMAZON_ASSETS_BUCKET, s3Key))(
+    {
+      request =>
+        val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+        item.supportingMaterials.find(_.name == name) match {
+          case Some(foundResource) => NotAcceptable(toJson(ApiError.ResourceNameTaken))
+          case _ => {
+            val file = new StoredFile(filename, contentType(filename), true, s3Key)
+            val resource = Resource(name, Seq(file))
+            item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
+            Item.save(item)
+            Ok(toJson(resource))
           }
         }
-        case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
-      }
     })
+  }
+
+  def createSupportingMaterial(itemId: String) = HasItem(itemId,Seq(), Action { request  =>
+
+    request.body.asJson match {
+      case Some(json) => {
+        json.asOpt[Resource] match {
+          case Some(foundResource) => {
+            val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+            isResourceNameTaken(foundResource.name)(item) match {
+              case Some(error) => NotAcceptable(toJson(error))
+              case _ => {
+                item.supportingMaterials = item.supportingMaterials ++ Seq[Resource](foundResource)
+                Item.save(item)
+                Ok(toJson(foundResource))
+              }
+            }
+          }
+          case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
+        }
+      }
+      case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
+    }
+  })
 
   def deleteSupportingMaterial(itemId: String, resourceName: String) = HasItem(itemId,
     Seq(canFindResource(resourceName)(_)),
@@ -477,4 +477,8 @@ object ResourceApi extends BaseApi {
       case _ => None
     }
   }
+}
+
+object ResourceApi extends api.v1.ResourceApi(ConcreteS3Service) {
+
 }
