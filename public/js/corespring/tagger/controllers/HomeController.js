@@ -78,6 +78,9 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
   $scope.search = function () {
     SearchService.search($scope.searchParams, function (res) {
       $rootScope.items = res;
+      setTimeout(function () {
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+      }, 200);
     });
   };
 
