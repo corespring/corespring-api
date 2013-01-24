@@ -11,7 +11,7 @@ class ItemQueryTest extends BaseTest{
 
   "filter search for author in contributorDetails" in {
     val author = "New England Common Assessment Program"
-    val call:Call = api.v1.routes.ItemApi.list(q = Some("{author:\""+author+"\"}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{author:\""+author+"\"}"), f = Some("{author:1}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = routeAndCall(request).get
     status(result) must equalTo(OK)
@@ -38,10 +38,10 @@ class ItemQueryTest extends BaseTest{
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
       case JsArray(jsobjects) => {
-        jsobjects.size must beGreaterThanOrEqualTo(3)
+        jsobjects.size must beGreaterThanOrEqualTo(1)
         jsobjects.forall(jsobj => {
           (jsobj \ "gradeLevel") match {
-            case JsArray(jsGradeLevel) => jsGradeLevel.contains(JsString("02"))
+            case JsArray(jsGradeLevel) => jsGradeLevel.contains(JsString("02")) && jsGradeLevel.contains(JsString("04"))
             case _ => false
           }
         })
@@ -59,10 +59,13 @@ class ItemQueryTest extends BaseTest{
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
       case JsArray(jsobjects) => {
-        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.size must beGreaterThanOrEqualTo(5)
         jsobjects.forall(jsobj => {
           (jsobj \ "standards") match {
-            case JsObject(props) => props.contains("subCategory" -> JsString(subCategory))
+            case JsArray(standards) => standards.exists(_ match {
+              case JsObject(props) => props.contains("subCategory" -> JsString(subCategory))
+              case _ => false
+            })
             case _ => false
           }
         })

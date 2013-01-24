@@ -118,6 +118,7 @@ object ItemSearch extends Searchable{
           case key if key == Item.standards+"."+Standard.guid =>formatQuery(Standard.guid,field._2,searchobj)
           case key if key == Item.standards+"."+Standard.Subject =>formatQuery(Standard.Subject,field._2,searchobj)
           case key if key == Item.standards+"."+Standard.Category => formatQuery(Standard.Category,field._2,searchobj)
+          case key if key == Item.standards+"."+Standard.SubCategory => formatQuery(Standard.SubCategory,field._2,searchobj)
           case _ => Right(searchobj)
         }
         case Left(sc) => Left(sc)
@@ -127,8 +128,7 @@ object ItemSearch extends Searchable{
         val standards = Utils.toSeq(Standard.find(searchobj)).map(_.dotNotation)
         if (standards.nonEmpty) {
           Right(MongoDBObject(Item.standards -> MongoDBObject("$in" -> standards)))
-        }
-        else Left(SearchCancelled(None))
+        }else Left(SearchCancelled(None))
       }else Right(MongoDBObject())
       case Left(sc) => Left(sc)
     }
