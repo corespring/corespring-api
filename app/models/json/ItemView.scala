@@ -25,6 +25,7 @@ case class ItemView(item:Item, searchFields:Option[SearchFields])
 object ItemView{
   implicit object ItemViewWrites extends Writes[ItemView]{
     def writes(itemView:ItemView) = {
+      itemView.searchFields.foreach(_.addDbFieldsToJsFields)
 
       def checkFields(key:String):Boolean = {
         if (itemView.searchFields.isDefined){

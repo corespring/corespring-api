@@ -55,16 +55,16 @@ object ItemApi extends BaseApi {
       }
 
       queryResult match {
-        case Right(dbobj) => fieldResult match {
+        case Right(query) => fieldResult match {
           case Right(searchFields) => {
             if(c == "true"){
-              val count = Item.find(dbobj).count
+              val count = Item.find(query).count
               Ok(toJson(JsObject(Seq("count" -> JsNumber(count)))))
             }else{
               cleanDbFields(searchFields,isLoggedIn)
               val optitems:Either[InternalError,SalatMongoCursor[Item]] = sort.map(ItemSearch.toSortObj(_)) match {
-                case Some(Right(sortField)) => Right(Item.find(dbobj,searchFields.dbfields).sort(sortField))
-                case None => Right(Item.find(dbobj,searchFields.dbfields))
+                case Some(Right(sortField)) => Right(Item.find(query,searchFields.dbfields).sort(sortField).skip(sk).limit(l))
+                case None => Right(Item.find(query,searchFields.dbfields).skip(sk).limit(l))
                 case Some(Left(error)) => Left(error)
               }
               optitems match {
@@ -86,7 +86,7 @@ object ItemApi extends BaseApi {
     }else Ok(toJson(JsObject(Seq())))
   }
   private def cleanDbFields(searchFields:SearchFields, isLoggedIn:Boolean, extraFields:Seq[String] = summaryFields) = {
-    if(!isLoggedIn){
+    if(!isLoggedIn && searchFields.dbfields.isEmpty){
       extraFields.foreach(extraField =>
         searchFields.dbfields = searchFields.dbfields ++ MongoDBObject(extraField -> searchFields.method)
       )

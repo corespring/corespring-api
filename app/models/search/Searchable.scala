@@ -39,6 +39,10 @@ case class SearchCancelled(error:Option[InternalError])
 case class SearchFields(var dbfields:MongoDBObject = MongoDBObject(), var jsfields:Seq[String] = Seq(), method:Int){
   val inclusion = method == 1
   val exclusion = method == 0
+
+  def addDbFieldsToJsFields = {
+    dbfields.foreach(field => if (!jsfields.contains(field._1)) jsfields = jsfields :+ field._1)
+  }
 }
 
 
