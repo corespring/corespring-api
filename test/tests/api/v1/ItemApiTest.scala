@@ -22,11 +22,12 @@ import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
 import controllers.auth.Permission
 import org.joda.time.DateTime
+import org.specs2.mock.Mockito
 import api.v1.ItemApi
 
-class ItemApiTest extends BaseTest {
+class ItemApiTest extends BaseTest with Mockito {
 
-//  val mockS3service = mock[S3Service]
+  val mockS3service = mock[S3Service]
 
   val TEST_COLLECTION_ID: String = "5001bb0ee4b0d7c9ec3210a2"
   //val OTHER_TEST_COLLECTION_ID: String = "5001a66ce4b0d7c9ec320f2e"
@@ -285,12 +286,12 @@ class ItemApiTest extends BaseTest {
     feedback
   }
 
-//  "clone item" in {
-//    val itemApi = new ItemApi(mockS3service)
-//    val id = "50083ba9e4b071cb5ef79101"
-//    val fakeRequest = FakeRequest(POST, "/api/v1/items/%s?access_token=%s".format(id, token))
-//    val result = itemApi.cloneItem(new ObjectId(id))(fakeRequest)
-//    there was atLeastTwo(mockS3service).cloneFile(anyString, anyString, anyString)
-//  }
+  "clone item" in {
+    val itemApi = new ItemApi(mockS3service)
+    val id = "50083ba9e4b071cb5ef79101"
+    val fakeRequest = FakeRequest(POST, "/api/v1/items/%s?access_token=%s".format(id, token))
+    val result = itemApi.cloneItem(new ObjectId(id))(fakeRequest)
+    there was atLeastTwo(mockS3service).cloneFile(anyString, anyString, anyString)
+  }
 
 }
