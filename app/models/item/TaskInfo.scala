@@ -13,10 +13,12 @@ case class TaskInfo(
 
 object TaskInfo extends ValueGetter {
 
+
   object Keys {
     val title = "title"
     val gradeLevel = "gradeLevel"
     val itemType = "itemType"
+    val subjects = "subjects"
   }
 
   implicit object Writes extends Writes[TaskInfo] {

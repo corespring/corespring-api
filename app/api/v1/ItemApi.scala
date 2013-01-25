@@ -77,7 +77,6 @@ class ItemApi(s3service:S3Service) extends BaseApi {
                 case Left(error) => BadRequest(toJson(ApiError.InvalidSort(error.clientOutput)))
               }
             }
-            case _ => Some(enforcedQuery)
           }
           case Left(error) => BadRequest(toJson(ApiError.InvalidFields(error.clientOutput)))
         }
@@ -88,6 +87,7 @@ class ItemApi(s3service:S3Service) extends BaseApi {
       }
     }else Ok(toJson(JsObject(Seq())))
   }
+
   private def cleanDbFields(searchFields:SearchFields, isLoggedIn:Boolean, extraFields:Seq[String] = summaryFields) = {
     if(!isLoggedIn && searchFields.dbfields.isEmpty){
       extraFields.foreach(extraField =>

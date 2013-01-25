@@ -81,6 +81,7 @@ object Item extends ModelCompanion[Item,ObjectId]{
   val subjects = "subjects"
   val primarySubject = "primarySubject"
   val relatedSubject = "relatedSubject"
+  val taskInfo = "taskInfo"
   val pValue = "pValue"
   val priorUse = "priorUse"
   val reviewsPassed = "reviewsPassed"
@@ -94,6 +95,7 @@ object Item extends ModelCompanion[Item,ObjectId]{
   val bloomsTaxonomy = "bloomsTaxonomy"
   val workflow = "workflow"
   val dateModified = "dateModified"
+  val otherAlignments = "otherAlignments"
 
   lazy val fieldValues = FieldValue.current
   implicit object ItemWrites extends Writes[Item] {
