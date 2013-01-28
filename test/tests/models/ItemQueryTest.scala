@@ -183,11 +183,44 @@ class ItemQueryTest extends BaseTest{
     }
     jsonSuccess must beTrue
   }
-  "filtering by supportingMaterials or data results in error" in {
-    pending
+  "filtering by supportingMaterials results in error" in {
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{supportingMaterials.name:meh}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(BAD_REQUEST)
+  }
+  "filtering by data results in error" in {
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{data.name:meh}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(BAD_REQUEST)
   }
   "filter items based on a set of subjects using $in" in {
-    pending
+    val category1 = "Mathematics"
+    val category2 = "English Language Arts"
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{primarySubject.category:{$in : [\""+category1+"\",\""+category2+"\"]}}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(OK)
+    val json = Json.parse(contentAsString(result))
+    val jsonSuccess = json match {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(2)
+        jsobjects.exists(jsobj => {
+          (jsobj \ "primarySubject") match {
+            case JsObject(props) => props.contains("category" -> JsString(category1))
+            case _ => false
+          }
+        }) && jsobjects.exists(jsobj => {
+          (jsobj \ "primarySubject") match {
+            case JsObject(props) => props.contains("category" -> JsString(category2))
+            case _ => false
+          }
+        })
+      }
+      case _ => false
+    }
+    jsonSuccess must beTrue
   }
   "filter items that are not included in a certain collection using $ne" in {
     pending
