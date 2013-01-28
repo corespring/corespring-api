@@ -67,7 +67,7 @@ case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleC
 
 object FocusTaskInteraction extends InteractionCompanion[FocusTaskInteraction] {
 
-  def interactionLabel: String = "focusTaskInteraction"
+  def tagName: String = "focusTaskInteraction"
 
   def apply(interaction: Node, itemBody: Option[Node]): FocusTaskInteraction = {
 

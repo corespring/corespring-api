@@ -12,7 +12,7 @@ case class ExtendedTextInteraction(responseIdentifier: String) extends Interacti
 }
 
 object ExtendedTextInteraction extends InteractionCompanion[ExtendedTextInteraction]{
-  def interactionLabel = "extendedTextInteraction"
+  def tagName = "extendedTextInteraction"
   def apply(node: Node, itemBody:Option[Node]): ExtendedTextInteraction = {
     val responseIdentifier = Interaction.responseIdentifier(node)
     ExtendedTextInteraction(responseIdentifier = responseIdentifier)

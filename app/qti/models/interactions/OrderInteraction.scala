@@ -43,7 +43,7 @@ case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoic
 }
 
 object OrderInteraction extends InteractionCompanion[OrderInteraction]{
-  def interactionLabel = "orderInteraction"
+  def tagName = "orderInteraction"
   def apply(node: Node, itemBody:Option[Node]): OrderInteraction = OrderInteraction(
     (node \ "@responseIdentifier").text,
     (node \ "simpleChoice").map(SimpleChoice(_, (node \ "@responseIdentifier").text))

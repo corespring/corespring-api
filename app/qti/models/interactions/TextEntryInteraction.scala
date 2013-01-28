@@ -46,7 +46,7 @@ case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int,
 
 object TextEntryInteraction extends InteractionCompanion[TextEntryInteraction]{
 
-  def interactionLabel = "textEntryInteraction"
+  def tagName = "textEntryInteraction"
 
   def apply(node: Node, itemBody:Option[Node]): TextEntryInteraction = {
     val responseIdentifier = Interaction.responseIdentifier(node)

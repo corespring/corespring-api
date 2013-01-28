@@ -73,7 +73,7 @@ case class SelectTextInteraction(responseIdentifier: String, selectionType: Stri
 
 object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction] {
 
-  def interactionLabel = "selectTextInteraction"
+  def tagName = "selectTextInteraction"
 
   def apply(node: Node, itemBody: Option[Node]): SelectTextInteraction = {
 

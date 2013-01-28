@@ -30,7 +30,7 @@ case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[Inli
 }
 
 object InlineChoiceInteraction extends InteractionCompanion[InlineChoiceInteraction]{
-  def interactionLabel: String = "inlineChoiceInteraction"
+  def tagName: String = "inlineChoiceInteraction"
   def apply(interaction: Node, itemBody:Option[Node]): InlineChoiceInteraction = InlineChoiceInteraction(
     (interaction \ "@responseIdentifier").text,
     (interaction \ "inlineChoice").map(InlineChoice(_, (interaction \ "@responseIdentifier").text))

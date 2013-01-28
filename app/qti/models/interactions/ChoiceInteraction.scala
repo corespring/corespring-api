@@ -49,14 +49,14 @@ case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoi
 
 object ChoiceInteraction extends InteractionCompanion[ChoiceInteraction]{
 
-  def interactionLabel = "choiceInteraction"
+  def tagName = "choiceInteraction"
 
   def apply(interaction: Node, itemBody: Option[Node]): ChoiceInteraction = ChoiceInteraction(
     (interaction \ "@responseIdentifier").text,
     (interaction \ "simpleChoice").map(SimpleChoice(_, (interaction \ "@responseIdentifier").text))
   )
   def parse(itemBody:Node):Seq[Interaction] = {
-    val interactions = (itemBody \\ interactionLabel)
+    val interactions = (itemBody \\ tagName)
     if (interactions.isEmpty){
       Seq()
     }else{

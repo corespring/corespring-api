@@ -18,12 +18,12 @@ trait Interaction {
 }
 
 trait InteractionCompanion[T <: Interaction] {
-  def interactionLabel: String
+  def tagName: String
   def apply(interaction: Node, itemBody: Option[Node]): T
   def parse(itemBody: Node): Seq[Interaction]
-  def interactionMatch(e: Elem): Boolean = e.label == interactionLabel
+  def interactionMatch(e: Elem): Boolean = e.label == tagName
   def preProcessXml(interactionXml: Elem): NodeSeq = interactionXml
-  def getHeadHtml(toPrint:Boolean):String = InteractionHelper.getHeadHtml(interactionLabel, toPrint)
+  def getHeadHtml(toPrint:Boolean):String = InteractionHelper.getHeadHtml(tagName, toPrint)
 }
 
 object Interaction {
