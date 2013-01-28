@@ -5,6 +5,7 @@ import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.libs.json.{JsObject, JsString, JsArray, Json}
+import controllers.Log
 
 
 class ItemQueryTest extends BaseTest{
@@ -75,16 +76,112 @@ class ItemQueryTest extends BaseTest{
     jsonSuccess must beTrue
   }
   "filter search by subjects" in {
-    pending
+    val primarySubjectCategory = "Mathematics"
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{primarySubject.category:\""+primarySubjectCategory+"\"}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(OK)
+    val json = Json.parse(contentAsString(result))
+    val jsonSuccess = json match {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(2)
+        jsobjects.forall(jsobj => {
+          (jsobj \ "primarySubject") match {
+            case JsObject(props) => props.contains("category" -> JsString(primarySubjectCategory))
+            case _ => false
+          }
+        })
+      }
+      case _ => false
+    }
+    jsonSuccess must beTrue
   }
   "use regex to filter search by title" in {
-    pending
+    val title = "DEV"
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{title:{$regex:\""+title+"\"}}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(OK)
+    val json = Json.parse(contentAsString(result))
+    val jsonSuccess = json match {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(2)
+        jsobjects.forall(jsobj => {
+          (jsobj \ "title") match {
+            case JsString(jstitle) => jstitle.indexOf(title) != -1
+            case _ => false
+          }
+        })
+      }
+      case _ => false
+    }
+    jsonSuccess must beTrue
   }
-  "filter search by lexile AND originId" in {
-    pending
+  "filter search by gradeLevel AND title" in {
+    val title = "DEV"
+    val itemType = "Multiple Choice"
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{title:{$regex:\""+title+"\"},itemType:\""+itemType+"\"}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(OK)
+    val json = Json.parse(contentAsString(result))
+    val jsonSuccess = json match {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
+          ((jsobj \ "title") match {
+            case JsString(jstitle) => jstitle.indexOf(title) != -1
+            case _ => false
+          }) && ((jsobj \ "itemType") match {
+            case JsString(jsitemType) => jsitemType == itemType
+            case _ => false
+          })
+        })
+      }
+      case _ => false
+    }
+    jsonSuccess must beTrue
   }
   "filter search by title OR primarySubject OR gradeLevel OR itemType OR standards.dotNotation OR contributorDetails.author" in  {
-    pending
+    val primarySubjectCategory = "Mathematics"
+    val title = "DEV"
+    val gradeLevel = "02"
+    val itemType = "Multiple Choice"
+    val standardsDotNotation = "RI.3.1"
+    val author = "New England Common Assessment Program"
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{\"$or\":[{primarySubject.category:\""+primarySubjectCategory+"\"},{title:{$regex:\""+title+"\"}},{gradeLevel:\""+gradeLevel+"\"},{itemType:\""+itemType+"\"},{standards.dotNotation:\""+standardsDotNotation+"\"},{author:\""+author+"\"}]}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(OK)
+    val json = Json.parse(contentAsString(result))
+    val jsonSuccess = json match {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(5)
+        jsobjects.forall(jsobj => {
+          ((jsobj \ "primarySubject") match {
+            case JsObject(props) => props.contains("category" -> JsString(primarySubjectCategory))
+            case _ => false
+          }) || ((jsobj \ "title") match {
+            case JsString(jstitle) => jstitle.contains(title)
+            case _ => false
+          }) || ((jsobj \ "gradeLevel") match {
+            case JsArray(jsgrades) => jsgrades.exists(jsgrade => jsgrade.as[String] == gradeLevel)
+            case _ => false
+          }) || ((jsobj \ "itemType") match {
+            case JsString(jsitemType) => jsitemType == itemType
+            case _ => false
+          }) || ((jsobj \ "standards") match {
+            case JsObject(props) => props.contains("dotNotation" -> JsString(standardsDotNotation))
+            case _ => false
+          }) || ((jsobj \ "author") match {
+            case JsString(jsauthor) => jsauthor == author
+            case _ => false
+          })
+        })
+      }
+      case _ => false
+    }
+    jsonSuccess must beTrue
   }
   "filtering by supportingMaterials or data results in error" in {
     pending

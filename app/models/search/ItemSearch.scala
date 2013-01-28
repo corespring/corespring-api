@@ -78,7 +78,8 @@ object ItemSearch extends Searchable{
     }) match {
       case Right(searchobj) => if (searchobj.nonEmpty){
         val subjects = Utils.toSeq(Subject.find(searchobj)).map(_.id)
-        if (subjects.nonEmpty) Right(MongoDBObject(Item.subjects+"."+Subjects.Keys.primary -> MongoDBObject("$in" -> subjects)))
+        if (subjects.size > 1) Right(MongoDBObject(Item.taskInfo+"."+TaskInfo.Keys.subjects+"."+Subjects.Keys.primary -> MongoDBObject("$in" -> subjects)))
+        else if (subjects.size == 1) Right(MongoDBObject(Item.taskInfo+"."+TaskInfo.Keys.subjects+"."+Subjects.Keys.primary -> subjects.head))
         else Left(SearchCancelled(None))
       } else Right(MongoDBObject())
       case Left(sc) => Left(sc)
@@ -96,8 +97,9 @@ object ItemSearch extends Searchable{
       }
     }) match {
       case Right(searchobj) => if (searchobj.nonEmpty){
-        val subjects = Utils.toSeq(Subject.find(searchobj)).map(_.id)
-        if (subjects.nonEmpty) Right(MongoDBObject(Item.subjects+"."+Subjects.Keys.related -> MongoDBObject("$in" -> subjects)))
+        val subjects:Seq[ObjectId] = Utils.toSeq(Subject.find(searchobj)).map(_.id)
+        if (subjects.size > 1) Right(MongoDBObject(Item.taskInfo+"."+TaskInfo.Keys.subjects+"."+Subjects.Keys.related -> MongoDBObject("$in" -> subjects)))
+        else if (subjects.size == 1) Right(MongoDBObject(Item.taskInfo+"."+TaskInfo.Keys.subjects+"."+Subjects.Keys.related -> subjects.head))
         else Left(SearchCancelled(None))
       } else Right(MongoDBObject())
       case Left(sc) => Left(sc)
@@ -125,9 +127,10 @@ object ItemSearch extends Searchable{
       }
     }) match {
       case Right(searchobj) => if (searchobj.nonEmpty){
-        val standards = Utils.toSeq(Standard.find(searchobj)).map(_.dotNotation)
+        val standards:Seq[String] = Utils.toSeq(Standard.find(searchobj)).map(_.dotNotation).flatten
         if (standards.nonEmpty) {
-          Right(MongoDBObject(Item.standards -> MongoDBObject("$in" -> standards)))
+          if(standards.size == 1) Right(MongoDBObject(Item.standards -> standards.head))
+          else Right(MongoDBObject(Item.standards -> MongoDBObject("$in" -> standards)))
         }else Left(SearchCancelled(None))
       }else Right(MongoDBObject())
       case Left(sc) => Left(sc)

@@ -130,7 +130,7 @@ trait Searchable {
 
   protected final def formatQuery(key:String,value:AnyRef,searchobj:MongoDBObject):Either[SearchCancelled,MongoDBObject] = {
     value match {
-      case value if value.isInstanceOf[String] || value.isInstanceOf[Boolean] => Right(searchobj += key -> value)
+      case value if value.isInstanceOf[String] || value.isInstanceOf[Boolean] || value.isInstanceOf[Pattern]=> Right(searchobj += key -> value)
       case dbobj:BasicDBObject => formatSpecOp(dbobj) match {
         case Right(newvalue) => Right(searchobj += key -> newvalue)
       }
@@ -147,8 +147,6 @@ trait Searchable {
           else Left(InternalError("$nin did not contain an array of elements",addMessageToClientOutput = true))
         case "$exists" => if(value.isInstanceOf[Boolean]) Right(MongoDBObject(key -> value))
           else Left(InternalError("$exists did not contain a boolean value",addMessageToClientOutput = true))
-        case "$regex" => if (value.isInstanceOf[String]) Right(Pattern.compile(value.asInstanceOf[String],Pattern.CASE_INSENSITIVE))
-          else Left(InternalError("$regex did not contain a string for pattern matching",addMessageToClientOutput = true))
         case "$ne" => Right(MongoDBObject(key -> value))
         case "$all" => if (value.isInstanceOf[BasicDBList]) Right(MongoDBObject(key -> value))
           else Left(InternalError("$all did not contain an array of elements",addMessageToClientOutput = true))
