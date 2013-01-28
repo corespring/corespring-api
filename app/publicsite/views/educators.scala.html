@@ -47,108 +47,106 @@
 <!--JM ADDED -->
 <div class="container main-wrap">
   <div class="span12 lead-in educator"> <span class="intro-logo"></span>
-    <p>Experts review all items in CoreSpring’s open collections to make sure that content is aligned to common standards and frameworks that guide teaching and learning. Explore samples below.</p>
+    <p> CoreSpring is developing a library of interactions that authors can use to support educators and students reach deeper learning in classrooms. All interactions may include a variety of media and are designed for maximum engagement. When available, examples of student work, scoring guides, and rubrics are presented. We are continuously updating the library.</p>
   </div>
   <!--end of JM ADDITION -->
   <div class="container">
-
-<div class="main" ng-controller="ItemsCtrl">
-            <!--
-            <div class="row">
-                <form class="form-horizontal">
-                    <div class="control-group">
-                     <label class="control-label" for="primary-subject-dropdown" ><strong>Primary Subject</strong></label>
-                        <div class="controls" id="primary-subject-dropdown">
-                            <label class="checkbox inline" style="float:left" ng-repeat="primarySubject in primarySubjects">
-                                <input type="checkbox" defaultChecked="false" ng-click="updatePrimarySubjectSearch(primarySubject)">{{primarySubject.category}}
-                            </label>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label" for="grade-btn-bar"><strong>Grade:</strong></label>
-                        <div class="controls btn-group" id="grade-btn-bar">
-                            <button ng-repeat="grade in grades" class="btn" style="float:left" data-toggle="button" ng-click="updateGradeSearch(grade)">{{grade}}</button>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label" for="item-type-chkbx"><strong>Item Type:</strong></label>
-                        <div class="controls" id="item-type-chkbx">
-                            <label class="checkbox inline" style="float:left" ng-repeat="itemType in itemTypes">
-                                <input type="checkbox" defaultChecked="false" ng-click="updateItemTypeSearch(itemType)">{{itemType}}
-                            </label>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            -->
-            <div class="row">
-                <div class="span2">&nbsp;</div>
-            </div>
-
-<!-- items -->
-
-<div ng-switch on="itemState">
-    <div ng-switch-when="noContent">
-        <div class="row offset4">
-            <h2>No Items Found...</h2>
-        </div>
-        <div class="row offset3">
-            <p class="lead">No items were found with the selected filters. <a href="/public/collection">clear all filters</a></p>
-        </div>
+    <div class="main">
+      <table class="edu-table table table-hover table-striped">
+        <thead>
+          <tr>
+            <th class="edu-th-1">Interaction Type</th>
+            <th class="edu-th-2">Description</th>
+            <th class="edu-th-3">Student Activity</th>
+            <th class="edu-th-4">Scoreable</th>
+            <th class="edu-th-5">PARCC & Smarter Balanced?</th>
+            <th class="edu-th-6">Sample</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Fill in the Blank/Complete the Statement (Inline Choice)</td>
+            <td>Select the best response from a list of options.</td>
+            <td>Choose, Select</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>???</td>
+          </tr>
+          <tr>
+            <td>Multiple, Multiple Choice</td>
+            <td>Select the best responses from a list of options.</td>
+            <td>Organize, Classify</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>???</td>
+          </tr>
+          <tr>
+            <td>Ordering</td>
+            <td>Sequence events or inputs in correct order.</td>
+            <td>Organize, Classify</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>
+                <li><a href="http://www.corespring.org/web/item-preview/504e9571e4b07f3e2e432371">Butterflies</a> </li>
+                <li><a href="http://www.corespring.org/web/item-preview/50324faae4b0383443ab9bce"> Alaskan Temps</a></li>
+               <li><a href="http://www.corespring.org/web/item-preview/50324faae4b0383443ab9bce">The max line length: 35 characters.</a></li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Constructed Response - Short Answer (Right Answer)</td>
+            <td>Respond to a prompt requiring a correct answer.</td>
+            <td>Calculate, Identify, Compute</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a href="http://www.corespring.org/web/item-preview/5023cbb6e4b08be40d045d58">Greg Goes Shopping</a> </li>
+                <li><a href="http://www.corespring.org/web/item-preview/5033daa3e4b02c4aa1428e91">Prize Money</a></li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Constructed Response - Short Answer (Writing)</td>
+            <td>Respond to a prompt in short form.</td>
+            <td>Explain, Show, Describe, Demonstrate</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>???</td>
+          </tr>
+          <tr>
+            <td>Constructed Response - Essay</td>
+            <td>Respond to a prompt in long form.</td>
+            <td>Explain, Show, Describe, Argue, Defend</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>???</td>
+          </tr>
+          <tr>
+            <td>Focus</td>
+            <td>Highlight key concepts to summarize thinking.</td>
+            <td>Choose, Select</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>???</td>
+          </tr>
+          <tr>
+            <td>Projects and Activities</td>
+            <td>Respond to a collection of prompts to demonstrate deeper learning.</td>
+            <td>Plan, Organize, Show, Describe, Demonstrate, Argue, Defend</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>???</td>
+          </tr>
+          <tr>
+            <td>Document Based Questions</td>
+            <td>Examine key artifacts, respond to a collection of prompts to demonstrate learning.</td>
+            <td>Plan, Organize, Show, Describe, Demonstrate, Argue, Defend</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>???</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    <div class="row" ng-switch-when="loading">
-        <div class="offset4 span1"><img src="/assets/images/loadingSpinner.gif" /></div>
-        <div class="span2"><h3>Loading...</h3></div>
-    </div>
-    <div ng-switch-when="hasContent">
-        <div ng-repeat="i in items" style="padding-bottom: 12px;">
-
-            <div class="well item">
-                <table>
-                    <tr>
-                        <td width="45px">Grade:</td>
-                        <td width="238px" class="value">{{i.gradeLevel.join()}}</td>
-                        <td width="40px">CCSS:</td>
-                        <td width="300px" class="value">
-                            <span ng-show="!i.standards || i.length == 0" style="color: #888; font-style: italic;">Not Assigned</span>
-                            <span ng-repeat="s in i.standards" ui-jq="tooltip"
-                                  ui-options="{title: s.standard}">{{s.dotNotation}}&nbsp;</span></td>
-                                <td class="button-cell">
-                                    <!--
-                                    <a class="btn btn-success fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/web/item-preview/{{i.id}}">Profile</a>
-                                     <a class="btn btn-primary fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/testplayer/item/{{i.id}}/run?access_token=34dj45a769j4e1c0h4wb" >Play it!</a>
-                                -->
-                                </td>
-
-                    </tr>
-
-                </table>
-                <a class="fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/web/item-preview/{{i.id}}">
-                    <p class="title" ng-bind-html-unsafe="i.title"></p>
-                </a>
-                <table>
-                    <tr>
-                        <td width="33%">Primary Subject</td>
-                        <td width="33%">Type</td>
-                        <td width="33%">Source</td>
-                    </tr>
-                       <tr>
-                        <td width="auto" class="value">{{getPrimarySubjectLabel(i.primarySubject)}}</td>
-                        <td width="auto" class="value">{{i.itemType}}</td>
-                        <td width="auto" class="value">{{i.contributor}}</td>
-                    </tr>
-
-                </table>
-          
-            </div>
-
-         </div>    
-    </div>
-
-</div>
-<!--main content area (except header,footer) ends -->
-</div>
-</div>
+  </div>
 </div>
 @partials.footer()
 </body>
