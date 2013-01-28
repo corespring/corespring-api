@@ -28,11 +28,14 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
       {label: "QA Review", key: "qaReview"},
       {label: "Exact Match", key: "exactMatch"}
     ];
-
   };
 
-  $scope.getContributorTitle = function (c) {
+  $scope.sortBy = function(field) {
+    $scope.searchParams.sortField = field;
+    $scope.$broadcast("sortingOnField", field);
+  }
 
+  $scope.getContributorTitle = function (c) {
     return c.name;
   };
 
