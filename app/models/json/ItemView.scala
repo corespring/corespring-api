@@ -11,7 +11,7 @@ case class ItemView(item:Item, searchFields:Option[SearchFields])
 object ItemView{
   implicit object ItemViewWrites extends Writes[ItemView]{
     def writes(itemView: ItemView): JsValue = {
-      if(itemView.searchFields.isDefined) itemView.searchFields.get.addDbFieldsToJsFields
+      //if(itemView.searchFields.isDefined) itemView.searchFields.get.addDbFieldsToJsFields
 
       def toJsObject[T](a: Option[T])(implicit w: Writes[T]): Option[JsObject] = a.map(w.writes(_).asInstanceOf[JsObject])
 

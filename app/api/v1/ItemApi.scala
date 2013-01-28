@@ -32,13 +32,15 @@ class ItemApi(s3service:S3Service) extends BaseApi {
 
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
-  val summaryFields: Seq[String] = Seq(Item.collectionId,
-    Item.taskInfo+"."+TaskInfo.Keys.gradeLevel,
-    Item.taskInfo+"."+TaskInfo.Keys.itemType,
-    Item.otherAlignments+"."+Alignments.Keys.keySkills,
-    Item.taskInfo+"."+TaskInfo.Keys.subjects,
+  val dbsummaryFields = Seq(Item.collectionId,Item.taskInfo,Item.otherAlignments,Item.standards)
+  val jssummaryFields: Seq[String] = Seq(Item.collectionId,
+    TaskInfo.Keys.gradeLevel,
+    TaskInfo.Keys.itemType,
+    Alignments.Keys.keySkills,
+    Item.primarySubject,
+    Item.relatedSubject,
     Item.standards,
-    Item.taskInfo+"."+TaskInfo.Keys.title)
+    TaskInfo.Keys.title)
 
   private def count(c: String): Boolean = "true".equalsIgnoreCase(c)
 
@@ -95,10 +97,13 @@ class ItemApi(s3service:S3Service) extends BaseApi {
     }else Ok(toJson(JsObject(Seq())))
   }
 
-  private def cleanDbFields(searchFields:SearchFields, isLoggedIn:Boolean, extraFields:Seq[String] = summaryFields) = {
+  private def cleanDbFields(searchFields:SearchFields, isLoggedIn:Boolean, dbExtraFields:Seq[String] = dbsummaryFields, jsExtraFields:Seq[String] = jssummaryFields) = {
     if(!isLoggedIn && searchFields.dbfields.isEmpty){
-      extraFields.foreach(extraField =>
+      dbExtraFields.foreach(extraField =>
         searchFields.dbfields = searchFields.dbfields ++ MongoDBObject(extraField -> searchFields.method)
+      )
+      jsExtraFields.foreach(extraField =>
+        searchFields.jsfields = searchFields.jsfields :+ extraField
       )
     }
   }
@@ -336,8 +341,8 @@ class ItemApi(s3service:S3Service) extends BaseApi {
             } else {
               try {
                 val item = fromJson[Item](json)
-                val fields = summaryFields.foldRight[MongoDBObject](MongoDBObject())((field,dbo) => dbo ++ MongoDBObject(field -> 1))
-                Item.updateItem(id, item, if (request.ctx.isLoggedIn) None else Some(fields), request.ctx.organization) match {
+                val dbfields = dbsummaryFields.foldRight[MongoDBObject](MongoDBObject())((field,dbo) => dbo ++ MongoDBObject(field -> 1))
+                Item.updateItem(id, item, if (request.ctx.isLoggedIn) None else Some(dbfields), request.ctx.organization) match {
                   case Right(i) => Ok(toJson(i))
                   case Left(error) => InternalServerError(toJson(ApiError.Item.Update(error.clientOutput)))
                 }
