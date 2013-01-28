@@ -48,29 +48,27 @@ case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoi
 }
 
 object ChoiceInteraction extends InteractionCompanion[ChoiceInteraction]{
+
+  def interactionLabel = "choiceInteraction"
+
   def apply(interaction: Node, itemBody: Option[Node]): ChoiceInteraction = ChoiceInteraction(
     (interaction \ "@responseIdentifier").text,
     (interaction \ "simpleChoice").map(SimpleChoice(_, (interaction \ "@responseIdentifier").text))
   )
   def parse(itemBody:Node):Seq[Interaction] = {
-    val interactions = (itemBody \\ "choiceInteraction")
+    val interactions = (itemBody \\ interactionLabel)
     if (interactions.isEmpty){
       Seq()
     }else{
       interactions.map(node => ChoiceInteraction(node,Some(itemBody)))
     }
   }
-  def interactionMatch(e:Elem) = e.label == "choiceInteraction"
+
   override def preProcessXml(interactionXml:Elem):NodeSeq = {
     new InteractionProcessing.FeedbackOutcomeIdentifierInserter(ChoiceInteraction(interactionXml,None)).transform(interactionXml)
   }
-  def getHeadHtml(toPrint:Boolean):String = {
-    val jspath = if (toPrint) QtiScriptLoader.JS_PRINT_PATH else QtiScriptLoader.JS_PATH
-    val csspath = if (toPrint) QtiScriptLoader.CSS_PRINT_PATH else QtiScriptLoader.CSS_PATH
 
-    def jsAndCss(name:String) = Seq(script(jspath + name + ".js"), css(csspath + name + ".css")).mkString("\n")
-    jsAndCss("choiceInteraction")+"\n"+jsAndCss("simpleChoice");
-  }
-  private def css(url: String): String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
-  private def script(url: String): String = """<script type="text/javascript" src="%s"></script>""".format(url)
+  override def getHeadHtml(toPrint:Boolean):String =
+    InteractionHelper.getHeadHtml("choiceInteraction", toPrint) + "\n" + InteractionHelper.getHeadHtml("simpleChoice", toPrint)
+
 }
