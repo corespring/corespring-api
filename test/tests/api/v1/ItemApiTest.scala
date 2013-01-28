@@ -82,7 +82,7 @@ class ItemApiTest extends BaseTest with Mockito {
   }
 
   "find items in the grade level 7" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&q={\"taskInfo.gradeLevel\":\"07\"}".format(token))
+    val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&q={\"gradeLevel\":\"07\"}".format(token))
     val Some(result) = routeAndCall(fakeRequest)
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
@@ -92,7 +92,7 @@ class ItemApiTest extends BaseTest with Mockito {
   }
 
   "find items in returning only their title and up to 10" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&f={\"taskInfo.title\":1}&l=10".format(token))
+    val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&f={\"title\":1}&l=10".format(token))
     val Some(result) = routeAndCall(fakeRequest)
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")

@@ -23,6 +23,7 @@ import search.{SearchFields, SearchCancelled, ItemSearch}
 import models.json.ItemView
 import play.api.libs.json.JsObject
 import com.typesafe.config.ConfigFactory
+import models.item.{Alignments, TaskInfo}
 
 /**
  * Items API
@@ -31,7 +32,13 @@ class ItemApi(s3service:S3Service) extends BaseApi {
 
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
-  val summaryFields: Seq[String] = Seq(Item.collectionId, Item.gradeLevel, Item.itemType, Item.keySkills, Item.subjects, Item.standards, Item.title)
+  val summaryFields: Seq[String] = Seq(Item.collectionId,
+    Item.taskInfo+"."+TaskInfo.Keys.gradeLevel,
+    Item.taskInfo+"."+TaskInfo.Keys.itemType,
+    Item.otherAlignments+"."+Alignments.Keys.keySkills,
+    Item.taskInfo+"."+TaskInfo.Keys.subjects,
+    Item.standards,
+    Item.taskInfo+"."+TaskInfo.Keys.title)
 
   private def count(c: String): Boolean = "true".equalsIgnoreCase(c)
 
