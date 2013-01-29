@@ -9,5 +9,5 @@ dist
 .idea_modules
 tasks/mock-data-task/target
 tasks/mock-data-task/project
-
+deployment/.env_vars.sh
 .DS_Store

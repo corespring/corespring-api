@@ -1,0 +1,4 @@
+{
+  "ENV_MONGO_URI": "mongodb://corespring:rogers@ds049347.mongolab.com:49347/corespring-staging",
+  "ENV_INIT_DATA": "false"
+}
