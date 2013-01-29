@@ -111,11 +111,11 @@ class ItemApi(s3service:S3Service) extends BaseApi {
           case Left(error) => BadRequest(toJson(ApiError.InvalidFields(error.clientOutput)))
         }
         case Left(sc) => sc.error match {
-          case None => Ok(toJson(JsObject(Seq())))
+          case None => Ok(JsArray(Seq()))
           case Some(error) => BadRequest(toJson(ApiError.InvalidQuery(error.clientOutput)))
         }
       }
-    }else Ok(toJson(JsObject(Seq())))
+    }else Ok(JsArray(Seq()))
   }
 
   private def cleanDbFields(searchFields:SearchFields, isLoggedIn:Boolean, dbExtraFields:Seq[String] = dbsummaryFields, jsExtraFields:Seq[String] = jssummaryFields) = {

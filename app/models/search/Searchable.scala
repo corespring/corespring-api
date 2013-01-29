@@ -91,16 +91,22 @@ trait Searchable {
             case dblist:BasicDBList => dblist.foldRight[Either[SearchCancelled,MongoDBList]](Right(MongoDBList()))((orcase,result) => {
               result match {
                 case Right(dblist) => orcase match {
-                  case dbobj:BasicDBObject => toSearchObjInternal(dbobj,optInitSearch)(parseFields) match {
+                  case dbobj:BasicDBObject => toSearchObjInternal(dbobj,None)(parseFields) match {
                     case Right(searchobj) => Right(dblist += searchobj)
-                    case Left(sc) => Left(sc)
+                    case Left(sc) => sc.error match {
+                      case None => Right(dblist)
+                      case Some(_) => Left(sc)
+                    }
                   }
                   case _ => Left(SearchCancelled(Some(InternalError("element within the array of or cases was not a db object",addMessageToClientOutput = true))))
                 }
                 case Left(sc) => Left(sc)
               }
             }) match {
-              case Right(newlist) => Right(MongoDBObject("$or" -> newlist))
+              case Right(newlist) => optInitSearch match {
+                case Some(initSearch) => Right(MongoDBObject("$or" -> newlist) ++ initSearch.asDBObject)
+                case None => Right(MongoDBObject("$or" -> newlist))
+              }
               case Left(sc) => Left(sc)
             }
             case _ => Left(SearchCancelled(Some(InternalError("$or operator did not contain a list of documents for its value",addMessageToClientOutput = true))))
