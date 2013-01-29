@@ -23,9 +23,8 @@ angular.module('tagger.services').factory('SearchService',
         'author',
         ],
       searchFields: [
-        'originId',
         'title',
-        'standards',
+        'standards.dotNotation',
         'copyrightOwner',
         'contributor',
         'author'
@@ -134,18 +133,18 @@ angular.module('tagger.services').factory('SearchService',
 
         if (searchParams.gradeLevel) {
           if (searchParams.gradeLevel.indexOf && searchParams.gradeLevel.length > 0) {
-            query['taskInfo.gradeLevel'] = inArray(searchParams.gradeLevel, "key");
+            query['gradeLevel'] = inArray(searchParams.gradeLevel, "key");
           } else {
-            query['taskInfo.gradeLevel'] = searchParams.gradeLevel.key;
+            query['gradeLevel'] = searchParams.gradeLevel.key;
           }
         }
 
         if (searchParams.itemType) {
           console.log("Item Type: ", searchParams.itemType);
           if (searchParams.itemType.indexOf && searchParams.itemType.length > 0) {
-            query['taskInfo.itemType'] = inArray(searchParams.itemType, "label");
+            query['itemType'] = inArray(searchParams.itemType, "label");
           } else {
-            query['taskInfo.itemType'] = searchParams.itemType.label;
+            query['itemType'] = searchParams.itemType.label;
           }
         }
 
@@ -158,7 +157,7 @@ angular.module('tagger.services').factory('SearchService',
         }
 
         if (searchParams.contributor && searchParams.contributor.indexOf && searchParams.contributor.length > 0) {
-          query["contributorDetails.contributor"] = inArray(searchParams.contributor, "name");
+          query["contributor"] = inArray(searchParams.contributor, "name");
         }
 
 
