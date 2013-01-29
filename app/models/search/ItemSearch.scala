@@ -57,7 +57,7 @@ object ItemSearch extends Searchable{
         case Item.standards => toSearchFieldObj(searchFields,field)
         case key if key.startsWith(Item.standards) => toSearchFieldObj(searchFields,field,false)
         case Item.title => toSearchFieldObj(searchFields,field,dbkey=Item.taskInfo+"."+TaskInfo.Keys.title)
-        case _ => Left(InternalError("unknown key contained in fields",addMessageToClientOutput = true))
+        case _ => Left(InternalError("unknown key contained in fields: "+field._1,addMessageToClientOutput = true))
       }
       case Left(e) => Left(e)
     })
@@ -174,7 +174,7 @@ object ItemSearch extends Searchable{
               case Item.reviewsPassed => formatQuery(Item.reviewsPassed,field._2,searchobj)
               case key if key.startsWith(Item.standards) => Right(searchobj)
               case Item.title => formatQuery(Item.taskInfo+"."+TaskInfo.Keys.title,field._2,searchobj)
-              case _ => Left(SearchCancelled(Some(InternalError("unknown key contained in query",addMessageToClientOutput = true))))
+              case _ => Left(SearchCancelled(Some(InternalError("unknown key contained in query: "+field._1,addMessageToClientOutput = true))))
             }
           }
           case Left(e) => Left(e)

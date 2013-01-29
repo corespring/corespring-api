@@ -222,14 +222,58 @@ class ItemQueryTest extends BaseTest{
     }
     jsonSuccess must beTrue
   }
-  "filter items that are not included in a certain collection using $ne" in {
-    pending
-  }
+  val params:Seq[(String,String)] = Seq(
+    "standards.dotNotation" -> "\"meh\"",
+    "standards.category" -> "\"meh\"",
+    "standards.standard" -> "\"meh\"",
+    "standards.subject" -> "\"meh\"",
+    "standards.guid" -> "\"meh\"",
+    "standards.subCategory" -> "\"meh\"",
+    "worflow.setup" -> "true",
+    "worflow.tagged" -> "true",
+    "worflow.standardsAligned" -> "true",
+    "worflow.qaReview" -> "true",
+    "author" -> "\"meh\"",
+    "contributor" -> "\"meh\"",
+    "costForResource" -> "\"meh\"",
+    "credentials" -> "\"meh\"",
+    "licenseType" -> "\"meh\"",
+    "sourceUrl" -> "\"meh\"",
+    "copyrightOwner" -> "\"meh\"",
+    "copyrightYear" -> "\"meh\"",
+    "copyrightExpirationDate" -> "\"meh\"",
+    "copyrightImageName" -> "\"meh\"",
+    "lexile" -> "\"meh\"",
+    "demonstratedKnowledge" -> "\"meh\"",
+    "originId" -> "\"meh\"",
+    "collectionId" -> "\"meh\"",
+    "contentType" -> "\"meh\"",
+    "pValue" -> "\"meh\"",
+    "relatedCurriculum" -> "\"meh\"",
+    "gradeLevel" -> "\"meh\"",
+    "itemType" -> "\"meh\"",
+    "keySkills" -> "\"meh\"",
+    "primarySubject.subject" -> "\"meh\"",
+    "primarySubject.category" -> "\"meh\"",
+    "relatedSubject.subject" -> "\"meh\"",
+    "relatedSubject.category" -> "\"meh\"",
+    "priorUse" -> "\"meh\"",
+    "priorGradeLevel" -> "\"meh\"",
+    "reviewsPassed" -> "\"meh\"",
+    "title" -> "\"meh\""
+  )
+
   "all queryable item params are checked within it's search method" in {
-    pending
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{"+params.tail.foldRight[String](params.head._1+":"+params.head._2)((param,result) => result+","+param._1+":"+param._2)+"}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(OK)
   }
   "all search field item params are checked within it's search method" in {
-    pending
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{"+params.tail.foldRight[String](params.head._1+":"+params.head._2)((param,result) => result+","+param._1+":"+param._2)+"}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(OK)
   }
   "search items, excluding 'standards.subject' includes everything except the subject portion of the standard" in {
     pending
