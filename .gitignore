@@ -14,3 +14,4 @@ deployment/.env_vars.sh
 .heroku-helper-temp-data.json
 .heroku-helper-tmp-*
 mongo-migrator.log
+.heroku-helper-env.conf
