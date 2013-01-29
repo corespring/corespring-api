@@ -13,22 +13,22 @@ angular.module('tagger.services').factory('SearchService',
       searchId: 0,
       resultFields: [
         'originId',
-        'taskInfo.title',
-        'taskInfo.subjects.primary',
-        'taskInfo.gradeLevel',
-        'taskInfo.itemType',
+        'title',
+        'primarySubject',
+        'gradeLevel',
+        'itemType',
         'standards',
-        'contributorDetails.sourceUrl',
-        'contributorDetails.contributor',
-        'contributorDetails.author',
-        'subjects'],
+        'sourceUrl',
+        'contributor',
+        'author',
+        ],
       searchFields: [
         'originId',
-        'taskInfo.title',
+        'title',
         'standards',
-        'contributorDetails.copyright.owner',
-        'contributorDetails.contributor',
-        'contributorDetails.author'
+        'copyrightOwner',
+        'contributor',
+        'author'
       ],
 
 
@@ -53,6 +53,7 @@ angular.module('tagger.services').factory('SearchService',
         };
 
         var query = this.buildQueryObject(searchParams, this.searchFields);
+        console.log("Running query: "+JSON.stringify(query));
         searchService.searchId = new Date().getTime();
         var executeQuery = function (id) {
           ItemService.query({
