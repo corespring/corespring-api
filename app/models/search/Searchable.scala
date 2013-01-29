@@ -77,12 +77,11 @@ trait Searchable {
     if (searchableFields.contains(field._1)) formatSortField(field._1,field._2)
     else Left(InternalError("invalid sort key: "+field._1))
   }
-
-  final def toSearchObj(query: AnyRef, optInitSearch:Option[MongoDBObject]): Either[SearchCancelled,MongoDBObject] = {
+  final def toSearchObj[A](query: AnyRef, optInitSearch:Option[MongoDBObject] = None, parseFields:Map[String,(AnyRef) => Either[InternalError,AnyRef]] = Map()): Either[SearchCancelled,MongoDBObject] = {
     query match {
       case strquery:String => try{
         val parsedobj:BasicDBObject = JSON.parse(strquery).asInstanceOf[BasicDBObject]
-        toSearchObj(parsedobj,optInitSearch)
+        toSearchObj(parsedobj,optInitSearch,parseFields)
       }catch {
         case e:JSONParseException => Left(SearchCancelled(Some(InternalError(e.getMessage,clientOutput = Some("could not parse search string")))))
       }
@@ -92,7 +91,7 @@ trait Searchable {
             case dblist:BasicDBList => dblist.foldRight[Either[SearchCancelled,MongoDBList]](Right(MongoDBList()))((orcase,result) => {
               result match {
                 case Right(dblist) => orcase match {
-                  case dbobj:BasicDBObject => toSearchObjInternal(dbobj,optInitSearch) match {
+                  case dbobj:BasicDBObject => toSearchObjInternal(dbobj,optInitSearch)(parseFields) match {
                     case Right(searchobj) => Right(dblist += searchobj)
                     case Left(sc) => Left(sc)
                   }
@@ -106,12 +105,12 @@ trait Searchable {
             }
             case _ => Left(SearchCancelled(Some(InternalError("$or operator did not contain a list of documents for its value",addMessageToClientOutput = true))))
           }
-        } else toSearchObjInternal(dbquery,optInitSearch)
+        } else toSearchObjInternal(dbquery,optInitSearch)(parseFields)
       }
       case _ => Left(SearchCancelled(Some(InternalError("invalid search object",LogType.printFatal,addMessageToClientOutput = true))))
     }
   }
-  protected def toSearchObjInternal(dbquery:BasicDBObject, optInitSearch:Option[MongoDBObject]):Either[SearchCancelled,MongoDBObject] = {
+  protected def toSearchObjInternal(dbquery:BasicDBObject, optInitSearch:Option[MongoDBObject])(implicit parseFields:Map[String,(AnyRef) => Either[InternalError,AnyRef]]):Either[SearchCancelled,MongoDBObject] = {
     if(searchableFields.isEmpty) throw new RuntimeException("when using default search method, you must override searchable fields")
     dbquery.foldRight[Either[SearchCancelled,MongoDBObject]](Right(MongoDBObject()))((field,result) => {
       result match {
@@ -128,13 +127,19 @@ trait Searchable {
     }
   }
 
-  protected final def formatQuery(key:String,value:AnyRef,searchobj:MongoDBObject):Either[SearchCancelled,MongoDBObject] = {
-    value match {
-      case value if value.isInstanceOf[String] || value.isInstanceOf[Boolean] || value.isInstanceOf[Pattern]=> Right(searchobj += key -> value)
-      case dbobj:BasicDBObject => formatSpecOp(dbobj) match {
+  protected final def formatQuery(key:String,value:AnyRef,searchobj:MongoDBObject)(implicit parseFields:Map[String,(AnyRef) => Either[InternalError,AnyRef]]):Either[SearchCancelled,MongoDBObject] = {
+    parseFields.find(_._1 == key) match {
+      case Some(parseField) => parseField._2(value) match {
         case Right(newvalue) => Right(searchobj += key -> newvalue)
+        case Left(error) => Left(SearchCancelled(Some(error)))
       }
-      case _ => Left(SearchCancelled(Some(InternalError("invalid value when parsing search for "+key))))
+      case None => value match {
+        case value if value.isInstanceOf[String] || value.isInstanceOf[Boolean] || value.isInstanceOf[Pattern]=> Right(searchobj += key -> value)
+        case dbobj:BasicDBObject => formatSpecOp(dbobj) match {
+          case Right(newvalue) => Right(searchobj += key -> newvalue)
+        }
+        case _ => Left(SearchCancelled(Some(InternalError("invalid value when parsing search for "+key))))
+      }
     }
   }
 

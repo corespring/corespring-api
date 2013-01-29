@@ -24,6 +24,7 @@ import models.json.ItemView
 import play.api.libs.json.JsObject
 import com.typesafe.config.ConfigFactory
 import models.item.{Alignments, TaskInfo}
+import com.mongodb.casbah.commons.ValidBSONType.BasicDBList
 
 /**
  * Items API
@@ -50,12 +51,32 @@ class ItemApi(s3service:S3Service) extends BaseApi {
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
     implicit request =>
       val collections = ContentCollection.getCollectionIds(request.ctx.organization,Permission.Read)
-      itemList(q,f,c,sk,l,sort,collections,request.ctx.isLoggedIn)
+      itemList(q,f,c,sk,l,sort,collections)
   }
-  private def itemList(q:Option[String],f: Option[String], c:String, sk:Int, l:Int, sort: Option[String], collections:Seq[ObjectId], isLoggedIn:Boolean):Result = {
+  private def itemList[A](q:Option[String],f: Option[String], c:String, sk:Int, l:Int, sort: Option[String], collections:Seq[ObjectId])(implicit request:ApiRequest[A]):Result = {
+    val parseCollectionIds:(AnyRef)=>Either[InternalError,AnyRef] = (value:AnyRef) => {
+      value match {
+        case dbo:BasicDBObject => dbo.toSeq.headOption match {
+          case Some((key,dblist)) => if(key == "$in") {
+            if(dblist.isInstanceOf[BasicDBList]){
+              try{
+                if(dblist.asInstanceOf[BasicDBList].toArray.forall(coll => ContentCollection.isAuthorized(request.ctx.organization,new ObjectId(coll.toString),Permission.Read)))
+                  Right(value)
+                else Left(InternalError("attempted to access a collection that you are not authorized to",addMessageToClientOutput = true))
+              } catch {
+                case e:IllegalArgumentException => Left(InternalError(e.getMessage,clientOutput = Some("could not parse collectionId into an object id")))
+              }
+            }else Left(InternalError("invalid value for collectionId key. could not cast to array",addMessageToClientOutput = true))
+          } else Left(InternalError("can only use $in special operator when querying on collectionId",addMessageToClientOutput = true))
+          case None => Left(InternalError("empty db object as value of collectionId key",addMessageToClientOutput = true))
+        }
+        case _ => Left(InternalError("invalid value for collectionId",addMessageToClientOutput = true))
+      }
+    }
     if (collections.nonEmpty){
       val queryResult:Either[SearchCancelled,MongoDBObject] = q.map(query => ItemSearch.toSearchObj(query,
-        if (collections.size == 1) Some(MongoDBObject(Item.collectionId -> collections(0))) else Some(MongoDBObject(Item.collectionId -> MongoDBObject("$in" -> collections.map(_.toString))))
+        if (collections.size == 1) Some(MongoDBObject(Item.collectionId -> collections(0))) else Some(MongoDBObject(Item.collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))),
+        Map(Item.collectionId -> parseCollectionIds)
       )) match {
         case Some(result) => result
         case None => Right(MongoDBObject())
@@ -72,7 +93,7 @@ class ItemApi(s3service:S3Service) extends BaseApi {
               val count = Item.find(query).count
               Ok(toJson(JsObject(Seq("count" -> JsNumber(count)))))
             }else{
-              cleanDbFields(searchFields,isLoggedIn)
+              cleanDbFields(searchFields,request.ctx.isLoggedIn)
               val optitems:Either[InternalError,SalatMongoCursor[Item]] = sort.map(ItemSearch.toSortObj(_)) match {
                 case Some(Right(sortField)) => Right(Item.find(query,searchFields.dbfields).sort(sortField).skip(sk).limit(l))
                 case None => Right(Item.find(query,searchFields.dbfields).skip(sk).limit(l))
@@ -109,17 +130,17 @@ class ItemApi(s3service:S3Service) extends BaseApi {
   }
 
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
-    request =>
+    implicit request =>
       if (Organization.getTree(request.ctx.organization).exists(_.id == orgId)) {
         val collections = ContentCollection.getCollectionIds(orgId,Permission.Read)
-        itemList(q,f,c,sk,l,sort,collections,request.ctx.isLoggedIn)
+        itemList(q,f,c,sk,l,sort,collections)
       } else Forbidden(toJson(ApiError.UnauthorizedOrganization))
   }
 
   def listWithColl(collId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
-    request =>
+    implicit request =>
       if (ContentCollection.isAuthorized(request.ctx.organization, collId, Permission.Read)) {
-        itemList(q,f,c,sk,l,sort,Seq(collId),request.ctx.isLoggedIn)
+        itemList(q,f,c,sk,l,sort,Seq(collId))
       } else Unauthorized(toJson(ApiError.UnauthorizedOrganization))
   }
 

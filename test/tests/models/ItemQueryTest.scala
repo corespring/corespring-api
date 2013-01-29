@@ -222,6 +222,28 @@ class ItemQueryTest extends BaseTest{
     }
     jsonSuccess must beTrue
   }
+  "filter items based on a set of collections using $in" in {
+    val collection1 = "505777f5e4b05f7845735bc1"
+    val collection2 = "5021814ce4b03e00504e4741"
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{collectionId:{$in:[\""+collection1+"\",\""+collection2+"\"]}}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(OK)
+    val json = Json.parse(contentAsString(result))
+    val jsonSuccess = json match {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beEqualTo(13)
+        jsobjects.forall(jsobj => {
+          (jsobj \ "collectionId") match {
+            case JsString(collectionId) => collectionId == collection1 || collectionId == collection2
+            case _ => false
+          }
+        })
+      }
+      case _ => false
+    }
+    jsonSuccess must beTrue
+  }
   val params:Seq[(String,String)] = Seq(
     "standards.dotNotation" -> "\"meh\"",
     "standards.category" -> "\"meh\"",

@@ -63,7 +63,7 @@ object ItemSearch extends Searchable{
     })
   }
 
-  private def preParseSubjects(dbquery:BasicDBObject):Either[SearchCancelled,MongoDBObject] = {
+  private def preParseSubjects(dbquery:BasicDBObject)(implicit parseFields:Map[String,(AnyRef) => Either[InternalError,AnyRef]]):Either[SearchCancelled,MongoDBObject] = {
     val primarySubjectQuery = dbquery.foldRight[Either[SearchCancelled,MongoDBObject]](Right(MongoDBObject()))((field,result) => {
       result match {
         case Right(searchobj) => field._1 match {
@@ -112,7 +112,7 @@ object ItemSearch extends Searchable{
       case Left(sc) => Left(sc)
     }
   }
-  private def preParseStandards(dbquery:BasicDBObject):Either[SearchCancelled,MongoDBObject] = {
+  private def preParseStandards(dbquery:BasicDBObject)(implicit parseFields:Map[String,(AnyRef) => Either[InternalError,AnyRef]]):Either[SearchCancelled,MongoDBObject] = {
     dbquery.foldRight[Either[SearchCancelled,MongoDBObject]](Right(MongoDBObject()))((field,result) => {
       result match {
         case Right(searchobj) => field._1 match {
@@ -136,54 +136,51 @@ object ItemSearch extends Searchable{
       case Left(sc) => Left(sc)
     }
   }
-  override protected def toSearchObjInternal(dbquery:BasicDBObject, optInitSearch:Option[MongoDBObject]):Either[SearchCancelled,MongoDBObject] = {
+  override protected def toSearchObjInternal(dbquery:BasicDBObject, optInitSearch:Option[MongoDBObject])(implicit parseFields:Map[String,(AnyRef) => Either[InternalError,AnyRef]]):Either[SearchCancelled,MongoDBObject] = {
     preParseStandards(dbquery) match {
       case Right(query1) => preParseSubjects(dbquery) match {
-        case Right(query2) => dbquery.foldRight[Either[SearchCancelled,MongoDBObject]](Right(query1 ++ query2.asDBObject))((field,result) => result match {
-          case Right(searchobj) => {
-            field._1 match {
-              case key if key == Item.workflow+"."+Workflow.setup => formatQuery(key,field._2,searchobj)
-              case key if key == Item.workflow+"."+Workflow.tagged => formatQuery(key,field._2,searchobj)
-              case key if key == Item.workflow+"."+Workflow.standardsAligned => formatQuery(key,field._2,searchobj)
-              case key if key == Item.workflow+"."+Workflow.qaReview => formatQuery(key,field._2,searchobj)
-              case Item.author => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.author,field._2,searchobj)
-              case Item.contributor => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.contributor,field._2,searchobj)
-              case Item.costForResource => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.costForResource,field._2,searchobj)
-              case Item.credentials => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.credentials,field._2,searchobj)
-              case Item.licenseType => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.licenseType,field._2,searchobj)
-              case Item.sourceUrl => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.sourceUrl,field._2,searchobj)
-              case Item.copyrightOwner => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.copyright+"."+Copyright.Keys.owner,field._2,searchobj)
-              case Item.copyrightYear => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.copyright+"."+Copyright.Keys.year,field._2,searchobj)
-              case Item.copyrightExpirationDate => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.copyright+"."+Copyright.Keys.expirationDate,field._2,searchobj)
-              case Item.copyrightImageName => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.copyright+"."+Copyright.Keys.imageName,field._2,searchobj)
-              case Item.lexile => formatQuery(Item.lexile,field._2,searchobj)
-              case Item.demonstratedKnowledge => formatQuery(Item.otherAlignments+"."+Alignments.Keys.demonstratedKnowledge,field._2,searchobj)
-              case Item.originId => formatQuery(Item.originId,field._2,searchobj)
-              case Item.collectionId => Left(SearchCancelled(Some(InternalError("cannot query on collections",addMessageToClientOutput = true))))
-              case Item.contentType => Right(searchobj)
-              case Item.pValue => formatQuery(Item.pValue,field._2,searchobj)
-              case Item.relatedCurriculum => formatQuery(Item.otherAlignments+"."+Alignments.Keys.relatedCurriculum,field._2,searchobj)
-              case Item.supportingMaterials => Left(SearchCancelled(Some(InternalError("cannot query on supportingMaterials",addMessageToClientOutput = true))))
-              case Item.gradeLevel => formatQuery(Item.taskInfo+"."+TaskInfo.Keys.gradeLevel,field._2,searchobj)
-              case Item.itemType => formatQuery(Item.taskInfo+"."+TaskInfo.Keys.itemType,field._2,searchobj)
-              case Item.keySkills => formatQuery(Item.otherAlignments+"."+Alignments.Keys.keySkills,field._2,searchobj)
-              case key if key.startsWith(Item.primarySubject) => Right(searchobj)
-              case key if key == key.startsWith(Item.relatedSubject) => Right(searchobj)
-              case Item.priorUse => formatQuery(Item.priorUse,field._2,searchobj)
-              case Item.priorGradeLevel => formatQuery(Item.priorGradeLevel,field._2,searchobj)
-              case Item.reviewsPassed => formatQuery(Item.reviewsPassed,field._2,searchobj)
-              case key if key.startsWith(Item.standards) => Right(searchobj)
-              case Item.title => formatQuery(Item.taskInfo+"."+TaskInfo.Keys.title,field._2,searchobj)
-              case _ => Left(SearchCancelled(Some(InternalError("unknown key contained in query: "+field._1,addMessageToClientOutput = true))))
+        case Right(query2) => {
+          val initSearch = query1 ++ query2.asDBObject ++ optInitSearch.getOrElse[MongoDBObject](MongoDBObject()).asDBObject
+          dbquery.foldRight[Either[SearchCancelled,MongoDBObject]](Right(initSearch))((field,result) => result match {
+            case Right(searchobj) => {
+              field._1 match {
+                case key if key == Item.workflow+"."+Workflow.setup => formatQuery(key,field._2,searchobj)
+                case key if key == Item.workflow+"."+Workflow.tagged => formatQuery(key,field._2,searchobj)
+                case key if key == Item.workflow+"."+Workflow.standardsAligned => formatQuery(key,field._2,searchobj)
+                case key if key == Item.workflow+"."+Workflow.qaReview => formatQuery(key,field._2,searchobj)
+                case Item.author => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.author,field._2,searchobj)
+                case Item.contributor => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.contributor,field._2,searchobj)
+                case Item.costForResource => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.costForResource,field._2,searchobj)
+                case Item.credentials => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.credentials,field._2,searchobj)
+                case Item.licenseType => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.licenseType,field._2,searchobj)
+                case Item.sourceUrl => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.sourceUrl,field._2,searchobj)
+                case Item.copyrightOwner => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.copyright+"."+Copyright.Keys.owner,field._2,searchobj)
+                case Item.copyrightYear => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.copyright+"."+Copyright.Keys.year,field._2,searchobj)
+                case Item.copyrightExpirationDate => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.copyright+"."+Copyright.Keys.expirationDate,field._2,searchobj)
+                case Item.copyrightImageName => formatQuery(Item.contributorDetails+"."+ContributorDetails.Keys.copyright+"."+Copyright.Keys.imageName,field._2,searchobj)
+                case Item.lexile => formatQuery(Item.lexile,field._2,searchobj)
+                case Item.demonstratedKnowledge => formatQuery(Item.otherAlignments+"."+Alignments.Keys.demonstratedKnowledge,field._2,searchobj)
+                case Item.originId => formatQuery(Item.originId,field._2,searchobj)
+                case Item.collectionId => formatQuery(Item.collectionId,field._2,searchobj)
+                case Item.contentType => Right(searchobj)
+                case Item.pValue => formatQuery(Item.pValue,field._2,searchobj)
+                case Item.relatedCurriculum => formatQuery(Item.otherAlignments+"."+Alignments.Keys.relatedCurriculum,field._2,searchobj)
+                case Item.supportingMaterials => Left(SearchCancelled(Some(InternalError("cannot query on supportingMaterials",addMessageToClientOutput = true))))
+                case Item.gradeLevel => formatQuery(Item.taskInfo+"."+TaskInfo.Keys.gradeLevel,field._2,searchobj)
+                case Item.itemType => formatQuery(Item.taskInfo+"."+TaskInfo.Keys.itemType,field._2,searchobj)
+                case Item.keySkills => formatQuery(Item.otherAlignments+"."+Alignments.Keys.keySkills,field._2,searchobj)
+                case key if key.startsWith(Item.primarySubject) => Right(searchobj)
+                case key if key == key.startsWith(Item.relatedSubject) => Right(searchobj)
+                case Item.priorUse => formatQuery(Item.priorUse,field._2,searchobj)
+                case Item.priorGradeLevel => formatQuery(Item.priorGradeLevel,field._2,searchobj)
+                case Item.reviewsPassed => formatQuery(Item.reviewsPassed,field._2,searchobj)
+                case key if key.startsWith(Item.standards) => Right(searchobj)
+                case Item.title => formatQuery(Item.taskInfo+"."+TaskInfo.Keys.title,field._2,searchobj)
+                case _ => Left(SearchCancelled(Some(InternalError("unknown key contained in query: "+field._1,addMessageToClientOutput = true))))
+              }
             }
-          }
-          case Left(e) => Left(e)
-        }) match {
-          case Right(searchobj) => optInitSearch match {
-            case Some(initSearch) => Right(searchobj ++ initSearch.asDBObject)
-            case None => Right(searchobj)
-          }
-          case Left(e) => Left(e)
+            case Left(e) => Left(e)
+          })
         }
         case Left(sc) => Left(sc)
       }
