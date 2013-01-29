@@ -16,17 +16,14 @@ class ReportsService(ItemCollection: MongoCollection,
                      StandardCollection: MongoCollection
                       ) {
 
-  ReportLineResult.ItemTypes = ItemCollection.distinct("taskInfo.itemType").map(_.toString).toList
-  ReportLineResult.GradeLevel = ItemCollection.distinct("taskInfo.gradeLevel").map(_.toString).toList
-  ReportLineResult.PriorUse = ItemCollection.distinct("priorUse").map(_.toString).toList
-  ReportLineResult.LicenseType = ItemCollection.distinct("contributorDetails.licenseType").map(_.toString).toList
-  ReportLineResult.Credentials = ItemCollection.distinct("contributorDetails.credentials").map(_.toString).toList
 
   def getCollections: List[(String, String)] = ContentCollection.findAll().toList.map {
     c => (c.name.toString, c.id.toString)
   }
 
   def getReport(collectionId: String, queryType: String): List[(String, String)] = {
+
+    populateHeaders
 
     val mapTemplateFn: JSFunction =
       """ function m() {
@@ -84,11 +81,22 @@ class ReportsService(ItemCollection: MongoCollection,
     }
   }
 
+
+  def populateHeaders {
+    ReportLineResult.ItemTypes = ItemCollection.distinct("taskInfo.itemType").map(_.toString).toList
+    ReportLineResult.GradeLevel = ItemCollection.distinct("taskInfo.gradeLevel").map(_.toString).toList
+    ReportLineResult.PriorUse = ItemCollection.distinct("priorUse").map(_.toString).toList
+    ReportLineResult.LicenseType = ItemCollection.distinct("contributorDetails.licenseType").map(_.toString).toList
+    ReportLineResult.Credentials = ItemCollection.distinct("contributorDetails.credentials").map(_.toString).toList
+  }
+
   /**
    * Build a csv where each line is for a primary subject and the columns are counts of a specific set of item properties.
    * @return
    */
   def buildPrimarySubjectItemReport: String = {
+
+    populateHeaders
 
     val lineResults: List[LineResult] = SubjectCollection.map((dbo: DBObject) => {
 
@@ -112,6 +120,8 @@ class ReportsService(ItemCollection: MongoCollection,
 
   def buildStandardsItemReport: String = {
 
+    populateHeaders
+
     val lineResults: List[LineResult] = StandardCollection.map((dbo: DBObject) => {
 
       val dotNotation = dbo.get("dotNotation").asInstanceOf[String]
@@ -133,6 +143,9 @@ class ReportsService(ItemCollection: MongoCollection,
    * @return
    */
   def buildContributorReport: String = {
+
+    populateHeaders
+
     val mapFn: JSFunction = interpolate(JSFunctions.SimplePropertyMapFnTemplate, Map("property" -> "contributorDetails.contributor"))
 
     val cmd = MapReduceCommand(ItemCollection.name, mapFn, JSFunctions.ReduceFn, MapReduceInlineOutput)
@@ -153,6 +166,8 @@ class ReportsService(ItemCollection: MongoCollection,
    * @return
    */
   def buildCollectionReport: String = {
+
+    populateHeaders
 
     val lineResults: List[LineResult] = CollectionsCollection.map((dbo: DBObject) => {
       val name = dbo.get("name").asInstanceOf[String]
@@ -266,16 +281,16 @@ class ReportsService(ItemCollection: MongoCollection,
     runMapReduceForProperty(itemTypeKeyCounts, "taskInfo.itemType", query)
 
     val gradeLevelKeyCounts = ReportLineResult.zeroedKeyCountList(ReportLineResult.GradeLevel)
-    runMapReduceForProperty(gradeLevelKeyCounts, "gradeLevel", query, JSFunctions.ArrayPropertyMapTemplateFn)
+    runMapReduceForProperty(gradeLevelKeyCounts, "taskInfo.gradeLevel", query, JSFunctions.ArrayPropertyMapTemplateFn)
 
     val priorUseKeyCounts = ReportLineResult.zeroedKeyCountList(ReportLineResult.PriorUse)
     runMapReduceForProperty(priorUseKeyCounts, "priorUse", query)
 
     val credentialsKeyCount = ReportLineResult.zeroedKeyCountList(ReportLineResult.Credentials)
-    runMapReduceForProperty(credentialsKeyCount, "credentials", query)
+    runMapReduceForProperty(credentialsKeyCount, "contributorDetails.credentials", query)
 
     val licenseTypeKeyCount = ReportLineResult.zeroedKeyCountList(ReportLineResult.LicenseType)
-    runMapReduceForProperty(licenseTypeKeyCount, "licenseType", query)
+    runMapReduceForProperty(licenseTypeKeyCount, "contributorDetails.licenseType", query)
 
     new LineResult(key,
       total,
