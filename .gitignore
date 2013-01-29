@@ -12,3 +12,5 @@ tasks/mock-data-task/project
 deployment/.env_vars.sh
 .DS_Store
 .heroku-helper-temp-data.json
+.heroku-helper-tmp-*
+mongo-migrator.log

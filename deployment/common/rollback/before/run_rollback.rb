@@ -1,6 +1,14 @@
 #!/usr/bin/env ruby
 require 'json'
 
+=begin
+Heroku helper script
+Expects a commit hash and a path to a json file 
+that contains config information for the heroku server
+--
+Always check and exit with appropriate exit codes!
+=end
+
 puts "-------------------------------------"
 puts "common/rollback/before/run_rollback.rb"
 puts "rollback db migrations"
