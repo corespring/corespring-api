@@ -12,8 +12,11 @@ config = JSON.parse(IO.read(ARGV[0]))
 
 JAR="deployment/libs/mongo-migrator_2.9.2-0.1-SNAPSHOT-one-jar.jar"
 MIGRATIONS="deployment/migrations"
-MONGO_URI = config["HH_MONGO_URI"]
+MONGO_URI = config["ENV_MONGO_URI"]
+raise "Missing mongo uri" if MONGO_URI == nil
+
 COMMIT_HASH = `git rev-parse --short HEAD`.chomp
+
 
 cmd = "java -jar #{JAR} migrate #{COMMIT_HASH} #{MONGO_URI} #{MIGRATIONS}"
 puts "command: "
