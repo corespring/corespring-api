@@ -20,7 +20,6 @@ db["fieldValues"].find().forEach( function(s) {
     db["fieldValues"].save(s);
 });
 
-
 //Down
 
 db.fieldValues.find().forEach( function(fv){
