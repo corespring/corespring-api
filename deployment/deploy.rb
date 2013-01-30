@@ -10,8 +10,6 @@ puts "--------------------------------------------------"
 
 raise "you must specify - #{remote}" if remote == nil
 
-`git init`
-
 `git remote add #{remote} git@heroku.com:#{remote}.git`
 
 raise "error adding git remote" unless $?.to_i == 0
