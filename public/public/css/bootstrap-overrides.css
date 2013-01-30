@@ -746,8 +746,11 @@ div.well.item a.fancybox:hover {
 
 /*EDUCATION PAGE TABLE */
 
+.span12.lead-in.educator p {
+margin-bottom:25px;
+}
+
 .edu-table {
-	margin-top: 20px;
 	clear: both;
 }
 
