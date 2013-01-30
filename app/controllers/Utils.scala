@@ -1,15 +1,6 @@
 package controllers
 
 import com.novus.salat.dao.SalatMongoCursor
-import collection.mutable
-import com.mongodb.casbah.Imports._
-import scala.Left
-import com.novus.salat.dao.SalatMongoCursor
-import scala.Right
-import org.bson.types.ObjectId
-import com.mongodb.util.JSON
-import models.QueryField
-import play.api.libs.json.{JsString, JsObject}
 import xml.{Elem, Node}
 
 /**

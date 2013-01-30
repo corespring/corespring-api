@@ -44,26 +44,26 @@ GET    /example-content/items                  publicsite.controllers.ExampleCon
 #
 
 # Organizations
-GET     /api/v1/organizations                   api.v1.OrganizationApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100)
-GET     /api/v1/organizations/children          api.v1.OrganizationApi.getChildren(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100)
+GET     /api/v1/organizations                   api.v1.OrganizationApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
+GET     /api/v1/organizations/children          api.v1.OrganizationApi.getChildren(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
 GET     /api/v1/organizations/default           api.v1.OrganizationApi.getDefaultOrganization
 GET     /api/v1/organizations/:id               api.v1.OrganizationApi.getOrganization(id: ObjectId)
 PUT     /api/v1/organizations/:id               api.v1.OrganizationApi.updateOrganization(id: ObjectId)
 DELETE  /api/v1/organizations/:id               api.v1.OrganizationApi.deleteOrganization(id: ObjectId)
-GET     /api/v1/organizations/:id/tree          api.v1.OrganizationApi.listWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100)
-GET     /api/v1/organizations/:id/children      api.v1.OrganizationApi.getChildrenWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100)
+GET     /api/v1/organizations/:id/tree          api.v1.OrganizationApi.listWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
+GET     /api/v1/organizations/:id/children      api.v1.OrganizationApi.getChildrenWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
 
 
 # Collections
-GET     /api/v1/collections                     api.v1.CollectionApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
+GET     /api/v1/collections                     api.v1.CollectionApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/collections/:id                 api.v1.CollectionApi.getCollection(id: ObjectId)
-GET     /api/v1/organizations/:orgId/collections    api.v1.CollectionApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
+GET     /api/v1/organizations/:orgId/collections    api.v1.CollectionApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 POST    /api/v1/collections                     api.v1.CollectionApi.createCollection
 PUT     /api/v1/collections/:id                 api.v1.CollectionApi.updateCollection(id: ObjectId)
 DELETE  /api/v1/collections/:id                 api.v1.CollectionApi.deleteCollection(id: ObjectId)
 
 # Users
-GET     /api/v1/users                           api.v1.UserApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
+GET     /api/v1/users                           api.v1.UserApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/users/:id                       api.v1.UserApi.getUser(id: ObjectId)
 POST    /api/v1/users                           api.v1.UserApi.createUser
 PUT     /api/v1/users/:id                       api.v1.UserApi.updateUser(id: ObjectId)
@@ -71,11 +71,11 @@ DELETE  /api/v1/users/:id                       api.v1.UserApi.deleteUser(id: Ob
 GET     /api/v1/organizations/:orgId/users             api.v1.UserApi.getUsersByOrg(orgId: ObjectId)
 
 # Items API
+GET     /api/v1/items                           api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /api/v1/organizations/:orgId/items      api.v1.ItemApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/contributors                    api.v1.ContributorApi.getContributorsList()
-GET     /api/v1/items                           api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
-GET     /api/v1/organizations/:orgId/items      api.v1.ItemApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
 GET     /api/v1/items/:id                       api.v1.ItemApi.get(id: ObjectId)
-GET     /api/v1/collections/:collId/items       api.v1.ItemApi.listWithColl(collId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
+GET     /api/v1/collections/:collId/items       api.v1.ItemApi.listWithColl(collId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 DELETE  /api/v1/items/:id                       api.v1.ItemApi.delete(id: ObjectId)
 GET     /api/v1/items/:id/detail                api.v1.ItemApi.getDetail(id: ObjectId)
 GET     /api/v1/items/:id/data                  api.v1.ItemApi.getData(id: ObjectId)
