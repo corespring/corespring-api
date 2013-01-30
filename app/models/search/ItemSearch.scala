@@ -26,6 +26,7 @@ object ItemSearch extends Searchable{
     }
     dbfields.foldRight[Either[InternalError,SearchFields]](Right(SearchFields(method = method)))((field,result) => result match {
       case Right(searchFields) => field._1 match {
+        case "id" => toSearchFieldObj(searchFields,field)
         case key if key.startsWith(Item.workflow) => toSearchFieldObj(searchFields,field)
         case Item.author => toSearchFieldObj(searchFields,field,dbkey=Item.contributorDetails+"."+ContributorDetails.Keys.author)
         case Item.contributor => toSearchFieldObj(searchFields,field,dbkey=Item.contributorDetails+"."+ContributorDetails.Keys.contributor)
