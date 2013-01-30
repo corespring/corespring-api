@@ -1,21 +1,16 @@
 <!DOCTYPE html>
 <html ng-app="app" xmlns="http://www.w3.org/1999/html">
 <head>
-
-    <title>Educators</title>
-
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
-    @partials.headNode()
+<title>Educators</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+@partials.headNode()
     @common.views.html.head.angular()
     @common.views.html.head.corespringCommon()
     @publicsite.head.html.fancybox()
-
-    <script src="/assets/js/corespring/tagger/mongo/MongoQuery.js"></script>
-    <script src="/assets/public/js/angular/items-app.js"></script>
-    <script src="/assets/public/js/angular/items.js"></script>
-
-    <script type="text/javascript">
+<script src="/assets/js/corespring/tagger/mongo/MongoQuery.js"></script>
+<script src="/assets/public/js/angular/items-app.js"></script>
+<script src="/assets/public/js/angular/items.js"></script>
+<script type="text/javascript">
         $(document).ready(function() {
             $(".fancybox").fancybox(
                 {
@@ -29,119 +24,120 @@
                 );
         });
     </script>
-
 </head>
 
 <body>
-
 @partials.header("edu")
-
 <div class="title-wrap">
-  <div class="container">
-    </div>
+  <div class="container"> </div>
 </div>
 
-
-<!--main contents area starts here -->
+<!--main contents area starts here --> 
 
 <!--JM ADDED -->
 <div class="container main-wrap">
   <div class="span12 lead-in educator"> <span class="intro-logo"></span>
-    <p> CoreSpring is developing a library of interactions that authors can use to support educators and students reach deeper learning in classrooms. All interactions may include a variety of media and are designed for maximum engagement. When available, examples of student work, scoring guides, and rubrics are presented. We are continuously updating the library.</p>
+    <p>CoreSpring is developing a library of interactions to help educators and students reach deeper learning in classrooms. All interactions may include a variety of media and are designed for maximum engagement. When available, examples of student work, scoring guides, and rubrics are presented. We are continuously updating and expanding the library.</p>
   </div>
   <!--end of JM ADDITION -->
   <div class="container">
     <div class="main">
-      <table class="edu-table table table-hover table-striped table-bordered">
+      <table class="edu-table table table-hover table-striped">
         <thead>
           <tr>
             <th class="edu-th-1">Interaction Type</th>
             <th class="edu-th-2">Description</th>
             <th class="edu-th-3">Student Activity</th>
-            <th class="edu-th-4">Scoreable</th>
+            <th class="edu-th-4">Scoreable?</th>
             <th class="edu-th-5">PARCC & Smarter Balanced?</th>
             <th class="edu-th-6">Sample</th>
           </tr>
         </thead>
         <tbody>
           <tr>
+            <td>Multiple Choice (includes True/False, Yes/No)</td>
+            <td>Select the best response from a list of options presented. </td>
+            <td>Choose, Select, Define, Recall, Identify</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a href=”http://www.corespring.org/web/item-preview/50180807e4b0b89ebc0153b0”>Discount City</a></li>
+                <li><a href=”http://www.corespring.org/web/item-preview/50d755c6e4b0ebcda4e2fbb6”>Correction!</a></li>
+              </ul></td>
+          </tr>
+          <tr>
             <td>Fill in the Blank/Complete the Statement (Inline Choice)</td>
-            <td>Select the best response from a list of options.</td>
+            <td>Select the best response from a list of options. </td>
             <td>Choose, Select</td>
             <td>Yes</td>
             <td>Yes</td>
-            <td>???</td>
-          </tr>
-          <tr>
-            <td>Multiple, Multiple Choice</td>
-            <td>Select the best responses from a list of options.</td>
-            <td>Organize, Classify</td>
-            <td>Yes</td>
-            <td>Yes</td>
-            <td>???</td>
+            <td><ul>
+                <li><a href=”http://www.corespring.org/web#/edit/50192d0de4b04d97fbff6a17?panel=metadata”>Class President</a> </li>
+                <li><a href=”http://www.corespring.org/web/item-preview/5023fbe8e4b08be40d045d7c”>Toothpaste</a></li>
+              </ul></td>
           </tr>
           <tr>
             <td>Ordering</td>
-            <td>Sequence events or inputs in correct order.</td>
-            <td>Organize, Classify</td>
+            <td>Sequence events or inputs in correct order. </td>
+            <td>Organize, Classify </td>
             <td>Yes</td>
             <td>Yes</td>
-            <td>
-                <li><a href="http://www.corespring.org/web/item-preview/504e9571e4b07f3e2e432371">Butterflies</a> </li>
-                <li><a href="http://www.corespring.org/web/item-preview/50324faae4b0383443ab9bce"> Alaskan Temps</a></li>
-               <li><a href="http://www.corespring.org/web/item-preview/50324faae4b0383443ab9bce">The max line length: 35 characters.</a></li>
+            <td><ul>
+                <li><a href=”http://www.corespring.org/web/item-preview/504e9571e4b07f3e2e432371”>Butterflies</a> </li>
+                <li> <a href=”http://www.corespring.org/web/item-preview/50324faae4b0383443ab9bce”> Alaskan Temps</a></li>
               </ul></td>
           </tr>
           <tr>
             <td>Constructed Response - Short Answer (Right Answer)</td>
-            <td>Respond to a prompt requiring a correct answer.</td>
-            <td>Calculate, Identify, Compute</td>
+            <td>Respond to a prompt requiring a correct answer. </td>
+            <td>Calculate, Identify, Compute </td>
             <td>Yes</td>
             <td>Yes</td>
             <td><ul>
-                <li><a href="http://www.corespring.org/web/item-preview/5023cbb6e4b08be40d045d58">Greg Goes Shopping</a> </li>
-                <li><a href="http://www.corespring.org/web/item-preview/5033daa3e4b02c4aa1428e91">Prize Money</a></li>
+                <li><a href=”http://www.corespring.org/web/item-preview/5023cbb6e4b08be40d045d58”>Greg Goes Shopping</a> </li>
+                <li><a href=”http://www.corespring.org/web/item-preview/5033daa3e4b02c4aa1428e91”>Prize Money</a></li>
               </ul></td>
           </tr>
           <tr>
-            <td>Constructed Response - Short Answer (Writing)</td>
-            <td>Respond to a prompt in short form.</td>
-            <td>Explain, Show, Describe, Demonstrate</td>
+            <td>Constructed Response (Writing)</td>
+            <td>Respond to a prompt in short or long form. </td>
+            <td>Explain, Show, Describe, Demonstrate, Argue, Defend </td>
             <td>No</td>
             <td>Yes</td>
-            <td>???</td>
-          </tr>
-          <tr>
-            <td>Constructed Response - Essay</td>
-            <td>Respond to a prompt in long form.</td>
-            <td>Explain, Show, Describe, Argue, Defend</td>
-            <td>No</td>
-            <td>Yes</td>
-            <td>???</td>
+            <td><ul>
+                <li><a href=”http://www.corespring.org/web/item-preview/502927e7e4b005a3bb6bc0a0”>Demosthenes, Icarus, and Daedalus</i> </a> </li>
+                <li><a href=”http://www.corespring.org/web/item-preview/502282bce4b05b57849d303b”>Mass and Matter</a> </li>
+              </ul></td>
           </tr>
           <tr>
             <td>Focus</td>
-            <td>Highlight key concepts to summarize thinking.</td>
+            <td>Highlight key concepts to summarize thinking. </td>
             <td>Choose, Select</td>
             <td>Yes</td>
             <td>No</td>
-            <td>???</td>
+            <td><ul>
+                <li><a href=”http://www.corespring.org/web/item-preview/50098908e4b0f123a2d54c98”>The Hawks and Their Friends </a></li>
+              </ul></td>
           </tr>
           <tr>
             <td>Projects and Activities</td>
             <td>Respond to a collection of prompts to demonstrate deeper learning.</td>
-            <td>Plan, Organize, Show, Describe, Demonstrate, Argue, Defend</td>
+            <td>Plan, Organize, Show, Describe, Demonstrate, Argue, Defend </td>
             <td>Yes</td>
             <td>No</td>
-            <td>???</td>
+            <td><ul>
+                <li><a href=”http://www.corespring.org/web/item-preview/50b653a1e4b0ec03f29344b0”>Pond Weeds</a></li>
+              </ul></td>
           </tr>
           <tr>
-            <td>Document Based Questions</td>
-            <td>Examine key artifacts, respond to a collection of prompts to demonstrate learning.</td>
-            <td>Plan, Organize, Show, Describe, Demonstrate, Argue, Defend</td>
+            <td>Select Evidence in Text</td>
+            <td>Review passage-based items, select evidence from text to support a claim.</td>
+            <td>Analyze, Describe, Show, Describe, Demonstrate, Argue, Defend </td>
             <td>Yes</td>
-            <td>No</td>
-            <td>???</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a href=”http://www.corespring.org/web/item-preview/50ee136ee4b00448c0368e0e”>What does <u>scarred</u> mean? </a></li>
+              </ul></td>
           </tr>
         </tbody>
       </table>
