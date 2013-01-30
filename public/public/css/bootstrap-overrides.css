@@ -754,7 +754,7 @@ div.well.item a.fancybox:hover {
 .edu-table th {
 	table-layout:fixed;
 	font-size:15px;
-	fopnt-weight:normal;
+	font-weight:normal;
 	background: url("../images/title-wrap-bg-tile.png") repeat scroll 0px 0px #80B312;
 }
 	
@@ -775,7 +775,7 @@ div.well.item a.fancybox:hover {
 	background: #80B312;
 	color: #fff;
 	text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.9);
-	font-size:15px;
+	font-size:16px;
 }
 
 .edu-table td, .edu-table td a {
@@ -823,10 +823,15 @@ div.well.item a.fancybox:hover {
 }
 
 .edu-table.table.table-hover.table-striped {
-  border: 1px solid #dddddd;
+  border: 1px solid #80b312;
   border-collapse: separate;
   *border-collapse: collapse;
   -webkit-border-radius: 4px;
      -moz-border-radius: 4px;
           border-radius: 4px;
+}
+
+
+.edu-table th, .edu-table td {
+border-top: 1px solid #80b312;
 }
