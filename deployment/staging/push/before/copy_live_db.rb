@@ -18,6 +18,8 @@ raise "no live db specified" if live_db_uri == nil
 target_db_uri = config["ENV_MONGO_URI"]
 raise "no target db specified" if target_db_uri == nil
 
+
+
 `mkdir -p tmp_folder`
 raise "error making folder" unless $?.to_i == 0
 
@@ -33,6 +35,13 @@ MongoTools.dump(
   live_db.password)
 
 target_db = Db.from_uri(target_db_uri)
+
+puts "deleting migrations - because we want them all to run"
+`mongo #{target_db.host}:#{target_db.port} -u #{target_db.username} -p #{target_db.password} --eval "db.mongo_migrator_versions.drop();"`
+raise "error dropping versions" unless $?.to_i == 0
+
+
+
 # 2. send to the target db
 
 # Note: 
