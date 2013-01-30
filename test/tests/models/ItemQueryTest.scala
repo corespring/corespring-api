@@ -84,7 +84,7 @@ class ItemQueryTest extends BaseTest{
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
       case JsArray(jsobjects) => {
-        jsobjects.size must beGreaterThanOrEqualTo(2)
+        jsobjects.size must beGreaterThanOrEqualTo(1)
         jsobjects.forall(jsobj => {
           (jsobj \ "primarySubject") match {
             case JsObject(props) => props.contains("category" -> JsString(primarySubjectCategory))
@@ -296,14 +296,5 @@ class ItemQueryTest extends BaseTest{
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = routeAndCall(request).get
     status(result) must equalTo(OK)
-  }
-  "search items, excluding 'standards.subject' includes everything except the subject portion of the standard" in {
-    pending
-  }
-  "search items, excluding 'primarySubject.category' includes everything except the category portion of the primary subject" in {
-    pending
-  }
-  "able to sort by grade within item" in {
-    pending
   }
 }

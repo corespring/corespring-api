@@ -224,6 +224,7 @@ object ItemSearch extends Searchable{
       case Item.reviewsPassed => formatSortField(Item.reviewsPassed,field._2)
       case key if key == Item.standards+"."+Standard.DotNotation => formatSortField(Item.standards,field._2)
       case Item.title => formatSortField(Item.taskInfo+"."+TaskInfo.Keys.title,field._2)
+      case Item.collectionId => formatSortField(Item.collectionId,field._2)
       case _ => Left(InternalError("unknown or invalid key contained in sort field",addMessageToClientOutput = true))
     }
   }
