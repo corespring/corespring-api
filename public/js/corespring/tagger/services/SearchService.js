@@ -187,8 +187,7 @@ angular.module('tagger.services').factory('SearchService',
             l: this.limit,
             q: JSON.stringify(query),
             f: JSON.stringify(mongoQuery.buildFilter(this.resultFields)),
-            sk: this.loaded >= 0 ? this.loaded : -1,
-            sort: '{title: 1}'
+            sk: this.loaded >= 0 ? this.loaded : -1
           }, function (data) {
             searchService.itemDataCollection = searchService.itemDataCollection.concat(data);
             resultHandler(data);
