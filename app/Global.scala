@@ -1,5 +1,4 @@
 import _root_.controllers.{ConcreteS3Service, Log, S3Service}
-import patches.{DbPatches, InitPatch, DbPatch}
 import play.api.mvc.Results._
 import web.controllers.utils.ConfigLoader
 import common.seed.SeedDb._
@@ -115,7 +114,6 @@ object Global extends GlobalSettings {
     } else if (Play.isProd(app)) {
       if (initData) seedDevData()
     }
-    DbPatches.run(ConfigLoader.get("DB_VERSION").get)
   }
 
   private def isLocalDb: Boolean = {

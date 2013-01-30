@@ -19,6 +19,8 @@ object ApplicationBuild extends Build {
   )
 
   val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
+    //because of all the db testing we need - only test serially
+    parallelExecution.in(Test) := false,
     routesImport += "se.radley.plugin.salat.Binders._",
     templatesImport += "org.bson.types.ObjectId",
     resolvers += "Sonatype" at "https://oss.sonatype.org/content/repositories/snapshots/",
