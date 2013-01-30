@@ -6,7 +6,10 @@ puts "--------------------------------------------------"
 puts "deploy.rb - remote: #{remote}"
 puts "--------------------------------------------------"
 
+
 raise "you must specify - #{remote}" if remote == nil
+
+`git init`
 
 `git remote add #{remote} git@heroku.com:#{remote}.git`
 
