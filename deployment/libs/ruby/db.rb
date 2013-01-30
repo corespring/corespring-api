@@ -29,7 +29,7 @@ class Db
     end
 
     return nil if( host.nil? || port.nil? || name.nil? )
-
+    name.gsub!("\"", "")
     Db.new(name,host,port,user,pwd)
   end
 
