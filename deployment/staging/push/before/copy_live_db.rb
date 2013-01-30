@@ -37,7 +37,7 @@ MongoTools.dump(
 target_db = Db.from_uri(target_db_uri)
 
 puts "deleting migrations - because we want them all to run"
-`mongo #{target_db.host}:#{target_db.port} -u #{target_db.username} -p #{target_db.password} --eval "db.mongo_migrator_versions.drop();"`
+`mongo #{target_db.host}:#{target_db.port}/#{target_db.name} -u #{target_db.username} -p #{target_db.password} --eval "db.mongo_migrator_versions.drop();"`
 raise "error dropping versions" unless $?.to_i == 0
 
 
