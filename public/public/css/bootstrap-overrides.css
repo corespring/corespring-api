@@ -758,9 +758,8 @@ margin-bottom:25px;
 	table-layout:fixed;
 	font-size:15px;
 	font-weight:normal;
-	background: url("../images/title-wrap-bg-tile.png") repeat scroll 0px 0px #80B312;
+	background: url("../images/title-wrap-bg-tile.png") repeat scroll center top transparent;
 }
-	
 	/*for green gradient header
 	background-image: -ms-linear-gradient(top, #92d400, #62890e);
 	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#80b312), to(#62890e));
