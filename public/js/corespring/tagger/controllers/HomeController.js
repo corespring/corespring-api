@@ -31,8 +31,14 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
   };
 
   $scope.sortBy = function(field) {
-    $scope.searchParams.sortField = field;
-    $scope.$broadcast("sortingOnField", field);
+    if ($scope.searchParams.sort && $scope.searchParams.sort[field]) {
+      $scope.searchParams.sort[field] *= -1;
+    } else {
+      $scope.searchParams.sort = {};
+      $scope.searchParams.sort[field] = 1;
+    }
+    $scope.$broadcast("sortingOnField", field, $scope.searchParams.sort[field] == 1);
+    $scope.search();
   }
 
   $scope.getContributorTitle = function (c) {

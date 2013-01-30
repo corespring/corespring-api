@@ -52,14 +52,17 @@ angular.module('tagger.services').factory('SearchService',
         };
 
         var query = this.buildQueryObject(searchParams, this.searchFields);
-        console.log("Running query: "+JSON.stringify(query));
         searchService.searchId = new Date().getTime();
         var executeQuery = function (id) {
-          ItemService.query({
-              l: searchService.limit,
-              q: JSON.stringify(query),
-              f: JSON.stringify(mongoQuery.buildFilter(searchService.resultFields))
-            },
+          var queryObj = {
+            l: searchService.limit,
+            q: JSON.stringify(query),
+            f: JSON.stringify(mongoQuery.buildFilter(searchService.resultFields)),
+          };
+          if (searchParams.sort)
+            queryObj.sort = JSON.stringify(searchParams.sort);
+
+          ItemService.query(queryObj,
             function (data) {
               if (id != searchService.searchId) {
                 return;
@@ -140,7 +143,6 @@ angular.module('tagger.services').factory('SearchService',
         }
 
         if (searchParams.itemType) {
-          console.log("Item Type: ", searchParams.itemType);
           if (searchParams.itemType.indexOf && searchParams.itemType.length > 0) {
             query['itemType'] = inArray(searchParams.itemType, "label");
           } else {
@@ -185,7 +187,8 @@ angular.module('tagger.services').factory('SearchService',
             l: this.limit,
             q: JSON.stringify(query),
             f: JSON.stringify(mongoQuery.buildFilter(this.resultFields)),
-            sk: this.loaded >= 0 ? this.loaded : -1
+            sk: this.loaded >= 0 ? this.loaded : -1,
+            sort: '{title: 1}'
           }, function (data) {
             searchService.itemDataCollection = searchService.itemDataCollection.concat(data);
             resultHandler(data);
