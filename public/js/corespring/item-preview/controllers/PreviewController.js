@@ -14,7 +14,7 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
 
     $scope.getSmSrc = function (sm, forPrinting) {
         //var templateUrl = ServiceLookup.getUrlFor('previewFile');
-        var templateUrl = ServiceLookup.getUrlFor(forPrinting ? 'printResource' : 'renderResource');
+        var templateUrl = ServiceLookup.getUrlFor(forPrinting ? 'printSupportingMaterial' : 'renderResource');
         var key = $scope.itemData.id + "/" + sm.name;
         //empty it so we trigger a refresh
         return templateUrl.replace("{key}", key);
@@ -52,22 +52,33 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
 
     $scope.prependHttp = ItemFormattingUtils.prependHttp;
 
-    $scope.loadItem = function () {
-        Item.get(
-            {
-                id:Config.itemId
-            },
-            function onItemLoaded(itemData) {
-                $scope.itemData = itemData;
+  function loadItemById(id) {
+    Item.get(
+      {
+        id: id
+      },
+      function onItemLoaded(itemData) {
+        $scope.itemData = itemData;
+        $timeout(function () {
+          MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+        }, 200);
+      }
+    );
+  }
 
-                $timeout(function () {
-                    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-                }, 200);
-            }
-        );
-    };
+  $scope.$on("requestLoadItem", function(res, id) {
+    $scope.currentPanel = "profile";
+    $scope.itemData = {};
+    loadItemById(id);
+  });
 
-    $scope.itemId = Config.itemId;
+  $scope.loadItem = function () {
+    if (Config.itemId == undefined) return;
+    loadItemById(Config.itemId);
+  };
+
+
+  $scope.itemId = Config.itemId;
     $scope.loadItem();
     $scope.currentPanel = "profile";
 }

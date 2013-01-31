@@ -70,10 +70,10 @@ object ApiError {
   val CantSave            = ApiError(200, "There was an error saving your information")
   val IdNotNeeded         = ApiError(201, "An id cannot be specified for this operation")
   val InvalidQuery        = ApiError(202, "Your query is invalid")
-  val UnknownFieldOrOperator = ApiError(203, "Unknown field or operator: %s")
-  val InvalidField        = ApiError(204, "Field %s is invalid")
-  val CollIdNotNeeded      = ApiError(205, "a collection id cannot be specified for this operation")
-  val StringToMongo         = ApiError(206, "could not parse string into db object")
+  val InvalidFields = ApiError(203, "an error occurred when parsing fields")
+  val InvalidSort         = ApiError(204,"an error occurred when parsing the sort field")
+  val CollIdNotNeeded      = ApiError(206, "a collection id cannot be specified for this operation")
+  val StringToMongo         = ApiError(207, "could not parse string into db object")
 
   // Organization API
   val IdsDoNotMatch       = ApiError(300, "Specified id does not match the one in the json")

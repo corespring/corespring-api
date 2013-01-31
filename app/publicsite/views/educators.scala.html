@@ -1,155 +1,143 @@
 <!DOCTYPE html>
 <html ng-app="app" xmlns="http://www.w3.org/1999/html">
 <head>
+<title>Educators</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-    <title>Educators</title>
+@partials.headNode()
+@common.views.html.head.corespringCommon()
 
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
-    @partials.headNode()
-    @common.views.html.head.angular()
-    @common.views.html.head.corespringCommon()
-    @publicsite.head.html.fancybox()
-
-    <script src="/assets/js/corespring/tagger/mongo/MongoQuery.js"></script>
-    <script src="/assets/public/js/angular/items-app.js"></script>
-    <script src="/assets/public/js/angular/items.js"></script>
-
-    <script type="text/javascript">
-        $(document).ready(function() {
-            $(".fancybox").fancybox(
-                {
-					height : 720,
-                    fitToView : false,
-                    autoSize : false,
-                    beforeShow: function(){
-                        this.width = $('.fancybox-iframe').contents().find('html').width();
-                    }
-                }
-                );
-        });
-    </script>
-
+<script type="text/javascript">
+    angular.module('app').factory('Config', [ function () {
+            return {
+                itemId:""
+            };
+        }]
+    );
+</script>
 </head>
 
-<body>
+<body class="extra-large-window" ng-class="{'window-up': showPopup}" ng-controller="ItemsCtrl" ng-click="hidePopup()" ui-keypress="{'27': 'hidePopup()'}">
 
 @partials.header("edu")
-
 <div class="title-wrap">
-  <div class="container">
-    </div>
+  <div class="container"> </div>
 </div>
 
+<!--main contents area starts here --> 
 
-<!--main contents area starts here -->
-
-<!--JM ADDED -->
 <div class="container main-wrap">
   <div class="span12 lead-in educator"> <span class="intro-logo"></span>
-    <p>Experts review all items in CoreSpring’s open collections to make sure that content is aligned to common standards and frameworks that guide teaching and learning. Explore samples below.</p>
+    <p>CoreSpring is developing a library of interactions to help educators and students reach deeper learning in classrooms. All interactions may include a variety of media and are designed for maximum engagement. When available, examples of student work, scoring guides, and rubrics are presented. We are continuously updating and expanding the library.</p>
   </div>
-  <!--end of JM ADDITION -->
+
   <div class="container">
-
-<div class="main" ng-controller="ItemsCtrl">
-            <!--
-            <div class="row">
-                <form class="form-horizontal">
-                    <div class="control-group">
-                     <label class="control-label" for="primary-subject-dropdown" ><strong>Primary Subject</strong></label>
-                        <div class="controls" id="primary-subject-dropdown">
-                            <label class="checkbox inline" style="float:left" ng-repeat="primarySubject in primarySubjects">
-                                <input type="checkbox" defaultChecked="false" ng-click="updatePrimarySubjectSearch(primarySubject)">{{primarySubject.category}}
-                            </label>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label" for="grade-btn-bar"><strong>Grade:</strong></label>
-                        <div class="controls btn-group" id="grade-btn-bar">
-                            <button ng-repeat="grade in grades" class="btn" style="float:left" data-toggle="button" ng-click="updateGradeSearch(grade)">{{grade}}</button>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label" for="item-type-chkbx"><strong>Item Type:</strong></label>
-                        <div class="controls" id="item-type-chkbx">
-                            <label class="checkbox inline" style="float:left" ng-repeat="itemType in itemTypes">
-                                <input type="checkbox" defaultChecked="false" ng-click="updateItemTypeSearch(itemType)">{{itemType}}
-                            </label>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            -->
-            <div class="row">
-                <div class="span2">&nbsp;</div>
-            </div>
-
-<!-- items -->
-
-<div ng-switch on="itemState">
-    <div ng-switch-when="noContent">
-        <div class="row offset4">
-            <h2>No Items Found...</h2>
-        </div>
-        <div class="row offset3">
-            <p class="lead">No items were found with the selected filters. <a href="/public/collection">clear all filters</a></p>
-        </div>
+    <div class="main">
+      <table class="edu-table table table-hover table-striped">
+        <thead>
+          <tr>
+            <th class="edu-th-1">Interaction Type</th>
+            <th class="edu-th-2">Description</th>
+            <th class="edu-th-3">Student Activity</th>
+            <th class="edu-th-4">Scoreable?</th>
+            <th class="edu-th-5">PARCC & Smarter Balanced?</th>
+            <th class="edu-th-6">Sample</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Multiple Choice (includes True/False, Yes/No)</td>
+            <td>Select the best response from a list of options presented. </td>
+            <td>Choose, Select, Define, Recall, Identify</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a ng-click="openItem('50180807e4b0b89ebc0153b0')">Discount City</a></li>
+                <li><a ng-click="openItem('50d755c6e4b0ebcda4e2fbb6')">Correction!</a></li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Fill in the Blank/Complete the Statement (Inline Choice)</td>
+            <td>Select the best response from a list of options. </td>
+            <td>Choose, Select</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a ng-click="openItem('50192d0de4b04d97fbff6a17')">Class President</a> </li>
+                <li><a ng-click="openItem('5023fbe8e4b08be40d045d7c')">Toothpaste</a></li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Ordering</td>
+            <td>Sequence events or inputs in correct order. </td>
+            <td>Organize, Classify </td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a ng-click="openItem('504e9571e4b07f3e2e432371')">Butterflies</a> </li>
+                <li> <a ng-click="openItem('50324faae4b0383443ab9bce')"> Alaskan Temps</a></li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Constructed Response - Short Answer (Right Answer)</td>
+            <td>Respond to a prompt requiring a correct answer. </td>
+            <td>Calculate, Identify, Compute </td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a ng-click="openItem('5023cbb6e4b08be40d045d58')">Greg Goes Shopping</a> </li>
+                <li><a ng-click="openItem('5033daa3e4b02c4aa1428e91')">Prize Money</a></li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Constructed Response (Writing)</td>
+            <td>Respond to a prompt in short or long form. </td>
+            <td>Explain, Show, Describe, Demonstrate, Argue, Defend </td>
+            <td>No</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a ng-click="openItem('502927e7e4b005a3bb6bc0a0')">Demosthenes, Icarus, and Daedalus </a> </li>
+                <li><a ng-click="openItem('502282bce4b05b57849d303b')">Mass and Matter</a> </li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Focus</td>
+            <td>Highlight key concepts to summarize thinking. </td>
+            <td>Choose, Select</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td><ul>
+                <li><a ng-click="openItem('50098908e4b0f123a2d54c98')">The Hawks and Their Friends </a></li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Projects and Activities</td>
+            <td>Respond to a collection of prompts to demonstrate deeper learning.</td>
+            <td>Plan, Organize, Show, Describe, Demonstrate, Argue, Defend </td>
+            <td>Yes</td>
+            <td>No</td>
+            <td><ul>
+                <li><a ng-click="openItem('50b653a1e4b0ec03f29344b0')">Pond Weeds</a></li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Select Evidence in Text</td>
+            <td>Review passage-based items, select evidence from text to support a claim.</td>
+            <td>Analyze, Describe, Show, Describe, Demonstrate, Argue, Defend </td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a ng-click="openItem('50ee136ee4b00448c0368e0e')">What does <u>scarred</u> mean? </a></li>
+              </ul></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    <div class="row" ng-switch-when="loading">
-        <div class="offset4 span1"><img src="/assets/images/loadingSpinner.gif" /></div>
-        <div class="span2"><h3>Loading...</h3></div>
-    </div>
-    <div ng-switch-when="hasContent">
-        <div ng-repeat="i in items" style="padding-bottom: 12px;">
-
-            <div class="well item">
-                <table>
-                    <tr>
-                        <td width="45px">Grade:</td>
-                        <td width="238px" class="value">{{i.gradeLevel.join()}}</td>
-                        <td width="40px">CCSS:</td>
-                        <td width="300px" class="value">
-                            <span ng-show="!i.standards || i.length == 0" style="color: #888; font-style: italic;">Not Assigned</span>
-                            <span ng-repeat="s in i.standards" ui-jq="tooltip"
-                                  ui-options="{title: s.standard}">{{s.dotNotation}}&nbsp;</span></td>
-                                <td class="button-cell">
-                                    <!--
-                                    <a class="btn btn-success fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/web/item-preview/{{i.id}}">Profile</a>
-                                     <a class="btn btn-primary fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/testplayer/item/{{i.id}}/run?access_token=34dj45a769j4e1c0h4wb" >Play it!</a>
-                                -->
-                                </td>
-
-                    </tr>
-
-                </table>
-                <a class="fancybox" data-fancybox-type="iframe" href="{{rootUrl}}/web/item-preview/{{i.id}}">
-                    <p class="title" ng-bind-html-unsafe="i.title"></p>
-                </a>
-                <table>
-                    <tr>
-                        <td width="33%">Primary Subject</td>
-                        <td width="33%">Type</td>
-                        <td width="33%">Source</td>
-                    </tr>
-                       <tr>
-                        <td width="auto" class="value">{{getPrimarySubjectLabel(i.primarySubject)}}</td>
-                        <td width="auto" class="value">{{i.itemType}}</td>
-                        <td width="auto" class="value">{{i.contributor}}</td>
-                    </tr>
-
-                </table>
-          
-            </div>
-
-         </div>    
-    </div>
-
+  </div>
 </div>
-<!--main content area (except header,footer) ends -->
-</div>
-</div>
-</div>
+
+@partials.previewItemOverlay()
 @partials.footer()
+
 </body>
 </html>
