@@ -4,6 +4,7 @@ html, body, p, select, textarea, h1, h2, h3, h4, h5, h6 {
 }
 body {
 	font-size: 18px;
+	background-color: #ffffff !important;
 }
 h1 {
 	color: #FFFFFF;
@@ -22,12 +23,7 @@ p {
 	line-height: 26px;
 	margin: 0px 0px 30px;
 }
-/* delete
-.lead-in {
-	font-size: 17px;
-	line-height: 35px;
-}
-*/
+
 .header-wrap {
 	background: url("../images/header-light-grey-br.gif") repeat scroll center top transparent;
 }
