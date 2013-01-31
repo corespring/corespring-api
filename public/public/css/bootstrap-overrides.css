@@ -574,7 +574,7 @@ body, body p, p {
 	line-height: 19px;
 	padding: 10px 10px 11px;
 	text-decoration: none;
-	text-shadow: 0px -1px 0px rgba(255, 255, 255, 0.99);
+	text-shadow: 0px -1px 0px rgba(255, 255, 255, 0.99)!important;
 }
 .nav {
 	list-style: none outside none;
