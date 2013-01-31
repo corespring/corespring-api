@@ -117,7 +117,7 @@ class ItemQueryTest extends BaseTest{
     }
     jsonSuccess must beTrue
   }
-  "filter search by gradeLevel AND title" in {
+  "filter search by itemType AND title" in {
     val title = "DEV"
     val itemType = "Multiple Choice"
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{title:{$regex:\""+title+"\"},itemType:\""+itemType+"\"}"))
@@ -157,6 +157,47 @@ class ItemQueryTest extends BaseTest{
     val jsonSuccess = json match {
       case JsArray(jsobjects) => {
         jsobjects.size must beGreaterThanOrEqualTo(5)
+        jsobjects.forall(jsobj => {
+          ((jsobj \ "primarySubject") match {
+            case JsObject(props) => props.contains("category" -> JsString(primarySubjectCategory))
+            case _ => false
+          }) || ((jsobj \ "title") match {
+            case JsString(jstitle) => jstitle.contains(title)
+            case _ => false
+          }) || ((jsobj \ "gradeLevel") match {
+            case JsArray(jsgrades) => jsgrades.exists(jsgrade => jsgrade.as[String] == gradeLevel)
+            case _ => false
+          }) || ((jsobj \ "itemType") match {
+            case JsString(jsitemType) => jsitemType == itemType
+            case _ => false
+          }) || ((jsobj \ "standards") match {
+            case JsObject(props) => props.contains("dotNotation" -> JsString(standardsDotNotation))
+            case _ => false
+          }) || ((jsobj \ "author") match {
+            case JsString(jsauthor) => jsauthor == author
+            case _ => false
+          })
+        })
+      }
+      case _ => false
+    }
+    jsonSuccess must beTrue
+  }
+  "search by title OR primarySubject OR gradeLevel OR itemType OR standards.dotNotation OR contributorDetails.author returns results even with a value for standards.dotNotation that does not contain any results" in  {
+    val primarySubjectCategory = "Mathematics"
+    val title = "DEV"
+    val gradeLevel = "02"
+    val itemType = "Multiple Choice"
+    val standardsDotNotation = "blergl mergl"
+    val author = "New England Common Assessment Program"
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{\"$or\":[{primarySubject.category:\""+primarySubjectCategory+"\"},{title:{$regex:\""+title+"\"}},{gradeLevel:\""+gradeLevel+"\"},{itemType:\""+itemType+"\"},{standards.dotNotation:\""+standardsDotNotation+"\"},{author:\""+author+"\"}]}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(OK)
+    val json = Json.parse(contentAsString(result))
+    val jsonSuccess = json match {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
         jsobjects.forall(jsobj => {
           ((jsobj \ "primarySubject") match {
             case JsObject(props) => props.contains("category" -> JsString(primarySubjectCategory))
@@ -310,6 +351,82 @@ class ItemQueryTest extends BaseTest{
           (jsobj \ "itemType") match {
             case JsString(jsitemType) => jsitemType != itemType
             case _ => true
+          }
+        })
+      }
+      case _ => false
+    }
+    jsonSuccess must beTrue
+  }
+  "search for items that do not contain a gradeLevel of 02 or 04" in {
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{gradeLevel:{$nin:[\"02\",\"04\"]}}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(OK)
+    val json = Json.parse(contentAsString(result))
+    val jsonSuccess = json match {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
+          (jsobj \ "gradeLevel") match {
+            case JsArray(grades) => grades.forall(jsgrade => jsgrade match {
+              case JsString(grade) => grade != "02" && grade != "04"
+              case _ => false
+            })
+            case _ => true
+          }
+        })
+      }
+      case _ => false
+    }
+    jsonSuccess must beTrue
+  }
+  "search for items that do not contain the property itemType" in {
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{itemType:{$exists:false}}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(OK)
+    val json = Json.parse(contentAsString(result))
+    val jsonSuccess = json match {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
+          (jsobj \ "itemType").asOpt[String] match {
+            case Some(_) => false
+            case None => true
+          }
+        })
+      }
+      case _ => false
+    }
+    jsonSuccess must beTrue
+  }
+  "no results are returned when searching for itemType that has both values of Multiple Choice and Project" in {
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{$and:[{itemType:\"Multiple Choice\"},{itemType:\"Project\"}]}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(OK)
+    val json = Json.parse(contentAsString(result))
+    json match {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beEqualTo(0)
+      }
+      case _ => failure("did not return an array")
+    }
+  }
+  "match all items that have a gradeLevel which contains the values 02 and 04 in its array" in {
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{$and : [ { gradeLevel : \"02\"}, { gradeLevel : \"04\"}],gradeLevel:{$exists:true}}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(OK)
+    val json = Json.parse(contentAsString(result))
+    val jsonSuccess = json match {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
+          (jsobj \ "gradeLevel") match {
+            case JsArray(grades) => grades.exists(_.as[String] == "02") && grades.exists(_.as[String] == "04")
+            case _ => false
           }
         })
       }
