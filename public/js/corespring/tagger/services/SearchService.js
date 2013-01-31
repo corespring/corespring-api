@@ -12,7 +12,7 @@ angular.module('tagger.services').factory('SearchService',
       itemDataCollection: {},
       searchId: 0,
       resultFields: [
-        'originId',
+        'id',
         'title',
         'primarySubject',
         'gradeLevel',
