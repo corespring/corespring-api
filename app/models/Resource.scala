@@ -4,6 +4,9 @@ import play.api.libs.json._
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import scala.Some
+import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.BasicDBObject
+import controllers.{LogType, InternalError}
 
 
 /**
@@ -11,7 +14,7 @@ import scala.Some
  */
 case class Resource(name: String, var files: Seq[BaseFile])
 
-object Resource {
+object Resource{
   val name = "name"
   val files = "files"
 

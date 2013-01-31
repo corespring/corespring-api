@@ -34,7 +34,7 @@ case class ItemSession(var itemId: ObjectId,
                        var feedbackIdLookup: Seq[FeedbackIdMapEntry] = Seq(),
                        var sessionData: Option[SessionData] = None,
                        var settings: ItemSessionSettings = new ItemSessionSettings()
-                        ) extends Identifiable {
+                        ) {
 
   def isStarted: Boolean = start.isDefined
 

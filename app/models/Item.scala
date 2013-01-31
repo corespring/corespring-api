@@ -1,15 +1,22 @@
 package models
 
+import json.ItemView
+import play.api.Play.current
+import org.bson.types.ObjectId
 import com.mongodb.casbah.Imports._
 import controllers._
 import scala.Either
 import mongoContext._
-import com.mongodb.util.JSON
+import com.mongodb.util.{JSONParseException, JSON}
 import controllers.InternalError
 import scala.Left
 import scala.Right
 import play.api.libs.json._
 import com.novus.salat._
+import dao.{ModelCompanion, SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
+import controllers.auth.Permission
+import play.api.Logger
+import java.util.regex.Pattern
 import dao.{SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
 import controllers.auth.Permission
 import org.joda.time.DateTime
@@ -39,12 +46,11 @@ case class Item(
 /**
  * An Item model
  */
-object Item extends DBQueryable[Item] {
+object Item extends ModelCompanion[Item,ObjectId]{
 
   import com.mongodb.casbah.commons.conversions.scala._
 
   RegisterJodaTimeConversionHelpers()
-
   val FieldValuesVersion = "0.0.1"
 
   val collection = Content.collection
@@ -56,6 +62,7 @@ object Item extends DBQueryable[Item] {
   val author = "author"
   val collectionId = Content.collectionId
   val contentType = Content.contentType
+  val contributorDetails = "contributorDetails"
   val contributor = "contributor"
   val copyright = "copyright"
   val copyrightOwner = "copyrightOwner"
@@ -74,6 +81,7 @@ object Item extends DBQueryable[Item] {
   val subjects = "subjects"
   val primarySubject = "primarySubject"
   val relatedSubject = "relatedSubject"
+  val taskInfo = "taskInfo"
   val pValue = "pValue"
   val priorUse = "priorUse"
   val reviewsPassed = "reviewsPassed"
@@ -87,70 +95,12 @@ object Item extends DBQueryable[Item] {
   val bloomsTaxonomy = "bloomsTaxonomy"
   val workflow = "workflow"
   val dateModified = "dateModified"
+  val otherAlignments = "otherAlignments"
 
   lazy val fieldValues = FieldValue.current
-
-  implicit object Writes extends Writes[Item] {
-
-
-    def writes(item: Item): JsValue = {
-
-      def toJsObject[T](a: Option[T])(implicit w: Writes[T]): Option[JsObject] = a.map(w.writes(_).asInstanceOf[JsObject])
-
-      val mainItem: JsObject = writeMainItem(item)
-      val details: Option[JsObject] = toJsObject(item.contributorDetails)
-      val taskInfo: Option[JsObject] = toJsObject(item.taskInfo)
-      val alignments: Option[JsObject] = toJsObject(item.otherAlignments)
-
-      val out = Seq(Some(mainItem), details, taskInfo, alignments).flatten
-      val jsObject = out.tail.foldRight(out.head)(_ ++ _)
-      jsObject
-    }
-
-    private def writeMainItem(item: Item): JsObject = {
-
-      val basics: Seq[Option[(String, JsValue)]] = Seq(
-        Some(("id" -> JsString(item.id.toString))),
-        item.workflow.map((workflow -> Json.toJson(_))),
-        item.data.map((data -> Json.toJson(_))),
-        Some((collectionId -> JsString(item.collectionId))),
-        Some(contentType -> JsString(ContentType.item))
-      )
-
-      def makeJsString(tuple: (String, Option[String])) = {
-        val (key, value) = tuple
-        value match {
-          case Some(s) => Some((key, JsString(s)))
-          case _ => None
-        }
-      }
-
-      val strings: Seq[Option[(String, JsValue)]] = Seq(
-        (lexile, item.lexile),
-        (originId, item.originId),
-        (pValue, item.pValue),
-        (priorUse, item.priorUse)
-      ).map(makeJsString)
-
-      def makeJsArray(tuple: (String, Seq[JsValue])) = {
-        val (key, value) = tuple
-        if (value.isEmpty)
-          None
-        else
-          Some(key, JsArray(value))
-      }
-
-      val validStandards = item.standards.map(Standard.findOneByDotNotation).flatten
-
-      val arrays: Seq[Option[(String, JsValue)]] = Seq(
-        (priorGradeLevel, item.priorGradeLevel.map(JsString(_))),
-        (reviewsPassed, item.reviewsPassed.map(JsString(_))),
-        (supportingMaterials, item.supportingMaterials.map(Json.toJson(_))),
-        (standards, validStandards.map(Json.toJson(_)))
-      ).map(makeJsArray)
-
-      val joined = (basics ++ strings ++ arrays).flatten
-      JsObject(joined)
+  implicit object ItemWrites extends Writes[Item] {
+    def writes(item: Item) = {
+      ItemView.ItemViewWrites.writes(ItemView(item,None))
     }
   }
 
@@ -243,12 +193,12 @@ object Item extends DBQueryable[Item] {
     result.count
   }
 
-  def list(query: DBObject, fields: BasicDBObject = new BasicDBObject(), skip: Int = 0, limit: Int = 200): List[Item] = {
-    val result: SalatMongoCursor[Item] = Item.find(query, fields)
-    result.limit(limit)
-    result.skip(skip)
-    result.toList
-  }
+//  def list(query: MongoDBObject, fields: MongoDBObject, skip: Int = 0, limit: Int = 200) : List[Item] = {
+//    val result : SalatMongoCursor[Item] = Item.find( query, fields)
+//    result.limit(limit)
+//    result.skip(skip)
+//    result.toList
+//  }
 
   def queryValueFn(name: String, seq: Seq[KeyValue])(c: Any) = {
     c match {
@@ -272,145 +222,6 @@ object Item extends DBQueryable[Item] {
         }
         case _ => Left(InternalError("data not an object"))
       }
-    }
-  }
-
-  val queryFields: Seq[QueryField[Item]] = Seq[QueryField[Item]](
-    QueryFieldObject[Item](id, _.id, QueryField.valuefuncid),
-    QueryFieldString[Item](author, _.contributorDetails.map(_.author)),
-    QueryFieldString[Item](collectionId, _.collectionId),
-    QueryFieldString[Item](originId, _.originId),
-    QueryFieldString[Item](contentType, _.contentType, _ match {
-      case x: String if x == ContentType.item => Right(x)
-      case _ => Left(InternalError("incorrect content type"))
-    }),
-    QueryFieldString[Item](contributor, _.contributorDetails.map(_.contributor)),
-    QueryFieldString[Item](copyrightOwner, _.contributorDetails.map(_.copyright.map(_.owner))),
-    QueryFieldString[Item](copyrightYear, _.contributorDetails.map(_.copyright.map(_.year))),
-    QueryFieldString[Item](credentials, _.contributorDetails.map(_.credentials), queryValueFn("credentials", fieldValues.credentials)),
-    QueryFieldStringArray[Item](gradeLevel, _.taskInfo.map(_.gradeLevel), value => {
-      value match {
-        case grades: BasicDBList =>
-          if (grades.foldRight[Boolean](true)((grade, acc) => fieldValues.gradeLevels.exists(_.key == grade.toString) && acc)) Right(value)
-          else Left(InternalError("gradeLevel contained invalid grade formats for values"))
-        case grade: String =>
-          if (fieldValues.gradeLevels.exists(_.key == grade.toString)) Right(grade) else Left(InternalError("gradeLevel contained invalid grade formats for values"))
-        case _ =>
-          Left(InternalError("invalid type for value in gradeLevel"))
-      }
-    }),
-
-    QueryFieldString[Item](workflow + "." + Workflow.qaReview, _.workflow.map(_.qaReview)),
-    QueryFieldString[Item](workflow + "." + Workflow.setup, _.workflow.map(_.setup)),
-    QueryFieldString[Item](workflow + "." + Workflow.tagged, _.workflow.map(_.tagged)),
-    QueryFieldString[Item](workflow + "." + Workflow.standardsAligned, _.workflow.map(_.standardsAligned)),
-
-    /**
-     * TODO: Check with Evan/Josh about item types.
-     */
-    QueryFieldString[Item](itemType, _.taskInfo.map(_.itemType)),
-    QueryFieldStringArray[Item](keySkills, _.otherAlignments.map(_.keySkills), value => value match {
-      case skills: BasicDBList => if (skills.foldRight[Boolean](true)((skill, acc) => fieldValues.keySkills.exists(_.key == skill.toString) && acc)) Right(value)
-      else Left(InternalError("key skill not found for given value"))
-      case _ => Left(InternalError("invalid value type for keySkills"))
-    }
-    ),
-    QueryFieldString[Item](bloomsTaxonomy, _.otherAlignments.map(_.bloomsTaxonomy), queryValueFn(bloomsTaxonomy, fieldValues.bloomsTaxonomy)),
-    QueryFieldString[Item](licenseType, _.contributorDetails.map(_.licenseType), queryValueFn(licenseType, fieldValues.licenseTypes)),
-    QueryFieldObject[Item](primarySubject, _.taskInfo.map(_.subjects.map(_.primary)), _ match {
-      case x: String => try {
-        Right(new ObjectId(x))
-      } catch {
-        case e: IllegalArgumentException => Left(InternalError("invalid object id format for primarySubject"))
-      }
-      case _ => Left(InternalError("uknown value type for standards"))
-    }, Subject.queryFields),
-    QueryFieldObject[Item](relatedSubject, _.taskInfo.map(_.subjects.map(_.related)), _ match {
-      case x: String => try {
-        Right(new ObjectId(x))
-      } catch {
-        case e: IllegalArgumentException => Left(InternalError("invalid object id format for relatedSubject"))
-      }
-      case _ => Left(InternalError("uknown value type for standards"))
-    }, Subject.queryFields),
-    QueryFieldStringArray[Item](priorUse, _.priorUse, value => value match {
-      case x: String => if (fieldValues.priorUses.exists(_.key == x)) Right(value) else Left(InternalError("priorUse not found"))
-      case _ => Left(InternalError("invalid value type for priorUse"))
-    }
-    ),
-    QueryFieldStringArray[Item](reviewsPassed, _.reviewsPassed, value => value match {
-      case reviews: BasicDBList => if (reviews.foldRight[Boolean](true)((review, acc) => fieldValues.reviewsPassed.exists(_.key == review.toString) && acc)) Right(value)
-      else Left(InternalError("review not found"))
-      case _ => Left(InternalError("invalid value type for reviewsPassed"))
-    }
-    ),
-    QueryFieldString[Item](sourceUrl, _.contributorDetails.map(_.sourceUrl)),
-    QueryFieldObjectArray[Item](standards, _.standards, _ match {
-      case x: BasicDBList => x.foldRight[Either[InternalError, Seq[ObjectId]]](Right(Seq()))((standard, acc) => {
-        acc match {
-          case Right(ids) => standard match {
-            case x: String => try {
-              Right(ids :+ new ObjectId(x))
-            } catch {
-              case e: IllegalArgumentException => Left(InternalError("invalid object id format for standards"))
-            }
-          }
-          case Left(e) => Left(e)
-        }
-      })
-      case x: String => try {
-        Right(new ObjectId(x))
-      } catch {
-        case e: IllegalArgumentException => Left(InternalError("invalid object id format for standards"))
-      }
-      case _ => Left(InternalError("uknown value type for standards"))
-    }, Standard.queryFields),
-    QueryFieldString[Item](title, _.taskInfo.map(_.title)),
-    QueryFieldString[Item](lexile, _.lexile),
-    QueryFieldString[Item](demonstratedKnowledge, _.otherAlignments.map(_.demonstratedKnowledge), queryValueFn(demonstratedKnowledge, fieldValues.demonstratedKnowledge)),
-    QueryFieldString[Item](pValue, _.pValue),
-    QueryFieldString[Item](relatedCurriculum, _.otherAlignments.map(_.relatedCurriculum))
-  )
-
-  override def preParse(dbo: DBObject): QueryParser = {
-    parseProperty[Standard](dbo, standards, Standard) match {
-      case Right(builder1) =>
-        parseProperty[Subject](dbo, primarySubject, Subject) match {
-          case Right(builder2) =>
-            parseProperty[Subject](dbo, relatedSubject, Subject) match {
-              case Right(builder3) => {
-                val builder = MongoDBObject.newBuilder
-                builder1.foreach(field => builder += field)
-                builder2.foreach(field => builder += field)
-                builder3.foreach(field => builder += field)
-                QueryParser(Right(builder))
-              }
-              case Left(e) => QueryParser(Left(e))
-            }
-          case Left(e) => QueryParser(Left(e))
-        }
-      case Left(e) => QueryParser(Left(e))
-    }
-  }
-
-  private def parseProperty[T <: Identifiable](dbo: DBObject, key: String, joinedQueryable: DBQueryable[T]): Either[InternalError, Seq[(String, Any)]] = {
-    val qp = QueryParser.buildQuery(dbo, QueryParser(), Seq(queryFields.find(_.key == key).get))
-    qp.result match {
-      case Right(query) =>
-        val dbquery = query.result()
-        QueryParser.replaceKeys(dbquery, joinedQueryable.queryFields.map(qf => key + "." + qf.key -> qf.key))
-        var builder: Seq[(String, Any)] = Seq()
-        if (!dbquery.isEmpty) {
-          val c = joinedQueryable.find(dbquery, MongoDBObject("_id" -> 1))
-          val builderList = MongoDBList.newBuilder
-          if (!c.isEmpty) {
-            c.foreach(builderList += _.id)
-            builder = builder :+ (key -> MongoDBObject("$in" -> builderList.result()))
-          }
-        }
-        QueryParser.removeKeys(dbo, joinedQueryable.queryFields.foldRight[Seq[String]](Seq(key))((qf, acc) => acc :+ key + "." + qf.key))
-        Right(builder)
-      case Left(e) => Left(e)
     }
   }
 }
