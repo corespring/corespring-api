@@ -52,22 +52,34 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
 
     $scope.prependHttp = ItemFormattingUtils.prependHttp;
 
-    $scope.loadItem = function () {
-        Item.get(
-            {
-                id:Config.itemId
-            },
-            function onItemLoaded(itemData) {
-                $scope.itemData = itemData;
+  function loadItemById(id) {
+    console.log("Loading: ", id);
+    Item.get(
+      {
+        id: id
+      },
+      function onItemLoaded(itemData) {
+        $scope.itemData = itemData;
+        $timeout(function () {
+          MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+        }, 200);
+      }
+    );
+  }
 
-                $timeout(function () {
-                    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-                }, 200);
-            }
-        );
-    };
+  $scope.$on("requestLoadItem", function(res, id) {
+    $scope.currentPanel = "profile";
+    $scope.itemData = {};
+    loadItemById(id);
+  });
 
-    $scope.itemId = Config.itemId;
+  $scope.loadItem = function () {
+    if (Config.itemId == undefined) return;
+    loadItemById(Config.itemId);
+  };
+
+
+  $scope.itemId = Config.itemId;
     $scope.loadItem();
     $scope.currentPanel = "profile";
 }
