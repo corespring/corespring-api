@@ -402,24 +402,23 @@ p {
 .container div.span12 p {
 	color: #00ACCE;
 	font: italic 500 27px/20px "Ubuntu", Arial, Helvetica, sans-serif;
-	word-spacing: -3px;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
 }
 .container div.span12.intro {
 	margin-left: 0px;
 	margin-top: 10px;
 }
 .main div.row div.span4.about {
-	background: url("../images/about-icon-lrg.png") no-repeat scroll center 5px transparent;
 	margin-left: 20px;
-	padding-top: 60px;
+	padding-top: 0px;
 }
 .main div.row div.span4.ed {
-	background: url("../images/ed-icon-lrg.png") no-repeat scroll center 0px transparent;
-	padding-top: 60px;
+	padding-top: 0px;
 }
 .main div.row div.span4.dev {
-	background: url("../images/dev-icon-lrg.png") no-repeat scroll center 0px transparent;
-	padding-top: 60px;
+	padding-top: 0px;
 }
 .main div.row div.span4 span.col-header {
 	border-bottom: 2px solid #92D400;
@@ -438,9 +437,9 @@ p {
 	text-align: center;
 }
 .main div.row div.span4 {
-	height: 320px;
+	height: auto;
 	margin-left: 60px;
-	margin-top: 10px;
+	margin-top: 1px;
 	position: relative;
 	width: 273px;
 }
@@ -465,9 +464,10 @@ p {
 }
 .container div.lead-in p {
 	color: #00ACCE;
-	font: 300 17px/27px "Ubuntu", Arial, Helvetica, sans-serif;
+	font: 300 18px/27px "Ubuntu", Arial, Helvetica, sans-serif;
 	word-spacing: normal;
-	margin: 5px 0px 10px;
+	margin: 5px 0px 15px;
+	text-align:left;
 }
 .container div.lead-in.about, .container div.span12.lead-in.contact, .container div.span12.lead-in.partner, .container div.span9.lead-in.developer, .container div.span12.lead-in.educator {
 	margin-left: 0px;
@@ -507,15 +507,23 @@ p {
 	width: 54px;
 	margin-bottom: 30px;
 }
+
+div.span6.justify p{
+	margin-bottom:15px;
+}
+
+
 .justify p {
 	text-align: justify;
 }
 .span6 h3 {
-	color: #92D400;
-	font-size: 20px;
-	font-weight: 500;
-	line-height: 20px;
+color: #92D400;
+font-size: 18px;
+font-weight: 500;
+line-height: 26px;
+margin-bottom: 5px;
 }
+
 .span6 {
 	margin-right: 30px;
 	width: 430px;
@@ -527,6 +535,7 @@ p {
 }
 .span12.subhead {
 	margin-left: 0px;
+	margin-top: 10px;
 }
 .container div.span12 span.contact-info p {
 	color: #5B5B5B;
@@ -742,25 +751,21 @@ div.well.item a.fancybox:hover {
 	padding-left: 8px;
 	padding-bottom: 6px;
 }
-
-
 /*EDUCATION PAGE TABLE */
 
 .span12.lead-in.educator p {
-margin-bottom:25px;
+	margin-bottom:25px;
 }
-
 .edu-table {
 	clear: both;
 }
-
 .edu-table th {
 	table-layout:fixed;
 	font-size:15px;
 	font-weight:normal;
 	background: url("../images/title-wrap-bg-tile.png") repeat scroll center top transparent;
 }
-	/*for green gradient header
+/*for green gradient header
 	background-image: -ms-linear-gradient(top, #92d400, #62890e);
 	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#80b312), to(#62890e));
 	background-image: -webkit-linear-gradient(top, #92d400, #62890e);
@@ -779,7 +784,6 @@ margin-bottom:25px;
 	text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.9);
 	font-size:16px;
 }
-
 .edu-table td, .edu-table td a {
 	font-size:13px;
 }
@@ -794,7 +798,6 @@ margin-bottom:25px;
 	margin-left: 17px;
 	margin-bottom:0px;
 }
-
 .edu-table th, .edu-table td {
 	padding: 8px 16px;
 }
@@ -819,21 +822,87 @@ margin-bottom:25px;
 .edu-table.table.table-hover.table-striped tbody tr td, .edu-table.table.table-hover.table-striped thead tr th {
 	vertical-align:middle;
 }
-
 .edu-table.table.table-hover.table-striped tr td:nth-child(4), .edu-table.table.table-hover.table-striped tr td:nth-child(5) {
-  text-align: center;
+	text-align: center;
 }
-
 .edu-table.table.table-hover.table-striped {
-  border: 1px solid #80b312;
-  border-collapse: separate;
-  *border-collapse: collapse;
-  -webkit-border-radius: 4px;
-     -moz-border-radius: 4px;
-          border-radius: 4px;
+	border: 1px solid #80b312;
+	border-collapse: separate;
+ *border-collapse: collapse;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
 }
-
-
 .edu-table th, .edu-table td {
-border-top: 1px solid #80b312;
+	border-top: 1px solid #80b312;
+}
+/* HomePage Logo Bank */
+div.well.logo-bank {
+	background-color:#fff;
+	border:2px solid #00ACCE;
+	margin-top: 5px;
+	-moz-box-shadow:-2px 2px 3px #B2b2b2;
+	-webkit-box-shadow: -2px 2px 3px #B2b2b2;
+	box-shadow: -2px 2px 3px #B2b2b2;
+}
+div.well.logo-bank div.logo-bank-title {
+	background: #fff;
+	color: #00ACCE;
+	font: italic 500 18px/20px "Ubuntu", Arial, Helvetica, sans-serif;
+	position: relative;
+	top: -18px;
+	padding: 0 5px 0 4px;
+	clear: both;
+	display: inline-block;
+	margin-left: 12px;
+}
+img.contributor-logos {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	padding: 0px 0 20px 0;
+}
+/*end logo-bank */
+
+/*Homepage Columns Adjustments 1.30.13 */
+a#about-col, a#educators-col, a#developer-col {
+	display: block;
+	position: relative;
+	border-bottom: 2px solid #92D400 !important;
+	outline: none;
+	padding: 60px 0px 14px 0;
+	vertical-align: bottom;
+	text-align: center;
+	font-size: 20px;
+	line-height: 25px;
+	font-weight: 700;
+	margin-bottom: 14px;
+	color: #92D400;
+}
+.main div.row div.span4 a#about-col {
+	background: url("../images/about-icon-lrg.png") no-repeat scroll 102px -1px transparent;
+}
+.main div.row div.span4 a#about-col:hover {
+	background: url("../images/about-icon-lrg-glow.png") no-repeat scroll 102px -1px transparent;
+}
+.main div.row div.span4 a#about-col:active {
+	background: url("../images/about-icon-lrg-green.png") no-repeat scroll 102px -1px transparent;
+}
+.main div.row div.span4 a#educators-col {
+	background: url("../images/ed-icon-lrg.png") no-repeat scroll 108px -0px transparent;
+}
+.main div.row div.span4 a#educators-col:hover {
+	background: url("../images/ed-icon-lrg-glow.png") no-repeat scroll 108px -0px transparent;
+}
+.main div.row div.span4 a#educators-col:active {
+	background: url("../images/ed-icon-lrg-green.png") no-repeat scroll 108px -0px transparent;
+}
+.main div.row div.span4 a#developer-col {
+	background: url("../images/dev-icon-lrg.png") no-repeat scroll 104px 2px transparent;
+}
+.main div.row div.span4 a#developer-col:hover {
+	background: url("../images/dev-icon-lrg-glow.png") no-repeat scroll 104px 2px transparent;
+}
+.main div.row div.span4 a#developer-col:active {
+	background: url("../images/dev-icon-lrg-green.png") no-repeat scroll 104px 2px transparent;
 }

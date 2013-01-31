@@ -1,62 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CoreSpring</title>
-    @partials.headNode()
+<title>CoreSpring</title>
+@partials.headNode()
 </head>
 <body>
-
 @partials.header()
-
-<div class="title-wrap">
-</div>
-
+<div class="title-wrap"> </div>
 
 <!--main contents area starts here -->
 <div class="container main-wrap">
-<div class="span12 intro">
-<p> Curated Collections. College-Ready Content. Innovative Design and Delivery. </p>
-</div>
-	<div class="container">
-        <div class="main">
-
-        	
-          <div class="row">
-            	<div class="span4 about">
-                <span class="col-header"> Share in the <br>
-                Wealth of Knowledge </span>
-                    <p>CoreSpring is building a bank of formative assessment items designed to promote college and career readiness; assessment items can be shared beyond the borders of state, district, school, or classroom. CoreSpring will serve as a trusted clearinghouse for quality content.
-                    </p>
-                <span class="col-btn">
-<a href="/public/about" class="btn btn-primary btn-large">Learn about CoreSpring</a>
-                    </span>
-</div>
-         
-                <div class="span4 ed">
-                <span class="col-header"> Everyday Support <br>
-                for Teachers</span>
-                    <p>Educators can save time and effort using CoreSpring’s bank. Teachers can be confident that the content in CoreSpring has been reviewed for quality and is aligned to well-established teaching and learning frameworks.
-                    </p>
-                <span class="col-btn">
-                <a href="/public/educators" class="btn btn-primary btn-large">Browse the Samples</a>
-                    </span>
-                </div>
-                 
-                <div class="span4 dev">
-                <span class="col-header">Smart <br>
-                Design</span>
-                <p>CoreSpring eliminates the need for conducting multiple searches through numerous sites and databases to get great content; we locate it all in one place. CoreSpring's test player and developer tools enable a predictable and consistent look and feel of simple and innovative item types. </p>
-                <span class="col-btn">
-                <a href="/developer/home" class="btn btn-primary btn-large">Connect with CoreSpring</a>
-                    </span>
-            </div>
-            </div><!--row -->
-</div>
-        
+  <div class="span12 intro">
+    <p> Curated Collections. College-Ready Content. Innovative Design and Delivery. </p>
+  </div>
+  <div class="container">
+    <div class="main">
+      <div class="row">
+        <div class="span4 about"><a id="about-col" href="/public/about">Share in the <br/>
+          Wealth of Knowledge</a> 
+          <p>CoreSpring is building a bank of formative assessment items designed to promote college and career readiness; assessment items can be shared beyond the borders of state, district, school, or classroom. CoreSpring will serve as a trusted clearinghouse for quality content. </p>
         </div>
-    </div>
+        <div class="span4 ed"><a id="educators-col" href="/public/educators"> Everyday Support<br/> 
+          for Teachers</a>   
+          <p>Educators can save time and effort using CoreSpring’s bank. Teachers can be confident that the content in CoreSpring has been reviewed for quality and is aligned to well-established teaching and learning frameworks. </p>
+        </div>
+        <div class="span4 dev"><a id="developer-col" href="/developer/home"> Smart<br/>
+          Design</a>  
+          <p>CoreSpring eliminates the need for conducting multiple searches through numerous sites and databases to get great content; we locate it all in one place. CoreSpring's test player and developer tools enable a predictable and consistent look and feel of simple and innovative item types. </p>
+        </div>
+      </div>
+      <!--row --> 
+      <div class="well logo-bank">
+      <div class="logo-bank-title">Some of Our Quality Content Providers:</div>
+  <img alt="Content Contributors" class="contributor-logos" src="/assets/public/images/logo-bank-jan3013.jpg">
 </div>
-<!--main content area (except header,footer) ends -->
+    </div>
+  </div>
+</div>
+</div>
+<!--main content area (except header,footer) ends --> 
 
 @partials.footer()
 </body>
