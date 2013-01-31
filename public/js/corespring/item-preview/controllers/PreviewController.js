@@ -14,8 +14,7 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
 
     $scope.getSmSrc = function (sm, forPrinting) {
         //var templateUrl = ServiceLookup.getUrlFor('previewFile');
-        var templateUrl = ServiceLookup.getUrlFor(forPrinting ? 'printResource' : 'renderResource');
-      console.log(sm);
+        var templateUrl = ServiceLookup.getUrlFor(forPrinting ? 'printSupportingMaterial' : 'renderResource');
         var key = $scope.itemData.id + "/" + sm.name;
         //empty it so we trigger a refresh
         return templateUrl.replace("{key}", key);
@@ -54,7 +53,6 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
     $scope.prependHttp = ItemFormattingUtils.prependHttp;
 
   function loadItemById(id) {
-    console.log("Loading: ", id);
     Item.get(
       {
         id: id
