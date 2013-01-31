@@ -6,6 +6,8 @@ echo "staging"
 git remote add corespring-app-staging git@heroku.com:corespring-app-staging.git
 echo "qa"
 git remote add corespring-app-qa git@heroku.com:corespring-app-qa.git
+echo "content-team"
+git remote add corespring-app-content-team git@heroku.com:cs-content-team-integration.git
 
 echo "remove default heroku"
 git remote rm heroku
