@@ -140,7 +140,7 @@ trait Searchable {
         case Left(error) => Left(SearchCancelled(Some(error)))
       }
       case None => value match {
-        case value if value.isInstanceOf[String] || value.isInstanceOf[Boolean] || value.isInstanceOf[Pattern]=> Right(searchobj += key -> value)
+        case value if value.isInstanceOf[String] || value.isInstanceOf[Boolean] || value.isInstanceOf[Pattern] || value.isInstanceOf[java.lang.Integer] => Right(searchobj += key -> value)
         case dbobj:BasicDBObject => formatSpecOp(dbobj) match {
           case Right(newvalue) => Right(searchobj += key -> newvalue)
         }

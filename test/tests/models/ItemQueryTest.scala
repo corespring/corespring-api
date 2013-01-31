@@ -84,7 +84,7 @@ class ItemQueryTest extends BaseTest{
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
       case JsArray(jsobjects) => {
-        jsobjects.size must beGreaterThanOrEqualTo(2)
+        jsobjects.size must beGreaterThanOrEqualTo(1)
         jsobjects.forall(jsobj => {
           (jsobj \ "primarySubject") match {
             case JsObject(props) => props.contains("category" -> JsString(primarySubjectCategory))
@@ -244,17 +244,17 @@ class ItemQueryTest extends BaseTest{
     }
     jsonSuccess must beTrue
   }
-  val params:Seq[(String,String)] = Seq(
+  val searchParams:Seq[(String,String)] = Seq(
     "standards.dotNotation" -> "\"meh\"",
     "standards.category" -> "\"meh\"",
     "standards.standard" -> "\"meh\"",
     "standards.subject" -> "\"meh\"",
     "standards.guid" -> "\"meh\"",
     "standards.subCategory" -> "\"meh\"",
-    "worflow.setup" -> "true",
-    "worflow.tagged" -> "true",
-    "worflow.standardsAligned" -> "true",
-    "worflow.qaReview" -> "true",
+    "workflow.setup" -> "true",
+    "workflow.tagged" -> "true",
+    "workflow.standardsAligned" -> "true",
+    "workflow.qaReview" -> "true",
     "author" -> "\"meh\"",
     "contributor" -> "\"meh\"",
     "costForResource" -> "\"meh\"",
@@ -284,26 +284,16 @@ class ItemQueryTest extends BaseTest{
     "reviewsPassed" -> "\"meh\"",
     "title" -> "\"meh\""
   )
-
   "all queryable item params are checked within it's search method" in {
-    val call:Call = api.v1.routes.ItemApi.list(q = Some("{"+params.tail.foldRight[String](params.head._1+":"+params.head._2)((param,result) => result+","+param._1+":"+param._2)+"}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{"+searchParams.tail.foldRight[String](searchParams.head._1+":"+searchParams.head._2)((param,result) => result+","+param._1+":"+param._2)+"}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = routeAndCall(request).get
     status(result) must equalTo(OK)
   }
   "all search field item params are checked within it's search method" in {
-    val call:Call = api.v1.routes.ItemApi.list(q = Some("{"+params.tail.foldRight[String](params.head._1+":"+params.head._2)((param,result) => result+","+param._1+":"+param._2)+"}"))
+    val call:Call = api.v1.routes.ItemApi.list(f = Some("{"+searchParams.tail.foldRight[String](searchParams.head._1+":1")((param,result) => result+","+param._1+":1")+",id:1}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = routeAndCall(request).get
     status(result) must equalTo(OK)
-  }
-  "search items, excluding 'standards.subject' includes everything except the subject portion of the standard" in {
-    pending
-  }
-  "search items, excluding 'primarySubject.category' includes everything except the category portion of the primary subject" in {
-    pending
-  }
-  "able to sort by grade within item" in {
-    pending
   }
 }
