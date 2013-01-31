@@ -77,7 +77,7 @@ trait Searchable {
     if (searchableFields.contains(field._1)) formatSortField(field._1,field._2)
     else Left(InternalError("invalid sort key: "+field._1))
   }
-  final def toSearchObj[A](query: AnyRef, optInitSearch:Option[MongoDBObject] = None, parseFields:Map[String,(AnyRef) => Either[InternalError,AnyRef]] = Map()): Either[SearchCancelled,MongoDBObject] = {
+  final def toSearchObj(query: AnyRef, optInitSearch:Option[MongoDBObject] = None, parseFields:Map[String,(AnyRef) => Either[InternalError,AnyRef]] = Map()): Either[SearchCancelled,MongoDBObject] = {
     query match {
       case strquery:String => try{
         val parsedobj:BasicDBObject = JSON.parse(strquery).asInstanceOf[BasicDBObject]
@@ -103,9 +103,31 @@ trait Searchable {
                 case Left(sc) => Left(sc)
               }
             }) match {
-              case Right(newlist) => optInitSearch match {
-                case Some(initSearch) => Right(MongoDBObject("$or" -> newlist) ++ initSearch.asDBObject)
-                case None => Right(MongoDBObject("$or" -> newlist))
+              case Right(newlist) => toSearchObj(dbquery.filter(_._1 != "$or").asDBObject,optInitSearch,parseFields) match {
+                case Right(remainder) => Right(remainder ++ MongoDBObject("$or" -> newlist))
+                case Left(sc) => Left(sc)
+              }
+              case Left(sc) => Left(sc)
+            }
+            case _ => Left(SearchCancelled(Some(InternalError("$or operator did not contain a list of documents for its value",addMessageToClientOutput = true))))
+          }
+        } else if (dbquery.contains("$and")){
+          dbquery.get("$and") match {
+            case dblist:BasicDBList => dblist.foldRight[Either[SearchCancelled,MongoDBList]](Right(MongoDBList()))((andcase,result) => {
+              result match {
+                case Right(dblist) => andcase match {
+                  case dbobj:BasicDBObject => toSearchObjInternal(dbobj,None)(parseFields) match {
+                    case Right(searchobj) => Right(dblist += searchobj)
+                    case Left(sc) => Left(sc)
+                  }
+                  case _ => Left(SearchCancelled(Some(InternalError("element within the array of or cases was not a db object",addMessageToClientOutput = true))))
+                }
+                case Left(sc) => Left(sc)
+              }
+            }) match {
+              case Right(newlist) => toSearchObj(dbquery.filter(_._1 != "$and").asDBObject,optInitSearch,parseFields) match {
+                case Right(remainder) => Right(remainder ++ MongoDBObject("$and" -> newlist))
+                case Left(sc) => Left(sc)
               }
               case Left(sc) => Left(sc)
             }

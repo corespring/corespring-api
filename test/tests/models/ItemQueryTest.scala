@@ -296,4 +296,25 @@ class ItemQueryTest extends BaseTest{
     val result = routeAndCall(request).get
     status(result) must equalTo(OK)
   }
+  "search for items that do not have an itemType equal to Multiple Choice" in {
+    val itemType = "Multiple Choice"
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{itemType : {$ne : \""+itemType+"\"}}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = routeAndCall(request).get
+    status(result) must equalTo(OK)
+    val json = Json.parse(contentAsString(result))
+    val jsonSuccess = json match {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
+          (jsobj \ "itemType") match {
+            case JsString(jsitemType) => jsitemType != itemType
+            case _ => true
+          }
+        })
+      }
+      case _ => false
+    }
+    jsonSuccess must beTrue
+  }
 }
