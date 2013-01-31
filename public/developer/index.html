@@ -285,14 +285,11 @@ Collections
     </div>
     <!-- main content -->
     <div class="main-content">
-        <br/>
-
-
 <div class="span9 lead-in developer" style="margin-left: 0px;">
 
     <span class="dev-logo"></span>
     <p>
-Our developer tools include a set of APIs for discovering, managing and deploying content for formative assessment, these are described on these pages.
+Our developer tools include a set of APIs for discovering, managing and <br/> deploying content for formative assessment, these are described on these pages.
         </p>
   <div ng-controller="DeveloperCtrl">
           <div ng-switch on="authState">
@@ -587,7 +584,7 @@ This complete model for Item is described at the end of this section.</p>
 <blockquote class="nb"><p>Item list queries will return the summary properties for the Item model. This behavior can be overridden by specifying which fields to return in the model (see <a href="#list-queries">List Queries</a>).</blockquote>
 
 
-<h2><a name="items-model"></a>Item Model</h2>
+<h2><a name="items-model" class="waypoint"></a>Item Model</h2>
 
 <p>This is the complete set of properties returned in the model for Items.
 When retrieving individual items a subset of the item properties are returned by default. All properties will be returned if accessing the 'detail' path for the item (See <a href="#items-index">Items</a>)</p>
