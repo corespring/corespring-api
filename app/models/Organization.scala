@@ -21,16 +21,17 @@ import play.api.libs.json.JsString
 import scala.Some
 import scala.Right
 import play.api.libs.json.JsObject
+import search.Searchable
 
 case class Organization(var name: String = "",
                         var path: Seq[ObjectId] = Seq(),
                         var contentcolls: Seq[ContentCollRef] = Seq(),
-                        var id: ObjectId = new ObjectId()) extends Identifiable{
+                        var id: ObjectId = new ObjectId()){
 
   def this() = this("")
 }
 
-object Organization extends DBQueryable[Organization]{
+object Organization extends ModelCompanion[Organization,ObjectId] with Searchable{
   val CORESPRING_ORGANIZATION_ID = "502404dd0364dc35bb39339a"
 
   val name: String = "name"
@@ -40,10 +41,6 @@ object Organization extends DBQueryable[Organization]{
 
   val collection = mongoCollection("orgs")
   val dao = new SalatDAO[Organization, ObjectId](collection = collection) {}
-  val queryFields:Seq[QueryField[Organization]] = Seq(
-    QueryFieldString[Organization](name,_.name),
-    QueryFieldObject[Organization](id,_.id,QueryField.valuefuncid)
-  )
 
   def apply(): Organization = new Organization();
 
@@ -194,6 +191,9 @@ object Organization extends DBQueryable[Organization]{
       JsObject(list)
     }
   }
+  override val searchableFields = Seq(
+    name
+  )
 }
 
 case class ContentCollRef(var collectionId: ObjectId, var pval: Long = Permission.Read.value)

@@ -1,15 +1,20 @@
 package api.v1
 
 import controllers.auth.{Permission, BaseApi}
-import play.api.libs.json.{JsString, JsObject, Json}
+import play.api.libs.json._
 import models.{Organization, UserOrg, User}
 import org.bson.types.ObjectId
-import api.{QueryHelper, ApiError}
-import com.novus.salat.dao.SalatMongoCursor
-import com.mongodb.casbah.commons.MongoDBObject
+import api.{ApiError}
+import com.mongodb.casbah.Imports._
+import play.api.mvc.Result
 import controllers.Utils
-import play.api.mvc.Action
-import models.auth.ApiClient
+import scala.Left
+import models.search.SearchCancelled
+import play.api.libs.json.JsArray
+import scala.Some
+import scala.Right
+import com.novus.salat.dao.SalatMongoCursor
+import play.api.libs.json.JsObject
 
 /**
  * The User API
@@ -21,10 +26,29 @@ object UserApi extends BaseApi {
    *
    * @return
    */
-  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiActionRead { request =>
+  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, optsort:Option[String]) = ApiActionRead { request =>
     val orgIds:Seq[ObjectId] = Organization.getTree(request.ctx.organization).map(_.id)
     val initSearch = MongoDBObject(User.orgs + "." + UserOrg.orgId -> MongoDBObject("$in" -> orgIds))
-    QueryHelper.list(q, f, c, sk, l, User, Some(initSearch))
+    def applySort(users:SalatMongoCursor[User]):Result = {
+      optsort.map(User.toSortObj(_)) match {
+        case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(users.sort(sort).skip(sk).limit(l))))
+        case None => Ok(Json.toJson(Utils.toSeq(users.skip(sk).limit(l))))
+        case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
+      }
+    }
+    q.map(User.toSearchObj(_,Some(initSearch))).getOrElse[Either[SearchCancelled,MongoDBObject]](Right(initSearch)) match {
+      case Right(query) => f.map(User.toFieldsObj(_)) match {
+        case Some(Right(searchFields)) => if(c == "true") Ok(JsObject(Seq("count" -> JsNumber(User.find(query).count))))
+                                          else applySort(User.find(query,searchFields.dbfields))
+        case None => if(c == "true") Ok(JsObject(Seq("count" -> JsNumber(User.find(query).count))))
+                     else applySort(User.find(query))
+        case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidFields(error.clientOutput)))
+      }
+      case Left(sc) => sc.error match {
+        case None => Ok(JsArray(Seq()))
+        case Some(error) => BadRequest(Json.toJson(ApiError.InvalidQuery(error.clientOutput)))
+      }
+    }
   }
 
   /**

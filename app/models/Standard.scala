@@ -8,7 +8,9 @@ import com.novus.salat.dao.{SalatDAO, ModelCompanion}
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import mongoContext._
-import com.mongodb.casbah.commons.MongoDBObject
+import search.Searchable
+import com.mongodb.casbah.Imports._
+
 
 case class Standard(var dotNotation: Option[String] = None,
                      var guid:Option[String] = None,
@@ -17,9 +19,9 @@ case class Standard(var dotNotation: Option[String] = None,
                      var subCategory: Option[String] = None,
                      var standard: Option[String] = None,
                      var id: ObjectId = new ObjectId()
-                     ) extends Identifiable
+                     )
 
-object Standard extends DBQueryable[Standard]{
+object Standard extends ModelCompanion[Standard,ObjectId] with Searchable{
 
   val collection = mongoCollection("ccstandards")
 
@@ -63,17 +65,15 @@ object Standard extends DBQueryable[Standard]{
       standard
     }
   }
-
-  val queryFields:Seq[QueryField[Standard]] = Seq(
-    QueryFieldObject[Standard](Id,_.id,QueryField.valuefuncid),
-    QueryFieldString[Standard](DotNotation, _.dotNotation),
-    QueryFieldString[Standard](Subject, _.subject),
-    QueryFieldString[Standard](Category, _.category),
-    QueryFieldString[Standard](SubCategory, _.subCategory),
-    QueryFieldString[Standard](Standard, _.standard)
-  )
-
   val description = "common core state standards"
+  override val searchableFields = Seq(
+    DotNotation,
+    Subject,
+    Category,
+    SubCategory,
+    Standard,
+    guid
+  )
 
   def findOneByDotNotation(dn:String) : Option[Standard] = findOne(MongoDBObject(DotNotation -> dn))
 

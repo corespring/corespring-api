@@ -41,7 +41,7 @@ case class FieldValue(
                        var credentials: Seq[KeyValue] = Seq(),
                        var bloomsTaxonomy: Seq[KeyValue] = Seq(),
                        var id: ObjectId = new ObjectId()
-                       ) extends Identifiable
+                       )
 
 object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
 

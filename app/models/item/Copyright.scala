@@ -14,6 +14,10 @@ object Copyright extends ValueGetter {
     val copyrightYear = "copyrightYear"
     val copyrightExpirationDate = "copyrightExpirationDate"
     val copyrightImageName = "copyrightImageName"
+    val owner = "owner"
+    val year = "year"
+    val expirationDate = "expirationDate"
+    val imageName = "imageName"
   }
 
   implicit object Reads extends Reads[Copyright] {

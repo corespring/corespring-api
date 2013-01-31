@@ -13,6 +13,8 @@ object Subjects extends ValueGetter {
   object Keys {
     val primarySubject = "primarySubject"
     val relatedSubject = "relatedSubject"
+    val primary = "primary"
+    val related = "related"
   }
 
   implicit object Writes extends Writes[Subjects] {
