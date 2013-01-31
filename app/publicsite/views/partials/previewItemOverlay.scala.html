@@ -41,7 +41,7 @@
                     <div id='itemView' class="preview-container"
                             ng-show="currentPanel=='item'" >
                         <iframe frameBorder="0"
-                            class="auto-height"
+                            iframe-auto-height=""
                             style="width: 100%; min-height: 400px"
                             scrolling="no"
                             ng-show="itemData" ng-src="{{getItemUrl()}}"
@@ -51,14 +51,14 @@
                     <div id='supportingMaterialView' class="preview-container"
                          ng-repeat="sm in itemData.supportingMaterials"
                          ng-show="currentSm==sm">
-                        <iframe
+                        <iframe iframe-auto-height=""
                                 frameBorder="0"
                                 ng-src="{{getSmSrc(sm)}}"
-                                class="auto-height"
-                                style="width: 100%; min-height: 400px"
+                                style="width: 100%; min-height: 600px"
                                 scrolling="no"
                                 align="center"
-                                class="iframe-preview"></iframe>
+                                >
+                        </iframe>
                     </div>
 
                     <div id='profileView' ng-show="currentPanel=='profile'" class="preview-container">
