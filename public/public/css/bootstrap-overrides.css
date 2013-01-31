@@ -574,7 +574,7 @@ body, body p, p {
 	line-height: 19px;
 	padding: 10px 10px 11px;
 	text-decoration: none;
-	text-shadow: 0px -1px 0px rgba(255, 255, 255, 0.99);
+	text-shadow: 0px -1px 0px rgba(255, 255, 255, 0.99)!important;
 }
 .nav {
 	list-style: none outside none;
@@ -783,15 +783,42 @@ div.well.item a.fancybox:hover {
 .edu-table td, .edu-table td a {
 	font-size:13px;
 }
-.edu-table td, .edu-table td li {
+
+/*.edu-table td li{
 	list-style-image:url("../images/new-window-icon.png");
 	line-height: 18px;
 	padding-bottom: 5px;
 	margin-top: 4px
 }
+*/
+.edu-table ul li{
+list-style-type:none;
+}
+
+.edu-table ul li a.new-window {
+    background:url("../images/new-window-icon.png")no-repeat 2px 3px;
+	clear:left;
+    display:block;
+    float:left;
+    padding:0 0 5px 20px;
+    margin-top: 4px;
+    line-height: 18px;
+}
+
+.edu-table ul li a.new-window:hover {
+    background:url("../images/new-window-icon-hover.png")no-repeat 2px 3px;
+	clear:left;
+    display:block;
+    float:left;
+    padding:0 0 5px 20px;
+    margin-top: 4px;
+    line-height:18px;
+}
+
+
 .edu-table td ul {
 	padding-left:0;
-	margin-left: 17px;
+	margin-left: 0px;
 	margin-bottom:0px;
 }
 .edu-table th, .edu-table td {
