@@ -1,5 +1,4 @@
-import _root_.controllers.{Log, S3Service}
-import patches.{DbPatches, InitPatch, DbPatch}
+import _root_.controllers.{ConcreteS3Service, Log, S3Service}
 import play.api.mvc.Results._
 import web.controllers.utils.ConfigLoader
 import common.seed.SeedDb._
@@ -97,7 +96,7 @@ object Global extends GlobalSettings {
     RegisterJodaTimeConversionHelpers()
 
     val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
-    S3Service.init(amazonProperties)
+    ConcreteS3Service.init(amazonProperties)
 
     val initData = ConfigLoader.get(INIT_DATA).getOrElse("true") == "true"
 
@@ -115,7 +114,6 @@ object Global extends GlobalSettings {
     } else if (Play.isProd(app)) {
       if (initData) seedDevData()
     }
-    DbPatches.run(ConfigLoader.get("DB_VERSION").get)
   }
 
   private def isLocalDb: Boolean = {

@@ -205,8 +205,13 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     };
 
     $scope.clone = function(){
+        $scope.showProgressModal = true;
         $scope.itemData.clone({id:$scope.itemData.id}, function onCloneSuccess(data){
+            $scope.showProgressModal = false;
             $location.path('/edit/' + data.id);
+        }, function onError(error) {
+            $scope.showProgressModal = false;
+            alert("Error cloning item: " + error.toString())
         });
     };
 

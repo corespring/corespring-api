@@ -1,51 +1,43 @@
 package api.v1
 
 import controllers.auth.{Permission, BaseApi}
-import api.{ApiError, QueryHelper}
+import api.ApiError
 import item.QueryCleaner
 import models._
-import com.mongodb.util.{JSONParseException}
-import org.bson.types.ObjectId
+import com.mongodb.util.JSONParseException
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import dao.SalatInsertError
-import dao.SalatInsertError
 import play.api.templates.Xml
-import play.api.mvc.{Action, AnyContent, Result}
+import play.api.mvc.Result
 import play.api.libs.json.Json._
 import models.mongoContext._
-import scala.Left
-import scala.Some
-import scala.Right
-import api.InvalidFieldException
-import controllers.JsonValidationException
+import controllers.{ConcreteS3Service, Log, S3Service, JsonValidationException}
 import play.api.libs.json._
 import scala.Left
 import scala.Some
 import scala.Right
 import api.InvalidFieldException
-import controllers.JsonValidationException
 import play.api.libs.json.JsObject
+import com.typesafe.config.ConfigFactory
 
 /**
  * Items API
  */
+class ItemApi(s3service:S3Service) extends BaseApi {
 
-object ItemApi extends BaseApi {
-
+  private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
   val summaryFields: Seq[String] = Seq(Item.collectionId, Item.gradeLevel, Item.itemType, Item.keySkills, Item.subjects, Item.standards, Item.title)
 
-  private def count(c:String) : Boolean = "true".equalsIgnoreCase(c)
+  private def count(c: String): Boolean = "true".equalsIgnoreCase(c)
 
   /**
    * List query implementation for Items
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = ApiAction {
     request =>
-
-
-      val query : DBObject = QueryCleaner.clean(q, request.ctx.organization)
+      val query: DBObject = QueryCleaner.clean(q, request.ctx.organization)
 
 
       if (count(c)) {
@@ -77,7 +69,7 @@ object ItemApi extends BaseApi {
   }
 
 
-  private def makeFields(f: Option[String], loggedIn : Boolean): BasicDBObject = {
+  private def makeFields(f: Option[String], loggedIn: Boolean): BasicDBObject = {
 
 
     val fields = f.flatMap(fields => com.mongodb.util.JSON.parse(fields) match {
@@ -110,42 +102,42 @@ object ItemApi extends BaseApi {
     request =>
 
 
-    def makeQuery(q:Option[String], collectionIds:Seq[ObjectId]):Option[DBObject] = {
-      val optenforcedQuery = if(collectionIds.size > 1){
-        Some(MongoDBObject("collectionId" -> MongoDBObject("$in" -> collectionIds.map(_.toString))))
-      }else if(collectionIds.size == 1){
-        Some(MongoDBObject("collectionId" -> collectionIds(0).toString))
-      }else{
-        None
-      }
-      optenforcedQuery match {
-        case Some(enforcedQuery) => q match {
-          case Some(s) => {
-            val optdbo: Option[DBObject] = try{
-              Some(com.mongodb.util.JSON.parse(s).asInstanceOf[DBObject])
-            }catch{
-              case e:Throwable => None
-            }
-            optdbo match {
-              case Some(dbo) => {
-                if (!dbo.contains("collectionId")) {
-                  dbo.putAll(enforcedQuery.toMap)
-                } else {
-                  val requestedCollectionId: String = dbo.get("collectionId").asInstanceOf[String]
-                  if (!collectionIds.contains(new ObjectId(requestedCollectionId))) {
-                    throw new RuntimeException("Invalid collection id")
-                  }
-                }
-                Some(dbo)
-              }
-              case None => Some(enforcedQuery)
-            }
-          }
-          case _ => Some(enforcedQuery)
+      def makeQuery(q: Option[String], collectionIds: Seq[ObjectId]): Option[DBObject] = {
+        val optenforcedQuery = if (collectionIds.size > 1) {
+          Some(MongoDBObject("collectionId" -> MongoDBObject("$in" -> collectionIds.map(_.toString))))
+        } else if (collectionIds.size == 1) {
+          Some(MongoDBObject("collectionId" -> collectionIds(0).toString))
+        } else {
+          None
         }
-        case None => None
+        optenforcedQuery match {
+          case Some(enforcedQuery) => q match {
+            case Some(s) => {
+              val optdbo: Option[DBObject] = try {
+                Some(com.mongodb.util.JSON.parse(s).asInstanceOf[DBObject])
+              } catch {
+                case e: Throwable => None
+              }
+              optdbo match {
+                case Some(dbo) => {
+                  if (!dbo.contains("collectionId")) {
+                    dbo.putAll(enforcedQuery.toMap)
+                  } else {
+                    val requestedCollectionId: String = dbo.get("collectionId").asInstanceOf[String]
+                    if (!collectionIds.contains(new ObjectId(requestedCollectionId))) {
+                      throw new RuntimeException("Invalid collection id")
+                    }
+                  }
+                  Some(dbo)
+                }
+                case None => Some(enforcedQuery)
+              }
+            }
+            case _ => Some(enforcedQuery)
+          }
+          case None => None
+        }
       }
-    }
 
 
       if (ContentCollection.isAuthorized(request.ctx.organization, collId, Permission.Read)) {
@@ -259,6 +251,44 @@ object ItemApi extends BaseApi {
       }
   }
 
+  private def cloneS3File(sourceFile: StoredFile, newId: String):String = {
+    Log.d("Cloning " + sourceFile.storageKey + " to " + newId)
+    val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/","")
+    s3service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, newId+"/"+oldStorageKeyIdRemoved)
+    newId+"/"+oldStorageKeyIdRemoved
+  }
+
+  private def cloneStoredFiles(oldItem: Item, newItem: Item): Boolean = {
+    val newItemId = newItem.id.toString
+    try {
+      newItem.data.get.files.foreach {
+        file => file match {
+          case sf: StoredFile =>
+            val newKey = cloneS3File(sf, newItemId)
+            sf.storageKey = newKey
+          case _ =>
+        }
+      }
+      newItem.supportingMaterials.foreach {
+        sm =>
+          sm.files.filter(_.isInstanceOf[StoredFile]).foreach {
+            file =>
+              val sf = file.asInstanceOf[StoredFile]
+              val newKey = cloneS3File(sf, newItemId)
+              sf.storageKey = newKey
+          }
+      }
+      Item.save(newItem)
+      true
+    } catch {
+      case r: RuntimeException =>
+        Log.e("Error cloning some of the S3 files: " + r.getMessage)
+        Log.e(r.getStackTrace.mkString("\n"))
+        false
+    }
+
+  }
+
   /**
    * Note: Have to call this 'cloneItem' instead of 'clone' as clone is a default
    * function.
@@ -271,7 +301,11 @@ object ItemApi extends BaseApi {
         case Left(e) => BadRequest(toJson(e))
         case Right(item) => {
           Item.cloneItem(item) match {
-            case Some(clonedItem) => Ok(toJson(clonedItem))
+            case Some(clonedItem) =>
+              cloneStoredFiles(item, clonedItem) match {
+                case true => Ok(toJson(clonedItem))
+                case false => BadRequest(toJson(ApiError.Item.Clone))
+              }
             case _ => BadRequest(toJson(ApiError.Item.Clone))
           }
         }
@@ -356,3 +390,5 @@ object ItemApi extends BaseApi {
       NotImplemented
   }
 }
+
+object ItemApi extends api.v1.ItemApi(ConcreteS3Service)

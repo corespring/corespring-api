@@ -9,5 +9,9 @@ dist
 .idea_modules
 tasks/mock-data-task/target
 tasks/mock-data-task/project
-
+deployment/.env_vars.sh
 .DS_Store
+.heroku-helper-temp-data.json
+.heroku-helper-tmp-*
+mongo-migrator.log
+.heroku-helper-env.conf
