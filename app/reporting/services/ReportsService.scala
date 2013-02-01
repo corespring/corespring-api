@@ -84,12 +84,12 @@ class ReportsService(ItemCollection: MongoCollection,
 
   def populateHeaders {
     def mapToDistincList(field:String):List[String] = {
-      val distResult = ItemCollection.distinct("taskInfo.itemType")
+      val distResult = ItemCollection.distinct(field)
       if (distResult == null) return List()
-      val distStringResult = distResult.map(_.toString)
+      val distStringResult = distResult.map(p => if (p != null) p.toString else "")
       if (distStringResult == null) return List()
 
-      distStringResult.toList
+      distStringResult.filter(_ != "").toList
     }
     ReportLineResult.ItemTypes = mapToDistincList("taskInfo.itemType")
     ReportLineResult.GradeLevel = mapToDistincList("taskInfo.gradeLevel")
