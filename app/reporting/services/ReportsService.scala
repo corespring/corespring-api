@@ -83,11 +83,19 @@ class ReportsService(ItemCollection: MongoCollection,
 
 
   def populateHeaders {
-    ReportLineResult.ItemTypes = ItemCollection.distinct("taskInfo.itemType").map(_.toString).toList
-    ReportLineResult.GradeLevel = ItemCollection.distinct("taskInfo.gradeLevel").map(_.toString).toList
-    ReportLineResult.PriorUse = ItemCollection.distinct("priorUse").map(_.toString).toList
-    ReportLineResult.LicenseType = ItemCollection.distinct("contributorDetails.licenseType").map(_.toString).toList
-    ReportLineResult.Credentials = ItemCollection.distinct("contributorDetails.credentials").map(_.toString).toList
+    def mapToDistincList(field:String):List[String] = {
+      val distResult = ItemCollection.distinct("taskInfo.itemType")
+      if (distResult == null) return List()
+      val distStringResult = distResult.map(_.toString)
+      if (distStringResult == null) return List()
+
+      distStringResult.toList
+    }
+    ReportLineResult.ItemTypes = mapToDistincList("taskInfo.itemType")
+    ReportLineResult.GradeLevel = mapToDistincList("taskInfo.gradeLevel")
+    ReportLineResult.PriorUse = mapToDistincList("priorUse")
+    ReportLineResult.LicenseType = mapToDistincList("contributorDetails.licenseType")
+    ReportLineResult.Credentials = mapToDistincList("contributorDetails.credentials")
   }
 
   /**
