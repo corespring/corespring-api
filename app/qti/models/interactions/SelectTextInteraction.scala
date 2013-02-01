@@ -72,6 +72,9 @@ case class SelectTextInteraction(responseIdentifier: String, selectionType: Stri
 }
 
 object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction] {
+
+  def tagName = "selectTextInteraction"
+
   def apply(node: Node, itemBody: Option[Node]): SelectTextInteraction = {
 
     val correctAnswers = Some(CorrectResponseMultiple(SelectTextInteraction.parseCorrectResponses(node)))
@@ -94,8 +97,6 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
       interactions.map(node => SelectTextInteraction(node, Some(itemBody)))
     }
   }
-
-  def interactionMatch(e: Elem): Boolean = e.label == "selectTextInteraction"
 
   override def preProcessXml(interactionXml: Elem): NodeSeq = tokenizeSelectText(interactionXml)
 
@@ -169,17 +170,5 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
       }
     }
   }
-
-  def getHeadHtml(toPrint: Boolean): String = {
-    val jspath = if (toPrint) QtiScriptLoader.JS_PRINT_PATH else QtiScriptLoader.JS_PATH
-    val csspath = if (toPrint) QtiScriptLoader.CSS_PRINT_PATH else QtiScriptLoader.CSS_PATH
-
-    def jsAndCss(name: String) = Seq(script(jspath + name + ".js"), css(csspath + name + ".css")).mkString("\n")
-    jsAndCss("selectTextInteraction") + "\n"
-  }
-
-  private def css(url: String): String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
-
-  private def script(url: String): String = """<script type="text/javascript" src="%s"></script>""".format(url)
 
 }
