@@ -20,6 +20,14 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
         return templateUrl.replace("{key}", key);
     };
 
+    $scope.getLicenseTypeUrl = function(ltype) {
+      return ltype ? "/assets/images/licenseTypes/"+ltype+".png" : undefined;
+    }
+
+    $scope.getCopyrightUrl = function(cname) {
+      return cname ? "/assets/images/copyright/"+cname : undefined;
+    }
+
     $scope.printCurrent = function () {
 
         var features = "width=650,height=800,menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
@@ -73,7 +81,7 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
   });
 
   $scope.loadItem = function () {
-    if (Config.itemId == undefined) return;
+    if (Config.itemId == undefined || Config.itemId.length == 0) return;
     loadItemById(Config.itemId);
   };
 
