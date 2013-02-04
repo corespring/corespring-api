@@ -2,7 +2,7 @@
 require 'json'
 
 begin
-  commit_hash = `git rev-parse --short HEAD`
+  commit_hash = `git rev-parse --short HEAD`.chomp
   app = ARGV[1].chomp
   puts "0: #{ARGV[0]}"
   puts "app name: #{app}"
