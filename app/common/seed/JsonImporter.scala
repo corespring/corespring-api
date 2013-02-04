@@ -33,7 +33,7 @@ object JsonImporter {
    * @param jsonPath
    * @param coll
    */
-  def jsonFileToDb(jsonPath: String, coll: MongoCollection ) {
+  def jsonFileToDb(jsonPath: String, coll: MongoCollection) {
     val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.forName("UTF-8"))).mkString
     coll.insert(JSON.parse(s).asInstanceOf[DBObject])
   }
@@ -41,7 +41,41 @@ object JsonImporter {
   def jsonFileToItem(jsonPath: String, coll: MongoCollection) {
     val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.forName("UTF-8"))).mkString
     val finalObject: String = replaceLinksWithContent(s)
-    insertString(finalObject, coll, true)
+    insertString(finalObject, coll)
+  }
+
+
+  def insertFilesInFolder(path: String, collection: MongoCollection) {
+
+    val folder: File = Play.getFile(path)
+
+    import scala.collection.JavaConversions._
+
+    val files: List[File] = folder.listFiles.toList
+
+    val dbos: List[DBObject] = files.map {
+      f: File => fileToDbo(path + "/" + f.getName)
+    }
+
+    val ids: List[String] = dbos.foldRight(List[String]()) {
+      (dbo:DBObject, acc:List[String])  =>
+        val id = dbo.get("_id")
+        if (id != null && acc.contains(id)){
+          throw new RuntimeException("duplicate id in path: " + path + " id: " + id)
+        } else{
+          acc :+ dbo.get("_id").toString()
+        }
+    }
+
+    dbos.foreach {
+      dbo => collection.insert(dbo, collection.writeConcern)
+    }
+  }
+
+  def fileToDbo(path: String): DBObject = {
+    val s = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.forName("UTF-8"))).mkString
+    val finalObject: String = replaceLinksWithContent(s)
+    JSON.parse(s).asInstanceOf[DBObject]
   }
 
   /**
@@ -85,30 +119,9 @@ object JsonImporter {
     interpolated
   }
 
-  def insertString(s: String, coll: MongoCollection, printId: Boolean = false) = {
+  def insertString(s: String, coll: MongoCollection) = {
     val dbo: DBObject = JSON.parse(s).asInstanceOf[DBObject]
-
-    val NO_ID = "NO_ID"
-    val id = if (dbo.get("_id") != null) dbo.get("_id").toString else NO_ID
-
-    if (NO_ID.equals(id)) {
-      coll.insert(dbo, coll.writeConcern)
-    } else {
-      coll.findOneByID(new ObjectId(id)) match {
-        case Some(obj) => throw new RuntimeException("Item already exisits: " + id + " collection: " + coll.name)
-        case _ => {
-          coll.insert(dbo, coll.writeConcern)
-        }
-      }
-    }
-  }
-
-
-  def insertFilesInFolder(path: String, collection : MongoCollection) {
-    val folder: File = Play.getFile(path)
-    for (file <- folder.listFiles) {
-      jsonFileToItem(path + "/" + file.getName, collection)
-    }
+    coll.insert(dbo, coll.writeConcern)
   }
 
 
