@@ -1,64 +1,69 @@
 function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFormattingUtils) {
 
-    $scope.changeSupportingMaterialPanel = function (sm) {
-        $scope.changePanel(sm.name);
-        $scope.currentSm = sm;
-    };
+  $scope.changeSupportingMaterialPanel = function (sm) {
+    $scope.changePanel(sm.name);
+    $scope.currentSm = sm;
+  };
 
 
-    $scope.getItemSrc = function (forPrinting) {
-        var templateUrl = ServiceLookup.getUrlFor(forPrinting ? 'printResource' : 'renderResource');
-        var key = $scope.itemData.id;
-        return templateUrl.replace("{key}", key);
-    };
+  $scope.getItemSrc = function (forPrinting) {
+    if ($scope.itemData == undefined) return "";
+    var templateUrl = ServiceLookup.getUrlFor(forPrinting ? 'printResource' : 'renderResource');
+    var key = $scope.itemData.id;
+    return templateUrl.replace("{key}", key);
+  };
 
-    $scope.getSmSrc = function (sm, forPrinting) {
-        //var templateUrl = ServiceLookup.getUrlFor('previewFile');
-        var templateUrl = ServiceLookup.getUrlFor(forPrinting ? 'printSupportingMaterial' : 'renderResource');
-        var key = $scope.itemData.id + "/" + sm.name;
-        //empty it so we trigger a refresh
-        return templateUrl.replace("{key}", key);
-    };
+  $scope.getSmSrc = function (sm, forPrinting) {
+    //var templateUrl = ServiceLookup.getUrlFor('previewFile');
+    var templateUrl = ServiceLookup.getUrlFor(forPrinting ? 'printSupportingMaterial' : 'renderResource');
+    var key = $scope.itemData.id + "/" + sm.name;
+    //empty it so we trigger a refresh
+    return templateUrl.replace("{key}", key);
+  };
 
-    $scope.getLicenseTypeUrl = function(ltype) {
-      return ltype ? "/assets/images/licenseTypes/"+ltype+".png" : undefined;
+  $scope.getLicenseTypeUrl = function (ltype) {
+    return ltype ? "/assets/images/licenseTypes/" + ltype + ".png" : undefined;
+  }
+
+  $scope.getCopyrightUrl = function (cname) {
+    return cname ? "/assets/images/copyright/" + cname : undefined;
+  }
+
+  $scope.printCurrent = function () {
+
+    var features = "width=650,height=800,menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
+
+    function getPrintUrl(panel) {
+      switch (panel) {
+        case "profile" :
+          return ServiceLookup.getUrlFor('printProfile').replace("{key}", $scope.itemData.id);
+        case "item" :
+          return $scope.getItemSrc(true);
+        default :
+          return $scope.getSmSrc($scope.currentSm, true);
+      }
     }
 
-    $scope.getCopyrightUrl = function(cname) {
-      return cname ? "/assets/images/copyright/"+cname : undefined;
+    var url = getPrintUrl($scope.currentPanel);
+
+    var newWindow = window.open(url, 'name', features);
+
+    if (newWindow) {
+      newWindow.focus();
     }
+  };
 
-    $scope.printCurrent = function () {
+  $scope.changePanel = function (panelName) {
+    $scope.currentSm = null;
+    $scope.currentPanel = panelName;
+  };
 
-        var features = "width=650,height=800,menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
+  $scope.getItemUrl = function () {
+    if ($scope.itemData == undefined) return "";
+    return "/web/show-resource/" + $scope.itemData.id + "/data/main";
+  };
 
-        function getPrintUrl(panel) {
-            switch(panel){
-                case "profile" : return ServiceLookup.getUrlFor('printProfile').replace("{key}", $scope.itemData.id);
-                case "item" : return $scope.getItemSrc(true);
-                default : return $scope.getSmSrc($scope.currentSm, true);
-            }
-        }
-        var url = getPrintUrl($scope.currentPanel);
-
-        var newWindow = window.open(url, 'name', features);
-
-        if(newWindow){
-            newWindow.focus();
-        }
-    };
-
-    $scope.changePanel = function (panelName) {
-        $scope.currentSm = null;
-        $scope.currentPanel = panelName;
-    };
-
-    $scope.getItemUrl = function() {
-        if (!$scope.itemData || $scope.currentPanel != 'item') return null;
-        return "/web/show-resource/" + $scope.itemData.id + "/data/main";
-    };
-
-    $scope.prependHttp = ItemFormattingUtils.prependHttp;
+  $scope.prependHttp = ItemFormattingUtils.prependHttp;
 
   function loadItemById(id) {
     Item.get(
@@ -74,9 +79,9 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
     );
   }
 
-  $scope.$on("requestLoadItem", function(res, id) {
+  $scope.$on("requestLoadItem", function (res, id) {
     $scope.currentPanel = "profile";
-    $scope.itemData = {};
+    $scope.itemData = undefined;
     loadItemById(id);
   });
 
@@ -87,8 +92,8 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
 
 
   $scope.itemId = Config.itemId;
-    $scope.loadItem();
-    $scope.currentPanel = "profile";
+  $scope.loadItem();
+  $scope.currentPanel = "profile";
 }
 
 PreviewController.$inject = ['$scope', '$timeout', 'Config', 'Item', 'ServiceLookup', 'ItemFormattingUtils'];
