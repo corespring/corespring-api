@@ -33,7 +33,13 @@ function getOrCreateStagingCollection(cId) {
     return null;
   }
 
+
   var currentCollection = contentDb.contentcolls.findOne({ _id: ObjectId(cId)});
+
+  //Don't create a staging collection for archive items
+  if(currentCollection.name == "archiveColl"){
+    return currentCollection;
+  }
 
   if(currentCollection.name.indexOf("(Staging)") == -1){
 
