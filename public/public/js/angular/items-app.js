@@ -21,6 +21,7 @@ function ItemsCtrl($scope, $timeout) {
       $scope.showPopup = true;
       $scope.previewingId = id;
       $scope.$broadcast("requestLoadItem", id);
+      $('#itemViewFrame').height("600px");
     }, 50);
     $timeout(function () {
       $('.window-overlay').scrollTop(0);

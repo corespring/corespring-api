@@ -338,12 +338,15 @@ pre {
     padding: 45px 0 0;
 }
 
+.nav li a#contact-nav {
+	margin-right:0px!important;
+}
 
 .navbar {
     margin-bottom: 0px;
 }
 .nav li a {
-    font-size:14px
+    font-size:14px;
 }
 
 .navbar .nav > li > a {
