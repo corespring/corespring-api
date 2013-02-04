@@ -12,6 +12,7 @@ import akka.util.duration._
 import java.util.concurrent.{TimeUnit, TimeoutException}
 import play.api.libs.concurrent.Akka
 import play.api.Play.current
+import play.api.libs.json.{JsString, JsObject}
 
 object SystemCheck extends Controller{
   implicit val as = Akka.system
@@ -20,7 +21,8 @@ object SystemCheck extends Controller{
     () => checkS3
   )
   def checkS3:Either[InternalError,Unit] = {
-    Right(())
+    if (ConcreteS3Service.online) Right(())
+    else Left(InternalError("S3 is not available"))
   }
   def checkDatabase:Either[InternalError,Unit] = {
     val dbmodels:Seq[ModelCompanion[_,ObjectId]] = Seq(
@@ -49,14 +51,14 @@ object SystemCheck extends Controller{
     checks.foldRight[Either[InternalError,Unit]](Right(()))((check,result) => {
       if(result.isRight){
         try{
-          Await.result(Future{check()},2 second)
+          Await.result(Future{check()},6 second)
         } catch {
           case e:TimeoutException => Left(InternalError("timeout occurred when running system check"))
         }
       } else result
     }) match {
       case Right(_) => Ok
-      case Left(error) => InternalServerError("a check failed with error message: "+error.message)
+      case Left(error) => InternalServerError(JsObject(Seq("error" -> JsString("a check failed"),"moreInfo" -> JsString(error.message))))
     }
   }
 }

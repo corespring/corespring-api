@@ -33,7 +33,12 @@ object ConcreteS3Service extends S3Service {
 
   def online:Boolean = {
     optS3 match {
-      case Some(s3) => true
+      case Some(s3) => try{
+        s3.listBuckets().size() > 0
+      } catch {
+        case e:AmazonClientException => false
+        case e:AmazonServiceException => false
+      }
       case None => false
     }
   }
