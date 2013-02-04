@@ -13,6 +13,7 @@ import java.util.concurrent.{TimeUnit, TimeoutException}
 import play.api.libs.concurrent.Akka
 import play.api.Play.current
 import play.api.libs.json.{JsString, JsObject}
+import play.api.cache.Cache
 
 object SystemCheck extends Controller{
   implicit val as = Akka.system
@@ -20,6 +21,14 @@ object SystemCheck extends Controller{
     () => checkDatabase,
     () => checkS3
   )
+  def checkCache:Either[InternalError,Unit] = {
+    Cache.set("test","test")
+    Cache.get("test") match {
+      case Some(test) => if(test == "test") Right(())
+        else Left(InternalError("did not retrieve correct value from cache"))
+      case None => Left(InternalError("could not retrieve any value from cache"))
+    }
+  }
   def checkS3:Either[InternalError,Unit] = {
     if (ConcreteS3Service.online) Right(())
     else Left(InternalError("S3 is not available"))
