@@ -4,10 +4,10 @@ import play.api.mvc._
 import play.api.{Logger, Play}
 import api.ApiError
 import api.ApiError._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsString, JsObject, Json}
 import org.bson.types.ObjectId
 import models.User
-import securesocial.core.SecureSocial
+import securesocial.core.{SecuredRequest, SecureSocial}
 
 
 /**
@@ -19,7 +19,7 @@ import securesocial.core.SecureSocial
  * @see Permission
  * @see PermissionSet
  */
-trait BaseApi extends Controller {
+trait BaseApi extends Controller with SecureSocial{
 
   val AuthorizationHeader = "Authorization"
   val Bearer = "Bearer"
@@ -96,6 +96,14 @@ trait BaseApi extends Controller {
         case ex: IllegalArgumentException => Left(ex)
       }
     }
+  }
+
+  def SSLApiAction[A](p:BodyParser[A])(f:ApiRequest[A] => Result):Action[A] = ApiAction(p){
+    request =>
+      request.headers.get("x-forwarded-proto") match {
+        case Some("https") => f(request)
+        case _ => BadRequest(JsObject(Seq("error" -> JsString("must access api calls through https"))))
+      }
   }
 
   /**
@@ -198,9 +206,11 @@ trait BaseApi extends Controller {
   def ApiAction(f: ApiRequest[AnyContent] => Result): Action[AnyContent] = {
     ApiAction(parse.anyContent)(f)
   }
+  def SSLApiAction(f: ApiRequest[AnyContent] => Result): Action[AnyContent] = {
+    SSLApiAction(parse.anyContent)(f)
+  }
   def ApiActionRead(f: ApiRequest[AnyContent] => Result) = ApiActionPermissions(parse.anyContent)(Permission.Read)(f)
   def ApiActionWrite(f: ApiRequest[AnyContent] => Result) = ApiActionPermissions(parse.anyContent)(Permission.Write)(f)
-
   /**
    * An action that makes sure the is a user in the authorization context.
    *
