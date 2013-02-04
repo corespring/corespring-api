@@ -40,8 +40,7 @@
 
                     <div id='itemView' class="preview-container"
                             ng-show="currentPanel=='item'" >
-                        <iframe frameBorder="0"
-                            iframe-auto-height=""
+                        <iframe id="itemViewFrame" frameBorder="0"
                             style="width: 100%; min-height: 400px"
                             scrolling="no"
                             ng-show="itemData" ng-src="{{getItemUrl()}}"
