@@ -23,6 +23,7 @@ trait S3Service {
   def s3download(bucket: String, itemId: String, keyName: String): Result
   def delete(bucket: String, keyName: String): S3DeleteResponse
   def cloneFile(bucket: String, keyName: String, newKeyName:String)
+  def online:Boolean
 }
 
 object ConcreteS3Service extends S3Service {
@@ -30,6 +31,12 @@ object ConcreteS3Service extends S3Service {
   private var optS3: Option[AmazonS3Client] = None
 
 
+  def online:Boolean = {
+    optS3 match {
+      case Some(s3) => true
+      case None => false
+    }
+  }
 
   /**
    * Init the S3 client

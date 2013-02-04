@@ -2,7 +2,6 @@ package api.v1
 
 import controllers.auth.{Permission, BaseApi}
 import api.ApiError
-import item.QueryCleaner
 import models._
 import com.mongodb.util.JSONParseException
 import com.mongodb.casbah.Imports._
