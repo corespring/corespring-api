@@ -7,7 +7,7 @@ import api.ApiError._
 import play.api.libs.json.Json
 import org.bson.types.ObjectId
 import models.User
-import securesocial.core.SecureSocial
+import securesocial.core.{SecuredRequest, SecureSocial}
 
 
 /**
@@ -19,7 +19,7 @@ import securesocial.core.SecureSocial
  * @see Permission
  * @see PermissionSet
  */
-trait BaseApi extends Controller {
+trait BaseApi extends Controller with SecureSocial{
 
   val AuthorizationHeader = "Authorization"
   val Bearer = "Bearer"
@@ -96,6 +96,29 @@ trait BaseApi extends Controller {
         case ex: IllegalArgumentException => Left(ex)
       }
     }
+  }
+
+  def SSLApiAction[A](p:BodyParser[A])(f:ApiRequest[A] => Result):Action[A] = ApiAction(p){
+    request =>
+      request.headers.get("x-forwarded-proto") match {
+        case Some("https") => f(request)
+        case _ => Redirect("https://" + request.headers.get("host").get + request.uri)
+      }
+  }
+
+  def SSLSecuredAction()(f:SecuredRequest[AnyContent] => Result):Action[AnyContent] = SecuredAction(){
+    request =>
+      request.headers.get("x-forwarded-proto") match {
+        case Some("https") => f(request)
+        case _ => Redirect("https://" + request.headers.get("host").get + request.uri)
+      }
+  }
+  def SSLAction[A](p:BodyParser[A])(f:Request[A] => Result):Action[A] = Action(p){
+    request =>
+      request.headers.get("x-forwarded-proto") match {
+        case Some("https") => f(request)
+        case _ => Redirect("https://" + request.headers.get("host").get + request.uri)
+      }
   }
 
   /**
@@ -198,9 +221,14 @@ trait BaseApi extends Controller {
   def ApiAction(f: ApiRequest[AnyContent] => Result): Action[AnyContent] = {
     ApiAction(parse.anyContent)(f)
   }
+  def SSLApiAction(f: ApiRequest[AnyContent] => Result): Action[AnyContent] = {
+    SSLApiAction(parse.anyContent)(f)
+  }
   def ApiActionRead(f: ApiRequest[AnyContent] => Result) = ApiActionPermissions(parse.anyContent)(Permission.Read)(f)
   def ApiActionWrite(f: ApiRequest[AnyContent] => Result) = ApiActionPermissions(parse.anyContent)(Permission.Write)(f)
-
+  def SSLAction(f: Request[AnyContent] => Result): Action[AnyContent] = {
+    SSLAction(parse.anyContent)(f)
+  }
   /**
    * An action that makes sure the is a user in the authorization context.
    *

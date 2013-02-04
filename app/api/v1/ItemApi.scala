@@ -48,7 +48,7 @@ class ItemApi(s3service:S3Service) extends BaseApi {
   /**
    * List query implementation for Items
    */
-  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
+  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = SSLApiAction {
     implicit request =>
       val collections = ContentCollection.getCollectionIds(request.ctx.organization,Permission.Read)
       itemList(q,f,c,sk,l,sort,collections)
