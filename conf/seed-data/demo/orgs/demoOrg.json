@@ -1,0 +1,31 @@
+{
+  "_id": {
+    "$oid": "502404dd0364dc35bb393397"
+  },
+  "name": "Demo Org",
+  "path": [
+    {
+      "$oid": "502404dd0364dc35bb393397"
+    }
+  ],
+  "contentcolls": [
+    {
+      "collectionId": {
+        "$oid": "4ff2e4cae4b077b9e31689fd"
+      },
+      "pval": 9223372036854775807
+    },
+    {
+      "collectionId": {
+        "$oid": "4ff2e56fe4b077b9e3168a05"
+      },
+      "pval": 9223372036854775807
+    },
+    {
+      "collectionId": {
+        "$oid": "505777f5e4b05f7845735bc1"
+      },
+      "pval": 9223372036854775807
+    }
+  ]
+}

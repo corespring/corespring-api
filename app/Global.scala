@@ -1,11 +1,10 @@
-import _root_.controllers.{ConcreteS3Service, Log, S3Service}
+import _root_.controllers.ConcreteS3Service
 import play.api.mvc.Results._
 import web.controllers.utils.ConfigLoader
 import common.seed.SeedDb._
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import org.bson.types.ObjectId
 import play.api._
-import cache.Cache
 import mvc._
 import mvc.SimpleResult
 import play.api.Play.current
@@ -32,11 +31,11 @@ object Global extends GlobalSettings {
       }
   }
 
-  def AjaxFilterAction[A](action: Action[A]) : Action[A] = Action(action.parser){
+  def AjaxFilterAction[A](action: Action[A]): Action[A] = Action(action.parser) {
     request =>
-      if (request.headers.get("X-Requested-With") == Some("XMLHttpRequest") ){
-        action(request) match{
-          case s : SimpleResult[_] => s.withHeaders(("Cache-Control","no-cache"))
+      if (request.headers.get("X-Requested-With") == Some("XMLHttpRequest")) {
+        action(request) match {
+          case s: SimpleResult[_] => s.withHeaders(("Cache-Control", "no-cache"))
           case result => result
         }
       }
@@ -115,8 +114,22 @@ object Global extends GlobalSettings {
       if (initData) seedDevData()
     }
 
-    addMockAccessToken(common.mock.MockToken, Some("demo_user"))
+    addDemoDataToDb()
+
   }
+
+  /** Add demo data models to the the db to allow end users to be able to
+    * view the content as a demo.
+    * This involves:
+    * 1. adding a demo access token that is associated with a demo organization
+    * 2. adding a demo organiztion
+    *
+    * TODO: the demo orgs listed are hardcoded
+    */
+  private def addDemoDataToDb() {
+    seedData("conf/seed-data/demo")
+  }
+
 
   private def isLocalDb: Boolean = {
     ConfigLoader.get("mongodb.default.uri") match {
