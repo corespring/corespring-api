@@ -2,6 +2,7 @@ package common.views.helpers
 
 import com.mongodb.casbah.commons.MongoDBObject
 import models.FieldValue
+import web.controllers.utils.ConfigLoader
 
 object Defaults{
 
@@ -9,4 +10,6 @@ object Defaults{
     case Some(fv) => com.codahale.jerkson.Json.generate(fv)
     case _ => ""
   }
+
+  lazy val commitHash : String = ConfigLoader.get("ENV_CORESPRING_API_COMMIT_HASH").getOrElse("?")
 }
