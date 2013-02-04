@@ -4,7 +4,7 @@ import play.api.mvc._
 import play.api.{Logger, Play}
 import api.ApiError
 import api.ApiError._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsString, JsObject, Json}
 import org.bson.types.ObjectId
 import models.User
 import securesocial.core.{SecuredRequest, SecureSocial}
@@ -102,22 +102,7 @@ trait BaseApi extends Controller with SecureSocial{
     request =>
       request.headers.get("x-forwarded-proto") match {
         case Some("https") => f(request)
-        case _ => Redirect("https://" + request.headers.get("host").get + request.uri)
-      }
-  }
-
-  def SSLSecuredAction()(f:SecuredRequest[AnyContent] => Result):Action[AnyContent] = SecuredAction(){
-    request =>
-      request.headers.get("x-forwarded-proto") match {
-        case Some("https") => f(request)
-        case _ => Redirect("https://" + request.headers.get("host").get + request.uri)
-      }
-  }
-  def SSLAction[A](p:BodyParser[A])(f:Request[A] => Result):Action[A] = Action(p){
-    request =>
-      request.headers.get("x-forwarded-proto") match {
-        case Some("https") => f(request)
-        case _ => Redirect("https://" + request.headers.get("host").get + request.uri)
+        case _ => BadRequest(JsObject(Seq("error" -> JsString("must access api calls through https"))))
       }
   }
 
@@ -226,9 +211,6 @@ trait BaseApi extends Controller with SecureSocial{
   }
   def ApiActionRead(f: ApiRequest[AnyContent] => Result) = ApiActionPermissions(parse.anyContent)(Permission.Read)(f)
   def ApiActionWrite(f: ApiRequest[AnyContent] => Result) = ApiActionPermissions(parse.anyContent)(Permission.Write)(f)
-  def SSLAction(f: Request[AnyContent] => Result): Action[AnyContent] = {
-    SSLAction(parse.anyContent)(f)
-  }
   /**
    * An action that makes sure the is a user in the authorization context.
    *

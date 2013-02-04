@@ -34,7 +34,7 @@ object Developer extends Controller with BaseApi{
 
   def at(path:String,file:String) = Assets.at(path,file)
 
-  def home = SSLAction{implicit request =>
+  def home = Action{implicit request =>
     request.session.get(SecureSocial.UserKey) match {
       case Some(username) =>
         User.getUser(username) match {
