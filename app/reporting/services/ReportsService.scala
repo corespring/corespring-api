@@ -50,6 +50,7 @@ class ReportsService(ItemCollection: MongoCollection,
 
 
     def collectionIdToName(id:String):String = {
+      if (id == "unknown") return "?"
       ContentCollection.findOneById(new ObjectId(id)) match {
         case Some(c) => c.name
         case _ => "?"
