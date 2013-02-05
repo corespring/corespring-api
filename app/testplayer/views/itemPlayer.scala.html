@@ -19,25 +19,13 @@
             }
         }]);
 
-        angular.module('qti.services')
-            .directive('resizeContainingIframe', function () {
-                return {
-                link:function ($scope, element, attr, ctrl) {
-                    $(element).resize(function(e) {
-                        $('iframe#itemViewFrame', parent.document).height($(element).height());
-                    });
-                }
-            }
-        });
-
     </script>
 
     <script src="/assets/js/corespring/qti/controllers/QtiAppController.js"></script>
-    <script src="/assets/js/vendor/jquery-plugins/jquery.ba-resize.min.js"></script>
 
 
 </head>
-<body ng-controller="QtiAppController" resize-containing-iframe>
+<body ng-controller="QtiAppController">
 
     @if( previewEnabled ){
 

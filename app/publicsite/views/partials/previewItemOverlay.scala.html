@@ -40,19 +40,27 @@
 
                     <div id='itemView' class="preview-container"
                             ng-show="currentPanel=='item'" >
+
+                        <div id="preloader" class="preloader" style="height: 600px">
+                        </div>
+
                         <iframe id="itemViewFrame" frameBorder="0"
-                            style="width: 100%; min-height: 400px"
+                            iframe-auto-height=""
+                            show-when-loaded
+                            hide-when-loaded="#preloader"
+                            style="width: 100%; min-height: 400px; display: none"
                             scrolling="no"
-                            ng-show="itemData" src="{{getItemUrl()}}"
+                            src="{{itemUrl}}"
                             > </iframe>
                     </div>
 
                     <div id='supportingMaterialView' class="preview-container"
                          ng-repeat="sm in itemData.supportingMaterials"
                          ng-show="currentSm==sm">
+
                         <iframe iframe-auto-height=""
                                 frameBorder="0"
-                                ng-src="{{getSmSrc(sm)}}"
+                                src="{{getSmSrc(sm)}}"
                                 style="width: 100%; min-height: 600px"
                                 scrolling="no"
                                 align="center"

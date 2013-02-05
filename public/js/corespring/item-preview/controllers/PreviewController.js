@@ -1,13 +1,14 @@
 function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFormattingUtils) {
 
+  $scope.itemUrl = "";
+
   $scope.changeSupportingMaterialPanel = function (sm) {
     $scope.changePanel(sm.name);
     $scope.currentSm = sm;
   };
 
-
   $scope.getItemSrc = function (forPrinting) {
-    if ($scope.itemData == undefined) return "";
+    if ($scope.itemData == undefined) return null;
     var templateUrl = ServiceLookup.getUrlFor(forPrinting ? 'printResource' : 'renderResource');
     var key = $scope.itemData.id;
     return templateUrl.replace("{key}", key);
@@ -56,6 +57,9 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
   $scope.changePanel = function (panelName) {
     $scope.currentSm = null;
     $scope.currentPanel = panelName;
+    if (panelName == 'item') {
+      $scope.itemUrl = $scope.getItemUrl();
+    }
   };
 
   $scope.getItemUrl = function () {
@@ -82,6 +86,7 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
   $scope.$on("requestLoadItem", function (res, id) {
     $scope.currentPanel = "profile";
     $scope.itemData = undefined;
+    $scope.itemUrl = "";
     loadItemById(id);
   });
 
