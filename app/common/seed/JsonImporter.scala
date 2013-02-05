@@ -55,6 +55,11 @@ object JsonImporter {
     dbList.toArray.toList.foreach(dbo => coll.insert(dbo.asInstanceOf[DBObject]))
   }
 
+  /** Given a directory - insert each json file within as a dbo
+    * Also check if any of the files contain duplicate ids
+    * @param path
+    * @param collection
+    */
   def insertFilesInFolder(path: String, collection: MongoCollection) {
 
     val folder: File = Play.getFile(path)
