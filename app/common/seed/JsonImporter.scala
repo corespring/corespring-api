@@ -12,7 +12,6 @@ import org.bson.types.ObjectId
 
 object JsonImporter {
 
-
   /**
    * Insert each line of the file as a single object
    * @param jsonPath
@@ -44,40 +43,6 @@ object JsonImporter {
     insertString(finalObject, coll)
   }
 
-
-  def insertFilesInFolder(path: String, collection: MongoCollection) {
-
-    val folder: File = Play.getFile(path)
-
-    import scala.collection.JavaConversions._
-
-    val files: List[File] = folder.listFiles.toList
-
-    val dbos: List[DBObject] = files.map {
-      f: File => fileToDbo(path + "/" + f.getName)
-    }
-
-    val ids: List[String] = dbos.foldRight(List[String]()) {
-      (dbo:DBObject, acc:List[String])  =>
-        val id = dbo.get("_id")
-        if (id != null && acc.contains(id)){
-          throw new RuntimeException("duplicate id in path: " + path + " id: " + id)
-        } else{
-          acc :+ dbo.get("_id").toString()
-        }
-    }
-
-    dbos.foreach {
-      dbo => collection.insert(dbo, collection.writeConcern)
-    }
-  }
-
-  def fileToDbo(path: String): DBObject = {
-    val s = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.forName("UTF-8"))).mkString
-    val finalObject: String = replaceLinksWithContent(s)
-    JSON.parse(s).asInstanceOf[DBObject]
-  }
-
   /**
    * Insert a json file that is a json array of items into the db
    * @param path = path to json
@@ -90,13 +55,35 @@ object JsonImporter {
     dbList.toArray.toList.foreach(dbo => coll.insert(dbo.asInstanceOf[DBObject]))
   }
 
+  def insertFilesInFolder(path: String, collection: MongoCollection) {
+
+    val folder: File = Play.getFile(path)
+    val files: List[File] = folder.listFiles.toList
+    val dbos: List[DBObject] = files.map((f: File) => fileToDbo(path + "/" + f.getName))
+
+    val hasDuplicates: Boolean = {
+      val ids = dbos.map {
+        (dbo: DBObject) =>
+          val id = dbo.get("_id")
+          if (id != null) Some(id) else None
+      }.flatten
+      ids.length != ids.distinct.length
+    }
+
+    if (hasDuplicates) {
+      throw new RuntimeException("Contains duplicate ids: " + files)
+    }
+
+    dbos.foreach(dbo => collection.insert(dbo, collection.writeConcern))
+  }
+
   /**
    * replace any interpolated keys with the path that they point to eg:
    * $[interpolate{/path/to/file.xml}] will be replaced with the contents of file.xml
    * @param s
    * @return
    */
-  def replaceLinksWithContent(s: String): String = {
+  private def replaceLinksWithContent(s: String): String = {
 
     /**
      * Load a string from a given path, remove new lines and escape "
@@ -112,18 +99,24 @@ object JsonImporter {
         .replace("{", "\\\\{")
         .replace("}", "\\\\}")
       lines
-
     }
 
     val interpolated = StringUtils.interpolate(s, loadString)
     interpolated
   }
 
-  def insertString(s: String, coll: MongoCollection) = {
+  private def insertString(s: String, coll: MongoCollection) = {
     val dbo: DBObject = JSON.parse(s).asInstanceOf[DBObject]
     coll.insert(dbo, coll.writeConcern)
   }
 
 
+  private def fileToDbo(path: String): DBObject = {
+    val s = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.forName("UTF8"))).mkString
+    val finalObject: String = replaceLinksWithContent(s)
+    JSON.parse(finalObject).asInstanceOf[DBObject]
+  }
+
 }
+
 
