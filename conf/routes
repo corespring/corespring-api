@@ -132,6 +132,7 @@ GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlaye
 
 # Web tier
 GET    /web                                    web.controllers.Main.index
+
 # Item Preview
 GET     /web/item-preview/:itemId              web.controllers.Main.previewItem(itemId:String)
 GET     /web/item-preview                      web.controllers.Main.previewAnyItem
@@ -171,6 +172,7 @@ GET     /lti/assignment/:configId/:resultSourcedId/:filename basiclti.controller
 GET     /lti/chooser/partials/main              basiclti.controllers.Partials.main
 GET     /lti/chooser/partials/browse            basiclti.controllers.Partials.browse
 GET     /lti/chooser/partials/view              basiclti.controllers.Partials.view
+
 # Reporting
 GET    /reports                                     reporting.controllers.Reports.index
 GET    /reports/:collection/:queryType.csv          reporting.controllers.Reports.getCsv(collection,queryType)
@@ -203,3 +205,6 @@ POST    /password                   securesocial.controllers.PasswordChange.hand
 # Providers entry points
 GET     /authenticate/:provider     securesocial.controllers.ProviderController.authenticate(provider)
 POST    /authenticate/:provider     securesocial.controllers.ProviderController.authenticateByPost(provider)
+
+#system check
+GET     /system/check               controllers.SystemCheck.index()
