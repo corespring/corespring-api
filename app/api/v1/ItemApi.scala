@@ -74,7 +74,7 @@ class ItemApi(s3service:S3Service) extends BaseApi {
     }
     if (collections.nonEmpty){
       val queryResult:Either[SearchCancelled,MongoDBObject] = q.map(query => ItemSearch.toSearchObj(query,
-        if (collections.size == 1) Some(MongoDBObject(Item.collectionId -> collections(0))) else Some(MongoDBObject(Item.collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))),
+        if (collections.size == 1) Some(MongoDBObject(Item.collectionId -> collections(0).toString)) else Some(MongoDBObject(Item.collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))),
         Map(Item.collectionId -> parseCollectionIds)
       )) match {
         case Some(result) => result

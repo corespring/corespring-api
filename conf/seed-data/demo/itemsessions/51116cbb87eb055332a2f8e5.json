@@ -1,0 +1,34 @@
+{
+   "_id":{
+      "$oid":"51116cbb87eb055332a2f8e5"
+   },
+   "itemId":{
+      "$oid":"511156d38604c9f77da9739d"
+   },
+   "start":{
+      "$date":1345833488187
+   },
+   "finish":{
+      "$date":1345833489187
+   },
+   "responses":[
+      {
+         "_t":"models.StringItemResponse",
+         "_id":"mexicanPresident",
+         "responseValue":"calderon",
+         "outcome":"{$score:1}"
+      },
+      {
+         "_t":"models.StringItemResponse",
+         "_id":"irishPresident",
+         "responseValue":"guinness",
+         "outcome":"{$score:0}"
+      },
+      {
+         "_t":"models.StringItemResponse",
+         "_id":"winterDiscontent",
+         "responseValue":"York",
+         "outcome":"{$score:1}"
+      }
+   ]
+}

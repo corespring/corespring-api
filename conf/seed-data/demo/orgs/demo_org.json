@@ -1,0 +1,19 @@
+{
+  "_id": {
+    "$oid": "51114b307fc1eaa866444648"
+  },
+  "name": "Demo Organization",
+  "path": [
+    {
+      "$oid": "51114b307fc1eaa866444648"
+    }
+  ],
+  "contentcolls": [
+    {
+      "collectionId": {
+        "$oid": "51114b127fc1eaa866444647"
+      },
+      "pval": 1
+    }
+  ]
+}

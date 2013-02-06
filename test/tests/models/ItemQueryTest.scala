@@ -60,7 +60,7 @@ class ItemQueryTest extends BaseTest{
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
       case JsArray(jsobjects) => {
-        jsobjects.size must beGreaterThanOrEqualTo(5)
+        jsobjects.size must beGreaterThanOrEqualTo(1)
         jsobjects.forall(jsobj => {
           (jsobj \ "standards") match {
             case JsArray(standards) => standards.exists(_ match {
