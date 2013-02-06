@@ -66,10 +66,10 @@ class ItemApiTest extends BaseTest with Mockito {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    (items(0) \ "id").as[String] must beEqualTo("51116a8ba14f7b657a083c1c")
+    items.size must beEqualTo(2)
   }
 
-  "list items limiting result to 10" in {
+  "list items limiting result to 2" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&l=2".format(token))
     val Some(result) = routeAndCall(fakeRequest)
     status(result) must equalTo(OK)
@@ -89,7 +89,7 @@ class ItemApiTest extends BaseTest with Mockito {
     items.size must beEqualTo(2)
   }
 
-  "find items in returning only their title and up to 10" in {
+  "find items in returning only their title and up to 3" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&f={\"title\":1}&l=3".format(token))
     val Some(result) = routeAndCall(fakeRequest)
     status(result) must equalTo(OK)

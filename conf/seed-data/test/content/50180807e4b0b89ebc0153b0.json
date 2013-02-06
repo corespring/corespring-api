@@ -1,0 +1,59 @@
+{
+	"_id" : {
+		"$oid" : "50180807e4b0b89ebc0153b0"
+	},
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"contentType" : "item",
+	"contributorDetails" : {
+		"contributor" : "New York State Education Department",
+		"credentials" : "State Department of Education",
+		"copyright" : {
+			"owner" : "New York State Education Department",
+			"year" : "2012",
+			"imageName" : "nysed.png"
+		},
+		"author" : "New York State Education Department",
+		"sourceUrl" : "www.p12.nysed.gov/apda/common-core-sample-questions",
+		"licenseType" : "CC BY"
+	},
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n\t<correctResponseFeedback>Correct!</correctResponseFeedback>\n\t<incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceB</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n    <itemBody>\n\n<p class=\"intro-2\">Appliances at Discount City Store are on sale for 70% of the original price. Eli has \na coupon for an 18% discount on the sale price.</p>\n       \n        <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>If the original price of a \nmicrowave oven is $500, how much will Eli pay for the oven before tax?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">$440<feedbackInline identifier=\"ChoiceA\" defaultFeedback=\"true\"/>\n</simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">$287<feedbackInline identifier=\"ChoiceB\" defaultFeedback=\"true\"/>\n</simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\">$260<feedbackInline identifier=\"ChoiceC\" defaultFeedback=\"true\"/>\n</simpleChoice>\n            <simpleChoice identifier=\"ChoiceD\">$240<feedbackInline identifier=\"ChoiceD\" defaultFeedback=\"true\"/>\n</simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n\n</assessmentItem>\n"
+			}
+		]
+	},
+	"keySkills" : [ ],
+	"materialType" : "Assessment Item",
+	"priorGradeLevel" : [ ],
+	"priorUse" : "Formative",
+	"reviewsPassed" : [
+		"Editorial"
+	],
+	"standards" : [
+		"7.RP.A.3"
+	],
+	"workflow" : {
+		"setup" : true,
+		"tagged" : false,
+		"standardsAligned" : true,
+		"qaReview" : false
+	},
+	"taskInfo" : {
+		"subjects" : {
+			"primary" : {
+				"$oid" : "4ffb535f6bb41e469c0bf2c2"
+			}
+		},
+		"gradeLevel" : [
+			"07"
+		],
+	    "itemType" : "Multiple Choice",
+		"title" : "Appliances at Discount City Store are on sale for 70% of the original price. Eli has a coupon for an 18% discount on the sale price. If the original price of a microwave oven is $500, how much will Eli pay for the oven before tax?"
+	}
+}
