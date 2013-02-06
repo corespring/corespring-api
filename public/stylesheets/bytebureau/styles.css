@@ -942,9 +942,11 @@ inlinechoiceinteraction.received-response > .feedback-float.show {
 }
 
 inlinechoiceinteraction.correct-response > .feedback-float.show {
+    margin-top: 19px;
 	background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
 }
 inlinechoiceinteraction.incorrect-response > .feedback-float.show {
+    margin-top: 19px;
 	background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
 }
 .feedback-float.hide {
