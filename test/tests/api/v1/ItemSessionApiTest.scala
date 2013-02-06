@@ -29,13 +29,13 @@ class ItemSessionApiTest extends Specification {
 
   val Routes = api.v1.routes.ItemSessionApi
 
+  val token = "test_token"
+
   lazy val FakeAuthHeader = FakeHeaders(Map("Authorization" -> Seq("Bearer " + token)))
 
-  val token = common.mock.MockToken
-
   object IDs {
-    val Item: String = "50083ba9e4b071cb5ef79101"
-    val ItemSession: String = "502d0f823004deb7f4f53be7"
+    val Item: String = "511156d38604c9f77da9739d"
+    val ItemSession: String = "51116bc7a14f7b657a083c1d"
   }
 
   def invokeCall(call: Call, content: AnyContent, args: (String, String)*): ItemSession = {

@@ -13,13 +13,13 @@
       "collectionId": {
         "$oid": "51114b127fc1eaa866444647"
       },
-      "pval": 1
+      "pval": 3
     },
     {
       "collectionId": {
         "$oid": "511276834924c9ca07b97044"
       },
-      "pval": 1
+      "pval": 3
     }
   ]
 }

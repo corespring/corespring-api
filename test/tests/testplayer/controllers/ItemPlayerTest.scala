@@ -16,7 +16,7 @@ class ItemPlayerTest extends BaseTest {
   val itemWithFeedbackId = "505d839b763ebc84ac34d484"
 
   "works with test player example item" in {
-    val call = ItemPlayerRoutes.previewItem("50083ba9e4b071cb5ef79101")
+    val call = ItemPlayerRoutes.previewItem("511156d38604c9f77da9739d")
     val fakeGet = FakeRequest(call.method, (call.url+"?access_token=%s").format(token))
     val getResult = routeAndCall(fakeGet).get
     status(getResult) must equalTo(OK)

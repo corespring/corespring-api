@@ -29,14 +29,14 @@ class ItemApiTest extends BaseTest with Mockito {
 
   val mockS3service = mock[S3Service]
 
-  val TEST_COLLECTION_ID: String = "5001bb0ee4b0d7c9ec3210a2"
+  val TEST_COLLECTION_ID: String = "51114b127fc1eaa866444647"
   //val OTHER_TEST_COLLECTION_ID: String = "5001a66ce4b0d7c9ec320f2e"
 
   val ItemRoutes = api.v1.routes.ItemApi
 
-  val accessToken = new AccessToken(new ObjectId("502404dd0364dc35bb39339c"),Some("homer"),"itemapi_test_token",DateTime.now(),DateTime.now().plusMinutes(5));
-  AccessToken.insert(accessToken)
-  override val token = "itemapi_test_token"
+//  val accessToken = new AccessToken(new ObjectId("502404dd0364dc35bb39339c"),Some("homer"),"itemapi_test_token",DateTime.now(),DateTime.now().plusMinutes(5));
+//  AccessToken.insert(accessToken)
+//  override val token = "itemapi_test_token"
 
   "list all items" in {
     val call = ItemRoutes.list()
@@ -46,7 +46,7 @@ class ItemApiTest extends BaseTest with Mockito {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items.size must beEqualTo(50)
+    items.size must beEqualTo(5)
   }
 
 "list items in a collection" in {
@@ -56,29 +56,27 @@ class ItemApiTest extends BaseTest with Mockito {
   charset(result) must beSome("utf-8")
   contentType(result) must beSome("application/json")
   val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-  items.size must beEqualTo(50)
+  items.size must beEqualTo(5)
 }
 
-  "list all items skipping 30" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&sk=30".format(token))
+  "list all items skipping 3" in {
+    val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&sk=3".format(token))
     val Some(result) = routeAndCall(fakeRequest)
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    // TODO - this test works when run with test-only but fails in suite, presumably because another test is making mock data
-    pending
-    //(items(0) \ "id").as[String] must beEqualTo("4ffef41ce4b0cf00dc0a5024")
+    (items(0) \ "id").as[String] must beEqualTo("51116a8ba14f7b657a083c1c")
   }
 
   "list items limiting result to 10" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&l=10".format(token))
+    val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&l=2".format(token))
     val Some(result) = routeAndCall(fakeRequest)
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items.size must beEqualTo(10)
+    items.size must beEqualTo(2)
   }
 
   "find items in the grade level 7" in {
@@ -88,11 +86,11 @@ class ItemApiTest extends BaseTest with Mockito {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items.size must beEqualTo(14)
+    items.size must beEqualTo(2)
   }
 
   "find items in returning only their title and up to 10" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&f={\"title\":1}&l=10".format(token))
+    val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&f={\"title\":1}&l=3".format(token))
     val Some(result) = routeAndCall(fakeRequest)
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
@@ -102,11 +100,11 @@ class ItemApiTest extends BaseTest with Mockito {
       (i \ "title").as[Option[String]] must beSome
       (i \ "author").as[Option[String]] must beNone
     })
-    items.size must beEqualTo(10)
+    items.size must beEqualTo(3)
   }
 
   "get an item by id" in {
-    val id = "50085085e4b081257be515f4"
+    val id = "51116a8ba14f7b657a083c1c"
     val fakeRequest = FakeRequest(GET, "/api/v1/items/%s?access_token=%s".format(id, token))
     val Some(result) = routeAndCall(fakeRequest)
     status(result) must equalTo(OK)
@@ -244,12 +242,12 @@ class ItemApiTest extends BaseTest with Mockito {
      * NOTE: test data loaded to db may be missing this if it is loaded statically. Could load a the test composite item
      * (50083ba9e4b071cb5ef79101) and save it. Other tests might fail if these csFeedbackId attrs are not present
      */
-    var jsitem = Json.toJson(Item.findOneById(new ObjectId("50083ba9e4b071cb5ef79101"))).asInstanceOf[JsObject]
+    var jsitem = Json.toJson(Item.findOneById(new ObjectId("511156d38604c9f77da9739d"))).asInstanceOf[JsObject]
     jsitem = JsObject(jsitem.fields.filter(field => field._1 != "id" && field._1 != "collectionId"))
-    var fakeRequest = FakeRequest(PUT, "/api/v1/items/50083ba9e4b071cb5ef79101?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(jsitem))
+    var fakeRequest = FakeRequest(PUT, "/api/v1/items/511156d38604c9f77da9739d?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(jsitem))
     var result = routeAndCall(fakeRequest).get
     status(result) must equalTo(OK)
-    val resource: Resource = Item.findOneById(new ObjectId("50083ba9e4b071cb5ef79101")).get.data.get
+    val resource: Resource = Item.findOneById(new ObjectId("511156d38604c9f77da9739d")).get.data.get
     val qtiXml: Option[String] = resource.files.find(file => file.isMain).map(file => file.asInstanceOf[VirtualFile].content)
     qtiXml must beSome[String]
     val hasCsFeedbackIds: Boolean = qtiXml.map(qti =>
@@ -288,7 +286,7 @@ class ItemApiTest extends BaseTest with Mockito {
 
   "clone item" in {
     val itemApi = new ItemApi(mockS3service)
-    val id = "50083ba9e4b071cb5ef79101"
+    val id = "511154e48604c9f77da9739b"
     val fakeRequest = FakeRequest(POST, "/api/v1/items/%s?access_token=%s".format(id, token))
     val result = itemApi.cloneItem(new ObjectId(id))(fakeRequest)
     there was atLeastTwo(mockS3service).cloneFile(anyString, anyString, anyString)

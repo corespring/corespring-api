@@ -16,7 +16,7 @@ import tests.BaseTest
  *
  */
 class OrganizationApiTest extends BaseTest {
-  val orgId = "502404dd0364dc35bb393397"
+  val orgId = "51114b307fc1eaa866444648"
 
   "list all visible organizations" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/organizations?access_token=%s".format(token))
@@ -90,15 +90,15 @@ class OrganizationApiTest extends BaseTest {
     })
   }
 
-  "find an organization with name 'Organization D'" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/organizations?access_token=%s&q={\"name\":\"Organization+D\"}".format(token))
+  "find an organization with name 'Demo Organization 3'" in {
+    val fakeRequest = FakeRequest(GET, "/api/v1/organizations?access_token=%s&q={\"name\":\"Demo Organization 3\"}".format(token))
     val Some(result) = routeAndCall(fakeRequest)
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val organizations = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
     organizations must have size 1
-    (organizations(0) \ "name").as[String] must beEqualTo("Organization D")
+    (organizations(0) \ "name").as[String] must beEqualTo("Demo Organization 3")
   }
 
   "get the default organization" in {
@@ -109,7 +109,7 @@ class OrganizationApiTest extends BaseTest {
     contentType(result) must beSome("application/json")
     val organization = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
     (organization \ "id").as[String] must beEqualTo(orgId)
-    (organization \ "name").as[String] must beEqualTo("Organization G")
+    (organization \ "name").as[String] must beEqualTo("Demo Organization")
 
   }
 
@@ -122,7 +122,7 @@ class OrganizationApiTest extends BaseTest {
     contentType(result) must beSome("application/json")
     val organization = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
     (organization \ "id").as[String] must beEqualTo(orgId)
-    (organization \ "name").as[String] must beEqualTo("Organization G")
+    (organization \ "name").as[String] must beEqualTo("Demo Organization")
 
   }
 

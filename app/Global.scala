@@ -108,13 +108,15 @@ object Global extends GlobalSettings {
 
     if (Play.isTest(app)) {
       onlyIfLocalDb(seedTestData)
-    } else if (Play.isDev(app)) {
-      if (initData) onlyIfLocalDb(seedDevData)
-    } else if (Play.isProd(app)) {
-      if (initData) seedDevData()
+    } else {
+      if (Play.isDev(app)) {
+        if (initData) onlyIfLocalDb(seedDevData)
+      } else if(Play.isProd(app)) {
+        if (initData) seedDevData()
+      }
+      addDemoDataToDb()
     }
 
-    addDemoDataToDb()
 
   }
 
@@ -141,8 +143,6 @@ object Global extends GlobalSettings {
 
   private def seedTestData() {
     emptyData()
-    seedData("conf/seed-data/common")
-    seedData("conf/seed-data/common_two")
     seedData("conf/seed-data/test")
   }
 

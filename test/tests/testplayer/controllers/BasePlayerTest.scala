@@ -10,10 +10,13 @@ import tests.PlaySingleton
 import play.api.test.Helpers._
 import play.api.mvc.SimpleResult
 import play.api.libs.iteratee.Enumerator
+import org.bson.types.ObjectId
 
 class BasePlayerTest extends Specification {
 
   PlaySingleton.start()
+
+  val token = "test_token"
 
   "Base player" should {
 
@@ -25,8 +28,8 @@ class BasePlayerTest extends Specification {
         }
       }
 
-      val sessionId = ItemSession.findOne(MongoDBObject()).get.id
-      val request = FakeRequest("GET","blah?access_token=" + common.mock.MockToken )
+      val sessionId = new ObjectId("51116bc7a14f7b657a083c1d")
+      val request = FakeRequest("GET","blah?access_token=" + token )
       val result : play.api.mvc.Result  = player.runBySessionId(sessionId)(request)
       contentAsString(result) === "hooray"
     }
