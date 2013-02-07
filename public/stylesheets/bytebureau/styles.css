@@ -815,6 +815,7 @@ TABS
 /*-----------------------------------
 MISC.
 -------------------------------------*/
+hr.element-separator,
 hr.element-seperator {
 	height:1px;
 	background-color:#ccc;
