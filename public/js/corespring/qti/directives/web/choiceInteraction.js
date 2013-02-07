@@ -33,7 +33,7 @@ qtiDirectives.directive('choiceinteraction', function () {
       for (var j = 0; j < times + 1; j++)
         ch += String.fromCharCode(65 + i % 32);
 
-      choices[i] = choices[i].replace(/(<:*simplechoice[\s\S]*?>)/, "$1" + ch + ". ");
+      choices[i] = choices[i].replace(/(<:*simplechoice[\s\S]*?>)/, "$1" + ch + ". &nbsp;");
     }
   }
 
