@@ -44,7 +44,6 @@ object UserApiTest extends BaseTest {
     contentType(result) must beSome("application/json")
     val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
     users must have size 2
-    (users(0) \ "userName").as[String] must beEqualTo("test_user2")
   }
 
 
