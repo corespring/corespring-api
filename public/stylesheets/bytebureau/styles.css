@@ -815,6 +815,7 @@ TABS
 /*-----------------------------------
 MISC.
 -------------------------------------*/
+hr.element-separator,
 hr.element-seperator {
 	height:1px;
 	background-color:#ccc;
@@ -922,6 +923,12 @@ prompt, .choice-prompt {
 	display: block;
 	color: green;
 }
+
+p inlinechoiceinteraction{
+    position:relative;
+    top:3px;
+}
+
 inlinechoiceinteraction.incorrect-response, inlinechoiceinteraction.correct-response, inlinechoiceinteraction.received-response {
 	display: inline;
 }
@@ -930,7 +937,7 @@ inlinechoiceinteraction.correct-response > .feedback-float.show, inlinechoiceint
 	height: 22px;
 	line-height: 30px;
 	position: relative;
-	top: 0px;
+	top: 2px;
 	display: inline-block;
 	cursor: pointer;
 }
@@ -942,9 +949,11 @@ inlinechoiceinteraction.received-response > .feedback-float.show {
 }
 
 inlinechoiceinteraction.correct-response > .feedback-float.show {
+    margin-top: 19px;
 	background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
 }
 inlinechoiceinteraction.incorrect-response > .feedback-float.show {
+    margin-top: 19px;
 	background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
 }
 .feedback-float.hide {
@@ -1357,5 +1366,3 @@ width: 560px;
 }
 
 /*end of resizing*/
-
-

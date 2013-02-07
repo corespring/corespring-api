@@ -2,18 +2,11 @@ qtiDirectives.directive('choiceinteraction', function () {
 
   var simpleChoiceRegex = /(<:*simplechoice[\s\S]*?>[\s\S]*?<\/:*simplechoice>)/gmi;
 
-  /**
-   * @param html
-   * @return {String}
-   */
   var getSimpleChoicesArray = function (html) {
     var nodes = html.match(simpleChoiceRegex);
-
     if (!nodes) {
       return [];
     }
-
-
     return nodes;
   };
 
@@ -22,7 +15,6 @@ qtiDirectives.directive('choiceinteraction', function () {
   };
 
   var getFixedIndexes = function (simpleChoiceNodes) {
-
     var out = [];
     for (var i = 0; i < simpleChoiceNodes.length; i++) {
       var node = simpleChoiceNodes[i];
@@ -34,13 +26,22 @@ qtiDirectives.directive('choiceinteraction', function () {
     return out;
   };
 
+  var insertAlphabetPrefixes = function (choices) {
+    for (var i = 0; i < choices.length; i++) {
+      var ch = '';
+      var times = Math.floor(i / 32);
+      for (var j = 0; j < times + 1; j++)
+        ch += String.fromCharCode(65 + i % 32);
+
+      choices[i] = choices[i].replace(/(<:*simplechoice[\s\S]*?>)/, "$1" + ch + ". ");
+    }
+  }
+
   /**
    * Get the simplechoice nodes - shuffle those that need shuffling,
    * then add the back to the original html
-   * @param html
-   * @return {*}
    */
-  var getShuffledContents = function (html) {
+  var getContents = function (html, shuffle, insertLetters) {
 
     var TOKEN = "__SHUFFLED_CHOICES__";
     var simpleChoicesArray = getSimpleChoicesArray(html);
@@ -50,11 +51,10 @@ qtiDirectives.directive('choiceinteraction', function () {
     var contentsWithChoicesStripped =
       html.replace(/<:*simplechoice[\s\S]*?>[\s\S]*<\/:*simplechoice>/gmi, TOKEN);
 
+    var choices = shuffle ? simpleChoicesArray.shuffle(fixedIndexes) : simpleChoicesArray;
+    if (insertLetters) insertAlphabetPrefixes(choices);
 
-    var shuffled = simpleChoicesArray.shuffle(fixedIndexes);
-
-
-    return contentsWithChoicesStripped.replace(TOKEN, shuffled.join("\n"));
+    return contentsWithChoicesStripped.replace(TOKEN, choices.join("\n"));
   };
 
   /**
@@ -63,6 +63,7 @@ qtiDirectives.directive('choiceinteraction', function () {
   var compile = function (element, attrs, transclude) {
 
     var shuffle = attrs["shuffle"] === "true";
+    var insertLetters = !(attrs["insertletters"] == "false");
     var isHorizontal = attrs["orientation"] === "horizontal";
     var html = element.html();
 
@@ -70,7 +71,7 @@ qtiDirectives.directive('choiceinteraction', function () {
     var prompt = "<span class=\"prompt\">" + ((promptMatch && promptMatch.length > 0) ? promptMatch[1] : "") + "</span>";
 
     // We convert custom elements to attributes in order to support IE8
-    var finalContents = (shuffle ? getShuffledContents(html) : html)
+    var finalContents = getContents(html, shuffle, insertLetters)
       .replace(/<:*prompt>(.|[\r\n])*?<\/:*prompt>/gim, "")
       .replace(/<:*simpleChoice/gi, "<span simplechoice").replace(/<\/:*simpleChoice>/gi, "</span>")
       .replace(/<:*feedbackInline/gi, "<span feedbackinline").replace(/<\/:*feedbackInline>/gi, "</span>");
@@ -120,7 +121,7 @@ qtiDirectives.directive('choiceinteraction', function () {
 
     scope.setChosenItem = function (value, isChosen) {
 
-      if(isChosen === undefined){
+      if (isChosen === undefined) {
         throw "You have to specify 'isChosen' either true/false";
       }
 

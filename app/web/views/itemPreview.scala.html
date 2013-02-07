@@ -67,24 +67,24 @@
 </div>
 
 
-    <div id='itemView' class="preview-container"
+    <div id='itemView' class="item-preview-container"
             ng-show="currentPanel=='item'" >
         <iframe frameBorder="0"
-            class="iframe-preview"
+            class="item-preview-iframe"
             ng-show="itemData" ng-src="{{getItemUrl()}}"> </iframe>
     </div>
 
-    <div id='supportingMaterialView' class="preview-container"
+    <div id='supportingMaterialView' class="item-preview-container"
          ng-repeat="sm in itemData.supportingMaterials"
          ng-show="currentSm==sm">
         <iframe
                 frameBorder="0"
                 ng-src="{{getSmSrc(sm)}}"
                 align="center"
-                class="iframe-preview"></iframe>
+                class="item-preview-iframe"></iframe>
     </div>
 
-    <div id='profileView' ng-show="currentPanel=='profile'" class="preview-container">
+    <div id='profileView' ng-show="currentPanel=='profile'" class="item-preview-container">
         <div class="container" style="width: 600px; margin-bottom: 50px;" >
             @web.views.html.partials._viewItem.corespringData()
             @web.views.html.partials._viewItem.history()

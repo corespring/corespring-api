@@ -1,6 +1,108 @@
 angular.module('tagger.services').factory('SearchService',
   function ($rootScope, ItemService) {
 
+    /**
+     * get item count and parse the results
+     * @param queryText
+     * @param callback - call back with the int value
+     */
+    var count = function (queryText, callback) {
+      ItemService.count({q: queryText, c: true}, function (count) {
+        if (count["count"] !== undefined) {
+          var intCount = parseInt(count["count"]);
+          callback(intCount);
+        } else {
+          throw "Error handling count response: " + count;
+        }
+      });
+    };
+
+    /** Private - query object builder
+     *
+     * @param searchParams
+     * @param searchFields
+     * @return {*}
+     */
+    var buildQueryObject =  function (searchParams, searchFields) {
+
+      function addIfTrue(query, value, key) {
+        if (value) {
+          query[key] = true;
+        }
+      }
+
+      var query = mongoQuery.fuzzyTextQuery(searchParams.searchText, searchFields);
+
+      var hasKey = function (element, key) {
+        var foundElement = _.find(element, function (e) {
+          return e.key == key;
+        });
+        return angular.isDefined(foundElement);
+
+      };
+
+      var isExactMatch = hasKey(searchParams.statuses, "exactMatch");
+      var isSetup = hasKey(searchParams.statuses, "setup");
+      var isTagged = hasKey(searchParams.statuses, "tagged");
+      var isQaReview = hasKey(searchParams.statuses, "qaReview");
+      var isStandardsAligned = hasKey(searchParams.statuses, "standardsAligned");
+
+      if (isExactMatch) {
+        query["workflow.setup"] = isSetup;
+        query["workflow.tagged"] = isTagged;
+        query["workflow.qaReview"] = isQaReview;
+        query["workflow.standardsAligned"] = isStandardsAligned;
+
+      } else {
+        addIfTrue(query, isSetup, "workflow.setup");
+        addIfTrue(query, isTagged, "workflow.tagged");
+        addIfTrue(query, isQaReview, "workflow.qaReview");
+        addIfTrue(query, isStandardsAligned, "workflow.standardsAligned");
+      }
+
+
+      /**
+       * Returns either an exact value or a mongo $in array with a set of values.
+       * If you pass in an array - you'll get an $in array,
+       * if you pass in an object you'll get the objects value.
+       * @param value
+       * @param arrayKey
+       * @return {*}
+       */
+      var objectOrArray = function(value, arrayKey){
+        if (value) {
+          if (value.indexOf && value.length > 0) {
+            return mongoQuery.inArray(value, arrayKey);
+          } else {
+            return value[arrayKey];
+          }
+        }
+        else {
+          return null;
+        }
+      };
+
+      var gradeLevel =  objectOrArray(searchParams.gradeLevel, "key");
+      if(gradeLevel != null){
+        query["gradeLevel"] = gradeLevel;
+      }
+
+      var itemType = objectOrArray(searchParams.itemType, "label");
+      if(itemType != null){
+        query["itemType"] = itemType;
+      }
+
+      var collectionId = objectOrArray(searchParams.collection, "id");
+      if(collectionId != null){
+        query["collectionId"] = collectionId;
+      }
+
+      if (searchParams.contributor && searchParams.contributor.indexOf && searchParams.contributor.length > 0) {
+        query["contributor"] = mongoQuery.inArray(searchParams.contributor, "name");
+      }
+
+      return query;
+    };
 
     var mongoQuery = new com.corespring.mongo.MongoQuery();
     var searchService = {
@@ -20,8 +122,8 @@ angular.module('tagger.services').factory('SearchService',
         'standards',
         'sourceUrl',
         'contributor',
-        'author',
-        ],
+        'author'
+      ],
       searchFields: [
         'title',
         'standards.dotNotation',
@@ -30,143 +132,95 @@ angular.module('tagger.services').factory('SearchService',
         'author'
       ],
 
+      /**
+       * Build the complete ItemService query
+       * @return an object that contains the following:
+       * {
+       *   q: a json string of the query
+       *   l: an int indicating the limit
+       *   sk: an int indicating the skip amount
+       *   f: a json string indicating the fields to return
+       *   sort: an optional sort json string
+       * }
+       */
+      buildItemServiceQuery: function(addSkip) {
 
-      search: function (searchParams, resultHandler, errorHandler) {
-        this.searchParams = searchParams;
-        $rootScope.$broadcast('onNetworkLoading');
-        this.loaded = 0;
+        var baseQuery = buildQueryObject(this.searchParams, this.searchFields);
 
-        //Private count function
-        var count = function (queryText, callback) {
-          ItemService.count({q: queryText, c: true}, function (count) {
-            // angular treats a raw string like a json object and copies it (see copy() method in angular)
-            // this mean "21" will come back as {0:"2", 1:"1"}
-            // need to unpack this here....
-            var unpackedCount = "";
-            for (var key in count) {
-              if (count.hasOwnProperty(key))
-                unpackedCount += count[key];
-            }
-            callback(unpackedCount);
-          });
+        var out = {
+          l: this.limit,
+          q: JSON.stringify(baseQuery),
+          f: JSON.stringify(mongoQuery.buildFilter(searchService.resultFields))
         };
 
-        var query = this.buildQueryObject(searchParams, this.searchFields);
-        searchService.searchId = new Date().getTime();
-        var executeQuery = function (id) {
-          var queryObj = {
-            l: searchService.limit,
-            q: JSON.stringify(query),
-            f: JSON.stringify(mongoQuery.buildFilter(searchService.resultFields)),
-          };
-          if (searchParams.sort)
-            queryObj.sort = JSON.stringify(searchParams.sort);
+        if(addSkip){
+          out.sk = this.loaded >= 0 ? this.loaded : -1
+        }
 
-          ItemService.query(queryObj,
-            function (data) {
-              if (id != searchService.searchId) {
-                return;
-              }
-              searchService.itemDataCollection = data;
-              resultHandler(data);
-              count(JSON.stringify(query), function (resultCount) {
-                searchService.resultCount = parseInt(resultCount);
-                $rootScope.$broadcast('onSearchCountComplete', resultCount);
-                $rootScope.$broadcast('onNetworkComplete');
-              });
-            },
-            function onError(data) {
-              console.warn("error occurred: " + data);
-              if (errorHandler) errorHandler(data);
-            }
-          );
-        };
-        executeQuery(searchService.searchId);
-
-        this.loaded = this.loaded + this.limit;
+        if (this.searchParams.sort) {
+          out.sort = JSON.stringify(this.searchParams.sort);
+        }
+        return out;
       },
 
-      buildQueryObject: function (searchParams, searchFields, resultFields) {
-        function addIfTrue(query, value, key) {
-          if (value) {
-            query[key] = true;
-          }
-        }
+      /**
+       * Perform a search using ItemService.query.
+       * @param searchParams
+       * @param resultHandler
+       * @param errorHandler
+       */
+      search: function (searchParams, resultHandler, errorHandler) {
 
-        var query = mongoQuery.fuzzyTextQuery(searchParams.searchText, searchFields);
-
-        var hasKey = function (element, key) {
-          var foundElement = _.find(element, function (e) {
-            return e.key == key;
-          });
-          return angular.isDefined(foundElement);
-
-        };
-
-        var isExactMatch = searchParams.exactMatch || hasKey(searchParams.statuses, "exactMatch");
-        var isSetup = searchParams.setup || hasKey(searchParams.statuses, "setup");
-        var isTagged = searchParams.tagged || hasKey(searchParams.statuses, "tagged");
-        var isQaReview = searchParams.qaReview || hasKey(searchParams.statuses, "qaReview");
-        var isStandardsAligned = searchParams.standardsAligned || hasKey(searchParams.statuses, "standardsAligned");
-
-        if (isExactMatch) {
-          query["workflow.setup"] = isSetup;
-          query["workflow.tagged"] = isTagged;
-          query["workflow.qaReview"] = isQaReview;
-          query["workflow.standardsAligned"] = isStandardsAligned;
-
-        } else {
-          addIfTrue(query, isSetup, "workflow.setup");
-          addIfTrue(query, isTagged, "workflow.tagged");
-          addIfTrue(query, isQaReview, "workflow.qaReview");
-          addIfTrue(query, isStandardsAligned, "workflow.standardsAligned");
-        }
 
         /**
-         * Create mongo $in array
-         * @return {{$in: Array}}
+         * run the query.
+         * We wrap this with an id so that we can disregard the results of stale queries.
+         * @param id
          */
-        var inArray = function (arr, key) {
-          var out = [];
-          for (var x = 0; x < arr.length; x++) {
-            out.push(arr[x][key]);
-          }
-          return { $in: out};
+        var run = function (id) {
+
+          var query = this.buildItemServiceQuery(false);
+
+          /**
+           * Query success callback
+           * @param data
+           */
+          var onQuerySuccess = function (data) {
+
+            if (id != searchService.searchId) {
+              //console.log("Old search results - ignoring");
+              return;
+            }
+
+            this.itemDataCollection = data;
+            this.loaded += this.limit;
+            resultHandler(data);
+
+            var onCountSuccess = function(resultCount){
+              this.resultCount = resultCount;
+              $rootScope.$broadcast('onSearchCountComplete', resultCount);
+              $rootScope.$broadcast('onNetworkComplete');
+            };
+
+            count(query.q, angular.bind(this, onCountSuccess));
+          };
+
+          ItemService.query(query, angular.bind(this,onQuerySuccess), errorHandler)
         };
 
-        if (searchParams.gradeLevel) {
-          if (searchParams.gradeLevel.indexOf && searchParams.gradeLevel.length > 0) {
-            query['gradeLevel'] = inArray(searchParams.gradeLevel, "key");
-          } else {
-            query['gradeLevel'] = searchParams.gradeLevel.key;
-          }
-        }
+        this.searchParams = searchParams;
+        this.searchId = new Date().getTime();
+        this.loaded = 0;
+        $rootScope.$broadcast('onNetworkLoading');
 
-        if (searchParams.itemType) {
-          if (searchParams.itemType.indexOf && searchParams.itemType.length > 0) {
-            query['itemType'] = inArray(searchParams.itemType, "label");
-          } else {
-            query['itemType'] = searchParams.itemType.label;
-          }
-        }
-
-        if (searchParams.collection) {
-          if (searchParams.collection.indexOf && searchParams.collection.length > 0) {
-            query.collectionId = inArray(searchParams.collection, "id");
-          } else {
-            query.collectionId = searchParams.collection.id;
-          }
-        }
-
-        if (searchParams.contributor && searchParams.contributor.indexOf && searchParams.contributor.length > 0) {
-          query["contributor"] = inArray(searchParams.contributor, "name");
-        }
-
-
-        return query;
+        run.apply(this,[this.searchId]);
       },
 
-      loadMore: function (resultHandler) {
+      /**
+       * Using the existing search params - load more items
+       * @param resultHandler
+       */
+      loadMore: function(resultHandler){
 
         if (this.loaded >= this.resultCount) {
           return;
@@ -179,24 +233,19 @@ angular.module('tagger.services').factory('SearchService',
           return;
         }
 
-        this.isLastSearchRunning = true; // set flag
+        this.isLastSearchRunning = true;
 
-        var query = this.buildQueryObject(this.searchParams, this.searchFields, this.resultFields);
+        var query = this.buildItemServiceQuery(true);
 
-        ItemService.query({
-            l: this.limit,
-            q: JSON.stringify(query),
-            f: JSON.stringify(mongoQuery.buildFilter(this.resultFields)),
-            sk: this.loaded >= 0 ? this.loaded : -1
-          }, function (data) {
-            searchService.itemDataCollection = searchService.itemDataCollection.concat(data);
-            resultHandler(data);
-            searchService.isLastSearchRunning = false; // reset flag
-            $rootScope.$broadcast('onNetworkComplete');
-          }
-        );
+        var onSuccess = function(data){
+          this.itemDataCollection = this.itemDataCollection.concat(data);
+          resultHandler(data);
+          this.isLastSearchRunning = false;
+          $rootScope.$broadcast('onNetworkComplete');
+          this.loaded += this.limit;
+        };
 
-        this.loaded = this.loaded + this.limit;
+        ItemService.query( query, angular.bind(this,onSuccess));
       },
 
 
