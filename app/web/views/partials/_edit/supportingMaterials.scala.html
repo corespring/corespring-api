@@ -49,8 +49,9 @@
                 class="btn btn-success"
                 fu-url="calculateResourceUploadUrl()"
                 ng-disabled="!canCreateNewResource()"
+                fu-file-size-greater-than-max="greaterThanMax"
                 fu-upload-completed="onResourceUploadCompleted"
-                fu-max-size="400"
+                fu-max-size="3400"
                 fu-mode="raw">Upload..
         </button>
         <button ng-click="createNewHtmlResource()"
@@ -61,7 +62,9 @@
         <button
                 class="btn btn-info"
                 ng-click="showAddResourceModal=false">Cancel</button>
+
     </div>
+
 
     <div class="file-list">
         <h2>Supporting Materials</h2>
