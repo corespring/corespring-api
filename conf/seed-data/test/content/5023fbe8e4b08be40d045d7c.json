@@ -1,0 +1,88 @@
+{
+	"_id" : {
+		"$oid" : "5023fbe8e4b08be40d045d7c"
+	},
+	"bloomsTaxonomy" : "Applying",
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"contentType" : "item",
+	"contributorDetails" : {
+		"contributor" : "New England Common Assessment Program",
+		"credentials" : "State Department of Education",
+		"copyright" : {
+			"owner" : "New England Common Assessment Program",
+			"year" : "2010"
+		},
+		"author" : "New England Common Assessment Program",
+		"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
+		"licenseType" : "CC BY"
+	},
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value>26</value>\n            <value>26.0</value>\n        </correctResponse> \n    </responseDeclaration>\n    \n     <responseDeclaration identifier='cents' cardinality='single' baseType='identifier'>\n        <correctResponse>\n            <value>cents</value>\n        </correctResponse>\n    </responseDeclaration>\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"string\"/>\n\n\n    <itemBody>\n<p class=\"intro-2\">A package of 3 tubes of toothpaste costs $3.49. The cost of a single tube of toothpaste is $1.25.</p>   \n<p class=\"prompt\">How much more will it cost to buy 3 single tubes of toothpaste than to buy \na package of 3 tubes of toothpaste?</p>\n\n<p class= \"p-indent-20\">It will cost <textEntryInteraction responseIdentifier=\"Q_01\" expectedLength=\"5\"/> <inlineChoiceInteraction\n            responseIdentifier='cents'\n            required='false'>\n            <inlineChoice identifier='cents'>cents<feedbackInline identifier='armstrong' defaultFeedback='true'/></inlineChoice>\n            <inlineChoice identifier='dollars'>dollars<feedbackInline identifier='aldrin' defaultFeedback='true'/></inlineChoice>\n        </inlineChoiceInteraction>more.</p>\n\n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"26\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n\n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"26.0\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n\n\n\n    <!-- this is for any response not defined as a correct response in responseDeclaration -->\n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         incorrectResponse=\"true\">\n            <div class=\"feedback-block-incorrect\">Good try, but it will cost $0.26.</div>\n     </feedbackBlock>\n\n\n<p class=\"prompt\">Show your work or explain how you know.</p>\n<extendedTextInteraction responseIdentifier=\"Q_02\" expectedLength=\"200\" class=\"answer-1-linebox\"/>\n\n    </itemBody>\n</assessmentItem>"
+			}
+		]
+	},
+	"demonstratedKnowledge" : "Procedural",
+	"keySkills" : [
+		"Solve",
+		"Write",
+		"Explain",
+		"Examine",
+		"Compute",
+		"Calculate",
+		"Translate",
+		"Understand",
+		"Identify",
+		"Name"
+	],
+	"priorGradeLevel" : [ ],
+	"priorUse" : "Summative",
+	"reviewsPassed" : [
+		"Editorial",
+		"Bias",
+		"Fairness",
+		"Content",
+		"Psychometric"
+	],
+	"standards" : [
+		"5.NBT.B.7"
+	],
+	"supportingMaterials" : [
+		{
+			"name" : "Scoring Guide",
+			"files" : [
+				{
+					"_t" : "models.VirtualFile",
+					"name" : "index.html",
+					"contentType" : "text/html",
+					"isMain" : true,
+					"content" : "<html>\n<head><title>Scoring Guide</title></head>\n<body>\n<h2>Scoring Guide</h2>\n<table>\n<tr>\n<th>Score</th>\n<th>Description</th>\n</tr>\n<tr>\n<td><b>2</b></td>\n<td>for correct answer, ($)<b>0.26</b>, <b>26¢</b>, or <b>26 cents</b>, with sufficient explanation or work shown to indicate correct strategy</td>\n</tr>\n<tr>\n<td><b>1</b></td>\n<td>for correct answer with insufficient or no explanation or work shown\n<p/>or\n<p/>for sufficient strategy with incorrect or no answer</td>\n</tr>\n<tr>\n<td><b>0</b></td>\n<td>Response is incorrect or contains some correct work that is irrelevant to the skill or concept being measured.</td>\n</tr>\n<tr>\n<td><b>Blank</b></td>\n<td>No response</td>\n</tr>\n</table>\n<p><b>Sample Response:</b></p>\n<p>It cost 1.25 + 1.25 + 1.25 = $3.75 to buy three single tubes, so it will cost 3.75 – 3.49 = $0.26 more.</p>\n</body>\n</html>"
+				}
+			]
+		}
+	],
+	"workflow" : {
+		"setup" : true,
+		"tagged" : true,
+		"standardsAligned" : true,
+		"qaReview" : false
+	},
+	"taskInfo" : {
+		"subjects" : {
+			"primary" : {
+				"$oid" : "4ffb535f6bb41e469c0bf2c2"
+			}
+		},
+		"gradeLevel" : [
+			"05"
+		],
+	    "itemType" : "Constructed Response - Short Answer",
+		"title" : "A package of 3 tubes of toothpaste costs $3.49. The cost of a single tube of toothpaste is $1.25. How much more will it cost to buy 3 single tubes of toothpaste than to buy a package of 3 tubes of toothpaste?"
+	}
+}

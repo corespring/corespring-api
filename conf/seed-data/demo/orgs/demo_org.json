@@ -1,0 +1,31 @@
+{
+  "_id": {
+    "$oid": "51114b307fc1eaa866444648"
+  },
+  "name": "Demo Organization",
+  "path": [
+    {
+      "$oid": "51114b307fc1eaa866444648"
+    }
+  ],
+  "contentcolls": [
+    {
+      "collectionId": {
+        "$oid": "51114b127fc1eaa866444647"
+      },
+      "pval": 1
+    },
+    {
+      "collectionId": {
+        "$oid": "511276834924c9ca07b97044"
+      },
+      "pval": 1
+    },
+    {
+      "collectionId": {
+        "$oid" : "505777f5e4b05f7845735bc1"
+      },
+      "pval":1
+    }
+  ]
+}

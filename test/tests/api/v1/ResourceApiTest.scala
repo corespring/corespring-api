@@ -42,7 +42,7 @@ class ResourceApiTest extends BaseTest {
     }
   }
 
-  def testItem: Item = item("50083ba9e4b071cb5ef79101")
+  def testItem: Item = item("511156d38604c9f77da9739d")
 
   def rubric: Resource = {
     testItem.supportingMaterials.find(_.name == "Rubric") match {

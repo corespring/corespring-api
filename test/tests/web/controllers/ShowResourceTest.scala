@@ -12,7 +12,7 @@ class ShowResourceTest extends BaseTest{
 
   val ItemPlayerRoutes = testplayer.controllers.routes.ItemPlayer
 
-  val TEST_ITEM_ID : String = "50083ba9e4b071cb5ef79101"
+  val TEST_ITEM_ID : String = "511156d38604c9f77da9739d"
 
   def testItem: Item = item(TEST_ITEM_ID)
 

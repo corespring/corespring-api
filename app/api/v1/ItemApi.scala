@@ -33,7 +33,8 @@ class ItemApi(s3service:S3Service) extends BaseApi {
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
   val dbsummaryFields = Seq(Item.collectionId,Item.taskInfo,Item.otherAlignments,Item.standards)
-  val jssummaryFields: Seq[String] = Seq(Item.collectionId,
+  val jssummaryFields: Seq[String] = Seq("id",
+    Item.collectionId,
     TaskInfo.Keys.gradeLevel,
     TaskInfo.Keys.itemType,
     Alignments.Keys.keySkills,
@@ -73,12 +74,13 @@ class ItemApi(s3service:S3Service) extends BaseApi {
       }
     }
     if (collections.nonEmpty){
+      val initSearch:MongoDBObject = if (collections.size == 1) MongoDBObject(Item.collectionId -> collections(0).toString) else MongoDBObject(Item.collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))
       val queryResult:Either[SearchCancelled,MongoDBObject] = q.map(query => ItemSearch.toSearchObj(query,
-        if (collections.size == 1) Some(MongoDBObject(Item.collectionId -> collections(0))) else Some(MongoDBObject(Item.collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))),
+        Some(initSearch),
         Map(Item.collectionId -> parseCollectionIds)
       )) match {
         case Some(result) => result
-        case None => Right(MongoDBObject())
+        case None => Right(initSearch)
       }
       val fieldResult:Either[InternalError,SearchFields] = f.map(fields => ItemSearch.toFieldsObj(fields)) match {
         case Some(result) => result
