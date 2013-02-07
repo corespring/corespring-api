@@ -23,7 +23,7 @@ import controllers.auth.Permission
  */
 
 object UserApiTest extends BaseTest {
-  val userId = "502d46ce0364068384f217a4"
+  val userId = "511293b6ef0e8fd55d57ad00"
 
   "list all visible users" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/users?access_token=%s".format(token))
@@ -44,7 +44,6 @@ object UserApiTest extends BaseTest {
     contentType(result) must beSome("application/json")
     val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
     users must have size 2
-    (users(0) \ "userName").as[String] must beEqualTo("bart")
   }
 
 
@@ -73,15 +72,15 @@ object UserApiTest extends BaseTest {
     users must have size 3
   }
 
-  "find a user with userName equal to 'marge'" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/users?access_token=%s&q={\"userName\":\"marge\"}".format(token))
+  "find a user with userName equal to 'test_user2'" in {
+    val fakeRequest = FakeRequest(GET, "/api/v1/users?access_token=%s&q={\"userName\":\"test_user2\"}".format(token))
     val Some(result) = routeAndCall(fakeRequest)
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
     users must have size 1
-    (users(0) \ "userName").as[String] must beEqualTo("marge")
+    (users(0) \ "userName").as[String] must beEqualTo("test_user2")
   }
 
   "find user with id %s".format(userId) in {
@@ -92,14 +91,11 @@ object UserApiTest extends BaseTest {
     contentType(result) must beSome("application/json")
     val user = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
     (user \ "id").as[String] must beEqualTo(userId)
-    (user \ "userName").as[String] must beEqualTo("marge")
+    (user \ "userName").as[String] must beEqualTo("test_user")
 
   }
 
   "create, update and delete a user" in {
-    User.update(
-      MongoDBObject(User.userName -> "demo_user", User.orgs+"."+UserOrg.orgId -> new ObjectId("502404dd0364dc35bb393397")),
-      MongoDBObject("$set" -> MongoDBObject(User.orgs+".$."+UserOrg.pval -> Permission.Write.value)),false,false,User.defaultWriteConcern)
     val name = "john"
     val fullName = "John Doe"
     val email = "john.doe@corespring.org"
@@ -151,8 +147,5 @@ object UserApiTest extends BaseTest {
       }
       case None => failure("failed to update user")
     }
-    User.update(
-      MongoDBObject(User.userName -> "demo_user", User.orgs+"."+UserOrg.orgId -> new ObjectId("502404dd0364dc35bb393397")),
-      MongoDBObject("$set" -> MongoDBObject(User.orgs+".$."+UserOrg.pval -> Permission.Read.value)),false,false,User.defaultWriteConcern)
   }
 }

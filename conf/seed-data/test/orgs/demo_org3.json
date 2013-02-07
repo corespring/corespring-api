@@ -1,0 +1,15 @@
+{
+  "_id": {
+    "$oid": "5112b132ef0e8fd55d57ad01"
+  },
+  "name": "Demo Organization 3",
+  "path": [
+    {
+      "$oid": "5112b132ef0e8fd55d57ad01"
+    },
+    {
+      "$oid": "51114b307fc1eaa866444648"
+    }
+  ],
+  "contentcolls": []
+}
