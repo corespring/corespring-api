@@ -45,5 +45,43 @@ object Utils {
       case other => other.child.map(child => traverseElementsRec(child,accFn,acc)).flatten
     }
   }
+
+  def getLevenshteinDistance (s: String, t:String):Int = {
+    if (s == null || t == null) throw new IllegalArgumentException("Strings must not be null");
+
+    var n = s.length();
+    var m = t.length();
+
+    if (n == 0) return m;
+
+    else if (m == 0) return n;
+
+    var p = new Array[Int](n+1);
+    var d = new Array[Int](n+1);
+
+    for (i <- 0 to n) {
+      p.update(i,i)
+    }
+
+    for (j <- 1 to m) {
+      val t_j = t.charAt(j-1);
+      d.update(0,j);
+
+      for (i <- 1 to n) {
+        val cost:Int = if (s.charAt(i-1)==t_j) 0 else 1;
+        d.update(i,math.min(math.min(d(i-1)+1, p(i)+1), p(i-1)+cost))
+      }
+      val _d = p;
+      p = d;
+      d = _d;
+    }
+
+    //Determine percentage difference
+    val levNum = p(n).asInstanceOf[Double];
+    val percent = (levNum/math.max(s.length(),t.length()))*100;
+    val percentDiff = percent.asInstanceOf[Int];
+
+    return percentDiff;
+  }
 }
 case class JsonValidationException(field:String) extends RuntimeException("invalid value for: "+field)

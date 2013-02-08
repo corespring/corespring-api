@@ -213,7 +213,8 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
     Action {
       request =>
         getFileFromJson(request.body) match {
-          case Some(update) => {
+          case Some(update @ VirtualFile) => {
+
             val item = request.asInstanceOf[ItemRequest[AnyContent]].item
             item.data.get.files.find(_.name == filename) match {
               case Some(f) => {

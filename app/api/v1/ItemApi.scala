@@ -6,24 +6,35 @@ import models._
 import com.mongodb.util.JSONParseException
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
-import dao.{SalatMongoCursor, SalatInsertError}
+import dao.SalatDAOUpdateError
+import dao.SalatInsertError
+import dao.SalatMongoCursor
+import dao.{SalatDAOUpdateError, SalatMongoCursor, SalatInsertError}
 import play.api.templates.Xml
 import play.api.mvc.Result
 import play.api.libs.json.Json._
 import models.mongoContext._
-import controllers.{ConcreteS3Service, Log, S3Service, JsonValidationException}
+import controllers._
 import play.api.libs.json._
 import scala.Left
 import scala.Some
 import scala.Right
-import controllers.{Utils, JsonValidationException, InternalError}
 import play.api.libs.json.JsObject
+import search.SearchCancelled
+import search.SearchFields
 import search.{SearchFields, SearchCancelled, ItemSearch}
 import models.json.ItemView
 import play.api.libs.json.JsObject
 import com.typesafe.config.ConfigFactory
-import models.item.{Alignments, TaskInfo}
+import item.{Version, Alignments, TaskInfo}
 import com.mongodb.casbah.commons.ValidBSONType.BasicDBList
+import scala.Left
+import play.api.libs.json.JsArray
+import scala.Some
+import play.api.libs.json.JsNumber
+import controllers.InternalError
+import scala.Right
+import play.api.libs.json.JsObject
 
 /**
  * Items API
@@ -382,6 +393,37 @@ class ItemApi(s3service:S3Service) extends BaseApi {
   def getItemsInCollection(collId: ObjectId) = ApiAction {
     request =>
       NotImplemented
+  }
+
+
+  def increment(itemId: ObjectId) = ApiAction {request =>
+    if(Content.isAuthorized(request.ctx.organization,itemId,Permission.Read)){
+      Item.findOneById(itemId) match {
+        case Some(item) => {
+          //TODO: allow for rollback of item if storing files fails
+          Item.cloneItem(item) match {
+            case Some(clonedItem) => {
+              cloneStoredFiles(item, clonedItem) match {
+                case true => try{
+                  Item.update(MongoDBObject("_id" -> clonedItem.id),
+                    MongoDBObject("$set" -> MongoDBObject(Item.version+"."+Version.rev -> (item.version.map(_.rev).getOrElse(0)+1))),
+                    false,false,Item.defaultWriteConcern)
+                  Item.update(MongoDBObject("_id" -> item.id),
+                    MongoDBObject("$set" -> MongoDBObject(Item.version+"."+Version.current -> false)),
+                    false,false,Item.defaultWriteConcern)
+                  Ok
+                } catch {
+                  case e:SalatDAOUpdateError => InternalServerError(Json.toJson(ApiError.Item.Clone(Some("could not update version"))))
+                }
+                case false => BadRequest(toJson(ApiError.Item.Clone))
+              }
+            }
+            case _ => BadRequest(toJson(ApiError.Item.Clone))
+          }
+        }
+        case None => throw new RuntimeException("a item that was authorized does not exist")
+      }
+    }else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 }
 
