@@ -40,13 +40,7 @@ body, html {
 	color:#444;
 	background-color: #fff;
 }
-/*
-.prompt, .choice-prompt, prompt, .choicePrompt, .item-stem, p.prompt, span.choice-prompt, p.prompt, span p.prompt, span.choice-prompt, .choice-interaction prompt {
-	font:14px/20px "Ubuntu", Arial, Helvetica, sans-serif !important;
-	padding:0 0 18px;
-	margin:0;
-}
-*/
+
 input[type="submit"] {
 	display:block;
 	margin:20px 0 10px auto;
@@ -111,7 +105,7 @@ input[type="text"]:focus, textarea:focus {
 a:focus, .btn:focus, input[type="file"]:focus, input[type="radio"]:focus, input[type="checkbox"]:focus, select:focus {
 	outline:5px auto rgba(161, 225, 23, 0.8);
 }
-[prompt], .prompt, .choice-prompt, prompt, .choicePrompt, .item-stem, p.prompt, span.choice-prompt, p.prompt, span p.prompt, resource.ng-scope prompt, span.choice-prompt, .choice-interaction prompt {
+[prompt], .prompt, .choice-prompt, prompt, .choicePrompt, .item-stem, .item_stem p.prompt, span.choice-prompt, p.prompt, span p.prompt, resource.ng-scope prompt, span.choice-prompt, .choice-interaction prompt {
  font:14px/20px "Ubuntu", Arial, Helvetica, sans-serif !important;
  padding:0 0 18px;
  margin:0;
