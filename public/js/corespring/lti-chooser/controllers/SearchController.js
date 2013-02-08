@@ -147,8 +147,8 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
          */
         function preProcess(c){
           return _.filter(c, function(i){ 
-            return i.name == "CoreSpring Mathematics"
-             || i.name == "CoreSpring ELA"
+            return i.name.indexOf("Mathematics") != -1
+             || i.name.indexOf("ELA") != -1
           })
         }
         var filtered = preProcess(data);
