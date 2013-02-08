@@ -245,7 +245,7 @@ input[type="submit"] {
 	margin:20px 0 10px auto;
 }
 .choice-interaction input[type="checkbox"], .choice-interaction input[type="radio"] {
-	margin:0 0 0 1px;
+	margin: 0 0 1px 1px;
 }
 /* SC STRUCTURAL ELEMENTS */
 
@@ -267,6 +267,10 @@ input[type="submit"] {
 .choice-content {
 line-height: 20px;
 width: 510px;
+}
+
+.choice-content img{
+vertical-align: middle;
 }
 
 .correct-response, .correct-response-horizontal {
