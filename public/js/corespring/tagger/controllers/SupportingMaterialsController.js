@@ -95,6 +95,10 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
         });
     };
 
+    $scope.greaterThanMax = function(file,size) {
+      alert("The file size is too big (>"+size+"k)");
+    }
+
     $scope.calculateResourceUploadUrl = function (file) {
 
         $scope.showAddResourceModal = false;
