@@ -234,8 +234,8 @@ object Item extends ModelCompanion[Item,ObjectId]{
         "data.files.content" ->
           MongoDBObject(
             "$regex" -> query,
-            "$options" -> "ms")/*,
-        "collectionId" -> MongoDBObject("$in" -> collectionIds.toArray)*/
+            "$options" -> "ms"),
+        "collectionId" -> MongoDBObject("$in" -> collectionIds.toArray)
       ),
       MongoDBObject("taskInfo" -> 1)
     ).toList
