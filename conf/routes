@@ -208,3 +208,6 @@ POST    /authenticate/:provider     securesocial.controllers.ProviderController.
 
 #system check
 GET     /system/check               controllers.SystemCheck.index()
+
+GET     /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearchPage()
+POST    /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearch()
