@@ -27,7 +27,7 @@ object TestHarness extends BaseApi with SecureSocial {
       Action {
         request =>
           Ok(basiclti.views.html.dev.begin(url))
-            .withSession(OAuthConstants.AccessToken -> common.mock.MockToken)
+            .withSession(OAuthConstants.AccessToken -> "corespring_token")
       }
     }
     else {
@@ -133,10 +133,6 @@ object TestHarness extends BaseApi with SecureSocial {
     def method: String = HttpMethod.POST.toString
 
     override lazy val host: String = hostOverride
-    /*def headers : Headers = new Headers {
-      def keys: Set[String] = Set()
-      def getAll(key: String): Seq[String] = Seq()
-    }*/
   }
 
   private def getSignature(key: String, secret: String, request: Request[AnyContent]): String = {
