@@ -111,7 +111,7 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
     var html = [
       '<div class="btn-group" style="display: inline-block">',
-      '<a class="btn dropdown-toggle" ng-class="{disabled: formSubmitted}" data-toggle="dropdown" href="#"><span ng-bind-html-unsafe="selected"/><i class="icon-chevron-down" /></a>',
+      '<a class="btn dropdown-toggle" ng-class="{disabled: formSubmitted}" data-toggle="dropdown" href="#"><span ng-bind-html-unsafe="selected" style="padding-right: 15px"/><i class="icon-chevron-down" style="position: absolute; right: 0px" /></a>',
       '<ul class="dropdown-menu">'
     ];
 
