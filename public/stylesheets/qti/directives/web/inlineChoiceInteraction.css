@@ -1,1 +1,60 @@
 /** -- **/
+
+inlinechoiceinteraction.received-response .btn {
+    border: solid 2px #4055f8;
+}
+
+inlinechoiceinteraction.correct-response .btn {
+    border: solid 2px #53C516;
+}
+
+inlinechoiceinteraction.incorrect-response .btn {
+    border: solid 2px #F8A31A;
+}
+
+p inlinechoiceinteraction{
+    position:relative;
+    top:3px;
+}
+
+inlinechoiceinteraction.incorrect-response, inlinechoiceinteraction.correct-response, inlinechoiceinteraction.received-response {
+    display: inline;
+}
+
+inlinechoiceinteraction.correct-response > .feedback-float.show, inlinechoiceinteraction.incorrect-response > .feedback-float.show {
+    width: 26px;
+    height: 22px;
+    line-height: 30px;
+    position: relative;
+    top: 2px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+inlinechoiceinteraction.received-response > .feedback-float.show {
+    position: relative;
+    top: 0px;
+    display: inline-block;
+}
+
+inlinechoiceinteraction.correct-response > .feedback-float.show {
+    margin-top: 19px;
+    background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
+}
+
+inlinechoiceinteraction.incorrect-response > .feedback-float.show {
+    margin-top: 19px;
+    background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
+}
+
+.btn.dropdown-toggle {
+    margin: 0px;
+    padding: 2px;
+    width: auto;
+    min-width: 100px;
+}
+
+.dropdown-menu li {
+    list-style: none;
+}
+
