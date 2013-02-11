@@ -224,4 +224,20 @@ object Item extends ModelCompanion[Item,ObjectId]{
       }
     }
   }
+
+  def findInXml(string:String, collectionIds : List[String]) : List[Item] = {
+
+    val query = ".*<assessmentItem.*>.*" + string + ".*<\\/assessmentItem>.*"
+
+    Item.find(
+      MongoDBObject(
+        "data.files.content" ->
+          MongoDBObject(
+            "$regex" -> query,
+            "$options" -> "ms")/*,
+        "collectionId" -> MongoDBObject("$in" -> collectionIds.toArray)*/
+      ),
+      MongoDBObject("taskInfo" -> 1)
+    ).toList
+  }
 }
