@@ -4,7 +4,7 @@
 qtiDirectives.directive('simplechoice', function(QtiUtils){
 
   return {
-    restrict: 'E',
+    restrict: 'ECA',
     replace: true,
     scope: true,
     transclude: true,

@@ -1,4 +1,8 @@
-simplechoice{
+[simplechoice] {
     display: table;
 }
 
+
+[simplechoice] .choice-content {
+    padding-left: 0px;
+}
