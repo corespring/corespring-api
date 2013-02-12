@@ -26,7 +26,31 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
     return ltype ? "/assets/images/licenseTypes/" + ltype + ".png" : undefined;
   }
 
-  $scope.getCopyrightUrl = function (cname) {
+  $scope.getCopyrightUrl = function (item) {
+    if (!item) return;
+    var cname = item.copyrightImageName;
+    if (!cname) {
+      switch (item.copyrightOwner) {
+        case "New York State Education Department":
+          cname = "nysed.png";
+          break;
+        case "State of New Jersey Department of Education":
+          cname = "njded.png";
+          break;
+        case "Illustrative Mathematics":
+          cname = "illustrativemathematics.png";
+          break;
+        case "Aspire Public Schools":
+          cname = "aspire.png";
+          break;
+        case "College Board":
+          cname = "CollegeBoard.png";
+          break;
+        case "New England Common Assessment Program":
+          cname = "NECAP.jpg";
+          break;
+      }
+    }
     return cname ? "/assets/images/copyright/" + cname : undefined;
   }
 

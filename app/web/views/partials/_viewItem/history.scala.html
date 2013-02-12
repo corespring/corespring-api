@@ -6,8 +6,8 @@
     <p class="profile-h1"> Source </p>
 
 
-    <img ng-show='@(name + ".copyrightImageName")' class="copyright-logo"
-         ng-src="{{getCopyrightUrl(@(name+".copyrightImageName"))}}"
+    <img class="copyright-logo"
+         ng-src="{{getCopyrightUrl(@(name))}}"
          />
 
     <div class="copyright-graph" ng-show='@(name + ".copyrightOwner")'>
