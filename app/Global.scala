@@ -1,4 +1,5 @@
 import _root_.controllers.ConcreteS3Service
+import com.typesafe.config.ConfigFactory
 import play.api.mvc.Results._
 import web.controllers.utils.ConfigLoader
 import common.seed.SeedDb._
@@ -97,7 +98,7 @@ object Global extends GlobalSettings {
     val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
     ConcreteS3Service.init(amazonProperties)
 
-    val initData = ConfigLoader.get(INIT_DATA).getOrElse("true") == "true"
+    val initData:Boolean = ConfigFactory.load().getString(INIT_DATA) == "true"
 
     def onlyIfLocalDb(fn: (() => Unit)) {
       if (isLocalDb)
@@ -109,10 +110,10 @@ object Global extends GlobalSettings {
     if (Play.isTest(app)) {
       onlyIfLocalDb(seedTestData)
     } else {
-      if (Play.isDev(app)) {
-        if (initData) onlyIfLocalDb(seedDevData)
-      } else if(Play.isProd(app)) {
-        if (initData) seedDevData()
+      if (Play.isDev(app) && initData) {
+        onlyIfLocalDb(seedDevData)
+      } else if(Play.isProd(app) && initData) {
+        seedDevData()
       }
       addDemoDataToDb()
     }

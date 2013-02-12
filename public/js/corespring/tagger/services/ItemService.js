@@ -54,6 +54,14 @@ angular.module('tagger.services')
             .error(onError);
     };
 
+    ItemService.prototype.increment = function(params, onSuccess, onError){
+        var url = "/api/v1/items/:id/increment".replace(":id",params.id);
+        var successCallback = function(data){
+            onSuccess(data);
+        };
+        $http.post(url, {}).success(successCallback).error(onError)
+    }
+
     ItemService.prototype.update = function (paramsObject, cb, onErrorCallback) {
         var idObject = angular.extend(paramsObject, {id:this.id});
 
