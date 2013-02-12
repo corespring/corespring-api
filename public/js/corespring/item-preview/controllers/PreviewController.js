@@ -46,7 +46,7 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
         case "College Board":
           cname = "CollegeBoard.png";
           break;
-        case "NECAP":
+        case "New England Common Assessment Program":
           cname = "NECAP.jpg";
           break;
       }
