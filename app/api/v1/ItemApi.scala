@@ -163,26 +163,6 @@ class ItemApi(s3service:S3Service) extends BaseApi {
   }
 
   /**
-   * returns the most recent revision of the item referred to by id
-   * @param id
-   * @return
-   */
-  def getCurrent(id: ObjectId) = ApiAction { request =>
-    if(Content.isAuthorized(request.ctx.organization,id,Permission.Read)){
-      val searchFields = SearchFields(method = 1)
-      cleanDbFields(searchFields,request.ctx.isLoggedIn)
-      val baseItem = Item.findOne(MongoDBObject("_id" -> id)).get
-      baseItem.version match {
-        case Some(version) => Item.findOne(MongoDBObject(Item.version+"."+Version.root -> version.root, Item.version+"."+Version.current -> true)) match {
-          case Some(currentItem) => Ok(Json.toJson(ItemView(currentItem,None)))
-          case None => InternalServerError(JsObject(Seq("error" -> JsString("there is no version of this item that is visible"))))
-        }
-        case None => Ok(Json.toJson(ItemView(baseItem,None)))
-      }
-    }else Unauthorized(toJson(ApiError.UnauthorizedOrganization(Some("you do not have access to this item"))))
-  }
-
-  /**
    * Returns an Item with all its fields.
    *
    * @param id
@@ -425,12 +405,14 @@ class ItemApi(s3service:S3Service) extends BaseApi {
                     case None => {
                       val version = Version(item.id,0,false)
                       Item.update(MongoDBObject("_id" -> item.id),
-                        MongoDBObject("$set" -> grater[Version].asDBObject(version)),
+                        MongoDBObject("$set" -> MongoDBObject(Item.version -> grater[Version].asDBObject(version))),
                         false,false,Item.defaultWriteConcern)
+                      item.version = Some(version)
                     }
                   }
+                  val currentVersion = Version(item.version.get.root,item.version.get.rev+1,true)
                   Item.update(MongoDBObject("_id" -> clonedItem.id),
-                    MongoDBObject("$set" -> MongoDBObject(Item.version+"."+Version.rev -> (item.version.map(_.rev).getOrElse(0)+1)), "$set" -> MongoDBObject(Item.version+"."+Version.current -> true)),
+                    MongoDBObject("$set" -> MongoDBObject(Item.version -> grater[Version].asDBObject(currentVersion))),
                     false,false,Item.defaultWriteConcern)
                   Ok(Json.toJson(ItemView(clonedItem,None)))
                 } catch {
@@ -446,6 +428,28 @@ class ItemApi(s3service:S3Service) extends BaseApi {
       }
     }else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
   }
+
+
+  /**
+   * returns the most recent revision of the item referred to by id
+   * @param id
+   * @return
+   */
+  def getCurrent(id: ObjectId) = ApiAction { request =>
+    if(Content.isAuthorized(request.ctx.organization,id,Permission.Read)){
+      val searchFields = SearchFields(method = 1)
+      cleanDbFields(searchFields,request.ctx.isLoggedIn)
+      val baseItem = Item.findOne(MongoDBObject("_id" -> id)).get
+      baseItem.version match {
+        case Some(version) => Item.findOne(MongoDBObject(Item.version+"."+Version.root -> version.root, Item.version+"."+Version.current -> true)) match {
+          case Some(currentItem) => Ok(Json.toJson(ItemView(currentItem,None)))
+          case None => InternalServerError(JsObject(Seq("error" -> JsString("there is no version of this item that is visible"))))
+        }
+        case None => Ok(Json.toJson(ItemView(baseItem,None)))
+      }
+    }else Unauthorized(toJson(ApiError.UnauthorizedOrganization(Some("you do not have access to this item"))))
+  }
+
 }
 
 object ItemApi extends api.v1.ItemApi(ConcreteS3Service)

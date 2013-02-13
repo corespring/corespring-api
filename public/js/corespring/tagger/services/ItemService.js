@@ -57,11 +57,11 @@ angular.module('tagger.services')
     //******Item Versioning*************//
     ItemService.prototype.increment = function(params, onSuccess, onError){
         var url = "/api/v1/items/:id/increment".replace(":id",params.id);
-        $http.post(url, {}).success(onSuccess).error(onError)
+        $http.post(url).success(onSuccess).error(onError)
     }
     ItemService.prototype.currentItem = function(params,onSuccess,onError){
         var url = "/api/v1/items/:id/current".replace(":id",params.id);
-        $http.post(url, {}).success(onSuccess).error(onError)
+        $http.get(url).success(onSuccess).error(onError)
     }
     //****************************//
 

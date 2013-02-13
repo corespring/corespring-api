@@ -226,15 +226,21 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         });
     }
 
-    $scope.$watch("dataLoaded",function(){
-        $scope.itemData.currentItem({id:$scope.itemData.id}, function onCurrentItemSuccess(data){
-            //we have the revision number of the current item, now we compute all numbers up to that number to provide a list of all revisions
-            $scope.totalRevisions = new Array();
-            for(var i = 0; i < data.version.rev; i++){
-                $scope.revisions[i] = data.version.rev - i
-            }
-        })
+    $scope.$on("dataLoaded",function(newValue,oldValue){
+        console.log("loading revision data")
+        if(typeof $scope.itemData != "undefined"){
+            console.log("itemData is defined")
+            $scope.itemData.currentItem({id:$scope.itemData.id}, function onCurrentItemSuccess(data){
+                console.log(JSON.stringify(data))
+                //we have the revision number of the current item, now we compute all numbers up to that number to provide a list of all revisions
+                $scope.revisions = new Array();
+                for(var i = 0; i < data.version.rev; i++){
+                    $scope.revisions[i] = data.version.rev - i
+                }
+            })
+        }
     })
+    $scope.loadRevision
     //*****************************//
     $scope.loadItem();
 
