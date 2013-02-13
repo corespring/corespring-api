@@ -94,6 +94,7 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
   $scope.prependHttp = ItemFormattingUtils.prependHttp;
 
   function loadItemById(id) {
+    $scope.noRightToView = false;
     Item.get(
       {
         id: id
@@ -103,6 +104,13 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
         $timeout(function () {
           MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
         }, 200);
+      },
+      function onError(error) {
+        if (error.data) {
+          switch (error.data.code) {
+            case 307: $scope.noRightToView = true;
+          }
+        }
       }
     );
   }
