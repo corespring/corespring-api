@@ -3,8 +3,6 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
 
   $scope.onMessageReceived = function(e){
 
-    console.log("QtiAppController: message received: " + e.data);
-
     var obj = JSON.parse(e.data);
 
     if(obj.message === "update"){
@@ -70,7 +68,6 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
       AssessmentSessionService.save(params, itemSession, function (data) {
           $scope.itemSession = data;
           onSuccess();
-          MessageBridge.sendMessage("parent", {message: "sessionCompleted", itemSession: data});
           //$scope.$broadcast("saveSuccessful")
         },
         function (error) {

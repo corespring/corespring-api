@@ -27,14 +27,7 @@ angular.module('corespring-services', []).factory('MessageBridge', [function () 
      */
     sendMessage: function (id, msg) {
 
-      function getParent(){
-        try{
-          return (parent && parent != window) ? parent : null;
-        }
-        catch(e){
-          console.log("ooh")
-        }
-      }
+      function getParent(){ return (parent && parent != window) ? parent : null; }
       function getIframe(id){
         try{
           return document.getElementById(id).contentWindow;
