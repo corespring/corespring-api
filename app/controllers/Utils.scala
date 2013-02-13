@@ -46,11 +46,11 @@ object Utils {
     }
   }
 
-  def getLevenshteinDistance (s: String, t:String):Int = {
+  def getLevenshteinDistance (s: String, t:String):Double = {
     if (s == null || t == null) throw new IllegalArgumentException("Strings must not be null");
 
-    var n = s.length();
-    var m = t.length();
+    val n = s.length();
+    val m = t.length();
 
     if (n == 0) return m;
 
@@ -79,9 +79,8 @@ object Utils {
     //Determine percentage difference
     val levNum = p(n).asInstanceOf[Double];
     val percent = (levNum/math.max(s.length(),t.length()))*100;
-    val percentDiff = percent.asInstanceOf[Int];
 
-    return percentDiff;
+    return percent;
   }
 }
 case class JsonValidationException(field:String) extends RuntimeException("invalid value for: "+field)

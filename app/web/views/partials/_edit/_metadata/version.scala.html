@@ -1,0 +1,19 @@
+@html = {
+<div class="control-group">
+    <label class="control-label">Item Version:</label>
+
+    <div class="controls">
+        <div class="btn-group" style="padding-top:5px;">
+            <a class="btn-small dropdown-toggle" data-toggle="dropdown" href="#">
+                {{itemData.version.rev}}
+                <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+                <li ng-repeat="revision in revisions">{{revision}}</li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+}
+@_formWithLegend( html, "Version")

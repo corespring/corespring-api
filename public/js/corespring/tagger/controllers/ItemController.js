@@ -214,9 +214,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             alert("Error cloning item: " + error.toString())
         });
     };
-
+    //*******item versioning*********//
     $scope.increment = function(){
-        $scope.itemData.increment({id:$scope.itemData.id}, function onCloneSuccess(data){
+        $scope.showProgressModal = true;
+        $scope.itemData.increment({id:$scope.itemData.id}, function onIncrementSuccess(data){
             $scope.showProgressModal = false;
             $location.path('/edit/' + data.id);
         }, function onError(error) {
@@ -225,6 +226,16 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         });
     }
 
+    $scope.$watch("dataLoaded",function(){
+        $scope.itemData.currentItem({id:$scope.itemData.id}, function onCurrentItemSuccess(data){
+            //we have the revision number of the current item, now we compute all numbers up to that number to provide a list of all revisions
+            $scope.totalRevisions = new Array();
+            for(var i = 0; i < data.version.rev; i++){
+                $scope.revisions[i] = data.version.rev - i
+            }
+        })
+    })
+    //*****************************//
     $scope.loadItem();
 
     $scope.$watch('itemData.pValue', function (newValue, oldValue) {

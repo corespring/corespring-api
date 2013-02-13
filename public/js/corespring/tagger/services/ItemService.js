@@ -54,13 +54,16 @@ angular.module('tagger.services')
             .error(onError);
     };
 
+    //******Item Versioning*************//
     ItemService.prototype.increment = function(params, onSuccess, onError){
         var url = "/api/v1/items/:id/increment".replace(":id",params.id);
-        var successCallback = function(data){
-            onSuccess(data);
-        };
-        $http.post(url, {}).success(successCallback).error(onError)
+        $http.post(url, {}).success(onSuccess).error(onError)
     }
+    ItemService.prototype.currentItem = function(params,onSuccess,onError){
+        var url = "/api/v1/items/:id/current".replace(":id",params.id);
+        $http.post(url, {}).success(onSuccess).error(onError)
+    }
+    //****************************//
 
     ItemService.prototype.update = function (paramsObject, cb, onErrorCallback) {
         var idObject = angular.extend(paramsObject, {id:this.id});

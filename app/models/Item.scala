@@ -41,9 +41,7 @@ case class Item(
                  var taskInfo: Option[TaskInfo] = None,
                  var otherAlignments: Option[Alignments] = None,
                  var id: ObjectId = new ObjectId(),
-                 var version:Option[Version] = None) extends Content{
-  if (version.isEmpty) version = Some(Version(id,0,true))
-}
+                 var version:Option[Version] = None) extends Content
 
 
 /**
@@ -99,7 +97,7 @@ object Item extends ModelCompanion[Item,ObjectId]{
   val workflow = "workflow"
   val dateModified = "dateModified"
   val otherAlignments = "otherAlignments"
-  val version = "version"
+  val version = Content.version
 
   lazy val fieldValues = FieldValue.current
   implicit object ItemWrites extends Writes[Item] {
