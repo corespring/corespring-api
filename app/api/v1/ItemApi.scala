@@ -24,6 +24,7 @@ import play.api.libs.json.JsNumber
 import controllers.InternalError
 import scala.Right
 import play.api.libs.json.JsObject
+import com.mongodb.WriteResult
 
 /**
  * Items API
@@ -392,7 +393,7 @@ class ItemApi(s3service:S3Service) extends BaseApi {
     if(Content.isAuthorized(request.ctx.organization,itemId,Permission.Read)){
       Item.findOneById(itemId) match {
         case Some(item) => {
-          //TODO: allow for rollback of item if storing files fails
+          //TODO: allow for rollback of item if storing files fails or second update fails
           Item.cloneItem(item) match {
             case Some(clonedItem) => {
               cloneStoredFiles(item, clonedItem) match {
@@ -432,9 +433,45 @@ class ItemApi(s3service:S3Service) extends BaseApi {
     if(Content.isAuthorized(request.ctx.organization,itemId,Permission.Read)){
       request.body.asJson match {
         case Some(json) => {
-              Ok
+          if ((json \ Item.id).asOpt[String].isDefined) {
+            BadRequest(toJson(ApiError.IdNotNeeded))
+          } else {
+            try {
+              val item = fromJson[Item](json)
+              //TODO: provide ability for rollbacks if insert fails
+              Item.findOneById(itemId) match {
+                case Some(olditem) => {
+                  olditem.version match {
+                    case Some(ver) => Item.update(MongoDBObject("_id" -> olditem.id),
+                      MongoDBObject("$set" -> MongoDBObject(Item.version+"."+Version.current -> false)),
+                      false,false,Item.defaultWriteConcern)
+                    case None => {
+                      val version = Version(olditem.id,0,false)
+                      Item.update(MongoDBObject("_id" -> olditem.id),
+                        MongoDBObject("$set" -> MongoDBObject(Item.version -> grater[Version].asDBObject(version))),
+                        false,false,Item.defaultWriteConcern)
+                      olditem.version = Some(version)
+                    }
+                  }
+                  item.version = Some(Version(olditem.version.get.root,olditem.version.get.rev+1,true))
+                  val dbolditem = grater[Item].asDBObject(olditem)
+                  val dbitem = grater[Item].asDBObject(item)
+                  val newitem = grater[Item].asObject(dbolditem ++ dbitem)
+                  Item.insert(newitem) match {
+                    case Some(id) => Ok(toJson(newitem))
+                    case None => InternalServerError(JsObject(Seq("error" -> JsString("a database error occurred when attempting to insert the new item revision"))))
+                  }
+                }
+                case None => throw new RuntimeException("item could not be found after it was authorized")
+              }
+            } catch {
+              case e: SalatDAOUpdateError => InternalServerError(JsObject(Seq("error" -> JsString("a database error occurred when attempting to update the revision number of the item"))))
+              case e: JSONParseException => BadRequest(toJson(ApiError.JsonExpected))
+              case e: JsonValidationException => BadRequest(toJson(ApiError.JsonExpected(Some(e.getMessage))))
+            }
+          }
         }
-        case None => cloneAndIncrement(itemId)
+        case None => BadRequest(JsObject(Seq("error" -> JsString("required JSON item in post data. If you wish to clone item and increment, GET"))))
       }
     }else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
   }

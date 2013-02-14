@@ -7,6 +7,7 @@ import com.mongodb.casbah.Imports._
 import controllers._
 import scala.Either
 import mongoContext._
+import com.novus.salat._
 import com.mongodb.util.{JSONParseException, JSON}
 import controllers.InternalError
 import scala.Left
@@ -150,13 +151,6 @@ object Item extends ModelCompanion[Item,ObjectId]{
 
   def updateItem(oid: ObjectId, newItem: Item, fields: Option[DBObject], requesterOrgId: ObjectId): Either[InternalError, Item] = {
     try {
-      import com.novus.salat.grater
-
-      def isAuthorized = ContentCollection.isAuthorized(requesterOrgId, new ObjectId(newItem.collectionId), Permission.Write)
-
-      if (!newItem.collectionId.isEmpty && !isAuthorized) {
-        throw new RuntimeException("collection not authorized: " + newItem.collectionId + ", orgId: " + requesterOrgId)
-      }
 
       val copy = newItem.copy(dateModified = Some(new DateTime()))
 
