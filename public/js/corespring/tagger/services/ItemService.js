@@ -55,9 +55,19 @@ angular.module('tagger.services')
     };
 
     //******Item Versioning*************//
-    ItemService.prototype.increment = function(params, onSuccess, onError){
+    ItemService.prototype.cloneAndIncrement = function(params, onSuccess, onError){
         var url = "/api/v1/items/:id/increment".replace(":id",params.id);
-        $http.post(url).success(onSuccess).error(onError)
+        $http.get(url).success(onSuccess).error(onError)
+    }
+    ItemService.prototype.increment = function(params,onSuccess,onError){
+        var url = "/api/v1/items/:id/increment".replace(":id",params.id)
+
+        var dto = ItemService.processor.createDTO(this);
+        console.log(JSON.stringify(dto))
+        return ItemService.update(idObject, dto, function(resource){
+            ItemService.processor.processIncomingData(resource);
+            cb(resource);
+        }, onErrorCallback);
     }
     ItemService.prototype.currentItem = function(params,onSuccess,onError){
         var url = "/api/v1/items/:id/current".replace(":id",params.id);

@@ -38,18 +38,15 @@
             </ul>
 
             <span class="pull-right">
-
+                <label style="padding-top:5px; padding-right:5px;">V.{{itemVersion}}</label>
                 <button class="btn btn-primary"
                         ng-model="isSaving"
                         loading-button
                         data-loading-text="Saving..."
                         ng-click="save()">Save
                 </button>
-
-                 <button class="btn btn-success"
+                <button class="btn btn-success"
                     ng-click="clone()"><i class="icon-plus-sign"></i>&nbsp;Clone</button>
-                <button class="btn btn-info"
-                    ng-click="increment()"><i class="icon-plus-sign"></i>&nbsp;Increment</button>
                 <i id="togglePreviewButton" class="icon-preview" ng-class="previewClassName"
                                style="cursor: pointer"
                                ng-click="togglePreview()"

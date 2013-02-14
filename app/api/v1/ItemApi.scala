@@ -388,8 +388,7 @@ class ItemApi(s3service:S3Service) extends BaseApi {
       NotImplemented
   }
 
-
-  def increment(itemId: ObjectId) = ApiAction {request =>
+  def cloneAndIncrement(itemId:ObjectId) = ApiAction {request =>
     if(Content.isAuthorized(request.ctx.organization,itemId,Permission.Read)){
       Item.findOneById(itemId) match {
         case Some(item) => {
@@ -429,6 +428,17 @@ class ItemApi(s3service:S3Service) extends BaseApi {
     }else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
+  def increment(itemId: ObjectId) = ApiAction {request =>
+    if(Content.isAuthorized(request.ctx.organization,itemId,Permission.Read)){
+      request.body.asJson match {
+        case Some(json) => {
+              Ok
+        }
+        case None => cloneAndIncrement(itemId)
+      }
+    }else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
+  }
+
 
   /**
    * returns the most recent revision of the item referred to by id
@@ -445,7 +455,10 @@ class ItemApi(s3service:S3Service) extends BaseApi {
           case Some(currentItem) => Ok(Json.toJson(ItemView(currentItem,None)))
           case None => InternalServerError(JsObject(Seq("error" -> JsString("there is no version of this item that is visible"))))
         }
-        case None => Ok(Json.toJson(ItemView(baseItem,None)))
+        case None => {
+          baseItem.version = Some(Version(baseItem.id,0,true))
+          Ok(Json.toJson(ItemView(baseItem,None)))
+        }
       }
     }else Unauthorized(toJson(ApiError.UnauthorizedOrganization(Some("you do not have access to this item"))))
   }

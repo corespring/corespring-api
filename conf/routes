@@ -84,6 +84,7 @@ PUT     /api/v1/items/:id                       api.v1.ItemApi.update(id: Object
 POST    /api/v1/items/:id                       api.v1.ItemApi.cloneItem(id:ObjectId)
 GET     /api/v1/collections/:collId/items       api.v1.ItemApi.getItemsInCollection(collId: ObjectId)
 POST    /api/v1/items/:itemId/increment         api.v1.ItemApi.increment(itemId:ObjectId)
+GET     /api/v1/items/:itemId/increment         api.v1.ItemApi.cloneAndIncrement(itemId:ObjectId)
 GET     /api/v1/items/:itemId/current           api.v1.ItemApi.getCurrent(itemId:ObjectId)
 
 # Exporter api

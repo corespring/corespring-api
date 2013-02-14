@@ -225,22 +225,18 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             alert("Error incrementing item: " + error.toString())
         });
     }
-
+    $scope.itemVersion = 1
     $scope.$on("dataLoaded",function(newValue,oldValue){
-        console.log("loading revision data")
-        if(typeof $scope.itemData != "undefined"){
-            console.log("itemData is defined")
-            $scope.itemData.currentItem({id:$scope.itemData.id}, function onCurrentItemSuccess(data){
-                console.log(JSON.stringify(data))
-                //we have the revision number of the current item, now we compute all numbers up to that number to provide a list of all revisions
-                $scope.revisions = new Array();
-                for(var i = 0; i < data.version.rev; i++){
-                    $scope.revisions[i] = data.version.rev - i
-                }
-            })
-        }
+        if(typeof $scope.itemData.version != "undefined") $scope.itemVersion = $scope.itemData.version.rev
+        //get the most current item version given the root id of this item
+//        $scope.itemData.currentItem({id:$scope.itemData.id}, function onCurrentItemSuccess(data){
+//            //we have the revision number of the current item, now we compute all numbers up to that number to provide a list of all revisions
+//            $scope.revisions = new Array();
+//            for(var i = 0; i < data.version.rev; i++){
+//                $scope.revisions[i] = data.version.rev - i
+//            }
+//        })
     })
-    $scope.loadRevision
     //*****************************//
     $scope.loadItem();
 
