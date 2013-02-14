@@ -8,10 +8,13 @@ import controllers.{Utils, ConcreteS3Service, S3Service}
 import com.typesafe.config.ConfigFactory
 import play.api.libs.json.Json._
 import api.ApiError
-import play.api.libs.json.{JsString, JsObject, JsValue, Json}
+import play.api.libs.json._
 import scala.Some
 import com.mongodb.casbah.commons.MongoDBObject
 import play.Logger
+import play.api.libs.json.JsString
+import scala.Some
+import play.api.libs.json.JsObject
 
 class ResourceApi(s3service:S3Service) extends BaseApi {
 
@@ -229,8 +232,9 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
                       Item.save(item)
                       Ok(toJson(processedUpdate))
                     }else{
-                      Forbidden(toJson(JsObject(Seq("warning" ->
-                        JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it")
+                      Forbidden(toJson(JsObject(Seq("message" ->
+                        JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
+                        "flags" -> JsArray(Seq(JsString("alert_increment")))
                       ))))
                     }
                   }else BadRequest

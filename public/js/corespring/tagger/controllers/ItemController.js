@@ -305,7 +305,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
                 $rootScope.itemData = data;
             },
             function onError() {
-                console.log("Error saving item");
                 $scope.isSaving = false;
                 $scope.suppressSave = false;
             });

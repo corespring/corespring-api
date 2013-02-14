@@ -459,19 +459,19 @@ class ItemApi(s3service:S3Service) extends BaseApi {
                   val newitem = grater[Item].asObject(dbolditem ++ dbitem)
                   Item.insert(newitem) match {
                     case Some(id) => Ok(toJson(newitem))
-                    case None => InternalServerError(JsObject(Seq("error" -> JsString("a database error occurred when attempting to insert the new item revision"))))
+                    case None => InternalServerError(JsObject(Seq("message" -> JsString("a database error occurred when attempting to insert the new item revision"))))
                   }
                 }
                 case None => throw new RuntimeException("item could not be found after it was authorized")
               }
             } catch {
-              case e: SalatDAOUpdateError => InternalServerError(JsObject(Seq("error" -> JsString("a database error occurred when attempting to update the revision number of the item"))))
+              case e: SalatDAOUpdateError => InternalServerError(JsObject(Seq("message" -> JsString("a database error occurred when attempting to update the revision number of the item"))))
               case e: JSONParseException => BadRequest(toJson(ApiError.JsonExpected))
               case e: JsonValidationException => BadRequest(toJson(ApiError.JsonExpected(Some(e.getMessage))))
             }
           }
         }
-        case None => BadRequest(JsObject(Seq("error" -> JsString("required JSON item in post data. If you wish to clone item and increment, GET"))))
+        case None => BadRequest(JsObject(Seq("message" -> JsString("required JSON item in post data. If you wish to clone item and increment, GET"))))
       }
     }else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
   }
@@ -490,7 +490,7 @@ class ItemApi(s3service:S3Service) extends BaseApi {
       baseItem.version match {
         case Some(version) => Item.findOne(MongoDBObject(Item.version+"."+Version.root -> version.root, Item.version+"."+Version.current -> true)) match {
           case Some(currentItem) => Ok(Json.toJson(ItemView(currentItem,None)))
-          case None => InternalServerError(JsObject(Seq("error" -> JsString("there is no version of this item that is visible"))))
+          case None => InternalServerError(JsObject(Seq("message" -> JsString("there is no version of this item that is visible"))))
         }
         case None => {
           baseItem.version = Some(Version(baseItem.id,0,true))

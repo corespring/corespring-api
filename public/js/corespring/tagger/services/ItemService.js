@@ -67,7 +67,7 @@ angular.module('tagger.services')
         return ItemService.update(idObject, dto, function(resource){
             ItemService.processor.processIncomingData(resource);
             cb(resource);
-        }, onErrorCallback);
+        }, onError);
     }
     ItemService.prototype.currentItem = function(params,onSuccess,onError){
         var url = "/api/v1/items/:id/current".replace(":id",params.id);
