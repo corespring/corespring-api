@@ -11,6 +11,7 @@ import testplayer.models.ExceptionMessage
 import scala.Some
 import play.api._
 import templates.Html
+import qti.models.RenderingMode._
 
 
 object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
@@ -36,20 +37,27 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
     callRenderBySessionId(
       _renderItem(_, _, previewEnabled = false, sessionSettings = "", sessionId = sessionId),
       sessionId,
-      printMode)
+      if (printMode) Printing else Web)
   }
 
   def previewItemBySessionId(sessionId: String, printMode: Boolean = false) = {
     callRenderBySessionId(
       _renderItem(_, _, previewEnabled = true, sessionSettings = "", sessionId = sessionId),
       sessionId,
-      printMode)
+      if (printMode) Printing else Web)
   }
 
-  private def callRenderBySessionId(renderFn: (String, Boolean) => Action[AnyContent], id: String, printMode: Boolean) = {
+  def instructorPreviewBySessionId(sessionId: String) = {
+    callRenderBySessionId(
+      _renderItem(_, _, previewEnabled = false, sessionSettings = "", sessionId = sessionId),
+      sessionId,
+      Instructor)
+  }
+
+  private def callRenderBySessionId(renderFn: (String, RenderingMode) => Action[AnyContent], id: String, renderMode: RenderingMode) = {
     ItemSession.findOneById(new ObjectId(id)) match {
       case Some(session) => {
-        renderFn(session.itemId.toString, printMode)
+        renderFn(session.itemId.toString, renderMode)
       }
       case _ => throw new RuntimeException("Can't find item session: " + id)
     }
@@ -64,10 +72,10 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
   }
 
   def previewItem(itemId: String, printMode: Boolean = false, sessionSettings: String = "") =
-    _renderItem(itemId, printMode, previewEnabled = !printMode, sessionSettings = sessionSettings)
+    _renderItem(itemId, if (printMode) Printing else Web, previewEnabled = !printMode, sessionSettings = sessionSettings)
 
   def renderItem(itemId: String, printMode: Boolean = false, sessionSettings: String = "") =
-    _renderItem(itemId, printMode = printMode, sessionSettings = sessionSettings)
+    _renderItem(itemId, if (printMode) Printing else Web, sessionSettings = sessionSettings)
 
   def renderAsIframe(itemId: String) = {
     _renderItem(itemId, template = PlayerTemplates.iframed)
@@ -85,7 +93,7 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
 
 
   private def _renderItem(itemId: String,
-                          printMode: Boolean = false,
+                          renderMode: RenderingMode = Web,
                           previewEnabled: Boolean = false,
                           sessionSettings: String = "",
                           sessionId: String = "",
@@ -95,7 +103,7 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
         getItemXMLByObjectId(itemId, request.ctx.organization) match {
           case Some(xmlData: Elem) =>
 
-            val finalXml = prepareQti(xmlData, printMode)
+            val finalXml = prepareQti(xmlData, renderMode)
 
             if (Play.isDev(play.api.Play.current) && request.token == null) {
               println("Mock Token Session")

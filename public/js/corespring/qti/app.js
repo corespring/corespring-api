@@ -20,7 +20,7 @@ qtiDirectives.directive('assessmentitem', function ($rootScope) {
             var allowEmptyResponses = true;
             var noResponseMessage = 'Please complete your work before you submit it.';
 
-            $scope.printMode = ( $attrs['printMode'] == "true" || false );
+            $scope.printMode = ( $attrs['mode'] == "Printing" || false );
             $scope.finalSubmit = false;
 
             $scope.$on('reset', function (event) {

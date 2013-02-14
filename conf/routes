@@ -130,6 +130,8 @@ GET    /scorm-player/item/:itemId/:filename         scorm.controllers.ScormPlaye
 GET    /scorm-player/session/:sessionId/run         scorm.controllers.ScormPlayer.runBySessionId(sessionId : ObjectId)
 GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : ObjectId, filename)
 
+# Instructor View Routes
+GET    /instructor/:sessionId/run           testplayer.controllers.ItemPlayer.instructorPreviewBySessionId(sessionId)
 
 # Web tier
 GET    /web                                    web.controllers.Main.index
