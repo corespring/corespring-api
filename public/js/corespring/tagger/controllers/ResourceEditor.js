@@ -222,11 +222,10 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
                 $scope.showFile(file);
                 $scope.saveSelectedFileFinished();
             }).error(function (data, status, headers, config) {
-                if(typeof data.flags != "undefined"){
-                    data
+                if(typeof data.flags != "undefined" && _.contains(data.flags,"alert_increment")){
+                    $scope.showSaveWarning = true;
                 }
                 $scope.saveSelectedFileFinished();
-                throw "Error updating file";
             });
 
     };

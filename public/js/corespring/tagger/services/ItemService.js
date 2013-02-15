@@ -63,11 +63,10 @@ angular.module('tagger.services')
         var url = "/api/v1/items/:id/increment".replace(":id",params.id)
 
         var dto = ItemService.processor.createDTO(this);
-        console.log(JSON.stringify(dto))
-        return ItemService.update(idObject, dto, function(resource){
+        $http.post(url,dto).success(function(resource){
             ItemService.processor.processIncomingData(resource);
-            cb(resource);
-        }, onError);
+            onSuccess(resource);
+        }).error(onError)
     }
     ItemService.prototype.currentItem = function(params,onSuccess,onError){
         var url = "/api/v1/items/:id/current".replace(":id",params.id);

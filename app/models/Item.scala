@@ -178,7 +178,7 @@ object Item extends ModelCompanion[Item,ObjectId]{
   }
 
   def cloneItem(item: Item): Option[Item] = {
-    val copy = item.copy(id = new ObjectId())
+    val copy = item.copy(id = new ObjectId(),version=None)
     Item.save(copy)
     Some(copy)
   }

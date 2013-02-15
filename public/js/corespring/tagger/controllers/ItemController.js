@@ -206,6 +206,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
     $scope.clone = function(){
         $scope.showProgressModal = true;
+        $scope.showSaveWarning = false;
         $scope.itemData.clone({id:$scope.itemData.id}, function onCloneSuccess(data){
             $scope.showProgressModal = false;
             $location.path('/edit/' + data.id);
@@ -216,6 +217,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     };
     //*******item versioning*********//
     $scope.increment = function(){
+        $scope.showSaveWarning = false;
         $scope.showProgressModal = true;
         $scope.itemData.increment({id:$scope.itemData.id}, function onIncrementSuccess(data){
             $scope.showProgressModal = false;
@@ -225,9 +227,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             alert("Error incrementing item: " + error.toString())
         });
     }
+    $scope.showSaveWarning=false
     $scope.itemVersion = 1
     $scope.$on("dataLoaded",function(newValue,oldValue){
-        if(typeof $scope.itemData.version != "undefined") $scope.itemVersion = $scope.itemData.version.rev
+        if(typeof $scope.itemData.version != "undefined") $scope.itemVersion = $scope.itemData.version.rev+1
         //get the most current item version given the root id of this item
 //        $scope.itemData.currentItem({id:$scope.itemData.id}, function onCurrentItemSuccess(data){
 //            //we have the revision number of the current item, now we compute all numbers up to that number to provide a list of all revisions
