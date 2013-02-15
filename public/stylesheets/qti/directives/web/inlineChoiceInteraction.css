@@ -1,60 +1,116 @@
 /** -- **/
 
 inlinechoiceinteraction.received-response .btn {
-    border: solid 2px #4055f8;
+	border: solid 2px #4055f8;
 }
-
 inlinechoiceinteraction.correct-response .btn {
-    border: solid 2px #53C516;
+	border: solid 2px #53C516;
 }
-
 inlinechoiceinteraction.incorrect-response .btn {
-    border: solid 2px #F8A31A;
+	border: solid 2px #F8A31A;
 }
-
-p inlinechoiceinteraction{
-    position:relative;
-    top:3px;
+p inlinechoiceinteraction {
+	position:relative;
+	top:3px;
 }
-
 inlinechoiceinteraction.incorrect-response, inlinechoiceinteraction.correct-response, inlinechoiceinteraction.received-response {
-    display: inline;
+	display: inline;
 }
-
 inlinechoiceinteraction.correct-response > .feedback-float.show, inlinechoiceinteraction.incorrect-response > .feedback-float.show {
-    width: 26px;
-    height: 22px;
-    line-height: 30px;
-    position: relative;
-    top: 2px;
-    display: inline-block;
-    cursor: pointer;
+	width: 26px;
+	height: 22px;
+	line-height: 30px;
+	position: relative;
+	top: 2px;
+	display: inline-block;
+	cursor: pointer;
 }
-
 inlinechoiceinteraction.received-response > .feedback-float.show {
-    position: relative;
-    top: 0px;
-    display: inline-block;
+	position: relative;
+	top: 0px;
+	display: inline-block;
 }
-
 inlinechoiceinteraction.correct-response > .feedback-float.show {
-    margin-top: 19px;
-    background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
+	margin-top: 19px;
+	background:url(/assets/images/correct-icon.png) no-repeat 0 50%;
 }
-
 inlinechoiceinteraction.incorrect-response > .feedback-float.show {
-    margin-top: 19px;
-    background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
+	margin-top: 19px;
+	background:url(/assets/images/wrong-icon.png) no-repeat 0 50%;
 }
-
 .btn.dropdown-toggle {
-    margin: 0px;
-    padding: 2px;
-    width: auto;
-    min-width: 100px;
+	margin: 0px;
+	padding: 2px;
+	width: auto;
+	min-width: 100px;
 }
-
 .dropdown-menu li {
-    list-style: none;
+	list-style: none;
+}
+/*Changes for new inline to accomodate MathML - jmazza */
+.btn-group {
+	position: relative;
+	font-size: 0;
+	white-space: nowrap;
+	top: -3px;
+	margin: 0 2px 0 2px;
+}
+span .inlinechoiceinteraction {
+	position:relative;
+	top:3px;
+}
+inlinechoiceinteraction div.btn-group ul.dropdown-menu {
+	position: absolute;
+	top: -2px;
+	left: 0;
+	width:auto;
+}
+inlinechoiceinteraction div.btn-group ul.dropdown-menu li a {
+	clear: both;
+	color: #333333;
+	display: block;
+	font-weight: normal;
+	line-height: 20px;
+	padding: 3px 10px;
 }
 
+/*This line effects the font surrounding the inline elements. It is in place for testing since the actual structure does not support it yet. */
+inlinechoiceinteraction span.prompt {
+	font: 14px/20px "Ubuntu", Arial, Helvetica, sans-serif !important;
+} 
+
+.btngroup-select {
+ display: inline-block;
+ width: 25px;
+ height: 18px;
+ padding: 0px;
+ margin-top: 0px;
+ margin-right: .3em;
+  vertical-align: text-top;
+  background-image: url("http://bytebureau.com/images/select.png"); 
+ background-position: 6px -3px;
+  background-repeat: no-repeat;
+}
+
+
+inlinechoiceinteraction.ng-scope div.btn-group a.btn.dropdown-toggle span{
+padding-right: 28px !important;
+padding-left: 4px !important;
+}
+
+
+.dropdown-menu li > a:hover,
+.dropdown-menu li > a:focus,
+.dropdown-submenu:hover > a {
+  color: #ffffff !important;
+  text-decoration: none;
+  background-color: #666;
+  background-color: #666;
+  background-image: -moz-linear-gradient(top, #666, #888);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#666), to(#888));
+  background-image: -webkit-linear-gradient(top, #666, #888);
+  background-image: -o-linear-gradient(top, #666, #888);
+  background-image: linear-gradient(to bottom, #666, #888;
+  background-repeat: repeat-x;
+  filter: progid:dximagetransform.microsoft.gradient(startColorstr='#666', endColorstr='#888', GradientType=0);
+}
