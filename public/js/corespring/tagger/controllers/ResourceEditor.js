@@ -223,9 +223,9 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
                 $scope.saveSelectedFileFinished();
             }).error(function (data, status, headers, config) {
                 if(typeof data.flags != "undefined" && _.contains(data.flags,"alert_increment")){
-                    $scope.showSaveWarning = true;
-                }
-                $scope.saveSelectedFileFinished();
+                    $scope.saveSelectedFileFinished(true);
+                } else $scope.saveSelectedFileFinished();
+
             });
 
     };

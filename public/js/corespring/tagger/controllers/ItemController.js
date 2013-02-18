@@ -279,9 +279,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         }
     };
 
-    $scope.saveSelectedFileFinished = function() {
+    $scope.saveSelectedFileFinished = function(error) {
         $scope.isSaving = false;
         $scope.suppressSave = false;
+        if(error) $scope.showSaveWarning = true;
     };
 
     $scope.save = function () {
