@@ -13,8 +13,8 @@ import securesocial.core.SecureSocial
 object Main extends Controller with SecureSocial {
 
 
-  def previewItem(itemId:String) = Action{ request =>
-    Ok(web.views.html.itemPreview(itemId, common.mock.MockToken))
+  def previewItem(itemId:String) = SecuredAction() { request =>
+    Ok(web.views.html.itemPreview(itemId))
   }
 
 

@@ -1,4 +1,4 @@
-@(itemId:String, accessToken : String )
+@(itemId:String, accessToken : String = null )
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 <html ng-app="item-preview">
@@ -36,7 +36,7 @@
 </head>
 <body ng-controller="PreviewController">
 
-<div class="sub-nav">
+<div class="sub-nav" style="z-index: 10">
     <div class="container" style="width: 600px;">
         <div class="row">
             <ul class="nav nav-tabs">
@@ -45,7 +45,7 @@
                     <a ng-click="changePanel('profile')">Profile</a>
                 </li>
 
-                <li ng-class="{true:'active', false:''}[currentPanel=='item']">
+                <li ng-class="{true:'active', false:''}[currentPanel=='item']" ng-show="itemData">
                     <a ng-click="changePanel('item')">Preview</a>
                 </li>
 
@@ -55,9 +55,9 @@
                 </li>
 
 
-                <li class="prev-print">
+                <li class="prev-print" ng-show="itemData">
                     <a class="prev-print" ng-click="printCurrent()" >
-                        <img src="/assets/images/print.png" alt="Print"/></a>
+                        <img src="/assets/images/print.png" alt="Print"/>
                     </a>
                 </li>
 
@@ -85,9 +85,13 @@
     </div>
 
     <div id='profileView' ng-show="currentPanel=='profile'" class="item-preview-container">
-        <div class="container" style="width: 600px; margin-bottom: 50px;" >
+        <div class="container" style="width: 600px; margin-bottom: 50px;" ng-show="itemData">
             @web.views.html.partials._viewItem.corespringData()
             @web.views.html.partials._viewItem.history()
+        </div>
+        <div class="container" style="width: 600px; margin-bottom: 50px;" ng-show="noRightToView">
+            <br/>
+            You have insufficient privilege to view this item
         </div>
     </div>
 

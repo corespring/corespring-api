@@ -150,7 +150,6 @@ object Global extends GlobalSettings {
   private def seedDevData() {
     emptyData()
     seedData("conf/seed-data/common")
-    seedData("conf/seed-data/common_two")
     seedData("conf/seed-data/dev")
     seedData("conf/seed-data/exemplar-content")
   }

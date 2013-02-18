@@ -5,9 +5,8 @@ function removeCollection(name){
   if(collection){
     var itemQuery = {collectionId: collection._id.toString()}
     print( "no of items for " + name + ": " + db.content.count(itemQuery));
-    //db.content.remove(itemQuery);
-    //db.contentcolls.remove({name: name});
-
+    db.content.remove(itemQuery);
+    db.contentcolls.remove({name: name});
   }
 }
 
@@ -37,5 +36,5 @@ var testCollection = db.contentcolls.findOne({name: "Test Items"});
 
 moveItemsToAnotherCollection(testTitle, testCollection._id.toString());
 
-renameCollection("Rosemary's Discard Pile", "Discard")
-renameCollection("Beta Items", "Beta Items (Public)")
+renameCollection("Rosemary's Discard Pile", "Discard");
+renameCollection("Beta Items", "Beta Items (Public)");
