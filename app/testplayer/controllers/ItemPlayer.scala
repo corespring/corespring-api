@@ -28,7 +28,8 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
         Routes.javascriptRouter("TestPlayerRoutes")(
           ItemSessionApi.update,
           ItemSessionApi.get,
-          ItemSessionApi.create
+          ItemSessionApi.create,
+          ItemSessionApi.aggregate
         )
       ).as("text/javascript")
   }
@@ -45,13 +46,6 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
       _renderItem(_, _, previewEnabled = true, sessionSettings = "", sessionId = sessionId),
       sessionId,
       if (printMode) Printing else Web)
-  }
-
-  def instructorPreviewBySessionId(sessionId: String) = {
-    callRenderBySessionId(
-      _renderItem(_, _, previewEnabled = false, sessionSettings = "", sessionId = sessionId),
-      sessionId,
-      Instructor)
   }
 
   private def callRenderBySessionId(renderFn: (String, RenderingMode) => Action[AnyContent], id: String, renderMode: RenderingMode) = {
@@ -81,6 +75,14 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
     _renderItem(itemId, template = PlayerTemplates.iframed)
   }
 
+  def renderAsInstructor(sessionId: String) = {
+    callRenderBySessionId(
+      _renderItem(_, _, previewEnabled = false, sessionSettings = "", sessionId = sessionId, template = PlayerTemplates.instructor),
+      sessionId,
+      renderMode = Instructor
+      )
+  }
+
   private object PlayerTemplates {
     def default(params: TemplateParams): play.api.templates.Html = {
       testplayer.views.html.itemPlayer(params._1, params._2, params._3, params._4, params._5)
@@ -89,6 +91,12 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
     def iframed(params: TemplateParams): play.api.templates.Html = {
       testplayer.views.html.iframedPlayer(params._1, params._2, params._3, params._4, params._5)
     }
+
+    def instructor(params: TemplateParams): play.api.templates.Html = {
+      testplayer.views.html.itemPlayer(params._1, params._2, params._3, params._4, params._5)
+    }
+
+
   }
 
 

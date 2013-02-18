@@ -131,7 +131,8 @@ GET    /scorm-player/session/:sessionId/run         scorm.controllers.ScormPlaye
 GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : ObjectId, filename)
 
 # Instructor View Routes
-GET    /instructor/:sessionId/run           testplayer.controllers.ItemPlayer.instructorPreviewBySessionId(sessionId)
+GET    /testplayer/instructor/:itemId                 testplayer.controllers.ItemPlayer.renderAsInstructor(itemId)
+POST   /api/v1/aggregate                              api.v1.ItemSessionApi.aggregate
 
 # Web tier
 GET    /web                                    web.controllers.Main.index
