@@ -11,13 +11,45 @@
         </correctResponse>
     </responseDeclaration>
 
+    <responseDeclaration identifier="manOnMoon2" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>armstrong</value>
+        </correctResponse>
+    </responseDeclaration>
+
     <itemBody>
         The first man on the moon was <inlineChoiceInteraction
             responseIdentifier="manOnMoon"
             required="false">
             <inlineChoice identifier="armstrong">Neil Armstrong<feedbackInline identifier="armstrong" defaultFeedback="true"/></inlineChoice>
             <inlineChoice identifier="aldrin">Buzz Aldrin<feedbackInline identifier="aldrin" defaultFeedback="true"/></inlineChoice>
+            <inlineChoice identifier="mathml">
+
+                <math xmlns="http://www.w3.org/1998/Math/MathML">
+                    <semantics>
+                        <mrow>
+                            <mn>2</mn>
+                            <mfrac>
+                                <mrow>
+                                    <mn>1</mn>
+                                </mrow>
+                                <mrow>
+                                    <mn>3</mn>
+                                </mrow>
+                            </mfrac>
+                        </mrow>
+                    </semantics>
+                </math>
+
+                <feedbackInline identifier="mathml" defaultFeedback="true"/>
+            </inlineChoice>
         </inlineChoiceInteraction>, he landed there in 1969.
+        The second was <inlineChoiceInteraction
+            responseIdentifier="manOnMoon2"
+            required="false">
+        <inlineChoice identifier="armstrong2">Neil Armstrong<feedbackInline identifier="armstrong2" defaultFeedback="true"/></inlineChoice>
+        <inlineChoice identifier="aldrin2">Buzz Aldrin<feedbackInline identifier="aldrin2" defaultFeedback="true"/></inlineChoice>
+    </inlineChoiceInteraction>
     </itemBody>
 
 </assessmentItem>
