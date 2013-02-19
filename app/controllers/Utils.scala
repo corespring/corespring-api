@@ -46,8 +46,15 @@ object Utils {
     }
   }
 
-  def getLevenshteinDistance (s: String, t:String):Double = {
-    if (s == null || t == null) throw new IllegalArgumentException("Strings must not be null");
+
+  private def removeWhitespace(s: String):String = {
+    s.replaceAll("\\s","").replaceAll("\"","'")
+  }
+  def getLevenshteinDistance (ws: String, wt:String):Double = {
+    if (ws == null || wt == null) throw new IllegalArgumentException("Strings must not be null");
+
+    val s = removeWhitespace(ws)
+    val t = removeWhitespace(wt)
 
     val n = s.length();
     val m = t.length();
