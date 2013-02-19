@@ -7,6 +7,7 @@ object ApplicationBuild extends Build {
   val appName = "corespring-api"
   val appVersion = "1.0-SNAPSHOT"
 
+
   val appDependencies = Seq(
     "se.radley" %% "play-plugins-salat" % "1.1",
     "com.typesafe" %% "play-plugins-util" % "2.0.3",
