@@ -14,8 +14,19 @@ object ApplicationBuild extends Build {
     "org.mindrot" % "jbcrypt" % "0.3m",
     "securesocial" % "securesocial_2.9.1" % "2.0.8",
     "com.github.mumoshu" %% "play2-memcached" % "0.2.3-SNAPSHOT",
-    "org.mockito" % "mockito-all" % "1.9.5"
-    //"securesocial" % "securesocial_2.9.1" % "master"
+    "org.mockito" % "mockito-all" % "1.9.5",
+
+    //Assets Loader - need to add the google js compiler too - its part of the play framework but only at build time.
+    "assets-loader" %% "assets-loader" % "0.4-SNAPSHOT",
+    ("com.google.javascript"            %    "closure-compiler"         %   "rr2079.1" notTransitive())
+      .exclude("args4j", "args4j")
+      .exclude("com.google.guava", "guava")
+      .exclude("org.json", "json")
+      .exclude("com.google.protobuf", "protobuf-java")
+      .exclude("org.apache.ant", "ant")
+      .exclude("com.google.code.findbugs", "jsr305")
+      .exclude("com.googlecode.jarjar", "jarjar")
+      .exclude("junit", "junit")
   )
 
   val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
