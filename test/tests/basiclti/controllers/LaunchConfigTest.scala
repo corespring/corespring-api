@@ -16,7 +16,7 @@ import models.auth.{ApiClient, AccessToken}
 class LaunchConfigTest extends BaseTest {
 
   val Routes = basiclti.controllers.routes.LaunchConfig
-  val MockOrgId : ObjectId = new ObjectId( "502404dd0364dc35bb393397" )
+  val MockOrgId : ObjectId = new ObjectId( "51114b307fc1eaa866444648" )
 
   private def getOrg : Organization = Organization.findOneById(MockOrgId).get
 

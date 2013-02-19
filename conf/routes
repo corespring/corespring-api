@@ -44,26 +44,26 @@ GET    /example-content/items                  publicsite.controllers.ExampleCon
 #
 
 # Organizations
-GET     /api/v1/organizations                   api.v1.OrganizationApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100)
-GET     /api/v1/organizations/children          api.v1.OrganizationApi.getChildren(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100)
+GET     /api/v1/organizations                   api.v1.OrganizationApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
+GET     /api/v1/organizations/children          api.v1.OrganizationApi.getChildren(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
 GET     /api/v1/organizations/default           api.v1.OrganizationApi.getDefaultOrganization
 GET     /api/v1/organizations/:id               api.v1.OrganizationApi.getOrganization(id: ObjectId)
 PUT     /api/v1/organizations/:id               api.v1.OrganizationApi.updateOrganization(id: ObjectId)
 DELETE  /api/v1/organizations/:id               api.v1.OrganizationApi.deleteOrganization(id: ObjectId)
-GET     /api/v1/organizations/:id/tree          api.v1.OrganizationApi.listWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100)
-GET     /api/v1/organizations/:id/children      api.v1.OrganizationApi.getChildrenWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100)
+GET     /api/v1/organizations/:id/tree          api.v1.OrganizationApi.listWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
+GET     /api/v1/organizations/:id/children      api.v1.OrganizationApi.getChildrenWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
 
 
 # Collections
-GET     /api/v1/collections                     api.v1.CollectionApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
+GET     /api/v1/collections                     api.v1.CollectionApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/collections/:id                 api.v1.CollectionApi.getCollection(id: ObjectId)
-GET     /api/v1/organizations/:orgId/collections    api.v1.CollectionApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
+GET     /api/v1/organizations/:orgId/collections    api.v1.CollectionApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 POST    /api/v1/collections                     api.v1.CollectionApi.createCollection
 PUT     /api/v1/collections/:id                 api.v1.CollectionApi.updateCollection(id: ObjectId)
 DELETE  /api/v1/collections/:id                 api.v1.CollectionApi.deleteCollection(id: ObjectId)
 
 # Users
-GET     /api/v1/users                           api.v1.UserApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
+GET     /api/v1/users                           api.v1.UserApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/users/:id                       api.v1.UserApi.getUser(id: ObjectId)
 POST    /api/v1/users                           api.v1.UserApi.createUser
 PUT     /api/v1/users/:id                       api.v1.UserApi.updateUser(id: ObjectId)
@@ -71,10 +71,11 @@ DELETE  /api/v1/users/:id                       api.v1.UserApi.deleteUser(id: Ob
 GET     /api/v1/organizations/:orgId/users             api.v1.UserApi.getUsersByOrg(orgId: ObjectId)
 
 # Items API
-GET     /api/v1/items                           api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
-GET     /api/v1/organizations/:orgId/items      api.v1.ItemApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
+GET     /api/v1/items                           api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /api/v1/organizations/:orgId/items      api.v1.ItemApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /api/v1/contributors                    api.v1.ContributorApi.getContributorsList()
 GET     /api/v1/items/:id                       api.v1.ItemApi.get(id: ObjectId)
-GET     /api/v1/collections/:collId/items       api.v1.ItemApi.listWithColl(collId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
+GET     /api/v1/collections/:collId/items       api.v1.ItemApi.listWithColl(collId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 DELETE  /api/v1/items/:id                       api.v1.ItemApi.delete(id: ObjectId)
 GET     /api/v1/items/:id/detail                api.v1.ItemApi.getDetail(id: ObjectId)
 GET     /api/v1/items/:id/data                  api.v1.ItemApi.getData(id: ObjectId)
@@ -82,7 +83,6 @@ POST    /api/v1/items                           api.v1.ItemApi.create
 PUT     /api/v1/items/:id                       api.v1.ItemApi.update(id: ObjectId)
 POST    /api/v1/items/:id                       api.v1.ItemApi.cloneItem(id:ObjectId)
 GET     /api/v1/collections/:collId/items       api.v1.ItemApi.getItemsInCollection(collId: ObjectId)
-GET     /api/v1/items/:itemId/assets/:fileName  api.v1.FilesApi.getFile(itemId:String,fileName:String)
 
 # Exporter api
 GET     /api/v1/items/multiple/scorm-2004.zip       api.v1.ExporterApi.multiItemScorm2004(ids:String)
@@ -116,6 +116,7 @@ GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessio
 PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId: ObjectId, sessionId: ObjectId, action : Option[String] ?= None)
 
 # Item Rendering
+GET    /testplayer/item/:itemId/render-in-frame     testplayer.controllers.ItemPlayer.renderAsIframe(itemId)
 GET    /testplayer/item/:itemId/render              testplayer.controllers.ItemPlayer.renderItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
 GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
 GET    /testplayer/item/:itemId/:filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
@@ -132,6 +133,7 @@ GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlaye
 
 # Web tier
 GET    /web                                    web.controllers.Main.index
+
 # Item Preview
 GET     /web/item-preview/:itemId              web.controllers.Main.previewItem(itemId:String)
 GET     /web/item-preview                      web.controllers.Main.previewAnyItem
@@ -171,6 +173,7 @@ GET     /lti/assignment/:configId/:resultSourcedId/:filename basiclti.controller
 GET     /lti/chooser/partials/main              basiclti.controllers.Partials.main
 GET     /lti/chooser/partials/browse            basiclti.controllers.Partials.browse
 GET     /lti/chooser/partials/view              basiclti.controllers.Partials.view
+
 # Reporting
 GET    /reports                                     reporting.controllers.Reports.index
 GET    /reports/:collection/:queryType.csv          reporting.controllers.Reports.getCsv(collection,queryType)
@@ -203,3 +206,9 @@ POST    /password                   securesocial.controllers.PasswordChange.hand
 # Providers entry points
 GET     /authenticate/:provider     securesocial.controllers.ProviderController.authenticate(provider)
 POST    /authenticate/:provider     securesocial.controllers.ProviderController.authenticateByPost(provider)
+
+#system check
+GET     /system/check               controllers.SystemCheck.index()
+
+GET     /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearchPage()
+POST    /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearch()

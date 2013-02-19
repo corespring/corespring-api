@@ -24,7 +24,7 @@
             <td width="150px" class="key-label" style="text-align: right">License:
                 <span class="key-value">
                     <span ng-show='@("!" + name +".licenseType")' style="color: #888; font-style: italic;">Not Assigned</span>
-                    <img ng-show='@(name + ".licenseType")' ng-src='@("/assets/images/licenseTypes/{{" + name + ".licenseType}}.png")'/>
+                    <img ng-show='@(name + ".licenseType")' ng-src="{{getLicenseTypeUrl(@(name+".licenseType"))}}"/>
                  </span>
             </td>
         </tr>

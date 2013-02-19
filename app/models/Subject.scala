@@ -9,13 +9,13 @@ import com.novus.salat.dao.{SalatDAO, ModelCompanion}
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import mongoContext._
-import controllers.QueryParser
+import search.Searchable
 
 case class Subject(var subject: Option[String] = None,
                    var category: Option[String] = None,
-                   var id: ObjectId = new ObjectId()) extends Identifiable
+                   var id: ObjectId = new ObjectId())
 
-object Subject extends DBQueryable[Subject] {
+object Subject extends ModelCompanion[Subject,ObjectId] with Searchable{
 
   val collection = mongoCollection("subjects")
   val dao = new SalatDAO[Subject, ObjectId](collection = collection) {}
@@ -33,11 +33,10 @@ object Subject extends DBQueryable[Subject] {
     }
   }
 
-  val queryFields:Seq[QueryField[Subject]] = Seq(
-    QueryFieldString[Subject](Subject,  _.subject),
-    QueryFieldString[Subject](Category, _.category),
-    QueryFieldObject[Subject](Id, _.id, QueryField.valuefuncid)
-  )
-
   val description = "Subjects"
+
+  override val searchableFields = Seq(
+    Subject,
+    Category
+  )
 }

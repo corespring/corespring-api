@@ -43,6 +43,7 @@ case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoic
 }
 
 object OrderInteraction extends InteractionCompanion[OrderInteraction]{
+  def tagName = "orderInteraction"
   def apply(node: Node, itemBody:Option[Node]): OrderInteraction = OrderInteraction(
     (node \ "@responseIdentifier").text,
     (node \ "simpleChoice").map(SimpleChoice(_, (node \ "@responseIdentifier").text))
@@ -55,18 +56,4 @@ object OrderInteraction extends InteractionCompanion[OrderInteraction]{
       interactions.map(node => OrderInteraction(node,Some(itemBody)))
     }
   }
-  def interactionMatch(e:Elem):Boolean = e.label == "orderInteraction"
-  override def preProcessXml(interactionXml:Elem):NodeSeq = {
-    new InteractionProcessing.FeedbackOutcomeIdentifierInserter(OrderInteraction(interactionXml,None)).transform(interactionXml)
-  }
-  def getHeadHtml(toPrint:Boolean):String = {
-    val jspath = if (toPrint) QtiScriptLoader.JS_PRINT_PATH else QtiScriptLoader.JS_PATH
-    val csspath = if (toPrint) QtiScriptLoader.CSS_PRINT_PATH else QtiScriptLoader.CSS_PATH
-
-    def jsAndCss(name:String) = Seq(script(jspath + name + ".js"), css(csspath + name + ".css")).mkString("\n")
-    jsAndCss("orderInteraction")+"\n"
-  }
-  private def css(url: String): String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
-  private def script(url: String): String = """<script type="text/javascript" src="%s"></script>""".format(url)
-
 }

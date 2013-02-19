@@ -130,6 +130,8 @@ angular.module('corespring-utils')
       },
 
       getAuthorAbbreviation : function(author){
+        if (!author || author.length == 0) return "";
+
         var contributorNameToAbbreviationMap = {
           "State of New Jersey Department of Education":  "NJDOE",
           "New York State Education Department" : "NYSED",

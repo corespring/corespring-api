@@ -28,6 +28,7 @@ angular.module('tagger.services')
                 previewFile:'/web/show-resource/{key}',
                 renderResource:'/web/show-resource/{key}',
                 printResource:'/web/print-resource/{key}/data/main',
+                printSupportingMaterial:'/web/print-resource/{key}',
                 printProfile:'/web/print-resource-profile/{key}',
 
                 createDataFile: '/api/v1/items/{itemId}/data',
@@ -39,6 +40,7 @@ angular.module('tagger.services')
                 standards:'/api/v1/field_values/cc-standard',
                 subject:'/api/v1/field_values/subject',
                 collection:'/api/v1/collections',
+                contributor:'/api/v1/contributors',
                 uploadFile:'/tagger/upload/{itemId}/{fileName}',
                 viewFile:'/tagger/files/{itemId}/{fileName}',
                 deleteFile:'/tagger/delete/{itemId}/{fileName}'

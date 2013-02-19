@@ -12,7 +12,6 @@ import org.bson.types.ObjectId
 
 object JsonImporter {
 
-
   /**
    * Insert each line of the file as a single object
    * @param jsonPath
@@ -33,7 +32,7 @@ object JsonImporter {
    * @param jsonPath
    * @param coll
    */
-  def jsonFileToDb(jsonPath: String, coll: MongoCollection ) {
+  def jsonFileToDb(jsonPath: String, coll: MongoCollection) {
     val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.forName("UTF-8"))).mkString
     coll.insert(JSON.parse(s).asInstanceOf[DBObject])
   }
@@ -41,7 +40,7 @@ object JsonImporter {
   def jsonFileToItem(jsonPath: String, coll: MongoCollection) {
     val s = io.Source.fromFile(Play.getFile(jsonPath))(new Codec(Charset.forName("UTF-8"))).mkString
     val finalObject: String = replaceLinksWithContent(s)
-    insertString(finalObject, coll, true)
+    insertString(finalObject, coll)
   }
 
   /**
@@ -56,13 +55,40 @@ object JsonImporter {
     dbList.toArray.toList.foreach(dbo => coll.insert(dbo.asInstanceOf[DBObject]))
   }
 
+  /** Given a directory - insert each json file within as a dbo
+    * Also check if any of the files contain duplicate ids
+    * @param path
+    * @param collection
+    */
+  def insertFilesInFolder(path: String, collection: MongoCollection) {
+
+    val folder: File = Play.getFile(path)
+    val files: List[File] = folder.listFiles.toList
+    val dbos: List[DBObject] = files.map((f: File) => fileToDbo(path + "/" + f.getName))
+
+    val hasDuplicates: Boolean = {
+      val ids = dbos.map {
+        (dbo: DBObject) =>
+          val id = dbo.get("_id")
+          if (id != null) Some(id) else None
+      }.flatten
+      ids.length != ids.distinct.length
+    }
+
+    if (hasDuplicates) {
+      throw new RuntimeException("Contains duplicate ids: " + files)
+    }
+
+    dbos.foreach(dbo => collection.insert(dbo, collection.writeConcern))
+  }
+
   /**
    * replace any interpolated keys with the path that they point to eg:
    * $[interpolate{/path/to/file.xml}] will be replaced with the contents of file.xml
    * @param s
    * @return
    */
-  def replaceLinksWithContent(s: String): String = {
+  private def replaceLinksWithContent(s: String): String = {
 
     /**
      * Load a string from a given path, remove new lines and escape "
@@ -78,39 +104,24 @@ object JsonImporter {
         .replace("{", "\\\\{")
         .replace("}", "\\\\}")
       lines
-
     }
 
     val interpolated = StringUtils.interpolate(s, loadString)
     interpolated
   }
 
-  def insertString(s: String, coll: MongoCollection, printId: Boolean = false) = {
+  private def insertString(s: String, coll: MongoCollection) = {
     val dbo: DBObject = JSON.parse(s).asInstanceOf[DBObject]
-
-    val NO_ID = "NO_ID"
-    val id = if (dbo.get("_id") != null) dbo.get("_id").toString else NO_ID
-
-    if (NO_ID.equals(id)) {
-      coll.insert(dbo, coll.writeConcern)
-    } else {
-      coll.findOneByID(new ObjectId(id)) match {
-        case Some(obj) => throw new RuntimeException("Item already exisits: " + id + " collection: " + coll.name)
-        case _ => {
-          coll.insert(dbo, coll.writeConcern)
-        }
-      }
-    }
+    coll.insert(dbo, coll.writeConcern)
   }
 
 
-  def insertFilesInFolder(path: String, collection : MongoCollection) {
-    val folder: File = Play.getFile(path)
-    for (file <- folder.listFiles) {
-      jsonFileToItem(path + "/" + file.getName, collection)
-    }
+  private def fileToDbo(path: String): DBObject = {
+    val s = io.Source.fromFile(Play.getFile(path))(new Codec(Charset.forName("UTF8"))).mkString
+    val finalObject: String = replaceLinksWithContent(s)
+    JSON.parse(finalObject).asInstanceOf[DBObject]
   }
-
 
 }
+
 

@@ -31,7 +31,7 @@ class AssignmentLauncherTest extends Specification {
 
 
 
-  val MockOrgId : ObjectId = new ObjectId( "502404dd0364dc35bb393397" )
+  val MockOrgId : ObjectId = new ObjectId( "51114b307fc1eaa866444648" )
 
   PlaySingleton.start()
 

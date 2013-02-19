@@ -7,8 +7,8 @@ import qti.models.QtiItem.Correctness
 import scala.Some
 
 case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline]) {
-  var defaultCorrect = "That is correct!"
-  var defaultIncorrect = "That is incorrect"
+  var defaultCorrect = "Correct!"
+  var defaultIncorrect = "Your answer"
 
   val interactionsWithNoResponseDeclaration: Seq[Interaction] =
     itemBody.interactions.filterNot {

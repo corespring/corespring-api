@@ -20,7 +20,7 @@ class PermissionsTest extends BaseTest{
   "cannot read an organization with no permission" in {
     Organization.insert(new Organization("test",Seq(),Seq()),None) match {
       case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.None) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"test_token")) match {
+        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
           case Right(token) => {
             val fakeRequest = FakeRequest(GET, "/api/v1/organizations/"+org.id.toString+"?access_token="+token.tokenId)
             val Some(result) = routeAndCall(fakeRequest)
@@ -40,7 +40,7 @@ class PermissionsTest extends BaseTest{
   "can read an organization with read permission" in {
     Organization.insert(new Organization("test",Seq(),Seq()),None) match {
       case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.Read) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"test_token")) match {
+        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
           case Right(token) => {
             val fakeRequest = FakeRequest(GET, "/api/v1/organizations/"+org.id+"?access_token="+token.tokenId)
             val Some(result) = routeAndCall(fakeRequest)
@@ -61,7 +61,7 @@ class PermissionsTest extends BaseTest{
   "cannot create a collection in an organization with read permission"  in {
     Organization.insert(new Organization("test",Seq(),Seq()),None) match {
       case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.Read) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"test_token")) match {
+        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
           case Right(token) => {
             val fakeRequest = FakeRequest(POST, "/api/v1/collections?access_token="+token.tokenId, FakeHeaders(), AnyContentAsJson(Json.toJson(new ContentCollection("test"))))
             val result = routeAndCall(fakeRequest).get
@@ -81,7 +81,7 @@ class PermissionsTest extends BaseTest{
   "can create a collection in an organization with write permission" in {
     Organization.insert(new Organization("test",Seq(),Seq()),None) match {
       case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.Write) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"test_token")) match {
+        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
           case Right(token) => {
             val fakeRequest = FakeRequest(POST, "/api/v1/collections?access_token="+token.tokenId, FakeHeaders(), AnyContentAsJson(Json.toJson(Map("name" -> "test"))))
             val result = routeAndCall(fakeRequest).get
@@ -105,7 +105,7 @@ class PermissionsTest extends BaseTest{
   "cannot read a collection of items with no permission" in {
     Organization.insert(new Organization("test",Seq(),Seq()),None) match {
       case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.Read) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"test_token")) match {
+        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
           case Right(token) => ContentCollection.insertCollection(org.id, new ContentCollection("test"), Permission.None) match {
             case Right(coll) => {
               val fakeRequest = FakeRequest(GET, "/api/v1/collections/"+coll.id.toString+"/items?access_token="+token.tokenId)
@@ -129,7 +129,7 @@ class PermissionsTest extends BaseTest{
   "can read a collection of items with read permission" in {
     Organization.insert(new Organization("test",Seq(),Seq()),None) match {
       case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.Read) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"test_token")) match {
+        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
           case Right(token) => ContentCollection.insertCollection(org.id, new ContentCollection("test"), Permission.Read) match {
             case Right(coll) => {
               val fakeRequest = FakeRequest(GET, "/api/v1/collections/"+coll.id.toString+"/items?access_token="+token.tokenId)
@@ -153,7 +153,7 @@ class PermissionsTest extends BaseTest{
   "cannot create an item in a collection with read permission" in {
     Organization.insert(new Organization("test",Seq(),Seq()),None) match {
       case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.Read) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"test_token")) match {
+        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
           case Right(token) => ContentCollection.insertCollection(org.id, new ContentCollection("test"), Permission.Read) match {
             case Right(coll) => {
               val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> coll.id.toString))
@@ -178,7 +178,7 @@ class PermissionsTest extends BaseTest{
   "can create an item in a collection with write permission" in {
     Organization.insert(new Organization("test",Seq(),Seq()),None) match {
       case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.Read) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"test_token")) match {
+        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
           case Right(token) => ContentCollection.insertCollection(org.id, new ContentCollection("test"), Permission.Write) match {
             case Right(coll) => {
               val title = "blergl mergl"

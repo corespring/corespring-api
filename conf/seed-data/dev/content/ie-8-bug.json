@@ -1,20 +1,22 @@
 {
-    "_id" : {
-        "$oid" : "50649089a0ee9fa7876ba147"
+    "_id": {
+        "$oid": "50649089a0ee9fa7876ba147"
     },
-	"data" : {
-		"name" : "data",
-		"files" : [
-			{
-				"_t" : "models.VirtualFile",
-				"name" : "qti.xml",
-				"contentType" : "text/xml",
-				"isMain" : true,
-                "content" : "$[interpolate{conf/qti/ie8-bug.xml}]"
-			}
-		]
-	},
-	"collectionId" : "5001b9b9e4b035d491c268c3",
-	"itemType" : "Text with Questions",
-	"title" : "IE-8 Bug"
+    "data": {
+        "name": "data",
+        "files": [
+            {
+                "_t": "models.VirtualFile",
+                "name": "qti.xml",
+                "contentType": "text/xml",
+                "isMain": true,
+                "content": "$[interpolate{conf/qti/ie8-bug.xml}]"
+            }
+        ]
+    },
+    "collectionId": "5001b9b9e4b035d491c268c3",
+    "taskInfo": {
+        "title": "IE-8 Bug",
+        "itemType": "Text with Questions"
+    }
 }

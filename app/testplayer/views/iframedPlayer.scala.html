@@ -1,0 +1,13 @@
+@(itemId: String,
+  itemBody: String,
+  previewEnabled : Boolean = true,
+  sessionId:String = "",
+  token : String = "")
+
+@scripts = {
+  <script src="/assets/js/corespring/qti/controllers/IframedAppController.js"></script>
+}
+
+@bodyAttributes = @{ "ng-controller='IframedAppController'" }
+
+@basePlayer(itemId, itemBody, previewEnabled, sessionId, token, scripts, bodyAttributes )

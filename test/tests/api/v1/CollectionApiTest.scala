@@ -17,7 +17,7 @@ import models.UserOrg
 
 class CollectionApiTest extends BaseTest {
 
-  val INITIAL_COLLECTION_SIZE : Int = 7
+  val INITIAL_COLLECTION_SIZE : Int = 2
 
   //todo: fix these. occasionally, when ItemApiTest is run before this, a collection will be created (when storing to an item without a collection. a default collection is generated.). We should clear the database for each test that is run
   "list all collections" in {
@@ -50,18 +50,18 @@ class CollectionApiTest extends BaseTest {
     collections must have size 1
   }
 
-  "find a collection with name 'Collection G'" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/collections?access_token=%s&q={\"name\":\"Collection+G\"}".format(token))
+  "find a collection with name 'Demo Collection 2'" in {
+    val fakeRequest = FakeRequest(GET, "/api/v1/collections?access_token=%s&q={\"name\":\"Demo Collection 2\"}".format(token))
     val Some(result) = routeAndCall(fakeRequest)
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val collections = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
     collections must have size 1
-    (collections(0) \ "name").as[String] must beEqualTo("Collection G")
+    (collections(0) \ "name").as[String] must beEqualTo("Demo Collection 2")
   }
 
-  val collectionId = "5001bb0ee4b0d7c9ec3210a2"
+  val collectionId = "51114b127fc1eaa866444647"
   "get a collection by id '%s'".format(collectionId) in {
     val fakeRequest = FakeRequest(GET, "/api/v1/collections/%s?access_token=%s".format(collectionId, token))
     val Some(result) = routeAndCall(fakeRequest)
@@ -74,9 +74,6 @@ class CollectionApiTest extends BaseTest {
 
   "create, update and delete a collection" in {
     val name = "test collection"
-    User.update(
-      MongoDBObject(User.userName -> "demo_user", User.orgs+"."+UserOrg.orgId -> new ObjectId("502404dd0364dc35bb393397")),
-      MongoDBObject("$set" -> MongoDBObject(User.orgs+".$."+UserOrg.pval -> Permission.Write.value)),false,false,User.defaultWriteConcern)
     // create it
     val toCreate = Map("name" -> name)
     val fakeRequest = FakeRequest(POST, "/api/v1/collections?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(Json.toJson(toCreate)))
@@ -117,9 +114,6 @@ class CollectionApiTest extends BaseTest {
       }
       case None => failure("failed to delete collection")
     }
-    User.update(
-      MongoDBObject(User.userName -> "demo_user", User.orgs+"."+UserOrg.orgId -> new ObjectId("502404dd0364dc35bb393397")),
-      MongoDBObject("$set" -> MongoDBObject(User.orgs+".$."+UserOrg.pval -> Permission.Read.value)),false,false,User.defaultWriteConcern)
   }
 
 

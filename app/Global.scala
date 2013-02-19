@@ -1,12 +1,10 @@
-import _root_.controllers.{Log, S3Service}
-import patches.{DbPatches, InitPatch, DbPatch}
+import _root_.controllers.ConcreteS3Service
 import play.api.mvc.Results._
 import web.controllers.utils.ConfigLoader
 import common.seed.SeedDb._
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import org.bson.types.ObjectId
 import play.api._
-import cache.Cache
 import mvc._
 import mvc.SimpleResult
 import play.api.Play.current
@@ -17,8 +15,6 @@ import play.api.Application
 object Global extends GlobalSettings {
 
   val INIT_DATA: String = "INIT_DATA"
-
-  val h = securesocial.core.providers.utils.RoutesHelper
 
   val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
 
@@ -35,11 +31,11 @@ object Global extends GlobalSettings {
       }
   }
 
-  def AjaxFilterAction[A](action: Action[A]) : Action[A] = Action(action.parser){
+  def AjaxFilterAction[A](action: Action[A]): Action[A] = Action(action.parser) {
     request =>
-      if (request.headers.get("X-Requested-With") == Some("XMLHttpRequest") ){
-        action(request) match{
-          case s : SimpleResult[_] => s.withHeaders(("Cache-Control","no-cache"))
+      if (request.headers.get("X-Requested-With") == Some("XMLHttpRequest")) {
+        action(request) match {
+          case s: SimpleResult[_] => s.withHeaders(("Cache-Control", "no-cache"))
           case result => result
         }
       }
@@ -99,7 +95,7 @@ object Global extends GlobalSettings {
     RegisterJodaTimeConversionHelpers()
 
     val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
-    S3Service.init(amazonProperties)
+    ConcreteS3Service.init(amazonProperties)
 
     val initData = ConfigLoader.get(INIT_DATA).getOrElse("true") == "true"
 
@@ -112,13 +108,30 @@ object Global extends GlobalSettings {
 
     if (Play.isTest(app)) {
       onlyIfLocalDb(seedTestData)
-    } else if (Play.isDev(app)) {
-      if (initData) onlyIfLocalDb(seedDevData)
-    } else if (Play.isProd(app)) {
-      if (initData) seedDevData()
+    } else {
+      if (Play.isDev(app)) {
+        if (initData) onlyIfLocalDb(seedDevData)
+      } else if(Play.isProd(app)) {
+        if (initData) seedDevData()
+      }
+      addDemoDataToDb()
     }
-    DbPatches.run(ConfigLoader.get("DB_VERSION").get)
+
+
   }
+
+  /** Add demo data models to the the db to allow end users to be able to
+    * view the content as a demo.
+    * This involves:
+    * 1. adding a demo access token that is associated with a demo organization
+    * 2. adding a demo organiztion
+    *
+    * TODO: the demo orgs listed are hardcoded
+    */
+  private def addDemoDataToDb() {
+    seedData("conf/seed-data/demo")
+  }
+
 
   private def isLocalDb: Boolean = {
     ConfigLoader.get("mongodb.default.uri") match {
@@ -130,19 +143,14 @@ object Global extends GlobalSettings {
 
   private def seedTestData() {
     emptyData()
-    seedData("conf/seed-data/common")
-    seedData("conf/seed-data/common_two")
     seedData("conf/seed-data/test")
-    addMockAccessToken(common.mock.MockToken, Some("demo_user"))
   }
 
   private def seedDevData() {
     emptyData()
     seedData("conf/seed-data/common")
-    seedData("conf/seed-data/common_two")
     seedData("conf/seed-data/dev")
     seedData("conf/seed-data/exemplar-content")
-    addMockAccessToken(common.mock.MockToken, Some("demo_user"))
   }
 
 }

@@ -1,0 +1,11 @@
+{
+  "_id": {
+    "$oid": "50f043e59b405e7dddcc719e"
+  },
+  "organization": {
+    "$oid": "51114b307fc1eaa866444648"
+  },
+  "tokenId": "test_token",
+  "scope": "test_user",
+  "neverExpire" : true
+}

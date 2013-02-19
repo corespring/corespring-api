@@ -7,7 +7,7 @@ import play.api.libs.json._
 import api.ApiError
 import org.bson.types.ObjectId
 import models.{User, Organization}
-import controllers.auth.{OAuthConstants, OAuthProvider, Permission}
+import controllers.auth.{BaseApi, OAuthConstants, OAuthProvider, Permission}
 import scala.Left
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsBoolean
@@ -30,7 +30,7 @@ import play.api.mvc.SimpleResult
 import play.api.libs.json.JsObject
 import play.api.cache.Cache
 
-object Developer extends Controller with SecureSocial{
+object Developer extends Controller with BaseApi{
 
   def at(path:String,file:String) = Assets.at(path,file)
 

@@ -1,0 +1,11 @@
+{
+  "_id": {
+    "$oid": "511531df6990ef47e17501fc"
+  },
+  "organization": {
+    "$oid": "502404dd0364dc35bb39339a"
+  },
+  "tokenId": "corespring_token",
+  "scope": "corespring_user",
+  "neverExpire" : true
+}

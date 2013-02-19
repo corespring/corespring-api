@@ -13,11 +13,14 @@ object ApplicationBuild extends Build {
     "com.typesafe" %% "play-plugins-mailer" % "2.0.4",
     "org.mindrot" % "jbcrypt" % "0.3m",
     "securesocial" % "securesocial_2.9.1" % "2.0.7",
-    "com.github.mumoshu" %% "play2-memcached" % "0.2.3-SNAPSHOT"
+    "com.github.mumoshu" %% "play2-memcached" % "0.2.3-SNAPSHOT",
+    "org.mockito" % "mockito-all" % "1.9.5"
     //"securesocial" % "securesocial_2.9.1" % "master"
   )
 
   val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
+    //because of all the db testing we need - only test serially
+    parallelExecution.in(Test) := false,
     routesImport += "se.radley.plugin.salat.Binders._",
     templatesImport += "org.bson.types.ObjectId",
     resolvers += "Sonatype" at "https://oss.sonatype.org/content/repositories/snapshots/",

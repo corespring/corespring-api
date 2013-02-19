@@ -67,6 +67,8 @@ case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleC
 
 object FocusTaskInteraction extends InteractionCompanion[FocusTaskInteraction] {
 
+  def tagName: String = "focusTaskInteraction"
+
   def apply(interaction: Node, itemBody: Option[Node]): FocusTaskInteraction = {
 
     FocusTaskInteraction(
@@ -87,21 +89,8 @@ object FocusTaskInteraction extends InteractionCompanion[FocusTaskInteraction] {
     }
   }
 
-  def interactionMatch(e: Elem) = e.label == "focusTaskInteraction"
-
   override def preProcessXml(interactionXml: Elem): NodeSeq = {
     new InteractionProcessing.FeedbackOutcomeIdentifierInserter(FocusTaskInteraction(interactionXml, None)).transform(interactionXml)
   }
 
-  def getHeadHtml(toPrint: Boolean): String = {
-    val jspath = if (toPrint) QtiScriptLoader.JS_PRINT_PATH else QtiScriptLoader.JS_PATH
-    val csspath = if (toPrint) QtiScriptLoader.CSS_PRINT_PATH else QtiScriptLoader.CSS_PATH
-
-    def jsAndCss(name: String) = Seq(script(jspath + name + ".js"), css(csspath + name + ".css")).mkString("\n")
-    jsAndCss("focusTask") + "\n" + jsAndCss("simpleChoice")
-  }
-
-  private def css(url: String): String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
-
-  private def script(url: String): String = """<script type="text/javascript" src="%s"></script>""".format(url)
 }

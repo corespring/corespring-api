@@ -14,6 +14,7 @@ import com.novus.salat.dao.{SalatDAO, ModelCompanion}
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import mongoContext._
+import com.mongodb.casbah.Imports._
 
 case class KeyValue(key: String, value: Any)
 
@@ -40,9 +41,11 @@ case class FieldValue(
                        var credentials: Seq[KeyValue] = Seq(),
                        var bloomsTaxonomy: Seq[KeyValue] = Seq(),
                        var id: ObjectId = new ObjectId()
-                       ) extends Identifiable
+                       )
 
 object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
+
+  lazy val current = FieldValue.findOne(MongoDBObject(FieldValue.Version -> CurrentVersion)).getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
 
   val collection = mongoCollection("fieldValues")
 

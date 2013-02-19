@@ -10,39 +10,43 @@ import play.api.mvc._
 import testplayer.models.ExceptionMessage
 import scala.Some
 import play.api._
+import templates.Html
 
 
-object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
+object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
 
 
-  def javascriptRoutes = Action { implicit request =>
+  type TemplateParams = (String, String, Boolean, String, String)
 
-    import api.v1.routes.javascript._
+  def javascriptRoutes = Action {
+    implicit request =>
 
-    Ok(
-      Routes.javascriptRouter("TestPlayerRoutes")(
-        ItemSessionApi.update,
-        ItemSessionApi.get,
-        ItemSessionApi.create
-      )
-    ).as("text/javascript")
+      import api.v1.routes.javascript._
+
+      Ok(
+        Routes.javascriptRouter("TestPlayerRoutes")(
+          ItemSessionApi.update,
+          ItemSessionApi.get,
+          ItemSessionApi.create
+        )
+      ).as("text/javascript")
   }
 
-  def renderItemBySessionId(sessionId:String, printMode : Boolean = false) = {
+  def renderItemBySessionId(sessionId: String, printMode: Boolean = false) = {
     callRenderBySessionId(
-      _renderItem(_,_, previewEnabled = false, sessionSettings = "", sessionId = sessionId),
+      _renderItem(_, _, previewEnabled = false, sessionSettings = "", sessionId = sessionId),
       sessionId,
       printMode)
   }
 
   def previewItemBySessionId(sessionId: String, printMode: Boolean = false) = {
     callRenderBySessionId(
-      _renderItem(_,_, previewEnabled = true, sessionSettings = "", sessionId = sessionId),
+      _renderItem(_, _, previewEnabled = true, sessionSettings = "", sessionId = sessionId),
       sessionId,
       printMode)
   }
 
-  private def callRenderBySessionId(renderFn : (String,Boolean) => Action[AnyContent], id : String, printMode : Boolean ) = {
+  private def callRenderBySessionId(renderFn: (String, Boolean) => Action[AnyContent], id: String, printMode: Boolean) = {
     ItemSession.findOneById(new ObjectId(id)) match {
       case Some(session) => {
         renderFn(session.itemId.toString, printMode)
@@ -63,9 +67,29 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
     _renderItem(itemId, printMode, previewEnabled = !printMode, sessionSettings = sessionSettings)
 
   def renderItem(itemId: String, printMode: Boolean = false, sessionSettings: String = "") =
-    _renderItem(itemId, printMode, previewEnabled = false, sessionSettings = sessionSettings)
+    _renderItem(itemId, printMode = printMode, sessionSettings = sessionSettings)
 
-  private def _renderItem(itemId: String, printMode: Boolean = false, previewEnabled: Boolean = false, sessionSettings: String = "", sessionId:String = "") = ApiAction {
+  def renderAsIframe(itemId: String) = {
+    _renderItem(itemId, template = PlayerTemplates.iframed)
+  }
+
+  private object PlayerTemplates {
+    def default(params: TemplateParams): play.api.templates.Html = {
+      testplayer.views.html.itemPlayer(params._1, params._2, params._3, params._4, params._5)
+    }
+
+    def iframed(params: TemplateParams): play.api.templates.Html = {
+      testplayer.views.html.iframedPlayer(params._1, params._2, params._3, params._4, params._5)
+    }
+  }
+
+
+  private def _renderItem(itemId: String,
+                          printMode: Boolean = false,
+                          previewEnabled: Boolean = false,
+                          sessionSettings: String = "",
+                          sessionId: String = "",
+                          template: TemplateParams => Html = PlayerTemplates.default) = ApiAction {
     request =>
       try {
         getItemXMLByObjectId(itemId, request.ctx.organization) match {
@@ -73,13 +97,13 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer{
 
             val finalXml = prepareQti(xmlData, printMode)
 
-            if(Play.isDev(play.api.Play.current) && request.token == null){
+            if (Play.isDev(play.api.Play.current) && request.token == null) {
               println("Mock Token Session")
-              Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled, sessionId, common.mock.MockToken))
+              Ok(template(itemId, finalXml, previewEnabled, sessionId, common.mock.MockToken))
             }
             else {
-              Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled, sessionId, request.token))
-            } 
+              Ok(template(itemId, finalXml, previewEnabled, sessionId, common.mock.MockToken))
+            }
 
           case None =>
             NotFound("not found")

@@ -1,142 +1,75 @@
-var app = angular.module('app', ['itemResource', 'fieldValuesResource', 'ui', 'corespring-utils']);
+var app = angular.module('app', ['itemResource', 'fieldValuesResource', 'tagger.services', 'preview.services', 'ui', 'corespring-utils']);
 
 
-function ItemsCtrl($scope, $timeout, Items, MultipleFieldValues, ItemFormattingUtils) {
-
-
-    angular.extend($scope, ItemFormattingUtils);
-    var query = new com.corespring.mongo.MongoQuery();
-
-    $scope.searchFields = {
-        grades:[],
-        itemTypes:[],
-        primarySubjectIds:[]
-    };
-    $scope.itemState = "loading";
-    $scope.primarySubjects = [];//FieldValues.primarySubjects;
-    $scope.grades = [];
-    $scope.itemTypes = [];//FieldValues.itemTypes
-    //set the field values based on the json object
-
-    var fieldNames = "subject,gradeLevels,itemTypes";
-    var fieldOptions = {
-        subject:{
-            q:{
-                $or:[
-                    { category:"Mathematics", subject:"" },
-                    { category:"Science", subject:"" },
-                    { category:"English Language Arts", subject:"" }
-                ]
+angular.module('app')
+  .directive('iframeAutoHeight', function () {
+    return {
+      link: function ($scope, element) {
+        $(element).load(function() {
+          var $body = $(element, window.top.document).contents().find('body');
+          var prevHeight = 0;
+          setInterval(function() {
+            try {
+              var newHeight = $body[0].scrollHeight;
+              if (newHeight == 0) return;
+              if (newHeight != prevHeight) {
+                $(element).height(newHeight);
+                prevHeight = newHeight;
+              }
+            } catch (ie) {
+              console.log(ie);
             }
-        }
-    };
-
-    /**
-     * Map function for extracting a key
-     * @param keyValue
-     * @return {*}
-     */
-    var getKey = function (keyValue) {
-        if (!keyValue) {
-            return "";
-        }
-        return keyValue.key;
-    };
-
-    MultipleFieldValues.multiple(
-        {
-            fieldNames:fieldNames,
-            fieldOptions:JSON.stringify(fieldOptions)
-        }, function (data) {
-
-            $scope.primarySubjects = data.subject;
-            $scope.grades = _.map(data.gradeLevels, getKey);
-            $scope.itemTypes = _.map(data.itemTypes, getKey);
-
+          }, 100);
         });
+      }
+    }
+  });
 
-    $scope.getItems = function(query){
-        Items.query(query, function (data) {
-            $scope.items = data;
-            $scope.itemState = "hasContent";
-        });
-    };
+angular.module('app')
+  .directive('showWhenLoaded', function () {
+    return {
+      link: function ($scope, element) {
+        $(element).load(function () {
+          if ($scope.itemData)
+            $(element).show();
+        })
+      }
+    }
+  });
 
-    /**
-     * Build a query object from the search field array.
-     * builds either a simple query object eg: {key: "value"}
-     * or an $or query eg: { $or: [{key: "value1"}, {key: "value2"}]}
-     */
-    var makeQueryFromArray = function(array, key, makeFn){
+angular.module('app')
+  .directive('hideWhenLoaded', function () {
+    return {
+      link: function ($scope, element, attrs) {
+        $(element).load(function () {
+          if ($scope.itemData)
+            $(attrs.hideWhenLoaded).hide();
+        })
+      }
+    }
+  });
 
-        if(!array || array.length === 0) return null;
+function ItemsCtrl($scope, $timeout) {
 
-        //default makeFn to just pass the value through
-        makeFn = (makeFn || function(v){return v;});
-       
-        //a curried js function
-        var keyFn = function(key){
-            return function(val){
-                var o = {};
-                o[key] = makeFn(val);
-                return o;
-            };
-        };
 
-        var output = {};
+  $scope.hidePopup = function () {
+    $scope.showPopup = false;
+  };
 
-        if (array.length === 1) {
-            output[key] = makeFn(array[0]);
-        } else {
-            output["$or"] = _.map(array, keyFn(key) );
-        }
-        return output;
-    };
-    
-    //update the item list based on the search fields
-    var updateItemList = function () {
-        $scope.itemState = "loading";
+  $scope.openItem = function (id) {
+    $timeout(function () {
+      $scope.showPopup = true;
+      $scope.previewingId = id;
+      $scope.$broadcast("requestLoadItem", id);
+      $('#itemViewFrame').height("600px");
+      $('#itemViewFrame').hide();
+      $('#preloader').show();
+    }, 50);
+    $timeout(function () {
+      $('.window-overlay').scrollTop(0);
+    }, 100);
 
-        var gradeQuery = makeQueryFromArray($scope.searchFields.grades,"gradeLevel");
-        var typeQuery = makeQueryFromArray($scope.searchFields.itemTypes,"itemType");
-        var makeOid = function(id){ return { "$oid" : id}; };
-        var subjectQuery = makeQueryFromArray($scope.searchFields.primarySubjectIds,"subjects.primary", makeOid);
+  };
 
-        var andQuery = query.and(gradeQuery, typeQuery, subjectQuery);
-        var finalQuery = andQuery.$and.length === 0 ? {} : { q: JSON.stringify(andQuery) };
-        $scope.getItems(finalQuery);
-    };
-
-    $scope.toggleSearchField = function(fieldArray, value){
-        try{
-            var index = _.indexOf(fieldArray,value);
-            if (index == -1) {
-                fieldArray.push(value);
-            } else {
-                fieldArray.splice(index, 1);
-            }
-            updateItemList();
-
-        } catch (e){
-            throw "Error in toggleSearchField: " + e;
-        }
-    };
-
-    //update items based on grades entered
-    $scope.updateGradeSearch = function (grade) {
-        $scope.toggleSearchField($scope.searchFields.grades, grade);
-    };
-
-    //update items based on item types entered
-    $scope.updateItemTypeSearch = function (itemType) {
-        $scope.toggleSearchField($scope.searchFields.itemTypes,itemType);
-    };
-
-    //update items based on primary subject entered
-    $scope.updatePrimarySubjectSearch = function (primarySubject) {
-        $scope.toggleSearchField($scope.searchFields.primarySubjectIds, primarySubject.id);
-    };
-
-    $scope.getItems({});
 }
-ItemsCtrl.$inject = ['$scope', '$timeout', 'Items', 'MultipleFieldValues', 'ItemFormattingUtils'];
+ItemsCtrl.$inject = ['$scope', '$timeout'];

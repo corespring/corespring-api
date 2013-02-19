@@ -19,6 +19,9 @@ com.corespring.model.Defaults = function(){
           }),
           gradeLevels:_.map(window.fieldValues.gradeLevels, function (g) {
               return {key:g.key, label:g.value};
+          }),
+          itemTypes:_.map(window.fieldValues.itemTypes, function (g) {
+              return {key:g.key, label:g.value};
           })
         };
     }());

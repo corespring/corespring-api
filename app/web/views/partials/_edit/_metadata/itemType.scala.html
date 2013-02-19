@@ -4,7 +4,7 @@
     <div class="span5">
         <label class="radio" ng-repeat="t in itemData.$itemTypeDataProvider">
             <input type="radio" ng-model="itemData.itemType" value="{{t.value}}"/>
-            {{t.key}}
+            {{t.value}}
         </label>
         <label class="radio">
             <input type="radio" ng-model="itemData.itemType" value="{{otherItemType}}"/>

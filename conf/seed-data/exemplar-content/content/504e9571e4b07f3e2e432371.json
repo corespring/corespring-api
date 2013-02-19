@@ -1,0 +1,105 @@
+{
+	"_id" : {
+		"$oid" : "504e9571e4b07f3e2e432371"
+	},
+	"bloomsTaxonomy" : "Understanding",
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"contentType" : "item",
+	"contributorDetails" : {
+		"contributor" : "New England Common Assessment Program",
+		"credentials" : "State Department of Education",
+		"copyright" : {
+			"owner" : "New England Common Assessment Program",
+			"year" : "2009"
+		},
+		"author" : "New England Common Assessment Program",
+		"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
+		"licenseType" : "CC BY"
+	},
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"ordered\" baseType=\"identifier\">\n    \t<correctResponse>\n\t\t\t<value>ChoiceC</value>\n\t\t\t<value>ChoiceA</value>\n\t\t\t<value>ChoiceB</value>\n            <value>ChoiceD</value>\n\t\t</correctResponse>\n\t</responseDeclaration>\n\t<outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\"/>\n    <itemBody>\n\n<p class=\"intro-2\">The life cycle of butterﬂies has four stages. One of these stages is pictured below.</p>\n\n<div class=\"image-wrapper\"><img src=\"7.butterfly.png\"/></div>\n       \n      \n        <orderInteraction responseIdentifier=\"RESPONSE\" shuffle=\"true\">\n            <prompt>Arrange the stages of life of a butterfly in order from beginning to end.</prompt>\n            <simpleChoice identifier=\"ChoiceA\"><img src=\"caterpillar.png\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\"><img src=\"cocoon2.png\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\"><img src=\"egg2.png\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceD\"><img src=\"butterfly2.png\"/></simpleChoice>\n        </orderInteraction>\n        \n    </itemBody>\n\n</assessmentItem>\n"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "7.butterfly.png",
+				"isMain" : false,
+				"storageKey" : "504e9571e4b07f3e2e432371/7.butterfly.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "butterfly2.png",
+				"isMain" : false,
+				"storageKey" : "504e9571e4b07f3e2e432371/butterfly2.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "cocoon2.png",
+				"isMain" : false,
+				"storageKey" : "504e9571e4b07f3e2e432371/cocoon2.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "caterpillar.png",
+				"isMain" : false,
+				"storageKey" : "504e9571e4b07f3e2e432371/caterpillar.png",
+				"contentType" : "image/png"
+			},
+			{
+				"_t" : "models.StoredFile",
+				"name" : "egg2.png",
+				"isMain" : false,
+				"storageKey" : "504e9571e4b07f3e2e432371/egg2.png",
+				"contentType" : "image/png"
+			}
+		]
+	},
+	"demonstratedKnowledge" : "Factual",
+	"itemType" : "Ordering",
+	"keySkills" : [
+		"Arrange",
+		"Describe",
+		"Identify",
+		"Order",
+		"Recall",
+		"Classify"
+	],
+	"materialType" : "Assessment Item",
+	"priorGradeLevel" : [ ],
+	"priorUse" : "Summative",
+	"relatedCurriculum" : "New England Common Assessment Program Released Items",
+	"reviewsPassed" : [
+		"Editorial",
+		"Bias",
+		"Fairness",
+		"Content",
+		"Psychometric"
+	],
+	"standards" : [ ],
+	"workflow" : {
+		"setup" : true,
+		"tagged" : true,
+		"standardsAligned" : false,
+		"qaReview" : false
+	},
+	"taskInfo" : {
+		"subjects" : {
+			"primary" : {
+				"$oid" : "4ffb535f6bb41e469c0bf2d9"
+			}
+		},
+		"gradeLevel" : [
+			"04"
+		],
+		"title" : "The life cycle of butterflies has four stages. Arrange the stages of life of a butterfly in order from beginning to end."
+	}
+}

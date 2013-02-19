@@ -16,11 +16,32 @@ import play.api.libs.iteratee.{Input, Done, Enumerator, Iteratee}
 import api.ApiError
 import play.api.libs.json.Json
 
-object S3Service {
+trait S3Service {
+  case class S3DeleteResponse(success: Boolean, key: String, msg: String = "")
+
+  def s3upload(bucket: String, keyName: String): BodyParser[Int]
+  def s3download(bucket: String, itemId: String, keyName: String): Result
+  def delete(bucket: String, keyName: String): S3DeleteResponse
+  def cloneFile(bucket: String, keyName: String, newKeyName:String)
+  def online:Boolean
+}
+
+object ConcreteS3Service extends S3Service {
 
   private var optS3: Option[AmazonS3Client] = None
 
-  case class S3DeleteResponse(success: Boolean, key: String, msg: String = "")
+
+  def online:Boolean = {
+    optS3 match {
+      case Some(s3) => try{
+        s3.listBuckets().size() > 0
+      } catch {
+        case e:AmazonClientException => false
+        case e:AmazonServiceException => false
+      }
+      case None => false
+    }
+  }
 
   /**
    * Init the S3 client
@@ -42,7 +63,7 @@ object S3Service {
    * @param keyName
    * @return
    */
-  def s3upload(bucket: String, keyName: String): BodyParser[Int] = BodyParser("s3 file upload") {
+  override def s3upload(bucket: String, keyName: String): BodyParser[Int] = BodyParser("s3 file upload") {
     request =>
       val optContentLength = request.headers.get(CONTENT_LENGTH)
       optContentLength match {
@@ -58,7 +79,7 @@ object S3Service {
   /**
    * @return
    */
-  def s3download(bucket: String, itemId: String, keyName: String): Result = download(bucket, itemId + "/" + keyName)
+  override def s3download(bucket: String, itemId: String, keyName: String): Result = download(bucket, itemId + "/" + keyName)
 
   def download(bucket: String, fullKey: String, headers: Option[Headers] = None): Result = {
 
@@ -113,7 +134,9 @@ object S3Service {
   }
 
 
-  def delete(bucket: String, keyName: String): S3DeleteResponse = {
+  override def delete(bucket: String, keyName: String): S3DeleteResponse = {
+
+    Log.i("S3Service.delete: %s, %s".format(bucket, keyName))
 
     optS3 match {
       case Some(s3) => {
@@ -142,6 +165,8 @@ object S3Service {
    * @return
    */
   private def s3UploadSingle(bucket: String, keyName: String, contentLength: Int): Iteratee[Array[Byte], Either[Result, Int]] = {
+    Log.i("S3Service.s3UploadSingle bucket: " + bucket + " keyName: " + keyName)
+
     optS3 match {
       case Some(s3) => {
         val outputStream = new PipedOutputStream()
@@ -187,6 +212,14 @@ object S3Service {
         })
       }
       case None => Done[Array[Byte], Either[Result, Int]](Left(Results.InternalServerError("s3 instance not initialized")), Input.Empty)
+    }
+  }
+
+  override def cloneFile(bucket: String, keyName: String, newKeyName:String) = {
+    Log.d("S3Service Cloning "+keyName+" to "+newKeyName)
+    optS3 match {
+      case Some(s3) => s3.copyObject(bucket, keyName, bucket, newKeyName)
+      case _ => throw new RuntimeException("Amazon S3 not initalized")
     }
   }
 

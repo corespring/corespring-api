@@ -29,7 +29,6 @@ import controllers.InternalError
     !neverExpire && DateTime.now().isAfter(expirationDate)
   }
 }
-
 object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
   val organization = "organization"
   val scope = "scope"
