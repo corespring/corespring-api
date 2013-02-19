@@ -8,7 +8,7 @@ import models.{Organization, Item}
 
 object QtiSearch extends BaseApi{
 
-  def qtiSearchPage() = SecuredAction(){ request =>
+  def qtiSearchPage() = SecuredAction{ request =>
     Ok(internal.views.html.qtiSearch())
   }
 

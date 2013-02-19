@@ -13,7 +13,7 @@ import securesocial.core.SecureSocial
 object Main extends Controller with SecureSocial {
 
 
-  def previewItem(itemId:String) = SecuredAction() { request =>
+  def previewItem(itemId:String) = SecuredAction { request =>
     Ok(web.views.html.itemPreview(itemId))
   }
 
@@ -22,7 +22,7 @@ object Main extends Controller with SecureSocial {
    * A temporary route whilst working on preview
    * @return
    */
-  def previewAnyItem() = SecuredAction() {
+  def previewAnyItem() = SecuredAction {
     Item.findOne( new BasicDBObject()) match {
       case Some(item) => previewItem(item.id.toString)
       case None => Action(Ok("no item found"))
@@ -34,7 +34,7 @@ object Main extends Controller with SecureSocial {
   }
 
 
-  def index = SecuredAction() { request =>
+  def index = SecuredAction { request =>
       val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
       Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName,  common.mock.MockToken))
   }
