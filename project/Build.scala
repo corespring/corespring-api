@@ -38,7 +38,10 @@ object ApplicationBuild extends Build {
     resolvers += Resolver.url("SecureSocial Repository", url("http://securesocial.ws/repository/releases/"))(Resolver.ivyStylePatterns),
     resolvers += Resolver.url("SecureSocial Repository", url("http://securesocial.ws/repository/snapshots/"))(Resolver.ivyStylePatterns),
     resolvers += "Sonatype OSS Snapshots Repository" at "http://oss.sonatype.org/content/groups/public",
-    resolvers += "Spy Repository" at "http://files.couchbase.com/maven2" // required to resolve `spymemcached`, the plugin's dependency.
+    resolvers += "Spy Repository" at "http://files.couchbase.com/maven2", // required to resolve `spymemcached`, the plugin's dependency.
+    resolvers += "ed eustace repo" at "http://edeustace.com/repository/releases",
+    resolvers += "ed eustace snapshots repo" at "http://edeustace.com/repository/snapshots"
+
   )
 
 }
