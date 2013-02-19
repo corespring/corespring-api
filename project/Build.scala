@@ -17,7 +17,7 @@ object ApplicationBuild extends Build {
     "org.mockito" % "mockito-all" % "1.9.5",
 
     //Assets Loader - need to add the google js compiler too - its part of the play framework but only at build time.
-    "assets-loader" %% "assets-loader" % "0.4-SNAPSHOT",
+    "com.ee" %% "assets-loader" % "0.4-SNAPSHOT",
     ("com.google.javascript"            %    "closure-compiler"         %   "rr2079.1" notTransitive())
       .exclude("args4j", "args4j")
       .exclude("com.google.guava", "guava")
