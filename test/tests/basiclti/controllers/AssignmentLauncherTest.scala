@@ -1,7 +1,7 @@
 package tests.basiclti.controllers
 
 import org.specs2.mutable.Specification
-import tests.PlaySingleton
+import tests.{BaseTest, PlaySingleton}
 import play.api.test.{FakeHeaders, FakeRequest}
 import basiclti.controllers.AssignmentLauncher
 import basiclti.models.{LtiLaunchConfiguration, LtiRequestAdapter, LtiOAuthConsumer, LtiData}
@@ -16,7 +16,7 @@ import play.api.test.FakeHeaders
 import scala.Some
 import play.api.mvc.AnyContentAsFormUrlEncoded
 
-class AssignmentLauncherTest extends Specification {
+class AssignmentLauncherTest extends BaseTest {
 
   case class FakeRequestWithHost[A](
                                      override val method: String,
@@ -32,8 +32,6 @@ class AssignmentLauncherTest extends Specification {
 
 
   val MockOrgId : ObjectId = new ObjectId( "51114b307fc1eaa866444648" )
-
-  PlaySingleton.start()
 
   val Call = basiclti.controllers.routes.AssignmentLauncher.launch()
 

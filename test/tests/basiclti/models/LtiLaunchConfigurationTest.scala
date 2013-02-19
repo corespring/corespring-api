@@ -3,11 +3,9 @@ package tests.basiclti.models
 import org.specs2.mutable.Specification
 import basiclti.models.{Assignment, LtiLaunchConfiguration}
 import org.bson.types.ObjectId
-import tests.PlaySingleton
+import tests.{BaseTest, PlaySingleton}
 
-class LtiLaunchConfigurationTest extends Specification{
-
-  PlaySingleton.start()
+class LtiLaunchConfigurationTest extends BaseTest{
 
   "launch config" should {
 

@@ -1,6 +1,7 @@
 package tests
 
 import _root_.models.Item
+import _root_.web.controllers.utils.ConfigLoader
 import org.specs2.mutable.Specification
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import play.api.mvc._
@@ -11,16 +12,33 @@ import scala.Some
 import play.api.test.FakeHeaders
 import scala.Some
 import org.bson.types.ObjectId
+import common.seed.SeedDb
+import org.specs2.specification.{Step, Fragments}
 
 
 /**
  * Base class for tests
  *
  */
-abstract class BaseTest extends Specification {
+trait BaseTest extends Specification {
 
   // From standard fixture data
   val token = "test_token"
+
+  val isLocalDb: Boolean = {
+    ConfigLoader.get("mongodb.default.uri") match {
+      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907.mongolab.com:35907/sib")
+      case None => false
+    }
+  }
+  def initDB = if (isLocalDb){
+    SeedDb.emptyData()
+    SeedDb.seedData("conf/seed-data/test")
+  }else{
+    throw new RuntimeException("You're trying to seed against a remote db - bad idea")
+  }
+  PlaySingleton.start()
+  override def map(fs: => Fragments) = Step(initDB) ^ fs
 
   /**
    * Decorate play.api.mvc.Result with some helper methods
@@ -32,9 +50,6 @@ abstract class BaseTest extends Specification {
   }
 
   implicit def resultToResultHelper(result: Result) = new ResultHelper(result)
-
-
-  PlaySingleton.start()
 
   def tokenize(url: String, tkn : String = token): String = url + "?access_token=" + tkn
 

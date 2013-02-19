@@ -6,16 +6,14 @@ import qti.models._
 import models._
 import models.itemSession._
 import org.bson.types.ObjectId
-import tests.PlaySingleton
+import tests.{BaseTest, PlaySingleton}
 import org.joda.time.DateTime
 import utils.MockXml
 import models.StringItemResponse
 import scala.Some
 import play.api.libs.json.Json._
 
-class SessionDataTest extends Specification {
-
-  PlaySingleton.start()
+class SessionDataTest extends BaseTest {
 
   def createEmptyItemBody = ItemBody(Seq(), Seq())
 

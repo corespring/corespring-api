@@ -3,7 +3,7 @@ package tests.models
 import org.specs2.mutable.Specification
 import models._
 import org.bson.types.ObjectId
-import tests.PlaySingleton
+import tests.{BaseTest, PlaySingleton}
 import models.ItemSession._
 import play.api.libs.json.Json.toJson
 import play.api.libs.json.{Json, JsValue}
@@ -15,10 +15,7 @@ import scala.Right
 import org.joda.time.DateTime
 import xml.Elem
 
-class ItemSessionTest extends Specification {
-
-  PlaySingleton.start()
-
+class ItemSessionTest extends BaseTest {
 
   val DummyXml = scala.xml.XML.loadFile("test/mockXml/item-session-test-one.xml")
 

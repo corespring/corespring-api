@@ -37,10 +37,10 @@ class VersioningTest extends BaseTest{
     val data = Item.findOneById(new ObjectId("511275564924c9ca07b97043")).get.data.get
     val vf = data.files.find(_.isInstanceOf[VirtualFile]).get.asInstanceOf[VirtualFile]
     val contentIsCorrect = vf.content == content
-    vf.content = vf.content.replace("quarters","pennies")
-    Item.update(MongoDBObject("_id" -> new ObjectId("511275564924c9ca07b97043")),
-      MongoDBObject(Item.data -> grater[Resource].asDBObject(data)),
-      false,false,Item.defaultWriteConcern)
+//    vf.content = vf.content.replace("quarters","pennies")
+//    Item.update(MongoDBObject("_id" -> new ObjectId("511275564924c9ca07b97043")),
+//      MongoDBObject(Item.data -> grater[Resource].asDBObject(data)),
+//      false,false,Item.defaultWriteConcern)
     contentIsCorrect must beTrue
   }
 
@@ -75,10 +75,10 @@ class VersioningTest extends BaseTest{
     val data = Item.findOneById(new ObjectId("511156d38604c9f77da9739d")).get.data.get
     val vf = data.files.find(_.isInstanceOf[VirtualFile]).get.asInstanceOf[VirtualFile]
     val contentIsCorrect = vf.content == content
-    vf.content = vf.content.replace("skittles","the rainbow")
-    Item.update(MongoDBObject("_id" -> new ObjectId("511275564924c9ca07b97043")),
-      MongoDBObject(Item.data -> grater[Resource].asDBObject(data)),
-      false,false,Item.defaultWriteConcern)
+//    vf.content = vf.content.replace("skittles","the rainbow")
+//    Item.update(MongoDBObject("_id" -> new ObjectId("511275564924c9ca07b97043")),
+//      MongoDBObject(Item.data -> grater[Resource].asDBObject(data)),
+//      false,false,Item.defaultWriteConcern)
     contentIsCorrect must beTrue
 
   }

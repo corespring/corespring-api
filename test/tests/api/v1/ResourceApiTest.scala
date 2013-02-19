@@ -15,9 +15,9 @@ import play.api.mvc.SimpleResult
 import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
 import tests.BaseTest
+import org.bson.types.ObjectId
 
 class ResourceApiTest extends BaseTest {
-
 
   def testItemId : String = testItem.id.toString
 
@@ -124,11 +124,11 @@ class ResourceApiTest extends BaseTest {
     }
 
     "update a file in Item.data" in {
-
-      val create = testRoutes.createDataFile(testItemId)
+      val noSessionItem = "511275564924c9ca07b97043"
+      val create = testRoutes.createDataFile(noSessionItem)
       val file = VirtualFile("data.txt", "text/txt", isMain = false, content = "f0")
-      val update = testRoutes.updateDataFile(testItemId, "data.txt")
-      assertUpdate(create, update, file, ( _ => testItem.data.get))
+      val update = testRoutes.updateDataFile(noSessionItem, "data.txt")
+      assertUpdate(create, update, file, ( _ => Item.findOneById(new ObjectId(noSessionItem)).get.data.get))
     }
 
     def assertUpdate(create:Call,update:Call, file: VirtualFile, resourceFn : ( Unit => Resource)) = {
@@ -138,7 +138,6 @@ class ResourceApiTest extends BaseTest {
       val updateFile = VirtualFile("newName2.txt", "text/txt", isMain = false, content = "new content")
       val result = makeFileRequest(updateFile, update.url, update.method)
       status(result) must equalTo(OK)
-      val item = testItem
 
       resourceFn().files.find(_.name == updateFile.name) match {
         case Some(f) => {

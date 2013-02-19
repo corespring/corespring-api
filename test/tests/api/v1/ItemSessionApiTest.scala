@@ -10,7 +10,7 @@ import play.api.mvc.Result
 import play.api.test.FakeRequest
 import org.specs2.mutable._
 import play.api.test.Helpers._
-import tests.PlaySingleton
+import tests.{BaseTest, PlaySingleton}
 import api.ApiError
 import qti.models._
 import scala.Left
@@ -23,13 +23,9 @@ import scala.Right
 import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
 
-class ItemSessionApiTest extends Specification {
-
-  PlaySingleton.start()
+class ItemSessionApiTest extends BaseTest {
 
   val Routes = api.v1.routes.ItemSessionApi
-
-  val token = "test_token"
 
   lazy val FakeAuthHeader = FakeHeaders(Map("Authorization" -> Seq("Bearer " + token)))
 

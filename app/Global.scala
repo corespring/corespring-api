@@ -107,9 +107,7 @@ object Global extends GlobalSettings {
         throw new RuntimeException("You're trying to seed against a remote db - bad idea")
     }
 
-    if (Play.isTest(app)) {
-      onlyIfLocalDb(seedTestData)
-    } else {
+    if(!Play.isTest(app)) {
       if (Play.isDev(app) && initData) {
         onlyIfLocalDb(seedDevData)
       } else if(Play.isProd(app) && initData) {
@@ -139,12 +137,6 @@ object Global extends GlobalSettings {
       case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907.mongolab.com:35907/sib")
       case None => false
     }
-  }
-
-
-  private def seedTestData() {
-    emptyData()
-    seedData("conf/seed-data/test")
   }
 
   private def seedDevData() {

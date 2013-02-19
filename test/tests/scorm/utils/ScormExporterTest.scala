@@ -5,11 +5,9 @@ import scorm.utils.ScormExporter
 import java.io.{FileNotFoundException, File}
 import models.Item
 import org.bson.types.ObjectId
-import tests.PlaySingleton
+import tests.{BaseTest, PlaySingleton}
 
-class ScormExporterTest extends Specification {
-
-  PlaySingleton.start()
+class ScormExporterTest extends BaseTest {
 
   val MockZipFolder = "test/mockZip"
 
