@@ -11,12 +11,12 @@ import org.joda.time.DateTime
 import play.api._
 import play.api.Play.current
 import JsonImporter._
+import quiz.basic.Quiz
 import web.models.QtiTemplate
 import basiclti.models.{LtiLaunchConfiguration, Assignment}
 import developer.models.RegistrationToken
 
 object SeedDb {
-
 
   private lazy val collections: List[MongoCollection] = List(
     Content.collection,
@@ -31,7 +31,8 @@ object SeedDb {
     Organization.collection,
     QtiTemplate.collection,
     LtiLaunchConfiguration.collection,
-    RegistrationToken.collection
+    RegistrationToken.collection,
+    Quiz.collection
   )
 
 

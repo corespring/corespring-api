@@ -9,10 +9,12 @@ import com.mongodb.casbah.commons.MongoDBObject
 import play.api.Play.current
 import models.mongoContext._
 import models.quiz.{BaseParticipant, BaseQuestion}
+import play.api.libs.json.{JsObject, Writes, JsValue, Reads}
+import common.models.json.jerkson.{JerksonReads, JerksonWrites}
 
 case class Participant(itemSessions: Seq[ObjectId],
-                       uid: String,
-                       metadata: Map[String, String]) extends BaseParticipant(itemSessions, uid)
+                       externalUid: String,
+                       metadata: Map[String, String]) extends BaseParticipant(itemSessions, externalUid)
 
 case class Question(itemId: ObjectId,
                     settings: ItemSessionSettings) extends BaseQuestion(itemId, settings)
@@ -26,6 +28,12 @@ case class Quiz(orgId: Option[ObjectId] = None,
 
 object Quiz {
 
+  implicit object Writes extends JerksonWrites[Quiz]
+
+  implicit object Reads extends JerksonReads[Quiz] {
+    def manifest = Manifest.classType(new Quiz().getClass)
+  }
+
   /** Hide the dao - it provides too many options
     * By hiding it we can thin out the client api for quiz
     */
@@ -38,11 +46,19 @@ object Quiz {
     Dao.save(q)
   }
 
-  def count(query: DBObject = MongoDBObject(), fields: List[String] = List()): Long = Dao.count(query, fields)
+  def count(query: DBObject = MongoDBObject(),
+            fields: List[String] = List()): Long =
+    Dao.count(query, fields)
 
   def removeAll() {
     Dao.remove(MongoDBObject())
   }
 
-  def findOneById(id:ObjectId) = Dao.findOneById(id)
+  def remove(q:Quiz) {
+    Dao.remove(q)
+  }
+
+  def findOneById(id: ObjectId) = Dao.findOneById(id)
+
+  def collection = Dao.collection
 }

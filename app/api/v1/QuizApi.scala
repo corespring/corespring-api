@@ -2,9 +2,9 @@ package api.v1
 
 import org.bson.types.ObjectId
 import controllers.auth.BaseApi
-import securesocial.core.SecuredRequest
-import play.api.mvc.{Action, Result, AnyContent}
+import play.api.mvc.Result
 import models.quiz.basic.Quiz
+import play.api.libs.json.Json._
 
 object QuizApi extends BaseApi {
 
@@ -23,9 +23,9 @@ object QuizApi extends BaseApi {
       Ok("not ready")
   }
 
-  def read(id: ObjectId) = ApiAction{
+  def get(id: ObjectId) = ApiAction{
     request => WithQuiz(id, request.ctx.organization){ quiz =>
-      Ok("not ready")
+      Ok(toJson(quiz))
     }
   }
 

@@ -6,20 +6,18 @@ import models.quiz.basic.Quiz
 
 class QuizTest extends Specification {
 
-  PlaySingleton.start
+  PlaySingleton.start()
 
   "Quiz" should {
-    "save" in new cleanDb {
+    "save" in {
+
+      val count = Quiz.count()
       val q = Quiz()
       Quiz.create(q)
-      Quiz.count() === 1
+      Quiz.count() === (count + 1)
+      Quiz.remove(q)
+      Quiz.count() === count
     }
   }
 }
 
-class cleanDb extends After {
-
-  def after {
-    Quiz.removeAll()
-  }
-}

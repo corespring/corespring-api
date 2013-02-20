@@ -1,6 +1,6 @@
 package tests.api.v1
 
-import play.api.mvc.{Call, AnyContent}
+import play.api.mvc.AnyContent
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import play.api.libs.json._
@@ -17,70 +17,51 @@ import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
 import scala.Some
 import controllers.InternalError
-import play.api.test.FakeHeaders
 import scala.Right
 import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
 import models.itemSession.{StringItemResponse, ItemSessionSettings, ItemSession}
+import utils.RequestCalling
 
-class ItemSessionApiTest extends Specification {
+class ItemSessionApiTest extends Specification with RequestCalling {
 
   PlaySingleton.start()
 
   val Routes = api.v1.routes.ItemSessionApi
-
-  val token = "test_token"
-
-  lazy val FakeAuthHeader = FakeHeaders(Map("Authorization" -> Seq("Bearer " + token)))
 
   object IDs {
     val Item: String = "511156d38604c9f77da9739d"
     val ItemSession: String = "51116bc7a14f7b657a083c1d"
   }
 
-  def invokeCall(call: Call, content: AnyContent, args: (String, String)*): ItemSession = {
-
-    val url = call.url + "?" + args.toList.map((a: (String, String)) => a._1 + "=" + a._2).mkString("&")
-    println("calling: " + call.method + " " + url)
-    val request = FakeRequest(
-      call.method,
-      url,
-      FakeAuthHeader,
-      content)
-
-    val result = routeAndCall(request).get
-    val json: JsValue = Json.parse(contentAsString(result))
-    Json.fromJson[ItemSession](json)
-  }
-
   def createNewSession(itemId: String = IDs.Item, content: AnyContent = AnyContentAsEmpty): ItemSession = {
-    invokeCall(
+    invokeCall[ItemSession](
       Routes.create(new ObjectId(itemId)),
       content
     )
   }
 
   def get(sessionId: String, itemId: String): ItemSession = {
-    invokeCall(Routes.get(new ObjectId(itemId), new ObjectId(sessionId)), AnyContentAsEmpty)
+    invokeCall[ItemSession](Routes.get(new ObjectId(itemId), new ObjectId(sessionId)), AnyContentAsEmpty)
   }
 
   def processResponse(session: ItemSession): ItemSession = {
-    invokeCall(
+    invokeCall[ItemSession](
       Routes.update(session.itemId, session.id),
       AnyContentAsJson(Json.toJson(session))
     )
   }
 
   def update(session: ItemSession): ItemSession = {
-    invokeCall(
+    invokeCall[ItemSession](
       Routes.update(session.itemId, session.id),
       AnyContentAsJson(Json.toJson(session)),
       ("action", "updateSettings")
     )
   }
 
-  def begin(s: ItemSession) = {
-    invokeCall(
+  def begin(s: ItemSession) : ItemSession = {
+    invokeCall[ItemSession](
       Routes.update(s.itemId, s.id),
       AnyContentAsJson(Json.toJson(s)),
       ("action", "begin")
@@ -210,7 +191,7 @@ class ItemSessionApiTest extends Specification {
     )
     val result = routeAndCall(getRequest).get
     ItemSession.remove(newSession)
-    val optQtiItem: Either[InternalError, QtiItem] = ItemSession.getXmlWithFeedback( ItemSession.findOneById(newSession.id).get) match {
+    val optQtiItem: Either[InternalError, QtiItem] = ItemSession.getXmlWithFeedback(ItemSession.findOneById(newSession.id).get) match {
       case Right(elem) => Right(QtiItem(elem))
       case Left(e) => Left(e)
     }
@@ -227,7 +208,7 @@ class ItemSessionApiTest extends Specification {
       }
     }
 
-    def getFeedbackContents(result: Result): Option[Seq[(String,JsValue)]] = {
+    def getFeedbackContents(result: Result): Option[Seq[(String, JsValue)]] = {
 
       val json: JsValue = Json.parse(contentAsString(result))
 
@@ -271,63 +252,6 @@ class ItemSessionApiTest extends Specification {
         case _ => failure("couldn't find contents")
       }
 
-      /*val json: JsValue = Json.parse(contentAsString(result))
-
-      (json \ "sessionData") match {
-        case JsObject(sessionData) => sessionData.find(field => field._1 == "feedbackContents") match {
-          case Some((_, jsfeedbackContents)) => jsfeedbackContents match {
-            case JsObject(feedbackContents) => optQtiItem match {
-              case Right(qtiItem) =>
-                val feedbackBlocks = qtiItem.itemBody.feedbackBlocks
-                val feedbackInlines = qtiItem.itemBody.interactions.map(i => i match {
-                  case ChoiceInteraction(_, choices) => choices.map(choice => choice.feedbackInline)
-                  case OrderInteraction(_, choices) => choices.map(choice => choice.feedbackInline)
-                  case InlineChoiceInteraction(_, choices) => choices.map(choice => choice.feedbackInline)
-                  case TextEntryInteraction(_, _, blocks) => List(blocks)
-                  case _ => throw new RuntimeException("unknown interaction")
-                }).flatten.flatten ++ feedbackBlocks
-
-                def feedbackInlineContent(fi: FeedbackInline) = if (fi.defaultFeedback) fi.defaultContent(qtiItem) else fi.content
-
-                def valueContains(feedbackInline: Option[FeedbackInline], value: JsValue): Boolean = feedbackInline match {
-                  case Some(fb) => {
-                    val fbContent = feedbackInlineContent(fb)
-
-                    value match {
-                      case JsArray(values) => values.contains(JsString(fbContent))
-                      case JsString(value) => value == fbContent
-                      case _ => false
-                    }
-                  }
-                  case _ => false
-                }
-
-
-                def allFeedbackItemsArePresent(contents: Seq[(String, JsValue)], feedbacks: Seq[FeedbackInline]) = {
-                  contents.foldRight[Boolean](true)((field, acc) => {
-
-                    val fieldId = field._1
-                    val fieldValue = field._2
-
-                    if (acc) {
-                      val maybeFeedbackInline = feedbacks.find(fieldId == _.csFeedbackId)
-                      valueContains(maybeFeedbackInline, fieldValue)
-                    } else {
-                      false
-                    }
-                  })
-                }
-
-                if (allFeedbackItemsArePresent(feedbackContents, feedbackInlines)) success else failure
-
-              case Left(_) => failure
-            }
-            case _ => failure
-          }
-          case _ => failure
-        }
-        case _ => failure
-      }*/
     }
 
     def getCorrectResponses(result: Result): Seq[JsValue] = {
