@@ -2,7 +2,6 @@ package models.item
 
 import play.api.libs.json._
 import controllers.JsonValidationException
-import models.item.FieldValue
 
 
 case class ContributorDetails(
