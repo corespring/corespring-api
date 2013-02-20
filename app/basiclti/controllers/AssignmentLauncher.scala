@@ -6,7 +6,7 @@ import basiclti.models.{LtiLaunchConfiguration, LtiData, Assignment, LtiOAuthCon
 import play.api.libs.ws.WS
 import play.api.libs.oauth.{RequestToken, ConsumerKey, OAuthCalculator}
 import org.bson.types.ObjectId
-import models.{Organization, ItemSessionSettings, ItemSession}
+import models.{Organization}
 import play.api.libs.json.Json._
 import basiclti.controllers.routes.{AssignmentPlayer => AssignmentPlayerRoutes}
 import basiclti.controllers.routes.{AssignmentLauncher => AssignmentLauncherRoutes}
@@ -14,6 +14,7 @@ import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
 import common.controllers.utils.BaseUrl
 import models.auth.{AccessToken, ApiClient}
 import controllers.auth.{OAuthConstants, BaseApi}
+import models.itemSession.{ItemSessionSettings, ItemSession}
 
 /**
  * Handles the launching of corespring items via the LTI 1.1 launch specification.

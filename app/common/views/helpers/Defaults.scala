@@ -1,8 +1,8 @@
 package common.views.helpers
 
 import com.mongodb.casbah.commons.MongoDBObject
-import models.FieldValue
 import web.controllers.utils.ConfigLoader
+import models.item.FieldValue
 
 object Defaults{
 

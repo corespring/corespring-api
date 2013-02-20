@@ -1,12 +1,8 @@
 package models.item
 
 import play.api.libs.json._
-import models.KeyValue
-import models.FieldValue
-import controllers.JsonValidationException
 import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
-import scala.Some
 
 case class Alignments(bloomsTaxonomy: Option[String] = None,
                       keySkills: Seq[String] = Seq(),

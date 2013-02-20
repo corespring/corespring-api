@@ -3,12 +3,12 @@ package tests.publicsite.controllers
 import tests.PlaySingleton
 import org.specs2.mutable.Specification
 import play.api.test.Helpers._
-import models.Item
 import models.item._
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.mvc.Result
 import play.api.mvc.AnyContent
+import scala.Some
 
 class ExampleContentTest extends Specification {
 

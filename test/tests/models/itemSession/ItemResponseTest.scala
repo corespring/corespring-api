@@ -1,13 +1,13 @@
-package tests.models
+package tests.models.itemSession
 
 import org.specs2.mutable.Specification
-import models.{ArrayItemResponse, ItemResponseOutcome, ItemResponse}
 import play.api.libs.json._
 import play.api.libs.json.Json._
 import play.api.libs.json.JsArray
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import scala.Some
+import models.itemSession.{ItemResponseOutcome, ArrayItemResponse, ItemResponse}
 
 class ItemResponseTest extends Specification {
 

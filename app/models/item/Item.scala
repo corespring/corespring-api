@@ -1,18 +1,20 @@
-package models
+package models.item
 
-import json.ItemView
 import play.api.Play.current
 import org.bson.types.ObjectId
 import com.mongodb.casbah.Imports._
+import models.mongoContext._
 import controllers._
+import resource.{VirtualFile, BaseFile, Resource}
 import scala.Either
-import mongoContext._
 import com.mongodb.util.{JSONParseException, JSON}
 import controllers.InternalError
 import scala.Left
 import scala.Right
 import play.api.libs.json._
 import com.novus.salat._
+import dao.SalatDAOUpdateError
+import dao.SalatMongoCursor
 import dao.{ModelCompanion, SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
 import controllers.auth.Permission
 import play.api.Logger
@@ -21,6 +23,13 @@ import dao.{SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
 import controllers.auth.Permission
 import org.joda.time.DateTime
 import models.item._
+import models._
+import models.json.ItemView
+import controllers.InternalError
+import scala.Left
+import scala.Some
+import scala.Right
+import controllers.JsonValidationException
 
 
 case class Item(

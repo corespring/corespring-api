@@ -1,9 +1,9 @@
-package tests.models
+package tests.models.itemSession
 
 import org.specs2.mutable.Specification
-import models.{ItemSession, ItemSessionSettings}
 import play.api.libs.json.{Json, JsObject}
 import tests.PlaySingleton
+import models.itemSession.{ItemSessionSettings, ItemSession}
 
 class ItemSessionSettingsTest extends Specification {
 
