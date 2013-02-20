@@ -119,8 +119,10 @@ PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessio
 GET    /testplayer/item/:itemId/render-in-frame     testplayer.controllers.ItemPlayer.renderAsIframe(itemId)
 GET    /testplayer/item/:itemId/render              testplayer.controllers.ItemPlayer.renderItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
 GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
+GET    /testplayer/item/:itemId/aggregate           testplayer.controllers.ItemPlayer.renderAsAggregate(itemId)
 GET    /testplayer/item/:itemId/:filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
 GET    /testplayer/session/:sessionId/run           testplayer.controllers.ItemPlayer.previewItemBySessionId(sessionId, printMode: Boolean ?= false)
+GET    /testplayer/session/:sessionId/instructor    testplayer.controllers.ItemPlayer.renderAsInstructor(sessionId)
 GET    /testplayer/session/:sessionId/render        testplayer.controllers.ItemPlayer.renderItemBySessionId(sessionId, printMode: Boolean ?= false)
 GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
 GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes
@@ -131,7 +133,6 @@ GET    /scorm-player/session/:sessionId/run         scorm.controllers.ScormPlaye
 GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : ObjectId, filename)
 
 # Instructor View Routes
-GET    /testplayer/instructor/:itemId                 testplayer.controllers.ItemPlayer.renderAsInstructor(itemId)
 POST   /api/v1/aggregate                              api.v1.ItemSessionApi.aggregate
 
 # Web tier

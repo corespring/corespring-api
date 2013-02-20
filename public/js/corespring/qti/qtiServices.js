@@ -1,5 +1,21 @@
 'use strict';
 
+qtiServices.factory('AggregateService', ['$resource', function ($resource) {
+  var api = TestPlayerRoutes.api.v1.ItemSessionApi;
+  console.log(api);
+  var calls  = {
+    aggregate: api.aggregate()
+  };
+
+  var AggregateService = $resource(
+    calls.aggregate.url,
+    {},
+    {aggregate: {method: 'POST', isArray: false}}
+  );
+
+  return AggregateService;
+}]);
+
 qtiServices.factory('AssessmentSessionService', ['$resource', function ($resource) {
 
     var mockData = {

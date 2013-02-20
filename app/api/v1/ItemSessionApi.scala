@@ -3,24 +3,64 @@ package api.v1
 import controllers.auth.{Permission, BaseApi}
 import play.api.libs.json.Json._
 import api.ApiError
-import org.bson.types.ObjectId
 import models._
 import com.mongodb.casbah.Imports._
 import controllers.{Log, Utils}
 import scala.Left
 import scala.Some
 import scala.Right
-import xml.Elem
-import play.api.Play.current
-import play.api.Logger
-import qti.processors.FeedbackProcessor
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.AnyContent
+import play.api.libs.json.JsObject
 
 
 /**
  * API for managing item sessions
  */
 object ItemSessionApi extends BaseApi {
+
+
+  def aggregate = ApiAction {
+    request =>
+      request.body.asJson match {
+        case Some(x) =>
+          val sessionIds = (x \ "sessions").as[List[String]]
+          val list = aggregateSessions(sessionIds).toList.map(p => (p._1, toJson(p._2)))
+          Ok(JsObject(list))
+
+        case None =>
+          BadRequest("Need session ids in POST payload")
+      }
+
+  }
+
+  private def aggregateSessions(sessionIds: List[String]): Map[String, ItemResponseAggregate] = {
+    val agg: scala.collection.mutable.Map[String, ItemResponseAggregate] = scala.collection.mutable.Map()
+    sessionIds.foreach {
+      p =>
+        val oid = new ObjectId(p)
+        ItemSession.get(oid) match {
+          case Some(session) =>
+            session.responses.foreach {
+              resp =>
+                if (agg.contains(resp.id)) {
+                  agg(resp.id) = agg(resp.id).aggregate(resp)
+                } else {
+                  val correctResponses = session.sessionData match {
+                    case Some(sd) => sd.correctResponses
+                    case None => Seq()
+                  }
+                  val cr = correctResponses.find(_.id == resp.id) match {
+                    case Some(r: ArrayItemResponse) => r.responseValue
+                    case Some(r: StringItemResponse) => Seq(r.responseValue)
+                    case None => Seq()
+                  }
+                  agg(resp.id) = ItemResponseAggregate(resp.id, cr)
+                }
+            }
+        }
+    }
+    agg.toMap
+  }
 
 
   def list(itemId: ObjectId) = ApiAction {
@@ -32,9 +72,9 @@ object ItemSessionApi extends BaseApi {
   }
 
 
-  def update(itemId:ObjectId, sessionId:ObjectId, action : Option[String]) = action match {
+  def update(itemId: ObjectId, sessionId: ObjectId, action: Option[String]) = action match {
     case Some("begin") => begin(itemId, sessionId)
-    case Some("updateSettings") => updateSettings(itemId,sessionId)
+    case Some("updateSettings") => updateSettings(itemId, sessionId)
     case _ => processResponse(itemId, sessionId)
   }
 
@@ -50,7 +90,7 @@ object ItemSessionApi extends BaseApi {
           if (Content.isAuthorized(request.ctx.organization, session.itemId, Permission.Read)) {
             Ok(toJson(session))
           } else {
-           Unauthorized(toJson(ApiError.UnauthorizedItemSession))
+            Unauthorized(toJson(ApiError.UnauthorizedItemSession))
           }
         }
         case _ => NotFound
@@ -69,7 +109,7 @@ object ItemSessionApi extends BaseApi {
           case Some(json) => {
             val jsonSession = fromJson[ItemSession](json)
             //We only pull in the settings from the request
-            ItemSession( itemId = itemId, settings = jsonSession.settings )
+            ItemSession(itemId = itemId, settings = jsonSession.settings)
           }
           case None => ItemSession(itemId)
         }
@@ -81,7 +121,6 @@ object ItemSessionApi extends BaseApi {
         Unauthorized(toJson(ApiError.UnauthorizedItemSession))
       }
   }
-
 
 
   def begin(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
@@ -144,7 +183,7 @@ object ItemSessionApi extends BaseApi {
    * @param request
    * @return
    */
-  private def requestAsData(request: ApiRequest[AnyContent], error : ApiError): Either[ApiError, ItemSession] = {
+  private def requestAsData(request: ApiRequest[AnyContent], error: ApiError): Either[ApiError, ItemSession] = {
     request.body.asJson match {
       case Some(json) => {
         json.asOpt[ItemSession] match {

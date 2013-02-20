@@ -83,6 +83,29 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
       )
   }
 
+  def renderAsAggregate(itemId: String) = ApiAction { request =>
+    println("Wired Sessions: ")
+    println(TempSessions.sessionList)
+
+
+    try {
+      getItemXMLByObjectId(itemId, request.ctx.organization) match {
+        case Some(xmlData: Elem) =>
+          val finalXml = prepareQti(xmlData, Aggregate)
+          Ok(testplayer.views.html.aggregatePlayer(itemId, finalXml, TempSessions.sessionList.map("'"+_+"'").toSeq, common.mock.MockToken))
+
+        case None =>
+          NotFound("not found")
+      }
+    } catch {
+      case e: SAXParseException => {
+        val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
+        Ok(testplayer.views.html.itemPlayerError(errorInfo))
+      }
+    }
+
+  }
+
   private object PlayerTemplates {
     def default(params: TemplateParams): play.api.templates.Html = {
       testplayer.views.html.itemPlayer(params._1, params._2, params._3, params._4, params._5)

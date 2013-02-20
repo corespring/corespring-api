@@ -1,0 +1,49 @@
+@(itemId: String,
+  itemBody: String,
+  sessionIds: Seq[String] = Seq(),
+  token : String = "")
+
+@scripts = {
+    <script src="/assets/js/corespring/qti/controllers/AggregateAppController.js"></script>
+}
+
+@bodyAttributes = @{ "ng-controller='AggregateAppController'" }
+
+@cssClass = @{
+    "assessment-page"
+}
+
+<!DOCTYPE html>
+<html ng-app="qti">
+    <head>
+        <title>@itemId</title>
+        @common.views.html.partials.ieEightSupport()
+        @partials.scripts(itemBody)
+
+        <script type="text/javascript">
+                angular.module('qti.services').factory('Config', [function(){
+                return {
+                itemId : "@itemId",
+                sessionIds : [@sessionIds.mkString(",")],
+                token : "@token"
+                }
+                }]);
+        </script>
+
+        @scripts
+            <!--
+    <script src="/assets/js/corespring/qti/controllers/QtiAppController.js"></script>
+    -->
+
+
+    </head>
+    <body @bodyAttributes >
+
+    <br/>
+    Aggregate Player
+
+    <div class="@cssClass" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">
+        @Html(itemBody)
+    </div>
+</body>
+</html>

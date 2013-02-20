@@ -1,5 +1,12 @@
 import _root_.controllers.ConcreteS3Service
+import _root_.models._
+import _root_.models.StringItemResponse
+import _root_.models.TempSessions.sessionList
+import _root_.models.ArrayItemResponse
+import org.joda.time.DateTime
 import play.api.mvc.Results._
+import scala.Some
+import util.Random
 import web.controllers.utils.ConfigLoader
 import common.seed.SeedDb._
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
@@ -9,6 +16,7 @@ import mvc._
 import mvc.SimpleResult
 import play.api.Play.current
 import play.api.Application
+
 
 /**
   */
@@ -146,11 +154,53 @@ object Global extends GlobalSettings {
     seedData("conf/seed-data/test")
   }
 
+
+  // TODO: remove this, this is only for testing purposes for the instructor view
+  private def addTestSessions() {
+
+    def chooseOneRandomly(items:Array[String]):String = {
+      val idx = new Random().nextInt(items.length)
+      items(idx)
+    }
+
+    def chooseNRandomly(items:Array[String]):Seq[String] = {
+      val chosenNumber = new Random().nextInt(items.length)
+      Random.shuffle(items.toSeq).take(chosenNumber).sortWith(_<_)
+    }
+
+    def upToNWords(base:String, n:Int):Seq[String] = {
+      for (i <- 0 to new Random().nextInt(n)) yield base + i.toString
+    }
+
+    val presidents = Array("obama", "cameron", "calderon")
+    val colors = Array("blue","violet","white","red")
+    val winterList = (Seq("york","York") ++ upToNWords("someWord", 10))
+
+    val rand = new Random()
+    for (i <- 1 to 10) {
+      println("Iteration: " + i)
+      val random_index = rand.nextInt(winterList.length)
+      val winter = winterList(random_index)
+
+      val response1 = ArrayItemResponse("mexicanPresident", Seq(chooseOneRandomly(presidents)))
+      val response2 = ArrayItemResponse("rainbowColors", chooseNRandomly(colors), None)
+      val response3 = StringItemResponse("winterDiscontent", winter)
+      println("Winter: "+winter)
+      val session = ItemSession(responses = Seq(response1, response2, response3), itemId = new ObjectId("507c9fb3a0eee12a21a88912"), finish = Some(new DateTime()))
+      sessionList ::= session.id.toString
+      ItemSession.save(session)
+    }
+  }
+
+
   private def seedDevData() {
     emptyData()
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/dev")
     seedData("conf/seed-data/exemplar-content")
+
+    // TODO: remove this, this is only for testing purposes for the instructor view
+    addTestSessions()
   }
 
 }

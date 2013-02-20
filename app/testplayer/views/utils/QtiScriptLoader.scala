@@ -17,13 +17,15 @@ object QtiScriptLoader {
   val jsPathMapping:Map[RenderingMode, String] = Map(
     Printing -> "js/corespring/qti/directives/print/",
     Web -> "js/corespring/qti/directives/web/",
-    Instructor -> "js/corespring/qti/directives/instructor/"
+    Instructor -> "js/corespring/qti/directives/instructor/",
+    Aggregate -> "js/corespring/qti/directives/aggregate/"
   )
 
   val cssPathMapping:Map[RenderingMode, String] = Map(
     Printing -> "stylesheets/qti/directives/print/",
     Web -> "stylesheets/qti/directives/web/",
-    Instructor -> "stylesheets/qti/directives/instructor/"
+    Instructor -> "stylesheets/qti/directives/instructor/",
+    Aggregate -> "stylesheets/qti/directives/aggregate/"
   )
 
 
