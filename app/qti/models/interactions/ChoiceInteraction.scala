@@ -2,18 +2,11 @@ package qti.models.interactions
 
 import choices.{Choice, SimpleChoice}
 import xml._
-import models.{ArrayItemResponse, StringItemResponse, ItemResponseOutcome, ItemResponse}
 import scala.Some
-import xml.transform.{RewriteRule, RuleTransformer}
-import scala.Null
-import scala.Some
-import xml.Text
-import scala.Some
-import qti.processors.FeedbackProcessor
 import qti.models.ResponseDeclaration
 import qti.models.QtiItem.Correctness
 import controllers.Log
-import testplayer.views.utils.QtiScriptLoader
+import models.itemSession._
 
 case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices{
   def getChoice(identifier: String):Option[Choice] = choices.find(_.identifier == identifier)

@@ -3,10 +3,10 @@ package basiclti.controllers
 import testplayer.controllers.QtiRenderer
 import basiclti.models.{LtiLaunchConfiguration, Assignment}
 import play.api.mvc.Action
-import models.ItemSession
 import controllers.auth.BaseApi
 import common.controllers.ItemResources
 import org.bson.types.ObjectId
+import models.itemSession.ItemSession
 
 object AssignmentPlayer extends BaseApi with QtiRenderer with ItemResources {
 

@@ -1,6 +1,5 @@
 package tests.api.v1
 
-import models.{StringItemResponse, ItemSessionSettings, ItemResponse, ItemSession}
 import play.api.mvc.{Call, AnyContent}
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
@@ -22,6 +21,7 @@ import play.api.test.FakeHeaders
 import scala.Right
 import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
+import models.itemSession.{StringItemResponse, ItemSessionSettings, ItemSession}
 
 class ItemSessionApiTest extends Specification {
 

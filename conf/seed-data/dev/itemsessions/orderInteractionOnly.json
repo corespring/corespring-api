@@ -6,7 +6,7 @@
     "itemId" : { "$oid" : "5069a57130044a796b864f20" },
     "responses" : [
         {
-            "_t" : "models.ArrayItemResponse",
+            "_t" : "models.itemSession.ArrayItemResponse",
             "_id" : "alphabet",
             "responseValue" : [
                 "d",

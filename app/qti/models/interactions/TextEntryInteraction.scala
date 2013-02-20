@@ -1,11 +1,10 @@
 package qti.models.interactions
 
-import xml.{NodeSeq, Elem, Node}
+import xml.Node
 import qti.models.ResponseDeclaration
-import models.{ArrayItemResponse, StringItemResponse, ItemResponseOutcome, ItemResponse}
 import qti.models.QtiItem.Correctness
 import controllers.Log
-import testplayer.views.utils.QtiScriptLoader
+import models.itemSession._
 
 case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int, feedbackBlocks: Seq[FeedbackInline]) extends Interaction {
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {

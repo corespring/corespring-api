@@ -2,8 +2,9 @@ package common.seed
 
 import _root_.models.auth.{AccessToken, ApiClient}
 import _root_.models._
-import _root_.models.Content
 import com.mongodb.casbah.MongoCollection
+import item.{Content, FieldValue}
+import itemSession.ItemSession
 import java.io.File
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
@@ -12,6 +13,7 @@ import play.api.Play.current
 import JsonImporter._
 import web.models.QtiTemplate
 import basiclti.models.{LtiLaunchConfiguration, Assignment}
+import developer.models.RegistrationToken
 
 object SeedDb {
 

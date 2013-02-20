@@ -2,6 +2,8 @@ package common.controllers
 
 import play.api.mvc.Results._
 import models._
+import item.{Content, Item}
+import item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
 import play.api.mvc.{Result, AnyContent, Request, Action}
 import org.bson.types.ObjectId
 import scala.Some

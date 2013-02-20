@@ -6,6 +6,7 @@ import org.bson.types.ObjectId
 import controllers.auth.BaseApi
 import models._
 import common.controllers.ItemResources
+import itemSession.ItemSession
 import play.api.mvc._
 import testplayer.models.ExceptionMessage
 import scala.Some

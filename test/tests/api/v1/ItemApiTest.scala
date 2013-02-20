@@ -7,6 +7,8 @@ import play.api.test.Helpers._
 import tests.BaseTest
 import models._
 import auth.AccessToken
+import item.Item
+import item.resource.{VirtualFile, Resource}
 import org.bson.types.ObjectId
 import controllers.{S3Service, Log}
 import scala.xml._

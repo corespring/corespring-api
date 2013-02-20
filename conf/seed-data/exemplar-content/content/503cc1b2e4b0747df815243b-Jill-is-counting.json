@@ -6,14 +6,14 @@
         "name": "data",
         "files": [
             {
-                "_t": "models.VirtualFile",
+                "_t": "models.item.resource.VirtualFile",
                 "name": "qti.xml",
                 "contentType": "text/xml",
                 "isMain": true,
                 "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceB</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n    <itemBody>\n            <p class=\"intro-2\">Jill is counting bundles of pennies. Each bundle has 100 pennies and she has 8 bundles.</p>\n            <div class=\"image-wrapper\"><img src=\"pennies.png\"/></div>\n        <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>Which shows the best way to count all of the pennies?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">100, 2, 200, 4, 400, 6, 600, 8, 800, 9, 900\n              <feedbackInline csFeedbackId='ChoiceA' identifier='ChoiceA' showHide='show'>Your answer.</feedbackInline>  \n            </simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">100, 200, 300, 400, 500, 600, 700, 800<feedbackInline csFeedbackId='ChoiceB' identifier='ChoiceB' showHide='show'>Correct!</feedbackInline></simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\">10, 20, 40, 80, 160, 320, 640, 1280<feedbackInline csFeedbackId='ChoiceC' identifier='ChoiceC' showHide='show'>Your answer.</feedbackInline></simpleChoice>\n            <simpleChoice identifier=\"ChoiceD\">100, 100, 100, 100, 100, 100, 100, 100<feedbackInline csFeedbackId='ChoiceD' identifier='ChoiceD' showHide='show'>Your answer.</feedbackInline></simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n\n</assessmentItem>"
             },
             {
-                "_t": "models.StoredFile",
+                "_t": "models.item.resource.StoredFile",
                 "name": "pennies.png",
                 "isMain": false,
                 "storageKey": "503cc1b2e4b0747df815243b/pennies.png",

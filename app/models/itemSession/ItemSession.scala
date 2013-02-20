@@ -1,12 +1,8 @@
-package models
+package models.itemSession
 
-import itemSession.SessionData
-import org.bson.types.ObjectId
 import se.radley.plugin.salat._
-import mongoContext._
 import org.joda.time.DateTime
 import play.api.libs.json._
-import play.api.Play.current
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import controllers.{LogType, InternalError}
@@ -15,10 +11,12 @@ import com.novus.salat._
 import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
 import play.api.Play
 import play.api.Play.current
-import akka.actor.FSM.->
 import scala.xml._
 import qti.processors.FeedbackProcessor
 import qti.models.QtiItem
+import models.mongoContext._
+import models.item._
+import models.item.resource._
 
 case class FeedbackIdMapEntry(csFeedbackId: String, outcomeIdentifier: String, identifier: String)
 

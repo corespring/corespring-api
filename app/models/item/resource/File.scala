@@ -1,4 +1,4 @@
-package models
+package models.item.resource
 
 import com.novus.salat.annotations.raw.Salat
 import play.api.libs.json._

@@ -1,20 +1,14 @@
-package models
+package models.item
 
 import play.api.Play.current
-import se.radley.plugin.salat._
-import play.api.libs.json._
-import com.novus.salat.dao.{SalatDAO, ModelCompanion}
-import org.bson.types.ObjectId
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
 
 import play.api.libs.json._
 import play.api.libs.json.JsString
-import com.novus.salat.dao.{SalatDAO, ModelCompanion}
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
-import mongoContext._
 import com.mongodb.casbah.Imports._
+import models.mongoContext._
+
 
 case class KeyValue(key: String, value: Any)
 
