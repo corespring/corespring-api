@@ -40,7 +40,6 @@ object SystemCheck extends Controller{
       AccessToken,
       ApiClient,
       ContentCollection,
-      DbVersion,
       FieldValue,
       ItemSession,
       Organization,
