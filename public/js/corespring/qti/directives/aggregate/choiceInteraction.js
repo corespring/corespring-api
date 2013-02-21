@@ -58,10 +58,13 @@ qtiDirectives.directive('choiceinteraction', function () {
       .replace(/<:*simpleChoice/gi, "<span simplechoice").replace(/<\/:*simpleChoice>/gi, "</span>")
       .replace(/<:*feedbackInline/gi, "<span feedbackinline").replace(/<\/:*feedbackInline>/gi, "</span>");
 
-    var newNode = isHorizontal ?
+    var newNode = "<div>Completion Rate: 100%</div>";
+
+    newNode = newNode + (isHorizontal ?
       ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction">' + prompt + '<div class="choice-wrap">' + finalContents + '</div></div><div style="clear: both"></div></div>')
       :
       ('<div class="choice-interaction" ng-class="{noResponse: noResponse}">' + prompt + finalContents + '</div>')
+    );
     element.html(newNode);
     return link;
   };
