@@ -1,7 +1,7 @@
 /** -- **/
 
 inlinechoiceinteraction.received-response .btn {
-	border: solid 2px #4055f8;
+	border: solid 2px #00ACCE;
 }
 inlinechoiceinteraction.correct-response .btn {
 	border: solid 2px #53C516;
@@ -16,6 +16,7 @@ p inlinechoiceinteraction {
 inlinechoiceinteraction.incorrect-response, inlinechoiceinteraction.correct-response, inlinechoiceinteraction.received-response {
 	display: inline;
 }
+
 inlinechoiceinteraction.correct-response > .feedback-float.show, inlinechoiceinteraction.incorrect-response > .feedback-float.show {
 width: 26px;
 height: 22px;
@@ -26,6 +27,7 @@ display: inline-block;
 cursor: pointer;
 margin-top: 25px !Important;
 }
+
 inlinechoiceinteraction.received-response > .feedback-float.show {
 	position: relative;
 	top: 0px;
@@ -52,7 +54,8 @@ inlinechoiceinteraction.incorrect-response > .feedback-float.show {
 .dropdown-menu{
     padding:3px 0px 0px 0px;
 }
-/*Changes for new inline to accomodate MathML - jmazza */
+
+
 .btn-group {
 	position: relative;
 	font-size: 0;
