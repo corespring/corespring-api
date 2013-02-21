@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <assessmentItem
-        identifier="mcas-16373" timeDependent="false" title="16373" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 imsqti_v2p1.xsd" toolName="SIB" adaptive="false" toolVersion="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1">
+        identifier="mcas-16373" timeDependent="false" title="16373"
+        xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 imsqti_v2p1.xsd" toolName="SIB" adaptive="false"
+        toolVersion="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1">
     <stylesheet type="text/css" href="css/mcas/default.css"></stylesheet>
     <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
     <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
@@ -18,38 +21,51 @@
     </responseDeclaration>
 
     <itemBody>
-        The first man on the moon was <inlineChoiceInteraction
-            responseIdentifier="manOnMoon"
-            required="false">
-            <inlineChoice identifier="armstrong">Neil Armstrong<feedbackInline identifier="armstrong" defaultFeedback="true"/></inlineChoice>
-            <inlineChoice identifier="aldrin">Buzz Aldrin<feedbackInline identifier="aldrin" defaultFeedback="true"/></inlineChoice>
-            <inlineChoice identifier="mathml">
+        <p>
+            The first man on the moon was
+            <inlineChoiceInteraction
+                    responseIdentifier="manOnMoon"
+                    required="false">
+                <inlineChoice identifier="armstrong">Neil Armstrong
+                    <feedbackInline identifier="armstrong" defaultFeedback="true"/>
+                </inlineChoice>
+                <inlineChoice identifier="aldrin">Buzz Aldrin
+                    <feedbackInline identifier="aldrin" defaultFeedback="true"/>
+                </inlineChoice>
+                <inlineChoice identifier="mathml">
 
-                <math xmlns="http://www.w3.org/1998/Math/MathML">
-                    <semantics>
-                        <mrow>
-                            <mn>2</mn>
-                            <mfrac>
-                                <mrow>
-                                    <mn>1</mn>
-                                </mrow>
-                                <mrow>
-                                    <mn>3</mn>
-                                </mrow>
-                            </mfrac>
-                        </mrow>
-                    </semantics>
-                </math>
+                    <math xmlns="http://www.w3.org/1998/Math/MathML">
+                        <semantics>
+                            <mrow>
+                                <mn>2</mn>
+                                <mfrac>
+                                    <mrow>
+                                        <mn>1</mn>
+                                    </mrow>
+                                    <mrow>
+                                        <mn>3</mn>
+                                    </mrow>
+                                </mfrac>
+                            </mrow>
+                        </semantics>
+                    </math>
 
-                <feedbackInline identifier="mathml" defaultFeedback="true"/>
-            </inlineChoice>
-        </inlineChoiceInteraction>, he landed there in 1969.
-        The second was <inlineChoiceInteraction
-            responseIdentifier="manOnMoon2"
-            required="false">
-        <inlineChoice identifier="armstrong2">Neil Armstrong<feedbackInline identifier="armstrong2" defaultFeedback="true"/></inlineChoice>
-        <inlineChoice identifier="aldrin2">Buzz Aldrin<feedbackInline identifier="aldrin2" defaultFeedback="true"/></inlineChoice>
-    </inlineChoiceInteraction>
+                    <feedbackInline identifier="mathml" defaultFeedback="true"/>
+                </inlineChoice>
+            </inlineChoiceInteraction>
+            , he landed there in 1969.
+            The second was
+            <inlineChoiceInteraction
+                    responseIdentifier="manOnMoon2"
+                    required="false">
+                <inlineChoice identifier="armstrong2">Neil Armstrong
+                    <feedbackInline identifier="armstrong2" defaultFeedback="true"/>
+                </inlineChoice>
+                <inlineChoice identifier="aldrin2">Buzz Aldrin
+                    <feedbackInline identifier="aldrin2" defaultFeedback="true"/>
+                </inlineChoice>
+            </inlineChoiceInteraction>
+        </p>
     </itemBody>
 
 </assessmentItem>
