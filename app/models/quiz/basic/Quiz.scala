@@ -46,6 +46,10 @@ object Quiz {
     Dao.save(q)
   }
 
+  def update(q : Quiz) {
+    Dao.save(q)
+  }
+
   def count(query: DBObject = MongoDBObject(),
             fields: List[String] = List()): Long =
     Dao.count(query, fields)
