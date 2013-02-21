@@ -1,4 +1,4 @@
-package models
+package models.itemSession
 
 import play.api.libs.json._
 import play.api.libs.json.JsString

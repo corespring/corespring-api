@@ -1,13 +1,13 @@
 package qti.models.interactions
 
 import xml.{Elem, NodeSeq, Node}
-import models.{ItemResponseOutcome, ItemResponse}
 import qti.models.{QtiItem, ResponseDeclaration}
 import testplayer.views.utils.QtiScriptLoader
 import qti.models.RenderingMode._
 import play.api.Play
 import play.api.Play.current
 import QtiScriptLoader.{jsPathMapping, cssPathMapping, css, script}
+import models.itemSession.{ItemResponseOutcome, ItemResponse}
 
 trait Interaction {
   val responseIdentifier: String
@@ -27,7 +27,7 @@ trait InteractionCompanion[T <: Interaction] {
   def parse(itemBody: Node): Seq[Interaction]
   def interactionMatch(e: Elem): Boolean = e.label == tagName
   def preProcessXml(interactionXml: Elem): NodeSeq = interactionXml
-  def getHeadHtml(mode:RenderingMode):String = InteractionHelper.getHeadHtml(tagName, mode)
+  def getHeadHtml(mode: RenderingMode): String = InteractionHelper.getHeadHtml(tagName, mode)
 }
 
 object Interaction {
@@ -39,13 +39,13 @@ object InteractionHelper {
     val jspath = jsPathMapping(mode)
     val csspath = cssPathMapping(mode)
 
-    def revertJsIfDoesntExist(name:String) = {
+    def revertJsIfDoesntExist(name: String) = {
       Play.getExistingFile("public/" + jspath + name + ".js") match {
         case Some(file) => "/assets/" + jspath + name + ".js"
         case None => "/assets/" + jsPathMapping(Web) + name + ".js"
       }
     }
-    def revertCssIfDoesntExist(name:String) = {
+    def revertCssIfDoesntExist(name: String) = {
       Play.getExistingFile("public/" + csspath + name + ".css") match {
         case Some(file) => "/assets/" + csspath + name + ".css"
         case None => "/assets/" + cssPathMapping(Web) + name + ".css"

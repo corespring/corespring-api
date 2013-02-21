@@ -1,7 +1,7 @@
 package publicsite.controllers
 
 import play.api.mvc.{Result, Action, Controller}
-import models.{Item, ContentCollection, Content}
+import models.{ContentCollection}
 
 import com.mongodb.BasicDBObject
 import com.mongodb.casbah.Imports._
@@ -9,6 +9,7 @@ import models.search.ItemSearch
 import play.api.libs.json.{Json, JsArray}
 import api.ApiError
 import controllers.Utils
+import models.item.Item
 
 object ExampleContent extends Controller {
 

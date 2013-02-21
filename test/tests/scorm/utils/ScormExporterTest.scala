@@ -3,9 +3,9 @@ package tests.scorm.utils
 import org.specs2.mutable.{BeforeAfter, Specification}
 import scorm.utils.ScormExporter
 import java.io.{FileNotFoundException, File}
-import models.Item
 import org.bson.types.ObjectId
 import tests.PlaySingleton
+import models.item.Item
 
 class ScormExporterTest extends Specification {
 

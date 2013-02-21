@@ -2,6 +2,8 @@ package web.controllers
 
 import play.api.mvc._
 import models._
+import item.Item
+import item.resource.{BaseFile, Resource}
 import org.bson.types.ObjectId
 import controllers.S3Service
 import com.typesafe.config.ConfigFactory

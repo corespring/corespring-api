@@ -1,12 +1,9 @@
-package models
+package models.item.resource
 
 import play.api.libs.json._
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import scala.Some
-import com.mongodb.casbah.commons.MongoDBObject
-import com.mongodb.BasicDBObject
-import controllers.{LogType, InternalError}
 
 
 /**
@@ -23,7 +20,6 @@ object Resource{
 
   implicit object ResourceWrites extends Writes[Resource] {
     def writes(res: Resource): JsValue = {
-      import BaseFile._
       JsObject(List(
         "name" -> JsString(res.name),
         "files" -> Json.toJson(res.files)

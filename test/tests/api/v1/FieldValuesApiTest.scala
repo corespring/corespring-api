@@ -2,6 +2,7 @@ package tests.api.v1
 
 import org.specs2.mutable.Specification
 import models._
+import item.FieldValue
 import org.bson.types.ObjectId
 import org.specs2.execute.Pending
 import play.api.libs.json._

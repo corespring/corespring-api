@@ -1,19 +1,21 @@
-package tests.models
+package tests.models.itemSession
 
 import org.specs2.mutable.Specification
 import models._
 import org.bson.types.ObjectId
 import tests.PlaySingleton
-import models.ItemSession._
+import models.itemSession.{ArrayItemResponse, StringItemResponse, ItemSessionSettings, ItemSession}
+import ItemSession._
 import play.api.libs.json.Json.toJson
 import play.api.libs.json.{Json, JsValue}
 import utils.MockXml
 import scala.Left
-import models.StringItemResponse
 import scala.Some
 import scala.Right
 import org.joda.time.DateTime
 import xml.Elem
+import models.item.Item
+import models.item.resource.{VirtualFile, Resource}
 
 class ItemSessionTest extends Specification {
 

@@ -9,6 +9,7 @@ import play.api.libs.json._
 import models._
 import controllers.auth.{BaseApi}
 import com.mongodb.casbah.Imports._
+import item.FieldValue
 import scala.Some
 import play.api.cache.Cache
 import controllers.Utils

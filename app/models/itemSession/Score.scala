@@ -1,4 +1,4 @@
-package models
+package models.itemSession
 
 import qti.models.QtiItem
 import qti.models.QtiItem.Correctness

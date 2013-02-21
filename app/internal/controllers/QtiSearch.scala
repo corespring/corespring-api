@@ -4,7 +4,8 @@ import controllers.auth.BaseApi
 import play.mvc.BodyParser
 import play.api.mvc.{Action, AnyContentAsFormUrlEncoded, BodyParsers}
 import play.mvc.BodyParser.FormUrlEncoded
-import models.{Organization, Item}
+import models.{Organization}
+import models.item.Item
 
 object QtiSearch extends BaseApi{
 

@@ -1,15 +1,13 @@
 package tests.models.itemSession
 
 import org.specs2.mutable.Specification
-import models.itemSession.SessionData
 import qti.models._
-import models._
 import models.itemSession._
 import org.bson.types.ObjectId
 import tests.PlaySingleton
 import org.joda.time.DateTime
 import utils.MockXml
-import models.StringItemResponse
+import models.itemSession.StringItemResponse
 import scala.Some
 import play.api.libs.json.Json._
 
