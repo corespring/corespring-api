@@ -6,9 +6,9 @@ import web.controllers.utils.ConfigLoader
 import scala.Some
 import scala.Tuple2
 
-import models.{Item, FieldValue}
 import com.mongodb.BasicDBObject
 import securesocial.core.SecureSocial
+import models.item.Item
 
 object Main extends Controller with SecureSocial {
 

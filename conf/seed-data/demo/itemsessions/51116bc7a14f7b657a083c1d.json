@@ -13,19 +13,19 @@
    },
    "responses":[
       {
-         "_t":"models.StringItemResponse",
+         "_t":"models.itemSession.StringItemResponse",
          "_id":"mexicanPresident",
          "responseValue":"calderon",
          "outcome":"{$score:1}"
       },
       {
-         "_t":"models.StringItemResponse",
+         "_t":"models.itemSession.StringItemResponse",
          "_id":"irishPresident",
          "responseValue":"guinness",
          "outcome":"{$score:0}"
       },
       {
-         "_t":"models.StringItemResponse",
+         "_t":"models.itemSession.StringItemResponse",
          "_id":"winterDiscontent",
          "responseValue":"York",
          "outcome":"{$score:1}"

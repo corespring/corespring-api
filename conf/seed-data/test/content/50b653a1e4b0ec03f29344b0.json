@@ -20,56 +20,56 @@
 		"name" : "data",
 		"files" : [
 			{
-				"_t" : "models.VirtualFile",
+				"_t" : "models.item.resource.VirtualFile",
 				"name" : "qti.xml",
 				"contentType" : "text/xml",
 				"isMain" : true,
 				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"string\"/>\n    \n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"string\"/>\n    \n    <responseDeclaration identifier=\"Q_03\" cardinality=\"single\" baseType=\"string\"/>\n    \n    <responseDeclaration identifier=\"Q_04\" cardinality=\"single\" baseType=\"string\"/>\n    \n    <responseDeclaration identifier=\"Q_05\" cardinality=\"single\" baseType=\"string\"/>\n\n<itemBody>\n    \n<h1 class=\"center\">Pond Weeds: Organizing, Presenting, and Analyzing Data</h1>            \n\n<p><br>The ecology club members decide to ﬁrst look at how weevils affect the growth of EWM. They conduct \nresearch on the Internet and ﬁnd a study conducted at Lake Bomoseen in Vermont during the summers of \n1993 and 1994. In the study, scientists collected weevils from other Vermont lakes and added the weevils \nto patches of EWM in Lake Bomoseen. The scientists added the weevils to two patches called <i>experimental \nsites</i> (with added weevils). The scientists made sure that a <i>control site</i> (no added weevils) was located near \neach experimental site. During the two-year period, the scientists added 20,000 weevils to the experimental \nsites on the lake.</br>\n<br>Each year, the scientists counted the number of weevils in a random 1 square meter (m<sup>2</sup>) sample at each site. \nData Table 1 below shows the data the scientists collected.</br></p>\n\n<div class=\"imagewrapper\"><img src=\"DataTable1.png\"/></div>\n\n<ol><p class=\"prompt\">Explain why the scientists counted the number of weevils at the experimental sites (with added weevils) and\nthe number of weevils at the control sites (no added weevils). Use speciﬁc examples in your explanation.</p>\n<extendedTextInteraction responseIdentifier=\"Q_01\" expectedLength=\"200\" class=\"answer-5-linebox\"/></ol>\n\n<p>At the end of the second year of the study, the scientists harvested, dried, and weighed an equal number of \nEWM stems from the experimental sites and the control sites. Data Table 2 below shows the average weight \nof the stems harvested from the control and experimental sites.</p>\n\n<div class=\"imagewrapper\"><img src=\"DataTable2.png\"/></div>\n\n<ol><p class=\"prompt\">Explain how the data in Data Table 2 supports or does not support (refutes) your prediction about how \nweevils affect EWM growth in a lake. Use speciﬁ c evidence from Data Table 2 to explain and support your \nanswer.</p>\n<extendedTextInteraction responseIdentifier=\"Q_02\" expectedLength=\"200\" class=\"answer-5-linebox\"/></ol>\n\n<p>The ecology club members wonder what would happen to the EWM in Two Island Lake if weevils had \npredators. While conducting Internet research, Lenore learns that sunﬁ sh eat weevils. The picture below \nshows a sunﬁsh eating a weevil on a stem of EWM.</p>\n\n<div class=\"imagewrapper\"><img src=\"weevil2.png\"/></div>\n\n<p>The club members decide to investigate the research question below.</p>\n\n<h3>Research Question 2:<br>How does sunfish predation of weevils affect the growth of EWM in a lake?</br></h3>\n\n<ol><p class=\"prompt\">Use what you have learned in this task to write a prediction about the relationship among the number of \nsunﬁsh, the number of weevils, and the growth of EWM in a lake. Use evidence to explain your prediction.</p>\n<extendedTextInteraction responseIdentifier=\"Q_03\" expectedLength=\"200\" class=\"answer-5-linebox\"/></ol>\n\n<p>Lenore ﬁnds another study conducted in Minnesota in 2000 and 2001. In the study, scientists investigated \nwhat happens to EWM when sunﬁsh feed on weevils in a lake. The scientists hypothesized that sunﬁ sh \npredation would decrease the number of weevils in a lake and therefore increase the amount of EWM in the \nlake. The scientists designed the experiment described below to test their hypothesis.</p>\n\n<h3>Step 1:</h3>\n<p>The scientists selected 10 patches of EWM that were next to and at the same depth as one another. \nThey placed a cage around each 1 square meter (m<sup>2</sup>) patch. They closed ﬁ ve of the cages so that \nsunﬁ sh bigger than 6 in. could not get in. They left the other ﬁ ve cages open so that all sunﬁ sh could \nget in. The picture below shows the setup of the experiment. Graph 1 on the next page shows the \nnumber of sunﬁ sh the scientists found inside the closed and open cages.</p>\n\n<h3>Step 2:</h3>\n<p>At the beginning of the growing seasons in 2000 and 2001, the scientists harvested random EWM \nstems from 10% of the area inside each 1 square meter (m<sup>2</sup>) cage. They counted the number of \nweevils on the stems from open and closed cages. At the end of each growing season, the scientists \nrepeated this process. Graph 2 on the next page shows how the numbers of weevils on stems from \nopen and closed cages compared.</p>\n\n<h3>Step 3:</h3>\n<p>The scientists also dried and weighed the EWM stems they collected at the beginning and end of \neach growing season. They compared the weight of the stems at the beginning and end of each \ngrowing season. Graph 3 on the next page shows the data the scientists collected.</p>\n\n<div class=\"imagewrapper\"><img src=\"experimental.png\"/></div>\n\n<div class=\"imagewrapper\"><img src=\"graph1.png\"/></div>\n\n<div class=\"imagewrapper\"><img src=\"graph2.png\"/></div>\n\n<div class=\"imagewrapper\"><img src=\"graph3.png\"/></div>\n\n<ol><p class=\"prompt\">The scientists hypothesized that sunﬁsh predation would decrease the number of weevils in a lake and \ntherefore increase the amount of EWM in the lake. Was their experiment a fair test of this hypothesis? \nProvide examples to support your answer and explain your reasoning.</p>\n<extendedTextInteraction responseIdentifier=\"Q_04\" expectedLength=\"200\" class=\"answer-5-linebox\"/></ol>\n\n<ol><p class=\"prompt\">What conclusions can you make about the relationship among the number of sunﬁsh, the number of \nweevils, and the growth of EWM in a lake? Use data from Graph 1, Graph 2, and Graph 3 to support your \nconclusions.</p>\n<extendedTextInteraction responseIdentier=\"Q_05\" expectedLength=\"200\" class=\"answer-5-linebox\"/></ol>\n\n\n    </itemBody>\n</assessmentItem>\n"
 			},
 			{
-				"_t" : "models.StoredFile",
+				"_t" : "models.item.resource.StoredFile",
 				"name" : "DataTable1.png",
 				"contentType" : "image/png",
 				"isMain" : false,
 				"storageKey" : "50b653a1e4b0ec03f29344b0/data/DataTable1.png"
 			},
 			{
-				"_t" : "models.StoredFile",
+				"_t" : "models.item.resource.StoredFile",
 				"name" : "DataTable2.png",
 				"contentType" : "image/png",
 				"isMain" : false,
 				"storageKey" : "50b653a1e4b0ec03f29344b0/data/DataTable2.png"
 			},
 			{
-				"_t" : "models.StoredFile",
+				"_t" : "models.item.resource.StoredFile",
 				"name" : "weevil2.png",
 				"contentType" : "image/png",
 				"isMain" : false,
 				"storageKey" : "50b653a1e4b0ec03f29344b0/data/weevil2.png"
 			},
 			{
-				"_t" : "models.StoredFile",
+				"_t" : "models.item.resource.StoredFile",
 				"name" : "experimental.png",
 				"contentType" : "image/png",
 				"isMain" : false,
 				"storageKey" : "50b653a1e4b0ec03f29344b0/data/experimental.png"
 			},
 			{
-				"_t" : "models.StoredFile",
+				"_t" : "models.item.resource.StoredFile",
 				"name" : "graph1.png",
 				"contentType" : "image/png",
 				"isMain" : false,
 				"storageKey" : "50b653a1e4b0ec03f29344b0/data/graph1.png"
 			},
 			{
-				"_t" : "models.StoredFile",
+				"_t" : "models.item.resource.StoredFile",
 				"name" : "graph2.png",
 				"contentType" : "image/png",
 				"isMain" : false,
 				"storageKey" : "50b653a1e4b0ec03f29344b0/data/graph2.png"
 			},
 			{
-				"_t" : "models.StoredFile",
+				"_t" : "models.item.resource.StoredFile",
 				"name" : "graph3.png",
 				"contentType" : "image/png",
 				"isMain" : false,

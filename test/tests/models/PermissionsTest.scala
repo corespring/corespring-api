@@ -14,6 +14,7 @@ import play.api.mvc.AnyContentAsJson
 import scala.Right
 import scala.Some
 import com.mongodb.casbah.commons.MongoDBObject
+import models.item.{Content, Item}
 
 class PermissionsTest extends BaseTest{
 

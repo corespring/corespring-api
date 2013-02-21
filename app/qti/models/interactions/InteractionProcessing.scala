@@ -7,7 +7,7 @@ import xml.Null
 import scala.Null
 import xml.Text
 import scala.Some
-import models.FeedbackIdMapEntry
+import models.itemSession.FeedbackIdMapEntry
 
 
 object InteractionProcessing {

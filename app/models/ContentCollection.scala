@@ -1,5 +1,6 @@
 package models
 
+import item.Content
 import org.bson.types.ObjectId
 import mongoContext._
 import se.radley.plugin.salat._
