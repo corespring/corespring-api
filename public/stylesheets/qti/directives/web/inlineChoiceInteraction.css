@@ -17,13 +17,14 @@ inlinechoiceinteraction.incorrect-response, inlinechoiceinteraction.correct-resp
 	display: inline;
 }
 inlinechoiceinteraction.correct-response > .feedback-float.show, inlinechoiceinteraction.incorrect-response > .feedback-float.show {
-	width: 26px;
-	height: 22px;
-	line-height: 30px;
-	position: relative;
-	top: 2px;
-	display: inline-block;
-	cursor: pointer;
+width: 26px;
+height: 22px;
+line-height: 30px;
+position: relative;
+top: 2px;
+display: inline-block;
+cursor: pointer;
+margin-top: 25px !Important;
 }
 inlinechoiceinteraction.received-response > .feedback-float.show {
 	position: relative;
@@ -46,6 +47,10 @@ inlinechoiceinteraction.incorrect-response > .feedback-float.show {
 }
 .dropdown-menu li {
 	list-style: none;
+}
+
+.dropdown-menu{
+    padding:3px 0px 0px 0px;
 }
 /*Changes for new inline to accomodate MathML - jmazza */
 .btn-group {
@@ -72,6 +77,13 @@ inlinechoiceinteraction div.btn-group ul.dropdown-menu li a {
 	font-weight: normal;
 	line-height: 20px;
 	padding: 3px 10px;
+}
+.btn-group ul.dropdown-menu li {
+    padding:0 0 5 0px;
+}
+
+.btn-group.open ul.dropdown-menu li {
+	padding:0 0 5px;
 }
 
 /*This line effects the font surrounding the inline elements. It is in place for testing since the actual structure does not support it yet. */
