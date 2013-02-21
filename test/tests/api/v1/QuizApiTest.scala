@@ -21,37 +21,59 @@ class QuizApiTest extends Specification with RequestCalling {
 
   "QuizApi" should {
     "get" in {
-      val q = Quiz(orgId = Some(orgId))
-      Quiz.create(q)
+      val q = createQuiz()
       val requestedQuiz = invokeCall[Quiz](Routes.get(q.id), AnyContentAsEmpty)
       requestedQuiz.id === q.id
     }
 
     "create" in {
-      val q = Quiz(orgId = Some(orgId), metadata = Map("course" -> "some course"))
+      val q = createQuiz(Map("course" -> "some course"))
       val json = AnyContentAsJson(Json.toJson(q))
       val createdQuiz = invokeCall[Quiz](Routes.create(), json)
       createdQuiz.metadata.get("course") === Some("some course")
     }
 
     "update" in {
-      val q = Quiz(orgId = Some(orgId), metadata = Map("course" -> "some course"))
-      Quiz.create(q)
-      val update = q.copy( metadata = Map("course" -> "some updated course"))
+      val q = createQuiz(Map("course" -> "some course"))
+      val update = q.copy(metadata = Map("course" -> "some updated course"))
       val json = AnyContentAsJson(Json.toJson(update))
       val updatedQuiz = invokeCall[Quiz](Routes.update(q.id), json)
       updatedQuiz.metadata.get("course") === Some("some updated course")
     }
 
-    "delete" in {
-      val q = Quiz(orgId = Some(orgId), metadata = Map("course" -> "some course"))
+    def createQuiz(metadata: Map[String, String] = Map()): Quiz = {
+      val q = Quiz(orgId = Some(orgId), metadata = metadata)
       Quiz.create(q)
+      q
+    }
 
-      val call : Call = Routes.delete(q.id)
+    "delete" in {
+      val q = createQuiz(Map("course" -> "some course"))
+
+      val call: Call = Routes.delete(q.id)
       routeAndCall(FakeRequest(call.method, call.url, FakeAuthHeader, AnyContentAsEmpty)) match {
         case Some(result) => {
           status(result) === OK
           Quiz.findOneById(q.id) === None
+        }
+        case _ => failure("Error deleting")
+      }
+    }
+
+    "list" in {
+
+      Quiz.removeAll()
+      createQuiz()
+      createQuiz()
+      createQuiz()
+
+      val call: Call = Routes.list()
+      routeAndCall(FakeRequest(call.method, call.url, FakeAuthHeader, AnyContentAsEmpty)) match {
+        case Some(result) => {
+          status(result) === OK
+          val json = Json.parse(contentAsString(result))
+          val quizzes: List[Quiz] = Json.fromJson[List[Quiz]](json)
+          quizzes.length === 3
         }
         case _ => failure("Error deleting")
       }

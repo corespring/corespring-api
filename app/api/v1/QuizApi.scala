@@ -61,4 +61,10 @@ object QuizApi extends BaseApi {
       }
     }
   }
+
+  def list() = ApiAction{
+    request =>
+      val quizzes = Quiz.findAllByOrgId(request.ctx.organization)
+      Ok(toJson(quizzes))
+  }
 }

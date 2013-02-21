@@ -119,6 +119,8 @@ GET     /api/v1/quizzes/:quizId                     api.v1.QuizApi.get(quizId:Ob
 PUT     /api/v1/quizzes/:quizId                     api.v1.QuizApi.update(quizId:ObjectId)
 DELETE  /api/v1/quizzes/:quizId                     api.v1.QuizApi.delete(quizId:ObjectId)
 POST    /api/v1/quizzes                             api.v1.QuizApi.create()
+GET     /api/v1/quizzes                             api.v1.QuizApi.list()
+
 # Item Rendering
 GET    /testplayer/item/:itemId/render-in-frame     testplayer.controllers.ItemPlayer.renderAsIframe(itemId)
 GET    /testplayer/item/:itemId/render              testplayer.controllers.ItemPlayer.renderItem(itemId, printMode: Boolean ?= false, settings : String ?= "")

@@ -28,6 +28,10 @@ case class Quiz(orgId: Option[ObjectId] = None,
 
 object Quiz {
 
+  private object Keys{
+    val orgId = "orgId"
+  }
+
   implicit object Writes extends JerksonWrites[Quiz]
 
   implicit object Reads extends JerksonReads[Quiz] {
@@ -65,4 +69,9 @@ object Quiz {
   def findOneById(id: ObjectId) = Dao.findOneById(id)
 
   def collection = Dao.collection
+
+  def findAllByOrgId(id:ObjectId) : List[Quiz] = {
+    val query = MongoDBObject(Keys.orgId -> id)
+    Dao.find(query).toList
+  }
 }
