@@ -5,7 +5,7 @@ import models.itemSession.ItemSessionSettings
 
 abstract class BaseParticipant(itemSessions: Seq[ObjectId], uid: String)
 
-abstract class BaseQuestion(itemId: ObjectId, settings: ItemSessionSettings)
+abstract class BaseQuestion(itemId: Option[ObjectId], settings: ItemSessionSettings)
 
 abstract class BaseQuiz(questions: Seq[BaseQuestion] = Seq(),
                            participants: Seq[BaseParticipant] = Seq(),

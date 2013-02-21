@@ -165,8 +165,8 @@ GET    /web/print-resource-profile/:itemId                  web.controllers.Main
 #
 # BasicLTI
 #
-GET     /lti/launch-config/:id                  basiclti.controllers.LaunchConfig.get(id:ObjectId)
-PUT     /lti/launch-config/:id                  basiclti.controllers.LaunchConfig.update(id:ObjectId)
+GET     /lti/launch-config/:id                  basiclti.controllers.LtiQuizzes.get(id:ObjectId)
+PUT     /lti/launch-config/:id                  basiclti.controllers.LtiQuizzes.update(id:ObjectId)
 GET     /lti/dev/test-harness                   basiclti.controllers.dev.TestHarness.begin
 POST    /lti/dev/prepare                        basiclti.controllers.dev.TestHarness.prepare
 POST    /lti/dev/grade-passback                 basiclti.controllers.dev.TestHarness.gradePassback

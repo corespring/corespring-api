@@ -13,7 +13,7 @@ import play.api.Play.current
 import JsonImporter._
 import quiz.basic.Quiz
 import web.models.QtiTemplate
-import basiclti.models.{LtiLaunchConfiguration, Assignment}
+import basiclti.models.{LtiQuiz, LtiLaunchConfiguration, Assignment}
 import developer.models.RegistrationToken
 
 object SeedDb {
@@ -30,7 +30,7 @@ object SeedDb {
     User.collection,
     Organization.collection,
     QtiTemplate.collection,
-    LtiLaunchConfiguration.collection,
+    LtiQuiz.collection,
     RegistrationToken.collection,
     Quiz.collection
   )

@@ -17,7 +17,7 @@ case class Participant(itemSessions: Seq[ObjectId],
                        metadata: Map[String, String]) extends BaseParticipant(itemSessions, externalUid)
 
 case class Question(itemId: ObjectId,
-                    settings: ItemSessionSettings) extends BaseQuestion(itemId, settings)
+                    settings: ItemSessionSettings) extends BaseQuestion(Some(itemId), settings)
 
 case class Quiz(orgId: Option[ObjectId] = None,
                 metadata: Map[String, String] = Map(),

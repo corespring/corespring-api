@@ -1,53 +1,60 @@
 package tests.basiclti.models
 
 import org.specs2.mutable.Specification
-import basiclti.models.{Assignment, LtiLaunchConfiguration}
+import basiclti.models._
 import org.bson.types.ObjectId
 import tests.PlaySingleton
+import models.itemSession.ItemSessionSettings
+import basiclti.models.LtiQuestion
+import scala.Some
 
-class LtiLaunchConfigurationTest extends Specification{
+class LtiLaunchConfigurationTest extends Specification {
 
   PlaySingleton.start()
 
   "launch config" should {
 
     "add assignments" in {
-      val config = new LtiLaunchConfiguration("1", Some(new ObjectId()), None, None)
-      LtiLaunchConfiguration.insert(config)
+      val config = new LtiQuiz(
+        "1",
+        LtiQuestion(Some(new ObjectId()), ItemSessionSettings()),
+        Seq(),
+        None)
+      LtiQuiz.insert(config)
 
-      config.assignments.length === 0
-      val updatedConfig = config.addAssignmentIfNew("1", "passbackUrl", "finishedUrl")
-      updatedConfig.assignments.length === 1
+      config.participants.length === 0
+      val updatedConfig = config.addParticipantIfNew("1", "passbackUrl", "finishedUrl")
+      updatedConfig.participants.length === 1
 
-      val anotherUpdate = updatedConfig.addAssignmentIfNew("1", "?", "?")
-      anotherUpdate.assignments.length === 1
+      val anotherUpdate = updatedConfig.addParticipantIfNew("1", "?", "?")
+      anotherUpdate.participants.length === 1
 
-      val finalUpdate = anotherUpdate.addAssignmentIfNew("2", "?", "?")
-
-      finalUpdate.assignments.length === 2
+      val finalUpdate = anotherUpdate.addParticipantIfNew("2", "?", "?")
+      finalUpdate.participants.length === 2
     }
 
     "can update works" in {
 
-      val config = new LtiLaunchConfiguration("1", Some(new ObjectId()), None, orgId = Some(new ObjectId()))
-      LtiLaunchConfiguration.insert(config)
-
-      LtiLaunchConfiguration.canUpdate(config, config.orgId.get) === true
-      LtiLaunchConfiguration.canUpdate(config, new ObjectId()) === false
+      val config = new LtiQuiz("1",
+        LtiQuestion(Some(new ObjectId()), ItemSessionSettings()),
+        Seq(),
+        orgId = Some(new ObjectId()))
+      LtiQuiz.insert(config)
+      LtiQuiz.canUpdate(config, config.orgId.get) === true
+      LtiQuiz.canUpdate(config, new ObjectId()) === false
     }
 
     "can't remove itemId if the config has assignments" in {
 
-      val assignments = Seq( Assignment("1", new ObjectId(), "", "" ))
-      val config = new LtiLaunchConfiguration("1",
-        Some(new ObjectId()),
-        None,
-        orgId = Some(new ObjectId()),
-        assignments = assignments
+      val config = new LtiQuiz("1",
+        LtiQuestion(Some(new ObjectId()), ItemSessionSettings()),
+        Seq(LtiParticipant(new ObjectId(), "", "", "")),
+        orgId = Some(new ObjectId())
       )
-      LtiLaunchConfiguration.insert(config)
-      val copy = config.copy(itemId = None)
-      LtiLaunchConfiguration.canUpdate(copy, copy.orgId.get) === false
+      LtiQuiz.insert(config)
+      val copiedQuestion = config.question.copy(itemId = None)
+      val copy = config.copy(question = copiedQuestion)
+      LtiQuiz.canUpdate(copy, copy.orgId.get) === false
     }
   }
 
