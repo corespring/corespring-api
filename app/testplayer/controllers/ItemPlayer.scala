@@ -87,14 +87,11 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
   def renderAsAggregate(itemId: String) = ApiAction { request =>
     println("Wired Sessions: ")
     println(TempSessions.sessionList)
-
-
     try {
       getItemXMLByObjectId(itemId, request.ctx.organization) match {
         case Some(xmlData: Elem) =>
           val finalXml = prepareQti(xmlData, Aggregate)
           Ok(testplayer.views.html.aggregatePlayer(itemId, finalXml, TempSessions.sessionList.map("'"+_+"'").toSeq, common.mock.MockToken))
-
         case None =>
           NotFound("not found")
       }

@@ -7,7 +7,7 @@ import models._
 import com.mongodb.casbah.Imports._
 import controllers.{Log, Utils}
 import item.Content
-import itemSession.ItemSession
+import itemSession.{StringItemResponse, ArrayItemResponse, ItemResponseAggregate, ItemSession}
 import scala.Left
 import scala.Some
 import scala.Right

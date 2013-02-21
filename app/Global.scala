@@ -1,8 +1,6 @@
 import _root_.controllers.ConcreteS3Service
-import _root_.models._
-import _root_.models.StringItemResponse
+import _root_.models.itemSession.{ItemSession, StringItemResponse, ArrayItemResponse}
 import _root_.models.TempSessions.sessionList
-import _root_.models.ArrayItemResponse
 import org.joda.time.DateTime
 import play.api.mvc.Results._
 import scala.Some
