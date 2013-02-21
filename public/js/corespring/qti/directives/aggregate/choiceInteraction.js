@@ -58,12 +58,16 @@ qtiDirectives.directive('choiceinteraction', function () {
       .replace(/<:*simpleChoice/gi, "<span simplechoice").replace(/<\/:*simpleChoice>/gi, "</span>")
       .replace(/<:*feedbackInline/gi, "<span feedbackinline").replace(/<\/:*feedbackInline>/gi, "</span>");
 
-    var newNode = "<div>Completion Rate: 100%</div>";
+    var statistics = ["<div>Completion Rate: {{percentageCompleted}}% ({{totalResponses}} responses, {{totalAssigned}} assignments)</div>",
+      "<table><tr><th>Total Number</th><th>% Correct (students)</th><th>% Incorrect (students)</th><th>% Skipped (students)</th></tr>",
+      "<tr><td>{{totalResponses}}</td><td>{{percentageCorrect}}% ({{totalCorrect}})</td><td>{{percentageIncorrect}}% ({{totalIncorrect}})</td><td>{{percentageSkipped}}% ({{totalSkipped}})</td></tr>",
+      "</table>"
+    ].join("");
 
-    newNode = newNode + (isHorizontal ?
-      ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction">' + prompt + '<div class="choice-wrap">' + finalContents + '</div></div><div style="clear: both"></div></div>')
+    var newNode = (isHorizontal ?
+      ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction">' + prompt + statistics + '<div class="choice-wrap">' + finalContents + '</div></div><div style="clear: both"></div></div>')
       :
-      ('<div class="choice-interaction" ng-class="{noResponse: noResponse}">' + prompt + finalContents + '</div>')
+      ('<div class="choice-interaction" ng-class="{noResponse: noResponse}">' + prompt + statistics + finalContents + '</div>')
     );
     element.html(newNode);
     return link;
@@ -77,34 +81,21 @@ qtiDirectives.directive('choiceinteraction', function () {
     var mode = maxChoices == 1 ? "radio" : "checkbox";
     var responseIdentifier = attrs['responseidentifier'];
 
-    var unsetCheckboxChoice = function (value) {
-      var index = scope.chosenItem.indexOf(value);
-      if (index != -1) scope.chosenItem.splice(index, 1);
-    };
+    scope.$watch('aggregate', function (aggregate) {
+      if (!aggregate) return;
+      var agg = aggregate[responseIdentifier];
+      var total = scope.totalResponses = agg.totalResponses;
+      scope.totalAssigned = scope.totalResponses + 3;
+      scope.percentageCompleted = (total * 100 / scope.totalAssigned).toFixed(0);
+      scope.totalCorrect = agg.numCorrectResponses;
+      scope.percentageCorrect = (scope.totalCorrect * 100 / total).toFixed(0)
+      scope.totalIncorrect = scope.totalResponses - scope.totalCorrect;
+      scope.percentageIncorrect = (scope.totalIncorrect * 100 / total).toFixed(0)
+      scope.totalSkipped = scope.totalAssigned - total;
+      scope.percentageSkipped = (scope.totalSkipped * 100 / total).toFixed(0)
+    });
 
-    var setCheckboxChoice = function (value) {
-      if (scope.chosenItem.indexOf(value) == -1) {
-        scope.chosenItem.push(value);
-      }
-    };
 
-    scope.setChosenItem = function (value, isChosen) {
-
-      if (isChosen === undefined) {
-        throw "You have to specify 'isChosen' either true/false";
-      }
-
-      if (mode == "checkbox") {
-        scope.chosenItem = (scope.chosenItem || []);
-        if (isChosen) {
-          setCheckboxChoice(value);
-        } else {
-          unsetCheckboxChoice(value);
-        }
-      } else {
-        scope.chosenItem = value;
-      }
-    };
   };
 
   /**

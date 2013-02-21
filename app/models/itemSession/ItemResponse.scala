@@ -141,16 +141,16 @@ object ItemResponse {
 }
 
 
-case class ItemResponseAggregate(val id: String, correctAnswers: Seq[String], numCorrect: Int = 0, numResponses: Int = 0, choices: Map[String, Int] = Map()) {
+case class ItemResponseAggregate(val id: String, correctAnswers: Seq[String], numCorrect: Int = 0, numResponses: Int = 0, totalDistribution: Int = 0, choices: Map[String, Int] = Map()) {
   def aggregate(response: ItemResponse): ItemResponseAggregate = {
     val isCorrect = response.outcome.get.isCorrect
     def numFor(s: String): Int = if (choices.contains(s)) choices(s) + 1 else 1
     response match {
       case sr: StringItemResponse =>
-        ItemResponseAggregate(id, correctAnswers, if (isCorrect) numCorrect + 1 else numCorrect, numResponses + 1, choices + (sr.value -> numFor(sr.value)))
+        ItemResponseAggregate(id, correctAnswers, if (isCorrect) numCorrect + 1 else numCorrect, numResponses + 1, totalDistribution + 1, choices + (sr.value -> numFor(sr.value)))
 
       case ar: ArrayItemResponse =>
-        ItemResponseAggregate(id, correctAnswers, if (isCorrect) numCorrect + 1 else numCorrect, numResponses + ar.responseValue.length, choices ++ ar.responseValue.map(p => (p -> numFor(p))))
+        ItemResponseAggregate(id, correctAnswers, if (isCorrect) numCorrect + 1 else numCorrect, numResponses + 1, totalDistribution + ar.responseValue.length, choices ++ ar.responseValue.map(p => (p -> numFor(p))))
     }
   }
 }
@@ -163,6 +163,7 @@ object ItemResponseAggregate {
       list = ("id" -> JsString(agg.id)) :: list
       list = ("numCorrectResponses" -> JsNumber(agg.numCorrect)) :: list
       list = ("totalResponses" -> JsNumber(agg.numResponses)) :: list
+      list = ("totalDistribution" -> JsNumber(agg.totalDistribution)) :: list
       list = ("choices" -> toJson(agg.choices)) :: list
       list = ("correctAnswers" -> toJson(agg.correctAnswers)) :: list
       JsObject(list)

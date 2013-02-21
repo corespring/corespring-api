@@ -180,11 +180,14 @@ object Global extends GlobalSettings {
       val random_index = rand.nextInt(winterList.length)
       val winter = winterList(random_index)
 
-      val response1 = ArrayItemResponse("mexicanPresident", Seq(chooseOneRandomly(presidents)))
-      val response2 = ArrayItemResponse("rainbowColors", chooseNRandomly(colors), None)
-      val response3 = StringItemResponse("winterDiscontent", winter)
+      val responses = Seq(
+        ArrayItemResponse("mexicanPresident", Seq(chooseOneRandomly(presidents))),
+        ArrayItemResponse("rainbowColors", chooseNRandomly(colors), None),
+        StringItemResponse("winterDiscontent", winter),
+        ArrayItemResponse("selectText", Seq("1","2"))
+      )
       println("Winter: "+winter)
-      val session = ItemSession(responses = Seq(response1, response2, response3), itemId = new ObjectId("507c9fb3a0eee12a21a88912"), finish = Some(new DateTime()))
+      val session = ItemSession(responses = responses, itemId = new ObjectId("507c9fb3a0eee12a21a88912"), finish = Some(new DateTime()))
       sessionList ::= session.id.toString
       ItemSession.save(session)
     }

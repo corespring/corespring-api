@@ -37,7 +37,7 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
         ['<div class="simple-choice-inner">',
           '  <div class="choiceInput">',
           '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted"  ng-model="' + modelName + '" value="{{value}}"></input></div>',
-          '  <div class="choice-content"> {{percentage}}% ' + nodeWithFeedbackRemoved + '</div>',
+          '  <div class="choice-content"><span class="{{resultClass}}">{{percentage}}% </span>' + nodeWithFeedbackRemoved + '</div>',
           '</div>'
         ];
 
@@ -56,9 +56,11 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
         localScope.$watch('aggregate', function (aggregate) {
           if (!aggregate) return;
           var agg = aggregate[responseIdentifier];
-          var total = agg.totalResponses;
+          var total = agg.totalDistribution;
           localScope.numResponse = aggregate[responseIdentifier].choices[identifier] || 0;
           localScope.percentage = (localScope.numResponse / total * 100).toFixed(0);
+          var isCorrect = agg.correctAnswers.indexOf(localScope.value) >= 0;
+          localScope.resultClass = isCorrect ? "correct" : "incorrect";
           if (inputType == 'radio') {
             localScope.chosen = agg.correctAnswers[0];
           } else {
