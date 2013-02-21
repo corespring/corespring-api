@@ -1,11 +1,12 @@
 package models.json
 
-import models.{Standard, ContentType, Item}
+import models.{Standard}
 import play.api.libs.json._
 import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
 import scala.Some
 import models.search.SearchFields
+import models.item.{ContentType, Item}
 
 case class ItemView(item:Item, searchFields:Option[SearchFields])
 object ItemView{

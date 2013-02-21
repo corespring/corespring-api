@@ -1,6 +1,6 @@
 package tests
 
-import _root_.models.Item
+import _root_.models.item.Item
 import org.specs2.mutable.Specification
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import play.api.mvc._

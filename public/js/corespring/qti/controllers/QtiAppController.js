@@ -46,6 +46,8 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
       $scope.itemSession = data;
       $scope.setUpChangeWatcher();
       $scope.settingsHaveChanged = false;
+
+      MessageBridge.sendMessage("parent", {message: "itemSessionLoaded", session: $scope.itemSession});
     };
 
     if (Config.sessionId === "") {

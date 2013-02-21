@@ -2,11 +2,10 @@ package qti.models.interactions
 
 import choices.{Choice, SimpleChoice}
 import xml._
-import models.{ArrayItemResponse, ItemResponseOutcome, ItemResponse}
 import scala.Some
 import qti.models.{QtiItem, CorrectResponseMultiple, ResponseDeclaration}
 import controllers.Log
-import testplayer.views.utils.QtiScriptLoader
+import models.itemSession._
 
 case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleChoice], checkIfCorrect: Boolean, minSelections: Int, maxSelections: Int) extends InteractionWithChoices {
   override def validate(qtiItem: QtiItem) = {

@@ -6,15 +6,15 @@ import web.controllers.utils.ConfigLoader
 import scala.Some
 import scala.Tuple2
 
-import models.{Item, FieldValue}
 import com.mongodb.BasicDBObject
 import securesocial.core.SecureSocial
+import models.item.Item
 
 object Main extends Controller with SecureSocial {
 
 
-  def previewItem(itemId:String) = Action{ request =>
-    Ok(web.views.html.itemPreview(itemId, common.mock.MockToken))
+  def previewItem(itemId:String) = SecuredAction() { request =>
+    Ok(web.views.html.itemPreview(itemId))
   }
 
 

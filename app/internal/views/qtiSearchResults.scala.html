@@ -1,0 +1,13 @@
+@(query:String, items:List[models.item.Item])
+<html>
+    <head>
+        <title>Search results for: @query</title>
+    </head>
+<body>
+    <table>
+      @items.map{ i =>
+        <tr><td><a href="/web#/edit/@i.id?panel=metadata">@i.taskInfo.get.title</a></td></tr>
+      }
+    </table>
+</body>
+</html>

@@ -97,29 +97,29 @@
     "itemId" : { "$oid" : "50083ba9e4b071cb5ef79101" },
     "responses" : [
         {
-            "_t" : "models.StringItemResponse",
+            "_t" : "models.itemSession.StringItemResponse",
             "_id" : "mexicanPresident",
             "responseValue" : "cameron"
         },
         {
-            "_t" : "models.StringItemResponse",
+            "_t" : "models.itemSession.StringItemResponse",
             "_id" : "irishPresident",
             "responseValue" : "robinson"
         },
         {
-            "_t" : "models.ArrayItemResponse",
+            "_t" : "models.itemSession.ArrayItemResponse",
             "_id" : "rainbowColors",
             "responseValue" : [
                 "blue"
             ]
         },
         {
-            "_t" : "models.StringItemResponse",
+            "_t" : "models.itemSession.StringItemResponse",
             "_id" : "winterDiscontent",
             "responseValue" : "234"
         },
         {
-            "_t" : "models.ArrayItemResponse",
+            "_t" : "models.itemSession.ArrayItemResponse",
             "_id" : "wivesOfHenry",
             "responseValue" : [
                 "parr",
@@ -131,7 +131,7 @@
             ]
         },
         {
-            "_t" : "models.ArrayItemResponse",
+            "_t" : "models.itemSession.ArrayItemResponse",
             "_id" : "cutePugs",
             "responseValue" : [
                 "pug1",
@@ -140,12 +140,12 @@
             ]
         },
         {
-            "_t" : "models.StringItemResponse",
+            "_t" : "models.itemSession.StringItemResponse",
             "_id" : "longAnswer",
             "responseValue" : "sedf"
         },
         {
-            "_t" : "models.StringItemResponse",
+            "_t" : "models.itemSession.StringItemResponse",
             "_id" : "manOnMoon",
             "responseValue" : "aldrin"
         }

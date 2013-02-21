@@ -1,9 +1,9 @@
 package qti.models.interactions
 
 import xml.{Elem, NodeSeq, Node}
-import models.{ItemResponseOutcome, ItemResponse}
 import qti.models.{QtiItem, ResponseDeclaration}
 import testplayer.views.utils.QtiScriptLoader
+import models.itemSession.{ItemResponseOutcome, ItemResponse}
 
 trait Interaction {
   val responseIdentifier: String

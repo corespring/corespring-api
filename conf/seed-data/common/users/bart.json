@@ -1,0 +1,18 @@
+{
+  "_id": {
+    "$oid": "502d46ce0364068384f217a5"
+  },
+  "provider": "userpass",
+  "userName": "bart",
+  "fullName": "Bart Simpson",
+  "email": "bartsimpson@springfield.org",
+  "password": "$2a$10$ztrohKSsxniXnLsTJyAJVOlye5DFYlMi3GUQH1SHkVSO5IH.E9O72",
+  "orgs": [
+    {
+      "orgId": {
+        "$oid": "502404dd0364dc35bb39339a"
+      },
+      "pval": 1
+    }
+  ]
+}

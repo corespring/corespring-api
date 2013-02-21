@@ -1,8 +1,8 @@
 package common.views.helpers
 
 import com.mongodb.casbah.commons.MongoDBObject
-import models.FieldValue
 import web.controllers.utils.ConfigLoader
+import models.item.FieldValue
 
 object Defaults{
 
@@ -12,4 +12,5 @@ object Defaults{
   }
 
   lazy val commitHash : String = ConfigLoader.get("ENV_CORESPRING_API_COMMIT_HASH").getOrElse("?")
+  lazy val pushDate : String = ConfigLoader.get("ENV_CORESPRING_API_PUSH_DATE").getOrElse("?")
 }

@@ -1,10 +1,10 @@
 package testplayer.controllers
 
 import org.bson.types.ObjectId
-import models.ItemSession
 import controllers.auth.BaseApi
 import common.controllers.ItemResources
 import play.api.mvc.{Result, AnyContent}
+import models.itemSession.ItemSession
 
 
 trait BasePlayer extends BaseApi with QtiRenderer with ItemResources{

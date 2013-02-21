@@ -1,15 +1,12 @@
 package models.itemSession
 
-import models._
 import play.api.libs.json.Json._
 import qti.models._
 import interactions.SelectTextInteraction
 import play.api.libs.json._
 import play.api.libs.json.JsArray
-import models.StringItemResponse
 import scala.Some
 import play.api.libs.json.JsObject
-import models.ArrayItemResponse
 
 case class SessionData(correctResponses: Seq[ItemResponse] = Seq(), feedbackContents: Map[String, String] = Map())
 

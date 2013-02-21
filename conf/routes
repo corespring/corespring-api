@@ -116,6 +116,7 @@ GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessio
 PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId: ObjectId, sessionId: ObjectId, action : Option[String] ?= None)
 
 # Item Rendering
+GET    /testplayer/item/:itemId/render-in-frame     testplayer.controllers.ItemPlayer.renderAsIframe(itemId)
 GET    /testplayer/item/:itemId/render              testplayer.controllers.ItemPlayer.renderItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
 GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
 GET    /testplayer/item/:itemId/:filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
@@ -208,3 +209,6 @@ POST    /authenticate/:provider     securesocial.controllers.ProviderController.
 
 #system check
 GET     /system/check               controllers.SystemCheck.index()
+
+GET     /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearchPage()
+POST    /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearch()
