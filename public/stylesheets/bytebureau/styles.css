@@ -968,7 +968,7 @@ table th, table td {
 	min-width:50px;
 }
 .text-entry-interaction.received-response > input {
-	border-color: #4055f8;
+	border-color: #00ACCE;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 4px rgba(64, 85, 248, 0.8);
 	outline: 0px none;
 }
@@ -1028,7 +1028,7 @@ simplechoice {
 	width: 100%;
 }
 .received-response .choice-content {
-	border:2px solid #4055f8;
+	border:2px solid #00ACCE;
 	display:block;
 	border-radius: 6px;
 	margin-bottom:5px;
@@ -1040,7 +1040,7 @@ simplechoice {
 	margin-bottom:5px;
 }
 .received-response-horizontal .simple-choice-inner-horizontal {
-	border:2px solid #4055f8;
+	border:2px solid #00ACCE;
 	border-radius: 6px;
 }
 .incorrect-response-horizontal .simple-choice-inner-horizontal {
