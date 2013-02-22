@@ -175,7 +175,7 @@ object Global extends GlobalSettings {
     val winterList = (Seq("york","York") ++ upToNWords("someWord", 10))
 
     val rand = new Random()
-    for (i <- 1 to 10) {
+    for (i <- 1 to 50) {
       println("Iteration: " + i)
       val random_index = rand.nextInt(winterList.length)
       val winter = winterList(random_index)

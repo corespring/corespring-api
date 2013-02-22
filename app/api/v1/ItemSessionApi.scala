@@ -26,6 +26,7 @@ object ItemSessionApi extends BaseApi {
       request.body.asJson match {
         case Some(x) =>
           val sessionIds = (x \ "sessions").as[List[String]]
+          println("Going to agg "+sessionIds.length+" sessions")
           val list = aggregateSessions(sessionIds).toList.map(p => (p._1, toJson(p._2)))
           Ok(JsObject(list))
 
@@ -56,7 +57,7 @@ object ItemSessionApi extends BaseApi {
                     case Some(r: StringItemResponse) => Seq(r.responseValue)
                     case None => Seq()
                   }
-                  agg(resp.id) = ItemResponseAggregate(resp.id, cr)
+                  agg(resp.id) = ItemResponseAggregate(resp.id, cr, resp)
                 }
             }
         }

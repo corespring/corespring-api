@@ -28,11 +28,12 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
         tooltip += "<table class='tooltiptable'>";
         var sorted = [];
         for (var c in agg.choices) {
-          sorted.push([c, agg.choices[c]]);
+          if (agg.correctAnswers.indexOf(c) < 0)
+            sorted.push([c, agg.choices[c]]);
         }
         sorted.sort(function(a, b) {return b[1] - a[1]});
 
-        for (var i = 0; i < sorted.length; i++) {
+        for (var i = 0; i < Math.min(sorted.length, 5); i++) {
           tooltip += "<tr><td>"+sorted[i][0]+"</td><td>"+sorted[i][1]+"</td></tr>";
         }
         $(element).tooltip({ title: tooltip });
