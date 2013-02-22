@@ -13,7 +13,7 @@ import play.api.Play.current
 import JsonImporter._
 import quiz.basic.Quiz
 import web.models.QtiTemplate
-import basiclti.models.{LtiQuiz, LtiLaunchConfiguration, Assignment}
+import basiclti.models.LtiQuiz
 import developer.models.RegistrationToken
 
 object SeedDb {
@@ -91,10 +91,10 @@ object SeedDb {
   }
 
 
-  def addMockAccessToken(token: String, scope:Option[String]) = {
+  def addMockAccessToken(token: String, scope: Option[String]) = {
     AccessToken.collection.drop()
     val creationDate = DateTime.now()
-    val accessToken = AccessToken(new ObjectId("502404dd0364dc35bb393397"), scope, token, creationDate, creationDate.plusHours(24),true)
+    val accessToken = AccessToken(new ObjectId("502404dd0364dc35bb393397"), scope, token, creationDate, creationDate.plusHours(24), true)
     AccessToken.insert(accessToken)
   }
 

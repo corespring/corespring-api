@@ -59,7 +59,11 @@ object TestHarness extends BaseApi with SecureSocial {
 
 
           val url = basiclti.controllers.routes.AssignmentLauncher.launch().url
-          val out = formParams.map((kv) => (kv._1, kv._2.head))
+          val trimmed = formParams.filter{  kv =>
+            print(kv)
+            !kv._2(0).isEmpty
+          }
+          val out = trimmed.map((kv) => (kv._1, kv._2.head))
 
           val client: ApiClient = getOrCreate(orgId)
           val orgParams = Map(
