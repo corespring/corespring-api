@@ -94,6 +94,25 @@ inlinechoiceinteraction span.prompt {
 	font: 14px/20px "Ubuntu", Arial, Helvetica, sans-serif !important;
 } 
 
+.caret {
+display: inline-block;
+width: 0;
+height: 0;
+vertical-align: middle;
+border-top: 5px solid #000000;
+border-right: 5px solid transparent;
+border-left: 5px solid transparent;
+content: "";
+text-align: right;
+position: relative;
+right: 4px;
+}
+
+.btn .caret {
+margin-top: 0px;
+margin-left: 0;
+}
+
 .btngroup-select {
  display: inline-block;
  width: 25px;
@@ -108,10 +127,17 @@ inlinechoiceinteraction span.prompt {
 }
 
 
-inlinechoiceinteraction.ng-scope div.btn-group a.btn.dropdown-toggle span{
+/*inlinechoiceinteraction.ng-scope div.btn-group a.btn.dropdown-toggle span{
 padding-right: 28px !important;
 padding-left: 4px !important;
 }
+*/
+
+inlinechoiceinteraction.ng-scope div.btn-group a.btn.dropdown-toggle span:first-child{
+padding-right: 28px !important;
+padding-left: 4px !important;
+}
+
 
 
 .dropdown-menu li > a:hover,
