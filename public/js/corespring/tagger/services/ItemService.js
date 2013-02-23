@@ -56,11 +56,11 @@ angular.module('tagger.services')
 
     //******Item Versioning*************//
     ItemService.prototype.cloneAndIncrement = function(params, onSuccess, onError){
-        var url = "/api/v1/items/:id/increment".replace(":id",params.id);
+        var url = ServiceLookup.getUrlFor('itemIncrement').replace(":id",params.id);
         $http.get(url).success(onSuccess).error(onError)
     }
     ItemService.prototype.increment = function(params,onSuccess,onError){
-        var url = "/api/v1/items/:id/increment".replace(":id",params.id)
+        var url = ServiceLookup.getUrlFor('itemIncrement').replace(":id",params.id)
 
         var dto = ItemService.processor.createDTO(this);
         $http.post(url,dto).success(function(resource){
