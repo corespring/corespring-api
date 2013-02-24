@@ -20,7 +20,7 @@
 		"name" : "qtiItem",
 		"files" : [
 			{
-				"_t" : "models.VirtualFile",
+				"_t" : "models.item.resource.VirtualFile",
 				"name" : "qti.xml",
 				"contentType" : "text/xml",
 				"isMain" : true,

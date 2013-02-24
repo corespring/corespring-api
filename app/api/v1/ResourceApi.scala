@@ -3,6 +3,9 @@ package api.v1
 import play.api.mvc._
 import controllers.auth.BaseApi
 import models._
+import item.Item
+import item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
+import itemSession.ItemSession
 import org.bson.types.ObjectId
 import controllers.{Utils, ConcreteS3Service, S3Service}
 import com.typesafe.config.ConfigFactory

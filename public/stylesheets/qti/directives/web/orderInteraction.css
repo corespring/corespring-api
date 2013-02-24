@@ -15,7 +15,7 @@
 }
 
 .sortable-item.order-unknown {
-    border: 2px solid #4055f8;
+    border: 2px solid #00ACCE;
 }
 
 .sortable-item.order-correct {
@@ -65,7 +65,7 @@ ul {
 }
 
 .placement-destination-inner > .draggable-item.order-unknown {
-	border: 2px solid #4055f8;
+	border: 2px solid #00ACCE;
 }
 
 .placement-destination-inner > .draggable-item.order-correct {

@@ -2,7 +2,6 @@ package api.v1
 
 import controllers.auth.{Permission, BaseApi}
 import org.bson.types.ObjectId
-import models.{Content, Item}
 import scorm.utils.ScormExporter
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc._
@@ -13,6 +12,7 @@ import scala.Some
 import play.api.mvc.SimpleResult
 import play.api.mvc.ResponseHeader
 import common.controllers.utils.BaseUrl
+import models.item.{Content, Item}
 
 object ExporterApi extends BaseApi {
 

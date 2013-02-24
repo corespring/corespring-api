@@ -2,7 +2,7 @@ package developer.controllers
 
 import _root_.controllers.auth.Permission
 import _root_.controllers.Log
-import _root_.models.{User, RegistrationToken}
+import _root_.models.{User}
 import securesocial.core._
 import play.api.Application
 import org.bson.types.ObjectId
@@ -13,6 +13,7 @@ import scala.Some
 import com.mongodb.casbah.commons.MongoDBObject
 import org.joda.time.DateTime
 import se.radley.plugin.salat.SalatPlugin
+import developer.models.RegistrationToken
 
 /**
  * An implementation of the UserService

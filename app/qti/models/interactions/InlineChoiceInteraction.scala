@@ -1,12 +1,11 @@
 package qti.models.interactions
 
-import choices.{InlineChoice, Choice}
-import xml.{Elem, Node}
+import choices.InlineChoice
+import xml.Node
 import qti.models.ResponseDeclaration
-import models.{StringItemResponse, ItemResponseOutcome, ItemResponse}
 import qti.models.QtiItem.Correctness
 import controllers.Log
-import testplayer.views.utils.QtiScriptLoader
+import models.itemSession._
 
 case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[InlineChoice]) extends InteractionWithChoices {
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)

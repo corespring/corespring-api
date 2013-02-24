@@ -3,7 +3,6 @@ package tests.testplayer.controllers
 import org.specs2.mutable.Specification
 import testplayer.controllers.BasePlayer
 import play.api.mvc._
-import models.ItemSession
 import play.api.test.FakeRequest
 import com.mongodb.casbah.commons.MongoDBObject
 import tests.{BaseTest, PlaySingleton}
@@ -11,6 +10,7 @@ import play.api.test.Helpers._
 import play.api.mvc.SimpleResult
 import play.api.libs.iteratee.Enumerator
 import org.bson.types.ObjectId
+import models.itemSession.ItemSession
 
 class BasePlayerTest extends BaseTest {
 

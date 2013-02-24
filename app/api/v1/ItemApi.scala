@@ -6,7 +6,9 @@ import models._
 import com.mongodb.util.JSONParseException
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
-import dao.{SalatDAOUpdateError, SalatMongoCursor, SalatInsertError}
+import dao.{SalatDAOUpdateError}
+import dao.{SalatMongoCursor, SalatInsertError}
+import item.resource.StoredFile
 import play.api.templates.Xml
 import play.api.mvc.Result
 import play.api.libs.json.Json._
@@ -15,8 +17,7 @@ import controllers._
 import play.api.libs.json._
 import search.{SearchFields, SearchCancelled, ItemSearch}
 import models.json.ItemView
-import com.typesafe.config.ConfigFactory
-import item.{Version, Alignments, TaskInfo}
+import item.{Version}
 import scala.Left
 import play.api.libs.json.JsArray
 import scala.Some
@@ -25,6 +26,8 @@ import controllers.InternalError
 import scala.Right
 import play.api.libs.json.JsObject
 import com.mongodb.WriteResult
+import com.typesafe.config.ConfigFactory
+import item.{Content, Item, Alignments, TaskInfo}
 
 /**
  * Items API

@@ -2,6 +2,8 @@ package tests.api.v1
 
 import api.ApiError
 import models._
+import item.Item
+import item.resource.{VirtualFile, BaseFile, Resource}
 import play.api.libs.json.{Json, JsValue}
 import play.api.mvc._
 import play.api.Play

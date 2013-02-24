@@ -1,6 +1,5 @@
-package models
+package models.item
 
-import item.Version
 import org.bson.types.ObjectId
 import play.api.libs.json.JsValue
 import se.radley.plugin.salat._
@@ -10,6 +9,7 @@ import com.novus.salat.dao.SalatDAOUpdateError
 import controllers.{Log, LogType, InternalError}
 import controllers.auth.Permission
 import play.api.Logger
+import models.ContentCollection
 
 trait Content{
   var id: ObjectId

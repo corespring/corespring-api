@@ -1,13 +1,11 @@
 package qti.models.interactions
 
 import choices.SimpleChoice
-import xml.{NodeSeq, Elem, Node}
-import qti.processors.FeedbackProcessor
+import xml.Node
 import qti.models.ResponseDeclaration
-import models.{ArrayItemResponse, ItemResponseOutcome, ItemResponse}
 import qti.models.QtiItem.Correctness
 import controllers.Log
-import testplayer.views.utils.QtiScriptLoader
+import models.itemSession._
 
 case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices {
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)

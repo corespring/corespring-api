@@ -5,7 +5,6 @@ import play.api.mvc.{AnyContentAsJson, Call}
 import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.libs.json._
 import play.api.test.Helpers._
-import models.{Resource, VirtualFile, Item}
 import org.bson.types.ObjectId
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
@@ -15,8 +14,9 @@ import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import play.api.libs.json.JsBoolean
-import models.item.Version
+import models.item.{Item, Version}
 import models.mongoContext._
+import models.item.resource.VirtualFile
 
 
 class VersioningTest extends BaseTest{

@@ -2,10 +2,10 @@ package qti.models.interactions
 
 import xml.{NodeSeq, Elem, Node}
 import qti.models.{QtiItem, ResponseDeclaration}
-import models.{StringItemResponse, ItemResponseOutcome, ItemResponse}
 import qti.models.QtiItem.Correctness
 import controllers.Log
 import testplayer.views.utils.QtiScriptLoader
+import models.itemSession.{ItemResponseOutcome, ItemResponse}
 
 case class ExtendedTextInteraction(responseIdentifier: String) extends Interaction {
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = None

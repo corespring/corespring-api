@@ -2,9 +2,9 @@ package scorm.utils
 
 import java.io._
 import scorm.models.extractors.RemoteItemRunnerTemplate
-import models.Item
 import scorm.models.Builder
 import scorm.models.Builder.Config
+import models.item.Item
 
 
 object ScormExporter {

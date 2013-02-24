@@ -1,7 +1,6 @@
 package models.item
 
 import play.api.libs.json._
-import models.FieldValue
 import controllers.JsonValidationException
 
 

@@ -3,8 +3,8 @@ package tests.qti.processors
 import org.specs2.mutable._
 import scala.xml.{Node, Elem, XML, NodeSeq}
 import com.codahale.jerkson.Json.{generate, parse}
-import models.FeedbackIdMapEntry
 import qti.processors.FeedbackProcessor
+import models.itemSession.FeedbackIdMapEntry
 
 class FeedbackProcessorSpec extends Specification {
 
