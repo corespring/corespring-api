@@ -35,10 +35,12 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
         .replace("${value}", node.attr("identifier"))
         .replace(/\$label/gi, optionValue);
 
-      out.labels.push(optionValue);
+      out.labels.push("<span ng-show='selectedIdx=="+i+"'>"+optionValue+"</span>");
+
 
       out.options.push(option);
     }
+    out.labels.push("<span ng-show='selectedIdx==-1'>"+chooseLabel+"</span>");
 
     return out;
   };
@@ -51,9 +53,11 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
     var html = [
       '<div class="btn-group" style="display: inline-block">',
-      '<a class="btn dropdown-toggle" ng-class="{disabled: formSubmitted}" data-toggle="dropdown" href="#"><span ng-bind-html-unsafe="selected" style="padding-right: 15px"/><span class="caret"></span></a>',
+      '<a class="btn dropdown-toggle" ng-class="{disabled: formSubmitted}" data-toggle="dropdown" href="#">',
+    ].concat(optionsAndFeedback.labels).concat([
+      '<span class="caret"></span></a>',
       '<ul class="dropdown-menu">'
-    ];
+    ]);
 
     //TODO: This isn't being picked up - leave it for now.
     if (element.attr('required') === "true") {
@@ -68,18 +72,24 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
     return function ($scope, element, attrs, AssessmentItemCtrl) {
       $scope.labels = optionsAndFeedback.labels;
+      $scope.selectedIdx = -1;
       AssessmentItemCtrl.registerInteraction(element.attr('responseIdentifier'), 'inline');
 
       var modelToUpdate = attrs["responseidentifier"];
 
       $scope.click = function (label, value) {
         $scope.selected = $scope.labels[Number(label)];
+        $scope.selectedIdx = Number(label);
         $scope.choice = value;
         $(element).find('.dropdown-toggle').dropdown('toggle');
       }
 
       $scope.$watch('choice', function (newValue) {
         AssessmentItemCtrl.setResponse(modelToUpdate, newValue);
+//        setTimeout(function () {
+//          MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+//        }, 100);
+
       });
 
       $scope.$on('resetUI', function (event) {
