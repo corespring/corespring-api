@@ -7,6 +7,7 @@ import com.mongodb.util.JSONParseException
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import dao.{SalatMongoCursor, SalatInsertError}
+import item.resource.StoredFile
 import play.api.templates.Xml
 import play.api.mvc.Result
 import play.api.libs.json.Json._
@@ -22,7 +23,7 @@ import search.{SearchFields, SearchCancelled, ItemSearch}
 import models.json.ItemView
 import play.api.libs.json.JsObject
 import com.typesafe.config.ConfigFactory
-import models.item.{Alignments, TaskInfo}
+import item.{Content, Item, Alignments, TaskInfo}
 import com.mongodb.casbah.commons.ValidBSONType.BasicDBList
 
 /**

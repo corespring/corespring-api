@@ -1,0 +1,20 @@
+{
+  "name": "Organization F",
+  "path": [
+    {
+      "$oid": "502404dd0364dc35bb39339e"
+    },
+    {
+      "$oid": "502404dd0364dc35bb393398"
+    }
+  ],
+  "contentcolls": [
+    {
+      "collectionId": {
+        "$oid": "5001b7ade4b0d7c9ec321070"
+      },
+      "pval": 9223372036854775807
+    }
+  ], "_id": {
+  "$oid": "502404dd0364dc35bb39339e"
+}}

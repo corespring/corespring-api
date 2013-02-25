@@ -1,16 +1,13 @@
-package models
+package developer.models
 
-import com.novus.salat.dao.ModelCompanion
 import play.api.Play.current
 import org.bson.types.ObjectId
 import play.api.libs.json._
 import play.api.libs.json.JsString
-import com.novus.salat.dao.{SalatDAO, ModelCompanion}
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import org.joda.time.DateTime
-import mongoContext._
-
+import models.mongoContext._
 
 case class RegistrationToken(var uuid: String = "",
                  var email: String = "",

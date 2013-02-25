@@ -1,7 +1,7 @@
 package scorm.models
 
-import models.Item
 import scala.xml.{Unparsed, Elem}
+import models.item.Item
 
 object Builder {
 

@@ -3,10 +3,10 @@ package tests.web.controllers
 import tests.BaseTest
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import models.Item
 import com.mongodb.{BasicDBObject, DBObject}
 import org.bson.types.ObjectId
 import play.Routes
+import models.item.Item
 
 class ShowResourceTest extends BaseTest{
 

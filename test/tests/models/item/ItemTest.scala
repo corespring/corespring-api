@@ -1,4 +1,4 @@
-package tests.models
+package tests.models.item
 
 import tests.BaseTest
 import models._

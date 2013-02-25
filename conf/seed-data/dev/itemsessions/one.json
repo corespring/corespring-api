@@ -41,12 +41,12 @@
     "itemId" :  { "$oid" : "506c9fbda0eee22b21788986" },
     "responses" : [
         {
-            "_t" : "models.StringItemResponse",
+            "_t" : "models.itemSession.StringItemResponse",
             "_id" : "mexicanPresident",
             "responseValue" : "cameron"
         },
         {
-            "_t" : "models.ArrayItemResponse",
+            "_t" : "models.itemSession.ArrayItemResponse",
             "_id" : "rainbowColors",
             "responseValue" : [
                 "blue", "violet"

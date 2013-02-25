@@ -1,4 +1,4 @@
-package tests.models
+package tests.models.itemSession
 
 import org.specs2.mutable.Specification
 import qti.models._
@@ -7,11 +7,9 @@ import interactions.choices.SimpleChoice
 import models._
 import org.omg.CORBA.IRObject
 import qti.models.QtiItem.Correctness
-import models.StringItemResponse
 import scala.Some
-import models.StringItemResponse
 import scala.Some
-import models.ArrayItemResponse
+import models.itemSession.{Score, ItemResponseOutcome, ArrayItemResponse, StringItemResponse}
 
 class ScoreTest extends Specification {
 

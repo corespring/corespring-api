@@ -1,4 +1,4 @@
-package models
+package models.itemSession
 
 import play.api.libs.json._
 import common.models.json.jerkson.{JerksonWrites, JerksonReads}

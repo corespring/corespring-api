@@ -3,8 +3,8 @@ package tests.qti.models.interactions
 import org.specs2.mutable._
 import qti.models.interactions.SelectTextInteraction
 import qti.models.{CorrectResponseMultiple, ResponseDeclaration}
-import models.{ItemResponseOutcome, ArrayItemResponse, ItemResponse}
 import play.libs.Json
+import models.itemSession.{ItemResponseOutcome, ArrayItemResponse}
 
 class SelectTextInteractionTest extends Specification {
 

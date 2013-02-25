@@ -8,13 +8,14 @@ import org.bson.types.ObjectId
 import com.novus.salat.dao.{SalatDAO, ModelCompanion}
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
-import models.{ItemSession, ItemSessionSettings, mongoContext}
+import models.{mongoContext}
 import mongoContext._
 import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
 import api.ApiError
 import common.models.json.jerkson.{JerksonReads, JerksonWrites}
 import com.mongodb.casbah.MongoCollection
+import models.itemSession.{ItemSessionSettings, ItemSession}
 
 
 /**

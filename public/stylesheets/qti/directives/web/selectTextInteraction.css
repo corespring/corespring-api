@@ -22,8 +22,13 @@ selectTextInteraction {
 }
 
 [selectable] .selected.unknown span {
-    background-color: #4055f8;
+    background-color: #00ACCE;
     color: #fff;
+    border: none;
+    color:#fff;
+    line-height:24px;
+    margin:0 2px 0 2px;
+    padding: 3px 4px;
 }
 
 /* Selected Incorrect Answer */
