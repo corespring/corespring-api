@@ -1,26 +1,29 @@
-function adjustDocs(item, save){
-
-  function addIfThere(propertyName, source, target){
-    if(source[propertyName]){
-      target[propertyName] = source[propertyName];
-    }
+function addIfThere(propertyName, source, target) {
+  if (source[propertyName]) {
+    target[propertyName] = source[propertyName];
   }
+}
 
-  function hasProps(o){
-    var count = 0;
-    for( var i in o){ count++; }
-    return count > 0;
+function hasProps(o) {
+  var count = 0;
+  for (var i in o) {
+    count++;
   }
+  return count > 0;
+}
 
-  function createOtherAlignments(item){
+function adjustDocs(item, save) {
+
+
+  function createOtherAlignments(item) {
 
     var otherAlignments = {};
-    addIfThere("bloomsTaxonomy", item, otherAlignments );
-    addIfThere("keySkills", item, otherAlignments );
-    addIfThere("demonstratedKnowledge", item, otherAlignments );
-    addIfThere("relatedCurriculum", item, otherAlignments );
+    addIfThere("bloomsTaxonomy", item, otherAlignments);
+    addIfThere("keySkills", item, otherAlignments);
+    addIfThere("demonstratedKnowledge", item, otherAlignments);
+    addIfThere("relatedCurriculum", item, otherAlignments);
 
-    if(hasProps(otherAlignments)){
+    if (hasProps(otherAlignments)) {
       item.otherAlignments = otherAlignments;
     }
 
@@ -30,7 +33,7 @@ function adjustDocs(item, save){
     delete item.relatedCurriculum;
   }
 
-  function createTaskInfo(item){
+  function createTaskInfo(item) {
 
     var taskInfo = {};
     addIfThere("subjects", item, taskInfo);
@@ -38,7 +41,7 @@ function adjustDocs(item, save){
     addIfThere("title", item, taskInfo);
     addIfThere("itemType", item, taskInfo);
 
-    if(hasProps(taskInfo)){
+    if (hasProps(taskInfo)) {
       item.taskInfo = taskInfo;
     }
 
@@ -55,22 +58,10 @@ function adjustDocs(item, save){
   save(item);
 }
 
-db.content.find().forEach(function(item){ adjustDocs(item, function(updatedObject){
-    //printjson(item);
-    db.content.save(updatedObject);
-  });
-});
 
-//Down
-function revertDoc(item, saveFn){
+function revertDoc(item, saveFn) {
 
-  function addIfThere(propertyName, source, target){
-    if(source[propertyName]){
-      target[propertyName] = source[propertyName];
-    }
-  }
-
-  if(item.taskInfo){
+  if (item.taskInfo) {
     addIfThere("subjects", item.taskInfo, item);
     addIfThere("gradeLevel", item.taskInfo, item);
     addIfThere("title", item.taskInfo, item);
@@ -78,27 +69,37 @@ function revertDoc(item, saveFn){
     delete item.taskInfo;
   }
 
-  if(item.otherAlignments){
-    addIfThere("bloomsTaxonomy", item.otherAlignments, item );
-    addIfThere("keySkills", item.otherAlignments, item );
-    addIfThere("demonstratedKnowledge", item.otherAlignments, item );
-    addIfThere("relatedCurriculum", item.otherAlignments, item );
+  if (item.otherAlignments) {
+    addIfThere("bloomsTaxonomy", item.otherAlignments, item);
+    addIfThere("keySkills", item.otherAlignments, item);
+    addIfThere("demonstratedKnowledge", item.otherAlignments, item);
+    addIfThere("relatedCurriculum", item.otherAlignments, item);
     delete item.otherAlignments;
   }
-
   saveFn(item);
 }
 
 var query = {
   $or: [
-    { "taskInfo" : {$exists: true}},
+    { "taskInfo": {$exists: true}},
     { "otherAlignments": {$exists: true}}
   ]
 };
 
-db.content.find(query).forEach(
-  function(item){
-    revertDoc(item, function(update){
-      db.content.save(update);
-    })
+function up() {
+  db.content.find().forEach(function (item) {
+    adjustDocs(item, function (updatedObject) {
+      //printjson(item);
+      db.content.save(updatedObject);
+    });
   });
+}
+
+function down() {
+  db.content.find(query).forEach(
+    function (item) {
+      revertDoc(item, function (update) {
+        db.content.save(update);
+      })
+    });
+}
