@@ -172,6 +172,7 @@ object Global extends GlobalSettings {
 
     val presidents = Array("obama", "cameron", "calderon")
     val colors = Array("blue","violet","white","red")
+    val moonmen = Array("armstrong","aldrin")
     val winterList = (Seq("york","York") ++ upToNWords("someWord", 10))
 
     val rand = new Random()
@@ -180,11 +181,15 @@ object Global extends GlobalSettings {
       val random_index = rand.nextInt(winterList.length)
       val winter = winterList(random_index)
 
+      val sr1 = (rand.nextInt(40)+1).toString
+      val sr2 = (rand.nextInt(40)+1).toString
       val responses = Seq(
         ArrayItemResponse("mexicanPresident", Seq(chooseOneRandomly(presidents))),
         ArrayItemResponse("rainbowColors", chooseNRandomly(colors), None),
         StringItemResponse("winterDiscontent", winter),
-        ArrayItemResponse("selectText", Seq("1","2"))
+        ArrayItemResponse("selectText", Seq(sr1, sr2)),
+        StringItemResponse("manOnMoon", chooseOneRandomly(moonmen))
+
       )
       println("Winter: "+winter)
       val session = ItemSession(responses = responses, itemId = new ObjectId("507c9fb3a0eee12a21a88912"), finish = Some(new DateTime()))

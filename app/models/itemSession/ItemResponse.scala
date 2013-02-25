@@ -143,8 +143,10 @@ object ItemResponse {
 
 case class ItemResponseAggregate(val id: String, correctAnswers: Seq[String], numCorrect: Int = 0, numResponses: Int = 0, totalDistribution: Int = 0, choices: Map[String, Int] = Map()) {
   def aggregate(response: ItemResponse): ItemResponseAggregate = {
-
-    val isCorrect = response.outcome.get.isCorrect
+    val isCorrect = response.outcome match {
+      case Some(r) => r.isCorrect
+      case _ => false
+    }
     def numFor(s: String): Int = if (choices.contains(s)) choices(s) + 1 else 1
     response match {
       case sr: StringItemResponse =>

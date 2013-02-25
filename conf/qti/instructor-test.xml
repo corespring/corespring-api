@@ -14,6 +14,13 @@
         </correctResponse>
     </responseDeclaration>
 
+    <responseDeclaration identifier="manOnMoon" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>armstrong</value>
+        </correctResponse>
+    </responseDeclaration>
+
+
     <!-- multi choice -->
     <responseDeclaration identifier="rainbowColors" cardinality="multiple" baseType="identifier">
         <correctResponse>
@@ -94,6 +101,22 @@
             In the deep bosom of the ocean
             buried.
         </p>
+
+
+        The first man on the moon was
+        <inlineChoiceInteraction
+                responseIdentifier="manOnMoon"
+                required="false">
+            <inlineChoice identifier="armstrong">Neil Armstrong
+                <feedbackInline identifier="armstrong" defaultFeedback="true"/>
+            </inlineChoice>
+            <inlineChoice identifier="aldrin">Buzz Aldrin
+                <feedbackInline identifier="aldrin" defaultFeedback="true"/>
+            </inlineChoice>
+        </inlineChoiceInteraction>
+        , he landed there in 1969.
+
+
         <feedbackBlock
                 identifier="York"
                 outcomeIdentifier="responses.winterDiscontent.value"
@@ -105,16 +128,23 @@
 
         <feedbackBlock
                 outcomeIdentifier="responses.winterDiscontent.value"
-                incorrectResponse="true">Incorrect</feedbackBlock>
+                incorrectResponse="true">Incorrect
+        </feedbackBlock>
 
 
-        <selectTextInteraction responseIdentifier="selectText" selectionType="word" checkIfCorrect="yes" minSelections="2" maxSelections="2">
-            "It turns out my <correct>mother</correct> loved the name Ruth. That's how I got my <correct>name</correct> and how my father got these: he let Ty Cobb name me after Babe Ruth."
+        <selectTextInteraction responseIdentifier="selectText" selectionType="word" checkIfCorrect="yes"
+                               minSelections="2" maxSelections="2">
+            "It turns out my
+            <correct>mother</correct>
+            loved the name Ruth. That's how I got my
+            <correct>name</correct>
+            and how my father got these: he let Ty Cobb name me after Babe Ruth."
             I tried to swallow but couldn't! I hoped that she wasn't going to say what I thought she was going to say.
-            Then she said it?<br/>
-            "In this shoebox are the ten baseballs Ty Cobb gave my father. They are signed by some of the most famous ballplayers in history, including one that has one single signature on it: Babe Ruth's."
+            Then she said it?
+            <br/>
+            "In this shoebox are the ten baseballs Ty Cobb gave my father. They are signed by some of the most famous
+            ballplayers in history, including one that has one single signature on it: Babe Ruth's."
         </selectTextInteraction>
-
 
 
     </itemBody>

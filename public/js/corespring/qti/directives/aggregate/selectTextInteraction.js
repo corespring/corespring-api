@@ -37,7 +37,7 @@ qtiDirectives.directive('selectable', function factory(QtiUtils) {
     restrict: 'AC',
     scope: true,
     replace: false,
-    template: "<span ng-click='toggle()' ng-transclude></span>",
+    template: "<span><span ng-transclude /><span class='{{numClass}}'>{{num}}</span></span>",
     transclude: true,
     require: "^selecttextinteraction",
     compile: function compile(tElement, tAttrs) {
@@ -48,48 +48,19 @@ qtiDirectives.directive('selectable', function factory(QtiUtils) {
         scope.isSelected = false;
         scope.id = /id=[^0-9]*([0-9]+)/gim.exec(outerHtml)[1];
 
-        function switchClass(className) {
-          return function (newVal, oldVal) {
-            if (newVal == oldVal) return;
-
-            if (newVal && !$(iElement).children("span").hasClass(className)) {
-              $(iElement).children("span").switchClass("", className, 200);
-            }
-            else if (!newVal && $(iElement).children("span").hasClass(className)) {
-              $(iElement).children("span").switchClass(className, "", 200);
-            }
-          }
-        }
-
-
-        var highlightCorrectAndIncorrect = function() {
-          if (!scope.itemSession || !scope.itemSession.sessionData || !scope.itemSession.sessionData.correctResponses) return;
-          var correctResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.sessionData.correctResponses, "");
-          var givenResponse = QtiUtils.getResponseValue(scope.responseIdentifier, scope.itemSession.responses, "");
-          var response = QtiUtils.getResponseById(scope.responseIdentifier, scope.itemSession.responses);
-          var outcome = response ? response.outcome : {};
-          scope.isSelected = (givenResponse.indexOf(scope.id) >= 0);
-          if (scope.itemSession.sessionData.correctResponses.length == 0) {
-            scope.unknown = true;
-          } else {
-            scope.shouldHaveBeenSelected = !scope.onlyCountMatch && correctResponse.indexOf(scope.id) >= 0;
-            scope.shouldNotHaveBeenSelected = !scope.onlyCountMatch && (scope.isSelected && correctResponse.indexOf(scope.id) < 0);
-            if (scope.onlyCountMatch && scope.isSelected) {
-              scope.shouldHaveBeenSelected = outcome.responsesCorrect;
-              scope.shouldNotHaveBeenSelected = !outcome.responsesCorrect;
-            }
-          }
-        }
-
-        // Not final submission - highlight only whether the given answers are correct or not
-        scope.$watch('itemSession.sessionData', function () {
-          highlightCorrectAndIncorrect();
-          scope.shouldHaveBeenSelected &= scope.isSelected;
+        scope.$watch('aggregate', function (aggregate) {
+          if (!aggregate) return;
+          var agg = aggregate[scope.responseIdentifier];
+//          var total = agg.totalDistribution;
+          console.log(scope.responseIdentifier);
+          scope.num = agg.choices[scope.id];
+          var isCorrect = agg.correctAnswers.indexOf(scope.id) >= 0;
+          scope.numClass = isCorrect ? "correct" : "incorrect";
         });
+
 
         // Final submission - highlight the correct answers as well even if they did not get chosen
         scope.$on('formSubmitted', function () {
-          highlightCorrectAndIncorrect();
           scope.disabled = true;
           iAttrs.$set("enabled", "false");
         });
@@ -101,8 +72,6 @@ qtiDirectives.directive('selectable', function factory(QtiUtils) {
           scope.shouldNotHaveBeenSelected = false;
           iAttrs.$set("enabled", "true");
         });
-
-
       }
     }
   };
