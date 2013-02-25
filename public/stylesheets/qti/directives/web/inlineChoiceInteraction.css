@@ -16,15 +16,18 @@ p inlinechoiceinteraction {
 inlinechoiceinteraction.incorrect-response, inlinechoiceinteraction.correct-response, inlinechoiceinteraction.received-response {
 	display: inline;
 }
+
 inlinechoiceinteraction.correct-response > .feedback-float.show, inlinechoiceinteraction.incorrect-response > .feedback-float.show {
-	width: 26px;
-	height: 22px;
-	line-height: 30px;
-	position: relative;
-	top: 2px;
-	display: inline-block;
-	cursor: pointer;
+width: 26px;
+height: 22px;
+line-height: 30px;
+position: relative;
+top: 2px;
+display: inline-block;
+cursor: pointer;
+margin-top: 25px !Important;
 }
+
 inlinechoiceinteraction.received-response > .feedback-float.show {
 	position: relative;
 	top: 0px;
@@ -47,7 +50,12 @@ inlinechoiceinteraction.incorrect-response > .feedback-float.show {
 .dropdown-menu li {
 	list-style: none;
 }
-/*Changes for new inline to accomodate MathML - jmazza */
+
+.dropdown-menu{
+    padding:3px 0px 0px 0px;
+}
+
+
 .btn-group {
 	position: relative;
 	font-size: 0;
@@ -73,11 +81,37 @@ inlinechoiceinteraction div.btn-group ul.dropdown-menu li a {
 	line-height: 20px;
 	padding: 3px 10px;
 }
+.btn-group ul.dropdown-menu li {
+    padding:0 0 5 0px;
+}
+
+.btn-group.open ul.dropdown-menu li {
+	padding:0 0 5px;
+}
 
 /*This line effects the font surrounding the inline elements. It is in place for testing since the actual structure does not support it yet. */
 inlinechoiceinteraction span.prompt {
 	font: 14px/20px "Ubuntu", Arial, Helvetica, sans-serif !important;
 } 
+
+.caret {
+display: inline-block;
+width: 0;
+height: 0;
+vertical-align: middle;
+border-top: 5px solid #000000;
+border-right: 5px solid transparent;
+border-left: 5px solid transparent;
+content: "";
+text-align: right;
+position: relative;
+right: 4px;
+}
+
+.btn .caret {
+margin-top: 0px;
+margin-left: 0;
+}
 
 .btngroup-select {
  display: inline-block;
@@ -93,10 +127,17 @@ inlinechoiceinteraction span.prompt {
 }
 
 
-inlinechoiceinteraction.ng-scope div.btn-group a.btn.dropdown-toggle span{
+/*inlinechoiceinteraction.ng-scope div.btn-group a.btn.dropdown-toggle span{
 padding-right: 28px !important;
 padding-left: 4px !important;
 }
+*/
+
+inlinechoiceinteraction.ng-scope div.btn-group a.btn.dropdown-toggle span:first-child{
+padding-right: 28px !important;
+padding-left: 4px !important;
+}
+
 
 
 .dropdown-menu li > a:hover,

@@ -1,65 +1,6 @@
+var chooseLabel = "Choose...";
+
 qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
-
-  var link = function ($scope, element, attrs, AssessmentItemCtrl) {
-    console.log('inlinechoiceinteraction!');
-
-    AssessmentItemCtrl.registerInteraction(element.attr('responseIdentifier'), 'inline');
-
-    var modelToUpdate = attrs["responseidentifier"];
-
-    $scope.click = function(label, value) {
-      $scope.selected = label;
-      $scope.choice = value;
-      $(element).find('.dropdown-toggle').dropdown('toggle');
-    }
-
-    $scope.$watch('choice', function (newValue) {
-      AssessmentItemCtrl.setResponse(modelToUpdate, newValue);
-    });
-
-    $scope.$on('resetUI', function (event) {
-      element
-        .removeClass('correct-response')
-        .removeClass('incorrect-response')
-        .removeClass('received-response');
-    });
-
-    $scope.$on('unsetSelection', function (event) {
-      $scope.choice = "";
-    });
-
-    $scope.$on('highlightUserResponses', function () {
-      $scope.choice = QtiUtils.getResponseValue(modelToUpdate, $scope.itemSession.responses);
-    });
-
-    $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
-
-      if (!responses) return;
-
-      var correctResponse = QtiUtils.getResponseValue(modelToUpdate, responses, "");
-      var isCorrect = QtiUtils.compare($scope.choice, correctResponse);
-
-      element
-        .removeClass('correct-response')
-        .removeClass('incorrect-response')
-        .removeClass('received-response');
-
-      if (responses.length == 0) {
-        element.addClass('received-response');
-      }
-      else if (isCorrect) {
-        if ($scope.highlightCorrectResponse() || $scope.highlightUserResponse()) {
-          element.addClass('correct-response');
-        }
-      }
-      else {
-        if ($scope.highlightUserResponse()) {
-          element.addClass('incorrect-response');
-        }
-      }
-    });
-
-  };
 
 
   var getOptionsAndFeedbacks = function (element) {
@@ -71,19 +12,16 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
     var nodes = html.match(inlineChoiceRegex);
 
-    var out = { options: [], feedbacks: []};
+    var out = { options: [], feedbacks: [], labels: []};
 
     if (!nodes) {
       return [];
     }
 
     for (var i = 0; i < nodes.length; i++) {
-      var template = '<li><a ng-click="click(\'$label\', \'${value}\')">$label</a></li>';
-
+      var template = '<li><a ng-click="click(\' ' + i + ' \', \'${value}\')">$label</a></li>';
       var node = angular.element(nodes[i]);
-
       var nodeContents = node.html();
-
       var feedbackNodes = nodeContents.match(feedbackRegex);
 
       if (feedbackNodes && feedbackNodes.length > 0) {
@@ -96,6 +34,8 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
       var option = template
         .replace("${value}", node.attr("identifier"))
         .replace(/\$label/gi, optionValue);
+
+      out.labels.push(optionValue);
 
       out.options.push(option);
     }
@@ -111,7 +51,7 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
     var html = [
       '<div class="btn-group" style="display: inline-block">',
-      '<a class="btn dropdown-toggle" ng-class="{disabled: formSubmitted}" data-toggle="dropdown" href="#"><span ng-bind-html-unsafe="selected" style="padding-right: 15px"/><i class="icon-chevron-down" style="position: absolute; right: 0px" /></a>',
+      '<a class="btn dropdown-toggle" ng-class="{disabled: formSubmitted}" data-toggle="dropdown" href="#"><span ng-bind-html-unsafe="selected" style="padding-right: 15px"/><span class="caret"></span></a>',
       '<ul class="dropdown-menu">'
     ];
 
@@ -126,7 +66,65 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
     html = html.concat(optionsAndFeedback.feedbacks);
     element.html(html.join(""));
 
-    return link;
+    return function ($scope, element, attrs, AssessmentItemCtrl) {
+      $scope.labels = optionsAndFeedback.labels;
+      AssessmentItemCtrl.registerInteraction(element.attr('responseIdentifier'), 'inline');
+
+      var modelToUpdate = attrs["responseidentifier"];
+
+      $scope.click = function (label, value) {
+        $scope.selected = $scope.labels[Number(label)];
+        $scope.choice = value;
+        $(element).find('.dropdown-toggle').dropdown('toggle');
+      }
+
+      $scope.$watch('choice', function (newValue) {
+        AssessmentItemCtrl.setResponse(modelToUpdate, newValue);
+      });
+
+      $scope.$on('resetUI', function (event) {
+        element
+          .removeClass('correct-response')
+          .removeClass('incorrect-response')
+          .removeClass('received-response');
+      });
+
+      $scope.$on('unsetSelection', function (event) {
+        $scope.choice = "";
+        $scope.selected = chooseLabel;
+      });
+
+      $scope.$on('highlightUserResponses', function () {
+        $scope.choice = QtiUtils.getResponseValue(modelToUpdate, $scope.itemSession.responses);
+      });
+
+      $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
+
+        if (!responses) return;
+
+        var correctResponse = QtiUtils.getResponseValue(modelToUpdate, responses, "");
+        var isCorrect = QtiUtils.compare($scope.choice, correctResponse);
+
+        element
+          .removeClass('correct-response')
+          .removeClass('incorrect-response')
+          .removeClass('received-response');
+
+        if (responses.length == 0) {
+          element.addClass('received-response');
+        }
+        else if (isCorrect) {
+          if ($scope.highlightCorrectResponse() || $scope.highlightUserResponse()) {
+            element.addClass('correct-response');
+          }
+        }
+        else {
+          if ($scope.highlightUserResponse()) {
+            element.addClass('incorrect-response');
+          }
+        }
+      });
+    };
   };
 
   return {
@@ -137,7 +135,7 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
     compile: compile,
     controller: function ($scope) {
       this.scope = $scope;
-      $scope.selected = "Choose...";
+      $scope.selected = chooseLabel;
     }
   }
 });
@@ -158,20 +156,18 @@ var feedbackFloat = function (QtiUtils) {
     replace: true,
     require: '^assessmentitem',
     link: function (scope, element, attrs) {
-      console.log("feedback float!");
       var csFeedbackId = attrs["csfeedbackid"];
 
       scope.getTooltip = function () {
         return scope.feedback;
       };
 
-
       scope.$on('resetUI', function (event) {
-        scope.feedback = "";
+        scope.feedback = '';
       });
 
       scope.$on('unsetSelection', function (event) {
-        $(element).tooltip('hide');
+        $(element).tooltip('destroy');
       });
 
       scope.getClass = function () {
@@ -184,8 +180,7 @@ var feedbackFloat = function (QtiUtils) {
         var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
         if (feedback) {
           scope.feedback = feedback;
-
-          $(element).tooltip({ title: scope.feedback, trigger: 'manual' });
+          $(element).tooltip({ title: scope.feedback, trigger: 'manual'});
           setTimeout(function () {
             $(element).tooltip('show');
           }, 100);

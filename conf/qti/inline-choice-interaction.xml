@@ -1,55 +1,99 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version='1.0' encoding='UTF-8' ?>
 <assessmentItem
-        identifier="mcas-16373" timeDependent="false" title="16373" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 imsqti_v2p1.xsd" toolName="SIB" adaptive="false" toolVersion="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1">
-    <stylesheet type="text/css" href="css/mcas/default.css"></stylesheet>
+        identifier='mcas-16373' timeDependent='false' title='16373'
+        xsi:schemaLocation='http://www.imsglobal.org/xsd/imsqti_v2p1 imsqti_v2p1.xsd' toolName='SIB' adaptive='false'
+        toolVersion='1.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns='http://www.imsglobal.org/xsd/imsqti_v2p1'>
+    <stylesheet type='text/css' href='css/mcas/default.css'></stylesheet>
     <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
     <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
     <!-- single choice -->
-    <responseDeclaration identifier="manOnMoon" cardinality="single" baseType="identifier">
+    <responseDeclaration identifier='manOnMoon' cardinality='single' baseType='identifier'>
         <correctResponse>
             <value>armstrong</value>
         </correctResponse>
     </responseDeclaration>
 
-    <responseDeclaration identifier="manOnMoon2" cardinality="single" baseType="identifier">
+    <responseDeclaration identifier='manOnMoon2' cardinality='single' baseType='identifier'>
         <correctResponse>
             <value>armstrong</value>
         </correctResponse>
     </responseDeclaration>
 
     <itemBody>
-        The first man on the moon was <inlineChoiceInteraction
-            responseIdentifier="manOnMoon"
-            required="false">
-            <inlineChoice identifier="armstrong">Neil Armstrong<feedbackInline identifier="armstrong" defaultFeedback="true"/></inlineChoice>
-            <inlineChoice identifier="aldrin">Buzz Aldrin<feedbackInline identifier="aldrin" defaultFeedback="true"/></inlineChoice>
-            <inlineChoice identifier="mathml">
-
-                <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <p>
+            The first man on the moon was
+            <inlineChoiceInteraction
+                    responseIdentifier='manOnMoon'
+                    required='false'>
+                <inlineChoice identifier='armstrong'>Neil Armstrong
+                    <feedbackInline identifier='armstrong' defaultFeedback='true'/>
+                </inlineChoice>
+                <inlineChoice identifier='aldrin'><math xmlns="http://www.w3.org/1998/Math/MathML">
                     <semantics>
                         <mrow>
-                            <mn>2</mn>
-                            <mfrac>
+                            <mrow>
+                                <munderover>
+                                    <mo stretchy="false">∑</mo>
+                                    <mrow>
+                                        <mi>n</mi>
+                                        <mo stretchy="false">=</mo>
+                                        <mn>1</mn>
+                                    </mrow>
+                                    <mo stretchy="false">∞</mo>
+                                </munderover>
                                 <mrow>
-                                    <mn>1</mn>
+                                    <mfrac>
+                                        <mn>1</mn>
+                                        <mrow>
+                                            <msup>
+                                                <mn>2</mn>
+                                                <mi>n</mi>
+                                            </msup>
+                                        </mrow>
+                                    </mfrac>
                                 </mrow>
-                                <mrow>
-                                    <mn>3</mn>
-                                </mrow>
-                            </mfrac>
+                            </mrow>
                         </mrow>
                     </semantics>
                 </math>
+                    <feedbackInline identifier='aldrin' defaultFeedback='true'/>
+                </inlineChoice>
+                <inlineChoice identifier='mathml'>
 
-                <feedbackInline identifier="mathml" defaultFeedback="true"/>
-            </inlineChoice>
-        </inlineChoiceInteraction>, he landed there in 1969.
-        The second was <inlineChoiceInteraction
-            responseIdentifier="manOnMoon2"
-            required="false">
-        <inlineChoice identifier="armstrong2">Neil Armstrong<feedbackInline identifier="armstrong2" defaultFeedback="true"/></inlineChoice>
-        <inlineChoice identifier="aldrin2">Buzz Aldrin<feedbackInline identifier="aldrin2" defaultFeedback="true"/></inlineChoice>
-    </inlineChoiceInteraction>
+                    <math xmlns='http://www.w3.org/1998/Math/MathML'>
+                        <semantics>
+                            <mrow>
+                                <mn>2</mn>
+                                <mfrac>
+                                    <mrow>
+                                        <mn>1</mn>
+                                    </mrow>
+                                    <mrow>
+                                        <mn>3</mn>
+                                    </mrow>
+                                </mfrac>
+                            </mrow>
+                        </semantics>
+                    </math>
+
+                    <feedbackInline identifier='mathml' defaultFeedback='true'/>
+                </inlineChoice>
+            </inlineChoiceInteraction>
+            , he landed there in 1969.
+            The second was
+            <inlineChoiceInteraction
+                    responseIdentifier="manOnMoon2"
+                    required="false">
+                <inlineChoice identifier="armstrong2">Neil Armstrong
+                    <feedbackInline identifier="armstrong2" defaultFeedback="true"/>
+                </inlineChoice>
+                <inlineChoice identifier="aldrin2">Buzz Aldrin
+                    <feedbackInline identifier="aldrin2" defaultFeedback="true"/>
+                </inlineChoice>
+            </inlineChoiceInteraction>
+
+        </p>
     </itemBody>
 
 </assessmentItem>
