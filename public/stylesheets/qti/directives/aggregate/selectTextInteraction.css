@@ -7,12 +7,12 @@ selectTextInteraction {
 }
 
 
-.incorrect {
+selectTextInteraction .incorrect {
     color: red;
     vertical-align: super;
 }
 
-.correct {
+selectTextInteraction .correct {
     color: green;
     vertical-align: super;
 }

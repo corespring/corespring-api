@@ -1,7 +1,7 @@
-.correct {
+.choice-interaction .correct {
     color: #6eb76e;
 }
 
-.incorrect {
+.choice-interaction .incorrect {
     color: red;
 }
