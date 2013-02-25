@@ -8,59 +8,21 @@ var sessionChange = {
   "models.ArrayItemResponse": "models.itemSession.ArrayItemResponse"
 };
 
-function process(filesArray, changeMap) {
-
-  if(!filesArray){
-    return false;
-  }
-  var changed = false;
-  for (var i = 0; i < filesArray.length; i++) {
-    var f = filesArray[i];
-    if (f._t && changeMap[f._t]) {
-      f._t = changeMap[f._t];
-      changed = true;
-    }
-  }
-  return changed;
+var fileChangeDown = {};
+for (var x in fileChange) {
+  var value = fileChange[x];
+  fileChangeDown[value] = x;
 }
-print("data.files._t: " + db.content.count({$exists: "data.files._t"}));
 
-db.content.find({"data.files._t" : {$exists: true}}).forEach(function (item) {
-  var changed = process(item.data.files, fileChange);
-  if (changed) {
-    db.content.save(item);
-  }
-});
-
-db.content.find({"supportingMaterials.files._t" : {$exists:true}}).forEach(function (item) {
-  var changed = process(item.supportingMaterials.files, fileChange);
-  if (changed) {
-    db.content.save(item);
-  }
-});
-
-db.itemsessions.find({"responses._t": {$exists:true}}).forEach(function (session) {
-  var changed = process(session.responses, sessionChange);
-  if (changed) {
-    db.itemsessions.save(session);
-  }
-});
-
-//Down
-
-var fileChange = {
-   "models.item.resource.VirtualFile": "models.VirtualFile",
-   "models.item.resource.StoredFile" : "models.StoredFile"
-};
-
-var sessionChange = {
-   "models.itemSession.StringItemResponse" : "models.StringItemResponse",
-   "models.itemSession.ArrayItemResponse" : "models.ArrayItemResponse"
-};
+var sessionChangeDown = {};
+for (var z in sessionChange) {
+  var valueTwo = sessionChange[x];
+  sessionChangeDown[valueTwo] = x;
+}
 
 function process(filesArray, changeMap) {
 
-  if(!filesArray){
+  if (!filesArray) {
     return false;
   }
   var changed = false;
@@ -74,24 +36,51 @@ function process(filesArray, changeMap) {
   return changed;
 }
 
-db.content.find({"data.files._t" : {$exists: true}}).forEach(function (item) {
-  var changed = process(item.data.files, fileChange);
-  if (changed) {
-    db.content.save(item);
-  }
-});
+function up() {
+  db.content.find({"data.files._t": {$exists: true}}).forEach(function (item) {
+    var changed = process(item.data.files, fileChange);
+    if (changed) {
+      db.content.save(item);
+    }
+  });
 
-db.content.find({"supportingMaterials.files._t" : {$exists:true}}).forEach(function (item) {
-  var changed = process(item.supportingMaterials.files, fileChange);
-  if (changed) {
-    db.content.save(item);
-  }
-});
+  db.content.find({"supportingMaterials.files._t": {$exists: true}}).forEach(function (item) {
+    var changed = process(item.supportingMaterials.files, fileChange);
+    if (changed) {
+      db.content.save(item);
+    }
+  });
 
-db.itemsessions.find({"responses._t": {$exists:true}}).forEach(function (session) {
-  var changed = process(session.responses, sessionChange);
-  if (changed) {
-    db.itemsessions.save(session);
-  }
-});
+  db.itemsessions.find({"responses._t": {$exists: true}}).forEach(function (session) {
+    var changed = process(session.responses, sessionChange);
+    if (changed) {
+      db.itemsessions.save(session);
+    }
+  });
+
+}
+
+function down() {
+
+  db.content.find({"data.files._t": {$exists: true}}).forEach(function (item) {
+    var changed = process(item.data.files, fileChangeDown);
+    if (changed) {
+      db.content.save(item);
+    }
+  });
+
+  db.content.find({"supportingMaterials.files._t": {$exists: true}}).forEach(function (item) {
+    var changed = process(item.supportingMaterials.files, fileChangeDown);
+    if (changed) {
+      db.content.save(item);
+    }
+  });
+
+  db.itemsessions.find({"responses._t": {$exists: true}}).forEach(function (session) {
+    var changed = process(session.responses, sessionChangeDown);
+    if (changed) {
+      db.itemsessions.save(session);
+    }
+  });
+}
 
