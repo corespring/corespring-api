@@ -7,8 +7,8 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
     var html = element.html();
 
-    var inlineChoiceRegex = /(<inlinechoice[\s\S]*?>[\s\S]*?<\/inlinechoice>)/gm;
-    var feedbackRegex = /(<feedbackinline[\s\S]*?>[\s\S]*?<\/feedbackinline>)/gm;
+    var inlineChoiceRegex = /<:*inlinechoice[\s\S]*?>([\s\S]*?)<\/:*inlinechoice>/gmi;
+    var feedbackRegex = /(<:*feedbackinline[\s\S]*?>[\s\S]*?<\/:*feedbackinline>)/gmi;
 
     var nodes = html.match(inlineChoiceRegex);
 
@@ -18,14 +18,16 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
       return [];
     }
 
+    nodes = $(element).children('inlinechoice');
+
     for (var i = 0; i < nodes.length; i++) {
       var template = '<li><a ng-click="click(\' ' + i + ' \', \'${value}\')">$label</a></li>';
       var node = angular.element(nodes[i]);
       var nodeContents = node.html();
-      var feedbackNodes = nodeContents.match(feedbackRegex);
 
+      var feedbackNodes = nodeContents.match(feedbackRegex);
       if (feedbackNodes && feedbackNodes.length > 0) {
-        var floatDirective = feedbackNodes[0].replace(/feedbackinline/g, "feedbackfloat");
+        var floatDirective = feedbackNodes[0].replace(/<:*feedbackinline/gim, "<span class='feedbackfloat'").replace(/\/:*feedbackinline/gim, "/span");
         out.feedbacks.push(floatDirective);
       }
 
@@ -36,7 +38,6 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
         .replace(/\$label/gi, optionValue);
 
       out.labels.push("<span ng-show='selectedIdx=="+i+"'>"+optionValue+"</span>");
-
 
       out.options.push(option);
     }
@@ -53,7 +54,7 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
     var html = [
       '<div class="btn-group" style="display: inline-block">',
-      '<a class="btn dropdown-toggle" ng-class="{disabled: formSubmitted}" data-toggle="dropdown" href="#">',
+      '<a class="btn dropdown-toggle" ng-class="{disabled: formSubmitted}" data-toggle="dropdown" href="#">'
     ].concat(optionsAndFeedback.labels).concat([
       '<span class="caret"></span></a>',
       '<ul class="dropdown-menu">'
@@ -86,10 +87,6 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
       $scope.$watch('choice', function (newValue) {
         AssessmentItemCtrl.setResponse(modelToUpdate, newValue);
-//        setTimeout(function () {
-//          MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-//        }, 100);
-
       });
 
       $scope.$on('resetUI', function (event) {
@@ -160,7 +157,7 @@ var feedbackFloat = function (QtiUtils) {
 
   //<li ng-class="{true:'active', false:''}[currentPanel=='content']">
   return {
-    restrict: 'E',
+    restrict: 'EAC',
     template: '<span class="feedback-float" ng-class="getClass()"></span>',
     scope: true,
     replace: true,
