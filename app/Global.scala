@@ -116,7 +116,7 @@ object Global extends GlobalSettings {
       addDemoDataToDb()
     }
 
-    //RabbitMQ.startSending
+    RabbitMQ.startSending
 
   }
 
