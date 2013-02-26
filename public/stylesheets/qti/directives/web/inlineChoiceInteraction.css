@@ -52,7 +52,6 @@ inlinechoiceinteraction.incorrect-response > .feedback-float.show {
     margin: 0px;
     padding: 2px;
     width: auto;
-    min-width: 100px;
 }
 
 .dropdown-menu li {
@@ -107,8 +106,8 @@ inlinechoiceinteraction span.prompt {
 
 .caret {
     display: inline-block;
-    width: 0;
-    height: 0;
+    width: 1px;
+    height: 1px;
     vertical-align: middle;
     border-top: 5px solid #000000;
     border-right: 5px solid transparent;
@@ -119,10 +118,30 @@ inlinechoiceinteraction span.prompt {
     right: 4px;
 }
 
+/*
 .btn .caret {
     margin-top: 0px;
     margin-left: 0;
 }
+*/
+
+.btn .caret {
+    margin-top: 0px;
+    margin-left: 10px;
+}
+
+.btn.dropdown-toggle {
+    text-align:left;
+    padding-left:5px;
+}
+
+.btn.dropdown-toggle span:first-child {
+    width:auto;
+    margin:0;
+    padding:0;
+}
+
+
 
 .btngroup-select {
     display: inline-block;
@@ -143,10 +162,12 @@ padding-left: 4px !important;
 }
 */
 
+/*
 inlinechoiceinteraction.ng-scope div.btn-group a.btn.dropdown-toggle span:first-child {
     padding-right: 28px !important;
     padding-left: 4px !important;
 }
+*/
 
 .dropdown-menu li > a:hover,
 .dropdown-menu li > a:focus,
