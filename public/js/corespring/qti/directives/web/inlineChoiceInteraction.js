@@ -98,7 +98,7 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
       $scope.$on('unsetSelection', function (event) {
         $scope.choice = "";
-        $scope.selected = chooseLabel;
+        $scope.selectedIdx = -1;
       });
 
       $scope.$on('highlightUserResponses', function () {
@@ -177,7 +177,7 @@ var feedbackFloat = function (QtiUtils) {
         $(element).tooltip('destroy');
       });
 
-      scope.$on('toggleControlBar', function() {
+      scope.$on('controlBarChanged', function() {
         $(element).tooltip('destroy');
       });
 
@@ -186,7 +186,7 @@ var feedbackFloat = function (QtiUtils) {
       };
 
       scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
-        if (!responses || scope.isFeedbackEnabled() == false) return;
+        if (!responses || scope.isFeedbackEnabled() == false || !scope.highlightUserResponse()) return;
 
         var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
         if (feedback) {

@@ -9,7 +9,7 @@ function ControlBarController($scope, $rootScope) {
     $scope.toggleControlBar = function() {
       $scope.showAdminOptions = !$scope.showAdminOptions;
 
-      $rootScope.$broadcast('toggleControlBar');
+      $rootScope.$broadcast('controlBarChanged');
     }
 }
 
