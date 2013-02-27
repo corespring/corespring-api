@@ -3,11 +3,17 @@ var qtiDirectives = angular.module('qti.directives', ['qti.services']);
 var app = angular.module('qti', ['qti.directives', 'qti.services', 'corespring-services']);
 
 
-function ControlBarController($scope) {
+function ControlBarController($scope, $rootScope) {
     $scope.showAdminOptions = false;
+
+    $scope.toggleControlBar = function() {
+      $scope.showAdminOptions = !$scope.showAdminOptions;
+
+      $rootScope.$broadcast('toggleControlBar');
+    }
 }
 
-ControlBarController.$inject = ['$scope'];
+ControlBarController.$inject = ['$scope','$rootScope'];
 
 // base directive include for all QTI items
 qtiDirectives.directive('assessmentitem', function ($rootScope) {

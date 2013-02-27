@@ -177,6 +177,10 @@ var feedbackFloat = function (QtiUtils) {
         $(element).tooltip('destroy');
       });
 
+      scope.$on('toggleControlBar', function() {
+        $(element).tooltip('destroy');
+      });
+
       scope.getClass = function () {
         return scope.feedback ? "show" : "hide";
       };
