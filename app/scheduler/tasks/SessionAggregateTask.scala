@@ -2,19 +2,15 @@ package scheduler.tasks
 
 import scheduler.RabbitMQTask
 import akka.util.duration._
+import controllers.Log
+import akka.util.Duration
 
-/**
- * Created with IntelliJ IDEA.
- * User: josh
- * Date: 2/26/13
- * Time: 11:34 PM
- * To change this template use File | Settings | File Templates.
- */
+
 class SessionAggregateTask extends RabbitMQTask{
-  override val initialDelay = 1 minute
+  override val initialDelay = Duration.Zero
   override val frequency = 1 minute
 
   def run() {
-
+    Log.i("ran session aggregate task at "+System.currentTimeMillis())
   }
 }

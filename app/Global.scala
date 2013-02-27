@@ -1,6 +1,7 @@
 import _root_.controllers.{ConcreteS3Service}
 import com.typesafe.config.ConfigFactory
 import play.api.mvc.Results._
+import scheduler.RabbitMQ
 import web.controllers.utils.ConfigLoader
 import common.seed.SeedDb._
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
@@ -116,6 +117,7 @@ object Global extends GlobalSettings {
       addDemoDataToDb()
     }
 
+    RabbitMQ.init
   }
 
   /** Add demo data models to the the db to allow end users to be able to

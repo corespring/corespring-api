@@ -4,7 +4,7 @@ import play.api.libs.json.{JsValue, JsObject}
 import akka.util.Duration
 
 object RabbitMQTasks {
-  def tasks:Map[String,RabbitMQTask] = getTasks
+  lazy val tasks:Map[String,RabbitMQTask] = getTasks
   private def getTasks:Map[String,RabbitMQTask] = {
     val classes = getClasses("scheduler/tasks")
     classes.foldRight[Map[String,RabbitMQTask]](Map())((c,acc) => {
