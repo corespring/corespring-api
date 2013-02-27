@@ -1,4 +1,4 @@
-import _root_.controllers.{RabbitMQ, ConcreteS3Service}
+import _root_.controllers.{ConcreteS3Service}
 import com.typesafe.config.ConfigFactory
 import play.api.mvc.Results._
 import web.controllers.utils.ConfigLoader
@@ -115,8 +115,6 @@ object Global extends GlobalSettings {
       }
       addDemoDataToDb()
     }
-
-    RabbitMQ.startSending
 
   }
 
