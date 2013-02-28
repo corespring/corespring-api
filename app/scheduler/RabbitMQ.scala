@@ -4,6 +4,7 @@ import com.typesafe.config.ConfigFactory
 import com.rabbitmq.client.{QueueingConsumer, Channel, ConnectionFactory, Connection}
 import akka.actor.{ActorSystem, Actor, Props}
 import play.api.libs.json._
+import play.api.Logger
 
 object RabbitMQ {
   private val RABBITMQ_HOST = ConfigFactory.load().getString("rabbitmq.host");
@@ -17,9 +18,13 @@ object RabbitMQ {
 
   def init = {
     val connection = initializeConnection
+    Logger.info("connection initialized")
     val generalChannel = initializeGeneralChannel(connection)
+    Logger.info("general channel initialized")
     initializeGeneralListener(generalChannel)
+    Logger.info("queueing tasks")
     queueTasks(generalChannel)
+    Logger.info("tasks have been queued");
   }
 
   private def initializeConnection:Connection = {
@@ -38,6 +43,7 @@ object RabbitMQ {
   private def initializeGeneralListener(channel:Channel) {
     val consumer = new QueueingConsumer(channel);
     channel.basicConsume(GENERAL_QUEUE, false, consumer);
+    Logger.info("initialized consumer")
     val deliveryActor = system.actorOf(Props(new Actor {
       protected def receive = {
         case delivery:QueueingConsumer.Delivery => {
@@ -71,6 +77,7 @@ object RabbitMQ {
     }).withDispatcher(RABBITMQ_WORKER_DISPATCHER))
     new Thread(new Runnable {
       def run() {
+        Logger.info("begin consuming messages")
         while(true){
           val delivery = consumer.nextDelivery();
           deliveryActor ! delivery
@@ -81,6 +88,7 @@ object RabbitMQ {
   }
   def queueTasks(channel:Channel) {
     RabbitMQTasks.tasks.foreach{case (taskName,task) => {
+      Logger.info("scheduling task: "+taskName)
       val json = JsObject(Seq(
         "taskName" -> JsString(taskName),
         "data" -> task.data
