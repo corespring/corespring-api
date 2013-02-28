@@ -31,5 +31,5 @@ object ApplicationBuild extends Build {
     resolvers += "Spy Repository" at "http://files.couchbase.com/maven2" // required to resolve `spymemcached`, the plugin's dependency.
   )
 
-  val schedulerProject = Project("scheduler",file("scheduler"))
+  //val schedulerProject = Project("scheduler",file("scheduler"))
 }
