@@ -7,17 +7,86 @@ import se.radley.plugin.salat._
 import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
 import play.api.Play.current
-import models.mongoContext._
 import models.quiz.{BaseParticipant, BaseQuestion}
-import play.api.libs.json.{JsObject, Writes, JsValue, Reads}
-import common.models.json.jerkson.{JerksonReads, JerksonWrites}
+import play.api.libs.json._
+import play.api.libs.json.Json._
+import models.mongoContext._
+import play.api.libs.json.JsObject
+import scala.Some
 
-case class Participant(itemSessions: Seq[ObjectId],
+case class Answer(sessionId: ObjectId, itemId: ObjectId)
+
+object Answer {
+
+  implicit object Reads extends Reads[Answer] {
+    def reads(json: JsValue): Answer = {
+      Answer(new ObjectId((json \ "sessionId").as[String]), new ObjectId((json \ "itemId").as[String]))
+    }
+  }
+
+  implicit object Writes extends Writes[Answer] {
+    def writes(a: Answer): JsValue = {
+      JsObject(Seq(
+        "sessionId" -> JsString(a.sessionId.toString),
+        "itemId" -> JsString(a.itemId.toString)
+      ))
+    }
+  }
+
+}
+
+case class Participant(answers: Seq[Answer],
                        externalUid: String,
-                       metadata: Map[String, String]) extends BaseParticipant(itemSessions, externalUid)
+                       metadata: Map[String, String]) extends BaseParticipant(answers.map(_.sessionId), externalUid)
+
+object Participant {
+
+  implicit object Reads extends Reads[Participant] {
+    def reads(json: JsValue): Participant = {
+      new Participant(
+        (json \ "answers").as[Seq[Answer]],
+        (json \ "externalUid").as[String],
+        (json \ "metadata").as[Map[String, String]]
+      )
+    }
+  }
+
+  implicit object Writes extends Writes[Participant] {
+    def writes(p: Participant): JsValue = {
+      JsObject(Seq(
+        "answers" -> toJson(p.answers),
+        "externalUid" -> JsString(p.externalUid),
+        "metadata" -> toJson(p.metadata)
+      ))
+    }
+  }
+
+}
 
 case class Question(itemId: ObjectId,
-                    settings: ItemSessionSettings) extends BaseQuestion(Some(itemId), settings)
+                    settings: ItemSessionSettings = ItemSessionSettings()) extends BaseQuestion(Some(itemId), settings)
+
+object Question {
+
+  implicit object Reads extends Reads[Question] {
+    def reads(json: JsValue): Question = {
+      Question(
+        new ObjectId((json \ "itemId").as[String]),
+        (json \ "settings").asOpt[ItemSessionSettings].getOrElse(ItemSessionSettings())
+      )
+    }
+  }
+
+  implicit object Writes extends Writes[Question] {
+    def writes(q: Question): JsValue = {
+      JsObject(Seq(
+        Some("itemId" -> JsString(q.itemId.toString)),
+        if (q.settings != null) Some("settings" -> toJson(q.settings)) else None
+      ).flatten)
+    }
+  }
+
+}
 
 case class Quiz(orgId: Option[ObjectId] = None,
                 metadata: Map[String, String] = Map(),
@@ -28,14 +97,38 @@ case class Quiz(orgId: Option[ObjectId] = None,
 
 object Quiz {
 
-  private object Keys{
+  private object Keys {
     val orgId = "orgId"
   }
 
-  implicit object Writes extends JerksonWrites[Quiz]
+  implicit object Writes extends Writes[Quiz] {
+    def writes(q: Quiz): JsObject = {
 
-  implicit object Reads extends JerksonReads[Quiz] {
-    def manifest = Manifest.classType(new Quiz().getClass)
+      val props = List(
+        Some("id" -> JsString(q.id.toString)),
+        q.orgId.map((o: ObjectId) => ("orgId" -> JsString(o.toString))), //,
+        Some("metadata" -> toJson(q.metadata)),
+        Some("participants" -> toJson(q.participants)),
+        Some("questions" -> toJson(q.questions))
+      ).flatten
+
+      JsObject(props)
+    }
+  }
+
+  implicit object Reads extends Reads[Quiz] {
+    def reads(json: JsValue): Quiz = {
+
+      val participants = (json \ "participants").asOpt[Seq[Participant]].getOrElse(Seq())
+
+      Quiz(
+        (json \ "orgId").asOpt[String].map(new ObjectId(_)),
+        (json \ "metadata").asOpt[Map[String, String]].getOrElse(Map()),
+        (json \ "questions").asOpt[Seq[Question]].getOrElse(Seq()),
+        participants,
+        (json \ "id").asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId())
+      )
+    }
   }
 
   /** Hide the dao - it provides too many options
@@ -50,7 +143,7 @@ object Quiz {
     Dao.save(q)
   }
 
-  def update(q : Quiz) {
+  def update(q: Quiz) {
     Dao.save(q)
   }
 
@@ -62,7 +155,7 @@ object Quiz {
     Dao.remove(MongoDBObject())
   }
 
-  def remove(q:Quiz) {
+  def remove(q: Quiz) {
     Dao.remove(q)
   }
 
@@ -74,4 +167,26 @@ object Quiz {
     val query = MongoDBObject(Keys.orgId -> id)
     Dao.find(query).toList
   }
+
+  def addAnswer(quizId:ObjectId,externalUid:String,answer:Answer) : Option[Quiz] = {
+
+    def processParticipants(externalUid:String)(p:Participant) : Participant = {
+      if(p.externalUid == externalUid && !p.answers.exists(_.itemId == answer.itemId)){
+        p.copy(answers = p.answers :+ answer)
+      }
+      else {
+        p
+      }
+    }
+
+    Quiz.findOneById(quizId) match {
+      case Some(q) => {
+        val updatedQuiz = q.copy( participants = q.participants.map(processParticipants(externalUid)))
+        Quiz.update(updatedQuiz)
+        Some(updatedQuiz)
+      }
+      case None => None
+    }
+  }
+
 }

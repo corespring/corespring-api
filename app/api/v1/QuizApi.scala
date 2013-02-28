@@ -3,8 +3,9 @@ package api.v1
 import org.bson.types.ObjectId
 import controllers.auth.BaseApi
 import play.api.mvc.Result
-import models.quiz.basic.Quiz
+import models.quiz.basic.{Answer, Quiz}
 import play.api.libs.json.Json._
+import api.ApiError
 
 object QuizApi extends BaseApi {
 
@@ -66,5 +67,22 @@ object QuizApi extends BaseApi {
     request =>
       val quizzes = Quiz.findAllByOrgId(request.ctx.organization)
       Ok(toJson(quizzes))
+  }
+
+
+  def addAnswerForParticipant(quizId:ObjectId,externalUid:String) = ApiAction{
+    request  => {
+      WithQuiz(quizId,request.ctx.organization){
+        quiz =>
+          request.body.asJson match {
+            case Some(json) => {
+              val answer = fromJson[Answer](json)
+              val updated = Quiz.addAnswer(quizId,externalUid,answer)
+              Ok(toJson(updated))
+            }
+            case _ => BadRequest(toJson(ApiError.JsonExpected))
+          }
+      }
+    }
   }
 }

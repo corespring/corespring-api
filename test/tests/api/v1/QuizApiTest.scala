@@ -2,7 +2,7 @@ package tests.api.v1
 
 import org.specs2.mutable.Specification
 import utils.RequestCalling
-import models.quiz.basic.Quiz
+import models.quiz.basic.{Participant, Quiz}
 import play.api.mvc.{AnyContentAsJson, AnyContentAsEmpty}
 import tests.PlaySingleton
 import org.bson.types.ObjectId
@@ -28,9 +28,17 @@ class QuizApiTest extends Specification with RequestCalling {
 
     "create" in {
       val q = createQuiz(Map("course" -> "some course"))
-      val json = AnyContentAsJson(Json.toJson(q))
+      val quiz = q.copy(participants = Seq(
+        Participant(
+          externalUid = "ed",
+          metadata = Map(),
+          answers = Seq()
+        )
+      ))
+      val json = AnyContentAsJson(Json.toJson(quiz))
       val createdQuiz = invokeCall[Quiz](Routes.create(), json)
       createdQuiz.metadata.get("course") === Some("some course")
+      createdQuiz.participants.length === 1
     }
 
     "update" in {
@@ -78,6 +86,8 @@ class QuizApiTest extends Specification with RequestCalling {
         case _ => failure("Error deleting")
       }
     }
+
+
   }
 
 }

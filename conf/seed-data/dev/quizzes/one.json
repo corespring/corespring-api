@@ -23,16 +23,34 @@
         "submitCompleteMessage": "Ok! Your response was submitted.",
         "submitIncorrectMessage": "You may revise your work before you submit your final response."
       }
+    },
+    {
+      "itemId": {
+        "$oid": "506c9fbda0eee22b21788986"
+      },
+      "settings": {
+        "maxNoOfAttempts": 0,
+        "highlightUserResponse": true,
+        "highlightCorrectResponse": true,
+        "showFeedback": false,
+        "allowEmptyResponses": false,
+        "submitCompleteMessage": "Ok! Your response was submitted.",
+        "submitIncorrectMessage": "You may revise your work before you submit your final response."
+      }
     }
   ],
   "participants": [
     {
-      "itemSessions": [
-        {
-          "$oid": "50aa12143004e43e523374e8"
-        }
+      "answers" : [],
+      "externalUid" : "joe.bloggs@gmail.com",
+      "metadata" : {
+        "a" : "apple"
+      }
+    },
+    {
+      "answers": [
       ],
-      "externalUid": "hello",
+      "externalUid": "sam.smith@gmail.com",
       "metadata": {
         "studentName": "Joe Schmidt",
         "class": "Leinster"
