@@ -26,6 +26,7 @@ object RabbitMQTasks {
     }
     var classes = Seq[Class[_]]();
     for (directory <- dirs) {
+      Logger.info("found sub-directory: "+directory.getName)
       classes = classes ++ findClasses(directory, packageName);
     }
     return classes
@@ -36,6 +37,7 @@ object RabbitMQTasks {
     if (!directory.exists()) {
       return classes;
     }
+    Logger.info("retrieving files from directory")
     val files = directory.listFiles();
     for (file <- files) {
       Logger.info("found file: "+file.getName+" in directory: "+directory.getName)
