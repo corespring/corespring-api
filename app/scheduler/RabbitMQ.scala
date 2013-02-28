@@ -24,7 +24,8 @@ object RabbitMQ {
 
   private def initializeConnection:Connection = {
     val factory = new ConnectionFactory();
-    factory.setHost(RABBITMQ_HOST);
+    if(RABBITMQ_HOST.startsWith("amqp://")) factory.setUri(RABBITMQ_HOST)
+      else factory.setHost(RABBITMQ_HOST);
     factory.newConnection();
   }
 

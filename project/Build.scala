@@ -29,6 +29,4 @@ object ApplicationBuild extends Build {
     resolvers += "Sonatype OSS Snapshots Repository" at "http://oss.sonatype.org/content/groups/public",
     resolvers += "Spy Repository" at "http://files.couchbase.com/maven2" // required to resolve `spymemcached`, the plugin's dependency.
   )
-
-  //val schedulerProject = Project("scheduler",file("scheduler"))
 }
