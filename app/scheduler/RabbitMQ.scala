@@ -49,13 +49,16 @@ object RabbitMQ {
         case delivery:QueueingConsumer.Delivery => {
           try{
             val msg = new String(delivery.getBody());
+            Logger.info("received message. processing")
             Json.parse(msg) match {
               case JsObject(fields) => fields.find(_._1 == "taskName") match {
                 case Some((_,JsString(taskName))) => {
+                  Logger.info("retrieved taskName. finding corresponding task")
                   RabbitMQTasks.tasks.get(taskName) match {
                     case Some(task) => system.actorOf(Props(new Actor {
                       protected def receive = {
                         case data:JsValue => {
+                          Logger.info("found task. running.")
                           task.data = data
                           task.run()
                         }
@@ -80,6 +83,7 @@ object RabbitMQ {
         Logger.info("begin consuming messages")
         while(true){
           val delivery = consumer.nextDelivery();
+          Logger.info("received message. sending to delivery actor")
           deliveryActor ! delivery
           Thread.sleep(500)
         }
