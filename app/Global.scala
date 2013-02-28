@@ -117,7 +117,6 @@ object Global extends GlobalSettings {
       addDemoDataToDb()
     }
 
-    RabbitMQ.init
   }
 
   /** Add demo data models to the the db to allow end users to be able to
