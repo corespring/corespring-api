@@ -3,13 +3,16 @@ package scheduler
 import com.typesafe.config.ConfigFactory
 import com.rabbitmq.client.{QueueingConsumer, Channel, ConnectionFactory, Connection}
 import akka.actor.{ActorSystem, Actor, Props}
+import play.api.libs.concurrent.Akka._
 import play.api.libs.json._
+import akka.util.Duration
 
 object RabbitMQ {
   private val RABBITMQ_HOST = ConfigFactory.load().getString("rabbitmq.host");
   private val GENERAL_QUEUE = "generic";
   private val RABBITMQ_WORKER_DISPATCHER = "rabbitmq-worker-dispatcher"
-  val system = ActorSystem("MySystem")
+  private val RABBITMQ_DELIVERY_DISPATCHER = "rabbitmq-delivery-dispatcher"
+  //val system = ActorSystem("MySystem")
 
   def main(args: Array[String]) {
     init
@@ -24,7 +27,8 @@ object RabbitMQ {
 
   private def initializeConnection:Connection = {
     val factory = new ConnectionFactory();
-    factory.setHost(RABBITMQ_HOST);
+    if(RABBITMQ_HOST.startsWith("amqp")) factory.setUri(RABBITMQ_HOST)
+      else factory.setHost(RABBITMQ_HOST)
     factory.newConnection();
   }
 
@@ -68,15 +72,14 @@ object RabbitMQ {
         case _ =>
       }
     }).withDispatcher(RABBITMQ_WORKER_DISPATCHER))
-    new Thread(new Runnable {
-      def run() {
-        while(true){
+    system.scheduler.scheduleOnce(Duration.Zero, system.actorOf(Props(new Actor {
+      def receive = {
+        case _ => while(true){
           val delivery = consumer.nextDelivery();
           deliveryActor ! delivery
-          Thread.sleep(500)
         }
       }
-    }).start()
+    }).withDispatcher(RABBITMQ_DELIVERY_DISPATCHER)),"")
   }
   def queueTasks(channel:Channel) {
     RabbitMQTasks.tasks.foreach{case (taskName,task) => {
