@@ -1,4 +1,4 @@
-package scheduler
+package scheduler.tasks
 
 import akka.util.Duration
 import play.api.libs.json.{JsNull, JsValue}

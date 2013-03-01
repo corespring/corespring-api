@@ -1,6 +1,5 @@
 package scheduler.tasks
 
-import scheduler.RabbitMQTask
 import akka.util.duration._
 import controllers.Log
 import akka.util.Duration

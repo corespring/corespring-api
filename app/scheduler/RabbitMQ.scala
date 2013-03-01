@@ -5,12 +5,14 @@ import com.rabbitmq.client.{QueueingConsumer, Channel, ConnectionFactory, Connec
 import akka.actor.{ActorSystem, Actor, Props}
 import play.api.libs.json._
 import play.api.Logger
+import tasks.{RabbitMQTask, RabbitMQTasks}
 
 object RabbitMQ {
   private val RABBITMQ_HOST = ConfigFactory.load().getString("rabbitmq.host");
   private val GENERAL_QUEUE = "generic";
   private val RABBITMQ_WORKER_DISPATCHER = "rabbitmq-worker-dispatcher"
-  val system = ActorSystem("MySystem")
+  private val system = ActorSystem("MySystem")
+  private val tasks:Map[String,RabbitMQTask] = RabbitMQTasks.tasks.foldRight[Map[String,RabbitMQTask]](Map())((task,acc) => acc + (task.getClass.getSimpleName -> task))
 
   def main(args: Array[String]) {
     init
@@ -54,7 +56,7 @@ object RabbitMQ {
               case JsObject(fields) => fields.find(_._1 == "taskName") match {
                 case Some((_,JsString(taskName))) => {
                   Logger.info("retrieved taskName. finding corresponding task")
-                  RabbitMQTasks.tasks.get(taskName) match {
+                  tasks.get(taskName) match {
                     case Some(task) => system.actorOf(Props(new Actor {
                       protected def receive = {
                         case data:JsValue => {
@@ -64,7 +66,7 @@ object RabbitMQ {
                         }
                       }
                     })) ! fields.find(_._1 == "data").map(_._2).getOrElse(JsNull)
-                    case None => throw new RuntimeException("no function found for given id")
+                    case None => throw new RuntimeException("no function found for given id: "+taskName)
                   }
                 }
                 case _ => throw new RuntimeException("no function id found in json")
@@ -91,7 +93,7 @@ object RabbitMQ {
     }).start()
   }
   def queueTasks(channel:Channel) {
-    RabbitMQTasks.tasks.foreach{case (taskName,task) => {
+    tasks.foreach{case(taskName,task) => {
       Logger.info("scheduling task: "+taskName)
       val json = JsObject(Seq(
         "taskName" -> JsString(taskName),
