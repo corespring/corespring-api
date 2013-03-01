@@ -20,13 +20,9 @@ object RabbitMQ {
 
   def init = {
     val connection = initializeConnection
-    Logger.info("connection initialized")
     val generalChannel = initializeGeneralChannel(connection)
-    Logger.info("general channel initialized")
     initializeGeneralListener(generalChannel)
-    Logger.info("queueing tasks")
     queueTasks(generalChannel)
-    Logger.info("tasks have been queued");
   }
 
   private def initializeConnection:Connection = {
@@ -45,22 +41,18 @@ object RabbitMQ {
   private def initializeGeneralListener(channel:Channel) {
     val consumer = new QueueingConsumer(channel);
     channel.basicConsume(GENERAL_QUEUE, false, consumer);
-    Logger.info("initialized consumer")
     val deliveryActor = system.actorOf(Props(new Actor {
       protected def receive = {
         case delivery:QueueingConsumer.Delivery => {
           try{
             val msg = new String(delivery.getBody());
-            Logger.info("received message. processing")
             Json.parse(msg) match {
               case JsObject(fields) => fields.find(_._1 == "taskName") match {
                 case Some((_,JsString(taskName))) => {
-                  Logger.info("retrieved taskName. finding corresponding task")
                   tasks.get(taskName) match {
                     case Some(task) => system.actorOf(Props(new Actor {
                       protected def receive = {
                         case data:JsValue => {
-                          Logger.info("found task. running.")
                           task.data = data
                           task.run()
                         }
@@ -82,10 +74,8 @@ object RabbitMQ {
     }).withDispatcher(RABBITMQ_WORKER_DISPATCHER))
     new Thread(new Runnable {
       def run() {
-        Logger.info("begin consuming messages")
         while(true){
           val delivery = consumer.nextDelivery();
-          Logger.info("received message. sending to delivery actor")
           deliveryActor ! delivery
           Thread.sleep(500)
         }
@@ -94,7 +84,6 @@ object RabbitMQ {
   }
   def queueTasks(channel:Channel) {
     tasks.foreach{case(taskName,task) => {
-      Logger.info("scheduling task: "+taskName)
       val json = JsObject(Seq(
         "taskName" -> JsString(taskName),
         "data" -> task.data
