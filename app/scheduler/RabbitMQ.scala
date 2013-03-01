@@ -49,10 +49,12 @@ object RabbitMQ {
             Json.parse(msg) match {
               case JsObject(fields) => fields.find(_._1 == "taskName") match {
                 case Some((_,JsString(taskName))) => {
+                  Logger.info("retrieved taskName. finding corresponding task")
                   tasks.get(taskName) match {
                     case Some(task) => system.actorOf(Props(new Actor {
                       protected def receive = {
                         case data:JsValue => {
+                          Logger.info("found task. running.")
                           task.data = data
                           task.run()
                         }
@@ -84,6 +86,7 @@ object RabbitMQ {
   }
   def queueTasks(channel:Channel) {
     tasks.foreach{case(taskName,task) => {
+      Logger.info("scheduling task: "+taskName)
       val json = JsObject(Seq(
         "taskName" -> JsString(taskName),
         "data" -> task.data
