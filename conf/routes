@@ -116,6 +116,7 @@ GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessio
 PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId: ObjectId, sessionId: ObjectId, action : Option[String] ?= None)
 
 PUT     /api/v1/quizzes/:quizId/:externalUid/add-answer        api.v1.QuizApi.addAnswerForParticipant(quizId:ObjectId,externalUid:String)
+GET     /api/v1/quizzes/:quizId/results             api.v1.QuizApi.getResults(quizId:ObjectId)
 GET     /api/v1/quizzes/:quizId                     api.v1.QuizApi.get(quizId:ObjectId)
 PUT     /api/v1/quizzes/:quizId                     api.v1.QuizApi.update(quizId:ObjectId)
 DELETE  /api/v1/quizzes/:quizId                     api.v1.QuizApi.delete(quizId:ObjectId)

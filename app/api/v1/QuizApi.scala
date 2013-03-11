@@ -2,10 +2,11 @@ package api.v1
 
 import org.bson.types.ObjectId
 import controllers.auth.BaseApi
-import play.api.mvc.Result
-import models.quiz.basic.{Answer, Quiz}
+import play.api.mvc.{Action, Result}
+import models.quiz.basic.{Participant, Answer, Quiz}
 import play.api.libs.json.Json._
 import api.ApiError
+import models.itemSession.ItemSession
 
 object QuizApi extends BaseApi {
 
@@ -63,21 +64,41 @@ object QuizApi extends BaseApi {
     }
   }
 
-  def list() = ApiAction{
+  def list() = ApiAction {
     request =>
       val quizzes = Quiz.findAllByOrgId(request.ctx.organization)
       Ok(toJson(quizzes))
   }
 
+  //todo: make this apiaction
+  def getResults(id: ObjectId) = Action {
+    request =>
+      Quiz.findOneById(id) match {
+        case Some(q) => {
+          def getParticipantResults(p:Participant) = {
+            val scores = p.answers.map { a =>
+              val score = ItemSession.get(a.sessionId) match {
+                case Some(session) => ItemSession.getTotalScore(session)
+                case None => (0, 0)
+              }
+              toJson(Map("itemId"->toJson(a.itemId.toString), "score"->toJson(score._1.toString)))
+            }
+            toJson(Map("email"->toJson(p.externalUid), "name"->toJson(p.metadata("studentName")), "scores"->toJson(scores)))
+          }
+          Ok(toJson(q.participants.map(getParticipantResults)))
+        }
+      }
+  }
 
-  def addAnswerForParticipant(quizId:ObjectId,externalUid:String) = ApiAction{
-    request  => {
-      WithQuiz(quizId,request.ctx.organization){
+
+  def addAnswerForParticipant(quizId: ObjectId, externalUid: String) = ApiAction {
+    request => {
+      WithQuiz(quizId, request.ctx.organization) {
         quiz =>
           request.body.asJson match {
             case Some(json) => {
               val answer = fromJson[Answer](json)
-              val updated = Quiz.addAnswer(quizId,externalUid,answer)
+              val updated = Quiz.addAnswer(quizId, externalUid, answer)
               Ok(toJson(updated))
             }
             case _ => BadRequest(toJson(ApiError.JsonExpected))
