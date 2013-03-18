@@ -81,7 +81,7 @@ object QuizApi extends BaseApi {
                 case Some(session) => ItemSession.getTotalScore(session)
                 case None => (0, 0)
               }
-              toJson(Map("itemId"->toJson(a.itemId.toString), "score"->toJson(score._1.toString)))
+              toJson(Map("itemId"->toJson(a.itemId.toString), "sessionId"->toJson(a.sessionId.toString), "score"->toJson(score._1.toString)))
             }
             toJson(Map("email"->toJson(p.externalUid), "name"->toJson(p.metadata("studentName")), "scores"->toJson(scores)))
           }
