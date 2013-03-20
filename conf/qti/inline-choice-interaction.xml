@@ -16,7 +16,7 @@
 
     <responseDeclaration identifier='manOnMoon2' cardinality='single' baseType='identifier'>
         <correctResponse>
-            <value>armstrong</value>
+            <value>aldrin2</value>
         </correctResponse>
     </responseDeclaration>
 
