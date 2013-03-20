@@ -84,6 +84,30 @@ class QuizTest extends Specification {
       }
     }
 
+    "find by ids" in {
+
+      val quizOne = Quiz(
+        questions = Seq(),
+        participants = Seq(
+          Participant(
+            externalUid = "sam.smith@gmail.com",
+            answers = Seq(),
+            metadata = Map())
+      ))
+      Quiz.create(quizOne)
+
+      val quizTwo = Quiz(
+        questions = Seq(),
+        participants = Seq(
+          Participant(
+            externalUid = "sam.smith@gmail.com",
+            answers = Seq(),
+            metadata = Map())
+        ))
+      Quiz.create(quizTwo)
+      val result = Quiz.findByIds(List(quizOne.id,quizTwo.id))
+      result.length === 2
+    }
   }
 }
 

@@ -40,6 +40,15 @@ object QuizApi extends BaseApi {
     }
   }
 
+  def getMultiple(ids:String) = ApiAction{
+    request => {
+      val objectIds = ids.split(",").toList.map(new ObjectId(_))
+      val quizzes : List[Quiz] = Quiz.findByIds(objectIds)
+      val filtered = quizzes.filter(_.orgId == Some(request.ctx.organization))
+      Ok(toJson(filtered))
+    }
+  }
+
   def update(id: ObjectId) = ApiAction {
     request => WithQuiz(id, request.ctx.organization) {
       quiz =>
@@ -87,6 +96,7 @@ object QuizApi extends BaseApi {
           }
           Ok(toJson(q.participants.map(getParticipantResults)))
         }
+        case _ => NotFound("Can't find quiz")
       }
   }
 
