@@ -26,6 +26,24 @@ class QuizApiTest extends Specification with RequestCalling {
       requestedQuiz.id === q.id
     }
 
+    "get multiple" in {
+      val quizOne = createQuiz()
+      val quizTwo = createQuiz()
+      val ids = List(quizOne,quizTwo).map(_.id.toString).mkString(",")
+      val multiple = invokeCall[List[Quiz]](Routes.getMultiple(ids), AnyContentAsEmpty)
+      multiple.length === 2
+    }
+
+    "get multiple and filters if the org isn't applicable" in {
+      val quizOne = createQuiz()
+      val quizTwo = createQuiz()
+      val quizThree = Quiz(orgId = Some(new ObjectId("51114b307fc1eaa866444649")))
+      Quiz.create(quizThree)
+      val ids = List(quizOne,quizTwo,quizThree).map(_.id.toString).mkString(",")
+      val multiple = invokeCall[List[Quiz]](Routes.getMultiple(ids), AnyContentAsEmpty)
+      multiple.length === 2
+    }
+
     "create" in {
       val q = createQuiz(Map("course" -> "some course"))
       val quiz = q.copy(participants = Seq(

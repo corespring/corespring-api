@@ -161,6 +161,12 @@ object Quiz {
 
   def findOneById(id: ObjectId) = Dao.findOneById(id)
 
+
+  def findByIds(ids:List[ObjectId]) = {
+    val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))
+    Dao.find(query).toList
+  }
+
   def collection = Dao.collection
 
   def findAllByOrgId(id:ObjectId) : List[Quiz] = {
