@@ -25,5 +25,3 @@ function down() {
     db.templates.remove({_id: id});
   }
 }
-
-down();
