@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+                title="" adaptive="false" timeDependent="false">
+    <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
+    <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
+    <!-- single choice -->
+    <responseDeclaration identifier='manOnMoon' cardinality='single' baseType='identifier'>
+        <correctResponse>
+            <value>armstrong</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+        The first man on the moon was <inlineChoiceInteraction
+            responseIdentifier="manOnMoon"
+            required="false">
+        <inlineChoice identifier="armstrong">Neil Armstrong<feedbackInline identifier="armstrong" defaultFeedback="true"/></inlineChoice>
+        <inlineChoice identifier="aldrin">Buzz Aldrin<feedbackInline identifier="aldrin" defaultFeedback="true"/></inlineChoice>
+    </inlineChoiceInteraction>, he landed there in 1969.
+    </itemBody>
+
+</assessmentItem>
+
