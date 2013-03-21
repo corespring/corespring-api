@@ -1,4 +1,4 @@
-@( itemBody: String, itemId: String, sessionId : String, token : String, configId: String, resultSourcedId:String )
+@( itemBody: String, itemId: String, sessionId : String, token : String, quizId: String, resultSourcedId:String )
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 <html ng-app="qti">
@@ -11,7 +11,7 @@
             return {
                 itemId : "@itemId",
                 sessionId : "@sessionId",
-                configId: "@configId",
+                quizId: "@quizId",
                 resultSourcedId: "@resultSourcedId",
                 token : "@token"
             }

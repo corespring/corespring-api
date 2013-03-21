@@ -1,0 +1,48 @@
+{
+  "_id": {
+    "$oid": "000000000000000000000001"
+  },
+  "orgId": {
+    "$oid": "51114b307fc1eaa866444648"
+  },
+  "metadata": {
+    "title": "my quiz",
+    "course": "my course"
+  },
+  "questions": [
+    {
+      "itemId": {
+        "$oid": "50083ba9e4b071cb5ef79101"
+      },
+      "settings": {
+        "maxNoOfAttempts": 0,
+        "highlightUserResponse": true,
+        "highlightCorrectResponse": true,
+        "showFeedback": false,
+        "allowEmptyResponses": false,
+        "submitCompleteMessage": "Ok! Your response was submitted.",
+        "submitIncorrectMessage": "You may revise your work before you submit your final response."
+      }
+    },
+    {
+      "itemId": {
+        "$oid": "506c9fbda0eee22b21788986"
+      },
+      "settings": {
+        "maxNoOfAttempts": 0,
+        "highlightUserResponse": true,
+        "highlightCorrectResponse": true,
+        "showFeedback": false,
+        "allowEmptyResponses": false,
+        "submitCompleteMessage": "Ok! Your response was submitted.",
+        "submitIncorrectMessage": "You may revise your work before you submit your final response."
+      }
+    }
+  ],
+  "participants": [
+    {
+      "answers": [],
+      "externalUid": "000000000000000000000001",
+    }
+  ]
+}

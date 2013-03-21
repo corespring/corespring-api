@@ -11,12 +11,12 @@ import org.joda.time.DateTime
 import play.api._
 import play.api.Play.current
 import JsonImporter._
+import quiz.basic.Quiz
 import web.models.QtiTemplate
-import basiclti.models.{LtiLaunchConfiguration, Assignment}
+import basiclti.models.LtiQuiz
 import developer.models.RegistrationToken
 
 object SeedDb {
-
 
   private lazy val collections: List[MongoCollection] = List(
     Content.collection,
@@ -30,8 +30,9 @@ object SeedDb {
     User.collection,
     Organization.collection,
     QtiTemplate.collection,
-    LtiLaunchConfiguration.collection,
-    RegistrationToken.collection
+    LtiQuiz.collection,
+    RegistrationToken.collection,
+    Quiz.collection
   )
 
 
@@ -90,10 +91,10 @@ object SeedDb {
   }
 
 
-  def addMockAccessToken(token: String, scope:Option[String]) = {
+  def addMockAccessToken(token: String, scope: Option[String]) = {
     AccessToken.collection.drop()
     val creationDate = DateTime.now()
-    val accessToken = AccessToken(new ObjectId("502404dd0364dc35bb393397"), scope, token, creationDate, creationDate.plusHours(24),true)
+    val accessToken = AccessToken(new ObjectId("502404dd0364dc35bb393397"), scope, token, creationDate, creationDate.plusHours(24), true)
     AccessToken.insert(accessToken)
   }
 

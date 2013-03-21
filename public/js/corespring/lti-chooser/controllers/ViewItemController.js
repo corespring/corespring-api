@@ -14,7 +14,7 @@ ltiChooser.ViewItemController = function ($scope, $rootScope, $routeParams, $loc
       $scope.previewPageIsReady = true;
       $scope.sendSessionSettings();
     } else if(data.message === "update"){
-      $scope.config.sessionSettings = data.settings;
+      $scope.quiz.question.settings = data.settings;
       $rootScope.$broadcast('saveConfig', {redirect: false});
     }
   };
@@ -22,10 +22,10 @@ ltiChooser.ViewItemController = function ($scope, $rootScope, $routeParams, $loc
   MessageBridge.addMessageListener($scope.onMessageReceived);
 
   $scope.sendSessionSettings = function(){
-    if(!$scope.previewPageIsReady || !$scope.config)  {
+    if(!$scope.previewPageIsReady || !$scope.quiz)  {
       return;
     }
-    MessageBridge.sendMessage("previewIframe", {message:"update", settings: $scope.config.sessionSettings});
+    MessageBridge.sendMessage("previewIframe", {message:"update", settings: $scope.quiz.question.settings});
   };
 
   $rootScope.$watch("config", function(newValue){

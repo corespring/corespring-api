@@ -237,7 +237,6 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
 
     def score =  processScore( session.responses, (s) => s )
     def maxScore =  processScore( correctResponsesScored, (s) => 1.0 )
-    println("score + maxScore: " + score + ", " + maxScore)
     (score, maxScore)
   }
 

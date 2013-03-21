@@ -2,7 +2,7 @@ package basiclti.controllers
 
 import play.api.mvc.{AnyContent, Request, Action}
 import play.Logger
-import basiclti.models.{LtiLaunchConfiguration, LtiData, Assignment, LtiOAuthConsumer}
+import basiclti.models._
 import play.api.libs.ws.WS
 import play.api.libs.oauth.{RequestToken, ConsumerKey, OAuthCalculator}
 import org.bson.types.ObjectId
@@ -15,6 +15,13 @@ import common.controllers.utils.BaseUrl
 import models.auth.{AccessToken, ApiClient}
 import controllers.auth.{OAuthConstants, BaseApi}
 import models.itemSession.{ItemSessionSettings, ItemSession}
+import scala.Left
+import scala.Some
+import play.api.libs.oauth.OAuthCalculator
+import play.api.libs.oauth.ConsumerKey
+import basiclti.models.Assignment
+import scala.Right
+import play.api.libs.oauth.RequestToken
 
 /**
  * Handles the launching of corespring items via the LTI 1.1 launch specification.
@@ -75,7 +82,7 @@ object AssignmentLauncher extends BaseApi {
       LtiData(request) match {
         case Some(data) => {
 
-          val config : LtiLaunchConfiguration = getOrCreateConfig(data)
+          val quiz : LtiQuiz = getOrCreateQuiz(data)
 
           getOrgFromOauthSignature(request) match {
             case Some(org) => {
@@ -85,7 +92,7 @@ object AssignmentLauncher extends BaseApi {
               val tokenSession = (OAuthConstants.AccessToken, token.tokenId)
               /**
                * Note: For Any content hosted in an iframe to support IE we need to add some p3p tags
-               * @see: http://stackoverflow.com/questions/389456/cookie-blocked-not-saved-in-iframe-in-internet-explorer
+               * see: http://stackoverflow.com/questions/389456/cookie-blocked-not-saved-in-iframe-in-internet-explorer
                */
               val p3pHeaders = ("P3P", """CP="NOI ADM DEV COM NAV OUR STP"""")
 
@@ -95,18 +102,18 @@ object AssignmentLauncher extends BaseApi {
               if (isInstructor) {
 
                 Ok( basiclti.views.html.itemChooser(
-                    config.id,
+                    quiz.id,
                     data.selectionDirective.getOrElse(""),
                     data.returnUrl.getOrElse("")
                   ) ).withSession(tokenSession)
                      .withHeaders(p3pHeaders)
               } else {
-                if(config.itemId.isDefined){
-                  require(data.outcomeUrl.isDefined, "outcome url must be defined: config id: " + config.id)
-                  require(data.resultSourcedId.isDefined, "sourcedid must be defined: config id: " + config.id)
-                  require(data.returnUrl.isDefined, "return url must be defined: config id: " + config.id)
+                if(quiz.question.itemId.isDefined){
+                  require(data.outcomeUrl.isDefined, "outcome url must be defined: quiz id: " + quiz.id)
+                  require(data.resultSourcedId.isDefined, "sourcedid must be defined: quiz id: " + quiz.id)
+                  require(data.returnUrl.isDefined, "return url must be defined: quiz id: " + quiz.id)
 
-                  val updatedConfig = config.addAssignmentIfNew(data.resultSourcedId.get, data.outcomeUrl.get, data.returnUrl.get)
+                  val updatedConfig = quiz.addParticipantIfNew(data.resultSourcedId.get, data.outcomeUrl.get, data.returnUrl.get)
                   val call = AssignmentPlayerRoutes.run(updatedConfig.id, data.resultSourcedId.get)
                   Redirect(call.url)
                     .withSession(tokenSession)
@@ -123,7 +130,7 @@ object AssignmentLauncher extends BaseApi {
       }
   }
 
-  private def getOrCreateConfig(data: LtiData): LtiLaunchConfiguration = {
+  private def getOrCreateQuiz(data: LtiData): LtiQuiz = {
 
     require(data.resourceLinkId.isDefined)
 
@@ -132,38 +139,38 @@ object AssignmentLauncher extends BaseApi {
      * @param linkId
      * @return
      */
-    def newConfig(linkId:String) : LtiLaunchConfiguration = {
+    def newQuiz(linkId:String) : LtiQuiz = {
       require(data.oauthConsumerKey.isDefined, "oauth consumer must be defined")
 
       val client = ApiClient.findByKey(data.oauthConsumerKey.get)
 
       require(client.isDefined, "the api client must be defined")
 
-      val out = new LtiLaunchConfiguration(
-        resourceLinkId = linkId,
-        itemId = None,
-        sessionSettings = Some(new ItemSessionSettings()),
-        orgId = client.map( _.orgId )
+      val quiz = LtiQuiz(
+         linkId,
+         LtiQuestion(None,ItemSessionSettings()),
+        Seq(),
+        client.map( _.orgId )
       )
-      LtiLaunchConfiguration.insert(out)
-      out
+      LtiQuiz.insert(quiz)
+      quiz
     }
 
-    def findByCanvasConfigId(id:String) : LtiLaunchConfiguration = LtiLaunchConfiguration.findOneById(new ObjectId(id)) match {
+    def findByCanvasConfigId(id:String) : LtiQuiz = LtiQuiz.findOneById(new ObjectId(id)) match {
       case Some(c) => c
-      case _ => throw new RuntimeException("A canvas config id was specified but can't be found")
+      case _ => throw new RuntimeException("A canvas id was specified but can't be found")
     }
 
     if (data.selectionDirective == Some("select_link")){
-      newConfig("select_link")
+      newQuiz("select_link")
     } else {
       data.canvasConfigId match {
         case Some(canvasId) => findByCanvasConfigId(canvasId)
         case _ => {
           val rId = data.resourceLinkId.get
-          LtiLaunchConfiguration.findByResourceLinkId(rId) match {
-            case Some(config) => config
-            case _ => newConfig(rId)
+          LtiQuiz.findByResourceLinkId(rId) match {
+            case Some(quiz) => quiz
+            case _ => newQuiz(rId)
           }
         }
       }
@@ -196,11 +203,12 @@ object AssignmentLauncher extends BaseApi {
   </imsx_POXEnvelopeRequest>
 
 
-  private def session(configId: ObjectId, resultSourcedId: String): Either[String, ItemSession] = LtiLaunchConfiguration.findOneById(configId) match {
-    case Some(config) => {
-      config.assignments.find(_.resultSourcedId == resultSourcedId) match {
-        case Some(assignment) => {
-          ItemSession.findOneById(assignment.itemSessionId) match {
+  private def session(id: ObjectId, resultSourcedId: String): Either[String, ItemSession] =
+    LtiQuiz.findOneById(id) match {
+    case Some(quiz) => {
+      quiz.participants.find(_.resultSourcedId == resultSourcedId) match {
+        case Some(participant) => {
+          ItemSession.findOneById(participant.itemSession) match {
             case Some(session) => Right(session)
             case _ => Left("can't find session")
           }
@@ -208,32 +216,32 @@ object AssignmentLauncher extends BaseApi {
         case _ => Left("Can't find assignment")
       }
     }
-    case _ => Left("Can't find config")
+    case _ => Left("Can't find quiz")
   }
 
   /**
    */
-  def process(configId: ObjectId, resultSourcedId: String) = ApiAction {
+  def process(id: ObjectId, resultSourcedId: String) = ApiAction {
     request =>
 
       require(!resultSourcedId.isEmpty, "no resultSourcedId specified - can't process")
 
-      session(configId, resultSourcedId) match {
+      session(id, resultSourcedId) match {
         case Left(msg) => BadRequest(msg)
         case Right(session) => {
 
-          LtiLaunchConfiguration.findOneById(configId) match {
-            case Some(config) => {
+          LtiQuiz.findOneById(id) match {
+            case Some(quiz) => {
 
-              require(config.orgId.isDefined)
+              require(quiz.orgId.isDefined)
 
-              config.assignments.find(_.resultSourcedId == resultSourcedId) match {
-                case Some(a) => {
+              quiz.participants.find(_.resultSourcedId == resultSourcedId) match {
+                case Some(p) => {
 
-                  config.orgId match {
+                  quiz.orgId match {
                     case Some(orgId) => {
                       val client : Option[ApiClient] = ApiClient.findOneByOrgId(orgId)
-                      sendScore(session, a, client)
+                      sendScore(session, p, client)
                     }
                     case _ => NotFound("Can't find org id")
                   }
@@ -241,7 +249,7 @@ object AssignmentLauncher extends BaseApi {
                 case _ => NotFound("Can't find assignment")
               }
             }
-            case _ => NotFound("Can't find config")
+            case _ => NotFound("Can't find quiz")
           }
         }
       }
@@ -251,21 +259,21 @@ object AssignmentLauncher extends BaseApi {
    * Send score to the LMS via a signed POST
    * @see https://canvas.instructure.com/doc/api/file.assignment_tools.html
    * @param session
-   * @param assignment
+   * @param participant
    * @param maybeClient
    * @return
    */
-  private def sendScore(session: ItemSession, assignment: Assignment, maybeClient : Option[ApiClient] ) = maybeClient match {
+  private def sendScore(session: ItemSession, participant:LtiParticipant, maybeClient : Option[ApiClient] ) = maybeClient match {
 
     case Some(client) => {
 
       def sendResultsToPassback(consumer: LtiOAuthConsumer, score: String) = {
-        WS.url(assignment.gradePassbackUrl)
+        WS.url(participant.gradePassbackUrl)
           .sign(
           OAuthCalculator(ConsumerKey(consumer.getConsumerKey, consumer.getConsumerSecret),
             RequestToken(consumer.getToken, consumer.getTokenSecret)))
           .withHeaders(("Content-Type", "application/xml"))
-          .post(responseXml(assignment.resultSourcedId, score))
+          .post(responseXml(participant.resultSourcedId, score))
       }
 
       val consumer = LtiOAuthConsumer(client)
@@ -273,9 +281,9 @@ object AssignmentLauncher extends BaseApi {
 
       def emptyOrNull(s:String) : Boolean = (s == null || s.isEmpty)
 
-      if (emptyOrNull(assignment.gradePassbackUrl)){
-        Logger.warn("Not sending passback for assignment: " + assignment.resultSourcedId)
-        Ok(toJson(Map("returnUrl" -> assignment.onFinishedUrl)))
+      if (emptyOrNull(participant.gradePassbackUrl)){
+        Logger.warn("Not sending passback for assignment: " + participant.resultSourcedId)
+        Ok(toJson(Map("returnUrl" -> participant.onFinishedUrl)))
       } else {
         sendResultsToPassback(consumer, score).await(10000).fold(
           error => throw new RuntimeException(error.getMessage),
@@ -284,7 +292,7 @@ object AssignmentLauncher extends BaseApi {
               case e: String if e.contains("Invalid authorization header") => {
                 AssignmentLauncherRoutes.authorizationError().url
               }
-              case _ => assignment.onFinishedUrl
+              case _ => participant.onFinishedUrl
             }
             Ok(toJson(Map("returnUrl" -> returnUrl)))
           }
