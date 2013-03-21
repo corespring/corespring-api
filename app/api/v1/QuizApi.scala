@@ -92,7 +92,7 @@ object QuizApi extends BaseApi {
               }
               toJson(Map("itemId"->toJson(a.itemId.toString), "sessionId"->toJson(a.sessionId.toString), "score"->toJson(score._1.toString)))
             }
-            toJson(Map("email"->toJson(p.externalUid), "name"->toJson(p.metadata("studentName")), "scores"->toJson(scores)))
+            toJson(Map("externalUid"->toJson(p.externalUid), "scores"->toJson(scores)))
           }
           Ok(toJson(q.participants.map(getParticipantResults)))
         }

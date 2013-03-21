@@ -41,20 +41,8 @@
   ],
   "participants": [
     {
-      "answers" : [],
-      "externalUid" : "joe.bloggs@gmail.com",
-      "metadata" : {
-        "a" : "apple"
-      }
-    },
-    {
-      "answers": [
-      ],
-      "externalUid": "sam.smith@gmail.com",
-      "metadata": {
-        "studentName": "Joe Schmidt",
-        "class": "Leinster"
-      }
+      "answers": [],
+      "externalUid": "000000000000000000000001",
     }
   ]
 }

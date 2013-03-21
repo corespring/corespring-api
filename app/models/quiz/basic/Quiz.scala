@@ -36,8 +36,7 @@ object Answer {
 }
 
 case class Participant(answers: Seq[Answer],
-                       externalUid: String,
-                       metadata: Map[String, String]) extends BaseParticipant(answers.map(_.sessionId), externalUid)
+                       externalUid: String) extends BaseParticipant(answers.map(_.sessionId), externalUid)
 
 object Participant {
 
@@ -45,8 +44,7 @@ object Participant {
     def reads(json: JsValue): Participant = {
       new Participant(
         (json \ "answers").as[Seq[Answer]],
-        (json \ "externalUid").as[String],
-        (json \ "metadata").as[Map[String, String]]
+        (json \ "externalUid").as[String]
       )
     }
   }
@@ -55,8 +53,7 @@ object Participant {
     def writes(p: Participant): JsValue = {
       JsObject(Seq(
         "answers" -> toJson(p.answers),
-        "externalUid" -> JsString(p.externalUid),
-        "metadata" -> toJson(p.metadata)
+        "externalUid" -> JsString(p.externalUid)
       ))
     }
   }
