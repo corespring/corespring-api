@@ -38,8 +38,7 @@ class QuizTest extends Specification {
         participants = Seq(
           Participant(
             answers = Seq(Answer(new ObjectId(), new ObjectId())),
-            externalUid = "blah",
-            metadata = Map("a" -> "b")
+            externalUid = "blah"
           )
         )
       )
@@ -57,7 +56,7 @@ class QuizTest extends Specification {
 
       Quiz.removeAll()
       val q = Quiz(questions = Seq(), participants = Seq(
-        Participant(externalUid = "sam.smith@gmail.com", answers = Seq(), metadata = Map())
+        Participant(externalUid = "sam.smith@gmail.com", answers = Seq())
       ))
       Quiz.create(q)
       val answer = Answer(new ObjectId(), new ObjectId())
@@ -91,8 +90,8 @@ class QuizTest extends Specification {
         participants = Seq(
           Participant(
             externalUid = "sam.smith@gmail.com",
-            answers = Seq(),
-            metadata = Map())
+            answers = Seq()
+            )
       ))
       Quiz.create(quizOne)
 
@@ -101,8 +100,8 @@ class QuizTest extends Specification {
         participants = Seq(
           Participant(
             externalUid = "sam.smith@gmail.com",
-            answers = Seq(),
-            metadata = Map())
+            answers = Seq()
+            )
         ))
       Quiz.create(quizTwo)
       val result = Quiz.findByIds(List(quizOne.id,quizTwo.id))

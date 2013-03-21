@@ -49,7 +49,6 @@ class QuizApiTest extends Specification with RequestCalling {
       val quiz = q.copy(participants = Seq(
         Participant(
           externalUid = "ed",
-          metadata = Map(),
           answers = Seq()
         )
       ))
