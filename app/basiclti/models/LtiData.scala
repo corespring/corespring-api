@@ -1,7 +1,6 @@
 package basiclti.models
 
 import play.api.mvc.{AnyContent, Request}
-import basiclti.models.LtiLaunchConfiguration.Keys
 
 case class LtiData(outcomeUrl: Option[String],
                    resultSourcedId: Option[String],

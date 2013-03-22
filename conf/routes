@@ -118,6 +118,15 @@ GET     /api/v1/items/:itemId/sessions                         api.v1.ItemSessio
 GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.get(itemId:ObjectId, sessionId: ObjectId)
 PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId: ObjectId, sessionId: ObjectId, action : Option[String] ?= None)
 
+PUT     /api/v1/quizzes/:quizId/:externalUid/add-answer        api.v1.QuizApi.addAnswerForParticipant(quizId:ObjectId,externalUid:String)
+GET     /api/v1/quizzes/:quizId/results             api.v1.QuizApi.getResults(quizId:ObjectId)
+GET     /api/v1/quizzes/:quizId                     api.v1.QuizApi.get(quizId:ObjectId)
+GET     /api/v1/quizzes/multiple/:quizIds           api.v1.QuizApi.getMultiple(quizIds:String)
+PUT     /api/v1/quizzes/:quizId                     api.v1.QuizApi.update(quizId:ObjectId)
+DELETE  /api/v1/quizzes/:quizId                     api.v1.QuizApi.delete(quizId:ObjectId)
+POST    /api/v1/quizzes                             api.v1.QuizApi.create()
+GET     /api/v1/quizzes                             api.v1.QuizApi.list()
+
 # Item Rendering
 GET    /testplayer/item/:itemId/render-in-frame     testplayer.controllers.ItemPlayer.renderAsIframe(itemId)
 GET    /testplayer/item/:itemId/render              testplayer.controllers.ItemPlayer.renderItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
@@ -162,8 +171,8 @@ GET    /web/print-resource-profile/:itemId                  web.controllers.Main
 #
 # BasicLTI
 #
-GET     /lti/launch-config/:id                  basiclti.controllers.LaunchConfig.get(id:ObjectId)
-PUT     /lti/launch-config/:id                  basiclti.controllers.LaunchConfig.update(id:ObjectId)
+GET     /lti/launch-config/:id                  basiclti.controllers.LtiQuizzes.get(id:ObjectId)
+PUT     /lti/launch-config/:id                  basiclti.controllers.LtiQuizzes.update(id:ObjectId)
 GET     /lti/dev/test-harness                   basiclti.controllers.dev.TestHarness.begin
 POST    /lti/dev/prepare                        basiclti.controllers.dev.TestHarness.prepare
 POST    /lti/dev/grade-passback                 basiclti.controllers.dev.TestHarness.gradePassback

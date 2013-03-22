@@ -4,7 +4,7 @@ import org.specs2.mutable.Specification
 import tests.{BaseTest, PlaySingleton}
 import play.api.test.{FakeHeaders, FakeRequest}
 import basiclti.controllers.AssignmentLauncher
-import basiclti.models.{LtiLaunchConfiguration, LtiRequestAdapter, LtiOAuthConsumer, LtiData}
+import basiclti.models._
 import play.api.test.Helpers._
 import play.api.mvc._
 import models.{ContentCollection, Organization}
@@ -15,6 +15,11 @@ import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
 import play.api.test.FakeHeaders
 import scala.Some
 import play.api.mvc.AnyContentAsFormUrlEncoded
+import models.itemSession.ItemSessionSettings
+import play.api.test.FakeHeaders
+import scala.Some
+import play.api.mvc.Call
+import play.api.mvc.AnyContentAsFormUrlEncoded
 
 class AssignmentLauncherTest extends BaseTest {
 
@@ -24,14 +29,13 @@ class AssignmentLauncherTest extends BaseTest {
                                      override val headers: FakeHeaders,
                                      override val body: A,
                                      override val remoteAddress: String = "127.0.0.1",
-                                     hostOverride : String = "http://localhost") extends FakeRequest[A](method,uri,headers,body,remoteAddress) with play.api.mvc.Request[A]{
+                                     hostOverride: String = "http://localhost") extends FakeRequest[A](method, uri, headers, body, remoteAddress) with play.api.mvc.Request[A] {
     override lazy val host = hostOverride
 
   }
 
 
-
-  val MockOrgId : ObjectId = new ObjectId( "51114b307fc1eaa866444648" )
+  val MockOrgId: ObjectId = new ObjectId("51114b307fc1eaa866444648")
 
   val Call = basiclti.controllers.routes.AssignmentLauncher.launch()
 
@@ -40,9 +44,9 @@ class AssignmentLauncherTest extends BaseTest {
    * @param params - additional params to send
    * @return
    */
-  def callWithApiClient( apiClient : ApiClient, params : (String,String)* ) : Option[Result] = {
+  def callWithApiClient(apiClient: ApiClient, params: (String, String)*): Option[Result] = {
 
-    val defaultParams : Map[String, String] = Map(
+    val defaultParams: Map[String, String] = Map(
       AssignmentLauncher.LtiKeys.ConsumerKey -> apiClient.clientId.toString,
       LtiData.Keys.OutcomeServiceUrl -> "service_url",
       "oauth_signature_method" -> "HMAC-SHA1",
@@ -51,44 +55,45 @@ class AssignmentLauncherTest extends BaseTest {
       "oauth_nonce" -> "NNRHA0eRjU0mhTxjByFrINfn4Z1dmBmVIuJiFg"
     )
 
-    val allParams : Map[String,String] = defaultParams ++ params
+    val allParams: Map[String, String] = defaultParams ++ params
 
-    def asForm(m:Map[String,String]) : Map[String,Seq[String]] = m.map( (kv) => (kv._1, Seq(kv._2)))
+    def asForm(m: Map[String, String]): Map[String, Seq[String]] = m.map((kv) => (kv._1, Seq(kv._2)))
 
-    def makeFake(c:Call, form:Map[String,Seq[String]]) : FakeRequest[AnyContentAsFormUrlEncoded] = {
-        new FakeRequestWithHost(c.method, c.url, new FakeHeaders(), AnyContentAsFormUrlEncoded(form), hostOverride = "localhost:9000" )
+    def makeFake(c: Call, form: Map[String, Seq[String]]): FakeRequest[AnyContentAsFormUrlEncoded] = {
+      new FakeRequestWithHost(c.method, c.url, new FakeHeaders(), AnyContentAsFormUrlEncoded(form), hostOverride = "localhost:9000")
     }
 
-    def getSignature(key:String, secret : String, request:Request[AnyContent]) : String = {
-      val consumer : LtiOAuthConsumer = new LtiOAuthConsumer(key, secret)
+    def getSignature(key: String, secret: String, request: Request[AnyContent]): String = {
+      val consumer: LtiOAuthConsumer = new LtiOAuthConsumer(key, secret)
       consumer.sign(request)
       consumer.setSigningStrategy(new AuthorizationHeaderSigningStrategy())
       consumer.getOAuthSignature().get
     }
 
-    val request = makeFake(Call,asForm(allParams))
+    val request = makeFake(Call, asForm(allParams))
     val signature = getSignature(apiClient.clientId.toString, apiClient.clientSecret, request)
-    val finalParams = allParams + ("oauth_signature" -> signature )
+    val finalParams = allParams + ("oauth_signature" -> signature)
     val finalRequest = makeFake(Call, asForm(finalParams))
     routeAndCall(finalRequest)
   }
 
-  def getOrg : Organization = Organization.findOneById(MockOrgId).get
+  def getOrg: Organization = Organization.findOneById(MockOrgId).get
 
-  def configureLaunchConfig(resourceLinkId:String, itemId:ObjectId, client : ApiClient ) : LtiLaunchConfiguration = {
-    LtiLaunchConfiguration.findByResourceLinkId(resourceLinkId) match {
+  def configureLaunchConfig(resourceLinkId: String, itemId: ObjectId, client: ApiClient): LtiQuiz = {
+    LtiQuiz.findByResourceLinkId(resourceLinkId) match {
       case Some(config) => {
-        val newConfig = config.copy(itemId = Some(itemId))
-        LtiLaunchConfiguration.update(newConfig, client.orgId)
+        val newConfig = config.copy(question = LtiQuestion(itemId = Some(itemId), ItemSessionSettings()))
+        LtiQuiz.update(newConfig, client.orgId)
         newConfig
       }
       case _ => {
-        val newConfig = new LtiLaunchConfiguration(
+
+        val newConfig = LtiQuiz(
           resourceLinkId = resourceLinkId,
-          itemId = Some(itemId),
-          orgId = Some(client.orgId),
-          sessionSettings = None)
-        LtiLaunchConfiguration.insert(newConfig)
+          question = LtiQuestion(itemId = Some(itemId), ItemSessionSettings()),
+          participants = Seq(),
+          orgId = Some(client.orgId))
+        LtiQuiz.insert(newConfig)
         newConfig
       }
     }
@@ -99,20 +104,20 @@ class AssignmentLauncherTest extends BaseTest {
     "launching as an instructor creates a new launch config" in {
 
       val org = getOrg
-      val apiClient : ApiClient = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> org.id)).get
+      val apiClient: ApiClient = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> org.id)).get
 
       val uid = "launch_as_instructor"
 
       val result = callWithApiClient(apiClient,
         (LtiData.Keys.Roles, "Instructor"),
-        (LtiData.Keys.ResourceLinkId, uid) )
+        (LtiData.Keys.ResourceLinkId, uid))
 
       result match {
         case Some(r) => {
-          LtiLaunchConfiguration.findByResourceLinkId(uid) match {
+          LtiQuiz.findByResourceLinkId(uid) match {
             case Some(config) => {
               config.orgId === Some(apiClient.orgId)
-              config.itemId === None
+              config.question.itemId === None
             }
             case _ => failure("no launch config found")
           }
@@ -160,7 +165,7 @@ class AssignmentLauncherTest extends BaseTest {
       result match {
         case Some(r) => {
           status(r) === OK
-          LtiLaunchConfiguration.findByResourceLinkId(linkId) === None
+          LtiQuiz.findByResourceLinkId(linkId) === None
         }
         case _ => failure("should get OK")
       }

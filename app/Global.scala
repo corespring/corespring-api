@@ -1,7 +1,10 @@
-import _root_.controllers.{ConcreteS3Service}
+import _root_.controllers.ConcreteS3Service
+import _root_.models.itemSession.{ArrayItemResponse, StringItemResponse, ItemSession}
+import _root_.models.quiz.basic.{Participant, Answer, Quiz}
 import com.typesafe.config.ConfigFactory
+import org.joda.time.DateTime
 import play.api.mvc.Results._
-import scheduler.RabbitMQ
+import util.Random
 import web.controllers.utils.ConfigLoader
 import common.seed.SeedDb._
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
@@ -139,11 +142,67 @@ object Global extends GlobalSettings {
     }
   }
 
+  private def randomFromList(list:Seq[String]) = {
+    list(Random.nextInt(list.length))
+  }
+
+  def randomNFromList(items:Seq[String], n:Int = 0):Seq[String] = {
+    val chosenNumber = if (n == 0) Random.nextInt(items.length-1)+1 else n
+    Random.shuffle(items).take(chosenNumber)
+  }
+
+
+  private def createItemSessionForItem1(itemId:ObjectId) = {
+    val res = StringItemResponse("Q_01", randomFromList(Seq("12","14","1","30")))
+    val is = ItemSession(itemId, responses = Seq(res), start = Some(new DateTime()), finish = Some(new DateTime()))
+    ItemSession.save(is)
+    is
+  }
+
+  private def createItemSessionForItem2(itemId:ObjectId) = {
+    val res = StringItemResponse("RESPONSE", randomFromList(Seq("ChoiceA","ChoiceB","ChoiceC","ChoiceD")))
+    val is = ItemSession(itemId, responses = Seq(res), start = Some(new DateTime()), finish = Some(new DateTime()))
+    ItemSession.save(is)
+    is
+  }
+
+  private def createItemSessionForItem3(itemId:ObjectId) = {
+    val res = ArrayItemResponse("RESPONSE", randomNFromList(Seq("ChoiceA","ChoiceB","ChoiceC","ChoiceD"), 4))
+    val is = ItemSession(itemId, responses = Seq(res), start = Some(new DateTime()), finish = Some(new DateTime()))
+    ItemSession.save(is)
+    is
+  }
+
+  private def completeQuiz() {
+    val quiz = Quiz.findOneById(new ObjectId("000000000000000000000002"))
+    quiz match {
+      case Some(q) =>
+
+        val newParticipants = q.participants.map { oldParti =>
+          val answer1 = Answer(createItemSessionForItem1(q.questions(0).itemId).id, q.questions(0).itemId)
+          val answer2 = Answer(createItemSessionForItem2(q.questions(1).itemId).id, q.questions(1).itemId)
+          val answer3 = Answer(createItemSessionForItem3(q.questions(2).itemId).id, q.questions(2).itemId)
+          oldParti.copy(answers = Seq(answer1, answer2, answer3))
+        }
+        val newQuiz = q.copy(participants = newParticipants)
+        Quiz.create(newQuiz)
+
+      case None => println("No quiz Found")
+    }
+  }
+
+  private def seedTestData() {
+    emptyData()
+    seedData("conf/seed-data/test")
+  }
+
   private def seedDevData() {
     emptyData()
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/dev")
     seedData("conf/seed-data/exemplar-content")
+
+    completeQuiz()
   }
 
 }
