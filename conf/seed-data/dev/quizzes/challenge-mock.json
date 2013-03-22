@@ -6,8 +6,9 @@
     "$oid": "51114b307fc1eaa866444648"
   },
   "metadata": {
-    "title": "Challenge App Quiz",
-    "course": "Challenge Course"
+    "title": "Get Clever Sample quiz",
+    "course": "Challenge Course",
+    "note" : "The participants externalUids are getclever uids to be used with api.getclever.com"
   },
   "questions": [
     {
@@ -56,103 +57,11 @@
   "participants": [
     {
       "answers": [],
-      "externalUid": "000000000000000000000002"
+      "externalUid": "4fee004cca2e43cf2700000b"
     },
     {
       "answers": [],
-      "externalUid": "000000000000000000000003"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000004"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000005"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000006"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000007"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000008"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000009"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000010"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000011"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000012"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000013"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000014"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000015"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000016"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000017"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000018"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000019"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000020"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000021"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000022"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000023"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000024"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000025"
-    },
-    {
-      "answers": [],
-      "externalUid": "000000000000000000000026"
+      "externalUid": "4fee004cca2e43cf2700002b"
     }
   ]
 }
