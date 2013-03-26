@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import play.api.libs.json.JsValue
 import se.radley.plugin.salat._
 import play.api.Play.current
-import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.casbah.Imports._
 import com.novus.salat.dao.SalatDAOUpdateError
 import controllers.{Log, LogType, InternalError}
 import controllers.auth.Permission
@@ -15,12 +15,13 @@ trait Content{
   var id: ObjectId
   var contentType: String
   var collectionId: String
-
+  var version:Option[Version]
 }
 
 object Content {
   val collectionId: String = "collectionId"
   val contentType: String = "contentType"
+  val version = "version"
 
   val collection = mongoCollection("content")
 
@@ -33,8 +34,12 @@ object Content {
       case e:SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to transfer content to archive")))
     }
   }
-  def isAuthorized(orgId:ObjectId, contentId:ObjectId, p:Permission):Boolean = {
-    Content.collection.findOneByID(contentId,MongoDBObject(Content.collectionId -> 1)) match {
+  def isAuthorized(orgId:ObjectId, contentId:ObjectId, p:Permission, current:Boolean = true):Boolean = {
+    val searchQuery:MongoDBObject = if(current)
+      MongoDBObject("_id" -> contentId,
+        "$or" -> MongoDBList(MongoDBObject(Content.version -> MongoDBObject("$exists" -> false)),MongoDBObject(Content.version+"."+Version.current -> true)))
+    else MongoDBObject("_id" -> contentId)
+    Content.collection.findOne(searchQuery,MongoDBObject(Content.collectionId -> 1)) match {
       case Some(dbo) =>
         dbo.get(Content.collectionId) match {
         case collId:String =>

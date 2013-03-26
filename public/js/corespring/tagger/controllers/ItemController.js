@@ -214,7 +214,32 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       alert("Error cloning item: " + error.toString())
     });
   };
-
+  //*******item versioning*********//
+  $scope.increment = function(){
+      $scope.showSaveWarning = false;
+      $scope.showProgressModal = true;
+      $scope.itemData.increment({id:$scope.itemData.id}, function onIncrementSuccess(data){
+          $scope.showProgressModal = false;
+          $location.path('/edit/' + data.id);
+      }, function onError(error) {
+          $scope.showProgressModal = false;
+          alert("Error incrementing item: " + error.toString())
+      });
+  }
+  $scope.showSaveWarning=false
+  $scope.itemVersion = 1
+  $scope.$on("dataLoaded",function(newValue,oldValue){
+      if(typeof $scope.itemData.version != "undefined") $scope.itemVersion = $scope.itemData.version.rev+1
+      //get the most current item version given the root id of this item
+//      $scope.itemData.currentItem({id:$scope.itemData.id}, function onCurrentItemSuccess(data){
+//          //we have the revision number of the current item, now we compute all numbers up to that number to provide a list of all revisions
+//          $scope.revisions = new Array();
+//          for(var i = 0; i < data.version.rev; i++){
+//              $scope.revisions[i] = data.version.rev - i
+//          }
+//      })
+  })
+  //*****************************//
   $scope.loadItem();
 
   $scope.$watch('itemData.pValue', function (newValue, oldValue) {
@@ -253,9 +278,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     }
   };
 
-  $scope.saveSelectedFileFinished = function () {
+  $scope.saveSelectedFileFinished = function (error) {
     $scope.isSaving = false;
     $scope.suppressSave = false;
+    if(error) $scope.showSaveWarning = true;
   };
 
   $scope.save = function () {

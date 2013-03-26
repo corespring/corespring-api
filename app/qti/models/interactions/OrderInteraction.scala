@@ -16,18 +16,20 @@ case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoic
           case Some(mapping) => {
             var count:Int = 0;
             var sum:Float = 0;
+            var correctCount:Int = 0;
             for (value <- responseValue){
               if (rd.isValueCorrect(value,Some(count))){
                 sum += mapping.mappedValue(value)
+                correctCount += 1;
               }
               count += 1;
             }
-            Some(ItemResponseOutcome(sum))
+            Some(ItemResponseOutcome(sum,rd.isCorrect(responseValue) == Correctness.Correct))
           }
           case None => if (rd.isCorrect(response.value) == Correctness.Correct){
-            Some(ItemResponseOutcome(1))
+            Some(ItemResponseOutcome(1,true))
           } else {
-            Some(ItemResponseOutcome(0))
+            Some(ItemResponseOutcome(0,false))
           }
         }
         case None => None

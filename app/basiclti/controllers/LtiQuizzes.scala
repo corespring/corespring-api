@@ -2,19 +2,19 @@ package basiclti.controllers
 
 import controllers.auth.BaseApi
 import org.bson.types.ObjectId
-import basiclti.models.LtiLaunchConfiguration
-import basiclti.models.LtiLaunchConfiguration._
+import basiclti.models.LtiQuiz
 
 import play.api.libs.json.Json._
 import play.api.mvc.AnyContent
 import play.api.mvc.Request
+import basiclti.models
 
-object LaunchConfig extends BaseApi {
+object LtiQuizzes extends BaseApi {
 
   def get(id: ObjectId) = ApiAction {
     request =>
 
-      LtiLaunchConfiguration.findOneById(id) match {
+      models.LtiQuiz.findOneById(id) match {
         case Some(c) => Ok(toJson(c))
         case _ => NotFound("Can't find launch config with that id")
       }
@@ -23,10 +23,10 @@ object LaunchConfig extends BaseApi {
   def update(id: ObjectId) = ApiAction {
     request =>
 
-      config(request) match {
+      quiz(request) match {
         case Some(cfg) if (id != cfg.id) => BadRequest("the json id doesn't match the url id")
         case Some(cfg) => {
-          LtiLaunchConfiguration.update(cfg, request.ctx.organization) match {
+          models.LtiQuiz.update(cfg, request.ctx.organization) match {
             case Left(e) => BadRequest("Error updating")
             case Right(updatedConfig) => Ok(toJson(updatedConfig))
           }
@@ -35,11 +35,11 @@ object LaunchConfig extends BaseApi {
       }
   }
 
-  private def config(request: Request[AnyContent]): Option[LtiLaunchConfiguration] = {
+  private def quiz(request: Request[AnyContent]): Option[LtiQuiz] = {
     request.body.asJson match {
       case Some(json) => {
         try {
-          val out = json.asOpt[LtiLaunchConfiguration]
+          val out = json.asOpt[LtiQuiz]
           out
         }
         catch {

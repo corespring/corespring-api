@@ -116,6 +116,11 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
   def unfinishedSession(id: ObjectId): MongoDBObject = MongoDBObject("_id" -> id, finish -> MongoDBObject("$exists" -> false))
 
 
+  def findMultiple(oids: Seq[ObjectId]): Seq[ItemSession] = {
+    val query = MongoDBObject("_id" -> MongoDBObject("$in" -> oids))
+    ItemSession.find(query).toSeq//.map(addExtrasIfFinished(_, addResponses))
+  }
+
   /**
    * Update the itemSession model - this is not counted as the item being processed.
    * ItemSession can only be updated if its not started.
@@ -210,7 +215,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
    * @param session
    * @return a tuple (score, maxScore)
    */
-  def getTotalScore(session: ItemSession): (Double,Double) = {
+  def getTotalScore(session: ItemSession): (Double, Double) = {
     require(session.isFinished, "The session isn't finished.")
 
     val xml = ItemSession.getXmlWithFeedback(session) match {
@@ -224,7 +229,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
 
     val correctResponsesScored = Score.scoreResponses(session.sessionData.get.correctResponses, qti)
 
-    def processScore(responses:Seq[ItemResponse], processFn : Float => Double) = {
+    def processScore(responses: Seq[ItemResponse], processFn: Float => Double) = {
       responses.foldLeft(0.0) {
         (acc, r) =>
           val current = r.outcome match {
@@ -235,9 +240,8 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
       }
     }
 
-    def score =  processScore( session.responses, (s) => s )
-    def maxScore =  processScore( correctResponsesScored, (s) => 1.0 )
-    println("score + maxScore: " + score + ", " + maxScore)
+    def score = processScore(session.responses, (s) => s)
+    def maxScore = processScore(correctResponsesScored, (s) => 1.0)
     (score, maxScore)
   }
 
@@ -248,22 +252,32 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
    */
   def get(id: ObjectId): Option[ItemSession] = {
     ItemSession.findOneById(id) match {
-      case Some(session) => {
-        if (session.isFinished) {
-          getXmlWithFeedback(session) match {
-            case Right(xml) => {
-              session.sessionData = getSessionData(xml, session)
-              session.responses = Score.scoreResponses(session.responses, QtiItem(xml))
-              Some(session)
-            }
-            case Left(e) => None
-          }
-        } else {
-          Some(session)
-        }
-      }
+      case Some(session) => Some(addExtrasIfFinished(session, addSessionData, addResponses))
       case _ => None
     }
+  }
+
+  private def addExtrasIfFinished(
+                         session: ItemSession,
+                         fns: ((ItemSession, Elem) => Unit)*): ItemSession =
+    if (session.isFinished) {
+      getXmlWithFeedback(session) match {
+        case Right(xml) => {
+          fns.foreach(_(session, xml))
+          session
+        }
+        case Left(e) => session
+      }
+    } else {
+      session
+    }
+
+  private def addSessionData(session: ItemSession, xml: Elem) {
+    session.sessionData = Some(SessionData(QtiItem(xml), session))
+  }
+
+  private def addResponses(session: ItemSession, xml: Elem) {
+    session.responses = Score.scoreResponses(session.responses, QtiItem(xml))
   }
 
   private def finishSessionIfNeeded(session: ItemSession) {
@@ -292,7 +306,6 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     finishIfThereAreNoIncorrectResponses()
   }
 
-  def getSessionData(xml: Elem, s: ItemSession) = Some(SessionData(QtiItem(xml), s))
 
   implicit object ItemSessionWrites extends Writes[ItemSession] {
     def writes(session: ItemSession) = {

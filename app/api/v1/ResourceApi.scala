@@ -5,15 +5,19 @@ import controllers.auth.BaseApi
 import models._
 import item.Item
 import item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
+import itemSession.ItemSession
 import org.bson.types.ObjectId
-import controllers.{ConcreteS3Service, S3Service}
+import controllers.{Utils, ConcreteS3Service, S3Service}
 import com.typesafe.config.ConfigFactory
 import play.api.libs.json.Json._
 import api.ApiError
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json._
 import scala.Some
 import com.mongodb.casbah.commons.MongoDBObject
 import play.Logger
+import play.api.libs.json.JsString
+import scala.Some
+import play.api.libs.json.JsObject
 
 class ResourceApi(s3service:S3Service) extends BaseApi {
 
@@ -209,7 +213,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
     }
   }
 
-  def updateDataFile(itemId: String, filename: String) = HasItem(
+  def updateDataFile(itemId: String, filename: String, force:Boolean) = HasItem(
     itemId,
     Seq(),
     Action {
@@ -220,16 +224,32 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
             item.data.get.files.find(_.name == filename) match {
               case Some(f) => {
                 val processedUpdate = ensureDataFileIsMainIsCorrect(update)
-
-
-                //we don't get the storage key in the request so we need to copy it across
-                if (processedUpdate.isInstanceOf[StoredFile]) {
-                  processedUpdate.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey
+                if(update.isInstanceOf[VirtualFile]){
+                  if (f.isInstanceOf[VirtualFile]){
+                    val vfupdate = update.asInstanceOf[VirtualFile]
+                    val vforiginal = f.asInstanceOf[VirtualFile]
+                    val diff = Utils.getLevenshteinDistance(vfupdate.content,vforiginal.content)
+                    val sessions = ItemSession.find(MongoDBObject(ItemSession.itemId -> item.id)).count
+                    if(force || diff == 0.0 || sessions == 0){
+                      item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
+                      Item.save(item)
+                      Ok(toJson(processedUpdate))
+                    }else{
+                      Forbidden(toJson(JsObject(Seq("message" ->
+                        JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
+                        "flags" -> JsArray(Seq(JsString("alert_increment")))
+                      ))))
+                    }
+                  }else BadRequest
+                } else {
+                  //we don't get the storage key in the request so we need to copy it across
+                  if (processedUpdate.isInstanceOf[StoredFile]) {
+                    processedUpdate.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey
+                  }
+                  item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
+                  Item.save(item)
+                  Ok(toJson(processedUpdate))
                 }
-
-                item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
-                Item.save(item)
-                Ok(toJson(processedUpdate))
               }
               case _ => NotFound(update.name)
             }

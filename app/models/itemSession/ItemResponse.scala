@@ -49,8 +49,7 @@ case class ArrayItemResponse(override val id: String, responseValue: Seq[String]
   def getIdValueIndex = responseValue.view.zipWithIndex.map((f:(String,Int)) => (id,f._1, f._2))
 }
 
-case class ItemResponseOutcome(score: Float = 0, comment: Option[String] = None, outcomeProperties:Map[String,Boolean] = Map()) {
-  def isCorrect = score == 1
+case class ItemResponseOutcome(score: Float = 0, isCorrect:Boolean = false, comment: Option[String] = None, outcomeProperties:Map[String,Boolean] = Map()) {
   def getOutcomeBasedFeedbackContents(qti:QtiItem, responseIdentifier:String):Map[String,String] = {
     val modalFeedbacks = qti.modalFeedbacks;
     val feedbackBlocks = qti.itemBody.feedbackBlocks
@@ -67,7 +66,7 @@ case class ItemResponseOutcome(score: Float = 0, comment: Option[String] = None,
 object ItemResponseOutcome {
   implicit object Writes extends Writes[ItemResponseOutcome] {
     def writes(iro: ItemResponseOutcome): JsValue = {
-      var jsseq:Seq[(String,JsValue)] = Seq("score" -> JsNumber(iro.score))
+      var jsseq:Seq[(String,JsValue)] = Seq("score" -> JsNumber(iro.score), "isCorrect" -> JsBoolean(iro.isCorrect))
       if (iro.comment.isDefined) jsseq = jsseq :+ ("comment" -> JsString(iro.comment.get))
       jsseq = jsseq ++ iro.outcomeProperties.toSeq.map(prop => (prop._1 -> JsBoolean(prop._2)))
       JsObject(jsseq)

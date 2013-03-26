@@ -60,7 +60,7 @@ case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleC
     }
 
 
-    Some(ItemResponseOutcome(score, None, outcomeProperties))
+    Some(ItemResponseOutcome(score, isResponseCorrect, None, outcomeProperties))
   }
 }
 

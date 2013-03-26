@@ -3,7 +3,7 @@
 describe('ItemController should', function () {
 
 
-  var scope, ctrl, $httpBackend;
+  var routeParams, scope, ctrl, $httpBackend, location, http;
 
   beforeEach(function () {
     module(function ($provide) {
@@ -16,9 +16,11 @@ describe('ItemController should', function () {
 
     var urls = [
       {method: 'PUT', url: /.*/, response: { ok: true }},
-      {method: 'POST', url: /.*/, data: {}, response: { ok: true }},
+      {method: 'POST', url: '/api/v1/items/itemId/increment', data: {}, response: {id: 'itemId2', version: {rev: 2}}},
+      //{method: 'POST', url: /.*/, data: {}, response: { ok: true }},
       {method: 'GET', url: "/api/v1/collections", response: {}},
       {method: 'GET', url: "/api/v1/items", response: {}},
+      {method: 'GET', url: "/api/v1/items/:itemId", response: {id: "itemId",version: {rev:1}}},
       {method: 'GET', url: "/assets/web/standards_tree.json", response: {}}
     ];
 
@@ -29,13 +31,16 @@ describe('ItemController should', function () {
   };
 
 
-  beforeEach(inject(function (_$httpBackend_, $rootScope, $controller) {
+  beforeEach(inject(function (_$httpBackend_, $rootScope, $controller, $location, $http) {
     $httpBackend = _$httpBackend_;
     prepareBackend($httpBackend);
     scope = $rootScope.$new();
+    routeParams = {};
+    location = $location;
+    http = $http;
 
     try {
-      ctrl = $controller(ItemController, {$scope: scope});
+      ctrl = $controller(ItemController, {$scope: scope, $routeParams: routeParams, $location: location});
     } catch (e) {
       throw("Error with the controller: " + e);
     }
@@ -127,6 +132,20 @@ describe('ItemController should', function () {
     expect(scope.getKeySkillsSummary(null)).toEqual("No Key Skills selected");
     expect(scope.getKeySkillsSummary(undefined)).toEqual("No Key Skills selected");
 
+  });
+
+  it('receives incremented item', function(){
+    scope.itemData = {id: "itemId"};
+    scope.itemData.increment = function(params,onSuccess,onError){
+        console.log(JSON.stringify(params))
+        var url = "/api/v1/items/:id/increment".replace(":id",params.id);
+        http.post(url,{}).success(function(resource){
+            onSuccess(resource);
+        }).error(onError);
+    };
+    scope.increment();
+    $httpBackend.flush();
+    expect(location.path()).toEqual('/edit/itemId2');
   });
 
 });

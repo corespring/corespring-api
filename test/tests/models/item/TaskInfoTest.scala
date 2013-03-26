@@ -4,11 +4,9 @@ import org.specs2.mutable.Specification
 import models.item.TaskInfo
 import play.api.libs.json._
 import controllers.JsonValidationException
-import tests.PlaySingleton
+import tests.{BaseTest, PlaySingleton}
 
-class TaskInfoTest extends Specification {
-
-  PlaySingleton.start()
+class TaskInfoTest extends BaseTest {
 
   "TaskInfo" should {
     "parses gradeLevel" in {

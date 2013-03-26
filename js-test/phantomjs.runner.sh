@@ -3,12 +3,14 @@
 #aggregate js and spec files
 DECLARATIONS=`find ../public/js/corespring -type f -path '**/services.js'`
 
-#We are ignoring the print related directives here
-APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/*.js' | grep -v '/print/'`
+##We are ignoring the print related directives here
+#be sure to add app files first before others so main variable declarations come first
+APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/app.js'| grep -v '/print/'`
+OTHER_APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/*.js' ! -iname 'app.js'| grep -v '/print/'`
 FRONTLOAD_SPEC_FILES=`find ./unit -type f -path '**/*-priority-1.js'`
 SPEC_FILES=`find ./unit \( -type f -path '**/*.js' -and -not -name '*priority*' \)`
 
-cat ${DECLARATIONS} ${APP_JS_SRC_FILES} > all_corespring.js
+cat ${DECLARATIONS} ${APP_JS_SRC_FILES} ${OTHER_APP_JS_SRC_FILES}> all_corespring.js
 cat ${FRONTLOAD_SPEC_FILES} ${SPEC_FILES} > all_specs.js
 
 # sanity check to make sure phantomjs exists in the PATH

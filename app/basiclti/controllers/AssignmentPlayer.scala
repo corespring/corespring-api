@@ -1,7 +1,7 @@
 package basiclti.controllers
 
 import testplayer.controllers.QtiRenderer
-import basiclti.models.{LtiLaunchConfiguration, Assignment}
+import basiclti.models.LtiQuiz
 import play.api.mvc.Action
 import controllers.auth.BaseApi
 import common.controllers.ItemResources
@@ -39,11 +39,11 @@ object AssignmentPlayer extends BaseApi with QtiRenderer with ItemResources {
       }
   }
 
-  private def session(configId: ObjectId, resultSourcedId: String): Either[String, ItemSession] = LtiLaunchConfiguration.findOneById(configId) match {
+  private def session(configId: ObjectId, resultSourcedId: String): Either[String, ItemSession] = LtiQuiz.findOneById(configId) match {
     case Some(config) => {
-      config.assignments.find(_.resultSourcedId == resultSourcedId) match {
-        case Some(assignment) => {
-          ItemSession.findOneById(assignment.itemSessionId) match {
+      config.participants.find(_.resultSourcedId == resultSourcedId) match {
+        case Some(p) => {
+          ItemSession.findOneById(p.itemSession) match {
             case Some(session) => Right(session)
             case _ => Left("can't find session")
           }

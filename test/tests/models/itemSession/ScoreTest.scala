@@ -53,7 +53,7 @@ class ScoreTest extends Specification {
         StringItemResponse(
           id = "q1",
           responseValue = "q1Answer",
-          outcome = Some(ItemResponseOutcome(1,None,Map()))
+          outcome = Some(ItemResponseOutcome(1,true,None,Map()))
         )
       )
       result must equalTo(expected)
@@ -68,7 +68,7 @@ class ScoreTest extends Specification {
         ArrayItemResponse(
           id = "q3",
           responseValue = Seq("q3_answer_1", "q3_answer_2"),
-          outcome = Some(ItemResponseOutcome(0,None,Map()))
+          outcome = Some(ItemResponseOutcome(0,false,None,Map()))
         ))
       result must equalTo(expected)
     }
@@ -83,7 +83,7 @@ class ScoreTest extends Specification {
         StringItemResponse(
           id = "q1",
           responseValue = "q1Answer",
-          outcome = Some(ItemResponseOutcome(1,None,Map()))
+          outcome = Some(ItemResponseOutcome(1,true,None,Map()))
         ),
         StringItemResponse(id = "q2", responseValue = "blah", outcome = None))
       result must equalTo(expected)

@@ -13,7 +13,7 @@ class ItemResponseTest extends Specification {
 
   "ItemResponse" should {
 
-    val outcome = ItemResponseOutcome(score = 0,  comment = Some("b"))
+    val outcome = ItemResponseOutcome(score = 0, isCorrect = false, comment = Some("b"))
 
     val response : ItemResponse = ArrayItemResponse(id = "test", 
       outcome = Some(outcome), 
@@ -25,6 +25,7 @@ class ItemResponseTest extends Specification {
       "value" -> JsArray(Seq(JsString("a"), JsString("b"))),
       "outcome" -> JsObject(Seq(
         "score" -> JsNumber(0.0),
+        "isCorrect" -> JsBoolean(false),
         "comment" -> JsString("b")
       ))
     ))

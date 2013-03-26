@@ -184,6 +184,9 @@ object QtiItem {
 }
 
 case class ResponseDeclaration(identifier: String, cardinality: String, correctResponse: Option[CorrectResponse], mapping: Option[Mapping]) {
+  def isCorrect(responseValues: Seq[String]): Correctness.Value = {
+    isCorrect(responseValues.foldRight[String]("")((response,acc) => if(acc.isEmpty) response else acc+","+response))
+  }
   def isCorrect(responseValue: String): Correctness.Value = correctResponse match {
     case Some(cr) => if (cr.isCorrect(responseValue)) Correctness.Correct else Correctness.Incorrect
     case None => Correctness.Unknown
