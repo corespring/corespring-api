@@ -68,6 +68,37 @@ class ItemSessionApiTest extends Specification with RequestCalling {
     )
   }
 
+  "item session get multiple" should {
+    "return multiple" in {
+
+      val call = api.v1.routes.ItemSessionApi.multiple()
+
+      val idOne = "51116c6287eb055332a2f8e4"
+
+      val ids = Map("ids" -> List(idOne))
+
+      val request = FakeRequest(
+        call.method,
+        call.url,
+        FakeAuthHeader,
+        AnyContentAsJson(Json.toJson(ids)))
+
+      routeAndCall(request) match {
+        case Some(result) => {
+          val json = Json.parse(contentAsString(result))
+          json.asOpt[List[ItemSession]] match {
+            case Some(list) => {
+              list.length === 1
+              list(0).id.toString === idOne
+              success
+            }
+            case _ => failure
+          }
+        }
+        case _ => failure
+      }
+    }
+  }
 
   "item session data" should {
 
@@ -181,7 +212,6 @@ class ItemSessionApiTest extends Specification with RequestCalling {
     testSession.finish = Some(new DateTime())
 
     val json = Json.toJson(testSession)
-    println(Json.stringify(json))
 
     val getRequest = FakeRequest(
       updateCall.method,
@@ -245,8 +275,6 @@ class ItemSessionApiTest extends Specification with RequestCalling {
 
       getFeedbackContents(result) match {
         case Some(seq) => {
-          println("found feedbackContents: ")
-          println(seq)
           success
         }
         case _ => failure("couldn't find contents")
@@ -287,7 +315,6 @@ class ItemSessionApiTest extends Specification with RequestCalling {
       def jsString(value: JsValue) = Json.stringify(value)
       val expected = expectedJsValues.map(jsString).mkString("\n")
       val actual = correctResponses.map(jsString).mkString("\n")
-      println(actual)
       expected must equalTo(actual)
     }
 

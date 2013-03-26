@@ -197,9 +197,9 @@ class ItemSessionTest extends Specification {
     "automatically finish a session if all responses are correct" in {
       val session = ItemSession(itemId = new ObjectId())
       ItemSession.begin(session)
-      session.responses = Seq( StringItemResponse("a", "a") )
+      session.responses = Seq(StringItemResponse("a", "a"))
       ItemSession.process(session, SimpleXml) match {
-        case Left(e) => failure("error: "  + e.message)
+        case Left(e) => failure("error: " + e.message)
         case Right(s) => s.isFinished must equalTo(true)
       }
     }
@@ -208,9 +208,9 @@ class ItemSessionTest extends Specification {
       val session = ItemSession(itemId = new ObjectId())
       session.settings.maxNoOfAttempts = 0 // no max... multiple attempts allowed
       ItemSession.begin(session)
-      session.responses = Seq( StringItemResponse("a", "b") )
+      session.responses = Seq(StringItemResponse("a", "b"))
       ItemSession.process(session, SimpleXml) match {
-        case Left(e) => failure("error: "  + e.message)
+        case Left(e) => failure("error: " + e.message)
         case Right(s) => s.isFinished must equalTo(false)
       }
     }
@@ -272,7 +272,7 @@ class ItemSessionTest extends Specification {
       ItemSession.save(session)
 
       session.responses = Seq(
-        ArrayItemResponse("rainbowColors", Seq("blue","violet","red")),
+        ArrayItemResponse("rainbowColors", Seq("blue", "violet", "red")),
         StringItemResponse("winterDiscontent", "york")
       )
 
@@ -308,6 +308,25 @@ class ItemSessionTest extends Specification {
     }
   }
 
+  "list multiple" should {
+    val ids = List("51116c6287eb055332a2f8e4", "51116bc7a14f7b657a083c1d").map(new ObjectId(_))
+
+    "return multiple" in {
+      ItemSession.findMultiple(ids) match {
+        case Seq(one,two) => success
+        case _ => failure
+      }
+    }
+
+    "return mutliple and ignore unknown ids" in {
+      ItemSession.findMultiple(ids :+ new ObjectId()) match {
+        case Seq(one,two) => success
+        case _ => failure
+      }
+    }
+  }
+
+
   "get total score" should {
     "return the correct score" in {
 
@@ -318,7 +337,7 @@ class ItemSessionTest extends Specification {
           files =
             Seq(
               VirtualFile(
-                name="qti.xml",
+                name = "qti.xml",
                 contentType = "text/xml",
                 isMain = true,
                 content = MockXml.AllItems.mkString("\n"))
@@ -331,16 +350,16 @@ class ItemSessionTest extends Specification {
       val session = ItemSession(itemId = item.id)
 
       session.responses = Seq(
-        ArrayItemResponse("rainbowColors", Seq("blue","violet","red")),
+        ArrayItemResponse("rainbowColors", Seq("blue", "violet", "red")),
         StringItemResponse("winterDiscontent", "york")
       )
 
-      val xml : Elem = ItemSession.getXmlWithFeedback(session).right.get
+      val xml: Elem = ItemSession.getXmlWithFeedback(session).right.get
 
       session.finish = Some(new DateTime())
       ItemSession.process(session, xml)
 
-      val (score,maxScore) = ItemSession.getTotalScore(session)
+      val (score, maxScore) = ItemSession.getTotalScore(session)
 
       score === 3.5
       maxScore === 7.0

@@ -17,6 +17,8 @@ import play.api.Play.current
 import play.api.Logger
 import qti.processors.FeedbackProcessor
 import play.api.mvc.{Action, AnyContent}
+import play.api.libs.json.JsArray
+import play.api.libs.ws.ResponseHeaders
 
 
 /**
@@ -38,6 +40,37 @@ object ItemSessionApi extends BaseApi {
     case Some("begin") => begin(itemId, sessionId)
     case Some("updateSettings") => updateSettings(itemId,sessionId)
     case _ => processResponse(itemId, sessionId)
+  }
+
+
+  /** Load multiple item sessions by id.
+    * Filter any item sessions that are not available to the organization.
+    * @return
+    */
+  def multiple() = ApiAction{
+    request => {
+
+      def isAuthorized(orgId:ObjectId)(session:ItemSession) : Boolean = {
+        Content.isAuthorized(orgId, session.itemId, Permission.Read)
+      }
+
+      def emptyArray = Ok("[]").withHeaders((CONTENT_TYPE, "application/json"))
+
+      request.body.asJson match {
+        case Some(json) => {
+          (json \ "ids").asOpt[Seq[String]] match {
+            case Some(ids) => {
+              val oids = ids.map(new ObjectId(_))
+              val sessions = ItemSession.findMultiple(oids)
+              val filtered = sessions.filter(isAuthorized(request.ctx.organization))
+              Ok(toJson(filtered))
+            }
+            case _ => emptyArray
+          }
+        }
+        case _ => emptyArray
+      }
+    }
   }
 
 

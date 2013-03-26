@@ -114,6 +114,7 @@ POST    /api/v1/items/:itemId/sessions                         api.v1.ItemSessio
 GET     /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.list(itemId:ObjectId)
 GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.get(itemId:ObjectId, sessionId: ObjectId)
 PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId: ObjectId, sessionId: ObjectId, action : Option[String] ?= None)
+POST     /api/v1/sessions/multiple                             api.v1.ItemSessionApi.multiple()
 
 PUT     /api/v1/quizzes/:quizId/:externalUid/add-answer        api.v1.QuizApi.addAnswerForParticipant(quizId:ObjectId,externalUid:String)
 GET     /api/v1/quizzes/:quizId/results             api.v1.QuizApi.getResults(quizId:ObjectId)
