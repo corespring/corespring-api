@@ -201,6 +201,11 @@ object Item extends ModelCompanion[Item,ObjectId]{
     }
   }
 
+  def findMultiple(ids: Seq[ObjectId], keys : DBObject) : Seq[Item] = {
+    val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))
+    Item.find(query,keys).toSeq
+  }
+
   def getQti(itemId: ObjectId): Either[InternalError, String] = {
     Item.collection.findOneByID(itemId, MongoDBObject(Item.data -> 1)) match {
       case None => Left(InternalError("not found"))

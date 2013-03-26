@@ -17,6 +17,8 @@ import play.api.Play.current
 import play.api.Logger
 import qti.processors.FeedbackProcessor
 import play.api.mvc.{Action, AnyContent}
+import play.api.libs.json.JsArray
+import play.api.libs.ws.ResponseHeaders
 
 
 /**
@@ -39,7 +41,6 @@ object ItemSessionApi extends BaseApi {
     case Some("updateSettings") => updateSettings(itemId,sessionId)
     case _ => processResponse(itemId, sessionId)
   }
-
 
   /**
    * @param sessionId

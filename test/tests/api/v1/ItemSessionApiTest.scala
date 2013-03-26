@@ -210,7 +210,6 @@ class ItemSessionApiTest extends BaseTest{
     testSession.finish = Some(new DateTime())
 
     val json = Json.toJson(testSession)
-    println(Json.stringify(json))
 
     val getRequest = FakeRequest(
       updateCall.method,
@@ -274,8 +273,6 @@ class ItemSessionApiTest extends BaseTest{
 
       getFeedbackContents(result) match {
         case Some(seq) => {
-          println("found feedbackContents: ")
-          println(seq)
           success
         }
         case _ => failure("couldn't find contents")
@@ -316,7 +313,6 @@ class ItemSessionApiTest extends BaseTest{
       def jsString(value: JsValue) = Json.stringify(value)
       val expected = expectedJsValues.map(jsString).mkString("\n")
       val actual = correctResponses.map(jsString).mkString("\n")
-      println(actual)
       expected must equalTo(actual)
     }
 
