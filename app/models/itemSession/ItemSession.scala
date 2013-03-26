@@ -118,7 +118,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
 
   def findMultiple(oids: Seq[ObjectId]): Seq[ItemSession] = {
     val query = MongoDBObject("_id" -> MongoDBObject("$in" -> oids))
-    ItemSession.find(query).toSeq.map(addExtrasIfFinished(_, addResponses))
+    ItemSession.find(query).toSeq//.map(addExtrasIfFinished(_, addResponses))
   }
 
   /**

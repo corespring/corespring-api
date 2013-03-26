@@ -68,37 +68,6 @@ class ItemSessionApiTest extends Specification with RequestCalling {
     )
   }
 
-  "item session get multiple" should {
-    "return multiple" in {
-
-      val call = api.v1.routes.ItemSessionApi.multiple()
-
-      val idOne = "51116c6287eb055332a2f8e4"
-
-      val ids = Map("ids" -> List(idOne))
-
-      val request = FakeRequest(
-        call.method,
-        call.url,
-        FakeAuthHeader,
-        AnyContentAsJson(Json.toJson(ids)))
-
-      routeAndCall(request) match {
-        case Some(result) => {
-          val json = Json.parse(contentAsString(result))
-          json.asOpt[List[ItemSession]] match {
-            case Some(list) => {
-              list.length === 1
-              list(0).id.toString === idOne
-              success
-            }
-            case _ => failure
-          }
-        }
-        case _ => failure
-      }
-    }
-  }
 
   "item session data" should {
 
