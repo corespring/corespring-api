@@ -6,7 +6,7 @@ import org.joda.time.DateTime
 import play.api.libs.json._
 import play.api.mvc.AnyContentAsEmpty
 import play.api.mvc.Result
-import play.api.test.FakeRequest
+import play.api.test.{FakeHeaders, FakeRequest}
 import org.specs2.mutable._
 import play.api.test.Helpers._
 import tests.{BaseTest, PlaySingleton}
@@ -22,10 +22,41 @@ import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
 import models.itemSession.{StringItemResponse, ItemSessionSettings, ItemSession}
 import utils.RequestCalling
+import play.mvc.Call
 
-class ItemSessionApiTest extends BaseTest with RequestCalling{
+class ItemSessionApiTest extends BaseTest{
 
   val Routes = api.v1.routes.ItemSessionApi
+
+  lazy val FakeAuthHeader = FakeHeaders(Map("Authorization" -> Seq("Bearer " + token)))
+
+  /** Invoke a fake request - parse the response from json to type T
+    * @param call
+    * @param content
+    * @param args
+    * @param reads
+    * @param writes
+    * @tparam T
+    * @return the typed instance that was returned
+    */
+  def invokeCall[T](call: Call, content: AnyContent, args: (String, String)*)(implicit reads: Reads[T], writes: Writes[T]): T = {
+
+    val url = call.url + "?" + args.toList.map((a: (String, String)) => a._1 + "=" + a._2).mkString("&")
+    val request = FakeRequest(
+      call.method,
+      url,
+      FakeAuthHeader,
+      content)
+
+    val result: Result = routeAndCall(request).get
+
+    if (status(result) == OK) {
+      val json: JsValue = Json.parse(contentAsString(result))
+      reads.reads(json)
+    } else {
+      reads.reads(JsObject(Seq()))
+    }
+  }
 
   object IDs {
     val Item: String = "511156d38604c9f77da9739d"

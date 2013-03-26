@@ -1,7 +1,7 @@
 package models.quiz.basic
 
 import org.bson.types.ObjectId
-import models.itemSession.ItemSessionSettings
+import models.itemSession.{ItemSession, ItemSessionSettings}
 import com.novus.salat.dao.{SalatDAO, ModelCompanion}
 import se.radley.plugin.salat._
 import com.mongodb.DBObject
@@ -20,7 +20,9 @@ object Answer {
 
   implicit object Reads extends Reads[Answer] {
     def reads(json: JsValue): Answer = {
-      Answer(new ObjectId((json \ "sessionId").as[String]), new ObjectId((json \ "itemId").as[String]))
+      Answer(new ObjectId((json \ "sessionId").as[String]),
+        new ObjectId((json \ "itemId").as[String])
+      )
     }
   }
 
@@ -28,11 +30,35 @@ object Answer {
     def writes(a: Answer): JsValue = {
       JsObject(Seq(
         "sessionId" -> JsString(a.sessionId.toString),
-        "itemId" -> JsString(a.itemId.toString)
+        "itemId" -> JsString(a.itemId.toString),
+        "score" -> JsNumber(calculateScore(a.sessionId)),
+        "completeness" -> JsNumber(calculateCompleteness(a.sessionId))
       ))
     }
   }
 
+  /**
+   * return score
+   * @param sessionId
+   * @return
+   */
+  private def calculateScore(sessionId: ObjectId):BigDecimal = {
+//    ItemSession.findOneById(sessionId) match {
+//      case Some(itemSession) => {
+//        val scores = itemSession.responses.map(itemResponse => itemResponse.outcome.map(iro => iro.score)).flatten
+//        scores
+//      }
+//      case None => BigDecimal(0.0)
+//    }
+    0.0
+  }
+
+  /**
+   * return completeness
+   */
+  private def calculateCompleteness(sessionId: ObjectId):BigDecimal = {
+    0.0
+  }
 }
 
 case class Participant(answers: Seq[Answer],

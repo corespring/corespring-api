@@ -57,7 +57,7 @@ case class SelectTextInteraction(responseIdentifier: String, selectionType: Stri
           } else {
             outcomeProperties = outcomeProperties + ("responsesBelowMin" -> false)
           }
-          Some(ItemResponseOutcome(score, None, outcomeProperties))
+          Some(ItemResponseOutcome(score, score == 1, None, outcomeProperties))
         }
         case _ => None
       }

@@ -11,10 +11,10 @@ case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int,
     response match {
       case StringItemResponse(_,responseValue,_) => responseDeclaration match {
         case Some(rd) => rd.mapping match {
-          case Some(mapping) => Some(ItemResponseOutcome(mapping.mappedValue(response.value)))
+          case Some(mapping) => Some(ItemResponseOutcome(mapping.mappedValue(response.value), rd.isCorrect(responseValue) == Correctness.Correct))
           case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
-            Some(ItemResponseOutcome(1))
-          } else Some(ItemResponseOutcome(0))
+            Some(ItemResponseOutcome(1,true))
+          } else Some(ItemResponseOutcome(0,false))
         }
         case None => None
       }
@@ -27,11 +27,11 @@ case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int,
               val mappedValue = mapping.mappedValue(responseValue)
               if (max < mappedValue) max = mappedValue
             }
-            Some(ItemResponseOutcome(max))
+            Some(ItemResponseOutcome(max,true))
           }
           case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
-            Some(ItemResponseOutcome(1))
-          } else Some(ItemResponseOutcome(0))
+            Some(ItemResponseOutcome(1,true))
+          } else Some(ItemResponseOutcome(0,false))
         }
         case None => None
       }
