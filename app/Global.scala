@@ -1,5 +1,4 @@
 import _root_.controllers.ConcreteS3Service
-import _root_.models.TempSessions.sessionList
 import _root_.models.itemSession.{ArrayItemResponse, StringItemResponse, ItemSession}
 import _root_.models.quiz.basic.{Participant, Answer, Quiz}
 import com.typesafe.config.ConfigFactory
@@ -198,61 +197,13 @@ object Global extends GlobalSettings {
     seedData("conf/seed-data/test")
   }
 
-
-  // TODO: remove this, this is only for testing purposes for the instructor view
-  private def addTestSessions() {
-
-    def chooseOneRandomly(items:Array[String]):String = {
-      val idx = new Random().nextInt(items.length)
-      items(idx)
-    }
-
-    def chooseNRandomly(items:Array[String]):Seq[String] = {
-      val chosenNumber = new Random().nextInt(items.length)
-      Random.shuffle(items.toSeq).take(chosenNumber).sortWith(_<_)
-    }
-
-    def upToNWords(base:String, n:Int):Seq[String] = {
-      for (i <- 0 to new Random().nextInt(n)) yield base + i.toString
-    }
-
-    val presidents = Array("obama", "cameron", "calderon")
-    val colors = Array("blue","violet","white","red")
-    val moonmen = Array("armstrong","aldrin")
-    val winterList = (Seq("york","York") ++ upToNWords("someWord", 10))
-
-    val rand = new Random()
-    for (i <- 1 to 50) {
-      println("Iteration: " + i)
-      val random_index = rand.nextInt(winterList.length)
-      val winter = winterList(random_index)
-
-      val sr1 = (rand.nextInt(40)+1).toString
-      val sr2 = (rand.nextInt(40)+1).toString
-      val responses = Seq(
-        ArrayItemResponse("mexicanPresident", Seq(chooseOneRandomly(presidents))),
-        ArrayItemResponse("rainbowColors", chooseNRandomly(colors), None),
-        StringItemResponse("winterDiscontent", winter),
-        ArrayItemResponse("selectText", Seq(sr1, sr2)),
-        StringItemResponse("manOnMoon", chooseOneRandomly(moonmen))
-
-      )
-      println("Winter: "+winter)
-      val session = ItemSession(responses = responses, itemId = new ObjectId("507c9fb3a0eee12a21a88912"), finish = Some(new DateTime()))
-      sessionList ::= session.id.toString
-      ItemSession.save(session)
-    }
-  }
-
-
   private def seedDevData() {
     emptyData()
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/dev")
     seedData("conf/seed-data/exemplar-content")
 
-    // TODO: remove this, this is only for testing purposes for the instructor view
-    addTestSessions()
+    // TODO: remove this
     completeQuiz()
   }
 

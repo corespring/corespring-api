@@ -8,6 +8,7 @@ import models._
 import common.controllers.ItemResources
 import itemSession.ItemSession
 import play.api.mvc._
+import quiz.basic.Quiz
 import testplayer.models.ExceptionMessage
 import scala.Some
 import play.api._
@@ -84,22 +85,27 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
       )
   }
 
-  def renderAsAggregate(itemId: String) = ApiAction { request =>
-    println("Wired Sessions: ")
-    println(TempSessions.sessionList)
-    try {
-      getItemXMLByObjectId(itemId, request.ctx.organization) match {
-        case Some(xmlData: Elem) =>
-          val finalXml = prepareQti(xmlData, Aggregate)
-          Ok(testplayer.views.html.aggregatePlayer(itemId, finalXml, TempSessions.sessionList.map("'"+_+"'").toSeq, common.mock.MockToken))
-        case None =>
-          NotFound("not found")
-      }
-    } catch {
-      case e: SAXParseException => {
-        val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
-        Ok(testplayer.views.html.itemPlayerError(errorInfo))
-      }
+
+  def renderQuizAsAggregate(quizId: String, itemId: String) = ApiAction { request =>
+    Quiz.findOneById(new ObjectId(quizId)) match {
+      case Some(q) =>
+        val sessionIds = q.participants.map(_.answers.filter(_.itemId == itemId).map(_.sessionId)).flatten
+
+        try {
+          getItemXMLByObjectId(itemId, request.ctx.organization) match {
+            case Some(xmlData: Elem) =>
+              val finalXml = prepareQti(xmlData, Aggregate)
+              Ok(testplayer.views.html.aggregatePlayer(itemId, finalXml, sessionIds.map("'"+_+"'").toSeq, common.mock.MockToken))
+            case None =>
+              NotFound("not found")
+          }
+        } catch {
+          case e: SAXParseException => {
+            val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
+            Ok(testplayer.views.html.itemPlayerError(errorInfo))
+          }
+        }
+      case _ => NotFound
     }
 
   }
