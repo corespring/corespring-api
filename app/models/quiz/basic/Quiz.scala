@@ -47,7 +47,7 @@ object Answer {
     ItemSession.findOneById(sessionId) match {
       case Some(itemSession) => {
         val scores = itemSession.responses.map(itemResponse => itemResponse.outcome.map(iro => if (iro.isCorrect) 1 else 0)).flatten
-        if(scores.size > 0) scores.foldRight[Int](0)((score,total) => total + score) / scores.size else 0.0
+        if(scores.size > 0) scores.foldRight[Int](0)((score,total) => total + score).toDouble / scores.size.toDouble else 0.0
       }
       case None => BigDecimal(0.0)
     }
