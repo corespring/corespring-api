@@ -13,6 +13,13 @@ import scala.Some
 import scala.Right
 import play.api.mvc.AnyContent
 import play.api.libs.json.JsObject
+import xml.Elem
+import play.api.Play.current
+import play.api.Logger
+import qti.processors.FeedbackProcessor
+import play.api.mvc.{Action, AnyContent}
+import play.api.libs.json.JsArray
+import play.api.libs.ws.ResponseHeaders
 
 
 /**
@@ -80,7 +87,6 @@ object ItemSessionApi extends BaseApi {
     case Some("updateSettings") => updateSettings(itemId, sessionId)
     case _ => processResponse(itemId, sessionId)
   }
-
 
   /**
    * @param sessionId

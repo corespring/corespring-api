@@ -1,0 +1,73 @@
+{
+  "_id": {
+    "$oid": "000000000000000000000002"
+  },
+  "orgId": {
+    "$oid": "51114b307fc1eaa866444648"
+  },
+  "metadata": {
+    "title": "Get Clever Sample quiz",
+    "course": "Challenge Course",
+    "note" : "The participants externalUids are getclever uids to be used with api.getclever.com"
+  },
+  "questions": [
+    {
+      "itemId": {
+        "$oid": "503c2e91e4b00f3f0a9a7a6a"
+      },
+      "title" : "How many pancakes were eaten when Rodrigo made breakfast for his family and friends?",
+      "standards" : ["2.OA.A.1"],
+      "settings": {
+        "maxNoOfAttempts": 0,
+        "highlightUserResponse": true,
+        "highlightCorrectResponse": true,
+        "showFeedback": false,
+        "allowEmptyResponses": false,
+        "submitCompleteMessage": "Ok! Your response was submitted.",
+        "submitIncorrectMessage": "You may revise your work before you submit your final response."
+      }
+    },
+    {
+      "itemId": {
+        "$oid": "50d755c6e4b0ebcda4e2fbb6"
+      },
+      "title" : "John wanted to use his calculator to add 1,463 and 319. He entered 1,263 + 319 by mistake. What could he do to correct his mistake?",
+      "standards" : ["4.NBT.B.4"],
+      "settings": {
+        "maxNoOfAttempts": 0,
+        "highlightUserResponse": true,
+        "highlightCorrectResponse": true,
+        "showFeedback": false,
+        "allowEmptyResponses": false,
+        "submitCompleteMessage": "Ok! Your response was submitted.",
+        "submitIncorrectMessage": "You may revise your work before you submit your final response."
+      }
+    },
+    {
+      "itemId": {
+        "$oid": "504e9571e4b07f3e2e432371"
+      },
+      "title" : "The life cycle of butterflies has four stages. Arrange the stages of life of a butterfly in order from beginning to end.",
+      "standards" : [],
+      "settings": {
+        "maxNoOfAttempts": 0,
+        "highlightUserResponse": true,
+        "highlightCorrectResponse": true,
+        "showFeedback": false,
+        "allowEmptyResponses": false,
+        "submitCompleteMessage": "Ok! Your response was submitted.",
+        "submitIncorrectMessage": "You may revise your work before you submit your final response."
+      }
+    }
+  ],
+  "participants": [
+    {
+      "answers": [],
+      "externalUid": "4fee004cca2e43cf2700000b"
+    },
+    {
+      "answers": [],
+      "externalUid": "4fee004cca2e43cf2700002b"
+    }
+  ]
+}

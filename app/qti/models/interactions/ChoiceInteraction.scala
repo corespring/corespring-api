@@ -16,21 +16,22 @@ case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoi
     response match {
       case StringItemResponse(_, responseValue, _) => responseDeclaration match {
         case Some(rd) => rd.mapping match {
-          case Some(mapping) => Some(ItemResponseOutcome(mapping.mappedValue(response.value)))
+          case Some(mapping) => Some(ItemResponseOutcome(mapping.mappedValue(response.value), rd.isCorrect(responseValue) == Correctness.Correct))
           case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
-            Some(ItemResponseOutcome(1))
-          } else Some(ItemResponseOutcome(0))
+            Some(ItemResponseOutcome(1,true))
+          } else Some(ItemResponseOutcome(0,false))
         }
         case None => None
       }
       case ArrayItemResponse(_, responseValues, _) => responseDeclaration match {
         case Some(rd) => rd.mapping match {
           case Some(mapping) => Some(ItemResponseOutcome(
-            responseValues.foldRight[Float](0)((responseValue, sum) => sum + mapping.mappedValue(responseValue))
+            responseValues.foldRight[Float](0)((responseValue,sum) => sum + mapping.mappedValue(responseValue)),
+            rd.isCorrect(responseValues) == Correctness.Correct
           ))
           case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
-            Some(ItemResponseOutcome(1))
-          } else Some(ItemResponseOutcome(0))
+            Some(ItemResponseOutcome(1,true))
+          } else Some(ItemResponseOutcome(0,false))
         }
         case None => None
       }

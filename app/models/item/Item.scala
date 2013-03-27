@@ -1,29 +1,19 @@
 package models.item
 
-import play.api.Play.current
-import org.bson.types.ObjectId
+
 import com.mongodb.casbah.Imports._
 import models.mongoContext._
 import controllers._
 import resource.{VirtualFile, BaseFile, Resource}
 import scala.Either
+import models.mongoContext._
+import com.novus.salat._
 import com.mongodb.util.{JSONParseException, JSON}
-import controllers.InternalError
-import scala.Left
-import scala.Right
 import play.api.libs.json._
 import com.novus.salat._
-import dao.SalatDAOUpdateError
-import dao.SalatMongoCursor
-import dao.{ModelCompanion, SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
-import controllers.auth.Permission
-import play.api.Logger
-import java.util.regex.Pattern
+import dao.{ModelCompanion}
 import dao.{SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
-import controllers.auth.Permission
 import org.joda.time.DateTime
-import models.item._
-import models._
 import models.json.ItemView
 import controllers.InternalError
 import scala.Left
@@ -49,7 +39,8 @@ case class Item(
                  var dateModified: Option[DateTime] = Some(new DateTime()),
                  var taskInfo: Option[TaskInfo] = None,
                  var otherAlignments: Option[Alignments] = None,
-                 var id: ObjectId = new ObjectId()) extends Content
+                 var id: ObjectId = new ObjectId(),
+                 var version:Option[Version] = None) extends Content
 
 
 /**
@@ -105,6 +96,7 @@ object Item extends ModelCompanion[Item,ObjectId]{
   val workflow = "workflow"
   val dateModified = "dateModified"
   val otherAlignments = "otherAlignments"
+  val version = Content.version
 
   lazy val fieldValues = FieldValue.current
   implicit object ItemWrites extends Writes[Item] {
@@ -157,13 +149,6 @@ object Item extends ModelCompanion[Item,ObjectId]{
 
   def updateItem(oid: ObjectId, newItem: Item, fields: Option[DBObject], requesterOrgId: ObjectId): Either[InternalError, Item] = {
     try {
-      import com.novus.salat.grater
-
-      def isAuthorized = ContentCollection.isAuthorized(requesterOrgId, new ObjectId(newItem.collectionId), Permission.Write)
-
-      if (!newItem.collectionId.isEmpty && !isAuthorized) {
-        throw new RuntimeException("collection not authorized: " + newItem.collectionId + ", orgId: " + requesterOrgId)
-      }
 
       val copy = newItem.copy(dateModified = Some(new DateTime()))
 
@@ -191,7 +176,7 @@ object Item extends ModelCompanion[Item,ObjectId]{
   }
 
   def cloneItem(item: Item): Option[Item] = {
-    val copy = item.copy(id = new ObjectId())
+    val copy = item.copy(id = new ObjectId(),version=None)
     Item.save(copy)
     Some(copy)
   }
@@ -214,6 +199,11 @@ object Item extends ModelCompanion[Item,ObjectId]{
       case x: String => if (seq.exists(_.key == x)) Right(x) else Left(InternalError("no valid " + name + " found for given value"))
       case _ => Left(InternalError("invalid value format"))
     }
+  }
+
+  def findMultiple(ids: Seq[ObjectId], keys : DBObject) : Seq[Item] = {
+    val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))
+    Item.find(query,keys).toSeq
   }
 
   def getQti(itemId: ObjectId): Either[InternalError, String] = {

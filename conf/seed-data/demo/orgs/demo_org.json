@@ -17,12 +17,6 @@
     },
     {
       "collectionId": {
-        "$oid": "511276834924c9ca07b97044"
-      },
-      "pval": 1
-    },
-    {
-      "collectionId": {
         "$oid" : "505777f5e4b05f7845735bc1"
       },
       "pval":1

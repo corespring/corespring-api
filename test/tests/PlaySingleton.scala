@@ -10,22 +10,18 @@ import scala.Some
  */
 object PlaySingleton {
   def start() {
-    this.synchronized {
-      Play.maybeApplication match {
-        case Some(fakeApp) =>
-        case None => Play.start(FakeApplication())
-      }
+    Play.maybeApplication match {
+      case Some(fakeApp) =>
+      case None => Play.start(FakeApplication())
     }
   }
 
   def stop() {
-    this.synchronized {
-      Play.maybeApplication match {
-        case Some(fakeApp) => {
-          Play.stop()
-        }
-        case None =>
+    Play.maybeApplication match {
+      case Some(fakeApp) => {
+        Play.stop()
       }
+      case None =>
     }
   }
 }

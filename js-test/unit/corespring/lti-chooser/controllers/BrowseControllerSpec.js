@@ -15,7 +15,7 @@ describe('lti-chooser.BrowseController', function () {
   beforeEach(module('corespring-utils'));
   beforeEach(module('corespring-services'));
 
-  var mockConfig = {id:"1",itemId: "1", assignments: []}; 
+  var mockConfig = {id:"1", question: { itemId: "1" }, participants: []};
 
   beforeEach(function () {
     module(function ($provide) {
@@ -38,7 +38,7 @@ describe('lti-chooser.BrowseController', function () {
     $httpBackend = _$httpBackend_;
     scope = $rootScope.$new();
 
-    scope.config = mockConfig;
+    scope.quiz = mockConfig;
 
     try {
       ctrl = $controller(BrowseController, {
@@ -68,7 +68,7 @@ describe('lti-chooser.BrowseController', function () {
 
     it('should change', function(){
       scope.change();
-      expect(scope.config.itemId).toBeNull();
+      expect(scope.quiz.question.itemId).toBeNull();
       expect(scope.mode).toBe('start');
     });
 

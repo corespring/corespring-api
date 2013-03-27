@@ -1,6 +1,6 @@
 package tests.publicsite.controllers
 
-import tests.PlaySingleton
+import tests.{BaseTest, PlaySingleton}
 import org.specs2.mutable.Specification
 import play.api.test.Helpers._
 import models.item._
@@ -10,9 +10,7 @@ import play.mvc.Result
 import play.api.mvc.AnyContent
 import scala.Some
 
-class ExampleContentTest extends Specification {
-
-  PlaySingleton.start()
+class ExampleContentTest extends BaseTest{
 
   "ExampleContent" should {
 

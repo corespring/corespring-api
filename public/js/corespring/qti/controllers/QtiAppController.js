@@ -106,6 +106,9 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
       $scope.settingsHaveChanged = !angular.equals(
         $scope.originalSettings,
         $scope.itemSession.settings);
+
+      if ($scope.settingsHaveChanged)
+        $scope.$broadcast('controlBarChanged');
     });
 
   };

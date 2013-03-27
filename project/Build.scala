@@ -14,8 +14,8 @@ object ApplicationBuild extends Build {
     "org.mindrot" % "jbcrypt" % "0.3m",
     "securesocial" % "securesocial_2.9.1" % "2.0.7",
     "com.github.mumoshu" %% "play2-memcached" % "0.2.3-SNAPSHOT",
-    "org.mockito" % "mockito-all" % "1.9.5"
-    //"securesocial" % "securesocial_2.9.1" % "master"
+    "org.mockito" % "mockito-all" % "1.9.5",
+    "com.rabbitmq" % "amqp-client" % "3.0.2"
   )
 
   val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
@@ -29,5 +29,4 @@ object ApplicationBuild extends Build {
     resolvers += "Sonatype OSS Snapshots Repository" at "http://oss.sonatype.org/content/groups/public",
     resolvers += "Spy Repository" at "http://files.couchbase.com/maven2" // required to resolve `spymemcached`, the plugin's dependency.
   )
-
 }

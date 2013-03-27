@@ -42,7 +42,8 @@ object ItemView{
         item.workflow.map((Item.workflow -> Json.toJson(_))),
         item.data.map((Item.data -> Json.toJson(_))),
         Some((Item.collectionId -> JsString(item.collectionId))),
-        Some(Item.contentType -> JsString(ContentType.item))
+        Some(Item.contentType -> JsString(ContentType.item)),
+        item.version.map(Item.version -> Json.toJson(_))
       )
 
       def makeJsString(tuple: (String, Option[String])) = {

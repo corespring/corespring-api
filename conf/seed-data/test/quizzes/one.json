@@ -1,0 +1,50 @@
+{
+  "_id": {
+    "$oid": "000000000000000000000001"
+  },
+  "orgId": {
+    "$oid": "51114b307fc1eaa866444648"
+  },
+  "metadata": {
+    "title": "my quiz",
+    "course": "my course"
+  },
+  "questions": [
+    {
+      "itemId": {
+        "$oid": "511156d38604c9f77da9739d"
+      },
+
+      "title":"Read the poem <i>When I Heard the Learned Astronomer</i> by Walt Whitman and analyze the text using the questions presented as a guide.",
+      "standards":[
+        "RL.9-10.1",
+        "RL.9-10.2",
+        "RL.9-10.4",
+        "RL.9-10.5"
+      ],
+      "settings": {
+        "maxNoOfAttempts": 0,
+        "highlightUserResponse": true,
+        "highlightCorrectResponse": true,
+        "showFeedback": false,
+        "allowEmptyResponses": false,
+        "submitCompleteMessage": "Ok! Your response was submitted.",
+        "submitIncorrectMessage": "You may revise your work before you submit your final response."
+      }
+    }
+  ],
+  "participants": [
+    {
+      "itemSessions": [
+        {
+          "$oid": "51116bc7a14f7b657a083c1d"
+        }
+      ],
+      "externalUid": "hello",
+      "metadata": {
+        "studentName": "Joe Schmidt",
+        "class": "Leinster"
+      }
+    }
+  ]
+}

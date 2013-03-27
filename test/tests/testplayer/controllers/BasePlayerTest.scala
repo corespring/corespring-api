@@ -5,18 +5,14 @@ import testplayer.controllers.BasePlayer
 import play.api.mvc._
 import play.api.test.FakeRequest
 import com.mongodb.casbah.commons.MongoDBObject
-import tests.PlaySingleton
+import tests.{BaseTest, PlaySingleton}
 import play.api.test.Helpers._
 import play.api.mvc.SimpleResult
 import play.api.libs.iteratee.Enumerator
 import org.bson.types.ObjectId
 import models.itemSession.ItemSession
 
-class BasePlayerTest extends Specification {
-
-  PlaySingleton.start()
-
-  val token = "test_token"
+class BasePlayerTest extends BaseTest {
 
   "Base player" should {
 

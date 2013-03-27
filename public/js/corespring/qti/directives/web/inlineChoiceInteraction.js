@@ -7,8 +7,8 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
     var html = element.html();
 
-    var inlineChoiceRegex = /(<inlinechoice[\s\S]*?>[\s\S]*?<\/inlinechoice>)/gm;
-    var feedbackRegex = /(<feedbackinline[\s\S]*?>[\s\S]*?<\/feedbackinline>)/gm;
+    var inlineChoiceRegex = /<:*inlinechoice[\s\S]*?>([\s\S]*?)<\/:*inlinechoice>/gmi;
+    var feedbackRegex = /(<:*feedbackinline[\s\S]*?>[\s\S]*?<\/:*feedbackinline>)/gmi;
 
     var nodes = html.match(inlineChoiceRegex);
 
@@ -18,14 +18,16 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
       return [];
     }
 
+    nodes = $(element).children('inlinechoice');
+
     for (var i = 0; i < nodes.length; i++) {
       var template = '<li><a ng-click="click(\' ' + i + ' \', \'${value}\')">$label</a></li>';
       var node = angular.element(nodes[i]);
       var nodeContents = node.html();
-      var feedbackNodes = nodeContents.match(feedbackRegex);
 
+      var feedbackNodes = nodeContents.match(feedbackRegex);
       if (feedbackNodes && feedbackNodes.length > 0) {
-        var floatDirective = feedbackNodes[0].replace(/feedbackinline/g, "feedbackfloat");
+        var floatDirective = feedbackNodes[0].replace(/<:*feedbackinline/gim, "<span class='feedbackfloat'").replace(/\/:*feedbackinline/gim, "/span");
         out.feedbacks.push(floatDirective);
       }
 
@@ -35,10 +37,11 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
         .replace("${value}", node.attr("identifier"))
         .replace(/\$label/gi, optionValue);
 
-      out.labels.push(optionValue);
+      out.labels.push("<span ng-show='selectedIdx=="+i+"'>"+optionValue+"</span>");
 
       out.options.push(option);
     }
+    out.labels.push("<span ng-show='selectedIdx==-1'>"+chooseLabel+"</span>");
 
     return out;
   };
@@ -51,9 +54,11 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
     var html = [
       '<div class="btn-group" style="display: inline-block">',
-      '<a class="btn dropdown-toggle" ng-class="{disabled: formSubmitted}" data-toggle="dropdown" href="#"><span ng-bind-html-unsafe="selected" style="padding-right: 15px"/><span class="caret"></span></a>',
+      '<a class="btn dropdown-toggle" ng-class="{disabled: formSubmitted}" data-toggle="dropdown" href="#">'
+    ].concat(optionsAndFeedback.labels).concat([
+      '<span class="caret"></span></a>',
       '<ul class="dropdown-menu">'
-    ];
+    ]);
 
     //TODO: This isn't being picked up - leave it for now.
     if (element.attr('required') === "true") {
@@ -68,12 +73,14 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
     return function ($scope, element, attrs, AssessmentItemCtrl) {
       $scope.labels = optionsAndFeedback.labels;
+      $scope.selectedIdx = -1;
       AssessmentItemCtrl.registerInteraction(element.attr('responseIdentifier'), 'inline');
 
       var modelToUpdate = attrs["responseidentifier"];
 
       $scope.click = function (label, value) {
         $scope.selected = $scope.labels[Number(label)];
+        $scope.selectedIdx = Number(label);
         $scope.choice = value;
         $(element).find('.dropdown-toggle').dropdown('toggle');
       }
@@ -91,7 +98,7 @@ qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
 
       $scope.$on('unsetSelection', function (event) {
         $scope.choice = "";
-        $scope.selected = chooseLabel;
+        $scope.selectedIdx = -1;
       });
 
       $scope.$on('highlightUserResponses', function () {
@@ -150,7 +157,7 @@ var feedbackFloat = function (QtiUtils) {
 
   //<li ng-class="{true:'active', false:''}[currentPanel=='content']">
   return {
-    restrict: 'E',
+    restrict: 'EAC',
     template: '<span class="feedback-float" ng-class="getClass()"></span>',
     scope: true,
     replace: true,
@@ -170,12 +177,16 @@ var feedbackFloat = function (QtiUtils) {
         $(element).tooltip('destroy');
       });
 
+      scope.$on('controlBarChanged', function() {
+        $(element).tooltip('destroy');
+      });
+
       scope.getClass = function () {
         return scope.feedback ? "show" : "hide";
       };
 
       scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
-        if (!responses || scope.isFeedbackEnabled() == false) return;
+        if (!responses || scope.isFeedbackEnabled() == false || !scope.highlightUserResponse()) return;
 
         var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
         if (feedback) {

@@ -23,6 +23,7 @@ angular.module('tagger.services')
 
                 items:'/api/v1/items/:id',
                 itemDetails:'/api/v1/items/:id/detail',
+                itemIncrement:'/api/v1/items/:id/increment',
                 getAccessToken:'/web/access_token',
 
                 previewFile:'/web/show-resource/{key}',

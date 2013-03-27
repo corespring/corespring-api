@@ -1,13 +1,10 @@
 package tests.models.itemSession
 
-import org.specs2.mutable.Specification
-import play.api.libs.json.{Json, JsObject}
-import tests.PlaySingleton
+import play.api.libs.json.{Json}
+import tests.{BaseTest}
 import models.itemSession.{ItemSessionSettings, ItemSession}
 
-class ItemSessionSettingsTest extends Specification {
-
-  PlaySingleton.start()
+class ItemSessionSettingsTest extends BaseTest{
 
   "item session settings " should {
     "parse json" in {

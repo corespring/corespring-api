@@ -3,14 +3,16 @@ package controllers
 import play.api.Play
 import play.api.Play.current
 import play.api.Logger
+import com.typesafe.config.{ConfigException, ConfigFactory}
 
 object Log {
   val enabled = true;
   lazy val herokuEnabled: Boolean = try {
-    System.getenv("ON_HEROKU") == "true"
+    ConfigFactory.load().getString("ON_HEROKU") == "true"
   } catch {
     case e: NullPointerException => false
     case e: SecurityException => false
+    case e: ConfigException => false
   }
   private val herokuInfo = "INFO: ";
   private val herokuDebug = "DEBUG: ";

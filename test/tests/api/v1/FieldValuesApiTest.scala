@@ -10,7 +10,7 @@ import play.api.mvc.{Results, SimpleResult, AnyContentAsJson}
 import play.api.test.{FakeHeaders, FakeRequest}
 import org.specs2.mutable._
 import play.api.test.Helpers._
-import tests.PlaySingleton
+import tests.{BaseTest, PlaySingleton}
 import com.mongodb.BasicDBObject
 import play.api.mvc.AnyContentAsJson
 import scala.Some
@@ -20,9 +20,7 @@ import play.api.mvc.AnyContentAsJson
 import scala.Some
 import play.api.mvc.SimpleResult
 
-object FieldValuesApiTest extends Specification {
-
-  PlaySingleton.start()
+object FieldValuesApiTest extends BaseTest {
 
    val FieldValueCount =  FieldValue.descriptions.toList.length + 2
 
