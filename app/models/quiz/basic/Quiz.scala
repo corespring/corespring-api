@@ -33,7 +33,7 @@ object Answer {
         "sessionId" -> JsString(a.sessionId.toString),
         "itemId" -> JsString(a.itemId.toString),
         "score" -> JsNumber(calculateScore(a.sessionId)),
-        "completeness" -> JsNumber(calculateCompleteness(a.sessionId))
+        "isComplete" -> JsBoolean(isComplete(a.sessionId))
       ))
     }
   }
@@ -43,22 +43,27 @@ object Answer {
    * @param sessionId
    * @return
    */
-  private def calculateScore(sessionId: ObjectId): BigDecimal = {
-    //    ItemSession.findOneById(sessionId) match {
-    //      case Some(itemSession) => {
-    //        val scores = itemSession.responses.map(itemResponse => itemResponse.outcome.map(iro => iro.score)).flatten
-    //        scores
-    //      }
-    //      case None => BigDecimal(0.0)
-    //    }
-    0.0
+  private def calculateScore(sessionId: ObjectId):BigDecimal = {
+    ItemSession.findOneById(sessionId) match {
+      case Some(itemSession) => {
+        val scores = itemSession.responses.map(itemResponse => itemResponse.outcome.map(iro => if (iro.isCorrect) 1 else 0)).flatten
+        if(scores.size > 0) scores.foldRight[Int](0)((score,total) => total + score).toDouble / scores.size.toDouble else 0.0
+      }
+      case None => BigDecimal(0.0)
+    }
   }
 
   /**
    * return completeness
    */
-  private def calculateCompleteness(sessionId: ObjectId): BigDecimal = {
-    0.0
+  private def isComplete(sessionId: ObjectId):Boolean = {
+    ItemSession.findOneById(sessionId) match {
+      case Some(itemSession) => itemSession.sessionData match {
+        case Some(sessionData) => itemSession.responses.size == sessionData.correctResponses.size
+        case None => false
+      }
+      case None => false
+    }
   }
 }
 
