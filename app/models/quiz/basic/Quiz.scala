@@ -62,7 +62,7 @@ object Answer {
         case Some(sessionData) => itemSession.responses.size == sessionData.correctResponses.size
         case None => false
       }
-      case None => throw new RuntimeException("no session found")
+      case None => false
     }
   }
 }
