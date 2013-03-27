@@ -158,7 +158,7 @@ class ItemQueryTest extends BaseTest{
       case JsArray(jsobjects) => {
         jsobjects.size must beGreaterThanOrEqualTo(1)
         jsobjects.forall(jsobj => {
-          ((jsobj \ "primarySubject") match {
+          val result = ((jsobj \ "primarySubject") match {
             case JsObject(props) => props.contains("category" -> JsString(primarySubjectCategory))
             case _ => false
           }) || ((jsobj \ "title") match {
@@ -177,6 +177,7 @@ class ItemQueryTest extends BaseTest{
             case JsString(jsauthor) => jsauthor == author
             case _ => false
           })
+          result
         })
       }
       case _ => false

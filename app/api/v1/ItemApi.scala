@@ -36,7 +36,7 @@ class ItemApi(s3service:S3Service) extends BaseApi {
 
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
-  val dbsummaryFields = Seq(Item.collectionId,Item.taskInfo,Item.otherAlignments,Item.standards)
+  val dbsummaryFields = Seq(Item.collectionId,Item.taskInfo,Item.otherAlignments,Item.standards,Item.contributorDetails)
   val jssummaryFields: Seq[String] = Seq("id",
     Item.collectionId,
     TaskInfo.Keys.gradeLevel,
@@ -45,6 +45,7 @@ class ItemApi(s3service:S3Service) extends BaseApi {
     Item.primarySubject,
     Item.relatedSubject,
     Item.standards,
+    Item.author,
     TaskInfo.Keys.title)
 
   private def count(c: String): Boolean = "true".equalsIgnoreCase(c)
