@@ -6,6 +6,7 @@ import play.api.libs.json.Json
 import models.quiz.basic.{Answer, Participant, Question, Quiz}
 import org.bson.types.ObjectId
 import models.itemSession.ItemSessionSettings
+import com.mongodb.casbah.commons.MongoDBObject
 
 class QuizTest extends Specification {
 
@@ -106,6 +107,41 @@ class QuizTest extends Specification {
       Quiz.create(quizTwo)
       val result = Quiz.findByIds(List(quizOne.id,quizTwo.id))
       result.length === 2
+    }
+
+    "update adds item info" in {
+
+      val queryItem = MongoDBObject("_id" -> new ObjectId("50b653a1e4b0ec03f29344b0"))
+      models.item.Item.findOne(queryItem) match {
+        case Some(i) => {
+
+          i.taskInfo match {
+            case Some(info) => {
+
+              val quizOne = Quiz(
+                questions = Seq(Question(itemId = i.id)),
+                participants = Seq(
+                  Participant(
+                    externalUid = "sam.smith@gmail.com",
+                    answers = Seq()
+                  )
+                ))
+              Quiz.create(quizOne)
+
+              Quiz.findOneById(quizOne.id) match {
+                case Some(updatedQuiz) => {
+                  updatedQuiz.questions(0).title === info.title
+                  success
+                }
+                case _ => failure
+              }
+            }
+            case _ => failure
+          }
+
+        }
+        case _ => failure("couldn't find an item")
+      }
     }
   }
 }

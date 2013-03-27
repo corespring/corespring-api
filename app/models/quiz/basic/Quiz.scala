@@ -11,6 +11,7 @@ import models.quiz.{BaseParticipant, BaseQuestion}
 import play.api.libs.json._
 import play.api.libs.json.Json._
 import models.mongoContext._
+import models.item.{TaskInfo, Item}
 import play.api.libs.json.JsObject
 import scala.Some
 
@@ -42,21 +43,21 @@ object Answer {
    * @param sessionId
    * @return
    */
-  private def calculateScore(sessionId: ObjectId):BigDecimal = {
-//    ItemSession.findOneById(sessionId) match {
-//      case Some(itemSession) => {
-//        val scores = itemSession.responses.map(itemResponse => itemResponse.outcome.map(iro => iro.score)).flatten
-//        scores
-//      }
-//      case None => BigDecimal(0.0)
-//    }
+  private def calculateScore(sessionId: ObjectId): BigDecimal = {
+    //    ItemSession.findOneById(sessionId) match {
+    //      case Some(itemSession) => {
+    //        val scores = itemSession.responses.map(itemResponse => itemResponse.outcome.map(iro => iro.score)).flatten
+    //        scores
+    //      }
+    //      case None => BigDecimal(0.0)
+    //    }
     0.0
   }
 
   /**
    * return completeness
    */
-  private def calculateCompleteness(sessionId: ObjectId):BigDecimal = {
+  private def calculateCompleteness(sessionId: ObjectId): BigDecimal = {
     0.0
   }
 }
@@ -86,8 +87,13 @@ object Participant {
 
 }
 
+/** Note: We are adding the title and standard info from the Item model here.
+  * Its a little bit of duplication - but will save us from having to make a 2nd db query
+  */
 case class Question(itemId: ObjectId,
-                    settings: ItemSessionSettings = ItemSessionSettings()) extends BaseQuestion(Some(itemId), settings)
+                    settings: ItemSessionSettings = ItemSessionSettings(),
+                     title : Option[String] = None,
+                     standards : Seq[String] = Seq()) extends BaseQuestion(Some(itemId), settings)
 
 object Question {
 
@@ -102,13 +108,32 @@ object Question {
 
   implicit object Writes extends Writes[Question] {
     def writes(q: Question): JsValue = {
-      JsObject(Seq(
-        Some("itemId" -> JsString(q.itemId.toString)),
-        if (q.settings != null) Some("settings" -> toJson(q.settings)) else None
-      ).flatten)
+
+      JsObject(
+        Seq(
+          Some("itemId" -> JsString(q.itemId.toString)),
+          if (q.settings != null) Some("settings" -> toJson(q.settings)) else None,
+          q.title.map( "title" -> JsString(_)),
+           Some("standards" -> JsArray(q.standards.map(JsString(_))))
+        ).flatten
+      )
     }
   }
 
+  def bindItemToQuestion(question:Question) : Question = {
+    Item.find(
+      MongoDBObject("_id" -> question.itemId),
+      MongoDBObject("taskInfo.title" -> 1, "standards" -> 1)).toList.headOption match {
+      case Some(item) => {
+        val title = item.taskInfo.getOrElse(TaskInfo(title=Some(""))).title
+        val standards = item.standards
+        question.copy(
+          title = title,
+          standards = standards)
+      }
+      case _ => question
+    }
+  }
 }
 
 case class Quiz(orgId: Option[ObjectId] = None,
@@ -162,12 +187,18 @@ object Quiz {
     val dao = new SalatDAO[Quiz, ObjectId](collection = collection) {}
   }
 
+
+  /** Bind Item title and standards to the question */
+  private def bindItemData(q:Quiz) : Quiz = {
+    q.copy(questions = q.questions.map(Question.bindItemToQuestion))
+  }
+
   def create(q: Quiz) {
-    Dao.save(q)
+    Dao.save(bindItemData(q))
   }
 
   def update(q: Quiz) {
-    Dao.save(q)
+    Dao.save(bindItemData(q))
   }
 
   def count(query: DBObject = MongoDBObject(),
@@ -185,22 +216,22 @@ object Quiz {
   def findOneById(id: ObjectId) = Dao.findOneById(id)
 
 
-  def findByIds(ids:List[ObjectId]) = {
+  def findByIds(ids: List[ObjectId]) = {
     val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))
     Dao.find(query).toList
   }
 
   def collection = Dao.collection
 
-  def findAllByOrgId(id:ObjectId) : List[Quiz] = {
+  def findAllByOrgId(id: ObjectId): List[Quiz] = {
     val query = MongoDBObject(Keys.orgId -> id)
     Dao.find(query).toList
   }
 
-  def addAnswer(quizId:ObjectId,externalUid:String,answer:Answer) : Option[Quiz] = {
+  def addAnswer(quizId: ObjectId, externalUid: String, answer: Answer): Option[Quiz] = {
 
-    def processParticipants(externalUid:String)(p:Participant) : Participant = {
-      if(p.externalUid == externalUid && !p.answers.exists(_.itemId == answer.itemId)){
+    def processParticipants(externalUid: String)(p: Participant): Participant = {
+      if (p.externalUid == externalUid && !p.answers.exists(_.itemId == answer.itemId)) {
         p.copy(answers = p.answers :+ answer)
       }
       else {
@@ -210,7 +241,7 @@ object Quiz {
 
     Quiz.findOneById(quizId) match {
       case Some(q) => {
-        val updatedQuiz = q.copy( participants = q.participants.map(processParticipants(externalUid)))
+        val updatedQuiz = q.copy(participants = q.participants.map(processParticipants(externalUid)))
         Quiz.update(updatedQuiz)
         Some(updatedQuiz)
       }

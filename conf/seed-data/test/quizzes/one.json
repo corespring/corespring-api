@@ -14,6 +14,14 @@
       "itemId": {
         "$oid": "511156d38604c9f77da9739d"
       },
+
+      "title":"Read the poem <i>When I Heard the Learned Astronomer</i> by Walt Whitman and analyze the text using the questions presented as a guide.",
+      "standards":[
+        "RL.9-10.1",
+        "RL.9-10.2",
+        "RL.9-10.4",
+        "RL.9-10.5"
+      ],
       "settings": {
         "maxNoOfAttempts": 0,
         "highlightUserResponse": true,
