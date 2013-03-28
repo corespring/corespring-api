@@ -85,6 +85,13 @@ class QuizApiTest extends Specification with RequestCalling {
       }
     }
 
+    "add participant" in {
+      val q = createQuiz()
+      val json = AnyContentAsJson(Json.toJson(Map("ids" -> Json.toJson(Seq("50c9f79db519c8996618447d","50be107ae4b954fe2326ab72","50ba1c504eda5d94372233c7")))))
+      val updatedQuiz = invokeCall[Quiz](Routes.addParticipants(q.id), json)
+      updatedQuiz.participants.length shouldEqual 3
+    }
+
     "list" in {
 
       Quiz.removeAll()

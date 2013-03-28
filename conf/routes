@@ -124,6 +124,7 @@ GET     /api/v1/quizzes/:quizId                     api.v1.QuizApi.get(quizId:Ob
 GET     /api/v1/quizzes/multiple/:quizIds           api.v1.QuizApi.getMultiple(quizIds:String)
 PUT     /api/v1/quizzes/:quizId                     api.v1.QuizApi.update(quizId:ObjectId)
 DELETE  /api/v1/quizzes/:quizId                     api.v1.QuizApi.delete(quizId:ObjectId)
+PUT     /api/v1/quizzes/:quizId/add-participants    api.v1.QuizApi.addParticipants(quizId:ObjectId)
 POST    /api/v1/quizzes                             api.v1.QuizApi.create()
 GET     /api/v1/quizzes                             api.v1.QuizApi.list()
 
