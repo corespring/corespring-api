@@ -2,11 +2,12 @@ package tests.models.quiz.basic
 
 import org.specs2.mutable.{After, Specification}
 import tests.PlaySingleton
-import play.api.libs.json.Json
+import play.api.libs.json.{JsArray, Json}
 import models.quiz.basic.{Answer, Participant, Question, Quiz}
 import org.bson.types.ObjectId
 import models.itemSession.ItemSessionSettings
 import com.mongodb.casbah.commons.MongoDBObject
+import common.seed.SeedDb
 
 class QuizTest extends Specification {
 
@@ -92,8 +93,8 @@ class QuizTest extends Specification {
           Participant(
             externalUid = "sam.smith@gmail.com",
             answers = Seq()
-            )
-      ))
+          )
+        ))
       Quiz.create(quizOne)
 
       val quizTwo = Quiz(
@@ -102,10 +103,10 @@ class QuizTest extends Specification {
           Participant(
             externalUid = "sam.smith@gmail.com",
             answers = Seq()
-            )
+          )
         ))
       Quiz.create(quizTwo)
-      val result = Quiz.findByIds(List(quizOne.id,quizTwo.id))
+      val result = Quiz.findByIds(List(quizOne.id, quizTwo.id))
       result.length === 2
     }
 
@@ -142,6 +143,39 @@ class QuizTest extends Specification {
         }
         case _ => failure("couldn't find an item")
       }
+    }
+
+    "json generation works" in {
+
+      SeedDb.emptyData()
+      SeedDb.seedData("conf/seed-data/test")
+
+      def assertCompleteAndScore(id: ObjectId, expected: (Boolean, Double)*): org.specs2.execute.Result = {
+
+        Quiz.findOneById(id) match {
+          case Some(quiz) => {
+
+            val participant = quiz.participants(0)
+
+            val completeAndScore: Seq[(Boolean, Double)] = participant.answers.map(a => {
+              val json = Json.toJson(a)
+              ((json \ "isComplete").as[Boolean], (json \ "score").as[Double])
+            })
+
+            completeAndScore === expected
+            success
+          }
+          case _ => {
+            failure("can't find quiz with id: 000000000000000000000001")
+            failure
+          }
+        }
+      }
+
+      assertCompleteAndScore(new ObjectId("000000000000000000000001"), (false, 0.0))
+      assertCompleteAndScore(new ObjectId("000000000000000000000002"), (true, 0.5))
+      assertCompleteAndScore(new ObjectId("000000000000000000000003"), (true, 1.0))
+
     }
   }
 }

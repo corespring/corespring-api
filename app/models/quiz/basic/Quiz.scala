@@ -29,41 +29,31 @@ object Answer {
 
   implicit object Writes extends Writes[Answer] {
     def writes(a: Answer): JsValue = {
+
+      val maybeSession: Option[ItemSession] = ItemSession.findOneById(a.sessionId)
+
       JsObject(Seq(
         "sessionId" -> JsString(a.sessionId.toString),
         "itemId" -> JsString(a.itemId.toString),
-        "score" -> JsNumber(calculateScore(a.sessionId)),
-        "isComplete" -> JsBoolean(isComplete(a.sessionId))
+        "score" -> JsNumber(calculateScore(maybeSession)),
+        "isComplete" -> JsBoolean(isComplete(maybeSession))
       ))
     }
   }
 
-  /**
-   * return score
-   * @param sessionId
-   * @return
-   */
-  private def calculateScore(sessionId: ObjectId):BigDecimal = {
-    ItemSession.findOneById(sessionId) match {
-      case Some(itemSession) => {
-        val scores = itemSession.responses.map(itemResponse => itemResponse.outcome.map(iro => if (iro.isCorrect) 1 else 0)).flatten
-        if(scores.size > 0) scores.foldRight[Int](0)((score,total) => total + score).toDouble / scores.size.toDouble else 0.0
-      }
-      case None => BigDecimal(0.0)
+  private def calculateScore(maybeSession: Option[ItemSession]): BigDecimal = maybeSession match {
+    case Some(itemSession) => {
+      if(itemSession.isFinished){
+        val (score, total) = ItemSession.getTotalScore(itemSession)
+        (score / total)
+      } else BigDecimal(0.0)
     }
+    case None => BigDecimal(0.0)
   }
 
-  /**
-   * return completeness
-   */
-  private def isComplete(sessionId: ObjectId):Boolean = {
-    ItemSession.findOneById(sessionId) match {
-      case Some(itemSession) => itemSession.sessionData match {
-        case Some(sessionData) => itemSession.responses.size == sessionData.correctResponses.size
-        case None => false
-      }
-      case None => false
-    }
+  private def isComplete(maybeSession: Option[ItemSession]): Boolean = maybeSession match {
+    case Some(itemSession) => itemSession.isFinished
+    case None => false
   }
 }
 
@@ -97,8 +87,8 @@ object Participant {
   */
 case class Question(itemId: ObjectId,
                     settings: ItemSessionSettings = ItemSessionSettings(),
-                     title : Option[String] = None,
-                     standards : Seq[String] = Seq()) extends BaseQuestion(Some(itemId), settings)
+                    title: Option[String] = None,
+                    standards: Seq[String] = Seq()) extends BaseQuestion(Some(itemId), settings)
 
 object Question {
 
@@ -118,19 +108,19 @@ object Question {
         Seq(
           Some("itemId" -> JsString(q.itemId.toString)),
           if (q.settings != null) Some("settings" -> toJson(q.settings)) else None,
-          q.title.map( "title" -> JsString(_)),
-           Some("standards" -> JsArray(q.standards.map(JsString(_))))
+          q.title.map("title" -> JsString(_)),
+          Some("standards" -> JsArray(q.standards.map(JsString(_))))
         ).flatten
       )
     }
   }
 
-  def bindItemToQuestion(question:Question) : Question = {
+  def bindItemToQuestion(question: Question): Question = {
     Item.find(
       MongoDBObject("_id" -> question.itemId),
       MongoDBObject("taskInfo.title" -> 1, "standards" -> 1)).toList.headOption match {
       case Some(item) => {
-        val title = item.taskInfo.getOrElse(TaskInfo(title=Some(""))).title
+        val title = item.taskInfo.getOrElse(TaskInfo(title = Some(""))).title
         val standards = item.standards
         question.copy(
           title = title,
@@ -194,7 +184,7 @@ object Quiz {
 
 
   /** Bind Item title and standards to the question */
-  private def bindItemData(q:Quiz) : Quiz = {
+  private def bindItemData(q: Quiz): Quiz = {
     q.copy(questions = q.questions.map(Question.bindItemToQuestion))
   }
 
