@@ -41,14 +41,14 @@ object Answer {
     }
   }
 
-  private def calculateScore(maybeSession: Option[ItemSession]): BigDecimal = maybeSession match {
+  private def calculateScore(maybeSession: Option[ItemSession]): Int = maybeSession match {
     case Some(itemSession) => {
       if(itemSession.isFinished){
         val (score, total) = ItemSession.getTotalScore(itemSession)
-        (score / total)
-      } else BigDecimal(0.0)
+        ((score / total) * 100).toInt
+      } else 0
     }
-    case None => BigDecimal(0.0)
+    case None => 0
   }
 
   private def isComplete(maybeSession: Option[ItemSession]): Boolean = maybeSession match {

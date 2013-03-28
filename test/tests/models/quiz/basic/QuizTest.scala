@@ -150,16 +150,16 @@ class QuizTest extends Specification {
       SeedDb.emptyData()
       SeedDb.seedData("conf/seed-data/test")
 
-      def assertCompleteAndScore(id: ObjectId, expected: (Boolean, Double)*): org.specs2.execute.Result = {
+      def assertCompleteAndScore(id: ObjectId, expected: (Boolean, Int)*): org.specs2.execute.Result = {
 
         Quiz.findOneById(id) match {
           case Some(quiz) => {
 
             val participant = quiz.participants(0)
 
-            val completeAndScore: Seq[(Boolean, Double)] = participant.answers.map(a => {
+            val completeAndScore: Seq[(Boolean, Int)] = participant.answers.map(a => {
               val json = Json.toJson(a)
-              ((json \ "isComplete").as[Boolean], (json \ "score").as[Double])
+              ((json \ "isComplete").as[Boolean], (json \ "score").as[Int])
             })
 
             completeAndScore === expected
@@ -172,9 +172,9 @@ class QuizTest extends Specification {
         }
       }
 
-      assertCompleteAndScore(new ObjectId("000000000000000000000001"), (false, 0.0))
-      assertCompleteAndScore(new ObjectId("000000000000000000000002"), (true, 0.5))
-      assertCompleteAndScore(new ObjectId("000000000000000000000003"), (true, 1.0))
+      assertCompleteAndScore(new ObjectId("000000000000000000000001"), (false, 0))
+      assertCompleteAndScore(new ObjectId("000000000000000000000002"), (true, 50))
+      assertCompleteAndScore(new ObjectId("000000000000000000000003"), (true, 100))
 
     }
   }
