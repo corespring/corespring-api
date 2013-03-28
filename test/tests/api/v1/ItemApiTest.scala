@@ -40,6 +40,8 @@ class ItemApiTest extends BaseTest with Mockito {
 //  AccessToken.insert(accessToken)
 //  override val token = "itemapi_test_token"
 
+  val allItemsCount = 25
+
   "list all items" in {
     val call = ItemRoutes.list()
     val fakeRequest = FakeRequest(call.method, tokenize(call.url) )
@@ -48,7 +50,7 @@ class ItemApiTest extends BaseTest with Mockito {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items.size must beEqualTo(24)
+    items.size must beEqualTo(allItemsCount)
   }
 
 "list items in a collection" in {
@@ -58,7 +60,7 @@ class ItemApiTest extends BaseTest with Mockito {
   charset(result) must beSome("utf-8")
   contentType(result) must beSome("application/json")
   val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-  items.size must beEqualTo(24)
+  items.size must beEqualTo(allItemsCount)
 }
 
   "list all items skipping 3" in {
@@ -68,7 +70,7 @@ class ItemApiTest extends BaseTest with Mockito {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items.size must beEqualTo(21)
+    items.size must beEqualTo(allItemsCount - 3)
   }
 
   "list items limiting result to 2" in {
