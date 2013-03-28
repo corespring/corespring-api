@@ -51,7 +51,11 @@
   "participants": [
     {
       "answers": [],
-      "externalUid": "000000000000000000000001"
+      "externalUid": "4fee004cca2e43cf2700000b"
+    },
+    {
+      "answers": [],
+      "externalUid": "4fee004cca2e43cf2700002b"
     }
   ]
 }
