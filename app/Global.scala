@@ -119,6 +119,8 @@ object Global extends GlobalSettings {
         seedDevData()
       }
       addDemoDataToDb()
+    } else {
+      //seedTestData()
     }
 
   }
@@ -135,60 +137,10 @@ object Global extends GlobalSettings {
     seedData("conf/seed-data/demo")
   }
 
-
   private def isLocalDb: Boolean = {
     ConfigLoader.get("mongodb.default.uri") match {
       case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907.mongolab.com:35907/sib")
       case None => false
-    }
-  }
-
-  private def randomFromList(list:Seq[String]) = {
-    list(Random.nextInt(list.length))
-  }
-
-  def randomNFromList(items:Seq[String], n:Int = 0):Seq[String] = {
-    val chosenNumber = if (n == 0) Random.nextInt(items.length-1)+1 else n
-    Random.shuffle(items).take(chosenNumber)
-  }
-
-
-  private def createItemSessionForItem1(itemId:ObjectId) = {
-    val res = StringItemResponse("Q_01", randomFromList(Seq("12","14","1","30")))
-    val is = ItemSession(itemId, responses = Seq(res), start = Some(new DateTime()), finish = Some(new DateTime()))
-    ItemSession.save(is)
-    is
-  }
-
-  private def createItemSessionForItem2(itemId:ObjectId) = {
-    val res = StringItemResponse("RESPONSE", randomFromList(Seq("ChoiceA","ChoiceB","ChoiceC","ChoiceD")))
-    val is = ItemSession(itemId, responses = Seq(res), start = Some(new DateTime()), finish = Some(new DateTime()))
-    ItemSession.save(is)
-    is
-  }
-
-  private def createItemSessionForItem3(itemId:ObjectId) = {
-    val res = ArrayItemResponse("RESPONSE", randomNFromList(Seq("ChoiceA","ChoiceB","ChoiceC","ChoiceD"), 4))
-    val is = ItemSession(itemId, responses = Seq(res), start = Some(new DateTime()), finish = Some(new DateTime()))
-    ItemSession.save(is)
-    is
-  }
-
-  private def completeQuiz() {
-    val quiz = Quiz.findOneById(new ObjectId("000000000000000000000002"))
-    quiz match {
-      case Some(q) =>
-
-        val newParticipants = q.participants.map { oldParti =>
-          val answer1 = Answer(createItemSessionForItem1(q.questions(0).itemId).id, q.questions(0).itemId)
-          val answer2 = Answer(createItemSessionForItem2(q.questions(1).itemId).id, q.questions(1).itemId)
-          val answer3 = Answer(createItemSessionForItem3(q.questions(2).itemId).id, q.questions(2).itemId)
-          oldParti.copy(answers = Seq(answer1, answer2, answer3))
-        }
-        val newQuiz = q.copy(participants = newParticipants)
-        Quiz.create(newQuiz)
-
-      case None => println("No quiz Found")
     }
   }
 
@@ -202,9 +154,6 @@ object Global extends GlobalSettings {
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/dev")
     seedData("conf/seed-data/exemplar-content")
-
-    // TODO: remove this
-    completeQuiz()
   }
 
 }
