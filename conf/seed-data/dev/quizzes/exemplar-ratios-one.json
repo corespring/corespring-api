@@ -1,0 +1,89 @@
+{
+    "_id": {
+        "$oid": "000000000000000000000003"
+    },
+    "orgId": {
+        "$oid": "51114b307fc1eaa866444648"
+    },
+    "metadata": {
+        "title": "Understand ratio concepts and use ratio reasoning to solve problems",
+        "course": "",
+        "note" : ""
+    },
+    "questions": [
+        {
+            "itemId": {
+                "$oid": "5001a521e4b0d7c9ec320f07"
+            },
+            "title" : "What percent of the bowling pins are standing?",
+            "standards" : ["6.RP.A.3c"],
+            "settings": {
+                "maxNoOfAttempts": 0,
+                "highlightUserResponse": true,
+                "highlightCorrectResponse": true,
+                "showFeedback": false,
+                "allowEmptyResponses": false,
+                "submitCompleteMessage": "Ok! Your response was submitted.",
+                "submitIncorrectMessage": "You may revise your work before you submit your final response."
+            }
+        },
+        {
+            "itemId": {
+                "$oid": "503238b9e4b0383443ab9bc0"
+            },
+            "title" : "Sophia’s dad paid $43.25 for 12.5 gallons of gas. What is the cost of one gallon of gas?",
+            "standards" : ["6.RP.A.3b"],
+            "settings": {
+                "maxNoOfAttempts": 0,
+                "highlightUserResponse": true,
+                "highlightCorrectResponse": true,
+                "showFeedback": false,
+                "allowEmptyResponses": false,
+                "submitCompleteMessage": "Ok! Your response was submitted.",
+                "submitIncorrectMessage": "You may revise your work before you submit your final response."
+            }
+        },
+        {
+            "itemId": {
+                "$oid": "50202d73e4b07279c30a30c8"
+            },
+            "title" : "A grocery store sign indicates that  bananas are 6 for $1.50, and a sign by the oranges indicates that they are 5 for $3.00. Find the total cost of buying 2 bananas and 2 oranges.",
+            "standards" : [],
+            "settings": {
+                "maxNoOfAttempts": 0,
+                "highlightUserResponse": true,
+                "highlightCorrectResponse": true,
+                "showFeedback": false,
+                "allowEmptyResponses": false,
+                "submitCompleteMessage": "Ok! Your response was submitted.",
+                "submitIncorrectMessage": "You may revise your work before you submit your final response."
+            }
+        },
+        {
+            "itemId": {
+                "$oid": "5001ae60e4b0d7c9ec320fe6"
+            },
+            "title" : "The two scales shown below are balanced. Each pyramid weighs the same. Each ball weighs the same. Each cube weighs the same.Which list gives the shapes in order from lightest to heaviest?",
+            "standards" : [""],
+            "settings": {
+                "maxNoOfAttempts": 0,
+                "highlightUserResponse": true,
+                "highlightCorrectResponse": true,
+                "showFeedback": false,
+                "allowEmptyResponses": false,
+                "submitCompleteMessage": "Ok! Your response was submitted.",
+                "submitIncorrectMessage": "You may revise your work before you submit your final response."
+            }
+        }
+    ],
+    "participants": [
+        {
+            "answers": [],
+            "externalUid": "4fee004cca2e43cf2700000b"
+        },
+        {
+            "answers": [],
+            "externalUid": "4fee004cca2e43cf2700002b"
+        }
+    ]
+}
