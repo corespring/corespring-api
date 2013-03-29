@@ -45,7 +45,7 @@ object Answer {
     case Some(itemSession) => {
       if(itemSession.isFinished){
         val (score, total) = ItemSession.getTotalScore(itemSession)
-        ((score / total) * 100).toInt
+        if(score == 0) 0 else ((score / total) * 100).toInt
       } else 0
     }
     case None => 0

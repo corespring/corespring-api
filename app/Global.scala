@@ -120,7 +120,7 @@ object Global extends GlobalSettings {
       }
       addDemoDataToDb()
     } else {
-      //seedTestData()
+      seedTestData()
     }
 
   }

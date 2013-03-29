@@ -1,0 +1,22 @@
+{
+  "_id": {
+    "$oid": "51558d01ed0db8d2dd136e84"
+  },
+  "orgId": {
+    "$oid": "51114b307fc1eaa866444648"
+  },
+  "metadata": {
+  },
+  "questions": [
+    {
+      "itemId": {
+        "$oid": "50083ba9e4b071cb5ef79101"
+      },
+      "title": "This item has Qti.xml and supporting materials",
+      "standards": [
+        "RI.1.1"
+      ]
+    }
+  ],
+  "participants": []
+}

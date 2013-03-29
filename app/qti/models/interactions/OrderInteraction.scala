@@ -8,6 +8,10 @@ import controllers.Log
 import models.itemSession._
 
 case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices {
+
+  def isScoreable = true
+
+
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
     response match {

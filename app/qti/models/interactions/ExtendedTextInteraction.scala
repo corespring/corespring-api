@@ -8,6 +8,9 @@ import testplayer.views.utils.QtiScriptLoader
 import models.itemSession.{ItemResponseOutcome, ItemResponse}
 
 case class ExtendedTextInteraction(responseIdentifier: String) extends Interaction {
+
+  def isScoreable = false
+
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = None
 
   override def validate(qtiItem: QtiItem): (Boolean, String) = (true, "Ok")

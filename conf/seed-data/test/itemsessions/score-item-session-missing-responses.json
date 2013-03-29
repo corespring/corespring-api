@@ -1,0 +1,27 @@
+{
+  "_id": {
+    "$oid": "5155a5965c2a32164f2d5046"
+  },
+  "itemId": {
+    "$oid" : "51559c385c2a32164f2d5045"
+  },
+  "responses": [
+    {
+      "_t":"models.itemSession.StringItemResponse",
+      "_id": "mexicanPresident",
+      "responseValue": "obama"
+    },
+    {
+      "_t":"models.itemSession.StringItemResponse",
+      "_id": "irishPresident",
+      "responseValue": "higgins"
+    }
+
+  ],
+  "start": {
+    "$date": 1364563210914
+  },
+  "finish": {
+    "$date": 1364563210966
+  }
+}

@@ -118,7 +118,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
 
   def findMultiple(oids: Seq[ObjectId]): Seq[ItemSession] = {
     val query = MongoDBObject("_id" -> MongoDBObject("$in" -> oids))
-    ItemSession.find(query).toSeq//.map(addExtrasIfFinished(_, addResponses))
+    ItemSession.find(query).toSeq //.map(addExtrasIfFinished(_, addResponses))
   }
 
   /**
@@ -215,7 +215,8 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
    * @param session
    * @return a tuple (score, maxScore)
    */
-  def getTotalScore(session: ItemSession): (Double, Double) = {
+
+  def getTotalScore(session:ItemSession): (Double,Double) = {
     require(session.isFinished, "The session isn't finished.")
 
     val xml = ItemSession.getXmlWithFeedback(session) match {
@@ -225,24 +226,15 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
 
     val qti = QtiItem(xml)
     session.responses = Score.scoreResponses(session.responses, qti)
-    session.sessionData = Some(SessionData(qti, session))
 
-    val correctResponsesScored = Score.scoreResponses(session.sessionData.get.correctResponses, qti)
-
-    def processScore(responses: Seq[ItemResponse], processFn: Float => Double) = {
-      responses.foldLeft(0.0) {
-        (acc, r) =>
-          val current = r.outcome match {
-            case None => 0
-            case Some(v) => processFn(v.score)
-          }
-          acc + current
-      }
+    def calculateScore(responses : Seq[ItemResponse]): Double = {
+      val outcomes: Seq[ItemResponseOutcome] = responses.map(_.outcome).flatten
+      val outcomesCorrect = outcomes.map(_.isCorrect)
+      outcomesCorrect.filter(_ == true).length
     }
 
-    def score = processScore(session.responses, (s) => s)
-    def maxScore = processScore(correctResponsesScored, (s) => 1.0)
-    (score, maxScore)
+    val sessionScore = calculateScore(session.responses)
+    (sessionScore, Score.getMaxScore(qti))
   }
 
   /**
@@ -258,8 +250,8 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
   }
 
   private def addExtrasIfFinished(
-                         session: ItemSession,
-                         fns: ((ItemSession, Elem) => Unit)*): ItemSession =
+                                   session: ItemSession,
+                                   fns: ((ItemSession, Elem) => Unit)*): ItemSession =
     if (session.isFinished) {
       getXmlWithFeedback(session) match {
         case Right(xml) => {

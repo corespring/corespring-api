@@ -7,6 +7,9 @@ import controllers.Log
 import models.itemSession._
 
 case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int, feedbackBlocks: Seq[FeedbackInline]) extends Interaction {
+
+  def isScoreable = true
+
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
     response match {
       case StringItemResponse(_,responseValue,_) => responseDeclaration match {
