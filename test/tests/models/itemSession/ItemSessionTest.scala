@@ -14,6 +14,7 @@ import org.joda.time.DateTime
 import xml.Elem
 import models.item.Item
 import models.item.resource.{VirtualFile, Resource}
+import common.seed.SeedDb
 
 class ItemSessionTest extends BaseTest {
 
@@ -356,8 +357,25 @@ class ItemSessionTest extends BaseTest {
 
       val (score, maxScore) = ItemSession.getTotalScore(session)
 
-      score === 3.5
+      score === 2.0
       maxScore === 7.0
+    }
+
+    "return correct score from full quiz" in {
+
+      def assertScore(id:String, expectedScore:Double,expectedTotal:Double) : org.specs2.execute.Result = {
+        ItemSession.findOneById( new ObjectId(id)) match {
+          case Some(itemSession) => {
+            val (score,total) = ItemSession.getTotalScore(itemSession)
+            total === expectedTotal
+            score === expectedScore
+          }
+          case _ => failure("can't find item with Id " + id)
+        }
+      }
+      assertScore("515594f4e4b05a52e550d41a", 2.0, 7.0)
+      assertScore("5155a5965c2a32164f2d5046", 1.0, 7.0)
+      assertScore("5155a8e6ed0db8d2dd136e85", 1.0, 1.0)
     }
   }
 }

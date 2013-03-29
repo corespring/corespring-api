@@ -14,6 +14,12 @@ trait Interaction {
 
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome]
 
+  /** Can this Interaction be automatically scored from the users response
+    * Eg: multichoice can - but free written text can't be
+    * @return
+    */
+  def isScoreable : Boolean
+
   def validate(qtiItem: QtiItem): (Boolean, String) = {
     val isValid = !(qtiItem.responseDeclarations.find(_.identifier == responseIdentifier).isEmpty)
     val msg = if (isValid) "Ok" else "Missing response declartaion for " + responseIdentifier

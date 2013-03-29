@@ -11,6 +11,9 @@ import models.itemSession.{ItemResponseOutcome, ArrayItemResponse, ItemResponse}
 
 case class SelectTextInteraction(responseIdentifier: String, selectionType: String, checkIfCorrect: Boolean, minSelection: Int, maxSelection: Int, correctResponse: Option[CorrectResponseMultiple]) extends Interaction {
 
+  def isScoreable = true
+
+
   override def validate(qtiItem: QtiItem) = {
     (true, "Ok")
   }

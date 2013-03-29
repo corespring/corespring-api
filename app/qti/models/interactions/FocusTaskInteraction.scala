@@ -8,6 +8,9 @@ import controllers.Log
 import models.itemSession._
 
 case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleChoice], checkIfCorrect: Boolean, minSelections: Int, maxSelections: Int) extends InteractionWithChoices {
+
+  def isScoreable = true
+
   override def validate(qtiItem: QtiItem) = {
     val hasResponse = !(qtiItem.responseDeclarations.find(_.identifier == responseIdentifier).isEmpty)
     if (!checkIfCorrect || (checkIfCorrect && hasResponse))
