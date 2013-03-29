@@ -226,8 +226,6 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
 
     val qti = QtiItem(xml)
     session.responses = Score.scoreResponses(session.responses, qti)
-    session.sessionData = Some(SessionData(qti, session))
-
 
     def calculateScore(responses : Seq[ItemResponse]): Double = {
       val outcomes: Seq[ItemResponseOutcome] = responses.map(_.outcome).flatten
