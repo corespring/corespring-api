@@ -1,4 +1,13 @@
 #!/usr/bin/env ruby
+=begin 
+Exports mongo quiz documents as json
+also exports the corresponding item sessions
+
+usage: 
+run.rb db_uri quizId
+eg:
+run.rb mongodb://localhost:27017/api 000000000000000001
+=end
 
 require '../../../deployment/libs/ruby/db'
 require '../../../deployment/libs/ruby/mongo_tools'
