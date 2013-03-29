@@ -9,6 +9,27 @@ end
 
 class MongoTools
 
+  def self.export(host,port,db,collection,query,output,username="",password="")
+    options = []
+    options << o("--host", "#{host}:#{port}")
+    options << o("-d", db)
+    options << o("-c", collection)
+    options << o("--query", "'#{query}'")
+    options << o("-o", output)
+    options << o("-u", username)
+    options << o("-p", password)
+
+    cmd = "mongoexport "
+
+    options.each do |o|
+      cmd << "#{o.key} #{o.value} " unless o.empty?
+    end
+    puts "MongoTools::export - run: #{cmd}"
+    output = `#{cmd}`
+    raise MongoToolsException.new("#{cmd}", output) unless $?.to_i == 0
+
+  end
+
   # wrapper for monogdump shell command
   def self.dump(host,port,db,output,username = "", password = "")
 

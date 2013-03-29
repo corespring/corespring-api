@@ -18,6 +18,8 @@ class Db
 
   def self.from_uri(uri)
 
+    puts "from uri: #{uri}"
+
     user,pwd,host,port,db = nil
 
     if( uri.match(URI_USER))
@@ -47,7 +49,7 @@ class Db
     unless(@username.empty? || @password.empty? )
       user_pass = "#{@username}:#{@password}@"
     end
-    "mongodb://#{user_pass}#{@host}:#{@port}/#{@name}"
+    "Db[uri:mongodb://#{user_pass}#{@host}:#{@port}/#{@name}]"
   end
 
   def to_s_simple

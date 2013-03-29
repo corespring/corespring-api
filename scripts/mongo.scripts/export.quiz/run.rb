@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require '../../../deployment/libs/ruby/db'
+require '../../../deployment/libs/ruby/mongo_tools'
 require 'json'
 require 'fileutils'
 
@@ -8,15 +10,14 @@ def id_query(id)
   "{ _id : ObjectId(\"#{id}\") }"
 end
 
-def export_cmd(db,coll,query,out)
-  "mongoexport --db #{db} --collection #{coll} --query '#{query}' --out #{out}"
+def run_export(db,coll,query,out)
+  puts db
+  MongoTools.export(db.host,db.port,db.name,coll,query,out,db.username,db.password)
 end
 
-def export_session(root_path, id)
-  #FileUtils.remove_dir("#{root_path}/itemsessions")
+def export_session(db,root_path, id)
   FileUtils.mkdir("#{root_path}/itemsessions") unless File.exists?("#{root_path}/itemsessions")
-  cmd = export_cmd("api", "itemsessions", id_query(id), "#{root_path}/itemsessions/#{id}.json")
-  `#{cmd}`
+  run_export(db, "itemsessions", id_query(id), "#{root_path}/itemsessions/#{id}.json")
 end
 
 
@@ -26,15 +27,12 @@ def get_json(path)
   JSON.parse(contents)
 end
 
-def export_quiz(root_path,id)
+def export_quiz(db,root_path,id)
   FileUtils.remove_dir(root_path) if File.exists?(root_path)
   query = id_query(id)
   quiz_out = "#{root_path}/quizzes/#{id}.json"
   FileUtils.mkdir_p("#{root_path}/quizzes")
-  cmd = export_cmd("api", "quizzes", query, quiz_out)
-  puts cmd 
-  `#{cmd}`
-
+  run_export(db, "quizzes", query, quiz_out)
   quiz_json = get_json(quiz_out)
 
   quiz_json["participants"].each{ |p| 
@@ -44,7 +42,7 @@ def export_quiz(root_path,id)
       puts ">>> a: #{a}"
       id = a["sessionId"]["$oid"]
       puts "!! id: #{id}"
-      export_session( root_path, id  )
+      export_session( db, root_path, id  )
     }
   }
 end
@@ -63,7 +61,10 @@ end
 
 
 mongo_uri = ARGV[0]
+puts "db: #{Db}"
+db = Db.from_uri(mongo_uri)
+puts "now: #{db}"
 quiz_id = ARGV[1]
 out_dir = "QUIZ_#{quiz_id}"
-export_quiz(out_dir, quiz_id)
+export_quiz(db,out_dir, quiz_id)
 format_json(out_dir)
