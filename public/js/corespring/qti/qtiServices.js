@@ -2,15 +2,17 @@
 
 qtiServices.factory('AggregateService', ['$resource', function ($resource) {
   var api = TestPlayerRoutes.api.v1.ItemSessionApi;
-  console.log(api);
+
   var calls  = {
-    aggregate: api.aggregate()
+    aggregate: api.aggregate(":quizId",":itemId")
   };
+
+  calls.aggregate.params = {"quizId":'@quizId', 'itemId':'@itemId'};
 
   var AggregateService = $resource(
     calls.aggregate.url,
     {},
-    {aggregate: {method: 'POST', isArray: false}}
+    { aggregate: calls.aggregate }
   );
 
   return AggregateService;

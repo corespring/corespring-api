@@ -56,6 +56,8 @@ qtiDirectives.directive('simplechoice', function (QtiUtils) {
         localScope.$watch('aggregate', function (aggregate) {
           if (!aggregate) return;
           var agg = aggregate[responseIdentifier];
+          if (!agg) return;
+
           var total = agg.totalDistribution;
           localScope.numResponse = aggregate[responseIdentifier].choices[identifier] || 0;
           localScope.percentage = (localScope.numResponse / total * 100).toFixed(0);

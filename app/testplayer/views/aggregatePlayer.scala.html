@@ -1,6 +1,6 @@
 @(itemId: String,
   itemBody: String,
-  sessionIds: Seq[String] = Seq(),
+  quizId: String,
   token : String = "")
 
 @scripts = {
@@ -24,7 +24,7 @@
                 angular.module('qti.services').factory('Config', [function(){
                 return {
                 itemId : "@itemId",
-                sessionIds : [@sessionIds.mkString(",")],
+                quizId : "@quizId",
                 token : "@token"
                 }
                 }]);

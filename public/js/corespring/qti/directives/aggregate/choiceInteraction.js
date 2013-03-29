@@ -84,6 +84,8 @@ qtiDirectives.directive('choiceinteraction', function () {
     scope.$watch('aggregate', function (aggregate) {
       if (!aggregate) return;
       var agg = aggregate[responseIdentifier];
+      if (!agg) return;
+
       var total = scope.totalResponses = agg.totalResponses;
       scope.totalAssigned = scope.totalResponses + 3;
       scope.percentageCompleted = (total * 100 / scope.totalAssigned).toFixed(0);

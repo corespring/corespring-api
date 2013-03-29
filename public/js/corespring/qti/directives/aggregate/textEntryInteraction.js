@@ -14,11 +14,11 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
 
       scope.$watch('aggregate', function (aggregate) {
         if (!aggregate) return;
-
         var agg = aggregate[responseIdentifier];
+        if (!agg) return;
+
         scope.textResponse = agg.correctAnswers[0];
         scope.choices = agg.choices;
-        console.log(scope.choices);
         var totalCorrect = agg.numCorrectResponses;
         var total = agg.totalResponses;
         var pCorrect = (totalCorrect * 100 / total).toFixed(0);

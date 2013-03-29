@@ -122,6 +122,7 @@ PUT     /api/v1/quizzes/:quizId/:externalUid/add-answer        api.v1.QuizApi.ad
 GET     /api/v1/quizzes/:quizId/results             api.v1.QuizApi.getResults(quizId:ObjectId)
 GET     /api/v1/quizzes/:quizId                     api.v1.QuizApi.get(quizId:ObjectId)
 GET     /api/v1/quizzes/multiple/:quizIds           api.v1.QuizApi.getMultiple(quizIds:String)
+POST    /api/v1/quizzes/:quizId/:itemId/aggregate           api.v1.ItemSessionApi.aggregate(quizId:ObjectId, itemId:ObjectId)
 PUT     /api/v1/quizzes/:quizId                     api.v1.QuizApi.update(quizId:ObjectId)
 DELETE  /api/v1/quizzes/:quizId                     api.v1.QuizApi.delete(quizId:ObjectId)
 PUT     /api/v1/quizzes/:quizId/add-participants    api.v1.QuizApi.addParticipants(quizId:ObjectId)
@@ -145,8 +146,6 @@ GET    /scorm-player/item/:itemId/:filename         scorm.controllers.ScormPlaye
 GET    /scorm-player/session/:sessionId/run         scorm.controllers.ScormPlayer.runBySessionId(sessionId : ObjectId)
 GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : ObjectId, filename)
 
-# Instructor View Routes
-POST   /api/v1/aggregate                              api.v1.ItemSessionApi.aggregate
 
 # Web tier
 GET    /web                                    web.controllers.Main.index

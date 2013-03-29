@@ -8,18 +8,12 @@ import com.mongodb.casbah.Imports._
 import controllers.{Log, Utils}
 import item.Content
 import itemSession.{StringItemResponse, ArrayItemResponse, ItemResponseAggregate, ItemSession}
+import quiz.basic.Quiz
 import scala.Left
 import scala.Some
 import scala.Right
 import play.api.mvc.AnyContent
 import play.api.libs.json.JsObject
-import xml.Elem
-import play.api.Play.current
-import play.api.Logger
-import qti.processors.FeedbackProcessor
-import play.api.mvc.{Action, AnyContent}
-import play.api.libs.json.JsArray
-import play.api.libs.ws.ResponseHeaders
 
 
 /**
@@ -28,22 +22,20 @@ import play.api.libs.ws.ResponseHeaders
 object ItemSessionApi extends BaseApi {
 
 
-  def aggregate = ApiAction {
+  def aggregate(quizId: ObjectId, itemId: ObjectId) = ApiAction {
     request =>
-      request.body.asJson match {
-        case Some(x) =>
-          val sessionIds = (x \ "sessions").as[List[String]]
-          println("Going to agg "+sessionIds.length+" sessions")
-          val list = aggregateSessions(sessionIds).toList.map(p => (p._1, toJson(p._2)))
-          Ok(JsObject(list))
 
-        case None =>
-          BadRequest("Need session ids in POST payload")
+      Quiz.findOneById(quizId) match {
+        case Some(q) =>
+          val sessions = q.participants.map(_.answers.filter(_.itemId.toString == itemId.toString).map(_.sessionId.toString)).flatten
+          Ok(JsObject(aggregateSessions(sessions).toList.map(p => (p._1, toJson(p._2)))))
+
+        case _ => NotFound
       }
 
   }
 
-  private def aggregateSessions(sessionIds: List[String]): Map[String, ItemResponseAggregate] = {
+  private def aggregateSessions(sessionIds: Seq[String]): Map[String, ItemResponseAggregate] = {
     val agg: scala.collection.mutable.Map[String, ItemResponseAggregate] = scala.collection.mutable.Map()
     sessionIds.foreach {
       p =>
