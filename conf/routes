@@ -151,7 +151,7 @@ GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlaye
 GET    /web                                    web.controllers.Main.index
 
 # Item Preview
-GET     /web/item-preview/:itemId              web.controllers.Main.previewItem(itemId:String)
+GET     /web/item-preview/:itemId              web.controllers.Main.previewItem(itemId:String, defaultView:String ?= "profile")
 GET     /web/item-preview                      web.controllers.Main.previewAnyItem
 
 GET    /web/partials/editItem                  web.controllers.Partials.editItem

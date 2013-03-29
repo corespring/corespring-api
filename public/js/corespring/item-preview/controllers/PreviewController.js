@@ -130,7 +130,7 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
 
   $scope.itemId = Config.itemId;
   $scope.loadItem();
-  $scope.currentPanel = "profile";
+  $scope.currentPanel = Config.defaultView || "profile";
 }
 
 PreviewController.$inject = ['$scope', '$timeout', 'Config', 'Item', 'ServiceLookup', 'ItemFormattingUtils'];
