@@ -13,8 +13,9 @@ import models.item.Item
 object Main extends Controller with SecureSocial {
 
 
-  def previewItem(itemId:String) = SecuredAction() { request =>
-    Ok(web.views.html.itemPreview(itemId))
+  def previewItem(itemId:String, defaultView:String = "profile") = SecuredAction() { request =>
+    println("Default view is"+defaultView)
+    Ok(web.views.html.itemPreview(itemId, defaultView = defaultView))
   }
 
 

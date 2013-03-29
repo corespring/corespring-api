@@ -1,4 +1,4 @@
-@(itemId:String, accessToken : String = null )
+@(itemId:String, accessToken : String = null, defaultView:String = "profile")
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 <html ng-app="item-preview">
@@ -23,7 +23,8 @@
                 .factory('Config', [ function () {
             return {
                 accessToken:"@accessToken",
-                itemId:"@itemId"
+                itemId:"@itemId",
+                defaultView:"@defaultView"
             };
         }]
         );
