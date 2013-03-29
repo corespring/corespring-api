@@ -4,6 +4,8 @@ import xml.{Node, Elem}
 import qti.processors.FeedbackProcessor._
 import xml.transform.{RuleTransformer, RewriteRule}
 import qti.models.QtiItem
+import qti.models.RenderingMode._
+
 
 trait QtiRenderer {
 
@@ -11,12 +13,12 @@ trait QtiRenderer {
 
   /** Prepare the raw qti xml for rendering. Remove answers and add csFeedbackIds
    */
-  def prepareQti(qti:Elem, printMode : Boolean = false) : String = {
+  def prepareQti(qti:Elem, renderMode : RenderingMode = Web) : String = {
     val processedQti = new RuleTransformer(new PreprocessXml).transform(qti).asInstanceOf[Elem]
     val (xmlWithCsFeedbackIds, _) = addFeedbackIds(processedQti)
     val itemBody = filterFeedbackContent(xmlWithCsFeedbackIds \ "itemBody");
     //TODO remember after refactor, filter feedback content for feedbackBlock and modalFeedback, feedbackInline's have already been done in the interactions
-    val qtiXml = <assessmentItem print-mode={printMode.toString}>{itemBody}</assessmentItem>
+    val qtiXml = <assessmentItem mode={renderMode.toString}>{itemBody}</assessmentItem>
     removeNamespaces(qtiXml)
   }
 

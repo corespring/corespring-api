@@ -1,0 +1,27 @@
+{
+  "_id":{
+    "$oid":"515439abf889d9f224fef4f2"
+  },
+  "itemId":{
+    "$oid":"50083ba9e4b071cb5ef79101"
+  },
+  "start":{
+    "$date":1345833488187
+  },
+  "finish":{
+    "$date":1345833488190
+  },
+  "responses":[
+
+    {
+      "_t":"models.itemSession.StringItemResponse",
+      "_id":"mexicanPresident",
+      "responseValue":"calderon"
+    },
+    {
+      "_t":"models.itemSession.StringItemResponse",
+      "_id":"irishPresident",
+      "responseValue":"blah"
+    }
+  ]
+}

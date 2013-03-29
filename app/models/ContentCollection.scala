@@ -54,25 +54,25 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
         case e: SalatInsertError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to insert content collection")))
       }
   }
-  def insertPublic(coll:ContentCollection): Either[InternalError, ContentCollection] = {
-    if(Play.isProd) coll.id = new ObjectId()
-    coll.isPublic = true;
-    try {
-      super.insert(coll) match   {
-        case Some(_) => try {
-          Organization.update(MongoDBObject(),
-            MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> coll.id)),
-            false,false,Organization.defaultWriteConcern)
-          Right(coll)
-        } catch {
-          case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update organization with collection")))
-        }
-        case None => Left(InternalError("failed to insert content collection",LogType.printFatal,true))
-      }
-    } catch {
-      case e: SalatInsertError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to insert content collection")))
-    }
-  }
+//  def insertPublic(coll:ContentCollection): Either[InternalError, ContentCollection] = {
+//    if(Play.isProd) coll.id = new ObjectId()
+//    coll.isPublic = true;
+//    try {
+//      super.insert(coll) match   {
+//        case Some(_) => try {
+//          Organization.update(MongoDBObject(),
+//            MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> coll.id)),
+//            false,false,Organization.defaultWriteConcern)
+//          Right(coll)
+//        } catch {
+//          case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update organization with collection")))
+//        }
+//        case None => Left(InternalError("failed to insert content collection",LogType.printFatal,true))
+//      }
+//    } catch {
+//      case e: SalatInsertError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to insert content collection")))
+//    }
+//  }
   def removeCollection(collId: ObjectId): Either[InternalError, Unit] = {
     ContentCollection.moveToArchive(collId) match {
       case Right(_) => try {
@@ -139,8 +139,11 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
   }
   def getCollectionIds(orgId: ObjectId, p:Permission, deep:Boolean = true): Seq[ObjectId] = {
     val cursor = if(deep)Organization.find(MongoDBObject(Organization.path -> orgId)) else Organization.find(MongoDBObject("_id" -> orgId))   //find the tree of the given organization
-    val seqcollid:Seq[ObjectId] = cursor.foldRight[Seq[ObjectId]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value).map(_.collectionId)) //filter the collections that don't have the given permission
+    var seqcollid:Seq[ObjectId] = cursor.foldRight[Seq[ObjectId]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value).map(_.collectionId)) //filter the collections that don't have the given permission
     cursor.close()
+    if (p == Permission.Read){
+      seqcollid = (seqcollid ++ getPublicCollections.map(_.id)).distinct
+    }
     seqcollid
   }
   def getPublicCollections:Seq[ContentCollection] = {

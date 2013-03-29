@@ -2,7 +2,8 @@ package testplayer.views.utils
 
 import xml.{Node, NodeSeq}
 import common.controllers.DefaultCss
-import qti.models.QtiItem
+import qti.models.{RenderingMode, QtiItem}
+import qti.models.RenderingMode._
 import qti.models.interactions.{InteractionCompanion, Interaction}
 import controllers.Utils
 
@@ -11,35 +12,43 @@ import controllers.Utils
  */
 object QtiScriptLoader {
 
-  val PRINT_MODE : String = "@print-mode"
+  val RENDER_MODE : String = "@mode"
 
-  val JS_PATH: String = "/assets/js/corespring/qti/directives/web/"
-  val JS_PRINT_PATH: String = "/assets/js/corespring/qti/directives/print/"
+  val jsPathMapping:Map[RenderingMode, String] = Map(
+    Printing -> "js/corespring/qti/directives/print/",
+    Web -> "js/corespring/qti/directives/web/",
+    Instructor -> "js/corespring/qti/directives/instructor/",
+    Aggregate -> "js/corespring/qti/directives/aggregate/"
+  )
 
-  val CSS_PATH: String = "/assets/stylesheets/qti/directives/web/"
-  val CSS_PRINT_PATH: String = "/assets/stylesheets/qti/directives/print/"
+  val cssPathMapping:Map[RenderingMode, String] = Map(
+    Printing -> "stylesheets/qti/directives/print/",
+    Web -> "stylesheets/qti/directives/web/",
+    Instructor -> "stylesheets/qti/directives/instructor/",
+    Aggregate -> "stylesheets/qti/directives/aggregate/"
+  )
 
 
   def load( itemBody : String) : String = {
     val xml = scala.xml.XML.loadString(itemBody)
-    val isPrintMode = (xml \ PRINT_MODE).text == "true"
-    getScriptsToInclude(xml, isPrintMode).mkString("\n")
+    val mode:RenderingMode = RenderingMode.withName((xml \ RENDER_MODE).text)
+    getScriptsToInclude(xml, mode).mkString("\n")
   }
 
-  private def css(url: String): String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
+  def css(url: String): String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
 
-  private def script(url: String): String = """<script type="text/javascript" src="%s"></script>""".format(url)
+  def script(url: String): String = """<script type="text/javascript" src="%s"></script>""".format(url)
 
-  private def createScripts(name: String, toPrint: Boolean = false): String = {
-    val jspath = if (toPrint) JS_PRINT_PATH else JS_PATH
-    val csspath = if (toPrint) CSS_PRINT_PATH else CSS_PATH
+  private def createScripts(name: String, renderMode: RenderingMode = Web): String = {
+    val jspath = "/assets/" + jsPathMapping(renderMode)
+    val csspath = "/assets/" + cssPathMapping(renderMode)
 
     def jsAndCss(name:String) = Seq(script(jspath + name + ".js"), css(csspath + name + ".css")).mkString("\n")
 
     name.split(",").toList.map( jsAndCss ).mkString("\n")
   }
 
-  private def getScriptsToInclude(itemBody: Node, isPrintMode: Boolean = false): List[String] = {
+  private def getScriptsToInclude(itemBody: Node, renderMode: RenderingMode = Web): List[String] = {
     var scripts = Seq[String]()
 
     val interactionModels:Seq[InteractionCompanion[_ <: Interaction]] = Utils.traverseElements[InteractionCompanion[_ <: Interaction]](itemBody){elem =>
@@ -50,16 +59,10 @@ object QtiScriptLoader {
         case None => None
       }
     }.distinct
-    scripts = interactionModels.map(im => im.getHeadHtml(isPrintMode))
+    scripts = interactionModels.map(im => im.getHeadHtml(renderMode))
     val elementScriptsMap = Map(
-//      "choiceInteraction" -> createScripts("choiceInteraction,simpleChoice", isPrintMode),
-//      "inlineChoiceInteraction" -> createScripts("inlineChoiceInteraction", isPrintMode),
-//      "orderInteraction" -> createScripts("orderInteraction", isPrintMode),
-//      "textEntryInteraction" -> createScripts("textEntryInteraction", isPrintMode),
-//      "extendedTextInteraction" -> createScripts("extendedTextInteraction", isPrintMode),
-//      "selectTextInteraction" -> createScripts("selectTextInteraction", isPrintMode),
-      "tabs" -> createScripts("tabs", isPrintMode),
-      "cs-tabs" -> createScripts("tabs", isPrintMode),
+      "tabs" -> createScripts("tabs", renderMode),
+      "cs-tabs" -> createScripts("tabs", renderMode),
       "math" -> script("http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")
     )
     for ((element, scriptString) <- elementScriptsMap) {

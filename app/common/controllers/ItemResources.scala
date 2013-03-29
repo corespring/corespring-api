@@ -7,7 +7,7 @@ import item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
 import play.api.mvc.{Result, AnyContent, Request, Action}
 import org.bson.types.ObjectId
 import scala.Some
-import controllers.{ConcreteS3Service, S3Service}
+import controllers.ConcreteS3Service
 import web.controllers.utils.ConfigLoader
 import xml.Elem
 import controllers.auth.Permission
@@ -25,13 +25,14 @@ trait ItemResources {
    * @param filename
    * @return
    */
-  def getDataFile(itemId: String, filename: String) = Action {
+  def getDataFile(itemId: String, filename: String, dummy: String = "") = Action {
     request =>
+      val fn = filename.substring(filename.lastIndexOf("/")+1)
       Item.findOneById(new ObjectId(itemId)) match {
         case Some(item) => {
           item.data match {
             case Some(foundData) => {
-              getResult(request, foundData.files, filename)
+              getResult(request, foundData.files, fn)
             }
             case _ => NotFound
           }
@@ -88,10 +89,10 @@ trait ItemResources {
   }
 
 
-  private def addDefaultCss(html : String) : String ={
+  private def addDefaultCss(html: String): String = {
     val css = Seq(DefaultCss.BOOTSTRAP, DefaultCss.UBUNTU, DefaultCss.DEFAULT_CSS).mkString("\n")
     val replacement = "<head>\n%s".format(css)
-    """<head>""".r.replaceAllIn(html, replacement )
+    """<head>""".r.replaceAllIn(html, replacement)
   }
 
 }

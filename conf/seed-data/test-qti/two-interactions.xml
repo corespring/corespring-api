@@ -1,0 +1,41 @@
+<assessmentItem
+        identifier="mcas-16373" timeDependent="false" title="16373"
+        xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 imsqti_v2p1.xsd" toolName="SIB" adaptive="false"
+        toolVersion="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1">
+    <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
+    <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
+
+    <responseDeclaration identifier="mexicanPresident" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>calderon</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <responseDeclaration identifier="irishPresident" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>higgins</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+
+        <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1">
+            <prompt>Who is the President of Mexico?</prompt>
+            <simpleChoice identifier='obama'>Barack Obama</simpleChoice>
+            <simpleChoice identifier='cameron'>James Cameron</simpleChoice>
+            <simpleChoice identifier='calderon'>Felipe Calderon</simpleChoice>
+            <simpleChoice identifier='netanyahu'>Benjamin Netanyahu</simpleChoice>
+        </choiceInteraction>
+
+        <choiceInteraction responseIdentifier="irishPresident" shuffle="false" maxChoices="1">
+            <prompt>Who is the President of Ireland?</prompt>
+            <simpleChoice identifier="robinson">Mary Robinson</simpleChoice>
+            <simpleChoice identifier="higgins">Michel D. Higgins</simpleChoice>
+            <simpleChoice identifier="guinness">Arthur Guinness</simpleChoice>
+            <simpleChoice identifier="adams">Gerry Adams</simpleChoice>
+        </choiceInteraction>
+
+    </itemBody>
+
+</assessmentItem>

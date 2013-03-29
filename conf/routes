@@ -118,14 +118,14 @@ GET     /api/v1/items/:itemId/sessions                         api.v1.ItemSessio
 GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.get(itemId:ObjectId, sessionId: ObjectId)
 PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId: ObjectId, sessionId: ObjectId, action : Option[String] ?= None)
 
-POST    /api/v1/session-summary                                api.v1.ItemSessionSummaryApi.multiple()
-
 PUT     /api/v1/quizzes/:quizId/:externalUid/add-answer        api.v1.QuizApi.addAnswerForParticipant(quizId:ObjectId,externalUid:String)
 GET     /api/v1/quizzes/:quizId/results             api.v1.QuizApi.getResults(quizId:ObjectId)
 GET     /api/v1/quizzes/:quizId                     api.v1.QuizApi.get(quizId:ObjectId)
 GET     /api/v1/quizzes/multiple/:quizIds           api.v1.QuizApi.getMultiple(quizIds:String)
+POST    /api/v1/quizzes/:quizId/:itemId/aggregate           api.v1.ItemSessionApi.aggregate(quizId:ObjectId, itemId:ObjectId)
 PUT     /api/v1/quizzes/:quizId                     api.v1.QuizApi.update(quizId:ObjectId)
 DELETE  /api/v1/quizzes/:quizId                     api.v1.QuizApi.delete(quizId:ObjectId)
+PUT     /api/v1/quizzes/:quizId/add-participants    api.v1.QuizApi.addParticipants(quizId:ObjectId)
 POST    /api/v1/quizzes                             api.v1.QuizApi.create()
 GET     /api/v1/quizzes                             api.v1.QuizApi.list()
 
@@ -133,8 +133,10 @@ GET     /api/v1/quizzes                             api.v1.QuizApi.list()
 GET    /testplayer/item/:itemId/render-in-frame     testplayer.controllers.ItemPlayer.renderAsIframe(itemId)
 GET    /testplayer/item/:itemId/render              testplayer.controllers.ItemPlayer.renderItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
 GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
-GET    /testplayer/item/:itemId/:filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
+GET    /testplayer/item/:itemId/quiz/:quizId/aggregate           testplayer.controllers.ItemPlayer.renderQuizAsAggregate(quizId, itemId)
+GET    /testplayer/item/:itemId/*filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
 GET    /testplayer/session/:sessionId/run           testplayer.controllers.ItemPlayer.previewItemBySessionId(sessionId, printMode: Boolean ?= false)
+GET    /testplayer/session/:sessionId/instructor    testplayer.controllers.ItemPlayer.renderAsInstructor(sessionId)
 GET    /testplayer/session/:sessionId/render        testplayer.controllers.ItemPlayer.renderItemBySessionId(sessionId, printMode: Boolean ?= false)
 GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
 GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes

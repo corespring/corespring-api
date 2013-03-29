@@ -79,6 +79,19 @@ object QuizApi extends BaseApi {
       Ok(toJson(quizzes))
   }
 
+  def addParticipants(id:ObjectId) = Action {
+    request =>
+      request.body.asJson match {
+        case Some(json)  =>
+          val ids = (json \ "ids").as[Seq[String]]
+          val updated = Quiz.addParticipants(id, ids)
+          Ok(toJson(updated))
+
+        case _ =>
+          BadRequest(toJson(ApiError.JsonExpected))
+      }
+  }
+
   //todo: make this apiaction
   def getResults(id: ObjectId) = Action {
     request =>

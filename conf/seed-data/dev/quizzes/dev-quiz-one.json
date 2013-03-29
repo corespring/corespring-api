@@ -1,0 +1,49 @@
+{
+  "_id": {
+    "$oid": "515437433004fdcd5d4d53c5"
+  },
+  "orgId": {
+    "$oid": "51114b307fc1eaa866444648"
+  },
+  "metadata": {
+  },
+  "questions": [
+    {
+      "itemId": {
+        "$oid": "50083ba9e4b071cb5ef79101"
+      },
+      "title": "This item has Qti.xml and supporting materials",
+      "standards": [
+        "RI.1.1"
+      ]
+    }
+  ],
+  "participants": [
+    {
+      "answers": [
+        {
+          "sessionId": {
+            "$oid": "5154395af889d9f224fef4f1"
+          },
+          "itemId": {
+            "$oid": "50083ba9e4b071cb5ef79101"
+          }
+        }
+      ],
+      "externalUid": "4fee004cca2e43cf2700000b"
+    },
+    {
+      "answers": [
+        {
+          "sessionId": {
+            "$oid": "515439abf889d9f224fef4f2"
+          },
+          "itemId": {
+            "$oid": "50083ba9e4b071cb5ef79101"
+          }
+        }
+      ],
+      "externalUid": "4fee004cca2e43cf2700002b"
+    }
+  ]
+}

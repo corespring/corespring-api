@@ -1,0 +1,34 @@
+{
+  "_id": {
+    "$oid": "515425f33004e34080967bb9"
+  },
+  "itemId": {
+    "$oid": "50d755c6e4b0ebcda4e2fbb6"
+  },
+  "attempts": 0,
+  "start": {
+    "$date": 1364469235180
+  },
+  "finish": {
+    "$date": 1364469235180
+  },
+  "responses": [
+    {
+      "_t": "models.itemSession.StringItemResponse",
+      "_id": "RESPONSE",
+      "responseValue": "ChoiceA"
+    }
+  ],
+  "feedbackIdLookup": [
+
+  ],
+  "settings": {
+    "maxNoOfAttempts": 1,
+    "highlightUserResponse": true,
+    "highlightCorrectResponse": true,
+    "showFeedback": true,
+    "allowEmptyResponses": false,
+    "submitCompleteMessage": "Ok! Your response was submitted.",
+    "submitIncorrectMessage": "You may revise your work before you submit your final response."
+  }
+}

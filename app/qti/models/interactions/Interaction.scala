@@ -3,6 +3,10 @@ package qti.models.interactions
 import xml.{Elem, NodeSeq, Node}
 import qti.models.{QtiItem, ResponseDeclaration}
 import testplayer.views.utils.QtiScriptLoader
+import qti.models.RenderingMode._
+import play.api.Play
+import play.api.Play.current
+import QtiScriptLoader.{jsPathMapping, cssPathMapping, css, script}
 import models.itemSession.{ItemResponseOutcome, ItemResponse}
 
 trait Interaction {
@@ -23,7 +27,7 @@ trait InteractionCompanion[T <: Interaction] {
   def parse(itemBody: Node): Seq[Interaction]
   def interactionMatch(e: Elem): Boolean = e.label == tagName
   def preProcessXml(interactionXml: Elem): NodeSeq = interactionXml
-  def getHeadHtml(toPrint:Boolean):String = InteractionHelper.getHeadHtml(tagName, toPrint)
+  def getHeadHtml(mode: RenderingMode): String = InteractionHelper.getHeadHtml(tagName, mode)
 }
 
 object Interaction {
@@ -31,12 +35,23 @@ object Interaction {
 }
 
 object InteractionHelper {
-  def getHeadHtml(interactionName: String, toPrint: Boolean) = {
-    def css(url: String): String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
-    def script(url: String): String = """<script type="text/javascript" src="%s"></script>""".format(url)
-    val jspath = if (toPrint) QtiScriptLoader.JS_PRINT_PATH else QtiScriptLoader.JS_PATH
-    val csspath = if (toPrint) QtiScriptLoader.CSS_PRINT_PATH else QtiScriptLoader.CSS_PATH
-    def jsAndCss(name: String) = Seq(script(jspath + name + ".js"), css(csspath + name + ".css")).mkString("\n")
+  def getHeadHtml(interactionName: String, mode: RenderingMode) = {
+    val jspath = jsPathMapping(mode)
+    val csspath = cssPathMapping(mode)
+
+    def revertJsIfDoesntExist(name: String) = {
+      Play.getExistingFile("public/" + jspath + name + ".js") match {
+        case Some(file) => "/assets/" + jspath + name + ".js"
+        case None => "/assets/" + jsPathMapping(Web) + name + ".js"
+      }
+    }
+    def revertCssIfDoesntExist(name: String) = {
+      Play.getExistingFile("public/" + csspath + name + ".css") match {
+        case Some(file) => "/assets/" + csspath + name + ".css"
+        case None => "/assets/" + cssPathMapping(Web) + name + ".css"
+      }
+    }
+    def jsAndCss(name: String) = Seq(script(revertJsIfDoesntExist(name)), css(revertCssIfDoesntExist(name))).mkString("\n")
     jsAndCss(interactionName) + "\n"
   }
 }

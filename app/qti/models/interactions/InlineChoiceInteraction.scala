@@ -21,7 +21,7 @@ case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[Inli
         case None => None
       }
       case _ => {
-        Log.e("received a response that was not a string response in ChoiceInteraction.getOutcome")
+        Log.e("received a response that was not a string response in InlineChoiceInteraction.getOutcome")
         None
       }
     }

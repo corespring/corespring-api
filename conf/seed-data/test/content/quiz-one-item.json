@@ -1,0 +1,23 @@
+{
+  "_id": {
+    "$oid": "5153eee1aa2eefdc1b7a5570"
+  },
+  "collectionId": "51114b127fc1eaa866444647",
+  "contentType": "item",
+  "data": {
+    "name": "data",
+    "files": [
+      {
+        "_t": "models.item.resource.VirtualFile",
+        "name": "qti.xml",
+        "contentType": "text/xml",
+        "isMain": true,
+        "content": "$[interpolate{conf/seed-data/test-qti/two-interactions.xml}]"
+      }
+    ]
+  },
+  "taskInfo": {
+    "title": "Quiz Item",
+    "itemType": "Multiple Choice"
+  }
+}

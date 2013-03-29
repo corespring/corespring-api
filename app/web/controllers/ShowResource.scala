@@ -14,7 +14,7 @@ import common.controllers.ItemResources
 import xml.Elem
 import testplayer.controllers.QtiRenderer
 import controllers.auth.BaseApi
-
+import qti.models.RenderingMode._
 
 trait ObjectIdParser {
 
@@ -53,7 +53,7 @@ object ShowResource extends BaseApi with ObjectIdParser with ItemResources with 
    * @return
    */
   def renderDataResourceForPrinting(itemId: String) = {
-    renderDataResource(itemId, toPrint = true)
+    renderDataResource(itemId, renderMode = Printing)
   }
 
   /**
@@ -63,7 +63,7 @@ object ShowResource extends BaseApi with ObjectIdParser with ItemResources with 
    * @param toPrint if true the printing stylesheet will be used to render the resource
    * @return
    */
-  def renderDataResource(itemId: String, toPrint: Boolean = false) =
+  def renderDataResource(itemId: String, renderMode: RenderingMode = Web) =
     objectId(itemId) match {
       case Some(oid) => {
         Item.findOneById(oid) match {
@@ -78,8 +78,8 @@ object ShowResource extends BaseApi with ObjectIdParser with ItemResources with 
                   request =>
                     getItemXMLByObjectId(itemId, request.ctx.organization) match {
                       case Some(xmlData: Elem) => {
-                        val finalXml = prepareQti(xmlData, toPrint)
-                        Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled = !toPrint, sessionId = "", request.token))
+                        val finalXml = prepareQti(xmlData, renderMode)
+                        Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled = (renderMode == Web), sessionId = "", request.token))
                       }
                       case None => NotFound("Can't find item")
                     }
