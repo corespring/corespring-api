@@ -14,6 +14,7 @@ import models.mongoContext._
 import models.item.{TaskInfo, Item}
 import play.api.libs.json.JsObject
 import scala.Some
+import org.joda.time.DateTime
 
 case class Answer(sessionId: ObjectId, itemId: ObjectId)
 
@@ -36,16 +37,23 @@ object Answer {
         "sessionId" -> JsString(a.sessionId.toString),
         "itemId" -> JsString(a.itemId.toString),
         "score" -> JsNumber(calculateScore(maybeSession)),
+        "lastResponse" -> JsNumber(getLastResponse(maybeSession)),
         "isComplete" -> JsBoolean(isComplete(maybeSession))
       ))
     }
   }
 
+  /** Return the last response time stamp. Use in order of preference dateModified, finish, start, id.time */
+  private def getLastResponse(session: Option[ItemSession]): Long = session match {
+    case Some(s) => Seq(s.dateModified, s.finish, s.start, Some(new DateTime(s.id.getTime))).flatten.head.getMillis
+    case _ => -1
+  }
+
   private def calculateScore(maybeSession: Option[ItemSession]): Int = maybeSession match {
     case Some(itemSession) => {
-      if(itemSession.isFinished){
+      if (itemSession.isFinished) {
         val (score, total) = ItemSession.getTotalScore(itemSession)
-        if(score == 0) 0 else ((score / total) * 100).toInt
+        if (score == 0) 0 else ((score / total) * 100).toInt
       } else 0
     }
     case None => 0

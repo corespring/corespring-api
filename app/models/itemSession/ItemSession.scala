@@ -31,7 +31,8 @@ case class ItemSession(var itemId: ObjectId,
                        var id: ObjectId = new ObjectId(),
                        var feedbackIdLookup: Seq[FeedbackIdMapEntry] = Seq(),
                        var sessionData: Option[SessionData] = None,
-                       var settings: ItemSessionSettings = new ItemSessionSettings()
+                       var settings: ItemSessionSettings = new ItemSessionSettings(),
+                       var dateModified: Option[DateTime] = None
                         ) {
 
   def isStarted: Boolean = start.isDefined
@@ -46,6 +47,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
   val responses = "responses"
   val sessionData = "sessionData"
   val settings = "settings"
+  val dateModified = "dateModified"
 
   val collection = mongoCollection("itemsessions")
   val dao = new SalatDAO[ItemSession, ObjectId](collection = collection) {}
@@ -173,6 +175,8 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     }
   }
 
+  type Score = (Double, Double)
+
   /**
    * TODO: process should only take one argument - ItemSession. The xml is always the xml linked via that session item.
    * Process the item session responses and return feedback.
@@ -195,14 +199,29 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
         if (update.isFinished) dbo.put(finish, update.finish.get)
         if (!update.responses.isEmpty) dbo.put(responses, update.responses.map(grater[ItemResponse].asDBObject(_)))
 
+        dbo.put(dateModified, if (update.isFinished) update.finish.get else new DateTime())
+
         val dboUpdate = MongoDBObject(("$set", dbo), ("$inc", MongoDBObject(("attempts", 1))))
+
+        def isMaxAttemptsExceeded(session: ItemSession): Boolean = {
+          val max = session.settings.maxNoOfAttempts
+          max != 0 && session.attempts >= max
+        }
+
+        def isTopScore(score: Score) = (score._1 / score._2) == 1
 
         updateFromDbo(update.id, dboUpdate, (u) => {
           val qtiItem = QtiItem(xmlWithCsFeedbackIds)
           u.responses = Score.scoreResponses(u.responses, qtiItem)
-          finishSessionIfNeeded(u)
-          //TODO: We need to be careful with session data - you can't persist it
+          val score: Score = (correctResponseCount(u.responses), Score.getMaxScore(qtiItem))
 
+          if (isMaxAttemptsExceeded(u) || isTopScore(score)) {
+            u.finish = Some(new DateTime())
+            u.dateModified = u.finish
+            ItemSession.save(u)
+          }
+
+          //TODO: We need to be careful with session data - you can't persist it
           u.sessionData = Some(SessionData(qtiItem, u))
         })
 
@@ -216,7 +235,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
    * @return a tuple (score, maxScore)
    */
 
-  def getTotalScore(session:ItemSession): (Double,Double) = {
+  def getTotalScore(session: ItemSession): (Double, Double) = {
     require(session.isFinished, "The session isn't finished.")
 
     val xml = ItemSession.getXmlWithFeedback(session) match {
@@ -227,14 +246,14 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     val qti = QtiItem(xml)
     session.responses = Score.scoreResponses(session.responses, qti)
 
-    def calculateScore(responses : Seq[ItemResponse]): Double = {
-      val outcomes: Seq[ItemResponseOutcome] = responses.map(_.outcome).flatten
-      val outcomesCorrect = outcomes.map(_.isCorrect)
-      outcomesCorrect.filter(_ == true).length
-    }
-
-    val sessionScore = calculateScore(session.responses)
+    val sessionScore = correctResponseCount(session.responses)
     (sessionScore, Score.getMaxScore(qti))
+  }
+
+  def correctResponseCount(responses: Seq[ItemResponse]): Double = {
+    val outcomes: Seq[ItemResponseOutcome] = responses.map(_.outcome).flatten
+    val outcomesCorrect = outcomes.map(_.isCorrect)
+    outcomesCorrect.filter(_ == true).length
   }
 
   /**
@@ -272,55 +291,31 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     session.responses = Score.scoreResponses(session.responses, QtiItem(xml))
   }
 
-  private def finishSessionIfNeeded(session: ItemSession) {
-
-    def finishIfMaxAttemptsExceeded() {
-      val max = session.settings.maxNoOfAttempts
-      if (max != 0 && session.attempts >= session.settings.maxNoOfAttempts) {
-        session.finish = Some(new DateTime())
-        ItemSession.save(session)
-      }
-    }
-
-    def finishIfThereAreNoIncorrectResponses() {
-      val incorrectResponses = session.responses.filter(_.outcome match {
-        case None => false
-        case Some(o) => if (o.score <= 0) true else false
-      })
-
-      if (incorrectResponses.length == 0) {
-        session.finish = Some(new DateTime())
-        ItemSession.save(session)
-      }
-    }
-
-    finishIfMaxAttemptsExceeded()
-    finishIfThereAreNoIncorrectResponses()
-  }
-
 
   implicit object ItemSessionWrites extends Writes[ItemSession] {
-    def writes(session: ItemSession) = {
-      var seq: Seq[(String, JsValue)] = Seq(
+    def writes(session: ItemSession): JsValue = {
+
+      val main: Seq[(String, JsValue)] = Seq(
         "id" -> JsString(session.id.toString),
         itemId -> JsString(session.itemId.toString),
-        responses -> Json.toJson(session.responses)
+        responses -> Json.toJson(session.responses),
+        "settings" -> Json.toJson(session.settings)
       )
-      if (session.sessionData.isDefined) {
-        seq = seq :+ (sessionData -> Json.toJson(session.sessionData))
-      }
-      if (session.start.isDefined) {
-        seq = seq :+ (start -> JsNumber(session.start.get.getMillis))
-        seq = seq :+ ("isStarted" -> JsBoolean(session.isStarted))
-      }
-      if (session.finish.isDefined) {
-        seq = seq :+ (finish -> JsNumber(session.finish.get.getMillis))
-        seq = seq :+ ("isFinished" -> JsBoolean(session.isFinished))
-      }
 
-      seq = seq :+ (settings -> Json.toJson(session.settings))
+      val sessionDataSeq: Seq[(String, JsValue)] = Seq(
+        session.sessionData.map(sd => (sessionData -> Json.toJson(sd))),
+        session.dateModified.map(dm => (dateModified -> JsNumber(dm.getMillis)))
+      ).flatten
 
-      JsObject(seq)
+      val startedSeq: Seq[(String, JsValue)] = session.start.map(s => {
+        Seq(start -> JsNumber(s.getMillis), "isStarted" -> JsBoolean(true))
+      }).getOrElse(Seq())
+
+      val finishSeq: Seq[(String, JsValue)] = session.finish.map(f => {
+        Seq(finish -> JsNumber(f.getMillis), "isFinished" -> JsBoolean(true))
+      }).getOrElse(Seq())
+
+      JsObject(main ++ sessionDataSeq ++ startedSeq ++ finishSeq)
     }
   }
 
