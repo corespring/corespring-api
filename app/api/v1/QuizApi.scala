@@ -7,6 +7,7 @@ import models.quiz.basic.{Participant, Answer, Quiz}
 import play.api.libs.json.Json._
 import api.ApiError
 import models.itemSession.ItemSession
+import play.api.libs.json.{JsUndefined, JsValue}
 
 object QuizApi extends BaseApi {
 
@@ -54,9 +55,24 @@ object QuizApi extends BaseApi {
       quiz =>
         request.body.asJson match {
           case Some(json) => {
-            val quiz = fromJson[Quiz](json)
-            Quiz.update(quiz)
-            Ok(toJson(quiz))
+            val jsonQuiz = fromJson[Quiz](json)
+            val newQuiz = quiz.copy(
+              participants = (json \ "participants") match {
+                case p:JsUndefined => quiz.participants
+                case _ => jsonQuiz.participants
+              },
+              questions = (json \ "questions") match {
+                case p:JsUndefined => quiz.questions
+                case _ => jsonQuiz.questions
+              },
+              metadata = (json \ "metadata") match {
+                case p:JsUndefined => quiz.metadata
+                case _ => jsonQuiz.metadata
+              }
+
+            )
+            Quiz.update(newQuiz)
+            Ok(toJson(newQuiz))
           }
           case _ => BadRequest("invalid json")
         }
