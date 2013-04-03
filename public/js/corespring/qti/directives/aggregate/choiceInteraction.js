@@ -64,6 +64,9 @@ qtiDirectives.directive('choiceinteraction', function () {
       "</table>"
     ].join("");
 
+    // Not showing statistics table for this release
+    statistics = "";
+
     var newNode = (isHorizontal ?
       ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction">' + prompt + statistics + '<div class="choice-wrap">' + finalContents + '</div></div><div style="clear: both"></div></div>')
       :
@@ -87,7 +90,7 @@ qtiDirectives.directive('choiceinteraction', function () {
       if (!agg) return;
 
       var total = scope.totalResponses = agg.totalResponses;
-      scope.totalAssigned = scope.totalResponses + 3;
+      scope.totalAssigned = scope.totalResponses;
       scope.percentageCompleted = (total * 100 / scope.totalAssigned).toFixed(0);
       scope.totalCorrect = agg.numCorrectResponses;
       scope.percentageCorrect = (scope.totalCorrect * 100 / total).toFixed(0)

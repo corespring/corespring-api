@@ -41,7 +41,7 @@ object ItemSessionApi extends BaseApi {
       p =>
         val oid = new ObjectId(p)
         ItemSession.get(oid) match {
-          case Some(session) =>
+          case Some(session) => {
             session.responses.foreach {
               resp =>
                 if (agg.contains(resp.id)) {
@@ -59,6 +59,10 @@ object ItemSessionApi extends BaseApi {
                   agg(resp.id) = ItemResponseAggregate(resp.id, cr, resp)
                 }
             }
+          }
+          case _ => {
+            Seq()
+          }
         }
     }
     agg.toMap

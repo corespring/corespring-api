@@ -31,6 +31,7 @@ POST    /auth/access_token                      controllers.auth.AuthController.
 
 #Public site
 GET     /                                      publicsite.controllers.Application.index
+GET     /public/empty                           publicsite.controllers.Application.empty
 GET     /public/educators                             publicsite.controllers.Application.educators
 GET     /public/contact                                publicsite.controllers.Application.contact
 GET     /public/partnerships                           publicsite.controllers.Application.partnerships

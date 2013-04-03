@@ -1,4 +1,6 @@
-package tests.models.itemSession;
+package tests.models.itemSession
+
+;
 
 import org.bson.types.ObjectId
 import tests.{BaseTest}
@@ -282,6 +284,35 @@ class ItemSessionTest extends BaseTest {
       }
     }
 
+    "add a dateModified value" in {
+      val session = ItemSession(
+        itemId = new ObjectId(),
+        settings = new ItemSessionSettings(maxNoOfAttempts = 0, allowEmptyResponses = true)
+      )
+      //Allow multiple attempts
+      ItemSession.save(session)
+
+      ItemSession.findOneById(session.id) match {
+        case Some(s) => s.dateModified === None
+        case _ => failure("can't find new session")
+      }
+
+      session.responses = Seq(StringItemResponse("winterDiscontent", "york"))
+      ItemSession.process(session, MockXml.AllItems) match {
+        case Left(e) => failure("error: " + e.message)
+        case Right(s) => {
+          s.dateModified !== None
+        }
+      }
+
+      session.finish = Some(new DateTime())
+      ItemSession.process(session, MockXml.AllItems) match {
+        case Left(e) => failure("error: " + e.message)
+        case Right(s) => {
+          s.dateModified === session.finish
+        }
+      }
+    }
   }
 
   "new item session" should {
@@ -309,14 +340,14 @@ class ItemSessionTest extends BaseTest {
 
     "return multiple" in {
       ItemSession.findMultiple(ids) match {
-        case Seq(one,two) => success
+        case Seq(one, two) => success
         case _ => failure
       }
     }
 
     "return mutliple and ignore unknown ids" in {
       ItemSession.findMultiple(ids :+ new ObjectId()) match {
-        case Seq(one,two) => success
+        case Seq(one, two) => success
         case _ => failure
       }
     }
@@ -363,10 +394,10 @@ class ItemSessionTest extends BaseTest {
 
     "return correct score from full quiz" in {
 
-      def assertScore(id:String, expectedScore:Double,expectedTotal:Double) : org.specs2.execute.Result = {
-        ItemSession.findOneById( new ObjectId(id)) match {
+      def assertScore(id: String, expectedScore: Double, expectedTotal: Double): org.specs2.execute.Result = {
+        ItemSession.findOneById(new ObjectId(id)) match {
           case Some(itemSession) => {
-            val (score,total) = ItemSession.getTotalScore(itemSession)
+            val (score, total) = ItemSession.getTotalScore(itemSession)
             total === expectedTotal
             score === expectedScore
           }

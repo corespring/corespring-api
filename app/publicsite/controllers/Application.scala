@@ -18,12 +18,22 @@ object Application extends Controller with securesocial.core.SecureSocial {
   def contact = Action {
     Ok(publicsite.views.html.contact())
   }
+
+  /** A temporary endpoint that sets a session in the browser for demo content */
   def educators = UserAwareAction { implicit request =>
     request.user match {
       case Some(user) => Ok(publicsite.views.html.educators())
       case _ => Ok(publicsite.views.html.educators()).withSession(OAuthConstants.AccessToken -> common.mock.MockToken)
     }
   }
+
+  def empty = UserAwareAction{ implicit request =>
+    request.user match {
+      case Some(user) => Ok("")
+      case _ => Ok("").withSession(OAuthConstants.AccessToken -> common.mock.MockToken)
+    }
+  }
+
   def partnerships = Action {
     Ok(publicsite.views.html.partnerships())
   }

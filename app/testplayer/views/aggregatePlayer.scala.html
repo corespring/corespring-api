@@ -14,7 +14,7 @@
 }
 
 <!DOCTYPE html>
-<html ng-app="qti">
+<html ng-app="qti" dimensions-checker>
     <head>
         <title>@itemId</title>
         @common.views.html.partials.ieEightSupport()
@@ -37,13 +37,13 @@
 
 
     </head>
+    <!-- style="overflow: hidden" -->
     <body @bodyAttributes >
 
     <br/>
 
 
     <div class="@cssClass" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">
-        <h1>Aggregate Player</h1>
         @Html(itemBody)
     </div>
 </body>
