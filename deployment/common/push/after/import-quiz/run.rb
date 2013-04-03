@@ -1,8 +1,19 @@
 #!/usr/bin/env ruby
-require 'json'
 
+puts "------------------"
+puts "which ruby?"
+puts `which ruby`
+
+puts "gem list?"
+puts `gem list`
+puts "------------------"
+require 'json'
+puts "json: #{JSON}"
 require_relative '../../../../libs/ruby/db'
+
+puts "Db: #{Db}"
 require_relative '../../../../libs/ruby/mongo_tools'
+puts "MongoTools: #{MongoTools}"
 
 puts "-------------------------------------"
 puts "common/push/after/import-quiz/run.rb"
