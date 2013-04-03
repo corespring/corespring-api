@@ -9,7 +9,7 @@ end
 
 class MongoTools
 
-  def self.export(host,port,db,collection,query,output,username="",password="")
+  def self.export(host,port,db,collection,query,output,username="",password="", opts = {})
     options = []
     options << o("--host", "#{host}:#{port}")
     options << o("-d", db)
@@ -18,17 +18,43 @@ class MongoTools
     options << o("-o", output)
     options << o("-u", username)
     options << o("-p", password)
+    puts ">>>>>>> opts: #{opts}"
+    options << o("--jsonArray") if opts[:json_array]
 
+    puts options
     cmd = "mongoexport "
 
     options.each do |o|
-      cmd << "#{o.key} #{o.value} " unless o.empty?
+      puts o.to_cmd
+      puts o.empty?
+      cmd << "#{o.to_cmd} " unless o.empty?
     end
     puts "MongoTools::export - run: #{cmd}"
     output = `#{cmd}`
     raise MongoToolsException.new("#{cmd}", output) unless $?.to_i == 0
 
   end
+
+  def self.import(host,port,db,collection,file,username="",password="", opts = {})
+    options = []
+    options << o("--host", "#{host}:#{port}")
+    options << o("-d", db)
+    options << o("-c", collection)
+    options << o("--file", file)
+    options << o("-u", username)
+    options << o("-p", password)
+    options << o("--jsonArray") if opts[:json_array]
+    cmd = "mongoimport "
+
+    puts options
+    options.each do |o|
+      cmd << "#{o.to_cmd} " unless o.empty?
+    end
+    puts "MongoTools::import - run: #{cmd}"
+    output = `#{cmd}`
+    raise MongoToolsException.new("#{cmd}", output) unless $?.to_i == 0
+  end
+
 
   # wrapper for monogdump shell command
   def self.dump(host,port,db,output,username = "", password = "")
@@ -43,7 +69,7 @@ class MongoTools
     cmd = "mongodump "
 
     options.each do |o|
-      cmd << "#{o.key} #{o.value} " unless o.empty?
+      cmd << "#{o.to_cmd} " unless o.empty?
     end
     puts "MongoTools::dump - run: #{cmd}"
     output = `#{cmd}`
@@ -72,19 +98,51 @@ class MongoTools
   end
 
   private 
-  def self.o(key,value)
-    Option.new(key,value)
+  def self.o(key,value = nil)
+    if !value.nil? 
+      Option.new(key,value)
+    else 
+      SingleOption.new(key)
+    end
   end
 
+end
+
+class SingleOption
+  def initialize(key)
+    @key = key
+  end
+
+  def to_cmd
+    @key
+  end
+
+  def to_s
+    "[SingleOption[#{@key}]]"
+  end
+
+  def empty?
+    @key.empty? || @key.nil?
+  end
 end
 
 class Option
   attr_accessor :key, :value
 
-  def initialize(key,value)
+  def initialize(key,value = nil)
     @key = key
     @value = value
   end
+
+  def to_cmd
+    out = "#{@key}"
+    out += " #{@value}" unless @value.nil?
+    out
+  end
+
+  def to_s
+    "[Option[key: #{@key}, value: #{@value}]]"
+  end 
 
   def empty?
     @value.nil? || @value.empty?
