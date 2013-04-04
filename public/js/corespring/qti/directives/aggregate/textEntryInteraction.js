@@ -23,22 +23,23 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
         var total = agg.totalResponses;
         var pCorrect = (totalCorrect * 100 / total).toFixed(0);
         var pIncorrect  = (100 - (totalCorrect * 100 / total)).toFixed(0);
-        var tooltip = pCorrect+'% Correct, '+pIncorrect+'% Incorrect <br/>';
+        var tooltip = "<table class='tooltiptable'>";
+        tooltip += "<tr><th colspan='3'>";
+        tooltip +=  "Overall";
+        tooltip += "<tr><th colspan='3'>";
+        tooltip +=  pCorrect+'% Correct / '+pIncorrect+'% Incorrect <br/>';
+        tooltip += "<tr><td colspan='3'>Top 5 incorrect Responses";
+        tooltip += "<tr><td>Submitted Response<td>Frequency";
+        var sorted = [];
+        for (var c in agg.choices) {
+          if (agg.correctAnswers.indexOf(c) < 0)
+            sorted.push([c, agg.choices[c]]);
+        }
+        sorted.sort(function(a, b) {return b[1] - a[1]});
 
-        // Not showing these in current release:
-
-//        tooltip += "<br/>Top 5 incorrect answers:<br/>";
-//        tooltip += "<table class='tooltiptable'>";
-//        var sorted = [];
-//        for (var c in agg.choices) {
-//          if (agg.correctAnswers.indexOf(c) < 0)
-//            sorted.push([c, agg.choices[c]]);
-//        }
-//        sorted.sort(function(a, b) {return b[1] - a[1]});
-//
-//        for (var i = 0; i < Math.min(sorted.length, 5); i++) {
-//          tooltip += "<tr><td>"+sorted[i][0]+"</td><td>"+sorted[i][1]+"</td></tr>";
-//        }
+        for (var i = 0; i < Math.min(sorted.length, 5); i++) {
+          tooltip += "<tr><td>"+sorted[i][0]+"</td><td>"+sorted[i][1]+"</td></tr>";
+        }
 
         $(element).tooltip({ title: tooltip });
       });
