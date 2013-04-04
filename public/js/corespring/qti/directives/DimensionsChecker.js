@@ -6,17 +6,33 @@ angular.module('qti.directives').directive('dimensionsChecker', function(){
 
       var $body = $element.find('body');
 
-      var getParent = function(){ return (parent && parent != window) ? parent : null; }
+      var lastW = null;
+      var lastH = null;
 
-      var dispatchDimensions = function(){
-        var w = $body.width();
-        var h = $body.height();
-        var msg = {message:'dimensionsUpdate', w: w, h: h};
-        getParent().postMessage(JSON.stringify(msg), "*");
+      var different = function(w,h){
+        if(!lastW || !lastH){
+          return true;
+        }
+        return lastW !== w || lastH !== h;
       };
 
-      setInterval(dispatchDimensions, 500);
+      var getParent = function(){ return (parent && parent != window) ? parent : null; };
+
+      var dispatchDimensions = function(){
+        var b = $body[0];
+        var w = b.clientWidth;
+        var h = b.clientHeight;
+
+        if(different(w,h)){
+          lastW = w;
+          lastH = h;
+          var msg = {message:'dimensionsUpdate', w: w, h: h};
+          getParent().postMessage(JSON.stringify(msg), "*");
+        }
+      };
+
+      setInterval(dispatchDimensions, 400);
       dispatchDimensions();
     }
-  }
+  };
 });
