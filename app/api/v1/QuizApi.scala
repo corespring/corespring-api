@@ -95,7 +95,7 @@ object QuizApi extends BaseApi {
       Ok(toJson(quizzes))
   }
 
-  def addParticipants(id:ObjectId) = Action {
+  def addParticipants(id:ObjectId) = ApiAction {
     request =>
       request.body.asJson match {
         case Some(json)  =>
@@ -107,28 +107,6 @@ object QuizApi extends BaseApi {
           BadRequest(toJson(ApiError.JsonExpected))
       }
   }
-
-  //todo: make this apiaction
-  def getResults(id: ObjectId) = Action {
-    request =>
-      Quiz.findOneById(id) match {
-        case Some(q) => {
-          def getParticipantResults(p:Participant) = {
-            val scores = p.answers.map { a =>
-              val score = ItemSession.get(a.sessionId) match {
-                case Some(session) => ItemSession.getTotalScore(session)
-                case None => (0, 0)
-              }
-              toJson(Map("itemId"->toJson(a.itemId.toString), "sessionId"->toJson(a.sessionId.toString), "score"->toJson(score._1.toString)))
-            }
-            toJson(Map("externalUid"->toJson(p.externalUid), "scores"->toJson(scores)))
-          }
-          Ok(toJson(q.participants.map(getParticipantResults)))
-        }
-        case _ => NotFound("Can't find quiz")
-      }
-  }
-
 
   def addAnswerForParticipant(quizId: ObjectId, externalUid: String) = ApiAction {
     request => {
