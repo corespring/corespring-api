@@ -65,7 +65,7 @@ qtiDirectives.directive('choiceinteraction', function () {
     ].join("");
 
     // Not showing statistics table for this release
-    statistics = "";
+    statistics = "<h6>{{percentageCompleted}}% Completed</h6>";
 
     var newNode = (isHorizontal ?
       ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction">' + prompt + statistics + '<div class="choice-wrap">' + finalContents + '</div></div><div style="clear: both"></div></div>')
