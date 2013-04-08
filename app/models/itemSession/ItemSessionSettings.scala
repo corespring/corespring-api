@@ -1,7 +1,7 @@
 package models.itemSession
 
-import play.api.libs.json._
 import common.models.json.jerkson.{JerksonWrites, JerksonReads}
+import play.api.libs.json.{JsValue, Reads}
 
 /**
  * Configuration settings for an ItemSession
@@ -24,8 +24,28 @@ object ItemSessionSettings {
   val SubmitComplete : String = "Ok! Your response was submitted."
   val SubmitIncorrect: String = "You may revise your work before you submit your final response."
 
-  implicit object Reads extends JerksonReads[ItemSessionSettings] {
-    def manifest = Manifest.classType( new ItemSessionSettings().getClass)
+  def singleTryHighlightUser() : ItemSessionSettings = {
+    ItemSessionSettings(
+      maxNoOfAttempts = 1,
+      highlightUserResponse = true,
+      highlightCorrectResponse = false,
+      allowEmptyResponses = false)
+  }
+
+  implicit object Reads extends Reads[ItemSessionSettings] {
+
+    def reads(json:JsValue) : ItemSessionSettings = {
+      val default = ItemSessionSettings()
+      ItemSessionSettings(
+        maxNoOfAttempts = (json\"maxNoOfAttempts").asOpt[Int].getOrElse(default.maxNoOfAttempts),
+        highlightCorrectResponse = (json\"highlightCorrectResponse").asOpt[Boolean].getOrElse(default.highlightCorrectResponse),
+        showFeedback= (json\"showFeedback").asOpt[Boolean].getOrElse(default.showFeedback),
+        highlightUserResponse = (json\"highlightUserResponse").asOpt[Boolean].getOrElse(default.highlightUserResponse),
+        allowEmptyResponses = (json\"allowEmptyResponses").asOpt[Boolean].getOrElse(default.allowEmptyResponses),
+        submitCompleteMessage = (json\"submitCompleteMessage").asOpt[String].getOrElse(default.submitCompleteMessage),
+        submitIncorrectMessage = (json\"submitIncorrectMessage").asOpt[String].getOrElse(default.submitIncorrectMessage)
+      )
+    }
   }
   implicit object Writes extends JerksonWrites[ItemSessionSettings]
 }
