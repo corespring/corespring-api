@@ -22,7 +22,19 @@
         ]
     },
     "standards": [
-        "RI.1.1"
+        "RI.1.1",
+        "RI.1.2",
+        "RI.1.3",
+        "RI.1.4",
+        "RI.1.5",
+        "RI.1.6",
+        "RI.1.7",
+        "RI.1.8",
+        "RI.1.9",
+        "RI.1.10",
+        "RI.1.11",
+        "RI.1.12",
+        "RI.1.13"
     ],
     "copyrightOwner": "State Department of Education",
     "copyrightYear": "2010",
