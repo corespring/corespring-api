@@ -9,11 +9,12 @@ import scala.Tuple2
 import com.mongodb.BasicDBObject
 import securesocial.core.SecureSocial
 import models.item.Item
+import controllers.auth.BaseApi
 
-object Main extends Controller with SecureSocial {
+object Main extends BaseApi {
 
 
-  def previewItem(itemId:String, defaultView:String = "profile") = SecuredAction() { request =>
+  def previewItem(itemId:String, defaultView:String = "profile") = ApiAction { request =>
     println("Default view is"+defaultView)
     Ok(web.views.html.itemPreview(itemId, defaultView = defaultView))
   }
@@ -23,7 +24,7 @@ object Main extends Controller with SecureSocial {
    * A temporary route whilst working on preview
    * @return
    */
-  def previewAnyItem() = SecuredAction() {
+  def previewAnyItem() = ApiAction {
     Item.findOne( new BasicDBObject()) match {
       case Some(item) => previewItem(item.id.toString)
       case None => Action(Ok("no item found"))
