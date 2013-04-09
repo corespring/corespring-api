@@ -1,6 +1,10 @@
 qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
 
 
+  function positionTooltip(a, currentElement) {
+    return "bottom";
+  }
+
   return {
     restrict: 'E',
     replace: true,
@@ -41,7 +45,7 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
           tooltip += "<tr><td>"+sorted[i][0]+"</td><td>"+sorted[i][1]+"</td></tr>";
         }
 
-        $(element).tooltip({ title: tooltip });
+        $(element).tooltip({ title: tooltip, placement: positionTooltip(this) });
       });
 
     }

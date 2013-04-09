@@ -26,14 +26,15 @@
     padding: 0px;
     background-color: #fff;
     border-radius: 0px;
+    margin-top: 10px;
+    border: 1px solid black;
 }
 
 .tooltip.in {
     opacity: 1;
-    border: 1px solid black;
     padding: 0px;
 }
 
-.tooltip.top .tooltip-arrow {
-    bottom: -5px;
+.tooltip.bottom .tooltip-arrow {
+    top: 5px;
 }
