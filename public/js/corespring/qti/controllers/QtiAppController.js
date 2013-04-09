@@ -68,15 +68,13 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
       AssessmentSessionService.save(params, itemSession, function (data) {
           $scope.itemSession = data;
           onSuccess();
-          //$scope.$broadcast("saveSuccessful")
+          MessageBridge.sendMessage("parent", {message: "sessionCompleted", session: data});
         },
         function (error) {
           onError(error)
         });
 
     });
-
-
   };
 
   /**
