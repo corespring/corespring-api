@@ -94,7 +94,7 @@ object Participant {
   * Its a little bit of duplication - but will save us from having to make a 2nd db query
   */
 case class Question(itemId: ObjectId,
-                    settings: ItemSessionSettings = ItemSessionSettings.singleTryHighlightUser(),
+                    settings: ItemSessionSettings = new ItemSessionSettings(),
                     title: Option[String] = None,
                     standards: Seq[String] = Seq()) extends BaseQuestion(Some(itemId), settings)
 
