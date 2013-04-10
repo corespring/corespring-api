@@ -49,6 +49,9 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
         case "New England Common Assessment Program":
           cname = "NECAP.jpg";
           break;
+        case "LearnZillion":
+          cname = "lzlogo-png.png";
+          break;
       }
     }
     return cname ? "/assets/images/copyright/" + cname : undefined;
