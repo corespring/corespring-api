@@ -8,7 +8,7 @@ describe('CoreSpringPlayer', function () {
     myDiv = $('<div id="myDiv"></div>');
   });
 
-  describe("inits with appropriate options", function () {
+  describe("initialization", function () {
 
     it("needs options", function () {
       this.errorFn = function (e) {
@@ -45,6 +45,31 @@ describe('CoreSpringPlayer', function () {
       com.corespring.TestPlayer.init(myDiv, {corespringUrl: "something", sessionId: "something"}, this.errorFn);
       expect(this.errorFn).not.toHaveBeenCalled();
       expect(myDiv).toContain("iframe");
+    });
+
+  });
+
+  describe("behavior", function () {
+    it("sets correct url for rendering by session id", function () {
+      com.corespring.TestPlayer.init(myDiv, {corespringUrl: "csurl", sessionId: "sid", width: "500px", height: "500px"});
+      var iframe = myDiv.find("iframe");
+      var url = iframe.attr('src');
+      expect(url).toBe("csurl/testplayer/session/sid/render");
+    });
+
+    it("sets correct url for rendering by session id", function () {
+      com.corespring.TestPlayer.init(myDiv, {corespringUrl: "csurl", itemId: "iid", width: "500px", height: "500px"});
+      var iframe = myDiv.find("iframe");
+      var url = iframe.attr('src');
+      expect(url).toBe("csurl/testplayer/item/iid/run");
+    });
+
+    it("sets width and height", function () {
+      com.corespring.TestPlayer.init(myDiv, {corespringUrl: "something", sessionId: "something", width: "500px", height: "500px"});
+      var iframe = myDiv.find("iframe");
+      expect(iframe).toBe("iframe");
+      expect(myDiv).toHaveCss({"width":"500px"});
+      expect(myDiv).toHaveCss({"height":"500px"});
     });
 
   });

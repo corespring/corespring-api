@@ -35,8 +35,12 @@ var iframePlayerStrategy = function(e, options) {
     url += "/testplayer/session/" + options.sessionId + "/render";
   }
 
+  if (options.token) {
+    url += "?access_token="+options.token;
+  }
+
   e.html("<iframe src='" + url + "' style='width: 100%; height: 100%'></iframe>")
-  e.css("width", options.width ? options.width : "600px");
+  e.width(options.width ? options.width : "600px");
 
   if (options.autoHeight)
     addDimensionChangeListener(e);

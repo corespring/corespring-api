@@ -11,8 +11,14 @@
     $(document).ready(function(){
 
         var sessionId = "515425f33004e34080967bbb";
-        var accessToken = "my-token";
-        com.corespring.TestPlayer.init('#my-div', { corespringUrl: "http://localhost:9000", sessionId: sessionId, token: accessToken, width: "600px", autoHeight: true}, function(err){
+        var accessToken = "demo_token";
+
+        com.corespring.TestPlayer.init('#my-div', {
+            corespringUrl: "http://localhost:9000",
+            sessionId: sessionId,
+            token: accessToken,
+            width: "600px",
+            autoHeight: true}, function(err){
             if(err){
                 throw "Error loading test player: " + err.message;
             }
