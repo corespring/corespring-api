@@ -31,7 +31,7 @@ object TestHarness extends BaseApi with SecureSocial {
       }
     }
     else {
-      SecuredAction() {
+      SecuredAction {
         request =>
           Ok(basiclti.views.html.dev.begin(url))
       }

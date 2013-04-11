@@ -33,7 +33,7 @@ object AuthController extends Controller with SecureSocial{
       (AccessTokenRequest.unapply(_).map((atrtuple => (Some(atrtuple._1),atrtuple._2,atrtuple._3,atrtuple._4))))
   )
 
-  def register = SecuredAction() { implicit request =>
+  def register = SecuredAction { implicit request =>
       registerInfo.bindFromRequest().value.map { orgStr =>
           val username = request.user.id.id
           val orgId = new ObjectId(orgStr)

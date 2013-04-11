@@ -94,7 +94,7 @@ object Developer extends Controller with BaseApi{
     Redirect("/developer/home").withSession(session - SecureSocial.UserKey - SecureSocial.ProviderKey)
   }
 
-  def getOrganization = SecuredAction(){ request =>
+  def getOrganization = SecuredAction{ request =>
     User.getUser(request.user.id) match {
       case Some(user) => {
         val orgs = User.getOrganizations(user,Permission.Read)
@@ -107,11 +107,11 @@ object Developer extends Controller with BaseApi{
       case None => InternalServerError("could not find user...after authentication. something is very wrong")
     }
   }
-  def createOrganizationForm = SecuredAction(){ request =>
+  def createOrganizationForm = SecuredAction{ request =>
     Ok(developer.views.html.org_new(request.user))
   }
   //TODO requires two phase commit, one part updating the users and the other updating organizations
-  def createOrganization = SecuredAction(){ request =>
+  def createOrganization = SecuredAction{ request =>
     request.body.asJson match {
       case Some(json) => {
         (json \ "id").asOpt[String] match {
@@ -148,7 +148,7 @@ object Developer extends Controller with BaseApi{
     }
   }
 
-  def getOrganizationCredentials(orgId: ObjectId) = SecuredAction(){ request =>
+  def getOrganizationCredentials(orgId: ObjectId) = SecuredAction{ request =>
     User.getUser(request.user.id) match {
       case Some(user) => {
         if(user.orgs.exists(uo => uo.orgId == orgId)){

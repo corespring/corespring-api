@@ -36,7 +36,7 @@ object Main extends BaseApi {
   }
 
 
-  def index = SecuredAction() { request =>
+  def index = SecuredAction { request =>
       val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
       Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName,  common.mock.MockToken))
   }

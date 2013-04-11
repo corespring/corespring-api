@@ -7,6 +7,7 @@ import securesocial.core._
 import play.api.Application
 import org.bson.types.ObjectId
 import providers.Token
+import providers.utils.PasswordHasher
 import securesocial.core.UserId
 import securesocial.core.SocialUser
 import scala.Some
@@ -34,7 +35,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
           Some(u.email),
           None,
           AuthenticationMethod.UserPassword,
-          passwordInfo = Some(PasswordInfo(u.password)
+          passwordInfo = Some(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = u.password)
           )
         )
     }
@@ -49,7 +50,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
             user.fullName,
             user.email.getOrElse(""),
             Seq(),
-            user.passwordInfo.getOrElse(PasswordInfo("")).password,
+            user.passwordInfo.getOrElse(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = "")).password,
             user.id.providerId,
             false,
             new ObjectId())
@@ -58,8 +59,9 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
         val corespringId = new ObjectId("502404dd0364dc35bb39339a")
 
         User.insertUser(corespringUser, corespringId, Permission.Read, checkOrgId = false)
+
       case Some(existingUser) =>
-        existingUser.password = user.passwordInfo.getOrElse(PasswordInfo("")).password
+        existingUser.password = user.passwordInfo.getOrElse(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = "")).password
         User.save(existingUser)
     }
   }
@@ -74,7 +76,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
         Some(u.email),
         None,
         AuthenticationMethod.UserPassword,
-        passwordInfo = Some(PasswordInfo(u.password))
+        passwordInfo = Some(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = u.password))
       )
     )
   }
@@ -105,4 +107,6 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
       case e:IllegalStateException => //this occurs if the app closes before this is called. should be safe to ignore
     }
   }
+
+  def save(user: Identity) {}
 }

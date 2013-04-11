@@ -184,7 +184,7 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
         if(!f) {
             return;
         }
-        SupportingMaterial.delete(
+        SupportingMaterial["delete"](
             {
                 itemId: $routeParams.itemId,
                 resourceName: f.name
@@ -238,5 +238,5 @@ SupportingMaterialsController.$inject = [
     '$routeParams',
     '$timeout',
     'SupportingMaterial',
-    'ServiceLookup',
+    'ServiceLookup'
     ];

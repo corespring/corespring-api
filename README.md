@@ -5,7 +5,6 @@ Corespring API
 
 Run MongoDB locally on the default port:
 
-
     $ mongod
     mongod --help for help and startup options
     Sun Sep  2 08:51:56 [initandlisten] MongoDB starting : pid=593 port=27017 dbpath=/data/db/ 64-bit host=bburton-macbook.local
