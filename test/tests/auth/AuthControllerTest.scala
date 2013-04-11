@@ -2,9 +2,8 @@ package tests.auth
 
 import tests.BaseTest
 import play.api.test.FakeRequest
+import org.specs2.execute.{Result, Failure}
 import play.api.test.Helpers._
-import play.api.Play.current
-import play.api.Play
 import securesocial.core.SecureSocial
 import controllers.auth.{Permission, OAuthConstants}
 import models.{User, Organization}
@@ -14,207 +13,210 @@ import scala.Left
 import scala.Right
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
+import org.joda.time.DateTime
+import play.api.mvc.AnyContentAsFormUrlEncoded
 
-class AuthControllerTest extends BaseTest{
+class AuthControllerTest extends BaseTest {
 
-  "cannot register organization for client id and secret without logging in through SS" in {
-    Organization.insert(new Organization("test"),None) match {
-      case Right(org) => {
-        val fakeRequest = FakeRequest(POST, "/auth/register").withFormUrlEncodedBody(OAuthConstants.Organization -> org.id.toString)
-        val result = routeAndCall(fakeRequest).get
-        Organization.delete(org.id)
-        status(result) must not equalTo(OK)
+  val Routes = controllers.auth.routes.AuthController
+
+  /** Execute a Specs method body once we successfully insert the org, also remove Org afterwards */
+  def withOrg(org: Organization, fn: Organization => Result, maybeParentId: Option[ObjectId] = None): Result = {
+    Organization.insert(org, maybeParentId) match {
+      case Right(o) => {
+        val result = fn(o)
+        Organization.delete(o.id)
+        result
       }
-      case Left(error) => failure(error.message)
+      case Left(error) => Failure(error.message)
     }
   }
 
-  "cannot register organization for client id and secret when logged in through SS without write permission to organization" in {
-    Organization.insert(new Organization("test"),None) match {
-      case Right(org) => User.insertUser(new User("testoplenty"),org.id,Permission.Read) match {
-          case Right(user) => {
-            val fakeRequest = FakeRequest(POST, "/auth/register").withSession(
-              (SecureSocial.UserKey -> user.userName),
-              (SecureSocial.ProviderKey -> "userpass")
-            ).withFormUrlEncodedBody(OAuthConstants.Organization -> org.id.toString)
-            val result = routeAndCall(fakeRequest).get
-            User.removeUser(user.id)
-            Organization.delete(org.id)
-            status(result) must equalTo(UNAUTHORIZED)
-          }
-          case Left(error) => failure(error.message)
-        }
-      case Left(error) => failure(error.message)
+  /** Execute a specs method body once we successfully insert a User, also remove user afterwards */
+  def withUser(user: User, orgId: ObjectId, p: Permission, fn: User => Result): Result = {
+    User.insertUser(user, orgId, p) match {
+      case Right(u) => {
+        val result = fn(u)
+        User.removeUser(u.id)
+        result
+      }
+      case Left(error) => Failure(error.message)
     }
   }
 
-  "can register organization for client id and secret when logged in through SS and with write permission to organization" in {
-    Organization.insert(new Organization("test"),None) match {
-      case Right(org) => User.insertUser(new User("testoplenty"),org.id,Permission.Write) match {
-        case Right(user) => {
-          val fakeRequest = FakeRequest(POST, "/auth/register").withSession(
-            (SecureSocial.UserKey -> user.userName),
-            (SecureSocial.ProviderKey -> "userpass")
-          ).withFormUrlEncodedBody(OAuthConstants.Organization -> org.id.toString)
-          val result = routeAndCall(fakeRequest).get
-          val json = Json.parse(contentAsString(result))
-          val clientId = (json \ OAuthConstants.ClientId).as[String]
-          val clientSecret = (json \ OAuthConstants.ClientSecret).as[String]
-          ApiClient.remove(MongoDBObject(ApiClient.clientId -> new ObjectId(clientId), ApiClient.clientSecret -> clientSecret))
-          User.removeUser(user.id)
-          Organization.delete(org.id)
-          status(result) must equalTo(OK)
+  /** Execute a specs method body once we register and have a client id and secret, tidy up after */
+  def withRegistration(orgId: ObjectId, user: Option[User], fn: ((String, String) => Result)): Result = {
+    routeAndCall(registerRequest(orgId, user)) match {
+      case Some(result) => {
+        if (status(result) == OK) {
+          val (id, secret) = idAndSecret(result)
+          val out = fn(id, secret)
+          removeApiClient(result)
+          out
+        } else {
+          failure("register failed for orgId: %s and user: %s".format(orgId.toString, user.toString))
         }
-        case Left(error) => failure(error.message)
       }
-      case Left(error) => failure(error.message)
+      case _ => failure
     }
   }
 
-  "re-registering organization results in same client id and secret" in {
-    Organization.insert(new Organization("test"),None) match {
-      case Right(org) => User.insertUser(new User("testoplenty"),org.id,Permission.Write) match {
-        case Right(user) => {
-          val fakeRequest1 = FakeRequest(POST, "/auth/register").withSession(
-            (SecureSocial.UserKey -> user.userName),
-            (SecureSocial.ProviderKey -> "userpass")
-          ).withFormUrlEncodedBody(OAuthConstants.Organization -> org.id.toString)
-          val result1 = routeAndCall(fakeRequest1).get
-          val json1 = Json.parse(contentAsString(result1))
-          val clientId1 = (json1 \ OAuthConstants.ClientId).as[String]
-          val clientSecret1 = (json1 \ OAuthConstants.ClientSecret).as[String]
-          val fakeRequest2 = FakeRequest(POST, "/auth/register").withSession(
-            (SecureSocial.UserKey -> user.userName),
-            (SecureSocial.ProviderKey -> "userpass")
-          ).withFormUrlEncodedBody(OAuthConstants.Organization -> org.id.toString)
-          val result2 = routeAndCall(fakeRequest2).get
-          val json2 = Json.parse(contentAsString(result2))
-          val clientId2 = (json2 \ OAuthConstants.ClientId).as[String]
-          val clientSecret2 = (json2 \ OAuthConstants.ClientSecret).as[String]
-          ApiClient.remove(MongoDBObject(ApiClient.clientId -> new ObjectId(clientId1), ApiClient.clientSecret -> clientSecret1))
-          User.removeUser(user.id)
-          Organization.delete(org.id)
-          status(result1) must equalTo(OK)
-          status(result2) must equalTo(OK)
-          clientId1 must equalTo(clientId2)
-          clientSecret1 must equalTo(clientSecret2)
-        }
-        case Left(error) => failure(error.message)
+  /** Execute a specs method body once we have a token and tidy up after */
+  def withToken(user: User, clientId: String, secret: String, fn: (String => Result), grantType: Option[String] = None): Result = {
+    val tokenRequest = FakeRequest(Routes.getAccessToken().method, Routes.getAccessToken().url)
+      .withSession(secureSocialSession(Some(user)): _*)
+      .withFormUrlEncodedBody(tokenFormBody(clientId, secret, user.userName, grantType): _*)
+
+    routeAndCall(tokenRequest) match {
+      case Some(result) => {
+        val json = Json.parse(contentAsString(result))
+        val token = (json \ OAuthConstants.AccessToken).as[String]
+        val out = fn(token)
+        removeToken(result)
+        out
       }
-      case Left(error) => failure(error.message)
+      case _ => failure("with token failed")
     }
+  }
+
+  def testUser = new User("testoplenty")
+
+  def testOrg = new Organization("test")
+
+  def secureSocialSession(u: Option[User]): Array[(String, String)] = u match {
+    case Some(user) => Array(
+      (SecureSocial.UserKey -> user.userName),
+      (SecureSocial.ProviderKey -> "userpass"),
+      (SecureSocial.LastAccessKey -> DateTime.now().toString)
+    )
+    case _ => Array()
+  }
+
+  def tokenFormBody(id: String, secret: String, username: String, grantType: Option[String] = None): Array[(String, String)] = {
+    val base = Array(
+      (OAuthConstants.ClientId -> id),
+      (OAuthConstants.ClientSecret -> secret),
+      (OAuthConstants.Scope -> username))
+    base ++ grantType.map((OAuthConstants.GrantType -> _))
+  }
+
+  def registerRequest(orgId: ObjectId, maybeUser: Option[User] = None): FakeRequest[AnyContentAsFormUrlEncoded] = {
+    FakeRequest(Routes.register().method, Routes.register().url)
+      .withSession(secureSocialSession(maybeUser): _*)
+      .withFormUrlEncodedBody(OAuthConstants.Organization -> orgId.toString)
+  }
+
+  def removeApiClient(result: play.api.mvc.Result) {
+    val (id, secret) = idAndSecret(result)
+    ApiClient.remove(MongoDBObject(ApiClient.clientId -> id, ApiClient.clientSecret -> secret))
+  }
+
+  def removeToken(result: play.api.mvc.Result) {
+    val json = Json.parse(contentAsString(result))
+    val token = (json \ OAuthConstants.AccessToken).as[String]
+    AccessToken.removeToken(token)
+  }
+
+  def idAndSecret(result: play.api.mvc.Result): (String, String) = {
+    val json = Json.parse(contentAsString(result))
+    val id = (json \ OAuthConstants.ClientId).as[String]
+    val secret = (json \ OAuthConstants.ClientSecret).as[String]
+    (id, secret)
+  }
+
+  "cannot register without logging in through SS" in {
+    withOrg(testOrg, {
+      org =>
+        routeAndCall(registerRequest(org.id)) match {
+          case Some(result) => status(result) !== OK
+          case _ => failure
+        }
+    })
+  }
+
+  "cannot register without write permission to organization" in {
+    val resultFn = {
+      org: Organization =>
+        withUser(testUser, org.id, Permission.Read, {
+          user =>
+            routeAndCall(registerRequest(org.id, Some(user))) match {
+              case Some(result) => status(result) === UNAUTHORIZED
+              case _ => failure
+            }
+        })
+    }
+    withOrg(testOrg, resultFn)
+  }
+
+  "can register with write permission to organization" in {
+    val resultFn = {
+      org: Organization =>
+        withUser(testUser, org.id, Permission.Write, {
+          user =>
+            withRegistration(org.id, Some(user), {
+              (id, secret) => success
+            })
+        })
+    }
+    withOrg(testOrg, resultFn)
+  }
+
+  "re-registering returns same client id and secret" in {
+    val resultFn = {
+      org: Organization =>
+        withUser(testUser, org.id, Permission.Write, {
+          user =>
+            val result1 = routeAndCall(registerRequest(org.id, Some(user))).get
+            val result2 = routeAndCall(registerRequest(org.id, Some(user))).get
+            removeApiClient(result1)
+            removeApiClient(result2)
+            contentAsString(result1) === contentAsString(result2)
+        })
+    }
+    withOrg(testOrg, resultFn)
+  }
+
+  def registerAndGetAccessTokenAndAssertStatus(grantType: Option[String] = None): (Organization => Result) = {
+    org: Organization =>
+      withUser(testUser, org.id, Permission.Write, {
+        user =>
+          withRegistration(org.id, Some(user), {
+            (id, secret) =>
+              withToken(user, id, secret, {
+                token => success
+              }, grantType)
+          })
+      })
   }
 
   "can retrieve auth token using client id and secret" in {
-    Organization.insert(new Organization("test"),None) match {
-      case Right(org) => User.insertUser(new User("testoplenty"),org.id,Permission.Write) match {
-        case Right(user) => {
-          val fakeRequest = FakeRequest(POST, "/auth/register").withSession(
-            (SecureSocial.UserKey -> user.userName),
-            (SecureSocial.ProviderKey -> "userpass")
-          ).withFormUrlEncodedBody(OAuthConstants.Organization -> org.id.toString)
-          val result = routeAndCall(fakeRequest).get
-          User.removeUser(user.id)
-          Organization.delete(org.id)
-          val json = Json.parse(contentAsString(result))
-          val clientId = (json \ OAuthConstants.ClientId).as[String]
-          val clientSecret = (json \ OAuthConstants.ClientSecret).as[String]
-          val tokenRequest = FakeRequest(POST, "/auth/access_token").withSession(
-            (SecureSocial.UserKey -> user.userName),
-            (SecureSocial.ProviderKey -> "userpass")
-          ).withFormUrlEncodedBody(
-            (OAuthConstants.GrantType -> OAuthConstants.ClientCredentials),
-            (OAuthConstants.ClientId -> clientId),
-            (OAuthConstants.ClientSecret -> clientSecret),
-            (OAuthConstants.Scope -> user.userName)
-          )
-          val tokenResult = routeAndCall(tokenRequest).get
-          val jstoken = Json.parse(contentAsString(tokenResult))
-          val token = (jstoken \ OAuthConstants.AccessToken).as[String]
-          AccessToken.removeToken(token)
-          ApiClient.remove(MongoDBObject(ApiClient.clientId -> new ObjectId(clientId), ApiClient.clientSecret -> clientSecret))
-          User.removeUser(user.id)
-          Organization.delete(org.id)
-          status(tokenResult) must equalTo(OK)
-        }
-        case Left(error) => failure(error.message)
-      }
-      case Left(error) => failure(error.message)
-    }
+    withOrg(testOrg, registerAndGetAccessTokenAndAssertStatus(Some(OAuthConstants.ClientCredentials)))
   }
 
   "can retrieve auth token using client id and secret without sending grant type" in {
-    Organization.insert(new Organization("test"),None) match {
-      case Right(org) => User.insertUser(new User("testoplenty"),org.id,Permission.Write) match {
-        case Right(user) => {
-          val fakeRequest = FakeRequest(POST, "/auth/register").withSession(
-            (SecureSocial.UserKey -> user.userName),
-            (SecureSocial.ProviderKey -> "userpass")
-          ).withFormUrlEncodedBody(OAuthConstants.Organization -> org.id.toString)
-          val result = routeAndCall(fakeRequest).get
-          User.removeUser(user.id)
-          Organization.delete(org.id)
-          val json = Json.parse(contentAsString(result))
-          val clientId = (json \ OAuthConstants.ClientId).as[String]
-          val clientSecret = (json \ OAuthConstants.ClientSecret).as[String]
-          val tokenRequest = FakeRequest(POST, "/auth/access_token").withSession(
-            (SecureSocial.UserKey -> user.userName),
-            (SecureSocial.ProviderKey -> "userpass")
-          ).withFormUrlEncodedBody(
-            (OAuthConstants.ClientId -> clientId),
-            (OAuthConstants.ClientSecret -> clientSecret),
-            (OAuthConstants.Scope -> user.userName)
-          )
-          val tokenResult = routeAndCall(tokenRequest).get
-          val jstoken = Json.parse(contentAsString(tokenResult))
-          val token = (jstoken \ OAuthConstants.AccessToken).as[String]
-          AccessToken.removeToken(token)
-          ApiClient.remove(MongoDBObject(ApiClient.clientId -> new ObjectId(clientId), ApiClient.clientSecret -> clientSecret))
-          User.removeUser(user.id)
-          Organization.delete(org.id)
-          status(tokenResult) must equalTo(OK)
-        }
-        case Left(error) => failure(error.message)
-      }
-      case Left(error) => failure(error.message)
-    }
+    withOrg(testOrg, registerAndGetAccessTokenAndAssertStatus())
   }
 
   "can use auth token to retrieve list of organizations" in {
-    Organization.insert(new Organization("test"),None) match {
-      case Right(org) => User.insertUser(new User("testoplenty"),org.id,Permission.Write) match {
-        case Right(user) => {
-          val fakeRequest = FakeRequest(POST, "/auth/register").withSession(
-            (SecureSocial.UserKey -> user.userName),
-            (SecureSocial.ProviderKey -> "userpass")
-          ).withFormUrlEncodedBody(OAuthConstants.Organization -> org.id.toString)
-          val result = routeAndCall(fakeRequest).get
-          val json = Json.parse(contentAsString(result))
-          val clientId = (json \ OAuthConstants.ClientId).as[String]
-          val clientSecret = (json \ OAuthConstants.ClientSecret).as[String]
-          val tokenRequest = FakeRequest(POST, "/auth/access_token").withSession(
-            (SecureSocial.UserKey -> user.userName),
-            (SecureSocial.ProviderKey -> "userpass")
-          ).withFormUrlEncodedBody(
-            (OAuthConstants.GrantType -> OAuthConstants.ClientCredentials),
-            (OAuthConstants.ClientId -> clientId),
-            (OAuthConstants.ClientSecret -> clientSecret),
-            (OAuthConstants.Scope -> user.userName)
-          )
-          val tokenResult = routeAndCall(tokenRequest).get
-          val jstoken = Json.parse(contentAsString(tokenResult))
-          val token = (jstoken \ OAuthConstants.AccessToken).as[String]
-          val orgRequest = FakeRequest(GET, "/api/v1/organizations?access_token=%s".format(token))
-          val Some(orgresult) = routeAndCall(orgRequest)
-          AccessToken.removeToken(token)
-          ApiClient.remove(MongoDBObject(ApiClient.clientId -> new ObjectId(clientId), ApiClient.clientSecret -> clientSecret))
-          User.removeUser(user.id)
-          Organization.delete(org.id)
-          status(orgresult) must equalTo(OK)
-        }
-        case Left(error) => failure(error.message)
-      }
-      case Left(error) => failure(error.message)
+    val resultFn = {
+      org: Organization =>
+        withUser(testUser, org.id, Permission.Write, {
+          user =>
+            withRegistration(org.id, Some(user), {
+              (id, secret) =>
+                withToken(user, id, secret, {
+                  token =>
+                    val OrgRoutes = api.v1.routes.OrganizationApi
+                    val call = OrgRoutes.list()
+                    val orgRequest = FakeRequest(call.method, (call.url + "?access_token=%s").format(token))
+                    routeAndCall(orgRequest) match {
+                      case Some(result) => status(result) === OK
+                      case _ => failure
+                    }
+                })
+            })
+        })
     }
+    withOrg(testOrg, resultFn)
   }
 }
