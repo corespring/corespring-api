@@ -2,6 +2,13 @@ var com = com || {};
 com.corespring = com.corespring || {};
 com.corespring.TestPlayer = {};
 
+com.corespring.TestPlayer.errors = {
+  NEED_OPTIONS: 0,
+  NEED_CORESPRING_URL: 1,
+  NEED_ITEMID_OR_SESSIONID: 2,
+  NEED_EMBEDDING_ELEMENT: 3
+};
+
 function addDimensionChangeListener(elem) {
   var fn = function(a) {
     var data = JSON.parse(a.data);
@@ -45,22 +52,22 @@ com.corespring.TestPlayer.init = function (element, options, errorCallback) {
   var e = $(element);
 
   if (!e) {
-    errorCallback({msg: "Container element not found."});
+    errorCallback({msg: "Container element not found.", code: com.corespring.TestPlayer.errors.NEED_EMBEDDING_ELEMENT});
     return;
   }
 
   if (!options) {
-    errorCallback({msg: "Need to specify options"});
+    errorCallback({msg: "Need to specify options", code: com.corespring.TestPlayer.errors.NEED_OPTIONS});
     return;
   }
 
   if (!options.corespringUrl) {
-    errorCallback({msg: "Need to specify corespringUrl in options"});
+    errorCallback({msg: "Need to specify corespringUrl in options", code: com.corespring.TestPlayer.errors.NEED_CORESPRING_URL});
     return;
   }
 
   if (!options.sessionId && !options.itemId) {
-    errorCallback({msg: "Need to specify either itemId or sessionId in options"});
+    errorCallback({msg: "Need to specify either itemId or sessionId in options", code: com.corespring.TestPlayer.errors.NEED_ITEMID_OR_SESSIONID});
     return;
   }
 
