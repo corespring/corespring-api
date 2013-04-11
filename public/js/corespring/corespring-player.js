@@ -74,5 +74,4 @@ com.corespring.TestPlayer.init = function (element, options, errorCallback) {
   var playerRenderFunction = iframePlayerStrategy;
 
   playerRenderFunction(e, options);
-
 }

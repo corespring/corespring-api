@@ -7,10 +7,11 @@ DECLARATIONS=`find ../public/js/corespring -type f -path '**/services.js'`
 #be sure to add app files first before others so main variable declarations come first
 APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/app.js'| grep -v '/print/' | grep -v '/aggregate/' | grep -v '/instructor/'`
 OTHER_APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/*.js' ! -iname 'app.js'| grep -v '/print/' | grep -v '/aggregate/' | grep -v '/instructor/'`
+TEST_LIB_FILES="./lib/jasmine-jquery.js"
 FRONTLOAD_SPEC_FILES=`find ./unit -type f -path '**/*-priority-1.js'`
 SPEC_FILES=`find ./unit \( -type f -path '**/*.js' -and -not -name '*priority*' \)`
 
-cat ${DECLARATIONS} ${APP_JS_SRC_FILES} ${OTHER_APP_JS_SRC_FILES}> all_corespring.js
+cat ${DECLARATIONS} ${APP_JS_SRC_FILES} ${OTHER_APP_JS_SRC_FILES} ${TEST_LIB_FILES} > all_corespring.js
 cat ${FRONTLOAD_SPEC_FILES} ${SPEC_FILES} > all_specs.js
 
 # sanity check to make sure phantomjs exists in the PATH
