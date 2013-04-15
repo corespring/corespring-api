@@ -30,6 +30,7 @@ GET     /developer/*file            developer.controllers.Developer.at(path="/pu
 #
 POST    /auth/register                          controllers.auth.AuthController.register
 POST    /auth/access_token                      controllers.auth.AuthController.getAccessToken
+POST    /api/v1/render/key                      api.v1.RenderApi.getRenderKey
 
 #Public site
 GET     /                                      publicsite.controllers.Application.index

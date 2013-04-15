@@ -1,6 +1,6 @@
 package tests.auth
 
-import controllers.auth.MyCrypto
+import controllers.auth.AESCrypto
 import org.specs2.mutable.Specification
 
 /**
@@ -17,11 +17,11 @@ class CryptoTest extends Specification{
 
   "encryption/decryption" should{
     "encrypt a message that is not equal to original message" in {
-      encrypted = MyCrypto.encryptAES(message,privateKey)
+      encrypted = AESCrypto.encryptAES(message,privateKey)
       encrypted must not equalTo(message)
     }
     "decrypt a message that is equal to original message"  in {
-      val decrypted = MyCrypto.decryptAES(encrypted,privateKey);
+      val decrypted = AESCrypto.decryptAES(encrypted,privateKey);
       decrypted must beEqualTo(message);
     }
   }
