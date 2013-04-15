@@ -21,9 +21,9 @@ import securesocial.core.{SecuredRequest, SecureSocial}
  */
 trait BaseApi extends Controller with SecureSocial{
 
-  val AuthorizationHeader = "Authorization"
-  val Bearer = "Bearer"
-  val Space = " "
+  private val AuthorizationHeader = "Authorization"
+  private val Bearer = "Bearer"
+  private val Space = " "
 
   /**
    * A class that adds an AuthorizationContext to the Request object

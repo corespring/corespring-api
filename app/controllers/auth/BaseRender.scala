@@ -9,10 +9,10 @@ import scala.Some
 import play.api.libs.json.Json
 
 trait BaseRender extends Controller{
-  val RendererHeader = "Renderer"
-  val Bearer = "Bearer"
-  val Space = " "
-  val RenderKey = "rkey"
+  private val RendererHeader = "Renderer"
+  private val Bearer = "Bearer"
+  private val Space = " "
+  private val RenderKey = "rkey"
 
   case class RenderRequest[A](ctx: RendererContext, r:Request[A], key:String) extends WrappedRequest(r)
 
@@ -59,5 +59,14 @@ trait BaseRender extends Controller{
         }
       }
     }
+  }
+  /**
+   * A helper method to create an action for render calls
+   *
+   * @param f - the method that gets executed if the credentials are ok
+   * @return a Result or BadRequest if the credentials are invalid
+   */
+  def RenderAction(f: RenderRequest[AnyContent] => Result): Action[AnyContent] = {
+    RenderAction(parse.anyContent)(f)
   }
 }

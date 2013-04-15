@@ -3,7 +3,7 @@ package tests.api.v1
 import tests.BaseTest
 import play.api.mvc.{AnyContentAsJson, Call}
 import play.api.test._
-import models.auth.{ApiClient, AccessToken, RenderConstraints}
+import models.auth.{ApiClient, AccessToken}
 import org.bson.types.ObjectId
 import play.api.test.Helpers._
 import play.api.mvc.Call
@@ -11,12 +11,12 @@ import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
 import scala.Some
 import play.api.libs.json.{JsValue, Json}
-import controllers.auth.{AESCrypto, RendererContext}
+import controllers.auth.{RenderConstraints, AESCrypto, RendererContext}
 
 
 class RenderApiTest extends BaseTest{
   val update:Call = api.v1.routes.RenderApi.getRenderKey()
-  val renderConstraints = RenderConstraints(Seq(new ObjectId("50ee136ee4b00448c0368e0e")))
+  val renderConstraints = RenderConstraints("50ee136ee4b00448c0368e0e")
   val fakeRequest = FakeRequest(update.method,tokenize(update.url),FakeHeaders(),AnyContentAsJson(Json.toJson(renderConstraints)))
   val Some(result) = routeAndCall(fakeRequest)
   status(result) must equalTo(OK)
