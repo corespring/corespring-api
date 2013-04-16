@@ -2,6 +2,7 @@ package tests.auth
 
 import controllers.auth.AESCrypto
 import org.specs2.mutable.Specification
+import java.nio.charset.Charset
 
 /**
  * Created with IntelliJ IDEA.
@@ -11,7 +12,7 @@ import org.specs2.mutable.Specification
  * To change this template use File | Settings | File Templates.
  */
 class CryptoTest extends Specification{
-  val privateKey = "blahblahblahblahblahblah";
+  val privateKey = BigInt.probablePrime(AESCrypto.KEY_LENGTH*8, scala.util.Random).toString(AESCrypto.KEY_RADIX);
   val message = "secret message is secret";
   var encrypted = ""
 

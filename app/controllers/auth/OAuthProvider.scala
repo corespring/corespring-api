@@ -99,6 +99,6 @@ object OAuthProvider {
    * @return a token
    */
   def generateToken = {
-    BigInt.probablePrime(100, scala.util.Random).toString(36)
+    BigInt.probablePrime(AESCrypto.KEY_LENGTH*8, scala.util.Random).toString(AESCrypto.KEY_RADIX)
   }
 }
