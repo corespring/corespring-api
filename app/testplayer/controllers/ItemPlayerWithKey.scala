@@ -1,4 +1,4 @@
-package api.v1
+package testplayer.controllers
 
 import controllers.auth._
 import models.auth.{ApiClient}
@@ -11,24 +11,8 @@ import play.api.mvc.{Action, Result, AnyContent}
 import testplayer.controllers.ItemPlayer
 import models.itemSession.ItemSessionSettings
 
-object RenderApi extends BaseApi with BaseRender{
+object ItemPlayerWithKey extends BaseApi with BaseRender{
 
-  def getRenderKey = ApiAction {request =>
-    request.body.asJson match {
-      case Some(jsrc) => {
-        val renderConstraints = Json.fromJson[RenderConstraints](jsrc)
-        ApiClient.findOneByOrgId(request.ctx.organization) match {
-          case Some(apiClient) => {
-            val encryptedConstraints = AESCrypto.encryptAES(Json.toJson(renderConstraints).toString(),apiClient.clientSecret)
-            val key = apiClient.clientId.toString+RendererContext.keyDelimeter+encryptedConstraints
-            Ok(JsObject(Seq("key" -> JsString(key))))
-          }
-          case None => BadRequest(JsObject(Seq("message" -> JsString("no api client found! this should never occur"))))
-        }
-      }
-      case None => BadRequest(JsObject(Seq("message" -> JsString("your request must contain json properties containing the constraints of the key"))))
-    }
-  }
   /*
  POST    /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.create(itemId: ObjectId)
  GET    /testplayer/item/:itemId/render-in-frame     testplayer.controllers.ItemPlayer.renderAsIframe(itemId)
@@ -96,3 +80,4 @@ GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemP
     ItemPlayer.getDataFileBySessionId(sessionId,filename)
   )
 }
+

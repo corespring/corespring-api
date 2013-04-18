@@ -16,7 +16,7 @@ import controllers.auth.{RenderConstraints, AESCrypto, RendererContext}
 
 class RenderApiTest extends BaseTest{
   val update:Call = api.v1.routes.RenderApi.getRenderKey()
-  val renderConstraints = RenderConstraints("50ee136ee4b00448c0368e0e")
+  val renderConstraints = RenderConstraints(Some("50083ba9e4b071cb5ef79101"),Some("502d0f823004deb7f4f53be7"),None,None,0)
   val fakeRequest = FakeRequest(update.method,tokenize(update.url),FakeHeaders(),AnyContentAsJson(Json.toJson(renderConstraints)))
   val Some(result) = routeAndCall(fakeRequest)
   status(result) must equalTo(OK)
@@ -45,7 +45,7 @@ class RenderApiTest extends BaseTest{
     "return a key that contains encrypted constraints that can be decrypted using the client secret to equal the constraints sent" in {
       val decryptedConstraints = AESCrypto.decryptAES(parts(1),apiClient.clientSecret)
       val receivedConstraints = Json.fromJson[RenderConstraints](Json.parse(decryptedConstraints))
-      receivedConstraints must beEqualTo(renderConstraints)
+      RenderConstraints(receivedConstraints.itemId,receivedConstraints.itemSessionId,receivedConstraints.assessmentId,None,receivedConstraints.expires) must beEqualTo(renderConstraints)
     }
   }
 }
