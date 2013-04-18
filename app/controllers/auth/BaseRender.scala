@@ -10,32 +10,56 @@ import play.api.libs.json.Json
 
 trait BaseRender extends Controller{
   private val RendererHeader = "Renderer"
-  private val Bearer = "Bearer"
-  private val Space = " "
+  private val Delimeter = "-"
   private val RenderKey = "rkey"
+  private val ClientId = "apiClientId"
+  private val Options = "options"
 
-  case class RenderRequest[A](ctx: RendererContext, r:Request[A], key:String) extends WrappedRequest(r)
+  case class RenderRequest[A](ctx: RendererContext, r:Request[A]) extends WrappedRequest(r)
 
   /**
-   * Returns the renderer key either from the Play session (with key rkey) or from the Authorization header
-   * in the form of "Bearer some_key"
+   * Returns the renderer key either from json body, from the query string, or from the session
    *
    * @param request
    * @tparam A
    * @return
    */
-  def keyFromRequest[A](request: Request[A]): Either[ApiError, String] = {
-    request.queryString.get(RenderKey).map(seq => Right(seq.head)).getOrElse {
-      request.session.get(RenderKey).map(Right(_)).getOrElse {
-        request.headers.get(RendererHeader) match {
-          case Some(value) =>
-            value.split(Space) match {
-              case Array(Bearer, key) => Right(key)
-              case _ => Left(ApiError.InvalidKeyType)
-            }
-          case _ => Left(ApiError.MissingCredentials)
+  private def keyFromRequest[A](request: Request[A]): Either[ApiError, RendererContext] = {
+    request.body match {
+      case jsbody:AnyContentAsJson => Right(Json.fromJson[RendererContext](jsbody.json))
+      case _ => keyFromQuery(request) match {
+        case Right(Some(rc)) => Right(rc)
+        case Left(error) => Left(error)
+        case Right(None) => keyFromSession(request) match {
+          case Right(Some(rc)) => Right(rc)
+          case Left(error) => Left(error)
+          case Right(None) => Left(ApiError.MissingCredentials)
         }
       }
+    }
+  }
+  private def keyFromQuery[A](request:Request[A]):Either[ApiError,Option[RendererContext]] = {
+    request.queryString.get(ClientId).map(_.head) match {
+      case Some(clientId) => request.queryString.get(Options).map(_.head) match {
+        case Some(encrypted) => RendererContext.decryptContext(clientId,encrypted) match {
+          case Some(ctx) => Right(Some(ctx))
+          case None => Left(ApiError.ParseKey)
+        }
+        case None => Left(ApiError.NoOptionsProvided)
+      }
+      case None => Right(None)
+    }
+  }
+  private def keyFromSession[A](request:Request[A]):Either[ApiError,Option[RendererContext]] = {
+    request.session.get(RendererHeader) match {
+      case Some(renderValue) => renderValue.split(Delimeter) match {
+        case Array(clientId,encrypted) => RendererContext.decryptContext(clientId,encrypted) match {
+          case Some(ctx) => Right(Some(ctx))
+          case None => Left(ApiError.ParseKey)
+        }
+        case  _ => Left(ApiError.InvalidKeyType)
+      }
+      case None => Right(None)
     }
   }
 
@@ -51,12 +75,7 @@ trait BaseRender extends Controller{
     Action(p) { request =>
       keyFromRequest(request) match {
         case Left(error) => BadRequest(Json.toJson(error))
-        case Right(key) => {
-          RendererContext.parserRendererContext(key) match {
-            case Some(rc) => f(RenderRequest(rc,request,key))
-            case None => BadRequest(Json.toJson(ApiError.ParseKey))
-          }
-        }
+        case Right(ctx) => f(RenderRequest(ctx,request))
       }
     }
   }

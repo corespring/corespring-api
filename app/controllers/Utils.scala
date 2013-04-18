@@ -2,6 +2,7 @@ package controllers
 
 import com.novus.salat.dao.SalatMongoCursor
 import xml.{Elem, Node}
+import org.bson.types.ObjectId
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,6 +13,13 @@ import xml.{Elem, Node}
  */
 
 object Utils {
+  def toObjectId(id:String):Option[ObjectId] = {
+    try{
+      Some(new ObjectId(id))
+    } catch {
+      case e:IllegalArgumentException => None
+    }
+  }
   /**
    * return a sequence of object T's. closes the cursor after the sequence has been computed
    * @param c

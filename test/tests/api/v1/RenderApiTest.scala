@@ -11,41 +11,35 @@ import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
 import scala.Some
 import play.api.libs.json.{JsValue, Json}
-import controllers.auth.{RenderConstraints, AESCrypto, RendererContext}
+import controllers.auth.{RenderOptions, AESCrypto, RendererContext}
 
 
 class RenderApiTest extends BaseTest{
   val update:Call = api.v1.routes.RenderApi.getRenderKey()
-  val renderConstraints = RenderConstraints(Some("50083ba9e4b071cb5ef79101"),Some("502d0f823004deb7f4f53be7"),None,None,0)
-  val fakeRequest = FakeRequest(update.method,tokenize(update.url),FakeHeaders(),AnyContentAsJson(Json.toJson(renderConstraints)))
+  val renderOptions = RenderOptions(Some("50083ba9e4b071cb5ef79101"),Some("502d0f823004deb7f4f53be7"),None,None,0,"render")
+  val fakeRequest = FakeRequest(update.method,tokenize(update.url),FakeHeaders(),AnyContentAsJson(Json.toJson(renderOptions)))
   val Some(result) = routeAndCall(fakeRequest)
   status(result) must equalTo(OK)
   charset(result) must beSome("utf-8")
   contentType(result) must beSome("application/json")
   val apiClient = ApiClient.findOneByOrgId(AccessToken.findById(token).get.organization).get
-  var key = ""
-  var parts = Array[String]()
+  var clientId:Option[String] = None
+  var encrypted:Option[String] = None
   "registering a key with render constraints" should {
-    "return a key" in {
-      (Json.parse(contentAsString(result)) \ "key").asOpt[String] match {
-        case Some(k) => {
-          key = k;
-          success;
-        }
-        case None => failure
-      }
-    }
-    "return a key that can be split into clientId and render constraints" in {
-      parts = key.split(RendererContext.keyDelimeter)
-      parts.length must beEqualTo(2)
+    "return a clientId and options" in {
+      val jsresult = Json.parse(contentAsString(result))
+      clientId = (jsresult \ "clientId").asOpt[String]
+      encrypted = (jsresult \ "options").asOpt[String]
+      clientId must beSome[String]
+      encrypted must beSome[String]
     }
     "return a key with the correct client id" in {
-      parts(0) must beEqualTo(apiClient.clientId.toString)
+      clientId must beSome(apiClient.clientId.toString)
     }
-    "return a key that contains encrypted constraints that can be decrypted using the client secret to equal the constraints sent" in {
-      val decryptedConstraints = AESCrypto.decryptAES(parts(1),apiClient.clientSecret)
-      val receivedConstraints = Json.fromJson[RenderConstraints](Json.parse(decryptedConstraints))
-      RenderConstraints(receivedConstraints.itemId,receivedConstraints.itemSessionId,receivedConstraints.assessmentId,None,receivedConstraints.expires) must beEqualTo(renderConstraints)
+    "return a key that contains encrypted options that can be decrypted using the client secret to equal the constraints sent" in {
+      val decryptedOptions = encrypted.map(AESCrypto.decryptAES(_,apiClient.clientSecret))
+      val receivedOptions = decryptedOptions.map(options => Json.fromJson[RenderOptions](Json.parse(options)))
+      receivedOptions must beSome(renderOptions)
     }
   }
 }

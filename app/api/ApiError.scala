@@ -63,8 +63,10 @@ object ApiError {
   val ExpiredToken        = ApiError(108, "Your access token expired on %s. Please request a new one")
 
   //Render Provider
-  val InvalidKeyType      = ApiError(110, "Invalid key type. Only Bearer keys are supported")
+  val InvalidKeyType      = ApiError(110, "Invalid key in session. Must be of the form ${clientId}-${options}")
   val ParseKey            = ApiError(111, "Could not parse key. Incorrect format")
+  val NoOptionsProvided   = ApiError(112, "no options provided with client id")
+  val ItemPlayer          = ApiError(113, "an error occurred when attempting to retrieve the item player")
 
   // Base Api
   val UserIsRequired      = ApiError(150, "User is required")

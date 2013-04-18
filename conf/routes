@@ -142,15 +142,7 @@ GET    /testplayer/session/:sessionId/render        testplayer.controllers.ItemP
 GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
 GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes
 
-GET    /testplayerwithkey/item/:itemId/render-in-frame     testplayer.controllers.ItemPlayerWithKey.renderAsIframe(itemId)
-GET    /testplayerwithkey/item/:itemId/render              testplayer.controllers.ItemPlayerWithKey.renderItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
-GET    /testplayerwithkey/item/:itemId/run                 testplayer.controllers.ItemPlayerWithKey.previewItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
-GET    /testplayerwithkey/item/:itemId/quiz/:quizId/aggregate           testplayer.controllers.ItemPlayerWithKey.renderQuizAsAggregate(quizId, itemId)
-GET    /testplayerwithkey/item/:itemId/*filename           testplayer.controllers.ItemPlayerWithKey.getDataFile(itemId, filename)
-GET    /testplayerwithkey/session/:sessionId/run           testplayer.controllers.ItemPlayerWithKey.previewItemBySessionId(sessionId, printMode: Boolean ?= false)
-GET    /testplayerwithkey/session/:sessionId/instructor    testplayer.controllers.ItemPlayerWithKey.renderAsInstructor(sessionId)
-GET    /testplayerwithkey/session/:sessionId/render        testplayer.controllers.ItemPlayerWithKey.renderItemBySessionId(sessionId, printMode: Boolean ?= false)
-GET    /testplayerwithkey/session/:sessionId/:filename     testplayer.controllers.ItemPlayerWithKey.getDataFileBySessionId(sessionId, filename)
+POST    /api/v1/item-player/options     testplayer.controllers.ItemPlayerWithKey.renderOptions(itemId ?= "", sessionId ?= "", mode ?= "")
 
 GET    /scorm-player/item/:itemId/run               scorm.controllers.ScormPlayer.runByItemId(itemId : ObjectId)
 GET    /scorm-player/item/:itemId/:filename         scorm.controllers.ScormPlayer.getDataFile(itemId, filename)

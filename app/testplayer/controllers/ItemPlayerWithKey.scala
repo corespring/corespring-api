@@ -10,6 +10,9 @@ import scala.Some
 import play.api.mvc.{Action, Result, AnyContent}
 import testplayer.controllers.ItemPlayer
 import models.itemSession.ItemSessionSettings
+import models.item.Content
+import api.ApiError
+import controllers.{Utils, InternalError}
 
 object ItemPlayerWithKey extends BaseApi with BaseRender{
 
@@ -25,59 +28,68 @@ GET    /testplayer/session/:sessionId/instructor    testplayer.controllers.ItemP
 GET    /testplayer/session/:sessionId/render        testplayer.controllers.ItemPlayer.renderItemBySessionId(sessionId, printMode: Boolean ?= false)
 GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
   */
-  private def proxyCall(authCheck:(RenderRequest[AnyContent])=>Boolean, action:Action[AnyContent]) = RenderAction { request =>
-    if(authCheck(request)){
-      ApiClient.findByKey(request.ctx.clientId).map(_.orgId) match {
-        case Some(orgId) => action(ApiRequest(AuthorizationContext(orgId),request.r,""))
-        case None => InternalServerError(JsObject(Seq("message" -> JsString("no client found. this should never occur"))))
+  def renderOptions(itemId:String,sessionId:String,mode:String) = RenderAction {implicit request =>
+    val finalMode = if (request.ctx.options.mode == "*") mode else request.ctx.options.mode
+    finalMode match {
+      case "preview" => finalId(itemId,request.ctx.options.itemId,"item") match {
+        case Right(iid) => previewMode(iid)
+        case Left(error) => BadRequest(Json.toJson(ApiError.ItemPlayer(error.clientOutput)))
       }
-    } else Unauthorized(JsObject(Seq("message" -> JsString("you do not have access to the specified content"))))
+      case "render" => finalId(sessionId,request.ctx.options.sessionId,"session") match {
+        case Right(iid) => renderMode(iid)
+        case Left(error) => BadRequest(Json.toJson(ApiError.ItemPlayer(error.clientOutput)))
+      }
+      case "administer" => finalId(itemId,request.ctx.options.itemId,"item") match {
+        case Right(iid) => finalId(sessionId,request.ctx.options.sessionId, "session") match {
+          case Right(sid) => administerMode(iid,Some(sid))
+          case Left(error) => administerMode(iid,None)
+        }
+        case Left(error) => BadRequest(Json.toJson(ApiError.ItemPlayer(error.clientOutput)))
+      }
+      case "aggregate" => finalId(itemId,request.ctx.options.itemId, "item") match {
+        case Right(iid) => request.ctx.options.assessmentId.flatMap(Utils.toObjectId(_)) match {
+          case Some(assessmentId) => aggregateMode(iid,assessmentId)
+          case None => BadRequest(Json.toJson(ApiError.ItemPlayer(Some("could not parse assessment id"))))
+        }
+        case Left(error) => BadRequest(Json.toJson(ApiError.ItemPlayer(error.clientOutput)))
+      }
+      case _ => BadRequest(Json.toJson(ApiError.ItemPlayer(Some("invalid item player mode"))))
+    }
   }
-  def renderAsIframe(itemId:String) = proxyCall(
-    (request) => RenderConstraints.authCheck(RenderConstraints(Some(itemId.toString), expires = request.ctx.rc.expires),request.ctx.rc),
-    ItemPlayer.renderAsIframe(itemId)
-  )
-  def renderItem(itemId:String, printMode:Boolean, settings: String) = proxyCall(
-    (request) => RenderConstraints.authCheck(
-      RenderConstraints( Some(itemId.toString),
-        settings = if (settings == "") None else Some(Json.fromJson[ItemSessionSettings](Json.parse(settings))),
-        expires = request.ctx.rc.expires),
-      request.ctx.rc
-    ),
-    ItemPlayer.renderItem(itemId, printMode, settings)
-  )
-  def previewItem(itemId:String, printMode:Boolean, settings: String) = proxyCall(
-    (request) => RenderConstraints.authCheck(
-      RenderConstraints(Some(itemId.toString),
-        settings = if (settings == "") None else Some(Json.fromJson[ItemSessionSettings](Json.parse(settings))),
-        expires = request.ctx.rc.expires),
-      request.ctx.rc
-    ),
-    ItemPlayer.previewItem(itemId, printMode, settings)
-  )
-  def renderQuizAsAggregate(quizId:String, itemId:String) = proxyCall(
-    (request) => RenderConstraints.authCheck(RenderConstraints(Some(itemId),assessmentId = Some(quizId), expires = request.ctx.rc.expires), request.ctx.rc),
-    ItemPlayer.renderQuizAsAggregate(quizId,itemId)
-  )
-  def getDataFile(itemId:String, filename:String) = proxyCall(
-    (request) => RenderConstraints.authCheck(RenderConstraints(Some(itemId.toString), expires = request.ctx.rc.expires),request.ctx.rc),
-    ItemPlayer.getDataFile(itemId, filename)
-  )
-  def previewItemBySessionId(sessionId: String, printMode:Boolean) = proxyCall(
-    (request) => RenderConstraints.authCheck(RenderConstraints(itemSessionId = Some(sessionId.toString), expires = request.ctx.rc.expires),request.ctx.rc),
-    ItemPlayer.previewItemBySessionId(sessionId, printMode)
-  )
-  def renderAsInstructor(sessionId:String) = proxyCall(
-    (request) => RenderConstraints.authCheck(RenderConstraints(itemSessionId = Some(sessionId), expires = request.ctx.rc.expires),request.ctx.rc),
-    ItemPlayer.renderAsInstructor(sessionId)
-  )
-  def renderItemBySessionId(sessionId:String,printMode:Boolean) = proxyCall(
-    (request) => RenderConstraints.authCheck(RenderConstraints(itemSessionId = Some(sessionId), expires = request.ctx.rc.expires),request.ctx.rc),
-    ItemPlayer.renderItemBySessionId(sessionId,printMode)
-  )
-  def getDataFileBySessionId(sessionId:String, filename:String) = proxyCall(
-    (request) => RenderConstraints.authCheck(RenderConstraints(itemSessionId = Some(sessionId), expires = request.ctx.rc.expires),request.ctx.rc),
-    ItemPlayer.getDataFileBySessionId(sessionId,filename)
-  )
+
+  /**
+   * compares id with compareId. if compareId is "*" then take the value of id. otherwise, use compareId.
+   * @param id
+   * @param compareId
+   * @param idType this is just used for error outputs
+   * @return
+   */
+  private def finalId(id:String,compareId:Option[String],idType:String):Either[InternalError,ObjectId] = compareId match {
+    case Some(ctxId) => if (ctxId == "*"){
+      if(id != ""){
+        Utils.toObjectId(id).map(Right(_)).getOrElse(Left(InternalError("no valid "+idType+" id found", addMessageToClientOutput = true)))
+      } else Left(InternalError("no valid item id found",addMessageToClientOutput = true))
+    } else Utils.toObjectId(ctxId).map(Right(_)).getOrElse(Left(InternalError("no valid "+idType+" id found", addMessageToClientOutput = true)))
+    case None => Left(InternalError("no valid item id found",addMessageToClientOutput = true))
+  }
+  //TODO: move item player stuff to here (remember to include content authorization)
+  private def previewMode(itemId:ObjectId)(implicit request:RenderRequest[AnyContent]):Result = {
+    ItemPlayer.previewItem(itemId.toString)(request)
+  }
+  private def renderMode(sessionId:ObjectId)(implicit request:RenderRequest[AnyContent]):Result = {
+    request.ctx.options.role.getOrElse("student") match {
+      case "student" => ItemPlayer.renderItemBySessionId(sessionId.toString)(request)
+      case "instructor" => ItemPlayer.renderAsInstructor(sessionId.toString)(request)
+    }
+  }
+  private def administerMode(itemId:ObjectId, optsessionId:Option[ObjectId])(implicit request:RenderRequest[AnyContent]):Result = {
+    optsessionId match {
+      case Some(sessionId) => ItemPlayer.renderItemBySessionId(sessionId.toString)(request)
+      case None => ItemPlayer.renderItem(itemId.toString)(request)
+    }
+  }
+  private def aggregateMode(itemId:ObjectId, assessmentId:ObjectId)(implicit request:RenderRequest[AnyContent]):Result = {
+    ItemPlayer.renderQuizAsAggregate(assessmentId.toString,itemId.toString)(request)
+  }
 }
 
