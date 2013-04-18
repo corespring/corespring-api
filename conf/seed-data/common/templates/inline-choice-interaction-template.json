@@ -1,8 +1,0 @@
-{
-    "_id":{
-        "$oid":"5058bd13201cd1b242d13b2a"
-    },
-    "label":"Inline Choice Interaction",
-    "code":"inlinechoice",
-    "xmlData":"$[interpolate{conf/qti-templates/inline-choice-interaction-template.xml}]"
-}

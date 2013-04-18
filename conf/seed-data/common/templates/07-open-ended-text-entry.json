@@ -1,0 +1,6 @@
+{
+  "label": "Open Ended Extended Text Entry",
+  "code": "openendedtext",
+  "group": "Text Entry",
+  "xmlData": "$[interpolate{conf/qti-templates/open-ended-text-entry.xml}]"
+}

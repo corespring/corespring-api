@@ -1,8 +1,0 @@
-{
-    "_id":{
-        "$oid":"5059ad213003d9b173222bdb"
-    },
-    "label":"QTI2 Order Placement Interaction",
-    "code":"placement",
-    "xmlData":"$[interpolate{conf/qti-templates/order-placement-interaction.xml}]"
-}

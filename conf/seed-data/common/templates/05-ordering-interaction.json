@@ -1,0 +1,6 @@
+{
+  "label": "Ordering",
+  "code": "ordering",
+  "group": "Fixed Choice",
+  "xmlData": "$[interpolate{conf/qti-templates/ordering-interaction.xml}]"
+}
