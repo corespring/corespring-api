@@ -23,7 +23,6 @@ p {
 	line-height: 26px;
 	margin: 0px 0px 30px;
 }
-
 .header-wrap {
 	background: url("../images/header-light-grey-br.gif") repeat scroll center top transparent;
 }
@@ -306,7 +305,7 @@ p {
 	border: none;
 	outline: none;
 }
-.nav li a#edu-nav, .nav li a#dev-nav, .nav li a#partner-nav, .nav li a#about-nav, .nav li a#contact-nav {
+.nav li a#edu-nav, .nav li a#dev-nav, .nav li a#partner-nav, .nav li a#about-nav, .nav li a#contact-nav, .nav li a#features-nav {
 	display: block;
 	float: left;
 	outline: none;
@@ -354,7 +353,7 @@ p {
 
 /*NEW FOR NAV SPRITE */
 
-.nav li a#edu-nav, .nav li a#dev-nav, .nav li a#partner-nav, .nav li a#about-nav, .nav li a#contact-nav {
+.nav li a#edu-nav, .nav li a#dev-nav, .nav li a#partner-nav, .nav li a#about-nav, .nav li a#contact-nav, .nav li a#features-nav {
 	display: block;
 	height: 1px;
 	margin-bottom: 0;
@@ -392,6 +391,12 @@ p {
 .navbar .nav-collapse .nav > li > a#contact-nav:hover, .navbar .nav-collapse .nav > li > #contact-nav.active {
 	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -278px -51px transparent;
 }
+.nav li a#features-nav {
+	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -337px -106px transparent;
+}
+.navbar .nav-collapse .nav > li > a#features-nav:hover, .navbar .nav-collapse .nav > li > a#features-nav.active {
+	background: url("/assets/public/images/icon-sprite-nav.png") no-repeat scroll -337px -51px transparent;
+}
 /*--end of nav sprites */
 
 
@@ -406,14 +411,14 @@ p {
 	margin-left: 0px;
 	margin-top: 10px;
 }
-.main div.row div.span4.about {
+.main div.row div.span4.vetted-content {
 	margin-left: 20px;
 	padding-top: 0px;
 }
-.main div.row div.span4.ed {
+.main div.row div.span4.admin-col {
 	padding-top: 0px;
 }
-.main div.row div.span4.dev {
+.main div.row div.span4.actionable-col {
 	padding-top: 0px;
 }
 .main div.row div.span4 span.col-header {
@@ -503,23 +508,19 @@ p {
 	width: 54px;
 	margin-bottom: 30px;
 }
-
-div.span6.justify p{
+div.span6.justify p {
 	margin-bottom:15px;
 }
-
-
 .justify p {
 	text-align: justify;
 }
 .span6 h3 {
-color: #92D400;
-font-size: 18px;
-font-weight: 500;
-line-height: 26px;
-margin-bottom: 5px;
+	color: #92D400;
+	font-size: 18px;
+	font-weight: 500;
+	line-height: 26px;
+	margin-bottom: 5px;
 }
-
 .span6 {
 	margin-right: 30px;
 	width: 430px;
@@ -783,7 +784,6 @@ div.well.item a.fancybox:hover {
 .edu-table td, .edu-table td a {
 	font-size:13px;
 }
-
 /*.edu-table td li{
 	list-style-image:url("../images/new-window-icon.png");
 	line-height: 18px;
@@ -791,31 +791,27 @@ div.well.item a.fancybox:hover {
 	margin-top: 4px
 }
 */
-.edu-table ul li{
-list-style-type:none;
+.edu-table ul li {
+	list-style-type:none;
 }
-
 .edu-table ul li a.new-window {
-    background:url("../images/new-window-icon.png")no-repeat 2px 3px;
+	background:url("../images/new-window-icon.png")no-repeat 2px 3px;
 	clear:left;
-    display:block;
-    float:left;
-    padding:0 0 5px 20px;
-    margin-top: 4px;
-    line-height: 18px;
+	display:block;
+	float:left;
+	padding:0 0 5px 20px;
+	margin-top: 4px;
+	line-height: 18px;
 }
-
 .edu-table ul li a.new-window:hover {
-    background:url("../images/new-window-icon-hover.png")no-repeat 2px 3px;
+	background:url("../images/new-window-icon-hover.png")no-repeat 2px 3px;
 	clear:left;
-    display:block;
-    float:left;
-    padding:0 0 5px 20px;
-    margin-top: 4px;
-    line-height:18px;
+	display:block;
+	float:left;
+	padding:0 0 5px 20px;
+	margin-top: 4px;
+	line-height:18px;
 }
-
-
 .edu-table td ul {
 	padding-left:0;
 	margin-left: 0px;
@@ -863,10 +859,11 @@ list-style-type:none;
 div.well.logo-bank {
 	background-color:#fff;
 	border:2px solid #00ACCE;
-	margin-top: 5px;
+	margin-top: 10px;
 	-moz-box-shadow:-2px 2px 3px #B2b2b2;
 	-webkit-box-shadow: -2px 2px 3px #B2b2b2;
 	box-shadow: -2px 2px 3px #B2b2b2;
+	padding-bottom:24px;
 }
 div.well.logo-bank div.logo-bank-title {
 	background: #fff;
@@ -879,21 +876,33 @@ div.well.logo-bank div.logo-bank-title {
 	display: inline-block;
 	margin-left: 12px;
 }
+.logo-bank-logos {
+	overflow: hidden;
+}
 img.contributor-logos {
 	display: block;
-	margin-left: auto;
+	margin-left: 21px;
 	margin-right: auto;
-	padding: 0px 0 20px 0;
+	padding: 0px 0px 0px 0;
+	float: left;
+	position:relative;
 }
+/*
+img.contributor-logos:hover {
+	-webkit-box-shadow: 0px 0px 11px rgba(0, 0, 0, 0.65);
+	-moz-box-shadow:    0px 0px 11px rgba(0, 0, 0, 0.65);
+	box-shadow:         0px 0px 11px rgba(0, 0, 0, 0.65);
+}
+*/
 /*end logo-bank */
 
 /*Homepage Columns Adjustments 1.30.13 */
-a#about-col, a#educators-col, a#developer-col {
+a#vetted-content-col, a#admin-col, a#actionable-col {
 	display: block;
 	position: relative;
 	border-bottom: 2px solid #92D400 !important;
 	outline: none;
-	padding: 60px 0px 14px 0;
+	padding: 95px 0px 14px 0;
 	vertical-align: bottom;
 	text-align: center;
 	font-size: 20px;
@@ -902,30 +911,30 @@ a#about-col, a#educators-col, a#developer-col {
 	margin-bottom: 14px;
 	color: #92D400;
 }
-.main div.row div.span4 a#about-col {
-	background: url("../images/about-icon-lrg.png") no-repeat scroll 102px -1px transparent;
+.main div.row div.span4 a#vetted-content-col {
+	background: url("../images/vetted-icon.png") no-repeat scroll 90px 0px transparent;
 }
-.main div.row div.span4 a#about-col:hover {
-	background: url("../images/about-icon-lrg-glow.png") no-repeat scroll 102px -1px transparent;
+.main div.row div.span4 a#vetted-content-col:hover {
+	background: url("../images/vetted-icon-glow.png") no-repeat scroll 90px 0px transparent;
 }
-.main div.row div.span4 a#about-col:active {
-	background: url("../images/about-icon-lrg-green.png") no-repeat scroll 102px -1px transparent;
+.main div.row div.span4 a#vetted-content-col:active {
+	background: url("../images/vetted-icon-glow.png") no-repeat scroll 90px 0px transparent;
 }
-.main div.row div.span4 a#educators-col {
-	background: url("../images/ed-icon-lrg.png") no-repeat scroll 108px -0px transparent;
+.main div.row div.span4 a#admin-col {
+	background: url("../images/adease-icon.png") no-repeat scroll 108px 1px transparent;
 }
-.main div.row div.span4 a#educators-col:hover {
-	background: url("../images/ed-icon-lrg-glow.png") no-repeat scroll 108px -0px transparent;
+.main div.row div.span4 a#admin-col:hover {
+	background: url("../images/adease-icon-glow.png") no-repeat scroll 108px 1px transparent;
 }
-.main div.row div.span4 a#educators-col:active {
-	background: url("../images/ed-icon-lrg-green.png") no-repeat scroll 108px -0px transparent;
+.main div.row div.span4 a#admin-col:active {
+	background: url("../images/adease-icon-glow.png") no-repeat scroll 108px 1px transparent;
 }
-.main div.row div.span4 a#developer-col {
-	background: url("../images/dev-icon-lrg.png") no-repeat scroll 104px 2px transparent;
+.main div.row div.span4 a#actionable-col {
+	background: url("../images/actionable-icon.png") no-repeat scroll 104px 0px transparent;
 }
-.main div.row div.span4 a#developer-col:hover {
-	background: url("../images/dev-icon-lrg-glow.png") no-repeat scroll 104px 2px transparent;
+.main div.row div.span4 a#actionable-col:hover {
+	background: url("../images/actionable-icon-glow.png") no-repeat scroll 104px 0px transparent;
 }
-.main div.row div.span4 a#developer-col:active {
-	background: url("../images/dev-icon-lrg-green.png") no-repeat scroll 104px 2px transparent;
+.main div.row div.span4 a#actionable-col:active {
+	background: url("../images/actionable-icon-glow.png") no-repeat scroll 104px 0px transparent;
 }

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Features</title>
+    @partials.headNode()
+</head>
+<body>
+
+@partials.header("features")
+
+<div class="title-wrap">
+  <div class="container"> </div>
+</div>
+
+<!--main contents area starts here --> 
+
+<div class="container main-wrap">
+  <div class="span12 lead-in educator"> <span class="intro-logo"></span>
+    <p>CoreSpring is developing a library of interactions to help educators and students reach deeper learning in classrooms. All interactions may include a variety of media and are designed for maximum engagement. When available, examples of student work, scoring guides, and rubrics are presented. We are continuously updating and expanding the library.</p>
+  </div>
+
+  <div class="container">
+    <div class="main">
+      <table class="edu-table table table-hover table-striped">
+        <thead>
+          <tr>
+            <th class="edu-th-1">Interaction Type</th>
+            <th class="edu-th-2">Description</th>
+            <th class="edu-th-3">Student Activity</th>
+            <th class="edu-th-4">Scoreable?</th>
+            <th class="edu-th-5">PARCC & Smarter Balanced?</th>
+            <th class="edu-th-6">Sample</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Multiple Choice (includes True/False, Yes/No)</td>
+            <td>Select the best response from a list of options presented. </td>
+            <td>Choose, Select, Define, Recall, Identify</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a class="new-window" ng-click="openItem('50180807e4b0b89ebc0153b0')">Discount City</a></li>
+                <li><a class="new-window" ng-click="openItem('50d755c6e4b0ebcda4e2fbb6')">Correction!</a></li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Fill in the Blank/Complete the Statement (Inline Choice)</td>
+            <td>Select the best response from a list of options. </td>
+            <td>Choose, Select</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a class="new-window" ng-click="openItem('50192d0de4b04d97fbff6a17')">Class President</a> </li>
+                <li><a class="new-window" ng-click="openItem('5023fbe8e4b08be40d045d7c')">Toothpaste</a></li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Ordering</td>
+            <td>Sequence events or inputs in correct order. </td>
+            <td>Organize, Classify </td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a class="new-window" ng-click="openItem('504e9571e4b07f3e2e432371')">Butterflies</a> </li>
+                <li> <a class="new-window" ng-click="openItem('50324faae4b0383443ab9bce')"> Alaskan Temps</a></li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Constructed Response - Short Answer (Right Answer)</td>
+            <td>Respond to a prompt requiring a correct answer. </td>
+            <td>Calculate, Identify, Compute </td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a class="new-window" ng-click="openItem('5023cbb6e4b08be40d045d58')">Greg Goes Shopping</a> </li>
+                <li><a class="new-window" ng-click="openItem('5033daa3e4b02c4aa1428e91')">Prize Money</a></li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Constructed Response (Writing)</td>
+            <td>Respond to a prompt in short or long form. </td>
+            <td>Explain, Show, Describe, Demonstrate, Argue, Defend </td>
+            <td>No</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a class="new-window" ng-click="openItem('502927e7e4b005a3bb6bc0a0')">Demosthenes, Icarus, and Daedalus </a> </li>
+                <li><a class="new-window" ng-click="openItem('502282bce4b05b57849d303b')">Mass and Matter</a> </li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Focus</td>
+            <td>Highlight key concepts to summarize thinking. </td>
+            <td>Choose, Select</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td><ul>
+                <li><a class="new-window" ng-click="openItem('50098908e4b0f123a2d54c98')">The Hawks and Their Friends </a></li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Projects and Activities</td>
+            <td>Respond to a collection of prompts to demonstrate deeper learning.</td>
+            <td>Plan, Organize, Show, Describe, Demonstrate, Argue, Defend </td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a class="new-window" ng-click="openItem('50b653a1e4b0ec03f29344b0')">Pond Weeds</a></li>
+              </ul></td>
+          </tr>
+          <tr>
+            <td>Select Evidence in Text</td>
+            <td>Review passage-based items, select evidence from text to support a claim.</td>
+            <td>Analyze, Describe, Show, Describe, Demonstrate, Argue, Defend </td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td><ul>
+                <li><a class="new-window" ng-click="openItem('50ee136ee4b00448c0368e0e')">What does <u>scarred</u> mean? </a></li>
+              </ul></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+@partials.previewItemOverlay()
+@partials.footer()
+
+</body>
+</html>
