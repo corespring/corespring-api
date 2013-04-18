@@ -49,7 +49,7 @@
                                 <li>
                                     @group._1
                                     <ul>
-                                        @group._2.map{ template =>
+                                        @group._2.sortBy(_.position).map{ template =>
                                             <li><a href="#/new/@template.code">@template.label</a></li>
                                         }
                                     </ul>

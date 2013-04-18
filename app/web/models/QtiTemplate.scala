@@ -5,7 +5,7 @@ import play.api.Play.current
 
 import com.novus.salat.global._
 import com.novus.salat.dao._
-import play.api.libs.json.{JsObject, JsString, Writes}
+import play.api.libs.json.{JsNumber, JsObject, JsString, Writes}
 
 import com.mongodb.casbah.Imports._
 
@@ -14,6 +14,7 @@ case class QtiTemplate(
                         label: String,
                         code: String,
                         group: String,
+                        position: Int = 0,
                         xmlData: String
                         )
 
@@ -26,12 +27,14 @@ object QtiTemplate extends ModelCompanion[QtiTemplate, ObjectId] {
   implicit object QtiTemplateWrites extends Writes[QtiTemplate] {
     def writes(template: QtiTemplate) = {
 
+
       JsObject(
         Seq(
           "id" -> JsString(template._id.toString()),
           "label" -> JsString(template.label),
           "code" -> JsString(template.code),
           "group" -> JsString(template.group),
+          "position" -> JsNumber(template.position),
           "xmlData" -> JsString(template.xmlData)
         )
       )
