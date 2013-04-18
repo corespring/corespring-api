@@ -1,44 +1,37 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<assessmentItem xmlns='http://www.imsglobal.org/xsd/imsqti_v2p1'
-                xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-                xsi:schemaLocation='http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd'
-                title='' adaptive='false' timeDependent='false'>
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+                title="" adaptive="false" timeDependent="false">
 
     <itemBody>
-        <p class="prompt"/>GIVE STUDENTS INSTRUCTIONS HERE.
-        <p />
-        <selectTextInteraction responseIdentifier="selectText" selectionType="word" checkIfCorrect="yes"
-                               minSelections="2" maxSelections="2">
+        <p class="prompt"/>GIVE STUDENTS INSTRUCTIONS HERE.<p />
+        <selectTextInteraction responseIdentifier="selectText" selectionType="word" checkIfCorrect="yes" minSelections="2" maxSelections="2">
 
             <!-- You can also set selectionType to "sentence" and set off sentences within <correct> statements. Punctuation must go OUTSIDE <correct> statements. -->
 
-            "It turns out my <correct>mother</correct> loved the name Ruth. That's how I got my <correct>name</correct> and how my father got these: he let Ty Cobb name me after Babe Ruth."
-            <br/>
-            I tried to swallow but couldn't! I hoped that she wasn't going to say what I thought she was going to say.
-            <br/>
-            Then she said it.
-            <br/>
-            "In this shoebox are the ten baseballs Ty Cobb gave my father. They are signed by some of the most famous ballplayers in history, including one that has one single signature on it: Babe Ruth's."
+            "It turns out my <correct>mother</correct> loved the name Ruth. That"s how I got my name and how my father got these: he let Ty Cobb name me after Babe Ruth."<br/>
+            I tried to swallow but couldn"t! I hoped that she wasn"t going to say what I thought she was going to say.<br/>
+            Then she said it.<br/>
+            "In this shoebox are the ten <correct>baseballs</correct> Ty Cobb gave my father. They are signed by some of the most famous ballplayers in history, including one that has one single signature on it: Babe Ruth"s."
         </selectTextInteraction>
 
         <feedbackBlock outcomeIdentifier="responses.selectText.outcome.responsesBelowMin" identifier="id1">
             <div class="feedback-block-incorrect">Good try, but please choose two words.</div>
         </feedbackBlock>
 
-        <feedbackBlock outcomeIdentifier='responses.selectText.outcome.responsesExceedMax' identifier="id2">
-            <div class='feedback-block-incorrect'>Good try, but either you chose too many words, or did not choose the
-                right ones.
-            </div>
+        <feedbackBlock outcomeIdentifier="responses.selectText.outcome.responsesExceedMax" identifier="id2">
+            <div class="feedback-block-incorrect">Good try, but either you chose too many words, or did not choose the right ones.</div>
         </feedbackBlock>
 
-        <feedbackBlock outcomeIdentifier='responses.selectText.outcome.responsesCorrect' identifier='id3'>
-            <div class='feedback-block-correct'>Well done!</div>
+        <feedbackBlock outcomeIdentifier="responses.selectText.outcome.responsesCorrect" identifier="id3">
+            <div class="feedback-block-correct">Well done!</div>
         </feedbackBlock>
 
-        <feedbackBlock outcomeIdentifier='responses.selectText.outcome.responsesIncorrect' identifier='idb4'>
-            <div class='feedback-block-incorrect'>The two words that best answer the question are "mother" and "name."
-            </div>
+        <feedbackBlock outcomeIdentifier="responses.selectText.outcome.responsesIncorrect" identifier="idb4">
+            <div class="feedback-block-incorrect">The two words that best answer the question are "mother" and "baseballs."</div>
         </feedbackBlock>
 
     </itemBody>
+
 </assessmentItem>

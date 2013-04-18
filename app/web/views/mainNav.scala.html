@@ -45,8 +45,7 @@
                         data-toggle="dropdown"
                         class="dropdown-toggle">Create Item <b class="caret"></b></a>
                         <ul class="dropdown-menu">
-                            <li><a href="#/new">Blank item</a></li>
-                            @templates.groupBy(_.group).map { group =>
+                            @templates.groupBy(_.group).toSeq.sortWith(_._1.length > _._1.length).map { group =>
                                 <li>
                                     @group._1
                                     <ul>
@@ -61,10 +60,6 @@
                 </span>
 
             }
-
-
-
-
         </div>
     </div>
 </div>
