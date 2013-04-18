@@ -15,7 +15,7 @@ angular.module('corespring-dev').factory("Developer", ['$resource',function($res
         }
     );
 }]);
-function DeveloperCtrl($scope,$http,$rootScope,Developer) {
+function DeveloperCtrl($scope,Developer) {
     //noauth = not logged in
     //noorg = logged in but not registered with an organization
     //registered= logged in and registered with an organization
@@ -25,21 +25,16 @@ function DeveloperCtrl($scope,$http,$rootScope,Developer) {
     $scope.username = "";
     (function(){
         Developer.isLoggedIn({},function(data) {
+            console.log(JSON.stringify(data))
             if(data.isLoggedIn == true){
                 $scope.authState = "noorg";
                 $scope.username = data.username
                 Developer.getOrg({},function(org){
                     $scope.org = org;
                     $scope.authState = "registered"
-                    $http.post('/auth/register',{organization: org.id}).success(function(data,status,headers,config){
-                        if(data.client_id && data.client_secret){
-                            $rootScope.apiClient = {clientId: data.client_id, clientSecret: data.client_secret}
-                            $rootScope.$broadcast('setApiClient')
-                        }
-                    });
                 }) ;
             } else $scope.authState = "noauth";
         });
     })();
 }
-DeveloperCtrl.$inject = ['$scope','$http','$rootScope','Developer'];
+DeveloperCtrl.$inject = ['$scope','Developer'];

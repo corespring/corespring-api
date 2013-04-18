@@ -33,7 +33,7 @@ com.cs.utils.syntaxHighlightJson = function(data) {
 };
 
 
-com.cs.utils.xmlToString = function(xmlData) {
+com.cs.utils.xmlToString = function(xmlData) { 
   var xmlString;
   //IE
   if (window.ActiveXObject){
@@ -44,7 +44,7 @@ com.cs.utils.xmlToString = function(xmlData) {
       xmlString = (new XMLSerializer()).serializeToString(xmlData);
   }
   return xmlString;
-}
+}   
 
 
 angular.module('cs.directives').directive('jsonHighlight', function($http) {
@@ -55,13 +55,7 @@ angular.module('cs.directives').directive('jsonHighlight', function($http) {
     transclude: false,
     scope: true,
     link: function( scope, element, attrs){
-      var html = $(element).html();
-      try{
-        var object = JSON.parse(html);
-      }
-      catch (e){
-        console.log("Error parsing html: " + html);
-      }
+      var object = JSON.parse($(element).html());
       var jsonFormatted = com.cs.utils.syntaxHighlightJson(object);
       $(element).html("<div class='responseHolder'><pre>" + jsonFormatted + "</pre></div>");
     }
@@ -80,14 +74,14 @@ angular.module('cs.directives').directive('jsonHighlight', function($http) {
  * @param disabled - locks the ui if true and adds a 'coming soon' label
  * @param method - GET|POST|PUT|DELETE - the http method to use
  * @param path - the path to show to the user (for display only)
- * @param url - the url to use to make the call to the server
+ * @param url - the url to use to make the call to the server 
  * @requestBody - the data to send as part of the requestBody - adds a text area so the user can edit it.
  * @requestHeaders - a & delimited list of request headers to add to the call - shown to the user in a text input
  * @formParams - a & delimited list of form parameters for the request - shown to the user as text inputs.
  */
-angular.module('cs.directives').directive('restWidget', function($http,$rootScope) {
+angular.module('cs.directives').directive('restWidget', function($http) {
 
-  var definition = {
+  var definition = {   
     replace: true,
     restrict:'E',
     transclude: true,
@@ -126,26 +120,7 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
 
         scope.requestBody = ( attrs["requestBody"] || "")
         scope.requestHeaders = (attrs["requestHeaders"] || "")
-        var insertAccessTokenHeader = function(){
-            if($rootScope.access_token){
-                var atindex = scope.requestHeaders.indexOf("Authorization: Bearer ")
-                if(atindex != -1){
-                    var endindex = scope.requestHeaders.indexOf("&",atindex)
-                    if(endindex == -1) {
-                        var oldat = scope.requestHeaders.substring(atindex+22)
-                        scope.requestHeaders = scope.requestHeaders.replace(oldat,$rootScope.access_token)
-                    }else{
-                        var oldat = scope.requestHeaders.substring(atindex+22,endindex)
-                        scope.requestHeaders = scope.requestHeaders.replace(oldat,$rootScope.access_token)
-                    }
-                }
-            }
-            return url
-        }
-        insertAccessTokenHeader();
-        scope.$on('insertAccessTokenHeader', function(){
-          insertAccessTokenHeader();
-        });
+
         function showPostField( property, allowedMethods ){
           if( !property || property == "" ){
               return false;
@@ -167,7 +142,7 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
           }
 
           var splitted = formParamString.split("&")
-
+          
           var out = _.map( splitted, function(item){
 
             if( !item || item == "") {
@@ -182,35 +157,11 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
         }
 
         scope.formParams =  buildFormParams( (attrs["formParams"] || "") );
-          //test if the form param contain client id and secret. if so, then we know this widget is the access token widget
-          var hasClientIdAndSecret = function(){
-              var hasClientSecret = typeof _.find(scope.formParams,function(formParam){
-                  return formParam.name === "client_secret"
-              }) !== "undefined"
-              var hasClientId = typeof _.find(scope.formParams,function(formParam){
-                  return formParam.name === "client_id"
-              }) !== "undefined"
-              return hasClientSecret && hasClientId
-          }
-          if(hasClientIdAndSecret()){
-              //set the broadcast receiver to set the form params once the api client has been received
-              scope.$on('setApiClient',function(){
-                  if($rootScope.apiClient){
-                      scope.formParams = [
-                          {name: "client_id", value: $rootScope.apiClient.clientId},
-                          {name: "client_secret", value: $rootScope.apiClient.clientSecret}
-                      ]
-                  }
-              })
-          }
+
         scope.onSuccess = function( result ){
 
           scope.loading = false;
-          if(result.access_token){
-              $rootScope.access_token = result.access_token
-              $rootScope.$broadcast('insertAccessToken')
-              $rootScope.$broadcast('insertAccessTokenHeader')
-          }
+
           var body = ( scope.resultType == "xml" ) ? com.cs.utils.xmlToString(result) : com.cs.utils.syntaxHighlightJson(result);
           scope.$apply( function() {
             scope.responseBody = body;
@@ -234,7 +185,7 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
 
           var error = validJson(jqXHR.responseText) ? jqXHR.responseText : errorThrown.toString();
           $(element).find('#responseBox').html( error );
-        };
+        }; 
 
         scope.addDotsIntervalId = -1;
 
@@ -254,10 +205,10 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
 
         scope.executeCall = function(){
           var url = $inputField.val();
-
+          
 
           $.support.cors = true;
-
+          
           scope.loading = true;
 
           scope.$apply( function(){
@@ -273,24 +224,24 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
             //cache:false,
             success: function( result ) { scope.onSuccess.call(scope, result ) },
             error: function(jqXHR, textStatus, errorThrown){ scope.onError.call(scope, jqXHR, textStatus, errorThrown)},
-            dataType: scope.resultType,
+            dataType: scope.resultType, 
             beforeSend: function(request){
               // special header to let the server know to ignore user session
               request.setRequestHeader("CoreSpring-IgnoreSession", "true");
-
+              
               if( scope.requestHeaders ){
 
                 var headers = scope.requestHeaders.split("&");
 
                 _.each(headers, function(h){
-
+                  
                   if( !h && h.indexOf(":") == -1){
                     return;
                   }
 
                   var splitHeader = h.split(":");
                   request.setRequestHeader( splitHeader[0], splitHeader[1] );
-                });
+                });    
               }
             }
           };
@@ -308,7 +259,7 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
               for(var i = 0; i < scope.formParams.length; i++){
                 var item = scope.formParams[i];
                 request.data[item.name] = item.value;
-              }
+              } 
 
             }
           }
@@ -316,28 +267,10 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
           $.ajax(request);
         };
 
-          var url = attrs["url"];
-          var insertAccessToken = function(){
-              if($rootScope.access_token){
-                  var atindex = url.indexOf("access_token=")
-                  if(atindex != -1){
-                      var endindex = url.indexOf("&",atindex)
-                      if(endindex == -1) {
-                          var oldat = url.substring(atindex+13)
-                          return url.replace(oldat,$rootScope.access_token)
-                      }else{
-                          var oldat = url.substring(atindex+13,endindex)
-                          return url.replace(oldat,$rootScope.access_token)
-                      }
-                  }
-              }
-              return url
-          }
-          $(element).find("#urlInput").val(insertAccessToken());
-          scope.$on('insertAccessToken', function(){
-              $(element).find('#urlInput').val(insertAccessToken())
-          });
+        var url = attrs["url"];
 
+        $(element).find("#urlInput").val(url); 
+        
         var responseDiv = "<div style='width:100%; height: 200px;'></div>";
         scope.showRunner = false;
 

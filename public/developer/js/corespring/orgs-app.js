@@ -24,5 +24,5 @@ function DeveloperOrgsController($scope, $window, Organizations){
 }
 
 DeveloperOrgsController.$inject = [
-  '$scope', '$window', 'Organizations'
+  '$scope', $window, 'Organizations'
 ];
