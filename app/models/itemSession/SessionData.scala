@@ -48,7 +48,7 @@ object SessionData {
       val feedback = qti.getFeedback(id,value)
       feedback match {
         case Some(fb) => {
-          if (!showCorrectResponses)
+          if (!showFeedback)
             None
           else if (fb.defaultFeedback)
             Some(fb.csFeedbackId, getDefaultFeedback(id, value, index))

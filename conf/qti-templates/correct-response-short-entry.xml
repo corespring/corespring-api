@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+                identifier="composite" title="Composite Item" adaptive="false" timeDependent="false">
+
+    <!-- definition for question one, a short text entry response with correct answer = "CORRECT ANSWER" -->
+
+    <responseDeclaration identifier="Q_01" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>correct answer</value>
+            <value>Correct answer</value>
+            <value>Correct Answer</value>
+            <value>CORRECT ANSWER</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+
+        <p class="prompt">PROMPT?</p>
+
+        <p class="p-indent-20">TEXT<textEntryInteraction responseIdentifier="Q_01" expectedLength="5"/>TEXT
+        </p>
+
+
+        <!-- Every possible correct response must have a feedbackBlock -->
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_01.value"
+                identifier="correct answer">
+            <div class="feedback-block-correct">Nice work, that's correct!</div>
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_01.value"
+                identifier="Correct answer">
+            <div class="feedback-block-correct">Nice work, that's correct!</div>
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_01.value"
+                identifier="Correct Answer">
+            <div class="feedback-block-correct">Nice work, that's correct!</div>
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_01.value"
+                identifier="CORRECT ANSWER">
+            <div class="feedback-block-correct">Nice work, that's correct!</div>
+        </feedbackBlock>
+
+        <!-- this is for any response not defined as a correct response in responseDeclaration -->
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_01.value"
+                incorrectResponse="true">
+            <div class="feedback-block-incorrect">Good try, but the answer is CORRECT ANSWER.</div>
+        </feedbackBlock>
+    </itemBody>
+</assessmentItem>

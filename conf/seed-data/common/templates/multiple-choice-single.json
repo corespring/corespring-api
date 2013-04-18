@@ -1,8 +1,0 @@
-{
-    "_id":{
-        "$oid":"5059ed343004d9b000a53b2b"
-    },
-    "label":"QTI2 Multi Choice (single)",
-    "code":"multi",
-    "xmlData":"$[interpolate{conf/qti-templates/multiple-choice-single.xml}]"
-}

@@ -46,8 +46,15 @@
                         class="dropdown-toggle">Create Item <b class="caret"></b></a>
                         <ul class="dropdown-menu">
                             <li><a href="#/new">Blank item</a></li>
-                            @templates.map{ template =>
-                                <li><a href="#/new/@template.code">@template.label</a></li>
+                            @templates.groupBy(_.group).map { group =>
+                                <li>
+                                    @group._1
+                                    <ul>
+                                        @group._2.map{ template =>
+                                            <li><a href="#/new/@template.code">@template.label</a></li>
+                                        }
+                                    </ul>
+                                </li>
                             }
                         </ul>
                     </li>

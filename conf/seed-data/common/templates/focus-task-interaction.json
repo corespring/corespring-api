@@ -1,8 +1,0 @@
-{
-    "_id":{
-        "$oid":"5058bd133014d1b0c2d13b2e"
-    },
-    "label":"Focus Task Interaction",
-    "code":"focustask",
-    "xmlData":"$[interpolate{conf/qti-templates/focus-task-interaction.xml}]"
-}

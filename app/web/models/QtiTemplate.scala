@@ -13,6 +13,7 @@ case class QtiTemplate(
                         _id: ObjectId = new ObjectId,
                         label: String,
                         code: String,
+                        group: String,
                         xmlData: String
                         )
 
@@ -30,6 +31,7 @@ object QtiTemplate extends ModelCompanion[QtiTemplate, ObjectId] {
           "id" -> JsString(template._id.toString()),
           "label" -> JsString(template.label),
           "code" -> JsString(template.code),
+          "group" -> JsString(template.group),
           "xmlData" -> JsString(template.xmlData)
         )
       )

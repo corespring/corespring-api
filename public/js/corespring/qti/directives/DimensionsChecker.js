@@ -27,7 +27,7 @@ angular.module('qti.directives').directive('dimensionsChecker', function(){
           lastW = w;
           lastH = h;
           var msg = {message:'dimensionsUpdate', w: w, h: h};
-          getParent().postMessage(JSON.stringify(msg), "*");
+          if (getParent()) getParent().postMessage(JSON.stringify(msg), "*");
         }
       };
 

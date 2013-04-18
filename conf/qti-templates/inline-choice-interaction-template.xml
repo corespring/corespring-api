@@ -1,23 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
-                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
-                title="" adaptive="false" timeDependent="false">
-    <!-- single choice -->
-    <responseDeclaration identifier='manOnMoon' cardinality='single' baseType='identifier'>
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+    identifier="composite" title="Composite Item" adaptive="false" timeDependent="false">
+    
+     <correctResponseFeedback>Correct!</correctResponseFeedback>
+    <incorrectResponseFeedback>Your Answer.</incorrectResponseFeedback>
+
+   <responseDeclaration identifier="Q_01" cardinality="single" baseType="identifier">
         <correctResponse>
-            <value>armstrong</value>
+            <value>3</value> <!-- # of choice with CORRECT ANSWER -->
         </correctResponse>
     </responseDeclaration>
-
-    <itemBody>
-        The first man on the moon was <inlineChoiceInteraction
-            responseIdentifier="manOnMoon"
+    
+    
+<itemBody>
+<p class="intro-2">INTRO TEXT GOES HERE.</p>  
+<p class="prompt">PROMPT?</p> 
+     <p> <inlineChoiceInteraction
+            responseIdentifier="Q_01"
             required="false">
-        <inlineChoice identifier="armstrong">Neil Armstrong<feedbackInline identifier="armstrong" defaultFeedback="true"/></inlineChoice>
-        <inlineChoice identifier="aldrin">Buzz Aldrin<feedbackInline identifier="aldrin" defaultFeedback="true"/></inlineChoice>
-    </inlineChoiceInteraction>, he landed there in 1969.
-    </itemBody>
+            <inlineChoice identifier="1">RESPONSE1<feedbackInline identifier="1">CORRECT ANSWER</feedbackInline></inlineChoice>
+            <inlineChoice identifier="2">RESPONSE2<feedbackInline identifier="2">CORRECT ANSWER</feedbackInline></inlineChoice>
+            <inlineChoice identifier="3">CORRECT ANSWER<feedbackInline identifier="3" defaultFeedback="true"/></inlineChoice>
+        </inlineChoiceInteraction> 
+</p>
 
+    
+</itemBody>
 </assessmentItem>
-
