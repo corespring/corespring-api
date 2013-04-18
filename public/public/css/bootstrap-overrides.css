@@ -46,8 +46,8 @@ p {
 	padding: 25px 0px;
 }
 .learn-section {
-	border-bottom: 1px solid #92D400;
-	border-top: 1px solid #92D400;
+	border-bottom: 1px solid #80b312;
+	border-top: 1px solid #80b312;
 	margin: 10px 0px 0px;
 	padding: 20px;
 	text-align: center;
@@ -59,7 +59,7 @@ p {
 	line-height: 42px;
 }
 .learn-section a {
-	color: #92D400;
+	color: #80b312;
 	font-weight: bold;
 }
 .form-section p {
@@ -139,11 +139,11 @@ p {
 	vertical-align: middle;
 }
 .navbar .nav-collapse .nav > li > a:hover, .navbar .nav-collapse .nav > li > .active {
-	color: #92D400;
+	color: #80b312;
 	text-shadow: 0px 1px 0px #FFFFFF;
 }
 .navbar .nav-collapse .nav > li > a:hover, .navbar .nav-collapse .nav > li > .active {
-	color: #92D400;
+	color: #80b312;
 	text-shadow: 0px 1px 0px #FFFFFF;
 }
 .navbar .nav .active > a {
@@ -163,7 +163,7 @@ p {
 /* COMMENTED OUT FOR DEBUGGING -- EDITED BUTTON CSS 
 .btn-success {
 	background-color: #80B312;
-	background-image: -moz-linear-gradient(center top, #92D400, #62890E);
+	background-image: -moz-linear-gradient(center top, #80b312, #62890E);
 	background-repeat: repeat-x;
 	border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
 }
@@ -171,7 +171,7 @@ p {
 	background-color: #5F850D;
 }
 .btn-success:active, .btn-success.active {
-	background-color: #92D400;
+	background-color: #80b312;
 }
 .btn-primary {
 	background-color: #00ACCE;
@@ -189,12 +189,12 @@ p {
 /* - corespring color overrides ADDED FOR FIX - */
 .btn-success {
 	background-color: #80b312;
-	background-image: -ms-linear-gradient(top, #92d400, #62890e);
+	background-image: -ms-linear-gradient(top, #80b312, #62890e);
 	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#80b312), to(#62890e));
-	background-image: -webkit-linear-gradient(top, #92d400, #62890e);
-	background-image: -o-linear-gradient(top, #92d400, #62890e);
-	background-image: -moz-linear-gradient(top, #92d400, #62890e);
-	background-image: linear-gradient(top, #92d400, #62890e);
+	background-image: -webkit-linear-gradient(top, #80b312, #62890e);
+	background-image: -o-linear-gradient(top, #80b312, #62890e);
+	background-image: -moz-linear-gradient(top, #80b312, #62890e);
+	background-image: linear-gradient(top, #80b312, #62890e);
  filter: progid:dximagetransform.microsoft.gradient(startColorstr='@top', endColorstr='@bottom', GradientType=0);
  filter: progid:dximagetransform.microsoft.gradient(enabled=false);
 	background-repeat: repeat-x;
@@ -205,7 +205,7 @@ p {
 	background-color: #5f850d;
 }
 .btn-success:active, .btn-success.active {
-	background-color: #92D400;
+	background-color: #80b312;
 }
 .btn-primary {
 	background-color: #00acce;
@@ -399,7 +399,7 @@ p {
 }
 /*--end of nav sprites */
 
-
+/*
 .container div.span12 p {
 	color: #00ACCE;
 	font: italic 500 27px/20px "Ubuntu", Arial, Helvetica, sans-serif;
@@ -407,6 +407,7 @@ p {
 	margin-right: auto;
 	text-align: center;
 }
+*/
 .container div.span12.intro {
 	margin-left: 0px;
 	margin-top: 10px;
@@ -422,8 +423,8 @@ p {
 	padding-top: 0px;
 }
 .main div.row div.span4 span.col-header {
-	border-bottom: 2px solid #92D400;
-	color: #92D400;
+	border-bottom: 2px solid #80b312;
+	color: #80b312;
 	display: block;
 	font-size: 20px;
 	font-weight: 700;
@@ -508,6 +509,23 @@ p {
 	width: 54px;
 	margin-bottom: 30px;
 }
+.features .intro-logo {
+	background: url("../images/icon-sprite-xl.png") no-repeat scroll -29px -403px transparent;
+display: inline-block;
+float: left;
+height: 75px;
+margin-right: 20px;
+width: 57px;
+margin-bottom: 25px;
+
+}
+.span12.features h3 {
+	color: #80b312;
+	font-size: 18px;
+	font-weight: 500;
+	line-height: 26px;
+	margin-bottom: 5px;
+}
 div.span6.justify p {
 	margin-bottom:15px;
 }
@@ -515,7 +533,7 @@ div.span6.justify p {
 	text-align: justify;
 }
 .span6 h3 {
-	color: #92D400;
+	color: #80b312;
 	font-size: 18px;
 	font-weight: 500;
 	line-height: 26px;
@@ -592,7 +610,7 @@ hr {
 	-moz-border-left-colors: none;
 	-moz-border-right-colors: none;
 	-moz-border-top-colors: none;
-	border-color: #EEEEEE -moz-use-text-color #92D400 ! important;
+	border-color: #EEEEEE -moz-use-text-color #80b312 ! important;
 	border-image: none;
 	border-style: solid none;
 	border-width: 1px 0px;
@@ -763,12 +781,12 @@ div.well.item a.fancybox:hover {
 	background: url("../images/title-wrap-bg-tile.png") repeat scroll center top transparent;
 }
 /*for green gradient header
-	background-image: -ms-linear-gradient(top, #92d400, #62890e);
+	background-image: -ms-linear-gradient(top, #80b312, #62890e);
 	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#80b312), to(#62890e));
-	background-image: -webkit-linear-gradient(top, #92d400, #62890e);
-	background-image: -o-linear-gradient(top, #92d400, #62890e);
-	background-image: -moz-linear-gradient(top, #92d400, #62890e);
-	background-image: linear-gradient(top, #92d400, #62890e);
+	background-image: -webkit-linear-gradient(top, #80b312, #62890e);
+	background-image: -o-linear-gradient(top, #80b312, #62890e);
+	background-image: -moz-linear-gradient(top, #80b312, #62890e);
+	background-image: linear-gradient(top, #80b312, #62890e);
  filter: progid:dximagetransform.microsoft.gradient(startColorstr='@top', endColorstr='@bottom', GradientType=0);
  filter: progid:dximagetransform.microsoft.gradient(enabled=false);
 	background-repeat: repeat-x;
@@ -865,6 +883,20 @@ div.well.logo-bank {
 	box-shadow: -2px 2px 3px #B2b2b2;
 	padding-bottom:24px;
 }
+.features div.well.logo-bank {
+	background-color: #fff;
+	border: 2px solid #00ACCE;
+	margin-top: 6px;
+	-moz-box-shadow: -2px 2px 3px #B2b2b2;
+	-webkit-box-shadow: -2px 2px 3px #B2b2b2;
+	box-shadow: -2px 2px 3px #B2b2b2;
+	padding-bottom: 24px;
+	width: 500px;
+	float: right;
+	margin-left:30px;
+	postion:relative;
+	top:-5px;
+}
 div.well.logo-bank div.logo-bank-title {
 	background: #fff;
 	color: #00ACCE;
@@ -887,6 +919,10 @@ img.contributor-logos {
 	float: left;
 	position:relative;
 }
+
+#csvideomodal{
+	width: 592px;
+}
 /*
 img.contributor-logos:hover {
 	-webkit-box-shadow: 0px 0px 11px rgba(0, 0, 0, 0.65);
@@ -900,7 +936,7 @@ img.contributor-logos:hover {
 a#vetted-content-col, a#admin-col, a#actionable-col {
 	display: block;
 	position: relative;
-	border-bottom: 2px solid #92D400 !important;
+	border-bottom: 2px solid #80b312 !important;
 	outline: none;
 	padding: 95px 0px 14px 0;
 	vertical-align: bottom;
@@ -909,7 +945,7 @@ a#vetted-content-col, a#admin-col, a#actionable-col {
 	line-height: 25px;
 	font-weight: 700;
 	margin-bottom: 14px;
-	color: #92D400;
+	color: #80b312;
 }
 .main div.row div.span4 a#vetted-content-col {
 	background: url("../images/vetted-icon.png") no-repeat scroll 90px 0px transparent;
@@ -937,4 +973,85 @@ a#vetted-content-col, a#admin-col, a#actionable-col {
 }
 .main div.row div.span4 a#actionable-col:active {
 	background: url("../images/actionable-icon-glow.png") no-repeat scroll 104px 0px transparent;
+}
+.span12.lead-in.features {
+	padding:0px !important;
+}
+
+.span12.features {
+	border-bottom: 1px solid #e4e4e4;
+	padding: 40px 0 40px 0;
+}
+.features.authoring-banking .ab2 {
+	background: url("../images/authoring-and-banking.png") no-repeat scroll 130px 0px transparent;
+	height: 320px;
+}
+.features.authoring-banking .ab3 {
+	margin-top: -45px;
+}
+.features.authoring-banking p.authoring-graph {
+margin-bottom: 35px;
+	padding-bottom:0px;
+}
+.features.authoring-banking p.banking-graph {
+	background-color: #FFF;
+	margin-bottom:0px;
+	paddin:5px 0 5px 0;
+}
+.features.authoring-banking .ab4 {
+	background: url("../images/authoring-and-banking.png") no-repeat scroll 130px -330px transparent;
+	height: 398px;
+}
+.features.collections .features-link {
+	padding-top: 0px
+	
+}
+.features .features-link {
+	font-size:16px;
+	font-weight:700;
+	padding-top: 50px;
+	padding-bottom: 0px;
+margin-bottom: 0px;
+}
+.features .features-link a{
+color: #0088cc;
+text-decoration:underline;
+}
+
+.features .features-link a:hover{
+color: #005580;
+}
+
+.features .graphic-context { 
+background: url("../images/student-iconv1.png") no-repeat scroll 0px -0px transparent;
+height: 30px;
+padding-left: 55px;
+padding-top: 5px;
+font-weight: 500;
+font-size: 16px;
+}
+.features.play-authoring img{
+display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+table.logo-table{
+margin-right: auto;
+margin-left: auto;
+width: 100%;
+position: relative;
+top: -5px;
+}
+
+table.logo-table img.contributor-logos {
+	display: block;   
+	margin-left: auto;   
+	margin-right: auto;
+	float:none !important;
+}
+
+table.logo-table td{
+text-align:center; 
+padding: 5px;
 }

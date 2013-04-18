@@ -1,131 +1,91 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Features</title>
-    @partials.headNode()
+<title>Features</title>
+@partials.headNode()
 </head>
 <body>
-
 @partials.header("features")
-
 <div class="title-wrap">
   <div class="container"> </div>
 </div>
 
-<!--main contents area starts here --> 
+<!--main contents area starts here -->
 
 <div class="container main-wrap">
-  <div class="span12 lead-in educator"> <span class="intro-logo"></span>
-    <p>CoreSpring is developing a library of interactions to help educators and students reach deeper learning in classrooms. All interactions may include a variety of media and are designed for maximum engagement. When available, examples of student work, scoring guides, and rubrics are presented. We are continuously updating and expanding the library.</p>
+  <div class="span12 lead-in features"> <span class="intro-logo"></span>
+    <p>CoreSpring turns shared item banking and formative assessment upside down. The vetted content <br />
+      delivered using innovative item types can be administered in any browser-capable environment.</p>
   </div>
-
   <div class="container">
     <div class="main">
-      <table class="edu-table table table-hover table-striped">
-        <thead>
-          <tr>
-            <th class="edu-th-1">Interaction Type</th>
-            <th class="edu-th-2">Description</th>
-            <th class="edu-th-3">Student Activity</th>
-            <th class="edu-th-4">Scoreable?</th>
-            <th class="edu-th-5">PARCC & Smarter Balanced?</th>
-            <th class="edu-th-6">Sample</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Multiple Choice (includes True/False, Yes/No)</td>
-            <td>Select the best response from a list of options presented. </td>
-            <td>Choose, Select, Define, Recall, Identify</td>
-            <td>Yes</td>
-            <td>Yes</td>
-            <td><ul>
-                <li><a class="new-window" ng-click="openItem('50180807e4b0b89ebc0153b0')">Discount City</a></li>
-                <li><a class="new-window" ng-click="openItem('50d755c6e4b0ebcda4e2fbb6')">Correction!</a></li>
-              </ul></td>
-          </tr>
-          <tr>
-            <td>Fill in the Blank/Complete the Statement (Inline Choice)</td>
-            <td>Select the best response from a list of options. </td>
-            <td>Choose, Select</td>
-            <td>Yes</td>
-            <td>Yes</td>
-            <td><ul>
-                <li><a class="new-window" ng-click="openItem('50192d0de4b04d97fbff6a17')">Class President</a> </li>
-                <li><a class="new-window" ng-click="openItem('5023fbe8e4b08be40d045d7c')">Toothpaste</a></li>
-              </ul></td>
-          </tr>
-          <tr>
-            <td>Ordering</td>
-            <td>Sequence events or inputs in correct order. </td>
-            <td>Organize, Classify </td>
-            <td>Yes</td>
-            <td>Yes</td>
-            <td><ul>
-                <li><a class="new-window" ng-click="openItem('504e9571e4b07f3e2e432371')">Butterflies</a> </li>
-                <li> <a class="new-window" ng-click="openItem('50324faae4b0383443ab9bce')"> Alaskan Temps</a></li>
-              </ul></td>
-          </tr>
-          <tr>
-            <td>Constructed Response - Short Answer (Right Answer)</td>
-            <td>Respond to a prompt requiring a correct answer. </td>
-            <td>Calculate, Identify, Compute </td>
-            <td>Yes</td>
-            <td>Yes</td>
-            <td><ul>
-                <li><a class="new-window" ng-click="openItem('5023cbb6e4b08be40d045d58')">Greg Goes Shopping</a> </li>
-                <li><a class="new-window" ng-click="openItem('5033daa3e4b02c4aa1428e91')">Prize Money</a></li>
-              </ul></td>
-          </tr>
-          <tr>
-            <td>Constructed Response (Writing)</td>
-            <td>Respond to a prompt in short or long form. </td>
-            <td>Explain, Show, Describe, Demonstrate, Argue, Defend </td>
-            <td>No</td>
-            <td>Yes</td>
-            <td><ul>
-                <li><a class="new-window" ng-click="openItem('502927e7e4b005a3bb6bc0a0')">Demosthenes, Icarus, and Daedalus </a> </li>
-                <li><a class="new-window" ng-click="openItem('502282bce4b05b57849d303b')">Mass and Matter</a> </li>
-              </ul></td>
-          </tr>
-          <tr>
-            <td>Focus</td>
-            <td>Highlight key concepts to summarize thinking. </td>
-            <td>Choose, Select</td>
-            <td>Yes</td>
-            <td>No</td>
-            <td><ul>
-                <li><a class="new-window" ng-click="openItem('50098908e4b0f123a2d54c98')">The Hawks and Their Friends </a></li>
-              </ul></td>
-          </tr>
-          <tr>
-            <td>Projects and Activities</td>
-            <td>Respond to a collection of prompts to demonstrate deeper learning.</td>
-            <td>Plan, Organize, Show, Describe, Demonstrate, Argue, Defend </td>
-            <td>Yes</td>
-            <td>Yes</td>
-            <td><ul>
-                <li><a class="new-window" ng-click="openItem('50b653a1e4b0ec03f29344b0')">Pond Weeds</a></li>
-              </ul></td>
-          </tr>
-          <tr>
-            <td>Select Evidence in Text</td>
-            <td>Review passage-based items, select evidence from text to support a claim.</td>
-            <td>Analyze, Describe, Show, Describe, Demonstrate, Argue, Defend </td>
-            <td>Yes</td>
-            <td>Yes</td>
-            <td><ul>
-                <li><a class="new-window" ng-click="openItem('50ee136ee4b00448c0368e0e')">What does <u>scarred</u> mean? </a></li>
-              </ul></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="span12 features collections">
+        <h3>CoreSpring Collections</h3>
+        <div class="well logo-bank">
+          <div class="logo-bank-title">Some of Our Quality Content Providers:</div>
+          <table class="logo-table" >
+            <tr>
+              <td ><a href="http://www.illustrativemathematics.org/" title="Illustrative Mathematics"><img alt="Illustrative Mathematics" class="contributor-logos" src="/assets/public/images/illustrative-math-logo.jpg" style="top:-2px;"></a></td>
+              <td><a href="http://www.nysed.gov/" title="New York State Department of Education"><img alt="New York State Department of Education" class="contributor-logos" src="/assets/public/images/nysedlogo.jpg" style="top:10px;"></a></td>
+            </tr>
+            <tr>
+              <td ><a href="http://en.wikipedia.org/wiki/NECAP" title="New England Common Assessment Program"><img alt="New England Common Assessment Program" class="contributor-logos" src="/assets/public/images/necap-logo.jpeg" style="top:2px;"></a></td>
+              <td><a href="http://nces.ed.gov/Timss/" title="Trends in International Mathematics and Science Study"><img alt="Trends in International Mathematics and Science Study" class="contributor-logos" src="/assets/public/images/timss-logo.jpeg" style="top:-3px;"></a></td>
+            </tr>
+            <tr>
+              <td ><a href="http://www.aspirepublicschools.org/" title="Aspire Public Schools"><img alt="Aspire Public Schools" class="contributor-logos" src="/assets/public/images/aspire-logo.png" style="top:8px;"></a></td>
+              <td><a href="http://www.state.nj.us/education/" title="New Jersey Department of Education"><img alt="New Jersey Department of Education" class="contributor-logos" src="/assets/public/images/njdoe-logo.png" style="top:8px;"></a></td>
+            </tr>
+          </table>
+        </div>
+        <p> The collections are a growing bank of items across K–12 in Mathematics, English Language Arts, Literacy, and Science. The items are aligned to a template that allows for common storage of metadata (standards, Bloom’s Taxonomy, Key Skills, etc.) and accompanied by supporting materials such as Scoring Guides, Rubrics, and examples of work. We're building a library of interactions to help educators and students reach deeper learning in classrooms. All interactions may include a variety of media and are designed for maximum engagement. These items are aligned with PARCC and Smarter Balanced.</p>
+        <p class="features-link">To take a look at content and browse the samples, <a href="http://www.corespring.org/public/educators" title="Educators">click here.</a></p>
+      </div>
+    </div>
+    <div class="span12 features authoring-banking">
+      <div class="ab1">
+        <h3>Item Authoring</h3>
+        <p class="authoring-graph">Items can be authored very quickly and easily using CoreSpring’s authoring tools. The system allows authors to select an interaction, design feedback and scoring, and add supporting materials such as scoring guides or rubrics.</p>
+      </div>
+      <div class="ab2"> </div>
+      <div class="ab3">
+        <h3>Item Banking</h3>
+        <p class="banking-graph">All users of CoreSpring get access to the shared collections and organizations can store, manage, and share items with smaller networks in Private Collections. All educators may store items that they’re working on in their Personal Collection.</p>
+      </div>
+      <div class="ab4"></div>
+      <p class="features-link">If you are interested in using our authoring tools, please <a href="http://www.corespring.org/public/contact" title="Contact CoreSpring">Contact Us</a>.</p>
+    </div>
+    <div class="span12 features play-authoring">
+      <h3> Reliable Play and Automatic Scoring </h3>
+      <p>CoreSpring items can be integrated in any browser-based platform; items are ”played” in browser engines on PC/laptop/tablets devices (specific tablet/touchscreen device administration enhancements will be added to standard browser-based delivery). This allows for consistent item rendering—what you see is what you get. </p>
+      <p class="graphic-context"> A 6th grade classroom is learning about ratios and their teacher assigns some work... </p>
+      <img src="/assets/public/images/play-and-scoring.png" width="866" height="450">
+      <p class="features-link">Developers interested in learning more, can visit our <a href="http://www.corespring.org/developer/home" title="Developers">Developers page.</a></p>
+    </div>
+    <div class="span12 features play-authoring">
+      <h3>Immediate Results</h3>
+      <p>As soon as a student completes an item, it is scored and stored and available for analysis. Using CoreSpring, educators can use the data collected about the whole class and individual students to inform future instruction.</p>
+      <img src="/assets/public/images/app-feedback.png">
+         <!-- Includes Button to trigger modal -->
+      <p class="features-link">Check out the application we built to show the power of CoreSpring, by<a href="#csvideomodal" role="button" data-toggle="modal"> clicking here.</a></p>
+ 
+<!-- Modal -->
+<div id="csvideomodal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">CoreSpring Formative Assessment Application</h3>
+  </div>
+  <div class="modal-body">
+    <iframe width="560" height="315" src="http://www.youtube.com/embed/_FU0ol9lWog?rel=0" frameborder="0" allowfullscreen></iframe>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+  </div>
+</div>
     </div>
   </div>
 </div>
-
 @partials.previewItemOverlay()
 @partials.footer()
-
 </body>
 </html>
