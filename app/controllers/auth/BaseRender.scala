@@ -16,7 +16,10 @@ object BaseRender{
 }
 trait BaseRender extends Controller{
   import BaseRender._
-  case class RenderRequest[A](ctx: RendererContext, r:Request[A]) extends WrappedRequest(r)
+  case class RenderRequest[A](ctx: RendererContext, r:Request[A]) extends WrappedRequest(r){
+    def reencrypt:String =
+      ctx.apiClient.clientId+Delimeter+AESCrypto.encryptAES(Json.toJson(ctx.options).toString(),ctx.apiClient.clientSecret)
+  }
 
   /**
    * Returns the renderer key either from json body, from the query string, or from the session

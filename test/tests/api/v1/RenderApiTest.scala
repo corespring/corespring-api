@@ -35,18 +35,18 @@ class RenderApiTest extends BaseTest{
       clientId must beSome[String]
       encrypted must beSome[String]
     }
-    "return a session with client id and options equivalent to the json received" in {
-      val resultsession:Session = session(result)
-      val (sessionclientId,sessionencrypted) = resultsession.get(BaseRender.RendererHeader) match {
-        case Some(strctx) => strctx.split(BaseRender.Delimeter) match {
-          case Array(sessionclientId,sessionencrypted) => (Some(sessionclientId),Some(sessionencrypted))
-          case _ => (None,None)
-        }
-        case None => (None,None)
-      }
-      sessionclientId must beEqualTo(clientId)
-      sessionencrypted must beEqualTo(encrypted)
-    }
+//    "return a session with client id and options equivalent to the json received" in {
+//      val resultsession:Session = session(result)
+//      val (sessionclientId,sessionencrypted) = resultsession.get(BaseRender.RendererHeader) match {
+//        case Some(strctx) => strctx.split(BaseRender.Delimeter) match {
+//          case Array(sessionclientId,sessionencrypted) => (Some(sessionclientId),Some(sessionencrypted))
+//          case _ => (None,None)
+//        }
+//        case None => (None,None)
+//      }
+//      sessionclientId must beEqualTo(clientId)
+//      sessionencrypted must beEqualTo(encrypted)
+//    }
     "return a key with the correct client id" in {
       clientId must beSome(apiClient.clientId.toString)
     }

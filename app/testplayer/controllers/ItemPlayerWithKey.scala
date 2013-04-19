@@ -7,12 +7,17 @@ import org.bson.types.ObjectId
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import scala.Some
-import play.api.mvc.{Action, Result, AnyContent}
+import play.api.mvc.{SimpleResult, Action, Result, AnyContent}
 import testplayer.controllers.ItemPlayer
 import models.itemSession.ItemSessionSettings
 import models.item.Content
 import api.ApiError
 import controllers.{Utils, InternalError}
+import controllers.auth.BaseRender._
+import scala.Left
+import controllers.InternalError
+import scala.Right
+import scala.Some
 
 object ItemPlayerWithKey extends BaseApi with BaseRender{
 
@@ -20,23 +25,23 @@ object ItemPlayerWithKey extends BaseApi with BaseRender{
     val finalMode = if (request.ctx.options.mode == "*") mode else request.ctx.options.mode
     finalMode match {
       case "preview" => finalId(itemId,request.ctx.options.itemId,"item") match {
-        case Right(iid) => previewMode(iid)
+        case Right(iid) => previewMode(iid).asInstanceOf[SimpleResult[_]].withSession(RendererHeader -> request.reencrypt)
         case Left(error) => BadRequest(Json.toJson(ApiError.ItemPlayer(error.clientOutput)))
       }
       case "render" => finalId(sessionId,request.ctx.options.sessionId,"session") match {
-        case Right(iid) => renderMode(iid)
+        case Right(iid) => renderMode(iid).asInstanceOf[SimpleResult[_]].withSession(RendererHeader -> request.reencrypt)
         case Left(error) => BadRequest(Json.toJson(ApiError.ItemPlayer(error.clientOutput)))
       }
       case "administer" => finalId(itemId,request.ctx.options.itemId,"item") match {
         case Right(iid) => finalId(sessionId,request.ctx.options.sessionId, "session") match {
-          case Right(sid) => administerMode(iid,Some(sid))
-          case Left(error) => administerMode(iid,None)
+          case Right(sid) => administerMode(iid,Some(sid)).asInstanceOf[SimpleResult[_]].withSession(RendererHeader -> request.reencrypt)
+          case Left(error) => administerMode(iid,None).asInstanceOf[SimpleResult[_]].withSession(RendererHeader -> request.reencrypt)
         }
         case Left(error) => BadRequest(Json.toJson(ApiError.ItemPlayer(error.clientOutput)))
       }
       case "aggregate" => finalId(itemId,request.ctx.options.itemId, "item") match {
         case Right(iid) => request.ctx.options.assessmentId.flatMap(Utils.toObjectId(_)) match {
-          case Some(assessmentId) => aggregateMode(iid,assessmentId)
+          case Some(assessmentId) => aggregateMode(iid,assessmentId).asInstanceOf[SimpleResult[_]].withSession(RendererHeader -> request.reencrypt)
           case None => BadRequest(Json.toJson(ApiError.ItemPlayer(Some("could not parse assessment id"))))
         }
         case Left(error) => BadRequest(Json.toJson(ApiError.ItemPlayer(error.clientOutput)))

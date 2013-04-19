@@ -24,7 +24,7 @@ object RenderApi extends BaseApi{
             Ok(JsObject(Seq(
               "clientId" -> JsString(apiClient.clientId.toString),
               "options" -> JsString(encryptedOptions)
-            ))).withSession(RendererHeader -> (apiClient.clientId.toString+Delimeter+encryptedOptions))
+            )))
           }
           case None => BadRequest(JsObject(Seq("message" -> JsString("no api client found! this should never occur"))))
         }
