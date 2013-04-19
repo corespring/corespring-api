@@ -9,7 +9,8 @@ import com.mongodb.casbah.commons.MongoDBObject
 
 
 trait Authenticate[A] {
-  def OrgAction(p:BodyParser[A])(block: ApiRequest[A] => Result): Action[A]
+  def OrgAction(p: BodyParser[A])(block: ApiRequest[A] => Result): Action[A]
+
   def OrgAction(block: ApiRequest[A] => Result): Action[A]
 }
 
@@ -17,11 +18,11 @@ object NullAuth extends Authenticate[AnyContent] {
 
   def OrgAction(block: ApiRequest[AnyContent] => Result): Action[AnyContent] = OrgAction(BodyParsers.parse.anyContent)(block)
 
-  def OrgAction(p:BodyParser[AnyContent])(block: ApiRequest[AnyContent] => Result): Action[AnyContent] = {
-    Action(p){
+  def OrgAction(p: BodyParser[AnyContent])(block: ApiRequest[AnyContent] => Result): Action[AnyContent] = {
+    Action(p) {
       request =>
 
-        Organization.findOne( MongoDBObject("name" -> "Corespring Organization")) match {
+        Organization.findOne(MongoDBObject("name" -> "Corespring Organization")) match {
           case Some(org) => {
             val context = AuthorizationContext(org.id, None, isSSLogin = false)
             block(ApiRequest(context, request, "token"))
@@ -38,9 +39,9 @@ class Session(auth: Authenticate[AnyContent]) extends Controller {
     request => Ok("todo")
   }
 
-  def read(itemId: ObjectId, sessionId:ObjectId) = auth.OrgAction{
+  def read(itemId: ObjectId, sessionId: ObjectId) = auth.OrgAction {
     request =>
-      api.v1.ItemSessionApi.get(itemId,sessionId)(request)
+      api.v1.ItemSessionApi.get(itemId, sessionId)(request)
   }
 
   def update(id: ObjectId) = Action {
@@ -51,8 +52,19 @@ class Session(auth: Authenticate[AnyContent]) extends Controller {
     request => Ok("todo")
   }
 
-  def jsRoutes = Action{
-    request => Ok("alert('hello')");
+  def jsRoutes = Action {
+    implicit request =>
+
+      import routes.javascript.{Session => JsSession}
+
+      Ok(
+        play.api.Routes.javascriptRouter("TestPlayerRoutes")(
+          JsSession.create,
+          JsSession.read,
+          JsSession.aggregate,
+          JsSession.update
+        )
+      ).as("text/javascript")
   }
 }
 

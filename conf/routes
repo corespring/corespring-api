@@ -45,8 +45,6 @@ GET    /example-content/items                  publicsite.controllers.ExampleCon
 # V1 API
 #
 
-# Encryption
-POST    /api/v1/encrypt                         api.v1.EncryptionApi.encrypt
 # Organizations
 GET     /api/v1/organizations                   api.v1.OrganizationApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
 GET     /api/v1/organizations/children          api.v1.OrganizationApi.getChildren(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
@@ -158,6 +156,8 @@ GET    /player/session/:itemId/:sessionId           player.controllers.Session.r
 PUT    /player/session/:id                          player.controllers.Session.update(id:ObjectId)
 POST   /player/session/:quizId/:itemId/aggregate    player.controllers.Session.aggregate(quizId:ObjectId, itemId:ObjectId)
 GET    /player/routes.js                            player.controllers.Session.jsRoutes
+# Encrypt
+POST    /player/encrypt-options                     player.controllers.Encryption.encrypt
 
 # New Player Rendering
 GET    /player.js                                   player.controllers.AssetLoading.itemPlayer
