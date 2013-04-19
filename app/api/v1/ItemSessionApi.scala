@@ -1,6 +1,6 @@
 package api.v1
 
-import controllers.auth.{Permission, BaseApi}
+import controllers.auth.{ApiRequest, Permission, BaseApi}
 import play.api.libs.json.Json._
 import api.ApiError
 import models._

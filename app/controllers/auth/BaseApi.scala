@@ -10,6 +10,13 @@ import models.User
 import securesocial.core.{SecuredRequest, SecureSocial}
 import controllers.Log
 
+/**
+ * A class that adds an AuthorizationContext to the Request object
+ * @param ctx - the AuthorizationContext
+ * @param r - the Request
+ * @tparam A - the type determining the type of the body parser (eg: AnyContent)
+ */
+case class ApiRequest[A](ctx: AuthorizationContext, r: Request[A], token : String) extends WrappedRequest(r)
 
 /**
  * A base trait for all objects implementing API calls.  Intercepts the request and extracts the credentials of the caller
@@ -26,13 +33,6 @@ trait BaseApi extends Controller with SecureSocial{
   private val Bearer = "Bearer"
   private val Space = " "
 
-  /**
-   * A class that adds an AuthorizationContext to the Request object
-   * @param ctx - the AuthorizationContext
-   * @param r - the Request
-   * @tparam A - the type determining the type of the body parser (eg: AnyContent)
-   */
-  case class ApiRequest[A](ctx: AuthorizationContext, r: Request[A], token : String) extends WrappedRequest(r)
 
 
   /**
