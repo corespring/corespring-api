@@ -9,6 +9,7 @@ import play.api.test.Helpers._
 import play.api.test.FakeHeaders
 import scala.Some
 import play.api.libs.json.{JsValue, Json}
+import encryption.AESCrypto
 import controllers.auth.{BaseRender, RenderOptions, AESCrypto, RendererContext}
 import play.api.mvc.Call
 import play.api.test.FakeHeaders
@@ -51,7 +52,7 @@ class RenderApiTest extends BaseTest{
       clientId must beSome(apiClient.clientId.toString)
     }
     "return a key that contains encrypted options that can be decrypted using the client secret to equal the constraints sent" in {
-      val decryptedOptions = encrypted.map(AESCrypto.decryptAES(_,apiClient.clientSecret))
+      val decryptedOptions = encrypted.map(AESCrypto.decrypt(_,apiClient.clientSecret))
       val receivedOptions = decryptedOptions.map(options => Json.fromJson[RenderOptions](Json.parse(options)))
       receivedOptions must beSome(renderOptions)
     }

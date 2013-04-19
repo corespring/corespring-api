@@ -1,27 +1,25 @@
 package controllers.auth
 
 import play.api.mvc._
-import controllers.InternalError
 import api.ApiError
+import play.api.libs.json.Json
 import scala.Left
+import play.api.mvc.AnyContentAsJson
 import scala.Right
 import scala.Some
-import play.api.libs.json.Json
+import play.api.mvc.BodyParsers.parse
 import encryption.AESCrypto
 
-object BaseRender{
+object RenderOptionsAuth {
   val RendererHeader = "Renderer"
   val Delimeter = "-"
   val ClientId = "clientId"
   val Options = "options"
-}
-trait BaseRender extends Controller{
-  import BaseRender._
+
   case class RenderRequest[A](ctx: RendererContext, r:Request[A]) extends WrappedRequest(r){
     def reencrypt:String =
       ctx.apiClient.clientId+Delimeter+AESCrypto.encrypt(Json.toJson(ctx.options).toString(),ctx.apiClient.clientSecret)
   }
-
   /**
    * Returns the renderer key either from json body, from the query string, or from the session
    *
