@@ -961,22 +961,22 @@ a#vetted-content-col, a#admin-col, a#actionable-col {
 	background: url("../images/vetted-icon-glow.png") no-repeat scroll 90px 0px transparent;
 }
 .main div.row div.span4 a#admin-col {
-	background: url("../images/adease-icon.png") no-repeat scroll 108px 1px transparent;
+	background: url("../images/adease-icon.png") no-repeat scroll 83px 1px transparent;
 }
 .main div.row div.span4 a#admin-col:hover {
-	background: url("../images/adease-icon-glow.png") no-repeat scroll 108px 1px transparent;
+	background: url("../images/adease-icon-glow.png") no-repeat scroll 83px 1px transparent;
 }
 .main div.row div.span4 a#admin-col:active {
-	background: url("../images/adease-icon-glow.png") no-repeat scroll 108px 1px transparent;
+	background: url("../images/adease-icon-glow.png") no-repeat scroll 83px 1px transparent;
 }
 .main div.row div.span4 a#actionable-col {
-	background: url("../images/actionable-icon.png") no-repeat scroll 104px 0px transparent;
+	background: url("../images/actionable-icon.png") no-repeat scroll 89px 0px transparent;
 }
 .main div.row div.span4 a#actionable-col:hover {
-	background: url("../images/actionable-icon-glow.png") no-repeat scroll 104px 0px transparent;
+	background: url("../images/actionable-icon-glow.png") no-repeat scroll 89px 0px transparent;
 }
 .main div.row div.span4 a#actionable-col:active {
-	background: url("../images/actionable-icon-glow.png") no-repeat scroll 104px 0px transparent;
+	background: url("../images/actionable-icon-glow.png") no-repeat scroll 89px 0px transparent;
 }
 .span12.lead-in.features {
 	padding:0px !important;
