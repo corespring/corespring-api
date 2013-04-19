@@ -8,13 +8,14 @@ import scala.Right
 import scala.Some
 import play.api.libs.json.Json
 
+object BaseRender{
+  val RendererHeader = "Renderer"
+  val Delimeter = "-"
+  val ClientId = "clientId"
+  val Options = "options"
+}
 trait BaseRender extends Controller{
-  private val RendererHeader = "Renderer"
-  private val Delimeter = "-"
-  private val RenderKey = "rkey"
-  private val ClientId = "apiClientId"
-  private val Options = "options"
-
+  import BaseRender._
   case class RenderRequest[A](ctx: RendererContext, r:Request[A]) extends WrappedRequest(r)
 
   /**

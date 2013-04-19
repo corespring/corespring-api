@@ -1,21 +1,23 @@
 package tests.api.v1
 
 import tests.BaseTest
-import play.api.mvc.{AnyContentAsJson, Call}
+import play.api.mvc._
 import play.api.test._
 import models.auth.{ApiClient, AccessToken}
 import org.bson.types.ObjectId
 import play.api.test.Helpers._
+import play.api.test.FakeHeaders
+import scala.Some
+import play.api.libs.json.{JsValue, Json}
+import controllers.auth.{BaseRender, RenderOptions, AESCrypto, RendererContext}
 import play.api.mvc.Call
 import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
 import scala.Some
-import play.api.libs.json.{JsValue, Json}
-import controllers.auth.{RenderOptions, AESCrypto, RendererContext}
 
 
 class RenderApiTest extends BaseTest{
-  val update:Call = api.v1.routes.RenderApi.getRenderKey()
+  val update:Call = api.v1.routes.RenderApi.renderOptions()
   val renderOptions = RenderOptions(Some("50083ba9e4b071cb5ef79101"),Some("502d0f823004deb7f4f53be7"),None,None,0,"render")
   val fakeRequest = FakeRequest(update.method,tokenize(update.url),FakeHeaders(),AnyContentAsJson(Json.toJson(renderOptions)))
   val Some(result) = routeAndCall(fakeRequest)
@@ -32,6 +34,18 @@ class RenderApiTest extends BaseTest{
       encrypted = (jsresult \ "options").asOpt[String]
       clientId must beSome[String]
       encrypted must beSome[String]
+    }
+    "return a session with client id and options equivalent to the json received" in {
+      val resultsession:Session = session(result)
+      val (sessionclientId,sessionencrypted) = resultsession.get(BaseRender.RendererHeader) match {
+        case Some(strctx) => strctx.split(BaseRender.Delimeter) match {
+          case Array(sessionclientId,sessionencrypted) => (Some(sessionclientId),Some(sessionencrypted))
+          case _ => (None,None)
+        }
+        case None => (None,None)
+      }
+      sessionclientId must beEqualTo(clientId)
+      sessionencrypted must beEqualTo(encrypted)
     }
     "return a key with the correct client id" in {
       clientId must beSome(apiClient.clientId.toString)
