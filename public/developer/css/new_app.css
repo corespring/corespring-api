@@ -63,8 +63,13 @@ h2 {
          margin: 10px 0;
         text-rendering: optimizelegibility;
 }
+
+ h4 {
+
+    margin: 20px 0 10px;
+    text-rendering: optimizelegibility;
+}
 p {
-  margin: 0 0 20px;
   font-weight: 300;
 }
 code,
@@ -338,12 +343,15 @@ pre {
     padding: 45px 0 0;
 }
 
+.nav li a#contact-nav {
+	margin-right:0px!important;
+}
 
 .navbar {
     margin-bottom: 0px;
 }
 .nav li a {
-    font-size:14px
+    font-size:14px;
 }
 
 .navbar .nav > li > a {
