@@ -399,15 +399,15 @@ p {
 }
 /*--end of nav sprites */
 
-/*
-.container div.span12 p {
+
+.container div.span12.intro p {
 	color: #00ACCE;
 	font: italic 500 27px/20px "Ubuntu", Arial, Helvetica, sans-serif;
 	margin-left: auto;
 	margin-right: auto;
 	text-align: center;
 }
-*/
+
 .container div.span12.intro {
 	margin-left: 0px;
 	margin-top: 10px;
@@ -471,6 +471,10 @@ p {
 	margin: 5px 0px 15px;
 	text-align:left;
 }
+.container div.lead-in.developer p {
+	
+}
+
 .container div.lead-in.about, .container div.span12.lead-in.contact, .container div.span12.lead-in.partner, .container div.span9.lead-in.developer, .container div.span12.lead-in.educator {
 	margin-left: 0px;
 }
@@ -1055,3 +1059,4 @@ table.logo-table td{
 text-align:center; 
 padding: 5px;
 }
+
