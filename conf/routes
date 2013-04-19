@@ -45,6 +45,8 @@ GET    /example-content/items                  publicsite.controllers.ExampleCon
 # V1 API
 #
 
+# Encryption
+POST    /api/v1/encrypt                         api.v1.EncryptionApi.encrypt
 # Organizations
 GET     /api/v1/organizations                   api.v1.OrganizationApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
 GET     /api/v1/organizations/children          api.v1.OrganizationApi.getChildren(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
@@ -148,6 +150,17 @@ GET    /scorm-player/item/:itemId/run               scorm.controllers.ScormPlaye
 GET    /scorm-player/item/:itemId/:filename         scorm.controllers.ScormPlayer.getDataFile(itemId, filename)
 GET    /scorm-player/session/:sessionId/run         scorm.controllers.ScormPlayer.runBySessionId(sessionId : ObjectId)
 GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : ObjectId, filename)
+
+
+# New Player REST calls
+POST   /player/session                              player.controllers.Session.create
+GET    /player/session/:itemId/:sessionId           player.controllers.Session.read(itemId:ObjectId, sessionId:ObjectId)
+PUT    /player/session/:id                          player.controllers.Session.update(id:ObjectId)
+POST   /player/session/:quizId/:itemId/aggregate    player.controllers.Session.aggregate(quizId:ObjectId, itemId:ObjectId)
+GET    /player/routes.js                            player.controllers.Session.jsRoutes
+
+# New Player Rendering
+GET    /player.js                                   player.controllers.AssetLoading.itemPlayer
 
 
 # Web tier
