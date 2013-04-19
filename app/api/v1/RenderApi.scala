@@ -12,9 +12,9 @@ import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import scala.Some
 
-object RenderApi extends BaseApi with BaseRender{
-
-  def getRenderKey = ApiAction {request =>
+object RenderApi extends BaseApi{
+  import BaseRender._
+  def renderOptions = ApiAction {request =>
     request.body.asJson match {
       case Some(jsoptions) => {
         val options = Json.fromJson[RenderOptions](jsoptions)
@@ -24,7 +24,7 @@ object RenderApi extends BaseApi with BaseRender{
             Ok(JsObject(Seq(
               "clientId" -> JsString(apiClient.clientId.toString),
               "options" -> JsString(encryptedOptions)
-            )))
+            ))).withSession(RendererHeader -> (apiClient.clientId.toString+Delimeter+encryptedOptions))
           }
           case None => BadRequest(JsObject(Seq("message" -> JsString("no api client found! this should never occur"))))
         }

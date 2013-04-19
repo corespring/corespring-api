@@ -28,7 +28,7 @@ GET     /developer/*file            developer.controllers.Developer.at(path="/pu
 #
 POST    /auth/register                          controllers.auth.AuthController.register
 POST    /auth/access_token                      controllers.auth.AuthController.getAccessToken
-POST    /api/v1/render/key                      api.v1.RenderApi.getRenderKey
+POST    /api/v1/item-player/options                      api.v1.RenderApi.renderOptions
 
 #Public site
 GET     /                                      publicsite.controllers.Application.index
@@ -144,7 +144,7 @@ GET    /testplayer/session/:sessionId/render        testplayer.controllers.ItemP
 GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
 GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes
 
-POST    /api/v1/item-player/options     testplayer.controllers.ItemPlayerWithKey.renderOptions(itemId ?= "", sessionId ?= "", mode ?= "")
+POST    /api/v1/item-player/options     testplayer.controllers.ItemPlayerWithKey.renderPlayer(itemId ?= "", sessionId ?= "", mode ?= "")
 
 GET    /scorm-player/item/:itemId/run               scorm.controllers.ScormPlayer.runByItemId(itemId : ObjectId)
 GET    /scorm-player/item/:itemId/:filename         scorm.controllers.ScormPlayer.getDataFile(itemId, filename)
