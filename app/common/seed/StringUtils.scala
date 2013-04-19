@@ -6,6 +6,8 @@ object StringUtils {
 
   val DefaultRegex = """\$\[interpolate\{([^}]+)\}\]""".r
 
+  val DollarRegex = """\$\{([^}]+)\}""".r
+
   def interpolate(text: String, lookup: String => String, regex : Regex = DefaultRegex )  =
     regex.replaceAllIn(text, (_: scala.util.matching.Regex.Match) match {
       case Regex.Groups(v) => {
@@ -13,5 +15,7 @@ object StringUtils {
         result
       }
     })
+
+  def replaceKey(tokens: Map[String,String])(s: String): String = tokens.getOrElse(s,"?")
 }
 

@@ -2,8 +2,11 @@ package player.controllers
 
 import play.api.mvc.{Action, Controller}
 import encryption.Decrypt
+import play.api.libs.json.JsValue
+import play.api.Play
+import common.seed.StringUtils
 
-class AssetLoading(decrypter:Decrypt) extends Controller {
+class AssetLoading(decrypter:Decrypt, playerTemplate:String) extends Controller {
 
   /** Serve the item player js
     * We require 2 parameters to be passed in with this url:
@@ -24,16 +27,24 @@ class AssetLoading(decrypter:Decrypt) extends Controller {
       Ok("alert('error: no options specified');").as("text/javascript")
     }
     else {
-      Ok("alert('welcome to the item-player!')").as("text/javascript")
-      //val options = decrypt(encryptedOptions, apiClientId)
-      //play.api.libs.json.Json.parse(options)
+
+      def options : JsValue = {
+        val options = decrypt(encryptedOptions, apiClientId)
+        play.api.libs.json.Json.parse(options)
+      }
+
+      val mode = (options \ "mode").asOpt[String]
+      Ok(renderJs(mode)).as("text/javascript")
     }
-
   }
-
 
   private def decrypt(encrypted:Option[String], apiClientId:Option[String]) : String = {
     decrypter.decrypt(encrypted.get, apiClientId.get)
+  }
+
+  private def renderJs(mode:Option[String]) : String = {
+    val tokens = Map( "mode" -> mode.getOrElse("?"))
+    StringUtils.interpolate(playerTemplate, StringUtils.replaceKey(tokens), StringUtils.DollarRegex)
   }
 }
 
@@ -41,4 +52,9 @@ object NullDecrypt extends Decrypt{
   def decrypt(s:String,key:String) : String = s
 }
 
-object AssetLoading extends AssetLoading(NullDecrypt)
+object DefaultTemplate {
+  import play.api.Play.current
+  val template = io.Source.fromFile(Play.getFile("public/js/corespring/corespring-player.js")).getLines().mkString("\n")
+}
+
+object AssetLoading extends AssetLoading(NullDecrypt, DefaultTemplate.template)

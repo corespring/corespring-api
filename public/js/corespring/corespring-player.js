@@ -2,6 +2,12 @@ var com = com || {};
 com.corespring = com.corespring || {};
 com.corespring.players = {};
 
+com.corespring.players.config = {
+  mode : "${mode}"
+};
+
+console.log("mode is: " + com.corespring.players.config.mode);
+
 com.corespring.players.errors = {
   NEED_OPTIONS: 0,
   NEED_ITEMID_OR_SESSIONID: 2,
