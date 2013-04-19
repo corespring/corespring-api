@@ -39,10 +39,7 @@ class Session(auth: Authenticate[AnyContent]) extends Controller {
     request => Ok("todo")
   }
 
-  def read(itemId: ObjectId, sessionId: ObjectId) = auth.OrgAction {
-    request =>
-      api.v1.ItemSessionApi.get(itemId, sessionId)(request)
-  }
+  def read(itemId: ObjectId, sessionId: ObjectId) = auth.OrgAction( api.v1.ItemSessionApi.get(itemId, sessionId) )
 
   def update(id: ObjectId) = Action {
     request => Ok("todo")

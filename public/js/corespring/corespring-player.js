@@ -46,7 +46,7 @@ var iframePlayerStrategy = function (e, options) {
     addDimensionChangeListener(e);
   else
     e.height(options.height ? options.height : "600px");
-}
+};
 
 function getBaseUrl(src) {
   var url = document.createElement('a');
@@ -112,4 +112,4 @@ com.corespring.players.ItemPlayer = function (element, options, errorCallback) {
 
   var playerRenderFunction = iframePlayerStrategy;
   playerRenderFunction(e, options);
-}
+};
