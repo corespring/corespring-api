@@ -1,17 +1,17 @@
 package controllers.auth
 
-import play.api.mvc._
-import controllers.InternalError
 import api.ApiError
+import controllers.InternalError
+import encryption.AESCrypto
+import models.auth.AccessToken
+import org.bson.types.ObjectId
+import play.api.libs.json.Json
+import play.api.mvc._
+import player.controllers.auth.Authenticate
+import player.models.TokenizedRequest
 import scala.Left
 import scala.Right
 import scala.Some
-import play.api.libs.json.Json
-import encryption.AESCrypto
-import player.controllers.auth.Authenticate
-import player.models.TokenizedRequest
-import models.auth.AccessToken
-import org.bson.types.ObjectId
 
 object BaseRender extends Results with BodyParsers with Authenticate[AnyContent]{
   val RendererHeader = "Renderer"
