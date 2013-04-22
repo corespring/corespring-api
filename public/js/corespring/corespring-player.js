@@ -3,7 +3,15 @@ com.corespring = com.corespring || {};
 com.corespring.players = {};
 
 com.corespring.players.config = {
-  mode : "${mode}"
+  mode : "${mode}",
+  baseUrl : "http://localhost:9000/player",
+  paths: {
+    preview : "/item/:itemId/preview",
+    render: "/session/:sessionId/render",
+    administerItem : "/item/:itemId/administer",
+    administerSession : "/session/:sessionId/administer",
+    aggregate: "/aggregate/:assessmentId/:itemId/run"
+  }
 };
 
 console.log("mode is: " + com.corespring.players.config.mode);
@@ -21,7 +29,7 @@ function addDimensionChangeListener(elem) {
     if (data.message == 'dimensionsUpdate') {
       elem.height((data.h + 30) + "px");
     }
-  }
+  };
 
   if (window.addEventListener) {
     window.addEventListener('message', fn, true);
@@ -32,20 +40,7 @@ function addDimensionChangeListener(elem) {
 }
 
 var iframePlayerStrategy = function (e, options) {
-  var url = options.corespringUrl || "http://www.corespring.org";
-
-  // TODO: decide whether we support this or not
-  if (options.itemId) {
-    url += "/testplayer/item/" + options.itemId + "/run";
-  } else if (options.sessionId) {
-    url += "/testplayer/session/" + options.sessionId + "/render";
-  }
-
-  if (options.token) {
-    url += "?access_token=" + options.token;
-  }
-
-  e.html("<iframe src='" + url + "' style='width: 100%; height: 100%'></iframe>")
+  e.html("<iframe src='" + options.corespringUrl + "' style='width: 100%; height: 100%'></iframe>");
   e.width(options.width ? options.width : "600px");
 
   if (options.autoHeight)
@@ -54,38 +49,6 @@ var iframePlayerStrategy = function (e, options) {
     e.height(options.height ? options.height : "600px");
 };
 
-function getBaseUrl(src) {
-  var url = document.createElement('a');
-  url.href = src;
-  console.log(url);
-  return url.protocol + "//" + url.hostname + (url.port ? (":" + url.port) : "");
-}
-
-function extractKeyAndBaseUrl() {
-  var el;
-  $("script").each(function (i, e) {
-    if (e.src.indexOf("corespring") >= 0) {
-      el = e;
-      return false;
-    }
-  });
-
-  var key, url;
-  try {
-    url = getBaseUrl(el.src);
-    var params = el.src.split("?")[1].split("&");
-    $.each(params, function (idx, param) {
-      var a = param.split("=");
-      if (a[0].toLowerCase()=='key')
-        key = a[1];
-    });
-  } catch (e) {}
-
-  return {
-    key: key,
-    url: url
-  }
-}
 
 com.corespring.players.ItemPlayer = function (element, options, errorCallback) {
   if (!jQuery) {
@@ -104,12 +67,15 @@ com.corespring.players.ItemPlayer = function (element, options, errorCallback) {
     return;
   }
 
-  var keyAndUrl = extractKeyAndBaseUrl();
-  if (!keyAndUrl.url) {
-    errorCallback({msg: "Invalid CoreSpring player location", code: com.corespring.players.errors.INVALID_PLAYER_LOCATION});
-  }
+  var getUrl = function(mode, options){
+    var template =  com.corespring.players.config.baseUrl + com.corespring.players.config.paths.preview;
+    return template
+      .replace(":itemId", options.itemId)
+      .replace(":sessionId", options.sessionId)
+      .replace(":assessmentId", options.assessmentId);
+  };
 
-  options.corespringUrl = keyAndUrl.url;
+  options.corespringUrl = getUrl(com.corespring.players.config.mode, options);
 
   if (!options.sessionId && !options.itemId) {
     errorCallback({msg: "Need to specify either itemId or sessionId in options", code: com.corespring.players.errors.NEED_ITEMID_OR_SESSIONID});

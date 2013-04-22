@@ -1,21 +1,20 @@
 package player.controllers
 
 import controllers.auth.BaseApi
-import encryption.Encrypt
+import encryption.{MockUrlEncodeEncrypter, Encrypt}
 
 class Encryption(encrypter: Encrypt) extends BaseApi {
 
   def encrypt = ApiAction {
     request =>
-      Ok(encrypter.encrypt("..", ".."))
+      request.body.asJson.map{
+        json =>
+          Ok(encrypter.encrypt(json.toString(), "some_key_here"))
+      }.getOrElse(BadRequest("no json provided"))
   }
 }
 
-object NullEncrypter extends Encrypt {
-  def encrypt(s: String, key: String): String = s
-}
-
-object Encryption extends Encryption(NullEncrypter)
+object Encryption extends Encryption(MockUrlEncodeEncrypter)
 
 
 

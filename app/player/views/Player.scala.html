@@ -1,0 +1,9 @@
+@(params: player.models.PlayerParams)
+
+@scripts = {
+<script src="/assets/js/corespring/qti/controllers/QtiAppController.js"></script>
+}
+
+@bodyAttributes = @{ "ng-controller='QtiAppController'" }
+
+@basePlayer(params, scripts, bodyAttributes )

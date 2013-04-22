@@ -1,68 +1,34 @@
 package player.controllers
 
-import play.api.mvc._
-import play.api.mvc.BodyParsers
+import common.controllers.SimpleJsRoutes
 import org.bson.types.ObjectId
-import controllers.auth.{AuthorizationContext, ApiRequest}
-import models.Organization
-import com.mongodb.casbah.commons.MongoDBObject
+import play.api.mvc._
+import player.controllers.auth.{AllowEverything, Authenticate}
 
 
-trait Authenticate[A] {
-  def OrgAction(p: BodyParser[A])(block: ApiRequest[A] => Result): Action[A]
+class Session(auth: Authenticate[AnyContent]) extends Controller with SimpleJsRoutes {
 
-  def OrgAction(block: ApiRequest[A] => Result): Action[A]
-}
+  import api.v1.ItemSessionApi
 
-object NullAuth extends Authenticate[AnyContent] {
+  def create(itemId: ObjectId) = auth.OrgAction(ItemSessionApi.create(itemId))
 
-  def OrgAction(block: ApiRequest[AnyContent] => Result): Action[AnyContent] = OrgAction(BodyParsers.parse.anyContent)(block)
+  def read(itemId: ObjectId, sessionId: ObjectId) = auth.OrgAction(ItemSessionApi.get(itemId, sessionId))
 
-  def OrgAction(p: BodyParser[AnyContent])(block: ApiRequest[AnyContent] => Result): Action[AnyContent] = {
-    Action(p) {
-      request =>
+  def update(itemId: ObjectId, sessionId: ObjectId, action: Option[String] = None) = auth.OrgAction(ItemSessionApi.update(itemId, sessionId, action))
 
-        Organization.findOne(MongoDBObject("name" -> "Corespring Organization")) match {
-          case Some(org) => {
-            val context = AuthorizationContext(org.id, None, isSSLogin = false)
-            block(ApiRequest(context, request, "token"))
-          }
-          case _ => throw new RuntimeException("Can't find Corespring Organization")
-        }
-    }
-  }
-}
-
-class Session(auth: Authenticate[AnyContent]) extends Controller {
-
-  def create() = Action {
-    request => Ok("todo")
-  }
-
-  def read(itemId: ObjectId, sessionId: ObjectId) = auth.OrgAction( api.v1.ItemSessionApi.get(itemId, sessionId) )
-
-  def update(id: ObjectId) = Action {
-    request => Ok("todo")
-  }
-
-  def aggregate(quizId: ObjectId, itemId: ObjectId) = Action {
-    request => Ok("todo")
-  }
+  def aggregate(quizId: ObjectId, itemId: ObjectId) = auth.OrgAction(ItemSessionApi.aggregate(quizId, itemId))
 
   def jsRoutes = Action {
     implicit request =>
-
       import routes.javascript.{Session => JsSession}
-
-      Ok(
-        play.api.Routes.javascriptRouter("TestPlayerRoutes")(
-          JsSession.create,
-          JsSession.read,
-          JsSession.aggregate,
-          JsSession.update
-        )
-      ).as("text/javascript")
+      val jsRoutes = List(
+        JsSession.create,
+        JsSession.read,
+        JsSession.aggregate,
+        JsSession.update
+      )
+      Ok(createSimpleRoutes("PlayerRoutes", jsRoutes: _*))
   }
 }
 
-object Session extends Session(NullAuth)
+object Session extends Session(AllowEverything)

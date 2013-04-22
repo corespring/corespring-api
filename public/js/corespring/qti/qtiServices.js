@@ -1,7 +1,7 @@
 'use strict';
 
 qtiServices.factory('AggregateService', ['$resource', function ($resource) {
-  var api = TestPlayerRoutes.api.v1.ItemSessionApi;
+  var api = PlayerRoutes;
 
   var calls  = {
     aggregate: api.aggregate(":quizId",":itemId")
@@ -30,9 +30,9 @@ qtiServices.factory('AssessmentSessionService', ['$resource', function ($resourc
       }
     };
 
-    var api = TestPlayerRoutes.api.v1.ItemSessionApi;
+    var api = PlayerRoutes;
     var calls  = {
-        get: api.get(":itemId", ":sessionId"),
+        get: api.read(":itemId", ":sessionId"),
         create: api.create(":itemId"),
         update: api.update(":itemId", ":sessionId")
     };

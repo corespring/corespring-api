@@ -150,17 +150,28 @@ GET    /scorm-player/session/:sessionId/run         scorm.controllers.ScormPlaye
 GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : ObjectId, filename)
 
 
-# New Player REST calls
-POST   /player/session                              player.controllers.Session.create
-GET    /player/session/:itemId/:sessionId           player.controllers.Session.read(itemId:ObjectId, sessionId:ObjectId)
-PUT    /player/session/:id                          player.controllers.Session.update(id:ObjectId)
-POST   /player/session/:quizId/:itemId/aggregate    player.controllers.Session.aggregate(quizId:ObjectId, itemId:ObjectId)
-GET    /player/routes.js                            player.controllers.Session.jsRoutes
-# Encrypt
-POST    /player/encrypt-options                     player.controllers.Encryption.encrypt
+# New Player
+## REST calls
+POST   /player/api/:itemId/session                         player.controllers.Session.create(itemId:ObjectId)
+GET    /player/api/:itemId/session/:sessionId              player.controllers.Session.read(itemId:ObjectId, sessionId:ObjectId)
+PUT    /player/api/:itemId/session/:sessionId              player.controllers.Session.update(itemId:ObjectId,sessionId:ObjectId,action : Option[String] ?= None)
+POST   /player/api/:itemId/session/:quizId/aggregate       player.controllers.Session.aggregate(quizId:ObjectId, itemId:ObjectId)
+GET    /player/routes.js                                   player.controllers.Session.jsRoutes
+## Encrypt
+POST    /player/encrypt-options                            player.controllers.Encryption.encrypt
+## js loading
+GET    /player.js                                          player.controllers.AssetLoading.itemPlayer
+## Views
+GET    /player/item/:itemId/preview                        player.controllers.Views.preview(itemId:ObjectId)
+GET    /player/item/:itemId/administer                     player.controllers.Views.administerItem(itemId:ObjectId)
+GET    /player/item/:itemId/*filename                      player.controllers.AssetLoading.getDataFile(itemId, filename)
 
-# New Player Rendering
-GET    /player.js                                   player.controllers.AssetLoading.itemPlayer
+GET    /player/session/:sessionId/render                   player.controllers.Views.render(sessionId:ObjectId)
+GET    /player/session/:sessionId/administer               player.controllers.Views.administerSession(sessionId:ObjectId)
+GET    /player/session/:sessionId/*filename                player.controllers.AssetLoading.getDataFileBySessionId(sessionId, filename)
+
+GET    /player/aggregate/:assessmentId/:itemId/run         player.controllers.Views.aggregate(assessmentId:ObjectId, itemId:ObjectId)
+# GET    /player/aggregate/:assessmentId/:itemId/*filename   player.controllers.AssetLoading.getDataFile(itemId:ObjectId, filename)
 
 
 # Web tier

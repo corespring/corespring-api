@@ -5,7 +5,7 @@ import xml.Elem
 import org.bson.types.ObjectId
 import controllers.auth.BaseApi
 import models._
-import common.controllers.ItemResources
+import common.controllers.{SimpleJsRoutes, QtiResource, AssetResource, ItemResources}
 import itemSession.ItemSession
 import play.api.mvc._
 import quiz.basic.Quiz
@@ -16,7 +16,7 @@ import templates.Html
 import qti.models.RenderingMode._
 
 
-object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
+object ItemPlayer extends BaseApi with AssetResource with QtiResource with QtiRenderer with SimpleJsRoutes {
 
 
   type TemplateParams = (String, String, Boolean, String, String)
@@ -27,7 +27,7 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
       import api.v1.routes.javascript._
 
       Ok(
-        Routes.javascriptRouter("TestPlayerRoutes")(
+      createSimpleRoutes("PlayerRoutes",
           ItemSessionApi.update,
           ItemSessionApi.get,
           ItemSessionApi.create,
@@ -56,14 +56,6 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
         renderFn(session.itemId.toString, renderMode)
       }
       case _ => throw new RuntimeException("Can't find item session: " + id)
-    }
-  }
-
-  def getDataFileBySessionId(sessionId: String, filename: String) = {
-
-    ItemSession.findOneById(new ObjectId(sessionId)) match {
-      case Some(session) => getDataFile(session.itemId.toString, filename)
-      case _ => Action(NotFound("sessionId: " + sessionId))
     }
   }
 

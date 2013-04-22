@@ -1,19 +1,19 @@
 package api.v1
 
-import controllers.auth.{ApiRequest, Permission, BaseApi}
-import play.api.libs.json.Json._
 import api.ApiError
-import models._
 import com.mongodb.casbah.Imports._
+import controllers.auth.{ApiRequest, Permission, BaseApi}
 import controllers.{Log, Utils}
-import item.Content
-import itemSession.{StringItemResponse, ArrayItemResponse, ItemResponseAggregate, ItemSession}
+import models._
+import models.item.Content
+import models.itemSession.{StringItemResponse, ArrayItemResponse, ItemResponseAggregate, ItemSession}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json._
+import play.api.mvc.AnyContent
 import quiz.basic.Quiz
 import scala.Left
-import scala.Some
 import scala.Right
-import play.api.mvc.AnyContent
-import play.api.libs.json.JsObject
+import scala.Some
 
 
 /**

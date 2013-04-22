@@ -1,12 +1,13 @@
 package player.controllers
 
 import play.api.mvc.{Action, Controller}
-import encryption.Decrypt
+import encryption.{MockUrlEncodeEncrypter, Decrypt}
 import play.api.libs.json.JsValue
 import play.api.Play
 import common.seed.StringUtils
+import common.controllers.{AssetResource, ItemResources}
 
-class AssetLoading(decrypter:Decrypt, playerTemplate:String) extends Controller {
+class AssetLoading(decrypter:Decrypt, playerTemplate: => String) extends Controller with AssetResource {
 
   /** Serve the item player js
     * We require 2 parameters to be passed in with this url:
@@ -29,17 +30,15 @@ class AssetLoading(decrypter:Decrypt, playerTemplate:String) extends Controller 
     else {
 
       def options : JsValue = {
-        val options = decrypt(encryptedOptions, apiClientId)
+        val options =  decrypter.decrypt(encryptedOptions.get, apiClientId.get)
         play.api.libs.json.Json.parse(options)
       }
 
       val mode = (options \ "mode").asOpt[String]
       Ok(renderJs(mode)).as("text/javascript")
-    }
-  }
+        .withSession("renderOptions" -> options.toString, "orgId" -> "TODO")
 
-  private def decrypt(encrypted:Option[String], apiClientId:Option[String]) : String = {
-    decrypter.decrypt(encrypted.get, apiClientId.get)
+    }
   }
 
   private def renderJs(mode:Option[String]) : String = {
@@ -48,13 +47,9 @@ class AssetLoading(decrypter:Decrypt, playerTemplate:String) extends Controller 
   }
 }
 
-object NullDecrypt extends Decrypt{
-  def decrypt(s:String,key:String) : String = s
-}
-
 object DefaultTemplate {
   import play.api.Play.current
-  val template = io.Source.fromFile(Play.getFile("public/js/corespring/corespring-player.js")).getLines().mkString("\n")
+  def template = io.Source.fromFile(Play.getFile("public/js/corespring/corespring-player.js")).getLines().mkString("\n")
 }
 
-object AssetLoading extends AssetLoading(NullDecrypt, DefaultTemplate.template)
+object AssetLoading extends AssetLoading(MockUrlEncodeEncrypter,  DefaultTemplate.template)
