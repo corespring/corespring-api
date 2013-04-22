@@ -43,4 +43,8 @@ object Application extends Controller with securesocial.core.SecureSocial {
   def getItems = Action {
     Ok(Json.parse(io.Source.fromFile(Play.getFile("public/public/conf/items.json"))(new Codec(Charset.forName("UTF-8"))).mkString))
   }
+
+  def features = Action {
+    Ok(publicsite.views.html.features())
+  }
 }

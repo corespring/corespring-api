@@ -3,26 +3,56 @@
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
                 title="" adaptive="false" timeDependent="false">
+
     <correctResponseFeedback>Correct!</correctResponseFeedback>
     <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>
-    <responseDeclaration identifier="RESPONSE" cardinality="multiple" baseType="identifier">
 
 
+    <responseDeclaration identifier="Q_01" cardinality="multiple" baseType="identifier">
 
         <correctResponse>
-            <value>A</value>
-            <value>D</value>
+            <value>ChoiceA</value>
+            <value>ChoiceD</value>
         </correctResponse>
 
+        <mapping lowerBound="0" upperBound="2" defaultValue="-2">
+            <mapEntry mapKey="ChoiceA" mappedValue="1"/>
+            <mapEntry mapKey="ChoiceD" mappedValue="1"/>
+        </mapping>
     </responseDeclaration>
     <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float"/>
+
     <itemBody>
-        <choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="0">
-            <prompt>Identify the expressions that are equivalent to the product 8<sup>3</sup> x 8<sup>3</sup> by checking the appropriate box.</prompt>
-            <simpleChoice identifier="A" fixed="false">64<sup>3</sup><feedbackInline identifier="A" defaultFeedback="true"/></simpleChoice>
-            <simpleChoice identifier="B" fixed="false">2<sup>12</sup><feedbackInline identifier="B" defaultFeedback="true"/></simpleChoice>
-            <simpleChoice identifier="C" fixed="false">2 x 8<sup>3</sup><feedbackInline identifier="C" defaultFeedback="true"/></simpleChoice>
-            <simpleChoice identifier="D" fixed="false">8<sup>6</sup><feedbackInline identifier="D" defaultFeedback="true"/></simpleChoice>
+
+        <p class="intro-2">INTRO HERE</p>
+
+        <div class="imagewrapper">
+            <img src="PUT YOUR IMAGE HERE.png"/>
+        </div>
+
+        <choiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="0">
+
+            <prompt>ITEM PROMPT?</prompt>
+            <simpleChoice identifier="ChoiceA" fixed="false">ChoiceA
+                <feedbackInline identifier="ChoiceA" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceB" fixed="false">ChoiceB
+                <feedbackInline identifier="ChoiceB" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceC" fixed="false">ChoiceC
+                <feedbackInline identifier="ChoiceC" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceD" fixed="false">ChoiceD
+                <feedbackInline identifier="ChoiceD" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceE" fixed="false">ChoiceE
+                <feedbackInline identifier="ChoiceE" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceF" fixed="false">ChoiceF
+                <feedbackInline identifier="ChoiceF" defaultFeedback="true"/>
+            </simpleChoice>
         </choiceInteraction>
+
+
     </itemBody>
 </assessmentItem>

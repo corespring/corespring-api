@@ -106,6 +106,16 @@ class SessionDataTest extends BaseTest {
       SessionData(qti,s).feedbackContents.size === 2
     }
 
+    "show feedback for correct responses even though it wasn't selected and correct responses are not shown" in {
+      val s = createSession
+      s.finish = Some(new DateTime())
+      s.settings.highlightCorrectResponse = false
+      s.settings.showFeedback = true
+      //Answer incorrectly
+      s.responses = Seq( StringItemResponse(questionId, responseValue = "B"))
+      SessionData(qti,s).feedbackContents.size === 1
+    }
+
     "show the correct feedback string" in {
       val s: ItemSession = createSession
       s.responses = Seq(StringItemResponse(questionId, responseValue = "A"))

@@ -6,6 +6,7 @@
 
 
     <responseDeclaration identifier="alphabet" cardinality="ordered" baseType="identifier">
+
         <correctResponse>
             <value>a</value>
             <value>b</value>
@@ -20,6 +21,10 @@
 
     <itemBody>
         <orderInteraction responseIdentifier="alphabet" shuffle="true">
+
+            <!-- add csOrderingType="placement" AND orientation="horizontal" or orientation="vertical" for an ordering placement question -->
+            <!-- If you want potential choices to remain in the same order, set shuffle="false". Individual choices that you want in the same place should have fixed="true" -->
+
             <prompt>Arrange letters of the alphabet:</prompt>
             <simpleChoice identifier="a" fixed="true">A</simpleChoice>
             <simpleChoice identifier="b">B</simpleChoice>
@@ -30,8 +35,9 @@
             <simpleChoice identifier="g">G</simpleChoice>
             <simpleChoice identifier="h" fixed="true">H</simpleChoice>
         </orderInteraction>
+
+
+
     </itemBody>
 
 </assessmentItem>
-
-

@@ -1,0 +1,6 @@
+{
+  "label": "Select Word / Sentence",
+  "code": "selectword",
+  "group": "Evidence",
+  "xmlData": "$[interpolate{conf/qti-templates/select-word-sentence.xml}]"
+}

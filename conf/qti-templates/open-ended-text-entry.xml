@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+                identifier="composite" title="Composite Item" adaptive="false" timeDependent="false">
+
+    <!-- an Extended text entry response for longer form text entry -->
+    <responseDeclaration identifier="Q_01" cardinality="single" baseType="string"/>
+
+    <itemBody>
+        <p class="intro-2">INTRO HERE</p>
+
+        <div class="imagewrapper">
+            <img src="IMAGE GOES HERE.png"/>
+        </div>
+
+        <p class="prompt">PROMPT?</p>
+        <extendedTextInteraction responseIdentifier="Q_01" expectedLines="5"/>
+
+    </itemBody>
+</assessmentItem>

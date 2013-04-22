@@ -1,0 +1,6 @@
+{
+  "label": "Visual Multi Choice",
+  "code": "visualmultichoice",
+  "group": "Fixed Choice",
+  "xmlData": "$[interpolate{conf/qti-templates/focus-task-interaction.xml}]"
+}

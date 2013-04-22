@@ -9,6 +9,7 @@ object ApplicationBuild extends Build {
 
 
   val appDependencies = Seq(
+    "com.amazonaws" % "aws-java-sdk" % "1.3.10",
     "se.radley" %% "play-plugins-salat" % "1.1",
     "com.typesafe" %% "play-plugins-util" % "2.0.3",
     "com.typesafe" %% "play-plugins-mailer" % "2.0.4",

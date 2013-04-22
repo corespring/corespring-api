@@ -63,8 +63,13 @@ h2 {
          margin: 10px 0;
         text-rendering: optimizelegibility;
 }
+
+ h4 {
+
+    margin: 20px 0 10px;
+    text-rendering: optimizelegibility;
+}
 p {
-  margin: 0 0 20px;
   font-weight: 300;
 }
 code,

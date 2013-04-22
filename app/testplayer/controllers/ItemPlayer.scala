@@ -120,8 +120,6 @@ object ItemPlayer extends BaseApi with ItemResources with QtiRenderer {
     def instructor(params: TemplateParams): play.api.templates.Html = {
       testplayer.views.html.itemPlayer(params._1, params._2, params._3, params._4, params._5)
     }
-
-
   }
 
 

@@ -1,5 +1,0 @@
-#!/bin/bash
-
-curl -H "sudo:bart@502404dd0364dc35bb39339a" http://localhost:9000/$1 | python -mjson.tool
-echo
-

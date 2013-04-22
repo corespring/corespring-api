@@ -8,8 +8,6 @@
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               com.ee.assets.controllers.Assets.at(path="/public", file)
 
-GET     /assets-test                assetTest.controllers.Main.index
-
 #developer home page with secure social integration
 GET     /developer/login         developer.controllers.Developer.login
 GET     /developer/register      developer.controllers.Developer.register
@@ -39,6 +37,7 @@ GET     /public/contact                                publicsite.controllers.Ap
 GET     /public/partnerships                           publicsite.controllers.Application.partnerships
 GET     /public/about                                   publicsite.controllers.Application.about
 GET     /public/items                                  publicsite.controllers.Application.getItems
+GET     /public/features                                  publicsite.controllers.Application.features
 # Example content
 GET    /example-content/items                  publicsite.controllers.ExampleContent.items(q: Option[String] ?= None)
 

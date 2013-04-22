@@ -1,34 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- This example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->
 <assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
-                title="" adaptive="false" timeDependent="false">
-<correctResponseFeedback>Correct!</correctResponseFeedback>
-<incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>
+                identifier="composite" title="Composite Item" adaptive="false" timeDependent="false">
 
-<responseDeclaration identifier="RESPONSE" cardinality="single" baseType="identifier">
-    <correctResponse>
-        <value>ChoiceA</value>
-    </correctResponse>
-</responseDeclaration>
-<outcomeDeclaration identifier="SCORE" cardinality="single" baseType="integer">
-    <defaultValue>
-        <value>0</value>
-    </defaultValue>
-</outcomeDeclaration>
-<itemBody>
-    <p>
-        Item body content
-    </p>
-    <choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="1">
-        <prompt>Item prompt?</prompt>
-        <simpleChoice identifier="ChoiceA">ChoiceA (Correct Choice)<feedbackInline identifier="ChoiceA" defaultFeedback="true"/></simpleChoice>
-        <simpleChoice identifier="ChoiceB">ChoiceB<feedbackInline identifier="ChoiceB" defaultFeedback="true"/></simpleChoice>
-        <simpleChoice identifier="ChoiceC">ChoiceC.<feedbackInline identifier="ChoiceC" defaultFeedback="true"/></simpleChoice>
-        <simpleChoice identifier="ChoiceD">ChoiceD.<feedbackInline identifier="ChoiceD" defaultFeedback="true"/></simpleChoice>
-    </choiceInteraction>
-</itemBody>
+    <correctResponseFeedback>Correct!</correctResponseFeedback>
+    <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>
+
+    <responseDeclaration identifier="Q_01" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>ChoiceA</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="integer">
+        <defaultValue>
+            <value>0</value>
+        </defaultValue>
+    </outcomeDeclaration>
+
+    <itemBody>
+
+        <p class="intro-2">INTRO HERE</p>
+
+        <div class="imagewrapper">
+            <img src="IMAGE.png"/>
+        </div>
+
+        <choiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
+            <prompt>ITEM PROMPT?</prompt>
+            <simpleChoice identifier="ChoiceA">ChoiceA text (Correct Choice)
+                <feedbackInline identifier="ChoiceA" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceB">ChoiceB text
+                <feedbackInline identifier="ChoiceB" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceC">ChoiceC text
+                <feedbackInline identifier="ChoiceC" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceD">ChoiceD text
+                <feedbackInline identifier="ChoiceD" defaultFeedback="true"/>
+            </simpleChoice>
+        </choiceInteraction>
+    </itemBody>
 
 </assessmentItem>
-
-

@@ -1,8 +1,0 @@
-{
-    "_id":{
-        "$oid":"5059ad143014d1b0b0a53b2e"
-    },
-    "label":"Select Sentence Interaction",
-    "code":"selectsentence",
-    "xmlData":"$[interpolate{conf/qti-templates/select-text-sentence.xml}]"
-}

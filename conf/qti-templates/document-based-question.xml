@@ -1,0 +1,86 @@
+<!-- This example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+                title="" adaptive="false" timeDependent="false">
+
+    <correctResponseFeedback>Correct!</correctResponseFeedback>
+    <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>
+
+    <!-- Multiple Choice Question -->
+    <responseDeclaration identifier="Q_01" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>ChoiceA</value>
+        </correctResponse>
+    </responseDeclaration>
+    <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="integer">
+        <defaultValue>
+            <value>0</value>
+        </defaultValue>
+    </outcomeDeclaration>
+
+
+    <!-- an Extended text entry response for longer form text entry -->
+    <responseDeclaration identifier="Q_02" cardinality="single" baseType="string"/>
+
+    <itemBody>
+
+        <p class="intro-2">INTRO HERE</p>
+
+        <cs-tabs>
+            <cs-tab title="TAB TITLE">
+
+                <resource
+                        type="passage"
+                        title="some name"
+                        copyrightOwner="owner"
+                        copyrightYear="yyyy"
+                        copyrightExpires="yyyy"
+                        cost="$xx.xx"
+                        licenseType="CC BY/CC BY-NC/CC BY-ND/CC BY NC-SA"
+                        url="http://www.xxx.com"
+                        />
+
+                <h1 class="text-centered">TITLE</h1>
+                <center class="author-name">by Author's Name</center>
+
+
+                <div class="numbered-lines">
+                    <p class="leading-100-percent">
+
+                        <line>PASSAGE HERE</line>
+                        <line>PASSAGE HERE</line>
+                        <line>PASSAGE HERE</line>
+
+                    </p>
+                </div>
+
+                <div class="note-tip">PASSAGE CREDIT GOES HERE. GET PERMISSION FROM PUBLISHER.</div>
+
+            </cs-tab>
+            <!-- Add additional tabbed text here, within a <cs-tab> statement -->
+        </cs-tabs>
+
+        <choiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
+            <prompt>MULTIPLE-CHOICE QUESTION ABOUT PASSAGE?</prompt>
+            <simpleChoice identifier="ChoiceA">ChoiceA (Correct Choice)
+                <feedbackInline identifier="ChoiceA" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceB">ChoiceB
+                <feedbackInline identifier="ChoiceB" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceC">ChoiceC
+                <feedbackInline identifier="ChoiceC" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceD">ChoiceD
+                <feedbackInline identifier="ChoiceD" defaultFeedback="true"/>
+            </simpleChoice>
+        </choiceInteraction>
+
+
+        <p class="prompt">ITEM PROMPT FOR ESSAY QUESTION?</p>
+        <extendedTextInteraction responseIdentifier="Q_02" expectedLines="5"/>
+
+
+    </itemBody>
+</assessmentItem>

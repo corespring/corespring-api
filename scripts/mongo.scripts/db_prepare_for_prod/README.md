@@ -1,1 +1,0 @@
-This folder contains mongo scripts that can be used to prepare a production version of the db.
