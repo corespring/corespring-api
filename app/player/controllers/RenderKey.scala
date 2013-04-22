@@ -1,26 +1,20 @@
-package api.v1
+package player.controllers
 
-import controllers.auth._
-import models.auth.{ApiClient}
-import play.api.libs.json._
-import org.bson.types.ObjectId
-import scala.Some
-import play.api.mvc.{Action, Result, AnyContent}
-import testplayer.controllers.ItemPlayer
-import models.itemSession.ItemSessionSettings
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
-import scala.Some
+import play.api.mvc.Controller
+import encryption.{AESCrypto, Crypto}
+import controllers.auth.{RenderOptions, BaseApi}
+import play.api.libs.json.{JsString, JsObject, Json}
+import models.auth.ApiClient
 
-object RenderApi extends BaseApi{
-  import BaseRender._
-  def renderOptions = ApiAction {request =>
+class RenderKey(encrypter:Crypto) extends BaseApi{
+
+  def encrypt = ApiAction{ request =>
     request.body.asJson match {
       case Some(jsoptions) => {
         val options = Json.fromJson[RenderOptions](jsoptions)
         ApiClient.findOneByOrgId(request.ctx.organization) match {
           case Some(apiClient) => {
-            val encryptedOptions = AESCrypto.encryptAES(Json.toJson(options).toString(),apiClient.clientSecret)
+            val encryptedOptions = encrypter.encrypt(Json.toJson(options).toString(),apiClient.clientSecret)
             Ok(JsObject(Seq(
               "clientId" -> JsString(apiClient.clientId.toString),
               "options" -> JsString(encryptedOptions)
@@ -33,3 +27,8 @@ object RenderApi extends BaseApi{
     }
   }
 }
+
+
+object RenderKey extends RenderKey(AESCrypto)
+
+

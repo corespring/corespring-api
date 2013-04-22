@@ -1,8 +1,8 @@
 package tests.auth
 
-import controllers.auth.AESCrypto
 import org.specs2.mutable.Specification
 import java.nio.charset.Charset
+import encryption.AESCrypto
 
 /**
  * Created with IntelliJ IDEA.
@@ -18,11 +18,11 @@ class CryptoTest extends Specification{
 
   "encryption/decryption" should{
     "encrypt a message that is not equal to original message" in {
-      encrypted = AESCrypto.encryptAES(message,privateKey)
+      encrypted = AESCrypto.encrypt(message,privateKey)
       encrypted must not equalTo(message)
     }
     "decrypt a message that is equal to original message"  in {
-      val decrypted = AESCrypto.decryptAES(encrypted,privateKey);
+      val decrypted = AESCrypto.decrypt(encrypted,privateKey);
       decrypted must beEqualTo(message);
     }
   }

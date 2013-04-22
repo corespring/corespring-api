@@ -1,13 +1,13 @@
-package controllers.auth
+package encryption
 
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{Mac, Cipher}
-import play.api.libs.{Crypto, Codecs}
+import play.api.libs.Codecs
 
-object AESCrypto {
+object AESCrypto extends Crypto{
   //the required key length in bytes
-  val KEY_LENGTH = 16;
-  val KEY_RADIX = 36
+  override def KEY_LENGTH = 16;
+  override def KEY_RADIX = 36
   /**
    * Signs the given String with HMAC-SHA1 using the given key.
    */
@@ -38,7 +38,7 @@ object AESCrypto {
    * @param privateKey The key used to encrypt
    * @return An hexadecimal encrypted string
    */
-  def encryptAES(value: String, privateKey: String): String = {
+  def encrypt(value: String, privateKey: String): String = {
     val raw = stripKeyPadding(BigInt(privateKey,KEY_RADIX).toByteArray)
     val skeySpec = new SecretKeySpec(raw, "AES")
     val cipher = Cipher.getInstance("AES")
@@ -53,7 +53,7 @@ object AESCrypto {
    * @param privateKey The key used to encrypt
    * @return The decrypted String
    */
-  def decryptAES(value: String, privateKey: String): String = {
+  def decrypt(value: String, privateKey: String): String = {
     val raw = stripKeyPadding(BigInt(privateKey,KEY_RADIX).toByteArray)
     val skeySpec = new SecretKeySpec(raw, "AES")
     val cipher = Cipher.getInstance("AES")

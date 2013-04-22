@@ -1,23 +1,20 @@
 package tests.api.v1
 
 import tests.BaseTest
-import play.api.mvc._
 import play.api.test._
 import models.auth.{ApiClient, AccessToken}
-import org.bson.types.ObjectId
 import play.api.test.Helpers._
-import play.api.test.FakeHeaders
-import scala.Some
-import play.api.libs.json.{JsValue, Json}
-import controllers.auth.{BaseRender, RenderOptions, AESCrypto, RendererContext}
+import play.api.libs.json.{Json}
+import encryption.AESCrypto
+import controllers.auth.{RenderOptions}
 import play.api.mvc.Call
 import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
 import scala.Some
 
 
-class RenderApiTest extends BaseTest{
-  val update:Call = api.v1.routes.RenderApi.renderOptions()
+class RenderKeyTest extends BaseTest{
+  val update:Call = player.controllers.routes.RenderKey.encrypt()
   val renderOptions = RenderOptions(Some("50083ba9e4b071cb5ef79101"),Some("502d0f823004deb7f4f53be7"),None,None,0,"render")
   val fakeRequest = FakeRequest(update.method,tokenize(update.url),FakeHeaders(),AnyContentAsJson(Json.toJson(renderOptions)))
   val Some(result) = routeAndCall(fakeRequest)
@@ -51,7 +48,7 @@ class RenderApiTest extends BaseTest{
       clientId must beSome(apiClient.clientId.toString)
     }
     "return a key that contains encrypted options that can be decrypted using the client secret to equal the constraints sent" in {
-      val decryptedOptions = encrypted.map(AESCrypto.decryptAES(_,apiClient.clientSecret))
+      val decryptedOptions = encrypted.map(AESCrypto.decrypt(_,apiClient.clientSecret))
       val receivedOptions = decryptedOptions.map(options => Json.fromJson[RenderOptions](Json.parse(options)))
       receivedOptions must beSome(renderOptions)
     }

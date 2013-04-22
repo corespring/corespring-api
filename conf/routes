@@ -28,7 +28,6 @@ GET     /developer/*file            developer.controllers.Developer.at(path="/pu
 #
 POST    /auth/register                          controllers.auth.AuthController.register
 POST    /auth/access_token                      controllers.auth.AuthController.getAccessToken
-POST    /api/v1/item-player/options                      api.v1.RenderApi.renderOptions
 
 #Public site
 GET     /                                      publicsite.controllers.Application.index
@@ -142,8 +141,6 @@ GET    /testplayer/session/:sessionId/render        testplayer.controllers.ItemP
 GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
 GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes
 
-POST    /api/v1/item-player/options     testplayer.controllers.ItemPlayerWithKey.renderPlayer(itemId ?= "", sessionId ?= "", mode ?= "")
-
 GET    /scorm-player/item/:itemId/run               scorm.controllers.ScormPlayer.runByItemId(itemId : ObjectId)
 GET    /scorm-player/item/:itemId/:filename         scorm.controllers.ScormPlayer.getDataFile(itemId, filename)
 GET    /scorm-player/session/:sessionId/run         scorm.controllers.ScormPlayer.runBySessionId(sessionId : ObjectId)
@@ -151,13 +148,13 @@ GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlaye
 
 
 # New Player REST calls
-POST   /player/session                              player.controllers.Session.create
+POST   /player/session/:itemId                      player.controllers.Session.create(itemId:ObjectId)
 GET    /player/session/:itemId/:sessionId           player.controllers.Session.read(itemId:ObjectId, sessionId:ObjectId)
-PUT    /player/session/:id                          player.controllers.Session.update(id:ObjectId)
+PUT    /player/session/:sessionId                          player.controllers.Session.update(sessionId:ObjectId, action : Option[String] ?= None)
 POST   /player/session/:quizId/:itemId/aggregate    player.controllers.Session.aggregate(quizId:ObjectId, itemId:ObjectId)
 GET    /player/routes.js                            player.controllers.Session.jsRoutes
 # Encrypt
-POST    /player/encrypt-options                     player.controllers.Encryption.encrypt
+POST    /player/encrypt-options                     player.controllers.RenderKey.encrypt
 
 # New Player Rendering
 GET    /player.js                                   player.controllers.AssetLoading.itemPlayer
