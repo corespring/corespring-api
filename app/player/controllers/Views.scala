@@ -83,7 +83,7 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
                 getItemXMLByObjectId(itemId.toString, request.ctx.organization) match {
                   case Some(xmlData: Elem) =>
                     val finalXml = prepareQti(xmlData, Aggregate)
-                    Ok(testplayer.views.html.aggregatePlayer(itemId.toString, finalXml, quizId.toString, common.mock.MockToken))
+                    Ok(player.views.html.aggregatePlayer(itemId.toString, finalXml, quizId.toString))
                   case None =>
                     NotFound("not found")
                 }

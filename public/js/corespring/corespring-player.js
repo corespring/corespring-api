@@ -68,8 +68,6 @@ com.corespring.players.ItemPlayer = function (element, options, errorCallback) {
   }
 
   var getUrl = function(mode, options){
-    console.log("itemId: ", options.itemId);
-    console.log("sessionId: ", options.sessionId);
     var template =  com.corespring.players.config.baseUrl;
     switch (com.corespring.players.config.mode) {
       case 'render': template += com.corespring.players.config.paths.render; break;
