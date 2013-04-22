@@ -98,7 +98,7 @@ object BaseRender extends Results with BodyParsers with Authenticate[AnyContent]
   private def hasAccess(ra:RequestedAccess, ro:RenderOptions):Either[InternalError,Unit] = {
     val itemIdCheck:Either[InternalError,Unit] = if (ro.itemId != Some("*")) ra.itemId match {
       case Some(ContentRequest(id,p)) =>
-        if ((p.value&Permission.Read.value)==Permission.Read.value && id == ro.itemId) Right(())
+        if ((p.value&Permission.Read.value)==Permission.Read.value && Some(id.toString) == ro.itemId) Right(())
         else Left(InternalError("cannot access item",addMessageToClientOutput = true))
       case _ => Right(())
     } else Right(())
