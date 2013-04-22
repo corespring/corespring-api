@@ -52,8 +52,8 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
           cname = "lzlogo-png.png";
           break;
         case "Expeditionary Learning":
-            cname = "El.png";
-            brake;
+          cname = "El.png";
+          break;
       }
     return cname!="" ? "/assets/images/copyright/" + cname : undefined;
   }
