@@ -160,9 +160,9 @@
 
                             <div class="nav-collapse">
                                 <ul class="nav">
-                                    <li><a id="edu-nav" href="/public/educators">Educators</a></li>
-                                    <li><a id="dev-nav" class="active" href="/developer/home">developers</a></li>
+                                    <li><a id="features-nav" href="/public/features">features</a></li>
                                     <li><a id="partner-nav" href="/public/partnerships">partnerships</a></li>
+                                    <li><a id="dev-nav" class="active" href="/developer/home">developers</a></li>
                                     <li><a id="about-nav" href="/public/about">about</a></li>
                                     <li><a id="contact-nav" href="/public/contact">contact</a></li>
                                 </ul>
@@ -334,8 +334,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <h1>Overview</h1>
 
-<blockquote><p>CoreSpring Platform 1.0 will be released in Spring 2013.
-<a target="_top" href="mailto:developers@corespring.org">Get in touch</a> to be notified about our releases.</p></blockquote>
+<blockquote><p><a target="_top" href="mailto:developers@corespring.org">Get in touch</a> to be notified about our releases.</p></blockquote>
 
 <h2><a name="corespring-platform" class="waypoint"></a> CoreSpring Platform </h2>
 
@@ -347,7 +346,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <p>Items have also have a student view - which is how the Item appears to the student when they are 'taking' the item.</p>
 
-<p>The CoreSpring Item Player is launched from the 3rd party system (typically in a frame/iFrame) and it handles the user interaction with the item. When the interaction is complete, the outcome of the user's interaction with the item is stored in the CoreSpring Platform (this interaction data is called an Item Session.) This data is then made available to the calling system at a REST URL, or is posted back to the client via a callback.</p>
+<p>The CoreSpring Item Player is launched from the 3rd party system using a javascript component provided by CoreSpring and it handles the user interaction with the item. When the interaction is complete, the outcome of the user's interaction with the item is stored in the CoreSpring Platform (this interaction data is called an Item Session.) This data is then made available to the calling system at a REST URL, or is posted back to the client via a callback.</p>
 
 <p>You can see some examples of items and our Item Player <a href="/public/educators">here</a>.</p>
 
@@ -363,7 +362,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <p>CoreSpring maintains and curates a set of content collections of content which will be made available to all organizations. When you register as a developer Organization you will have access to these collections.</p>
 
-<blockquote><p>*Content creation and publishing is a feature of CoreSpring that will be introduced after our initial 1.0 release</p></blockquote>
+<blockquote><p>*Content creation and publishing is a feature of CoreSpring that is not yet publicly released. <a target="_top" href="mailto:developers@corespring.org">Get in touch</a> to be notified about our releases.</p></blockquote>
 
 <h1><a name="integration" class="waypoint"></a>Integration</h1>
 
@@ -377,7 +376,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <p>If you are maintaining or implementing a system that supports LTI (Learning Tools Interopability) standards, then this may be the simplest option for you, and may not require writing any custom code on your system.</p>
 
-<p>If you are not implementing LTI, or just want more power and flexibility in how you integrate with CoreSpring. A direct integration using our APIs can be implemented. You can of course combine both options.</p>
+<p>If you are not implementing LTI, or just want more power and flexibility in how you integrate with CoreSpring. A direct integration using our APIs and Item Player can be implemented. You can of course combine both options.</p>
 
 <h2><a name="integration-lti" class="waypoint"></a> LTI Integration</h2>
 
@@ -458,7 +457,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <h1><a name="the-corespring-item-player" class="waypoint"></a>The CoreSpring Item Player</h1>
 
-<p>CoreSpring provides an Item Player to render student/teacher interactions with items. The player can be embedded within any web page. The items are hosted on the CoreSpring platform and the owners of the items have control over how they are accessed.</p>
+<p>CoreSpring provides an Item Player to render student/teacher interactions with items. The player can be embedded within any web page. The items are hosted on the CoreSpring platform and the owners of the items have complete control over how they are accessed.</p>
 
 <p>CoreSpring provides curated collections of publicly available items aligned to the common core that can be used by any registered developer.</p>
 
@@ -507,13 +506,15 @@ There are 2 parameters that you must pass to the url in the query string.</p>
 
 <p>You must also specify a time when the provided options key will expire. This is provided in "Unix time": seconds from 1970-01-01T00:00:00Z UTC.</p>
 
-<p>Depending on the mode you must also pass in some additional variables.</p>
+<p><em>(Depending on the mode you must also pass in some additional variables. See section below)</em></p>
 
 <h2><a name="player-modes" class="waypoint"></a>Player Modes</h2>
 
+<hr />
+
 <h4>Preview Mode</h4>
 
-<p>This mode allows an educator to interact with the item, but the outcome of the interaction will not be saved in the long term.</p>
+<p>This mode allows an educator to interact with the item and see how it would appear to a student. The outcome of the interaction will not be saved.</p>
 
 <h5>Options</h5>
 
@@ -532,6 +533,8 @@ There are 2 parameters that you must pass to the url in the query string.</p>
 <li><strong>expires</strong> =  Seconds since Epoch (UTC)</li>
 </ul>
 
+
+<hr />
 
 <h4>Render Mode</h4>
 
@@ -554,9 +557,11 @@ There are 2 parameters that you must pass to the url in the query string.</p>
 
 
 <ul>
-<li><strong>role</strong> is optional. Default = "student", if instructor the correct response will always be highlighted for completed session</li>
+<li><strong>role</strong> is optional. The default is "student", if set to instructor the correct response will always be highlighted for completed session</li>
 </ul>
 
+
+<hr />
 
 <h4>Administer Mode</h4>
 
@@ -573,7 +578,7 @@ There are 2 parameters that you must pass to the url in the query string.</p>
       "mode" : "administer",
       "sessionId" : "1",
       "itemId" : "1", 
-      "expires": "1366216268",
+      "expires": "1366216268"
     }
 
 </json-highlight>
@@ -585,6 +590,8 @@ There are 2 parameters that you must pass to the url in the query string.</p>
 <li><strong>itemId</strong> - passed if a new session should be created (new session id will be returned in callback - see advanced options below)</li>
 </ul>
 
+
+<hr />
 
 <h4>Aggregate Mode</h4>
 
@@ -621,7 +628,7 @@ There are 2 parameters that you must pass to the url in the query string.</p>
 <h4>Encrypting Options Using CoreSpring REST API</h4>
 
 <p>You can encrypt the options by making a call to the CoreSpring REST API.
-To call the api, you will need to pass an access token which you can retrieve with your Client Id and Client Secret. See the #docs# for how to make REST API calls to CoreSpring.</p>
+To call the api, you will need to pass an access token which you can retrieve with your Client Id and Client Secret. See the REST API <a href="#authentication-register">documentation</a> for how to make REST API calls to CoreSpring.</p>
 
 <blockquote><p>Note: You should make this call from your server code, not in a user's browser.</p></blockquote>
 
@@ -647,7 +654,7 @@ U2FsdGVkX19QrTAwaoeIypkJ2CjF+5TK+Oji5/X+ExV7wfTEIvpKYJBdP9NziW0iPxoSt9dPQaYN0OQs
 
 <h3>Wildcard Options</h3>
 
-<p>If you prefer not to create an options parameter each time you launch the item player, you may create an options key with "wildcard" properties, and then override which mode/item/session to view with query parameters.</p>
+<p>If you prefer not to create an options parameter each time you launch the item player, you may create an options key with "wildcard" properties, and then override which mode/item/session to view with query parameters passed in the URL that loads the player.</p>
 
 <p>The properties that can be set to wildcards in options keys are:</p>
 
@@ -704,13 +711,18 @@ U2FsdGVkX19QrTAwaoeIypkJ2CjF+5TK+Oji5/X+ExV7wfTEIvpKYJBdP9NziW0iPxoSt9dPQaYN0OQs
 
 <p>All Modes:</p>
 
-<blockquote><p>error(message) called if an error occurs while executing the player, with a message describing the error</p></blockquote>
+<ul>
+<li><strong>error(message)</strong>: called if an error occurs while executing the player, with a message describing the error</li>
+</ul>
+
 
 <p>Administer Mode:</p>
 
-<blockquote><p>itemSessionStart(itemSessionId): called when a new item session is started, passes the item session id</p>
+<ul>
+<li><strong>itemSessionStart(itemSessionId)</strong>: called when a new item session is started, passes the item session id</li>
+<li><strong>itemSessionComplete(itemSessionId)</strong>: called when a new item session is completed, passes the item session id</li>
+</ul>
 
-<p>itemSessionComplete(itemSessionId): called when a new item session is completed, passes the item session id</p></blockquote>
 
 <h2><a name="road-map" class="waypoint"></a>Road Map</h2>
 
@@ -1510,7 +1522,7 @@ wanted to display only itemType and sort alphabetically in ascending order:</p>
 
 <hr />
 
-<p>date:  04/19/2013 03:32PM</p>
+<p>date:  04/22/2013 05:02PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">

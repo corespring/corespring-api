@@ -128,7 +128,7 @@ padding:8px 2px !important;
   text-shadow:none;
   padding-top: 5px;
   padding-bottom: 5px;
-  padding-left: 11px;
+  padding-left: 20px;
 }
 .nav li a.main-menu:hover {
     background: none repeat scroll 0 0 transparent;
@@ -170,7 +170,7 @@ text-shadow: none;
   border-bottom: 1px solid #535353;
 }
 #accordianHolder {
-  padding-left: 12px;
+  padding-left: 20px;
 }
 #accordianHolder .header {
   padding-top: 8px;
@@ -204,7 +204,8 @@ text-shadow: none;
 }
 .main-content hr {
   margin: 0px;
-  margin-bottom: 4px;
+  margin-bottom: 15px;
+  margin-top: 15px;
 }
 blockquote {
   padding: 0 0 0 10px;
