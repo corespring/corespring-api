@@ -53,8 +53,9 @@ class AssetLoading(crypto:Crypto, playerTemplate: => String ) extends Controller
               val preppedJs = renderJs(BaseUrl(request) + "/player", finalOptions.mode)
               Ok(preppedJs)
                 .as("text/javascript")
-                .withSession("renderOptions" -> options.toString, "orgId" -> client.orgId.toString)
-            case Left(e) => BadRequest(Json.toJson(ApiError.ItemPlayer(e.clientOutput)))
+                .withSession("renderOptions" -> Json.toJson(finalOptions).toString, "orgId" -> client.orgId.toString)
+            case Left(e) =>
+              BadRequest(Json.toJson(ApiError.ItemPlayer(e.clientOutput)))
           }
         }
         case _ => BadRequest("can't find api client")

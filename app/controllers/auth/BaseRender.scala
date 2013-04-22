@@ -145,7 +145,7 @@ object BaseRender extends Results with BodyParsers with Authenticate[AnyContent]
       }
 
       options.map{ o =>
-        if (o.expires > System.currentTimeMillis()){
+        if (o.expires == 0 || o.expires > System.currentTimeMillis()){
           hasAccess(ra,o) match {
             case Right(_) => invokeBlock
             case Left(e) => Unauthorized(Json.toJson(ApiError.InvalidCredentials(e.clientOutput)))

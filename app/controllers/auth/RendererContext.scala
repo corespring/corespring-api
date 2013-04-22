@@ -19,8 +19,7 @@ case class RenderOptions(itemId:Option[String] = None, sessionId:Option[String] 
           else Left(InternalError("the given value of "+value1+" will not be used for "+name+" because it overrides a value in the session",addMessageToClientOutput = true))
         case None => Left(InternalError("you may not override "+name+" when "+name+" is present in the session",addMessageToClientOutput = true))
       }
-      case None => if (optvalue2.isEmpty || optvalue2.exists(_ != RenderOptions.ANY_VALUE)) Right(optvalue2)
-        else Left(InternalError("no value known for "+name,addMessageToClientOutput = true))
+      case None => Right(optvalue2)
     }
     overwriteValue(options.itemId,itemId,"itemId") match {
       case Right(newItemId) => overwriteValue(options.assessmentId,assessmentId,"assessmentId") match {
