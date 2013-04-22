@@ -28,8 +28,7 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
 
   $scope.getCopyrightUrl = function (item) {
     if (!item) return;
-    var cname = item.copyrightImageName;
-    if (!cname) {
+    var cname = ""
       switch (item.copyrightOwner) {
         case "New York State Education Department":
           cname = "nysed.png";
@@ -52,9 +51,11 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
         case "LearnZillion":
           cname = "lzlogo-png.png";
           break;
+        case "Expeditionary Learning":
+            cname = "El.png";
+            brake;
       }
-    }
-    return cname ? "/assets/images/copyright/" + cname : undefined;
+    return cname!="" ? "/assets/images/copyright/" + cname : undefined;
   }
 
   $scope.printCurrent = function () {
