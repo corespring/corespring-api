@@ -145,10 +145,12 @@ object BaseRender extends Results with BodyParsers with Authenticate[AnyContent]
       }
 
       options.map{ o =>
-        hasAccess(ra,o) match {
-          case Right(_) => invokeBlock
-          case Left(e) => Unauthorized(Json.toJson(ApiError.InvalidCredentials(e.clientOutput)))
-        }
+        if (o.expires > System.currentTimeMillis()){
+          hasAccess(ra,o) match {
+            case Right(_) => invokeBlock
+            case Left(e) => Unauthorized(Json.toJson(ApiError.InvalidCredentials(e.clientOutput)))
+          }
+        }else Unauthorized(Json.toJson(ApiError.ExpiredOptions))
       }.getOrElse(BadRequest("Couldn't find options"))
 
     }

@@ -67,6 +67,7 @@ object ApiError {
   val ParseKey            = ApiError(111, "Could not parse key. Incorrect format")
   val NoOptionsProvided   = ApiError(112, "no options provided with client id")
   val ItemPlayer          = ApiError(113, "an error occurred when attempting to retrieve the item player")
+  val ExpiredOptions      = ApiError(114, "the options received is expired")
 
   // Base Api
   val UserIsRequired      = ApiError(150, "User is required")

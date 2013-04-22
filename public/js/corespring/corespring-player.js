@@ -10,7 +10,8 @@ com.corespring.players.config = {
     administerItem : "/item/:itemId/administer",
     administerSession : "/session/:sessionId/administer",
     aggregate: "/aggregate/:assessmentId/:itemId/run"
-  }
+  },
+  mode : "${mode}"
 };
 
 console.log("mode is: " + com.corespring.players.config.mode);
