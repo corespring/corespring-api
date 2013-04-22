@@ -37,6 +37,7 @@ class Session(auth: Authenticate[AnyContent]) extends Controller with SimpleJsRo
         JsSession.update
       )
       Ok(createSimpleRoutes("PlayerRoutes", jsRoutes: _*))
+        .as("text/javascript")
   }
 }
 

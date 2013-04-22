@@ -166,7 +166,7 @@ GET    /player/session/:sessionId/administer               player.controllers.Vi
 GET    /player/session/:sessionId/*filename                player.controllers.AssetLoading.getDataFileBySessionId(sessionId, filename)
 
 GET    /player/aggregate/:assessmentId/:itemId/run         player.controllers.Views.aggregate(assessmentId:ObjectId, itemId:ObjectId)
-# GET    /player/aggregate/:assessmentId/:itemId/*filename   player.controllers.AssetLoading.getDataFile(itemId:ObjectId, filename)
+GET    /player/aggregate/:assessmentId/:itemId/*filename   player.controllers.AssetLoading.getDataFileForAssessment(assessmentId:String,itemId:String, filename)
 
 # New Player Rendering
 GET    /player.js                                   player.controllers.AssetLoading.itemPlayerJavascript

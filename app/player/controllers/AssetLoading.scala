@@ -58,6 +58,8 @@ class AssetLoading(crypto:Crypto, playerTemplate: => String ) extends Controller
     val tokens = Map( "mode" -> mode.getOrElse("?"), "baseUrl" -> baseUrl)
     StringUtils.interpolate(playerTemplate, StringUtils.replaceKey(tokens), StringUtils.DollarRegex)
   }
+
+  def getDataFileForAssessment(assessmentId:String, itemId:String, filename : String ) = getDataFile(itemId, filename)
 }
 
 object DefaultTemplate {
