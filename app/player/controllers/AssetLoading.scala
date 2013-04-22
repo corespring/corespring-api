@@ -8,6 +8,7 @@ import play.api.mvc.{Action, Controller}
 import models.auth.ApiClient
 import org.bson.types.ObjectId
 import common.controllers.AssetResource
+import common.controllers.utils.BaseUrl
 
 
 class AssetLoading(crypto:Crypto, playerTemplate: => String ) extends Controller with AssetResource {
@@ -41,7 +42,9 @@ class AssetLoading(crypto:Crypto, playerTemplate: => String ) extends Controller
         case Some(client) => {
           val options = decryptOptions(client)
           val mode = (options \ "mode").asOpt[String]
-          Ok(renderJs(mode)).as("text/javascript")
+          val preppedJs = renderJs(BaseUrl(request) + "/player", mode)
+          Ok(preppedJs)
+            .as("text/javascript")
             .withSession("renderOptions" -> options.toString, "orgId" -> client.orgId.toString)
 
         }
@@ -51,8 +54,8 @@ class AssetLoading(crypto:Crypto, playerTemplate: => String ) extends Controller
     }
   }
 
-  private def renderJs(mode:Option[String]) : String = {
-    val tokens = Map( "mode" -> mode.getOrElse("?"))
+  private def renderJs(baseUrl : String, mode:Option[String]) : String = {
+    val tokens = Map( "mode" -> mode.getOrElse("?"), "baseUrl" -> baseUrl)
     StringUtils.interpolate(playerTemplate, StringUtils.replaceKey(tokens), StringUtils.DollarRegex)
   }
 }
