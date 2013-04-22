@@ -104,13 +104,13 @@ object BaseRender extends Results with BodyParsers with Authenticate[AnyContent]
     } else Right(())
     val sessionIdCheck:Either[InternalError,Unit] = if (ro.sessionId != Some("*")) ra.sessionId match {
       case Some(ContentRequest(id,p)) =>
-        if ((p.value&Permission.Read.value)==Permission.Read.value && id == ro.sessionId) Right(())
+        if ((p.value&Permission.Read.value)==Permission.Read.value && Some(id.toString) == ro.sessionId) Right(())
         else Left(InternalError("cannot access session",addMessageToClientOutput = true))
       case _ => Right(())
     } else Right(())
     val assessmentIdCheck:Either[InternalError,Unit] = if (ro.assessmentId != Some("*")) ra.assessmentId match {
       case Some(ContentRequest(id,p)) =>
-        if ((p.value&Permission.Read.value)==Permission.Read.value && id == ro.assessmentId) Right(())
+        if ((p.value&Permission.Read.value)==Permission.Read.value && Some(id.toString) == ro.assessmentId) Right(())
         else Left(InternalError("cannot access assessment",addMessageToClientOutput = true))
       case _ => Right(())
     } else Right(())
