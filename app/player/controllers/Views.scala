@@ -13,6 +13,7 @@ import scala.xml.Elem
 import testplayer.controllers.QtiRenderer
 import testplayer.models.ExceptionMessage
 import models.itemSession.ItemSession
+import models.quiz.basic.Quiz
 
 class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource with QtiRenderer {
 
@@ -34,17 +35,11 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
     }
   }
 
-  def administerItem(itemId: ObjectId) = Action {
-    request => Ok("todo..")
-  }
+  def administerItem(itemId: ObjectId) = renderItem(itemId.toString, previewEnabled = false)
 
-  def administerSession(sessionId: ObjectId) = Action {
-    request => Ok("todo..")
-  }
+  def administerSession(sessionId: ObjectId) = render(sessionId)
 
-  def aggregate(assessmentId: ObjectId, itemId: ObjectId) = Action {
-    request => Ok("todo..")
-  }
+  def aggregate(assessmentId: ObjectId, itemId: ObjectId) = renderQuizAsAggregate(assessmentId, itemId)
 
 
   private def renderItem(itemId: String,
@@ -74,6 +69,36 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
           }
       }(tokenRequest)
   }
+
+
+  def renderQuizAsAggregate(quizId: ObjectId, itemId: ObjectId) = auth.OrgAction(
+    RequestedAccess(itemId = Some(itemId), assessmentId = Some(quizId))
+  ) {
+    tokenRequest =>
+      ApiAction {
+        request =>
+          Quiz.findOneById(quizId) match {
+            case Some(q) =>
+              try {
+                getItemXMLByObjectId(itemId.toString, request.ctx.organization) match {
+                  case Some(xmlData: Elem) =>
+                    val finalXml = prepareQti(xmlData, Aggregate)
+                    Ok(testplayer.views.html.aggregatePlayer(itemId.toString, finalXml, quizId.toString, common.mock.MockToken))
+                  case None =>
+                    NotFound("not found")
+                }
+              } catch {
+                case e: SAXParseException => {
+                  val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
+                  Ok(testplayer.views.html.itemPlayerError(errorInfo))
+                }
+              }
+            case _ => NotFound
+          }
+      }(tokenRequest)
+
+  }
+
 }
 
 /*

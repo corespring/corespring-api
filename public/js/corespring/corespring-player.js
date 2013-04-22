@@ -68,10 +68,19 @@ com.corespring.players.ItemPlayer = function (element, options, errorCallback) {
   }
 
   var getUrl = function(mode, options){
+    console.log("itemId: ", options.itemId);
+    console.log("sessionId: ", options.sessionId);
     var template =  com.corespring.players.config.baseUrl;
     switch (com.corespring.players.config.mode) {
       case 'render': template += com.corespring.players.config.paths.render; break;
       case 'preview': template += com.corespring.players.config.paths.preview; break;
+      case 'administer':
+        if (options.itemId) template += com.corespring.players.config.paths.administerItem;
+        else if (options.sessionId) template += com.corespring.players.config.paths.administerSession;
+        break;
+      case 'aggregate':
+        template += com.corespring.players.config.paths.aggregate;
+        break;
     }
     return template
       .replace(":itemId", options.itemId)
