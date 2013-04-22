@@ -47,7 +47,7 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
                           previewEnabled: Boolean = false,
                           sessionId: Option[String] = None,
                           template: PlayerParams => Html = PlayerTemplates.default) = auth.OrgAction(
-    RequestedAccess(Some(new ObjectId(itemId)))
+    RequestedAccess(Some(new ObjectId(itemId)),sessionId.map(new ObjectId(_)))
   ) {
     tokenRequest =>
       ApiAction {
