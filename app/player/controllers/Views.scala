@@ -1,7 +1,7 @@
 package player.controllers
 
 import common.controllers.QtiResource
-import controllers.auth.{RequestedAccess, BaseApi}
+import controllers.auth.{BaseRender, RequestedAccess, BaseApi}
 import org.bson.types.ObjectId
 import org.xml.sax.SAXParseException
 import play.api.mvc.{AnyContent, Action}
@@ -76,4 +76,4 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
 
   }
    */
-object Views extends Views(AllowEverything)
+object Views extends Views(BaseRender)
