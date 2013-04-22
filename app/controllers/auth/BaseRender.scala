@@ -7,18 +7,21 @@ import scala.Left
 import scala.Right
 import scala.Some
 import play.api.libs.json.Json
+import encryption.AESCrypto
+import player.controllers.auth.Authenticate
+import player.models.TokenizedRequest
+import models.auth.AccessToken
+import org.bson.types.ObjectId
 
-object BaseRender{
+object BaseRender extends Results with BodyParsers with Authenticate[AnyContent]{
   val RendererHeader = "Renderer"
   val Delimeter = "-"
   val ClientId = "clientId"
   val Options = "options"
-}
-trait BaseRender extends Controller{
-  import BaseRender._
+
   case class RenderRequest[A](ctx: RendererContext, r:Request[A]) extends WrappedRequest(r){
     def reencrypt:String =
-      ctx.apiClient.clientId+Delimeter+AESCrypto.encryptAES(Json.toJson(ctx.options).toString(),ctx.apiClient.clientSecret)
+      ctx.apiClient.clientId+Delimeter+AESCrypto.encrypt(Json.toJson(ctx.options).toString(),ctx.apiClient.clientSecret)
   }
 
   /**
@@ -91,5 +94,62 @@ trait BaseRender extends Controller{
    */
   def RenderAction(f: RenderRequest[AnyContent] => Result): Action[AnyContent] = {
     RenderAction(parse.anyContent)(f)
+  }
+  private def hasAccess(ra:RequestedAccess, ro:RenderOptions):Either[InternalError,Unit] = {
+    val itemIdCheck:Either[InternalError,Unit] = if (ro.itemId != "*") ra.itemId match {
+      case Some(ContentRequest(id,p)) =>
+        if ((p.value&Permission.Read.value)==Permission.Read.value && id == ro.itemId) Right(()) 
+        else Left(InternalError("cannot access item",addMessageToClientOutput = true))
+      case _ => Right(())
+    } else Right(())
+    val sessionIdCheck:Either[InternalError,Unit] = if (ro.sessionId != "*") ra.sessionId match {
+      case Some(ContentRequest(id,p)) =>
+        if ((p.value&Permission.Read.value)==Permission.Read.value && id == ro.sessionId) Right(())
+        else Left(InternalError("cannot access session",addMessageToClientOutput = true))
+      case _ => Right(())
+    } else Right(())
+    val assessmentIdCheck:Either[InternalError,Unit] = if (ro.assessmentId != "*") ra.assessmentId match {
+      case Some(ContentRequest(id,p)) =>
+        if ((p.value&Permission.Read.value)==Permission.Read.value && id == ro.assessmentId) Right(())
+        else Left(InternalError("cannot access assessment",addMessageToClientOutput = true))
+      case _ => Right(())
+    } else Right(())
+    itemIdCheck match {
+      case Right(_) => sessionIdCheck match {
+        case Right(_) => assessmentIdCheck match {
+          case Right(_) => Right(())
+          case Left(e) => Left(e)
+        }
+        case Left(e) => Left(e)
+      }
+      case Left(e) => Left(e)
+    }
+  }
+
+
+  def OrgAction(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
+    OrgAction(play.api.mvc.BodyParsers.parse.anyContent)(ra)(block)
+
+  def OrgAction(p:BodyParser[AnyContent])(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
+    RenderAction[AnyContent](p){ request =>
+      hasAccess(ra,request.ctx.options) match {
+        case Right(_) => {
+
+          request.session.get("orgId") match {
+            case Some(orgId) => {
+
+              AccessToken.getTokenForOrgById(new ObjectId(orgId)) match {
+                case Some(token) => {
+                  block(TokenizedRequest(token.tokenId,request.r))
+                }
+                case _ => BadRequest("Can't find access token for Org")
+              }
+
+            }
+            case _ => BadRequest("Can't find org id")
+          }
+        }
+        case Left(e) => Unauthorized(Json.toJson(ApiError.InvalidCredentials(e.clientOutput)))
+      }
   }
 }

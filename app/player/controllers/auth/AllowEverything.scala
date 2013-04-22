@@ -5,13 +5,14 @@ import player.models.TokenizedRequest
 import com.mongodb.casbah.commons.MongoDBObject
 import models.Organization
 import models.auth.AccessToken
+import controllers.auth.RequestedAccess
 
 /** An impl of Authenticate that creates a tokenized request for the Root Corespring Org - effectively a pass through */
 object AllowEverything extends Authenticate[AnyContent] {
 
-  def OrgAction(block: TokenizedRequest[AnyContent] => Result): Action[AnyContent] = OrgAction(BodyParsers.parse.anyContent)(block)
+  def OrgAction(access:RequestedAccess)(block: TokenizedRequest[AnyContent] => Result): Action[AnyContent] = OrgAction(BodyParsers.parse.anyContent)(access)(block)
 
-  def OrgAction(p: BodyParser[AnyContent])(block: TokenizedRequest[AnyContent] => Result): Action[AnyContent] = {
+  def OrgAction(p: BodyParser[AnyContent])(access:RequestedAccess)(block: TokenizedRequest[AnyContent] => Result): Action[AnyContent] = {
     Action(p) {
       request =>
 

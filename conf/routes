@@ -28,7 +28,6 @@ GET     /developer/*file            developer.controllers.Developer.at(path="/pu
 #
 POST    /auth/register                          controllers.auth.AuthController.register
 POST    /auth/access_token                      controllers.auth.AuthController.getAccessToken
-POST    /api/v1/item-player/options                      api.v1.RenderApi.renderOptions
 
 #Public site
 GET     /                                      publicsite.controllers.Application.index
@@ -142,8 +141,6 @@ GET    /testplayer/session/:sessionId/render        testplayer.controllers.ItemP
 GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
 GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes
 
-POST    /api/v1/item-player/options     testplayer.controllers.ItemPlayerWithKey.renderPlayer(itemId ?= "", sessionId ?= "", mode ?= "")
-
 GET    /scorm-player/item/:itemId/run               scorm.controllers.ScormPlayer.runByItemId(itemId : ObjectId)
 GET    /scorm-player/item/:itemId/:filename         scorm.controllers.ScormPlayer.getDataFile(itemId, filename)
 GET    /scorm-player/session/:sessionId/run         scorm.controllers.ScormPlayer.runBySessionId(sessionId : ObjectId)
@@ -158,7 +155,8 @@ PUT    /player/api/:itemId/session/:sessionId              player.controllers.Se
 POST   /player/api/:itemId/session/:quizId/aggregate       player.controllers.Session.aggregate(quizId:ObjectId, itemId:ObjectId)
 GET    /player/routes.js                                   player.controllers.Session.jsRoutes
 ## Encrypt
-POST    /player/encrypt-options                            player.controllers.Encryption.encrypt
+# POST    /player/encrypt-options                            player.controllers.RenderKey.encrypt
+POST    /player/encrypt-options                            player.controllers.RenderKey.encryptAnything
 ## js loading
 GET    /player.js                                          player.controllers.AssetLoading.itemPlayer
 ## Views
@@ -172,6 +170,9 @@ GET    /player/session/:sessionId/*filename                player.controllers.As
 
 GET    /player/aggregate/:assessmentId/:itemId/run         player.controllers.Views.aggregate(assessmentId:ObjectId, itemId:ObjectId)
 # GET    /player/aggregate/:assessmentId/:itemId/*filename   player.controllers.AssetLoading.getDataFile(itemId:ObjectId, filename)
+
+# New Player Rendering
+GET    /player.js                                   player.controllers.AssetLoading.itemPlayer
 
 
 # Web tier

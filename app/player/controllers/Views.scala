@@ -1,7 +1,7 @@
 package player.controllers
 
 import common.controllers.QtiResource
-import controllers.auth.BaseApi
+import controllers.auth.{RequestedAccess, BaseApi}
 import org.bson.types.ObjectId
 import org.xml.sax.SAXParseException
 import play.api.mvc.{AnyContent, Action}
@@ -47,7 +47,9 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
                           renderMode: RenderingMode = Web,
                           previewEnabled: Boolean = false,
                           sessionId: Option[String] = None,
-                          template: PlayerParams => Html = PlayerTemplates.default) = auth.OrgAction {
+                          template: PlayerParams => Html = PlayerTemplates.default) = auth.OrgAction(
+    RequestedAccess(Some(new ObjectId(itemId)))
+  ) {
     tokenRequest =>
       ApiAction{
         request =>

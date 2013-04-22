@@ -1,27 +1,20 @@
 package testplayer.controllers
 
 import controllers.auth._
-import models.auth.{ApiClient}
-import play.api.libs.json.{Json, JsString, JsObject}
+import play.api.libs.json.{Json}
 import org.bson.types.ObjectId
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
-import scala.Some
-import play.api.mvc.{SimpleResult, Action, Result, AnyContent}
-import testplayer.controllers.ItemPlayer
-import models.itemSession.ItemSessionSettings
-import models.item.Content
+import play.api.mvc.{SimpleResult, Result, AnyContent}
 import api.ApiError
-import controllers.{Utils, InternalError}
+import controllers.{Utils}
 import controllers.auth.BaseRender._
 import scala.Left
 import controllers.InternalError
 import scala.Right
 import scala.Some
 
-object ItemPlayerWithKey extends BaseApi with BaseRender{
+object ItemPlayerWithKey extends BaseApi{
 
-  def renderPlayer(itemId:String,sessionId:String,mode:String) = RenderAction {implicit request =>
+  def renderPlayer(itemId:String,sessionId:String,mode:String) = BaseRender.RenderAction {implicit request =>
     val finalMode = if (request.ctx.options.mode == "*") mode else request.ctx.options.mode
     finalMode match {
       case "preview" => finalId(itemId,request.ctx.options.itemId,"item") match {

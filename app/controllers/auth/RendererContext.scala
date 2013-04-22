@@ -7,6 +7,7 @@ import play.api.libs.json.JsObject
 import scala.Some
 import models.itemSession.ItemSessionSettings
 import models.auth.ApiClient
+import encryption.AESCrypto
 
 case class RenderOptions(itemId:Option[String] = None, sessionId:Option[String] = None, assessmentId:Option[String] = None, role:Option[String] = None, expires:Long, mode:String)
 object RenderOptions{
@@ -55,7 +56,7 @@ object RenderOptions{
 //    }
 //  }
   def decryptOptions(apiClient:ApiClient, encrypted:String):RenderOptions = {
-    val decrypted = AESCrypto.decryptAES(encrypted,apiClient.clientSecret)
+    val decrypted = AESCrypto.decrypt(encrypted,apiClient.clientSecret)
     Json.fromJson[RenderOptions](Json.parse(decrypted))
   }
 }

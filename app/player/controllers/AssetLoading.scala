@@ -1,13 +1,16 @@
 package player.controllers
 
-import play.api.mvc.{Action, Controller}
-import encryption.{MockUrlEncodeEncrypter, Decrypt}
-import play.api.libs.json.JsValue
-import play.api.Play
 import common.seed.StringUtils
-import common.controllers.{AssetResource, ItemResources}
+import encryption.{MockUrlEncodeEncrypter, AESCrypto, Crypto}
+import play.api.Play
+import play.api.libs.json.JsValue
+import play.api.mvc.{Action, Controller}
+import models.auth.ApiClient
+import org.bson.types.ObjectId
+import common.controllers.AssetResource
 
-class AssetLoading(decrypter:Decrypt, playerTemplate: => String) extends Controller with AssetResource {
+
+class AssetLoading(crypto:Crypto, playerTemplate:String) extends Controller with AssetResource {
 
   /** Serve the item player js
     * We require 2 parameters to be passed in with this url:
@@ -29,14 +32,21 @@ class AssetLoading(decrypter:Decrypt, playerTemplate: => String) extends Control
     }
     else {
 
-      def options : JsValue = {
-        val options =  decrypter.decrypt(encryptedOptions.get, apiClientId.get)
+      def decryptOptions(apiClient:ApiClient) : JsValue = {
+        val options =  crypto.decrypt(encryptedOptions.get, apiClient.clientSecret)
         play.api.libs.json.Json.parse(options)
       }
 
-      val mode = (options \ "mode").asOpt[String]
-      Ok(renderJs(mode)).as("text/javascript")
-        .withSession("renderOptions" -> options.toString, "orgId" -> "TODO")
+      ApiClient.findOneById(new ObjectId(apiClientId.get)) match {
+        case Some(client) => {
+          val options = decryptOptions(client)
+          val mode = (options \ "mode").asOpt[String]
+          Ok(renderJs(mode)).as("text/javascript")
+            .withSession("renderOptions" -> options.toString, "orgId" -> client.orgId.toString)
+
+        }
+        case _ => BadRequest("can't find api client")
+      }
 
     }
   }
@@ -48,8 +58,11 @@ class AssetLoading(decrypter:Decrypt, playerTemplate: => String) extends Control
 }
 
 object DefaultTemplate {
+
   import play.api.Play.current
+
   def template = io.Source.fromFile(Play.getFile("public/js/corespring/corespring-player.js")).getLines().mkString("\n")
 }
 
-object AssetLoading extends AssetLoading(MockUrlEncodeEncrypter,  DefaultTemplate.template)
+//object AssetLoading extends AssetLoading(AESCrypto, DefaultTemplate.template)
+object AssetLoading extends AssetLoading(MockUrlEncodeEncrypter, DefaultTemplate.template)

@@ -4,11 +4,11 @@ import testplayer.controllers.QtiRenderer
 import basiclti.models.LtiQuiz
 import play.api.mvc.Action
 import controllers.auth.BaseApi
-import common.controllers.ItemResources
+import common.controllers.{AssetResource, QtiResource, ItemResources}
 import org.bson.types.ObjectId
 import models.itemSession.ItemSession
 
-object AssignmentPlayer extends BaseApi with QtiRenderer with ItemResources {
+object AssignmentPlayer extends BaseApi with QtiRenderer with AssetResource with QtiResource{
 
   def run(configId: ObjectId, resultSourcedId: String) = ApiAction {
     request =>

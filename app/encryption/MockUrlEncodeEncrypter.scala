@@ -1,6 +1,6 @@
 package encryption
 
-object MockUrlEncodeEncrypter extends Encrypt with Decrypt {
+object MockUrlEncodeEncrypter extends Crypto {
 
   def encrypt(s:String,key:String) : String = java.net.URLEncoder.encode(s, "utf-8")
 
