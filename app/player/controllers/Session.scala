@@ -40,8 +40,8 @@ class Session(auth: Authenticate[AnyContent]) extends Controller with SimpleJsRo
   }
 }
 
-object Session extends Session(AllowEverything)
-//object Session extends Session(BaseRender)
+//object Session extends Session(AllowEverything)
+object Session extends Session(BaseRender)
 /*
 import controllers.auth._
 import models.Organization

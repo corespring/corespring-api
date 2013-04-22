@@ -9,19 +9,6 @@ import models.Organization
 
 class RenderKey(encrypter:Crypto) extends BaseApi{
 
-
-  /** Encrypt any json passed in the request body */
-  def encryptAnything = ApiAction{ request =>
-    val result : Option[Result] = for{
-      json <- request.body.asJson
-      client <- ApiClient.findOneByOrgId(request.ctx.organization)
-    } yield{
-      Ok(encrypter.encrypt(json.toString(), client.clientSecret))
-    }
-    result.getOrElse(BadRequest("Couldn't encrypt"))
-  }
-
-
   def encrypt = ApiAction{ request =>
     request.body.asJson match {
       case Some(jsoptions) => {
@@ -43,7 +30,7 @@ class RenderKey(encrypter:Crypto) extends BaseApi{
 }
 
 
-object RenderKey extends RenderKey(MockUrlEncodeEncrypter)
-//object RenderKey extends RenderKey(AESCrypto)
+//object RenderKey extends RenderKey(MockUrlEncodeEncrypter)
+object RenderKey extends RenderKey(AESCrypto)
 
 

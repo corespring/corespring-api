@@ -20,7 +20,7 @@ class AssetLoading(crypto:Crypto, playerTemplate:String) extends Controller with
     * will be authenticated.
     * @return
     */
-  def itemPlayer = Action{ request =>
+  def itemPlayerJavascript = Action{ request =>
 
     val apiClientId : Option[String] = request.queryString.get("apiClientId").map(_.mkString)
     val encryptedOptions : Option[String] = request.queryString.get("options").map(_.mkString)
@@ -37,7 +37,7 @@ class AssetLoading(crypto:Crypto, playerTemplate:String) extends Controller with
         play.api.libs.json.Json.parse(options)
       }
 
-      ApiClient.findOneById(new ObjectId(apiClientId.get)) match {
+      ApiClient.findByKey(apiClientId.get) match {
         case Some(client) => {
           val options = decryptOptions(client)
           val mode = (options \ "mode").asOpt[String]
@@ -64,5 +64,5 @@ object DefaultTemplate {
   def template = io.Source.fromFile(Play.getFile("public/js/corespring/corespring-player.js")).getLines().mkString("\n")
 }
 
-//object AssetLoading extends AssetLoading(AESCrypto, DefaultTemplate.template)
-object AssetLoading extends AssetLoading(MockUrlEncodeEncrypter, DefaultTemplate.template)
+object AssetLoading extends AssetLoading(AESCrypto, DefaultTemplate.template)
+//object AssetLoading extends AssetLoading(MockUrlEncodeEncrypter, DefaultTemplate.template)

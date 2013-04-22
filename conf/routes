@@ -155,10 +155,7 @@ PUT    /player/api/:itemId/session/:sessionId              player.controllers.Se
 POST   /player/api/:itemId/session/:quizId/aggregate       player.controllers.Session.aggregate(quizId:ObjectId, itemId:ObjectId)
 GET    /player/routes.js                                   player.controllers.Session.jsRoutes
 ## Encrypt
-# POST    /player/encrypt-options                            player.controllers.RenderKey.encrypt
-POST    /player/encrypt-options                            player.controllers.RenderKey.encryptAnything
-## js loading
-GET    /player.js                                          player.controllers.AssetLoading.itemPlayer
+POST    /player/encrypt-options                            player.controllers.RenderKey.encrypt
 ## Views
 GET    /player/item/:itemId/preview                        player.controllers.Views.preview(itemId:ObjectId)
 GET    /player/item/:itemId/administer                     player.controllers.Views.administerItem(itemId:ObjectId)
@@ -172,7 +169,7 @@ GET    /player/aggregate/:assessmentId/:itemId/run         player.controllers.Vi
 # GET    /player/aggregate/:assessmentId/:itemId/*filename   player.controllers.AssetLoading.getDataFile(itemId:ObjectId, filename)
 
 # New Player Rendering
-GET    /player.js                                   player.controllers.AssetLoading.itemPlayer
+GET    /player.js                                   player.controllers.AssetLoading.itemPlayerJavascript
 
 
 # Web tier
