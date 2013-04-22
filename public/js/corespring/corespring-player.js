@@ -3,7 +3,6 @@ com.corespring = com.corespring || {};
 com.corespring.players = {};
 
 com.corespring.players.config = {
-  mode : "${mode}",
   baseUrl : "${baseUrl}",
   paths: {
     preview : "/item/:itemId/preview",
@@ -18,9 +17,12 @@ console.log("mode is: " + com.corespring.players.config.mode);
 
 com.corespring.players.errors = {
   NEED_OPTIONS: 0,
+  NEED_MODE: 1,
   NEED_ITEMID_OR_SESSIONID: 2,
   NEED_EMBEDDING_ELEMENT: 3,
-  INVALID_PLAYER_LOCATION: 4
+  INVALID_PLAYER_LOCATION: 4,
+  NEED_JQUERY: 5,
+  UNKNOWN_MODE: 6
 };
 
 function addDimensionChangeListener(elem) {
@@ -51,25 +53,37 @@ var iframePlayerStrategy = function (e, options) {
 
 
 com.corespring.players.ItemPlayer = function (element, options, errorCallback) {
+
+  var codes = com.corespring.players.errors;
+
+  var error = function(msg,code){
+    errorCallback({msg:msg, code : code});
+  };
+
   if (!jQuery) {
-    errorCallback("jQuery not found");
+    error("jQuery not found", codes.NEED_JQUERY );
   }
 
   var e = $(element);
 
   if (!e) {
-    errorCallback({msg: "Container element not found.", code: com.corespring.players.errors.NEED_EMBEDDING_ELEMENT});
+    error("Container element not found.", codes.NEED_EMBEDDING_ELEMENT);
     return;
   }
 
   if (!options) {
-    errorCallback({msg: "Need to specify options", code: com.corespring.players.errors.NEED_OPTIONS});
+    error("Need to specify options", codes.NEED_OPTIONS);
+    return;
+  }
+
+  if(!options.mode){
+    error("Need a launch mode", codes.NEED_MODE);
     return;
   }
 
   var getUrl = function(mode, options){
     var template =  com.corespring.players.config.baseUrl;
-    switch (com.corespring.players.config.mode) {
+    switch (options.mode) {
       case 'render': template += com.corespring.players.config.paths.render; break;
       case 'preview': template += com.corespring.players.config.paths.preview; break;
       case 'administer':
@@ -78,6 +92,9 @@ com.corespring.players.ItemPlayer = function (element, options, errorCallback) {
         break;
       case 'aggregate':
         template += com.corespring.players.config.paths.aggregate;
+        break;
+      default :
+        error("Unknown mode", errors.UNKNOWN_MODE);
         break;
     }
     return template
