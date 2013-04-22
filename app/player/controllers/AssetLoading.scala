@@ -55,7 +55,7 @@ class AssetLoading(crypto:Crypto, playerTemplate: => String ) extends Controller
   }
 
   private def renderJs(baseUrl : String, mode:Option[String]) : String = {
-    val tokens = Map( "mode" -> mode.getOrElse("?"), "baseUrl" -> baseUrl)
+    val tokens = Map( "baseUrl" -> baseUrl)
     StringUtils.interpolate(playerTemplate, StringUtils.replaceKey(tokens), StringUtils.DollarRegex)
   }
 
