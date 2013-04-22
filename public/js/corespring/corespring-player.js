@@ -4,7 +4,7 @@ com.corespring.players = {};
 
 com.corespring.players.config = {
   mode : "${mode}",
-  baseUrl : "http://localhost:9000/player",
+  baseUrl : "${baseUrl}",
   paths: {
     preview : "/item/:itemId/preview",
     render: "/session/:sessionId/render",
