@@ -10,7 +10,7 @@ import org.bson.types.ObjectId
 import common.controllers.AssetResource
 
 
-class AssetLoading(crypto:Crypto, playerTemplate:String) extends Controller with AssetResource {
+class AssetLoading(crypto:Crypto, playerTemplate: => String ) extends Controller with AssetResource {
 
   /** Serve the item player js
     * We require 2 parameters to be passed in with this url:
