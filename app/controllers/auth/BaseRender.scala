@@ -7,7 +7,7 @@ import models.auth.AccessToken
 import org.bson.types.ObjectId
 import play.api.libs.json.Json
 import play.api.mvc._
-import player.controllers.auth.Authenticate
+import player.controllers.auth.{ContentRequest, RequestedAccess, Authenticate}
 import player.models.TokenizedRequest
 import scala.Left
 import scala.Right
@@ -114,16 +114,17 @@ object BaseRender extends Results with BodyParsers with Authenticate[AnyContent]
         else Left(InternalError("cannot access assessment",addMessageToClientOutput = true))
       case _ => Right(())
     } else Right(())
-    itemIdCheck match {
-      case Right(_) => sessionIdCheck match {
-        case Right(_) => assessmentIdCheck match {
-          case Right(_) => Right(())
-          case Left(e) => Left(e)
-        }
-        case Left(e) => Left(e)
-      }
+    val modeCheck:Either[InternalError,Unit] = if (ro.mode != "*") ra.mode match {
+      case Some(mode) =>
+        if (mode == ro.mode) Right(())
+        else Left(InternalError("cannot access assessment",addMessageToClientOutput = true))
+      case _ => Right(())
+    } else Right(())
+    Seq[Either[InternalError,Unit]](itemIdCheck, sessionIdCheck, assessmentIdCheck, modeCheck).
+      foldRight[Either[InternalError,Unit]](Right(()))((check,result) => result match {
+      case Right(_) => check
       case Left(e) => Left(e)
-    }
+    })
   }
 
 

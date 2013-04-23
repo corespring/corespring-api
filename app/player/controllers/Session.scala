@@ -1,10 +1,10 @@
 package player.controllers
 
 import common.controllers.SimpleJsRoutes
-import controllers.auth.{BaseRender, RequestedAccess}
+import controllers.auth.{BaseRender}
 import org.bson.types.ObjectId
 import play.api.mvc._
-import player.controllers.auth.Authenticate
+import auth.{RequestedAccess, Authenticate}
 
 
 class Session(auth: Authenticate[AnyContent]) extends Controller with SimpleJsRoutes {

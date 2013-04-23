@@ -1,12 +1,12 @@
 package player.controllers
 
 import common.controllers.QtiResource
-import controllers.auth.{BaseRender, RequestedAccess, BaseApi}
+import controllers.auth.{BaseRender, BaseApi}
 import org.bson.types.ObjectId
 import org.xml.sax.SAXParseException
 import play.api.mvc.{AnyContent, Action}
 import play.api.templates.Html
-import player.controllers.auth.Authenticate
+import auth.{RequestedAccess, Authenticate}
 import player.models.PlayerParams
 import qti.models.RenderingMode._
 import scala.xml.Elem
@@ -28,30 +28,31 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
     def profile(p: PlayerParams): play.api.templates.Html = player.views.html.Profile(p)
   }
 
-  def preview(itemId: ObjectId) = renderItem(itemId.toString, previewEnabled = true)
+  def preview(itemId: ObjectId) = renderItem(itemId.toString, previewEnabled = true,mode = RequestedAccess.PREVIEW_MODE)
 
   def render(sessionId: ObjectId) = {
     ItemSession.get(sessionId) match {
-      case Some(session) => renderItem(itemId = ItemSession.get(sessionId).get.itemId.toString, sessionId = Some(sessionId.toString))
+      case Some(session) => renderItem(itemId = ItemSession.get(sessionId).get.itemId.toString, sessionId = Some(sessionId.toString),mode = RequestedAccess.RENDER_MODE)
       case None => Action( request => NotFound("not found") )
     }
   }
 
-  def administerItem(itemId: ObjectId) = renderItem(itemId.toString, previewEnabled = false)
+  def administerItem(itemId: ObjectId) = renderItem(itemId.toString, previewEnabled = false, mode = RequestedAccess.ADMINISTER_MODE)
 
   def administerSession(sessionId: ObjectId) = render(sessionId)
 
   def aggregate(assessmentId: ObjectId, itemId: ObjectId) = renderQuizAsAggregate(assessmentId, itemId)
 
-  def profile(itemId:ObjectId) = renderItem(itemId.toString, previewEnabled = true, template = PlayerTemplates.profile)
+  def profile(itemId:ObjectId) = renderItem(itemId.toString, previewEnabled = true, template = PlayerTemplates.profile, mode = RequestedAccess.PREVIEW_MODE)
 
 
   private def renderItem(itemId: String,
                           renderMode: RenderingMode = Web,
                           previewEnabled: Boolean = false,
                           sessionId: Option[String] = None,
+                          mode:String,
                           template: PlayerParams => Html = PlayerTemplates.default) = auth.OrgAction(
-    RequestedAccess(Some(new ObjectId(itemId)),sessionId.map(new ObjectId(_)))
+    RequestedAccess(Some(new ObjectId(itemId)),sessionId.map(new ObjectId(_)),mode = Some(mode))
   ) {
     tokenRequest =>
       ApiAction {
@@ -76,7 +77,7 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
 
 
   def renderQuizAsAggregate(quizId: ObjectId, itemId: ObjectId) = auth.OrgAction(
-    RequestedAccess(itemId = Some(itemId), assessmentId = Some(quizId))
+    RequestedAccess(itemId = Some(itemId), assessmentId = Some(quizId), mode = Some(RequestedAccess.AGGREGATE_MODE))
   ) {
     tokenRequest =>
       ApiAction {
