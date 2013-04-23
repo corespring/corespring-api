@@ -66,6 +66,12 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.togglePreview = function () {
     $scope.previewVisible = !$scope.previewVisible;
     $scope.$broadcast("panelOpen");
+
+    com.corespring.players.ItemPlayer("#item-preview-target", {
+      mode : "preview",
+      itemId : $scope.itemData.id,
+      autoHeight: true}
+    );
   };
 
   $scope.$watch("previewVisible", function (newValue) {

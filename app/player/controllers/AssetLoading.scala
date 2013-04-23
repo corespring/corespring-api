@@ -47,9 +47,7 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller
           withOptions {
             options =>
 
-              val newSession = Seq(
-                appendOptions(options)_,
-                appendOrgId(client)_)
+              val newSession = Seq( appendOptions(options)_, appendOrgId(client)_)
                 .foldRight(request.session)((fn: (PlaySession => PlaySession), acc: PlaySession) => fn(acc))
               val preppedJs = createJsFromTemplate(template, tokenFn(options, request))
               Ok(preppedJs)

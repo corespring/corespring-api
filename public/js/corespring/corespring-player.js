@@ -29,9 +29,14 @@ com.corespring.players.errors = {
 
 function addDimensionChangeListener(elem) {
   var fn = function (a) {
-    var data = JSON.parse(a.data);
-    if (data.message == 'dimensionsUpdate') {
-      elem.height((data.h + 30) + "px");
+    try{
+      var data = JSON.parse(a.data);
+      if (data.message == 'dimensionsUpdate') {
+        elem.height((data.h + 30) + "px");
+      }
+    }
+    catch(e){
+      // do nothing
     }
   };
 
@@ -44,7 +49,7 @@ function addDimensionChangeListener(elem) {
 }
 
 var iframePlayerStrategy = function (e, options) {
-  e.html("<iframe src='" + options.corespringUrl + "' style='width: 100%; height: 100%'></iframe>");
+  e.html("<iframe src='" + options.corespringUrl + "' style='width: 100%; height: 100%' frameborder='0'></iframe>");
   e.width(options.width ? options.width : "600px");
 
   if (options.autoHeight)
