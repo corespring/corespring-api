@@ -11,9 +11,12 @@ import play.api.mvc._
 import play.api.{Logger, Play}
 import scala.Some
 
-class AssetLoading(crypto: Crypto, playerTemplate: => String, profileTemplate: => String) extends Controller with AssetResource {
+class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller with AssetResource {
 
-  def itemProfileJavascript = renderJavascript(profileTemplate, createJsTokens)
+  def itemProfileJavascript =  renderJavascript(playerTemplate, {
+    (ro: RenderOptions, req: Request[AnyContent]) =>
+      createJsTokens(ro, req) + ("mode" -> "preview")
+  })
 
   def itemPlayerJavascript = renderJavascript(playerTemplate, {
     (ro: RenderOptions, req: Request[AnyContent]) =>
@@ -82,10 +85,8 @@ object DefaultTemplate {
   import play.api.Play.current
 
   def player = io.Source.fromFile(Play.getFile("public/js/corespring/corespring-player.js")).getLines().mkString("\n")
-
-  def profile = io.Source.fromFile(Play.getFile("public/js/corespring/corespring-profile.js")).getLines().mkString("\n")
 }
 
-object AssetLoading extends AssetLoading(AESCrypto, DefaultTemplate.player, DefaultTemplate.profile)
+object AssetLoading extends AssetLoading(AESCrypto, DefaultTemplate.player)
 
 //object AssetLoading extends AssetLoading(MockUrlEncodeEncrypter, DefaultTemplate.template)
