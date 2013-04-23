@@ -27,11 +27,6 @@ class AssetLoading(crypto:Crypto, playerTemplate: => String ) extends Controller
 
     val apiClientId : Option[String] = request.queryString.get("apiClientId").map(_.mkString)
     val encryptedOptions : Option[String] = request.queryString.get("options").map(_.mkString)
-    val itemId:Option[String] = request.queryString.get("itemId").map(_.mkString)
-    val sessionId:Option[String] = request.queryString.get("sessionId").map(_.mkString)
-    val assessmentId:Option[String] = request.queryString.get("assessmentId").map(_.mkString)
-    val role:Option[String] = request.queryString.get("role").map(_.mkString)
-    val mode:Option[String] = request.queryString.get("mode").map(_.mkString)
 
     if( apiClientId.isEmpty ){
       Ok("alert('error: no apiClientId specified');").as("text/javascript")
@@ -48,15 +43,10 @@ class AssetLoading(crypto:Crypto, playerTemplate: => String ) extends Controller
       ApiClient.findByKey(apiClientId.get) match {
         case Some(client) => {
           val options = decryptOptions(client)
-          options.overwriteOptions(RenderOptions(itemId,sessionId,assessmentId,role,options.expires,mode.getOrElse(options.mode))) match {
-            case Right(finalOptions) =>
-              val preppedJs = renderJs(BaseUrl(request) + "/player", finalOptions.mode)
-              Ok(preppedJs)
-                .as("text/javascript")
-                .withSession("renderOptions" -> Json.toJson(finalOptions).toString, "orgId" -> client.orgId.toString)
-            case Left(e) =>
-              BadRequest(Json.toJson(ApiError.ItemPlayer(e.clientOutput)))
-          }
+          val preppedJs = renderJs(BaseUrl(request) + "/player", options.mode)
+          Ok(preppedJs)
+            .as("text/javascript")
+            .withSession("renderOptions" -> Json.toJson(options).toString, "orgId" -> client.orgId.toString)
         }
         case _ => BadRequest("can't find api client")
       }
