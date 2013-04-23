@@ -1,21 +1,29 @@
 package player.controllers
 
-import common.seed.StringUtils
-import encryption.{MockUrlEncodeEncrypter, AESCrypto, Crypto}
-import play.api.Play
-import play.api.libs.json.{Json, JsValue}
-import play.api.mvc.{Action, Controller}
-import models.auth.ApiClient
-import org.bson.types.ObjectId
 import common.controllers.AssetResource
 import common.controllers.utils.BaseUrl
+import common.seed.StringUtils
 import controllers.auth.RenderOptions
-import api.ApiError
+import encryption.{AESCrypto, Crypto}
+import models.auth.ApiClient
+import play.api.libs.json.Json
+import play.api.mvc._
+import play.api.{Logger, Play}
+import scala.Some
+
+class AssetLoading(crypto: Crypto, playerTemplate: => String, profileTemplate: => String) extends Controller with AssetResource {
+
+  def itemProfileJavascript = renderJavascript(profileTemplate, createJsTokens)
+
+  def itemPlayerJavascript = renderJavascript(playerTemplate, {
+    (ro: RenderOptions, req: Request[AnyContent]) =>
+      createJsTokens(ro, req) + ("mode" -> ro.mode)
+  })
+
+  def getDataFileForAssessment(assessmentId: String, itemId: String, filename: String) = getDataFile(itemId, filename)
 
 
-class AssetLoading(crypto:Crypto, playerTemplate: => String ) extends Controller with AssetResource {
-
-  /** Serve the item player js
+  /** Serve the some js
     * We require 2 parameters to be passed in with this url:
     * orgId and an encrypted options string
     *
@@ -23,51 +31,61 @@ class AssetLoading(crypto:Crypto, playerTemplate: => String ) extends Controller
     * will be authenticated.
     * @return
     */
-  def itemPlayerJavascript = Action{ request =>
-
-    val apiClientId : Option[String] = request.queryString.get("apiClientId").map(_.mkString)
-    val encryptedOptions : Option[String] = request.queryString.get("options").map(_.mkString)
-
-    if( apiClientId.isEmpty ){
-      Ok("alert('error: no apiClientId specified');").as("text/javascript")
-    } else if( encryptedOptions.isEmpty){
-      Ok("alert('error: no options specified');").as("text/javascript")
-    }
-    else {
-
-      def decryptOptions(apiClient:ApiClient) : RenderOptions = {
-        val options =  crypto.decrypt(encryptedOptions.get, apiClient.clientSecret)
-        Json.fromJson[RenderOptions](Json.parse(options))
+  private def renderJavascript(template: => String, tokenFn: ((RenderOptions, Request[AnyContent]) => Map[String, String])) = Action {
+    implicit request =>
+      withApiClient {
+        implicit client =>
+          withOptions {
+            options =>
+              val preppedJs = createJsFromTemplate(template, tokenFn(options, request))
+              Ok(preppedJs)
+                .as("text/javascript")
+                .withSession("renderOptions" -> Json.toJson(options).toString, "orgId" -> client.orgId.toString)
+          }
       }
+  }
 
-      ApiClient.findByKey(apiClientId.get) match {
-        case Some(client) => {
-          val options = decryptOptions(client)
-          val preppedJs = renderJs(BaseUrl(request) + "/player", options.mode)
-          Ok(preppedJs)
-            .as("text/javascript")
-            .withSession("renderOptions" -> Json.toJson(options).toString, "orgId" -> client.orgId.toString)
-        }
-        case _ => BadRequest("can't find api client")
-      }
+  private def createJsTokens(o: RenderOptions, r: Request[AnyContent]): Map[String, String] = Map("baseUrl" -> (BaseUrl(r) + "/player"))
 
+
+  private def decryptOptions(encryptedOptions: String, apiClient: ApiClient): Option[RenderOptions] = try {
+    val options = crypto.decrypt(encryptedOptions, apiClient.clientSecret)
+    Some(Json.fromJson[RenderOptions](Json.parse(options)))
+  }
+  catch {
+    case e: Throwable => {
+      Logger.warn("Error parsing options with apiClient id: " + apiClient.clientId)
+      None
     }
   }
 
-  private def renderJs(baseUrl : String, mode:String) : String = {
-    val tokens = Map( "baseUrl" -> baseUrl, "mode" -> mode)
-    StringUtils.interpolate(playerTemplate, StringUtils.replaceKey(tokens), StringUtils.DollarRegex)
-  }
+  private def withOptions(block: RenderOptions => Result)(implicit request: Request[AnyContent], client: ApiClient) = {
+    for {
+      o <- request.queryString.get("options").map(_.mkString)
+      ro <- decryptOptions(o, client)
+    } yield block(ro)
+  }.getOrElse(Ok("alert('no render options found')"))
 
-  def getDataFileForAssessment(assessmentId:String, itemId:String, filename : String ) = getDataFile(itemId, filename)
+  private def withApiClient(block: ApiClient => Result)(implicit request: Request[AnyContent]) = {
+    for {
+      id <- request.queryString.get("apiClientId").map(_.mkString)
+      client <- ApiClient.findByKey(id)
+    } yield block(client)
+  }.getOrElse(Ok("alert('no api client found')"))
+
+  private def createJsFromTemplate(template: String, tokens: Map[String, String]): String =  StringUtils.interpolate(template, StringUtils.replaceKey(tokens), StringUtils.DollarRegex)
+
 }
 
 object DefaultTemplate {
 
   import play.api.Play.current
 
-  def template = io.Source.fromFile(Play.getFile("public/js/corespring/corespring-player.js")).getLines().mkString("\n")
+  def player = io.Source.fromFile(Play.getFile("public/js/corespring/corespring-player.js")).getLines().mkString("\n")
+
+  def profile = io.Source.fromFile(Play.getFile("public/js/corespring/corespring-profile.js")).getLines().mkString("\n")
 }
 
-object AssetLoading extends AssetLoading(AESCrypto, DefaultTemplate.template)
+object AssetLoading extends AssetLoading(AESCrypto, DefaultTemplate.player, DefaultTemplate.profile)
+
 //object AssetLoading extends AssetLoading(MockUrlEncodeEncrypter, DefaultTemplate.template)

@@ -170,6 +170,7 @@ GET    /player/aggregate/:assessmentId/:itemId/*filename   player.controllers.As
 
 # New Player Rendering
 GET    /player.js                                   player.controllers.AssetLoading.itemPlayerJavascript
+GET    /profile.js                                  player.controllers.AssetLoading.itemProfileJavascript
 
 
 # Web tier
