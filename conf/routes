@@ -154,6 +154,8 @@ GET    /player/api/:itemId/session/:sessionId              player.controllers.Se
 PUT    /player/api/:itemId/session/:sessionId              player.controllers.Session.update(itemId:ObjectId,sessionId:ObjectId,action : Option[String] ?= None)
 POST   /player/api/:itemId/session/:quizId/aggregate       player.controllers.Session.aggregate(quizId:ObjectId, itemId:ObjectId)
 GET    /player/routes.js                                   player.controllers.Session.jsRoutes
+GET    /player/api/:itemId/details                         player.controllers.Item.read(itemId:ObjectId)
+GET    /player/item/routes.js                              player.controllers.Item.jsRoutes
 ## Encrypt
 POST    /player/encrypt-options                            player.controllers.RenderKey.encrypt
 ## Views

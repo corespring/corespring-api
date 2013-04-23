@@ -1,1 +1,0 @@
-alert("I'm the corepsring profile js...");
