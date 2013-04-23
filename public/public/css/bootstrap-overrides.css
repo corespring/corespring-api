@@ -937,7 +937,7 @@ img.contributor-logos:hover {
 /*end logo-bank */
 
 /*Homepage Columns Adjustments 1.30.13 */
-a#vetted-content-col, a#admin-col, a#actionable-col {
+p#vetted-content-col, p#admin-col, p#actionable-col {
 	display: block;
 	position: relative;
 	border-bottom: 2px solid #80b312 !important;
@@ -951,33 +951,18 @@ a#vetted-content-col, a#admin-col, a#actionable-col {
 	margin-bottom: 14px;
 	color: #80b312;
 }
-.main div.row div.span4 a#vetted-content-col {
+.main div.row div.span4 p#vetted-content-col {
 	background: url("../images/vetted-icon.png") no-repeat scroll 90px 0px transparent;
 }
-.main div.row div.span4 a#vetted-content-col:hover {
-	background: url("../images/vetted-icon-glow.png") no-repeat scroll 90px 0px transparent;
+
+.main div.row div.span4 p#admin-col {
+	background: url("../images/adease-icon.png") no-repeat scroll 82px 1px transparent;
 }
-.main div.row div.span4 a#vetted-content-col:active {
-	background: url("../images/vetted-icon-glow.png") no-repeat scroll 90px 0px transparent;
-}
-.main div.row div.span4 a#admin-col {
-	background: url("../images/adease-icon.png") no-repeat scroll 108px 1px transparent;
-}
-.main div.row div.span4 a#admin-col:hover {
-	background: url("../images/adease-icon-glow.png") no-repeat scroll 108px 1px transparent;
-}
-.main div.row div.span4 a#admin-col:active {
-	background: url("../images/adease-icon-glow.png") no-repeat scroll 108px 1px transparent;
-}
-.main div.row div.span4 a#actionable-col {
+
+.main div.row div.span4 p#actionable-col {
 	background: url("../images/actionable-icon.png") no-repeat scroll 104px 0px transparent;
 }
-.main div.row div.span4 a#actionable-col:hover {
-	background: url("../images/actionable-icon-glow.png") no-repeat scroll 104px 0px transparent;
-}
-.main div.row div.span4 a#actionable-col:active {
-	background: url("../images/actionable-icon-glow.png") no-repeat scroll 104px 0px transparent;
-}
+
 .span12.lead-in.features {
 	padding:0px !important;
 }
