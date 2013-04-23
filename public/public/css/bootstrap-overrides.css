@@ -451,6 +451,7 @@ p {
 }
 .main div.row div.span4 p {
 	line-height: 24px;
+	margin-bottom: 10px;
 }
 .span4 span.col-btn a.btn, .span4 span.col-btn button.btn {
 	border-radius: 5px 5px 5px 5px;
@@ -886,6 +887,7 @@ div.well.logo-bank {
 	-webkit-box-shadow: -2px 2px 3px #B2b2b2;
 	box-shadow: -2px 2px 3px #B2b2b2;
 	padding-bottom:24px;
+	margin-bottom: 40px;
 }
 .features div.well.logo-bank {
 	background-color: #fff;
@@ -1045,3 +1047,14 @@ text-align:center;
 padding: 5px;
 }
 
+
+.span12.features-button {
+text-align: center;
+border-bottom: 2px solid #00ACCE;
+margin-left:0px;
+}
+
+.span12.features-button .btn-primary{
+position: relative;
+bottom: -15px;
+}
