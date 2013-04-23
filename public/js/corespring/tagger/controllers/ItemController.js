@@ -55,12 +55,11 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   }
 
   $scope.refreshPreview = function () {
-    // Trigger iframe reload
-    var oldvalue = $scope.corespringApiUrl;
-    $scope.corespringApiUrl = "";
-    $timeout(function () {
-      $scope.corespringApiUrl = oldvalue;
-    });
+    com.corespring.players.ItemPlayer("#item-preview-target", {
+        mode : "preview",
+        itemId : $scope.itemData.id,
+        autoHeight: true}
+    );
   };
 
   $scope.togglePreview = function () {
