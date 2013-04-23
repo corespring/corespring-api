@@ -81,6 +81,7 @@ object ApiError {
   val InvalidSort         = ApiError(204,"an error occurred when parsing the sort field")
   val CollIdNotNeeded      = ApiError(206, "a collection id cannot be specified for this operation")
   val StringToMongo         = ApiError(207, "could not parse string into db object")
+  val BadJson              = ApiError(208, "could not parse json into expected object")
 
   // Organization API
   val IdsDoNotMatch       = ApiError(300, "Specified id does not match the one in the json")

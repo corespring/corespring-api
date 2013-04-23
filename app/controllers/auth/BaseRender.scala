@@ -12,6 +12,7 @@ import player.models.TokenizedRequest
 import scala.Left
 import scala.Right
 import scala.Some
+import models.quiz.basic.Quiz
 
 object BaseRender extends Results with BodyParsers with Authenticate[AnyContent]{
   val RendererHeader = "Renderer"
@@ -95,23 +96,33 @@ object BaseRender extends Results with BodyParsers with Authenticate[AnyContent]
   def RenderAction(f: RenderRequest[AnyContent] => Result): Action[AnyContent] = {
     RenderAction(parse.anyContent)(f)
   }
-  private def hasAccess(ra:RequestedAccess, ro:RenderOptions):Either[InternalError,Unit] = {
-    val itemIdCheck:Either[InternalError,Unit] = if (ro.itemId != Some("*")) ra.itemId match {
-      case Some(ContentRequest(id,p)) =>
-        if ((p.value&Permission.Read.value)==Permission.Read.value && Some(id.toString) == ro.itemId) Right(())
+  def hasAccess(ra:RequestedAccess, ro:RenderOptions):Either[InternalError,Unit] = {
+    val itemIdCheck:Either[InternalError,Unit] = if (ro.itemId != "*"){ ra.itemId match {     //if item id is specified in options, check if an item is being requested
+      case Some(ContentRequest(itemId,p)) => //if item id is being requested, check to be sure that it can be read and it matches the options item id
+        if ((p.value&Permission.Read.value)==Permission.Read.value && itemId.toString == ro.itemId) Right(())
         else Left(InternalError("cannot access item",addMessageToClientOutput = true))
       case _ => Right(())
-    } else Right(())
-    val sessionIdCheck:Either[InternalError,Unit] = if (ro.sessionId != Some("*")) ra.sessionId match {
+    }} else ra.itemId match {
+        case Some(ContentRequest(itemId,p)) => if (ro.assessmentId == "*") Right(()) else {
+          Quiz.findOneById(new ObjectId(ro.assessmentId)) match {
+           case Some(quiz) => if(quiz.questions.exists(question => question.itemId == itemId)) Right(())
+             else Left(InternalError("cannot access item",addMessageToClientOutput = true))
+           case None => Left(InternalError("given assessment could not be found",addMessageToClientOutput = true))
+          }
+        }
+        case _ => Right(())
+    }
+    val sessionIdCheck:Either[InternalError,Unit] = if (ro.sessionId != "*") ra.sessionId match {
       case Some(ContentRequest(id,p)) =>
-        if ((p.value&Permission.Read.value)==Permission.Read.value && Some(id.toString) == ro.sessionId) Right(())
+        if ((p.value&Permission.Read.value)==Permission.Read.value && id.toString == ro.sessionId) Right(())
         else Left(InternalError("cannot access session",addMessageToClientOutput = true))
       case _ => Right(())
     } else Right(())
-    val assessmentIdCheck:Either[InternalError,Unit] = if (ro.assessmentId != Some("*")) ra.assessmentId match {
-      case Some(ContentRequest(id,p)) =>
-        if ((p.value&Permission.Read.value)==Permission.Read.value && Some(id.toString) == ro.assessmentId) Right(())
+    val assessmentIdCheck:Either[InternalError,Unit] = if (ro.assessmentId != "*") ra.assessmentId match {
+      case Some(ContentRequest(id,p)) => {
+        if ((p.value&Permission.Read.value)==Permission.Read.value && id.toString == ro.assessmentId) Right(())
         else Left(InternalError("cannot access assessment",addMessageToClientOutput = true))
+      }
       case _ => Right(())
     } else Right(())
     val modeCheck:Either[InternalError,Unit] = if (ro.mode != "*") ra.mode match {

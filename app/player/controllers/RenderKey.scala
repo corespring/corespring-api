@@ -6,12 +6,14 @@ import controllers.auth.{RenderOptions, BaseApi}
 import play.api.libs.json.{JsString, JsObject, Json}
 import models.auth.ApiClient
 import models.Organization
+import org.codehaus.jackson.JsonParseException
+import api.ApiError
 
 class RenderKey(encrypter:Crypto) extends BaseApi{
 
   def encrypt = ApiAction{ request =>
     request.body.asJson match {
-      case Some(jsoptions) => {
+      case Some(jsoptions) => try{
         val options = Json.fromJson[RenderOptions](jsoptions)
         ApiClient.findOneByOrgId(request.ctx.organization) match {
           case Some(apiClient) => {
@@ -23,6 +25,8 @@ class RenderKey(encrypter:Crypto) extends BaseApi{
           }
           case None => BadRequest(JsObject(Seq("message" -> JsString("no api client found! this should never occur"))))
         }
+      }catch{
+        case e:JsonParseException => BadRequest(Json.toJson(ApiError.BadJson(Some("tried to parse RenderOptions"))))
       }
       case None => BadRequest(JsObject(Seq("message" -> JsString("your request must contain json properties containing the constraints of the key"))))
     }
