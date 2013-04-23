@@ -10,45 +10,64 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.{Logger, Play}
 import scala.Some
+import play.api.mvc.{Session => PlaySession}
 
 class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller with AssetResource {
 
-  def itemProfileJavascript =  renderJavascript(playerTemplate, {
-    (ro: RenderOptions, req: Request[AnyContent]) =>
+  def itemProfileJavascript = renderJavascript(playerTemplate, {
+    (ro: Option[RenderOptions], req: Request[AnyContent]) =>
       createJsTokens(ro, req) + ("mode" -> "preview")
   })
 
   def itemPlayerJavascript = renderJavascript(playerTemplate, {
-    (ro: RenderOptions, req: Request[AnyContent]) =>
-      createJsTokens(ro, req) + ("mode" -> ro.mode)
+    (ro: Option[RenderOptions], req: Request[AnyContent]) =>
+      val mode = ro.map {
+        _.mode
+      }.getOrElse("preview")
+      createJsTokens(ro, req) + ("mode" -> mode)
   })
 
   def getDataFileForAssessment(assessmentId: String, itemId: String, filename: String) = getDataFile(itemId, filename)
 
 
-  /** Serve the some js
-    * We require 2 parameters to be passed in with this url:
+  /** Serve the player js
+    * There are 2 optional parameters to be passed in with this url:
     * orgId and an encrypted options string
     *
-    * We decrypt the options and set them as a session cookie so that related calls to @player.controllers.Session
+    * If these are present we decrypt the options and set them as a session cookie so that related calls to @player.controllers.Session
     * will be authenticated.
+    *
+    * If they are not present - no cookies are set
     * @return
     */
-  private def renderJavascript(template: => String, tokenFn: ((RenderOptions, Request[AnyContent]) => Map[String, String])) = Action {
+  private def renderJavascript(template: => String, tokenFn: ((Option[RenderOptions], Request[AnyContent]) => Map[String, String])) = Action {
     implicit request =>
       withApiClient {
         implicit client =>
           withOptions {
             options =>
+
+              val newSession = Seq( appendOptions(options)_, appendOrgId(client)_)
+                .foldRight(request.session)((fn: (PlaySession => PlaySession), acc: PlaySession) => fn(acc))
               val preppedJs = createJsFromTemplate(template, tokenFn(options, request))
               Ok(preppedJs)
                 .as("text/javascript")
-                .withSession("renderOptions" -> Json.toJson(options).toString, "orgId" -> client.orgId.toString)
+                .withSession(newSession)
           }
       }
   }
 
-  private def createJsTokens(o: RenderOptions, r: Request[AnyContent]): Map[String, String] = Map("baseUrl" -> (BaseUrl(r) + "/player"))
+  private def appendOptions(options: Option[RenderOptions])(session: PlaySession): PlaySession = options match {
+    case Some(o) => session + ("renderOptions" -> Json.toJson(o).toString)
+    case _ => session
+  }
+
+  private def appendOrgId(client: Option[ApiClient])(session: PlaySession): PlaySession = client match {
+    case Some(c) => session + ("orgId" -> c.orgId.toString)
+    case _ => session
+  }
+
+  private def createJsTokens(o: Option[RenderOptions], r: Request[AnyContent]): Map[String, String] = Map("baseUrl" -> (BaseUrl(r) + "/player"))
 
 
   private def decryptOptions(encryptedOptions: String, apiClient: ApiClient): Option[RenderOptions] = try {
@@ -62,21 +81,30 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller
     }
   }
 
-  private def withOptions(block: RenderOptions => Result)(implicit request: Request[AnyContent], client: ApiClient) = {
-    for {
-      o <- request.queryString.get("options").map(_.mkString)
-      ro <- decryptOptions(o, client)
-    } yield block(ro)
-  }.getOrElse(Ok("alert('no render options found')"))
+  private def withOptions(block: Option[RenderOptions] => Result)(implicit request: Request[AnyContent], client: Option[ApiClient]) = client match {
+    case Some(c) => {
+      val result = for {
+        o <- request.queryString.get("options").map(_.mkString)
+        ro <- decryptOptions(o, c)
+      } yield {
+        block(Some(ro))
+      }
+      result.getOrElse(block(None))
+    }
+    case _ => block(None)
+  }
 
-  private def withApiClient(block: ApiClient => Result)(implicit request: Request[AnyContent]) = {
-    for {
-      id <- request.queryString.get("apiClientId").map(_.mkString)
-      client <- ApiClient.findByKey(id)
-    } yield block(client)
-  }.getOrElse(Ok("alert('no api client found')"))
+  private def withApiClient(block: Option[ApiClient] => Result)(implicit request: Request[AnyContent]): Result = {
+    val id = request.queryString.get("apiClientId").map(_.mkString)
+    val maybeClient: Option[ApiClient] = for {
+      i <- id
+      client <- ApiClient.findByKey(i)
+    } yield client
+    block(maybeClient)
+  }
 
-  private def createJsFromTemplate(template: String, tokens: Map[String, String]): String =  StringUtils.interpolate(template, StringUtils.replaceKey(tokens), StringUtils.DollarRegex)
+
+  private def createJsFromTemplate(template: String, tokens: Map[String, String]): String = StringUtils.interpolate(template, StringUtils.replaceKey(tokens), StringUtils.DollarRegex)
 
 }
 
