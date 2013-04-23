@@ -1,16 +1,17 @@
 package publicsite.controllers
 
-import play.api.mvc._
-import play.api.Play
-import play.api.libs.json.Json
-import play.api.Play.current
 import java.nio.charset.Charset
+import models.Organization
+import org.bson.types.ObjectId
+import play.api.Play
+import play.api.Play.current
+import play.api.libs.json.Json
+import play.api.mvc._
+import player.rendering.PlayerCookieWriter
 import scala.io.Codec
-import controllers.Log
-import controllers.auth.OAuthConstants
 
 
-object Application extends Controller with securesocial.core.SecureSocial {
+object Application extends Controller with securesocial.core.SecureSocial with PlayerCookieWriter {
 
   def index = Action {
     Ok(publicsite.views.html.index())
@@ -19,20 +20,20 @@ object Application extends Controller with securesocial.core.SecureSocial {
     Ok(publicsite.views.html.contact())
   }
 
-  /** A temporary endpoint that sets a session in the browser for demo content */
   def educators = UserAwareAction { implicit request =>
     request.user match {
-      case Some(user) => Ok(publicsite.views.html.educators())
-      case _ => Ok(publicsite.views.html.educators()).withSession(OAuthConstants.AccessToken -> common.mock.MockToken)
+      case Some(user) => {
+        //TODO: Is it safe to assume that the user has access to this content?
+        withPlayerCookie(user.id.id, user.id.providerId){ (r:Request[AnyContent]) => Ok(publicsite.views.html.educators()) }
+      }
+      case _ => {
+        val orgId = new ObjectId(Organization.CORESPRING_ORGANIZATION_ID)
+        withPlayerCookie(orgId){ (r:Request[AnyContent]) => Ok(publicsite.views.html.educators())}
+      }
     }
   }
 
-  def empty = UserAwareAction{ implicit request =>
-    request.user match {
-      case Some(user) => Ok("")
-      case _ => Ok("").withSession(OAuthConstants.AccessToken -> common.mock.MockToken)
-    }
-  }
+  def empty = Action{ request => NotFound("This call has been deprecated - use the new player auth mechanism") }
 
   def partnerships = Action {
     Ok(publicsite.views.html.partnerships())

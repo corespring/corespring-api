@@ -1,17 +1,20 @@
 package web.controllers
 
-import play.api.mvc._
-import web.models.QtiTemplate
-import web.controllers.utils.ConfigLoader
-import scala.Some
-import scala.Tuple2
-
 import com.mongodb.BasicDBObject
-import securesocial.core.SecureSocial
+import controllers.auth.{RenderOptions, BaseApi}
 import models.item.Item
-import controllers.auth.BaseApi
+import models.{UserOrg, User}
+import play.api.libs.json.Json
+import play.api.mvc._
+import scala.Some
+import securesocial.core.SecuredRequest
+import web.controllers.utils.ConfigLoader
+import web.models.QtiTemplate
+import player.rendering.PlayerCookieWriter
+import play.api.templates.Html
 
-object Main extends BaseApi {
+
+object Main extends BaseApi with PlayerCookieWriter {
 
 
   def previewItem(itemId:String, defaultView:String = "profile") = ApiAction { request =>
@@ -35,10 +38,13 @@ object Main extends BaseApi {
     Ok(web.views.html.profilePrint(itemId, common.mock.MockToken))
   }
 
-
-  def index = SecuredAction { request =>
-      val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
-      Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName,  common.mock.MockToken))
+  def index = SecuredAction { implicit request =>
+      withPlayerCookie[AnyContent,Html](request.user.id.id, request.user.id.providerId){
+        (innerRequest) =>
+          val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
+          request.user.id.id
+          Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName,  common.mock.MockToken))
+      }
   }
 
   private def getDbName(uri: Option[String]): (String, String) = uri match {
