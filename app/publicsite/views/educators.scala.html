@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html ng-app="app" xmlns="http://www.w3.org/1999/html">
 <head>
+<title>Educators</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
- <title>Features</title>
 @partials.headNode()
-</head>
-<body>
-@partials.header("features")
-<div class="title-wrap">
-  <div class="container"> </div>
-</div>
+@common.views.html.head.corespringCommon()
 
 <script type="text/javascript">
     angular.module('app').factory('Config', [ function () {
@@ -23,7 +19,7 @@
 
 <body class="extra-large-window" ng-class="{'window-up': showPopup}" ng-controller="ItemsCtrl" ng-click="hidePopup()" ui-keypress="{'27': 'hidePopup()'}">
 
-@partials.header("edu")
+@partials.header("features")
 <div class="title-wrap">
   <div class="container"> </div>
 </div>
