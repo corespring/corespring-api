@@ -24,6 +24,8 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
     def iframed(p: PlayerParams): play.api.templates.Html = player.views.html.IframedPlayer(p)
 
     def instructor(p: PlayerParams): play.api.templates.Html = player.views.html.Player(p)
+
+    def profile(p: PlayerParams): play.api.templates.Html = player.views.html.Profile(p)
   }
 
   def preview(itemId: ObjectId) = renderItem(itemId.toString, previewEnabled = true)
@@ -40,6 +42,8 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
   def administerSession(sessionId: ObjectId) = render(sessionId)
 
   def aggregate(assessmentId: ObjectId, itemId: ObjectId) = renderQuizAsAggregate(assessmentId, itemId)
+
+  def profile(itemId:ObjectId) = renderItem(itemId.toString, previewEnabled = true, template = PlayerTemplates.profile)
 
 
   private def renderItem(itemId: String,

@@ -9,7 +9,8 @@ com.corespring.players.config = {
     render: "/session/:sessionId/render",
     administerItem : "/item/:itemId/administer",
     administerSession : "/session/:sessionId/administer",
-    aggregate: "/aggregate/:assessmentId/:itemId/run"
+    aggregate: "/aggregate/:assessmentId/:itemId/run",
+    profile: "/item/:itemId/profile"
   },
   mode : "${mode}"
 };
@@ -52,6 +53,12 @@ var iframePlayerStrategy = function (e, options) {
     e.height(options.height ? options.height : "600px");
 };
 
+com.corespring.players.ItemProfile = function(element, options, errorCallback){
+  var base = com.corespring.players.config.baseUrl;
+  options.corespringUrl = base + com.corespring.players.config.paths.profile.replace(":itemId", options.itemId);
+  var e = $(element);
+  iframePlayerStrategy(e, options);
+};
 
 com.corespring.players.ItemPlayer = function (element, options, errorCallback) {
 
