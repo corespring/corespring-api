@@ -888,6 +888,7 @@ div.well.logo-bank {
 	box-shadow: -2px 2px 3px #B2b2b2;
 	padding-bottom:24px;
 	margin-bottom: 40px;
+	margin-top: 100px;
 }
 .features div.well.logo-bank {
 	background-color: #fff;
@@ -1048,13 +1049,28 @@ padding: 5px;
 }
 
 
-.span12.features-button {
-text-align: center;
-border-bottom: 2px solid #00ACCE;
+.span12.features-button-wrapper {
+	text-align: center;
 margin-left:0px;
 }
 
-.span12.features-button .btn-primary{
-position: relative;
-bottom: -15px;
+.features-button {
+float: none;
+width: auto;
+display: inline-block;
+border-right:6px solid #fff;
+border-left:6px solid #fff;
 }
+
+.features-button .btn-primary{
+	font-size:16px;
+}
+
+.span12.features-button-rule {
+border-bottom: 1px solid #00ACCE;
+margin-left: 0px;
+position: relative;
+bottom: 16px;
+z-index: -500;
+}
+	
