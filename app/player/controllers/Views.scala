@@ -63,7 +63,7 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
               case Some(xmlData: Elem) => {
                 val finalXml = prepareQti(xmlData, renderMode)
                 val params = PlayerParams(finalXml, Some(itemId), sessionId, previewEnabled)
-                Ok(template(params)).withSession(activeMode(mode))
+                Ok(template(params)).withSession( request.session + activeModeCookie(mode))
               }
               case None => NotFound("not found")
             }

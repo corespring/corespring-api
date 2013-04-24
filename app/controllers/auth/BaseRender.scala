@@ -13,6 +13,7 @@ import scala.Left
 import scala.Right
 import scala.Some
 import models.quiz.basic.Quiz
+import player.rendering.PlayerCookieKeys
 
 object BaseRender extends Results with BodyParsers with Authenticate[AnyContent]{
   val RendererHeader = "Renderer"
@@ -146,7 +147,7 @@ object BaseRender extends Results with BodyParsers with Authenticate[AnyContent]
     Action{ request =>
       val options = request.session.get("renderOptions").map{ json => Json.parse(json).as[RenderOptions] }
 
-      def invokeBlock : Result = request.session.get("orgId") match {
+      def invokeBlock : Result = request.session.get(PlayerCookieKeys.ORG_ID) match {
         case Some(orgId) => {
           AccessToken.getTokenForOrgById(new ObjectId(orgId)) match {
             case Some(token) => block(TokenizedRequest(token.tokenId,request))

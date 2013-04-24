@@ -1,40 +1,38 @@
 package basiclti.controllers
 
-import play.api.mvc.{AnyContent, Request, Action}
-import play.Logger
-import basiclti.models._
-import play.api.libs.ws.WS
-import play.api.libs.oauth.{RequestToken, ConsumerKey, OAuthCalculator}
-import org.bson.types.ObjectId
-import models.{Organization}
-import play.api.libs.json.Json._
-import basiclti.controllers.routes.{AssignmentPlayer => AssignmentPlayerRoutes}
 import basiclti.controllers.routes.{AssignmentLauncher => AssignmentLauncherRoutes}
-import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
+import basiclti.controllers.routes.{AssignmentPlayer => AssignmentPlayerRoutes}
+import basiclti.models._
 import common.controllers.utils.BaseUrl
-import models.auth.{AccessToken, ApiClient}
-import controllers.auth.{OAuthConstants, BaseApi}
+import controllers.auth.BaseApi
+import models.Organization
+import models.auth.ApiClient
 import models.itemSession.{ItemSessionSettings, ItemSession}
-import scala.Left
-import scala.Some
-import play.api.libs.oauth.OAuthCalculator
+import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
+import org.bson.types.ObjectId
+import play.Logger
+import play.api.libs.json.Json._
 import play.api.libs.oauth.ConsumerKey
-import basiclti.models.Assignment
-import scala.Right
+import play.api.libs.oauth.OAuthCalculator
 import play.api.libs.oauth.RequestToken
-import player.rendering.PlayerCookieWriter
+import play.api.libs.ws.WS
+import play.api.mvc.{AnyContent, Request, Action}
 import player.controllers.auth.RequestedAccess
+import player.rendering.PlayerCookieWriter
+import scala.Left
+import scala.Right
+import scala.Some
 
 /**
  * Handles the launching of corespring items via the LTI 1.1 launch specification.
  * Also supports the canvas 'select_link' selection directive.
  */
-object AssignmentLauncher extends BaseApi with PlayerCookieWriter{
+object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
 
   object LtiKeys {
     val ConsumerKey: String = "oauth_consumer_key"
-    val Signature:String = "oauth_signature"
-    val Instructor:String = "Instructor"
+    val Signature: String = "oauth_signature"
+    val Instructor: String = "Instructor"
   }
 
   val defaultSessionSettings = ItemSessionSettings(
@@ -49,7 +47,7 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter{
 
     val clientId: String = request.body.asFormUrlEncoded.get(LtiKeys.ConsumerKey).head
 
-    def consumerFromClient(client:ApiClient) : Option[LtiOAuthConsumer] = {
+    def consumerFromClient(client: ApiClient): Option[LtiOAuthConsumer] = {
       val consumer = LtiOAuthConsumer(client)
       consumer.sign(request)
       consumer.setSigningStrategy(new AuthorizationHeaderSigningStrategy())
@@ -59,17 +57,17 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter{
     val org = for {
       client <- ApiClient.findByKey(clientId)
       consumer <- consumerFromClient(client)
-      if (signaturesMatch(request,consumer))
+      if (signaturesMatch(request, consumer))
     } yield Organization.findOneById(client.orgId)
 
     org.getOrElse(None)
   }
 
 
-  private def signaturesMatch(request:Request[AnyContent], consumer:LtiOAuthConsumer) : Boolean = {
+  private def signaturesMatch(request: Request[AnyContent], consumer: LtiOAuthConsumer): Boolean = {
     val requestSignature = request.body.asFormUrlEncoded.get(LtiKeys.Signature).head
     consumer.getOAuthSignature() match {
-      case Some(s) =>{
+      case Some(s) => {
         Logger.debug("signature: " + s)
         Logger.debug("requestSignature: " + requestSignature)
         s.equals(requestSignature)
@@ -84,7 +82,7 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter{
       LtiData(request) match {
         case Some(data) => {
 
-          val quiz : LtiQuiz = getOrCreateQuiz(data)
+          val quiz: LtiQuiz = getOrCreateQuiz(data)
 
           getOrgFromOauthSignature(request) match {
             case Some(org) => {
@@ -100,14 +98,15 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter{
 
               if (isInstructor) {
 
-                Ok( basiclti.views.html.itemChooser(
-                    quiz.id,
-                    data.selectionDirective.getOrElse(""),
-                    data.returnUrl.getOrElse("")
-                  ) ).withSession(playerSession(org.id))
-                     .withHeaders(p3pHeaders)
+                Ok(basiclti.views.html.itemChooser(
+                  quiz.id,
+                  data.selectionDirective.getOrElse(""),
+                  data.returnUrl.getOrElse("")
+                ))
+                  .withSession(sumSession(request.session, playerCookies(org.id) :+ activeModeCookie(RequestedAccess.RENDER_MODE): _*))
+                  .withHeaders(p3pHeaders)
               } else {
-                if(quiz.question.itemId.isDefined){
+                if (quiz.question.itemId.isDefined) {
                   require(data.outcomeUrl.isDefined, "outcome url must be defined: quiz id: " + quiz.id)
                   require(data.resultSourcedId.isDefined, "sourcedid must be defined: quiz id: " + quiz.id)
                   require(data.returnUrl.isDefined, "return url must be defined: quiz id: " + quiz.id)
@@ -115,11 +114,9 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter{
                   val updatedConfig = quiz.addParticipantIfNew(data.resultSourcedId.get, data.outcomeUrl.get, data.returnUrl.get)
                   val call = AssignmentPlayerRoutes.run(updatedConfig.id, data.resultSourcedId.get)
                   Redirect(call.url)
-                    .withSession(playerSession(org.id))
-                    .withSession(activeMode(RequestedAccess.RENDER_MODE))
-                    .withSession(request.session - OAuthConstants.AccessToken)
+                    .withSession(sumSession(request.session, playerCookies(org.id) :+ activeModeCookie(RequestedAccess.RENDER_MODE): _*))
                     .withHeaders(p3pHeaders)
-                }else {
+                } else {
                   Ok(basiclti.views.html.itemNotReady())
                 }
               }
@@ -140,7 +137,7 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter{
      * @param linkId
      * @return
      */
-    def newQuiz(linkId:String) : LtiQuiz = {
+    def newQuiz(linkId: String): LtiQuiz = {
       require(data.oauthConsumerKey.isDefined, "oauth consumer must be defined")
 
       val client = ApiClient.findByKey(data.oauthConsumerKey.get)
@@ -148,21 +145,21 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter{
       require(client.isDefined, "the api client must be defined")
 
       val quiz = LtiQuiz(
-         linkId,
-         LtiQuestion(None,ItemSessionSettings()),
+        linkId,
+        LtiQuestion(None, ItemSessionSettings()),
         Seq(),
-        client.map( _.orgId )
+        client.map(_.orgId)
       )
       LtiQuiz.insert(quiz)
       quiz
     }
 
-    def findByCanvasConfigId(id:String) : LtiQuiz = LtiQuiz.findOneById(new ObjectId(id)) match {
+    def findByCanvasConfigId(id: String): LtiQuiz = LtiQuiz.findOneById(new ObjectId(id)) match {
       case Some(c) => c
       case _ => throw new RuntimeException("A canvas id was specified but can't be found")
     }
 
-    if (data.selectionDirective == Some("select_link")){
+    if (data.selectionDirective == Some("select_link")) {
       newQuiz("select_link")
     } else {
       data.canvasConfigId match {
@@ -190,12 +187,16 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter{
       <replaceResultRequest>
         <resultRecord>
           <sourcedGUID>
-            <sourcedId>{sourcedId}</sourcedId>
+            <sourcedId>
+              {sourcedId}
+            </sourcedId>
           </sourcedGUID>
           <result>
             <resultScore>
               <language>en</language>
-              <textString>{score}</textString>
+              <textString>
+                {score}
+              </textString>
             </resultScore>
           </result>
         </resultRecord>
@@ -206,22 +207,22 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter{
 
   private def session(id: ObjectId, resultSourcedId: String): Either[String, ItemSession] =
     LtiQuiz.findOneById(id) match {
-    case Some(quiz) => {
-      quiz.participants.find(_.resultSourcedId == resultSourcedId) match {
-        case Some(participant) => {
-          ItemSession.findOneById(participant.itemSession) match {
-            case Some(session) => Right(session)
-            case _ => Left("can't find session")
+      case Some(quiz) => {
+        quiz.participants.find(_.resultSourcedId == resultSourcedId) match {
+          case Some(participant) => {
+            ItemSession.findOneById(participant.itemSession) match {
+              case Some(session) => Right(session)
+              case _ => Left("can't find session")
+            }
           }
+          case _ => Left("Can't find assignment")
         }
-        case _ => Left("Can't find assignment")
       }
+      case _ => Left("Can't find quiz")
     }
-    case _ => Left("Can't find quiz")
-  }
 
   /**
-   */
+    */
   def process(id: ObjectId, resultSourcedId: String) = ApiAction {
     request =>
 
@@ -241,7 +242,7 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter{
 
                   quiz.orgId match {
                     case Some(orgId) => {
-                      val client : Option[ApiClient] = ApiClient.findOneByOrgId(orgId)
+                      val client: Option[ApiClient] = ApiClient.findOneByOrgId(orgId)
                       sendScore(session, p, client)
                     }
                     case _ => NotFound("Can't find org id")
@@ -264,7 +265,7 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter{
    * @param maybeClient
    * @return
    */
-  private def sendScore(session: ItemSession, participant:LtiParticipant, maybeClient : Option[ApiClient] ) = maybeClient match {
+  private def sendScore(session: ItemSession, participant: LtiParticipant, maybeClient: Option[ApiClient]) = maybeClient match {
 
     case Some(client) => {
 
@@ -280,9 +281,9 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter{
       val consumer = LtiOAuthConsumer(client)
       val score = getScore(session)
 
-      def emptyOrNull(s:String) : Boolean = (s == null || s.isEmpty)
+      def emptyOrNull(s: String): Boolean = (s == null || s.isEmpty)
 
-      if (emptyOrNull(participant.gradePassbackUrl)){
+      if (emptyOrNull(participant.gradePassbackUrl)) {
         Logger.warn("Not sending passback for assignment: " + participant.resultSourcedId)
         Ok(toJson(Map("returnUrl" -> participant.onFinishedUrl)))
       } else {
@@ -315,16 +316,26 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter{
 
   def xml(title: String, description: String, url: String, width: Int, height: Int) = {
     <cartridge_basiclti_link xmlns="http://www.imsglobal.org/xsd/imslticc_v1p0" xmlns:blti="http://www.imsglobal.org/xsd/imsbasiclti_v1p0" xmlns:lticm="http://www.imsglobal.org/xsd/imslticm_v1p0" xmlns:lticp="http://www.imsglobal.org/xsd/imslticp_v1p0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd">
-      <blti:title>{title}</blti:title>
-      <blti:description>{description}</blti:description>
+      <blti:title>
+        {title}
+      </blti:title>
+      <blti:description>
+        {description}
+      </blti:description>
       <blti:extensions platform="canvas.instructure.com">
         <lticm:property name="tool_id">corespring_resource_selection</lticm:property>
         <lticm:property name="privacy_level">anonymous</lticm:property>
         <lticm:options name="resource_selection">
-          <lticm:property name="url">{url}</lticm:property>
+          <lticm:property name="url">
+            {url}
+          </lticm:property>
           <lticm:property name="text">???</lticm:property>
-          <lticm:property name="selection_width">{width}</lticm:property>
-          <lticm:property name="selection_height">{height}</lticm:property>
+          <lticm:property name="selection_width">
+            {width}
+          </lticm:property>
+          <lticm:property name="selection_height">
+            {height}
+          </lticm:property>
         </lticm:options>
       </blti:extensions>
       <cartridge_bundle identifierref="BLTI001_Bundle"/>

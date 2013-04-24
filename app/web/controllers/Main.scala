@@ -45,7 +45,9 @@ object Main extends BaseApi with PlayerCookieWriter {
       val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
       val userId = request.user.id
       Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName, "remove"))
-        .withSession(playerSession(userId.id, userId.providerId))
+        .withSession(
+          sumSession(request.session, playerCookies(userId.id, userId.providerId) :+ activeModeCookie(): _*)
+      )
   }
 
   private def getDbName(uri: Option[String]): (String, String) = uri match {
