@@ -11,8 +11,10 @@ import play.api.mvc._
 import play.api.{Logger, Play}
 import scala.Some
 import play.api.mvc.{Session => PlaySession}
+import player.rendering.PlayerCookieWriter
+import play.api.templates.Html
 
-class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller with AssetResource {
+class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller with AssetResource with PlayerCookieWriter{
 
   def itemProfileJavascript = renderJavascript(playerTemplate, {
     (ro: Option[RenderOptions], req: Request[AnyContent]) =>
@@ -46,13 +48,10 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller
         implicit client =>
           withOptions {
             options =>
-
-              val newSession = Seq( appendOptions(options)_, appendOrgId(client)_)
-                .foldRight(request.session)((fn: (PlaySession => PlaySession), acc: PlaySession) => fn(acc))
-              val preppedJs = createJsFromTemplate(template, tokenFn(options, request))
-              Ok(preppedJs)
-                .as("text/javascript")
-                .withSession(newSession)
+                val preppedJs = createJsFromTemplate(template, tokenFn(options, request))
+                Ok(preppedJs)
+                  .as("text/javascript")
+                  .withSession(playerSession(client.map(_.orgId), options))
           }
       }
   }
