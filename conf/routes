@@ -161,7 +161,7 @@ POST    /player/encrypt-options                            player.controllers.Re
 ## Views
 GET    /player/item/:itemId/preview                        player.controllers.Views.preview(itemId:ObjectId)
 GET    /player/item/:itemId/administer                     player.controllers.Views.administerItem(itemId:ObjectId)
-GET    /player/item/:itemId/profile                        player.controllers.Views.profile(itemId:ObjectId)
+GET    /player/item/:itemId/profile                        player.controllers.Views.profile(itemId:ObjectId, tab:String ?= "")
 GET    /player/item/:itemId/*filename                      player.controllers.AssetLoading.getDataFile(itemId, filename)
 
 GET    /player/session/:sessionId/render                   player.controllers.Views.render(sessionId:ObjectId)

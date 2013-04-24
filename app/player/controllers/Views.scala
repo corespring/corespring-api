@@ -26,7 +26,7 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
 
     def instructor(p: PlayerParams): play.api.templates.Html = player.views.html.Player(p)
 
-    def profile(p: PlayerParams): play.api.templates.Html = player.views.html.Profile(p)
+    def profile(p: PlayerParams): play.api.templates.Html = player.views.html.Profile(p, "")
   }
 
   def preview(itemId: ObjectId) = renderItem(itemId.toString, previewEnabled = true,mode = RequestedAccess.PREVIEW_MODE)
@@ -44,7 +44,31 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
 
   def aggregate(assessmentId: ObjectId, itemId: ObjectId) = renderQuizAsAggregate(assessmentId, itemId)
 
-  def profile(itemId:ObjectId) = renderItem(itemId.toString, previewEnabled = true, template = PlayerTemplates.profile, mode = RequestedAccess.PREVIEW_MODE)
+  def profile(itemId:ObjectId, tab:String) = {
+    auth.OrgAction(
+      RequestedAccess(Some(itemId),None,mode = Some(RequestedAccess.PREVIEW_MODE))
+    ) {
+      tokenRequest =>
+        ApiAction {
+          request =>
+            try {
+              getItemXMLByObjectId(itemId.toString, request.ctx.organization) match {
+                case Some(xmlData: Elem) => {
+                  val finalXml = prepareQti(xmlData, Web)
+                  val params = PlayerParams(finalXml, Some(itemId.toString), None, false)
+                  Ok(player.views.html.Profile(params, tab))
+                }
+                case None => NotFound("not found")
+              }
+            } catch {
+              case e: SAXParseException => {
+                val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
+                Ok(player.views.html.PlayerError(errorInfo))
+              }
+            }
+        }(tokenRequest)
+    }
+  }
 
 
   protected def renderItem(itemId: String,
