@@ -25,7 +25,7 @@ object CheckPlayerSession extends Authenticate[AnyContent] with PlayerCookieRead
     Action{ request =>
       val options = renderOptions(request)
 
-      def invokeBlock : Result = request.session.get("orgId") match {
+      def invokeBlock : Result = orgIdFromCookie(request) match {
         case Some(orgId) => {
           AccessToken.getTokenForOrgById(new ObjectId(orgId)) match {
             case Some(token) => block(TokenizedRequest(token.tokenId,request))
@@ -36,10 +36,11 @@ object CheckPlayerSession extends Authenticate[AnyContent] with PlayerCookieRead
       }
 
       options.map{ o =>
+        //TODO: move this to check access
         if (o.expires == 0 || o.expires > System.currentTimeMillis()){
           grantAccess(activeMode(request),ra,o) match {
             case Right(true) => invokeBlock
-            case Right(false) => Unauthorized(Json.toJson(ApiError.InvalidCredentials))
+            case Right(false) => Unauthorized(Json.toJson(ApiError.InvalidCredentials(Some("you can't access the items"))))
             case Left(e) => Unauthorized(Json.toJson(ApiError.InvalidCredentials(e.clientOutput)))
           }
         }else Unauthorized(Json.toJson(ApiError.ExpiredOptions))

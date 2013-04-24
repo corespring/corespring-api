@@ -71,7 +71,7 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
   }
 
 
-  private def renderItem(itemId: String,
+  protected def renderItem(itemId: String,
                           renderMode: RenderingMode = Web,
                           previewEnabled: Boolean = false,
                           sessionId: Option[String] = None,

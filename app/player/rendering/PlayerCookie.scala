@@ -29,6 +29,29 @@ trait PlayerCookieWriter {
     }.getOrElse(request.session)
   }
 
+  def activeMode2[A](mode:String)(implicit request : Request[A]) : (String,String) = {
+    (PlayerCookieKeys.ACTIVE_MODE -> mode)
+  }
+
+  def orgIdCookie[A](orgId:ObjectId)(implicit request : Request[A]) : (String,String) = {
+     (PlayerCookieKeys.ORG_ID -> orgId.toString)
+  }
+
+  def orgIdCookie[A](userId:String, providerId:String)(implicit request : Request[A]) : (String,String) = {
+    User.getUser(userId, providerId).map {
+      u =>
+        u.orgs match {
+          case Seq(UserOrg(id, _)) => orgIdCookie(id)
+          case _ => (""->"")
+        }
+    }.getOrElse((""->""))
+  }
+
+
+  def renderOptionsCookie[A](implicit request : Request[A]) : (String,String) = {
+    (PlayerCookieKeys.RENDER_OPTIONS -> Json.toJson(RenderOptions.ANYTHING).toString)
+  }
+
   def playerSession[A](orgId: ObjectId)(implicit request: Request[A]): Session = playerSession(Some(orgId), Some(RenderOptions.ANYTHING))
 
   def playerSession[A](orgId: Option[ObjectId], options: Option[RenderOptions])(implicit request: Request[A]): Session = {
@@ -53,4 +76,5 @@ trait PlayerCookieWriter {
 trait PlayerCookieReader {
   def activeMode[A](request:Request[A]) : Option[String] = request.session.get(PlayerCookieKeys.ACTIVE_MODE)
   def renderOptions[A](request:Request[A]) : Option[RenderOptions] =  request.session.get(PlayerCookieKeys.RENDER_OPTIONS).map{ json => Json.parse(json).as[RenderOptions] }
+  def orgIdFromCookie[A](request:Request[A]) : Option[String] = request.session.get(PlayerCookieKeys.ORG_ID)
 }
