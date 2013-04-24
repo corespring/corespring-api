@@ -20,6 +20,8 @@ angular.module('qti.directives').directive('dimensionsChecker', function(){
 
       var dispatchDimensions = function(){
         var b = $body[0];
+        if (!b) return;
+
         var w = b.clientWidth;
         var h = b.clientHeight;
 

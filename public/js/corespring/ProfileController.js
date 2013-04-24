@@ -1,6 +1,9 @@
-function ProfileController($scope, $timeout, Config, Item) {
+function ProfileController($scope, $timeout, Config, Item, ItemFormattingUtils, MessageBridge) {
 
-  $scope.itemUrl = "";
+  $scope.hidePopup = function () {
+    console.log("hiding");
+    MessageBridge.sendMessage('parent', {message: 'closeProfilePopup'});
+  };
 
   $scope.changeSupportingMaterialPanel = function (sm) {
     $scope.changePanel(sm.name);
@@ -9,16 +12,14 @@ function ProfileController($scope, $timeout, Config, Item) {
 
   $scope.getItemSrc = function (forPrinting) {
     if ($scope.itemData == undefined) return null;
-    var templateUrl = ServiceLookup.getUrlFor(forPrinting ? 'printResource' : 'renderResource');
+    var templateUrl = forPrinting ? "/web/print-resource/{key}/data/main" : '/web/show-resource/{key}';
     var key = $scope.itemData.id;
     return templateUrl.replace("{key}", key);
   };
 
   $scope.getSmSrc = function (sm, forPrinting) {
-    //var templateUrl = ServiceLookup.getUrlFor('previewFile');
-    var templateUrl = ServiceLookup.getUrlFor(forPrinting ? 'printSupportingMaterial' : 'renderResource');
+    var templateUrl = forPrinting ? '/web/print-resource/{key}' : "/web/show-resource/{key}";
     var key = $scope.itemData.id + "/" + sm.name;
-    //empty it so we trigger a refresh
     return templateUrl.replace("{key}", key);
   };
 
@@ -52,7 +53,7 @@ function ProfileController($scope, $timeout, Config, Item) {
         cname = "lzlogo-png.png";
         break;
     }
-    return cname == "" ? "/assets/images/copyright/" + cname : undefined;
+    return cname != "" ? ("/assets/images/copyright/" + cname) : undefined;
   }
 
   $scope.printCurrent = function () {
@@ -62,7 +63,7 @@ function ProfileController($scope, $timeout, Config, Item) {
     function getPrintUrl(panel) {
       switch (panel) {
         case "profile" :
-          return ServiceLookup.getUrlFor('printProfile').replace("{key}", $scope.itemData.id);
+          return "/web/print-resource-profile/{key}".replace("{key}", $scope.itemData.id);
         case "item" :
           return $scope.getItemSrc(true);
         default :
@@ -92,7 +93,7 @@ function ProfileController($scope, $timeout, Config, Item) {
     return "/web/show-resource/" + $scope.itemData.id + "/data/main";
   };
 
-//  $scope.prependHttp = ItemFormattingUtils.prependHttp;
+  $scope.prependHttp = ItemFormattingUtils.prependHttp;
 
   function loadItemById(id) {
     $scope.noRightToView = false;
@@ -121,4 +122,4 @@ function ProfileController($scope, $timeout, Config, Item) {
   $scope.currentPanel = "profile";
 }
 
-ProfileController.$inject = ['$scope', '$timeout', 'Config', 'Item'];
+ProfileController.$inject = ['$scope', '$timeout', 'Config', 'Item', 'ItemFormattingUtils','MessageBridge'];

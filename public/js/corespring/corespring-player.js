@@ -28,36 +28,41 @@ com.corespring.players.errors = {
 };
 
 function addDimensionChangeListener(elem) {
-  var fn = function (a) {
-    var data = JSON.parse(a.data);
-    if (data.message == 'dimensionsUpdate') {
-      elem.height((data.h + 30) + "px");
-    }
-  };
-
-  if (window.addEventListener) {
-    window.addEventListener('message', fn, true);
-  }
-  else if (window.attachEvent) {
-    window.attachEvent('message', fn);
-  }
+  $(elem).load(function() {
+    var $body = $(elem, window.top.document).contents().find('body');
+    var prevHeight = 0;
+    setInterval(function () {
+      try {
+        var newHeight = $body[0].scrollHeight;
+        if (newHeight == 0) return;
+        if (newHeight != prevHeight) {
+          console.log("Height changed to "+newHeight);
+          $(elem).height(newHeight);
+          prevHeight = newHeight;
+        }
+      } catch (ie) {
+        console.log(ie);
+      }
+    }, 100);
+  });
 }
 
 var iframePlayerStrategy = function (e, options) {
-  e.html("<iframe src='" + options.corespringUrl + "' style='width: 100%; height: 100%'></iframe>");
+  e.html("<iframe src='" + options.corespringUrl + "' style='width: 100%; height: 100%; border: none'></iframe>");
   e.width(options.width ? options.width : "600px");
 
   if (options.autoHeight)
-    addDimensionChangeListener(e);
+    addDimensionChangeListener(e.find('iframe'));
   else
     e.height(options.height ? options.height : "600px");
 };
 
-com.corespring.players.ItemProfile = function(element, options, errorCallback){
+com.corespring.players.ItemProfile = function(element, options, errorCallback, onLoadCallback){
   var base = com.corespring.players.config.baseUrl;
   options.corespringUrl = base + com.corespring.players.config.paths.profile.replace(":itemId", options.itemId);
   var e = $(element);
   iframePlayerStrategy(e, options);
+  e.find('iframe').load(onLoadCallback);
 };
 
 com.corespring.players.ItemPlayer = function (element, options, errorCallback) {

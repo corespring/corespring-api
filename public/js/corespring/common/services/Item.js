@@ -1,4 +1,15 @@
-angular.module('corespring-services', [])
+function loadModule(name) {
+  try {
+    return angular.module(name);
+  }
+  catch (e) {
+    return angular.module(name, []);
+  }
+}
+
+var corespringServiceModule = loadModule('corespring-services');
+
+corespringServiceModule
   .factory('Item',
     [ '$resource',
       function ($resource) {
