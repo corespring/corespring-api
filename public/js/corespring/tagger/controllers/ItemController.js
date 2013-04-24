@@ -58,7 +58,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     com.corespring.players.ItemPlayer("#item-preview-target", {
         mode : "preview",
         itemId : $scope.itemData.id,
-        autoHeight: true}
+        height: "100%"}
     );
   };
 
@@ -69,7 +69,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     com.corespring.players.ItemPlayer("#item-preview-target", {
       mode : "preview",
       itemId : $scope.itemData.id,
-      autoHeight: true}
+      height: "100%"}
     );
   };
 
