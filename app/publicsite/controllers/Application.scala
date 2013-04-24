@@ -7,8 +7,9 @@ import play.api.Play
 import play.api.Play.current
 import play.api.libs.json.Json
 import play.api.mvc._
-import player.rendering.PlayerCookieWriter
+import player.rendering.{PlayerCookieKeys, PlayerCookieWriter}
 import scala.io.Codec
+import player.controllers.auth.RequestedAccess
 
 
 object Application extends Controller with securesocial.core.SecureSocial with PlayerCookieWriter {
@@ -23,12 +24,26 @@ object Application extends Controller with securesocial.core.SecureSocial with P
   def educators = UserAwareAction { implicit request =>
     request.user match {
       case Some(user) => {
+
+        val newSession = request.session +
+          activeMode2(RequestedAccess.PREVIEW_MODE) +
+          orgIdCookie(user.id.id,user.id.providerId) +
+          renderOptionsCookie
+        //val newSession = request.session + activeMode2(RequestedAccess.PREVIEW_MODE) + renderOptions()
         //TODO: Is it safe to assume that the user has access to this content?
-        Ok(publicsite.views.html.educators()).withSession(playerSession(user.id.id, user.id.providerId))
+        Ok(publicsite.views.html.educators())
+          .withSession(newSession)
       }
       case _ => {
         val orgId = new ObjectId(Organization.CORESPRING_ORGANIZATION_ID)
-        Ok(publicsite.views.html.educators()).withSession(playerSession(orgId))
+
+        val newSession = request.session +
+          activeMode2(RequestedAccess.PREVIEW_MODE) +
+          orgIdCookie(orgId) +
+          renderOptionsCookie
+
+        Ok(publicsite.views.html.educators())
+          .withSession(newSession)
       }
     }
   }

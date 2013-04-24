@@ -47,7 +47,7 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
   def profile(itemId:ObjectId) = renderItem(itemId.toString, previewEnabled = true, template = PlayerTemplates.profile, mode = RequestedAccess.PREVIEW_MODE)
 
 
-  private def renderItem(itemId: String,
+  protected def renderItem(itemId: String,
                           renderMode: RenderingMode = Web,
                           previewEnabled: Boolean = false,
                           sessionId: Option[String] = None,

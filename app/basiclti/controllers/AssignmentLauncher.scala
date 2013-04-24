@@ -22,12 +22,14 @@ import play.api.libs.oauth.ConsumerKey
 import basiclti.models.Assignment
 import scala.Right
 import play.api.libs.oauth.RequestToken
+import player.rendering.PlayerCookieWriter
+import player.controllers.auth.RequestedAccess
 
 /**
  * Handles the launching of corespring items via the LTI 1.1 launch specification.
  * Also supports the canvas 'select_link' selection directive.
  */
-object AssignmentLauncher extends BaseApi {
+object AssignmentLauncher extends BaseApi with PlayerCookieWriter{
 
   object LtiKeys {
     val ConsumerKey: String = "oauth_consumer_key"
@@ -77,7 +79,7 @@ object AssignmentLauncher extends BaseApi {
   }
 
   def launch() = Action {
-    request =>
+    implicit request =>
 
       LtiData(request) match {
         case Some(data) => {
@@ -87,9 +89,6 @@ object AssignmentLauncher extends BaseApi {
           getOrgFromOauthSignature(request) match {
             case Some(org) => {
 
-
-              val token : AccessToken = AccessToken.getTokenForOrg(org)
-              val tokenSession = (OAuthConstants.AccessToken, token.tokenId)
               /**
                * Note: For Any content hosted in an iframe to support IE we need to add some p3p tags
                * see: http://stackoverflow.com/questions/389456/cookie-blocked-not-saved-in-iframe-in-internet-explorer
@@ -105,7 +104,7 @@ object AssignmentLauncher extends BaseApi {
                     quiz.id,
                     data.selectionDirective.getOrElse(""),
                     data.returnUrl.getOrElse("")
-                  ) ).withSession(tokenSession)
+                  ) ).withSession(playerSession(org.id))
                      .withHeaders(p3pHeaders)
               } else {
                 if(quiz.question.itemId.isDefined){
@@ -116,7 +115,9 @@ object AssignmentLauncher extends BaseApi {
                   val updatedConfig = quiz.addParticipantIfNew(data.resultSourcedId.get, data.outcomeUrl.get, data.returnUrl.get)
                   val call = AssignmentPlayerRoutes.run(updatedConfig.id, data.resultSourcedId.get)
                   Redirect(call.url)
-                    .withSession(tokenSession)
+                    .withSession(playerSession(org.id))
+                    .withSession(activeMode(RequestedAccess.RENDER_MODE))
+                    .withSession(request.session - OAuthConstants.AccessToken)
                     .withHeaders(p3pHeaders)
                 }else {
                   Ok(basiclti.views.html.itemNotReady())

@@ -1,7 +1,8 @@
 package player.controllers
 
+import auth.{RequestedAccess, Authenticate}
 import common.controllers.SimpleJsRoutes
-import controllers.auth.{BaseRender}
+import controllers.auth.BaseRender
 import org.bson.types.ObjectId
 import play.api.mvc._
 import player.controllers.auth.{CheckPlayerSession, RequestedAccess, Authenticate}
