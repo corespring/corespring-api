@@ -56,16 +56,6 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller
       }
   }
 
-  private def appendOptions(options: Option[RenderOptions])(session: PlaySession): PlaySession = options match {
-    case Some(o) => session + ("renderOptions" -> Json.toJson(o).toString)
-    case _ => session
-  }
-
-  private def appendOrgId(client: Option[ApiClient])(session: PlaySession): PlaySession = client match {
-    case Some(c) => session + ("orgId" -> c.orgId.toString)
-    case _ => session
-  }
-
   private def createJsTokens(o: Option[RenderOptions], r: Request[AnyContent]): Map[String, String] = Map("baseUrl" -> (BaseUrl(r) + "/player"))
 
 

@@ -7,9 +7,17 @@ import play.api.libs.json.Json
 import play.api.mvc.{PlainResult, Session, SimpleResult, Request}
 import models.auth.ApiClient
 
-/** Writes a player cookie to the session that grants the org Any access required */
+object PlayerCookieKeys {
+  val ACTIVE_MODE = "player.active.mode"
+  val RENDER_OPTIONS = "player.renderOptions"
+  val ORG_ID = "player.orgId"
+}
+
 trait PlayerCookieWriter {
 
+  def activeMode[A](mode:String)(implicit request : Request[A]) : Session = {
+    request.session + (PlayerCookieKeys.ACTIVE_MODE -> mode)
+  }
 
   def playerSession[A](userId: String, providerId: String)(implicit request: Request[A]): Session = {
     User.getUser(userId, providerId).map {
@@ -27,18 +35,22 @@ trait PlayerCookieWriter {
     buildSession(request.session, appendOrgId(orgId), appendOptions(options))
   }
 
-
   private def buildSession(s: Session, fns: (Session => Session)*): Session = {
     fns.foldRight(s)((fn: (Session => Session), acc: Session) => fn(acc))
   }
 
   private def appendOptions(options: Option[RenderOptions])(session: Session): Session = options match {
-    case Some(o) => session + ("renderOptions" -> Json.toJson(o).toString)
+    case Some(o) => session + (PlayerCookieKeys.RENDER_OPTIONS -> Json.toJson(o).toString)
     case _ => session
   }
 
   private def appendOrgId(orgId: Option[ObjectId])(session: Session): Session = orgId match {
-    case Some(id) => session + ("orgId" -> id.toString)
+    case Some(id) => session + (PlayerCookieKeys.ORG_ID -> id.toString)
     case _ => session
   }
+}
+
+trait PlayerCookieReader {
+  def activeMode[A](request:Request[A]) : Option[String] = request.session.get(PlayerCookieKeys.ACTIVE_MODE)
+  def renderOptions[A](request:Request[A]) : Option[RenderOptions] =  request.session.get(PlayerCookieKeys.RENDER_OPTIONS).map{ json => Json.parse(json).as[RenderOptions] }
 }
