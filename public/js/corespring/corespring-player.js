@@ -27,21 +27,19 @@ com.corespring.players.errors = {
   UNKNOWN_MODE: 6
 };
 
-function addDimensionChangeListener(elem) {
-  $(elem).load(function() {
-    var $body = $(elem, window.top.document).contents().find('body');
+function addDimensionChangeListener(iframe, element) {
+  $(iframe).load(function() {
+    var $body = $(iframe, window.top.document).contents().find('body');
     var bodyNode = $body.length == 1 ? $body[0] : undefined;
     var prevHeight = 0;
     setInterval(function () {
       try {
-
         if(bodyNode){
-          var newHeight = bodyNode.scrollHeight;
+          var newHeight = $(bodyNode).height();
           if (newHeight == 0) return;
           if (newHeight != prevHeight) {
-            console.log("Height changed to "+newHeight);
-            $(elem).height(newHeight);
-            prevHeight = newHeight;
+            $(element).height(newHeight+10);
+            prevHeight = newHeight + 10;
           }
         }
       } catch (ie) {
@@ -52,11 +50,11 @@ function addDimensionChangeListener(elem) {
 }
 
 var iframePlayerStrategy = function (e, options) {
-  e.html("<iframe src='" + options.corespringUrl + "' style='width: 100%; height: 100%; border: none; overflow: hidden'></iframe>");
+  e.html("<iframe src='" + options.corespringUrl + "' style='width: 100%; height: 100%; border: none'></iframe>");
   e.width(options.width ? options.width : "600px");
 
   if (options.autoHeight)
-    addDimensionChangeListener(e.find('iframe'));
+    addDimensionChangeListener(e.find('iframe'), e);
   else
     e.height(options.height ? options.height : "600px");
 };

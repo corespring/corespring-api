@@ -1,53 +1,6 @@
 var app = angular.module('app', ['itemResource', 'fieldValuesResource', 'tagger.services', 'preview.services', 'ui', 'corespring-utils']);
 
 
-angular.module('app')
-  .directive('iframeAutoHeight', function () {
-    return {
-      link: function ($scope, element) {
-        $(element).load(function () {
-          var $body = $(element, window.top.document).contents().find('body');
-          var prevHeight = 0;
-          setInterval(function () {
-            try {
-              var newHeight = $body[0].scrollHeight;
-              if (newHeight == 0) return;
-              if (newHeight != prevHeight) {
-                $(element).height(newHeight);
-                prevHeight = newHeight;
-              }
-            } catch (ie) {
-              console.log(ie);
-            }
-          }, 100);
-        });
-      }
-    }
-  });
-
-angular.module('app')
-  .directive('showWhenLoaded', function () {
-    return {
-      link: function ($scope, element) {
-        $(element).load(function () {
-          $(element).show();
-        });
-      }
-    }
-  });
-
-angular.module('app')
-  .directive('hideWhenLoaded', function () {
-    return {
-      link: function ($scope, element, attrs) {
-        $(element).load(function () {
-          $(attrs.hideWhenLoaded).hide();
-        })
-      }
-    }
-  });
-
-
 angular.module('app').directive('profilePlayer', function () {
 
   var definition = {

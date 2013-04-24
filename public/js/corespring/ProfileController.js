@@ -1,7 +1,6 @@
 function ProfileController($scope, $timeout, Config, Item, ItemFormattingUtils, MessageBridge) {
 
   $scope.hidePopup = function () {
-    console.log("hiding");
     MessageBridge.sendMessage('parent', {message: 'closeProfilePopup'});
   };
 
@@ -102,7 +101,6 @@ function ProfileController($scope, $timeout, Config, Item, ItemFormattingUtils, 
         itemId: id
       },
       function onItemLoaded(itemData) {
-        console.log("Read: ", itemData);
         $scope.itemData = itemData;
       },
       function onError(error) {
