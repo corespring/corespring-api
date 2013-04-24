@@ -4,21 +4,21 @@ import basiclti.controllers.routes.{AssignmentLauncher => AssignmentLauncherRout
 import basiclti.controllers.routes.{AssignmentPlayer => AssignmentPlayerRoutes}
 import basiclti.models._
 import common.controllers.utils.BaseUrl
-import controllers.auth.BaseApi
+import controllers.auth.{RenderOptions, BaseApi}
 import models.Organization
 import models.auth.ApiClient
 import models.itemSession.{ItemSessionSettings, ItemSession}
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
 import org.bson.types.ObjectId
 import play.Logger
+import play.api.libs.json.Json
 import play.api.libs.json.Json._
 import play.api.libs.oauth.ConsumerKey
 import play.api.libs.oauth.OAuthCalculator
 import play.api.libs.oauth.RequestToken
 import play.api.libs.ws.WS
-import play.api.mvc.{AnyContent, Request, Action}
-import player.controllers.auth.RequestedAccess
-import player.rendering.PlayerCookieWriter
+import play.api.mvc.{AnyContent, Request, Action, Session}
+import player.rendering.{PlayerCookieKeys, PlayerCookieWriter}
 import scala.Left
 import scala.Right
 import scala.Some
@@ -93,6 +93,14 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
                */
               val p3pHeaders = ("P3P", """CP="NOI ADM DEV COM NAV OUR STP"""")
 
+              def buildSession(s: Session): Session = {
+
+                s +
+                  (PlayerCookieKeys.RENDER_OPTIONS -> Json.toJson(RenderOptions.ANYTHING).toString) +
+                  (LtiCookieKeys.QUIZ_ID -> quiz.id.toString) +
+                  (PlayerCookieKeys.ORG_ID -> org.id.toString)
+              }
+
 
               def isInstructor = data.roles.exists(_ == LtiKeys.Instructor)
 
@@ -103,7 +111,7 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
                   data.selectionDirective.getOrElse(""),
                   data.returnUrl.getOrElse("")
                 ))
-                  .withSession(sumSession(request.session, playerCookies(org.id) :+ activeModeCookie(RequestedAccess.RENDER_MODE): _*))
+                  .withSession(buildSession(request.session))
                   .withHeaders(p3pHeaders)
               } else {
                 if (quiz.question.itemId.isDefined) {
@@ -114,7 +122,7 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
                   val updatedConfig = quiz.addParticipantIfNew(data.resultSourcedId.get, data.outcomeUrl.get, data.returnUrl.get)
                   val call = AssignmentPlayerRoutes.run(updatedConfig.id, data.resultSourcedId.get)
                   Redirect(call.url)
-                    .withSession(sumSession(request.session, playerCookies(org.id) :+ activeModeCookie(RequestedAccess.RENDER_MODE): _*))
+                    .withSession(buildSession(request.session))
                     .withHeaders(p3pHeaders)
                 } else {
                   Ok(basiclti.views.html.itemNotReady())

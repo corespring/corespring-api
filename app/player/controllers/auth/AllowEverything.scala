@@ -7,7 +7,7 @@ import models.Organization
 import models.auth.AccessToken
 
 /** An impl of Authenticate that creates a tokenized request for the Root Corespring Org - effectively a pass through */
-object AllowEverything extends Authenticate[AnyContent] {
+object AllowEverything extends PlayerAuthenticate {
 
   def OrgAction(access:RequestedAccess)(block: TokenizedRequest[AnyContent] => Result): Action[AnyContent] = OrgAction(BodyParsers.parse.anyContent)(access)(block)
 

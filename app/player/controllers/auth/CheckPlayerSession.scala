@@ -15,7 +15,7 @@ import scala.Left
 import scala.Right
 import scala.Some
 
-object CheckPlayerSession extends Authenticate[AnyContent] with PlayerCookieReader {
+object CheckPlayerSession extends PlayerAuthenticate with PlayerCookieReader {
 
 
   def OrgAction(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =

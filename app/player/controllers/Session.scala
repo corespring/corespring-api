@@ -1,14 +1,14 @@
 package player.controllers
 
-import auth.{RequestedAccess, Authenticate}
+import player.controllers.auth._
 import common.controllers.SimpleJsRoutes
 import controllers.auth.BaseRender
 import org.bson.types.ObjectId
 import play.api.mvc._
-import player.controllers.auth.{CheckPlayerSession, RequestedAccess, Authenticate}
+import scala.Some
 
 
-class Session(auth: Authenticate[AnyContent]) extends Controller with SimpleJsRoutes {
+class Session(auth: PlayerAuthenticate) extends Controller with SimpleJsRoutes {
 
   import api.v1.{ItemSessionApi => Api}
 

@@ -6,7 +6,7 @@ import org.bson.types.ObjectId
 import org.xml.sax.SAXParseException
 import play.api.mvc.{AnyContent, Action}
 import play.api.templates.Html
-import player.controllers.auth.{CheckPlayerSession, RequestedAccess, Authenticate}
+import player.controllers.auth.{PlayerAuthenticate, CheckPlayerSession, RequestedAccess, Authenticate}
 import player.models.PlayerParams
 import qti.models.RenderingMode._
 import scala.xml.Elem
@@ -16,7 +16,7 @@ import models.itemSession.ItemSession
 import models.quiz.basic.Quiz
 import player.rendering.PlayerCookieWriter
 
-class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource with QtiRenderer with PlayerCookieWriter {
+class Views(auth: PlayerAuthenticate) extends BaseApi with QtiResource with QtiRenderer with PlayerCookieWriter {
 
 
   private object PlayerTemplates {
@@ -131,8 +131,4 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
 
 }
 
-/*
-
-}
- */
 object Views extends Views(CheckPlayerSession)

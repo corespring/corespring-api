@@ -7,7 +7,7 @@ import models.auth.AccessToken
 import org.bson.types.ObjectId
 import play.api.libs.json.Json
 import play.api.mvc._
-import player.controllers.auth.{ContentRequest, RequestedAccess, Authenticate}
+import player.controllers.auth.{PlayerAuthenticate, ContentRequest, RequestedAccess, Authenticate}
 import player.models.TokenizedRequest
 import scala.Left
 import scala.Right
@@ -15,7 +15,7 @@ import scala.Some
 import models.quiz.basic.Quiz
 import player.rendering.PlayerCookieKeys
 
-object BaseRender extends Results with BodyParsers with Authenticate[AnyContent]{
+object BaseRender extends Results with BodyParsers with PlayerAuthenticate{
   val RendererHeader = "Renderer"
   val Delimeter = "-"
   val ClientId = "clientId"

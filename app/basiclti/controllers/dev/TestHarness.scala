@@ -91,6 +91,7 @@ object TestHarness extends BaseApi with SecureSocial {
           val signature = getSignature(client.clientId.toString, client.clientSecret, request)
 
           Ok(basiclti.views.html.dev.autoSubmitForm(url, allParams + ("oauth_signature" -> signature)))
+            .withSession( request.session - SecureSocial.UserKey)
         }
         case _ => Ok("Couldn't prepare form")
       }
