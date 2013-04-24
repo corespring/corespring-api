@@ -96,9 +96,8 @@ function ItemsCtrl($scope, $timeout) {
       $scope.showPopup = true;
       $scope.previewingId = id;
       $scope.$broadcast("requestLoadItem", id);
-      $('#itemViewFrame').height("600px");
-      $('#itemViewFrame').hide();
       $('#preloader').show();
+      $('#player').hide();
     }, 50);
     $timeout(function () {
       $('.window-overlay').scrollTop(0);
@@ -109,6 +108,7 @@ function ItemsCtrl($scope, $timeout) {
 
   $scope.onItemLoad = function () {
     $('#preloader').hide();
+    $('#player').show();
   }
 
   var fn = function(m) {
