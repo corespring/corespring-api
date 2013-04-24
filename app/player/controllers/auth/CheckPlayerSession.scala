@@ -36,6 +36,7 @@ object CheckPlayerSession extends Authenticate[AnyContent] with PlayerCookieRead
       }
 
       options.map{ o =>
+        //TODO: move this to check access
         if (o.expires == 0 || o.expires > System.currentTimeMillis()){
           grantAccess(activeMode(request),ra,o) match {
             case Right(true) => invokeBlock
