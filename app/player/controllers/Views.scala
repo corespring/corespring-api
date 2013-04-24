@@ -6,7 +6,7 @@ import org.bson.types.ObjectId
 import org.xml.sax.SAXParseException
 import play.api.mvc.{AnyContent, Action}
 import play.api.templates.Html
-import auth.{RequestedAccess, Authenticate}
+import player.controllers.auth.{CheckPlayerSession, RequestedAccess, Authenticate}
 import player.models.PlayerParams
 import qti.models.RenderingMode._
 import scala.xml.Elem
@@ -14,8 +14,9 @@ import testplayer.controllers.QtiRenderer
 import testplayer.models.ExceptionMessage
 import models.itemSession.ItemSession
 import models.quiz.basic.Quiz
+import player.rendering.PlayerCookieWriter
 
-class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource with QtiRenderer {
+class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource with QtiRenderer with PlayerCookieWriter {
 
 
   private object PlayerTemplates {
@@ -80,13 +81,13 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
   ) {
     tokenRequest =>
       ApiAction {
-        request =>
+        implicit request =>
           try {
             getItemXMLByObjectId(itemId, request.ctx.organization) match {
               case Some(xmlData: Elem) => {
                 val finalXml = prepareQti(xmlData, renderMode)
                 val params = PlayerParams(finalXml, Some(itemId), sessionId, previewEnabled)
-                Ok(template(params))
+                Ok(template(params)).withSession(activeMode(mode))
               }
               case None => NotFound("not found")
             }
@@ -134,4 +135,4 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
 
 }
  */
-object Views extends Views(BaseRender)
+object Views extends Views(CheckPlayerSession)

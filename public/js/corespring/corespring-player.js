@@ -30,15 +30,19 @@ com.corespring.players.errors = {
 function addDimensionChangeListener(elem) {
   $(elem).load(function() {
     var $body = $(elem, window.top.document).contents().find('body');
+    var bodyNode = $body.length == 1 ? $body[0] : undefined;
     var prevHeight = 0;
     setInterval(function () {
       try {
-        var newHeight = $body[0].scrollHeight;
-        if (newHeight == 0) return;
-        if (newHeight != prevHeight) {
-          console.log("Height changed to "+newHeight);
-          $(elem).height(newHeight);
-          prevHeight = newHeight;
+
+        if(bodyNode){
+          var newHeight = bodyNode.scrollHeight;
+          if (newHeight == 0) return;
+          if (newHeight != prevHeight) {
+            console.log("Height changed to "+newHeight);
+            $(elem).height(newHeight);
+            prevHeight = newHeight;
+          }
         }
       } catch (ie) {
         console.log(ie);

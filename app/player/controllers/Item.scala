@@ -4,7 +4,7 @@ import common.controllers.SimpleJsRoutes
 import controllers.auth.{BaseRender}
 import org.bson.types.ObjectId
 import play.api.mvc._
-import auth.{RequestedAccess, Authenticate}
+import player.controllers.auth.{CheckPlayerSession, RequestedAccess, Authenticate}
 
 
 class Item(auth: Authenticate[AnyContent]) extends Controller with SimpleJsRoutes {
@@ -26,4 +26,4 @@ class Item(auth: Authenticate[AnyContent]) extends Controller with SimpleJsRoute
   }
 }
 
-object Item extends Item(BaseRender)
+object Item extends Item(CheckPlayerSession)

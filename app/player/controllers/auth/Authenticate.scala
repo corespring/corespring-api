@@ -13,7 +13,7 @@ trait Authenticate[A] {
   def OrgAction(p:BodyParser[A])(access:RequestedAccess)(block: TokenizedRequest[A] => Result) : Action[A]
 }
 case class ContentRequest(id:ObjectId,p:Permission)
-class RequestedAccess( val itemId:Option[ContentRequest] = None, val sessionId:Option[ContentRequest] = None, val assessmentId:Option[ContentRequest] = None, val mode:Option[String] = None)
+class RequestedAccess( val itemId:Option[ContentRequest] = None, val sessionId:Option[ContentRequest] = None, val assessmentId:Option[ContentRequest] = None, val mode:Option[String] = Some("*"))
 object RequestedAccess{
   val PREVIEW_MODE = "preview"
   val ADMINISTER_MODE = "administer"

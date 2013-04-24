@@ -9,15 +9,26 @@ import scala.Right
 import scala.Some
 
 
-case class RenderOptions(itemId:String = "*", sessionId:String = "*", assessmentId:String = "*", role:String = "student", expires:Long, mode:String)
-object RenderOptions{
+case class RenderOptions(itemId: String = "*", sessionId: String = "*", assessmentId: String = "*", role: String = "student", expires: Long, mode: String) {
+
+  def allowSessionId(id:String) : Boolean = allow(id, sessionId)
+  def allowItemId(id: String): Boolean = allow(id,itemId)
+  def allowAssessmentId(id: String): Boolean = allow(id,assessmentId)
+
+  def allowMode(m:String) : Boolean = allow(m,mode)
+
+  private def allow(id:String, optionId:String) = if(optionId == RenderOptions.*) true else id == optionId
+
+}
+
+object RenderOptions {
 
   val * = "*"
 
-  val ANYTHING = RenderOptions(expires = 0,mode = *)
+  val ANYTHING = RenderOptions(expires = 0, mode = *)
 
-  implicit object RCReads extends Reads[RenderOptions]{
-    def reads(json:JsValue):RenderOptions = {
+  implicit object RCReads extends Reads[RenderOptions] {
+    def reads(json: JsValue): RenderOptions = {
       RenderOptions(
         (json \ "itemId").asOpt[String].getOrElse(*),
         (json \ "sessionId").asOpt[String].getOrElse(*),
@@ -28,8 +39,9 @@ object RenderOptions{
       )
     }
   }
-  implicit object RCWrites extends Writes[RenderOptions]{
-    def writes(ro:RenderOptions):JsValue = {
+
+  implicit object RCWrites extends Writes[RenderOptions] {
+    def writes(ro: RenderOptions): JsValue = {
       JsObject(Seq(
         "itemId" -> JsString(ro.itemId),
         "sessionId" -> JsString(ro.sessionId),
@@ -41,8 +53,8 @@ object RenderOptions{
     }
   }
 
-  def decryptOptions(apiClient:ApiClient, encrypted:String):RenderOptions = {
-    val decrypted = AESCrypto.decrypt(encrypted,apiClient.clientSecret)
+  def decryptOptions(apiClient: ApiClient, encrypted: String): RenderOptions = {
+    val decrypted = AESCrypto.decrypt(encrypted, apiClient.clientSecret)
     Json.fromJson[RenderOptions](Json.parse(decrypted))
   }
 }

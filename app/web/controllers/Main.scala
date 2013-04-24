@@ -17,9 +17,10 @@ import play.api.templates.Html
 object Main extends BaseApi with PlayerCookieWriter {
 
 
-  def previewItem(itemId:String, defaultView:String = "profile") = ApiAction { request =>
-    println("Default view is"+defaultView)
-    Ok(web.views.html.itemPreview(itemId, defaultView = defaultView))
+  def previewItem(itemId: String, defaultView: String = "profile") = ApiAction {
+    request =>
+      println("Default view is" + defaultView)
+      Ok(web.views.html.itemPreview(itemId, defaultView = defaultView))
   }
 
 
@@ -28,23 +29,23 @@ object Main extends BaseApi with PlayerCookieWriter {
    * @return
    */
   def previewAnyItem() = ApiAction {
-    Item.findOne( new BasicDBObject()) match {
+    Item.findOne(new BasicDBObject()) match {
       case Some(item) => previewItem(item.id.toString)
       case None => Action(Ok("no item found"))
     }
   }
 
-  def renderProfile(itemId:String) = Action { request =>
-    Ok(web.views.html.profilePrint(itemId, common.mock.MockToken))
+  def renderProfile(itemId: String) = Action {
+    request =>
+      Ok(web.views.html.profilePrint(itemId, common.mock.MockToken))
   }
 
-  def index = SecuredAction { implicit request =>
-      withPlayerCookie[AnyContent,Html](request.user.id.id, request.user.id.providerId){
-        (innerRequest) =>
-          val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
-          request.user.id.id
-          Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName,  common.mock.MockToken))
-      }
+  def index = SecuredAction {
+    implicit request =>
+      val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
+      val userId = request.user.id
+      Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName, "remove"))
+        .withSession(playerSession(userId.id, userId.providerId))
   }
 
   private def getDbName(uri: Option[String]): (String, String) = uri match {

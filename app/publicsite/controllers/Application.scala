@@ -24,11 +24,11 @@ object Application extends Controller with securesocial.core.SecureSocial with P
     request.user match {
       case Some(user) => {
         //TODO: Is it safe to assume that the user has access to this content?
-        withPlayerCookie(user.id.id, user.id.providerId){ (r:Request[AnyContent]) => Ok(publicsite.views.html.educators()) }
+        Ok(publicsite.views.html.educators()).withSession(playerSession(user.id.id, user.id.providerId))
       }
       case _ => {
         val orgId = new ObjectId(Organization.CORESPRING_ORGANIZATION_ID)
-        withPlayerCookie(orgId){ (r:Request[AnyContent]) => Ok(publicsite.views.html.educators())}
+        Ok(publicsite.views.html.educators()).withSession(playerSession(orgId))
       }
     }
   }
