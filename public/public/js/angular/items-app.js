@@ -4,9 +4,9 @@ var app = angular.module('app', ['itemResource', 'fieldValuesResource', 'tagger.
 angular.module('app').directive('profilePlayer', function () {
 
   var definition = {
-    replace: true,
-    restrict: 'ACE',
-    template: "<div class='iframe-600-centered'/>",
+    replace: false,
+    restrict: 'A',
+    template: "<div class='iframe-600-centered'></div>",
     scope: {itemId: '@itemId', onItemLoad: '&onItemLoad'},
     link: function (scope, element, attrs) {
       scope.$watch("itemId", function (val) {
@@ -72,6 +72,7 @@ function ItemsCtrl($scope, $timeout) {
       }, 10);
     }
   }
+
   if (window.addEventListener) {
     window.addEventListener('message', fn, true);
   }
