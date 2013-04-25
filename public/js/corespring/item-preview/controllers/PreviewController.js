@@ -54,6 +54,12 @@ function PreviewController($scope, $timeout, Config, Item, ServiceLookup, ItemFo
         case "Expeditionary Learning":
           cname = "El.png";
           break;
+        case "Smarter Balanced Assessment Consortium":
+          cname = "smarter.png";
+          break;
+        case "TIMSS":
+          cname = "TIMSS.jpeg";
+          break;
       }
     return cname!="" ? "/assets/images/copyright/" + cname : undefined;
   }
