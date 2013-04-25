@@ -40,7 +40,12 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
 
   def administerItem(itemId: ObjectId) = renderItem(itemId.toString, previewEnabled = false, mode = RequestedAccess.ADMINISTER_MODE)
 
-  def administerSession(sessionId: ObjectId) = render(sessionId)
+  def administerSession(sessionId: ObjectId) = {
+    ItemSession.get(sessionId) match {
+      case Some(session) => renderItem(itemId = ItemSession.get(sessionId).get.itemId.toString, sessionId = Some(sessionId.toString),mode = RequestedAccess.ADMINISTER_MODE)
+      case None => Action( request => NotFound("not found") )
+    }
+  }
 
   def aggregate(assessmentId: ObjectId, itemId: ObjectId) = renderQuizAsAggregate(assessmentId, itemId)
 
