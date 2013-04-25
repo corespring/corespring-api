@@ -1,7 +1,7 @@
 package controllers.auth
 
 import api.ApiError
-import controllers.InternalError
+import controllers.{Log, InternalError}
 import encryption.AESCrypto
 import models.auth.AccessToken
 import org.bson.types.ObjectId
@@ -97,32 +97,69 @@ object BaseRender extends Results with BodyParsers with Authenticate[AnyContent]
     RenderAction(parse.anyContent)(f)
   }
   def hasAccess(ra:RequestedAccess, ro:RenderOptions):Either[InternalError,Unit] = {
-    val itemIdCheck:Either[InternalError,Unit] = if (ro.itemId != "*"){ ra.itemId match {     //if item id is specified in options, check if an item is being requested
-      case Some(ContentRequest(itemId,p)) => //if item id is being requested, check to be sure that it can be read and it matches the options item id
-        if ((p.value&Permission.Read.value)==Permission.Read.value && itemId.toString == ro.itemId) Right(())
-        else Left(InternalError("cannot access item",addMessageToClientOutput = true))
-      case _ => Right(())
-    }} else ra.itemId match {
-        case Some(ContentRequest(itemId,p)) => if (ro.assessmentId == "*") Right(()) else {
-          Quiz.findOneById(new ObjectId(ro.assessmentId)) match {
-           case Some(quiz) => if(quiz.questions.exists(question => question.itemId == itemId)) Right(())
-             else Left(InternalError("cannot access item",addMessageToClientOutput = true))
-           case None => Left(InternalError("given assessment could not be found",addMessageToClientOutput = true))
-          }
+    var assessmentId:Option[ObjectId] = None
+    var accessibleItems:Seq[ObjectId] = Seq()
+    val assessmentIdCheck:Either[InternalError,Unit] = if (ro.assessmentId != "*"){ ra.assessmentId match {
+      case Some(ContentRequest(id,p)) => {
+        if ((p.value&Permission.Read.value)==Permission.Read.value && id.toString == ro.assessmentId) {
+          assessmentId = Some(id)
+          Right(())
+        }
+        else Left(InternalError("cannot access assessment",addMessageToClientOutput = true))
+      }
+      case _ => {
+        assessmentId = Some(new ObjectId(ro.assessmentId))
+        Right(())
+      }
+    }} else {
+      ra.assessmentId match {
+        case Some(ContentRequest(id,p)) => {
+          assessmentId = Some(id)
+          Right(())
         }
         case _ => Right(())
+      }
+    }
+    val itemIdCheck:Either[InternalError,Unit] = if (ro.itemId != "*"){ ra.itemId match {     //if item id is specified in options, check if an item is being requested
+      case Some(ContentRequest(itemId,p)) => //if item id is being requested, check to be sure that it can be read and it matches the options item id
+        if ((p.value&Permission.Read.value)==Permission.Read.value && itemId.toString == ro.itemId){
+          accessibleItems = Seq(itemId) //add requested item to acccessible items, which is used to restrict sessions
+          Right(())
+        }
+        else Left(InternalError("cannot access item",addMessageToClientOutput = true))
+      case _ => { //if item is not requested, add the options item to accessible items, required for sessions
+        accessibleItems = Seq(new ObjectId(ro.itemId))
+        Right(())
+      }
+    }} else {
+      assessmentId match {
+        case Some(id) => Quiz.findOneById(id) match {
+          case Some(quiz) => accessibleItems = quiz.questions.map(q => q.itemId)
+          case None => Log.w("BaseRender.hasAccess: no assessment found")
+        }
+        case None =>
+      }
+      ra.itemId match {
+        case Some(ContentRequest(itemId,p)) => assessmentId match {
+          case Some(id) => {
+            if (accessibleItems.exists(_ == itemId)){
+              accessibleItems = Seq(itemId)
+              Right(())
+            }
+            else Left(InternalError("cannot access item",addMessageToClientOutput = true))
+          }
+          case None => {
+            accessibleItems = Seq(itemId) //if options assessment and item is a wildcard, then requested item is valid
+            Right(())
+          }
+        }
+        case _ => Right(()) //requested item does not exist and item is wildcard. continue.
+      }
     }
     val sessionIdCheck:Either[InternalError,Unit] = if (ro.sessionId != "*") ra.sessionId match {
       case Some(ContentRequest(id,p)) =>
         if ((p.value&Permission.Read.value)==Permission.Read.value && id.toString == ro.sessionId) Right(())
         else Left(InternalError("cannot access session",addMessageToClientOutput = true))
-      case _ => Right(())
-    } else Right(())
-    val assessmentIdCheck:Either[InternalError,Unit] = if (ro.assessmentId != "*") ra.assessmentId match {
-      case Some(ContentRequest(id,p)) => {
-        if ((p.value&Permission.Read.value)==Permission.Read.value && id.toString == ro.assessmentId) Right(())
-        else Left(InternalError("cannot access assessment",addMessageToClientOutput = true))
-      }
       case _ => Right(())
     } else Right(())
     val modeCheck:Either[InternalError,Unit] = if (ro.mode != "*") ra.mode match {

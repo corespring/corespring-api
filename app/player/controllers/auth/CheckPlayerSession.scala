@@ -14,6 +14,7 @@ import player.rendering.PlayerCookieReader
 import scala.Left
 import scala.Right
 import scala.Some
+import models.quiz.basic.Quiz
 
 object CheckPlayerSession extends Authenticate[AnyContent] with PlayerCookieReader {
 
@@ -67,7 +68,6 @@ object CheckPlayerSession extends Authenticate[AnyContent] with PlayerCookieRead
         }
       }
     }
-
     val am: Option[String] = if (a.mode.isDefined) a.mode else activeMode
 
     am match {

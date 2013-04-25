@@ -59,6 +59,7 @@ class Views(auth: Authenticate[AnyContent]) extends BaseApi with QtiResource wit
       ApiAction {
         implicit request =>
           try {
+
             getItemXMLByObjectId(itemId, request.ctx.organization) match {
               case Some(xmlData: Elem) => {
                 val finalXml = prepareQti(xmlData, renderMode)

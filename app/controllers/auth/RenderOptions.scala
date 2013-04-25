@@ -7,12 +7,60 @@ import play.api.libs.json._
 import scala.Left
 import scala.Right
 import scala.Some
+import models.quiz.basic.Quiz
+import org.bson.types.ObjectId
+import models.itemSession.ItemSession
 
 
 case class RenderOptions(itemId: String = "*", sessionId: String = "*", assessmentId: String = "*", role: String = "student", expires: Long, mode: String) {
+  /**
+   * if sessionId is a wildcard, the requested session must either belong to the given item or the given assessmentId
+   * (if itemId is a wildcard). if both are a wildcard, then return true
+   * @param id
+   * @return
+   */
+  def allowSessionId(id:String) : Boolean = if (sessionId == RenderOptions.*){
+    if (itemId != RenderOptions.*){
+      try{
+        ItemSession.findItemSessions(new ObjectId(itemId)).exists(_.id.toString == sessionId)
+      } catch {
+        case e:IllegalArgumentException => false
+      }
+    }else if (assessmentId != RenderOptions.*){
+      try{
+        Quiz.findOneById(new ObjectId(assessmentId)) match {
+          case Some(quiz) => {
+            quiz.questions.exists(question => {
+              ItemSession.findItemSessions(question.itemId).exists(session => {
+                session.id.toString == id
+              })
+            })
+          }
+          case None => false
+        }
+      } catch {
+        case e:IllegalArgumentException => false
+      }
+    } else true
+  } else id == sessionId
 
-  def allowSessionId(id:String) : Boolean = allow(id, sessionId)
-  def allowItemId(id: String): Boolean = allow(id,itemId)
+  /**
+   * if itemId is a wildcard, the requested session must belong to the given assessment if assignmentId is not a wildcard
+   * @param id
+   * @return
+   */
+  def allowItemId(id: String): Boolean = if(itemId == RenderOptions.*){
+    if(assessmentId == RenderOptions.*) true
+    else try{
+      Quiz.findOneById(new ObjectId(assessmentId)) match {
+        case Some(quiz) => quiz.questions.exists(_.itemId.toString == id)
+        case None => false
+      }
+    } catch {
+      case e:IllegalArgumentException => false
+    }
+  } else id == itemId
+
   def allowAssessmentId(id: String): Boolean = allow(id,assessmentId)
 
   def allowMode(m:String) : Boolean = allow(m,mode)

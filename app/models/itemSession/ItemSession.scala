@@ -5,7 +5,7 @@ import org.joda.time.DateTime
 import play.api.libs.json._
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
-import controllers.{LogType, InternalError}
+import controllers.{Utils, LogType, InternalError}
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
@@ -123,6 +123,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     ItemSession.find(query).toSeq //.map(addExtrasIfFinished(_, addResponses))
   }
 
+  def findItemSessions(id:ObjectId):Seq[ItemSession] = Utils.toSeq(ItemSession.find(MongoDBObject(itemId -> id)))
   /**
    * Update the itemSession model - this is not counted as the item being processed.
    * ItemSession can only be updated if its not started.
