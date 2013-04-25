@@ -2,16 +2,15 @@ package controllers.auth
 
 import encryption.AESCrypto
 import models.auth.ApiClient
-import play.api.libs.json._
 import models.itemSession.ItemSession
-import org.bson.types.ObjectId
 import models.quiz.basic.Quiz
+import org.bson.types.ObjectId
+import play.api.libs.json._
 
 case class RenderOptions(
                           itemId: String = "*",
                           sessionId: String = "*",
                           assessmentId: String = "*",
-                          collectionId : String = "*",
                           role: String = "student",
                           expires: Long, mode: String) {
 
@@ -64,7 +63,6 @@ case class RenderOptions(
   } else id == itemId
 
   def allowAssessmentId(id: String): Boolean = allow(id,assessmentId)
-  def allowCollectionId(id:String) : Boolean = allow(id, collectionId)
 
   def allowMode(m:String) : Boolean = allow(m,mode)
 
@@ -84,7 +82,6 @@ object RenderOptions {
         (json \ "itemId").asOpt[String].getOrElse(*),
         (json \ "sessionId").asOpt[String].getOrElse(*),
         (json \ "assessmentId").asOpt[String].getOrElse(*),
-        (json \ "collectionId").asOpt[String].getOrElse(*),
         (json \ "role").asOpt[String].getOrElse("student"),
         (json \ "expires").as[Long],
         (json \ "mode").as[String]
@@ -98,7 +95,6 @@ object RenderOptions {
         "itemId" -> JsString(ro.itemId),
         "sessionId" -> JsString(ro.sessionId),
         "assessmentId" -> JsString(ro.assessmentId),
-        "collectionId" -> JsString(ro.collectionId),
         "role" -> JsString(ro.role),
         "expires" -> JsNumber(ro.expires),
         "mode" -> JsString(ro.mode)

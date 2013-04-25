@@ -16,7 +16,7 @@ corespringServiceModule
 
         var api = PlayerItemRoutes;
         var calls  = {
-          read: api.read(":itemId")
+          read: api.getDetail(":itemId")
         };
         console.log(api);
         return $resource(

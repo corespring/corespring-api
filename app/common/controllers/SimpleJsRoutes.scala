@@ -1,6 +1,7 @@
 package common.controllers
 
 import play.core.Router.JavascriptReverseRoute
+import common.seed.StringUtils
 
 trait SimpleJsRoutes {
 
@@ -20,16 +21,37 @@ trait SimpleJsRoutes {
     def process(jsr : JavascriptReverseRoute) : String = {
       val split = jsr.name.split("\\.").toList
       val shortName = split.last
-      "this.%s = %s".stripMargin.format(shortName, jsr.f)
+      val tokens = Map("functionName" -> shortName, "functionBody" -> jsr.f)
+      StringUtils.interpolate("routesObject.${functionName} = ${functionBody}\n", StringUtils.replaceKey(tokens), StringUtils.DollarRegex)
     }
 
+    val test =
+      """
+       //Simple Js Routes - an alternative rendering to the standard Play Js Routes generator
+       //1. Init the Play Framework functions on the global scope (so we can created extendable objects
+       if( !window["_qS"] ){
+         window["_qS"] = function(items){var qs = ''; for(var i=0;i<items.length;i++) {if(items[i]) qs += (qs ? '&' : '') + items[i]}; return qs ? ('?' + qs) : ''};
+       }
+       if( !window["_wA"] ) {
+          window["_wA"] = function(r){return {method:r.method,url:r.url}};
+       }
 
-    """var %s = new function(){
-         var _qS = function(items){var qs = ''; for(var i=0;i<items.length;i++) {if(items[i]) qs += (qs ? '&' : '') + items[i]}; return qs ? ('?' + qs) : ''};
+       //2. Now init the routes object if required.
+       (function(){
+         var routesObject = null;
 
-         var _wA = function(r){return {method:r.method,url:r.url}};
-          %s;
-      }""".format(objectName, routes.map(process).mkString("\n"))
+         if(window["${routeObjectName}"]){
+            routesObject = window["${routeObjectName}"]
+         } else {
+            routesObject = window["${routeObjectName}"] = {};
+         }
+
+         ${functionsList}
+
+       })();
+      """
+      val tokens = Map("routeObjectName" -> objectName, "functionsList" -> routes.map(process).mkString("\n"))
+      StringUtils.interpolate(test, StringUtils.replaceKey(tokens), StringUtils.DollarRegex)
 
   }
 }

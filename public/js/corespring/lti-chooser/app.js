@@ -20,8 +20,9 @@ angular.module("lti-services", ['ngResource'])
     return $resource("/lti/launch-config/:id", {}, { save: { method: "PUT"}});
   }])
 
-  .factory("LtiItemService", ['$resource', function ($resource) {
-    return $resource("/api/v1/items/:id/detail", {});
+  .factory("LtiItemService", ['$resource', 'ServiceLookup', function ($resource, ServiceLookup) {
+    var url = ServiceLookup.getUrlFor('itemDetails');
+    return $resource(url, {});
   }]);
 
 

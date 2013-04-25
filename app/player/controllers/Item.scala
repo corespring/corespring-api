@@ -11,15 +11,15 @@ class Item(auth: PlayerAuthenticate) extends Controller with SimpleJsRoutes {
 
   import api.v1.{ItemApi => Api}
 
-  def read(itemId: ObjectId) = auth.OrgAction(
+  def getDetail(itemId: ObjectId) = auth.OrgAction(
     RequestedAccess(Some(itemId))
   )(Api.getDetail(itemId))
 
   def jsRoutes = Action {
     implicit request =>
-      import routes.javascript.{Item => JsItem}
+      import player.controllers.routes.javascript.{Item => JsItem}
       val jsRoutes = List(
-        JsItem.read
+        JsItem.getDetail
       )
       Ok(createSimpleRoutes("PlayerItemRoutes", jsRoutes: _*))
         .as("text/javascript")

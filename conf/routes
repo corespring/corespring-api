@@ -154,11 +154,9 @@ GET    /player/api/:itemId/session/:sessionId              player.controllers.Se
 PUT    /player/api/:itemId/session/:sessionId              player.controllers.Session.update(itemId:ObjectId,sessionId:ObjectId,action : Option[String] ?= None)
 POST   /player/api/:itemId/session/:quizId/aggregate       player.controllers.Session.aggregate(quizId:ObjectId, itemId:ObjectId)
 GET    /player/routes.js                                   player.controllers.Session.jsRoutes
-GET    /player/api/:itemId/details                         player.controllers.Item.read(itemId:ObjectId)
-GET    /player/api/collections                             player.controllers.Collection.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET    /player/api/:itemId/details                         player.controllers.Item.getDetail(itemId:ObjectId)
 ## JS Routes
 GET    /player/item/routes.js                              player.controllers.Item.jsRoutes
-GET    /player/collection/routes.js                        player.controllers.Collection.jsRoutes
 ## Encrypt
 POST    /player/encrypt-options                            player.controllers.RenderKey.encrypt
 ## Views
@@ -222,7 +220,9 @@ GET     /lti/assignment/:configId/:resultSourcedId/:filename basiclti.controller
 GET     /lti/chooser/partials/main              basiclti.controllers.Partials.main
 GET     /lti/chooser/partials/browse            basiclti.controllers.Partials.browse
 GET     /lti/chooser/partials/view              basiclti.controllers.Partials.view
-
+GET     /lti/api/items                          basiclti.controllers.api.Item.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /lti/api/collections                    basiclti.controllers.api.Collection.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /lti/routes.js                          basiclti.controllers.JsRoutes.index
 # Reporting
 GET    /reports                                     reporting.controllers.Reports.index
 GET    /reports/:collection/:queryType.csv          reporting.controllers.Reports.getCsv(collection,queryType)

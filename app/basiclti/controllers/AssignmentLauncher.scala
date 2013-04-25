@@ -22,6 +22,8 @@ import player.rendering.{PlayerCookieKeys, PlayerCookieWriter}
 import scala.Left
 import scala.Right
 import scala.Some
+import player.controllers.auth.RequestedAccess
+import basiclti.controllers.auth.LtiCookieKeys
 
 /**
  * Handles the launching of corespring items via the LTI 1.1 launch specification.
@@ -93,12 +95,13 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
                */
               val p3pHeaders = ("P3P", """CP="NOI ADM DEV COM NAV OUR STP"""")
 
-              def buildSession(s: Session): Session = {
+              def buildSession(s: Session, mode : String): Session = {
 
                 s +
                   (PlayerCookieKeys.RENDER_OPTIONS -> Json.toJson(RenderOptions.ANYTHING).toString) +
                   (LtiCookieKeys.QUIZ_ID -> quiz.id.toString) +
-                  (PlayerCookieKeys.ORG_ID -> org.id.toString)
+                  (PlayerCookieKeys.ORG_ID -> org.id.toString) +
+                  (PlayerCookieKeys.ACTIVE_MODE -> mode)
               }
 
 
@@ -111,7 +114,7 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
                   data.selectionDirective.getOrElse(""),
                   data.returnUrl.getOrElse("")
                 ))
-                  .withSession(buildSession(request.session))
+                  .withSession(buildSession(request.session, RequestedAccess.PREVIEW_MODE))
                   .withHeaders(p3pHeaders)
               } else {
                 if (quiz.question.itemId.isDefined) {
@@ -122,7 +125,7 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
                   val updatedConfig = quiz.addParticipantIfNew(data.resultSourcedId.get, data.outcomeUrl.get, data.returnUrl.get)
                   val call = AssignmentPlayerRoutes.run(updatedConfig.id, data.resultSourcedId.get)
                   Redirect(call.url)
-                    .withSession(buildSession(request.session))
+                    .withSession(buildSession(request.session, RequestedAccess.ADMINISTER_MODE))
                     .withHeaders(p3pHeaders)
                 } else {
                   Ok(basiclti.views.html.itemNotReady())

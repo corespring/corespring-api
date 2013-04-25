@@ -10,20 +10,35 @@ import player.rendering.PlayerCookieReader
 import scala.Left
 import scala.Right
 import scala.Some
+import basiclti.controllers.auth._
+import scala.Left
+import scala.Some
+import scala.Right
+import player.models.TokenizedRequest
 
 
-class LtiQuizzes(auth:Authenticate[ObjectId,AnyContent,OrgRequest[AnyContent]]) extends Controller {
+class LtiQuizzes(auth:ValidateQuizIdAndOrgId[OrgRequest[AnyContent]]) extends Controller {
 
-  def get(id: ObjectId) = auth.OrgAction(id){
+  private def quizIdMatches(requestQuizId:ObjectId)(quizId:String,orgId:String) : Boolean = {
+    try{
+      val oid = new ObjectId(quizId)
+      oid == requestQuizId
+    }
+    catch {
+      case t : Throwable => false
+    }
+  }
+
+
+  def get(id: ObjectId) = auth.OrgAction( quizIdMatches(id)_ ){
     request =>
-
       models.LtiQuiz.findOneById(id) match {
         case Some(c) => Ok(toJson(c))
         case _ => NotFound("Can't find launch config with that id")
       }
   }
 
-  def update(id: ObjectId) = auth.OrgAction(id) {
+  def update(id: ObjectId) = auth.OrgAction(quizIdMatches(id)_) {
     request =>
 
       quiz(request) match {
@@ -57,38 +72,6 @@ class LtiQuizzes(auth:Authenticate[ObjectId,AnyContent,OrgRequest[AnyContent]]) 
   }
 }
 
-object LtiCookieKeys{
-  val QUIZ_ID = "lti.quiz.id"
-}
-
-case class OrgRequest[A](orgId:ObjectId, r:Request[A]) extends WrappedRequest[A](r)
-
-object Mock extends Authenticate[ObjectId,AnyContent,OrgRequest[AnyContent]]  with PlayerCookieReader{
-
-  import play.api.mvc.Results._
-
-  def OrgAction(accessId: ObjectId)(block: (OrgRequest[AnyContent]) => Result): Action[AnyContent] =
-    OrgAction(play.api.mvc.BodyParsers.parse.anyContent)(accessId)(block)
-
-  def OrgAction(p: BodyParser[AnyContent])(access: ObjectId)(block: (OrgRequest[AnyContent]) => Result): Action[AnyContent] = {
-    Action{
-      request =>
-        request.session.get(LtiCookieKeys.QUIZ_ID) match {
-          case Some(id) => {
-            if(access == id){
-              orgIdFromCookie(request) match {
-                case Some(orgId) => block( new OrgRequest(new ObjectId(orgId), request))
-                case _ => BadRequest("no org id")
-              }
-            }else{
-              BadRequest("")
-            }
-          }
-          case _ => BadRequest("")
-        }
-    }
-  }
-}
-
-
-object LtiQuizzes extends LtiQuizzes(Mock)
+object LtiQuizzes extends LtiQuizzes( new ValidateQuizIdAndOrgId[OrgRequest[AnyContent]]{
+  override def makeRequest(orgId: ObjectId, r: Request[AnyContent]): Option[OrgRequest[AnyContent]] = Some(new OrgRequest[AnyContent](orgId,r))
+})
