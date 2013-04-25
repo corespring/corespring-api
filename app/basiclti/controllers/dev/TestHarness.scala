@@ -20,23 +20,13 @@ object TestHarness extends BaseApi with SecureSocial {
    * The initial form where you can set up your settings
    * @return
    */
-  def begin = {
-    val url = basiclti.controllers.dev.routes.TestHarness.prepare().url
-
-    if (Play.isDev(Play.current)) {
-      Action {
-        request =>
-          Ok(basiclti.views.html.dev.begin(url))
-            .withSession(OAuthConstants.AccessToken -> "corespring_token")
-      }
-    }
-    else {
-      SecuredAction {
-        request =>
-          Ok(basiclti.views.html.dev.begin(url))
-      }
+  def begin = SecuredAction {
+    request => {
+      val url = basiclti.controllers.dev.routes.TestHarness.prepare().url
+      Ok(basiclti.views.html.dev.begin(url))
     }
   }
+
 
   /**
    * Takes the form from launch and renders out a new form with all the parameters required by lti.
@@ -59,9 +49,10 @@ object TestHarness extends BaseApi with SecureSocial {
 
 
           val url = basiclti.controllers.routes.AssignmentLauncher.launch().url
-          val trimmed = formParams.filter{  kv =>
-            print(kv)
-            !kv._2(0).isEmpty
+          val trimmed = formParams.filter {
+            kv =>
+              print(kv)
+              !kv._2(0).isEmpty
           }
           val out = trimmed.map((kv) => (kv._1, kv._2.head))
 
@@ -84,6 +75,7 @@ object TestHarness extends BaseApi with SecureSocial {
 
           val mockHeaders = new Headers {
             def keys: Set[String] = Set("x-forward-proto=" + protocol)
+
             def getAll(key: String): Seq[String] = {
               Seq(protocol)
             }
@@ -99,6 +91,7 @@ object TestHarness extends BaseApi with SecureSocial {
           val signature = getSignature(client.clientId.toString, client.clientSecret, request)
 
           Ok(basiclti.views.html.dev.autoSubmitForm(url, allParams + ("oauth_signature" -> signature)))
+            .withSession( request.session - SecureSocial.UserKey)
         }
         case _ => Ok("Couldn't prepare form")
       }

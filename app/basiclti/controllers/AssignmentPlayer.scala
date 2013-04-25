@@ -1,50 +1,34 @@
 package basiclti.controllers
 
-import testplayer.controllers.QtiRenderer
 import basiclti.models.LtiQuiz
-import play.api.mvc.Action
-import controllers.auth.BaseApi
-import common.controllers.{AssetResource, QtiResource, ItemResources}
-import org.bson.types.ObjectId
+import common.controllers.AssetResource
 import models.itemSession.ItemSession
+import org.bson.types.ObjectId
+import play.api.mvc.Action
+import player.controllers.Views
+import player.controllers.auth.{RequestedAccess, CheckPlayerSession}
 
-object AssignmentPlayer extends BaseApi with QtiRenderer with AssetResource with QtiResource{
+object AssignmentPlayer extends Views(CheckPlayerSession) with AssetResource {
 
-  def run(configId: ObjectId, resultSourcedId: String) = ApiAction {
-    request =>
-
-      session(configId, resultSourcedId) match {
-        case Left(msg) => BadRequest(msg)
-        case Right(session) => {
-
-
-          getItemXMLByObjectId(session.itemId.toString, request.ctx.organization) match {
-            case Some(qti) => {
-              val finalXml = prepareQti(qti)
-              Ok(
-                basiclti.views.html.player(
-                  finalXml,
-                  session.itemId.toString,
-                  session.id.toString,
-                  request.token,
-                  configId.toString,
-                  resultSourcedId
-                )
-
-              ).withSession(("access_token", common.mock.MockToken))
-            }
-            case _ => BadRequest("??")
-          }
-        }
-      }
+  def run(configId: ObjectId, resultSourcedId: String) = {
+    session(configId, resultSourcedId) match {
+      case Left(msg) => Action(r => BadRequest(msg))
+      case Right(session) => renderItem(session.itemId.toString, previewEnabled = false, mode = RequestedAccess.RENDER_MODE)
+    }
   }
 
   private def session(configId: ObjectId, resultSourcedId: String): Either[String, ItemSession] = LtiQuiz.findOneById(configId) match {
     case Some(config) => {
+
       config.participants.find(_.resultSourcedId == resultSourcedId) match {
         case Some(p) => {
           ItemSession.findOneById(p.itemSession) match {
-            case Some(session) => Right(session)
+            case Some(session) => {
+              config.orgId match {
+                case Some(id) => Right(session)
+                case _ => Left("can't find org id")
+              }
+            }
             case _ => Left("can't find session")
           }
         }
@@ -55,9 +39,11 @@ object AssignmentPlayer extends BaseApi with QtiRenderer with AssetResource with
   }
 
 
-  def getDataFileForAssignment(configId: ObjectId, resultSourcedId: String, filename: String) = session(configId,resultSourcedId) match {
+  def getDataFileForAssignment(configId: ObjectId, resultSourcedId: String, filename: String) = session(configId, resultSourcedId) match {
     case Left(msg) => Action(request => NotFound(msg))
-    case Right(session) => getDataFile(session.itemId.toString, filename)
+    case Right(session) => {
+      getDataFile(session.itemId.toString, filename)
+    }
   }
 
 }

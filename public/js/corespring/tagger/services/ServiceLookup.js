@@ -6,7 +6,26 @@
 angular.module('tagger.services')
     .factory('ServiceLookup', function () {
 
+
+
+
         var ServiceLookup = function () {
+
+            var checkInjectedRoutes = function(injectedRoutes, methodName, params, defaultValue){
+
+              if(!window[injectedRoutes]){
+                return defaultValue;
+              }
+
+              if(!injectedRoutes || !injectedRoutes[methodName]){
+                return defaultValue;
+              }
+              var result = injectedRoutes[methodName].apply(null, params);
+              if(!result || !result.url){
+                return defaultValue;
+              }
+              return result.url;
+            };
 
             this.services = {
                 //TODO: Do we need method here too? eg POST/PUT
@@ -40,7 +59,7 @@ angular.module('tagger.services')
                 standardsTree:'/assets/web/standards_tree.json',
                 standards:'/api/v1/field_values/cc-standard',
                 subject:'/api/v1/field_values/subject',
-                collection:'/api/v1/collections',
+                collection: checkInjectedRoutes('PlayerCollectionRoutes', 'list', [],'/api/v1/collections'),
                 contributor:'/api/v1/contributors',
                 uploadFile:'/tagger/upload/{itemId}/{fileName}',
                 viewFile:'/tagger/files/{itemId}/{fileName}',

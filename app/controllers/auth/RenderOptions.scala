@@ -1,18 +1,20 @@
 package controllers.auth
 
-import controllers.InternalError
 import encryption.AESCrypto
 import models.auth.ApiClient
 import play.api.libs.json._
-import scala.Left
-import scala.Right
-import scala.Some
-import models.quiz.basic.Quiz
-import org.bson.types.ObjectId
 import models.itemSession.ItemSession
+import org.bson.types.ObjectId
+import models.quiz.basic.Quiz
 
+case class RenderOptions(
+                          itemId: String = "*",
+                          sessionId: String = "*",
+                          assessmentId: String = "*",
+                          collectionId : String = "*",
+                          role: String = "student",
+                          expires: Long, mode: String) {
 
-case class RenderOptions(itemId: String = "*", sessionId: String = "*", assessmentId: String = "*", role: String = "student", expires: Long, mode: String) {
   /**
    * if sessionId is a wildcard, the requested session must either belong to the given item or the given assessmentId
    * (if itemId is a wildcard). if both are a wildcard, then return true
@@ -62,6 +64,7 @@ case class RenderOptions(itemId: String = "*", sessionId: String = "*", assessme
   } else id == itemId
 
   def allowAssessmentId(id: String): Boolean = allow(id,assessmentId)
+  def allowCollectionId(id:String) : Boolean = allow(id, collectionId)
 
   def allowMode(m:String) : Boolean = allow(m,mode)
 
@@ -81,6 +84,7 @@ object RenderOptions {
         (json \ "itemId").asOpt[String].getOrElse(*),
         (json \ "sessionId").asOpt[String].getOrElse(*),
         (json \ "assessmentId").asOpt[String].getOrElse(*),
+        (json \ "collectionId").asOpt[String].getOrElse(*),
         (json \ "role").asOpt[String].getOrElse("student"),
         (json \ "expires").as[Long],
         (json \ "mode").as[String]
@@ -94,6 +98,7 @@ object RenderOptions {
         "itemId" -> JsString(ro.itemId),
         "sessionId" -> JsString(ro.sessionId),
         "assessmentId" -> JsString(ro.assessmentId),
+        "collectionId" -> JsString(ro.collectionId),
         "role" -> JsString(ro.role),
         "expires" -> JsNumber(ro.expires),
         "mode" -> JsString(ro.mode)

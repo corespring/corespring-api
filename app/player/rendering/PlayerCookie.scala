@@ -4,8 +4,8 @@ import controllers.auth.RenderOptions
 import models.{UserOrg, User}
 import org.bson.types.ObjectId
 import play.api.libs.json.Json
-import play.api.mvc.{PlainResult, Session, SimpleResult, Request}
-import models.auth.ApiClient
+import play.api.mvc.{Session, Request}
+import player.controllers.auth.RequestedAccess
 
 object PlayerCookieKeys {
   val ACTIVE_MODE = "player.active.mode"
@@ -15,42 +15,32 @@ object PlayerCookieKeys {
 
 trait PlayerCookieWriter {
 
-  def activeMode[A](mode:String)(implicit request : Request[A]) : Session = {
-    request.session + (PlayerCookieKeys.ACTIVE_MODE -> mode)
+  /** A helper method to allow you to create a new session out of the existing and a variable number of Key values pairs */
+  def sumSession(s: Session, keyValues: (String, String)*): Session = {
+    keyValues.foldRight(s)((kv: (String, String), acc: Session) => acc +(kv._1, kv._2))
   }
 
-  def playerSession[A](userId: String, providerId: String)(implicit request: Request[A]): Session = {
-    User.getUser(userId, providerId).map {
-      u =>
-        u.orgs match {
-          case Seq(UserOrg(id, _)) => playerSession(id)
-          case _ => request.session
-        }
-    }.getOrElse(request.session)
-  }
+  def playerCookies(userId: String, providerId: String): Seq[(String, String)] = User.getUser(userId, providerId).map {
+    u =>
+      u.orgs match {
+        case Seq(UserOrg(id, _)) => playerCookies(id)
+        case _ => Seq()
+      }
+  }.getOrElse(Seq())
 
-  def playerSession[A](orgId: ObjectId)(implicit request: Request[A]): Session = playerSession(Some(orgId), Some(RenderOptions.ANYTHING))
+  def playerCookies(orgId: ObjectId): Seq[(String, String)] = Seq(PlayerCookieKeys.RENDER_OPTIONS -> Json.toJson(RenderOptions.ANYTHING).toString, PlayerCookieKeys.ORG_ID -> orgId.toString)
 
-  def playerSession[A](orgId: Option[ObjectId], options: Option[RenderOptions])(implicit request: Request[A]): Session = {
-    buildSession(request.session, appendOrgId(orgId), appendOptions(options))
-  }
-
-  private def buildSession(s: Session, fns: (Session => Session)*): Session = {
-    fns.foldRight(s)((fn: (Session => Session), acc: Session) => fn(acc))
-  }
-
-  private def appendOptions(options: Option[RenderOptions])(session: Session): Session = options match {
-    case Some(o) => session + (PlayerCookieKeys.RENDER_OPTIONS -> Json.toJson(o).toString)
-    case _ => session
-  }
-
-  private def appendOrgId(orgId: Option[ObjectId])(session: Session): Session = orgId match {
-    case Some(id) => session + (PlayerCookieKeys.ORG_ID -> id.toString)
-    case _ => session
+  def activeModeCookie[A](mode: String = RequestedAccess.PREVIEW_MODE)(implicit request: Request[A]): (String, String) = {
+    (PlayerCookieKeys.ACTIVE_MODE -> mode)
   }
 }
 
 trait PlayerCookieReader {
-  def activeMode[A](request:Request[A]) : Option[String] = request.session.get(PlayerCookieKeys.ACTIVE_MODE)
-  def renderOptions[A](request:Request[A]) : Option[RenderOptions] =  request.session.get(PlayerCookieKeys.RENDER_OPTIONS).map{ json => Json.parse(json).as[RenderOptions] }
+  def activeMode[A](request: Request[A]): Option[String] = request.session.get(PlayerCookieKeys.ACTIVE_MODE)
+
+  def renderOptions[A](request: Request[A]): Option[RenderOptions] = request.session.get(PlayerCookieKeys.RENDER_OPTIONS).map {
+    json => Json.parse(json).as[RenderOptions]
+  }
+
+  def orgIdFromCookie[A](request: Request[A]): Option[String] = request.session.get(PlayerCookieKeys.ORG_ID)
 }

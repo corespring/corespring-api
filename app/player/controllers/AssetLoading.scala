@@ -14,7 +14,7 @@ import play.api.mvc.{Session => PlaySession}
 import player.rendering.PlayerCookieWriter
 import play.api.templates.Html
 
-class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller with AssetResource with PlayerCookieWriter{
+class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller with AssetResource with PlayerCookieWriter {
 
   def itemProfileJavascript = renderJavascript(playerTemplate, {
     (ro: Option[RenderOptions], req: Request[AnyContent]) =>
@@ -48,10 +48,11 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller
         implicit client =>
           withOptions {
             options =>
-                val preppedJs = createJsFromTemplate(template, tokenFn(options, request))
-                Ok(preppedJs)
-                  .as("text/javascript")
-                  .withSession(playerSession(client.map(_.orgId), options))
+              val preppedJs = createJsFromTemplate(template, tokenFn(options, request))
+              val newSession = sumSession(request.session, client.map(c => playerCookies(c.orgId)).getOrElse(Seq()): _*)
+              Ok(preppedJs)
+                .as("text/javascript")
+                .withSession(newSession)
           }
       }
   }

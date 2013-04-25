@@ -1,7 +1,6 @@
 function ProfileController($scope, $timeout, Config, Item, ItemFormattingUtils, MessageBridge) {
 
   $scope.hidePopup = function () {
-    console.log("hiding");
     MessageBridge.sendMessage('parent', {message: 'closeProfilePopup'});
   };
 
@@ -63,9 +62,9 @@ function ProfileController($scope, $timeout, Config, Item, ItemFormattingUtils, 
     function getPrintUrl(panel) {
       switch (panel) {
         case "profile" :
-          return "/web/print-resource-profile/{key}".replace("{key}", $scope.itemData.id);
+          return "/player/item/{key}/profile?tab=profile".replace("{key}", $scope.itemData.id);
         case "item" :
-          return $scope.getItemSrc(true);
+          return "/player/item/{key}/profile?tab=item".replace("{key}", $scope.itemData.id);
         default :
           return $scope.getSmSrc($scope.currentSm, true);
       }
@@ -102,7 +101,6 @@ function ProfileController($scope, $timeout, Config, Item, ItemFormattingUtils, 
         itemId: id
       },
       function onItemLoaded(itemData) {
-        console.log("Read: ", itemData);
         $scope.itemData = itemData;
       },
       function onError(error) {
@@ -115,11 +113,14 @@ function ProfileController($scope, $timeout, Config, Item, ItemFormattingUtils, 
     );
   }
 
-
   loadItemById(Config.itemId);
 
-
-  $scope.currentPanel = "profile";
+  if (Config.tab == "")
+    $scope.currentPanel = "profile";
+  else switch (Config.tab) {
+    case 'profile': $scope.currentPanel = "profile"; break;
+    case 'item': $scope.currentPanel = "item"; break;
+  }
 }
 
 ProfileController.$inject = ['$scope', '$timeout', 'Config', 'Item', 'ItemFormattingUtils','MessageBridge'];

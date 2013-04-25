@@ -1,4 +1,4 @@
-@(params: player.models.PlayerParams)
+@(params: player.models.PlayerParams, tab: String)
 
 <!DOCTYPE html>
 <html ng-app='qti'>
@@ -17,7 +17,8 @@
                 angular.module('qti.services').factory('Config', [function(){
                 return {
                 itemId : "@params.itemId",
-                sessionId : ""
+                sessionId : "",
+                tab: "@tab"
                 }
                 }]);
         </script>
@@ -30,9 +31,11 @@
 
     <div class="itemProfile">
         <div ng-controller="ProfileController" >
+
+            @if(tab=="") {
             <div class="sub-nav" style="position: relative">
                 <div class="container" style="width: 600px;">
-                    <span class="close-window-button" ng-click="hidePopup()"></span>
+                    <span class="close-window-button" ng-click="hidePopup()" style="z-index: 10"></span>
                     <div class="row">
                         <ul class="nav nav-tabs">
 
@@ -61,10 +64,15 @@
                     </div>
                 </div>
             </div>
+            }
 
             <div id='itemView' class="iframe-600-centered" ng-show="currentPanel=='item'" ng-controller='QtiAppController' show-when-loaded hide-when-loaded="#preloader">
                 @partials.controlBar()
-                @Html(params.xml)
+                <div class="student-view-header" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">Student View</div>
+                <div class="student-assessment-page" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">
+                    @Html(params.xml)
+                </div>
+
             </div>
 
             <div id='supportingMaterialView' class="preview-container" ng-repeat="sm in itemData.supportingMaterials"
@@ -87,9 +95,12 @@
             </div>
 
 
+
         </div>
 
     </div>
+
+
 
 </body>
 
