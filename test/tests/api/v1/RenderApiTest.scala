@@ -15,7 +15,7 @@ import scala.Some
 
 class RenderKeyTest extends BaseTest{
   val update:Call = player.controllers.routes.RenderKey.encrypt()
-  val renderOptions = RenderOptions("50083ba9e4b071cb5ef79101","502d0f823004deb7f4f53be7","*","student",0,"render")
+  val renderOptions = RenderOptions("50083ba9e4b071cb5ef79101","502d0f823004deb7f4f53be7","*","*","student",0,"render")
   val fakeRequest = FakeRequest(update.method,tokenize(update.url),FakeHeaders(),AnyContentAsJson(Json.toJson(renderOptions)))
   val Some(result) = routeAndCall(fakeRequest)
   status(result) must equalTo(OK)

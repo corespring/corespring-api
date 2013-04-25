@@ -69,6 +69,22 @@ object CheckPlayerSession extends PlayerAuthenticate with PlayerCookieReader {
         }
       }
     }
+
+    def checkItemIdsInAssessment(itemId:Option[ContentRequest],assessmentId:String):Boolean = {
+      if(assessmentId != "*"){
+        itemId match {
+          case Some(ContentRequest(id,p)) => try{
+            Quiz.findOneById(new ObjectId(assessmentId)) match {
+              case Some(quiz) => quiz.questions.exists(q => q.itemId == id)
+              case None => false
+            }
+          } catch {
+            case e:IllegalArgumentException => false
+          }
+          case None => true
+        }
+      }else true
+    }
     val am: Option[String] = if (a.mode.isDefined) a.mode else activeMode
 
     am match {
@@ -78,7 +94,10 @@ object CheckPlayerSession extends PlayerAuthenticate with PlayerCookieReader {
             case RequestedAccess.PREVIEW_MODE => checkAccess(false, (a.itemId, o.allowItemId))
             case RequestedAccess.RENDER_MODE => checkAccess(false, (a.sessionId, o.allowSessionId))
             case RequestedAccess.ADMINISTER_MODE => checkAccess(true, (a.itemId, o.allowItemId), (a.sessionId, o.allowSessionId))
-            case RequestedAccess.AGGREGATE_MODE => checkAccess(false, (a.itemId, o.allowItemId), (a.assessmentId, o.allowAssessmentId))
+            case RequestedAccess.AGGREGATE_MODE => checkAccess(false, (a.itemId, o.allowItemId), (a.assessmentId, o.allowAssessmentId)) match {
+              case Right(result) => if(result) Right(checkItemIdsInAssessment(a.itemId,o.assessmentId)) else Right(false)
+              case Left(e) => Left(e)
+            }
             case _ => Left(InternalError("TODO"))
           }
         } else {

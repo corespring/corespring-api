@@ -10,8 +10,8 @@ class BaseRenderTest extends BaseTest{
   val itemId = "5153eee1aa2eefdc1b7a5570"
   val sessionId = "5153effbaa2eefdc1b7a5571"
   val mode = "render"
-  val ro1 = RenderOptions(itemId,"*","*","student",0,mode)
-  val ro2 = RenderOptions("*","*",assessmentId,"student",0,mode)
+  val ro1 = RenderOptions(itemId,"*","*","*","student",0,mode)
+  val ro2 = RenderOptions("*","*",assessmentId,"*","student",0,mode)
   val ra1 = RequestedAccess(Some(new ObjectId(itemId)))
   val ra2 = RequestedAccess(Some(new ObjectId("50b653a1e4b0ec03f29344b0")))
   "BaseRender.hasAccess" should {
