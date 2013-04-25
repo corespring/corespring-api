@@ -15,8 +15,6 @@ com.corespring.players.config = {
   mode : "${mode}"
 };
 
-console.log("mode is: " + com.corespring.players.config.mode);
-
 com.corespring.players.errors = {
   NEED_OPTIONS: 0,
   NEED_MODE: 1,
@@ -38,8 +36,8 @@ function addDimensionChangeListener(iframe, element) {
           var newHeight = $(bodyNode).height();
           if (newHeight == 0) return;
           if (newHeight != prevHeight) {
-            $(element).height(newHeight+10);
-            prevHeight = newHeight + 10;
+            $(element).height(newHeight+30);
+            prevHeight = newHeight + 30;
           }
         }
       } catch (ie) {
