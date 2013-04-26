@@ -1,17 +1,18 @@
 package player.controllers
 
 import common.controllers.SimpleJsRoutes
-import controllers.auth.{BaseRender}
+import controllers.auth.TokenizedRequestActionBuilder
 import org.bson.types.ObjectId
 import play.api.mvc._
-import player.controllers.auth.{PlayerAuthenticate, CheckPlayerSession, RequestedAccess, Authenticate}
+import player.accessControl.auth.CheckPlayerSession
+import player.accessControl.models.RequestedAccess
 
 
-class Item(auth: PlayerAuthenticate) extends Controller with SimpleJsRoutes {
+class Item(auth: TokenizedRequestActionBuilder[RequestedAccess] ) extends Controller with SimpleJsRoutes {
 
   import api.v1.{ItemApi => Api}
 
-  def getDetail(itemId: ObjectId) = auth.OrgAction(
+  def getDetail(itemId: ObjectId) = auth.ValidatedAction(
     RequestedAccess(Some(itemId))
   )(Api.getDetail(itemId))
 

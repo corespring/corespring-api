@@ -6,11 +6,11 @@ import models.auth.{ApiClient, AccessToken}
 import play.api.test.Helpers._
 import play.api.libs.json.{Json}
 import encryption.AESCrypto
-import controllers.auth.{RenderOptions}
 import play.api.mvc.Call
 import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
 import scala.Some
+import player.accessControl.models.RenderOptions
 
 
 class RenderKeyTest extends BaseTest{

@@ -3,16 +3,14 @@ package player.controllers
 import common.controllers.AssetResource
 import common.controllers.utils.BaseUrl
 import common.seed.StringUtils
-import controllers.auth.RenderOptions
 import encryption.{AESCrypto, Crypto}
 import models.auth.ApiClient
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.{Logger, Play}
+import player.accessControl.cookies.PlayerCookieWriter
+import player.accessControl.models.RenderOptions
 import scala.Some
-import play.api.mvc.{Session => PlaySession}
-import player.rendering.PlayerCookieWriter
-import play.api.templates.Html
 
 class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller with AssetResource with PlayerCookieWriter {
 

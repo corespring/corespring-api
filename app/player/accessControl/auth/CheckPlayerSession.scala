@@ -1,28 +1,29 @@
-package player.controllers.auth
+package player.accessControl.auth
 
 
 import api.ApiError
 import controllers.InternalError
-import controllers.auth.RenderOptions
+import controllers.auth.TokenizedRequestActionBuilder
+import controllers.auth.requests.TokenizedRequest
 import models.auth.AccessToken
+import models.quiz.basic.Quiz
 import org.bson.types.ObjectId
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
-import player.models.TokenizedRequest
-import player.rendering.PlayerCookieReader
+import player.accessControl.cookies.PlayerCookieReader
+import player.accessControl.models.{RenderOptions, RequestedAccess, ContentRequest}
 import scala.Left
 import scala.Right
 import scala.Some
-import models.quiz.basic.Quiz
 
-object CheckPlayerSession extends PlayerAuthenticate with PlayerCookieReader {
+object CheckPlayerSession extends  TokenizedRequestActionBuilder[RequestedAccess] with PlayerCookieReader {
 
 
-  def OrgAction(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
-    OrgAction(play.api.mvc.BodyParsers.parse.anyContent)(ra)(block)
+  def ValidatedAction(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
+    ValidatedAction(play.api.mvc.BodyParsers.parse.anyContent)(ra)(block)
 
-  def OrgAction(p:BodyParser[AnyContent])(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
+  def ValidatedAction(p:BodyParser[AnyContent])(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
     Action{ request =>
       val options = renderOptions(request)
 

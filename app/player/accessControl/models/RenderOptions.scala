@@ -1,11 +1,15 @@
-package controllers.auth
+package player.accessControl.models
 
-import encryption.AESCrypto
-import models.auth.ApiClient
 import models.itemSession.ItemSession
 import models.quiz.basic.Quiz
 import org.bson.types.ObjectId
+import models.auth.ApiClient
+import encryption.AESCrypto
 import play.api.libs.json._
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsString
+import scala.Some
+import play.api.libs.json.JsNumber
 
 case class RenderOptions(
                           itemId: String = "*",
@@ -69,6 +73,7 @@ case class RenderOptions(
   private def allow(id:String, optionId:String) = if(optionId == RenderOptions.*) true else id == optionId
 
 }
+
 
 object RenderOptions {
 

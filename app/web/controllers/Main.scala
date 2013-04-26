@@ -1,7 +1,7 @@
 package web.controllers
 
 import com.mongodb.BasicDBObject
-import controllers.auth.{RenderOptions, BaseApi}
+import controllers.auth.{BaseApi}
 import models.item.Item
 import models.{UserOrg, User}
 import play.api.libs.json.Json
@@ -10,8 +10,8 @@ import scala.Some
 import securesocial.core.SecuredRequest
 import web.controllers.utils.ConfigLoader
 import web.models.QtiTemplate
-import player.rendering.PlayerCookieWriter
 import play.api.templates.Html
+import player.accessControl.cookies.PlayerCookieWriter
 
 
 object Main extends BaseApi with PlayerCookieWriter {

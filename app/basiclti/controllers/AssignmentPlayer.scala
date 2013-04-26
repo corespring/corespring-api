@@ -5,8 +5,9 @@ import common.controllers.AssetResource
 import models.itemSession.ItemSession
 import org.bson.types.ObjectId
 import play.api.mvc.Action
+import player.accessControl.auth.CheckPlayerSession
+import player.accessControl.models.RequestedAccess
 import player.controllers.Views
-import player.controllers.auth.{RequestedAccess, CheckPlayerSession}
 
 object AssignmentPlayer extends Views(CheckPlayerSession) with AssetResource {
 

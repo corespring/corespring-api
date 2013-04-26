@@ -2,12 +2,13 @@ package player.controllers
 
 import play.api.mvc.{Result, Controller}
 import encryption.{MockUrlEncodeEncrypter, AESCrypto, Crypto}
-import controllers.auth.{RenderOptions, BaseApi}
+import controllers.auth.{BaseApi}
 import play.api.libs.json.{JsString, JsObject, Json}
 import models.auth.ApiClient
 import models.Organization
 import org.codehaus.jackson.JsonParseException
 import api.ApiError
+import player.accessControl.models.RenderOptions
 
 class RenderKey(encrypter:Crypto) extends BaseApi{
 

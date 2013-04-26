@@ -1,9 +1,10 @@
 package tests.auth
 
 import tests.BaseTest
-import controllers.auth.{BaseRender, RenderOptions}
-import player.controllers.auth.RequestedAccess
+import controllers.auth.{BaseRender}
 import org.bson.types.ObjectId
+import player.controllers.auth.RequestedAccess
+import player.accessControl.models.{RenderOptions, RequestedAccess}
 
 class BaseRenderTest extends BaseTest{
   val assessmentId = "000000000000000000000001"

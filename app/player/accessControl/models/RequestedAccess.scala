@@ -1,24 +1,10 @@
-package player.controllers.auth
+package player.accessControl.models
 
 import controllers.auth.Permission
 import org.bson.types.ObjectId
-import play.api.mvc._
-import player.models.TokenizedRequest
-import scala.Some
 
-trait Authenticate[ACCESS_DESCRIPTION, CONTENT <: AnyContent, REQUEST <: Request[CONTENT]] {
-  def OrgAction(access:ACCESS_DESCRIPTION)(block: REQUEST => Result) : Action[CONTENT]
-  def OrgAction(p:BodyParser[CONTENT])(access:ACCESS_DESCRIPTION)(block: REQUEST => Result) : Action[CONTENT]
-}
-
-
-trait AuthenticateAndUseToken[ACCESS] extends Authenticate[ACCESS,AnyContent, TokenizedRequest[AnyContent]]
-
-/** If you need to proxy an Api call - use this trait */
-trait PlayerAuthenticate extends AuthenticateAndUseToken[RequestedAccess]
-
-case class ContentRequest(id:ObjectId,p:Permission)
 class RequestedAccess( val itemId:Option[ContentRequest] = None, val sessionId:Option[ContentRequest] = None, val assessmentId:Option[ContentRequest] = None, val mode:Option[String] = Some("*"))
+
 object RequestedAccess{
   val PREVIEW_MODE = "preview"
   val ADMINISTER_MODE = "administer"

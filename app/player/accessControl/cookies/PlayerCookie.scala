@@ -1,17 +1,11 @@
-package player.rendering
+package player.accessControl.cookies
 
-import controllers.auth.RenderOptions
 import models.{UserOrg, User}
 import org.bson.types.ObjectId
 import play.api.libs.json.Json
 import play.api.mvc.{Session, Request}
-import player.controllers.auth.RequestedAccess
+import player.accessControl.models.{RenderOptions, RequestedAccess}
 
-object PlayerCookieKeys {
-  val ACTIVE_MODE = "player.active.mode"
-  val RENDER_OPTIONS = "player.renderOptions"
-  val ORG_ID = "player.orgId"
-}
 
 trait PlayerCookieWriter {
 

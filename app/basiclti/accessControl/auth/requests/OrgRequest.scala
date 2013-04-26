@@ -1,4 +1,4 @@
-package basiclti.controllers.auth
+package basiclti.accessControl.auth.requests
 
 import org.bson.types.ObjectId
 import play.api.mvc.{WrappedRequest, Request}

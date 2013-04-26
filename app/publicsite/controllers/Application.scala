@@ -7,9 +7,9 @@ import play.api.Play
 import play.api.Play.current
 import play.api.libs.json.Json
 import play.api.mvc._
-import player.rendering.{PlayerCookieKeys, PlayerCookieWriter}
+import player.accessControl.cookies.PlayerCookieWriter
+import player.accessControl.models.RequestedAccess
 import scala.io.Codec
-import player.controllers.auth.RequestedAccess
 
 
 object Application extends Controller with securesocial.core.SecureSocial with PlayerCookieWriter {

@@ -1,20 +1,15 @@
 package basiclti.controllers
 
+import basiclti.accessControl.auth.ValidateQuizIdAndOrgId
+import basiclti.accessControl.auth.requests.OrgRequest
 import basiclti.models
 import basiclti.models.LtiQuiz
 import org.bson.types.ObjectId
 import play.api.libs.json.Json._
 import play.api.mvc._
-import player.controllers.auth.Authenticate
-import player.rendering.PlayerCookieReader
 import scala.Left
 import scala.Right
 import scala.Some
-import basiclti.controllers.auth._
-import scala.Left
-import scala.Some
-import scala.Right
-import player.models.TokenizedRequest
 
 
 class LtiQuizzes(auth:ValidateQuizIdAndOrgId[OrgRequest[AnyContent]]) extends Controller {
@@ -30,7 +25,7 @@ class LtiQuizzes(auth:ValidateQuizIdAndOrgId[OrgRequest[AnyContent]]) extends Co
   }
 
 
-  def get(id: ObjectId) = auth.OrgAction( quizIdMatches(id)_ ){
+  def get(id: ObjectId) = auth.ValidatedAction( quizIdMatches(id)_ ){
     request =>
       models.LtiQuiz.findOneById(id) match {
         case Some(c) => Ok(toJson(c))
@@ -38,7 +33,7 @@ class LtiQuizzes(auth:ValidateQuizIdAndOrgId[OrgRequest[AnyContent]]) extends Co
       }
   }
 
-  def update(id: ObjectId) = auth.OrgAction(quizIdMatches(id)_) {
+  def update(id: ObjectId) = auth.ValidatedAction(quizIdMatches(id)_) {
     request =>
 
       quiz(request) match {

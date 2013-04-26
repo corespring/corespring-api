@@ -1,10 +1,11 @@
 package basiclti.controllers
 
+import basiclti.accessControl.auth.cookies.LtiCookieKeys
 import basiclti.controllers.routes.{AssignmentLauncher => AssignmentLauncherRoutes}
 import basiclti.controllers.routes.{AssignmentPlayer => AssignmentPlayerRoutes}
 import basiclti.models._
 import common.controllers.utils.BaseUrl
-import controllers.auth.{RenderOptions, BaseApi}
+import controllers.auth.BaseApi
 import models.Organization
 import models.auth.ApiClient
 import models.itemSession.{ItemSessionSettings, ItemSession}
@@ -18,12 +19,11 @@ import play.api.libs.oauth.OAuthCalculator
 import play.api.libs.oauth.RequestToken
 import play.api.libs.ws.WS
 import play.api.mvc.{AnyContent, Request, Action, Session}
-import player.rendering.{PlayerCookieKeys, PlayerCookieWriter}
+import player.accessControl.cookies.{PlayerCookieWriter, PlayerCookieKeys}
+import player.accessControl.models.{RenderOptions, RequestedAccess}
 import scala.Left
 import scala.Right
 import scala.Some
-import player.controllers.auth.RequestedAccess
-import basiclti.controllers.auth.LtiCookieKeys
 
 /**
  * Handles the launching of corespring items via the LTI 1.1 launch specification.

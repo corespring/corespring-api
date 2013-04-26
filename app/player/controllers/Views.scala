@@ -1,28 +1,27 @@
 package player.controllers
 
 import common.controllers.QtiResource
-import controllers.auth.{BaseRender, BaseApi}
+import controllers.auth.{TokenizedRequestActionBuilder, BaseApi}
+import models.itemSession.ItemSession
+import models.quiz.basic.Quiz
 import org.bson.types.ObjectId
 import org.xml.sax.SAXParseException
-import play.api.mvc.{AnyContent, Action}
+import play.api.mvc.Action
 import play.api.templates.Html
-import player.controllers.auth.{PlayerAuthenticate, CheckPlayerSession, RequestedAccess, Authenticate}
-import player.models.PlayerParams
+import player.accessControl.auth.CheckPlayerSession
+import player.accessControl.cookies.PlayerCookieWriter
+import player.accessControl.models.RequestedAccess
+import player.views.models.PlayerParams
 import qti.models.RenderingMode._
 import scala.xml.Elem
 import testplayer.controllers.QtiRenderer
 import testplayer.models.ExceptionMessage
-import models.itemSession.ItemSession
-import models.quiz.basic.Quiz
-import player.rendering.PlayerCookieWriter
 
-class Views(auth: PlayerAuthenticate) extends BaseApi with QtiResource with QtiRenderer with PlayerCookieWriter {
+class Views(auth:  TokenizedRequestActionBuilder[RequestedAccess] ) extends BaseApi with QtiResource with QtiRenderer with PlayerCookieWriter {
 
 
   private object PlayerTemplates {
     def default(p: PlayerParams): play.api.templates.Html = player.views.html.Player(p)
-
-    def iframed(p: PlayerParams): play.api.templates.Html = player.views.html.IframedPlayer(p)
 
     def instructor(p: PlayerParams): play.api.templates.Html = player.views.html.Player(p)
 
@@ -50,7 +49,7 @@ class Views(auth: PlayerAuthenticate) extends BaseApi with QtiResource with QtiR
   def aggregate(assessmentId: ObjectId, itemId: ObjectId) = renderQuizAsAggregate(assessmentId, itemId)
 
   def profile(itemId:ObjectId, tab:String) = {
-    auth.OrgAction(
+    auth.ValidatedAction(
       RequestedAccess(Some(itemId),None,mode = Some(RequestedAccess.PREVIEW_MODE))
     ) {
       tokenRequest =>
@@ -81,7 +80,7 @@ class Views(auth: PlayerAuthenticate) extends BaseApi with QtiResource with QtiR
                           previewEnabled: Boolean = false,
                           sessionId: Option[String] = None,
                           mode:String,
-                          template: PlayerParams => Html = PlayerTemplates.default) = auth.OrgAction(
+                          template: PlayerParams => Html = PlayerTemplates.default) = auth.ValidatedAction(
     RequestedAccess(Some(new ObjectId(itemId)),sessionId.map(new ObjectId(_)),mode = Some(mode))
   ) {
     tokenRequest =>
@@ -107,7 +106,7 @@ class Views(auth: PlayerAuthenticate) extends BaseApi with QtiResource with QtiR
   }
 
 
-  def renderQuizAsAggregate(quizId: ObjectId, itemId: ObjectId) = auth.OrgAction(
+  def renderQuizAsAggregate(quizId: ObjectId, itemId: ObjectId) = auth.ValidatedAction(
     RequestedAccess(itemId = Some(itemId), assessmentId = Some(quizId), mode = Some(RequestedAccess.AGGREGATE_MODE))
   ) {
     tokenRequest =>

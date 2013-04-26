@@ -1,4 +1,4 @@
-package player.models
+package controllers.auth.requests
 
 import play.api.mvc.{WrappedRequest, Request}
 
