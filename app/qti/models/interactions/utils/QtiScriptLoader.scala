@@ -1,11 +1,11 @@
-package testplayer.views.utils
+package qti.models.interactions.utils
 
-import xml.{Node, NodeSeq}
 import common.controllers.DefaultCss
-import qti.models.{RenderingMode, QtiItem}
+import controllers.Utils
 import qti.models.RenderingMode._
 import qti.models.interactions.{InteractionCompanion, Interaction}
-import controllers.Utils
+import qti.models.{RenderingMode, QtiItem}
+import xml.{Node, NodeSeq}
 
 /**
  * Load js and css depending on the contents of the Qti xml.
