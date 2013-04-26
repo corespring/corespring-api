@@ -24,6 +24,9 @@ if(params.previewEnabled) "assessment-page" else "student-assessment-page"
 </head>
 <body @bodyAttributes >
 
+@afterBody.map{ b =>
+ @b
+}
 
 @if( params.previewEnabled ){
 

@@ -141,10 +141,11 @@ GET     /api/v1/quizzes                             api.v1.QuizApi.list()
 #GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
 #GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes
 
-GET    /scorm-player/item/:itemId/run               scorm.controllers.ScormPlayer.administerItem(itemId : ObjectId)
-GET    /scorm-player/item/:itemId/:filename         scorm.controllers.ScormPlayer.getDataFile(itemId : String, filename:String)
-GET    /scorm-player/session/:sessionId/run         scorm.controllers.ScormPlayer.render(sessionId : ObjectId)
-GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : String, filename:String)
+GET    /scorm-player.js                                 scorm.controllers.AssetLoading.itemPlayerJavascript
+GET    /scorm-player/item/:itemId/administer            scorm.controllers.ScormPlayer.administerItem(itemId : ObjectId)
+GET    /scorm-player/item/:itemId/:filename             scorm.controllers.ScormPlayer.getDataFile(itemId : String, filename:String)
+GET    /scorm-player/session/:sessionId/render          scorm.controllers.ScormPlayer.render(sessionId : ObjectId)
+GET    /scorm-player/session/:sessionId/:filename       scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : String, filename:String)
 
 
 # New Player

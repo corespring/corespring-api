@@ -55,7 +55,9 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller
       }
   }
 
-  private def createJsTokens(o: Option[RenderOptions], r: Request[AnyContent]): Map[String, String] = Map("baseUrl" -> (BaseUrl(r) + "/player"))
+  protected def getBaseUrl(r:Request[AnyContent]) : String = BaseUrl(r) + "/player"
+
+  private def createJsTokens(o: Option[RenderOptions], r: Request[AnyContent]): Map[String, String] = Map("baseUrl" -> getBaseUrl(r))
 
 
   private def decryptOptions(encryptedOptions: String, apiClient: ApiClient): Option[RenderOptions] = try {

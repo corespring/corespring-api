@@ -22,7 +22,7 @@
   }
 
   </style>
-  <script src="${corespringDomain}/player.js?apiClientId=${apiClientId}&options=${options}" type="text/javascript"></script>
+  <script src="${corespringDomain}/scorm-player.js?apiClientId=${apiClientId}&options=${options}" type="text/javascript"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
   <script type="text/javascript" src="scormfunctions.js"></script>
   <script type="text/javascript">
@@ -94,12 +94,10 @@
     if(!launchData.templates.session ) throw "Can't find session url template in launchData";
 
     var options = {
-      itemSessionId: itemSessionId,
+      sessionId: itemSessionId,
       mode: "render"
     }
     com.corespring.players.ItemPlayer("body", options);
-    //var url = launchData.templates.session.replace(":sessionId", itemSessionId);
-    //addIframe(url);
   }
 
   function loadNewItemSession(){
@@ -111,9 +109,6 @@
     }
 
     com.corespring.players.ItemPlayer("body", options);
-    //com.corespring.players.ItemPlayer("body", options);
-    //var url = launchData.templates.item.replace(":itemId", launchData.itemId);
-    //addIframe(url);
   }
 
   function processAnyPendingMessages(){
