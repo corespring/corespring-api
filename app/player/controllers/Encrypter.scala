@@ -15,7 +15,7 @@ class Encrypter(encrypter:Crypto) extends BaseApi{
       case Some(jsoptions) => try{
         val options = Json.fromJson[RenderOptions](jsoptions)
         val orgEncrypter = new OrgEncrypter(request.ctx.organization, encrypter)
-        orgEncrypter.encrypt(options.toString) match {
+        orgEncrypter.encrypt(jsoptions.toString()) match {
           case Some(EncryptionResult(clientId,data)) => {
             Ok(JsObject(Seq(
               "clientId" -> JsString(clientId),
