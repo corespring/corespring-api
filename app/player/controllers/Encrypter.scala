@@ -1,27 +1,25 @@
 package player.controllers
 
-import play.api.mvc.{Result, Controller}
-import encryption.{MockUrlEncodeEncrypter, AESCrypto, Crypto}
-import controllers.auth.{BaseApi}
-import play.api.libs.json.{JsString, JsObject, Json}
-import models.auth.ApiClient
-import models.Organization
-import org.codehaus.jackson.JsonParseException
 import api.ApiError
+import controllers.auth.BaseApi
+import models.auth.ApiClient
+import org.codehaus.jackson.JsonParseException
+import play.api.libs.json.{JsString, JsObject, Json}
 import player.accessControl.models.RenderOptions
+import common.encryption.{Crypto, AESCrypto, EncryptionResult, OrgEncrypter}
 
-class RenderKey(encrypter:Crypto) extends BaseApi{
+class Encrypter(encrypter:Crypto) extends BaseApi{
 
-  def encrypt = ApiAction{ request =>
+  def encryptOptions = ApiAction{ request =>
     request.body.asJson match {
       case Some(jsoptions) => try{
         val options = Json.fromJson[RenderOptions](jsoptions)
-        ApiClient.findOneByOrgId(request.ctx.organization) match {
-          case Some(apiClient) => {
-            val encryptedOptions = encrypter.encrypt(Json.toJson(options).toString(),apiClient.clientSecret)
+        val orgEncrypter = new OrgEncrypter(request.ctx.organization, encrypter)
+        orgEncrypter.encrypt(options.toString) match {
+          case Some(EncryptionResult(clientId,data)) => {
             Ok(JsObject(Seq(
-              "clientId" -> JsString(apiClient.clientId.toString),
-              "options" -> JsString(encryptedOptions)
+              "clientId" -> JsString(clientId),
+              "options" -> JsString(data)
             )))
           }
           case None => BadRequest(JsObject(Seq("message" -> JsString("no api client found! this should never occur"))))
@@ -34,8 +32,6 @@ class RenderKey(encrypter:Crypto) extends BaseApi{
   }
 }
 
-
-//object RenderKey extends RenderKey(MockUrlEncodeEncrypter)
-object RenderKey extends RenderKey(AESCrypto)
+object Encrypter extends Encrypter(AESCrypto)
 
 

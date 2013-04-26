@@ -1,0 +1,23 @@
+@(params: _root_.player.views.models.PlayerParams)
+
+@scripts = {
+<script src="/assets/js/corespring/qti/controllers/QtiAppController.js"></script>
+<script src="/assets/js/corespring/qti/controllers/ScormController.js"></script>
+
+<!-- need to override the config to add the Lti Params -->
+<script type="text/javascript">
+    angular.module('qti.services').factory('Config', [function(){
+        return {
+            itemId : "@params.itemId",
+            sessionId : '@params.sessionId.getOrElse("")'
+        }
+    }]);
+</script>
+}
+
+@bodyAttributes = @{ "ng-controller='QtiAppController'" }
+@afterBody = {
+  <div ng-controller="ScormController"></div>
+}
+
+@_root_.player.views.html.basePlayer( params, scripts, bodyAttributes, Some(afterBody) )

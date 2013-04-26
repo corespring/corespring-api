@@ -1,10 +1,10 @@
-package testplayer.controllers
+package player.controllers
 
-import xml.{Node, Elem}
-import qti.processors.FeedbackProcessor._
-import xml.transform.{RuleTransformer, RewriteRule}
 import qti.models.QtiItem
 import qti.models.RenderingMode._
+import qti.processors.FeedbackProcessor._
+import xml.transform.{RuleTransformer, RewriteRule}
+import xml.{Node, Elem}
 
 
 trait QtiRenderer {

@@ -1,10 +1,12 @@
 package scorm.controllers
 
-import testplayer.controllers.BasePlayer
+import play.api.templates.Html
+import player.accessControl.auth.CheckPlayerSession
+import player.controllers.Views
+import player.views.models.PlayerParams
+import common.controllers.AssetResource
 
-object ScormPlayer extends BasePlayer {
 
-  def OkRunPlayer(xml:String,itemId:String,sessionId:String,token:String) = {
-    Ok(scorm.views.html.run(xml,itemId,sessionId,token))
-  }
+object ScormPlayer extends Views(CheckPlayerSession) with AssetResource{
+  override protected def defaultTemplate : (PlayerParams => Html) = (p:PlayerParams) => scorm.views.html.ScormPlayer(p)
 }

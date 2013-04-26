@@ -11,13 +11,12 @@ import play.api.templates.Html
 import player.accessControl.auth.CheckPlayerSession
 import player.accessControl.cookies.PlayerCookieWriter
 import player.accessControl.models.RequestedAccess
-import player.views.models.PlayerParams
+import player.views.models.{ExceptionMessage, PlayerParams}
 import qti.models.RenderingMode._
 import scala.xml.Elem
-import testplayer.controllers.QtiRenderer
-import testplayer.models.ExceptionMessage
 
-class Views(auth:  TokenizedRequestActionBuilder[RequestedAccess] ) extends BaseApi with QtiResource with QtiRenderer with PlayerCookieWriter {
+
+class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseApi with QtiResource with QtiRenderer with PlayerCookieWriter {
 
 
   private object PlayerTemplates {
@@ -28,12 +27,12 @@ class Views(auth:  TokenizedRequestActionBuilder[RequestedAccess] ) extends Base
     def profile(p: PlayerParams): play.api.templates.Html = player.views.html.Profile(p, "")
   }
 
-  def preview(itemId: ObjectId) = renderItem(itemId.toString, previewEnabled = true,mode = RequestedAccess.PREVIEW_MODE)
+  def preview(itemId: ObjectId) = renderItem(itemId.toString, previewEnabled = true, mode = RequestedAccess.PREVIEW_MODE)
 
   def render(sessionId: ObjectId) = {
     ItemSession.get(sessionId) match {
-      case Some(session) => renderItem(itemId = ItemSession.get(sessionId).get.itemId.toString, sessionId = Some(sessionId.toString),mode = RequestedAccess.RENDER_MODE)
-      case None => Action( request => NotFound("not found") )
+      case Some(session) => renderItem(itemId = ItemSession.get(sessionId).get.itemId.toString, sessionId = Some(sessionId.toString), mode = RequestedAccess.RENDER_MODE)
+      case None => Action(request => NotFound("not found"))
     }
   }
 
@@ -41,16 +40,16 @@ class Views(auth:  TokenizedRequestActionBuilder[RequestedAccess] ) extends Base
 
   def administerSession(sessionId: ObjectId) = {
     ItemSession.get(sessionId) match {
-      case Some(session) => renderItem(itemId = ItemSession.get(sessionId).get.itemId.toString, sessionId = Some(sessionId.toString),mode = RequestedAccess.ADMINISTER_MODE)
-      case None => Action( request => NotFound("not found") )
+      case Some(session) => renderItem(itemId = ItemSession.get(sessionId).get.itemId.toString, sessionId = Some(sessionId.toString), mode = RequestedAccess.ADMINISTER_MODE)
+      case None => Action(request => NotFound("not found"))
     }
   }
 
   def aggregate(assessmentId: ObjectId, itemId: ObjectId) = renderQuizAsAggregate(assessmentId, itemId)
 
-  def profile(itemId:ObjectId, tab:String) = {
+  def profile(itemId: ObjectId, tab: String) = {
     auth.ValidatedAction(
-      RequestedAccess(Some(itemId),None,mode = Some(RequestedAccess.PREVIEW_MODE))
+      RequestedAccess(Some(itemId), None, mode = Some(RequestedAccess.PREVIEW_MODE))
     ) {
       tokenRequest =>
         ApiAction {
@@ -74,14 +73,16 @@ class Views(auth:  TokenizedRequestActionBuilder[RequestedAccess] ) extends Base
     }
   }
 
+  /** Allow the default player to be overriden */
+  protected def defaultTemplate : (PlayerParams => Html) = PlayerTemplates.default
 
   protected def renderItem(itemId: String,
-                          renderMode: RenderingMode = Web,
-                          previewEnabled: Boolean = false,
-                          sessionId: Option[String] = None,
-                          mode:String,
-                          template: PlayerParams => Html = PlayerTemplates.default) = auth.ValidatedAction(
-    RequestedAccess(Some(new ObjectId(itemId)),sessionId.map(new ObjectId(_)),mode = Some(mode))
+                           renderMode: RenderingMode = Web,
+                           previewEnabled: Boolean = false,
+                           sessionId: Option[String] = None,
+                           mode: String,
+                           template: PlayerParams => Html = defaultTemplate) = auth.ValidatedAction(
+    RequestedAccess(Some(new ObjectId(itemId)), sessionId.map(new ObjectId(_)), mode = Some(mode))
   ) {
     tokenRequest =>
       ApiAction {
@@ -92,7 +93,7 @@ class Views(auth:  TokenizedRequestActionBuilder[RequestedAccess] ) extends Base
               case Some(xmlData: Elem) => {
                 val finalXml = prepareQti(xmlData, renderMode)
                 val params = PlayerParams(finalXml, Some(itemId), sessionId, previewEnabled)
-                Ok(template(params)).withSession( request.session + activeModeCookie(mode))
+                Ok(template(params)).withSession(request.session + activeModeCookie(mode))
               }
               case None => NotFound("not found")
             }
@@ -125,7 +126,7 @@ class Views(auth:  TokenizedRequestActionBuilder[RequestedAccess] ) extends Base
               } catch {
                 case e: SAXParseException => {
                   val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
-                  Ok(testplayer.views.html.itemPlayerError(errorInfo))
+                  Ok(player.views.html.PlayerError(errorInfo))
                 }
               }
             case _ => NotFound

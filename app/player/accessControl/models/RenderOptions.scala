@@ -4,12 +4,12 @@ import models.itemSession.ItemSession
 import models.quiz.basic.Quiz
 import org.bson.types.ObjectId
 import models.auth.ApiClient
-import encryption.AESCrypto
 import play.api.libs.json._
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import scala.Some
 import play.api.libs.json.JsNumber
+import common.encryption.AESCrypto
 
 case class RenderOptions(
                           itemId: String = "*",

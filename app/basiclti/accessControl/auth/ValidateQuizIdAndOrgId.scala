@@ -5,7 +5,6 @@ import controllers.auth.ActionBuilder
 import org.bson.types.ObjectId
 import play.api.mvc._
 import player.accessControl.cookies.PlayerCookieReader
-import scala.Some
 
 
 /**

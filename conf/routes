@@ -130,21 +130,21 @@ POST    /api/v1/quizzes                             api.v1.QuizApi.create()
 GET     /api/v1/quizzes                             api.v1.QuizApi.list()
 
 # Item Rendering
-GET    /testplayer/item/:itemId/render-in-frame     testplayer.controllers.ItemPlayer.renderAsIframe(itemId)
-GET    /testplayer/item/:itemId/render              testplayer.controllers.ItemPlayer.renderItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
-GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
-GET    /testplayer/item/:itemId/quiz/:quizId/aggregate           testplayer.controllers.ItemPlayer.renderQuizAsAggregate(quizId, itemId)
-GET    /testplayer/item/:itemId/*filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
-GET    /testplayer/session/:sessionId/run           testplayer.controllers.ItemPlayer.previewItemBySessionId(sessionId, printMode: Boolean ?= false)
-GET    /testplayer/session/:sessionId/instructor    testplayer.controllers.ItemPlayer.renderAsInstructor(sessionId)
-GET    /testplayer/session/:sessionId/render        testplayer.controllers.ItemPlayer.renderItemBySessionId(sessionId, printMode: Boolean ?= false)
-GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
-GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes
+#GET    /testplayer/item/:itemId/render-in-frame     testplayer.controllers.ItemPlayer.renderAsIframe(itemId)
+#GET    /testplayer/item/:itemId/render              testplayer.controllers.ItemPlayer.renderItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
+#GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
+#GET    /testplayer/item/:itemId/quiz/:quizId/aggregate           testplayer.controllers.ItemPlayer.renderQuizAsAggregate(quizId, itemId)
+#GET    /testplayer/item/:itemId/*filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
+#GET    /testplayer/session/:sessionId/run           testplayer.controllers.ItemPlayer.previewItemBySessionId(sessionId, printMode: Boolean ?= false)
+#GET    /testplayer/session/:sessionId/instructor    testplayer.controllers.ItemPlayer.renderAsInstructor(sessionId)
+#GET    /testplayer/session/:sessionId/render        testplayer.controllers.ItemPlayer.renderItemBySessionId(sessionId, printMode: Boolean ?= false)
+#GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
+#GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes
 
-GET    /scorm-player/item/:itemId/run               scorm.controllers.ScormPlayer.runByItemId(itemId : ObjectId)
-GET    /scorm-player/item/:itemId/:filename         scorm.controllers.ScormPlayer.getDataFile(itemId, filename)
-GET    /scorm-player/session/:sessionId/run         scorm.controllers.ScormPlayer.runBySessionId(sessionId : ObjectId)
-GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : ObjectId, filename)
+GET    /scorm-player/item/:itemId/run               scorm.controllers.ScormPlayer.administerItem(itemId : ObjectId)
+GET    /scorm-player/item/:itemId/:filename         scorm.controllers.ScormPlayer.getDataFile(itemId : String, filename:String)
+GET    /scorm-player/session/:sessionId/run         scorm.controllers.ScormPlayer.render(sessionId : ObjectId)
+GET    /scorm-player/session/:sessionId/:filename   scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : String, filename:String)
 
 
 # New Player
@@ -158,7 +158,7 @@ GET    /player/api/:itemId/details                         player.controllers.It
 ## JS Routes
 GET    /player/item/routes.js                              player.controllers.Item.jsRoutes
 ## Encrypt
-POST    /player/encrypt-options                            player.controllers.RenderKey.encrypt
+POST    /player/encrypt-options                            player.controllers.Encrypter.encryptOptions
 ## Views
 GET    /player/item/:itemId/preview                        player.controllers.Views.preview(itemId:ObjectId)
 GET    /player/item/:itemId/administer                     player.controllers.Views.administerItem(itemId:ObjectId)
@@ -237,7 +237,7 @@ GET    /reports/collection-item-report.csv          reporting.controllers.Report
 #
 # Login page
 GET     /login                      securesocial.controllers.LoginPage.login
-GET     /logout                     securesocial.controllers.LoginPage.logout
+GET     /logout                     common.controllers.UserSession.logout
 
 # User Registration
 GET     /signup                     securesocial.controllers.Registration.startSignUp

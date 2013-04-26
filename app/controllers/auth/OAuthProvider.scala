@@ -8,7 +8,7 @@ import models.Organization
 import play.api.Logger
 import com.novus.salat.dao.SalatSaveError
 import org.joda.time.DateTime
-import encryption.AESCrypto
+import common.encryption.AESCrypto
 
 /**
  * A OAuth provider

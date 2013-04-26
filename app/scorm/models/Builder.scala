@@ -5,7 +5,7 @@ import models.item.Item
 
 object Builder {
 
-  case class Config(corespringDomain:String, accessToken:String)
+  case class Config(corespringDomain:String)
 
   object Manifest {
 
@@ -57,8 +57,8 @@ object Builder {
       val launchData = Map(
         "itemId" -> item.id.toString,
         "templates" -> Map(
-          "item" -> (config.corespringDomain + "/scorm-player/item/:itemId/run?access_token=" + config.accessToken),
-          "session" -> (config.corespringDomain + "/scorm-player/session/:sessionId/run?access_token=" + config.accessToken) )
+          "item" -> (config.corespringDomain + "/scorm-player/item/:itemId/run"),
+          "session" -> (config.corespringDomain + "/scorm-player/session/:sessionId/run") )
       )
 
       val dataString = com.codahale.jerkson.Json.generate(launchData)

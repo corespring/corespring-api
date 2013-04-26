@@ -2,7 +2,7 @@ package tests.auth
 
 import org.specs2.mutable.Specification
 import java.nio.charset.Charset
-import encryption.AESCrypto
+import common.encryption.AESCrypto
 
 /**
  * Created with IntelliJ IDEA.

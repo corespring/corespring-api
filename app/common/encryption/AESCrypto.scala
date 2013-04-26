@@ -1,4 +1,4 @@
-package encryption
+package common.encryption
 
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{Mac, Cipher}
@@ -59,7 +59,8 @@ object AESCrypto extends Crypto{
     val cipher = Cipher.getInstance("AES")
     cipher.init(Cipher.DECRYPT_MODE, skeySpec)
     def hexStringToByte(hexString: String): Array[Byte] = {
-      import org.apache.commons.codec.binary.Hex;
+      import org.apache.commons.codec.binary.Hex
+
       Hex.decodeHex(hexString.toCharArray());
     }
     new String(cipher.doFinal(hexStringToByte(value)))

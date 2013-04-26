@@ -1,4 +1,4 @@
-package encryption
+package common.encryption
 
 trait Crypto {
   def KEY_LENGTH:Int = 16

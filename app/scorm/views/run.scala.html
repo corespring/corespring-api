@@ -1,19 +1,18 @@
-@(itemBody: String, itemId : String, sessionId : String = "", token : String = "")
+@(params: player.views.models.PlayerParams)
 <!doctype html>
 <html ng-app="qti">
 <head>
     <title>Scorm Test Player</title>
     @common.views.html.partials.ieEightSupport()
-    @testplayer.views.html.partials.scripts(itemBody)
+    @player.views.html.partials.scripts(params.xml)
     <script src="/assets/js/corespring/qti/controllers/ScormQtiAppController.js"></script>
 
     <script type="text/javascript">
 
         angular.module('qti.services').factory('Config', [function(){
             return {
-                itemId : "@itemId",
-                sessionId : "@sessionId",
-                token: "@token"
+                itemId : "@params.itemId",
+                sessionId : "@params.sessionId"
             }
         }]);
 
@@ -59,7 +58,7 @@
     </script>
 </head>
 <body ng-controller="QtiAppController" style="padding: 20px;">
-@Html(itemBody)
+@Html(params.xml)
 </body>
 </html>
 

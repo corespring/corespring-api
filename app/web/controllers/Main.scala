@@ -1,21 +1,21 @@
 package web.controllers
 
 import com.mongodb.BasicDBObject
-import controllers.auth.{BaseApi}
+import common.controllers.session.SessionHandler
+import controllers.auth.BaseApi
 import models.item.Item
-import models.{UserOrg, User}
-import play.api.libs.json.Json
 import play.api.mvc._
+import player.accessControl.cookies.{PlayerCookieKeys, PlayerCookieWriter}
 import scala.Some
-import securesocial.core.SecuredRequest
 import web.controllers.utils.ConfigLoader
 import web.models.QtiTemplate
-import play.api.templates.Html
-import player.accessControl.cookies.PlayerCookieWriter
 
 
-object Main extends BaseApi with PlayerCookieWriter {
+object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
 
+  def logout(s: Session) : Session = {
+    s - PlayerCookieKeys.RENDER_OPTIONS
+  }
 
   def previewItem(itemId: String, defaultView: String = "profile") = ApiAction {
     request =>

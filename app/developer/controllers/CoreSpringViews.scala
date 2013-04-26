@@ -13,6 +13,8 @@ import play.api.Application
  * We use this instead of the module's DefaultTemplatesView
  */
 class CoreSpringViews(application: Application) extends TemplatesPlugin {
+
+
   /**
    * Returns the html for the login page
    * @param request

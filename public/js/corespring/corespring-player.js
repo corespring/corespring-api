@@ -126,3 +126,4 @@ com.corespring.players.ItemPlayer = function (element, options, errorCallback) {
   var playerRenderFunction = iframePlayerStrategy;
   playerRenderFunction(e, options);
 };
+
