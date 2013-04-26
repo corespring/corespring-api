@@ -1,10 +1,10 @@
 package scorm.controllers
 
+import common.controllers.AssetResource
 import play.api.templates.Html
 import player.accessControl.auth.CheckPlayerSession
 import player.controllers.Views
 import player.views.models.PlayerParams
-import common.controllers.AssetResource
 
 
 object ScormPlayer extends Views(CheckPlayerSession) with AssetResource{
