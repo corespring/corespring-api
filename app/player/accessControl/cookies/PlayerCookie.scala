@@ -17,12 +17,14 @@ trait PlayerCookieWriter {
   def playerCookies(userId: String, providerId: String): Seq[(String, String)] = User.getUser(userId, providerId).map {
     u =>
       u.orgs match {
-        case Seq(UserOrg(id, _)) => playerCookies(id)
+        case Seq(UserOrg(id, _)) => playerCookies(id, Some(RenderOptions.ANYTHING))
         case _ => Seq()
       }
   }.getOrElse(Seq())
 
-  def playerCookies(orgId: ObjectId): Seq[(String, String)] = Seq(PlayerCookieKeys.RENDER_OPTIONS -> Json.toJson(RenderOptions.ANYTHING).toString, PlayerCookieKeys.ORG_ID -> orgId.toString)
+  def playerCookies(orgId: ObjectId, options:Option[RenderOptions]): Seq[(String, String)] = Seq(
+    PlayerCookieKeys.ORG_ID -> orgId.toString
+  ) ++ options.map{ ro => (PlayerCookieKeys.RENDER_OPTIONS -> Json.toJson(ro).toString)}
 
   def activeModeCookie[A](mode: RequestedAccess.Mode.Mode = RequestedAccess.Mode.Preview)(implicit request: Request[A]): (String, String) = {
     (PlayerCookieKeys.ACTIVE_MODE -> mode.toString)

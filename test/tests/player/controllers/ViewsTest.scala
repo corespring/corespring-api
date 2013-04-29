@@ -3,15 +3,15 @@ package tests.player.controllers
 import controllers.auth.TokenizedRequestActionBuilder
 import controllers.auth.requests.TokenizedRequest
 import org.bson.types.ObjectId
+import org.specs2.execute.{Result => SpecsResult}
 import org.specs2.mutable.Specification
 import play.api.mvc._
-import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers._
+import play.api.test.{FakeHeaders, FakeRequest}
+import player.accessControl.cookies.PlayerCookieKeys
 import player.accessControl.models.RequestedAccess
 import player.controllers.Views
 import tests.PlaySingleton
-import player.accessControl.cookies.PlayerCookieKeys
-import org.specs2.execute.{Success, Result => SpecsResult}
 
 class ViewsTest extends Specification {
 

@@ -47,7 +47,7 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller
           withOptions {
             options =>
               val preppedJs = createJsFromTemplate(template, tokenFn(options, request))
-              val newSession = sumSession(request.session, client.map(c => playerCookies(c.orgId)).getOrElse(Seq()): _*)
+              val newSession = sumSession(request.session, client.map(c => playerCookies(c.orgId,options)).getOrElse(Seq()): _*)
               Ok(preppedJs)
                 .as("text/javascript")
                 .withSession(newSession)
