@@ -14,6 +14,7 @@ import scala.Some
 
 class LtiQuizzes(auth:ValidateQuizIdAndOrgId[OrgRequest[AnyContent]]) extends Controller {
 
+  /** Prevent the block from executing if the cookie id doesn't match the request id */
   private def quizIdMatches(requestQuizId:ObjectId)(quizId:String,orgId:String) : Boolean = {
     try{
       val oid = new ObjectId(quizId)
