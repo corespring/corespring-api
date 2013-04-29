@@ -1,35 +1,50 @@
 package player.controllers
 
-import api.ApiError
+import common.encryption.EncryptionResult
+import common.encryption.{Crypto, AESCrypto, OrgEncrypter}
 import controllers.auth.BaseApi
-import models.auth.ApiClient
-import org.codehaus.jackson.JsonParseException
-import play.api.libs.json.{JsString, JsObject, Json}
+import play.api.libs.json._
 import player.accessControl.models.RenderOptions
-import common.encryption.{Crypto, AESCrypto, EncryptionResult, OrgEncrypter}
+import scalaz._
+import Scalaz._
 
-class Encrypter(encrypter:Crypto) extends BaseApi{
+class Encrypter(encrypter: Crypto) extends BaseApi {
 
-  def encryptOptions = ApiAction{ request =>
-    request.body.asJson match {
-      case Some(jsoptions) => try{
-        val options = Json.fromJson[RenderOptions](jsoptions)
-        val orgEncrypter = new OrgEncrypter(request.ctx.organization, encrypter)
-        orgEncrypter.encrypt(jsoptions.toString()) match {
-          case Some(EncryptionResult(clientId,data)) => {
-            Ok(JsObject(Seq(
-              "clientId" -> JsString(clientId),
-              "options" -> JsString(data)
-            )))
-          }
-          case None => BadRequest(JsObject(Seq("message" -> JsString("no api client found! this should never occur"))))
-        }
-      }catch{
-        case e:JsonParseException => BadRequest(Json.toJson(ApiError.BadJson(Some("tried to parse RenderOptions"))))
-      }
-      case None => BadRequest(JsObject(Seq("message" -> JsString("your request must contain json properties containing the constraints of the key"))))
+  private implicit object Writes extends Writes[EncryptionResult] {
+    def writes(er: EncryptionResult): JsValue = JsObject {
+      Seq(
+        "clientId" -> JsString(er.clientId),
+        "options" -> JsString(er.data)
+      )
     }
   }
+
+  def encryptOptions = ApiAction {
+    request =>
+      val orgEncrypter = new OrgEncrypter(request.ctx.organization, encrypter)
+      val result : Validation[String,EncryptionResult] = for {
+        json <- request.body.asJson.toSuccess("No json in the request body")
+        validJson <- if (validJson(json)) Success(json) else Failure("Not valid json")
+        encryptionResult <- orgEncrypter.encrypt(validJson.toString()).toSuccess("No encryption created")
+      } yield {
+        encryptionResult
+      }
+
+      result match {
+        case Success(r) => Ok(Json.toJson(r))
+        case Failure(e) => BadRequest("Bad Request: " + e)
+      }
+  }
+
+
+  private def validJson(json: JsValue): Boolean = try {
+    Json.fromJson[RenderOptions](json)
+    true
+  } catch {
+    case t: Throwable => false
+  }
+
+
 }
 
 object Encrypter extends Encrypter(AESCrypto)

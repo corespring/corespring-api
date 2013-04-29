@@ -1,13 +1,14 @@
 package tests.player.controllers
 
-import common.encryption.AESCrypto
+import common.encryption.{Crypto, AESCrypto}
 import models.auth.{AccessToken, ApiClient}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContentAsJson, Call}
+import play.api.mvc.{AnyContent, AnyContentAsEmpty, AnyContentAsJson, Call}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
 import player.accessControl.models.{RequestedAccess, RenderOptions}
 import tests.BaseTest
+import player.controllers.Encrypter
 
 class EncrypterTest extends BaseTest {
 
@@ -42,9 +43,34 @@ class EncrypterTest extends BaseTest {
     }
 
     "return a key that contains encrypted options that can be decrypted using the client secret to equal the constraints sent" in {
-      val optionsString : Option[String] = encrypted.map(AESCrypto.decrypt(_, apiClient.clientSecret))
-      val decryptedOptions : Option[RenderOptions] = optionsString.map(options => Json.fromJson[RenderOptions](Json.parse(options)))
+      val optionsString: Option[String] = encrypted.map(AESCrypto.decrypt(_, apiClient.clientSecret))
+      val decryptedOptions: Option[RenderOptions] = optionsString.map(options => Json.fromJson[RenderOptions](Json.parse(options)))
       decryptedOptions === Some(renderOptions)
+    }
+
+    "gives validation errors" in {
+
+      object MockCrypto extends Crypto {
+        def encrypt(message: String, privateKey: String): String = message
+
+        def decrypt(encrypted: String, privateKey: String): String = encrypted
+      }
+
+      val mockEncrypter = new Encrypter(MockCrypto)
+
+
+      def runRequestAndReturnStatus(r: FakeRequest[AnyContent]): Int = {
+        val out = mockEncrypter.encryptOptions(r)
+        println(">>>>> " + contentAsString(out))
+        status(out)
+      }
+
+      def fr(c: AnyContent): FakeRequest[AnyContent] = FakeRequest("", tokenize(".."), FakeHeaders(), c)
+
+      runRequestAndReturnStatus(fr(AnyContentAsEmpty)) === BAD_REQUEST
+      runRequestAndReturnStatus(fr(AnyContentAsJson(Json.parse( """{"test": true}""")))) === BAD_REQUEST
+      runRequestAndReturnStatus(fr(AnyContentAsJson(Json.toJson(RenderOptions(expires = 0, mode = RequestedAccess.Mode.All))))) === OK
+
     }
   }
 }
