@@ -58,10 +58,8 @@ class EncrypterTest extends BaseTest {
 
       val mockEncrypter = new Encrypter(MockCrypto)
 
-
       def runRequestAndReturnStatus(r: FakeRequest[AnyContent]): Int = {
         val out = mockEncrypter.encryptOptions(r)
-        println(">>>>> " + contentAsString(out))
         status(out)
       }
 
