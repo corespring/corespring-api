@@ -12,45 +12,13 @@ import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
 import player.accessControl.cookies.PlayerCookieReader
-import player.accessControl.models.{RenderOptions, RequestedAccess, ContentRequest}
 import player.accessControl.models.RequestedAccess._
+import player.accessControl.models._
 import scala.Left
 import scala.Right
 import scala.Some
 
-object CheckPlayerSession extends  TokenizedRequestActionBuilder[RequestedAccess] with PlayerCookieReader {
-
-
-  def ValidatedAction(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
-    ValidatedAction(play.api.mvc.BodyParsers.parse.anyContent)(ra)(block)
-
-  def ValidatedAction(p:BodyParser[AnyContent])(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
-    Action{ request =>
-      val options = renderOptions(request)
-
-      def invokeBlock : Result = orgIdFromCookie(request) match {
-        case Some(orgId) => {
-          AccessToken.getTokenForOrgById(new ObjectId(orgId)) match {
-            case Some(token) => block(TokenizedRequest(token.tokenId,request))
-            case _ => BadRequest("Can't find access token for Org")
-          }
-        }
-        case _ => BadRequest("Can't find org id")
-      }
-
-      options.map{ o =>
-        //TODO: move this to check access
-        if (o.expires == 0 || o.expires > System.currentTimeMillis()){
-          grantAccess(activeMode(request),ra,o) match {
-            case Right(true) => invokeBlock
-            case Right(false) => Unauthorized(Json.toJson(ApiError.InvalidCredentials(Some("you can't access the items"))))
-            case Left(e) => Unauthorized(Json.toJson(ApiError.InvalidCredentials(e.clientOutput)))
-          }
-        }else Unauthorized(Json.toJson(ApiError.ExpiredOptions))
-      }.getOrElse(BadRequest("Couldn't find options"))
-
-    }
-
+object CheckPlayerSession extends CheckPlayerSession {
 
   def grantAccess(activeMode: Option[Mode.Mode], a: RequestedAccess, o: RenderOptions): Either[InternalError, Boolean] = {
 
@@ -72,20 +40,20 @@ object CheckPlayerSession extends  TokenizedRequestActionBuilder[RequestedAccess
       }
     }
 
-    def checkItemIdsInAssessment(itemId:Option[ContentRequest],assessmentId:String):Boolean = {
-      if(assessmentId != "*"){
+    def checkItemIdsInAssessment(itemId: Option[ContentRequest], assessmentId: String): Boolean = {
+      if (assessmentId != "*") {
         itemId match {
-          case Some(ContentRequest(id,p)) => try{
+          case Some(ContentRequest(id, p)) => try {
             Quiz.findOneById(new ObjectId(assessmentId)) match {
               case Some(quiz) => quiz.questions.exists(q => q.itemId == id)
               case None => false
             }
           } catch {
-            case e:IllegalArgumentException => false
+            case e: IllegalArgumentException => false
           }
           case None => true
         }
-      }else true
+      } else true
     }
     val am: Option[Mode.Mode] = if (a.mode.isDefined) a.mode else activeMode
 
@@ -97,7 +65,7 @@ object CheckPlayerSession extends  TokenizedRequestActionBuilder[RequestedAccess
             case Mode.Render => checkAccess(false, (a.sessionId, o.allowSessionId))
             case Mode.Administer => checkAccess(true, (a.itemId, o.allowItemId), (a.sessionId, o.allowSessionId))
             case Mode.Aggregate => checkAccess(false, (a.itemId, o.allowItemId), (a.assessmentId, o.allowAssessmentId)) match {
-              case Right(result) => if(result) Right(checkItemIdsInAssessment(a.itemId,o.assessmentId)) else Right(false)
+              case Right(result) => if (result) Right(checkItemIdsInAssessment(a.itemId, o.assessmentId)) else Right(false)
               case Left(e) => Left(e)
             }
             case _ => Left(InternalError("TODO"))
@@ -108,7 +76,45 @@ object CheckPlayerSession extends  TokenizedRequestActionBuilder[RequestedAccess
       }
       case _ => Left(InternalError("no mode specified"))
     }
-
   }
+
+
+}
+
+abstract class CheckPlayerSession extends TokenizedRequestActionBuilder[RequestedAccess] with PlayerCookieReader {
+
+  def ValidatedAction(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
+    ValidatedAction(play.api.mvc.BodyParsers.parse.anyContent)(ra)(block)
+
+  def ValidatedAction(p: BodyParser[AnyContent])(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
+    Action {
+      request =>
+        val options = renderOptions(request)
+
+        def invokeBlock: Result = orgIdFromCookie(request) match {
+          case Some(orgId) => {
+            AccessToken.getTokenForOrgById(new ObjectId(orgId)) match {
+              case Some(token) => block(TokenizedRequest(token.tokenId, request))
+              case _ => BadRequest("Can't find access token for Org")
+            }
+          }
+          case _ => BadRequest("Can't find org id")
+        }
+
+        options.map {
+          o =>
+          //TODO: move this to check access
+            if (o.expires == 0 || o.expires > System.currentTimeMillis()) {
+              grantAccess(activeMode(request), ra, o) match {
+                case Right(true) => invokeBlock
+                case Right(false) => Unauthorized(Json.toJson(ApiError.InvalidCredentials(Some("you can't access the items"))))
+                case Left(e) => Unauthorized(Json.toJson(ApiError.InvalidCredentials(e.clientOutput)))
+              }
+            } else Unauthorized(Json.toJson(ApiError.ExpiredOptions))
+        }.getOrElse(BadRequest("Couldn't find options"))
+
+    }
+
+  def grantAccess(activeMode: Option[Mode.Mode], a: RequestedAccess, o: RenderOptions): Either[InternalError, Boolean]
 
 }

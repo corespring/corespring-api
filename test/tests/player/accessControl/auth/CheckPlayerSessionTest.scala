@@ -15,8 +15,8 @@ class CheckPlayerSessionTest extends Specification {
   val mode = Mode.Render
   val ro1 = RenderOptions(itemId, "*", "*", "student", 0, mode)
   val ro2 = RenderOptions("*", "*", assessmentId, "student", 0, mode)
-  val ra1 = RequestedAccess(Some(new ObjectId(itemId)))
-  val ra2 = RequestedAccess(Some(new ObjectId("50b653a1e4b0ec03f29344b0")))
+  val ra1 = RequestedAccess.asRead(Some(new ObjectId(itemId)))
+  val ra2 = RequestedAccess.asRead(Some(new ObjectId("50b653a1e4b0ec03f29344b0")))
   "BaseRender.hasAccess" should {
 
     "return true when requested item is same as item in options" in {

@@ -4,7 +4,7 @@ import common.controllers.SimpleJsRoutes
 import controllers.auth.TokenizedRequestActionBuilder
 import org.bson.types.ObjectId
 import play.api.mvc._
-import player.accessControl.auth.CheckPlayerSession
+import player.accessControl.auth.{AccessGranterChecker, CheckPlayerSession}
 import player.accessControl.models.RequestedAccess
 
 
@@ -13,7 +13,7 @@ class Item(auth: TokenizedRequestActionBuilder[RequestedAccess] ) extends Contro
   import api.v1.{ItemApi => Api}
 
   def getDetail(itemId: ObjectId) = auth.ValidatedAction(
-    RequestedAccess(Some(itemId))
+    RequestedAccess.asRead(Some(itemId))
   )(Api.getDetail(itemId))
 
   def jsRoutes = Action {
@@ -27,4 +27,5 @@ class Item(auth: TokenizedRequestActionBuilder[RequestedAccess] ) extends Contro
   }
 }
 
+//object Item extends Item(AccessGranterChecker)
 object Item extends Item(CheckPlayerSession)

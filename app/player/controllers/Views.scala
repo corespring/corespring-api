@@ -93,7 +93,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
                           assessmentId: Option[ObjectId] = None,
                           templateFn: PlayerParams => Html = defaultTemplate) {
 
-    def toRequestedAccess: RequestedAccess = RequestedAccess(
+    def toRequestedAccess: RequestedAccess = RequestedAccess.asRead(
       itemId = Some(itemId),
       sessionId = sessionId,
       assessmentId = assessmentId,
@@ -134,3 +134,4 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
 }
 
 object Views extends Views(CheckPlayerSession)
+//object Views extends Views(AccessGranterChecker)
