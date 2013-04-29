@@ -14,7 +14,10 @@ object AssignmentPlayer extends Views(CheckPlayerSession) with AssetResource {
   def run(configId: ObjectId, resultSourcedId: String) = {
     session(configId, resultSourcedId) match {
       case Left(msg) => Action(r => BadRequest(msg))
-      case Right(session) => renderItem(session.itemId.toString, previewEnabled = false, mode = RequestedAccess.ADMINISTER_MODE)
+      case Right(session) => {
+        val p = RenderParams(session.itemId, sessionMode = RequestedAccess.ADMINISTER_MODE )
+        renderItem(p)
+      }
     }
   }
 

@@ -27,73 +27,99 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
     def profile(p: PlayerParams): play.api.templates.Html = player.views.html.Profile(p, "")
   }
 
-  def preview(itemId: ObjectId) = renderItem(itemId.toString, previewEnabled = true, mode = RequestedAccess.PREVIEW_MODE)
+  def preview(itemId: ObjectId) = {
+    val p = RenderParams(itemId, sessionMode = RequestedAccess.PREVIEW_MODE)
+    renderItem(p)
+  }
 
   def render(sessionId: ObjectId) = {
     ItemSession.get(sessionId) match {
-      case Some(session) => renderItem(itemId = ItemSession.get(sessionId).get.itemId.toString, sessionId = Some(sessionId.toString), mode = RequestedAccess.RENDER_MODE)
-      case None => Action(request => NotFound("not found"))
+      case Some(session) => {
+        val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.RENDER_MODE)
+        renderItem(p)
+      }
+      case None => Action(NotFound("not found"))
     }
   }
 
-  def administerItem(itemId: ObjectId) = renderItem(itemId.toString, previewEnabled = false, mode = RequestedAccess.ADMINISTER_MODE)
+  def administerItem(itemId: ObjectId) = {
+    val p = RenderParams(itemId = itemId, sessionMode = RequestedAccess.ADMINISTER_MODE)
+    renderItem(p)
+  }
 
   def administerSession(sessionId: ObjectId) = {
     ItemSession.get(sessionId) match {
-      case Some(session) => renderItem(itemId = ItemSession.get(sessionId).get.itemId.toString, sessionId = Some(sessionId.toString), mode = RequestedAccess.ADMINISTER_MODE)
+      case Some(session) => {
+        val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.ADMINISTER_MODE)
+        renderItem(p)
+      }
       case None => Action(request => NotFound("not found"))
     }
   }
 
-  def aggregate(assessmentId: ObjectId, itemId: ObjectId) = renderQuizAsAggregate(assessmentId, itemId)
+  def aggregate(assessmentId: ObjectId, itemId: ObjectId) = {
 
-  def profile(itemId: ObjectId, tab: String) = {
-    auth.ValidatedAction(
-      RequestedAccess(Some(itemId), None, mode = Some(RequestedAccess.PREVIEW_MODE))
-    ) {
-      tokenRequest =>
-        ApiAction {
-          request =>
-            try {
-              getItemXMLByObjectId(itemId.toString, request.ctx.organization) match {
-                case Some(xmlData: Elem) => {
-                  val finalXml = prepareQti(xmlData, Web)
-                  val params = PlayerParams(finalXml, Some(itemId.toString), None, false)
-                  Ok(player.views.html.Profile(params, tab))
-                }
-                case None => NotFound("not found")
-              }
-            } catch {
-              case e: SAXParseException => {
-                val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
-                Ok(player.views.html.PlayerError(errorInfo))
-              }
-            }
-        }(tokenRequest)
+    Quiz.findOneById(assessmentId) match {
+      case Some(id) => {
+        def renderAggregatePlayer(assessmentId: ObjectId)(p: PlayerParams) = player.views.html.aggregatePlayer(p.itemId.get, p.xml, assessmentId.toString)
+        val p = RenderParams(
+          itemId = itemId,
+          assessmentId = Some(assessmentId),
+          renderingMode = Aggregate,
+          sessionMode = RequestedAccess.AGGREGATE_MODE,
+          templateFn = renderAggregatePlayer(assessmentId))
+        renderItem(p)
+      }
+      case _ => Action(NotFound("Can't find assessment with id: " + assessmentId))
     }
   }
 
-  /** Allow the default player to be overriden */
-  protected def defaultTemplate : (PlayerParams => Html) = PlayerTemplates.default
+  def profile(itemId: ObjectId, tab: String) = {
 
-  protected def renderItem(itemId: String,
-                           renderMode: RenderingMode = Web,
-                           previewEnabled: Boolean = false,
-                           sessionId: Option[String] = None,
-                           mode: String,
-                           template: PlayerParams => Html = defaultTemplate) = auth.ValidatedAction(
-    RequestedAccess(Some(new ObjectId(itemId)), sessionId.map(new ObjectId(_)), mode = Some(mode))
-  ) {
+    def profileTemplate(tab: String)(p: PlayerParams) = player.views.html.Profile(p, tab)
+
+    val p = RenderParams(
+      itemId = itemId,
+      sessionMode = RequestedAccess.PREVIEW_MODE,
+      templateFn = profileTemplate(tab)
+    )
+
+    renderItem(p)
+  }
+
+  /** An internal model of the rendering parameters
+    * TODO: renderingMode + sessionMode - can we conflate these to one concept?
+    */
+  protected case class RenderParams(itemId: ObjectId,
+                          sessionMode: String,
+                          renderingMode: RenderingMode = Web,
+                          sessionId: Option[ObjectId] = None,
+                          assessmentId: Option[ObjectId] = None,
+                          templateFn: PlayerParams => Html = defaultTemplate) {
+
+    def toRequestedAccess: RequestedAccess = RequestedAccess(
+      itemId = Some(itemId),
+      sessionId = sessionId,
+      assessmentId = assessmentId,
+      mode = Some(sessionMode)
+    )
+
+    def toPlayerParams(xml: String): PlayerParams = PlayerParams(xml, Some(itemId.toString), sessionId.map(_.toString), enablePreview)
+
+    def enablePreview: Boolean = sessionMode == RequestedAccess.PREVIEW_MODE
+
+  }
+
+  protected def renderItem(params: RenderParams) = auth.ValidatedAction(params.toRequestedAccess) {
     tokenRequest =>
       ApiAction {
         implicit request =>
           try {
-
-            getItemXMLByObjectId(itemId, request.ctx.organization) match {
+            getItemXMLByObjectId(params.itemId.toString, request.ctx.organization) match {
               case Some(xmlData: Elem) => {
-                val finalXml = prepareQti(xmlData, renderMode)
-                val params = PlayerParams(finalXml, Some(itemId), sessionId, previewEnabled)
-                Ok(template(params)).withSession(request.session + activeModeCookie(mode))
+                val finalXml = prepareQti(xmlData, params.renderingMode)
+                val playerParams = params.toPlayerParams(finalXml)
+                Ok(params.templateFn(playerParams)).withSession(request.session + activeModeCookie(params.sessionMode))
               }
               case None => NotFound("not found")
             }
@@ -106,34 +132,8 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
       }(tokenRequest)
   }
 
-
-  def renderQuizAsAggregate(quizId: ObjectId, itemId: ObjectId) = auth.ValidatedAction(
-    RequestedAccess(itemId = Some(itemId), assessmentId = Some(quizId), mode = Some(RequestedAccess.AGGREGATE_MODE))
-  ) {
-    tokenRequest =>
-      ApiAction {
-        request =>
-          Quiz.findOneById(quizId) match {
-            case Some(q) =>
-              try {
-                getItemXMLByObjectId(itemId.toString, request.ctx.organization) match {
-                  case Some(xmlData: Elem) =>
-                    val finalXml = prepareQti(xmlData, Aggregate)
-                    Ok(player.views.html.aggregatePlayer(itemId.toString, finalXml, quizId.toString))
-                  case None =>
-                    NotFound("not found")
-                }
-              } catch {
-                case e: SAXParseException => {
-                  val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
-                  Ok(player.views.html.PlayerError(errorInfo))
-                }
-              }
-            case _ => NotFound
-          }
-      }(tokenRequest)
-
-  }
+  /** Allow the default player to be overriden */
+  protected def defaultTemplate: (PlayerParams => Html) = PlayerTemplates.default
 
 }
 

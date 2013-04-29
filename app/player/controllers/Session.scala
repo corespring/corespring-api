@@ -26,7 +26,7 @@ class Session(auth:  TokenizedRequestActionBuilder[RequestedAccess] ) extends Co
   )(Api.update(itemId, sessionId, action))
 
   def aggregate(quizId: ObjectId, itemId: ObjectId) = auth.ValidatedAction(
-    RequestedAccess(Some(itemId))
+    RequestedAccess(Some(itemId), assessmentId = Some(quizId))
   )(Api.aggregate(quizId, itemId))
 
   def jsRoutes = Action {
