@@ -24,13 +24,15 @@ trait PlayerCookieWriter {
 
   def playerCookies(orgId: ObjectId): Seq[(String, String)] = Seq(PlayerCookieKeys.RENDER_OPTIONS -> Json.toJson(RenderOptions.ANYTHING).toString, PlayerCookieKeys.ORG_ID -> orgId.toString)
 
-  def activeModeCookie[A](mode: String = RequestedAccess.PREVIEW_MODE)(implicit request: Request[A]): (String, String) = {
-    (PlayerCookieKeys.ACTIVE_MODE -> mode)
+  def activeModeCookie[A](mode: RequestedAccess.Mode.Mode = RequestedAccess.Mode.Preview)(implicit request: Request[A]): (String, String) = {
+    (PlayerCookieKeys.ACTIVE_MODE -> mode.toString)
   }
 }
 
 trait PlayerCookieReader {
-  def activeMode[A](request: Request[A]): Option[String] = request.session.get(PlayerCookieKeys.ACTIVE_MODE)
+  def activeMode[A](request: Request[A]): Option[RequestedAccess.Mode.Mode] = request.session.get(PlayerCookieKeys.ACTIVE_MODE).map {
+    k => RequestedAccess.Mode.withName(k)
+  }
 
   def renderOptions[A](request: Request[A]): Option[RenderOptions] = request.session.get(PlayerCookieKeys.RENDER_OPTIONS).map {
     json => Json.parse(json).as[RenderOptions]

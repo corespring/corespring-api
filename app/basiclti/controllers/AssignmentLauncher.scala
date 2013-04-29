@@ -114,7 +114,7 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
                   data.selectionDirective.getOrElse(""),
                   data.returnUrl.getOrElse("")
                 ))
-                  .withSession(buildSession(request.session, RequestedAccess.PREVIEW_MODE))
+                  .withSession(buildSession(request.session, RequestedAccess.Mode.Preview.toString))
                   .withHeaders(p3pHeaders)
               } else {
                 if (quiz.question.itemId.isDefined) {
@@ -125,7 +125,7 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
                   val updatedConfig = quiz.addParticipantIfNew(data.resultSourcedId.get, data.outcomeUrl.get, data.returnUrl.get)
                   val call = AssignmentPlayerRoutes.run(updatedConfig.id, data.resultSourcedId.get)
                   Redirect(call.url)
-                    .withSession(buildSession(request.session, RequestedAccess.ADMINISTER_MODE))
+                    .withSession(buildSession(request.session, RequestedAccess.Mode.Administer.toString))
                     .withHeaders(p3pHeaders)
                 } else {
                   Ok(basiclti.views.html.itemNotReady())

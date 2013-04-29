@@ -6,7 +6,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{AnyContentAsJson, Call}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
-import player.accessControl.models.RenderOptions
+import player.accessControl.models.{RequestedAccess, RenderOptions}
 import tests.BaseTest
 
 class EncrypterTest extends BaseTest {
@@ -15,7 +15,7 @@ class EncrypterTest extends BaseTest {
   "encrypter" should {
 
     val update: Call = player.controllers.routes.Encrypter.encryptOptions()
-    val renderOptions = RenderOptions("50083ba9e4b071cb5ef79101", "502d0f823004deb7f4f53be7", "*", "student", 0, "render")
+    val renderOptions = RenderOptions("50083ba9e4b071cb5ef79101", "502d0f823004deb7f4f53be7", "*", "student", 0, RequestedAccess.Mode.Render)
     val fakeRequest = FakeRequest(update.method, tokenize(update.url), FakeHeaders(), AnyContentAsJson(Json.toJson(renderOptions)))
     val Some(result) = routeAndCall(fakeRequest)
 

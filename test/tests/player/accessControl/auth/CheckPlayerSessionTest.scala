@@ -8,10 +8,11 @@ import player.accessControl.auth.CheckPlayerSession
 class CheckPlayerSessionTest extends Specification {
 
 
+  import RequestedAccess._
   val assessmentId = "000000000000000000000001"
   val itemId = "5153eee1aa2eefdc1b7a5570"
   val sessionId = "5153effbaa2eefdc1b7a5571"
-  val mode = "render"
+  val mode = Mode.Render
   val ro1 = RenderOptions(itemId, "*", "*", "student", 0, mode)
   val ro2 = RenderOptions("*", "*", assessmentId, "student", 0, mode)
   val ra1 = RequestedAccess(Some(new ObjectId(itemId)))
@@ -20,22 +21,22 @@ class CheckPlayerSessionTest extends Specification {
 
     "return true when requested item is same as item in options" in {
       pending("to be completed")
-      CheckPlayerSession.grantAccess(Some("preview"), ra1, ro1) must beRight
+      CheckPlayerSession.grantAccess(Some(Mode.Preview), ra1, ro1) must beRight
     }
 
     "return error when requested item is not the same as item in options" in {
       pending("to be completed")
-      CheckPlayerSession.grantAccess(Some("preview"), ra2, ro1) must beLeft
+      CheckPlayerSession.grantAccess(Some(Mode.Preview), ra2, ro1) must beLeft
     }
 
     "return true when requested item is contained in options assessment" in {
       pending("to be completed")
-      CheckPlayerSession.grantAccess(Some("preview"), ra1, ro2) must beRight
+      CheckPlayerSession.grantAccess(Some(Mode.Preview), ra1, ro2) must beRight
     }
 
     "return error when requested item is not contained in options assessment" in {
       pending("to be completed")
-      CheckPlayerSession.grantAccess(Some("preview"), ra2, ro2) must beLeft
+      CheckPlayerSession.grantAccess(Some(Mode.Preview), ra2, ro2) must beLeft
     }
   }
 

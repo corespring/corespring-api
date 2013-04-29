@@ -13,6 +13,7 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import player.accessControl.cookies.PlayerCookieReader
 import player.accessControl.models.{RenderOptions, RequestedAccess, ContentRequest}
+import player.accessControl.models.RequestedAccess._
 import scala.Left
 import scala.Right
 import scala.Some
@@ -51,7 +52,7 @@ object CheckPlayerSession extends  TokenizedRequestActionBuilder[RequestedAccess
     }
 
 
-  def grantAccess(activeMode: Option[String], a: RequestedAccess, o: RenderOptions): Either[InternalError, Boolean] = {
+  def grantAccess(activeMode: Option[Mode.Mode], a: RequestedAccess, o: RenderOptions): Either[InternalError, Boolean] = {
 
     def checkAccess(ifNotSpecified: Boolean, requests: (Option[ContentRequest], String => Boolean)*) = requests match {
       case Seq() => Left(InternalError("no properties specified"))
@@ -86,16 +87,16 @@ object CheckPlayerSession extends  TokenizedRequestActionBuilder[RequestedAccess
         }
       }else true
     }
-    val am: Option[String] = if (a.mode.isDefined) a.mode else activeMode
+    val am: Option[Mode.Mode] = if (a.mode.isDefined) a.mode else activeMode
 
     am match {
       case Some(m) => {
         if (o.allowMode(m)) {
           m match {
-            case RequestedAccess.PREVIEW_MODE => checkAccess(false, (a.itemId, o.allowItemId))
-            case RequestedAccess.RENDER_MODE => checkAccess(false, (a.sessionId, o.allowSessionId))
-            case RequestedAccess.ADMINISTER_MODE => checkAccess(true, (a.itemId, o.allowItemId), (a.sessionId, o.allowSessionId))
-            case RequestedAccess.AGGREGATE_MODE => checkAccess(false, (a.itemId, o.allowItemId), (a.assessmentId, o.allowAssessmentId)) match {
+            case Mode.Preview => checkAccess(false, (a.itemId, o.allowItemId))
+            case Mode.Render => checkAccess(false, (a.sessionId, o.allowSessionId))
+            case Mode.Administer => checkAccess(true, (a.itemId, o.allowItemId), (a.sessionId, o.allowSessionId))
+            case Mode.Aggregate => checkAccess(false, (a.itemId, o.allowItemId), (a.assessmentId, o.allowAssessmentId)) match {
               case Right(result) => if(result) Right(checkItemIdsInAssessment(a.itemId,o.assessmentId)) else Right(false)
               case Left(e) => Left(e)
             }

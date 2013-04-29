@@ -22,7 +22,7 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller
   def itemPlayerJavascript = renderJavascript(playerTemplate, {
     (ro: Option[RenderOptions], req: Request[AnyContent]) =>
       val mode = ro.map {
-        _.mode
+        _.mode.toString
       }.getOrElse("preview")
       createJsTokens(ro, req) + ("mode" -> mode)
   })

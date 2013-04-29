@@ -21,21 +21,17 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
 
   private object PlayerTemplates {
     def default(p: PlayerParams): play.api.templates.Html = player.views.html.Player(p)
-
-    def instructor(p: PlayerParams): play.api.templates.Html = player.views.html.Player(p)
-
-    def profile(p: PlayerParams): play.api.templates.Html = player.views.html.Profile(p, "")
   }
 
   def preview(itemId: ObjectId) = {
-    val p = RenderParams(itemId, sessionMode = RequestedAccess.PREVIEW_MODE)
+    val p = RenderParams(itemId, sessionMode = RequestedAccess.Mode.Preview)
     renderItem(p)
   }
 
   def render(sessionId: ObjectId) = {
     ItemSession.get(sessionId) match {
       case Some(session) => {
-        val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.RENDER_MODE)
+        val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Render)
         renderItem(p)
       }
       case None => Action(NotFound("not found"))
@@ -43,14 +39,14 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
   }
 
   def administerItem(itemId: ObjectId) = {
-    val p = RenderParams(itemId = itemId, sessionMode = RequestedAccess.ADMINISTER_MODE)
+    val p = RenderParams(itemId = itemId, sessionMode = RequestedAccess.Mode.Administer)
     renderItem(p)
   }
 
   def administerSession(sessionId: ObjectId) = {
     ItemSession.get(sessionId) match {
       case Some(session) => {
-        val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.ADMINISTER_MODE)
+        val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Administer)
         renderItem(p)
       }
       case None => Action(request => NotFound("not found"))
@@ -66,7 +62,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
           itemId = itemId,
           assessmentId = Some(assessmentId),
           renderingMode = Aggregate,
-          sessionMode = RequestedAccess.AGGREGATE_MODE,
+          sessionMode = RequestedAccess.Mode.Aggregate,
           templateFn = renderAggregatePlayer(assessmentId))
         renderItem(p)
       }
@@ -80,7 +76,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
 
     val p = RenderParams(
       itemId = itemId,
-      sessionMode = RequestedAccess.PREVIEW_MODE,
+      sessionMode = RequestedAccess.Mode.Preview,
       templateFn = profileTemplate(tab)
     )
 
@@ -91,7 +87,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
     * TODO: renderingMode + sessionMode - can we conflate these to one concept?
     */
   protected case class RenderParams(itemId: ObjectId,
-                          sessionMode: String,
+                          sessionMode: RequestedAccess.Mode.Mode,
                           renderingMode: RenderingMode = Web,
                           sessionId: Option[ObjectId] = None,
                           assessmentId: Option[ObjectId] = None,
@@ -106,7 +102,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
 
     def toPlayerParams(xml: String): PlayerParams = PlayerParams(xml, Some(itemId.toString), sessionId.map(_.toString), enablePreview)
 
-    def enablePreview: Boolean = sessionMode == RequestedAccess.PREVIEW_MODE
+    def enablePreview: Boolean = sessionMode == RequestedAccess.Mode.Preview
 
   }
 
