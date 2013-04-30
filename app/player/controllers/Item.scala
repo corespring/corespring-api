@@ -4,7 +4,7 @@ import common.controllers.SimpleJsRoutes
 import controllers.auth.TokenizedRequestActionBuilder
 import org.bson.types.ObjectId
 import play.api.mvc._
-import player.accessControl.auth.{AccessGranterChecker, CheckPlayerSession}
+import player.accessControl.auth.{CheckSessionAccess, CheckSession}
 import player.accessControl.models.RequestedAccess
 
 
@@ -27,5 +27,4 @@ class Item(auth: TokenizedRequestActionBuilder[RequestedAccess] ) extends Contro
   }
 }
 
-object Item extends Item(AccessGranterChecker)
-//object Item extends Item(CheckPlayerSession)
+object Item extends Item(CheckSessionAccess)

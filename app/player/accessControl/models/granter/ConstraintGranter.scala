@@ -5,6 +5,7 @@ import player.accessControl.models.RequestedAccess.Mode
 import player.accessControl.models.granter.constraints._
 import player.accessControl.models.{ContentRequest, RenderOptions, RequestedAccess}
 
+/** An AccessGranter that creates a list of Constraints based on the rendering options */
 class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLookup) extends AccessGranter {
 
   def grant(currentMode: Option[Mode.Mode], request: RequestedAccess, options: RenderOptions): Boolean = {

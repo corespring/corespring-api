@@ -16,7 +16,7 @@ import scala.Some
 import scala.Right
 import play.api.Logger
 
-object AccessGranterChecker extends CheckPlayerSession {
+object CheckSessionAccess extends CheckSession {
 
   val sessionLookup: SessionItemLookup = new SessionItemLookup {
     def containsItem(id: ObjectId, itemId: ObjectId): Boolean = {

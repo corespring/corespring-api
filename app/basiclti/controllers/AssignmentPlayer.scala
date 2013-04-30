@@ -5,11 +5,11 @@ import common.controllers.AssetResource
 import models.itemSession.ItemSession
 import org.bson.types.ObjectId
 import play.api.mvc.Action
-import player.accessControl.auth.CheckPlayerSession
+import player.accessControl.auth.{CheckSessionAccess, CheckSession}
 import player.accessControl.models.RequestedAccess
 import player.controllers.Views
 
-object AssignmentPlayer extends Views(CheckPlayerSession) with AssetResource {
+object AssignmentPlayer extends Views(CheckSessionAccess) with AssetResource {
 
   def run(configId: ObjectId, resultSourcedId: String) = {
     session(configId, resultSourcedId) match {

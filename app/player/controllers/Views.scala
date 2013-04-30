@@ -8,7 +8,7 @@ import org.bson.types.ObjectId
 import org.xml.sax.SAXParseException
 import play.api.mvc.Action
 import play.api.templates.Html
-import player.accessControl.auth.{AccessGranterChecker, CheckPlayerSession}
+import player.accessControl.auth.{CheckSessionAccess, CheckSession}
 import player.accessControl.cookies.PlayerCookieWriter
 import player.accessControl.models.RequestedAccess
 import player.views.models.{ExceptionMessage, PlayerParams}
@@ -133,5 +133,4 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
 
 }
 
-//object Views extends Views(CheckPlayerSession)
-object Views extends Views(AccessGranterChecker)
+object Views extends Views(CheckSessionAccess)

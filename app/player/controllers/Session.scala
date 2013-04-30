@@ -4,7 +4,7 @@ import common.controllers.SimpleJsRoutes
 import controllers.auth.TokenizedRequestActionBuilder
 import org.bson.types.ObjectId
 import play.api.mvc._
-import player.accessControl.auth.{AccessGranterChecker, CheckPlayerSession}
+import player.accessControl.auth.{CheckSessionAccess, CheckSession}
 import player.accessControl.models.RequestedAccess
 import scala.Some
 
@@ -43,5 +43,4 @@ class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Cont
   }
 }
 
-object Session extends Session(AccessGranterChecker)
-//object Session extends Session(CheckPlayerSession)
+object Session extends Session(CheckSessionAccess)
