@@ -1,9 +1,5 @@
 function ProfileController($scope, $timeout, Config, Item, ItemFormattingUtils, MessageBridge) {
 
-  $scope.hidePopup = function () {
-    MessageBridge.sendMessage('parent', {message: 'closeProfilePopup'});
-  };
-
   $scope.changeSupportingMaterialPanel = function (sm) {
     $scope.changePanel(sm.name);
     $scope.currentSm = sm;
