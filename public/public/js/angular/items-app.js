@@ -6,9 +6,13 @@ angular.module('app').directive('profilePlayer', function () {
   var definition = {
     replace: false,
     restrict: 'A',
-    template: "<div class='iframe-600-centered'></div>",
+    template: '<div class=""><span class="close-window-button" ng-click="hidePopup()" style="z-index: 10"></span><div id="content"></div></div>',
     scope: {itemId: '@itemId', onItemLoad: '&onItemLoad'},
     link: function (scope, element, attrs) {
+      scope.hidePopup = function() {
+        scope.$parent.hidePopup();
+      }
+
       scope.$watch("itemId", function (val) {
         if (!val) return;
         var options = {
@@ -27,7 +31,7 @@ angular.module('app').directive('profilePlayer', function () {
           scope.onItemLoad();
         };
 
-        new com.corespring.players.ItemProfile(element, options, onError, onLoad);
+        new com.corespring.players.ItemProfile(angular.element(element).find('#content')[0], options, onError, onLoad);
 
       });
     }
