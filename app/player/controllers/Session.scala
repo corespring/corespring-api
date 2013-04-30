@@ -43,5 +43,5 @@ class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Cont
   }
 }
 
-//object Session extends Session(AccessGranterChecker)
-object Session extends Session(CheckPlayerSession)
+object Session extends Session(AccessGranterChecker)
+//object Session extends Session(CheckPlayerSession)

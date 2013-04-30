@@ -27,5 +27,5 @@ class Item(auth: TokenizedRequestActionBuilder[RequestedAccess] ) extends Contro
   }
 }
 
-//object Item extends Item(AccessGranterChecker)
-object Item extends Item(CheckPlayerSession)
+object Item extends Item(AccessGranterChecker)
+//object Item extends Item(CheckPlayerSession)
