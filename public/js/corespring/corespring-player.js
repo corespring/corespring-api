@@ -43,20 +43,21 @@
       var $body = $(iframe, window.top.document).contents().find('body');
       var bodyNode = $body.length == 1 ? $body[0] : undefined;
       var prevHeight = 0;
-      setInterval(function () {
+      if (com.corespring.intervalHandler) clearInterval(com.corespring.intervalHandler);
+      com.corespring.intervalHandler = setInterval(function () {
         try {
           if (bodyNode) {
             var newHeight = $(bodyNode).height();
             if (newHeight == 0) return;
-            if (newHeight != prevHeight) {
+            if (newHeight !=prevHeight) {
               $(element).height(newHeight + 30);
-              prevHeight = newHeight + 30;
+              prevHeight = newHeight;
             }
           }
         } catch (ie) {
           console.log(ie);
         }
-      }, 100);
+      }, 50);
     });
   }
 

@@ -6,7 +6,7 @@ angular.module('app').directive('profilePlayer', function () {
   var definition = {
     replace: false,
     restrict: 'A',
-    template: '<div class=""><span class="close-window-button" ng-click="hidePopup()" style="z-index: 10"></span><div id="content"></div></div>',
+    template: '<div style=""><span class="close-window-button" ng-click="hidePopup()" style="z-index: 10"></span><div id="content"></div></div>',
     scope: {itemId: '@itemId', onItemLoad: '&onItemLoad'},
     link: function (scope, element, attrs) {
       scope.hidePopup = function() {
