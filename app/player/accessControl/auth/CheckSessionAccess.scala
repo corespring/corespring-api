@@ -1,20 +1,16 @@
 package player.accessControl.auth
 
-import player.accessControl.models._
-import org.bson.types.ObjectId
+import controllers.InternalError
 import models.itemSession.ItemSession
 import models.quiz.basic.Quiz
-import player.accessControl.models.RequestedAccess.Mode
-import scala.Left
-import scala.Some
-import scala.Right
-import controllers.InternalError
-import player.accessControl.models.granter._
-import controllers.InternalError
-import scala.Left
-import scala.Some
-import scala.Right
+import org.bson.types.ObjectId
 import play.api.Logger
+import player.accessControl.models.RequestedAccess.Mode
+import player.accessControl.models._
+import player.accessControl.models.granter._
+import scala.Left
+import scala.Right
+import scala.Some
 
 object CheckSessionAccess extends CheckSession {
 
