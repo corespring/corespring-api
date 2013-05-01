@@ -18,7 +18,6 @@ corespringServiceModule
         var calls  = {
           read: api.getDetail(":itemId")
         };
-        console.log(api);
         return $resource(
           calls.read.url,
           {},
