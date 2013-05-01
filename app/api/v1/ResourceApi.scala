@@ -229,7 +229,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
                     val vfupdate = update.asInstanceOf[VirtualFile]
                     val vforiginal = f.asInstanceOf[VirtualFile]
                     val diff = Utils.getLevenshteinDistance(vfupdate.content,vforiginal.content)
-                    val sessions = ItemSession.find(MongoDBObject(ItemSession.itemId -> item.id)).count
+                    val sessions = ItemSession.find(MongoDBObject(ItemSession.Keys.itemId -> item.id)).count
                     if(force || diff == 0.0 || sessions == 0){
                       item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
                       Item.save(item)
