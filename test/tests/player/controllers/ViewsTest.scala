@@ -1,7 +1,5 @@
 package tests.player.controllers
 
-import controllers.auth.TokenizedRequestActionBuilder
-import controllers.auth.requests.TokenizedRequest
 import org.bson.types.ObjectId
 import org.specs2.execute.{Result => SpecsResult}
 import org.specs2.mutable.Specification
@@ -15,22 +13,9 @@ import tests.PlaySingleton
 
 class ViewsTest extends Specification {
 
-  val testId = new ObjectId("50b653a1e4b0ec03f29344b0")
-  val testSessionId = new ObjectId("51116bc7a14f7b657a083c1d")
-  val testQuizId = new ObjectId("000000000000000000000001")
-  val testQuizItemId = new ObjectId("5153eee1aa2eefdc1b7a5570")
+  import TestIds._
 
   PlaySingleton.start()
-
-  class TestBuilder extends TokenizedRequestActionBuilder[RequestedAccess] {
-    def ValidatedAction(access: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
-      ValidatedAction(play.api.mvc.BodyParsers.parse.anyContent)(access)(block)
-
-    def ValidatedAction(p: BodyParser[AnyContent])(access: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] = Action {
-      request =>
-        block(TokenizedRequest("test_token", request))
-    }
-  }
 
   val views = new Views(new TestBuilder)
 

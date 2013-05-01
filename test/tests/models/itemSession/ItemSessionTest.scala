@@ -26,7 +26,7 @@ class ItemSessionTest extends BaseTest {
     "work" in {
       val session = ItemSession(itemId = new ObjectId(), settings = ItemSessionSettings(maxNoOfAttempts = 10))
       val json = Json.toJson(session)
-      val settings: JsValue = (json \ ItemSession.settings)
+      val settings: JsValue = (json \ ItemSession.Keys.settings)
       (settings \ "maxNoOfAttempts").as[Int] must equalTo(10)
       val newSession: ItemSession = json.as[ItemSession]
       newSession.settings.maxNoOfAttempts must equalTo(10)

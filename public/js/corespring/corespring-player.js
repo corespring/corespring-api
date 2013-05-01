@@ -132,7 +132,7 @@
     }
 
     if (options.onItemSessionRetrieved) {
-      addSessionListener("itemSessionRetrieved", options.onItemSessionCompleted);
+      addSessionListener("itemSessionRetrieved", options.onItemSessionRetrieved);
     }
 
     if (options.onItemSessionCompleted) {
