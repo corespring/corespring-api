@@ -42,7 +42,7 @@ case class ItemSession(var itemId: ObjectId,
 
 object ItemSession extends ItemSessionCompanion{
 
-  def collectionName: String = "itemsessions"
+  def collection = mongoCollection("itemsessions")
 
   object Keys {
     val itemId = "itemId"
@@ -111,10 +111,8 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] {
 
   import ItemSession.Keys._
 
-  val collection = mongoCollection(collectionName)
+  def collection : MongoCollection// = mongoCollection(collectionName)
   val dao = new SalatDAO[ItemSession, ObjectId](collection = collection) {}
-
-  def collectionName: String
 
   /**
    * @param itemId - create the item session based on this contentId
