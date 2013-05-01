@@ -72,6 +72,38 @@ describe('CoreSpringPlayer', function () {
       expect(myDiv).toHaveCss({"width":"500px"});
       expect(myDiv).toHaveCss({"height":"500px"});
     });
+
+    it("item session created gets called", function () {
+      var created = false;
+      var createdFn = function() { created = true; }
+      runs(function() {
+        new com.corespring.players.ItemPlayer(myDiv, {mode: 'render', onItemSessionCreated: createdFn, sessionId: "something", width: "500px", height: "500px"});
+      });
+      waitsFor(function() {return created; }, 100);
+      window.postMessage('{"message":"itemSessionCreated", "session":"something"}',"*");
+    });
+
+    it("item session completed gets triggered by item session retrieved", function () {
+      var completed = false;
+      var completedFn = function() { completed = true; }
+      runs(function() {
+        new com.corespring.players.ItemPlayer(myDiv, {mode: 'render', onItemSessionRetrieved: completedFn, sessionId: "something", width: "500px", height: "500px"});
+      });
+      waitsFor(function() { return completed; }, 100);
+      window.postMessage('{"message":"itemSessionRetrieved", "session":"something"}',"*");
+    });
+
+    it("item session completed gets triggered by item session completed", function () {
+      var completed = false;
+      var completedFn = function() { completed = true; }
+      runs(function() {
+        new com.corespring.players.ItemPlayer(myDiv, {mode: 'render', onItemSessionCompleted: completedFn, sessionId: "something", width: "500px", height: "500px"});
+      });
+      waitsFor(function() { return completed; }, 100);
+      window.postMessage('{"message":"sessionCompleted", "session":"something"}',"*");
+    });
+
+
   });
 
 });
