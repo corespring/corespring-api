@@ -14,15 +14,16 @@ import scala.Some
 import se.radley.plugin.salat.mongoCappedCollection
 import play.api.Play.current
 
+object PreviewItemSessionCompanion extends ItemSessionCompanion{
+  lazy val fiveMB : Int = 5242880
+  def collection = mongoCappedCollection("itemsessionsPreviewCapped", fiveMB, max = Some(1000))
+}
 
 class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Controller with SimpleJsRoutes with PlayerCookieReader {
 
   val DefaultApi = ItemSessionApi
 
-  val PreviewApi = new ItemSessionApi(new ItemSessionCompanion {
-    lazy val fiveMB : Int = 5242880
-    def collection = mongoCappedCollection("itemsessionsPreviewCapped", fiveMB, max = Some(1000))
-  })
+  val PreviewApi = new ItemSessionApi(PreviewItemSessionCompanion)
 
   /** If we are running in preview mode - return the PreviewApi which will store the sessions in a different collection */
   def api(implicit request: Request[AnyContent]): ItemSessionApi = {
