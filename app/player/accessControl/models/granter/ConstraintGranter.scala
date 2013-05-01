@@ -1,34 +1,27 @@
 package player.accessControl.models.granter
 
 import org.bson.types.ObjectId
-import player.accessControl.models.RequestedAccess.Mode
+import player.accessControl.models.RequestedAccess.Mode._
 import player.accessControl.models.granter.constraints._
 import player.accessControl.models.{ContentRequest, RenderOptions, RequestedAccess}
 
-class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLookup) extends AccessGranter {
+/** An AccessGranter that creates a list of Constraints based on the rendering options */
+class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLookup) extends ConstraintChecker with AccessGranter {
 
-  def grant(currentMode: Option[Mode.Mode], request: RequestedAccess, options: RenderOptions): Boolean = {
-    val mode: Option[Mode.Mode] = if (request.mode.isDefined) request.mode else currentMode
+  def grant(currentMode: Option[Mode], request: RequestedAccess, options: RenderOptions): Boolean = {
+    val mode: Option[Mode] = if (request.mode.isDefined) request.mode else currentMode
     grant(request.copy(mode = mode), options)
   }
 
   /** Return a list of failing constraints - public as it is useful for debugging issues */
-  def getFailedConstraints(currentMode: Option[Mode.Mode], request: RequestedAccess, options: RenderOptions): List[ValueAndConstraint[Any]] = {
-    val mode: Option[Mode.Mode] = if (request.mode.isDefined) request.mode else currentMode
+  def getFailedConstraints(currentMode: Option[Mode], request: RequestedAccess, options: RenderOptions): List[ValueAndConstraint[Any]] = {
+    val mode: Option[Mode] = if (request.mode.isDefined) request.mode else currentMode
     getFailedConstraints(request.copy(mode = mode), options)
   }
 
   def getFailedConstraints(request: RequestedAccess, options: RenderOptions): List[ValueAndConstraint[Any]] = {
-    val constraints = buildConstraints(request, options)
-
-    def fold(vc: ValueAndConstraint[Any], acc: List[ValueAndConstraint[Any]]): List[ValueAndConstraint[Any]] = {
-      if (vc.valueWithinConstraints)
-        acc
-      else
-        vc.failingConstraints :: acc
-    }
-    val failedConstraints = constraints.foldRight[List[ValueAndConstraint[Any]]](List())(fold)
-    failedConstraints
+    val constraints = buildConstraints(request)(options)
+    failedConstraints(constraints)
   }
 
   def grant(request: RequestedAccess, options: RenderOptions): Boolean = {
@@ -37,32 +30,16 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
   }
 
   /** create the list of constraints that must return true for the 'valueWithinConstraints' method */
-  private def buildConstraints(request: RequestedAccess, options: RenderOptions): List[ValueAndConstraint[Any]] = {
+  private def buildConstraints(request: RequestedAccess)(implicit options: RenderOptions): List[ValueAndConstraint[Any]] = {
 
-    val common: List[ValueAndConstraint[Any]] = List(
-      ValueAndConstraint("expires", System.currentTimeMillis(), List(if (options.expires == 0) new AnyTimeConstraint else new TimeExpiredConstraint(options.expires))))
+    val common: List[ValueAndConstraint[Any]] = List(timeConstraint)
 
     val modeSpecificConstraints: List[ValueAndConstraint[Any]] = request.mode.map {
       m => m match {
-        case Mode.Preview => request match {
-          case RequestedAccess(Some(item), Some(session), _, _) => List(itemValueAndConstraints(item, options), sessionValueAndConstraints(session, options))
-          case RequestedAccess(Some(item), None, _, _) => List(itemValueAndConstraints(item, options))
-          case _ => List(failed("preview", "failed - no item or session in request"))
-        }
-        case Mode.Render => request match {
-          case RequestedAccess(_, Some(session), _, _) => List(sessionValueAndConstraints(session, options))
-          case _ => List(failed("render", "no session in request"))
-        }
-        case Mode.Aggregate => request match {
-          case RequestedAccess(Some(item), None, Some(assessment), _) => List(assessmentValueAndConstraints(assessment, options), itemValueAndConstraints(item, options))
-          case _ => List(failed("aggregate", "only an assessment and item request are allowed"))
-        }
-        case Mode.Administer => request match {
-          case RequestedAccess(Some(item), None, None, _) => List(itemValueAndConstraints(item, options))
-          case RequestedAccess(None, Some(session), None, _) => List(sessionValueAndConstraints(session, options))
-          case RequestedAccess(Some(item), Some(session), None, _) => List(itemValueAndConstraints(item, options), sessionValueAndConstraints(session, options))
-          case _ => List(failed("administer", "no item or session passed"))
-        }
+        case Preview => (itemAndSession orElse itemOnly orElse noMatch(Preview, "no item or session"))(request)
+        case Render => (sessionOnly orElse noMatch(Render, "no session found"))(request)
+        case Aggregate => (itemAndAssessment orElse noMatch(Aggregate, "only an assessment id and item are allowed"))(request)
+        case Administer => (itemOnly orElse sessionOnly orElse itemAndSession orElse noMatch(Administer, "no item or session passed"))(request)
         case _ => List()
       }
     }.getOrElse(List(failed("mode", "No mode")))
@@ -70,7 +47,25 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
     common ::: modeSpecificConstraints
   }
 
-  private def failed(name: String, msg: String): ValueAndConstraint[Any] = ValueAndConstraint(name, "?", List(new FailedConstraint(msg)))
+  private def itemAndAssessment(implicit options: RenderOptions): PartialFunction[RequestedAccess, List[ValueAndConstraint[Any]]] = {
+    case RequestedAccess(Some(item), None, Some(assessment), _) => List(assessmentValueAndConstraints(assessment), itemValueAndConstraints(item))
+  }
+
+  private def itemAndSession(implicit options: RenderOptions): PartialFunction[RequestedAccess, List[ValueAndConstraint[Any]]] = {
+    case RequestedAccess(Some(item), Some(session), _, _) => List(itemValueAndConstraints(item), sessionValueAndConstraints(session))
+  }
+
+  private def itemOnly(implicit options: RenderOptions): PartialFunction[RequestedAccess, List[ValueAndConstraint[Any]]] = {
+    case RequestedAccess(Some(item), None, None, _) => List(itemValueAndConstraints(item))
+  }
+
+  private def sessionOnly(implicit options: RenderOptions): PartialFunction[RequestedAccess, List[ValueAndConstraint[Any]]] = {
+    case RequestedAccess(None, Some(session), None, _) => List(sessionValueAndConstraints(session))
+  }
+
+  private def noMatch(key: Mode, msg: String): PartialFunction[RequestedAccess, List[ValueAndConstraint[Any]]] = {
+    case _ => List(failed(key.toString, msg))
+  }
 
   private def oid(s: String): Option[ObjectId] = try {
     Some(new ObjectId(s))
@@ -103,31 +98,35 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
     }
   }
 
-  private def sessionConstraints(options: RenderOptions, session: ContentRequest): List[Constraint[Any]] = {
+  private def sessionConstraints(session: ContentRequest)(implicit options: RenderOptions): List[Constraint[Any]] = {
     boundConstraints(options.itemId, options.sessionId, sessionLookup)
   }
 
-  private def assessmentConstraints(options: RenderOptions, assessment: ContentRequest): List[Constraint[Any]] = {
+  private def assessmentConstraints(assessment: ContentRequest)(implicit options: RenderOptions): List[Constraint[Any]] = {
     boundConstraints(options.itemId, options.assessmentId, quizLookup)
   }
 
-  private def itemConstraints(options: RenderOptions, item: ContentRequest): List[Constraint[Any]] = {
+  private def itemConstraints(item: ContentRequest)(implicit options: RenderOptions): List[Constraint[Any]] = {
     if (options.itemId == RenderOptions.*)
       List()
     else
       List(makeOrFail(options.itemId, new ObjectIdMatches(_), "invalid item id in RenderOptions"))
   }
 
-  private def itemValueAndConstraints(item: ContentRequest, options: RenderOptions): ValueAndConstraint[Any] = {
-    ValueAndConstraint("itemId", item.id, itemConstraints(options, item))
+  private def itemValueAndConstraints(item: ContentRequest)(implicit options: RenderOptions): ValueAndConstraint[Any] = {
+    ValueAndConstraint("itemId", item.id, itemConstraints(item))
   }
 
-  private def sessionValueAndConstraints(session: ContentRequest, options: RenderOptions): ValueAndConstraint[Any] = {
-    ValueAndConstraint("sessionId", session.id, sessionConstraints(options, session))
+  private def sessionValueAndConstraints(session: ContentRequest)(implicit options: RenderOptions): ValueAndConstraint[Any] = {
+    ValueAndConstraint("sessionId", session.id, sessionConstraints(session))
   }
 
-  private def assessmentValueAndConstraints(assessment: ContentRequest, options: RenderOptions): ValueAndConstraint[Any] = {
-    ValueAndConstraint("assessmentId", assessment.id, assessmentConstraints(options, assessment))
+  private def assessmentValueAndConstraints(assessment: ContentRequest)(implicit options: RenderOptions): ValueAndConstraint[Any] = {
+    ValueAndConstraint("assessmentId", assessment.id, assessmentConstraints(assessment))
+  }
+
+  private def timeConstraint(implicit options: RenderOptions): ValueAndConstraint[Any] = {
+    ValueAndConstraint("expires", System.currentTimeMillis(), List(if (options.expires == 0) new AnyTimeConstraint else new TimeExpiredConstraint(options.expires)))
   }
 
 }
