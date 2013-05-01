@@ -2,11 +2,12 @@ package api.v1
 
 import api.ApiError
 import com.mongodb.casbah.Imports._
-import controllers.auth.{ApiRequest, Permission, BaseApi}
+import controllers.auth.ApiRequest
+import controllers.auth.{Permission, BaseApi}
 import controllers.{Log, Utils}
 import models._
 import models.item.Content
-import models.itemSession.{StringItemResponse, ArrayItemResponse, ItemResponseAggregate, ItemSession}
+import models.itemSession._
 import play.api.libs.json.JsObject
 import play.api.libs.json.Json._
 import play.api.mvc.AnyContent
@@ -15,11 +16,10 @@ import scala.Left
 import scala.Right
 import scala.Some
 
-
 /**
  * API for managing item sessions
  */
-object ItemSessionApi extends BaseApi {
+class ItemSessionApi(itemSession: ItemSessionCompanion) extends BaseApi {
 
 
   def aggregate(quizId: ObjectId, itemId: ObjectId) = ApiAction {
@@ -40,7 +40,7 @@ object ItemSessionApi extends BaseApi {
     sessionIds.foreach {
       p =>
         val oid = new ObjectId(p)
-        ItemSession.get(oid) match {
+        itemSession.get(oid) match {
           case Some(session) => {
             session.responses.foreach {
               resp =>
@@ -72,7 +72,7 @@ object ItemSessionApi extends BaseApi {
   def list(itemId: ObjectId) = ApiAction {
     request =>
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.Read)) {
-        val cursor = ItemSession.find(MongoDBObject(ItemSession.itemId -> itemId))
+        val cursor = itemSession.find(MongoDBObject(ItemSession.Keys.itemId -> itemId))
         Ok(toJson(Utils.toSeq(cursor)))
       } else Unauthorized(toJson(ApiError.UnauthorizedItemSession))
   }
@@ -90,7 +90,7 @@ object ItemSessionApi extends BaseApi {
    */
   def get(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
     request =>
-      ItemSession.get(sessionId) match {
+      itemSession.get(sessionId) match {
         case Some(session) => {
           if (Content.isAuthorized(request.ctx.organization, session.itemId, Permission.Read)) {
             Ok(toJson(session))
@@ -118,7 +118,7 @@ object ItemSessionApi extends BaseApi {
           }
           case None => ItemSession(itemId)
         }
-        ItemSession.newSession(itemId, newSession) match {
+        itemSession.newSession(itemId, newSession) match {
           case Right(session) => Ok(toJson(session))
           case Left(error) => InternalServerError(toJson(ApiError.CreateItemSession(error.clientOutput)))
         }
@@ -132,7 +132,7 @@ object ItemSessionApi extends BaseApi {
     request =>
       findSessionAndCheckAuthorization(sessionId, itemId, request.ctx.organization) match {
         case Right(s) => {
-          ItemSession.begin(s) match {
+          itemSession.begin(s) match {
             case Left(error) => BadRequest(error.message)
             case Right(started) => Ok(toJson(started))
           }
@@ -148,7 +148,7 @@ object ItemSessionApi extends BaseApi {
    * @param orgId
    * @return
    */
-  private def findSessionAndCheckAuthorization(sessionId: ObjectId, itemId: ObjectId, orgId: ObjectId): Either[ApiError, ItemSession] = ItemSession.findOneById(sessionId) match {
+  private def findSessionAndCheckAuthorization(sessionId: ObjectId, itemId: ObjectId, orgId: ObjectId): Either[ApiError, ItemSession] = itemSession.findOneById(sessionId) match {
     case Some(s) => Content.isAuthorized(orgId, itemId, Permission.Read) match {
       case true => Right(s)
       case false => Left(ApiError.UnauthorizedItemSession)
@@ -173,7 +173,7 @@ object ItemSessionApi extends BaseApi {
           requestAsData(request, ApiError.ItemSessionRequiredFields) match {
             case Left(error) => BadRequest(toJson(error))
             case Right(update) => {
-              ItemSession.update(update) match {
+              itemSession.update(update) match {
                 case Left(error) => BadRequest(toJson(ApiError.CantSave))
                 case Right(updatedSession) => Ok(toJson(updatedSession))
               }
@@ -210,7 +210,7 @@ object ItemSessionApi extends BaseApi {
 
       Log.d("processResponse: " + sessionId)
 
-      ItemSession.findOneById(sessionId) match {
+      itemSession.findOneById(sessionId) match {
         case Some(dbSession) => Content.isAuthorized(request.ctx.organization, dbSession.itemId, Permission.Read) match {
           case true => request.body.asJson match {
             case Some(jsonSession) => {
@@ -223,9 +223,9 @@ object ItemSessionApi extends BaseApi {
                 dbSession.finish = clientSession.finish
                 dbSession.responses = clientSession.responses
 
-                ItemSession.getXmlWithFeedback(dbSession) match {
+                itemSession.getXmlWithFeedback(dbSession) match {
                   case Right(xmlWithCsFeedbackIds) => {
-                    ItemSession.process(dbSession, xmlWithCsFeedbackIds) match {
+                    itemSession.process(dbSession, xmlWithCsFeedbackIds) match {
                       case Right(newSession) => {
                         val json = toJson(newSession)
                         Ok(json)
@@ -245,11 +245,6 @@ object ItemSessionApi extends BaseApi {
       }
   }
 
-  // Translates a collection of tuples to an Option[Map]
-  private def optMap[A, B](in: Iterable[(A, B)]): Option[Map[A, B]] =
-    in.iterator.foldLeft(Option(Map[A, B]())) {
-      case (Some(m), e@(k, v)) if m.getOrElse(k, v) == v => Some(m + e)
-      case _ => None
-    }
-
 }
+
+object ItemSessionApi extends ItemSessionApi(ItemSession)
