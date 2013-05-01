@@ -60,7 +60,7 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
   }
 
   private def sessionOnly(implicit options: RenderOptions): PartialFunction[RequestedAccess, List[ValueAndConstraint[Any]]] = {
-    case RequestedAccess(None, Some(session), None, _) => List(sessionValueAndConstraints(session))
+    case RequestedAccess(_, Some(session), None, _) => List(sessionValueAndConstraints(session))
   }
 
   private def noMatch(key: Mode, msg: String): PartialFunction[RequestedAccess, List[ValueAndConstraint[Any]]] = {
