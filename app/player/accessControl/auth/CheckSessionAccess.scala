@@ -37,9 +37,10 @@ object CheckSessionAccess extends CheckSession {
   override def grantAccess(activeMode: Option[Mode.Mode], a: RequestedAccess, o: RenderOptions): Either[InternalError, Boolean] = {
     if (granter.grant(activeMode, a, o))
       Right(true)
-    else{
+    else {
       val failedConstraints = granter.getFailedConstraints(activeMode, a, o)
-      Logger.warn( failedConstraints.mkString(", \n"))
+
+      Logger.warn("Access was refused. The following constraints prevented access: \n " + failedConstraints.mkString(", \n"))
       Left(InternalError("Access denied: " + failedConstraints.mkString(",\n")))
     }
   }
