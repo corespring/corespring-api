@@ -10,15 +10,17 @@ angular.module('corespring-services', []).factory('MessageBridge', [function () 
      * Add handler for 'message'
      * @param fn
      */
+
+
     addMessageListener: function (fn) {
-      if (window.addEventListener) {
-        window.addEventListener('message', fn, true);
-      }
-      else if (window.attachEvent) {
-        window.attachEvent('message', fn);
-      } else {
-        throw "couldn't add message listener";
-      }
+      var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+      var eventer = window[eventMethod];
+      var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+
+      eventer(messageEvent,function(e) {
+        //console.log('parent received message!:  ',e.data);
+        fn(e);
+      },false);
     },
 
     /**

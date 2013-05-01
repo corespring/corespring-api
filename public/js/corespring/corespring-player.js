@@ -5,14 +5,13 @@
   com.corespring.players = {};
 
   var addMessageListener = function (fn) {
-    if (window.addEventListener) {
-      window.addEventListener('message', fn, true);
-    }
-    else if (window.attachEvent) {
-      window.attachEvent('message', fn);
-    } else {
-      throw "couldn't add message listener";
-    }
+    var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+    var eventer = window[eventMethod];
+    var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+
+    eventer(messageEvent,function(e) {
+      fn(e);
+    },false);
   };
 
   com.corespring.players.config = {
@@ -89,7 +88,8 @@
 
       addMessageListener(function (event) {
         try {
-          var data = JSON.parse(event.data);
+          var dataString = event.data;
+          var data = JSON.parse(dataString);
           if (data.message == message && data.session) {
             callback(dataHandler(data.session));
           }
