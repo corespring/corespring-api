@@ -1,7 +1,7 @@
 @(params: player.views.models.PlayerParams, tab: String)
 
 <!DOCTYPE html>
-<html ng-app='qti'>
+<html ng-app='qti' dimensions-checker>
 <head>
         @common.views.html.partials.ieEightSupport()
         @partials.scripts(params.xml)
@@ -27,7 +27,7 @@
 
     </head>
 
-<body dimensions-checker>
+<body>
 
     <div class="itemProfile">
         <div ng-controller="ProfileController" >
