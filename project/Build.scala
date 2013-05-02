@@ -45,7 +45,10 @@ object ApplicationBuild extends Build {
     resolvers += "Sonatype OSS Snapshots Repository" at "http://oss.sonatype.org/content/groups/public",
     resolvers += "Spy Repository" at "http://files.couchbase.com/maven2", // required to resolve `spymemcached`, the plugin's dependency.
     resolvers += "ed eustace repo" at "http://edeustace.com/repository/releases",
-    resolvers += "ed eustace snapshots repo" at "http://edeustace.com/repository/snapshots"
+    resolvers += "ed eustace snapshots repo" at "http://edeustace.com/repository/snapshots",
+    (compile in Compile) <<= (compile in Compile).map(Commands.runJsTests),
+    (test in Test) <<= (compile in Compile).map(Commands.runJsTests)
+
 
   )
 }
