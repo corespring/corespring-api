@@ -62,7 +62,7 @@ angular.module('tagger.services')
 
                 createDataFile: '/api/v1/items/{itemId}/data',
                 deleteDataFile: '/api/v1/items/{itemId}/data/{filename}',
-                updateDataFile: '/api/v1/items/{itemId}/data/{filename}?force=1',
+                updateDataFile: '/api/v1/items/{itemId}/data/{filename}',
                 uploadDataFile: '/api/v1/items/{itemId}/data/{filename}/upload',
 
                 standardsTree:'/assets/web/standards_tree.json',
