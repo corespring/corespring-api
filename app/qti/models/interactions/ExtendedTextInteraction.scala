@@ -4,8 +4,8 @@ import xml.{NodeSeq, Elem, Node}
 import qti.models.{QtiItem, ResponseDeclaration}
 import qti.models.QtiItem.Correctness
 import controllers.Log
-import testplayer.views.utils.QtiScriptLoader
 import models.itemSession.{ItemResponseOutcome, ItemResponse}
+import qti.models.interactions.utils.QtiScriptLoader
 
 case class ExtendedTextInteraction(responseIdentifier: String) extends Interaction {
 

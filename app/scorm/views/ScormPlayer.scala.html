@@ -1,0 +1,62 @@
+@(params: _root_.player.views.models.PlayerParams)
+
+@scripts = {
+<script src="/assets/js/corespring/qti/controllers/QtiAppController.js"></script>
+<script src="/assets/js/corespring/qti/controllers/ScormController.js"></script>
+
+<!-- need to override the config to add the Lti Params -->
+<script type="text/javascript">
+    angular.module('qti.services').factory('Config', [function(){
+        return {
+            itemId : "@params.itemId",
+            sessionId : '@params.sessionId.getOrElse("")'
+        }
+    }]);
+
+    angular.module('qti.services').factory('ScormBridge', [function () {
+
+          return {
+            /**
+             * send a message to the Scorm container
+             * param: [messageObject, .... ]
+             */
+            sendMessage: function () {
+              if (parent && parent != window) {
+                for (var x in arguments) {
+                  parent.postMessage(JSON.stringify(arguments[x]), "*");
+                }
+              } else {
+                console.warn("Couldn't post message to parent - not found");
+              }
+            }
+          }
+        }]);
+
+
+      function addMessageListener(fn) {
+        if (window.addEventListener) {
+          window.addEventListener('message', fn, true);
+        }
+        else if (window.attachEvent) {
+          window.attachEvent('message', fn);
+        }
+        else {
+          throw "couldn't add message listener";
+        }
+      }
+
+      addMessageListener(messageHandler);
+
+      function messageHandler(e) {
+        //Not worrying about security on this side for now.
+        alert('scorm-player ' + e.data + ' ' + e.origin);
+      }
+</script>
+}
+
+@bodyAttributes = @{ "ng-controller='QtiAppController'" }
+@afterBody = {
+  <div ng-controller="ScormController"></div>
+}
+
+@_root_.player.views.html.basePlayer( params, scripts, bodyAttributes, Some(afterBody) )

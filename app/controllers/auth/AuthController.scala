@@ -21,8 +21,6 @@ object AuthController extends Controller with SecureSocial{
 
   val registerInfo = Form(OAuthConstants.Organization -> text)
 
-  val blerg = AccessTokenRequest("ad","adf","adfaf",Some("adf"))
-
   val accessTokenForm = Form(
     mapping(
       OAuthConstants.GrantType -> optional(text),

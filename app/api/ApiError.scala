@@ -62,6 +62,13 @@ object ApiError {
   val OperationError      = ApiError(107, "There was an error processing your request")
   val ExpiredToken        = ApiError(108, "Your access token expired on %s. Please request a new one")
 
+  //Render Provider
+  val InvalidKeyType      = ApiError(110, "Invalid key in session. Must be of the form ${clientId}-${options}")
+  val ParseKey            = ApiError(111, "Could not parse key. Incorrect format")
+  val NoOptionsProvided   = ApiError(112, "no options provided with client id")
+  val ItemPlayer          = ApiError(113, "an error occurred when attempting to retrieve the item player")
+  val ExpiredOptions      = ApiError(114, "the options received is expired")
+
   // Base Api
   val UserIsRequired      = ApiError(150, "User is required")
   val JsonExpected        = ApiError(151, "You request does not contain a valid json")
@@ -74,6 +81,7 @@ object ApiError {
   val InvalidSort         = ApiError(204,"an error occurred when parsing the sort field")
   val CollIdNotNeeded      = ApiError(206, "a collection id cannot be specified for this operation")
   val StringToMongo         = ApiError(207, "could not parse string into db object")
+  val BadJson              = ApiError(208, "could not parse json into expected object")
 
   // Organization API
   val IdsDoNotMatch       = ApiError(300, "Specified id does not match the one in the json")

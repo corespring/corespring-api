@@ -20,6 +20,8 @@ angular.module('qti.directives').directive('dimensionsChecker', function(){
 
       var dispatchDimensions = function(){
         var b = $body[0];
+        if (!b) return;
+
         var w = b.clientWidth;
         var h = b.clientHeight;
 
@@ -27,7 +29,8 @@ angular.module('qti.directives').directive('dimensionsChecker', function(){
           lastW = w;
           lastH = h;
           var msg = {message:'dimensionsUpdate', w: w, h: h};
-          if (getParent()) getParent().postMessage(JSON.stringify(msg), "*");
+          if (getParent() && getParent().postMessage)
+            getParent().postMessage(JSON.stringify(msg), "*");
         }
       };
 

@@ -16,11 +16,11 @@ object ScormExporter {
 
   type NameContents = (String, String)
 
-  def makeMultiScormPackage(items: List[Item], token: String, host: String): Array[Byte] = {
+  def makeMultiScormPackage(items: List[Item], host: String, clientId:String, encryptedOptions:String): Array[Byte] = {
     val plainFilePaths = PlainFiles.map(ScormFolder + "/" + _.getName)
-    val tokens: Map[String, String] = Map("corespringDomain" -> host)
+    val tokens: Map[String, String] = Map("corespringDomain" -> host, "apiClientId" -> clientId, "options" -> encryptedOptions)
     val processedTemplates = processTemplates(tokens)
-    val config: Config = Config(host, common.mock.MockToken)
+    val config: Config = Config(host)
     val manifest = Builder.Manifest(items, config)
     val stringFiles = (("imsmanifest.xml", manifest.mkString("\n"))) :: processedTemplates.flatten
     zip(plainFilePaths, stringFiles, basename)

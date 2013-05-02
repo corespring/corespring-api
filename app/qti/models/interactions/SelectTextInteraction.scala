@@ -4,10 +4,10 @@ import xml.{XML, NodeSeq, Elem, Node}
 import xml.transform.{RuleTransformer, RewriteRule}
 import util.matching.Regex
 import qti.models._
-import testplayer.views.utils.QtiScriptLoader
 import controllers.Log
 import scala.Some
 import models.itemSession.{ItemResponseOutcome, ArrayItemResponse, ItemResponse}
+import qti.models.interactions.utils.QtiScriptLoader
 
 case class SelectTextInteraction(responseIdentifier: String, selectionType: String, checkIfCorrect: Boolean, minSelection: Int, maxSelection: Int, correctResponse: Option[CorrectResponseMultiple]) extends Interaction {
 

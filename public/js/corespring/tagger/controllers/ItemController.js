@@ -55,23 +55,28 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   }
 
   $scope.refreshPreview = function () {
-    // Trigger iframe reload
-    var oldvalue = $scope.corespringApiUrl;
-    $scope.corespringApiUrl = "";
-    $timeout(function () {
-      $scope.corespringApiUrl = oldvalue;
-    });
+    com.corespring.players.ItemPlayer("#item-preview-target", {
+        mode : "preview",
+        itemId : $scope.itemData.id,
+        height: "100%"}
+    );
   };
 
   $scope.togglePreview = function () {
     $scope.previewVisible = !$scope.previewVisible;
     $scope.$broadcast("panelOpen");
+
+    com.corespring.players.ItemPlayer("#item-preview-target", {
+      mode : "preview",
+      itemId : $scope.itemData.id,
+      height: "100%"}
+    );
   };
 
   $scope.$watch("previewVisible", function (newValue) {
     $scope.previewClassName = newValue ? "preview-open" : "preview-closed";
-    $scope.corespringApiUrl = newValue ? ("/testplayer/item/" + $routeParams.itemId + "/run") : "";
-    $scope.fullPreviewUrl = "/web/item-preview/" + $routeParams.itemId;
+    $scope.corespringApiUrl = newValue ? ("/player/item/" + $routeParams.itemId + "/preview") : "";
+    $scope.fullPreviewUrl = "/player/item/" + $routeParams.itemId + "/profile";
   });
 
   $scope.deleteItem = function (item) {

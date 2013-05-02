@@ -1,20 +1,16 @@
 package web.controllers
 
-import play.api.mvc._
-import models._
-import item.Item
-import item.resource.{BaseFile, Resource}
-import org.bson.types.ObjectId
-import controllers.S3Service
-import com.typesafe.config.ConfigFactory
-import web.views.html.partials._edit._metadata._formWithLegend
-import scala.Some
-import scala.Some
-import common.controllers.ItemResources
-import xml.Elem
-import testplayer.controllers.QtiRenderer
+import common.controllers.{AssetResource, QtiResource}
 import controllers.auth.BaseApi
+import models.item.Item
+import models.item.resource.{BaseFile, Resource}
+import org.bson.types.ObjectId
+import play.api.mvc._
+import player.controllers.QtiRenderer
+import player.views.models.PlayerParams
 import qti.models.RenderingMode._
+import scala.Some
+import xml.Elem
 
 trait ObjectIdParser {
 
@@ -29,22 +25,23 @@ trait ObjectIdParser {
 }
 
 
-object ShowResource extends BaseApi with ObjectIdParser with ItemResources with QtiRenderer {
+object ShowResource extends BaseApi with ObjectIdParser with QtiResource with AssetResource with QtiRenderer {
 
-  def javascriptRoutes = Action{ implicit request =>
+  def javascriptRoutes = Action {
+    implicit request =>
 
-    import play.api.Routes
-    import web.controllers.routes.javascript.{ ShowResource => ShowResourceJs }
-    import web.controllers.routes.javascript._
+      import play.api.Routes
+      import web.controllers.routes.javascript._
+      import web.controllers.routes.javascript.{ShowResource => ShowResourceJs}
 
-    Ok(
-      Routes.javascriptRouter("WebRoutes")(
-      ShowResourceJs.renderDataResource,
-      Partials.createItem,
-      Partials.editItem,
-      Partials.home,
-      Partials.viewItem
-    )).as("text/javascript")
+      Ok(
+        Routes.javascriptRouter("WebRoutes")(
+          ShowResourceJs.renderDataResource,
+          Partials.createItem,
+          Partials.editItem,
+          Partials.home,
+          Partials.viewItem
+        )).as("text/javascript")
   }
 
   /**
@@ -79,7 +76,8 @@ object ShowResource extends BaseApi with ObjectIdParser with ItemResources with 
                     getItemXMLByObjectId(itemId, request.ctx.organization) match {
                       case Some(xmlData: Elem) => {
                         val finalXml = prepareQti(xmlData, renderMode)
-                        Ok(testplayer.views.html.itemPlayer(itemId, finalXml, previewEnabled = (renderMode == Web), sessionId = "", request.token))
+                        val params: PlayerParams = PlayerParams(itemId = Some(itemId), xml = finalXml, previewEnabled = (renderMode == Web))
+                        Ok(player.views.html.Player(params))
                       }
                       case None => NotFound("Can't find item")
                     }

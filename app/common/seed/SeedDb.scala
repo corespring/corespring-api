@@ -4,7 +4,7 @@ import _root_.models.auth.{AccessToken, ApiClient}
 import _root_.models._
 import com.mongodb.casbah.MongoCollection
 import item.{Content, FieldValue}
-import itemSession.ItemSession
+import _root_.models.itemSession.{DefaultItemSession, ItemSession}
 import java.io.File
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
@@ -26,7 +26,7 @@ object SeedDb {
     Subject.collection,
     Standard.collection,
     ApiClient.collection,
-    ItemSession.collection,
+    DefaultItemSession.collection,
     User.collection,
     Organization.collection,
     QtiTemplate.collection,

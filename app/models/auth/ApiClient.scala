@@ -18,7 +18,6 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
   val orgId = "orgId"
   val clientId = "clientId"
   val clientSecret = "clientSecret"
-  val username = "username"
 
   val collection = mongoCollection("apiClients")
   val dao = new SalatDAO[ApiClient, ObjectId](collection = collection) {}

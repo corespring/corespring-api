@@ -19,10 +19,8 @@ object RemoteItemRunnerTemplate {
       None
     } else {
       val template: String = Source.fromFile(f).mkString
-      val contents = StringUtils.interpolate(template, replaceKey(tokens), """\$\{([^}]+)\}""".r)
+      val contents = StringUtils.interpolate(template, StringUtils.replaceKey(tokens), StringUtils.DollarRegex)
       Some((Name.replace(".template", ""), contents))
     }
   }
-
-  def replaceKey(tokens: Map[String,String])(s: String): String = tokens.getOrElse(s,"?")
 }

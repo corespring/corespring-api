@@ -50,7 +50,9 @@ ltiChooser.ViewItemController = function ($scope, $rootScope, $routeParams, $loc
 
   $scope.getItemUrl = function(){
     if (!$scope.item ) return null;
-    return WebRoutes.web.controllers.ShowResource.renderDataResource($scope.item.id).url;
+
+    var baseUrl = ServiceLookup.getUrlFor('playerPreview');
+    return baseUrl.replace(":itemId", $scope.item.id);
   };
 
 

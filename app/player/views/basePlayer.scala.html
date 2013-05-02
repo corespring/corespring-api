@@ -1,0 +1,44 @@
+@(params:player.views.models.PlayerParams, additionalScripts: Html, bodyAttributes:String, afterBody : Option[Html] = None)
+
+@cssClass = @{
+if(params.previewEnabled) "assessment-page" else "student-assessment-page"
+}
+<!DOCTYPE html>
+<html ng-app="qti" dimensions-checker>
+<head>
+    <title>@params.itemId</title>
+    @common.views.html.partials.ieEightSupport()
+    @partials.scripts(params.xml)
+
+    <script type="text/javascript">
+        angular.module('qti.services').factory('Config', [function(){
+            return {
+                itemId : "@params.itemId",
+                sessionId : '@params.sessionId.getOrElse("")'
+            }
+        }]);
+    </script>
+
+    @additionalScripts
+
+</head>
+<body @bodyAttributes >
+
+@afterBody.map{ b =>
+ @b
+}
+
+@if( params.previewEnabled ){
+
+@partials.controlBar()
+
+<div class="student-view-header" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">Student View</div>
+} else {
+<br/>
+}
+
+<div class="@cssClass" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">
+    @Html(params.xml)
+</div>
+</body>
+</html>

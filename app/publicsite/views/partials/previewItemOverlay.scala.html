@@ -1,84 +1,11 @@
-<div class="window-overlay" ng-app="item-preview">
+<div class="window-overlay">
     <div class="window" style="top: 50px; display: block;" onclick="var event = arguments[0] || window.event; event.stopPropagation();">
         <a class="focus-dummy" href="#"></a>
-
         <div class="window-wrapper clearfix" style="">
             <div class="clearfix">
-
-                <div ng-controller="PreviewController" >
-
-                <div class="sub-nav" style="position: relative">
-                    <div class="container" style="width: 600px;">
-                        <span class="close-window-button" ng-click="hidePopup()"></span>
-                        <div class="row">
-                            <ul class="nav nav-tabs">
-
-                                <li ng-class="{true: 'active', false:''}[currentPanel=='profile']">
-                                    <a ng-click="changePanel('profile')">Profile</a>
-                                </li>
-
-                                <li ng-class="{true:'active', false:''}[currentPanel=='item']">
-                                    <a ng-click="changePanel('item')">Preview</a>
-                                </li>
-
-                                <li ng-repeat="sm in itemData.supportingMaterials"
-                                    ng-class="{true: 'active', false:''}[currentSm==sm]">
-                                    <a ng-click="changeSupportingMaterialPanel(sm)">{{sm.name}}</a>
-                                </li>
-
-
-                                <li class="prev-print">
-                                    <a class="prev-print" ng-click="printCurrent()" >
-                                        <img src="/assets/images/print.png" alt="Print"/>
-                                    </a>
-                                </li>
-
-                            </ul>
-                        </div>
-                    </div>
+                <div id="preloader" class="preloader" style="height: 600px">
                 </div>
-
-
-                    <div id='itemView' class="preview-container"
-                            ng-show="currentPanel=='item'" >
-
-                        <div id="preloader" class="preloader" style="height: 600px">
-                        </div>
-
-                        <iframe id="itemViewFrame" frameBorder="0"
-                            iframe-auto-height=""
-                            show-when-loaded
-                            hide-when-loaded="#preloader"
-                            style="width: 100%; min-height: 400px; display: none"
-                            scrolling="no"
-                            src="{{itemUrl}}"
-                            > </iframe>
-                    </div>
-
-                    <div id='supportingMaterialView' class="preview-container"
-                         ng-repeat="sm in itemData.supportingMaterials"
-                         ng-show="currentSm==sm">
-
-                        <iframe iframe-auto-height=""
-                                frameBorder="0"
-                                src="{{getSmSrc(sm)}}"
-                                style="width: 100%; min-height: 600px"
-                                scrolling="no"
-                                align="center"
-                                >
-                        </iframe>
-                    </div>
-
-                    <div id='profileView' ng-show="currentPanel=='profile'" class="preview-container">
-                        <div class="container" style="width: 600px; margin-bottom: 50px;" >
-                            @web.views.html.partials._viewItem.corespringData()
-                            @web.views.html.partials._viewItem.history()
-                        </div>
-                    </div>
-
-
-                </div>
-
+                <span profile-player="" id='player' style="display: block; width: 100%; min-height: 400px" item-id="{{previewingId}}" on-item-load="onItemLoad()" style='display: none'/>
             </div>
         </div>
     </div>

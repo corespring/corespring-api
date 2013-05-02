@@ -15,7 +15,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import api.ApiError
 import common.models.json.jerkson.{JerksonReads, JerksonWrites}
 import com.mongodb.casbah.MongoCollection
-import models.itemSession.{ItemSessionSettings, ItemSession}
+import models.itemSession.{DefaultItemSession, ItemSessionSettings, ItemSession}
 
 case class LtiQuestion(itemId: Option[ObjectId],
                        settings: ItemSessionSettings)
@@ -49,7 +49,7 @@ case class LtiQuiz(resourceLinkId: String,
         val session = new ItemSession(
           itemId = question.itemId.get,
           settings = question.settings)
-        ItemSession.save(session)
+        DefaultItemSession.save(session)
 
         val newParticipant = LtiParticipant(
           itemSession = session.id,

@@ -5,11 +5,11 @@ import org.joda.time.DateTime
 import play.api.libs.json._
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
-import controllers.{LogType, InternalError}
+import controllers.{Utils, LogType, InternalError}
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
-import play.api.Play
+import play.api.{Logger, Play}
 import play.api.Play.current
 import scala.xml._
 import qti.processors.FeedbackProcessor
@@ -40,18 +40,87 @@ case class ItemSession(var itemId: ObjectId,
   def isFinished: Boolean = finish.isDefined
 }
 
-object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
-  val itemId = "itemId"
-  val start = "start"
-  val finish = "finish"
-  val responses = "responses"
-  val sessionData = "sessionData"
-  val settings = "settings"
-  val dateModified = "dateModified"
+object ItemSession {
 
-  val collection = mongoCollection("itemsessions")
+  object Keys {
+    val itemId = "itemId"
+    val start = "start"
+    val finish = "finish"
+    val responses = "responses"
+    val sessionData = "sessionData"
+    val settings = "settings"
+    val dateModified = "dateModified"
+  }
+
+  implicit object Writes extends Writes[ItemSession] {
+
+
+    def writes(session: ItemSession): JsValue = {
+
+      val main: Seq[(String, JsValue)] = Seq(
+        "id" -> JsString(session.id.toString),
+        Keys.itemId -> JsString(session.itemId.toString),
+        Keys.responses -> Json.toJson(session.responses),
+        "settings" -> Json.toJson(session.settings)
+      )
+
+      val sessionDataSeq: Seq[(String, JsValue)] = Seq(
+        session.sessionData.map(sd => ("sessionData" -> Json.toJson(sd))),
+        session.dateModified.map(dm => ("dateModified" -> JsNumber(dm.getMillis)))
+      ).flatten
+
+      val startedSeq: Seq[(String, JsValue)] = session.start.map(s => {
+        Seq(Keys.start -> JsNumber(s.getMillis), "isStarted" -> JsBoolean(true))
+      }).getOrElse(Seq())
+
+      val finishSeq: Seq[(String, JsValue)] = session.finish.map(f => {
+        Seq(Keys.finish -> JsNumber(f.getMillis), "isFinished" -> JsBoolean(true))
+      }).getOrElse(Seq())
+
+      JsObject(main ++ sessionDataSeq ++ startedSeq ++ finishSeq)
+    }
+  }
+
+  implicit object Reads extends Reads[ItemSession] {
+
+    import Keys._
+
+    def reads(json: JsValue): ItemSession = {
+
+      val settings = if ((json \ "settings").as[ItemSessionSettings] == null)
+        new ItemSessionSettings()
+      else
+        (json \ "settings").as[ItemSessionSettings]
+
+      ItemSession(
+        itemId = (json \ itemId).asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()),
+        start = (json \ start).asOpt[Long].map(new DateTime(_)),
+        finish = (json \ finish).asOpt[Long].map(new DateTime(_)),
+        responses = (json \ responses).asOpt[Seq[ItemResponse]].getOrElse(Seq()),
+        id = (json \ "id").asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()),
+        settings = settings)
+    }
+  }
+
+}
+
+object PreviewItemSessionCompanion extends ItemSessionCompanion {
+  lazy val fiveMB: Int = 5242880
+
+  def collection = mongoCappedCollection("itemsessionsPreview", fiveMB, Some(1000))
+}
+
+object DefaultItemSession extends ItemSessionCompanion {
+  def collection = mongoCollection("itemsessions") //, 5242880, max = Some(1000))
+}
+
+trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] {
+
+  import ItemSession.Keys._
+
+  def collection: MongoCollection
+
   val dao = new SalatDAO[ItemSession, ObjectId](collection = collection) {}
-
 
   /**
    * @param itemId - create the item session based on this contentId
@@ -70,7 +139,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     }
 
     try {
-      ItemSession.insert(session, collection.writeConcern) match {
+      insert(session, collection.writeConcern) match {
         case Some(_) => Right(session)
         case None => Left(InternalError("error inserting item session", LogType.printFatal))
       }
@@ -102,7 +171,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     case Some(_) => Left(InternalError("ItemSession already started: " + session.id, LogType.printFatal))
     case _ => {
       session.start = Some(new DateTime())
-      ItemSession.save(session)
+      save(session)
       Right(session)
     }
   }
@@ -120,8 +189,10 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
 
   def findMultiple(oids: Seq[ObjectId]): Seq[ItemSession] = {
     val query = MongoDBObject("_id" -> MongoDBObject("$in" -> oids))
-    ItemSession.find(query).toSeq //.map(addExtrasIfFinished(_, addResponses))
+    find(query).toSeq //.map(addExtrasIfFinished(_, addResponses))
   }
+
+  def findItemSessions(id: ObjectId): Seq[ItemSession] = Utils.toSeq(find(MongoDBObject(itemId -> id)))
 
   /**
    * Update the itemSession model - this is not counted as the item being processed.
@@ -154,7 +225,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
    * @return
    */
   private def withDbSession(session: ItemSession)(fn: ((ItemSession) => Either[InternalError, ItemSession])) = {
-    ItemSession.findOneById(session.id) match {
+    findOneById(session.id) match {
       case Some(dbSession) => fn(dbSession)
       case _ => Left(InternalError("can't find item session" + session.id.toString))
     }
@@ -162,8 +233,9 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
 
   private def updateFromDbo(id: ObjectId, dbo: DBObject, additionalProcessing: (ItemSession => Unit) = (s) => ()): Either[InternalError, ItemSession] = {
     try {
-      ItemSession.update(unfinishedSession(id), dbo, false, false, collection.writeConcern)
-      ItemSession.findOneById(id) match {
+      Logger.debug(this + ":: update into : " + this.collection.getFullName())
+      update(unfinishedSession(id), dbo, false, false, collection.writeConcern)
+      findOneById(id) match {
         case Some(session) => {
           additionalProcessing(session)
           Right(session)
@@ -174,6 +246,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
       case e: SalatDAOUpdateError => Left(InternalError("error updating item session: " + e.getMessage, LogType.printFatal))
     }
   }
+
 
   type Score = (Double, Double)
 
@@ -218,7 +291,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
           if (isMaxAttemptsExceeded(u) || isTopScore(score)) {
             u.finish = Some(new DateTime())
             u.dateModified = u.finish
-            ItemSession.save(u)
+            save(u)
           }
 
           //TODO: We need to be careful with session data - you can't persist it
@@ -238,7 +311,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
   def getTotalScore(session: ItemSession): (Double, Double) = {
     require(session.isFinished, "The session isn't finished.")
 
-    val xml = ItemSession.getXmlWithFeedback(session) match {
+    val xml = getXmlWithFeedback(session) match {
       case Left(e) => throw new RuntimeException("Error scoring - can't get xml")
       case Right(x) => x
     }
@@ -262,7 +335,7 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
    * @return
    */
   def get(id: ObjectId): Option[ItemSession] = {
-    ItemSession.findOneById(id) match {
+    findOneById(id) match {
       case Some(session) => Some(addExtrasIfFinished(session, addSessionData, addResponses))
       case _ => None
     }
@@ -291,51 +364,6 @@ object ItemSession extends ModelCompanion[ItemSession, ObjectId] {
     session.responses = Score.scoreResponses(session.responses, QtiItem(xml))
   }
 
-
-  implicit object ItemSessionWrites extends Writes[ItemSession] {
-    def writes(session: ItemSession): JsValue = {
-
-      val main: Seq[(String, JsValue)] = Seq(
-        "id" -> JsString(session.id.toString),
-        itemId -> JsString(session.itemId.toString),
-        responses -> Json.toJson(session.responses),
-        "settings" -> Json.toJson(session.settings)
-      )
-
-      val sessionDataSeq: Seq[(String, JsValue)] = Seq(
-        session.sessionData.map(sd => (sessionData -> Json.toJson(sd))),
-        session.dateModified.map(dm => (dateModified -> JsNumber(dm.getMillis)))
-      ).flatten
-
-      val startedSeq: Seq[(String, JsValue)] = session.start.map(s => {
-        Seq(start -> JsNumber(s.getMillis), "isStarted" -> JsBoolean(true))
-      }).getOrElse(Seq())
-
-      val finishSeq: Seq[(String, JsValue)] = session.finish.map(f => {
-        Seq(finish -> JsNumber(f.getMillis), "isFinished" -> JsBoolean(true))
-      }).getOrElse(Seq())
-
-      JsObject(main ++ sessionDataSeq ++ startedSeq ++ finishSeq)
-    }
-  }
-
-  implicit object ItemSessionReads extends Reads[ItemSession] {
-    def reads(json: JsValue): ItemSession = {
-
-      val settings = if ((json \ "settings").as[ItemSessionSettings] == null)
-        new ItemSessionSettings()
-      else
-        (json \ "settings").as[ItemSessionSettings]
-
-      ItemSession(
-        itemId = (json \ itemId).asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()),
-        start = (json \ start).asOpt[Long].map(new DateTime(_)),
-        finish = (json \ finish).asOpt[Long].map(new DateTime(_)),
-        responses = (json \ responses).asOpt[Seq[ItemResponse]].getOrElse(Seq()),
-        id = (json \ "id").asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()),
-        settings = settings)
-    }
-  }
 
 }
 

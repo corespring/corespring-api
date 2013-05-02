@@ -1,20 +1,20 @@
 package api.v1
 
+import basiclti.export.CCExporter
+import com.mongodb.casbah.commons.MongoDBObject
+import common.controllers.utils.BaseUrl
 import controllers.auth.{Permission, BaseApi}
+import models.item.{Content, Item}
 import org.bson.types.ObjectId
-import scorm.utils.ScormExporter
 import play.api.libs.iteratee.Enumerator
 import play.api.mvc._
-import common.mock._
-import com.mongodb.casbah.commons.MongoDBObject
-import basiclti.export.CCExporter
 import scala.Some
-import play.api.mvc.SimpleResult
-import play.api.mvc.ResponseHeader
-import common.controllers.utils.BaseUrl
-import models.item.{Content, Item}
+import scorm.utils.ScormExporter
+import common.encryption.{AESCrypto, Crypto, EncryptionResult, OrgEncrypter}
+import player.accessControl.models.RenderOptions
+import play.api.libs.json.Json
 
-object ExporterApi extends BaseApi {
+class ExporterApi(encrypter:Crypto) extends BaseApi {
 
   val OctetStream: String = "application/octet-stream"
 
@@ -23,7 +23,16 @@ object ExporterApi extends BaseApi {
    * @param ids - comma delimited list of ids
    */
   def multiItemScorm2004(ids: String) = ApiActionRead{ request =>
-    binaryResultFromIds(ids, request.ctx.organization, ScormExporter.makeMultiScormPackage(_,MockToken,BaseUrl(request)))
+
+    val orgEncrypter = new OrgEncrypter(request.ctx.organization, encrypter)
+    val options : RenderOptions = RenderOptions.ANYTHING
+    orgEncrypter.encrypt(Json.toJson(options).toString()) match {
+      case Some(EncryptionResult(clientId,data)) => {
+        val generatorFn : List[Item] => Array[Byte] = ScormExporter.makeMultiScormPackage(_,BaseUrl(request), clientId, data)
+        binaryResultFromIds(ids, request.ctx.organization, generatorFn )
+      }
+      case _ => BadRequest("Unable to create export package")
+    }
   }
 
 
@@ -67,3 +76,5 @@ object ExporterApi extends BaseApi {
       body = e)
   }
 }
+
+object ExporterApi extends ExporterApi(AESCrypto)

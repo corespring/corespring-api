@@ -1,0 +1,287 @@
+@import 'mixins';
+
+@cs-grey: #dbd9db;
+@cs-green: #80b312;
+@cs-blue: #00acce;
+@cs-dark-grey: #1B1B1B;
+
+@cs-base-color: #80B312;
+@cs-second-color: #00ACCE;
+@cs-neutral-color: #dbd9db;
+@cs-bar-gradient-nudge: 20;
+
+@cs-navbar-color: @cs-neutral-color;
+@cs-subnav-color: darken(@cs-neutral-color, 35%);
+@cs-main-a-color: darken(@cs-base-color, 15%);
+@cs-file-list-bg-color: lighten(@cs-neutral-color, 10%);
+@cs-focus-color: fade( lighten( @cs-base-color, 10%), 80%);
+@cs-btn-success-color: @cs-base-color;
+@cs-btn-primary-color: @cs-second-color;
+
+@cs-file-list-width: 180px;
+@cs-top-bar-height: 40px;
+@cs-subnav-height: 40px;
+@cs-resource-header-height: 5px;
+@cs-preview-width: 500px;
+
+/* nav pills */
+@cs-pills-padding: 5px;
+@cs-pills-bg-color: @cs-base-color;
+@cs-pills-color: #ffffff;
+
+.header-wrap {
+  background: #dbd9db url(../images/header-wrap-home-bg.jpg) center top repeat-x;
+}
+
+.navbar{
+
+  .brand{
+    padding-bottom: 0px;
+    padding-left: 0px;
+  }
+
+  .nav li {
+    list-style: none !important;
+  }
+
+  .nav > li > a {
+    color: lighten( @cs-neutral-color, 50%);
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+
+    &:hover{
+
+      color: lighten( @cs-base-color, 10%);
+    }
+  }
+}
+
+a{
+  color: @cs-main-a-color;
+}
+
+a:hover {
+  color: darken(@cs-main-a-color, 20%);
+}
+
+.file-list li.active ul.dropdown-menu li a {
+  font-weight: normal;
+}
+
+ul.dropdown-menu {
+  min-width: 130px;
+  padding: 2px 0;
+  margin: 2px 0 0;
+
+  li.active{
+    a{
+      font-weight: normal;
+    }
+  }
+  li{
+    padding: 2px;
+
+    a{
+      padding: 2px;
+      font-weight: normal;
+    }
+  }
+}
+
+.navbar-inner {
+  min-height: 40px;
+  padding-right: 20px;
+  padding-left: 20px;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  border-bottom: solid 1px darken(@cs-navbar-color, 60%);
+  background: transparent;
+  box-shadow: none;
+  min-height: 0;
+  background: @cs-dark-grey url(/assets/images/title-wrap-bg-tile-bw.png) repeat;
+  border-bottom: solid 1px @cs-dark-grey;
+  .mixin-simple-box-shadow( #000000, 3px, 30%);
+}
+
+input:focus,
+textarea:focus {
+  border-color: @cs-focus-color;
+  outline: 0;
+  outline: thin dotted \9;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 4px @cs-focus-color;
+  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 4px @cs-focus-color;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 4px  @cs-focus-color;
+}
+
+a:focus,
+.btn:focus,
+input[type="file"]:focus,
+input[type="radio"]:focus,
+input[type="checkbox"]:focus,
+select:focus {
+  outline: auto 5px @cs-focus-color;
+}
+
+
+.nav-tabs > li > a:hover {
+  background-color: lighten(@cs-base-color, 50%);
+}
+
+.sub-nav-lower{
+  top: 39px;
+  padding-top: 40px;
+}
+
+.sub-nav{
+  padding-top: 0px;
+  position: fixed;
+  left: 0px;
+  background-color: @cs-subnav-color;
+  border-bottom: solid 1px darken(@cs-subnav-color, 15%);
+  @top: darken(@cs-subnav-color, 5%);
+  @bottom: darken(@cs-subnav-color, 5% + @cs-bar-gradient-nudge);
+  .mixin-bg-gradient(@bottom, @top);
+
+  border-bottom: solid 1px darken(@cs-subnav-color,20%);
+  height: 40px;
+  width: 100%;
+  .mixin-box-shadow;
+
+  label,
+  input,
+  .control-label {
+    color: lighten(@cs-subnav-color, 25%);
+    float:left;
+  }
+
+  .cb {
+    margin-left: 10px;
+    margin-right: 4px;
+  }
+
+  .nav{
+    margin-bottom: 0px;
+  }
+  .nav > li > a{
+    padding-top: 4px;
+  }
+
+  .container{
+    width: 940px;
+    padding: 6px;
+  }
+
+}
+.navbar {
+  margin-bottom: 0px;
+}
+.nav li a {
+  font-size: 14px;
+}
+.navbar .nav > li > a {
+  color: #FFFFFF;
+  float: none;
+  line-height: 19px;
+  padding: 10px 10px 11px;
+  text-decoration: none;
+  text-shadow: 0px -1px 0px rgba(255, 255, 255, 0.99)!important;
+}
+.nav {
+  list-style: none outside none;
+  margin-bottom: 0px;
+  margin-left: 0px;
+}
+.navbar .nav {
+  float: none;
+  margin: 0px;
+  padding-top: 5px;
+}
+hr {
+  -moz-border-bottom-colors: none;
+  -moz-border-left-colors: none;
+  -moz-border-right-colors: none;
+  -moz-border-top-colors: none;
+  border-color: #EEEEEE -moz-use-text-color #92D400 ! important;
+  border-image: none;
+  border-style: solid none;
+  border-width: 1px 0px;
+  margin: 20px 0px;
+}
+/* print button*/
+.nav li a.prev-print, .nav li a.prev-print:hover {
+  background-color:transparent;
+  border: none;
+}
+.sub-nav .nav li a.prev-print:hover {
+  padding-top:7px !important;
+}
+.sub-nav .nav li a.prev-print:focus {
+  padding-top:8px !important;
+}
+/* CSS FOR PUBLIC SITE FLOAT ITEM PLAYER */
+
+.preview-container {
+  padding-top: 0px;
+}
+div.sub-nav div.container div.row.row {
+  margin-left: 13px;
+}
+/*Size Adjustments for Item Preview & Tabs (& FancyBox) */
+
+/*active tab*/
+.nav-tabs > .active > a, .nav-tabs > .active > a:hover {
+  -moz-border-left-colors: none;
+  -moz-border-right-colors: none;
+  -moz-border-top-colors: none;
+  background-color: #FFFFFF;
+  border-color: #433f43 #433f43 transparent;
+  border-image: none;
+  border-style: solid;
+  border-width: 1px;
+  color: #000000;
+  cursor: default;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-bottom: 0px solid white;
+  padding-bottom: 8px;
+  margin-top:0px;
+  text-decoration:none;
+}
+/* inactive tab */
+.nav-tabs > li > a {
+  background-color: #E1E1E1;
+  border-radius: 4px 4px 0px 0px;
+  border: 1px solid #433f43;
+  color: rgba(0,0,0,0.6);
+  text-shadow: 2px 2px 3px rgba(255,255,255,0.1);
+  font-weight: bold;
+  line-height: 20px;
+  padding-bottom: 6px;
+  padding-top: 8px;
+  margin-top:1px;
+}
+/*hover tabs */
+.nav-tabs > li > a:hover {
+  background-color: #E1E1E1;
+  border-color: #433f43 #433f43 #000;
+  color: rgba(0,0,0,1.0);
+  text-shadow: 2px 2px 3px rgba(255,255,255,0.1);
+  text-decoration:underline;
+}
+.nav-tabs {
+  border-bottom: transparent;
+}
+.sub-nav {
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid #433f43 !important;
+}
+.sub-nav .nav > li > a {
+  padding-top: 6px !important;
+}
+
+
+.nav-tabs > li {
+  list-style: none !important;
+}

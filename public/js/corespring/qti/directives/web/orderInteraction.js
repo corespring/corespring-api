@@ -493,8 +493,6 @@ qtiDirectives.directive("sortable", function () {
                }
             });
 
-
-            console.log(el);
             $(el).sortable({
                 items: 'div:not(:has(div.complete))',
                 stop: function (event, ui) {

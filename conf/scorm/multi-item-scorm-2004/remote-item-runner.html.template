@@ -22,7 +22,7 @@
   }
 
   </style>
-
+  <script src="${corespringDomain}/scorm-player.js?apiClientId=${apiClientId}&options=${options}" type="text/javascript"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
   <script type="text/javascript" src="scormfunctions.js"></script>
   <script type="text/javascript">
@@ -42,7 +42,7 @@
       console.log("cmi.completion_status: " + ScormProcessGetValue("cmi.completion_status"));
       console.log("cmi.success_status: " + ScormProcessGetValue("cmi.success_status"));
       console.log("loading data...")
-      
+
       scoData = loadScoData();
 
       if(scoData.completion_status){
@@ -80,10 +80,10 @@
     function saveScoData(){ ScormProcessSetValue("adl.data.1.store", JSON.stringify(scoData)) }
 
     function getDataAsObject(name) {
-      var data = null; 
+      var data = null;
       try{
         data = JSON.parse(ScormProcessGetValue(name));
-      } catch (e){ 
+      } catch (e){
         // no op
       }
       return data;
@@ -91,22 +91,24 @@
 
   function loadExistingItemSession(itemSessionId){
 
-    if(!launchData.templates.session ) throw "Can't find session url template in launchData"; 
-    
-    var url = launchData.templates.session.replace(":sessionId", itemSessionId);
-    addIframe(url);
+    if(!launchData.templates.session ) throw "Can't find session url template in launchData";
+
+    var options = {
+      sessionId: itemSessionId,
+      mode: "render"
+    }
+    com.corespring.players.ItemPlayer("body", options);
   }
 
   function loadNewItemSession(){
     if(!launchData.templates.item) throw "Can't find item url template in launchData";
 
-    var url = launchData.templates.item.replace(":itemId", launchData.itemId);
-    addIframe(url);
-  }
+    var options = {
+      itemId: launchData.itemId,
+      mode: "administer"
+    }
 
-  function addIframe(url){
-    $("body").html('<iframe id="iframeHolder" frameborder="0" src="'+ url +'"></iframe>'); 
-    iframeWindow = document.getElementById('iframeHolder').contentWindow;
+    com.corespring.players.ItemPlayer("body", options);
   }
 
   function processAnyPendingMessages(){
@@ -150,21 +152,21 @@
     }
     else {
       switch(message.action){
-        case "setValue" : 
+        case "setValue" :
           var root = (message.index !== undefined)? "cmi.interactions." + message.index : "cmi";
           var key = root + "." + message.key;
           ScormProcessSetValue(key, message.value );
           break;
-        case "terminate" : 
+        case "terminate" :
           ScormProcessTerminate();
           break;
-        case "setItemSession" : 
-          scoData["itemSession"] = JSON.parse(message.value); 
+        case "setItemSession" :
+          scoData["itemSession"] = JSON.parse(message.value);
           saveScoData(scoData);
           break;
-        default: 
+        default:
           //do nothing
-          break; 
+          break;
       }
     }
   }

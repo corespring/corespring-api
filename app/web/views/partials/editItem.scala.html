@@ -196,11 +196,10 @@
     <div class="preview" ng-class="previewClassName">
         <div class="inner">
             <a ng-click="refreshPreview()">Refresh</a>
-            &nbsp;&nbsp;
+                &nbsp;&nbsp;
             <a href="{{fullPreviewUrl}}" target="_blank">Preview in new window</a>
 
-            <div class="preview-container">
-                <iframe width="100%" height="100%" ng-src="{{corespringApiUrl}}" />
+            <div class="preview-container" id="item-preview-target">
             </div>
         </div>
     </div>

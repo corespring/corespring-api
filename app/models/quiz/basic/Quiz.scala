@@ -1,7 +1,7 @@
 package models.quiz.basic
 
 import org.bson.types.ObjectId
-import models.itemSession.{ItemSession, ItemSessionSettings}
+import models.itemSession.{DefaultItemSession, ItemSession, ItemSessionSettings}
 import com.novus.salat.dao.{SalatDAO, ModelCompanion}
 import se.radley.plugin.salat._
 import com.mongodb.DBObject
@@ -31,7 +31,7 @@ object Answer {
   implicit object Writes extends Writes[Answer] {
     def writes(a: Answer): JsValue = {
 
-      val maybeSession: Option[ItemSession] = ItemSession.findOneById(a.sessionId)
+      val maybeSession: Option[ItemSession] = DefaultItemSession.findOneById(a.sessionId)
 
       JsObject(Seq(
         "sessionId" -> JsString(a.sessionId.toString),
@@ -52,7 +52,7 @@ object Answer {
   private def calculateScore(maybeSession: Option[ItemSession]): Int = maybeSession match {
     case Some(itemSession) => {
       if (itemSession.isFinished) {
-        val (score, total) = ItemSession.getTotalScore(itemSession)
+        val (score, total) = DefaultItemSession.getTotalScore(itemSession)
         if (score == 0) 0 else ((score / total) * 100).toInt
       } else 0
     }

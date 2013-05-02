@@ -2,12 +2,13 @@ package qti.models.interactions
 
 import xml.{Elem, NodeSeq, Node}
 import qti.models.{QtiItem, ResponseDeclaration}
-import testplayer.views.utils.QtiScriptLoader
 import qti.models.RenderingMode._
 import play.api.Play
 import play.api.Play.current
+import qti.models.interactions.utils.QtiScriptLoader
 import QtiScriptLoader.{jsPathMapping, cssPathMapping, css, script}
 import models.itemSession.{ItemResponseOutcome, ItemResponse}
+import qti.models.interactions.utils.QtiScriptLoader
 
 trait Interaction {
   val responseIdentifier: String

@@ -1,0 +1,106 @@
+@(params: player.views.models.PlayerParams, tab: String)
+
+<!DOCTYPE html>
+<html ng-app='qti' dimensions-checker>
+<head>
+        @common.views.html.partials.ieEightSupport()
+        @partials.scripts(params.xml)
+        <link href="/assets/stylesheets/nav.css" rel="stylesheet"/>
+        <link href="/assets/stylesheets/profile.css" rel="stylesheet"/>
+
+        <script type="text/javascript" src="@player.controllers.routes.Item.jsRoutes"></script>
+
+        <script src="/assets/js/corespring/common/services/Item.js"></script>
+        <script src="/assets/js/corespring/ProfileController.js"></script>
+
+        <script type="text/javascript">
+                angular.module('qti.services').factory('Config', [function(){
+                return {
+                itemId : "@params.itemId",
+                sessionId : "",
+                tab: "@tab"
+                }
+                }]);
+        </script>
+
+        <script src="/assets/js/corespring/qti/controllers/QtiAppController.js"></script>
+
+    </head>
+
+<body>
+
+    <div class="itemProfile">
+        <div ng-controller="ProfileController" >
+
+            @if(tab=="") {
+            <div class="sub-nav" style="position: relative">
+                <div class="container" style="width: 600px;">
+                    <div class="row">
+                        <ul class="nav nav-tabs">
+
+                            <li ng-class="{true: 'active', false:''}[currentPanel=='profile']">
+                                <a ng-click="changePanel('profile')"> Profile </a>
+                            </li>
+
+                            <li ng-class="{true:'active', false:''}[currentPanel=='item']">
+                                <a ng-click="changePanel('item')"> Preview </a>
+                            </li>
+
+                            <li ng-repeat="sm in itemData.supportingMaterials"
+                            ng-class="{true: 'active', false:''}[currentSm==sm]">
+                                <a ng-click="changeSupportingMaterialPanel(sm)">
+                                        {{sm.name}} </a>
+                            </li>
+
+
+                            <li class="prev-print">
+                                <a class="prev-print" ng-click="printCurrent()">
+                                    <img src="/assets/images/print.png" alt="Print"/>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            }
+
+            <div id='itemView' class="iframe-600-centered" ng-show="currentPanel=='item'" ng-controller='QtiAppController' show-when-loaded hide-when-loaded="#preloader">
+                @partials.controlBar()
+                <div class="student-view-header" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">Student View</div>
+                <div class="student-assessment-page" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">
+                    @Html(params.xml)
+                </div>
+
+            </div>
+
+            <div id='supportingMaterialView' class="preview-container" ng-repeat="sm in itemData.supportingMaterials"
+            ng-show="currentSm==sm">
+
+                <iframe iframe-auto-height=""
+                frameBorder="0"
+                src="{{getSmSrc(sm)}}"
+                style="width: 100%; min-height: 600px"
+                scrolling="no"
+                align="center">
+                </iframe>
+            </div>
+
+            <div id='profileView' ng-show="currentPanel=='profile'" class="preview-container">
+                <div class="container" style="width: 100%">
+                    @web.views.html.partials._viewItem.corespringData()
+                    @web.views.html.partials._viewItem.history()
+                </div>
+            </div>
+
+
+
+        </div>
+
+    </div>
+
+
+
+</body>
+
+

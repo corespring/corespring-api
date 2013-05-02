@@ -81,6 +81,10 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
     findOne(query.result())
   }
 
+  def getTokenForOrgById(id:ObjectId) : Option[AccessToken] = {
+    Organization.findOneById(id).map(getTokenForOrg)
+  }
+
   def getTokenForOrg(org:Organization) : AccessToken = {
 
     AccessToken.find(org.id, None) match {

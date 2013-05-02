@@ -1,17 +1,17 @@
 function QtiAppController($scope, $timeout, $location, AssessmentSessionService, Config, MessageBridge) {
 
 
-  $scope.onMessageReceived = function(e){
+  $scope.onMessageReceived = function (e) {
 
     var obj = JSON.parse(e.data);
 
-    if(obj.message === "update"){
+    if (obj.message === "update") {
 
       $scope.originalSettings = angular.copy(obj.settings);
 
-      if($scope.itemSession){
+      if ($scope.itemSession) {
         $scope.itemSession.settings = obj.settings;
-      } else{
+      } else {
         $scope.pendingSettings = obj.settings;
       }
     }
@@ -31,29 +31,30 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
 
   $scope.init = function () {
     $scope.settingsHaveChanged = false;
-    
+
     MessageBridge.sendMessage("parent", { message: "ready"});
 
     var params = {
       itemId: Config.itemId,
       sessionId: Config.sessionId};
 
-    if(Config.token){
+    if (Config.token) {
       params.access_token = Config.token;
     }
 
-    var onItemSessionLoaded = function(data){
-      $scope.itemSession = data;
-      $scope.setUpChangeWatcher();
-      $scope.settingsHaveChanged = false;
-
-      MessageBridge.sendMessage("parent", {message: "itemSessionLoaded", session: $scope.itemSession});
+    var onItemSessionLoaded = function (bridgeMessage) {
+      return function (data) {
+        $scope.itemSession = data;
+        $scope.setUpChangeWatcher();
+        $scope.settingsHaveChanged = false;
+        MessageBridge.sendMessage("parent", {message: bridgeMessage, session: $scope.itemSession});
+      }
     };
 
     if (Config.sessionId === "") {
-      AssessmentSessionService.create(params, {}, onItemSessionLoaded );
+      AssessmentSessionService.create(params, {}, onItemSessionLoaded("itemSessionCreated"));
     } else {
-      AssessmentSessionService.get(params, {}, onItemSessionLoaded );
+      AssessmentSessionService.get(params, {}, onItemSessionLoaded("itemSessionRetrieved"));
     }
 
 
@@ -61,14 +62,13 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
 
       var params = {
         itemId: itemSession.itemId,
-        sessionId: itemSession.id,
-        access_token: Config.token
-     };
+        sessionId: itemSession.id
+      };
 
       AssessmentSessionService.save(params, itemSession, function (data) {
           $scope.itemSession = data;
           onSuccess();
-          if(data && data.isFinished){
+          if (data && data.isFinished) {
             MessageBridge.sendMessage("parent", {message: "sessionCompleted", session: data});
           }
         },
@@ -119,14 +119,16 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
    */
   $scope.reloadItem = function () {
 
-    MessageBridge.sendMessage( "parent",  { message: "update", settings: $scope.itemSession.settings });
+    MessageBridge.sendMessage("parent", { message: "update", settings: $scope.itemSession.settings });
 
     AssessmentSessionService.create({itemId: $scope.itemSession.itemId}, $scope.itemSession, function (data) {
       $scope.reset();
       $scope.$broadcast('unsetSelection');
       $scope.itemSession = data;
 
-      if($scope.pendingSettings){
+      MessageBridge.sendMessage("parent", {message: "itemSessionCreated", session: $scope.itemSession});
+
+      if ($scope.pendingSettings) {
         $scope.itemSession.settings = $scope.pendingSettings;
         $scope.pendingSettings = null;
       }
