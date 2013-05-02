@@ -1,8 +1,4 @@
-import sbt._
-import sbt.Keys._
-
 object Commands {
-
 
   def runJsTests(a: sbt.inc.Analysis) = {
     import scala.sys.process._
