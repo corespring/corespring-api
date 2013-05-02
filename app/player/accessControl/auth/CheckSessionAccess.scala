@@ -1,7 +1,7 @@
 package player.accessControl.auth
 
 import controllers.InternalError
-import models.itemSession.ItemSession
+import models.itemSession.{DefaultItemSession, ItemSession}
 import models.quiz.basic.Quiz
 import org.bson.types.ObjectId
 import play.api.Logger
@@ -16,7 +16,7 @@ object CheckSessionAccess extends CheckSession {
 
   val sessionLookup: SessionItemLookup = new SessionItemLookup {
     def containsItem(id: ObjectId, itemId: ObjectId): Boolean = {
-      ItemSession.findOneById(id) match {
+      DefaultItemSession.findOneById(id) match {
         case Some(s) => s.itemId == itemId
         case _ => false
       }

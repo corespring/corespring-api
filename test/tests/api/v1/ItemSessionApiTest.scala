@@ -20,7 +20,7 @@ import controllers.InternalError
 import scala.Right
 import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.JsObject
-import models.itemSession.{StringItemResponse, ItemSessionSettings, ItemSession}
+import models.itemSession.{DefaultItemSession, StringItemResponse, ItemSessionSettings, ItemSession}
 import utils.RequestCalling
 import play.mvc.Call
 
@@ -217,9 +217,10 @@ class ItemSessionApiTest extends BaseTest{
       FakeAuthHeader,
       AnyContentAsJson(json)
     )
+    import models.itemSession.{DefaultItemSession => IS}
     val result = routeAndCall(getRequest).get
-    ItemSession.remove(newSession)
-    val optQtiItem: Either[InternalError, QtiItem] = ItemSession.getXmlWithFeedback(ItemSession.findOneById(newSession.id).get) match {
+    IS.remove(newSession)
+    val optQtiItem: Either[InternalError, QtiItem] = IS.getXmlWithFeedback(IS.findOneById(newSession.id).get) match {
       case Right(elem) => Right(QtiItem(elem))
       case Left(e) => Left(e)
     }
@@ -324,7 +325,7 @@ class ItemSessionApiTest extends BaseTest{
     }
 
     "support retrieval of an itemsession" in {
-      val dbSession = ItemSession.findOneById(new ObjectId(IDs.ItemSession)).get
+      val dbSession = DefaultItemSession.findOneById(new ObjectId(IDs.ItemSession)).get
       val session = get(IDs.ItemSession, IDs.Item)
       dbSession.id must equalTo(session.id)
       val unequalItems = getUnequalItems(dbSession, session)

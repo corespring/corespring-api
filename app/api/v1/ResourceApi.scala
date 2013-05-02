@@ -5,7 +5,7 @@ import controllers.auth.BaseApi
 import models._
 import item.Item
 import item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
-import itemSession.ItemSession
+import models.itemSession.{DefaultItemSession, ItemSession}
 import org.bson.types.ObjectId
 import controllers.{Utils, ConcreteS3Service, S3Service}
 import com.typesafe.config.ConfigFactory
@@ -229,7 +229,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
                     val vfupdate = update.asInstanceOf[VirtualFile]
                     val vforiginal = f.asInstanceOf[VirtualFile]
                     val diff = Utils.getLevenshteinDistance(vfupdate.content,vforiginal.content)
-                    val sessions = ItemSession.find(MongoDBObject(ItemSession.Keys.itemId -> item.id)).count
+                    val sessions = DefaultItemSession.find(MongoDBObject(ItemSession.Keys.itemId -> item.id)).count
                     if(force || diff == 0.0 || sessions == 0){
                       item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
                       Item.save(item)

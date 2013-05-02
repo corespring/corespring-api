@@ -9,7 +9,7 @@ import controllers.{Utils, LogType, InternalError}
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
-import play.api.Play
+import play.api.{Logger, Play}
 import play.api.Play.current
 import scala.xml._
 import qti.processors.FeedbackProcessor
@@ -40,9 +40,7 @@ case class ItemSession(var itemId: ObjectId,
   def isFinished: Boolean = finish.isDefined
 }
 
-object ItemSession extends ItemSessionCompanion{
-
-  def collection = mongoCollection("itemsessions")
+object ItemSession {
 
   object Keys {
     val itemId = "itemId"
@@ -56,14 +54,13 @@ object ItemSession extends ItemSessionCompanion{
 
   implicit object Writes extends Writes[ItemSession] {
 
-    import Keys._
 
     def writes(session: ItemSession): JsValue = {
 
       val main: Seq[(String, JsValue)] = Seq(
         "id" -> JsString(session.id.toString),
-        itemId -> JsString(session.itemId.toString),
-        responses -> Json.toJson(session.responses),
+        Keys.itemId -> JsString(session.itemId.toString),
+        Keys.responses -> Json.toJson(session.responses),
         "settings" -> Json.toJson(session.settings)
       )
 
@@ -73,11 +70,11 @@ object ItemSession extends ItemSessionCompanion{
       ).flatten
 
       val startedSeq: Seq[(String, JsValue)] = session.start.map(s => {
-        Seq(start -> JsNumber(s.getMillis), "isStarted" -> JsBoolean(true))
+        Seq(Keys.start -> JsNumber(s.getMillis), "isStarted" -> JsBoolean(true))
       }).getOrElse(Seq())
 
       val finishSeq: Seq[(String, JsValue)] = session.finish.map(f => {
-        Seq(finish -> JsNumber(f.getMillis), "isFinished" -> JsBoolean(true))
+        Seq(Keys.finish -> JsNumber(f.getMillis), "isFinished" -> JsBoolean(true))
       }).getOrElse(Seq())
 
       JsObject(main ++ sessionDataSeq ++ startedSeq ++ finishSeq)
@@ -107,11 +104,22 @@ object ItemSession extends ItemSessionCompanion{
 
 }
 
+object PreviewItemSessionCompanion extends ItemSessionCompanion {
+  lazy val fiveMB: Int = 5242880
+
+  def collection = mongoCappedCollection("itemsessionsPreview", fiveMB, Some(1000))
+}
+
+object DefaultItemSession extends ItemSessionCompanion {
+  def collection = mongoCollection("itemsessions") //, 5242880, max = Some(1000))
+}
+
 trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] {
 
   import ItemSession.Keys._
 
-  def collection : MongoCollection// = mongoCollection(collectionName)
+  def collection: MongoCollection
+
   val dao = new SalatDAO[ItemSession, ObjectId](collection = collection) {}
 
   /**
@@ -225,6 +233,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] {
 
   private def updateFromDbo(id: ObjectId, dbo: DBObject, additionalProcessing: (ItemSession => Unit) = (s) => ()): Either[InternalError, ItemSession] = {
     try {
+      Logger.debug(this + ":: update into : " + this.collection.getFullName())
       update(unfinishedSession(id), dbo, false, false, collection.writeConcern)
       findOneById(id) match {
         case Some(session) => {
@@ -237,6 +246,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] {
       case e: SalatDAOUpdateError => Left(InternalError("error updating item session: " + e.getMessage, LogType.printFatal))
     }
   }
+
 
   type Score = (Double, Double)
 

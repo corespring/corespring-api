@@ -15,6 +15,7 @@ import quiz.basic.Quiz
 import scala.Left
 import scala.Right
 import scala.Some
+import ItemSession.{Writes,Reads}
 
 /**
  * API for managing item sessions
@@ -244,7 +245,6 @@ class ItemSessionApi(itemSession: ItemSessionCompanion) extends BaseApi {
         case None => BadRequest(toJson(ApiError.ItemSessionNotFound))
       }
   }
-
 }
 
-object ItemSessionApi extends ItemSessionApi(ItemSession)
+object ItemSessionApi extends ItemSessionApi(DefaultItemSession)

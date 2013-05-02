@@ -3,7 +3,7 @@ package player.controllers
 import api.v1.ItemSessionApi
 import common.controllers.SimpleJsRoutes
 import controllers.auth.TokenizedRequestActionBuilder
-import models.itemSession.ItemSessionCompanion
+import models.itemSession.PreviewItemSessionCompanion
 import org.bson.types.ObjectId
 import play.api.mvc._
 import player.accessControl.auth.CheckSessionAccess
@@ -11,18 +11,11 @@ import player.accessControl.cookies.PlayerCookieReader
 import player.accessControl.models.RequestedAccess
 import player.accessControl.models.RequestedAccess.Mode._
 import scala.Some
-import se.radley.plugin.salat.mongoCappedCollection
-import play.api.Play.current
 
-object PreviewItemSessionCompanion extends ItemSessionCompanion{
-  lazy val fiveMB : Int = 5242880
-  def collection = mongoCappedCollection("itemsessionsPreviewCapped", fiveMB, max = Some(1000))
-}
 
 class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Controller with SimpleJsRoutes with PlayerCookieReader {
 
   val DefaultApi = ItemSessionApi
-
   val PreviewApi = new ItemSessionApi(PreviewItemSessionCompanion)
 
   /** If we are running in preview mode - return the PreviewApi which will store the sessions in a different collection */

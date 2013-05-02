@@ -7,7 +7,7 @@ import models.auth.{ApiClient, AccessToken}
 import com.mongodb.casbah.Imports._
 import models._
 import item.FieldValue
-import itemSession.ItemSession
+import models.itemSession.{DefaultItemSession, ItemSession}
 import scala.Right
 import akka.dispatch.{ExecutionContext, Future, Await}
 import akka.util.duration._
@@ -41,7 +41,7 @@ object SystemCheck extends Controller{
       ApiClient,
       ContentCollection,
       FieldValue,
-      ItemSession,
+      DefaultItemSession,
       Organization,
       Standard,
       Subject,

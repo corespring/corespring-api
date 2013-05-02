@@ -1,6 +1,6 @@
 package tests.player.controllers
 
-import models.itemSession.{ItemSessionCompanion, ItemSession}
+import models.itemSession.{DefaultItemSession, PreviewItemSessionCompanion, ItemSessionCompanion, ItemSession}
 import org.bson.types.ObjectId
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
@@ -9,7 +9,7 @@ import play.api.test.Helpers._
 import play.api.test.{FakeRequest, FakeHeaders}
 import player.accessControl.cookies.PlayerCookieWriter
 import player.accessControl.models.RequestedAccess.Mode._
-import player.controllers.{PreviewItemSessionCompanion, Session}
+import player.controllers.Session
 import tests.PlaySingleton
 
 class SessionTest extends Specification with PlayerCookieWriter {
@@ -38,7 +38,7 @@ class SessionTest extends Specification with PlayerCookieWriter {
       }.getOrElse(if (expectedToBeThere) failure(msg + ": we couldn't find the item") else success)
     }
     check(PreviewItemSessionCompanion, inPreview)
-    check(ItemSession, !inPreview)
+    check(DefaultItemSession, !inPreview)
   }
 
   val session = new Session(new TestBuilder)

@@ -8,7 +8,7 @@ import common.controllers.utils.BaseUrl
 import controllers.auth.BaseApi
 import models.Organization
 import models.auth.ApiClient
-import models.itemSession.{ItemSessionSettings, ItemSession}
+import models.itemSession.{DefaultItemSession, ItemSessionSettings, ItemSession}
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
 import org.bson.types.ObjectId
 import play.Logger
@@ -221,7 +221,7 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
       case Some(quiz) => {
         quiz.participants.find(_.resultSourcedId == resultSourcedId) match {
           case Some(participant) => {
-            ItemSession.findOneById(participant.itemSession) match {
+            DefaultItemSession.findOneById(participant.itemSession) match {
               case Some(session) => Right(session)
               case _ => Left("can't find session")
             }
@@ -321,7 +321,7 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
   }
 
   private def getScore(session: ItemSession): String = {
-    val (score, maxScore) = ItemSession.getTotalScore(session)
+    val (score, maxScore) = DefaultItemSession.getTotalScore(session)
     (score / maxScore).toString
   }
 

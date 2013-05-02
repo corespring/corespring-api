@@ -2,7 +2,7 @@ package basiclti.controllers
 
 import basiclti.models.LtiQuiz
 import common.controllers.AssetResource
-import models.itemSession.ItemSession
+import models.itemSession.{DefaultItemSession, ItemSession}
 import org.bson.types.ObjectId
 import play.api.mvc.Action
 import player.accessControl.auth.{CheckSessionAccess, CheckSession}
@@ -26,7 +26,7 @@ object AssignmentPlayer extends Views(CheckSessionAccess) with AssetResource {
 
       config.participants.find(_.resultSourcedId == resultSourcedId) match {
         case Some(p) => {
-          ItemSession.findOneById(p.itemSession) match {
+          DefaultItemSession.findOneById(p.itemSession) match {
             case Some(session) => {
               config.orgId match {
                 case Some(id) => Right(session)

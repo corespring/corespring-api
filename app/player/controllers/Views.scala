@@ -2,7 +2,7 @@ package player.controllers
 
 import common.controllers.QtiResource
 import controllers.auth.{TokenizedRequestActionBuilder, BaseApi}
-import models.itemSession.ItemSession
+import models.itemSession.{DefaultItemSession, ItemSession}
 import models.quiz.basic.Quiz
 import org.bson.types.ObjectId
 import org.xml.sax.SAXParseException
@@ -29,7 +29,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
   }
 
   def render(sessionId: ObjectId) = {
-    ItemSession.get(sessionId) match {
+    DefaultItemSession.get(sessionId) match {
       case Some(session) => {
         val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Render)
         renderItem(p)
@@ -44,7 +44,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
   }
 
   def administerSession(sessionId: ObjectId) = {
-    ItemSession.get(sessionId) match {
+    DefaultItemSession.get(sessionId) match {
       case Some(session) => {
         val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Administer)
         renderItem(p)

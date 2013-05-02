@@ -9,7 +9,7 @@ import org.bson.types.ObjectId
 import scala.Some
 import controllers.ConcreteS3Service
 import web.controllers.utils.ConfigLoader
-import models.itemSession.ItemSession
+import models.itemSession.{DefaultItemSession, ItemSession}
 
 trait AssetResource {
 
@@ -18,7 +18,7 @@ trait AssetResource {
 
 
   def getDataFileBySessionId(sessionId: String, filename: String) = {
-    ItemSession.findOneById(new ObjectId(sessionId)) match {
+    DefaultItemSession.findOneById(new ObjectId(sessionId)) match {
       case Some(session) => getDataFile(session.itemId.toString, filename)
       case _ => Action(NotFound("sessionId: " + sessionId))
     }
