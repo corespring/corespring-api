@@ -10,6 +10,7 @@ import play.api.mvc._
 import player.accessControl.cookies.PlayerCookieWriter
 import player.accessControl.models.{RenderOptions, RequestedAccess}
 import scala.io.Codec
+import common.config.AppConfig
 
 
 object Application extends Controller with securesocial.core.SecureSocial with PlayerCookieWriter {
@@ -34,7 +35,7 @@ object Application extends Controller with securesocial.core.SecureSocial with P
             .withSession(newSession)
         }
         case _ => {
-          val orgId = new ObjectId(Organization.CORESPRING_ORGANIZATION_ID)
+          val orgId = new ObjectId(AppConfig.demoOrgId)
           val newCookies : Seq[(String,String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(RequestedAccess.Mode.Preview)
           val newSession = sumSession(request.session, newCookies : _*)
 

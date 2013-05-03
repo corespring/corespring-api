@@ -29,6 +29,7 @@ import scala.Right
 import play.api.mvc.SimpleResult
 import play.api.libs.json.JsObject
 import play.api.cache.Cache
+import common.config.AppConfig
 
 object Developer extends Controller with BaseApi{
 
@@ -99,7 +100,8 @@ object Developer extends Controller with BaseApi{
       case Some(user) => {
         val orgs = User.getOrganizations(user,Permission.Read)
         //get the first organization besides the public corespring organization. for now, we assume that the person is only registered to one private organization
-        orgs.find(o => o.id.toString != Organization.CORESPRING_ORGANIZATION_ID) match {
+        //TODO: this doesn't look right - need to discuss a fix for it.
+        orgs.find(o => o.id.toString != AppConfig.demoOrgId) match {
           case Some(o) => Ok(Json.toJson(o))
           case None => NotFound(Json.toJson(ApiError.MissingOrganization))
         }
@@ -127,7 +129,8 @@ object Developer extends Controller with BaseApi{
                 case Right(org) => {
                   User.getUser(request.user.id) match {
                     case Some(user) => {
-                      User.removeOrganization(user.id,new ObjectId(Organization.CORESPRING_ORGANIZATION_ID)) match {
+                      //TODO: Need to fix this - dont' understand why this is being done.
+                      User.removeOrganization(user.id,new ObjectId(AppConfig.demoOrgId)) match {
                         case Right(_) => User.addOrganization(user.id,org.id,Permission.Write) match {
                           case Right(_) => Ok(Json.toJson(org))
                           case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateUser(error.clientOutput)))

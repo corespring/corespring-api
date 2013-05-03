@@ -32,7 +32,6 @@ case class Organization(var name: String = "",
 }
 
 object Organization extends ModelCompanion[Organization,ObjectId] with Searchable{
-  val CORESPRING_ORGANIZATION_ID = "502404dd0364dc35bb39339a"
 
   val name: String = "name"
   val path: String = "path"
