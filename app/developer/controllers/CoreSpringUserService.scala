@@ -41,7 +41,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
     }
   }
 
-  def save(user: SocialUser) {
+  def save(user: Identity) {
     User.getUser(user.id.id, user.id.providerId) match {
       case None =>
         val corespringUser =
@@ -107,6 +107,4 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
       case e:IllegalStateException => //this occurs if the app closes before this is called. should be safe to ignore
     }
   }
-
-  def save(user: Identity) {}
 }
