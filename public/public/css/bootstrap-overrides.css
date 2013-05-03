@@ -929,6 +929,13 @@ img.contributor-logos {
 
 #csvideomodal{
 	width: 592px;
+    outline:none;
+}
+#csvideomodal:hover,
+#csvideomodal:active,
+#csvideomodal:visited
+{
+    outline:none;
 }
 /*
 img.contributor-logos:hover {

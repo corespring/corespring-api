@@ -2,7 +2,81 @@
 <html>
 <head>
 <title>Features</title>
-@partials.headNode()
+
+    @publicsite.head.html.googleAnalytics()
+    @publicsite.head.html.ieShim()
+    @common.views.html.head.ubuntu()
+    @common.views.html.head.coreJs()
+    @common.views.html.head.bootstrap()
+    @common.views.html.head.mathMl()
+    @common.views.html.head.version()
+
+
+    <script type="text/javascript">
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/player_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        function onYouTubePlayerAPIReady() {}
+
+        $(document).ready( function(){
+
+            function onPlayerReady(event) {
+                event.target.playVideo();
+            }
+
+            var player = null;
+
+            var showModal = function(){
+
+                if(!player){
+
+                    player = new YT.Player('youtube-player', {
+                        width: 560,
+                        height: 315,
+                        events: {
+                            'onReady': onPlayerReady
+                        },
+                        playerVars: { 'autoplay': 1, 'controls': 1 },
+                        videoId: "_FU0ol9lWog"
+                    });
+                }
+
+                if(player['playVideo']){
+                    player.playVideo();
+                }
+
+                $('#csvideomodal').modal('show');
+            };
+
+            var hideModal = function(){
+                $('#csvideomodal').modal('hide');
+
+                if(player && player['stopVideo']){
+                  player.stopVideo();
+                }
+            };
+
+            $("#modal-trigger").click(function(){
+              showModal();
+            });
+
+            $("#x-close-modal-trigger").click(function(){
+                hideModal();
+            });
+
+            $("#close-modal-trigger").click(function(){
+                hideModal();
+            });
+        });
+
+
+    </script>
+
+    <link href="/assets/public/css/bootstrap-overrides.css" rel="stylesheet" type="text/css" media="all" />
+    <link href="/assets/stylesheets/public-educators.css" rel="stylesheet"/>
+    <link href="/assets/public/css/educators.css" rel="stylesheet" type="text/css" media="all" />
 </head>
 <body>
 @partials.header("features")
@@ -55,22 +129,25 @@
           <p>As soon as a student completes an item, it is scored and stored and available for analysis. </p>
           <img src="/assets/public/images/app-feedback.png">
           <!-- Includes Button to trigger modal -->
-          <p class="features-link">Check out the application we built using our APIs to show the power of CoreSpring, by<a href="#csvideomodal" role="button" data-toggle="modal"> clicking here.</a></p>
+          <p class="features-link">Check out the application we built using our APIs to show the power of CoreSpring, by<a href="#csvideomodal" id="modal-trigger" role="button"> clicking here.</a></p>
 
           <!-- Modal -->
           <div id="csvideomodal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
               <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                  <button type="button" class="close" id="x-close-modal-trigger" aria-hidden="true">×</button>
                   <h3 id="myModalLabel">CoreSpring Formative Assessment Application</h3>
               </div>
               <div class="modal-body">
-                  <iframe width="560" height="315" src="http://www.youtube.com/embed/_FU0ol9lWog?rel=0" frameborder="0" allowfullscreen></iframe>
+                  <div id="youtube-player"></div>
               </div>
               <div class="modal-footer">
-                  <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                  <button class="btn" id="close-modal-trigger" aria-hidden="true">Close</button>
               </div>
           </div>
       </div>
+
+
+
     <div class="span12 features authoring-banking">
       <div class="ab1">
         <h3>Item Authoring</h3>
