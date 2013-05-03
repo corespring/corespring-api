@@ -105,6 +105,7 @@ object ItemSession {
 }
 
 object PreviewItemSessionCompanion extends ItemSessionCompanion {
+  //Note: using a normal collection because in a capped collection a document's size may not grow beyond its original size.
   def collection = mongoCollection("itemsessionsPreview")
 }
 
