@@ -866,12 +866,6 @@ div.text-box-content {
 .20px-above {
 	padding-top:20px;
 }
-.student-assessment-page, .assessment-page {
-	border: 2px dashed #EAEAEA;
-	margin: 0 auto 20px;
-	padding: 40px 13px 16px;
-	width: 600px;
-}
 .student-assessment-page {
 	border: 0;
 }
@@ -1321,11 +1315,14 @@ content: "";
 clear: both;
 }
 
-.student-assessment-page, .assessment-page {
-border: 2px dashed #EAEAEA;
+.student-assessment-page,
+.assessment-page {
 margin: 0 auto 20px;
 padding: 40px 10px 16px 10px;
 width: 560px;
+}
+.student-assessment-page{
+    border: 2px dashed #EAEAEA;
 }
 
 /*end of resizing*/
