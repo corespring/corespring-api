@@ -107,7 +107,8 @@ object ItemSession {
 object PreviewItemSessionCompanion extends ItemSessionCompanion {
   lazy val fiveMB: Int = 5242880
 
-  def collection = mongoCollection("itemsessionsPreview")
+  def collection = mongoCappedCollection("itemsessionsPreview", fiveMB, Some(1000))
+  //def collection = mongoCollection("itemsessionsPreview")
 }
 
 object DefaultItemSession extends ItemSessionCompanion {
