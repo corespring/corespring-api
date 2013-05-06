@@ -7,6 +7,7 @@ import play.api.Play.current
 import se.radley.plugin.salat._
 import models.mongoContext._
 import controllers.auth.Permission
+import common.encryption.ShaHash
 
 
 /**
@@ -29,6 +30,14 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
    * @return an Option[ApiClient]
    */
   def findByIdAndSecret(id: String, secret: String): Option[ApiClient] = {
+//    findByKey(id) match {
+//      case Some(apiClient) => {
+//        val hash = ShaHash.sign(apiClient.clientId.toString,apiClient.clientSecret)
+//        if (signature == hash) Some(apiClient)
+//        else None
+//      }
+//      case None => None
+//    }
     val idsObj = MongoDBObject(clientId -> new ObjectId(id), clientSecret -> secret)
     findOne(idsObj)
   }
