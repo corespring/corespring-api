@@ -389,6 +389,13 @@ th.title{
       min-width: @min-width;
       left: 0px;
 
+      .error{
+        text-align: center;
+        width: 100%;
+        margin: 0 auto;
+        padding: 4px;
+      }
+
       .lti-iframe-preview {
         position: absolute;
         width: 100%;
@@ -402,6 +409,9 @@ th.title{
         padding: 0 15px 0 0px;
       }
 
+      .lti-iframe-preview.error {
+        top: 30px;
+      }
     }
   }
 

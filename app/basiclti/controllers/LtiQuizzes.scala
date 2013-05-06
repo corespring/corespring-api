@@ -41,7 +41,7 @@ class LtiQuizzes(auth:ValidateQuizIdAndOrgId[OrgRequest[AnyContent]]) extends Co
         case Some(cfg) if (id != cfg.id) => BadRequest("the json id doesn't match the url id")
         case Some(cfg) => {
           models.LtiQuiz.update(cfg, request.orgId) match {
-            case Left(e) => BadRequest("Error updating")
+            case Left(e) => BadRequest(e.message)
             case Right(updatedConfig) => Ok(toJson(updatedConfig))
           }
         }
