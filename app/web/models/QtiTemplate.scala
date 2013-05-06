@@ -20,6 +20,7 @@ case class QtiTemplate(
 
 
 object QtiTemplate extends ModelCompanion[QtiTemplate, ObjectId] {
+  //Note - use def so that we don't get Mongo connection closed errors from Salat.
   def collection = se.radley.plugin.salat.mongoCollection("templates")
 
   def dao = new SalatDAO[QtiTemplate, ObjectId](collection = collection) {}
