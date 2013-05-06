@@ -1,6 +1,5 @@
 package tests.player.controllers
 
-import org.bson.types.ObjectId
 import org.specs2.execute.{Result => SpecsResult}
 import org.specs2.mutable.Specification
 import play.api.mvc._
