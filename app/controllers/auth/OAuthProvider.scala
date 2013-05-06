@@ -53,11 +53,11 @@ object OAuthProvider {
    * @param scope If specified this must be a username.  Using the scope parameter allows the caller to ghost a user.
    * @return The AccessToken or ApiError if something went wrong
    */
-  def getAccessToken(grantType: String, clientId: String, clientSignature: String, scope: Option[String] = None): Either[ApiError, AccessToken] = {
+  def getAccessToken(grantType: String, clientId: String, clientSignature: String, algorithm:String, scope: Option[String] = None): Either[ApiError, AccessToken] = {
     grantType match {
       case OAuthConstants.ClientCredentials =>
         // check we got valid credentials first
-        ApiClient.findByIdAndSecret(clientId, clientSignature).map(
+        ApiClient.findBySignature(grantType,clientId,clientSignature,algorithm,scope).map(
         {
           client =>
           //todo: if a user if specified check that it exists and is visible for the caller

@@ -15,6 +15,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import org.joda.time.DateTime
 import se.radley.plugin.salat.SalatPlugin
 import developer.models.RegistrationToken
+import common.config.AppConfig
 
 /**
  * An implementation of the UserService
@@ -55,10 +56,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
             false,
             new ObjectId())
 
-        // hardcode this org id for now?
-        val corespringId = new ObjectId("502404dd0364dc35bb39339a")
-
-        User.insertUser(corespringUser, corespringId, Permission.Read, checkOrgId = false)
+        User.insertUser(corespringUser, AppConfig.corespringOrgId, Permission.Read, checkOrgId = false)
 
       case Some(existingUser) =>
         existingUser.password = user.passwordInfo.getOrElse(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = "")).password

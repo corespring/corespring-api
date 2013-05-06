@@ -7,7 +7,6 @@
     <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
     <link href="bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" media="all"/>
     <link href="/assets/public/css/bootstrap-overrides.css" rel="stylesheet" type="text/css" media="all">
-    <link href="css/html_highlight.css" rel="stylesheet" type="text/css" media="all"/>
 
     <!--
     <link href="css/app.css" rel="stylesheet" type="text/css" media="all" />
@@ -24,6 +23,8 @@
     <script type="text/javascript" src="js/vendor/waypoint/waypoints.js"></script>
     <script type="text/javascript" src="js/corespring/directives.js"></script>
     <script type="text/javascript" src="js/corespring/app.js"></script>
+    <!--hmac-sha1 used to create api client signature to retrieve access token-->
+    <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/hmac-sha1.js"></script>
 
     <script type="text/javascript">
 
@@ -160,9 +161,9 @@
 
                             <div class="nav-collapse">
                                 <ul class="nav">
-                                    <li><a id="features-nav" href="/public/features">features</a></li>
-                                    <li><a id="partner-nav" href="/public/partnerships">partnerships</a></li>
+                                    <li><a id="edu-nav" href="/public/educators">Educators</a></li>
                                     <li><a id="dev-nav" class="active" href="/developer/home">developers</a></li>
+                                    <li><a id="partner-nav" href="/public/partnerships">partnerships</a></li>
                                     <li><a id="about-nav" href="/public/about">about</a></li>
                                     <li><a id="contact-nav" href="/public/contact">contact</a></li>
                                 </ul>

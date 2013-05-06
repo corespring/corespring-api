@@ -63,13 +63,8 @@ h2 {
          margin: 10px 0;
         text-rendering: optimizelegibility;
 }
-
- h4 {
-
-    margin: 20px 0 10px;
-    text-rendering: optimizelegibility;
-}
 p {
+  margin: 0 0 20px;
   font-weight: 300;
 }
 code,
@@ -128,7 +123,7 @@ padding:8px 2px !important;
   text-shadow:none;
   padding-top: 5px;
   padding-bottom: 5px;
-  padding-left: 20px;
+  padding-left: 11px;
 }
 .nav li a.main-menu:hover {
     background: none repeat scroll 0 0 transparent;
@@ -170,7 +165,7 @@ text-shadow: none;
   border-bottom: 1px solid #535353;
 }
 #accordianHolder {
-  padding-left: 20px;
+  padding-left: 12px;
 }
 #accordianHolder .header {
   padding-top: 8px;
@@ -204,8 +199,7 @@ text-shadow: none;
 }
 .main-content hr {
   margin: 0px;
-  margin-bottom: 15px;
-  margin-top: 15px;
+  margin-bottom: 4px;
 }
 blockquote {
   padding: 0 0 0 10px;

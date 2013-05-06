@@ -7,7 +7,6 @@
     <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
     <link href="bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" media="all"/>
     <link href="/assets/public/css/bootstrap-overrides.css" rel="stylesheet" type="text/css" media="all">
-    <link href="css/html_highlight.css" rel="stylesheet" type="text/css" media="all"/>
 
     <!--
     <link href="css/app.css" rel="stylesheet" type="text/css" media="all" />
@@ -24,6 +23,8 @@
     <script type="text/javascript" src="js/vendor/waypoint/waypoints.js"></script>
     <script type="text/javascript" src="js/corespring/directives.js"></script>
     <script type="text/javascript" src="js/corespring/app.js"></script>
+    <!--hmac-sha1 used to create api client signature to retrieve access token-->
+    <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/hmac-sha1.js"></script>
 
     <script type="text/javascript">
 
@@ -160,9 +161,9 @@
 
                             <div class="nav-collapse">
                                 <ul class="nav">
-                                    <li><a id="features-nav" href="/public/features">features</a></li>
-                                    <li><a id="partner-nav" href="/public/partnerships">partnerships</a></li>
+                                    <li><a id="edu-nav" href="/public/educators">Educators</a></li>
                                     <li><a id="dev-nav" class="active" href="/developer/home">developers</a></li>
+                                    <li><a id="partner-nav" href="/public/partnerships">partnerships</a></li>
                                     <li><a id="about-nav" href="/public/about">about</a></li>
                                     <li><a id="contact-nav" href="/public/contact">contact</a></li>
                                 </ul>
@@ -192,30 +193,6 @@
   <li><a href="#integration" class="main-menu">Integration</a></li>
 </ul>
 <ul class="nav nav-list">
-  <li class="nav-header" style="color: white;">CoreSpring Item Player</li>
-</ul>
-<ul class="nav nav-list">
-  <li><a href="#the-corespring-item-player" class="main-menu">Overview</a></li>
-</ul>
-<ul class="nav nav-list">
-  <li><a href="#loading-the-corespring-item-player" class="main-menu">Loading the Player</a></li>
-</ul>
-<ul class="nav nav-list">
-  <li><a href="#player-options" class="main-menu">Player Options</a></li>
-</ul>
-<ul class="nav nav-list">
-  <li><a href="#player-modes" class="main-menu">Player Modes</a></li>
-</ul>
-<ul class="nav nav-list">
-  <li><a href="#encrypting-player-options" class="main-menu">Encrypting Player Options</a></li>
-</ul>
-<ul class="nav nav-list">
-  <li><a href="#advanced-options" class="main-menu">Advanced Options</a></li>
-</ul>
-<ul class="nav nav-list">
-  <li><a href="#road-map" class="main-menu">Road Map</a></li>
-</ul>
-<ul class="nav nav-list">
   <li class="nav-header" style="color: white;">Rest Api</li>
 </ul>
 <div id="accordianHolder">
@@ -235,7 +212,7 @@ Authentication
 </div>
 </div>
 </div>
-<div>
+<div >
 <div class="header">
 <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordianHolder" href="#accItems">
 Items
@@ -334,7 +311,8 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <h1>Overview</h1>
 
-<blockquote><p><a target="_top" href="mailto:developers@corespring.org">Get in touch</a> to be notified about our releases.</p></blockquote>
+<blockquote><p>CoreSpring Platform 1.0 will be released in Spring 2013.
+<a target="_top" href="mailto:developers@corespring.org">Get in touch</a> to be notified about our releases.</p></blockquote>
 
 <h2><a name="corespring-platform" class="waypoint"></a> CoreSpring Platform </h2>
 
@@ -346,7 +324,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <p>Items have also have a student view - which is how the Item appears to the student when they are 'taking' the item.</p>
 
-<p>The CoreSpring Item Player is launched from the 3rd party system using a javascript component provided by CoreSpring and it handles the user interaction with the item. When the interaction is complete, the outcome of the user's interaction with the item is stored in the CoreSpring Platform (this interaction data is called an Item Session.) This data is then made available to the calling system at a REST URL, or is posted back to the client via a callback.</p>
+<p>The CoreSpring Item Player is launched from the 3rd party system (typically in a frame/iFrame) and it handles the user interaction with the item. When the interaction is complete, the outcome of the user's interaction with the item is stored in the CoreSpring Platform (this interaction data is called an Item Session.) This data is then made available to the calling system at a REST URL, or is posted back to the client via a callback.</p>
 
 <p>You can see some examples of items and our Item Player <a href="/public/educators">here</a>.</p>
 
@@ -362,7 +340,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <p>CoreSpring maintains and curates a set of content collections of content which will be made available to all organizations. When you register as a developer Organization you will have access to these collections.</p>
 
-<blockquote><p>*Content creation and publishing is a feature of CoreSpring that is not yet publicly released. <a target="_top" href="mailto:developers@corespring.org">Get in touch</a> to be notified about our releases.</p></blockquote>
+<blockquote><p>*Content creation and publishing is a feature of CoreSpring that will be introduced after our initial 1.0 release</p></blockquote>
 
 <h1><a name="integration" class="waypoint"></a>Integration</h1>
 
@@ -376,7 +354,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <p>If you are maintaining or implementing a system that supports LTI (Learning Tools Interopability) standards, then this may be the simplest option for you, and may not require writing any custom code on your system.</p>
 
-<p>If you are not implementing LTI, or just want more power and flexibility in how you integrate with CoreSpring. A direct integration using our APIs and Item Player can be implemented. You can of course combine both options.</p>
+<p>If you are not implementing LTI, or just want more power and flexibility in how you integrate with CoreSpring. A direct integration using our APIs can be implemented. You can of course combine both options.</p>
 
 <h2><a name="integration-lti" class="waypoint"></a> LTI Integration</h2>
 
@@ -419,13 +397,33 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 <br/>
 
 
+<blockquote><p>We have released some <a href="https://github.com/corespring/example-app">sample code</a> on Github that demonstrates these steps in Ruby and Node.js</p></blockquote>
+
 <p><strong>Finding an Item</strong></p>
 
 <p>You can use our REST/JSON API to find items, and or render the results of searching to your users. See the API documentation below or look at the sample code for information on finding items.</p>
 
 <p><strong>Launching the Item Player</strong></p>
 
-<p>See the section <a href="#the-corespring-item-player">below</a> about the Item Player for instructions on how to launch the Item Player.</p>
+<p>You can launch an item for an instructor to preview by adding your auth token to the following url:</p>
+
+<blockquote><p>/testplayer/item/{itemId}/run</p></blockquote>
+
+<p>Once you have an item which you want to deliver to a student, you can configure some settings for the item and launch the Item Player to deliver the interaction UI. Each individual interaction with an Item is called an Item Session, and data about the settings and outcomes of that session are persisted on the CoreSpring Platform.</p>
+
+<p>To launch an Item for a student, you first create an Item Session by making a POST call to the url:</p>
+
+<blockquote><p>/items/:itemId/sessions</p></blockquote>
+
+<p>An Item Session will be returned in the response with a unique identifier property 'id', you then launch the item delivery view by putting this Item Session id in the following URL:</p>
+
+<blockquote><p>/testplayer/session/{sessionId}/run?access_token={your_token}</p></blockquote>
+
+<p><strong>Configuring Settings for the Item Sesion</strong></p>
+
+<p>In the POST call to create an Item Session you can pass a property called "settings" that determines some settings for runtime behavior of the session.</p>
+
+<p>See the API documentaiton for <a href="#item-session-create">creating an item session</a>.</p>
 
 <p><strong>Accessing the Outcomes</strong></p>
 
@@ -433,285 +431,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <blockquote><p>GET /items/{itemId}/sessions/{sessionId}</p></blockquote>
 
-<h1><a name="the-corespring-item-player" class="waypoint"></a>The CoreSpring Item Player</h1>
-
-<p>CoreSpring provides an Item Player to render student/teacher interactions with items. The player can be embedded within any web page. The items are hosted on the CoreSpring platform and the owners of the items have complete control over how they are accessed.</p>
-
-<p>CoreSpring provides curated collections of publicly available items aligned to the common core that can be used by any registered developer.</p>
-
-<h2><a name="loading-the-corespring-item-player" class="waypoint"></a>Loading the CoreSpring Item Player</h2>
-
-<p>To use the CoreSpring Item Player, you need to load the Item Player javascript component from corespring.org and initiate the player when the page is ready.</p>
-
-<p>Example:</p>
-
-<div class="highlight"><pre><code class="html">    <span class="nt">&lt;html&gt;</span>
-      <span class="nt">&lt;head&gt;</span>
-        <span class="nt">&lt;script </span>
-<span class="nt">          </span><span class="na">src=</span><span class="s">&quot;https://www.corespring.org/players/item-player.js?apiClientId=${apiClientId}&amp;options=${options}&quot;</span> 
-          <span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span><span class="nt">&gt;</span>
-
-        <span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
-          <span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
-              <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">org</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;cs-item-player&#39;</span><span class="p">);</span>
-           <span class="p">});</span>
-        <span class="nt">&lt;/script&gt;</span>
-      <span class="nt">&lt;/head&gt;</span>
-      <span class="nt">&lt;body&gt;</span>
-        <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&#39;cs-item-player&#39;</span><span class="nt">&gt;</span>
-      <span class="nt">&lt;/body&gt;</span>
-     <span class="nt">&lt;/html&gt;</span>
-</code></pre>
-</div>
-
-
-<p>You include the url for the CoreSpring Item Player url in the <code>&lt;src&gt;</code> tag.
-There are 2 parameters that you must pass to the url in the query string.</p>
-
-<ol>
-<li><p>API Client Id--The Client Id that you generated for your organization when you registered with CoreSpring.</p></li>
-<li><p>Options--Some options for running the player.</p></li>
-</ol>
-
-
-<h2><a name="player-options" class="waypoint"></a>Player Options</h2>
-
-<p>The options determine in what mode you wish to view the player, what items should be viewable, with what settings, and for how long. The options are also encrypted, and provide the authorization a browser needs to launch the player.</p>
-
-<h3>Available Options</h3>
-
-<p>You must specify a mode. Allowed values are "preview", "render", "administer", or "aggregate".</p>
-
-<p>You must also specify a time when the provided options key will expire. This is provided in "Unix time": seconds from 1970-01-01T00:00:00Z UTC.</p>
-
-<p><em>(Depending on the mode you must also pass in some additional variables. See section below)</em></p>
-
-<h2><a name="player-modes" class="waypoint"></a>Player Modes</h2>
-
-<hr />
-
-<h4>Preview Mode</h4>
-
-<p>This mode allows an educator to interact with the item and see how it would appear to a student. The outcome of the interaction will not be saved.</p>
-
-<h5>Options</h5>
-
-<div>
-<json-highlight>
-    {
-      "mode" : "preview",
-      "itemId" : "1",
-      "expires": "1366216268" 
-    }
-</json-highlight>
-</div>
-
-
-<ul>
-<li><strong>expires</strong> =  Seconds since Epoch (UTC)</li>
-</ul>
-
-
-<hr />
-
-<h4>Render Mode</h4>
-
-<p>Render mode displays an existing Item Session: It shows one user's response to the questions in a given item. There are different roles for viewing the response; for example, a student could be reviewing his or her own work, or an educator could be reviewing a student's work.</p>
-
-<h5>Options</h5>
-
-<div>
-<json-highlight>
-
-    {
-      "mode" : "render",
-      "sessionId" : "1", 
-      "expires": "1366216268",
-      "role" : "instructor" 
-    }
-
-</json-highlight>
-</div>
-
-
-<ul>
-<li><strong>role</strong> is optional. The default is "student", if set to instructor the correct response will always be highlighted for completed session</li>
-</ul>
-
-
-<hr />
-
-<h4>Administer Mode</h4>
-
-<p>Administer mode enables a student to "take" the item: i.e., answer the question(s) contained within it.</p>
-
-<p>You can launch the player by pointing to an Item Session you created with the REST API, or by launching the player in administer mode with just an Item Id; in the latter case, a new Item Session will be automatically created and the id will be sent to a callback method on the client.</p>
-
-<h5>Options</h5>
-
-<div>
-<json-highlight>
-
-    {
-      "mode" : "administer",
-      "sessionId" : "1",
-      "itemId" : "1", 
-      "expires": "1366216268"
-    }
-
-</json-highlight>
-</div>
-
-
-<ul>
-<li><strong>sessionId</strong> - passed only if we should use an existing item session that is not yet completed</li>
-<li><strong>itemId</strong> - passed if a new session should be created (new session id will be returned in callback - see advanced options below)</li>
-</ul>
-
-
-<hr />
-
-<h4>Aggregate Mode</h4>
-
-<blockquote><p>This mode is in private beta but will be made available as we roll out our aggregate views for a variety of interaction types.</p></blockquote>
-
-<p>In aggregate mode, the player renders the interactions in the item with aggregated/averaged information for a set of responses from a group of participants for a given assessmentId. For example, if 30 students "take" an item with a multiple choice interaction, the player will show what percentage of the students selected a particular choice in the set.</p>
-
-<h5>Options</h5>
-
-<div>
-<json-highlight>
-    {
-      "mode" : "aggregate",
-      "itemId": "1",
-      "assessmentId" : "1",
-      "expires": "1366216268"
-    }
-</json-highlight>
-</div>
-
-
-<h2><a name="encrypting-player-options" class="waypoint"></a>Encrypting the Player Options</h2>
-
-<p>To use the Item Player, you need to encrypt the player options. This allows access to api calls from an unknown browser without exposing any sensitive data relating to your organization--for example, your access token.</p>
-
-<h4>Prerequisites</h4>
-
-<ul>
-<li>You have registered as a developer.</li>
-<li>You have your "Client ID" and "Client Secret" (these are assigned when you register as a developer).</li>
-</ul>
-
-
-<h4>Encrypting Options Using CoreSpring REST API</h4>
-
-<p>You can encrypt the options by making a call to the CoreSpring REST API.
-To call the api, you will need to pass an access token which you can retrieve with your Client Id and Client Secret. See the REST API <a href="#authentication-register">documentation</a> for how to make REST API calls to CoreSpring.</p>
-
-<blockquote><p>Note: You should make this call from your server code, not in a user's browser.</p></blockquote>
-
-<p>Example:</p>
-
-<pre><code>POST /api/v1/item-player/options
-{
-  /* your options here */
-}
-
-RESPONSE:
-200 OK
-U2FsdGVkX19QrTAwaoeIypkJ2CjF+5TK+Oji5/X+ExV7wfTEIvpKYJBdP9NziW0iPxoSt9dPQaYN0OQs6D1pzg==
-</code></pre>
-
-<h4>Encrypting Options in Your Code</h4>
-
-<p>You may also encrypt the player options in your own (server-side) code: Simply encode the JSON formatted options string with AES encryption using your Client Secret as the key.</p>
-
-<blockquote><p>Note: if the key you generate is not in the ascii charset, you should urlencode the key before adding it to the query parameter when loading the player.</p></blockquote>
-
-<h2><a name="advanced-options" class="waypoint"></a>Advanced Options</h2>
-
-<h3>Wildcard Options</h3>
-
-<p>If you prefer not to create an options parameter each time you launch the item player, you may create an options key with "wildcard" properties, and then override which mode/item/session to view with query parameters passed in the URL that loads the player.</p>
-
-<p>The properties that can be set to wildcards in options keys are:</p>
-
-<ul>
-<li><strong>itemId</strong> - if set to "*" then key will work for any itemId passed in query string</li>
-<li><strong>sessionId</strong> - if set to "*" then key will work for any sessionId passed in query string</li>
-<li><strong>mode</strong> - if set to "*" then key will work for any mode passed in query string</li>
-<li><strong>expires</strong> - if set to "0" then the key will never expire</li>
-</ul>
-
-
-<p>Example:</p>
-
-<div>
-<json-highlight>
-    {
-      "itemId": "*", 
-      "sessionId": "*", 
-      "mode": "*",
-      "expires": "0" 
-    }
-</json-highlight>
-</div>
-
-
-<p>If itemId, itemSessionId, or mode are set as "wildcards" in the option key, then specific values may be specified in the query parameters:</p>
-
-<pre><code>https://www.corespring.org/players/item-player.js?apiClientId=${apiClientId}&amp;options=${EncryptedOptions}&amp;itemId=1&amp;mode=render
-</code></pre>
-
-<h3>Registering Callbacks with Player</h3>
-
-<p>The Item Player allows you to define some callback functions in your javascript code that will be executed by the player.</p>
-
-<p>For example, in administer mode, two callbacks itemSessionStart(sessionId) and itemSessionComplete(sessionId) will be called.</p>
-
-<p>Example:</p>
-
-<div class="highlight"><pre><code class="javascript">    <span class="kd">var</span> <span class="nx">itemSessionId</span> <span class="o">=</span> <span class="kc">undefined</span><span class="p">;</span>
-    <span class="kd">var</span> <span class="nx">itemPlayerConfig</span> <span class="o">=</span> <span class="p">{};</span>
-    <span class="nx">itemPlayerConfig</span><span class="p">.</span><span class="nx">itemSessionStart</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">sessionId</span><span class="p">)</span> <span class="p">{</span>
-      <span class="nx">itemSessionId</span> <span class="o">=</span> <span class="nx">sessionId</span><span class="p">;</span>
-    <span class="p">}</span>
-
-
-    <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span>
-      <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;cs-item-player&#39;</span><span class="p">),</span> 
-      <span class="nx">itemPlayerConfig</span><span class="p">);</span>
-</code></pre>
-</div>
-
-
-<h3>Callbacks</h3>
-
-<p>All Modes:</p>
-
-<ul>
-<li><strong>error(message)</strong>: called if an error occurs while executing the player, with a message describing the error</li>
-</ul>
-
-
-<p>Administer Mode:</p>
-
-<ul>
-<li><strong>itemSessionStart(itemSessionId)</strong>: called when a new item session is started, passes the item session id</li>
-<li><strong>itemSessionComplete(itemSessionId)</strong>: called when a new item session is completed, passes the item session id</li>
-</ul>
-
-
-<h2><a name="road-map" class="waypoint"></a>Road Map</h2>
-
-<p>The following features are on the road map for implementation with the Item Player:</p>
-
-<ul>
-<li>Ability to provide callback URL to which Item Session data can be posted to on completion</li>
-<li>Documentation for launching the player and receiving outcomes with LTI1 &amp; LTI2</li>
-<li>Delivery of outcome to Tin Can/Experience API LRS</li>
-</ul>
-
+<p>Please see the <a href="https://github.com/corespring/example-app">sample code</a> on Github for a demonstration of how above steps work.</p>
 
 <h1>REST API</h1>
 
@@ -735,7 +455,18 @@ The interactive API widget is pre-configured to use this access token but you ca
 
 <h2><a name="authentication-get-token" class="waypoint"></a> Getting an Access Token</h2>
 
-<p>Once you have <a href="/developer/register">registered</a> and have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL. You can access the authorization url to receive your auth token using the widget below.</p>
+<p>Once you have <a href="/developer/register">registered</a> and have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL. The authorization requires two paramaters: a client id and client signature. The client id is the <code>client_id</code> you received from registering. The signature is a HmacSHA1 hash value where the key is the <code>client_secret</code> you received from registering. The message part is a utf-8 character encoded string of the form <code>[grant_type]:[client_id]:[algorithm]</code>. Where grant_type must be "client_credentials", client_id is the client id you received from registering, and algorithm is "HmacSHA1". The following javascript code is an example of signature generation using the <a href="https://code.google.com/p/crypto-js"> crypto-js library</a>.</p>
+
+<pre><code>/*
+* Here it is assumed that clientId and clientSecret are retrieved elsewhere from registering
+*/
+var signature = CryptoJS.HmacSHA1(
+  "client_credentials:"+clientId+":HmacSHA1",
+  clientSecret
+)
+</code></pre>
+
+<p>You can access the authorization url to receive your auth token using the widget below.</p>
 
 <br/>
 
@@ -746,7 +477,7 @@ The interactive API widget is pre-configured to use this access token but you ca
     disabled="false"
     disabled-message="currently disabled to ensure the fixture data stays in the correct state"
     path="/auth/access_token"
-    form-params="client_id=client_id&client_secret=client_secret"
+    form-params="client_id=client_id&client_signature=client_signature"
     url="/auth/access_token">
   </rest-widget>
 </div>
@@ -1500,7 +1231,7 @@ wanted to display only itemType and sort alphabetically in ascending order:</p>
 
 <hr />
 
-<p>date:  04/25/2013 04:46PM</p>
+<p>date:  05/06/2013 06:32PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">

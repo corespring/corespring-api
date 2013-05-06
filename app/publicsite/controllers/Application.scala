@@ -35,7 +35,7 @@ object Application extends Controller with securesocial.core.SecureSocial with P
             .withSession(newSession)
         }
         case _ => {
-          val orgId = new ObjectId(AppConfig.demoOrgId)
+          val orgId = AppConfig.demoOrgId
           val newCookies : Seq[(String,String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(RequestedAccess.Mode.Preview)
           val newSession = sumSession(request.session, newCookies : _*)
 

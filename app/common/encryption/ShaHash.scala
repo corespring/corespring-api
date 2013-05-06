@@ -25,10 +25,7 @@ object ShaHash {
     }
     newKey
   }
-  def sign(message:String, privateKey:String):String = {
-    val raw = stripKeyPadding(BigInt(privateKey,KEY_RADIX).toByteArray)
-    sign(message,raw)
-  }
+  def sign(message:String, privateKey:String):String = sign(message,privateKey.getBytes)
   /**
    * Signs the given String with HMAC-SHA1 using the given key.
    */

@@ -109,7 +109,7 @@ object MyRegistration extends Controller {
                   }
                   case Left(error) => Left(error)
                 }
-                case None => User.insertUser(user, new ObjectId(AppConfig.demoOrgId), Permission.Read, false)
+                case None => User.insertUser(user, AppConfig.demoOrgId, Permission.Read, false)
               }) match {
                 case Right(dbuser) => {
                   val socialUser = SocialUser(
