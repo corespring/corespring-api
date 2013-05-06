@@ -20,8 +20,10 @@ case class QtiTemplate(
 
 
 object QtiTemplate extends ModelCompanion[QtiTemplate, ObjectId] {
-  val collection = se.radley.plugin.salat.mongoCollection("templates")
-  val dao = new SalatDAO[QtiTemplate, ObjectId](collection = collection) {}
+  //Note - use def so that we don't get Mongo connection closed errors from Salat.
+  def collection = se.radley.plugin.salat.mongoCollection("templates")
+
+  def dao = new SalatDAO[QtiTemplate, ObjectId](collection = collection) {}
 
 
   implicit object QtiTemplateWrites extends Writes[QtiTemplate] {

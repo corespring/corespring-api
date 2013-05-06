@@ -1,12 +1,11 @@
 package tests.basiclti.models
 
-import org.specs2.mutable.Specification
 import basiclti.models._
-import org.bson.types.ObjectId
-import tests.{BaseTest}
 import models.itemSession.ItemSessionSettings
+import org.bson.types.ObjectId
+import tests.BaseTest
 
-class LtiLaunchConfigurationTest extends BaseTest{
+class LtiQuizTest extends BaseTest{
 
   "launch config" should {
 
@@ -38,6 +37,26 @@ class LtiLaunchConfigurationTest extends BaseTest{
       LtiQuiz.insert(config)
       LtiQuiz.canUpdate(config, config.orgId.get) === true
       LtiQuiz.canUpdate(config, new ObjectId()) === false
+    }
+
+    "can't update the settings if somebody has participated with an item" in {
+
+      val config = new LtiQuiz("1",
+        LtiQuestion(Some(new ObjectId()), ItemSessionSettings()),
+        Seq(),
+        orgId = Some(new ObjectId())
+      )
+      LtiQuiz.insert(config)
+      LtiQuiz.canUpdate(config, config.orgId.get) === true
+      val maybeUpdate = LtiQuiz.update(config.copy(participants = Seq(LtiParticipant(new ObjectId(), "", "", ""))), config.orgId.get)
+      maybeUpdate.isRight === true
+      val updatedQuiz : LtiQuiz = maybeUpdate.right.get
+
+      val newSettings = updatedQuiz.question.settings.copy(maxNoOfAttempts = 2323)
+      val newQuestion = updatedQuiz.question.copy(settings = newSettings)
+      val newQuiz = updatedQuiz.copy(question = newQuestion)
+      val maybeUpdateTwo = LtiQuiz.update(newQuiz, newQuiz.orgId.get)
+      maybeUpdateTwo.isLeft === true
     }
 
     "can't remove itemId if the config has assignments" in {

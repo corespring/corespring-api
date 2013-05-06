@@ -156,10 +156,9 @@ function LtiChooserController($scope, $rootScope, $location, LaunchConfigService
     LaunchConfigService.save({id: $scope.quiz.id}, $scope.quiz, function (data) {
       $scope.quiz = data;
       if (onSaveCompleteCallback) onSaveCompleteCallback();
-    }, function(error){
+    }, function (error) {
       console.log(error);
-      alert("An error occurred saving your config, please try again");
-      $scope.quiz.question.itemId = null;
+      $rootScope.errorMessage = error.data ? error.data : "An error occurred saving your config, please try again";
     });
   };
 
