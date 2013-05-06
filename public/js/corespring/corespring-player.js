@@ -34,7 +34,8 @@
     NEED_EMBEDDING_ELEMENT: 3,
     INVALID_PLAYER_LOCATION: 4,
     NEED_JQUERY: 5,
-    UNKNOWN_MODE: 6
+    UNKNOWN_MODE: 6,
+    MULTIPLE_ELEMENTS : 7
   };
 
   function addDimensionChangeListener(element) {
@@ -58,6 +59,12 @@
 
   }
 
+  var isValidMode = function(m){
+    if(!m) return false;
+
+    return ["preview","administer","render","aggregate"].indexOf(m) !== -1;
+  };
+
   var iframePlayerStrategy = function (e, options) {
     e.html("<iframe src='" + options.corespringUrl + "' style='width: 100%; height: 100%; border: none'></iframe>");
     e.width(options.width ? options.width : "600px");
@@ -76,6 +83,18 @@
     e.find('iframe').load(onLoadCallback);
   };
 
+  /**
+   * Construct a new ItemPlayer
+   * @param element - a jquery style identifier of a single element (eg: #my-div)
+   * @param options - the options object
+   *    - At a minimum you must specify a mode and the relevant ids for that mode:
+   *      - preview: itemId
+   *      - render: sessionId
+   *      - administer: itemId or sessionId
+   *      - aggregate: assessmentId and itemId
+   *
+   * @param errorCallback - a function that handles any player errors. The error object has the form: {code: _, msg: _}
+   */
   com.corespring.players.ItemPlayer = function (element, options, errorCallback) {
 
     var addSessionListener = function (message, callback, dataHandler) {
@@ -110,8 +129,14 @@
 
     var e = $(element);
 
+
     if (!e) {
       error("Container element not found.", codes.NEED_EMBEDDING_ELEMENT);
+      return;
+    }
+
+    if(e.length !== 1){
+      error("Container element must be unique", codes.MULTIPLE_ELEMENTS);
       return;
     }
 
@@ -120,20 +145,20 @@
       return;
     }
 
-    if (!options.mode) {
-      error("Need a launch mode", codes.NEED_MODE);
+    if (!isValidMode(options.mode)) {
+      error("Need a valid launch mode", codes.NEED_MODE);
       return;
     }
 
-    if (options.onItemSessionCreated) {
+    if (options.onItemSessionCreated && options.mode === "administer") {
       addSessionListener("itemSessionCreated", options.onItemSessionCreated);
     }
 
-    if (options.onItemSessionRetrieved) {
+    if (options.onItemSessionRetrieved && options.mode === "administer") {
       addSessionListener("itemSessionRetrieved", options.onItemSessionRetrieved);
     }
 
-    if (options.onItemSessionCompleted) {
+    if (options.onItemSessionCompleted && options.mode === "administer") {
       addSessionListener("sessionCompleted", options.onItemSessionCompleted);
     }
 
@@ -154,7 +179,7 @@
           template += com.corespring.players.config.paths.aggregate;
           break;
         default :
-          error("Unknown mode", errors.UNKNOWN_MODE);
+          error("Unknown mode", errors.NEED_MODE);
           break;
       }
       return template

@@ -3,11 +3,24 @@ describe('CoreSpringPlayer', function () {
 
   var myDiv;
 
+
   beforeEach(function () {
     myDiv = $('<div id="myDiv"></div>');
   });
 
   describe("initialization", function () {
+
+    it("throws an error if there are 2 elements matching the identifier",function(){
+
+      var multipleDivs = $('<div id="myDiv"></div><div id="myDiv"></div>');
+      this.errorFn = function (e) {
+        expect(e.code).toBe(com.corespring.players.errors.MULTIPLE_ELEMENTS);
+      };
+
+      spyOn(this, "errorFn").andCallThrough();
+      new com.corespring.players.ItemPlayer(multipleDivs, {}, this.errorFn);
+      expect(this.errorFn).toHaveBeenCalled();
+    });
 
     it("needs options", function () {
       this.errorFn = function (e) {
@@ -27,6 +40,14 @@ describe('CoreSpringPlayer', function () {
       expect(this.errorFn).toHaveBeenCalled();
     });
 
+    it("needs a valid mode", function(){
+      this.errorFn = function (e) {
+        expect(e.code).toBe(com.corespring.players.errors.NEED_MODE);
+      };
+      spyOn(this, "errorFn").andCallThrough();
+      new com.corespring.players.ItemPlayer(myDiv, {mode: "banana"}, this.errorFn);
+      expect(this.errorFn).toHaveBeenCalled();
+    });
 
     it("needs session id or item id", function () {
       this.errorFn = function (e) {
@@ -73,36 +94,29 @@ describe('CoreSpringPlayer', function () {
       expect(myDiv).toHaveCss({"height":"500px"});
     });
 
-    it("item session created gets called", function () {
-      var created = false;
-      var createdFn = function() { created = true; }
+    var callbackIsTriggered = function(callbackName, messageId){
+      var called = false;
+      var callbackFn= function() { called = true; };
       runs(function() {
-        new com.corespring.players.ItemPlayer(myDiv, {mode: 'render', onItemSessionCreated: createdFn, sessionId: "something", width: "500px", height: "500px"});
+        var options = {mode: 'administer', sessionId: "something", width: "500px", height: "500px"};
+        options[callbackName] = callbackFn;
+        new com.corespring.players.ItemPlayer(myDiv,  options);
       });
-      waitsFor(function() {return created; }, 100);
-      window.postMessage('{"message":"itemSessionCreated", "session":"something"}',"*");
+      waitsFor(function() {return called; }, 100);
+      window.postMessage('{"message":"'+messageId+'", "session":"something"}',"*");
+    };
+
+    it("item session created gets called", function () {
+      callbackIsTriggered("onItemSessionCreated", "itemSessionCreated");
     });
 
     it("item session completed gets triggered by item session retrieved", function () {
-      var completed = false;
-      var completedFn = function() { completed = true; }
-      runs(function() {
-        new com.corespring.players.ItemPlayer(myDiv, {mode: 'render', onItemSessionRetrieved: completedFn, sessionId: "something", width: "500px", height: "500px"});
-      });
-      waitsFor(function() { return completed; }, 100);
-      window.postMessage('{"message":"itemSessionRetrieved", "session":"something"}',"*");
+      callbackIsTriggered("onItemSessionRetrieved", "itemSessionRetrieved");
     });
 
     it("item session completed gets triggered by item session completed", function () {
-      var completed = false;
-      var completedFn = function() { completed = true; }
-      runs(function() {
-        new com.corespring.players.ItemPlayer(myDiv, {mode: 'render', onItemSessionCompleted: completedFn, sessionId: "something", width: "500px", height: "500px"});
-      });
-      waitsFor(function() { return completed; }, 100);
-      window.postMessage('{"message":"sessionCompleted", "session":"something"}',"*");
+      callbackIsTriggered("onItemSessionCompleted", "sessionCompleted");
     });
-
 
   });
 
