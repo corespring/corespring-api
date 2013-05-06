@@ -16,11 +16,6 @@
  */
 function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, ServiceLookup) {
 
-  //private methods
-  function tokenize(url) {
-    return url;
-  }
-
   $scope.selectedFileImageUrl = '/assets/images/empty.png';
   $scope.showEditor = false;
   $scope.previewVisible = false;
@@ -213,7 +208,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     }
 
     $http({
-      url: tokenize($scope.urls.updateFile.replace("{filename}", filename)),
+      url: $scope.urls.updateFile.replace("{filename}", filename),
       method: "PUT",
       data: file
     }).success(function (data, status, headers, config) {
@@ -246,7 +241,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
 
 
     $http({
-      url: tokenize($scope.urls.deleteFile.replace("{filename}", f.name)),
+      url: $scope.urls.deleteFile.replace("{filename}", f.name),
       method: "DELETE"
     }).success(function (data, status, headers, config) {
         $scope.resource.files.removeItem(f);
@@ -280,7 +275,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     if (file == null) {
       throw "ItemController:calculateUploadUrl - the file is null"
     }
-    return tokenize($scope.urls.uploadFile.replace("{filename}", file.name));
+    return $scope.urls.uploadFile.replace("{filename}", file.name);
   };
 
   $scope.onFileUploadCompleted = function (result) {
@@ -327,7 +322,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     };
 
     $http({
-      url: tokenize($scope.urls.createFile),
+      url: $scope.urls.createFile,
       method: "POST",
       data: newVirtualFile
     }).success(function (data, status, headers, config) {
