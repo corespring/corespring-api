@@ -34,8 +34,7 @@
     NEED_EMBEDDING_ELEMENT: 3,
     INVALID_PLAYER_LOCATION: 4,
     NEED_JQUERY: 5,
-    UNKNOWN_MODE: 6,
-    MULTIPLE_ELEMENTS : 7
+    MULTIPLE_ELEMENTS : 6
   };
 
   function addDimensionChangeListener(element) {
