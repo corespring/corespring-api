@@ -66,7 +66,7 @@ function up() {
   db.content.find().forEach(function(item) {
     var changed = false;
     for (k in mapping) {
-      if (item.taskInfo.itemType == k) {
+      if (item.taskInfo && item.taskInfo.itemType == k) {
         item.taskInfo.itemType = mapping[k];
         changed = true;
       }
@@ -82,7 +82,7 @@ function down() {
   db.content.find().forEach(function(item) {
     var changed = false;
     for (k in mapping) {
-      if (item.taskInfo.itemType == mapping[k]) {
+      if (item.taskInfo && item.taskInfo.itemType == mapping[k]) {
         item.taskInfo.itemType = k;
         changed = true;
       }
