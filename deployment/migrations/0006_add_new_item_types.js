@@ -60,9 +60,12 @@ var mapping = {
 };
 
 function up() {
-  var it = db.fieldValues.find()[0];
-  it.itemTypes = itemTypes;
-  db.fieldValues.save(it);
+  var count = db.fieldValues.count();
+  db.fieldValues.find().limit(count-1).forEach(function(el) { db.fieldValues.remove(el); });
+  db.fieldValues.find().forEach(function(it) {
+    it.itemTypes = itemTypes;
+    db.fieldValues.save(it);
+  });
   db.content.find().forEach(function(item) {
     var changed = false;
     for (k in mapping) {
@@ -76,9 +79,10 @@ function up() {
 }
 
 function down() {
-  var it = db.fieldValues.find()[0];
-  it.itemTypes = oldItemTypes;
-  db.fieldValues.save(it);
+  db.fieldValues.find().forEach(function(it) {
+    it.itemTypes = oldItemTypes;
+    db.fieldValues.save(it);
+  });
   db.content.find().forEach(function(item) {
     var changed = false;
     for (k in mapping) {
@@ -90,3 +94,5 @@ function down() {
     if (changed) db.content.save(item);
   });
 }
+
+up();
