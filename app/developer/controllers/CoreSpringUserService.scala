@@ -56,7 +56,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
             false,
             new ObjectId())
 
-        User.insertUser(corespringUser, AppConfig.corespringOrgId, Permission.Read, checkOrgId = false)
+        User.insertUser(corespringUser, AppConfig.demoOrgId, Permission.Read, checkOrgId = false)
 
       case Some(existingUser) =>
         existingUser.password = user.passwordInfo.getOrElse(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = "")).password
