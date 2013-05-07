@@ -94,5 +94,3 @@ function down() {
     if (changed) db.content.save(item);
   });
 }
-
-up();
