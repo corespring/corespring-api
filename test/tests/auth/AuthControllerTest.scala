@@ -15,6 +15,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import play.api.mvc.AnyContentAsFormUrlEncoded
+import common.encryption.ShaHash
 
 class AuthControllerTest extends BaseTest {
 
@@ -93,9 +94,13 @@ class AuthControllerTest extends BaseTest {
   }
 
   def tokenFormBody(id: String, secret: String, username: String, grantType: Option[String] = None): Array[(String, String)] = {
+    val signature = ShaHash.sign(
+      OAuthConstants.ClientCredentials+":"+id+":"+OAuthConstants.Sha1Hash+":"+username,
+      secret
+    )
     val base = Array(
       (OAuthConstants.ClientId -> id),
-      (OAuthConstants.ClientSecret -> secret),
+      (OAuthConstants.ClientSignature -> signature),
       (OAuthConstants.Scope -> username))
     base ++ grantType.map((OAuthConstants.GrantType -> _))
   }
@@ -189,34 +194,34 @@ class AuthControllerTest extends BaseTest {
       })
   }
 
-//  "can retrieve auth token using client id and secret" in {
-//    withOrg(testOrg, registerAndGetAccessTokenAndAssertStatus(Some(OAuthConstants.ClientCredentials)))
-//  }
-//
-//  "can retrieve auth token using client id and secret without sending grant type" in {
-//    withOrg(testOrg, registerAndGetAccessTokenAndAssertStatus())
-//  }
-//
-//  "can use auth token to retrieve list of organizations" in {
-//    val resultFn = {
-//      org: Organization =>
-//        withUser(testUser, org.id, Permission.Write, {
-//          user =>
-//            withRegistration(org.id, Some(user), {
-//              (id, secret) =>
-//                withToken(user, id, secret, {
-//                  token =>
-//                    val OrgRoutes = api.v1.routes.OrganizationApi
-//                    val call = OrgRoutes.list()
-//                    val orgRequest = FakeRequest(call.method, (call.url + "?access_token=%s").format(token))
-//                    routeAndCall(orgRequest) match {
-//                      case Some(result) => status(result) === OK
-//                      case _ => failure
-//                    }
-//                })
-//            })
-//        })
-//    }
-//    withOrg(testOrg, resultFn)
-//  }
+  "can retrieve auth token using client id and secret" in {
+    withOrg(testOrg, registerAndGetAccessTokenAndAssertStatus(Some(OAuthConstants.ClientCredentials)))
+  }
+
+  "can retrieve auth token using client id and secret without sending grant type" in {
+    withOrg(testOrg, registerAndGetAccessTokenAndAssertStatus())
+  }
+
+  "can use auth token to retrieve list of organizations" in {
+    val resultFn = {
+      org: Organization =>
+        withUser(testUser, org.id, Permission.Write, {
+          user =>
+            withRegistration(org.id, Some(user), {
+              (id, secret) =>
+                withToken(user, id, secret, {
+                  token =>
+                    val OrgRoutes = api.v1.routes.OrganizationApi
+                    val call = OrgRoutes.list()
+                    val orgRequest = FakeRequest(call.method, (call.url + "?access_token=%s").format(token))
+                    routeAndCall(orgRequest) match {
+                      case Some(result) => status(result) === OK
+                      case _ => failure
+                    }
+                })
+            })
+        })
+    }
+    withOrg(testOrg, resultFn)
+  }
 }
