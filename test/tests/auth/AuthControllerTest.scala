@@ -188,35 +188,4 @@ class AuthControllerTest extends BaseTest {
           })
       })
   }
-
-//  "can retrieve auth token using client id and secret" in {
-//    withOrg(testOrg, registerAndGetAccessTokenAndAssertStatus(Some(OAuthConstants.ClientCredentials)))
-//  }
-//
-//  "can retrieve auth token using client id and secret without sending grant type" in {
-//    withOrg(testOrg, registerAndGetAccessTokenAndAssertStatus())
-//  }
-//
-//  "can use auth token to retrieve list of organizations" in {
-//    val resultFn = {
-//      org: Organization =>
-//        withUser(testUser, org.id, Permission.Write, {
-//          user =>
-//            withRegistration(org.id, Some(user), {
-//              (id, secret) =>
-//                withToken(user, id, secret, {
-//                  token =>
-//                    val OrgRoutes = api.v1.routes.OrganizationApi
-//                    val call = OrgRoutes.list()
-//                    val orgRequest = FakeRequest(call.method, (call.url + "?access_token=%s").format(token))
-//                    routeAndCall(orgRequest) match {
-//                      case Some(result) => status(result) === OK
-//                      case _ => failure
-//                    }
-//                })
-//            })
-//        })
-//    }
-//    withOrg(testOrg, resultFn)
-//  }
 }
