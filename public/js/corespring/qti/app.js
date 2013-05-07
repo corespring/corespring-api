@@ -40,6 +40,14 @@ qtiDirectives.directive('assessmentitem', function($rootScope) {
                 if (!newValue) {
                     return;
                 }
+
+                // We trigger MathML for possible math blocks feedbacks
+                $timeout(function () {
+                  if (typeof(MathJax) != "undefined") {
+                    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                  }
+                }, 10);
+
                 itemId = newValue.itemId;
                 sessionId = newValue.id;
 

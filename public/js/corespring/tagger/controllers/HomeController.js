@@ -21,6 +21,9 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     var defaultsFactory = new com.corespring.model.Defaults();
     $scope.gradeLevelDataProvider = defaultsFactory.buildNgDataProvider("gradeLevels");
     $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider("itemTypes");
+    $scope.flatItemTypeDataProvied = _.map(_.flatten(_.pluck($scope.itemTypeDataProvider, 'label')), function(e) {
+      return {key: e, label: e};
+    });
     $scope.statuses = [
       {label: "Setup", key: "setup"},
       {label: "Tagged", key: "tagged"},

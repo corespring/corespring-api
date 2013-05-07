@@ -128,7 +128,9 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       return;
     }
     var foundType = _.find($scope.itemData.$itemTypeDataProvider, function (d) {
-      return d.value == type
+      return _.find(d.value, function(e) {
+        return e == type;
+      });
     });
 
     if (!foundType) {
