@@ -12,7 +12,7 @@ qtiDirectives.directive("extendedtextinteraction", function (QtiUtils) {
 
       scope.controller = AssessmentItemController;
       scope.rows = 4; // default # of rows
-      scope.cols = 60; // default # of cols
+      scope.cols = attrs.cols || 60; // default # of cols
       if (attrs.expectedlines) {
         scope.rows = attrs.expectedlines;
       }
