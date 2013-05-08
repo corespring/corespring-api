@@ -133,7 +133,7 @@
     "itemTypes":[
         {
             "key":"Fixed Choice",
-            "value":["Multiple Choice","Multi-Multi Choice","Visual Multi Choice","Inline Choice","Ordering (Simple Placement)"]
+            "value":["Multiple Choice","Multi-Multi Choice","Visual Multi Choice","Inline Choice","Ordering"]
         },
         {
             "key":"Constructed Response",
@@ -141,7 +141,7 @@
         },
         {
             "key":"Evidence",
-            "value":["Select Evidence in Text","Document Based Question","Passage With Question"]
+            "value":["Select Evidence in Text","Document Based Question","Passage With Questions"]
         },
         {
             "key":"Composite",
