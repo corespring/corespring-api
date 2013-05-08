@@ -89,19 +89,19 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
 
 
   $scope.search = function () {
-    if ($scope.searchParams) {
-      if (_.find($scope.searchParams.itemType, function(e) {
-        return e.label == "Other"
-      })) {
-        $scope.searchParams.notSelectedItemTypes = [];
-        _.each($scope.flatItemTypeDataProvied, function(e) {
-          var isSelected = _.find($scope.searchParams.itemType, function(f) {
-            return e.label == f.label;
-          });
-          if (!isSelected)
-            $scope.searchParams.notSelectedItemTypes.push(e);
+    var isOtherSelected = $scope.searchParams && _.find($scope.searchParams.itemType, function (e) {
+      return e.label == "Other"
+    });
+
+    if (isOtherSelected) {
+      $scope.searchParams.notSelectedItemTypes = [];
+      _.each($scope.flatItemTypeDataProvied, function (e) {
+        var isSelected = _.find($scope.searchParams.itemType, function (f) {
+          return e.label == f.label;
         });
-      }
+        if (!isSelected)
+          $scope.searchParams.notSelectedItemTypes.push(e);
+      });
     }
     SearchService.search($scope.searchParams, function (res) {
       $rootScope.items = res;
