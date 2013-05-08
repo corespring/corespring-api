@@ -8,7 +8,7 @@ if(params.previewEnabled) "assessment-page" else "student-assessment-page"
 <head>
     <title>@params.itemId</title>
     @common.views.html.partials.ieEightSupport()
-    @partials.scripts(params.xml)
+    @partials.scripts(params.xml, new qti.models.interactions.utils.ScriptLoader(params.xml))
 
     <script type="text/javascript">
         angular.module('qti.services').factory('Config', [function(){

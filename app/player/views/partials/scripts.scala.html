@@ -1,4 +1,4 @@
-@(itemBody:String)
+@(itemBody:String, qtiAssetLoader : qti.models.interactions.utils.QtiAssetsLoader)
 
 @import qti.models.interactions.utils.QtiScriptLoader
 
@@ -10,10 +10,31 @@
 
 <script type="text/javascript" src="@player.controllers.routes.Session.jsRoutes"></script>
 
-<script src="/assets/js/corespring/qti/app.js"></script>
-<script src="/assets/js/corespring/qti/qtiServices.js"></script>
-<script src="/assets/js/corespring/qti/directives/DimensionsChecker.js"></script>
-<script src="/assets/js/corespring/qti/directives/feedbackInline.js"></script>
-<script src="/assets/js/corespring/qti/prototype.extensions/Array.js"></script>
+@com.ee.assets.Loader.scripts(
+  "js/corespring/qti/app.js",
+  "js/corespring/qti/qtiServices.js",
+  "js/corespring/qti/directives/DimensionsChecker.js",
+  "js/corespring/qti/directives/feedbackInline.js",
+  "js/corespring/qti/prototype.extensions/Array.js"
+)
 
-@Html(QtiScriptLoader.load( itemBody ))
+@com.ee.assets.Loader.scripts( qtiAssetLoader.localJsPaths : _*)
+
+<!-- qti - remote js -->
+@qtiAssetLoader.remoteJsPaths.map{ p =>
+<script src="@p" type="text/javascript"></script>
+}
+<!-- end qti - remote js -->
+
+<!-- qti - local css -->
+@qtiAssetLoader.localCssPaths.filter(qti.models.interactions.utils.FileExistChecker.exists).map{ p =>
+   <link rel="stylesheet" type="text/css" href="/assets/@p"/>
+}
+<!-- end qti - local css -->
+
+<!-- Default Css -->
+@Html(common.controllers.DefaultCss.DEFAULT_CSS)
+<!-- End default css -->
+
+
+<!-- Html(QtiScriptLoader.load( itemBody )) -->

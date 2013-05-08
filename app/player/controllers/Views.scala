@@ -57,7 +57,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
 
     Quiz.findOneById(assessmentId) match {
       case Some(id) => {
-        def renderAggregatePlayer(assessmentId: ObjectId)(p: PlayerParams) = player.views.html.aggregatePlayer(p.itemId.get, p.xml, assessmentId.toString)
+        def renderAggregatePlayer(assessmentId: ObjectId)(p: PlayerParams) = player.views.html.aggregatePlayer(p, assessmentId.toString)
         val p = RenderParams(
           itemId = itemId,
           assessmentId = Some(assessmentId),
