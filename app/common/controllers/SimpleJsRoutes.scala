@@ -1,7 +1,8 @@
 package common.controllers
 
+import common.utils.string
 import play.core.Router.JavascriptReverseRoute
-import common.utils.string.StringUtils
+
 
 trait SimpleJsRoutes {
 
@@ -22,7 +23,7 @@ trait SimpleJsRoutes {
       val split = jsr.name.split("\\.").toList
       val shortName = split.last
       val tokens = Map("functionName" -> shortName, "functionBody" -> jsr.f)
-      StringUtils.interpolate("routesObject.${functionName} = ${functionBody}\n", StringUtils.replaceKey(tokens), StringUtils.DollarRegex)
+      string.interpolate("routesObject.${functionName} = ${functionBody}\n", string.replaceKey(tokens), string.DollarRegex)
     }
 
     val test =
@@ -51,7 +52,7 @@ trait SimpleJsRoutes {
        })();
       """
       val tokens = Map("routeObjectName" -> objectName, "functionsList" -> routes.map(process).mkString("\n"))
-      StringUtils.interpolate(test, StringUtils.replaceKey(tokens), StringUtils.DollarRegex)
+      string.interpolate(test, string.replaceKey(tokens), string.DollarRegex)
 
   }
 }

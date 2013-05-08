@@ -2,6 +2,8 @@ package player.controllers
 
 import common.controllers.AssetResource
 import common.controllers.utils.BaseUrl
+import common.encryption.{Crypto, AESCrypto}
+import common.utils.string
 import models.auth.ApiClient
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -9,8 +11,7 @@ import play.api.{Logger, Play}
 import player.accessControl.cookies.PlayerCookieWriter
 import player.accessControl.models.RenderOptions
 import scala.Some
-import common.encryption.{Crypto, AESCrypto}
-import common.utils.string.StringUtils
+
 
 class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller with AssetResource with PlayerCookieWriter {
 
@@ -94,7 +95,7 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller
   }
 
 
-  private def createJsFromTemplate(template: String, tokens: Map[String, String]): String = StringUtils.interpolate(template, StringUtils.replaceKey(tokens), StringUtils.DollarRegex)
+  private def createJsFromTemplate(template: String, tokens: Map[String, String]): String = string.interpolate(template, string.replaceKey(tokens), string.DollarRegex)
 
 }
 

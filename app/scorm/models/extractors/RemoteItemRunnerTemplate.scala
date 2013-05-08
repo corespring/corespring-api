@@ -1,9 +1,9 @@
 package scorm.models.extractors
 
+import common.utils.string
 import java.io.File
 import scala.io.Source
-import common.mock._
-import common.utils.string.StringUtils
+
 
 /**
  * Extractor for the RemoteItem runner html file that gets bundled into the scorm package
@@ -20,7 +20,7 @@ object RemoteItemRunnerTemplate {
       None
     } else {
       val template: String = Source.fromFile(f).mkString
-      val contents = StringUtils.interpolate(template, StringUtils.replaceKey(tokens), StringUtils.DollarRegex)
+      val contents = string.interpolate(template, string.replaceKey(tokens), string.DollarRegex)
       Some((Name.replace(".template", ""), contents))
     }
   }

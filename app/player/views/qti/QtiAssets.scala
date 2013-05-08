@@ -35,6 +35,11 @@ abstract class BaseQtiAssets(jsRootPath: String, cssRootPath:String, seedConfig:
     fn(keys, resolver)
   }
 
+  /** Build a new Config that adds configs for any key that isn't in the seed config.
+    * Use the default settings for these keys - aka use the key name as the js file name.
+    * @param keys - the keys found in the Qti xml that need assets delivered
+    * @return the new config
+    */
   private def addDefaultsForOtherKeys(keys: Seq[String]): QtiAssetsConfig = {
     val keysNotInSeedConfig = keys.filterNot(k => seedConfig.assets.exists(_.name == k))
     val assets = keysNotInSeedConfig.map(QtiJsAsset(_))
@@ -44,6 +49,13 @@ abstract class BaseQtiAssets(jsRootPath: String, cssRootPath:String, seedConfig:
   protected def getKeysThatNeedAssets(qti: Node): Seq[String]
 }
 
+/** This implementation does a look up for keys in 2 ways:
+ * 1. It looks for interaction names
+ * 2. It looks for a set of named items that are not interactions but need assets: eg: tabs
+ * @param jsRootPath
+ * @param cssRootPath
+ * @param config
+ */
 class QtiAssets(jsRootPath: String, cssRootPath:String, config: QtiAssetsConfig) extends BaseQtiAssets(jsRootPath, cssRootPath, config) {
 
   protected def getKeysThatNeedAssets(qti: Node): Seq[String] = {
