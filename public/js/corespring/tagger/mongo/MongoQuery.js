@@ -57,4 +57,12 @@ com.corespring.mongo.MongoQuery = function () {
     }
     return { $in: out};
   };
+
+  this.notInArray = function (arr, key) {
+    var out = [];
+    for (var x = 0; x < arr.length; x++) {
+      out.push(arr[x][key]);
+    }
+    return { $nin: out};
+  };
 };

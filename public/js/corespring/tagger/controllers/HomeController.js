@@ -24,6 +24,7 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     $scope.flatItemTypeDataProvied = _.map(_.flatten(_.pluck($scope.itemTypeDataProvider, 'label')), function(e) {
       return {key: e, label: e};
     });
+    $scope.flatItemTypeDataProvied.push({key: "Other", label: "Other"});
     $scope.statuses = [
       {label: "Setup", key: "setup"},
       {label: "Tagged", key: "tagged"},
@@ -88,6 +89,18 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
 
 
   $scope.search = function () {
+    if (_.find($scope.searchParams.itemType, function(e) {
+      return e.label == "Other"
+    })) {
+      $scope.searchParams.notSelectedItemTypes = [];
+      _.each($scope.flatItemTypeDataProvied, function(e) {
+        var isSelected = _.find($scope.searchParams.itemType, function(f) {
+          return e.label == f.label;
+        });
+        if (!isSelected)
+          $scope.searchParams.notSelectedItemTypes.push(e);
+      });
+    }
     SearchService.search($scope.searchParams, function (res) {
       $rootScope.items = res;
       setTimeout(function () {
