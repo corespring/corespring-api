@@ -50,12 +50,13 @@ object Dependencies {
         )
       }
     }
-    val edeustace = Repo.make("ed eustace", "http://edeustace.com/repository/")
+    val edeustaceSnapshots = "ed eustace snapshots" at "http://edeustace.com/repository/snapshots/"
     val securesocial = Repo.make("securesocial", "http://securesocial.ws/repository/", Resolver.ivyStylePatterns )
     val sonatype = Repo.make("Sonatype","https://oss.sonatype.org/content/repositories/")
     //val sonatypeReleases = "Sonatype releases" at "http://oss.sonatype.org/content/repositories/releases/"
     val spy =  "Spy Repository" at "http://files.couchbase.com/maven2"
-
-    val all : Seq[Resolver] = (edeustace.repos ++ securesocial.repos ++ sonatype.repos) :+ spy
+    println(securesocial)
+    println(sonatype)
+    val all : Seq[Resolver] = (securesocial.repos ++ sonatype.repos) :+ spy :+ edeustaceSnapshots
   }
 }
