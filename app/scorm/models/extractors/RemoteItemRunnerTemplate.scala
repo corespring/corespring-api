@@ -2,8 +2,9 @@ package scorm.models.extractors
 
 import java.io.File
 import scala.io.Source
-import common.seed.StringUtils
 import common.mock._
+import common.utils.string.StringUtils
+
 /**
  * Extractor for the RemoteItem runner html file that gets bundled into the scorm package
  */

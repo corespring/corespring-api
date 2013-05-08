@@ -1,13 +1,11 @@
 package web.models
 
-import com.novus.salat._
-import play.api.Play.current
-
-import com.novus.salat.global._
-import com.novus.salat.dao._
-import play.api.libs.json.{JsNumber, JsObject, JsString, Writes}
-
 import com.mongodb.casbah.Imports._
+import com.novus.salat.dao._
+import play.api.Play.current
+import play.api.libs.json.{JsNumber, JsObject, JsString, Writes}
+import models.mongoContext.context
+
 
 case class QtiTemplate(
                         _id: ObjectId = new ObjectId,

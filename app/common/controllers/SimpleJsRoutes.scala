@@ -1,7 +1,7 @@
 package common.controllers
 
 import play.core.Router.JavascriptReverseRoute
-import common.seed.StringUtils
+import common.utils.string.StringUtils
 
 trait SimpleJsRoutes {
 

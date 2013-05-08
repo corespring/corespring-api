@@ -1,19 +1,17 @@
 package tests
 
-import _root_.web.controllers.utils.ConfigLoader
+import _root_.common.seed.SeedDb
 import _root_.models.item.Item
+import _root_.web.controllers.utils.ConfigLoader
+import org.bson.types.ObjectId
 import org.specs2.mutable.Specification
-import play.api.libs.json.{JsObject, JsString, JsValue, Json}
+import org.specs2.specification.{Step, Fragments}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc._
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.FakeHeaders
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
-import scala.Some
-import play.api.test.FakeHeaders
-import scala.Some
-import org.bson.types.ObjectId
-import common.seed.SeedDb
-import org.specs2.specification.{Step, Fragments}
 
 
 /**
