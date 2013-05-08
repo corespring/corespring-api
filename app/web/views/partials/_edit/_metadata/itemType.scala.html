@@ -1,35 +1,40 @@
 <div class="control-group">
     <label class="control-label">Item Type</label>
 
-    <div class="span4">
-        <ul>
-            <li ng-repeat="t in itemData.$itemTypeDataProvider" ng-show="$index < 2">
-                <h5>{{t.key}}</h5>
-                <label class="radio" ng-repeat="k in t.value">{{k}}
-                    <input type="radio" ng-model="itemData.itemType" value="{{k}}"/>
-                </label>
-                <em>&nbsp;</em>
-            </li>
-        </ul>
-    </div>
-    <div class="span4">
-        <li ng-repeat="t in itemData.$itemTypeDataProvider" ng-show="$index >= 2">
-            <h5>{{t.key}}</h5>
-            <label class="radio" ng-repeat="k in t.value">{{k}}
-                <input type="radio" ng-model="itemData.itemType" value="{{k}}"/>
-            </label>
-            <em>&nbsp;</em>
-        </li>
+    <table>
+        <tr>
+            <td valign="top">
+                <ul>
+                    <li ng-repeat="t in itemData.$itemTypeDataProvider" ng-show="$index < 2" style="margin-bottom: 10px">
+                        <h5>{{t.key}}</h5>
+                        <label class="radio" ng-repeat="k in t.value">
+                            <input type="radio" ng-model="itemData.itemType" value="{{k}}"/>
+                            {{k}}
+                        </label>
+                    </li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li ng-repeat="t in itemData.$itemTypeDataProvider" ng-show="$index >= 2" style="margin-bottom: 10px">
+                        <h5>{{t.key}}</h5>
+                        <label class="radio" ng-repeat="k in t.value">
+                            <input type="radio" ng-model="itemData.itemType" value="{{k}}"/>
+                            {{k}}
+                        </label>
+                    </li>
 
-        <li>
-            <h5>Other</h5>
-            <label class="radio">
-                <input type="radio" ng-model="itemData.itemType" value="{{otherItemType}}"/>
-                <input type="text" ng-model="otherItemType" ng-change="updateItemType()"></input>
-            </label>
+                    <li>
+                        <h5>Other</h5>
+                        <label class="radio">
+                            <input type="radio" ng-model="itemData.itemType" value="{{otherItemType}}"/>
+                            <input type="text" ng-model="otherItemType" ng-change="updateItemType()"></input>
+                        </label>
 
-
-        </li>
-    </div>
+                    </li>
+                </ul>
+            </td>
+        </tr>
+    </table>
 </div>
 
