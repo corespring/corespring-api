@@ -101,7 +101,7 @@ object Developer extends Controller with BaseApi{
         val orgs = User.getOrganizations(user,Permission.Read)
         //get the first organization besides the public corespring organization. for now, we assume that the person is only registered to one private organization
         //TODO: this doesn't look right - need to discuss a fix for it.
-        orgs.find(o => o.id != AppConfig.corespringOrgId) match {
+        orgs.find(o => o.id != AppConfig.demoOrgId) match {
           case Some(o) => Ok(Json.toJson(o))
           case None => NotFound(Json.toJson(ApiError.MissingOrganization))
         }
@@ -130,7 +130,7 @@ object Developer extends Controller with BaseApi{
                   User.getUser(request.user.id) match {
                     case Some(user) => {
                       //TODO: Need to fix this - dont' understand why this is being done.
-                      User.removeOrganization(user.id,AppConfig.corespringOrgId) match {
+                      User.removeOrganization(user.id,AppConfig.demoOrgId) match {
                         case Right(_) => User.addOrganization(user.id,org.id,Permission.Write) match {
                           case Right(_) => Ok(Json.toJson(org))
                           case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateUser(error.clientOutput)))

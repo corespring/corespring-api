@@ -132,36 +132,20 @@
     ],
     "itemTypes":[
         {
-            "key":"MC",
-            "value":"Multiple Choice"
+            "key":"Fixed Choice",
+            "value":["Multiple Choice","Multi-Multi Choice","Visual Multi Choice","Inline Choice","Ordering"]
         },
         {
-            "key":"TQ",
-            "value":"Text with Questions"
+            "key":"Constructed Response",
+            "value":["Constructed Response - Short Answer","Constructed Response - Open Ended"]
         },
         {
-            "key":"PT",
-            "value":"Performance Task"
+            "key":"Evidence",
+            "value":["Select Evidence in Text","Document Based Question","Passage With Questions"]
         },
         {
-            "key":"ACT",
-            "value":"Activity"
-        },
-        {
-            "key":"CR-SA",
-            "value":"Constructed Response - Short Answer"
-        },
-        {
-            "key":"CR-OE",
-            "value":"Constructed Response - Open Ended"
-        },
-        {
-            "key":"FT",
-            "value":"Focus Task"
-        },
-        {
-            "key":"OR",
-            "value":"Ordering"
+            "key":"Composite",
+            "value":["Composite - Multiple MC","Composite - MC and SA","Composite - MC, SA, OE","Project","Performance","Activity"]
         }
     ],
 
