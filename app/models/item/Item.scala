@@ -2,16 +2,14 @@ package models.item
 
 
 import com.mongodb.casbah.Imports._
-import models.mongoContext._
 import controllers._
 import resource.{VirtualFile, BaseFile, Resource}
 import scala.Either
 import models.mongoContext._
-import com.novus.salat._
-import com.mongodb.util.{JSONParseException, JSON}
+import com.mongodb.util.JSON
 import play.api.libs.json._
 import com.novus.salat._
-import dao.{ModelCompanion}
+import dao.ModelCompanion
 import dao.{SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
 import org.joda.time.DateTime
 import models.json.ItemView
@@ -40,13 +38,13 @@ case class Item(
                  var taskInfo: Option[TaskInfo] = None,
                  var otherAlignments: Option[Alignments] = None,
                  var id: ObjectId = new ObjectId(),
-                 var version:Option[Version] = None) extends Content
+                 var version: Option[Version] = None) extends Content
 
 
 /**
  * An Item model
  */
-object Item extends ModelCompanion[Item,ObjectId]{
+object Item extends ModelCompanion[Item, ObjectId] {
 
   import com.mongodb.casbah.commons.conversions.scala._
 
@@ -99,9 +97,10 @@ object Item extends ModelCompanion[Item,ObjectId]{
   val version = Content.version
 
   lazy val fieldValues = FieldValue.current
+
   implicit object ItemWrites extends Writes[Item] {
     def writes(item: Item) = {
-      ItemView.ItemViewWrites.writes(ItemView(item,None))
+      ItemView.ItemViewWrites.writes(ItemView(item, None))
     }
   }
 
@@ -176,7 +175,13 @@ object Item extends ModelCompanion[Item,ObjectId]{
   }
 
   def cloneItem(item: Item): Option[Item] = {
-    val copy = item.copy(id = new ObjectId(),version=None)
+    val copy = item.copy(id = new ObjectId(), version = None, taskInfo = item.taskInfo match {
+      case Some(ti) => ti.title match {
+        case Some(title) => Some(ti.copy(title = Some("[copy] " + title)))
+        case _ => Some(ti.copy(title = Some("[copy]")))
+      }
+      case _ => Some(TaskInfo(title = Some("[copy]")))
+    })
     Item.save(copy)
     Some(copy)
   }
@@ -187,12 +192,12 @@ object Item extends ModelCompanion[Item,ObjectId]{
     result.count
   }
 
-//  def list(query: MongoDBObject, fields: MongoDBObject, skip: Int = 0, limit: Int = 200) : List[Item] = {
-//    val result : SalatMongoCursor[Item] = Item.find( query, fields)
-//    result.limit(limit)
-//    result.skip(skip)
-//    result.toList
-//  }
+  //  def list(query: MongoDBObject, fields: MongoDBObject, skip: Int = 0, limit: Int = 200) : List[Item] = {
+  //    val result : SalatMongoCursor[Item] = Item.find( query, fields)
+  //    result.limit(limit)
+  //    result.skip(skip)
+  //    result.toList
+  //  }
 
   def queryValueFn(name: String, seq: Seq[KeyValue])(c: Any) = {
     c match {
@@ -201,9 +206,9 @@ object Item extends ModelCompanion[Item,ObjectId]{
     }
   }
 
-  def findMultiple(ids: Seq[ObjectId], keys : DBObject) : Seq[Item] = {
+  def findMultiple(ids: Seq[ObjectId], keys: DBObject): Seq[Item] = {
     val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))
-    Item.find(query,keys).toSeq
+    Item.find(query, keys).toSeq
   }
 
   def getQti(itemId: ObjectId): Either[InternalError, String] = {
@@ -224,7 +229,7 @@ object Item extends ModelCompanion[Item,ObjectId]{
     }
   }
 
-  def findInXml(string:String, collectionIds : List[String]) : List[Item] = {
+  def findInXml(string: String, collectionIds: List[String]): List[Item] = {
 
     val query = ".*<assessmentItem.*>.*" + string + ".*<\\/assessmentItem>.*"
 

@@ -169,6 +169,24 @@ class ItemTest extends BaseTest {
       }
     }
 
+    "clone appends [copy] to title" in {
+      val item = Item(collectionId = "1234567", taskInfo = Some(TaskInfo(title = Some("something"))))
+      val clonedItem = Item.cloneItem(item)
+      clonedItem.get.taskInfo.get.title.get === "[copy] " + item.taskInfo.get.title.get
+    }
+
+    "clone appends [copy] to empty taskinfo" in {
+      val item = Item(collectionId = "1234567")
+      val clonedItem = Item.cloneItem(item)
+      clonedItem.get.taskInfo.get.title.get === "[copy]"
+    }
+
+    "clone appends [copy] to empty title" in {
+      val item = Item(collectionId = "1234567", taskInfo = Some(TaskInfo()))
+      val clonedItem = Item.cloneItem(item)
+      clonedItem.get.taskInfo.get.title.get === "[copy]"
+    }
+
     "list accepts fields" in {
       true === true
     }
