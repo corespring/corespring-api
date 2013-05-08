@@ -89,12 +89,14 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
 
 
   $scope.search = function () {
-    if (_.find($scope.searchParams.itemType, function(e) {
+    var isOtherSelected = $scope.searchParams && _.find($scope.searchParams.itemType, function (e) {
       return e.label == "Other"
-    })) {
+    });
+
+    if (isOtherSelected) {
       $scope.searchParams.notSelectedItemTypes = [];
-      _.each($scope.flatItemTypeDataProvied, function(e) {
-        var isSelected = _.find($scope.searchParams.itemType, function(f) {
+      _.each($scope.flatItemTypeDataProvied, function (e) {
+        var isSelected = _.find($scope.searchParams.itemType, function (f) {
           return e.label == f.label;
         });
         if (!isSelected)
