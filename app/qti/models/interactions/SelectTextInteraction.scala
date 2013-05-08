@@ -1,13 +1,12 @@
 package qti.models.interactions
 
-import xml.{XML, NodeSeq, Elem, Node}
-import xml.transform.{RuleTransformer, RewriteRule}
-import util.matching.Regex
-import qti.models._
 import controllers.Log
-import scala.Some
 import models.itemSession.{ItemResponseOutcome, ArrayItemResponse, ItemResponse}
-import qti.models.interactions.utils.QtiScriptLoader
+import qti.models._
+import scala.Some
+import util.matching.Regex
+import xml.transform.{RuleTransformer, RewriteRule}
+import xml.{XML, NodeSeq, Elem, Node}
 
 case class SelectTextInteraction(responseIdentifier: String, selectionType: String, checkIfCorrect: Boolean, minSelection: Int, maxSelection: Int, correctResponse: Option[CorrectResponseMultiple]) extends Interaction {
 

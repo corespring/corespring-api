@@ -1,9 +1,9 @@
 package qti.models.interactions
 
+import play.api.libs.json.{JsString, JsObject, JsValue, Writes}
 import qti.models.QtiItem
 import qti.models.QtiItem.Correctness
 import xml.Node
-import play.api.libs.json.{JsString, JsObject, JsValue, Writes}
 
 case class FeedbackInline(csFeedbackId: String,
                           outcomeIdentifier: String,

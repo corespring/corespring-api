@@ -1,11 +1,8 @@
 package qti.models.interactions
 
-import xml.{NodeSeq, Elem, Node}
-import qti.models.{QtiItem, ResponseDeclaration}
-import qti.models.QtiItem.Correctness
-import controllers.Log
 import models.itemSession.{ItemResponseOutcome, ItemResponse}
-import qti.models.interactions.utils.QtiScriptLoader
+import qti.models.{QtiItem, ResponseDeclaration}
+import xml.Node
 
 case class ExtendedTextInteraction(responseIdentifier: String) extends Interaction {
 

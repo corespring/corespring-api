@@ -1,23 +1,14 @@
 package qti.models.interactions
 
-import xml._
-import scala.Null
-import transform.{RuleTransformer, RewriteRule}
-import xml.Null
-import scala.Null
-import xml.Text
 import scala.Some
-import models.itemSession.FeedbackIdMapEntry
+import scala.xml.transform.RewriteRule
+import xml._
 
 
 object InteractionProcessing {
   val FEEDBACK_INLINE = "feedbackInline"
   val FEEDBACK_BLOCK = "feedbackBlock"
   val MODAL_FEEDBACK = "modalFeedback"
-
-  private val FEEDBACK_NODE_LABELS = {
-    List(FEEDBACK_INLINE, FEEDBACK_BLOCK, MODAL_FEEDBACK)
-  }
 
   val csFeedbackId = "csFeedbackId"
   val identifier = "identifier"

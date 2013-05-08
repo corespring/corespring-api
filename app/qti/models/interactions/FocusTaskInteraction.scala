@@ -1,11 +1,11 @@
 package qti.models.interactions
 
 import choices.{Choice, SimpleChoice}
-import xml._
-import scala.Some
-import qti.models.{QtiItem, CorrectResponseMultiple, ResponseDeclaration}
 import controllers.Log
 import models.itemSession._
+import qti.models.{QtiItem, CorrectResponseMultiple, ResponseDeclaration}
+import scala.Some
+import xml._
 
 case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleChoice], checkIfCorrect: Boolean, minSelections: Int, maxSelections: Int) extends InteractionWithChoices {
 

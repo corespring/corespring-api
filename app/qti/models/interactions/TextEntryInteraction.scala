@@ -1,10 +1,10 @@
 package qti.models.interactions
 
-import xml.Node
-import qti.models.ResponseDeclaration
-import qti.models.QtiItem.Correctness
 import controllers.Log
 import models.itemSession._
+import qti.models.QtiItem.Correctness
+import qti.models.ResponseDeclaration
+import xml.Node
 
 case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int, feedbackBlocks: Seq[FeedbackInline]) extends Interaction {
 
