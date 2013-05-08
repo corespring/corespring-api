@@ -1,9 +1,10 @@
-package tests.qti.models.interactions.utils
+package tests.player.views.qti
 
 import org.specs2.mutable.Specification
 import play.api.LoggerLike
+import player.views.qti.QtiAssets
+import player.views.qti.models.{QtiJsAsset, QtiAssetsConfig}
 import qti.models.RenderingMode
-import qti.models.interactions.utils.{QtiJsAsset, QtiAssetsConfig, QtiAssets}
 
 class QtiAssetsTest extends Specification {
 
@@ -41,28 +42,6 @@ class QtiAssetsTest extends Specification {
       qtiAssets.getLocalJsPaths(xml, RenderingMode.Web) === List("js/web/choiceInteraction.js", "js/web/other.js", "js/web/textEntryInteraction.js")
       qtiAssets.getLocalCssPaths(xml, RenderingMode.Web) === List("css/web/choiceInteraction.css", "css/web/other.css", "css/web/textEntryInteraction.css")
     }
-
-
-    /*"return the correct paths " in {
-      val xml = <root>
-        <choiceInteraction></choiceInteraction>
-          <textEntryInteraction></textEntryInteraction>
-      </root>
-      val qtiAssets = new QtiAssets("path")
-      val out = qtiAssets.getLocalJsPaths(xml, RenderingMode.Web)
-      logger.debug("out: " + out)
-      out === List("path/web/choiceInteraction.js", "path/web/textEntryInteraction.js")
-    }
-
-    "return the correct paths with dependents" in {
-
-      val xml = <root><choiceInteraction></choiceInteraction></root>
-      val dependents = Map("ChoiceInteraction" -> Seq("simpleChoice"))
-      val qtiAssets = new QtiAssets("js/corespring/qti", dependents)
-      val out = qtiAssets.getLocalJsPaths(xml, RenderingMode.Web)
-      logger.debug("out: " + out)
-      out === List("js/corespring/qti/web/choiceInteraction.js", "js/corespring/qti/web/simpleChoice.js")
-    }*/
 
     "finds numbered lines" in {
       val xml = <root>

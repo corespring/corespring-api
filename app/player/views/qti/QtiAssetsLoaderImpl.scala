@@ -1,23 +1,10 @@
-package qti.models.interactions.utils
+package player.views.qti
 
-import common.utils.string
-import java.io.File
 import qti.models.RenderingMode
 import qti.models.RenderingMode._
+import player.views.qti.models.{QtiJsAsset, QtiAssetsConfig}
 
-trait QtiAssetsLoader {
-  def localJsPaths: Seq[String]
-
-  def remoteJsPaths: Seq[String]
-
-  def localCssPaths: Seq[String]
-}
-
-object FileExistChecker {
-  def exists(path: String): Boolean = new File(string.filePath("public", path)).exists()
-}
-
-class ScriptLoader(xmlString: String) extends QtiAssetsLoader {
+class QtiAssetsLoaderImpl(xmlString: String) extends QtiAssetsLoader {
 
   val config = QtiAssetsConfig(
     Seq(

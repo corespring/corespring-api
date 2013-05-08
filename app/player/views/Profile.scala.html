@@ -8,7 +8,7 @@
 <html ng-app='qti' dimensions-checker>
 <head>
         @common.views.html.partials.ieEightSupport()
-        @partials.scripts(params.xml,  new qti.models.interactions.utils.ScriptLoader(params.xml))
+        @partials.scripts(params.xml,  new player.views.qti.QtiAssetsLoaderImpl(params.xml))
         <link href="/assets/stylesheets/nav.css" rel="stylesheet"/>
         <link href="/assets/stylesheets/profile.css" rel="stylesheet"/>
 

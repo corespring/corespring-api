@@ -1,7 +1,8 @@
-package tests.qti.models.interactions.utils
+package tests.player.views.qti
 
 import org.specs2.mutable.Specification
-import qti.models.interactions.utils.{QtiJsAsset, QtiAssetsConfig, ScriptResolver}
+import player.views.qti.models.{QtiJsAsset, QtiAssetsConfig}
+import player.views.qti.ScriptResolver
 
 class ScriptResolverTest extends Specification {
 

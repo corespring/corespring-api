@@ -1,4 +1,4 @@
-@(itemBody:String, qtiAssetLoader : qti.models.interactions.utils.QtiAssetsLoader)
+@(itemBody:String, qtiAssetLoader : player.views.qti.QtiAssetsLoader)
 
 @common.views.html.head.coreJs()
 @common.views.html.head.ubuntu()
@@ -25,7 +25,7 @@
 <!-- end qti - remote js -->
 
 <!-- qti - local css -->
-@qtiAssetLoader.localCssPaths.filter(qti.models.interactions.utils.FileExistChecker.exists).map{ p =>
+@qtiAssetLoader.localCssPaths.filter(player.views.qti.fileExists).map{ p =>
    <link rel="stylesheet" type="text/css" href="/assets/@p"/>
 }
 <!-- end qti - local css -->

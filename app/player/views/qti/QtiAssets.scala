@@ -1,14 +1,14 @@
-package qti.models.interactions.utils
+package player.views.qti
 
 import common.utils.string
 import controllers.Utils
 import play.api.{LoggerLike, Logger}
+import player.views.qti.models.{QtiJsAsset, QtiAssetsConfig}
 import qti.models.QtiItem
 import qti.models.RenderingMode._
 import qti.models.interactions.{Interaction, InteractionCompanion}
 import scala.xml.Node
 
-case class QtiAssetsConfig(assets: Seq[QtiJsAsset])
 
 abstract class BaseQtiAssets(jsRootPath: String, cssRootPath:String, seedConfig: QtiAssetsConfig) {
 
