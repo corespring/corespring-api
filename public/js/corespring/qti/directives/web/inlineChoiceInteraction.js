@@ -190,9 +190,12 @@ var feedbackFloat = function (QtiUtils) {
         var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
         if (feedback) {
           scope.feedback = feedback;
-          $(element).tooltip({ title: scope.feedback, trigger: 'manual'});
+          $(element).tooltip({ title: scope.feedback, trigger: 'manual', html: true, animation: false});
           setTimeout(function () {
             $(element).tooltip('show');
+            if (typeof(MathJax) != "undefined") {
+              MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+            }
           }, 100);
         }
       });
