@@ -6,6 +6,15 @@ import player.views.qti.QtiAssets
 import player.views.qti.models.{QtiJsAsset, QtiAssetsConfig}
 import qti.models.RenderingMode
 
+class QtiAssetsFindAssetKeysTest extends QtiAssets("js","css",QtiAssetsConfig(Seq())) with Specification{
+
+  "find asset keys" should {
+    "work" in {
+      findAssetKeys(<root><choiceInteraction></choiceInteraction></root>) === Seq("choiceInteraction")
+    }
+  }
+}
+
 class QtiAssetsTest extends Specification {
 
 
@@ -24,8 +33,8 @@ class QtiAssetsTest extends Specification {
 
     "return the correct paths " in {
       val qtiAssets = new QtiAssets("js", "css", config)
-      qtiAssets.getLocalJsPaths(xml, RenderingMode.Aggregate) === List("js/aggregate/choiceInteraction.js", "js/aggregate/textEntryInteraction.js")
-      qtiAssets.getLocalCssPaths(xml, RenderingMode.Aggregate) === List("css/aggregate/choiceInteraction.css", "css/aggregate/textEntryInteraction.css")
+      qtiAssets.getLocalJsPaths(xml, RenderingMode.Aggregate).sorted === List("js/aggregate/choiceInteraction.js", "js/aggregate/textEntryInteraction.js")
+      qtiAssets.getLocalCssPaths(xml, RenderingMode.Aggregate).sorted === List("css/aggregate/choiceInteraction.css", "css/aggregate/textEntryInteraction.css")
     }
 
     "adds local dependents" in {
@@ -33,14 +42,14 @@ class QtiAssetsTest extends Specification {
         QtiAssetsConfig(
           Seq(
             QtiJsAsset(
-              name = "ChoiceInteraction",
+              name = "choiceInteraction",
               localDependents = Seq("other")
             )
           )
         )
       )
-      qtiAssets.getLocalJsPaths(xml, RenderingMode.Web) === List("js/web/choiceInteraction.js", "js/web/other.js", "js/web/textEntryInteraction.js")
-      qtiAssets.getLocalCssPaths(xml, RenderingMode.Web) === List("css/web/choiceInteraction.css", "css/web/other.css", "css/web/textEntryInteraction.css")
+      qtiAssets.getLocalJsPaths(xml, RenderingMode.Web).sorted === List("js/web/choiceInteraction.js", "js/web/other.js", "js/web/textEntryInteraction.js")
+      qtiAssets.getLocalCssPaths(xml, RenderingMode.Web).sorted === List("css/web/choiceInteraction.css", "css/web/other.css", "css/web/textEntryInteraction.css")
     }
 
     "finds numbered lines" in {
