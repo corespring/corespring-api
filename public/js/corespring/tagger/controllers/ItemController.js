@@ -218,7 +218,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       $location.path('/edit/' + data.id);
     }, function onError(error) {
       $scope.showProgressModal = false;
-      alert("Error cloning item: " + error.toString())
+      alert("Error cloning item: " + JSON.stringify(error))
     });
   };
   //*******item versioning*********//
@@ -230,7 +230,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
           $location.path('/edit/' + data.id);
       }, function onError(error) {
           $scope.showProgressModal = false;
-          alert("Error incrementing item: " + error.toString())
+          alert("Error incrementing item: " + JSON.stringify(error))
       });
   }
   $scope.showSaveWarning=false

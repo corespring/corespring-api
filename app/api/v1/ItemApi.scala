@@ -256,7 +256,7 @@ class ItemApi(s3service:S3Service) extends BaseApi {
 
   private def cloneS3File(sourceFile: StoredFile, newId: String):String = {
     Log.d("Cloning " + sourceFile.storageKey + " to " + newId)
-    val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/","")
+   val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/","")
     s3service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, newId+"/"+oldStorageKeyIdRemoved)
     newId+"/"+oldStorageKeyIdRemoved
   }
@@ -433,6 +433,32 @@ class ItemApi(s3service:S3Service) extends BaseApi {
     }else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
+  /**
+   * when a stored file is received from json, we do not receive the storage keys to allow us to clone stored files.
+   * this method copies the storage key's from the original item
+   * @param oldItem
+   * @param newItem
+   */
+  private def copyStorageKeys(oldItem:Item,newItem:Item) = {
+    if (newItem.data.isDefined){
+      newItem.data.get.files.foreach{ file => file match {
+        case newsf:StoredFile => oldItem.data.get.files.find(_.name == newsf.name).map(_.asInstanceOf[StoredFile]) match {
+          case Some(oldsf) => newsf.storageKey = oldsf.storageKey
+          case None => newsf.storageKey = ResourceApi.key(newItem.id.toString,ResourceApi.DATA_PATH,newsf.name)
+        }
+        case _ =>
+      }}
+    }
+    newItem.supportingMaterials.foreach { sm =>
+      sm.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile]).foreach(newsf => {
+        oldItem.supportingMaterials.find(_.files.exists(_.name == newsf.name)).
+          map(_.files.find(_.name == newsf.name).get.asInstanceOf[StoredFile]) match {
+            case Some(oldsf) => newsf.storageKey = oldsf.storageKey
+            case None => newsf.storageKey = ResourceApi.key(newItem.id.toString,ResourceApi.DATA_PATH,newsf.name)
+          }
+      })
+    }
+  }
   def increment(itemId: ObjectId) = ApiAction {request =>
     if(Content.isAuthorized(request.ctx.organization,itemId,Permission.Read)){
       request.body.asJson match {
@@ -442,7 +468,7 @@ class ItemApi(s3service:S3Service) extends BaseApi {
           } else {
             try {
               val item = fromJson[Item](json)
-              //TODO: provide ability for rollbacks if insert fails
+              //TODO: provide ability for rollbacks if insert fails or cloned files fails
               Item.findOneById(itemId) match {
                 case Some(olditem) => {
                   olditem.version match {
@@ -458,13 +484,18 @@ class ItemApi(s3service:S3Service) extends BaseApi {
                     }
                   }
                   item.version = Some(Version(olditem.version.get.root,olditem.version.get.rev+1,true))
+                  copyStorageKeys(olditem,item)
                   val dbolditem = grater[Item].asDBObject(olditem)
                   val dbitem = grater[Item].asDBObject(item)
                   val newitem = grater[Item].asObject(dbolditem ++ dbitem)
                   Item.insert(newitem) match {
-                    case Some(id) => Ok(toJson(newitem))
+                    case Some(id) =>  cloneStoredFiles(olditem,newitem) match {
+                      case true => Ok(toJson(newitem))
+                      case false => BadRequest(toJson(ApiError.Item.Clone(Some("could not clone stored files"))))
+                    }
                     case None => InternalServerError(JsObject(Seq("message" -> JsString("a database error occurred when attempting to insert the new item revision"))))
                   }
+
                 }
                 case None => throw new RuntimeException("item could not be found after it was authorized")
               }
