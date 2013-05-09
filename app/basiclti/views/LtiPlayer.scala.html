@@ -1,8 +1,6 @@
 @(params: _root_.player.views.models.PlayerParams, quizId:String, resultSourcedId:String)
 
 @scripts = {
-  <script src="/assets/js/corespring/qti/controllers/QtiAppController.js"></script>
-  <script src="/assets/js/corespring/qti/controllers/LtiController.js"></script>
 
   <!-- need to override the config to add the Lti Params -->
   <script type="text/javascript">
@@ -23,4 +21,4 @@
     <div ng-controller="LtiController"></div>
 }
 
-@_root_.player.views.html.basePlayer( params, scripts, bodyAttributes, Some(afterBody) )
+@_root_.player.views.html.basePlayer( params, bodyAttributes, None, Some(afterBody) )

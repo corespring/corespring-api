@@ -1,7 +1,6 @@
-var chooseLabel = "Choose...";
-
 angular.module('qti.directives').directive('inlinechoiceinteraction', function (QtiUtils) {
 
+  var chooseLabel = "Choose...";
 
   var getOptionsAndFeedbacks = function (element) {
 
