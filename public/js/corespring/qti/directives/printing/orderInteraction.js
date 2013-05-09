@@ -3,7 +3,7 @@
  * Interaction for ordering a set of choices
  */
 
-qtiDirectives.directive('orderinteraction', function () {
+angular.module('qti.directives').directive('orderinteraction', function () {
 
 
 

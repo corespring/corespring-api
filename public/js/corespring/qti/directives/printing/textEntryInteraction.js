@@ -1,4 +1,4 @@
-qtiDirectives.directive("textentryinteraction", function() {
+angular.module('qti.directives').directive("textentryinteraction", function() {
 
 
     return {

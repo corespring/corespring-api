@@ -1,4 +1,4 @@
-qtiDirectives.directive('csTabs', function() {
+angular.module('qti.directives').directive('csTabs', function() {
       return {
         restrict: 'E',
         transclude: true,
@@ -9,7 +9,7 @@ qtiDirectives.directive('csTabs', function() {
     }
   );
 
-qtiDirectives.directive('csTab', function() {
+angular.module('qti.directives').directive('csTab', function() {
       return {
         restrict: 'E',
         transclude: true,

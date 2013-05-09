@@ -1,7 +1,7 @@
 /**
  * Will be included for items that are being rendered in print mode and contain choiceInteraction
  */
-qtiDirectives.directive('simplechoice', function(QtiUtils){
+angular.module('qti.directives').directive('simplechoice', function(QtiUtils){
 
   return {
     restrict: 'ECA',

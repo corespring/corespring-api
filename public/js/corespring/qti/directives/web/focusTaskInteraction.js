@@ -1,4 +1,4 @@
-qtiDirectives.directive('focustaskinteraction', function () {
+angular.module('qti.directives').directive('focustaskinteraction', function () {
 
     var choiceRegex = /(<:*focusChoice[\s\S]*?>[\s\S]*?<\/:*focusChoice>)/gmi;
 
@@ -123,7 +123,7 @@ qtiDirectives.directive('focustaskinteraction', function () {
 });
 
 
-qtiDirectives.directive('focuschoice', function (QtiUtils) {
+angular.module('qti.directives').directive('focuschoice', function (QtiUtils) {
 
     var linkFn = function (scope, iElement, attrs, focusTaskInteractionController) {
         attrs.$set("enabled", "true");

@@ -1,6 +1,6 @@
 var chooseLabel = "Choose...";
 
-qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
+angular.module('qti.directives').directive('inlinechoiceinteraction', function (QtiUtils) {
 
 
   var getOptionsAndFeedbacks = function (element) {
@@ -208,5 +208,5 @@ var feedbackFloat = function (QtiUtils) {
   }
 };
 
-qtiDirectives.directive("feedbackfloat", feedbackFloat);
+angular.module('qti.directives').directive("feedbackfloat", feedbackFloat);
 

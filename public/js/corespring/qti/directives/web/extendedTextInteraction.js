@@ -1,7 +1,7 @@
 /**
  * handles QTI 2.1 extendedTextInteraction which is intended for text area text responses
  */
-qtiDirectives.directive("extendedtextinteraction", function (QtiUtils) {
+angular.module('qti.directives').directive("extendedtextinteraction", function (QtiUtils) {
   return {
     restrict: 'E',
     replace: true,

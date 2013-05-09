@@ -342,7 +342,7 @@ var commonLinkFn = function ($scope, element, attrs, AssessmentItemCtrl, QtiUtil
 };
 
 
-qtiDirectives.directive('orderinteraction',
+angular.module('qti.directives').directive('orderinteraction',
     function (QtiUtils, $timeout) {
         return {
             restrict: 'E',
@@ -364,7 +364,7 @@ qtiDirectives.directive('orderinteraction',
 );
 
 
-qtiDirectives.directive("draggableItem", function ($rootScope) {
+angular.module('qti.directives').directive("draggableItem", function ($rootScope) {
     return {
         restrict: 'C',
         require: '^orderinteraction',
@@ -421,7 +421,7 @@ qtiDirectives.directive("draggableItem", function ($rootScope) {
     }
 });
 
-qtiDirectives.directive("placementDestination", function () {
+angular.module('qti.directives').directive("placementDestination", function () {
     return {
         restrict: 'C',
         require: '^orderinteraction',
@@ -462,7 +462,7 @@ qtiDirectives.directive("placementDestination", function () {
 });
 
 
-qtiDirectives.directive("sortable", function () {
+angular.module('qti.directives').directive("sortable", function () {
     return {
         // todo look into isolate scope so orderedList is not on global scope, tried it but was having trouble
         link: function (scope, el, attrs, ctrl, $timeout) {
