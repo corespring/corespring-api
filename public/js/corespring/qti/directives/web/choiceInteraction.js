@@ -1,4 +1,4 @@
-qtiDirectives.directive('choiceinteraction', function () {
+angular.module('qti.directives').directive('choiceinteraction', function () {
 
   var simpleChoiceRegex = /(<:*simplechoice[\s\S]*?>[\s\S]*?<\/:*simplechoice>)/gmi;
 

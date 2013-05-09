@@ -1,6 +1,8 @@
 'use strict';
 
-qtiServices.factory('AggregateService', ['$resource', function ($resource) {
+angular.module('qti.services', ['ngResource']);
+
+angular.module('qti.services').factory('AggregateService', ['$resource', function ($resource) {
   var api = PlayerRoutes;
 
   var calls  = {
@@ -18,7 +20,7 @@ qtiServices.factory('AggregateService', ['$resource', function ($resource) {
   return AggregateService;
 }]);
 
-qtiServices.factory('AssessmentSessionService', ['$resource', function ($resource) {
+angular.module('qti.services').factory('AssessmentSessionService', ['$resource', function ($resource) {
 
     var mockData = {
       sessionData: {
@@ -51,7 +53,7 @@ qtiServices.factory('AssessmentSessionService', ['$resource', function ($resourc
     return AssessmentSessionService;
 }]);
 
-qtiServices
+angular.module('qti.services')
     .factory('QtiUtils', function () {
         var QtiUtils = {};
 
@@ -68,17 +70,9 @@ qtiServices
             }
 
             if (response instanceof Array) {
-                if (response.indexOf(choiceValue) != -1) {
-                    return true;
-                } else {
-                    return false;
-                }
+                return (response.indexOf(choiceValue) != -1)
             }
-            if (response == choiceValue) {
-                return  true;
-            } else {
-                return false;
-            }
+            return (response === choiceValue)
         };
 
         QtiUtils.getResponseById = function (id, responses) {

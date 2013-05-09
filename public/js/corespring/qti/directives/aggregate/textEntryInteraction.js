@@ -1,4 +1,4 @@
-qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
+angular.module('qti.directives').directive("textentryinteraction", function (QtiUtils) {
 
 
   function positionTooltip(a, currentElement) {

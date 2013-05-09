@@ -1,4 +1,4 @@
-qtiDirectives.directive('selecttextinteraction', function factory() {
+angular.module('qti.directives').directive('selecttextinteraction', function factory() {
   return {
     restrict: 'E',
     scope: true,
@@ -32,7 +32,7 @@ qtiDirectives.directive('selecttextinteraction', function factory() {
   };
 });
 
-qtiDirectives.directive('selectable', function factory(QtiUtils) {
+angular.module('qti.directives').directive('selectable', function factory(QtiUtils) {
   return {
     restrict: 'AC',
     scope: true,
