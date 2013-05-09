@@ -1,8 +1,3 @@
-var newElement = {
-  "key": "International Benchmark",
-  "value": "International Benchmark"
-};
-
 function up() {
   var count = 0;
   db.content.find({"contributorDetails.contributor": "TIMSS"}).forEach(function (it) {
