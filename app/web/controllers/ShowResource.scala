@@ -146,7 +146,10 @@ object ShowResource extends BaseApi with ObjectIdParser with QtiResource with As
         case Some(item) => {
           item.supportingMaterials.find(f => f.name == resourceName) match {
             case Some(foundResource) => getResult(request, foundResource.files, filename)
-            case _ => NotFound
+            case _ => item.data.find(f => f.name == resourceName) match {
+              case Some(foundResource) => getResult(request, foundResource.files,filename)
+              case _ => NotFound
+            }
           }
         }
         case _ => NotFound

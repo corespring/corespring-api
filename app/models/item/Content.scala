@@ -34,7 +34,7 @@ object Content {
       case e:SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to transfer content to archive")))
     }
   }
-  def isAuthorized(orgId:ObjectId, contentId:ObjectId, p:Permission, current:Boolean = true):Boolean = {
+  def isAuthorized(orgId:ObjectId, contentId:ObjectId, p:Permission, current:Boolean = false):Boolean = {
     val searchQuery:MongoDBObject = if(current)
       MongoDBObject("_id" -> contentId,
         "$or" -> MongoDBList(MongoDBObject(Content.version -> MongoDBObject("$exists" -> false)),MongoDBObject(Content.version+"."+Version.current -> true)))
