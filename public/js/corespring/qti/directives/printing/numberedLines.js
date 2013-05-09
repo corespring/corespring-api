@@ -1,4 +1,4 @@
-qtiDirectives.directive('line', function () {
+angular.module('qti.directives').directive('line', function () {
         return {
             restrict:'E',
             transclude:true,
@@ -7,7 +7,7 @@ qtiDirectives.directive('line', function () {
     }
 );
 
-qtiDirectives.directive('numberedLines', function () {
+angular.module('qti.directives').directive('numberedLines', function () {
     return {
         restrict:'C',
         scope:true,

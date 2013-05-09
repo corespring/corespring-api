@@ -1,4 +1,4 @@
-@(params:player.views.models.PlayerParams, additionalScripts: Html, bodyAttributes:String, afterBody : Option[Html] = None)
+@(params:player.views.models.PlayerParams, bodyAttributes:String, additionalScripts: Option[Html] = None, afterBody : Option[Html] = None)
 
 @cssClass = @{
 if(params.previewEnabled) "assessment-page" else "student-assessment-page"
@@ -19,7 +19,9 @@ if(params.previewEnabled) "assessment-page" else "student-assessment-page"
         }]);
     </script>
 
-    @additionalScripts
+    @additionalScripts.map{ s =>
+      @s
+    }
 
 </head>
 <body @bodyAttributes >

@@ -1,12 +1,10 @@
 package player.views.qti
 
 import common.utils.string
-import controllers.Utils
 import play.api.{LoggerLike, Logger}
 import player.views.qti.models.{QtiJsAsset, QtiAssetsConfig}
 import qti.models.QtiItem
 import qti.models.RenderingMode._
-import qti.models.interactions.{Interaction, InteractionCompanion}
 import scala.xml.Node
 
 
@@ -26,27 +24,32 @@ abstract class BaseQtiAssets(jsRootPath: String, cssRootPath:String, seedConfig:
     withKeysAndResolver(cssRootPath, qti, mode, new ScriptResolver(_,".css", _), (keys, resolver) => keys.map(resolver.getLocalPaths(_)).flatten.distinct)
   }
 
+  /** Build a new Config that adds configs for any key that isn't in the seed config.
+    * Use the default settings for these keys - aka use the key name as the js file name.
+    * @param assetKeys - the keys found in the Qti xml that need assets delivered
+    * @return the new config
+    */
+  def buildConfig(assetKeys:Seq[String], seedConfig:QtiAssetsConfig) : QtiAssetsConfig ={
+    val keysNotInSeedConfig = assetKeys.filterNot(k => seedConfig.assets.exists(_.name == k))
+    val defaultAssetDefinitions = keysNotInSeedConfig.map(QtiJsAsset(_))
+    seedConfig.copy(assets = defaultAssetDefinitions ++ seedConfig.assets)
+  }
+
   private def withKeysAndResolver(root:String,qti: Node, mode: RenderingMode, makeResolver:(String,QtiAssetsConfig)=>ScriptResolver, fn: (Seq[String], ScriptResolver) => Seq[String]): Seq[String] = {
     val rootPath = string.filePath(root, mode.toString.toLowerCase)
     logger.debug("rootPath: " + rootPath)
-    val keys: Seq[String] = getKeysThatNeedAssets(qti)
-    val generatedConfig = addDefaultsForOtherKeys(keys)
+    val keys: Seq[String] = findAssetKeys(qti)
+    val generatedConfig = buildConfig(keys,seedConfig)
     val resolver: ScriptResolver = makeResolver(rootPath, generatedConfig)
     fn(keys, resolver)
   }
 
-  /** Build a new Config that adds configs for any key that isn't in the seed config.
-    * Use the default settings for these keys - aka use the key name as the js file name.
-    * @param keys - the keys found in the Qti xml that need assets delivered
-    * @return the new config
-    */
-  private def addDefaultsForOtherKeys(keys: Seq[String]): QtiAssetsConfig = {
-    val keysNotInSeedConfig = keys.filterNot(k => seedConfig.assets.exists(_.name == k))
-    val assets = keysNotInSeedConfig.map(QtiJsAsset(_))
-    seedConfig.copy(assets = assets ++ seedConfig.assets)
-  }
 
-  protected def getKeysThatNeedAssets(qti: Node): Seq[String]
+  /** For the given Qti - find asset keys - which means that this key requires an asset.
+   * @param qti - the qti to use to find asset keys
+   * @return - a Seq of found keys
+   */
+  protected def findAssetKeys(qti: Node): Seq[String]
 }
 
 /** This implementation does a look up for keys in 2 ways:
@@ -58,25 +61,23 @@ abstract class BaseQtiAssets(jsRootPath: String, cssRootPath:String, seedConfig:
  */
 class QtiAssets(jsRootPath: String, cssRootPath:String, config: QtiAssetsConfig) extends BaseQtiAssets(jsRootPath, cssRootPath, config) {
 
-  protected def getKeysThatNeedAssets(qti: Node): Seq[String] = {
+  protected def findAssetKeys(qti: Node): Seq[String] = {
 
-    def interactionKeys = Utils.traverseElements[InteractionCompanion[_ <: Interaction]](qti) {
-      elem =>
-        QtiItem.interactionModels.find(_.interactionMatch(elem)) match {
-          case Some(im) => Some(Seq(im))
-          case None => None
-        }
-    }.distinct.map(_.getClass.getSimpleName.replace("$", ""))
+    object matches {
+      def attrAndValue(name: String, value: String): Boolean =  (qti \\ ("@" + name)).find(_.text == value).isDefined
+      def node(key: String): Boolean = (qti \\ key).size > 0
+      def attr(key: String): Boolean = (qti \\ ("@" + key)).size > 0
+      def nodeOrAttr(key:String) : Boolean = node(key) || attr(key)
+    }
+
+    def interactionKeys = QtiItem.interactionModels.filter( i => matches.node(i.tagName)).map(_.tagName).distinct
 
     def otherKeys = {
-      def xmlContainsNodeOrAttribute(key: String): Boolean = (qti \\ key).size > 0 || (qti \\ ("@" + key)).size > 0
-      def containsAttributeWithValue(name: String, value: String): Boolean =  (qti \\ ("@" + name)).find(_.text == value).isDefined
-
       val nodes = Seq(
-        xmlContainsNodeOrAttribute("tabs") -> "tabs",
-        xmlContainsNodeOrAttribute("cs-tabs") -> "tabs",
-        xmlContainsNodeOrAttribute("math") -> "math",
-        containsAttributeWithValue("class", "numbered-lines") -> "numberedLines"
+        matches.nodeOrAttr("tabs") -> "tabs",
+        matches.nodeOrAttr("cs-tabs") -> "tabs",
+        matches.nodeOrAttr("math") -> "math",
+        matches.attrAndValue("class", "numbered-lines") -> "numberedLines"
       )
       nodes.filter(_._1).map(_._2).distinct
     }

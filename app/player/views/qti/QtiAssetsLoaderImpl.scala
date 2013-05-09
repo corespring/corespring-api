@@ -8,7 +8,7 @@ class QtiAssetsLoaderImpl(xmlString: String) extends QtiAssetsLoader {
 
   val config = QtiAssetsConfig(
     Seq(
-      QtiJsAsset("ChoiceInteraction", localDependents = Seq("simpleChoice")),
+      QtiJsAsset("choiceInteraction", localDependents = Seq("simpleChoice")),
       QtiJsAsset("math", hasJsFile = false, remoteDependents = Seq("//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"))
     )
   )

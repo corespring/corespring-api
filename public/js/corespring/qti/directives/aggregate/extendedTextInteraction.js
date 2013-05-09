@@ -1,4 +1,4 @@
-qtiDirectives.directive("extendedtextinteraction", function () {
+angular.module('qti.directives').directive("extendedtextinteraction", function () {
   return {
     restrict: 'E',
     replace: true,

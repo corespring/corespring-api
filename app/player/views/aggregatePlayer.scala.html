@@ -1,8 +1,8 @@
 @(params: _root_.player.views.models.PlayerParams, quizId:String)
 
 @scripts = {
-<script src="/assets/js/corespring/qti/controllers/AggregateAppController.js"></script>
 <script type="text/javascript">
+    //Override the Config object
     angular.module('qti.services').factory('Config', [function () {
         return {
             itemId: "@params.itemId",
@@ -13,4 +13,4 @@
 }
 
 @bodyAttributes = @{ "ng-controller='AggregateAppController'" }
-@_root_.player.views.html.basePlayer( params, scripts, bodyAttributes, None )
+@_root_.player.views.html.basePlayer( params, bodyAttributes, Some(scripts) )
