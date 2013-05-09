@@ -13,7 +13,7 @@ object Dependencies {
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "6.0.4"
-  val assetsLoader = "com.ee" %% "assets-loader" % "0.6-SNAPSHOT"
+  val assetsLoader = "com.ee" %% "assets-loader" % "0.7"
   val closureCompiler = ("com.google.javascript" % "closure-compiler" % "rr2079.1" notTransitive())
     .exclude("args4j", "args4j")
     .exclude("com.google.guava", "guava")
@@ -52,6 +52,7 @@ object Dependencies {
       }
     }
 
+    val edeustaceReleases= "ed eustace" at "http://edeustace.com/repository/releases/"
     val edeustaceSnapshots = "ed eustace snapshots" at "http://edeustace.com/repository/snapshots/"
     val securesocial = Repo.make("securesocial", "http://securesocial.ws/repository/", Resolver.ivyStylePatterns)
     val sonatype = Repo.make("Sonatype", "https://oss.sonatype.org/content/repositories/")
@@ -59,7 +60,7 @@ object Dependencies {
     val spy = "Spy Repository" at "http://files.couchbase.com/maven2"
     println(securesocial)
     println(sonatype)
-    val all: Seq[Resolver] = (securesocial.repos ++ sonatype.repos) :+ spy :+ edeustaceSnapshots
+    val all: Seq[Resolver] = (securesocial.repos ++ sonatype.repos) :+ spy :+ edeustaceSnapshots :+ edeustaceReleases
   }
 
 }
