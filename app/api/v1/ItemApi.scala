@@ -364,7 +364,7 @@ class ItemApi(s3service:S3Service) extends BaseApi {
 
   def update(id: ObjectId) = ApiAction {
     request =>
-      if (Content.isAuthorized(request.ctx.organization, id, Permission.Write)) {
+      if (Content.isAuthorized(request.ctx.organization, id, Permission.Write, true)) {
         request.body.asJson match {
           case Some(json) => {
             if ((json \ Item.id).asOpt[String].isDefined) {
@@ -394,7 +394,7 @@ class ItemApi(s3service:S3Service) extends BaseApi {
   }
 
   def cloneAndIncrement(itemId:ObjectId) = ApiAction {request =>
-    if(Content.isAuthorized(request.ctx.organization,itemId,Permission.Read)){
+    if(Content.isAuthorized(request.ctx.organization,itemId,Permission.Read,true)){
       Item.findOneById(itemId) match {
         case Some(item) => {
           //TODO: allow for rollback of item if storing files fails or second update fails
@@ -460,7 +460,7 @@ class ItemApi(s3service:S3Service) extends BaseApi {
     }
   }
   def increment(itemId: ObjectId) = ApiAction {request =>
-    if(Content.isAuthorized(request.ctx.organization,itemId,Permission.Read)){
+    if(Content.isAuthorized(request.ctx.organization,itemId,Permission.Read,true)){
       request.body.asJson match {
         case Some(json) => {
           if ((json \ Item.id).asOpt[String].isDefined) {
