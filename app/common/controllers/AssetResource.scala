@@ -14,6 +14,16 @@ import web.controllers.ObjectIdParser
 import web.controllers.utils.ConfigLoader
 
 
+object AssetResource{
+  object Errors{
+    val cantFindItem = "Can't find item"
+    val cantFindResource = "Can't find resource"
+    val invalidObjectId = "Invalid object id"
+    val cantFindFileWithName = "Can't find file with name "
+    val cantRender = "Unable to render"
+  }
+}
+
 trait AssetResource extends AssetResourceBase {
   final def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]] = Some(renderBaseFile(f))
   def service : S3Service = ConcreteS3Service
@@ -21,6 +31,8 @@ trait AssetResource extends AssetResourceBase {
 
 
 trait AssetResourceBase extends ObjectIdParser with S3ServiceModule {
+
+  import AssetResource.Errors
 
   val AMAZON_ASSETS_BUCKET = ConfigLoader.get("AMAZON_ASSETS_BUCKET").get
   protected val ContentType: String = "Content-Type"
@@ -46,10 +58,10 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceModule {
 
   def renderResource(itemId: String, resourceName: String): Action[AnyContent] = {
     val out = for {
-      oid <- objectId(itemId).toSuccess("Invalid objectId")
-      item <- Item.findOneById(oid).toSuccess("Can't find Item")
-      dr <- getResource(item, resourceName).toSuccess("Can't find resource")
-      action <- renderUsingDefaultFile(item, dr._1, dr._2).toSuccess("Can't render this resource")
+      oid <- objectId(itemId).toSuccess(Errors.invalidObjectId)
+      item <- Item.findOneById(oid).toSuccess(Errors.cantFindItem)
+      dr <- getResource(item, resourceName).toSuccess(Errors.cantFindResource)
+      action <- renderUsingDefaultFile(item, dr._1, dr._2).toSuccess(Errors.cantRender)
     } yield action
 
     out match {
@@ -61,11 +73,11 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceModule {
 
   def getResourceFile(itemId: String, resourceName: String, filename: String): Action[AnyContent] = {
     val out = for {
-      oid <- objectId(itemId).toSuccess("Invalid objectId")
-      item <- Item.findOneById(oid).toSuccess("Can't find Item")
-      dr <- getResource(item, resourceName).toSuccess("Can't find resource")
-      file <- dr._2.files.find(_.name == filename).toSuccess("Can't find file with name " + filename)
-      action <- renderFile(item, dr._1, file).toSuccess("Can't render file")
+      oid <- objectId(itemId).toSuccess(Errors.invalidObjectId)
+      item <- Item.findOneById(oid).toSuccess(Errors.cantFindItem)
+      dr <- getResource(item, resourceName).toSuccess(Errors.cantFindResource)
+      file <- dr._2.files.find(_.name == filename).toSuccess(Errors.cantFindFileWithName + filename)
+      action <- renderFile(item, dr._1, file).toSuccess(Errors.cantRender)
     } yield action
 
     out match {

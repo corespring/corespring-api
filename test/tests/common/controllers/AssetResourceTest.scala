@@ -6,7 +6,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import tests.PlaySingleton
 import web.controllers.ShowResource
-import common.controllers.AssetResourceBase
+import common.controllers.{AssetResource, AssetResourceBase}
 import controllers.S3Service
 import models.item.Item
 import models.item.resource.BaseFile
@@ -37,8 +37,9 @@ class AssetResourceTest extends Specification {
 
   "show resource" should {
 
+    val id = "50083ba9e4b071cb5ef79101"
+
     "return an asset" in {
-      val id = "50083ba9e4b071cb5ef79101"
       val request = FakeRequest("?","?")
       val result = resource.getResourceFile(id, "Rubric", "cute-puppy.jpg")(request)
       Logger.debug(contentAsString(result))
@@ -54,6 +55,15 @@ class AssetResourceTest extends Specification {
       Logger.debug(contentAsString(result))
       status(result) === OK
       contentAsString(result) === expected
+    }
+
+    "give correct error message" in {
+
+      val r = FakeRequest("?", "?")
+      contentAsString(resource.getResourceFile("badId", "badResourceName", "badFileName")(r)) === AssetResource.Errors.invalidObjectId
+      contentAsString(resource.getResourceFile(id.substring(0,id.length -1) + "2", "badResourceName", "badFileName")(r)) === AssetResource.Errors.cantFindItem
+      contentAsString(resource.getResourceFile(id, "badResourceName", "badFileName")(r)) === AssetResource.Errors.cantFindResource
+      contentAsString(resource.getResourceFile(id, "Rubric", "badFileName")(r)) === AssetResource.Errors.cantFindFileWithName + "badFileName"
     }
   }
 }

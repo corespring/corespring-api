@@ -51,7 +51,7 @@ object ShowResource extends BaseApi with ObjectIdParser with QtiResource with As
 
     out match {
       case Success(a) => a
-      case Failure(e) => Action(BadRequest(e)
+      case Failure(e) => Action(BadRequest(e))
     }
   }
 
