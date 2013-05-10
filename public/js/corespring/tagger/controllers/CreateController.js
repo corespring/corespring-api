@@ -9,7 +9,11 @@ function CreateCtrl($scope, $routeParams, ItemService, NewItemTemplates) {
 
     var item = new ItemService();
     item.data = {
-        name: "qtiItem",
+      /** Note:
+       * The name data is not arbitrary it has a special significance as it
+       * represents the Item.data resource.
+       */
+        name: "data",
         files: [{
             name: "qti.xml",
             "default": true,

@@ -9,7 +9,10 @@ import scala.Some
 /**
  * A Resource is representation of a set of one or more files. The files can be Stored files (uploaded to amazon) or virtual files (stored in mongo).
  */
-case class Resource(name: String, var files: Seq[BaseFile])
+case class Resource(name: String, var files: Seq[BaseFile]){
+
+  def defaultFile = files.find(_.isMain)
+}
 
 object Resource{
   val name = "name"
@@ -17,6 +20,7 @@ object Resource{
 
 
   val QtiXml = "qti.xml"
+  val QtiPath = "data"
 
   implicit object ResourceWrites extends Writes[Resource] {
     def writes(res: Resource): JsValue = {
