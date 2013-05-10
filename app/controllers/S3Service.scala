@@ -1,21 +1,18 @@
 package controllers
 
-import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.auth.{AWSCredentials, PropertiesCredentials}
-import play.api.Play
-import com.amazonaws.services.s3.model._
-import play.api.mvc._
-import play.api.http.HeaderNames._
-import play.api.Play.current
-import java.io._
-import play.api.libs.iteratee.{Input, Done, Iteratee}
-import actors.{IScheduler, TIMEOUT, Actor}
 import actors.scheduler.ResizableThreadPoolScheduler
-import com.amazonaws.{AmazonServiceException, AmazonClientException}
-import play.api.libs.iteratee.{Input, Done, Enumerator, Iteratee}
+import actors.{IScheduler, TIMEOUT, Actor}
 import api.ApiError
-import play.api.libs.json.Json
+import com.amazonaws.auth.AWSCredentials
+import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.services.s3.model._
+import com.amazonaws.{AmazonServiceException, AmazonClientException}
 import com.typesafe.config.ConfigFactory
+import java.io._
+import play.api.http.HeaderNames._
+import play.api.libs.iteratee.{Input, Done, Enumerator, Iteratee}
+import play.api.libs.json.Json
+import play.api.mvc._
 
 trait S3ServiceModule {
   def service : S3Service
