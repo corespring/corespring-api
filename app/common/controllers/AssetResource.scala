@@ -21,6 +21,7 @@ object AssetResource{
     val invalidObjectId = "Invalid object id"
     val cantFindFileWithName = "Can't find file with name "
     val cantRender = "Unable to render"
+    val noFilenameSpecified = "No filename specified"
   }
 }
 
@@ -46,9 +47,9 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceModule {
     }
   }
 
-  def getDataFile(itemId: String, filename: String) = getResourceFile(itemId, Resource.QtiPath, filename)
+  def getDataFile(itemId: String, filename: String) = getFile(itemId, Resource.QtiPath, Some(filename))
 
-  def renderDataResource(itemId: String) = renderResource(itemId, Resource.QtiPath)
+  def renderDataResource(itemId: String) = getDefaultResourceFile(itemId, Resource.QtiPath)
 
   protected def addDefaultCss(html: String): String = {
     val css = Seq(DefaultCss.BOOTSTRAP, DefaultCss.UBUNTU, DefaultCss.DEFAULT_CSS).mkString("\n")
@@ -56,27 +57,18 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceModule {
     """<head>""".r.replaceAllIn(html, replacement)
   }
 
-  def renderResource(itemId: String, resourceName: String): Action[AnyContent] = {
+  def getDefaultResourceFile(itemId:String,resourceName:String) = getFile(itemId, resourceName)
+
+  def getResourceFile(itemId: String, resourceName: String, filename:String ) = getFile(itemId,resourceName,Some(filename))
+
+  private def getFile(itemId:String, resourceName:String, filename: Option[String] = None) : Action[AnyContent] =
+  {
     val out = for {
       oid <- objectId(itemId).toSuccess(Errors.invalidObjectId)
       item <- Item.findOneById(oid).toSuccess(Errors.cantFindItem)
       dr <- getResource(item, resourceName).toSuccess(Errors.cantFindResource)
-      action <- renderUsingDefaultFile(item, dr._1, dr._2).toSuccess(Errors.cantRender)
-    } yield action
-
-    out match {
-      case Success(a) => a
-      case Failure(e) => Action(BadRequest(e))
-    }
-  }
-
-
-  def getResourceFile(itemId: String, resourceName: String, filename: String): Action[AnyContent] = {
-    val out = for {
-      oid <- objectId(itemId).toSuccess(Errors.invalidObjectId)
-      item <- Item.findOneById(oid).toSuccess(Errors.cantFindItem)
-      dr <- getResource(item, resourceName).toSuccess(Errors.cantFindResource)
-      file <- dr._2.files.find(_.name == filename).toSuccess(Errors.cantFindFileWithName + filename)
+      fn <- (filename orElse dr._2.defaultFile.map(_.name)).toSuccess(Errors.noFilenameSpecified)
+      file <- dr._2.files.find(_.name == fn).toSuccess(Errors.cantFindFileWithName + fn)
       action <- renderFile(item, dr._1, file).toSuccess(Errors.cantRender)
     } yield action
 
@@ -91,9 +83,6 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceModule {
   } else {
     item.supportingMaterials.find(_.name == name).map((false, _))
   }
-
-  private def renderUsingDefaultFile(item: Item, isDataResource: Boolean, r: Resource): Option[Action[AnyContent]] = r.defaultFile.map(renderFile(item, isDataResource, _)).getOrElse(None)
-
 
   protected def renderBaseFile(f: BaseFile): Action[AnyContent] = Action {
     request => f match {

@@ -1,4 +1,4 @@
-var app = angular.module('app', ['itemResource', 'fieldValuesResource', 'tagger.services', 'preview.services', 'ui', 'corespring-utils']);
+var app = angular.module('app', ['itemResource', 'fieldValuesResource', 'tagger.services', 'ui', 'corespring-utils']);
 
 
 angular.module('app').directive('profilePlayer', function () {

@@ -1,4 +1,4 @@
-function ProfileController($scope, $timeout, Config, Item, ItemFormattingUtils, MessageBridge) {
+function ProfileController($scope, Config, Item, ItemFormattingUtils, ResourceUtils) {
 
   $scope.changeSupportingMaterialPanel = function (sm) {
     $scope.changePanel(sm.name);
@@ -6,60 +6,17 @@ function ProfileController($scope, $timeout, Config, Item, ItemFormattingUtils, 
   };
 
   $scope.getItemSrc = function (forPrinting) {
-    if ($scope.itemData == undefined) return null;
-    return getResourceUrl($scope.itemData.id, forPrinting);
+    return ResourceUtils.getItemSrc($scope.itemData, forPrinting)
   };
 
   $scope.getSmSrc = function (sm, forPrinting) {
-    if ($scope.itemData == undefined) return null;
-    return getResourceUrl($scope.itemData.id + "/" + sm.name, forPrinting);
+    return ResourceUtils.getSmSrc($scope.itemData, sm, forPrinting);
   };
 
-  /**
-   * Note: In our resources we sometimes deliver assets that are referred to within the resources
-   * using a relative path. For this reason all resources need to be identified on the same
-   * virtual path level as the resource, so that they can be found. So the 'main' here is important.
-   * @param key
-   * @param forPrinting
-   * @returns {string}
-   */
-  var getResourceUrl = function(key, forPrinting){
-    var templateUrl = forPrinting ? '/web/print-resource/{key}/main' : "/web/show-resource/{key}/main";
-    return templateUrl.replace("{key}", key);
-  };
+  $scope.getLicenseTypeUrl = ResourceUtils.getLicenseTypeUrl;
 
-  $scope.getLicenseTypeUrl = function (ltype) {
-    return ltype ? "/assets/images/licenseTypes/" + ltype + ".png" : undefined;
-  };
+  $scope.getCopyrightUrl = ItemFormattingUtils.getCopyrightUrl;
 
-  $scope.getCopyrightUrl = function (item) {
-    if (!item) return;
-    var cname = ""
-    switch (item.copyrightOwner) {
-      case "New York State Education Department":
-        cname = "nysed.png";
-        break;
-      case "State of New Jersey Department of Education":
-        cname = "njded.png";
-        break;
-      case "Illustrative Mathematics":
-        cname = "illustrativemathematics.png";
-        break;
-      case "Aspire Public Schools":
-        cname = "aspire.png";
-        break;
-      case "College Board":
-        cname = "CollegeBoard.png";
-        break;
-      case "New England Common Assessment Program":
-        cname = "NECAP.jpg";
-        break;
-      case "LearnZillion":
-        cname = "lzlogo-png.png";
-        break;
-    }
-    return cname != "" ? ("/assets/images/copyright/" + cname) : undefined;
-  }
 
   $scope.printCurrent = function () {
 
@@ -112,7 +69,8 @@ function ProfileController($scope, $timeout, Config, Item, ItemFormattingUtils, 
       function onError(error) {
         if (error.data) {
           switch (error.data.code) {
-            case 307: $scope.noRightToView = true;
+            case 307:
+              $scope.noRightToView = true;
           }
         }
       }
@@ -124,9 +82,13 @@ function ProfileController($scope, $timeout, Config, Item, ItemFormattingUtils, 
   if (Config.tab == "")
     $scope.currentPanel = "profile";
   else switch (Config.tab) {
-    case 'profile': $scope.currentPanel = "profile"; break;
-    case 'item': $scope.currentPanel = "item"; break;
+    case 'profile':
+      $scope.currentPanel = "profile";
+      break;
+    case 'item':
+      $scope.currentPanel = "item";
+      break;
   }
 }
 
-ProfileController.$inject = ['$scope', '$timeout', 'Config', 'Item', 'ItemFormattingUtils','MessageBridge'];
+ProfileController.$inject = ['$scope', 'Config', 'Item', 'ItemFormattingUtils', 'ResourceUtils'];

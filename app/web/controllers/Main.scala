@@ -17,29 +17,6 @@ object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
     s - PlayerCookieKeys.RENDER_OPTIONS
   }
 
-  def previewItem(itemId: String, defaultView: String = "profile") = ApiAction {
-    request =>
-      println("Default view is" + defaultView)
-      Ok(web.views.html.itemPreview(itemId, defaultView = defaultView))
-  }
-
-
-  /**
-   * A temporary route whilst working on preview
-   * @return
-   */
-  def previewAnyItem() = ApiAction {
-    Item.findOne(new BasicDBObject()) match {
-      case Some(item) => previewItem(item.id.toString)
-      case None => Action(Ok("no item found"))
-    }
-  }
-
-  def renderProfile(itemId: String) = Action {
-    request =>
-      Ok(web.views.html.profilePrint(itemId, common.mock.MockToken))
-  }
-
   def index = SecuredAction {
     implicit request =>
       val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))

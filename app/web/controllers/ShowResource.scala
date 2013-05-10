@@ -28,7 +28,7 @@ object ShowResource extends BaseApi with ObjectIdParser with QtiResource with As
 
       Ok(
         Routes.javascriptRouter("WebRoutes")(
-          ShowResourceJs.renderResource,
+          ShowResourceJs.getResourceFile,
           Partials.createItem,
           Partials.editItem,
           Partials.home,
