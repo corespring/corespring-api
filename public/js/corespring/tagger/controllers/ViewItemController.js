@@ -55,7 +55,7 @@ function ViewItemController($scope, $routeParams, $location, ItemService) {
 
     $scope.getItemUrl = function () {
         if (!$scope.itemData) return null;
-        return WebRoutes.web.controllers.ShowResource.renderResource($scope.itemData.id, "data").url;
+        return WebRoutes.web.controllers.ShowResource.getDefaultResourceFile($scope.itemData.id, "data").url;
     };
 
     $scope.prependHttp = function (url) {
