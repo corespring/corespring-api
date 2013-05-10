@@ -1,7 +1,7 @@
 package controllers
 
 import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.auth.PropertiesCredentials
+import com.amazonaws.auth.{AWSCredentials, PropertiesCredentials}
 import play.api.Play
 import com.amazonaws.services.s3.model._
 import play.api.mvc._
@@ -15,6 +15,7 @@ import com.amazonaws.{AmazonServiceException, AmazonClientException}
 import play.api.libs.iteratee.{Input, Done, Enumerator, Iteratee}
 import api.ApiError
 import play.api.libs.json.Json
+import com.typesafe.config.ConfigFactory
 
 trait S3Service {
   case class S3DeleteResponse(success: Boolean, key: String, msg: String = "")
@@ -45,11 +46,14 @@ object ConcreteS3Service extends S3Service {
 
   /**
    * Init the S3 client
-   * @param propertiesFile the properties file that contains the amazon credentials
    */
-  def init(propertiesFile: File): Unit = this.synchronized {
+  def init: Unit = this.synchronized {
     try {
-      optS3 = Some(new AmazonS3Client(new PropertiesCredentials(propertiesFile)))
+      optS3 = Some(new AmazonS3Client(new AWSCredentials {
+        def getAWSAccessKeyId: String = ConfigFactory.load().getString("AMAZON_ACCESS_KEY")
+
+        def getAWSSecretKey: String = ConfigFactory.load().getString("AMAZON_ACCESS_SECRET")
+      }))
     } catch {
       case e: IOException => InternalError("unable to authenticate s3 server with given credentials", LogType.printFatal)
     }

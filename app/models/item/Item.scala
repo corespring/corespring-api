@@ -18,6 +18,7 @@ import scala.Left
 import scala.Some
 import scala.Right
 import controllers.JsonValidationException
+import models.itemSession.{DefaultItemSession, ItemSession}
 
 
 case class Item(
@@ -33,12 +34,15 @@ case class Item(
                  var data: Option[Resource] = None,
                  var originId: Option[String] = None,
                  var supportingMaterials: Seq[Resource] = Seq(),
+                 var published:Boolean = false,
                  var workflow: Option[Workflow] = None,
                  var dateModified: Option[DateTime] = Some(new DateTime()),
                  var taskInfo: Option[TaskInfo] = None,
                  var otherAlignments: Option[Alignments] = None,
                  var id: ObjectId = new ObjectId(),
-                 var version: Option[Version] = None) extends Content
+                 var version: Option[Version] = None) extends Content{
+  def sessionCount:Int = DefaultItemSession.find(MongoDBObject("itemId" -> id)).count
+}
 
 
 /**
@@ -95,6 +99,7 @@ object Item extends ModelCompanion[Item, ObjectId] {
   val dateModified = "dateModified"
   val otherAlignments = "otherAlignments"
   val version = Content.version
+  val published = "published"
 
   lazy val fieldValues = FieldValue.current
 
@@ -135,6 +140,7 @@ object Item extends ModelCompanion[Item, ObjectId] {
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
       item.standards = (json \ standards).asOpt[Seq[String]].getOrElse(Seq())
       item.data = (json \ data).asOpt[Resource]
+      item.published = (json \ published).asOpt[Boolean].getOrElse(false)
 
       try {
         item.id = (json \ id).asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId())
@@ -145,7 +151,6 @@ object Item extends ModelCompanion[Item, ObjectId] {
       item
     }
   }
-
   def updateItem(oid: ObjectId, newItem: Item, fields: Option[DBObject], requesterOrgId: ObjectId): Either[InternalError, Item] = {
     try {
 

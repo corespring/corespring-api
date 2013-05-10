@@ -146,10 +146,11 @@ object ShowResource extends BaseApi with ObjectIdParser with QtiResource with As
         case Some(item) => {
           item.supportingMaterials.find(f => f.name == resourceName) match {
             case Some(foundResource) => getResult(request, foundResource.files, filename)
-            case _ => item.data.find(f => f.name == resourceName) match {
-              case Some(foundResource) => getResult(request, foundResource.files,filename)
-              case _ => NotFound
-            }
+            case _ => //TODO this was being called to retrieve an image from data. added this to make it work although not sure if it's correct.
+              item.data.find(f => f.name == resourceName) match {
+                case Some(foundResource) => getResult(request, foundResource.files,filename)
+                case _ => NotFound
+              }
           }
         }
         case _ => NotFound

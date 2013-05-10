@@ -235,8 +235,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   }
   $scope.showSaveWarning=false
   $scope.itemVersion = 1
+  $scope.createNewVersion = true;
   $scope.$on("dataLoaded",function(newValue,oldValue){
       if(typeof $scope.itemData.version != "undefined") $scope.itemVersion = $scope.itemData.version.rev+1
+      $scope.isPublished = $scope.itemData.published
       //get the most current item version given the root id of this item
 //      $scope.itemData.currentItem({id:$scope.itemData.id}, function onCurrentItemSuccess(data){
 //          //we have the revision number of the current item, now we compute all numbers up to that number to provide a list of all revisions
@@ -252,7 +254,12 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.$watch('itemData.pValue', function (newValue, oldValue) {
     $scope.pValueAsString = $scope.getPValueAsString(newValue);
   });
-
+  $scope.$watch('isPublished', function(){
+      if($scope.isPublished) {
+        if($scope.itemData.sessionCount) $scope.itemStatus = "Published "+"("+$scope.itemData.sessionCount+" responses)"
+        else $scope.itemStatus = "Published"
+      } else $scope.itemStatus = "Draft"
+  })
   $scope.getPValueAsString = function (value) {
 
     var vals = {
@@ -290,6 +297,17 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.suppressSave = false;
     if(error) $scope.showSaveWarning = true;
   };
+
+  $scope.publish = function(){
+    $scope.itemData.published = true;
+    $scope.itemData.update({},function(data){
+        if(data.published) {
+            $scope.isPublished = true
+        }else alert("error publishing: status ok but no published property found")
+    },function(error){
+        alert("error publishing: "+JSON.stringify(error))
+    })
+  }
 
   $scope.save = function () {
 
