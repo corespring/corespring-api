@@ -123,7 +123,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
     }
   )
 
-  def deleteDataFile(itemId: String, filename: String) = HasItem(
+  def deleteDataFile(itemId: String, filename: String, force:Boolean) = HasItem(
     itemId,
     Seq(),
     Action {
@@ -132,7 +132,14 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
         if (filename == DEFAULT_DATA_FILE_NAME) {
           BadRequest("Can't delete " + DEFAULT_DATA_FILE_NAME)
         } else {
-          removeFileFromResource(item, item.data.get, filename)
+          if(force || item.sessionCount == 0 || !item.published){
+            removeFileFromResource(item, item.data.get, filename)
+          }else{
+            Forbidden(toJson(JsObject(Seq("message" ->
+              JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
+              "flags" -> JsArray(Seq(JsString("alert_increment")))
+            ))))
+          }
         }
     }
   )
@@ -229,8 +236,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
                     val vfupdate = update.asInstanceOf[VirtualFile]
                     val vforiginal = f.asInstanceOf[VirtualFile]
                     val diff = Utils.getLevenshteinDistance(vfupdate.content,vforiginal.content)
-                    val sessions = DefaultItemSession.find(MongoDBObject(ItemSession.Keys.itemId -> item.id)).count
-                    if(force || diff == 0.0 || sessions == 0 || !item.published){
+                    if(force || diff == 0.0 || item.sessionCount == 0 || !item.published){
                       item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
                       Item.save(item)
                       Ok(toJson(processedUpdate))
@@ -242,13 +248,20 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
                     }
                   }else BadRequest
                 } else {
-                  //we don't get the storage key in the request so we need to copy it across
-                  if (processedUpdate.isInstanceOf[StoredFile]) {
-                    processedUpdate.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey
+                  if(force || item.sessionCount == 0 || !item.published){
+                    //we don't get the storage key in the request so we need to copy it across
+                    if (processedUpdate.isInstanceOf[StoredFile]) {
+                      processedUpdate.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey
+                    }
+                    item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
+                    Item.save(item)
+                    Ok(toJson(processedUpdate))
+                  } else {
+                    Forbidden(toJson(JsObject(Seq("message" ->
+                      JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
+                      "flags" -> JsArray(Seq(JsString("alert_increment")))
+                    ))))
                   }
-                  item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
-                  Item.save(item)
-                  Ok(toJson(processedUpdate))
                 }
               }
               case _ => NotFound(update.name)

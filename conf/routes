@@ -106,7 +106,7 @@ DELETE  /api/v1/items/:itemId/materials/:resourceName/:filename   api.v1.Resourc
 POST    /api/v1/items/:itemId/data         api.v1.ResourceApi.createDataFile(itemId:String)
 PUT     /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.updateDataFile(itemId:String, filename:String, force:Boolean ?= false)
 POST    /api/v1/items/:itemId/data/:filename/upload   api.v1.ResourceApi.uploadFileToData(itemId:String, filename : String )
-DELETE  /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.deleteDataFile(itemId:String, filename:String)
+DELETE  /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.deleteDataFile(itemId:String, filename:String, force:Boolean ?= false)
 
 # Field Values API
 GET     /api/v1/field_values                   api.v1.FieldValuesApi.getAllAvailable
