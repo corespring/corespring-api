@@ -52,7 +52,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
    */
   def HasItem[A](
                   itemId: String,
-                  additionalChecks: Seq[Item => Option[ApiError]],
+                  additionalChecks: Seq[Item => Option[Result]],
                   p: BodyParser[A])(
                   action: ItemRequest[A] => Result
                   ) = ApiAction(p) { request =>
@@ -60,13 +60,13 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
       case Some(validId) => {
         Item.findOneById(validId) match {
           case Some(item) => {
-            val errors: Seq[ApiError] = additionalChecks.flatMap(_(item))
+            val errors: Seq[Result] = additionalChecks.flatMap(_(item))
             if (errors.length == 0) {
               action(ItemRequest(item, request))
             }
             else {
               //TODO: Only returning the first error
-              NotFound(toJson(errors(0)))
+              errors(0)
             }
           }
           case _ => NotFound
@@ -90,7 +90,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
   }
 
   def HasItem(itemId: String,
-              additionalChecks: Seq[Item => Option[ApiError]] = Seq(),
+              additionalChecks: Seq[Item => Option[Result]] = Seq(),
               action: ItemRequest[AnyContent] => Result): Action[AnyContent] = HasItem(itemId, additionalChecks, parse.anyContent)(action)
 
   private def removeFileFromResource(item: Item, resource: Resource, filename: String): Result = {
@@ -107,10 +107,21 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
       case _ => NotFound(filename)
     }
   }
-
+  def editCheck(force:Boolean = false) = new Function1[Item,Option[Result]] {
+    def apply(item:Item):Option[Result] = {
+      if(item.sessionCount > 0 && item.published && !force){
+        Some(Forbidden(toJson(JsObject(Seq("message" ->
+          JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
+          "flags" -> JsArray(Seq(JsString("alert_increment")))
+        )))))
+      } else {
+        None
+      }
+    }
+  }
   def deleteSupportingMaterialFile(itemId: String, resourceName: String, filename: String) = HasItem(
     itemId,
-    Seq(),
+    Seq(editCheck()),
     Action {
       request =>
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
@@ -125,28 +136,21 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
 
   def deleteDataFile(itemId: String, filename: String, force:Boolean) = HasItem(
     itemId,
-    Seq(),
+    Seq(editCheck(force)),
     Action {
       request =>
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
         if (filename == DEFAULT_DATA_FILE_NAME) {
           BadRequest("Can't delete " + DEFAULT_DATA_FILE_NAME)
         } else {
-          if(force || item.sessionCount == 0 || !item.published){
-            removeFileFromResource(item, item.data.get, filename)
-          }else{
-            Forbidden(toJson(JsObject(Seq("message" ->
-              JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
-              "flags" -> JsArray(Seq(JsString("alert_increment")))
-            ))))
-          }
+          removeFileFromResource(item, item.data.get, filename)
         }
     }
   )
 
   def createSupportingMaterialFile(itemId: String, resourceName: String) = HasItem(
     itemId,
-    Seq(),
+    Seq(editCheck()),
     Action {
       request =>
         request.body.asJson match {
@@ -172,7 +176,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
 
   def createDataFile(itemId: String) = HasItem(
     itemId,
-    Seq(),
+    Seq(editCheck()),
     Action {
       request =>
         request.body.asJson match {
@@ -222,7 +226,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
 
   def updateDataFile(itemId: String, filename: String, force:Boolean) = HasItem(
     itemId,
-    Seq(),
+    Seq(editCheck(force)),
     Action {
       request =>
         getFileFromJson(request.body) match {
@@ -231,38 +235,13 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
             item.data.get.files.find(_.name == filename) match {
               case Some(f) => {
                 val processedUpdate = ensureDataFileIsMainIsCorrect(update)
-                if(update.isInstanceOf[VirtualFile]){
-                  if (f.isInstanceOf[VirtualFile]){
-                    val vfupdate = update.asInstanceOf[VirtualFile]
-                    val vforiginal = f.asInstanceOf[VirtualFile]
-                    val diff = Utils.getLevenshteinDistance(vfupdate.content,vforiginal.content)
-                    if(force || diff == 0.0 || item.sessionCount == 0 || !item.published){
-                      item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
-                      Item.save(item)
-                      Ok(toJson(processedUpdate))
-                    }else{
-                      Forbidden(toJson(JsObject(Seq("message" ->
-                        JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
-                        "flags" -> JsArray(Seq(JsString("alert_increment")))
-                      ))))
-                    }
-                  }else BadRequest
-                } else {
-                  if(force || item.sessionCount == 0 || !item.published){
-                    //we don't get the storage key in the request so we need to copy it across
-                    if (processedUpdate.isInstanceOf[StoredFile]) {
-                      processedUpdate.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey
-                    }
-                    item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
-                    Item.save(item)
-                    Ok(toJson(processedUpdate))
-                  } else {
-                    Forbidden(toJson(JsObject(Seq("message" ->
-                      JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
-                      "flags" -> JsArray(Seq(JsString("alert_increment")))
-                    ))))
-                  }
+                //we don't get the storage key in the request so we need to copy it across
+                if (processedUpdate.isInstanceOf[StoredFile]) {
+                  processedUpdate.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey
                 }
+                item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
+                Item.save(item)
+                Ok(toJson(processedUpdate))
               }
               case _ => NotFound(update.name)
             }
@@ -284,7 +263,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
 
   def updateSupportingMaterialFile(itemId: String, resourceName: String, filename: String) = HasItem(
     itemId,
-    Seq(),
+    Seq(editCheck()),
     Action {
       request =>
         getFileFromJson(request.body) match {
@@ -329,7 +308,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
   def uploadFileToData(itemId: String, filename: String) = {
     HasItem(
       itemId,
-      Seq(isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_)),
+      Seq(editCheck(),isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_)),
       s3service.s3upload(AMAZON_ASSETS_BUCKET, key(itemId, DATA_PATH, filename)))(
     {
       request =>
@@ -365,7 +344,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
    */
   def uploadFile(itemId: String, materialName: String, filename: String) =
     HasItem(itemId,
-      Seq(
+      Seq( editCheck(),
         canFindResource(materialName)(_),
         isFilenameTaken(filename, materialName)(_)
       ),
@@ -394,7 +373,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
 
   def createSupportingMaterialWithFile(itemId: String, name: String, filename: String) = {
     val s3Key = storageKey(itemId, name, filename)
-    HasItem(itemId,Seq(), s3service.s3upload(AMAZON_ASSETS_BUCKET, s3Key))(
+    HasItem(itemId,Seq(editCheck()), s3service.s3upload(AMAZON_ASSETS_BUCKET, s3Key))(
     {
       request =>
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
@@ -411,7 +390,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
     })
   }
 
-  def createSupportingMaterial(itemId: String) = HasItem(itemId,Seq(), Action { request  =>
+  def createSupportingMaterial(itemId: String) = HasItem(itemId,Seq(editCheck()), Action { request  =>
 
     request.body.asJson match {
       case Some(json) => {
@@ -435,7 +414,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
   })
 
   def deleteSupportingMaterial(itemId: String, resourceName: String) = HasItem(itemId,
-    Seq(canFindResource(resourceName)(_)),
+    Seq(editCheck(),canFindResource(resourceName)(_)),
     Action {
       request =>
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
@@ -474,12 +453,12 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
   /**
    * check that the item contains a supportingMaterial resource with the supplied name.
    */
-  private def canFindResource(resourceName: String)(item: Item): Option[ApiError] = {
+  private def canFindResource(resourceName: String)(item: Item): Option[Result] = {
     if (item.supportingMaterials.exists(_.name == resourceName)) {
       None
     }
     else {
-      Some(ApiError.ResourceNotFound(Some(resourceName)))
+      Some(NotFound(toJson(ApiError.ResourceNotFound(Some(resourceName)))))
     }
   }
 
@@ -498,12 +477,12 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
     }
   }
 
-  private def isFilenameTaken(filename: String, resourceName: String)(item: Item): Option[ApiError] = {
+  private def isFilenameTaken(filename: String, resourceName: String)(item: Item): Option[Result] = {
 
     getResource(item, resourceName) match {
       case Some(r) => {
         if (r.files.exists(_.name == filename)) {
-          Some(ApiError.FilenameTaken(Some(filename)))
+          Some(NotFound(toJson(ApiError.FilenameTaken(Some(filename)))))
         }
         else {
           None

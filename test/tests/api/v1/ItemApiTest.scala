@@ -40,7 +40,7 @@ class ItemApiTest extends BaseTest with Mockito {
 //  AccessToken.insert(accessToken)
 //  override val token = "itemapi_test_token"
 
-  val allItemsCount = 25
+  val allItemsCount = 26
 
   "list all items" in {
     val call = ItemRoutes.list()
@@ -90,7 +90,7 @@ class ItemApiTest extends BaseTest with Mockito {
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
     val items = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
-    items.size must beEqualTo(5)
+    items.size must beEqualTo(6)
   }
 
   "find items in returning only their title and up to 3" in {
