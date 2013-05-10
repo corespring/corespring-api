@@ -58,47 +58,6 @@ trait BaseApi extends Controller with SecureSocial{
     }
   }
 
-//  /**
-//   * Creates an authentication context using the information from the header 'sudo'.
-//   * This can be used in development to bypass the regular authentication flow and test the APIs.
-//   *
-//   * for example to invoke as user John in company X you would use the username and the company id as:
-//   *
-//   * curl -H  "sudo:john.doe@3e4dda7c-8746-4483-8b58-a5a745a6991f" http://.....
-//   *
-//   *
-//   * @param request
-//   * @tparam A
-//   * @return
-//   */
-//  def fakeContext[A](request: Request[A]): Either[IllegalArgumentException, Option[AuthorizationContext]] = {
-//    if (Play.isProd(Play.current)) {
-//      // we don't want this in production mode
-//      Right(None)
-//    } else {
-//      try {
-//        Right(request.headers.get("sudo").map {
-//          _.split("@") match {
-//            //            case Array(user, "master") =>
-//            //              Logger.info("creating fake context with org master for user = " + user)
-//            //              Option(new AuthorizationContext(controllers.GlobalVars.masterOrgId, Option(user)))
-//            case Array(user, org) =>
-//              Logger.info("creating fake context with org " + org + ", user = " + user)
-//              Option(new AuthorizationContext(new ObjectId(org), Option(user)))
-//            //              case Array("master") =>
-//            //                Logger.info("creating fake context for master org ")
-//            //                Option(new AuthorizationContext(controllers.GlobalVars.masterOrgId))
-//            case Array(org) =>
-//              Logger.info("creating fake context with org " + org)
-//              Option(new AuthorizationContext(new ObjectId(org)))
-//          }
-//        }.getOrElse(None))
-//      } catch {
-//        case ex: IllegalArgumentException => Left(ex)
-//      }
-//    }
-//  }
-
   def SSLApiAction[A](p:BodyParser[A])(f:ApiRequest[A] => Result):Action[A] = ApiAction(p){
     request =>
       request.headers.get("x-forwarded-proto") match {
@@ -118,7 +77,7 @@ trait BaseApi extends Controller with SecureSocial{
   def ApiAction[A](p: BodyParser[A])(f: ApiRequest[A] => Result) = {
     Action(p) {
       request =>
-        Log.i("request route: "+request.method+" "+request.uri)
+        Log.d("request route: "+request.method+" "+request.uri)
         SecureSocial.currentUser(request).find(_ => request.headers.get("CoreSpring-IgnoreSession").isEmpty).map { u =>
           invokeAsUser(u.id.id, u.id.providerId, request)(f)
         }.getOrElse {

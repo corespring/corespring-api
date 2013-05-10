@@ -194,15 +194,20 @@ GET    /web/partials/viewItem                  web.controllers.Partials.viewItem
 
 
 GET    /web/javascripts/routes                             web.controllers.ShowResource.javascriptRoutes
-GET    /web/show-resource/:itemId/data/main                web.controllers.ShowResource.renderDataResource(itemId)
-GET    /web/show-resource/:itemId/data/:filename           web.controllers.ShowResource.getDataFile(itemId:String,filename:String)
-GET    /web/show-resource/:itemId/:resourceName            web.controllers.ShowResource.renderResource(itemId,resourceName)
+#GET    /web/show-resource/:itemId/data/main                web.controllers.ShowResource.renderDataResource(itemId)
+#GET    /web/show-resource/:itemId/data/:filename           web.controllers.ShowResource.getDataFile(itemId:String,filename:String)
+
+# Note: In our resources we sometimes deliver assets that are referred to within the resources
+# using a relative path eg: <img src="cat.jpg"></img>. For this reason all resources need to be identified on the same
+# virtual path level as the resource, so that they can be found. So the 'main' here is important.
+
+GET    /web/show-resource/:itemId/:resourceName/main        web.controllers.ShowResource.renderResource(itemId,resourceName)
 GET    /web/show-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId:String,resourceName:String,filename:String)
 
 GET    /web/print-resource/:itemId/data/main                web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
-GET    /web/print-resource/:itemId/data/:filename           web.controllers.ShowResource.getDataFile(itemId:String,filename:String)
+# GET    /web/print-resource/:itemId/data/:filename           web.controllers.ShowResource.getDataFile(itemId:String,filename:String)
+GET    /web/print-resource/:itemId/:resourceName/main       web.controllers.ShowResource.renderResource(itemId,resourceName)
 GET    /web/print-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId:String,resourceName:String,filename:String)
-GET    /web/print-resource/:itemId/:resourceName            web.controllers.ShowResource.renderResource(itemId,resourceName)
 GET    /web/print-resource-profile/:itemId                  web.controllers.Main.renderProfile(itemId:String)
 
 #

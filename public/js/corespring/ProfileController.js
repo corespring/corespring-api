@@ -7,20 +7,30 @@ function ProfileController($scope, $timeout, Config, Item, ItemFormattingUtils, 
 
   $scope.getItemSrc = function (forPrinting) {
     if ($scope.itemData == undefined) return null;
-    var templateUrl = forPrinting ? "/web/print-resource/{key}/data/main" : '/web/show-resource/{key}';
-    var key = $scope.itemData.id;
-    return templateUrl.replace("{key}", key);
+    return getResourceUrl($scope.itemData.id, forPrinting);
   };
 
   $scope.getSmSrc = function (sm, forPrinting) {
-    var templateUrl = forPrinting ? '/web/print-resource/{key}' : "/web/show-resource/{key}";
-    var key = $scope.itemData.id + "/" + sm.name;
+    if ($scope.itemData == undefined) return null;
+    return getResourceUrl($scope.itemData.id + "/" + sm.name, forPrinting);
+  };
+
+  /**
+   * Note: In our resources we sometimes deliver assets that are referred to within the resources
+   * using a relative path. For this reason all resources need to be identified on the same
+   * virtual path level as the resource, so that they can be found. So the 'main' here is important.
+   * @param key
+   * @param forPrinting
+   * @returns {string}
+   */
+  var getResourceUrl = function(key, forPrinting){
+    var templateUrl = forPrinting ? '/web/print-resource/{key}/main' : "/web/show-resource/{key}/main";
     return templateUrl.replace("{key}", key);
   };
 
   $scope.getLicenseTypeUrl = function (ltype) {
     return ltype ? "/assets/images/licenseTypes/" + ltype + ".png" : undefined;
-  }
+  };
 
   $scope.getCopyrightUrl = function (item) {
     if (!item) return;
