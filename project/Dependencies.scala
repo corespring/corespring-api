@@ -13,7 +13,7 @@ object Dependencies {
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "6.0.4"
-  val assetsLoader = "com.ee" %% "assets-loader" % "0.7"
+  val assetsLoader = "com.ee" %% "assets-loader" % "0.8"
   val closureCompiler = ("com.google.javascript" % "closure-compiler" % "rr2079.1" notTransitive())
     .exclude("args4j", "args4j")
     .exclude("com.google.guava", "guava")

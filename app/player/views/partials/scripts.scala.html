@@ -18,6 +18,7 @@
 )
 
 @com.ee.assets.Loader.scripts("qti-interactions")( qtiAssetLoader.localJsPaths : _*)
+@com.ee.assets.Loader.css("qti-interactions")( qtiAssetLoader.localCssPaths : _* )
 
 <!-- qti - remote js -->
 @qtiAssetLoader.remoteJsPaths.map{ p =>
@@ -25,11 +26,6 @@
 }
 <!-- end qti - remote js -->
 
-<!-- qti - local css -->
-@qtiAssetLoader.localCssPaths.filter(player.views.qti.fileExists).map{ p =>
-   <link rel="stylesheet" type="text/css" href="/assets/@p"/>
-}
-<!-- end qti - local css -->
 
 <!-- Default Css -->
 @Html(common.controllers.DefaultCss.DEFAULT_CSS)

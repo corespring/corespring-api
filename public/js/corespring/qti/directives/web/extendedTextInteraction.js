@@ -11,15 +11,11 @@ angular.module('qti.directives').directive("extendedtextinteraction", function (
     link: function (scope, element, attrs, AssessmentItemController) {
 
       scope.controller = AssessmentItemController;
-      scope.rows = 4; // default # of rows
-      scope.cols = attrs.cols || 60; // default # of cols
-      if (attrs.expectedlines) {
-        scope.rows = attrs.expectedlines;
-      }
+      scope.rows = attrs.expectedlines || 4; // default # of rows
+      scope.cols = attrs.expectedlength || attrs.cols || 60; // default # of cols
 
       // read some stuff from attrs
       var modelToUpdate = attrs.responseidentifier;
-      scope.expectedLength = attrs.expectedlength;
       scope.maxStrings = attrs.maxstrings;
       scope.minStrings = attrs.minstrings;
 
