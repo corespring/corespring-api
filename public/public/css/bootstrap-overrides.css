@@ -484,8 +484,8 @@ p {
 	display: inline-block;
 	float: left;
 	height: 75px;
-	margin-bottom: 50px;
-	margin-right: 0px;
+	margin-bottom: 0px;
+	margin-right: 20px;
 	width: 70px;
 }
 .contact .intro-logo {
