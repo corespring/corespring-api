@@ -15,4 +15,5 @@ object Defaults{
   lazy val commitHash : String = ConfigLoader.get("ENV_CORESPRING_API_COMMIT_HASH").getOrElse("?")
   lazy val commitMsg : String = ConfigLoader.get("ENV_CORESPRING_API_COMMIT_MSG").getOrElse("?")
   lazy val pushDate : String = ConfigLoader.get("ENV_CORESPRING_API_PUSH_DATE").getOrElse("?")
+  lazy val branch : String = ConfigLoader.get("ENV_CORESPRING_API_BRANCH").getOrElse("?")
 }
