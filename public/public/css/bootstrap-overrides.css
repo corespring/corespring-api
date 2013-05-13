@@ -6,17 +6,36 @@ body {
 	font-size: 18px;
 	background-color: #ffffff !important;
 }
+
 h1 {
-	color: #FFFFFF;
-	font-size: 30px;
-	line-height: 1.2;
-	text-shadow: 1px -2px 0px rgba(51, 51, 51, 0.6);
+  color: #80b312;
+  font-size: 26px;
+  line-height: 2.5;
+  text-transform:uppercase;
+	font-weight:700;
 }
+
 h2 {
-	color: #00ACCE;
-	font-size: 25px;
-	line-height: 1.1;
-	margin: 0px 0px 15px;
+  color: #80b312;
+  font-size: 26px;
+  line-height: 1.1;
+  margin: 30px 0 20px;
+ font-weight:500;
+}
+
+h3 {
+color:#80b312;
+font-size:18px;
+font-weight:500;
+ line-height: 26px;
+ margin: 10px 0px 5px;
+text-rendering: optimizelegibility;
+}
+
+h4 {
+font-size:16px;
+    margin: 20px 0 10px;
+    text-rendering: optimizelegibility;
 }
 p {
 	font-weight: 300;
@@ -484,7 +503,7 @@ p {
 	display: inline-block;
 	float: left;
 	height: 75px;
-	margin-bottom: 50px;
+	margin-bottom: 0px;
 	margin-right: 20px;
 	width: 70px;
 }
@@ -522,28 +541,15 @@ height: 75px;
 margin-right: 20px;
 width: 57px;
 margin-bottom: 25px;
+}
 
-}
-.span12.features h3 {
-	color: #80b312;
-	font-size: 18px;
-	font-weight: 500;
-	line-height: 26px;
-	margin-bottom: 5px;
-}
 div.span6.justify p {
 	margin-bottom:15px;
 }
 .justify p {
 	text-align: justify;
 }
-.span6 h3 {
-	color: #80b312;
-	font-size: 18px;
-	font-weight: 500;
-	line-height: 26px;
-	margin-bottom: 5px;
-}
+
 .span6 {
 	margin-right: 30px;
 	width: 430px;
