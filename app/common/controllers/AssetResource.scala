@@ -66,10 +66,10 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceModule {
     val out = for {
       oid <- objectId(itemId).toSuccess(Errors.invalidObjectId)
       item <- Item.findOneById(oid).toSuccess(Errors.cantFindItem)
-      dr <- getResource(item, resourceName).toSuccess(Errors.cantFindResource)
-      fn <- (filename orElse dr._2.defaultFile.map(_.name)).toSuccess(Errors.noFilenameSpecified)
-      file <- dr._2.files.find(_.name == fn).toSuccess(Errors.cantFindFileWithName + fn)
-      action <- renderFile(item, dr._1, file).toSuccess(Errors.cantRender)
+      (isItemDataResource,resource) <- getResource(item, resourceName).toSuccess(Errors.cantFindResource)
+      name <- (filename orElse resource.defaultFile.map(_.name)).toSuccess(Errors.noFilenameSpecified)
+      file <- resource.files.find(_.name == name).toSuccess(Errors.cantFindFileWithName + name)
+      action <- renderFile(item, isItemDataResource, file).toSuccess(Errors.cantRender)
     } yield action
 
     out match {
