@@ -66,7 +66,8 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceModule {
     val out = for {
       oid <- objectId(itemId).toSuccess(Errors.invalidObjectId)
       item <- Item.findOneById(oid).toSuccess(Errors.cantFindItem)
-      (isItemDataResource,resource) <- getResource(item, resourceName).toSuccess(Errors.cantFindResource)
+      dr <- getResource(item, resourceName).toSuccess(Errors.cantFindResource)
+      (isItemDataResource, resource) = dr
       name <- (filename orElse resource.defaultFile.map(_.name)).toSuccess(Errors.noFilenameSpecified)
       file <- resource.files.find(_.name == name).toSuccess(Errors.cantFindFileWithName + name)
       action <- renderFile(item, isItemDataResource, file).toSuccess(Errors.cantRender)

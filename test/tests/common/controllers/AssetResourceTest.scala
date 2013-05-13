@@ -31,6 +31,8 @@ class AssetResourceTest extends Specification {
       def download(bucket: String, fullKey: String, headers: Option[Headers]): Result = Ok("fullKey: " + fullKey)
 
       def online: Boolean = false
+
+      def bucket:String = "?"
     }
   }
 
