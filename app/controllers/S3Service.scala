@@ -13,6 +13,7 @@ import play.api.http.HeaderNames._
 import play.api.libs.iteratee.{Input, Done, Enumerator, Iteratee}
 import play.api.libs.json.Json
 import play.api.mvc._
+import web.controllers.utils.ConfigLoader
 
 trait S3ServiceModule {
   def service : S3Service
@@ -26,9 +27,12 @@ trait S3Service {
   def delete(bucket: String, keyName: String): S3DeleteResponse
   def cloneFile(bucket: String, keyName: String, newKeyName:String)
   def online:Boolean
+  def bucket:String
 }
 
 object ConcreteS3Service extends S3Service {
+
+  def bucket = ConfigLoader.get("AMAZON_ASSETS_BUCKET").get
 
   private var optS3: Option[AmazonS3Client] = None
 
