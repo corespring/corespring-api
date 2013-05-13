@@ -24,6 +24,8 @@
     <script type="text/javascript" src="js/vendor/waypoint/waypoints.js"></script>
     <script type="text/javascript" src="js/corespring/directives.js"></script>
     <script type="text/javascript" src="js/corespring/app.js"></script>
+    <!--hmac-sha1 used to create api client signature to retrieve access token-->
+    <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/hmac-sha1.js"></script>
 
     <script type="text/javascript">
 
@@ -447,87 +449,86 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <div class="highlight"><pre><code class="html">    <span class="nt">&lt;html&gt;</span>
       <span class="nt">&lt;head&gt;</span>
-        <span class="nt">&lt;script </span>
-<span class="nt">          </span><span class="na">src=</span><span class="s">&quot;https://www.corespring.org/players/item-player.js?apiClientId=${apiClientId}&amp;options=${options}&quot;</span> 
-          <span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span><span class="nt">&gt;</span>
-
-        <span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
+        <span class="nt">&lt;script&gt;</span>
           <span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
-              <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">org</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;cs-item-player&#39;</span><span class="p">);</span>
+              <span class="c1">//Note: Use jquery style selectors</span>
+              <span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1">//more information on options to follow</span>
+              <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">org</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">,</span> <span class="nx">options</span><span class="p">);</span>
            <span class="p">});</span>
         <span class="nt">&lt;/script&gt;</span>
       <span class="nt">&lt;/head&gt;</span>
       <span class="nt">&lt;body&gt;</span>
-        <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&#39;cs-item-player&#39;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&#39;cs-item-player&#39;</span><span class="nt">&gt;&lt;/div&gt;</span>
+        <span class="c">&lt;!-- jquery is a dependency --&gt;</span>
+        <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;jquery.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+        <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;//corespring.org/player.js?apiClientId=${apiClientId}&amp;options=${options}&quot;</span> <span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
       <span class="nt">&lt;/body&gt;</span>
      <span class="nt">&lt;/html&gt;</span>
 </code></pre>
 </div>
 
 
-<p>You include the url for the CoreSpring Item Player url in the <code>&lt;src&gt;</code> tag.
-There are 2 parameters that you must pass to the url in the query string.</p>
+<p>There are 2 parameters that you must pass to the player.js in a query string.</p>
 
-<ol>
-<li><p>API Client Id--The Client Id that you generated for your organization when you registered with CoreSpring.</p></li>
-<li><p>Options--Some options for running the player.</p></li>
-</ol>
+<ul>
+<li>API Client Id - The Client Id that you generated for your organization when you registered with CoreSpring.</li>
+<li>Options - Some options for running the player.</li>
+</ul>
 
 
 <h2><a name="player-options" class="waypoint"></a>Player Options</h2>
 
 <p>The options determine in what mode you wish to view the player, what items should be viewable, with what settings, and for how long. The options are also encrypted, and provide the authorization a browser needs to launch the player.</p>
 
-<h3>Available Options</h3>
+<h3>Mandatory Options</h3>
 
-<p>You must specify a mode. Allowed values are "preview", "render", "administer", or "aggregate".</p>
+<h4>mode</h4>
 
-<p>You must also specify a time when the provided options key will expire. This is provided in "Unix time": seconds from 1970-01-01T00:00:00Z UTC.</p>
+<p>Allowed values are "preview", "render", "administer", or "aggregate".</p>
 
-<p><em>(Depending on the mode you must also pass in some additional variables. See section below)</em></p>
+<h4>expires</h4>
+
+<p>The time beyond which the options will no longer be valid. This is provided in "Unix time": seconds from 1970-01-01T00:00:00Z UTC.</p>
+
+<p>Depending on the mode you must also pass in some additional variables. See the next section for more information.</p>
 
 <h2><a name="player-modes" class="waypoint"></a>Player Modes</h2>
 
 <hr />
 
-<h4>Preview Mode</h4>
+<h3>Preview Mode</h3>
 
 <p>This mode allows an educator to interact with the item and see how it would appear to a student. The outcome of the interaction will not be saved.</p>
 
-<h5>Options</h5>
+<h4>Options</h4>
 
 <div>
 <json-highlight>
     {
       "mode" : "preview",
       "itemId" : "1",
-      "expires": "1366216268" 
+      "expires": "1366216268"
     }
 </json-highlight>
 </div>
 
 
-<ul>
-<li><strong>expires</strong> =  Seconds since Epoch (UTC)</li>
-</ul>
-
-
 <hr />
 
-<h4>Render Mode</h4>
+<h3>Render Mode</h3>
 
-<p>Render mode displays an existing Item Session: It shows one user's response to the questions in a given item. There are different roles for viewing the response; for example, a student could be reviewing his or her own work, or an educator could be reviewing a student's work.</p>
+<p>Render mode displays an existing Item Session: It represents a single user's interaction with an item. If the Item Session is not finished a user may submit answers, which will be stored in the Item Session. Once the ItemSession is finished nothing else will get saved to this Item Session. There are different roles for viewing the response; for example, a student could be reviewing his or her own work, or an educator could be reviewing a student's work.</p>
 
-<h5>Options</h5>
+<h4>Options</h4>
 
 <div>
 <json-highlight>
 
     {
       "mode" : "render",
-      "sessionId" : "1", 
+      "sessionId" : "1",
       "expires": "1366216268",
-      "role" : "instructor" 
+      "role" : "instructor"
     }
 
 </json-highlight>
@@ -541,13 +542,11 @@ There are 2 parameters that you must pass to the url in the query string.</p>
 
 <hr />
 
-<h4>Administer Mode</h4>
+<h3>Administer Mode</h3>
 
-<p>Administer mode enables a student to "take" the item: i.e., answer the question(s) contained within it.</p>
+<p>Administer is the same as Render, except that you can also use an itemId instead of a sessionId. If you do use an itemId the player will create an Item Session for you and then notify you via the <em>onItemSessionCreated</em> callback.</p>
 
-<p>You can launch the player by pointing to an Item Session you created with the REST API, or by launching the player in administer mode with just an Item Id; in the latter case, a new Item Session will be automatically created and the id will be sent to a callback method on the client.</p>
-
-<h5>Options</h5>
+<h4>Options</h4>
 
 <div>
 <json-highlight>
@@ -555,7 +554,7 @@ There are 2 parameters that you must pass to the url in the query string.</p>
     {
       "mode" : "administer",
       "sessionId" : "1",
-      "itemId" : "1", 
+      "itemId" : "1",
       "expires": "1366216268"
     }
 
@@ -585,7 +584,7 @@ There are 2 parameters that you must pass to the url in the query string.</p>
       "mode" : "aggregate",
       "itemId": "1",
       "assessmentId" : "1",
-      "expires": "1366216268"
+      "expires": 1366216268
     }
 </json-highlight>
 </div>
@@ -593,7 +592,7 @@ There are 2 parameters that you must pass to the url in the query string.</p>
 
 <h2><a name="encrypting-player-options" class="waypoint"></a>Encrypting the Player Options</h2>
 
-<p>To use the Item Player, you need to encrypt the player options. This allows access to api calls from an unknown browser without exposing any sensitive data relating to your organization--for example, your access token.</p>
+<p>To use the Item Player, you need to encrypt the player options. This allows access to api calls from an unknown browser without exposing any sensitive data relating to your organization - for example, your access token.</p>
 
 <h4>Prerequisites</h4>
 
@@ -632,7 +631,7 @@ U2FsdGVkX19QrTAwaoeIypkJ2CjF+5TK+Oji5/X+ExV7wfTEIvpKYJBdP9NziW0iPxoSt9dPQaYN0OQs
 
 <h3>Wildcard Options</h3>
 
-<p>If you prefer not to create an options parameter each time you launch the item player, you may create an options key with "wildcard" properties, and then override which mode/item/session to view with query parameters passed in the URL that loads the player.</p>
+<p>If you prefer not to create an options parameter each time you launch the item player, you may create an options key with "wildcard" properties and then override which mode/item/session to view, by adding them to the javascript options object that you pass to the ItemPlayer.</p>
 
 <p>The properties that can be set to wildcards in options keys are:</p>
 
@@ -649,37 +648,47 @@ U2FsdGVkX19QrTAwaoeIypkJ2CjF+5TK+Oji5/X+ExV7wfTEIvpKYJBdP9NziW0iPxoSt9dPQaYN0OQs
 <div>
 <json-highlight>
     {
-      "itemId": "*", 
-      "sessionId": "*", 
+      "itemId": "*",
+      "sessionId": "*",
       "mode": "*",
-      "expires": "0" 
+      "expires": 0
     }
 </json-highlight>
 </div>
 
 
-<p>If itemId, itemSessionId, or mode are set as "wildcards" in the option key, then specific values may be specified in the query parameters:</p>
+<h4>Overriding wildcard options when initializing the ItemPlayer</h4>
 
-<pre><code>https://www.corespring.org/players/item-player.js?apiClientId=${apiClientId}&amp;options=${EncryptedOptions}&amp;itemId=1&amp;mode=render
+<p>If itemId, itemSessionId, or mode are set as "wildcards" in the option key, then specific values may be required in the options object:</p>
+
+<div class="highlight"><pre><code class="javascript">    <span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nx">itemId</span><span class="o">:</span> <span class="s2">&quot;itemId&quot;</span><span class="p">,</span>
+      <span class="nx">mode</span><span class="o">:</span> <span class="s2">&quot;preview&quot;</span>
+    <span class="p">}</span>
+    <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">org</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">,</span> <span class="nx">options</span><span class="p">);</span>
 </code></pre>
+</div>
+
 
 <h3>Registering Callbacks with Player</h3>
 
 <p>The Item Player allows you to define some callback functions in your javascript code that will be executed by the player.</p>
 
-<p>For example, in administer mode, two callbacks itemSessionStart(sessionId) and itemSessionComplete(sessionId) will be called.</p>
+<h4>onItemSession</h4>
+
+<p>For example, in Administermode, two callbacks are triggered: onItemSessionCreated(sessionId) and onItemSessionCompleted(sessionId).</p>
 
 <p>Example:</p>
 
 <div class="highlight"><pre><code class="javascript">    <span class="kd">var</span> <span class="nx">itemSessionId</span> <span class="o">=</span> <span class="kc">undefined</span><span class="p">;</span>
     <span class="kd">var</span> <span class="nx">itemPlayerConfig</span> <span class="o">=</span> <span class="p">{};</span>
-    <span class="nx">itemPlayerConfig</span><span class="p">.</span><span class="nx">itemSessionStart</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">sessionId</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">itemPlayerConfig</span><span class="p">.</span><span class="nx">onItemSessionCreated</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">sessionId</span><span class="p">)</span> <span class="p">{</span>
       <span class="nx">itemSessionId</span> <span class="o">=</span> <span class="nx">sessionId</span><span class="p">;</span>
     <span class="p">}</span>
 
 
     <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span>
-      <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;cs-item-player&#39;</span><span class="p">),</span> 
+      <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;cs-item-player&#39;</span><span class="p">),</span>
       <span class="nx">itemPlayerConfig</span><span class="p">);</span>
 </code></pre>
 </div>
@@ -697,8 +706,8 @@ U2FsdGVkX19QrTAwaoeIypkJ2CjF+5TK+Oji5/X+ExV7wfTEIvpKYJBdP9NziW0iPxoSt9dPQaYN0OQs
 <p>Administer Mode:</p>
 
 <ul>
-<li><strong>itemSessionStart(itemSessionId)</strong>: called when a new item session is started, passes the item session id</li>
-<li><strong>itemSessionComplete(itemSessionId)</strong>: called when a new item session is completed, passes the item session id</li>
+<li><strong>onItemSessionCreated(itemSessionId)</strong>: called when a new item session is created, passes the item session id</li>
+<li><strong>onItemSessionCompleted(itemSessionId)</strong>: called when a new item session is completed, passes the item session id</li>
 </ul>
 
 
@@ -735,7 +744,18 @@ The interactive API widget is pre-configured to use this access token but you ca
 
 <h2><a name="authentication-get-token" class="waypoint"></a> Getting an Access Token</h2>
 
-<p>Once you have <a href="/developer/register">registered</a> and have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL. You can access the authorization url to receive your auth token using the widget below.</p>
+<p>Once you have <a href="/developer/register">registered</a> and have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL. The authorization requires two paramaters: a client id and client signature. The client id is the <code>client_id</code> you received from registering. The signature is a HmacSHA1 hash value where the key is the <code>client_secret</code> you received from registering. The message part is a utf-8 character encoded string of the form <code>[grant_type]:[client_id]:[algorithm]</code>. Where grant_type must be "client_credentials", client_id is the client id you received from registering, and algorithm is "HmacSHA1". The following javascript code is an example of signature generation using the <a href="https://code.google.com/p/crypto-js"> crypto-js library</a>.</p>
+
+<pre><code>/*
+* Here it is assumed that clientId and clientSecret are retrieved elsewhere from registering
+*/
+var signature = CryptoJS.HmacSHA1(
+  "client_credentials:"+clientId+":HmacSHA1",
+  clientSecret
+)
+</code></pre>
+
+<p>You can access the authorization url to receive your auth token using the widget below.</p>
 
 <br/>
 
@@ -746,7 +766,7 @@ The interactive API widget is pre-configured to use this access token but you ca
     disabled="false"
     disabled-message="currently disabled to ensure the fixture data stays in the correct state"
     path="/auth/access_token"
-    form-params="client_id=client_id&client_secret=client_secret"
+    form-params="client_id=client_id&client_signature=client_signature"
     url="/auth/access_token">
   </rest-widget>
 </div>
@@ -1500,7 +1520,7 @@ wanted to display only itemType and sort alphabetically in ascending order:</p>
 
 <hr />
 
-<p>date:  04/25/2013 04:46PM</p>
+<p>date:  05/13/2013 10:47PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
