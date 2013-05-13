@@ -257,3 +257,6 @@ GET     /system/check               controllers.SystemCheck.index()
 
 GET     /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearchPage()
 POST    /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearch()
+
+#used for blitz authentication to run load testing
+GET     /mu-9ff52416-7b5ae544-c8bac39d-dcfe378a    internal.controllers.BlitzAuth.index()
