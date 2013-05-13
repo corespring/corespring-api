@@ -1,9 +1,7 @@
 package web.controllers
 
-import com.mongodb.BasicDBObject
 import common.controllers.session.SessionHandler
 import controllers.auth.BaseApi
-import models.item.Item
 import play.api.mvc._
 import player.accessControl.cookies.{PlayerCookieKeys, PlayerCookieWriter}
 import scala.Some
