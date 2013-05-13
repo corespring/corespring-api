@@ -321,7 +321,7 @@ simplechoice {
 	margin-bottom:5px;
 }
 .correct-response .choice-content {
-	border:2px solid #92D400;
+	border:2px solid #80b312;
 	display:block;
 	border-radius: 6px;
 	margin-bottom:5px;
@@ -1048,13 +1048,13 @@ simplechoice {
 	border-radius: 6px;
 }
 .correct-response .choice-content {
-	border:2px solid #92D400;
+	border:2px solid #80b312;
 	display:block;
 	border-radius: 6px;
 	margin-bottom:5px;
 }
 .correct-response-horizontal .simple-choice-inner-horizontal {
-	border:2px solid #92D400;
+	border:2px solid #80b312;
 	border-radius: 6px;
 }
 .simple-choice-inner-horizontal {
@@ -1162,7 +1162,7 @@ orderinteraction.ng-scope div.dragArea div#draggableItems {
 	margin:0 0 10px;
 }
 .choice-wrap .correct-response-horizontal .simple-choice-inner-horizontal {
-	border:2px solid #92D400;
+	border:2px solid #80b312;
 }
 .choice-wrap .correct-response-horizontal > .feedback-container, .choice-wrap .incorrect-response-horizontal > .feedback-container {
 	padding:0;

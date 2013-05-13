@@ -50,7 +50,7 @@ h1 {
   line-height: 2.5;
 }
 h2 {
-  color: #92d400;
+  color: #80b312;
   font-size: 25px;
   line-height: 1.1;
   margin: 30px 0 20px;
@@ -58,7 +58,7 @@ h2 {
  h3 {
     font-size:20px;
     line-height: 2.5;
-    color:#92d400;
+    color:#80b312;
     font-weight:500;
          margin: 10px 0;
         text-rendering: optimizelegibility;
@@ -132,7 +132,7 @@ padding:8px 2px !important;
 }
 .nav li a.main-menu:hover {
     background: none repeat scroll 0 0 transparent;
-    color: #92D400;
+    color: #80b312;
     text-decoration: none;
 }
 .nav li a {
@@ -142,17 +142,17 @@ font-weight:500px;
 }
 .nav li a:hover {
 background-color: transparent;
-color: #92d400;
+color: #80b312;
 text-shadow: none;
 }
 .nav li.active a {
-    background-color: #92D400;
+    background-color: #80b312;
     color: #FFFFFF;
     margin-right: 1px;
     text-shadow: none;
 }
 .nav li.active a:hover {
-    background-color:#92D400;
+    background-color:#80b312;
     color: #FFFFFF;
     text-shadow: none;
 }
