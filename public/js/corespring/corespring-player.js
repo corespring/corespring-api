@@ -178,7 +178,7 @@
           template += com.corespring.players.config.paths.aggregate;
           break;
         default :
-          error("Unknown mode", errors.NEED_MODE);
+          error("Unknown mode", codes.NEED_MODE);
           break;
       }
       return template
