@@ -100,7 +100,7 @@ class AuthControllerTest extends BaseTest {
     )
     val base = Array(
       (OAuthConstants.ClientId -> id),
-      (OAuthConstants.ClientSignature -> signature),
+      (OAuthConstants.ClientSecret -> secret),
       (OAuthConstants.Scope -> username))
     base ++ grantType.map((OAuthConstants.GrantType -> _))
   }

@@ -54,7 +54,7 @@ object Developer extends Controller with BaseApi{
     OAuthProvider.register(user.orgs(0).orgId) match {
       case Right(apiClient) => OAuthProvider.getAccessToken(OAuthConstants.ClientCredentials,
         apiClient.clientId.toString,
-        apiClient.defaultClientSignature,OAuthConstants.Sha1Hash, Some(user.userName)) match {
+        apiClient.clientSecret,Some(user.userName)) match {
         case Right(accessToken) => result.withHeaders(request.headers + "access_token" -> accessToken.tokenId)
         case Left(error) => {
           Log.e(error.message)

@@ -17,7 +17,7 @@ import controllers.Log
 
 object AuthController extends Controller with SecureSocial{
 
-  case class AccessTokenRequest(grant_type: String, client_id: String, client_signature: String, algorithm:String, scope: Option[String])
+  case class AccessTokenRequest(grant_type: String, client_id: String, client_secret: String, scope: Option[String])
 
   val registerInfo = Form(OAuthConstants.Organization -> text)
 
@@ -31,12 +31,11 @@ object AuthController extends Controller with SecureSocial{
     mapping(
       OAuthConstants.GrantType -> optional(text),
       OAuthConstants.ClientId -> nonEmptyText,
-      OAuthConstants.ClientSignature -> nonEmptyText,
-      OAuthConstants.HashAlgorithm -> optional(text),
+      OAuthConstants.ClientSecret -> nonEmptyText,
       OAuthConstants.Scope -> optional(text)
-    )((grantType,clientId,clientSignature,algorithm,scope) =>
-      AccessTokenRequest.apply(grantType.getOrElse(OAuthConstants.ClientCredentials),clientId,clientSignature,algorithm.getOrElse(OAuthConstants.Sha1Hash), scope))
-      (AccessTokenRequest.unapply(_).map((atrtuple => (Some(atrtuple._1),atrtuple._2,atrtuple._3,Some(atrtuple._4),atrtuple._5))))
+    )((grantType,clientId,clientSecret,scope) =>
+      AccessTokenRequest.apply(grantType.getOrElse(OAuthConstants.ClientCredentials),clientId,clientSecret,scope))
+      (AccessTokenRequest.unapply(_).map((atrtuple => (Some(atrtuple._1),atrtuple._2,atrtuple._3,atrtuple._4))))
   )
 
   /**
@@ -76,7 +75,7 @@ object AuthController extends Controller with SecureSocial{
       accessTokenForm.bindFromRequest.fold(
         errors => BadRequest(errors.errorsAsJson),
         params =>
-          OAuthProvider.getAccessToken(params.grant_type, params.client_id, params.client_signature, params.algorithm, params.scope) match {
+          OAuthProvider.getAccessToken(params.grant_type, params.client_id, params.client_secret, params.scope) match {
             case Right(token) =>
               val result = Map(OAuthConstants.AccessToken -> token.tokenId) ++ token.scope.map(OAuthConstants.Scope -> _)
               Ok(Json.toJson(result))
