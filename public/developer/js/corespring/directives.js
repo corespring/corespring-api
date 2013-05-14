@@ -185,7 +185,7 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
           //test if the form param contain client id and secret. if so, then we know this widget is the access token widget
           var hasClientIdAndSecret = function(){
               var hasClientSecret = typeof _.find(scope.formParams,function(formParam){
-                  return formParam.name === "client_signature"
+                  return formParam.name === "client_secret"
               }) !== "undefined"
               var hasClientId = typeof _.find(scope.formParams,function(formParam){
                   return formParam.name === "client_id"
@@ -198,7 +198,7 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
                   if($rootScope.apiClient){
                       scope.formParams = [
                           {name: "client_id", value: $rootScope.apiClient.clientId},
-                          {name: "client_signature", value: $rootScope.apiClient.client_signature}
+                          {name: "client_secret", value: $rootScope.apiClient.clientSecret}
                       ]
                   }
               })
