@@ -41,7 +41,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
     }
   }
 
-  def save(user: SocialUser) {
+  override def save(user : Identity) {
     User.getUser(user.id.id, user.id.providerId) match {
       case None =>
         val corespringUser =
@@ -108,5 +108,4 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
     }
   }
 
-  def save(user: Identity) {}
 }
