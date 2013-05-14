@@ -24,8 +24,6 @@
     <script type="text/javascript" src="js/vendor/waypoint/waypoints.js"></script>
     <script type="text/javascript" src="js/corespring/directives.js"></script>
     <script type="text/javascript" src="js/corespring/app.js"></script>
-    <!--hmac-sha1 used to create api client signature to retrieve access token-->
-    <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/hmac-sha1.js"></script>
 
     <script type="text/javascript">
 
@@ -452,8 +450,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
         <span class="nt">&lt;script&gt;</span>
           <span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
               <span class="c1">//Note: Use jquery style selectors</span>
-              <span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1">//more information on options to follow</span>
-              <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">org</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">,</span> <span class="nx">options</span><span class="p">);</span>
+              <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">org</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">);</span>
            <span class="p">});</span>
         <span class="nt">&lt;/script&gt;</span>
       <span class="nt">&lt;/head&gt;</span>
@@ -461,7 +458,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
         <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&#39;cs-item-player&#39;</span><span class="nt">&gt;&lt;/div&gt;</span>
         <span class="c">&lt;!-- jquery is a dependency --&gt;</span>
         <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;jquery.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
-        <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;//corespring.org/player.js?apiClientId=${apiClientId}&amp;options=${options}&quot;</span> <span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+        <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;https://www.corespring.org/player.js?apiClientId=${apiClientId}&amp;options=${options}&quot;</span> <span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
       <span class="nt">&lt;/body&gt;</span>
      <span class="nt">&lt;/html&gt;</span>
 </code></pre>
@@ -584,7 +581,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
       "mode" : "aggregate",
       "itemId": "1",
       "assessmentId" : "1",
-      "expires": 1366216268
+      "expires": "1366216268"
     }
 </json-highlight>
 </div>
@@ -651,7 +648,7 @@ U2FsdGVkX19QrTAwaoeIypkJ2CjF+5TK+Oji5/X+ExV7wfTEIvpKYJBdP9NziW0iPxoSt9dPQaYN0OQs
       "itemId": "*",
       "sessionId": "*",
       "mode": "*",
-      "expires": 0
+      "expires": "0"
     }
 </json-highlight>
 </div>
@@ -706,8 +703,8 @@ U2FsdGVkX19QrTAwaoeIypkJ2CjF+5TK+Oji5/X+ExV7wfTEIvpKYJBdP9NziW0iPxoSt9dPQaYN0OQs
 <p>Administer Mode:</p>
 
 <ul>
-<li><strong>onItemSessionCreated(itemSessionId)</strong>: called when a new item session is created, passes the item session id</li>
-<li><strong>onItemSessionCompleted(itemSessionId)</strong>: called when a new item session is completed, passes the item session id</li>
+<li><strong>itemSessionStart(itemSessionId)</strong>: called when a new item session is started, passes the item session id</li>
+<li><strong>itemSessionComplete(itemSessionId)</strong>: called when a new item session is completed, passes the item session id</li>
 </ul>
 
 
@@ -744,18 +741,7 @@ The interactive API widget is pre-configured to use this access token but you ca
 
 <h2><a name="authentication-get-token" class="waypoint"></a> Getting an Access Token</h2>
 
-<p>Once you have <a href="/developer/register">registered</a> and have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL. The authorization requires two paramaters: a client id and client signature. The client id is the <code>client_id</code> you received from registering. The signature is a HmacSHA1 hash value where the key is the <code>client_secret</code> you received from registering. The message part is a utf-8 character encoded string of the form <code>[grant_type]:[client_id]:[algorithm]</code>. Where grant_type must be "client_credentials", client_id is the client id you received from registering, and algorithm is "HmacSHA1". The following javascript code is an example of signature generation using the <a href="https://code.google.com/p/crypto-js"> crypto-js library</a>.</p>
-
-<pre><code>/*
-* Here it is assumed that clientId and clientSecret are retrieved elsewhere from registering
-*/
-var signature = CryptoJS.HmacSHA1(
-  "client_credentials:"+clientId+":HmacSHA1",
-  clientSecret
-)
-</code></pre>
-
-<p>You can access the authorization url to receive your auth token using the widget below.</p>
+<p>Once you have <a href="/developer/register">registered</a> and have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL. You can access the authorization url to receive your auth token using the widget below.</p>
 
 <br/>
 
@@ -766,7 +752,7 @@ var signature = CryptoJS.HmacSHA1(
     disabled="false"
     disabled-message="currently disabled to ensure the fixture data stays in the correct state"
     path="/auth/access_token"
-    form-params="client_id=client_id&client_signature=client_signature"
+    form-params="client_id=client_id&client_secret=client_secret"
     url="/auth/access_token">
   </rest-widget>
 </div>
@@ -1520,7 +1506,7 @@ wanted to display only itemType and sort alphabetically in ascending order:</p>
 
 <hr />
 
-<p>date:  05/13/2013 10:47PM</p>
+<p>date:  05/14/2013 09:42AM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
