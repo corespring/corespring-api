@@ -17,9 +17,10 @@ import models.User
 import controllers.auth.Permission
 import org.bson.types.ObjectId
 import play.api.libs.json.{JsString, JsObject}
+import common.config.AppConfig
 
 object MyRegistration extends Controller {
-  val Organization = "organization";
+  val Organization = "organization"
 
   case class MyRegistrationInfo(userName: Option[String],
                                 firstName: String,
@@ -108,7 +109,7 @@ object MyRegistration extends Controller {
                   }
                   case Left(error) => Left(error)
                 }
-                case None => User.insertUser(user, new ObjectId(models.Organization.CORESPRING_ORGANIZATION_ID), Permission.Read, false)
+                case None => User.insertUser(user, AppConfig.demoOrgId, Permission.Read, false)
               }) match {
                 case Right(dbuser) => {
                   val socialUser = SocialUser(
