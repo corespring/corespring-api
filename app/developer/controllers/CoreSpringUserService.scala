@@ -42,7 +42,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
     }
   }
 
-  def save(user: Identity) {
+  override def save(user : Identity) {
     User.getUser(user.id.id, user.id.providerId) match {
       case None =>
         val corespringUser =
