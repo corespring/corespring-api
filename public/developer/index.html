@@ -452,7 +452,8 @@ Our developer tools include a set of APIs for discovering, managing and deployin
         <span class="nt">&lt;script&gt;</span>
           <span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
               <span class="c1">//Note: Use jquery style selectors</span>
-              <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">org</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">);</span>
+              <span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1">//more information on options to follow</span>
+              <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">org</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">,</span> <span class="nx">options</span><span class="p">);</span>
            <span class="p">});</span>
         <span class="nt">&lt;/script&gt;</span>
       <span class="nt">&lt;/head&gt;</span>
@@ -460,7 +461,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
         <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&#39;cs-item-player&#39;</span><span class="nt">&gt;&lt;/div&gt;</span>
         <span class="c">&lt;!-- jquery is a dependency --&gt;</span>
         <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;jquery.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
-        <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;https://www.corespring.org/player.js?apiClientId=${apiClientId}&amp;options=${options}&quot;</span> <span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+        <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;//corespring.org/player.js?apiClientId=${apiClientId}&amp;options=${options}&quot;</span> <span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
       <span class="nt">&lt;/body&gt;</span>
      <span class="nt">&lt;/html&gt;</span>
 </code></pre>
@@ -583,7 +584,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
       "mode" : "aggregate",
       "itemId": "1",
       "assessmentId" : "1",
-      "expires": "1366216268"
+      "expires": 1366216268
     }
 </json-highlight>
 </div>
@@ -650,7 +651,7 @@ U2FsdGVkX19QrTAwaoeIypkJ2CjF+5TK+Oji5/X+ExV7wfTEIvpKYJBdP9NziW0iPxoSt9dPQaYN0OQs
       "itemId": "*",
       "sessionId": "*",
       "mode": "*",
-      "expires": "0"
+      "expires": 0
     }
 </json-highlight>
 </div>
@@ -705,8 +706,8 @@ U2FsdGVkX19QrTAwaoeIypkJ2CjF+5TK+Oji5/X+ExV7wfTEIvpKYJBdP9NziW0iPxoSt9dPQaYN0OQs
 <p>Administer Mode:</p>
 
 <ul>
-<li><strong>itemSessionStart(itemSessionId)</strong>: called when a new item session is started, passes the item session id</li>
-<li><strong>itemSessionComplete(itemSessionId)</strong>: called when a new item session is completed, passes the item session id</li>
+<li><strong>onItemSessionCreated(itemSessionId)</strong>: called when a new item session is created, passes the item session id</li>
+<li><strong>onItemSessionCompleted(itemSessionId)</strong>: called when a new item session is completed, passes the item session id</li>
 </ul>
 
 
@@ -1519,7 +1520,7 @@ wanted to display only itemType and sort alphabetically in ascending order:</p>
 
 <hr />
 
-<p>date:  05/07/2013 02:53PM</p>
+<p>date:  05/13/2013 10:47PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
