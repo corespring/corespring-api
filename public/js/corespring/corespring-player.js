@@ -68,10 +68,12 @@
     e.html("<iframe src='" + options.corespringUrl + "' style='width: 100%; height: 100%; border: none'></iframe>");
     e.width(options.width ? options.width : "600px");
 
-    if (options.autoHeight)
-      addDimensionChangeListener(e);
+
+    if (options.height)
+      e.height(options.height);
     else
-      e.height(options.height ? options.height : "600px");
+      addDimensionChangeListener(e);
+
   };
 
   com.corespring.players.ItemProfile = function (element, options, errorCallback, onLoadCallback) {
