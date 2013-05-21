@@ -257,10 +257,9 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.$watch('isPublished', function(){
     console.log("isPublished was changed")
       if($scope.isPublished) {
-        if($scope.itemData.sessionCount && $scope.itemData.sessionCount > 0) {
-            if($scope.itemData.sessionCount > 1) $scope.itemStatus = "Published "+"("+$scope.itemData.sessionCount+" responses)"
-            else $scope.itemStatus = "Published "+"("+$scope.itemData.sessionCount+" response)"
-        } else $scope.itemStatus = "Published"
+        if($scope.itemData.sessionCount > 1) $scope.itemStatus = "Published "+"("+$scope.itemData.sessionCount+" responses)"
+        else if($scope.itemData.sessionCount == 1) $scope.itemStatus = "Published "+"("+$scope.itemData.sessionCount+" response)"
+        else $scope.itemStatus = "Published (0 responses)"
       } else $scope.itemStatus = "Draft"
   })
   $scope.getPValueAsString = function (value) {
