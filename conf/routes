@@ -74,6 +74,7 @@ GET     /api/v1/organizations/:orgId/users             api.v1.UserApi.getUsersBy
 
 # Items API
 GET     /api/v1/items                           api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /api/v1/items/query                     api.v1.ItemApi.listAndCount(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/organizations/:orgId/items      api.v1.ItemApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/contributors                    api.v1.ContributorApi.getContributorsList()
 GET     /api/v1/items/:id                       api.v1.ItemApi.get(id: ObjectId)
