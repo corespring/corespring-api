@@ -105,7 +105,6 @@
                 <th sort-column-header field="itemType">Item Type</th>
                 <th>Standard(s)</th>
                 <th sort-column-header field="contributor">Source</th>
-                <th>Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -121,11 +120,6 @@
                        ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
                 </td>
                 <td ng-click="openEditView()">{{getAuthorAbbreviation(item.contributor)}}</td>
-                <td>
-                    <button class="btn btn-danger btn-mini" href="javascript:void(1)" ng-click="deleteItem(item)">
-                        Delete
-                    </button>
-                </td>
             </tr>
             </tbody>
         </table>
