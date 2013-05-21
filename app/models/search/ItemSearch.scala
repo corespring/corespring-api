@@ -15,7 +15,7 @@ object ItemSearch extends Searchable{
     def toSearchFieldObj(searchFields:SearchFields,field:(String,AnyRef),addToFieldsObj:Boolean = true,dbkey:String=""):Either[InternalError,SearchFields] = {
       if(field._2 == method){
         if(addToFieldsObj) {
-          if(dbkey.isEmpty) field._1 else dbkey
+          //if(dbkey.isEmpty) field._1 else dbkey
           searchFields.dbfields = searchFields.dbfields += ((if(dbkey.isEmpty) field._1 else dbkey) -> field._2)
         }
         searchFields.jsfields = searchFields.jsfields :+ field._1
@@ -60,6 +60,7 @@ object ItemSearch extends Searchable{
           case Item.standards => toSearchFieldObj(searchFields,field)
           case key if key.startsWith(Item.standards) => toSearchFieldObj(searchFields,field,false)
           case Item.title => toSearchFieldObj(searchFields,field,dbkey=Item.taskInfo+"."+TaskInfo.Keys.title)
+          case Item.published => toSearchFieldObj(searchFields,field)
           case _ => Left(InternalError("unknown key contained in fields: "+field._1,addMessageToClientOutput = true))
         }
       }
@@ -231,6 +232,7 @@ object ItemSearch extends Searchable{
       case key if key == Item.standards+"."+Standard.DotNotation => formatSortField(Item.standards,field._2)
       case Item.title => formatSortField(Item.taskInfo+"."+TaskInfo.Keys.title,field._2)
       case Item.collectionId => formatSortField(Item.collectionId,field._2)
+      case Item.published => formatSortField(Item.published,field._2)
       case _ => Left(InternalError("unknown or invalid key contained in sort field",addMessageToClientOutput = true))
     }
   }

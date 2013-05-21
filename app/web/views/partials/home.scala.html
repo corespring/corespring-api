@@ -105,6 +105,7 @@
                 <th sort-column-header field="itemType">Item Type</th>
                 <th>Standard(s)</th>
                 <th sort-column-header field="contributor">Source</th>
+                <th sort-column-header field="published">Status</th>
             </tr>
             </thead>
             <tbody>
@@ -120,6 +121,7 @@
                        ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
                 </td>
                 <td ng-click="openEditView()">{{getAuthorAbbreviation(item.contributor)}}</td>
+                <td ng-click="openEditView()">{{itemStatus(item.published)}}</td>
             </tr>
             </tbody>
         </table>

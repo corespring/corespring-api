@@ -131,14 +131,16 @@ angular.module('tagger.services').factory('SearchService',
         'standards',
         'sourceUrl',
         'contributor',
-        'author'
+        'author',
+        'published'
       ],
       searchFields: [
         'title',
         'standards.dotNotation',
         'copyrightOwner',
         'contributor',
-        'author'
+        'author',
+        'published'
       ],
 
       /**

@@ -181,6 +181,11 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     $location.url('/edit/' + this.item.id + "?panel=metadata");
   };
 
+  $scope.itemStatus = function(isPublished){
+    if(isPublished) return "Published"
+    else return "Draft"
+  }
+
   init();
 }
 
