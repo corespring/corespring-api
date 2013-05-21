@@ -55,7 +55,7 @@ class ItemApi(s3service: S3Service) extends BaseApi {
       val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
 
       val jsBuilder = if(c == "true") onlyCount _ else onlyItems _
-      itemList(q, f, c, sk, l, sort, collections, true, jsBuilder) match {
+      itemList(q, f, sk, l, sort, collections, true, jsBuilder) match {
         case Left(apiError) => BadRequest(toJson(apiError))
         case Right(json) => Ok(json)
       }
