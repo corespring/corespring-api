@@ -21,7 +21,7 @@
             }
         ]
     },
-    "published":false,
+    "published":true,
     "standards": [
         "RI.1.1"
     ],

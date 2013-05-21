@@ -24,7 +24,6 @@ angular.module('tagger.services').factory('SearchService',
      * @return {*}
      */
     var buildQueryObject = function (searchParams, searchFields) {
-      console.log("searchParams: "+JSON.stringify(searchParams))
       function addIfTrue(query, value, key) {
         if (value) {
           query[key] = true;
@@ -114,7 +113,6 @@ angular.module('tagger.services').factory('SearchService',
       if (searchParams.contributor && searchParams.contributor.indexOf && searchParams.contributor.length > 0) {
         query["contributor"] = mongoQuery.inArray(searchParams.contributor, "name");
       }
-      console.log("query: "+JSON.stringify(query))
       return query;
     };
 

@@ -16,6 +16,7 @@
       }
     ]
   },
+  "published":false,
   "taskInfo": {
     "title": "Quiz Item",
     "itemType": "Multiple Choice"

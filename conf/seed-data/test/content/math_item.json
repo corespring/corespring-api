@@ -27,6 +27,7 @@
             }
         ]
     },
+    "published":false,
     "materialType": "Assessment Item",
     "priorGradeLevel": [
         "03"
