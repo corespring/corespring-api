@@ -167,6 +167,7 @@ object ItemSearch extends Searchable{
                 case Item.demonstratedKnowledge => formatQuery(Item.otherAlignments+"."+Alignments.Keys.demonstratedKnowledge,field._2,searchobj)
                 case Item.originId => formatQuery(Item.originId,field._2,searchobj)
                 case Item.collectionId => formatQuery(Item.collectionId,field._2,searchobj)
+                case Item.published => formatQuery(Item.published, field._2, searchobj)
                 case Item.contentType => Right(searchobj)
                 case Item.pValue => formatQuery(Item.pValue,field._2,searchobj)
                 case Item.relatedCurriculum => formatQuery(Item.otherAlignments+"."+Alignments.Keys.relatedCurriculum,field._2,searchobj)

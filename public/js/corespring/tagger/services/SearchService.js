@@ -24,7 +24,7 @@ angular.module('tagger.services').factory('SearchService',
      * @return {*}
      */
     var buildQueryObject = function (searchParams, searchFields) {
-
+      console.log("searchParams: "+JSON.stringify(searchParams))
       function addIfTrue(query, value, key) {
         if (value) {
           query[key] = true;
@@ -59,7 +59,12 @@ angular.module('tagger.services').factory('SearchService',
         addIfTrue(query, isQaReview, "workflow.qaReview");
         addIfTrue(query, isStandardsAligned, "workflow.standardsAligned");
       }
-
+      if(searchParams.publishStatuses){
+        var published = _.find(searchParams.publishStatuses,function(publishStatus){return publishStatus.key == "published"}) != undefined
+        var draft = _.find(searchParams.publishStatuses,function(publishStatus){return publishStatus.key == "draft"}) != undefined
+        if(published && !draft) query["published"] = true
+        else if(!published && draft) query["published"] = false
+      }
 
       /**
        * Returns either an exact value or a mongo $in array with a set of values.
@@ -109,7 +114,7 @@ angular.module('tagger.services').factory('SearchService',
       if (searchParams.contributor && searchParams.contributor.indexOf && searchParams.contributor.length > 0) {
         query["contributor"] = mongoQuery.inArray(searchParams.contributor, "name");
       }
-
+      console.log("query: "+JSON.stringify(query))
       return query;
     };
 

@@ -17,14 +17,15 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     $scope.search();
     loadCollections();
     loadContributors();
+    $scope.showDraft = true;
 
     var defaultsFactory = new com.corespring.model.Defaults();
     $scope.gradeLevelDataProvider = defaultsFactory.buildNgDataProvider("gradeLevels");
     $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider("itemTypes");
-    $scope.flatItemTypeDataProvied = _.map(_.flatten(_.pluck($scope.itemTypeDataProvider, 'label')), function(e) {
+    $scope.flatItemTypeDataProvided = _.map(_.flatten(_.pluck($scope.itemTypeDataProvider, 'label')), function(e) {
       return {key: e, label: e};
     });
-    $scope.flatItemTypeDataProvied.push({key: "Other", label: "Other"});
+    $scope.flatItemTypeDataProvided.push({key: "Other", label: "Other"});
     $scope.statuses = [
       {label: "Setup", key: "setup"},
       {label: "Tagged", key: "tagged"},
@@ -32,6 +33,10 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
       {label: "QA Review", key: "qaReview"},
       {label: "Exact Match", key: "exactMatch"}
     ];
+    $scope.publishStatuses = [
+        {label: "Published", key: "published"},
+        {label: "Draft", key: "draft"}
+    ]
   };
 
   $scope.sortBy = function(field) {
@@ -95,7 +100,7 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
 
     if (isOtherSelected) {
       $scope.searchParams.notSelectedItemTypes = [];
-      _.each($scope.flatItemTypeDataProvied, function (e) {
+      _.each($scope.flatItemTypeDataProvided, function (e) {
         var isSelected = _.find($scope.searchParams.itemType, function (f) {
           return e.label == f.label;
         });
@@ -181,7 +186,7 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     $location.url('/edit/' + this.item.id + "?panel=metadata");
   };
 
-  $scope.itemStatus = function(isPublished){
+  $scope.publishStatus = function(isPublished){
     if(isPublished) return "Published"
     else return "Draft"
   }
