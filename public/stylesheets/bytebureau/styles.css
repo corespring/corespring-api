@@ -1316,12 +1316,15 @@ clear: both;
 }
 
 .student-assessment-page,
+.student-assessment-page-container,
 .assessment-page {
 margin: 0 auto 20px;
 padding: 40px 10px 16px 10px;
 width: 560px;
 }
-.student-assessment-page{
+
+.assessment-page,
+.student-assessment-page-container {
     border: 2px dashed #EAEAEA;
 }
 
