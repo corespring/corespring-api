@@ -95,7 +95,7 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
             '<span class="draggable-item {{item.submittedClass}}" ng:repeat="item in items" obj="{{item}}" ng-bind-html-unsafe="item.content" /> ',
             '</div>',
 
-            '<div class="order-placement-destination-area-vertical" style="width: {{maxW+25}}px">',
+            '<div class="order-placement-destination-area-vertical" style="width: {{maxW}}px">',
             '<div style="clear: both; margin-bottom: 10px">Place answers here</div>',
             '<span class="placement-destination" ng:repeat="item in emptyCorrectAnswers" index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px">',
             '<span class="placement-destination-inner" style="width: {{maxW}}px; height: {{maxH}}px"></span>',
@@ -175,11 +175,11 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
             var hasDimension = false;
             $(element).find('.draggable-item').each(function (index) {
                 if ($(this).width() > maxW) {
-                    maxW = $(this).width() + 30;
+                    maxW = Math.min($(this).width() + 30, 200);
                     hasDimension = true;
                 }
                 if ($(this).height() > maxH) {
-                    maxH = $(this).height() + 30;
+                    maxH = Math.min($(this).height() + 30, 200);
                     hasDimension = true;
                 }
             });
