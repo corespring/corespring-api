@@ -46,7 +46,6 @@ class ItemApi(s3service:S3Service) extends BaseApi {
     Item.relatedSubject,
     Item.standards,
     Item.author,
-    Item.published,
     TaskInfo.Keys.title)
 
   private def count(c: String): Boolean = "true".equalsIgnoreCase(c)
