@@ -17,10 +17,18 @@
 
 <!--Warning when trying to make changes to an item that has session data-->
 <div ui-modal ng-model="showSaveWarning" id="saveWarningModal" style="padding: 20px">
-    <h4>Warning</h4>
-    <br/>
-    <p>You are attempting to change an item's content that contains session data. Version will be automatically incremented to maintain the sessions validity.</p>
 
+    <h4>Create new Version?</h4>
+    <br/>
+    <p>
+        This item has existing data (item sessions/responses) collected for it.
+    <p/>
+    Modifying the item will create a new version of the item and existing sessions that were collected
+    will not be available for analysis with the new version.
+    <p/>
+    The old version will not be deleted, and data collected for the old version will still be stored and gathered if that item
+    version is still available to users.
+    </p>
     <button class="btn btn-primary" ng-click="increment()">Ok</button>
     <button class="btn btn-warning cancel" ng-click="showSaveWarning=false">Cancel</button>
 </div>

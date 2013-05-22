@@ -14,6 +14,7 @@
             }
         ]
     },
+    "published":false,
     "collectionId": "5001b9b9e4b035d491c268c3",
     "taskInfo": {
         "title": "IE8 Math Bug",

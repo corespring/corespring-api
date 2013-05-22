@@ -16,6 +16,7 @@
 		"sourceUrl" : "www.illustrativemathematics.org",
 		"licenseType" : "CC BY-NC"
 	},
+	"published":false,
 	"data" : {
 		"name" : "data",
 		"files" : [
