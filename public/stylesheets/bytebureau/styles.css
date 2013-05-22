@@ -1323,8 +1323,7 @@ padding: 40px 10px 16px 10px;
 width: 560px;
 }
 
-.assessment-page,
-.student-assessment-page-container {
+.assessment-page {
     border: 2px dashed #EAEAEA;
 }
 
