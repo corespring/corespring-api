@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+                title="" adaptive="false" timeDependent="false">
+
+
+    <responseDeclaration identifier="alphabet" cardinality="ordered" baseType="identifier">
+
+        <correctResponse>
+            <value>a</value>
+            <value>e</value>
+            <value>d</value>
+            <value>d</value>
+            <value>e</value>
+            <value>f</value>
+            <value>g</value>
+            <value>i</value>
+            <value>g</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+
+        <p class="intro">Read the section of text from the article, “Ever Wondered How Paper is Made?”</p>
+
+
+        <hr class="element-seperator"/>
+        <p>Paper mills get their wood from two sources: small trees that are harvested for paper and scraps from larger trees that were sent to sawmills for lumber. The bark is stripped off, and trees are put through a chipper, which makes it easier to process. Once the wood has been chipped, it’s converted to wood pulp. Pulping requires a combination of steam, pressure, chemicals, grinders and in some cases, bleach. Unbleached pulp becomes bags and boxes. Bleached pulp is turned into paper for writing or printing. (Bleached wood pulp is gooey and white— like masked potatoes, without the yummy taste.)</p>
+        <p>
+            When the pulp is finished, it’s mixed with water and sprayed onto large, moving screens. The water drains through the screens, and that lets the cellulose fibers stick together to make paper. The paper moves at high speeds through a series of presses and driers. Additives strengthen the paper. Finally, the finished paper is wound onto rolls and cut to size.</p>
+
+        <div class="note-tip">© 2012 Howard J. Bennett. All Rights Reserved.
+            (First published in the Washington Post 3/29/10.)</div>
+        <hr class="element-seperator"/>
+        <orderInteraction responseIdentifier="alphabet" shuffle="true" csOrderingType="placement" orientation="vertical">
+
+
+            <!-- add csOrderingType="placement" AND orientation="horizontal" or orientation="vertical" for an ordering placement question -->
+            <!-- If you want potential choices to remain in the same order, set shuffle="false". Individual choices that you want in the same place should have fixed="true" -->
+
+            <prompt>Using the process described in the text above, place the steps of the paper-making process in order. </prompt>
+            <simpleChoice identifier="a" fixed="true">Small trees and scraps from large trees are sent to the paper mill.</simpleChoice>
+            <simpleChoice identifier="b">Paper moves through a series of presses and driers. </simpleChoice>
+            <simpleChoice identifier="c">Additives are applied to strengthen the paper.</simpleChoice>
+            <simpleChoice identifier="d">Chipped wood is converted to wood pulp.</simpleChoice>
+            <simpleChoice identifier="e">Bark is stripped off, and trees are put through a chipper.</simpleChoice>
+            <simpleChoice identifier="f">Bleached pulp is turned into paper for writing or printing.</simpleChoice>
+            <simpleChoice identifier="g"> Finished pulp is mixed with water and sprayed onto screens.</simpleChoice>
+            <simpleChoice identifier="h" fixed="true">Water drains through the screens and the cellulose fibers stick together.</simpleChoice>
+            <simpleChoice identifier="i" fixed="true">The finished paper is wound onto rolls and cut to size.</simpleChoice>
+
+        </orderInteraction>
+
+
+    </itemBody>
+
+</assessmentItem>

@@ -59,7 +59,7 @@
                 <span multi-select
                   multi-get-title="getLabel"
                   multi-get-selected-title="getSelectedTitle"
-                  multi-options="flatItemTypeDataProvied"
+                  multi-options="flatItemTypeDataProvided"
                   multi-change="search"
                   multi-model="searchParams.itemType">
                   <div class="summary">
@@ -77,8 +77,22 @@
                   multi-change="search"
                   multi-model="searchParams.statuses">
                   <div class="summary">
-                    <div class="multi-title-text collection"> STATUS <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                    <div class="multi-title-text collection"> WORKFLOW <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
                     <div class="selected-multi-options collection" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
+                  </div>
+                </span>
+            </td>
+            <td class="nav-vr"><div></div></td>
+            <td>
+
+                <span multi-select
+                      multi-get-title="getLabel"
+                      multi-options="publishStatuses"
+                      multi-change="search"
+                      multi-model="searchParams.publishStatuses">
+                  <div class="summary">
+                      <div class="multi-title-text collection"> STATUS <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                      <div class="selected-multi-options collection" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
                   </div>
                 </span>
             </td>
@@ -105,7 +119,7 @@
                 <th sort-column-header field="itemType">Item Type</th>
                 <th>Standard(s)</th>
                 <th sort-column-header field="contributor">Source</th>
-                <th>Actions</th>
+                <th sort-column-header field="published">Status</th>
             </tr>
             </thead>
             <tbody>
@@ -121,11 +135,7 @@
                        ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
                 </td>
                 <td ng-click="openEditView()">{{getAuthorAbbreviation(item.contributor)}}</td>
-                <td>
-                    <button class="btn btn-danger btn-mini" href="javascript:void(1)" ng-click="deleteItem(item)">
-                        Delete
-                    </button>
-                </td>
+                <td ng-click="openEditView()">{{publishStatus(item.published)}}</td>
             </tr>
             </tbody>
         </table>
