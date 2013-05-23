@@ -15,7 +15,6 @@ corespringDirectivesModule.directive("iframeAutoHeight", function () {
 
   return {
     link: function ($scope, $element, $attrs) {
-      console.log("Linking ifa");
       $($element).iframeAutoHeight();
     }
   };
