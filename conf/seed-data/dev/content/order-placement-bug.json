@@ -1,23 +1,22 @@
 {
     "_id": {
-        "$oid": "506b16a6a0ee19706d739f02"
+        "$oid": "506c9fbda0eee22b21777981"
     },
     "data": {
-        "name": "data",
+        "name": "qti.xml",
         "files": [
             {
                 "_t": "models.item.resource.VirtualFile",
                 "name": "qti.xml",
                 "contentType": "text/xml",
                 "isMain": true,
-                "content": "$[interpolate{conf/qti/ie8-math-bug.xml}]"
+                "content": "$[interpolate{conf/qti/order-placement-bug.xml}]"
             }
         ]
     },
     "published":false,
     "collectionId": "5001b9b9e4b035d491c268c3",
     "taskInfo": {
-        "title": "IE8 Math Bug",
-        "itemType": "Text with Questions"
+        "title": "order placement bug"
     }
 }

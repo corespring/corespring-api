@@ -15,6 +15,7 @@
         "sourceUrl": "http://www.ride.ri.gov/assessment/necap.aspx",
         "licenseType": "CC BY"
     },
+    "published":true,
     "data": {
         "name": "data",
         "files": [

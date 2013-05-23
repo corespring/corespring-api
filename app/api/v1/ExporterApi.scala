@@ -27,7 +27,7 @@ class ExporterApi(encrypter:Crypto) extends BaseApi {
     val orgEncrypter = new OrgEncrypter(request.ctx.organization, encrypter)
     val options : RenderOptions = RenderOptions.ANYTHING
     orgEncrypter.encrypt(Json.toJson(options).toString()) match {
-      case Some(EncryptionResult(clientId,data)) => {
+      case Some(EncryptionResult(clientId,data, None)) => {
         val generatorFn : List[Item] => Array[Byte] = ScormExporter.makeMultiScormPackage(_,BaseUrl(request), clientId, data)
         binaryResultFromIds(ids, request.ctx.organization, generatorFn )
       }

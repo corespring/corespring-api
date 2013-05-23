@@ -14,7 +14,8 @@ class Encrypter(encrypter: Crypto) extends BaseApi {
     def writes(er: EncryptionResult): JsValue = JsObject {
       Seq(
         "clientId" -> JsString(er.clientId),
-        "options" -> JsString(er.data)
+        "options" -> JsString(er.data),
+        "request" -> JsString(er.requested.getOrElse(""))
       )
     }
   }

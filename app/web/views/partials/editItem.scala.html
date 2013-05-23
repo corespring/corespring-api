@@ -56,7 +56,9 @@
 
             <div class="pull-right">
                 <label style="padding-top:5px; padding-right:5px;">Status: {{itemStatus}}</label>
-                <label style="padding-top:5px; padding-right:5px;">V.{{itemVersion}}</label>
+                <label style="padding-top:5px; padding-right:5px;" ng-show="!isPublished"><a href="" style="color: white;" ng-click="publish()">Publish...</a></label>
+                <label style="padding-top:5px; padding-right:5px;" ng-show="isPublished">, version:{{itemVersion}}</label>
+                <label style="padding-top:5px; padding-right:5px;" ng-show="isPublished">{{sessionCount}}</label>
                 <button class="btn btn-primary"
                         ng-model="isSaving"
                         loading-button
@@ -65,7 +67,6 @@
                 </button>
                 <button class="btn btn-success"
                     ng-click="clone()"><i class="icon-plus-sign"></i>&nbsp;Clone</button>
-                <button class="btn btn-danger" ng-click="publish()" ng-show="!isPublished">Publish</button>
                 <i id="togglePreviewButton" class="icon-preview" ng-class="previewClassName"
                                style="cursor: pointer"
                                ng-click="togglePreview()"

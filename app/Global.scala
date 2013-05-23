@@ -96,7 +96,6 @@ object Global extends GlobalSettings {
   }
 
   override def onStart(app: Application) {
-
     // support JodaTime
     RegisterJodaTimeConversionHelpers()
 

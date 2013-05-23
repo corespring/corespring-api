@@ -24,7 +24,6 @@ angular.module('tagger.services').factory('SearchService',
      * @return {*}
      */
     var buildQueryObject = function (searchParams, searchFields) {
-
       function addIfTrue(query, value, key) {
         if (value) {
           query[key] = true;
@@ -59,7 +58,12 @@ angular.module('tagger.services').factory('SearchService',
         addIfTrue(query, isQaReview, "workflow.qaReview");
         addIfTrue(query, isStandardsAligned, "workflow.standardsAligned");
       }
-
+      if(searchParams.publishStatuses){
+        var published = _.find(searchParams.publishStatuses,function(publishStatus){return publishStatus.key == "published"}) != undefined
+        var draft = _.find(searchParams.publishStatuses,function(publishStatus){return publishStatus.key == "draft"}) != undefined
+        if(published && !draft) query["published"] = true
+        else if(!published && draft) query["published"] = false
+      }
 
       /**
        * Returns either an exact value or a mongo $in array with a set of values.
@@ -109,7 +113,6 @@ angular.module('tagger.services').factory('SearchService',
       if (searchParams.contributor && searchParams.contributor.indexOf && searchParams.contributor.length > 0) {
         query["contributor"] = mongoQuery.inArray(searchParams.contributor, "name");
       }
-
       return query;
     };
 
@@ -131,14 +134,16 @@ angular.module('tagger.services').factory('SearchService',
         'standards',
         'sourceUrl',
         'contributor',
-        'author'
+        'author',
+        'published'
       ],
       searchFields: [
         'title',
         'standards.dotNotation',
         'copyrightOwner',
         'contributor',
-        'author'
+        'author',
+        'published'
       ],
 
       /**
