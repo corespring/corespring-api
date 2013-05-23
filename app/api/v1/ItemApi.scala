@@ -28,6 +28,7 @@ import item.{Content, Item, Alignments, TaskInfo}
 
 /**
  * Items API
+ * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
 class ItemApi(s3service: S3Service) extends BaseApi {
 
@@ -133,7 +134,7 @@ class ItemApi(s3service: S3Service) extends BaseApi {
         val cursor = Item.find(query, fields.dbfields)
         val count = cursor.count
         val sorted = sortField.map(cursor.sort(_)).getOrElse(cursor)
-        jsBuilder(count, sorted, fields, current)
+        jsBuilder(count, sorted.skip(sk).limit(limit), fields, current)
       }
 
       queryResult match {
