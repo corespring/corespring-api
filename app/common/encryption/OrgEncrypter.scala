@@ -8,7 +8,7 @@ class OrgEncrypter(orgId: ObjectId, encrypter: Crypto) {
   def encrypt(s: String): Option[EncryptionResult] = ApiClient.findOneByOrgId(orgId).map {
     client =>
       val data = encrypter.encrypt(s, client.clientSecret)
-      EncryptionResult(client.clientId.toString, data)
+      EncryptionResult(client.clientId.toString, data, Some(s))
   }
 
 
