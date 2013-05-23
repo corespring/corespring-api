@@ -1,7 +1,7 @@
 package player.accessControl.auth
 
 import controllers.InternalError
-import models.itemSession.{DefaultItemSession, ItemSession}
+import models.itemSession.{PreviewItemSessionCompanion, ItemSessionCompanion, DefaultItemSession, ItemSession}
 import models.quiz.basic.Quiz
 import org.bson.types.ObjectId
 import play.api.Logger
@@ -15,8 +15,14 @@ import scala.Some
 object CheckSessionAccess extends CheckSession {
 
   val sessionLookup: SessionItemLookup = new SessionItemLookup {
+
+    /** Note: We check both the normal collection and the preview item session collection */
     def containsItem(id: ObjectId, itemId: ObjectId): Boolean = {
-      DefaultItemSession.findOneById(id) match {
+      contains(DefaultItemSession, id, itemId) || contains(PreviewItemSessionCompanion, id, itemId)
+    }
+
+    private def contains(companion:ItemSessionCompanion, id:ObjectId, itemId:ObjectId) : Boolean = {
+      companion.findOneById(id) match {
         case Some(s) => s.itemId == itemId
         case _ => false
       }
