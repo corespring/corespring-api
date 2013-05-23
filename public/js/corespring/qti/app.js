@@ -1,5 +1,5 @@
 angular.module('qti.directives', ['qti.services']);
-angular.module('qti', ['qti.directives', 'qti.services', 'corespring-services', 'corespring-utils', 'ui']);
+angular.module('qti', ['qti.directives', 'qti.services', 'corespring-services', 'corespring-directives','corespring-utils', 'ui']);
 
 
 function ControlBarController($scope, $rootScope) {
