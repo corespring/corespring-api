@@ -37,7 +37,8 @@ See that project for more documentation. In an nutshell the helper uses 2 files:
 ### Logging configuration on Heroku
 
 There are some logging configurations in conf/logging. When `foreman` starts `play` it uses the logger
-defined by `ENV_LOGGER` which defaults to `conf/logger.xml`.
+defined by `ENV_LOGGER` which defaults to `conf/logger.xml` (this is defined in the .env file).
+
 To change this add an environment variable:
 
     heroku config:set ENV_LOGGER=conf/logging/debug.xml --app your_server_name_here
