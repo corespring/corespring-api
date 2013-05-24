@@ -45,5 +45,5 @@ Note that you can point to a file that is not on the class path if you want:
 
     heroku config:set ENV_LOGGER=/home/test/some-log-config.xml --app your_server_name_here
 
-For information on how to configure the xml see: (play docs)[http://www.playframework.com/documentation/2.1.1/SettingsLogger]
-and (logback docs)[http://logback.qos.ch/manual/configuration.html]
+For information on how to configure the xml see: [play docs](http://www.playframework.com/documentation/2.1.1/SettingsLogger)
+and [logback docs](http://logback.qos.ch/manual/configuration.html)
