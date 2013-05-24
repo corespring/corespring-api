@@ -11,7 +11,7 @@ import dao._
 import dao.SalatDAOUpdateError
 import dao.SalatInsertError
 import dao.SalatRemoveError
-import controllers.{Utils, Log, LogType, InternalError}
+import controllers.{Utils, InternalError}
 import scala.Left
 import play.api.libs.json.JsString
 import scala.Some
@@ -46,51 +46,15 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
               false, false, Organization.collection.writeConcern)
             Right(coll)
           } catch {
-            case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update organization with collection")))
+            case e: SalatDAOUpdateError => Left(InternalError("failed to update organization with collection", e))
           }
-          case None => Left(InternalError("failed to insert content collection",LogType.printFatal,true))
+          case None => Left(InternalError("failed to insert content collection"))
         }
       } catch {
-        case e: SalatInsertError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to insert content collection")))
+        case e: SalatInsertError => Left(InternalError("failed to insert content collection", e))
       }
   }
-//  def insertPublic(coll:ContentCollection): Either[InternalError, ContentCollection] = {
-//    if(Play.isProd) coll.id = new ObjectId()
-//    coll.isPublic = true;
-//    try {
-//      super.insert(coll) match   {
-//        case Some(_) => try {
-//          Organization.update(MongoDBObject(),
-//            MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> coll.id)),
-//            false,false,Organization.defaultWriteConcern)
-//          Right(coll)
-//        } catch {
-//          case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update organization with collection")))
-//        }
-//        case None => Left(InternalError("failed to insert content collection",LogType.printFatal,true))
-//      }
-//    } catch {
-//      case e: SalatInsertError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to insert content collection")))
-//    }
-//  }
-  def removeCollection(collId: ObjectId): Either[InternalError, Unit] = {
-    ContentCollection.moveToArchive(collId) match {
-      case Right(_) => try {
-        //remove collection references from organizations
-        Organization.update(MongoDBObject(Organization.contentcolls + "." + ContentCollRef.collectionId -> collId),
-          MongoDBObject("$pull" -> MongoDBObject(Organization.contentcolls -> MongoDBObject(ContentCollRef.collectionId -> collId))),
-          false, false, Organization.collection.writeConcern)
-        //finally delete
-        ContentCollection.removeById(collId, ContentCollection.collection.writeConcern)
-        Right(())
-      } catch {
-        case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update corresponding organizations")))
-        case e: SalatRemoveError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to remove")))
-      }
-      case Left(e) => Left(e)
-    }
 
-  }
   //TODO if public content collection, use two-phase commit and add possibility for rollback
   def updateCollection(coll: ContentCollection): Either[InternalError, ContentCollection] = {
     try {
@@ -102,10 +66,10 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
       }
       ContentCollection.findOneById(coll.id) match {
         case Some(coll) => Right(coll)
-        case None => Left(InternalError("could not find the collection that was just updated",LogType.printFatal,true))
+        case None => Left(InternalError("could not find the collection that was just updated"))
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update collection")))
+      case e: SalatDAOUpdateError => Left(InternalError("failed to update collection", e))
     }
   }
   lazy val archiveCollId: ObjectId = ContentCollection.findOneById(new ObjectId("500ecfc1036471f538f24bdc")) match {
@@ -133,7 +97,7 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
         }else result
       })
     }catch{
-      case e:SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to transfer collection to archive")))
+      case e:SalatDAOUpdateError => Left(InternalError("failed to transfer collection to archive", e))
       case e:SalatRemoveError => Left(InternalError(e.getMessage))
     }
   }

@@ -1,14 +1,12 @@
 package controllers.auth
 
-import play.api.mvc._
-import play.api.{Logger, Play}
 import api.ApiError
 import api.ApiError._
-import play.api.libs.json.{JsString, JsObject, Json}
-import org.bson.types.ObjectId
 import models.User
-import securesocial.core.{SecuredRequest, SecureSocial}
-import controllers.Log
+import play.api.libs.json.{JsString, JsObject, Json}
+import play.api.mvc._
+import securesocial.core.SecureSocial
+import common.log.PackageLogging
 
 /**
  * A class that adds an AuthorizationContext to the Request object
@@ -27,7 +25,7 @@ case class ApiRequest[A](ctx: AuthorizationContext, r: Request[A], token : Strin
  * @see Permission
  * @see PermissionSet
  */
-trait BaseApi extends Controller with SecureSocial{
+trait BaseApi extends Controller with SecureSocial with PackageLogging{
 
   private val AuthorizationHeader = "Authorization"
   private val Bearer = "Bearer"
@@ -77,7 +75,7 @@ trait BaseApi extends Controller with SecureSocial{
   def ApiAction[A](p: BodyParser[A])(f: ApiRequest[A] => Result) = {
     Action(p) {
       request =>
-        Log.d("request route: "+request.method+" "+request.uri)
+        Logger.debug("request route: "+request.method+" "+request.uri)
         SecureSocial.currentUser(request).find(_ => request.headers.get("CoreSpring-IgnoreSession").isEmpty).map { u =>
           invokeAsUser(u.id.id, u.id.providerId, request)(f)
         }.getOrElse {

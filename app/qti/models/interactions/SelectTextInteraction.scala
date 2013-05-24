@@ -1,6 +1,5 @@
 package qti.models.interactions
 
-import controllers.Log
 import models.itemSession.{ItemResponseOutcome, ArrayItemResponse, ItemResponse}
 import qti.models._
 import scala.Some
@@ -64,7 +63,7 @@ case class SelectTextInteraction(responseIdentifier: String, selectionType: Stri
         case _ => None
       }
       case _ => {
-        Log.e("received a response that was not an array response in SelectTextInteraction.getOutcome")
+        Logger.error("received a response that was not an array response in SelectTextInteraction.getOutcome")
         None
       }
     }

@@ -42,7 +42,7 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
       AccessToken.remove(MongoDBObject(AccessToken.tokenId -> tokenId))
       Right(())
     }catch{
-      case e:SalatRemoveError => Left(InternalError(e.getMessage,clientOutput = Some("error removing token with id "+tokenId)))
+      case e:SalatRemoveError => Left(InternalError("error removing token with id "+tokenId, e))
     }
   }
   def insertToken(token:AccessToken):Either[InternalError,AccessToken] = {
@@ -52,10 +52,10 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
           case Some(dbtoken) => Right(dbtoken)
           case None => Left(InternalError("could not retrieve token that was just inserted"))
         }
-        case None => Left(InternalError("error occurred during insert",addMessageToClientOutput = true))
+        case None => Left(InternalError("error occurred during insert"))
       }
     }catch {
-      case e:SalatInsertError => Left(InternalError(e.getMessage,clientOutput = Some("error occurred during insert")))
+      case e:SalatInsertError => Left(InternalError("error occurred during insert", e))
     }
 
   }

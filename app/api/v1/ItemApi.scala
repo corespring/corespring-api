@@ -1,36 +1,37 @@
 package api.v1
 
-import controllers.auth.{ApiRequest, Permission, BaseApi}
 import api.ApiError
-import models._
-import com.mongodb.util.JSONParseException
 import com.mongodb.casbah.Imports._
+import com.mongodb.util.JSONParseException
 import com.novus.salat._
-import dao.SalatDAOUpdateError
-import dao.{SalatMongoCursor, SalatInsertError}
-import item.resource.StoredFile
-import play.api.templates.Xml
-import play.api.libs.json.Json._
-import models.mongoContext._
-import controllers._
-import play.api.libs.json._
-import search.{SearchFields, SearchCancelled, ItemSearch}
-import models.json.ItemView
-import item.Version
-import scala.Left
-import play.api.libs.json.JsArray
-import scala.Some
-import controllers.InternalError
-import scala.Right
-import play.api.libs.json.JsObject
+import com.novus.salat.dao.SalatDAOUpdateError
+import com.novus.salat.dao.SalatInsertError
+import com.novus.salat.dao.SalatMongoCursor
 import com.typesafe.config.ConfigFactory
-import item.{Content, Item, Alignments, TaskInfo}
+import controllers._
+import controllers.auth.ApiRequest
+import controllers.auth.{Permission, BaseApi}
+import models._
+import models.item._
+import models.item.resource.StoredFile
+import models.json.ItemView
+import models.mongoContext._
+import models.search.SearchCancelled
+import models.search.SearchFields
+import play.api.libs.json.Json._
+import play.api.libs.json._
+import play.api.templates.Xml
+import scala.Left
+import scala.Right
+import scala.Some
+import search.ItemSearch
+import common.log.PackageLogging
 
 /**
  * Items API
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
-class ItemApi(s3service: S3Service) extends BaseApi {
+class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
 
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
@@ -46,7 +47,6 @@ class ItemApi(s3service: S3Service) extends BaseApi {
     Item.author,
     TaskInfo.Keys.title)
 
-  private def count(c: String): Boolean = "true".equalsIgnoreCase(c)
 
   /**
    * List query implementation for Items
@@ -92,15 +92,15 @@ class ItemApi(s3service: S3Service) extends BaseApi {
           try {
             if (dblist.asInstanceOf[BasicDBList].toArray.forall(coll => ContentCollection.isAuthorized(request.ctx.organization, new ObjectId(coll.toString), Permission.Read)))
               Right(value)
-            else Left(InternalError("attempted to access a collection that you are not authorized to", addMessageToClientOutput = true))
+            else Left(InternalError("attempted to access a collection that you are not authorized to"))
           } catch {
-            case e: IllegalArgumentException => Left(InternalError(e.getMessage, clientOutput = Some("could not parse collectionId into an object id")))
+            case e: IllegalArgumentException => Left(InternalError("could not parse collectionId into an object id", e))
           }
-        } else Left(InternalError("invalid value for collectionId key. could not cast to array", addMessageToClientOutput = true))
-      } else Left(InternalError("can only use $in special operator when querying on collectionId", addMessageToClientOutput = true))
-      case None => Left(InternalError("empty db object as value of collectionId key", addMessageToClientOutput = true))
+        } else Left(InternalError("invalid value for collectionId key. could not cast to array"))
+      } else Left(InternalError("can only use $in special operator when querying on collectionId"))
+      case None => Left(InternalError("empty db object as value of collectionId key"))
     }
-    case _ => Left(InternalError("invalid value for collectionId", addMessageToClientOutput = true))
+    case _ => Left(InternalError("invalid value for collectionId"))
   }
 
   private def itemList[A](
@@ -157,7 +157,7 @@ class ItemApi(s3service: S3Service) extends BaseApi {
     }
   }
 
-  private def cleanDbFields(searchFields: SearchFields, isLoggedIn: Boolean, dbExtraFields: Seq[String] = dbsummaryFields, jsExtraFields: Seq[String] = jssummaryFields) = {
+  private def cleanDbFields(searchFields: SearchFields, isLoggedIn: Boolean, dbExtraFields: Seq[String] = dbsummaryFields, jsExtraFields: Seq[String] = jssummaryFields) {
     if (!isLoggedIn && searchFields.dbfields.isEmpty) {
       dbExtraFields.foreach(extraField =>
         searchFields.dbfields = searchFields.dbfields ++ MongoDBObject(extraField -> searchFields.method)
@@ -208,9 +208,6 @@ class ItemApi(s3service: S3Service) extends BaseApi {
 
   /**
    * Returns an Item with all its fields.
-   *
-   * @param id
-   * @return
    */
   def getDetail(id: ObjectId) = ApiAction {
     request =>
@@ -225,9 +222,6 @@ class ItemApi(s3service: S3Service) extends BaseApi {
 
   /**
    * Returns the raw content body for the item
-   *
-   * @param id
-   * @return
    */
   def getData(id: ObjectId) = ApiAction {
     request =>
@@ -249,9 +243,6 @@ class ItemApi(s3service: S3Service) extends BaseApi {
 
   /**
    * Deletes the item matching the id specified
-   *
-   * @param id
-   * @return
    */
   def delete(id: ObjectId) = ApiAction {
     request =>
@@ -272,7 +263,7 @@ class ItemApi(s3service: S3Service) extends BaseApi {
   }
 
   private def cloneS3File(sourceFile: StoredFile, newId: String): String = {
-    Log.d("Cloning " + sourceFile.storageKey + " to " + newId)
+    Logger.debug("Cloning " + sourceFile.storageKey + " to " + newId)
     val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/", "")
     s3service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, newId + "/" + oldStorageKeyIdRemoved)
     newId + "/" + oldStorageKeyIdRemoved
@@ -302,8 +293,8 @@ class ItemApi(s3service: S3Service) extends BaseApi {
       true
     } catch {
       case r: RuntimeException =>
-        Log.e("Error cloning some of the S3 files: " + r.getMessage)
-        Log.e(r.getStackTrace.mkString("\n"))
+        Logger.error("Error cloning some of the S3 files: " + r.getMessage)
+        Logger.error(r.getStackTrace.mkString("\n"))
         false
     }
 
@@ -312,8 +303,6 @@ class ItemApi(s3service: S3Service) extends BaseApi {
   /**
    * Note: Have to call this 'cloneItem' instead of 'clone' as clone is a default
    * function.
-   * @param id
-   * @return
    */
   def cloneItem(id: ObjectId) = ApiAction {
     request =>
@@ -353,7 +342,7 @@ class ItemApi(s3service: S3Service) extends BaseApi {
               if (i.collectionId.isEmpty && request.ctx.permission.has(Permission.Write)) {
                 Organization.getDefaultCollection(request.ctx.organization) match {
                   case Right(default) => {
-                    i.collectionId = default.id.toString;
+                    i.collectionId = default.id.toString
                     Item.insert(i) match {
                       case Some(_) => Ok(toJson(i))
                       case None => InternalServerError(toJson(ApiError.CantSave))
@@ -454,10 +443,8 @@ class ItemApi(s3service: S3Service) extends BaseApi {
   /**
    * when a stored file is received from json, we do not receive the storage keys to allow us to clone stored files.
    * this method copies the storage key's from the original item
-   * @param oldItem
-   * @param newItem
    */
-  private def copyStorageKeys(oldItem: Item, newItem: Item) = {
+  private def copyStorageKeys(oldItem: Item, newItem: Item) {
     if (newItem.data.isDefined) {
       newItem.data.get.files.foreach {
         file => file match {
@@ -537,7 +524,6 @@ class ItemApi(s3service: S3Service) extends BaseApi {
 
   /**
    * returns the most recent revision of the item referred to by id
-   * @param id
    * @return
    */
   def getCurrent(id: ObjectId) = ApiAction {

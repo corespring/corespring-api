@@ -169,13 +169,13 @@ object Item extends ModelCompanion[Item, ObjectId] {
 
       getItemWithFields match {
         case Some(item) => Right(item)
-        case None => Left(InternalError("somehow the document that was just updated could not be found", LogType.printFatal))
+        case None => Left(InternalError("somehow the document that was just updated could not be found"))
       }
 
     } catch {
-      case e: SalatDAOUpdateError => Left(InternalError(e.getMessage, LogType.printFatal, false, Some("error occured while updating")))
-      case e: IllegalArgumentException => Left(InternalError(e.getMessage, clientOutput = Some("destination collection id was not a valid id")))
-      case e: RuntimeException => Left(InternalError(e.getMessage, addMessageToClientOutput = true))
+      case e: SalatDAOUpdateError => Left(InternalError("error occured while updating", e))
+      case e: IllegalArgumentException => Left(InternalError("destination collection id was not a valid id", e))
+      case e: RuntimeException => Left(InternalError(e.getMessage))
     }
   }
 
@@ -224,9 +224,9 @@ object Item extends ModelCompanion[Item, ObjectId] {
           grater[Resource].asObject(res).files.find(bf => bf.isMain && bf.contentType == BaseFile.ContentTypes.XML) match {
             case Some(bf) => bf match {
               case vf: VirtualFile => Right(vf.content)
-              case _ => Left(InternalError("main file was not a virtual file", LogType.printFatal))
+              case _ => Left(InternalError("main file was not a virtual file"))
             }
-            case None => Left(InternalError("no main file found that contained xml", LogType.printFatal))
+            case None => Left(InternalError("no main file found that contained xml"))
           }
         }
         case _ => Left(InternalError("data not an object"))

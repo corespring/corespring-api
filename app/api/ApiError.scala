@@ -1,7 +1,6 @@
 package api
 
 import play.api.libs.json._
-import controllers.{LogType, Log}
 
 
 /**

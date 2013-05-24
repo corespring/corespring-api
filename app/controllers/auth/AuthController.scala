@@ -8,20 +8,20 @@ import api.ApiError
 import org.bson.types.ObjectId
 import securesocial.core.SecureSocial
 import models.User
-import controllers.Log
 import play.api.data.validation._
 import scala.Left
 import scala.Some
 import scala.Right
 import play.api.data.validation.ValidationError
 import web.controllers.ObjectIdParser
+import common.log.PackageLogging
 
 
 /**
  * A controller to handle the OAuth flow and consumer registration
  */
 
-object AuthController extends Controller with SecureSocial with ObjectIdParser{
+object AuthController extends Controller with SecureSocial with ObjectIdParser with PackageLogging{
 
   case class AccessTokenRequest(grant_type: String, client_id: String, client_secret: String, scope: Option[String])
 
@@ -80,7 +80,7 @@ object AuthController extends Controller with SecureSocial with ObjectIdParser{
               }
             }else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
             case None => {
-              Log.e("user was authorized but does not exist!")
+              Logger.error("user was authorized but does not exist!")
               InternalServerError
             }
           }
