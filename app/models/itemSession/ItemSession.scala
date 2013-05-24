@@ -10,11 +10,12 @@ import models.mongoContext._
 import org.joda.time.DateTime
 import play.api.Play.current
 import play.api.libs.json._
-import play.api.{Logger, Play}
+import play.api.Play
 import qti.models.QtiItem
 import qti.processors.FeedbackProcessor
 import scala.xml._
 import se.radley.plugin.salat._
+import common.log.PackageLogging
 
 case class FeedbackIdMapEntry(csFeedbackId: String, outcomeIdentifier: String, identifier: String)
 
@@ -111,7 +112,7 @@ object DefaultItemSession extends ItemSessionCompanion {
   def collection = mongoCollection("itemsessions")
 }
 
-trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] {
+trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with PackageLogging{
 
   import ItemSession.Keys._
 
