@@ -1,18 +1,16 @@
 This project contains the api rest layer and web ui for administering corespring items.
 
-## Set up
+## Installation
 *we assume you already have Java JDK >= 1.6*
 
-### Mac users
-It is recommended that you use [homebrew](http://mxcl.github.io/homebrew/) for all your installations.
-
-1. Install mongodb
-2. Install play 2.0.4
-3. For running tests install phantomjs
-4. Install source
+*Mac users - It is recommended that you use [homebrew](http://mxcl.github.io/homebrew/) for all your installations.*
 
     cd ~/dev/github/corespring
     git clone git@github.com:corespring/corespring-api.git
+
+* Install mongodb
+* Install play 2.0.4
+* For running tests install phantomjs   
 
 ## Running
 
