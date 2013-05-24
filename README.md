@@ -1,7 +1,6 @@
-Corespring API
-==============
+This project contains the api rest layer and web ui for administering corespring items.
 
-# Set up
+## Set up
 *we assume you already have Java JDK >= 1.6*
 
 ### Mac users
