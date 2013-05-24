@@ -1,6 +1,6 @@
 This project contains the api rest layer and web ui for administering corespring items.
 
-## Installation
+### Installation
 *we assume you already have Java JDK >= 1.6*
 
 *Mac users - It is recommended that you use [homebrew](http://mxcl.github.io/homebrew/) for all your installations.*
@@ -12,12 +12,13 @@ This project contains the api rest layer and web ui for administering corespring
 * Install play 2.0.4
 * For running tests install phantomjs   
 
-## Running
+### Running/Testing
 
     cd corepsring-api
-    play
+    play run
+    play test
 
-## Application configuration
+### Application configuration
 
 The application will run without any configuration by using a set of default values.
 These values essentially run the app in development mode, by using the local db
