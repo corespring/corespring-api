@@ -33,3 +33,6 @@ See that project for more documentation. In an nutshell the helper uses 2 files:
 
 * .heroku-helper.conf - allows you to configure scripts to run as part of deployment
 * .heroku-helper-env.conf - set up env vars for a given heroku server (not under source control).
+
+### Logging configuration on Heroku
+There are some logging configurations
