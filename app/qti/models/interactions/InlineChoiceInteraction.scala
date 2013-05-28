@@ -1,11 +1,10 @@
 package qti.models.interactions
 
 import choices.InlineChoice
-import xml.Node
-import qti.models.ResponseDeclaration
-import qti.models.QtiItem.Correctness
-import controllers.Log
 import models.itemSession._
+import qti.models.QtiItem.Correctness
+import qti.models.ResponseDeclaration
+import xml.Node
 
 case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[InlineChoice]) extends InteractionWithChoices {
 
@@ -25,7 +24,7 @@ case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[Inli
         case None => None
       }
       case _ => {
-        Log.e("received a response that was not a string response in InlineChoiceInteraction.getOutcome")
+        Logger.error("received a response that was not a string response in InlineChoiceInteraction.getOutcome")
         None
       }
     }

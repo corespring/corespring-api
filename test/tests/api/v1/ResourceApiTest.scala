@@ -44,7 +44,7 @@ class ResourceApiTest extends BaseTest {
     }
   }
 
-  def testItem: Item = item("511156d38604c9f77da9739d")
+  def testItem: Item = item("518d78a78bea44b51014e4bf")
 
   def rubric: Resource = {
     testItem.supportingMaterials.find(_.name == "Rubric") match {
@@ -58,8 +58,8 @@ class ResourceApiTest extends BaseTest {
     def makeFileRequest(file: VirtualFile, path: String, method: String = POST): Result = {
 
       val request = tokenFakeRequest(method, path, FakeHeaders(), AnyContentAsJson(Json.toJson(file)))
-
-      routeAndCall(request) match {
+      val optresult = routeAndCall(request)
+      optresult match {
         case Some(result) => {
           result
         }

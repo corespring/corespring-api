@@ -17,14 +17,19 @@
 
 <!--Warning when trying to make changes to an item that has session data-->
 <div ui-modal ng-model="showSaveWarning" id="saveWarningModal" style="padding: 20px">
-    <h4>Warning</h4>
-    <br/>
-    <p>Action cancelled. You are attempting to change an item's content that contains session data.
-        You may force the change by appending force=true to the url, but you will invalidate the corresponding session data.
-        It is recommended that you increment the revision of the item before changing it</p>
 
-    <button class="btn btn-primary" ng-click="increment()">Increment</button>
-    <button class="btn btn-info" ng-click="clone()">Clone</button>
+    <h4>Create new Version?</h4>
+    <br/>
+    <p>
+        This item has existing data (item sessions/responses) collected for it.
+    <p/>
+    Modifying the item will create a new version of the item and existing sessions that were collected
+    will not be available for analysis with the new version.
+    <p/>
+    The old version will not be deleted, and data collected for the old version will still be stored and gathered if that item
+    version is still available to users.
+    </p>
+    <button class="btn btn-primary" ng-click="increment()">Ok</button>
     <button class="btn btn-warning cancel" ng-click="showSaveWarning=false">Cancel</button>
 </div>
 
@@ -32,7 +37,7 @@
     <div class="container" style="width: 940px;">
         <div class="row">
 
-            <ul class="span5 nav nav-pills">
+            <ul class="span4 nav nav-pills">
                 <li ng-class="{true:'active', false:''}[currentPanel=='content']">
                     <a
                             href="javascript:void(1)"
@@ -49,8 +54,11 @@
                 </li>
             </ul>
 
-            <span class="pull-right">
-                <label style="padding-top:5px; padding-right:5px;">V.{{itemVersion}}</label>
+            <div class="pull-right">
+                <label style="padding-top:5px; padding-right:5px;">Status: {{itemStatus}}</label>
+                <label style="padding-top:5px; padding-right:5px;" ng-show="!isPublished"><a href="" style="color: white;" ng-click="publish()">Publish...</a></label>
+                <label style="padding-top:5px; padding-right:5px;" ng-show="isPublished">, version:{{itemVersion}}</label>
+                <label style="padding-top:5px; padding-right:5px;" ng-show="isPublished">{{sessionCount}}</label>
                 <button class="btn btn-primary"
                         ng-model="isSaving"
                         loading-button
@@ -64,7 +72,7 @@
                                ng-click="togglePreview()"
                                title="toggle preview"
                                ng-show="mode == 'edit'"></i>
-            </span>
+            </div>
         </div>
     </div>
 </div>

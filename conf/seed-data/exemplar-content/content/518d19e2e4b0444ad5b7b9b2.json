@@ -1,0 +1,98 @@
+{
+	"_id" : {
+		"$oid" : "518d19e2e4b0444ad5b7b9b2"
+	},
+	"bloomsTaxonomy" : "Analyzing",
+	"collectionId" : "505777f5e4b05f7845735bc1",
+	"contentType" : "item",
+	"contributorDetails" : {
+		"contributor" : "New England Common Assessment Program",
+		"credentials" : "State Department of Education",
+		"copyright" : {
+			"owner" : "New England Common Assessment Program",
+			"year" : "2011"
+		},
+		"author" : "New England Common Assessment Program",
+		"sourceUrl" : "www.ride.ri.gov/assessment/necap.aspx",
+		"licenseType" : "CC BY"
+	},
+	"published":true,
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "models.item.resource.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n    \n     <correctResponseFeedback>Correct!</correctResponseFeedback>\n    <incorrectResponseFeedback>Your Answer.</incorrectResponseFeedback>\n\n   <responseDeclaration identifier='Most' cardinality='single' baseType='identifier'>\n        <correctResponse>\n            <value>3</value>\n        </correctResponse>\n    </responseDeclaration>\n    \n    <responseDeclaration identifier='Next' cardinality='single' baseType='identifier'>\n        <correctResponse>\n            <value>4</value>\n        </correctResponse>\n    </responseDeclaration>\n    \n     <responseDeclaration identifier='Last' cardinality='single' baseType='identifier'>\n        <correctResponse>\n            <value>8</value>\n        </correctResponse>\n    </responseDeclaration>\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"string\"/>\n        \n<itemBody>\n<p>Amy, Ben, and Cal ran for class president.</p>  \n<ul>\n<li>Amy received <math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mfrac>\n    <mrow>\n     <mn>1</mn>\n    </mrow>\n    <mrow>\n     <mn>3</mn>\n    </mrow>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">{1} over {3} </annotation>\n </semantics>\n</math> of the votes.</li>\n<li>Ben received <math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mfrac>\n    <mrow>\n     <mn>1</mn>\n    </mrow>\n    <mrow>\n     <mn>6</mn>\n    </mrow>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">{1} over {3} </annotation>\n </semantics>\n</math> of the votes.</li>\n<li>Cal received the rest of the votes.</li>\n</ul>\n    \n    <p class=\"prompt\">List the students in order from the most votes received to the least votes received.</p> \n     <p> <inlineChoiceInteraction\n            responseIdentifier='Most'\n            required='false'>\n            <inlineChoice identifier='1'>Amy<feedbackInline identifier='1' defaultFeedback='true'/></inlineChoice>\n            <inlineChoice identifier='2'>Ben<feedbackInline identifier='2' defaultFeedback='true'/></inlineChoice>\n            <inlineChoice identifier='3'>Cal<feedbackInline identifier='3' defaultFeedback='true'/></inlineChoice>\n        </inlineChoiceInteraction> \n        got the most votes followed by\n          <inlineChoiceInteraction\n            responseIdentifier='Next'\n            required='false'>\n            <inlineChoice identifier='4'>Amy<feedbackInline identifier='4' defaultFeedback='true'/></inlineChoice>\n            <inlineChoice identifier='5'>Ben<feedbackInline identifier='5' defaultFeedback='true'/></inlineChoice>\n            <inlineChoice identifier='6'>Cal<feedbackInline identifier='6' defaultFeedback='true'/></inlineChoice>\n        </inlineChoiceInteraction>\n         ,and then <inlineChoiceInteraction\n            responseIdentifier='Last'\n            required='false'>\n            <inlineChoice identifier='7'>Amy<feedbackInline identifier='7' defaultFeedback='true'/></inlineChoice>\n            <inlineChoice identifier='8'>Ben<feedbackInline identifier='8' defaultFeedback='true'/></inlineChoice>\n            <inlineChoice identifier='9'>Cal<feedbackInline identifier='9' defaultFeedback='true'/></inlineChoice>\n        </inlineChoiceInteraction>\n              got the least amount of votes.</p>\n\n    \n\n\n        <p class=\"prompt\">Show your work or explain how you know.</p>\n        <extendedTextInteraction responseIdentifier=\"Q_02\" expectedLength=\"200\" class=\"answer-5-linebox\"/>\n\n    </itemBody>\n</assessmentItem>"
+			}
+		]
+	},
+	"demonstratedKnowledge" : "Conceptual",
+	"itemType" : "Constructed Response - Short Answer",
+	"keySkills" : [
+		"Analyze",
+		"Breakdown",
+		"Compare",
+		"Diagram",
+		"Examine",
+		"Solve",
+		"Produce",
+		"Write",
+		"Illustrate",
+		"Compute",
+		"Translate",
+		"Understand",
+		"Express",
+		"Explain",
+		"Identify",
+		"List",
+		"Arrange"
+	],
+	"priorGradeLevel" : [
+		"06"
+	],
+	"priorUse" : "Summative",
+	"reviewsPassed" : [
+		"Editorial",
+		"Bias",
+		"Fairness",
+		"Content",
+		"Psychometric"
+	],
+	"standards" : [
+		"5.NF.A.2"
+	],
+	"supportingMaterials" : [
+		{
+			"name" : "Scoring Guide",
+			"files" : [
+				{
+					"_t" : "models.item.resource.VirtualFile",
+					"name" : "index.html",
+					"contentType" : "text/html",
+					"isMain" : true,
+					"content" : "<html>\n<head><title>Scoring Guide</title></head>\n<body>\n  <h2>Scoring Guide</h2>\n\n<table>\n<tr>\n<th>Score</th>\n<th>Description</th>\n</tr>\n<tr>\n<td><b>2</b></td>\n<td>for correct answer, <b>Cal, Amy, Ben</b>, with sufficient explanation or work shown to indicate correct strategy</td>\n</tr>\n<tr>\n<td><b>1</b></td>\n<td>for correct answer with insufficient or no explanation or work shown\n<p/>or\n<p/>for sufficient strategy with incorrect or no answer</td>\n</tr>\n<tr>\n<td><b>0</b></td>\n<td>Response is incorrect or contains some correct work that is irrelevant to the skill or concept being measured.</td>\n</tr>\n<tr>\n<td><b>Blank</b></td>\n<td>No response</td>\n</tr>\n</table>\n</body>\n</html>"
+				}
+			]
+		}
+	],
+	"workflow" : {
+		"setup" : true,
+		"tagged" : true,
+		"standardsAligned" : true,
+		"qaReview" : false
+	},
+	"taskInfo" : {
+		"subjects" : {
+			"primary" : {
+				"$oid" : "4ffb535f6bb41e469c0bf2c2"
+			}
+		},
+		"gradeLevel" : [
+			"05"
+		],
+		"title" : "Amy, Ben, and Cal ran for class president. The fractions of the votes that each student received are given. List the students in order from the most votes received to the least votes received."
+	}
+}

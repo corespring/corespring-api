@@ -16,6 +16,7 @@
 		"sourceUrl" : "www.p12.nysed.gov/apda/common-core-sample-questions",
 		"licenseType" : "CC BY"
 	},
+	"published":true,
 	"data" : {
 		"name" : "data",
 		"files" : [

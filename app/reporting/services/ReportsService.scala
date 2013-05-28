@@ -6,9 +6,10 @@ import com.mongodb.casbah.map_reduce._
 import com.mongodb.{BasicDBObject, DBObject}
 import reporting.models.ReportLineResult.{KeyCount, LineResult}
 import reporting.models.ReportLineResult
-import common.seed.StringUtils
 import org.bson.types.ObjectId
 import models.ContentCollection
+
+import common.utils.string
 
 class ReportsService(ItemCollection: MongoCollection,
                      SubjectCollection: MongoCollection,
@@ -311,7 +312,7 @@ class ReportsService(ItemCollection: MongoCollection,
   }
 
   private def interpolate(text: String, vars: Map[String, String]) = {
-    StringUtils.interpolate(text, (k) => vars.getOrElse(k, ""), """\$\{([^}]+)\}""".r)
+    string.interpolate(text, (k) => vars.getOrElse(k, ""), """\$\{([^}]+)\}""".r)
   }
 
 }

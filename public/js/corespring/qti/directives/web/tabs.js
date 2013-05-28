@@ -1,4 +1,4 @@
-qtiDirectives.directive('csTabs', [
+angular.module('qti.directives').directive('csTabs', [
     '$timeout', function($timeout) {
       var controllerFn;
       controllerFn = function($scope, $element, $attrs) {
@@ -87,7 +87,7 @@ qtiDirectives.directive('csTabs', [
     }
   ]);
 
-qtiDirectives.directive('csTab', [
+angular.module('qti.directives').directive('csTab', [
     function() {
       var linkFn, nextTab;
       nextTab = 0;

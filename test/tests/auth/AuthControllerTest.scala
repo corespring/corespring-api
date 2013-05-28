@@ -15,6 +15,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import play.api.mvc.AnyContentAsFormUrlEncoded
+import common.encryption.ShaHash
 
 class AuthControllerTest extends BaseTest {
 
@@ -93,6 +94,10 @@ class AuthControllerTest extends BaseTest {
   }
 
   def tokenFormBody(id: String, secret: String, username: String, grantType: Option[String] = None): Array[(String, String)] = {
+    val signature = ShaHash.sign(
+      OAuthConstants.ClientCredentials+":"+id+":"+OAuthConstants.Sha1Hash+":"+username,
+      secret
+    )
     val base = Array(
       (OAuthConstants.ClientId -> id),
       (OAuthConstants.ClientSecret -> secret),

@@ -2,16 +2,14 @@ package models
 
 import se.radley.plugin.salat._
 import play.api.libs.json._
-import play.api.libs.json.JsObject
 import org.bson.types.ObjectId
-import com.novus.salat.dao.{SalatRemoveError, SalatDAOUpdateError, ModelCompanion, SalatDAO}
+import com.novus.salat.dao.{ModelCompanion, SalatDAO}
 import controllers.auth.Permission
 import play.api.Play.current
 import com.mongodb.casbah.commons.MongoDBObject
-import api.ApiError
 import models.mongoContext._
 import play.api.Play
-import controllers.{Utils, LogType, InternalError}
+import controllers.{Utils, InternalError}
 import com.novus.salat._
 import dao.SalatDAOUpdateError
 import dao.SalatRemoveError
@@ -60,10 +58,10 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
             org.contentcolls = org.contentcolls ++ ContentCollection.getPublicCollections.map(cc => ContentCollRef(cc.id,Permission.Read.value))
             insert(org) match {
               case Some(id) => Right(org)
-              case None => Left(InternalError("error inserting organization",LogType.printFatal,true))
+              case None => Left(InternalError("error inserting organization"))
             }
           }
-          case None => Left(InternalError("could not find parent given id",LogType.printError,true))
+          case None => Left(InternalError("could not find parent given id"))
         }
       }
       case None => {
@@ -71,7 +69,7 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
         org.contentcolls = org.contentcolls ++ ContentCollection.getPublicCollections.map(cc => ContentCollRef(cc.id,Permission.Read.value))
         insert(org) match {
           case Some(id) => Right(org)
-          case None => Left(InternalError("error inserting organization",LogType.printFatal,true))
+          case None => Left(InternalError("error inserting organization"))
         }
       }
     }
@@ -87,7 +85,7 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
       remove(MongoDBObject(Organization.path -> orgId))
       Right(())
     } catch {
-      case e:SalatRemoveError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to destroy organization tree")))
+      case e:SalatRemoveError => Left(InternalError("failed to destroy organization tree", e))
     }
   }
 
@@ -97,10 +95,10 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
         false, false, Organization.collection.writeConcern)
       Organization.findOneById(org.id) match {
         case Some(org) => Right(org)
-        case None => Left(InternalError("could not find organization that was just modified",LogType.printFatal,true))
+        case None => Left(InternalError("could not find organization that was just modified"))
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("unable to update organization")))
+      case e: SalatDAOUpdateError => Left(InternalError("unable to update organization", e))
     }
   }
 
@@ -140,7 +138,7 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
           case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
         }
       }
-      case None => Left(InternalError("could not find organization",addMessageToClientOutput = true))
+      case None => Left(InternalError("could not find organization"))
     }
   }
 
@@ -161,10 +159,10 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
           false, false, Organization.collection.writeConcern)
         Right(collRef)
       } else {
-        Left(InternalError("collection reference already exists",LogType.printError,true))
+        Left(InternalError("collection reference already exists"))
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal))
+      case e: SalatDAOUpdateError => Left(InternalError(e.getMessage))
     }
   }
   def getDefaultCollection(orgId: ObjectId):Either[InternalError,ContentCollection] = {

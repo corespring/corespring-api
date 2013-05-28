@@ -1,9 +1,15 @@
 package controllers
 
-case class InternalError(message: String, logType:LogType.LogType = LogType.printNone, addMessageToClientOutput:Boolean = true, var clientOutput:Option[String] = None){
-  Log.u(logType,message)
-  clientOutput = if (addMessageToClientOutput) clientOutput match{
-    case Some(x) => Some(clientOutput+".\n"+message)
-    case None => Some(message)
-  } else clientOutput
+case class InternalError(message: String, e : Option[Throwable] = None){
+
+  play.api.Logger(this.getClass.getSimpleName).error(message)
+
+  def clientOutput = Some(message)
+
+}
+
+object InternalError{
+  def apply(message:String, e : Throwable) : InternalError = {
+    InternalError(message, Some(e))
+  }
 }

@@ -1,32 +1,39 @@
 package controllers
 
-import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.auth.PropertiesCredentials
-import play.api.Play
-import com.amazonaws.services.s3.model._
-import play.api.mvc._
-import play.api.http.HeaderNames._
-import play.api.Play.current
-import java.io._
-import play.api.libs.iteratee.{Input, Done, Iteratee}
-import actors.{IScheduler, TIMEOUT, Actor}
 import actors.scheduler.ResizableThreadPoolScheduler
-import com.amazonaws.{AmazonServiceException, AmazonClientException}
-import play.api.libs.iteratee.{Input, Done, Enumerator, Iteratee}
+import actors.{IScheduler, TIMEOUT, Actor}
 import api.ApiError
+import com.amazonaws.auth.AWSCredentials
+import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.services.s3.model._
+import com.amazonaws.{AmazonServiceException, AmazonClientException}
+import com.typesafe.config.ConfigFactory
+import common.log.PackageLogging
+import java.io._
+import play.api.http.HeaderNames._
+import play.api.libs.iteratee.{Input, Done, Enumerator, Iteratee}
 import play.api.libs.json.Json
+import play.api.mvc._
+import web.controllers.utils.ConfigLoader
+
+trait S3ServiceModule {
+  def service : S3Service
+}
 
 trait S3Service {
   case class S3DeleteResponse(success: Boolean, key: String, msg: String = "")
-
+  def download(bucket: String, fullKey: String, headers: Option[Headers] = None): Result
   def s3upload(bucket: String, keyName: String): BodyParser[Int]
   def s3download(bucket: String, itemId: String, keyName: String): Result
   def delete(bucket: String, keyName: String): S3DeleteResponse
   def cloneFile(bucket: String, keyName: String, newKeyName:String)
   def online:Boolean
+  def bucket:String
 }
 
-object ConcreteS3Service extends S3Service {
+object ConcreteS3Service extends S3Service with PackageLogging {
+
+  def bucket = ConfigLoader.get("AMAZON_ASSETS_BUCKET").get
 
   private var optS3: Option[AmazonS3Client] = None
 
@@ -45,13 +52,16 @@ object ConcreteS3Service extends S3Service {
 
   /**
    * Init the S3 client
-   * @param propertiesFile the properties file that contains the amazon credentials
    */
-  def init(propertiesFile: File): Unit = this.synchronized {
+  def init: Unit = this.synchronized {
     try {
-      optS3 = Some(new AmazonS3Client(new PropertiesCredentials(propertiesFile)))
+      optS3 = Some(new AmazonS3Client(new AWSCredentials {
+        def getAWSAccessKeyId: String = ConfigFactory.load().getString("AMAZON_ACCESS_KEY")
+
+        def getAWSSecretKey: String = ConfigFactory.load().getString("AMAZON_ACCESS_SECRET")
+      }))
     } catch {
-      case e: IOException => InternalError("unable to authenticate s3 server with given credentials", LogType.printFatal)
+      case e: IOException => InternalError("unable to authenticate s3 server with given credentials")
     }
   }
 
@@ -120,15 +130,15 @@ object ConcreteS3Service extends S3Service {
         }
         catch {
           case e: AmazonClientException =>
-            Log.f("AmazonClientException in s3download: " + e.getMessage)
+            Logger.error("AmazonClientException in s3download: " + e.getMessage)
             Results.InternalServerError(Json.toJson(ApiError.AmazonS3Client(Some("Occurred when attempting to retrieve object: " + fullKey))))
           case e: AmazonServiceException =>
-            Log.e("AmazonServiceException in s3download: " + e.getMessage)
+            Logger.error("AmazonServiceException in s3download: " + e.getMessage)
             Results.InternalServerError(Json.toJson(ApiError.AmazonS3Server(Some("Occurred when attempting to retrieve object: " + fullKey))))
         }
       }
       case None =>
-        Log.f("amazon s3 service not initialized")
+        Logger.error("amazon s3 service not initialized")
         Results.InternalServerError(Json.toJson(ApiError.S3NotIntialized))
     }
   }
@@ -136,7 +146,7 @@ object ConcreteS3Service extends S3Service {
 
   override def delete(bucket: String, keyName: String): S3DeleteResponse = {
 
-    Log.i("S3Service.delete: %s, %s".format(bucket, keyName))
+    Logger.info("S3Service.delete: %s, %s".format(bucket, keyName))
 
     optS3 match {
       case Some(s3) => {
@@ -146,10 +156,10 @@ object ConcreteS3Service extends S3Service {
           S3DeleteResponse(true, keyName)
         } catch {
           case e: AmazonClientException =>
-            Log.f("AmazonClientException in delete: " + e.getMessage)
+            Logger.error("AmazonClientException in delete: " + e.getMessage)
             S3DeleteResponse(false, keyName, e.getMessage)
           case e: AmazonServiceException =>
-            Log.e("AmazonServiceException in delete: " + e.getMessage)
+            Logger.error("AmazonServiceException in delete: " + e.getMessage)
             S3DeleteResponse(false, keyName, e.getMessage)
         }
       }
@@ -165,7 +175,7 @@ object ConcreteS3Service extends S3Service {
    * @return
    */
   private def s3UploadSingle(bucket: String, keyName: String, contentLength: Int): Iteratee[Array[Byte], Either[Result, Int]] = {
-    Log.i("S3Service.s3UploadSingle bucket: " + bucket + " keyName: " + keyName)
+    Logger.info("S3Service.s3UploadSingle bucket: " + bucket + " keyName: " + keyName)
 
     optS3 match {
       case Some(s3) => {
@@ -175,7 +185,7 @@ object ConcreteS3Service extends S3Service {
         try {
           s3Writer ! Begin //initiate upload. S3Writer will now wait for data chunks to be pushed to it's input stream
         } catch {
-          case e: IOException => Log.f("error occurred when creating pipe")
+          case e: IOException => Logger.error("error occurred when creating pipe")
         }
         Iteratee.fold[Array[Byte], Either[Result, Int]](Right(0)) {
           (result, chunk) =>
@@ -185,7 +195,7 @@ object ConcreteS3Service extends S3Service {
                 Right(acc + chunk.size)
               } catch {
                 case e: IOException =>
-                  Log.f("IOException occurred when writing to S3: " + e.getMessage)
+                  Logger.error("IOException occurred when writing to S3: " + e.getMessage)
                   Left(Results.InternalServerError(Json.toJson(ApiError.S3Write)))
               }
               case Left(error) => Left(error)
@@ -216,7 +226,7 @@ object ConcreteS3Service extends S3Service {
   }
 
   override def cloneFile(bucket: String, keyName: String, newKeyName:String) = {
-    Log.d("S3Service Cloning "+keyName+" to "+newKeyName)
+    Logger.debug("S3Service Cloning "+keyName+" to "+newKeyName)
     optS3 match {
       case Some(s3) => s3.copyObject(bucket, keyName, bucket, newKeyName)
       case _ => throw new RuntimeException("Amazon S3 not initalized")
@@ -241,13 +251,13 @@ object ConcreteS3Service extends S3Service {
               optS3.get.putObject(bucket, keyName, inputStream, objectMetadata) // assume optS3 has instance of S3 otherwise this would have never been called
             } catch {
               case e: Exception => {
-                Log.f("exception occurred in Begin of S3Writer: " + e.getMessage)
+                Logger.error("exception occurred in Begin of S3Writer: " + e.getMessage)
                 try {
                   inputStream.close()
                 } catch {
-                  case e: IOException => Log.f("IOException when closing input stream in S3Writer: " + e.getMessage)
+                  case e: IOException => Logger.error("IOException when closing input stream in S3Writer: " + e.getMessage)
                 }
-                errorOccurred = Some(InternalError("error writing to S3", LogType.printFatal))
+                errorOccurred = Some(InternalError("error writing to S3"))
               }
             }
           }
@@ -255,7 +265,7 @@ object ConcreteS3Service extends S3Service {
             try {
               inputStream.close()
             } catch {
-              case e: IOException => Log.f("IOException when closing input stream in S3Writer: " + e.getMessage)
+              case e: IOException => Logger.error("IOException when closing input stream in S3Writer: " + e.getMessage)
             }
             errorOccurred match {
               case Some(error) => Actor.reply(Ack(Left(error)))

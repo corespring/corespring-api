@@ -1,18 +1,40 @@
 <div class="control-group">
     <label class="control-label">Item Type</label>
 
-    <div class="span5">
-        <label class="radio" ng-repeat="t in itemData.$itemTypeDataProvider">
-            <input type="radio" ng-model="itemData.itemType" value="{{t.value}}"/>
-            {{t.value}}
-        </label>
-        <label class="radio">
-            <input type="radio" ng-model="itemData.itemType" value="{{otherItemType}}"/>
-            Other
-        </label>
-        <label class="input-medium">
-            <input type="text" ng-model="otherItemType" ng-change="updateItemType()"></input>
-        </label>
-    </div>
+    <table>
+        <tr>
+            <td valign="top">
+                <ul>
+                    <li ng-repeat="t in itemData.$itemTypeDataProvider" ng-show="$index < 2" style="margin-bottom: 10px">
+                        <h5>{{t.key}}</h5>
+                        <label class="radio" ng-repeat="k in t.value">
+                            <input type="radio" ng-model="itemData.itemType" value="{{k}}"/>
+                            {{k}}
+                        </label>
+                    </li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li ng-repeat="t in itemData.$itemTypeDataProvider" ng-show="$index >= 2" style="margin-bottom: 10px">
+                        <h5>{{t.key}}</h5>
+                        <label class="radio" ng-repeat="k in t.value">
+                            <input type="radio" ng-model="itemData.itemType" value="{{k}}"/>
+                            {{k}}
+                        </label>
+                    </li>
+
+                    <li>
+                        <h5>Other</h5>
+                        <label class="radio">
+                            <input type="radio" ng-model="itemData.itemType" value="{{otherItemType}}"/>
+                            <input type="text" ng-model="otherItemType" ng-change="updateItemType()"></input>
+                        </label>
+
+                    </li>
+                </ul>
+            </td>
+        </tr>
+    </table>
 </div>
 

@@ -1,14 +1,15 @@
 package common.seed
 
-import com.mongodb.casbah.MongoCollection
-import play.api.Play
-import scala.io.Codec
-import java.nio.charset.Charset
 import com.mongodb.DBObject
+import com.mongodb.casbah.MongoCollection
 import com.mongodb.util.JSON
-import play.api.Play.current
+import common.utils.string
 import java.io.File
-import org.bson.types.ObjectId
+import java.nio.charset.Charset
+import play.api.Play
+import play.api.Play.current
+import scala.io.Codec
+
 
 object JsonImporter {
 
@@ -106,7 +107,7 @@ object JsonImporter {
       lines
     }
 
-    val interpolated = StringUtils.interpolate(s, loadString)
+    val interpolated = string.interpolate(s, loadString)
     interpolated
   }
 

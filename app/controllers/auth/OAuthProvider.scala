@@ -49,7 +49,7 @@ object OAuthProvider {
    *
    * @param grantType The OAuth flow (client_credentials is the only supported flow for now)
    * @param clientId The client id
-   * @param clientSecret The client secret
+   * @param clientSecret the client secret
    * @param scope If specified this must be a username.  Using the scope parameter allows the caller to ghost a user.
    * @return The AccessToken or ApiError if something went wrong
    */
@@ -57,7 +57,7 @@ object OAuthProvider {
     grantType match {
       case OAuthConstants.ClientCredentials =>
         // check we got valid credentials first
-        ApiClient.findByIdAndSecret(clientId, clientSecret).map(
+        ApiClient.findByIdAndSecret(clientId,clientSecret).map(
         {
           client =>
           //todo: if a user if specified check that it exists and is visible for the caller

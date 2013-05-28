@@ -1,13 +1,11 @@
 package qti.models.interactions
 
 import choices.{Choice, SimpleChoice}
-import xml._
-import qti.models.RenderingMode._
-import scala.Some
-import qti.models.ResponseDeclaration
-import qti.models.QtiItem.Correctness
-import controllers.Log
 import models.itemSession._
+import qti.models.QtiItem.Correctness
+import qti.models.ResponseDeclaration
+import scala.Some
+import xml._
 
 case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices {
 
@@ -39,7 +37,7 @@ case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoi
         case None => None
       }
       case _ => {
-        Log.e("received a response that was not a string response in ChoiceInteraction.getOutcome")
+        Logger.error("received a response that was not a string response in ChoiceInteraction.getOutcome")
         None
       }
     }
@@ -67,8 +65,5 @@ object ChoiceInteraction extends InteractionCompanion[ChoiceInteraction] {
   override def preProcessXml(interactionXml: Elem): NodeSeq = {
     new InteractionProcessing.FeedbackOutcomeIdentifierInserter(ChoiceInteraction(interactionXml, None)).transform(interactionXml)
   }
-
-  override def getHeadHtml(mode: RenderingMode): String =
-    InteractionHelper.getHeadHtml("choiceInteraction", mode) + "\n" + InteractionHelper.getHeadHtml("simpleChoice", mode)
 
 }

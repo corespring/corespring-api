@@ -57,7 +57,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
 
     Quiz.findOneById(assessmentId) match {
       case Some(id) => {
-        def renderAggregatePlayer(assessmentId: ObjectId)(p: PlayerParams) = player.views.html.aggregatePlayer(p.itemId.get, p.xml, assessmentId.toString)
+        def renderAggregatePlayer(assessmentId: ObjectId)(p: PlayerParams) = player.views.html.aggregatePlayer(p, assessmentId.toString)
         val p = RenderParams(
           itemId = itemId,
           assessmentId = Some(assessmentId),
@@ -72,12 +72,13 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
 
   def profile(itemId: ObjectId, tab: String) = {
 
-    def profileTemplate(tab: String)(p: PlayerParams) = player.views.html.Profile(p, tab)
+    def isPrintMode : Boolean = tab != ""
 
     val p = RenderParams(
       itemId = itemId,
       sessionMode = RequestedAccess.Mode.Preview,
-      templateFn = profileTemplate(tab)
+      renderingMode = if(isPrintMode) Printing else Web,
+      templateFn = player.views.html.Profile(isPrintMode, tab)
     )
 
     renderItem(p)

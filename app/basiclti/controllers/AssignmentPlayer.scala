@@ -15,7 +15,7 @@ object AssignmentPlayer extends Views(CheckSessionAccess) with AssetResource {
     session(configId, resultSourcedId) match {
       case Left(msg) => Action(r => BadRequest(msg))
       case Right(session) => {
-        val p = RenderParams(session.itemId, sessionMode = RequestedAccess.Mode.Administer )
+        val p = RenderParams(session.itemId, sessionId = Some(session.id), sessionMode = RequestedAccess.Mode.Administer )
         renderItem(p)
       }
     }

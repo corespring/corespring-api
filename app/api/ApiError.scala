@@ -1,7 +1,6 @@
 package api
 
 import play.api.libs.json._
-import controllers.{LogType, Log}
 
 
 /**
@@ -133,6 +132,7 @@ object ApiError {
   val ResourceNotFound        = ApiError(901, "Can't find resource")
   val ResourceNameTaken       = ApiError(902, "Resource name is taken - please choose another")
   val FilenameIsRequired      = ApiError(903, "Filename is required")
+  val UpdateResource          = ApiError(904, "Cannot update resource")
 
 
   implicit object ApiErrorWrites extends Writes[ApiError] {

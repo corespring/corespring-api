@@ -1,31 +1,23 @@
 package web.controllers
 
-import common.controllers.{AssetResource, QtiResource}
+import common.controllers.{AssetResourceBase, QtiResource}
 import controllers.auth.BaseApi
+import controllers.{ConcreteS3Service, S3Service}
 import models.item.Item
-import models.item.resource.{BaseFile, Resource}
-import org.bson.types.ObjectId
+import models.item.resource.{Resource, BaseFile}
 import play.api.mvc._
 import player.controllers.QtiRenderer
 import player.views.models.PlayerParams
 import qti.models.RenderingMode._
 import scala.Some
-import xml.Elem
-
-trait ObjectIdParser {
-
-  def objectId(id: String): Option[ObjectId] = {
-    try {
-      Some(new ObjectId(id))
-    }
-    catch {
-      case e: Exception => None
-    }
-  }
-}
+import scala.xml.Elem
+import scalaz.Scalaz._
+import scalaz.{Success, Failure}
 
 
-object ShowResource extends BaseApi with ObjectIdParser with QtiResource with AssetResource with QtiRenderer {
+object ShowResource extends BaseApi with ObjectIdParser with QtiResource with AssetResourceBase with QtiRenderer {
+
+  def service : S3Service = ConcreteS3Service
 
   def javascriptRoutes = Action {
     implicit request =>
@@ -36,7 +28,7 @@ object ShowResource extends BaseApi with ObjectIdParser with QtiResource with As
 
       Ok(
         Routes.javascriptRouter("WebRoutes")(
-          ShowResourceJs.renderDataResource,
+          ShowResourceJs.getResourceFile,
           Partials.createItem,
           Partials.editItem,
           Partials.home,
@@ -44,113 +36,47 @@ object ShowResource extends BaseApi with ObjectIdParser with QtiResource with As
         )).as("text/javascript")
   }
 
-  /**
-   * Render the Item.data resource using the CSS for printing.
-   * @param itemId
-   * @return
-   */
-  def renderDataResourceForPrinting(itemId: String) = {
-    renderDataResource(itemId, renderMode = Printing)
+  /** Render the Item.data resource using the CSS for printing.
+    * TODO: This doesn't support non-QTI data items.
+    * It will have to at some point.
+    * @param itemId
+    * @return
+    */
+  def renderDataResourceForPrinting(itemId: String): Action[AnyContent] = {
+
+    val out = for {
+      oid <- objectId(itemId).toSuccess("Invalid object id")
+      item <- Item.findOneById(oid).toSuccess("Can't find item id")
+    } yield renderPlayer(item, Printing)
+
+    out match {
+      case Success(a) => a
+      case Failure(e) => Action(BadRequest(e))
+    }
   }
 
-  /**
-   * Render the Item.data resource. Find the default file in the Resource.files Seq,
-   * If the file is qti.xml then redirect to the testplayer otherwise render as html.
-   * @param itemId
-   * @param toPrint if true the printing stylesheet will be used to render the resource
-   * @return
-   */
-  def renderDataResource(itemId: String, renderMode: RenderingMode = Web) =
-    objectId(itemId) match {
-      case Some(oid) => {
-        Item.findOneById(oid) match {
-          case Some(item) => {
-
-            item.data.get.files.find(_.isMain == true) match {
-              case Some(defaultFile) => {
-
-                def isQti = defaultFile.contentType == BaseFile.ContentTypes.XML && defaultFile.name == Resource.QtiXml
-
-                def renderPlayer = ApiAction {
-                  request =>
-                    getItemXMLByObjectId(itemId, request.ctx.organization) match {
-                      case Some(xmlData: Elem) => {
-                        val finalXml = prepareQti(xmlData, renderMode)
-                        val params: PlayerParams = PlayerParams(itemId = Some(itemId), xml = finalXml, previewEnabled = (renderMode == Web))
-                        Ok(player.views.html.Player(params))
-                      }
-                      case None => NotFound("Can't find item")
-                    }
-                }
-
-                if (isQti) {
-                  renderPlayer()
-                } else {
-                  getDataFile(itemId, defaultFile.name)
-                }
-              }
-              case _ => Action(NotFound)
-            }
+  private def renderPlayer(item: Item, renderMode: RenderingMode = Web): Action[AnyContent] =
+    ApiAction {
+      request =>
+        getItemXMLByObjectId(item, request.ctx.organization) match {
+          case Some(xmlData: Elem) => {
+            val finalXml = prepareQti(xmlData, renderMode)
+            val params: PlayerParams = PlayerParams(itemId = Some(item.id.toString), xml = finalXml, previewEnabled = (renderMode == Web))
+            Ok(player.views.html.Player(params))
           }
-          case None => Action(NotFound)
+          case None => NotFound("Can't find item")
         }
-      }
-      case None => Action(BadRequest("Invalid Object Id"))
-    }
-
-  /**
-   * Given an item id and an resourceName - renders the SupportingMaterial resource.
-   * This means that the default file in the files array will be rendered.
-   * @param itemId
-   * @param resourceName
-   * @return
-   */
-  def renderResource(itemId: String, resourceName: String) =
-    objectId(itemId) match {
-      case Some(oid) => {
-        Item.findOneById(oid) match {
-          case Some(item) => {
-
-            item.supportingMaterials.find(_.name == resourceName) match {
-              case Some(resource) => {
-                resource.files.find(_.isMain == true) match {
-                  case Some(defaultFile) => {
-                    //TODO: Is there a better way of doing this instead of redirecting?
-                    val url = web.controllers.routes.ShowResource.getResourceFile(itemId, resource.name, defaultFile.name).url
-                    Action(Redirect(url))
-                  }
-                  case None => throw new RuntimeException("Bad data - no default file specified")
-                }
-              }
-              case None => Action(NotFound(resourceName))
-            }
-          }
-          case None => Action(NotFound)
-        }
-      }
-      case None => Action(BadRequest("Invalid Object Id"))
-
     }
 
 
-  /**
-   * Return an individual file from a supporting material resource.
-   * @param itemId
-   * @param resourceName
-   * @param filename
-   * @return
-   */
-  def getResourceFile(itemId: String, resourceName: String, filename: String) = Action {
-    request =>
-      Item.findOneById(new ObjectId(itemId)) match {
-        case Some(item) => {
-          item.supportingMaterials.find(f => f.name == resourceName) match {
-            case Some(foundResource) => getResult(request, foundResource.files, filename)
-            case _ => NotFound
-          }
-        }
-        case _ => NotFound
-      }
-  }
+  private def isQti(f: BaseFile) = f.contentType == BaseFile.ContentTypes.XML && f.name == Resource.QtiXml
+
+  override def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]] = Some(
+    if (isDataResource && isQti(f))
+      renderPlayer(item)
+    else
+      renderBaseFile(f)
+  )
+
 
 }

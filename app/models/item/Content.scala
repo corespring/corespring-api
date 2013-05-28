@@ -1,15 +1,13 @@
 package models.item
 
-import org.bson.types.ObjectId
-import play.api.libs.json.JsValue
-import se.radley.plugin.salat._
-import play.api.Play.current
 import com.mongodb.casbah.Imports._
 import com.novus.salat.dao.SalatDAOUpdateError
-import controllers.{Log, LogType, InternalError}
+import controllers.InternalError
 import controllers.auth.Permission
-import play.api.Logger
 import models.ContentCollection
+import play.api.Play.current
+import se.radley.plugin.salat._
+import common.log.PackageLogging
 
 trait Content{
   var id: ObjectId
@@ -18,7 +16,7 @@ trait Content{
   var version:Option[Version]
 }
 
-object Content {
+object Content extends PackageLogging{
   val collectionId: String = "collectionId"
   val contentType: String = "contentType"
   val version = "version"
@@ -31,10 +29,10 @@ object Content {
         false, false, Content.collection.writeConcern)
       Right(())
     }catch{
-      case e:SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to transfer content to archive")))
+      case e:SalatDAOUpdateError => Left(InternalError("failed to transfer content to archive", e))
     }
   }
-  def isAuthorized(orgId:ObjectId, contentId:ObjectId, p:Permission, current:Boolean = true):Boolean = {
+  def isAuthorized(orgId:ObjectId, contentId:ObjectId, p:Permission, current:Boolean = false):Boolean = {
     val searchQuery:MongoDBObject = if(current)
       MongoDBObject("_id" -> contentId,
         "$or" -> MongoDBList(MongoDBObject(Content.version -> MongoDBObject("$exists" -> false)),MongoDBObject(Content.version+"."+Version.current -> true)))
@@ -44,7 +42,7 @@ object Content {
         dbo.get(Content.collectionId) match {
         case collId:String =>
           isCollectionAuthorized(orgId,collId,p)
-        case _ => Log.f("content did not contain collection id"); false
+        case _ => Logger.error("content did not contain collection id"); false
       }
       case None => false
     }

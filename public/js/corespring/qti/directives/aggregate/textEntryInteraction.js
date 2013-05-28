@@ -1,4 +1,4 @@
-qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
+angular.module('qti.directives').directive("textentryinteraction", function (QtiUtils) {
 
 
   function positionTooltip(a, currentElement) {
@@ -11,7 +11,7 @@ qtiDirectives.directive("textentryinteraction", function (QtiUtils) {
     scope: true,
     require: '^assessmentitem',
     template: ['<span class="text-entry-interaction" ng-class="{noResponse: noResponse}">',
-               '<input type="text" size="{{expectedLength}}" ng-model="textResponse" ng-disabled="formSubmitted"></input>',
+               '<input type="text" size="{{expectedLength}}" ng-model="textResponse" ng-disabled="formSubmitted"></input>'
                ].join(""),
     link: function (scope, element, attrs) {
       var responseIdentifier = attrs.responseidentifier;

@@ -104,9 +104,9 @@ input[type="text"] {
 	font:14px "Ubuntu", Arial, Helvetica, sans-serif;
 }
 input[type="text"]:focus, textarea:focus {
-	border-color: rgba(30, 30, 30, 0.8);
-	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 4px rgba(30, 30, 30, 0.8);
-	outline:0 none;
+	border-color: rgba(30, 30, 30, 0.8) !important;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 4px rgba(30, 30, 30, 0.8) !important;
+	outline:0 none !important;
 }
 a:focus, .btn:focus, input[type="file"]:focus, input[type="radio"]:focus, input[type="checkbox"]:focus, select:focus {
 	outline:5px auto rgba(161, 225, 23, 0.8);
@@ -321,7 +321,7 @@ simplechoice {
 	margin-bottom:5px;
 }
 .correct-response .choice-content {
-	border:2px solid #92D400;
+	border:2px solid #80b312;
 	display:block;
 	border-radius: 6px;
 	margin-bottom:5px;
@@ -866,12 +866,6 @@ div.text-box-content {
 .20px-above {
 	padding-top:20px;
 }
-.student-assessment-page, .assessment-page {
-	border: 2px dashed #EAEAEA;
-	margin: 0 auto 20px;
-	padding: 40px 13px 16px;
-	width: 600px;
-}
 .student-assessment-page {
 	border: 0;
 }
@@ -1054,13 +1048,13 @@ simplechoice {
 	border-radius: 6px;
 }
 .correct-response .choice-content {
-	border:2px solid #92D400;
+	border:2px solid #80b312;
 	display:block;
 	border-radius: 6px;
 	margin-bottom:5px;
 }
 .correct-response-horizontal .simple-choice-inner-horizontal {
-	border:2px solid #92D400;
+	border:2px solid #80b312;
 	border-radius: 6px;
 }
 .simple-choice-inner-horizontal {
@@ -1168,7 +1162,7 @@ orderinteraction.ng-scope div.dragArea div#draggableItems {
 	margin:0 0 10px;
 }
 .choice-wrap .correct-response-horizontal .simple-choice-inner-horizontal {
-	border:2px solid #92D400;
+	border:2px solid #80b312;
 }
 .choice-wrap .correct-response-horizontal > .feedback-container, .choice-wrap .incorrect-response-horizontal > .feedback-container {
 	padding:0;
@@ -1321,11 +1315,16 @@ content: "";
 clear: both;
 }
 
-.student-assessment-page, .assessment-page {
-border: 2px dashed #EAEAEA;
+.student-assessment-page,
+.student-assessment-page-container,
+.assessment-page {
 margin: 0 auto 20px;
 padding: 40px 10px 16px 10px;
 width: 560px;
+}
+
+.assessment-page {
+    border: 2px dashed #EAEAEA;
 }
 
 /*end of resizing*/

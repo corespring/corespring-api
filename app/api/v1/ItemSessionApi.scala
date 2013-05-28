@@ -4,7 +4,7 @@ import api.ApiError
 import com.mongodb.casbah.Imports._
 import controllers.auth.ApiRequest
 import controllers.auth.{Permission, BaseApi}
-import controllers.{Log, Utils}
+import controllers.Utils
 import models._
 import models.item.Content
 import models.itemSession._
@@ -209,7 +209,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion) extends BaseApi {
   def processResponse(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
     request =>
 
-      Log.d("processResponse: " + sessionId)
+      Logger.debug("processResponse: " + sessionId)
 
       itemSession.findOneById(sessionId) match {
         case Some(dbSession) => Content.isAuthorized(request.ctx.organization, dbSession.itemId, Permission.Read) match {

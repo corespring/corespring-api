@@ -128,7 +128,9 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       return;
     }
     var foundType = _.find($scope.itemData.$itemTypeDataProvider, function (d) {
-      return d.value == type
+      return _.find(d.value, function(e) {
+        return e == type;
+      });
     });
 
     if (!foundType) {
@@ -216,7 +218,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       $location.path('/edit/' + data.id);
     }, function onError(error) {
       $scope.showProgressModal = false;
-      alert("Error cloning item: " + error.toString())
+      alert("Error cloning item: " + JSON.stringify(error))
     });
   };
   //*******item versioning*********//
@@ -228,13 +230,15 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
           $location.path('/edit/' + data.id);
       }, function onError(error) {
           $scope.showProgressModal = false;
-          alert("Error incrementing item: " + error.toString())
+          alert("Error incrementing item: " + JSON.stringify(error))
       });
   }
   $scope.showSaveWarning=false
   $scope.itemVersion = 1
+  $scope.createNewVersion = true;
   $scope.$on("dataLoaded",function(newValue,oldValue){
       if(typeof $scope.itemData.version != "undefined") $scope.itemVersion = $scope.itemData.version.rev+1
+      $scope.isPublished = $scope.itemData.published
       //get the most current item version given the root id of this item
 //      $scope.itemData.currentItem({id:$scope.itemData.id}, function onCurrentItemSuccess(data){
 //          //we have the revision number of the current item, now we compute all numbers up to that number to provide a list of all revisions
@@ -250,7 +254,14 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.$watch('itemData.pValue', function (newValue, oldValue) {
     $scope.pValueAsString = $scope.getPValueAsString(newValue);
   });
-
+  $scope.$watch('isPublished', function(){
+    console.log("isPublished was changed")
+      if($scope.isPublished) {
+        $scope.itemStatus = "published"
+        if($scope.itemData.sessionCount == 1) $scope.sessionCount = "("+$scope.itemData.sessionCount+" response)"
+        else $scope.sessionCount = "("+$scope.itemData.sessionCount+" responses)"
+      } else $scope.itemStatus = "Draft"
+  })
   $scope.getPValueAsString = function (value) {
 
     var vals = {
@@ -288,6 +299,17 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.suppressSave = false;
     if(error) $scope.showSaveWarning = true;
   };
+
+  $scope.publish = function(){
+    $scope.itemData.published = true;
+    $scope.itemData.update({},function(data){
+        if(data.published) {
+            $scope.isPublished = true
+        }else alert("error publishing: status ok but no published property found")
+    },function(error){
+        alert("error publishing: "+JSON.stringify(error))
+    })
+  }
 
   $scope.save = function () {
 

@@ -17,10 +17,15 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     $scope.search();
     loadCollections();
     loadContributors();
+    $scope.showDraft = true;
 
     var defaultsFactory = new com.corespring.model.Defaults();
     $scope.gradeLevelDataProvider = defaultsFactory.buildNgDataProvider("gradeLevels");
     $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider("itemTypes");
+    $scope.flatItemTypeDataProvided = _.map(_.flatten(_.pluck($scope.itemTypeDataProvider, 'label')), function(e) {
+      return {key: e, label: e};
+    });
+    $scope.flatItemTypeDataProvided.push({key: "Other", label: "Other"});
     $scope.statuses = [
       {label: "Setup", key: "setup"},
       {label: "Tagged", key: "tagged"},
@@ -28,6 +33,10 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
       {label: "QA Review", key: "qaReview"},
       {label: "Exact Match", key: "exactMatch"}
     ];
+    $scope.publishStatuses = [
+        {label: "Published", key: "published"},
+        {label: "Draft", key: "draft"}
+    ]
   };
 
   $scope.sortBy = function(field) {
@@ -85,6 +94,20 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
 
 
   $scope.search = function () {
+    var isOtherSelected = $scope.searchParams && _.find($scope.searchParams.itemType, function (e) {
+      return e.label == "Other"
+    });
+
+    if (isOtherSelected) {
+      $scope.searchParams.notSelectedItemTypes = [];
+      _.each($scope.flatItemTypeDataProvided, function (e) {
+        var isSelected = _.find($scope.searchParams.itemType, function (f) {
+          return e.label == f.label;
+        });
+        if (!isSelected)
+          $scope.searchParams.notSelectedItemTypes.push(e);
+      });
+    }
     SearchService.search($scope.searchParams, function (res) {
       $rootScope.items = res;
       setTimeout(function () {
@@ -162,6 +185,11 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     SearchService.currentItem = this.item;
     $location.url('/edit/' + this.item.id + "?panel=metadata");
   };
+
+  $scope.publishStatus = function(isPublished){
+    if(isPublished) return "Published"
+    else return "Draft"
+  }
 
   init();
 }

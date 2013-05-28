@@ -13,4 +13,3 @@ class AppConfig(config:Config) {
 }
 
 object AppConfig extends AppConfig(ConfigFactory.load())
-

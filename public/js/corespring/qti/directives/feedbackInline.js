@@ -35,8 +35,8 @@ var feedbackDirectiveFunction = function (QtiUtils) {
 };
 
 
-qtiDirectives.directive('feedbackblock', feedbackDirectiveFunction);
+angular.module('qti.directives').directive('feedbackblock', feedbackDirectiveFunction);
 
-qtiDirectives.directive('feedbackinline', feedbackDirectiveFunction);
+angular.module('qti.directives').directive('feedbackinline', feedbackDirectiveFunction);
 
-qtiDirectives.directive('modalfeedback', feedbackDirectiveFunction);
+angular.module('qti.directives').directive('modalfeedback', feedbackDirectiveFunction);

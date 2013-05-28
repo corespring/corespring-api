@@ -1,50 +1,16 @@
-@(itemId: String,
-  itemBody: String,
-  quizId: String,
-  token : String = "")
+@(params: _root_.player.views.models.PlayerParams, quizId:String)
 
 @scripts = {
-    <script src="/assets/js/corespring/qti/controllers/AggregateAppController.js"></script>
+<script type="text/javascript">
+    //Override the Config object
+    angular.module('qti.services').factory('Config', [function () {
+        return {
+            itemId: "@params.itemId",
+            quizId: "@quizId"
+        }
+    }]);
+</script>
 }
 
 @bodyAttributes = @{ "ng-controller='AggregateAppController'" }
-
-@cssClass = @{
-    "assessment-page"
-}
-
-<!DOCTYPE html>
-<html ng-app="qti" dimensions-checker>
-    <head>
-        <title>@itemId</title>
-        @common.views.html.partials.ieEightSupport()
-        @partials.scripts(itemBody)
-
-        <script type="text/javascript">
-                angular.module('qti.services').factory('Config', [function(){
-                return {
-                itemId : "@itemId",
-                quizId : "@quizId",
-                token : "@token"
-                }
-                }]);
-        </script>
-
-        @scripts
-            <!--
-    <script src="/assets/js/corespring/qti/controllers/QtiAppController.js"></script>
-    -->
-
-
-    </head>
-    <!-- style="overflow: hidden" -->
-    <body @bodyAttributes >
-
-    <br/>
-
-
-    <div class="@cssClass" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">
-        @Html(itemBody)
-    </div>
-</body>
-</html>
+@_root_.player.views.html.basePlayer( params, bodyAttributes, Some(scripts) )

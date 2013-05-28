@@ -1,22 +1,21 @@
 package models.itemSession
 
-import se.radley.plugin.salat._
-import org.joda.time.DateTime
-import play.api.libs.json._
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
-import controllers.{Utils, LogType, InternalError}
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
+import controllers.{Utils, InternalError}
 import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
-import play.api.{Logger, Play}
-import play.api.Play.current
-import scala.xml._
-import qti.processors.FeedbackProcessor
-import qti.models.QtiItem
-import models.mongoContext._
 import models.item._
 import models.item.resource._
+import models.mongoContext._
+import org.joda.time.DateTime
+import play.api.Play.current
+import play.api.libs.json._
+import play.api.Play
+import qti.models.QtiItem
+import qti.processors.FeedbackProcessor
+import scala.xml._
+import se.radley.plugin.salat._
+import common.log.PackageLogging
 
 case class FeedbackIdMapEntry(csFeedbackId: String, outcomeIdentifier: String, identifier: String)
 
@@ -113,7 +112,7 @@ object DefaultItemSession extends ItemSessionCompanion {
   def collection = mongoCollection("itemsessions")
 }
 
-trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] {
+trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with PackageLogging{
 
   import ItemSession.Keys._
 
@@ -140,10 +139,10 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] {
     try {
       insert(session, collection.writeConcern) match {
         case Some(_) => Right(session)
-        case None => Left(InternalError("error inserting item session", LogType.printFatal))
+        case None => Left(InternalError("error inserting item session"))
       }
     } catch {
-      case e: SalatInsertError => Left(InternalError("error inserting item session: " + e.getMessage, LogType.printFatal))
+      case e: SalatInsertError => Left(InternalError("error inserting item session: " + e.getMessage))
     }
   }
 
@@ -167,7 +166,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] {
    */
   def begin(session: ItemSession): Either[InternalError, ItemSession] = session.start match {
 
-    case Some(_) => Left(InternalError("ItemSession already started: " + session.id, LogType.printFatal))
+    case Some(_) => Left(InternalError("ItemSession already started: " + session.id))
     case _ => {
       session.start = Some(new DateTime())
       save(session)
@@ -239,10 +238,10 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] {
           additionalProcessing(session)
           Right(session)
         }
-        case None => Left(InternalError("could not find session that was just updated", LogType.printFatal))
+        case None => Left(InternalError("could not find session that was just updated"))
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(InternalError("error updating item session: " + e.getMessage, LogType.printFatal))
+      case e: SalatDAOUpdateError => Left(InternalError("error updating item session: " + e.getMessage))
     }
   }
 

@@ -1,10 +1,9 @@
 package qti.models
 
 import interactions._
-import scala.xml._
-import play.api.libs.json.{JsString, JsObject, JsValue, Writes}
 import qti.models.QtiItem.Correctness
 import scala.Some
+import scala.xml._
 
 case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline]) {
   var defaultCorrect = "Correct!"

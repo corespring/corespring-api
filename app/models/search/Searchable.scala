@@ -3,7 +3,7 @@ package models.search
 import com.mongodb.{BasicDBObject}
 import com.mongodb.casbah.Imports._
 import java.util.regex.Pattern
-import controllers.{LogType, InternalError}
+import controllers.InternalError
 import scala.Left
 import scala.Some
 import scala.Right
@@ -17,7 +17,7 @@ trait Searchable {
       case strfields:String => try{
         toFieldsObj(JSON.parse(strfields))
       }catch{
-        case e:JSONParseException => Left(InternalError(e.getMessage,clientOutput = Some("could not parse search string")))
+        case e:JSONParseException => Left(InternalError(e.getMessage + "\ncould not parse search string"))
       }
       case dbfields:BasicDBObject => {
         val method:Int = if(dbfields.values().iterator().next() == 1) 1 else 0
@@ -36,13 +36,13 @@ trait Searchable {
         searchFields.jsfields = searchFields.jsfields :+ field._1
         Right(searchFields)
       }else{
-        Left(InternalError("Wrong value for "+field._1+". Should have been "+method,addMessageToClientOutput = true))
+        Left(InternalError("Wrong value for "+field._1+". Should have been "+method))
       }
     }
     dbfields.foldRight[Either[InternalError,SearchFields]](Right(SearchFields(method = method)))((field,result) => {
       result match {
         case Right(searchFields) => if (searchableFields.contains(field._1)) toSearchFieldObj(searchFields,field)
-          else Left(InternalError("unknown field: "+field._1,addMessageToClientOutput = true))
+          else Left(InternalError("unknown field: "+field._1))
         case Left(error) => Left(error)
       }
     })
@@ -54,11 +54,11 @@ trait Searchable {
         val parsedobj:BasicDBObject = JSON.parse(strfield).asInstanceOf[BasicDBObject]
         toSortObj(parsedobj)
       }catch {
-        case e:JSONParseException => Left(InternalError(e.getMessage,clientOutput = Some("could not parse sort string")))
+        case e:JSONParseException => Left(InternalError(e.getMessage + "\ncould not parse sort string"))
       }
       case dbfield:BasicDBObject => {
         if (dbfield.toSeq.size != 1){
-          Left(InternalError("cannot sort on multiple fields",addMessageToClientOutput = true))
+          Left(InternalError("cannot sort on multiple fields"))
         }else{
           val field = dbfield.toSeq.head
           toSortObjInternal(field)
@@ -71,7 +71,7 @@ trait Searchable {
     def formatSortField(key:String,value:AnyRef):Either[InternalError,MongoDBObject] = {
       value match {
         case intval:java.lang.Integer => Right(MongoDBObject(key -> value))
-        case _ => Left(InternalError("sort value not a number",addMessageToClientOutput = true))
+        case _ => Left(InternalError("sort value not a number"))
       }
     }
     if (searchableFields.contains(field._1)) formatSortField(field._1,field._2)
@@ -83,7 +83,7 @@ trait Searchable {
         val parsedobj:BasicDBObject = JSON.parse(strquery).asInstanceOf[BasicDBObject]
         toSearchObj(parsedobj,optInitSearch,parseFields)
       }catch {
-        case e:JSONParseException => Left(SearchCancelled(Some(InternalError(e.getMessage,clientOutput = Some("could not parse search string")))))
+        case e:JSONParseException => Left(SearchCancelled(Some(InternalError(e.getMessage +  "\ncould not parse search string"))))
       }
       case dbquery:BasicDBObject => {
         if(dbquery.contains("$or")){
@@ -98,7 +98,7 @@ trait Searchable {
                       case Some(_) => Left(sc)
                     }
                   }
-                  case _ => Left(SearchCancelled(Some(InternalError("element within the array of or cases was not a db object",addMessageToClientOutput = true))))
+                  case _ => Left(SearchCancelled(Some(InternalError("element within the array of or cases was not a db object"))))
                 }
                 case Left(sc) => Left(sc)
               }
@@ -109,7 +109,7 @@ trait Searchable {
               }
               case Left(sc) => Left(sc)
             }
-            case _ => Left(SearchCancelled(Some(InternalError("$or operator did not contain a list of documents for its value",addMessageToClientOutput = true))))
+            case _ => Left(SearchCancelled(Some(InternalError("$or operator did not contain a list of documents for its value"))))
           }
         } else if (dbquery.contains("$and")){
           dbquery.get("$and") match {
@@ -120,7 +120,7 @@ trait Searchable {
                     case Right(searchobj) => Right(dblist += searchobj)
                     case Left(sc) => Left(sc)
                   }
-                  case _ => Left(SearchCancelled(Some(InternalError("element within the array of or cases was not a db object",addMessageToClientOutput = true))))
+                  case _ => Left(SearchCancelled(Some(InternalError("element within the array of or cases was not a db object"))))
                 }
                 case Left(sc) => Left(sc)
               }
@@ -131,11 +131,11 @@ trait Searchable {
               }
               case Left(sc) => Left(sc)
             }
-            case _ => Left(SearchCancelled(Some(InternalError("$or operator did not contain a list of documents for its value",addMessageToClientOutput = true))))
+            case _ => Left(SearchCancelled(Some(InternalError("$or operator did not contain a list of documents for its value"))))
           }
         } else toSearchObjInternal(dbquery,optInitSearch)(parseFields)
       }
-      case _ => Left(SearchCancelled(Some(InternalError("invalid search object",LogType.printFatal,addMessageToClientOutput = true))))
+      case _ => Left(SearchCancelled(Some(InternalError("invalid search object"))))
     }
   }
   protected def toSearchObjInternal(dbquery:BasicDBObject, optInitSearch:Option[MongoDBObject])(implicit parseFields:Map[String,(AnyRef) => Either[InternalError,AnyRef]]):Either[SearchCancelled,MongoDBObject] = {
@@ -175,18 +175,18 @@ trait Searchable {
     dbobj.toSeq.headOption match {
       case Some((key,value)) => key match {
         case "$in" => if(value.isInstanceOf[BasicDBList]) Right(MongoDBObject(key -> value))
-          else Left(InternalError("$in did not contain an array of elements",addMessageToClientOutput = true))
+          else Left(InternalError("$in did not contain an array of elements"))
         case "$nin" => if(value.isInstanceOf[BasicDBList]) Right(MongoDBObject(key -> value))
-          else Left(InternalError("$nin did not contain an array of elements",addMessageToClientOutput = true))
+          else Left(InternalError("$nin did not contain an array of elements"))
         case "$exists" => if(value.isInstanceOf[Boolean]) Right(MongoDBObject(key -> value))
-          else Left(InternalError("$exists did not contain a boolean value",addMessageToClientOutput = true))
+          else Left(InternalError("$exists did not contain a boolean value"))
         case "$ne" => Right(MongoDBObject(key -> value))
         case "$all" => if (value.isInstanceOf[BasicDBList]) Right(MongoDBObject(key -> value))
-          else Left(InternalError("$all did not contain an array of elements",addMessageToClientOutput = true))
-        case _ => if (key.startsWith("$")) Left(InternalError("unsupported special operation",addMessageToClientOutput = true))
-          else Left(InternalError("cannot have embedded db object without special operator",addMessageToClientOutput = true))
+          else Left(InternalError("$all did not contain an array of elements"))
+        case _ => if (key.startsWith("$")) Left(InternalError("unsupported special operation"))
+          else Left(InternalError("cannot have embedded db object without special operator"))
       }
-      case None => Left(InternalError("cannot have empty embedded db object as value",addMessageToClientOutput = true))
+      case None => Left(InternalError("cannot have empty embedded db object as value"))
     }
   }
 }

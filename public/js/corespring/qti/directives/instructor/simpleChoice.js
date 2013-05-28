@@ -1,4 +1,4 @@
-qtiDirectives.directive('simplechoice', function (QtiUtils) {
+angular.module('qti.directives').directive('simplechoice', function (QtiUtils) {
 
   return {
     restrict: 'ACE',

@@ -5,7 +5,6 @@ import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.libs.json.{JsObject, JsString, JsArray, Json}
-import controllers.Log
 
 
 class ItemQueryTest extends BaseTest{

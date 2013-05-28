@@ -2,16 +2,14 @@ package models.item
 
 
 import com.mongodb.casbah.Imports._
-import models.mongoContext._
 import controllers._
 import resource.{VirtualFile, BaseFile, Resource}
 import scala.Either
 import models.mongoContext._
-import com.novus.salat._
-import com.mongodb.util.{JSONParseException, JSON}
+import com.mongodb.util.JSON
 import play.api.libs.json._
 import com.novus.salat._
-import dao.{ModelCompanion}
+import dao.ModelCompanion
 import dao.{SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
 import org.joda.time.DateTime
 import models.json.ItemView
@@ -20,6 +18,7 @@ import scala.Left
 import scala.Some
 import scala.Right
 import controllers.JsonValidationException
+import models.itemSession.{DefaultItemSession, ItemSession}
 
 
 case class Item(
@@ -35,18 +34,21 @@ case class Item(
                  var data: Option[Resource] = None,
                  var originId: Option[String] = None,
                  var supportingMaterials: Seq[Resource] = Seq(),
+                 var published:Boolean = false,
                  var workflow: Option[Workflow] = None,
                  var dateModified: Option[DateTime] = Some(new DateTime()),
                  var taskInfo: Option[TaskInfo] = None,
                  var otherAlignments: Option[Alignments] = None,
                  var id: ObjectId = new ObjectId(),
-                 var version:Option[Version] = None) extends Content
+                 var version: Option[Version] = None) extends Content{
+  def sessionCount:Int = DefaultItemSession.find(MongoDBObject("itemId" -> id)).count
+}
 
 
 /**
  * An Item model
  */
-object Item extends ModelCompanion[Item,ObjectId]{
+object Item extends ModelCompanion[Item, ObjectId] {
 
   import com.mongodb.casbah.commons.conversions.scala._
 
@@ -97,11 +99,13 @@ object Item extends ModelCompanion[Item,ObjectId]{
   val dateModified = "dateModified"
   val otherAlignments = "otherAlignments"
   val version = Content.version
+  val published = "published"
 
   lazy val fieldValues = FieldValue.current
+
   implicit object ItemWrites extends Writes[Item] {
     def writes(item: Item) = {
-      ItemView.ItemViewWrites.writes(ItemView(item,None))
+      ItemView.ItemViewWrites.writes(ItemView(item, None))
     }
   }
 
@@ -136,6 +140,7 @@ object Item extends ModelCompanion[Item,ObjectId]{
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
       item.standards = (json \ standards).asOpt[Seq[String]].getOrElse(Seq())
       item.data = (json \ data).asOpt[Resource]
+      item.published = (json \ published).asOpt[Boolean].getOrElse(false)
 
       try {
         item.id = (json \ id).asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId())
@@ -146,7 +151,6 @@ object Item extends ModelCompanion[Item,ObjectId]{
       item
     }
   }
-
   def updateItem(oid: ObjectId, newItem: Item, fields: Option[DBObject], requesterOrgId: ObjectId): Either[InternalError, Item] = {
     try {
 
@@ -165,18 +169,24 @@ object Item extends ModelCompanion[Item,ObjectId]{
 
       getItemWithFields match {
         case Some(item) => Right(item)
-        case None => Left(InternalError("somehow the document that was just updated could not be found", LogType.printFatal))
+        case None => Left(InternalError("somehow the document that was just updated could not be found"))
       }
 
     } catch {
-      case e: SalatDAOUpdateError => Left(InternalError(e.getMessage, LogType.printFatal, false, Some("error occured while updating")))
-      case e: IllegalArgumentException => Left(InternalError(e.getMessage, clientOutput = Some("destination collection id was not a valid id")))
-      case e: RuntimeException => Left(InternalError(e.getMessage, addMessageToClientOutput = true))
+      case e: SalatDAOUpdateError => Left(InternalError("error occured while updating", e))
+      case e: IllegalArgumentException => Left(InternalError("destination collection id was not a valid id", e))
+      case e: RuntimeException => Left(InternalError(e.getMessage))
     }
   }
 
   def cloneItem(item: Item): Option[Item] = {
-    val copy = item.copy(id = new ObjectId(),version=None)
+    val copy = item.copy(id = new ObjectId(), version = None, taskInfo = item.taskInfo match {
+      case Some(ti) => ti.title match {
+        case Some(title) => Some(ti.copy(title = Some("[copy] " + title)))
+        case _ => Some(ti.copy(title = Some("[copy]")))
+      }
+      case _ => Some(TaskInfo(title = Some("[copy]")))
+    }, published = false)
     Item.save(copy)
     Some(copy)
   }
@@ -187,12 +197,12 @@ object Item extends ModelCompanion[Item,ObjectId]{
     result.count
   }
 
-//  def list(query: MongoDBObject, fields: MongoDBObject, skip: Int = 0, limit: Int = 200) : List[Item] = {
-//    val result : SalatMongoCursor[Item] = Item.find( query, fields)
-//    result.limit(limit)
-//    result.skip(skip)
-//    result.toList
-//  }
+  //  def list(query: MongoDBObject, fields: MongoDBObject, skip: Int = 0, limit: Int = 200) : List[Item] = {
+  //    val result : SalatMongoCursor[Item] = Item.find( query, fields)
+  //    result.limit(limit)
+  //    result.skip(skip)
+  //    result.toList
+  //  }
 
   def queryValueFn(name: String, seq: Seq[KeyValue])(c: Any) = {
     c match {
@@ -201,9 +211,9 @@ object Item extends ModelCompanion[Item,ObjectId]{
     }
   }
 
-  def findMultiple(ids: Seq[ObjectId], keys : DBObject) : Seq[Item] = {
+  def findMultiple(ids: Seq[ObjectId], keys: DBObject): Seq[Item] = {
     val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))
-    Item.find(query,keys).toSeq
+    Item.find(query, keys).toSeq
   }
 
   def getQti(itemId: ObjectId): Either[InternalError, String] = {
@@ -214,9 +224,9 @@ object Item extends ModelCompanion[Item,ObjectId]{
           grater[Resource].asObject(res).files.find(bf => bf.isMain && bf.contentType == BaseFile.ContentTypes.XML) match {
             case Some(bf) => bf match {
               case vf: VirtualFile => Right(vf.content)
-              case _ => Left(InternalError("main file was not a virtual file", LogType.printFatal))
+              case _ => Left(InternalError("main file was not a virtual file"))
             }
-            case None => Left(InternalError("no main file found that contained xml", LogType.printFatal))
+            case None => Left(InternalError("no main file found that contained xml"))
           }
         }
         case _ => Left(InternalError("data not an object"))
@@ -224,7 +234,7 @@ object Item extends ModelCompanion[Item,ObjectId]{
     }
   }
 
-  def findInXml(string:String, collectionIds : List[String]) : List[Item] = {
+  def findInXml(string: String, collectionIds: List[String]): List[Item] = {
 
     val query = ".*<assessmentItem.*>.*" + string + ".*<\\/assessmentItem>.*"
 

@@ -95,7 +95,7 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
             '<span class="draggable-item {{item.submittedClass}}" ng:repeat="item in items" obj="{{item}}" ng-bind-html-unsafe="item.content" /> ',
             '</div>',
 
-            '<div class="order-placement-destination-area-vertical" style="width: {{maxW+25}}px">',
+            '<div class="order-placement-destination-area-vertical" style="width: {{maxW}}px">',
             '<div style="clear: both; margin-bottom: 10px">Place answers here</div>',
             '<span class="placement-destination" ng:repeat="item in emptyCorrectAnswers" index="{{$index}}" class="{{item.submittedClass}}" style="width: {{maxW}}px; height: {{maxH}}px">',
             '<span class="placement-destination-inner" style="width: {{maxW}}px; height: {{maxH}}px"></span>',
@@ -175,11 +175,11 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
             var hasDimension = false;
             $(element).find('.draggable-item').each(function (index) {
                 if ($(this).width() > maxW) {
-                    maxW = $(this).width() + 30;
+                    maxW = Math.min($(this).width() + 30, 200);
                     hasDimension = true;
                 }
                 if ($(this).height() > maxH) {
-                    maxH = $(this).height() + 30;
+                    maxH = Math.min($(this).height() + 30, 200);
                     hasDimension = true;
                 }
             });
@@ -342,7 +342,7 @@ var commonLinkFn = function ($scope, element, attrs, AssessmentItemCtrl, QtiUtil
 };
 
 
-qtiDirectives.directive('orderinteraction',
+angular.module('qti.directives').directive('orderinteraction',
     function (QtiUtils, $timeout) {
         return {
             restrict: 'E',
@@ -364,7 +364,7 @@ qtiDirectives.directive('orderinteraction',
 );
 
 
-qtiDirectives.directive("draggableItem", function ($rootScope) {
+angular.module('qti.directives').directive("draggableItem", function ($rootScope) {
     return {
         restrict: 'C',
         require: '^orderinteraction',
@@ -421,7 +421,7 @@ qtiDirectives.directive("draggableItem", function ($rootScope) {
     }
 });
 
-qtiDirectives.directive("placementDestination", function () {
+angular.module('qti.directives').directive("placementDestination", function () {
     return {
         restrict: 'C',
         require: '^orderinteraction',
@@ -462,7 +462,7 @@ qtiDirectives.directive("placementDestination", function () {
 });
 
 
-qtiDirectives.directive("sortable", function () {
+angular.module('qti.directives').directive("sortable", function () {
     return {
         // todo look into isolate scope so orderedList is not on global scope, tried it but was having trouble
         link: function (scope, el, attrs, ctrl, $timeout) {

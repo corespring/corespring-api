@@ -1,7 +1,6 @@
-var chooseLabel = "Choose...";
+angular.module('qti.directives').directive('inlinechoiceinteraction', function (QtiUtils) {
 
-qtiDirectives.directive('inlinechoiceinteraction', function (QtiUtils) {
-
+  var chooseLabel = "Choose...";
 
   var getOptionsAndFeedbacks = function (element) {
 
@@ -191,9 +190,12 @@ var feedbackFloat = function (QtiUtils) {
         var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
         if (feedback) {
           scope.feedback = feedback;
-          $(element).tooltip({ title: scope.feedback, trigger: 'manual'});
+          $(element).tooltip({ title: scope.feedback, trigger: 'manual', html: true, animation: false});
           setTimeout(function () {
             $(element).tooltip('show');
+            if (typeof(MathJax) != "undefined") {
+              MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+            }
           }, 100);
         }
       });
@@ -205,5 +207,5 @@ var feedbackFloat = function (QtiUtils) {
   }
 };
 
-qtiDirectives.directive("feedbackfloat", feedbackFloat);
+angular.module('qti.directives').directive("feedbackfloat", feedbackFloat);
 

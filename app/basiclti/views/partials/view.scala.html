@@ -56,11 +56,14 @@
 
     <div ng-show="currentPanel == 'preview'" class="lti-iframe-holder">
 
+      <div class="alert alert-error error" ng-show="errorMessage">{{errorMessage}}</div>
+
       <iframe
               id="previewIframe"
               frameBorder="0"
               ng-show="item"
               class="lti-iframe-preview"
+              ng-class="{error: errorMessage}"
               ng-src="{{previewItemUrl}}"></iframe>
     </div>
 

@@ -8,14 +8,6 @@ object AESCrypto extends Crypto{
   //the required key length in bytes
   override def KEY_LENGTH = 16;
   override def KEY_RADIX = 36
-  /**
-   * Signs the given String with HMAC-SHA1 using the given key.
-   */
-  def sign(message: String, key: Array[Byte]): String = {
-    val mac = Mac.getInstance("HmacSHA1")
-    mac.init(new SecretKeySpec(key, "HmacSHA1"))
-    Codecs.toHexString(mac.doFinal(message.getBytes("utf-8")))
-  }
 
   /**
    * this is required because BigInt.toByteArray is converted to a signed array of bytes, which results in extra padding on the array

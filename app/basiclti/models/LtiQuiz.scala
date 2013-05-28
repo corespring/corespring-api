@@ -109,7 +109,7 @@ object LtiQuiz {
 
   def update(update: LtiQuiz, orgId: ObjectId): Either[ApiError, LtiQuiz] = {
     if (!canUpdate(update, orgId)) {
-      Left(new ApiError(9900, "TODO"))
+      Left(new ApiError(9900, "You are not allowed update the LtiQuiz - because students have already started using it."))
     } else {
       updateNoValidation(update)
     }
@@ -119,9 +119,15 @@ object LtiQuiz {
     case Some(dbConfig) => {
       val orgIdMatches = dbConfig.orgId.isDefined && dbConfig.orgId.get == orgId
       val isUnassigning = dbConfig.question.itemId.isDefined && proposedChange.question.itemId.isEmpty
-      val hasAssignments = dbConfig.participants.length > 0
-      def canUnassign = if (isUnassigning) !hasAssignments else true
-      orgIdMatches && canUnassign
+      val settingsAreTheSame = proposedChange.question.settings.equals(dbConfig.question.settings)
+
+      val willAffectParticipants = if(dbConfig.participants.length > 0){
+        isUnassigning || !settingsAreTheSame
+      } else {
+        false
+      }
+
+      orgIdMatches && !willAffectParticipants
     }
     case _ => false
   }

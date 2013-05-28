@@ -13,18 +13,21 @@ trait QtiResource {
    * @param itemId
    * @return
    */
-  def getItemXMLByObjectId(itemId: String, callerOrg: ObjectId): Option[Elem] = {
-    Item.findOneById(new ObjectId(itemId)) match {
-      case Some(item) => {
-        if (Content.isCollectionAuthorized(callerOrg, item.collectionId, Permission.Read)) {
-          val dataResource = item.data.get
-          dataResource.files.find(_.name == Resource.QtiXml).map{
-            case VirtualFile(_,_,_,xml) => scala.xml.XML.loadString(xml)
-          }
-        } else None
-      }
-      case _ => None
+  def getItemXMLByObjectId(itemId: String, orgId: ObjectId): Option[Elem] =
+    Item.findOneById(new ObjectId(itemId)).map {
+      getItemXMLByObjectId(_, orgId)
+    }.getOrElse(None)
+
+
+  def getItemXMLByObjectId(item: Item, orgId: ObjectId): Option[Elem] = if(authorized(item,orgId)){
+    item.data.map {
+      d =>
+        d.files.find(_.name == Resource.QtiXml).map {
+          case VirtualFile(_, _, _, xml) => scala.xml.XML.loadString(xml)
+        }.getOrElse( throw new RuntimeException("The qti xml file has a bad format and cannot be retrieved: itemId: " + item.id))
     }
-  }
+  } else None
+
+  private def authorized(i: Item, org: ObjectId): Boolean = Content.isCollectionAuthorized(org, i.collectionId, Permission.Read)
 
 }

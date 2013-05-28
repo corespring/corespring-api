@@ -96,12 +96,10 @@ object Global extends GlobalSettings {
   }
 
   override def onStart(app: Application) {
-
     // support JodaTime
     RegisterJodaTimeConversionHelpers()
 
-    val amazonProperties = Play.getFile("/conf/AwsCredentials.properties")
-    ConcreteS3Service.init(amazonProperties)
+    ConcreteS3Service.init
 
     val initData:Boolean = ConfigFactory.load().getString(INIT_DATA) == "true"
 

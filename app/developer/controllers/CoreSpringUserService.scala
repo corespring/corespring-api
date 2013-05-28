@@ -1,29 +1,27 @@
 package developer.controllers
 
 import _root_.controllers.auth.Permission
-import _root_.controllers.Log
-import _root_.models.{User}
-import securesocial.core._
-import play.api.Application
-import org.bson.types.ObjectId
-import providers.Token
-import providers.utils.PasswordHasher
-import securesocial.core.UserId
-import securesocial.core.SocialUser
-import scala.Some
+import _root_.models.User
 import com.mongodb.casbah.commons.MongoDBObject
-import org.joda.time.DateTime
-import se.radley.plugin.salat.SalatPlugin
+import common.config.AppConfig
 import developer.models.RegistrationToken
+import org.bson.types.ObjectId
+import org.joda.time.DateTime
+import play.api.Application
+import scala.Some
+import securesocial.core._
+import securesocial.core.providers.utils.PasswordHasher
+import securesocial.core.providers.Token
+import common.log.PackageLogging
 
 /**
  * An implementation of the UserService
  */
-class CoreSpringUserService(application: Application) extends UserServicePlugin(application) {
+class CoreSpringUserService(application: Application) extends UserServicePlugin(application) with PackageLogging {
 
   def find(id: UserId): Option[SocialUser] = {
     // id.id has the username
-    Log.i("looking for %s(%s)".format(id.id, id.providerId))
+    Logger.info("looking for %s(%s)".format(id.id, id.providerId))
 
     User.getUser(id.id, id.providerId) map {
       u =>
@@ -55,10 +53,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
             false,
             new ObjectId())
 
-        // hardcode this org id for now?
-        val corespringId = new ObjectId("502404dd0364dc35bb39339a")
-
-        User.insertUser(corespringUser, corespringId, Permission.Read, checkOrgId = false)
+        User.insertUser(corespringUser, AppConfig.demoOrgId, Permission.Read, checkOrgId = false)
 
       case Some(existingUser) =>
         existingUser.password = user.passwordInfo.getOrElse(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = "")).password
@@ -95,7 +90,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
   def deleteToken(uuid: String) {
     RegistrationToken.findOne(MongoDBObject(RegistrationToken.Uuid -> uuid)) match {
       case Some(regToken) => RegistrationToken.remove(regToken)
-      case _ => Log.i("No such token found")
+      case _ => Logger.info("No such token found")
     }
   }
 
@@ -107,5 +102,4 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
       case e:IllegalStateException => //this occurs if the app closes before this is called. should be safe to ignore
     }
   }
-
 }

@@ -61,5 +61,21 @@ describe('qtiDirectives.extendedtextentryinteraction', function () {
 
             expect(scope.noResponse).toBe(false);
         });
+
+        it('sets cols based on expectedLength and rows based on expectedLines', function () {
+            var node = '<extendedtextinteraction responseIdentifier="rid" expectedLength="17" expectedLines="11"/>';
+            var interaction = helper.compileAndGetScope(rootScope, compile, node);
+            var scope = interaction.scope;
+            expect(scope.cols.toString()).toBe('17');
+            expect(scope.rows.toString()).toBe('11');
+        });
+
+        it('cols defaults to 60 and rows to 4', function () {
+            var node = '<extendedtextinteraction responseIdentifier="rid" />';
+            var interaction = helper.compileAndGetScope(rootScope, compile, node);
+            var scope = interaction.scope;
+            expect(scope.cols.toString()).toBe('60');
+            expect(scope.rows.toString()).toBe('4');
+        });
     });
 });

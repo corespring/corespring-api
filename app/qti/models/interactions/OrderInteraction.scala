@@ -1,11 +1,10 @@
 package qti.models.interactions
 
 import choices.SimpleChoice
-import xml.Node
-import qti.models.ResponseDeclaration
-import qti.models.QtiItem.Correctness
-import controllers.Log
 import models.itemSession._
+import qti.models.QtiItem.Correctness
+import qti.models.ResponseDeclaration
+import xml.Node
 
 case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices {
 
@@ -39,7 +38,7 @@ case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoic
         case None => None
       }
       case _ => {
-        Log.e("received a response that was not a string response in ChoiceInteraction.getOutcome")
+        Logger.error("received a response that was not a string response in ChoiceInteraction.getOutcome")
         None
       }
     }

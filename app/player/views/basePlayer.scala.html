@@ -1,14 +1,14 @@
-@(params:player.views.models.PlayerParams, additionalScripts: Html, bodyAttributes:String, afterBody : Option[Html] = None)
+@(params:player.views.models.PlayerParams, bodyAttributes:String, additionalScripts: Option[Html] = None, afterBody : Option[Html] = None)
 
 @cssClass = @{
-if(params.previewEnabled) "assessment-page" else "student-assessment-page"
+    if(params.previewEnabled) "assessment-page" else "student-assessment-page"
 }
 <!DOCTYPE html>
 <html ng-app="qti" dimensions-checker>
 <head>
     <title>@params.itemId</title>
     @common.views.html.partials.ieEightSupport()
-    @partials.scripts(params.xml)
+    @partials.scripts(params.xml, new player.views.qti.QtiAssetsLoaderImpl(params.xml))
 
     <script type="text/javascript">
         angular.module('qti.services').factory('Config', [function(){
@@ -19,7 +19,9 @@ if(params.previewEnabled) "assessment-page" else "student-assessment-page"
         }]);
     </script>
 
-    @additionalScripts
+    @additionalScripts.map{ s =>
+      @s
+    }
 
 </head>
 <body @bodyAttributes >
@@ -29,12 +31,10 @@ if(params.previewEnabled) "assessment-page" else "student-assessment-page"
 }
 
 @if( params.previewEnabled ){
-
-@partials.controlBar()
-
-<div class="student-view-header" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">Student View</div>
+    @partials.controlBar()
+    <div class="student-view-header" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">Student View</div>
 } else {
-<br/>
+    <br/>
 }
 
 <div class="@cssClass" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">

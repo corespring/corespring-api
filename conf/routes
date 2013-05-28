@@ -74,6 +74,7 @@ GET     /api/v1/organizations/:orgId/users             api.v1.UserApi.getUsersBy
 
 # Items API
 GET     /api/v1/items                           api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /api/v1/items/query                     api.v1.ItemApi.listAndCount(q: Option[String] ?= None, f: Option[String] ?= None, sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/organizations/:orgId/items      api.v1.ItemApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/contributors                    api.v1.ContributorApi.getContributorsList()
 GET     /api/v1/items/:id                       api.v1.ItemApi.get(id: ObjectId)
@@ -106,7 +107,7 @@ DELETE  /api/v1/items/:itemId/materials/:resourceName/:filename   api.v1.Resourc
 POST    /api/v1/items/:itemId/data         api.v1.ResourceApi.createDataFile(itemId:String)
 PUT     /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.updateDataFile(itemId:String, filename:String, force:Boolean ?= false)
 POST    /api/v1/items/:itemId/data/:filename/upload   api.v1.ResourceApi.uploadFileToData(itemId:String, filename : String )
-DELETE  /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.deleteDataFile(itemId:String, filename:String)
+DELETE  /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.deleteDataFile(itemId:String, filename:String, force:Boolean ?= false)
 
 # Field Values API
 GET     /api/v1/field_values                   api.v1.FieldValuesApi.getAllAvailable
@@ -184,8 +185,6 @@ GET    /profile.js                                  player.controllers.AssetLoad
 GET    /web                                    web.controllers.Main.index
 
 # Item Preview
-GET     /web/item-preview/:itemId              web.controllers.Main.previewItem(itemId:String, defaultView:String ?= "profile")
-GET     /web/item-preview                      web.controllers.Main.previewAnyItem
 
 GET    /web/partials/editItem                  web.controllers.Partials.editItem
 GET    /web/partials/createItem                web.controllers.Partials.createItem
@@ -194,16 +193,12 @@ GET    /web/partials/viewItem                  web.controllers.Partials.viewItem
 
 
 GET    /web/javascripts/routes                             web.controllers.ShowResource.javascriptRoutes
-GET    /web/show-resource/:itemId/data/main                web.controllers.ShowResource.renderDataResource(itemId)
-GET    /web/show-resource/:itemId/data/:filename           web.controllers.ShowResource.getDataFile(itemId:String,filename:String)
-GET    /web/show-resource/:itemId/:resourceName            web.controllers.ShowResource.renderResource(itemId,resourceName)
-GET    /web/show-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId:String,resourceName:String,filename:String)
 
+GET    /web/show-resource/:itemId/:resourceName/main        web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)
+GET    /web/show-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId,resourceName,filename)
 GET    /web/print-resource/:itemId/data/main                web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
-GET    /web/print-resource/:itemId/data/:filename           web.controllers.ShowResource.getDataFile(itemId:String,filename:String)
-GET    /web/print-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId:String,resourceName:String,filename:String)
-GET    /web/print-resource/:itemId/:resourceName            web.controllers.ShowResource.renderResource(itemId,resourceName)
-GET    /web/print-resource-profile/:itemId                  web.controllers.Main.renderProfile(itemId:String)
+GET    /web/print-resource/:itemId/:resourceName/main       web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)
+GET    /web/print-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId,resourceName,filename)
 
 #
 # BasicLTI
@@ -263,3 +258,4 @@ GET     /system/check               controllers.SystemCheck.index()
 
 GET     /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearchPage()
 POST    /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearch()
+

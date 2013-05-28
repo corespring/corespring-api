@@ -23,8 +23,7 @@ angular.module('tagger.services').factory('SearchService',
      * @param searchFields
      * @return {*}
      */
-    var buildQueryObject =  function (searchParams, searchFields) {
-
+    var buildQueryObject = function (searchParams, searchFields) {
       function addIfTrue(query, value, key) {
         if (value) {
           query[key] = true;
@@ -59,7 +58,12 @@ angular.module('tagger.services').factory('SearchService',
         addIfTrue(query, isQaReview, "workflow.qaReview");
         addIfTrue(query, isStandardsAligned, "workflow.standardsAligned");
       }
-
+      if(searchParams.publishStatuses){
+        var published = _.find(searchParams.publishStatuses,function(publishStatus){return publishStatus.key == "published"}) != undefined
+        var draft = _.find(searchParams.publishStatuses,function(publishStatus){return publishStatus.key == "draft"}) != undefined
+        if(published && !draft) query["published"] = true
+        else if(!published && draft) query["published"] = false
+      }
 
       /**
        * Returns either an exact value or a mongo $in array with a set of values.
@@ -69,7 +73,7 @@ angular.module('tagger.services').factory('SearchService',
        * @param arrayKey
        * @return {*}
        */
-      var objectOrArray = function(value, arrayKey){
+      var objectOrArray = function (value, arrayKey) {
         if (value) {
           if (value.indexOf && value.length > 0) {
             return mongoQuery.inArray(value, arrayKey);
@@ -82,25 +86,33 @@ angular.module('tagger.services').factory('SearchService',
         }
       };
 
-      var gradeLevel =  objectOrArray(searchParams.gradeLevel, "key");
-      if(gradeLevel != null){
+      var gradeLevel = objectOrArray(searchParams.gradeLevel, "key");
+      if (gradeLevel != null) {
         query["gradeLevel"] = gradeLevel;
       }
 
-      var itemType = objectOrArray(searchParams.itemType, "label");
-      if(itemType != null){
-        query["itemType"] = itemType;
+      var isOtherSelected = _.find(searchParams.itemType, function (e) {
+        return e.label == "Other";
+      });
+
+      if (isOtherSelected) {
+        // We need an inverse query - match everything except the item types that are not selected
+        query["itemType"] = mongoQuery.notInArray(searchParams.notSelectedItemTypes, "label");
+      } else {
+        var itemType = objectOrArray(searchParams.itemType, "label");
+        if (itemType != null) {
+          query["itemType"] = itemType;
+        }
       }
 
       var collectionId = objectOrArray(searchParams.collection, "id");
-      if(collectionId != null){
+      if (collectionId != null) {
         query["collectionId"] = collectionId;
       }
 
       if (searchParams.contributor && searchParams.contributor.indexOf && searchParams.contributor.length > 0) {
         query["contributor"] = mongoQuery.inArray(searchParams.contributor, "name");
       }
-
       return query;
     };
 
@@ -122,14 +134,16 @@ angular.module('tagger.services').factory('SearchService',
         'standards',
         'sourceUrl',
         'contributor',
-        'author'
+        'author',
+        'published'
       ],
       searchFields: [
         'title',
         'standards.dotNotation',
         'copyrightOwner',
         'contributor',
-        'author'
+        'author',
+        'published'
       ],
 
       /**
@@ -143,7 +157,7 @@ angular.module('tagger.services').factory('SearchService',
        *   sort: an optional sort json string
        * }
        */
-      buildItemServiceQuery: function(addSkip) {
+      buildItemServiceQuery: function (addSkip) {
 
         var baseQuery = buildQueryObject(this.searchParams, this.searchFields);
 
@@ -153,7 +167,7 @@ angular.module('tagger.services').factory('SearchService',
           f: JSON.stringify(mongoQuery.buildFilter(searchService.resultFields))
         };
 
-        if(addSkip){
+        if (addSkip) {
           out.sk = this.loaded >= 0 ? this.loaded : -1
         }
 
@@ -196,7 +210,7 @@ angular.module('tagger.services').factory('SearchService',
             this.loaded += this.limit;
             resultHandler(data);
 
-            var onCountSuccess = function(resultCount){
+            var onCountSuccess = function (resultCount) {
               this.resultCount = resultCount;
               $rootScope.$broadcast('onSearchCountComplete', resultCount);
               $rootScope.$broadcast('onNetworkComplete');
@@ -205,7 +219,7 @@ angular.module('tagger.services').factory('SearchService',
             count(query.q, angular.bind(this, onCountSuccess));
           };
 
-          ItemService.query(query, angular.bind(this,onQuerySuccess), errorHandler)
+          ItemService.query(query, angular.bind(this, onQuerySuccess), errorHandler)
         };
 
         this.searchParams = searchParams;
@@ -213,14 +227,14 @@ angular.module('tagger.services').factory('SearchService',
         this.loaded = 0;
         $rootScope.$broadcast('onNetworkLoading');
 
-        run.apply(this,[this.searchId]);
+        run.apply(this, [this.searchId]);
       },
 
       /**
        * Using the existing search params - load more items
        * @param resultHandler
        */
-      loadMore: function(resultHandler){
+      loadMore: function (resultHandler) {
 
         if (this.loaded >= this.resultCount) {
           return;
@@ -237,7 +251,7 @@ angular.module('tagger.services').factory('SearchService',
 
         var query = this.buildItemServiceQuery(true);
 
-        var onSuccess = function(data){
+        var onSuccess = function (data) {
           this.itemDataCollection = this.itemDataCollection.concat(data);
           resultHandler(data);
           this.isLastSearchRunning = false;
@@ -245,7 +259,7 @@ angular.module('tagger.services').factory('SearchService',
           this.loaded += this.limit;
         };
 
-        ItemService.query( query, angular.bind(this,onSuccess));
+        ItemService.query(query, angular.bind(this, onSuccess));
       },
 
 

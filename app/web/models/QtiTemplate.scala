@@ -1,13 +1,11 @@
 package web.models
 
-import com.novus.salat._
-import play.api.Play.current
-
-import com.novus.salat.global._
-import com.novus.salat.dao._
-import play.api.libs.json.{JsNumber, JsObject, JsString, Writes}
-
 import com.mongodb.casbah.Imports._
+import com.novus.salat.dao._
+import play.api.Play.current
+import play.api.libs.json.{JsNumber, JsObject, JsString, Writes}
+import models.mongoContext.context
+
 
 case class QtiTemplate(
                         _id: ObjectId = new ObjectId,
@@ -20,8 +18,10 @@ case class QtiTemplate(
 
 
 object QtiTemplate extends ModelCompanion[QtiTemplate, ObjectId] {
-  val collection = se.radley.plugin.salat.mongoCollection("templates")
-  val dao = new SalatDAO[QtiTemplate, ObjectId](collection = collection) {}
+  //Note - use def so that we don't get Mongo connection closed errors from Salat.
+  def collection = se.radley.plugin.salat.mongoCollection("templates")
+
+  def dao = new SalatDAO[QtiTemplate, ObjectId](collection = collection) {}
 
 
   implicit object QtiTemplateWrites extends Writes[QtiTemplate] {

@@ -1,6 +1,4 @@
-@(itemBody:String)
-
-@import qti.models.interactions.utils.QtiScriptLoader
+@(itemBody:String, qtiAssetLoader : player.views.qti.QtiAssetsLoader)
 
 @common.views.html.head.coreJs()
 @common.views.html.head.ubuntu()
@@ -10,10 +8,28 @@
 
 <script type="text/javascript" src="@player.controllers.routes.Session.jsRoutes"></script>
 
-<script src="/assets/js/corespring/qti/app.js"></script>
-<script src="/assets/js/corespring/qti/qtiServices.js"></script>
-<script src="/assets/js/corespring/qti/directives/DimensionsChecker.js"></script>
-<script src="/assets/js/corespring/qti/directives/feedbackInline.js"></script>
-<script src="/assets/js/corespring/qti/prototype.extensions/Array.js"></script>
+@com.ee.assets.Loader.scripts("common")(
+  "js/corespring/qti/controllers",
+  "js/corespring/qti/app.js",
+  "js/corespring/qti/qtiServices.js",
+  "js/corespring/qti/directives/DimensionsChecker.js",
+  "js/corespring/qti/directives/feedbackInline.js",
+  "js/corespring/qti/prototype.extensions/Array.js"
+)
 
-@Html(QtiScriptLoader.load( itemBody ))
+@com.ee.assets.Loader.scripts("qti-interactions")( qtiAssetLoader.localJsPaths : _*)
+@com.ee.assets.Loader.css("qti-interactions")( qtiAssetLoader.localCssPaths : _* )
+
+<!-- qti - remote js -->
+@qtiAssetLoader.remoteJsPaths.map{ p =>
+<script src="@p" type="text/javascript"></script>
+}
+<!-- end qti - remote js -->
+
+
+<!-- Default Css -->
+@Html(common.controllers.DefaultCss.DEFAULT_CSS)
+<!-- End default css -->
+
+
+<!-- Html(QtiScriptLoader.load( itemBody )) -->

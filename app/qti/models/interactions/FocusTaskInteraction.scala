@@ -1,11 +1,10 @@
 package qti.models.interactions
 
 import choices.{Choice, SimpleChoice}
-import xml._
-import scala.Some
-import qti.models.{QtiItem, CorrectResponseMultiple, ResponseDeclaration}
-import controllers.Log
 import models.itemSession._
+import qti.models.{QtiItem, CorrectResponseMultiple, ResponseDeclaration}
+import scala.Some
+import xml._
 
 case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleChoice], checkIfCorrect: Boolean, minSelections: Int, maxSelections: Int) extends InteractionWithChoices {
 
@@ -59,7 +58,7 @@ case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleC
         outcomeProperties = outcomeProperties + ("responsesBelowMin" -> (responseValues.size < minSelections))
 
       case _ =>
-        Log.e("received a response that was not an array response in FocusTaskInteraction.getOutcome")
+        Logger.error("received a response that was not an array response in FocusTaskInteraction.getOutcome")
     }
 
 
