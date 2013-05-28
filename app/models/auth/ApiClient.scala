@@ -29,17 +29,6 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
   val collection = mongoCollection("apiClients")
   val dao = new SalatDAO[ApiClient, ObjectId](collection = collection) {}
 
-  def findBySignature(grantType:String,clientId:String,clientSignature:String,algorithm:String,scope:Option[String]):Option[ApiClient] = {
-    findByKey(clientId) match {
-      case Some(apiClient) => {
-        val message = grantType+":"+clientId+":"+algorithm+scope.map(":"+_).getOrElse("")
-        val signature = ShaHash.sign(message,apiClient.clientSecret)
-        if (clientSignature == signature) Some(apiClient)
-        else None
-      }
-      case None => None
-    }
-  }
   /**
    * Retrieves an ApiClient by client id and secret from the services.
    * @param id - the client id
@@ -47,14 +36,6 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
    * @return an Option[ApiClient]
    */
   def findByIdAndSecret(id: String, secret: String): Option[ApiClient] = {
-//    findByKey(id) match {
-//      case Some(apiClient) => {
-//        val hash = ShaHash.sign(apiClient.clientId.toString,apiClient.clientSecret)
-//        if (signature == hash) Some(apiClient)
-//        else None
-//      }
-//      case None => None
-//    }
     val idsObj = MongoDBObject(clientId -> new ObjectId(id), clientSecret -> secret)
     findOne(idsObj)
   }

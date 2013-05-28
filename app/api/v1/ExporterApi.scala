@@ -3,16 +3,18 @@ package api.v1
 import basiclti.export.CCExporter
 import com.mongodb.casbah.commons.MongoDBObject
 import common.controllers.utils.BaseUrl
+import common.encryption._
 import controllers.auth.{Permission, BaseApi}
 import models.item.{Content, Item}
 import org.bson.types.ObjectId
 import play.api.libs.iteratee.Enumerator
+import play.api.libs.json.Json
+import play.api.mvc.ResponseHeader
+import play.api.mvc.SimpleResult
 import play.api.mvc._
+import player.accessControl.models.RenderOptions
 import scala.Some
 import scorm.utils.ScormExporter
-import common.encryption.{AESCrypto, Crypto, EncryptionResult, OrgEncrypter}
-import player.accessControl.models.RenderOptions
-import play.api.libs.json.Json
 
 class ExporterApi(encrypter:Crypto) extends BaseApi {
 
@@ -27,7 +29,7 @@ class ExporterApi(encrypter:Crypto) extends BaseApi {
     val orgEncrypter = new OrgEncrypter(request.ctx.organization, encrypter)
     val options : RenderOptions = RenderOptions.ANYTHING
     orgEncrypter.encrypt(Json.toJson(options).toString()) match {
-      case Some(EncryptionResult(clientId,data, None)) => {
+      case Some(EncryptionSuccess(clientId,data, None)) => {
         val generatorFn : List[Item] => Array[Byte] = ScormExporter.makeMultiScormPackage(_,BaseUrl(request), clientId, data)
         binaryResultFromIds(ids, request.ctx.organization, generatorFn )
       }
