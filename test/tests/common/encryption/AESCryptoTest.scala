@@ -14,7 +14,7 @@ class AESCryptoTest extends Specification {
     }
 
     "encrypt and decrypt" in {
-      works("byzq4j0jpsjxmbnqk8w7wifv")
+      works("byzq4j0jpsjxmbnqk8w7wif4v")
     }
 
   }
