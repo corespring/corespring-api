@@ -17,12 +17,6 @@ class AESCryptoTest extends Specification {
       works("byzq4j0jpsjxmbnqk8w7wifv")
     }
 
-
-    "with short key" in {
-      works("251s9dxwupsq8588k7tz")
-      works("3bsl01n6d6udiau23ckb")
-    }
-
   }
 
 }
