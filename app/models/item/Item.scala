@@ -186,7 +186,7 @@ object Item extends ModelCompanion[Item, ObjectId] {
         case _ => Some(ti.copy(title = Some("[copy]")))
       }
       case _ => Some(TaskInfo(title = Some("[copy]")))
-    })
+    }, published = false)
     Item.save(copy)
     Some(copy)
   }
