@@ -1,7 +1,7 @@
 @(isPrintMode:Boolean, tab:String)(params: player.views.models.PlayerParams)
 
 @assessmentPage() = @{
-  if(isPrintMode) "assessment-page" else "student-assessment-page"
+  if(isPrintMode) "student-assessment-page" else "assessment-page"
 }
 
 <!DOCTYPE html>
@@ -9,21 +9,23 @@
 <head>
         @common.views.html.partials.ieEightSupport()
         @partials.scripts(params.xml,  new player.views.qti.QtiAssetsLoaderImpl(params.xml))
+
         <link href="/assets/stylesheets/nav.css" rel="stylesheet"/>
         <link href="/assets/stylesheets/profile.css" rel="stylesheet"/>
 
         <script type="text/javascript" src="@player.controllers.routes.Item.jsRoutes"></script>
 
+        <script src="/assets/js/vendor/jquery-plugins/jquery.iframe-auto-height.plugin.1.9.0.min.js" type="text/javascript"></script>
         <script src="/assets/js/corespring/common/services/Item.js"></script>
         <script src="/assets/js/corespring/ProfileController.js"></script>
 
         <script type="text/javascript">
                 angular.module('qti.services').factory('Config', [function(){
-                return {
-                itemId : "@params.itemId",
-                sessionId : "",
-                tab: "@tab"
-                }
+                    return {
+                        itemId : "@params.itemId",
+                        sessionId : "",
+                        tab: "@tab"
+                    }
                 }]);
         </script>
 
@@ -85,7 +87,7 @@
             <div id='supportingMaterialView' class="preview-container" ng-repeat="sm in itemData.supportingMaterials"
             ng-show="currentSm==sm">
 
-                <iframe iframe-auto-height=""
+                <iframe iframe-auto-height
                 frameBorder="0"
                 ng-src="{{getSmSrc(sm)}}"
                 style="width: 100%; min-height: 600px"

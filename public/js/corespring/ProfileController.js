@@ -10,7 +10,7 @@ function ProfileController($scope, Config, Item, ItemFormattingUtils, ResourceUt
   };
 
   $scope.getSmSrc = function (sm, forPrinting) {
-    return ResourceUtils.getSmSrc($scope.itemData, sm, forPrinting);
+    return $scope.currentSm ? ResourceUtils.getSmSrc($scope.itemData, sm, forPrinting) : null;
   };
 
   $scope.getLicenseTypeUrl = ResourceUtils.getLicenseTypeUrl;

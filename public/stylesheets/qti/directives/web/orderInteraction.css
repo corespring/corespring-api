@@ -31,7 +31,6 @@ ul {
     list-style: none;
 }
 
-
 .draggable-item {
     background-color: #eee;
     margin: 10px;
@@ -42,6 +41,7 @@ ul {
     float: left;
    	margin-bottom:0.4em;
    	padding:8px;
+    max-width: 200px;
 }
 
 .placement-destination-inner > .draggable-item,
@@ -143,4 +143,4 @@ ul {
     margin: auto;
 }
 
-.ui-state-highlight { background-color: #EEEEEE; }​
+.ui-state-highlight { background-color: #EEEEEE; }

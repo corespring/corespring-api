@@ -1,97 +1,64 @@
-Corespring API
-==============
+This project contains the api rest layer and web ui for administering corespring items.
 
-# Getting set up
+### Installation
+*we assume you already have Java JDK >= 1.6*
 
+*Mac users - It is recommended that you use [homebrew](http://mxcl.github.io/homebrew/) for all your installations.*
 
-Run MongoDB locally on the default port:
+    cd ~/dev/github/corespring
+    git clone git@github.com:corespring/corespring-api.git
 
-    $ mongod
-    mongod --help for help and startup options
-    Sun Sep  2 08:51:56 [initandlisten] MongoDB starting : pid=593 port=27017 dbpath=/data/db/ 64-bit host=bburton-macbook.local
-    Sun Sep  2 08:51:56 [initandlisten] db version v2.0.6, pdfile version 4.5
-    Sun Sep  2 08:51:56 [initandlisten] git version: e1c0cbc25863f6356aa4e31375add7bb49fb05bc
-    Sun Sep  2 08:51:56 [initandlisten] build info: Darwin erh2.10gen.cc 9.8.0 Darwin Kernel Version 9.8.0: Wed Jul 15 16:55:01 PDT 2009; root:xnu-1228.15.4~1/RELEASE_I386 i386 BOOST_LIB_VERSION=1_40
-    Sun Sep  2 08:51:56 [initandlisten] options: {}
-    Sun Sep  2 08:51:56 [initandlisten] journal dir=/data/db/journal
-    Sun Sep  2 08:51:56 [initandlisten] recover : no journal files present, no recovery needed
-    Sun Sep  2 08:51:56 [websvr] admin web console waiting for connections on port 28017
-    Sun Sep  2 08:51:56 [initandlisten] waiting for connections on port 27017
+* Install mongodb
+* Install play 2.0.4
+* For running tests install phantomjs   
 
+### Running/Testing
 
-Run the application using the Play SBT run target:
+    cd corepsring-api
+    play run
+    play test
 
-    $ play
-    
-    [corespring-api] $ run
-    
-    --- (Running the application from SBT, auto-reloading is enabled) ---
-    
-    [info] play - Listening for HTTP on port 9000...
+### Application configuration
 
-If you want, you can use the convenience script to test the API in bin/cscurl. I add it to my PATH environment variable by putting this in my ~/.bashrc:
+The application will run without any configuration by using a set of default values.
+These values essentially run the app in development mode, by using the local db
+and reseeding the data.
 
-    export CS_API_ROOT=/Users/bburton/Documents/workspace/corespring-api
-    PATH=$PATH:$CS_API_ROOT/bin
-		
-At which point you can access the API like so:
+When deploying the application to heroku we override some of these variables.
 
-    $cscurl api/v1/items/500d918fe4b0c748988e88ad
-    {
-        "author": "State Department of Education",
-        "collectionId": "50218190e4b03e00504e4742",
-        "contentType": "item",
-        "contributor": "State Department of Education",
-        "copyrightYear": "2011",
-        "gradeLevel": [
-            "11"
-        ],
-        "id": "500d918fe4b0c748988e88ad",
-        "itemType": "Multiple Choice",
-        "licenseType": "CC BY",
-        "primarySubject": {
-            "category": "Mathematics",
-            "refId": "4ffb535f6bb41e469c0bf2c2",
-            "subject": ""
-        },
-        "priorUse": "Summative",
-        "sourceUrl": "http://statedoe.gov",
-        "title": "Trevor has $6 to spend on raisins and peanuts. Raisins cost $1 per pound, and peanuts cost $2 per pound. Which graph shows the relationship between the number of pounds of raisins and the number of pounds of peanuts that Trevor can buy?"
-    }
-    
-#Heroku Settings
-    
-# Heroku Add-ons
+This is done using the [heroku-helper](https://github.com/corespring/heroku-helper).
+See that project for more documentation. In an nutshell the helper uses 2 files:
 
-SendGrid
+* .heroku-helper.conf - allows you to configure scripts to run as part of deployment
+* .heroku-helper-env.conf - set up env vars for a given heroku server (not under source control).
 
-# Heroku Production Environment Variables
+### Logging configuration
 
-EMAIL_HOST:                 smtp.sendgrid.net
+For information on how to configure the xml see: [play docs](http://www.playframework.com/documentation/2.1.1/SettingsLogger)
+and [logback docs](http://logback.qos.ch/manual/configuration.html)
 
-EMAIL_PASSWORD:             ${SENDGRID_PASSWORD}
+#### Heroku
 
-EMAIL_USER:                 ${SENDGRID_USERNAME}
+There are some logging configurations in conf/logging. When `foreman` starts `play` it uses the logger
+defined by `ENV_LOGGER` which defaults to `conf/logger.xml` (this is defined in the .env file).
 
-ENV_INIT_DATA:              false
+To change this add an environment variable:
 
-ENV_MONGO_URI:              mongodb://corespring:cccrcId4d@ds039017.mongolab.com:39017/corespring-app
+    heroku config:set ENV_LOGGER=conf/logging/debug.xml --app your_server_name_here
 
-GOOGLE_CLIENT_ID:           1091241109207.apps.googleusercontent.com
+Note that you can point to a file that is not on the class path if you want:
 
-GOOGLE_CLIENT_SECRET:       MXuLdNojHZYY4ciVWndrNRml
+    heroku config:set ENV_LOGGER=/home/test/some-log-config.xml --app your_server_name_here
+
+* Note: It would have been preferable to set the logger up in the conf file - but thats not possible with the current
+version of play.*
+
+#### Localhost
+
+To configure the logger when running locally add a system property to your run command:
+
+    play -Dlogger.file=path/to/logger.xml
 
 
-#Heroku Development Environment Variables
-
-EMAIL_HOST:                   smtp.sendgrid.net
-
-EMAIL_PASSWORD:               ${SENDGRID_PASSWORD}
-
-EMAIL_USER:                   ${SENDGRID_USERNAME}
-
-ENV_MONGO_URI:                mongodb://ed:hello@ds039007.mongolab.com:39007/corespring-api-devt
-
-INIT_DATA:                    true
 
 

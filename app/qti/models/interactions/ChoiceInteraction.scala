@@ -1,7 +1,6 @@
 package qti.models.interactions
 
 import choices.{Choice, SimpleChoice}
-import controllers.Log
 import models.itemSession._
 import qti.models.QtiItem.Correctness
 import qti.models.ResponseDeclaration
@@ -38,7 +37,7 @@ case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoi
         case None => None
       }
       case _ => {
-        Log.e("received a response that was not a string response in ChoiceInteraction.getOutcome")
+        Logger.error("received a response that was not a string response in ChoiceInteraction.getOutcome")
         None
       }
     }

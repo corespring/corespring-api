@@ -21,7 +21,7 @@ object ItemSearch extends Searchable{
         searchFields.jsfields = searchFields.jsfields :+ field._1
         Right(searchFields)
       }else{
-        Left(InternalError("Wrong value for "+field._1+". Should have been "+method,addMessageToClientOutput = true))
+        Left(InternalError("Wrong value for "+field._1+". Should have been "+method))
       }
     }
     dbfields.foldRight[Either[InternalError,SearchFields]](Right(SearchFields(method = method)))((field,result) => result match {
@@ -61,7 +61,7 @@ object ItemSearch extends Searchable{
           case key if key.startsWith(Item.standards) => toSearchFieldObj(searchFields,field,false)
           case Item.title => toSearchFieldObj(searchFields,field,dbkey=Item.taskInfo+"."+TaskInfo.Keys.title)
           case Item.published => toSearchFieldObj(searchFields,field)
-          case _ => Left(InternalError("unknown key contained in fields: "+field._1,addMessageToClientOutput = true))
+          case _ => Left(InternalError("unknown key contained in fields: "+field._1))
         }
       }
       case Left(e) => Left(e)
@@ -171,7 +171,7 @@ object ItemSearch extends Searchable{
                 case Item.contentType => Right(searchobj)
                 case Item.pValue => formatQuery(Item.pValue,field._2,searchobj)
                 case Item.relatedCurriculum => formatQuery(Item.otherAlignments+"."+Alignments.Keys.relatedCurriculum,field._2,searchobj)
-                case Item.supportingMaterials => Left(SearchCancelled(Some(InternalError("cannot query on supportingMaterials",addMessageToClientOutput = true))))
+                case Item.supportingMaterials => Left(SearchCancelled(Some(InternalError("cannot query on supportingMaterials"))))
                 case Item.gradeLevel => formatQuery(Item.taskInfo+"."+TaskInfo.Keys.gradeLevel,field._2,searchobj)
                 case Item.itemType => formatQuery(Item.taskInfo+"."+TaskInfo.Keys.itemType,field._2,searchobj)
                 case Item.keySkills => formatQuery(Item.otherAlignments+"."+Alignments.Keys.keySkills,field._2,searchobj)
@@ -183,7 +183,7 @@ object ItemSearch extends Searchable{
                 case Item.reviewsPassed => formatQuery(Item.reviewsPassed,field._2,searchobj)
                 case key if key.startsWith(Item.standards) => Right(searchobj)
                 case Item.title => formatQuery(Item.taskInfo+"."+TaskInfo.Keys.title,field._2,searchobj)
-                case _ => Left(SearchCancelled(Some(InternalError("unknown key contained in query: "+field._1,addMessageToClientOutput = true))))
+                case _ => Left(SearchCancelled(Some(InternalError("unknown key contained in query: "+field._1))))
               }
             }
             case Left(e) => Left(e)
@@ -199,7 +199,7 @@ object ItemSearch extends Searchable{
     def formatSortField(key:String,value:AnyRef):Either[InternalError,MongoDBObject] = {
       value match {
         case intval:java.lang.Integer => Right(MongoDBObject(key -> value))
-        case _ => Left(InternalError("sort value not a number",addMessageToClientOutput = true))
+        case _ => Left(InternalError("sort value not a number"))
       }
     }
     field._1 match {
@@ -234,7 +234,7 @@ object ItemSearch extends Searchable{
       case Item.title => formatSortField(Item.taskInfo+"."+TaskInfo.Keys.title,field._2)
       case Item.collectionId => formatSortField(Item.collectionId,field._2)
       case Item.published => formatSortField(Item.published,field._2)
-      case _ => Left(InternalError("unknown or invalid key contained in sort field",addMessageToClientOutput = true))
+      case _ => Left(InternalError("unknown or invalid key contained in sort field"))
     }
   }
 

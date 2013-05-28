@@ -1,35 +1,17 @@
 package developer.controllers
 
-import play.api.mvc._
-import controllers.{Log, Assets}
-import securesocial.core._
-import play.api.libs.json._
 import api.ApiError
-import org.bson.types.ObjectId
-import models.{User, Organization}
-import controllers.auth.{BaseApi, OAuthConstants, OAuthProvider, Permission}
-import scala.Left
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsBoolean
-import scala.Some
-import scala.Right
-import scala.Left
-import securesocial.core.SocialUser
-import play.api.libs.json.JsString
-import play.api.libs.json.JsBoolean
-import scala.Some
-import scala.Right
-import securesocial.core.PasswordInfo
-import play.api.libs.json.JsObject
-import scala.Left
-import play.api.libs.json.JsString
-import play.api.libs.json.JsBoolean
-import scala.Some
-import scala.Right
-import play.api.mvc.SimpleResult
-import play.api.libs.json.JsObject
-import play.api.cache.Cache
 import common.config.AppConfig
+import controllers.Assets
+import controllers.auth.{BaseApi, OAuthProvider, Permission}
+import models.{User, Organization}
+import org.bson.types.ObjectId
+import play.api.libs.json._
+import play.api.mvc._
+import scala.Left
+import scala.Right
+import scala.Some
+import securesocial.core._
 
 object Developer extends Controller with BaseApi{
 
@@ -50,27 +32,10 @@ object Developer extends Controller with BaseApi{
     }
   }
 
-  private def addAccessToken(result:SimpleResult[AnyContent],user:User)(implicit request:RequestHeader):Result = {
-    OAuthProvider.register(user.orgs(0).orgId) match {
-      case Right(apiClient) => OAuthProvider.getAccessToken(OAuthConstants.ClientCredentials,
-        apiClient.clientId.toString,
-        apiClient.clientSecret,Some(user.userName)) match {
-        case Right(accessToken) => result.withHeaders(request.headers + "access_token" -> accessToken.tokenId)
-        case Left(error) => {
-          Log.e(error.message)
-          result
-        }
-      }
-      case Left(error) => {
-        Log.e(error.message)
-        result
-      }
-    }
-  }
-
   def login = Action{ request =>
     Redirect("/login").withSession(request.session + ("securesocial.originalUrl" -> "/developer/home"));
   }
+
   def isLoggedIn = Action { request =>
     val username = request.session.get(SecureSocial.UserKey)
     if(username.isDefined){

@@ -1,6 +1,5 @@
 package qti.models.interactions
 
-import controllers.Log
 import models.itemSession._
 import qti.models.QtiItem.Correctness
 import qti.models.ResponseDeclaration
@@ -39,7 +38,7 @@ case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int,
         case None => None
       }
       case _ => {
-        Log.e("received a response that was not a string response in TextEntryInteraction.getOutcome")
+        Logger.error("received a response that was not a string response in TextEntryInteraction.getOutcome")
         None
       }
     }

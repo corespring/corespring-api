@@ -1,33 +1,24 @@
 package tests.api.v1
 
+import api.ApiError
+import api.v1.ItemApi
+import com.mongodb.casbah.Imports._
+import common.log.PackageLogging
+import controllers.S3Service
+import models._
+import org.specs2.mock.Mockito
 import play.api.libs.json._
 import play.api.mvc._
+import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import tests.BaseTest
-import models._
-import auth.AccessToken
-import item.Item
-import item.resource.{VirtualFile, Resource}
-import org.bson.types.ObjectId
-import controllers.{S3Service, Log}
+import scala.Some
 import scala.xml._
-import scala.Some
-import play.api.test.FakeHeaders
-import play.api.mvc.AnyContentAsJson
-import play.api.libs.json.JsObject
-import api.ApiError
-import com.mongodb.casbah.Imports._
-import play.api.test.FakeHeaders
-import scala.Some
-import play.api.mvc.AnyContentAsJson
-import play.api.libs.json.JsObject
-import controllers.auth.Permission
-import org.joda.time.DateTime
-import org.specs2.mock.Mockito
-import api.v1.ItemApi
+import tests.BaseTest
+import models.item.Item
+import models.item.resource.{Resource, VirtualFile}
 
-class ItemApiTest extends BaseTest with Mockito {
+class ItemApiTest extends BaseTest with Mockito with PackageLogging {
 
   val mockS3service = mock[S3Service]
 
@@ -190,7 +181,7 @@ class ItemApiTest extends BaseTest with Mockito {
 
     val updateResult = routeAndCall(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
     status(updateResult) must equalTo(OK)
-    Log.i(contentAsString(updateResult))
+    Logger.info(contentAsString(updateResult))
     val item: Item = Json.parse(contentAsString(updateResult)).as[Item]
 
     item.collectionId must equalTo(TEST_COLLECTION_ID)

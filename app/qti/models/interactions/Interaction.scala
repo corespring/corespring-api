@@ -3,8 +3,9 @@ package qti.models.interactions
 import models.itemSession.{ItemResponseOutcome, ItemResponse}
 import qti.models.{QtiItem, ResponseDeclaration}
 import xml.{Elem, NodeSeq, Node}
+import common.log.PackageLogging
 
-trait Interaction {
+trait Interaction extends PackageLogging{
   val responseIdentifier: String
 
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome]

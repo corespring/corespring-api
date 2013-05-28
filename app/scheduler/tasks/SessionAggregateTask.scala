@@ -1,24 +1,15 @@
 package scheduler.tasks
 
-import akka.util.duration._
-import controllers.Log
 import akka.util.Duration
-import models.itemSession.ItemSession
-import com.mongodb.casbah.Imports._
-import play.api.Logger
+import akka.util.duration._
+import common.log.PackageLogging
 
-
-class SessionAggregateTask extends RabbitMQTask{
+//TODO: Find out whats supposed to happen here.
+class SessionAggregateTask extends RabbitMQTask with PackageLogging{
   override val initialDelay = Duration.Zero
   override val frequency = 1 minute
 
   def run() {
-    Logger.info("running session aggregate task at "+System.currentTimeMillis())
-//    val mapJS:JSFunction = """
-//      function () {
-//          emit(this.itemId,this)
-//      }
-//                """
-//    ItemSession.collection.mapReduce()
+    Logger.error("This run function does nothing")
   }
 }

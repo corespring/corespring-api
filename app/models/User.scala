@@ -68,16 +68,16 @@ object User extends ModelCompanion[User,ObjectId] with Searchable{
           case Some(id) => {
             Right(user)
           }
-          case None => Left(InternalError("error inserting user",LogType.printFatal,true))
+          case None => Left(InternalError("error inserting user"))
         }
-      }else Left(InternalError("user already exists",LogType.printError,true))
-    }else Left(InternalError("no organization found with given id",LogType.printError,true))
+      }else Left(InternalError("user already exists"))
+    }else Left(InternalError("no organization found with given id"))
   }
 
   def removeUser(username: String): Either[InternalError, Unit] = {
     getUser(username) match {
       case Some(user) => removeUser(user.id)
-      case None => Left(InternalError("user could not be removed because it doesn't exist",LogType.printError,true))
+      case None => Left(InternalError("user could not be removed because it doesn't exist"))
     }
   }
 
@@ -86,7 +86,7 @@ object User extends ModelCompanion[User,ObjectId] with Searchable{
       User.removeById(userId)
       Right(())
     } catch {
-      case e: SalatRemoveError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("error occured while removing user")))
+      case e: SalatRemoveError => Left(InternalError("error occured while removing user", e))
     }
   }
 
@@ -97,10 +97,10 @@ object User extends ModelCompanion[User,ObjectId] with Searchable{
         false, false, User.collection.writeConcern)
       User.findOneById(user.id) match {
         case Some(u) => Right(u)
-        case None => Left(InternalError("no user found that was just modified", LogType.printFatal, true))
+        case None => Left(InternalError("no user found that was just modified"))
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(InternalError(e.getMessage,LogType.printFatal,clientOutput = Some("failed to update user")))
+      case e: SalatDAOUpdateError => Left(InternalError("failed to update user", e))
     }
   }
 
@@ -112,7 +112,7 @@ object User extends ModelCompanion[User,ObjectId] with Searchable{
         false,false,defaultWriteConcern);
       Right(())
     }catch{
-      case e:SalatDAOUpdateError => Left(InternalError("could add organization to user", addMessageToClientOutput = true))
+      case e:SalatDAOUpdateError => Left(InternalError("could add organization to user"))
     }
   }
 
@@ -148,26 +148,26 @@ object User extends ModelCompanion[User,ObjectId] with Searchable{
       }catch {
         case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
       }
-      case None => Left(InternalError("could not find user", addMessageToClientOutput = true))
+      case None => Left(InternalError("could not find user"))
     }
   }
   def getPermissions(userId:ObjectId, orgId:ObjectId):Either[InternalError,Permission] = {
     User.findOne(MongoDBObject("_id" -> userId, User.orgs+"."+UserOrg.orgId -> orgId)) match {
       case Some(u) => getPermissions(u,orgId)
-      case None => Left(InternalError("could not find user with access to given organization",addMessageToClientOutput = true))
+      case None => Left(InternalError("could not find user with access to given organization"))
     }
   }
   def getPermissions(username:String, orgId:ObjectId):Either[InternalError,Permission] = {
     User.findOne(MongoDBObject(User.userName -> username, User.orgs+"."+UserOrg.orgId -> orgId)) match {
       case Some(u) => getPermissions(u,orgId)
-      case None => Left(InternalError("could not find user with access to given organization",addMessageToClientOutput = true))
+      case None => Left(InternalError("could not find user with access to given organization"))
     }
   }
   private def getPermissions(user:User, orgId:ObjectId):Either[InternalError,Permission] = {
     user.orgs.find(_.orgId == orgId) match {
       case Some(uo) => Permission.fromLong(uo.pval) match {
         case Some(p) => Right(p)
-        case None => Left(InternalError("uknown permission retrieved",addMessageToClientOutput = true))
+        case None => Left(InternalError("uknown permission retrieved"))
       }
       case None => Left(InternalError("userorg not found even though it was part of search requirement. this should never happen"))
     }

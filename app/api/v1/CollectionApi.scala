@@ -119,7 +119,7 @@ object CollectionApi extends BaseApi {
     val orgs:Seq[(ObjectId,Permission)] = values.map(v => v match {
       case JsString(strval) => (new ObjectId(strval) -> Permission.Read)
       case JsObject(orgWithPerm) => (new ObjectId(orgWithPerm(1)._1) -> Permission.fromLong(orgWithPerm(1)._2.as[Long]).get)
-      case _ => return Right(InternalError("incorrect format for organizations",addMessageToClientOutput = true))
+      case _ => return Right(InternalError("incorrect format for organizations"))
     })
     ContentCollection.addOrganizations(orgs,collId)
   }
