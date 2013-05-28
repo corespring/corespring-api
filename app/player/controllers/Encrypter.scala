@@ -1,17 +1,16 @@
 package player.controllers
 
-import common.encryption.EncryptionResult
-import common.encryption.{Crypto, AESCrypto, OrgEncrypter}
+import common.encryption._
 import controllers.auth.BaseApi
 import play.api.libs.json._
 import player.accessControl.models.RenderOptions
+import scalaz.Scalaz._
 import scalaz._
-import Scalaz._
 
 class Encrypter(encrypter: Crypto) extends BaseApi {
 
-  private implicit object Writes extends Writes[EncryptionResult] {
-    def writes(er: EncryptionResult): JsValue = JsObject {
+  private implicit object Writes extends Writes[EncryptionSuccess] {
+    def writes(er: EncryptionSuccess): JsValue = JsObject {
       Seq(
         "clientId" -> JsString(er.clientId),
         "options" -> JsString(er.data),
@@ -23,7 +22,7 @@ class Encrypter(encrypter: Crypto) extends BaseApi {
   def encryptOptions = ApiAction {
     request =>
       val orgEncrypter = new OrgEncrypter(request.ctx.organization, encrypter)
-      val result : Validation[String,EncryptionResult] = for {
+      val result: Validation[String, EncryptionResult] = for {
         json <- request.body.asJson.toSuccess("No json in the request body")
         validJson <- if (validJson(json)) Success(json) else Failure("Not valid json")
         encryptionResult <- orgEncrypter.encrypt(validJson.toString()).toSuccess("No encryption created")
@@ -32,7 +31,23 @@ class Encrypter(encrypter: Crypto) extends BaseApi {
       }
 
       result match {
-        case Success(r) => Ok(Json.toJson(r))
+        case Success(r) => {
+          r match {
+            case s: EncryptionSuccess => Ok(Json.toJson(s))
+            case f: EncryptionFailure => {
+              Logger.error("Failed encryption: " + f.e.getMessage)
+              BadRequest(
+                Json.toJson(
+                  JsObject(
+                    Seq(
+                      "error" -> JsString("There was an error encrypting your options")
+                    )
+                  )
+                )
+              )
+            }
+          }
+        }
         case Failure(e) => BadRequest("Bad Request: " + e)
       }
   }
