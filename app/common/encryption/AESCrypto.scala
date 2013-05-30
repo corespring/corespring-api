@@ -15,26 +15,22 @@ object AESCrypto extends Crypto {
 
   val KEY_LENGTH_REQUIREMENT = this.getClass.getSimpleName + "the encryption key must be a string with 25 characters"
 
-  /** this is required because BigInt.toByteArray is converted to a signed array of bytes, which results in extra padding on the array
-    */
-  def stripKeyPadding(key: Array[Byte]): Array[Byte] = key.takeRight(KEY_LENGTH)
-
+  private def generateIV:Array[Byte] = {
+    val uuid = UUID.randomUUID();
+    val bytes:Array[Byte] = new Array[Byte](16)
+    val bb = ByteBuffer.wrap(bytes)
+    bb.order(ByteOrder.BIG_ENDIAN)
+    bb.putLong(uuid.getLeastSignificantBits)
+    bb.putLong(uuid.getMostSignificantBits)
+    bytes
+  }
   /**
-   * Encrypt a String with the AES encryption standard. Private key must have a length of 16 bytes
+   * Encrypt a String with the AES encryption standard
    * @param value The String to encrypt
    * @param privateKey The key used to encrypt
    * @return An hexadecimal encrypted string
    */
   def encrypt(value: String, privateKey: String): String = {
-    def generateIV:Array[Byte] = {
-      val uuid = UUID.randomUUID();
-      val bytes:Array[Byte] = new Array[Byte](16)
-      val bb = ByteBuffer.wrap(bytes)
-      bb.order(ByteOrder.BIG_ENDIAN)
-      bb.putLong(uuid.getLeastSignificantBits)
-      bb.putLong(uuid.getMostSignificantBits)
-      bytes
-    }
     val raw = MessageDigest.getInstance("MD5").digest(privateKey.getBytes("UTF-8"))
     val iv = generateIV
     val spec = new SecretKeySpec(raw, "AES")
@@ -45,18 +41,18 @@ object AESCrypto extends Crypto {
 
 
   /**
-   * Decrypt a String with the AES encryption standard. Private key must have a length of 16 bytes
+   * Decrypt a String with the AES encryption standard
    * @param value An hexadecimal encrypted string
    * @param privateKey The key used to encrypt
    * @return The decrypted String
    */
   def decrypt(value: String, privateKey: String): String = {
     val parts = value.split("--")
+    require(parts.length == 2, "must contain cipher text and initialization vector (iv) separated by the delimeter '--'")
     val message = parts(0); val iv = parts(1);
     val messageBytes = Hex.decodeHex(message.toCharArray())
     val ivBytes = Hex.decodeHex(iv.toCharArray())
     val raw = MessageDigest.getInstance("MD5").digest(privateKey.getBytes("UTF-8"))
-    //println(Codecs.toHexString(raw))
     val spec = new SecretKeySpec(raw, "AES")
     val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
     cipher.init(Cipher.DECRYPT_MODE, spec, new IvParameterSpec(ivBytes))
