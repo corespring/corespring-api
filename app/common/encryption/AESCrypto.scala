@@ -1,8 +1,12 @@
 package common.encryption
 
 import javax.crypto.Cipher
-import javax.crypto.spec.SecretKeySpec
+import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
 import play.api.libs.Codecs
+import java.util.UUID
+import java.nio.{ByteOrder, ByteBuffer}
+import org.apache.commons.codec.binary.{Hex, Base64}
+import java.security.MessageDigest
 
 object AESCrypto extends Crypto {
   def KEY_LENGTH = 16
@@ -13,7 +17,7 @@ object AESCrypto extends Crypto {
 
   /** this is required because BigInt.toByteArray is converted to a signed array of bytes, which results in extra padding on the array
     */
-  def stripKeyPadding(key: Array[Byte]): Array[Byte] = key.reverse.take(KEY_LENGTH)
+  def stripKeyPadding(key: Array[Byte]): Array[Byte] = key.takeRight(KEY_LENGTH)
 
   /**
    * Encrypt a String with the AES encryption standard. Private key must have a length of 16 bytes
@@ -21,9 +25,22 @@ object AESCrypto extends Crypto {
    * @param privateKey The key used to encrypt
    * @return An hexadecimal encrypted string
    */
-  def encrypt(value: String, privateKey: String): String = withCipherAndSpec(value, privateKey, Cipher.ENCRYPT_MODE) {
-    cipher =>
-      Codecs.toHexString(cipher.doFinal(value.getBytes("utf-8")))
+  def encrypt(value: String, privateKey: String): String = {
+    def generateIV:Array[Byte] = {
+      val uuid = UUID.randomUUID();
+      val bytes:Array[Byte] = new Array[Byte](16)
+      val bb = ByteBuffer.wrap(bytes)
+      bb.order(ByteOrder.BIG_ENDIAN)
+      bb.putLong(uuid.getLeastSignificantBits)
+      bb.putLong(uuid.getMostSignificantBits)
+      bytes
+    }
+    val raw = MessageDigest.getInstance("MD5").digest(privateKey.getBytes("UTF-8"))
+    val iv = generateIV
+    val spec = new SecretKeySpec(raw, "AES")
+    val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+    cipher.init(Cipher.ENCRYPT_MODE, spec, new IvParameterSpec(iv))
+    Codecs.toHexString(cipher.doFinal(value.getBytes("utf-8")))+"--"+Codecs.toHexString(iv)
   }
 
 
@@ -33,21 +50,16 @@ object AESCrypto extends Crypto {
    * @param privateKey The key used to encrypt
    * @return The decrypted String
    */
-  def decrypt(value: String, privateKey: String): String = withCipherAndSpec(value, privateKey, Cipher.DECRYPT_MODE) {
-    (cipher) =>
-      def hexStringToByte(hexString: String): Array[Byte] = {
-        import org.apache.commons.codec.binary.Hex
-        Hex.decodeHex(hexString.toCharArray())
-      }
-      new String(cipher.doFinal(hexStringToByte(value)))
-  }
-
-  private def withCipherAndSpec(value: String, key: String, mode: Int)(block: Cipher => String): String = {
-    require(key != null && key.length == 25, KEY_LENGTH_REQUIREMENT)
-    val raw = stripKeyPadding(BigInt(key, KEY_RADIX).toByteArray)
+  def decrypt(value: String, privateKey: String): String = {
+    val parts = value.split("--")
+    val message = parts(0); val iv = parts(1);
+    val messageBytes = Hex.decodeHex(message.toCharArray())
+    val ivBytes = Hex.decodeHex(iv.toCharArray())
+    val raw = MessageDigest.getInstance("MD5").digest(privateKey.getBytes("UTF-8"))
+    //println(Codecs.toHexString(raw))
     val spec = new SecretKeySpec(raw, "AES")
-    val cipher = Cipher.getInstance("AES")
-    cipher.init(mode, spec)
-    block(cipher)
+    val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+    cipher.init(Cipher.DECRYPT_MODE, spec, new IvParameterSpec(ivBytes))
+    new String(cipher.doFinal(messageBytes))
   }
 }
