@@ -9,6 +9,7 @@ object Dependencies {
   val playPluginMailer = "com.typesafe" %% "play-plugins-mailer" % "2.0.4"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
   val securesocial = "securesocial" % "securesocial_2.9.1" % "2.0.8"
+  // this has temporarily been disabled as it was failing on heroku:
   val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.2.4.1"
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
@@ -29,7 +30,7 @@ object Dependencies {
     aws,
     jbcrypt,
     mockito,
-    playMemcached,
+//    playMemcached,
     playPluginMailer,
     playPluginUtil,
     salatPlay,

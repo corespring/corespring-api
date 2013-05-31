@@ -59,6 +59,3 @@ To configure the logger when running locally add a system property to your run c
 
     play -Dlogger.file=path/to/logger.xml
 
-
-
-
