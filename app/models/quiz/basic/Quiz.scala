@@ -254,13 +254,14 @@ object Quiz {
 
   def addParticipants(quizId: ObjectId, externalUids: Seq[String]): Option[Quiz] = {
     Quiz.findOneById(quizId) match {
-      case Some(q) => {
-        val updatedQuiz = q.copy(participants = q.participants ++ externalUids.map(euid => Participant(Seq(), euid)))
-        Quiz.update(updatedQuiz)
-        Some(updatedQuiz)
-      }
+      case Some(q) => addParticipants(q,externalUids)
       case None => None
     }
+  }
+  def addParticipants(q:Quiz,externalUids: Seq[String]): Option[Quiz] = {
+    val updatedQuiz = q.copy(participants = q.participants ++ externalUids.map(euid => Participant(Seq(), euid)))
+    Quiz.update(updatedQuiz)
+    Some(updatedQuiz)
   }
 
 }
