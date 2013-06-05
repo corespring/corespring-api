@@ -96,16 +96,17 @@ object QuizApi extends BaseApi {
   }
 
   def addParticipants(id:ObjectId) = ApiAction {
-    request =>
-      request.body.asJson match {
-        case Some(json)  =>
-          val ids = (json \ "ids").as[Seq[String]]
-          val updated = Quiz.addParticipants(id, ids)
-          Ok(toJson(updated))
-
-        case _ =>
-          BadRequest(toJson(ApiError.JsonExpected))
-      }
+    request => WithQuiz(id,request.ctx.organization){
+      quiz =>
+        request.body.asJson match {
+          case Some(json)  =>
+            val ids = (json \ "ids").as[Seq[String]]
+            val updated = Quiz.addParticipants(quiz, ids)
+            Ok(toJson(updated))
+          case _ =>
+            BadRequest(toJson(ApiError.JsonExpected))
+        }
+    }
   }
 
   def addAnswerForParticipant(quizId: ObjectId, externalUid: String) = ApiAction {

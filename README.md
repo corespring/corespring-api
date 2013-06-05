@@ -10,7 +10,9 @@ This project contains the api rest layer and web ui for administering corespring
 
 * Install mongodb
 * Install play 2.0.4
-* For running tests install phantomjs   
+* For running tests install phantomjs
+
+
 
 ### Running/Testing
 
@@ -58,7 +60,4 @@ version of play.*
 To configure the logger when running locally add a system property to your run command:
 
     play -Dlogger.file=path/to/logger.xml
-
-
-
 
