@@ -225,7 +225,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
    */
   def getData(id: ObjectId) = ApiAction {
     request =>
-      Item.collection.findOneByID(id, MongoDBObject(Item.data -> 1, Item.collectionId -> 1)) match {
+      Item.findFieldsById(id, MongoDBObject(Item.data -> 1, Item.collectionId -> 1)) match {
         case Some(o) => o.get(Item.collectionId) match {
           case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, collId, Permission.Read)) {
             if (o.contains(Item.data))
@@ -246,7 +246,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
    */
   def delete(id: ObjectId) = ApiAction {
     request =>
-      Item.collection.findOneByID(id, MongoDBObject(Item.collectionId -> 1)) match {
+      Item.findFieldsById(id, MongoDBObject(Item.collectionId -> 1)) match {
         case Some(o) => o.get(Item.collectionId) match {
           case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, collId, Permission.Write)) {
             Content.moveToArchive(id) match {
@@ -412,19 +412,19 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
                     item.version match {
                       case Some(ver) => Item.update(MongoDBObject("_id" -> item.id),
                         MongoDBObject("$set" -> MongoDBObject(Item.version + "." + Version.current -> false)),
-                        false, false, Item.defaultWriteConcern)
+                        false, false)
                       case None => {
                         val version = Version(item.id, 0, false)
                         Item.update(MongoDBObject("_id" -> item.id),
                           MongoDBObject("$set" -> MongoDBObject(Item.version -> grater[Version].asDBObject(version))),
-                          false, false, Item.defaultWriteConcern)
+                          false, false )
                         item.version = Some(version)
                       }
                     }
                     val currentVersion = Version(item.version.get.root, item.version.get.rev + 1, true)
                     Item.update(MongoDBObject("_id" -> clonedItem.id),
                       MongoDBObject("$set" -> MongoDBObject(Item.version -> grater[Version].asDBObject(currentVersion))),
-                      false, false, Item.defaultWriteConcern)
+                      false, false)
                     Ok(Json.toJson(ItemView(clonedItem, None)))
                   } catch {
                     case e: SalatDAOUpdateError => InternalServerError(Json.toJson(ApiError.Item.Clone(Some("could not update version"))))
@@ -484,12 +484,12 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
                     olditem.version match {
                       case Some(ver) => Item.update(MongoDBObject("_id" -> olditem.id),
                         MongoDBObject("$set" -> MongoDBObject(Item.version + "." + Version.current -> false)),
-                        false, false, Item.defaultWriteConcern)
+                        false, false)
                       case None => {
                         val version = Version(olditem.id, 0, false)
                         Item.update(MongoDBObject("_id" -> olditem.id),
                           MongoDBObject("$set" -> MongoDBObject(Item.version -> grater[Version].asDBObject(version))),
-                          false, false, Item.defaultWriteConcern)
+                          false, false)
                         olditem.version = Some(version)
                       }
                     }

@@ -1,10 +1,9 @@
 package reporting.controllers
 
-import play.api.Logger
 import controllers.auth.BaseApi
-import reporting.services.ReportsService
 import models._
-import item.Item
+import reporting.services.ReportsService
+import models.item.Item
 
 object Reports extends BaseApi {
 
