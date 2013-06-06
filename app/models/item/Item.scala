@@ -2,23 +2,22 @@ package models.item
 
 
 import com.mongodb.casbah.Imports._
-import controllers._
-import resource.{VirtualFile, BaseFile, Resource}
-import scala.Either
-import models.mongoContext._
 import com.mongodb.util.JSON
-import play.api.libs.json._
 import com.novus.salat._
-import dao.ModelCompanion
-import dao.{SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
-import org.joda.time.DateTime
-import models.json.ItemView
 import controllers.InternalError
-import scala.Left
-import scala.Some
-import scala.Right
 import controllers.JsonValidationException
-import models.itemSession.{DefaultItemSession, ItemSession}
+import dao.{ModelCompanion,SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
+import models.itemSession.DefaultItemSession
+import models.json.ItemView
+import models.mongoContext._
+import org.joda.time.DateTime
+import play.api.libs.json._
+import resource.{VirtualFile, BaseFile, Resource}
+import scala._
+import org.corespring.platform.data.mongo.SalatVersioningDao
+import org.bson.types
+import com.mongodb.casbah
+import org.corespring.platform.data.mongo.models.VersionedId
 
 
 case class Item(
@@ -48,7 +47,20 @@ case class Item(
 /**
  * An Item model
  */
-object Item extends ModelCompanion[Item, ObjectId] {
+object Item /*extends ModelCompanion[Item, ObjectId]*/ {
+
+  val dao = new SalatVersioningDao[VersionedItem,Item] {
+    protected implicit def mot: Manifest[VersionedItem] = Manifest.classType(classOf[VersionedItem])
+
+    protected def db: casbah.MongoDB = se.radley.plugin.salat.mongoCollection("?").db
+
+    protected def collectionName: String = "items"
+
+    protected def build(id: types.ObjectId, v: Int, entity: Item): VersionedItem =
+      VersionedItem(VersionedId(id,v), entity)
+
+    protected def copy(holder: VersionedItem, entity: Item): VersionedItem = holder.copy(entity = entity)
+  }
 
   import com.mongodb.casbah.commons.conversions.scala._
 
@@ -57,7 +69,7 @@ object Item extends ModelCompanion[Item, ObjectId] {
 
   val collection = Content.collection
 
-  val dao = new SalatDAO[Item, ObjectId](collection = collection) {}
+  //val dao = new SalatDAO[Item, ObjectId](collection = collection) {}
 
   val id = "id"
   val originId = "originId"
@@ -196,13 +208,6 @@ object Item extends ModelCompanion[Item, ObjectId] {
     val result: SalatMongoCursor[Item] = Item.find(query, fieldsDbo)
     result.count
   }
-
-  //  def list(query: MongoDBObject, fields: MongoDBObject, skip: Int = 0, limit: Int = 200) : List[Item] = {
-  //    val result : SalatMongoCursor[Item] = Item.find( query, fields)
-  //    result.limit(limit)
-  //    result.skip(skip)
-  //    result.toList
-  //  }
 
   def queryValueFn(name: String, seq: Seq[KeyValue])(c: Any) = {
     c match {
