@@ -35,14 +35,18 @@ case class Item(
                  var data: Option[Resource] = None,
                  var originId: Option[String] = None,
                  var supportingMaterials: Seq[Resource] = Seq(),
-                 var published:Boolean = false,
+                 var published: Boolean = false,
                  var workflow: Option[Workflow] = None,
                  var dateModified: Option[DateTime] = Some(new DateTime()),
                  var taskInfo: Option[TaskInfo] = None,
                  var otherAlignments: Option[Alignments] = None,
-                 var id: ObjectId = new ObjectId(),
-                 var version: Option[Version] = None) extends Content with Id[ObjectId]{
-  def sessionCount:Int = DefaultItemSession.find(MongoDBObject("itemId" -> id)).count
+                 var id: ObjectId = new ObjectId()) extends Content with Id[ObjectId] {
+  def sessionCount: Int = DefaultItemSession.find(MongoDBObject("itemId" -> id)).count
+
+  def cloneItem: Item = {
+    val taskInfoCopy = taskInfo.getOrElse(TaskInfo(title = Some(""))).cloneInfo("[Copy]")
+    copy(id = new ObjectId(), taskInfo = Some(taskInfoCopy), published = false)
+  }
 }
 
 
@@ -51,24 +55,27 @@ case class Item(
  */
 object Item {
 
-  def salatDb(sourceName:String = "default")(implicit app: Application): MongoDB = {
+  def salatDb(sourceName: String = "default")(implicit app: Application): MongoDB = {
     app.plugin[SalatPlugin].map(_.db(sourceName)).getOrElse(throw PlayException("SalatPlugin is not " +
       "registered.", "You need to register the plugin with \"500:se.radley.plugin.salat.SalatPlugin\" in conf/play.plugins"))
   }
 
-  lazy val dao = new SalatVersioningDao[VersionedItem,Item] {
+  lazy val dao = new SalatVersioningDao[VersionedItem, Item] {
 
     import play.api.Play.current
+
     protected def db: casbah.MongoDB = salatDb()
 
     protected def collectionName: String = "content"
 
     protected def build(id: types.ObjectId, v: Int, entity: Item): VersionedItem =
-      VersionedItem(VersionedId(id,v), entity)
+      VersionedItem(VersionedId(id, v), entity)
 
     protected implicit def holderManifest: Manifest[VersionedItem] = Manifest.classType(classOf[VersionedItem])
 
     protected implicit def entityManifest: Manifest[Item] = Manifest.classType(classOf[Item])
+
+    protected implicit def context: Context = models.mongoContext.context
   }
 
   import com.mongodb.casbah.commons.conversions.scala._
@@ -118,7 +125,6 @@ object Item {
   val workflow = "workflow"
   val dateModified = "dateModified"
   val otherAlignments = "otherAlignments"
-  val version = Content.version
   val published = "published"
 
   lazy val fieldValues = FieldValue.current
@@ -171,27 +177,23 @@ object Item {
       item
     }
   }
-  def updateItem(oid: ObjectId, newItem: Item, fields: Option[DBObject], requesterOrgId: ObjectId): Either[InternalError, Item] = {
+
+
+  def updateItem(oid: ObjectId, newItem: Item, createNewVersion: Boolean = false): Either[InternalError, Item] = {
     try {
 
-      val copy = newItem.copy(dateModified = Some(new DateTime()))
+      def itemAsDbo: MongoDBObject = {
+        val timestamped = newItem.copy(dateModified = Some(new DateTime()))
+        val dbo = grater[Item].asDBObject(timestamped)
+        dbo - "_id" - supportingMaterials - data - collectionId
+      }
 
-      val toUpdate = if (!copy.collectionId.isEmpty)
-        ((grater[Item].asDBObject(copy) - "_id") - supportingMaterials - data)
-      else
-        ((grater[Item].asDBObject(copy) - "_id") - supportingMaterials) - collectionId
+      dao.update(oid, MongoDBObject("$set" -> itemAsDbo), createNewVersion = createNewVersion)
 
-      dao.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> toUpdate), upsert = false, multi = false)
-
-      def getItemWithFields = fields.map(findFieldsById(oid, _))
-        .getOrElse(findFieldsById(oid))
-        .map(grater[Item].asObject(_))
-
-      getItemWithFields match {
+      dao.findOneById(oid) match {
         case Some(item) => Right(item)
         case None => Left(InternalError("somehow the document that was just updated could not be found"))
       }
-
     } catch {
       case e: SalatDAOUpdateError => Left(InternalError("error occured while updating", e))
       case e: IllegalArgumentException => Left(InternalError("destination collection id was not a valid id", e))
@@ -200,49 +202,31 @@ object Item {
   }
 
   def cloneItem(item: Item): Option[Item] = {
-    val copy = item.copy(id = new ObjectId(), version = None, taskInfo = item.taskInfo match {
-      case Some(ti) => ti.title match {
-        case Some(title) => Some(ti.copy(title = Some("[copy] " + title)))
-        case _ => Some(ti.copy(title = Some("[copy]")))
-      }
-      case _ => Some(TaskInfo(title = Some("[copy]")))
-    }, published = false)
-    dao.save(copy)
-    Some(copy)
+    val clonedItem = item.cloneItem
+    dao.save(clonedItem)
+    Some(clonedItem)
   }
 
-  def countItems(query: DBObject, fields: Option[String] = None): Int = {
-    //val fieldsDbo = JSON.parse(fields.getOrElse("{}")).asInstanceOf[BasicDBObject]
-    dao.count(query).toInt
-  }
+  def findOneByIdAndVersion(id: ObjectId, version: Option[Int]): Option[Item] = version.map(dao.get(id, _)).getOrElse(dao.get(id))
 
-  def queryValueFn(name: String, seq: Seq[KeyValue])(c: Any) = {
-    c match {
-      case x: String => if (seq.exists(_.key == x)) Right(x) else Left(InternalError("no valid " + name + " found for given value"))
-      case _ => Left(InternalError("invalid value format"))
-    }
-  }
+  def countItems(query: DBObject, fields: Option[String] = None): Int =  dao.count(query).toInt
 
-  def findFieldsById(id:ObjectId, fields : DBObject = MongoDBObject.empty) : Option[DBObject] = {
+  def findFieldsById(id: ObjectId, fields: DBObject = MongoDBObject.empty): Option[DBObject] = {
     dao.findDbo(MongoDBObject("_id" -> id), fields).limit(1).toList match {
       case List(dbo) => Some(dbo)
       case _ => None
     }
   }
 
-  def find(query:DBObject, fields:DBObject = new BasicDBObject()) : SalatMongoCursor[Item] = dao.find(query,fields)
+  def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[Item] = dao.find(query, fields)
 
-  def findOneById(id:ObjectId) : Option[Item] = dao.findOneById(id)
+  def findOneById(id: ObjectId): Option[Item] = dao.findOneById(id)
 
-  def findOne(query:DBObject) : Option[Item] = dao.findOne(query)
+  def findOne(query: DBObject): Option[Item] = dao.findOne(query)
 
-  def save(i:Item) = dao.save(i, false)
+  def save(i: Item, createNewVersion: Boolean = false) = dao.save(i, createNewVersion)
 
-  def update(q: DBObject, o: DBObject, upsert: Boolean = false, multi: Boolean = false) {
-    dao.update(q,o,upsert,multi)
-  }
-
-  def insert(i:Item) : Option[ObjectId] = dao.insert(i)
+  def insert(i: Item): Option[ObjectId] = dao.insert(i)
 
   def findMultiple(ids: Seq[ObjectId], keys: DBObject): Seq[Item] = {
     val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))
@@ -252,7 +236,6 @@ object Item {
   def getQti(itemId: ObjectId): Either[InternalError, String] = {
 
     findFieldsById(itemId, MongoDBObject(Item.data -> 1)) match {
-    //Item.collection.findOneByID(itemId, MongoDBObject(Item.data -> 1)) match {
       case None => Left(InternalError("not found"))
       case Some(o) => o.get(Item.data) match {
         case res: BasicDBObject => {

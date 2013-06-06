@@ -9,7 +9,12 @@ case class TaskInfo(
                      subjects: Option[Subjects] = None,
                      gradeLevel: Seq[String] = Seq(),
                      title: Option[String] = None,
-                     itemType: Option[String] = None)
+                     itemType: Option[String] = None){
+  def cloneInfo(titlePrefix:String) : TaskInfo = {
+    require(titlePrefix != null)
+    copy( title = title.map( titlePrefix + _))
+  }
+}
 
 object TaskInfo extends ValueGetter {
 

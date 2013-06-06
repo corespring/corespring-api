@@ -43,7 +43,6 @@ object ItemView{
         item.data.map((Item.data -> Json.toJson(_))),
         Some((Item.collectionId -> JsString(item.collectionId))),
         Some(Item.contentType -> JsString(ContentType.item)),
-        item.version.map(Item.version -> Json.toJson(_)),
         Some(Item.published -> JsBoolean(item.published)),
         Some("sessionCount" -> JsNumber(item.sessionCount))
       )
