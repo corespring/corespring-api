@@ -79,11 +79,17 @@ trait Searchable {
   }
   final def toSearchObj(query: AnyRef, optInitSearch:Option[MongoDBObject] = None, parseFields:Map[String,(AnyRef) => Either[InternalError,AnyRef]] = Map()): Either[SearchCancelled,MongoDBObject] = {
     query match {
-      case strquery:String => try{
-        val parsedobj:BasicDBObject = JSON.parse(strquery).asInstanceOf[BasicDBObject]
-        toSearchObj(parsedobj,optInitSearch,parseFields)
-      }catch {
-        case e:JSONParseException => Left(SearchCancelled(Some(InternalError(e.getMessage +  "\ncould not parse search string"))))
+      case strquery:String => {
+        val parsedobjResult:Either[SearchCancelled,BasicDBObject] = try{
+          Right(JSON.parse(strquery).asInstanceOf[BasicDBObject])
+        }catch {
+          case e:JSONParseException => Left(SearchCancelled(Some(InternalError("could not parse search string"))))
+          case e:ClassCastException => Left(SearchCancelled(Some(InternalError("could not parse search string"))))
+        }
+        parsedobjResult match {
+          case Right(parsedobj) => toSearchObj(parsedobj,optInitSearch,parseFields)
+          case Left(sc) => Left(sc)
+        }
       }
       case dbquery:BasicDBObject => {
         if(dbquery.contains("$or")){
