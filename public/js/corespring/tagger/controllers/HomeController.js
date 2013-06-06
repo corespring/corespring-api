@@ -13,9 +13,7 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
 
 
   var init = function () {
-
-    $scope.search();
-    loadCollections();
+    loadCollectionsAndSearch();
     loadContributors();
     $scope.showDraft = true;
 
@@ -130,9 +128,10 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
   };
 
 
-  function loadCollections() {
+  function loadCollectionsAndSearch() {
     Collection.get({}, function (data) {
-        $scope.collections = data;
+        $rootScope.collections = data;
+        $scope.search();
       },
       function () {
         console.log("load collections: error: " + arguments);

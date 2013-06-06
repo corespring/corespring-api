@@ -2,7 +2,7 @@ package api.v1
 
 import controllers.auth.{Permission, BaseApi}
 import play.api.libs.json._
-import models.{User, ContentCollection, Organization}
+import models.{CollectionWithPermissions, User, ContentCollection, Organization}
 import org.bson.types.ObjectId
 import api.{ApiError}
 import com.mongodb.casbah.Imports._
@@ -39,10 +39,11 @@ object CollectionApi extends BaseApi {
   private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, optsort:Option[String]) = {
     val collids = ContentCollection.getCollectionIds(orgId,Permission.Read, true)
     val initSearch = MongoDBObject("_id" -> MongoDBObject("$in" -> collids))
+    val org = Organization.findOneById(orgId).get
     def applySort(colls:SalatMongoCursor[ContentCollection]):Result = {
       optsort.map(ContentCollection.toSortObj(_)) match {
-        case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(colls.sort(sort).skip(sk).limit(l))))
-        case None => Ok(Json.toJson(Utils.toSeq(colls.skip(sk).limit(l))))
+        case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(colls.sort(sort).skip(sk).limit(l)).map(CollectionWithPermissions(_,org))))
+        case None => Ok(Json.toJson(Utils.toSeq(colls.skip(sk).limit(l)).map(CollectionWithPermissions(_,org))))
         case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
       }
     }

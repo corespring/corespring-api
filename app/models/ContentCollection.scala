@@ -137,7 +137,7 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
   }
 
   implicit object CollectionWrites extends Writes[ContentCollection] {
-    def writes(coll: ContentCollection) = {
+    def writes(coll: ContentCollection):JsValue = {
       var list = List[(String, JsString)]()
       if ( coll.name.nonEmpty ) list = ("name" -> JsString(coll.name)) :: list
       list = ("id" -> JsString(coll.id.toString)) :: list
@@ -147,4 +147,19 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
   override val searchableFields = Seq(
     name
   )
+}
+
+case class CollectionWithPermissions(coll:ContentCollection, org:Organization)
+object CollectionWithPermissions{
+  implicit object CCWPWrites extends Writes[CollectionWithPermissions]{
+    def writes(c:CollectionWithPermissions):JsValue = {
+      val permission:Long = c.org.contentcolls.find(_.collectionId == c.coll.id).map(_.pval).
+        getOrElse(if(c.coll.isPublic) Permission.Read.value else throw new RuntimeException("organization doesn't have access to collection"))
+      JsObject(Seq(
+        "name" -> JsString(c.coll.name),
+        "access" -> JsNumber(permission),
+        "id" -> JsString(c.coll.id.toString)
+      ))
+    }
+  }
 }

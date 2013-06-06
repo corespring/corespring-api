@@ -30,6 +30,17 @@ function MainNavController($scope, $rootScope, $location, SearchService){
     $rootScope.items = [];
     //$scope.updatePagerText();
   });
+
+  $scope.createCollection = function(collname){
+    if(collName !== ""){
+      Collection.create({},{name:collname},function(data){
+          if($rootScope.collections) $rootScope.collections.push(data)
+      },function(err){
+          console.log("create collection: error: " + err);
+      })
+    }
+  };
+
 }
 
 MainNavController.$inject = ['$scope', '$rootScope', '$location', 'SearchService'];
