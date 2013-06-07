@@ -131,6 +131,10 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
   function loadCollectionsAndSearch() {
     Collection.get({}, function (data) {
         $rootScope.collections = data;
+        //all collections with write access will be selected by default
+        $scope.searchParams.collection = _.filter(data, function(coll){
+            return coll.access == 3
+        })
         $scope.search();
       },
       function () {
