@@ -135,7 +135,8 @@ angular.module('tagger.services').factory('SearchService',
         'sourceUrl',
         'contributor',
         'author',
-        'published'
+        'published',
+        'collectionId'
       ],
       searchFields: [
         'title',

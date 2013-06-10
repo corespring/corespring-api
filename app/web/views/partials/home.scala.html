@@ -8,6 +8,21 @@
     <button class="btn btn-info" ng-click="deleteCancelled()">No</button>
 </div>
 
+<div ng-class="{'window-up': showPopup}">
+    <div class="window-overlay">
+        <div class="window" style="top: 50px; display: block;" onclick="var event = arguments[0] || window.event; event.stopPropagation();">
+            <a class="focus-dummy" href="#"></a>
+            <div class="window-wrapper clearfix" style="">
+                <div class="clearfix">
+                    <div id="preloader" class="preloader" style="height: 600px">
+                    </div>
+                    <span profile-player="" id='player' style="display: block; width: 100%; min-height: 400px" item-id="{{previewingId}}" on-item-load="onItemLoad()" style='display: none'/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
         <div class="navbar-filter navbar-filter-top">
 
         <table class="filter-nav">
@@ -125,18 +140,18 @@
             </thead>
             <tbody>
             <tr ng-repeat="item in items" style="cursor: pointer;">
-                <td ng-click="openEditView()" ng-bind-html-unsafe="item.title"></td>
-                <td ng-click="openEditView()" width="100">{{getPrimarySubjectLabel(item.primarySubject)}}</td>
-                <td ng-click="openEditView()">
+                <td class="new-window" ng-click="itemClick()" ng-bind-html-unsafe="item.title"></td>
+                <td class="new-window" ng-click="itemClick()" width="100">{{getPrimarySubjectLabel(item.primarySubject)}}</td>
+                <td class="new-window" ng-click="itemClick()">
                     {{showGradeLevel()}}
                 </td>
-                <td ng-click="openEditView()">{{showItemType(item)}}</td>
-                <td ng-click="openEditView()">
+                <td class="new-window" ng-click="itemClick()">{{showItemType(item)}}</td>
+                <td class="new-window" ng-click="itemClick()">
                     <a ui-jq="tooltip"
                        ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
                 </td>
-                <td ng-click="openEditView()">{{getAuthorAbbreviation(item.contributor)}}</td>
-                <td ng-click="openEditView()">{{publishStatus(item.published)}}</td>
+                <td class="new-window" ng-click="itemClick()">{{getAuthorAbbreviation(item.contributor)}}</td>
+                <td class="new-window" ng-click="itemClick()">{{publishStatus(item.published)}}</td>
             </tr>
             </tbody>
         </table>

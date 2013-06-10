@@ -1,4 +1,4 @@
-function HomeController($scope, $rootScope, $http, $location, ItemService, SearchService, Collection, Contributor, ItemFormattingUtils, Organization) {
+function HomeController($scope, $timeout, $rootScope, $http, $location, ItemService, SearchService, Collection, Contributor, ItemFormattingUtils, Organization) {
 
   //Mixin ItemFormattingUtils
   angular.extend($scope, ItemFormattingUtils);
@@ -91,7 +91,6 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     return out.join(", ").replace(/0/g, "");
   };
 
-
   $scope.search = function () {
     var isOtherSelected = $scope.searchParams && _.find($scope.searchParams.itemType, function (e) {
       return e.label == "Other"
@@ -108,7 +107,17 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
       });
     }
     SearchService.search($scope.searchParams, function (res) {
-      $rootScope.items = res;
+      $rootScope.items = _.map(res, function(item){
+        var readOnlyColl = _.find($rootScope.collections, function(coll){
+            return (coll.id == item.collectionId) && (coll.access == 1)  //1 represents read-only access
+        })
+        if(readOnlyColl){
+            item.readOnly = true;
+        }else{
+            item.readOnly = false;
+        }
+        return item;
+      })
       setTimeout(function () {
         MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
       }, 200);
@@ -128,13 +137,12 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     );
   };
 
-
   function loadCollectionsAndSearch() {
     Collection.get({}, function (data) {
         $rootScope.collections = data;
         //all collections with write access will be selected by default
         $scope.searchParams.collection = _.filter(data, function(coll){
-            return coll.access == 3
+            return (coll.access & 3) == 3
         })
         $scope.search();
       },
@@ -152,12 +160,12 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
       });
   }
   function isRoot(){
-    $scope.isRoot = false;
-    Organization.isRoot({}, function(data){
-        if(data.isRoot) $scope.isRoot = true
-    },function(){
-        console.log("could not determine as root organization")
-    })
+    $scope.isRoot = true;
+//    Organization.isRoot({}, function(data){
+//        if(data.isRoot) $scope.isRoot = true
+//    },function(){
+//        console.log("could not determine as root organization")
+//    })
   }
 
   $scope.showGradeLevel = function () {
@@ -188,7 +196,15 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     $scope.showConfirmDestroyModal = false;
   };
 
-
+  $scope.itemClick = function(){
+    if(this.item.readOnly){
+        console.log(this.item)
+        $scope.openItem(this.item.id)
+    }else{
+      SearchService.currentItem = this.item;
+      $location.url('/edit/' + this.item.id + "?panel=metadata");
+    }
+  }
   /*
    * called from the repeater. scope (this) is the current item
    */
@@ -202,10 +218,58 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     else return "Draft"
   }
 
+  //from items-app.js
+  $scope.hidePopup = function() {
+    $scope.showPopup = false;
+    $scope.previewingId = "";
+    $scope.popupBg="";
+  };
+
+  $scope.openItem = function (id) {
+    $timeout(function () {
+      $scope.showPopup = true;
+      $scope.popupBg = "extra-large-window"
+      $scope.previewingId = id;
+      //$scope.$broadcast("requestLoadItem", id);
+      $('#preloader').show();
+      $('#player').hide();
+    }, 50);
+    $timeout(function () {
+      $('.window-overlay').scrollTop(0);
+    }, 100);
+
+  };
+
+  $scope.onItemLoad = function () {
+    $('#preloader').hide();
+    $('#player').show();
+  };
+
+  var fn = function(m) {
+    try{
+      var data = JSON.parse(m.data);
+      if (data.message == 'closeProfilePopup') {
+        $timeout(function() {
+          $scope.hidePopup();
+        }, 10);
+      }
+    }catch(err){
+        //console.log(err)
+    }
+  };
+
+  if (window.addEventListener) {
+    window.addEventListener('message', fn, true);
+  }else if (window.attachEvent) {
+    window.attachEvent('message', fn);
+  }
+  //////
+
   init();
 }
 
 HomeController.$inject = ['$scope',
+  '$timeout',
   '$rootScope',
   '$http',
   '$location',
