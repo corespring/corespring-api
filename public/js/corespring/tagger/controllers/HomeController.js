@@ -1,4 +1,4 @@
-function HomeController($scope, $rootScope, $http, $location, ItemService, SearchService, Collection, Contributor, ItemFormattingUtils) {
+function HomeController($scope, $rootScope, $http, $location, ItemService, SearchService, Collection, Contributor, ItemFormattingUtils, Organization) {
 
   //Mixin ItemFormattingUtils
   angular.extend($scope, ItemFormattingUtils);
@@ -15,6 +15,7 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
   var init = function () {
     loadCollectionsAndSearch();
     loadContributors();
+    isRoot();
     $scope.showDraft = true;
 
     var defaultsFactory = new com.corespring.model.Defaults();
@@ -150,7 +151,14 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
         console.log("load contributors: error: " + arguments);
       });
   }
-
+  function isRoot(){
+    $scope.isRoot = false;
+    Organization.isRoot({}, function(data){
+        if(data.isRoot) $scope.isRoot = true
+    },function(){
+        console.log("could not determine as root organization")
+    })
+  }
 
   $scope.showGradeLevel = function () {
     return $scope.createGradeLevelString(this.item.gradeLevel);
@@ -205,5 +213,6 @@ HomeController.$inject = ['$scope',
   'SearchService',
   'Collection',
   'Contributor',
-  'ItemFormattingUtils'];
+  'ItemFormattingUtils',
+  'Organization'];
 

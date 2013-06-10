@@ -37,13 +37,12 @@ object CollectionApi extends BaseApi {
   }
 
   private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, optsort:Option[String]) = {
-    val collids = ContentCollection.getCollectionIds(orgId,Permission.Read, true)
-    val initSearch = MongoDBObject("_id" -> MongoDBObject("$in" -> collids))
-    val org = Organization.findOneById(orgId).get
+    val collrefs = ContentCollection.getContentCollRefs(orgId,Permission.Read, true)
+    val initSearch = MongoDBObject("_id" -> MongoDBObject("$in" -> collrefs.map(_.collectionId)))
     def applySort(colls:SalatMongoCursor[ContentCollection]):Result = {
       optsort.map(ContentCollection.toSortObj(_)) match {
-        case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(colls.sort(sort).skip(sk).limit(l)).map(CollectionWithPermissions(_,org))))
-        case None => Ok(Json.toJson(Utils.toSeq(colls.skip(sk).limit(l)).map(CollectionWithPermissions(_,org))))
+        case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(colls.sort(sort).skip(sk).limit(l)).map(c => CollectionWithPermissions(c, collrefs.find(_.collectionId == c.id).get.pval))))
+        case None => Ok(Json.toJson(Utils.toSeq(colls.skip(sk).limit(l)).map(c => CollectionWithPermissions(c, collrefs.find(_.collectionId == c.id).get.pval))))
         case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
       }
     }

@@ -1,0 +1,19 @@
+{
+  "_id": {
+    "$oid": "51b54457d519ff17b58754a1"
+  },
+  "provider": "userpass",
+  "userName": "root",
+  "fullName": "Homer Simpson",
+  "email": "homersimpson@springfield.org",
+  "password": "$2a$10$ztrohKSsxniXnLsTJyAJVOlye5DFYlMi3GUQH1SHkVSO5IH.E9O72",
+  "orgs": [
+    {
+      "orgId": {
+        "$oid": "502404dd0364dc35bb393398"
+      },
+      "pval": 3
+    }
+  ],
+  "hasRegisteredOrg": true
+}

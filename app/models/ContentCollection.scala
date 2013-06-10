@@ -101,7 +101,16 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
       case e:SalatRemoveError => Left(InternalError(e.getMessage))
     }
   }
-  def getCollectionIds(orgId: ObjectId, p:Permission, deep:Boolean = true): Seq[ObjectId] = {
+  def getContentCollRefs(orgId: ObjectId, p:Permission, deep:Boolean = true):Seq[ContentCollRef] = {
+    val cursor = if(deep)Organization.find(MongoDBObject(Organization.path -> orgId)) else Organization.find(MongoDBObject("_id" -> orgId))   //find the tree of the given organization
+    var seqcollid:Seq[ContentCollRef] = cursor.foldRight[Seq[ContentCollRef]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value)) //filter the collections that don't have the given permission
+    cursor.close()
+    if (p == Permission.Read){
+      seqcollid = (seqcollid ++ getPublicCollections.map(c => ContentCollRef(c.id))).distinct
+    }
+    seqcollid
+  }
+  def getCollectionIds(orgId: ObjectId, p:Permission, deep:Boolean = true): Seq[(ObjectId)] = {
     val cursor = if(deep)Organization.find(MongoDBObject(Organization.path -> orgId)) else Organization.find(MongoDBObject("_id" -> orgId))   //find the tree of the given organization
     var seqcollid:Seq[ObjectId] = cursor.foldRight[Seq[ObjectId]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value).map(_.collectionId)) //filter the collections that don't have the given permission
     cursor.close()
@@ -149,15 +158,13 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
   )
 }
 
-case class CollectionWithPermissions(coll:ContentCollection, org:Organization)
+case class CollectionWithPermissions(coll:ContentCollection, access:Long)
 object CollectionWithPermissions{
   implicit object CCWPWrites extends Writes[CollectionWithPermissions]{
     def writes(c:CollectionWithPermissions):JsValue = {
-      val permission:Long = c.org.contentcolls.find(_.collectionId == c.coll.id).map(_.pval).
-        getOrElse(if(c.coll.isPublic) Permission.Read.value else throw new RuntimeException("organization doesn't have access to collection"))
       JsObject(Seq(
         "name" -> JsString(c.coll.name),
-        "access" -> JsNumber(permission),
+        "access" -> JsNumber(c.access),
         "id" -> JsString(c.coll.id.toString)
       ))
     }

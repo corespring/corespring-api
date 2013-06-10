@@ -16,6 +16,7 @@ import scala.Some
 import scala.Right
 import com.novus.salat.dao.SalatMongoCursor
 import play.api.libs.json.JsObject
+import common.config.AppConfig
 
 /**
  * The Organization API
@@ -156,4 +157,8 @@ object OrganizationApi extends BaseApi {
     }
   }
 
+  def isRoot = ApiAction { request =>
+    if (request.ctx.organization == AppConfig.rootOrgId) Ok(JsObject(Seq("isRoot" -> JsBoolean(true))))
+    else Ok(JsObject(Seq("isRoot" -> JsBoolean(false))))
+  }
 }
