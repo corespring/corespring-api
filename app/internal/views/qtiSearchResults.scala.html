@@ -1,13 +1,29 @@
-@(query:String, items:List[models.item.Item])
+@(query: String, items: List[models.item.Item])
 <html>
     <head>
         <title>Search results for: @query</title>
     </head>
-<body>
-    <table>
-      @items.map{ i =>
-        <tr><td><a href="/web#/edit/@i.id?panel=metadata">@i.taskInfo.get.title</a></td></tr>
-      }
-    </table>
-</body>
+    <body>
+        <p>Search results for: @query</p>
+        <table>
+        @items.filter(_.taskInfo.get.title.getOrElse("").length > 0).sortBy(_.taskInfo.get.title).map { i =>
+            <tr><td><a href="/web#/edit/@i.id?panel=metadata">[ @i.taskInfo.get.title ]</a></td></tr>
+        }
+        </table>
+        <br /><br />
+        <table>
+            <tr></tr>
+            <tr><td>
+                @items.filter(_.taskInfo.get.title.getOrElse("").length == 0).size items with empty title found
+            </td>
+            </tr>
+            @items.filter(_.taskInfo.get.title.getOrElse("").length == 0).map { i =>
+                <tr><td>
+                    <a href="/web#/edit/@i.id?panel=metadata">[ @i.id ]</a>
+                </td></tr>
+
+            }
+
+        </table>
+    </body>
 </html>

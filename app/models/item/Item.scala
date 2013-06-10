@@ -254,14 +254,14 @@ object Item {
 
   def findInXml(string: String, collectionIds: List[String]): List[Item] = {
 
-    val query = ".*<assessmentItem.*>.*" + string + ".*<\\/assessmentItem>.*"
+    val query = string
 
     dao.find(
       MongoDBObject(
         "data.files.content" ->
           MongoDBObject(
             "$regex" -> query,
-            "$options" -> "ms"),
+            "$options" -> "msi"),
         "collectionId" -> MongoDBObject("$in" -> collectionIds.toArray)
       ),
       MongoDBObject("taskInfo" -> 1)
