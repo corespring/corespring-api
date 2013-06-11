@@ -26,25 +26,27 @@ import scala.Right
 import scala.Some
 import search.ItemSearch
 import common.log.PackageLogging
+import models.item.service.{ItemServiceImpl, ItemService}
 
 /**
  * Items API
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
-class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
+class ItemApi(s3service: S3Service, service : ItemService) extends BaseApi with PackageLogging {
 
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
-  val dbsummaryFields = Seq(Item.collectionId, Item.taskInfo, Item.otherAlignments, Item.standards, Item.contributorDetails)
-  val jssummaryFields: Seq[String] = Seq("id",
-    Item.collectionId,
+  import Item.Keys._
+  val dbSummaryFields = Seq(collectionId, taskInfo, otherAlignments, standards, contributorDetails)
+  val jsonSummaryFields: Seq[String] = Seq("id",
+    collectionId,
     TaskInfo.Keys.gradeLevel,
     TaskInfo.Keys.itemType,
     Alignments.Keys.keySkills,
-    Item.primarySubject,
-    Item.relatedSubject,
-    Item.standards,
-    Item.author,
+    primarySubject,
+    relatedSubject,
+    standards,
+    author,
     TaskInfo.Keys.title)
 
 
@@ -116,11 +118,11 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
     if (!collections.nonEmpty) {
       Right(JsArray(Seq()))
     } else {
-      val initSearch: MongoDBObject = MongoDBObject(Item.collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))
+      val initSearch: MongoDBObject = MongoDBObject(collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))
 
       val queryResult: Either[SearchCancelled, MongoDBObject] = q.map(query => ItemSearch.toSearchObj(query,
         Some(initSearch),
-        Map(Item.collectionId -> parseCollectionIds(request))
+        Map(collectionId -> parseCollectionIds(request))
       )) match {
         case Some(result) => result
         case None => Right(initSearch)
@@ -131,7 +133,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
       }
 
       def runQueryAndMakeJson(query: MongoDBObject, fields: SearchFields, sk: Int, limit: Int, sortField: Option[MongoDBObject] = None) = {
-        val cursor = Item.find(query, fields.dbfields)
+        val cursor = service.find(query, fields.dbfields)
         val count = cursor.count
         val sorted = sortField.map(cursor.sort(_)).getOrElse(cursor)
         jsBuilder(count, sorted.skip(sk).limit(limit), fields, current)
@@ -157,7 +159,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
     }
   }
 
-  private def cleanDbFields(searchFields: SearchFields, isLoggedIn: Boolean, dbExtraFields: Seq[String] = dbsummaryFields, jsExtraFields: Seq[String] = jssummaryFields) {
+  private def cleanDbFields(searchFields: SearchFields, isLoggedIn: Boolean, dbExtraFields: Seq[String] = dbSummaryFields, jsExtraFields: Seq[String] = jsonSummaryFields) {
     if (!isLoggedIn && searchFields.dbfields.isEmpty) {
       dbExtraFields.foreach(extraField =>
         searchFields.dbfields = searchFields.dbfields ++ MongoDBObject(extraField -> searchFields.method)
@@ -173,8 +175,8 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
     implicit request =>
       if (Organization.getTree(request.ctx.organization).exists(_.id == orgId)) {
         val collections = ContentCollection.getCollectionIds(orgId, Permission.Read)
-        val jsBuilder = if(c == "true") countOnlyJson _ else itemOnlyJson _
-        itemList(q, f, sk, l, sort, collections, true, jsBuilder) match {
+        val jsonBuilder = if(c == "true") countOnlyJson _ else itemOnlyJson _
+        itemList(q, f, sk, l, sort, collections, true, jsonBuilder) match {
           case Left(apiError) => BadRequest(toJson(apiError))
           case Right(json) => Ok(json)
         }
@@ -201,7 +203,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
       if (Content.isAuthorized(request.ctx.organization, id, Permission.Read)) {
         val searchFields = SearchFields(method = 1)
         cleanDbFields(searchFields, request.ctx.isLoggedIn)
-        val items = Item.find(MongoDBObject("_id" -> id), searchFields.dbfields)
+        val items = service.find(MongoDBObject("_id" -> id), searchFields.dbfields)
         Ok(toJson(Utils.toSeq(items).head))
       } else Unauthorized(toJson(ApiError.UnauthorizedOrganization(Some("you do not have access to this item"))))
   }
@@ -211,34 +213,13 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
    */
   def getDetail(id: ObjectId) = ApiAction {
     request =>
-      val detailsExcludeFields: Seq[String] = Seq(Item.data)
+      val detailsExcludeFields: Seq[String] = Seq(data)
       if (Content.isAuthorized(request.ctx.organization, id, Permission.Read)) {
         val searchFields = SearchFields(method = 0)
         cleanDbFields(searchFields, request.ctx.isLoggedIn, detailsExcludeFields)
-        val items = Item.find(MongoDBObject("_id" -> id), searchFields.dbfields)
+        val items = service.find(MongoDBObject("_id" -> id), searchFields.dbfields)
         Ok(toJson(Utils.toSeq(items).head))
       } else Unauthorized(toJson(ApiError.UnauthorizedOrganization(Some("you do not have access to this item"))))
-  }
-
-  /**
-   * Returns the raw content body for the item
-   */
-  def getData(id: ObjectId) = ApiAction {
-    request =>
-      Item.findFieldsById(id, MongoDBObject(Item.data -> 1, Item.collectionId -> 1)) match {
-        case Some(o) => o.get(Item.collectionId) match {
-          case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, collId, Permission.Read)) {
-            if (o.contains(Item.data))
-              Ok(Xml(o.get(Item.data).toString))
-            else
-              Ok("")
-          } else {
-            Forbidden
-          }
-          case _ => Forbidden
-        }
-        case _ => NotFound
-      }
   }
 
   /**
@@ -246,8 +227,8 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
    */
   def delete(id: ObjectId) = ApiAction {
     request =>
-      Item.findFieldsById(id, MongoDBObject(Item.collectionId -> 1)) match {
-        case Some(o) => o.get(Item.collectionId) match {
+      service.findFieldsByIdAndVersion(id, None, MongoDBObject(collectionId -> 1)) match {
+        case Some(o) => o.get(collectionId) match {
           case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, collId, Permission.Write)) {
             Content.moveToArchive(id) match {
               case Right(_) => Ok(com.mongodb.util.JSON.serialize(o))
@@ -289,7 +270,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
               sf.storageKey = newKey
           }
       }
-      Item.save(newItem)
+      service.save(newItem)
       true
     } catch {
       case r: RuntimeException =>
@@ -309,7 +290,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
       findAndCheckAuthorization(request.ctx.organization, id, Permission.Write) match {
         case Left(e) => BadRequest(toJson(e))
         case Right(item) => {
-          Item.cloneItem(item) match {
+          service.cloneItem(item) match {
             case Some(clonedItem) =>
               cloneStoredFiles(item, clonedItem) match {
                 case true => Ok(toJson(clonedItem))
@@ -322,7 +303,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
   }
 
 
-  private def findAndCheckAuthorization(orgId: ObjectId, id: ObjectId, p: Permission): Either[ApiError, Item] = Item.findOneById(id) match {
+  private def findAndCheckAuthorization(orgId: ObjectId, id: ObjectId, p: Permission): Either[ApiError, Item] = service.findOneById(id) match {
     case Some(s) => Content.isCollectionAuthorized(orgId, s.collectionId, p) match {
       case true => Right(s)
       case false => Left(ApiError.CollectionUnauthorized)
@@ -343,7 +324,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
                 Organization.getDefaultCollection(request.ctx.organization) match {
                   case Right(default) => {
                     i.collectionId = default.id.toString
-                    Item.insert(i) match {
+                    service.insert(i) match {
                       case Some(_) => Ok(toJson(i))
                       case None => InternalServerError(toJson(ApiError.CantSave))
                     }
@@ -351,7 +332,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
                   case Left(error) => InternalServerError(toJson(ApiError.CantSave(error.clientOutput)))
                 }
               } else if (Content.isCollectionAuthorized(request.ctx.organization, i.collectionId, Permission.Write)) {
-                Item.insert(i) match {
+                service.insert(i) match {
                   case Some(_) => Ok(toJson(i))
                   case None => InternalServerError(toJson(ApiError.CantSave))
                 }
@@ -368,35 +349,6 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
       }
   }
 
-  def update(id: ObjectId) = ApiAction {
-    request =>
-      if (Content.isAuthorized(request.ctx.organization, id, Permission.Write)) {
-        request.body.asJson match {
-          case Some(json) => {
-            if ((json \ Item.id).asOpt[String].isDefined) {
-              BadRequest(toJson(ApiError.IdNotNeeded))
-            } else {
-              try {
-                val item = fromJson[Item](json)
-                Item.updateItem(id, item ) match {
-                  case Right(i) => Ok(toJson(i))
-                  case Left(error) => InternalServerError(toJson(ApiError.Item.Update(error.clientOutput)))
-                }
-              } catch {
-                case e: JSONParseException => BadRequest(toJson(ApiError.JsonExpected))
-                case e: JsonValidationException => BadRequest(toJson(ApiError.JsonExpected(Some(e.getMessage))))
-              }
-            }
-          }
-          case _ => BadRequest(toJson(ApiError.JsonExpected))
-        }
-      } else Forbidden
-  }
-
-  def getItemsInCollection(collId: ObjectId) = ApiAction {
-    request =>
-      NotImplemented
-  }
 
   def cloneAndIncrement(itemId: ObjectId) = ApiAction {
     request =>
@@ -531,7 +483,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
    */
   def getCurrent(id: ObjectId) = ApiAction {
     request =>
-      Ok(toJson(Item.findOneById(id)))
+      Ok(toJson(service.findOneById(id)))
       /*if (Content.isAuthorized(request.ctx.organization, id, Permission.Read)) {
         val searchFields = SearchFields(method = 1)
         cleanDbFields(searchFields, request.ctx.isLoggedIn)
@@ -552,4 +504,4 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
 
 }
 
-object ItemApi extends api.v1.ItemApi(ConcreteS3Service)
+object ItemApi extends api.v1.ItemApi(ConcreteS3Service, ItemServiceImpl)

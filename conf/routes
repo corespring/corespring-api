@@ -77,18 +77,13 @@ GET     /api/v1/items                           api.v1.ItemApi.list(q: Option[St
 GET     /api/v1/items/query                     api.v1.ItemApi.listAndCount(q: Option[String] ?= None, f: Option[String] ?= None, sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/organizations/:orgId/items      api.v1.ItemApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/contributors                    api.v1.ContributorApi.getContributorsList()
-GET     /api/v1/items/:id                       api.v1.NewItemApi.get(id: ObjectId, version : Option[Int] ?= None)
+GET     /api/v1/items/:id                       api.v1.NewItemApi.get(id: ObjectId,  version : Option[Int] ?= None, detail : Option[String] ?= Some("normal"))
 GET     /api/v1/collections/:collId/items       api.v1.ItemApi.listWithColl(collId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 DELETE  /api/v1/items/:id                       api.v1.ItemApi.delete(id: ObjectId)
-GET     /api/v1/items/:id/detail                api.v1.ItemApi.getDetail(id: ObjectId)
-GET     /api/v1/items/:id/data                  api.v1.ItemApi.getData(id: ObjectId)
+GET     /api/v1/items/:id/detail                api.v1.NewItemApi.getDetail(id: ObjectId, version : Option[Int] ?= None)
 POST    /api/v1/items                           api.v1.ItemApi.create
 PUT     /api/v1/items/:id                       api.v1.NewItemApi.update(id: ObjectId, createNewVersion : Boolean ?= false)
 POST    /api/v1/items/:id                       api.v1.NewItemApi.cloneItem(id:ObjectId)
-GET     /api/v1/collections/:collId/items       api.v1.ItemApi.getItemsInCollection(collId: ObjectId)
-#POST    /api/v1/items/:itemId/increment         api.v1.ItemApi.increment(itemId:ObjectId)
-#GET     /api/v1/items/:itemId/increment         api.v1.ItemApi.cloneAndIncrement(itemId:ObjectId)
-#GET     /api/v1/items/:itemId/current           api.v1.ItemApi.getCurrent(itemId:ObjectId)
 
 # Exporter api
 GET     /api/v1/items/multiple/scorm-2004.zip       api.v1.ExporterApi.multiItemScorm2004(ids:String)
@@ -116,7 +111,7 @@ GET     /api/v1/field_values/:fieldName        api.v1.FieldValuesApi.getFieldVal
 
 # Item Session API
 
-POST    /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.create(itemId: ObjectId)
+POST    /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.create(itemId: ObjectId, version : Option[Int] ?= None)
 GET     /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.list(itemId:ObjectId)
 GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.get(itemId:ObjectId, sessionId: ObjectId)
 PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId: ObjectId, sessionId: ObjectId, action : Option[String] ?= None)
@@ -131,18 +126,6 @@ PUT     /api/v1/quizzes/:quizId/add-participants    api.v1.QuizApi.addParticipan
 POST    /api/v1/quizzes                             api.v1.QuizApi.create()
 GET     /api/v1/quizzes                             api.v1.QuizApi.list()
 
-# Item Rendering
-#GET    /testplayer/item/:itemId/render-in-frame     testplayer.controllers.ItemPlayer.renderAsIframe(itemId)
-#GET    /testplayer/item/:itemId/render              testplayer.controllers.ItemPlayer.renderItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
-#GET    /testplayer/item/:itemId/run                 testplayer.controllers.ItemPlayer.previewItem(itemId, printMode: Boolean ?= false, settings : String ?= "")
-#GET    /testplayer/item/:itemId/quiz/:quizId/aggregate           testplayer.controllers.ItemPlayer.renderQuizAsAggregate(quizId, itemId)
-#GET    /testplayer/item/:itemId/*filename           testplayer.controllers.ItemPlayer.getDataFile(itemId, filename)
-#GET    /testplayer/session/:sessionId/run           testplayer.controllers.ItemPlayer.previewItemBySessionId(sessionId, printMode: Boolean ?= false)
-#GET    /testplayer/session/:sessionId/instructor    testplayer.controllers.ItemPlayer.renderAsInstructor(sessionId)
-#GET    /testplayer/session/:sessionId/render        testplayer.controllers.ItemPlayer.renderItemBySessionId(sessionId, printMode: Boolean ?= false)
-#GET    /testplayer/session/:sessionId/:filename     testplayer.controllers.ItemPlayer.getDataFileBySessionId(sessionId, filename)
-#GET    /testplayer/javascripts/routes               testplayer.controllers.ItemPlayer.javascriptRoutes
-
 GET    /scorm-player.js                                 scorm.controllers.AssetLoading.itemPlayerJavascript
 GET    /scorm-player/item/:itemId/administer            scorm.controllers.ScormPlayer.administerItem(itemId : ObjectId)
 GET    /scorm-player/item/:itemId/:filename             scorm.controllers.ScormPlayer.getDataFile(itemId : String, filename:String)
@@ -152,19 +135,19 @@ GET    /scorm-player/session/:sessionId/:filename       scorm.controllers.ScormP
 
 # New Player
 ## REST calls
-POST   /player/api/:itemId/session                         player.controllers.Session.create(itemId:ObjectId)
+POST   /player/api/:itemId/session                         player.controllers.Session.create(itemId:ObjectId, version : Option[Int] ?= None)
 GET    /player/api/:itemId/session/:sessionId              player.controllers.Session.read(itemId:ObjectId, sessionId:ObjectId)
 PUT    /player/api/:itemId/session/:sessionId              player.controllers.Session.update(itemId:ObjectId,sessionId:ObjectId,action : Option[String] ?= None)
 POST   /player/api/:itemId/session/:quizId/aggregate       player.controllers.Session.aggregate(quizId:ObjectId, itemId:ObjectId)
 GET    /player/routes.js                                   player.controllers.Session.jsRoutes
-GET    /player/api/:itemId/details                         player.controllers.Item.getDetail(itemId:ObjectId)
+GET    /player/api/:itemId/details                         player.controllers.Item.getDetail(itemId:ObjectId, version : Option[Int] ?= None)
 ## JS Routes
 GET    /player/item/routes.js                              player.controllers.Item.jsRoutes
 ## Encrypt
 POST    /player/encrypt-options                            player.controllers.Encrypter.encryptOptions
 ## Views
 GET    /player/item/:itemId/preview                        player.controllers.Views.preview(itemId:ObjectId)
-GET    /player/item/:itemId/administer                     player.controllers.Views.administerItem(itemId:ObjectId)
+GET    /player/item/:itemId/administer                     player.controllers.Views.administerItem(itemId:ObjectId, version : Option[Int] ?= None)
 GET    /player/item/:itemId/profile                        player.controllers.Views.profile(itemId:ObjectId, tab:String ?= "")
 GET    /player/item/:itemId/*filename                      player.controllers.AssetLoading.getDataFile(itemId, filename)
 

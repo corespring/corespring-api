@@ -4,11 +4,12 @@ import controllers.auth.BaseApi
 import models._
 import reporting.services.ReportsService
 import models.item.Item
+import models.item.service.ItemServiceImpl
 
 object Reports extends BaseApi {
 
   private val service: ReportsService = new ReportsService(
-    Item.collection,
+    ItemServiceImpl.collection,
     Subject.collection,
     ContentCollection.collection,
     Standard.collection

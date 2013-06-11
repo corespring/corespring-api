@@ -14,9 +14,15 @@ import player.accessControl.models.RequestedAccess
 import player.views.models.{ExceptionMessage, PlayerParams}
 import qti.models.RenderingMode._
 import scala.xml.Elem
+import models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
 
 
-class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseApi with QtiResource with QtiRenderer with PlayerCookieWriter {
+class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService)
+  extends BaseApi
+  with QtiResource
+  with ItemServiceClient
+  with QtiRenderer
+  with PlayerCookieWriter {
 
 
   private object PlayerTemplates {
@@ -38,8 +44,8 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
     }
   }
 
-  def administerItem(itemId: ObjectId) = {
-    val p = RenderParams(itemId = itemId, sessionMode = RequestedAccess.Mode.Administer)
+  def administerItem(itemId: ObjectId, version : Option[Int] = None) = {
+    val p = RenderParams(itemId = itemId, sessionMode = RequestedAccess.Mode.Administer, itemVersion = version)
     renderItem(p)
   }
 
@@ -88,6 +94,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
     * TODO: renderingMode + sessionMode - can we conflate these to one concept?
     */
   protected case class RenderParams(itemId: ObjectId,
+                          itemVersion : Option[Int] = None,
                           sessionMode: RequestedAccess.Mode.Mode,
                           renderingMode: RenderingMode = Web,
                           sessionId: Option[ObjectId] = None,
@@ -112,7 +119,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
       ApiAction {
         implicit request =>
           try {
-            getItemXMLByObjectId(params.itemId.toString, request.ctx.organization) match {
+            getItemXMLByObjectId(params.itemId.toString, params.itemVersion, request.ctx.organization) match {
               case Some(xmlData: Elem) => {
                 val finalXml = prepareQti(xmlData, params.renderingMode)
                 val playerParams = params.toPlayerParams(finalXml)
@@ -134,4 +141,4 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
 
 }
 
-object Views extends Views(CheckSessionAccess)
+object Views extends Views(CheckSessionAccess, ItemServiceImpl)

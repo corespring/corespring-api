@@ -3,9 +3,10 @@ import common.log.PackageLogging
 import controllers.S3Service
 import models.item.Item
 import models.item.resource.StoredFile
+import models.item.service.ItemServiceClient
 
 
-trait ItemFiles extends PackageLogging {
+trait ItemFiles extends PackageLogging { self : ItemServiceClient =>
 
   def s3service: S3Service
 
@@ -38,7 +39,7 @@ trait ItemFiles extends PackageLogging {
               sf.storageKey = newKey
           }
       }
-      Item.save(newItem)
+      itemService.save(newItem)
       true
     } catch {
       case r: RuntimeException =>

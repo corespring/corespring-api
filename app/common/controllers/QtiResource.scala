@@ -5,20 +5,22 @@ import scala.xml.Elem
 import models.item.{Item, Content}
 import controllers.auth.Permission
 import models.item.resource.{VirtualFile, Resource}
+import models.item.service.ItemServiceClient
 
-trait QtiResource {
+trait QtiResource { self : ItemServiceClient =>
 
   /**
    * Provides the item XML body for an item with a provided item id.
    * @param itemId
    * @return
    */
-  def getItemXMLByObjectId(itemId: String, orgId: ObjectId): Option[Elem] =
-    Item.findOneById(new ObjectId(itemId)).map {
-      getItemXMLByObjectId(_, orgId)
-    }.getOrElse(None)
+  def getItemXMLByObjectId(itemId: String, version : Option[Int] = None, orgId: ObjectId): Option[Elem] = if(Content.isAuthorized(orgId, new ObjectId(itemId), Permission.Read)){
+    itemService.getQtiXml(new ObjectId(itemId), version)
+  } else {
+   None
+  }
 
-
+  @deprecated("use Item.getQtiXml instead", "versioning-dao")
   def getItemXMLByObjectId(item: Item, orgId: ObjectId): Option[Elem] = if(authorized(item,orgId)){
     item.data.map {
       d =>

@@ -11,12 +11,13 @@ import player.accessControl.cookies.PlayerCookieReader
 import player.accessControl.models.RequestedAccess
 import player.accessControl.models.RequestedAccess.Mode._
 import scala.Some
+import models.item.service.ItemServiceImpl
 
 
 class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Controller with SimpleJsRoutes with PlayerCookieReader {
 
   val DefaultApi = ItemSessionApi
-  val PreviewApi = new ItemSessionApi(PreviewItemSessionCompanion)
+  val PreviewApi = new ItemSessionApi(PreviewItemSessionCompanion, ItemServiceImpl)
 
   /** If we are running in preview mode - return the PreviewApi which will store the sessions in a different collection */
   def api(implicit request: Request[AnyContent]): ItemSessionApi = {
@@ -26,9 +27,9 @@ class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Cont
     }
   }
 
-  def create(itemId: ObjectId) = auth.ValidatedAction(
+  def create(itemId: ObjectId, itemVersion:Option[Int] = None) = auth.ValidatedAction(
     RequestedAccess.asRead(Some(itemId))
-  )(implicit request => api.create(itemId)(request))
+  )(implicit request => api.create(itemId, itemVersion)(request))
 
   def read(itemId: ObjectId, sessionId: ObjectId) = auth.ValidatedAction(
     RequestedAccess.asRead(Some(itemId), Some(sessionId))

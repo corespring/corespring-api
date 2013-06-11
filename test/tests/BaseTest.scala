@@ -2,6 +2,7 @@ package tests
 
 import _root_.common.seed.SeedDb
 import _root_.models.item.Item
+import _root_.models.item.service.{ItemService, ItemServiceClient, ItemServiceImpl}
 import _root_.web.controllers.utils.ConfigLoader
 import org.bson.types.ObjectId
 import org.specs2.mutable.Specification
@@ -18,7 +19,9 @@ import scala.Some
  * Base class for tests
  *
  */
-trait BaseTest extends Specification {
+trait BaseTest extends Specification with ItemServiceClient {
+
+  def itemService : ItemService = ItemServiceImpl
 
   // From standard fixture data
   val token = "test_token"
@@ -61,7 +64,7 @@ trait BaseTest extends Specification {
    */
   def item(id:String): Item = {
 
-    Item.findOneById(new ObjectId(id)) match {
+    itemService.findOneById(new ObjectId(id)) match {
       case Some(item) => {
         item
       }
@@ -92,35 +95,10 @@ trait BaseTest extends Specification {
    * Generates JSON request body for the API, with provided XML data in the appropriate field. Also adds in a set of
    * top-level attributes that get added to the request.
    */
-  def xmlBody(xml: String, attributes: Map[String, String] = Map()): JsValue = {
-    Json.toJson(attributes)
-    //removed because new item retrieval does not return data
-//    Json.toJson(
-//      attributes.iterator.foldLeft(
-//        Map(
-//          Item.data -> Json.toJson(
-//            Map(
-//              "name" -> JsString("qtiItem"),
-//              "files" -> Json.toJson(
-//                Seq(
-//                  Json.toJson(
-//                    Map(
-//                      "name" -> Json.toJson("qti.xml"),
-//                      "default" -> Json.toJson(false),
-//                      "contentType" -> Json.toJson("text/xml"),
-//                      "content" -> Json.toJson(xml)
-//                    )
-//                  )
-//                )
-//              )
-//            )
-//          )
-//        ))((map, entry) => map + ((entry._1, Json.toJson(entry._2))))
-//    )
-  }
+  def xmlBody(xml: String, attributes: Map[String, String] = Map()): JsValue = Json.toJson(attributes)
 
   def getXMLContentFromResponse(jsonResponse: String): Seq[String] = {
-    (Json.parse(jsonResponse) \ Item.data \ "files").asOpt[Seq[JsObject]].getOrElse(Seq()).map(file => { (file \ "content").toString })
+    (Json.parse(jsonResponse) \ Item.Keys.data \ "files").asOpt[Seq[JsObject]].getOrElse(Seq()).map(file => { (file \ "content").toString })
   }
 
 }

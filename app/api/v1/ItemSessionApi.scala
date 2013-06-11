@@ -6,7 +6,7 @@ import controllers.auth.ApiRequest
 import controllers.auth.{Permission, BaseApi}
 import controllers.Utils
 import models._
-import models.item.Content
+import models.item.{Item, Content}
 import models.itemSession._
 import play.api.libs.json.JsObject
 import play.api.libs.json.Json._
@@ -16,11 +16,12 @@ import scala.Left
 import scala.Right
 import scala.Some
 import ItemSession.{Writes,Reads}
+import models.item.service.{ItemServiceImpl, ItemService}
 
 /**
  * API for managing item sessions
  */
-class ItemSessionApi(itemSession: ItemSessionCompanion) extends BaseApi {
+class ItemSessionApi(itemSession: ItemSessionCompanion, itemService : ItemService) extends BaseApi {
 
 
   def aggregate(quizId: ObjectId, itemId: ObjectId) = ApiAction {
@@ -108,21 +109,22 @@ class ItemSessionApi(itemSession: ItemSessionCompanion) extends BaseApi {
    *
    * @return json for the created item session
    */
-  def create(itemId: ObjectId) = ApiAction {
+  def create(itemId: ObjectId, itemVersion : Option[Int] = None) = ApiAction {
     request =>
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.Read)) {
-        val newSession = request.body.asJson match {
-          case Some(json) => {
-            val jsonSession = fromJson[ItemSession](json)
-            //We only pull in the settings from the request
-            ItemSession(itemId = itemId, settings = jsonSession.settings)
+
+        val s : Option[ItemSession] = for{
+          v <- itemVersion orElse itemService.currentVersion(itemId)
+          json <- request.body.asJson
+          settings <- json.asOpt[ItemSession].map(_.settings)
+        } yield  ItemSession(itemId = itemId, itemVersion = v, settings = settings)
+
+        s.map{ session =>
+          itemSession.newSession(session) match {
+            case Right(saved) => Ok(toJson(saved))
+            case Left(error) => InternalServerError(toJson(ApiError.CreateItemSession(error.clientOutput)))
           }
-          case None => ItemSession(itemId)
-        }
-        itemSession.newSession(itemId, newSession) match {
-          case Right(session) => Ok(toJson(session))
-          case Left(error) => InternalServerError(toJson(ApiError.CreateItemSession(error.clientOutput)))
-        }
+        }.getOrElse(BadRequest("Error creating item session"))
       } else {
         Unauthorized(toJson(ApiError.UnauthorizedItemSession))
       }
@@ -247,4 +249,4 @@ class ItemSessionApi(itemSession: ItemSessionCompanion) extends BaseApi {
   }
 }
 
-object ItemSessionApi extends ItemSessionApi(DefaultItemSession)
+object ItemSessionApi extends ItemSessionApi(DefaultItemSession, ItemServiceImpl)

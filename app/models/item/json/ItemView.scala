@@ -1,18 +1,19 @@
 package models.json
 
-import models.{Standard}
-import play.api.libs.json._
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsString
-import scala.Some
-import models.search.SearchFields
+import models.Standard
 import models.item.{ContentType, Item}
+import models.search.SearchFields
+import play.api.libs.json._
+import scala.Some
 
 case class ItemView(item:Item, searchFields:Option[SearchFields])
+
 object ItemView{
+
+  import Item.Keys._
+
   implicit object ItemViewWrites extends Writes[ItemView]{
     def writes(itemView: ItemView): JsValue = {
-      //if(itemView.searchFields.isDefined) itemView.searchFields.get.addDbFieldsToJsFields
 
       def toJsObject[T](a: Option[T])(implicit w: Writes[T]): Option[JsObject] = a.map(w.writes(_).asInstanceOf[JsObject])
 
@@ -25,6 +26,7 @@ object ItemView{
       val jsObject = out.tail.foldRight(out.head)(_ ++ _)
       itemView.searchFields.map(stripFields(jsObject,_)).getOrElse(jsObject)
     }
+
     private def stripFields(jsObject:JsObject, searchFields:SearchFields):JsObject = {
       def checkFields(key:String):Boolean = if(searchFields.inclusion) searchFields.jsfields.exists(_ == key)
           else searchFields.jsfields.exists(_ != key)
@@ -35,15 +37,16 @@ object ItemView{
         })
       )
     }
+
     private def writeMainItem(item: Item): JsObject = {
 
       val basics: Seq[Option[(String, JsValue)]] = Seq(
         Some(("id" -> JsString(item.id.toString))),
-        item.workflow.map((Item.workflow -> Json.toJson(_))),
-        item.data.map((Item.data -> Json.toJson(_))),
-        Some((Item.collectionId -> JsString(item.collectionId))),
-        Some(Item.contentType -> JsString(ContentType.item)),
-        Some(Item.published -> JsBoolean(item.published)),
+        item.workflow.map((workflow -> Json.toJson(_))),
+        item.data.map((data -> Json.toJson(_))),
+        Some((collectionId -> JsString(item.collectionId))),
+        Some(contentType -> JsString(ContentType.item)),
+        Some(published -> JsBoolean(item.published)),
         Some("sessionCount" -> JsNumber(item.sessionCount))
       )
 
@@ -56,10 +59,10 @@ object ItemView{
       }
 
       val strings: Seq[Option[(String, JsValue)]] = Seq(
-        (Item.lexile, item.lexile),
-        (Item.originId, item.originId),
-        (Item.pValue, item.pValue),
-        (Item.priorUse, item.priorUse)
+        (lexile, item.lexile),
+        (originId, item.originId),
+        (pValue, item.pValue),
+        (priorUse, item.priorUse)
       ).map(makeJsString)
 
       def makeJsArray(tuple: (String, Seq[JsValue])) = {
@@ -73,10 +76,10 @@ object ItemView{
       val validStandards = item.standards.map(Standard.findOneByDotNotation).flatten
 
       val arrays: Seq[Option[(String, JsValue)]] = Seq(
-        (Item.priorGradeLevel, item.priorGradeLevel.map(JsString(_))),
-        (Item.reviewsPassed, item.reviewsPassed.map(JsString(_))),
-        (Item.supportingMaterials, item.supportingMaterials.map(Json.toJson(_))),
-        (Item.standards, validStandards.map(Json.toJson(_)))
+        (priorGradeLevel, item.priorGradeLevel.map(JsString(_))),
+        (reviewsPassed, item.reviewsPassed.map(JsString(_))),
+        (supportingMaterials, item.supportingMaterials.map(Json.toJson(_))),
+        (standards, validStandards.map(Json.toJson(_)))
       ).map(makeJsArray)
 
       val joined = (basics ++ strings ++ arrays).flatten

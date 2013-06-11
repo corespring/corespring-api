@@ -63,7 +63,10 @@ class ItemSessionApiTest extends BaseTest{
     val ItemSession: String = "51116bc7a14f7b657a083c1d"
   }
 
-  def createNewSession(itemId: String = IDs.Item, content: AnyContent = AnyContentAsEmpty): ItemSession = {
+  def defaultNewSessionContent = AnyContentAsJson(Json.toJson(ItemSession(itemId = new ObjectId(IDs.Item), id = new ObjectId())))
+
+  def createNewSession(itemId: String = IDs.Item, content: AnyContent = defaultNewSessionContent): ItemSession = {
+
     invokeCall[ItemSession](
       Routes.create(new ObjectId(itemId)),
       content
@@ -201,6 +204,7 @@ class ItemSessionApiTest extends BaseTest{
 
   "creating and then updating item session" should {
     val newSession = createNewSession()
+
     val updateCall = api.v1.routes.ItemSessionApi.update(new ObjectId(IDs.Item), newSession.id)
     val testSession = ItemSession(itemId = new ObjectId(IDs.Item))
     // add some item responses

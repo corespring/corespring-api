@@ -15,10 +15,12 @@ import play.api.mvc._
 import player.accessControl.models.RenderOptions
 import scala.Some
 import scorm.utils.ScormExporter
+import models.item.service.{ItemServiceImpl, ItemService}
 
-class ExporterApi(encrypter:Crypto) extends BaseApi {
+class ExporterApi(encrypter:Crypto, service : ItemService) extends BaseApi {
 
   val OctetStream: String = "application/octet-stream"
+
 
 
   /** Build a multi item scorm .zip
@@ -44,7 +46,7 @@ class ExporterApi(encrypter:Crypto) extends BaseApi {
 
   private def binaryResultFromIds(ids:String, orgId : ObjectId, itemsToByteArray : (List[Item] => Array[Byte])) : Result = {
     val validIds = validObjectIds(ids)
-    val items = Item.find(MongoDBObject("_id" -> MongoDBObject("$in" -> validIds))).toList
+    val items = service.find(MongoDBObject("_id" -> MongoDBObject("$in" -> validIds))).toList
     items match {
       case List() => NotFound("No items found")
       case _ => {
@@ -79,4 +81,4 @@ class ExporterApi(encrypter:Crypto) extends BaseApi {
   }
 }
 
-object ExporterApi extends ExporterApi(AESCrypto)
+object ExporterApi extends ExporterApi(AESCrypto, ItemServiceImpl)

@@ -1,6 +1,7 @@
 package tests.models.itemSession
 
 import models.item.Item
+import models.item.resource.BaseFile.ContentTypes
 import models.item.resource.{VirtualFile, Resource}
 import models.itemSession._
 import org.bson.types.ObjectId
@@ -317,8 +318,18 @@ class ItemSessionTest extends BaseTest {
 
   "new item session" should {
     "return an unstarted item session" in {
-      val session = ItemSession(itemId = new ObjectId())
-      itemSession.newSession(new ObjectId(), session)
+      val itemId = new ObjectId()
+      itemService.insert(
+        Item(
+          id = itemId,
+          data = Some(
+            Resource(name = "data",
+              files = Seq(VirtualFile(name = "qti.xml", contentType = ContentTypes.XML, isMain = true, content = "<root/>"))
+            )
+          )
+        ))
+      val session = ItemSession(itemId = itemId, itemVersion = 0)
+      itemSession.newSession(session)
       if (session.start.isDefined) failure else success
     }
   }
@@ -331,24 +342,6 @@ class ItemSessionTest extends BaseTest {
       itemSession.begin(session) match {
         case Left(_) => failure
         case Right(s) => if (s.start.isDefined) success else failure
-      }
-    }
-  }
-
-  "list multiple" should {
-    val ids = List("51116c6287eb055332a2f8e4", "51116bc7a14f7b657a083c1d").map(new ObjectId(_))
-
-    "return multiple" in {
-      itemSession.findMultiple(ids) match {
-        case Seq(one, two) => success
-        case _ => failure
-      }
-    }
-
-    "return mutliple and ignore unknown ids" in {
-      itemSession.findMultiple(ids :+ new ObjectId()) match {
-        case Seq(one, two) => success
-        case _ => failure
       }
     }
   }
@@ -372,7 +365,7 @@ class ItemSessionTest extends BaseTest {
         ))
       )
 
-      Item.save(item)
+      itemService.save(item)
 
       val session = ItemSession(itemId = item.id)
 

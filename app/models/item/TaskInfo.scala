@@ -1,9 +1,7 @@
 package models.item
 
-import models.item._
-import play.api.libs.json._
-import org.bson.types.ObjectId
 import controllers.JsonValidationException
+import play.api.libs.json._
 
 case class TaskInfo(
                      subjects: Option[Subjects] = None,
@@ -12,7 +10,7 @@ case class TaskInfo(
                      itemType: Option[String] = None){
   def cloneInfo(titlePrefix:String) : TaskInfo = {
     require(titlePrefix != null)
-    copy( title = title.map( titlePrefix + _))
+    copy( title = title.map( t => if(t.isEmpty) titlePrefix else titlePrefix + " " + t) orElse Some(titlePrefix))
   }
 }
 

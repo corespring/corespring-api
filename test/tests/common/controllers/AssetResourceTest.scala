@@ -12,28 +12,17 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
 import tests.PlaySingleton
+import models.item.service.{ItemServiceImpl, ItemService}
+import org.specs2.mock.Mockito
 
-class AssetResourceTest extends Specification {
+class AssetResourceTest extends Specification with Mockito{
 
   PlaySingleton.start()
 
   val resource = new AssetResourceBase {
+    def itemService : ItemService = ItemServiceImpl
     def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]] = Some(Action(Ok(f.toString)))
-    def service: S3Service = new S3Service {
-      def cloneFile(bucket: String, keyName: String, newKeyName: String) {}
-
-      def s3upload(bucket: String, keyName: String): BodyParser[Int] = null
-
-      def s3download(bucket: String, itemId: String, keyName: String): Result = Ok("")
-
-      def delete(bucket: String, keyName: String): this.type#S3DeleteResponse = null
-
-      def download(bucket: String, fullKey: String, headers: Option[Headers]): Result = Ok("fullKey: " + fullKey)
-
-      def online: Boolean = false
-
-      def bucket:String = "?"
-    }
+    def s3Service: S3Service = mock[S3Service]
   }
 
   "show resource" should {

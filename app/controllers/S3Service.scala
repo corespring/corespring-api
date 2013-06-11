@@ -16,8 +16,8 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import web.controllers.utils.ConfigLoader
 
-trait S3ServiceModule {
-  def service : S3Service
+trait S3ServiceClient {
+  def s3Service : S3Service
 }
 
 trait S3Service {

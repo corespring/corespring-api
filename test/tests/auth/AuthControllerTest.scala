@@ -16,34 +16,12 @@ import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import common.encryption.ShaHash
+import tests.helpers.TestModelHelpers
 
-class AuthControllerTest extends BaseTest {
+class AuthControllerTest extends BaseTest with TestModelHelpers {
 
   val Routes = controllers.auth.routes.AuthController
 
-  /** Execute a Specs method body once we successfully insert the org, also remove Org afterwards */
-  def withOrg(org: Organization, fn: Organization => Result, maybeParentId: Option[ObjectId] = None): Result = {
-    Organization.insert(org, maybeParentId) match {
-      case Right(o) => {
-        val result = fn(o)
-        Organization.delete(o.id)
-        result
-      }
-      case Left(error) => Failure(error.message)
-    }
-  }
-
-  /** Execute a specs method body once we successfully insert a User, also remove user afterwards */
-  def withUser(user: User, orgId: ObjectId, p: Permission, fn: User => Result): Result = {
-    User.insertUser(user, orgId, p) match {
-      case Right(u) => {
-        val result = fn(u)
-        User.removeUser(u.id)
-        result
-      }
-      case Left(error) => Failure(error.message)
-    }
-  }
 
   /** Execute a specs method body once we register and have a client id and secret, tidy up after */
   def withRegistration(orgId: ObjectId, user: Option[User], fn: ((String, String) => Result)): Result = {
@@ -80,30 +58,6 @@ class AuthControllerTest extends BaseTest {
     }
   }
 
-  def testUser = new User("testoplenty")
-
-  def testOrg = new Organization("test")
-
-  def secureSocialSession(u: Option[User]): Array[(String, String)] = u match {
-    case Some(user) => Array(
-      (SecureSocial.UserKey -> user.userName),
-      (SecureSocial.ProviderKey -> "userpass"),
-      (SecureSocial.LastAccessKey -> DateTime.now().toString)
-    )
-    case _ => Array()
-  }
-
-  def tokenFormBody(id: String, secret: String, username: String, grantType: Option[String] = None): Array[(String, String)] = {
-    val signature = ShaHash.sign(
-      OAuthConstants.ClientCredentials+":"+id+":"+OAuthConstants.Sha1Hash+":"+username,
-      secret
-    )
-    val base = Array(
-      (OAuthConstants.ClientId -> id),
-      (OAuthConstants.ClientSecret -> secret),
-      (OAuthConstants.Scope -> username))
-    base ++ grantType.map((OAuthConstants.GrantType -> _))
-  }
 
   def registerRequest(orgId: ObjectId, maybeUser: Option[User] = None): FakeRequest[AnyContentAsFormUrlEncoded] = {
     FakeRequest(Routes.register().method, Routes.register().url)

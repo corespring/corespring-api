@@ -1,20 +1,19 @@
 package models.quiz.basic
 
-import org.bson.types.ObjectId
-import models.itemSession.{DefaultItemSession, ItemSession, ItemSessionSettings}
-import com.novus.salat.dao.{SalatDAO, ModelCompanion}
-import se.radley.plugin.salat._
 import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
-import play.api.Play.current
+import com.novus.salat.dao.{SalatDAO, ModelCompanion}
+import models.item.TaskInfo
+import models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
+import models.itemSession.{DefaultItemSession, ItemSession, ItemSessionSettings}
 import models.quiz.{BaseParticipant, BaseQuestion}
-import play.api.libs.json._
-import play.api.libs.json.Json._
-import models.mongoContext._
-import models.item.{TaskInfo, Item}
-import play.api.libs.json.JsObject
-import scala.Some
+import org.bson.types.ObjectId
 import org.joda.time.DateTime
+import play.api.Play.current
+import play.api.libs.json.Json._
+import play.api.libs.json._
+import scala.Some
+import se.radley.plugin.salat._
 
 case class Answer(sessionId: ObjectId, itemId: ObjectId)
 
@@ -98,7 +97,8 @@ case class Question(itemId: ObjectId,
                     title: Option[String] = None,
                     standards: Seq[String] = Seq()) extends BaseQuestion(Some(itemId), settings)
 
-object Question {
+trait QuestionLike {
+  self: ItemServiceClient =>
 
   implicit object Reads extends Reads[Question] {
     def reads(json: JsValue): Question = {
@@ -124,7 +124,7 @@ object Question {
   }
 
   def bindItemToQuestion(question: Question): Question = {
-    Item.find(
+    itemService.find(
       MongoDBObject("_id" -> question.itemId),
       MongoDBObject("taskInfo.title" -> 1, "standards" -> 1)).toList.headOption match {
       case Some(item) => {
@@ -137,6 +137,10 @@ object Question {
       case _ => question
     }
   }
+}
+
+object Question extends QuestionLike with ItemServiceClient {
+  def itemService: ItemService = ItemServiceImpl
 }
 
 case class Quiz(orgId: Option[ObjectId] = None,
@@ -186,6 +190,8 @@ object Quiz {
     * By hiding it we can thin out the client api for quiz
     */
   private object Dao extends ModelCompanion[Quiz, ObjectId] {
+    import play.api.Play.current
+    import models.mongoContext.context
     val collection = mongoCollection("quizzes")
     val dao = new SalatDAO[Quiz, ObjectId](collection = collection) {}
   }
@@ -254,11 +260,12 @@ object Quiz {
 
   def addParticipants(quizId: ObjectId, externalUids: Seq[String]): Option[Quiz] = {
     Quiz.findOneById(quizId) match {
-      case Some(q) => addParticipants(q,externalUids)
+      case Some(q) => addParticipants(q, externalUids)
       case None => None
     }
   }
-  def addParticipants(q:Quiz,externalUids: Seq[String]): Option[Quiz] = {
+
+  def addParticipants(q: Quiz, externalUids: Seq[String]): Option[Quiz] = {
     val updatedQuiz = q.copy(participants = q.participants ++ externalUids.map(euid => Participant(Seq(), euid)))
     Quiz.update(updatedQuiz)
     Some(updatedQuiz)

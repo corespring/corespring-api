@@ -1,6 +1,8 @@
 package tests.player.controllers
 
+import models.item.service.ItemServiceImpl
 import org.specs2.execute.{Result => SpecsResult}
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import play.api.mvc._
 import play.api.test.Helpers._
@@ -10,13 +12,13 @@ import player.accessControl.models.RequestedAccess
 import player.controllers.Views
 import tests.PlaySingleton
 
-class ViewsTest extends Specification {
+class ViewsTest extends Specification with Mockito {
 
   import TestIds._
 
   PlaySingleton.start()
 
-  val views = new Views(new TestBuilder)
+  val views = new Views(new TestBuilder, ItemServiceImpl)
 
   def assertCookie(a: Action[AnyContent], keyMode: (String, RequestedAccess.Mode.Mode)): SpecsResult = {
     val (key, mode) = keyMode

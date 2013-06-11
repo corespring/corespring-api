@@ -18,8 +18,9 @@ import play.Logger
 import play.api.libs.json.JsString
 import scala.Some
 import play.api.libs.json.JsObject
+import models.item.service.{ItemService, ItemServiceImpl}
 
-class ResourceApi(s3service:S3Service) extends BaseApi {
+class ResourceApi(s3service:S3Service, service : ItemService) extends BaseApi {
 
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
@@ -58,7 +59,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
                   ) = ApiAction(p) { request =>
     objectId(itemId) match {
       case Some(validId) => {
-        Item.findOneById(validId) match {
+        service.findOneById(validId) match {
           case Some(item) => {
             val errors: Seq[Result] = additionalChecks.flatMap(_(request,item))
             if (errors.length == 0) {
@@ -101,7 +102,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
           case StoredFile(_,_,_,key) => s3service.delete(AMAZON_ASSETS_BUCKET,key)
           case _ => //do nothing
         }
-        Item.save(item)
+        service.save(item)
         Ok
       }
       case _ => NotFound(filename)
@@ -243,7 +244,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
                   processedUpdate.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey
                 }
                 item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
-                Item.save(item)
+                service.save(item)
                 Ok(toJson(processedUpdate))
               }
               case _ => NotFound(update.name)
@@ -286,7 +287,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
                       unsetIsMain(resource)
                     }
                     resource.files = resource.files.map(bf => if (bf.name == filename) update else bf)
-                    Item.save(item)
+                    service.save(item)
                     Ok(toJson(update))
                   }
                   case _ => NotFound
@@ -332,7 +333,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
           key(itemId, DATA_PATH, filename))
 
         resource.files = resource.files ++ Seq(file)
-        Item.save(item)
+        service.save(item)
         Ok(toJson(file))
     }
     )
@@ -363,7 +364,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
           false,
           storageKey(itemId, materialName, filename))
         resource.files = resource.files ++ Seq(file)
-        Item.save(item)
+        service.save(item)
         Ok(toJson(file))
     }
     )
@@ -386,7 +387,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
             val file = new StoredFile(filename, contentType(filename), true, s3Key)
             val resource = Resource(name, Seq(file))
             item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
-            Item.save(item)
+            service.save(item)
             Ok(toJson(resource))
           }
         }
@@ -404,7 +405,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
               case Some(error) => NotAcceptable(toJson(error))
               case _ => {
                 item.supportingMaterials = item.supportingMaterials ++ Seq[Resource](foundResource)
-                Item.save(item)
+                service.save(item)
                 Ok(toJson(foundResource))
               }
             }
@@ -422,7 +423,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
       request =>
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
         item.supportingMaterials = item.supportingMaterials.filter(_.name != resourceName)
-        Item.save(item)
+        service.save(item)
         Ok("")
     }
   )
@@ -444,7 +445,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
           unsetIsMain(resource)
         }
         resource.files = resource.files ++ Seq(file)
-        Item.save(item)
+        service.save(item)
         Ok(toJson(file))
       }
     }
@@ -496,4 +497,4 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
   }
 }
 
-object ResourceApi extends api.v1.ResourceApi(ConcreteS3Service)
+object ResourceApi extends api.v1.ResourceApi(ConcreteS3Service, ItemServiceImpl)

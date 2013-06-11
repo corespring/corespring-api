@@ -6,8 +6,11 @@ import play.api.mvc.{Action, AnyContentAsFormUrlEncoded, BodyParsers}
 import play.mvc.BodyParser.FormUrlEncoded
 import models.{Organization}
 import models.item.Item
+import models.item.service.{ItemServiceImpl, XmlSearch, XmlSearchClient, ItemServiceClient}
+import org.corespring.platform.data.VersioningDao
+import org.bson.types.ObjectId
 
-object QtiSearch extends BaseApi{
+trait QtiSearch extends BaseApi{ self : XmlSearchClient =>
 
   def qtiSearchPage() = SecuredAction{ request =>
     Ok(internal.views.html.qtiSearch())
@@ -24,7 +27,7 @@ object QtiSearch extends BaseApi{
             val ids = org.contentcolls.toList.map(_.collectionId.toString)
             request.body.get("text") match {
               case Some(Seq(text)) => {
-                val items : List[Item] = Item.findInXml(text, ids)
+                val items : List[Item] = xmlSearch.findInXml(text, ids)
                 Ok(internal.views.html.qtiSearchResults(text,items))
               }
               case None => BadRequest("Bad parameters")
@@ -33,6 +36,10 @@ object QtiSearch extends BaseApi{
         case _ => BadRequest("no org found")
       }
   }
+}
 
-
+object QtiSearch extends QtiSearch with XmlSearchClient{
+  def xmlSearch: XmlSearch = new XmlSearch {
+    def dao: VersioningDao[Item, ObjectId] = ItemServiceImpl.dao
+  }
 }
