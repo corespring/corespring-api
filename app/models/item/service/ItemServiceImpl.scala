@@ -7,7 +7,7 @@ import com.mongodb.{BasicDBObject, DBObject}
 import com.novus.salat._
 import com.novus.salat.dao.SalatMongoCursor
 import models.item.resource.BaseFile.ContentTypes
-import models.item.resource.{VirtualFile, Resource}
+import models.item.resource.{StoredFile, VirtualFile, Resource}
 import models.item.{FieldValue, Item}
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.SalatVersioningDao
@@ -16,8 +16,12 @@ import play.api.Application
 import play.api.PlayException
 import scala.xml.Elem
 import se.radley.plugin.salat.SalatPlugin
+import common.log.PackageLogging
+import controllers.{ConcreteS3Service, S3Service}
+import com.typesafe.config.ConfigFactory
 
-object ItemServiceImpl extends ItemService {
+class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogging{
+  private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
   import models.mongoContext.context
 
@@ -37,6 +41,40 @@ object ItemServiceImpl extends ItemService {
     protected implicit def entityManifest: Manifest[Item] = Manifest.classType(classOf[Item])
 
     protected implicit def context: Context = models.mongoContext.context
+
+    override protected def beforeVersionedInsert(item:Item, version:Int) = {
+      def versionS3File(sourceFile: StoredFile, version: Int): String = {
+        val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/", "")
+        s3service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, item.id.toString +"/"+ version +"/"+ oldStorageKeyIdRemoved)
+        item.id.toString +"/"+ version +"/"+ oldStorageKeyIdRemoved
+      }
+      //for each stored file in item, copy the file to the version path
+      try {
+        item.data.get.files.foreach {
+          file => file match {
+            case sf: StoredFile =>
+              val newKey = versionS3File(sf, version)
+              sf.storageKey = newKey
+            case _ =>
+          }
+        }
+        item.supportingMaterials.foreach {
+          sm =>
+            sm.files.filter(_.isInstanceOf[StoredFile]).foreach {
+              file =>
+                val sf = file.asInstanceOf[StoredFile]
+                val newKey = versionS3File(sf, version)
+                sf.storageKey = newKey
+            }
+        }
+        true
+      } catch {
+        case r: RuntimeException =>
+          Logger.error("Error cloning some of the S3 files: " + r.getMessage)
+          Logger.error(r.getStackTrace.mkString("\n"))
+          false
+      }
+    }
   }
 
   import com.mongodb.casbah.commons.conversions.scala._
@@ -92,6 +130,7 @@ object ItemServiceImpl extends ItemService {
 
   def currentVersion(id: ObjectId): Option[Int] = dao.getCurrentVersion(id)
 }
+object ItemServiceImpl extends ItemServiceImpl(ConcreteS3Service)
 
 
 

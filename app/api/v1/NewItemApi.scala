@@ -89,7 +89,6 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
         collectionId = if (item.collectionId.isEmpty) itemService.findOneById(id).map(_.collectionId).getOrElse("") else item.collectionId)
     )
   }
-
   private def saveItem(item: Item, createNewVersion: Boolean): Option[Item] = {
     itemService.save(item, createNewVersion)
     itemService.findOneById(item.id)
