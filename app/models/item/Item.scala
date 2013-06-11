@@ -43,6 +43,7 @@ object Item {
 
   object Dbo {
 
+    //TODO: versioning-dao - this was used in master in Item - needs to be reintroduced (compare with master and find the usages).
     def asMetadataOnly(i: Item): DBObject = {
       import Item.Keys._
       import com.mongodb.casbah.commons.MongoDBObject
