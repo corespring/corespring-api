@@ -19,6 +19,9 @@ import se.radley.plugin.salat.SalatPlugin
 import common.log.PackageLogging
 import controllers.{ConcreteS3Service, S3Service}
 import com.typesafe.config.ConfigFactory
+import scalaz.Scalaz._
+import scalaz._
+import org.corespring.platform.data.mongo.exceptions.SalatVersioningDaoException
 
 class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogging{
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
@@ -42,11 +45,12 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
 
     protected implicit def context: Context = models.mongoContext.context
 
-    override protected def beforeVersionedInsert(item:Item, version:Int) = {
+    override protected def beforeVersionedInsert(item:Item, version:Int):Validation[SalatVersioningDaoException,Unit] = {
       def versionS3File(sourceFile: StoredFile, version: Int): String = {
         val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/", "")
-        s3service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, item.id.toString +"/"+ version +"/"+ oldStorageKeyIdRemoved)
-        item.id.toString +"/"+ version +"/"+ oldStorageKeyIdRemoved
+        val oldStorageKeyVersionRemoved = oldStorageKeyIdRemoved.replaceAll("^\\d+?/","")
+        s3service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, item.id.toString +"/"+ version +"/"+ oldStorageKeyVersionRemoved)
+        item.id.toString +"/"+ version +"/"+ oldStorageKeyVersionRemoved
       }
       //for each stored file in item, copy the file to the version path
       try {
@@ -67,12 +71,12 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
                 sf.storageKey = newKey
             }
         }
-        true
+        Success(())
       } catch {
         case r: RuntimeException =>
           Logger.error("Error cloning some of the S3 files: " + r.getMessage)
           Logger.error(r.getStackTrace.mkString("\n"))
-          false
+          Failure(SalatVersioningDaoException("Error cloning some of the S3 files: " + r.getMessage))
       }
     }
   }

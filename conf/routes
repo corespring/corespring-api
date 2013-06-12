@@ -82,7 +82,7 @@ GET     /api/v1/collections/:collId/items       api.v1.ItemApi.listWithColl(coll
 DELETE  /api/v1/items/:id                       api.v1.ItemApi.delete(id: ObjectId)
 GET     /api/v1/items/:id/detail                api.v1.NewItemApi.getDetail(id: ObjectId, version : Option[Int] ?= None)
 POST    /api/v1/items                           api.v1.ItemApi.create
-PUT     /api/v1/items/:id                       api.v1.NewItemApi.update(id: ObjectId, createNewVersion : Boolean ?= false)
+PUT     /api/v1/items/:id                       api.v1.NewItemApi.update(id: ObjectId)
 POST    /api/v1/items/:id                       api.v1.NewItemApi.cloneItem(id:ObjectId)
 
 # Exporter api

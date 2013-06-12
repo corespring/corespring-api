@@ -10,6 +10,7 @@ import org.joda.time.DateTime
 import play.api.libs.json._
 import resource.Resource
 import scala._
+import service.ItemServiceImpl
 
 case class Item(
                  var collectionId: String = "",

@@ -33,13 +33,13 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
   def getDetail(id: ObjectId, version: Option[Int] = None) = get(id, version, Some("detailed"))
 
 
-  def update(id: ObjectId, createNewVersion: Boolean = false) = ValidatedItemApiAction(id, Permission.Write) {
+  def update(id: ObjectId) = ValidatedItemApiAction(id, Permission.Write) {
     request =>
       for {
         json <- request.body.asJson.toSuccess("No json in request body")
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
         validatedItem <- validateItem(id, item).toSuccess("Invalid data")
-        savedResult <- saveItem(validatedItem, createNewVersion).toSuccess("Error saving item")
+        savedResult <- saveItem(validatedItem, validatedItem.published).toSuccess("Error saving item")
       } yield savedResult
   }
 

@@ -51,7 +51,7 @@ angular.module('tagger.services')
                 items: checkInjectedRoutes('PlayerItemRoutes', 'list', [], '/api/v1/items/:id'),
                 itemList: checkInjectedRoutes('PlayerItemRoutes', 'list', [], '/api/v1/items/:id'),
                 itemDetails: checkInjectedRoutes('PlayerItemRoutes', 'getDetail', [':id'], '/api/v1/items/:id/detail'),
-                itemIncrement:'/api/v1/items/:id/increment',
+                //itemIncrement:'/api/v1/items/:id/increment',
                 getAccessToken:'/web/access_token',
 
                 previewFile:'/web/show-resource/{key}',
