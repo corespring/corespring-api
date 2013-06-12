@@ -53,9 +53,18 @@ Note that you can point to a file that is not on the class path if you want:
 * Note: It would have been preferable to set the logger up in the conf file - but thats not possible with the current
 version of play.*
 
+
+
 #### Localhost
 
 To configure the logger when running locally add a system property to your run command:
 
     play -Dlogger.file=path/to/logger.xml
 
+#### Amazon S3
+
+We use Amazon S3 for deploying files - the management console is here:
+
+https://corespring.signin.aws.amazon.com/console
+
+Ask evan for a user account.

@@ -1,33 +1,57 @@
 package common.controllers.deployment
 
 import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.model.{PutObjectResult, ObjectMetadata}
+import com.amazonaws.services.s3.model.{SetBucketPolicyRequest, ObjectMetadata}
 import com.ee.assets.deployment.{ContentInfo, Deployer}
 import common.log.PackageLogging
-import java.io.ByteArrayInputStream
+import common.utils.string
+import java.io.{InputStream, ByteArrayInputStream}
 import java.util.Date
 import scala.collection.mutable
-import common.utils.string
+import org.h2.util.IOUtils
 
 
 class S3Deployer(client: Option[AmazonS3], bucket: String) extends Deployer with PackageLogging {
 
+  def createBucketIfRequired = client.map {
+    s3 =>
+      try {
+        s3.getBucketPolicy(bucket)
+      } catch {
+        case e: Throwable => {
+          Logger.debug("creating bucket: " + bucket)
+          s3.createBucket(bucket)
+          println(S3Deployer.policyTemplate)
+          println(bucket)
+          val text = string.interpolate(S3Deployer.policyTemplate, string.replaceKey(Map("bucket" -> bucket)), string.DollarRegex)
+          val request = new SetBucketPolicyRequest(bucket, text)
+          s3.setBucketPolicy(request)
+        }
+      }
+  }
+
+  createBucketIfRequired
+
 
   private val deployed: mutable.Map[String, String] = mutable.Map()
 
-  def listAssets : Map[String,String] = deployed.toMap
+  def listAssets: Map[String, String] = deployed.toMap
 
-  def deploy(relativePath: String, lastModified: Long, contents: => String, info: ContentInfo): Either[String, String] = {
+  private def toByteArray(is:InputStream) = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
 
-    Logger.debug("deploy: " + relativePath + ", lastModified: " + lastModified)
+  def deploy(relativePath: String, lastModified: Long, stream : => InputStream, info: ContentInfo): Either[String, String] = {
 
-    def key: String = relativePath + ":"+lastModified
+    val deploymentPath = if(relativePath.startsWith("/")) relativePath.substring(1, relativePath.length) else relativePath
+
+    Logger.debug("deploy: " + deploymentPath + ", lastModified: " + lastModified)
+    def key: String = deploymentPath + ":" + lastModified
 
     def checkS3: Option[String] = client.map {
       s3 =>
         try {
-          s3.getObject(bucket, relativePath)
-          val url =  S3Deployer.getUrl(bucket, relativePath)
+          Logger.debug("check s3 for: " + deploymentPath )
+          s3.getObject(bucket, deploymentPath)
+          val url = S3Deployer.getUrl(bucket, deploymentPath)
           deployed += (key -> url)
           Some(url)
         } catch {
@@ -39,17 +63,18 @@ class S3Deployer(client: Option[AmazonS3], bucket: String) extends Deployer with
       client.map {
         s3 =>
           try {
-            val bytes: Array[Byte] = contents.getBytes("UTF-8")
-            val inputStream = new ByteArrayInputStream(bytes)
+            Logger.debug("upload file: " + deploymentPath )
             val metadata = new ObjectMetadata()
             metadata.setLastModified(new Date(lastModified))
             metadata.setContentType(info.contentType)
             info.contentEncoding.foreach {
               metadata.setContentEncoding(_)
             }
+            val bytes = toByteArray(stream)
             metadata.setContentLength(bytes.length)
-            s3.putObject(bucket, relativePath, inputStream, metadata)
-            deployed += (key -> S3Deployer.getUrl(bucket, relativePath))
+            val bytesInputStream = new ByteArrayInputStream(bytes)
+            s3.putObject(bucket, deploymentPath, bytesInputStream, metadata)
+            deployed += (key -> S3Deployer.getUrl(bucket, deploymentPath))
             Right(deployed.get(key).get)
           }
           catch {
@@ -65,9 +90,9 @@ class S3Deployer(client: Option[AmazonS3], bucket: String) extends Deployer with
 
 object S3Deployer {
 
-  def getUrl(bucket:String, path:String) : String = {
+  def getUrl(bucket: String, path: String): String = {
     val template = "s3.amazonaws.com/${bucket}/${path}"
-    "//" + string.interpolate( template, string.replaceKey(Map("bucket" -> bucket, "path" -> path)), string.DollarRegex).replaceAll("//", "/")
+    "//" + string.interpolate(template, string.replaceKey(Map("bucket" -> bucket, "path" -> path)), string.DollarRegex).replaceAll("//", "/")
   }
 
   val policyTemplate = """{
