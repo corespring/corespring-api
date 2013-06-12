@@ -21,8 +21,6 @@ class S3Deployer(client: Option[AmazonS3], bucket: String) extends Deployer with
         case e: Throwable => {
           Logger.debug("creating bucket: " + bucket)
           s3.createBucket(bucket)
-          println(S3Deployer.policyTemplate)
-          println(bucket)
           val text = string.interpolate(S3Deployer.policyTemplate, string.replaceKey(Map("bucket" -> bucket)), string.DollarRegex)
           val request = new SetBucketPolicyRequest(bucket, text)
           s3.setBucketPolicy(request)
