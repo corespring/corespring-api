@@ -2,6 +2,7 @@ import _root_.controllers.ConcreteS3Service
 import _root_.models.itemSession.{ArrayItemResponse, StringItemResponse, ItemSession}
 import _root_.models.quiz.basic.{Participant, Answer, Quiz}
 import com.typesafe.config.ConfigFactory
+import common.controllers.deployment.AssetsLoader
 import org.joda.time.DateTime
 import play.api.mvc.Results._
 import util.Random
@@ -99,7 +100,9 @@ object Global extends GlobalSettings {
     // support JodaTime
     RegisterJodaTimeConversionHelpers()
 
+
     ConcreteS3Service.init
+    AssetsLoader.init
 
     val initData:Boolean = ConfigFactory.load().getString(INIT_DATA) == "true"
 

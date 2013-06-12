@@ -20,7 +20,7 @@
     <logger name="qti" level="DEBUG"/>
     <logger name="models" level="DEBUG"/>
     <logger name="player" level="DEBUG"/>
-    <logger name="assets" level="DEBUG"/>
+    <logger name="assets" level="WARN"/>
     <logger name="common" level="DEBUG"/>
 
     <root level="DEBUG">

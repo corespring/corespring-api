@@ -8,14 +8,7 @@
 
 <script type="text/javascript" src="@player.controllers.routes.Session.jsRoutes"></script>
 
-@common.controllers.deployment.loader.scripts("common")(
-  "js/corespring/qti/controllers",
-  "js/corespring/qti/app.js",
-  "js/corespring/qti/qtiServices.js",
-  "js/corespring/qti/directives/DimensionsChecker.js",
-  "js/corespring/qti/directives/feedbackInline.js",
-  "js/corespring/qti/prototype.extensions/Array.js"
-)
+@common.controllers.deployment.AssetsLoader.playerCommon
 
 @common.controllers.deployment.loader.scripts("qti-interactions")( qtiAssetLoader.localJsPaths : _*)
 @common.controllers.deployment.loader.css("qti-interactions")( qtiAssetLoader.localCssPaths : _* )
