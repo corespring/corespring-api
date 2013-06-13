@@ -1,0 +1,19 @@
+{
+    "_id" : {
+        "$oid" : "51b88169e2cdf0cbe81a5425"
+    },
+    "provider":"userpass",
+    "userName" : "demo_root_user",
+    "fullName" : "Leeroy Jenkins",
+    "email" : "dev@null.com",
+    "password" : "$2a$10$ztrohKSsxniXnLsTJyAJVOlye5DFYlMi3GUQH1SHkVSO5IH.E9O72",
+    "orgs" : [
+        {
+            "orgId" : {
+                "$oid" : "51b881d2e2cdf0cbe81a5426"
+            } ,
+            "pval" : 3
+        }
+    ],
+    "hasRegisteredOrg" : true
+}

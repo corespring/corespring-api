@@ -1,0 +1,19 @@
+{
+  "_id": {
+    "$oid": "51b881d2e2cdf0cbe81a5426"
+  },
+  "name": "Demo Root Organization",
+  "path": [
+    {
+      "$oid": "51b881d2e2cdf0cbe81a5426"
+    }
+  ],
+  "contentcolls": [
+    {
+      "collectionId": {
+        "$oid": "51114b127fc1eaa866444647"
+      },
+      "pval": 3
+    }
+  ]
+}

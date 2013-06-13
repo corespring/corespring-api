@@ -113,6 +113,7 @@ object Global extends GlobalSettings {
     if(!Play.isTest(app)) {
       if (Play.isDev(app) && initData) {
         onlyIfLocalDb(seedDevData)
+        onlyIfLocalDb(seedDebugData)
       } else if(Play.isProd(app) && initData) {
         seedDevData()
       }
@@ -152,6 +153,11 @@ object Global extends GlobalSettings {
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/dev")
     seedData("conf/seed-data/exemplar-content")
+  }
+
+  private def seedDebugData(){
+    //do not call emptyData() as it expects to be called after seedDevData
+    seedData("conf/seed-data/debug")
   }
 
 }

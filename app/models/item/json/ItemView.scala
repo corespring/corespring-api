@@ -47,7 +47,8 @@ object ItemView{
         Some((collectionId -> JsString(item.collectionId))),
         Some(contentType -> JsString(ContentType.item)),
         Some(published -> JsBoolean(item.published)),
-        Some("sessionCount" -> JsNumber(item.sessionCount))
+        Some("sessionCount" -> JsNumber(item.sessionCount)),
+        Some("version" -> JsNumber(item.version))
       )
 
       def makeJsString(tuple: (String, Option[String])) = {
