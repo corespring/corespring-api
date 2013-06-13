@@ -20,8 +20,17 @@ package object string {
 
   def lowercaseFirstChar(s: String): String = if (s == null || s.isEmpty) s else s.charAt(0).toLower + s.substring(1, s.length)
 
-  def filePath(parts:String*) : String = {
+  def filePath(parts: String*): String = {
     parts.mkString("/").replace("//", "/").replace("/./", "/")
+  }
+
+  def pseudoRandomString(length: Int, chars : Seq[Char] = ('a' to 'z') ++ ('A' to 'Z')): String = {
+    (1 to length).map(
+      x => {
+        val index = scala.util.Random.nextInt(chars.length)
+        chars(index)
+      }
+    ).mkString("")
   }
 
 }
