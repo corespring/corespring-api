@@ -8,7 +8,7 @@ import controllers.Utils
 import models._
 import models.item.{Item, Content}
 import models.itemSession._
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsValue, JsObject}
 import play.api.libs.json.Json._
 import play.api.mvc.AnyContent
 import quiz.basic.Quiz
@@ -111,12 +111,15 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService : ItemServic
    */
   def create(itemId: ObjectId, itemVersion : Option[Int] = None) = ApiAction {
     request =>
+
+      def getSettings(json:JsValue) : Option[ItemSessionSettings] = json.asOpt[ItemSession].map(_.settings).orElse(Some(ItemSessionSettings()))
+
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.Read)) {
 
         val s : Option[ItemSession] = for{
           v <- itemVersion orElse itemService.currentVersion(itemId)
-          json <- request.body.asJson
-          settings <- json.asOpt[ItemSession].map(_.settings)
+          json <- request.body.asJson.orElse(Some(JsObject(Seq())))
+          settings <- getSettings(json)
         } yield  ItemSession(itemId = itemId, itemVersion = v, settings = settings)
 
         s.map{ session =>
