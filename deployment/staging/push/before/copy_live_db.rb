@@ -7,7 +7,7 @@ require_relative '../../../libs/ruby/db'
 require_relative '../../../libs/ruby/mongo_tools'
 
 log "-------------------------------------"
-log "#{Time.now.utc.iso8601} || staging/push/before/copy_live_db.rb"
+log "staging/push/before/copy_live_db.rb"
 log "-------------------------------------"
 
 raise "no config file specified" if ARGV[0] == nil

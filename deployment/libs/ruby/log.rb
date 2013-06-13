@@ -1,4 +1,4 @@
 require 'time'
 def log(msg)
-  puts "[#{Time.now.utc.iso8601}] #{msg}"
+  puts "[#{Time.now.strftime("%I:%M%p")}] #{msg}"
 end
