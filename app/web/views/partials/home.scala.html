@@ -7,7 +7,13 @@
     <button ng-click="deleteConfirmed()" class="btn btn-danger">Yes</button>
     <button class="btn btn-info" ng-click="deleteCancelled()">No</button>
 </div>
+<div >
+    <div ui-modal ng-model="showCollectionWindow" style="padding: 20px" ng-controller="CreateCtrl">
 
+        <button class="btn btn-warning cancel" ng-click="closeCollectionWindow()">Cancel</button>
+
+    </div>
+</div>
 <div ng-class="{'window-up': showPopup}">
     <div class="window-overlay">
         <div class="window" style="top: 50px; display: block;" onclick="var event = arguments[0] || window.event; event.stopPropagation();">

@@ -32,7 +32,7 @@ function MainNavController($scope, $rootScope, $location, SearchService){
   });
 
   $scope.createCollection = function(collname){
-    if(collName !== ""){
+    if(collname){
       Collection.create({},{name:collname},function(data){
           if($rootScope.collections) $rootScope.collections.push(data)
       },function(err){
@@ -41,6 +41,10 @@ function MainNavController($scope, $rootScope, $location, SearchService){
     }
   };
 
+  $rootScope.showCollectionWindow = false;
+  $scope.openCollectionWindow = function(){
+      $rootScope.showCollectionWindow = true;
+  }
 }
 
 MainNavController.$inject = ['$scope', '$rootScope', '$location', 'SearchService'];
