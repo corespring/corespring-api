@@ -38,6 +38,8 @@ object ConcreteS3Service extends S3Service with PackageLogging {
   private var optS3: Option[AmazonS3Client] = None
 
 
+  def getAmazonClient : Option[AmazonS3Client] = optS3
+
   def online:Boolean = {
     optS3 match {
       case Some(s3) => try{
