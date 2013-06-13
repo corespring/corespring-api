@@ -69,23 +69,6 @@ class S3DeployerTest extends Specification {
         }
       }
     }
-
-    "deploy a gz file to corepsring-public-assets" in new RemoveFileBefore(client, "corespring-public-assets","test/tests/files/cs-common--1111111.min.gz.js"){
-
-      import play.api.Play.current
-
-      val file = Play.getFile(path)
-
-      def gzip(file: File): GZIPInputStream =  new GZIPInputStream(new BufferedInputStream(new FileInputStream(path)))
-
-      deployer.deploy(path, file.lastModified(), gzip(file), ContentInfo(contentType = "text/javascript")) match {
-        case Left(e) => failure(e)
-        case Right(p) => {
-          println("url: " + p)
-          p === S3Deployer.getUrl(bucket, path)
-        }
-      }
-    }
   }
 }
 
