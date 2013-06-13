@@ -6,6 +6,7 @@ import player.views.qti.models.{QtiJsAsset, QtiAssetsConfig}
 import qti.models.QtiItem
 import qti.models.RenderingMode._
 import scala.xml.Node
+import common.log.PackageLogging
 
 
 abstract class BaseQtiAssets(jsRootPath: String, cssRootPath:String, seedConfig: QtiAssetsConfig) {
@@ -59,9 +60,11 @@ abstract class BaseQtiAssets(jsRootPath: String, cssRootPath:String, seedConfig:
  * @param cssRootPath
  * @param config
  */
-class QtiAssets(jsRootPath: String, cssRootPath:String, config: QtiAssetsConfig) extends BaseQtiAssets(jsRootPath, cssRootPath, config) {
+class QtiAssets(jsRootPath: String, cssRootPath:String, config: QtiAssetsConfig) extends BaseQtiAssets(jsRootPath, cssRootPath, config) with PackageLogging {
 
   protected def findAssetKeys(qti: Node): Seq[String] = {
+
+    Logger.debug("findAssetsKeys: " + qti.toString)
 
     object matches {
       def attrAndValue(name: String, value: String): Boolean =  (qti \\ ("@" + name)).find(_.text == value).isDefined

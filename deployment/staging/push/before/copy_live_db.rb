@@ -58,6 +58,8 @@ end
 # We get this error when running a restore:
 # Error creating index corespring-staging.system.usersassertion: 13111 field not found, expected type 2
 # We catch this for now as the db has been restored, this is some form of indexing issue
+
+log "call MongoTools.restore..."
 begin
   MongoTools.restore(
     target_db.host, 
