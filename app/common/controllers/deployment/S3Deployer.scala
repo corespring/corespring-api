@@ -8,9 +8,8 @@ import common.utils.string
 import java.io.{InputStream, ByteArrayInputStream}
 import java.util.Date
 import scala.collection.mutable
-import org.h2.util.IOUtils
 
-
+/** An implementation of the Assets-Loader Deployer trait that writes the assets to s3 and returns the s3 url back */
 class S3Deployer(client: Option[AmazonS3], bucket: String) extends Deployer with PackageLogging {
 
   def createBucketIfRequired = client.map {

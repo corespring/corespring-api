@@ -15,6 +15,5 @@ package object deployment {
 
   lazy val s3Deployer: Deployer = new S3Deployer(ConcreteS3Service.getAmazonClient, publicBucket)
 
-
   lazy val publicBucket: String = "corespring-public-assets" + (if (isProd) "-" + Defaults.commitHashShort else "")
 }
