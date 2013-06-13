@@ -3,14 +3,14 @@ describe('qtiDirectives.orderinteraction', function () {
 
   var helper = new com.qti.helpers.QtiHelper();
 
-  var basicNode = ['<orderInteraction responseIdentifier="question" maxChoices="${maxChoices}">',
+  var basicNode = ['<orderInteraction responseIdentifier="question" csOrderingType="placement">',
     '<prompt>Prompt text</prompt>',
     '<simpleChoice identifier="a">A</simpleChoice>',
     '<simpleChoice identifier="b">B</simpleChoice>',
     '</orderInteraction>'
   ].join("\n");
 
-  var shuffleNode = ['<orderInteraction responseIdentifier="question" maxChoices="1" shuffle="${shuffle}">',
+  var shuffleNode = ['<orderInteraction responseIdentifier="question" shuffle="${shuffle}" csOrderingType="placement">',
     '<prompt>Prompt text</prompt>',
     '<simpleChoice identifier="a">A</simpleChoice>',
     '<simpleChoice identifier="b">B</simpleChoice>',
@@ -55,7 +55,7 @@ describe('qtiDirectives.orderinteraction', function () {
         expect(interaction.scope).not.toBe(null);
         var element = interaction.element;
         expect(interaction.scope.prompt).toBe("Prompt text");
-        expect(interaction.scope.orderedList.length).toBe(2);
+        expect(interaction.scope.defaultItems.length).toBe(2);
       });
     });
 
@@ -69,9 +69,9 @@ describe('qtiDirectives.orderinteraction', function () {
           });
 
           var interaction = getShuffleInteraction(true);
-          if (interaction.scope.orderedList[0].identifier == 'a') numFirstChoiceIsA++;
-          else if (interaction.scope.orderedList[0].identifier == 'b') numFirstChoiceIsB++;
-          if (interaction.scope.orderedList[2].identifier == 'c') numLastChoiceIsC++;
+          if (interaction.scope.defaultItems[0].identifier == 'a') numFirstChoiceIsA++;
+          else if (interaction.scope.defaultItems[0].identifier == 'b') numFirstChoiceIsB++;
+          if (interaction.scope.defaultItems[2].identifier == 'c') numLastChoiceIsC++;
         }
         // Distribution should look like: 50% A or B, 50% A or B, 100% C (fixed choice)
         expect(numFirstChoiceIsA).toBeGreaterThan(30);
@@ -88,9 +88,10 @@ describe('qtiDirectives.orderinteraction', function () {
           inject(function ($rootScope) {
             rootScope = $rootScope.$new();
           });
+
           var interaction = getShuffleInteraction(false);
-          if (interaction.scope.orderedList[0].identifier == 'a') numFirstChoiceIsA++;
-          if (interaction.scope.orderedList[2].identifier == 'c') numLastChoiceIsC++;
+          if (interaction.scope.defaultItems[0].identifier == 'a') numFirstChoiceIsA++;
+          if (interaction.scope.defaultItems[2].identifier == 'c') numLastChoiceIsC++;
         }
         // Distribution should look like: 100% A, 100% B, 100% C
         expect(numFirstChoiceIsA).toBe(100);

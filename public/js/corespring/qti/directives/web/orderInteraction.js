@@ -37,7 +37,7 @@ var parsePrompt = function (element) {
 };
 
 
-var compileNormalOrderInteraction = function (tElement, QtiUtils) {
+var compileNormalOrderInteraction = function (shuffle, tElement, QtiUtils) {
 
     var choiceTemplate = [
         '<span ng-bind-html-unsafe="prompt" class="choice-prompt"></span>',
@@ -49,7 +49,7 @@ var compileNormalOrderInteraction = function (tElement, QtiUtils) {
 
 
     var localScope = {
-        choices: parseSimpleChoices(tElement),
+        choices: parseSimpleChoices(tElement, !shuffle),
         prompt: parsePrompt(tElement)
     };
 
@@ -83,7 +83,7 @@ var compileNormalOrderInteraction = function (tElement, QtiUtils) {
     };
 }
 
-var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils, $timeout) {
+var compilePlacementOrderInteraction = function (shuffle, tElement, isVertical, QtiUtils, $timeout) {
 
 
     var choiceTemplate = isVertical ?
@@ -128,7 +128,7 @@ var compilePlacementOrderInteraction = function (tElement, isVertical, QtiUtils,
 
 
     var localScope = {
-        choices: parseSimpleChoices(tElement),
+        choices: parseSimpleChoices(tElement, !shuffle),
         originalChoices: parseSimpleChoices(tElement, true),
         prompt: parsePrompt(tElement)
     };
@@ -352,11 +352,12 @@ angular.module('qti.directives').directive('orderinteraction',
                 $scope.respId = $attrs["responseidentifier"];
             },
             compile: function (tElement, tAttrs, transclude) {
-                if (tAttrs.csorderingtype == "placement") {
+              var shuffle = (tAttrs["shuffle"] == 'true');
+              if (tAttrs.csorderingtype == "placement") {
                     var isVertical = tAttrs.orientation == "vertical";
-                    return compilePlacementOrderInteraction(tElement, isVertical, QtiUtils, $timeout);
+                    return compilePlacementOrderInteraction(shuffle, tElement, isVertical, QtiUtils, $timeout);
                 } else {
-                    return compileNormalOrderInteraction(tElement, QtiUtils);
+                    return compileNormalOrderInteraction(shuffle, tElement, QtiUtils);
                 }
             }
         }
