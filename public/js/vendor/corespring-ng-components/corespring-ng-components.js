@@ -791,6 +791,7 @@ usage:
         buildTagList = function() {
           var $link, x, _i, _len,
             _this = this;
+          $(element).html("<span></span>");
           for (_i = 0, _len = availableTags.length; _i < _len; _i++) {
             x = availableTags[_i];
             $link = $("<a class='" + linkClass + "' href='javascript:void(0)'>" + x + "</a>");
