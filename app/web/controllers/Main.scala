@@ -7,6 +7,9 @@ import player.accessControl.cookies.{PlayerCookieKeys, PlayerCookieWriter}
 import scala.Some
 import web.controllers.utils.ConfigLoader
 import web.models.QtiTemplate
+import models.{User, Organization}
+import com.mongodb.casbah.commons.MongoDBObject
+import securesocial.core.SecuredRequest
 
 
 object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
@@ -16,10 +19,13 @@ object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
   }
 
   def index = SecuredAction {
-    implicit request =>
+    implicit request : SecuredRequest[AnyContent]=>
+
       val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
       val userId = request.user.id
-      Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName, "remove"))
+      val user : User = User.getUser(request.user.id).getOrElse(throw new RuntimeException("Unknown user"))
+      val userOrgs : Seq[Organization] = user.orgs.flatMap( o =>  Organization.findOneById(o.orgId) )
+      Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName, userOrgs ))
         .withSession(
           sumSession(request.session, playerCookies(userId.id, userId.providerId) :+ activeModeCookie(): _*)
       )

@@ -1,11 +1,6 @@
-@(templates: List[_root_.web.models.QtiTemplate], dbServer : String, dbName : String, username:String, accessToken:String)
+@(templates: List[_root_.web.models.QtiTemplate], dbServer : String, dbName : String, username:String, userOrgs: Seq[models.Organization])
 
-@htmlSafe(s:String) = @{
-    var out = s.replace("\\", "\\\\")
-    out = out.replace("\n", "\\n")
-    out = out.replace("\"", "\\\"")
-    Html(out)
-}
+@import web.views.helpers.MainHelper
 
 <!DOCTYPE html>
 <html lang="en" ng-app="tagger" xmlns="http://www.w3.org/1999/html">
@@ -35,12 +30,22 @@
         //init the bootstrap dropdowns - TODO: make this a directive?
         $('.dropdown-toggle').dropdown();
 
+        angular.module('tagger-context', []);
+        angular.module('tagger-context')
+                .factory('UserInfo', function(){
+                    return {
+                        userName: "@username",
+                        orgs: @MainHelper.toFullJson(userOrgs)
+                    }
+
+                });
+
         /**
          * Templates Service - provides some xml templates for common types.
          */
-        var templatesService = angular.module('templates', []);
+        angular.module('templates', []);
 
-        templatesService.factory('NewItemTemplates', function () {
+        angular.module('templates').factory('NewItemTemplates', function () {
             var data = {};
 
             data["blank"] = {
@@ -51,18 +56,11 @@
             @templates.map{ template =>
              data["@template.code"] = {
                 label: "@template.label",
-                xmlData: "@htmlSafe(template.xmlData)"
+                xmlData: "@MainHelper.htmlSafe(template.xmlData)"
              }
             }
             return data;
         });
-
-        //Set the AccessToken service for the logged in user.
-        angular.module('tagger.services')
-           .factory('AccessToken', [ function () {
-              return { token: "@accessToken" };
-            }]
-        );
 
     </script>
 
