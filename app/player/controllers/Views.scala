@@ -2,16 +2,16 @@ package player.controllers
 
 import common.controllers.QtiResource
 import controllers.auth.{TokenizedRequestActionBuilder, BaseApi}
-import models.itemSession.{DefaultItemSession, ItemSession}
+import models.itemSession.DefaultItemSession
 import models.quiz.basic.Quiz
 import org.bson.types.ObjectId
 import org.xml.sax.SAXParseException
 import play.api.mvc.Action
 import play.api.templates.Html
-import player.accessControl.auth.{CheckSessionAccess, CheckSession}
+import player.accessControl.auth.CheckSessionAccess
 import player.accessControl.cookies.PlayerCookieWriter
 import player.accessControl.models.RequestedAccess
-import player.views.models.{ExceptionMessage, PlayerParams}
+import player.views.models.{QtiKeys, ExceptionMessage, PlayerParams}
 import qti.models.RenderingMode._
 import scala.xml.Elem
 
@@ -72,12 +72,12 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
 
   def profile(itemId: ObjectId, tab: String) = {
 
-    def isPrintMode : Boolean = tab != ""
+    def isPrintMode: Boolean = tab != ""
 
     val p = RenderParams(
       itemId = itemId,
       sessionMode = RequestedAccess.Mode.Preview,
-      renderingMode = if(isPrintMode) Printing else Web,
+      renderingMode = if (isPrintMode) Printing else Web,
       templateFn = player.views.html.Profile(isPrintMode, tab)
     )
 
@@ -88,11 +88,11 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
     * TODO: renderingMode + sessionMode - can we conflate these to one concept?
     */
   protected case class RenderParams(itemId: ObjectId,
-                          sessionMode: RequestedAccess.Mode.Mode,
-                          renderingMode: RenderingMode = Web,
-                          sessionId: Option[ObjectId] = None,
-                          assessmentId: Option[ObjectId] = None,
-                          templateFn: PlayerParams => Html = defaultTemplate) {
+                                    sessionMode: RequestedAccess.Mode.Mode,
+                                    renderingMode: RenderingMode = Web,
+                                    sessionId: Option[ObjectId] = None,
+                                    assessmentId: Option[ObjectId] = None,
+                                    templateFn: PlayerParams => Html = defaultTemplate) {
 
     def toRequestedAccess: RequestedAccess = RequestedAccess.asRead(
       itemId = Some(itemId),
@@ -101,7 +101,15 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
       mode = Some(sessionMode)
     )
 
-    def toPlayerParams(xml: String): PlayerParams = PlayerParams(xml, Some(itemId.toString), sessionId.map(_.toString), enablePreview)
+    def toPlayerParams(xml: String, qtiKeys: QtiKeys): PlayerParams = {
+      PlayerParams(
+        xml,
+        Some(itemId.toString),
+        sessionId.map(_.toString),
+        enablePreview,
+        qtiKeys,
+        renderingMode)
+    }
 
     def enablePreview: Boolean = sessionMode == RequestedAccess.Mode.Preview
 
@@ -114,8 +122,9 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
           try {
             getItemXMLByObjectId(params.itemId.toString, request.ctx.organization) match {
               case Some(xmlData: Elem) => {
+                val qtiKeys = QtiKeys((xmlData \ "itemBody")(0))
                 val finalXml = prepareQti(xmlData, params.renderingMode)
-                val playerParams = params.toPlayerParams(finalXml)
+                val playerParams = params.toPlayerParams(finalXml, qtiKeys)
                 Ok(params.templateFn(playerParams)).withSession(request.session + activeModeCookie(params.sessionMode))
               }
               case None => NotFound("not found")
