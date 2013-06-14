@@ -6,6 +6,7 @@
 { "name" : "Collection F" , "isPublic" : true , "_id" : { "$oid" : "5001b9b9e4b035d491c268c3"}}
 { "name" : "Collection G" , "isPublic" : false , "_id" : { "$oid" : "5001bb0ee4b0d7c9ec3210a2"}}
 { "name" : "Beta Items" , "isPublic" : true , "_id" : { "$oid" : "505777f5e4b05f7845735bc1"}}
+{ "name" : "Items from Production" , "isPublic" : false , "_id" : { "$oid" : "51baf73da196d2f175140218"}}
 { "name" : "Temporary Collection" , "isPublic" : false , "_id" : { "$oid" : "5072e73b1c00df6fdd627594"}}
 { "_id" : { "$oid" : "50a22ccc300479fa2a5a66ac"}, "name" : "default", "isPublic" : false }
 { "_id" : { "$oid" : "50a22ccc300479fa2a5a66ad"}, "name" : "default", "isPublic" : false }
