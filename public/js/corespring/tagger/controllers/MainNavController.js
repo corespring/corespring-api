@@ -31,19 +31,8 @@ function MainNavController($scope, $rootScope, $location, SearchService){
     //$scope.updatePagerText();
   });
 
-  $scope.createCollection = function(collname){
-    if(collname){
-      Collection.create({},{name:collname},function(data){
-          if($rootScope.collections) $rootScope.collections.push(data)
-      },function(err){
-          console.log("create collection: error: " + err);
-      })
-    }
-  };
-
-  $rootScope.showCollectionWindow = false;
   $scope.openCollectionWindow = function(){
-      $rootScope.showCollectionWindow = true;
+      $rootScope.collectionsWindowRoot = true;
   }
 }
 
