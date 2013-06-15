@@ -18,8 +18,7 @@
 
       element.bind('keyup', function(evt){
         if(evt.which == 13){  //enter key was pressed
-            var name = element.html()
-            element.html(name.substring(0, name.length-1))
+            element.html(element.context.innerText);
             element.blur();
         }
       })
