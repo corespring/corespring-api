@@ -35,20 +35,11 @@ puts collection = db.collection("content")
 
 puts "collection: #{collection}: #{collection.count()}"
 
-collection.find_one({"hello" => "world"})
-
 item = collection.find_one(:_id => BSON::ObjectId("#{item_id}"))
 
-
-puts item
-
-hash = item.delete(:dateModified)
-puts "hash: #{hash}"
 json = JSON.parse(item.to_json)
 json["collectionId"] = collection_id
-#dateModified: { "$date" : "....."}
 json["dateModified"] = { "$date" => "2013-03-11T15:35:02.911Z" }
-puts "new collection id: #{json["collectionId"]}"
 
 File.open( "#{seed_data_folder}/from-prod-#{item_id}.json", 'w') { |file|
   pretty = JSON.pretty_generate(json)
