@@ -12,6 +12,10 @@
         <span class="close-window-button" style="display: inline-block;" ng-click="closeCollectionWindow()"></span>
         <div class="header"><h4>{{orgName}} Collections</h4></div>
     </div>
+    <div ng-class="alertClass" ng-show="alertMessage.length > 0">
+        <button type="button" class="close" ng-click="newAlert('alert','')">&times;</button>
+        <p>{{alertMessage}}</p>
+    </div>
     <table class="table table-striped">
         <thead>
             <th>Collection</th>
@@ -20,7 +24,7 @@
         </thead>
         <tbody>
             <tr ng-repeat="collection in collections">
-                <td><div contenteditable collection-id="{{collection.id}}" collection-name="collection.name"></div></td>
+                <td><div contenteditable collection-id="{{collection.id}}" collection-name="collection.name" new-alert="newAlert"></div></td>
                 <td>{{collection.itemCount}}</td>
                 <td><span ng-show="collection.itemCount == 0"><a ng-click="deleteCollection(collection.id)">delete</a></span></td>
             </tr>

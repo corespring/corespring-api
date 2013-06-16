@@ -1,6 +1,6 @@
  angular.module('tagger').directive('contenteditable', function(Collection){ return {
     restrict: 'A',
-    scope: {collectionId: '@collectionId', collectionName: '=collectionName'},
+    scope: {collectionId: '@collectionId', collectionName: '=collectionName', newAlert: '=newAlert'},
     link: function(scope,element,attrs){
 
       element.html(scope.collectionName)
@@ -10,7 +10,9 @@
 
         Collection.update({id: scope.collectionId},{name: element.html()},function(data){
             scope.collectionName = data.name
+            scope.newAlert("alert alert-success", "Successfully edited collection name");
         },function(err){
+            scope.newAlert("alert alert-error", "Error editing collection name");
             console.log("error update collection name: "+err)
             element.html(scope.collectionName)
         })
@@ -36,6 +38,11 @@
  //controller
  angular.module('tagger').controller("CreateCollection",['$scope', '$rootScope', 'Collection',
  function($scope, $rootScope, Collection){
+   $scope.newAlert = function(cssclass,message){
+    $scope.alertClass = cssclass;
+    $scope.alertMessage = message;
+   }
+   $scope.newAlert("alert","");
    //this looks kind of weird. this is all for opening and closing the collections modal correctly between MainNavController and this controller
    $rootScope.$watch('collectionsWindowRoot',function(){
      $scope.collectionsWindow = $rootScope.collectionsWindowRoot
@@ -58,7 +65,9 @@
            $scope.collections.push(data);
            $scope.searchParams.collection.push(data)
            $('#newcollection').val('');
+           $scope.newAlert('alert alert-success',"Successfully created collection")
        },function(err){
+           $scope.newAlert('alert alert-error', "Error occurred when creating a collection");
            console.log("create collection: error: " + err);
        })
      }
@@ -80,10 +89,10 @@
               return found;
           });
         }
-        console.log("successfully deleted")
+        $scope.newAlert('alert alert-success',"Successfully deleted collection");
      },function(err){
-        //todo: add error message
-        console.log("error deleting collection: "+err)
+        $scope.newAlert('alert alert-error', "Error deleting collection");
+        console.log("error deleting collection: "+err);
      })
    }
  }])
