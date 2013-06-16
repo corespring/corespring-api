@@ -11,11 +11,10 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
   $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
   $rootScope.$broadcast('onListViewOpened');
 
-
   var init = function () {
+    loadOrganization();
     loadCollectionsAndSearch();
     loadContributors();
-    isRoot();
     $scope.showDraft = true;
 
     var defaultsFactory = new com.corespring.model.Defaults();
@@ -159,13 +158,11 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
         console.log("load contributors: error: " + arguments);
       });
   }
-  function isRoot(){
-    $scope.isRoot = true;
-//    Organization.isRoot({}, function(data){
-//        if(data.isRoot) $scope.isRoot = true
-//    },function(){
-//        console.log("could not determine as root organization")
-//    })
+  function loadOrganization(){
+    Organization.get({path: "default"}, function(data){
+        $scope.orgName = data.name;
+        $scope.isRoot = true; //always show
+    })
   }
 
   $scope.showGradeLevel = function () {

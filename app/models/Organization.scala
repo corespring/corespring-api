@@ -20,6 +20,7 @@ import scala.Some
 import scala.Right
 import play.api.libs.json.JsObject
 import search.Searchable
+import common.config.AppConfig
 
 case class Organization(var name: String = "",
                         var path: Seq[ObjectId] = Seq(),
@@ -27,6 +28,7 @@ case class Organization(var name: String = "",
                         var id: ObjectId = new ObjectId()){
 
   def this() = this("")
+  lazy val isRoot:Boolean = id == AppConfig.rootOrgId
 }
 
 object Organization extends ModelCompanion[Organization,ObjectId] with Searchable{
@@ -184,6 +186,7 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
       var list = List[(String, JsValue)]()
       if ( org.path.nonEmpty ) list = ("path" -> JsArray(org.path.map(c => JsString(c.toString)).toSeq)) :: list
       if ( org.name.nonEmpty ) list = ("name" -> JsString(org.name)) :: list
+      list = ("isRoot" -> JsBoolean(org.isRoot)) :: list
       list = ("id" -> JsString(org.id.toString)) :: list
       JsObject(list)
     }

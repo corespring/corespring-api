@@ -2,18 +2,22 @@ package api.v1
 
 import controllers.auth.{Permission, BaseApi}
 import play.api.libs.json._
-import models.{CollectionWithPermissions, User, ContentCollection, Organization}
-import org.bson.types.ObjectId
+import models._
 import api.{ApiError}
 import com.mongodb.casbah.Imports._
 import controllers.{InternalError, Utils}
+import play.api.mvc.Result
 import scala.Left
+import search.SearchCancelled
 import play.api.libs.json.JsArray
+import play.api.libs.json.JsUndefined
+import play.api.libs.json.JsString
 import scala.Some
 import scala.Right
+import play.api.libs.json.JsNumber
 import com.novus.salat.dao.SalatMongoCursor
-import play.api.mvc.Result
-import models.search.{SearchCancelled}
+import play.api.libs.json.JsObject
+import scalaz.{Failure, Success}
 
 /**
  * The Collections API
@@ -41,8 +45,8 @@ object CollectionApi extends BaseApi {
     val initSearch = MongoDBObject("_id" -> MongoDBObject("$in" -> collrefs.map(_.collectionId)))
     def applySort(colls:SalatMongoCursor[ContentCollection]):Result = {
       optsort.map(ContentCollection.toSortObj(_)) match {
-        case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(colls.sort(sort).skip(sk).limit(l)).map(c => CollectionWithPermissions(c, collrefs.find(_.collectionId == c.id).get.pval))))
-        case None => Ok(Json.toJson(Utils.toSeq(colls.skip(sk).limit(l)).map(c => CollectionWithPermissions(c, collrefs.find(_.collectionId == c.id).get.pval))))
+        case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(colls.sort(sort).skip(sk).limit(l)).map(c => CollectionExtraDetails(c, collrefs.find(_.collectionId == c.id).get.pval))))
+        case None => Ok(Json.toJson(Utils.toSeq(colls.skip(sk).limit(l)).map(c => CollectionExtraDetails(c, collrefs.find(_.collectionId == c.id).get.pval))))
         case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
       }
     }
@@ -96,7 +100,7 @@ object CollectionApi extends BaseApi {
               val organizations = parseOrganizations(json, Seq.empty)
               val collection = ContentCollection(id = newId, name = name.get)
               ContentCollection.insertCollection(request.ctx.organization,collection,Permission.Write) match {
-                case Right(coll) => Ok(Json.toJson(coll))
+                case Right(coll) => Ok(Json.toJson(CollectionExtraDetails(coll,Permission.Write.value)))
                 case Left(e) => InternalServerError(Json.toJson(ApiError.InsertCollection(e.clientOutput)))
               }
 
@@ -158,10 +162,14 @@ object CollectionApi extends BaseApi {
    */
   def deleteCollection(id: ObjectId) = ApiActionWrite { request =>
     ContentCollection.findOneById(id) match {
-      case Some(coll) => ContentCollection.moveToArchive(id) match {
-        case Right(_) => Ok(Json.toJson(coll))
-        case Left(e) => InternalServerError(Json.toJson(ApiError.DeleteCollection(e.clientOutput)))
-      }
+      case Some(coll) => if(coll.itemCount == 0 && ContentCollection.isAuthorized(request.ctx.organization,id,Permission.Write)) {
+          ContentCollection.delete(id) match {
+            case Success(_) => Ok(Json.toJson(coll))
+            case Failure(error) => InternalServerError(Json.toJson(ApiError.DeleteCollection(error.clientOutput)))
+          }
+        }else{
+          InternalServerError(Json.toJson(ApiError.DeleteCollection(Some("cannot delete collection that contains items"))))
+        }
       case None => BadRequest(Json.toJson(ApiError.DeleteCollection))
     }
   }

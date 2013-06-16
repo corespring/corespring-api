@@ -156,9 +156,4 @@ object OrganizationApi extends BaseApi {
       }
     }
   }
-
-  def isRoot = ApiAction { request =>
-    if (request.ctx.organization == AppConfig.rootOrgId) Ok(JsObject(Seq("isRoot" -> JsBoolean(true))))
-    else Ok(JsObject(Seq("isRoot" -> JsBoolean(false))))
-  }
 }

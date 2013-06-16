@@ -33,8 +33,9 @@
 
     }
  }})
- angular.module('tagger').controller("CreateCollection",['$scope', '$rootScope',
- function($scope, $rootScope){
+ //controller
+ angular.module('tagger').controller("CreateCollection",['$scope', '$rootScope', 'Collection',
+ function($scope, $rootScope, Collection){
    //this looks kind of weird. this is all for opening and closing the collections modal correctly between MainNavController and this controller
    $rootScope.$watch('collectionsWindowRoot',function(){
      $scope.collectionsWindow = $rootScope.collectionsWindowRoot
@@ -53,10 +54,36 @@
    $scope.createCollection = function(collectionName){
      if(collectionName){
        Collection.create({},{name:collectionName},function(data){
-           if($rootScope.collections) $rootScope.collections.push(data)
+           $rootScope.collections.push(data);
+           $scope.collections.push(data);
+           $scope.searchParams.collection.push(data)
+           $('#newcollection').val('');
        },function(err){
            console.log("create collection: error: " + err);
        })
      }
    };
+   $scope.deleteCollection = function(collId){
+     Collection.remove({id: collId},function(data){
+        //todo: add success message
+        $rootScope.collections = _.filter($rootScope.collections, function(c){
+            return c.id !== collId
+        })
+        $scope.collections = _.filter($scope.collections, function(c){
+            return c.id !== collId
+        })
+        if($scope.searchParams.collection){
+          $scope.searchParams.collection = _.filter($scope.searchParams.collection, function(searchcoll){
+              var found = _.find($rootScope.collections, function(c){
+                return c.id == searchcoll.id;
+              });
+              return found;
+          });
+        }
+        console.log("successfully deleted")
+     },function(err){
+        //todo: add error message
+        console.log("error deleting collection: "+err)
+     })
+   }
  }])
