@@ -13,8 +13,6 @@
                     <a class="logout-icon" title="logout" href="@common.controllers.routes.UserSession.logout()"><i class="icon-share icon-white"></i></a>
                     <a href="/reports">Reports</a>
                 </span>
-
-
                 <ul id="resultPager"
                   class="nav pull-right"
                   result-pager
@@ -39,9 +37,6 @@
                     </li>
                 </ul>
                 <span class="nav pull-right">
-                    <button class="btn" ng-click="openCollectionWindow()">New Coll</button>
-                </span>
-                <span class="nav pull-right">
                     <li class="dropdown">
                         <a href="#"
                         data-toggle="dropdown"
@@ -60,8 +55,11 @@
                         </ul>
                     </li>
                 </span>
-
+                <span class="nav pull-right" style="padding-top: 10px;">
+                    <a style="color: white;" ng-click="openCollectionWindow()">Collections</a>
+                </span>
             }
+
         </div>
     </div>
 </div>
