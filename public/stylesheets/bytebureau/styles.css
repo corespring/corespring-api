@@ -411,8 +411,17 @@ math, .mathml, div.math-choices simplechoice, .math-text, .MathJax {
 	font-size: 24px;
 }
 .p-indent-20 {
-	margin: 0 0 0 20px;
+	padding: 0 0 0 20px;
 }
+
+.p-indent-30{
+padding: 0 0 0 30px;
+}
+
+.p-indent-50{
+padding: 0 0 0 50px;
+}
+
 .intro, div.intro {
 	font-family: 'Ubuntu';
 	font-style:italic;
@@ -476,11 +485,31 @@ p .numbers {
 	padding:0;
 }
 .leading-150-percent {
-	line-height:28px;
+	line-height:28px !important;
 }
 .leading-200-percent {
-	line-height:38px;
+	line-height:38px !important;
 }
+
+/* For leading in numbered lines */
+.leading-150-percent line li {
+padding-bottom: 10px;
+line-height:28px !important;
+}
+
+.leading-200-percent line li {
+padding-bottom: 20px;
+line-height:38px !important;
+}
+
+/*fixing the hanging indent for numbered line paragraphs */
+.numbered-lines line li{
+padding-left: 2em !important;
+text-indent: -2em !important;
+}
+
+
+
 /* The correct selector for text is .para-center. The rest of these variations were observed in the files */
 div.text-centered, div.para-center, div.center, .center, center, .text-centered, .para_center, .para-center {
 	text-align:center;
