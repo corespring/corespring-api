@@ -1,7 +1,12 @@
+<<<<<<< HEAD
 function HomeController($scope, $timeout, $rootScope, $http, $location, ItemService, SearchService, Collection, Contributor, ItemFormattingUtils, Organization) {
+=======
+function HomeController($scope, $rootScope, $http, $location, ItemService, SearchService, Collection, Contributor, ItemFormattingUtils, UserInfo) {
+>>>>>>> master
 
   //Mixin ItemFormattingUtils
   angular.extend($scope, ItemFormattingUtils);
+
 
   $http.defaults.headers.get = ($http.defaults.headers.get || {});
   $http.defaults.headers.get['Content-Type'] = 'application/json';
@@ -20,7 +25,7 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
     var defaultsFactory = new com.corespring.model.Defaults();
     $scope.gradeLevelDataProvider = defaultsFactory.buildNgDataProvider("gradeLevels");
     $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider("itemTypes");
-    $scope.flatItemTypeDataProvided = _.map(_.flatten(_.pluck($scope.itemTypeDataProvider, 'label')), function(e) {
+    $scope.flatItemTypeDataProvided = _.map(_.flatten(_.pluck($scope.itemTypeDataProvider, 'label')), function (e) {
       return {key: e, label: e};
     });
     $scope.flatItemTypeDataProvided.push({key: "Other", label: "Other"});
@@ -32,12 +37,12 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
       {label: "Exact Match", key: "exactMatch"}
     ];
     $scope.publishStatuses = [
-        {label: "Published", key: "published"},
-        {label: "Draft", key: "draft"}
+      {label: "Published", key: "published"},
+      {label: "Draft", key: "draft"}
     ]
   };
 
-  $scope.sortBy = function(field) {
+  $scope.sortBy = function (field) {
     if ($scope.searchParams.sort && $scope.searchParams.sort[field]) {
       $scope.searchParams.sort[field] *= -1;
     } else {
@@ -136,6 +141,7 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
     );
   };
 
+<<<<<<< HEAD
   function loadCollectionsAndSearch() {
     Collection.get({}, function (data) {
         $rootScope.collections = data;
@@ -144,6 +150,49 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
             return (coll.access & 3) == 3
         })
         $scope.search();
+=======
+
+  $scope.getAllCollections = function(ui) { return _.flatten(_.pluck(ui, 'collections'))};
+  $scope.getAllIds = function(allColls) { return _.pluck(allColls, "collectionId") };
+
+  $scope.createSortedCollection = function (collections, userOrgs, allIds) {
+    if (!collections || !userOrgs) {
+      return [];
+    }
+    console.log("createSortedCollections");
+
+    var cleanedOrgs = _.map(userOrgs, function (uo) {
+      delete uo.path;
+      delete uo.id;
+      uo.collections = _.map(uo.collections, function (c) {
+        return {id: c.collectionId, name: c.name}
+      });
+      return uo;
+    });
+
+    var notInUserOrgs = function (c) {
+      return allIds.indexOf(c.id) == -1;
+    };
+
+    var publicCollections = _.filter(collections, notInUserOrgs);
+    console.log("public collections: " + publicCollections);
+    var publicCollection = {
+      name: "Public",
+      collections: publicCollections
+    }
+
+    return cleanedOrgs.concat([publicCollection]);
+  }
+
+  function loadCollections() {
+    Collection.get({}, function (data) {
+        $scope.collections = data;
+        var allCollections = $scope.getAllCollections(UserInfo.orgs);
+        var asIds = _.map(allCollections, function(c){ return {id: c.collectionId, name: c.name}});
+        var allIds = $scope.getAllIds(allCollections);
+        $scope.sortedCollections = $scope.createSortedCollection(data, UserInfo.orgs, allIds);
+        $scope.searchParams.collection = asIds;
+>>>>>>> master
       },
       function () {
         console.log("load collections: error: " + arguments);
@@ -210,8 +259,8 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
     $location.url('/edit/' + this.item.id + "?panel=metadata");
   };
 
-  $scope.publishStatus = function(isPublished){
-    if(isPublished) return "Published"
+  $scope.publishStatus = function (isPublished) {
+    if (isPublished) return "Published"
     else return "Draft"
   }
 
@@ -275,5 +324,9 @@ HomeController.$inject = ['$scope',
   'Collection',
   'Contributor',
   'ItemFormattingUtils',
+<<<<<<< HEAD
   'Organization'];
+=======
+  'UserInfo'];
+>>>>>>> master
 

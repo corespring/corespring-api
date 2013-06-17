@@ -25,8 +25,7 @@ import common.config.AppConfig
 case class Organization(var name: String = "",
                         var path: Seq[ObjectId] = Seq(),
                         var contentcolls: Seq[ContentCollRef] = Seq(),
-                        var id: ObjectId = new ObjectId()){
-
+                        var id: ObjectId = new ObjectId()) {
   def this() = this("")
   lazy val isRoot:Boolean = id == AppConfig.rootOrgId
 }
@@ -181,7 +180,28 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
       }
     }
   }
-  implicit object OrganizationWrites extends Writes[Organization] {
+
+  object FullWrites extends BasicWrites{
+
+    implicit object CollectionReferenceWrites extends Writes[ContentCollRef] {
+      def writes(ref : ContentCollRef) = {
+        JsObject(
+          Seq(
+            "collectionId" -> JsString(ref.collectionId.toString),
+            "name" -> JsString(ContentCollection.findOneById(ref.collectionId).map(_.name).getOrElse("?")),
+            "permission" -> JsString(Permission.toHumanReadable(ref.pval))))
+      }
+    }
+
+    override def writes(org:Organization) = {
+     val jsObject = super.writes(org)
+      jsObject ++ JsObject(Seq("collections" -> Json.toJson(org.contentcolls)))
+    }
+  }
+
+  implicit object OrganizationWrites extends BasicWrites
+
+  class BasicWrites extends Writes[Organization] {
     def writes(org: Organization) = {
       var list = List[(String, JsValue)]()
       if ( org.path.nonEmpty ) list = ("path" -> JsArray(org.path.map(c => JsString(c.toString)).toSeq)) :: list

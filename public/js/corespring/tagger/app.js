@@ -9,7 +9,8 @@ var taggerApp = angular.module('tagger',
       'templates',
       'corespring-utils',
       'corespring-directives',
-      'ui']);
+      'ui',
+      'tagger-context']);
 
 taggerApp.
     config(['$routeProvider', function ($routeProvider) {

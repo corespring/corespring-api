@@ -25,6 +25,13 @@ var feedbackDirectiveFunction = function (QtiUtils) {
 
                 var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
                 scope.feedback = ( feedback || "" );
+
+              setTimeout(function () {
+                if (typeof(MathJax) != "undefined") {
+                  MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                }
+              }, 10);
+
             });
             scope.feedback = "";
         },

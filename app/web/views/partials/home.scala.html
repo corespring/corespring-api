@@ -60,13 +60,24 @@
             <td>
                 <span multi-select
                   multi-get-title="getCollectionTitle"
-                  multi-options="collections"
+                  multi-options="sortedCollections"
                   multi-change="search"
                   multi-uid="id"
                   multi-model="searchParams.collection">
                   <div class="summary">
                     <div class="multi-title-text collection"> COLLECTION <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
                     <div class="selected-multi-options collection" ng-bind-html-unsafe="getCollectionSelectedTitle(selected)"></div>
+                  </div>
+
+                  <!-- note: we are overriding the default repeater here  - see multi-select.coffee in corespring-ng-components for more info -->
+                  <div class="repeater" style="min-width: 160px;">
+                      <div ng-repeat="o in options">
+                          <b>{{o.name}}</b> <br/>
+                          <div ng-repeat="c in o.collections">
+                              <input type="checkbox" ng-model="selectedArr[c.${uidKey}]" ng-click="toggleItem(c)"></input>
+                              {{c.name}}</div>
+                      </div>
+
                   </div>
                 </span>
             </td>
