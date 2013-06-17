@@ -26,7 +26,6 @@ case class Organization(var name: String = "",
                         var path: Seq[ObjectId] = Seq(),
                         var contentcolls: Seq[ContentCollRef] = Seq(),
                         var id: ObjectId = new ObjectId()) {
-  def this() = this("")
   lazy val isRoot:Boolean = id == AppConfig.rootOrgId
 }
 
@@ -188,7 +187,6 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
         JsObject(
           Seq(
             "collectionId" -> JsString(ref.collectionId.toString),
-            "name" -> JsString(ContentCollection.findOneById(ref.collectionId).map(_.name).getOrElse("?")),
             "permission" -> JsString(Permission.toHumanReadable(ref.pval))))
       }
     }

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-function HomeController($scope, $timeout, $rootScope, $http, $location, ItemService, SearchService, Collection, Contributor, ItemFormattingUtils, Organization) {
-=======
-function HomeController($scope, $rootScope, $http, $location, ItemService, SearchService, Collection, Contributor, ItemFormattingUtils, UserInfo) {
->>>>>>> master
+function HomeController($scope, $timeout, $rootScope, $http, $location, ItemService, SearchService, Collection, Contributor, ItemFormattingUtils, UserInfo) {
 
   //Mixin ItemFormattingUtils
   angular.extend($scope, ItemFormattingUtils);
@@ -17,8 +13,9 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
   $rootScope.$broadcast('onListViewOpened');
 
   var init = function () {
-    loadOrganization();
-    loadCollectionsAndSearch();
+    $scope.orgName = UserInfo.org.name;
+    $scope.isRoot = true;
+    loadCollections();
     loadContributors();
     $scope.showDraft = true;
 
@@ -141,58 +138,36 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     );
   };
 
-<<<<<<< HEAD
-  function loadCollectionsAndSearch() {
-    Collection.get({}, function (data) {
-        $rootScope.collections = data;
-        //all collections with write access will be selected by default
-        $scope.searchParams.collection = _.filter(data, function(coll){
-            return (coll.access & 3) == 3
-        })
-        $scope.search();
-=======
-
-  $scope.getAllCollections = function(ui) { return _.flatten(_.pluck(ui, 'collections'))};
-  $scope.getAllIds = function(allColls) { return _.pluck(allColls, "collectionId") };
-
-  $scope.createSortedCollection = function (collections, userOrgs, allIds) {
-    if (!collections || !userOrgs) {
+  $scope.createSortedCollection = function (collections, userOrg) {
+    if (!collections || !userOrg) {
       return [];
     }
-    console.log("createSortedCollections");
+    var orgCollections = []
+    var publicCollections = []
+    _.each(collections,function(c){
+        //if the collection is public and the user only has read access,
+        //then it is considered a public collection not belonging to the user
+        if(c.isPublic && ((c.access & 3) == 1)){
+            publicCollections.push(c);
+        }else{
+            orgCollections.push(c);
+        }
+    })
 
-    var cleanedOrgs = _.map(userOrgs, function (uo) {
-      delete uo.path;
-      delete uo.id;
-      uo.collections = _.map(uo.collections, function (c) {
-        return {id: c.collectionId, name: c.name}
-      });
-      return uo;
-    });
-
-    var notInUserOrgs = function (c) {
-      return allIds.indexOf(c.id) == -1;
-    };
-
-    var publicCollections = _.filter(collections, notInUserOrgs);
-    console.log("public collections: " + publicCollections);
-    var publicCollection = {
-      name: "Public",
-      collections: publicCollections
-    }
-
-    return cleanedOrgs.concat([publicCollection]);
+    return [
+        {name: userOrg.name, collections: orgCollections},
+        {name: "Public", collections: publicCollections}
+    ];
   }
 
   function loadCollections() {
     Collection.get({}, function (data) {
-        $scope.collections = data;
-        var allCollections = $scope.getAllCollections(UserInfo.orgs);
-        var asIds = _.map(allCollections, function(c){ return {id: c.collectionId, name: c.name}});
-        var allIds = $scope.getAllIds(allCollections);
-        $scope.sortedCollections = $scope.createSortedCollection(data, UserInfo.orgs, allIds);
-        $scope.searchParams.collection = asIds;
->>>>>>> master
+        $rootScope.collections = data;
+        $scope.searchParams.collection = _.filter(data, function(coll){
+           return (coll.access & 3) == 3 //filter search params by access (3 = write access)
+        })
+        $scope.sortedCollections = $scope.createSortedCollection(data, UserInfo.org);
+        $scope.search();
       },
       function () {
         console.log("load collections: error: " + arguments);
@@ -206,12 +181,6 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
       function () {
         console.log("load contributors: error: " + arguments);
       });
-  }
-  function loadOrganization(){
-    Organization.get({path: "default"}, function(data){
-        $scope.orgName = data.name;
-        $scope.isRoot = true; //always show
-    })
   }
 
   $scope.showGradeLevel = function () {
@@ -324,9 +293,5 @@ HomeController.$inject = ['$scope',
   'Collection',
   'Contributor',
   'ItemFormattingUtils',
-<<<<<<< HEAD
-  'Organization'];
-=======
   'UserInfo'];
->>>>>>> master
 

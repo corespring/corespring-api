@@ -1,4 +1,4 @@
-@(templates: List[_root_.web.models.QtiTemplate], dbServer : String, dbName : String, username:String, userOrgs: Seq[models.Organization])
+@(templates: List[_root_.web.models.QtiTemplate], dbServer : String, dbName : String, username:String, userOrg: models.Organization)
 
 @import web.views.helpers.MainHelper
 
@@ -35,7 +35,7 @@
                 .factory('UserInfo', function(){
                     return {
                         userName: "@username",
-                        orgs: @MainHelper.toFullJson(userOrgs)
+                        org: @MainHelper.toFullJson(userOrg)
                     }
 
                 });

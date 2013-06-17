@@ -14,8 +14,8 @@ object MainHelper {
     }
   }
 
-  def toFullJson(orgs:Seq[Organization]) : Html = {
-    val jsonOrgs : Seq[JsValue]= orgs.map( Organization.FullWrites.writes(_))
-    htmlSafe(Json.stringify(Json.toJson(jsonOrgs)))
+  def toFullJson(org:Organization) : Html = {
+    val jsonOrg : JsValue= Organization.FullWrites.writes(org)
+    htmlSafe(Json.stringify(jsonOrg))
   }
 }

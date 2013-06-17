@@ -190,6 +190,7 @@ object CollectionExtraDetails{
         "name" -> JsString(c.coll.name),
         "access" -> JsNumber(c.access),
         "itemCount" -> JsNumber(c.coll.itemCount),
+        "isPublic" -> JsBoolean(c.coll.isPublic),
         "id" -> JsString(c.coll.id.toString)
       ))
     }
