@@ -35,7 +35,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
 
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
-  val dbsummaryFields = Seq(Item.collectionId, Item.taskInfo, Item.otherAlignments, Item.standards, Item.contributorDetails)
+  val dbsummaryFields = Seq(Item.collectionId, Item.taskInfo, Item.otherAlignments, Item.standards, Item.contributorDetails,Item.published)
   val jssummaryFields: Seq[String] = Seq("id",
     Item.collectionId,
     TaskInfo.Keys.gradeLevel,
@@ -45,7 +45,8 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
     Item.relatedSubject,
     Item.standards,
     Item.author,
-    TaskInfo.Keys.title)
+    TaskInfo.Keys.title,
+    Item.published)
 
 
   /**

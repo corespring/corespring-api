@@ -1,4 +1,4 @@
-function HomeController($scope, $rootScope, $http, $location, ItemService, SearchService, Collection, Contributor, ItemFormattingUtils, UserInfo) {
+function HomeController($scope, $timeout, $rootScope, $http, $location, ItemService, SearchService, Collection, Contributor, ItemFormattingUtils, UserInfo) {
 
   //Mixin ItemFormattingUtils
   angular.extend($scope, ItemFormattingUtils);
@@ -12,10 +12,7 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
   $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
   $rootScope.$broadcast('onListViewOpened');
 
-
   var init = function () {
-
-    $scope.search();
     loadCollections();
     loadContributors();
     $scope.showDraft = true;
@@ -90,7 +87,6 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     return out.join(", ").replace(/0/g, "");
   };
 
-
   $scope.search = function () {
     var isOtherSelected = $scope.searchParams && _.find($scope.searchParams.itemType, function (e) {
       return e.label == "Other"
@@ -107,7 +103,17 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
       });
     }
     SearchService.search($scope.searchParams, function (res) {
-      $rootScope.items = res;
+      $rootScope.items = _.map(res, function(item){
+        var readOnlyColl = _.find($rootScope.collections, function(coll){
+            return (coll.id == item.collectionId) && (coll.access == 1)  //1 represents read-only access
+        })
+        if(readOnlyColl){
+            item.readOnly = true;
+        }else{
+            item.readOnly = false;
+        }
+        return item;
+      })
       setTimeout(function () {
         MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
       }, 200);
@@ -127,53 +133,52 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     );
   };
 
+  $scope.getAllCollections = function(org) { return _.pluck(org, 'collections')};
 
-  /** Create a flat array of collections objects from an array of orgs */
-  $scope.getAllCollections = function(ui) { return _.flatten(_.pluck(ui, 'collections'))};
-
-  $scope.createSortedCollection = function (collections, userOrgs) {
-    if (!collections || !userOrgs) {
+  $scope.createSortedCollection = function (collections, userOrg) {
+    if (!collections || !userOrg) {
       return [];
     };
 
-    var cleanedOrgs = _.map(userOrgs, function (uo) {
-      delete uo.path;
-      delete uo.id;
+    var getName = function(id){
+      var out =_.find(collections, function(c){return c.id == id});
+      if(!out){
+        console.warn("cant find item with id: " + id);
+        console.warn(" in " + collections);
+        console.warn("user org : " + _.find(userOrg.collections, function(c){return c.id == id;}));
+      }
+      return out ? out.name : "?";
+    };
 
-      var writeableCollections = _.filter(uo.collections, function(c){
-        return c.permission == "write";
-      });
-
-      uo.collections = _.map(writeableCollections, function (c) {
-        return {id: c.collectionId, name: c.name}
-      });
-      return uo;
-    });
-
-    var userCollections = _.flatten(_.pluck(cleanedOrgs, 'collections'));
-    var userIds = _.pluck(userCollections, "id");
+    var hasWritePermission = function(c) { return c.permission == "write"};
+    var toIdAndName = function(c) { return { id: c.collectionId, name: getName(c.collectionId) } };
 
     var notInUserOrgs = function (c) {
       return userIds.indexOf(c.id) == -1;
     };
 
-    var publicCollections = _.filter(collections, notInUserOrgs);
+    delete userOrg.path;
+    delete userOrg.id;
+    userOrg.collections = _.filter(userOrg.collections, hasWritePermission);
+    userOrg.collections = _.map(userOrg.collections, toIdAndName)
+
+    var userIds = _.pluck(userOrg.collections, "id");
 
     var publicCollection = {
       name: "Public",
-      collections: publicCollections
+      collections:  _.filter(collections, notInUserOrgs)
     }
 
-    return cleanedOrgs.concat([publicCollection]);
+    return [userOrg, publicCollection];
   }
 
   function loadCollections() {
     Collection.get({}, function (data) {
         $scope.collections = data;
-        var allCollections = $scope.getAllCollections(UserInfo.orgs);
-        var asIds = _.map(allCollections, function(c){ return {id: c.collectionId, name: c.name}});
-        $scope.sortedCollections = $scope.createSortedCollection(data, UserInfo.orgs);
-        $scope.searchParams.collection = asIds;
+        $scope.sortedCollections = $scope.createSortedCollection(data, UserInfo.org);
+        var sortedOrg = $scope.sortedCollections[0];
+        $scope.searchParams.collection = sortedOrg.collections;
+        $scope.search();
       },
       function () {
         console.log("load collections: error: " + arguments);
@@ -188,7 +193,6 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
         console.log("load contributors: error: " + arguments);
       });
   }
-
 
   $scope.showGradeLevel = function () {
     return $scope.createGradeLevelString(this.item.gradeLevel);
@@ -218,7 +222,15 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     $scope.showConfirmDestroyModal = false;
   };
 
-
+  $scope.itemClick = function(){
+    if(this.item.readOnly){
+        console.log(this.item)
+        $scope.openItem(this.item.id)
+    }else{
+      SearchService.currentItem = this.item;
+      $location.url('/edit/' + this.item.id + "?panel=metadata");
+    }
+  }
   /*
    * called from the repeater. scope (this) is the current item
    */
@@ -232,10 +244,58 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     else return "Draft"
   }
 
+  //from items-app.js
+  $scope.hidePopup = function() {
+    $scope.showPopup = false;
+    $scope.previewingId = "";
+    $scope.popupBg="";
+  };
+
+  $scope.openItem = function (id) {
+    $timeout(function () {
+      $scope.showPopup = true;
+      $scope.popupBg = "extra-large-window"
+      $scope.previewingId = id;
+      //$scope.$broadcast("requestLoadItem", id);
+      $('#preloader').show();
+      $('#player').hide();
+    }, 50);
+    $timeout(function () {
+      $('.window-overlay').scrollTop(0);
+    }, 100);
+
+  };
+
+  $scope.onItemLoad = function () {
+    $('#preloader').hide();
+    $('#player').show();
+  };
+
+  var fn = function(m) {
+    try{
+      var data = JSON.parse(m.data);
+      if (data.message == 'closeProfilePopup') {
+        $timeout(function() {
+          $scope.hidePopup();
+        }, 10);
+      }
+    }catch(err){
+        //console.log(err)
+    }
+  };
+
+  if (window.addEventListener) {
+    window.addEventListener('message', fn, true);
+  }else if (window.attachEvent) {
+    window.attachEvent('message', fn);
+  }
+  //////
+
   init();
 }
 
 HomeController.$inject = ['$scope',
+  '$timeout',
   '$rootScope',
   '$http',
   '$location',

@@ -10,19 +10,19 @@
       "collectionId": {
         "$oid": "5001bb0ee4b0d7c9ec3210a2"
       },
-      "pval": 9223372036854775807
+      "pval": 3
     } ,
     {
       "collectionId": {
         "$oid": "5001b6f3e4b0d7c9ec321065"
       },
-      "pval": 9223372036854775807
+      "pval": 3
     } ,
     {
       "collectionId": {
         "$oid": "5001b9b9e4b035d491c268c3"
       },
-      "pval": 9223372036854775807
+      "pval": 3
     }
   ], "_id": {
   "$oid": "502404dd0364dc35bb393398"

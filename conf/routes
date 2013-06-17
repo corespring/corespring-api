@@ -55,7 +55,6 @@ DELETE  /api/v1/organizations/:id               api.v1.OrganizationApi.deleteOrg
 GET     /api/v1/organizations/:id/tree          api.v1.OrganizationApi.listWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
 GET     /api/v1/organizations/:id/children      api.v1.OrganizationApi.getChildrenWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
 
-
 # Collections
 GET     /api/v1/collections                     api.v1.CollectionApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/collections/:id                 api.v1.CollectionApi.getCollection(id: ObjectId)
@@ -190,7 +189,6 @@ GET    /web/partials/editItem                  web.controllers.Partials.editItem
 GET    /web/partials/createItem                web.controllers.Partials.createItem
 GET    /web/partials/home                      web.controllers.Partials.home
 GET    /web/partials/viewItem                  web.controllers.Partials.viewItem
-
 
 GET    /web/javascripts/routes                             web.controllers.ShowResource.javascriptRoutes
 
