@@ -94,13 +94,8 @@ describe('HomeController', function () {
 
       var collections = [
         {"id": "4ff2e56fe4b077b9e3168a05", "name": "CoreSpring Mathematics"},
-        {"id": "5001b9b9e4b035d491c268c3", "name": "Collection F"},
-        {"id": "5001bb0ee4b0d7c9ec3210a2", "name": "Collection G"},
-        {"id": "5021814ce4b03e00504e4741", "name": "Collection A"},
         {"id": "505777f5e4b05f7845735bc1", "name": "Beta Items"},
-        {"id": "5072e73b1c00df6fdd627594", "name": "Temporary Collection"},
         {"id": "50a22ccc300479fa2a5a66ac", "name": "default"},
-        {"id": "51114b127fc1eaa866444647", "name": "Demo Collection"},
         {"id": "51baf73da196d2f175140218", "name": "Items from Production"}
       ];
 
@@ -112,12 +107,7 @@ describe('HomeController', function () {
           "collections": [
             {"collectionId": "51baf73da196d2f175140218", "name": "Items from Production", "permission": "write"},
             {"collectionId": "50a22ccc300479fa2a5a66ac", "name": "default", "permission": "write"},
-            {"collectionId": "505777f5e4b05f7845735bc1", "name": "Beta Items", "permission": "write"},
-            {"collectionId": "5021814ce4b03e00504e4741", "name": "Collection A", "permission": "write"},
-            {"collectionId": "5001b9b9e4b035d491c268c3", "name": "Collection F", "permission": "write"},
-            {"collectionId": "5001bb0ee4b0d7c9ec3210a2", "name": "Collection G", "permission": "write"},
-            {"collectionId": "4ff2e56fe4b077b9e3168a05", "name": "CoreSpring Mathematics", "permission": "write"},
-            {"collectionId": "5072e73b1c00df6fdd627594", "name": "Temporary Collection", "permission": "write"}
+            {"collectionId": "505777f5e4b05f7845735bc1", "name": "Beta Items", "permission": "read"}
           ]}
       ];
 
@@ -128,23 +118,18 @@ describe('HomeController', function () {
           "name": "Organization A",
           "collections": [
             {"id": "51baf73da196d2f175140218", "name": "Items from Production"},
-            {"id": "50a22ccc300479fa2a5a66ac", "name": "default"},
-            {"id": "505777f5e4b05f7845735bc1", "name": "Beta Items"},
-            {"id": "5021814ce4b03e00504e4741", "name": "Collection A"},
-            {"id": "5001b9b9e4b035d491c268c3", "name": "Collection F"},
-            {"id": "5001bb0ee4b0d7c9ec3210a2", "name": "Collection G"},
-            {"id": "4ff2e56fe4b077b9e3168a05", "name": "CoreSpring Mathematics"},
-            {"id": "5072e73b1c00df6fdd627594", "name": "Temporary Collection"}
+            {"id": "50a22ccc300479fa2a5a66ac", "name": "default"}
           ]},
         {
           "name": "Public",
           "collections": [
-            {"id": "51114b127fc1eaa866444647", "name": "Demo Collection"}
+            {"id": "4ff2e56fe4b077b9e3168a05", "name": "CoreSpring Mathematics"},
+            {"id": "505777f5e4b05f7845735bc1", "name": "Beta Items"}
           ]
         }
 
       ];
-      var allIds = scope.getAllIds( scope.getAllCollections(userOrgs));
+      var allIds = _.pluck(scope.getAllCollections(userOrgs), "collectionId");
       expect(scope.createSortedCollection(collections, userOrgs, allIds)).toEqual(expected);
 
     });

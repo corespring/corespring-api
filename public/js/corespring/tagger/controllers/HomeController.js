@@ -128,29 +128,37 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
   };
 
 
+  /** Create a flat array of collections objects from an array of orgs */
   $scope.getAllCollections = function(ui) { return _.flatten(_.pluck(ui, 'collections'))};
-  $scope.getAllIds = function(allColls) { return _.pluck(allColls, "collectionId") };
 
-  $scope.createSortedCollection = function (collections, userOrgs, allIds) {
+  $scope.createSortedCollection = function (collections, userOrgs) {
     if (!collections || !userOrgs) {
       return [];
-    } console.log("createSortedCollections");
+    };
 
     var cleanedOrgs = _.map(userOrgs, function (uo) {
       delete uo.path;
       delete uo.id;
-      uo.collections = _.map(uo.collections, function (c) {
+
+      var writeableCollections = _.filter(uo.collections, function(c){
+        return c.permission == "write";
+      });
+
+      uo.collections = _.map(writeableCollections, function (c) {
         return {id: c.collectionId, name: c.name}
       });
       return uo;
     });
 
+    var userCollections = _.flatten(_.pluck(cleanedOrgs, 'collections'));
+    var userIds = _.pluck(userCollections, "id");
+
     var notInUserOrgs = function (c) {
-      return allIds.indexOf(c.id) == -1;
+      return userIds.indexOf(c.id) == -1;
     };
 
     var publicCollections = _.filter(collections, notInUserOrgs);
-    console.log("public collections: " + publicCollections);
+
     var publicCollection = {
       name: "Public",
       collections: publicCollections
@@ -164,8 +172,7 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
         $scope.collections = data;
         var allCollections = $scope.getAllCollections(UserInfo.orgs);
         var asIds = _.map(allCollections, function(c){ return {id: c.collectionId, name: c.name}});
-        var allIds = $scope.getAllIds(allCollections);
-        $scope.sortedCollections = $scope.createSortedCollection(data, UserInfo.orgs, allIds);
+        $scope.sortedCollections = $scope.createSortedCollection(data, UserInfo.orgs);
         $scope.searchParams.collection = asIds;
       },
       function () {
