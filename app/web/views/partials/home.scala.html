@@ -24,7 +24,11 @@
         </thead>
         <tbody>
             <tr ng-repeat="collection in collections">
-                <td><div contenteditable collection-id="{{collection.id}}" collection-name="collection.name" new-alert="newAlert"></div></td>
+                <td><div contenteditable
+                         collection-id="{{collection.id}}"
+                         collection-name="collection.name"
+                         new-alert="newAlert"
+                         create-sorted-collection="createSortedCollection"></div></td>
                 <td>{{collection.itemCount}}</td>
                 <td><span ng-show="collection.itemCount == 0"><a ng-click="deleteCollection(collection.id)">delete</a></span></td>
             </tr>

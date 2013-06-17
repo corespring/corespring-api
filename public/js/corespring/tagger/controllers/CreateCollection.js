@@ -1,6 +1,6 @@
  angular.module('tagger').directive('contenteditable', function(Collection){ return {
     restrict: 'A',
-    scope: {collectionId: '@collectionId', collectionName: '=collectionName', newAlert: '=newAlert'},
+    scope: {collectionId: '@collectionId', collectionName: '=collectionName', newAlert: '=newAlert', createSortedCollection: '=createSortedCollection'},
     link: function(scope,element,attrs){
 
       element.html(scope.collectionName)
@@ -11,6 +11,7 @@
         Collection.update({id: scope.collectionId},{name: element.html()},function(data){
             scope.collectionName = data.name
             scope.newAlert("alert alert-success", "Successfully edited collection name");
+            scope.createSortedCollection();
         },function(err){
             scope.newAlert("alert alert-error", "Error editing collection name");
             console.log("error update collection name: "+err)
@@ -36,8 +37,9 @@
     }
  }})
  //controller
- angular.module('tagger').controller("CreateCollection",['$scope', '$rootScope', 'Collection',
- function($scope, $rootScope, Collection){
+ angular.module('tagger').controller("CreateCollection",['$scope', '$rootScope', 'Collection', 'UserInfo',
+ function($scope, $rootScope, Collection, UserInfo){
+   $scope.orgName = UserInfo.org.name;
    $scope.newAlert = function(cssclass,message){
     $scope.alertClass = cssclass;
     $scope.alertMessage = message;
@@ -65,6 +67,7 @@
            $scope.collections.push(data);
            $scope.searchParams.collection.push(data)
            $('#newcollection').val('');
+           $scope.createSortedCollection();
            $scope.newAlert('alert alert-success',"Successfully created collection")
        },function(err){
            $scope.newAlert('alert alert-error', "Error occurred when creating a collection");
@@ -89,6 +92,7 @@
               return found;
           });
         }
+        $scope.createSortedCollection();
         $scope.newAlert('alert alert-success',"Successfully deleted collection");
      },function(err){
         $scope.newAlert('alert alert-error', "Error deleting collection");

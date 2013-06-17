@@ -13,8 +13,6 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
   $rootScope.$broadcast('onListViewOpened');
 
   var init = function () {
-    $scope.orgName = UserInfo.org.name;
-    $scope.isRoot = true;
     loadCollections();
     loadContributors();
     $scope.showDraft = true;
@@ -138,13 +136,10 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
     );
   };
 
-  $scope.createSortedCollection = function (collections, userOrg) {
-    if (!collections || !userOrg) {
-      return [];
-    }
+  $scope.createSortedCollection = function () {
     var orgCollections = []
     var publicCollections = []
-    _.each(collections,function(c){
+    _.each($rootScope.collections,function(c){
         //if the collection is public and the user only has read access,
         //then it is considered a public collection not belonging to the user
         if(c.isPublic && ((c.access & 3) == 1)){
@@ -154,8 +149,8 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
         }
     })
 
-    return [
-        {name: userOrg.name, collections: orgCollections},
+    $scope.sortedCollections = [
+        {name: UserInfo.org.name, collections: orgCollections},
         {name: "Public", collections: publicCollections}
     ];
   }
@@ -166,7 +161,7 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
         $scope.searchParams.collection = _.filter(data, function(coll){
            return (coll.access & 3) == 3 //filter search params by access (3 = write access)
         })
-        $scope.sortedCollections = $scope.createSortedCollection(data, UserInfo.org);
+        $scope.createSortedCollection();
         $scope.search();
       },
       function () {
