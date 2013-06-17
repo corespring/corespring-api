@@ -77,10 +77,7 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     if (!items || items.length == 0) {
       return "None Selected";
     }
-    var out = _.map(items, function (i) {
-      return i.name
-    });
-    return out.join(", ").replace(/CoreSpring/g, "");
+    return items.length + " selected";
   };
 
   $scope.getSelectedTitle = function (items) {
@@ -137,8 +134,7 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
   $scope.createSortedCollection = function (collections, userOrgs, allIds) {
     if (!collections || !userOrgs) {
       return [];
-    }
-    console.log("createSortedCollections");
+    } console.log("createSortedCollections");
 
     var cleanedOrgs = _.map(userOrgs, function (uo) {
       delete uo.path;

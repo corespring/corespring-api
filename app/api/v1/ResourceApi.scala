@@ -80,14 +80,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
    * @param itemId
    * @return an Option[ObjectId] or None if the id is invalid
    */
-  private def objectId(itemId: String): Option[ObjectId] = {
-    try {
-      Some(new ObjectId(itemId))
-    }
-    catch {
-      case e: Exception => None
-    }
-  }
+  private def objectId(itemId: String): Option[ObjectId] = if(ObjectId.isValid(itemId)) Some(new ObjectId(itemId)) else None
 
   def HasItem(itemId: String,
               additionalChecks: Seq[(ApiRequest[AnyContent],Item) => Option[Result]] = Seq(),

@@ -5,17 +5,16 @@ import play.api.libs.json.{JsValue, Json}
 
 object MainHelper {
 
-  def htmlSafe(s:String) = {
+  def safeXml(s:String) = {
     Html{
       s.replace("\\", "\\\\")
         .replace("\n", "\\n")
         .replace("\"", "\\\"")
-        .replace("\\\"", "\"")
     }
   }
 
   def toFullJson(orgs:Seq[Organization]) : Html = {
     val jsonOrgs : Seq[JsValue]= orgs.map( Organization.FullWrites.writes(_))
-    htmlSafe(Json.stringify(Json.toJson(jsonOrgs)))
+    Html(Json.stringify(Json.toJson(jsonOrgs)))
   }
 }

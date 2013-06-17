@@ -56,7 +56,7 @@
             @templates.map{ template =>
              data["@template.code"] = {
                 label: "@template.label",
-                xmlData: "@MainHelper.htmlSafe(template.xmlData)"
+                xmlData: "@MainHelper.safeXml(template.xmlData)"
              }
             }
             return data;
