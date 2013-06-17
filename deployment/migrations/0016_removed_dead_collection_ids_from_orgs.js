@@ -20,7 +20,7 @@ function up(){
     }
 
     org.contentcolls = out;
-    //db.orgs.save(org);
+    db.orgs.save(org);
   });
 }
 

@@ -74,12 +74,14 @@
                   </div>
 
                   <!-- note: we are overriding the default repeater here  - see multi-select.coffee in corespring-ng-components for more info -->
-                  <div class="repeater" style="min-width: 160px;">
+                  <div class="repeater" style="min-width: 200px;">
                       <div ng-repeat="o in options">
                           <b>{{o.name}}</b> <br/>
+                          <span ng-show="o.collections.length == 0">You don't have any collections yet</span>
                           <div ng-repeat="c in o.collections">
-                              <input type="checkbox" ng-model="selectedArr[c.${uidKey}]" ng-click="toggleItem(c)"></input>
-                              {{c.name}}</div>
+                              <input type="checkbox" ng-model="selectedArr[c.${uidKey}]" ng-click="toggleItem(c)"/>
+                              {{c.name}}
+                          </div>
                       </div>
 
                   </div>

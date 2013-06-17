@@ -16,16 +16,15 @@ class MainHelperTest extends Specification {
     "write org json" in {
 
       val id = ObjectId.get()
-      val orgs = Seq(Organization(id = id, name = "test"))
-
-      val template = """[{"id":"${id}","name":"test","collections":[]}]"""
+      val org = Organization(id = id, name = "test")
+      val template = """{"id":"${id}","isRoot":false,"name":"test","collections":[]}"""
       val expected = string.interpolate(template, string.replaceKey(Map("id" -> id.toString)), string.DollarRegex)
-      MainHelper.toFullJson(orgs).text === expected
+      MainHelper.toFullJson(org).text === expected
     }
 
     "write safe xml " in {
-      val xml = <root name="test"> hello \ there \n </root>
-      MainHelper.safeXml(xml.toString).text === """<root name=\"test\"> hello \\ there \\n </root>"""
+      val xml = <root name="test">hello \ there \n</root>
+      MainHelper.safeXml(xml.toString).text === """<root name=\"test\">hello \\ there \\n</root>"""
     }
   }
 

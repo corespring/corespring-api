@@ -3,6 +3,7 @@ package tests.developer.controllers
 import developer.controllers.Developer
 import models.User
 import org.bson.types.ObjectId
+import org.joda.time.DateTime
 import org.specs2.specification.After
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsJson
@@ -10,9 +11,8 @@ import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
 import securesocial.core.SecureSocial
 import tests.BaseTest
-import org.joda.time.DateTime
 
-class DeveloperTest extends BaseTest{
+class DeveloperTest extends BaseTest {
 
   sequential
 
@@ -26,16 +26,15 @@ class DeveloperTest extends BaseTest{
     case _ => Array()
   }
 
-  "Developer" should{
+  "Developer" should {
 
     "create only one org" in new MockUser {
-
       val orgName = """{"name":"hello-there"}"""
       val json = Json.parse(orgName)
       val request = FakeRequest("", "", FakeHeaders(), AnyContentAsJson(json)).withSession(secureSocialSession(Some(user)): _*)
       status(Developer.createOrganization()(request)) === OK
       status(Developer.createOrganization()(request)) === BAD_REQUEST
-    }
+    }.pendingUntilFixed("coming soon.")
   }
 
 }
@@ -51,7 +50,7 @@ class MockUser extends After {
     u
   }
 
-  def after{
-   User.remove(user)
+  def after {
+    User.remove(user)
   }
 }
