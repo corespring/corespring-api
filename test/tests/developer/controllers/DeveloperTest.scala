@@ -1,17 +1,30 @@
 package tests.developer.controllers
 
 import developer.controllers.Developer
+import models.User
+import org.bson.types.ObjectId
+import org.specs2.specification.After
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsJson
+import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
+import securesocial.core.SecureSocial
 import tests.BaseTest
-import models.User
-import org.specs2.specification.After
-import org.bson.types.ObjectId
+import org.joda.time.DateTime
 
 class DeveloperTest extends BaseTest{
 
   sequential
+
+
+  def secureSocialSession(u: Option[User]): Array[(String, String)] = u match {
+    case Some(user) => Array(
+      (SecureSocial.UserKey -> user.userName),
+      (SecureSocial.ProviderKey -> user.provider),
+      (SecureSocial.LastAccessKey -> DateTime.now().toString)
+    )
+    case _ => Array()
+  }
 
   "Developer" should{
 
@@ -19,20 +32,9 @@ class DeveloperTest extends BaseTest{
 
       val orgName = """{"name":"hello-there"}"""
       val json = Json.parse(orgName)
-
-        /** PLAY_SESSION=b94eb099c66b16190b716dcfc82b7910e67a1a47-
-          *
-      securesocial.user%3A109165101605322411454%00
-        player.active.mode%3Apreview%00
-        securesocial.id%3A174c606b-69dd-4258-851e-a96e3ffca674%00
-        securesocial.provider%3Agoogle%00
-        securesocial.lastAccess%3A2013-06-17T13%3A05%3A06.017%2B02%3A00
-          */
-      //securesocial.id%3A174c606b-69dd-4258-851e-a96e3ffca674%00securesocial.provider%3Agoogle%00securesocial.lastAccess%3A2013-06-17T13%3A05%3A06.017%2B02%3A00
-
-
-      val request = FakeRequest("", tokenize("blah"), FakeHeaders(), AnyContentAsJson(json))
-        Developer.createOrganization()(request)
+      val request = FakeRequest("", "", FakeHeaders(), AnyContentAsJson(json)).withSession(secureSocialSession(Some(user)): _*)
+      status(Developer.createOrganization()(request)) === OK
+      status(Developer.createOrganization()(request)) === BAD_REQUEST
     }
   }
 
