@@ -1,4 +1,4 @@
-angular.module('tagger').directive('contenteditable', function (Collection) {
+angular.module('tagger').directive('contenteditable', function (CollectionManager) {
   "use strict";
   return {
     restrict: 'A',
@@ -7,17 +7,18 @@ angular.module('tagger').directive('contenteditable', function (Collection) {
 
       element.html(scope.collectionName);
 
-      // view -> model
       element.bind('blur', function () {
         if (scope.collectionName !== element.html()) {
-          Collection.update({id: scope.collectionId}, {name: element.html()}, function (data) {
-            scope.collectionName = data.name;
-            scope.newAlert("alert alert-success", "Successfully edited collection name");
-            scope.createSortedCollection();
-          }, function (err) {
+
+          var onError = function () {
             scope.newAlert("alert alert-error", "Error editing collection name");
             element.html(scope.collectionName);
-          });
+          };
+          //TODO - name needs to be cleaned up
+          var newName = element.html()
+            .replace(/\n/g, '')
+            .replace(/^\s*/g, '');
+          CollectionManager.renameCollection(scope.collectionId, newName, null, onError);
         }
       });
 

@@ -188,7 +188,7 @@ object CollectionExtraDetails{
     def writes(c:CollectionExtraDetails):JsValue = {
       JsObject(Seq(
         "name" -> JsString(c.coll.name),
-        "access" -> JsNumber(c.access),
+        "permission" -> JsString(Permission.toHumanReadable(c.access)),
         "itemCount" -> JsNumber(c.coll.itemCount),
         "isPublic" -> JsBoolean(c.coll.isPublic),
         "id" -> JsString(c.coll.id.toString)

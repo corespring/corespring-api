@@ -1,63 +1,67 @@
-function CreateCollection($scope, $rootScope, Collection, UserInfo){
+function CreateCollection($scope, $rootScope, CollectionManager, UserInfo) {
+
   $scope.orgName = UserInfo.org.name;
-   $scope.newAlert = function(cssclass,message){
+
+  $scope.newAlert = function (cssclass, message) {
     $scope.alertClass = cssclass;
     $scope.alertMessage = message;
-   };
-   $scope.newAlert("alert","");
-   //this looks kind of weird. this is all for opening and closing the collections modal correctly between MainNavController and this controller
-   $rootScope.$watch('collectionsWindowRoot',function(){
-     $scope.collectionsWindow = $rootScope.collectionsWindowRoot;
-   });
-   $scope.closeCollectionWindow = function(){
-     $scope.collectionsWindow = false;
-   } ;
-   $scope.$watch('collectionsWindow',function(){
-    if(!$scope.collectionsWindow && $rootScope.collectionsWindowRoot) $rootScope.collectionsWindowRoot = false;
-    else if($scope.collectionsWindow && $rootScope.collections){  //if dialog is shown, populate collections table with collections that org has write access too
-        $scope.collections = _.filter($rootScope.collections, function(c){
-            return (c.access & 3) == 3;
-        })
+  };
+
+  $scope.newAlert("alert", "");
+  //this looks kind of weird. this is all for opening and closing the collections modal correctly between MainNavController and this controller
+
+  $rootScope.$watch('collectionsWindowRoot', function () {
+    $scope.collectionsWindow = $rootScope.collectionsWindowRoot;
+  });
+
+  $scope.closeCollectionWindow = function () {
+    $scope.collectionsWindow = false;
+  };
+
+  $scope.$watch('collectionsWindow', function () {
+    if (!$scope.collectionsWindow && $rootScope.collectionsWindowRoot) $rootScope.collectionsWindowRoot = false;
+  });
+
+  $scope.createCollection = function (collectionName) {
+    if (collectionName) {
+
+      var onSuccess = function (data) {
+        $('#newcollection').val('');
+        $scope.newAlert('alert alert-success', "Successfully created collection");
+      };
+
+      var onError = function (err) {
+        $scope.newAlert('alert alert-error', "Error occurred when creating a collection");
+        console.log("create collection: error: " + err);
+      };
+
+      CollectionManager.addCollection(collectionName, onSuccess, onError);
+
     }
-   });
-   $scope.createCollection = function(collectionName){
-     if(collectionName){
-       Collection.create({},{name:collectionName},function(data){
-           $rootScope.collections.push(data);
-           $scope.collections.push(data);
-           $scope.searchParams.collection.push(data);
-           $('#newcollection').val('');
-           $scope.createSortedCollection();
-           $scope.newAlert('alert alert-success',"Successfully created collection");
-       },function(err){
-           $scope.newAlert('alert alert-error', "Error occurred when creating a collection");
-           console.log("create collection: error: " + err);
-       });
-     }
-   };
-   $scope.deleteCollection = function(collId){
-     Collection.remove({id: collId},function(data){
-        //todo: add success message
-        $rootScope.collections = _.filter($rootScope.collections, function(c){
-            return c.id !== collId;
-        });
-        $scope.collections = _.filter($scope.collections, function(c){
-            return c.id !== collId;
-        });
-        if($scope.searchParams.collection){
-          $scope.searchParams.collection = _.filter($scope.searchParams.collection, function(searchcoll){
-              var found = _.find($rootScope.collections, function(c){
-                return c.id == searchcoll.id;
-              });
-              return found;
-          });
-        }
-        $scope.createSortedCollection();
-        $scope.newAlert('alert alert-success',"Successfully deleted collection");
-     },function(err){
-        $scope.newAlert('alert alert-error', "Error deleting collection");
-        console.log("error deleting collection: "+err);
-     });
-   };
+  };
+
+  $scope.deleteCollection = function (id) {
+
+    var onSuccess = function () {
+      $scope.newAlert('alert alert-success', "Successfully deleted collection");
+    };
+
+    var onError = function (err) {
+      $scope.newAlert('alert alert-error', "Error deleting collection");
+      console.log("error deleting collection: " + err);
+    };
+
+    CollectionManager.removeCollection(id, onSuccess, onError);
+  };
+
+  $scope.$watch(
+    function () {
+      return CollectionManager.sortedCollections;
+    },
+    function (newValue) {
+      if (newValue) {
+        $scope.collections = newValue[0].collections;
+      }
+    }, true);
 }
-CreateCollection.$inject = ['$scope', '$rootScope', 'Collection', 'UserInfo'];
+CreateCollection.$inject = ['$scope', '$rootScope', 'CollectionManager', 'UserInfo'];

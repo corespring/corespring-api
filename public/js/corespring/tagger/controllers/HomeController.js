@@ -1,4 +1,4 @@
-function HomeController($scope, $timeout, $rootScope, $http, $location, ItemService, SearchService, Collection, Contributor, ItemFormattingUtils, UserInfo) {
+function HomeController($scope, $timeout, $rootScope, $http, $location, ItemService, SearchService, CollectionManager, Contributor, ItemFormattingUtils) {
 
   //Mixin ItemFormattingUtils
   angular.extend($scope, ItemFormattingUtils);
@@ -133,56 +133,17 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
     );
   };
 
-  $scope.getAllCollections = function(org) { return _.pluck(org, 'collections')};
-
-  $scope.createSortedCollection = function (collections, userOrg) {
-    if (!collections || !userOrg) {
-      return [];
-    };
-
-    var getName = function(id){
-      var out =_.find(collections, function(c){return c.id == id});
-      if(!out){
-        console.warn("cant find item with id: " + id);
-        console.warn(" in " + collections);
-        console.warn("user org : " + _.find(userOrg.collections, function(c){return c.id == id;}));
-      }
-      return out ? out.name : "?";
-    };
-
-    var hasWritePermission = function(c) { return c.permission == "write"};
-    var toIdAndName = function(c) { return { id: c.collectionId, name: getName(c.collectionId) } };
-
-    var notInUserOrgs = function (c) {
-      return userIds.indexOf(c.id) == -1;
-    };
-
-    delete userOrg.path;
-    delete userOrg.id;
-    userOrg.collections = _.filter(userOrg.collections, hasWritePermission);
-    userOrg.collections = _.map(userOrg.collections, toIdAndName)
-
-    var userIds = _.pluck(userOrg.collections, "id");
-
-    var publicCollection = {
-      name: "Public",
-      collections:  _.filter(collections, notInUserOrgs)
-    }
-
-    return [userOrg, publicCollection];
-  }
-
   function loadCollections() {
-    Collection.get({}, function (data) {
-        $scope.collections = data;
-        $scope.sortedCollections = $scope.createSortedCollection(data, UserInfo.org);
-        var sortedOrg = $scope.sortedCollections[0];
-        $scope.searchParams.collection = sortedOrg.collections;
-        $scope.search();
-      },
-      function () {
-        console.log("load collections: error: " + arguments);
-      });
+
+    $scope.$watch( function(){ return CollectionManager.sortedCollections; }, function(newValue, oldValue){
+      $scope.sortedCollections = newValue;
+      if($scope.sortedCollections){
+        $scope.searchParams.collection = $scope.sortedCollections[0].collections;
+      }
+      $scope.search();
+    }, true);
+
+    CollectionManager.init();
   }
 
   function loadContributors() {
@@ -289,7 +250,6 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
   }else if (window.attachEvent) {
     window.attachEvent('message', fn);
   }
-  //////
 
   init();
 }
@@ -301,8 +261,8 @@ HomeController.$inject = ['$scope',
   '$location',
   'ItemService',
   'SearchService',
-  'Collection',
+  'CollectionManager',
   'Contributor',
-  'ItemFormattingUtils',
-  'UserInfo'];
+  'ItemFormattingUtils'
+  ];
 
