@@ -132,7 +132,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
       }
 
       def runQueryAndMakeJson(query: MongoDBObject, fields: SearchFields, sk: Int, limit: Int, sortField: Option[MongoDBObject] = None) = {
-        val cursor = Item.find(query, fields.dbfields)
+        val cursor = Item.find(query++MongoDBObject("$or" -> MongoDBList(MongoDBObject(Item.version -> MongoDBObject("$exists" -> false)), MongoDBObject(Item.version+"."+Version.current -> true))), fields.dbfields)
         val count = cursor.count
         val sorted = sortField.map(cursor.sort(_)).getOrElse(cursor)
         jsBuilder(count, sorted.skip(sk).limit(limit), fields, current)
