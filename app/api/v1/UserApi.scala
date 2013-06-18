@@ -28,7 +28,7 @@ object UserApi extends BaseApi {
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, optsort:Option[String]) = ApiActionRead { request =>
     val orgIds:Seq[ObjectId] = Organization.getTree(request.ctx.organization).map(_.id)
-    val initSearch = MongoDBObject(User.orgs + "." + UserOrg.orgId -> MongoDBObject("$in" -> orgIds))
+    val initSearch = MongoDBObject(User.org + "." + UserOrg.orgId -> MongoDBObject("$in" -> orgIds))
     def applySort(users:SalatMongoCursor[User]):Result = {
       optsort.map(User.toSortObj(_)) match {
         case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(users.sort(sort).skip(sk).limit(l))))

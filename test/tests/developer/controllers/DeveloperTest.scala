@@ -45,7 +45,7 @@ class MockUser extends After {
   lazy val user = createUser
 
   def createUser = {
-    val u = User("google_user_name", "some user", "some.user@google.com", Seq(), "", provider = "google", hasRegisteredOrg = false, id = oid)
+    val u = User("google_user_name", "some user", "some.user@google.com", None, "", provider = "google", id = oid)
     User.insert(u)
     u
   }
