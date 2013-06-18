@@ -87,49 +87,6 @@ describe('HomeController', function () {
       expect(scope.items).toEqual(["item"]);
     });
 
-
-    /*it("Correctly sorts the collections", function () {
-
-      var collections = [
-        {"id": "4ff2e56fe4b077b9e3168a05", "name": "CoreSpring Mathematics"},
-        {"id": "505777f5e4b05f7845735bc1", "name": "Beta Items"},
-        {"id": "50a22ccc300479fa2a5a66ac", "name": "default"},
-        {"id": "51baf73da196d2f175140218", "name": "Items from Production"}
-      ];
-
-      var userOrg = {
-          "id": "502404dd0364dc35bb39339c",
-          "name": "Organization A",
-          "path": ["502404dd0364dc35bb39339c"],
-          "collections": [
-            {"collectionId": "51baf73da196d2f175140218", "name": "Items from Production", "permission": "write"},
-            {"collectionId": "50a22ccc300479fa2a5a66ac", "name": "default", "permission": "write"},
-            {"collectionId": "505777f5e4b05f7845735bc1", "name": "Beta Items", "permission": "read"}
-          ]};
-
-      MockUserInfo.org = userOrg;
-
-      var expected = [
-        {
-          "name": "Organization A",
-          "collections": [
-            {"id": "51baf73da196d2f175140218", "name": "Items from Production"},
-            {"id": "50a22ccc300479fa2a5a66ac", "name": "default"}
-          ]},
-        {
-          "name": "Public",
-          "collections": [
-            {"id": "4ff2e56fe4b077b9e3168a05", "name": "CoreSpring Mathematics"},
-            {"id": "505777f5e4b05f7845735bc1", "name": "Beta Items"}
-          ]
-        }
-
-      ];
-      var allIds = _.pluck(userOrg.collections, "collectionId");
-      expect(scope.createSortedCollection(collections, userOrg, allIds)).toEqual(expected);
-
-    });
-     */
   });
 
 });
