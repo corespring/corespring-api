@@ -1,0 +1,41 @@
+<assessmentItem>
+    <responseDeclaration identifier="alphabet1" cardinality="ordered" baseType="identifier">
+        <correctResponse>
+            <value>a</value>
+            <value>b</value>
+            <value>c</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+        <dragAndDropInteraction responseIdentifier="alphabet1">
+            Complete the equation below:
+
+            <table class="tileTable">
+                <tr>
+                    <td>
+                        <draggableAnswer identifier="two">2</draggableAnswer>
+                    </td>
+                    <td>
+                        <draggableAnswer identifier="multiply">x</draggableAnswer>
+                    </td>
+                    <td>
+                        <draggableAnswer identifier="divide">/</draggableAnswer>
+                    </td>
+                    <td>
+                        <draggableAnswer identifier="ten">10</draggableAnswer>
+                    </td>
+                </tr>
+            </table>
+
+            <dragTarget cardinality="single" class="blueTile inline" identifier="target1" ></dragTarget>
+            <dragTarget cardinality="single" class="blueTile inline" identifier="target2" ></dragTarget>
+            <dragTarget cardinality="single" class="blueTile inline" identifier="target3" ></dragTarget>
+            equals 5
+
+
+        </dragAndDropInteraction>
+
+    </itemBody>
+</assessmentItem>
+

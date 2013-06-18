@@ -1,4 +1,4 @@
-angular.module('qti.directives', ['qti.services']);
+angular.module('qti.directives', ['qti.services','ngDragDrop']);
 angular.module('qti', ['qti.directives', 'qti.services', 'corespring-services', 'corespring-directives','corespring-utils', 'ui']);
 
 
