@@ -43,6 +43,10 @@ object User extends ModelCompanion[User, ObjectId] with Searchable {
   val collection = mongoCollection("users")
   val dao = new SalatDAO[User, ObjectId](collection = collection) {}
 
+  object Dbo{
+    def orgIdIn(orgIds:ObjectId*) : DBObject =  MongoDBObject(User.org + "." + UserOrg.orgId -> MongoDBObject("$in" -> orgIds))
+  }
+
   /**
    * insert a user into the database as a member of the given organization, along with their private organization and collection
    * @param user
