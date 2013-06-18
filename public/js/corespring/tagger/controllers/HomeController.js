@@ -138,7 +138,7 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
     $scope.$watch( function(){ return CollectionManager.sortedCollections; }, function(newValue, oldValue){
       $scope.sortedCollections = newValue;
       if($scope.sortedCollections){
-        $scope.searchParams.collection = $scope.sortedCollections[0].collections;
+        $scope.searchParams.collection = _.clone($scope.sortedCollections[0].collections);
       }
       $scope.search();
     }, true);

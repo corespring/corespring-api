@@ -769,7 +769,7 @@ To do this you need to add a node that has the class name "repeater".
           scope.options = newValue;
           updateSelection();
           return null;
-        }, true);
+        });
         scope.$watch(modelProp, function(newValue) {
           if (newValue != null) {
             scope.selected = newValue;
@@ -778,7 +778,7 @@ To do this you need to add a node that has the class name "repeater".
           }
           updateSelection();
           return null;
-        }, true);
+        });
         updateSelection = function() {
           var x, _i, _len, _ref;
 
@@ -792,9 +792,6 @@ To do this you need to add a node that has the class name "repeater".
             if (x[uidKey]) {
               scope.selectedArr[x[uidKey]] = true;
             }
-          }
-          if (changeCallback != null) {
-            scope[changeCallback]();
           }
           return null;
         };
