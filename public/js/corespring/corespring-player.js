@@ -65,7 +65,7 @@
   };
 
   var iframePlayerStrategy = function (e, options) {
-    e.html("<iframe src='" + options.corespringUrl + "' style='width: 100%; height: 100%; border: none'></iframe>");
+    e.html("<iframe id='iframe-player' src='" + options.corespringUrl + "' style='width: 100%; height: 100%; border: none'></iframe>");
     e.width(options.width ? options.width : "600px");
 
 

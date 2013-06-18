@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+URL=$1
+ID=$2
+SECRET=$3
+
+curl -X POST -d "client_id=$ID&client_secret=$SECRET" $URL/auth/access_token #--header "Content-Type:application/json"

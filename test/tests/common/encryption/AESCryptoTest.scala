@@ -4,19 +4,19 @@ import common.encryption.AESCrypto
 import org.specs2.mutable.Specification
 
 class AESCryptoTest extends Specification {
-
+  val key = "thekey"
+  val message = "themessage";
+  var encrypted:String = null;
   "AES Crypto" should {
 
-    def works(key: String) = try {
-      AESCrypto.decrypt(AESCrypto.encrypt("m", key), key) === "m"
-    } catch {
-      case e: Throwable => failure("error thrown for key: " + key)
+    "result in cipher text and iv delimeted by '--' when encrypting" in {
+      encrypted = AESCrypto.encrypt(message,key)
+      encrypted.split("--").length must beEqualTo(2)
     }
-
-    "encrypt and decrypt" in {
-      works("byzq4j0jpsjxmbnqk8w7wif4v")
+    "result in same as clear text when decrypting" in {
+      val decrypted = AESCrypto.decrypt(encrypted,key)
+      decrypted must beEqualTo(message)
     }
-
   }
 
 }

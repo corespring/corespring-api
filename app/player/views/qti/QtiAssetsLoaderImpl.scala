@@ -1,10 +1,10 @@
 package player.views.qti
 
-import qti.models.RenderingMode
-import qti.models.RenderingMode._
+import player.views.models.QtiKeys
 import player.views.qti.models.{QtiJsAsset, QtiAssetsConfig}
+import qti.models.RenderingMode._
 
-class QtiAssetsLoaderImpl(xmlString: String) extends QtiAssetsLoader {
+class QtiAssetsLoaderImpl(qtiKeys:QtiKeys, mode : RenderingMode) extends QtiAssetsLoader {
 
   val config = QtiAssetsConfig(
     Seq(
@@ -13,13 +13,11 @@ class QtiAssetsLoaderImpl(xmlString: String) extends QtiAssetsLoader {
     )
   )
 
-  private val qti = scala.xml.XML.loadString(xmlString)
-  private val mode: RenderingMode = RenderingMode.withName((qti \ "@mode").text)
   private val assets = new QtiAssets("js/corespring/qti/directives", "stylesheets/qti/directives", config)
 
-  def localJsPaths: Seq[String] = assets.getLocalJsPaths(qti, mode)
+  def localJsPaths: Seq[String] = assets.getLocalJsPaths(qtiKeys.keys, mode)
 
-  def remoteJsPaths: Seq[String] = assets.getRemoteJsPaths(qti, mode)
+  def remoteJsPaths: Seq[String] = assets.getRemoteJsPaths(qtiKeys.keys, mode)
 
-  def localCssPaths: Seq[String] = assets.getLocalCssPaths(qti, mode)
+  def localCssPaths: Seq[String] = assets.getLocalCssPaths(qtiKeys.keys, mode)
 }

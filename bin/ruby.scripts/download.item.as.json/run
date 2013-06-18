@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+
+require 'mongo'
+require 'bson'
+require 'json'
+require_relative '../../../deployment/libs/ruby/db'
+
+puts "--------------------------------------"
+puts "download production item"
+puts "Note: you'll need the mongo gem installed: `gem install mongo`"
+puts "--------------------------------------"
+
+seed_data_folder = "../../../conf/seed-data/dev/content"
+
+# the 'from production collection in the seed-data/dev'
+collection_id = "51baf73da196d2f175140218"
+
+item_id = ARGV[0]
+mongo_uri = ARGV[1]
+
+puts "item_id: #{item_id}"
+puts "mongo_uri: #{mongo_uri}"
+
+db_info = Db.from_uri(mongo_uri)
+
+client = Mongo::MongoClient.from_uri(mongo_uri)
+
+puts "client: #{client}"
+
+db = client.db(db_info.name)
+
+puts "db: #{db}"
+
+puts collection = db.collection("content")
+
+puts "collection: #{collection}: #{collection.count()}"
+
+item = collection.find_one(:_id => BSON::ObjectId("#{item_id}"))
+
+json = JSON.parse(item.to_json)
+json["collectionId"] = collection_id
+json["dateModified"] = { "$date" => "2013-03-11T15:35:02.911Z" }
+
+File.open( "#{seed_data_folder}/from-prod-#{item_id}.json", 'w') { |file|
+  pretty = JSON.pretty_generate(json)
+  file.write(pretty)
+}

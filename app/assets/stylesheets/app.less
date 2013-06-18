@@ -877,3 +877,99 @@ font-style: italic;
 }
 
 
+
+.window {
+  padding-bottom: 80px;
+  position: absolute;
+  width: 640px;
+  z-index: 11;
+  left: 50%;
+  top: 50%;
+  margin-left: -350px;
+}
+
+.window-wrapper {
+  background: #FFF;
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  z-index: 0;
+}
+
+.window-up {
+  overflow: hidden;
+}
+
+.window-up .window-overlay {
+  display: block;
+}
+
+.window-up .main-wrap {
+  overflow: hidden;
+}
+
+.window-overlay {
+  background-color: rgba(0, 0, 0, 0.6);
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 6;
+  display: none;
+}
+
+.extra-large-window .window-overlay, .large-window .window-overlay {
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: fixed;
+
+}
+
+.clearfix {
+  zoom: 1;
+}
+
+.clearfix::after {
+  clear: both;
+  content: ".";
+  display: block;
+  height: 0;
+  overflow: hidden;
+}
+
+.preloader {
+  background: url('/assets/images/ajax-loader.gif') no-repeat center center;
+  height: 600px;
+  width: 100%;
+}
+
+.close-window-button {
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  background: url('/assets/images/close.png') no-repeat center center;
+  width: 24px;
+  height: 24px;
+  cursor: hand; cursor: pointer;
+}
+
+.create-collections {
+    .header {
+        position: absolute;
+        margin-left: auto;
+        top: 10px;
+    }
+    .close-window-button {
+      position: absolute;
+      margin-right: auto;
+      top: 8px;
+      background: url('/assets/images/close.png') no-repeat center center;
+      width: 24px;
+      height: 24px;
+      cursor: hand; cursor: pointer;
+    }
+}
+
+

@@ -20,16 +20,14 @@
 
     <h4>Create new Version?</h4>
     <br/>
-    <p>
-        This item has existing data (item sessions/responses) collected for it.
-    <p/>
-    Modifying the item will create a new version of the item and existing sessions that were collected
-    will not be available for analysis with the new version.
-    <p/>
-    The old version will not be deleted, and data collected for the old version will still be stored and gathered if that item
-    version is still available to users.
+    <p>You are trying to modify an item that has data from student responses associated with it and this means
+    that to continue, the system will create a new version.</p><br/>
+
+    <p>If you choose to proceed with the modification, be aware that the responses collected from the original
+        version will not be associated with this new version. The previous version will be saved and the data
+        associated with it will be available for analysis if the original item is still “live” as part of assignments.
     </p>
-    <button class="btn btn-primary" ng-click="increment()">Ok</button>
+    <button class="btn btn-primary" ng-click="increment()">Continue</button>
     <button class="btn btn-warning cancel" ng-click="showSaveWarning=false">Cancel</button>
 </div>
 

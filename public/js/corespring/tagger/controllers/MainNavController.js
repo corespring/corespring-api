@@ -30,6 +30,10 @@ function MainNavController($scope, $rootScope, $location, SearchService){
     $rootScope.items = [];
     //$scope.updatePagerText();
   });
+
+  $scope.openCollectionWindow = function(){
+      $rootScope.collectionsWindowRoot = true;
+  }
 }
 
 MainNavController.$inject = ['$scope', '$rootScope', '$location', 'SearchService'];

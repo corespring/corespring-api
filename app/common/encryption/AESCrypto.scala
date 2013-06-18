@@ -1,8 +1,12 @@
 package common.encryption
 
 import javax.crypto.Cipher
-import javax.crypto.spec.SecretKeySpec
+import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
 import play.api.libs.Codecs
+import java.util.UUID
+import java.nio.{ByteOrder, ByteBuffer}
+import org.apache.commons.codec.binary.{Hex, Base64}
+import java.security.MessageDigest
 
 object AESCrypto extends Crypto {
   def KEY_LENGTH = 16
@@ -11,43 +15,43 @@ object AESCrypto extends Crypto {
 
   val KEY_LENGTH_REQUIREMENT = this.getClass.getSimpleName + "the encryption key must be a string with 25 characters"
 
-  /** this is required because BigInt.toByteArray is converted to a signed array of bytes, which results in extra padding on the array
-    */
-  def stripKeyPadding(key: Array[Byte]): Array[Byte] = key.reverse.take(KEY_LENGTH)
-
+  private def newIV:Array[Byte] = {
+    val uuid = UUID.randomUUID();
+    val bb = ByteBuffer.wrap(new Array[Byte](16)).order(ByteOrder.BIG_ENDIAN)
+    bb.putLong(uuid.getLeastSignificantBits).putLong(uuid.getMostSignificantBits)
+    bb.array()
+  }
+  private def getIV(encrypted:String):Array[Byte] = {
+    val parts = encrypted.split("--")
+    require(parts.length == 2, "must contain cipher text and initialization vector (iv) separated by the delimeter '--'")
+    Hex.decodeHex(parts(1).toCharArray)
+  }
   /**
-   * Encrypt a String with the AES encryption standard. Private key must have a length of 16 bytes
+   * Encrypt a String with the AES encryption standard
    * @param value The String to encrypt
    * @param privateKey The key used to encrypt
    * @return An hexadecimal encrypted string
    */
-  def encrypt(value: String, privateKey: String): String = withCipherAndSpec(value, privateKey, Cipher.ENCRYPT_MODE) {
-    cipher =>
-      Codecs.toHexString(cipher.doFinal(value.getBytes("utf-8")))
+  def encrypt(value: String, privateKey: String): String = withCipher(privateKey,newIV,Cipher.ENCRYPT_MODE){
+    (cipher,iv) =>
+      Codecs.toHexString(cipher.doFinal(value.getBytes("utf-8")))+"--"+iv
   }
 
-
   /**
-   * Decrypt a String with the AES encryption standard. Private key must have a length of 16 bytes
+   * Decrypt a String with the AES encryption standard
    * @param value An hexadecimal encrypted string
    * @param privateKey The key used to encrypt
    * @return The decrypted String
    */
-  def decrypt(value: String, privateKey: String): String = withCipherAndSpec(value, privateKey, Cipher.DECRYPT_MODE) {
-    (cipher) =>
-      def hexStringToByte(hexString: String): Array[Byte] = {
-        import org.apache.commons.codec.binary.Hex
-        Hex.decodeHex(hexString.toCharArray())
-      }
-      new String(cipher.doFinal(hexStringToByte(value)))
+  def decrypt(value: String, privateKey: String): String = withCipher(privateKey, getIV(value), Cipher.DECRYPT_MODE){
+    (cipher,iv) =>
+      new String(cipher.doFinal(Hex.decodeHex(value.split("--")(0).toCharArray)))
   }
-
-  private def withCipherAndSpec(value: String, key: String, mode: Int)(block: Cipher => String): String = {
-    require(key != null && key.length == 25, KEY_LENGTH_REQUIREMENT)
-    val raw = stripKeyPadding(BigInt(key, KEY_RADIX).toByteArray)
+  private def withCipher(key: String, iv:Array[Byte], mode: Int)(block: (Cipher,String) => String): String = {
+    val raw = MessageDigest.getInstance("MD5").digest(key.getBytes("UTF-8"))
     val spec = new SecretKeySpec(raw, "AES")
-    val cipher = Cipher.getInstance("AES")
-    cipher.init(mode, spec)
-    block(cipher)
+    val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+    cipher.init(mode, spec, new IvParameterSpec(iv))
+    block(cipher,Codecs.toHexString(iv))
   }
 }

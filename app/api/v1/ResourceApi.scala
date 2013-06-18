@@ -1,9 +1,9 @@
 package api.v1
 
 import play.api.mvc._
-import controllers.auth.BaseApi
+import controllers.auth.{Permission, ApiRequest, BaseApi}
 import models._
-import item.Item
+import item.{Content, Item}
 import item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
 import models.itemSession.{DefaultItemSession, ItemSession}
 import org.bson.types.ObjectId
@@ -52,7 +52,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
    */
   def HasItem[A](
                   itemId: String,
-                  additionalChecks: Seq[Item => Option[Result]],
+                  additionalChecks: Seq[(ApiRequest[A],Item) => Option[Result]],
                   p: BodyParser[A])(
                   action: ItemRequest[A] => Result
                   ) = ApiAction(p) { request =>
@@ -60,7 +60,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
       case Some(validId) => {
         Item.findOneById(validId) match {
           case Some(item) => {
-            val errors: Seq[Result] = additionalChecks.flatMap(_(item))
+            val errors: Seq[Result] = additionalChecks.flatMap(_(request,item))
             if (errors.length == 0) {
               action(ItemRequest(item, request))
             }
@@ -80,17 +80,10 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
    * @param itemId
    * @return an Option[ObjectId] or None if the id is invalid
    */
-  private def objectId(itemId: String): Option[ObjectId] = {
-    try {
-      Some(new ObjectId(itemId))
-    }
-    catch {
-      case e: Exception => None
-    }
-  }
+  private def objectId(itemId: String): Option[ObjectId] = if(ObjectId.isValid(itemId)) Some(new ObjectId(itemId)) else None
 
   def HasItem(itemId: String,
-              additionalChecks: Seq[Item => Option[Result]] = Seq(),
+              additionalChecks: Seq[(ApiRequest[AnyContent],Item) => Option[Result]] = Seq(),
               action: ItemRequest[AnyContent] => Result): Action[AnyContent] = HasItem(itemId, additionalChecks, parse.anyContent)(action)
 
   private def removeFileFromResource(item: Item, resource: Resource, filename: String): Result = {
@@ -107,18 +100,21 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
       case _ => NotFound(filename)
     }
   }
-  def editCheck(force:Boolean = false) = new Function1[Item,Option[Result]] {
-    def apply(item:Item):Option[Result] = {
-      if(item.sessionCount > 0 && item.published && !force){
-        Some(Forbidden(toJson(JsObject(Seq("message" ->
-          JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
-          "flags" -> JsArray(Seq(JsString("alert_increment")))
-        )))))
-      } else {
-        None
-      }
+  def editCheck(force:Boolean = false) = new Function2[ApiRequest[_],Item,Option[Result]] {
+    def apply(request:ApiRequest[_], item:Item):Option[Result] = {
+      if(Content.isAuthorized(request.ctx.organization,item.id,Permission.Write)){
+        if(item.sessionCount > 0 && item.published && !force){
+          Some(Forbidden(toJson(JsObject(Seq("message" ->
+            JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
+            "flags" -> JsArray(Seq(JsString("alert_increment")))
+          )))))
+        } else {
+          None
+        }
+      } else Some(Unauthorized(toJson(ApiError.UnauthorizedOrganization)))
     }
   }
+
   def deleteSupportingMaterialFile(itemId: String, resourceName: String, filename: String) = HasItem(
     itemId,
     Seq(editCheck()),
@@ -308,7 +304,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
   def uploadFileToData(itemId: String, filename: String) = {
     HasItem(
       itemId,
-      Seq(editCheck(),isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_)),
+      Seq(editCheck(),isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_,_)),
       s3service.s3upload(AMAZON_ASSETS_BUCKET, key(itemId, DATA_PATH, filename)))(
     {
       request =>
@@ -345,8 +341,8 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
   def uploadFile(itemId: String, materialName: String, filename: String) =
     HasItem(itemId,
       Seq( editCheck(),
-        canFindResource(materialName)(_),
-        isFilenameTaken(filename, materialName)(_)
+        canFindResource(materialName)(_,_),
+        isFilenameTaken(filename, materialName)(_,_)
       ),
       s3service.s3upload(AMAZON_ASSETS_BUCKET, storageKey(itemId, materialName, filename)))(
     {
@@ -414,7 +410,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
   })
 
   def deleteSupportingMaterial(itemId: String, resourceName: String) = HasItem(itemId,
-    Seq(editCheck(),canFindResource(resourceName)(_)),
+    Seq(editCheck(),canFindResource(resourceName)(_,_)),
     Action {
       request =>
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
@@ -453,7 +449,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
   /**
    * check that the item contains a supportingMaterial resource with the supplied name.
    */
-  private def canFindResource(resourceName: String)(item: Item): Option[Result] = {
+  private def canFindResource(resourceName: String)(request:ApiRequest[_], item: Item): Option[Result] = {
     if (item.supportingMaterials.exists(_.name == resourceName)) {
       None
     }
@@ -477,7 +473,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
     }
   }
 
-  private def isFilenameTaken(filename: String, resourceName: String)(item: Item): Option[Result] = {
+  private def isFilenameTaken(filename: String, resourceName: String)(request:ApiRequest[_], item: Item): Option[Result] = {
 
     getResource(item, resourceName) match {
       case Some(r) => {

@@ -8,7 +8,7 @@
 <head>
     <title>@params.itemId</title>
     @common.views.html.partials.ieEightSupport()
-    @partials.scripts(params.xml, new player.views.qti.QtiAssetsLoaderImpl(params.xml))
+    @partials.scripts(params.xml, new player.views.qti.QtiAssetsLoaderImpl(params.qtiKeys, params.mode))
 
     <script type="text/javascript">
         angular.module('qti.services').factory('Config', [function(){

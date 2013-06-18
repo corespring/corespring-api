@@ -7,6 +7,54 @@
     <button ng-click="deleteConfirmed()" class="btn btn-danger">Yes</button>
     <button class="btn btn-info" ng-click="deleteCancelled()">No</button>
 </div>
+<div ui-modal ng-model="collectionsWindow" style="padding: 20px" ng-controller="CreateCollection">
+    <div class="modal-header create-collections">
+        <span class="close-window-button" style="display: inline-block;" ng-click="closeCollectionWindow()"></span>
+        <div class="header"><h4>{{orgName}} Collections</h4></div>
+    </div>
+    <div ng-class="alertClass" ng-show="alertMessage.length > 0">
+        <button type="button" class="close" ng-click="newAlert('alert','')">&times;</button>
+        <p>{{alertMessage}}</p>
+    </div>
+    <table class="table table-striped">
+        <thead>
+            <th>Collection</th>
+            <th># of items</th>
+            <th></th>
+        </thead>
+        <tbody>
+            <tr ng-repeat="collection in collections">
+                <td><div contenteditable
+                         collection-id="{{collection.id}}"
+                         collection-name="collection.name"
+                         new-alert="newAlert"
+                         create-sorted-collection="createSortedCollection"></div></td>
+                <td>{{collection.itemCount}}</td>
+                <td><span ng-show="collection.itemCount == 0"><a ng-click="deleteCollection(collection.id)">delete</a></span></td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="text" id="newcollection" placeholder="type collection name..." ng-model="newcolname">
+                    <a style="padding-left: 15px;" ng-click="createCollection(newcolname)">add</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div ng-class="{'window-up': showPopup}">
+    <div class="window-overlay">
+        <div class="window" style="top: 50px; display: block;" onclick="var event = arguments[0] || window.event; event.stopPropagation();">
+            <a class="focus-dummy" href="#"></a>
+            <div class="window-wrapper clearfix" style="">
+                <div class="clearfix">
+                    <div id="preloader" class="preloader" style="height: 600px">
+                    </div>
+                    <span profile-player="" id='player' style="display: block; width: 100%; min-height: 400px" item-id="{{previewingId}}" on-item-load="onItemLoad()" style='display: none'/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
         <div class="navbar-filter navbar-filter-top">
 
@@ -16,13 +64,26 @@
             <td>
                 <span multi-select
                   multi-get-title="getCollectionTitle"
-                  multi-options="collections"
+                  multi-options="sortedCollections"
                   multi-change="search"
-                  multi-uid="name"
+                  multi-uid="id"
                   multi-model="searchParams.collection">
                   <div class="summary">
                     <div class="multi-title-text collection"> COLLECTION <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
                     <div class="selected-multi-options collection" ng-bind-html-unsafe="getCollectionSelectedTitle(selected)"></div>
+                  </div>
+
+                  <!-- note: we are overriding the default repeater here  - see multi-select.coffee in corespring-ng-components for more info -->
+                  <div class="repeater" style="min-width: 200px;">
+                      <div ng-repeat="o in options">
+                          <b>{{o.name}}</b> <br/>
+                          <span ng-show="o.collections.length == 0">You don't have any collections yet</span>
+                          <div ng-repeat="c in o.collections">
+                              <input type="checkbox" ng-model="selectedArr[c.${uidKey}]" ng-click="toggleItem(c)"/>
+                              {{c.name}}
+                          </div>
+                      </div>
+
                   </div>
                 </span>
             </td>
@@ -68,8 +129,8 @@
                   </div>
                 </span>
             </td>
-            <td class="nav-vr"><div></div></td>
-            <td>
+            <td class="nav-vr" ng-show="isRoot"><div></div></td>
+            <td ng-show="isRoot">
 
                 <span multi-select
                   multi-get-title="getLabel"
@@ -82,14 +143,15 @@
                   </div>
                 </span>
             </td>
-            <td class="nav-vr"><div></div></td>
-            <td>
+            <td class="nav-vr" ng-show="isRoot"><div></div></td>
+            <td ng-show="isRoot">
 
                 <span multi-select
                       multi-get-title="getLabel"
                       multi-options="publishStatuses"
                       multi-change="search"
-                      multi-model="searchParams.publishStatuses">
+                      multi-model="searchParams.publishStatuses"
+                      ng-show="isRoot">
                   <div class="summary">
                       <div class="multi-title-text collection"> STATUS <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
                       <div class="selected-multi-options collection" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
@@ -124,18 +186,18 @@
             </thead>
             <tbody>
             <tr ng-repeat="item in items" style="cursor: pointer;">
-                <td ng-click="openEditView()" ng-bind-html-unsafe="item.title"></td>
-                <td ng-click="openEditView()" width="100">{{getPrimarySubjectLabel(item.primarySubject)}}</td>
-                <td ng-click="openEditView()">
+                <td class="new-window" ng-click="itemClick()" ng-bind-html-unsafe="item.title"></td>
+                <td class="new-window" ng-click="itemClick()" width="100">{{getPrimarySubjectLabel(item.primarySubject)}}</td>
+                <td class="new-window" ng-click="itemClick()">
                     {{showGradeLevel()}}
                 </td>
-                <td ng-click="openEditView()">{{showItemType(item)}}</td>
-                <td ng-click="openEditView()">
+                <td class="new-window" ng-click="itemClick()">{{showItemType(item)}}</td>
+                <td class="new-window" ng-click="itemClick()">
                     <a ui-jq="tooltip"
                        ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
                 </td>
-                <td ng-click="openEditView()">{{getAuthorAbbreviation(item.contributor)}}</td>
-                <td ng-click="openEditView()">{{publishStatus(item.published)}}</td>
+                <td class="new-window" ng-click="itemClick()">{{getAuthorAbbreviation(item.contributor)}}</td>
+                <td class="new-window" ng-click="itemClick()">{{publishStatus(item.published)}}</td>
             </tr>
             </tbody>
         </table>
