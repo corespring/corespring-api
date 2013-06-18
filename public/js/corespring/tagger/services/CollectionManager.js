@@ -98,6 +98,7 @@ angular.module('tagger.services')
     var initialize = function (onComplete) {
       Collection.get({}, function (data) {
           rawData.collection = data;
+          out.rawCollections = data;
           out.sortedCollections = createSortedCollection(data, _.clone(UserInfo.org));
           if (onComplete) onComplete();
         },
@@ -145,6 +146,7 @@ angular.module('tagger.services')
       init: function (onComplete) {
         initialize(onComplete);
       },
+      rawCollections: null,
       sortedCollections: null
     };
     return out;
