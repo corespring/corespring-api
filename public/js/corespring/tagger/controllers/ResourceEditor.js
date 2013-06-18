@@ -278,11 +278,15 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     return $scope.urls.uploadFile.replace("{filename}", file.name);
   };
 
-  $scope.onFileUploadCompleted = function (result) {
-    console.log("onFileUploadCompleted");
-    var file = JSON.parse(result);
-    $scope.addFile(file);
-    $scope.showFile(file);
+  $scope.onFileUploadCompleted = function (result,status) {
+    if(status == 200){
+      var file = JSON.parse(result);
+      $scope.addFile(file);
+      $scope.showFile(file);
+    }else{
+      var jsresult = JSON.parse(result);
+      if(jsresult)
+    }
   };
 
   $scope.addFile = function (file) {
