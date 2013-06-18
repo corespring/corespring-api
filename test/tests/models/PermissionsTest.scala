@@ -20,7 +20,7 @@ class PermissionsTest extends BaseTest{
 
   "cannot read an organization with no permission" in {
     Organization.insert(new Organization("test",Seq(),Seq()),None) match {
-      case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.None) match {
+      case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",None,"abc123"),org.id,Permission.None) match {
         case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
           case Right(token) => {
             val fakeRequest = FakeRequest(GET, "/api/v1/organizations/"+org.id.toString+"?access_token="+token.tokenId)

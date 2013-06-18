@@ -136,7 +136,7 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
       User.getUser(username, provider).map { user =>
         Logger.debug("Using user in Play's session = " + username)
         //TODO: check orgId is right
-        val ctx = new AuthorizationContext(user.orgs.head.orgId, Option(username),true)
+        val ctx = new AuthorizationContext(user.org.head.orgId, Option(username),true)
         f( ApiRequest(ctx, request, ""))
       }.getOrElse(
         Forbidden( Json.toJson(MissingCredentials) ).as(JSON)

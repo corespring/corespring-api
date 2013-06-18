@@ -63,7 +63,7 @@ object Developer extends Controller with BaseApi{
   def getOrganization = SecuredAction{ request =>
     User.getUser(request.user.id) match {
       case Some(user) => {
-        val orgs = User.getOrganizations(user,Permission.Read)
+        val orgs = User.getOrg(user,Permission.Read)
         //get the first organization besides the public corespring organization. for now, we assume that the person is only registered to one private organization
         //TODO: this doesn't look right - need to discuss a fix for it.
         orgs.find(o => o.id != AppConfig.demoOrgId) match {
@@ -119,7 +119,7 @@ object Developer extends Controller with BaseApi{
   def getOrganizationCredentials(orgId: ObjectId) = SecuredAction{ request =>
     User.getUser(request.user.id) match {
       case Some(user) => {
-        if(user.orgs.exists(uo => uo.orgId == orgId)){
+        if(user.org.exists(uo => uo.orgId == orgId)){
           Organization.findOneById(orgId) match {
             case Some(org) => {
               OAuthProvider.register(org.id) match {

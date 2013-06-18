@@ -1,45 +1,35 @@
 package models
 
-import org.bson.types.ObjectId
-import play.api.Play.current
-import com.novus.salat.dao._
-import se.radley.plugin.salat._
-import mongoContext._
-import play.api.libs.json._
-import play.api.libs.json.JsObject
 import com.mongodb.casbah.Imports._
-import api.ApiError
-import controllers.auth.Permission
-import controllers._
-import play.api.Play
-import collection.mutable
-import search.Searchable
-import securesocial.core.UserId
 import com.novus.salat._
+import com.novus.salat.dao._
 import controllers.InternalError
+import controllers.auth.Permission
 import dao.SalatDAOUpdateError
 import dao.SalatMongoCursor
 import dao.SalatRemoveError
+import mongoContext._
+import play.api.Play
+import play.api.Play.current
+import play.api.libs.json._
 import scala.Left
-import play.api.libs.json.JsString
-import scala.Some
 import scala.Right
+import scala.Some
+import se.radley.plugin.salat._
+import search.Searchable
 import securesocial.core.UserId
-import play.api.libs.json.JsObject
 
 
-/**
- * A User
- */
 case class User(var userName: String = "",
                  var fullName: String = "",
                  var email: String = "",
-                 var orgs: Seq[UserOrg] = Seq(),
+                 var org: Option[UserOrg] = None,
                  var password: String = "",
                  var provider : String = "userpass",
-                 var hasRegisteredOrg:Boolean = false,
                  var id: ObjectId = new ObjectId()
-               )
+               ){
+  def hasRegisteredOrg : Boolean = org.isDefined
+}
 
 object User extends ModelCompanion[User,ObjectId] with Searchable{
   val userName = "userName"
@@ -63,7 +53,7 @@ object User extends ModelCompanion[User,ObjectId] with Searchable{
     if (!checkOrgId || Organization.findOneById(orgId).isDefined){
       if (!checkUsername || getUser(user.userName).isEmpty){
         if(Play.isProd) user.id = new ObjectId
-        user.orgs =  List() :+ UserOrg(orgId,p.value)
+        user.org =  Some(UserOrg(orgId,p.value))
         User.insert(user) match {
           case Some(id) => {
             Right(user)
@@ -108,7 +98,7 @@ object User extends ModelCompanion[User,ObjectId] with Searchable{
     val userOrg = UserOrg(orgId,p.value)
     try{
       User.update(MongoDBObject("_id" -> userId),
-        MongoDBObject("$set" -> MongoDBObject(hasRegisteredOrg -> true), "$addToSet" -> MongoDBObject("orgs" -> grater[UserOrg].asDBObject(userOrg))),
+        MongoDBObject("$set" ->  MongoDBObject("org" -> grater[UserOrg].asDBObject(userOrg))),
         false,false,defaultWriteConcern);
       Right(())
     }catch{
@@ -116,10 +106,11 @@ object User extends ModelCompanion[User,ObjectId] with Searchable{
     }
   }
 
-  def getOrganizations(user: User, p: Permission):Seq[Organization] = {
-    val orgs:Seq[ObjectId] = user.orgs.filter(uo => (uo.pval&p.value) == p.value).map(uo => uo.orgId)
-    Utils.toSeq(Organization.find(MongoDBObject("_id" -> MongoDBObject("$in" -> orgs))))
+  def getOrg(user: User, p: Permission):Option[Organization] = {
+    val orgs:Option[ObjectId] = user.org.filter(uo => (uo.pval&p.value) == p.value).map(uo => uo.orgId)
+    orgs.flatMap(Organization.findOneById)
   }
+
   /**
    * return the user from the database based on the given username, or None if the user wasn't found
    * @param username
@@ -142,7 +133,7 @@ object User extends ModelCompanion[User,ObjectId] with Searchable{
   def removeOrganization(userId:ObjectId, orgId:ObjectId):Either[InternalError,Unit] = {
     User.findOneById(userId) match {
       case Some(user) => try{
-        user.orgs = user.orgs.filter(_.orgId != orgId)
+        user.org = user.org.filter(_.orgId != orgId)
         User.update(MongoDBObject("_id"->userId),user,false,false,User.defaultWriteConcern)
         Right(())
       }catch {
@@ -164,7 +155,7 @@ object User extends ModelCompanion[User,ObjectId] with Searchable{
     }
   }
   private def getPermissions(user:User, orgId:ObjectId):Either[InternalError,Permission] = {
-    user.orgs.find(_.orgId == orgId) match {
+    user.org.find(_.orgId == orgId) match {
       case Some(uo) => Permission.fromLong(uo.pval) match {
         case Some(p) => Right(p)
         case None => Left(InternalError("uknown permission retrieved"))
