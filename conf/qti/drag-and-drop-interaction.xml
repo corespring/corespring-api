@@ -1,9 +1,9 @@
 <assessmentItem>
     <responseDeclaration identifier="alphabet1" cardinality="ordered" baseType="identifier">
         <correctResponse>
-            <value>a</value>
-            <value>b</value>
-            <value>c</value>
+            <value>target1:ten</value>
+            <value>target2:divide</value>
+            <value>target3:2</value>
         </correctResponse>
     </responseDeclaration>
 
@@ -28,9 +28,9 @@
                 </tr>
             </table>
 
-            <dragTarget cardinality="single" class="blueTile inline" identifier="target1" ></dragTarget>
-            <dragTarget cardinality="single" class="blueTile inline" identifier="target2" ></dragTarget>
-            <dragTarget cardinality="single" class="blueTile inline" identifier="target3" ></dragTarget>
+            <dragTarget cardinality="single" class="blueTile inline" identifier="target1"></dragTarget>
+            <dragTarget cardinality="single" class="blueTile inline" identifier="target2"></dragTarget>
+            <dragTarget cardinality="single" class="blueTile inline" identifier="target3"></dragTarget>
             equals 5
 
 

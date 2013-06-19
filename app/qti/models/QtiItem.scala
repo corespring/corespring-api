@@ -268,6 +268,7 @@ object CorrectResponse {
     case "single" => CorrectResponseSingle(node)
     case "multiple" => CorrectResponseMultiple(node)
     case "ordered" => CorrectResponseOrdered(node)
+    case "targeted" => CorrectResponseTargeted(node)
     case _ => throw new RuntimeException("unknown cardinality: " + cardinality + ". cannot generate CorrectResponse")
   }
 }
@@ -337,6 +338,25 @@ case class CorrectResponseOrdered(value: Seq[String]) extends CorrectResponse {
 object CorrectResponseOrdered {
   def apply(node: Node): CorrectResponseOrdered = CorrectResponseOrdered(
     (node \ "value").map(_.text)
+  )
+}
+
+case class CorrectResponseTargeted(value: Map[String, String]) extends CorrectResponse {
+  def isCorrect(responseValue: String) = {
+    val responseList = responseValue.split(",").toList
+    value == responseList
+  }
+
+  def isValueCorrect(v: String, index: Option[Int]) = {
+    val key = v.split(":")(0)
+    val target = v.split(":")(1)
+    value(key) == target
+  }
+}
+
+object CorrectResponseTargeted {
+  def apply(node: Node): CorrectResponseTargeted = CorrectResponseTargeted(
+    (node \ "value").map(e => e.text.split(":")(0) -> e.text.split(":")(1)).toMap
   )
 }
 

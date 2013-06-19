@@ -34,6 +34,7 @@ class QtiItemTest extends Specification {
     val single = QtiItem(xml("id", "single", <value>1</value>))
     val multiple = QtiItem(xml("id", "multiple", <value>1</value> <value>2</value>))
     val ordered = QtiItem(xml("id", "ordered", <value>1</value> <value>2</value>))
+    val targeted = QtiItem(xml("id", "targeted", <value>id1:apple</value> <value>id2:pear</value>))
 
     def assertParse(item: QtiItem, t: Class[_]): Boolean = {
       val response = item.responseDeclarations(0).correctResponse.get
@@ -59,6 +60,10 @@ class QtiItemTest extends Specification {
 
     "parse a correct response ordered" in {
       assertParse(ordered, CorrectResponseOrdered.getClass)
+    }
+
+    "parse a correct response targeted" in {
+      assertParse(targeted, CorrectResponseTargeted.getClass)
     }
 
     "parse an inline choice interaction even though its nested" in {
@@ -281,6 +286,18 @@ class CorrectResponseTest extends Specification {
       response.isValueCorrect("B", Some(1)) === true
       response.isValueCorrect("D", Some(1)) === false
     }
+
+    def xml(identifier: String, cardinality: String, values: NodeSeq, interaction: NodeSeq = <none/>): Elem = MockXml.createXml(identifier, cardinality, values, interaction)
+
+    "targeted" in {
+      val item = QtiItem(xml("id", "targeted", <value>id1:apple</value> <value>id2:pear</value>))
+      val response = item.responseDeclarations(0).correctResponse.get
+      response.isValueCorrect("id1:apple", None) === true
+      response.isValueCorrect("id1:pear", None) === false
+      response.isValueCorrect("id2:apple", None) === false
+      response.isValueCorrect("id2:pear", None) === true
+    }
+
 
   }
 }
