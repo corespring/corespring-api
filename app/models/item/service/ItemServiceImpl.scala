@@ -46,21 +46,13 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
 
     protected implicit def context: Context = models.mongoContext.context
 
-    def cloneEntity(item:Item) = item.cloneItem
-    override protected def beforeClone(item:Item, itemClone:Item):Validation[SalatVersioningDaoException,Unit] = {
-      def versionS3File(sourceFile: StoredFile, newId: String): String = {
-        val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/", "")
-        val oldStorageKeyVersionRemoved = oldStorageKeyIdRemoved.replaceAll("^\\d+?/","")
-        val newStorageKey = newId +"/"+ oldStorageKeyVersionRemoved
-        s3service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, newStorageKey)
-        newStorageKey
-      }
+    private def iterateStoredFiles(item:Item, versionS3File:(StoredFile) => String):Validation[SalatVersioningDaoException,Unit] = {
       //for each stored file in item, copy the file to the version path
       try {
         item.data.get.files.foreach {
           file => file match {
             case sf: StoredFile =>
-              val newKey = versionS3File(sf, itemClone.id.toString)
+              val newKey = versionS3File(sf)
               sf.storageKey = newKey
             case _ =>
           }
@@ -70,7 +62,7 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
             sm.files.filter(_.isInstanceOf[StoredFile]).foreach {
               file =>
                 val sf = file.asInstanceOf[StoredFile]
-                val newKey = versionS3File(sf, itemClone.id.toString)
+                val newKey = versionS3File(sf)
                 sf.storageKey = newKey
             }
         }
@@ -82,40 +74,26 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
           Failure(SalatVersioningDaoException("Error cloning some of the S3 files: " + r.getMessage))
       }
     }
+    def cloneEntity(item:Item) = item.cloneItem
+    override protected def beforeClone(item:Item, itemClone:Item):Validation[SalatVersioningDaoException,Unit] = {
+      def versionS3File(sourceFile: StoredFile): String = {
+        val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/", "")
+        val oldStorageKeyVersionRemoved = oldStorageKeyIdRemoved.replaceAll("^\\d+?/","")
+        val newStorageKey = itemClone.id.toString +"/"+ oldStorageKeyVersionRemoved
+        s3service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, newStorageKey)
+        newStorageKey
+      }
+      iterateStoredFiles(item,versionS3File)
+    }
     override protected def beforeVersionedInsert(item:Item, version:Int):Validation[SalatVersioningDaoException,Unit] = {
-      def versionS3File(sourceFile: StoredFile, version: Int): String = {
+      def versionS3File(sourceFile: StoredFile): String = {
         val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/", "")
         val oldStorageKeyVersionRemoved = oldStorageKeyIdRemoved.replaceAll("^\\d+?/","")
         val newStorageKey = item.id.toString +"/"+ version +"/"+ oldStorageKeyVersionRemoved
         s3service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, newStorageKey)
         newStorageKey
       }
-      //for each stored file in item, copy the file to the version path
-      try {
-        item.data.get.files.foreach {
-          file => file match {
-            case sf: StoredFile =>
-              val newKey = versionS3File(sf, version)
-              sf.storageKey = newKey
-            case _ =>
-          }
-        }
-        item.supportingMaterials.foreach {
-          sm =>
-            sm.files.filter(_.isInstanceOf[StoredFile]).foreach {
-              file =>
-                val sf = file.asInstanceOf[StoredFile]
-                val newKey = versionS3File(sf, version)
-                sf.storageKey = newKey
-            }
-        }
-        Success(())
-      } catch {
-        case r: RuntimeException =>
-          Logger.error("Error cloning some of the S3 files: " + r.getMessage)
-          Logger.error(r.getStackTrace.mkString("\n"))
-          Failure(SalatVersioningDaoException("Error cloning some of the S3 files: " + r.getMessage))
-      }
+      iterateStoredFiles(item,versionS3File)
     }
   }
 
