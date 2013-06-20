@@ -29,7 +29,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
     compile: function(elem,attrs) {
       var originalHtml = elem.html();
 
-      elem.html("<div><button ng-click='resetClick()'>Reset</button><br/>"+originalHtml+"</div>");
+      elem.html("<div><button ng-click='resetClick()' ng-show='canDrag'>Reset</button><br/>"+originalHtml+"</div>");
       return function ($scope, element, attrs, AssessmentItemCtrl) {
 
         $scope.dropCallback = function(event, ui) {

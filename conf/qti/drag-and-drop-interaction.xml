@@ -28,7 +28,7 @@
                                 <mrow>
                                     <mfrac>
                                         <mrow>
-                                            <mn>1</mn>
+                                            <mn>20</mn>
                                         </mrow>
                                         <mrow>
                                             <mn>2</mn>
@@ -56,12 +56,15 @@
                         <dragTarget cardinality="single" class="blueTile inline" identifier="target3"></dragTarget>
                     </td>
                     <td>
-                        equals 5
+                        equals 5x
                     </td>
                 </tr>
 
 
             </table>
+
+            {{listAnswers}}<br/>
+            {{listTargets}}
 
 
         </dragAndDropInteraction>
