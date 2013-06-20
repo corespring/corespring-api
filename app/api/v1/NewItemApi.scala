@@ -39,17 +39,15 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
         json <- request.body.asJson.toSuccess("No json in request body")
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
         validatedItem <- validateItem(id, item).toSuccess("Invalid data")
-        savedResult <- saveItem(validatedItem, validatedItem.published).toSuccess("Error saving item")
+        savedResult <- saveItem(validatedItem._1, validatedItem._2).toSuccess("Error saving item")
       } yield savedResult
   }
 
   def cloneItem(id: ObjectId) = ValidatedItemApiAction(id, Permission.Write) {
     request =>
       for {
-        item <- itemService.findOneById(id).toSuccess("Can't find item")
-        cloned <- itemService.cloneItem(item).toSuccess("Error cloning")
-        c <- if (cloneStoredFiles(item, cloned)) scalaz.Success(cloned) else Failure("Error cloning files")
-      } yield c
+        cloned <- itemService.cloneItem(id).toSuccess("Error cloning")
+      } yield cloned
   }
 
   /** Wrap ItemApiAction so that we handle a ApiRequest => Validation and we generate the json.
@@ -81,13 +79,21 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
 
 
   //TODO: flesh out
-  private def validateItem(id: ObjectId, item: Item): Option[Item] = {
-
-    Some(
+  /**
+   * return validated item and whether or not the item is published
+   * @param id
+   * @param item
+   * @return
+   */
+  private def validateItem(id: ObjectId, item: Item): Option[(Item,Boolean)] = {
+    val dbitem = itemService.findOneById(id);
+    val isPublished = dbitem.map(_.published).getOrElse(false)
+    Some((
       item.copy(
         id = id,
-        collectionId = if (item.collectionId.isEmpty) itemService.findOneById(id).map(_.collectionId).getOrElse("") else item.collectionId)
-    )
+        collectionId = if (item.collectionId.isEmpty) itemService.findOneById(id).map(_.collectionId).getOrElse("") else item.collectionId),
+        isPublished
+    ))
   }
   private def saveItem(item: Item, createNewVersion: Boolean): Option[Item] = {
     itemService.save(item, createNewVersion)

@@ -285,22 +285,22 @@ class ItemApi(s3service: S3Service, service : ItemService) extends BaseApi with 
    * Note: Have to call this 'cloneItem' instead of 'clone' as clone is a default
    * function.
    */
-  def cloneItem(id: ObjectId) = ApiAction {
-    request =>
-      findAndCheckAuthorization(request.ctx.organization, id, Permission.Write) match {
-        case Left(e) => BadRequest(toJson(e))
-        case Right(item) => {
-          service.cloneItem(item) match {
-            case Some(clonedItem) =>
-              cloneStoredFiles(item, clonedItem) match {
-                case true => Ok(toJson(clonedItem))
-                case false => BadRequest(toJson(ApiError.Item.Clone))
-              }
-            case _ => BadRequest(toJson(ApiError.Item.Clone))
-          }
-        }
-      }
-  }
+//  def cloneItem(id: ObjectId) = ApiAction {
+//    request =>
+//      findAndCheckAuthorization(request.ctx.organization, id, Permission.Write) match {
+//        case Left(e) => BadRequest(toJson(e))
+//        case Right(item) => {
+//          service.cloneItem(item) match {
+//            case Some(clonedItem) =>
+//              cloneStoredFiles(item, clonedItem) match {
+//                case true => Ok(toJson(clonedItem))
+//                case false => BadRequest(toJson(ApiError.Item.Clone))
+//              }
+//            case _ => BadRequest(toJson(ApiError.Item.Clone))
+//          }
+//        }
+//      }
+//  }
 
 
   private def findAndCheckAuthorization(orgId: ObjectId, id: ObjectId, p: Permission): Either[ApiError, Item] = service.findOneById(id) match {

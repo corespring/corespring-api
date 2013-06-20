@@ -13,6 +13,7 @@ import scalaz.{Success, Failure}
 import web.controllers.ObjectIdParser
 import web.controllers.utils.ConfigLoader
 import models.item.service.ItemServiceClient
+import common.log.PackageLogging
 
 
 object AssetResource{
@@ -26,13 +27,13 @@ object AssetResource{
   }
 }
 
-trait AssetResource extends AssetResourceBase {
+trait AssetResource extends AssetResourceBase{
   final def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]] = Some(renderBaseFile(f))
   def s3Service : S3Service = ConcreteS3Service
 }
 
 
-trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemServiceClient {
+trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemServiceClient with PackageLogging{
 
   import AssetResource.Errors
 

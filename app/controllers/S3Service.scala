@@ -92,7 +92,7 @@ object ConcreteS3Service extends S3Service with PackageLogging {
   override def s3download(bucket: String, itemId: String, keyName: String): Result = download(bucket, itemId + "/" + keyName)
 
   def download(bucket: String, fullKey: String, headers: Option[Headers] = None): Result = {
-
+    Logger.debug("downloading: "+fullKey)
     require(fullKey != null && !fullKey.isEmpty, "Invalid key")
     require(bucket != null && !bucket.isEmpty, "Invalid bucket")
 
