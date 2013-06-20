@@ -290,12 +290,13 @@ class CorrectResponseTest extends Specification {
     def xml(identifier: String, cardinality: String, values: NodeSeq, interaction: NodeSeq = <none/>): Elem = MockXml.createXml(identifier, cardinality, values, interaction)
 
     "targeted" in {
-      val item = QtiItem(xml("id", "targeted", <value>id1:apple</value> <value>id2:pear</value>))
+      val item = QtiItem(xml("id", "targeted", <value>apple:id1</value> <value>pear:id2</value>))
       val response = item.responseDeclarations(0).correctResponse.get
-      response.isValueCorrect("id1:apple", None) === true
-      response.isValueCorrect("id1:pear", None) === false
-      response.isValueCorrect("id2:apple", None) === false
-      response.isValueCorrect("id2:pear", None) === true
+      response.isValueCorrect("apple:id1", None) === true
+      response.isValueCorrect("pear:id1", None) === false
+      response.isValueCorrect("apple:id2", None) === false
+      response.isValueCorrect("pear:id2", None) === true
+      response.isCorrect("apple:id1,pear:id2") === true
     }
 
 

@@ -344,13 +344,13 @@ object CorrectResponseOrdered {
 case class CorrectResponseTargeted(value: Map[String, String]) extends CorrectResponse {
   def isCorrect(responseValue: String) = {
     val responseList = responseValue.split(",").toList
-    value == responseList
+    value.toList.map(it=>it._1+":"+it._2) == responseList
   }
 
   def isValueCorrect(v: String, index: Option[Int]) = {
-    val key = v.split(":")(0)
+    val answer = v.split(":")(0)
     val target = v.split(":")(1)
-    value(key) == target
+    value(answer) == target
   }
 }
 
