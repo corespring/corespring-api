@@ -129,8 +129,8 @@
                   </div>
                 </span>
             </td>
-            <td class="nav-vr" ng-show="isRoot"><div></div></td>
-            <td ng-show="isRoot">
+            <td class="nav-vr"><div></div></td>
+            <td>
 
                 <span multi-select
                   multi-get-title="getLabel"
@@ -143,15 +143,14 @@
                   </div>
                 </span>
             </td>
-            <td class="nav-vr" ng-show="isRoot"><div></div></td>
-            <td ng-show="isRoot">
+            <td class="nav-vr"><div></div></td>
+            <td>
 
                 <span multi-select
                       multi-get-title="getLabel"
                       multi-options="publishStatuses"
                       multi-change="search"
-                      multi-model="searchParams.publishStatuses"
-                      ng-show="isRoot">
+                      multi-model="searchParams.publishStatuses">
                   <div class="summary">
                       <div class="multi-title-text collection"> STATUS <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
                       <div class="selected-multi-options collection" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
