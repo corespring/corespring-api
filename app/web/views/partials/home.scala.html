@@ -7,15 +7,12 @@
     <button ng-click="deleteConfirmed()" class="btn btn-danger">Yes</button>
     <button class="btn btn-info" ng-click="deleteCancelled()">No</button>
 </div>
-<div ui-modal ng-model="collectionsWindow" style="padding: 20px" ng-controller="CreateCollection">
+<div ui-modal class="create-collection-pane" ng-model="collectionsWindow" style="padding: 20px" ng-controller="CreateCollection" ng-click="paneClicked()">
     <div class="modal-header create-collections">
         <span class="close-window-button" style="display: inline-block;" ng-click="closeCollectionWindow()"></span>
         <div class="header"><h4>{{orgName}} Collections</h4></div>
     </div>
-    <div ng-class="alertClass" ng-show="alertMessage.length > 0">
-        <button type="button" class="close" ng-click="newAlert('alert','')">&times;</button>
-        <p>{{alertMessage}}</p>
-    </div>
+    <div class="alert" ng-class="alertClass">{{alertMessage}}</div>
     <table class="table table-striped">
         <thead>
             <th>Collection</th>
@@ -24,11 +21,13 @@
         </thead>
         <tbody>
             <tr ng-repeat="collection in collections">
-                <td><div contenteditable
-                         collection-id="{{collection.id}}"
-                         collection-name="collection.name"
-                         new-alert="newAlert"
-                         create-sorted-collection="createSortedCollection"></div></td>
+                <td>
+                    <div content-editable
+                         content-id="{{collection.id}}"
+                         ng-model="collection.name"
+                         validate-change="onRenameCollection(text, id, callback)">
+                    </div>
+                </td>
                 <td>{{collection.itemCount}}</td>
                 <td><span ng-show="collection.itemCount == 0"><a ng-click="deleteCollection(collection.id)">delete</a></span></td>
             </tr>

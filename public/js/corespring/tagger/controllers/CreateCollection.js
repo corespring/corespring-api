@@ -2,12 +2,17 @@ function CreateCollection($scope, $rootScope, CollectionManager, UserInfo) {
 
   $scope.orgName = UserInfo.org.name;
 
-  $scope.newAlert = function (cssclass, message) {
-    $scope.alertClass = cssclass;
+  $scope.hideAlertMessage = function () {
+    $scope.alertMessage = null;
+    $scope.alertClass = null;
+  };
+
+  $scope.setAlertClassAndMessage = function (cssclass, message) {
+    $scope.alertClass = 'alert-' + cssclass;
     $scope.alertMessage = message;
   };
 
-  $scope.newAlert("alert", "");
+  //$scope.setAlertClassAndMessage("alert", "");
   //this looks kind of weird. this is all for opening and closing the collections modal correctly between MainNavController and this controller
 
   $rootScope.$watch('collectionsWindowRoot', function () {
@@ -27,12 +32,11 @@ function CreateCollection($scope, $rootScope, CollectionManager, UserInfo) {
 
       var onSuccess = function (data) {
         $('#newcollection').val('');
-        $scope.newAlert('alert alert-success', "Successfully created collection");
+        $scope.setAlertClassAndMessage('success', "Successfully created collection");
       };
 
       var onError = function (err) {
-        $scope.newAlert('alert alert-error', "Error occurred when creating a collection");
-        console.log("create collection: error: " + err);
+        $scope.setAlertClassAndMessage('error', "Error occurred when creating a collection");
       };
 
       CollectionManager.addCollection(collectionName, onSuccess, onError);
@@ -40,19 +44,43 @@ function CreateCollection($scope, $rootScope, CollectionManager, UserInfo) {
     }
   };
 
+  $scope.paneClicked = function () {
+    $scope.hideAlertMessage();
+  };
+
   $scope.deleteCollection = function (id) {
 
     var onSuccess = function () {
-      $scope.newAlert('alert alert-success', "Successfully deleted collection");
+      $scope.setAlertClassAndMessage('success', "Successfully deleted collection");
     };
 
     var onError = function (err) {
-      $scope.newAlert('alert alert-error', "Error deleting collection");
+      $scope.setAlertClassAndMessage('error', "Error deleting collection");
       console.log("error deleting collection: " + err);
     };
 
     CollectionManager.removeCollection(id, onSuccess, onError);
   };
+
+  /** Callback hook for the content-editable directive */
+  $scope.onRenameCollection = function (change, collectionId, callback) {
+
+    var onError = function () {
+      $scope.setAlertClassAndMessage("error", "Error editing collection name");
+      callback(false);
+    };
+
+    var onSuccess = function () {
+      $scope.setAlertClassAndMessage("success", "Renamed collection to " + change);
+      callback(true);
+    };
+
+    var onNoChange = function () {
+      callback(true);
+    };
+
+    CollectionManager.renameCollection(collectionId, change, onSuccess, onError, onNoChange);
+  }
 
   $scope.$watch(
     function () {
