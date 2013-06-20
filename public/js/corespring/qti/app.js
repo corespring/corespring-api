@@ -240,6 +240,14 @@ angular.module('qti.directives').directive('assessmentitem', function() {
                 }
                 return $scope.itemSession.settings.submitIncorrectMessage;
             };
+
+            $scope.initMathML = function(delay) {
+              $timeout(function() {
+                if (typeof(MathJax) != "undefined") {
+                  MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                }
+              }, delay ? delay : 0);
+            }
         }
     };
 });
