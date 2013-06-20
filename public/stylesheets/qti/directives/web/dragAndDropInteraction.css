@@ -1,3 +1,12 @@
+.answerContainer {
+    padding: 10px;
+}
+
+.contentElement {
+    width: auto;
+    height: auto;
+}
+
 .correct {
     background-color: green;
 }
