@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+
 require 'json'
 require 'time'
 require 'mongo-db-utils/tools/commands'
@@ -31,10 +32,10 @@ target_replica_set_name = config["ENV_MONGO_REPLICA_SET_NAME"]
 # otherwise create a simple db
 def get_db(uri, replica_set_name)
   if(uri.include?(","))
-    raise "we think this is a replica set uri: #{uri} - if it is we also need the replica set name." if replica_set_name.nil?
+    raise "[URI Problem] -- we think this is a replica set uri: #{uri} - if it is we also need the replica set name." if replica_set_name.nil?
     ReplicaSetDb.new(uri, replica_set_name)
   else
-    Db.new(live_db_uri)
+    Db.new(uri)
   end
 end
 
@@ -46,9 +47,8 @@ log "running dump of #{live_db_uri}"
 
 live_db = get_db( live_db_uri, ENV["CORESPRING_LIVE_DB_REPLICA_SET_NAME"] )
 
-# 1. dump the live db
-Dump.run(
-  live_db.to_host_s,
+# Just print the command for now
+puts Dump.cmd(live_db.to_host_s,
   live_db.name,
   "tmp_folder",
   live_db.username,
@@ -78,7 +78,8 @@ end
 
 log "call MongoTools.restore..."
 begin
-  Restore.run(
+  puts Restore.cmd(
+  #Restore.run(
     target_db.to_host_s,
     target_db.name,
     "tmp_folder/#{live_db.name}",
