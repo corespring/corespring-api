@@ -1,19 +1,13 @@
 import _root_.controllers.ConcreteS3Service
-import _root_.models.itemSession.{ArrayItemResponse, StringItemResponse, ItemSession}
-import _root_.models.quiz.basic.{Participant, Answer, Quiz}
-import com.typesafe.config.ConfigFactory
-import org.joda.time.DateTime
-import play.api.mvc.Results._
-import util.Random
-import web.controllers.utils.ConfigLoader
-import common.seed.SeedDb._
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
+import com.typesafe.config.ConfigFactory
+import common.seed.SeedDb._
 import org.bson.types.ObjectId
 import play.api._
-import mvc._
-import mvc.SimpleResult
-import play.api.Play.current
-import play.api.Application
+import play.api.mvc.Results._
+import play.api.mvc._
+import scala.Some
+import web.controllers.utils.ConfigLoader
 
 
 /**
@@ -121,7 +115,6 @@ object Global extends GlobalSettings {
     } else {
       seedTestData()
     }
-
   }
 
   /** Add demo data models to the the db to allow end users to be able to

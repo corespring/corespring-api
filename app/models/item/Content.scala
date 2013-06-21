@@ -37,9 +37,6 @@ class ContentHelper(itemService:ItemService) extends PackageLogging {
 
   def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Boolean = {
 
-    val dbo = itemService.findFieldsById(contentId)
-    Logger.debug("found dbo: " + dbo)
-
     require(contentId.version.isDefined, "To Authorize access - the versioned id must be present")
 
     val elements = List("_id._id" -> contentId.id) ++ contentId.version.map("_id.version" -> _)
