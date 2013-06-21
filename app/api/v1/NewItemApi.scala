@@ -15,6 +15,7 @@ import play.api.mvc.{Action, Result, AnyContent}
 import scala.Some
 import scalaz.Scalaz._
 import scalaz._
+import models.item.resource.StoredFile
 
 
 trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
@@ -38,15 +39,17 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
       for {
         json <- request.body.asJson.toSuccess("No json in request body")
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
-        validatedItem <- validateItem(id, item).toSuccess("Invalid data")
-        savedResult <- saveItem(validatedItem._1, validatedItem._2).toSuccess("Error saving item")
+        dbitem <- itemService.findOneById(id).toSuccess("no item found for the given id")
+        validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
+        savedResult <- saveItem(validatedItem, dbitem.published).toSuccess("Error saving item")
       } yield savedResult
   }
 
   def cloneItem(id: ObjectId) = ValidatedItemApiAction(id, Permission.Write) {
     request =>
       for {
-        cloned <- itemService.cloneItem(id).toSuccess("Error cloning")
+        item <- itemService.findOneById(id).toSuccess("Can't find item")
+        cloned <- itemService.cloneItem(item).toSuccess("Error cloning")
       } yield cloned
   }
 
@@ -81,19 +84,37 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
   //TODO: flesh out
   /**
    * return validated item and whether or not the item is published
-   * @param id
+   * @param dbitem
    * @param item
    * @return
    */
-  private def validateItem(id: ObjectId, item: Item): Option[(Item,Boolean)] = {
-    val dbitem = itemService.findOneById(id);
-    val isPublished = dbitem.map(_.published).getOrElse(false)
-    Some((
-      item.copy(
-        id = id,
-        collectionId = if (item.collectionId.isEmpty) itemService.findOneById(id).map(_.collectionId).getOrElse("") else item.collectionId),
-        isPublished
-    ))
+  private def validateItem(dbitem:Item, item: Item): Option[Item] = {
+    val itemCopy = item.copy(
+      id = dbitem.id,
+      collectionId = if (item.collectionId.isEmpty) dbitem.collectionId else item.collectionId
+    )
+    validateStoredFiles(dbitem,item)
+    Some(itemCopy)
+  }
+
+  /**
+   * add storage keys to item before update
+   * @param dbitem
+   * @param item
+   */
+  private def validateStoredFiles(dbitem:Item, item:Item) = {
+    val itemsf:Seq[StoredFile] =
+      item.data.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).getOrElse(Seq()) ++
+      item.supportingMaterials.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).flatten
+    val dbitemsf:Seq[StoredFile] =
+      dbitem.data.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).getOrElse(Seq()) ++
+      dbitem.supportingMaterials.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).flatten
+    itemsf.foreach(sf => {
+      dbitemsf.find(_.name == sf.name) match {
+        case Some(dbsf) => sf.storageKey = dbsf.storageKey
+        case None => Logger.warn("validateStoredFiles: no db storage key found")
+      }
+    })
   }
   private def saveItem(item: Item, createNewVersion: Boolean): Option[Item] = {
     itemService.save(item, createNewVersion)

@@ -11,7 +11,7 @@ trait ItemServiceClient{
 
 trait ItemService {
 
-  def cloneItem(id: ObjectId): Option[Item]
+  def cloneItem(item:Item): Option[Item]
 
   def findOneByIdAndVersion(id: ObjectId, version: Option[Int]): Option[Item]
 
