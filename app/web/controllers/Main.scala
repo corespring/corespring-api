@@ -24,7 +24,7 @@ object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
       val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
       val userId = request.user.id
       val user : User = User.getUser(request.user.id).getOrElse(throw new RuntimeException("Unknown user"))
-      user.orgs.headOption.flatMap(uo => Organization.findOneById(uo.orgId)) match {
+      user.org.headOption.flatMap(uo => Organization.findOneById(uo.orgId)) match {
         case Some(userOrg) => Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName, userOrg))
           .withSession(
           sumSession(request.session, playerCookies(userId.id, userId.providerId) :+ activeModeCookie(): _*)

@@ -1,209 +1,89 @@
 package tests.models
 
-import tests.BaseTest
-import models._
 import controllers.auth.Permission
-import models.auth.AccessToken
-import play.api.test.{FakeRequest}
-import play.api.test.Helpers._
-import play.api.libs.json.Json
+import models._
+import models.item.Item
 import org.bson.types.ObjectId
-import scala.Left
+import play.api.Logger
+import play.api.libs.json.{JsString, JsObject, Json}
+import play.api.mvc.{AnyContent, AnyContentAsEmpty, AnyContentAsJson}
 import play.api.test.FakeHeaders
-import play.api.mvc.AnyContentAsJson
-import scala.Right
-import scala.Some
-import com.mongodb.casbah.commons.MongoDBObject
-import models.item.{Content, Item}
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
+import tests.BaseTest
+import tests.helpers.TestModelHelpers
 
-class PermissionsTest extends BaseTest{
+class PermissionsTest extends BaseTest with TestModelHelpers {
 
-  "cannot read an organization with no permission" in {
-    Organization.insert(new Organization("test",Seq(),Seq()),None) match {
-      case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.None) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
-          case Right(token) => {
-            val fakeRequest = FakeRequest(GET, "/api/v1/organizations/"+org.id.toString+"?access_token="+token.tokenId)
-            val Some(result) = routeAndCall(fakeRequest)
-            AccessToken.remove(token)
-            User.remove(user)
-            Organization.remove(org)
-            status(result) must beEqualTo(UNAUTHORIZED)
-          }
-          case Left(error) => failure(error.message)
-        }
-        case Left(error) => failure(error.message)
-      }
-      case Left(error) => failure(error.message)
+  private val log: Logger = Logger(this.getClass.getSimpleName)
+
+  sequential
+
+  def request(token: String, content: AnyContent = AnyContentAsEmpty): FakeRequest[AnyContent] = FakeRequest("", "url?access_token=" + token, FakeHeaders(), content)
+
+  "read" should {
+
+    "not read an organization with no permission" in new TestOPlenty(Permission.None) {
+      val result = api.v1.OrganizationApi.listWithOrg(org.id, None, None, "false", 0, 50, None)(request(tokenId))
+      log.debug("result: " + status(result).toString)
+      status(result) === UNAUTHORIZED
+    }
+
+    "read an organization with read permission" in new TestOPlenty(Permission.Read) {
+      val result = api.v1.OrganizationApi.getOrganization(org.id)(request(tokenId))
+      status(result) === OK
+      val jsonString = contentAsString(result)
+      Logger.debug(jsonString)
+      val name = (Json.parse(jsonString) \ Organization.name).as[String]
+      name === org.name
+    }
+
+    "not read a collection of items with no permission" in new TestOPlenty(Permission.None) {
+      val fakeRequest = FakeRequest(GET, "/api/v1/collections/" + collection.id.toString + "/items?access_token=" + tokenId)
+      val result = routeAndCall(fakeRequest).get
+      status(result) === UNAUTHORIZED
+    }
+
+    "can read a collection of items with read permission" in new TestOPlenty(Permission.Read, Permission.Read) {
+      val fakeRequest = FakeRequest(GET, "/api/v1/collections/" + collection.id.toString + "/items?access_token=" + tokenId)
+      val result = routeAndCall(fakeRequest).get
+      status(result) === OK
     }
   }
 
-  "can read an organization with read permission" in {
-    Organization.insert(new Organization("test",Seq(),Seq()),None) match {
-      case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.Read) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
-          case Right(token) => {
-            val fakeRequest = FakeRequest(GET, "/api/v1/organizations/"+org.id+"?access_token="+token.tokenId)
-            val Some(result) = routeAndCall(fakeRequest)
-            AccessToken.remove(token)
-            User.remove(user)
-            Organization.remove(org)
-            status(result) must beEqualTo(OK)
-            (Json.parse(contentAsString(result)) \ Organization.name).as[String] must equalTo(org.name)
-          }
-          case Left(error) => failure(error.message)
-        }
-        case Left(error) => failure(error.message)
-      }
-      case Left(error) => failure(error.message)
+  "create" should {
+    "not create a collection in an organization with read permission" in new TestOPlenty(Permission.Read) {
+      val json = AnyContentAsJson(Json.toJson(new ContentCollection("test")))
+      val result = api.v1.CollectionApi.createCollection()(request(tokenId, json))
+      status(result) === UNAUTHORIZED
+    }
+
+    "create a collection in an organization with write permission" in new TestOPlenty(Permission.Write) {
+      val requestJson = AnyContentAsJson(JsObject(Seq("name" -> JsString("test"))))
+      val result = api.v1.CollectionApi.createCollection()(request(tokenId, requestJson))
+      val json = Json.parse(contentAsString(result))
+      Logger.debug(json.toString)
+      val id = new ObjectId((json \ "id").as[String])
+      (json \ ContentCollection.name).as[String] must beEqualTo("test")
+    }
+
+    "not create an item in a collection with read permission" in new TestOPlenty(Permission.Read, Permission.Read) {
+      val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> collection.id.toString))
+      var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=" + tokenId, FakeHeaders(), AnyContentAsJson(toCreate))
+      var result = routeAndCall(fakeRequest).get
+      status(result) must beEqualTo(UNAUTHORIZED)
+    }
+
+    "create an item in a collection with write permission" in new TestOPlenty(Permission.Read, Permission.Write) {
+      val title = "title"
+      val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> collection.id.toString, Item.title -> title))
+      var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=" + tokenId, FakeHeaders(), AnyContentAsJson(toCreate))
+      var result = routeAndCall(fakeRequest).get
+      val json = Json.parse(contentAsString(result))
+      status(result) === OK
+      (json \ Item.title).as[String] === title
     }
   }
-
-  "cannot create a collection in an organization with read permission"  in {
-    Organization.insert(new Organization("test",Seq(),Seq()),None) match {
-      case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.Read) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
-          case Right(token) => {
-            val fakeRequest = FakeRequest(POST, "/api/v1/collections?access_token="+token.tokenId, FakeHeaders(), AnyContentAsJson(Json.toJson(new ContentCollection("test"))))
-            val result = routeAndCall(fakeRequest).get
-            AccessToken.remove(token)
-            User.remove(user)
-            Organization.remove(org)
-            status(result) must beEqualTo(UNAUTHORIZED)
-          }
-          case Left(error) => failure(error.message)
-        }
-        case Left(error) => failure(error.message)
-      }
-      case Left(error) => failure(error.message)
-    }
-  }
-
-  "can create a collection in an organization with write permission" in {
-    Organization.insert(new Organization("test",Seq(),Seq()),None) match {
-      case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.Write) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
-          case Right(token) => {
-            val fakeRequest = FakeRequest(POST, "/api/v1/collections?access_token="+token.tokenId, FakeHeaders(), AnyContentAsJson(Json.toJson(Map("name" -> "test"))))
-            val result = routeAndCall(fakeRequest).get
-            val json = Json.parse(contentAsString(result))
-            val id = new ObjectId((json \ "id").as[String])
-            ContentCollection.removeById(id)
-            AccessToken.remove(token)
-            User.remove(user)
-            Organization.remove(org)
-            status(result) must beEqualTo(OK)
-            (json \ ContentCollection.name).as[String] must beEqualTo("test")
-          }
-          case Left(error) => failure(error.message)
-        }
-        case Left(error) => failure(error.message)
-      }
-      case Left(error) => failure(error.message)
-    }
-  }
-
-  "cannot read a collection of items with no permission" in {
-    Organization.insert(new Organization("test",Seq(),Seq()),None) match {
-      case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.Read) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
-          case Right(token) => ContentCollection.insertCollection(org.id, new ContentCollection("test"), Permission.None) match {
-            case Right(coll) => {
-              val fakeRequest = FakeRequest(GET, "/api/v1/collections/"+coll.id.toString+"/items?access_token="+token.tokenId)
-              val result = routeAndCall(fakeRequest).get
-              ContentCollection.remove(coll)
-              AccessToken.remove(token)
-              User.remove(user)
-              Organization.remove(org)
-              status(result) must beEqualTo(UNAUTHORIZED)
-            }
-            case Left(error) => failure(error.message)
-          }
-          case Left(error) => failure(error.message)
-        }
-        case Left(error) => failure(error.message)
-      }
-      case Left(error) => failure(error.message)
-    }
-  }
-
-  "can read a collection of items with read permission" in {
-    Organization.insert(new Organization("test",Seq(),Seq()),None) match {
-      case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.Read) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
-          case Right(token) => ContentCollection.insertCollection(org.id, new ContentCollection("test"), Permission.Read) match {
-            case Right(coll) => {
-              val fakeRequest = FakeRequest(GET, "/api/v1/collections/"+coll.id.toString+"/items?access_token="+token.tokenId)
-              val result = routeAndCall(fakeRequest).get
-              ContentCollection.remove(coll)
-              AccessToken.remove(token)
-              User.remove(user)
-              Organization.remove(org)
-              status(result) must beEqualTo(OK)
-            }
-            case Left(error) => failure(error.message)
-          }
-          case Left(error) => failure(error.message)
-        }
-        case Left(error) => failure(error.message)
-      }
-      case Left(error) => failure(error.message)
-    }
-  }
-
-  "cannot create an item in a collection with read permission" in {
-    Organization.insert(new Organization("test",Seq(),Seq()),None) match {
-      case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.Read) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
-          case Right(token) => ContentCollection.insertCollection(org.id, new ContentCollection("test"), Permission.Read) match {
-            case Right(coll) => {
-              val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> coll.id.toString))
-              var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token="+token.tokenId, FakeHeaders(), AnyContentAsJson(toCreate))
-              var result = routeAndCall(fakeRequest).get
-              ContentCollection.remove(coll)
-              AccessToken.remove(token)
-              User.remove(user)
-              Organization.remove(org)
-              status(result) must beEqualTo(UNAUTHORIZED)
-            }
-            case Left(error) => failure(error.message)
-          }
-          case Left(error) => failure(error.message)
-        }
-        case Left(error) => failure(error.message)
-      }
-      case Left(error) => failure(error.message)
-    }
-  }
-
-  "can create an item in a collection with write permission" in {
-    Organization.insert(new Organization("test",Seq(),Seq()),None) match {
-      case Right(org) => User.insertUser(new User("testoplenty","Test O'Plenty","testoplenty@gmail.com",Seq(),"abc123"),org.id,Permission.Read) match {
-        case Right(user) => AccessToken.insertToken(new AccessToken(org.id,Some(user.userName),"testoplenty_token")) match {
-          case Right(token) => ContentCollection.insertCollection(org.id, new ContentCollection("test"), Permission.Write) match {
-            case Right(coll) => {
-              val title = "blergl mergl"
-              val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> coll.id.toString, Item.title -> "blergl mergl"))
-              var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token="+token.tokenId, FakeHeaders(), AnyContentAsJson(toCreate))
-              var result = routeAndCall(fakeRequest).get
-              val json = Json.parse(contentAsString(result))
-              Content.collection.remove(MongoDBObject("_id" -> new ObjectId((json \ "id").as[String])))
-              ContentCollection.remove(coll)
-              AccessToken.remove(token)
-              User.remove(user)
-              Organization.remove(org)
-              status(result) must beEqualTo(OK)
-              (json \ Item.title).as[String] must beEqualTo(title)
-            }
-            case Left(error) => failure(error.message)
-          }
-          case Left(error) => failure(error.message)
-        }
-        case Left(error) => failure(error.message)
-      }
-      case Left(error) => failure(error.message)
-    }
-  }
-
 
 }
+
