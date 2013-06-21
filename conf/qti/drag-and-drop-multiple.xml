@@ -1,0 +1,75 @@
+<assessmentItem>
+    <responseDeclaration identifier="alphabet1" cardinality="ordered" baseType="identifier">
+        <correctResponse>
+            <value>apple:target1</value>
+            <value>pear:target1</value>
+            <value>cow:target2</value>
+            <value>car:target3</value>
+            <value>bus:target3</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+        <dragAndDropInteraction responseIdentifier="alphabet1">
+            Complete the equation below:
+
+            <table class="tileTable">
+                <tr>
+                    <td>
+                        <draggableAnswer identifier="apple">Apple</draggableAnswer>
+                    </td>
+                    <td>
+                        <draggableAnswer identifier="pear">Pear</draggableAnswer>
+                    </td>
+                    <td>
+                        <draggableAnswer identifier="walnut">Walnut</draggableAnswer>
+                    </td>
+                    <td>
+                        <draggableAnswer identifier="car">Car</draggableAnswer>
+                    </td>
+                    <td>
+                        <draggableAnswer identifier="cow">Cow</draggableAnswer>
+                    </td>
+                    <td>
+                        <draggableAnswer identifier="bus">Bus</draggableAnswer>
+                    </td>
+                </tr>
+            </table>
+
+
+            <table>
+                <tr>
+                    <td>
+                        Fruits
+                        <dragTarget cardinality="multiple" class="blueTile inline" identifier="target1"></dragTarget>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Animals
+                        <dragTarget cardinality="single" class="blueTile inline" identifier="target2"></dragTarget>
+                    </td>
+                    </tr>
+                <tr>
+                    <td>
+                        Vehicles
+                        <dragTarget cardinality="multiple" class="blueTile inline" identifier="target3"></dragTarget>
+                    </td>
+                    <td>
+                        equals 5x
+                    </td>
+                </tr>
+
+
+            </table>
+
+            {{listAnswers}}
+            <br/>
+            {{listTargets}}
+
+
+        </dragAndDropInteraction>
+
+    </itemBody>
+</assessmentItem>
+
