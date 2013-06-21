@@ -1,4 +1,4 @@
-function CreateCollection($scope, $rootScope, CollectionManager, UserInfo) {
+function CreateCollection($scope, CollectionManager, UserInfo) {
 
   $scope.orgName = UserInfo.org.name;
 
@@ -12,24 +12,12 @@ function CreateCollection($scope, $rootScope, CollectionManager, UserInfo) {
     $scope.alertMessage = message;
   };
 
-  //$scope.setAlertClassAndMessage("alert", "");
-  //this looks kind of weird. this is all for opening and closing the collections modal correctly between MainNavController and this controller
-
-  $rootScope.$watch('collectionsWindowRoot', function () {
-    $scope.collectionsWindow = $rootScope.collectionsWindowRoot;
-  });
-
-  $scope.closeCollectionWindow = function () {
-    $scope.collectionsWindow = false;
+  $scope.paneClicked = function () {
+    $scope.hideAlertMessage();
   };
-
-  $scope.$watch('collectionsWindow', function () {
-    if (!$scope.collectionsWindow && $rootScope.collectionsWindowRoot) $rootScope.collectionsWindowRoot = false;
-  });
 
   $scope.createCollection = function (collectionName) {
     if (collectionName) {
-
       var onSuccess = function (data) {
         $('#newcollection').val('');
         $scope.setAlertClassAndMessage('success', "Successfully created collection");
@@ -40,16 +28,11 @@ function CreateCollection($scope, $rootScope, CollectionManager, UserInfo) {
       };
 
       CollectionManager.addCollection(collectionName, onSuccess, onError);
-
     }
   };
 
-  $scope.paneClicked = function () {
-    $scope.hideAlertMessage();
-  };
 
   $scope.deleteCollection = function (id) {
-
     var onSuccess = function () {
       $scope.setAlertClassAndMessage('success', "Successfully deleted collection");
     };
@@ -92,4 +75,4 @@ function CreateCollection($scope, $rootScope, CollectionManager, UserInfo) {
       }
     }, true);
 }
-CreateCollection.$inject = ['$scope', '$rootScope', 'CollectionManager', 'UserInfo'];
+CreateCollection.$inject = ['$scope', 'CollectionManager', 'UserInfo'];

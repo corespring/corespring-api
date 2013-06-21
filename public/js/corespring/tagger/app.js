@@ -20,6 +20,7 @@ taggerApp.
     $routeProvider.when('/edit/:itemId', {templateUrl:'/web/partials/editItem', controller:ItemController, reloadOnSearch: false});
     $routeProvider.when('/view/:itemId', {templateUrl:'/web/partials/viewItem', controller:ViewItemController, reloadOnSearch: false});
     $routeProvider.otherwise({redirectTo:'/home'});
+
 }]);
 
 

@@ -7,9 +7,9 @@
     <button ng-click="deleteConfirmed()" class="btn btn-danger">Yes</button>
     <button class="btn btn-info" ng-click="deleteCancelled()">No</button>
 </div>
-<div ui-modal class="create-collection-pane" ng-model="collectionsWindow" style="padding: 20px" ng-controller="CreateCollection" ng-click="paneClicked()">
+<div ui-modal class="create-collection-pane" ng-model="uiState.showCollectionsPane" style="padding: 20px" ng-controller="CreateCollection" ng-click="paneClicked()">
     <div class="modal-header create-collections">
-        <span class="close-window-button" style="display: inline-block;" ng-click="closeCollectionWindow()"></span>
+        <span class="close-window-button" style="display: inline-block;" ng-click="uiState.showCollectionsPane = false"></span>
         <div class="header"><h4>{{orgName}} Collections</h4></div>
     </div>
     <div class="alert" ng-class="alertClass">{{alertMessage}}</div>
