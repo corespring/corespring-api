@@ -3,17 +3,19 @@ package player.controllers
 import common.controllers.SimpleJsRoutes
 import controllers.auth.TokenizedRequestActionBuilder
 import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.mvc._
-import player.accessControl.auth.{CheckSessionAccess, CheckSession}
+import player.accessControl.auth.CheckSessionAccess
 import player.accessControl.models.RequestedAccess
 
 
 class Item(auth: TokenizedRequestActionBuilder[RequestedAccess] ) extends Controller with SimpleJsRoutes {
 
   import api.v1.{NewItemApi => NewApi}
-  def getDetail(itemId: ObjectId, version : Option[Int] = None) = auth.ValidatedAction(
+
+  def getDetail(itemId: VersionedId[ObjectId]) = auth.ValidatedAction(
     RequestedAccess.asRead(Some(itemId))
-  )(NewApi.getDetail(itemId, version))
+  )(NewApi.getDetail(itemId))
 
   def jsRoutes = Action {
     implicit request =>

@@ -1,26 +1,20 @@
 package api.v1
 
-import play.api.mvc._
-import controllers.auth.{Permission, ApiRequest, BaseApi}
-import models._
-import item.{Content, Item}
-import item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
-import models.itemSession.{DefaultItemSession, ItemSession}
-import org.bson.types.ObjectId
-import controllers.{Utils, ConcreteS3Service, S3Service}
-import com.typesafe.config.ConfigFactory
-import play.api.libs.json.Json._
 import api.ApiError
-import play.api.libs.json._
-import scala.Some
-import com.mongodb.casbah.commons.MongoDBObject
-import play.Logger
-import play.api.libs.json.JsString
-import scala.Some
-import play.api.libs.json.JsObject
+import com.typesafe.config.ConfigFactory
+import controllers.auth.{Permission, ApiRequest, BaseApi}
+import controllers.{ConcreteS3Service, S3Service}
+import models.item.resource.{VirtualFile, BaseFile, StoredFile, Resource}
 import models.item.service.{ItemService, ItemServiceImpl}
+import models.item.{Content, Item}
+import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
+import play.api.libs.json.Json._
+import play.api.libs.json._
+import play.api.mvc._
+import scala.Some
 
-class ResourceApi(s3service:S3Service, service : ItemService) extends BaseApi {
+class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
 
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
@@ -81,13 +75,9 @@ class ResourceApi(s3service:S3Service, service : ItemService) extends BaseApi {
    * @param itemId
    * @return an Option[ObjectId] or None if the id is invalid
    */
-  private def objectId(itemId: String): Option[ObjectId] = {
-    try {
-      Some(new ObjectId(itemId))
-    }
-    catch {
-      case e: Exception => None
-    }
+  private def objectId(itemId: String): Option[VersionedId[ObjectId]] = {
+      import models.versioning.VersionedIdImplicits.Binders._
+stringToVersionedId(itemId)
   }
 
   def HasItem(itemId: String,

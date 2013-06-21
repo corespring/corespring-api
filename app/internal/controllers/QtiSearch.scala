@@ -9,6 +9,7 @@ import models.item.Item
 import models.item.service.{ItemServiceImpl, XmlSearch, XmlSearchClient, ItemServiceClient}
 import org.corespring.platform.data.VersioningDao
 import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.SalatVersioningDao
 
 trait QtiSearch extends BaseApi{ self : XmlSearchClient =>
 
@@ -40,6 +41,6 @@ trait QtiSearch extends BaseApi{ self : XmlSearchClient =>
 
 object QtiSearch extends QtiSearch with XmlSearchClient{
   def xmlSearch: XmlSearch = new XmlSearch {
-    def dao: VersioningDao[Item, ObjectId] = ItemServiceImpl.dao
+    def dao: SalatVersioningDao[Item] = ItemServiceImpl.dao
   }
 }

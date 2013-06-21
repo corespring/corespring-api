@@ -27,12 +27,13 @@ import scala.Some
 import search.ItemSearch
 import common.log.PackageLogging
 import models.item.service.{ItemServiceImpl, ItemService}
+import org.corespring.platform.data.mongo.models.VersionedId
 
 /**
  * Items API
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
-class ItemApi(s3service: S3Service, service : ItemService) extends BaseApi with PackageLogging {
+class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with PackageLogging {
 
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
@@ -198,7 +199,7 @@ class ItemApi(s3service: S3Service, service : ItemService) extends BaseApi with 
   /**
    * Returns an Item.  Only the default fields are rendered back.
    */
-  def get(id: ObjectId) = ApiAction {
+  def get(id: VersionedId[ObjectId]) = ApiAction {
     request =>
       if (Content.isAuthorized(request.ctx.organization, id, Permission.Read)) {
         val searchFields = SearchFields(method = 1)
@@ -211,7 +212,7 @@ class ItemApi(s3service: S3Service, service : ItemService) extends BaseApi with 
   /**
    * Returns an Item with all its fields.
    */
-  def getDetail(id: ObjectId) = ApiAction {
+  def getDetail(id: VersionedId[ObjectId] ) = ApiAction {
     request =>
       val detailsExcludeFields: Seq[String] = Seq(data)
       if (Content.isAuthorized(request.ctx.organization, id, Permission.Read)) {
@@ -225,9 +226,9 @@ class ItemApi(s3service: S3Service, service : ItemService) extends BaseApi with 
   /**
    * Deletes the item matching the id specified
    */
-  def delete(id: ObjectId) = ApiAction {
+  def delete(id: VersionedId[ObjectId]) = ApiAction {
     request =>
-      service.findFieldsByIdAndVersion(id, None, MongoDBObject(collectionId -> 1)) match {
+      service.findFieldsById(id, MongoDBObject(collectionId -> 1)) match {
         case Some(o) => o.get(collectionId) match {
           case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, collId, Permission.Write)) {
             Content.moveToArchive(id) match {
@@ -285,7 +286,7 @@ class ItemApi(s3service: S3Service, service : ItemService) extends BaseApi with 
    * Note: Have to call this 'cloneItem' instead of 'clone' as clone is a default
    * function.
    */
-//  def cloneItem(id: ObjectId) = ApiAction {
+//  def cloneItem(id: VersionedId[ObjectId]) = ApiAction {
 //    request =>
 //      findAndCheckAuthorization(request.ctx.organization, id, Permission.Write) match {
 //        case Left(e) => BadRequest(toJson(e))
@@ -303,7 +304,7 @@ class ItemApi(s3service: S3Service, service : ItemService) extends BaseApi with 
 //  }
 
 
-  private def findAndCheckAuthorization(orgId: ObjectId, id: ObjectId, p: Permission): Either[ApiError, Item] = service.findOneById(id) match {
+  private def findAndCheckAuthorization(orgId: ObjectId, id: VersionedId[ObjectId], p: Permission): Either[ApiError, Item] = service.findOneById(id) match {
     case Some(s) => Content.isCollectionAuthorized(orgId, s.collectionId, p) match {
       case true => Right(s)
       case false => Left(ApiError.CollectionUnauthorized)
@@ -483,7 +484,7 @@ class ItemApi(s3service: S3Service, service : ItemService) extends BaseApi with 
    */
   def getCurrent(id: ObjectId) = ApiAction {
     request =>
-      Ok(toJson(service.findOneById(id)))
+      Ok("todo?")//toJson(service.findOneById(id)))
       /*if (Content.isAuthorized(request.ctx.organization, id, Permission.Read)) {
         val searchFields = SearchFields(method = 1)
         cleanDbFields(searchFields, request.ctx.isLoggedIn)

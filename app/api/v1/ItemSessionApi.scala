@@ -2,29 +2,29 @@ package api.v1
 
 import api.ApiError
 import com.mongodb.casbah.Imports._
+import controllers.Utils
 import controllers.auth.ApiRequest
 import controllers.auth.{Permission, BaseApi}
-import controllers.Utils
 import models._
-import models.item.{Item, Content}
+import models.item.Content
+import models.item.service.{ItemServiceImpl, ItemService}
 import models.itemSession._
-import play.api.libs.json.{JsValue, JsObject}
+import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json._
+import play.api.libs.json.{JsValue, JsObject}
 import play.api.mvc.AnyContent
 import quiz.basic.Quiz
 import scala.Left
 import scala.Right
 import scala.Some
-import ItemSession.{Writes,Reads}
-import models.item.service.{ItemServiceImpl, ItemService}
 
 /**
  * API for managing item sessions
  */
-class ItemSessionApi(itemSession: ItemSessionCompanion, itemService : ItemService) extends BaseApi {
+class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService) extends BaseApi {
 
 
-  def aggregate(quizId: ObjectId, itemId: ObjectId) = ApiAction {
+  def aggregate(quizId: ObjectId, itemId: VersionedId[ObjectId]) = ApiAction {
     request =>
 
       Quiz.findOneById(quizId) match {
@@ -71,7 +71,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService : ItemServic
   }
 
 
-  def list(itemId: ObjectId) = ApiAction {
+  def list(itemId: VersionedId[ObjectId]) = ApiAction {
     request =>
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.Read)) {
         val cursor = itemSession.find(MongoDBObject(ItemSession.Keys.itemId -> itemId))
@@ -80,7 +80,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService : ItemServic
   }
 
 
-  def update(itemId: ObjectId, sessionId: ObjectId, action: Option[String]) = action match {
+  def update(itemId: VersionedId[ObjectId], sessionId: ObjectId, action: Option[String]) = action match {
     case Some("begin") => begin(itemId, sessionId)
     case Some("updateSettings") => updateSettings(itemId, sessionId)
     case _ => processResponse(itemId, sessionId)
@@ -90,7 +90,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService : ItemServic
    * @param sessionId
    * @return
    */
-  def get(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
+  def get(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction {
     request =>
       itemSession.get(sessionId) match {
         case Some(session) => {
@@ -109,7 +109,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService : ItemServic
    *
    * @return json for the created item session
    */
-  def create(itemId: ObjectId, itemVersion : Option[Int] = None) = ApiAction {
+  def create(itemId: VersionedId[ObjectId]) = ApiAction {
     request =>
 
       def getSettings(json:JsValue) : Option[ItemSessionSettings] = json.asOpt[ItemSession].map(_.settings).orElse(Some(ItemSessionSettings()))
@@ -117,10 +117,9 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService : ItemServic
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.Read)) {
 
         val s : Option[ItemSession] = for{
-          v <- itemVersion orElse itemService.currentVersion(itemId)
           json <- request.body.asJson.orElse(Some(JsObject(Seq())))
           settings <- getSettings(json)
-        } yield  ItemSession(itemId = itemId, itemVersion = v, settings = settings)
+        } yield  ItemSession(itemId = itemId, settings = settings)
 
         s.map{ session =>
           itemSession.newSession(session) match {
@@ -134,7 +133,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService : ItemServic
   }
 
 
-  def begin(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
+  def begin(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction {
     request =>
       findSessionAndCheckAuthorization(sessionId, itemId, request.ctx.organization) match {
         case Right(s) => {
@@ -154,7 +153,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService : ItemServic
    * @param orgId
    * @return
    */
-  private def findSessionAndCheckAuthorization(sessionId: ObjectId, itemId: ObjectId, orgId: ObjectId): Either[ApiError, ItemSession] = itemSession.findOneById(sessionId) match {
+  private def findSessionAndCheckAuthorization(sessionId: ObjectId, itemId: VersionedId[ObjectId], orgId: ObjectId): Either[ApiError, ItemSession] = itemSession.findOneById(sessionId) match {
     case Some(s) => Content.isAuthorized(orgId, itemId, Permission.Read) match {
       case true => Right(s)
       case false => Left(ApiError.UnauthorizedItemSession)
@@ -170,7 +169,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService : ItemServic
    * @param sessionId
    * @return
    */
-  def updateSettings(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
+  def updateSettings(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction {
     request =>
       findSessionAndCheckAuthorization(sessionId, itemId, request.ctx.organization)
       match {
@@ -211,7 +210,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService : ItemServic
    * Return sessionData and ItemResponseOutcomes
    * @param itemId
    */
-  def processResponse(itemId: ObjectId, sessionId: ObjectId) = ApiAction {
+  def processResponse(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction {
     request =>
 
       Logger.debug("processResponse: " + sessionId)

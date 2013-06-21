@@ -65,8 +65,10 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemSer
 
   private def getFile(itemId:String, resourceName:String, filename: Option[String] = None) : Action[AnyContent] =
   {
+    import models.versioning.VersionedIdImplicits.Binders._
+
     val out = for {
-      oid <- objectId(itemId).toSuccess(Errors.invalidObjectId)
+      oid <- stringToVersionedId(itemId).toSuccess(Errors.invalidObjectId)
       item <- itemService.findOneById(oid).toSuccess(Errors.cantFindItem)
       dr <- getResource(item, resourceName).toSuccess(Errors.cantFindResource)
       (isItemDataResource, resource) = dr

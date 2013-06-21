@@ -3,7 +3,7 @@ package player.accessControl.models.granter
 import org.bson.types.ObjectId
 import player.accessControl.models.RequestedAccess.Mode._
 import player.accessControl.models.granter.constraints._
-import player.accessControl.models.{ContentRequest, RenderOptions, RequestedAccess}
+import player.accessControl.models.{VersionedContentRequest, ContentRequest, RenderOptions, RequestedAccess}
 
 /** An AccessGranter that creates a list of Constraints based on the rendering options */
 class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLookup) extends ConstraintChecker with AccessGranter {
@@ -106,15 +106,15 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
     boundConstraints(options.itemId, options.assessmentId, quizLookup)
   }
 
-  private def itemConstraints(item: ContentRequest)(implicit options: RenderOptions): List[Constraint[Any]] = {
+  private def itemConstraints(item: VersionedContentRequest)(implicit options: RenderOptions): List[Constraint[Any]] = {
     if (options.itemId == RenderOptions.*)
       List()
     else
       List(makeOrFail(options.itemId, new ObjectIdMatches(_), "invalid item id in RenderOptions"))
   }
 
-  private def itemValueAndConstraints(item: ContentRequest)(implicit options: RenderOptions): ValueAndConstraint[Any] = {
-    ValueAndConstraint("itemId", item.id, itemConstraints(item))
+  private def itemValueAndConstraints(item: VersionedContentRequest)(implicit options: RenderOptions): ValueAndConstraint[Any] = {
+    ValueAndConstraint("itemId", item.id.id, itemConstraints(item))
   }
 
   private def sessionValueAndConstraints(session: ContentRequest)(implicit options: RenderOptions): ValueAndConstraint[Any] = {

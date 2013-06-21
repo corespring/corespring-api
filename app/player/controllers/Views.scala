@@ -15,6 +15,7 @@ import player.views.models.{ExceptionMessage, PlayerParams}
 import qti.models.RenderingMode._
 import scala.xml.Elem
 import models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
+import org.corespring.platform.data.mongo.models.VersionedId
 
 
 class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService)
@@ -29,7 +30,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     def default(p: PlayerParams): play.api.templates.Html = player.views.html.Player(p)
   }
 
-  def preview(itemId: ObjectId) = {
+  def preview(itemId: VersionedId[ObjectId]) = {
     val p = RenderParams(itemId, sessionMode = RequestedAccess.Mode.Preview)
     renderItem(p)
   }
@@ -37,29 +38,29 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
   def render(sessionId: ObjectId) = {
     DefaultItemSession.get(sessionId) match {
       case Some(session) => {
-        val p = RenderParams(itemId = session.itemId, itemVersion = Some(session.itemVersion), sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Render)
+        val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Render)
         renderItem(p)
       }
       case None => Action(NotFound("not found"))
     }
   }
 
-  def administerItem(itemId: ObjectId, version : Option[Int] = None) = {
-    val p = RenderParams(itemId = itemId, sessionMode = RequestedAccess.Mode.Administer, itemVersion = version)
+  def administerItem(itemId: VersionedId[ObjectId] ) = {
+    val p = RenderParams(itemId = itemId, sessionMode = RequestedAccess.Mode.Administer )
     renderItem(p)
   }
 
   def administerSession(sessionId: ObjectId) = {
     DefaultItemSession.get(sessionId) match {
       case Some(session) => {
-        val p = RenderParams(itemId = session.itemId, itemVersion = Some(session.itemVersion), sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Administer)
+        val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Administer)
         renderItem(p)
       }
       case None => Action(request => NotFound("not found"))
     }
   }
 
-  def aggregate(assessmentId: ObjectId, itemId: ObjectId) = {
+  def aggregate(assessmentId: ObjectId, itemId: VersionedId[ObjectId]) = {
 
     Quiz.findOneById(assessmentId) match {
       case Some(id) => {
@@ -76,7 +77,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     }
   }
 
-  def profile(itemId: ObjectId, tab: String) = {
+  def profile(itemId: VersionedId[ObjectId], tab: String) = {
 
     def isPrintMode : Boolean = tab != ""
 
@@ -93,8 +94,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
   /** An internal model of the rendering parameters
     * TODO: renderingMode + sessionMode - can we conflate these to one concept?
     */
-  protected case class RenderParams(itemId: ObjectId,
-                          itemVersion : Option[Int] = None,
+  protected case class RenderParams(itemId: VersionedId[ObjectId],
                           sessionMode: RequestedAccess.Mode.Mode,
                           renderingMode: RenderingMode = Web,
                           sessionId: Option[ObjectId] = None,
@@ -119,7 +119,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
       ApiAction {
         implicit request =>
           try {
-            getItemXMLByObjectId(params.itemId.toString, params.itemVersion, request.ctx.organization) match {
+            getItemXMLByObjectId(params.itemId, request.ctx.organization) match {
               case Some(xmlData: Elem) => {
                 val finalXml = prepareQti(xmlData, params.renderingMode)
                 val playerParams = params.toPlayerParams(finalXml)

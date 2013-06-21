@@ -53,8 +53,9 @@ object ShowResource
     */
   def renderDataResourceForPrinting(itemId: String): Action[AnyContent] = {
 
+    import models.versioning.VersionedIdImplicits.Binders._
     val out = for {
-      oid <- objectId(itemId).toSuccess("Invalid object id")
+      oid <- stringToVersionedId(itemId).toSuccess("Invalid object id")
       item <- itemService.findOneById(oid).toSuccess("Can't find item id")
     } yield renderPlayer(item, Printing)
 

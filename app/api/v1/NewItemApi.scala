@@ -15,25 +15,26 @@ import play.api.mvc.{Action, Result, AnyContent}
 import scala.Some
 import scalaz.Scalaz._
 import scalaz._
+import org.corespring.platform.data.mongo.models.VersionedId
 
 
 trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
 
 
-  def itemService: ItemService
+  def itemService:ItemService
 
   //TODO: Map detail to a subset of fields to render
-  def get(id: ObjectId, version: Option[Int] = None, detail: Option[String] = Some("normal")) = ItemApiAction(id, Permission.Read) {
+  def get(id: VersionedId[ObjectId], detail: Option[String] = Some("normal")) = ItemApiAction(id, Permission.Read) {
     request =>
-      itemService.findOneByIdAndVersion(id, version)
+      itemService.findOneById(id)
         .map(i => Ok(Json.toJson(i)))
         .getOrElse(NotFound)
   }
 
-  def getDetail(id: ObjectId, version: Option[Int] = None) = get(id, version, Some("detailed"))
+  def getDetail(id: VersionedId[ObjectId] ) = get(id, Some("detailed"))
 
 
-  def update(id: ObjectId) = ValidatedItemApiAction(id, Permission.Write) {
+  def update(id: VersionedId[ObjectId]) = ValidatedItemApiAction(id, Permission.Write) {
     request =>
       for {
         json <- request.body.asJson.toSuccess("No json in request body")
@@ -43,7 +44,7 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
       } yield savedResult
   }
 
-  def cloneItem(id: ObjectId) = ValidatedItemApiAction(id, Permission.Write) {
+  def cloneItem(id: VersionedId[ObjectId]) = ValidatedItemApiAction(id, Permission.Write) {
     request =>
       for {
         cloned <- itemService.cloneItem(id).toSuccess("Error cloning")
@@ -52,7 +53,7 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
 
   /** Wrap ItemApiAction so that we handle a ApiRequest => Validation and we generate the json.
     */
-  private def ValidatedItemApiAction(id: ObjectId, p: Permission)
+  private def ValidatedItemApiAction(id: VersionedId[ObjectId], p: Permission)
                                     (block: ApiRequest[AnyContent] => Validation[String,
                                       Item]): Action[AnyContent] = {
     def handleValidation(request: ApiRequest[AnyContent]): Result = {
@@ -65,7 +66,7 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
 
   }
 
-  private def ItemApiAction(id: ObjectId, p: Permission)
+  private def ItemApiAction(id: VersionedId[ObjectId], p: Permission)
                            (block: ApiRequest[AnyContent] => Result):
   Action[AnyContent] =
     ApiAction {
@@ -85,7 +86,7 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
    * @param item
    * @return
    */
-  private def validateItem(id: ObjectId, item: Item): Option[(Item,Boolean)] = {
+  private def validateItem(id: VersionedId[ObjectId], item: Item): Option[(Item,Boolean)] = {
     val dbitem = itemService.findOneById(id);
     val isPublished = dbitem.map(_.published).getOrElse(false)
     Some((
@@ -105,7 +106,7 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
 object NewItemApi extends NewItemApi {
   def s3service: S3Service = ConcreteS3Service
 
-  def itemService: ItemService = ItemServiceImpl
+  def itemService:ItemService = ItemServiceImpl
 
   def bucket: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 }

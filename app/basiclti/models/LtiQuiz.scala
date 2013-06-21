@@ -16,8 +16,9 @@ import api.ApiError
 import common.models.json.jerkson.{JerksonReads, JerksonWrites}
 import com.mongodb.casbah.MongoCollection
 import models.itemSession.{DefaultItemSession, ItemSessionSettings, ItemSession}
+import org.corespring.platform.data.mongo.models.VersionedId
 
-case class LtiQuestion(itemId: Option[ObjectId],
+case class LtiQuestion(itemId: Option[VersionedId[ObjectId]],
                        settings: ItemSessionSettings)
   extends models.quiz.BaseQuestion(itemId, settings)
 

@@ -1,7 +1,8 @@
 {
-  "_id": {
-        "$oid": "50087e1de4b03c53174f7530"
-    },
+  "_id" : {
+    "_id" : { "$oid" : "50087e1de4b03c53174f7530" },
+    "version" : 0
+  },
     "collectionId": "4ff2e4cae4b077b9e31689fd",
     "contributorDetails": {
         "contributor": "New York State Education Department",

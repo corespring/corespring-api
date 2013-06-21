@@ -40,15 +40,16 @@ object ItemView{
 
     private def writeMainItem(item: Item): JsObject = {
 
+      import models.versioning.VersionedIdImplicits.Writes
+
       val basics: Seq[Option[(String, JsValue)]] = Seq(
-        Some(("id" -> JsString(item.id.toString))),
+        Some(("id" -> Json.toJson(item.id))),
         item.workflow.map((workflow -> Json.toJson(_))),
         item.data.map((data -> Json.toJson(_))),
         Some((collectionId -> JsString(item.collectionId))),
         Some(contentType -> JsString(ContentType.item)),
         Some(published -> JsBoolean(item.published)),
-        Some("sessionCount" -> JsNumber(item.sessionCount)),
-        Some("version" -> JsNumber(item.version))
+        Some("sessionCount" -> JsNumber(item.sessionCount))
       )
 
       def makeJsString(tuple: (String, Option[String])) = {

@@ -2,28 +2,28 @@ package models.itemSession
 
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
+import common.log.PackageLogging
 import controllers.InternalError
 import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
-import models.item._
+import models.item.service.{ItemServiceImpl, ItemService}
 import models.mongoContext._
+import models.versioning.VersionedIdImplicits
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
+import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
-import play.api.Play
 import qti.models.QtiItem
 import qti.processors.FeedbackProcessor
 import scala.xml._
 import se.radley.plugin.salat._
-import common.log.PackageLogging
-import models.item.service.{ItemServiceImpl, ItemService}
 
 case class FeedbackIdMapEntry(csFeedbackId: String, outcomeIdentifier: String, identifier: String)
 
 /**
  * Case class representing an individual item session
  */
-case class ItemSession(var itemId: ObjectId,
-                       var itemVersion : Int = 0,
+case class ItemSession(var itemId: VersionedId[ObjectId],
                        var attempts: Int = 0,
                        var start: Option[DateTime] = None,
                        var finish: Option[DateTime] = None,
@@ -59,11 +59,12 @@ object ItemSession {
     def writes(session: ItemSession): JsValue = {
 
       import Keys._
+      import models.versioning.VersionedIdImplicits.Writes
       import play.api.libs.json.Json._
+
       val main: Seq[(String, JsValue)] = Seq(
         "id" -> JsString(session.id.toString),
-        itemId -> JsString(session.itemId.toString),
-        itemVersion -> JsNumber(session.itemVersion),
+        itemId -> Json.toJson(session.itemId),
         responses -> toJson(session.responses),
         "settings" -> toJson(session.settings)
       )
@@ -96,9 +97,9 @@ object ItemSession {
       else
         (json \ "settings").as[ItemSessionSettings]
 
+      import VersionedIdImplicits.Reads
       ItemSession(
-        itemId = (json \ itemId).asOpt[String].map(new ObjectId(_)).getOrElse(throw noItemIdSpecified),
-        itemVersion = (json \ itemVersion).as[Int],
+        itemId = (json \ itemId).as[VersionedId[ObjectId]],
         start = (json \ start).asOpt[Long].map(new DateTime(_)),
         finish = (json \ finish).asOpt[Long].map(new DateTime(_)),
         responses = (json \ responses).asOpt[Seq[ItemResponse]].getOrElse(Seq()),
@@ -140,7 +141,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
   def newSession(session: ItemSession): Either[InternalError, ItemSession] = {
     if (Play.isProd) session.id = new ObjectId()
 
-    itemService.getQtiXml(session.itemId, Some(session.itemVersion)) match {
+    itemService.getQtiXml(session.itemId) match {
       case Some(xml) => {
         val (_, mapping) = FeedbackProcessor.addFeedbackIds(xml)
         session.feedbackIdLookup = mapping
@@ -174,9 +175,9 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
   }
 
   def getXmlWithFeedback(session: ItemSession): Either[InternalError, Elem] = {
-    itemService.getQtiXml(session.itemId, Some(session.itemVersion)) match {
+    itemService.getQtiXml(session.itemId) match {
       case Some(qti) => Right(FeedbackProcessor.addFeedbackIds(qti, session.feedbackIdLookup))
-      case _ => Left(InternalError("Can't find xml for itemId: " + session.itemId + ":" + session.itemVersion))
+      case _ => Left(InternalError("Can't find xml for itemId: " + session.itemId))
     }
   }
 

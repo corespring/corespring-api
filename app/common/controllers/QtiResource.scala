@@ -6,6 +6,7 @@ import models.item.{Item, Content}
 import controllers.auth.Permission
 import models.item.resource.{VirtualFile, Resource}
 import models.item.service.ItemServiceClient
+import org.corespring.platform.data.mongo.models.VersionedId
 
 trait QtiResource { self : ItemServiceClient =>
 
@@ -14,8 +15,8 @@ trait QtiResource { self : ItemServiceClient =>
    * @param itemId
    * @return
    */
-  def getItemXMLByObjectId(itemId: String, version : Option[Int] = None, orgId: ObjectId): Option[Elem] = if(Content.isAuthorized(orgId, new ObjectId(itemId), Permission.Read)){
-    itemService.getQtiXml(new ObjectId(itemId), version)
+  def getItemXMLByObjectId(itemId:VersionedId[ObjectId],  orgId: ObjectId): Option[Elem] = if(Content.isAuthorized(orgId, itemId, Permission.Read)){
+    itemService.getQtiXml(itemId)
   } else {
    None
   }

@@ -14,6 +14,7 @@ import play.api.libs.json.Json._
 import play.api.libs.json._
 import scala.Some
 import se.radley.plugin.salat._
+import org.corespring.platform.data.mongo.models.VersionedId
 
 case class Answer(sessionId: ObjectId, itemId: ObjectId)
 
@@ -92,7 +93,7 @@ object Participant {
 /** Note: We are adding the title and standard info from the Item model here.
   * Its a little bit of duplication - but will save us from having to make a 2nd db query
   */
-case class Question(itemId: ObjectId,
+case class Question(itemId: VersionedId[ObjectId],
                     settings: ItemSessionSettings = new ItemSessionSettings(),
                     title: Option[String] = None,
                     standards: Seq[String] = Seq()) extends BaseQuestion(Some(itemId), settings)
@@ -102,8 +103,11 @@ trait QuestionLike {
 
   implicit object Reads extends Reads[Question] {
     def reads(json: JsValue): Question = {
+
+      import models.versioning.VersionedIdImplicits.Reads
+
       Question(
-        new ObjectId((json \ "itemId").as[String]),
+        (json \ "itemId").as[VersionedId[ObjectId]],
         (json \ "settings").asOpt[ItemSessionSettings].getOrElse(ItemSessionSettings())
       )
     }

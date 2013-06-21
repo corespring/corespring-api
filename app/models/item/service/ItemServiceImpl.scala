@@ -23,9 +23,10 @@ import scalaz.Scalaz._
 import scalaz._
 import org.corespring.platform.data.mongo.exceptions.SalatVersioningDaoException
 import api.v1.ResourceApi
+import org.corespring.platform.data.mongo.models.VersionedId
+import com.sun.xml.internal.bind.v2.TODO
 
 class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogging{
-  private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
   import models.mongoContext.context
 
@@ -46,6 +47,7 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
 
     protected implicit def context: Context = models.mongoContext.context
 
+    /*
     private def iterateStoredFiles(item:Item, versionS3File:(StoredFile) => String):Validation[SalatVersioningDaoException,Unit] = {
       //for each stored file in item, copy the file to the version path
       try {
@@ -84,8 +86,8 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
         newStorageKey
       }
       iterateStoredFiles(item,versionS3File)
-    }
-    override protected def beforeVersionedInsert(item:Item, version:Int):Validation[SalatVersioningDaoException,Unit] = {
+    }*/
+    /*override protected def beforeVersionedInsert(item:Item, version:Int):Validation[SalatVersioningDaoException,Unit] = {
       def versionS3File(sourceFile: StoredFile): String = {
         val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/", "")
         val oldStorageKeyVersionRemoved = oldStorageKeyIdRemoved.replaceAll("^\\d+?/","")
@@ -94,7 +96,7 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
         newStorageKey
       }
       iterateStoredFiles(item,versionS3File)
-    }
+    }*/
   }
 
 
@@ -105,38 +107,35 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
 
   lazy val collection = dao.currentCollection
 
-
   lazy val fieldValues = FieldValue.current
 
-  def cloneItem(id:ObjectId): Option[Item] = dao.clone(id).toOption
-
-  def findOneByIdAndVersion(id: ObjectId, version: Option[Int]): Option[Item] = version.map(dao.get(id, _)).getOrElse(dao.get(id))
+  def cloneItem(id:VersionedId[ObjectId]): Option[Item] = None //TODO//dao.clone(id).toOption
 
   def countItems(query: DBObject, fields: Option[String] = None): Int = dao.count(query).toInt
 
-  def findFieldsByIdAndVersion(id: ObjectId, version: Option[Int], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, version, fields)
+  def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, fields)
 
   def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[Item] = dao.find(query, fields)
 
-  def findOneById(id: ObjectId): Option[Item] = dao.findOneById(id)
+  def findOneById(id: VersionedId[ObjectId]): Option[Item] = dao.findOneById(id)
 
   def findOne(query: DBObject): Option[Item] = dao.findOne(query)
 
-  def saveUsingDbo(id:ObjectId, dbo:DBObject, createNewVersion : Boolean = false) = dao.update(id, dbo, createNewVersion)
+  def saveUsingDbo(id:VersionedId[ObjectId], dbo:DBObject, createNewVersion : Boolean = false) = dao.update(id, dbo, createNewVersion)
 
   def save(i: Item, createNewVersion: Boolean = false) = dao.save(i.copy(dateModified = Some(new DateTime())), createNewVersion)
 
-  def insert(i: Item): Option[ObjectId] = dao.insert(i)
+  def insert(i: Item): Option[VersionedId[ObjectId]] = dao.insert(i)
 
-  def findMultiple(ids: Seq[ObjectId], keys: DBObject): Seq[Item] = {
+  def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[Item] = {
     val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))
     dao.find(query, keys).toSeq
   }
 
-  def getQtiXml(id: ObjectId, version: Option[Int]): Option[Elem] = {
+  def getQtiXml(id: VersionedId[ObjectId]): Option[Elem] = {
     import com.mongodb.casbah.commons.Implicits._
     for {
-      dbo <- findFieldsByIdAndVersion(id, version)
+      dbo <- findFieldsById(id)
       resource <- Some(grater[Resource].asObject(dbo.get(Item.Keys.data).asInstanceOf[DBObject]))
       mainFile <- resource.files.find(f => f.isMain && f.contentType == ContentTypes.XML)
       virtualFile: VirtualFile <- if (mainFile.isInstanceOf[VirtualFile]) Some(mainFile.asInstanceOf[VirtualFile]) else None
@@ -144,7 +143,7 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
   }
 
 
-  def currentVersion(id: ObjectId): Option[Int] = dao.getCurrentVersion(id)
+  def currentVersion(id: VersionedId[ObjectId]): Option[Int] = throw new RuntimeException("to be implemented?")
 }
 object ItemServiceImpl extends ItemServiceImpl(ConcreteS3Service)
 

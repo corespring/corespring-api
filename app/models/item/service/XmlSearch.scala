@@ -4,6 +4,7 @@ import models.item.Item
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.platform.data.VersioningDao
+import org.corespring.platform.data.mongo.SalatVersioningDao
 
 trait XmlSearchClient{
   def xmlSearch : XmlSearch
@@ -12,7 +13,7 @@ trait XmlSearchClient{
 
 trait XmlSearch {
 
-  def dao : VersioningDao[Item,ObjectId]
+  def dao : SalatVersioningDao[Item]
 
   def findInXml(string: String, collectionIds: List[String]): List[Item] = {
 

@@ -5,12 +5,12 @@ import com.mongodb.casbah.Imports._
 import controllers.JsonValidationException
 import models.itemSession.DefaultItemSession
 import models.json.ItemView
-import org.corespring.platform.data.mongo.models.Id
+import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.{EntityWithVersionedId, VersionedId}
 import org.joda.time.DateTime
 import play.api.libs.json._
 import resource.Resource
 import scala._
-import service.ItemServiceImpl
 
 case class Item(
                  var collectionId: String = "",
@@ -30,12 +30,12 @@ case class Item(
                  var dateModified: Option[DateTime] = Some(new DateTime()),
                  var taskInfo: Option[TaskInfo] = None,
                  var otherAlignments: Option[Alignments] = None,
-                 var id: ObjectId = new ObjectId()) extends Content with Id[ObjectId] {
+                 var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())) extends Content with EntityWithVersionedId[ObjectId] {
   def sessionCount: Int = DefaultItemSession.find(MongoDBObject("itemId" -> id)).count
 
   def cloneItem: Item = {
     val taskInfoCopy = taskInfo.getOrElse(TaskInfo(title = Some(""))).cloneInfo("[copy]")
-    copy(id = new ObjectId(), taskInfo = Some(taskInfoCopy), published = false)
+    copy(id = VersionedId(ObjectId.get()), taskInfo = Some(taskInfoCopy), published = false)
   }
 }
 
@@ -145,7 +145,8 @@ object Item {
       item.published = (json \ published).asOpt[Boolean].getOrElse(false)
 
       try {
-        item.id = (json \ id).asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId())
+        import models.versioning.VersionedIdImplicits.Reads
+        item.id = (json \ id).as[VersionedId[ObjectId]]
       } catch {
         case e: IllegalArgumentException => throw new JsonValidationException(id)
       }
