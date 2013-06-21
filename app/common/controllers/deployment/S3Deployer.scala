@@ -18,40 +18,12 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
 
   require(!prefix.startsWith("/"), "the prefix cannot start with a leading /")
 
-  def createCleanBucket = client.map {
-    s3 =>
-      try {
-        deleteAllFromBucket(s3)
-      } catch {
-        case e: Throwable => {
-          Logger.debug("creating new bucket: " + bucket)
-          val s3Bucket: Bucket = s3.createBucket(bucket)
-          val text = string.interpolate(S3Deployer.policyTemplate, string.replaceKey(Map("bucket" -> bucket)), string.DollarRegex)
-          val request = new SetBucketPolicyRequest(bucket, text)
-          s3.setBucketPolicy(request)
-        }
-      }
-  }
-
-  private def deleteAllFromBucket(s3:AmazonS3) {
-    import scala.collection.JavaConversions._
-    val summaries : List[S3ObjectSummary] = s3.listObjects(bucket).getObjectSummaries().toList
-    val keys = summaries.map( s => new DeleteObjectsRequest.KeyVersion(s.getKey))
-    val deleteRequest = new DeleteObjectsRequest(bucket)
-    deleteRequest.setKeys(keys)
-    val result : DeleteObjectsResult = s3.deleteObjects(deleteRequest)
-    val deletedKeys = result.getDeletedObjects().toList.map(_.getKey)
-    Logger.debug("deleted: " + deletedKeys.mkString(", "))
-  }
-
   createCleanBucket
-
 
   private val deployed: mutable.Map[String, String] = mutable.Map()
 
   def listAssets: Map[String, String] = deployed.toMap
 
-  private def toByteArray(is: InputStream) = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
 
   def deploy(relativePath: String, lastModified: Long, stream: => InputStream, info: ContentInfo): Either[String, String] = {
 
@@ -99,6 +71,36 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
 
     val url: Option[String] = deployed.get(key).orElse(checkS3)
     url.map(Right(_)).getOrElse(uploadFileAndReturnUrl)
+  }
+
+  private def toByteArray(is: InputStream) = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
+
+  /** Try and delete everything from an existing bucket - if that fails - create a new bucket and set the access policy.
+   */
+  private def createCleanBucket = client.map {
+    s3 =>
+      try {
+        deleteAllFromBucket(s3)
+      } catch {
+        case e: Throwable => {
+          Logger.debug("creating new bucket: " + bucket)
+          s3.createBucket(bucket)
+          val text = string.interpolate(S3Deployer.policyTemplate, string.replaceKey(Map("bucket" -> bucket)), string.DollarRegex)
+          val request = new SetBucketPolicyRequest(bucket, text)
+          s3.setBucketPolicy(request)
+        }
+      }
+  }
+
+  private def deleteAllFromBucket(s3:AmazonS3) {
+    import scala.collection.JavaConversions._
+    val summaries : List[S3ObjectSummary] = s3.listObjects(bucket).getObjectSummaries().toList
+    val keys = summaries.map( s => new DeleteObjectsRequest.KeyVersion(s.getKey))
+    val deleteRequest = new DeleteObjectsRequest(bucket)
+    deleteRequest.setKeys(keys)
+    val result : DeleteObjectsResult = s3.deleteObjects(deleteRequest)
+    val deletedKeys = result.getDeletedObjects().toList.map(_.getKey)
+    Logger.debug("deleted: " + deletedKeys.mkString(", "))
   }
 }
 
