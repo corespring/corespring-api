@@ -1,27 +1,31 @@
 package common.controllers.deployment
 
 import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.model.{SetBucketPolicyRequest, ObjectMetadata}
-import com.ee.assets.deployment.{ContentInfo, Deployer}
+import com.amazonaws.services.s3.model._
+import com.ee.assets.deployment.ContentInfo
+import com.ee.assets.deployment.Deployer
 import common.log.PackageLogging
 import common.utils.string
 import java.io.{InputStream, ByteArrayInputStream}
 import java.util.Date
+import scala.Left
+import scala.Right
+import scala.Some
 import scala.collection.mutable
 
 /** An implementation of the Assets-Loader Deployer trait that writes the assets to s3 and returns the s3 url back */
-class S3Deployer(client: Option[AmazonS3], bucket: String, prefix:String) extends Deployer with PackageLogging {
+class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) extends Deployer with PackageLogging {
 
   require(!prefix.startsWith("/"), "the prefix cannot start with a leading /")
 
-  def createBucketIfRequired = client.map {
+  def createCleanBucket = client.map {
     s3 =>
       try {
-        s3.getBucketPolicy(bucket)
+        deleteAllFromBucket(s3)
       } catch {
         case e: Throwable => {
-          Logger.debug("creating bucket: " + bucket)
-          s3.createBucket(bucket)
+          Logger.debug("creating new bucket: " + bucket)
+          val s3Bucket: Bucket = s3.createBucket(bucket)
           val text = string.interpolate(S3Deployer.policyTemplate, string.replaceKey(Map("bucket" -> bucket)), string.DollarRegex)
           val request = new SetBucketPolicyRequest(bucket, text)
           s3.setBucketPolicy(request)
@@ -29,16 +33,27 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix:String) extend
       }
   }
 
-  createBucketIfRequired
+  private def deleteAllFromBucket(s3:AmazonS3) {
+    import scala.collection.JavaConversions._
+    val summaries : List[S3ObjectSummary] = s3.listObjects(bucket).getObjectSummaries().toList
+    val keys = summaries.map( s => new DeleteObjectsRequest.KeyVersion(s.getKey))
+    val deleteRequest = new DeleteObjectsRequest(bucket)
+    deleteRequest.setKeys(keys)
+    val result : DeleteObjectsResult = s3.deleteObjects(deleteRequest)
+    val deletedKeys = result.getDeletedObjects().toList.map(_.getKey)
+    Logger.debug("deleted: " + deletedKeys.mkString(", "))
+  }
+
+  createCleanBucket
 
 
   private val deployed: mutable.Map[String, String] = mutable.Map()
 
   def listAssets: Map[String, String] = deployed.toMap
 
-  private def toByteArray(is:InputStream) = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
+  private def toByteArray(is: InputStream) = Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
 
-  def deploy(relativePath: String, lastModified: Long, stream : => InputStream, info: ContentInfo): Either[String, String] = {
+  def deploy(relativePath: String, lastModified: Long, stream: => InputStream, info: ContentInfo): Either[String, String] = {
 
     val deploymentPath = (prefix + "/" + relativePath).replaceAll("//", "/")
 
@@ -48,7 +63,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix:String) extend
     def checkS3: Option[String] = client.map {
       s3 =>
         try {
-          Logger.debug("check s3 for: " + deploymentPath )
+          Logger.debug("check s3 for: " + deploymentPath)
           s3.getObject(bucket, deploymentPath)
           val url = S3Deployer.getUrl(bucket, deploymentPath)
           deployed += (key -> url)
@@ -62,7 +77,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix:String) extend
       client.map {
         s3 =>
           try {
-            Logger.debug("upload file: " + deploymentPath )
+            Logger.debug("upload file: " + deploymentPath)
             val metadata = new ObjectMetadata()
             metadata.setLastModified(new Date(lastModified))
             metadata.setContentType(info.contentType)
