@@ -44,14 +44,13 @@ class S3DeployerTest extends Specification {
       deployer.deploy(path, file.lastModified(), inputStream, ContentInfo(contentType = "text/javascript")) match {
         case Left(e) => failure(e)
         case Right(p) => {
-          println("url: " + p)
-          p === S3Deployer.getUrl(bucket, path)
+          p === S3Deployer.getUrl(bucket, prefixPath(path))
         }
       }
 
       deployer.deploy(path, file.lastModified(), inputStream, ContentInfo(contentType = "text/javascript"))
 
-      deployer.listAssets === Map(path + ":" + file.lastModified() -> S3Deployer.getUrl(bucket, path))
+      deployer.listAssets === Map(prefix + "/" + path + ":" + file.lastModified() -> S3Deployer.getUrl(bucket, prefixPath(path)))
     }
 
     "deploy gz file" in new RemoveFileBefore(client, bucket, "test/tests/files/cs-common.min.gz.js"){
@@ -65,7 +64,7 @@ class S3DeployerTest extends Specification {
         case Left(e) => failure(e)
         case Right(p) => {
           println("url: " + p)
-          p === S3Deployer.getUrl(bucket, path)
+          p === S3Deployer.getUrl(bucket, prefixPath(path))
         }
       }
     }
@@ -74,7 +73,12 @@ class S3DeployerTest extends Specification {
 
 class RemoveFileBefore(val client: AmazonS3, val bucket: String, val path: String) extends Before {
 
-  lazy val deployer = new S3Deployer(Some(client), bucket)
+  lazy val prefix = "my_test_prefix"
+  lazy val deployer = new S3Deployer(Some(client), bucket, prefix )
+
+
+  def prefixPath(p:String) = prefix + "/" + p
+
   def before {
     try {
       client.getObject(bucket, path)

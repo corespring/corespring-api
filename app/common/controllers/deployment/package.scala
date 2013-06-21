@@ -2,12 +2,11 @@ package common.controllers
 
 import com.ee.assets.Loader
 import com.ee.assets.deployment.Deployer
+import common.utils.string
 import common.views.helpers.Defaults
 import controllers.ConcreteS3Service
 import play.api.Play
 import play.api.Play.current
-import java.util.Date
-import common.utils.string
 
 package object deployment {
 
@@ -15,18 +14,16 @@ package object deployment {
 
   lazy val loader: Loader = if (isProd) new Loader(Some(s3Deployer)) else new Loader()
 
-  lazy val s3Deployer: Deployer = new S3Deployer(ConcreteS3Service.getAmazonClient, bucketName)
+  lazy val s3Deployer: Deployer = new S3Deployer(ConcreteS3Service.getAmazonClient, bucketName, releaseRoot)
 
-  val bucketPrefix: String = if(isProd) "corespring-public-assets" else "corespring-dev-tmp-assets"
+  val bucketName: String = if (isProd) "corespring-public-assets-" + branch else "corespring-dev-tmp-assets"
 
-  lazy val bucketName : String = {
+  lazy val branch : String = if(Defaults.branch.isEmpty || Defaults.branch == "?") "no-branch" else Defaults.branch
 
-    def getHash = if(Defaults.commitHashShort.isEmpty || Defaults.commitHashShort == "?") {
-      string.pseudoRandomString(9, ('a' to 'z'))
-    } else {
-      Defaults.commitHashShort
-    }
-
-    bucketPrefix + "-" + getHash
+  lazy val releaseRoot: String = if (Defaults.commitHashShort.isEmpty || Defaults.commitHashShort == "?") {
+    string.pseudoRandomString(9, ('a' to 'z'))
+  } else {
+    Defaults.commitHashShort
   }
+
 }

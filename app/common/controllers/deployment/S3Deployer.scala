@@ -10,7 +10,9 @@ import java.util.Date
 import scala.collection.mutable
 
 /** An implementation of the Assets-Loader Deployer trait that writes the assets to s3 and returns the s3 url back */
-class S3Deployer(client: Option[AmazonS3], bucket: String) extends Deployer with PackageLogging {
+class S3Deployer(client: Option[AmazonS3], bucket: String, prefix:String) extends Deployer with PackageLogging {
+
+  require(!prefix.startsWith("/"), "the prefix cannot start with a leading /")
 
   def createBucketIfRequired = client.map {
     s3 =>
@@ -38,7 +40,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String) extends Deployer with
 
   def deploy(relativePath: String, lastModified: Long, stream : => InputStream, info: ContentInfo): Either[String, String] = {
 
-    val deploymentPath = if(relativePath.startsWith("/")) relativePath.substring(1, relativePath.length) else relativePath
+    val deploymentPath = (prefix + "/" + relativePath).replaceAll("//", "/")
 
     Logger.debug("deploy: " + deploymentPath + ", lastModified: " + lastModified)
     def key: String = deploymentPath + ":" + lastModified
