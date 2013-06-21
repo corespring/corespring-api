@@ -1,79 +1,84 @@
 {
-	"_id" : {
-		"$oid" : "50d755c6e4b0ebcda4e2fbb6"
-	},
-	"bloomsTaxonomy" : "Analyzing",
-	"collectionId" : "505777f5e4b05f7845735bc1",
-	"contentType" : "item",
-	"contributorDetails" : {
-		"contributor" : "TIMSS",
-		"credentials" : "Assessment Developer",
-		"copyright" : {
-			"owner" : "TIMSS",
-			"year" : "1995-2003"
-		},
-		"author" : "TIMSS",
-		"sourceUrl" : "http://nces.ed.gov/timss/index.asp",
-		"licenseType" : "CC BY"
-	},
-	"published":true,
-	"data" : {
-		"name" : "qtiItem",
-		"files" : [
-			{
-				"_t" : "models.item.resource.VirtualFile",
-				"name" : "qti.xml",
-				"contentType" : "text/xml",
-				"isMain" : true,
-				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- This example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n                <correctResponseFeedback>Correct!</correctResponseFeedback>\n                <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>\n\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceA</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n    \n    <itemBody>\n\n<p class=\"intro-2\">John wanted to use his calculator to add 1,463 and 319. He entered 1,263 + 319 by mistake. </p>\n\n\n\n        <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>What could he do to correct his mistake?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">Add 200.<feedbackInline identifier=\"ChoiceA\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">Add 2.<feedbackInline identifier=\"ChoiceB\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\">Subtract 2.<feedbackInline identifier=\"ChoiceC\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceD\">Subtract 200.<feedbackInline identifier=\"ChoiceD\" defaultFeedback=\"true\"/></simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n\n</assessmentItem>\n"
-			}
-		]
-	},
-	"demonstratedKnowledge" : "Conceptual",
-	"itemType" : "Constructed Response - Short Answer",
-	"keySkills" : [
-		"Name",
-		"Select",
-		"Understand",
-		"Interpret",
-		"Solve",
-		"Analyze"
-	],
-	"priorGradeLevel" : [
-		"04"
-	],
-	"priorUse" : "Summative",
-	"relatedCurriculum" : "Trends in International Mathematics and Science Study",
-	"reviewsPassed" : [
-		"Editorial",
-		"Bias",
-		"Fairness",
-		"Content",
-		"Psychometric",
-		"All"
-	],
-	"standards" : [
-		"4.NBT.B.4"
-	],
-	"supportingMaterials" : [ ],
-	"workflow" : {
-		"setup" : false,
-		"tagged" : false,
-		"standardsAligned" : false,
-		"qaReview" : false
-	},
-	"taskInfo" : {
-		"subjects" : {
-			"primary" : {
-				"$oid" : "4ffb535f6bb41e469c0bf2c8"
-			},
-			"related" : {
-				"$oid" : "4ffb535f6bb41e469c0bf2c8"
-			}
-		},
-		"gradeLevel" : [
-			"04"
-		],
-		"title" : "John wanted to use his calculator to add 1,463 and 319. He entered 1,263 + 319 by mistake. What could he do to correct his mistake?"
-	}
+  "_id": {
+    "_id": {
+      "$oid": "50d755c6e4b0ebcda4e2fbb6"
+    },
+    "version": 0
+  },
+  "bloomsTaxonomy": "Analyzing",
+  "collectionId": "505777f5e4b05f7845735bc1",
+  "contentType": "item",
+  "contributorDetails": {
+    "contributor": "TIMSS",
+    "credentials": "Assessment Developer",
+    "copyright": {
+      "owner": "TIMSS",
+      "year": "1995-2003"
+    },
+    "author": "TIMSS",
+    "sourceUrl": "http://nces.ed.gov/timss/index.asp",
+    "licenseType": "CC BY"
+  },
+  "published": true,
+  "data": {
+    "name": "qtiItem",
+    "files": [
+      {
+        "_t": "models.item.resource.VirtualFile",
+        "name": "qti.xml",
+        "contentType": "text/xml",
+        "isMain": true,
+        "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- This example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n                <correctResponseFeedback>Correct!</correctResponseFeedback>\n                <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>\n\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceA</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n    \n    <itemBody>\n\n<p class=\"intro-2\">John wanted to use his calculator to add 1,463 and 319. He entered 1,263 + 319 by mistake. </p>\n\n\n\n        <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>What could he do to correct his mistake?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">Add 200.<feedbackInline identifier=\"ChoiceA\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">Add 2.<feedbackInline identifier=\"ChoiceB\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\">Subtract 2.<feedbackInline identifier=\"ChoiceC\" defaultFeedback=\"true\"/></simpleChoice>\n            <simpleChoice identifier=\"ChoiceD\">Subtract 200.<feedbackInline identifier=\"ChoiceD\" defaultFeedback=\"true\"/></simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n\n</assessmentItem>\n"
+      }
+    ]
+  },
+  "demonstratedKnowledge": "Conceptual",
+  "itemType": "Constructed Response - Short Answer",
+  "keySkills": [
+    "Name",
+    "Select",
+    "Understand",
+    "Interpret",
+    "Solve",
+    "Analyze"
+  ],
+  "priorGradeLevel": [
+    "04"
+  ],
+  "priorUse": "Summative",
+  "relatedCurriculum": "Trends in International Mathematics and Science Study",
+  "reviewsPassed": [
+    "Editorial",
+    "Bias",
+    "Fairness",
+    "Content",
+    "Psychometric",
+    "All"
+  ],
+  "standards": [
+    "4.NBT.B.4"
+  ],
+  "supportingMaterials": [
+
+  ],
+  "workflow": {
+    "setup": false,
+    "tagged": false,
+    "standardsAligned": false,
+    "qaReview": false
+  },
+  "taskInfo": {
+    "subjects": {
+      "primary": {
+        "$oid": "4ffb535f6bb41e469c0bf2c8"
+      },
+      "related": {
+        "$oid": "4ffb535f6bb41e469c0bf2c8"
+      }
+    },
+    "gradeLevel": [
+      "04"
+    ],
+    "title": "John wanted to use his calculator to add 1,463 and 319. He entered 1,263 + 319 by mistake. What could he do to correct his mistake?"
+  }
 }

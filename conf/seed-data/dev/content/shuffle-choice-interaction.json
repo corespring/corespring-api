@@ -1,22 +1,25 @@
 {
+  "_id": {
     "_id": {
-        "$oid": "506efc643004c84788b48a10"
+      "$oid": "506efc643004c84788b48a10"
     },
-    "data": {
+    "version": 0
+  },
+  "data": {
+    "name": "qti.xml",
+    "files": [
+      {
+        "_t": "models.item.resource.VirtualFile",
         "name": "qti.xml",
-        "files": [
-            {
-                "_t": "models.item.resource.VirtualFile",
-                "name": "qti.xml",
-                "contentType": "text/xml",
-                "isMain": true,
-                "content": "$[interpolate{conf/qti/shuffle-choice-interaction.xml}]"
-            }
-        ]
-    },
-    "published":false,
-    "collectionId": "5001b9b9e4b035d491c268c3",
-    "taskInfo": {
-        "title": "shuffle choice-interaction"
-    }
+        "contentType": "text/xml",
+        "isMain": true,
+        "content": "$[interpolate{conf/qti/shuffle-choice-interaction.xml}]"
+      }
+    ]
+  },
+  "published": false,
+  "collectionId": "5001b9b9e4b035d491c268c3",
+  "taskInfo": {
+    "title": "shuffle choice-interaction"
+  }
 }

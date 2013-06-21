@@ -1,6 +1,9 @@
 {
   "_id": {
-    "$oid": "5153eee1aa2eefdc1b7a5570"
+    "_id": {
+      "$oid": "5153eee1aa2eefdc1b7a5570"
+    },
+    "version": 0
   },
   "collectionId": "51114b127fc1eaa866444647",
   "contentType": "item",
@@ -16,7 +19,7 @@
       }
     ]
   },
-  "published":false,
+  "published": false,
   "taskInfo": {
     "title": "Quiz Item",
     "itemType": "Multiple Choice"

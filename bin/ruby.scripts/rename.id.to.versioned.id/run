@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+
+require 'json'
+
+count = 0
+Dir["**/**/content/*.json"].each{ |f|
+  puts "found: #{f}"
+  json = File.read(f)
+  item = JSON.parse(json)
+
+  #puts item
+
+
+  id = item["_id"]
+  puts id
+
+  item["_id"] = { "_id" => id, :version => 0}
+
+  #puts item
+
+  #puts JSON.pretty_generate(my_json)
+
+  puts "writing: #{f}"
+  File.open(f,"w") do |fw|
+    fw.write(JSON.pretty_generate(item))
+  end
+}

@@ -1,103 +1,106 @@
 {
-	"_id" : {
-		"$oid" : "50ee136ee4b00448c0368e0e"
-	},
-	"collectionId" : "505777f5e4b05f7845735bc1",
-	"contributorDetails" : {
-		"contributor" : "Smarter Balanced Assessment Consortium",
-		"credentials" : "Other",
-		"copyright" : {
-			"owner" : "Smarter Balanced Assessment Consortium",
-			"year" : "2012"
-		},
-		"author" : "Smarter Balanced Assessment Consortium",
-		"sourceUrl" : "http://sampleitems.smarterbalanced.org/itempreview/sbac/ELA.htm",
-		"licenseType" : "CC BY"
-	},
-	"published":true,
-	"contentType" : "item",
-	"itemType" : "Text with Questions",
-	"keySkills" : [
-		"Describe",
-		"Identify",
-		"List",
-		"Explain",
-		"Give",
-		"Indicate",
-		"Analyze"
-	],
-	"priorGradeLevel" : [
-		"04"
-	],
-	"reviewsPassed" : [
-		"Other"
-	],
-	"standards" : [
-		"RL.4.3",
-		"RL.4.1"
-	],
-	"data" : {
-		"name" : "qtiItem",
-		"files" : [
-			{
-				"_t" : "models.item.resource.VirtualFile",
-				"name" : "qti.xml",
-				"contentType" : "text/xml",
-				"isMain" : true,
-				"content" : "<?xml version='1.0' encoding='UTF-8'?>\n<assessmentItem xmlns='http://www.imsglobal.org/xsd/imsqti_v2p1'\n                xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'\n                xsi:schemaLocation='http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd'\n                title='' adaptive='false' timeDependent='false'>\n\n <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"string\"/>\n    \n    <itemBody>\n   \n      <p class=\"intro-2\">Read the passage and then respond to the prompt that follows.</p>  <br/>\n       <hr class=\"element-seperator\"/>\n    \n <h1 class=\"para-center\">Grandma Ruth</h1> \n        <selectTextInteraction responseIdentifier='selectText' selectionType='word' checkIfCorrect='yes' minSelections='2' maxSelections='10'>\n      \n \n        Last night I learned that my grandma was named after Babe Ruth, the greatest baseball player of all time. I learned this six hours too late.<br></br>\n        \n \n        Yesterday I wanted to work on throwing a baseball. I needed a baseball, since my brother wouldn’t let me borrow his. Unfortunately, I knew right where one was.<br></br>\n      \n \n        I tiptoed into my grandma’s bedroom. Sunlight from the late morning sun filtered in through the leaves of the dogwood tree outside the open window. I moved slowly through my favorite room in the house, which belonged to my favorite person in the world, my grandma.<br></br>\n \n        I reached into the back of her closet and pulled out a shoebox full of old baseballs wrapped in tissue paper. I shoved my hand in and grabbed the first one I touched. I threw off the paper and ran out into the yard with our dog, Bowie, who would always play a game of catch with me.<br></br>\n \n        We had a spectacular game of catch. By the end of our session I was throwing straight as an arrow and Bowie was bringing it back as fast as he could. It was perfect.<br></br>\n \n        I went back into my grandma’s room and wrapped the ball back up in paper, just like I’d found it.  Except now it looked dirty and used, like a good baseball should.<br></br>\n \n        At dinner, though, I heard the story.<br></br>\n \n        “Have I ever told you that I’m named after the greatest baseball player who ever lived?” Grandma asked suddenly.<br></br>\n \n        James and I shook our heads. We leaned forward to listen. It isn’t often we hear new stories from her.<br></br>\n \n        My grandmother stood up and walked into her bedroom. She came back with the shoebox in her hands. She sat down and started her story.<br></br>\n \n        “So, your great-grandfather was the dentist for the Detroit Tigers back in the 1920s. His favorite player was Ty Cobb, the best player the Tigers have ever had. When Ty found out that your great-grandparents were going to have a baby, he brought your great-grandfather a big package full of baseballs signed by the best-known players of the time. He said, ‘Doc, you can have these under one condition: name your daughter Tyrina. After me.’ And my father, too excited to say no, agreed.<br></br>\n \n        “When my mother heard about this she told my father to go to Ty Cobb and give him back the baseballs, because she had her own ideas for names. Ty just laughed when he heard this. He said to my father, ‘Doc, I’ll tell you what: keep the baseballs but name her after my good friend Babe Ruth.’<br></br>\n \n        “My father smiled and said, ‘I’ll see what I can do. Keep these for me until then.’<br></br>\n \n        “It turned out my mother loved the name Ruth. That’s how I got my name and how my father got these: he let Ty Cobb name me after Babe Ruth.”<br></br>\n \n        I tried to swallow but couldn’t. I hoped that she wasn’t going to say what I thought she was going to say.<br></br>\n \n        Then she said it.<br></br>\n \n        “In this shoebox are the ten baseballs Ty Cobb gave my father. They are signed by some of the most famous ballplayers in history, including one that has one single signature on it: Babe Ruth’s.”<br></br>\n        My grandma pulled the ball out, unwrapped it, and held it out for us to see. The ball was scarred almost beyond recognition. It had <correct>dog</correct> <correct>bite</correct> <correct>marks</correct>,<correct>dirt</correct> <correct>scuffs</correct>, and <correct>fraying</correct> <correct>seams</correct>. Right in the middle was a big signature in black ink that I had somehow overlooked. It was <correct>smudged</correct> <correct>now </correct> and <correct>faded</correct>, but it still clearly said “Babe Ruth.” I began to shake inside.<br></br>\n \n        But my grandma just looked at the ball and smiled sweetly. She said softly, “Even though it doesn’t look like much, this ball has brought our family a lot of joy in its time. I remember when I was your age, Naomi, I almost rubbed the signature right off from tossing it up and down all the time. You see, I’ve always felt that a baseball should be used for a lot more than looking. My dad, your great-grandfather, used to say the same thing.”<br></br>\n \n        She lowered her hand and gently tossed the ball toward Bowie, sleeping by the door. It rolled in a perfectly straight line and came to rest softly between the dog’s paws. A perfect throw.<br></br>\n        </selectTextInteraction>\n         \n    \n<p></p>\n        <feedbackBlock outcomeIdentifier='responses.selectText.outcome.responsesBelowMin' identifier='idb1'>\n           <div class='feedback-block-incorrect'>Please select 2 examples from the text to support your answer.</div>\n        </feedbackBlock>\n\n        <feedbackBlock outcomeIdentifier='responses.selectText.outcome.responsesExceedMax' identifier='idb2'>\n           <div class='feedback-block-incorrect'>You selected too many examples. Try to select 2 phrases that help you understand the meaning of <u>scarred</u>. </div>\n        </feedbackBlock>\n        \n         <feedbackBlock outcomeIdentifier='responses.selectText.outcome.responsesCorrect' identifier='id3'>\n            <div class='feedback-block-correct'>Well done!</div>\n        </feedbackBlock>\n\n<feedbackBlock outcomeIdentifier='responses.selectText.outcome.responsesIncorrect' identifier='idb4'>\n           <div class='feedback-block-incorrect'>Good try. The words that mean <u>scarred</u> are dog bite, marks, dirt scuffs, fraying seams, smudged, and faded.</div>\n        </feedbackBlock>\n        \n        <hr class=\"element-seperator\"/>\n        <p class=\"prompt\">Select 2 phrases that help you understand the meaning of <u>scarred</u>.</p>\n\n    </itemBody>\n\n</assessmentItem>\n\n"
-			}
-		]
-	},
-	"demonstratedKnowledge" : "Metacognitive",
-	"bloomsTaxonomy" : "Analyzing",
-	"supportingMaterials" : [
-		{
-			"name" : "Rubric",
-			"files" : [
-				{
-					"_t" : "models.item.resource.VirtualFile",
-					"name" : "index.html",
-					"contentType" : "text/html",
-					"isMain" : true,
-					"content" : "<html>\n<head></head>\n<body>\n<h2>Rubric</h2>\n    \n\n    <TABLE>\n<TBODY>\n<TR> <TD>Score Points</TD> <TD></TD>  </TR>\n<TR> <TD>2</TD> <TD>The response includes: \n<ul>\n    <li>dog bite marks, dirt scuffs OR</li>\n<li>dog bite marks, dirt scuffs OR</li>\n<li>dog bite marks, smudged now and faded OR</li>\n<li>dirt scuffs, fraying seams OR</li>\n<li>fraying seams, smudged now and faded</li>\n</ul>\n<TR>\n<TD>1</TD> <TD>The response includes: \n<ul>\n<li>dog bite marks OR </li>\n<li>dirt scuffs OR</li>\n<li>fraying seams OR </li>\n<LI>smudged now and faded</LI>\n</ul>\n<TR> <TD>0</TD> <TD>The response gets no credit if it provides no evidence of the ability to \nidentify the intended meaning of words based on context and includes \nno relevant information from the text.</TR>\n</TBODY>\n</TABLE>\n</body></html>"
-				},
-				{
-					"_t" : "models.item.resource.StoredFile",
-					"name" : "grandma.pdf",
-					"contentType" : "application/pdf",
-					"isMain" : false,
-					"storageKey" : "50edec90e4b0510da7d2e8a6/materials/Rubric/grandma.pdf"
-				}
-			]
-		},
-		{
-			"name" : "Text Complexity Analysis",
-			"files" : [
-				{
-					"_t" : "models.item.resource.StoredFile",
-					"name" : "grandma.pdf",
-					"contentType" : "application/pdf",
-					"isMain" : true,
-					"storageKey" : "50ee136ee4b00448c0368e0e/materials/Text Complexity Analysis/grandma.pdf"
-				}
-			]
-		}
-	],
-	"workflow" : {
-		"setup" : false,
-		"tagged" : false,
-		"standardsAligned" : false,
-		"qaReview" : false
-	},
-	"taskInfo" : {
-		"subjects" : {
-			"primary" : {
-				"$oid" : "4ffb535f6bb41e469c0bf2ad"
-			}
-		},
-		"gradeLevel" : [
-			"04"
-		],
-		"title" : "Read the passage <i>Grandma Ruth</i> and then select 2 phrases that help you understand the meaning of <u>scarred</u>."
-	}
+  "_id": {
+    "_id": {
+      "$oid": "50ee136ee4b00448c0368e0e"
+    },
+    "version": 0
+  },
+  "collectionId": "505777f5e4b05f7845735bc1",
+  "contributorDetails": {
+    "contributor": "Smarter Balanced Assessment Consortium",
+    "credentials": "Other",
+    "copyright": {
+      "owner": "Smarter Balanced Assessment Consortium",
+      "year": "2012"
+    },
+    "author": "Smarter Balanced Assessment Consortium",
+    "sourceUrl": "http://sampleitems.smarterbalanced.org/itempreview/sbac/ELA.htm",
+    "licenseType": "CC BY"
+  },
+  "published": true,
+  "contentType": "item",
+  "itemType": "Text with Questions",
+  "keySkills": [
+    "Describe",
+    "Identify",
+    "List",
+    "Explain",
+    "Give",
+    "Indicate",
+    "Analyze"
+  ],
+  "priorGradeLevel": [
+    "04"
+  ],
+  "reviewsPassed": [
+    "Other"
+  ],
+  "standards": [
+    "RL.4.3",
+    "RL.4.1"
+  ],
+  "data": {
+    "name": "qtiItem",
+    "files": [
+      {
+        "_t": "models.item.resource.VirtualFile",
+        "name": "qti.xml",
+        "contentType": "text/xml",
+        "isMain": true,
+        "content": "<?xml version='1.0' encoding='UTF-8'?>\n<assessmentItem xmlns='http://www.imsglobal.org/xsd/imsqti_v2p1'\n                xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'\n                xsi:schemaLocation='http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd'\n                title='' adaptive='false' timeDependent='false'>\n\n <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"string\"/>\n    \n    <itemBody>\n   \n      <p class=\"intro-2\">Read the passage and then respond to the prompt that follows.</p>  <br/>\n       <hr class=\"element-seperator\"/>\n    \n <h1 class=\"para-center\">Grandma Ruth</h1> \n        <selectTextInteraction responseIdentifier='selectText' selectionType='word' checkIfCorrect='yes' minSelections='2' maxSelections='10'>\n      \n \n        Last night I learned that my grandma was named after Babe Ruth, the greatest baseball player of all time. I learned this six hours too late.<br></br>\n        \n \n        Yesterday I wanted to work on throwing a baseball. I needed a baseball, since my brother wouldn’t let me borrow his. Unfortunately, I knew right where one was.<br></br>\n      \n \n        I tiptoed into my grandma’s bedroom. Sunlight from the late morning sun filtered in through the leaves of the dogwood tree outside the open window. I moved slowly through my favorite room in the house, which belonged to my favorite person in the world, my grandma.<br></br>\n \n        I reached into the back of her closet and pulled out a shoebox full of old baseballs wrapped in tissue paper. I shoved my hand in and grabbed the first one I touched. I threw off the paper and ran out into the yard with our dog, Bowie, who would always play a game of catch with me.<br></br>\n \n        We had a spectacular game of catch. By the end of our session I was throwing straight as an arrow and Bowie was bringing it back as fast as he could. It was perfect.<br></br>\n \n        I went back into my grandma’s room and wrapped the ball back up in paper, just like I’d found it.  Except now it looked dirty and used, like a good baseball should.<br></br>\n \n        At dinner, though, I heard the story.<br></br>\n \n        “Have I ever told you that I’m named after the greatest baseball player who ever lived?” Grandma asked suddenly.<br></br>\n \n        James and I shook our heads. We leaned forward to listen. It isn’t often we hear new stories from her.<br></br>\n \n        My grandmother stood up and walked into her bedroom. She came back with the shoebox in her hands. She sat down and started her story.<br></br>\n \n        “So, your great-grandfather was the dentist for the Detroit Tigers back in the 1920s. His favorite player was Ty Cobb, the best player the Tigers have ever had. When Ty found out that your great-grandparents were going to have a baby, he brought your great-grandfather a big package full of baseballs signed by the best-known players of the time. He said, ‘Doc, you can have these under one condition: name your daughter Tyrina. After me.’ And my father, too excited to say no, agreed.<br></br>\n \n        “When my mother heard about this she told my father to go to Ty Cobb and give him back the baseballs, because she had her own ideas for names. Ty just laughed when he heard this. He said to my father, ‘Doc, I’ll tell you what: keep the baseballs but name her after my good friend Babe Ruth.’<br></br>\n \n        “My father smiled and said, ‘I’ll see what I can do. Keep these for me until then.’<br></br>\n \n        “It turned out my mother loved the name Ruth. That’s how I got my name and how my father got these: he let Ty Cobb name me after Babe Ruth.”<br></br>\n \n        I tried to swallow but couldn’t. I hoped that she wasn’t going to say what I thought she was going to say.<br></br>\n \n        Then she said it.<br></br>\n \n        “In this shoebox are the ten baseballs Ty Cobb gave my father. They are signed by some of the most famous ballplayers in history, including one that has one single signature on it: Babe Ruth’s.”<br></br>\n        My grandma pulled the ball out, unwrapped it, and held it out for us to see. The ball was scarred almost beyond recognition. It had <correct>dog</correct> <correct>bite</correct> <correct>marks</correct>,<correct>dirt</correct> <correct>scuffs</correct>, and <correct>fraying</correct> <correct>seams</correct>. Right in the middle was a big signature in black ink that I had somehow overlooked. It was <correct>smudged</correct> <correct>now </correct> and <correct>faded</correct>, but it still clearly said “Babe Ruth.” I began to shake inside.<br></br>\n \n        But my grandma just looked at the ball and smiled sweetly. She said softly, “Even though it doesn’t look like much, this ball has brought our family a lot of joy in its time. I remember when I was your age, Naomi, I almost rubbed the signature right off from tossing it up and down all the time. You see, I’ve always felt that a baseball should be used for a lot more than looking. My dad, your great-grandfather, used to say the same thing.”<br></br>\n \n        She lowered her hand and gently tossed the ball toward Bowie, sleeping by the door. It rolled in a perfectly straight line and came to rest softly between the dog’s paws. A perfect throw.<br></br>\n        </selectTextInteraction>\n         \n    \n<p></p>\n        <feedbackBlock outcomeIdentifier='responses.selectText.outcome.responsesBelowMin' identifier='idb1'>\n           <div class='feedback-block-incorrect'>Please select 2 examples from the text to support your answer.</div>\n        </feedbackBlock>\n\n        <feedbackBlock outcomeIdentifier='responses.selectText.outcome.responsesExceedMax' identifier='idb2'>\n           <div class='feedback-block-incorrect'>You selected too many examples. Try to select 2 phrases that help you understand the meaning of <u>scarred</u>. </div>\n        </feedbackBlock>\n        \n         <feedbackBlock outcomeIdentifier='responses.selectText.outcome.responsesCorrect' identifier='id3'>\n            <div class='feedback-block-correct'>Well done!</div>\n        </feedbackBlock>\n\n<feedbackBlock outcomeIdentifier='responses.selectText.outcome.responsesIncorrect' identifier='idb4'>\n           <div class='feedback-block-incorrect'>Good try. The words that mean <u>scarred</u> are dog bite, marks, dirt scuffs, fraying seams, smudged, and faded.</div>\n        </feedbackBlock>\n        \n        <hr class=\"element-seperator\"/>\n        <p class=\"prompt\">Select 2 phrases that help you understand the meaning of <u>scarred</u>.</p>\n\n    </itemBody>\n\n</assessmentItem>\n\n"
+      }
+    ]
+  },
+  "demonstratedKnowledge": "Metacognitive",
+  "bloomsTaxonomy": "Analyzing",
+  "supportingMaterials": [
+    {
+      "name": "Rubric",
+      "files": [
+        {
+          "_t": "models.item.resource.VirtualFile",
+          "name": "index.html",
+          "contentType": "text/html",
+          "isMain": true,
+          "content": "<html>\n<head></head>\n<body>\n<h2>Rubric</h2>\n    \n\n    <TABLE>\n<TBODY>\n<TR> <TD>Score Points</TD> <TD></TD>  </TR>\n<TR> <TD>2</TD> <TD>The response includes: \n<ul>\n    <li>dog bite marks, dirt scuffs OR</li>\n<li>dog bite marks, dirt scuffs OR</li>\n<li>dog bite marks, smudged now and faded OR</li>\n<li>dirt scuffs, fraying seams OR</li>\n<li>fraying seams, smudged now and faded</li>\n</ul>\n<TR>\n<TD>1</TD> <TD>The response includes: \n<ul>\n<li>dog bite marks OR </li>\n<li>dirt scuffs OR</li>\n<li>fraying seams OR </li>\n<LI>smudged now and faded</LI>\n</ul>\n<TR> <TD>0</TD> <TD>The response gets no credit if it provides no evidence of the ability to \nidentify the intended meaning of words based on context and includes \nno relevant information from the text.</TR>\n</TBODY>\n</TABLE>\n</body></html>"
+        },
+        {
+          "_t": "models.item.resource.StoredFile",
+          "name": "grandma.pdf",
+          "contentType": "application/pdf",
+          "isMain": false,
+          "storageKey": "50edec90e4b0510da7d2e8a6/materials/Rubric/grandma.pdf"
+        }
+      ]
+    },
+    {
+      "name": "Text Complexity Analysis",
+      "files": [
+        {
+          "_t": "models.item.resource.StoredFile",
+          "name": "grandma.pdf",
+          "contentType": "application/pdf",
+          "isMain": true,
+          "storageKey": "50ee136ee4b00448c0368e0e/materials/Text Complexity Analysis/grandma.pdf"
+        }
+      ]
+    }
+  ],
+  "workflow": {
+    "setup": false,
+    "tagged": false,
+    "standardsAligned": false,
+    "qaReview": false
+  },
+  "taskInfo": {
+    "subjects": {
+      "primary": {
+        "$oid": "4ffb535f6bb41e469c0bf2ad"
+      }
+    },
+    "gradeLevel": [
+      "04"
+    ],
+    "title": "Read the passage <i>Grandma Ruth</i> and then select 2 phrases that help you understand the meaning of <u>scarred</u>."
+  }
 }

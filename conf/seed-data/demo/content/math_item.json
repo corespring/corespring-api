@@ -1,74 +1,77 @@
 {
+  "_id": {
     "_id": {
-        "$oid": "511275564924c9ca07b97043"
+      "$oid": "511275564924c9ca07b97043"
     },
-    "collectionId": "51114b127fc1eaa866444647",
-    "contentType": "item",
-    "contributorDetails": {
-        "contributor": "New England Common Assessment Program",
-        "credentials": "State Department of Education",
-        "copyright": {
-            "owner": "New England Common Assessment Program",
-            "year": "2011"
-        },
-        "author": "New England Common Assessment Program",
-        "sourceUrl": "http://www.ride.ri.gov/assessment/necap.aspx",
-        "licenseType": "CC BY"
+    "version": 0
+  },
+  "collectionId": "51114b127fc1eaa866444647",
+  "contentType": "item",
+  "contributorDetails": {
+    "contributor": "New England Common Assessment Program",
+    "credentials": "State Department of Education",
+    "copyright": {
+      "owner": "New England Common Assessment Program",
+      "year": "2011"
     },
-    "published":true,
-    "data": {
-        "name": "data",
-        "files": [
-            {
-                "_t": "models.item.resource.VirtualFile",
-                "name": "qti.xml",
-                "contentType": "text/xml",
-                "isMain": true,
-                "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n\t<correctResponseFeedback>Correct!</correctResponseFeedback>\n\t<incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceC</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n    <itemBody>\n\n<p class=\"intro-2\">Amanda used pennies to show a number. She used 8 pennies and 4 groups of ten pennies.</p>\n\n   \n        <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>What number did Amanda show?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">12 <feedbackInline identifier=\"ChoiceA\" defaultFeedback=\"true\"/>\n</simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">22<feedbackInline identifier=\"ChoiceB\" defaultFeedback=\"true\"/>\n</simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\">48<feedbackInline identifier=\"ChoiceC\" defaultFeedback=\"true\"/>\n</simpleChoice>\n             <simpleChoice identifier=\"ChoiceD\">84<feedbackInline identifier=\"ChoiceD\" defaultFeedback=\"true\"/>\n</simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n\n</assessmentItem>\n"
-            }
-        ]
-    },
-    "materialType": "Assessment Item",
-    "priorGradeLevel": [
-        "03"
+    "author": "New England Common Assessment Program",
+    "sourceUrl": "http://www.ride.ri.gov/assessment/necap.aspx",
+    "licenseType": "CC BY"
+  },
+  "published": true,
+  "data": {
+    "name": "data",
+    "files": [
+      {
+        "_t": "models.item.resource.VirtualFile",
+        "name": "qti.xml",
+        "contentType": "text/xml",
+        "isMain": true,
+        "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n\t<correctResponseFeedback>Correct!</correctResponseFeedback>\n\t<incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>\n    <responseDeclaration identifier=\"RESPONSE\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceC</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n    <itemBody>\n\n<p class=\"intro-2\">Amanda used pennies to show a number. She used 8 pennies and 4 groups of ten pennies.</p>\n\n   \n        <choiceInteraction responseIdentifier=\"RESPONSE\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>What number did Amanda show?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">12 <feedbackInline identifier=\"ChoiceA\" defaultFeedback=\"true\"/>\n</simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">22<feedbackInline identifier=\"ChoiceB\" defaultFeedback=\"true\"/>\n</simpleChoice>\n            <simpleChoice identifier=\"ChoiceC\">48<feedbackInline identifier=\"ChoiceC\" defaultFeedback=\"true\"/>\n</simpleChoice>\n             <simpleChoice identifier=\"ChoiceD\">84<feedbackInline identifier=\"ChoiceD\" defaultFeedback=\"true\"/>\n</simpleChoice>\n        </choiceInteraction>\n    </itemBody>\n\n</assessmentItem>\n"
+      }
+    ]
+  },
+  "materialType": "Assessment Item",
+  "priorGradeLevel": [
+    "03"
+  ],
+  "priorUse": "Summative",
+  "reviewsPassed": [
+    "Psychometric"
+  ],
+  "standards": [
+    "1.NBT.B.2a"
+  ],
+  "workflow": {
+    "setup": true,
+    "tagged": true,
+    "standardsAligned": true,
+    "qaReview": false
+  },
+  "otherAlignments": {
+    "bloomsTaxonomy": "Applying",
+    "keySkills": [
+      "Select",
+      "Recognize",
+      "Name",
+      "Identify",
+      "Understand",
+      "Choose",
+      "Translate",
+      "Interpret"
     ],
-    "priorUse": "Summative",
-    "reviewsPassed": [
-        "Psychometric"
-    ],
-    "standards": [
-        "1.NBT.B.2a"
-    ],
-    "workflow": {
-        "setup": true,
-        "tagged": true,
-        "standardsAligned": true,
-        "qaReview": false
+    "demonstratedKnowledge": "Conceptual"
+  },
+  "taskInfo": {
+    "subjects": {
+      "primary": {
+        "$oid": "4ffb535f6bb41e469c0bf2c2"
+      }
     },
-    "otherAlignments": {
-        "bloomsTaxonomy": "Applying",
-        "keySkills": [
-            "Select",
-            "Recognize",
-            "Name",
-            "Identify",
-            "Understand",
-            "Choose",
-            "Translate",
-            "Interpret"
-        ],
-        "demonstratedKnowledge": "Conceptual"
-    },
-    "taskInfo": {
-        "subjects": {
-            "primary": {
-                "$oid": "4ffb535f6bb41e469c0bf2c2"
-            }
-        },
-        "gradeLevel": [
-            "01"
-        ],
-        "title": "[DEV] Amanda used pennies to show a number. She used 8 pennies and 4 groups of ten pennies. What number did Amanda show?",
-        "itemType": "Multiple Choice"
-    }
+    "gradeLevel": [
+      "01"
+    ],
+    "title": "[DEV] Amanda used pennies to show a number. She used 8 pennies and 4 groups of ten pennies. What number did Amanda show?",
+    "itemType": "Multiple Choice"
+  }
 }

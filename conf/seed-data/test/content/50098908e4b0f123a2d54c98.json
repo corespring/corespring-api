@@ -1,68 +1,75 @@
 {
-	"_id" : {
-		"$oid" : "50098908e4b0f123a2d54c98"
-	},
-	"bloomsTaxonomy" : "Analyzing",
-	"collectionId" : "505777f5e4b05f7845735bc1",
-	"contentType" : "item",
-	"contributorDetails" : {
-		"contributor" : "New York State Education Department",
-		"credentials" : "State Department of Education",
-		"copyright" : {
-			"owner" : "New York State Education Department",
-			"year" : "2012",
-			"imageName" : "nysed.png"
-		},
-		"author" : "New York State Education Department",
-		"sourceUrl" : "www.p12.nysed.gov/apda/common-core-sample-questions",
-		"licenseType" : "CC BY"
-	},
-	"published":false,
-	"data" : {
-		"name" : "data",
-		"files" : [
-			{
-				"_t" : "models.item.resource.VirtualFile",
-				"name" : "qti.xml",
-				"contentType" : "text/xml",
-				"isMain" : true,
-				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n   <correctResponseFeedback>Correct!</correctResponseFeedback>\n    <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>\n\n\n    <responseDeclaration identifier='hunter' cardinality='multiple' baseType='identifier'>\n        <correctResponse>\n            <value>A</value>\n        </correctResponse>\n    </responseDeclaration>\n    <itemBody>\n    <p class=\"intro-2\">Read the story <i>The Hawks and Their Friends</i> by Ellen C. Babbitt and examine the vocabulary.</p>\n    \n   <cs-tabs>\n<cs-tab title=\"Passage\">\n<resource \n    type=\"passage\"\n    title=\"The Hawks and Their Friends by Ellen C. Babbitt\"\n    copyrightOwner=\"Gutenberg\"\n    licenseType=\"CC BY\"\n\turl=\"http://www.gutenberg.com\"\n\t/>\n\n<h1 class=\"text-centered\">The Hawks and Their Friends</h1>\n<center class=\"author-name\">\nby Ellen C. Babbitt\n        </center>\n\n\n<div class=\"numbered-lines\">\n<p class=\"leading-200-percent\">\n<line>A family of Hawks lived on the western shore of a lake not far from the great forest. On the northern shore of this lake lived a Lion, King of Beasts. On the eastern shore lived Kingfisher. On the southern shore of the lake lived a Turtle.</line>\n<line>“Have you many friends near here?” the Mother Hawk asked the Father Hawk.</line>\n<line>“No, not one in this part of the forest,” he said.</line>\n<line>“You must find some friends. We must have someone who can help us if ever we are in danger, or in trouble,” said the Mother Hawk.</line>\n<line>“With whom shall I make friends?” asked the Father Hawk. “With the Kingfisher, who lives on the eastern shore, and with the Lion on the north,” said the Mother Hawk, “and with the Turtle who lives on the southern shore of this lake.”</line>\n<line>The Father Hawk did so.</line>\n<line>One day men hunted in the great forest from morning until night, but found nothing. Not wishing to go home empty-handed, they went to the western shore of the lake to see what they could find there. “Let us stay here to-night,” they said, “and see what we can find in the morning.”</line>\n<line>So they made beds of leaves for themselves and lay down to sleep. They had made their beds under the tree in which the Hawks had their nest. But the hunters could not go to sleep because they were bothered by the flies and mosquitoes.</line>\n<line>At last the hunters got up and made a fire, so that the smoke would drive away the flies and mosquitoes.</line>\n<line>The smoke awoke the birds, and the young ones cried out.</line>\n<line>“Did you hear that?” said one of the hunters. “That was the cry of birds! They will do very well for our breakfast. There are young ones in that nest.” And the hunters put more wood on the fire, and made it blaze up.</line>\n<line>Then the Mother bird said to the Father: “These men are planning to eat our young ones. \nWe must ask our friends to save us. Go to the Kingfisher and tell him what danger we are in.”</line>\n<line>The Father Hawk flew with all speed to the Kingfisher’s nest and woke him with his cry.</line>\n<line>“Why have you come?” asked the Kingfisher.</line>\n<line>Then the Father Hawk told the Kingfisher what the hunters planned to do. “Fear not,” said the Kingfisher.</line>\n<line>“I will help you. Go back quickly and comfort my friend your mate, and say that I am coming.”</line>\n<line>So the Father Hawk flew back to his nest, and the Kingfisher flew to the western shore \nand went into the lake near the place where the fire was burning.</line>\n<line>While the Father Hawk was away, the hunters had climbed up into the tree. Just as they neared the nest, the Kingfisher, beating the water with his wings, sprinkled water on the fire and put it out.</line>\n<line>Down came the hunters to make another fire. When it was burning well they climbed the tree again.</line>\n<line>Once more the Kingfisher put it out. As often as a fire was made, the Kingfisher put it out.</line>\n<line>Midnight came and the Kingfisher was now very tired.</line>\n<line>The Mother Hawk noticed this and said to her mate: \n“The Kingfisher is tired out. Go and ask the Turtle to help us so that the Kingfisher may have a rest.”</line>\n<line>The Father Hawk flew down and said, “Rest awhile, Friend Kingfisher; I will go and get the Turtle.”</line>\n<line>So the Father Hawk flew to the southern shore and wakened the Turtle. “What is your errand, Friend?” asked the Turtle.</line>\n<line>“Danger has come to us,” said the Father Hawk, and he told the Turtle about the hunters.\n“The Kingfisher has been working for hours, and now he is very tired. That is why I have come to you.”</line>\n<line>The Turtle said, “I will help you at once.” Then the Turtle went to the western shore where the Hawks lived.\nHe dived into the water, collected some mud and put out the fire with it. Then he lay still.</line>\n<line>The hunters cried: “Why should we bother to get the young Hawks? Let us kill this Turtle. He will make a fine breakfast for all of us. We must be careful or he will bite us. Let us throw a net over him and turn him over.”</line>\n<line>They had no nets with them, so they took some vines, and tore their clothes into strings and made a net. But when they had put the net all over the Turtle, they could not roll him over. Instead, the Turtle suddenly dived down into the deep water.</line>\n<line>The men were so eager to get him that they did not let go of the net, so down they went into the water. But the Turtle escaped.</line>\n<line>As they came out they said: “Half the night a Kingfisher kept putting out our fires. Now we have torn our clothes and got all wet trying to get this Turtle. We will build another fire, and at sunrise we will eat those young Hawks.”</line>\n<line>And they began to build another fire. The Mother Hawk heard them, and said to her mate: \n“Sooner or later these men will get our young. Do go and tell our friend the Lion.”</line>\n<line>At once the Father Hawk flew to the Lion.</line>\n<line>“Why do you come at this hour of the night?” asked the Lion.</line>\n<line>The Hawk told him the whole story. The Lion said: “I will come at once. You go back and comfort your mate and the young ones.”</line>\n<line>Soon the Lion came roaring. When the hunters heard the Lion’s roar they cried, \n“Now we shall all be killed.” And away they ran as fast as they could go.</line>\n<line>When the Lion came to the foot of the tree, not one of the hunters was to be seen. \nThen the Kingfisher and the Turtle came up, and the Hawks said: “You have saved us. Friends in need are friends indeed.”</line>\n</p>\n</div>\n\n<div class=\"note-tip\">Adapted from <i>More Jataka Tales</i></div>\n<div class=\"note-tip\">www.gutenberg.org</div>\n\n</cs-tab>\n</cs-tabs>\n        \n        \n         <focusTaskInteraction responseIdentifier='hunter' checkIfCorrect='yes' itemShape='circle' minSelections='1' maxSelections='1' shuffle='false'>\n            <prompt>Based on the text, which word best describes the hunters?</prompt>\n            <focusChoice identifier='A'>determined</focusChoice>\n            <focusChoice identifier='B'>brave</focusChoice>\n            <focusChoice identifier='C'>skillful</focusChoice>\n            <focusChoice identifier='D'>considerate</focusChoice>\n        </focusTaskInteraction>\n\n        <feedbackBlock outcomeIdentifier='responses.hunter.outcome.responsesBelowMin' identifier='id1'>\n            <div class='feedback-block-incorrect'>Select the word that best describes the hunters.</div>\n        </feedbackBlock>\n        \n         \n        <feedbackBlock outcomeIdentifier='responses.hunter.outcome.responsesExceedMax' identifier='id2'>\n            <div class='feedback-block-incorrect'>You may only select 1 word that best describes the hunters.</div>\n        </feedbackBlock>\n \n <feedbackBlock outcomeIdentifier='responses.hunter.outcome.responsesCorrect' identifier='id3'>\n            <div class='feedback-block-correct'>Correct!</div>\n        </feedbackBlock>\n\n        <feedbackBlock outcomeIdentifier='responses.hunter.outcome.responsesIncorrect' identifier='idb4'>\n           <div class='feedback-block-incorrect'>Good try. The word that best describes hunters is \"determined\".</div></feedbackBlock>\n       \n\n\n        \n\n        \n       \n    </itemBody>\n\n</assessmentItem>\n"
-			}
-		]
-	},
-	"demonstratedKnowledge" : "Conceptual",
-	"keySkills" : [
-		"Analyze",
-		"Examine",
-		"Point-Out",
-		"Interpret",
-		"Indicate"
-	],
-	"priorGradeLevel" : [ ],
-	"priorUse" : "Formative",
-	"reviewsPassed" : [
-		"Editorial"
-	],
-	"standards" : [
-		"RL.4.3"
-	],
-	"supportingMaterials" : [ ],
-	"workflow" : {
-		"setup" : true,
-		"tagged" : true,
-		"standardsAligned" : true,
-		"qaReview" : false
-	},
-	"taskInfo" : {
-		"subjects" : {
-			"primary" : {
-				"$oid" : "4ffb535f6bb41e469c0bf2ad"
-			}
-		},
-		"gradeLevel" : [
-			"04"
-		],
-	    "itemType" : "Focus Task",
-		"title" : "Read the story <i>The Hawks and Their Friends</i> by Ellen C. Babbitt and determine word best describes the hunters."
-	}
+  "_id": {
+    "_id": {
+      "$oid": "50098908e4b0f123a2d54c98"
+    },
+    "version": 0
+  },
+  "bloomsTaxonomy": "Analyzing",
+  "collectionId": "505777f5e4b05f7845735bc1",
+  "contentType": "item",
+  "contributorDetails": {
+    "contributor": "New York State Education Department",
+    "credentials": "State Department of Education",
+    "copyright": {
+      "owner": "New York State Education Department",
+      "year": "2012",
+      "imageName": "nysed.png"
+    },
+    "author": "New York State Education Department",
+    "sourceUrl": "www.p12.nysed.gov/apda/common-core-sample-questions",
+    "licenseType": "CC BY"
+  },
+  "published": false,
+  "data": {
+    "name": "data",
+    "files": [
+      {
+        "_t": "models.item.resource.VirtualFile",
+        "name": "qti.xml",
+        "contentType": "text/xml",
+        "isMain": true,
+        "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- Thie example adapted from the PET Handbook, copyright University of Cambridge ESOL Examinations -->\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n                xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n                xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n                title=\"\" adaptive=\"false\" timeDependent=\"false\">\n   <correctResponseFeedback>Correct!</correctResponseFeedback>\n    <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>\n\n\n    <responseDeclaration identifier='hunter' cardinality='multiple' baseType='identifier'>\n        <correctResponse>\n            <value>A</value>\n        </correctResponse>\n    </responseDeclaration>\n    <itemBody>\n    <p class=\"intro-2\">Read the story <i>The Hawks and Their Friends</i> by Ellen C. Babbitt and examine the vocabulary.</p>\n    \n   <cs-tabs>\n<cs-tab title=\"Passage\">\n<resource \n    type=\"passage\"\n    title=\"The Hawks and Their Friends by Ellen C. Babbitt\"\n    copyrightOwner=\"Gutenberg\"\n    licenseType=\"CC BY\"\n\turl=\"http://www.gutenberg.com\"\n\t/>\n\n<h1 class=\"text-centered\">The Hawks and Their Friends</h1>\n<center class=\"author-name\">\nby Ellen C. Babbitt\n        </center>\n\n\n<div class=\"numbered-lines\">\n<p class=\"leading-200-percent\">\n<line>A family of Hawks lived on the western shore of a lake not far from the great forest. On the northern shore of this lake lived a Lion, King of Beasts. On the eastern shore lived Kingfisher. On the southern shore of the lake lived a Turtle.</line>\n<line>“Have you many friends near here?” the Mother Hawk asked the Father Hawk.</line>\n<line>“No, not one in this part of the forest,” he said.</line>\n<line>“You must find some friends. We must have someone who can help us if ever we are in danger, or in trouble,” said the Mother Hawk.</line>\n<line>“With whom shall I make friends?” asked the Father Hawk. “With the Kingfisher, who lives on the eastern shore, and with the Lion on the north,” said the Mother Hawk, “and with the Turtle who lives on the southern shore of this lake.”</line>\n<line>The Father Hawk did so.</line>\n<line>One day men hunted in the great forest from morning until night, but found nothing. Not wishing to go home empty-handed, they went to the western shore of the lake to see what they could find there. “Let us stay here to-night,” they said, “and see what we can find in the morning.”</line>\n<line>So they made beds of leaves for themselves and lay down to sleep. They had made their beds under the tree in which the Hawks had their nest. But the hunters could not go to sleep because they were bothered by the flies and mosquitoes.</line>\n<line>At last the hunters got up and made a fire, so that the smoke would drive away the flies and mosquitoes.</line>\n<line>The smoke awoke the birds, and the young ones cried out.</line>\n<line>“Did you hear that?” said one of the hunters. “That was the cry of birds! They will do very well for our breakfast. There are young ones in that nest.” And the hunters put more wood on the fire, and made it blaze up.</line>\n<line>Then the Mother bird said to the Father: “These men are planning to eat our young ones. \nWe must ask our friends to save us. Go to the Kingfisher and tell him what danger we are in.”</line>\n<line>The Father Hawk flew with all speed to the Kingfisher’s nest and woke him with his cry.</line>\n<line>“Why have you come?” asked the Kingfisher.</line>\n<line>Then the Father Hawk told the Kingfisher what the hunters planned to do. “Fear not,” said the Kingfisher.</line>\n<line>“I will help you. Go back quickly and comfort my friend your mate, and say that I am coming.”</line>\n<line>So the Father Hawk flew back to his nest, and the Kingfisher flew to the western shore \nand went into the lake near the place where the fire was burning.</line>\n<line>While the Father Hawk was away, the hunters had climbed up into the tree. Just as they neared the nest, the Kingfisher, beating the water with his wings, sprinkled water on the fire and put it out.</line>\n<line>Down came the hunters to make another fire. When it was burning well they climbed the tree again.</line>\n<line>Once more the Kingfisher put it out. As often as a fire was made, the Kingfisher put it out.</line>\n<line>Midnight came and the Kingfisher was now very tired.</line>\n<line>The Mother Hawk noticed this and said to her mate: \n“The Kingfisher is tired out. Go and ask the Turtle to help us so that the Kingfisher may have a rest.”</line>\n<line>The Father Hawk flew down and said, “Rest awhile, Friend Kingfisher; I will go and get the Turtle.”</line>\n<line>So the Father Hawk flew to the southern shore and wakened the Turtle. “What is your errand, Friend?” asked the Turtle.</line>\n<line>“Danger has come to us,” said the Father Hawk, and he told the Turtle about the hunters.\n“The Kingfisher has been working for hours, and now he is very tired. That is why I have come to you.”</line>\n<line>The Turtle said, “I will help you at once.” Then the Turtle went to the western shore where the Hawks lived.\nHe dived into the water, collected some mud and put out the fire with it. Then he lay still.</line>\n<line>The hunters cried: “Why should we bother to get the young Hawks? Let us kill this Turtle. He will make a fine breakfast for all of us. We must be careful or he will bite us. Let us throw a net over him and turn him over.”</line>\n<line>They had no nets with them, so they took some vines, and tore their clothes into strings and made a net. But when they had put the net all over the Turtle, they could not roll him over. Instead, the Turtle suddenly dived down into the deep water.</line>\n<line>The men were so eager to get him that they did not let go of the net, so down they went into the water. But the Turtle escaped.</line>\n<line>As they came out they said: “Half the night a Kingfisher kept putting out our fires. Now we have torn our clothes and got all wet trying to get this Turtle. We will build another fire, and at sunrise we will eat those young Hawks.”</line>\n<line>And they began to build another fire. The Mother Hawk heard them, and said to her mate: \n“Sooner or later these men will get our young. Do go and tell our friend the Lion.”</line>\n<line>At once the Father Hawk flew to the Lion.</line>\n<line>“Why do you come at this hour of the night?” asked the Lion.</line>\n<line>The Hawk told him the whole story. The Lion said: “I will come at once. You go back and comfort your mate and the young ones.”</line>\n<line>Soon the Lion came roaring. When the hunters heard the Lion’s roar they cried, \n“Now we shall all be killed.” And away they ran as fast as they could go.</line>\n<line>When the Lion came to the foot of the tree, not one of the hunters was to be seen. \nThen the Kingfisher and the Turtle came up, and the Hawks said: “You have saved us. Friends in need are friends indeed.”</line>\n</p>\n</div>\n\n<div class=\"note-tip\">Adapted from <i>More Jataka Tales</i></div>\n<div class=\"note-tip\">www.gutenberg.org</div>\n\n</cs-tab>\n</cs-tabs>\n        \n        \n         <focusTaskInteraction responseIdentifier='hunter' checkIfCorrect='yes' itemShape='circle' minSelections='1' maxSelections='1' shuffle='false'>\n            <prompt>Based on the text, which word best describes the hunters?</prompt>\n            <focusChoice identifier='A'>determined</focusChoice>\n            <focusChoice identifier='B'>brave</focusChoice>\n            <focusChoice identifier='C'>skillful</focusChoice>\n            <focusChoice identifier='D'>considerate</focusChoice>\n        </focusTaskInteraction>\n\n        <feedbackBlock outcomeIdentifier='responses.hunter.outcome.responsesBelowMin' identifier='id1'>\n            <div class='feedback-block-incorrect'>Select the word that best describes the hunters.</div>\n        </feedbackBlock>\n        \n         \n        <feedbackBlock outcomeIdentifier='responses.hunter.outcome.responsesExceedMax' identifier='id2'>\n            <div class='feedback-block-incorrect'>You may only select 1 word that best describes the hunters.</div>\n        </feedbackBlock>\n \n <feedbackBlock outcomeIdentifier='responses.hunter.outcome.responsesCorrect' identifier='id3'>\n            <div class='feedback-block-correct'>Correct!</div>\n        </feedbackBlock>\n\n        <feedbackBlock outcomeIdentifier='responses.hunter.outcome.responsesIncorrect' identifier='idb4'>\n           <div class='feedback-block-incorrect'>Good try. The word that best describes hunters is \"determined\".</div></feedbackBlock>\n       \n\n\n        \n\n        \n       \n    </itemBody>\n\n</assessmentItem>\n"
+      }
+    ]
+  },
+  "demonstratedKnowledge": "Conceptual",
+  "keySkills": [
+    "Analyze",
+    "Examine",
+    "Point-Out",
+    "Interpret",
+    "Indicate"
+  ],
+  "priorGradeLevel": [
+
+  ],
+  "priorUse": "Formative",
+  "reviewsPassed": [
+    "Editorial"
+  ],
+  "standards": [
+    "RL.4.3"
+  ],
+  "supportingMaterials": [
+
+  ],
+  "workflow": {
+    "setup": true,
+    "tagged": true,
+    "standardsAligned": true,
+    "qaReview": false
+  },
+  "taskInfo": {
+    "subjects": {
+      "primary": {
+        "$oid": "4ffb535f6bb41e469c0bf2ad"
+      }
+    },
+    "gradeLevel": [
+      "04"
+    ],
+    "itemType": "Focus Task",
+    "title": "Read the story <i>The Hawks and Their Friends</i> by Ellen C. Babbitt and determine word best describes the hunters."
+  }
 }

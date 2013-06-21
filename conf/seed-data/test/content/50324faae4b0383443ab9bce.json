@@ -1,67 +1,76 @@
 {
-	"_id" : {
-		"$oid" : "50324faae4b0383443ab9bce"
-	},
-	"collectionId" : "505777f5e4b05f7845735bc1",
-	"contentType" : "item",
-	"contributorDetails" : {
-		"contributor" : "Illustrative Mathematics",
-		"credentials" : "Other",
-		"copyright" : {
-			"owner" : "Illustrative Mathematics",
-			"year" : "2012",
-			"imageName" : "illustrativemathematics.png"
-		},
-		"author" : "Illustrative Mathematics",
-		"sourceUrl" : "www.illustrativemathematics.org",
-		"licenseType" : "CC BY-NC"
-	},
-	"published":false,
-	"data" : {
-		"name" : "data",
-		"files" : [
-			{
-				"_t" : "models.item.resource.VirtualFile",
-				"name" : "qti.xml",
-				"contentType" : "text/xml",
-				"isMain" : true,
-				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n   <responseDeclaration identifier='temps' cardinality='ordered' baseType='identifier'>\n        <correctResponse>\n            <value>c</value>\n            <value>d</value>\n            <value>b</value>\n            <value>g</value>\n            <value>e</value>\n            <value>a</value>\n             <value>f</value>\n        </correctResponse>\n    </responseDeclaration>\n\n    <correctResponseFeedback>Correct!</correctResponseFeedback>\n\t<incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>\n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceB</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_03\" cardinality=\"single\" baseType=\"string\"/>\n\n    <correctResponseFeedback>Correct!</correctResponseFeedback>\n    <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>\n    <responseDeclaration identifier=\"Q_04\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceD</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_05\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value></value> \n        </correctResponse> \n    </responseDeclaration>\n\n    <itemBody>\n\n<p class=\"intro-2\"><u>Part A</u>: Here are the low temperatures (in Celsius) for one week in Juneau, Alaska:</p>\n    \n    <table>\n<tr>\n<td><b>Monday</b></td>\n<td><b>Tuesday</b></td>\n<td><b>Wednesday</b></td>\n<td><b>Thursday</b></td>\n<td><b>Friday</b></td>\n<td><b>Saturday</b></td>\n<td><b>Sunday</b></td>\n</tr>\n<tr>\n<td>5</td>\n<td>-1</td>\n<td>-6</td>\n<td>-2</td>\n<td>3</td>\n<td>7</td>\n<td>0</td>\n</tr>\n</table>\n\n  \n<p class=\"prompt\">Arrange them in order from coldest to warmest temperature.</p>\n\n  <orderInteraction responseIdentifier='temps' shuffle='true' csOrderingType='placement'\n                          orientation='horizontal'>\n            <prompt>Please select the letters of the alphabet and put them into ascending order:</prompt>\n            <simpleChoice identifier='a' fixed='true'>5</simpleChoice>\n            <simpleChoice identifier='b'>-1</simpleChoice>\n            <simpleChoice identifier='c'>-6</simpleChoice>\n            <simpleChoice identifier='d'>-2</simpleChoice>\n            <simpleChoice identifier='e'>3</simpleChoice>\n            <simpleChoice identifier='f'>7</simpleChoice>\n            <simpleChoice identifier='g'>0</simpleChoice>\n        </orderInteraction>\n        \n<p/>\n<p><u>Part B</u>: On a winter day, the low temperature in Anchorage was 23 degrees below zero (in °<i>C</i>) and the low temperature in Minneapolis was 14 degrees below zero (in °<i>C</i>).</p>\n\n<p>Sophia wrote,</p>\n        <p class= \"p-indent-20\"><i>Minneapolis was colder because</i> <math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mrow>\n    <mrow>\n     <mo stretchy=\"false\">−</mo>\n     <mn>14</mn>\n    </mrow>\n    <mo stretchy=\"false\">&lt;</mo>\n    <mrow>\n     <mo stretchy=\"false\">−</mo>\n     <mn>23</mn>\n    </mrow>\n   </mrow>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">-14 &lt; -23</annotation>\n </semantics>\n</math>.</p>\n\n\n    <choiceInteraction responseIdentifier=\"Q_02\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>Is Sophia correct?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">Yes<feedbackInline identifier=\"ChoiceA\" defaultFeedback=\"true\"/>\n</simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">No<feedbackInline identifier=\"ChoiceB\" defaultFeedback=\"true\"/>\n</simpleChoice>\n        </choiceInteraction>\n\n<p class=\"prompt\">Explain your answer.</p>\n        <extendedTextInteraction responseIdentifier=\"Q_03\" expectedLength=\"200\" class=\"answer-5-linebox\"/>\n\n<p><u>Part C</u>: The lowest temperature ever recorded on earth was −89°<i>C</i> in Antarctica. The average temperature on Mars is about −55°<i>C</i>.</p>\n\n        \n         <choiceInteraction responseIdentifier=\"Q_04\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>Which is warmer, the coldest temperature on earth or the average temperature on Mars?</prompt>\n            <simpleChoice identifier=\"ChoiceC\">the coldest temperature on earth<feedbackInline identifier=\"ChoiceC\" defaultFeedback=\"true\"/>\n</simpleChoice>\n            <simpleChoice identifier=\"ChoiceD\">the average temperature on Mars<feedbackInline identifier=\"ChoiceD\" defaultFeedback=\"true\"/>\n</simpleChoice>\n        </choiceInteraction>\n\n<p class=\"prompt\">Write an inequality to support your answer.</p>\n        <p class= \"p-indent-20\"><extendedTextInteraction responseIdentifier=\"Q_05\" expectedLength=\"200\" class=\"answer-5-linebox\"/></p>\n\n        \n    </itemBody>\n</assessmentItem>\n"
-			},
-			{
-				"_t" : "models.item.resource.StoredFile",
-				"name" : "6NStemps.png",
-				"contentType" : "image/png",
-				"isMain" : false,
-				"storageKey" : "50324faae4b0383443ab9bce/6NStemps.png"
-			}
-		]
-	},
-	"keySkills" : [ ],
-	"priorGradeLevel" : [ ],
-	"priorUse" : "Formative",
-	"reviewsPassed" : [
-		"Editorial"
-	],
-	"standards" : [
-		"6.NS.C.7b"
-	],
-	"supportingMaterials" : [ ],
-	"workflow" : {
-		"setup" : false,
-		"tagged" : false,
-		"standardsAligned" : false,
-		"qaReview" : false
-	},
-	"taskInfo" : {
-		"subjects" : {
-			"primary" : {
-				"$oid" : "4ffb535f6bb41e469c0bf2c2"
-			}
-		},
-		"gradeLevel" : [
-			"06"
-		],
-	    "itemType" : "Constructed Response - Short Answer",
-		"title" : "The low temperatures (in Celsius) for one week in Juneau, Alaska are listed in a table. Answer questions about the given temperatures."
-	}
+  "_id": {
+    "_id": {
+      "$oid": "50324faae4b0383443ab9bce"
+    },
+    "version": 0
+  },
+  "collectionId": "505777f5e4b05f7845735bc1",
+  "contentType": "item",
+  "contributorDetails": {
+    "contributor": "Illustrative Mathematics",
+    "credentials": "Other",
+    "copyright": {
+      "owner": "Illustrative Mathematics",
+      "year": "2012",
+      "imageName": "illustrativemathematics.png"
+    },
+    "author": "Illustrative Mathematics",
+    "sourceUrl": "www.illustrativemathematics.org",
+    "licenseType": "CC BY-NC"
+  },
+  "published": false,
+  "data": {
+    "name": "data",
+    "files": [
+      {
+        "_t": "models.item.resource.VirtualFile",
+        "name": "qti.xml",
+        "contentType": "text/xml",
+        "isMain": true,
+        "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n   <responseDeclaration identifier='temps' cardinality='ordered' baseType='identifier'>\n        <correctResponse>\n            <value>c</value>\n            <value>d</value>\n            <value>b</value>\n            <value>g</value>\n            <value>e</value>\n            <value>a</value>\n             <value>f</value>\n        </correctResponse>\n    </responseDeclaration>\n\n    <correctResponseFeedback>Correct!</correctResponseFeedback>\n\t<incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>\n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceB</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_03\" cardinality=\"single\" baseType=\"string\"/>\n\n    <correctResponseFeedback>Correct!</correctResponseFeedback>\n    <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>\n    <responseDeclaration identifier=\"Q_04\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceD</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_05\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value></value> \n        </correctResponse> \n    </responseDeclaration>\n\n    <itemBody>\n\n<p class=\"intro-2\"><u>Part A</u>: Here are the low temperatures (in Celsius) for one week in Juneau, Alaska:</p>\n    \n    <table>\n<tr>\n<td><b>Monday</b></td>\n<td><b>Tuesday</b></td>\n<td><b>Wednesday</b></td>\n<td><b>Thursday</b></td>\n<td><b>Friday</b></td>\n<td><b>Saturday</b></td>\n<td><b>Sunday</b></td>\n</tr>\n<tr>\n<td>5</td>\n<td>-1</td>\n<td>-6</td>\n<td>-2</td>\n<td>3</td>\n<td>7</td>\n<td>0</td>\n</tr>\n</table>\n\n  \n<p class=\"prompt\">Arrange them in order from coldest to warmest temperature.</p>\n\n  <orderInteraction responseIdentifier='temps' shuffle='true' csOrderingType='placement'\n                          orientation='horizontal'>\n            <prompt>Please select the letters of the alphabet and put them into ascending order:</prompt>\n            <simpleChoice identifier='a' fixed='true'>5</simpleChoice>\n            <simpleChoice identifier='b'>-1</simpleChoice>\n            <simpleChoice identifier='c'>-6</simpleChoice>\n            <simpleChoice identifier='d'>-2</simpleChoice>\n            <simpleChoice identifier='e'>3</simpleChoice>\n            <simpleChoice identifier='f'>7</simpleChoice>\n            <simpleChoice identifier='g'>0</simpleChoice>\n        </orderInteraction>\n        \n<p/>\n<p><u>Part B</u>: On a winter day, the low temperature in Anchorage was 23 degrees below zero (in °<i>C</i>) and the low temperature in Minneapolis was 14 degrees below zero (in °<i>C</i>).</p>\n\n<p>Sophia wrote,</p>\n        <p class= \"p-indent-20\"><i>Minneapolis was colder because</i> <math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mrow>\n    <mrow>\n     <mo stretchy=\"false\">−</mo>\n     <mn>14</mn>\n    </mrow>\n    <mo stretchy=\"false\">&lt;</mo>\n    <mrow>\n     <mo stretchy=\"false\">−</mo>\n     <mn>23</mn>\n    </mrow>\n   </mrow>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">-14 &lt; -23</annotation>\n </semantics>\n</math>.</p>\n\n\n    <choiceInteraction responseIdentifier=\"Q_02\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>Is Sophia correct?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">Yes<feedbackInline identifier=\"ChoiceA\" defaultFeedback=\"true\"/>\n</simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">No<feedbackInline identifier=\"ChoiceB\" defaultFeedback=\"true\"/>\n</simpleChoice>\n        </choiceInteraction>\n\n<p class=\"prompt\">Explain your answer.</p>\n        <extendedTextInteraction responseIdentifier=\"Q_03\" expectedLength=\"200\" class=\"answer-5-linebox\"/>\n\n<p><u>Part C</u>: The lowest temperature ever recorded on earth was −89°<i>C</i> in Antarctica. The average temperature on Mars is about −55°<i>C</i>.</p>\n\n        \n         <choiceInteraction responseIdentifier=\"Q_04\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>Which is warmer, the coldest temperature on earth or the average temperature on Mars?</prompt>\n            <simpleChoice identifier=\"ChoiceC\">the coldest temperature on earth<feedbackInline identifier=\"ChoiceC\" defaultFeedback=\"true\"/>\n</simpleChoice>\n            <simpleChoice identifier=\"ChoiceD\">the average temperature on Mars<feedbackInline identifier=\"ChoiceD\" defaultFeedback=\"true\"/>\n</simpleChoice>\n        </choiceInteraction>\n\n<p class=\"prompt\">Write an inequality to support your answer.</p>\n        <p class= \"p-indent-20\"><extendedTextInteraction responseIdentifier=\"Q_05\" expectedLength=\"200\" class=\"answer-5-linebox\"/></p>\n\n        \n    </itemBody>\n</assessmentItem>\n"
+      },
+      {
+        "_t": "models.item.resource.StoredFile",
+        "name": "6NStemps.png",
+        "contentType": "image/png",
+        "isMain": false,
+        "storageKey": "50324faae4b0383443ab9bce/6NStemps.png"
+      }
+    ]
+  },
+  "keySkills": [
+
+  ],
+  "priorGradeLevel": [
+
+  ],
+  "priorUse": "Formative",
+  "reviewsPassed": [
+    "Editorial"
+  ],
+  "standards": [
+    "6.NS.C.7b"
+  ],
+  "supportingMaterials": [
+
+  ],
+  "workflow": {
+    "setup": false,
+    "tagged": false,
+    "standardsAligned": false,
+    "qaReview": false
+  },
+  "taskInfo": {
+    "subjects": {
+      "primary": {
+        "$oid": "4ffb535f6bb41e469c0bf2c2"
+      }
+    },
+    "gradeLevel": [
+      "06"
+    ],
+    "itemType": "Constructed Response - Short Answer",
+    "title": "The low temperatures (in Celsius) for one week in Juneau, Alaska are listed in a table. Answer questions about the given temperatures."
+  }
 }

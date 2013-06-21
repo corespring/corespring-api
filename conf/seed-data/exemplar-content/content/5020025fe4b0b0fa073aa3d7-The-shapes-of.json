@@ -1,79 +1,82 @@
 {
+  "_id": {
     "_id": {
-        "$oid": "5020025fe4b0b0fa073aa3d7"
+      "$oid": "5020025fe4b0b0fa073aa3d7"
     },
-    "data": {
-        "name": "data",
-        "files": [
-            {
-                "_t": "models.item.resource.VirtualFile",
-                "name": "qti.xml",
-                "contentType": "text/xml",
-                "isMain": true,
-                "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"multiple\" baseType=\"string\"> \n        <correctResponse> \n            <value>8</value> \n            <value>8.0</value> \n            <value>eight</value>\n            <value>EIGHT</value>\n        </correctResponse> \n    </responseDeclaration> \n    \n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"string\"/> \n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_03\" cardinality=\"multiple\" baseType=\"string\"> \n        <correctResponse> \n            <value>16</value>\n            <value>16.0</value> \n            <value>sixteen</value> \n            <value>SIXTEEN</value> \n        </correctResponse> \n    </responseDeclaration>\n    \n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_04\" cardinality=\"single\" baseType=\"string\"/> \n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_05\" cardinality=\"multiple\" baseType=\"string\"> \n        <correctResponse> \n            <value>2</value>\n            <value>2.0</value>\n        </correctResponse> \n    </responseDeclaration>\n \n     <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_06\" cardinality=\"single\" baseType=\"string\"/> \n \n    <itemBody>\n<p class=\"intro-2\">The shapes of these three greeting cards are similar rectangles. The cards are not drawn to scale.</p>\n<div class=\"imagewrapper\"><img src=\"15Cards.png\"></img></div>\n        \n<p class=\"prompt\">What is the length, in inches, of the side labeled <i>w</i> on Card 2? </p>\n\n<p class=\"prompt\">Side <i>w</i> measures \n        <textEntryInteraction responseIdentifier=\"Q_01\" expectedLength=\"10\" class=\"textarea.answer_5_linebox\"></textEntryInteraction> \n        inches in length.</p>\n        \n            <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"8\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n     <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"8.0\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n     <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"eight\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n     <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"EIGHT\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n   \n \n    <!-- this is for any response not defined as a correct response in responseDeclaration -->\n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         incorrectResponse=\"true\">\n            <div class=\"feedback-block-incorrect\">Good try, but side <i>w</i> measures 8 inches in length.</div>\n     </feedbackBlock>\n        \n        <p class=\"prompt\">How do you know?</p>\n        <extendedTextInteraction responseIdentifier=\"Q_02\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\" class=\"textarea.answer_5_linebox\"></extendedTextInteraction>\n        <p/>\n        \n        <p class=\"prompt\">The area of Card 2 is how many times as great as the area of Card 1?</p> \n        <p/>\n        <p class=\"prompt\"> The area of Card 2 is <textEntryInteraction responseIdentifier=\"Q_03\" expectedLength=\"10\"></textEntryInteraction> times as great as the area of Card 1.</p>\n        \n              <feedbackBlock\n         outcomeIdentifier=\"responses.Q_03.value\"\n         identifier=\"16\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n     <feedbackBlock\n         outcomeIdentifier=\"responses.Q_03.value\"\n         identifier=\"16.0\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n     <feedbackBlock\n         outcomeIdentifier=\"responses.Q_03.value\"\n         identifier=\"sixteen\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n     <feedbackBlock\n         outcomeIdentifier=\"responses.Q_03.value\"\n         identifier=\"SIXTEEN\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n    \n    <!-- this is for any response not defined as a correct response in responseDeclaration -->\n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_03.value\"\n         incorrectResponse=\"true\">\n            <div class=\"feedback-block-incorrect\">Good try, the area is <b>16</b> times as great!</div> \n    </feedbackBlock> \n        \n        <p class=\"prompt\">How do you know?</p>\n<extendedTextInteraction responseIdentifier=\"Q_04\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\" class=\"textarea.answer_5_linebox\"></extendedTextInteraction>  \n        \n        <p class=\"prompt\">The sides of Card 3 are <i>n</i> times as long as the sides of Card 1. The area of Card 3 is how many times as great as the area of Card 1? </p> \n        \n        <p class=\"prompt\">The area of Card 3 is <sub><i>n</i></sub><textEntryInteraction responseIdentifier=\"Q_05\" expectedLength=\"5\" class=\"textarea.answer_5_linebox\"></textEntryInteraction> times as great as the area of Card 1.</p>\n        \n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_05.value\"\n         identifier=\"2\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct, the area is <b><i>n</i><sup>2</sup></b> times as great!</div>\n    </feedbackBlock>\n     <feedbackBlock\n         outcomeIdentifier=\"responses.Q_05.value\"\n         identifier=\"2.0\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct, the area is <b><i>n</i><sup>2</sup></b> times as great!</div>\n    </feedbackBlock>\n    \n     <!-- this is for any response not defined as a correct response in responseDeclaration -->\n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_05.value\"\n         incorrectResponse=\"true\">\n            <div class=\"feedback-block-incorrect\">Good try, the area is <b><i>n</i><sup>2</sup></b> times as great!</div> \n    </feedbackBlock> \n        \n        <p class=\"prompt\">How do you know?</p>\n        <extendedTextInteraction responseIdentifier=\"Q_06\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\" class=\"textarea.answer_5_linebox\"></extendedTextInteraction>  \n    \n\n    </itemBody>\n</assessmentItem>"
-            },
-            {
-                "_t": "models.item.resource.StoredFile",
-                "name": "15Cards.png",
-                "isMain": false,
-                "storageKey": "5020025fe4b0b0fa073aa3d7/15Cards.png",
-                "contentType": "image/png"
-            }
-        ]
-    },
-    "published":true,
-    "collectionId": "505777f5e4b05f7845735bc1",
-    "standards": [
-        "8.G.A.4"
-    ],
-    "contributorDetails": {
-        "contributor": "New England Common Assessment Program",
-        "credentials": "State Department of Education",
-        "author": "New England Common Assessment Program",
-        "sourceUrl": "www.ride.ri.gov/assessment/necap.aspx",
-        "licenseType": "CC BY",
-        "costForResource": null,
-        "copyright": {
-            "owner": "New England Common Assessment Program",
-            "year": "2011"
-        }
-    },
-    "workflow": {
-        "setup": true,
-        "tagged": true,
-        "standardsAligned": true,
-        "qaReview": false
-    },
-    "priorUse": "Summative",
-    "reviewsPassed": [
-        "Editorial",
-        "Bias",
-        "Fairness",
-        "Content",
-        "Psychometric"
-    ],
-    "otherAlignments": {
-        "bloomsTaxonomy": "Applying",
-        "keySkills": [
-            "Express",
-            "Apply",
-            "Compute",
-            "Solve",
-            "Calculate"
-        ],
-        "demonstratedKnowledge": "Conceptual",
-        "relatedCurriculum": "New England Common Assessment Program Released Items"
-    },
-    "taskInfo": {
-        "subjects": {
-            "primary": {
-                "$oid": "4ffb535f6bb41e469c0bf2c2"
-            }
-        },
-        "gradeLevel": [
-            "08"
-        ],
-        "title": "The shapes of these three greeting cards are similar rectangles. Calculate the length, width, and area  of cards for which the data is missing.  Show your work to  explain your answers.",
-        "itemType": "Constructed Response - Short Answer"
+    "version": 0
+  },
+  "data": {
+    "name": "data",
+    "files": [
+      {
+        "_t": "models.item.resource.VirtualFile",
+        "name": "qti.xml",
+        "contentType": "text/xml",
+        "isMain": true,
+        "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"multiple\" baseType=\"string\"> \n        <correctResponse> \n            <value>8</value> \n            <value>8.0</value> \n            <value>eight</value>\n            <value>EIGHT</value>\n        </correctResponse> \n    </responseDeclaration> \n    \n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"string\"/> \n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_03\" cardinality=\"multiple\" baseType=\"string\"> \n        <correctResponse> \n            <value>16</value>\n            <value>16.0</value> \n            <value>sixteen</value> \n            <value>SIXTEEN</value> \n        </correctResponse> \n    </responseDeclaration>\n    \n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_04\" cardinality=\"single\" baseType=\"string\"/> \n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_05\" cardinality=\"multiple\" baseType=\"string\"> \n        <correctResponse> \n            <value>2</value>\n            <value>2.0</value>\n        </correctResponse> \n    </responseDeclaration>\n \n     <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_06\" cardinality=\"single\" baseType=\"string\"/> \n \n    <itemBody>\n<p class=\"intro-2\">The shapes of these three greeting cards are similar rectangles. The cards are not drawn to scale.</p>\n<div class=\"imagewrapper\"><img src=\"15Cards.png\"></img></div>\n        \n<p class=\"prompt\">What is the length, in inches, of the side labeled <i>w</i> on Card 2? </p>\n\n<p class=\"prompt\">Side <i>w</i> measures \n        <textEntryInteraction responseIdentifier=\"Q_01\" expectedLength=\"10\" class=\"textarea.answer_5_linebox\"></textEntryInteraction> \n        inches in length.</p>\n        \n            <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"8\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n     <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"8.0\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n     <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"eight\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n     <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"EIGHT\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n   \n \n    <!-- this is for any response not defined as a correct response in responseDeclaration -->\n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         incorrectResponse=\"true\">\n            <div class=\"feedback-block-incorrect\">Good try, but side <i>w</i> measures 8 inches in length.</div>\n     </feedbackBlock>\n        \n        <p class=\"prompt\">How do you know?</p>\n        <extendedTextInteraction responseIdentifier=\"Q_02\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\" class=\"textarea.answer_5_linebox\"></extendedTextInteraction>\n        <p/>\n        \n        <p class=\"prompt\">The area of Card 2 is how many times as great as the area of Card 1?</p> \n        <p/>\n        <p class=\"prompt\"> The area of Card 2 is <textEntryInteraction responseIdentifier=\"Q_03\" expectedLength=\"10\"></textEntryInteraction> times as great as the area of Card 1.</p>\n        \n              <feedbackBlock\n         outcomeIdentifier=\"responses.Q_03.value\"\n         identifier=\"16\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n     <feedbackBlock\n         outcomeIdentifier=\"responses.Q_03.value\"\n         identifier=\"16.0\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n     <feedbackBlock\n         outcomeIdentifier=\"responses.Q_03.value\"\n         identifier=\"sixteen\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n     <feedbackBlock\n         outcomeIdentifier=\"responses.Q_03.value\"\n         identifier=\"SIXTEEN\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n    \n    <!-- this is for any response not defined as a correct response in responseDeclaration -->\n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_03.value\"\n         incorrectResponse=\"true\">\n            <div class=\"feedback-block-incorrect\">Good try, the area is <b>16</b> times as great!</div> \n    </feedbackBlock> \n        \n        <p class=\"prompt\">How do you know?</p>\n<extendedTextInteraction responseIdentifier=\"Q_04\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\" class=\"textarea.answer_5_linebox\"></extendedTextInteraction>  \n        \n        <p class=\"prompt\">The sides of Card 3 are <i>n</i> times as long as the sides of Card 1. The area of Card 3 is how many times as great as the area of Card 1? </p> \n        \n        <p class=\"prompt\">The area of Card 3 is <sub><i>n</i></sub><textEntryInteraction responseIdentifier=\"Q_05\" expectedLength=\"5\" class=\"textarea.answer_5_linebox\"></textEntryInteraction> times as great as the area of Card 1.</p>\n        \n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_05.value\"\n         identifier=\"2\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct, the area is <b><i>n</i><sup>2</sup></b> times as great!</div>\n    </feedbackBlock>\n     <feedbackBlock\n         outcomeIdentifier=\"responses.Q_05.value\"\n         identifier=\"2.0\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct, the area is <b><i>n</i><sup>2</sup></b> times as great!</div>\n    </feedbackBlock>\n    \n     <!-- this is for any response not defined as a correct response in responseDeclaration -->\n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_05.value\"\n         incorrectResponse=\"true\">\n            <div class=\"feedback-block-incorrect\">Good try, the area is <b><i>n</i><sup>2</sup></b> times as great!</div> \n    </feedbackBlock> \n        \n        <p class=\"prompt\">How do you know?</p>\n        <extendedTextInteraction responseIdentifier=\"Q_06\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\" class=\"textarea.answer_5_linebox\"></extendedTextInteraction>  \n    \n\n    </itemBody>\n</assessmentItem>"
+      },
+      {
+        "_t": "models.item.resource.StoredFile",
+        "name": "15Cards.png",
+        "isMain": false,
+        "storageKey": "5020025fe4b0b0fa073aa3d7/15Cards.png",
+        "contentType": "image/png"
+      }
+    ]
+  },
+  "published": true,
+  "collectionId": "505777f5e4b05f7845735bc1",
+  "standards": [
+    "8.G.A.4"
+  ],
+  "contributorDetails": {
+    "contributor": "New England Common Assessment Program",
+    "credentials": "State Department of Education",
+    "author": "New England Common Assessment Program",
+    "sourceUrl": "www.ride.ri.gov/assessment/necap.aspx",
+    "licenseType": "CC BY",
+    "costForResource": null,
+    "copyright": {
+      "owner": "New England Common Assessment Program",
+      "year": "2011"
     }
+  },
+  "workflow": {
+    "setup": true,
+    "tagged": true,
+    "standardsAligned": true,
+    "qaReview": false
+  },
+  "priorUse": "Summative",
+  "reviewsPassed": [
+    "Editorial",
+    "Bias",
+    "Fairness",
+    "Content",
+    "Psychometric"
+  ],
+  "otherAlignments": {
+    "bloomsTaxonomy": "Applying",
+    "keySkills": [
+      "Express",
+      "Apply",
+      "Compute",
+      "Solve",
+      "Calculate"
+    ],
+    "demonstratedKnowledge": "Conceptual",
+    "relatedCurriculum": "New England Common Assessment Program Released Items"
+  },
+  "taskInfo": {
+    "subjects": {
+      "primary": {
+        "$oid": "4ffb535f6bb41e469c0bf2c2"
+      }
+    },
+    "gradeLevel": [
+      "08"
+    ],
+    "title": "The shapes of these three greeting cards are similar rectangles. Calculate the length, width, and area  of cards for which the data is missing.  Show your work to  explain your answers.",
+    "itemType": "Constructed Response - Short Answer"
+  }
 }
