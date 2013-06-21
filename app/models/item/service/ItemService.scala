@@ -13,8 +13,9 @@ trait ItemServiceClient {
 
 trait ItemService extends BaseItemService[VersionedId[ObjectId]]
 
+
 trait BaseItemService[ID] {
-  def cloneItem(id: ID): Option[Item]
+  def cloneItem(item:Item): Option[Item]
 
   def findFieldsById(id: ID, fields: DBObject = new BasicDBObject()): Option[DBObject]
 
