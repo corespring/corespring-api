@@ -11,6 +11,9 @@ import org.joda.time.DateTime
 import play.api.libs.json._
 import resource.Resource
 import scala._
+import models.mongoContext._
+import com.novus.salat._
+import com.novus.salat.global._
 
 case class Item(
                  var collectionId: String = "",
@@ -31,7 +34,7 @@ case class Item(
                  var taskInfo: Option[TaskInfo] = None,
                  var otherAlignments: Option[Alignments] = None,
                  var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())) extends Content with EntityWithVersionedId[ObjectId] {
-  def sessionCount: Int = DefaultItemSession.find(MongoDBObject("itemId" -> id)).count
+  def sessionCount: Int = DefaultItemSession.find(MongoDBObject("itemId" -> grater[VersionedId[ObjectId]].asDBObject(id))).count
 
   def cloneItem: Item = {
     val taskInfoCopy = taskInfo.getOrElse(TaskInfo(title = Some(""))).cloneInfo("[copy]")

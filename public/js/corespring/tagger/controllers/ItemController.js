@@ -236,7 +236,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.showSaveWarning=false
   $scope.itemVersion = 1
   $scope.$on("dataLoaded",function(newValue,oldValue){
-      $scope.itemVersion = $scope.itemData.version+1
+      console.log("dataLoaded called: "+JSON.stringify($scope.itemData))
+      $scope.itemVersion = parseInt($scope.itemData.id.split(":")[1])+1
       $scope.isPublished = $scope.itemData.published
   })
   //*****************************//
