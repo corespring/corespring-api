@@ -4,6 +4,7 @@ import interactions._
 import qti.models.QtiItem.Correctness
 import scala.Some
 import scala.xml._
+import common.log.PackageLogging
 
 case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline]) {
   var defaultCorrect = "Correct!"
@@ -341,23 +342,28 @@ object CorrectResponseOrdered {
   )
 }
 
-case class CorrectResponseTargeted(value: Map[String, String]) extends CorrectResponse {
+case class CorrectResponseTargeted(value: Map[String, List[String]]) extends CorrectResponse with PackageLogging {
+
   def isCorrect(responseValue: String) = {
     val responseList = responseValue.split(",").toList
-    value.toList.map(it=>it._1+":"+it._2) == responseList
+    value.toList.map(it=>it._1+":"+it._2.mkString("|")) == responseList
   }
 
   def isValueCorrect(v: String, index: Option[Int]) = {
-    val answer = v.split(":")(0)
-    val target = v.split(":")(1)
+    val parts = v.split(":")
+    val answer = parts(0)
+    val target = parts(1)
     value(answer) == target
   }
 }
 
 object CorrectResponseTargeted {
-  def apply(node: Node): CorrectResponseTargeted = CorrectResponseTargeted(
-    (node \ "value").map(e => e.text.split(":")(0) -> e.text.split(":")(1)).toMap
-  )
+  def apply(node: Node): CorrectResponseTargeted = {
+    val map = (node \ "value").map(e => e.text.split(":")(0) -> e.text.split(":")(1).split(",").toList).toMap
+    CorrectResponseTargeted(
+      map
+    )
+  }
 }
 
 case class Mapping(mapEntries: Map[String, Float], defaultValue: Option[Float]) {

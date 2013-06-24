@@ -1,11 +1,9 @@
 <assessmentItem>
-    <responseDeclaration identifier="alphabet1" cardinality="ordered" baseType="identifier">
+    <responseDeclaration identifier="alphabet1" cardinality="targeted" baseType="identifier">
         <correctResponse>
-            <value>apple:target1</value>
-            <value>pear:target1</value>
-            <value>cow:target2</value>
-            <value>car:target3</value>
-            <value>bus:target3</value>
+            <value>target1:apple,pear</value>
+            <value>target2:cow</value>
+            <value>target3:car,bus</value>
         </correctResponse>
     </responseDeclaration>
 

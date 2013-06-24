@@ -1,5 +1,5 @@
 <assessmentItem>
-    <responseDeclaration identifier="alphabet1" cardinality="ordered" baseType="identifier">
+    <responseDeclaration identifier="alphabet1" cardinality="targeted" baseType="identifier">
         <correctResponse>
             <value>ten:target1</value>
             <value>divide:target2</value>

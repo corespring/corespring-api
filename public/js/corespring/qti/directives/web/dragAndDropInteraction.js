@@ -51,9 +51,15 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         }, function whenItemsChange() {
           var response = [];
           for (var target in $scope.targetMap) {
-            var answer = $scope.listTargets[$scope.targetMap[target]].id;
-            if (answer) response.push(answer + ":" + target);
+            var idx = $scope.targetMap[target];
+            var targetElement = $scope.listTargets[idx];
+            if (targetElement.indexOf)
+              response.push(target + ":" + _.pluck(targetElement, "id").join("|"));
+            else {
+              response.push(target + ":" + targetElement.id);
+            }
           }
+          console.log(response);
           AssessmentItemCtrl.setResponse($scope.responseIdentifier, response);
         });
 
@@ -112,7 +118,9 @@ angular.module('qti.directives').directive("draggableanswer", function (QtiUtils
 
         $scope.$watch("listAnswers[" + $scope.$index + "]", function () {
           $scope.itemContent = $scope.listAnswers[$scope.$index];
-          $scope.itemContent.title = $scope.contentMap[$scope.listAnswers[$scope.$index].id];
+          try {
+            $scope.itemContent.title = $scope.contentMap[$scope.listAnswers[$scope.$index].id];
+          } catch (e) {}
         });
 
         $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
