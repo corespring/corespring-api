@@ -13,7 +13,10 @@
   "questions": [
     {
       "itemId": {
-        "$oid": "50083ba9e4b071cb5ef79101"
+        "_id": {
+          "$oid": "50083ba9e4b071cb5ef79101"
+        },
+        "version": 0
       },
       "settings": {
         "maxNoOfAttempts": 0,
@@ -31,7 +34,10 @@
     },
     {
       "itemId": {
-        "$oid": "50d755c6e4b0ebcda4e2fbb6"
+        "_id": {
+          "$oid": "50d755c6e4b0ebcda4e2fbb6"
+        },
+        "version": 0
       },
       "settings": {
         "maxNoOfAttempts": 0,
@@ -49,7 +55,10 @@
     },
     {
       "itemId": {
-        "$oid": "504e9571e4b07f3e2e432371"
+        "_id": {
+          "$oid": "504e9571e4b07f3e2e432371"
+        },
+        "version": 0
       },
       "settings": {
         "maxNoOfAttempts": 0,

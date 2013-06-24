@@ -10,7 +10,10 @@
   "questions": [
     {
       "itemId": {
-        "$oid": "50083ba9e4b071cb5ef79101"
+        "_id": {
+          "$oid": "50083ba9e4b071cb5ef79101"
+        },
+        "version": 0
       },
       "title": "This item has Qti.xml and supporting materials",
       "standards": [
@@ -18,5 +21,7 @@
       ]
     }
   ],
-  "participants": []
+  "participants": [
+
+  ]
 }

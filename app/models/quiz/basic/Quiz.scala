@@ -3,7 +3,7 @@ package models.quiz.basic
 import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao.{SalatDAO, ModelCompanion}
-import models.item.TaskInfo
+import models.item.{Item, TaskInfo}
 import models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
 import models.itemSession.{DefaultItemSession, ItemSession, ItemSessionSettings}
 import models.quiz.{BaseParticipant, BaseQuestion}
@@ -15,6 +15,7 @@ import play.api.libs.json._
 import scala.Some
 import se.radley.plugin.salat._
 import org.corespring.platform.data.mongo.models.VersionedId
+import models.versioning.VersionedIdImplicits
 
 case class Answer(sessionId: ObjectId, itemId: ObjectId)
 
@@ -116,9 +117,10 @@ trait QuestionLike {
   implicit object Writes extends Writes[Question] {
     def writes(q: Question): JsValue = {
 
+      import VersionedIdImplicits.Writes
       JsObject(
         Seq(
-          Some("itemId" -> JsString(q.itemId.toString)),
+          Some("itemId" -> toJson(q.itemId)),
           if (q.settings != null) Some("settings" -> toJson(q.settings)) else None,
           q.title.map("title" -> JsString(_)),
           Some("standards" -> JsArray(q.standards.map(JsString(_))))
@@ -128,10 +130,14 @@ trait QuestionLike {
   }
 
   def bindItemToQuestion(question: Question): Question = {
-    itemService.find(
-      MongoDBObject("_id" -> question.itemId),
+    itemService.findFieldsById(
+      question.itemId,
       MongoDBObject("taskInfo.title" -> 1, "standards" -> 1)).toList.headOption match {
-      case Some(item) => {
+      case Some(dbo) => {
+        import models.mongoContext.context
+        import com.novus.salat._
+        import com.mongodb.casbah.Imports._
+        val item : Item = grater[Item].asObject(dbo)
         val title = item.taskInfo.getOrElse(TaskInfo(title = Some(""))).title
         val standards = item.standards
         question.copy(

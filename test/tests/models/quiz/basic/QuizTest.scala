@@ -113,8 +113,8 @@ class QuizTest extends BaseTest{
 
     "update adds item info" in {
 
-      val queryItem = MongoDBObject("_id" -> new ObjectId("50b653a1e4b0ec03f29344b0"))
-      itemService.findOne(queryItem) match {
+      val id = VersionedId(new ObjectId("50b653a1e4b0ec03f29344b0"))
+      itemService.findOneById(id) match {
         case Some(i) => {
 
           i.taskInfo match {

@@ -8,7 +8,10 @@
   "questions": [
     {
       "itemId": {
-        "$oid": "5153eee1aa2eefdc1b7a5570"
+        "_id": {
+          "$oid": "5153eee1aa2eefdc1b7a5570"
+        },
+        "version": 0
       },
       "title": "Test Quiz"
     }
