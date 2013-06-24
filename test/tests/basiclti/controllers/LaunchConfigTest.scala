@@ -50,7 +50,9 @@ class LaunchConfigTest extends Specification{
 
   private def update(quiz: LtiQuiz): LtiQuiz = {
     val call = Routes.update(quiz.id)
-    val jsValue = toJson(quiz)
+    val jsValue = LtiQuiz.Writes.writes(quiz)
+
+    println("jsValue: " + jsValue)
     val request = FakeRequest(call.method, call.url, FakeHeaders(), AnyContentAsJson(jsValue))
     callAndReturnModel(addSessionInfo(quiz, request))
   }

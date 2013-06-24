@@ -80,7 +80,7 @@ trait BaseTest extends Specification with ItemServiceClient {
     }
   }
 
-  def versionedId(oid: String): VersionedId[ObjectId] = VersionedId(new ObjectId(oid))
+  def versionedId(oid: String, v : Int = 0): VersionedId[ObjectId] = VersionedId(new ObjectId(oid), Some(v))
 
 
   // TODO: Something's wrong with this, but when it works it will be a useful shorthand

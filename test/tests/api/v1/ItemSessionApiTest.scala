@@ -24,6 +24,7 @@ import models.itemSession.{DefaultItemSession, StringItemResponse, ItemSessionSe
 import utils.RequestCalling
 import play.mvc.Call
 import org.corespring.platform.data.mongo.models.VersionedId
+import api.v1.ItemSessionApi
 
 class ItemSessionApiTest extends BaseTest{
 
@@ -68,14 +69,15 @@ class ItemSessionApiTest extends BaseTest{
 
   def createNewSession(itemId: String = IDs.Item, content: AnyContent = defaultNewSessionContent): ItemSession = {
 
-    invokeCall[ItemSession](
-      Routes.create(versionedId(itemId)),
-      content
-    )
+    val result = ItemSessionApi.create(versionedId(itemId))(FakeRequest("", tokenize(""), FakeHeaders(), content))
+    val json = Json.parse(contentAsString(result))
+    json.as[ItemSession]
   }
 
   def get(sessionId: String, itemId: String): ItemSession = {
-    invokeCall[ItemSession](Routes.get(versionedId(itemId), new ObjectId(sessionId)), AnyContentAsEmpty)
+    val result = ItemSessionApi.get(versionedId(itemId), new ObjectId(sessionId))(FakeRequest("", tokenize(""), FakeHeaders(), AnyContentAsEmpty))
+    val json = Json.parse(contentAsString(result))
+    json.as[ItemSession]
   }
 
   def processResponse(session: ItemSession): ItemSession = {
@@ -178,7 +180,7 @@ class ItemSessionApiTest extends BaseTest{
     "only use the item id set in the url" in {
       val session = ItemSession(itemId = VersionedId(new ObjectId()))
       val newSession = createNewSession(IDs.Item, AnyContentAsJson(Json.toJson(session)))
-      newSession.itemId.toString must equalTo(IDs.Item)
+      newSession.itemId must equalTo(versionedId(IDs.Item))
     }
   }
 

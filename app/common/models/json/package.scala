@@ -15,10 +15,14 @@ package object json {
 
     trait JerksonWrites[A] extends Writes[A] {
       def writes(c: A) = {
-        play.api.libs.json.Json.parse(CorespringJson.generate(c))
+        println("Writes ---> " + c)
+        val json = CorespringJson.generate(c)
+        println("Writes ---> " + json)
+        play.api.libs.json.Json.parse(json)
       }
     }
 
+    @deprecated("will be removed once we move to 2.1.1 and the Format macro it provides", "2.1.1")
     trait JerksonReads[A] extends Reads[A] {
 
       //TODO: Any way we can avoid having to do this?
@@ -49,9 +53,10 @@ package object json {
     }
 
     @JsonCachable
-    class VersionedIdSerializer extends JsonSerializer[VersionedId[ObjectId]] {
-      def serialize(id:VersionedId[ObjectId], json : JsonGenerator, provider : SerializerProvider) {
+    class VersionedIdSerializer extends JsonSerializer[VersionedId[_]] {
+      def serialize(id:VersionedId[_], json : JsonGenerator, provider : SerializerProvider) {
         import models.versioning.VersionedIdImplicits.Binders._
+        println("versioned id writes ... > " + id)
         json.writeString( versionedIdToString(id.asInstanceOf[VersionedId[ObjectId]]))
       }
     }
@@ -66,9 +71,9 @@ package object json {
     object CorespringJson extends com.codahale.jerkson.Json {
       val module = new SimpleModule("CorespringJson", Version.unknownVersion())
       module.addSerializer( classOf[ObjectId], new ObjectIdSerializer)
-      module.addSerializer( classOf[VersionedId[ObjectId]], new VersionedIdSerializer)
+      module.addSerializer( classOf[VersionedId[_]], new VersionedIdSerializer)
       module.addDeserializer(classOf[ObjectId], new ObjectIdDeserializer)
-      module.addDeserializer(classOf[VersionedId[ObjectId]], new VersionedIdDeserializer)
+      module.addDeserializer(classOf[VersionedId[_]], new VersionedIdDeserializer)
       mapper.registerModule(module)
     }
 

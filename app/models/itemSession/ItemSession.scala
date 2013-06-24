@@ -3,7 +3,7 @@ package models.itemSession
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import common.log.PackageLogging
-import controllers.InternalError
+import controllers.{JsonValidationException, InternalError}
 import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
 import models.item.service.{ItemServiceImpl, ItemService}
 import models.mongoContext._
@@ -99,7 +99,7 @@ object ItemSession {
 
       import VersionedIdImplicits.Reads
       ItemSession(
-        itemId = (json \ itemId).as[VersionedId[ObjectId]],
+        itemId = (json \ itemId).asOpt[VersionedId[ObjectId]].getOrElse(throw new JsonValidationException("You must have an item id")),
         start = (json \ start).asOpt[Long].map(new DateTime(_)),
         finish = (json \ finish).asOpt[Long].map(new DateTime(_)),
         responses = (json \ responses).asOpt[Seq[ItemResponse]].getOrElse(Seq()),
@@ -108,8 +108,6 @@ object ItemSession {
     }
 
   }
-
-  private def noItemIdSpecified : RuntimeException = new RuntimeException("No item id specified")
 
 }
 

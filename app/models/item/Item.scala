@@ -146,9 +146,9 @@ object Item {
 
       try {
         import models.versioning.VersionedIdImplicits.Reads
-        item.id = (json \ id).as[VersionedId[ObjectId]]
+        item.id = (json \ id).asOpt[VersionedId[ObjectId]].getOrElse(VersionedId(new ObjectId()))
       } catch {
-        case e: IllegalArgumentException => throw new JsonValidationException(id)
+        case e: Throwable => throw new JsonValidationException(id)
       }
       item
     }
