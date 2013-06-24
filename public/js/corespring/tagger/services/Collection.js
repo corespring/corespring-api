@@ -4,6 +4,7 @@ angular.module('tagger.services')
         ServiceLookup.getUrlFor('collection') + '/:id',
         { },
         {
+            create: {method:'POST'},
             update:{ method:'PUT' },
             count:{method:'GET', isArray:false},
             get: {method: 'GET', isArray: true}

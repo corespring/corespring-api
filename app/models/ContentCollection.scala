@@ -1,6 +1,5 @@
 package models
 
-import item.Content
 import org.bson.types.ObjectId
 import mongoContext._
 import se.radley.plugin.salat._
@@ -22,11 +21,14 @@ import play.api.Play
 import controllers.auth.Permission
 import search.Searchable
 import models.item.service.ItemServiceImpl
+import scalaz.{Failure, Success, Validation}
 
 /**
  * A ContentCollection
  */
-case class ContentCollection(var name: String = "", var isPublic: Boolean = false, var id: ObjectId = new ObjectId())
+case class ContentCollection(var name: String = "", var isPublic: Boolean = false, var id: ObjectId = new ObjectId()){
+  lazy val itemCount:Int = ItemServiceImpl.find(MongoDBObject("collectionId" -> id.toString)).count
+}
 
 object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with Searchable{
   val name = "name"
@@ -81,33 +83,56 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
     }
   }
 
-  def delete(collId:ObjectId):Either[InternalError,Unit] = {
+  def delete(collId:ObjectId):Validation[InternalError,Unit] = {
+    //todo: roll backs after detecting error in organization update
     try{
-
-      val itemsInCollectionCount = ItemServiceImpl.collection.count(MongoDBObject(Content.collectionId -> collId) )
-
-      if(itemsInCollectionCount > 0 ){
-        Left(InternalError("You must delete all items first before deleting the collection"))
-      } else {
-
-        ContentCollection.removeById(collId)
-        Organization.find(MongoDBObject(Organization.contentcolls+"."+ContentCollRef.collectionId -> collId)).foldRight[Either[InternalError,Unit]](Right(()))((org,result) => {
-          if (result.isRight){
-            org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
-            try {
-              Organization.update(MongoDBObject("_id" -> org.id),org,false,false,Organization.defaultWriteConcern)
-              Right(())
-            }catch {
-              case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
-            }
-          }else result
-        })
-
-      }
+      ContentCollection.removeById(collId)
+      Organization.find(MongoDBObject(Organization.contentcolls+"."+ContentCollRef.collectionId -> collId)).foldRight[Validation[InternalError,Unit]](Success(()))((org,result) => {
+        if (result.isSuccess){
+          org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
+          try {
+            Organization.update(MongoDBObject("_id" -> org.id),org,false,false,Organization.defaultWriteConcern)
+            Success(())
+          }catch {
+            case e:SalatDAOUpdateError => Failure(InternalError(e.getMessage))
+          }
+        }else result
+      })
     }catch{
-      case e:SalatDAOUpdateError => Left(InternalError("failed to transfer collection to archive", e))
-      case e:SalatRemoveError => Left(InternalError(e.getMessage))
+      case e:SalatDAOUpdateError => Failure(InternalError("failed to transfer collection to archive", e))
+      case e:SalatRemoveError => Failure(InternalError(e.getMessage))
     }
+  }
+//  def moveToArchive(collId:ObjectId):Either[InternalError,Unit] = {
+//    //todo: roll backs after detecting error in organization update
+//    try{
+//      Content.collection.update(MongoDBObject(Content.collectionId -> collId), MongoDBObject("$set" -> MongoDBObject(Content.collectionId -> ContentCollection.archiveCollId.toString)),
+//        false, false, Content.collection.writeConcern)
+//      ContentCollection.removeById(collId)
+//      Organization.find(MongoDBObject(Organization.contentcolls+"."+ContentCollRef.collectionId -> collId)).foldRight[Either[InternalError,Unit]](Right(()))((org,result) => {
+//        if (result.isRight){
+//          org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
+//          try {
+//            Organization.update(MongoDBObject("_id" -> org.id),org,false,false,Organization.defaultWriteConcern)
+//            Right(())
+//          }catch {
+//            case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
+//          }
+//        }else result
+//      })
+//    }catch{
+//      case e:SalatDAOUpdateError => Left(InternalError("failed to transfer collection to archive", e))
+//      case e:SalatRemoveError => Left(InternalError(e.getMessage))
+//    }
+//  }
+  def getContentCollRefs(orgId: ObjectId, p:Permission, deep:Boolean = true):Seq[ContentCollRef] = {
+    val cursor = if(deep)Organization.find(MongoDBObject(Organization.path -> orgId)) else Organization.find(MongoDBObject("_id" -> orgId))   //find the tree of the given organization
+    var seqcollid:Seq[ContentCollRef] = cursor.foldRight[Seq[ContentCollRef]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value)) //filter the collections that don't have the given permission
+    cursor.close()
+    if (p == Permission.Read){
+      seqcollid = (seqcollid ++ getPublicCollections.map(c => ContentCollRef(c.id))).distinct
+    }
+    seqcollid
   }
 
   def getCollectionIds(orgId: ObjectId, p:Permission, deep:Boolean = true): Seq[ObjectId] = {
@@ -146,7 +171,7 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
   }
 
   implicit object CollectionWrites extends Writes[ContentCollection] {
-    def writes(coll: ContentCollection) = {
+    def writes(coll: ContentCollection):JsValue = {
       var list = List[(String, JsString)]()
       if ( coll.name.nonEmpty ) list = ("name" -> JsString(coll.name)) :: list
       list = ("id" -> JsString(coll.id.toString)) :: list
@@ -156,4 +181,19 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
   override val searchableFields = Seq(
     name
   )
+}
+
+case class CollectionExtraDetails(coll:ContentCollection, access:Long)
+object CollectionExtraDetails{
+  implicit object CCWPWrites extends Writes[CollectionExtraDetails]{
+    def writes(c:CollectionExtraDetails):JsValue = {
+      JsObject(Seq(
+        "name" -> JsString(c.coll.name),
+        "permission" -> JsString(Permission.toHumanReadable(c.access)),
+        "itemCount" -> JsNumber(c.coll.itemCount),
+        "isPublic" -> JsBoolean(c.coll.isPublic),
+        "id" -> JsString(c.coll.id.toString)
+      ))
+    }
+  }
 }

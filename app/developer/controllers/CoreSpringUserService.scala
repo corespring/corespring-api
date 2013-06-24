@@ -47,10 +47,9 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
             user.id.id,
             user.fullName,
             user.email.getOrElse(""),
-            Seq(),
+            None,
             user.passwordInfo.getOrElse(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = "")).password,
             user.id.providerId,
-            false,
             new ObjectId())
 
         User.insertUser(corespringUser, AppConfig.demoOrgId, Permission.Read, checkOrgId = false)

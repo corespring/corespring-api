@@ -77,7 +77,7 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
    */
   private def objectId(itemId: String): Option[VersionedId[ObjectId]] = {
       import models.versioning.VersionedIdImplicits.Binders._
-stringToVersionedId(itemId)
+      stringToVersionedId(itemId)
   }
 
   def HasItem(itemId: String,

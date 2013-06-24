@@ -1,17 +1,21 @@
-function MainNavController($scope, $rootScope, $location, SearchService){
+function MainNavController($scope, $rootScope, $location, SearchService) {
 
-  $scope.$on('onSearchCountComplete', function(event, count){
+  "use strict";
+
+  $scope.$on('onSearchCountComplete', function (event, count) {
     $rootScope.resultCount = count;
   });
 
-  $scope.goToItem = function(itemId){
-      $location.path('/edit/' + itemId);
+  $scope.goToItem = function (itemId) {
+    $location.path('/edit/' + itemId);
   };
 
-  $scope.loadMore = function(index, onLoaded){
+  $scope.loadMore = function (index, onLoaded) {
     SearchService.loadMore(function () {
       $rootScope.items = SearchService.itemDataCollection;
-      if(onLoaded){ onLoaded() }
+      if (onLoaded) {
+        onLoaded();
+      }
     });
   };
 
@@ -22,13 +26,11 @@ function MainNavController($scope, $rootScope, $location, SearchService){
 
   $scope.$on('onEditViewOpened', function (evt) {
     console.log('received onEditViewOpened');
-    //$scope.updatePagerText();
     $scope.editViewOpen = true;
   });
 
   $scope.$on('createNewItem', function (evt) {
     $rootScope.items = [];
-    //$scope.updatePagerText();
   });
 }
 

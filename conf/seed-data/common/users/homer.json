@@ -7,13 +7,10 @@
   "fullName": "Homer Simpson",
   "email": "homersimpson@springfield.org",
   "password": "$2a$10$ztrohKSsxniXnLsTJyAJVOlye5DFYlMi3GUQH1SHkVSO5IH.E9O72",
-  "orgs": [
-    {
-      "orgId": {
-        "$oid": "502404dd0364dc35bb39339c"
-      },
-      "pval": 3
-    }
-  ],
-  "hasRegisteredOrg": true
+  "org": {
+    "orgId": {
+      "$oid": "502404dd0364dc35bb39339c"
+    },
+    "pval": 3
+  }
 }

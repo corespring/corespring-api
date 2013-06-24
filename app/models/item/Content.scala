@@ -7,8 +7,6 @@ import controllers.InternalError
 import controllers.auth.Permission
 import models.ContentCollection
 import org.corespring.platform.data.mongo.models.VersionedId
-import play.api.Play.current
-import se.radley.plugin.salat._
 import models.item.service.{ItemServiceImpl, ItemService}
 
 trait Content {

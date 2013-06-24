@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem>
+
+    <responseDeclaration identifier="Q_01" cardinality="single" baseType="string">
+        <correctResponse>
+            <value>correct answer</value>
+            <value>Correct answer</value>
+            <value>Correct Answer</value>
+            <value>CORRECT ANSWER</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+
+        <p class="p-indent-20">I'm trying to find out why<textEntryInteraction responseIdentifier="Q_01" expectedLength="5"/>Indeed
+        </p>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_01.value"
+                identifier="correct answer">
+            <div class="feedback-block-correct"><math xmlns="http://www.w3.org/1998/Math/MathML">
+                <semantics>
+                    <mrow>
+                        <mn>2</mn>
+                        <mfrac>
+                            <mn>1</mn>
+                            <mn>12</mn>
+                        </mfrac>
+                    </mrow>
+                    <annotation encoding="StarMath 5.0">2 1 over 12</annotation>
+                </semantics>
+            </math></div>
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_01.value"
+                identifier="Correct answer">
+            <div class="feedback-block-correct">Nice work, that's correct!</div>
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_01.value"
+                identifier="Correct Answer">
+            <div class="feedback-block-correct">Nice work, that's correct!</div>
+        </feedbackBlock>
+
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_01.value"
+                identifier="CORRECT ANSWER">
+            <div class="feedback-block-correct">Nice work, that's correct!</div>
+        </feedbackBlock>
+
+        <!-- this is for any response not defined as a correct response in responseDeclaration -->
+        <feedbackBlock
+                outcomeIdentifier="responses.Q_01.value"
+                incorrectResponse="true">
+            <div class="feedback-block-incorrect">Good try, but the answer is CORRECT ANSWER.</div>
+        </feedbackBlock>
+    </itemBody>
+</assessmentItem>

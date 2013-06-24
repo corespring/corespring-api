@@ -16,6 +16,7 @@ import scala.Some
 import scala.Right
 import com.novus.salat.dao.SalatMongoCursor
 import play.api.libs.json.JsObject
+import common.config.AppConfig
 
 /**
  * The Organization API
@@ -155,5 +156,4 @@ object OrganizationApi extends BaseApi {
       }
     }
   }
-
 }

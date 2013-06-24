@@ -2,11 +2,12 @@ package controllers.auth
 
 import api.ApiError
 import api.ApiError._
+import com.mongodb.casbah.Imports
+import common.log.PackageLogging
 import models.User
 import play.api.libs.json.{JsString, JsObject, Json}
 import play.api.mvc._
 import securesocial.core.SecureSocial
-import common.log.PackageLogging
 
 /**
  * A class that adds an AuthorizationContext to the Request object
@@ -133,14 +134,15 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
    * @return
    */
     def invokeAsUser[A](username: String, provider:String, request: Request[A])(f: ApiRequest[A]=>Result) = {
-      User.getUser(username, provider).map { user =>
-        Logger.debug("Using user in Play's session = " + username)
-        //TODO: check orgId is right
-        val ctx = new AuthorizationContext(user.orgs.head.orgId, Option(username),true)
+      def orgId : Option[Imports.ObjectId] = for{
+        u <- User.getUser(username, provider)
+        userOrg <- u.org
+      } yield userOrg.orgId
+
+      orgId.map{ id =>
+        val ctx = new AuthorizationContext(id, Option(username),true)
         f( ApiRequest(ctx, request, ""))
-      }.getOrElse(
-        Forbidden( Json.toJson(MissingCredentials) ).as(JSON)
-      )
+      }.getOrElse( Forbidden( Json.toJson(MissingCredentials) ).as(JSON) )
     }
 
   /**
