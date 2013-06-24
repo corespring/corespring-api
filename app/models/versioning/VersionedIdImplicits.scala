@@ -39,7 +39,7 @@ object VersionedIdImplicits {
       }
     }
 
-    def versionedIdToString(id:VersionedId[ObjectId]) : String =  id.version.map(id.id.toString + ":" + _).getOrElse(id.toString)
+    def versionedIdToString(id:VersionedId[ObjectId]) : String =  id.version.map(id.id.toString + ":" + _).getOrElse(id.id.toString)
 
 
     private def vId(id: String, v: Option[Int] = None): Option[VersionedId[ObjectId]] = if (ObjectId.isValid(id)) {

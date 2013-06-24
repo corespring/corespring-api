@@ -11,8 +11,9 @@ import player.accessControl.models.granter._
 import scala.Left
 import scala.Right
 import scala.Some
+import common.log.PackageLogging
 
-object CheckSessionAccess extends CheckSession {
+object CheckSessionAccess extends CheckSession{
 
   val sessionLookup: SessionItemLookup = new SessionItemLookup {
 
@@ -23,7 +24,9 @@ object CheckSessionAccess extends CheckSession {
 
     private def contains(companion:ItemSessionCompanion, id:ObjectId, itemId:ObjectId) : Boolean = {
       companion.findOneById(id) match {
-        case Some(s) => s.itemId == itemId
+        case Some(s) => {
+          s.itemId.id == itemId
+        }
         case _ => false
       }
     }
@@ -32,7 +35,7 @@ object CheckSessionAccess extends CheckSession {
   val quizLookup: QuizItemLookup = new QuizItemLookup {
     def containsItem(id: ObjectId, itemId: ObjectId): Boolean = {
       Quiz.findOneById(id) match {
-        case Some(q) => q.questions.exists(_.itemId == itemId)
+        case Some(q) => q.questions.exists(_.itemId.id == itemId)
         case _ => false
       }
     }

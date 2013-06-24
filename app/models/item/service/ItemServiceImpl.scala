@@ -113,7 +113,61 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
 
   def saveUsingDbo(id:VersionedId[ObjectId], dbo:DBObject, createNewVersion : Boolean = false) = dao.update(id, dbo, createNewVersion)
 
-  def save(i: Item, createNewVersion: Boolean = false) = dao.save(i.copy(dateModified = Some(new DateTime())), createNewVersion)
+  private def versionStoredFiles(item:Item,version:Int):Validation[SalatVersioningDaoException,Unit] = {
+    def versionS3File(sourceFile: StoredFile): String = {
+      val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/", "")
+      val oldStorageKeyVersionRemoved = oldStorageKeyIdRemoved.replaceAll("^\\d+?/","")
+      val newStorageKey = item.id.toString +"/"+ version +"/"+ oldStorageKeyVersionRemoved
+      s3service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, newStorageKey)
+      newStorageKey
+    }
+    //for each stored file in item, copy the file to the version path
+    try {
+      item.data.get.files.foreach {
+        file => file match {
+          case sf: StoredFile =>
+            val newKey = versionS3File(sf)
+            sf.storageKey = newKey
+          case _ =>
+        }
+      }
+      item.supportingMaterials.foreach {
+        sm =>
+          sm.files.filter(_.isInstanceOf[StoredFile]).foreach {
+            file =>
+              val sf = file.asInstanceOf[StoredFile]
+              val newKey = versionS3File(sf)
+              sf.storageKey = newKey
+          }
+      }
+      Success(())
+    } catch {
+      case r: RuntimeException =>
+        Logger.error("Error cloning some of the S3 files: " + r.getMessage)
+        Logger.error(r.getStackTrace.mkString("\n"))
+        Failure(SalatVersioningDaoException("Error cloning some of the S3 files: " + r.getMessage))
+    }
+  }
+
+  // three things occur here: 1. save the new item, 2. copy the old item's s3 files, 3. update the old item's stored files with the new s3 locations
+  // TODO if any of these three things fail, the database and s3 revert back to previous state
+  def save(item: Item, createNewVersion: Boolean = false) = {
+    val oldVersion = dao.currentVersion(item.id)
+    dao.save(item.copy(dateModified = Some(new DateTime())), createNewVersion)
+    val newVersion = dao.currentVersion(item.id)
+    if (newVersion > oldVersion){
+      dao.get(VersionedId[ObjectId](item.id.id,Some(oldVersion.toInt))) match {
+        case Some(oldItem) => versionStoredFiles(oldItem,oldVersion.toInt) match {
+          case Success(_) => dao.save(oldItem,false)
+          case Failure(e) => {
+            dao.revertToVersion(oldItem.id)
+            throw e
+          };
+        }
+        case None => throw SalatVersioningDaoException("could not find the most recently versioned item")
+      }
+    }
+  }
 
   def insert(i: Item): Option[VersionedId[ObjectId]] = dao.insert(i)
 
