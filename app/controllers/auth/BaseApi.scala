@@ -81,8 +81,13 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
         }.getOrElse {
           tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
             OAuthProvider.getAuthorizationContext(token).fold(
-              error => Forbidden(Json.toJson(error)).as(JSON),
-              ctx => { val result: PlainResult = f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
+              error => {
+                Logger.debug("Error getting authorization context")
+                Forbidden(Json.toJson(error)).as(JSON)
+              },
+              ctx => {
+                val result: PlainResult = f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
+                Logger.debug("returning result")
                 result
               }
             )

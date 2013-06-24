@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+require 'json'
+
+count = 0
+Dir["**/**/itemsessions/*.json"].each{ |f|
+  puts "found: #{f}"
+  json = File.read(f)
+  session = JSON.parse(json)
+
+  id = session["itemId"]
+  puts id
+
+  if id["_id"].nil?
+    session["itemId"] = { "_id" => id, :version => 0}
+  end
+
+  puts "writing: #{f}"
+  File.open(f,"w") do |fw|
+    fw.write(JSON.pretty_generate(session))
+  end
+}

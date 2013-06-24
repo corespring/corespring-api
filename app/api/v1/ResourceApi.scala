@@ -51,7 +51,7 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
                   p: BodyParser[A])(
                   action: ItemRequest[A] => Result
                   ) = ApiAction(p) { request =>
-    objectId(itemId) match {
+    convertStringToVersionedId(itemId) match {
       case Some(validId) => {
         service.findOneById(validId) match {
           case Some(item) => {
@@ -75,9 +75,10 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
    * @param itemId
    * @return an Option[ObjectId] or None if the id is invalid
    */
-  private def objectId(itemId: String): Option[VersionedId[ObjectId]] = {
+  private def convertStringToVersionedId(itemId: String): Option[VersionedId[ObjectId]] = {
+      Logger.debug("handle itemId: " + itemId)
       import models.versioning.VersionedIdImplicits.Binders._
-stringToVersionedId(itemId)
+      stringToVersionedId(itemId)
   }
 
   def HasItem(itemId: String,

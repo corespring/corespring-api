@@ -3,7 +3,10 @@
     "$oid": "515425f33004e34080967bb8"
   },
   "itemId": {
-    "$oid": "503c2e91e4b00f3f0a9a7a6a"
+    "_id": {
+      "$oid": "503c2e91e4b00f3f0a9a7a6a"
+    },
+    "version": 0
   },
   "attempts": 0,
   "start": {

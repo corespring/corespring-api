@@ -1,71 +1,82 @@
 {
-    "_id" : { "$oid" : "50aa12143004e43e523374e8" },
-    "attempts" : 2,
-    "finish" : { "$date" : 1353323048684 },
-    "itemId" : { "$oid" : "50083ba9e4b071cb5ef79101" },
-    "responses" : [
-        {
-            "_t" : "models.itemSession.StringItemResponse",
-            "_id" : "mexicanPresident",
-            "responseValue" : "cameron"
-        },
-        {
-            "_t" : "models.itemSession.StringItemResponse",
-            "_id" : "irishPresident",
-            "responseValue" : "robinson"
-        },
-        {
-            "_t" : "models.itemSession.ArrayItemResponse",
-            "_id" : "rainbowColors",
-            "responseValue" : [
-                "blue"
-            ]
-        },
-        {
-            "_t" : "models.itemSession.StringItemResponse",
-            "_id" : "winterDiscontent",
-            "responseValue" : "234"
-        },
-        {
-            "_t" : "models.itemSession.ArrayItemResponse",
-            "_id" : "wivesOfHenry",
-            "responseValue" : [
-                "parr",
-                "cleves",
-                "aragon",
-                "howard",
-                "boleyn",
-                "seymour"
-            ]
-        },
-        {
-            "_t" : "models.itemSession.ArrayItemResponse",
-            "_id" : "cutePugs",
-            "responseValue" : [
-                "pug1",
-                "pug2",
-                "pug3"
-            ]
-        },
-        {
-            "_t" : "models.itemSession.StringItemResponse",
-            "_id" : "longAnswer",
-            "responseValue" : "sedf"
-        },
-        {
-            "_t" : "models.itemSession.StringItemResponse",
-            "_id" : "manOnMoon",
-            "responseValue" : "aldrin"
-        }
-    ],
-    "settings" : {
-        "maxNoOfAttempts" : 0,
-        "highlightUserResponse" : true,
-        "highlightCorrectResponse" : true,
-        "showFeedback" : false,
-        "allowEmptyResponses" : false,
-        "submitCompleteMessage" : "Ok!",
-        "submitIncorrectMessage" : "You may revise your work before you submit it."
+  "_id": {
+    "$oid": "50aa12143004e43e523374e8"
+  },
+  "attempts": 2,
+  "finish": {
+    "$date": 1353323048684
+  },
+  "itemId": {
+    "_id": {
+      "$oid": "50083ba9e4b071cb5ef79101"
     },
-    "start" : { "$date" : 1353323044907 } 
+    "version": 0
+  },
+  "responses": [
+    {
+      "_t": "models.itemSession.StringItemResponse",
+      "_id": "mexicanPresident",
+      "responseValue": "cameron"
+    },
+    {
+      "_t": "models.itemSession.StringItemResponse",
+      "_id": "irishPresident",
+      "responseValue": "robinson"
+    },
+    {
+      "_t": "models.itemSession.ArrayItemResponse",
+      "_id": "rainbowColors",
+      "responseValue": [
+        "blue"
+      ]
+    },
+    {
+      "_t": "models.itemSession.StringItemResponse",
+      "_id": "winterDiscontent",
+      "responseValue": "234"
+    },
+    {
+      "_t": "models.itemSession.ArrayItemResponse",
+      "_id": "wivesOfHenry",
+      "responseValue": [
+        "parr",
+        "cleves",
+        "aragon",
+        "howard",
+        "boleyn",
+        "seymour"
+      ]
+    },
+    {
+      "_t": "models.itemSession.ArrayItemResponse",
+      "_id": "cutePugs",
+      "responseValue": [
+        "pug1",
+        "pug2",
+        "pug3"
+      ]
+    },
+    {
+      "_t": "models.itemSession.StringItemResponse",
+      "_id": "longAnswer",
+      "responseValue": "sedf"
+    },
+    {
+      "_t": "models.itemSession.StringItemResponse",
+      "_id": "manOnMoon",
+      "responseValue": "aldrin"
+    }
+  ],
+  "settings": {
+    "maxNoOfAttempts": 0,
+    "highlightUserResponse": true,
+    "highlightCorrectResponse": true,
+    "showFeedback": false,
+    "allowEmptyResponses": false,
+    "submitCompleteMessage": "Ok!",
+    "submitIncorrectMessage": "You may revise your work before you submit it."
+  },
+  "start": {
+    "$date": 1353323044907
+  }
 }

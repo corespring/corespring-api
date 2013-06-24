@@ -3,7 +3,6 @@ package tests.api.v1
 import api.ApiError
 import models.item.Item
 import models.item.resource.{BaseFile, VirtualFile, Resource}
-import org.bson.types.ObjectId
 import play.api.Play.current
 import play.api.libs.json.JsObject
 import play.api.libs.json.{Json, JsValue}
@@ -17,7 +16,11 @@ import tests.BaseTest
 
 class ResourceApiTest extends BaseTest {
 
-  def testItemId : String = testItem.id.toString
+
+  def testItemId : String = {
+    import models.versioning.VersionedIdImplicits.Binders._
+    versionedIdToString(testItem.id)
+  }
 
   val testRoutes : api.v1.ReverseResourceApi = api.v1.routes.ResourceApi
 
@@ -279,7 +282,9 @@ class ResourceApiTest extends BaseTest {
 
       val item = testItem
       val filename = "cute-rabbit.jpg"
-      val create = testRoutes.uploadFile(item.id.toString,"Rubric", filename)
+
+      import models.versioning.VersionedIdImplicits.Binders._
+      val create = testRoutes.uploadFile(versionedIdToString(item.id),"Rubric", filename)
       val file = Play.getFile("test/tests/files/" + filename)
       val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
       val byteArray = source.map(_.toByte).toArray
@@ -292,7 +297,7 @@ class ResourceApiTest extends BaseTest {
       val secondCall = call(create.url, create.method, byteArray, NOT_FOUND, ApiError.FilenameTaken.message)
       secondCall must equalTo((true, true))
 
-      val badUpdate = testRoutes.uploadFile(item.id.toString, "badResourceName", filename)
+      val badUpdate = testRoutes.uploadFile(versionedIdToString(item.id), "badResourceName", filename)
       val thirdCall = call(badUpdate.url, badUpdate.method, byteArray,  NOT_FOUND, ApiError.ResourceNotFound.message)
       thirdCall must equalTo((true, true))
     }
@@ -302,7 +307,8 @@ class ResourceApiTest extends BaseTest {
       val item = testItem
       val filename = "cute-rabbit.jpg"
 
-      val update = testRoutes.uploadFileToData(item.id.toString, filename)
+      import models.versioning.VersionedIdImplicits.Binders._
+      val update = testRoutes.uploadFileToData(versionedIdToString(item.id), filename)
       val file = Play.getFile("test/tests/files/" + filename)
       val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
       val byteArray = source.map(_.toByte).toArray

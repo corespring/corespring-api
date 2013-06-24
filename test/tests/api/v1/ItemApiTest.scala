@@ -63,7 +63,6 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
       val Some(result) = routeAndCall(fakeRequest)
       assertResult(result, allItemsCount)
     }
-
     "by collection" in {
       val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s".format(token))
       val Some(result) = routeAndCall(fakeRequest)
@@ -81,6 +80,8 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
       val Some(result) = routeAndCall(fakeRequest)
       assertResult(result, 2)
     }
+    /*
+    */
   }
 
 
@@ -105,6 +106,7 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
     }
 
   }
+
 
   "get" should {
 
@@ -286,6 +288,7 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
     }
     feedback
   }
+  /*
 
   "clone" should {
     "clone item" in {
@@ -303,5 +306,6 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
       there was atLeastTwo(mockS3service).cloneFile(anyString, anyString, anyString)
     }
   }
+  */
 
 }
