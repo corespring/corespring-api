@@ -7,7 +7,7 @@ import controllers.auth.ApiRequest
 import controllers.auth.{Permission, BaseApi}
 import controllers.{ConcreteS3Service, S3Service}
 import models.item.service.{ItemServiceClient, ItemServiceImpl, ItemService}
-import models.item.{Content, Item}
+import models.item.Item
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import play.api.libs.json.Json
@@ -74,10 +74,10 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
   Action[AnyContent] =
     ApiAction {
       request =>
-        if (Content.isAuthorized(request.ctx.organization, id, p)) {
+        if (models.item.Content.isAuthorized(request.ctx.organization, id, p)) {
           block(request)
         } else {
-          Forbidden
+          Forbidden("Access forbidden")
         }
     }
 

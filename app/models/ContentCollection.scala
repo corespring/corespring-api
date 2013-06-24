@@ -75,12 +75,11 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
       case e: SalatDAOUpdateError => Left(InternalError("failed to update collection", e))
     }
   }
-  lazy val archiveCollId: ObjectId = ContentCollection.findOneById(new ObjectId("500ecfc1036471f538f24bdc")) match {
-    case Some(coll) => coll.id
-    case None => ContentCollection.insert(ContentCollection("archiveColl", id = new ObjectId("500ecfc1036471f538f24bdc"))) match {
-      case Some(collId) => collId
-      case None => throw new RuntimeException("could not create new archive collection")
-    }
+
+  lazy val archiveCollId: ObjectId = {
+    val id = new ObjectId("500ecfc1036471f538f24bdc")
+    ContentCollection.insert(ContentCollection("archiveColl", id = id ))
+    id
   }
 
   def delete(collId:ObjectId):Validation[InternalError,Unit] = {
