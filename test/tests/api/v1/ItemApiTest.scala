@@ -1,7 +1,7 @@
 package tests.api.v1
 
 import api.ApiError
-import api.v1.ItemApi
+import api.v1.NewItemApi
 import com.mongodb.casbah.Imports._
 import common.log.PackageLogging
 import controllers.S3Service
@@ -9,8 +9,8 @@ import models._
 import models.item.Item
 import models.item.Item.Keys
 import models.item.resource.{Resource, VirtualFile}
-import models.item.service.ItemServiceClient
-import org.specs2.execute.Success
+import models.item.service.{ItemService, ItemServiceClient}
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mock.Mockito
 import play.api.libs.json._
 import play.api.mvc._
@@ -33,11 +33,11 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
   val allItemsCount = 26
 
 
-  def assertBasics(result: Result) : List[org.specs2.execute.Result] = {
+  def assertBasics(result: Result): List[org.specs2.execute.Result] = {
     List(
       status(result) === OK,
-    charset(result) === Some("utf-8"),
-    contentType(result) === Some("application/json") )
+      charset(result) === Some("utf-8"),
+      contentType(result) === Some("application/json"))
   }
 
   def assertResult(result: Result, count: Int): org.specs2.execute.Result = {
@@ -164,6 +164,8 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
 
   }
 
+
+
   "update" should {
 
     def request(content: AnyContent) = FakeRequest("", tokenize(""), FakeHeaders(), content)
@@ -175,7 +177,7 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
     "work with a new collection id" in {
       val createResult = api.v1.ItemApi.create()(request(AnyContentAsJson(toCreate)))
       val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
-      val updateResult = api.v1.NewItemApi.update(new ObjectId(id))(request(AnyContentAsJson(toUpdate)))
+      val updateResult = api.v1.NewItemApi.update(versionedId(id))(request(AnyContentAsJson(toUpdate)))
       val item: Item = Json.parse(contentAsString(updateResult)).as[Item]
       item.collectionId === TEST_COLLECTION_ID
     }
@@ -184,7 +186,7 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
       val createResult = api.v1.ItemApi.create()(request(AnyContentAsJson(toCreate)))
       val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
       val toUpdate = xmlBody("<root2/>", Map(Keys.author -> "Ed"))
-      val updateResult = api.v1.NewItemApi.update(new ObjectId(id))(request(AnyContentAsJson(toUpdate)))
+      val updateResult = api.v1.NewItemApi.update(versionedId(id))(request(AnyContentAsJson(toUpdate)))
       val item: Item = Json.parse(contentAsString(updateResult)).as[Item]
       item.collectionId must equalTo(TEST_COLLECTION_ID)
     }
@@ -198,12 +200,12 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
       val createResult = routeAndCall(FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsJson(toCreate))).get
       val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
 
-      val getItemCall = NewItemRoutes.get(new ObjectId(id))
+      val getItemCall = NewItemRoutes.get(versionedId(id))
       val getResult = routeAndCall(FakeRequest(getItemCall.method, tokenize(getItemCall.url), FakeHeaders(), AnyContentAsEmpty)).get
 
       val getJsonString = contentAsString(getResult)
 
-      val updateCall = NewItemRoutes.update(new ObjectId(id))
+      val updateCall = NewItemRoutes.update(versionedId(id))
 
       val toUpdate = xmlBody("<root/>", Map(Keys.credentials -> STATE_DEPT))
       val updateResult = routeAndCall(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
@@ -243,12 +245,12 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
      * NOTE: test data loaded to db may be missing this if it is loaded statically. Could load a the test composite item
      * (50083ba9e4b071cb5ef79101) and save it. Other tests might fail if these csFeedbackId attrs are not present
      */
-    var jsitem = Json.toJson(itemService.findOneById(new ObjectId("511156d38604c9f77da9739d"))).asInstanceOf[JsObject]
+    var jsitem = Json.toJson(itemService.findOneById(versionedId("511156d38604c9f77da9739d"))).asInstanceOf[JsObject]
     jsitem = JsObject(jsitem.fields.filter(field => field._1 != "id" && field._1 != "collectionId"))
     var fakeRequest = FakeRequest(PUT, "/api/v1/items/511156d38604c9f77da9739d?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(jsitem))
     var result = routeAndCall(fakeRequest).get
     status(result) === OK
-    val resource: Resource = itemService.findOneById(new ObjectId("511156d38604c9f77da9739d")).get.data.get
+    val resource: Resource = itemService.findOneById(versionedId("511156d38604c9f77da9739d")).get.data.get
     val qtiXml: Option[String] = resource.files.find(file => file.isMain).map(file => file.asInstanceOf[VirtualFile].content)
     qtiXml must beSome[String]
     val hasCsFeedbackIds: Boolean = qtiXml.map(qti =>
@@ -287,10 +289,17 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
 
   "clone" should {
     "clone item" in {
-      val itemApi = new ItemApi(mockS3service, itemService)
+      val itemApi = new NewItemApi {
+        def itemService: ItemService = itemService
+
+        def s3service: S3Service = mockS3service
+
+        def bucket: String = "blah"
+      }
+
       val id = "511154e48604c9f77da9739b"
       val fakeRequest = FakeRequest(POST, "/api/v1/items/%s?access_token=%s".format(id, token))
-      val result = itemApi.cloneItem(new ObjectId(id))(fakeRequest)
+      itemApi.cloneItem(versionedId(id))(fakeRequest)
       there was atLeastTwo(mockS3service).cloneFile(anyString, anyString, anyString)
     }
   }

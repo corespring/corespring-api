@@ -8,6 +8,7 @@ import org.bson.types.ObjectId
 import models.itemSession.ItemSessionSettings
 import com.mongodb.casbah.commons.MongoDBObject
 import common.seed.SeedDb
+import org.corespring.platform.data.mongo.models.VersionedId
 
 class QuizTest extends BaseTest{
 
@@ -33,7 +34,7 @@ class QuizTest extends BaseTest{
         metadata = Map("hello" -> "there"),
         questions = Seq(
           Question(
-            itemId = new ObjectId(),
+            itemId = VersionedId(new ObjectId()),
             settings = ItemSessionSettings()
           )
         ),

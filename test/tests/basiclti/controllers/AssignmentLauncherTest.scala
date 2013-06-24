@@ -20,6 +20,7 @@ import play.api.test.FakeHeaders
 import scala.Some
 import play.api.mvc.Call
 import play.api.mvc.AnyContentAsFormUrlEncoded
+import org.corespring.platform.data.mongo.models.VersionedId
 
 class AssignmentLauncherTest extends BaseTest {
 
@@ -82,7 +83,7 @@ class AssignmentLauncherTest extends BaseTest {
   def configureLaunchConfig(resourceLinkId: String, itemId: ObjectId, client: ApiClient): LtiQuiz = {
     LtiQuiz.findByResourceLinkId(resourceLinkId) match {
       case Some(config) => {
-        val newConfig = config.copy(question = LtiQuestion(itemId = Some(itemId), ItemSessionSettings()))
+        val newConfig = config.copy(question = LtiQuestion(itemId = Some(VersionedId(itemId)), ItemSessionSettings()))
         LtiQuiz.update(newConfig, client.orgId)
         newConfig
       }
@@ -90,7 +91,7 @@ class AssignmentLauncherTest extends BaseTest {
 
         val newConfig = LtiQuiz(
           resourceLinkId = resourceLinkId,
-          question = LtiQuestion(itemId = Some(itemId), ItemSessionSettings()),
+          question = LtiQuestion(itemId = Some(VersionedId(itemId)), ItemSessionSettings()),
           participants = Seq(),
           orgId = Some(client.orgId))
         LtiQuiz.insert(newConfig)

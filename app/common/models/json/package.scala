@@ -3,6 +3,7 @@ package common.models
 import play.api.libs.json.{Reads, JsValue, Writes}
 import play.api.libs.json.Json._
 import org.codehaus.jackson.map.module.SimpleModule
+import org.corespring.platform.data.mongo.models.VersionedId
 
 
 package object json {
@@ -47,10 +48,27 @@ package object json {
       }
     }
 
+    @JsonCachable
+    class VersionedIdSerializer extends JsonSerializer[VersionedId[ObjectId]] {
+      def serialize(id:VersionedId[ObjectId], json : JsonGenerator, provider : SerializerProvider) {
+        import models.versioning.VersionedIdImplicits.Binders._
+        json.writeString( versionedIdToString(id.asInstanceOf[VersionedId[ObjectId]]))
+      }
+    }
+
+    class VersionedIdDeserializer extends JsonDeserializer[VersionedId[ObjectId]] {
+      def deserialize(jp : JsonParser, context : DeserializationContext) : VersionedId[ObjectId] = {
+        import models.versioning.VersionedIdImplicits.Binders._
+        stringToVersionedId(jp.getText).get
+      }
+    }
+
     object CorespringJson extends com.codahale.jerkson.Json {
       val module = new SimpleModule("CorespringJson", Version.unknownVersion())
-      module.addSerializer(classOf[ObjectId], new ObjectIdSerializer)
+      module.addSerializer( classOf[ObjectId], new ObjectIdSerializer)
+      module.addSerializer( classOf[VersionedId[ObjectId]], new VersionedIdSerializer)
       module.addDeserializer(classOf[ObjectId], new ObjectIdDeserializer)
+      module.addDeserializer(classOf[VersionedId[ObjectId]], new VersionedIdDeserializer)
       mapper.registerModule(module)
     }
 

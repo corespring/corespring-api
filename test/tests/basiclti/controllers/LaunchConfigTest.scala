@@ -14,6 +14,7 @@ import models.itemSession.ItemSessionSettings
 import basiclti.accessControl.auth.cookies.LtiCookieKeys
 import player.accessControl.cookies.PlayerCookieKeys
 import org.specs2.mutable.Specification
+import org.corespring.platform.data.mongo.models.VersionedId
 
 class LaunchConfigTest extends Specification{
 
@@ -78,14 +79,14 @@ class LaunchConfigTest extends Specification{
 
     "update a config" in {
       val c = getMockConfig
-      val copiedConfig = c.copy(question = LtiQuestion(Some(new ObjectId()), ItemSessionSettings()))
+      val copiedConfig = c.copy(question = LtiQuestion(Some(VersionedId(new ObjectId())), ItemSessionSettings()))
       update(copiedConfig).question.itemId === copiedConfig.question.itemId
     }
 
     "not allow an update if the user org doesn't match the db org" in {
       val c = getMockConfig
       val newOrg = new Organization(id = new ObjectId(), name = "some new org")
-      val copiedConfig = c.copy(orgId = Some(newOrg.id), question = LtiQuestion(Some(new ObjectId()), ItemSessionSettings()))
+      val copiedConfig = c.copy(orgId = Some(newOrg.id), question = LtiQuestion(Some(VersionedId(new ObjectId())), ItemSessionSettings()))
 
       val call = Routes.update(copiedConfig.id)
       val jsValue = toJson(copiedConfig)

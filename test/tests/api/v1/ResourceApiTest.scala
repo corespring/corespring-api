@@ -130,7 +130,7 @@ class ResourceApiTest extends BaseTest {
       val create = testRoutes.createDataFile(noSessionItem)
       val file = VirtualFile("data.txt", "text/txt", isMain = false, content = "f0")
       val update = testRoutes.updateDataFile(noSessionItem, "data.txt")
-      assertUpdate(create, update, file, ( _ => itemService.findOneById(new ObjectId(noSessionItem)).get.data.get))
+      assertUpdate(create, update, file, ( _ => itemService.findOneById(versionedId(noSessionItem)).get.data.get))
     }
 
     def assertUpdate(create:Call,update:Call, file: VirtualFile, resourceFn : ( Unit => Resource)) = {

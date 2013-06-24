@@ -13,6 +13,14 @@ import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
+import org.corespring.platform.data.mongo.models.VersionedId
+import com.mongodb.casbah.Imports._
+import play.api.test.FakeHeaders
+import scala.Some
+import org.corespring.platform.data.mongo.models.VersionedId
+import play.api.mvc.AnyContentAsJson
+import play.api.mvc.AnyContentAsText
+import play.api.libs.json.JsObject
 
 
 /**
@@ -64,13 +72,15 @@ trait BaseTest extends Specification with ItemServiceClient {
    */
   def item(id:String): Item = {
 
-    itemService.findOneById(new ObjectId(id)) match {
+    itemService.findOneById(VersionedId(new ObjectId(id))) match {
       case Some(item) => {
         item
       }
       case _ => throw new RuntimeException("test item")
     }
   }
+
+  def versionedId(oid: String): VersionedId[ObjectId] = VersionedId(new ObjectId(oid))
 
 
   // TODO: Something's wrong with this, but when it works it will be a useful shorthand
