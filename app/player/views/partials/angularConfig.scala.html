@@ -1,0 +1,16 @@
+@(params:player.views.models.PlayerParams, additionalParams : (String,String)* )
+<!-- Writes an Config object to the "qti.services" module -->
+<script type="text/javascript">
+    angular.module('qti.services').factory('Config', [function(){
+        var out = {
+            itemId : "@params.itemId.getOrElse("")",
+            sessionId : '@params.sessionId.getOrElse("")'
+        };
+
+        @additionalParams.map{ tuple =>
+            out["@tuple._1"] = "@tuple._2";
+        }
+        return out;
+    }]);
+</script>
+

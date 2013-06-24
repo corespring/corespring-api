@@ -2,17 +2,15 @@
 
 @scripts = {
 
-  <!-- need to override the config to add the Lti Params -->
+  @player.views.html.partials.angularConfig(params, ("quizId" -> quizId), ("resultSourcedId" -> resultSourcedId) )
+  <!-- need to override the config to add the Lti Params
   <script type="text/javascript">
     angular.module('qti.services').factory('Config', [function(){
         return {
-            itemId : "@params.itemId",
-            sessionId : '@params.sessionId.getOrElse("")',
-            quizId: "@quizId",
-            resultSourcedId: "@resultSourcedId"
         }
     }]);
   </script>
+  -->
 }
 
 @bodyAttributes = @{ "ng-controller='QtiAppController'" }

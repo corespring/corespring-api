@@ -39,6 +39,9 @@ object VersionedIdImplicits {
       }
     }
 
+    def versionedIdToString(id:VersionedId[ObjectId]) : String =  id.version.map(id.id.toString + ":" + _).getOrElse(id.toString)
+
+
     private def vId(id: String, v: Option[Int] = None): Option[VersionedId[ObjectId]] = if (ObjectId.isValid(id)) {
       Some(VersionedId(new ObjectId(id), v))
     }
@@ -59,7 +62,7 @@ object VersionedIdImplicits {
           .getOrElse(Left("Invalid object id for key: " + key))
       }
 
-      def unbind(key: String, value: VersionedId[ObjectId]) = value.version.map(value.id.toString + ":" + _).getOrElse(value.toString)
+      def unbind(key: String, value: VersionedId[ObjectId]) = versionedIdToString(value)
     }
   }
 

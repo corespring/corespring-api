@@ -68,10 +68,13 @@ object ShowResource
   private def renderPlayer(item: Item, renderMode: RenderingMode = Web): Action[AnyContent] =
     ApiAction {
       request =>
+
+        import models.versioning.VersionedIdImplicits.Binders._
+
         getItemXMLByObjectId(item, request.ctx.organization) match {
           case Some(xmlData: Elem) => {
             val finalXml = prepareQti(xmlData, renderMode)
-            val params: PlayerParams = PlayerParams(itemId = Some(item.id.toString), xml = finalXml, previewEnabled = (renderMode == Web))
+            val params: PlayerParams = PlayerParams(itemId = Some(versionedIdToString(item.id)), xml = finalXml, previewEnabled = (renderMode == Web))
             Ok(player.views.html.Player(params))
           }
           case None => NotFound("Can't find item")

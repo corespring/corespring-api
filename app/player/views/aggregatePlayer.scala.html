@@ -1,15 +1,7 @@
 @(params: _root_.player.views.models.PlayerParams, quizId:String)
 
 @scripts = {
-<script type="text/javascript">
-    //Override the Config object
-    angular.module('qti.services').factory('Config', [function () {
-        return {
-            itemId: "@params.itemId",
-            quizId: "@quizId"
-        }
-    }]);
-</script>
+   @player.views.html.partials.angularConfig(params, ("quizId" -> quizId))
 }
 
 @bodyAttributes = @{ "ng-controller='AggregateAppController'" }

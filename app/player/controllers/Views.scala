@@ -108,7 +108,10 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
       mode = Some(sessionMode)
     )
 
-    def toPlayerParams(xml: String): PlayerParams = PlayerParams(xml, Some(itemId.toString), sessionId.map(_.toString), enablePreview)
+    def toPlayerParams(xml: String): PlayerParams = {
+      import models.versioning.VersionedIdImplicits.Binders._
+      PlayerParams(xml, Some(versionedIdToString(itemId)), sessionId.map(_.toString), enablePreview)
+    }
 
     def enablePreview: Boolean = sessionMode == RequestedAccess.Mode.Preview
 

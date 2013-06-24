@@ -10,14 +10,8 @@
     @common.views.html.partials.ieEightSupport()
     @partials.scripts(params.xml, new player.views.qti.QtiAssetsLoaderImpl(params.xml))
 
-    <script type="text/javascript">
-        angular.module('qti.services').factory('Config', [function(){
-            return {
-                itemId : "@params.itemId",
-                sessionId : '@params.sessionId.getOrElse("")'
-            }
-        }]);
-    </script>
+
+    @partials.angularConfig(params)
 
     @additionalScripts.map{ s =>
       @s
