@@ -54,7 +54,6 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
     )
     block(Json.fromJson[JsValue](Json.parse(contentAsString(result))))
   }
-
   "list" should {
 
     "return all items" in {
@@ -80,8 +79,6 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
       val Some(result) = routeAndCall(fakeRequest)
       assertResult(result, 2)
     }
-    /*
-    */
   }
 
 
@@ -111,7 +108,7 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
   "get" should {
 
     "return an item by id" in {
-      val id = "51116a8ba14f7b657a083c1c"
+      val id = "51116a8ba14f7b657a083c1c:0"
       val fakeRequest = FakeRequest(GET, "/api/v1/items/%s?access_token=%s".format(id, token))
       val Some(result) = routeAndCall(fakeRequest)
       assertSingleResult(result, (json: JsValue) => (json \ "id").as[String] === id)
@@ -167,23 +164,22 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
   }
 
 
-
   "update" should {
 
     def request(content: AnyContent) = FakeRequest("", tokenize(""), FakeHeaders(), content)
 
     val toCreate = xmlBody("<root/>", Map("collectionId" -> TEST_COLLECTION_ID))
 
-    val toUpdate = xmlBody("<root2/>", Map(Keys.collectionId -> TEST_COLLECTION_ID))
+    val toUpdate = xmlBody("<root2/>", Map("collectionId" -> TEST_COLLECTION_ID))
 
     "work with a new collection id" in {
       val createResult = api.v1.ItemApi.create()(request(AnyContentAsJson(toCreate)))
       val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
       val updateResult = api.v1.NewItemApi.update(versionedId(id))(request(AnyContentAsJson(toUpdate)))
+      Logger.debug(contentAsString(updateResult))
       val item: Item = Json.parse(contentAsString(updateResult)).as[Item]
       item.collectionId === TEST_COLLECTION_ID
     }
-
     "return the item's stored collection id" in {
       val createResult = api.v1.ItemApi.create()(request(AnyContentAsJson(toCreate)))
       val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
@@ -217,22 +213,21 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
 
   }
 
-
   "delete" should {
     "move item to the archived collection" in {
 
       val item = Item(collectionId = TEST_COLLECTION_ID)
       itemService.save(item)
-      val deleteItemCall = api.v1.routes.ItemApi.delete(item.id)
+      val deleteResult = api.v1.ItemApi.delete(item.id)(FakeRequest("", tokenize(""), FakeHeaders(), AnyContentAsEmpty))
 
-      routeAndCall(tokenFakeRequest(deleteItemCall.method, deleteItemCall.url, FakeHeaders())) match {
-        case Some(deleteResult) => {
-          itemService.findOneById(item.id) match {
-            case Some(deletedItem) => deletedItem.collectionId must equalTo(models.ContentCollection.archiveCollId.toString)
-            case _ => failure("couldn't find deleted item")
-          }
+      status(deleteResult) === OK
+
+      itemService.findOneById(item.id) match {
+        case Some(deletedItem) => {
+          Logger.debug(deletedItem.toString)
+          deletedItem.collectionId must equalTo(models.ContentCollection.archiveCollId.toString)
         }
-        case _ => failure("delete failed")
+        case _ => failure("couldn't find deleted item")
       }
     }
   }
