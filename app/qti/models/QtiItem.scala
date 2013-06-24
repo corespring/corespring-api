@@ -346,7 +346,11 @@ case class CorrectResponseTargeted(value: Map[String, List[String]]) extends Cor
 
   def isCorrect(responseValue: String) = {
     val responseList = responseValue.split(",").toList
-    value.toList.map(it=>it._1+":"+it._2.mkString("|")) == responseList
+    val responseMap = responseList.map(el => el.split(":")(0) -> el.split(":")(1).split("\\|").toSet).toMap
+    val valueMap = value.toList.map(it=>it._1 -> it._2.toSet).toMap
+    println(responseMap)
+    println(valueMap)
+    responseMap == valueMap
   }
 
   def isValueCorrect(v: String, index: Option[Int]) = {

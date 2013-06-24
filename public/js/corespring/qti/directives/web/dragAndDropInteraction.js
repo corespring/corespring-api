@@ -1,3 +1,19 @@
+var compareArrayRespectPosition = function(arr1, arr2) {
+  if (arr1.length != arr2.length) return false;
+  for (var i = 0; i < arr1.length; i++) {
+    if (arr1[i].compare) {
+      if (!arr1[i].compare(arr2[i])) return false;
+    }
+    if (arr1[i] !== arr2[i]) return false;
+  }
+  return true;
+};
+
+var compareArraySet = function(arr1, arr2) {
+  return $(arr1).not(arr2).length == 0 && $(arr2).not(arr1).length == 0
+};
+
+
 angular.module('qti.directives').directive("draganddropinteraction", function (QtiUtils) {
   return {
     restrict: 'E',
@@ -81,9 +97,13 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
           var value = QtiUtils.getResponseValue($scope.responseIdentifier, $scope.itemSession.responses, "");
           _.each(value, function (v) {
             var arr = v.split(":");
-            $scope.listTargets[$scope.targetMap[arr[1]]] = {id: arr[0]};
+            var answerList = arr[1].split("|");
+            var idx = $scope.targetMap[arr[0]];
+            $scope.listTargets[idx] = $scope.listTargets[idx].indexOf ? _.map(answerList, function(e) {
+              return {id: e, title: $scope.contentMap[e]};
+            }) : {id: answerList[0]};
             $scope.listAnswers = _.map($scope.listAnswers, function (a) {
-              if (a.id == arr[0]) return {}; else return a;
+              if (answerList.indexOf(a.id) >= 0) return {}; else return a;
             });
           });
         });
@@ -141,16 +161,16 @@ angular.module('qti.directives').directive("draggableanswer", function (QtiUtils
           if (!responses) return;
           var correctResponse = QtiUtils.getResponseValue($scope.responseIdentifier, responses, []);
           var correctTargetForAnswer = _.find(correctResponse, function (elem) {
-            var s1 = elem.split(":")[0];
-            return s1 == attrs.identifier;
+            var s1 = elem.split(":")[1].split(",");
+            return s1.indexOf(attrs.identifier) >= 0;
           });
-          correctTargetForAnswer = correctTargetForAnswer ? correctTargetForAnswer.split(":")[1] : undefined;
+          correctTargetForAnswer = correctTargetForAnswer ? correctTargetForAnswer.split(":")[0] : undefined;
           var ourResponse = QtiUtils.getResponseValue($scope.responseIdentifier, $scope.itemSession.responses, []);
           var ourTargetForAnswer = _.find(ourResponse, function (elem) {
-            var s1 = elem.split(":")[0];
-            return s1 == attrs.identifier;
+            var s1 = elem.split(":")[1].split("|");
+            return s1.indexOf(attrs.identifier) >= 0;
           });
-          ourTargetForAnswer = ourTargetForAnswer ? ourTargetForAnswer.split(":")[1] : undefined;
+          ourTargetForAnswer = ourTargetForAnswer ? ourTargetForAnswer.split(":")[0] : undefined;
           $scope.correctClass = correctTargetForAnswer == ourTargetForAnswer ? "correct" : "incorrect";
         });
 
@@ -219,16 +239,18 @@ angular.module('qti.directives').directive("dragtarget", function (QtiUtils) {
           if (!responses) return;
           var correctResponse = QtiUtils.getResponseValue($scope.responseIdentifier, responses, []);
           var correctResponseForTarget = _.find(correctResponse,function (elem) {
-            var s1 = elem.split(":")[1];
+            var s1 = elem.split(":")[0];
             return s1 == attrs.identifier;
-          }).split(":")[0];
+          }).split(":")[1].split(",");
           var ourResponse = QtiUtils.getResponseValue($scope.responseIdentifier, $scope.itemSession.responses, []);
           var ourResponseForTarget = _.find(ourResponse, function (elem) {
-            var s1 = elem.split(":")[1];
+            var s1 = elem.split(":")[0];
             return s1 == attrs.identifier;
           });
-          ourResponseForTarget = ourResponseForTarget ? ourResponseForTarget.split(":")[0] : "";
-          $scope.correctClass = correctResponseForTarget == ourResponseForTarget ? "correct" : "incorrect";
+          ourResponseForTarget = ourResponseForTarget ? ourResponseForTarget.split(":")[1].split("|") : "";
+          console.log(correctResponseForTarget);
+          console.log(ourResponseForTarget);
+          $scope.correctClass = compareArraySet(correctResponseForTarget, ourResponseForTarget) ? "correct" : "incorrect";
         });
       }
     }
