@@ -28,7 +28,7 @@ object SeedDb {
   private lazy val collections: List[MongoCollection] = List(
 
     salatDb()(play.api.Play.current)("versioned_content"),
-    Content.collection,
+    salatDb()(play.api.Play.current)("content"),
     AccessToken.collection,
     ContentCollection.collection,
     FieldValue.collection,

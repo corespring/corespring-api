@@ -107,7 +107,7 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
 
   def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[Item] = dao.find(query, fields)
 
-  def findOneById(id: VersionedId[ObjectId]): Option[Item] = dao.get(id)
+  def findOneById(id: VersionedId[ObjectId]): Option[Item] = dao.findOneById(id)
 
   def findOne(query: DBObject): Option[Item] = dao.findOne(query)
 

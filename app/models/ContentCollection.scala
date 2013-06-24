@@ -21,6 +21,7 @@ import play.api.Play.current
 import play.api.Play
 import controllers.auth.Permission
 import search.Searchable
+import models.item.service.ItemServiceImpl
 
 /**
  * A ContentCollection
@@ -79,28 +80,36 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
       case None => throw new RuntimeException("could not create new archive collection")
     }
   }
-  def moveToArchive(collId:ObjectId):Either[InternalError,Unit] = {
-    //todo: roll backs after detecting error in organization update
+
+  def delete(collId:ObjectId):Either[InternalError,Unit] = {
     try{
-      Content.collection.update(MongoDBObject(Content.collectionId -> collId), MongoDBObject("$set" -> MongoDBObject(Content.collectionId -> ContentCollection.archiveCollId.toString)),
-        false, false, Content.collection.writeConcern)
-      ContentCollection.removeById(collId)
-      Organization.find(MongoDBObject(Organization.contentcolls+"."+ContentCollRef.collectionId -> collId)).foldRight[Either[InternalError,Unit]](Right(()))((org,result) => {
-        if (result.isRight){
-          org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
-          try {
-            Organization.update(MongoDBObject("_id" -> org.id),org,false,false,Organization.defaultWriteConcern)
-            Right(())
-          }catch {
-            case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
-          }
-        }else result
-      })
+
+      val itemsInCollectionCount = ItemServiceImpl.collection.count(MongoDBObject(Content.collectionId -> collId) )
+
+      if(itemsInCollectionCount > 0 ){
+        Left(InternalError("You must delete all items first before deleting the collection"))
+      } else {
+
+        ContentCollection.removeById(collId)
+        Organization.find(MongoDBObject(Organization.contentcolls+"."+ContentCollRef.collectionId -> collId)).foldRight[Either[InternalError,Unit]](Right(()))((org,result) => {
+          if (result.isRight){
+            org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
+            try {
+              Organization.update(MongoDBObject("_id" -> org.id),org,false,false,Organization.defaultWriteConcern)
+              Right(())
+            }catch {
+              case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
+            }
+          }else result
+        })
+
+      }
     }catch{
       case e:SalatDAOUpdateError => Left(InternalError("failed to transfer collection to archive", e))
       case e:SalatRemoveError => Left(InternalError(e.getMessage))
     }
   }
+
   def getCollectionIds(orgId: ObjectId, p:Permission, deep:Boolean = true): Seq[ObjectId] = {
     val cursor = if(deep)Organization.find(MongoDBObject(Organization.path -> orgId)) else Organization.find(MongoDBObject("_id" -> orgId))   //find the tree of the given organization
     var seqcollid:Seq[ObjectId] = cursor.foldRight[Seq[ObjectId]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value).map(_.collectionId)) //filter the collections that don't have the given permission

@@ -147,7 +147,7 @@ object CollectionApi extends BaseApi {
   def deleteCollection(id: ObjectId) = ApiActionWrite {
     request =>
       ContentCollection.findOneById(id) match {
-        case Some(coll) => ContentCollection.moveToArchive(id) match {
+        case Some(coll) => ContentCollection.delete(id) match {
           case Right(_) => Ok(Json.toJson(coll))
           case Left(e) => InternalServerError(Json.toJson(ApiError.DeleteCollection(e.clientOutput)))
         }
