@@ -25,8 +25,6 @@ class ContentHelper(itemService:ItemService) extends PackageLogging {
     try {
       val update = MongoDBObject( "$set" -> MongoDBObject(Content.collectionId -> ContentCollection.archiveCollId.toString))
       itemService.saveUsingDbo(contentId, update, false)
-      //Content.collection.update(),
-      //  false, false, Content.collection.writeConcern)
       Right(())
     } catch {
       case e: SalatDAOUpdateError => Left(InternalError("failed to transfer content to archive", e))
