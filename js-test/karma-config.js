@@ -17,36 +17,19 @@ files = [
     'public/js/vendor/underscore/1.3.3/underscore.js',
     'public/js/vendor/angular-bootstrap-ui/angular-bootstrap-ui.js',
     'public/js/vendor/corespring-ng-components/corespring-ng-components.js',
-    'public/js/corespring/*.js',
-    'public/js/corespring/common/directives/*.js',
-    'public/js/corespring/common/services/*.js',
-    'public/js/corespring/tagger/select2/*.js',
-    'public/js/corespring/tagger/mongo/*.js',
-    'public/js/corespring/tagger/*.js',
-    'public/js/corespring/tagger/controllers/*.js',
-    'public/js/corespring/tagger/services/*.js',
-    'public/js/corespring/qti/prototype.extensions/*.js',
-    'public/js/corespring/qti/*.js',
-    'public/js/corespring/qti/controllers/*.js',
-    'public/js/corespring/qti/directives/*.js',
-    'public/js/corespring/qti/directives/web/*.js',
+    'public/js/corespring/**/*.js',
     'js-test/lib/play.mock.routes.js',
-    'js-test/unit/corespring/*.js',
-    'js-test/unit/corespring/qti/*.js',
-    'js-test/unit/corespring/qti/prototype.extensions/*.js',
-    'js-test/unit/corespring/qti/directives/*.js',
-    'js-test/unit/corespring/tagger/*.js',
-    'js-test/unit/corespring/tagger/controllers/*.js',
-    'js-test/unit/corespring/tagger/services/*.js',
-    'js-test/unit/corespring/tagger/mongo/*.js'
+    'js-test/unit/**/*.js'
 ];
 // list of files to exclude
-exclude = [];
+exclude = ["public/js/corespring/qti/directives/printing/*.js",
+  "public/js/corespring/qti/directives/aggregate/*.js",
+  "public/js/corespring/qti/directives/instructor/*.js"];
 
 // use dots reporter, as travis terminal does not support escaping sequences
 // possible values: 'dots' || 'progress'
 reporter = 'dots';
-browsers = ['Firefox'];
+browsers = ['PhantomJS'];
 // these are default values, just to show available options
 // web server port
 port = 8080;

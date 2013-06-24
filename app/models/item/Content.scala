@@ -7,8 +7,6 @@ import controllers.InternalError
 import controllers.auth.Permission
 import models.ContentCollection
 import org.corespring.platform.data.mongo.models.VersionedId
-import play.api.Play.current
-import se.radley.plugin.salat._
 import models.item.service.{ItemServiceImpl, ItemService}
 
 trait Content {
@@ -32,8 +30,6 @@ class ContentHelper(itemService:ItemService) extends PackageLogging {
   }
 
   def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Boolean = {
-
-    require(contentId.version.isDefined, "To Authorize access - the versioned id must be present")
     //TODO: We should only find the item once - here we find it and return true/false which is wasteful.
     itemService.findOneById(contentId).map{ item =>
       isCollectionAuthorized(orgId, item.collectionId, p)

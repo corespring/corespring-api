@@ -1,20 +1,19 @@
-function HomeController($scope, $rootScope, $http, $location, ItemService, SearchService, Collection, Contributor, ItemFormattingUtils) {
+function HomeController($scope, $timeout, $rootScope, $http, $location, ItemService, SearchService, CollectionManager, Contributor, ItemFormattingUtils) {
 
   //Mixin ItemFormattingUtils
   angular.extend($scope, ItemFormattingUtils);
+
 
   $http.defaults.headers.get = ($http.defaults.headers.get || {});
   $http.defaults.headers.get['Content-Type'] = 'application/json';
 
   $scope.$root.mode = "home";
 
+
   $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
   $rootScope.$broadcast('onListViewOpened');
 
-
   var init = function () {
-
-    $scope.search();
     loadCollections();
     loadContributors();
     $scope.showDraft = true;
@@ -22,7 +21,7 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     var defaultsFactory = new com.corespring.model.Defaults();
     $scope.gradeLevelDataProvider = defaultsFactory.buildNgDataProvider("gradeLevels");
     $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider("itemTypes");
-    $scope.flatItemTypeDataProvided = _.map(_.flatten(_.pluck($scope.itemTypeDataProvider, 'label')), function(e) {
+    $scope.flatItemTypeDataProvided = _.map(_.flatten(_.pluck($scope.itemTypeDataProvider, 'label')), function (e) {
       return {key: e, label: e};
     });
     $scope.flatItemTypeDataProvided.push({key: "Other", label: "Other"});
@@ -34,12 +33,12 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
       {label: "Exact Match", key: "exactMatch"}
     ];
     $scope.publishStatuses = [
-        {label: "Published", key: "published"},
-        {label: "Draft", key: "draft"}
+      {label: "Published", key: "published"},
+      {label: "Draft", key: "draft"}
     ]
   };
 
-  $scope.sortBy = function(field) {
+  $scope.sortBy = function (field) {
     if ($scope.searchParams.sort && $scope.searchParams.sort[field]) {
       $scope.searchParams.sort[field] *= -1;
     } else {
@@ -76,10 +75,7 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     if (!items || items.length == 0) {
       return "None Selected";
     }
-    var out = _.map(items, function (i) {
-      return i.name
-    });
-    return out.join(", ").replace(/CoreSpring/g, "");
+    return items.length + " selected";
   };
 
   $scope.getSelectedTitle = function (items) {
@@ -91,7 +87,6 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     });
     return out.join(", ").replace(/0/g, "");
   };
-
 
   $scope.search = function () {
     var isOtherSelected = $scope.searchParams && _.find($scope.searchParams.itemType, function (e) {
@@ -109,7 +104,20 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
       });
     }
     SearchService.search($scope.searchParams, function (res) {
-      $rootScope.items = res;
+      var readOnlyCollections = _.filter(CollectionManager.rawCollections,function(c){
+        return c.permission == "read";
+      });
+      $rootScope.items = _.map(res, function(item){
+        var readOnlyColl = _.find(readOnlyCollections, function(coll){
+            return coll.id == item.collectionId;  //1 represents read-only access
+        });
+        if(readOnlyColl){
+            item.readOnly = true;
+        }else{
+            item.readOnly = false;
+        }
+        return item;
+      })
       setTimeout(function () {
         MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
       }, 200);
@@ -129,14 +137,17 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     );
   };
 
-
   function loadCollections() {
-    Collection.get({}, function (data) {
-        $scope.collections = data;
-      },
-      function () {
-        console.log("load collections: error: " + arguments);
-      });
+
+    $scope.$watch( function(){ return CollectionManager.sortedCollections; }, function(newValue, oldValue){
+      $scope.sortedCollections = newValue;
+      if($scope.sortedCollections){
+        $scope.searchParams.collection = _.clone($scope.sortedCollections[0].collections);
+      }
+      $scope.search();
+    }, true);
+
+    CollectionManager.init();
   }
 
   function loadContributors() {
@@ -147,7 +158,6 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
         console.log("load contributors: error: " + arguments);
       });
   }
-
 
   $scope.showGradeLevel = function () {
     return $scope.createGradeLevelString(this.item.gradeLevel);
@@ -177,7 +187,15 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     $scope.showConfirmDestroyModal = false;
   };
 
-
+  $scope.itemClick = function(){
+    if(this.item.readOnly){
+        console.log(this.item)
+        $scope.openItem(this.item.id)
+    }else{
+      SearchService.currentItem = this.item;
+      $location.url('/edit/' + this.item.id + "?panel=metadata");
+    }
+  }
   /*
    * called from the repeater. scope (this) is the current item
    */
@@ -186,21 +204,69 @@ function HomeController($scope, $rootScope, $http, $location, ItemService, Searc
     $location.url('/edit/' + this.item.id + "?panel=metadata");
   };
 
-  $scope.publishStatus = function(isPublished){
-    if(isPublished) return "Published"
+  $scope.publishStatus = function (isPublished) {
+    if (isPublished) return "Published"
     else return "Draft"
+  }
+
+  //from items-app.js
+  $scope.hidePopup = function() {
+    $scope.showPopup = false;
+    $scope.previewingId = "";
+    $scope.popupBg="";
+  };
+
+  $scope.openItem = function (id) {
+    $timeout(function () {
+      $scope.showPopup = true;
+      $scope.popupBg = "extra-large-window"
+      $scope.previewingId = id;
+      //$scope.$broadcast("requestLoadItem", id);
+      $('#preloader').show();
+      $('#player').hide();
+    }, 50);
+    $timeout(function () {
+      $('.window-overlay').scrollTop(0);
+    }, 100);
+
+  };
+
+  $scope.onItemLoad = function () {
+    $('#preloader').hide();
+    $('#player').show();
+  };
+
+  var fn = function(m) {
+    try{
+      var data = JSON.parse(m.data);
+      if (data.message == 'closeProfilePopup') {
+        $timeout(function() {
+          $scope.hidePopup();
+        }, 10);
+      }
+    }catch(err){
+        //console.log(err)
+    }
+  };
+
+  if (window.addEventListener) {
+    window.addEventListener('message', fn, true);
+  }else if (window.attachEvent) {
+    window.attachEvent('message', fn);
   }
 
   init();
 }
 
 HomeController.$inject = ['$scope',
+  '$timeout',
   '$rootScope',
   '$http',
   '$location',
   'ItemService',
   'SearchService',
-  'Collection',
+  'CollectionManager',
   'Contributor',
-  'ItemFormattingUtils'];
+  'ItemFormattingUtils'
+  ];
 

@@ -1,6 +1,7 @@
 import _root_.controllers.ConcreteS3Service
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import com.typesafe.config.ConfigFactory
+import common.controllers.deployment.AssetsLoader
 import common.seed.SeedDb._
 import org.bson.types.ObjectId
 import play.api._
@@ -94,6 +95,7 @@ object Global extends GlobalSettings {
     RegisterJodaTimeConversionHelpers()
 
     ConcreteS3Service.init
+    AssetsLoader.init(app)
 
     val initData:Boolean = ConfigFactory.load().getString(INIT_DATA) == "true"
 

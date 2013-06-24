@@ -9,7 +9,8 @@ var taggerApp = angular.module('tagger',
       'templates',
       'corespring-utils',
       'corespring-directives',
-      'ui']);
+      'ui',
+      'tagger-context']);
 
 taggerApp.
     config(['$routeProvider', function ($routeProvider) {
@@ -19,6 +20,7 @@ taggerApp.
     $routeProvider.when('/edit/:itemId', {templateUrl:'/web/partials/editItem', controller:ItemController, reloadOnSearch: false});
     $routeProvider.when('/view/:itemId', {templateUrl:'/web/partials/viewItem', controller:ViewItemController, reloadOnSearch: false});
     $routeProvider.otherwise({redirectTo:'/home'});
+
 }]);
 
 

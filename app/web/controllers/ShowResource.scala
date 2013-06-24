@@ -7,7 +7,7 @@ import models.item.Item
 import models.item.resource.{Resource, BaseFile}
 import play.api.mvc._
 import player.controllers.QtiRenderer
-import player.views.models.PlayerParams
+import player.views.models.{QtiKeys, PlayerParams}
 import qti.models.RenderingMode._
 import scala.Some
 import scala.xml.Elem
@@ -73,8 +73,9 @@ object ShowResource
 
         getItemXMLByObjectId(item, request.ctx.organization) match {
           case Some(xmlData: Elem) => {
+            val qtiKeys = QtiKeys((xmlData \ "itemBody")(0))
             val finalXml = prepareQti(xmlData, renderMode)
-            val params: PlayerParams = PlayerParams(itemId = Some(versionedIdToString(item.id)), xml = finalXml, previewEnabled = (renderMode == Web))
+            val params: PlayerParams = PlayerParams(finalXml, itemId = Some(versionedIdToString(item.id)), previewEnabled = (renderMode == Web), qtiKeys = qtiKeys, mode = renderMode)
             Ok(player.views.html.Player(params))
           }
           case None => NotFound("Can't find item")

@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+
+# Deletes buckets that match a given regex.
+# Params:
+# s3-key
+# s3-secret
+# regex
+#
+# Dependencies: aws-sdk ~> '1.11.3'
+
+require 'aws-sdk'
+
+key = ARGV[0]
+secret = ARGV[1]
+regex_string = ARGV[2]
+
+puts "key: #{key}"
+puts "secret: #{secret}"
+puts "regex: #{regex_string}"
+
+regex = Regexp.new(regex_string)
+
+raise "depends on aws-sdk 1.11.3" if AWS::VERSION != "1.11.3"
+
+AWS.config(access_key_id: key, secret_access_key: secret, region: 'us-east-1')
+
+s3 = AWS::S3.new
+
+def delete_bucket(bucket)
+  begin
+    puts "Deleting objects in bucket: #{bucket.name}"
+    bucket.clear!
+    bucket.delete
+  rescue SocketError
+    puts "Had socket error"
+  end
+end
+
+s3.buckets.each{ |b|
+
+  matches = !regex.match(b.name).nil?
+
+  if matches
+    puts b.name
+    delete_bucket(b)
+  else
+    puts "ignore: #{b.name}"
+  end
+
+}

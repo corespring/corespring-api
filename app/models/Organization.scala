@@ -20,13 +20,13 @@ import scala.Some
 import scala.Right
 import play.api.libs.json.JsObject
 import search.Searchable
+import common.config.AppConfig
 
 case class Organization(var name: String = "",
                         var path: Seq[ObjectId] = Seq(),
                         var contentcolls: Seq[ContentCollRef] = Seq(),
-                        var id: ObjectId = new ObjectId()){
-
-  def this() = this("")
+                        var id: ObjectId = new ObjectId()) {
+  lazy val isRoot:Boolean = id == AppConfig.rootOrgId
 }
 
 object Organization extends ModelCompanion[Organization,ObjectId] with Searchable{
@@ -179,11 +179,32 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
       }
     }
   }
-  implicit object OrganizationWrites extends Writes[Organization] {
+
+  object FullWrites extends BasicWrites{
+
+    implicit object CollectionReferenceWrites extends Writes[ContentCollRef] {
+      def writes(ref : ContentCollRef) = {
+        JsObject(
+          Seq(
+            "collectionId" -> JsString(ref.collectionId.toString),
+            "permission" -> JsString(Permission.toHumanReadable(ref.pval))))
+      }
+    }
+
+    override def writes(org:Organization) = {
+     val jsObject = super.writes(org)
+      jsObject ++ JsObject(Seq("collections" -> Json.toJson(org.contentcolls)))
+    }
+  }
+
+  implicit object OrganizationWrites extends BasicWrites
+
+  class BasicWrites extends Writes[Organization] {
     def writes(org: Organization) = {
       var list = List[(String, JsValue)]()
       if ( org.path.nonEmpty ) list = ("path" -> JsArray(org.path.map(c => JsString(c.toString)).toSeq)) :: list
       if ( org.name.nonEmpty ) list = ("name" -> JsString(org.name)) :: list
+      list = ("isRoot" -> JsBoolean(org.isRoot)) :: list
       list = ("id" -> JsString(org.id.toString)) :: list
       JsObject(list)
     }

@@ -67,6 +67,7 @@ angular.module('tagger.services')
                 standardsTree:'/assets/web/standards_tree.json',
                 standards:'/api/v1/field_values/cc-standard',
                 subject:'/api/v1/field_values/subject',
+                organizations:'/api/v1/organizations',
                 collection: checkInjectedRoutes('PlayerCollectionRoutes', 'list', [],'/api/v1/collections'),
                 contributor:'/api/v1/contributors',
                 uploadFile:'/tagger/upload/{itemId}/{fileName}',

@@ -3,9 +3,10 @@ package tests.models
 import controllers.auth.Permission
 import models._
 import models.item.Item.Keys
+import models.item.Item
 import org.bson.types.ObjectId
 import play.api.Logger
-import play.api.libs.json.Json
+import play.api.libs.json.{JsString, JsObject, Json}
 import play.api.mvc.{AnyContent, AnyContentAsEmpty, AnyContentAsJson}
 import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
@@ -59,7 +60,7 @@ class PermissionsTest extends BaseTest with TestModelHelpers {
     }
 
     "create a collection in an organization with write permission" in new TestOPlenty(Permission.Write) {
-      val requestJson = AnyContentAsJson(Json.toJson(new ContentCollection("test")))
+      val requestJson = AnyContentAsJson(JsObject(Seq("name" -> JsString("test"))))
       val result = api.v1.CollectionApi.createCollection()(request(tokenId, requestJson))
       val json = Json.parse(contentAsString(result))
       Logger.debug(json.toString)
@@ -86,3 +87,4 @@ class PermissionsTest extends BaseTest with TestModelHelpers {
   }
 
 }
+

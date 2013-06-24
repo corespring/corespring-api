@@ -38,7 +38,7 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
   private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
   import Item.Keys._
-  val dbSummaryFields = Seq(collectionId, taskInfo, otherAlignments, standards, contributorDetails)
+  val dbSummaryFields = Seq(collectionId, taskInfo, otherAlignments, standards, contributorDetails, published)
   val jsonSummaryFields: Seq[String] = Seq("id",
     collectionId,
     TaskInfo.Keys.gradeLevel,
@@ -48,8 +48,8 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
     relatedSubject,
     standards,
     author,
-    TaskInfo.Keys.title)
-
+    TaskInfo.Keys.title,
+    published)
 
   /**
    * List query implementation for Items
