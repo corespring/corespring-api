@@ -15,7 +15,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
       $scope.dragging = {};
       $scope.canDrag = true;
 
-      $scope.resetClick = function() {
+      $scope.resetClick = function () {
         for (var i = 0; i < $scope.listTargets.length; i++) {
           $scope.listTargets[i] = {};
         }
@@ -23,41 +23,54 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
           $scope.listAnswers[i] = $scope.originalListAnswers[i];
         }
         $scope.initMathML(0);
-      }
+      };
+
+      $scope.dropCallback = function (event, ui) {
+        $scope.initMathML(0);
+        _.each($scope.listTargets, function (el, idx) {
+          if (el.indexOf) {
+            var filtered = _.filter(el, function (el2) {
+              return el2.id;
+            });
+            $scope.listTargets[idx] = filtered;
+          }
+        });
+      };
+
     },
 
-    compile: function(elem,attrs) {
+    compile: function (elem, attrs) {
       var originalHtml = elem.html();
 
-      elem.html("<div><button ng-click='resetClick()' ng-show='canDrag'>Reset</button><br/>"+originalHtml+"</div>");
+      elem.html("<div><button ng-click='resetClick()' ng-show='canDrag'>Reset</button><br/>" + originalHtml + "</div>");
       return function ($scope, element, attrs, AssessmentItemCtrl) {
-
-        $scope.dropCallback = function(event, ui) {
-          $scope.initMathML(0);
-        };
-
-        var itemsCombinedValue = function () {
-          return _.reduce($scope.listTargets, function (acc, el) {
-            return acc + el.id + ",";
-          }, "");
-        };
 
         $scope.$watch("formSubmitted", function (newValue) {
           if (newValue != undefined) $scope.canDrag = !newValue;
         });
 
-        $scope.$watch(function watchBothItems() {
-          return itemsCombinedValue();
-        }, function whenItemsChange() {
+
+        $scope.$watch(function () {
+            return _.reduce($scope.listTargets, function (acc, el) {
+              if (el.indexOf)
+                return acc + _.pluck(el, "id").join(",");
+              else
+                return acc + el.id + ",";
+            }, "");
+          }, function whenItemsChange() {
           var response = [];
           for (var target in $scope.targetMap) {
             var idx = $scope.targetMap[target];
             var targetElement = $scope.listTargets[idx];
+            var str;
             if (targetElement.indexOf)
-              response.push(target + ":" + _.pluck(targetElement, "id").join("|"));
-            else {
-              response.push(target + ":" + targetElement.id);
-            }
+              str = _.pluck(targetElement, "id").join("|");
+            else
+              str = targetElement.id;
+
+            if (str && str.length > 0)
+              response.push(target + ":" + str);
+
           }
           console.log(response);
           AssessmentItemCtrl.setResponse($scope.responseIdentifier, response);
@@ -91,7 +104,7 @@ angular.module('qti.directives').directive("draggableanswer", function (QtiUtils
       var template = [
         '<div class="answerContainer thumbnail {{correctClass}}" style="width: {{width}}; height: {{height}}" data-drop="true" ng-model="listAnswers" data-jqyoui-options="optionsList1" jqyoui-droppable="{index: {{$index}}, onDrop: \'dropCallback\'}">',
         ' <div class="btn btn-primary contentElement" ng-bind-html-unsafe="itemContent.title"',
-        ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}},placeholder:false,animate:true,onStart:\'startCallback\'}"',
+        ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}},placeholder:true,animate:true,onStart:\'startCallback\'}"',
         ' data-jqyoui-options="{revert: \'invalid\'}" ng-model="listAnswers" ng-show="listAnswers[$index].id"></div>',
         '</div>'].join(" ");
 
@@ -106,12 +119,12 @@ angular.module('qti.directives').directive("draggableanswer", function (QtiUtils
         $scope.height = attrs.height ? attrs.height : "50px";
 
         $scope.optionsList1 = {
-          accept: function() {
+          accept: function () {
             return !$scope.dragging.draggingFromAnswer || $scope.dragging.id == attrs.identifier;
           }
         };
 
-        $scope.startCallback = function() {
+        $scope.startCallback = function () {
           $scope.dragging.id = $scope.listAnswers[$scope.$index].id;
           $scope.dragging.draggingFromAnswer = true;
         }
@@ -120,7 +133,8 @@ angular.module('qti.directives').directive("draggableanswer", function (QtiUtils
           $scope.itemContent = $scope.listAnswers[$scope.$index];
           try {
             $scope.itemContent.title = $scope.contentMap[$scope.listAnswers[$scope.$index].id];
-          } catch (e) {}
+          } catch (e) {
+          }
         });
 
         $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
@@ -151,17 +165,17 @@ angular.module('qti.directives').directive("dragtarget", function (QtiUtils) {
     require: "^draganddropinteraction",
     replace: true,
     scope: true,
-    compile: function(el, attrs) {
+    compile: function (el, attrs) {
       var isMultiple = attrs.cardinality == 'multiple';
 
       var template = isMultiple ?
         [
-        '<div style="height: {{height}}; width: {{width}}" class="thumbnail {{correctClass}}" data-drop="true" ng-model="listTargets[$index2]"',
-        'jqyoui-droppable="{onDrop: \'dropCallback\', multiple: true}" data-jqyoui-options="optionsList2">',
-        ' <div ng-repeat="item in listTargets[$index2]" class="btn btn-primary"',
-        ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}}, placeholder:false, animate:true, onStart: \'startCallback\'}"',
-        ' data-jqyoui-options="{revert: \'invalid\'}" ng-model="listTargets[$index2]" ng-show="item.title" ng-bind-html-unsafe="item.title"></div>',
-        '</div>'].join(" ")
+          '<div style="height: {{height}}; width: {{width}}" class="thumbnail {{correctClass}}" data-drop="true" ng-model="listTargets[$index2]"',
+          'jqyoui-droppable="{onDrop: \'dropCallback\', multiple: true}" data-jqyoui-options="optionsList2">',
+          ' <div ng-repeat="item in listTargets[$index2]" class="btn btn-primary"',
+          ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}}, placeholder:true, animate:true, onStart: \'startCallback\'}"',
+          ' data-jqyoui-options="{revert: \'invalid\'}" ng-model="listTargets[$index2]" ng-show="item.title" ng-bind-html-unsafe="item.title"></div>',
+          '</div>'].join(" ")
         :
         [
           '<div style="height: {{height}}; width: {{width}}" class="thumbnail {{correctClass}}" data-drop="true" ng-model="listTargets" ',
@@ -185,13 +199,13 @@ angular.module('qti.directives').directive("dragtarget", function (QtiUtils) {
         $scope.targetMap[attrs.identifier] = $scope.$index2;
 
         $scope.optionsList2 = {
-          accept: function() {
+          accept: function () {
             return true;
             return !$scope.dragging.draggingFromAnswer || !$scope.listTargets[$scope.$index2].id;
           }
         };
 
-        $scope.startCallback = function() {
+        $scope.startCallback = function () {
           $scope.dragging.id = $scope.listTargets[$scope.$index2].id;
           $scope.dragging.draggingFromAnswer = false;
         }
@@ -209,7 +223,7 @@ angular.module('qti.directives').directive("dragtarget", function (QtiUtils) {
             return s1 == attrs.identifier;
           }).split(":")[0];
           var ourResponse = QtiUtils.getResponseValue($scope.responseIdentifier, $scope.itemSession.responses, []);
-          var ourResponseForTarget = _.find(ourResponse,function (elem) {
+          var ourResponseForTarget = _.find(ourResponse, function (elem) {
             var s1 = elem.split(":")[1];
             return s1 == attrs.identifier;
           });
