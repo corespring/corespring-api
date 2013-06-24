@@ -289,14 +289,28 @@ class CorrectResponseTest extends Specification {
 
     def xml(identifier: String, cardinality: String, values: NodeSeq, interaction: NodeSeq = <none/>): Elem = MockXml.createXml(identifier, cardinality, values, interaction)
 
-    "targeted" in {
-      val item = QtiItem(xml("id", "targeted", <value>apple:id1</value> <value>pear:id2</value>))
+    "targeted unordered" in {
+      val item = QtiItem(xml("id", "targeted", <value>t1:apple,pear,cherry,orange</value> <value>t2:cow</value>, <dragAndDropInteraction responseIdentifier="id" orderMatters="false"></dragAndDropInteraction>))
       val response = item.responseDeclarations(0).correctResponse.get
-      response.isValueCorrect("apple:id1", None) === true
-      response.isValueCorrect("pear:id1", None) === false
-      response.isValueCorrect("apple:id2", None) === false
-      response.isValueCorrect("pear:id2", None) === true
-      response.isCorrect("apple:id1,pear:id2") === true
+      response.isValueCorrect("t1:apple,pear,cherry,orange", None) === true
+      response.isValueCorrect("t2:cow", None) === true
+      response.isValueCorrect("t2:apple", None) === false
+      response.isCorrect("t1:apple|pear|cherry|orange,t2:cow") === true
+      response.isCorrect("t1:pear|apple|orange|cherry,t2:cow") === true
+      response.isCorrect("t1:cow,t2:apple|pear") === false
+      response.isCorrect("t1:cow,t2:pear|apple") === false
+    }
+
+    "targeted ordered" in {
+      val item = QtiItem(xml("id", "targeted", <value>t1:apple,pear,cherry,orange</value> <value>t2:cow</value>, <dragAndDropInteraction responseIdentifier="id" orderMatters="true"></dragAndDropInteraction>))
+      val response = item.responseDeclarations(0).correctResponse.get
+      response.isValueCorrect("t1:apple,pear,cherry,orange", None) === true
+      response.isValueCorrect("t2:cow", None) === true
+      response.isValueCorrect("t2:apple", None) === false
+      response.isCorrect("t1:apple|pear|cherry|orange,t2:cow") === true
+      response.isCorrect("t1:pear|apple|orange|cherry,t2:cow") === false
+      response.isCorrect("t1:cow,t2:apple|pear|cherry|orange") === false
+      response.isCorrect("t1:cow,t2:pear|apple") === false
     }
 
 

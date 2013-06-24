@@ -1,19 +1,3 @@
-var compareArrayRespectPosition = function(arr1, arr2) {
-  if (arr1.length != arr2.length) return false;
-  for (var i = 0; i < arr1.length; i++) {
-    if (arr1[i].compare) {
-      if (!arr1[i].compare(arr2[i])) return false;
-    }
-    if (arr1[i] !== arr2[i]) return false;
-  }
-  return true;
-};
-
-var compareArraySet = function(arr1, arr2) {
-  return $(arr1).not(arr2).length == 0 && $(arr2).not(arr1).length == 0
-};
-
-
 angular.module('qti.directives').directive("draganddropinteraction", function (QtiUtils) {
   return {
     restrict: 'E',
@@ -30,6 +14,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
       $scope.assignments = {};
       $scope.dragging = {};
       $scope.canDrag = true;
+      $scope.orderMatters = $attrs.ordermatters == "true";
 
       $scope.resetClick = function () {
         for (var i = 0; i < $scope.listTargets.length; i++) {
@@ -58,7 +43,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
     compile: function (elem, attrs) {
       var originalHtml = elem.html();
 
-      elem.html("<div><button ng-click='resetClick()' ng-show='canDrag'>Reset</button><br/>" + originalHtml + "</div>");
+      elem.html("<div><button ng-click='resetClick()' ng-show='canDrag'>Reset</button><br/>{{orderMatters}}{{correctString}}" + originalHtml + "</div>");
       return function ($scope, element, attrs, AssessmentItemCtrl) {
 
         $scope.$watch("formSubmitted", function (newValue) {
@@ -88,14 +73,14 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
               response.push(target + ":" + str);
 
           }
-          console.log(response);
           AssessmentItemCtrl.setResponse($scope.responseIdentifier, response);
         });
 
         $scope.$on('highlightUserResponses', function () {
           console.log("highlighting user response");
           var value = QtiUtils.getResponseValue($scope.responseIdentifier, $scope.itemSession.responses, "");
-          _.each(value, function (v) {
+          $scope.correctString = $scope.itemSession.responses[0].outcome.isCorrect.toString();
+            _.each(value, function (v) {
             var arr = v.split(":");
             var answerList = arr[1].split("|");
             var idx = $scope.targetMap[arr[0]];
@@ -248,9 +233,8 @@ angular.module('qti.directives').directive("dragtarget", function (QtiUtils) {
             return s1 == attrs.identifier;
           });
           ourResponseForTarget = ourResponseForTarget ? ourResponseForTarget.split(":")[1].split("|") : "";
-          console.log(correctResponseForTarget);
-          console.log(ourResponseForTarget);
-          $scope.correctClass = compareArraySet(correctResponseForTarget, ourResponseForTarget) ? "correct" : "incorrect";
+          var isCorrect = $scope.orderMatters ? QtiUtils.compareArrays(correctResponseForTarget, ourResponseForTarget) : QtiUtils.compareArraysIgnoringOrder(correctResponseForTarget, ourResponseForTarget);
+          $scope.correctClass =  isCorrect ? "correct" : "incorrect";
         });
       }
     }

@@ -6,7 +6,7 @@ import qti.models.QtiItem.Correctness
 import qti.models.ResponseDeclaration
 import xml.Node
 
-case class DragAndDropInteraction(responseIdentifier: String, choices: Seq[SimpleChoice]) extends InteractionWithChoices {
+case class DragAndDropInteraction(responseIdentifier: String, choices: Seq[SimpleChoice], orderMatters:Boolean = false) extends InteractionWithChoices {
 
   def isScoreable = true
 
@@ -48,7 +48,8 @@ object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteractio
   def tagName = "dragAndDropInteraction"
   def apply(node: Node, itemBody:Option[Node]): DragAndDropInteraction = DragAndDropInteraction(
     (node \ "@responseIdentifier").text,
-    (node \ "draggableAnswer").map(SimpleChoice(_, (node \ "@responseIdentifier").text))
+    (node \ "draggableAnswer").map(SimpleChoice(_, (node \ "@responseIdentifier").text)),
+    (node \ "@orderMatters").text == "true"
   )
   def parse(itemBody:Node):Seq[Interaction] = {
     val interactions = (itemBody \\ "dragAndDropInteraction")

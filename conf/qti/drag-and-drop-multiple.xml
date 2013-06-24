@@ -8,7 +8,7 @@
     </responseDeclaration>
 
     <itemBody>
-        <dragAndDropInteraction responseIdentifier="alphabet1">
+        <dragAndDropInteraction responseIdentifier="alphabet1" orderMatters="true">
             Complete the equation below:
 
             <table class="tileTable">

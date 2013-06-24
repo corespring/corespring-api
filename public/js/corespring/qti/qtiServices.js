@@ -63,6 +63,22 @@ angular.module('qti.services')
       return (response === choiceValue)
     };
 
+    QtiUtils.compareArrays = function(arr1, arr2) {
+      if (arr1.length != arr2.length) return false;
+      for (var i = 0; i < arr1.length; i++) {
+        if (arr1[i].compare) {
+          if (!arr1[i].compare(arr2[i])) return false;
+        }
+        if (arr1[i] !== arr2[i]) return false;
+      }
+      return true;
+    };
+
+    QtiUtils.compareArraysIgnoringOrder = function(arr1, arr2) {
+      return $(arr1).not(arr2).length == 0 && $(arr2).not(arr1).length == 0
+
+    };
+
     QtiUtils.getResponseById = function (id, responses) {
 
       if (!id || !responses) {

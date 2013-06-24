@@ -257,6 +257,8 @@ object CorrectResponse {
       interaction.get match {
         case TextEntryInteraction(_, _, _) => CorrectResponseAny(node)
         case SelectTextInteraction(_, _, _, _, _, _) => CorrectResponseAny(node)
+        case DragAndDropInteraction(_, _, orderMatters) =>
+          CorrectResponseTargeted(node, orderMatters)
         case _ => CorrectResponse(node, cardinality)
       }
     }
@@ -269,7 +271,6 @@ object CorrectResponse {
     case "single" => CorrectResponseSingle(node)
     case "multiple" => CorrectResponseMultiple(node)
     case "ordered" => CorrectResponseOrdered(node)
-    case "targeted" => CorrectResponseTargeted(node)
     case _ => throw new RuntimeException("unknown cardinality: " + cardinality + ". cannot generate CorrectResponse")
   }
 }
@@ -342,30 +343,37 @@ object CorrectResponseOrdered {
   )
 }
 
-case class CorrectResponseTargeted(value: Map[String, List[String]]) extends CorrectResponse with PackageLogging {
+case class CorrectResponseTargeted(value: Map[String, List[String]], positionMatters:Boolean = false) extends CorrectResponse with PackageLogging {
 
   def isCorrect(responseValue: String) = {
     val responseList = responseValue.split(",").toList
-    val responseMap = responseList.map(el => el.split(":")(0) -> el.split(":")(1).split("\\|").toSet).toMap
-    val valueMap = value.toList.map(it=>it._1 -> it._2.toSet).toMap
-    println(responseMap)
-    println(valueMap)
+    val responseMap = if (positionMatters)
+      responseList.map(el => el.split(":")(0) -> el.split(":")(1).split("\\|").toList).toMap
+    else
+      responseList.map(el => el.split(":")(0) -> el.split(":")(1).split("\\|").toSet).toMap
+
+    val valueMap = if (positionMatters)
+      value.toList.map(it=>it._1 -> it._2.toList).toMap
+    else
+      value.toList.map(it=>it._1 -> it._2.toSet).toMap
+
     responseMap == valueMap
   }
 
   def isValueCorrect(v: String, index: Option[Int]) = {
     val parts = v.split(":")
-    val answer = parts(0)
-    val target = parts(1)
-    value(answer) == target
+    val target = parts(0)
+    val answerList = if (positionMatters) parts(1).split(",").toList else parts(1).split(",").toSet
+    val correctList = if (positionMatters) value(target) else value(target).toSet
+    answerList == correctList
   }
 }
 
 object CorrectResponseTargeted {
-  def apply(node: Node): CorrectResponseTargeted = {
-    val map = (node \ "value").map(e => e.text.split(":")(0) -> e.text.split(":")(1).split(",").toList).toMap
+  def apply(node: Node, orderMatters: Boolean): CorrectResponseTargeted = {
     CorrectResponseTargeted(
-      map
+      (node \ "value").map(e => e.text.split(":")(0) -> e.text.split(":")(1).split(",").toList).toMap,
+      orderMatters
     )
   }
 }
