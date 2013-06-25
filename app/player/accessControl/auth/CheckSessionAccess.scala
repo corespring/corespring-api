@@ -14,7 +14,7 @@ import scala.Some
 import common.log.PackageLogging
 import org.corespring.platform.data.mongo.models.VersionedId
 
-object CheckSessionAccess extends CheckSession{
+object CheckSessionAccess extends CheckSession with PackageLogging{
 
   val sessionLookup: SessionItemLookup = new SessionItemLookup {
 
@@ -26,6 +26,7 @@ object CheckSessionAccess extends CheckSession{
     private def contains(companion:ItemSessionCompanion, id:ObjectId, itemId:VersionedId[ObjectId]) : Boolean = {
       companion.findOneById(id) match {
         case Some(s) => {
+          Logger.debug("SessionItemLookup:contains: companion: " + companion + " itemId:" + s.itemId + " searched for: " + itemId)
           s.itemId == itemId
         }
         case _ => false
