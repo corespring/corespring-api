@@ -292,7 +292,14 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
     }
   )
 
-  def key(keys : String*) : String = keys.toList.mkString("/")
+  def key(itemId : String, keys : String*) : String = {
+
+    if(itemId.contains(":")){
+      (itemId.split(":") ++ keys).mkString("/")
+    } else {
+      (itemId ++ keys).mkString("/")
+    }
+  }
 
   /**
    * Upload a file to the 'data' Resource in the Item.

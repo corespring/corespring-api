@@ -43,13 +43,21 @@ trait ItemFiles extends PackageLogging {
   }
 
   def processFile(resource: Resource, file: StoredFile)(implicit item: Item): CloneFileResult = try {
-    val newStorageKey = StoredFile.storageKey(item.id, resource, file)
-    Logger.debug("clone file: " + file.storageKey + " --> " + newStorageKey)
+    val newStorageKey = StoredFile.storageKey(item.id, resource, file.name)
+
+    if(file.storageKey.isEmpty){
+      throw new RuntimeException("this file has no storage key: " + file.name + " id: " + item.id + " resource: " + resource.name)
+    }
+
+    Logger.debug("[ItemFiles] clone file: " + file.storageKey + " --> " + newStorageKey)
     s3service.cloneFile(bucket, file.storageKey, newStorageKey)
     file.storageKey = newStorageKey
     CloneFileResult(file, true)
   } catch {
-    case _: Throwable => CloneFileResult(file, false)
+    case e : Throwable => {
+      Logger.debug("An error occurred cloning the file: " + e.getMessage)
+      CloneFileResult(file, false)
+    }
   }
 
 }

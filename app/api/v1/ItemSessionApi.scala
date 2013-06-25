@@ -115,11 +115,14 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService
       def getSettings(json:JsValue) : Option[ItemSessionSettings] = json.asOpt[ItemSession].map(_.settings).orElse(Some(ItemSessionSettings()))
 
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.Read)) {
+        //if the version is not included, we need the current version to include in the itemId in session
+        val currentItemId:VersionedId[ObjectId] = if (itemId.version.isDefined) itemId else
+          itemService.findOneById(itemId).get.id //don't bother checking if item exists since we already did that in Content.isAuthorized
 
         val s : Option[ItemSession] = for{
           json <- request.body.asJson.orElse(Some(JsObject(Seq())))
           settings <- getSettings(json)
-        } yield  ItemSession(itemId = itemId, settings = settings)
+        } yield  ItemSession(itemId = currentItemId, settings = settings)
 
         s.map{ session =>
           itemSession.newSession(session) match {
