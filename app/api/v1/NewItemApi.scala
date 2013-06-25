@@ -129,7 +129,8 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
   }
   private def saveItem(item: Item, createNewVersion: Boolean): Option[Item] = {
     itemService.save(item, createNewVersion)
-    itemService.findOneById(item.id)
+    //Note: we remove the version - so that the dao automatically returns the latest version
+    itemService.findOneById(VersionedId(item.id.id))
   }
 
 }
