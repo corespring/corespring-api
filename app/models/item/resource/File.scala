@@ -4,6 +4,8 @@ import com.novus.salat.annotations.raw.Salat
 import play.api.libs.json._
 import play.api.libs.json.JsObject
 import scala.Some
+import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
 
 @Salat
 abstract class BaseFile(val name: String, val contentType: String, val isMain: Boolean)
@@ -102,6 +104,10 @@ object VirtualFile {
 case class StoredFile(override val name: String, override val contentType: String, override val isMain: Boolean = false, var storageKey: String = "") extends BaseFile(name, contentType, isMain)
 
 object StoredFile {
+
+  def storageKey(id:VersionedId[ObjectId], resource :Resource, file : StoredFile) : String = {
+     (Seq(id.id) ++ id.version ++ Seq(resource.name, file.name)).mkString("/")
+  }
 
   implicit object StoredFileWrites extends Writes[StoredFile] {
     def writes(f: StoredFile): JsValue = {

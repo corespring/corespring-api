@@ -26,10 +26,13 @@ import api.v1.ResourceApi
 import org.corespring.platform.data.mongo.models.VersionedId
 import com.sun.xml.internal.bind.v2.TODO
 import web.controllers.utils.ConfigLoader
+import api.v1.files.{CloneFileResult, ItemFiles}
 
-class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogging{
+class ItemServiceImpl(val s3service: S3Service) extends ItemService with PackageLogging with ItemFiles{
 
   private val AMAZON_ASSETS_BUCKET = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
+
+  val bucket = AMAZON_ASSETS_BUCKET
 
   import models.mongoContext.context
 
@@ -62,7 +65,8 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
 
   lazy val fieldValues = FieldValue.current
 
-  def cloneItem(item:Item): Option[Item] = {
+  def cloneItem(item:Item): Option[Item] = None
+  /*{
     val itemClone = item.cloneItem
     def versionS3File(sourceFile: StoredFile): String = {
       val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/", "")
@@ -99,7 +103,7 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
         Logger.error(r.getStackTrace.mkString("\n"))
         None
     }
-  }
+  }*/
 
   def countItems(query: DBObject, fields: Option[String] = None): Int = dao.count(query).toInt
 
@@ -114,7 +118,7 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
   def saveUsingDbo(id:VersionedId[ObjectId], dbo:DBObject, createNewVersion : Boolean = false) = dao.update(id, dbo, createNewVersion)
 
   private def versionStoredFiles(item:Item,version:Int):Validation[SalatVersioningDaoException,Unit] = {
-    def versionS3File(sourceFile: StoredFile): String = {
+    /*def versionS3File(sourceFile: StoredFile): String = {
       val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/", "")
       val oldStorageKeyVersionRemoved = oldStorageKeyIdRemoved.replaceAll("^\\d+?/","")
       val newStorageKey = item.id.toString +"/"+ version +"/"+ oldStorageKeyVersionRemoved
@@ -146,25 +150,28 @@ class ItemServiceImpl(s3service: S3Service) extends ItemService with PackageLogg
         Logger.error("Error cloning some of the S3 files: " + r.getMessage)
         Logger.error(r.getStackTrace.mkString("\n"))
         Failure(SalatVersioningDaoException("Error cloning some of the S3 files: " + r.getMessage))
-    }
+    }*/
+    Success(())
   }
 
   // three things occur here: 1. save the new item, 2. copy the old item's s3 files, 3. update the old item's stored files with the new s3 locations
   // TODO if any of these three things fail, the database and s3 revert back to previous state
   def save(item: Item, createNewVersion: Boolean = false) = {
-    val oldVersion = dao.currentVersion(item.id)
+
     dao.save(item.copy(dateModified = Some(new DateTime())), createNewVersion)
-    val newVersion = dao.currentVersion(item.id)
-    if (newVersion > oldVersion){
-      dao.get(VersionedId[ObjectId](item.id.id,Some(oldVersion.toInt))) match {
-        case Some(oldItem) => versionStoredFiles(oldItem,oldVersion.toInt) match {
-          case Success(_) => dao.save(oldItem,false)
-          case Failure(e) => {
-            dao.revertToVersion(oldItem.id)
-            throw e
-          };
+
+    if(createNewVersion){
+
+      val newItem = dao.findOneById(VersionedId(item.id.id)).get
+      val result : Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(newItem)
+      result match {
+        case Success(updatedItem) => {
+            dao.save(updatedItem, false)
         }
-        case None => throw SalatVersioningDaoException("could not find the most recently versioned item")
+        case Failure(files) => {
+          dao.revertToVersion(item.id)
+          files.foreach( r => s3service.delete(bucket, r.file.storageKey) )
+        }
       }
     }
   }

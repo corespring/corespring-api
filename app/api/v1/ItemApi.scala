@@ -245,14 +245,15 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
   }
 
   private def cloneS3File(sourceFile: StoredFile, newId: String): String = {
-    Logger.debug("Cloning " + sourceFile.storageKey + " to " + newId)
+    /*Logger.debug("Cloning " + sourceFile.storageKey + " to " + newId)
     val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/", "")
     s3service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, newId + "/" + oldStorageKeyIdRemoved)
-    newId + "/" + oldStorageKeyIdRemoved
+    newId + "/" + oldStorageKeyIdRemoved*/
+    ""
   }
 
   private def cloneStoredFiles(oldItem: Item, newItem: Item): Boolean = {
-    val newItemId = newItem.id.toString
+    /*val newItemId = newItem.id.toString
     try {
       newItem.data.get.files.foreach {
         file => file match {
@@ -279,7 +280,8 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
         Logger.error(r.getStackTrace.mkString("\n"))
         false
     }
-
+    */
+    true
   }
 
   /**
@@ -399,6 +401,7 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
    * this method copies the storage key's from the original item
    */
   private def copyStorageKeys(oldItem: Item, newItem: Item) {
+    /*
     if (newItem.data.isDefined) {
       newItem.data.get.files.foreach {
         file => file match {
@@ -419,7 +422,7 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
             case None => newsf.storageKey = ResourceApi.key(newItem.id.toString, ResourceApi.DATA_PATH, newsf.name)
           }
         })
-    }
+    }*/
   }
 
   def increment(itemId: ObjectId) = ApiAction {

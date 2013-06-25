@@ -114,6 +114,7 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
    * @param item
    */
   private def validateStoredFiles(dbitem:Item, item:Item) = {
+    /*
     val itemsf:Seq[StoredFile] =
       item.data.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).getOrElse(Seq()) ++
       item.supportingMaterials.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).flatten
@@ -125,7 +126,7 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
         case Some(dbsf) => sf.storageKey = dbsf.storageKey
         case None => Logger.warn("validateStoredFiles: no db storage key found")
       }
-    })
+    })*/
   }
   private def saveItem(item: Item, createNewVersion: Boolean): Option[Item] = {
     itemService.save(item, createNewVersion)

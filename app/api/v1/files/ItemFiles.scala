@@ -1,53 +1,55 @@
 package api.v1.files
+
 import common.log.PackageLogging
 import controllers.S3Service
 import models.item.Item
-import models.item.resource.StoredFile
-import models.item.service.ItemServiceClient
+import models.item.resource.{Resource, StoredFile}
+import scalaz.{Validation, Failure, Success}
 
 
-trait ItemFiles extends PackageLogging { self : ItemServiceClient =>
+case class CloneResourceResult(files: Seq[CloneFileResult])
+
+case class CloneFileResult(file: StoredFile, successful: Boolean)
+
+trait ItemFiles extends PackageLogging {
 
   def s3service: S3Service
 
   def bucket: String
 
-  private def cloneS3File(sourceFile: StoredFile, newId: String): String = {
-    Logger.debug("Cloning " + sourceFile.storageKey + " to " + newId)
-    val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/", "")
-    s3service.cloneFile(bucket, sourceFile.storageKey, newId + "/" + oldStorageKeyIdRemoved)
-    newId + "/" + oldStorageKeyIdRemoved
+  /** Given a newly versioned item, copy the files on s3 to the new storageKey
+    * and upate the file's storage key.
+    *
+    * @return a Validation
+    *         Failure -> a seq of files that were successfully cloned (to allow rollback)
+    *         Success -> the updated item
+    */
+  def cloneStoredFiles(implicit item: Item): Validation[Seq[CloneFileResult], Item] = {
+
+    val resources: Seq[Resource] = item.supportingMaterials ++ item.data
+
+    val result: Seq[CloneResourceResult] = resources.map(cloneResourceFiles)
+
+    val files: Seq[CloneFileResult] = result.map(r => r.files).flatten
+
+    def successful = files.filter(!_.successful).length == 0
+
+    if (successful) Success(item) else Failure(files.filter(_.successful))
   }
 
-  def cloneStoredFiles(oldItem: Item, newItem: Item): Boolean = {
-    val newItemId = newItem.id.toString
-    try {
-      newItem.data.get.files.foreach {
-        file => file match {
-          case sf: StoredFile =>
-            val newKey = cloneS3File(sf, newItemId)
-            sf.storageKey = newKey
-          case _ =>
-        }
-      }
-      newItem.supportingMaterials.foreach {
-        sm =>
-          sm.files.filter(_.isInstanceOf[StoredFile]).foreach {
-            file =>
-              val sf = file.asInstanceOf[StoredFile]
-              val newKey = cloneS3File(sf, newItemId)
-              sf.storageKey = newKey
-          }
-      }
-      itemService.save(newItem)
-      true
-    } catch {
-      case r: RuntimeException =>
-        Logger.error("Error cloning some of the S3 files: " + r.getMessage)
-        Logger.error(r.getStackTrace.mkString("\n"))
-        false
-    }
+  def cloneResourceFiles(resource: Resource)(implicit item: Item): CloneResourceResult = {
+    val result: Seq[CloneFileResult] = resource.files.filter(_.isInstanceOf[StoredFile]).map(f => processFile(resource, f.asInstanceOf[StoredFile]))
+    CloneResourceResult(result)
+  }
 
+  def processFile(resource: Resource, file: StoredFile)(implicit item: Item): CloneFileResult = try {
+    val newStorageKey = StoredFile.storageKey(item.id, resource, file)
+    Logger.debug("clone file: " + file.storageKey + " --> " + newStorageKey)
+    s3service.cloneFile(bucket, file.storageKey, newStorageKey)
+    file.storageKey = newStorageKey
+    CloneFileResult(file, true)
+  } catch {
+    case _: Throwable => CloneFileResult(file, false)
   }
 
 }
