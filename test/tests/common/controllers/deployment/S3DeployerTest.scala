@@ -30,7 +30,7 @@ class S3DeployerTest extends Specification {
     def getAWSSecretKey: String = ConfigFactory.load().getString("AMAZON_ACCESS_SECRET")
   })
 
-  val bucket = "s3-deployer-test-bucket"
+  val bucket = ConfigFactory.load().getString("AMAZON_TEST_BUCKET")
 
   "s3 deployer" should {
 

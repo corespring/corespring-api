@@ -2,8 +2,10 @@ package tests
 
 import _root_.common.seed.SeedDb
 import _root_.models.item.Item
+import _root_.models.item.resource.StoredFile
 import _root_.models.item.service.{ItemService, ItemServiceClient, ItemServiceImpl}
 import _root_.web.controllers.utils.ConfigLoader
+import helpers.TestS3Service
 import org.bson.types.ObjectId
 import org.specs2.mutable.Specification
 import org.specs2.specification.{Step, Fragments}
@@ -21,15 +23,17 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.mvc.AnyContentAsJson
 import play.api.mvc.AnyContentAsText
 import play.api.libs.json.JsObject
+import controllers.{S3Service, S3ServiceClient}
 
 
 /**
  * Base class for tests
  *
  */
-trait BaseTest extends Specification with ItemServiceClient {
+trait BaseTest extends Specification with ItemServiceClient with S3ServiceClient{
 
   def itemService : ItemService = ItemServiceImpl
+  def s3Service: S3Service = TestS3Service
 
   // From standard fixture data
   val token = "test_token"
@@ -46,8 +50,22 @@ trait BaseTest extends Specification with ItemServiceClient {
   }else{
     throw new RuntimeException("You're trying to seed against a remote db - bad idea")
   }
+  def initS3 = {
+    TestS3Service.init
+    val s3files = TestS3Service.files(s3Service.bucket)
+    itemService.find(MongoDBObject()).foreach(item => {
+      val storedFiles:Seq[StoredFile] =
+        item.data.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).getOrElse(Seq()) ++
+          item.supportingMaterials.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).flatten
+      storedFiles.foreach(sf => {
+        if(!s3files.contains(sf.storageKey)){
+
+        }
+      })
+    })
+  }
   PlaySingleton.start()
-  override def map(fs: => Fragments) = Step(initDB) ^ fs
+  override def map(fs: => Fragments) = Step(initDB) ^ Step(initS3) ^ fs
 
   /**
    * Decorate play.api.mvc.Result with some helper methods
