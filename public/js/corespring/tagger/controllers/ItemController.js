@@ -302,7 +302,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     })
   }
 
-  $scope.save = function (overrideResourceEditor) {
+  $scope.save = function (saveItemData) {
 
     if (!$scope.itemData) {
       return;
@@ -315,29 +315,34 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         $scope.showSaveWarning = false;
     }
 
-    if ($scope.showResourceEditor && !overrideResourceEditor) {
+    if ($scope.showResourceEditor && !saveItemData) {
       $scope.$broadcast("saveSelectedFile");
       return;
     }
 
-    $scope.validationResult = {};
-
-    $scope.itemData.update({}, function (data) {
-        $scope.isSaving = false;
-        $scope.suppressSave = false;
-        $scope.processValidationResults(data["$validationResult"]);
-        if(data.id != $scope.itemData.id){
-            $location.path('/edit/' + data.id);
-        }else{
-            $rootScope.itemData = data;
-            $scope.$broadcast("dataLoaded")
-        }
-      },
-      function onError() {
-        console.log("Error saving item");
-        $scope.isSaving = false;
-        $scope.suppressSave = false;
-      });
+    if(!saveItemData && $scope.itemData.published && ($scope.itemData.sessionCount > 0)){
+        $scope.showSaveWarning = true;
+        $scope.isSaving = false
+    }else{
+        $scope.validationResult = {};
+        $scope.itemData.update({}, function (data) {
+            $scope.isSaving = false;
+            $scope.suppressSave = false;
+            $scope.processValidationResults(data["$validationResult"]);
+            if(data.id != $scope.itemData.id){
+                $location.path('/edit/' + data.id);
+            }else{
+                $rootScope.itemData = data;
+                $scope.$broadcast("dataLoaded")
+            }
+          },
+          function onError() {
+            console.log("Error saving item");
+            $scope.isSaving = false;
+            $scope.suppressSave = false;
+          }
+        );
+    }
   };
 
 
