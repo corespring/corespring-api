@@ -42,7 +42,7 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
         dbitem <- itemService.findOneById(id).toSuccess("no item found for the given id")
         validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
-        savedResult <- saveItem(validatedItem, dbitem.published).toSuccess("Error saving item")
+        savedResult <- saveItem(validatedItem, dbitem.published && (dbitem.sessionCount > 0)).toSuccess("Error saving item")
       } yield savedResult
   }
 
