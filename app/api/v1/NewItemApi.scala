@@ -81,24 +81,6 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
         }
     }
 
-
-  //TODO: flesh out
-  /**
-   * return validated item and whether or not the item is published
-   * @param dbitem
-   * @param item
-   * @return
-   */
-  /*private def validateItem(id: VersionedId[ObjectId], item: Item): Option[(Item,Boolean)] = {
-    val dbitem = itemService.findOneById(id);
-    val isPublished = dbitem.map(_.published).getOrElse(false)
-    Some((
-      item.copy(
-        id = id,
-        collectionId = if (item.collectionId.isEmpty) itemService.findOneById(id).map(_.collectionId).getOrElse("") else item.collectionId),
-        isPublished
-    ))*/
-
   private def validateItem(dbitem:Item, item: Item): Option[Item] = {
     val itemCopy = item.copy(
       id = dbitem.id,
@@ -114,7 +96,6 @@ trait NewItemApi extends BaseApi with ItemServiceClient with ItemFiles {
    * @param item
    */
   private def validateStoredFiles(dbitem:Item, item:Item) = {
-
     val itemsf:Seq[StoredFile] =
       item.data.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).getOrElse(Seq()) ++
       item.supportingMaterials.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).flatten

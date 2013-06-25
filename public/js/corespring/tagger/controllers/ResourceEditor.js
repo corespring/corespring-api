@@ -293,8 +293,10 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
   };
 
   $scope.onFileUploadCompleted = function (result,status) {
+    console.log("file upload complete. status: "+status+" result: "+result)
     if(status == 200){
       var file = JSON.parse(result);
+      console.log("file uploaded: "+JSON.stringify(file))
       $scope.addFile(file);
       $scope.showFile(file);
     }else{

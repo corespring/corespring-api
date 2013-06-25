@@ -65,45 +65,19 @@ class ItemServiceImpl(val s3service: S3Service) extends ItemService with Package
 
   lazy val fieldValues = FieldValue.current
 
-  def cloneItem(item:Item): Option[Item] = None
-  /*{
+  def cloneItem(item:Item): Option[Item] = {
     val itemClone = item.cloneItem
-    def versionS3File(sourceFile: StoredFile): String = {
-      val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/", "")
-      val oldStorageKeyVersionRemoved = oldStorageKeyIdRemoved.replaceAll("^\\d+?/","")
-      val newStorageKey = itemClone.id.toString +"/"+ oldStorageKeyVersionRemoved
-      s3service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, newStorageKey)
-      newStorageKey
-    }
-    try {
-      itemClone.data.get.files.foreach {
-        file => file match {
-          case sf: StoredFile =>
-            val newKey = versionS3File(sf)
-            sf.storageKey = newKey
-          case _ =>
-        }
+    val result : Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(itemClone)
+    result match {
+      case Success(updatedItem) => {
+        dao.save(updatedItem, false)
+        Some(updatedItem)
       }
-      itemClone.supportingMaterials.foreach {
-        sm =>
-          sm.files.filter(_.isInstanceOf[StoredFile]).foreach {
-            file =>
-              val sf = file.asInstanceOf[StoredFile]
-              val newKey = versionS3File(sf)
-              sf.storageKey = newKey
-          }
+      case Failure(files) => {
+        None
       }
-      dao.insert(itemClone).flatMap(findOneById(_))
-    } catch {
-      case e:SalatInsertError =>
-        Logger.error("Error inserting item clone: "+e.getMessage)
-        None
-      case r: RuntimeException =>
-        Logger.error("Error cloning some of the S3 files: " + r.getMessage)
-        Logger.error(r.getStackTrace.mkString("\n"))
-        None
     }
-  }*/
+  }
 
   def countItems(query: DBObject, fields: Option[String] = None): Int = dao.count(query).toInt
 
@@ -116,43 +90,6 @@ class ItemServiceImpl(val s3service: S3Service) extends ItemService with Package
   def findOne(query: DBObject): Option[Item] = dao.findOne(query)
 
   def saveUsingDbo(id:VersionedId[ObjectId], dbo:DBObject, createNewVersion : Boolean = false) = dao.update(id, dbo, createNewVersion)
-
-  private def versionStoredFiles(item:Item,version:Int):Validation[SalatVersioningDaoException,Unit] = {
-    /*def versionS3File(sourceFile: StoredFile): String = {
-      val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/", "")
-      val oldStorageKeyVersionRemoved = oldStorageKeyIdRemoved.replaceAll("^\\d+?/","")
-      val newStorageKey = item.id.toString +"/"+ version +"/"+ oldStorageKeyVersionRemoved
-      s3service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, newStorageKey)
-      newStorageKey
-    }
-    //for each stored file in item, copy the file to the version path
-    try {
-      item.data.get.files.foreach {
-        file => file match {
-          case sf: StoredFile =>
-            val newKey = versionS3File(sf)
-            sf.storageKey = newKey
-          case _ =>
-        }
-      }
-      item.supportingMaterials.foreach {
-        sm =>
-          sm.files.filter(_.isInstanceOf[StoredFile]).foreach {
-            file =>
-              val sf = file.asInstanceOf[StoredFile]
-              val newKey = versionS3File(sf)
-              sf.storageKey = newKey
-          }
-      }
-      Success(())
-    } catch {
-      case r: RuntimeException =>
-        Logger.error("Error cloning some of the S3 files: " + r.getMessage)
-        Logger.error(r.getStackTrace.mkString("\n"))
-        Failure(SalatVersioningDaoException("Error cloning some of the S3 files: " + r.getMessage))
-    }*/
-    Success(())
-  }
 
   // three things occur here: 1. save the new item, 2. copy the old item's s3 files, 3. update the old item's stored files with the new s3 locations
   // TODO if any of these three things fail, the database and s3 revert back to previous state

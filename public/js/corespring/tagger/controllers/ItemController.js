@@ -236,7 +236,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.showSaveWarning=false
   $scope.itemVersion = 1
   $scope.$on("dataLoaded",function(newValue,oldValue){
-      console.log("dataLoaded called: "+JSON.stringify($scope.itemData))
       $scope.itemVersion = parseInt($scope.itemData.id.split(":")[1])+1
       $scope.isPublished = $scope.itemData.published
   })
@@ -327,8 +326,12 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         $scope.isSaving = false;
         $scope.suppressSave = false;
         $scope.processValidationResults(data["$validationResult"]);
-        $rootScope.itemData = data;
-        $scope.$broadcast("dataLoaded")
+        if(data.id != $scope.itemData.id){
+            $location.path('/edit/' + data.id);
+        }else{
+            $rootScope.itemData = data;
+            $scope.$broadcast("dataLoaded")
+        }
       },
       function onError() {
         console.log("Error saving item");
