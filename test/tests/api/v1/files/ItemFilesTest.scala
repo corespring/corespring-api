@@ -46,7 +46,7 @@ class ItemFilesTest extends Specification with Mockito{
       }
     }
 
-    "if clone fails for a file then a list of successful clones are returned" in {
+    "if clone fails for a file then the list of clone file results are returned" in {
 
       val mockFiles = new ItemFiles {
         def s3service: S3Service = new S3Service {

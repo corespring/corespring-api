@@ -1,7 +1,6 @@
 package tests.api.v1
 
 import api.ApiError
-import api.v1.NewItemApi
 import com.mongodb.casbah.Imports._
 import common.log.PackageLogging
 import controllers.S3Service
@@ -9,8 +8,7 @@ import models._
 import models.item.Item
 import models.item.Item.Keys
 import models.item.resource.{Resource, VirtualFile}
-import models.item.service.{ItemService, ItemServiceClient}
-import org.corespring.platform.data.mongo.models.VersionedId
+import models.item.service.ItemServiceClient
 import org.specs2.mock.Mockito
 import play.api.libs.json._
 import play.api.mvc._
@@ -54,6 +52,8 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
     )
     block(Json.fromJson[JsValue](Json.parse(contentAsString(result))))
   }
+
+
   "list" should {
 
     "return all items" in {
@@ -283,24 +283,5 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
     }
     feedback
   }
-  /*
-
-  "clone" should {
-    "clone item" in {
-      val itemApi = new NewItemApi {
-        def itemService: ItemService = itemService
-
-        def s3service: S3Service = mockS3service
-
-        def bucket: String = "blah"
-      }
-
-      val id = "511154e48604c9f77da9739b"
-      val fakeRequest = FakeRequest(POST, "/api/v1/items/%s?access_token=%s".format(id, token))
-      itemApi.cloneItem(versionedId(id))(fakeRequest)
-      there was atLeastTwo(mockS3service).cloneFile(anyString, anyString, anyString)
-    }
-  }
-  */
 
 }
