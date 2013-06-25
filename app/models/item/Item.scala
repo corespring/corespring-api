@@ -13,7 +13,6 @@ import resource.Resource
 import scala._
 import models.mongoContext._
 import com.novus.salat._
-import com.novus.salat.global._
 
 case class Item(
                  var collectionId: String = "",

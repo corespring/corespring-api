@@ -215,6 +215,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.showProgressModal = true;
     $scope.itemData.clone({id: $scope.itemData.id}, function onCloneSuccess(data) {
       $scope.showProgressModal = false;
+      console.log("cloned item id: "+data.id)
       $location.path('/edit/' + data.id);
     }, function onError(error) {
       $scope.showProgressModal = false;
@@ -326,8 +327,12 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         $scope.isSaving = false;
         $scope.suppressSave = false;
         $scope.processValidationResults(data["$validationResult"]);
-        $rootScope.itemData = data;
-        $scope.$broadcast("dataLoaded")
+        if(data.id != $scope.itemData.id){
+            $location.path('/edit/' + data.id);
+        }else{
+            $rootScope.itemData = data;
+            $scope.$broadcast("dataLoaded")
+        }
       },
       function onError() {
         console.log("Error saving item");

@@ -34,7 +34,7 @@ trait ItemFiles extends PackageLogging {
 
     def successful = files.filter(!_.successful).length == 0
 
-    if (successful) Success(item) else Failure(files.filter(_.successful))
+    if (successful) Success(item) else Failure(files.filter(!_.successful))
   }
 
   def cloneResourceFiles(resource: Resource)(implicit item: Item): CloneResourceResult = {
