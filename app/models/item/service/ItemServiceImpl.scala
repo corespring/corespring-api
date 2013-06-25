@@ -107,7 +107,7 @@ class ItemServiceImpl(val s3service: S3Service) extends ItemService with Package
         }
         case Failure(files) => {
           dao.revertToVersion(item.id)
-          files.foreach( r => s3service.delete(bucket, r.file.storageKey) )
+          files.foreach( r => if(r.successful){s3service.delete(bucket, r.file.storageKey)})
         }
       }
     }
