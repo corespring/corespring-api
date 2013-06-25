@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import player.accessControl.models.RequestedAccess.Mode._
 import player.accessControl.models.granter.constraints._
 import player.accessControl.models.{VersionedContentRequest, ContentRequest, RenderOptions, RequestedAccess}
+import org.corespring.platform.data.mongo.models.VersionedId
 
 /** An AccessGranter that creates a list of Constraints based on the rendering options */
 class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLookup) extends ConstraintChecker with AccessGranter {
@@ -73,8 +74,13 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
     case e: Throwable => None
   }
 
-  private def makeOrFail(s: String, fn: (ObjectId => Constraint[Any]), failedMsg: String) = {
-    oid(s).map {
+  private def void(s: String): Option[VersionedId[ObjectId]] = {
+    import models.versioning.VersionedIdImplicits.Binders._
+    stringToVersionedId(s)
+  }
+
+  private def makeOrFail[ID](s: String, converterFn: String => Option[ID], fn: (ID=> Constraint[Any]), failedMsg: String) = {
+    converterFn(s).map {
       o => fn(o)
     }.getOrElse(new FailedConstraint(failedMsg))
   }
@@ -87,14 +93,14 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
         List()
       }
       else {
-        List(makeOrFail(itemId, new LookupContainsItemId(_, lookup), "invalid itemId in RenderOptions"))
+        List(makeOrFail[VersionedId[ObjectId]](itemId, void, new LookupContainsItemId(_, lookup), "invalid itemId in RenderOptions"))
       }
     }
 
     if (otherId == RenderOptions.*) {
       itemIdToSessionConstraint
     } else {
-      itemIdToSessionConstraint ::: List(makeOrFail(otherId, new ObjectIdMatches(_), "invalid id"))
+      itemIdToSessionConstraint ::: List(makeOrFail[ObjectId](otherId, oid, new ObjectIdMatches(_), "invalid id"))
     }
   }
 
@@ -110,11 +116,11 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
     if (options.itemId == RenderOptions.*)
       List()
     else
-      List(makeOrFail(options.itemId, new ObjectIdMatches(_), "invalid item id in RenderOptions"))
+      List(makeOrFail[VersionedId[ObjectId]](options.itemId, void, new VersionedIdMatches(_), "invalid item id in RenderOptions"))
   }
 
   private def itemValueAndConstraints(item: VersionedContentRequest)(implicit options: RenderOptions): ValueAndConstraint[Any] = {
-    ValueAndConstraint("itemId", item.id.id, itemConstraints(item))
+    ValueAndConstraint("itemId", item.id, itemConstraints(item))
   }
 
   private def sessionValueAndConstraints(session: ContentRequest)(implicit options: RenderOptions): ValueAndConstraint[Any] = {

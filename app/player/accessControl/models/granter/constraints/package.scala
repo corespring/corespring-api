@@ -1,10 +1,12 @@
 package player.accessControl.models.granter
 
 import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
 
 package object constraints {
 
   /** An abstraction of whether a value is allowed */
+
   trait Constraint[+T] {
     def allow[U >: T](value: U): Boolean
 
@@ -57,7 +59,7 @@ package object constraints {
     override def toString: String = describe
   }
 
-  class SessionContainsItemId(itemId: ObjectId, lookup: SessionItemLookup) extends Constraint[ObjectId] {
+  class SessionContainsItemId(itemId: VersionedId[ObjectId], lookup: SessionItemLookup) extends Constraint[ObjectId] {
     def allow[U >: ObjectId](value: U) = lookup.containsItem(value.asInstanceOf[ObjectId], itemId)
 
     override def toString: String = describe
@@ -65,7 +67,7 @@ package object constraints {
     override def describe = "session-contains-item? " + itemId + " lookup: " + lookup
   }
 
-  class LookupContainsItemId(itemId:ObjectId, lookup : ItemLookup) extends Constraint[ObjectId]{
+  class LookupContainsItemId(itemId:VersionedId[ObjectId], lookup : ItemLookup) extends Constraint[ObjectId]{
     def allow[U >: ObjectId](value: U) = lookup.containsItem(value.asInstanceOf[ObjectId], itemId)
 
     override def toString: String = describe
@@ -81,6 +83,7 @@ package object constraints {
     override def describe = "Failed: " + msg
   }
 
+
   class ObjectIdMatches(oid: ObjectId) extends Constraint[ObjectId] {
 
     def allow[U >: ObjectId](value: U) = value.asInstanceOf[ObjectId] == oid
@@ -90,4 +93,12 @@ package object constraints {
     override def toString = describe
   }
 
+  class VersionedIdMatches(id: VersionedId[ObjectId]) extends Constraint[VersionedId[ObjectId]] {
+
+    def allow[U >: VersionedId[ObjectId]](value: U) = value.asInstanceOf[VersionedId[ObjectId]] == id
+
+    override def describe = "[VersionedId] ? == " + id
+
+    override def toString = describe
+  }
 }

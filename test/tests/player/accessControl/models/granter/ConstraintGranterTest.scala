@@ -13,7 +13,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 class ConstraintGranterTest extends Specification {
 
   def sessionLookup(contains: Boolean): SessionItemLookup = new SessionItemLookup {
-    def containsItem(id: ObjectId, itemId: ObjectId): Boolean = contains
+    def containsItem(id: ObjectId, itemId: VersionedId[ObjectId]): Boolean = contains
   }
 
   def yesSession = sessionLookup(contains = true)
@@ -25,7 +25,7 @@ class ConstraintGranterTest extends Specification {
   def noQuiz = quizLookup(contains = false)
 
   def quizLookup(contains: Boolean): QuizItemLookup = new QuizItemLookup {
-    def containsItem(id: ObjectId, itemId: ObjectId): Boolean = contains
+    def containsItem(id: ObjectId, itemId: VersionedId[ObjectId]): Boolean = contains
   }
 
   def granter(session: SessionItemLookup = yesSession, quiz: QuizItemLookup = yesQuiz) = new ConstraintGranter(session, quiz)
