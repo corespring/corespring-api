@@ -14,7 +14,7 @@
             <table class="tileTable">
                 <tr>
                     <td>
-                        <draggableAnswer identifier="apple">Apple</draggableAnswer>
+                        <draggableAnswer identifier="apple" copyOnDrag="true">Apple</draggableAnswer>
                     </td>
                     <td>
                         <draggableAnswer identifier="pear">Pear</draggableAnswer>

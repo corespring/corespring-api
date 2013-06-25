@@ -18,7 +18,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
 
       $scope.resetClick = function () {
         for (var i = 0; i < $scope.listTargets.length; i++) {
-          $scope.listTargets[i] = {};
+          $scope.listTargets[i] = $scope.listTargets[i].indexOf ? [] : {};
         }
         for (var i = 0; i < $scope.listAnswers.length; i++) {
           $scope.listAnswers[i] = $scope.originalListAnswers[i];
@@ -43,7 +43,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
     compile: function (elem, attrs) {
       var originalHtml = elem.html();
 
-      elem.html("<div><button ng-click='resetClick()' ng-show='canDrag'>Reset</button><br/>{{orderMatters}}{{correctString}}" + originalHtml + "</div>");
+      elem.html("<div><button ng-click='resetClick()' ng-show='canDrag'>Reset</button><br/>" + originalHtml + "</div>");
       return function ($scope, element, attrs, AssessmentItemCtrl) {
 
         $scope.$watch("formSubmitted", function (newValue) {
@@ -52,13 +52,13 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
 
 
         $scope.$watch(function () {
-            return _.reduce($scope.listTargets, function (acc, el) {
-              if (el.indexOf)
-                return acc + _.pluck(el, "id").join(",");
-              else
-                return acc + el.id + ",";
-            }, "");
-          }, function whenItemsChange() {
+          return _.reduce($scope.listTargets, function (acc, el) {
+            if (el.indexOf)
+              return acc + _.pluck(el, "id").join(",");
+            else
+              return acc + el.id + ",";
+          }, "");
+        }, function whenItemsChange() {
           var response = [];
           for (var target in $scope.targetMap) {
             var idx = $scope.targetMap[target];
@@ -80,11 +80,11 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
           console.log("highlighting user response");
           var value = QtiUtils.getResponseValue($scope.responseIdentifier, $scope.itemSession.responses, "");
           $scope.correctString = $scope.itemSession.responses[0].outcome.isCorrect.toString();
-            _.each(value, function (v) {
+          _.each(value, function (v) {
             var arr = v.split(":");
             var answerList = arr[1].split("|");
             var idx = $scope.targetMap[arr[0]];
-            $scope.listTargets[idx] = $scope.listTargets[idx].indexOf ? _.map(answerList, function(e) {
+            $scope.listTargets[idx] = $scope.listTargets[idx].indexOf ? _.map(answerList, function (e) {
               return {id: e, title: $scope.contentMap[e]};
             }) : {id: answerList[0]};
             $scope.listAnswers = _.map($scope.listAnswers, function (a) {
@@ -106,11 +106,15 @@ angular.module('qti.directives').directive("draggableanswer", function (QtiUtils
     scope: true,
     compile: function (tElement, tAttrs, transclude) {
       var originalContent = tElement.html();
+      var copyOnDrag = tAttrs.copyondrag == "true";
+      var placeHolder = copyOnDrag ? "'keep'" : true;
+      var helper = copyOnDrag ? "'clone'" : "''";
+
       var template = [
         '<div class="answerContainer thumbnail {{correctClass}}" style="width: {{width}}; height: {{height}}" data-drop="true" ng-model="listAnswers" data-jqyoui-options="optionsList1" jqyoui-droppable="{index: {{$index}}, onDrop: \'dropCallback\'}">',
         ' <div class="btn btn-primary contentElement" ng-bind-html-unsafe="itemContent.title"',
-        ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}},placeholder:true,animate:true,onStart:\'startCallback\'}"',
-        ' data-jqyoui-options="{revert: \'invalid\'}" ng-model="listAnswers" ng-show="listAnswers[$index].id"></div>',
+        ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}},placeholder:'+placeHolder+',animate:true,onStart:\'startCallback\'}"',
+        ' data-jqyoui-options="{revert: \'invalid\',helper: '+helper+'}" ng-model="listAnswers" ng-show="listAnswers[$index].id"></div>',
         '</div>'].join(" ");
 
       tElement.html(template);
@@ -122,6 +126,7 @@ angular.module('qti.directives').directive("draggableanswer", function (QtiUtils
         $scope.originalListAnswers.push({id: attrs.identifier, title: originalContent});
         $scope.width = attrs.width ? attrs.width : "50px";
         $scope.height = attrs.height ? attrs.height : "50px";
+        $scope.copyOnDrag = attrs.copyondrag == "true";
 
         $scope.optionsList1 = {
           accept: function () {
@@ -234,7 +239,7 @@ angular.module('qti.directives').directive("dragtarget", function (QtiUtils) {
           });
           ourResponseForTarget = ourResponseForTarget ? ourResponseForTarget.split(":")[1].split("|") : "";
           var isCorrect = $scope.orderMatters ? QtiUtils.compareArrays(correctResponseForTarget, ourResponseForTarget) : QtiUtils.compareArraysIgnoringOrder(correctResponseForTarget, ourResponseForTarget);
-          $scope.correctClass =  isCorrect ? "correct" : "incorrect";
+          $scope.correctClass = isCorrect ? "correct" : "incorrect";
         });
       }
     }
