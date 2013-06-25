@@ -96,7 +96,8 @@ class ItemFilesTest extends Specification with Mockito{
         case Success(updatedItem) => failure("should fail")
         case Failure(cloneFileResults) => {
           cloneFileResults.length === 2
-          cloneFileResults(0).file.name === "bad.png"
+          cloneFileResults(0).file.name === "img.png"
+          cloneFileResults(1).file.name === "bad.png"
         }
       }
     }
