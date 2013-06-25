@@ -105,8 +105,8 @@ case class StoredFile(override val name: String, override val contentType: Strin
 
 object StoredFile {
 
-  def storageKey(id:VersionedId[ObjectId], resource :Resource, file : StoredFile) : String = {
-     (Seq(id.id) ++ id.version ++ Seq(resource.name, file.name)).mkString("/")
+  def storageKey(id:VersionedId[ObjectId], resource :Resource, filename: String) : String = {
+     (Seq(id.id) ++ id.version ++ Seq(resource.name, filename)).mkString("/")
   }
 
   implicit object StoredFileWrites extends Writes[StoredFile] {
