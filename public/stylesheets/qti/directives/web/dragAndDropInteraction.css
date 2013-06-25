@@ -3,8 +3,11 @@
 }
 
 .contentElement {
-    width: auto;
-    height: auto;
+    border-radius: 4px;
+    background-color: #999;
+    padding: 8px;
+    float: left;
+    margin-right: 5px;
 }
 
 .correct {
@@ -13,4 +16,8 @@
 
 .incorrect {
     background-color: red;
+}
+
+.placeholder {
+    background-color: #800080;
 }

@@ -111,9 +111,9 @@ angular.module('qti.directives').directive("draggableanswer", function (QtiUtils
       var helper = copyOnDrag ? "'clone'" : "''";
 
       var template = [
-        '<div class="answerContainer thumbnail {{correctClass}}" style="width: {{width}}; height: {{height}}" data-drop="true" ng-model="listAnswers" data-jqyoui-options="optionsList1" jqyoui-droppable="{index: {{$index}}, onDrop: \'dropCallback\'}">',
-        ' <div class="btn btn-primary contentElement" ng-bind-html-unsafe="itemContent.title"',
-        ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}},placeholder:'+placeHolder+',animate:true,onStart:\'startCallback\'}"',
+        '<div class="answerContainer  {{correctClass}} {{phClass}}" style="width: {{width}}; height: {{height}}" data-drop="true" ng-model="listAnswers" data-jqyoui-options="optionsList1" jqyoui-droppable="{index: {{$index}}, onDrop: \'dropCallback\'}">',
+        ' <div class="contentElement" ng-bind-html-unsafe="itemContent.title"',
+        ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}},placeholder:'+placeHolder+',animate:false,onStart:\'startCallback\',onStop:\'stopCallback\'}"',
         ' data-jqyoui-options="{revert: \'invalid\',helper: '+helper+'}" ng-model="listAnswers" ng-show="listAnswers[$index].id"></div>',
         '</div>'].join(" ");
 
@@ -127,16 +127,26 @@ angular.module('qti.directives').directive("draggableanswer", function (QtiUtils
         $scope.width = attrs.width ? attrs.width : "50px";
         $scope.height = attrs.height ? attrs.height : "50px";
         $scope.copyOnDrag = attrs.copyondrag == "true";
+        $scope.placeholderClass = attrs.placeholderClass;
 
         $scope.optionsList1 = {
           accept: function () {
-            return !$scope.dragging.draggingFromAnswer || $scope.dragging.id == attrs.identifier;
+            return $scope.dragging.id == attrs.identifier;
           }
         };
 
         $scope.startCallback = function () {
           $scope.dragging.id = $scope.listAnswers[$scope.$index].id;
           $scope.dragging.draggingFromAnswer = true;
+          $scope.$apply(function() {
+            $scope.phClass = $scope.placeholderClass;
+          });
+        }
+
+        $scope.stopCallback = function () {
+          $scope.$apply(function() {
+            $scope.phClass = "";
+          });
         }
 
         $scope.$watch("listAnswers[" + $scope.$index + "]", function () {
@@ -181,18 +191,18 @@ angular.module('qti.directives').directive("dragtarget", function (QtiUtils) {
       var template = isMultiple ?
         [
           '<div style="height: {{height}}; width: {{width}}" class="thumbnail {{correctClass}}" data-drop="true" ng-model="listTargets[$index2]"',
-          'jqyoui-droppable="{onDrop: \'dropCallback\', multiple: true}" data-jqyoui-options="optionsList2">',
-          ' <div ng-repeat="item in listTargets[$index2]" class="btn btn-primary"',
-          ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}}, placeholder:true, animate:true, onStart: \'startCallback\'}"',
-          ' data-jqyoui-options="{revert: \'invalid\'}" ng-model="listTargets[$index2]" ng-show="item.title" ng-bind-html-unsafe="item.title"></div>',
+          'jqyoui-droppable="{onDrop: \'dropCallback\', multiple: true}">',
+          ' <div ng-repeat="item in listTargets[$index2]" class="contentElement"',
+          ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}}, placeholder:true, animate:false, onStart: \'startCallback\'}"',
+          ' data-jqyoui-options="draggableOptions" ng-model="listTargets[$index2]" ng-show="item.title" ng-bind-html-unsafe="item.title" data-id="{{item.id}}"></div>',
           '</div>'].join(" ")
         :
         [
           '<div style="height: {{height}}; width: {{width}}" class="thumbnail {{correctClass}}" data-drop="true" ng-model="listTargets" ',
-          'jqyoui-droppable="{index: {{$index2}}, onDrop: \'dropCallback\', multiple: false}" data-jqyoui-options="optionsList2">',
-          ' <div class="btn btn-primary"',
-          ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index2}}, placeholder:true, animate:true, onStart: \'startCallback\'}"',
-          ' data-jqyoui-options="{revert: \'invalid\'}" ng-model="listTargets" ng-show="itemContent.title" ng-bind-html-unsafe="itemContent.title"></div>',
+          'jqyoui-droppable="{index: {{$index2}}, onDrop: \'dropCallback\', multiple: false}">',
+          ' <div class="contentElement"',
+          ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index2}}, placeholder:true, animate:false, onStart: \'startCallback\'}"',
+          ' data-jqyoui-options="draggableOptions" ng-model="listTargets" ng-show="itemContent.title" ng-bind-html-unsafe="itemContent.title" data-id="{{itemContent.id}}"></div>',
           '</div>'
         ].join(" ");
 
@@ -208,15 +218,31 @@ angular.module('qti.directives').directive("dragtarget", function (QtiUtils) {
         $scope.listTargets.push($scope.isMultiple ? [] : {});
         $scope.targetMap[attrs.identifier] = $scope.$index2;
 
-        $scope.optionsList2 = {
-          accept: function () {
-            return true;
-            return !$scope.dragging.draggingFromAnswer || !$scope.listTargets[$scope.$index2].id;
-          }
-        };
+        $scope.draggableOptions = {
+          revert: function(isValid) {
+            if (isValid) return false;
 
-        $scope.startCallback = function () {
-          $scope.dragging.id = $scope.listTargets[$scope.$index2].id;
+            $scope.$apply(function() {
+              if ($scope.listTargets[$scope.$index2].indexOf)
+                $scope.listTargets[$scope.$index2] = _.filter($scope.listTargets[$scope.$index2], function(el) {
+                  return el.id != $scope.dragging.id;
+                });
+              else
+                $scope.listTargets[$scope.$index2] = {};
+
+              for (var i = 0; i < $scope.listAnswers.length; i++) {
+                if ($scope.originalListAnswers[i].id == $scope.dragging.id)
+                  $scope.listAnswers[i] = $scope.originalListAnswers[i];
+              }
+
+            });
+
+            return true;
+          }
+        }
+
+        $scope.startCallback = function (ev,b) {
+          $scope.dragging.id = $(ev.target).attr('data-id');
           $scope.dragging.draggingFromAnswer = false;
         }
 

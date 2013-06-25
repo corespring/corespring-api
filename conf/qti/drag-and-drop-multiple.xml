@@ -17,7 +17,7 @@
                         <draggableAnswer identifier="apple" copyOnDrag="true">Apple</draggableAnswer>
                     </td>
                     <td>
-                        <draggableAnswer identifier="pear">Pear</draggableAnswer>
+                        <draggableAnswer identifier="pear" placeholder-class="placeholder">Pear</draggableAnswer>
                     </td>
                     <td>
                         <draggableAnswer identifier="walnut">Walnut</draggableAnswer>
