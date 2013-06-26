@@ -2,18 +2,19 @@ package tests.api.v1
 
 import api.v1.ExporterApi
 import java.io.{FileOutputStream, File}
-import org.specs2.mutable.Before
-import play.api.test.Helpers._
-import tests.BaseTest
-import scorm.models.extractors.RemoteItemRunnerTemplate
-import org.specs2.execute.Result
 import models.item.Item
 import models.item.service.ItemServiceImpl
-import org.corespring.platform.data.mongo.models.VersionedId
 import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.specs2.execute.Result
+import org.specs2.mutable.BeforeAfter
+import play.api.test.Helpers._
+import tests.BaseTest
 
 class ExporterApiTest extends BaseTest {
 
+
+  sequential
 
   private def writeToFile(path:String, bytes:Array[Byte]){
     val file : File = new File(path)
@@ -58,12 +59,18 @@ class ExporterApiTest extends BaseTest {
     true === true
   }
 
-  class CleanBefore(val base:String) extends Before{
+  class CleanBefore(val base:String) extends BeforeAfter{
+
+    import sys.process._
 
     def before{
-      import sys.process._
       Seq("rm", "-fr", base).!
       Seq("mkdir", "-p", base).!
+    }
+
+    def after{
+      Seq("rm", "-fr", base.split("/")(0)).!
+
     }
   }
 }
