@@ -30,10 +30,9 @@ import controllers.{S3Service, S3ServiceClient}
  * Base class for tests
  *
  */
-trait BaseTest extends Specification with ItemServiceClient with S3ServiceClient{
+trait BaseTest extends Specification with ItemServiceClient{
 
   def itemService : ItemService = ItemServiceImpl
-  def s3Service: S3Service = TestS3Service
 
   // From standard fixture data
   val token = "test_token"
@@ -50,22 +49,9 @@ trait BaseTest extends Specification with ItemServiceClient with S3ServiceClient
   }else{
     throw new RuntimeException("You're trying to seed against a remote db - bad idea")
   }
-  def initS3 = {
-    TestS3Service.init
-    val s3files = TestS3Service.files(s3Service.bucket)
-    itemService.find(MongoDBObject()).foreach(item => {
-      val storedFiles:Seq[StoredFile] =
-        item.data.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).getOrElse(Seq()) ++
-          item.supportingMaterials.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).flatten
-      storedFiles.foreach(sf => {
-        if(!s3files.contains(sf.storageKey)){
 
-        }
-      })
-    })
-  }
   PlaySingleton.start()
-  override def map(fs: => Fragments) = Step(initDB) ^ Step(initS3) ^ fs
+  override def map(fs: => Fragments) = Step(initDB) ^ fs
 
   /**
    * Decorate play.api.mvc.Result with some helper methods
