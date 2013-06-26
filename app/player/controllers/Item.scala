@@ -11,11 +11,11 @@ import player.accessControl.models.RequestedAccess
 
 class Item(auth: TokenizedRequestActionBuilder[RequestedAccess] ) extends Controller with SimpleJsRoutes {
 
-  import api.v1.{NewItemApi => NewApi}
+  import api.v1.ItemApi
 
   def getDetail(itemId: VersionedId[ObjectId]) = auth.ValidatedAction(
     RequestedAccess.asRead(Some(itemId))
-  )(NewApi.getDetail(itemId))
+  )(ItemApi.getDetail(itemId))
 
   def jsRoutes = Action {
     implicit request =>

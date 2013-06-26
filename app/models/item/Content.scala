@@ -33,12 +33,16 @@ class ContentHelper(itemService:ItemService) extends PackageLogging {
     //TODO: We should only find the item once - here we find it and return true/false which is wasteful.
     itemService.findOneById(contentId).map{ item =>
       isCollectionAuthorized(orgId, item.collectionId, p)
-    }.getOrElse(false)
+    }.getOrElse{
+      Logger.debug("isAuthorized: can't find item with id: " + contentId)
+      false
+    }
   }
 
-  def isCollectionAuthorized(orgId: ObjectId, collId: String, p: Permission): Boolean = {
+  def isCollectionAuthorized(orgId: ObjectId, collectionId: String, p: Permission): Boolean = {
     val ids = ContentCollection.getCollectionIds(orgId, p)
-    ids.exists(_.toString == collId)
+    Logger.debug("isCollectionAuthorized: " + ids + " collection id: " + collectionId)
+    ids.exists(_.toString == collectionId)
   }
 }
 

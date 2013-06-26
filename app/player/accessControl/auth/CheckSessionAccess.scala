@@ -14,6 +14,8 @@ import scala.Some
 import common.log.PackageLogging
 import org.corespring.platform.data.mongo.models.VersionedId
 
+/** Delegate calls to grantAccess to the ConstraintGranter.
+ */
 object CheckSessionAccess extends CheckSession with PackageLogging{
 
   val sessionLookup: SessionItemLookup = new SessionItemLookup {
@@ -43,8 +45,11 @@ object CheckSessionAccess extends CheckSession with PackageLogging{
     }
   }
 
+  /** a ConstraintGranter with a session and quiz lookup implementation */
   val granter: ConstraintGranter = new ConstraintGranter(sessionLookup, quizLookup)
 
+  /** This implementation delegates to <link>player.accessControl.models.granter.ConstraintGranter</link>
+   */
   override def grantAccess(activeMode: Option[Mode.Mode], a: RequestedAccess, o: RenderOptions): Either[InternalError, Boolean] = {
     if (granter.grant(activeMode, a, o))
       Right(true)

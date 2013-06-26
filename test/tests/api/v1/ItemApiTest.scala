@@ -18,15 +18,16 @@ import play.api.test.Helpers._
 import scala.Some
 import scala.xml._
 import tests.BaseTest
+import models.versioning.VersionedIdImplicits
+import api.v1.ItemApi
 
 class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemServiceClient {
 
-  val mockS3service = mock[S3Service]
-
   val TEST_COLLECTION_ID: String = "51114b127fc1eaa866444647"
 
+  val mockS3service = mock[S3Service]
+
   val ItemRoutes = api.v1.routes.ItemApi
-  val NewItemRoutes = api.v1.routes.NewItemApi
 
   val allItemsCount = 26
 
@@ -52,6 +53,8 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
     )
     block(Json.fromJson[JsValue](Json.parse(contentAsString(result))))
   }
+
+  def fakeRequest(content:AnyContent = AnyContentAsEmpty) : FakeRequest[AnyContent] = FakeRequest("", tokenize(""), FakeHeaders(), content)
 
 
   "list" should {
@@ -107,84 +110,96 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
 
   "get" should {
 
+    val id = "51116a8ba14f7b657a083c1c:0"
+    val vid = VersionedIdImplicits.Binders.stringToVersionedId(id).get
+
     "return an item by id" in {
-      val id = "51116a8ba14f7b657a083c1c:0"
-      val fakeRequest = FakeRequest(GET, "/api/v1/items/%s?access_token=%s".format(id, token))
+      val call = ItemRoutes.get(vid)
+      val fakeRequest = FakeRequest(call.method, tokenize(call.url))
       val Some(result) = routeAndCall(fakeRequest)
       assertSingleResult(result, (json: JsValue) => (json \ "id").as[String] === id)
     }
 
+    "return a detailed item by id" in {
+      val call= ItemRoutes.getDetail(vid)
+      val request = FakeRequest(call.method, tokenize(call.url))
+      val Some(result) = routeAndCall(request)
+      assertSingleResult(result, (json: JsValue) => (json \ "id").as[String] === id)
+
+    }
+
   }
+
 
   "create" should {
 
-    "not require a collection id" in {
-      val toCreate = xmlBody("<html></html>")
-      val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
-      val result = routeAndCall(fakeRequest).get
+    def create(xml:String, props: Map[String,String] = Map(),  block: (Int,JsValue) => org.specs2.execute.Result) = {
+      val toCreate = xmlBody(xml, props)
+      val result = ItemApi.create()(fakeRequest(AnyContentAsJson(toCreate)))
+      val json = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
+      block(status(result), json)
+    }
 
-      assertSingleResult(result, (json) => {
+    "not require a collection id" in {
+      create("<html></html>", block = (status,json) => {
         val collectionId = (json \ "collectionId").as[String]
         ContentCollection.findOneById(new ObjectId(collectionId)).get.name === ContentCollection.DEFAULT
       })
     }
 
     "requires an authorized collection id" in {
-      val toCreate = xmlBody("<html></html>", Map("collectionId" -> "something"))
-      val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
-      val result = routeAndCall(fakeRequest).get
-      status(result) must equalTo(UNAUTHORIZED)
-      val collection = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
-      (collection \ "code").as[Int] must equalTo(ApiError.CollectionUnauthorized.code)
+      create("<html></html>", Map("collectionId" -> "something"), (status,json) => {
+        status === UNAUTHORIZED
+        (json\ "code").as[Int] must equalTo(ApiError.CollectionUnauthorized.code)
+      })
     }
 
     "not include csFeedbackIds" in {
-      val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> TEST_COLLECTION_ID))
-      val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
-      val result = routeAndCall(fakeRequest).get
-      status(result) === OK
-      val xmlData = (Json.parse(contentAsString(result)) \ Keys.data).toString
-      xmlData must not(beMatching(".*csFeedbackId.*"))
+      create("<html><feedbackInline></feedbackInline></html>",
+        Map("collectionId" -> TEST_COLLECTION_ID),
+        (status, json) => {
+          status === OK
+          val xmlData = (json \ Keys.data).toString
+          xmlData must not(beMatching(".*csFeedbackId.*"))
+        }
+      )
     }
 
     "not accept id" in {
-      val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> TEST_COLLECTION_ID))
-      var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
-      var result = routeAndCall(fakeRequest).get
-      status(result) === OK
-      val itemId = (Json.parse(contentAsString(result)) \ "id").toString
-
-      val toUpdate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("id" -> itemId))
-      fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toUpdate))
-      result = routeAndCall(fakeRequest).get
-      var collection = Json.parse(contentAsString(result))
-      (collection \ "code").as[Int] must equalTo(ApiError.IdNotNeeded.code)
+      create("<html><feedbackInline></feedbackInline></html>", Map("id" -> "51116a8ba14f7b657a083c1c:0", "collectionId" -> TEST_COLLECTION_ID),
+        (status,json) =>{
+          (json\ "code").as[Int] must equalTo(ApiError.IdNotNeeded.code)
+        }
+      )
     }
-
   }
 
 
   "update" should {
 
-    def request(content: AnyContent) = FakeRequest("", tokenize(""), FakeHeaders(), content)
+
+    val TEST_COLLECTION_ID_TWO: String = "511276834924c9ca07b97044"
 
     val toCreate = xmlBody("<root/>", Map("collectionId" -> TEST_COLLECTION_ID))
 
-    val toUpdate = xmlBody("<root2/>", Map("collectionId" -> TEST_COLLECTION_ID))
+    val toUpdate = xmlBody("<root2/>", Map("collectionId" -> TEST_COLLECTION_ID_TWO))
+
 
     "work with a new collection id" in {
-      val createResult = api.v1.ItemApi.create()(request(AnyContentAsJson(toCreate)))
-      val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
-      val updateResult = api.v1.NewItemApi.update(versionedId(id))(request(AnyContentAsJson(toUpdate)))
+      val createResult = api.v1.ItemApi.create()(fakeRequest(AnyContentAsJson(toCreate)))
+      val createdId = (Json.parse(contentAsString(createResult)) \ "id").as[String]
+      val updateResult = api.v1.ItemApi.update(versionedId(createdId))(fakeRequest(AnyContentAsJson(toUpdate)))
       Logger.debug(contentAsString(updateResult))
       val item: Item = Json.parse(contentAsString(updateResult)).as[Item]
-      item.collectionId === TEST_COLLECTION_ID
+      item.collectionId === TEST_COLLECTION_ID_TWO
     }
+
     "return the item's stored collection id" in {
-      val createResult = api.v1.ItemApi.create()(request(AnyContentAsJson(toCreate)))
-      val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
+      val createResult = api.v1.ItemApi.create()(fakeRequest(AnyContentAsJson(toCreate)))
+      val createdId = (Json.parse(contentAsString(createResult)) \ "id").as[String]
       val toUpdate = xmlBody("<root2/>", Map(Keys.author -> "Ed"))
-      val updateResult = api.v1.NewItemApi.update(versionedId(id))(request(AnyContentAsJson(toUpdate)))
+      val updateResult = api.v1.ItemApi.update(versionedId(createdId))(fakeRequest(AnyContentAsJson(toUpdate)))
+      println(">>> " + contentAsString(updateResult))
       val item: Item = Json.parse(contentAsString(updateResult)).as[Item]
       item.collectionId must equalTo(TEST_COLLECTION_ID)
     }
@@ -192,23 +207,12 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
     val STATE_DEPT: String = "State Department of Education"
 
     "get and update return the same json" in {
-
-      val toCreate = xmlBody("<root/>", Map(Keys.collectionId -> TEST_COLLECTION_ID, Keys.credentials -> STATE_DEPT))
-      val call = api.v1.routes.ItemApi.create()
-      val createResult = routeAndCall(FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsJson(toCreate))).get
-      val id = (Json.parse(contentAsString(createResult)) \ "id").as[String]
-
-      val getItemCall = NewItemRoutes.get(versionedId(id))
-      val getResult = routeAndCall(FakeRequest(getItemCall.method, tokenize(getItemCall.url), FakeHeaders(), AnyContentAsEmpty)).get
-
-      val getJsonString = contentAsString(getResult)
-
-      val updateCall = NewItemRoutes.update(versionedId(id))
-
+      val createResult = api.v1.ItemApi.create()(fakeRequest(AnyContentAsJson(toCreate)))
+      val createdId = (Json.parse(contentAsString(createResult)) \ "id").as[String]
       val toUpdate = xmlBody("<root/>", Map(Keys.credentials -> STATE_DEPT))
-      val updateResult = routeAndCall(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
-      val updateJsonString = contentAsString(updateResult)
-      updateJsonString must equalTo(getJsonString)
+      val updateResult = ItemApi.update(versionedId(createdId))(fakeRequest(AnyContentAsJson(toUpdate)))
+      val getResult = ItemApi.get(versionedId(createdId))(fakeRequest())
+      contentAsString(getResult) === contentAsString(updateResult)
     }
 
   }
