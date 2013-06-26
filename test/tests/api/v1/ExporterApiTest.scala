@@ -54,7 +54,6 @@ class ExporterApiTest extends BaseTest {
         import models.versioning.VersionedIdImplicits.Binders._
         identifier ===  versionedIdToString(i.id)
     }.getOrElse(failure("couldn't find item"))
-    true === true
   }
 
   class CleanBeforeAndAfter(val base:String) extends BeforeAfter{
