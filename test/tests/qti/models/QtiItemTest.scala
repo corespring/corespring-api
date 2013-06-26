@@ -137,6 +137,8 @@ class QtiItemTest extends Specification {
 
       qti.isCorrectResponseApplicable("1") === false
     }
+
+
   }
 
   "QtiItem iscorrect" should {
@@ -197,6 +199,7 @@ class QtiItemTest extends Specification {
     "find feedback blocks" in {
       QtiItem(feedbackXml).getFeedback("id", "3") must not beNone
     }
+
   }
 
 }
@@ -289,28 +292,36 @@ class CorrectResponseTest extends Specification {
 
     def xml(identifier: String, cardinality: String, values: NodeSeq, interaction: NodeSeq = <none/>): Elem = MockXml.createXml(identifier, cardinality, values, interaction)
 
-    "targeted unordered" in {
-      val item = QtiItem(xml("id", "targeted", <value>t1:apple,pear,cherry,orange</value> <value>t2:cow</value>, <dragAndDropInteraction responseIdentifier="id" orderMatters="false"></dragAndDropInteraction>))
-      val response = item.responseDeclarations(0).correctResponse.get
-      response.isValueCorrect("t1:apple,pear,cherry,orange", None) === true
-      response.isValueCorrect("t2:cow", None) === true
-      response.isValueCorrect("t2:apple", None) === false
-      response.isCorrect("t1:apple|pear|cherry|orange,t2:cow") === true
-      response.isCorrect("t1:pear|apple|orange|cherry,t2:cow") === true
-      response.isCorrect("t1:cow,t2:apple|pear") === false
-      response.isCorrect("t1:cow,t2:pear|apple") === false
-    }
+    "targeted correctness" in {
+      val item = QtiItem(
+        xml("id", "targeted",
+          <value>target1:apple,pear,cherry,orange</value>
+          <value>target2:cow,bear,fox</value>
+          <value>target3:apple</value>
+          <value>target4:fox</value>,
+          <dragAndDropInteraction responseIdentifier="id">
+            <draggableAnswer identifier="apple">Apple</draggableAnswer>
+            <draggableAnswer identifier="pear">Pear</draggableAnswer>
+            <draggableAnswer identifier="cherry">Cherry</draggableAnswer>
+            <draggableAnswer identifier="orange">Orange</draggableAnswer>
+            <draggableAnswer identifier="cow">Cow</draggableAnswer>
+            <draggableAnswer identifier="bear">Bear</draggableAnswer>
+            <draggableAnswer identifier="fox">Fox</draggableAnswer>
+            <dragTarget cardinality="ordered" identifier="target1"></dragTarget>
+            <dragTarget cardinality="multiple" identifier="target2"></dragTarget>
+            <dragTarget cardinality="single" identifier="target3"></dragTarget>
+            <dragTarget cardinality="ordered" identifier="target4"></dragTarget>
 
-    "targeted ordered" in {
-      val item = QtiItem(xml("id", "targeted", <value>t1:apple,pear,cherry,orange</value> <value>t2:cow</value>, <dragAndDropInteraction responseIdentifier="id" orderMatters="true"></dragAndDropInteraction>))
+          </dragAndDropInteraction>
+      ))
       val response = item.responseDeclarations(0).correctResponse.get
-      response.isValueCorrect("t1:apple,pear,cherry,orange", None) === true
-      response.isValueCorrect("t2:cow", None) === true
-      response.isValueCorrect("t2:apple", None) === false
-      response.isCorrect("t1:apple|pear|cherry|orange,t2:cow") === true
-      response.isCorrect("t1:pear|apple|orange|cherry,t2:cow") === false
-      response.isCorrect("t1:cow,t2:apple|pear|cherry|orange") === false
-      response.isCorrect("t1:cow,t2:pear|apple") === false
+      response.isValueCorrect("target1:apple|pear|cherry|orange", None) === true
+      response.isValueCorrect("target1:apple|pear|cherry", None) === false
+      response.isValueCorrect("target1:pear|apple|cherry|orange", None) === false
+      response.isValueCorrect("target2:cow|bear|fox", None) === true
+      response.isValueCorrect("target2:fox|bear|cow", None) === true
+      response.isCorrect("target1:apple|pear|cherry|orange,target2:fox|bear|cow,target3:apple,target4:fox") mustEqual true
+      response.isCorrect("target1:pear|apple|cherry|orange,target2:cow|bear|fox,target3:apple,target4:fox") mustEqual false
     }
 
 

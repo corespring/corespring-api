@@ -1,0 +1,29 @@
+<assessmentItem>
+    <responseDeclaration identifier="alphabet1" cardinality="targeted" baseType="identifier">
+        <correctResponse>
+            <value>target1:apple,pear</value>
+            <value>target2:cow</value>
+            <value>target3:car,bus</value>
+            <value>target4:apple</value>
+            <value>target4:pear</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+        <dragAndDropInteraction responseIdentifier="alphabet1">
+            <draggableAnswer identifier="apple" copyOnDrag="true">Apple</draggableAnswer>
+            <draggableAnswer identifier="pear" placeholder-class="placeholder">Pear</draggableAnswer>
+            <draggableAnswer identifier="walnut">Walnut</draggableAnswer>
+            <draggableAnswer identifier="car">Car</draggableAnswer>
+            <draggableAnswer identifier="cow">Cow</draggableAnswer>
+            <draggableAnswer identifier="bus">Bus</draggableAnswer>
+            <dragTarget cardinality="ordered" class="blueTile inline" identifier="target1"></dragTarget>
+            <dragTarget cardinality="multiple" class="blueTile inline" identifier="target2"></dragTarget>
+            <dragTarget cardinality="single" class="blueTile inline" identifier="target3"></dragTarget>
+            <dragTarget cardinality="ordered" class="blueTile inline" identifier="target4"></dragTarget>
+
+        </dragAndDropInteraction>
+
+    </itemBody>
+</assessmentItem>
+

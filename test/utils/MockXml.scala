@@ -1,6 +1,7 @@
 package utils
 
-import xml.{Elem, NodeSeq}
+import scala.xml.{Node, Elem, NodeSeq}
+import scala.xml.transform.{RuleTransformer, RewriteRule}
 
 object MockXml {
 
@@ -25,5 +26,28 @@ object MockXml {
       </itemBody>
     </assessmentItem>
   }
+
+  def removeNodeFromXmlWhere(xml: NodeSeq)(fn: Elem => Boolean): Node = {
+    val removeIt = new RewriteRule {
+      override def transform(n: Node): NodeSeq = n match {
+        case e: Elem if (fn(e)) => NodeSeq.Empty
+        case n => n
+      }
+    }
+
+    new RuleTransformer(removeIt).transform(xml).head
+  }
+
+  def replaceNodeInXmlWhere(xml: NodeSeq, newNode: Elem)(fn: Elem => Boolean): Node = {
+    val replaceIt = new RewriteRule {
+      override def transform(n: Node): NodeSeq = n match {
+        case e: Elem if (fn(e)) => newNode
+        case n => n
+      }
+    }
+
+    new RuleTransformer(replaceIt).transform(xml).head
+  }
+
 
 }
