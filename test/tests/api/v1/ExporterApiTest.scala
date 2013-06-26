@@ -19,10 +19,8 @@ class ExporterApiTest extends BaseTest {
   private def writeToFile(path:String, bytes:Array[Byte]){
     val file : File = new File(path)
     val output = new FileOutputStream(file)
-
     output.write(bytes)
     output.close()
-    println("file: " + file.getAbsolutePath)
   }
 
   private def unzip(path:String, folder:String){
@@ -32,7 +30,7 @@ class ExporterApiTest extends BaseTest {
 
   "Exporter api" should {
 
-    "export a scorm package" in new CleanBefore("tests/exporter-api-test-data") {
+    "export a scorm package" in new CleanBeforeAndAfter("exporter-api-test-data") {
 
       val id = "50098908e4b0f123a2d54c98"
       val result = ExporterApi.multiItemScorm2004(id)(fakeRequest())
@@ -59,7 +57,7 @@ class ExporterApiTest extends BaseTest {
     true === true
   }
 
-  class CleanBefore(val base:String) extends BeforeAfter{
+  class CleanBeforeAndAfter(val base:String) extends BeforeAfter{
 
     import sys.process._
 
@@ -70,7 +68,6 @@ class ExporterApiTest extends BaseTest {
 
     def after{
       Seq("rm", "-fr", base.split("/")(0)).!
-
     }
   }
 }
