@@ -54,7 +54,6 @@ class ItemApiTest extends BaseTest with Mockito with PackageLogging with ItemSer
     block(Json.fromJson[JsValue](Json.parse(contentAsString(result))))
   }
 
-  def fakeRequest(content:AnyContent = AnyContentAsEmpty) : FakeRequest[AnyContent] = FakeRequest("", tokenize(""), FakeHeaders(), content)
 
 
   "list" should {

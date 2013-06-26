@@ -1,0 +1,69 @@
+package tests.api.v1
+
+import api.v1.ExporterApi
+import java.io.{FileOutputStream, File}
+import org.specs2.mutable.Before
+import play.api.test.Helpers._
+import tests.BaseTest
+import scorm.models.extractors.RemoteItemRunnerTemplate
+import org.specs2.execute.Result
+import models.item.Item
+import models.item.service.ItemServiceImpl
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.bson.types.ObjectId
+
+class ExporterApiTest extends BaseTest {
+
+
+  private def writeToFile(path:String, bytes:Array[Byte]){
+    val file : File = new File(path)
+    val output = new FileOutputStream(file)
+
+    output.write(bytes)
+    output.close()
+    println("file: " + file.getAbsolutePath)
+  }
+
+  private def unzip(path:String, folder:String){
+    import sys.process._
+    Seq("unzip", path, "-d", folder).!
+  }
+
+  "Exporter api" should {
+
+    "export a scorm package" in new CleanBefore("tests/exporter-api-test-data") {
+
+      val id = "50098908e4b0f123a2d54c98"
+      val result = ExporterApi.multiItemScorm2004(id)(fakeRequest())
+
+      status(result) === OK
+
+      val bytes = contentAsBytes(result)
+      val path = base + "/file.zip"
+      writeToFile(path, bytes)
+      unzip(path, base)
+      assertManifest( base + "/imsmanifest.xml", id)
+    }
+  }
+
+  private def assertManifest(path:String, id : String) : Result = {
+    val manifest = scala.xml.XML.loadFile(path)
+
+    ItemServiceImpl.findOneById( VersionedId(new ObjectId(id)) ).map{
+      i : Item =>
+        val identifier = (manifest \ "resources" \ "resource" \ "@identifier").text
+        import models.versioning.VersionedIdImplicits.Binders._
+        identifier ===  versionedIdToString(i.id)
+    }.getOrElse(failure("couldn't find item"))
+    true === true
+  }
+
+  class CleanBefore(val base:String) extends Before{
+
+    def before{
+      import sys.process._
+      Seq("rm", "-fr", base).!
+      Seq("mkdir", "-p", base).!
+    }
+  }
+}

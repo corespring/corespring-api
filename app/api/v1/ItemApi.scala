@@ -3,34 +3,30 @@ package api.v1
 import api.ApiError
 import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSONParseException
-import com.novus.salat._
-import com.novus.salat.dao.SalatDAOUpdateError
 import com.novus.salat.dao.SalatInsertError
 import com.novus.salat.dao.SalatMongoCursor
-import com.typesafe.config.ConfigFactory
+import common.log.PackageLogging
 import controllers._
 import controllers.auth.ApiRequest
 import controllers.auth.{Permission, BaseApi}
 import models._
 import models.item._
 import models.item.resource.StoredFile
+import models.item.service.{ItemServiceImpl, ItemService}
 import models.json.ItemView
 import models.mongoContext._
 import models.search.SearchCancelled
 import models.search.SearchFields
+import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json._
 import play.api.libs.json._
-import play.api.templates.Xml
+import play.api.mvc.{Result, Action, AnyContent}
 import scala.Left
 import scala.Right
 import scala.Some
-import search.ItemSearch
-import common.log.PackageLogging
-import models.item.service.{ItemServiceImpl, ItemService}
-import org.corespring.platform.data.mongo.models.VersionedId
-import play.api.mvc.{Result, Action, AnyContent}
-import scalaz.{Failure, Success, Validation}
 import scalaz.Scalaz._
+import scalaz.{Failure, Success, Validation}
+import search.ItemSearch
 
 /**
  * Items API
@@ -38,9 +34,8 @@ import scalaz.Scalaz._
  */
 class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with PackageLogging {
 
-  private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
-
   import Item.Keys._
+
   val dbSummaryFields = Seq(collectionId, taskInfo, otherAlignments, standards, contributorDetails, published)
   val jsonSummaryFields: Seq[String] = Seq("id",
     collectionId,
@@ -261,7 +256,9 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
       val fields = detail.map{ d =>
         if(d == "detailed" ) getFieldsDbo(false, request.ctx.isLoggedIn, Seq(data)) else getFieldsDbo(true, request.ctx.isLoggedIn)
       }.getOrElse(getFieldsDbo(true, request.ctx.isLoggedIn))
+
       Logger.debug("[ItemApi.get] fields: " + fields)
+
       service.findFieldsById(id, fields)
         .map(dbo => com.novus.salat.grater[Item].asObject(dbo))
         .map(i => Ok(Json.toJson(i)))

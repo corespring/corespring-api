@@ -116,8 +116,10 @@ class ItemServiceImpl(val s3service: S3Service) extends ItemService with Package
   def insert(i: Item): Option[VersionedId[ObjectId]] = dao.insert(i)
 
   def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[Item] = {
-    val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))
-    dao.find(query, keys).toSeq
+    val oids = ids.map(i =>  i.id)
+    val query = MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
+    val out = dao.find(query, keys).toSeq
+    out
   }
 
   def getQtiXml(id: VersionedId[ObjectId]): Option[Elem] = {

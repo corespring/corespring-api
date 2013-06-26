@@ -4,7 +4,7 @@ import api.ApiError
 import api.ApiError._
 import com.mongodb.casbah.Imports
 import common.log.PackageLogging
-import models.User
+import models.{Organization, User}
 import play.api.libs.json.{JsString, JsObject, Json}
 import play.api.mvc._
 import securesocial.core.SecureSocial
@@ -144,8 +144,9 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
         userOrg <- u.org
       } yield userOrg.orgId
 
-      orgId.map{ id =>
-        val ctx = new AuthorizationContext(id, Option(username),true)
+      val maybeOrg : Option[Organization] = orgId.map(Organization.findOneById).getOrElse(None)
+      maybeOrg.map{ org =>
+        val ctx = new AuthorizationContext(org.id, Option(username), true, Some(org))
         f( ApiRequest(ctx, request, ""))
       }.getOrElse( Forbidden( Json.toJson(MissingCredentials) ).as(JSON) )
     }

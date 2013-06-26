@@ -66,6 +66,8 @@ trait BaseTest extends Specification with ItemServiceClient {
     FakeRequest(method, tokenize(uri), headers, body)
   }
 
+  def fakeRequest(content:AnyContent = AnyContentAsEmpty) : FakeRequest[AnyContent] = FakeRequest("", tokenize(""), FakeHeaders(), content)
+
   /**
    * @param id item id
    * @return
