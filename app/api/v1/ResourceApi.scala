@@ -38,6 +38,8 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
 
   /**
    * TODO: This is not working as expected - needs a rewrite.
+   * See: https://gist.github.com/edeustace/641e35e9d40e8dec7d6a
+   * As an alternative approach
    * Because ApiAction(p) is passing the bodyparser straight through -aka- it gets run first.
    * A wrapping Action that checks that an Item with the given id exists before executing the action body.
    * @param itemId - the item id
