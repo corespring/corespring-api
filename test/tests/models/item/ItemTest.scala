@@ -172,7 +172,7 @@ class ItemTest extends BaseTest {
         case Some(fromDb) => clonedItem.get.collectionId === fromDb.collectionId
         case _ => failure("couldn't find cloned item")
       }
-    }//.pendingUntilFixed("TODO")
+    }
 
     "prepend [copy] to title" in {
       val item = Item(collectionId = "1234567", taskInfo = Some(TaskInfo(title = Some("something"))))
