@@ -5,6 +5,7 @@ import models.item.{ContentType, Item}
 import models.search.SearchFields
 import play.api.libs.json._
 import scala.Some
+import models.item.service.ItemServiceImpl
 
 case class ItemView(item:Item, searchFields:Option[SearchFields])
 
@@ -49,7 +50,7 @@ object ItemView{
         Some((collectionId -> JsString(item.collectionId))),
         Some(contentType -> JsString(ContentType.item)),
         Some(published -> JsBoolean(item.published)),
-        Some("sessionCount" -> JsNumber(item.sessionCount))
+        Some("sessionCount" -> JsNumber(ItemServiceImpl.sessionCount(item)))
       )
 
       def makeJsString(tuple: (String, Option[String])) = {

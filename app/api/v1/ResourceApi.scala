@@ -38,6 +38,8 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
 
   /**
    * TODO: This is not working as expected - needs a rewrite.
+   * See: https://gist.github.com/edeustace/641e35e9d40e8dec7d6a
+   * As an alternative approach
    * Because ApiAction(p) is passing the bodyparser straight through -aka- it gets run first.
    * A wrapping Action that checks that an Item with the given id exists before executing the action body.
    * @param itemId - the item id
@@ -77,8 +79,8 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
    */
   private def convertStringToVersionedId(itemId: String): Option[VersionedId[ObjectId]] = {
       Logger.debug("handle itemId: " + itemId)
-      import models.versioning.VersionedIdImplicits.Binders._
-      stringToVersionedId(itemId)
+    import models.versioning.VersionedIdImplicits.Binders._
+    stringToVersionedId(itemId)
   }
 
   def HasItem(itemId: String,
@@ -102,7 +104,7 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
   def editCheck(force:Boolean = false) = new Function2[ApiRequest[_],Item,Option[Result]] {
     def apply(request:ApiRequest[_], item:Item):Option[Result] = {
       if(Content.isAuthorized(request.ctx.organization,item.id,Permission.Write)){
-        if(item.sessionCount > 0 && item.published && !force){
+        if(service.sessionCount(item)> 0 && item.published && !force){
           Some(Forbidden(toJson(JsObject(Seq("message" ->
             JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
             "flags" -> JsArray(Seq(JsString("alert_increment")))

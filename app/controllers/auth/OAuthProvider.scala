@@ -88,7 +88,8 @@ object OAuthProvider {
         if ( token.isExpired ) {
           Left(ExpiredToken.format(token.expirationDate.toString))
         } else {
-          Right(new AuthorizationContext(token.organization, token.scope))
+
+          Right(new AuthorizationContext(token.organization, token.scope, false, Organization.findOneById(token.organization)))
         }
       case _ => Left(InvalidToken)
     }

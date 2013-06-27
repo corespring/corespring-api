@@ -36,8 +36,10 @@ trait BaseItemService[ID] {
 
   def insert(i: Item): Option[ID]
 
-  def findMultiple(ids: Seq[ID], keys: DBObject): Seq[Item]
+  def findMultiple(ids: Seq[ID], keys: DBObject = new BasicDBObject()): Seq[Item]
 
   def getQtiXml(id: ID): Option[Elem]
+
+  def sessionCount(item:Item) : Long
 
 }

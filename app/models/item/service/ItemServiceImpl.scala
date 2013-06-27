@@ -23,38 +23,22 @@ import scalaz.Scalaz._
 import scalaz._
 import org.corespring.platform.data.mongo.exceptions.SalatVersioningDaoException
 import api.v1.ResourceApi
-import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.platform.data.mongo.models.{EntityWithVersionedId, VersionedId}
 import com.sun.xml.internal.bind.v2.TODO
 import web.controllers.utils.ConfigLoader
 import api.v1.files.{CloneFileResult, ItemFiles}
+import models.itemSession.{DefaultItemSession, ItemSessionCompanion}
+import org.corespring.platform.data.VersioningDao
 
-class ItemServiceImpl(val s3service: S3Service) extends ItemService with PackageLogging with ItemFiles{
+class ItemServiceImpl(
+                       val s3service: S3Service,
+                       sessionCompanion : ItemSessionCompanion,
+                       val dao : SalatVersioningDao[Item])
+  extends ItemService with PackageLogging with ItemFiles{
 
-  private val AMAZON_ASSETS_BUCKET = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
-
-  val bucket = AMAZON_ASSETS_BUCKET
+  val bucket =  ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
   import models.mongoContext.context
-
-  def salatDb(sourceName: String = "default")(implicit app: Application): MongoDB = {
-    app.plugin[SalatPlugin].map(_.db(sourceName)).getOrElse(throw PlayException("SalatPlugin is not " +
-      "registered.", "You need to register the plugin with \"500:se.radley.plugin.salat.SalatPlugin\" in conf/play.plugins"))
-  }
-
-  lazy val dao = new SalatVersioningDao[Item] {
-
-    import play.api.Play.current
-
-    protected def db: casbah.MongoDB = salatDb()
-
-    protected def collectionName: String = "content"
-
-    protected implicit def entityManifest: Manifest[Item] = Manifest.classType(classOf[Item])
-
-    protected implicit def context: Context = models.mongoContext.context
-
-  }
-
 
   import com.mongodb.casbah.commons.conversions.scala._
 
@@ -116,8 +100,10 @@ class ItemServiceImpl(val s3service: S3Service) extends ItemService with Package
   def insert(i: Item): Option[VersionedId[ObjectId]] = dao.insert(i)
 
   def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[Item] = {
-    val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))
-    dao.find(query, keys).toSeq
+    val oids = ids.map(i =>  i.id)
+    val query = MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
+    val out = dao.find(query, keys).toSeq
+    out
   }
 
   def getQtiXml(id: VersionedId[ObjectId]): Option[Elem] = {
@@ -130,10 +116,37 @@ class ItemServiceImpl(val s3service: S3Service) extends ItemService with Package
     } yield scala.xml.XML.loadString(virtualFile.content)
   }
 
-
   def currentVersion(id: VersionedId[ObjectId]): Option[Int] = throw new RuntimeException("to be implemented?")
+
+  def sessionCount(item: Item): Long = {
+    import com.novus.salat._
+    val dbo =  grater[VersionedId[ObjectId]].asDBObject(item.id)
+    val query = MongoDBObject("itemId" -> dbo )
+    sessionCompanion.count(query)
+  }
 }
-object ItemServiceImpl extends ItemServiceImpl(ConcreteS3Service)
+
+object ItemVersioningDao extends  SalatVersioningDao[Item] {
+
+  import play.api.Play.current
+
+  private def salatDb(sourceName: String = "default")(implicit app: Application): MongoDB = {
+    app.plugin[SalatPlugin].map(_.db(sourceName)).getOrElse(throw PlayException("SalatPlugin is not " +
+      "registered.", "You need to register the plugin with \"500:se.radley.plugin.salat.SalatPlugin\" in conf/play.plugins"))
+  }
+
+  protected def db: casbah.MongoDB = salatDb()
+
+  protected def collectionName: String = "content"
+
+  protected implicit def entityManifest: Manifest[Item] = Manifest.classType(classOf[Item])
+
+  protected implicit def context: Context = models.mongoContext.context
+
+}
+
+
+object ItemServiceImpl extends ItemServiceImpl(ConcreteS3Service, DefaultItemSession, ItemVersioningDao)
 
 
 

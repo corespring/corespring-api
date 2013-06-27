@@ -27,12 +27,19 @@ class ExporterApi(encrypter: Crypto, service:ItemService) extends BaseApi {
   def multiItemScorm2004(ids: String) = ApiActionRead {
     request =>
 
+      Logger.debug("Encrypt for org: " + request.ctx.org.map(_.name).getOrElse("??"))
       val orgEncrypter = new OrgEncrypter(request.ctx.organization, encrypter)
       val options: RenderOptions = RenderOptions.ANYTHING
-      orgEncrypter.encrypt(Json.toJson(options).toString()) match {
-        case Some(EncryptionSuccess(clientId, data, None)) => {
+      val maybeResult =  orgEncrypter.encrypt(Json.toJson(options).toString())
+
+      maybeResult match {
+        case Some(EncryptionSuccess(clientId, data, _)) => {
           val generatorFn: List[Item] => Array[Byte] = ScormExporter.makeMultiScormPackage(_, BaseUrl(request), clientId, data)
           binaryResultFromIds(ids, request.ctx.organization, generatorFn)
+        }
+        case Some(EncryptionFailure(msg,t)) => {
+          Logger.debug("multiItemScorm encryption error: " + msg + " " + t.getMessage)
+          BadRequest("An error occurred")
         }
         case _ => BadRequest("Unable to create export package")
       }
@@ -46,7 +53,7 @@ class ExporterApi(encrypter: Crypto, service:ItemService) extends BaseApi {
 
   private def binaryResultFromIds(ids: String, orgId: ObjectId, itemsToByteArray: (List[Item] => Array[Byte])): Result = {
     val validIds = validObjectIds(ids)
-    val items = service.find(MongoDBObject("_id" -> MongoDBObject("$in" -> validIds))).toList
+    val items = service.findMultiple(validIds).toList
     items match {
       case List() => NotFound("No items found")
       case _ => {
@@ -60,7 +67,7 @@ class ExporterApi(encrypter: Crypto, service:ItemService) extends BaseApi {
 
   private def validObjectIds(ids: String): List[VersionedId[ObjectId]] = {
     import models.versioning.VersionedIdImplicits.Binders._
-    ids.split(",").toList.map(rawId => stringToVersionedId(rawId)).flatten
+    ids.split(",").toList.map(stringToVersionedId).flatten
   }
 
   private def access(orgId: ObjectId)(item: Item): Boolean = Content.isCollectionAuthorized(orgId, item.collectionId, Permission.Read)

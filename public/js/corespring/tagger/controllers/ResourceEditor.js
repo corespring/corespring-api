@@ -293,19 +293,26 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
   };
 
   $scope.onFileUploadCompleted = function (result,status) {
-    console.log("file upload complete. status: "+status+" result: "+result)
     if(status == 200){
       var file = JSON.parse(result);
-      console.log("file uploaded: "+JSON.stringify(file))
       $scope.addFile(file);
       $scope.showFile(file);
     }else{
       var jsresult = JSON.parse(result);
       if (typeof jsresult.flags != "undefined" && _.contains(jsresult.flags, "alert_increment")) {
-        $scope.showSaveWarning = true;
+        //console.log("showSaveWarning should change");
+        $rootScope.$broadcast('showSaveWarning')
+       // $scope.showSaveWarning = true;
       }
     }
   };
+//   $scope.$on('showSaveWarning',function(){
+//     console.log("broadcast received showSaveWarning")
+//     $scope.showSaveWarning = true;
+//   })
+//    $rootScope.$watch('showSaveWarning', function(){
+//      console.log("showSaveWarning: "+$scope.showSaveWarning);
+//    });
 
   $scope.addFile = function (file) {
     $scope.resource.files = ($scope.resource.files || []);
