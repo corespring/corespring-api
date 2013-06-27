@@ -300,9 +300,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     }else{
       var jsresult = JSON.parse(result);
       if (typeof jsresult.flags != "undefined" && _.contains(jsresult.flags, "alert_increment")) {
-        //console.log("showSaveWarning should change");
         $rootScope.$broadcast('showSaveWarning')
-       // $scope.showSaveWarning = true;
       }
     }
   };

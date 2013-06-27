@@ -243,7 +243,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.loadItem();
 
      $rootScope.$on('showSaveWarning',function(){
-       $scope.showSaveWarning = true;
+       $scope.$apply('showSaveWarning=true')
      });
 
   $scope.$watch('itemData.pValue', function (newValue, oldValue) {

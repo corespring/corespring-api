@@ -35,6 +35,11 @@ class DeveloperTest extends BaseTest {
       status(Developer.createOrganization()(request)) === OK
       status(Developer.createOrganization()(request)) === BAD_REQUEST
     }.pendingUntilFixed("coming soon.")
+
+    "be able to login" in {
+
+      pending
+    }
   }
 
 }
@@ -45,7 +50,7 @@ class MockUser extends After {
   lazy val user = createUser
 
   def createUser = {
-    val u = User("google_user_name", "some user", "some.user@google.com", None, "", provider = "google", id = oid)
+    val u = User(userName = "google_user_name", fullName = "some user", email = "some.user@google.com", provider = "google", id = oid)
     User.insert(u)
     u
   }

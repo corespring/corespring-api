@@ -16,7 +16,7 @@ trait PlayerCookieWriter {
 
   def playerCookies(userId: String, providerId: String): Seq[(String, String)] = User.getUser(userId, providerId).map {
     u =>
-      u.org.map{ uo => playerCookies(uo.orgId, Some(RenderOptions.ANYTHING))}.getOrElse(Seq())
+      playerCookies(u.org.orgId, Some(RenderOptions.ANYTHING))
   }.getOrElse(Seq())
 
   def playerCookies(orgId: ObjectId, options:Option[RenderOptions]): Seq[(String, String)] = Seq(

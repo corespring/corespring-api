@@ -139,10 +139,7 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
    * @return
    */
     def invokeAsUser[A](username: String, provider:String, request: Request[A])(f: ApiRequest[A]=>Result) = {
-      def orgId : Option[Imports.ObjectId] = for{
-        u <- User.getUser(username, provider)
-        userOrg <- u.org
-      } yield userOrg.orgId
+      def orgId : Option[Imports.ObjectId] = User.getUser(username, provider).map(_.org.orgId)
 
       val maybeOrg : Option[Organization] = orgId.map(Organization.findOneById).getOrElse(None)
       maybeOrg.map{ org =>

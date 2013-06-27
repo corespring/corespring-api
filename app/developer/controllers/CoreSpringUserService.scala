@@ -1,7 +1,7 @@
 package developer.controllers
 
 import _root_.controllers.auth.Permission
-import _root_.models.User
+import models.{UserOrg, User}
 import com.mongodb.casbah.commons.MongoDBObject
 import common.config.AppConfig
 import developer.models.RegistrationToken
@@ -47,7 +47,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
             user.id.id,
             user.fullName,
             user.email.getOrElse(""),
-            None,
+            UserOrg(AppConfig.demoOrgId,Permission.Read.value),
             user.passwordInfo.getOrElse(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = "")).password,
             user.id.providerId,
             new ObjectId())

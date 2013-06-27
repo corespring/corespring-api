@@ -18,17 +18,18 @@ import scala.Some
 import se.radley.plugin.salat._
 import search.Searchable
 import securesocial.core.UserId
+import common.config.AppConfig
 
 
 case class User(var userName: String = "",
                 var fullName: String = "",
                 var email: String = "",
-                var org: Option[UserOrg] = None,
+                var org: UserOrg = UserOrg(AppConfig.demoOrgId,Permission.Read.value),
                 var password: String = "",
                 var provider: String = "userpass",
                 var id: ObjectId = new ObjectId()
                  ) {
-  def hasRegisteredOrg: Boolean = org.isDefined
+  def hasRegisteredOrg: Boolean = org.orgId != AppConfig.demoOrgId
 }
 
 object User extends ModelCompanion[User, ObjectId] with Searchable {
@@ -57,7 +58,7 @@ object User extends ModelCompanion[User, ObjectId] with Searchable {
     if (!checkOrgId || Organization.findOneById(orgId).isDefined) {
       if (!checkUsername || getUser(user.userName).isEmpty) {
         if (Play.isProd) user.id = new ObjectId
-        user.org = Some(UserOrg(orgId, p.value))
+        user.org = UserOrg(orgId, p.value)
         User.insert(user) match {
           case Some(id) => {
             Right(user)
@@ -98,7 +99,7 @@ object User extends ModelCompanion[User, ObjectId] with Searchable {
     }
   }
 
-  def addOrganization(userId: ObjectId, orgId: ObjectId, p: Permission): Either[InternalError, Unit] = {
+  def setOrganization(userId: ObjectId, orgId: ObjectId, p: Permission): Either[InternalError, Unit] = {
     val userOrg = UserOrg(orgId, p.value)
     try {
       User.update(MongoDBObject("_id" -> userId),
@@ -111,8 +112,8 @@ object User extends ModelCompanion[User, ObjectId] with Searchable {
   }
 
   def getOrg(user: User, p: Permission): Option[Organization] = {
-    val orgs: Option[ObjectId] = user.org.filter(uo => (uo.pval & p.value) == p.value).map(uo => uo.orgId)
-    orgs.flatMap(Organization.findOneById)
+    val org: Option[ObjectId] = if((user.org.pval & p.value) == p.value) Some(user.org.orgId) else None
+    org.flatMap(Organization.findOneById)
   }
 
   /**
@@ -139,18 +140,18 @@ object User extends ModelCompanion[User, ObjectId] with Searchable {
     returnValue
   }
 
-  def removeOrganization(userId: ObjectId, orgId: ObjectId): Either[InternalError, Unit] = {
-    User.findOneById(userId) match {
-      case Some(user) => try {
-        user.org = user.org.filter(_.orgId != orgId)
-        User.update(MongoDBObject("_id" -> userId), user, false, false, User.defaultWriteConcern)
-        Right(())
-      } catch {
-        case e: SalatDAOUpdateError => Left(InternalError(e.getMessage))
-      }
-      case None => Left(InternalError("could not find user"))
-    }
-  }
+//  def removeOrganization(userId: ObjectId, orgId: ObjectId): Either[InternalError, Unit] = {
+//    User.findOneById(userId) match {
+//      case Some(user) => try {
+//        user.org = user.org.filter(_.orgId != orgId)
+//        User.update(MongoDBObject("_id" -> userId), user, false, false, User.defaultWriteConcern)
+//        Right(())
+//      } catch {
+//        case e: SalatDAOUpdateError => Left(InternalError(e.getMessage))
+//      }
+//      case None => Left(InternalError("could not find user"))
+//    }
+//  }
 
   def getPermissions(username: String, orgId: ObjectId): Either[InternalError, Permission] = {
     User.findOne(MongoDBObject(User.userName -> username, "org.orgId" -> orgId)) match {
@@ -160,12 +161,9 @@ object User extends ModelCompanion[User, ObjectId] with Searchable {
   }
 
   private def getPermissions(user: User, orgId: ObjectId): Either[InternalError, Permission] = {
-    user.org.find(_.orgId == orgId) match {
-      case Some(uo) => Permission.fromLong(uo.pval) match {
-        case Some(p) => Right(p)
-        case None => Left(InternalError("uknown permission retrieved"))
-      }
-      case None => Left(InternalError("userorg not found even though it was part of search requirement. this should never happen"))
+    Permission.fromLong(user.org.pval) match {
+      case Some(p) => Right(p)
+      case None => Left(InternalError("uknown permission retrieved"))
     }
   }
 

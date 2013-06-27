@@ -63,10 +63,10 @@ object Developer extends Controller with BaseApi{
   def getOrganization = SecuredAction{ request =>
     User.getUser(request.user.id) match {
       case Some(user) => {
-        val orgs = User.getOrg(user,Permission.Read)
+        val org:Option[Organization] = User.getOrg(user,Permission.Read)
         //get the first organization besides the public corespring organization. for now, we assume that the person is only registered to one private organization
         //TODO: this doesn't look right - need to discuss a fix for it.
-        orgs.find(o => o.id != AppConfig.demoOrgId) match {
+        org.find(o => o.id != AppConfig.demoOrgId) match {
           case Some(o) => Ok(Json.toJson(o))
           case None => NotFound(Json.toJson(ApiError.MissingOrganization))
         }
@@ -93,15 +93,9 @@ object Developer extends Controller with BaseApi{
               Organization.insert(organization,optParent) match {
                 case Right(org) => {
                   User.getUser(request.user.id) match {
-                    case Some(user) => {
-                      //TODO: Need to fix this - dont' understand why this is being done.
-                      User.removeOrganization(user.id,AppConfig.demoOrgId) match {
-                        case Right(_) => User.addOrganization(user.id,org.id,Permission.Write) match {
-                          case Right(_) => Ok(Json.toJson(org))
-                          case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateUser(error.clientOutput)))
-                        }
-                        case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateUser(error.clientOutput)))
-                      }
+                    case Some(user) => User.setOrganization(user.id,org.id,Permission.Write) match {
+                      case Right(_) => Ok(Json.toJson(org))
+                      case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateUser(error.clientOutput)))
                     }
                     case None => InternalServerError("an error that should never happen happened")
                   }
@@ -119,7 +113,7 @@ object Developer extends Controller with BaseApi{
   def getOrganizationCredentials(orgId: ObjectId) = SecuredAction{ request =>
     User.getUser(request.user.id) match {
       case Some(user) => {
-        if(user.org.exists(uo => uo.orgId == orgId)){
+        if(user.org.orgId == orgId){
           Organization.findOneById(orgId) match {
             case Some(org) => {
               OAuthProvider.register(org.id) match {

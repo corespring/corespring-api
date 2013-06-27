@@ -64,7 +64,7 @@ object UserApi extends BaseApi {
     User.findOneById(id) match {
       case Some(user) =>  {
         val tree = Organization.getTree(request.ctx.organization)
-        if(user.org.exists(uo => tree.exists(_.id == uo.orgId))){
+        if(tree.exists(_.id == user.org.orgId)){
           Ok(Json.toJson(user))
         }else Unauthorized
       }
