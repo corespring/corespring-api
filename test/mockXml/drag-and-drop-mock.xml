@@ -11,12 +11,14 @@
 
     <itemBody>
         <dragAndDropInteraction responseIdentifier="alphabet1">
+            <table>
             <draggableAnswer identifier="apple" copyOnDrag="true">Apple</draggableAnswer>
             <draggableAnswer identifier="pear" placeholder-class="placeholder">Pear</draggableAnswer>
             <draggableAnswer identifier="walnut">Walnut</draggableAnswer>
             <draggableAnswer identifier="car">Car</draggableAnswer>
             <draggableAnswer identifier="cow">Cow</draggableAnswer>
             <draggableAnswer identifier="bus">Bus</draggableAnswer>
+            </table>
             <dragTarget cardinality="ordered" class="blueTile inline" identifier="target1"></dragTarget>
             <dragTarget cardinality="multiple" class="blueTile inline" identifier="target2"></dragTarget>
             <dragTarget cardinality="single" class="blueTile inline" identifier="target3"></dragTarget>

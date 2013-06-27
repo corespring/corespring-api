@@ -98,8 +98,8 @@ object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteractio
 
   def apply(node: Node, itemBody: Option[Node]): DragAndDropInteraction = DragAndDropInteraction(
     (node \ "@responseIdentifier").text,
-    (node \ draggableAnswer).map(SimpleChoice(_, (node \ "@responseIdentifier").text)),
-    (node \ dragTarget).map(n => Target((n \ "@identifier").text, (n \ "@cardinality").text)).toSeq
+    (node \\ draggableAnswer).map(SimpleChoice(_, (node \ "@responseIdentifier").text)),
+    (node \\ dragTarget).map(n => Target((n \ "@identifier").text, (n \ "@cardinality").text)).toSeq
   )
 
   def parse(itemBody: Node): Seq[Interaction] = {
