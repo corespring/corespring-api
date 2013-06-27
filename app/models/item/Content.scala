@@ -6,8 +6,8 @@ import common.log.PackageLogging
 import controllers.InternalError
 import controllers.auth.Permission
 import models.ContentCollection
-import org.corespring.platform.data.mongo.models.VersionedId
 import models.item.service.{ItemServiceImpl, ItemService}
+import org.corespring.platform.data.mongo.models.VersionedId
 
 trait Content {
   var id: VersionedId[ObjectId]
