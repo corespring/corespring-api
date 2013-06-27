@@ -28,6 +28,13 @@ class DeveloperTest extends BaseTest {
 
   "Developer" should {
 
+    "redirects to organization form when user belongs to demo org" in new MockUser{
+      val request = FakeRequest(GET, "/developer/home").withSession(secureSocialSession(Some(user)): _*)
+      val Some(result) = routeAndCall(request);
+      status(result) must equalTo(SEE_OTHER)
+      headers(result).get("Location") must beEqualTo(Some("/developer/org/form"))
+    }
+
     "create only one org" in new MockUser {
       val orgName = """{"name":"hello-there"}"""
       val json = Json.parse(orgName)
@@ -36,9 +43,10 @@ class DeveloperTest extends BaseTest {
       status(Developer.createOrganization()(request)) === BAD_REQUEST
     }.pendingUntilFixed("coming soon.")
 
-    "be able to login" in {
-
-      pending
+    "return developer/home when user has registered org" in new MockUser{
+      val request = FakeRequest(GET, "/developer/home").withSession(secureSocialSession(Some(user)): _*)
+      val Some(result) = routeAndCall(request);
+      status(result) must equalTo(OK)
     }
   }
 
