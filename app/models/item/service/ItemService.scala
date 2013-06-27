@@ -40,4 +40,6 @@ trait BaseItemService[ID] {
 
   def getQtiXml(id: ID): Option[Elem]
 
+  def sessionCount(item:Item) : Long
+
 }

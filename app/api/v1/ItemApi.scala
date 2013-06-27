@@ -201,7 +201,7 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
         dbitem <- service.findOneById(id).toSuccess("no item found for the given id")
         validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
-        savedResult <- saveItem(validatedItem, dbitem.published && (dbitem.sessionCount > 0)).toSuccess("Error saving item")
+        savedResult <- saveItem(validatedItem, dbitem.published && (service.sessionCount(dbitem) > 0)).toSuccess("Error saving item")
       } yield savedResult
   }
 

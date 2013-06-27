@@ -94,9 +94,10 @@ class ItemTest extends BaseTest {
       //The json that is submittted to be read is different from the db json
       val jsonToRead = JsObject(
         Seq(
-          (Keys.id -> JsString(new ObjectId().toString)),
-          (Keys.primarySubject -> JsString(subject.primary.get.toString))
-        ))
+          Keys.id -> JsString(new ObjectId().toString),
+          Keys.primarySubject -> JsString(subject.primary.get.toString)
+        )
+      )
       val parsed = jsonToRead.as[Item]
 
       parsed.taskInfo.get.subjects.get.primary must equalTo(subject.primary)
@@ -111,10 +112,11 @@ class ItemTest extends BaseTest {
       //The json that is submittted to be read is different from the db json
       val jsonToRead = JsObject(
         Seq(
-          (Keys.id -> JsString(new ObjectId().toString)),
-          (Keys.primarySubject -> JsString(subject.primary.get.toString)),
-          (Keys.relatedSubject -> JsString(subject.related.get.toString))
-        ))
+          Keys.id -> JsString(new ObjectId().toString),
+          Keys.primarySubject -> JsString(subject.primary.get.toString),
+          Keys.relatedSubject -> JsString(subject.related.get.toString)
+        )
+      )
 
       val parsed = jsonToRead.as[Item]
 
@@ -193,5 +195,6 @@ class ItemTest extends BaseTest {
     }
 
   }
+
 
 }

@@ -104,7 +104,7 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
   def editCheck(force:Boolean = false) = new Function2[ApiRequest[_],Item,Option[Result]] {
     def apply(request:ApiRequest[_], item:Item):Option[Result] = {
       if(Content.isAuthorized(request.ctx.organization,item.id,Permission.Write)){
-        if(item.sessionCount > 0 && item.published && !force){
+        if(service.sessionCount(item)> 0 && item.published && !force){
           Some(Forbidden(toJson(JsObject(Seq("message" ->
             JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
             "flags" -> JsArray(Seq(JsString("alert_increment")))

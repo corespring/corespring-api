@@ -1,11 +1,11 @@
 package models.item.resource
 
 import com.novus.salat.annotations.raw.Salat
-import play.api.libs.json._
-import play.api.libs.json.JsObject
-import scala.Some
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
+import play.api.libs.json.JsObject
+import play.api.libs.json._
+import scala.Some
 
 @Salat
 abstract class BaseFile(val name: String, val contentType: String, val isMain: Boolean)
@@ -89,6 +89,7 @@ case class VirtualFile(override val name: String, override val contentType: Stri
 
 object VirtualFile {
   val content = "content"
+
   implicit object VirtualFileWrites extends Writes[VirtualFile] {
     def writes(f: VirtualFile): JsValue = {
       BaseFile.toJson(f) ++ JsObject(Seq(content -> JsString(f.content)))
@@ -105,8 +106,12 @@ case class StoredFile(override val name: String, override val contentType: Strin
 
 object StoredFile {
 
-  def storageKey(id:VersionedId[ObjectId], resource :Resource, filename: String) : String = {
-     (Seq(id.id) ++ id.version ++ Seq(resource.name, filename)).mkString("/")
+  def storageKey(id: VersionedId[ObjectId], resource: Resource, filename: String): String = {
+    storageKey(id, resource.name, filename)
+  }
+
+  def storageKey(id: VersionedId[ObjectId], resourceName: String, filename: String): String = {
+    (Seq(id.id) ++ id.version ++ Seq(resourceName, filename)).mkString("/")
   }
 
   implicit object StoredFileWrites extends Writes[StoredFile] {
@@ -116,4 +121,5 @@ object StoredFile {
       //++ JsObject(Seq("storageKey" -> JsString(f.storageKey)))
     }
   }
+
 }

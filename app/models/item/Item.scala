@@ -33,7 +33,6 @@ case class Item(
                  var taskInfo: Option[TaskInfo] = None,
                  var otherAlignments: Option[Alignments] = None,
                  var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())) extends Content with EntityWithVersionedId[ObjectId] {
-  def sessionCount: Int = DefaultItemSession.find(MongoDBObject("itemId" -> grater[VersionedId[ObjectId]].asDBObject(id))).count
 
   def cloneItem: Item = {
     val taskInfoCopy = taskInfo.getOrElse(TaskInfo(title = Some(""))).cloneInfo("[copy]")
