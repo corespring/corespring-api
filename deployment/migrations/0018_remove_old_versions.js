@@ -76,4 +76,3 @@ function down(){
   //this is a destructive migration - can't rollback
 }
 
-up();
