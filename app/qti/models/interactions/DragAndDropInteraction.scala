@@ -4,8 +4,9 @@ import choices.SimpleChoice
 import models.itemSession._
 import qti.models.QtiItem.Correctness
 import qti.models.{CorrectResponseTargeted, QtiItem, ResponseDeclaration}
-import xml.Node
+import scala.xml.{NodeSeq, Elem, Node}
 import scala.collection.mutable
+import scala.xml.transform.{RuleTransformer, RewriteRule}
 
 case class Target(identifier: String, cardinality: String)
 
@@ -95,6 +96,79 @@ object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteractio
   val dragTarget = "dragTarget"
 
   def tagName = "dragAndDropInteraction"
+
+  private def convertGroupToTable(xml: Node) = {
+
+    val tdNode = <td></td>
+    val trNode = <tr></tr>
+
+    def addTdTrs(parent: Elem, shuffle: Boolean, answersPerRow: Int) = {
+      require(answersPerRow > 0)
+
+      def doShuffle(xs: Seq[Node]) = {
+        def isFixed(n: Node): Boolean = {
+          n.attribute("fixed") match {
+            case Some(e) => e.text == "true"
+            case _ => false
+          }
+        }
+        controllers.Utils.shuffle(xs, isFixed)
+      }
+
+      def tdRule = new RewriteRule {
+        override def transform(n: Node): NodeSeq = {
+          n match {
+            case e: Elem if (e.label == "draggableAnswer") => tdNode.copy(child = e)
+            case n => n
+          }
+        }
+      }
+
+      def trRule = new RewriteRule {
+        override def transform(n: Node): NodeSeq = {
+          n match {
+            case el: Elem if (el.label == "draggableAnswerGroup") =>
+              val trList = mutable.MutableList[Node]()
+              val draggableAnswers = mutable.Queue[Node]() ++= (if (shuffle) doShuffle(n \\ "draggableAnswer") else n \\ "draggableAnswer")
+              var currentTrNodes = mutable.MutableList[Node]()
+              n.child.foreach {
+                child =>
+
+                  currentTrNodes += (if (child.label == "draggableAnswer") draggableAnswers.dequeue else child)
+                  if ((currentTrNodes \\ "draggableAnswer").size == answersPerRow) {
+                    trList += trNode.copy(child = currentTrNodes)
+                    currentTrNodes = mutable.MutableList[Node]()
+                  }
+              }
+              if (!currentTrNodes.isEmpty) trList += trNode.copy(child = currentTrNodes)
+              el.copy(label = "table", child = trList.toSeq)
+
+            case _ => n
+          }
+        }
+      }
+
+      new RuleTransformer(tdRule).transform(new RuleTransformer(trRule).transform(parent))
+    }
+
+    def mainRule = new RewriteRule {
+      override def transform(n: Node): NodeSeq = {
+        n match {
+          case e: Elem if (e.label == "draggableAnswerGroup") =>
+            e.attribute("answersPerRow") match {
+              case Some(v) => addTdTrs(e, e.attribute("shuffle").getOrElse(NodeSeq.Empty).text == "true", v.text.toInt)
+              case _ => n
+            }
+
+          case n => n
+        }
+      }
+    }
+
+    new RuleTransformer(mainRule).transform(xml)
+  }
+
+  override def preProcessXml(interactionXml: Elem): NodeSeq = convertGroupToTable(interactionXml)
 
   def apply(node: Node, itemBody: Option[Node]): DragAndDropInteraction = DragAndDropInteraction(
     (node \ "@responseIdentifier").text,

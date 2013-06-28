@@ -11,29 +11,14 @@
         <dragAndDropInteraction responseIdentifier="alphabet1" orderMatters="true">
             Complete the equation below:
 
-            <table class="tileTable">
-                <tr>
-                    <td>
-                        <draggableAnswer identifier="apple" copyOnDrag="true">Apple</draggableAnswer>
-                    </td>
-                    <td>
-                        <draggableAnswer identifier="pear" placeholder-class="placeholder">Pear</draggableAnswer>
-                    </td>
-                    <td>
-                        <draggableAnswer identifier="walnut">Walnut</draggableAnswer>
-                    </td>
-                    <td>
-                        <draggableAnswer identifier="car">Car</draggableAnswer>
-                    </td>
-                    <td>
-                        <draggableAnswer identifier="cow">Cow</draggableAnswer>
-                    </td>
-                    <td>
-                        <draggableAnswer identifier="bus">Bus</draggableAnswer>
-                    </td>
-                </tr>
-            </table>
-
+            <draggableAnswerGroup shuffle="true" answersPerRow="3">
+                    <draggableAnswer identifier="apple" copyOnDrag="true" fixed="true">Apple</draggableAnswer>
+                    <draggableAnswer identifier="pear" placeholder-class="placeholder">Pear</draggableAnswer>
+                    <draggableAnswer identifier="walnut" fixed="true">Walnut</draggableAnswer>
+                    <draggableAnswer identifier="car">Car</draggableAnswer>
+                    <draggableAnswer identifier="cow">Cow</draggableAnswer>
+                    <draggableAnswer identifier="bus">Bus</draggableAnswer>
+            </draggableAnswerGroup>
 
             <table>
                 <tr>
