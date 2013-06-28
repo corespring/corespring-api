@@ -13,7 +13,6 @@ This project contains the api rest layer and web ui for administering corespring
 * For running tests install phantomjs
 
 
-
 ### Running/Testing
 
     cd corepsring-api
