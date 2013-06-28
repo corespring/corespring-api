@@ -235,6 +235,7 @@ angular.module('qti.directives').directive("dragtarget", function (QtiUtils) {
                   $scope.listAnswers[i] = $scope.originalListAnswers[i];
               }
 
+              $scope.initMathML(0);
             });
 
             return true;

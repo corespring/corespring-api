@@ -1,0 +1,148 @@
+<assessmentItem>
+    <responseDeclaration identifier='alphabet1' cardinality='targeted' baseType='identifier'>
+        <correctResponse>
+            <value>target1:4</value>
+            <value>target2:10</value>
+            <value>target3:8</value>
+            <value>target4:3</value>
+            <value>target5:1</value>
+            <value>target6:13</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+        <p class="intro-2"><img src="cells.png" class="img-right" alt="Growth" />Assume that as the experiment continues, the number of cells at teh end of each week continues to be double the number of cells at the end of the previous week. Let <i>w<sub>n</sub></i> represent the number of cells in the growth medium in week <i>n</i>.</p>
+
+
+        <p>Write a recursive definition for the sequence that represents the number of cells in the growth medium at the end of teach week by dragging the tiles into the spaces below.</p>
+        <br>
+        </br>
+        <br></br>
+        <br></br>
+
+        <h4 class="para-center">Tiles</h4>
+        <dragAndDropInteraction responseIdentifier='alphabet1' orderMatters='rue'>
+
+
+            <draggableAnswerGroup class="tileTable" shuffle="true" answersPerRow="5">
+                        <draggableAnswer identifier='1' copyOnDrag='true'>an integer</draggableAnswer>
+                        <draggableAnswer identifier='2' copyOnDrag='true'>a real number</draggableAnswer>
+                        <draggableAnswer identifier='3' copyOnDrag='true'>2</draggableAnswer>
+                        <draggableAnswer identifier='4' copyOnDrag='true'>15</draggableAnswer>
+                        <draggableAnswer identifier='5' copyOnDrag='true'>30</draggableAnswer>
+                        <draggableAnswer identifier='6'>+</draggableAnswer>
+                        <draggableAnswer identifier='7'>-</draggableAnswer>
+                        <draggableAnswer identifier='8'>bullet</draggableAnswer>
+                        <draggableAnswer identifier='9'>
+
+                        <math xmlns="http://www.w3.org/1998/Math/MathML">
+                            <semantics>
+                                <mrow>
+                                    <mrow>
+
+                                        <mo stretchy="false">÷</mo>
+
+                                    </mrow>
+                                </mrow>
+                                <annotation encoding="StarMath 5.0">2 div 2</annotation>
+                            </semantics>
+                        </math>
+                    </draggableAnswer>
+                    <draggableAnswer identifier='10'><i>w<sub>n-1</sub></i></draggableAnswer>
+                    <draggableAnswer identifier='11'>
+                            <math xmlns="http://www.w3.org/1998/Math/MathML">
+                                <semantics>
+                                    <mrow>
+                                        <mrow>
+                                            <mi>n</mi>
+                                            <mo stretchy="false">≥</mo>
+                                            <mn>0</mn>
+                                        </mrow>
+                                    </mrow>
+                                    <annotation encoding="StarMath 5.0">n &gt;= 0</annotation>
+                                </semantics>
+                            </math></draggableAnswer>
+                        <draggableAnswer identifier='12'><math xmlns="http://www.w3.org/1998/Math/MathML">
+                        <semantics>
+                            <mrow>
+                                <mrow>
+                                    <mi>n</mi>
+                                    <mo stretchy="false">≥</mo>
+                                    <mn>1</mn>
+                                </mrow>
+                            </mrow>
+                            <annotation encoding="StarMath 5.0">n &gt;=1</annotation>
+                        </semantics>
+                    </math></draggableAnswer>
+
+                    <draggableAnswer identifier='13'><math xmlns="http://www.w3.org/1998/Math/MathML">
+                        <semantics>
+                            <mrow>
+                                <mrow>
+                                    <mi>n</mi>
+                                    <mo stretchy="false">≥</mo>
+                                    <mn>2</mn>
+                                </mrow>
+                            </mrow>
+                            <annotation encoding="StarMath 5.0">n &gt;=2</annotation>
+                        </semantics>
+                    </math></draggableAnswer>
+                    <draggableAnswer identifier='14'><math xmlns="http://www.w3.org/1998/Math/MathML">
+                        <semantics>
+                            <mrow>
+                                <mrow>
+                                    <mi>n</mi>
+                                    <mo stretchy="false">≥</mo>
+                                    <mn>6</mn>
+                                </mrow>
+                            </mrow>
+                            <annotation encoding="StarMath 5.0">n &gt;=6</annotation>
+                        </semantics>
+                    </math></draggableAnswer>
+                    <draggableAnswer identifier='15'><math xmlns="http://www.w3.org/1998/Math/MathML">
+                        <semantics>
+                            <mrow>
+                                <mrow>
+                                    <mi>n</mi>
+                                    <mo stretchy="false">≥</mo>
+                                    <mn>15</mn>
+                                </mrow>
+                            </mrow>
+                            <annotation encoding="StarMath 5.0">n &gt;=15</annotation>
+                        </semantics>
+                    </math></draggableAnswer>
+            </draggableAnswerGroup>
+
+            <h4 class="para-center">Recursive Definition</h4>
+
+            <table>
+
+                <tr>
+                    <td><i>w<sup>1</sup></i>=</td>
+                    <td>
+
+                        <dragTarget cardinality='single' class='blueTile inline' identifier='target1'></dragTarget>
+                    </td>
+                </tr>
+                <tr>
+                    <td><i>w<sup>n</sup></i>=</td>
+                    <td>
+                        <dragTarget cardinality='single' class='blueTile inline' identifier='target2'></dragTarget><dragTarget cardinality='single' class='blueTile inline' identifier='target3'> </dragTarget>
+                        <dragTarget cardinality='single' class='blueTile inline' identifier='target4'></dragTarget>
+                    </td>
+                </tr>
+                <tr>
+                    <td>where <i>n</i> is</td>
+                    <td>
+                        <dragTarget cardinality='single' class='blueTile inline' identifier='target5'></dragTarget>, such that <dragTarget cardinality='single' class='blueTile inline' identifier='target6'></dragTarget>
+                    </td>
+                </tr>
+
+
+            </table>
+
+
+        </dragAndDropInteraction>
+
+    </itemBody>
+</assessmentItem>

@@ -1,6 +1,6 @@
 {
     "_id": {
-        "$oid": "506c1fad2212da7b2a71891a"
+        "$oid": "506c1fad2212da8d2a71821a"
     },
     "data": {
         "name": "qti.xml",
@@ -10,13 +10,13 @@
                 "name": "qti.xml",
                 "contentType": "text/xml",
                 "isMain": true,
-                "content": "$[interpolate{conf/qti/drag-and-drop-interaction.xml}]"
+                "content": "$[interpolate{conf/qti/drag-and-drop-sample.xml}]"
             }
         ]
     },
     "published":false,
     "collectionId": "5001b9b9e4b035d491c268c3",
     "taskInfo": {
-        "title": "Drag and Drop (Simple)"
+        "title": "Sample Drag and Drop"
     }
 }
