@@ -10,7 +10,7 @@ keys = [
 
 key_values = Hash.new
 
-keys.each{ |k| hash[k] = ENV[k]}
+keys.each{ |k| key_values[k] = ENV[k]}
 
 throw_error = false
 

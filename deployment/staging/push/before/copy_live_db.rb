@@ -2,10 +2,17 @@
 
 require 'json'
 require 'time'
+require 'mongo-db-utils/version'
 require 'mongo-db-utils/tools/commands'
 require 'mongo-db-utils/models/db'
 
 require_relative '../../../libs/ruby/log'
+
+required_version = "0.1.1"
+
+raise "You need version #{required_version} of mongo-db-utils" if MongoDbUtils::VERSION != required_version
+
+puts "using mongo-db-utils version: #{MongoDbUtils::VERSION}"
 
 include MongoDbUtils::Tools
 include MongoDbUtils::Model
@@ -48,11 +55,11 @@ log "running dump of #{live_db_uri}"
 live_db = get_db( live_db_uri, ENV["CORESPRING_LIVE_DB_REPLICA_SET_NAME"] )
 
 # Just print the command for now
-puts Dump.cmd(live_db.to_host_s,
+Dump.new(live_db.to_host_s,
   live_db.name,
   "tmp_folder",
   live_db.username,
-  live_db.password)
+  live_db.password).run
 
 target_db = get_db(target_db_uri, target_replica_set_name)
 
@@ -78,13 +85,12 @@ end
 
 log "call MongoTools.restore..."
 begin
-  puts Restore.cmd(
-  #Restore.run(
+  puts Restore.new(
     target_db.to_host_s,
     target_db.name,
     "tmp_folder/#{live_db.name}",
     target_db.username,
-    target_db.password)
+    target_db.password).run
 rescue ToolsException => mte
   log "MongoToolsException --------->"
   log mte.cmd
