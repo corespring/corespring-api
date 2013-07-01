@@ -7,6 +7,7 @@ import qti.models.{CorrectResponseTargeted, QtiItem, ResponseDeclaration}
 import scala.xml.{NodeSeq, Elem, Node}
 import scala.collection.mutable
 import scala.xml.transform.{RuleTransformer, RewriteRule}
+import controllers.Utils.isTrue
 
 case class Target(identifier: String, cardinality: String)
 
@@ -92,8 +93,12 @@ case class DragAndDropInteraction(responseIdentifier: String, choices: Seq[Simpl
 }
 
 object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteraction] {
-  val draggableAnswer = "draggableAnswer"
-  val dragTarget = "dragTarget"
+  val answerNodeLabel = "draggableAnswer"
+  val targetNodeLabel = "dragTarget"
+  val groupNodeLabel = "draggableAnswerGroup"
+  val answersPerRowAttribute = "answersPerRow"
+  val shuffleAttribute = "shuffle"
+  val fixedAttribute = "fixed"
 
   def tagName = "dragAndDropInteraction"
 
@@ -106,19 +111,14 @@ object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteractio
       require(answersPerRow > 0)
 
       def doShuffle(xs: Seq[Node]) = {
-        def isFixed(n: Node): Boolean = {
-          n.attribute("fixed") match {
-            case Some(e) => e.text == "true"
-            case _ => false
-          }
-        }
+        def isFixed(n: Node): Boolean = isTrue(n.attribute(fixedAttribute))
         controllers.Utils.shuffle(xs, isFixed)
       }
 
       def tdRule = new RewriteRule {
         override def transform(n: Node): NodeSeq = {
           n match {
-            case e: Elem if (e.label == "draggableAnswer") => tdNode.copy(child = e)
+            case e: Elem if (e.label == answerNodeLabel) => tdNode.copy(child = e)
             case n => n
           }
         }
@@ -127,15 +127,15 @@ object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteractio
       def trRule = new RewriteRule {
         override def transform(n: Node): NodeSeq = {
           n match {
-            case el: Elem if (el.label == "draggableAnswerGroup") =>
+            case el: Elem if (el.label == groupNodeLabel) =>
               val trList = mutable.MutableList[Node]()
-              val draggableAnswers = mutable.Queue[Node]() ++= (if (shuffle) doShuffle(n \\ "draggableAnswer") else n \\ "draggableAnswer")
+              val draggableAnswers = mutable.Queue[Node]() ++= (if (shuffle) doShuffle(n \\ answerNodeLabel) else n \\ answerNodeLabel)
               var currentTrNodes = mutable.MutableList[Node]()
               n.child.foreach {
                 child =>
 
-                  currentTrNodes += (if (child.label == "draggableAnswer") draggableAnswers.dequeue else child)
-                  if ((currentTrNodes \\ "draggableAnswer").size == answersPerRow) {
+                  currentTrNodes += (if (child.label == answerNodeLabel) draggableAnswers.dequeue else child)
+                  if ((currentTrNodes \\ answerNodeLabel).size == answersPerRow) {
                     trList += trNode.copy(child = currentTrNodes)
                     currentTrNodes = mutable.MutableList[Node]()
                   }
@@ -154,9 +154,9 @@ object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteractio
     def mainRule = new RewriteRule {
       override def transform(n: Node): NodeSeq = {
         n match {
-          case e: Elem if (e.label == "draggableAnswerGroup") =>
-            e.attribute("answersPerRow") match {
-              case Some(v) => addTdTrs(e, e.attribute("shuffle").getOrElse(NodeSeq.Empty).text == "true", v.text.toInt)
+          case e: Elem if (e.label == groupNodeLabel) =>
+            e.attribute(answersPerRowAttribute) match {
+              case Some(v) => addTdTrs(e, isTrue(e.attribute(shuffleAttribute)), v.text.toInt)
               case _ => n
             }
 
@@ -172,12 +172,12 @@ object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteractio
 
   def apply(node: Node, itemBody: Option[Node]): DragAndDropInteraction = DragAndDropInteraction(
     (node \ "@responseIdentifier").text,
-    (node \\ draggableAnswer).map(SimpleChoice(_, (node \ "@responseIdentifier").text)),
-    (node \\ dragTarget).map(n => Target((n \ "@identifier").text, (n \ "@cardinality").text)).toSeq
+    (node \\ answerNodeLabel).map(SimpleChoice(_, (node \ "@responseIdentifier").text)),
+    (node \\ targetNodeLabel).map(n => Target((n \ "@identifier").text, (n \ "@cardinality").text)).toSeq
   )
 
   def parse(itemBody: Node): Seq[Interaction] = {
-    val interactions = (itemBody \\ "dragAndDropInteraction")
+    val interactions = (itemBody \\ tagName)
     if (interactions.isEmpty) {
       Seq()
     } else {

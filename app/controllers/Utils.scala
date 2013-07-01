@@ -5,8 +5,19 @@ import org.bson.types.ObjectId
 import collection.mutable.ArrayBuffer
 import collection.generic.CanBuildFrom
 import scala.util.Random
+import scala.xml.Node
 
 object Utils {
+
+  def isTrue(v:Any):Boolean = {
+    v match {
+      case s:String => s.toLowerCase == "true"
+      case b:Boolean => b
+      case n:Node => isTrue(n.text)
+      case Some(some) => isTrue(some)
+      case _ => false
+    }
+  }
 
   def shuffle[T, CC[X] <: TraversableOnce[X]](xs: CC[T], isFixed: T => Boolean)(implicit bf: CanBuildFrom[CC[T], T, CC[T]]): CC[T] = {
     val buf = new ArrayBuffer[T] ++= xs
