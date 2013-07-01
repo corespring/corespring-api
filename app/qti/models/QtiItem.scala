@@ -81,17 +81,11 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
    * @return some FeedbackInline or None
    */
   def getFeedback(id: String, choiceId: String): Option[FeedbackInline] = {
-    val fb = pf(getFeedbackBlock(id, choiceId)) orElse
-      pf(getFeedbackInline(id, choiceId)) orElse
-      pf(getFeedbackWithIncorrectResponse(id)) orElse None
+    val fb = getFeedbackBlock(id, choiceId) orElse
+      getFeedbackInline(id, choiceId) orElse
+      getFeedbackWithIncorrectResponse(id) orElse None
 
     fb
-  }
-
-
-  private def pf[T]: PartialFunction[Option[T], Option[T]] = {
-    case Some(thing) => Some(thing)
-    case None => None
   }
 
   private def getFeedbackWithIncorrectResponse(id: String): Option[FeedbackInline] = {
