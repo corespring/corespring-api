@@ -1,12 +1,24 @@
 <assessmentItem>
     <responseDeclaration identifier='alphabet1' cardinality='targeted' baseType='identifier'>
         <correctResponse>
-            <value>target1:4</value>
-            <value>target2:10</value>
-            <value>target3:8</value>
-            <value>target4:3</value>
-            <value>target5:1</value>
-            <value>target6:13</value>
+            <value identifier="target1">
+                <value>4</value>
+            </value>
+            <value identifier="target2">
+                <value>10</value>
+            </value>
+            <value identifier="target3">
+                <value>8</value>
+            </value>
+            <value identifier="target4">
+                <value>3</value>
+            </value>
+            <value identifier="target5">
+                <value>1</value>
+            </value>
+            <value identifier="target6">
+                <value>13</value>
+            </value>
         </correctResponse>
     </responseDeclaration>
 

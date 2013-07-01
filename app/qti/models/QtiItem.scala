@@ -5,6 +5,7 @@ import qti.models.QtiItem.Correctness
 import scala.Some
 import scala.xml._
 import common.log.PackageLogging
+import com.codahale.jerkson.Json._
 
 case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline]) {
   var defaultCorrect = "Correct!"
@@ -256,12 +257,12 @@ object CorrectResponse {
    * @return
    */
   def apply(node: Node, cardinality: String, interaction: Option[Interaction] = None): CorrectResponse = {
-
     if (interaction.isDefined) {
       interaction.get match {
         case TextEntryInteraction(_, _, _) => CorrectResponseAny(node)
         case SelectTextInteraction(_, _, _, _, _, _) => CorrectResponseAny(node)
-        case DragAndDropInteraction(_, _, targets) => CorrectResponseTargeted(node, targets.filter(_.cardinality == "ordered").map(_.identifier).toSet)
+        case DragAndDropInteraction(_, _, targets) =>
+          CorrectResponseTargeted(node, targets.filter(_.cardinality == "ordered").map(_.identifier).toSet)
         case _ => CorrectResponse(node, cardinality)
       }
     }
@@ -383,7 +384,7 @@ case class CorrectResponseTargeted(value: Map[String, List[String]], orderedTarg
 object CorrectResponseTargeted {
   def apply(node: Node, orderedTargets: Set[String]): CorrectResponseTargeted = {
     CorrectResponseTargeted(
-      (node \ "value").map(e => e.text.split(":")(0) -> e.text.split(":")(1).split(",").toList).toMap,
+      (node \ "value").map(e => e.attribute("identifier").get.text -> (e \ "value").map(_.text).toList).toMap,
       orderedTargets
     )
   }
@@ -421,7 +422,6 @@ case class ItemBody(interactions: Seq[Interaction], feedbackBlocks: Seq[Feedback
 
 object ItemBody {
   def apply(node: Node): ItemBody = {
-
     val feedbackBlocks = buildTypes[FeedbackInline](node, Seq(
       ("feedbackBlock", FeedbackInline(_, None))
     ))

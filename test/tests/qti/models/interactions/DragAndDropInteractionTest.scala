@@ -4,7 +4,7 @@ import org.specs2.mutable._
 import qti.models.interactions.DragAndDropInteraction
 import qti.models.QtiItem
 import utils.MockXml
-import utils.MockXml.{removeNodeFromXmlWhere, replaceNodeInXmlWhere}
+import utils.MockXml.{removeNodeFromXmlWhere, replaceNodeInXmlWhere, addChildNodeInXmlWhere}
 
 class DragAndDropInteractionTest extends Specification {
 
@@ -33,23 +33,31 @@ class DragAndDropInteractionTest extends Specification {
     }
 
     "drag and drop interaction answer validation" in {
-      val xml2 = replaceNodeInXmlWhere(interactionXml, <value>target3:car,bus,frog</value>) {
+      val xml2 = addChildNodeInXmlWhere(interactionXml, <value>frog</value>) {
         e =>
-          e.text.split(":")(0) == "target3"
+          e.attribute("identifier") match {
+            case Some(id) => id.text == "target3"
+            case _ => false
+          }
       }
 
       QtiItem(xml2) must throwAn[IllegalArgumentException]
     }
 
     "drag and drop interaction target validation #1" in {
-      QtiItem(removeNodeFromXmlWhere(interactionXml) {
-        n => n.text.split(":")(0) == "target2"
-      }) must throwAn[IllegalArgumentException]
+      val xml = removeNodeFromXmlWhere(interactionXml) {
+        n => n.label != "dragTarget" && (n.attribute("identifier") match {
+          case Some(id) => id.text == "target2"
+          case _ => false
+        })
+      }
+      QtiItem(xml) must throwAn[IllegalArgumentException]
     }
 
     "drag and drop interaction target validation #2" in {
       QtiItem(removeNodeFromXmlWhere(interactionXml) {
-        n => (n \ "@identifier").text == "target2"
+        n =>
+          (n \ "@identifier").text == "target2" && n.label == "dragTarget"
       }) must throwAn[IllegalArgumentException]
     }
 

@@ -34,7 +34,7 @@ class QtiItemTest extends Specification {
     val single = QtiItem(xml("id", "single", <value>1</value>))
     val multiple = QtiItem(xml("id", "multiple", <value>1</value> <value>2</value>))
     val ordered = QtiItem(xml("id", "ordered", <value>1</value> <value>2</value>))
-    val targeted = QtiItem(xml("id", "targeted", <value>id1:apple</value> <value>id2:pear</value>))
+    val targeted = QtiItem(xml("id", "targeted", <value identifier="id1"><value>apple</value></value> <value identifier="id2"><value>pear</value></value>))
 
     def assertParse(item: QtiItem, t: Class[_]): Boolean = {
       val response = item.responseDeclarations(0).correctResponse.get
@@ -295,10 +295,23 @@ class CorrectResponseTest extends Specification {
     "targeted correctness" in {
       val item = QtiItem(
         xml("id", "targeted",
-          <value>target1:apple,pear,cherry,orange</value>
-          <value>target2:cow,bear,fox</value>
-          <value>target3:apple</value>
-          <value>target4:fox</value>,
+          <value identifier="target1">
+            <value>apple</value>
+            <value>pear</value>
+            <value>cherry</value>
+            <value>orange</value>
+          </value>
+          <value identifier="target2">
+            <value>cow</value>
+            <value>bear</value>
+            <value>fox</value>
+          </value>
+          <value identifier="target3">
+            <value>apple</value>
+          </value>
+          <value identifier="target4">
+            <value>fox</value>
+          </value>,
           <dragAndDropInteraction responseIdentifier="id">
             <draggableAnswer identifier="apple">Apple</draggableAnswer>
             <draggableAnswer identifier="pear">Pear</draggableAnswer>

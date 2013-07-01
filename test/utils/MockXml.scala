@@ -49,5 +49,16 @@ object MockXml {
     new RuleTransformer(replaceIt).transform(xml).head
   }
 
+  def addChildNodeInXmlWhere(xml: NodeSeq, newNode: Elem)(fn: Elem => Boolean): Node = {
+    val replaceIt = new RewriteRule {
+      override def transform(n: Node): NodeSeq = n match {
+        case e: Elem if (fn(e)) => e.copy(child = e.child ++ newNode)
+        case n => n
+      }
+    }
+
+    new RuleTransformer(replaceIt).transform(xml).head
+  }
+
 
 }

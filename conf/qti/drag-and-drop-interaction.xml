@@ -1,9 +1,15 @@
 <assessmentItem>
     <responseDeclaration identifier="alphabet1" cardinality="targeted" baseType="identifier">
         <correctResponse>
-            <value>target1:ten</value>
-            <value>target2:divide</value>
-            <value>target3:two</value>
+            <value identifier="target1">
+                <value>ten</value>
+            </value>
+            <value identifier="target2">
+                <value>divide</value>
+            </value>
+            <value identifier="target3">
+                <value>two</value>
+            </value>
         </correctResponse>
     </responseDeclaration>
 
