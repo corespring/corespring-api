@@ -10,6 +10,7 @@ raise "no config file specified" if ARGV[0] == nil
 config = JSON.parse(IO.read(ARGV[0]))
 
 mongo_uri = config["ENV_MONGO_URI"]
+replica_set_name = config["ENV_MONGO_REPLICA_SET_NAME"]
 
 raise "can't find ENV_MONGO_URI in config" if mongo_uri == nil
 
@@ -27,6 +28,7 @@ eos
 raise error_msg if (bucket_name == nil || access_key == nil || secret_key == nil)
 
 cmd = "mongo-db-utils backup_s3 #{mongo_uri} #{bucket_name} #{access_key} #{secret_key}"
+cmd << " #{replica_set_name}" unless replica_set_name.nil?
 
 puts "running: [#{cmd}]"
 `#{cmd}`

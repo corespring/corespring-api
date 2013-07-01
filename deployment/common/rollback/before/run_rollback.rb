@@ -22,7 +22,7 @@ puts "ARGV[1]: #{ARGV[1]}"
 
 config = JSON.parse(IO.read(ARGV[1]))
 COMMIT_HASH = ARGV[0]
-JAR="deployment/libs/mongo-migrator_2.9.2-0.1-SNAPSHOT-one-jar.jar"
+JAR="deployment/libs/mongo-migrator_2.9.2-0.2.0-one-jar.jar"
 MIGRATIONS="deployment/migrations"
 MONGO_URI = config["HH_MONGO_URI"]
 

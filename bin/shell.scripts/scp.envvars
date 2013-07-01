@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+scp deployment/.env_vars.sh jenkins@66.175.211.110:/var/lib/jenkins/shell-deployer/corespring-api/deployment
+scp .heroku-helper-env.conf jenkins@66.175.211.110:/var/lib/jenkins/shell-deployer/corespring-api
