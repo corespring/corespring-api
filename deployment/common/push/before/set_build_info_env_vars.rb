@@ -2,7 +2,7 @@
 require 'json'
 
 begin
-  puts "-------- set build info env vars -------------"
+  puts "!-------- set build info env vars -------------"
   ### Args: 0: tmp json file with heroku config, 1: app name, 2: branch name
   app = ARGV[1].chomp
   puts "config json: #{ARGV[0]}"
