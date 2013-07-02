@@ -157,24 +157,7 @@ angular.module('qti.directives').directive("draggablechoice", function (QtiUtils
           }
         });
 
-        $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
-          if (!responses) return;
-          var correctResponse = QtiUtils.getResponseValue($scope.responseIdentifier, responses, []);
-          var correctTargetForAnswer = _.find(correctResponse, function (elem) {
-            var s1 = elem.split(":")[1].split(",");
-            return s1.indexOf(attrs.identifier) >= 0;
-          });
-          correctTargetForAnswer = correctTargetForAnswer ? correctTargetForAnswer.split(":")[0] : undefined;
-          var ourResponse = QtiUtils.getResponseValue($scope.responseIdentifier, $scope.itemSession.responses, []);
-          var ourTargetForAnswer = _.find(ourResponse, function (elem) {
-            var s1 = elem.split(":")[1].split("|");
-            return s1.indexOf(attrs.identifier) >= 0;
-          });
-          ourTargetForAnswer = ourTargetForAnswer ? ourTargetForAnswer.split(":")[0] : undefined;
-          $scope.correctClass = correctTargetForAnswer == ourTargetForAnswer ? "correct" : "incorrect";
-        });
-
-      }
+     }
     }
   }
 });
