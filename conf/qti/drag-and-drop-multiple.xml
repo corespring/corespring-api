@@ -19,32 +19,34 @@
         <dragAndDropInteraction responseIdentifier="alphabet1" orderMatters="true">
             Complete the equation below:
 
-            <draggableAnswerGroup shuffle="true" answersPerRow="3">
-                    <draggableAnswer identifier="apple" copyOnDrag="true" fixed="true">Apple</draggableAnswer>
-                    <draggableAnswer identifier="pear" placeholder-class="placeholder">Pear</draggableAnswer>
-                    <draggableAnswer identifier="walnut" fixed="true">Walnut</draggableAnswer>
-                    <draggableAnswer identifier="car">Car</draggableAnswer>
-                    <draggableAnswer identifier="cow">Cow</draggableAnswer>
-                    <draggableAnswer identifier="bus">Bus</draggableAnswer>
-            </draggableAnswerGroup>
+            <draggableChoiceGroup shuffle="true" answersPerRow="3">
+                    <draggableChoice identifier="apple" copyOnDrag="true" fixed="true">Apple</draggableChoice>
+                    <draggableChoice identifier="pear" placeholder-class="placeholder">Pear</draggableChoice>
+                    <draggableChoice identifier="walnut" fixed="true">Walnut</draggableChoice>
+                    <draggableChoice identifier="car">Car</draggableChoice>
+                    <draggableChoice identifier="cow">Cow</draggableChoice>
+                    <draggableChoice identifier="bus">Bus</draggableChoice>
+            </draggableChoiceGroup>
 
             <table>
                 <tr>
                     <td>
                         Fruits
-                        <dragTarget cardinality="multiple" class="blueTile inline" identifier="target1"></dragTarget>
+                        <landingPlace cardinality="multiple" class="blueTile inline" identifier="target1">
+                            <feedbackInline csFeedbackId='target1' identifier='target1' showHide='show'>Target 1</feedbackInline>
+                        </landingPlace>
                     </td>
                 </tr>
                 <tr>
                     <td>
                         Animals
-                        <dragTarget cardinality="single" class="blueTile inline" identifier="target2"></dragTarget>
+                        <landingPlace cardinality="single" class="blueTile inline" identifier="target2"></landingPlace>
                     </td>
                     </tr>
                 <tr>
                     <td>
                         Vehicles
-                        <dragTarget cardinality="multiple" class="blueTile inline" identifier="target3"></dragTarget>
+                        <landingPlace cardinality="multiple" class="blueTile inline" identifier="target3"></landingPlace>
                     </td>
                     <td>
                         equals 5x

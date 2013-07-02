@@ -1,4 +1,4 @@
-<assessmentItem>
+    <assessmentItem>
     <responseDeclaration identifier='alphabet1' cardinality='targeted' baseType='identifier'>
         <correctResponse>
             <value identifier="target1">
@@ -36,16 +36,16 @@
         <dragAndDropInteraction responseIdentifier='alphabet1' orderMatters='rue'>
 
 
-            <draggableAnswerGroup class="tileTable" shuffle="true" answersPerRow="5">
-                        <draggableAnswer identifier='1' copyOnDrag='true'>an integer</draggableAnswer>
-                        <draggableAnswer identifier='2' copyOnDrag='true'>a real number</draggableAnswer>
-                        <draggableAnswer identifier='3' copyOnDrag='true'>2</draggableAnswer>
-                        <draggableAnswer identifier='4' copyOnDrag='true'>15</draggableAnswer>
-                        <draggableAnswer identifier='5' copyOnDrag='true'>30</draggableAnswer>
-                        <draggableAnswer identifier='6'>+</draggableAnswer>
-                        <draggableAnswer identifier='7'>-</draggableAnswer>
-                        <draggableAnswer identifier='8'>bullet</draggableAnswer>
-                        <draggableAnswer identifier='9'>
+            <draggableChoiceGroup class="tileTable" shuffle="true" answersPerRow="5">
+                        <draggableChoice identifier='1' copyOnDrag='true'>an integer</draggableChoice>
+                        <draggableChoice identifier='2' copyOnDrag='true'>a real number</draggableChoice>
+                        <draggableChoice identifier='3' copyOnDrag='true'>2</draggableChoice>
+                        <draggableChoice identifier='4' copyOnDrag='true'>15</draggableChoice>
+                        <draggableChoice identifier='5' copyOnDrag='true'>30</draggableChoice>
+                        <draggableChoice identifier='6'>+</draggableChoice>
+                        <draggableChoice identifier='7'>-</draggableChoice>
+                        <draggableChoice identifier='8'>bullet</draggableChoice>
+                        <draggableChoice identifier='9'>
 
                         <math xmlns="http://www.w3.org/1998/Math/MathML">
                             <semantics>
@@ -59,9 +59,9 @@
                                 <annotation encoding="StarMath 5.0">2 div 2</annotation>
                             </semantics>
                         </math>
-                    </draggableAnswer>
-                    <draggableAnswer identifier='10'><i>w<sub>n-1</sub></i></draggableAnswer>
-                    <draggableAnswer identifier='11'>
+                    </draggableChoice>
+                    <draggableChoice identifier='10'><i>w<sub>n-1</sub></i></draggableChoice>
+                    <draggableChoice identifier='11'>
                             <math xmlns="http://www.w3.org/1998/Math/MathML">
                                 <semantics>
                                     <mrow>
@@ -73,8 +73,8 @@
                                     </mrow>
                                     <annotation encoding="StarMath 5.0">n &gt;= 0</annotation>
                                 </semantics>
-                            </math></draggableAnswer>
-                        <draggableAnswer identifier='12'><math xmlns="http://www.w3.org/1998/Math/MathML">
+                            </math></draggableChoice>
+                        <draggableChoice identifier='12'><math xmlns="http://www.w3.org/1998/Math/MathML">
                         <semantics>
                             <mrow>
                                 <mrow>
@@ -85,9 +85,9 @@
                             </mrow>
                             <annotation encoding="StarMath 5.0">n &gt;=1</annotation>
                         </semantics>
-                    </math></draggableAnswer>
+                    </math></draggableChoice>
 
-                    <draggableAnswer identifier='13'><math xmlns="http://www.w3.org/1998/Math/MathML">
+                    <draggableChoice identifier='13'><math xmlns="http://www.w3.org/1998/Math/MathML">
                         <semantics>
                             <mrow>
                                 <mrow>
@@ -98,8 +98,8 @@
                             </mrow>
                             <annotation encoding="StarMath 5.0">n &gt;=2</annotation>
                         </semantics>
-                    </math></draggableAnswer>
-                    <draggableAnswer identifier='14'><math xmlns="http://www.w3.org/1998/Math/MathML">
+                    </math></draggableChoice>
+                    <draggableChoice identifier='14'><math xmlns="http://www.w3.org/1998/Math/MathML">
                         <semantics>
                             <mrow>
                                 <mrow>
@@ -110,8 +110,8 @@
                             </mrow>
                             <annotation encoding="StarMath 5.0">n &gt;=6</annotation>
                         </semantics>
-                    </math></draggableAnswer>
-                    <draggableAnswer identifier='15'><math xmlns="http://www.w3.org/1998/Math/MathML">
+                    </math></draggableChoice>
+                    <draggableChoice identifier='15'><math xmlns="http://www.w3.org/1998/Math/MathML">
                         <semantics>
                             <mrow>
                                 <mrow>
@@ -122,8 +122,8 @@
                             </mrow>
                             <annotation encoding="StarMath 5.0">n &gt;=15</annotation>
                         </semantics>
-                    </math></draggableAnswer>
-            </draggableAnswerGroup>
+                    </math></draggableChoice>
+            </draggableChoiceGroup>
 
             <h4 class="para-center">Recursive Definition</h4>
 
@@ -133,20 +133,20 @@
                     <td><i>w<sup>1</sup></i>=</td>
                     <td>
 
-                        <dragTarget cardinality='single' class='blueTile inline' identifier='target1'></dragTarget>
+                        <landingPlace cardinality='single' class='blueTile inline' identifier='target1'></landingPlace>
                     </td>
                 </tr>
                 <tr>
                     <td><i>w<sup>n</sup></i>=</td>
                     <td>
-                        <dragTarget cardinality='single' class='blueTile inline' identifier='target2'></dragTarget><dragTarget cardinality='single' class='blueTile inline' identifier='target3'> </dragTarget>
-                        <dragTarget cardinality='single' class='blueTile inline' identifier='target4'></dragTarget>
+                        <landingPlace cardinality='single' class='blueTile inline' identifier='target2'></landingPlace><landingPlace cardinality='single' class='blueTile inline' identifier='target3'> </landingPlace>
+                        <landingPlace cardinality='single' class='blueTile inline' identifier='target4'></landingPlace>
                     </td>
                 </tr>
                 <tr>
                     <td>where <i>n</i> is</td>
                     <td>
-                        <dragTarget cardinality='single' class='blueTile inline' identifier='target5'></dragTarget>, such that <dragTarget cardinality='single' class='blueTile inline' identifier='target6'></dragTarget>
+                        <landingPlace cardinality='single' class='blueTile inline' identifier='target5'></landingPlace>, such that <landingPlace cardinality='single' class='blueTile inline' identifier='target6'></landingPlace>
                     </td>
                 </tr>
 

@@ -313,17 +313,17 @@ class CorrectResponseTest extends Specification {
             <value>fox</value>
           </value>,
           <dragAndDropInteraction responseIdentifier="id">
-            <draggableAnswer identifier="apple">Apple</draggableAnswer>
-            <draggableAnswer identifier="pear">Pear</draggableAnswer>
-            <draggableAnswer identifier="cherry">Cherry</draggableAnswer>
-            <draggableAnswer identifier="orange">Orange</draggableAnswer>
-            <draggableAnswer identifier="cow">Cow</draggableAnswer>
-            <draggableAnswer identifier="bear">Bear</draggableAnswer>
-            <draggableAnswer identifier="fox">Fox</draggableAnswer>
-            <dragTarget cardinality="ordered" identifier="target1"></dragTarget>
-            <dragTarget cardinality="multiple" identifier="target2"></dragTarget>
-            <dragTarget cardinality="single" identifier="target3"></dragTarget>
-            <dragTarget cardinality="ordered" identifier="target4"></dragTarget>
+            <draggableChoice identifier="apple">Apple</draggableChoice>
+            <draggableChoice identifier="pear">Pear</draggableChoice>
+            <draggableChoice identifier="cherry">Cherry</draggableChoice>
+            <draggableChoice identifier="orange">Orange</draggableChoice>
+            <draggableChoice identifier="cow">Cow</draggableChoice>
+            <draggableChoice identifier="bear">Bear</draggableChoice>
+            <draggableChoice identifier="fox">Fox</draggableChoice>
+            <landingPlace cardinality="ordered" identifier="target1"></landingPlace>
+            <landingPlace cardinality="multiple" identifier="target2"></landingPlace>
+            <landingPlace cardinality="single" identifier="target3"></landingPlace>
+            <landingPlace cardinality="ordered" identifier="target4"></landingPlace>
 
           </dragAndDropInteraction>
       ))

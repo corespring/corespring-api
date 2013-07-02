@@ -4,7 +4,7 @@ import org.specs2.mutable._
 import qti.models.interactions.DragAndDropInteraction
 import qti.models.QtiItem
 import utils.MockXml
-import utils.MockXml.{removeNodeFromXmlWhere, replaceNodeInXmlWhere, addChildNodeInXmlWhere}
+import utils.MockXml.{removeNodeFromXmlWhere, addChildNodeInXmlWhere}
 
 class DragAndDropInteractionTest extends Specification {
 
@@ -46,7 +46,7 @@ class DragAndDropInteractionTest extends Specification {
 
     "drag and drop interaction target validation #1" in {
       val xml = removeNodeFromXmlWhere(interactionXml) {
-        n => n.label != "dragTarget" && (n.attribute("identifier") match {
+        n => n.label != DragAndDropInteraction.targetNodeLabel && (n.attribute("identifier") match {
           case Some(id) => id.text == "target2"
           case _ => false
         })
@@ -57,7 +57,7 @@ class DragAndDropInteractionTest extends Specification {
     "drag and drop interaction target validation #2" in {
       QtiItem(removeNodeFromXmlWhere(interactionXml) {
         n =>
-          (n \ "@identifier").text == "target2" && n.label == "dragTarget"
+          (n \ "@identifier").text == "target2" && n.label == DragAndDropInteraction.targetNodeLabel
       }) must throwAn[IllegalArgumentException]
     }
 

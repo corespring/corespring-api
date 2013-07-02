@@ -93,9 +93,9 @@ case class DragAndDropInteraction(responseIdentifier: String, choices: Seq[Simpl
 }
 
 object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteraction] {
-  val answerNodeLabel = "draggableAnswer"
-  val targetNodeLabel = "dragTarget"
-  val groupNodeLabel = "draggableAnswerGroup"
+  val answerNodeLabel = "draggableChoice"
+  val targetNodeLabel = "landingPlace"
+  val groupNodeLabel = "draggableChoiceGroup"
   val answersPerRowAttribute = "answersPerRow"
   val shuffleAttribute = "shuffle"
   val fixedAttribute = "fixed"

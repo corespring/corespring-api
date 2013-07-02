@@ -20,16 +20,16 @@
             <table class="tileTable">
                 <tr>
                     <td>
-                        <draggableAnswer identifier="two" width="100px">2</draggableAnswer>
+                        <draggableChoice identifier="two" width="100px">2</draggableChoice>
                     </td>
                     <td>
-                        <draggableAnswer identifier="multiply">x</draggableAnswer>
+                        <draggableChoice identifier="multiply">x</draggableChoice>
                     </td>
                     <td>
-                        <draggableAnswer identifier="divide" height="160px">/</draggableAnswer>
+                        <draggableChoice identifier="divide" height="160px">/</draggableChoice>
                     </td>
                     <td>
-                        <draggableAnswer identifier="ten"><math xmlns="http://www.w3.org/1998/Math/MathML">
+                        <draggableChoice identifier="ten"><math xmlns="http://www.w3.org/1998/Math/MathML">
                             <semantics>
                                 <mrow>
                                     <mfrac>
@@ -44,7 +44,7 @@
                                 </mrow>
                                 <annotation encoding="StarMath 5.0">{1} over {2}x</annotation>
                             </semantics>
-                        </math></draggableAnswer>
+                        </math></draggableChoice>
                     </td>
                 </tr>
             </table>
@@ -53,13 +53,13 @@
             <table>
                 <tr>
                     <td>
-                        <dragTarget cardinality="single" class="blueTile inline" identifier="target1"></dragTarget>
+                        <landingPlace cardinality="single" class="blueTile inline" identifier="target1"></landingPlace>
                     </td>
                     <td>
-                        <dragTarget cardinality="single" class="blueTile inline" identifier="target2"></dragTarget>
+                        <landingPlace cardinality="single" class="blueTile inline" identifier="target2"></landingPlace>
                     </td>
                     <td>
-                        <dragTarget cardinality="single" class="blueTile inline" identifier="target3"></dragTarget>
+                        <landingPlace cardinality="single" class="blueTile inline" identifier="target3"></landingPlace>
                     </td>
                     <td>
                         equals 5x

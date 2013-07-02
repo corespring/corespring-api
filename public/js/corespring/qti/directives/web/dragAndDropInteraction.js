@@ -98,7 +98,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
   }
 });
 
-angular.module('qti.directives').directive("draggableanswer", function (QtiUtils) {
+angular.module('qti.directives').directive("draggablechoice", function (QtiUtils) {
   return {
     restrict: 'E',
     require: "^draganddropinteraction",
@@ -179,7 +179,7 @@ angular.module('qti.directives').directive("draggableanswer", function (QtiUtils
   }
 });
 
-angular.module('qti.directives').directive("dragtarget", function (QtiUtils) {
+angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
   return {
     restrict: 'E',
     require: "^draganddropinteraction",
@@ -188,6 +188,7 @@ angular.module('qti.directives').directive("dragtarget", function (QtiUtils) {
     compile: function (el, attrs) {
       var isMultiple = attrs.cardinality == 'multiple';
 
+      var originalHtml = el.html();
       var template = isMultiple ?
         [
           '<div style="height: {{height}}; width: {{width}}" class="thumbnail {{correctClass}}" data-drop="true" ng-model="listTargets[$index2]"',
@@ -195,6 +196,7 @@ angular.module('qti.directives').directive("dragtarget", function (QtiUtils) {
           ' <div ng-repeat="item in listTargets[$index2]" class="contentElement"',
           ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}}, placeholder:true, animate:false, onStart: \'startCallback\'}"',
           ' data-jqyoui-options="draggableOptions" ng-model="listTargets[$index2]" ng-show="item.title" ng-bind-html-unsafe="item.title" data-id="{{item.id}}"></div>',
+          originalHtml,
           '</div>'].join(" ")
         :
         [
@@ -203,6 +205,7 @@ angular.module('qti.directives').directive("dragtarget", function (QtiUtils) {
           ' <div class="contentElement"',
           ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index2}}, placeholder:true, animate:false, onStart: \'startCallback\'}"',
           ' data-jqyoui-options="draggableOptions" ng-model="listTargets" ng-show="itemContent.title" ng-bind-html-unsafe="itemContent.title" data-id="{{itemContent.id}}"></div>',
+          originalHtml,
           '</div>'
         ].join(" ");
 
