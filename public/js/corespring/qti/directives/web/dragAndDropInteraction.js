@@ -26,6 +26,10 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         $scope.initMathML(0);
       };
 
+      $scope.showSolution = function () {
+        $scope.solutionVisible = true;
+      };
+
       $scope.dropCallback = function (event, ui) {
         $scope.initMathML(0);
         _.each($scope.listTargets, function (el, idx) {
@@ -43,7 +47,16 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
     compile: function (elem, attrs) {
       var originalHtml = elem.html();
 
-      elem.html("<div><button ng-click='resetClick()' ng-show='canDrag'>Reset</button><br/>" + originalHtml + "</div>");
+      var draggableChoiceRegexp = /(<:*solutionArea[\s\S]*?>[\s\S]*?<\/:*solutionArea>)/gmi;
+      var landingPlacesChanged = originalHtml.replace(/<:*landingPlace([\s\S]*?)>/gmi, "<landingSolution$1>").replace(/<\/:*landingPlace>/gmi, "</landingSolution>");
+
+      var solutionHtml = draggableChoiceRegexp.exec(landingPlacesChanged)[0];
+      var solutionOverlayHtml = "<div ui-modal ng-model='solutionVisible' class='solution-modal'>" + solutionHtml + "</div>";
+      var resetButtonHtml = "<button class='btn btn-primary' ng-click='resetClick()' ng-show='canDrag'>Reset</button>";
+      var solutionButtonHtml = "<button class='btn btn-primary solution-button' ng-click='showSolution()' ng-hide='canDrag'>See solution</button>";
+
+      elem.html(solutionOverlayHtml + "<div>" + resetButtonHtml + originalHtml + solutionButtonHtml + "</div>");
+
       return function ($scope, element, attrs, AssessmentItemCtrl) {
 
         $scope.$watch("formSubmitted", function (newValue) {
@@ -113,8 +126,8 @@ angular.module('qti.directives').directive("draggablechoice", function (QtiUtils
       var template = [
         '<div class="answerContainer  {{correctClass}} {{phClass}}" style="width: {{width}}; height: {{height}}" data-drop="true" ng-model="listAnswers" data-jqyoui-options="optionsList1" jqyoui-droppable="{index: {{$index}}, onDrop: \'dropCallback\'}">',
         ' <div class="contentElement" ng-bind-html-unsafe="itemContent.title"',
-        ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}},placeholder:'+placeHolder+',animate:false,onStart:\'startCallback\',onStop:\'stopCallback\'}"',
-        ' data-jqyoui-options="{revert: \'invalid\',helper: '+helper+'}" ng-model="listAnswers" ng-show="listAnswers[$index].id"></div>',
+        ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}},placeholder:' + placeHolder + ',animate:false,onStart:\'startCallback\',onStop:\'stopCallback\'}"',
+        ' data-jqyoui-options="{revert: \'invalid\',helper: ' + helper + '}" ng-model="listAnswers" ng-show="listAnswers[$index].id"></div>',
         '</div>'].join(" ");
 
       tElement.html(template);
@@ -138,13 +151,13 @@ angular.module('qti.directives').directive("draggablechoice", function (QtiUtils
         $scope.startCallback = function () {
           $scope.dragging.id = $scope.listAnswers[$scope.$index].id;
           $scope.dragging.draggingFromAnswer = true;
-          $scope.$apply(function() {
+          $scope.$apply(function () {
             $scope.phClass = $scope.placeholderClass;
           });
         }
 
         $scope.stopCallback = function () {
-          $scope.$apply(function() {
+          $scope.$apply(function () {
             $scope.phClass = "";
           });
         }
@@ -157,7 +170,7 @@ angular.module('qti.directives').directive("draggablechoice", function (QtiUtils
           }
         });
 
-     }
+      }
     }
   }
 });
@@ -205,12 +218,12 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
         $scope.targetMap[attrs.identifier] = $scope.$index2;
 
         $scope.draggableOptions = {
-          revert: function(isValid) {
+          revert: function (isValid) {
             if (isValid) return false;
 
-            $scope.$apply(function() {
+            $scope.$apply(function () {
               if ($scope.listTargets[$scope.$index2].indexOf)
-                $scope.listTargets[$scope.$index2] = _.filter($scope.listTargets[$scope.$index2], function(el) {
+                $scope.listTargets[$scope.$index2] = _.filter($scope.listTargets[$scope.$index2], function (el) {
                   return el.id != $scope.dragging.id;
                 });
               else
@@ -228,7 +241,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           }
         }
 
-        $scope.startCallback = function (ev,b) {
+        $scope.startCallback = function (ev, b) {
           $scope.dragging.id = $(ev.target).attr('data-id');
           $scope.dragging.draggingFromAnswer = false;
         }
@@ -253,6 +266,42 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           ourResponseForTarget = ourResponseForTarget ? ourResponseForTarget.split(":")[1].split("|") : "";
           var isCorrect = $scope.orderMatters ? QtiUtils.compareArrays(correctResponseForTarget, ourResponseForTarget) : QtiUtils.compareArraysIgnoringOrder(correctResponseForTarget, ourResponseForTarget);
           $scope.correctClass = isCorrect ? "correct" : "incorrect";
+        });
+      }
+    }
+  }
+});
+
+angular.module('qti.directives').directive("landingsolution", function (QtiUtils) {
+  return {
+    restrict: 'E',
+    require: "^draganddropinteraction",
+    replace: true,
+    scope: true,
+    compile: function (el, attrs) {
+      var template =
+        [
+          '<div style="height: {{height}}; width: {{width}}" class="thumbnail {{correctClass}}">',
+          ' <div ng-repeat="item in items" class="contentElement" ng-bind-html-unsafe="item"></div>',
+          '</div>'].join(" ");
+
+      el.html(template);
+
+      return function ($scope, el, attrs) {
+        $scope.isMultiple = attrs.cardinality == 'multiple';
+        var defaultWidth = $scope.isMultiple ? "200px" : "50px";
+        $scope.width = defaultWidth;
+        $scope.height = attrs.height ? attrs.height : "50px";
+        $scope.items = [{"content": "a"},{"content":'b'}];
+
+        $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
+          if (!responses) return;
+          var correctResponse = QtiUtils.getResponseValue($scope.responseIdentifier, responses, []);
+          var correctResponseForTarget = _.find(correctResponse,function (elem) {
+            var s1 = elem.split(":")[0];
+            return s1 == attrs.identifier;
+          }).split(":")[1].split(",");
+          $scope.items = correctResponseForTarget;
         });
       }
     }

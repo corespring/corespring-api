@@ -2,6 +2,15 @@
     padding: 10px;
 }
 
+.solution-modal {
+    margin-top: -100px;
+    padding: 10px;
+}
+
+.solution-button {
+    margin-left: auto;
+}
+
 .contentElement {
     border-radius: 4px;
     background-color: #999;

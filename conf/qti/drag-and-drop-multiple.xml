@@ -28,36 +28,35 @@
                     <draggableChoice identifier="bus">Bus</draggableChoice>
             </draggableChoiceGroup>
 
-            <table>
-                <tr>
-                    <td>
-                        Fruits
-                        <landingPlace cardinality="multiple" class="blueTile inline" identifier="target1">
-                            <feedbackInline csFeedbackId='target1' identifier='target1' showHide='show'>Target 1</feedbackInline>
-                        </landingPlace>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        Animals
-                        <landingPlace cardinality="single" class="blueTile inline" identifier="target2"></landingPlace>
-                    </td>
+
+            <solutionArea>
+                <table>
+                    <tr>
+                        <td>
+                            Fruits
+                            <landingPlace cardinality="multiple" class="blueTile inline" identifier="target1">
+                                <feedbackInline csFeedbackId='target1' identifier='target1' showHide='show'>Target 1</feedbackInline>
+                            </landingPlace>
+                        </td>
                     </tr>
-                <tr>
-                    <td>
-                        Vehicles
-                        <landingPlace cardinality="multiple" class="blueTile inline" identifier="target3"></landingPlace>
-                    </td>
-                    <td>
-                        equals 5x
-                    </td>
-                </tr>
+                    <tr>
+                        <td>
+                            Animals
+                            <landingPlace cardinality="single" class="blueTile inline" identifier="target2"></landingPlace>
+                        </td>
+                        </tr>
+                    <tr>
+                        <td>
+                            Vehicles
+                            <landingPlace cardinality="multiple" class="blueTile inline" identifier="target3"></landingPlace>
+                        </td>
+                        <td>
+                            equals 5x
+                        </td>
+                    </tr>
+                </table>
+            </solutionArea>
 
-
-            </table>
-
-            {{listAnswers}}
-            <br/>
             {{listTargets}}
 
 
