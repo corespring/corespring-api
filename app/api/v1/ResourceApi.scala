@@ -299,7 +299,7 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
     if(itemId.contains(":")){
       (itemId.split(":") ++ keys).mkString("/")
     } else {
-      (itemId ++ keys).mkString("/")
+      (List(itemId) ++ keys).mkString("/")
     }
   }
 
