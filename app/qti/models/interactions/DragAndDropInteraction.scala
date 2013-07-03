@@ -60,6 +60,7 @@ case class DragAndDropInteraction(responseIdentifier: String, choices: Seq[Simpl
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)
 
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
+    val (score:Int, isCorrect:Boolean) =
     response match {
       case ArrayItemResponse(_, responseValue, _) => responseDeclaration match {
         case Some(rd) => rd.mapping match {
@@ -74,21 +75,23 @@ case class DragAndDropInteraction(responseIdentifier: String, choices: Seq[Simpl
               }
               count += 1;
             }
-            Some(ItemResponseOutcome(sum, rd.isCorrect(responseValue) == Correctness.Correct))
+            (sum, rd.isCorrect(responseValue) == Correctness.Correct)
           }
           case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
-            Some(ItemResponseOutcome(1, true))
+            (1, true)
           } else {
-            Some(ItemResponseOutcome(0, false))
+            (0, false)
           }
         }
         case None => None
       }
+
       case _ => {
         Logger.error("received a response that was not a string response in ChoiceInteraction.getOutcome")
         None
       }
     }
+    Some(ItemResponseOutcome(score, isCorrect, None, Map("responseCorrect"->isCorrect, "responseIncorrect"->(!isCorrect))))
   }
 }
 

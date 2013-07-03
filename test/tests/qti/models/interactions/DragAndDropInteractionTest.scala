@@ -2,9 +2,10 @@ package tests.qti.models.interactions
 
 import org.specs2.mutable._
 import qti.models.interactions.DragAndDropInteraction
-import qti.models.QtiItem
+import qti.models.{ResponseDeclaration, QtiItem}
 import utils.MockXml
 import utils.MockXml.{removeNodeFromXmlWhere, addChildNodeInXmlWhere}
+import models.itemSession.ArrayItemResponse
 
 class DragAndDropInteractionTest extends Specification {
 
@@ -30,6 +31,24 @@ class DragAndDropInteractionTest extends Specification {
     "validate drag and drop interaction" in {
       val item = QtiItem(interactionXml)
       item.isQtiValid._1 mustEqual true
+    }
+
+    "populates responseCorrect" in {
+      val item = QtiItem(interactionXml)
+      val rd = item.responseDeclarations.find(_.identifier == "alphabet1")
+      val response = ArrayItemResponse("alphabet1", Seq("target1:apple|pear","target2:cow","target3:car|bus","target4:apple|pear"))
+      val outcome = interaction.getOutcome(rd, response).get
+      outcome.outcomeProperties.get("responseCorrect").get must beTrue
+      outcome.outcomeProperties.get("responseIncorrect").get must beFalse
+    }
+
+    "populates responseIncorrect" in {
+      val item = QtiItem(interactionXml)
+      val rd = item.responseDeclarations.find(_.identifier == "alphabet1")
+      val response = ArrayItemResponse("alphabet1", Seq("target1:apple|pear","target2:pear","target3:car|bus","target4:apple|pear"))
+      val outcome = interaction.getOutcome(rd, response).get
+      outcome.outcomeProperties.get("responseCorrect").get must beFalse
+      outcome.outcomeProperties.get("responseIncorrect").get must beTrue
     }
 
     "drag and drop interaction answer validation" in {

@@ -20,47 +20,48 @@
             Complete the equation below:
 
             <draggableChoiceGroup shuffle="true" answersPerRow="3">
-                    <draggableChoice identifier="apple" copyOnDrag="true" fixed="true">Apple</draggableChoice>
-                    <draggableChoice identifier="pear" placeholder-class="placeholder">Pear</draggableChoice>
-                    <draggableChoice identifier="walnut" fixed="true">Walnut</draggableChoice>
-                    <draggableChoice identifier="car">Car</draggableChoice>
-                    <draggableChoice identifier="cow">Cow</draggableChoice>
-                    <draggableChoice identifier="bus">Bus</draggableChoice>
+                <draggableChoice identifier="apple" copyOnDrag="true" fixed="true">Apple</draggableChoice>
+                <draggableChoice identifier="pear" placeholder-class="placeholder">Pear</draggableChoice>
+                <draggableChoice identifier="walnut" fixed="true">Walnut</draggableChoice>
+                <draggableChoice identifier="car">Car</draggableChoice>
+                <draggableChoice identifier="cow">Cow</draggableChoice>
+                <draggableChoice identifier="bus">Bus</draggableChoice>
             </draggableChoiceGroup>
 
-
-            <solutionArea>
+            <answerArea>
                 <table>
                     <tr>
                         <td>
                             Fruits
-                            <landingPlace cardinality="multiple" class="blueTile inline" identifier="target1">
-                                <feedbackInline csFeedbackId='target1' identifier='target1' showHide='show'>Target 1</feedbackInline>
+                            <landingPlace cardinality="multiple" identifier="target1">
                             </landingPlace>
                         </td>
                     </tr>
                     <tr>
                         <td>
                             Animals
-                            <landingPlace cardinality="single" class="blueTile inline" identifier="target2"></landingPlace>
+                            <landingPlace cardinality="single" identifier="target2"></landingPlace>
                         </td>
-                        </tr>
+                    </tr>
                     <tr>
                         <td>
                             Vehicles
-                            <landingPlace cardinality="multiple" class="blueTile inline" identifier="target3"></landingPlace>
-                        </td>
-                        <td>
-                            equals 5x
+                            <landingPlace cardinality="multiple" identifier="target3"></landingPlace>
                         </td>
                     </tr>
                 </table>
-            </solutionArea>
-
-            {{listTargets}}
-
+            </answerArea>
 
         </dragAndDropInteraction>
+
+        <feedbackBlock outcomeIdentifier="responses.alphabet1.outcome.correct" identifier="id2">
+            <div class="feedback-block-correct">Your answer is correct!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.alphabet1.outcome.incorrect" identifier="id3">
+            <div class="feedback-block-incorrect">Your answer is incorrect!</div>
+        </feedbackBlock>
+
 
     </itemBody>
 </assessmentItem>

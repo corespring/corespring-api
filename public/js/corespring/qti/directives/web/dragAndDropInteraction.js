@@ -47,10 +47,18 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
     compile: function (elem, attrs) {
       var originalHtml = elem.html();
 
-      var draggableChoiceRegexp = /(<:*solutionArea[\s\S]*?>[\s\S]*?<\/:*solutionArea>)/gmi;
+      var draggableChoiceRegexp = /(<:*answerArea[\s\S]*?>[\s\S]*?<\/:*answerArea>)/gmi;
       var landingPlacesChanged = originalHtml.replace(/<:*landingPlace([\s\S]*?)>/gmi, "<landingSolution$1>").replace(/<\/:*landingPlace>/gmi, "</landingSolution>");
 
-      var solutionHtml = draggableChoiceRegexp.exec(landingPlacesChanged)[0];
+      var answerAreaMatch = draggableChoiceRegexp.exec(landingPlacesChanged);
+
+      var removeAnswerNodes = function(str) {
+        return str.replace(/<:*draggableChoiceGroup[\s\S]*?>[\s\S]*?<\/:*draggableChoiceGroup>/gmi,"").
+                   replace(/<:*draggableChoice[\s\S]*?>[\s\S]*?<\/:*draggableChoice>/gmi,"");
+      }
+      var solutionHtml = (answerAreaMatch && answerAreaMatch.length > 0) ? answerAreaMatch[0] : removeAnswerNodes(landingPlacesChanged);
+
+
       var solutionOverlayHtml = "<div ui-modal ng-model='solutionVisible' class='solution-modal'>" + solutionHtml + "</div>";
       var resetButtonHtml = "<button class='btn btn-primary' ng-click='resetClick()' ng-show='canDrag'>Reset</button>";
       var solutionButtonHtml = "<button class='btn btn-primary solution-button' ng-click='showSolution()' ng-hide='canDrag'>See solution</button>";
