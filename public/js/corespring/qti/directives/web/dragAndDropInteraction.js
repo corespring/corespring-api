@@ -309,7 +309,9 @@ angular.module('qti.directives').directive("landingsolution", function (QtiUtils
             var s1 = elem.split(":")[0];
             return s1 == attrs.identifier;
           }).split(":")[1].split(",");
-          $scope.items = correctResponseForTarget;
+          $scope.items = _.map(correctResponseForTarget, function(e) {
+            return $scope.contentMap[e];
+          });
         });
       }
     }
