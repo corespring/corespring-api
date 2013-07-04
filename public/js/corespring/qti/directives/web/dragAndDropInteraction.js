@@ -15,13 +15,12 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
       $scope.dragging = {};
       $scope.canDrag = true;
       $scope.orderMatters = $attrs.ordermatters == "true";
-      $scope.maxWidth = 50;
-      $scope.maxHeight = 50;
+      $scope.maxWidth = 0;
+      $scope.maxHeight = 0;
 
       $scope.propagateDimension = function (w, h) {
-        if (w > $scope.maxWidth) $scope.maxWidth = w + "px";
-        if (h > $scope.maxHeight) $scope.maxHeight = h + "px";
-        console.log($scope.maxWidth, $scope.maxHeight);
+        if (w > $scope.maxWidth) $scope.maxWidth = w;
+        if (h > $scope.maxHeight) $scope.maxHeight = h;
       };
 
       $scope.resetClick = function () {
@@ -150,10 +149,13 @@ angular.module('qti.directives').directive("draggablechoice", function ($timeout
       var helper = copyOnDrag ? "'clone'" : "''";
 
       var template = [
-        '<div class="answerContainer  {{correctClass}} {{phClass}}" style="height: {{maxHeight}}; width: {{maxWidth}}" data-drop="true" ng-model="listAnswers" data-jqyoui-options="optionsList1" jqyoui-droppable="{index: {{$index}}, onDrop: \'dropCallback\'}">',
+        '<div class="answerContainer {{correctClass}} {{phClass}}" style="height: {{maxHeight}}px; width: {{maxWidth}}px" data-drop="true" ng-model="listAnswers" data-jqyoui-options="optionsList1" jqyoui-droppable="{index: {{$index}}, onDrop: \'dropCallback\'}">',
         ' <div class="contentElement" ng-bind-html-unsafe="itemContent.title"',
         ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}},placeholder:' + placeHolder + ',animate:false,onStart:\'startCallback\',onStop:\'stopCallback\'}"',
         ' data-jqyoui-options="{revert: \'invalid\',helper: ' + helper + '}" ng-model="listAnswers" ng-show="listAnswers[$index].id"></div>',
+        '</div>',
+        '<div class="sizerHolder" style="display: none; position: absolute">',
+        originalContent,
         '</div>'].join(" ");
 
       tElement.html(template);
@@ -167,10 +169,29 @@ angular.module('qti.directives').directive("draggablechoice", function ($timeout
         $scope.height = attrs.height ? attrs.height : "50px";
         $scope.copyOnDrag = attrs.copyondrag == "true";
         $scope.placeholderClass = attrs.placeholderClass;
-
-        setInterval(function () {
+        var lastW, lastH, sizeNotChangedCounter = 0;
+        var interval = setInterval(function () {
           $scope.$apply(function () {
-            $scope.propagateDimension($(el).find('.contentElement').width(), $(el).find('.contentElement').height());
+
+            var w = $(el).find('.sizerHolder').width();
+            var h = $(el).find('.sizerHolder').height();
+
+            if (lastW != w || lastH != h) {
+              $scope.propagateDimension(w, h);
+              sizeNotChangedCounter = 0;
+            }
+            else {
+              sizeNotChangedCounter++;
+            }
+
+            if (sizeNotChangedCounter > 5) {
+              console.log("Size has settled");
+              clearInterval(interval);
+            }
+
+            lastW = w;
+            lastH = h;
+
           });
         }, 1000);
 
@@ -219,7 +240,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
       var originalHtml = el.html();
       var template = isMultiple ?
         [
-          '<div style="height: {{maxHeight}}; width: {{width}}" class="landing thumbnail {{correctClass}}" data-drop="true" ng-model="listTargets[$index2]"',
+          '<div style="height: {{maxHeight}}px; width: {{width}}px" class="landing thumbnail {{correctClass}}" data-drop="true" ng-model="listTargets[$index2]"',
           'jqyoui-droppable="{onDrop: \'dropCallback\', multiple: true}">',
           ' <div ng-repeat="item in listTargets[$index2]" class="contentElement"',
           ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}}, placeholder:true, animate:false, onStart: \'startCallback\'}"',
@@ -228,7 +249,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           '</div>'].join(" ")
         :
         [
-          '<div style="height: {{maxHeight}}; width: {{width}}" class="landing thumbnail {{correctClass}}" data-drop="true" ng-model="listTargets" ',
+          '<div style="height: {{maxHeight}}px; width: {{maxWidth}}px" class="landing thumbnail {{correctClass}}" data-drop="true" ng-model="listTargets" ',
           'jqyoui-droppable="{index: {{$index2}}, onDrop: \'dropCallback\', multiple: false}">',
           ' <div class="contentElement"',
           ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index2}}, placeholder:true, animate:false, onStart: \'startCallback\'}"',
@@ -241,7 +262,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
 
       return function ($scope, el, attrs) {
         $scope.isMultiple = attrs.cardinality == 'multiple';
-        var defaultWidth = $scope.isMultiple ? "200px" : "50px";
+        var defaultWidth = $scope.isMultiple ? "200" : "50";
         $scope.width = defaultWidth;
         $scope.height = attrs.height ? attrs.height : "50px";
 
@@ -313,7 +334,7 @@ angular.module('qti.directives').directive("landingsolution", function (QtiUtils
     compile: function (el, attrs) {
       var template =
         [
-          '<div style="height: {{height}}; width: {{width}}" class="thumbnail {{correctClass}}">',
+          '<div style="height: {{maxHeight}}px; width: {{width}}px" class="thumbnail {{correctClass}}">',
           ' <div ng-repeat="item in items" class="contentElement" ng-bind-html-unsafe="item"></div>',
           '</div>'].join(" ");
 
@@ -321,10 +342,11 @@ angular.module('qti.directives').directive("landingsolution", function (QtiUtils
 
       return function ($scope, el, attrs) {
         $scope.isMultiple = attrs.cardinality == 'multiple';
-        var defaultWidth = $scope.isMultiple ? "200px" : "50px";
-        $scope.width = defaultWidth;
-        $scope.height = attrs.height ? attrs.height : "50px";
         $scope.items = [];
+
+        $scope.$watch("maxWidth", function() {
+          $scope.width = $scope.isMultiple ? (4 * $scope.maxWidth) : $scope.maxWidth;
+        });
 
         $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
           if (!responses) return;
