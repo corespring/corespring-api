@@ -4,10 +4,13 @@ import choices.SimpleChoice
 import models.itemSession._
 import qti.models.QtiItem.Correctness
 import qti.models.{CorrectResponseTargeted, QtiItem, ResponseDeclaration}
-import scala.xml.{NodeSeq, Elem, Node}
+import scala.xml._
 import scala.collection.mutable
 import scala.xml.transform.{RuleTransformer, RewriteRule}
 import controllers.Utils.isTrue
+import scala.Some
+import scala.xml.{Text, Attribute}
+import models.itemSession.ArrayItemResponse
 
 case class Target(identifier: String, cardinality: String)
 
@@ -144,7 +147,7 @@ object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteractio
                   }
               }
               if (!currentTrNodes.isEmpty) trList += trNode.copy(child = currentTrNodes)
-              el.copy(label = "table", child = trList.toSeq)
+              el.copy(label = "table", child = trList.toSeq) % Attribute(None, "class", Text("csDraggableTiles"), Null)
 
             case _ => n
           }

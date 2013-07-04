@@ -17,13 +17,13 @@
 
     <itemBody>
         <dragAndDropInteraction responseIdentifier="alphabet1" orderMatters="true">
-            Complete the equation below:
+            <prompt>   Complete the equation below:            </prompt>
 
             <draggableChoiceGroup shuffle="true" answersPerRow="3">
                 <draggableChoice identifier="apple" copyOnDrag="true" fixed="true">Apple</draggableChoice>
                 <draggableChoice identifier="pear" placeholder-class="placeholder">Pear</draggableChoice>
                 <draggableChoice identifier="walnut" fixed="true">Walnut</draggableChoice>
-                <draggableChoice identifier="car">Car</draggableChoice>
+                <draggableChoice identifier="car"><img src="http://stuffpoint.com/dogs/image/59240-dogs-4plus-pugs.jpg" width="100" height="100"/></draggableChoice>
                 <draggableChoice identifier="cow">Cow</draggableChoice>
                 <draggableChoice identifier="bus">Bus</draggableChoice>
             </draggableChoiceGroup>

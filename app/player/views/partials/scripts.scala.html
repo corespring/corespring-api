@@ -10,6 +10,10 @@
 
 @common.controllers.deployment.AssetsLoader.playerCommon
 
+<!-- Default Css -->
+@Html(common.controllers.DefaultCss.DEFAULT_CSS)
+<!-- End default css -->
+
 @common.controllers.deployment.loader.scripts("qti-interactions")( qtiAssetLoader.localJsPaths : _*)
 @common.controllers.deployment.loader.css("qti-interactions")( qtiAssetLoader.localCssPaths : _* )
 
@@ -20,9 +24,6 @@
 <!-- end qti - remote js -->
 
 
-<!-- Default Css -->
-@Html(common.controllers.DefaultCss.DEFAULT_CSS)
-<!-- End default css -->
 
 
 <!-- Html(QtiScriptLoader.load( itemBody )) -->

@@ -121,6 +121,12 @@ angular.module('qti.services')
       return defaultValue;
     };
 
+    QtiUtils.getPromptSpan = function (xmlString) {
+      var promptMatch = xmlString.match(/<:*prompt>([\s\S]*?)<\/:*prompt>/);
+      var prompt = "<span class=\"prompt\">" + ((promptMatch && promptMatch.length > 0) ? promptMatch[1] : "") + "</span>";
+      return prompt;
+    };
+
     return QtiUtils;
   }
 );
