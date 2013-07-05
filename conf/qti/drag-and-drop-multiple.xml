@@ -32,17 +32,14 @@
                 <table class="csDropTiles">
                     <tr>
                         <td>
-                            Fruits
-                            <landingPlace cardinality="multiple" identifier="target1">
+                            <landingPlace cardinality="multiple" identifier="target1" label="Fruits">
                             </landingPlace>
                         </td>
                         <td>
-                            Animals
-                            <landingPlace cardinality="single" identifier="target2"></landingPlace>
+                            <landingPlace cardinality="single" identifier="target2" label="Animals"></landingPlace>
                         </td>
                         <td>
-                            Vehicles
-                            <landingPlace cardinality="multiple" identifier="target3"></landingPlace>
+                            <landingPlace cardinality="multiple" identifier="target3" label="Vehicles"></landingPlace>
                         </td>
                     </tr>
                 </table>

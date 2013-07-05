@@ -243,10 +243,14 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
       var isMultiple = attrs.cardinality == 'multiple';
 
       var originalHtml = el.html();
+
       var template = isMultiple ?
         [
-          '<div style="min-height: {{maxHeight}}px; min-width: {{width}}px" class="landing {{correctClass}}" data-drop="true" ng-model="listTargets[$index2]"',
+          '<div style="min-height: {{maxHeight}}px; width: {{width}}px" class="landing {{correctClass}}" data-drop="true" ng-model="listTargets[$index2]"',
           'jqyoui-droppable="{onDrop: \'dropCallback\', multiple: true}" data-jqyoui-options="{hoverClass: \'drop-hover\'}">',
+          '<div class="landingLabelHolder">',
+          ' <span class="landingLabel" style="">{{label}}</span>',
+          '</div>',
           ' <div ng-repeat="item in listTargets[$index2]" class="contentElement"',
           ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}}, placeholder:true, animate:false, onStart: \'startCallback\'}"',
           ' data-jqyoui-options="draggableOptions" ng-model="listTargets[$index2]" ng-show="item.title" ng-bind-html-unsafe="item.title" data-id="{{item.id}}"></div>',
@@ -255,8 +259,11 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           '</div>'].join(" ")
         :
         [
-          '<div class="landing {{correctClass}}" style="min-height: {{maxHeight}}px; min-width: {{maxWidth}}px" data-drop="true" ng-model="listTargets" ',
+          '<div class="landing {{correctClass}}" style="min-height: {{maxHeight}}px; width: {{width}}px" data-drop="true" ng-model="listTargets" ',
           'jqyoui-droppable="{index: {{$index2}}, onDrop: \'dropCallback\', multiple: false}" data-jqyoui-options="{hoverClass: \'drop-hover\'}">',
+          '<div class="landingLabelHolder">',
+          ' <span class="landingLabel" style="">{{label}}</span>',
+          '</div>',
           ' <div class="contentElement"',
           ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index2}}, placeholder:true, animate:false, onStart: \'startCallback\'}"',
           ' data-jqyoui-options="draggableOptions" ng-model="listTargets" ng-show="itemContent.title" ng-bind-html-unsafe="itemContent.title" data-id="{{itemContent.id}}"></div>',
@@ -275,6 +282,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
         $scope.$index2 = $scope.indexes.targetIndex++;
         $scope.listTargets.push($scope.isMultiple ? [] : {});
         $scope.targetMap[attrs.identifier] = $scope.$index2;
+        $scope.label = attrs.label;
 
         $scope.draggableOptions = {
           revert: function (isValid) {
@@ -303,6 +311,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
         $scope.$watch("maxWidth + maxHeight", function() {
           $(el).find('.contentElement').width($scope.maxWidth);
           $(el).find('.contentElement').height($scope.maxHeight);
+          $scope.width = isMultiple ? $scope.maxWidth*4 : $scope.maxWidth + 20;
         });
 
         $scope.startCallback = function (ev, b) {

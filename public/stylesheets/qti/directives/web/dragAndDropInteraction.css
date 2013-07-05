@@ -64,6 +64,7 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
     border-radius: 4px;
     padding: 10px 3px 3px 3px;
     border: 1px solid #999;
+    margin: 5px;
 }
 
 .landing .contentElement:hover {
@@ -80,6 +81,19 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
 
 .drop-hover {
     box-shadow: 0px 0px 5px #000;
+}
+
+.landingLabelHolder {
+    position: relative;
+    top: -20px;
+    width: 100%;
+    text-align: center;
+}
+
+.landingLabel {
+    padding-left: 3px;
+    padding-right: 3px;
+    background-color: #fff
 }
 
 .correct {
