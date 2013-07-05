@@ -15,8 +15,8 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
       $scope.dragging = {};
       $scope.canDrag = true;
       $scope.orderMatters = $attrs.ordermatters == "true";
-      $scope.maxWidth = 0;
-      $scope.maxHeight = 0;
+      $scope.maxWidth = 50;
+      $scope.maxHeight = 20;
 
       $scope.propagateDimension = function (w, h) {
         if (w > $scope.maxWidth) $scope.maxWidth = w;
@@ -149,7 +149,7 @@ angular.module('qti.directives').directive("draggablechoice", function ($timeout
       var helper = copyOnDrag ? "'clone'" : "''";
 
       var template = [
-        '<div class="answerContainer {{correctClass}} {{phClass}}" style="height: {{maxHeight}}px; width: {{maxWidth}}px" data-drop="true" ng-model="listAnswers" data-jqyoui-options="optionsList1" jqyoui-droppable="{index: {{$index}}, onDrop: \'dropCallback\'}">',
+        '<div class="answerContainer {{correctClass}} {{phClass}}" data-drop="true" ng-model="listAnswers" data-jqyoui-options="optionsList1" jqyoui-droppable="{index: {{$index}}, onDrop: \'dropCallback\'}">',
         ' <div class="contentElement" ng-bind-html-unsafe="itemContent.title"',
         ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}},placeholder:' + placeHolder + ',animate:false,onStart:\'startCallback\',onStop:\'stopCallback\'}"',
         ' data-jqyoui-options="{revert: \'invalid\',helper: ' + helper + '}" ng-model="listAnswers" ng-show="listAnswers[$index].id"></div>',
@@ -215,6 +215,11 @@ angular.module('qti.directives').directive("draggablechoice", function ($timeout
           });
         }
 
+        $scope.$watch("maxWidth + maxHeight", function() {
+           $(el).find('.contentElement').width($scope.maxWidth);
+           $(el).find('.contentElement').height($scope.maxHeight);
+        });
+
         $scope.$watch("listAnswers[" + $scope.$index + "]", function () {
           $scope.itemContent = $scope.listAnswers[$scope.$index];
           try {
@@ -250,11 +255,12 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           '</div>'].join(" ")
         :
         [
-          '<div style="height: {{maxHeight}}px; width: {{maxWidth}}px" class="landing {{correctClass}}" data-drop="true" ng-model="listTargets" ',
-          'jqyoui-droppable="{index: {{$index2}}, onDrop: \'dropCallback\', multiple: false}">',
+          '<div class="landing {{correctClass}}" style="min-height: {{maxHeight}}px; min-width: {{maxWidth}}px" data-drop="true" ng-model="listTargets" ',
+          'jqyoui-droppable="{index: {{$index2}}, onDrop: \'dropCallback\', multiple: false}" data-jqyoui-options="{hoverClass: \'drop-hover\'}">',
           ' <div class="contentElement"',
           ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index2}}, placeholder:true, animate:false, onStart: \'startCallback\'}"',
           ' data-jqyoui-options="draggableOptions" ng-model="listTargets" ng-show="itemContent.title" ng-bind-html-unsafe="itemContent.title" data-id="{{itemContent.id}}"></div>',
+          '<div class="clearfix"></div>',
           originalHtml,
           '</div>'
         ].join(" ");
@@ -265,7 +271,6 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
         $scope.isMultiple = attrs.cardinality == 'multiple';
         var defaultWidth = $scope.isMultiple ? "200" : "50";
         $scope.width = defaultWidth;
-        $scope.height = attrs.height ? attrs.height : "50px";
 
         $scope.$index2 = $scope.indexes.targetIndex++;
         $scope.listTargets.push($scope.isMultiple ? [] : {});
@@ -294,6 +299,11 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
             return true;
           }
         }
+
+        $scope.$watch("maxWidth + maxHeight", function() {
+          $(el).find('.contentElement').width($scope.maxWidth);
+          $(el).find('.contentElement').height($scope.maxHeight);
+        });
 
         $scope.startCallback = function (ev, b) {
           $scope.dragging.id = $(ev.target).attr('data-id');
@@ -335,8 +345,9 @@ angular.module('qti.directives').directive("landingsolution", function (QtiUtils
     compile: function (el, attrs) {
       var template =
         [
-          '<div style="height: {{maxHeight}}px; width: {{width}}px" class="thumbnail {{correctClass}}">',
+          '<div style="min-height: {{maxHeight}}px; min-width: {{width}}px" class="thumbnail {{correctClass}}">',
           ' <div ng-repeat="item in items" class="contentElement" ng-bind-html-unsafe="item"></div>',
+          '<div class="clearfix"></div>',
           '</div>'].join(" ");
 
       el.html(template);
