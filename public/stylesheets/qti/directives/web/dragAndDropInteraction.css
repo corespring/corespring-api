@@ -5,7 +5,9 @@
 .prompt {
     border-top: 1px solid black;
     border-bottom: 1px solid black;
+    font-family:"Ubuntu", Arial, Helvetica, sans-serif;
     font: 14px/20px;
+    font-weight: bold;
     padding: 16px 0 16px 0;
 }
 
@@ -21,7 +23,7 @@
     font-size: 11px;
 }
 
-table.csDraggableTiles, .csDraggableTiles td {
+table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td  {
     border: none;
     border-collapse: collapse;
     padding: 0px;
@@ -47,19 +49,40 @@ table.csDraggableTiles, .csDraggableTiles td {
 
 .contentElement:hover {
     box-shadow: 0px 0px 5px #000;
+    border: 1px solid #333;
     cursor: hand; cursor: pointer;
+}
+
+.landing {
+    border-radius: 4px;
+    padding: 10px 3px 3px 3px;
+    border: 1px solid #999;
+}
+
+.landing .contentElement:hover {
+    box-shadow: none;
+}
+
+.contentElement.ui-draggable-dragging {
+    box-shadow: none;
 }
 
 .landing .contentElement {
     background: none;
 }
 
+.drop-hover {
+    box-shadow: 0px 0px 5px #000;
+}
+
 .correct {
-    background-color: green;
+    box-shadow: 0px 0px 5px #95C444;
+    border: 1px solid #95C444;
 }
 
 .incorrect {
-    background-color: red;
+    box-shadow: 0px 0px 5px #F8A31A;
+    border: 1px solid #F8A31A;
 }
 
 .placeholder {

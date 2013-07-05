@@ -240,16 +240,17 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
       var originalHtml = el.html();
       var template = isMultiple ?
         [
-          '<div style="height: {{maxHeight}}px; width: {{width}}px" class="landing thumbnail {{correctClass}}" data-drop="true" ng-model="listTargets[$index2]"',
-          'jqyoui-droppable="{onDrop: \'dropCallback\', multiple: true}">',
+          '<div style="min-height: {{maxHeight}}px; min-width: {{width}}px" class="landing {{correctClass}}" data-drop="true" ng-model="listTargets[$index2]"',
+          'jqyoui-droppable="{onDrop: \'dropCallback\', multiple: true}" data-jqyoui-options="{hoverClass: \'drop-hover\'}">',
           ' <div ng-repeat="item in listTargets[$index2]" class="contentElement"',
           ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}}, placeholder:true, animate:false, onStart: \'startCallback\'}"',
           ' data-jqyoui-options="draggableOptions" ng-model="listTargets[$index2]" ng-show="item.title" ng-bind-html-unsafe="item.title" data-id="{{item.id}}"></div>',
+          '<div class="clearfix"></div>',
           originalHtml,
           '</div>'].join(" ")
         :
         [
-          '<div style="height: {{maxHeight}}px; width: {{maxWidth}}px" class="landing thumbnail {{correctClass}}" data-drop="true" ng-model="listTargets" ',
+          '<div style="height: {{maxHeight}}px; width: {{maxWidth}}px" class="landing {{correctClass}}" data-drop="true" ng-model="listTargets" ',
           'jqyoui-droppable="{index: {{$index2}}, onDrop: \'dropCallback\', multiple: false}">',
           ' <div class="contentElement"',
           ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index2}}, placeholder:true, animate:false, onStart: \'startCallback\'}"',
