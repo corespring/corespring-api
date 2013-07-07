@@ -27,7 +27,6 @@ angular.module('qti.directives').directive('selecttextinteraction', function fac
       scope.$on('unsetSelection', function (event) {
         scope.selections = [];
       });
-
     }
   };
 });

@@ -134,7 +134,14 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
 
 object QtiItem {
   val interactionModels:Seq[InteractionCompanion[_ <: Interaction]] = Seq(
-    TextEntryInteraction,InlineChoiceInteraction,ChoiceInteraction,OrderInteraction,ExtendedTextInteraction,SelectTextInteraction,FocusTaskInteraction
+    TextEntryInteraction,
+    InlineChoiceInteraction,
+    ChoiceInteraction,
+    OrderInteraction,
+    ExtendedTextInteraction,
+    SelectTextInteraction,
+    FocusTaskInteraction,
+    GraphInteraction
   )
   /**
    * An enumeration of the possible Correctness of a question
