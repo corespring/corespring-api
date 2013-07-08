@@ -105,6 +105,10 @@ angular.module('qti.services')
       return defaultValue;
     };
 
+    QtiUtils.getOutcomeValue = function(id, responses) {
+        var response = QtiUtils.getResponseById(id, responses);
+        if(response) return response.outcome
+    }
     return QtiUtils;
   }
 );

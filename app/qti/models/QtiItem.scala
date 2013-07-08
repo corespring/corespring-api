@@ -4,6 +4,8 @@ import interactions._
 import qti.models.QtiItem.Correctness
 import scala.Some
 import scala.xml._
+import util.Random
+import javax.script.{ScriptEngine, ScriptEngineManager}
 
 case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline]) {
   var defaultCorrect = "Correct!"
@@ -243,35 +245,81 @@ trait CorrectResponse {
 object CorrectResponse {
 
   /**
-   * Note: TextEntryInteractions are a special case. No matter what the cardinality is we always treat their
-   * responses as CorrectResponseAny
+   * Note: TextEntryInteractions are a special case. If cardinality is equation, use CorrectResponseEquation, otherwise,
+   * no matter what the cardinality is we treat their responses as CorrectResponseAny
    * @param node
    * @param cardinality
    * @param interaction
    * @return
    */
-  def apply(node: Node, cardinality: String, interaction: Option[Interaction] = None): CorrectResponse = {
-
-    if (interaction.isDefined) {
-      interaction.get match {
-        case TextEntryInteraction(_, _, _) => CorrectResponseAny(node)
-        case SelectTextInteraction(_, _, _, _, _, _) => CorrectResponseAny(node)
-        case _ => CorrectResponse(node, cardinality)
-      }
+  def apply(node: Node, cardinality: String, interaction: Option[Interaction] = None): CorrectResponse = interaction match {
+    case Some(TextEntryInteraction(_, _, _)) => cardinality match {
+      case "equation" => CorrectResponseEquation(node)
+      case _ => CorrectResponseAny(node)
     }
-    else {
-      CorrectResponse(node, cardinality)
+    case Some(SelectTextInteraction(_, _, _, _, _, _)) => CorrectResponseAny(node)
+    case _ => cardinality match {
+      case "single" => CorrectResponseSingle(node)
+      case "multiple" => CorrectResponseMultiple(node)
+      case "ordered" => CorrectResponseOrdered(node)
+      case "equation" => CorrectResponseEquation(node)
+      case _ => throw new RuntimeException("unknown cardinality: " + cardinality + ". cannot generate CorrectResponse")
     }
-  }
-
-  def apply(node: Node, cardinality: String): CorrectResponse = cardinality match {
-    case "single" => CorrectResponseSingle(node)
-    case "multiple" => CorrectResponseMultiple(node)
-    case "ordered" => CorrectResponseOrdered(node)
-    case _ => throw new RuntimeException("unknown cardinality: " + cardinality + ". cannot generate CorrectResponse")
   }
 }
 
+/**
+ * value is limited to the format y=f(x), where f(x) is some continuous (defined at all points) expression only containing the variable x
+ */
+case class CorrectResponseEquation(value: String,
+                                   useInteger:Boolean = true,
+                                   range:(Int,Int) = (-10,10),
+                                   numOfTestPoints:Int = 20) extends CorrectResponse{
+  private val engine = new ScriptEngineManager().getEngineByName("JavaScript");
+  /**
+   * find coordinates on the graph that fall on the line
+   */
+  lazy val testPoints:Array[(Int,Int)] = {
+    val rhs = value.split("=")(1)
+    var testCoords:Array[(Int,Int)] = Array()
+    for (i <- 1 to numOfTestPoints){
+      val xcoord = new Random().nextInt(range._2 - range._1)+range._1
+      val ycoord = engine.eval(rhs.replace("x", xcoord.toString)).asInstanceOf[Double].toInt
+      testCoords = testCoords :+ (xcoord,ycoord)
+    }
+    testCoords
+  }
+  /**
+   * compare response equation with value equation. Since there are many possible forms, we generate random points
+   */
+  private def compareEquations(response:String):Boolean = {
+    def replaceVars(expr: String, testPoint:(Int,Int)) = expr.replace("x", testPoint._1.toString).replace("y", testPoint._2.toString)
+    val sides = response.split("=")
+    if (sides.length == 2){
+      val lhs = sides(0)
+      val rhs = sides(1)
+      testPoints.foldRight[Boolean](true)((testPoint,acc) => if (acc){
+        val leval = engine.eval(replaceVars(lhs,testPoint))
+        val reval = engine.eval(replaceVars(rhs,testPoint))
+        //replace the x and y vars with the values of testPoint then evaluate the two expressions with the JSengine.
+        // the two sides should be equal
+        engine.eval(replaceVars(lhs,testPoint)) == engine.eval(replaceVars(rhs,testPoint))
+      } else false)
+    } else false
+  }
+  def isCorrect(responseValue:String):Boolean = compareEquations(responseValue)
+  def isValueCorrect(v: String, index: Option[Int]) = compareEquations(v)
+}
+object CorrectResponseEquation{
+  def apply(node:Node):CorrectResponseEquation = {
+    if ((node \ "value").size != 1) {
+      throw new RuntimeException("Cardinality is set to single but there is not one <value> declared: " + (node \ "value").toString)
+    }
+    else {
+      CorrectResponseEquation((node \ "value").text)
+    }
+  }
+}
 case class CorrectResponseSingle(value: String) extends CorrectResponse {
   def isCorrect(responseValue: String): Boolean = responseValue == value
 
