@@ -8,7 +8,7 @@ require 'mongo-db-utils/models/db'
 
 require_relative '../../../libs/ruby/log'
 
-required_version = "0.1.1"
+required_version = "0.1.3"
 
 raise "You need version #{required_version} of mongo-db-utils" if MongoDbUtils::VERSION != required_version
 
