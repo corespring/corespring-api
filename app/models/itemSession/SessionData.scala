@@ -117,7 +117,7 @@ object SessionData {
 
     def correctResponseToItemResponse(id: String)(cr: CorrectResponse): ItemResponse = cr match {
       case CorrectResponseSingle(value) => StringItemResponse(id, value)
-      case CorrectResponseEquation(value,_,_,_) => StringItemResponse(id,value)
+      case CorrectResponseEquation(value,_,_,_,_) => StringItemResponse(id,value)
       case CorrectResponseMultiple(value) => ArrayItemResponse(id, value)
       case CorrectResponseAny(value) => ArrayItemResponse(id, value)
       case CorrectResponseOrdered(value) => ArrayItemResponse(id, value)

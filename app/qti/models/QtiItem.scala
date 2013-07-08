@@ -6,6 +6,7 @@ import scala.Some
 import scala.xml._
 import util.Random
 import javax.script.{ScriptEngine, ScriptEngineManager}
+import java.util.regex.Pattern
 
 case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline]) {
   var defaultCorrect = "Correct!"
@@ -274,8 +275,32 @@ object CorrectResponse {
 case class CorrectResponseEquation(value: String,
                                    useInteger:Boolean = true,
                                    range:(Int,Int) = (-10,10),
+                                   variables:(String,String) = "x" -> "y",
                                    numOfTestPoints:Int = 20) extends CorrectResponse{
   private val engine = new ScriptEngineManager().getEngineByName("JavaScript");
+  private def formatExpression(expr:String,variableValues:Seq[(String,Int)]):String = {
+    val noWhitespace = expr.replaceAll("\\s","")
+    variableValues.foldRight[String](noWhitespace)((variable,acc) =>{
+      replaceVar(acc,variable._1,variable._2)
+    })
+  }
+  private def replaceVar(expr:String, variable:String, num:Int):String = {
+    var newExpr = expr
+    var m = Pattern.compile(".*([0-9)])"+variable+"([(0-9]).*").matcher(newExpr)
+    if (m.matches()){
+      newExpr = newExpr.replaceAll("[0-9)]"+variable+"[(0-9]",m.group(1)+"*("+num.toString+")*"+m.group(2))
+    }
+    m = Pattern.compile(".*([0-9)])"+variable+".*").matcher(newExpr)
+    if (m.matches()){
+      newExpr = newExpr.replaceAll("[0-9)]"+variable,m.group(1)+"*("+num.toString+")")
+    }
+    m = Pattern.compile(".*"+variable+"([(0-9]).*").matcher(newExpr)
+    if (m.matches()){
+      newExpr = newExpr.replaceAll(variable+"[(0-9]","("+num.toString+")*"+m.group(2))
+    }
+    newExpr = newExpr.replaceAll(variable,"("+num.toString+")")
+    newExpr
+  }
   /**
    * find coordinates on the graph that fall on the line
    */
@@ -284,7 +309,8 @@ case class CorrectResponseEquation(value: String,
     var testCoords:Array[(Int,Int)] = Array()
     for (i <- 1 to numOfTestPoints){
       val xcoord = new Random().nextInt(range._2 - range._1)+range._1
-      val ycoord = engine.eval(rhs.replace("x", xcoord.toString)).asInstanceOf[Double].toInt
+      val rhsformatted = formatExpression(rhs,Seq(variables._1 -> xcoord))
+      val ycoord = engine.eval(formatExpression(rhs,Seq(variables._1 -> xcoord))).asInstanceOf[Double].toInt
       testCoords = testCoords :+ (xcoord,ycoord)
     }
     testCoords
@@ -299,11 +325,14 @@ case class CorrectResponseEquation(value: String,
       val lhs = sides(0)
       val rhs = sides(1)
       testPoints.foldRight[Boolean](true)((testPoint,acc) => if (acc){
-        val leval = engine.eval(replaceVars(lhs,testPoint))
-        val reval = engine.eval(replaceVars(rhs,testPoint))
+        val variableValues = Seq(variables._1 -> testPoint._1, variables._2 -> testPoint._2)
+        val lhsformatted = formatExpression(lhs, variableValues)
+        val rhsformatted = formatExpression(rhs, variableValues)
+        val leval = engine.eval(formatExpression(lhs, variableValues))
+        val reval = engine.eval(formatExpression(rhs, variableValues))
         //replace the x and y vars with the values of testPoint then evaluate the two expressions with the JSengine.
         // the two sides should be equal
-        engine.eval(replaceVars(lhs,testPoint)) == engine.eval(replaceVars(rhs,testPoint))
+        engine.eval(formatExpression(lhs, variableValues)) == engine.eval(formatExpression(rhs, variableValues))
       } else false)
     } else false
   }
