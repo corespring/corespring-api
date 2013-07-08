@@ -12,7 +12,7 @@
             </correctEquationResponse>
         </responseDeclaration>
         Line P has a slope of 2 and intersects point (-3,1). Draw line P below and give the equation for line P
-        <graphInteraction responseIdentifier="graphTest" />
+        <graphInteraction graph="" responseIdentifier="graphTest" />
         <textEntryInteraction responseIdentifier="equationEntryTest" />
         <feedbackBlock outcomeIdentifier="responses.graph.outcome.wrong" identifier="ida1">
             <div class="feedback-block-incorrect">Wrong asshole!</div>
