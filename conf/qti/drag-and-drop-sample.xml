@@ -36,7 +36,7 @@
         <dragAndDropInteraction responseIdentifier='alphabet1' orderMatters='rue'>
 
 
-            <draggableChoiceGroup class="tileTable" shuffle="true" answersPerRow="4">
+            <draggableChoiceGroup class="tileTable" shuffle="true" itemsPerRow="4">
                         <draggableChoice identifier='1' copyOnDrag='true'>an integer</draggableChoice>
                         <draggableChoice identifier='2' copyOnDrag='true'>a real number</draggableChoice>
                         <draggableChoice identifier='3' copyOnDrag='true'>2</draggableChoice>

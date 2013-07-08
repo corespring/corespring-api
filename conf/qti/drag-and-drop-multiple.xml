@@ -16,10 +16,10 @@
     </responseDeclaration>
 
     <itemBody>
-        <dragAndDropInteraction responseIdentifier="alphabet1" orderMatters="true">
+        <dragAndDropInteraction responseIdentifier="alphabet1" >
             <prompt>   Complete the equation below:            </prompt>
 
-            <draggableChoiceGroup shuffle="true" answersPerRow="3">
+            <draggableChoiceGroup shuffle="true" itemsPerRow="3">
                 <draggableChoice identifier="apple" copyOnDrag="true" fixed="true">Apple</draggableChoice>
                 <draggableChoice identifier="pear" placeholder-class="placeholder">Pear</draggableChoice>
                 <draggableChoice identifier="walnut" fixed="true">Walnut</draggableChoice>
@@ -29,20 +29,11 @@
             </draggableChoiceGroup>
 
             <answerArea>
-                <table class="csDropTiles">
-                    <tr>
-                        <td>
-                            <landingPlace cardinality="multiple" identifier="target1" label="Fruits">
-                            </landingPlace>
-                        </td>
-                        <td>
-                            <landingPlace cardinality="single" identifier="target2" label="Animals"></landingPlace>
-                        </td>
-                        <td>
-                            <landingPlace cardinality="multiple" identifier="target3" label="Vehicles"></landingPlace>
-                        </td>
-                    </tr>
-                </table>
+                <landingPlaceGroup itemsPerRow="2">
+                    <landingPlace cardinality="multiple" identifier="target1" label="Fruits" />
+                    <landingPlace cardinality="single" identifier="target2" label="Animals" />
+                    <landingPlace cardinality="multiple" identifier="target3" label="Vehicles" />
+                </landingPlaceGroup>
             </answerArea>
 
         </dragAndDropInteraction>

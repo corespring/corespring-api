@@ -102,13 +102,14 @@ object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteractio
   val answerNodeLabel = "draggableChoice"
   val targetNodeLabel = "landingPlace"
   val groupNodeLabel = "draggableChoiceGroup"
-  val answersPerRowAttribute = "answersPerRow"
+  val landingGroupNodeLabel = "landingPlaceGroup"
+  val itemsPerRowAttribute = "itemsPerRow"
   val shuffleAttribute = "shuffle"
   val fixedAttribute = "fixed"
 
   def tagName = "dragAndDropInteraction"
 
-  private def convertGroupToTable(xml: Node) = {
+  private def convertGroupToTable(xml: NodeSeq, nodeLabel:String, groupLabel:String, tableClass:String) = {
 
     val tdNode = <td></td>
     val trNode = <tr></tr>
@@ -124,7 +125,7 @@ object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteractio
       def tdRule = new RewriteRule {
         override def transform(n: Node): NodeSeq = {
           n match {
-            case e: Elem if (e.label == answerNodeLabel) => tdNode.copy(child = e)
+            case e: Elem if (e.label == nodeLabel) => tdNode.copy(child = e)
             case n => n
           }
         }
@@ -133,21 +134,21 @@ object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteractio
       def trRule = new RewriteRule {
         override def transform(n: Node): NodeSeq = {
           n match {
-            case el: Elem if (el.label == groupNodeLabel) =>
+            case el: Elem if (el.label == groupLabel) =>
               val trList = mutable.MutableList[Node]()
-              val draggableAnswers = mutable.Queue[Node]() ++= (if (shuffle) doShuffle(n \\ answerNodeLabel) else n \\ answerNodeLabel)
+              val draggableAnswers = mutable.Queue[Node]() ++= (if (shuffle) doShuffle(n \\ nodeLabel) else n \\ nodeLabel)
               var currentTrNodes = mutable.MutableList[Node]()
               n.child.foreach {
                 child =>
 
-                  currentTrNodes += (if (child.label == answerNodeLabel) draggableAnswers.dequeue else child)
-                  if ((currentTrNodes \\ answerNodeLabel).size == answersPerRow) {
+                  currentTrNodes += (if (child.label == nodeLabel) draggableAnswers.dequeue else child)
+                  if ((currentTrNodes \\ nodeLabel).size == answersPerRow) {
                     trList += trNode.copy(child = currentTrNodes)
                     currentTrNodes = mutable.MutableList[Node]()
                   }
               }
               if (!currentTrNodes.isEmpty) trList += trNode.copy(child = currentTrNodes)
-              el.copy(label = "table", child = trList.toSeq) % Attribute(None, "class", Text("csDraggableTiles"), Null)
+              el.copy(label = "table", child = trList.toSeq) % Attribute(None, "class", Text(tableClass), Null)
 
             case _ => n
           }
@@ -160,8 +161,8 @@ object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteractio
     def mainRule = new RewriteRule {
       override def transform(n: Node): NodeSeq = {
         n match {
-          case e: Elem if (e.label == groupNodeLabel) =>
-            e.attribute(answersPerRowAttribute) match {
+          case e: Elem if (e.label == groupLabel) =>
+            e.attribute(itemsPerRowAttribute) match {
               case Some(v) => addTdTrs(e, isTrue(e.attribute(shuffleAttribute)), v.text.toInt)
               case _ => n
             }
@@ -174,7 +175,9 @@ object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteractio
     new RuleTransformer(mainRule).transform(xml)
   }
 
-  override def preProcessXml(interactionXml: Elem): NodeSeq = convertGroupToTable(interactionXml)
+  override def preProcessXml(interactionXml: Elem): NodeSeq = {
+    convertGroupToTable(convertGroupToTable(interactionXml, answerNodeLabel, groupNodeLabel, "csDraggableTiles"), targetNodeLabel, landingGroupNodeLabel, "csDropTiles")
+  }
 
   def apply(node: Node, itemBody: Option[Node]): DragAndDropInteraction = DragAndDropInteraction(
     (node \ "@responseIdentifier").text,
