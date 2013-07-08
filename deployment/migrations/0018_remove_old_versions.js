@@ -17,19 +17,21 @@ function up(){
     ]
   };
 
+  var latestCount = db.content.count(latestItems);
+  print("Latest items: " + latestCount);
   db.content.find(latestItems).forEach( function(item){
     setItemToVersionZero(item);
   });
 
-  db.content.find({"_id._id" : { $exists: true}}).forEach(function(item){
-    db.content.remove({_id: item._id._id});
-  });
+  db.content.remove({"_id.version": {$exists: false}})
 
   print("at the end we have: " + db.content.count() + " items");
 
   print("updating item sessions now...");
   db.itemsessions.find().forEach(updateItemIdInSession(db.itemsessions));
-  db.itemsessionsPreview.find().forEach(updateItemIdInSession(db.itemsessionsPreview));
+
+  db.itemsessionsPreview.drop();
+
 };
 
 function updateItemIdInSession(collection){
@@ -43,7 +45,7 @@ function updateItemIdInSession(collection){
         collection.remove(session);
     } else {
       db.content.find( { "_id._id" : session.itemId }, { _id : 1} ).forEach(function(item){
-          if( session.itemId.toString() == "[object bson_object]"){
+          if( isObject(session.itemId) ) {
             print("ignore : " + session._id);
           } else {
             session.itemId = item._id;
@@ -55,8 +57,19 @@ function updateItemIdInSession(collection){
   }
 }
 
+function isObject(o){
+  return o.toString() == "[object bson_object]" || o.toString() == "[object Object]";
+}
+
 function setItemToVersionZero(item){
-    if( item._id.toString() == "[object bson_object]"){
+
+    print("item: " + item._id);
+    if(item._id._id){
+      print("item._id._id: " + item._id._id);
+    }
+    //[object bson_object] -> mongoshell version 2.0.6
+    //[object Object] -> mongoshell version 2.4.4
+    if( isObject(item._id ) ){
       return;
     } else {
       var objectId = item._id;
@@ -75,4 +88,6 @@ function printNonCurrent(){
 function down(){
   //this is a destructive migration - can't rollback
 }
+
+//up();
 
