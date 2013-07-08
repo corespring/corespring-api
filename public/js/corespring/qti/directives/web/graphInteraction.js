@@ -217,7 +217,7 @@ angular.module("qti.directives").directive("graphinteraction", function(){
                     var slope = ($scope.points.A.y - $scope.points.B.y) / ($scope.points.A.x - $scope.points.B.x)
                     var yintercept = $scope.points.A.y - ($scope.points.A.x * slope)
                     $scope.equation = "y = "+slope+"x + "+yintercept;
-                    $scope.controller.setResponse($scope.responseIdentifier, "y = "+slope+"x + "+yintercept);
+                    $scope.controller.setResponse($scope.responseIdentifier, "y="+slope+"x+"+yintercept);
                 }else $scope.equation = "y = mx + b"
             }, true)
             //refresh periodically
