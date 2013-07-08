@@ -27,6 +27,7 @@ table.csDraggableTiles {
     max-width: 600px;
 }
 
+
 table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td  {
     border: none;
     border-collapse: collapse;
@@ -74,7 +75,7 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
     box-shadow: none;
 }
 
-.landing .contentElement {
+.landing .contentElement, .solution-modal .contentElement {
     background: none;
 }
 

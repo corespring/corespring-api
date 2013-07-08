@@ -308,9 +308,15 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           }
         }
 
+        $scope.dropCallback = function (event, ui) {
+          $scope.$parent.dropCallback(event, ui);
+          setTimeout(function() {
+            $(el).find('.contentElement').width($scope.maxWidth);
+            $(el).find('.contentElement').height($scope.maxHeight);
+          });
+        }
+
         $scope.$watch("maxWidth + maxHeight", function() {
-          $(el).find('.contentElement').width($scope.maxWidth);
-          $(el).find('.contentElement').height($scope.maxHeight);
           $scope.width = isMultiple ? $scope.maxWidth*4 : $scope.maxWidth + 20;
         });
 
@@ -384,5 +390,4 @@ angular.module('qti.directives').directive("landingsolution", function (QtiUtils
     }
   }
 });
-
 
