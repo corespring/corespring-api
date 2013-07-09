@@ -4,7 +4,7 @@ import qti.models.ResponseDeclaration
 import models.itemSession.{ItemResponseOutcome, ItemResponse}
 import xml.Node
 
-case class GraphInteraction(responseIdentifier: String) extends Interaction{
+case class LineInteraction(responseIdentifier: String) extends Interaction{
 
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
     None
@@ -16,11 +16,11 @@ case class GraphInteraction(responseIdentifier: String) extends Interaction{
     */
   def isScoreable: Boolean = false
 }
-object GraphInteraction extends InteractionCompanion[GraphInteraction]{
-  def tagName: String = "graphInteraction"
+object LineInteraction extends InteractionCompanion[LineInteraction]{
+  def tagName: String = "lineInteraction"
 
-  def apply(interaction: Node, itemBody: Option[Node]): GraphInteraction = {
-    GraphInteraction(
+  def apply(interaction: Node, itemBody: Option[Node]): LineInteraction = {
+    LineInteraction(
       (interaction \ "@responseIdentifier").text
     )
   }
@@ -30,7 +30,7 @@ object GraphInteraction extends InteractionCompanion[GraphInteraction]{
     if (interactions.isEmpty) {
       Seq()
     } else {
-      interactions.map(node => GraphInteraction(node, Some(itemBody)))
+      interactions.map(node => LineInteraction(node, Some(itemBody)))
     }
   }
 }

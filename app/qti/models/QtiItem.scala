@@ -144,7 +144,7 @@ object QtiItem {
     ExtendedTextInteraction,
     SelectTextInteraction,
     FocusTaskInteraction,
-    GraphInteraction
+    LineInteraction
   )
   /**
    * An enumeration of the possible Correctness of a question
@@ -277,7 +277,7 @@ case class CorrectResponseEquation(value: String,
                                    range:(Int,Int) = (-10,10),
                                    variables:(String,String) = "x" -> "y",
                                    numOfTestPoints:Int = 20) extends CorrectResponse{
-  private val engine = new ScriptEngineManager().getEngineByName("JavaScript");
+  private val engine = CorrectResponseEquation.engine
   private def formatExpression(expr:String,variableValues:Seq[(String,Int)]):String = {
     val noWhitespace = expr.replaceAll("\\s","")
     variableValues.foldRight[String](noWhitespace)((variable,acc) =>{
@@ -309,7 +309,6 @@ case class CorrectResponseEquation(value: String,
     var testCoords:Array[(Int,Int)] = Array()
     for (i <- 1 to numOfTestPoints){
       val xcoord = new Random().nextInt(range._2 - range._1)+range._1
-      val rhsformatted = formatExpression(rhs,Seq(variables._1 -> xcoord))
       val ycoord = engine.eval(formatExpression(rhs,Seq(variables._1 -> xcoord))).asInstanceOf[Double].toInt
       testCoords = testCoords :+ (xcoord,ycoord)
     }
@@ -319,17 +318,12 @@ case class CorrectResponseEquation(value: String,
    * compare response equation with value equation. Since there are many possible forms, we generate random points
    */
   private def compareEquations(response:String):Boolean = {
-    def replaceVars(expr: String, testPoint:(Int,Int)) = expr.replace("x", testPoint._1.toString).replace("y", testPoint._2.toString)
     val sides = response.split("=")
     if (sides.length == 2){
       val lhs = sides(0)
       val rhs = sides(1)
       testPoints.foldRight[Boolean](true)((testPoint,acc) => if (acc){
         val variableValues = Seq(variables._1 -> testPoint._1, variables._2 -> testPoint._2)
-        val lhsformatted = formatExpression(lhs, variableValues)
-        val rhsformatted = formatExpression(rhs, variableValues)
-        val leval = engine.eval(formatExpression(lhs, variableValues))
-        val reval = engine.eval(formatExpression(rhs, variableValues))
         //replace the x and y vars with the values of testPoint then evaluate the two expressions with the JSengine.
         // the two sides should be equal
         engine.eval(formatExpression(lhs, variableValues)) == engine.eval(formatExpression(rhs, variableValues))
@@ -340,6 +334,7 @@ case class CorrectResponseEquation(value: String,
   def isValueCorrect(v: String, index: Option[Int]) = compareEquations(v)
 }
 object CorrectResponseEquation{
+  val engine = new ScriptEngineManager().getEngineByName("JavaScript")
   def apply(node:Node):CorrectResponseEquation = {
     if ((node \ "value").size != 1) {
       throw new RuntimeException("Cardinality is set to single but there is not one <value> declared: " + (node \ "value").toString)

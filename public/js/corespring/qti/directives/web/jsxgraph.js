@@ -105,12 +105,13 @@ return Canvas;
 
 angular.module('qti.directives').directive('jsxGraph', function(Canvas) {
 return {
-  template: "<div id='box' class='jxgbox' style='width:200px; height:200px;'></div>",
+  template: "<div id='box' class='jxgbox' style='width:100%; height:100%;'></div>",
   restrict: 'A',
   scope: {
     boardParams: '=',
     points: '=',
     setPoints: '=',
+    lockPoints: '=',
     maxPoints: '@',
     scale: '@'
   },
@@ -157,23 +158,29 @@ return {
           addPoint(coords);
         }
       });
+      scope.lockPoints = function(lockit){
+        if(lockit){
+            _.each(canvas.points,function(p){
+                p.setAttribute({fixed: true})
+            })
+        }
+      }
       scope.$watch('points', function(newValue, oldValue) {
-        var canvasPoint, canvasPointRef, coords, coordx, coordy, ptName, pts, _i, _len, _ref, _ref1;
         if (newValue !== oldValue) {
-          _ref = scope.points;
-          for (ptName in _ref) {
-            pts = _ref[ptName];
-            coordx = parseFloat(pts.x);
-            coordy = parseFloat(pts.y);
+          var _ref = scope.points;
+          for (var ptName in _ref) {
+            var pts = _ref[ptName];
+            var coordx = parseFloat(pts.x);
+            var coordy = parseFloat(pts.y);
             if (!isNaN(coordx) && !isNaN(coordy)) {
-              coords = {
+              var coords = {
                 x: coordx,
                 y: coordy
               };
-              canvasPointRef = null;
-              _ref1 = canvas.points;
-              for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-                canvasPoint = _ref1[_i];
+              var canvasPointRef = null;
+              var _ref1 = canvas.points;
+              for (var _i = 0, _len = _ref1.length; _i < _len; _i++) {
+                var canvasPoint = _ref1[_i];
                 if (ptName === canvasPoint.name) {
                   canvasPointRef = canvasPoint;
                 }
@@ -195,41 +202,3 @@ return {
   }
 };
 });
-
-angular.module("qti.directives").directive("graphinteraction", function(){
-    return {
-        template: "<div jsx-graph board-params='boardParams' points='points' max-points='2' scale='1'></div><p>{{equation}}</p>",
-        restrict: 'E',
-        scope: true,
-        require: '^assessmentitem',
-        controller: ['$scope', function($scope){
-            $scope.boardParams = {
-                domain: 10,
-                range: 10
-            }
-            $scope.equation = "y = mx + b";
-            $scope.points = {A: {x: undefined, y: undefined}, B: {x: undefined, y: undefined}}
-            $scope.$watch('points', function(points){
-                function checkCoords(coords){
-                    return coords && !isNaN(coords.x) && !isNaN(coords.y)
-                }
-                if(checkCoords($scope.points.A) && checkCoords($scope.points.B)){
-                    var slope = ($scope.points.A.y - $scope.points.B.y) / ($scope.points.A.x - $scope.points.B.x)
-                    var yintercept = $scope.points.A.y - ($scope.points.A.x * slope)
-                    $scope.equation = "y = "+slope+"x + "+yintercept;
-                    $scope.controller.setResponse($scope.responseIdentifier, "y="+slope+"x+"+yintercept);
-                }else $scope.equation = "y = mx + b"
-            }, true)
-            //refresh periodically
-            setInterval(function(){
-                $scope.$digest()
-            }, 500)
-        }],
-        link: function(scope, element, attrs, AssessmentItemController){
-            scope.responseIdentifier = attrs.responseidentifier;
-            scope.controller = AssessmentItemController
-            scope.controller.registerInteraction(element.attr('responseIdentifier'), "line graph", "graph")
-
-        }
-    }
-})

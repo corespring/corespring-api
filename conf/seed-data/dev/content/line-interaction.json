@@ -13,7 +13,7 @@
         "name": "qti.xml",
         "contentType": "text/xml",
         "isMain": true,
-        "content": "$[interpolate{/conf/qti/graph-interaction.xml}]"
+        "content": "$[interpolate{/conf/qti/line-interaction.xml}]"
       }
     ]
   },
