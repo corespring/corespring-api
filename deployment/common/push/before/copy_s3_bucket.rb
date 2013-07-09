@@ -1,8 +1,10 @@
+#!/usr/bin/env ruby -wKU
+require 'json'
 config = JSON.parse(IO.read(ARGV[0]))
 
 puts "Copy s3 bucket"
 
-which `s3cmd`
+`which s3cmd`
 raise "You need to install s3cmd: https://github.com/pearltrees/s3cmd-modification and have it on the path" unless $?.to_i == 0
 
 target_bucket = config["ENV_AMAZON_ASSETS_BUCKET"]
