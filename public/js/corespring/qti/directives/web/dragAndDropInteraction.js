@@ -37,6 +37,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         var state = _.last($scope.stateStack);
         $scope.listAnswers = QtiUtils.deepCopy(state.answers);
         $scope.listTargets = QtiUtils.deepCopy(state.targets);
+        $scope.initMathML(0);
       }
 
       $scope.resetClick = function () {
