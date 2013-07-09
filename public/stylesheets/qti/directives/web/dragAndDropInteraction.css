@@ -51,6 +51,7 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
     font-size:14px;
     font-family:"Ubuntu", Arial, Helvetica, sans-serif;
     background-color: #EFEFEF;
+
 }
 
 .contentElement:hover {
@@ -67,12 +68,15 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
     margin: 5px;
 }
 
+.landing .contentElement {
+    text-align: center;
+}
+
 .landing .contentElement:hover {
     box-shadow: none;
 }
 
 .contentElement.ui-draggable-dragging {
-    box-shadow: none;
 }
 
 .landing .contentElement, .solution-modal .contentElement {

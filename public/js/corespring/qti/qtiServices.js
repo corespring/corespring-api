@@ -74,6 +74,25 @@ angular.module('qti.services')
       return true;
     };
 
+    QtiUtils.deepCopy = function(obj) {
+      if (_.isArray(obj)) {
+        var res = [];
+        for (var i = 0; i < obj.length; i++)
+          res.push(QtiUtils.deepCopy(obj[i]));
+        return res;
+      } else if (_.isObject(obj)) {
+        var res = {};
+        for (var k in obj) {
+          res[k] = QtiUtils.deepCopy(obj[k]);
+        }
+        return res;
+      }
+      else {
+        return obj;
+      }
+    };
+
+
     QtiUtils.compareArraysIgnoringOrder = function(arr1, arr2) {
       return $(arr1).not(arr2).length == 0 && $(arr2).not(arr1).length == 0
 

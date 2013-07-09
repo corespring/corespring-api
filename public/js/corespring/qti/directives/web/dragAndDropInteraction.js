@@ -16,6 +16,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
       $scope.orderMatters = $attrs.ordermatters == "true";
       $scope.maxWidth = 50;
       $scope.maxHeight = 20;
+      $scope.stateStack = [];
 
       $scope.getTargetIndex = function (target) {
         return $scope.targetMap[target];
@@ -30,6 +31,14 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         if (h > $scope.maxHeight) $scope.maxHeight = h;
       };
 
+      $scope.undo = function () {
+        if ($scope.stateStack.length <= 1) return;
+        $scope.stateStack.pop();
+        var state = _.last($scope.stateStack);
+        $scope.listAnswers = QtiUtils.deepCopy(state.answers);
+        $scope.listTargets = QtiUtils.deepCopy(state.targets);
+      }
+
       $scope.resetClick = function () {
         var i;
         for (i = 0; i < $scope.listTargets.length; i++) {
@@ -38,6 +47,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         for (i = 0; i < $scope.listAnswers.length; i++) {
           $scope.listAnswers[i] = $scope.originalListAnswers[i];
         }
+        $scope.stateStack = [];
         $scope.initMathML(0);
       };
 
@@ -79,15 +89,19 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
           replace(/<:*draggableChoice[\s\S]*?>[\s\S]*?<\/:*draggableChoice>/gmi, "");
       };
 
-      var resetButtonHtml = "<div class='button-row'><button class='btn pull-right' ng-click='resetClick()' ng-show='canDrag'>Start Over</button></div>";
-      var solutionButtonHtml = "<div class='button-row'><button class='btn solution-button pull-right' ng-click='solutionVisible = true' ng-hide='canDrag'>See solution</button></div>";
+      var topButtonRowHtml = ["<div class='button-row'>",
+        "<button class='btn pull-right' ng-click='resetClick()' ng-show='canDrag'>Start Over</button>",
+        "<button class='btn pull-right' style='margin-right: 5px' ng-click='undo()' ng-show='canDrag' ng-disabled='stateStack.length < 2'>Undo</button></div>"
+      ].join("");
+
+      var solutionButtonHtml = "<div class='button-row'><button class='btn solution-button' ng-click='solutionVisible = true' ng-hide='canDrag'>See solution</button></div>";
 
       elem.html(
         [
           getAnswerAreaTemplate(originalHtml),
           "<div>",
           QtiUtils.getPromptSpan(originalHtml),
-          resetButtonHtml,
+          topButtonRowHtml,
           removePromptNode(originalHtml),
           solutionButtonHtml,
           "</div>"
@@ -100,12 +114,14 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         });
 
         $scope.$watch(function () {
-          return _.reduce($scope.listTargets, function (acc, el) {
-            if (_.isArray(el))
-              return acc + _.pluck(el, "id").join(",");
-            else
-              return acc + el.id + ",";
-          }, "");
+          return _.reduce($scope.listTargets,
+            function (acc, el) {
+              if (_.isArray(el))
+                return acc + _.pluck(el, "id").join(",");
+              else
+                return acc + el.id + ",";
+            }, ""
+          );
         }, function () {
           var response = [];
           for (var target in $scope.targetMap) {
@@ -116,6 +132,11 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
             if (!_.isEmpty(str))
               response.push(target + ":" + str);
 
+          }
+          var state = {answers: QtiUtils.deepCopy($scope.listAnswers), targets: QtiUtils.deepCopy($scope.listTargets)};
+
+          if (!_.isEqual(state, _.last($scope.stateStack))) {
+            $scope.stateStack.push(state);
           }
           AssessmentItemCtrl.setResponse($scope.responseIdentifier, response);
         });
@@ -130,9 +151,10 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
             var targetIndex = $scope.getTargetIndex(target);
             $scope.listTargets[targetIndex] =
               _.isArray($scope.listTargets[targetIndex]) ?
-                _.map(answerIdList, function (answerId) {
-                  return {id: answerId, title: $scope.getContentForId(answerId)};
-                }) : {id: answerIdList[0]};
+                _.map(answerIdList,
+                  function (answerId) {
+                    return {id: answerId, title: $scope.getContentForId(answerId)};
+                  }) : {id: answerIdList[0]};
 
             $scope.listAnswers = _.map($scope.listAnswers, function (answer) {
               if (answerIdList.indexOf(answer.id) >= 0) return {}; else return answer;
@@ -161,7 +183,9 @@ angular.module('qti.directives').directive("draggablechoice", function () {
         ' <div class="contentElement" ng-bind-html-unsafe="itemContent.title"',
         ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}},placeholder:' + placeHolder + ',animate:false,onStart:\'startCallback\',onStop:\'stopCallback\'}"',
         ' data-jqyoui-options="{revert: \'invalid\',helper: ' + helper + '}" ng-model="listAnswers" ng-show="listAnswers[$index].id"></div>',
+        ' <div class="clearfix"></div>',
         '</div>',
+
         '<div class="sizerHolder" style="display: none; position: absolute">',
         originalContent,
         '</div>'].join(" ");
@@ -209,6 +233,7 @@ angular.module('qti.directives').directive("draggablechoice", function () {
         $scope.startCallback = function () {
           $scope.dragging.id = $scope.listAnswers[$scope.$index].id;
           $scope.dragging.draggingFromAnswer = true;
+
           $scope.$apply(function () {
             $scope.phClass = $scope.placeholderClass;
           });
@@ -251,7 +276,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
         [
           '<div style="min-height: {{maxHeight}}px; width: {{width}}px" class="landing {{correctClass}}" data-drop="true" ng-model="%model"',
           'jqyoui-droppable="{onDrop: \'dropCallback\', multiple: true}" data-jqyoui-options="{hoverClass: \'drop-hover\'}">',
-          '<div class="landingLabelHolder">',
+          '<div class="landingLabelHolder" ng-show="label">',
           ' <span class="landingLabel" style="">{{label}}</span>',
           '</div>',
           ' <div %repeat class="contentElement"',
