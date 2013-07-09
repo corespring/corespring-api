@@ -336,7 +336,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
         }
 
         $scope.$watch("maxWidth + maxHeight", function () {
-          $scope.width = isMultiple ? $scope.maxWidth * 4 : $scope.maxWidth + 20;
+          $scope.width = isMultiple ? $scope.maxWidth * 4 + 20 : $scope.maxWidth + 20;
         });
 
         $scope.startCallback = function (ev, b) {
