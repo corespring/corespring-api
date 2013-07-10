@@ -141,3 +141,14 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
     border: none;
     border-collapse: collapse;
 }
+
+.close-button {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    background: url('/assets/images/close.png') no-repeat center center;
+    width: 24px;
+    height: 24px;
+    cursor: hand;
+    cursor: pointer;
+}
