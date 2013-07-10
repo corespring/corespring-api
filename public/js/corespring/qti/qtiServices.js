@@ -114,8 +114,8 @@ angular.module('qti.services')
 );
 
 angular.module('qti.services').factory('Canvas', function() {
-  function Canvas(domain,range,scale) {
-    this.board = JXG.JSXGraph.initBoard('box', {
+  function Canvas(id, domain, range, scale) {
+    this.board = JXG.JSXGraph.initBoard(id, {
                          boundingbox: [0 - domain, range, domain, 0 - range],
                          grid: {
                              hasGrid: true,
@@ -125,12 +125,12 @@ angular.module('qti.services').factory('Canvas', function() {
                          axis: true,
                          showNavigation: false,
                          showCopyright: false,
-                         zoom: false
+                         zoom: false,
+                         keepaspectratio: true
                        });
     this.points = [];
     this.scale = scale
   }
-
   Canvas.prototype.getMouseCoords = function(e) {
     var coords = new JXG.Coords(JXG.COORDS_BY_SCREEN, [e.offsetX, e.offsetY], this.board);
     var simpleCoords = {
