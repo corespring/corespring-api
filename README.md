@@ -66,6 +66,14 @@ To configure the logger when running locally add a system property to your run c
 
 We use Amazon S3 for deploying files - the management console is here:
 
+Each deployment uses its own s3 bucket: corespring-assets-${deployment}.
+The developer machines point to corespring-assets-dev for example.
+
+There are some useful utilities for working with the s3 assets: 
+
+* [corespring-assets gem](https://github.com/corespring/corespring-api-assets) - some commands for pulling/pushing buckets and cleaning them.
+* [s3cmd](https://github.com/pearltrees/s3cmd-modification) - a command line utility for working with s3 (modded for parallel speed).
+
 https://corespring.signin.aws.amazon.com/console
 
 Ask evan for a user account.
