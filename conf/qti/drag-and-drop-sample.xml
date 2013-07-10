@@ -131,23 +131,20 @@
             <answerArea>
                 <table>
                     <tr>
-                        <td><i>w<sup>1</sup></i>=</td>
-                        <td>
-
-                            <landingPlace cardinality='single' class='blueTile inline' identifier='target1'></landingPlace>
+                        <td><i>w<sup>1</sup></i>=
+                            <landingPlace cardinality='single' class='squareChoice inline' identifier='target1'></landingPlace>
                         </td>
                     </tr>
                     <tr>
-                        <td><i>w<sup>n</sup></i>=</td>
-                        <td>
-                            <landingPlace cardinality='single' class='blueTile inline' identifier='target2'></landingPlace><landingPlace cardinality='single' class='blueTile inline' identifier='target3'> </landingPlace>
-                            <landingPlace cardinality='single' class='blueTile inline' identifier='target4'></landingPlace>
+                        <td><i>w<sup>n</sup></i>=
+                            <landingPlace cardinality='single' class='squareChoice inline' identifier='target2'></landingPlace>
+                            <landingPlace cardinality='single' class='squareChoice inline' identifier='target3'> </landingPlace>
+                            <landingPlace cardinality='single' class='squareChoice inline' identifier='target4'></landingPlace>
                         </td>
                     </tr>
                     <tr>
-                        <td>where <i>n</i> is</td>
-                        <td>
-                            <landingPlace cardinality='single' class='blueTile inline' identifier='target5'></landingPlace>, such that <landingPlace cardinality='single' class='blueTile inline' identifier='target6'></landingPlace>
+                        <td>where <i>n</i> is
+                            <landingPlace cardinality='single' class='squareChoice inline' identifier='target5'></landingPlace>, such that <landingPlace cardinality='single' class='squareChoice inline' identifier='target6'></landingPlace>
                         </td>
                     </tr>
                 </table>
