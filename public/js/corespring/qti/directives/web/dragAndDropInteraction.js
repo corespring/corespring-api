@@ -26,6 +26,10 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         return $scope.contentMap[id];
       };
 
+      $scope.showSolution = function() {
+        $scope.solutionVisible = true;
+      };
+
       $scope.propagateDimension = function (w, h) {
         if (w > $scope.maxWidth) $scope.maxWidth = w;
         if (h > $scope.maxHeight) $scope.maxHeight = h;
@@ -95,7 +99,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         "<button class='btn pull-right' style='margin-right: 5px' ng-click='undo()' ng-show='canDrag' ng-disabled='stateStack.length < 2'>Undo</button></div>"
       ].join("");
 
-      var solutionButtonHtml = "<div class='button-row'><button class='btn solution-button' ng-click='solutionVisible = true' ng-hide='canDrag'>See solution</button></div>";
+      var solutionButtonHtml = "<div class='button-row' ng-show='isShowSolutionButtonVisible'><button class='btn solution-button' ng-click='showSolution()'>See solution</button></div>";
 
       elem.html(
         [
@@ -144,7 +148,13 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
 
         $scope.$on('highlightUserResponses', function () {
           var value = QtiUtils.getResponseValue($scope.responseIdentifier, $scope.itemSession.responses, "");
-          $scope.correctString = $scope.itemSession.responses[0].outcome.isCorrect.toString();
+          var response = _.find($scope.itemSession.responses, function(r) {
+            return r.id == $scope.responseIdentifier;
+          });
+
+          if (response && response.outcome && !response.outcome.isCorrect)
+            $scope.isShowSolutionButtonVisible = true;
+
           _.each(value, function (v) {
             var arr = v.split(":");
             var target = arr[0];
