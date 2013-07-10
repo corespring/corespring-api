@@ -35,14 +35,14 @@
                     <landingPlace cardinality="multiple" identifier="target3" label="Vehicles" />
                 </landingPlaceGroup>
             </answerArea>
-
         </dragAndDropInteraction>
 
-        <feedbackBlock outcomeIdentifier="responses.alphabet1.outcome.correct" identifier="id2">
+
+        <feedbackBlock outcomeIdentifier="responses.alphabet1.outcome.responseCorrect" identifier="id2">
             <div class="feedback-block-correct">Your answer is correct!</div>
         </feedbackBlock>
 
-        <feedbackBlock outcomeIdentifier="responses.alphabet1.outcome.incorrect" identifier="id3">
+        <feedbackBlock outcomeIdentifier="responses.alphabet1.outcome.responseIncorrect" identifier="id3">
             <div class="feedback-block-incorrect">Your answer is incorrect!</div>
         </feedbackBlock>
 
