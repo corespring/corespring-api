@@ -285,7 +285,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
 
       var template =
         [
-          '<div style="min-height: {{maxHeight}}px; width: {{width}}px" class="landing {{correctClass}} '+attrs.class+'" data-drop="true" ng-model="%model"',
+          '<div style="min-height: {{maxHeight}}px; width: {{width}}px" class="landing {{correctClass}} '+attrs['class']+'" data-drop="true" ng-model="%model"',
           'jqyoui-droppable="{onDrop: \'dropCallback\', multiple: true}" data-jqyoui-options="{hoverClass: \'drop-hover\'}">',
           '<div class="landingLabelHolder" ng-show="label">',
           ' <span class="landingLabel" style="">{{label}}</span>',
@@ -397,7 +397,7 @@ angular.module('qti.directives').directive("landingsolution", function (QtiUtils
     compile: function (el, attrs) {
       var template =
         [
-          '<div style="min-height: {{maxHeight}}px; min-width: {{width}}px" class="thumbnail {{correctClass}} landing '+attrs.class+'">',
+          '<div style="min-height: {{maxHeight}}px; min-width: {{width}}px" class="thumbnail {{correctClass}} landing '+attrs['class']+'">',
           ' <div ng-repeat="item in items" class="contentElement" ng-bind-html-unsafe="item"></div>',
           '<div class="clearfix"></div>',
           '</div>'].join(" ");
