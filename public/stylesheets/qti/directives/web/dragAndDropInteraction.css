@@ -51,6 +51,7 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
     font-size:14px;
     font-family:"Ubuntu", Arial, Helvetica, sans-serif;
     background-color: #EFEFEF;
+    text-align: center;
 
 }
 
@@ -66,6 +67,7 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
     padding: 3px 3px 3px 3px;
     border: 1px solid #999;
     margin: 5px;
+    position: relative;
 }
 
 .landing.inline {
@@ -76,7 +78,6 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
 }
 
 .landing.squareChoice {
-    background-color: lightskyblue;
     border-radius: 0px;
 }
 
@@ -112,20 +113,31 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
     background-color: #fff
 }
 
-.correct {
+.landing.correct {
     box-shadow: 0px 0px 5px #95C444;
     border: 1px solid #95C444;
 }
 
-.incorrect {
+.landing.incorrect {
     box-shadow: 0px 0px 5px #F8A31A;
     border: 1px solid #F8A31A;
+}
+
+.floating-icon.incorrect {
+    display: inline-block;
+    position: absolute;
+    background:url(/assets/images/wrong-icon-tiny.png) no-repeat;
+    width: 25px;
+    height: 21px;
+    top: -9px;
+    right: -14px;
 }
 
 .placeholder {
     background-color: #800080;
 }
 
-td {
-    vertical-align: middle !important;
+.no-border {
+    border: none;
+    border-collapse: collapse;
 }

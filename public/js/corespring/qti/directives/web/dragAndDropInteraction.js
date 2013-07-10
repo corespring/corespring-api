@@ -30,6 +30,10 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         $scope.solutionVisible = true;
       };
 
+      $scope.hideSolution = function() {
+        $scope.solutionVisible = false;
+      }
+
       $scope.propagateDimension = function (w, h) {
         if (w > $scope.maxWidth) $scope.maxWidth = w;
         if (h > $scope.maxHeight) $scope.maxHeight = h;
@@ -80,7 +84,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         var html = fromHtml.replace(/<:*landingPlace([\s\S]*?)>/gmi, "<landingSolution$1>").replace(/<\/:*landingPlace>/gmi, "</landingSolution>");
         var answerAreaMatch = draggableChoiceRegexp.exec(html);
         var solutionHtml = (answerAreaMatch && answerAreaMatch.length > 0) ? answerAreaMatch[0] : removeAnswerNodes(html);
-        return "<div ui-modal ng-model='solutionVisible' class='solution-modal'>" + solutionHtml + "</div>";
+        return "<div ui-modal ng-model='solutionVisible' class='solution-modal'><h1>Answer</h1>" + solutionHtml + "<a ng-click='hideSolution()'>See your answer</a></div>";
       };
 
       var removePromptNode = function (fromHtml) {
@@ -99,7 +103,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         "<button class='btn pull-right' style='margin-right: 5px' ng-click='undo()' ng-show='canDrag' ng-disabled='stateStack.length < 2'>Undo</button></div>"
       ].join("");
 
-      var solutionButtonHtml = "<div class='button-row' ng-show='isShowSolutionButtonVisible'><button class='btn solution-button' ng-click='showSolution()'>See solution</button></div>";
+      var solutionButtonHtml = "<div class='button-row' ng-show='isShowSolutionButtonVisible'><button class='btn solution-button' ng-click='showSolution()'>See Correct Answer</button></div>";
 
       elem.html(
         [
@@ -290,17 +294,25 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           '<div class="landingLabelHolder" ng-show="label">',
           ' <span class="landingLabel" style="">{{label}}</span>',
           '</div>',
-          ' <div %repeat class="contentElement"',
+          '<div %repeat class="contentElement"',
           ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}}, placeholder:true, animate:false, onStart: \'startCallback\'}"',
-          ' data-jqyoui-options="draggableOptions" ng-model="%model" ng-show="itemContent.title" ng-bind-html-unsafe="itemContent.title" data-id="{{itemContent.id}}"></div>',
+          ' data-jqyoui-options="draggableOptions" ng-model="%model" ng-show="itemContent.title" ng-bind-html-unsafe="itemContent.title" data-id="{{itemContent.id}}"> ',
+          '</div>',
           '<div class="clearfix"></div>',
           originalHtml,
-          '</div>'].join("");
+          '<span class="floating-icon {{correctClass}}"></span>',
+          '</div>'
+
+
+        ].join("");
+
 
       if (isMultiple)
         template = template.replace(/%model/g, "listTargets[$index]").replace(/%repeat/g, "ng-repeat=\"itemContent in listTargets[$index]\"")
       else
         template = template.replace(/%model/g, "listTargets[$index]").replace(/%repeat/g, "");
+
+      console.log(template);
 
       el.html(template);
 
