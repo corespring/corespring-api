@@ -15,6 +15,7 @@ import play.api.libs.iteratee.{Input, Done, Enumerator, Iteratee}
 import play.api.libs.json.Json
 import play.api.mvc._
 import web.controllers.utils.ConfigLoader
+import common.config.AppConfig
 
 trait S3ServiceClient {
   def s3Service : S3Service
@@ -33,10 +34,9 @@ trait S3Service {
 
 object ConcreteS3Service extends S3Service with PackageLogging {
 
-  def bucket = ConfigLoader.get("AMAZON_ASSETS_BUCKET").get
+  def bucket = AppConfig.assetsBucket
 
   private var optS3: Option[AmazonS3Client] = None
-
 
   def getAmazonClient : Option[AmazonS3Client] = optS3
 
