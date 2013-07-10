@@ -33,6 +33,14 @@ See that project for more documentation. In an nutshell the helper uses 2 files:
 * .heroku-helper.conf - allows you to configure scripts to run as part of deployment
 * .heroku-helper-env.conf - set up env vars for a given heroku server (not under source control).
 
+### IntelliJ Configuration
+
+You'll need to install the Scala and Play 2.0 plugins. These can be found in Settings by navigating to Plugins and clicking the 'Install JetBrains plugin...' button.
+
+After that, you'll need to generate the IntelliJ project files. Do this with the following command:
+
+    play idea
+
 ### Logging configuration
 
 For information on how to configure the xml see: [play docs](http://www.playframework.com/documentation/2.1.1/SettingsLogger)
