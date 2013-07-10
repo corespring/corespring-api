@@ -1,12 +1,12 @@
 <assessmentItem>
     <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
     <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
-    <responseDeclaration identifier="graphTest" baseType="string" cardinality="single">
+    <responseDeclaration identifier="graphTest" baseType="line" cardinality="single">
         <correctResponse>
             <value>y=2x+7</value>
         </correctResponse>
     </responseDeclaration>
-    <responseDeclaration identifier="equationEntryTest" cardinality="equation" baseType="string">
+    <responseDeclaration identifier="equationEntryTest" cardinality="single" baseType="line">
         <correctResponse>
             <value>y=2x+7</value>
         </correctResponse>

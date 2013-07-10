@@ -192,7 +192,7 @@ object QtiItem {
 
 }
 
-case class ResponseDeclaration(identifier: String, cardinality: String, correctResponse: Option[CorrectResponse], mapping: Option[Mapping]) {
+case class ResponseDeclaration(identifier: String, cardinality: String, baseType:String, correctResponse: Option[CorrectResponse], mapping: Option[Mapping]) {
   def isCorrect(responseValues: Seq[String]): Correctness.Value = {
     isCorrect(responseValues.foldRight[String]("")((response,acc) => if(acc.isEmpty) response else acc+","+response))
   }
@@ -215,6 +215,7 @@ object ResponseDeclaration {
   def apply(node: Node, body: ItemBody): ResponseDeclaration = {
     val identifier = (node \ "@identifier").text
     val cardinality = (node \ "@cardinality").text
+    val baseType = (node \ "@baseType").text
     val correctResponseNode = (node \ "correctResponse").headOption
 
     require(!identifier.isEmpty, "identifier is empty for node: \n" + node)
@@ -223,16 +224,17 @@ object ResponseDeclaration {
     ResponseDeclaration(
       identifier = identifier,
       cardinality = cardinality,
-      correctResponse = buildCorrectResponse(correctResponseNode, identifier, cardinality, body),
+      baseType = baseType,
+      correctResponse = buildCorrectResponse(correctResponseNode, identifier, cardinality, baseType, body),
       mapping = (node \ "mapping").headOption.map(Mapping(_))
     )
   }
 
-  private def buildCorrectResponse(n: Option[Node], identifier: String, cardinality: String, body: ItemBody): Option[CorrectResponse] = n match {
+  private def buildCorrectResponse(n: Option[Node], identifier: String, cardinality: String, baseType: String, body: ItemBody): Option[CorrectResponse] = n match {
     case None => None
     case Some(node) => {
       val maybeInteraction = body.getInteraction(identifier)
-      Some(CorrectResponse(node, cardinality, maybeInteraction))
+      Some(CorrectResponse(node, cardinality, baseType, maybeInteraction))
     }
   }
 }
@@ -253,17 +255,19 @@ object CorrectResponse {
    * @param interaction
    * @return
    */
-  def apply(node: Node, cardinality: String, interaction: Option[Interaction] = None): CorrectResponse = interaction match {
-    case Some(TextEntryInteraction(_, _, _)) => cardinality match {
-      case "equation" => CorrectResponseEquation(node)
+  def apply(node: Node, cardinality: String, baseType: String, interaction: Option[Interaction] = None): CorrectResponse = interaction match {
+    case Some(TextEntryInteraction(_, _, _)) => baseType match {
+      case "line" => CorrectResponseEquation(node)
       case _ => CorrectResponseAny(node)
     }
     case Some(SelectTextInteraction(_, _, _, _, _, _)) => CorrectResponseAny(node)
     case _ => cardinality match {
-      case "single" => CorrectResponseSingle(node)
+      case "single" => baseType match {
+        case "line" => CorrectResponseEquation(node)
+        case _ => CorrectResponseSingle(node)
+      }
       case "multiple" => CorrectResponseMultiple(node)
       case "ordered" => CorrectResponseOrdered(node)
-      case "equation" => CorrectResponseEquation(node)
       case _ => throw new RuntimeException("unknown cardinality: " + cardinality + ". cannot generate CorrectResponse")
     }
   }

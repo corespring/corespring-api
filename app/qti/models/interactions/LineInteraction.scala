@@ -1,7 +1,7 @@
 package qti.models.interactions
 
 import qti.models.ResponseDeclaration
-import models.itemSession.{StringItemResponse, ItemResponseOutcome, ItemResponse}
+import models.itemSession.{ArrayItemResponse, StringItemResponse, ItemResponseOutcome, ItemResponse}
 import xml.Node
 import qti.models.QtiItem.Correctness
 
@@ -15,6 +15,22 @@ case class LineInteraction(responseIdentifier: String) extends Interaction{
           case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
             Some(ItemResponseOutcome(1,true))
           } else Some(ItemResponseOutcome(0,false))
+        }
+        case None => None
+      }
+      case ArrayItemResponse(_,responseValue,_) => responseDeclaration match {
+        case Some(rd) => {
+          val pta = responseValue(0).split(",").map(_.toDouble)
+          val ptb = responseValue(1).split(",").map(_.toDouble)
+          val slope = (pta(1) - ptb(1))/(pta(0) - ptb(0))
+          val yintercept = pta(1) - (slope * pta(0))
+          val equation = "y="+slope+"x+"+yintercept
+          rd.mapping match {
+            case Some(mapping) => Some(ItemResponseOutcome(mapping.mappedValue(equation), rd.isCorrect(equation) == Correctness.Correct))
+            case None => if (rd.isCorrect(equation) == Correctness.Correct) {
+              Some(ItemResponseOutcome(1,true))
+            } else Some(ItemResponseOutcome(0,false))
+          }
         }
         case None => None
       }
