@@ -32,9 +32,10 @@
                 <landingPlaceGroup itemsPerRow="2">
                     <landingPlace cardinality="multiple" identifier="target1" label="Fruits" />
                     <landingPlace cardinality="single" identifier="target2" label="Animals" />
-                    <landingPlace cardinality="multiple" identifier="target3" label="Vehicles" />
+                    <landingPlace cardinality="multiple" identifier="target3" label="Vehicles" expand="horizontal" />
                 </landingPlaceGroup>
             </answerArea>
+
         </dragAndDropInteraction>
 
 
@@ -45,6 +46,7 @@
         <feedbackBlock outcomeIdentifier="responses.alphabet1.outcome.responseIncorrect" identifier="id3">
             <div class="feedback-block-incorrect">Your answer is incorrect!</div>
         </feedbackBlock>
+
 
 
     </itemBody>

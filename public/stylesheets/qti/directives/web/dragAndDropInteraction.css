@@ -72,9 +72,7 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
 
 .landing.inline {
     display: inline-block;
-    margin: 0px;
-    margin-bottom: -10px;
-    margin-right: 5px;
+    margin: 0px 5px -10px 0px;
 }
 
 .landing.squareChoice {
@@ -126,7 +124,7 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
 .floating-icon.incorrect {
     display: inline-block;
     position: absolute;
-    background:url(/assets/images/wrong-icon-tiny.png) no-repeat;
+    background:url("/assets/images/wrong-icon-tiny.png") no-repeat;
     width: 25px;
     height: 21px;
     top: -9px;
@@ -146,9 +144,14 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
     position: absolute;
     right: 0px;
     top: 0px;
-    background: url('/assets/images/close.png') no-repeat center center;
+    background: url("/assets/images/close.png") no-repeat center center;
     width: 24px;
     height: 24px;
     cursor: hand;
     cursor: pointer;
+}
+
+.modal-backdrop, .modal-backdrop.fade.in {
+    opacity: 0.3;
+    filter: alpha(opacity=30);
 }

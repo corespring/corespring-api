@@ -194,10 +194,10 @@ angular.module('qti.directives').directive("draggablechoice", function () {
       var helper = copyOnDrag ? "'clone'" : "''";
 
       var template = [
-        '<div class="answerContainer {{correctClass}} {{phClass}}" data-drop="true" ng-model="listAnswers" data-jqyoui-options="dropOptions" jqyoui-droppable="{index: {{$index}}, onDrop: \'dropCallback\'}">',
+        '<div class="answerContainer {{correctClass}} {{phClass}}" data-drop="true" ng-model="listAnswers" data-jqyoui-options="dropOptions" jqyoui-droppable="{index: {{answerIndex}}, onDrop: \'dropCallback\'}">',
         ' <div class="contentElement" ng-bind-html-unsafe="itemContent.title"',
-        ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}},placeholder:' + placeHolder + ',animate:false,onStart:\'startCallback\',onStop:\'stopCallback\'}"',
-        ' data-jqyoui-options="{revert: \'invalid\',helper: ' + helper + '}" ng-model="listAnswers" ng-show="listAnswers[$index].id"></div>',
+        ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{answerIndex}},placeholder:' + placeHolder + ',animate:false,onStart:\'startCallback\',onStop:\'stopCallback\'}"',
+        ' data-jqyoui-options="{revert: \'invalid\',helper: ' + helper + '}" ng-model="listAnswers" ng-show="listAnswers[answerIndex].id"></div>',
         ' <div class="clearfix"></div>',
         '</div>',
 
@@ -208,7 +208,7 @@ angular.module('qti.directives').directive("draggablechoice", function () {
       tElement.html(template);
 
       return function ($scope, el, attrs) {
-        $scope.$index = $scope.indexes.answerIndex++;
+        $scope.answerIndex = $scope.indexes.answerIndex++;
         $scope.contentMap[attrs.identifier] = originalContent;
         $scope.listAnswers.push({id: attrs.identifier});
         $scope.originalListAnswers.push({id: attrs.identifier, title: originalContent});
@@ -246,7 +246,7 @@ angular.module('qti.directives').directive("draggablechoice", function () {
         };
 
         $scope.startCallback = function () {
-          $scope.dragging.id = $scope.listAnswers[$scope.$index].id;
+          $scope.dragging.id = $scope.listAnswers[$scope.answerIndex].id;
           $scope.dragging.draggingFromAnswer = true;
 
           $scope.$apply(function () {
@@ -260,9 +260,9 @@ angular.module('qti.directives').directive("draggablechoice", function () {
           });
         };
 
-        $scope.$watch("listAnswers[" + $scope.$index + "]", function () {
-          $scope.itemContent = $scope.listAnswers[$scope.$index];
-          $scope.itemContent.title = $scope.contentMap[$scope.listAnswers[$scope.$index].id];
+        $scope.$watch("listAnswers[" + $scope.answerIndex + "]", function () {
+          $scope.itemContent = $scope.listAnswers[$scope.answerIndex];
+          $scope.itemContent.title = $scope.contentMap[$scope.listAnswers[$scope.answerIndex].id];
         });
 
         $scope.$watch("maxWidth + maxHeight", function () {
@@ -284,35 +284,40 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
     scope: true,
     compile: function (el, attrs) {
       var isMultiple = attrs.cardinality == 'multiple';
+      var expandHorizontally = attrs.expand == 'horizontal';
+      var style = expandHorizontally ? "min-height: {{maxHeight}}px; min-width: {{width}}px" : "min-height: {{maxHeight}}px; width: {{width}}px";
 
       var originalHtml = el.html();
 
-      var template =
+      var template = isMultiple ?
         [
-          '<div style="min-height: {{maxHeight}}px; width: {{width}}px" class="landing {{correctClass}} '+attrs['class']+'" data-drop="true" ng-model="%model"',
+          '<div style="'+style+'" class="landing {{correctClass}} '+attrs['class']+'" data-drop="true" ng-model="listTargets[targetIndex]"',
           'jqyoui-droppable="{onDrop: \'dropCallback\', multiple: true}" data-jqyoui-options="{hoverClass: \'drop-hover\'}">',
-          '<div class="landingLabelHolder" ng-show="label">',
+          '<div class="landingLabelHolder">',
           ' <span class="landingLabel" style="">{{label}}</span>',
           '</div>',
-          '<div %repeat class="contentElement"',
+          ' <div ng-repeat="item in listTargets[targetIndex]" class="contentElement"',
           ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{$index}}, placeholder:true, animate:false, onStart: \'startCallback\'}"',
-          ' data-jqyoui-options="draggableOptions" ng-model="%model" ng-show="itemContent.title" ng-bind-html-unsafe="itemContent.title" data-id="{{itemContent.id}}"> ',
+          ' data-jqyoui-options="draggableOptions" ng-model="listTargets[targetIndex]" ng-show="item.title" ng-bind-html-unsafe="item.title" data-id="{{item.id}}"></div>',
+          '<div class="clearfix"></div>',
+          originalHtml,
+          '<span class="floating-icon {{correctClass}}"></span>',
+          '</div>'].join(" ")
+        :
+        [
+          '<div class="landing {{correctClass}} '+attrs['class']+'" style="'+style+'" data-drop="true" ng-model="listTargets" ',
+          'jqyoui-droppable="{index: {{targetIndex}}, onDrop: \'dropCallback\', multiple: false}" data-jqyoui-options="{hoverClass: \'drop-hover\'}">',
+          '<div class="landingLabelHolder">',
+          ' <span class="landingLabel" style="">{{label}}</span>',
           '</div>',
+          ' <div class="contentElement"',
+          ' data-drag="{{canDrag}}" jqyoui-draggable="{index: {{targetIndex}}, placeholder:true, animate:false, onStart: \'startCallback\'}"',
+          ' data-jqyoui-options="draggableOptions" ng-model="listTargets" ng-show="itemContent.title" ng-bind-html-unsafe="itemContent.title" data-id="{{itemContent.id}}"></div>',
           '<div class="clearfix"></div>',
           originalHtml,
           '<span class="floating-icon {{correctClass}}"></span>',
           '</div>'
-
-
-        ].join("");
-
-
-      if (isMultiple)
-        template = template.replace(/%model/g, "listTargets[$index]").replace(/%repeat/g, "ng-repeat=\"itemContent in listTargets[$index]\"")
-      else
-        template = template.replace(/%model/g, "listTargets[$index]").replace(/%repeat/g, "");
-
-      console.log(template);
+        ].join(" ");
 
       el.html(template);
 
@@ -321,9 +326,9 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
         var defaultWidth = $scope.isMultiple ? "200" : "50";
         $scope.width = defaultWidth;
 
-        $scope.$index = $scope.indexes.targetIndex++;
+        $scope.targetIndex = $scope.indexes.targetIndex++;
         $scope.listTargets.push($scope.isMultiple ? [] : {});
-        $scope.targetMap[attrs.identifier] = $scope.$index;
+        $scope.targetMap[attrs.identifier] = $scope.targetIndex;
         $scope.label = attrs.label;
 
         $scope.draggableOptions = {
@@ -331,12 +336,12 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
             if (isValid) return false;
 
             $scope.$apply(function () {
-              if (_.isArray($scope.listTargets[$scope.$index]))
-                $scope.listTargets[$scope.$index] = _.filter($scope.listTargets[$scope.$index], function (el) {
+              if (_.isArray($scope.listTargets[$scope.targetIndex]))
+                $scope.listTargets[$scope.targetIndex] = _.filter($scope.listTargets[$scope.targetIndex], function (el) {
                   return el.id != $scope.dragging.id;
                 });
               else
-                $scope.listTargets[$scope.$index] = {};
+                $scope.listTargets[$scope.targetIndex] = {};
 
               for (var i = 0; i < $scope.listAnswers.length; i++) {
                 if ($scope.originalListAnswers[i].id == $scope.dragging.id)
@@ -367,9 +372,9 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           $scope.dragging.draggingFromAnswer = false;
         }
 
-        $scope.$watch("listTargets[" + $scope.$index + "]", function () {
-          $scope.itemContent = $scope.listTargets[$scope.$index];
-          $scope.itemContent.title = $scope.contentMap[$scope.listTargets[$scope.$index].id];
+        $scope.$watch("listTargets[" + $scope.targetIndex + "]", function () {
+          $scope.itemContent = $scope.listTargets[$scope.targetIndex];
+          $scope.itemContent.title = $scope.contentMap[$scope.listTargets[$scope.targetIndex].id];
         });
 
         $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
