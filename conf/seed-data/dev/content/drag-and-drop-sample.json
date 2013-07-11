@@ -1,6 +1,9 @@
 {
     "_id": {
-        "$oid": "506c1fad2212da8d2a71821a"
+      "_id": {
+          "$oid": "506c1fad2212da8d2a71821a"
+      },
+      "version": 0
     },
     "data": {
         "name": "qti.xml",

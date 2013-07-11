@@ -1,22 +1,25 @@
 {
+  "_id": {
     "_id": {
-        "$oid": "506c1fad2212da7b2a718113"
+      "$oid": "506c1fad2212da7b2a718113"
     },
-    "data": {
+    "version": 0
+  },
+  "data": {
+    "name": "qti.xml",
+    "files": [
+      {
+        "_t": "models.item.resource.VirtualFile",
         "name": "qti.xml",
-        "files": [
-            {
-                "_t": "models.item.resource.VirtualFile",
-                "name": "qti.xml",
-                "contentType": "text/xml",
-                "isMain": true,
-                "content": "$[interpolate{conf/qti/drag-and-drop-multiple.xml}]"
-            }
-        ]
-    },
-    "published":false,
-    "collectionId": "5001b9b9e4b035d491c268c3",
-    "taskInfo": {
-        "title": "Drag and Drop (Multiple)"
-    }
+        "contentType": "text/xml",
+        "isMain": true,
+        "content": "$[interpolate{conf/qti/drag-and-drop-multiple.xml}]"
+      }
+    ]
+  },
+  "published": false,
+  "collectionId": "5001b9b9e4b035d491c268c3",
+  "taskInfo": {
+    "title": "Drag and Drop (Multiple)"
+  }
 }
