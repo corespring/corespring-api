@@ -120,6 +120,7 @@ object SessionData {
       case CorrectResponseMultiple(value) => ArrayItemResponse(id, value)
       case CorrectResponseAny(value) => ArrayItemResponse(id, value)
       case CorrectResponseOrdered(value) => ArrayItemResponse(id, value)
+      case CorrectResponseTargeted(value, _) => ArrayItemResponse(id, value.toList.map(it=>it._1+":"+it._2.mkString(",")))
       case _ => throw new RuntimeException("Unknown CorrectResponseType: " + cr)
     }
 

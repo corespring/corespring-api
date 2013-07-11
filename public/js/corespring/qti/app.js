@@ -1,4 +1,4 @@
-angular.module('qti.directives', ['qti.services']);
+angular.module('qti.directives', ['qti.services','ngDragDrop']);
 angular.module('qti', ['qti.directives', 'qti.services', 'corespring-services', 'corespring-directives','corespring-utils', 'ui']);
 
 
@@ -240,6 +240,14 @@ angular.module('qti.directives').directive('assessmentitem', function() {
                 }
                 return $scope.itemSession.settings.submitIncorrectMessage;
             };
+
+            $scope.initMathML = function(delay) {
+              $timeout(function() {
+                if (typeof(MathJax) != "undefined") {
+                  MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                }
+              }, delay ? delay : 0);
+            }
         }
     };
 });

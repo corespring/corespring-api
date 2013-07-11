@@ -1,0 +1,161 @@
+.drag-and-drop-interaction {
+    overflow: hidden;
+}
+.answerContainer {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.prompt {
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    font-family:"Ubuntu", Arial, Helvetica, sans-serif;
+    font: 14px/20px;
+    font-weight: bold;
+    padding: 16px 0 16px 0;
+}
+
+.button-row {
+    width: 100%;
+    height: 50px;
+    margin-top: 6px;
+}
+
+.button-row button {
+    text-transform: uppercase;
+    font-family:"Ubuntu", Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+table.csDraggableTiles {
+    max-width: 540px;
+}
+
+table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td  {
+    border: none;
+    border-collapse: collapse;
+    padding: 0px;
+    vertical-align: top;
+    margin: 10px 0;
+}
+
+.solution-modal {
+    padding: 10px;
+}
+
+.solution-button {
+    margin-left: auto;
+}
+
+.contentElement {
+    background-color: #999;
+    padding: 8px;
+    float: left;
+    margin: 1px 5px 1px 1px;
+    font-size:14px;
+    font-family:"Ubuntu", Arial, Helvetica, sans-serif;
+    background-color: #EFEFEF;
+    text-align: center;
+
+}
+
+.contentElement:hover {
+    margin: 0px 4px 0px 0px;
+    box-shadow: 0px 0px 5px #000;
+    border: 1px solid #333;
+    cursor: hand; cursor: pointer;
+}
+
+.landing {
+    border-radius: 4px;
+    padding: 3px 3px 3px 3px;
+    border: 1px solid #999;
+    margin: 5px;
+    position: relative;
+}
+
+.landing.inline {
+    display: inline-block;
+    margin: 0px 5px -10px 0px;
+}
+
+.landing.squareChoice {
+    border-radius: 0px;
+}
+
+.landing .contentElement {
+    text-align: center;
+}
+
+.landing .contentElement:hover {
+    box-shadow: none;
+}
+
+.contentElement.ui-draggable-dragging {
+}
+
+.landing .contentElement, .solution-modal .contentElement {
+    background: none;
+}
+
+.drop-hover {
+    box-shadow: 0px 0px 5px #000;
+}
+
+.landingLabelHolder {
+    position: relative;
+    top: -10px;
+    width: 100%;
+    text-align: center;
+}
+
+.landingLabel {
+    padding-left: 3px;
+    padding-right: 3px;
+    background-color: #fff
+}
+
+.landing.correct {
+    box-shadow: 0px 0px 5px #95C444;
+    border: 1px solid #95C444;
+}
+
+.landing.incorrect {
+    box-shadow: 0px 0px 5px #F8A31A;
+    border: 1px solid #F8A31A;
+}
+
+.floating-icon.incorrect {
+    display: inline-block;
+    position: absolute;
+    background:url("/assets/images/wrong-icon-tiny.png") no-repeat;
+    width: 25px;
+    height: 21px;
+    top: -9px;
+    right: -14px;
+}
+
+.placeholder {
+    background-color: #800080;
+}
+
+.no-border {
+    border: none;
+    border-collapse: collapse;
+}
+
+.close-button {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    background: url("/assets/images/close.png") no-repeat center center;
+    width: 24px;
+    height: 24px;
+    cursor: hand;
+    cursor: pointer;
+}
+
+.modal-backdrop, .modal-backdrop.fade.in {
+    opacity: 0.3;
+    filter: alpha(opacity=30);
+}

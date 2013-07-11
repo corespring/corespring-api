@@ -1,0 +1,80 @@
+<assessmentItem>
+    <responseDeclaration identifier="alphabet1" cardinality="targeted" baseType="identifier">
+        <correctResponse>
+            <value identifier="target1">
+                <value>ten</value>
+            </value>
+            <value identifier="target2">
+                <value>divide</value>
+            </value>
+            <value identifier="target3">
+                <value>two</value>
+            </value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+        <dragAndDropInteraction responseIdentifier="alphabet1">
+            Complete the equation below:
+
+            <table class="tileTable">
+                <tr>
+                    <td>
+                        <draggableChoice identifier="two" width="100px">2</draggableChoice>
+                    </td>
+                    <td>
+                        <draggableChoice identifier="multiply">x</draggableChoice>
+                    </td>
+                    <td>
+                        <draggableChoice identifier="divide" height="160px">/</draggableChoice>
+                    </td>
+                    <td>
+                        <draggableChoice identifier="ten"><math xmlns="http://www.w3.org/1998/Math/MathML">
+                            <semantics>
+                                <mrow>
+                                    <mfrac>
+                                        <mrow>
+                                            <mn>20</mn>
+                                        </mrow>
+                                        <mrow>
+                                            <mn>2</mn>
+                                        </mrow>
+                                    </mfrac>
+                                    <mi>x</mi>
+                                </mrow>
+                                <annotation encoding="StarMath 5.0">{1} over {2}x</annotation>
+                            </semantics>
+                        </math></draggableChoice>
+                    </td>
+                </tr>
+            </table>
+
+
+            <table>
+                <tr>
+                    <td>
+                        <landingPlace cardinality="single" class="blueTile inline" identifier="target1"></landingPlace>
+                    </td>
+                    <td>
+                        <landingPlace cardinality="single" class="blueTile inline" identifier="target2"></landingPlace>
+                    </td>
+                    <td>
+                        <landingPlace cardinality="single" class="blueTile inline" identifier="target3"></landingPlace>
+                    </td>
+                    <td>
+                        equals 5x
+                    </td>
+                </tr>
+
+
+            </table>
+
+            {{listAnswers}}<br/>
+            {{listTargets}}
+
+
+        </dragAndDropInteraction>
+
+    </itemBody>
+</assessmentItem>
+

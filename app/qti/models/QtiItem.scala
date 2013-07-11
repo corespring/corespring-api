@@ -4,6 +4,8 @@ import interactions._
 import qti.models.QtiItem.Correctness
 import scala.Some
 import scala.xml._
+import common.log.PackageLogging
+import com.codahale.jerkson.Json._
 
 case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline]) {
   var defaultCorrect = "Correct!"
@@ -19,7 +21,7 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
     }
 
 
-  val isQtiValid:(Boolean, Seq[String]) = {
+  val isQtiValid: (Boolean, Seq[String]) = {
     val messages = itemBody.interactions.collect {
       case s => s.validate(this)._2
     }
@@ -111,7 +113,7 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
 
   private def getFeedbackInline(id: String, value: String): Option[FeedbackInline] = {
 
-    itemBody.interactions.find(i => i.isInstanceOf[InteractionWithChoices] &&  i.responseIdentifier == id) match {
+    itemBody.interactions.find(i => i.isInstanceOf[InteractionWithChoices] && i.responseIdentifier == id) match {
       case Some(i) => {
         i.asInstanceOf[InteractionWithChoices].getChoice(value) match {
           case Some(choice) => {
@@ -127,9 +129,17 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
 }
 
 object QtiItem {
-  val interactionModels:Seq[InteractionCompanion[_ <: Interaction]] = Seq(
-    TextEntryInteraction,InlineChoiceInteraction,ChoiceInteraction,OrderInteraction,ExtendedTextInteraction,SelectTextInteraction,FocusTaskInteraction
+  val interactionModels: Seq[InteractionCompanion[_ <: Interaction]] = Seq(
+    TextEntryInteraction,
+    InlineChoiceInteraction,
+    ChoiceInteraction,
+    OrderInteraction,
+    ExtendedTextInteraction,
+    SelectTextInteraction,
+    FocusTaskInteraction,
+    DragAndDropInteraction
   )
+
   /**
    * An enumeration of the possible Correctness of a question
    */
@@ -152,7 +162,7 @@ object QtiItem {
 
   private def createItem(n: Node): QtiItem = {
     val itemBody = ItemBody((n \ "itemBody").head)
- //   val customResponseDeclarations = itemBody.interactions.map(i=>i.getResponseDeclaration.getOrElse(ResponseDeclaration("", "", None, None))).filterNot(_.identifier == "")
+    //   val customResponseDeclarations = itemBody.interactions.map(i=>i.getResponseDeclaration.getOrElse(ResponseDeclaration("", "", None, None))).filterNot(_.identifier == "")
     QtiItem(
       responseDeclarations = (n \ "responseDeclaration").map(ResponseDeclaration(_, itemBody)),
       itemBody = itemBody,
@@ -178,16 +188,19 @@ object QtiItem {
 
 case class ResponseDeclaration(identifier: String, cardinality: String, correctResponse: Option[CorrectResponse], mapping: Option[Mapping]) {
   def isCorrect(responseValues: Seq[String]): Correctness.Value = {
-    isCorrect(responseValues.foldRight[String]("")((response,acc) => if(acc.isEmpty) response else acc+","+response))
+    isCorrect(responseValues.foldRight[String]("")((response, acc) => if (acc.isEmpty) response else acc + "," + response))
   }
+
   def isCorrect(responseValue: String): Correctness.Value = correctResponse match {
     case Some(cr) => if (cr.isCorrect(responseValue)) Correctness.Correct else Correctness.Incorrect
     case None => Correctness.Unknown
   }
+
   def isValueCorrect(value: String, index: Option[Int]): Boolean = correctResponse match {
     case Some(cr) => cr.isValueCorrect(value, index)
     case None => false
   }
+
   def mappedValue(mapKey: String): Float = mapping match {
     case Some(m) => m.mappedValue(mapKey)
     case None => throw new RuntimeException("no mapping for this response declaration")
@@ -238,11 +251,12 @@ object CorrectResponse {
    * @return
    */
   def apply(node: Node, cardinality: String, interaction: Option[Interaction] = None): CorrectResponse = {
-
     if (interaction.isDefined) {
       interaction.get match {
         case TextEntryInteraction(_, _, _) => CorrectResponseAny(node)
         case SelectTextInteraction(_, _, _, _, _, _) => CorrectResponseAny(node)
+        case DragAndDropInteraction(_, _, targets) =>
+          CorrectResponseTargeted(node, targets.filter(_.cardinality == "ordered").map(_.identifier).toSet)
         case _ => CorrectResponse(node, cardinality)
       }
     }
@@ -255,6 +269,7 @@ object CorrectResponse {
     case "single" => CorrectResponseSingle(node)
     case "multiple" => CorrectResponseMultiple(node)
     case "ordered" => CorrectResponseOrdered(node)
+    case "targeted" => CorrectResponseTargeted(node, Set[String]())
     case _ => throw new RuntimeException("unknown cardinality: " + cardinality + ". cannot generate CorrectResponse")
   }
 }
@@ -284,9 +299,9 @@ case class CorrectResponseMultiple(value: Seq[String]) extends CorrectResponse {
     value.sortWith(_ < _) == responseList.sortWith(_ < _)
   }
 
-  def isPartOfCorrect(responseValue: String):Boolean = {
+  def isPartOfCorrect(responseValue: String): Boolean = {
     val responseList = responseValue.split(",").toList
-    responseList.foldLeft(true)((acc,r)=>acc && value.contains(r))
+    responseList.foldLeft(true)((acc, r) => acc && value.contains(r))
   }
 
   def isValueCorrect(v: String, index: Option[Int]) = value.contains(v)
@@ -301,8 +316,10 @@ object CorrectResponseMultiple {
 
 case class CorrectResponseAny(value: Seq[String]) extends CorrectResponse {
   def isCorrect(responseValue: String) = value.find(_ == responseValue).isDefined
+
   def isValueCorrect(v: String, index: Option[Int]) = value.contains(v)
 }
+
 object CorrectResponseAny {
   def apply(node: Node): CorrectResponseAny = CorrectResponseAny((node \ "value").map(_.text))
 }
@@ -325,6 +342,46 @@ object CorrectResponseOrdered {
   def apply(node: Node): CorrectResponseOrdered = CorrectResponseOrdered(
     (node \ "value").map(_.text)
   )
+}
+
+case class CorrectResponseTargeted(value: Map[String, List[String]], orderedTargets: Set[String] = Set()) extends CorrectResponse with PackageLogging {
+  def isCorrect(responseValue: String) = {
+    val responseList = responseValue.split(",").toList
+    val responseMap =
+      responseList.map {
+        el =>
+          val target = el.split(":")(0)
+          val answersArray = el.split(":")(1).split("\\|")
+          val positionMatters = orderedTargets.contains(target)
+          target -> (if (positionMatters) answersArray.toList else answersArray.toSet)
+      }.toMap
+
+
+    val valueMap = value.map { it =>
+      val positionMatters = orderedTargets.contains(it._1)
+      it._1 -> (if (positionMatters) it._2.toList else it._2.toSet)
+    }.toMap
+
+    responseMap == valueMap
+  }
+
+  def isValueCorrect(v: String, index: Option[Int]) = {
+    val parts = v.split(":")
+    val target = parts(0)
+    val positionMatters = orderedTargets.contains(target)
+    val answerList = if (positionMatters) parts(1).split("\\|").toList else parts(1).split("\\|").toSet
+    val correctList = if (positionMatters) value(target) else value(target).toSet
+    answerList == correctList
+  }
+}
+
+object CorrectResponseTargeted {
+  def apply(node: Node, orderedTargets: Set[String]): CorrectResponseTargeted = {
+    CorrectResponseTargeted(
+      (node \ "value").map(e => e.attribute("identifier").get.text -> (e \ "value").map(_.text).toList).toMap,
+      orderedTargets
+    )
+  }
 }
 
 case class Mapping(mapEntries: Map[String, Float], defaultValue: Option[Float]) {
@@ -359,7 +416,6 @@ case class ItemBody(interactions: Seq[Interaction], feedbackBlocks: Seq[Feedback
 
 object ItemBody {
   def apply(node: Node): ItemBody = {
-
     val feedbackBlocks = buildTypes[FeedbackInline](node, Seq(
       ("feedbackBlock", FeedbackInline(_, None))
     ))

@@ -1,8 +1,8 @@
 package tests
 
 import _root_.common.seed.SeedDb
+import _root_.controllers.{S3Service, S3ServiceClient}
 import _root_.models.item.resource.StoredFile
-import controllers.{S3Service, S3ServiceClient}
 import helpers.TestS3Service
 import org.specs2.specification.{Step, Fragments}
 import com.mongodb.casbah.Imports._

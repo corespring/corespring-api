@@ -23,7 +23,6 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.mvc.AnyContentAsJson
 import play.api.mvc.AnyContentAsText
 import play.api.libs.json.JsObject
-import controllers.{S3Service, S3ServiceClient}
 
 
 /**
