@@ -107,7 +107,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
       elem.html(
         [
           getAnswerAreaTemplate(originalHtml),
-          "<div>",
+          "<div class='drag-and-drop-interaction'>",
           QtiUtils.getPromptSpan(originalHtml),
           topButtonRowHtml,
           removePromptNode(originalHtml),

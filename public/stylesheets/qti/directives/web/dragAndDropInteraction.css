@@ -1,3 +1,6 @@
+.drag-and-drop-interaction {
+    overflow: hidden;
+}
 .answerContainer {
     padding-top: 5px;
     padding-bottom: 5px;
@@ -25,7 +28,7 @@
 }
 
 table.csDraggableTiles {
-    max-width: 600px;
+    max-width: 540px;
 }
 
 table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td  {
@@ -33,7 +36,7 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
     border-collapse: collapse;
     padding: 0px;
     vertical-align: top;
-    margin: 10px;
+    margin: 10px 0;
 }
 
 .solution-modal {
