@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <configuration>
     <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel"/>
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">

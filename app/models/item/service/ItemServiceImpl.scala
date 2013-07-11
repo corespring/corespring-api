@@ -29,14 +29,13 @@ import web.controllers.utils.ConfigLoader
 import api.v1.files.{CloneFileResult, ItemFiles}
 import models.itemSession.{DefaultItemSession, ItemSessionCompanion}
 import org.corespring.platform.data.VersioningDao
+import common.config.AppConfig
 
 class ItemServiceImpl(
                        val s3service: S3Service,
                        sessionCompanion : ItemSessionCompanion,
                        val dao : SalatVersioningDao[Item])
   extends ItemService with PackageLogging with ItemFiles{
-
-  val bucket =  ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
   import models.mongoContext.context
 
@@ -124,6 +123,8 @@ class ItemServiceImpl(
     val query = MongoDBObject("itemId" -> dbo )
     sessionCompanion.count(query)
   }
+
+  def bucket: String = AppConfig.assetsBucket
 }
 
 object ItemVersioningDao extends  SalatVersioningDao[Item] {

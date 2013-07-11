@@ -14,6 +14,7 @@ import web.controllers.ObjectIdParser
 import web.controllers.utils.ConfigLoader
 import models.item.service.ItemServiceClient
 import common.log.PackageLogging
+import common.config.AppConfig
 
 
 object AssetResource{
@@ -37,7 +38,6 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemSer
 
   import AssetResource.Errors
 
-  val AMAZON_ASSETS_BUCKET = ConfigLoader.get("AMAZON_ASSETS_BUCKET").get
   protected val ContentType: String = "Content-Type"
 
   def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]]
@@ -100,7 +100,7 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemSer
         Ok(text).withHeaders((ContentType, vFile.contentType))
       }
       case sFile: StoredFile => {
-        s3Service.download(AMAZON_ASSETS_BUCKET, sFile.storageKey, Some(request.headers))
+        s3Service.download(AppConfig.assetsBucket, sFile.storageKey, Some(request.headers))
       }
     }
   }

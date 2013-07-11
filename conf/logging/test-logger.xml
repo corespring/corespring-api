@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <configuration>
     <!--
         The logger in test mode doesn't work. This is a workaround:

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<assessmentItem>
+    <responseDeclaration identifier='alphabet1' cardinality='targeted' baseType='identifier'>
+        <correctResponse>
+            <value identifier='target1'>
+                <value>3</value>
+                <value>6</value>
+            </value>
+            <value identifier='target2'>
+                <value>2</value>
+            </value>
+            <value identifier='target3'>
+                <value>1</value>
+                <value>4</value>
+                <value>5</value>
+            </value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+
+        <p class="intro-2">Introductory text may go here. You may use images and other html formatting in the
+            introduction.
+        </p>
+        <dragAndDropInteraction responseIdentifier='alphabet1'>
+            <prompt>Use this prompt space to introduce the activity.</prompt>
+
+            <draggableChoiceGroup shuffle='true' itemsPerRow='3'>
+                <draggableChoice identifier='1' fixed='true'>Apple
+                    <p/>
+                    <img src="http://cdn1.iconfinder.com/data/icons/X-Mac/education_icons/png/48/teachers_day.png"/>
+                </draggableChoice>
+                <draggableChoice identifier='2' placeholder-class='placeholder'>Poultry</draggableChoice>
+                <draggableChoice identifier='3' fixed='true'>Carrot
+                    <p/>
+                    <img src="http://cdn1.iconfinder.com/data/icons/free-game-icons/48/Carrot.png"/>
+                </draggableChoice>
+                <draggableChoice identifier='4'>Banana</draggableChoice>
+                <draggableChoice identifier='5'>Beef
+                    <p/>
+                    <img src="http://cdn1.iconfinder.com/data/icons/free-retina-icon-set/40/Cow.png"/>
+                </draggableChoice>
+                <draggableChoice identifier='6'>Pepper</draggableChoice>
+            </draggableChoiceGroup>
+
+
+            <answerArea>
+                <p>Put the vegetables in the basket.</p>
+
+                <landingPlace cardinality="multiple" identifier='target1' label='Basket'/>
+                <p/>
+                <p>Drag the ingredient that could also be called 'chicken' in on the spot below.</p>
+                <landingPlace cardinality='single' identifier='target2' label='Ingredient'/>
+                <p>Organize the remaining items in alpabetical order.</p>
+
+                <landingPlace cardinality='ordered' identifier='target3' label='Organize'/>
+            </answerArea>
+        </dragAndDropInteraction>
+
+
+        <feedbackBlock outcomeIdentifier='responses.alphabet1.outcome.responseCorrect' identifier='id2'>
+            <div class='feedback-block-correct'>Your answer is correct!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier='responses.alphabet1.outcome.responseIncorrect' identifier='id3'>
+            <div class='feedback-block-incorrect'>Your answer is incorrect, take a look at the correct answer.</div>
+        </feedbackBlock>
+
+
+    </itemBody>
+</assessmentItem>

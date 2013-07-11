@@ -8,10 +8,15 @@ import models.{User, Organization}
 import org.bson.types.ObjectId
 import play.api.libs.json._
 import play.api.mvc._
-import scala.Left
-import scala.Right
-import scala.Some
+import scala._
 import securesocial.core._
+import models.auth.ApiClient
+import scala.Left
+import play.api.libs.json.JsString
+import play.api.libs.json.JsBoolean
+import scala.Some
+import scala.Right
+import play.api.libs.json.JsObject
 
 object Developer extends Controller with BaseApi{
 
@@ -53,9 +58,11 @@ object Developer extends Controller with BaseApi{
       Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(false))))
     }
   }
+
   def register = Action { request =>
     Redirect("/signup").withSession(request.session + ("securesocial.originalUrl" -> "/developer/home"));
   }
+
   def logout = Action {implicit request =>
     Redirect("/developer/home").withSession(session - SecureSocial.UserKey - SecureSocial.ProviderKey)
   }
@@ -74,39 +81,45 @@ object Developer extends Controller with BaseApi{
       case None => InternalServerError("could not find user...after authentication. something is very wrong")
     }
   }
+
   def createOrganizationForm = SecuredAction{ request =>
     Ok(developer.views.html.org_new(request.user))
   }
-  //TODO requires two phase commit, one part updating the users and the other updating organizations
+
   def createOrganization = SecuredAction{ request =>
-    request.body.asJson match {
-      case Some(json) => {
-        (json \ "id").asOpt[String] match {
-          case Some(id) => BadRequest(Json.toJson(ApiError.IdNotNeeded))
-          case _ => {
-            val name = (json \ "name").asOpt[String]
-            if ( name.isEmpty ) {
-              BadRequest( Json.toJson(ApiError.OrgNameMissing))
-            } else {
-              val optParent:Option[ObjectId] = (json \ "parent_id").asOpt[String].map(new ObjectId(_))
-              val organization = Organization(name.get)
-              Organization.insert(organization,optParent) match {
-                case Right(org) => {
-                  User.getUser(request.user.id) match {
-                    case Some(user) => User.setOrganization(user.id,org.id,Permission.Write) match {
-                      case Right(_) => Ok(Json.toJson(org))
-                      case Left(error) => InternalServerError(Json.toJson(ApiError.UpdateUser(error.clientOutput)))
-                    }
-                    case None => InternalServerError("an error that should never happen happened")
-                  }
-                }
-                case Left(e) => InternalServerError(Json.toJson(ApiError.InsertOrganization(e.clientOutput)))
-              }
-            }
-          }
-        }
+    import scalaz._
+    import Scalaz._
+
+    def makeOrg(json :JsValue) : Option[Organization] =  (json \ "name").asOpt[String].map{ n =>
+      import common.models.json._
+      Organization(n, (json \ "parent_id").asOpt[ObjectId].toList)
+    }
+
+    def makeApiClient(orgId:ObjectId) : Option[ApiClient] = OAuthProvider.createApiClient(orgId) match {
+      case Left(e) => None
+      case Right(c) => Some(c)
+    }
+
+    def setOrg(userId : ObjectId, orgId : ObjectId) : Option[ObjectId] = {
+      User.setOrganization(userId,orgId, Permission.Write) match {
+        case Left(e) => None
+        case _ => Some(userId)
       }
-      case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
+    }
+
+    val validation : Validation[String,(Organization,ApiClient)]= for{
+      user <- User.getUser(request.user.id).toSuccess("Unknown user")
+      okUser <- if(user.hasRegisteredOrg) Failure("Org already registered") else Success(user)
+      json <- request.body.asJson.toSuccess("Json expected")
+      orgToCreate <- makeOrg(json).toSuccess("Couldn't create org")
+      orgId <- Organization.insert(orgToCreate).toSuccess("Couldn't create org")
+      updatedUserId <- setOrg(okUser.id,orgId).toSuccess("Couldn't set org")
+      apiClient <- makeApiClient(orgId).toSuccess("Couldn't create api client")
+    } yield (orgToCreate,apiClient)
+
+    validation match {
+      case Failure(s) => BadRequest(s)
+      case Success((o,c)) => Ok(developer.views.html.org_credentials(c.clientId.toString, c.clientSecret, o.name))
     }
   }
 
@@ -116,7 +129,7 @@ object Developer extends Controller with BaseApi{
         if(user.org.orgId == orgId){
           Organization.findOneById(orgId) match {
             case Some(org) => {
-              OAuthProvider.register(org.id) match {
+              OAuthProvider.createApiClient(org.id) match {
                 case Right(client) => Ok(developer.views.html.org_credentials(client.clientId.toString,client.clientSecret,org.name))
                 case Left(error) => BadRequest(Json.toJson(error))
               }
@@ -136,6 +149,7 @@ object Developer extends Controller with BaseApi{
       case _ => Ok(developer.views.html.registerDone())
     }
   }
+
   def handleSignUp(token:String) = Action { request =>
     MyRegistration.handleSignUp(token)(request)
   }

@@ -94,6 +94,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
 
   private def deleteAllFromBucket(s3:AmazonS3) {
     import scala.collection.JavaConversions._
+    Logger.debug("List object in bucket: " + bucket )
     val summaries : List[S3ObjectSummary] = s3.listObjects(bucket).getObjectSummaries().toList
     val keys = summaries.map( s => new DeleteObjectsRequest.KeyVersion(s.getKey))
     val deleteRequest = new DeleteObjectsRequest(bucket)

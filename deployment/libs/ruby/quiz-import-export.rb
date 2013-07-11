@@ -1,20 +1,25 @@
 require 'fileutils'
 require 'json'
-require_relative 'db'
-require_relative 'mongo_tools'
+require 'mongo-db-utils/version'
+require 'mongo-db-utils/models/db'
+require 'mongo-db-utils/tools/commands'
+
+raise "wrong version" if MongoDbUtils::VERSION != "0.1.1"
+
+include MongoDbUtils::Tools
+
 
 class QuizFileExporter
   def initialize(mongo_uri, ids, out_path)
-    @mongo_uri = mongo_uri
-    @db = Db.from_uri(mongo_uri)
+    @db = MongoDbUtils::Model.db_from_uri(mongo_uri)
     @ids = ids
     @out_path = out_path
   end
 
   def run
-  
+
     puts "running QuizFileExporter..."
-    @ids.each{ |id| 
+    @ids.each{ |id|
       exported_quiz_path = export_quiz(id)
       json = get_json(exported_quiz_path)
       export_item_sessions(id,json)
@@ -22,8 +27,8 @@ class QuizFileExporter
 
   end
 
-  private 
-  
+  private
+
   def export_quiz(id)
     FileUtils.remove_dir(@out_path) if File.exists?(@out_path)
     query = id_query(id)
@@ -35,11 +40,11 @@ class QuizFileExporter
   def export_item_sessions(id, json)
 
     session_ids = []
-    
-    json["participants"].each{ |p| 
+
+    json["participants"].each{ |p|
       puts ">> p: #{p}"
 
-      p["answers"].each{ |a| 
+      p["answers"].each{ |a|
         puts ">>> a: #{a}"
         id = a["sessionId"]["$oid"]
         puts "!! id: #{id}"
@@ -62,7 +67,7 @@ class QuizFileExporter
     JSON.parse(contents)
   end
 
-  
+
   def id_query(id)
     "{ _id : ObjectId(\"#{id}\") }"
   end
@@ -74,17 +79,15 @@ class QuizFileExporter
     query
   end
 
-
   def run_export(coll,query,out,opts = {})
-    MongoTools.export(@db.host,@db.port,@db.name,coll,query,out,@db.username,@db.password, opts)
+    Export.new(@db.to_host_s,@db.name,coll,query,out,@db.username,@db.password, opts).run
   end
 
 end
 
-class QuizFileImporter 
+class QuizFileImporter
   def initialize(mongo_uri, dump_dir)
-    @mongo_uri = mongo_uri
-    @db = Db.from_uri(mongo_uri)
+    @db = MongoDbUtils::Model.db_from_uri(mongo_uri)
     puts "@db: #{@db}"
     @dump_dir = dump_dir
   end
@@ -97,13 +100,14 @@ class QuizFileImporter
     }
   end
 
-  private 
+  private
 
   def import_sessions(json, collection)
-    MongoTools.import(@db.host,@db.port,@db.name,collection,json,@db.username,@db.password, {:json_array => true})
+    Import.new(@db.to_host_s,@db.name,collection,json,@db.username,@db.password, {:json_array => true}).run
   end
 
   def import_quiz(json, collection)
-    MongoTools.import(@db.host,@db.port,@db.name,collection,json,@db.username,@db.password)
+    "db: ---------> #{@db}"
+    Import.new(@db.to_host_s,@db.name,collection,json,@db.username,@db.password).run
   end
 end

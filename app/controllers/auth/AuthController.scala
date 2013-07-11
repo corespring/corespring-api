@@ -71,7 +71,7 @@ object AuthController extends Controller with SecureSocial with ObjectIdParser w
           User.getUser(username) match {
             case Some(user) => if(user.org.orgId == orgId && (user.org.pval&Permission.Write.value) == Permission.Write.value){
               try {
-                OAuthProvider.register(orgId).fold(
+                OAuthProvider.createApiClient(orgId).fold(
                   error => BadRequest(Json.toJson(error)),
                   client => Ok(Json.toJson(Map(OAuthConstants.ClientId -> client.clientId.toString, OAuthConstants.ClientSecret -> client.clientSecret)))
                 )

@@ -34,6 +34,7 @@ class QtiItemTest extends Specification {
     val single = QtiItem(xml("id", "single", <value>1</value>))
     val multiple = QtiItem(xml("id", "multiple", <value>1</value> <value>2</value>))
     val ordered = QtiItem(xml("id", "ordered", <value>1</value> <value>2</value>))
+    val targeted = QtiItem(xml("id", "targeted", <value identifier="id1"><value>apple</value></value> <value identifier="id2"><value>pear</value></value>))
 
     def assertParse(item: QtiItem, t: Class[_]): Boolean = {
       val response = item.responseDeclarations(0).correctResponse.get
@@ -59,6 +60,10 @@ class QtiItemTest extends Specification {
 
     "parse a correct response ordered" in {
       assertParse(ordered, CorrectResponseOrdered.getClass)
+    }
+
+    "parse a correct response targeted" in {
+      assertParse(targeted, CorrectResponseTargeted.getClass)
     }
 
     "parse an inline choice interaction even though its nested" in {
@@ -132,6 +137,8 @@ class QtiItemTest extends Specification {
 
       qti.isCorrectResponseApplicable("1") === false
     }
+
+
   }
 
   "QtiItem iscorrect" should {
@@ -192,6 +199,7 @@ class QtiItemTest extends Specification {
     "find feedback blocks" in {
       QtiItem(feedbackXml).getFeedback("id", "3") must not beNone
     }
+
   }
 
 }
@@ -281,6 +289,54 @@ class CorrectResponseTest extends Specification {
       response.isValueCorrect("B", Some(1)) === true
       response.isValueCorrect("D", Some(1)) === false
     }
+
+    def xml(identifier: String, cardinality: String, values: NodeSeq, interaction: NodeSeq = <none/>): Elem = MockXml.createXml(identifier, cardinality, values, interaction)
+
+    "targeted correctness" in {
+      val item = QtiItem(
+        xml("id", "targeted",
+          <value identifier="target1">
+            <value>apple</value>
+            <value>pear</value>
+            <value>cherry</value>
+            <value>orange</value>
+          </value>
+          <value identifier="target2">
+            <value>cow</value>
+            <value>bear</value>
+            <value>fox</value>
+          </value>
+          <value identifier="target3">
+            <value>apple</value>
+          </value>
+          <value identifier="target4">
+            <value>fox</value>
+          </value>,
+          <dragAndDropInteraction responseIdentifier="id">
+            <draggableChoice identifier="apple">Apple</draggableChoice>
+            <draggableChoice identifier="pear">Pear</draggableChoice>
+            <draggableChoice identifier="cherry">Cherry</draggableChoice>
+            <draggableChoice identifier="orange">Orange</draggableChoice>
+            <draggableChoice identifier="cow">Cow</draggableChoice>
+            <draggableChoice identifier="bear">Bear</draggableChoice>
+            <draggableChoice identifier="fox">Fox</draggableChoice>
+            <landingPlace cardinality="ordered" identifier="target1"></landingPlace>
+            <landingPlace cardinality="multiple" identifier="target2"></landingPlace>
+            <landingPlace cardinality="single" identifier="target3"></landingPlace>
+            <landingPlace cardinality="ordered" identifier="target4"></landingPlace>
+
+          </dragAndDropInteraction>
+      ))
+      val response = item.responseDeclarations(0).correctResponse.get
+      response.isValueCorrect("target1:apple|pear|cherry|orange", None) === true
+      response.isValueCorrect("target1:apple|pear|cherry", None) === false
+      response.isValueCorrect("target1:pear|apple|cherry|orange", None) === false
+      response.isValueCorrect("target2:cow|bear|fox", None) === true
+      response.isValueCorrect("target2:fox|bear|cow", None) === true
+      response.isCorrect("target1:apple|pear|cherry|orange,target2:fox|bear|cow,target3:apple,target4:fox") mustEqual true
+      response.isCorrect("target1:pear|apple|cherry|orange,target2:cow|bear|fox,target3:apple,target4:fox") mustEqual false
+    }
+
 
   }
 }

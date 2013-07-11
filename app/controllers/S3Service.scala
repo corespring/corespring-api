@@ -15,6 +15,7 @@ import play.api.libs.iteratee.{Input, Done, Enumerator, Iteratee}
 import play.api.libs.json.Json
 import play.api.mvc._
 import web.controllers.utils.ConfigLoader
+import common.config.AppConfig
 
 trait S3ServiceClient {
   def s3Service : S3Service
@@ -24,7 +25,6 @@ trait S3Service {
   case class S3DeleteResponse(success: Boolean, key: String, msg: String = "")
   def download(bucket: String, fullKey: String, headers: Option[Headers] = None): Result
   def s3upload(bucket: String, keyName: String): BodyParser[Int]
-  def s3download(bucket: String, itemId: String, keyName: String): Result
   def delete(bucket: String, keyName: String): S3DeleteResponse
   def cloneFile(bucket: String, keyName: String, newKeyName:String)
   def online:Boolean
@@ -33,10 +33,9 @@ trait S3Service {
 
 object ConcreteS3Service extends S3Service with PackageLogging {
 
-  def bucket = ConfigLoader.get("AMAZON_ASSETS_BUCKET").get
+  def bucket = AppConfig.assetsBucket
 
   private var optS3: Option[AmazonS3Client] = None
-
 
   def getAmazonClient : Option[AmazonS3Client] = optS3
 
@@ -88,10 +87,6 @@ object ConcreteS3Service extends S3Service with PackageLogging {
       }
   }
 
-  /**
-   * @return
-   */
-  override def s3download(bucket: String, itemId: String, keyName: String): Result = download(bucket, itemId + "/" + keyName)
 
   def download(bucket: String, fullKey: String, headers: Option[Headers] = None): Result = {
     Logger.debug("downloading: "+fullKey)

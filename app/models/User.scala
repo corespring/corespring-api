@@ -39,7 +39,6 @@ object User extends ModelCompanion[User, ObjectId] with Searchable {
   val org = "org"
   val password = "password"
   val provider = "provider"
-  val hasRegisteredOrg = "hasRegisteredOrg";
 
   val collection = mongoCollection("users")
   val dao = new SalatDAO[User, ObjectId](collection = collection) {}
@@ -139,19 +138,6 @@ object User extends ModelCompanion[User, ObjectId] with Searchable {
     c.close();
     returnValue
   }
-
-//  def removeOrganization(userId: ObjectId, orgId: ObjectId): Either[InternalError, Unit] = {
-//    User.findOneById(userId) match {
-//      case Some(user) => try {
-//        user.org = user.org.filter(_.orgId != orgId)
-//        User.update(MongoDBObject("_id" -> userId), user, false, false, User.defaultWriteConcern)
-//        Right(())
-//      } catch {
-//        case e: SalatDAOUpdateError => Left(InternalError(e.getMessage))
-//      }
-//      case None => Left(InternalError("could not find user"))
-//    }
-//  }
 
   def getPermissions(username: String, orgId: ObjectId): Either[InternalError, Permission] = {
     User.findOne(MongoDBObject(User.userName -> username, "org.orgId" -> orgId)) match {

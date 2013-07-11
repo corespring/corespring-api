@@ -13,10 +13,9 @@ import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc._
 import scala.Some
+import common.config.AppConfig
 
 class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
-
-  private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
 
   private val USE_ITEM_DATA_KEY: String = "__!data!__"
 
@@ -92,7 +91,7 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
       case Some(f) => {
         resource.files = resource.files.filterNot(_.name == filename)
         f match {
-          case StoredFile(_,_,_,key) => s3service.delete(AMAZON_ASSETS_BUCKET,key)
+          case StoredFile(_,_,_,key) => s3service.delete(AppConfig.assetsBucket,key)
           case _ => //do nothing
         }
         service.save(item)
@@ -299,7 +298,7 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
     if(itemId.contains(":")){
       (itemId.split(":") ++ keys).mkString("/")
     } else {
-      (itemId ++ keys).mkString("/")
+      (List(itemId) ++ keys).mkString("/")
     }
   }
 
@@ -313,7 +312,7 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
     HasItem(
       itemId,
       Seq(editCheck(),isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_,_)),
-      s3service.s3upload(AMAZON_ASSETS_BUCKET, key(itemId, DATA_PATH, filename)))(
+      s3service.s3upload(AppConfig.assetsBucket, key(itemId, DATA_PATH, filename)))(
     {
       request =>
 
@@ -352,7 +351,7 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
         canFindResource(materialName)(_,_),
         isFilenameTaken(filename, materialName)(_,_)
       ),
-      s3service.s3upload(AMAZON_ASSETS_BUCKET, storageKey(itemId, materialName, filename)))(
+      s3service.s3upload(AppConfig.assetsBucket, storageKey(itemId, materialName, filename)))(
     {
       request =>
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
@@ -377,7 +376,7 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
 
   def createSupportingMaterialWithFile(itemId: String, name: String, filename: String) = {
     val s3Key = storageKey(itemId, name, filename)
-    HasItem(itemId,Seq(editCheck()), s3service.s3upload(AMAZON_ASSETS_BUCKET, s3Key))(
+    HasItem(itemId,Seq(editCheck()), s3service.s3upload(AppConfig.assetsBucket, s3Key))(
     {
       request =>
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
