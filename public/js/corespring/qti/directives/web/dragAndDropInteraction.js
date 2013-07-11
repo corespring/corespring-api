@@ -13,7 +13,6 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
       $scope.contentMap = {};
       $scope.dragging = {};
       $scope.canDrag = true;
-      $scope.orderMatters = $attrs.ordermatters == "true";
       $scope.maxWidth = 50;
       $scope.maxHeight = 20;
       $scope.stateStack = [];
@@ -283,7 +282,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
     replace: true,
     scope: true,
     compile: function (el, attrs) {
-      var isMultiple = attrs.cardinality == 'multiple';
+      var isMultiple = attrs.cardinality == 'multiple' ||  attrs.cardinality == 'ordered';
       var expandHorizontally = attrs.expand == 'horizontal';
       var style = expandHorizontally ? "min-height: {{maxHeight}}px; min-width: {{width}}px" : "min-height: {{maxHeight}}px; width: {{width}}px";
 
@@ -293,7 +292,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
         [
           '<div style="'+style+'" class="landing {{correctClass}} '+attrs['class']+'" data-drop="true" ng-model="listTargets[targetIndex]"',
           'jqyoui-droppable="{onDrop: \'dropCallback\', multiple: true}" data-jqyoui-options="{hoverClass: \'drop-hover\'}">',
-          '<div class="landingLabelHolder">',
+          '<div class="landingLabelHolder" ng-show="label">',
           ' <span class="landingLabel" style="">{{label}}</span>',
           '</div>',
           ' <div ng-repeat="item in listTargets[targetIndex]" class="contentElement"',
@@ -307,7 +306,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
         [
           '<div class="landing {{correctClass}} '+attrs['class']+'" style="'+style+'" data-drop="true" ng-model="listTargets" ',
           'jqyoui-droppable="{index: {{targetIndex}}, onDrop: \'dropCallback\', multiple: false}" data-jqyoui-options="{hoverClass: \'drop-hover\'}">',
-          '<div class="landingLabelHolder">',
+          '<div class="landingLabelHolder"  ng-show="label">',
           ' <span class="landingLabel" style="">{{label}}</span>',
           '</div>',
           ' <div class="contentElement"',
@@ -322,7 +321,8 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
       el.html(template);
 
       return function ($scope, el, attrs) {
-        $scope.isMultiple = attrs.cardinality == 'multiple';
+        $scope.isMultiple = attrs.cardinality == 'multiple' ||  attrs.cardinality == 'ordered';
+        $scope.isOrdered = attrs.cardinality == 'ordered';
         var defaultWidth = $scope.isMultiple ? "200" : "50";
         $scope.width = defaultWidth;
 
@@ -390,7 +390,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
             return s1 == attrs.identifier;
           });
           ourResponseForTarget = ourResponseForTarget ? ourResponseForTarget.split(":")[1].split("|") : "";
-          var isCorrect = $scope.orderMatters ? QtiUtils.compareArrays(correctResponseForTarget, ourResponseForTarget) : QtiUtils.compareArraysIgnoringOrder(correctResponseForTarget, ourResponseForTarget);
+          var isCorrect = $scope.isOrdered ? QtiUtils.compareArrays(correctResponseForTarget, ourResponseForTarget) : QtiUtils.compareArraysIgnoringOrder(correctResponseForTarget, ourResponseForTarget);
           $scope.correctClass = isCorrect ? "correct" : "incorrect";
           setTimeout(function () {
             $(el).find('.contentElement').width($scope.maxWidth);
@@ -422,7 +422,7 @@ angular.module('qti.directives').directive("landingsolution", function (QtiUtils
       el.html(template);
 
       return function ($scope, el, attrs) {
-        $scope.isMultiple = attrs.cardinality == 'multiple';
+        $scope.isMultiple = attrs.cardinality == 'multiple' || attrs.cardinality == 'ordered';
         $scope.items = [];
 
         $scope.$watch("maxWidth", function () {
