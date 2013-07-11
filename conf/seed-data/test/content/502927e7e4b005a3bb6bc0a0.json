@@ -1,65 +1,74 @@
 {
-	"_id" : {
-		"$oid" : "502927e7e4b005a3bb6bc0a0"
-	},
-	"collectionId" : "505777f5e4b05f7845735bc1",
-	"contentType" : "item",
-	"contributorDetails" : {
-		"contributor" : "New York State Education Department",
-		"credentials" : "State Department of Education",
-		"copyright" : {
-			"owner" : "New York State Education Department",
-			"year" : "2012",
-			"imageName" : "nysed.png"
-		},
-		"author" : "New York State Education Department",
-		"sourceUrl" : "www.p12.nysed.gov/apda/common-core-sample-questions",
-		"licenseType" : "CC BY"
-	},
-	"published":false,
-	"data" : {
-		"name" : "data",
-		"files" : [
-			{
-				"_t" : "models.item.resource.VirtualFile",
-				"name" : "qti.xml",
-				"contentType" : "text/xml",
-				"isMain" : true,
-				"content" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"string\"/>\n\n<itemBody>\n\n<p class=\"intro-2\">Read the passages and respond to the question below.</p>\n\n<cs-tabs>\n<cs-tab title=\"Demosthenes \">\n\n\n<resource \n    type=\"passage\"\n    title=\"Demosthenes \"\n    copyrightOwner=\"John Haaren\"\n    licenseType=\"CC BY\"\n\turl=\"http://www.books.google.com\"\n\t/>\n\n<h1 class=\"para-center\" >Demosthenes</h1>\n<center class=\"passage-author\">by John Haaren</center>\n\n<div class=\"numbered-lines\">\n\n\n<line>In the city of Athens about twenty-five years after the Peloponnesian War \nthere lived a delicate boy named Demosthenes. His father was a manufacturer of \nswords and made a great deal of money. But when Demosthenes was only seven \nyears old his father died. Guardians had charge of his property for ten years. They \n robbed the boy of part of his fortune and managed the rest so badly that \nDemosthenes could not go to school to the best teachers in Athens because he had \nnot money enough to pay them. </line>\n<line>One day, when he was sixteen years old, a great trial was going on at Athens \nand he strolled into the court. There were fifteen hundred and one dicasts or, as we \n call them, jurymen in their seats, and the court was crowded with citizens who, like \nDemosthenes, had gone in from curiosity. A lawyer named Callistratus was \nspeaking. He did not finish his speech for nearly four hours. But no one left the court \nuntil he ceased to speak. Then hundreds of people went out and hurried home. \nDemosthenes waited to see the end. When each of the jurymen had thrown a voting \n pebble into a basket the clerk of the court counted the pebbles and told the result. \nCallistratus had won the case. </line>\n<line>Demosthenes went home determined to become a lawyer and public \nspeaker. In one year from that time he brought suit against his guardians, delivered \nfour orations against them and won his case. He recovered a large part of the \n property which his father had left to his mother and himself. </line>\n<line>After this he entered public life, but the first time he made a speech in the \npublic assembly it was a complete failure. He stammered and could not speak loud \nenough, and in trying to do so he made odd faces.</line>\n<line>People laughed at him, and even his friends told him that he never could be a \n speaker, so he went home greatly cast down. </line>\n<line>Then an actor who was a great friend of his family went to see him and \nencouraged him. He asked Demosthenes to read to him some passages of poetry. \nThen the actor recited the same passages. The verses now seemed to have new \nmeaning and beauty. The actor pronounced the words as if he felt them. The tones of \n his voice were clear and pleasant and his gestures were graceful. Demosthenes was\ncharmed.</line>\n<line>“You can learn to speak just as well as I do,” said the actor, “if you are willing \nto work patiently. Do not be discouraged, but conquer your difficulties.”</line>\n<line>“I will,” said Demosthenes. And he did. </line>\n<line>>It is said that to improve his voice he spoke with stones in his mouth, and to \nbecome accustomed to the noise amid confusion of the public assembly he went to \nthe seashore and recited there amid the roar of the waves. To overcome his habit of \nlifting one shoulder above the other he suspended a sword so that the point would \nprick his shoulder as he raised it. </line>\n<line>He built an underground room in which he could study without interruption \nand practice speaking without disturbing anyone. He had one side of his head \nshaved so that he would be ashamed to leave this retreat. Then he remained there \nfor months at a time engaged in study. One thing that he did while there was to copy \neight times the speeches in the famous history of Thucydides. This was to teach him \n to use the most fitting language. Besides all this he took lessons of an excellent \nspeaker named Iosm’us who taught declamation. In this way the awkward boy who \nhad been laughed out of the assembly became in time the greatest orator of Athens. \nNot only was Demosthenes a graceful orator, but he was wise and patriotic. He soon \nacquired great influence in Athens and became one of the ten official orators. </line>\n\n</div>\n<div class=\"note-tip\">www.books.google.com</div>\n\n    \n</cs-tab>\n\n<cs-tab title=\"Icarus and Daedalus\">\n\n\n\n<resource \n    type=\"passage\"\n    title=\"Icarus and Daedalus\"\n    copyrightOwner=\"Josephine Preston Peabody\"\n    licenseType=\"CC BY\"\n\turl=\"http://www.books.google.com\"\n\t/>\n\n<h1 class=\"para-center\" >Icarus and Daedalus</h1>\n<center class=\"passage-author\">by Josephine Preston Peabody</center>\n\n<div class=\"numbered-lines\">\n\n<line>Among all those mortals who grew so wise that they learned the secrets of\nthe gods, none was more cunning than Daedalus.</line>\n<line>He once built, for King Minos of Crete, a wonderful Labyrinth of winding \nways so cunningly tangled up and twisted around that, once inside, you could never \n find your way out again without a magic clue. But the king’s favor veered with the \nwind, and one day he had his master architect imprisoned in a tower. Daedalus \nmanaged to escape from his cell; but it seemed impossible to leave the island, since \nevery ship that came or went was well guarded by order of the king.</line>\n<line>At length, watching the sea-gulls in the air—the only creatures that were \n sure of liberty—he thought of a plan for himself and his young son Icarus, who was \ncaptive with him.</line>\n<line>Little by little, he gathered a store of feathers great and small. He fastened \nthese together with thread, molded them in with wax, and so fashioned two great \nwings like those of a bird. When they were done, Daedalus fitted them to his own \n shoulders, and after one or two efforts, he found that by waving his arms he could \n<b>winnow</b> the air and <b>cleave</b> it, as a swimmer does the sea. He held himself aloft, \nwavered this way and that, with the wind, and at last, like a great fledgling, he \nlearned to fly.</line>\n<line>Without delay, he fell to work on a pair of wings for the boy Icarus, and \n taught him carefully how to use them, bidding him beware of rash adventures \namong the stars. “Remember,” said the father, “never to fly very low or very high, for \nthe fogs about the earth would weigh you down, but the blaze of the sun will surely \nmelt your feathers apart if you go too near.”</line>\n<line>For Icarus, these cautions went in at one ear and out by the other. Who could \n remember to be careful when he was to fly for the first time? Are birds careful? Not \nthey! And not an idea remained in the boy’s head but the one joy of escape.</line>\n<line>The day came, and the fair wind that was to set them free. The father bird put \non his wings, and, while the light urged them to be gone, he waited to see that all \nwas well with Icarus, for the two could not fly hand in hand. Up they rose, the boy \n after his father. The hateful ground of Crete sank beneath them; and the country \nfolk, who caught a glimpse of them when they were high above the tree-tops, took it \nfor a vision of the gods—Apollo, perhaps, with Cupid after him.</line>\n<line>At first there was a terror in the joy. The wide vacancy of the air dazed \nthem—a glance downward made their brains reel. But when a great wind filled their \n wings, and Icarus felt himself sustained, like a halcyon-bird in the hollow of a wave, \nlike a child uplifted by his mother, he forgot everything in the world but joy. He \nforgot Crete and the other islands that he had passed over: he saw but vaguely that Grade 6 ELA 18 Common Core Sample Questions\nwinged thing in the distance before him that was his father Daedalus. He longed for \none <b>draught</b> of flight to quench the thirst of his captivity: he stretched out his arms \n to the sky and made towards the highest heavens.</line>\n<line>Alas for him! Warmer and warmer grew the air. Those arms, that had seemed \nto uphold him, relaxed. His wings wavered, drooped. He fluttered his young hands \nvainly—he was falling—and in that terror he remembered. The heat of the sun had \nmelted the wax from his wings; the feathers were falling, one by one, like \n snowflakes; and there was none to help.</line>\n<line>He fell like a leaf tossed down the wind, down, down, with one cry that \novertook Daedalus far away. When he returned, and sought high and low for the \npoor boy, he saw nothing but the bird-like feathers afloat on the water, and he knew \nthat Icarus was drowned.</line>\n<line>The nearest island he named Icaria, in memory of the child; but he, in heavy \ngrief, went to the temple of Apollo in Sicily, and there hung up his wings as an \noffering. Never again did he attempt to fly.</line>\n\n</div>\n\n<div class=\"note-tip\">www.books.google.com</div>\n\n</cs-tab>\n</cs-tabs>\n\n\n<hr class=\"element-seperator\"/>\n\n\n<p class=\"prompt\">In both the <i>Demosthenes</i> biography and the <i>Icarus and Daedalus</i> myth the \nmain characters exhibit determination in pursuit of their goals. Did \ndetermination help both  main  characters reach their goals, or  did it  lead \nthem to tragedy? Write an argument for whether you believe determination \nhelped or hurt the two main characters. </p>\n    <p>In your response, be sure to do the following:\n    <ul>\n    <li>describe how determination affected the outcome in <i>Demosthenes</i></li>\n    <li>describe how determination affected the outcome in <i>Icarus and Daedalus</i></li>\n    <li>explain the similarities or differences that exist in the ways determination \nplayed into the outcome of both texts</li>\n    <li>use details from both passages in your response</li>\n    </ul></p>\n<extendedTextInteraction responseIdentifier=\"Q_01\" expectedLength=\"200\" expectedLines=\"15\" />\n\n\n    </itemBody>\n</assessmentItem>\n\n\n\n\n"
-			}
-		]
-	},
-	"keySkills" : [ ],
-	"priorGradeLevel" : [ ],
-	"priorUse" : "Formative",
-	"reviewsPassed" : [
-		"Editorial"
-	],
-	"standards" : [
-		"W.6.9b",
-		"W.6.9a",
-		"W.6.4",
-		"W.6.8",
-		"W.6.1",
-		"RL.6.9"
-	],
-	"supportingMaterials" : [ ],
-	"workflow" : {
-		"setup" : false,
-		"tagged" : false,
-		"standardsAligned" : false,
-		"qaReview" : false
-	},
-	"taskInfo" : {
-		"subjects" : {
-			"primary" : {
-				"$oid" : "4ffb535f6bb41e469c0bf2ad"
-			}
-		},
-		"gradeLevel" : [
-			"06"
-		],
-	    "itemType" : "Text with Questions",
-		"title" : "Read <i>Demosthenes</i> by John Haaren and the myth <i>Icarus and Daedalus</i> by Josephine Preston Peabody and develop an argument that answers the question: <i>Did determination help both main characters reach their goals, or  did it  lead them to tragedy?</i>."
-	}
+  "_id": {
+    "_id": {
+      "$oid": "502927e7e4b005a3bb6bc0a0"
+    },
+    "version": 0
+  },
+  "collectionId": "505777f5e4b05f7845735bc1",
+  "contentType": "item",
+  "contributorDetails": {
+    "contributor": "New York State Education Department",
+    "credentials": "State Department of Education",
+    "copyright": {
+      "owner": "New York State Education Department",
+      "year": "2012",
+      "imageName": "nysed.png"
+    },
+    "author": "New York State Education Department",
+    "sourceUrl": "www.p12.nysed.gov/apda/common-core-sample-questions",
+    "licenseType": "CC BY"
+  },
+  "published": false,
+  "data": {
+    "name": "data",
+    "files": [
+      {
+        "_t": "models.item.resource.VirtualFile",
+        "name": "qti.xml",
+        "contentType": "text/xml",
+        "isMain": true,
+        "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"string\"/>\n\n<itemBody>\n\n<p class=\"intro-2\">Read the passages and respond to the question below.</p>\n\n<cs-tabs>\n<cs-tab title=\"Demosthenes \">\n\n\n<resource \n    type=\"passage\"\n    title=\"Demosthenes \"\n    copyrightOwner=\"John Haaren\"\n    licenseType=\"CC BY\"\n\turl=\"http://www.books.google.com\"\n\t/>\n\n<h1 class=\"para-center\" >Demosthenes</h1>\n<center class=\"passage-author\">by John Haaren</center>\n\n<div class=\"numbered-lines\">\n\n\n<line>In the city of Athens about twenty-five years after the Peloponnesian War \nthere lived a delicate boy named Demosthenes. His father was a manufacturer of \nswords and made a great deal of money. But when Demosthenes was only seven \nyears old his father died. Guardians had charge of his property for ten years. They \n robbed the boy of part of his fortune and managed the rest so badly that \nDemosthenes could not go to school to the best teachers in Athens because he had \nnot money enough to pay them. </line>\n<line>One day, when he was sixteen years old, a great trial was going on at Athens \nand he strolled into the court. There were fifteen hundred and one dicasts or, as we \n call them, jurymen in their seats, and the court was crowded with citizens who, like \nDemosthenes, had gone in from curiosity. A lawyer named Callistratus was \nspeaking. He did not finish his speech for nearly four hours. But no one left the court \nuntil he ceased to speak. Then hundreds of people went out and hurried home. \nDemosthenes waited to see the end. When each of the jurymen had thrown a voting \n pebble into a basket the clerk of the court counted the pebbles and told the result. \nCallistratus had won the case. </line>\n<line>Demosthenes went home determined to become a lawyer and public \nspeaker. In one year from that time he brought suit against his guardians, delivered \nfour orations against them and won his case. He recovered a large part of the \n property which his father had left to his mother and himself. </line>\n<line>After this he entered public life, but the first time he made a speech in the \npublic assembly it was a complete failure. He stammered and could not speak loud \nenough, and in trying to do so he made odd faces.</line>\n<line>People laughed at him, and even his friends told him that he never could be a \n speaker, so he went home greatly cast down. </line>\n<line>Then an actor who was a great friend of his family went to see him and \nencouraged him. He asked Demosthenes to read to him some passages of poetry. \nThen the actor recited the same passages. The verses now seemed to have new \nmeaning and beauty. The actor pronounced the words as if he felt them. The tones of \n his voice were clear and pleasant and his gestures were graceful. Demosthenes was\ncharmed.</line>\n<line>“You can learn to speak just as well as I do,” said the actor, “if you are willing \nto work patiently. Do not be discouraged, but conquer your difficulties.”</line>\n<line>“I will,” said Demosthenes. And he did. </line>\n<line>>It is said that to improve his voice he spoke with stones in his mouth, and to \nbecome accustomed to the noise amid confusion of the public assembly he went to \nthe seashore and recited there amid the roar of the waves. To overcome his habit of \nlifting one shoulder above the other he suspended a sword so that the point would \nprick his shoulder as he raised it. </line>\n<line>He built an underground room in which he could study without interruption \nand practice speaking without disturbing anyone. He had one side of his head \nshaved so that he would be ashamed to leave this retreat. Then he remained there \nfor months at a time engaged in study. One thing that he did while there was to copy \neight times the speeches in the famous history of Thucydides. This was to teach him \n to use the most fitting language. Besides all this he took lessons of an excellent \nspeaker named Iosm’us who taught declamation. In this way the awkward boy who \nhad been laughed out of the assembly became in time the greatest orator of Athens. \nNot only was Demosthenes a graceful orator, but he was wise and patriotic. He soon \nacquired great influence in Athens and became one of the ten official orators. </line>\n\n</div>\n<div class=\"note-tip\">www.books.google.com</div>\n\n    \n</cs-tab>\n\n<cs-tab title=\"Icarus and Daedalus\">\n\n\n\n<resource \n    type=\"passage\"\n    title=\"Icarus and Daedalus\"\n    copyrightOwner=\"Josephine Preston Peabody\"\n    licenseType=\"CC BY\"\n\turl=\"http://www.books.google.com\"\n\t/>\n\n<h1 class=\"para-center\" >Icarus and Daedalus</h1>\n<center class=\"passage-author\">by Josephine Preston Peabody</center>\n\n<div class=\"numbered-lines\">\n\n<line>Among all those mortals who grew so wise that they learned the secrets of\nthe gods, none was more cunning than Daedalus.</line>\n<line>He once built, for King Minos of Crete, a wonderful Labyrinth of winding \nways so cunningly tangled up and twisted around that, once inside, you could never \n find your way out again without a magic clue. But the king’s favor veered with the \nwind, and one day he had his master architect imprisoned in a tower. Daedalus \nmanaged to escape from his cell; but it seemed impossible to leave the island, since \nevery ship that came or went was well guarded by order of the king.</line>\n<line>At length, watching the sea-gulls in the air—the only creatures that were \n sure of liberty—he thought of a plan for himself and his young son Icarus, who was \ncaptive with him.</line>\n<line>Little by little, he gathered a store of feathers great and small. He fastened \nthese together with thread, molded them in with wax, and so fashioned two great \nwings like those of a bird. When they were done, Daedalus fitted them to his own \n shoulders, and after one or two efforts, he found that by waving his arms he could \n<b>winnow</b> the air and <b>cleave</b> it, as a swimmer does the sea. He held himself aloft, \nwavered this way and that, with the wind, and at last, like a great fledgling, he \nlearned to fly.</line>\n<line>Without delay, he fell to work on a pair of wings for the boy Icarus, and \n taught him carefully how to use them, bidding him beware of rash adventures \namong the stars. “Remember,” said the father, “never to fly very low or very high, for \nthe fogs about the earth would weigh you down, but the blaze of the sun will surely \nmelt your feathers apart if you go too near.”</line>\n<line>For Icarus, these cautions went in at one ear and out by the other. Who could \n remember to be careful when he was to fly for the first time? Are birds careful? Not \nthey! And not an idea remained in the boy’s head but the one joy of escape.</line>\n<line>The day came, and the fair wind that was to set them free. The father bird put \non his wings, and, while the light urged them to be gone, he waited to see that all \nwas well with Icarus, for the two could not fly hand in hand. Up they rose, the boy \n after his father. The hateful ground of Crete sank beneath them; and the country \nfolk, who caught a glimpse of them when they were high above the tree-tops, took it \nfor a vision of the gods—Apollo, perhaps, with Cupid after him.</line>\n<line>At first there was a terror in the joy. The wide vacancy of the air dazed \nthem—a glance downward made their brains reel. But when a great wind filled their \n wings, and Icarus felt himself sustained, like a halcyon-bird in the hollow of a wave, \nlike a child uplifted by his mother, he forgot everything in the world but joy. He \nforgot Crete and the other islands that he had passed over: he saw but vaguely that Grade 6 ELA 18 Common Core Sample Questions\nwinged thing in the distance before him that was his father Daedalus. He longed for \none <b>draught</b> of flight to quench the thirst of his captivity: he stretched out his arms \n to the sky and made towards the highest heavens.</line>\n<line>Alas for him! Warmer and warmer grew the air. Those arms, that had seemed \nto uphold him, relaxed. His wings wavered, drooped. He fluttered his young hands \nvainly—he was falling—and in that terror he remembered. The heat of the sun had \nmelted the wax from his wings; the feathers were falling, one by one, like \n snowflakes; and there was none to help.</line>\n<line>He fell like a leaf tossed down the wind, down, down, with one cry that \novertook Daedalus far away. When he returned, and sought high and low for the \npoor boy, he saw nothing but the bird-like feathers afloat on the water, and he knew \nthat Icarus was drowned.</line>\n<line>The nearest island he named Icaria, in memory of the child; but he, in heavy \ngrief, went to the temple of Apollo in Sicily, and there hung up his wings as an \noffering. Never again did he attempt to fly.</line>\n\n</div>\n\n<div class=\"note-tip\">www.books.google.com</div>\n\n</cs-tab>\n</cs-tabs>\n\n\n<hr class=\"element-seperator\"/>\n\n\n<p class=\"prompt\">In both the <i>Demosthenes</i> biography and the <i>Icarus and Daedalus</i> myth the \nmain characters exhibit determination in pursuit of their goals. Did \ndetermination help both  main  characters reach their goals, or  did it  lead \nthem to tragedy? Write an argument for whether you believe determination \nhelped or hurt the two main characters. </p>\n    <p>In your response, be sure to do the following:\n    <ul>\n    <li>describe how determination affected the outcome in <i>Demosthenes</i></li>\n    <li>describe how determination affected the outcome in <i>Icarus and Daedalus</i></li>\n    <li>explain the similarities or differences that exist in the ways determination \nplayed into the outcome of both texts</li>\n    <li>use details from both passages in your response</li>\n    </ul></p>\n<extendedTextInteraction responseIdentifier=\"Q_01\" expectedLength=\"200\" expectedLines=\"15\" />\n\n\n    </itemBody>\n</assessmentItem>\n\n\n\n\n"
+      }
+    ]
+  },
+  "keySkills": [
+
+  ],
+  "priorGradeLevel": [
+
+  ],
+  "priorUse": "Formative",
+  "reviewsPassed": [
+    "Editorial"
+  ],
+  "standards": [
+    "W.6.9b",
+    "W.6.9a",
+    "W.6.4",
+    "W.6.8",
+    "W.6.1",
+    "RL.6.9"
+  ],
+  "supportingMaterials": [
+
+  ],
+  "workflow": {
+    "setup": false,
+    "tagged": false,
+    "standardsAligned": false,
+    "qaReview": false
+  },
+  "taskInfo": {
+    "subjects": {
+      "primary": {
+        "$oid": "4ffb535f6bb41e469c0bf2ad"
+      }
+    },
+    "gradeLevel": [
+      "06"
+    ],
+    "itemType": "Text with Questions",
+    "title": "Read <i>Demosthenes</i> by John Haaren and the myth <i>Icarus and Daedalus</i> by Josephine Preston Peabody and develop an argument that answers the question: <i>Did determination help both main characters reach their goals, or  did it  lead them to tragedy?</i>."
+  }
 }

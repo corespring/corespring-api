@@ -1,15 +1,14 @@
 package tests.models.itemSession
 
-import org.specs2.mutable.Specification
-import qti.models._
 import models.itemSession._
 import org.bson.types.ObjectId
-import tests.{BaseTest, PlaySingleton}
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
-import utils.MockXml
-import models.itemSession.StringItemResponse
-import scala.Some
 import play.api.libs.json.Json._
+import qti.models._
+import scala.Some
+import tests.BaseTest
+import utils.MockXml
 
 class SessionDataTest extends BaseTest {
 
@@ -17,7 +16,7 @@ class SessionDataTest extends BaseTest {
 
   def createEmptyQti = QtiItem(Seq(), createEmptyItemBody, Seq())
 
-  def createSession = ItemSession(new ObjectId())
+  def createSession = ItemSession(VersionedId(new ObjectId()))
 
   def singleResponseDeclaration(id: String = "questionOne", value: String = "value"): Seq[ResponseDeclaration] = Seq(
     ResponseDeclaration(
@@ -255,7 +254,7 @@ class SessionDataTest extends BaseTest {
       val correctResponse = StringItemResponse("manOnMoon", "armstrong")
       val incorrectResponse = StringItemResponse("manOnMoon", "aldrin")
 
-      val session = ItemSession(itemId = new ObjectId(), responses = Seq(correctResponse, incorrectResponse))
+      val session = ItemSession(itemId = VersionedId(new ObjectId()), responses = Seq(correctResponse, incorrectResponse))
       session.settings.showFeedback = true
       val data : SessionData = SessionData(qtiItem, session)
       data.feedbackContents.size === 2

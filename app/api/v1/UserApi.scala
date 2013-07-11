@@ -27,8 +27,7 @@ object UserApi extends BaseApi {
    * @return
    */
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, optsort:Option[String]) = ApiActionRead { request =>
-    val orgIds:Seq[ObjectId] = Organization.getTree(request.ctx.organization).map(_.id)
-    val initSearch = MongoDBObject(User.orgs + "." + UserOrg.orgId -> MongoDBObject("$in" -> orgIds))
+
     def applySort(users:SalatMongoCursor[User]):Result = {
       optsort.map(User.toSortObj(_)) match {
         case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(users.sort(sort).skip(sk).limit(l))))
@@ -36,7 +35,11 @@ object UserApi extends BaseApi {
         case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
       }
     }
-    q.map(User.toSearchObj(_,Some(initSearch))).getOrElse[Either[SearchCancelled,MongoDBObject]](Right(initSearch)) match {
+
+    val orgIds:Seq[ObjectId] = Organization.getTree(request.ctx.organization).map(_.id)
+    val query = User.Dbo.orgIdIn(orgIds : _* )
+
+    q.map(User.toSearchObj(_,Some(query))).getOrElse[Either[SearchCancelled,MongoDBObject]](Right(query)) match {
       case Right(query) => f.map(User.toFieldsObj(_)) match {
         case Some(Right(searchFields)) => if(c == "true") Ok(JsObject(Seq("count" -> JsNumber(User.find(query).count))))
                                           else applySort(User.find(query,searchFields.dbfields))
@@ -61,7 +64,7 @@ object UserApi extends BaseApi {
     User.findOneById(id) match {
       case Some(user) =>  {
         val tree = Organization.getTree(request.ctx.organization)
-        if(user.orgs.exists(uo => tree.exists(_.id == uo.orgId))){
+        if(tree.exists(_.id == user.org.orgId)){
           Ok(Json.toJson(user))
         }else Unauthorized
       }

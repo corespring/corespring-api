@@ -1,27 +1,29 @@
 {
-  "_id":{
-    "$oid":"5154395af889d9f224fef4f1"
+  "_id": {
+    "$oid": "5154395af889d9f224fef4f1"
   },
-  "itemId":{
-    "$oid":"50083ba9e4b071cb5ef79101"
+  "itemId": {
+    "_id": {
+      "$oid": "50083ba9e4b071cb5ef79101"
+    },
+    "version": 0
   },
-  "start":{
-    "$date":1345833488187
+  "start": {
+    "$date": 1345833488187
   },
-  "finish":{
-    "$date":1345833488190
+  "finish": {
+    "$date": 1345833488190
   },
-  "responses":[
-
+  "responses": [
     {
-      "_t":"models.itemSession.StringItemResponse",
-      "_id":"mexicanPresident",
-      "responseValue":"calderon"
+      "_t": "models.itemSession.StringItemResponse",
+      "_id": "mexicanPresident",
+      "responseValue": "calderon"
     },
     {
-      "_t":"models.itemSession.StringItemResponse",
-      "_id":"irishPresident",
-      "responseValue":"higgins"
+      "_t": "models.itemSession.StringItemResponse",
+      "_id": "irishPresident",
+      "responseValue": "higgins"
     }
   ]
 }

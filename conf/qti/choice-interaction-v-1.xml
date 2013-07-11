@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<assessmentItem>
+    <stylesheet type="text/css" href="css/mcas/default.css"></stylesheet>
+    <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
+    <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
+    <!-- single choice -->
+    <responseDeclaration identifier="mexicanPresident" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>calderon</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+
+        <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1">
+            <prompt>Who is the President of Mexico?</prompt>
+            <simpleChoice identifier='obama'>Barack Obama
+                <feedbackInline csFeedbackId='obama' identifier='obama' showHide='show'>Incorrect, Barack Obama is
+                    President of the USA
+                </feedbackInline>
+            </simpleChoice>
+            <simpleChoice identifier='cameron'>James Cameron
+                <feedbackInline csFeedbackId='cameron' identifier='cameron' showHide='show'>Incorrect, James Cameron is
+                    Prime Minister of the UK
+                </feedbackInline>
+            </simpleChoice>
+            <simpleChoice identifier='calderon'>Felipe Calderon
+                <feedbackInline csFeedbackId='calderon' identifier='calderon' showHide='show'><b>Correct!</b>, Felipe
+                    Calderon is the President of Mexico
+                </feedbackInline>
+            </simpleChoice>
+        </choiceInteraction>
+
+    </itemBody>
+
+</assessmentItem>

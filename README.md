@@ -13,7 +13,6 @@ This project contains the api rest layer and web ui for administering corespring
 * For running tests install phantomjs
 
 
-
 ### Running/Testing
 
     cd corepsring-api
@@ -33,6 +32,14 @@ See that project for more documentation. In an nutshell the helper uses 2 files:
 
 * .heroku-helper.conf - allows you to configure scripts to run as part of deployment
 * .heroku-helper-env.conf - set up env vars for a given heroku server (not under source control).
+
+### IntelliJ Configuration
+
+You'll need to install the Scala and Play 2.0 plugins. These can be found in Settings by navigating to Plugins and clicking the 'Install JetBrains plugin...' button.
+
+After that, you'll need to generate the IntelliJ project files. Do this with the following command:
+
+    play idea
 
 ### Logging configuration
 
@@ -66,6 +73,14 @@ To configure the logger when running locally add a system property to your run c
 #### Amazon S3
 
 We use Amazon S3 for deploying files - the management console is here:
+
+Each deployment uses its own s3 bucket: corespring-assets-${deployment}.
+The developer machines point to corespring-assets-dev for example.
+
+There are some useful utilities for working with the s3 assets: 
+
+* [corespring-assets gem](https://github.com/corespring/corespring-api-assets) - some commands for pulling/pushing buckets and cleaning them.
+* [s3cmd](https://github.com/pearltrees/s3cmd-modification) - a command line utility for working with s3 (modded for parallel speed).
 
 https://corespring.signin.aws.amazon.com/console
 

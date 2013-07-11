@@ -1,34 +1,37 @@
 {
-   "_id":{
-      "$oid":"51116bc7a14f7b657a083c1d"
-   },
-   "itemId":{
-      "$oid":"511156d38604c9f77da9739d"
-   },
-   "start":{
-      "$date":1345833488187
-   },
-   "finish":{
-      "$date":1345833489187
-   },
-   "responses":[
-      {
-         "_t":"models.itemSession.StringItemResponse",
-         "_id":"mexicanPresident",
-         "responseValue":"calderon",
-         "outcome":"{$score:1}"
-      },
-      {
-         "_t":"models.itemSession.StringItemResponse",
-         "_id":"irishPresident",
-         "responseValue":"guinness",
-         "outcome":"{$score:0}"
-      },
-      {
-         "_t":"models.itemSession.StringItemResponse",
-         "_id":"winterDiscontent",
-         "responseValue":"York",
-         "outcome":"{$score:1}"
-      }
-   ]
+  "_id": {
+    "$oid": "51116bc7a14f7b657a083c1d"
+  },
+  "itemId": {
+    "_id": {
+      "$oid": "511156d38604c9f77da9739d"
+    },
+    "version": 0
+  },
+  "start": {
+    "$date": 1345833488187
+  },
+  "finish": {
+    "$date": 1345833489187
+  },
+  "responses": [
+    {
+      "_t": "models.itemSession.StringItemResponse",
+      "_id": "mexicanPresident",
+      "responseValue": "calderon",
+      "outcome": "{$score:1}"
+    },
+    {
+      "_t": "models.itemSession.StringItemResponse",
+      "_id": "irishPresident",
+      "responseValue": "guinness",
+      "outcome": "{$score:0}"
+    },
+    {
+      "_t": "models.itemSession.StringItemResponse",
+      "_id": "winterDiscontent",
+      "responseValue": "York",
+      "outcome": "{$score:1}"
+    }
+  ]
 }

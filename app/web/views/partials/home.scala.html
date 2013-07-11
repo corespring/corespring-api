@@ -7,15 +7,12 @@
     <button ng-click="deleteConfirmed()" class="btn btn-danger">Yes</button>
     <button class="btn btn-info" ng-click="deleteCancelled()">No</button>
 </div>
-<div ui-modal ng-model="collectionsWindow" style="padding: 20px" ng-controller="CreateCollection">
+<div ui-modal class="create-collection-pane" ng-model="uiState.showCollectionsPane" style="padding: 20px" ng-controller="CreateCollection" ng-click="paneClicked()">
     <div class="modal-header create-collections">
-        <span class="close-window-button" style="display: inline-block;" ng-click="closeCollectionWindow()"></span>
+        <span class="close-window-button" style="display: inline-block;" ng-click="uiState.showCollectionsPane = false"></span>
         <div class="header"><h4>{{orgName}} Collections</h4></div>
     </div>
-    <div ng-class="alertClass" ng-show="alertMessage.length > 0">
-        <button type="button" class="close" ng-click="newAlert('alert','')">&times;</button>
-        <p>{{alertMessage}}</p>
-    </div>
+    <div class="alert" ng-class="alertClass">{{alertMessage}}</div>
     <table class="table table-striped">
         <thead>
             <th>Collection</th>
@@ -24,11 +21,13 @@
         </thead>
         <tbody>
             <tr ng-repeat="collection in collections">
-                <td><div contenteditable
-                         collection-id="{{collection.id}}"
-                         collection-name="collection.name"
-                         new-alert="newAlert"
-                         create-sorted-collection="createSortedCollection"></div></td>
+                <td>
+                    <div content-editable
+                         content-id="{{collection.id}}"
+                         ng-model="collection.name"
+                         validate-change="onRenameCollection(text, id, callback)">
+                    </div>
+                </td>
                 <td>{{collection.itemCount}}</td>
                 <td><span ng-show="collection.itemCount == 0"><a ng-click="deleteCollection(collection.id)">delete</a></span></td>
             </tr>
@@ -129,8 +128,8 @@
                   </div>
                 </span>
             </td>
-            <td class="nav-vr" ng-show="isRoot"><div></div></td>
-            <td ng-show="isRoot">
+            <td class="nav-vr"><div></div></td>
+            <td>
 
                 <span multi-select
                   multi-get-title="getLabel"
@@ -143,15 +142,14 @@
                   </div>
                 </span>
             </td>
-            <td class="nav-vr" ng-show="isRoot"><div></div></td>
-            <td ng-show="isRoot">
+            <td class="nav-vr"><div></div></td>
+            <td>
 
                 <span multi-select
                       multi-get-title="getLabel"
                       multi-options="publishStatuses"
                       multi-change="search"
-                      multi-model="searchParams.publishStatuses"
-                      ng-show="isRoot">
+                      multi-model="searchParams.publishStatuses">
                   <div class="summary">
                       <div class="multi-title-text collection"> STATUS <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
                       <div class="selected-multi-options collection" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>

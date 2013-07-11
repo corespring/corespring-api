@@ -8,8 +8,9 @@ import play.api.mvc.Action
 import player.accessControl.auth.{CheckSessionAccess, CheckSession}
 import player.accessControl.models.RequestedAccess
 import player.controllers.Views
+import models.item.service.ItemServiceImpl
 
-object AssignmentPlayer extends Views(CheckSessionAccess) with AssetResource {
+object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl) with AssetResource {
 
   def run(configId: ObjectId, resultSourcedId: String) = {
     session(configId, resultSourcedId) match {
@@ -46,7 +47,9 @@ object AssignmentPlayer extends Views(CheckSessionAccess) with AssetResource {
   def getDataFileForAssignment(configId: ObjectId, resultSourcedId: String, filename: String) = session(configId, resultSourcedId) match {
     case Left(msg) => Action(request => NotFound(msg))
     case Right(session) => {
-      getDataFile(session.itemId.toString, filename)
+
+      import models.versioning.VersionedIdImplicits.Binders._
+      getDataFile(versionedIdToString(session.itemId), filename)
     }
   }
 

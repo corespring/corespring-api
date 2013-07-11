@@ -3,16 +3,17 @@ package tests.basiclti.models
 import basiclti.models._
 import models.itemSession.ItemSessionSettings
 import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
 import tests.BaseTest
 
-class LtiQuizTest extends BaseTest{
+class LtiQuizTest extends BaseTest {
 
   "launch config" should {
 
     "add assignments" in {
       val config = new LtiQuiz(
         "1",
-        LtiQuestion(Some(new ObjectId()), ItemSessionSettings()),
+        LtiQuestion(Some(VersionedId(new ObjectId())), ItemSessionSettings()),
         Seq(),
         None)
       LtiQuiz.insert(config)
@@ -31,9 +32,9 @@ class LtiQuizTest extends BaseTest{
     "can update works" in {
 
       val config = new LtiQuiz("1",
-        LtiQuestion(Some(new ObjectId()), ItemSessionSettings()),
+        LtiQuestion(Some(VersionedId(ObjectId.get)), ItemSessionSettings()),
         Seq(),
-        orgId = Some(new ObjectId()))
+        orgId = Some(ObjectId.get))
       LtiQuiz.insert(config)
       LtiQuiz.canUpdate(config, config.orgId.get) === true
       LtiQuiz.canUpdate(config, new ObjectId()) === false
@@ -42,7 +43,7 @@ class LtiQuizTest extends BaseTest{
     "can't update the settings if somebody has participated with an item" in {
 
       val config = new LtiQuiz("1",
-        LtiQuestion(Some(new ObjectId()), ItemSessionSettings()),
+        LtiQuestion(Some(VersionedId(ObjectId.get)), ItemSessionSettings()),
         Seq(),
         orgId = Some(new ObjectId())
       )
@@ -50,7 +51,7 @@ class LtiQuizTest extends BaseTest{
       LtiQuiz.canUpdate(config, config.orgId.get) === true
       val maybeUpdate = LtiQuiz.update(config.copy(participants = Seq(LtiParticipant(new ObjectId(), "", "", ""))), config.orgId.get)
       maybeUpdate.isRight === true
-      val updatedQuiz : LtiQuiz = maybeUpdate.right.get
+      val updatedQuiz: LtiQuiz = maybeUpdate.right.get
 
       val newSettings = updatedQuiz.question.settings.copy(maxNoOfAttempts = 2323)
       val newQuestion = updatedQuiz.question.copy(settings = newSettings)
@@ -62,7 +63,7 @@ class LtiQuizTest extends BaseTest{
     "can't remove itemId if the config has assignments" in {
 
       val config = new LtiQuiz("1",
-        LtiQuestion(Some(new ObjectId()), ItemSessionSettings()),
+        LtiQuestion(Some(VersionedId(ObjectId.get)), ItemSessionSettings()),
         Seq(LtiParticipant(new ObjectId(), "", "", "")),
         orgId = Some(new ObjectId())
       )

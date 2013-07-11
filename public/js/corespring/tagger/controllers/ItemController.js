@@ -222,34 +222,29 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     });
   };
   //*******item versioning*********//
-  $scope.increment = function(){
-      $scope.showSaveWarning = false;
-      $scope.showProgressModal = true;
-      $scope.itemData.increment({id:$scope.itemData.id}, function onIncrementSuccess(data){
-          $scope.showProgressModal = false;
-          $location.path('/edit/' + data.id);
-      }, function onError(error) {
-          $scope.showProgressModal = false;
-          alert("Error incrementing item: " + JSON.stringify(error))
-      });
-  }
+//  $scope.increment = function(){
+//      $scope.showSaveWarning = false;
+//      $scope.showProgressModal = true;
+//      $scope.itemData.increment({id:$scope.itemData.id}, function onIncrementSuccess(data){
+//          $scope.showProgressModal = false;
+//          $location.path('/edit/' + data.id);
+//      }, function onError(error) {
+//          $scope.showProgressModal = false;
+//          alert("Error incrementing item: " + JSON.stringify(error))
+//      });
+//  }
   $scope.showSaveWarning=false
   $scope.itemVersion = 1
-  $scope.createNewVersion = true;
   $scope.$on("dataLoaded",function(newValue,oldValue){
-      if(typeof $scope.itemData.version != "undefined") $scope.itemVersion = $scope.itemData.version.rev+1
+      $scope.itemVersion = parseInt($scope.itemData.id.split(":")[1])+1
       $scope.isPublished = $scope.itemData.published
-      //get the most current item version given the root id of this item
-//      $scope.itemData.currentItem({id:$scope.itemData.id}, function onCurrentItemSuccess(data){
-//          //we have the revision number of the current item, now we compute all numbers up to that number to provide a list of all revisions
-//          $scope.revisions = new Array();
-//          for(var i = 0; i < data.version.rev; i++){
-//              $scope.revisions[i] = data.version.rev - i
-//          }
-//      })
   })
   //*****************************//
   $scope.loadItem();
+
+     $rootScope.$on('showSaveWarning',function(){
+       $scope.$apply('showSaveWarning=true')
+     });
 
   $scope.$watch('itemData.pValue', function (newValue, oldValue) {
     $scope.pValueAsString = $scope.getPValueAsString(newValue);
@@ -311,7 +306,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     })
   }
 
-  $scope.save = function () {
+  $scope.save = function (saveItemData) {
 
     if (!$scope.itemData) {
       return;
@@ -320,25 +315,38 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     if (!$scope.suppressSave) {
       $scope.isSaving = true;
     }
+    if($scope.showSaveWarning){
+        $scope.showSaveWarning = false;
+    }
 
-    if ($scope.showResourceEditor) {
+    if ($scope.showResourceEditor && !saveItemData) {
       $scope.$broadcast("saveSelectedFile");
       return;
     }
 
-    $scope.validationResult = {};
-
-    $scope.itemData.update({}, function (data) {
-        $scope.isSaving = false;
-        $scope.suppressSave = false;
-        $scope.processValidationResults(data["$validationResult"]);
-        $rootScope.itemData = data;
-      },
-      function onError() {
-        console.log("Error saving item");
-        $scope.isSaving = false;
-        $scope.suppressSave = false;
-      });
+    if(!saveItemData && $scope.itemData.published && ($scope.itemData.sessionCount > 0)){
+        $scope.showSaveWarning = true;
+        $scope.isSaving = false
+    }else{
+        $scope.validationResult = {};
+        $scope.itemData.update({}, function (data) {
+            $scope.isSaving = false;
+            $scope.suppressSave = false;
+            $scope.processValidationResults(data["$validationResult"]);
+            if(data.id != $scope.itemData.id){
+                $location.path('/edit/' + data.id);
+            }else{
+                $rootScope.itemData = data;
+                $scope.$broadcast("dataLoaded")
+            }
+          },
+          function onError() {
+            console.log("Error saving item");
+            $scope.isSaving = false;
+            $scope.suppressSave = false;
+          }
+        );
+    }
   };
 
 

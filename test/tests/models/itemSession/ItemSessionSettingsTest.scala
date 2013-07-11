@@ -29,6 +29,7 @@ class ItemSessionSettingsTest extends BaseTest{
         """{
            "id":"508aafec3004ad38b5ac1819",
            "itemId":"50083ba9e4b071cb5ef79101",
+           "itemVersion" : 0,
            "responses":[
              {
                "id":"mexicanPresident",

@@ -1,6 +1,6 @@
 package common.controllers
 
-import controllers.{S3Service, S3ServiceModule, ConcreteS3Service}
+import controllers.{S3Service, S3ServiceClient, ConcreteS3Service}
 import models.item.Item
 import models.item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
 import models.itemSession.DefaultItemSession
@@ -12,6 +12,9 @@ import scalaz.Scalaz._
 import scalaz.{Success, Failure}
 import web.controllers.ObjectIdParser
 import web.controllers.utils.ConfigLoader
+import models.item.service.ItemServiceClient
+import common.log.PackageLogging
+import common.config.AppConfig
 
 
 object AssetResource{
@@ -25,17 +28,16 @@ object AssetResource{
   }
 }
 
-trait AssetResource extends AssetResourceBase {
+trait AssetResource extends AssetResourceBase{
   final def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]] = Some(renderBaseFile(f))
-  def service : S3Service = ConcreteS3Service
+  def s3Service : S3Service = ConcreteS3Service
 }
 
 
-trait AssetResourceBase extends ObjectIdParser with S3ServiceModule {
+trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemServiceClient with PackageLogging{
 
   import AssetResource.Errors
 
-  val AMAZON_ASSETS_BUCKET = ConfigLoader.get("AMAZON_ASSETS_BUCKET").get
   protected val ContentType: String = "Content-Type"
 
   def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]]
@@ -63,9 +65,11 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceModule {
 
   private def getFile(itemId:String, resourceName:String, filename: Option[String] = None) : Action[AnyContent] =
   {
+    import models.versioning.VersionedIdImplicits.Binders._
+
     val out = for {
-      oid <- objectId(itemId).toSuccess(Errors.invalidObjectId)
-      item <- Item.findOneById(oid).toSuccess(Errors.cantFindItem)
+      oid <- stringToVersionedId(itemId).toSuccess(Errors.invalidObjectId)
+      item <- itemService.findOneById(oid).toSuccess(Errors.cantFindItem)
       dr <- getResource(item, resourceName).toSuccess(Errors.cantFindResource)
       (isItemDataResource, resource) = dr
       name <- (filename orElse resource.defaultFile.map(_.name)).toSuccess(Errors.noFilenameSpecified)
@@ -96,7 +100,7 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceModule {
         Ok(text).withHeaders((ContentType, vFile.contentType))
       }
       case sFile: StoredFile => {
-        service.download(AMAZON_ASSETS_BUCKET, sFile.storageKey, Some(request.headers))
+        s3Service.download(AppConfig.assetsBucket, sFile.storageKey, Some(request.headers))
       }
     }
   }

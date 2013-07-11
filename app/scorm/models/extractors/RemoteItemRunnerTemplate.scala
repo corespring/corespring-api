@@ -10,6 +10,7 @@ import scala.io.Source
  */
 object RemoteItemRunnerTemplate {
 
+  lazy val FinalName = Name.replace(".template", "")
   val Name: String = "remote-item-runner.html.template"
 
   def unapply(pair: (File, Map[String,String])) = {
@@ -21,7 +22,7 @@ object RemoteItemRunnerTemplate {
     } else {
       val template: String = Source.fromFile(f).mkString
       val contents = string.interpolate(template, string.replaceKey(tokens), string.DollarRegex)
-      Some((Name.replace(".template", ""), contents))
+      Some(FinalName, contents)
     }
   }
 }

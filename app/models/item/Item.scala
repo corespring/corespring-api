@@ -2,24 +2,17 @@ package models.item
 
 
 import com.mongodb.casbah.Imports._
-import controllers._
-import resource.{VirtualFile, BaseFile, Resource}
-import scala.Either
-import models.mongoContext._
-import com.mongodb.util.JSON
-import play.api.libs.json._
-import com.novus.salat._
-import dao.ModelCompanion
-import dao.{SalatDAOUpdateError, SalatDAO, SalatMongoCursor}
-import org.joda.time.DateTime
-import models.json.ItemView
-import controllers.InternalError
-import scala.Left
-import scala.Some
-import scala.Right
 import controllers.JsonValidationException
-import models.itemSession.{DefaultItemSession, ItemSession}
-
+import models.itemSession.DefaultItemSession
+import models.json.ItemView
+import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.{EntityWithVersionedId, VersionedId}
+import org.joda.time.DateTime
+import play.api.libs.json._
+import resource.Resource
+import scala._
+import models.mongoContext._
+import com.novus.salat._
 
 case class Item(
                  var collectionId: String = "",
@@ -34,72 +27,82 @@ case class Item(
                  var data: Option[Resource] = None,
                  var originId: Option[String] = None,
                  var supportingMaterials: Seq[Resource] = Seq(),
-                 var published:Boolean = false,
+                 var published: Boolean = false,
                  var workflow: Option[Workflow] = None,
                  var dateModified: Option[DateTime] = Some(new DateTime()),
                  var taskInfo: Option[TaskInfo] = None,
                  var otherAlignments: Option[Alignments] = None,
-                 var id: ObjectId = new ObjectId(),
-                 var version: Option[Version] = None) extends Content{
-  def sessionCount:Int = DefaultItemSession.find(MongoDBObject("itemId" -> id)).count
+                 var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())) extends Content with EntityWithVersionedId[ObjectId] {
+
+  def cloneItem: Item = {
+    val taskInfoCopy = taskInfo.getOrElse(TaskInfo(title = Some(""))).cloneInfo("[copy]")
+    copy(id = VersionedId(ObjectId.get()), taskInfo = Some(taskInfoCopy), published = false)
+  }
 }
 
 
-/**
- * An Item model
- */
-object Item extends ModelCompanion[Item, ObjectId] {
+object Item {
 
-  import com.mongodb.casbah.commons.conversions.scala._
+  object Dbo {
 
-  RegisterJodaTimeConversionHelpers()
+    //TODO: versioning-dao - this was used in master in Item - needs to be reintroduced (compare with master and find the usages).
+    def asMetadataOnly(i: Item): DBObject = {
+      import Item.Keys._
+      import com.mongodb.casbah.commons.MongoDBObject
+      import com.novus.salat._
+      import models.mongoContext.context
+      val timestamped = i.copy(dateModified = Some(new DateTime()))
+      val dbo: MongoDBObject = new MongoDBObject(grater[Item].asDBObject(timestamped))
+      dbo - "_id" - supportingMaterials - data - collectionId
+    }
+  }
+
   val FieldValuesVersion = "0.0.1"
 
-  val collection = Content.collection
+  object Keys {
 
-  val dao = new SalatDAO[Item, ObjectId](collection = collection) {}
+    val id = "id"
+    val originId = "originId"
+    val author = "author"
+    val collectionId = Content.collectionId
+    val contentType = Content.contentType
+    val contributorDetails = "contributorDetails"
+    val contributor = "contributor"
+    val copyright = "copyright"
+    val copyrightOwner = "copyrightOwner"
+    val copyrightImageName = "copyrightImageName"
+    val copyrightYear = "copyrightYear"
+    val copyrightExpirationDate = "copyrightExpirationDate"
+    val costForResource = "costForResource"
+    val credentials = "credentials"
+    val files = "files"
+    val gradeLevel = "gradeLevel"
+    val priorGradeLevel = "priorGradeLevel"
+    val relatedCurriculum = "relatedCurriculum"
+    val itemType = "itemType"
+    val keySkills = "keySkills"
+    val licenseType = "licenseType"
+    val subjects = "subjects"
+    val primarySubject = "primarySubject"
+    val relatedSubject = "relatedSubject"
+    val taskInfo = "taskInfo"
+    val pValue = "pValue"
+    val priorUse = "priorUse"
+    val reviewsPassed = "reviewsPassed"
+    val demonstratedKnowledge = "demonstratedKnowledge"
+    val sourceUrl = "sourceUrl"
+    val standards = "standards"
+    val title = "title"
+    val lexile = "lexile"
+    val data = "data"
+    val supportingMaterials = "supportingMaterials"
+    val bloomsTaxonomy = "bloomsTaxonomy"
+    val workflow = "workflow"
+    val dateModified = "dateModified"
+    val otherAlignments = "otherAlignments"
+    val published = "published"
+  }
 
-  val id = "id"
-  val originId = "originId"
-  val author = "author"
-  val collectionId = Content.collectionId
-  val contentType = Content.contentType
-  val contributorDetails = "contributorDetails"
-  val contributor = "contributor"
-  val copyright = "copyright"
-  val copyrightOwner = "copyrightOwner"
-  val copyrightImageName = "copyrightImageName"
-  val copyrightYear = "copyrightYear"
-  val copyrightExpirationDate = "copyrightExpirationDate"
-  val costForResource = "costForResource"
-  val credentials = "credentials"
-  val files = "files"
-  val gradeLevel = "gradeLevel"
-  val priorGradeLevel = "priorGradeLevel"
-  val relatedCurriculum = "relatedCurriculum"
-  val itemType = "itemType"
-  val keySkills = "keySkills"
-  val licenseType = "licenseType"
-  val subjects = "subjects"
-  val primarySubject = "primarySubject"
-  val relatedSubject = "relatedSubject"
-  val taskInfo = "taskInfo"
-  val pValue = "pValue"
-  val priorUse = "priorUse"
-  val reviewsPassed = "reviewsPassed"
-  val demonstratedKnowledge = "demonstratedKnowledge"
-  val sourceUrl = "sourceUrl"
-  val standards = "standards"
-  val title = "title"
-  val lexile = "lexile"
-  val data = "data"
-  val supportingMaterials = "supportingMaterials"
-  val bloomsTaxonomy = "bloomsTaxonomy"
-  val workflow = "workflow"
-  val dateModified = "dateModified"
-  val otherAlignments = "otherAlignments"
-  val version = Content.version
-  val published = "published"
 
   lazy val fieldValues = FieldValue.current
 
@@ -115,12 +118,12 @@ object Item extends ModelCompanion[Item, ObjectId] {
   }
 
   implicit object Reads extends Reads[Item] {
+
+    import Keys._
+
     def reads(json: JsValue): Item = {
       val item = Item()
 
-      /**
-       * must do checking outside of json deserialization
-       */
       item.collectionId = (json \ collectionId).asOpt[String].getOrElse("")
 
       item.taskInfo = json.asOpt[TaskInfo]
@@ -143,110 +146,13 @@ object Item extends ModelCompanion[Item, ObjectId] {
       item.published = (json \ published).asOpt[Boolean].getOrElse(false)
 
       try {
-        item.id = (json \ id).asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId())
+        import models.versioning.VersionedIdImplicits.Reads
+        item.id = (json \ id).asOpt[VersionedId[ObjectId]].getOrElse(VersionedId(new ObjectId()))
       } catch {
-        case e: IllegalArgumentException => throw new JsonValidationException(id)
+        case e: Throwable => throw new JsonValidationException(id)
       }
-
       item
     }
   }
-  def updateItem(oid: ObjectId, newItem: Item, fields: Option[DBObject], requesterOrgId: ObjectId): Either[InternalError, Item] = {
-    try {
 
-      val copy = newItem.copy(dateModified = Some(new DateTime()))
-
-      val toUpdate = if (!copy.collectionId.isEmpty)
-        ((grater[Item].asDBObject(copy) - "_id") - supportingMaterials - data)
-      else
-        ((grater[Item].asDBObject(copy) - "_id") - supportingMaterials) - collectionId
-
-      Item.update(MongoDBObject("_id" -> oid), MongoDBObject("$set" -> toUpdate), upsert = false, multi = false, wc = Item.collection.writeConcern)
-
-      def getItemWithFields = fields.map(Item.collection.findOneByID(oid, _))
-        .getOrElse(Item.collection.findOneByID(oid))
-        .map(grater[Item].asObject(_))
-
-      getItemWithFields match {
-        case Some(item) => Right(item)
-        case None => Left(InternalError("somehow the document that was just updated could not be found"))
-      }
-
-    } catch {
-      case e: SalatDAOUpdateError => Left(InternalError("error occured while updating", e))
-      case e: IllegalArgumentException => Left(InternalError("destination collection id was not a valid id", e))
-      case e: RuntimeException => Left(InternalError(e.getMessage))
-    }
-  }
-
-  def cloneItem(item: Item): Option[Item] = {
-    val copy = item.copy(id = new ObjectId(), version = None, taskInfo = item.taskInfo match {
-      case Some(ti) => ti.title match {
-        case Some(title) => Some(ti.copy(title = Some("[copy] " + title)))
-        case _ => Some(ti.copy(title = Some("[copy]")))
-      }
-      case _ => Some(TaskInfo(title = Some("[copy]")))
-    }, published = false)
-    Item.save(copy)
-    Some(copy)
-  }
-
-  def countItems(query: DBObject, fields: Option[String] = None): Int = {
-    val fieldsDbo = JSON.parse(fields.getOrElse("{}")).asInstanceOf[BasicDBObject]
-    val result: SalatMongoCursor[Item] = Item.find(query, fieldsDbo)
-    result.count
-  }
-
-  //  def list(query: MongoDBObject, fields: MongoDBObject, skip: Int = 0, limit: Int = 200) : List[Item] = {
-  //    val result : SalatMongoCursor[Item] = Item.find( query, fields)
-  //    result.limit(limit)
-  //    result.skip(skip)
-  //    result.toList
-  //  }
-
-  def queryValueFn(name: String, seq: Seq[KeyValue])(c: Any) = {
-    c match {
-      case x: String => if (seq.exists(_.key == x)) Right(x) else Left(InternalError("no valid " + name + " found for given value"))
-      case _ => Left(InternalError("invalid value format"))
-    }
-  }
-
-  def findMultiple(ids: Seq[ObjectId], keys: DBObject): Seq[Item] = {
-    val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))
-    Item.find(query, keys).toSeq
-  }
-
-  def getQti(itemId: ObjectId): Either[InternalError, String] = {
-    Item.collection.findOneByID(itemId, MongoDBObject(Item.data -> 1)) match {
-      case None => Left(InternalError("not found"))
-      case Some(o) => o.get(Item.data) match {
-        case res: BasicDBObject => {
-          grater[Resource].asObject(res).files.find(bf => bf.isMain && bf.contentType == BaseFile.ContentTypes.XML) match {
-            case Some(bf) => bf match {
-              case vf: VirtualFile => Right(vf.content)
-              case _ => Left(InternalError("main file was not a virtual file"))
-            }
-            case None => Left(InternalError("no main file found that contained xml"))
-          }
-        }
-        case _ => Left(InternalError("data not an object"))
-      }
-    }
-  }
-
-  def findInXml(string: String, collectionIds: List[String]): List[Item] = {
-
-    val query = string
-
-    Item.find(
-      MongoDBObject(
-        "data.files.content" ->
-          MongoDBObject(
-            "$regex" -> query,
-            "$options" -> "msi"),
-        "collectionId" -> MongoDBObject("$in" -> collectionIds.toArray)
-      ),
-      MongoDBObject("taskInfo" -> 1)
-    ).toList
-  }
 }

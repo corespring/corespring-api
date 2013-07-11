@@ -5,6 +5,7 @@ import common.controllers.utils.BaseUrl
 import common.encryption.{Crypto, AESCrypto}
 import common.utils.string
 import models.auth.ApiClient
+import models.item.service.{ItemServiceImpl, ItemService}
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.{Logger, Play}
@@ -13,7 +14,7 @@ import player.accessControl.models.RenderOptions
 import scala.Some
 
 
-class AssetLoading(crypto: Crypto, playerTemplate: => String) extends Controller with AssetResource with PlayerCookieWriter {
+class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService : ItemService) extends Controller with AssetResource with PlayerCookieWriter {
 
   def itemProfileJavascript = renderJavascript(playerTemplate, {
     (ro: Option[RenderOptions], req: Request[AnyContent]) =>
@@ -106,6 +107,5 @@ object DefaultTemplate {
   def player = io.Source.fromFile(Play.getFile("public/js/corespring/corespring-player.js")).getLines().mkString("\n")
 }
 
-object AssetLoading extends AssetLoading(AESCrypto, DefaultTemplate.player)
+object AssetLoading extends AssetLoading(AESCrypto, DefaultTemplate.player, ItemServiceImpl)
 
-//object AssetLoading extends AssetLoading(MockUrlEncodeEncrypter, DefaultTemplate.template)

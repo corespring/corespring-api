@@ -23,6 +23,8 @@ import play.api.libs.json.JsObject
 import models.itemSession.{DefaultItemSession, StringItemResponse, ItemSessionSettings, ItemSession}
 import utils.RequestCalling
 import play.mvc.Call
+import org.corespring.platform.data.mongo.models.VersionedId
+import api.v1.ItemSessionApi
 
 class ItemSessionApiTest extends BaseTest{
 
@@ -63,15 +65,19 @@ class ItemSessionApiTest extends BaseTest{
     val ItemSession: String = "51116bc7a14f7b657a083c1d"
   }
 
-  def createNewSession(itemId: String = IDs.Item, content: AnyContent = AnyContentAsEmpty): ItemSession = {
-    invokeCall[ItemSession](
-      Routes.create(new ObjectId(itemId)),
-      content
-    )
+  def defaultNewSessionContent = AnyContentAsJson(Json.toJson(ItemSession(itemId = versionedId(IDs.Item), id = new ObjectId())))
+
+  def createNewSession(itemId: String = IDs.Item, content: AnyContent = defaultNewSessionContent): ItemSession = {
+
+    val result = ItemSessionApi.create(versionedId(itemId))(FakeRequest("", tokenize(""), FakeHeaders(), content))
+    val json = Json.parse(contentAsString(result))
+    json.as[ItemSession]
   }
 
   def get(sessionId: String, itemId: String): ItemSession = {
-    invokeCall[ItemSession](Routes.get(new ObjectId(itemId), new ObjectId(sessionId)), AnyContentAsEmpty)
+    val result = ItemSessionApi.get(versionedId(itemId), new ObjectId(sessionId))(FakeRequest("", tokenize(""), FakeHeaders(), AnyContentAsEmpty))
+    val json = Json.parse(contentAsString(result))
+    json.as[ItemSession]
   }
 
   def processResponse(session: ItemSession): ItemSession = {
@@ -104,13 +110,13 @@ class ItemSessionApiTest extends BaseTest{
 
       val newSession: ItemSession = createNewSession()
 
-      val testSession = ItemSession(itemId = new ObjectId())
+      val testSession = ItemSession(itemId = versionedId(ObjectId.get.toString))
 
       //testSession.id = new ObjectId(testSessionIds("itemSessionId"))
       testSession.responses = testSession.responses ++ Seq(StringItemResponse("mexicanPresident", "calderon"))
       testSession.finish = Some(new DateTime())
 
-      val update = api.v1.routes.ItemSessionApi.update(new ObjectId(IDs.Item), newSession.id)
+      val update = api.v1.routes.ItemSessionApi.update(versionedId(IDs.Item), newSession.id)
 
       val updateRequest = FakeRequest(
         update.method,
@@ -142,7 +148,7 @@ class ItemSessionApiTest extends BaseTest{
     "ignore any settings in the model" in {
 
       val settings = ItemSessionSettings(maxNoOfAttempts = 5)
-      val session = ItemSession(itemId = new ObjectId(IDs.Item), settings = settings)
+      val session = ItemSession(itemId = versionedId(IDs.Item), settings = settings)
       val newSession = createNewSession(IDs.Item, AnyContentAsJson(Json.toJson(session)))
       newSession.settings.maxNoOfAttempts must equalTo(settings.maxNoOfAttempts)
 
@@ -153,7 +159,7 @@ class ItemSessionApiTest extends BaseTest{
 
     "return a finish after the first attempt if only one attempt is allowed" in {
       val settings = ItemSessionSettings(maxNoOfAttempts = 1)
-      val session = ItemSession(itemId = new ObjectId(IDs.Item), settings = settings)
+      val session = ItemSession(itemId = versionedId(IDs.Item), settings = settings)
       val newSession = createNewSession(IDs.Item, AnyContentAsJson(Json.toJson(session)))
       val processed = processResponse(newSession)
       processed.finish must not beNone
@@ -165,16 +171,16 @@ class ItemSessionApiTest extends BaseTest{
     "accept a json body with an itemSession" in {
 
       val settings = ItemSessionSettings(maxNoOfAttempts = 12)
-      val session = ItemSession(itemId = new ObjectId(IDs.Item), settings = settings)
+      val session = ItemSession(itemId = versionedId(IDs.Item), settings = settings)
       val json = Json.toJson(session)
       val newSession = createNewSession(IDs.Item, AnyContentAsJson(json))
       newSession.settings.maxNoOfAttempts must equalTo(12)
     }
 
     "only use the item id set in the url" in {
-      val session = ItemSession(itemId = new ObjectId())
+      val session = ItemSession(itemId = VersionedId(new ObjectId()))
       val newSession = createNewSession(IDs.Item, AnyContentAsJson(Json.toJson(session)))
-      newSession.itemId.toString must equalTo(IDs.Item)
+      newSession.itemId must equalTo(versionedId(IDs.Item))
     }
   }
 
@@ -201,8 +207,9 @@ class ItemSessionApiTest extends BaseTest{
 
   "creating and then updating item session" should {
     val newSession = createNewSession()
-    val updateCall = api.v1.routes.ItemSessionApi.update(new ObjectId(IDs.Item), newSession.id)
-    val testSession = ItemSession(itemId = new ObjectId(IDs.Item))
+
+    val updateCall = api.v1.routes.ItemSessionApi.update(versionedId(IDs.Item), newSession.id)
+    val testSession = ItemSession(itemId = versionedId(IDs.Item))
     // add some item responses
     testSession.responses = testSession.responses ++ Seq(StringItemResponse("mexicanPresident", "calderon"))
     testSession.responses = testSession.responses ++ Seq(StringItemResponse("irishPresident", "guinness"))
@@ -258,8 +265,8 @@ class ItemSessionApiTest extends BaseTest{
     "return an item session feedback contents with sessionData which contains all feedback elements in the xml which correspond to responses from client" in {
 
       val newSession = createNewSession()
-      val updateCall = api.v1.routes.ItemSessionApi.update(new ObjectId(IDs.Item), newSession.id)
-      val testSession = ItemSession(itemId = new ObjectId(IDs.Item))
+      val updateCall = api.v1.routes.ItemSessionApi.update(versionedId(IDs.Item), newSession.id)
+      val testSession = ItemSession(itemId = versionedId(IDs.Item))
       // add some item responses
       testSession.responses = testSession.responses ++ Seq(StringItemResponse("winterDiscontent", "York"))
       testSession.finish = Some(new DateTime())
@@ -318,7 +325,7 @@ class ItemSessionApiTest extends BaseTest{
     }
 
     "support item creation " in {
-      val testSession = ItemSession(new ObjectId(IDs.Item))
+      val testSession = ItemSession(versionedId(IDs.Item))
       val newSession = createNewSession(IDs.Item, AnyContentAsJson(Json.toJson(testSession)))
       val unequalItems = getUnequalItems(newSession, testSession)
       unequalItems must be(Seq())

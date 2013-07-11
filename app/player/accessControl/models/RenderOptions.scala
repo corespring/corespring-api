@@ -28,10 +28,10 @@ object RenderOptions {
 
       RequestedAccess.Mode.withName("preview")
       RenderOptions(
-        (json \ "itemId").asOpt[String].getOrElse(*),
-        (json \ "sessionId").asOpt[String].getOrElse(*),
-        (json \ "assessmentId").asOpt[String].getOrElse(*),
-        (json \ "role").asOpt[String].getOrElse("student"),
+        (json \ "itemId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
+        (json \ "sessionId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
+        (json \ "assessmentId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
+        (json \ "role").asOpt[String].filterNot(_.isEmpty).getOrElse("student"),
         (json \ "expires").as[Long],
         RequestedAccess.Mode.withName((json \ "mode").as[String])
       )

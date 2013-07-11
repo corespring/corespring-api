@@ -1,20 +1,21 @@
 package models.quiz.basic
 
-import org.bson.types.ObjectId
-import models.itemSession.{DefaultItemSession, ItemSession, ItemSessionSettings}
-import com.novus.salat.dao.{SalatDAO, ModelCompanion}
-import se.radley.plugin.salat._
 import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
-import play.api.Play.current
+import com.novus.salat.dao.{SalatDAO, ModelCompanion}
+import models.item.{Item, TaskInfo}
+import models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
+import models.itemSession.{DefaultItemSession, ItemSession, ItemSessionSettings}
 import models.quiz.{BaseParticipant, BaseQuestion}
-import play.api.libs.json._
-import play.api.libs.json.Json._
-import models.mongoContext._
-import models.item.{TaskInfo, Item}
-import play.api.libs.json.JsObject
-import scala.Some
+import org.bson.types.ObjectId
 import org.joda.time.DateTime
+import play.api.Play.current
+import play.api.libs.json.Json._
+import play.api.libs.json._
+import scala.Some
+import se.radley.plugin.salat._
+import org.corespring.platform.data.mongo.models.VersionedId
+import models.versioning.VersionedIdImplicits
 
 case class Answer(sessionId: ObjectId, itemId: ObjectId)
 
@@ -93,17 +94,21 @@ object Participant {
 /** Note: We are adding the title and standard info from the Item model here.
   * Its a little bit of duplication - but will save us from having to make a 2nd db query
   */
-case class Question(itemId: ObjectId,
+case class Question(itemId: VersionedId[ObjectId],
                     settings: ItemSessionSettings = new ItemSessionSettings(),
                     title: Option[String] = None,
                     standards: Seq[String] = Seq()) extends BaseQuestion(Some(itemId), settings)
 
-object Question {
+trait QuestionLike {
+  self: ItemServiceClient =>
 
   implicit object Reads extends Reads[Question] {
     def reads(json: JsValue): Question = {
+
+      import models.versioning.VersionedIdImplicits.Reads
+
       Question(
-        new ObjectId((json \ "itemId").as[String]),
+        (json \ "itemId").as[VersionedId[ObjectId]],
         (json \ "settings").asOpt[ItemSessionSettings].getOrElse(ItemSessionSettings())
       )
     }
@@ -112,9 +117,10 @@ object Question {
   implicit object Writes extends Writes[Question] {
     def writes(q: Question): JsValue = {
 
+      import VersionedIdImplicits.Writes
       JsObject(
         Seq(
-          Some("itemId" -> JsString(q.itemId.toString)),
+          Some("itemId" -> toJson(q.itemId)),
           if (q.settings != null) Some("settings" -> toJson(q.settings)) else None,
           q.title.map("title" -> JsString(_)),
           Some("standards" -> JsArray(q.standards.map(JsString(_))))
@@ -124,10 +130,14 @@ object Question {
   }
 
   def bindItemToQuestion(question: Question): Question = {
-    Item.find(
-      MongoDBObject("_id" -> question.itemId),
+    itemService.findFieldsById(
+      question.itemId,
       MongoDBObject("taskInfo.title" -> 1, "standards" -> 1)).toList.headOption match {
-      case Some(item) => {
+      case Some(dbo) => {
+        import models.mongoContext.context
+        import com.novus.salat._
+        import com.mongodb.casbah.Imports._
+        val item : Item = grater[Item].asObject(dbo)
         val title = item.taskInfo.getOrElse(TaskInfo(title = Some(""))).title
         val standards = item.standards
         question.copy(
@@ -137,6 +147,10 @@ object Question {
       case _ => question
     }
   }
+}
+
+object Question extends QuestionLike with ItemServiceClient {
+  def itemService: ItemService = ItemServiceImpl
 }
 
 case class Quiz(orgId: Option[ObjectId] = None,
@@ -186,6 +200,8 @@ object Quiz {
     * By hiding it we can thin out the client api for quiz
     */
   private object Dao extends ModelCompanion[Quiz, ObjectId] {
+    import play.api.Play.current
+    import models.mongoContext.context
     val collection = mongoCollection("quizzes")
     val dao = new SalatDAO[Quiz, ObjectId](collection = collection) {}
   }
@@ -254,11 +270,12 @@ object Quiz {
 
   def addParticipants(quizId: ObjectId, externalUids: Seq[String]): Option[Quiz] = {
     Quiz.findOneById(quizId) match {
-      case Some(q) => addParticipants(q,externalUids)
+      case Some(q) => addParticipants(q, externalUids)
       case None => None
     }
   }
-  def addParticipants(q:Quiz,externalUids: Seq[String]): Option[Quiz] = {
+
+  def addParticipants(q: Quiz, externalUids: Seq[String]): Option[Quiz] = {
     val updatedQuiz = q.copy(participants = q.participants ++ externalUids.map(euid => Participant(Seq(), euid)))
     Quiz.update(updatedQuiz)
     Some(updatedQuiz)

@@ -1,31 +1,79 @@
 package basiclti.models
 
-import com.novus.salat.dao.{SalatDAO, ModelCompanion}
-import org.bson.types.ObjectId
 
-import play.api.Play.current
-import org.bson.types.ObjectId
-import com.novus.salat.dao.{SalatDAO, ModelCompanion}
-import com.novus.salat.dao._
-import se.radley.plugin.salat._
-import models.{mongoContext}
-import mongoContext._
-import com.mongodb.DBObject
-import com.mongodb.casbah.commons.MongoDBObject
 import api.ApiError
-import common.models.json.jerkson.{JerksonReads, JerksonWrites}
-import com.mongodb.casbah.MongoCollection
+import com.mongodb.casbah.commons.MongoDBObject
+import com.novus.salat.dao._
 import models.itemSession.{DefaultItemSession, ItemSessionSettings, ItemSession}
+import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
+import play.api.Play.current
+import play.api.libs.json._
+import scala.Left
+import scala.Right
+import scala.Some
+import se.radley.plugin.salat._
 
-case class LtiQuestion(itemId: Option[ObjectId],
+case class LtiQuestion(itemId: Option[VersionedId[ObjectId]],
                        settings: ItemSessionSettings)
   extends models.quiz.BaseQuestion(itemId, settings)
+
+
+object LtiQuestion {
+
+  implicit object Writes extends Writes[LtiQuestion] {
+    import models.versioning.VersionedIdImplicits.Writes
+    def writes(q: LtiQuestion): JsValue = {
+      val out = Seq("settings" -> Json.toJson(q.settings)) ++ q.itemId.map( id => "itemId" -> Json.toJson(id) )
+      JsObject(out)
+    }
+  }
+
+  implicit object Reads extends Reads[LtiQuestion] {
+
+    import models.versioning.VersionedIdImplicits.Reads
+
+    def reads(json: JsValue): LtiQuestion = LtiQuestion(
+      (json \ "itemId").asOpt[VersionedId[ObjectId]],
+      (json \ "settings").as[ItemSessionSettings]
+    )
+
+  }
+
+}
 
 case class LtiParticipant(itemSession: ObjectId,
                           resultSourcedId: String,
                           gradePassbackUrl: String,
                           onFinishedUrl: String)
   extends models.quiz.BaseParticipant(Seq(itemSession), resultSourcedId)
+
+object LtiParticipant{
+
+  implicit object Writes extends Writes[LtiParticipant] {
+
+    def writes(p:LtiParticipant) : JsValue = {
+      JsObject(Seq(
+        "itemSession" -> JsString(p.itemSession.toString),
+        "resultSourcedId" -> JsString(p.resultSourcedId),
+       "gradePassbackUrl" -> JsString(p.gradePassbackUrl),
+      "onFinishedUrl" -> JsString(p.onFinishedUrl)
+      ))
+    }
+  }
+
+  implicit object Reads extends Reads[LtiParticipant] {
+
+    def reads( json : JsValue ) : LtiParticipant = {
+      LtiParticipant(
+        new ObjectId((json \ "itemSession").as[String]),
+        (json \ "resultSourcedId").as[String],
+        (json \ "gradePassbackUrl").as[String],
+        (json \ "onFinishedUrl").as[String]
+      )
+    }
+  }
+}
 
 case class LtiQuiz(resourceLinkId: String,
                    question: LtiQuestion,
@@ -72,10 +120,30 @@ case class LtiQuiz(resourceLinkId: String,
 
 object LtiQuiz {
 
-  implicit object Writes extends JerksonWrites[LtiQuiz]
+  implicit object Writes extends Writes[LtiQuiz] {
 
-  implicit object Reads extends JerksonReads[LtiQuiz] {
-    def manifest = Manifest.classType(LtiQuiz("", LtiQuestion(null, null), Seq(), None).getClass)
+    def writes(quiz: LtiQuiz): JsValue = {
+
+      JsObject(Seq(
+        "resourceLinkId" -> JsString(quiz.resourceLinkId),
+        "question" -> Json.toJson(quiz.question),
+        "participants" -> JsArray(quiz.participants.map(p => Json.toJson(p))),
+        "id" -> JsString(quiz.id.toString)
+      ) ++ quiz.orgId.map( o => "orgId" -> JsString(o.toString)))
+    }
+  }
+
+  implicit object Reads extends Reads[LtiQuiz] {
+
+    def reads(json:JsValue) : LtiQuiz = {
+      LtiQuiz(
+        (json \ "resourceLinkId").as[String],
+        (json \ "question").as[LtiQuestion],
+        (json \ "participants").as[Seq[LtiParticipant]],
+        (json \ "orgId" ).asOpt[String].map( s => new ObjectId(s)),
+        new ObjectId((json \ "id").as[String])
+      )
+    }
   }
 
   /**
@@ -83,6 +151,7 @@ object LtiQuiz {
    */
   private object Dao extends ModelCompanion[LtiQuiz, ObjectId] {
     val collection = mongoCollection("lti_quizzes")
+    import models.mongoContext.context
     val dao = new SalatDAO[LtiQuiz, ObjectId](collection = collection) {}
   }
 
@@ -121,7 +190,7 @@ object LtiQuiz {
       val isUnassigning = dbConfig.question.itemId.isDefined && proposedChange.question.itemId.isEmpty
       val settingsAreTheSame = proposedChange.question.settings.equals(dbConfig.question.settings)
 
-      val willAffectParticipants = if(dbConfig.participants.length > 0){
+      val willAffectParticipants = if (dbConfig.participants.length > 0) {
         isUnassigning || !settingsAreTheSame
       } else {
         false

@@ -1,15 +1,16 @@
 package tests.models.quiz.basic
 
 import org.specs2.mutable.{After, Specification}
-import tests.PlaySingleton
+import tests.{BaseTest, PlaySingleton}
 import play.api.libs.json.{JsArray, Json}
 import models.quiz.basic.{Answer, Participant, Question, Quiz}
 import org.bson.types.ObjectId
 import models.itemSession.ItemSessionSettings
 import com.mongodb.casbah.commons.MongoDBObject
 import common.seed.SeedDb
+import org.corespring.platform.data.mongo.models.VersionedId
 
-class QuizTest extends Specification {
+class QuizTest extends BaseTest{
 
   PlaySingleton.start()
 
@@ -33,7 +34,7 @@ class QuizTest extends Specification {
         metadata = Map("hello" -> "there"),
         questions = Seq(
           Question(
-            itemId = new ObjectId(),
+            itemId = VersionedId(new ObjectId()),
             settings = ItemSessionSettings()
           )
         ),
@@ -112,8 +113,8 @@ class QuizTest extends Specification {
 
     "update adds item info" in {
 
-      val queryItem = MongoDBObject("_id" -> new ObjectId("50b653a1e4b0ec03f29344b0"))
-      models.item.Item.findOne(queryItem) match {
+      val id = VersionedId(new ObjectId("50b653a1e4b0ec03f29344b0"))
+      itemService.findOneById(id) match {
         case Some(i) => {
 
           i.taskInfo match {

@@ -1,0 +1,11 @@
+{
+  "_id": {
+    "$oid": "51b8c1a74a93ecce40525fed"
+  },
+  "itemId": {
+    "_id": {
+      "$oid": "51b713970292acfa511611a4"
+    },
+    "version": 0
+  }
+}

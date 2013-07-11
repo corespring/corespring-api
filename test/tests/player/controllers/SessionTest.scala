@@ -11,6 +11,7 @@ import player.accessControl.cookies.PlayerCookieWriter
 import player.accessControl.models.RequestedAccess.Mode._
 import player.controllers.Session
 import tests.PlaySingleton
+import org.corespring.platform.data.mongo.models.VersionedId
 
 class SessionTest extends Specification with PlayerCookieWriter {
 

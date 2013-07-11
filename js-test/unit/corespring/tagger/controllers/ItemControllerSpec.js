@@ -134,7 +134,7 @@ describe('ItemController should', function () {
 
   });
 
-  it('receives incremented item', function(){
+  xit('receives incremented item', function(){
     scope.itemData = {id: "itemId"};
     scope.itemData.increment = function(params,onSuccess,onError){
         console.log(JSON.stringify(params))

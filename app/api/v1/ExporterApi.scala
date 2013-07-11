@@ -5,8 +5,10 @@ import com.mongodb.casbah.commons.MongoDBObject
 import common.controllers.utils.BaseUrl
 import common.encryption._
 import controllers.auth.{Permission, BaseApi}
+import models.item.service.{ItemServiceImpl, ItemService}
 import models.item.{Content, Item}
 import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -14,7 +16,7 @@ import player.accessControl.models.RenderOptions
 import scala.Some
 import scorm.utils.ScormExporter
 
-class ExporterApi(encrypter: Crypto) extends BaseApi {
+class ExporterApi(encrypter: Crypto, service:ItemService) extends BaseApi {
 
   val OctetStream: String = "application/octet-stream"
 
@@ -25,12 +27,19 @@ class ExporterApi(encrypter: Crypto) extends BaseApi {
   def multiItemScorm2004(ids: String) = ApiActionRead {
     request =>
 
+      Logger.debug("Encrypt for org: " + request.ctx.org.map(_.name).getOrElse("??"))
       val orgEncrypter = new OrgEncrypter(request.ctx.organization, encrypter)
       val options: RenderOptions = RenderOptions.ANYTHING
-      orgEncrypter.encrypt(Json.toJson(options).toString()) match {
-        case Some(EncryptionSuccess(clientId, data, None)) => {
+      val maybeResult =  orgEncrypter.encrypt(Json.toJson(options).toString())
+
+      maybeResult match {
+        case Some(EncryptionSuccess(clientId, data, _)) => {
           val generatorFn: List[Item] => Array[Byte] = ScormExporter.makeMultiScormPackage(_, BaseUrl(request), clientId, data)
           binaryResultFromIds(ids, request.ctx.organization, generatorFn)
+        }
+        case Some(EncryptionFailure(msg,t)) => {
+          Logger.debug("multiItemScorm encryption error: " + msg + " " + t.getMessage)
+          BadRequest("An error occurred")
         }
         case _ => BadRequest("Unable to create export package")
       }
@@ -44,7 +53,7 @@ class ExporterApi(encrypter: Crypto) extends BaseApi {
 
   private def binaryResultFromIds(ids: String, orgId: ObjectId, itemsToByteArray: (List[Item] => Array[Byte])): Result = {
     val validIds = validObjectIds(ids)
-    val items = Item.find(MongoDBObject("_id" -> MongoDBObject("$in" -> validIds))).toList
+    val items = service.findMultiple(validIds).toList
     items match {
       case List() => NotFound("No items found")
       case _ => {
@@ -56,16 +65,9 @@ class ExporterApi(encrypter: Crypto) extends BaseApi {
     }
   }
 
-  private def validObjectIds(ids: String): List[ObjectId] = {
-    ids.split(",").toList.map {
-      rawId =>
-        if (ObjectId.isValid(rawId)) {
-          Some(new ObjectId(rawId))
-        }
-        else {
-          None
-        }
-    }.flatten
+  private def validObjectIds(ids: String): List[VersionedId[ObjectId]] = {
+    import models.versioning.VersionedIdImplicits.Binders._
+    ids.split(",").toList.map(stringToVersionedId).flatten
   }
 
   private def access(orgId: ObjectId)(item: Item): Boolean = Content.isCollectionAuthorized(orgId, item.collectionId, Permission.Read)
@@ -80,4 +82,4 @@ class ExporterApi(encrypter: Crypto) extends BaseApi {
   }
 }
 
-object ExporterApi extends ExporterApi(AESCrypto)
+object ExporterApi extends ExporterApi(AESCrypto, ItemServiceImpl)

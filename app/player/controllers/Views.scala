@@ -14,16 +14,23 @@ import player.accessControl.models.RequestedAccess
 import player.views.models.{QtiKeys, ExceptionMessage, PlayerParams}
 import qti.models.RenderingMode._
 import scala.xml.Elem
+import models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
+import org.corespring.platform.data.mongo.models.VersionedId
 
 
-class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseApi with QtiResource with QtiRenderer with PlayerCookieWriter {
+class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService)
+  extends BaseApi
+  with QtiResource
+  with ItemServiceClient
+  with QtiRenderer
+  with PlayerCookieWriter {
 
 
   private object PlayerTemplates {
     def default(p: PlayerParams): play.api.templates.Html = player.views.html.Player(p)
   }
 
-  def preview(itemId: ObjectId) = {
+  def preview(itemId: VersionedId[ObjectId]) = {
     val p = RenderParams(itemId, sessionMode = RequestedAccess.Mode.Preview)
     renderItem(p)
   }
@@ -38,8 +45,8 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
     }
   }
 
-  def administerItem(itemId: ObjectId) = {
-    val p = RenderParams(itemId = itemId, sessionMode = RequestedAccess.Mode.Administer)
+  def administerItem(itemId: VersionedId[ObjectId] ) = {
+    val p = RenderParams(itemId = itemId, sessionMode = RequestedAccess.Mode.Administer )
     renderItem(p)
   }
 
@@ -53,7 +60,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
     }
   }
 
-  def aggregate(assessmentId: ObjectId, itemId: ObjectId) = {
+  def aggregate(assessmentId: ObjectId, itemId: VersionedId[ObjectId]) = {
 
     Quiz.findOneById(assessmentId) match {
       case Some(id) => {
@@ -70,7 +77,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
     }
   }
 
-  def profile(itemId: ObjectId, tab: String) = {
+  def profile(itemId: VersionedId[ObjectId], tab: String) = {
 
     def isPrintMode: Boolean = tab != ""
 
@@ -87,7 +94,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
   /** An internal model of the rendering parameters
     * TODO: renderingMode + sessionMode - can we conflate these to one concept?
     */
-  protected case class RenderParams(itemId: ObjectId,
+  protected case class RenderParams(itemId: VersionedId[ObjectId],
                                     sessionMode: RequestedAccess.Mode.Mode,
                                     renderingMode: RenderingMode = Web,
                                     sessionId: Option[ObjectId] = None,
@@ -102,9 +109,10 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
     )
 
     def toPlayerParams(xml: String, qtiKeys: QtiKeys): PlayerParams = {
+      import models.versioning.VersionedIdImplicits.Binders._
       PlayerParams(
         xml,
-        Some(itemId.toString),
+        Some(versionedIdToString(itemId)),
         sessionId.map(_.toString),
         enablePreview,
         qtiKeys,
@@ -120,7 +128,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
       ApiAction {
         implicit request =>
           try {
-            getItemXMLByObjectId(params.itemId.toString, request.ctx.organization) match {
+            getItemXMLByObjectId(params.itemId, request.ctx.organization) match {
               case Some(xmlData: Elem) => {
                 val qtiKeys = QtiKeys((xmlData \ "itemBody")(0))
                 val finalXml = prepareQti(xmlData, params.renderingMode)
@@ -143,4 +151,4 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseAp
 
 }
 
-object Views extends Views(CheckSessionAccess)
+object Views extends Views(CheckSessionAccess, ItemServiceImpl)

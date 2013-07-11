@@ -1,20 +1,14 @@
 import _root_.controllers.ConcreteS3Service
-import _root_.models.itemSession.{ArrayItemResponse, StringItemResponse, ItemSession}
-import _root_.models.quiz.basic.{Participant, Answer, Quiz}
+import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import com.typesafe.config.ConfigFactory
 import common.controllers.deployment.AssetsLoader
-import org.joda.time.DateTime
-import play.api.mvc.Results._
-import util.Random
-import web.controllers.utils.ConfigLoader
 import common.seed.SeedDb._
-import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import org.bson.types.ObjectId
 import play.api._
-import mvc._
-import mvc.SimpleResult
-import play.api.Play.current
-import play.api.Application
+import play.api.mvc.Results._
+import play.api.mvc._
+import scala.Some
+import web.controllers.utils.ConfigLoader
 
 
 /**
@@ -100,9 +94,8 @@ object Global extends GlobalSettings {
     // support JodaTime
     RegisterJodaTimeConversionHelpers()
 
-
     ConcreteS3Service.init
-    AssetsLoader.init
+    AssetsLoader.init(app)
 
     val initData:Boolean = ConfigFactory.load().getString(INIT_DATA) == "true"
 
@@ -116,6 +109,7 @@ object Global extends GlobalSettings {
     if(!Play.isTest(app)) {
       if (Play.isDev(app) && initData) {
         onlyIfLocalDb(seedDevData)
+        onlyIfLocalDb(seedDebugData)
       } else if(Play.isProd(app) && initData) {
         seedDevData()
       }
@@ -123,7 +117,6 @@ object Global extends GlobalSettings {
     } else {
       seedTestData()
     }
-
   }
 
   /** Add demo data models to the the db to allow end users to be able to
@@ -155,6 +148,11 @@ object Global extends GlobalSettings {
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/dev")
     seedData("conf/seed-data/exemplar-content")
+  }
+
+  private def seedDebugData(){
+    //do not call emptyData() as it expects to be called after seedDevData
+    seedData("conf/seed-data/debug")
   }
 
 }

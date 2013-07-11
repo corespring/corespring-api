@@ -17,6 +17,12 @@ import scala.Left
 import scala.Right
 import scala.Some
 
+/** An implementation of TokenizedRequestActionBuilder that grants access based on the requested access and render options.
+  * RequestedAccess is defined by the controllers. It defines the type of access that the controller will need.
+  * RenderOptions is set as a session cookie it defines what rendering options have been granted to the session.
+  * Using these two models we can make a decision on whether this request should be granted access.
+  *
+  */
 abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAccess] with PlayerCookieReader {
 
   def ValidatedAction(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
@@ -27,6 +33,7 @@ abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAcces
       request =>
         val options = renderOptions(request)
 
+        /** Once access has been granted invoke the block and pass in a TokenizedRequest */
         def invokeBlock: Result = orgIdFromCookie(request) match {
           case Some(orgId) => {
             AccessToken.getTokenForOrgById(new ObjectId(orgId)) match {
@@ -48,6 +55,8 @@ abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAcces
 
     }
 
+  /** Grant access for this request?
+    */
   def grantAccess(activeMode: Option[Mode.Mode], a: RequestedAccess, o: RenderOptions): Either[InternalError, Boolean]
 
 }

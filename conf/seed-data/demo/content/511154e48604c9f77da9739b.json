@@ -1,162 +1,165 @@
 {
-   "_id":{
-      "$oid":"511154e48604c9f77da9739b"
-   },
-   "data":{
-      "name":"data",
-      "files":[
-         {
-            "_t":"models.item.resource.VirtualFile",
-            "name":"qti.xml",
-            "contentType":"text/xml",
-            "isMain":true,
-            "content":"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value>28</value> \n               \n        </correctResponse> \n    </responseDeclaration> \n   \n   <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceA</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n\n      \n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_03\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value>25</value> \n        </correctResponse> \n    </responseDeclaration> \n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_04\" cardinality=\"single\" baseType=\"string\"/>\n\n    <itemBody>\n\n <div class=\"imagewrapper\"><img src=\"woodchess.png\"/></div>\n <div class=\"image-copyright\">Copyright 2009 cogdog</div>\n\n<h1>Where's the Best Deal?</h1>\n    <p class=\"intro-2\">Greg wants to buy a computer chess game with a regular price of $40. A hobby shop sells the computer chess game at a discounted price of 30% off the regular price. </p>\n\n    <p class=\"prompt\">What is the discounted price, in dollars, of the computer chess game at the hobby shop?</p> \n       <p> The discounted price of the chess game is $<textEntryInteraction responseIdentifier=\"Q_01\" expectedLength=\"02\"></textEntryInteraction>.00 </p>\n       \n           <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"28\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n \n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         incorrectResponse=\"true\">\n            <div class=\"feedback-block-incorrect\">Good try! The discounted price is $28.00.</div>\n     </feedbackBlock>\n\n    <p>A department store sells the same computer chess game at a discounted price of 20% off the regular \nprice of $40. On Saturday, the department store will take an additional 10% off the already discounted \nprice of this computer chess game.</p>\n\n        <choiceInteraction responseIdentifier=\"Q_02\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>Should greg buy the computer chess game at the hobby shop or at the department store on Saturday?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">Greg should buy the game at the hobby shop.\n                <feedbackInline csFeedbackId='ChoiceA' identifier='ChoiceA' showHide='show'>Correct!</feedbackInline>\n            </simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">Greg should buy the game at the department store.\n                <feedbackInline csFeedbackId='ChoiceB' identifier='ChoiceB' showHide='show'>Your answer.</feedbackInline>\n            </simpleChoice>\n        </choiceInteraction>\n        \n        \n <div class=\"imagewrapper\"><img src=\"baseballgame.png\"/></div>\n <div class=\"image-copyright\">Copyright 2006 Rafael Amado Deras</div>\n \n <h1>What's the regular price?</h1>\n <p>Later that week Greg bought a computer baseball game at the department store. The department store sold the computer baseball game at a discounted price of 20% off the regular price. The store took an additional 10% off the already discounted price. After both discounts, Greg paid $18 for the game.</p>\n    <p class=\"prompt\">What is the regular price of the computer baseball game?</p>\n        <p>The regular price is $<textEntryInteraction responseIdentifier=\"Q_03\" expectedLength=\"02\"></textEntryInteraction>.00</p>\n        \n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_03.value\"\n         identifier=\"25\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n   \n \n    <!-- this is for any response not defined as a correct response in responseDeclaration -->\n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_03.value\"\n         incorrectResponse=\"true\">\n            <div class=\"feedback-block-incorrect\">Good try, but the regular price is $25.00</div>\n     </feedbackBlock>\n\n        <p class=\"prompt\">How do you know? Explain.</p>\n        <extendedTextInteraction responseIdentifier=\"Q_04\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"></extendedTextInteraction>\n\n\n\n     \n\n        \n    </itemBody>\n</assessmentItem>\n"
-         },
-         {
-            "_t":"models.item.resource.StoredFile",
-            "name":"baseballgame.png",
-            "isMain":false,
-            "storageKey":"5023cbb6e4b08be40d045d58/baseballgame.png",
-            "contentType":"image/png"
-         },
-         {
-            "_t":"models.item.resource.StoredFile",
-            "name":"woodchess.png",
-            "isMain":false,
-            "storageKey":"5023cbb6e4b08be40d045d58/woodchess.png",
-            "contentType":"image/png"
-         }
-      ]
-   },
-   "published":true,
-   "collectionId":"51114b127fc1eaa866444647",
-   "standards":[
-      "7.RP.A.3"
-   ],
-   "itemType":"Constructed Response - Short Answer",
-   "contributorDetails":{
-      "contributor":"New England Common Assessment Program",
-      "credentials":"State Department of Education",
-      "author":"New England Common Assessment Program",
-      "sourceUrl":"www.ride.ri.gov/assessment/necap.aspx",
-      "licenseType":"CC BY",
-      "costForResource":null,
-      "copyright":{
-         "owner":"New England Common Assessment Program",
-         "year":"2009"
-      }
-   },
-   "workflow":{
-      "setup":true,
-      "tagged":true,
-      "standardsAligned":true,
-      "qaReview":false
-   },
-   "priorUse":"Summative",
-   "reviewsPassed":[
-      "Editorial",
-      "Bias",
-      "Fairness",
-      "Content",
-      "Psychometric"
-   ],
-   "supportingMaterials":[
+  "_id": {
+    "_id": {
+      "$oid": "511154e48604c9f77da9739b"
+    },
+    "version": 0
+  },
+  "data": {
+    "name": "data",
+    "files": [
       {
-         "name":"Scoring Guide",
-         "files":[
-            {
-               "_t":"models.item.resource.StoredFile",
-               "name":"0pointa.png",
-               "contentType":"image/png",
-               "isMain":false,
-               "storageKey":"5023cbb6e4b08be40d045d58/materials/ScoringGuide/0pointa.png"
-            },
-            {
-               "_t":"models.item.resource.StoredFile",
-               "name":"1pointa.png",
-               "contentType":"image/png",
-               "isMain":false,
-               "storageKey":"5023cbb6e4b08be40d045d58/materials/ScoringGuide/1pointa.png"
-            },
-            {
-               "_t":"models.item.resource.StoredFile",
-               "name":"2pointa.png",
-               "contentType":"image/png",
-               "isMain":false,
-               "storageKey":"5023cbb6e4b08be40d045d58/materials/ScoringGuide/2pointa.png"
-            },
-            {
-               "_t":"models.item.resource.StoredFile",
-               "name":"2pointb.png",
-               "contentType":"image/png",
-               "isMain":false,
-               "storageKey":"5023cbb6e4b08be40d045d58/materials/ScoringGuide/2pointb.png"
-            },
-            {
-               "_t":"models.item.resource.StoredFile",
-               "name":"3pointa.png",
-               "contentType":"image/png",
-               "isMain":false,
-               "storageKey":"5023cbb6e4b08be40d045d58/materials/ScoringGuide/3pointa.png"
-            },
-            {
-               "_t":"models.item.resource.StoredFile",
-               "name":"3pointb.png",
-               "contentType":"image/png",
-               "isMain":false,
-               "storageKey":"5023cbb6e4b08be40d045d58/materials/ScoringGuide/3pointb.png"
-            },
-            {
-               "_t":"models.item.resource.StoredFile",
-               "name":"4pointa.png",
-               "contentType":"image/png",
-               "isMain":false,
-               "storageKey":"5023cbb6e4b08be40d045d58/materials/ScoringGuide/4pointa.png"
-            },
-            {
-               "_t":"models.item.resource.StoredFile",
-               "name":"4pointb.png",
-               "contentType":"image/png",
-               "isMain":false,
-               "storageKey":"5023cbb6e4b08be40d045d58/materials/ScoringGuide/4pointb.png"
-            },
-            {
-               "_t":"models.item.resource.VirtualFile",
-               "name":"5023cbb6e4b08be40d045d58.ScoreGuide.html",
-               "contentType":"text/html",
-               "isMain":true,
-               "content":"<html>\n\n\n<head>\n<script type=\"text/javascript\"\n  src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\">\n</script>\n</head>\n\n<body>\n\n      <div style=\"margin: auto; width: 600px;\">\n\n  <br/>\n  <br/>\n<h2>Scoring Guide</h2>\n\n  <table>\n<tr>\n<th>Score</th>\n<th>Description</th>\n</tr>\n<tr>\n<td><b>4</b></td>\n<td>5 points</td>\n</tr>\n<tr>\n<td><b>3</b></td>\n<td>4 points</td>\n</tr>\n<tr>\n<td><b>2</b></td>\n<td>2–3 points</td>\n</tr>\n<tr>\n<td><b>1</b></td>\n<td>1 point</td>\n</tr>\n<tr>\n<td><b>0</b></td>\n<td>Response is incorrect or contains some correct work that is irrelevant to the skill or concept being measured.</td>\n</tr>\n<tr>\n<td><b>Blank</b></td>\n<td>No response</td>\n</tr>\n</table>\n\n<h3 class=\"table-title\">Training Notes:</h3>\n<table>\n<tr>\n<td>Part a:</td>\n<td>1 point</td>\n<td>for correct answer, ($)<b>28</b></td>\n</tr>\n<tr>\n<td>Part b:</td>\n<td>2 points</td>\n<td>for correct and complete explanation of why the game is cheaper at the\nhobby shop</td>\n</tr>\n<tr>\n<td></td>\n<td></td>\n<td>OR</td>\n</tr>\n<tr>\n<td></td>\n<td>1 point</td>\n<td>for appropriate explanation with computation error</td>\n</tr>\n<tr>\n<td>Part c:</td>\n<td>2 points</td>\n<td>for correct answer, ($)<b>25</b>, with sufficient explanation or work shown to indicate correct strategy</td>\n</tr>\n<tr>\n<td></td>\n<td></td>\n<td>OR</td>\n</tr>\n<tr>\n<td></td>\n<td>1 point</td>\n<td><br>for correct answer with insufficient or no explanation or work shown</br>\n<br>or</br>\n<br>for appropriate strategy with incorrect or no answer</br></td>\n</tr>\n</table>\n\n<h3 class=\"table-title\">Sample Responses:</h3>\n<table>\n<tr>\n<td>Part b:</td>\n<td><br>Price at hobby shop = $28</br>\n<br>Price at department store = $40 – ($40 × 0.20) = $32 after first discount</br>\n<br>$32 – ($32 × 0.10) = $28.80 after final discount</br>\n<br>The hobby shop sells the computer chess game for $28 and the department store, after both discounts, sells it for $28.80. The computer chess game is cheaper at the hobby shop.</br>\n<br><b>OR</b></br>\n<br>The hobby shop is cheaper because $28 is less than $28.80.</br></td>\n</tr>\n<tr>\n<td>Part c:</td>\n<td><br>Let <i>p</i> = regular price</br>\n<br><i>p</i> × 20% discount × 10% discount = 18</br>\n<br><i>p</i> × (1 − 0.20) × (1 − 0.10) = 18</br>\n<br><i>p</i> × (0.80) × (0.90) = 18</br>\n<br>0.72<i>p</i> = 18</br>\n<br><i>p</i> = 25, so the regular price of the computer baseball game is $25.</br>\n<br><b>OR</b></br>\n<br><math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mrow>\n    <mfrac>\n     <mrow>\n      <mn>18</mn>\n     </mrow>\n     <mrow>\n      <mi>p</mi>\n     </mrow>\n    </mfrac>\n    <mo stretchy=\"false\">=</mo>\n    <mfrac>\n     <mrow>\n      <mn>9</mn>\n     </mrow>\n     <mrow>\n      <mn>10</mn>\n     </mrow>\n    </mfrac>\n   </mrow>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">{18} over {p} = {9} over {10}</annotation>\n </semantics>\n</math></br>\n<br>9<i>p</i> = 180</br>\n<br><i>p</i> = 20, then</br>\n<br><math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mrow>\n    <mfrac>\n     <mrow>\n      <mn>20</mn>\n     </mrow>\n     <mrow>\n      <mi>p</mi>\n     </mrow>\n    </mfrac>\n    <mo stretchy=\"false\">=</mo>\n    <mfrac>\n     <mrow>\n      <mn>8</mn>\n     </mrow>\n     <mrow>\n      <mn>10</mn>\n     </mrow>\n    </mfrac>\n   </mrow>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">{20} over {p} = {8} over {10}</annotation>\n </semantics>\n</math></br>\n<br>8<i>p</i> = 200</br>\n<br><i>p</i> = 25</br>\n</td>\n</tr>\n</table>\n\n<p>This Scoring Guide includes examples of student work provided by the New England Common Assessment Program when the item was first released.</p>\n\n<div class=\"imagewrapper\"><img src=\"4pointa.png\"/></div>\n<div class=\"imagewrapper\"><img src=\"4pointb.png\"/></div>\n<div class=\"imagewrapper\"><img src=\"3pointa.png\"/></div>\n<div class=\"imagewrapper\"><img src=\"3pointb.png\"/></div>\n<div class=\"imagewrapper\"><img src=\"2pointa.png\"/></div>\n<div class=\"imagewrapper\"><img src=\"2pointb.png\"/></div>\n<div class=\"imagewrapper\"><img src=\"1pointa.png\"/></div>\n<div class=\"imagewrapper\"><img src=\"0pointa.png\"/></div>\n</div>\n\n</html>\n"
-            }
-         ]
-      }
-   ],
-   "otherAlignments":{
-      "bloomsTaxonomy":"Analyzing",
-      "keySkills":[
-         "Analyze",
-         "Calculate",
-         "Compare",
-         "Examine",
-         "Apply",
-         "Choose",
-         "Compute",
-         "Explain"
-      ],
-      "demonstratedKnowledge":"Procedural",
-      "relatedCurriculum":"New England Common Assessment Program Released Items"
-   },
-   "taskInfo":{
-      "subjects":{
-         "primary":{
-            "$oid":"4ffb535f6bb41e469c0bf2c2"
-         }
+        "_t": "models.item.resource.VirtualFile",
+        "name": "qti.xml",
+        "contentType": "text/xml",
+        "isMain": true,
+        "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<assessmentItem xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd\"\n    identifier=\"composite\" title=\"Composite Item\" adaptive=\"false\" timeDependent=\"false\">\n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_01\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value>28</value> \n               \n        </correctResponse> \n    </responseDeclaration> \n   \n   <responseDeclaration identifier=\"Q_02\" cardinality=\"single\" baseType=\"identifier\">\n        <correctResponse>\n            <value>ChoiceA</value>\n        </correctResponse>\n    </responseDeclaration>\n    <outcomeDeclaration identifier=\"SCORE\" cardinality=\"single\" baseType=\"integer\">\n        <defaultValue>\n            <value>0</value>\n        </defaultValue>\n    </outcomeDeclaration>\n\n      \n\n    <!-- definition for question one, a short text entry response with correct answer = \"white\" -->\n    <responseDeclaration identifier=\"Q_03\" cardinality=\"single\" baseType=\"string\"> \n        <correctResponse> \n            <value>25</value> \n        </correctResponse> \n    </responseDeclaration> \n\n    <!-- an Extended text entry response for longer form text entry -->\n    <responseDeclaration identifier=\"Q_04\" cardinality=\"single\" baseType=\"string\"/>\n\n    <itemBody>\n\n <div class=\"imagewrapper\"><img src=\"woodchess.png\"/></div>\n <div class=\"image-copyright\">Copyright 2009 cogdog</div>\n\n<h1>Where's the Best Deal?</h1>\n    <p class=\"intro-2\">Greg wants to buy a computer chess game with a regular price of $40. A hobby shop sells the computer chess game at a discounted price of 30% off the regular price. </p>\n\n    <p class=\"prompt\">What is the discounted price, in dollars, of the computer chess game at the hobby shop?</p> \n       <p> The discounted price of the chess game is $<textEntryInteraction responseIdentifier=\"Q_01\" expectedLength=\"02\"></textEntryInteraction>.00 </p>\n       \n           <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         identifier=\"28\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n \n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_01.value\"\n         incorrectResponse=\"true\">\n            <div class=\"feedback-block-incorrect\">Good try! The discounted price is $28.00.</div>\n     </feedbackBlock>\n\n    <p>A department store sells the same computer chess game at a discounted price of 20% off the regular \nprice of $40. On Saturday, the department store will take an additional 10% off the already discounted \nprice of this computer chess game.</p>\n\n        <choiceInteraction responseIdentifier=\"Q_02\" shuffle=\"false\" maxChoices=\"1\">\n            <prompt>Should greg buy the computer chess game at the hobby shop or at the department store on Saturday?</prompt>\n            <simpleChoice identifier=\"ChoiceA\">Greg should buy the game at the hobby shop.\n                <feedbackInline csFeedbackId='ChoiceA' identifier='ChoiceA' showHide='show'>Correct!</feedbackInline>\n            </simpleChoice>\n            <simpleChoice identifier=\"ChoiceB\">Greg should buy the game at the department store.\n                <feedbackInline csFeedbackId='ChoiceB' identifier='ChoiceB' showHide='show'>Your answer.</feedbackInline>\n            </simpleChoice>\n        </choiceInteraction>\n        \n        \n <div class=\"imagewrapper\"><img src=\"baseballgame.png\"/></div>\n <div class=\"image-copyright\">Copyright 2006 Rafael Amado Deras</div>\n \n <h1>What's the regular price?</h1>\n <p>Later that week Greg bought a computer baseball game at the department store. The department store sold the computer baseball game at a discounted price of 20% off the regular price. The store took an additional 10% off the already discounted price. After both discounts, Greg paid $18 for the game.</p>\n    <p class=\"prompt\">What is the regular price of the computer baseball game?</p>\n        <p>The regular price is $<textEntryInteraction responseIdentifier=\"Q_03\" expectedLength=\"02\"></textEntryInteraction>.00</p>\n        \n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_03.value\"\n         identifier=\"25\">\n              <div class=\"feedback-block-correct\">Nice work, that's correct!</div>\n    </feedbackBlock>\n   \n \n    <!-- this is for any response not defined as a correct response in responseDeclaration -->\n    <feedbackBlock\n         outcomeIdentifier=\"responses.Q_03.value\"\n         incorrectResponse=\"true\">\n            <div class=\"feedback-block-incorrect\">Good try, but the regular price is $25.00</div>\n     </feedbackBlock>\n\n        <p class=\"prompt\">How do you know? Explain.</p>\n        <extendedTextInteraction responseIdentifier=\"Q_04\" expectedLength=\"200\" expectedLines=\"5\" maxStrings=\"20\" minStrings=\"10\"></extendedTextInteraction>\n\n\n\n     \n\n        \n    </itemBody>\n</assessmentItem>\n"
       },
-      "gradeLevel":[
-         "07",
-         "08",
-         "09"
-      ],
-      "title":"Greg is in the market for some computer games and needs help finding the best price for one game and the regular price for another.",
-      "itemType":"Constructed Response - Short Answer"
-   }
+      {
+        "_t": "models.item.resource.StoredFile",
+        "name": "baseballgame.png",
+        "isMain": false,
+        "storageKey": "5023cbb6e4b08be40d045d58/baseballgame.png",
+        "contentType": "image/png"
+      },
+      {
+        "_t": "models.item.resource.StoredFile",
+        "name": "woodchess.png",
+        "isMain": false,
+        "storageKey": "5023cbb6e4b08be40d045d58/woodchess.png",
+        "contentType": "image/png"
+      }
+    ]
+  },
+  "published": true,
+  "collectionId": "51114b127fc1eaa866444647",
+  "standards": [
+    "7.RP.A.3"
+  ],
+  "itemType": "Constructed Response - Short Answer",
+  "contributorDetails": {
+    "contributor": "New England Common Assessment Program",
+    "credentials": "State Department of Education",
+    "author": "New England Common Assessment Program",
+    "sourceUrl": "www.ride.ri.gov/assessment/necap.aspx",
+    "licenseType": "CC BY",
+    "costForResource": null,
+    "copyright": {
+      "owner": "New England Common Assessment Program",
+      "year": "2009"
+    }
+  },
+  "workflow": {
+    "setup": true,
+    "tagged": true,
+    "standardsAligned": true,
+    "qaReview": false
+  },
+  "priorUse": "Summative",
+  "reviewsPassed": [
+    "Editorial",
+    "Bias",
+    "Fairness",
+    "Content",
+    "Psychometric"
+  ],
+  "supportingMaterials": [
+    {
+      "name": "Scoring Guide",
+      "files": [
+        {
+          "_t": "models.item.resource.StoredFile",
+          "name": "0pointa.png",
+          "contentType": "image/png",
+          "isMain": false,
+          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/0pointa.png"
+        },
+        {
+          "_t": "models.item.resource.StoredFile",
+          "name": "1pointa.png",
+          "contentType": "image/png",
+          "isMain": false,
+          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/1pointa.png"
+        },
+        {
+          "_t": "models.item.resource.StoredFile",
+          "name": "2pointa.png",
+          "contentType": "image/png",
+          "isMain": false,
+          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/2pointa.png"
+        },
+        {
+          "_t": "models.item.resource.StoredFile",
+          "name": "2pointb.png",
+          "contentType": "image/png",
+          "isMain": false,
+          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/2pointb.png"
+        },
+        {
+          "_t": "models.item.resource.StoredFile",
+          "name": "3pointa.png",
+          "contentType": "image/png",
+          "isMain": false,
+          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/3pointa.png"
+        },
+        {
+          "_t": "models.item.resource.StoredFile",
+          "name": "3pointb.png",
+          "contentType": "image/png",
+          "isMain": false,
+          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/3pointb.png"
+        },
+        {
+          "_t": "models.item.resource.StoredFile",
+          "name": "4pointa.png",
+          "contentType": "image/png",
+          "isMain": false,
+          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/4pointa.png"
+        },
+        {
+          "_t": "models.item.resource.StoredFile",
+          "name": "4pointb.png",
+          "contentType": "image/png",
+          "isMain": false,
+          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/4pointb.png"
+        },
+        {
+          "_t": "models.item.resource.VirtualFile",
+          "name": "5023cbb6e4b08be40d045d58.ScoreGuide.html",
+          "contentType": "text/html",
+          "isMain": true,
+          "content": "<html>\n\n\n<head>\n<script type=\"text/javascript\"\n  src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\">\n</script>\n</head>\n\n<body>\n\n      <div style=\"margin: auto; width: 600px;\">\n\n  <br/>\n  <br/>\n<h2>Scoring Guide</h2>\n\n  <table>\n<tr>\n<th>Score</th>\n<th>Description</th>\n</tr>\n<tr>\n<td><b>4</b></td>\n<td>5 points</td>\n</tr>\n<tr>\n<td><b>3</b></td>\n<td>4 points</td>\n</tr>\n<tr>\n<td><b>2</b></td>\n<td>2–3 points</td>\n</tr>\n<tr>\n<td><b>1</b></td>\n<td>1 point</td>\n</tr>\n<tr>\n<td><b>0</b></td>\n<td>Response is incorrect or contains some correct work that is irrelevant to the skill or concept being measured.</td>\n</tr>\n<tr>\n<td><b>Blank</b></td>\n<td>No response</td>\n</tr>\n</table>\n\n<h3 class=\"table-title\">Training Notes:</h3>\n<table>\n<tr>\n<td>Part a:</td>\n<td>1 point</td>\n<td>for correct answer, ($)<b>28</b></td>\n</tr>\n<tr>\n<td>Part b:</td>\n<td>2 points</td>\n<td>for correct and complete explanation of why the game is cheaper at the\nhobby shop</td>\n</tr>\n<tr>\n<td></td>\n<td></td>\n<td>OR</td>\n</tr>\n<tr>\n<td></td>\n<td>1 point</td>\n<td>for appropriate explanation with computation error</td>\n</tr>\n<tr>\n<td>Part c:</td>\n<td>2 points</td>\n<td>for correct answer, ($)<b>25</b>, with sufficient explanation or work shown to indicate correct strategy</td>\n</tr>\n<tr>\n<td></td>\n<td></td>\n<td>OR</td>\n</tr>\n<tr>\n<td></td>\n<td>1 point</td>\n<td><br>for correct answer with insufficient or no explanation or work shown</br>\n<br>or</br>\n<br>for appropriate strategy with incorrect or no answer</br></td>\n</tr>\n</table>\n\n<h3 class=\"table-title\">Sample Responses:</h3>\n<table>\n<tr>\n<td>Part b:</td>\n<td><br>Price at hobby shop = $28</br>\n<br>Price at department store = $40 – ($40 × 0.20) = $32 after first discount</br>\n<br>$32 – ($32 × 0.10) = $28.80 after final discount</br>\n<br>The hobby shop sells the computer chess game for $28 and the department store, after both discounts, sells it for $28.80. The computer chess game is cheaper at the hobby shop.</br>\n<br><b>OR</b></br>\n<br>The hobby shop is cheaper because $28 is less than $28.80.</br></td>\n</tr>\n<tr>\n<td>Part c:</td>\n<td><br>Let <i>p</i> = regular price</br>\n<br><i>p</i> × 20% discount × 10% discount = 18</br>\n<br><i>p</i> × (1 − 0.20) × (1 − 0.10) = 18</br>\n<br><i>p</i> × (0.80) × (0.90) = 18</br>\n<br>0.72<i>p</i> = 18</br>\n<br><i>p</i> = 25, so the regular price of the computer baseball game is $25.</br>\n<br><b>OR</b></br>\n<br><math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mrow>\n    <mfrac>\n     <mrow>\n      <mn>18</mn>\n     </mrow>\n     <mrow>\n      <mi>p</mi>\n     </mrow>\n    </mfrac>\n    <mo stretchy=\"false\">=</mo>\n    <mfrac>\n     <mrow>\n      <mn>9</mn>\n     </mrow>\n     <mrow>\n      <mn>10</mn>\n     </mrow>\n    </mfrac>\n   </mrow>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">{18} over {p} = {9} over {10}</annotation>\n </semantics>\n</math></br>\n<br>9<i>p</i> = 180</br>\n<br><i>p</i> = 20, then</br>\n<br><math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mrow>\n    <mfrac>\n     <mrow>\n      <mn>20</mn>\n     </mrow>\n     <mrow>\n      <mi>p</mi>\n     </mrow>\n    </mfrac>\n    <mo stretchy=\"false\">=</mo>\n    <mfrac>\n     <mrow>\n      <mn>8</mn>\n     </mrow>\n     <mrow>\n      <mn>10</mn>\n     </mrow>\n    </mfrac>\n   </mrow>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">{20} over {p} = {8} over {10}</annotation>\n </semantics>\n</math></br>\n<br>8<i>p</i> = 200</br>\n<br><i>p</i> = 25</br>\n</td>\n</tr>\n</table>\n\n<p>This Scoring Guide includes examples of student work provided by the New England Common Assessment Program when the item was first released.</p>\n\n<div class=\"imagewrapper\"><img src=\"4pointa.png\"/></div>\n<div class=\"imagewrapper\"><img src=\"4pointb.png\"/></div>\n<div class=\"imagewrapper\"><img src=\"3pointa.png\"/></div>\n<div class=\"imagewrapper\"><img src=\"3pointb.png\"/></div>\n<div class=\"imagewrapper\"><img src=\"2pointa.png\"/></div>\n<div class=\"imagewrapper\"><img src=\"2pointb.png\"/></div>\n<div class=\"imagewrapper\"><img src=\"1pointa.png\"/></div>\n<div class=\"imagewrapper\"><img src=\"0pointa.png\"/></div>\n</div>\n\n</html>\n"
+        }
+      ]
+    }
+  ],
+  "otherAlignments": {
+    "bloomsTaxonomy": "Analyzing",
+    "keySkills": [
+      "Analyze",
+      "Calculate",
+      "Compare",
+      "Examine",
+      "Apply",
+      "Choose",
+      "Compute",
+      "Explain"
+    ],
+    "demonstratedKnowledge": "Procedural",
+    "relatedCurriculum": "New England Common Assessment Program Released Items"
+  },
+  "taskInfo": {
+    "subjects": {
+      "primary": {
+        "$oid": "4ffb535f6bb41e469c0bf2c2"
+      }
+    },
+    "gradeLevel": [
+      "07",
+      "08",
+      "09"
+    ],
+    "title": "Greg is in the market for some computer games and needs help finding the best price for one game and the regular price for another.",
+    "itemType": "Constructed Response - Short Answer"
+  }
 }

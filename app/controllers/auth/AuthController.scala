@@ -69,9 +69,9 @@ object AuthController extends Controller with SecureSocial with ObjectIdParser w
           val username = request.user.id.id
           val orgId = new ObjectId(orgStr)
           User.getUser(username) match {
-            case Some(user) => if(user.orgs.exists(uo => uo.orgId == orgId && (uo.pval&Permission.Write.value) == Permission.Write.value)){
+            case Some(user) => if(user.org.orgId == orgId && (user.org.pval&Permission.Write.value) == Permission.Write.value){
               try {
-                OAuthProvider.register(orgId).fold(
+                OAuthProvider.createApiClient(orgId).fold(
                   error => BadRequest(Json.toJson(error)),
                   client => Ok(Json.toJson(Map(OAuthConstants.ClientId -> client.clientId.toString, OAuthConstants.ClientSecret -> client.clientSecret)))
                 )

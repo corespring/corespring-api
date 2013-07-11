@@ -10,13 +10,14 @@ import player.controllers.AssetLoading
 import tests.PlaySingleton
 import player.accessControl.models.{RequestedAccess, RenderOptions}
 import play.api.libs.json.Json
+import models.item.service.ItemServiceImpl
 
 class AssetLoadingTest extends Specification {
 
   PlaySingleton.start()
 
   val mockTemplate = """${mode}"""
-  val loader = new AssetLoading(NullCrypto, mockTemplate)
+  val loader = new AssetLoading(NullCrypto, mockTemplate, ItemServiceImpl)
   "asset loading" should {
     "load the js and set the cookies " in {
       val options : RenderOptions = RenderOptions(expires = 0, mode = RequestedAccess.Mode.Preview)

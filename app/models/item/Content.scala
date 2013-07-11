@@ -2,56 +2,51 @@ package models.item
 
 import com.mongodb.casbah.Imports._
 import com.novus.salat.dao.SalatDAOUpdateError
+import common.log.PackageLogging
 import controllers.InternalError
 import controllers.auth.Permission
 import models.ContentCollection
-import play.api.Play.current
-import se.radley.plugin.salat._
-import common.log.PackageLogging
+import models.item.service.{ItemServiceImpl, ItemService}
+import org.corespring.platform.data.mongo.models.VersionedId
 
-trait Content{
-  var id: ObjectId
+trait Content {
+  var id: VersionedId[ObjectId]
   var contentType: String
   var collectionId: String
-  var version:Option[Version]
 }
 
-object Content extends PackageLogging{
+class ContentHelper(itemService:ItemService) extends PackageLogging {
   val collectionId: String = "collectionId"
   val contentType: String = "contentType"
-  val version = "version"
 
-  val collection = mongoCollection("content")
-
-  def moveToArchive(contentId:ObjectId):Either[InternalError, Unit] = {
-    try{
-      Content.collection.update(MongoDBObject("_id" -> contentId), MongoDBObject("$set" -> MongoDBObject(Content.collectionId -> ContentCollection.archiveCollId.toString)),
-        false, false, Content.collection.writeConcern)
+  def moveToArchive(contentId: VersionedId[ObjectId]): Either[InternalError, Unit] = {
+    try {
+      val update = MongoDBObject( "$set" -> MongoDBObject(Content.collectionId -> ContentCollection.archiveCollId.toString))
+      itemService.saveUsingDbo(contentId, update, false)
       Right(())
-    }catch{
-      case e:SalatDAOUpdateError => Left(InternalError("failed to transfer content to archive", e))
+    } catch {
+      case e: SalatDAOUpdateError => Left(InternalError("failed to transfer content to archive", e))
     }
   }
-  def isAuthorized(orgId:ObjectId, contentId:ObjectId, p:Permission, current:Boolean = false):Boolean = {
-    val searchQuery:MongoDBObject = if(current)
-      MongoDBObject("_id" -> contentId,
-        "$or" -> MongoDBList(MongoDBObject(Content.version -> MongoDBObject("$exists" -> false)),MongoDBObject(Content.version+"."+Version.current -> true)))
-    else MongoDBObject("_id" -> contentId)
-    Content.collection.findOne(searchQuery,MongoDBObject(Content.collectionId -> 1)) match {
-      case Some(dbo) =>
-        dbo.get(Content.collectionId) match {
-        case collId:String =>
-          isCollectionAuthorized(orgId,collId,p)
-        case _ => Logger.error("content did not contain collection id"); false
-      }
-      case None => false
+
+  def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Boolean = {
+    //TODO: We should only find the item once - here we find it and return true/false which is wasteful.
+    itemService.findOneById(contentId).map{ item =>
+      isCollectionAuthorized(orgId, item.collectionId, p)
+    }.getOrElse{
+      Logger.debug("isAuthorized: can't find item with id: " + contentId)
+      false
     }
   }
-  def isCollectionAuthorized(orgId:ObjectId, collId:String, p:Permission):Boolean = {
-    val ids = ContentCollection.getCollectionIds(orgId,p)
-    ids.exists(_.toString == collId)
+
+  def isCollectionAuthorized(orgId: ObjectId, collectionId: String, p: Permission): Boolean = {
+    val ids = ContentCollection.getCollectionIds(orgId, p)
+    Logger.debug("isCollectionAuthorized: " + ids + " collection id: " + collectionId)
+    ids.exists(_.toString == collectionId)
   }
 }
+
+object Content extends ContentHelper(ItemServiceImpl)
 
 object ContentType {
   val item = "item"

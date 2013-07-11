@@ -1,6 +1,5 @@
 package models
 
-import item.{Item, Content}
 import org.bson.types.ObjectId
 import mongoContext._
 import se.radley.plugin.salat._
@@ -21,14 +20,14 @@ import play.api.Play.current
 import play.api.Play
 import controllers.auth.Permission
 import search.Searchable
+import models.item.service.ItemServiceImpl
 import scalaz.{Failure, Success, Validation}
-
 
 /**
  * A ContentCollection
  */
 case class ContentCollection(var name: String = "", var isPublic: Boolean = false, var id: ObjectId = new ObjectId()){
-  lazy val itemCount:Int = Item.find(MongoDBObject("collectionId" -> id.toString)).count
+  lazy val itemCount:Int = ItemServiceImpl.find(MongoDBObject("collectionId" -> id.toString)).count
 }
 
 object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with Searchable{
@@ -76,13 +75,13 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
       case e: SalatDAOUpdateError => Left(InternalError("failed to update collection", e))
     }
   }
-  lazy val archiveCollId: ObjectId = ContentCollection.findOneById(new ObjectId("500ecfc1036471f538f24bdc")) match {
-    case Some(coll) => coll.id
-    case None => ContentCollection.insert(ContentCollection("archiveColl", id = new ObjectId("500ecfc1036471f538f24bdc"))) match {
-      case Some(collId) => collId
-      case None => throw new RuntimeException("could not create new archive collection")
-    }
+
+  lazy val archiveCollId: ObjectId = {
+    val id = new ObjectId("500ecfc1036471f538f24bdc")
+    ContentCollection.insert(ContentCollection("archiveColl", id = id ))
+    id
   }
+
   def delete(collId:ObjectId):Validation[InternalError,Unit] = {
     //todo: roll backs after detecting error in organization update
     try{
@@ -134,7 +133,8 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
     }
     seqcollid
   }
-  def getCollectionIds(orgId: ObjectId, p:Permission, deep:Boolean = true): Seq[(ObjectId)] = {
+
+  def getCollectionIds(orgId: ObjectId, p:Permission, deep:Boolean = true): Seq[ObjectId] = {
     val cursor = if(deep)Organization.find(MongoDBObject(Organization.path -> orgId)) else Organization.find(MongoDBObject("_id" -> orgId))   //find the tree of the given organization
     var seqcollid:Seq[ObjectId] = cursor.foldRight[Seq[ObjectId]](Seq())((o,acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval&p.value) == p.value).map(_.collectionId)) //filter the collections that don't have the given permission
     cursor.close()

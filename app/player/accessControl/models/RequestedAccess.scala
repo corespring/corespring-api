@@ -2,9 +2,10 @@ package player.accessControl.models
 
 import controllers.auth.Permission
 import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
 
 case class RequestedAccess(
-                       itemId: Option[ContentRequest] = None,
+                       itemId: Option[VersionedContentRequest] = None,
                        sessionId: Option[ContentRequest] = None,
                        assessmentId: Option[ContentRequest] = None,
                        mode: Option[RequestedAccess.Mode.Mode] = Some(RequestedAccess.Mode.All))
@@ -19,9 +20,13 @@ object RequestedAccess {
     val All = Value("*")
   }
 
+  implicit def toContentRequest(id:Option[ObjectId]):Option[ContentRequest] = id.map(ContentRequest(_, Permission.Read))
+  implicit def toVersionedContentRequest(id:Option[VersionedId[ObjectId]]):Option[VersionedContentRequest] = id.map(VersionedContentRequest(_, Permission.Read))
 
-  def asRead(itemId: Option[ObjectId] = None, sessionId: Option[ObjectId] = None, assessmentId: Option[ObjectId] = None, mode: Option[RequestedAccess.Mode.Mode] = None): RequestedAccess = {
-    def toContentRequest(optid: Option[ObjectId]): Option[ContentRequest] = optid.map(id => ContentRequest(id, Permission.Read))
-    new RequestedAccess(toContentRequest(itemId), toContentRequest(sessionId), toContentRequest(assessmentId), mode)
+  def asRead(itemId: Option[VersionedId[ObjectId]] = None,
+             sessionId: Option[ObjectId] = None,
+             assessmentId: Option[ObjectId] = None,
+             mode: Option[RequestedAccess.Mode.Mode] = None): RequestedAccess = {
+    new RequestedAccess(itemId, sessionId, assessmentId, mode)
   }
 }

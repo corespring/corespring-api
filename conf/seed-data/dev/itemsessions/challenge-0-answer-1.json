@@ -3,7 +3,10 @@
     "$oid": "51534878300446a79d587164"
   },
   "itemId": {
-    "$oid": "503c2e91e4b00f3f0a9a7a6a"
+    "_id": {
+      "$oid": "503c2e91e4b00f3f0a9a7a6a"
+    },
+    "version": 0
   },
   "attempts": 0,
   "start": {
@@ -19,7 +22,9 @@
       "responseValue": "14"
     }
   ],
-  "feedbackIdLookup": [ ],
+  "feedbackIdLookup": [
+
+  ],
   "settings": {
     "maxNoOfAttempts": 1,
     "highlightUserResponse": true,

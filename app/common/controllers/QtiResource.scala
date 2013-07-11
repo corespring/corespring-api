@@ -5,20 +5,23 @@ import scala.xml.Elem
 import models.item.{Item, Content}
 import controllers.auth.Permission
 import models.item.resource.{VirtualFile, Resource}
+import models.item.service.ItemServiceClient
+import org.corespring.platform.data.mongo.models.VersionedId
 
-trait QtiResource {
+trait QtiResource { self : ItemServiceClient =>
 
   /**
    * Provides the item XML body for an item with a provided item id.
    * @param itemId
    * @return
    */
-  def getItemXMLByObjectId(itemId: String, orgId: ObjectId): Option[Elem] =
-    Item.findOneById(new ObjectId(itemId)).map {
-      getItemXMLByObjectId(_, orgId)
-    }.getOrElse(None)
+  def getItemXMLByObjectId(itemId:VersionedId[ObjectId],  orgId: ObjectId): Option[Elem] = if(Content.isAuthorized(orgId, itemId, Permission.Read)){
+    itemService.getQtiXml(itemId)
+  } else {
+   None
+  }
 
-
+  @deprecated("use Item.getQtiXml instead", "versioning-dao")
   def getItemXMLByObjectId(item: Item, orgId: ObjectId): Option[Elem] = if(authorized(item,orgId)){
     item.data.map {
       d =>

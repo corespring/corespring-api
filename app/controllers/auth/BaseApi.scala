@@ -2,11 +2,12 @@ package controllers.auth
 
 import api.ApiError
 import api.ApiError._
-import models.User
+import com.mongodb.casbah.Imports
+import common.log.PackageLogging
+import models.{Organization, User}
 import play.api.libs.json.{JsString, JsObject, Json}
 import play.api.mvc._
 import securesocial.core.SecureSocial
-import common.log.PackageLogging
 
 /**
  * A class that adds an AuthorizationContext to the Request object
@@ -81,8 +82,13 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
         }.getOrElse {
           tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
             OAuthProvider.getAuthorizationContext(token).fold(
-              error => Forbidden(Json.toJson(error)).as(JSON),
-              ctx => { val result: PlainResult = f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
+              error => {
+                Logger.debug("Error getting authorization context")
+                Forbidden(Json.toJson(error)).as(JSON)
+              },
+              ctx => {
+                val result: PlainResult = f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
+                Logger.debug("returning result")
                 result
               }
             )
@@ -133,14 +139,13 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
    * @return
    */
     def invokeAsUser[A](username: String, provider:String, request: Request[A])(f: ApiRequest[A]=>Result) = {
-      User.getUser(username, provider).map { user =>
-        Logger.debug("Using user in Play's session = " + username)
-        //TODO: check orgId is right
-        val ctx = new AuthorizationContext(user.orgs.head.orgId, Option(username),true)
+      def orgId : Option[Imports.ObjectId] = User.getUser(username, provider).map(_.org.orgId)
+
+      val maybeOrg : Option[Organization] = orgId.map(Organization.findOneById).getOrElse(None)
+      maybeOrg.map{ org =>
+        val ctx = new AuthorizationContext(org.id, Option(username), true, Some(org))
         f( ApiRequest(ctx, request, ""))
-      }.getOrElse(
-        Forbidden( Json.toJson(MissingCredentials) ).as(JSON)
-      )
+      }.getOrElse( Forbidden( Json.toJson(MissingCredentials) ).as(JSON) )
     }
 
   /**

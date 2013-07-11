@@ -1,27 +1,21 @@
 package api.v1
 
-import play.api.mvc._
-import controllers.auth.{Permission, ApiRequest, BaseApi}
-import models._
-import item.{Content, Item}
-import item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
-import models.itemSession.{DefaultItemSession, ItemSession}
-import org.bson.types.ObjectId
-import controllers.{Utils, ConcreteS3Service, S3Service}
-import com.typesafe.config.ConfigFactory
-import play.api.libs.json.Json._
 import api.ApiError
+import com.typesafe.config.ConfigFactory
+import controllers.auth.{Permission, ApiRequest, BaseApi}
+import controllers.{ConcreteS3Service, S3Service}
+import models.item.resource.{VirtualFile, BaseFile, StoredFile, Resource}
+import models.item.service.{ItemService, ItemServiceImpl}
+import models.item.{Content, Item}
+import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
+import play.api.libs.json.Json._
 import play.api.libs.json._
+import play.api.mvc._
 import scala.Some
-import com.mongodb.casbah.commons.MongoDBObject
-import play.Logger
-import play.api.libs.json.JsString
-import scala.Some
-import play.api.libs.json.JsObject
+import common.config.AppConfig
 
-class ResourceApi(s3service:S3Service) extends BaseApi {
-
-  private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
+class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
 
   private val USE_ITEM_DATA_KEY: String = "__!data!__"
 
@@ -43,6 +37,8 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
 
   /**
    * TODO: This is not working as expected - needs a rewrite.
+   * See: https://gist.github.com/edeustace/641e35e9d40e8dec7d6a
+   * As an alternative approach
    * Because ApiAction(p) is passing the bodyparser straight through -aka- it gets run first.
    * A wrapping Action that checks that an Item with the given id exists before executing the action body.
    * @param itemId - the item id
@@ -56,9 +52,9 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
                   p: BodyParser[A])(
                   action: ItemRequest[A] => Result
                   ) = ApiAction(p) { request =>
-    objectId(itemId) match {
+    convertStringToVersionedId(itemId) match {
       case Some(validId) => {
-        Item.findOneById(validId) match {
+        service.findOneById(validId) match {
           case Some(item) => {
             val errors: Seq[Result] = additionalChecks.flatMap(_(request,item))
             if (errors.length == 0) {
@@ -80,7 +76,11 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
    * @param itemId
    * @return an Option[ObjectId] or None if the id is invalid
    */
-  private def objectId(itemId: String): Option[ObjectId] = if(ObjectId.isValid(itemId)) Some(new ObjectId(itemId)) else None
+  private def convertStringToVersionedId(itemId: String): Option[VersionedId[ObjectId]] = {
+      Logger.debug("handle itemId: " + itemId)
+    import models.versioning.VersionedIdImplicits.Binders._
+    stringToVersionedId(itemId)
+  }
 
   def HasItem(itemId: String,
               additionalChecks: Seq[(ApiRequest[AnyContent],Item) => Option[Result]] = Seq(),
@@ -91,10 +91,10 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
       case Some(f) => {
         resource.files = resource.files.filterNot(_.name == filename)
         f match {
-          case StoredFile(_,_,_,key) => s3service.delete(AMAZON_ASSETS_BUCKET,key)
+          case StoredFile(_,_,_,key) => s3service.delete(AppConfig.assetsBucket,key)
           case _ => //do nothing
         }
-        Item.save(item)
+        service.save(item)
         Ok
       }
       case _ => NotFound(filename)
@@ -103,7 +103,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
   def editCheck(force:Boolean = false) = new Function2[ApiRequest[_],Item,Option[Result]] {
     def apply(request:ApiRequest[_], item:Item):Option[Result] = {
       if(Content.isAuthorized(request.ctx.organization,item.id,Permission.Write)){
-        if(item.sessionCount > 0 && item.published && !force){
+        if(service.sessionCount(item)> 0 && item.published && !force){
           Some(Forbidden(toJson(JsObject(Seq("message" ->
             JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
             "flags" -> JsArray(Seq(JsString("alert_increment")))
@@ -236,7 +236,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
                   processedUpdate.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey
                 }
                 item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
-                Item.save(item)
+                service.save(item)
                 Ok(toJson(processedUpdate))
               }
               case _ => NotFound(update.name)
@@ -279,7 +279,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
                       unsetIsMain(resource)
                     }
                     resource.files = resource.files.map(bf => if (bf.name == filename) update else bf)
-                    Item.save(item)
+                    service.save(item)
                     Ok(toJson(update))
                   }
                   case _ => NotFound
@@ -293,7 +293,14 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
     }
   )
 
-  def key(keys : String*) : String = keys.toList.mkString("/")
+  def key(itemId : String, keys : String*) : String = {
+
+    if(itemId.contains(":")){
+      (itemId.split(":") ++ keys).mkString("/")
+    } else {
+      (List(itemId) ++ keys).mkString("/")
+    }
+  }
 
   /**
    * Upload a file to the 'data' Resource in the Item.
@@ -305,7 +312,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
     HasItem(
       itemId,
       Seq(editCheck(),isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_,_)),
-      s3service.s3upload(AMAZON_ASSETS_BUCKET, key(itemId, DATA_PATH, filename)))(
+      s3service.s3upload(AppConfig.assetsBucket, key(itemId, DATA_PATH, filename)))(
     {
       request =>
 
@@ -325,7 +332,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
           key(itemId, DATA_PATH, filename))
 
         resource.files = resource.files ++ Seq(file)
-        Item.save(item)
+        service.save(item)
         Ok(toJson(file))
     }
     )
@@ -344,7 +351,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
         canFindResource(materialName)(_,_),
         isFilenameTaken(filename, materialName)(_,_)
       ),
-      s3service.s3upload(AMAZON_ASSETS_BUCKET, storageKey(itemId, materialName, filename)))(
+      s3service.s3upload(AppConfig.assetsBucket, storageKey(itemId, materialName, filename)))(
     {
       request =>
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
@@ -356,7 +363,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
           false,
           storageKey(itemId, materialName, filename))
         resource.files = resource.files ++ Seq(file)
-        Item.save(item)
+        service.save(item)
         Ok(toJson(file))
     }
     )
@@ -369,7 +376,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
 
   def createSupportingMaterialWithFile(itemId: String, name: String, filename: String) = {
     val s3Key = storageKey(itemId, name, filename)
-    HasItem(itemId,Seq(editCheck()), s3service.s3upload(AMAZON_ASSETS_BUCKET, s3Key))(
+    HasItem(itemId,Seq(editCheck()), s3service.s3upload(AppConfig.assetsBucket, s3Key))(
     {
       request =>
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
@@ -379,7 +386,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
             val file = new StoredFile(filename, contentType(filename), true, s3Key)
             val resource = Resource(name, Seq(file))
             item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
-            Item.save(item)
+            service.save(item)
             Ok(toJson(resource))
           }
         }
@@ -397,7 +404,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
               case Some(error) => NotAcceptable(toJson(error))
               case _ => {
                 item.supportingMaterials = item.supportingMaterials ++ Seq[Resource](foundResource)
-                Item.save(item)
+                service.save(item)
                 Ok(toJson(foundResource))
               }
             }
@@ -415,7 +422,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
       request =>
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
         item.supportingMaterials = item.supportingMaterials.filter(_.name != resourceName)
-        Item.save(item)
+        service.save(item)
         Ok("")
     }
   )
@@ -437,7 +444,7 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
           unsetIsMain(resource)
         }
         resource.files = resource.files ++ Seq(file)
-        Item.save(item)
+        service.save(item)
         Ok(toJson(file))
       }
     }
@@ -489,4 +496,4 @@ class ResourceApi(s3service:S3Service) extends BaseApi {
   }
 }
 
-object ResourceApi extends api.v1.ResourceApi(ConcreteS3Service)
+object ResourceApi extends api.v1.ResourceApi(ConcreteS3Service, ItemServiceImpl)

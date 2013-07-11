@@ -1,14 +1,11 @@
 @(params: _root_.player.views.models.PlayerParams)
 
 @scripts = {
+
+  @player.views.html.partials.angularConfig(params)
+
 <!-- need to override the config to add the Lti Params -->
 <script type="text/javascript">
-    angular.module('qti.services').factory('Config', [function(){
-        return {
-            itemId : "@params.itemId",
-            sessionId : '@params.sessionId.getOrElse("")'
-        }
-    }]);
 
     angular.module('qti.services').factory('ScormBridge', [function () {
 

@@ -1,22 +1,23 @@
 package tests.models.item
 
-import tests.BaseTest
+import com.mongodb.BasicDBObject
+import controllers.JsonValidationException
 import models._
-import play.api.libs.json.{JsString, JsObject, Json}
+import models.item.Item.Keys
+import models.item._
 import org.bson.types.ObjectId
-import com.mongodb.{DBObject, BasicDBObject}
-import models.item.{Alignments, Copyright, ContributorDetails}
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
+import play.api.libs.json.Json
 import scala.Some
-import models.item._
-import controllers.JsonValidationException
+import tests.BaseTest
 
 class ItemTest extends BaseTest {
 
-  "item" should {
 
-    "general parse" in {
+  "parse" should {
+
+    "work" in {
       val item = Item(
         otherAlignments = Some(
           Alignments(
@@ -61,7 +62,7 @@ class ItemTest extends BaseTest {
       itemFromJson.workflow.get.qaReview must equalTo(true)
     }
 
-    "parses standards" in {
+    "parse standards" in {
       val item = Item(standards = Seq("RL.K.9"))
       val json = Json.toJson(item)
       /*
@@ -73,14 +74,14 @@ class ItemTest extends BaseTest {
     }
 
 
-    "parses priorGradeLevel" in {
+    "parse priorGradeLevel" in {
       val item = Item(priorGradeLevel = Seq("03", "04"))
       val json = Json.toJson(item)
       val parsedItem = json.as[Item]
       parsedItem.priorGradeLevel must equalTo(item.priorGradeLevel)
     }
 
-    "does not parse invalid priorGradeLevel" in {
+    "not parse invalid priorGradeLevel" in {
       val item = Item(priorGradeLevel = Seq("apple", "pear"))
       val json = Json.toJson(item)
       json.as[Item] must throwA[JsonValidationException]
@@ -93,9 +94,10 @@ class ItemTest extends BaseTest {
       //The json that is submittted to be read is different from the db json
       val jsonToRead = JsObject(
         Seq(
-          (Item.id -> JsString( new ObjectId().toString )),
-          (Item.primarySubject -> JsString(subject.primary.get.toString))
-        ))
+          Keys.id -> JsString(new ObjectId().toString),
+          Keys.primarySubject -> JsString(subject.primary.get.toString)
+        )
+      )
       val parsed = jsonToRead.as[Item]
 
       parsed.taskInfo.get.subjects.get.primary must equalTo(subject.primary)
@@ -110,10 +112,11 @@ class ItemTest extends BaseTest {
       //The json that is submittted to be read is different from the db json
       val jsonToRead = JsObject(
         Seq(
-          (Item.id -> JsString(new ObjectId().toString)),
-          (Item.primarySubject -> JsString(subject.primary.get.toString)),
-          (Item.relatedSubject -> JsString(subject.related.get.toString))
-        ))
+          Keys.id -> JsString(new ObjectId().toString),
+          Keys.primarySubject -> JsString(subject.primary.get.toString),
+          Keys.relatedSubject -> JsString(subject.related.get.toString)
+        )
+      )
 
       val parsed = jsonToRead.as[Item]
 
@@ -121,10 +124,6 @@ class ItemTest extends BaseTest {
       parsed.taskInfo.get.subjects.get.related must equalTo(subject.related)
     }
 
-    "item properties are validated when saving" in {
-      //TODO: Item.updateItem(item.id, item, None).isLeft must equalTo(true)
-      pending
-    }
 
     "parse contributor details" in {
       val copyright = Copyright(Some("Ed"), Some("2001"), Some("3000"), Some("imageName.png"))
@@ -135,14 +134,14 @@ class ItemTest extends BaseTest {
       )
       val item = Item(contributorDetails = Some(contributorDetails))
       val json = Json.toJson(item)
-      (json \ Item.copyrightOwner).asOpt[String] must equalTo(Some("Ed"))
-      (json \ Item.copyrightYear).asOpt[String] must equalTo(Some("2001"))
-      (json \ Item.copyrightExpirationDate).asOpt[String] must equalTo(Some("3000"))
-      (json \ Item.copyrightImageName).asOpt[String] must equalTo(Some("imageName.png"))
-      (json \ Item.costForResource).asOpt[Int] must equalTo(Some(10))
-      (json \ Item.author).asOpt[String] must equalTo(Some("Ed"))
-      (json \ Item.licenseType).asOpt[String] must beNone
-      (json \ Item.sourceUrl).asOpt[String] must beNone
+      (json \ Keys.copyrightOwner).asOpt[String] must equalTo(Some("Ed"))
+      (json \ Keys.copyrightYear).asOpt[String] must equalTo(Some("2001"))
+      (json \ Keys.copyrightExpirationDate).asOpt[String] must equalTo(Some("3000"))
+      (json \ Keys.copyrightImageName).asOpt[String] must equalTo(Some("imageName.png"))
+      (json \ Keys.costForResource).asOpt[Int] must equalTo(Some(10))
+      (json \ Keys.author).asOpt[String] must equalTo(Some("Ed"))
+      (json \ Keys.licenseType).asOpt[String] must beNone
+      (json \ Keys.sourceUrl).asOpt[String] must beNone
 
       val parsedItem = json.as[Item]
       parsedItem.contributorDetails.get.copyright.get.owner must equalTo(Some("Ed"))
@@ -153,44 +152,49 @@ class ItemTest extends BaseTest {
       parsedItem.contributorDetails.get.licenseType must beNone
       parsedItem.contributorDetails.get.sourceUrl must beNone
     }
+  }
 
-    "clone" in {
+  "item properties are validated when saving" in {
+    //TODO: Item.updateItem(item.id, item, None).isLeft must equalTo(true)
+    pending
+  }
+
+  "clone" should {
+
+    "work" in {
 
       val item = Item(collectionId = "1234567")
-      val clonedItem = Item.cloneItem(item)
+      val clonedItem = itemService.cloneItem(item)
       item.collectionId === clonedItem.get.collectionId
 
       item.collectionId = "0987654321"
-      Item.save(item)
+      itemService.save(item)
 
-      Item.findOneById(clonedItem.get.id) match {
+      itemService.findOneById(clonedItem.get.id) match {
         case Some(fromDb) => clonedItem.get.collectionId === fromDb.collectionId
         case _ => failure("couldn't find cloned item")
       }
     }
 
-    "clone appends [copy] to title" in {
+    "prepend [copy] to title" in {
       val item = Item(collectionId = "1234567", taskInfo = Some(TaskInfo(title = Some("something"))))
-      val clonedItem = Item.cloneItem(item)
+      val clonedItem = itemService.cloneItem(item)
       clonedItem.get.taskInfo.get.title.get === "[copy] " + item.taskInfo.get.title.get
     }
 
-    "clone appends [copy] to empty taskinfo" in {
+    "prepend [copy] to empty taskinfo" in {
       val item = Item(collectionId = "1234567")
-      val clonedItem = Item.cloneItem(item)
+      val clonedItem = itemService.cloneItem(item)
       clonedItem.get.taskInfo.get.title.get === "[copy]"
     }
 
-    "clone appends [copy] to empty title" in {
+    "prepend [copy] to empty title" in {
       val item = Item(collectionId = "1234567", taskInfo = Some(TaskInfo()))
-      val clonedItem = Item.cloneItem(item)
+      val clonedItem = itemService.cloneItem(item)
       clonedItem.get.taskInfo.get.title.get === "[copy]"
-    }
-
-    "list accepts fields" in {
-      true === true
     }
 
   }
+
 
 }

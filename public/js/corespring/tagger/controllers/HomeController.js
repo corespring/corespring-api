@@ -9,6 +9,7 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
 
   $scope.$root.mode = "home";
 
+
   $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
   $rootScope.$broadcast('onListViewOpened');
 
@@ -103,10 +104,13 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
       });
     }
     SearchService.search($scope.searchParams, function (res) {
+      var readOnlyCollections = _.filter(CollectionManager.rawCollections,function(c){
+        return c.permission == "read";
+      });
       $rootScope.items = _.map(res, function(item){
-        var readOnlyColl = _.find($rootScope.collections, function(coll){
-            return (coll.id == item.collectionId) && (coll.access == 1)  //1 represents read-only access
-        })
+        var readOnlyColl = _.find(readOnlyCollections, function(coll){
+            return coll.id == item.collectionId;  //1 represents read-only access
+        });
         if(readOnlyColl){
             item.readOnly = true;
         }else{

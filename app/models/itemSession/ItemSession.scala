@@ -2,27 +2,28 @@ package models.itemSession
 
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
-import controllers.{Utils, InternalError}
+import common.log.PackageLogging
+import controllers.{JsonValidationException, InternalError}
 import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
-import models.item._
-import models.item.resource._
+import models.item.service.{ItemServiceImpl, ItemService}
 import models.mongoContext._
+import models.versioning.VersionedIdImplicits
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
+import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
-import play.api.Play
 import qti.models.QtiItem
 import qti.processors.FeedbackProcessor
 import scala.xml._
 import se.radley.plugin.salat._
-import common.log.PackageLogging
 
 case class FeedbackIdMapEntry(csFeedbackId: String, outcomeIdentifier: String, identifier: String)
 
 /**
  * Case class representing an individual item session
  */
-case class ItemSession(var itemId: ObjectId,
+case class ItemSession(var itemId: VersionedId[ObjectId],
                        var attempts: Int = 0,
                        var start: Option[DateTime] = None,
                        var finish: Option[DateTime] = None,
@@ -43,6 +44,7 @@ object ItemSession {
 
   object Keys {
     val itemId = "itemId"
+    val itemVersion = "itemVersion"
     val start = "start"
     val finish = "finish"
     val responses = "responses"
@@ -56,24 +58,28 @@ object ItemSession {
 
     def writes(session: ItemSession): JsValue = {
 
+      import Keys._
+      import models.versioning.VersionedIdImplicits.Writes
+      import play.api.libs.json.Json._
+
       val main: Seq[(String, JsValue)] = Seq(
         "id" -> JsString(session.id.toString),
-        Keys.itemId -> JsString(session.itemId.toString),
-        Keys.responses -> Json.toJson(session.responses),
-        "settings" -> Json.toJson(session.settings)
+        itemId -> Json.toJson(session.itemId),
+        responses -> toJson(session.responses),
+        "settings" -> toJson(session.settings)
       )
 
       val sessionDataSeq: Seq[(String, JsValue)] = Seq(
-        session.sessionData.map(sd => ("sessionData" -> Json.toJson(sd))),
+        session.sessionData.map(sd => ("sessionData" -> toJson(sd))),
         session.dateModified.map(dm => ("dateModified" -> JsNumber(dm.getMillis)))
       ).flatten
 
       val startedSeq: Seq[(String, JsValue)] = session.start.map(s => {
-        Seq(Keys.start -> JsNumber(s.getMillis), "isStarted" -> JsBoolean(true))
+        Seq(start -> JsNumber(s.getMillis), "isStarted" -> JsBoolean(true))
       }).getOrElse(Seq())
 
       val finishSeq: Seq[(String, JsValue)] = session.finish.map(f => {
-        Seq(Keys.finish -> JsNumber(f.getMillis), "isFinished" -> JsBoolean(true))
+        Seq(finish -> JsNumber(f.getMillis), "isFinished" -> JsBoolean(true))
       }).getOrElse(Seq())
 
       JsObject(main ++ sessionDataSeq ++ startedSeq ++ finishSeq)
@@ -91,14 +97,16 @@ object ItemSession {
       else
         (json \ "settings").as[ItemSessionSettings]
 
+      import VersionedIdImplicits.Reads
       ItemSession(
-        itemId = (json \ itemId).asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()),
+        itemId = (json \ itemId).asOpt[VersionedId[ObjectId]].getOrElse(throw new JsonValidationException("You must have an item id")),
         start = (json \ start).asOpt[Long].map(new DateTime(_)),
         finish = (json \ finish).asOpt[Long].map(new DateTime(_)),
         responses = (json \ responses).asOpt[Seq[ItemResponse]].getOrElse(Seq()),
         id = (json \ "id").asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()),
         settings = settings)
     }
+
   }
 
 }
@@ -106,10 +114,13 @@ object ItemSession {
 object PreviewItemSessionCompanion extends ItemSessionCompanion {
   //Note: using a normal collection because in a capped collection a document's size may not grow beyond its original size.
   def collection = mongoCollection("itemsessionsPreview")
+  def itemService: ItemService = ItemServiceImpl
 }
 
 object DefaultItemSession extends ItemSessionCompanion {
   def collection = mongoCollection("itemsessions")
+
+  def itemService: ItemService = ItemServiceImpl
 }
 
 trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with PackageLogging{
@@ -118,17 +129,17 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
 
   def collection: MongoCollection
 
+  def itemService : ItemService
+
   val dao = new SalatDAO[ItemSession, ObjectId](collection = collection) {}
 
   /**
-   * @param itemId - create the item session based on this contentId
    * @return - the newly created item session
    */
-  def newSession(itemId: ObjectId, session: ItemSession): Either[InternalError, ItemSession] = {
+  def newSession(session: ItemSession): Either[InternalError, ItemSession] = {
     if (Play.isProd) session.id = new ObjectId()
-    session.itemId = itemId
 
-    getQtiXml(itemId) match {
+    itemService.getQtiXml(session.itemId) match {
       case Some(xml) => {
         val (_, mapping) = FeedbackProcessor.addFeedbackIds(xml)
         session.feedbackIdLookup = mapping
@@ -143,19 +154,6 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
       }
     } catch {
       case e: SalatInsertError => Left(InternalError("error inserting item session: " + e.getMessage))
-    }
-  }
-
-  private def getQtiXml(itemId: ObjectId): Option[Elem] = {
-    Item.findOneById(itemId) match {
-      case Some(item) => {
-        val dataResource = item.data.get
-        dataResource.files.find(_.name == Resource.QtiXml) match {
-          case Some(qtiXml) => Some(scala.xml.XML.loadString(qtiXml.asInstanceOf[VirtualFile].content))
-          case _ => None
-        }
-      }
-      case _ => None
     }
   }
 
@@ -175,22 +173,14 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
   }
 
   def getXmlWithFeedback(session: ItemSession): Either[InternalError, Elem] = {
-    Item.getQti(session.itemId) match {
-      case Right(qti) => Right(FeedbackProcessor.addFeedbackIds(XML.loadString(qti), session.feedbackIdLookup))
-      case Left(e) => Left(e)
+    itemService.getQtiXml(session.itemId) match {
+      case Some(qti) => Right(FeedbackProcessor.addFeedbackIds(qti, session.feedbackIdLookup))
+      case _ => Left(InternalError("Can't find xml for itemId: " + session.itemId))
     }
   }
 
 
-  def unfinishedSession(id: ObjectId): MongoDBObject = MongoDBObject("_id" -> id, finish -> MongoDBObject("$exists" -> false))
 
-
-  def findMultiple(oids: Seq[ObjectId]): Seq[ItemSession] = {
-    val query = MongoDBObject("_id" -> MongoDBObject("$in" -> oids))
-    find(query).toSeq //.map(addExtrasIfFinished(_, addResponses))
-  }
-
-  def findItemSessions(id: ObjectId): Seq[ItemSession] = Utils.toSeq(find(MongoDBObject(itemId -> id)))
 
   /**
    * Update the itemSession model - this is not counted as the item being processed.
@@ -361,6 +351,8 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
   private def addResponses(session: ItemSession, xml: Elem) {
     session.responses = Score.scoreResponses(session.responses, QtiItem(xml))
   }
+
+  private def unfinishedSession(id: ObjectId): MongoDBObject = MongoDBObject("_id" -> id, finish -> MongoDBObject("$exists" -> false))
 
 
 }

@@ -1,6 +1,7 @@
 package tests.models.itemSession
 
 import models.item.Item
+import models.item.resource.BaseFile.ContentTypes
 import models.item.resource.{VirtualFile, Resource}
 import models.itemSession._
 import org.bson.types.ObjectId
@@ -13,6 +14,8 @@ import scala.Some
 import tests.BaseTest
 import utils.MockXml
 import xml.Elem
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.specs2.mutable.After
 
 class ItemSessionTest extends BaseTest {
 
@@ -22,9 +25,11 @@ class ItemSessionTest extends BaseTest {
 
   val itemSession = DefaultItemSession
 
+  def genItemId = VersionedId(ObjectId.get)
+
   "json parsing" should {
     "work" in {
-      val session = ItemSession(itemId = new ObjectId(), settings = ItemSessionSettings(maxNoOfAttempts = 10))
+      val session = ItemSession(itemId = genItemId, settings = ItemSessionSettings(maxNoOfAttempts = 10))
       val json = Json.toJson(session)
       val settings: JsValue = (json \ Keys.settings)
       (settings \ "maxNoOfAttempts").as[Int] must equalTo(10)
@@ -36,7 +41,7 @@ class ItemSessionTest extends BaseTest {
 
   // create test session bound to random object id
   // in practice itemSessions need to be bound to an item
-  val testSession = ItemSession(new ObjectId())
+  val testSession = ItemSession(genItemId)
 
   "itemSession" should {
 
@@ -58,7 +63,7 @@ class ItemSessionTest extends BaseTest {
 
 
     "throw an IllegalArgumentException if a feedbackInline node has no identifier" in {
-      val session = ItemSession(itemId = new ObjectId())
+      val session = ItemSession(itemId = genItemId)
       itemSession.save(session)
       session.responses = Seq(StringItemResponse(id = "RESPONSE", responseValue = "ChoiceB", outcome = None))
 
@@ -74,11 +79,10 @@ class ItemSessionTest extends BaseTest {
     }
   }
 
-
   "update item session" should {
 
     "update item settings" in {
-      val session = ItemSession(itemId = new ObjectId())
+      val session = ItemSession(itemId = genItemId)
       itemSession.save(session)
 
       session.settings = ItemSessionSettings(submitCompleteMessage = "custom")
@@ -94,7 +98,7 @@ class ItemSessionTest extends BaseTest {
     "not update settings if session has been started" in {
 
       val settings = ItemSessionSettings(submitCompleteMessage = "custom")
-      val session = ItemSession(itemId = new ObjectId(), settings = settings)
+      val session = ItemSession(itemId = genItemId, settings = settings)
       itemSession.save(session)
       itemSession.begin(session)
 
@@ -115,7 +119,7 @@ class ItemSessionTest extends BaseTest {
 
     "return feedback contents for an incorrect answer if settings are set and item is finished" in {
 
-      val session = ItemSession(itemId = new ObjectId())
+      val session = ItemSession(itemId = genItemId)
       session.settings.highlightCorrectResponse
       session.settings.showFeedback = true
       itemSession.save(session)
@@ -144,7 +148,7 @@ class ItemSessionTest extends BaseTest {
     "automatically finish an item if only one attempt is allowed" in {
 
       val settings = ItemSessionSettings(maxNoOfAttempts = 1)
-      val session = ItemSession(itemId = new ObjectId(), settings = settings)
+      val session = ItemSession(itemId = genItemId, settings = settings)
 
       itemSession.begin(session)
       itemSession.process(session, DummyXml)
@@ -160,7 +164,7 @@ class ItemSessionTest extends BaseTest {
 
     "automatically finish an item if the max number of attempts has been reached" in {
       val settings = ItemSessionSettings(maxNoOfAttempts = 2)
-      val session = ItemSession(itemId = new ObjectId(), settings = settings)
+      val session = ItemSession(itemId = genItemId, settings = settings)
 
       itemSession.begin(session)
 
@@ -193,7 +197,7 @@ class ItemSessionTest extends BaseTest {
     </assessmentItem>
 
     "automatically finish a session if all responses are correct" in {
-      val session = ItemSession(itemId = new ObjectId())
+      val session = ItemSession(itemId = genItemId)
       itemSession.begin(session)
       session.responses = Seq(StringItemResponse("a", "a"))
       itemSession.process(session, SimpleXml) match {
@@ -203,7 +207,7 @@ class ItemSessionTest extends BaseTest {
     }
 
     "don't automatically finish an item if there is any incorrect responses" in {
-      val session = ItemSession(itemId = new ObjectId())
+      val session = ItemSession(itemId = genItemId)
       session.settings.maxNoOfAttempts = 0 // no max... multiple attempts allowed
       itemSession.begin(session)
       session.responses = Seq(StringItemResponse("a", "b"))
@@ -214,7 +218,7 @@ class ItemSessionTest extends BaseTest {
     }
 
     "automatically start an item if its not started" in {
-      val session = ItemSession(itemId = new ObjectId())
+      val session = ItemSession(itemId = genItemId)
       itemSession.save(session)
       itemSession.process(session, DummyXml) match {
         case Left(e) => failure("error: " + e.message)
@@ -227,7 +231,7 @@ class ItemSessionTest extends BaseTest {
 
     "return a finish after the first attempt if only one attempt is allowed" in {
       val settings = ItemSessionSettings(maxNoOfAttempts = 1)
-      val session = ItemSession(itemId = new ObjectId(), settings = settings)
+      val session = ItemSession(itemId = genItemId, settings = settings)
       itemSession.begin(session)
       itemSession.process(session, DummyXml) match {
         case Left(e) => failure
@@ -249,7 +253,7 @@ class ItemSessionTest extends BaseTest {
         </itemBody>
       </assessmentItem>
 
-      val session = ItemSession(itemId = new ObjectId())
+      val session = ItemSession(itemId = genItemId)
       session.responses = Seq(
         StringItemResponse("q1", "q1Answer")
       )
@@ -266,7 +270,7 @@ class ItemSessionTest extends BaseTest {
 
     "return scores for full qti item" in {
 
-      val session = ItemSession(itemId = new ObjectId())
+      val session = ItemSession(itemId = genItemId)
       itemSession.save(session)
 
       session.responses = Seq(
@@ -286,7 +290,7 @@ class ItemSessionTest extends BaseTest {
 
     "add a dateModified value" in {
       val session = ItemSession(
-        itemId = new ObjectId(),
+        itemId = genItemId,
         settings = new ItemSessionSettings(maxNoOfAttempts = 0, allowEmptyResponses = true)
       )
       //Allow multiple attempts
@@ -317,15 +321,25 @@ class ItemSessionTest extends BaseTest {
 
   "new item session" should {
     "return an unstarted item session" in {
-      val session = ItemSession(itemId = new ObjectId())
-      itemSession.newSession(new ObjectId(), session)
+      val itemId = genItemId
+      itemService.insert(
+        Item(
+          id = itemId,
+          data = Some(
+            Resource(name = "data",
+              files = Seq(VirtualFile(name = "qti.xml", contentType = ContentTypes.XML, isMain = true, content = "<root/>"))
+            )
+          )
+        ))
+      val session = ItemSession(itemId = itemId)
+      itemSession.newSession(session)
       if (session.start.isDefined) failure else success
     }
   }
 
   "start item session" should {
     "start the session" in {
-      val session = ItemSession(itemId = new ObjectId())
+      val session = ItemSession(itemId = genItemId)
       itemSession.save(session)
       if (session.start.isDefined) failure
       itemSession.begin(session) match {
@@ -335,30 +349,12 @@ class ItemSessionTest extends BaseTest {
     }
   }
 
-  "list multiple" should {
-    val ids = List("51116c6287eb055332a2f8e4", "51116bc7a14f7b657a083c1d").map(new ObjectId(_))
-
-    "return multiple" in {
-      itemSession.findMultiple(ids) match {
-        case Seq(one, two) => success
-        case _ => failure
-      }
-    }
-
-    "return mutliple and ignore unknown ids" in {
-      itemSession.findMultiple(ids :+ new ObjectId()) match {
-        case Seq(one, two) => success
-        case _ => failure
-      }
-    }
-  }
-
 
   "get total score" should {
     "return the correct score" in {
 
       val item = new Item(
-        id = new ObjectId(),
+        id = genItemId,
         data = Some(Resource(
           "data",
           files =
@@ -372,7 +368,7 @@ class ItemSessionTest extends BaseTest {
         ))
       )
 
-      Item.save(item)
+      itemService.save(item)
 
       val session = ItemSession(itemId = item.id)
 

@@ -2,6 +2,7 @@ package scorm.models
 
 import scala.xml.{Unparsed, Elem}
 import models.item.Item
+import models.versioning.VersionedIdImplicits.Binders._
 
 object Builder {
 
@@ -45,7 +46,7 @@ object Builder {
   object ResourceNode {
     def apply(item: Item): Elem = {
       <resource
-      identifier={item.id.toString}
+      identifier={versionedIdToString(item.id)}
       type="webcontent"
       adlcp:scormType="sco"
       href="remote-item-runner.html"></resource>
@@ -55,7 +56,7 @@ object Builder {
   object ItemLaunchData {
     def apply(item: Item, config:Config): Unparsed = {
       val launchData = Map(
-        "itemId" -> item.id.toString,
+        "itemId" -> versionedIdToString(item.id),
         "templates" -> Map(
           "item" -> (config.corespringDomain + "/scorm-player/item/:itemId/run"),
           "session" -> (config.corespringDomain + "/scorm-player/session/:sessionId/run") )
@@ -69,7 +70,7 @@ object Builder {
   object ItemNode {
     def apply(item: Item, config:Config): Elem = {
 
-      <item identifier={item.id.toString} identifierref={item.id.toString}>
+      <item identifier={versionedIdToString(item.id)} identifierref={versionedIdToString(item.id)}>
         <title>
           {item.taskInfo.map( _.title.getOrElse("?"))}
         </title>
@@ -78,7 +79,7 @@ object Builder {
         </adlcp:dataFromLMS>
         <adlcp:data>
           <adlcp:map targetID="shared_data"/>
-          <adlcp:map targetID={item.id.toString}/>
+          <adlcp:map targetID={versionedIdToString(item.id)}/>
         </adlcp:data>
       </item>
 

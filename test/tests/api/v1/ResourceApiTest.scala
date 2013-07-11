@@ -1,27 +1,26 @@
 package tests.api.v1
 
 import api.ApiError
-import models._
-import item.Item
-import item.resource.{VirtualFile, BaseFile, Resource}
+import models.item.Item
+import models.item.resource.{BaseFile, VirtualFile, Resource}
+import play.api.Play.current
+import play.api.libs.json.JsObject
 import play.api.libs.json.{Json, JsValue}
 import play.api.mvc._
-import play.api.Play
-import play.api.Play.current
-
-import play.api.test.Helpers._
-import scala._
 import play.api.test.FakeHeaders
-import scala.Some
-import play.api.mvc.SimpleResult
-import play.api.mvc.AnyContentAsJson
-import play.api.libs.json.JsObject
+import play.api.test.Helpers._
+import play.api.{Logger, Play}
+import scala._
 import tests.BaseTest
-import org.bson.types.ObjectId
+
 
 class ResourceApiTest extends BaseTest {
 
-  def testItemId : String = testItem.id.toString
+
+  def testItemId : String = {
+    import models.versioning.VersionedIdImplicits.Binders._
+    versionedIdToString(testItem.id)
+  }
 
   val testRoutes : api.v1.ReverseResourceApi = api.v1.routes.ResourceApi
 
@@ -69,10 +68,22 @@ class ResourceApiTest extends BaseTest {
       }
     }
 
+    def assertDelete(create : Call, delete : Call, resource : => Resource, file : VirtualFile) = {
+      val initialLength = resource.files.length
+      makeFileRequest(file, create.url, create.method)
+      val length = resource.files.length
+      length must equalTo(initialLength + 1)
+      makeFileRequest(file, delete.url, delete.method)
+      resource.files.length must equalTo(initialLength)
+    }
+
     "delete a file from the Item.data Resource" in {
       val create = testRoutes.createDataFile(testItemId)
       val delete =  testRoutes.deleteDataFile(testItemId, "myfile.txt")
       val file = VirtualFile("myfile.txt", "text/txt", isMain = true, content = "I'm never going to be main")
+
+      Logger.debug("testItem: " + testItem.data.get.files.length)
+      Logger.debug(Json.toJson(testItem.data.get).toString)
       assertDelete(create, delete, testItem.data.get, file)
     }
 
@@ -83,14 +94,6 @@ class ResourceApiTest extends BaseTest {
       assertDelete(create, delete, rubric, file)
     }
 
-    def assertDelete(create : Call, delete : Call, resource : => Resource, file : VirtualFile) = {
-      val initialLength = resource.files.length
-      makeFileRequest(file, create.url, create.method)
-      val length = resource.files.length
-      length must equalTo(initialLength + 1)
-      makeFileRequest(file, delete.url, delete.method)
-      resource.files.length must equalTo(initialLength)
-    }
 
     "creating or updating a file to default in Item.data is ignored" in {
 
@@ -130,7 +133,7 @@ class ResourceApiTest extends BaseTest {
       val create = testRoutes.createDataFile(noSessionItem)
       val file = VirtualFile("data.txt", "text/txt", isMain = false, content = "f0")
       val update = testRoutes.updateDataFile(noSessionItem, "data.txt")
-      assertUpdate(create, update, file, ( _ => Item.findOneById(new ObjectId(noSessionItem)).get.data.get))
+      assertUpdate(create, update, file, ( _ => itemService.findOneById(versionedId(noSessionItem)).get.data.get))
     }
 
     def assertUpdate(create:Call,update:Call, file: VirtualFile, resourceFn : ( Unit => Resource)) = {
@@ -166,7 +169,7 @@ class ResourceApiTest extends BaseTest {
 
       status(result) must equalTo(OK)
 
-      val item: Item = Item.findOneById(testItem.id).get
+      val item: Item = itemService.findOneById(testItem.id).get
 
       item.supportingMaterials.find(_.name == "Rubric") match {
         case Some(r) => {
@@ -279,7 +282,9 @@ class ResourceApiTest extends BaseTest {
 
       val item = testItem
       val filename = "cute-rabbit.jpg"
-      val create = testRoutes.uploadFile(item.id.toString,"Rubric", filename)
+
+      import models.versioning.VersionedIdImplicits.Binders._
+      val create = testRoutes.uploadFile(versionedIdToString(item.id),"Rubric", filename)
       val file = Play.getFile("test/tests/files/" + filename)
       val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
       val byteArray = source.map(_.toByte).toArray
@@ -292,7 +297,7 @@ class ResourceApiTest extends BaseTest {
       val secondCall = call(create.url, create.method, byteArray, NOT_FOUND, ApiError.FilenameTaken.message)
       secondCall must equalTo((true, true))
 
-      val badUpdate = testRoutes.uploadFile(item.id.toString, "badResourceName", filename)
+      val badUpdate = testRoutes.uploadFile(versionedIdToString(item.id), "badResourceName", filename)
       val thirdCall = call(badUpdate.url, badUpdate.method, byteArray,  NOT_FOUND, ApiError.ResourceNotFound.message)
       thirdCall must equalTo((true, true))
     }
@@ -302,7 +307,8 @@ class ResourceApiTest extends BaseTest {
       val item = testItem
       val filename = "cute-rabbit.jpg"
 
-      val update = testRoutes.uploadFileToData(item.id.toString, filename)
+      import models.versioning.VersionedIdImplicits.Binders._
+      val update = testRoutes.uploadFileToData(versionedIdToString(item.id), filename)
       val file = Play.getFile("test/tests/files/" + filename)
       val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
       val byteArray = source.map(_.toByte).toArray
@@ -315,6 +321,7 @@ class ResourceApiTest extends BaseTest {
       val secondCall = call(update.url, update.method, byteArray, NOT_FOUND, ApiError.FilenameTaken.message)
       secondCall must equalTo((true, true))
     }
+
   }
 }
 

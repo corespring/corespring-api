@@ -1,15 +1,15 @@
 package reporting.controllers
 
-import play.api.Logger
 import controllers.auth.BaseApi
-import reporting.services.ReportsService
 import models._
-import item.Item
+import reporting.services.ReportsService
+import models.item.Item
+import models.item.service.ItemServiceImpl
 
 object Reports extends BaseApi {
 
   private val service: ReportsService = new ReportsService(
-    Item.collection,
+    ItemServiceImpl.collection,
     Subject.collection,
     ContentCollection.collection,
     Standard.collection

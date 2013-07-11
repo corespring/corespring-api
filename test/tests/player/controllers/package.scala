@@ -5,6 +5,7 @@ import _root_.controllers.auth.TokenizedRequestActionBuilder
 import player.accessControl.models.RequestedAccess
 import play.api.mvc.{BodyParser, Action, Result, AnyContent}
 import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
 
 package object controllers {
 
@@ -19,9 +20,9 @@ package object controllers {
   }
 
   object TestIds{
-    val testId = new ObjectId("50b653a1e4b0ec03f29344b0")
+    val testId = VersionedId(new ObjectId("50b653a1e4b0ec03f29344b0"))
     val testSessionId = new ObjectId("51116bc7a14f7b657a083c1d")
     val testQuizId = new ObjectId("000000000000000000000001")
-    val testQuizItemId = new ObjectId("5153eee1aa2eefdc1b7a5570")
+    val testQuizItemId = VersionedId(new ObjectId("5153eee1aa2eefdc1b7a5570"))
   }
 }

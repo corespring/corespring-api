@@ -11,12 +11,14 @@ import player.accessControl.cookies.PlayerCookieReader
 import player.accessControl.models.RequestedAccess
 import player.accessControl.models.RequestedAccess.Mode._
 import scala.Some
+import models.item.service.ItemServiceImpl
+import org.corespring.platform.data.mongo.models.VersionedId
 
 
 class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Controller with SimpleJsRoutes with PlayerCookieReader {
 
   val DefaultApi = ItemSessionApi
-  val PreviewApi = new ItemSessionApi(PreviewItemSessionCompanion)
+  val PreviewApi = new ItemSessionApi(PreviewItemSessionCompanion, ItemServiceImpl)
 
   /** If we are running in preview mode - return the PreviewApi which will store the sessions in a different collection */
   def api(implicit request: Request[AnyContent]): ItemSessionApi = {
@@ -26,19 +28,19 @@ class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Cont
     }
   }
 
-  def create(itemId: ObjectId) = auth.ValidatedAction(
+  def create(itemId: VersionedId[ObjectId]) = auth.ValidatedAction(
     RequestedAccess.asRead(Some(itemId))
   )(implicit request => api.create(itemId)(request))
 
-  def read(itemId: ObjectId, sessionId: ObjectId) = auth.ValidatedAction(
+  def read(itemId: VersionedId[ObjectId], sessionId: ObjectId) = auth.ValidatedAction(
     RequestedAccess.asRead(Some(itemId), Some(sessionId))
   )(implicit request => api.get(itemId, sessionId)(request))
 
-  def update(itemId: ObjectId, sessionId: ObjectId, action: Option[String] = None) = auth.ValidatedAction(
+  def update(itemId: VersionedId[ObjectId], sessionId: ObjectId, action: Option[String] = None) = auth.ValidatedAction(
     RequestedAccess.asRead(Some(itemId), Some(sessionId))
   )(implicit request => api.update(itemId, sessionId, action)(request))
 
-  def aggregate(quizId: ObjectId, itemId: ObjectId) = auth.ValidatedAction(
+  def aggregate(quizId: ObjectId, itemId: VersionedId[ObjectId]) = auth.ValidatedAction(
     RequestedAccess.asRead(Some(itemId), assessmentId = Some(quizId))
   )(implicit request => api.aggregate(quizId, itemId)(request))
 

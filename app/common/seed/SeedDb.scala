@@ -2,7 +2,7 @@ package common.seed
 
 import _root_.models.auth.{AccessToken, ApiClient}
 import _root_.models._
-import com.mongodb.casbah.MongoCollection
+import com.mongodb.casbah.{MongoDB, MongoCollection}
 import item.{Content, FieldValue}
 import _root_.models.itemSession.{DefaultItemSession, ItemSession}
 import java.io.File
@@ -15,11 +15,20 @@ import quiz.basic.Quiz
 import web.models.QtiTemplate
 import basiclti.models.LtiQuiz
 import developer.models.RegistrationToken
+import se.radley.plugin.salat.SalatPlugin
 
 object SeedDb {
 
+  def salatDb(sourceName: String = "default")(implicit app: Application): MongoDB = {
+    app.plugin[SalatPlugin].map(_.db(sourceName)).getOrElse(throw PlayException("SalatPlugin is not " +
+      "registered.", "You need to register the plugin with \"500:se.radley.plugin.salat.SalatPlugin\" in conf/play.plugins"))
+  }
+
+
   private lazy val collections: List[MongoCollection] = List(
-    Content.collection,
+
+    salatDb()(play.api.Play.current)("versioned_content"),
+    salatDb()(play.api.Play.current)("content"),
     AccessToken.collection,
     ContentCollection.collection,
     FieldValue.collection,

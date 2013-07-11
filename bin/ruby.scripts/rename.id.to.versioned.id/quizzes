@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+require 'json'
+
+count = 0
+Dir["**/**/quizzes/*.json"].each{ |f|
+  puts "found: #{f}"
+  json = File.read(f)
+  quiz = JSON.parse(json)
+
+  questions = quiz["questions"]
+
+  questions.each{ |q|
+
+    id = q["itemId"]
+
+    if id["_id"].nil?
+      q["itemId"] = { "_id" => id, :version => 0}
+    end
+  }
+
+  puts "writing: #{f}"
+  File.open(f,"w") do |fw|
+    fw.write(JSON.pretty_generate(quiz))
+  end
+}

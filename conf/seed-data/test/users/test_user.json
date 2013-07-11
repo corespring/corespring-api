@@ -1,19 +1,16 @@
 {
-    "_id" : {
-        "$oid" : "511293b6ef0e8fd55d57ad00"
+  "_id": {
+    "$oid": "511293b6ef0e8fd55d57ad00"
+  },
+  "provider": "userpass",
+  "userName": "test_user",
+  "fullName": "Leeroy Jenkins",
+  "email": "dev@null.com",
+  "password": "$2a$10$ztrohKSsxniXnLsTJyAJVOlye5DFYlMi3GUQH1SHkVSO5IH.E9O72",
+  "org": {
+    "orgId": {
+      "$oid": "51114b307fc1eaa866444648"
     },
-    "provider":"userpass",
-    "userName" : "test_user",
-    "fullName" : "Leeroy Jenkins",
-    "email" : "dev@null.com",
-    "password" : "$2a$10$ztrohKSsxniXnLsTJyAJVOlye5DFYlMi3GUQH1SHkVSO5IH.E9O72",
-    "orgs" : [
-        {
-            "orgId" : {
-                "$oid" : "51114b307fc1eaa866444648"
-            } ,
-            "pval" : 3
-        }
-    ],
-    "hasRegisteredOrg" : true
+    "pval": 3
+  }
 }

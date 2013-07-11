@@ -162,7 +162,23 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
 
     var oldFilename = $scope.fileToRename.name;
     $scope.fileToRename.name = $scope.newFilename;
-    $scope.update($scope.fileToRename, oldFilename);
+    var fileToUpdate = $scope.fileToRename;
+    //replaced update with this to include rollback of file name if rename fails
+    $http({
+      url: $scope.urls.updateFile.replace("{filename}", oldFilename),
+      method: "PUT",
+      data: $scope.fileToRename
+    }).success(function (data, status, headers, config) {
+        $scope.showFile($scope.fileToRename);
+        $scope.saveSelectedFileFinished();
+    }).error(function (data, status, headers, config) {
+      console.log(data);
+      if (typeof data.flags != "undefined" && _.contains(data.flags, "alert_increment")) {
+        fileToUpdate.name = oldFilename;
+        $scope.saveSelectedFileFinished(true);
+      } else $scope.saveSelectedFileFinished();
+    });
+
     $scope.clearRename();
   };
 
@@ -234,11 +250,9 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
   $scope.confirmRemoveFile = function () {
     var f = $scope.fileToRemove;
 
-
     if (!f) {
       return;
     }
-
 
     $http({
       url: $scope.urls.deleteFile.replace("{filename}", f.name),
@@ -278,12 +292,25 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     return $scope.urls.uploadFile.replace("{filename}", file.name);
   };
 
-  $scope.onFileUploadCompleted = function (result) {
-    console.log("onFileUploadCompleted");
-    var file = JSON.parse(result);
-    $scope.addFile(file);
-    $scope.showFile(file);
+  $scope.onFileUploadCompleted = function (result,status) {
+    if(status == 200){
+      var file = JSON.parse(result);
+      $scope.addFile(file);
+      $scope.showFile(file);
+    }else{
+      var jsresult = JSON.parse(result);
+      if (typeof jsresult.flags != "undefined" && _.contains(jsresult.flags, "alert_increment")) {
+        $rootScope.$broadcast('showSaveWarning')
+      }
+    }
   };
+//   $scope.$on('showSaveWarning',function(){
+//     console.log("broadcast received showSaveWarning")
+//     $scope.showSaveWarning = true;
+//   })
+//    $rootScope.$watch('showSaveWarning', function(){
+//      console.log("showSaveWarning: "+$scope.showSaveWarning);
+//    });
 
   $scope.addFile = function (file) {
     $scope.resource.files = ($scope.resource.files || []);

@@ -100,11 +100,10 @@ object MyRegistration extends Controller {
             info => {
               val id = if (UsernamePasswordProvider.withUserNameSupport) info.userName.get else t.email
               val passwordInfo = use[PasswordHasher].hash(info.password)
-              val user = User(id, info.firstName + " " + info.lastName, t.email, Seq(), passwordInfo.password, providerId)
+              val user = User(userName = id, fullName = info.firstName + " " + info.lastName, email = t.email, password = passwordInfo.password, provider = providerId)
               (info.organization match {
                 case Some(orgName) => models.Organization.insert(models.Organization(orgName), None) match {
                   case Right(org) => {
-                    user.hasRegisteredOrg = true;
                     User.insertUser(user, org.id, Permission.Write, false)
                   }
                   case Left(error) => Left(error)

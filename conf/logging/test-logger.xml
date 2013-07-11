@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <configuration>
     <!--
         The logger in test mode doesn't work. This is a workaround:
@@ -16,6 +17,7 @@
     <logger name="tests" level="DEBUG" />
     <logger name="qti" level="DEBUG" />
     <logger name="assets-loader" level="DEBUG" />
+    <logger name="tests" level="DEBUG" />
 
 
     <root level="ALL">

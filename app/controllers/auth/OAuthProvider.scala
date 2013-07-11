@@ -21,7 +21,7 @@ object OAuthProvider {
    * @param orgId - the organization id
    * @return returns an ApiClient or ApiError if the ApiClient could not be created.
    */
-  def register(orgId: ObjectId): Either[ApiError, ApiClient] = {
+  def createApiClient(orgId: ObjectId): Either[ApiError, ApiClient] = {
     ApiClient.findOneByOrgId(orgId) match {
       case Some(apiClient) => Right(apiClient)
       case None => {
@@ -88,7 +88,8 @@ object OAuthProvider {
         if ( token.isExpired ) {
           Left(ExpiredToken.format(token.expirationDate.toString))
         } else {
-          Right(new AuthorizationContext(token.organization, token.scope))
+
+          Right(new AuthorizationContext(token.organization, token.scope, false, Organization.findOneById(token.organization)))
         }
       case _ => Left(InvalidToken)
     }

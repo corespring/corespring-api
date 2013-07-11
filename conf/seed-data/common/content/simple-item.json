@@ -1,0 +1,66 @@
+{
+  "_id": {
+    "_id": {
+      "$oid": "51b713970292acfa511611a4"
+    },
+    "version": 1
+  },
+  "collectionId": "4ff2e4cae4b077b9e31689fd",
+  "contributorDetails": {
+    "contributor": "New York State Education Department",
+    "credentials": "State Department of Education",
+    "copyright": {
+      "owner": "New York State Education Department",
+      "year": "2012",
+      "imageName": "nysed.png"
+    },
+    "author": "New York State Education Department",
+    "sourceUrl": "http://www.p12.nysed.gov/apda/common-core-sample-questions",
+    "licenseType": "CC BY"
+  },
+  "published": false,
+  "contentType": "item",
+  "priorUse": "Formative",
+  "priorGradeLevel": [
+
+  ],
+  "reviewsPassed": [
+    "Editorial"
+  ],
+  "standards": [
+    "RI.3.1"
+  ],
+  "data": {
+    "name": "data",
+    "files": [
+      {
+        "_t": "models.item.resource.VirtualFile",
+        "name": "qti.xml",
+        "contentType": "text/xml",
+        "isMain": true,
+        "content": "$[interpolate{conf/qti/choice-interaction-v-1.xml}]"
+      }
+    ]
+  },
+  "otherAlignments": {
+    "bloomsTaxonomy": "Remembering",
+    "keySkills": [
+      "Identify",
+      "Define",
+      "Classify"
+    ],
+    "demonstratedKnowledge": "Factual"
+  },
+  "taskInfo": {
+    "subjects": {
+      "primary": {
+        "$oid": "4ffb535f6bb41e469c0bf2ac"
+      }
+    },
+    "gradeLevel": [
+      "03"
+    ],
+    "title": "[DEV] Simple Item : version 1",
+    "itemType": "Multiple Choice"
+  }
+}

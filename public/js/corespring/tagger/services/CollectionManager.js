@@ -21,10 +21,23 @@ angular.module('tagger.services')
 
     var rawData = {};
 
+    var getCollectionById = function (id) {
+
+      if (out.sortedCollections[0]) {
+        return _.find(out.sortedCollections[0].collections, function (c) {
+          return c.id === id;
+        });
+      }
+    };
+
+
     var updateNameSortedCollection = function (newCollection) {
       if (out.sortedCollections[0]) {
         out.sortedCollections[0].collections = _.map(out.sortedCollections[0].collections, function (c) {
-          return c.id === newCollection.id ? newCollection : c;
+          if (c.id === newCollection.id) {
+            c.name = newCollection.name;
+          }
+          return c;
         });
       }
     };
@@ -98,6 +111,7 @@ angular.module('tagger.services')
     var initialize = function (onComplete) {
       Collection.get({}, function (data) {
           rawData.collection = data;
+          out.rawCollections = data;
           out.sortedCollections = createSortedCollection(data, _.clone(UserInfo.org));
           if (onComplete) onComplete();
         },
@@ -131,8 +145,14 @@ angular.module('tagger.services')
         Collection.remove({id: id}, successHandler, onError);
       },
       /** rename an existing collection */
-      renameCollection: function (id, newName, onSuccess, onError) {
+      renameCollection: function (id, newName, onSuccess, onError, onNoChange) {
 
+
+        var collection = getCollectionById(id);
+        if (collection.name == newName) {
+          onNoChange();
+          return;
+        }
         var successHandler = function (data) {
           updateNameSortedCollection(data);
           if (onSuccess) {
@@ -145,6 +165,7 @@ angular.module('tagger.services')
       init: function (onComplete) {
         initialize(onComplete);
       },
+      rawCollections: null,
       sortedCollections: null
     };
     return out;

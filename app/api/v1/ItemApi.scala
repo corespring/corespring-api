@@ -3,51 +3,51 @@ package api.v1
 import api.ApiError
 import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSONParseException
-import com.novus.salat._
-import com.novus.salat.dao.SalatDAOUpdateError
 import com.novus.salat.dao.SalatInsertError
 import com.novus.salat.dao.SalatMongoCursor
-import com.typesafe.config.ConfigFactory
+import common.log.PackageLogging
 import controllers._
 import controllers.auth.ApiRequest
 import controllers.auth.{Permission, BaseApi}
 import models._
 import models.item._
 import models.item.resource.StoredFile
+import models.item.service.{ItemServiceImpl, ItemService}
 import models.json.ItemView
 import models.mongoContext._
 import models.search.SearchCancelled
 import models.search.SearchFields
+import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json._
 import play.api.libs.json._
-import play.api.templates.Xml
+import play.api.mvc.{Result, Action, AnyContent}
 import scala.Left
 import scala.Right
 import scala.Some
+import scalaz.Scalaz._
+import scalaz.{Failure, Success, Validation}
 import search.ItemSearch
-import common.log.PackageLogging
 
 /**
  * Items API
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
-class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
+class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with PackageLogging {
 
-  private final val AMAZON_ASSETS_BUCKET: String = ConfigFactory.load().getString("AMAZON_ASSETS_BUCKET")
+  import Item.Keys._
 
-  val dbsummaryFields = Seq(Item.collectionId, Item.taskInfo, Item.otherAlignments, Item.standards, Item.contributorDetails,Item.published)
-  val jssummaryFields: Seq[String] = Seq("id",
-    Item.collectionId,
+  val dbSummaryFields = Seq(collectionId, taskInfo, otherAlignments, standards, contributorDetails, published)
+  val jsonSummaryFields: Seq[String] = Seq("id",
+    collectionId,
     TaskInfo.Keys.gradeLevel,
     TaskInfo.Keys.itemType,
     Alignments.Keys.keySkills,
-    Item.primarySubject,
-    Item.relatedSubject,
-    Item.standards,
-    Item.author,
+    primarySubject,
+    relatedSubject,
+    standards,
+    author,
     TaskInfo.Keys.title,
-    Item.published)
-
+    published)
 
   /**
    * List query implementation for Items
@@ -56,8 +56,8 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
     implicit request =>
       val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
 
-      val jsBuilder = if(c == "true") onlyCount _ else onlyItems _
-      itemList(q, f, sk, l, sort, collections, true, jsBuilder) match {
+      val jsonBuilder = if(c == "true") countOnlyJson _ else itemOnlyJson _
+      itemList(q, f, sk, l, sort, collections, true, jsonBuilder) match {
         case Left(apiError) => BadRequest(toJson(apiError))
         case Right(json) => Ok(json)
       }
@@ -67,21 +67,21 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
     implicit request =>
       val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
 
-      itemList(q, f, sk, l, sort, collections, true, countAndList) match {
+      itemList(q, f, sk, l, sort, collections, true, countAndListJson) match {
         case Left(apiError) => BadRequest(toJson(apiError))
         case Right(json) => Ok(json)
       }
   }
 
-  def countAndList(count: Int, cursor: SalatMongoCursor[Item], searchFields: SearchFields, current: Boolean = true): JsValue = {
+  def countAndListJson(count: Int, cursor: SalatMongoCursor[Item], searchFields: SearchFields, current: Boolean = true): JsValue = {
     val itemViews: Seq[ItemView] = cursor.toList.map(ItemView(_, Some(searchFields)))
     JsObject(Seq("count" -> JsNumber(count), "data" -> toJson(itemViews)))
   }
 
-  def onlyCount(count: Int, cursor: SalatMongoCursor[Item], searchFields: SearchFields, current: Boolean = true): JsValue = {
+  def countOnlyJson(count: Int, cursor: SalatMongoCursor[Item], searchFields: SearchFields, current: Boolean = true): JsValue = {
     JsObject(Seq("count" -> JsNumber(count)))
   }
-  def onlyItems(count: Int, cursor: SalatMongoCursor[Item], searchFields: SearchFields, current: Boolean = true): JsValue = {
+  def itemOnlyJson(count: Int, cursor: SalatMongoCursor[Item], searchFields: SearchFields, current: Boolean = true): JsValue = {
     val itemViews: Seq[ItemView] = cursor.toList.map(ItemView(_, Some(searchFields)))
     toJson(itemViews)
   }
@@ -117,11 +117,11 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
     if (!collections.nonEmpty) {
       Right(JsArray(Seq()))
     } else {
-      val initSearch: MongoDBObject = MongoDBObject(Item.collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))
+      val initSearch: MongoDBObject = MongoDBObject(collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))
 
       val queryResult: Either[SearchCancelled, MongoDBObject] = q.map(query => ItemSearch.toSearchObj(query,
         Some(initSearch),
-        Map(Item.collectionId -> parseCollectionIds(request))
+        Map(collectionId -> parseCollectionIds(request))
       )) match {
         case Some(result) => result
         case None => Right(initSearch)
@@ -132,7 +132,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
       }
 
       def runQueryAndMakeJson(query: MongoDBObject, fields: SearchFields, sk: Int, limit: Int, sortField: Option[MongoDBObject] = None) = {
-        val cursor = Item.find(query, fields.dbfields)
+        val cursor = service.find(query, fields.dbfields)
         val count = cursor.count
         val sorted = sortField.map(cursor.sort(_)).getOrElse(cursor)
         jsBuilder(count, sorted.skip(sk).limit(limit), fields, current)
@@ -158,7 +158,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
     }
   }
 
-  private def cleanDbFields(searchFields: SearchFields, isLoggedIn: Boolean, dbExtraFields: Seq[String] = dbsummaryFields, jsExtraFields: Seq[String] = jssummaryFields) {
+  private def cleanDbFields(searchFields: SearchFields, isLoggedIn: Boolean, dbExtraFields: Seq[String] = dbSummaryFields, jsExtraFields: Seq[String] = jsonSummaryFields) {
     if (!isLoggedIn && searchFields.dbfields.isEmpty) {
       dbExtraFields.foreach(extraField =>
         searchFields.dbfields = searchFields.dbfields ++ MongoDBObject(extraField -> searchFields.method)
@@ -167,15 +167,15 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
         searchFields.jsfields = searchFields.jsfields :+ extraField
       )
     }
-    if (searchFields.method == 1 && searchFields.dbfields.nonEmpty) searchFields.dbfields = searchFields.dbfields ++ MongoDBObject(Item.version -> 1)
+    if (searchFields.method == 1 && searchFields.dbfields.nonEmpty) searchFields.dbfields = searchFields.dbfields
   }
 
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
     implicit request =>
       if (Organization.getTree(request.ctx.organization).exists(_.id == orgId)) {
         val collections = ContentCollection.getCollectionIds(orgId, Permission.Read)
-        val jsBuilder = if(c == "true") onlyCount _ else onlyItems _
-        itemList(q, f, sk, l, sort, collections, true, jsBuilder) match {
+        val jsonBuilder = if(c == "true") countOnlyJson _ else itemOnlyJson _
+        itemList(q, f, sk, l, sort, collections, true, jsonBuilder) match {
           case Left(apiError) => BadRequest(toJson(apiError))
           case Right(json) => Ok(json)
         }
@@ -185,7 +185,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
   def listWithColl(collId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
     implicit request =>
       if (ContentCollection.isAuthorized(request.ctx.organization, collId, Permission.Read)) {
-        val jsBuilder = if(c == "true") onlyCount _ else onlyItems _
+        val jsBuilder = if(c == "true") countOnlyJson _ else itemOnlyJson _
         itemList(q, f, sk, l, sort, Seq(collId), true, jsBuilder) match {
           case Left(apiError) => BadRequest(toJson(apiError))
           case Right(json) => Ok(json)
@@ -194,61 +194,125 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
   }
 
 
-  /**
-   * Returns an Item.  Only the default fields are rendered back.
-   */
-  def get(id: ObjectId) = ApiAction {
+  def update(id: VersionedId[ObjectId]) = ValidatedItemApiAction(id, Permission.Write) {
     request =>
-      if (Content.isAuthorized(request.ctx.organization, id, Permission.Read)) {
-        val searchFields = SearchFields(method = 1)
-        cleanDbFields(searchFields, request.ctx.isLoggedIn)
-        val items = Item.find(MongoDBObject("_id" -> id), searchFields.dbfields)
-        Ok(toJson(Utils.toSeq(items).head))
-      } else Unauthorized(toJson(ApiError.UnauthorizedOrganization(Some("you do not have access to this item"))))
+      for {
+        json <- request.body.asJson.toSuccess("No json in request body")
+        item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
+        dbitem <- service.findOneById(id).toSuccess("no item found for the given id")
+        validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
+        savedResult <- saveItem(validatedItem, dbitem.published && (service.sessionCount(dbitem) > 0)).toSuccess("Error saving item")
+      } yield savedResult
   }
 
-  /**
-   * Returns an Item with all its fields.
-   */
-  def getDetail(id: ObjectId) = ApiAction {
+  def cloneItem(id: VersionedId[ObjectId]) = ValidatedItemApiAction(id, Permission.Write) {
     request =>
-      val detailsExcludeFields: Seq[String] = Seq(Item.data)
-      if (Content.isAuthorized(request.ctx.organization, id, Permission.Read)) {
-        val searchFields = SearchFields(method = 0)
-        cleanDbFields(searchFields, request.ctx.isLoggedIn, detailsExcludeFields)
-        val items = Item.find(MongoDBObject("_id" -> id), searchFields.dbfields)
-        Ok(toJson(Utils.toSeq(items).head))
-      } else Unauthorized(toJson(ApiError.UnauthorizedOrganization(Some("you do not have access to this item"))))
+      for {
+        item <- service.findOneById(id).toSuccess("Can't find item")
+        cloned <- service.cloneItem(item).toSuccess("Error cloning")
+      } yield cloned
   }
 
-  /**
-   * Returns the raw content body for the item
+
+  private def validateItem(dbItem:Item, item: Item): Option[Item] = {
+    val itemCopy = item.copy(
+      id = dbItem.id,
+      collectionId = if (item.collectionId.isEmpty) dbItem.collectionId else item.collectionId
+    )
+    addStorageKeysToItem(dbItem,item)
+    Some(itemCopy)
+  }
+
+  /** TODO: Remove code duplication here..
+   * add storage keys to item before update
+   * @param dbItem
+   * @param item
    */
-  def getData(id: ObjectId) = ApiAction {
-    request =>
-      Item.collection.findOneByID(id, MongoDBObject(Item.data -> 1, Item.collectionId -> 1)) match {
-        case Some(o) => o.get(Item.collectionId) match {
-          case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, collId, Permission.Read)) {
-            if (o.contains(Item.data))
-              Ok(Xml(o.get(Item.data).toString))
-            else
-              Ok("")
-          } else {
-            Forbidden
-          }
-          case _ => Forbidden
-        }
-        case _ => NotFound
+  private def addStorageKeysToItem(dbItem:Item, item:Item) = {
+    val itemsf:Seq[StoredFile] =
+      item.data.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).getOrElse(Seq()) ++
+        item.supportingMaterials.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).flatten
+    val dbitemsf:Seq[StoredFile] =
+      dbItem.data.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).getOrElse(Seq()) ++
+        dbItem.supportingMaterials.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).flatten
+    itemsf.foreach(sf => {
+      dbitemsf.find(_.name == sf.name) match {
+        case Some(dbsf) => sf.storageKey = dbsf.storageKey
+        case None => Logger.warn("addStorageKeysToItem: no db storage key found")
       }
+    })
+  }
+
+  /** Note: we remove the version - so that the dao automatically returns the latest version
+   */
+  private def saveItem(item: Item, createNewVersion: Boolean): Option[Item] = {
+    service.save(item, createNewVersion)
+    service.findOneById(VersionedId(item.id.id))
+  }
+
+  def get(id: VersionedId[ObjectId], detail: Option[String] = Some("normal")) = ItemApiAction(id, Permission.Read) {
+    request =>
+
+      val fields = detail.map{ d =>
+        if(d == "detailed" ) getFieldsDbo(false, request.ctx.isLoggedIn, Seq(data)) else getFieldsDbo(true, request.ctx.isLoggedIn)
+      }.getOrElse(getFieldsDbo(true, request.ctx.isLoggedIn))
+
+      Logger.debug("[ItemApi.get] fields: " + fields)
+
+      service.findFieldsById(id, fields)
+        .map(dbo => com.novus.salat.grater[Item].asObject(dbo))
+        .map(i => Ok(Json.toJson(i)))
+        .getOrElse(NotFound)
+  }
+
+  def getDetail(id: VersionedId[ObjectId] ) = get(id, Some("detailed"))
+
+
+  /** Wrap ItemApiAction so that we handle a ApiRequest => Validation and we generate the json.
+    */
+  private def ValidatedItemApiAction(id: VersionedId[ObjectId], p: Permission)
+                                    (block: ApiRequest[AnyContent] => Validation[String,
+                                      Item]): Action[AnyContent] = {
+    def handleValidation(request: ApiRequest[AnyContent]): Result = {
+      block(request) match {
+        case Success(i) => Ok(Json.toJson(i))
+        case Failure(e) => BadRequest(Json.toJson(JsObject(Seq("error" -> JsString(e)))))
+      }
+    }
+    ItemApiAction(id, p)(handleValidation)
+
+  }
+
+  private def ItemApiAction(id: VersionedId[ObjectId], p: Permission)
+                           (block: ApiRequest[AnyContent] => Result):
+  Action[AnyContent] =
+    ApiAction {
+      request =>
+        if (models.item.Content.isAuthorized(request.ctx.organization, id, p)) {
+          block(request)
+        } else {
+          val orgName = Organization.findOneById(request.ctx.organization).map(_.name).getOrElse("unknown org")
+          val message = "Access forbidden for org: " + orgName
+          Forbidden(JsObject(Seq("message" -> JsString(message))))
+        }
+    }
+
+  /** A wrapper around the dbfields logic
+    * TODO: tidy up dbfields stuff
+    */
+  private def getFieldsDbo(include:Boolean, isLoggedIn : Boolean, otherFields : Seq[String] = Seq()) : MongoDBObject = {
+    val searchFields = SearchFields(method = if(include) 1 else 0)
+    cleanDbFields(searchFields, isLoggedIn, otherFields)
+    searchFields.dbfields
   }
 
   /**
    * Deletes the item matching the id specified
    */
-  def delete(id: ObjectId) = ApiAction {
+  def delete(id: VersionedId[ObjectId]) = ApiAction {
     request =>
-      Item.collection.findOneByID(id, MongoDBObject(Item.collectionId -> 1)) match {
-        case Some(o) => o.get(Item.collectionId) match {
+      service.findFieldsById(id, MongoDBObject(collectionId -> 1)) match {
+        case Some(o) => o.get(collectionId) match {
           case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, collId, Permission.Write)) {
             Content.moveToArchive(id) match {
               case Right(_) => Ok(com.mongodb.util.JSON.serialize(o))
@@ -263,73 +327,6 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
       }
   }
 
-  private def cloneS3File(sourceFile: StoredFile, newId: String): String = {
-    Logger.debug("Cloning " + sourceFile.storageKey + " to " + newId)
-    val oldStorageKeyIdRemoved = sourceFile.storageKey.replaceAll("^[0-9a-fA-F]+/", "")
-    s3service.cloneFile(AMAZON_ASSETS_BUCKET, sourceFile.storageKey, newId + "/" + oldStorageKeyIdRemoved)
-    newId + "/" + oldStorageKeyIdRemoved
-  }
-
-  private def cloneStoredFiles(oldItem: Item, newItem: Item): Boolean = {
-    val newItemId = newItem.id.toString
-    try {
-      newItem.data.get.files.foreach {
-        file => file match {
-          case sf: StoredFile =>
-            val newKey = cloneS3File(sf, newItemId)
-            sf.storageKey = newKey
-          case _ =>
-        }
-      }
-      newItem.supportingMaterials.foreach {
-        sm =>
-          sm.files.filter(_.isInstanceOf[StoredFile]).foreach {
-            file =>
-              val sf = file.asInstanceOf[StoredFile]
-              val newKey = cloneS3File(sf, newItemId)
-              sf.storageKey = newKey
-          }
-      }
-      Item.save(newItem)
-      true
-    } catch {
-      case r: RuntimeException =>
-        Logger.error("Error cloning some of the S3 files: " + r.getMessage)
-        Logger.error(r.getStackTrace.mkString("\n"))
-        false
-    }
-
-  }
-
-  /**
-   * Note: Have to call this 'cloneItem' instead of 'clone' as clone is a default
-   * function.
-   */
-  def cloneItem(id: ObjectId) = ApiAction {
-    request =>
-      findAndCheckAuthorization(request.ctx.organization, id, Permission.Write) match {
-        case Left(e) => BadRequest(toJson(e))
-        case Right(item) => {
-          Item.cloneItem(item) match {
-            case Some(clonedItem) =>
-              cloneStoredFiles(item, clonedItem) match {
-                case true => Ok(toJson(clonedItem))
-                case false => BadRequest(toJson(ApiError.Item.Clone))
-              }
-            case _ => BadRequest(toJson(ApiError.Item.Clone))
-          }
-        }
-      }
-  }
-
-
-  private def findAndCheckAuthorization(orgId: ObjectId, id: ObjectId, p: Permission): Either[ApiError, Item] = Item.findOneById(id) match {
-    case Some(s) => Content.isCollectionAuthorized(orgId, s.collectionId, p) match {
-      case true => Right(s)
-      case false => Left(ApiError.CollectionUnauthorized)
-    }
-    case None => Left(ApiError.Item.NotFound)
-  }
 
   def create = ApiAction {
     request =>
@@ -344,7 +341,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
                 Organization.getDefaultCollection(request.ctx.organization) match {
                   case Right(default) => {
                     i.collectionId = default.id.toString
-                    Item.insert(i) match {
+                    service.insert(i) match {
                       case Some(_) => Ok(toJson(i))
                       case None => InternalServerError(toJson(ApiError.CantSave))
                     }
@@ -352,7 +349,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
                   case Left(error) => InternalServerError(toJson(ApiError.CantSave(error.clientOutput)))
                 }
               } else if (Content.isCollectionAuthorized(request.ctx.organization, i.collectionId, Permission.Write)) {
-                Item.insert(i) match {
+                service.insert(i) match {
                   case Some(_) => Ok(toJson(i))
                   case None => InternalServerError(toJson(ApiError.CantSave))
                 }
@@ -369,183 +366,7 @@ class ItemApi(s3service: S3Service) extends BaseApi with PackageLogging {
       }
   }
 
-  def update(id: ObjectId) = ApiAction {
-    request =>
-      if (Content.isAuthorized(request.ctx.organization, id, Permission.Write, true)) {
-        request.body.asJson match {
-          case Some(json) => {
-            if ((json \ Item.id).asOpt[String].isDefined) {
-              BadRequest(toJson(ApiError.IdNotNeeded))
-            } else {
-              try {
-                val item = fromJson[Item](json)
-                val dbfields = dbsummaryFields.foldRight[MongoDBObject](MongoDBObject())((field, dbo) => dbo ++ MongoDBObject(field -> 1))
-                Item.updateItem(id, item, if (request.ctx.isLoggedIn) None else Some(dbfields), request.ctx.organization) match {
-                  case Right(i) => Ok(toJson(i))
-                  case Left(error) => InternalServerError(toJson(ApiError.Item.Update(error.clientOutput)))
-                }
-              } catch {
-                case e: JSONParseException => BadRequest(toJson(ApiError.JsonExpected))
-                case e: JsonValidationException => BadRequest(toJson(ApiError.JsonExpected(Some(e.getMessage))))
-              }
-            }
-          }
-          case _ => BadRequest(toJson(ApiError.JsonExpected))
-        }
-      } else Forbidden
-  }
-
-  def getItemsInCollection(collId: ObjectId) = ApiAction {
-    request =>
-      NotImplemented
-  }
-
-  def cloneAndIncrement(itemId: ObjectId) = ApiAction {
-    request =>
-      if (Content.isAuthorized(request.ctx.organization, itemId, Permission.Read, true)) {
-        Item.findOneById(itemId) match {
-          case Some(item) => {
-            //TODO: allow for rollback of item if storing files fails or second update fails
-            Item.cloneItem(item) match {
-              case Some(clonedItem) => {
-                cloneStoredFiles(item, clonedItem) match {
-                  case true => try {
-                    item.version match {
-                      case Some(ver) => Item.update(MongoDBObject("_id" -> item.id),
-                        MongoDBObject("$set" -> MongoDBObject(Item.version + "." + Version.current -> false)),
-                        false, false, Item.defaultWriteConcern)
-                      case None => {
-                        val version = Version(item.id, 0, false)
-                        Item.update(MongoDBObject("_id" -> item.id),
-                          MongoDBObject("$set" -> MongoDBObject(Item.version -> grater[Version].asDBObject(version))),
-                          false, false, Item.defaultWriteConcern)
-                        item.version = Some(version)
-                      }
-                    }
-                    val currentVersion = Version(item.version.get.root, item.version.get.rev + 1, true)
-                    Item.update(MongoDBObject("_id" -> clonedItem.id),
-                      MongoDBObject("$set" -> MongoDBObject(Item.version -> grater[Version].asDBObject(currentVersion))),
-                      false, false, Item.defaultWriteConcern)
-                    Ok(Json.toJson(ItemView(clonedItem, None)))
-                  } catch {
-                    case e: SalatDAOUpdateError => InternalServerError(Json.toJson(ApiError.Item.Clone(Some("could not update version"))))
-                  }
-                  case false => BadRequest(toJson(ApiError.Item.Clone))
-                }
-              }
-              case _ => BadRequest(toJson(ApiError.Item.Clone))
-            }
-          }
-          case None => throw new RuntimeException("a item that was authorized does not exist")
-        }
-      } else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
-  }
-
-  /**
-   * when a stored file is received from json, we do not receive the storage keys to allow us to clone stored files.
-   * this method copies the storage key's from the original item
-   */
-  private def copyStorageKeys(oldItem: Item, newItem: Item) {
-    if (newItem.data.isDefined) {
-      newItem.data.get.files.foreach {
-        file => file match {
-          case newsf: StoredFile => oldItem.data.get.files.find(_.name == newsf.name).map(_.asInstanceOf[StoredFile]) match {
-            case Some(oldsf) => newsf.storageKey = oldsf.storageKey
-            case None => newsf.storageKey = ResourceApi.key(newItem.id.toString, ResourceApi.DATA_PATH, newsf.name)
-          }
-          case _ =>
-        }
-      }
-    }
-    newItem.supportingMaterials.foreach {
-      sm =>
-        sm.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile]).foreach(newsf => {
-          oldItem.supportingMaterials.find(_.files.exists(_.name == newsf.name)).
-            map(_.files.find(_.name == newsf.name).get.asInstanceOf[StoredFile]) match {
-            case Some(oldsf) => newsf.storageKey = oldsf.storageKey
-            case None => newsf.storageKey = ResourceApi.key(newItem.id.toString, ResourceApi.DATA_PATH, newsf.name)
-          }
-        })
-    }
-  }
-
-  def increment(itemId: ObjectId) = ApiAction {
-    request =>
-      if (Content.isAuthorized(request.ctx.organization, itemId, Permission.Read, true)) {
-        request.body.asJson match {
-          case Some(json) => {
-            if ((json \ Item.id).asOpt[String].isDefined) {
-              BadRequest(toJson(ApiError.IdNotNeeded))
-            } else {
-              try {
-                val item = fromJson[Item](json)
-                //TODO: provide ability for rollbacks if insert fails or cloned files fails
-                Item.findOneById(itemId) match {
-                  case Some(olditem) => {
-                    olditem.version match {
-                      case Some(ver) => Item.update(MongoDBObject("_id" -> olditem.id),
-                        MongoDBObject("$set" -> MongoDBObject(Item.version + "." + Version.current -> false)),
-                        false, false, Item.defaultWriteConcern)
-                      case None => {
-                        val version = Version(olditem.id, 0, false)
-                        Item.update(MongoDBObject("_id" -> olditem.id),
-                          MongoDBObject("$set" -> MongoDBObject(Item.version -> grater[Version].asDBObject(version))),
-                          false, false, Item.defaultWriteConcern)
-                        olditem.version = Some(version)
-                      }
-                    }
-                    item.version = Some(Version(olditem.version.get.root, olditem.version.get.rev + 1, true))
-                    copyStorageKeys(olditem, item)
-                    val dbolditem = grater[Item].asDBObject(olditem)
-                    val dbitem = grater[Item].asDBObject(item)
-                    val newitem = grater[Item].asObject(dbolditem ++ dbitem)
-                    Item.insert(newitem) match {
-                      case Some(id) => cloneStoredFiles(olditem, newitem) match {
-                        case true => Ok(toJson(newitem))
-                        case false => BadRequest(toJson(ApiError.Item.Clone(Some("could not clone stored files"))))
-                      }
-                      case None => InternalServerError(JsObject(Seq("message" -> JsString("a database error occurred when attempting to insert the new item revision"))))
-                    }
-
-                  }
-                  case None => throw new RuntimeException("item could not be found after it was authorized")
-                }
-              } catch {
-                case e: SalatDAOUpdateError => InternalServerError(JsObject(Seq("message" -> JsString("a database error occurred when attempting to update the revision number of the item"))))
-                case e: JSONParseException => BadRequest(toJson(ApiError.JsonExpected))
-                case e: JsonValidationException => BadRequest(toJson(ApiError.JsonExpected(Some(e.getMessage))))
-              }
-            }
-          }
-          case None => BadRequest(JsObject(Seq("message" -> JsString("required JSON item in post data. If you wish to clone item and increment, GET"))))
-        }
-      } else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
-  }
-
-
-  /**
-   * returns the most recent revision of the item referred to by id
-   * @return
-   */
-  def getCurrent(id: ObjectId) = ApiAction {
-    request =>
-      if (Content.isAuthorized(request.ctx.organization, id, Permission.Read)) {
-        val searchFields = SearchFields(method = 1)
-        cleanDbFields(searchFields, request.ctx.isLoggedIn)
-        val baseItem = Item.findOne(MongoDBObject("_id" -> id)).get
-        baseItem.version match {
-          case Some(version) => Item.findOne(MongoDBObject(Item.version + "." + Version.root -> version.root, Item.version + "." + Version.current -> true)) match {
-            case Some(currentItem) => Ok(Json.toJson(ItemView(currentItem, None)))
-            case None => InternalServerError(JsObject(Seq("message" -> JsString("there is no version of this item that is visible"))))
-          }
-          case None => {
-            baseItem.version = Some(Version(baseItem.id, 0, true))
-            Ok(Json.toJson(ItemView(baseItem, None)))
-          }
-        }
-      } else Unauthorized(toJson(ApiError.UnauthorizedOrganization(Some("you do not have access to this item"))))
-  }
 
 }
 
-object ItemApi extends api.v1.ItemApi(ConcreteS3Service)
+object ItemApi extends api.v1.ItemApi(ConcreteS3Service, ItemServiceImpl)

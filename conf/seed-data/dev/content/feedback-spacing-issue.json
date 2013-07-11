@@ -1,22 +1,25 @@
 {
+  "_id": {
     "_id": {
-        "$oid": "50979f9430046d394ea6606b"
+      "$oid": "50979f9430046d394ea6606b"
     },
-    "data": {
+    "version": 0
+  },
+  "data": {
+    "name": "qti.xml",
+    "files": [
+      {
+        "_t": "models.item.resource.VirtualFile",
         "name": "qti.xml",
-        "files": [
-            {
-                "_t": "models.item.resource.VirtualFile",
-                "name": "qti.xml",
-                "contentType": "text/xml",
-                "isMain": true,
-                "content": "$[interpolate{conf/qti/feedback-spacing-issue.xml}]"
-            }
-        ]
-    },
-    "published":false,
-    "collectionId": "5001b9b9e4b035d491c268c3",
-    "taskInfo": {
-        "title": "feedback spacing issue: https://trello.com/c/wCCz3adX"
-    }
+        "contentType": "text/xml",
+        "isMain": true,
+        "content": "$[interpolate{conf/qti/feedback-spacing-issue.xml}]"
+      }
+    ]
+  },
+  "published": false,
+  "collectionId": "5001b9b9e4b035d491c268c3",
+  "taskInfo": {
+    "title": "feedback spacing issue: https://trello.com/c/wCCz3adX"
+  }
 }
