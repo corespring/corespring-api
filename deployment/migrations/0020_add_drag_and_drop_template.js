@@ -25,6 +25,3 @@ function up() {
 function down() {
   // Non-reversible
 }
-
-
-up();
