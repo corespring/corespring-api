@@ -15,8 +15,6 @@ object TestS3Service extends S3Service{
 
   def download(bucket: String, fullKey: String, headers: Option[Headers]): Result = ConcreteS3Service.download(bucket,fullKey,headers)
 
-  def s3download(bucket: String, itemId: String, keyName: String): Result = ConcreteS3Service.s3download(bucket,itemId,keyName)
-
   def delete(bucket: String, keyName: String): S3DeleteResponse = {
     val response = ConcreteS3Service.delete(bucket,keyName)
     S3DeleteResponse(response.success,response.key,response.msg)
