@@ -1,5 +1,6 @@
 .answerContainer {
-    padding: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 
 .prompt {
@@ -27,12 +28,12 @@ table.csDraggableTiles {
     max-width: 600px;
 }
 
-
 table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td  {
     border: none;
     border-collapse: collapse;
     padding: 0px;
     vertical-align: top;
+    margin: 10px;
 }
 
 .solution-modal {
