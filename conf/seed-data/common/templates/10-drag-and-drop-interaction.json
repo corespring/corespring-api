@@ -1,0 +1,6 @@
+{
+  "label": "Drag And Drop interaction",
+  "code": "draganddrop",
+  "group": "Fixed Choice",
+  "xmlData": "$[interpolate{conf/qti-templates/drag-and-drop-interaction.xml}]"
+}
