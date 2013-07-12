@@ -249,7 +249,7 @@ trait CorrectResponse {
 object CorrectResponse {
 
   /**
-   * Note: TextEntryInteractions are a special case. If cardinality is equation, use CorrectResponseEquation, otherwise,
+   * Note: TextEntryInteractions are a special case. If cardinality is equation, use CorrectResponseLineEquation, otherwise,
    * no matter what the cardinality is we treat their responses as CorrectResponseAny
    * @param node
    * @param cardinality
@@ -260,7 +260,7 @@ object CorrectResponse {
     if (interaction.isDefined) {
       interaction.get match {
         case TextEntryInteraction(_, _, _) => baseType match {
-          case "line" => CorrectResponseEquation(node)
+          case "line" => CorrectResponseLineEquation(node)
           case _ => CorrectResponseAny(node)
         }
         case SelectTextInteraction(_, _, _, _, _, _) => CorrectResponseAny(node)
@@ -273,7 +273,7 @@ object CorrectResponse {
   def apply(node: Node, cardinality: String, baseType: String): CorrectResponse = {
     cardinality match {
       case "single" => baseType match {
-        case "line" => CorrectResponseEquation(node)
+        case "line" => CorrectResponseLineEquation(node)
         case _ => CorrectResponseSingle(node)
       }
       case "multiple" => CorrectResponseMultiple(node)
@@ -286,75 +286,22 @@ object CorrectResponse {
 /**
  * value is limited to the format y=f(x), where f(x) is some continuous (defined at all points) expression only containing the variable x
  */
-case class CorrectResponseEquation(value: String,
-                                   useInteger:Boolean = true,
+case class CorrectResponseLineEquation(value: String,
                                    range:(Int,Int) = (-10,10),
                                    variables:(String,String) = "x" -> "y",
-                                   numOfTestPoints:Int = 20) extends CorrectResponse{
-  private val engine = CorrectResponseEquation.engine
-  private def formatExpression(expr:String,variableValues:Seq[(String,Int)]):String = {
-    val noWhitespace = expr.replaceAll("\\s","")
-    variableValues.foldRight[String](noWhitespace)((variable,acc) =>{
-      replaceVar(acc,variable._1,variable._2)
-    })
-  }
-  private def replaceVar(expr:String, variable:String, num:Int):String = {
-    var newExpr = expr
-    var m = Pattern.compile(".*([0-9)])"+variable+"([(0-9]).*").matcher(newExpr)
-    if (m.matches()){
-      newExpr = newExpr.replaceAll("[0-9)]"+variable+"[(0-9]",m.group(1)+"*("+num.toString+")*"+m.group(2))
-    }
-    m = Pattern.compile(".*([0-9)])"+variable+".*").matcher(newExpr)
-    if (m.matches()){
-      newExpr = newExpr.replaceAll("[0-9)]"+variable,m.group(1)+"*("+num.toString+")")
-    }
-    m = Pattern.compile(".*"+variable+"([(0-9]).*").matcher(newExpr)
-    if (m.matches()){
-      newExpr = newExpr.replaceAll(variable+"[(0-9]","("+num.toString+")*"+m.group(2))
-    }
-    newExpr = newExpr.replaceAll(variable,"("+num.toString+")")
-    newExpr
-  }
-  /**
-   * find coordinates on the graph that fall on the line
-   */
-  lazy val testPoints:Array[(Int,Int)] = {
-    val rhs = value.split("=")(1)
-    var testCoords:Array[(Int,Int)] = Array()
-    for (i <- 1 to numOfTestPoints){
-      val xcoord = new Random().nextInt(range._2 - range._1)+range._1
-      val ycoord = engine.eval(formatExpression(rhs,Seq(variables._1 -> xcoord))).asInstanceOf[Double].toInt
-      testCoords = testCoords :+ (xcoord,ycoord)
-    }
-    testCoords
-  }
-  /**
-   * compare response equation with value equation. Since there are many possible forms, we generate random points
-   */
-  private def compareEquations(response:String):Boolean = {
-    val sides = response.split("=")
-    if (sides.length == 2){
-      val lhs = sides(0)
-      val rhs = sides(1)
-      testPoints.foldRight[Boolean](true)((testPoint,acc) => if (acc){
-        val variableValues = Seq(variables._1 -> testPoint._1, variables._2 -> testPoint._2)
-        //replace the x and y vars with the values of testPoint then evaluate the two expressions with the JSengine.
-        // the two sides should be equal
-        engine.eval(formatExpression(lhs, variableValues)) == engine.eval(formatExpression(rhs, variableValues))
-      } else false)
-    } else false
-  }
-  def isCorrect(responseValue:String):Boolean = compareEquations(responseValue)
-  def isValueCorrect(v: String, index: Option[Int]) = compareEquations(v)
+                                   numOfTestPoints:Int = 2) extends CorrectResponse{
+
+  def isCorrect(responseValue:String):Boolean = TextEntryInteraction.lineEquationMatch(value,responseValue,range,variables,numOfTestPoints)
+  def isValueCorrect(v: String, index: Option[Int]) = TextEntryInteraction.lineEquationMatch(value,v,range,variables,numOfTestPoints)
 }
-object CorrectResponseEquation{
+object CorrectResponseLineEquation{
   val engine = new ScriptEngineManager().getEngineByName("JavaScript")
-  def apply(node:Node):CorrectResponseEquation = {
+  def apply(node:Node):CorrectResponseLineEquation = {
     if ((node \ "value").size != 1) {
       throw new RuntimeException("Cardinality is set to single but there is not one <value> declared: " + (node \ "value").toString)
     }
     else {
-      CorrectResponseEquation((node \ "value").text)
+      CorrectResponseLineEquation((node \ "value").text)
     }
   }
 }

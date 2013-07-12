@@ -17,14 +17,25 @@
         <lineInteraction jsxgraphcore="" responseIdentifier="graphTest" graph-width="300px" graph-height="300px"/>
         <p>The equation for the line is: </p>
         <textEntryInteraction responseIdentifier="equationEntryTest" expectedLength="20" />
-        <feedbackBlock outcomeIdentifier="responses.equationEntryTest.value" identifier="ida1">
+        <feedbackBlock outcomeIdentifier="responses.equationEntryTest.outcome.incorrectEquation">
             <div class="feedback-block-incorrect">Wrong!</div>
         </feedbackBlock>
 
-        <feedbackBlock outcomeIdentifier="responses.equationEntryTest.value" identifier="ida3">
+        <feedbackBlock outcomeIdentifier="responses.equationEntryTest.value" identifier="y=2x+7">
             <div class="feedback-block-correct">You're right!</div>
         </feedbackBlock>
 
+        <feedbackBlock outcomeIdentifier="responses.equationEntryTest.outcome.lineEquationMatch">
+            <div class="feedback-block-correct">You're right, but equation is not in form of y=mx+b</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.graphTest.value" identifier="ida1">
+            <div class="feedback-block-incorrect">Wrong!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.graphTest.value" identifier="ida3">
+            <div class="feedback-block-correct">You're right!</div>
+        </feedbackBlock>
 
     </itemBody>
 </assessmentItem>
