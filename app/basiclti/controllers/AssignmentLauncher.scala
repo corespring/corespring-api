@@ -236,12 +236,16 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
     }
 
   def process(quizId: ObjectId, resultSourcedId: String) = session(quizId, resultSourcedId) match {
-      case Left(msg) => Action(BadRequest(msg))
+      case Left(msg) => Action{ request =>
+        Logger.warn("Error processing response: " + msg)
+        BadRequest(msg)
+      }
       case Right(session) => {
         auth.ValidatedAction(RequestedAccess.asRead(assessmentId = Some(quizId), itemId = Some(session.itemId), sessionId = Some(session.id))) {
           request =>
             import scalaz._
             import Scalaz._
+
 
             val result: Validation[String, SimpleResult[JsValue]] = for {
               q <- LtiQuiz.findOneById(quizId).toSuccess("Can't find Quiz")
@@ -251,7 +255,10 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
             } yield sendScore(session, p, apiClient)
 
             result match {
-              case Failure(msg) => BadRequest(msg)
+              case Failure(msg) => {
+                this.Logger.warn("Error processing response with source id: %s: %s".format(resultSourcedId, msg))
+                BadRequest(msg)
+              }
               case Success(result) => result
             }
         }
