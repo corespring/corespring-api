@@ -16,6 +16,7 @@ import common.controllers.utils.BaseUrl
 
 object TestHarness extends BaseApi with SecureSocial {
 
+  private var passbackText : String = ""
   /**
    * The initial form where you can set up your settings
    * @return
@@ -97,10 +98,13 @@ object TestHarness extends BaseApi with SecureSocial {
       }
   }
 
+  def inspectGradePassback = Action{Ok(passbackText)}
+
   def gradePassback = Action(parse.tolerantText) {
     request =>
       println("gradePassback")
       println(request.body.toString)
+      passbackText = request.body.toString
       Ok("")
   }
 
