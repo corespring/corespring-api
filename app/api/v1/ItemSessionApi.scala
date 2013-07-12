@@ -216,7 +216,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService
   def processResponse(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction {
     request =>
 
-      Logger.debug("processResponse: " + sessionId)
+      Logger.debug("[processResponse]: " + sessionId)
 
       itemSession.findOneById(sessionId) match {
         case Some(dbSession) => Content.isAuthorized(request.ctx.organization, dbSession.itemId, Permission.Read) match {
@@ -236,6 +236,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService
                     itemSession.process(dbSession, xmlWithCsFeedbackIds) match {
                       case Right(newSession) => {
                         val json = toJson(newSession)
+                        Logger.debug("[processResponse] successful")
                         Ok(json)
                       }
                       case Left(error) => InternalServerError(toJson(ApiError.UpdateItemSession(error.clientOutput)))
