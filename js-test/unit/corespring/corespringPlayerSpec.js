@@ -102,7 +102,7 @@ describe('CoreSpringPlayer', function () {
         options[callbackName] = callbackFn;
         new com.corespring.players.ItemPlayer(myDiv,  options);
       });
-      waitsFor(function() {return called; }, 100);
+      waitsFor(function() {return called; }, 500);
       window.postMessage('{"message":"'+messageId+'", "session":"something"}',"*");
     };
 
