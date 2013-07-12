@@ -210,7 +210,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
               </textString>
             </resultScore>
             <resultData>
-              <url>https://corespring-local.com/lti/dev/test-harness</url>
+              <url>https://corespring.org</url>
             </resultData>
           </result>
         </resultRecord>
