@@ -62,15 +62,15 @@ class ItemServiceImpl(
     }
   }
 
-  def countItems(query: DBObject, fields: Option[String] = None): Int = dao.count(query).toInt
+  def countItems(query: DBObject, fields: Option[String] = None): Int = dao.countCurrent(query).toInt
 
   def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, fields)
 
-  def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[Item] = dao.find(query, fields)
+  def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[Item] = dao.findCurrent(query, fields)
 
   def findOneById(id: VersionedId[ObjectId]): Option[Item] = dao.findOneById(id)
 
-  def findOne(query: DBObject): Option[Item] = dao.findOne(query)
+  def findOne(query: DBObject): Option[Item] = dao.findOneCurrent(query)
 
   def saveUsingDbo(id:VersionedId[ObjectId], dbo:DBObject, createNewVersion : Boolean = false) = dao.update(id, dbo, createNewVersion)
 
@@ -101,7 +101,7 @@ class ItemServiceImpl(
   def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[Item] = {
     val oids = ids.map(i =>  i.id)
     val query = MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
-    val out = dao.find(query, keys).toSeq
+    val out = dao.findCurrent(query, keys).toSeq
     out
   }
 

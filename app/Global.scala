@@ -111,11 +111,11 @@ object Global extends GlobalSettings {
         onlyIfLocalDb(seedDevData)
         onlyIfLocalDb(seedDebugData)
       } else if(Play.isProd(app) && initData) {
-        seedDevData()
+        onlyIfLocalDb(seedDevData)
       }
       addDemoDataToDb()
     } else {
-      seedTestData()
+      onlyIfLocalDb(seedTestData)
     }
   }
 
