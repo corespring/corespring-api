@@ -98,13 +98,23 @@ object TestHarness extends BaseApi with SecureSocial {
       }
   }
 
-  def inspectGradePassback = Action{Ok(passbackText)}
+  def inspectGradePassback = Action{
+    request =>
+      println("passbackText: " + passbackText)
+      try{
+        val xml = scala.xml.XML.loadString(passbackText)
+        val score = (xml \\ "resultScore" \ "textString").text.trim
+        Ok(basiclti.views.html.dev.grade(score))
+      } catch {
+        case e : Throwable => Ok("An error occured parsing: " + passbackText + ", " + e.getMessage)
+      }
+  }
 
   def gradePassback = Action(parse.tolerantText) {
     request =>
-      println("gradePassback")
-      println(request.body.toString)
+      println("Grade passback received:")
       passbackText = request.body.toString
+      println(passbackText)
       Ok("")
   }
 
