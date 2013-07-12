@@ -5,20 +5,20 @@ import basiclti.controllers.routes.{AssignmentLauncher => AssignmentLauncherRout
 import basiclti.controllers.routes.{AssignmentPlayer => AssignmentPlayerRoutes}
 import basiclti.models._
 import common.controllers.utils.BaseUrl
-import controllers.auth.BaseApi
+import controllers.auth.{TokenizedRequestActionBuilder, BaseApi}
 import models.Organization
 import models.auth.ApiClient
 import models.itemSession.{DefaultItemSession, ItemSessionSettings, ItemSession}
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
 import org.bson.types.ObjectId
-import play.Logger
-import play.api.libs.json.Json
 import play.api.libs.json.Json._
+import play.api.libs.json.{JsValue, Json}
 import play.api.libs.oauth.ConsumerKey
 import play.api.libs.oauth.OAuthCalculator
 import play.api.libs.oauth.RequestToken
 import play.api.libs.ws.WS
-import play.api.mvc.{AnyContent, Request, Action, Session}
+import play.api.mvc._
+import player.accessControl.auth.CheckSessionAccess
 import player.accessControl.cookies.{PlayerCookieWriter, PlayerCookieKeys}
 import player.accessControl.models.{RenderOptions, RequestedAccess}
 import scala.Left
@@ -29,7 +29,7 @@ import scala.Some
  * Handles the launching of corespring items via the LTI 1.1 launch specification.
  * Also supports the canvas 'select_link' selection directive.
  */
-object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
+class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends BaseApi with PlayerCookieWriter {
 
   object LtiKeys {
     val ConsumerKey: String = "oauth_consumer_key"
@@ -59,7 +59,7 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
     val org = for {
       client <- ApiClient.findByKey(clientId)
       consumer <- consumerFromClient(client)
-      if (signaturesMatch(request, consumer))
+      if signaturesMatch(request, consumer)
     } yield Organization.findOneById(client.orgId)
 
     org.getOrElse(None)
@@ -95,7 +95,7 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
                */
               val p3pHeaders = ("P3P", """CP="NOI ADM DEV COM NAV OUR STP"""")
 
-              def buildSession(s: Session, mode : String): Session = {
+              def buildSession(s: Session, mode: String): Session = {
 
                 s +
                   (PlayerCookieKeys.RENDER_OPTIONS -> Json.toJson(RenderOptions.ANYTHING).toString) +
@@ -209,6 +209,9 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
                 {score}
               </textString>
             </resultScore>
+            <resultData>
+              <url>https://corespring-local.com/lti/dev/test-harness</url>
+            </resultData>
           </result>
         </resultRecord>
       </replaceResultRequest>
@@ -232,38 +235,25 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
       case _ => Left("Can't find quiz")
     }
 
-  /**
-    */
-  def process(id: ObjectId, resultSourcedId: String) = ApiAction {
-    request =>
+  def process(quizId: ObjectId, resultSourcedId: String) = session(quizId, resultSourcedId) match {
+      case Left(msg) => Action(BadRequest(msg))
+      case Right(session) => {
+        auth.ValidatedAction(RequestedAccess.asRead(assessmentId = Some(quizId), itemId = Some(session.itemId), sessionId = Some(session.id))) {
+          request =>
+            import scalaz._
+            import Scalaz._
 
-      require(!resultSourcedId.isEmpty, "no resultSourcedId specified - can't process")
+            val result: Validation[String, SimpleResult[JsValue]] = for {
+              q <- LtiQuiz.findOneById(quizId).toSuccess("Can't find Quiz")
+              p <- q.participants.find(_.resultSourcedId == resultSourcedId).toSuccess("Can't find participant")
+              orgId <- q.orgId.toSuccess("Quiz has no orgId")
+              apiClient <- ApiClient.findOneByOrgId(orgId).toSuccess("Can't find ApiClient for org")
+            } yield sendScore(session, p, apiClient)
 
-      session(id, resultSourcedId) match {
-        case Left(msg) => BadRequest(msg)
-        case Right(session) => {
-
-          LtiQuiz.findOneById(id) match {
-            case Some(quiz) => {
-
-              require(quiz.orgId.isDefined)
-
-              quiz.participants.find(_.resultSourcedId == resultSourcedId) match {
-                case Some(p) => {
-
-                  quiz.orgId match {
-                    case Some(orgId) => {
-                      val client: Option[ApiClient] = ApiClient.findOneByOrgId(orgId)
-                      sendScore(session, p, client)
-                    }
-                    case _ => NotFound("Can't find org id")
-                  }
-                }
-                case _ => NotFound("Can't find assignment")
-              }
+            result match {
+              case Failure(msg) => BadRequest(msg)
+              case Success(result) => result
             }
-            case _ => NotFound("Can't find quiz")
-          }
         }
       }
   }
@@ -271,54 +261,45 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
   /**
    * Send score to the LMS via a signed POST
    * @see https://canvas.instructure.com/doc/api/file.assignment_tools.html
-   * @param session
-   * @param participant
-   * @param maybeClient
    * @return
    */
-  private def sendScore(session: ItemSession, participant: LtiParticipant, maybeClient: Option[ApiClient]) = maybeClient match {
+  private def sendScore(session: ItemSession, participant: LtiParticipant, client: ApiClient): SimpleResult[JsValue] = {
 
-    case Some(client) => {
-
-      def sendResultsToPassback(consumer: LtiOAuthConsumer, score: String) = {
-        WS.url(participant.gradePassbackUrl)
-          .sign(
-          OAuthCalculator(ConsumerKey(consumer.getConsumerKey, consumer.getConsumerSecret),
-            RequestToken(consumer.getToken, consumer.getTokenSecret)))
-          .withHeaders(("Content-Type", "application/xml"))
-          .post(responseXml(participant.resultSourcedId, score))
-      }
-
-      val consumer = LtiOAuthConsumer(client)
-      val score = getScore(session)
-
-      def emptyOrNull(s: String): Boolean = (s == null || s.isEmpty)
-
-      if (emptyOrNull(participant.gradePassbackUrl)) {
-        Logger.warn("Not sending passback for assignment: " + participant.resultSourcedId)
-        Ok(toJson(Map("returnUrl" -> participant.onFinishedUrl)))
-      } else {
-        sendResultsToPassback(consumer, score).await(10000).fold(
-          error => throw new RuntimeException(error.getMessage),
-          response => {
-            val returnUrl = response.body match {
-              case e: String if e.contains("Invalid authorization header") => {
-                AssignmentLauncherRoutes.authorizationError().url
-              }
-              case _ => participant.onFinishedUrl
-            }
-            Ok(toJson(Map("returnUrl" -> returnUrl)))
-          }
-        )
-      }
+    def sendResultsToPassback(consumer: LtiOAuthConsumer, score: String) = {
+      Logger.debug("Sending the grade passback to: %s".format(participant.gradePassbackUrl))
+      WS.url(participant.gradePassbackUrl)
+        .sign(
+        OAuthCalculator(ConsumerKey(consumer.getConsumerKey, consumer.getConsumerSecret),
+          RequestToken(consumer.getToken, consumer.getTokenSecret)))
+        .withHeaders(("Content-Type", "application/xml"))
+        .post(responseXml(participant.resultSourcedId, score))
     }
-    case _ => throw new RuntimeException("Unable to send score - no client found")
+
+    val consumer = LtiOAuthConsumer(client)
+    val score = getScore(session)
+
+    def emptyOrNull(s: String): Boolean = (s == null || s.isEmpty)
+
+    if (emptyOrNull(participant.gradePassbackUrl)) {
+      Logger.warn("Not sending passback for assignment: %s".format(participant.resultSourcedId))
+      Ok(toJson(Map("returnUrl" -> participant.onFinishedUrl)))
+    } else {
+      sendResultsToPassback(consumer, score).await(10000).fold(
+        error => throw new RuntimeException(error.getMessage),
+        response => {
+          val returnUrl = response.body match {
+            case e: String if e.contains("Invalid authorization header")=>  AssignmentLauncherRoutes.error("Unauthorized").url
+            case e : String if e.contains("<imsx_codeMajor>unsupported</imsx_codeMajor>") =>  AssignmentLauncherRoutes.error("Unsupported").url
+            case _ => participant.onFinishedUrl
+          }
+          Ok(toJson(Map("returnUrl" -> returnUrl)))
+        }
+      )
+    }
   }
 
-  def authorizationError = Action {
-    request =>
-      Ok(basiclti.views.html.authorizationError())
-  }
+  def error(cause : String) = Action(Ok(basiclti.views.html.error(cause)))
+
 
   private def getScore(session: ItemSession): String = {
     val (score, maxScore) = DefaultItemSession.getTotalScore(session)
@@ -326,7 +307,12 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
   }
 
   def xml(title: String, description: String, url: String, width: Int, height: Int) = {
-    <cartridge_basiclti_link xmlns="http://www.imsglobal.org/xsd/imslticc_v1p0" xmlns:blti="http://www.imsglobal.org/xsd/imsbasiclti_v1p0" xmlns:lticm="http://www.imsglobal.org/xsd/imslticm_v1p0" xmlns:lticp="http://www.imsglobal.org/xsd/imslticp_v1p0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd">
+    <cartridge_basiclti_link xmlns="http://www.imsglobal.org/xsd/imslticc_v1p0"
+                             xmlns:blti="http://www.imsglobal.org/xsd/imsbasiclti_v1p0"
+                             xmlns:lticm="http://www.imsglobal.org/xsd/imslticm_v1p0"
+                             xmlns:lticp="http://www.imsglobal.org/xsd/imslticp_v1p0"
+                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                             xsi:schemaLocation="http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd">
       <blti:title>
         {title}
       </blti:title>
@@ -361,3 +347,5 @@ object AssignmentLauncher extends BaseApi with PlayerCookieWriter {
       Ok(xml("CoreSpring Item Bank", "choose an item", root + url, 700, 600)).withHeaders((CONTENT_TYPE, "application/xml"))
   }
 }
+
+object AssignmentLauncher extends AssignmentLauncher(CheckSessionAccess)
