@@ -21,7 +21,7 @@ case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int,
       case StringItemResponse(_,responseValue,_) => responseDeclaration match {
         case Some(rd) => {
           def getOutcomeProperties(isCorrect:Boolean):Map[String,Boolean] = checkLineEquation match {
-            case Some(cre) => if (isCorrect && cre.value != responseValue) Map("lineEquationMatch" -> isCorrect)  //even though the response value may not match the expected value, the response may still be correct
+            case Some(cre) => if (isCorrect && cre.value != responseValue) Map("lineEquationMatch" -> true)  //even though the response value may not match the expected value, the response may still be correct
               else if(!isCorrect) Map("incorrectEquation" ->  true)
               else Map()
             case None => Map()

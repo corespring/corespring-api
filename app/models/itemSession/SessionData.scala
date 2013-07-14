@@ -74,6 +74,7 @@ object SessionData {
           (userResponses.toList ::: correctResponses.toList).distinct
 
         val feedbackTuples: List[(String, String)] = responsesToGiveFeedbackOn.map(createFeedback).flatten
+        val ofc = buildOutcomeFeedbackContents
         feedbackTuples.toMap[String, String] ++ buildOutcomeFeedbackContents
       } else {
         Map()

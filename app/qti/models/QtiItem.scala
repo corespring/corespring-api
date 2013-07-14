@@ -41,6 +41,7 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
   def isCorrectResponseApplicable(id: String): Boolean = itemBody.getInteraction(id) match {
     case Some(TextEntryInteraction(_, _, _)) => false
     case Some(InlineChoiceInteraction(_, _)) => false
+    case Some(LineInteraction(_)) => false
     case _ => true
   }
 

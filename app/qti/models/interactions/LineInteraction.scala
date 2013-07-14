@@ -1,6 +1,6 @@
 package qti.models.interactions
 
-import qti.models.ResponseDeclaration
+import qti.models.{CorrectResponseLineEquation, CorrectResponseSingle, ResponseDeclaration}
 import models.itemSession.{ArrayItemResponse, StringItemResponse, ItemResponseOutcome, ItemResponse}
 import xml.Node
 import qti.models.QtiItem.Correctness
@@ -8,13 +8,25 @@ import qti.models.QtiItem.Correctness
 case class LineInteraction(responseIdentifier: String) extends Interaction{
 
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
+    def outcomeProperties(responseValue:String):Map[String,Boolean] = {
+      def toMap(value:String) =  if (responseValue == value) Map("correct" -> true) else Map("incorrect" -> true)
+      responseDeclaration.map[Map[String,Boolean]](rd => rd.correctResponse match {
+        case Some(CorrectResponseSingle(value)) => toMap(value)
+        case Some(CorrectResponseLineEquation(value,_,_,_)) => toMap(value)
+        case _ => Map()
+      }).getOrElse(Map())
+    }
     response match {
       case StringItemResponse(_,responseValue,_) => responseDeclaration match {
         case Some(rd) => rd.mapping match {
-          case Some(mapping) => Some(ItemResponseOutcome(mapping.mappedValue(response.value), rd.isCorrect(responseValue) == Correctness.Correct))
+          case Some(mapping) => Some(
+            ItemResponseOutcome(mapping.mappedValue(response.value),
+            rd.isCorrect(responseValue) == Correctness.Correct,
+            outcomeProperties = outcomeProperties(responseValue))
+          )
           case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
-            Some(ItemResponseOutcome(1,true))
-          } else Some(ItemResponseOutcome(0,false))
+            Some(ItemResponseOutcome(1,true,outcomeProperties = outcomeProperties(responseValue)))
+          } else Some(ItemResponseOutcome(0,false,outcomeProperties = outcomeProperties(responseValue)))
         }
         case None => None
       }
@@ -26,10 +38,14 @@ case class LineInteraction(responseIdentifier: String) extends Interaction{
           val yintercept = pta(1) - (slope * pta(0))
           val equation = "y="+slope+"x+"+yintercept
           rd.mapping match {
-            case Some(mapping) => Some(ItemResponseOutcome(mapping.mappedValue(equation), rd.isCorrect(equation) == Correctness.Correct))
+            case Some(mapping) => Some(
+              ItemResponseOutcome(mapping.mappedValue(equation),
+                rd.isCorrect(equation) == Correctness.Correct,
+                outcomeProperties = outcomeProperties(equation))
+            )
             case None => if (rd.isCorrect(equation) == Correctness.Correct) {
-              Some(ItemResponseOutcome(1,true))
-            } else Some(ItemResponseOutcome(0,false))
+              Some(ItemResponseOutcome(1,true,outcomeProperties = outcomeProperties(equation)))
+            } else Some(ItemResponseOutcome(0,false,outcomeProperties = outcomeProperties(equation)))
           }
         }
         case None => None
@@ -41,10 +57,6 @@ case class LineInteraction(responseIdentifier: String) extends Interaction{
     }
   }
 
-  /** Can this Interaction be automatically scored from the users response
-    * Eg: multichoice can - but free written text can't be
-    * @return
-    */
   def isScoreable: Boolean = false
 }
 object LineInteraction extends InteractionCompanion[LineInteraction]{

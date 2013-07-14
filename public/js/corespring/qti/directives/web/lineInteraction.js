@@ -36,7 +36,6 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                 }else $scope.equation = "y = mx + b"
             }, true)
             $scope.$on("formSubmitted",function(){
-                console.log("form submitted")
                 $scope.outcomeReturned = true
                 var response = _.find($scope.itemSession.responses,function(r){
                     return r.id === $scope.responseIdentifier
