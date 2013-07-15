@@ -90,7 +90,7 @@ object Global extends GlobalSettings {
     }
   }
 
-  override def onStart(app: Application) {
+  override def onStart(app: Application) : Unit = {
     // support JodaTime
     RegisterJodaTimeConversionHelpers()
 
@@ -99,23 +99,30 @@ object Global extends GlobalSettings {
 
     val initData:Boolean = ConfigFactory.load().getString(INIT_DATA) == "true"
 
-    def onlyIfLocalDb(fn: (() => Unit)) {
+    def onlyIfLocalDb(fns: (() => Unit)*) {
       if (isLocalDb)
-        fn()
+        fns.foreach( fn => fn() )
       else
         throw new RuntimeException("You're trying to seed against a remote db - bad idea")
     }
 
-    if(!Play.isTest(app)) {
-      if (Play.isDev(app) && initData) {
-        onlyIfLocalDb(seedDevData)
-        onlyIfLocalDb(seedDebugData)
-      } else if(Play.isProd(app) && initData) {
-        seedDevData()
+    app.mode match {
+      case Mode.Test => {
+        emptyData()
+        seedTestData()
       }
-      addDemoDataToDb()
-    } else {
-      seedTestData()
+      case Mode.Dev => {
+        if(initData) {
+          onlyIfLocalDb(emptyData, seedDevData, seedDebugData)
+        }
+      }
+      case Mode.Prod => {
+        if(initData){
+          emptyData()
+          seedDevData()
+        }
+        seedDemoData()
+      }
     }
   }
 
@@ -127,24 +134,23 @@ object Global extends GlobalSettings {
     *
     * TODO: the demo orgs listed are hardcoded
     */
-  private def addDemoDataToDb() {
+  private def seedDemoData() {
     seedData("conf/seed-data/demo")
   }
 
   private def isLocalDb: Boolean = {
     ConfigLoader.get("mongodb.default.uri") match {
+      //TODO: Remove hardcoded url
       case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907.mongolab.com:35907/sib")
       case None => false
     }
   }
 
   private def seedTestData() {
-    emptyData()
     seedData("conf/seed-data/test")
   }
 
   private def seedDevData() {
-    emptyData()
     seedData("conf/seed-data/common")
     seedData("conf/seed-data/dev")
     seedData("conf/seed-data/exemplar-content")

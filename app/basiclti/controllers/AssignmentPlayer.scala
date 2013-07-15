@@ -9,6 +9,7 @@ import player.accessControl.auth.{CheckSessionAccess, CheckSession}
 import player.accessControl.models.RequestedAccess
 import player.controllers.Views
 import models.item.service.ItemServiceImpl
+import player.views.models.PlayerParams
 
 object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl) with AssetResource {
 
@@ -16,7 +17,11 @@ object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl) with 
     session(configId, resultSourcedId) match {
       case Left(msg) => Action(r => BadRequest(msg))
       case Right(session) => {
-        val p = RenderParams(session.itemId, sessionId = Some(session.id), sessionMode = RequestedAccess.Mode.Administer )
+        val p = RenderParams(
+          session.itemId,
+          sessionId = Some(session.id),
+          sessionMode = RequestedAccess.Mode.Administer,
+          templateFn = (p:PlayerParams) => basiclti.views.html.LtiPlayer(p, configId.toString, resultSourcedId))
         renderItem(p)
       }
     }

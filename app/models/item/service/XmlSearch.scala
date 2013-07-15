@@ -19,7 +19,7 @@ trait XmlSearch {
 
     val query = string
 
-    dao.find(
+    dao.findCurrent(
       MongoDBObject(
         "data.files.content" ->
           MongoDBObject(

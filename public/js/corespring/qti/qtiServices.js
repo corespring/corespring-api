@@ -147,7 +147,7 @@ angular.module('qti.services')
 
     QtiUtils.getPromptSpan = function (xmlString) {
       var promptMatch = xmlString.match(/<:*prompt>([\s\S]*?)<\/:*prompt>/);
-      var prompt = "<span class=\"prompt\">" + ((promptMatch && promptMatch.length > 0) ? promptMatch[1] : "") + "</span>";
+      var prompt = (promptMatch && promptMatch.length > 0) ? ("<span class=\"prompt\">" + promptMatch[1] + "</span>") : "";
       return prompt;
     };
 
