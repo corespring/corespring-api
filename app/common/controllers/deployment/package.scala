@@ -15,7 +15,15 @@ package object deployment {
 
   lazy val s3Deployer: Deployer = new S3Deployer(ConcreteS3Service.getAmazonClient, bucketName, releaseRoot)
 
-  val bucketName: String = if (isProd) "corespring-public-assets-" + branch else "corespring-dev-tmp-assets"
+  val bucketName: String = {
+    val publicAssets = "corespring-public-assets"
+    if (isProd) {
+      val envName = Defaults.envName("")
+      Seq(publicAssets, envName, branch ).filterNot(_.isEmpty).mkString("-")
+    } else {
+      "corespring-dev-tmp-assets"
+    }
+  }
 
   lazy val branch : String = if(Defaults.branch.isEmpty || Defaults.branch == "?") "no-branch" else Defaults.branch
 
