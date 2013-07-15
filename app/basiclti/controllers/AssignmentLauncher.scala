@@ -148,10 +148,11 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
      * @param linkId
      * @return
      */
-    def newQuiz(linkId: String): LtiQuiz = {
-      require(data.oauthConsumerKey.isDefined, "oauth consumer must be defined")
+    def newQuiz(linkId: String): LtiQuiz = data.oauthConsumerKey.map{ key =>
 
-      val client = ApiClient.findByKey(data.oauthConsumerKey.get.trim)
+      require(ObjectId.isValid(key.trim), "the consumer key must be a valid object id")
+
+      val client = ApiClient.findByKey(key.trim)
 
       require(client.isDefined, "the api client must be defined")
 
@@ -163,6 +164,8 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
       )
       LtiQuiz.insert(quiz)
       quiz
+    }.getOrElse{
+      throw new IllegalArgumentException("The consumer key must be defined")
     }
 
     def findByCanvasConfigId(id: String): LtiQuiz = LtiQuiz.findOneById(new ObjectId(id)) match {
