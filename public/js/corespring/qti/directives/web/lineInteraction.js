@@ -2,7 +2,7 @@ angular.module("qti.directives").directive("lineinteraction", function(){
     return {
         template: [
         "<div class='graph-interaction'>",
-        "   <div jsx-graph points='points' submission-callback='graphCallback'></div>",
+        "   <div jsx-graph graph-callback='graphCallback' interaction-callback='interactionCallback' max-points='2' ></div>",
         "   <div class='points-display'>",
         "       <div class='point-display'>",
         "           <p>Point A:</p>",
@@ -27,27 +27,42 @@ angular.module("qti.directives").directive("lineinteraction", function(){
             $scope.points = {A: {x: undefined, y: undefined}, B: {x: undefined, y: undefined}}
             $scope.$watch('showNoResponseFeedback', function(){
                  if($scope.isEmptyItem($scope.equation) && $scope.showNoResponseFeedback){
-                    $scope.graphCallback({isIncomplete:true})
+                    $scope.graphCallback({submission: {isIncomplete:true}})
                  }
             });
-            $scope.$watch('points', function(points){
-                function checkCoords(coords){
-                    return coords && !isNaN(coords.x) && !isNaN(coords.y)
+            $scope.interactionCallback = function(params){
+                if(params.points){
+                  if(params.points.A){
+                    $scope.points.A = params.points.A
+                  }
+                  if(params.points.B){
+                    $scope.points.B = params.points.B
+                  }
+                  if(params.points.A && params.points.B){
+                      var slope = (params.points.A.y - params.points.B.y) / (params.points.A.x - params.points.B.x)
+                      var yintercept = params.points.A.y - (params.points.A.x * slope)
+                      $scope.equation = "y="+slope+"x+"+yintercept
+                      $scope.graphCallback({submission:{clearBorder: true},drawShape:{line: ["A","B"]}})
+                  }else $scope.equation = null
+                  $scope.controller.setResponse($scope.responseIdentifier, $scope.equation);
                 }
-                if(checkCoords($scope.points.A) && checkCoords($scope.points.B)){
-                    var slope = ($scope.points.A.y - $scope.points.B.y) / ($scope.points.A.x - $scope.points.B.x)
-                    var yintercept = $scope.points.A.y - ($scope.points.A.x * slope)
-                    $scope.equation = "y="+slope+"x+"+yintercept
-                    $scope.graphCallback({clearBorder: true})
-                }else $scope.equation = null
-                $scope.controller.setResponse($scope.responseIdentifier, $scope.equation);
+            }
+            $scope.$watch('points', function(points){
+              function checkCoords(coords){
+                  return coords && !isNaN(coords.x) && !isNaN(coords.y)
+              }
+              var graphPoints = {}
+              _.each(points,function(coords,ptName){
+                if(checkCoords(coords)) graphPoints[ptName] = coords
+              })
+              if($scope.graphCallback) $scope.graphCallback({points: graphPoints})
             }, true)
             $scope.$on("formSubmitted",function(){
                 $scope.outcomeReturned = true
                 var response = _.find($scope.itemSession.responses,function(r){
                     return r.id === $scope.responseIdentifier
                 })
-                $scope.graphCallback({isCorrect: response && response.outcome.isCorrect, lockGraph: true});
+                $scope.graphCallback({submission: {isCorrect: response && response.outcome.isCorrect, lockGraph: true}});
             });
 
             //refresh periodically

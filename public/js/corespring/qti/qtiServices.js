@@ -171,7 +171,7 @@ angular.module('qti.services').factory('Canvas', function() {
                          keepaspectratio: true
                        });
     this.points = [];
-    this.scale = scale
+    this.scale = scale;
   }
   Canvas.prototype.getMouseCoords = function(e) {
     var coords = new JXG.Coords(JXG.COORDS_BY_SCREEN, [e.offsetX, e.offsetY], this.board);
@@ -181,18 +181,27 @@ angular.module('qti.services').factory('Canvas', function() {
     };
     return simpleCoords
   };
-
+  Canvas.prototype.getPoint = function(ptName){
+    return _.find(this.points, function(p){
+        return p.name == ptName;
+    });
+  }
   Canvas.prototype.pointCollision = function(coords) {
-    var el, _i, _len, _ref;
-    _ref = this.board.objects;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      el = _ref[_i];
-      if (JXG.isPoint(this.board.objects[el]) && this.board.objects[el].hasPoint(coords.x, coords.y)) {
-        return el;
-      } else {
-        return null;
+    var points = this.points, scale = this.scale;
+    function min(coord){
+        return coord - scale;
+    }
+    function max(coord){
+        return coord + scale;
+    }
+    for (var i = 0; i < points.length; i++) {
+      var point = points[i];
+      //find area where coords might land that would constitute collision with point
+      if(point.X() >= min(coords.x) && point.X() <= max(coords.x) && point.Y() >= min(coords.y) && point.Y() <= max(coords.y)){
+        return point;
       }
     }
+    return null;
   };
 
   Canvas.prototype.addPoint = function(coords) {
@@ -223,14 +232,12 @@ angular.module('qti.services').factory('Canvas', function() {
     return this.board.on(event, handler);
   };
 
-  Canvas.prototype.makeLine = function() {
-    if (this.points.length === 2) {
-      return this.board.create('line', [this.points[0], this.points[1]], {
+  Canvas.prototype.makeLine = function(pts) {
+      return this.board.create('line', pts, {
         strokeColor: '#00ff00',
         strokeWidth: 2,
         fixed: true
       });
-    }
   };
   return Canvas;
 });
