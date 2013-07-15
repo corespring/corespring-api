@@ -6,27 +6,27 @@
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
         <script type="text/javascript" src="http://localhost:9000/player.js"></script>
         <script type="text/javascript">
-            $(document).ready(function () {
+          $(function() {
             //Here are the client side overridden options
             var options = {"mode":"preview","itemId":"@itemId"};
             options.width =  "600px";
             options.autoHeight = true;
             options.onItemSessionCreated = function (sessionId) {
-            console.log("item session created.. " + sessionId);
+              console.log("item session created.. " + sessionId);
             };
             options.onItemSessionRetrieved = function (sessionId) {
-            console.log("item session retrieved.. " + sessionId);
+              console.log("item session retrieved.. " + sessionId);
             };
             options.onItemSessionCompleted = function (sessionId) {
-            console.log("item session completed.. " + sessionId);
-            }
+              console.log("item session completed.. " + sessionId);
+            };
 
             var onError = function (err) {
-            throw "Error loading test player: " + err.msg;
+              throw "Error loading test player: " + err.msg;
             };
 
             new com.corespring.players.ItemPlayer('#my-div', options, onError);
-            });
+          });
         </script>
     </body>
 </html>
