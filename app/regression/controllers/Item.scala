@@ -3,11 +3,7 @@ package regression.controllers
 import play.api.mvc.{Action, Controller}
 import org.bson.types.ObjectId
 import player.accessControl.models.{RenderOptions, RequestedAccess}
-import common.config.AppConfig
 import player.accessControl.cookies.PlayerCookieWriter
-import securesocial.core.java.SecureSocial.UserAwareAction
-import models.Organization
-import models.item.service.{ItemServiceImpl, ItemService}
 import models.item.Content
 import controllers.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
