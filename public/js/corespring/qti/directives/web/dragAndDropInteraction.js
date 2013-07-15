@@ -31,7 +31,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
 
       $scope.hideSolution = function() {
         $scope.solutionVisible = false;
-      }
+      };
 
       $scope.propagateDimension = function (w, h) {
         if (w > $scope.maxWidth) $scope.maxWidth = w;
@@ -45,7 +45,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         $scope.listAnswers = QtiUtils.deepCopy(state.answers);
         $scope.listTargets = QtiUtils.deepCopy(state.targets);
         $scope.initMathML(0);
-      }
+      };
 
       $scope.resetClick = function () {
         var i;
@@ -65,10 +65,9 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         //Remove empty objects from multiple (array based) targets
         _.each($scope.listTargets, function (el, idx) {
           if (_.isArray(el)) {
-            var filtered = _.filter(el, function (el2) {
+            $scope.listTargets[idx] = _.filter(el, function (el2) {
               return el2.id;
             });
-            $scope.listTargets[idx] = filtered;
           }
         });
       };

@@ -12,6 +12,7 @@ files = [
     'public/js/vendor/ace/mode-xml.js',
     'public/js/vendor/angular/1.0.1/angular-1.0.1.js',
     'public/js/vendor/angular-ui/angular-ui.js',
+    'public/js/vendor/angular-dragdrop/angular-dragdrop.min.js',
     'public/js/vendor/angular/1.0.1/angular-resource-1.0.1.js',
     'public/js/vendor/angular/1.0.1/angular-mocks-1.0.1.js',
     'public/js/vendor/underscore/1.3.3/underscore.js',
