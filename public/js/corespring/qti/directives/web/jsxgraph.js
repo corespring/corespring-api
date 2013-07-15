@@ -33,19 +33,25 @@ return {
       }
     });
     scope.submissionCallback = function(params){
-      if(params.lockGraph){
-          _.each(canvas.points,function(p){
-              p.setAttribute({fixed: true})
-          })
+      if(params.isIncomplete){
+        scope.boxStyle = {width: "100%", height: "100%", borderColor: "yellow", borderWidth: "2px"};
+      }else if(params.clearBorder){
+        scope.boxStyle = {width: "100%", height: "100%"};
       }else{
-          _.each(canvas.points,function(p){
-              p.setAttribute({fixed: false})
-          })
-      }
-      if(params.isCorrect){
-        scope.boxStyle = {width: "100%", height: "100%", borderColor: "green", borderWidth: "2px"};
-      }else{
-        scope.boxStyle = {width: "100%", height: "100%", borderColor: "red", borderWidth: "2px"};
+          if(params.lockGraph){
+              _.each(canvas.points,function(p){
+                  p.setAttribute({fixed: true})
+              })
+          }else{
+              _.each(canvas.points,function(p){
+                  p.setAttribute({fixed: false})
+              })
+          }
+          if(params.isCorrect){
+            scope.boxStyle = {width: "100%", height: "100%", borderColor: "green", borderWidth: "2px"};
+          }else{
+            scope.boxStyle = {width: "100%", height: "100%", borderColor: "red", borderWidth: "2px"};
+          }
       }
     }
     scope.$watch('points', function(newValue, oldValue) {

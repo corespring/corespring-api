@@ -25,6 +25,11 @@ angular.module("qti.directives").directive("lineinteraction", function(){
         require: '^assessmentitem',
         controller: ['$scope', function($scope){
             $scope.points = {A: {x: undefined, y: undefined}, B: {x: undefined, y: undefined}}
+            $scope.$watch('showNoResponseFeedback', function(){
+                 if($scope.isEmptyItem($scope.equation) && $scope.showNoResponseFeedback){
+                    $scope.graphCallback({isIncomplete:true})
+                 }
+            });
             $scope.$watch('points', function(points){
                 function checkCoords(coords){
                     return coords && !isNaN(coords.x) && !isNaN(coords.y)
@@ -32,8 +37,10 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                 if(checkCoords($scope.points.A) && checkCoords($scope.points.B)){
                     var slope = ($scope.points.A.y - $scope.points.B.y) / ($scope.points.A.x - $scope.points.B.x)
                     var yintercept = $scope.points.A.y - ($scope.points.A.x * slope)
-                    $scope.controller.setResponse($scope.responseIdentifier, "y="+slope+"x+"+yintercept);
-                }else $scope.equation = "y = mx + b"
+                    $scope.equation = "y="+slope+"x+"+yintercept
+                    $scope.graphCallback({clearBorder: true})
+                }else $scope.equation = null
+                $scope.controller.setResponse($scope.responseIdentifier, $scope.equation);
             }, true)
             $scope.$on("formSubmitted",function(){
                 $scope.outcomeReturned = true
@@ -60,7 +67,7 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                 scope.scale = scale;
                 scope.responseIdentifier = attrs.responseidentifier;
                 scope.controller = AssessmentItemController
-                //scope.controller.registerInteraction(element.attr('responseIdentifier'), "line graph", "graph")
+                scope.controller.registerInteraction(element.attr('responseIdentifier'), "line graph", "graph")
             }
         }
     }
