@@ -151,7 +151,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
     def newQuiz(linkId: String): LtiQuiz = {
       require(data.oauthConsumerKey.isDefined, "oauth consumer must be defined")
 
-      val client = ApiClient.findByKey(data.oauthConsumerKey.get)
+      val client = ApiClient.findByKey(data.oauthConsumerKey.get.trim)
 
       require(client.isDefined, "the api client must be defined")
 
