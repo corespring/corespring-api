@@ -6,6 +6,11 @@ import player.accessControl.models.{RenderOptions, RequestedAccess}
 import common.config.AppConfig
 import player.accessControl.cookies.PlayerCookieWriter
 import securesocial.core.java.SecureSocial.UserAwareAction
+import models.Organization
+import models.item.service.{ItemServiceImpl, ItemService}
+import models.item.Content
+import controllers.auth.Permission
+import org.corespring.platform.data.mongo.models.VersionedId
 
 object Item extends Controller with PlayerCookieWriter {
 
@@ -22,11 +27,15 @@ object Item extends Controller with PlayerCookieWriter {
     }
   }
 
-  def player(orgId: ObjectId, itemId: ObjectId) = Secured("admin", "1234secret") {
+  def player(orgId: ObjectId, itemId: VersionedId[ObjectId]) = Secured("admin", "1234secret") {
     Action { implicit request =>
-      val newCookies : Seq[(String,String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(RequestedAccess.Mode.Preview)
-      val newSession = sumSession(request.session, newCookies : _*)
-      Ok(regression.views.html.player(itemId.toString() + ":0")).withSession(newSession)
+      if (Content.isAuthorized(orgId, itemId, Permission.Read)) {
+        val newCookies : Seq[(String,String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(RequestedAccess.Mode.Preview)
+        val newSession = sumSession(request.session, newCookies : _*)
+        Ok(regression.views.html.player(itemId.toString() + ":0")).withSession(newSession)
+      } else {
+        Forbidden
+      }
     }
   }
 
