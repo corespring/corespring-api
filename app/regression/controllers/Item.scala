@@ -28,7 +28,7 @@ object Item extends Controller with PlayerCookieWriter {
       if (Content.isAuthorized(orgId, itemId, Permission.Read)) {
         val newCookies : Seq[(String,String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(RequestedAccess.Mode.Preview)
         val newSession = sumSession(request.session, newCookies : _*)
-        Ok(regression.views.html.player(itemId.toString() + ":0")).withSession(newSession)
+        Ok(regression.views.html.player(itemId)).withSession(newSession)
       } else {
         Forbidden
       }
