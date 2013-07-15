@@ -7,7 +7,6 @@ import player.accessControl.cookies.PlayerCookieWriter
 import models.item.Content
 import controllers.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
-import models.versioning.VersionedIdImplicits.Binders._
 
 object Item extends Controller with PlayerCookieWriter {
 
@@ -29,7 +28,7 @@ object Item extends Controller with PlayerCookieWriter {
       if (Content.isAuthorized(orgId, itemId, Permission.Read)) {
         val newCookies : Seq[(String,String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(RequestedAccess.Mode.Preview)
         val newSession = sumSession(request.session, newCookies : _*)
-        Ok(regression.views.html.player(versionedIdToString(itemId))).withSession(newSession)
+        Ok(regression.views.html.player(itemId.toString() + ":0")).withSession(newSession)
       } else {
         Forbidden
       }
