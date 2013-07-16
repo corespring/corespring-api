@@ -2,7 +2,6 @@ angular.module("qti.directives").directive("lineinteraction", function(){
     return {
         template: [
         "<div class='graph-interaction'>",
-        "   <div jsx-graph graph-callback='graphCallback' interaction-callback='interactionCallback' max-points='2' ></div>",
         "   <div class='points-display'>",
         "       <div class='point-display'>",
         "           <p>Point A:</p>",
@@ -19,6 +18,7 @@ angular.module("qti.directives").directive("lineinteraction", function(){
         "           <input type='text' style='width: 80px;' ng-model='points.B.y' ng-disabled='outcomeReturned'>",
         "       </div>",
         "   </div>",
+        "   <div jsx-graph graph-callback='graphCallback' interaction-callback='interactionCallback' max-points='2' ></div>",
         "</div>"].join("\n"),
         restrict: 'E',
         scope: true,
@@ -38,13 +38,15 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                   if(params.points.B){
                     $scope.points.B = params.points.B
                   }
+
                   if(params.points.A && params.points.B){
+                      $scope.graphCoords = [params.points.A.x+","+params.points.A.y, params.points.B.x+","+params.points.B.y]
                       var slope = (params.points.A.y - params.points.B.y) / (params.points.A.x - params.points.B.x)
                       var yintercept = params.points.A.y - (params.points.A.x * slope)
                       $scope.equation = "y="+slope+"x+"+yintercept
                       $scope.graphCallback({submission:{clearBorder: true},drawShape:{line: ["A","B"]}})
-                  }else $scope.equation = null
-                  $scope.controller.setResponse($scope.responseIdentifier, $scope.equation);
+                  }else $scope.graphCoords = null
+                  $scope.controller.setResponse($scope.responseIdentifier, $scope.graphCoords);
                 }
             }
             $scope.$watch('points', function(points){
@@ -71,18 +73,23 @@ angular.module("qti.directives").directive("lineinteraction", function(){
             }, 500)
         }],
         compile: function(element, attrs, transclude){
-            var domain = parseInt(attrs.domain?attrs.domain:10);
-            var range = parseInt(attrs.range?attrs.range:10);
-            var scale = parseFloat(attrs.scale?attrs.scale:1)
             var width = attrs.graphWidth?attrs.graphWidth:"300px"
             var height = attrs.graphHeight?attrs.graphHeight:"300px"
+            var graphAttrs = {
+                                 domain: parseInt(attrs.domain?attrs.domain:10),
+                                 range: parseInt(attrs.range?attrs.range:10),
+                                 scale: parseFloat(attrs.scale?attrs.scale:1),
+                                 domainLabel: attrs.domainLabel,
+                                 rangeLabel: attrs.rangeLabel
+                             }
             element.find('[jsx-graph]').css({width: width, height: height})
-            element.find('[jsx-graph]').attr({domain: domain, range: range, scale: scale})
+            element.find('[jsx-graph]').attr(graphAttrs)
             return function(scope, element, attrs, AssessmentItemController){
-                scope.scale = scale;
+                scope.scale = graphAttrs.scale;
                 scope.responseIdentifier = attrs.responseidentifier;
                 scope.controller = AssessmentItemController
                 scope.controller.registerInteraction(element.attr('responseIdentifier'), "line graph", "graph")
+
             }
         }
     }

@@ -261,7 +261,7 @@ object CorrectResponse {
     if (interaction.isDefined) {
       interaction.get match {
         case TextEntryInteraction(_, _, _) => baseType match {
-          case "line" => CorrectResponseLineEquation(node)
+          case line if line startsWith("line") => CorrectResponseLineEquation(node,line)
           case _ => CorrectResponseAny(node)
         }
         case SelectTextInteraction(_, _, _, _, _, _) => CorrectResponseAny(node)
@@ -274,35 +274,13 @@ object CorrectResponse {
   def apply(node: Node, cardinality: String, baseType: String): CorrectResponse = {
     cardinality match {
       case "single" => baseType match {
-        case "line" => CorrectResponseLineEquation(node)
+        case line if line startsWith("line") => CorrectResponseLineEquation(node,line)
         case _ => CorrectResponseSingle(node)
       }
       case "multiple" => CorrectResponseMultiple(node)
       case "ordered" => CorrectResponseOrdered(node)
       case "targeted" => CorrectResponseTargeted(node, Set[String]())
       case _ => throw new RuntimeException("unknown cardinality: " + cardinality + ". cannot generate CorrectResponse")
-    }
-  }
-}
-/**
- * value is limited to the format y=f(x), where f(x) is some continuous (defined at all points) expression only containing the variable x
- */
-case class CorrectResponseLineEquation(value: String,
-                                   range:(Int,Int) = (-10,10),
-                                   variables:(String,String) = "x" -> "y",
-                                   numOfTestPoints:Int = 2) extends CorrectResponse{
-
-  def isCorrect(responseValue:String):Boolean = TextEntryInteraction.lineEquationMatch(value,responseValue,range,variables,numOfTestPoints)
-  def isValueCorrect(v: String, index: Option[Int]) = TextEntryInteraction.lineEquationMatch(value,v,range,variables,numOfTestPoints)
-}
-object CorrectResponseLineEquation{
-  val engine = new ScriptEngineManager().getEngineByName("JavaScript")
-  def apply(node:Node):CorrectResponseLineEquation = {
-    if ((node \ "value").size != 1) {
-      throw new RuntimeException("Cardinality is set to single but there is not one <value> declared: " + (node \ "value").toString)
-    }
-    else {
-      CorrectResponseLineEquation((node \ "value").text)
     }
   }
 }

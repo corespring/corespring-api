@@ -14,7 +14,7 @@ return {
     //      y:[Number]
     //    }
     //    ...
-    //  }
+    //  },
     //  drawShape:{
     //    line: [pt1,pt2]
     //  },
@@ -25,37 +25,60 @@ return {
     //    isCorrect:[Boolean]
     //  }
     //}
-    graphCallback: '='
+    graphCallback: '=',
+    //{
+    //  points:{
+    //    [ptName]:{
+    //      x:[Number],
+    //      y:[Number]
+    //    }
+    //    ...
+    //  },
+    //  drawShape:{
+    //    line: [pt1,pt2]
+    //  },
+    //  locked:[Boolean]
+    //}
+    initialParams: '@'
   },
   link: function(scope, elem, attr) {
-    var domain = parseInt(attr.domain?attr.domain:10);
-    var range = parseInt(attr.range?attr.range:10);
-    var scale = parseFloat(attr.scale?attr.scale:1);
-    var maxPoints = parseInt(attr.maxPoints?attr.maxPoints:null)
-    var canvas = new Canvas("box", domain, range, scale);
+    var canvasAttrs = {
+        domain: parseInt(attr.domain?attr.domain:10),
+        range: parseInt(attr.range?attr.range:10),
+        scale: parseFloat(attr.scale?attr.scale:1),
+        maxPoints: parseInt(attr.maxPoints?attr.maxPoints:null),
+        domainLabel: attr.domainlabel,
+        rangeLabel: attr.rangelabel
+    }
+    var canvas = new Canvas("box", canvasAttrs);
+    var lockGraph = false;
     var points = {}
     var onPointMove = function(point, coords) {
-      if(coords != null) point.moveTo([coords.x, coords.y]);
-      points[point.name] = {x: point.X(), y: point.Y()};
-      scope.interactionCallback({points: points})
+      if(!lockGraph){
+          if(coords != null) point.moveTo([coords.x, coords.y]);
+          points[point.name] = {x: point.X(), y: point.Y()};
+          scope.interactionCallback({points: points})
+      }
     };
     var addPoint = function(coords) {
-      var point = canvas.addPoint(coords);
-      point.on('up',function(e){
-          onPointMove(point)
-      })
-      onPointMove(point)
-      return point;
+      if(!lockGraph){
+        var point = canvas.addPoint(coords);
+        point.on('up',function(e){
+            onPointMove(point)
+        })
+        onPointMove(point)
+        return point;
+      }
     };
     canvas.on('up', function(e) {
       var coords = canvas.getMouseCoords(e);
-      if ((!maxPoints || canvas.points.length < maxPoints) && !canvas.pointCollision(coords)) {
+      if ((!canvasAttrs.maxPoints || canvas.points.length < canvasAttrs.maxPoints) && !canvas.pointCollision(coords)) {
         addPoint(coords);
       }
     });
     scope.graphCallback = function(params){
         if(params.drawShape){
-             if(params.drawShape.line){
+             if(params.drawShape.line && !lockGraph){
                  var pt1 = canvas.getPoint(params.drawShape.line[0])
                  var pt2 = canvas.getPoint(params.drawShape.line[1])
                  if(pt1 && pt2){
@@ -73,10 +96,7 @@ return {
                      _.each(canvas.points,function(p){
                          p.setAttribute({fixed: true})
                      })
-                 }else{
-                     _.each(canvas.points,function(p){
-                         p.setAttribute({fixed: false})
-                     })
+                     lockGraph = true;
                  }
                  if(params.submission.isCorrect){
                    scope.boxStyle = {width: "100%", height: "100%", borderColor: "green", borderWidth: "2px"};
@@ -107,7 +127,7 @@ return {
                   if (canvasPoint.X() !== coords.x || canvasPoint.Y() !== coords.y) {
                     onPointMove(canvasPoint, coords);
                   }
-                } else if (!maxPoints || canvas.points.length < maxPoints) {
+                } else if (!canvasAttrs.maxPoints || canvas.points.length < canvasAttrs.maxPoints) {
                   addPoint(coords);
                 }
               }

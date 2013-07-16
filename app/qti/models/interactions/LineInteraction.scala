@@ -4,12 +4,24 @@ import qti.models.{CorrectResponseLineEquation, CorrectResponseSingle, ResponseD
 import models.itemSession.{ArrayItemResponse, StringItemResponse, ItemResponseOutcome, ItemResponse}
 import xml.Node
 import qti.models.QtiItem.Correctness
+import java.util.regex.Pattern
 
 case class LineInteraction(responseIdentifier: String) extends Interaction{
 
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
-    def outcomeProperties(responseValue:String):Map[String,Boolean] = {
-      def toMap(value:String) =  if (responseValue == value) Map("correct" -> true) else Map("incorrect" -> true)
+    def getSlopeAndYIntercept(equation:String):(Double,Double) = {
+      val p = Pattern.compile("y=(.+)x\\+(.+)")
+      val m = p.matcher(equation); m.matches()
+      val slope = m.group(1).toDouble
+      val yintercept = m.group(2).toDouble
+      return (slope, yintercept)
+    }
+    def outcomeProperties(slope: Double, yintercept: Double):Map[String,Boolean] = {
+      def toMap(value:String):Map[String,Boolean] = {
+        val (slopeActual,yinterceptActual) = getSlopeAndYIntercept(value)
+        if (slope == slopeActual && yintercept == yinterceptActual) Map("correct" -> true)
+        else Map("incorrect" -> true)
+      }
       responseDeclaration.map[Map[String,Boolean]](rd => rd.correctResponse match {
         case Some(CorrectResponseSingle(value)) => toMap(value)
         case Some(CorrectResponseLineEquation(value,_,_,_)) => toMap(value)
@@ -22,11 +34,11 @@ case class LineInteraction(responseIdentifier: String) extends Interaction{
           case Some(mapping) => Some(
             ItemResponseOutcome(mapping.mappedValue(response.value),
             rd.isCorrect(responseValue) == Correctness.Correct,
-            outcomeProperties = outcomeProperties(responseValue))
+            outcomeProperties = (outcomeProperties _).tupled(getSlopeAndYIntercept(responseValue)))
           )
           case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
-            Some(ItemResponseOutcome(1,true,outcomeProperties = outcomeProperties(responseValue)))
-          } else Some(ItemResponseOutcome(0,false,outcomeProperties = outcomeProperties(responseValue)))
+            Some(ItemResponseOutcome(1,true,outcomeProperties = (outcomeProperties _).tupled(getSlopeAndYIntercept(responseValue))))
+          } else Some(ItemResponseOutcome(0,false,outcomeProperties = (outcomeProperties _).tupled(getSlopeAndYIntercept(responseValue))))
         }
         case None => None
       }
@@ -41,11 +53,11 @@ case class LineInteraction(responseIdentifier: String) extends Interaction{
             case Some(mapping) => Some(
               ItemResponseOutcome(mapping.mappedValue(equation),
                 rd.isCorrect(equation) == Correctness.Correct,
-                outcomeProperties = outcomeProperties(equation))
+                outcomeProperties = outcomeProperties(slope,yintercept))
             )
             case None => if (rd.isCorrect(equation) == Correctness.Correct) {
-              Some(ItemResponseOutcome(1,true,outcomeProperties = outcomeProperties(equation)))
-            } else Some(ItemResponseOutcome(0,false,outcomeProperties = outcomeProperties(equation)))
+              Some(ItemResponseOutcome(1,true,outcomeProperties = outcomeProperties(slope,yintercept)))
+            } else Some(ItemResponseOutcome(0,false,outcomeProperties = outcomeProperties(slope,yintercept)))
           }
         }
         case None => None
