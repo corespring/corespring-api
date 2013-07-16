@@ -241,3 +241,5 @@ GET     /system/check               controllers.SystemCheck.index()
 GET     /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearchPage()
 POST    /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearch()
 
+# Regression test endpoints
+GET     /regression/:orgId/:itemId  regression.controllers.Item.player(orgId: ObjectId, itemId: VersionedId[ObjectId])
