@@ -110,6 +110,12 @@ object TestHarness extends BaseApi with SecureSocial {
       }
   }
 
+  def clearGradePassback = Action{
+    request =>
+      passbackText = ""
+      Ok("")
+  }
+
   def gradePassback = Action(parse.tolerantText) {
     request =>
       println("Grade passback received:")

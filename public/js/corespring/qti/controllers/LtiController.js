@@ -1,21 +1,21 @@
-function LtiController($scope, $http, Config){
+function LtiController($scope, $http, Config) {
 
+  "use strict";
 
   var hasSubmitted = false;
 
-  $scope.$on('assessmentItem_submit', function (event, itemSession, onSuccess, onError) {
+  $scope.$on('assessmentItem_submit', function () {
     hasSubmitted = true;
   });
 
-  $scope.$watch('itemSession.isFinished', function(newValue, oldValue){
+  $scope.$watch('itemSession.isFinished', function (newValue) {
 
-    if(newValue && hasSubmitted){
-      console.log("the session is finished - notify the LTI App");
+    if (newValue && hasSubmitted) {
 
       $http.get("/lti/assignment/" + Config.quizId + "/" + Config.resultSourcedId + "/process")
-        .success(function(data, status, headers, config) {
+        .success(function (data) {
           document.location.href = data.returnUrl;
-        }).error(function(data, status, headers, config) {
+        }).error(function (data, status) {
           $scope.status = status;
         });
     }
