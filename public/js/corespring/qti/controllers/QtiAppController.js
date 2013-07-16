@@ -73,7 +73,9 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
           }
         },
         function (error) {
-          onError(error)
+          console.log("[QtiAppController] Error saving");
+          console.warn(JSON.stringify(error));
+          onError(error);
         });
 
     });

@@ -14,6 +14,9 @@ import play.Logger
 import play.api.Play
 import common.controllers.utils.BaseUrl
 
+/** This test harness simulates an LTI 1.1 Tool Consumer
+  * @see http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html
+  */
 object TestHarness extends BaseApi with SecureSocial {
 
   private var passbackText : String = ""
@@ -108,6 +111,12 @@ object TestHarness extends BaseApi with SecureSocial {
       } catch {
         case e : Throwable => Ok("An error occured parsing: " + passbackText + ", " + e.getMessage)
       }
+  }
+
+  def clearGradePassback = Action{
+    request =>
+      passbackText = ""
+      Ok("")
   }
 
   def gradePassback = Action(parse.tolerantText) {

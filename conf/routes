@@ -189,6 +189,7 @@ PUT     /lti/launch-config/:id                  basiclti.controllers.LtiQuizzes.
 GET     /lti/dev/test-harness                   basiclti.controllers.dev.TestHarness.begin
 POST    /lti/dev/prepare                        basiclti.controllers.dev.TestHarness.prepare
 POST    /lti/dev/grade-passback                 basiclti.controllers.dev.TestHarness.gradePassback
+GET     /lti/dev/clear-grade-passback           basiclti.controllers.dev.TestHarness.clearGradePassback
 GET     /lti/dev/inspect-grade-passback         basiclti.controllers.dev.TestHarness.inspectGradePassback
 GET     /lti/item-chooser.xml                   basiclti.controllers.AssignmentLauncher.xmlConfiguration
 POST    /lti/assignment/launch                  basiclti.controllers.AssignmentLauncher.launch()
@@ -241,3 +242,5 @@ GET     /system/check               controllers.SystemCheck.index()
 GET     /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearchPage()
 POST    /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearch()
 
+# Regression test endpoints
+GET     /regression/:orgId/:itemId  regression.controllers.Item.player(orgId: ObjectId, itemId: VersionedId[ObjectId])
