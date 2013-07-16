@@ -14,6 +14,9 @@ import play.Logger
 import play.api.Play
 import common.controllers.utils.BaseUrl
 
+/** This test harness simulates an LTI 1.1 Tool Consumer
+  * @see http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html
+  */
 object TestHarness extends BaseApi with SecureSocial {
 
   private var passbackText : String = ""
