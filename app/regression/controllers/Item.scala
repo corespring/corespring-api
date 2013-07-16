@@ -25,13 +25,9 @@ object Item extends Controller with PlayerCookieWriter {
 
   def player(orgId: ObjectId, itemId: VersionedId[ObjectId]) = Secured("admin", "1234secret") {
     Action { implicit request =>
-      if (Content.isAuthorized(orgId, itemId, Permission.Read)) {
-        val newCookies : Seq[(String,String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(RequestedAccess.Mode.Preview)
-        val newSession = sumSession(request.session, newCookies : _*)
-        Ok.withSession(newSession)
-      } else {
-        Forbidden
-      }
+      val newCookies : Seq[(String,String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(RequestedAccess.Mode.Preview)
+      val newSession = sumSession(request.session, newCookies : _*)
+      Ok.withSession(newSession)
     }
   }
 
