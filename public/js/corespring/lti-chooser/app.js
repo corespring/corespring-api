@@ -148,6 +148,8 @@ function LtiChooserController($scope, $rootScope, $location, LaunchConfigService
 
       if (!$rootScope.hasItemId()) {
         $rootScope.$broadcast('search');
+      } else {
+        $scope.loadItem($scope.getItemId());
       }
     });
   };
