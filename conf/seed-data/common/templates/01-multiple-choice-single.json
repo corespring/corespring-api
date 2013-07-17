@@ -1,6 +1,0 @@
-{
-    "label": "Multiple Choice",
-    "code": "multiplechoice",
-    "group": "Fixed Choice",
-    "xmlData":"$[interpolate{conf/qti-templates/multiple-choice-single.xml}]"
-}
