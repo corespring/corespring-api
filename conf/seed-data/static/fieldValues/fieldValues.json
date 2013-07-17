@@ -137,7 +137,7 @@
     "itemTypes":[
         {
             "key":"Fixed Choice",
-            "value":["Multiple Choice","Multi-Multi Choice","Visual Multi Choice","Inline Choice","Ordering"]
+            "value":["Multiple Choice","Multi-Multi Choice","Visual Multi Choice","Inline Choice","Ordering","Drag And Drop"]
         },
         {
             "key":"Constructed Response",
