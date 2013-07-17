@@ -1,0 +1,7 @@
+{
+  "label": "Inline Choice",
+  "code": "inlinechoice",
+  "group": "Fixed Choice",
+  "xmlData": "$[interpolate{conf/qti-templates/inline-choice-interaction-template.xml}]",
+  "position": 2
+}
