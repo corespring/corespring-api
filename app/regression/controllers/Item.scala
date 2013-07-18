@@ -8,7 +8,7 @@ import player.controllers.Views
 import controllers.auth.TokenizedRequestActionBuilder
 import models.item.service.{ItemServiceImpl, ItemService}
 import player.accessControl.auth.CheckSessionAccess
-import player.views.models.PlayerParams
+import common.controllers.deployment.LocalAssetsLoaderImpl
 
 class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val itemService : ItemService)
   extends Views(auth, itemService) {
@@ -34,10 +34,8 @@ class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val it
     }
   }
 
-  def playerWithLocalAssets(p: PlayerParams): play.api.templates.Html = player.views.html.LocalPlayer(p)
-
   override def preview(itemId: VersionedId[ObjectId]) = {
-    val p = RenderParams(itemId, sessionMode = RequestedAccess.Mode.Preview, templateFn = playerWithLocalAssets)
+    val p = RenderParams(itemId, sessionMode = RequestedAccess.Mode.Preview, assetsLoader = LocalAssetsLoaderImpl)
     renderItem(p)
   }
 

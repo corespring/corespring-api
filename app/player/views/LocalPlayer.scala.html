@@ -1,5 +1,0 @@
-@(params: player.views.models.PlayerParams)(implicit assetsLoader: common.controllers.deployment.AssetsLoader = common.controllers.deployment.LocalAssetsLoaderImpl)
-
-    @bodyAttributes = @{ "ng-controller='QtiAppController'" }
-
-@basePlayer(params, bodyAttributes)(assetsLoader)

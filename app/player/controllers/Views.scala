@@ -16,6 +16,7 @@ import qti.models.RenderingMode._
 import scala.xml.Elem
 import models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
 import org.corespring.platform.data.mongo.models.VersionedId
+import common.controllers.deployment.{AssetsLoaderImpl, AssetsLoader}
 
 
 class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService)
@@ -99,7 +100,8 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
                                     renderingMode: RenderingMode = Web,
                                     sessionId: Option[ObjectId] = None,
                                     assessmentId: Option[ObjectId] = None,
-                                    templateFn: PlayerParams => Html = defaultTemplate) {
+                                    templateFn: PlayerParams => Html = defaultTemplate,
+                                    assetsLoader: AssetsLoader = AssetsLoaderImpl) {
 
     def toRequestedAccess: RequestedAccess = RequestedAccess.asRead(
       itemId = Some(itemId),
@@ -116,7 +118,8 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
         sessionId.map(_.toString),
         enablePreview,
         qtiKeys,
-        renderingMode)
+        renderingMode,
+        assetsLoader  )
     }
 
     def enablePreview: Boolean = sessionMode == RequestedAccess.Mode.Preview
