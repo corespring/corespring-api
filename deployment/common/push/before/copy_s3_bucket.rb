@@ -14,7 +14,11 @@ raise "You need to install s3cmd: https://github.com/pearltrees/s3cmd-modificati
 target_bucket = config["ENV_AMAZON_ASSETS_BUCKET"]
 raise "no amazon bucket specified in the config" if target_bucket.nil?
 
-cmd = "s3cmd cp -r --parallel --workers 100 s3://corespring-assets/ s3://#{target_bucket}/"
+live_bucket = env["CORESPRING_LIVE_ASSETS_BUCKET"]
+raise "no live bucket specified" if live_bucket.nil?
+
+cmd = "s3cmd cp -r --parallel --workers 100 s3://#{live_bucket}/ s3://#{target_bucket}/"
+
 puts "Command: [#{cmd}]"
 `#{cmd}`
 
