@@ -17,7 +17,9 @@ raise "no amazon bucket specified in the config" if target_bucket.nil?
 live_bucket = env["CORESPRING_LIVE_ASSETS_BUCKET"]
 raise "no live bucket specified" if live_bucket.nil?
 
-cmd = "s3cmd cp -r --parallel --workers 100 s3://#{live_bucket}/ s3://#{target_bucket}/"
+## Synch the live bucket with the target env bucket
+## Remove any assets from the target bucket that aren't in the live bucket
+cmd = "s3cmd sync -r --parallel --workers 100 --delete-removed s3://#{live_bucket}/ s3://#{target_bucket}/"
 
 puts "Command: [#{cmd}]"
 `#{cmd}`
