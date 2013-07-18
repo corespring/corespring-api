@@ -82,7 +82,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         var html = fromHtml.replace(/<:*landingPlace([\s\S]*?)>/gmi, "<landingSolution$1>").replace(/<\/:*landingPlace>/gmi, "</landingSolution>");
         var answerAreaMatch = draggableChoiceRegexp.exec(html);
         var solutionHtml = (answerAreaMatch && answerAreaMatch.length > 0) ? answerAreaMatch[0] : removeAnswerNodes(html);
-        return "<div ui-modal ng-model='solutionVisible' class='solution-modal'><span class='close-button' ng-click='hideSolution()' style='z-index: 10'></span><h1>Answer</h1>" + solutionHtml + "<a ng-click='hideSolution()'>See your answer</a></div>";
+        return "<div ui-modal ng-model='solutionVisible' class='drag-and-drop-solution-modal'><span class='close-button' ng-click='hideSolution()' style='z-index: 10'></span><h1>Answer</h1>" + solutionHtml + "<a ng-click='hideSolution()'>See your answer</a></div>";
       };
 
       var removePromptNode = function (fromHtml) {

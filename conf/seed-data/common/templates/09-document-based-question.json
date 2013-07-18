@@ -1,6 +1,0 @@
-{
-  "label": "Document Based Question",
-  "code": "documentbased",
-  "group": "Passage",
-  "xmlData": "$[interpolate{conf/qti-templates/document-based-question.xml}]"
-}
