@@ -11,7 +11,12 @@ package object deployment {
 
   private def isProd: Boolean = Play.isProd
 
-  lazy val loader: Loader = new Loader( if(isProd) Some(s3Deployer) else None, Play.mode, current.configuration)
+  lazy val loader: Loader = loader(false)
+
+  def loader(forceLocal: Boolean): Loader = {
+    val deployer = if (isProd && !forceLocal) Some(s3Deployer) else None
+    new Loader(deployer, Play.mode, current.configuration)
+  }
 
   lazy val s3Deployer: Deployer = new S3Deployer(ConcreteS3Service.getAmazonClient, bucketName, releaseRoot)
 
