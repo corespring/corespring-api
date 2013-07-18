@@ -1,4 +1,4 @@
-@(params:player.views.models.PlayerParams, bodyAttributes:String, additionalScripts: Option[Html] = None, afterBody : Option[Html] = None, forceLocal: Boolean = false)
+@(params:player.views.models.PlayerParams, bodyAttributes:String, additionalScripts: Option[Html] = None, afterBody : Option[Html] = None)(implicit assetsLoader: common.controllers.deployment.AssetsLoader = common.controllers.deployment.AssetsLoaderImpl)
 
 @cssClass = @{
     if(params.previewEnabled) "assessment-page" else "student-assessment-page"
@@ -8,7 +8,7 @@
 <head>
     <title>@params.itemId</title>
     @common.views.html.partials.ieEightSupport()
-    @partials.scripts(params.xml, new player.views.qti.QtiAssetsLoaderImpl(params.qtiKeys, params.mode), forceLocal)
+    @partials.scripts(params.xml, new player.views.qti.QtiAssetsLoaderImpl(params.qtiKeys, params.mode))
 
 
     @partials.angularConfig(params)

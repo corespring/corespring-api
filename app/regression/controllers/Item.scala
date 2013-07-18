@@ -10,7 +10,8 @@ import models.item.service.{ItemServiceImpl, ItemService}
 import player.accessControl.auth.CheckSessionAccess
 import player.views.models.PlayerParams
 
-class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val itemService : ItemService) extends Views(auth, itemService) {
+class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val itemService : ItemService)
+  extends Views(auth, itemService) {
 
   def Secured[A](username: String, password: String)(action: Action[A]) = Action(action.parser) { request =>
     request.headers.get("Authorization").flatMap { authorization =>

@@ -1,2 +1,2 @@
-@(forceLocal: Boolean = false)
-@common.controllers.deployment.AssetsLoader.corespringCommon(forceLocal)
+@()(implicit assetsLoader: common.controllers.deployment.AssetsLoader = common.controllers.deployment.AssetsLoaderImpl)
+@assetsLoader.corespringCommon
