@@ -190,7 +190,16 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
   }
 
 
-  def responseXml(sourcedId: String, score: String) = <imsx_POXEnvelopeRequest>
+  def responseXml(sourcedId: String, score: String) = {
+    Logger.debug("[responseXml with: %s, %s".format(sourcedId, score))
+
+    /**
+     TODO: Add a result data endpoint so that the users response can be seen.
+    <resultData>
+      <url>https://corespring.org</url>
+    </resultData>
+    */
+  val out = <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
     <imsx_POXHeader>
       <imsx_POXRequestHeaderInfo>
         <imsx_version>V1.0</imsx_version>
@@ -201,27 +210,20 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
       <replaceResultRequest>
         <resultRecord>
           <sourcedGUID>
-            <sourcedId>
-              {sourcedId}
-            </sourcedId>
+            <sourcedId>{sourcedId}</sourcedId>
           </sourcedGUID>
           <result>
             <resultScore>
               <language>en</language>
-              <textString>
-                {score}
-              </textString>
+              <textString>{score}</textString>
             </resultScore>
-            <resultData>
-              <url>https://corespring.org</url>
-            </resultData>
           </result>
         </resultRecord>
       </replaceResultRequest>
     </imsx_POXBody>
   </imsx_POXEnvelopeRequest>
-
-
+    out
+  }
   private def session(id: ObjectId, resultSourcedId: String): Either[String, ItemSession] =
     LtiQuiz.findOneById(id) match {
       case Some(quiz) => {
