@@ -209,8 +209,10 @@ angular.module('qti.services').factory('Canvas', function() {
     return null;
   };
 
-  Canvas.prototype.addPoint = function(coords) {
-    var point = this.board.create('point', [coords.x, coords.y], {snapToGrid: true, snapSizeX: this.scale, snapSizeY: this.scale});
+  Canvas.prototype.addPoint = function(coords, ptName) {
+    var pointAttrs = {snapToGrid: true, snapSizeX: this.scale, snapSizeY: this.scale}
+    if(ptName) pointAttrs = _.extend(pointAttrs,{name: ptName})
+    var point = this.board.create('point', [coords.x, coords.y], pointAttrs);
     this.points.push(point);
     return point;
   };

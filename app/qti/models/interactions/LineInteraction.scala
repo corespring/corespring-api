@@ -6,9 +6,11 @@ import xml.Node
 import qti.models.QtiItem.Correctness
 import java.util.regex.Pattern
 
-case class LineInteraction(responseIdentifier: String) extends Interaction{
-
-  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
+case class LineInteraction(responseIdentifier: String, override val locked:Boolean) extends Interaction{
+  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse):Option[ItemResponseOutcome] = {
+    if (locked) None else getOutcomeUnlocked(responseDeclaration, response)
+  }
+  private def getOutcomeUnlocked(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
     def getSlopeAndYIntercept(equation:String):(Double,Double) = {
       val p = Pattern.compile("y=(.+)x\\+(.+)")
       val m = p.matcher(equation); m.matches()
@@ -76,8 +78,10 @@ object LineInteraction extends InteractionCompanion[LineInteraction]{
 
   def apply(interaction: Node, itemBody: Option[Node]): LineInteraction = {
     LineInteraction(
-      (interaction \ "@responseIdentifier").text
+      (interaction \ "@responseIdentifier").text,
+      if ((interaction \ "@locked").text != null) true else false
     )
+
   }
 
   def parse(itemBody: Node): Seq[Interaction] = {

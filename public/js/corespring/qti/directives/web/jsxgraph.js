@@ -26,22 +26,9 @@ return {
     //  }
     //}
     graphCallback: '=',
-    //{
-    //  points:{
-    //    [ptName]:{
-    //      x:[Number],
-    //      y:[Number]
-    //    }
-    //    ...
-    //  },
-    //  drawShape:{
-    //    line: [pt1,pt2]
-    //  },
-    //  locked:[Boolean]
-    //}
-    initialParams: '@'
   },
   link: function(scope, elem, attr) {
+    //global vars
     var canvasAttrs = {
         domain: parseInt(attr.domain?attr.domain:10),
         range: parseInt(attr.range?attr.range:10),
@@ -60,9 +47,9 @@ return {
           scope.interactionCallback({points: points})
       }
     };
-    var addPoint = function(coords) {
+    var addPoint = function(coords, ptName) {
       if(!lockGraph){
-        var point = canvas.addPoint(coords);
+        var point = canvas.addPoint(coords, ptName);
         point.on('up',function(e){
             onPointMove(point)
         })
@@ -70,6 +57,7 @@ return {
         return point;
       }
     };
+    //define callbacks
     canvas.on('up', function(e) {
       var coords = canvas.getMouseCoords(e);
       if ((!canvasAttrs.maxPoints || canvas.points.length < canvasAttrs.maxPoints) && !canvas.pointCollision(coords)) {
@@ -77,34 +65,6 @@ return {
       }
     });
     scope.graphCallback = function(params){
-        if(params.drawShape){
-             if(params.drawShape.line && !lockGraph){
-                 var pt1 = canvas.getPoint(params.drawShape.line[0])
-                 var pt2 = canvas.getPoint(params.drawShape.line[1])
-                 if(pt1 && pt2){
-                     canvas.makeLine([pt1,pt2])
-                 }
-             }
-        }
-        if(params.submission){
-             if(params.submission.isIncomplete){
-               scope.boxStyle = {width: "100%", height: "100%", borderColor: "yellow", borderWidth: "2px"};
-             }else if(params.submission.clearBorder){
-               scope.boxStyle = {width: "100%", height: "100%"};
-             }else{
-                 if(params.submission.lockGraph){
-                     _.each(canvas.points,function(p){
-                         p.setAttribute({fixed: true})
-                     })
-                     lockGraph = true;
-                 }
-                 if(params.submission.isCorrect){
-                   scope.boxStyle = {width: "100%", height: "100%", borderColor: "green", borderWidth: "2px"};
-                 }else{
-                   scope.boxStyle = {width: "100%", height: "100%", borderColor: "red", borderWidth: "2px"};
-                 }
-             }
-        }
         if(params.points){
             for (var ptName in params.points) {
               var point = params.points[ptName];
@@ -132,6 +92,34 @@ return {
                 }
               }
             }
+        }
+        if(params.drawShape){
+             if(params.drawShape.line && !lockGraph){
+                 var pt1 = canvas.getPoint(params.drawShape.line[0])
+                 var pt2 = canvas.getPoint(params.drawShape.line[1])
+                 if(pt1 && pt2){
+                     canvas.makeLine([pt1,pt2])
+                 }
+             }
+        }
+        if(params.submission){
+             if(params.submission.isIncomplete){
+               scope.boxStyle = {width: "100%", height: "100%", borderColor: "yellow", borderWidth: "2px"};
+             }else if(params.submission.clearBorder){
+               scope.boxStyle = {width: "100%", height: "100%"};
+             }else{
+                 if(params.submission.lockGraph){
+                     _.each(canvas.points,function(p){
+                         p.setAttribute({fixed: true})
+                     })
+                     lockGraph = true;
+                 }
+                 if(params.submission.isCorrect){
+                   scope.boxStyle = {width: "100%", height: "100%", borderColor: "green", borderWidth: "2px"};
+                 }else if(params.submission.hasOwnProperty('isCorrect')){
+                    scope.boxStyle = {width: "100%", height: "100%", borderColor: "red", borderWidth: "2px"};
+                 }
+             }
         }
     }
   }
