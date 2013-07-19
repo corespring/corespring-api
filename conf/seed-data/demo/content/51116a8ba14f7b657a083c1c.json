@@ -14,13 +14,6 @@
         "contentType": "text/xml",
         "isMain": true,
         "content": "$[interpolate{conf/qti/composite-with-feedback.xml}]"
-      },
-      {
-        "_t": "models.item.resource.StoredFile",
-        "name": "clientcharges.jpg",
-        "contentType": "image/jpg",
-        "storageKey": "test_images/Cute-Koala-01.jpg",
-        "isMain": false
       }
     ]
   },
@@ -55,13 +48,6 @@
           "name": "my.css",
           "contentType": "text/css",
           "content": ".blue{ background-color: #0000ff;}",
-          "isMain": false
-        },
-        {
-          "_t": "models.item.resource.StoredFile",
-          "name": "cute-puppy.jpg",
-          "contentType": "image/jpg",
-          "storageKey": "test_images/cute-kittens1.jpg",
           "isMain": false
         }
       ]

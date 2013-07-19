@@ -19,14 +19,14 @@
         "_t": "models.item.resource.StoredFile",
         "name": "baseballgame.png",
         "isMain": false,
-        "storageKey": "5023cbb6e4b08be40d045d58/baseballgame.png",
+        "storageKey": "511154e48604c9f77da9739b/baseballgame.png",
         "contentType": "image/png"
       },
       {
         "_t": "models.item.resource.StoredFile",
         "name": "woodchess.png",
         "isMain": false,
-        "storageKey": "5023cbb6e4b08be40d045d58/woodchess.png",
+        "storageKey": "511154e48604c9f77da9739b/woodchess.png",
         "contentType": "image/png"
       }
     ]
@@ -72,56 +72,56 @@
           "name": "0pointa.png",
           "contentType": "image/png",
           "isMain": false,
-          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/0pointa.png"
+          "storageKey": "511154e48604c9f77da9739b/materials/ScoringGuide/0pointa.png"
         },
         {
           "_t": "models.item.resource.StoredFile",
           "name": "1pointa.png",
           "contentType": "image/png",
           "isMain": false,
-          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/1pointa.png"
+          "storageKey": "511154e48604c9f77da9739b/materials/ScoringGuide/1pointa.png"
         },
         {
           "_t": "models.item.resource.StoredFile",
           "name": "2pointa.png",
           "contentType": "image/png",
           "isMain": false,
-          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/2pointa.png"
+          "storageKey": "511154e48604c9f77da9739b/materials/ScoringGuide/2pointa.png"
         },
         {
           "_t": "models.item.resource.StoredFile",
           "name": "2pointb.png",
           "contentType": "image/png",
           "isMain": false,
-          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/2pointb.png"
+          "storageKey": "511154e48604c9f77da9739b/materials/ScoringGuide/2pointb.png"
         },
         {
           "_t": "models.item.resource.StoredFile",
           "name": "3pointa.png",
           "contentType": "image/png",
           "isMain": false,
-          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/3pointa.png"
+          "storageKey": "511154e48604c9f77da9739b/materials/ScoringGuide/3pointa.png"
         },
         {
           "_t": "models.item.resource.StoredFile",
           "name": "3pointb.png",
           "contentType": "image/png",
           "isMain": false,
-          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/3pointb.png"
+          "storageKey": "511154e48604c9f77da9739b/materials/ScoringGuide/3pointb.png"
         },
         {
           "_t": "models.item.resource.StoredFile",
           "name": "4pointa.png",
           "contentType": "image/png",
           "isMain": false,
-          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/4pointa.png"
+          "storageKey": "511154e48604c9f77da9739b/materials/ScoringGuide/4pointa.png"
         },
         {
           "_t": "models.item.resource.StoredFile",
           "name": "4pointb.png",
           "contentType": "image/png",
           "isMain": false,
-          "storageKey": "5023cbb6e4b08be40d045d58/materials/ScoringGuide/4pointb.png"
+          "storageKey": "511154e48604c9f77da9739b/materials/ScoringGuide/4pointb.png"
         },
         {
           "_t": "models.item.resource.VirtualFile",
