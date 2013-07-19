@@ -166,8 +166,8 @@ table.csDropTiles,
     cursor: pointer;
 }
 
-.drag-and-drop-interaction .modal-backdrop,
-.drag-and-drop-interaction .modal-backdrop.fade.in {
+.modal-backdrop,
+.modal-backdrop.fade.in {
     opacity: 0.3;
     filter: alpha(opacity=30);
 }
