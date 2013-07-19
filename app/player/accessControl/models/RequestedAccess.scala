@@ -18,6 +18,10 @@ object RequestedAccess {
     val Render = Value("render")
     val Aggregate = Value("aggregate")
     val All = Value("*")
+
+    def valueOf(string: String) = {
+      values.collectFirst{ case i if (i.toString().equals(string)) => i }
+    }
   }
 
   implicit def toContentRequest(id:Option[ObjectId]):Option[ContentRequest] = id.map(ContentRequest(_, Permission.Read))

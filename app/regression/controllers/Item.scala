@@ -26,19 +26,21 @@ class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val it
     }
   }
 
-  def preview(orgId: ObjectId, itemId: VersionedId[ObjectId]) = simplePlayer(RequestedAccess.Mode.Preview, orgId, itemId)
-
-  private def simplePlayer(requestedAccess: RequestedAccess.Mode.Mode, orgId: ObjectId, itemId: VersionedId[ObjectId]) = Secured("admin", "1234secret") {
-    Action {
-      implicit request => {
-        val params = RenderParams(itemId, sessionMode = RequestedAccess.Mode.Preview, assetsLoader = LocalAssetsLoaderImpl)
-        prepareHtml(params, itemId, orgId).map{ html =>
-          val newCookies: Seq[(String, String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(requestedAccess)
-          val newSession = sumSession(request.session, newCookies: _*)
-          Ok(html).withSession(newSession)
-        }.getOrElse(NotFound)
+  def simplePlayer(requestedAccess: String, orgId: ObjectId, itemId: VersionedId[ObjectId]) = Secured("admin", "1234secret") {
+    RequestedAccess.Mode.valueOf(requestedAccess) match {
+      case Some(access) => Action {
+        implicit request => {
+          val params = RenderParams(itemId, sessionMode = access, assetsLoader = LocalAssetsLoaderImpl)
+          prepareHtml(params, itemId, orgId).map{ html =>
+            val newCookies: Seq[(String, String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(access)
+            val newSession = sumSession(request.session, newCookies: _*)
+            Ok(html).withSession(newSession)
+          }.getOrElse(NotFound)
+        }
       }
+      case None => Action { NotFound }
     }
+
   }
 
 }
