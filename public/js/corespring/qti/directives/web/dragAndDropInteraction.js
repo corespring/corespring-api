@@ -101,7 +101,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         "<button class='btn pull-right' style='margin-right: 5px' ng-click='undo()' ng-show='canDrag' ng-disabled='stateStack.length < 2'>Undo</button></div>"
       ].join("");
 
-      var solutionButtonHtml = "<div class='button-row' ng-show='isShowSolutionButtonVisible'><button class='btn solution-button' ng-click='showSolution()'>See Correct Answer</button></div>";
+      var solutionButtonHtml = "<div class='button-row' style='margin-top: 25px' ng-show='isShowSolutionButtonVisible'><a class='pull-right solution-link' ng-click='showSolution()'>See Correct Answer</a></div>";
 
       elem.html(
         [

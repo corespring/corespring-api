@@ -28,6 +28,10 @@
     font-size: 11px;
 }
 
+.drag-and-drop-interaction .solution-link {
+    color: #4eb7d3;
+}
+
 .drag-and-drop-interaction table.csDraggableTiles {
     max-width: 540px;
 }
