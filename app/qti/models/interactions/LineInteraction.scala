@@ -79,7 +79,7 @@ object LineInteraction extends InteractionCompanion[LineInteraction]{
   def apply(interaction: Node, itemBody: Option[Node]): LineInteraction = {
     LineInteraction(
       (interaction \ "@responseIdentifier").text,
-      if ((interaction \ "@locked").text != null) true else false
+      !(interaction \ "@locked").text.isEmpty
     )
 
   }

@@ -172,8 +172,10 @@ angular.module('qti.services').factory('Canvas', function() {
                        });
     if(attrs.domainLabel && attrs.rangeLabel){
        var coords = new JXG.Coords(JXG.COORDS_BY_USER, [0, 0], this.board);
-       this.board.create('axis', [[0, 0], [1, 0]], {withLabel: true, name: attrs.domainLabel, label: {offset: [coords.scrCoords[1]-10,-15]}})
-       this.board.create('axis', [[0, 0], [0, 1]], {withLabel: true, name: attrs.rangeLabel, label: {offset: [-15, coords.scrCoords[1]-10]}})
+       this.board.create('axis', [[0, 0], [1, 0]],
+       {withLabel: true, name: attrs.domainLabel, label: {offset: [coords.scrCoords[1]-10,-15]}, ticks: {drawLabels: true, ticksDistance: scale}})
+       this.board.create('axis', [[0, 0], [0, 1]],
+       {withLabel: true, name: attrs.rangeLabel, label: {offset: [-15, coords.scrCoords[1]-10]}})
     }
     this.points = [];
     this.scale = attrs.scale;
@@ -210,10 +212,16 @@ angular.module('qti.services').factory('Canvas', function() {
   };
 
   Canvas.prototype.addPoint = function(coords, ptName) {
-    var pointAttrs = {snapToGrid: true, snapSizeX: this.scale, snapSizeY: this.scale}
+    var pointAttrs = {snapToGrid: true, snapSizeX: this.scale, snapSizeY: this.scale, showInfobox: false}
     if(ptName) pointAttrs = _.extend(pointAttrs,{name: ptName})
     var point = this.board.create('point', [coords.x, coords.y], pointAttrs);
     this.points.push(point);
+    //in order to get correct offset for text, we must find origin point and offset by screen coordinates,
+    //then apply the offset to the point coordinates to get the correct position of text
+    var origin = new JXG.Coords(JXG.COORDS_BY_USER, [0, 0], this.board);
+    var offset = new JXG.Coords(JXG.COORDS_BY_SCREEN, [origin.scrCoords[1]-22, origin.scrCoords[2]-15], this.board);
+    this.board.create('text', [function(){return point.X()+offset.usrCoords[1];}, function(){return point.Y()+offset.usrCoords[2];},
+    function () { return '('+point.X()+','+point.Y()+')'; }], {fixed: true});
     return point;
   };
 
