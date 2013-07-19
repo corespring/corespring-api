@@ -52,7 +52,7 @@
                 <p/>
                 <p>Drag the ingredient that could also be called 'chicken' in on the spot below.</p>
                 <landingPlace cardinality='single' identifier='target2' label='Ingredient'/>
-                <p>Organize the remaining items in alpabetical order.</p>
+                <p>Organize the remaining items in alphabetical order.</p>
 
                 <landingPlace cardinality='ordered' identifier='target3' label='Organize'/>
             </answerArea>
