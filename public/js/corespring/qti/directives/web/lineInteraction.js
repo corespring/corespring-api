@@ -127,7 +127,8 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                                  range: parseInt(attrs.range?attrs.range:10),
                                  scale: parseFloat(attrs.scale?attrs.scale:1),
                                  domainLabel: attrs.domainLabel,
-                                 rangeLabel: attrs.rangeLabel
+                                 rangeLabel: attrs.rangeLabel,
+                                 tickLabelFrequency: attrs.tickLabelFrequency
                              }
             element.find('[jsx-graph]').css({width: width, height: height})
             element.find('[jsx-graph]').attr(graphAttrs)
