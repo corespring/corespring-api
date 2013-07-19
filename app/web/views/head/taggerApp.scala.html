@@ -1,4 +1,5 @@
-@common.controllers.deployment.AssetsLoader.tagger
+@()(implicit assetsLoader: common.controllers.deployment.AssetsLoader = common.controllers.deployment.AssetsLoaderImpl)
+@assetsLoader.tagger
 <script type="text/javascript" src="@player.controllers.routes.AssetLoading.itemPlayerJavascript"></script>
 <script type="text/javascript" src="@web.controllers.routes.ShowResource.javascriptRoutes"></script>
 
