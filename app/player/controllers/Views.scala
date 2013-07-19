@@ -17,6 +17,7 @@ import scala.xml.Elem
 import models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
 import org.corespring.platform.data.mongo.models.VersionedId
 import common.controllers.deployment.{AssetsLoaderImpl, AssetsLoader}
+import qti.models.RenderingMode.RenderingMode
 
 
 class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService)
@@ -129,25 +130,31 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
   protected def renderItem(params: RenderParams) = auth.ValidatedAction(params.toRequestedAccess) {
     tokenRequest =>
       ApiAction {
-        implicit request =>
-          try {
-            getItemXMLByObjectId(params.itemId, request.ctx.organization) match {
-              case Some(xmlData: Elem) => {
-                val qtiKeys = QtiKeys((xmlData \ "itemBody")(0))
-                val finalXml = prepareQti(xmlData, params.renderingMode)
-                val playerParams = params.toPlayerParams(finalXml, qtiKeys)
-                Ok(params.templateFn(playerParams)).withSession(request.session + activeModeCookie(params.sessionMode))
-              }
-              case None => NotFound("not found")
-            }
-          } catch {
-            case e: SAXParseException => {
-              val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
-              Ok(player.views.html.PlayerError(errorInfo))
-            }
-          }
+        implicit request => prepareHtml(params, params.itemId, request.ctx.organization) match {
+          case Some(html: Html) => Ok(html).withSession(request.session + activeModeCookie(params.sessionMode))
+          case None => NotFound("not found")
+        }
       }(tokenRequest)
   }
+
+  protected def prepareHtml(params: RenderParams, itemId: VersionedId[ObjectId], orgId: ObjectId): Option[Html] =
+    try {
+      getItemXMLByObjectId(itemId, orgId) match {
+        case Some(xmlData: Elem) => {
+          val qtiKeys = QtiKeys((xmlData \ "itemBody")(0))
+          val finalXml = prepareQti(xmlData, params.renderingMode)
+          val playerParams = params.toPlayerParams(finalXml, qtiKeys)
+          Some(params.templateFn(playerParams))
+        }
+        case None => None
+      }
+    } catch {
+      case e: SAXParseException => {
+        val errorInfo = ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber)
+        Some(player.views.html.PlayerError(errorInfo))
+      }
+    }
+
 
   /** Allow the default player to be overriden */
   protected def defaultTemplate: (PlayerParams => Html) = PlayerTemplates.default

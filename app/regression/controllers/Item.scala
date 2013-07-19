@@ -9,10 +9,6 @@ import controllers.auth.TokenizedRequestActionBuilder
 import models.item.service.{ItemServiceImpl, ItemService}
 import player.accessControl.auth.CheckSessionAccess
 import common.controllers.deployment.LocalAssetsLoaderImpl
-import play.api.templates.Html
-import player.views.models.{QtiKeys, PlayerParams}
-import qti.models.RenderingMode
-import org.xml.sax.SAXParseException
 
 class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val itemService : ItemService)
   extends Views(auth, itemService) {
@@ -30,45 +26,19 @@ class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val it
     }
   }
 
-  def simplePlayer(orgId: ObjectId, itemId: VersionedId[ObjectId]) = Secured("admin", "1234secret") {
+  def preview(orgId: ObjectId, itemId: VersionedId[ObjectId]) = simplePlayer(RequestedAccess.Mode.Preview, orgId, itemId)
+
+  private def simplePlayer(requestedAccess: RequestedAccess.Mode.Mode, orgId: ObjectId, itemId: VersionedId[ObjectId]) = Secured("admin", "1234secret") {
     Action {
-      implicit request =>
-        prepareHtml(itemId, orgId).map{ html =>
-          val newCookies: Seq[(String, String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(RequestedAccess.Mode.Preview)
+      implicit request => {
+        val params = RenderParams(itemId, sessionMode = RequestedAccess.Mode.Preview, assetsLoader = LocalAssetsLoaderImpl)
+        prepareHtml(params, itemId, orgId).map{ html =>
+          val newCookies: Seq[(String, String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(requestedAccess)
           val newSession = sumSession(request.session, newCookies: _*)
           Ok(html).withSession(newSession)
         }.getOrElse(NotFound)
+      }
     }
-  }
-
-  private def prepareHtml(itemId: VersionedId[ObjectId], orgId: ObjectId): Option[Html] = try {
-    import models.versioning.VersionedIdImplicits.Binders._
-    getItemXMLByObjectId(itemId, orgId).map {
-      xmlData =>
-        val params = PlayerParams(
-          prepareQti(xmlData, RenderingMode.Web),
-          Some(versionedIdToString(itemId)),
-          None,
-          true,
-          QtiKeys((xmlData \ "itemBody")(0)),
-          RenderingMode.Web)
-        Some(player.views.html.Player(params))
-    }.getOrElse(None)
-  } catch {
-    case e: SAXParseException => None
-  }
-
-  def cookies(orgId: ObjectId, itemId: VersionedId[ObjectId]) = Secured("admin", "1234secret") {
-    Action { implicit request =>
-      val newCookies : Seq[(String,String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(RequestedAccess.Mode.Preview)
-      val newSession = sumSession(request.session, newCookies : _*)
-      Ok.withSession(newSession)
-    }
-  }
-
-  override def preview(itemId: VersionedId[ObjectId]) = {
-    val p = RenderParams(itemId, sessionMode = RequestedAccess.Mode.Preview, assetsLoader = LocalAssetsLoaderImpl)
-    renderItem(p)
   }
 
 }
