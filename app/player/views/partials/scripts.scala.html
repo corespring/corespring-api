@@ -1,4 +1,4 @@
-@(itemBody:String, qtiAssetLoader : player.views.qti.QtiAssetsLoader)
+@(itemBody:String, qtiAssetLoader : player.views.qti.QtiAssetsLoader)(implicit assetsLoader: common.controllers.deployment.AssetsLoader = common.controllers.deployment.AssetsLoaderImpl)
 
 @common.views.html.head.coreJs()
 @common.views.html.head.ubuntu()
@@ -8,13 +8,13 @@
 
 <script type="text/javascript" src="@player.controllers.routes.Session.jsRoutes"></script>
 
-@common.controllers.deployment.AssetsLoader.playerCommon
+@assetsLoader.playerCommon
 
 <!-- Default Css -->
 @Html(common.controllers.DefaultCss.DEFAULT_CSS)
 <!-- End default css -->
 
-@common.controllers.deployment.loader.scripts("qti-interactions")( qtiAssetLoader.localJsPaths : _*)
+@assetsLoader.loader.scripts("qti-interactions")( qtiAssetLoader.localJsPaths : _*)
 @common.controllers.deployment.loader.css("qti-interactions")( qtiAssetLoader.localCssPaths : _* )
 
 <!-- qti - remote js -->
