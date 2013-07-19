@@ -27,5 +27,6 @@ object AssetsLoader extends PackageLogging{
     "js/corespring/qti/qtiServices.js",
     "js/corespring/qti/directives/DimensionsChecker.js",
     "js/corespring/qti/directives/feedbackInline.js",
-    "js/corespring/qti/prototype.extensions/Array.js")
+    "js/corespring/qti/prototype.extensions/Array.js",
+    "js/corespring/qti/prototype.extensions/Function.js")
 }
