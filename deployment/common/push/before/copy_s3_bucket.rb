@@ -14,7 +14,7 @@ raise "You need to install s3cmd: https://github.com/pearltrees/s3cmd-modificati
 target_bucket = config["ENV_AMAZON_ASSETS_BUCKET"]
 raise "no amazon bucket specified in the config" if target_bucket.nil?
 
-live_bucket = env["CORESPRING_LIVE_ASSETS_BUCKET"]
+live_bucket = ENV["CORESPRING_LIVE_ASSETS_BUCKET"]
 raise "no live bucket specified" if live_bucket.nil?
 
 ## Synch the live bucket with the target env bucket
