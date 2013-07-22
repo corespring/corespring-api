@@ -22,8 +22,12 @@ object Developer extends Controller with BaseApi{
 
   def at(path:String,file:String) = Assets.at(path,file)
 
+  //TODO: 2.1.2 Upgrade - User key?
+  val UserKey = "securesocial.user"
+  val ProviderKey = "securesocial.provider"
+
   def home = Action{implicit request =>
-    request.session.get(SecureSocial.UserKey) match {
+    request.session.get(UserKey) match {
       case Some(username) =>
         User.getUser(username) match {
         case Some(user) => if(!user.hasRegisteredOrg){
@@ -42,7 +46,7 @@ object Developer extends Controller with BaseApi{
   }
 
   def isLoggedIn = Action { request =>
-    val username = request.session.get(SecureSocial.UserKey)
+    val username = request.session.get(UserKey)
     if(username.isDefined){
       User.getUser(username.get) match {
         case Some(user) => {
@@ -64,7 +68,7 @@ object Developer extends Controller with BaseApi{
   }
 
   def logout = Action {implicit request =>
-    Redirect("/developer/home").withSession(session - SecureSocial.UserKey - SecureSocial.ProviderKey)
+    Redirect("/developer/home").withSession(session - UserKey - ProviderKey)
   }
 
   def getOrganization = SecuredAction{ request =>

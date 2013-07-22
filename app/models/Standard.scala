@@ -38,7 +38,13 @@ object Standard extends ModelCompanion[Standard,ObjectId] with Searchable{
   //Ensure dotNotation is unique
   collection.ensureIndex(DotNotation)
 
+  //import common.models.json._
+  //implicit val reads = Json.reads[Standard]
+  //implicit val writes = Json.writes[Standard]
+
+
   implicit object StandardWrites extends Writes[Standard] {
+
     def writes(obj: Standard) = {
       JsObject(
         List(
@@ -62,7 +68,7 @@ object Standard extends ModelCompanion[Standard,ObjectId] with Searchable{
       standard.category = (json \ Category).asOpt[String]
       standard.subCategory = (json \ SubCategory).asOpt[String]
       standard.standard = (json \ Standard).asOpt[String]
-      standard
+      JsSuccess(standard)
     }
   }
   val description = "common core state standards"

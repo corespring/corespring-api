@@ -6,7 +6,7 @@ import common.encryption.{Crypto, AESCrypto}
 import common.utils.string
 import models.auth.ApiClient
 import models.item.service.{ItemServiceImpl, ItemService}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsError, JsSuccess, Json}
 import play.api.mvc._
 import play.api.{Logger, Play}
 import player.accessControl.cookies.PlayerCookieWriter
@@ -64,7 +64,8 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService : 
 
   private def decryptOptions(encryptedOptions: String, apiClient: ApiClient): Option[RenderOptions] = try {
     val options = crypto.decrypt(encryptedOptions, apiClient.clientSecret)
-    Some(Json.fromJson[RenderOptions](Json.parse(options)))
+    val json = Json.parse(options)
+    json.asOpt[RenderOptions]
   }
   catch {
     case e: Throwable => {

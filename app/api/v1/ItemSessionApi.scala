@@ -11,7 +11,7 @@ import models.item.service.{ItemServiceImpl, ItemService}
 import models.itemSession._
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json._
-import play.api.libs.json.{JsValue, JsObject}
+import play.api.libs.json.{JsError, JsSuccess, JsValue, JsObject}
 import play.api.mvc.AnyContent
 import quiz.basic.Quiz
 import scala.Left
@@ -227,22 +227,27 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService
                 BadRequest(toJson(ApiError.ItemSessionFinished))
               } else {
 
-                val clientSession = fromJson[ItemSession](jsonSession)
-                dbSession.finish = clientSession.finish
-                dbSession.responses = clientSession.responses
+                fromJson[ItemSession](jsonSession) match {
+                  case JsSuccess(clientSession, _) =>
+                  {
+                    dbSession.finish = clientSession.finish
+                    dbSession.responses = clientSession.responses
 
-                itemSession.getXmlWithFeedback(dbSession) match {
-                  case Right(xmlWithCsFeedbackIds) => {
-                    itemSession.process(dbSession, xmlWithCsFeedbackIds) match {
-                      case Right(newSession) => {
-                        val json = toJson(newSession)
-                        Logger.debug("[processResponse] successful")
-                        Ok(json)
+                    itemSession.getXmlWithFeedback(dbSession) match {
+                      case Right(xmlWithCsFeedbackIds) => {
+                        itemSession.process(dbSession, xmlWithCsFeedbackIds) match {
+                          case Right(newSession) => {
+                            val json = toJson(newSession)
+                            Logger.debug("[processResponse] successful")
+                            Ok(json)
+                          }
+                          case Left(error) => InternalServerError(toJson(ApiError.UpdateItemSession(error.clientOutput)))
+                        }
                       }
-                      case Left(error) => InternalServerError(toJson(ApiError.UpdateItemSession(error.clientOutput)))
+                      case Left(e) => InternalServerError(toJson(ApiError.UpdateItemSession(e.clientOutput)))
                     }
                   }
-                  case Left(e) => InternalServerError(toJson(ApiError.UpdateItemSession(e.clientOutput)))
+                  case JsError(e) => BadRequest("") //?
                 }
               }
             }

@@ -3,6 +3,7 @@ package scorm.models
 import scala.xml.{Unparsed, Elem}
 import models.item.Item
 import models.versioning.VersionedIdImplicits.Binders._
+import play.api.libs.json.{JsString, JsObject, Json}
 
 object Builder {
 
@@ -55,14 +56,15 @@ object Builder {
 
   object ItemLaunchData {
     def apply(item: Item, config:Config): Unparsed = {
-      val launchData = Map(
-        "itemId" -> versionedIdToString(item.id),
-        "templates" -> Map(
-          "item" -> (config.corespringDomain + "/scorm-player/item/:itemId/run"),
-          "session" -> (config.corespringDomain + "/scorm-player/session/:sessionId/run") )
+      val launchData = Seq(
+        "itemId" -> JsString(versionedIdToString(item.id)),
+        "templates" -> JsObject(Seq(
+          "item" -> JsString(config.corespringDomain + "/scorm-player/item/:itemId/run"),
+          "session" -> JsString(config.corespringDomain + "/scorm-player/session/:sessionId/run") )
+        )
       )
 
-      val dataString = com.codahale.jerkson.Json.generate(launchData)
+      val dataString = Json.prettyPrint(JsObject(launchData))
       Unparsed(dataString)
     }
   }

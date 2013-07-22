@@ -146,8 +146,8 @@ object Item {
       item.published = (json \ published).asOpt[Boolean].getOrElse(false)
 
       try {
-        import models.versioning.VersionedIdImplicits.Reads
-        item.id = (json \ id).asOpt[VersionedId[ObjectId]].getOrElse(VersionedId(new ObjectId()))
+        import models.versioning.VersionedIdImplicits.{Reads => IdReads}
+        item.id = (json \ id).asOpt[VersionedId[ObjectId]](IdReads).getOrElse(VersionedId(new ObjectId()))
       } catch {
         case e: Throwable => throw new JsonValidationException(id)
       }

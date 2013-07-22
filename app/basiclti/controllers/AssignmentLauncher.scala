@@ -24,6 +24,7 @@ import player.accessControl.models.{RenderOptions, RequestedAccess}
 import scala.Left
 import scala.Right
 import scala.Some
+import scala.concurrent.Future
 
 /**
  * Handles the launching of corespring items via the LTI 1.1 launch specification.
@@ -252,7 +253,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
             import Scalaz._
 
 
-            val result: Validation[String, SimpleResult[JsValue]] = for {
+            val result: Validation[String, AsyncResult] = for {
               q <- LtiQuiz.findOneById(quizId).toSuccess("Can't find Quiz")
               p <- q.participants.find(_.resultSourcedId == resultSourcedId).toSuccess("Can't find participant")
               orgId <- q.orgId.toSuccess("Quiz has no orgId")
@@ -275,7 +276,9 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
    * @see https://canvas.instructure.com/doc/api/file.assignment_tools.html
    * @return
    */
-  private def sendScore(session: ItemSession, participant: LtiParticipant, client: ApiClient): SimpleResult[JsValue] = {
+  private def sendScore(session: ItemSession, participant: LtiParticipant, client: ApiClient) : AsyncResult = {
+
+    import play.api.libs.concurrent.Execution.Implicits._
 
     def sendResultsToPassback(consumer: LtiOAuthConsumer, score: String) = {
       Logger.debug("Sending the grade passback to: %s".format(participant.gradePassbackUrl))
@@ -294,19 +297,30 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
 
     if (emptyOrNull(participant.gradePassbackUrl)) {
       Logger.warn("Not sending passback for assignment: %s".format(participant.resultSourcedId))
-      Ok(toJson(Map("returnUrl" -> participant.onFinishedUrl)))
+      val futureResult: Future[Result] = Future{
+        Ok(toJson(Map("returnUrl" -> participant.onFinishedUrl)))
+      }
+      AsyncResult(futureResult)
+
     } else {
-      sendResultsToPassback(consumer, score).await(10000).fold(
-        error => throw new RuntimeException(error.getMessage),
-        response => {
-          val returnUrl = response.body match {
-            case e: String if e.contains("Invalid authorization header")=>  AssignmentLauncherRoutes.error("Unauthorized").url
-            case e : String if e.contains("<imsx_codeMajor>unsupported</imsx_codeMajor>") =>  AssignmentLauncherRoutes.error("Unsupported").url
-            case _ => participant.onFinishedUrl
-          }
-          Ok(toJson(Map("returnUrl" -> returnUrl)))
+
+      Async {
+        sendResultsToPassback(consumer, score)
+          .transform({
+            response => {
+              val returnUrl = response.body match {
+                case e: String if e.contains("Invalid authorization header")=>  AssignmentLauncherRoutes.error("Unauthorized").url
+                case e : String if e.contains("<imsx_codeMajor>unsupported</imsx_codeMajor>") =>  AssignmentLauncherRoutes.error("Unsupported").url
+                case _ => participant.onFinishedUrl
+              }
+              Ok(toJson(Map("returnUrl" -> returnUrl)))
+            }
+        }, {
+          throwable =>
+            throw new RuntimeException(throwable.getMessage)
         }
-      )
+        )
+      }
     }
   }
 

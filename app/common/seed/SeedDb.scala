@@ -20,7 +20,7 @@ import se.radley.plugin.salat.SalatPlugin
 object SeedDb {
 
   def salatDb(sourceName: String = "default")(implicit app: Application): MongoDB = {
-    app.plugin[SalatPlugin].map(_.db(sourceName)).getOrElse(throw PlayException("SalatPlugin is not " +
+    app.plugin[SalatPlugin].map(_.db(sourceName)).getOrElse(throw new PlayException("SalatPlugin is not " +
       "registered.", "You need to register the plugin with \"500:se.radley.plugin.salat.SalatPlugin\" in conf/play.plugins"))
   }
 

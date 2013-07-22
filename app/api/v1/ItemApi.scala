@@ -21,9 +21,6 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc.{Result, Action, AnyContent}
-import scala.Left
-import scala.Right
-import scala.Some
 import scalaz.Scalaz._
 import scalaz.{Failure, Success, Validation}
 import search.ItemSearch
@@ -327,6 +324,13 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
       }
   }
 
+  private def itemFromJson(json:JsValue) : Item = {
+    fromJson[Item](json) match {
+      case JsSuccess(item,_) => item.asInstanceOf[Item]
+      case _ => throw new Exception("TODO 2.1.1 upgrade- handle this correctly")
+    }
+  }
+
 
   def create = ApiAction {
     request =>
@@ -336,7 +340,7 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
             if ((json \ "id").asOpt[String].isDefined) {
               BadRequest(toJson(ApiError.IdNotNeeded))
             } else {
-              val i: Item = fromJson[Item](json)
+              val i = itemFromJson(json)
               if (i.collectionId.isEmpty && request.ctx.permission.has(Permission.Write)) {
                 Organization.getDefaultCollection(request.ctx.organization) match {
                   case Right(default) => {
@@ -369,4 +373,4 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
 
 }
 
-object ItemApi extends api.v1.ItemApi(ConcreteS3Service, ItemServiceImpl)
+object ItemApi extends api.v1.ItemApi(EmptyS3Service, ItemServiceImpl)

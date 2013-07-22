@@ -22,23 +22,25 @@ case class LtiQuestion(itemId: Option[VersionedId[ObjectId]],
 object LtiQuestion {
 
   implicit object Writes extends Writes[LtiQuestion] {
-    import models.versioning.VersionedIdImplicits.Writes
+    import models.versioning.VersionedIdImplicits.{Writes => IdWrites}
     def writes(q: LtiQuestion): JsValue = {
-      val out = Seq("settings" -> Json.toJson(q.settings)) ++ q.itemId.map( id => "itemId" -> Json.toJson(id) )
+      val out = Seq("settings" -> Json.toJson(q.settings)) ++ q.itemId.map( id => "itemId" -> Json.toJson(id)(IdWrites) )
       JsObject(out)
     }
   }
 
-  implicit object Reads extends Reads[LtiQuestion] {
+  import models.versioning.VersionedIdImplicits.{Reads, Writes}
+  implicit val LtiQuestionReads = Json.reads[LtiQuestion]
+  /*implicit object Reads extends Reads[LtiQuestion] {
 
-    import models.versioning.VersionedIdImplicits.Reads
+    import models.versioning.VersionedIdImplicits.{Reads => IdReads}
 
     def reads(json: JsValue): LtiQuestion = LtiQuestion(
-      (json \ "itemId").asOpt[VersionedId[ObjectId]],
+      (json \ "itemId").asOpt[VersionedId[ObjectId]](IdReads),
       (json \ "settings").as[ItemSessionSettings]
     )
 
-  }
+  }*/
 
 }
 
@@ -49,8 +51,11 @@ case class LtiParticipant(itemSession: ObjectId,
   extends models.quiz.BaseParticipant(Seq(itemSession), resultSourcedId)
 
 object LtiParticipant{
-
-  implicit object Writes extends Writes[LtiParticipant] {
+  implicit val idReads = models.versioning.VersionedIdImplicits.Reads
+  implicit val idWrites = models.versioning.VersionedIdImplicits.Writes
+  implicit val Writes = Json.writes[LtiParticipant]
+  implicit val Reads = Json.reads[LtiParticipant]
+  /*implicit object Writes extends Writes[LtiParticipant] {
 
     def writes(p:LtiParticipant) : JsValue = {
       JsObject(Seq(
@@ -60,9 +65,9 @@ object LtiParticipant{
       "onFinishedUrl" -> JsString(p.onFinishedUrl)
       ))
     }
-  }
+  }*/
 
-  implicit object Reads extends Reads[LtiParticipant] {
+  /*implicit object Reads extends Reads[LtiParticipant] {
 
     def reads( json : JsValue ) : LtiParticipant = {
       LtiParticipant(
@@ -72,7 +77,7 @@ object LtiParticipant{
         (json \ "onFinishedUrl").as[String]
       )
     }
-  }
+  }*/
 }
 
 case class LtiQuiz(resourceLinkId: String,

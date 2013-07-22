@@ -59,12 +59,12 @@ object ItemSession {
     def writes(session: ItemSession): JsValue = {
 
       import Keys._
-      import models.versioning.VersionedIdImplicits.Writes
+      import models.versioning.VersionedIdImplicits.{Writes => IdWrites}
       import play.api.libs.json.Json._
 
       val main: Seq[(String, JsValue)] = Seq(
         "id" -> JsString(session.id.toString),
-        itemId -> Json.toJson(session.itemId),
+        itemId -> Json.toJson(session.itemId)(IdWrites),
         responses -> toJson(session.responses),
         "settings" -> toJson(session.settings)
       )
@@ -97,9 +97,9 @@ object ItemSession {
       else
         (json \ "settings").as[ItemSessionSettings]
 
-      import VersionedIdImplicits.Reads
+      import VersionedIdImplicits.{Reads => IdReads}
       ItemSession(
-        itemId = (json \ itemId).asOpt[VersionedId[ObjectId]].getOrElse(throw new JsonValidationException("You must have an item id")),
+        itemId = (json \ itemId).asOpt[VersionedId[ObjectId]](IdReads).getOrElse(throw new JsonValidationException("You must have an item id")),
         start = (json \ start).asOpt[Long].map(new DateTime(_)),
         finish = (json \ finish).asOpt[Long].map(new DateTime(_)),
         responses = (json \ responses).asOpt[Seq[ItemResponse]].getOrElse(Seq()),

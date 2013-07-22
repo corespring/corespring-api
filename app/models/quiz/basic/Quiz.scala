@@ -105,10 +105,10 @@ trait QuestionLike {
   implicit object Reads extends Reads[Question] {
     def reads(json: JsValue): Question = {
 
-      import models.versioning.VersionedIdImplicits.Reads
+      import models.versioning.VersionedIdImplicits.{Reads => IdReads}
 
       Question(
-        (json \ "itemId").as[VersionedId[ObjectId]],
+        (json \ "itemId").as[VersionedId[ObjectId]](IdReads),
         (json \ "settings").asOpt[ItemSessionSettings].getOrElse(ItemSessionSettings())
       )
     }
@@ -117,10 +117,10 @@ trait QuestionLike {
   implicit object Writes extends Writes[Question] {
     def writes(q: Question): JsValue = {
 
-      import VersionedIdImplicits.Writes
+      import VersionedIdImplicits.{Writes =>IdWrites}
       JsObject(
         Seq(
-          Some("itemId" -> toJson(q.itemId)),
+          Some("itemId" -> toJson(q.itemId)(IdWrites)),
           if (q.settings != null) Some("settings" -> toJson(q.settings)) else None,
           q.title.map("title" -> JsString(_)),
           Some("standards" -> JsArray(q.standards.map(JsString(_))))

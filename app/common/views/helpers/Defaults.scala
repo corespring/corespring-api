@@ -3,11 +3,18 @@ package common.views.helpers
 import com.mongodb.casbah.commons.MongoDBObject
 import web.controllers.utils.ConfigLoader
 import models.item.FieldValue
+import play.api.libs.json.{JsValue, Json}
 
 object Defaults{
 
   lazy val fieldValues : String = FieldValue.findOne(MongoDBObject()) match {
-    case Some(fv) => com.codahale.jerkson.Json.generate(fv)
+    case Some(fv) => {
+      import common.models.json.ObjectIdWrites
+      implicit val writes = Json.writes[FieldValue]
+
+      val json : JsValue = writes.writes(fv)
+      Json.prettyPrint(json)
+    }
     case _ => ""
   }
 

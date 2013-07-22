@@ -1,18 +1,20 @@
 package basiclti.controllers.dev
 
-import play.api.mvc._
-import securesocial.core.SecureSocial
-import models.auth.ApiClient
-import controllers.auth.{OAuthConstants, BaseApi}
+
 import basiclti.controllers.AssignmentLauncher
 import basiclti.models.{LtiOAuthConsumer, LtiData}
+import common.controllers.utils.BaseUrl
+import controllers.auth.{OAuthConstants, BaseApi}
+import models.auth.ApiClient
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
-import scala.Some
 import org.jboss.netty.handler.codec.http.HttpMethod
 import org.bson.types.ObjectId
-import play.Logger
+import play.api.mvc._
 import play.api.Play
-import common.controllers.utils.BaseUrl
+import play.Logger
+import scala.Some
+import securesocial.core.SecureSocial
+import securesocial.core.SecuredRequest
 
 /** This test harness simulates an LTI 1.1 Tool Consumer
   * @see http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html
@@ -24,8 +26,8 @@ object TestHarness extends BaseApi with SecureSocial {
    * The initial form where you can set up your settings
    * @return
    */
-  def begin = SecuredAction {
-    request => {
+  def begin = SecuredAction(false) {
+    request : SecuredRequest[AnyContent] => {
       val url = basiclti.controllers.dev.routes.TestHarness.prepare().url
       Ok(basiclti.views.html.dev.begin(url))
     }
@@ -94,8 +96,9 @@ object TestHarness extends BaseApi with SecureSocial {
 
           val signature = getSignature(client.clientId.toString, client.clientSecret, request)
 
+          //TODO: 2.1.2 Upgrade - UserKey? what to use now?
           Ok(basiclti.views.html.dev.autoSubmitForm(url, allParams + ("oauth_signature" -> signature)))
-            .withSession( request.session - SecureSocial.UserKey)
+            .withSession( request.session - "SecureSocial.UserKey")
         }
         case _ => Ok("Couldn't prepare form")
       }
@@ -153,6 +156,12 @@ object TestHarness extends BaseApi with SecureSocial {
     def method: String = HttpMethod.POST.toString
 
     override lazy val host: String = hostOverride
+
+    override def version : String = "mock"
+
+    override def tags : Map[String,String] = Map()
+
+    override def id : Long = 1
   }
 
   private def getSignature(key: String, secret: String, request: Request[AnyContent]): String = {

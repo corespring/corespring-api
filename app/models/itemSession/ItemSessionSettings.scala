@@ -1,6 +1,5 @@
 package models.itemSession
 
-import common.models.json.jerkson.{JerksonWrites, JerksonReads}
 import play.api.libs.json._
 import play.api.libs.json.JsObject
 

@@ -1,4 +1,3 @@
-import _root_.controllers.ConcreteS3Service
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import com.typesafe.config.ConfigFactory
 import common.controllers.deployment.{LocalAssetsLoaderImpl, AssetsLoaderImpl}
@@ -94,11 +93,12 @@ object Global extends GlobalSettings {
     // support JodaTime
     RegisterJodaTimeConversionHelpers()
 
-    ConcreteS3Service.init
+    //TODO: 2.1.2 Upgrade - Add back an s3 service
+    //ConcreteS3Service.init
     AssetsLoaderImpl.init(app)
     LocalAssetsLoaderImpl.init(app)
 
-    val initData:Boolean = ConfigFactory.load().getString(INIT_DATA) == "true"
+    val initData:Boolean = app.configuration.getString(INIT_DATA) == "true"
 
     def onlyIfLocalDb(fns: (() => Unit)*) {
       if (isLocalDb)

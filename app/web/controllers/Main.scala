@@ -13,11 +13,14 @@ import web.models.QtiTemplate
 
 object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
 
+  //TODO: 2.1.2 Upgrade - keys?
+  val UserKey = "securesocial.user"
+  val ProviderKey = "securesocial.provider"
   def logout(s: Session): Session = {
     s -
       PlayerCookieKeys.RENDER_OPTIONS -
-      SecureSocial.UserKey -
-      SecureSocial.ProviderKey
+      UserKey -
+      ProviderKey
   }
 
   def index = SecuredAction {

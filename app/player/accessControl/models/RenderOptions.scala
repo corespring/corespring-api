@@ -24,17 +24,17 @@ object RenderOptions {
   val ANYTHING = RenderOptions(expires = 0, mode = RequestedAccess.Mode.All)
 
   implicit object Reads extends Reads[RenderOptions] {
-    def reads(json: JsValue): RenderOptions = {
+    def reads(json: JsValue): JsResult[RenderOptions] = {
 
       RequestedAccess.Mode.withName("preview")
-      RenderOptions(
+      JsSuccess(RenderOptions(
         (json \ "itemId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
         (json \ "sessionId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
         (json \ "assessmentId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
         (json \ "role").asOpt[String].filterNot(_.isEmpty).getOrElse("student"),
         (json \ "expires").as[Long],
         RequestedAccess.Mode.withName((json \ "mode").as[String])
-      )
+      ))
     }
   }
 
@@ -53,6 +53,9 @@ object RenderOptions {
 
   def decryptOptions(apiClient: ApiClient, encrypted: String): RenderOptions = {
     val decrypted = AESCrypto.decrypt(encrypted, apiClient.clientSecret)
-    Json.fromJson[RenderOptions](Json.parse(decrypted))
+    Json.fromJson[RenderOptions](Json.parse(decrypted)) match {
+      case JsSuccess(ro, _) => ro
+      case JsError(e) => throw new RuntimeException("Error parsing json")
+    }
   }
 }

@@ -1,11 +1,10 @@
 package qti.models
 
+import common.log.PackageLogging
 import interactions._
 import qti.models.QtiItem.Correctness
 import scala.Some
 import scala.xml._
-import common.log.PackageLogging
-import com.codahale.jerkson.Json._
 
 case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline]) {
   var defaultCorrect = "Correct!"

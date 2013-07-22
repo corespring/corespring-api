@@ -1,9 +1,8 @@
 package api.v1
 
 import api.ApiError
-import com.typesafe.config.ConfigFactory
 import controllers.auth.{Permission, ApiRequest, BaseApi}
-import controllers.{ConcreteS3Service, S3Service}
+import controllers.{EmptyS3Service, S3Service}
 import models.item.resource.{VirtualFile, BaseFile, StoredFile, Resource}
 import models.item.service.{ItemService, ItemServiceImpl}
 import models.item.{Content, Item}
@@ -118,24 +117,24 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
   def deleteSupportingMaterialFile(itemId: String, resourceName: String, filename: String) = HasItem(
     itemId,
     Seq(editCheck()),
-    Action {
-      request =>
-        val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+    {
+      request : ItemRequest[AnyContent] =>
+        val item = request.item//.asInstanceOf[ItemRequest[AnyContent]].item
         item.supportingMaterials.find(_.name == resourceName) match {
           case Some(r) => {
             removeFileFromResource(item, r, filename)
           }
           case _ => NotFound(resourceName)
         }
-    }
+  }
   )
 
   def deleteDataFile(itemId: String, filename: String, force:Boolean) = HasItem(
     itemId,
     Seq(editCheck(force)),
-    Action {
-      request =>
-        val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+    {
+      request : ItemRequest[AnyContent] =>
+        val item = request.item
         if (filename == DEFAULT_DATA_FILE_NAME) {
           BadRequest("Can't delete " + DEFAULT_DATA_FILE_NAME)
         } else {
@@ -147,11 +146,11 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
   def createSupportingMaterialFile(itemId: String, resourceName: String) = HasItem(
     itemId,
     Seq(editCheck()),
-    Action {
-      request =>
+    {
+      request  : ItemRequest[AnyContent] =>
         request.body.asJson match {
           case Some(json) => {
-            val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+            val item = request.item
             item.supportingMaterials.find(_.name == resourceName) match {
               case Some(r) => {
                 json.asOpt[BaseFile] match {
@@ -173,11 +172,11 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
   def createDataFile(itemId: String) = HasItem(
     itemId,
     Seq(editCheck()),
-    Action {
-      request =>
+    {
+      request : ItemRequest[AnyContent] =>
         request.body.asJson match {
           case Some(json) => {
-            val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+            val item = request.item
             json.asOpt[BaseFile] match {
               case Some(file) => {
                 if (!item.data.isDefined) {
@@ -209,9 +208,9 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
   private def copyFile(file: BaseFile, enforceIsMain: Option[Boolean]): BaseFile = {
 
     def copy(file: BaseFile, isMain: Boolean): BaseFile = file match {
-      case VirtualFile(name,contentType,_,contents) => VirtualFile(name,contentType,isMain, contents)
-      case StoredFile(name,contentType,_,key) => StoredFile(name,contentType,isMain,key)
-      case _ =>  throw new RuntimeException("Unknown file type")
+      case VirtualFile(name, contentType, _, contents) => VirtualFile(name, contentType, isMain, contents)
+      case StoredFile(name, contentType, _, key) => StoredFile(name, contentType, isMain, key)
+      case _ => throw new RuntimeException("Unknown file type")
     }
 
     enforceIsMain match {
@@ -220,14 +219,15 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
     }
   }
 
-  def updateDataFile(itemId: String, filename: String, force:Boolean) = HasItem(
+  def updateDataFile(itemId: String, filename: String, force: Boolean) = HasItem(
     itemId,
     Seq(editCheck(force)),
-    Action {
-      request =>
+    {
+
+      request : ItemRequest[AnyContent] =>
         getFileFromJson(request.body) match {
           case Some(update) => {
-            val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+            val item = request.item
             item.data.get.files.find(_.name == filename) match {
               case Some(f) => {
                 val processedUpdate = ensureDataFileIsMainIsCorrect(update)
@@ -260,11 +260,11 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
   def updateSupportingMaterialFile(itemId: String, resourceName: String, filename: String) = HasItem(
     itemId,
     Seq(editCheck()),
-    Action {
-      request =>
+    {
+      request : ItemRequest[AnyContent] =>
         getFileFromJson(request.body) match {
           case Some(update) => {
-            val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+            val item = request.item
             item.supportingMaterials.find(_.name == resourceName) match {
               case Some(resource) => {
                 resource.files.find(_.name == filename) match {
@@ -320,8 +320,7 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
           case Some(r) => r
           case _ => item.data = Some(Resource(name = "data", files = Seq())); item.data.get
         }
-        request.item
-        val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+        val item = request.item
 
         val resource = getDataResource(item)
 
@@ -368,10 +367,9 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
     }
     )
 
-  def getSupportingMaterials(itemId: String) = HasItem(itemId, Seq(), Action {
+  def getSupportingMaterials(itemId: String) = HasItem(itemId, Seq(), {
     request =>
-      val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-      Ok(toJson(item.supportingMaterials))
+      Ok(toJson(request.item.supportingMaterials))
   })
 
   def createSupportingMaterialWithFile(itemId: String, name: String, filename: String) = {
@@ -393,36 +391,34 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
     })
   }
 
-  def createSupportingMaterial(itemId: String) = HasItem(itemId,Seq(editCheck()), Action { request  =>
+  def createSupportingMaterial(itemId: String) = HasItem(itemId,Seq(editCheck()), { request : ItemRequest[AnyContent] =>
 
-    request.body.asJson match {
-      case Some(json) => {
-        json.asOpt[Resource] match {
-          case Some(foundResource) => {
-            val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-            isResourceNameTaken(foundResource.name)(item) match {
-              case Some(error) => NotAcceptable(toJson(error))
-              case _ => {
-                item.supportingMaterials = item.supportingMaterials ++ Seq[Resource](foundResource)
-                service.save(item)
-                Ok(toJson(foundResource))
+      request.body.asJson match {
+        case Some(json) => {
+          json.asOpt[Resource] match {
+            case Some(foundResource) => {
+              isResourceNameTaken(foundResource.name)(request.item) match {
+                case Some(error) => NotAcceptable(toJson(error))
+                case _ => {
+                  request.item.supportingMaterials = request.item.supportingMaterials ++ Seq[Resource](foundResource)
+                  service.save(request.item)
+                  Ok(toJson(foundResource))
+                }
               }
             }
+            case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
           }
-          case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
         }
+        case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
       }
-      case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
-    }
   })
 
   def deleteSupportingMaterial(itemId: String, resourceName: String) = HasItem(itemId,
     Seq(editCheck(),canFindResource(resourceName)(_,_)),
-    Action {
-      request =>
-        val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-        item.supportingMaterials = item.supportingMaterials.filter(_.name != resourceName)
-        service.save(item)
+    {
+      request : ItemRequest[AnyContent] =>
+        request.item.supportingMaterials = request.item.supportingMaterials.filter(_.name != resourceName)
+        service.save(request.item)
         Ok("")
     }
   )
@@ -496,4 +492,4 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
   }
 }
 
-object ResourceApi extends api.v1.ResourceApi(ConcreteS3Service, ItemServiceImpl)
+object ResourceApi extends api.v1.ResourceApi(EmptyS3Service, ItemServiceImpl)

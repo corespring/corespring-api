@@ -1,14 +1,12 @@
 package models.item
 
-import play.api.Play.current
-
 import play.api.libs.json._
 import play.api.libs.json.JsString
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import com.mongodb.casbah.Imports._
 import models.mongoContext._
-
+import play.api.Play.current
 
 case class KeyValue(key: String, value: Any)
 
@@ -39,9 +37,11 @@ case class FieldValue(
 
 object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
 
+  import play.api.Play.current
+
   lazy val current = FieldValue.findOne(MongoDBObject(FieldValue.Version -> CurrentVersion)).getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
 
-  val collection = mongoCollection("fieldValues")
+  val collection = mongoCollection("fieldValues")(play.api.Play.current)
 
   val dao = new SalatDAO[FieldValue, ObjectId](collection = collection) {}
 

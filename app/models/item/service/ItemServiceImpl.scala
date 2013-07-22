@@ -17,7 +17,7 @@ import play.api.PlayException
 import scala.xml.Elem
 import se.radley.plugin.salat.SalatPlugin
 import common.log.PackageLogging
-import controllers.{ConcreteS3Service, S3Service}
+import controllers.{EmptyS3Service, S3Service}
 import com.typesafe.config.ConfigFactory
 import scalaz.Scalaz._
 import scalaz._
@@ -132,7 +132,7 @@ object ItemVersioningDao extends  SalatVersioningDao[Item] {
   import play.api.Play.current
 
   private def salatDb(sourceName: String = "default")(implicit app: Application): MongoDB = {
-    app.plugin[SalatPlugin].map(_.db(sourceName)).getOrElse(throw PlayException("SalatPlugin is not " +
+    app.plugin[SalatPlugin].map(_.db(sourceName)).getOrElse(throw new PlayException("SalatPlugin is not " +
       "registered.", "You need to register the plugin with \"500:se.radley.plugin.salat.SalatPlugin\" in conf/play.plugins"))
   }
 
@@ -147,7 +147,7 @@ object ItemVersioningDao extends  SalatVersioningDao[Item] {
 }
 
 
-object ItemServiceImpl extends ItemServiceImpl(ConcreteS3Service, DefaultItemSession, ItemVersioningDao)
+object ItemServiceImpl extends ItemServiceImpl(EmptyS3Service, DefaultItemSession, ItemVersioningDao)
 
 
 

@@ -6,6 +6,7 @@ import akka.actor.{ActorSystem, Actor, Props}
 import play.api.libs.json._
 import play.api.Logger
 import tasks.{RabbitMQTask, RabbitMQTasks}
+import scala.concurrent.ExecutionContext
 
 object RabbitMQ {
   private val RABBITMQ_HOST = ConfigFactory.load().getString("rabbitmq.host");
@@ -91,6 +92,7 @@ object RabbitMQ {
         "taskName" -> JsString(taskName),
         "data" -> task.data
       ))
+      import ExecutionContext.Implicits.global
       system.scheduler.schedule(task.initialDelay, task.frequency, system.actorOf(Props(new Actor {
         protected def receive = {
           case data:String => {

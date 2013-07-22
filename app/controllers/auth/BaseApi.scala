@@ -2,12 +2,13 @@ package controllers.auth
 
 import api.ApiError
 import api.ApiError._
-import com.mongodb.casbah.Imports
+import play.api.libs.json._
 import common.log.PackageLogging
 import models.{Organization, User}
 import play.api.libs.json.{JsString, JsObject, Json}
 import play.api.mvc._
 import securesocial.core.SecureSocial
+import org.bson.types.ObjectId
 
 /**
  * A class that adds an AuthorizationContext to the Request object
@@ -139,7 +140,7 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
    * @return
    */
     def invokeAsUser[A](username: String, provider:String, request: Request[A])(f: ApiRequest[A]=>Result) = {
-      def orgId : Option[Imports.ObjectId] = User.getUser(username, provider).map(_.org.orgId)
+      def orgId : Option[ObjectId] = User.getUser(username, provider).map(_.org.orgId)
 
       val maybeOrg : Option[Organization] = orgId.map(Organization.findOneById).getOrElse(None)
       maybeOrg.map{ org =>
@@ -186,4 +187,14 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
   }
 
   protected def jsonExpected = BadRequest(Json.toJson(ApiError.JsonExpected))
+
+  def parsed[A](maybeJson:Option[JsValue], fn: (A=>Result), noItemResult: Result = BadRequest("Bad Json"))(implicit format : Format[A]) : Result = maybeJson match {
+    case Some(json) => {
+      play.api.libs.json.Json.fromJson[A](json) match {
+        case JsSuccess(item, _) => fn(item)
+        case _ => noItemResult
+      }
+    }
+    case _ => noItemResult
+  }
 }
