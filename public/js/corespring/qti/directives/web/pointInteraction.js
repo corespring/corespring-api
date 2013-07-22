@@ -31,11 +31,11 @@ angular.module("qti.directives").directive("pointinteraction", function(){
                     $scope.controller.setResponse($scope.responseIdentifier, $scope.yintercept)
                 }
             }
-            $scope.$watch('y-intercept', function(yintercept){
-              _.each(points,function(coords,ptName){
-                if(checkCoords(coords)) graphPoints[ptName] = coords
-              })
-              if($scope.graphCallback) $scope.graphCallback({points: yintercept})
+            $scope.$watch('yintercept', function(yintercept){
+              function checkCoords(coords){
+                  return coords && !isNaN(coords.x) && !isNaN(coords.y)
+              }
+              if($scope.graphCallback && checkCoords(yintercept)) $scope.graphCallback({points: yintercept})
             }, true)
             $scope.$on("formSubmitted",function(){
                 if(!$scope.locked){
@@ -62,7 +62,7 @@ angular.module("qti.directives").directive("pointinteraction", function(){
                                  domainLabel: attrs.domainLabel,
                                  rangeLabel: attrs.rangeLabel,
                                  tickLabelFrequency: attrs.tickLabelFrequency,
-                                 pointLabels: [y-intercept]
+                                 pointLabels: ["y-intercept"]
                              }
             element.find('[jsx-graph]').css({width: width, height: height})
             element.find('[jsx-graph]').attr(graphAttrs)

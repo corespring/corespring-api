@@ -172,7 +172,7 @@ angular.module('qti.services').factory('Canvas', function() {
     var axisAttrs = {ticks: {minorTicks: attrs.tickLabelFrequency-1, drawLabels: true}}
     var domainAxisAttrs = axisAttrs; var rangeAxisAttrs = axisAttrs
     if(attrs.domainLabel){
-        domainAxisAttrs = _.extend(axisAttrs,{withLabel: true, name: attrs.domainLabel, label: {offset: [coords.scrCoords[1]-10,-15]}})
+        domainAxisAttrs = _.extend(axisAttrs, {withLabel: true, name: attrs.domainLabel, label: {offset: [coords.scrCoords[1]-10,-15]}})
     }
     if(attrs.rangeLabel){
         rangeAxisAttrs = _.extend(axisAttrs, {withLabel: true, name: attrs.rangeLabel, label: {offset: [-15, coords.scrCoords[1]-10]}})
@@ -185,6 +185,7 @@ angular.module('qti.services').factory('Canvas', function() {
     if(attrs.pointLabels){
         this.pointLabels = attrs.pointLabels
     }
+    this.letters
   }
   Canvas.prototype.getMouseCoords = function(e) {
     var coords = new JXG.Coords(JXG.COORDS_BY_SCREEN, [e.offsetX, e.offsetY], this.board);
@@ -224,11 +225,12 @@ angular.module('qti.services').factory('Canvas', function() {
     } else if(typeof this.pointLabels === "string"){
         if(this.pointLabels === "numbers"){
             _.extend(pointAttrs,{name: this.points.length+1})
+        } else if(this.pointLabels !== "letters"){
+            var labelsArray = this.pointLabels.split(",")
+            console.log(labelsArray)
+            _.extend(pointAttrs,{name: labelsArray[this.points.length]})
         }
-    } else if(this.pointLabels instanceof Array){
-        _.extend(pointAttrs,{name: this.pointLabels[this.points.length]})
     }
-
     var point = this.board.create('point', [coords.x, coords.y], pointAttrs);
     this.points.push(point);
     //in order to get correct offset for text, we must find origin point and offset by screen coordinates,

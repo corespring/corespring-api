@@ -142,7 +142,8 @@ object QtiItem {
     SelectTextInteraction,
     FocusTaskInteraction,
     LineInteraction,
-    DragAndDropInteraction
+    DragAndDropInteraction,
+    PointInteraction
   )
 
   /**

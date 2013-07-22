@@ -9,7 +9,7 @@
     <itemBody>
 
         Give the y-intercept of y=2x+7
-        <pointinteraction jsxgraphcore=""
+        <pointInteraction jsxgraphcore=""
                          responseIdentifier="yinterceptTest"
                          graph-width="300px"
                          graph-height="300px"

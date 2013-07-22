@@ -1,0 +1,15 @@
+/*
+*/
+.graph-interaction{
+    padding-bottom: 10px;
+    padding-top: 10px;
+}
+.points-display{
+
+}
+.point-display{
+
+}
+.point-display p,input{
+    display: inline;
+}
