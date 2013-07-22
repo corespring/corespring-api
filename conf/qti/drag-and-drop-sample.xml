@@ -23,7 +23,7 @@
     </responseDeclaration>
 
     <itemBody>
-        <p class="intro-2"><img src="cells.png" class="img-right" alt="Growth" />Assume that as the experiment continues, the number of cells at teh end of each week continues to be double the number of cells at the end of the previous week. Let <i>w<sub>n</sub></i> represent the number of cells in the growth medium in week <i>n</i>.</p>
+        <p class="intro-2"><img src="cells.png" class="img-right" alt="Growth" />Assume that as the experiment continues, the number of cells at the end of each week continues to be double the number of cells at the end of the previous week. Let <i>w<sub>n</sub></i> represent the number of cells in the growth medium in week <i>n</i>.</p>
 
 
         <p>Write a recursive definition for the sequence that represents the number of cells in the growth medium at the end of teach week by dragging the tiles into the spaces below.</p>

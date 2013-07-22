@@ -2,5 +2,6 @@
   "label": "Correct Response Short Text Entry",
   "code": "crshorttext",
   "group": "Text Entry",
-  "xmlData": "$[interpolate{conf/qti-templates/correct-response-short-entry.xml}]"
+  "xmlData": "$[interpolate{conf/qti-templates/correct-response-short-entry.xml}]",
+  "position": 0
 }

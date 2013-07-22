@@ -82,7 +82,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         var html = fromHtml.replace(/<:*landingPlace([\s\S]*?)>/gmi, "<landingSolution$1>").replace(/<\/:*landingPlace>/gmi, "</landingSolution>");
         var answerAreaMatch = draggableChoiceRegexp.exec(html);
         var solutionHtml = (answerAreaMatch && answerAreaMatch.length > 0) ? answerAreaMatch[0] : removeAnswerNodes(html);
-        return "<div ui-modal ng-model='solutionVisible' class='solution-modal'><span class='close-button' ng-click='hideSolution()' style='z-index: 10'></span><h1>Answer</h1>" + solutionHtml + "<a ng-click='hideSolution()'>See your answer</a></div>";
+        return "<div ui-modal ng-model='solutionVisible' class='drag-and-drop-solution-modal'><span class='close-button' ng-click='hideSolution()' style='z-index: 10'></span><h1>Answer</h1>" + solutionHtml + "<a ng-click='hideSolution()'>See your answer</a></div>";
       };
 
       var removePromptNode = function (fromHtml) {
@@ -101,7 +101,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         "<button class='btn pull-right' style='margin-right: 5px' ng-click='undo()' ng-show='canDrag' ng-disabled='stateStack.length < 2'>Undo</button></div>"
       ].join("");
 
-      var solutionButtonHtml = "<div class='button-row' ng-show='isShowSolutionButtonVisible'><button class='btn solution-button' ng-click='showSolution()'>See Correct Answer</button></div>";
+      var solutionButtonHtml = "<div class='button-row' style='margin-top: 25px' ng-show='isShowSolutionButtonVisible'><a class='pull-right solution-link' ng-click='showSolution()'>See Correct Answer</a></div>";
 
       elem.html(
         [

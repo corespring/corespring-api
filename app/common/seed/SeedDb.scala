@@ -57,6 +57,11 @@ object SeedDb {
     collections.foreach(_.drop())
   }
 
+  def emptyStaticData() {
+    FieldValue.collection.drop()
+    QtiTemplate.collection.drop()
+  }
+
   def seedData(path: String) {
     Logger.info("seedData: " + path)
 

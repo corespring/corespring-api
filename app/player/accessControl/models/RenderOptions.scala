@@ -25,14 +25,16 @@ object RenderOptions {
 
   implicit object Reads extends Reads[RenderOptions] {
     def reads(json: JsValue): RenderOptions = {
-
+      val expires = (json \ "expires").asOpt[Long].getOrElse(
+        (json \ "expires").asOpt[String].get.toLong
+      )
       RequestedAccess.Mode.withName("preview")
       RenderOptions(
         (json \ "itemId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
         (json \ "sessionId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
         (json \ "assessmentId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
         (json \ "role").asOpt[String].filterNot(_.isEmpty).getOrElse("student"),
-        (json \ "expires").as[Long],
+        expires,
         RequestedAccess.Mode.withName((json \ "mode").as[String])
       )
     }

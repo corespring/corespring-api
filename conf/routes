@@ -243,4 +243,6 @@ GET     /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearchPage
 POST    /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearch()
 
 # Regression test endpoints
-GET     /regression/:orgId/:itemId  regression.controllers.Item.player(orgId: ObjectId, itemId: VersionedId[ObjectId])
+# Regression test endpoints
+GET     /regression/:orgId/:itemId/:requestedAccess         regression.controllers.Item.simplePlayer(requestedAccess: String, orgId: ObjectId, itemId: VersionedId[ObjectId])
+

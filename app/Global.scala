@@ -1,7 +1,7 @@
 import _root_.controllers.ConcreteS3Service
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import com.typesafe.config.ConfigFactory
-import common.controllers.deployment.AssetsLoader
+import common.controllers.deployment.{LocalAssetsLoaderImpl, AssetsLoaderImpl}
 import common.seed.SeedDb._
 import org.bson.types.ObjectId
 import play.api._
@@ -95,7 +95,8 @@ object Global extends GlobalSettings {
     RegisterJodaTimeConversionHelpers()
 
     ConcreteS3Service.init
-    AssetsLoader.init(app)
+    AssetsLoaderImpl.init(app)
+    LocalAssetsLoaderImpl.init(app)
 
     val initData:Boolean = ConfigFactory.load().getString(INIT_DATA) == "true"
 
@@ -115,14 +116,25 @@ object Global extends GlobalSettings {
         if(initData) {
           onlyIfLocalDb(emptyData, seedDevData, seedDebugData, seedDemoData)
         }
+        seedStaticData()
       }
       case Mode.Prod => {
         if(initData){
           emptyData()
           seedDevData()
         }
+        seedStaticData()
         seedDemoData()
       }
+    }
+
+  }
+
+  private def isLocalDb: Boolean = {
+    ConfigLoader.get("mongodb.default.uri") match {
+      //TODO: Remove hardcoded url
+      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907.mongolab.com:35907/sib")
+      case None => false
     }
   }
 
@@ -138,12 +150,10 @@ object Global extends GlobalSettings {
     seedData("conf/seed-data/demo")
   }
 
-  private def isLocalDb: Boolean = {
-    ConfigLoader.get("mongodb.default.uri") match {
-      //TODO: Remove hardcoded url
-      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907.mongolab.com:35907/sib")
-      case None => false
-    }
+  /* Data that needs to get seeded regardless of the INIT_DATA setting */
+  private def seedStaticData() {
+    emptyStaticData()
+    seedData("conf/seed-data/static")
   }
 
   private def seedTestData() {

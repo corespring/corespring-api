@@ -1,12 +1,13 @@
 .drag-and-drop-interaction {
     overflow: hidden;
 }
-.answerContainer {
+
+.drag-and-drop-interaction .answerContainer {
     padding-top: 5px;
     padding-bottom: 5px;
 }
 
-.prompt {
+.drag-and-drop-interaction .prompt {
     border-top: 1px solid black;
     border-bottom: 1px solid black;
     font-family:"Ubuntu", Arial, Helvetica, sans-serif;
@@ -15,23 +16,30 @@
     padding: 16px 0 16px 0;
 }
 
-.button-row {
+.drag-and-drop-interaction .button-row {
     width: 100%;
     height: 50px;
     margin-top: 6px;
 }
 
-.button-row button {
+.drag-and-drop-interaction .button-row button {
     text-transform: uppercase;
     font-family:"Ubuntu", Arial, Helvetica, sans-serif;
     font-size: 11px;
 }
 
-table.csDraggableTiles {
+.drag-and-drop-interaction .solution-link {
+    color: #4eb7d3;
+}
+
+.drag-and-drop-interaction table.csDraggableTiles {
     max-width: 540px;
 }
 
-table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td  {
+table.csDraggableTiles,
+.csDraggableTiles td,
+table.csDropTiles,
+.csDropTiles td  {
     border: none;
     border-collapse: collapse;
     padding: 0px;
@@ -39,15 +47,17 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
     margin: 10px 0;
 }
 
-.solution-modal {
+.drag-and-drop-solution-modal {
     padding: 10px;
 }
 
-.solution-button {
+.drag-and-drop-interaction .solution-button {
     margin-left: auto;
 }
 
-.contentElement {
+.drag-and-drop-interaction .contentElement,
+.drag-and-drop-solution-modal .contentElement
+{
     background-color: #999;
     padding: 8px;
     float: left;
@@ -59,14 +69,18 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
 
 }
 
-.contentElement:hover {
+.drag-and-drop-interaction .contentElement:hover,
+.drag-and-drop-solution-modal .contentElement:hover
+{
     margin: 0px 4px 0px 0px;
     box-shadow: 0px 0px 5px #000;
     border: 1px solid #333;
     cursor: hand; cursor: pointer;
 }
 
-.landing {
+.drag-and-drop-interaction .landing,
+.drag-and-drop-solution-modal .landing
+{
     border-radius: 4px;
     padding: 3px 3px 3px 3px;
     border: 1px solid #999;
@@ -74,12 +88,14 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
     position: relative;
 }
 
-.landing.inline {
+.drag-and-drop-interaction .landing.inline,
+.drag-and-drop-solution-modal .landing.inline {
     display: inline-block;
     margin: 0px 5px -10px 0px;
 }
 
-.landing.squareChoice {
+.drag-and-drop-interaction .landing.squareChoice,
+.drag-and-drop-solution-modal .landing.squareChoice {
     border-radius: 0px;
 }
 
@@ -91,41 +107,40 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
     box-shadow: none;
 }
 
-.contentElement.ui-draggable-dragging {
-}
-
-.landing .contentElement, .solution-modal .contentElement {
+.landing .contentElement {
     background: none;
 }
 
-.drop-hover {
+.drag-and-drop-interaction .drop-hover {
     box-shadow: 0px 0px 5px #000;
 }
 
-.landingLabelHolder {
+.drag-and-drop-solution-modal .landingLabelHolder,
+.drag-and-drop-interaction .landingLabelHolder {
     position: relative;
     top: -10px;
     width: 100%;
     text-align: center;
 }
 
-.landingLabel {
+.drag-and-drop-interaction .landingLabel,
+.drag-and-drop-solution-modal .landingLabel {
     padding-left: 3px;
     padding-right: 3px;
     background-color: #fff
 }
 
-.landing.correct {
+.drag-and-drop-interaction .landing.correct {
     box-shadow: 0px 0px 5px #95C444;
     border: 1px solid #95C444;
 }
 
-.landing.incorrect {
+.drag-and-drop-interaction .landing.incorrect {
     box-shadow: 0px 0px 5px #F8A31A;
     border: 1px solid #F8A31A;
 }
 
-.floating-icon.incorrect {
+.drag-and-drop-interaction .floating-icon.incorrect {
     display: inline-block;
     position: absolute;
     background:url("/assets/images/wrong-icon-tiny.png") no-repeat;
@@ -135,16 +150,16 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
     right: -14px;
 }
 
-.placeholder {
+.drag-and-drop-interaction .placeholder {
     background-color: #800080;
 }
 
-.no-border {
+.drag-and-drop-interaction .no-border {
     border: none;
     border-collapse: collapse;
 }
 
-.close-button {
+.drag-and-drop-interaction .close-button {
     position: absolute;
     right: 0px;
     top: 0px;
@@ -155,7 +170,8 @@ table.csDraggableTiles, .csDraggableTiles td, table.csDropTiles, .csDropTiles td
     cursor: pointer;
 }
 
-.modal-backdrop, .modal-backdrop.fade.in {
+.modal-backdrop,
+.modal-backdrop.fade.in {
     opacity: 0.3;
     filter: alpha(opacity=30);
 }
