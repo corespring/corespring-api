@@ -2,13 +2,14 @@ package regression.controllers
 
 import play.api.mvc.Action
 import org.bson.types.ObjectId
-import player.accessControl.models.{RenderOptions, RequestedAccess}
+import player.accessControl.models.{RequestedAccess, RenderOptions}
 import org.corespring.platform.data.mongo.models.VersionedId
 import player.controllers.Views
 import controllers.auth.TokenizedRequestActionBuilder
 import models.item.service.{ItemServiceImpl, ItemService}
 import player.accessControl.auth.CheckSessionAccess
 import common.controllers.deployment.LocalAssetsLoaderImpl
+import java.util.NoSuchElementException
 
 class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val itemService : ItemService)
   extends Views(auth, itemService) {
@@ -27,9 +28,10 @@ class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val it
   }
 
   def simplePlayer(requestedAccess: String, orgId: ObjectId, itemId: VersionedId[ObjectId]) = Secured("admin", "1234secret") {
-    RequestedAccess.Mode.valueOf(requestedAccess) match {
-      case Some(access) => Action {
+    try {
+      Action {
         implicit request => {
+          val access = RequestedAccess.Mode.withName(requestedAccess)
           val params = RenderParams(itemId, sessionMode = access, assetsLoader = LocalAssetsLoaderImpl)
           prepareHtml(params, itemId, orgId).map{ html =>
             val newCookies: Seq[(String, String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(access)
@@ -38,11 +40,10 @@ class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val it
           }.getOrElse(NotFound)
         }
       }
-      case None => Action { NotFound }
+    } catch {
+      case e: NoSuchElementException => Action { NotFound }
     }
-
   }
-
 }
 
 object Item extends Item(CheckSessionAccess, ItemServiceImpl)
