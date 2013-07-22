@@ -36,7 +36,8 @@ return {
         maxPoints: parseInt(attr.maxPoints?attr.maxPoints:null),
         domainLabel: attr.domainlabel,
         rangeLabel: attr.rangelabel,
-        tickLabelFrequency: parseInt(attr.ticklabelfrequency?attr.ticklabelfrequency:5)
+        tickLabelFrequency: parseInt(attr.ticklabelfrequency?attr.ticklabelfrequency:5),
+        pointLabels: attr.pointlabels
     }
     var canvas = new Canvas("box", canvasAttrs);
     var lockGraph = false;

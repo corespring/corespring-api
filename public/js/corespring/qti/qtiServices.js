@@ -182,6 +182,9 @@ angular.module('qti.services').factory('Canvas', function() {
     this.board.create('axis', [[0, 0], [0, 1]], rangeAxisAttrs)
     this.points = [];
     this.scale = attrs.scale;
+    if(attrs.pointLabels){
+        this.pointLabels = attrs.pointLabels
+    }
   }
   Canvas.prototype.getMouseCoords = function(e) {
     var coords = new JXG.Coords(JXG.COORDS_BY_SCREEN, [e.offsetX, e.offsetY], this.board);
@@ -216,7 +219,16 @@ angular.module('qti.services').factory('Canvas', function() {
 
   Canvas.prototype.addPoint = function(coords, ptName) {
     var pointAttrs = {snapToGrid: true, snapSizeX: this.scale, snapSizeY: this.scale, showInfobox: false}
-    if(ptName) pointAttrs = _.extend(pointAttrs,{name: ptName})
+    if(ptName){
+        pointAttrs = _.extend(pointAttrs,{name: ptName})
+    } else if(typeof this.pointLabels === "string"){
+        if(this.pointLabels === "numbers"){
+            _.extend(pointAttrs,{name: this.points.length+1})
+        }
+    } else if(this.pointLabels instanceof Array){
+        _.extend(pointAttrs,{name: this.pointLabels[this.points.length]})
+    }
+
     var point = this.board.create('point', [coords.x, coords.y], pointAttrs);
     this.points.push(point);
     //in order to get correct offset for text, we must find origin point and offset by screen coordinates,

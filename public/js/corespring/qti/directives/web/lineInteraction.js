@@ -71,7 +71,7 @@ angular.module("qti.directives").directive("lineinteraction", function(){
             })
             $scope.points = {A: {x: undefined, y: undefined}, B: {x: undefined, y: undefined}}
             $scope.$watch('showNoResponseFeedback', function(){
-                 if($scope.isEmptyItem($scope.equation) && $scope.showNoResponseFeedback){
+                 if($scope.isEmptyItem($scopegraphCoords) && $scope.showNoResponseFeedback){
                     $scope.graphCallback({submission: {isIncomplete:true}})
                  }
             });
