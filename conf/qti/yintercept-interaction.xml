@@ -13,13 +13,14 @@
                          responseIdentifier="yinterceptTest"
                          graph-width="300px"
                          graph-height="300px"
+                         point-labels="y-intercept"
                 />
 
-        <feedbackBlock outcomeIdentifier="responses.graphTest.outcome.incorrect">
+        <feedbackBlock outcomeIdentifier="responses.yinterceptTest.outcome.incorrect">
             <div class="feedback-block-incorrect">Wrong!</div>
         </feedbackBlock>
 
-        <feedbackBlock outcomeIdentifier="responses.graphTest.outcome.correct">
+        <feedbackBlock outcomeIdentifier="responses.yinterceptTest.outcome.correct">
             <div class="feedback-block-correct">You're right!</div>
         </feedbackBlock>
 

@@ -71,7 +71,7 @@ angular.module("qti.directives").directive("lineinteraction", function(){
             })
             $scope.points = {A: {x: undefined, y: undefined}, B: {x: undefined, y: undefined}}
             $scope.$watch('showNoResponseFeedback', function(){
-                 if($scope.isEmptyItem($scopegraphCoords) && $scope.showNoResponseFeedback){
+                 if($scope.isEmptyItem($scope.graphCoords) && $scope.showNoResponseFeedback){
                     $scope.graphCallback({submission: {isIncomplete:true}})
                  }
             });
@@ -138,6 +138,7 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                 scope.responseIdentifier = attrs.responseidentifier;
                 scope.controller = AssessmentItemController
                 scope.controller.registerInteraction(element.attr('responseIdentifier'), "line graph", "graph")
+                scope.controller.setResponse(scope.responseIdentifier,null)
                 scope.outcomeReturned = scope.locked = attrs.hasOwnProperty('locked')?true:false
             }
         }

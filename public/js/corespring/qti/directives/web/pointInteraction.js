@@ -19,23 +19,23 @@ angular.module("qti.directives").directive("pointinteraction", function(){
         controller: ['$scope', function($scope){
             $scope.yintercept = {x: undefined, y: undefined}
             $scope.$watch('showNoResponseFeedback', function(){
-                 if($scope.isEmptyItem($scope.yintercept) && $scope.showNoResponseFeedback){
+                 if($scope.isEmptyItem($scope.pointResponse) && $scope.showNoResponseFeedback){
                     $scope.graphCallback({submission: {isIncomplete:true}})
                  }
             });
             $scope.interactionCallback = function(params){
-                if(params.points.yintercept){
-                    $scope.yintercept = params.points.yintercept
+                if(params.points.A){
+                    $scope.yintercept = params.points.A
                     $scope.graphCallback({submission:{clearBorder: true}})
-                    var response = $scope.yintercept.x+","+$scope.yintercept.y
-                    $scope.controller.setResponse($scope.responseIdentifier, $scope.yintercept)
-                }
+                    $scope.pointResponse = $scope.yintercept.x+","+$scope.yintercept.y
+                    $scope.controller.setResponse($scope.responseIdentifier, $scope.pointResponse)
+                } else $scope.pointResponse = null
             }
             $scope.$watch('yintercept', function(yintercept){
               function checkCoords(coords){
                   return coords && !isNaN(coords.x) && !isNaN(coords.y)
               }
-              if($scope.graphCallback && checkCoords(yintercept)) $scope.graphCallback({points: yintercept})
+              if($scope.graphCallback && checkCoords(yintercept)) $scope.graphCallback({points: {A: yintercept}})
             }, true)
             $scope.$on("formSubmitted",function(){
                 if(!$scope.locked){
@@ -62,7 +62,7 @@ angular.module("qti.directives").directive("pointinteraction", function(){
                                  domainLabel: attrs.domainLabel,
                                  rangeLabel: attrs.rangeLabel,
                                  tickLabelFrequency: attrs.tickLabelFrequency,
-                                 pointLabels: ["y-intercept"]
+                                 pointLabels: attrs.pointLabels
                              }
             element.find('[jsx-graph]').css({width: width, height: height})
             element.find('[jsx-graph]').attr(graphAttrs)
@@ -72,6 +72,7 @@ angular.module("qti.directives").directive("pointinteraction", function(){
                 scope.responseIdentifier = attrs.responseidentifier;
                 scope.controller = AssessmentItemController
                 scope.controller.registerInteraction(element.attr('responseIdentifier'), "line graph", "graph")
+                scope.controller.setResponse(scope.responseIdentifier,null)
                 scope.outcomeReturned = scope.locked = attrs.hasOwnProperty('locked')?true:false
             }
         }

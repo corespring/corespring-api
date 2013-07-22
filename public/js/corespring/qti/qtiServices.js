@@ -184,8 +184,7 @@ angular.module('qti.services').factory('Canvas', function() {
     this.scale = attrs.scale;
     if(attrs.pointLabels){
         this.pointLabels = attrs.pointLabels
-    }
-    this.letters
+    } else this.pointLabels = 'letters'
   }
   Canvas.prototype.getMouseCoords = function(e) {
     var coords = new JXG.Coords(JXG.COORDS_BY_SCREEN, [e.offsetX, e.offsetY], this.board);
@@ -219,26 +218,28 @@ angular.module('qti.services').factory('Canvas', function() {
   };
 
   Canvas.prototype.addPoint = function(coords, ptName) {
-    var pointAttrs = {snapToGrid: true, snapSizeX: this.scale, snapSizeY: this.scale, showInfobox: false}
-    if(ptName){
-        pointAttrs = _.extend(pointAttrs,{name: ptName})
-    } else if(typeof this.pointLabels === "string"){
-        if(this.pointLabels === "numbers"){
-            _.extend(pointAttrs,{name: this.points.length+1})
-        } else if(this.pointLabels !== "letters"){
-            var labelsArray = this.pointLabels.split(",")
-            console.log(labelsArray)
-            _.extend(pointAttrs,{name: labelsArray[this.points.length]})
-        }
-    }
+    var pointAttrs = {snapToGrid: true, snapSizeX: this.scale, snapSizeY: this.scale, showInfobox: false, withLabel:false}
     var point = this.board.create('point', [coords.x, coords.y], pointAttrs);
     this.points.push(point);
+    var name = (function(labels,points){
+        if(ptName){
+            return ptName
+        } else if(typeof labels === "string"){
+            if(labels === "numbers"){
+                return points.length+"."
+            } else if(labels === "letters"){
+                return point.name
+            } else{
+                return labels.split(",")[points.length-1]
+            }
+        }
+    })(this.pointLabels, this.points)
     //in order to get correct offset for text, we must find origin point and offset by screen coordinates,
     //then apply the offset to the point coordinates to get the correct position of text
     var origin = new JXG.Coords(JXG.COORDS_BY_USER, [0, 0], this.board);
     var offset = new JXG.Coords(JXG.COORDS_BY_SCREEN, [origin.scrCoords[1]-22, origin.scrCoords[2]-15], this.board);
     this.board.create('text', [function(){return point.X()+offset.usrCoords[1];}, function(){return point.Y()+offset.usrCoords[2];},
-    function () { return '('+point.X()+','+point.Y()+')'; }], {fixed: true});
+    function () { return name+' ('+point.X()+','+point.Y()+')'; }], {fixed: true});
     return point;
   };
 
