@@ -5,6 +5,7 @@
 #
 
 def run(cmd)
+  puts "[running: #{cmd}]"
   IO.popen(cmd) do |io|
     while line = io.gets
       print "[s3-copy] #{line}\n" unless line.empty?
