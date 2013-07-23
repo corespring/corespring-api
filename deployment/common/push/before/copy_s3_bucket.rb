@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # => Copies all production assets s3 bucket -> the target env assets bucket.
-# TODO: don't hardcode the production bucket 'corespring-assets'
+# It uses `s3cmd sync` as this runs in parallel and will delete remote files
 #
 
 def run(cmd)
