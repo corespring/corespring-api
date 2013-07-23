@@ -38,13 +38,3 @@ push = "cs-api-assets push-bucket #{live_bucket} --remote-bucket=#{target_bucket
 
 run(pull)
 run(push)
-
-`cd -`
-
-raise "error" if $?.to_i != 0
-
-`echo pwd`
-
-raise "error" if $?.to_i != 0
-
-
