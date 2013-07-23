@@ -15,6 +15,7 @@ def run(cmd)
   end
 end
 
+
 require 'json'
 config = JSON.parse(IO.read(ARGV[0]))
 
