@@ -3,13 +3,15 @@
 .graph-interaction{
     padding-bottom: 10px;
     padding-top: 10px;
-}
-.points-display{
-
+    background-color: #CCCCCC;
+    padding: 10px;
 }
 .point-display{
 
 }
 .point-display p,input{
     display: inline;
+}
+.scale-display p{
+    margin-bottom: -10px;
 }

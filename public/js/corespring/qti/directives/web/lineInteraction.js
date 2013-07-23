@@ -37,21 +37,27 @@ angular.module("qti.directives").directive("lineinteraction", function(){
     return {
         template: [
         "<div class='graph-interaction'>",
-        "   <div class='points-display' ng-show=showInputs>",
-        "       <div class='point-display'>",
-        "           <p>Point A:</p>",
-        "           <p>x: </p>",
-        "           <input type='text' style='width: 80px;', ng-model='points.A.x' ng-disabled='outcomeReturned'>",
-        "           <p>y: </p>",
-        "           <input type='text' style='width: 80px;' ng-model='points.A.y'  ng-disabled='outcomeReturned'>",
-        "       </div>",
-        "       <div class='point-display'>",
-        "           <p>Point B:</p>",
-        "           <p>x: </p>",
-        "           <input type='text' style='width: 80px;', ng-model='points.B.x' ng-disabled='outcomeReturned'>",
-        "           <p>y: </p>",
-        "           <input type='text' style='width: 80px;' ng-model='points.B.y' ng-disabled='outcomeReturned'>",
-        "       </div>",
+        "   <div class='row'>",
+        "       <div class='span3' ng-show=showInputs>",
+        "           <div class='point-display'>",
+        "              <p>Point A:</p>",
+        "              <p>x: </p>",
+        "              <input type='text' style='width: 40px;', ng-model='points.A.x' ng-disabled='outcomeReturned'>",
+        "              <p>y: </p>",
+        "              <input type='text' style='width: 40px;' ng-model='points.A.y'  ng-disabled='outcomeReturned'>",
+        "          </div>",
+        "          <div class='point-display'>",
+        "             <p>Point B:</p>",
+        "             <p>x: </p>",
+        "             <input type='text' style='width: 40px;', ng-model='points.B.x' ng-disabled='outcomeReturned'>",
+        "             <p>y: </p>",
+        "             <input type='text' style='width: 40px;' ng-model='points.B.y' ng-disabled='outcomeReturned'>",
+        "          </div>",
+        "      </div>",
+        "      <div class='span4 scale-display'>",
+        "          <p>scale={{scale}}</p>",
+        "          <p ng-show='showWholeNumbersMessage'>Decimals and fractions will be rounded to the nearest whole number.</p>",
+        "      </div>",
         "   </div>",
         "   <div jsx-graph graph-callback='graphCallback' interaction-callback='interactionCallback'></div>",
         "   <div id='initialParams' ng-transclude></div>",
@@ -136,11 +142,9 @@ angular.module("qti.directives").directive("lineinteraction", function(){
         compile: function(element, attrs, transclude){
             var width = attrs.graphWidth?attrs.graphWidth:"300px"
             var height = attrs.graphHeight?attrs.graphHeight:"300px"
-            var domain = parseInt(attrs.domain?attrs.domain:10)
-            var range = parseInt(attrs.range?attrs.range:10)
             var graphAttrs = {
-                                 domain: domain,
-                                 range: range,
+                                 domain: parseInt(attrs.domain?attrs.domain:10),
+                                 range: parseInt(attrs.range?attrs.range:10),
                                  scale: parseFloat(attrs.scale?attrs.scale:1),
                                  domainLabel: attrs.domainLabel,
                                  rangeLabel: attrs.rangeLabel,
@@ -152,8 +156,9 @@ angular.module("qti.directives").directive("lineinteraction", function(){
             //element.find("#initialParams").remove()
             return function(scope, element, attrs, AssessmentItemController){
                 scope.scale = graphAttrs.scale;
-                scope.domain = domain
-                scope.range = range
+                scope.showWholeNumbersMessage = scope.scale == 1
+                scope.domain = graphAttrs.domain
+                scope.range = graphAttrs.range
                 scope.sigfigs = parseInt(attrs.sigfigs?attrs.sigfigs:-1)
                 scope.showInputs = !attrs.showInputs || attrs.showInputs === "true"
                 scope.responseIdentifier = attrs.responseidentifier;

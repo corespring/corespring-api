@@ -21,8 +21,8 @@
                          domain="10"
                          range="10"
                          scale="1"
-                         domain-label="blergl"
-                         range-label="mergl"
+                         domain-label="x"
+                         range-label="y"
                          tick-label-frequency="5"
                          sigfigs="-1"
                 />
