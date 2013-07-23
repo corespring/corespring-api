@@ -18,6 +18,13 @@
                          responseIdentifier="graphTest"
                          graph-width="300px"
                          graph-height="300px"
+                         domain="10"
+                         range="10"
+                         scale="1"
+                         domain-label="blergl"
+                         range-label="mergl"
+                         tick-label-frequency="5"
+                         sigfigs="-1"
                 />
 
         <feedbackBlock outcomeIdentifier="responses.graphTest.outcome.incorrect">

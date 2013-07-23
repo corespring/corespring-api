@@ -6,7 +6,7 @@ import xml.Node
 import qti.models.QtiItem.Correctness
 import java.util.regex.Pattern
 
-case class LineInteraction(responseIdentifier: String, override val locked:Boolean) extends Interaction{
+case class LineInteraction(responseIdentifier: String, override val locked:Boolean, sigfigs:Int = -1) extends Interaction{
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse):Option[ItemResponseOutcome] = {
     if (locked) None else getOutcomeUnlocked(responseDeclaration, response)
   }
@@ -50,7 +50,14 @@ case class LineInteraction(responseIdentifier: String, override val locked:Boole
           val ptb = responseValue(1).split(",").map(_.toDouble)
           val slope = (pta(1) - ptb(1))/(pta(0) - ptb(0))
           val yintercept = pta(1) - (slope * pta(0))
-          val equation = "y="+slope+"x+"+yintercept
+          val equation:String = if(sigfigs < 0) {
+            "y="+slope+"x+"+yintercept
+          }else{
+            val multiplier:Double = scala.math.pow(10, sigfigs)
+            val roundedSlope = scala.math.floor(slope * multiplier) / multiplier
+            val roundedYintercept = scala.math.floor(yintercept * multiplier) / multiplier
+            "y="+roundedSlope+"x+"+roundedYintercept
+          }
           rd.mapping match {
             case Some(mapping) => Some(
               ItemResponseOutcome(mapping.mappedValue(equation),
@@ -79,7 +86,11 @@ object LineInteraction extends InteractionCompanion[LineInteraction]{
   def apply(interaction: Node, itemBody: Option[Node]): LineInteraction = {
     LineInteraction(
       (interaction \ "@responseIdentifier").text,
-      !(interaction \ "@locked").text.isEmpty
+      !(interaction \ "@locked").text.isEmpty,
+      (interaction \ "@sigfigs").text match {
+        case sigfigs if sigfigs.forall(_.isDigit) => sigfigs.toInt
+        case _ => -1
+      }
     )
 
   }

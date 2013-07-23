@@ -2,16 +2,7 @@ angular.module("qti.directives").directive("pointinteraction", function(){
     return {
         template: [
         "<div class='graph-interaction'>",
-        "   <div class='points-display'>",
-        "       <div class='point-display'>",
-        "           <p>y-intercept:</p>",
-        "           <p>x: </p>",
-        "           <input type='text' style='width: 80px;', ng-model='yintercept.x' ng-disabled='outcomeReturned'>",
-        "           <p>y: </p>",
-        "           <input type='text' style='width: 80px;' ng-model='yintercept.y'  ng-disabled='outcomeReturned'>",
-        "       </div>",
-        "   </div>",
-        "   <div jsx-graph graph-callback='graphCallback' interaction-callback='interactionCallback' max-points='1'></div>",
+        "   <div jsx-graph graph-callback='graphCallback' interaction-callback='interactionCallback'></div>",
         "</div>"].join("\n"),
         restrict: 'E',
         scope: true,
@@ -24,19 +15,29 @@ angular.module("qti.directives").directive("pointinteraction", function(){
                  }
             });
             $scope.interactionCallback = function(params){
-                if(params.points.A){
-                    $scope.yintercept = params.points.A
+                if(params.points){
+                    function round(coord){
+                         var px = coord.x
+                         var py = coord.y
+                         if(px > $scope.domain){px = $scope.domain }
+                         else if(px < (0 - $scope.domain)){px = 0 - $scope.domain }
+                         if(py > $scope.range) {py = $scope.range }
+                         else if(py < (0 - $scope.range)) {py = 0 - $scope.range }
+                         if($scope.sigfigs > -1) {
+                             var multiplier = Math.pow(10,$scope.sigfigs)
+                             px = Math.round(px*multiplier) / multiplier
+                             py = Math.round(py*multiplier) / multiplier
+                         }
+                         return {x: px,y: py}
+                    }
+                    $scope.pointResponse = _.map(params.points,function(coord){
+                        var newCoord = round(coord)
+                        return newCoord.x+","+newCoord.y
+                    })
                     $scope.graphCallback({submission:{clearBorder: true}})
-                    $scope.pointResponse = $scope.yintercept.x+","+$scope.yintercept.y
                     $scope.controller.setResponse($scope.responseIdentifier, $scope.pointResponse)
                 } else $scope.pointResponse = null
             }
-            $scope.$watch('yintercept', function(yintercept){
-              function checkCoords(coords){
-                  return coords && !isNaN(coords.x) && !isNaN(coords.y)
-              }
-              if($scope.graphCallback && checkCoords(yintercept)) $scope.graphCallback({points: {A: yintercept}})
-            }, true)
             $scope.$on("formSubmitted",function(){
                 if(!$scope.locked){
                    $scope.outcomeReturned = true
@@ -55,20 +56,26 @@ angular.module("qti.directives").directive("pointinteraction", function(){
         compile: function(element, attrs, transclude){
             var width = attrs.graphWidth?attrs.graphWidth:"300px"
             var height = attrs.graphHeight?attrs.graphHeight:"300px"
+            var domain = parseInt(attrs.domain?attrs.domain:10)
+            var range = parseInt(attrs.range?attrs.range:10)
             var graphAttrs = {
-                                 domain: parseInt(attrs.domain?attrs.domain:10),
-                                 range: parseInt(attrs.range?attrs.range:10),
+                                 domain: domain,
+                                 range: range,
                                  scale: parseFloat(attrs.scale?attrs.scale:1),
                                  domainLabel: attrs.domainLabel,
                                  rangeLabel: attrs.rangeLabel,
                                  tickLabelFrequency: attrs.tickLabelFrequency,
-                                 pointLabels: attrs.pointLabels
+                                 pointLabels: attrs.pointLabels,
+                                 maxPoints: attrs.maxPoints
                              }
             element.find('[jsx-graph]').css({width: width, height: height})
             element.find('[jsx-graph]').attr(graphAttrs)
             //element.find("#initialParams").remove()
             return function(scope, element, attrs, AssessmentItemController){
                 scope.scale = graphAttrs.scale;
+                scope.domain = domain
+                scope.range = range
+                scope.sigfigs = parseInt(attrs.sigfigs?attrs.sigfigs:-1)
                 scope.responseIdentifier = attrs.responseidentifier;
                 scope.controller = AssessmentItemController
                 scope.controller.registerInteraction(element.attr('responseIdentifier'), "line graph", "graph")

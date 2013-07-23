@@ -33,7 +33,7 @@ return {
         domain: parseInt(attr.domain?attr.domain:10),
         range: parseInt(attr.range?attr.range:10),
         scale: parseFloat(attr.scale?attr.scale:1),
-        maxPoints: parseInt(attr.maxPoints?attr.maxPoints:null),
+        maxPoints: parseInt(attr.maxpoints?attr.maxpoints:null),
         domainLabel: attr.domainlabel,
         rangeLabel: attr.rangelabel,
         tickLabelFrequency: parseInt(attr.ticklabelfrequency?attr.ticklabelfrequency:5),

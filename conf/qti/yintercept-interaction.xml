@@ -1,19 +1,21 @@
 <assessmentItem>
     <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
     <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
-    <responseDeclaration identifier="yinterceptTest" baseType="string" cardinality="single">
+    <responseDeclaration identifier="yinterceptTest" baseType="string" cardinality="ordered">
         <correctResponse>
-            <value>0,7</value>
+            <value>0,6</value>
+            <value>-3,0</value>
         </correctResponse>
     </responseDeclaration>
     <itemBody>
 
-        Give the y-intercept of y=2x+7
+        Give the y-intercept of y=2x+6
         <pointInteraction jsxgraphcore=""
                          responseIdentifier="yinterceptTest"
                          graph-width="300px"
                          graph-height="300px"
-                         point-labels="y-intercept"
+                         point-labels="y-intercept,x-intercept"
+                         max-points="2"
                 />
 
         <feedbackBlock outcomeIdentifier="responses.yinterceptTest.outcome.incorrect">

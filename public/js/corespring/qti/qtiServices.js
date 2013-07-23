@@ -170,16 +170,18 @@ angular.module('qti.services').factory('Canvas', function() {
                          keepaspectratio: true
                        });
     var axisAttrs = {ticks: {minorTicks: attrs.tickLabelFrequency-1, drawLabels: true}}
-    var domainAxisAttrs = axisAttrs; var rangeAxisAttrs = axisAttrs
+    this.board.create('axis', [[0, 0], [1, 0]], axisAttrs)
+    this.board.create('axis', [[0, 0], [0, 1]], axisAttrs)
     if(attrs.domainLabel){
-        domainAxisAttrs = _.extend(axisAttrs, {withLabel: true, name: attrs.domainLabel, label: {offset: [coords.scrCoords[1]-10,-15]}})
+        var xcoords = new JXG.Coords(JXG.COORDS_BY_USER, [attrs.domain, 0], this.board);
+        var xoffset = new JXG.Coords(JXG.COORDS_BY_SCREEN, [xcoords.scrCoords[1]-((attrs.domainLabel.length*4)+10), xcoords.scrCoords[2]+10], this.board);
+        this.board.create('text', [xoffset.usrCoords[1], xoffset.usrCoords[2], attrs.domainLabel], {fixed: true});
     }
     if(attrs.rangeLabel){
-        rangeAxisAttrs = _.extend(axisAttrs, {withLabel: true, name: attrs.rangeLabel, label: {offset: [-15, coords.scrCoords[1]-10]}})
+        var ycoords = new JXG.Coords(JXG.COORDS_BY_USER, [0, attrs.range], this.board);
+        var yoffset = new JXG.Coords(JXG.COORDS_BY_SCREEN, [ycoords.scrCoords[1]-((attrs.rangeLabel.length*4)+15), ycoords.scrCoords[2]+10], this.board);
+        this.board.create('text', [yoffset.usrCoords[1], yoffset.usrCoords[2], attrs.rangeLabel], {fixed: true})
     }
-    var coords = new JXG.Coords(JXG.COORDS_BY_USER, [0, 0], this.board);
-    this.board.create('axis', [[0, 0], [1, 0]], domainAxisAttrs)
-    this.board.create('axis', [[0, 0], [0, 1]], rangeAxisAttrs)
     this.points = [];
     this.scale = attrs.scale;
     if(attrs.pointLabels){

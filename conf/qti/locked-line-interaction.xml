@@ -13,6 +13,7 @@
                          responseIdentifier="graphTest"
                          graph-width="300px"
                          graph-height="300px"
+                         show-inputs="false"
                          locked="">
             <line>
                 <point>-3,1</point>
