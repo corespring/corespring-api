@@ -41,4 +41,10 @@ run(push)
 
 `cd -`
 
+raise "error" if $?.to_i != 0
+
+`echo pwd`
+
+raise "error" if $?.to_i != 0
+
 
