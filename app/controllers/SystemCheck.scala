@@ -77,9 +77,9 @@ class SystemCheck(s3: S3Service) extends Controller {
     Async {
       Future.firstCompletedOf(Seq(runChecks, timeout)).map {
         case timeout: String => BadRequest("timeout")
-        case Left(_) => BadRequest("..")
         case Right(_) => Ok
         case Left(error : InternalError) => InternalServerError(JsObject(Seq("error" -> JsString("a check failed"),"moreInfo" -> JsString(error.message))))
+        case Left(_) => BadRequest("..")
       }
     }
   }

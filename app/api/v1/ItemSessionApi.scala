@@ -51,12 +51,12 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService
                 } else {
                   val correctResponses = session.sessionData match {
                     case Some(sd) => sd.correctResponses
-                    case None => Seq()
+                    case _ => Seq()
                   }
                   val cr = correctResponses.find(_.id == resp.id) match {
                     case Some(r: ArrayItemResponse) => r.responseValue
                     case Some(r: StringItemResponse) => Seq(r.responseValue)
-                    case None => Seq()
+                    case _ => Seq()
                   }
                   agg(resp.id) = ItemResponseAggregate(resp.id, cr, resp)
                 }

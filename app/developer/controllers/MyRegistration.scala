@@ -15,7 +15,6 @@ import scala.Some
 import securesocial.controllers.Registration._
 import models.User
 import controllers.auth.Permission
-import org.bson.types.ObjectId
 import play.api.libs.json.{JsString, JsObject}
 import common.config.AppConfig
 

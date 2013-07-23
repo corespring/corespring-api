@@ -20,7 +20,9 @@ object Copyright extends ValueGetter {
     val imageName = "imageName"
   }
 
-  implicit object Reads extends Reads[Copyright] {
+  implicit val Formats = Json.format[Copyright]
+
+/*  implicit object Reads extends Reads[Copyright] {
 
     import Keys._
 
@@ -49,4 +51,5 @@ object Copyright extends ValueGetter {
         ).flatten)
     }
   }
+  */
 }

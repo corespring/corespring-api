@@ -26,8 +26,8 @@ object ContributorDetails extends ValueGetter {
     val costForResource = "costForResource"
   }
 
-
-  implicit object Reads extends Reads[ContributorDetails] {
+  implicit val Formats = Json.format[ContributorDetails]
+/*  implicit object Reads extends Reads[ContributorDetails] {
 
     import Keys._
 
@@ -70,5 +70,5 @@ object ContributorDetails extends ValueGetter {
 
       objects.tail.foldRight(objects.head)(_ ++ _)
     }
-  }
+  }*/
 }

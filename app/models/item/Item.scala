@@ -121,7 +121,7 @@ object Item {
 
     import Keys._
 
-    def reads(json: JsValue): Item = {
+    def reads(json: JsValue): JsResult[Item] = {
       val item = Item()
 
       item.collectionId = (json \ collectionId).asOpt[String].getOrElse("")
@@ -151,7 +151,7 @@ object Item {
       } catch {
         case e: Throwable => throw new JsonValidationException(id)
       }
-      item
+      JsSuccess(item)
     }
   }
 

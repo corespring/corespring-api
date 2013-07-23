@@ -80,11 +80,11 @@ object TestHarness extends BaseApi with SecureSocial {
           val protocol = if (root.startsWith("https")) "https" else "http"
 
           val mockHeaders = new Headers {
-            def keys: Set[String] = Set("x-forward-proto=" + protocol)
+            override def keys: Set[String] = Set("x-forward-proto=" + protocol)
 
-            def getAll(key: String): Seq[String] = {
-              Seq(protocol)
-            }
+            protected def data: Seq[(String, Seq[String])] = Seq()
+
+            override def getAll(key: String): Seq[String] = Seq(protocol)
           }
 
           val request = new SimplePostRequest[AnyContentAsFormUrlEncoded](

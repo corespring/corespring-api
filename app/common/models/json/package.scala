@@ -7,16 +7,16 @@ import play.api.libs.json._
 package object json {
 
   implicit object ObjectIdReads extends Reads[ObjectId] {
-    def reads(js: JsValue): ObjectId = {
+    def reads(js: JsValue): JsResult[ObjectId] = {
       if (ObjectId.isValid(js.as[String]))
-        new ObjectId(js.as[String])
+        JsSuccess(new ObjectId(js.as[String]))
       else
-        throw new RuntimeException("Invalid object id")
+        JsError("Invalid object id")
     }
   }
 
   implicit object ObjectIdWrites extends Writes[ObjectId] {
-    def writes(oid: ObjectId): JsValue = JsObject(Seq("$oid" -> JsString(oid.toString)))
+    def writes(oid: ObjectId): JsValue = JsString(oid.toString)
   }
 
 }

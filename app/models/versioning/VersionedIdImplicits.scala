@@ -9,9 +9,9 @@ object VersionedIdImplicits {
 
   implicit object Reads extends Reads[VersionedId[ObjectId]] {
 
-    def reads(json: JsValue): VersionedId[ObjectId] = {
+    def reads(json: JsValue): JsResult[VersionedId[ObjectId]] = {
       json match {
-        case JsString(text) => Binders.stringToVersionedId(text).getOrElse(throw new RuntimeException("Can't parse json"))
+        case JsString(text) => Binders.stringToVersionedId(text).map(JsSuccess(_)).getOrElse(throw new RuntimeException("Can't parse json"))
         case _ => throw new RuntimeException("Can't parse json: " + json)
       }
     }

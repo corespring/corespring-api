@@ -9,7 +9,6 @@ import org.bson.types.ObjectId
 import play.api.libs.json._
 import play.api.mvc._
 import scala._
-import securesocial.core._
 import models.auth.ApiClient
 import scala.Left
 import play.api.libs.json.JsString
