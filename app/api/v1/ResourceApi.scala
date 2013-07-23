@@ -293,13 +293,27 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
     }
   )
 
-  def key(itemId : String, keys : String*) : String = {
+  /** Create the storage key for the resource.
+    * The key must have the format:
+    * - data resources: $itemId/$version/data/$filename
+    * - supporting materials: $itemId/$version/materials/$resourceName/$filename
+    *
+    * It finds the actual versionedId stored in the db - to ensure that the version is part of the storageKey.
+    * @param itemId - a string representation of the versioned id
+    * @param keys - the subfolders
+    */
+  private def key(itemId : String, keys : String*) : String = {
 
-    if(itemId.contains(":")){
-      (itemId.split(":") ++ keys).mkString("/")
-    } else {
-      (List(itemId) ++ keys).mkString("/")
-    }
+    val someItem : Option[Item] = for{
+      vId <- convertStringToVersionedId(itemId)
+      item <- service.findOneById(vId)
+    } yield item
+
+    someItem.map{ i =>
+      require(i.id.version.isDefined, "The version must be defined" )
+      (Seq(i.id.id.toString, i.id.version.get) ++ keys).mkString("/")
+    }.getOrElse( throw new RuntimeException("Can't find item by id: " + itemId))
+
   }
 
   /**
