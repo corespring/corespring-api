@@ -38,24 +38,24 @@ return {
         rangeLabel: attr.rangelabel,
         tickLabelFrequency: parseInt(attr.ticklabelfrequency?attr.ticklabelfrequency:5),
         pointLabels: attr.pointlabels
-    }
+    };
     var canvas = new Canvas("box", canvasAttrs);
     var lockGraph = false;
-    var points = {}
+    var points = {};
     var onPointMove = function(point, coords) {
       if(!lockGraph){
           if(coords != null) point.moveTo([coords.x, coords.y]);
           points[point.name] = {x: point.X(), y: point.Y()};
-          scope.interactionCallback({points: points})
+          scope.interactionCallback({points: points});
       }
     };
     var addPoint = function(coords, ptName) {
       if(!lockGraph){
         var point = canvas.addPoint(coords, ptName);
         point.on('up',function(e){
-            onPointMove(point)
+            onPointMove(point);
         })
-        onPointMove(point)
+        onPointMove(point);
         return point;
       }
     };
@@ -97,10 +97,10 @@ return {
         }
         if(params.drawShape){
              if(params.drawShape.line && !lockGraph){
-                 var pt1 = canvas.getPoint(params.drawShape.line[0])
-                 var pt2 = canvas.getPoint(params.drawShape.line[1])
+                 var pt1 = canvas.getPoint(params.drawShape.line[0]);
+                 var pt2 = canvas.getPoint(params.drawShape.line[1]);
                  if(pt1 && pt2){
-                     canvas.makeLine([pt1,pt2])
+                     canvas.makeLine([pt1,pt2]);
                  }
              }
         }
@@ -112,8 +112,8 @@ return {
              }else{
                  if(params.submission.lockGraph){
                      _.each(canvas.points,function(p){
-                         p.setAttribute({fixed: true})
-                     })
+                         p.setAttribute({fixed: true});
+                     });
                      lockGraph = true;
                  }
                  if(params.submission.isCorrect){
@@ -123,7 +123,7 @@ return {
                  }
              }
         }
-    }
+    };
   }
 };
 });

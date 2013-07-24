@@ -169,9 +169,9 @@ angular.module('qti.services').factory('Canvas', function() {
                          zoom: false,
                          keepaspectratio: true
                        });
-    var axisAttrs = {ticks: {minorTicks: attrs.tickLabelFrequency-1, drawLabels: true}}
-    this.board.create('axis', [[0, 0], [1, 0]], axisAttrs)
-    this.board.create('axis', [[0, 0], [0, 1]], axisAttrs)
+    var axisAttrs = {ticks: {minorTicks: attrs.tickLabelFrequency-1, drawLabels: true}};
+    this.board.create('axis', [[0, 0], [1, 0]], axisAttrs);
+    this.board.create('axis', [[0, 0], [0, 1]], axisAttrs);
     if(attrs.domainLabel){
         var xcoords = new JXG.Coords(JXG.COORDS_BY_USER, [attrs.domain, 0], this.board);
         var xoffset = new JXG.Coords(JXG.COORDS_BY_SCREEN, [xcoords.scrCoords[1]-((attrs.domainLabel.length*4)+10), xcoords.scrCoords[2]+10], this.board);
@@ -180,13 +180,15 @@ angular.module('qti.services').factory('Canvas', function() {
     if(attrs.rangeLabel){
         var ycoords = new JXG.Coords(JXG.COORDS_BY_USER, [0, attrs.range], this.board);
         var yoffset = new JXG.Coords(JXG.COORDS_BY_SCREEN, [ycoords.scrCoords[1]-((attrs.rangeLabel.length*4)+15), ycoords.scrCoords[2]+10], this.board);
-        this.board.create('text', [yoffset.usrCoords[1], yoffset.usrCoords[2], attrs.rangeLabel], {fixed: true})
+        this.board.create('text', [yoffset.usrCoords[1], yoffset.usrCoords[2], attrs.rangeLabel], {fixed: true});
     }
     this.points = [];
     this.scale = attrs.scale;
     if(attrs.pointLabels){
-        this.pointLabels = attrs.pointLabels
-    } else this.pointLabels = 'letters'
+        this.pointLabels = attrs.pointLabels;
+    } else{
+        this.pointLabels = 'letters';
+    }
   }
   Canvas.prototype.getMouseCoords = function(e) {
     var coords = new JXG.Coords(JXG.COORDS_BY_SCREEN, [e.offsetX, e.offsetY], this.board);
@@ -194,7 +196,7 @@ angular.module('qti.services').factory('Canvas', function() {
       x: coords.usrCoords[1],
       y: coords.usrCoords[2]
     };
-    return simpleCoords
+    return simpleCoords;
   };
   Canvas.prototype.getPoint = function(ptName){
     return _.find(this.points, function(p){
@@ -220,28 +222,28 @@ angular.module('qti.services').factory('Canvas', function() {
   };
 
   Canvas.prototype.addPoint = function(coords, ptName) {
-    var pointAttrs = {snapToGrid: true, snapSizeX: this.scale, snapSizeY: this.scale, showInfobox: false, withLabel:false}
+    var pointAttrs = {snapToGrid: true, snapSizeX: this.scale, snapSizeY: this.scale, showInfobox: false, withLabel:false};
     var point = this.board.create('point', [coords.x, coords.y], pointAttrs);
     this.points.push(point);
     var name = (function(labels,points){
         if(ptName){
-            return ptName
+            return ptName;
         } else if(typeof labels === "string"){
             if(labels === "numbers"){
-                return points.length+"."
+                return points.length+".";
             } else if(labels === "letters"){
-                return point.name
+                return point.name;
             } else{
-                return labels.split(",")[points.length-1]
+                return labels.split(",")[points.length-1];
             }
         }
-    })(this.pointLabels, this.points)
+    })(this.pointLabels, this.points);
     //in order to get correct offset for text, we must find origin point and offset by screen coordinates,
     //then apply the offset to the point coordinates to get the correct position of text
     var origin = new JXG.Coords(JXG.COORDS_BY_USER, [0, 0], this.board);
     var offset = new JXG.Coords(JXG.COORDS_BY_SCREEN, [origin.scrCoords[1]-22, origin.scrCoords[2]-15], this.board);
     this.board.create('text', [function(){return point.X()+offset.usrCoords[1];}, function(){return point.Y()+offset.usrCoords[2];},
-    function () { return name+' ('+point.X()+','+point.Y()+')'; }], {fixed: true});
+        function () { return name+' ('+point.X()+','+point.Y()+')'; }], {fixed: true});
     return point;
   };
 
