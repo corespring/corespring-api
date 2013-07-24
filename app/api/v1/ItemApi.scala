@@ -244,7 +244,8 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
    */
   private def saveItem(item: Item, createNewVersion: Boolean): Option[Item] = {
     service.save(item, createNewVersion)
-    service.findOneById(VersionedId(item.id.id))
+    val vid : VersionedId[ObjectId] = item.id.copy(version = None)
+    service.findOneById(vid)
   }
 
   def get(id: VersionedId[ObjectId], detail: Option[String] = Some("normal")) = ItemApiAction(id, Permission.Read) {

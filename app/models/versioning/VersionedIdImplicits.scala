@@ -18,7 +18,13 @@ object VersionedIdImplicits {
 
   implicit object Writes extends Writes[VersionedId[ObjectId]] {
     def writes(id: VersionedId[ObjectId]): JsValue = {
-      val out = id.id.toString + id.version.map(":"+ _).getOrElse("")
+
+      /** Note: We are experiencing some weird runtime boxing/unboxing which means that
+        * sometimes the version is passed as Some(Long) instead of Some(Int)
+        * To work around this we cast to Any
+        * TODO: find out what is causing this? new scala version? new play version?
+        */
+      val out = id.id.toString + id.version.map{ v : Any => ":"+ v.toString}.getOrElse("")
       JsString(out)
     }
   }

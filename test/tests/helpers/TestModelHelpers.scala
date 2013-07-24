@@ -80,13 +80,13 @@ trait TestModelHelpers {
 
   def testOrg = new Organization("test")
 
-  def secureSocialCookie(u: Option[User]): Cookie = u.map{ user =>
+  def secureSocialCookie(u: Option[User]): Option[Cookie] = u.map{ user =>
       val authenticator : Authenticator = Authenticator.create(CoreSpringUserService.toIdentity(user)) match {
         case Left(e) => throw new RuntimeException(e)
         case Right(a) => a
       }
       authenticator.toCookie
-  }.getOrElse(throw new RuntimeException("Error creating cookie"))
+  }
 
 
   def tokenFormBody(id: String, secret: String, username: String, grantType: Option[String] = None): Array[(String, String)] = {

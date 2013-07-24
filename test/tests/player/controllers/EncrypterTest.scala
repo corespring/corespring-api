@@ -9,17 +9,16 @@ import play.api.test.{FakeHeaders, FakeRequest}
 import player.accessControl.models.{RequestedAccess, RenderOptions}
 import tests.BaseTest
 import player.controllers.Encrypter
-import utils.RequestCalling
 
-class EncrypterTest extends BaseTest with RequestCalling {
+class EncrypterTest extends BaseTest {
 
 
   "encrypter" should {
 
-    val update: Call = player.controllers.routes.Encrypter.encryptOptions()
+    val action = player.controllers.Encrypter.encryptOptions()
     val renderOptions = RenderOptions("50083ba9e4b071cb5ef79101", "502d0f823004deb7f4f53be7", "*", "student", 0, RequestedAccess.Mode.Render)
-    val fakeRequest = FakeRequest(update.method, tokenize(update.url), FakeHeaders(), AnyContentAsJson(Json.toJson(renderOptions)))
-    val Some(result) = routeAndCall(fakeRequest)
+    val fakeRequest = FakeRequest("ignore", tokenize("ignore"), FakeHeaders(), AnyContentAsJson(Json.toJson(renderOptions)))
+    val result = action(fakeRequest)
 
     "call using an access token" in {
       status(result) === OK
@@ -45,7 +44,7 @@ class EncrypterTest extends BaseTest with RequestCalling {
 
     "return a key that contains encrypted options that can be decrypted using the client secret to equal the constraints sent" in {
       val optionsString: Option[String] = encrypted.map(AESCrypto.decrypt(_, apiClient.clientSecret))
-      val decryptedOptions: Option[RenderOptions] = optionsString.map(options => getData[RenderOptions](Json.fromJson[RenderOptions](Json.parse(options))))
+      val decryptedOptions: Option[RenderOptions] = optionsString.map(options => (Json.parse(options)).as[RenderOptions])
       decryptedOptions === Some(renderOptions)
     }
 

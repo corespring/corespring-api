@@ -19,7 +19,7 @@ class DeveloperTest extends BaseTest with TestModelHelpers with PackageLogging{
   "Developer" should {
 
     "redirects to organization form when user belongs to demo org" in new MockUser{
-      val request = fakeRequest().withCookies(secureSocialCookie(Some(user)))
+      val request = fakeRequest().withCookies(secureSocialCookie(Some(user)).toList : _*)
       val result = Developer.home(request)
       status(result) must equalTo(SEE_OTHER)
       headers(result).get("Location") must beEqualTo(Some("/developer/org/form"))
@@ -28,10 +28,10 @@ class DeveloperTest extends BaseTest with TestModelHelpers with PackageLogging{
     "return developer/home when user has registered org" in new MockUser{
       val orgName = """{"name":"%s"}""".format(testOrgName)
       val json = Json.parse(orgName)
-      val createRequest = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)))
+      val createRequest = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList : _*)
       val createResult = Developer.createOrganization()(createRequest)
       status(createResult) === OK
-      val request = fakeRequest().withCookies(secureSocialCookie(Some(user)))
+      val request = fakeRequest().withCookies(secureSocialCookie(Some(user)).toList : _*)
       val result = Developer.home(request)
       status(result) must equalTo(OK)
     }
@@ -39,7 +39,7 @@ class DeveloperTest extends BaseTest with TestModelHelpers with PackageLogging{
     "create only one org" in new MockUser {
       val orgName = """{"name":"%s"}""".format(testOrgName)
       val json = Json.parse(orgName)
-      val request = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)))
+      val request = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList : _*)
       status(Developer.createOrganization()(request)) === OK
       status(Developer.createOrganization()(request)) === BAD_REQUEST
     }
