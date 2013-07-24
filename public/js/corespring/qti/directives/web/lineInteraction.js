@@ -39,7 +39,7 @@ angular.module("qti.directives").directive("lineinteraction", function(){
         template: [
         "<div class='graph-interaction'>",
         "   <div class='row'>",
-        "       <div class='span3' ng-show=showInputs>",
+        "       <div class='span3' ng-show='showInputs'>",
         "           <div class='point-display'>",
         "              <p>Point A:</p>",
         "              <p>x: </p>",
@@ -55,7 +55,7 @@ angular.module("qti.directives").directive("lineinteraction", function(){
         "             <input type='text' style='width: 40px;' ng-model='points.B.y' ng-disabled='outcomeReturned'>",
         "          </div>",
         "      </div>",
-        "      <div class='span4 scale-display'>",
+        "      <div class='span4 scale-display' ng-show='showInputs'>",
         "          <p>scale={{scale}}</p>",
         "          <p ng-show='showWholeNumbersMessage'>Decimals and fractions will be rounded to the nearest whole number.</p>",
         "      </div>",
