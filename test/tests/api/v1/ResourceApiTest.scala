@@ -293,7 +293,7 @@ class ResourceApiTest extends BaseTest {
       //First upload should work
       val firstCall = call(create.url, create.method, byteArray,  OK, filename)
       firstCall must equalTo((true, true))
-      //Second call is not acceptable - the file is already existing
+      //Second call is not acceptable - the file already exists
       val secondCall = call(create.url, create.method, byteArray, NOT_FOUND, ApiError.FilenameTaken.message)
       secondCall must equalTo((true, true))
 

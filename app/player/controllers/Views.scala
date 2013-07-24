@@ -130,16 +130,16 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
   protected def renderItem(params: RenderParams) = auth.ValidatedAction(params.toRequestedAccess) {
     tokenRequest =>
       ApiAction {
-        implicit request => prepareHtml(params, params.itemId, request.ctx.organization) match {
+        implicit request => prepareHtml(params, request.ctx.organization) match {
           case Some(html: Html) => Ok(html).withSession(request.session + activeModeCookie(params.sessionMode))
           case None => NotFound("not found")
         }
       }(tokenRequest)
   }
 
-  protected def prepareHtml(params: RenderParams, itemId: VersionedId[ObjectId], orgId: ObjectId): Option[Html] =
+  protected def prepareHtml(params: RenderParams, orgId: ObjectId): Option[Html] =
     try {
-      getItemXMLByObjectId(itemId, orgId) match {
+      getItemXMLByObjectId(params.itemId, orgId) match {
         case Some(xmlData: Elem) => {
           val qtiKeys = QtiKeys((xmlData \ "itemBody")(0))
           val finalXml = prepareQti(xmlData, params.renderingMode)
