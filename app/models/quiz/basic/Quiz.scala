@@ -22,10 +22,10 @@ case class Answer(sessionId: ObjectId, itemId: ObjectId)
 object Answer {
 
   implicit object Reads extends Reads[Answer] {
-    def reads(json: JsValue): Answer = {
-      Answer(new ObjectId((json \ "sessionId").as[String]),
+    override def reads(json: JsValue): JsResult[Answer] = {
+      JsSuccess(Answer(new ObjectId((json \ "sessionId").as[String]),
         new ObjectId((json \ "itemId").as[String])
-      )
+      ))
     }
   }
 
@@ -72,11 +72,11 @@ case class Participant(answers: Seq[Answer],
 object Participant {
 
   implicit object Reads extends Reads[Participant] {
-    def reads(json: JsValue): Participant = {
-      new Participant(
+    def reads(json: JsValue): JsResult[Participant] = {
+      JsSuccess(new Participant(
         (json \ "answers").as[Seq[Answer]],
         (json \ "externalUid").as[String]
-      )
+      ))
     }
   }
 
@@ -103,14 +103,14 @@ trait QuestionLike {
   self: ItemServiceClient =>
 
   implicit object Reads extends Reads[Question] {
-    def reads(json: JsValue): Question = {
+    def reads(json: JsValue): JsResult[Question] = {
 
       import models.versioning.VersionedIdImplicits.{Reads => IdReads}
 
-      Question(
+      JsSuccess(Question(
         (json \ "itemId").as[VersionedId[ObjectId]](IdReads),
         (json \ "settings").asOpt[ItemSessionSettings].getOrElse(ItemSessionSettings())
-      )
+      ))
     }
   }
 
@@ -182,17 +182,17 @@ object Quiz {
   }
 
   implicit object Reads extends Reads[Quiz] {
-    def reads(json: JsValue): Quiz = {
+    def reads(json: JsValue): JsResult[Quiz] = {
 
       val participants = (json \ "participants").asOpt[Seq[Participant]].getOrElse(Seq())
 
-      Quiz(
+      JsSuccess(Quiz(
         (json \ "orgId").asOpt[String].map(new ObjectId(_)),
         (json \ "metadata").asOpt[Map[String, String]].getOrElse(Map()),
         (json \ "questions").asOpt[Seq[Question]].getOrElse(Seq()),
         participants,
         (json \ "id").asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId())
-      )
+      ))
     }
   }
 

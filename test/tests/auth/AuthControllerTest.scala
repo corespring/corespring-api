@@ -43,7 +43,7 @@ class AuthControllerTest extends BaseTest with TestModelHelpers {
   /** Execute a specs method body once we have a token and tidy up after */
   def withToken(user: User, clientId: String, secret: String, fn: (String => Result), grantType: Option[String] = None): Result = {
     val tokenRequest = FakeRequest(Routes.getAccessToken().method, Routes.getAccessToken().url)
-      .withSession(secureSocialSession(Some(user)): _*)
+      .withCookies(secureSocialCookie(Some(user)))
       .withFormUrlEncodedBody(tokenFormBody(clientId, secret, user.userName, grantType): _*)
 
     routeAndCall(tokenRequest) match {
@@ -61,7 +61,7 @@ class AuthControllerTest extends BaseTest with TestModelHelpers {
 
   def registerRequest(orgId: ObjectId, maybeUser: Option[User] = None): FakeRequest[AnyContentAsFormUrlEncoded] = {
     FakeRequest(Routes.register().method, Routes.register().url)
-      .withSession(secureSocialSession(maybeUser): _*)
+      .withCookies(secureSocialCookie(maybeUser))
       .withFormUrlEncodedBody(OAuthConstants.Organization -> orgId.toString)
   }
 

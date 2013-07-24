@@ -34,9 +34,9 @@ object ItemSessionSettings {
 
   implicit object Reads extends Reads[ItemSessionSettings] {
 
-    def reads(json:JsValue) : ItemSessionSettings = {
+    override def reads(json:JsValue) : JsResult[ItemSessionSettings] = {
       val default = ItemSessionSettings()
-      ItemSessionSettings(
+      JsSuccess(ItemSessionSettings(
         (json\"maxNoOfAttempts").asOpt[Int].getOrElse(default.maxNoOfAttempts),
         (json\"highlightUserResponse").asOpt[Boolean].getOrElse(default.highlightUserResponse),
         (json\"highlightCorrectResponse").asOpt[Boolean].getOrElse(default.highlightCorrectResponse),
@@ -44,7 +44,7 @@ object ItemSessionSettings {
         (json\"allowEmptyResponses").asOpt[Boolean].getOrElse(default.allowEmptyResponses),
         (json\"submitCompleteMessage").asOpt[String].getOrElse(default.submitCompleteMessage),
         (json\"submitIncorrectMessage").asOpt[String].getOrElse(default.submitIncorrectMessage)
-      )
+      ))
     }
   }
   implicit object Writes extends Writes[ItemSessionSettings]{

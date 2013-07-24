@@ -1,43 +1,40 @@
 package utils
 
-import play.api.mvc.{Results, Result, AnyContent}
-import play.mvc.Call
-import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.libs.json._
-import play.api.test.Helpers._
+import play.api.mvc._
 import play.api.test.FakeHeaders
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
 
 trait RequestCalling {
 
-  val token = "test_token"
+  val accessToken = "test_token"
 
-  lazy val FakeAuthHeader = FakeHeaders(Map("Authorization" -> Seq("Bearer " + token)))
+  lazy val FakeAuthHeader = FakeHeaders(Seq("Authorization" -> Seq("Bearer " + accessToken)))
 
   /** Invoke a fake request - parse the response from json to type T
-    * @param call
-    * @param content
-    * @param args
-    * @param reads
-    * @param writes
-    * @tparam T
     * @return the typed instance that was returned
     */
-  def invokeCall[T](call: Call, content: AnyContent, args: (String, String)*)(implicit reads: Reads[T], writes: Writes[T]): T = {
+  def invokeCall[T](action: Action[AnyContent], content: AnyContent)(implicit reads: Reads[T], writes: Writes[T]): T = {
 
-    val url = call.url + "?" + args.toList.map((a: (String, String)) => a._1 + "=" + a._2).mkString("&")
-    val request = FakeRequest(
-      call.method,
-      url,
+    val request : Request[AnyContent] = FakeRequest(
+      "ignore",
+      "ignore",
       FakeAuthHeader,
       content)
 
-    val result: Result = routeAndCall(request).get
+    val result: Result = action(request)
 
     if (status(result) == OK) {
       val json: JsValue = Json.parse(contentAsString(result))
-      reads.reads(json)
+      getData(reads.reads(json))
     } else {
-      reads.reads(JsObject(Seq()))
+      getData(reads.reads(JsObject(Seq())))
     }
+  }
+
+  def getData[A](maybeData:JsResult[A]) : A = maybeData match {
+    case JsSuccess(d,_) => d
+    case _ => throw new RuntimeException("couldn't read json")
   }
 }

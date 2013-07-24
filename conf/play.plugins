@@ -1,5 +1,7 @@
 500:se.radley.plugin.salat.SalatPlugin
 1500:com.typesafe.plugin.CommonsMailerPlugin
+9994:securesocial.core.DefaultAuthenticatorStore
+9995:securesocial.core.DefaultIdGenerator
 9996:securesocial.core.providers.utils.DefaultPasswordValidator
 9997:developer.controllers.CoreSpringViews
 9998:developer.controllers.CoreSpringUserService

@@ -19,12 +19,12 @@ class MainHelperTest extends Specification {
       val org = Organization(id = id, name = "test")
       val template = """{"id":"${id}","isRoot":false,"name":"test","collections":[]}"""
       val expected = string.interpolate(template, string.replaceKey(Map("id" -> id.toString)), string.DollarRegex)
-      MainHelper.toFullJson(org).text === expected
+      MainHelper.toFullJson(org).body === expected
     }
 
     "write safe xml " in {
       val xml = <root name="test">hello \ there \n</root>
-      MainHelper.safeXml(xml.toString).text === """<root name=\"test\">hello \\ there \\n</root>"""
+      MainHelper.safeXml(xml.toString).body === """<root name=\"test\">hello \\ there \\n</root>"""
     }
   }
 

@@ -32,7 +32,7 @@ object Resource{
   }
 
   implicit object ResourceReads extends Reads[Resource] {
-    def reads(json: JsValue): Resource = {
+    def reads(json: JsValue): JsResult[Resource] = {
       val resourceName = (json \ "name").as[String]
       val files = (json \ "files").asOpt[Seq[JsValue]].map(_.map(f => {
 
@@ -44,7 +44,7 @@ object Resource{
           case _ => StoredFile(fileName, contentType, isMain, (f \ "storageKey").asOpt[String].getOrElse(""))
         }
       }))
-      Resource(resourceName, files.getOrElse(Seq()))
+      JsSuccess(Resource(resourceName, files.getOrElse(Seq())))
     }
   }
 }

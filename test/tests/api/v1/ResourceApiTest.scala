@@ -30,7 +30,7 @@ class ResourceApiTest extends BaseTest {
       tokenFakeRequest(
         method,
         url,
-        FakeHeaders(Map("Content" -> List("application/octet-stream"))),
+        FakeHeaders(Seq("Content" -> List("application/octet-stream"))),
         byteArray)) match {
       case Some(result) => {
         val simpleResult = result.asInstanceOf[SimpleResult[JsValue]]

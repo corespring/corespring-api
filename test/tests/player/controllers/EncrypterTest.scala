@@ -9,8 +9,9 @@ import play.api.test.{FakeHeaders, FakeRequest}
 import player.accessControl.models.{RequestedAccess, RenderOptions}
 import tests.BaseTest
 import player.controllers.Encrypter
+import utils.RequestCalling
 
-class EncrypterTest extends BaseTest {
+class EncrypterTest extends BaseTest with RequestCalling {
 
 
   "encrypter" should {
@@ -44,7 +45,7 @@ class EncrypterTest extends BaseTest {
 
     "return a key that contains encrypted options that can be decrypted using the client secret to equal the constraints sent" in {
       val optionsString: Option[String] = encrypted.map(AESCrypto.decrypt(_, apiClient.clientSecret))
-      val decryptedOptions: Option[RenderOptions] = optionsString.map(options => Json.fromJson[RenderOptions](Json.parse(options)))
+      val decryptedOptions: Option[RenderOptions] = optionsString.map(options => getData[RenderOptions](Json.fromJson[RenderOptions](Json.parse(options))))
       decryptedOptions === Some(renderOptions)
     }
 

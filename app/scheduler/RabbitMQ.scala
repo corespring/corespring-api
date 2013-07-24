@@ -43,7 +43,7 @@ object RabbitMQ {
     val consumer = new QueueingConsumer(channel);
     channel.basicConsume(GENERAL_QUEUE, false, consumer);
     val deliveryActor = system.actorOf(Props(new Actor {
-      protected def receive = {
+      def receive = {
         case delivery:QueueingConsumer.Delivery => {
           try{
             val msg = new String(delivery.getBody());
@@ -53,7 +53,7 @@ object RabbitMQ {
                   Logger.info("retrieved taskName. finding corresponding task")
                   tasks.get(taskName) match {
                     case Some(task) => system.actorOf(Props(new Actor {
-                      protected def receive = {
+                      def receive = {
                         case data:JsValue => {
                           Logger.info("found task. running.")
                           task.data = data
@@ -94,7 +94,7 @@ object RabbitMQ {
       ))
       import ExecutionContext.Implicits.global
       system.scheduler.schedule(task.initialDelay, task.frequency, system.actorOf(Props(new Actor {
-        protected def receive = {
+        def receive = {
           case data:String => {
             channel.basicPublish("",GENERAL_QUEUE,null,data.getBytes)
           }

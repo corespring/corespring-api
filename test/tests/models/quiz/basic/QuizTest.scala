@@ -9,8 +9,9 @@ import models.itemSession.ItemSessionSettings
 import com.mongodb.casbah.commons.MongoDBObject
 import common.seed.SeedDb
 import org.corespring.platform.data.mongo.models.VersionedId
+import utils.RequestCalling
 
-class QuizTest extends BaseTest{
+class QuizTest extends BaseTest with RequestCalling{
 
   PlaySingleton.start()
 
@@ -47,7 +48,7 @@ class QuizTest extends BaseTest{
       )
 
       val json = Json.toJson(q)
-      val newQ = Json.fromJson[Quiz](json)
+      val newQ : Quiz = getData(Json.fromJson[Quiz](json))
       q.id === newQ.id
       q.orgId === newQ.orgId
       q.questions === newQ.questions

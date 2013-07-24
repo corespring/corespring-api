@@ -8,8 +8,10 @@ import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import org.specs2.execute.{Failure, Result}
 import org.specs2.mutable.After
-import securesocial.core.SecureSocial
+import securesocial.core.{UserId, Authenticator, SecureSocial}
 import play.api.Logger
+import developer.controllers.{CoreSpringUserService, Developer}
+import play.api.mvc.Cookie
 
 trait TestModelHelpers {
 
@@ -78,14 +80,14 @@ trait TestModelHelpers {
 
   def testOrg = new Organization("test")
 
-  def secureSocialSession(u: Option[User]): Array[(String, String)] = u match {
-    case Some(user) => Array(
-      (SecureSocial.UserKey -> user.userName),
-      (SecureSocial.ProviderKey -> "userpass"),
-      (SecureSocial.LastAccessKey -> DateTime.now().toString)
-    )
-    case _ => Array()
-  }
+  def secureSocialCookie(u: Option[User]): Cookie = u.map{ user =>
+      val authenticator : Authenticator = Authenticator.create(CoreSpringUserService.toIdentity(user)) match {
+        case Left(e) => throw new RuntimeException(e)
+        case Right(a) => a
+      }
+      authenticator.toCookie
+  }.getOrElse(throw new RuntimeException("Error creating cookie"))
+
 
   def tokenFormBody(id: String, secret: String, username: String, grantType: Option[String] = None): Array[(String, String)] = {
     val signature = ShaHash.sign(

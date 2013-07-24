@@ -16,50 +16,57 @@ import play.api.libs.json.JsBoolean
 import scala.Some
 import scala.Right
 import play.api.libs.json.JsObject
+import common.log.PackageLogging
+import securesocial.core.{SecureSocial, Authenticator}
+import scalaz.Scalaz._
+import scalaz.{Failure, Success, Validation}
+import developer.controllers.routes.{Developer => DeveloperRoutes}
 
-object Developer extends Controller with BaseApi{
+/**
+ * TODO: remove magic strings
+ */
+object Developer extends Controller with BaseApi with PackageLogging{
 
   def at(path:String,file:String) = Assets.at(path,file)
 
-  //TODO: 2.1.2 Upgrade - User key?
-  val UserKey = "securesocial.user"
-  val ProviderKey = "securesocial.provider"
+  private def userFromRequest(r:Request[AnyContent]) : Option[User] = {
+    val result : Validation[String,User] = for{
+      authenticator <- SecureSocial.authenticatorFromRequest(r).toSuccess("Can't find authenticator")
+      user <- User.getUser(authenticator.userId).toSuccess(s"Can't find user with id: $authenticator.userId")
+    } yield user
+
+    result match {
+      case Success(u) => Some(u)
+      case Failure(e) => {
+        Logger.warn( s"[userFromRequest] - $e")
+        None
+      }
+    }
+  }
 
   def home = Action{implicit request =>
-    request.session.get(UserKey) match {
-      case Some(username) =>
-        User.getUser(username) match {
-        case Some(user) => if(!user.hasRegisteredOrg){
-          Redirect("/developer/org/form")
-        }else{
-          Assets.at("/public/developer", "index.html")(request)
-        }
-        case None => Assets.at("/public/developer", "index.html")(request)
-      }
-      case None => Assets.at("/public/developer", "index.html")(request)
-    }
+
+    val defaultView = at("/public/developer", "index.html")(request)
+
+    userFromRequest(request).map{ u =>
+      if(u.hasRegisteredOrg) defaultView else Redirect(DeveloperRoutes.createOrganizationForm().url)
+    }.getOrElse(defaultView)
   }
 
   def login = Action{ request =>
-    Redirect("/login").withSession(request.session + ("securesocial.originalUrl" -> "/developer/home"));
+    Redirect(securesocial.controllers.routes.LoginPage.login().url).withSession(request.session + ("securesocial.originalUrl" -> "/developer/home"));
   }
 
   def isLoggedIn = Action { request =>
-    val username = request.session.get(UserKey)
-    if(username.isDefined){
-      User.getUser(username.get) match {
-        case Some(user) => {
-          if (user.provider == "userpass"){
-            Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(user.userName))))
-          }else{
-            Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(user.fullName.split(" ")(0)))))
-          }
-        }
-        case None => Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(false))))    //this can occur if the cookies are still set but the user has been deleted
-      }
-    }else{
-      Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(false))))
-    }
+
+    def json(isLoggedIn:Boolean, username:Option[String] = None) = JsObject(Seq("isLoggedIn" -> JsBoolean(isLoggedIn)) ++ username.map( "username" -> JsString(_)))
+
+    userFromRequest(request).map{ u =>
+      val username = Some(if(u.provider == "userpass") u.userName else u.fullName.split(" ")(0))
+      Ok(json(true, username))
+    }.getOrElse(
+     Ok(json(false) )
+    )
   }
 
   def register = Action { request =>
@@ -67,7 +74,8 @@ object Developer extends Controller with BaseApi{
   }
 
   def logout = Action {implicit request =>
-    Redirect("/developer/home").withSession(session - UserKey - ProviderKey)
+    val result = securesocial.controllers.LoginPage.logout(request)
+    Redirect(DeveloperRoutes.home().url)
   }
 
   def getOrganization = SecuredAction{ request =>
@@ -89,7 +97,7 @@ object Developer extends Controller with BaseApi{
     Ok(developer.views.html.org_new(request.user))
   }
 
-  def createOrganization = SecuredAction{ request =>
+  def createOrganization = SecuredAction(false){ request =>
     import scalaz._
     import Scalaz._
 

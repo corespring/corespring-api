@@ -90,7 +90,7 @@ object ItemSession {
 
     import Keys._
 
-    def reads(json: JsValue): ItemSession = {
+    override def reads(json: JsValue): JsResult[ItemSession] = {
 
       val settings = if ((json \ "settings").as[ItemSessionSettings] == null)
         new ItemSessionSettings()
@@ -98,13 +98,13 @@ object ItemSession {
         (json \ "settings").as[ItemSessionSettings]
 
       import VersionedIdImplicits.{Reads => IdReads}
-      ItemSession(
+      JsSuccess(ItemSession(
         itemId = (json \ itemId).asOpt[VersionedId[ObjectId]](IdReads).getOrElse(throw new JsonValidationException("You must have an item id")),
         start = (json \ start).asOpt[Long].map(new DateTime(_)),
         finish = (json \ finish).asOpt[Long].map(new DateTime(_)),
         responses = (json \ responses).asOpt[Seq[ItemResponse]].getOrElse(Seq()),
         id = (json \ "id").asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()),
-        settings = settings)
+        settings = settings))
     }
 
   }

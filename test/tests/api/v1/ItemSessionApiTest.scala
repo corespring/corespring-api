@@ -1,77 +1,43 @@
 package tests.api.v1
 
-import play.api.mvc.AnyContent
-import org.bson.types.ObjectId
-import org.joda.time.DateTime
-import play.api.libs.json._
-import play.api.mvc.AnyContentAsEmpty
-import play.api.mvc.Result
-import play.api.test.{FakeHeaders, FakeRequest}
-import org.specs2.mutable._
-import play.api.test.Helpers._
-import tests.{BaseTest, PlaySingleton}
 import api.ApiError
+import api.v1.ItemSessionApi
+import controllers.InternalError
+import models.itemSession.StringItemResponse
+import models.itemSession._
+import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.joda.time.DateTime
+import org.specs2.mutable._
+import play.api.libs.json._
+import play.api.mvc.AnyContent
+import play.api.mvc.AnyContentAsEmpty
+import play.api.mvc.AnyContentAsJson
+import play.api.test.FakeHeaders
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
 import qti.models._
 import scala.Left
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsString
-import scala.Some
-import controllers.InternalError
 import scala.Right
-import play.api.mvc.AnyContentAsJson
-import play.api.libs.json.JsObject
-import models.itemSession.{DefaultItemSession, StringItemResponse, ItemSessionSettings, ItemSession}
+import scala.Some
+import tests.BaseTest
 import utils.RequestCalling
-import play.mvc.Call
-import org.corespring.platform.data.mongo.models.VersionedId
-import api.v1.ItemSessionApi
 
-class ItemSessionApiTest extends BaseTest{
+class ItemSessionApiTest extends BaseTest with RequestCalling {
 
   val Routes = api.v1.routes.ItemSessionApi
-
-  lazy val FakeAuthHeader = FakeHeaders(Map("Authorization" -> Seq("Bearer " + token)))
-
-  /** Invoke a fake request - parse the response from json to type T
-    * @param call
-    * @param content
-    * @param args
-    * @param reads
-    * @param writes
-    * @tparam T
-    * @return the typed instance that was returned
-    */
-  def invokeCall[T](call: Call, content: AnyContent, args: (String, String)*)(implicit reads: Reads[T], writes: Writes[T]): T = {
-
-    val url = call.url + "?" + args.toList.map((a: (String, String)) => a._1 + "=" + a._2).mkString("&")
-    val request = FakeRequest(
-      call.method,
-      url,
-      FakeAuthHeader,
-      content)
-
-    val result: Result = routeAndCall(request).get
-
-    if (status(result) == OK) {
-      val json: JsValue = Json.parse(contentAsString(result))
-      reads.reads(json)
-    } else {
-      reads.reads(JsObject(Seq()))
-    }
-  }
+  val Api = api.v1.ItemSessionApi
 
   object IDs {
     val Item: String = "511156d38604c9f77da9739d"
     val ItemSession: String = "51116bc7a14f7b657a083c1d"
   }
 
-  def defaultNewSessionContent = AnyContentAsJson(Json.toJson(ItemSession(itemId = versionedId(IDs.Item), id = new ObjectId())))
-
-  def createNewSession(itemId: String = IDs.Item, content: AnyContent = defaultNewSessionContent): ItemSession = {
-
-    val result = ItemSessionApi.create(versionedId(itemId))(FakeRequest("", tokenize(""), FakeHeaders(), content))
-    val json = Json.parse(contentAsString(result))
-    json.as[ItemSession]
+  def createNewSession(itemId: String = IDs.Item, content: AnyContent = AnyContentAsEmpty): ItemSession = {
+    invokeCall[ItemSession](
+      Api.create(versionedId(itemId)),
+      content
+    )
   }
 
   def get(sessionId: String, itemId: String): ItemSession = {
@@ -82,27 +48,24 @@ class ItemSessionApiTest extends BaseTest{
 
   def processResponse(session: ItemSession): ItemSession = {
     invokeCall[ItemSession](
-      Routes.update(session.itemId, session.id),
+      Api.update(session.itemId, session.id, None),
       AnyContentAsJson(Json.toJson(session))
     )
   }
 
   def update(session: ItemSession): ItemSession = {
     invokeCall[ItemSession](
-      Routes.update(session.itemId, session.id),
-      AnyContentAsJson(Json.toJson(session)),
-      ("action", "updateSettings")
+      Api.update(session.itemId, session.id, Some("updateSettings")),
+      AnyContentAsJson(Json.toJson(session))
     )
   }
 
   def begin(s: ItemSession) : ItemSession = {
     invokeCall[ItemSession](
-      Routes.update(s.itemId, s.id),
-      AnyContentAsJson(Json.toJson(s)),
-      ("action", "begin")
+      Api.update(s.itemId, s.id, Some("begin")),
+      AnyContentAsJson(Json.toJson(s))
     )
   }
-
 
   "item session data" should {
 
@@ -126,13 +89,13 @@ class ItemSessionApiTest extends BaseTest{
       )
 
       //First update is fine
-      routeAndCall(updateRequest) match {
+      route(updateRequest) match {
         case Some(result) => status(result) must equalTo(OK)
         case _ => failure("First update didn't work")
       }
 
       //This will fail because a finish has been set for this ItemSession in the previous request.
-      routeAndCall(updateRequest) match {
+      route(updateRequest) match {
         case Some(result) => {
           status(result) must equalTo(BAD_REQUEST)
           val json = Json.parse(contentAsString(result))
@@ -207,8 +170,6 @@ class ItemSessionApiTest extends BaseTest{
 
   "creating and then updating item session" should {
     val newSession = createNewSession()
-
-    val updateCall = api.v1.routes.ItemSessionApi.update(versionedId(IDs.Item), newSession.id)
     val testSession = ItemSession(itemId = versionedId(IDs.Item))
     // add some item responses
     testSession.responses = testSession.responses ++ Seq(StringItemResponse("mexicanPresident", "calderon"))
@@ -216,112 +177,49 @@ class ItemSessionApiTest extends BaseTest{
     testSession.responses = testSession.responses ++ Seq(StringItemResponse("winterDiscontent", "York"))
     testSession.finish = Some(new DateTime())
 
-    val json = Json.toJson(testSession)
+    val updatedSession = update(testSession)
 
-    val getRequest = FakeRequest(
-      updateCall.method,
-      updateCall.url,
-      FakeAuthHeader,
-      AnyContentAsJson(json)
-    )
     import models.itemSession.{DefaultItemSession => IS}
-    val result = routeAndCall(getRequest).get
-    IS.remove(newSession)
+
     val optQtiItem: Either[InternalError, QtiItem] = IS.getXmlWithFeedback(IS.findOneById(newSession.id).get) match {
       case Right(elem) => Right(QtiItem(elem))
       case Left(e) => Left(e)
     }
+
     "create a cached qti xml for the specified item" in {
       optQtiItem must beRight[QtiItem]
     }
 
-
     "return an item session which contains a sessionData property" in {
-      val json: JsValue = Json.parse(contentAsString(result))
-      (json \ "sessionData") match {
-        case JsObject(sessionData) => success
-        case _ => failure
-      }
-    }
-
-    def getFeedbackContents(result: Result): Option[Seq[(String, JsValue)]] = {
-
-      val json: JsValue = Json.parse(contentAsString(result))
-
-      (json \ "sessionData") match {
-        case JsObject(sd) => {
-          sd.find(_._1 == "feedbackContents") match {
-            case Some((_, contents)) => contents match {
-              case JsObject(c) => Some(c)
-              case _ => None
-            }
-            case _ => None
-          }
-        }
-        case _ => None
-      }
+      updatedSession.sessionData must beSome[SessionData]
     }
 
     "return an item session feedback contents with sessionData which contains all feedback elements in the xml which correspond to responses from client" in {
 
-      val newSession = createNewSession()
-      val updateCall = api.v1.routes.ItemSessionApi.update(versionedId(IDs.Item), newSession.id)
       val testSession = ItemSession(itemId = versionedId(IDs.Item))
       // add some item responses
       testSession.responses = testSession.responses ++ Seq(StringItemResponse("winterDiscontent", "York"))
       testSession.finish = Some(new DateTime())
-
-      val getRequest = FakeRequest(
-        updateCall.method,
-        updateCall.url,
-        FakeAuthHeader,
-        AnyContentAsJson(json)
-      )
-      val result = routeAndCall(getRequest).get
-
-      getFeedbackContents(result) match {
-        case Some(seq) => {
-          success
-        }
-        case _ => failure("couldn't find contents")
-      }
-
-    }
-
-    def getCorrectResponses(result: Result): Seq[JsValue] = {
-      val jsonString = contentAsString(result)
-      val json: JsValue = Json.parse(jsonString)
-      (json \ "sessionData") match {
-        case JsObject(sessionData) => sessionData.find(field => field._1 == "correctResponses") match {
-          case Some((_, jscorrectResponses)) => jscorrectResponses match {
-            case JsArray(correctResponses) => correctResponses
-            case _ => throw new RuntimeException("no array found")
-          }
-          case _ => throw new RuntimeException("no field called correctResponses")
-        }
-        case _ => throw new RuntimeException("no sessionData found")
-      }
+      val updatedSession = update(testSession)
+      updatedSession.sessionData.get.feedbackContents.size === 1
     }
 
     "return an item session which contains correctResponse object within sessionData which contains all correct responses available" in {
-      val correctResponses = getCorrectResponses(result)
+      val correctResponses = updatedSession.sessionData.get.correctResponses
 
-      def _jso(id: String, value: JsValue): JsObject = JsObject(Seq("id" -> JsString(id), "value" -> value))
-      def _jsa(s: Seq[String]): JsArray = JsArray(s.map(JsString(_)))
+      def sir(a:String,b:String) : ItemResponse = StringItemResponse(a,b)
+      def air(a:String,b:Seq[String]) : ItemResponse = ArrayItemResponse(a,b)
 
-      val expectedJsValues = Seq(
-        _jso("mexicanPresident", JsString("calderon")),
-        _jso("irishPresident", JsString("higgins")),
-        _jso("rainbowColors", _jsa(Seq("blue", "violet", "red"))),
-        _jso("winterDiscontent", _jsa(Seq("York", "york"))),
-        _jso("wivesOfHenry", _jsa(Seq("aragon", "boleyn", "seymour", "cleves", "howard", "parr"))),
-        _jso("cutePugs", _jsa(Seq("pug1", "pug2", "pug3"))),
-        _jso("manOnMoon", JsString("armstrong"))
+      val expectedValues = Seq(
+        sir("mexicanPresident", "calderon"),
+        sir("irishPresident", "higgins"),
+        air("rainbowColors", Seq("blue", "violet", "red")),
+        air("winterDiscontent", Seq("York", "york")),
+        air("wivesOfHenry", Seq("aragon", "boleyn", "seymour", "cleves", "howard", "parr")),
+        air("cutePugs", Seq("pug1", "pug2", "pug3")),
+        sir("manOnMoon", "armstrong")
       )
-      def jsString(value: JsValue) = Json.stringify(value)
-      val expected = expectedJsValues.map(jsString).mkString("\n")
-      val actual = correctResponses.map(jsString).mkString("\n")
-      expected must equalTo(actual)
+      correctResponses === expectedValues
     }
 
     "support item creation " in {

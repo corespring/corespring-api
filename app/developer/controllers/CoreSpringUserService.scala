@@ -68,20 +68,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
     RegistrationToken.insert(newToken)
   }
 
-  override def findByEmailAndProvider(email: String, providerId: String) = {
-    User.findOne(MongoDBObject(User.email -> email)).map(u =>
-      SocialUser(
-        UserId(u.userName, u.provider),
-        "",
-        "",
-        u.fullName,
-        Some(u.email),
-        None,
-        AuthenticationMethod.UserPassword,
-        passwordInfo = Some(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = u.password))
-      )
-    )
-  }
+  override def findByEmailAndProvider(email: String, providerId: String) = User.findOne(MongoDBObject(User.email -> email)).map(CoreSpringUserService.toIdentity)
 
 
   override def findToken(token: String) = {
@@ -100,5 +87,21 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
   def deleteExpiredTokens(): Unit = {
     val currentTime = new DateTime()
     RegistrationToken.remove(MongoDBObject(RegistrationToken.Expires -> MongoDBObject("$lt" -> currentTime)))
+  }
+}
+
+object CoreSpringUserService{
+
+  def toIdentity(u:User) : Identity = {
+    SocialUser(
+      UserId(u.userName, u.provider),
+      "",
+      "",
+      u.fullName,
+      Some(u.email),
+      None,
+      AuthenticationMethod.UserPassword,
+      passwordInfo = Some(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = u.password))
+    )
   }
 }

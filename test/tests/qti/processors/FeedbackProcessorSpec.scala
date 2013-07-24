@@ -1,18 +1,21 @@
 package tests.qti.processors
 
-import org.specs2.mutable._
-import scala.xml.{Node, Elem, XML, NodeSeq}
-import com.codahale.jerkson.Json.{generate, parse}
-import qti.processors.FeedbackProcessor
 import models.itemSession.FeedbackIdMapEntry
+import org.specs2.mutable._
+import play.api.libs.json.{JsObject, JsString, Json}
+import qti.processors.FeedbackProcessor
+import scala.xml.{Node, Elem, XML, NodeSeq}
 
 class FeedbackProcessorSpec extends Specification {
 
 
-  def jsonFromXml(xml: NodeSeq): String = generate(Map("xmlData" -> xml.toString))
+  def jsonFromXml(xml: NodeSeq): String = Json.stringify(JsObject(Seq("xmlData" -> JsString(xml.toString))))
 
-  def xmlFromJson(jsonData: String): NodeSeq =
-    XML.loadString(parse[Map[String, String]](jsonData).getOrElse("xmlData", ""))
+  def xmlFromJson(jsonData: String): NodeSeq ={
+    val json = Json.parse(jsonData)
+    val map : Map[String,String] = json.as[Map[String,String]]
+    XML.loadString(map.getOrElse("xmlData", ""))
+  }
 
   def getAttributeMap(node: Elem): Map[String, String] =
       node.attributes.map(attribute => (attribute.key, attribute.value(0).text)).toMap

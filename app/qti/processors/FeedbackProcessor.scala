@@ -3,8 +3,6 @@ package qti.processors
 import xml._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 import scala.Some
-import qti.models.{QtiItem}
-import qti.models.interactions.{OrderInteraction, ChoiceInteraction}
 import models.itemSession.FeedbackIdMapEntry
 
 /**
@@ -29,7 +27,8 @@ object FeedbackProcessor extends XmlValidator {
     new RewriteRule {
       override def transform(n: Node): NodeSeq =
         n match {
-          case e: Elem if (FEEDBACK_NODE_LABELS.contains(e.label)) => <a/>.copy(attributes = e.attributes.filter(_.key != identifier)).copy(label = e.label)
+          case e: Elem if (FEEDBACK_NODE_LABELS.contains(e.label)) =>
+              <a/>.copy(attributes = e.attributes.filter(_.key != identifier)).copy(label = e.label)
           case n => n
         }
     })
@@ -71,7 +70,7 @@ object FeedbackProcessor extends XmlValidator {
           feedbackMap.mapping = feedbackMap.mapping ++ innerFeedbackMap.mapping
         case other => innerNodes = innerNodes :+ other
       })
-      feedbackMap.elem = Elem(elem.prefix,elem.label,elem.attributes,elem.scope,innerNodes : _*)
+      feedbackMap.elem = Elem(elem.prefix,elem.label,elem.attributes,elem.scope,true,innerNodes : _*)
       feedbackMap
     }
   }
@@ -100,7 +99,7 @@ object FeedbackProcessor extends XmlValidator {
           case innerElem:Elem => innerNodes = innerNodes :+ addFeedbackIds(innerElem,mapping)
           case other => innerNodes = innerNodes :+ other
       })
-      Elem(elem.prefix,elem.label,elem.attributes,elem.scope,innerNodes : _*)
+      Elem(elem.prefix,elem.label,elem.attributes,elem.scope,true,innerNodes : _*)
     }
   }
 
@@ -109,10 +108,6 @@ object FeedbackProcessor extends XmlValidator {
    */
   def removeFeedbackIds(qtiXml: String): String = applyRewriteRuleToXml(qtiXml, feedbackIdentifierRemoverRule)
 
-//  def addOutcomeIdentifiers(qtiXml: Elem): NodeSeq = {
-//    val newXml = applyRewriteRuleToXml(qtiXml, new FeedbackOutcomeIdentifierInserter(QtiItem(qtiXml)))
-//    newXml
-//  }
 
   def filterFeedbackContent(xml: NodeSeq):NodeSeq = removeResponsesTransformer.transform(xml)
 
@@ -137,7 +132,7 @@ object FeedbackProcessor extends XmlValidator {
     new RuleTransformer(rewriteRule).transform(xml)
 
   private def applyRewriteRuleToXml(xmlString: String, rewriteRule: RewriteRule): String =
-    applyRewriteRuleToXml(XML.loadString(xmlString), rewriteRule).toString
+    applyRewriteRuleToXml(XML.loadString(xmlString), rewriteRule).toString()
 
 
   /**

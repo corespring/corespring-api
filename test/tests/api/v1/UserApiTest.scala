@@ -1,28 +1,19 @@
 package tests.api.v1
 
 import play.api.libs.json.{JsValue, Json}
-import play.api.Logger
 import play.api.mvc.AnyContentAsJson
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.FakeHeaders
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
-import play.api.test.FakeHeaders
-import play.api.mvc.AnyContentAsJson
-import scala.Some
 import tests.BaseTest
-import models.{UserOrg, User}
-import com.mongodb.casbah.Imports._
-import play.api.test.FakeHeaders
-import scala.Some
-import play.api.mvc.AnyContentAsJson
-import org.bson.types.ObjectId
-import controllers.auth.Permission
+import utils.RequestCalling
 
 /**
  * User API Tests
  */
 
-object UserApiTest extends BaseTest {
+object UserApiTest extends BaseTest with RequestCalling{
   val userId = "511293b6ef0e8fd55d57ad00"
 
   "list all visible users" in {
@@ -31,7 +22,7 @@ object UserApiTest extends BaseTest {
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
-    val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
+    val users : List[JsValue] = getData( Json.fromJson[List[JsValue]](Json.parse(contentAsString(result))) )
     users must have size 3
   }
 
@@ -42,7 +33,7 @@ object UserApiTest extends BaseTest {
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
-    val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
+    val users : List[JsValue] = getData(Json.fromJson[List[JsValue]](Json.parse(contentAsString(result))))
     users must have size 2
   }
 
@@ -53,7 +44,7 @@ object UserApiTest extends BaseTest {
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
-    val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
+    val users : List[JsValue] = getData(Json.fromJson[List[JsValue]](Json.parse(contentAsString(result))))
     users must have size 2
   }
 
@@ -63,7 +54,7 @@ object UserApiTest extends BaseTest {
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
-    val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
+    val users : List[JsValue] = getData(Json.fromJson[List[JsValue]](Json.parse(contentAsString(result))))
     users.foreach(u => {
       (u \ "userName").asOpt[String] must beSome
       (u \ "fullName").asOpt[String] must beNone
@@ -78,7 +69,7 @@ object UserApiTest extends BaseTest {
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
-    val users = Json.fromJson[List[JsValue]](Json.parse(contentAsString(result)))
+    val users : List[JsValue] = getData(Json.fromJson[List[JsValue]](Json.parse(contentAsString(result))))
     users must have size 1
     (users(0) \ "userName").as[String] must beEqualTo("test_user2")
   }
@@ -89,7 +80,7 @@ object UserApiTest extends BaseTest {
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
-    val user = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
+    val user : JsValue = getData(Json.fromJson[JsValue](Json.parse(contentAsString(result))))
     (user \ "id").as[String] must beEqualTo(userId)
     (user \ "userName").as[String] must beEqualTo("test_user")
 
@@ -111,7 +102,7 @@ object UserApiTest extends BaseTest {
     status(result) must equalTo(OK)
     charset(result) must beSome("utf-8")
     contentType(result) must beSome("application/json")
-    val user = Json.fromJson[JsValue](Json.parse(contentAsString(result)))
+    val user : JsValue = getData(Json.fromJson[JsValue](Json.parse(contentAsString(result))))
     (user \ "userName").as[String] must beEqualTo(name)
     (user \ "fullName").as[String] must beEqualTo(fullName)
     (user \ "email").as[String] must beEqualTo(email)
@@ -129,7 +120,7 @@ object UserApiTest extends BaseTest {
         status(result2) must equalTo(OK)
         charset(result2) must beSome("utf-8")
         contentType(result2) must beSome("application/json")
-        val updatedUser = Json.fromJson[JsValue](Json.parse(contentAsString(result2)))
+        val updatedUser : JsValue = getData(Json.fromJson[JsValue](Json.parse(contentAsString(result2))))
         (updatedUser \ "id").as[String] must beEqualTo(userId)
         (updatedUser \ "userName").as[String] must beEqualTo(name2)
         (updatedUser \ "fullName").as[String] must beEqualTo(fullName2)

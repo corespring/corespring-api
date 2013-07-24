@@ -74,7 +74,7 @@ class ItemSessionTest extends BaseTest {
         failure
       } catch {
         case e: IllegalArgumentException => success
-        case _ => failure
+        case _ : Throwable => failure
       }
     }
   }
