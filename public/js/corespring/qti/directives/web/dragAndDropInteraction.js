@@ -355,9 +355,9 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
             if ($scope.dragging.isOut) {
               $scope.revertFunction();
             }
-            $scope.dropCallback();
             $scope.dragging.fromTarget = undefined;
           },
+          stop: $scope.dropCallback,
           out: $scope.outCallback,
           over:  $scope.overCallback,
           revert: false
