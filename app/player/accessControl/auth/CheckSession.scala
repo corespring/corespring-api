@@ -16,8 +16,6 @@ import player.accessControl.models._
 import scala.Left
 import scala.Right
 import scala.Some
-import scala.collection.mutable
-import org.apache.commons.collections.Buffer
 
 /** An implementation of TokenizedRequestActionBuilder that grants access based on the requested access and render options.
   * RequestedAccess is defined by the controllers. It defines the type of access that the controller will need.
@@ -25,7 +23,7 @@ import org.apache.commons.collections.Buffer
   * Using these two models we can make a decision on whether this request should be granted access.
   *
   */
-abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAccess] with PlayerCookieReader {
+abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAccess] with PlayerCookieReader with SafariWorkaround {
 
   def ValidatedAction(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
     ValidatedAction(play.api.mvc.BodyParsers.parse.anyContent)(ra)(block)
@@ -57,26 +55,15 @@ abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAcces
           request.cookies.get("PLAY_SESSION") match {
             case Some(cookie) => BadRequest("Couldn't find options")
             case None => {
-              if (isSafari(request)) {
-                if (request.path.endsWith("session/redirect")) {
-                  val referer = request.queryString.get("referer").getOrElse(Seq[String]("")).head
-                  Ok("""<script src='/player.js?""" + request.rawQueryString + """'></script><script type="text/javascript">window.location='""" + referer + "';</script>").as("text/html")
-                } else {
-                  Ok("""<script type="text/javascript">top.location.href = 'session/redirect?""" + request.rawQueryString + "&referer=" + request.headers("Referer") + """';</script>""").as("text/html")
-                }
-              } else {
-                BadRequest("Couldn't find options")
+              isSafari(request) match {
+                case true => handleSafari(request)
+                case false => BadRequest("Couldn't find options")
               }
             }
           }
-
         })
-
     }
 
-  def isSafari(request: Request[AnyContent]) = {
-    request.headers("user-agent").equals("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/536.29.13 (KHTML, like Gecko) Version/6.0.4 Safari/536.29.13")
-  }
 
   /** Grant access for this request?
     */

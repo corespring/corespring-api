@@ -135,7 +135,7 @@ GET    /scorm-player/session/:sessionId/:filename       scorm.controllers.ScormP
 # New Player
 ## REST calls
 POST   /player/api/:itemId/session                         player.controllers.Session.create(itemId:VersionedId[ObjectId])
-GET    /player/item/:itemId/session/redirect               player.controllers.Session.createAndReturn(itemId:VersionedId[ObjectId])
+GET    /player/item/:itemId/session/redirect               player.controllers.Session.create(itemId:VersionedId[ObjectId])
 GET    /player/api/:itemId/session/:sessionId              player.controllers.Session.read(itemId:VersionedId[ObjectId], sessionId:ObjectId)
 PUT    /player/api/:itemId/session/:sessionId              player.controllers.Session.update(itemId:VersionedId[ObjectId],sessionId:ObjectId,action : Option[String] ?= None)
 POST   /player/api/:itemId/session/:quizId/aggregate       player.controllers.Session.aggregate(quizId:ObjectId, itemId:VersionedId[ObjectId])
