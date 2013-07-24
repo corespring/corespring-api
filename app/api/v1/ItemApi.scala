@@ -325,9 +325,8 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
   }
 
   private def itemFromJson(json:JsValue) : Item = {
-    fromJson[Item](json) match {
-      case JsSuccess(item,_) => item.asInstanceOf[Item]
-      case _ => throw new Exception("TODO 2.1.1 upgrade- handle this correctly")
+    json.asOpt[Item].getOrElse{
+      throw new Exception("TODO 2.1.1 upgrade- handle this correctly")
     }
   }
 

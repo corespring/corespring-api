@@ -4,12 +4,14 @@ import org.specs2.mutable.Specification
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import models.versioning.VersionedIdImplicits.{Writes, Reads}
-import play.api.libs.json.JsString
+import play.api.libs.json.{JsSuccess, JsString}
+import common.log.PackageLogging
 
-class VersionedIdImplicitsTest extends Specification{
+class VersionedIdImplicitsTest extends Specification with PackageLogging{
 
   import models.versioning.VersionedIdImplicits.Binders._
 
+  //TODO: SalatVersioningDao - migrate to 2.10
   "Binder" should {
 
     "convert string to versioned id" in {
@@ -28,7 +30,14 @@ class VersionedIdImplicitsTest extends Specification{
 
   "Reads" should {
     "read json" in {
-      Reads.reads(JsString("000000000000000000000001:0")) === VersionedId("000000000000000000000001", Some(0))
+      Reads.reads(JsString("000000000000000000000001:0")) match {
+        case JsSuccess(v, _) => {
+          v.id.toString === "000000000000000000000001"
+          v.version === Some(0)
+          //v === VersionedId("000000000000000000000001", Some(0))
+        }
+        case _ => failure("reads failed")
+      }
     }
   }
 

@@ -27,6 +27,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
  */
 trait BaseTest extends Specification {
 
+  val TEST_COLLECTION_ID: String = "51114b127fc1eaa866444647"
   // From standard fixture data
   val token = "test_token"
 

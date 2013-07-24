@@ -5,8 +5,9 @@ import play.api.mvc._
 import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import common.log.PackageLogging
 
-trait RequestCalling {
+trait RequestCalling extends PackageLogging {
 
   val accessToken = "test_token"
 
@@ -29,6 +30,7 @@ trait RequestCalling {
       val json: JsValue = Json.parse(contentAsString(result))
       getData(reads.reads(json))
     } else {
+      Logger.warn(s"Error invoking call: ${contentAsString(result)}")
       getData(reads.reads(JsObject(Seq())))
     }
   }

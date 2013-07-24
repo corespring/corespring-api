@@ -23,7 +23,6 @@ class ItemApiTest extends BaseTest with Mockito {
 
   val mockS3service = mock[S3Service]
 
-  val TEST_COLLECTION_ID: String = "51114b127fc1eaa866444647"
 
   val ItemRoutes = api.v1.routes.ItemApi
 

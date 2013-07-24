@@ -30,15 +30,14 @@ class ItemTest extends BaseTest {
       val json = Json.toJson(item)
 
       import models.item.Alignments.Keys
-      (json \ Keys.demonstratedKnowledge).asOpt[String] must equalTo(Some("Factual"))
-      (json \ Keys.bloomsTaxonomy).asOpt[String] must equalTo(Some("Applying"))
+      (json \ Keys.demonstratedKnowledge).asOpt[String] === Some("Factual")
+      (json \ Keys.bloomsTaxonomy).asOpt[String] === Some("Applying")
 
       val parsed = json.as[Item]
 
       parsed.otherAlignments.get.demonstratedKnowledge must equalTo(Some("Factual"))
       parsed.otherAlignments.get.bloomsTaxonomy must equalTo(Some("Applying"))
     }
-
     "parse workflow" in {
       val workflow = Workflow(setup = true,
         tagged = true,
@@ -61,7 +60,6 @@ class ItemTest extends BaseTest {
       itemFromJson.workflow.get.standardsAligned must equalTo(true)
       itemFromJson.workflow.get.qaReview must equalTo(true)
     }
-
     "parse standards" in {
       val item = Item(standards = Seq("RL.K.9"))
       val json = Json.toJson(item)
@@ -153,12 +151,10 @@ class ItemTest extends BaseTest {
       parsedItem.contributorDetails.get.sourceUrl must beNone
     }
   }
-
   "item properties are validated when saving" in {
     //TODO: Item.updateItem(item.id, item, None).isLeft must equalTo(true)
     pending
   }
-
   "clone" should {
 
     "work" in {
@@ -194,7 +190,7 @@ class ItemTest extends BaseTest {
       clonedItem.get.taskInfo.get.title.get === "[copy]"
     }
 
+  /**/
   }
-
 
 }

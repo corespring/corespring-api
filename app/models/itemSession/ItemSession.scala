@@ -92,10 +92,7 @@ object ItemSession {
 
     override def reads(json: JsValue): JsResult[ItemSession] = {
 
-      val settings = if ((json \ "settings").as[ItemSessionSettings] == null)
-        new ItemSessionSettings()
-      else
-        (json \ "settings").as[ItemSessionSettings]
+      val settings = (json \ "settings").asOpt[ItemSessionSettings].getOrElse(ItemSessionSettings())
 
       import VersionedIdImplicits.{Reads => IdReads}
       JsSuccess(ItemSession(

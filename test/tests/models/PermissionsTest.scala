@@ -20,6 +20,9 @@ class PermissionsTest extends BaseTest with TestModelHelpers {
 
   sequential
 
+  val ItemApi = api.v1.ItemApi
+  val OrgApi = api.v1.OrganizationApi
+
   def request(token: String, content: AnyContent = AnyContentAsEmpty): FakeRequest[AnyContent] = FakeRequest("", "url?access_token=" + token, FakeHeaders(), content)
 
   "read" should {
@@ -41,13 +44,13 @@ class PermissionsTest extends BaseTest with TestModelHelpers {
 
     "not read a collection of items with no permission" in new TestOPlenty(Permission.None) {
       val fakeRequest = FakeRequest(GET, "/api/v1/collections/" + collection.id.toString + "/items?access_token=" + tokenId)
-      val result = routeAndCall(fakeRequest).get
+      val result = route(fakeRequest).get
       status(result) === UNAUTHORIZED
     }
 
     "can read a collection of items with read permission" in new TestOPlenty(Permission.Read, Permission.Read) {
       val fakeRequest = FakeRequest(GET, "/api/v1/collections/" + collection.id.toString + "/items?access_token=" + tokenId)
-      val result = routeAndCall(fakeRequest).get
+      val result = route(fakeRequest).get
       status(result) === OK
     }
   }
@@ -71,7 +74,7 @@ class PermissionsTest extends BaseTest with TestModelHelpers {
     "not create an item in a collection with read permission" in new TestOPlenty(Permission.Read, Permission.Read) {
       val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> collection.id.toString))
       var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=" + tokenId, FakeHeaders(), AnyContentAsJson(toCreate))
-      var result = routeAndCall(fakeRequest).get
+      var result = ItemApi.create(fakeRequest)
       status(result) must beEqualTo(UNAUTHORIZED)
     }
 
@@ -79,7 +82,7 @@ class PermissionsTest extends BaseTest with TestModelHelpers {
       val title = "title"
       val toCreate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("collectionId" -> collection.id.toString, Keys.title -> title))
       var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=" + tokenId, FakeHeaders(), AnyContentAsJson(toCreate))
-      var result = routeAndCall(fakeRequest).get
+      var result = route(fakeRequest).get
       val json = Json.parse(contentAsString(result))
       status(result) === OK
       (json \ Keys.title).as[String] === title

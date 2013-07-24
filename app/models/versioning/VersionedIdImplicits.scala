@@ -9,12 +9,11 @@ object VersionedIdImplicits {
 
   implicit object Reads extends Reads[VersionedId[ObjectId]] {
 
-    def reads(json: JsValue): JsResult[VersionedId[ObjectId]] = {
-      json match {
+    def reads(json: JsValue): JsResult[VersionedId[ObjectId]] = json match {
         case JsString(text) => Binders.stringToVersionedId(text).map(JsSuccess(_)).getOrElse(throw new RuntimeException("Can't parse json"))
-        case _ => throw new RuntimeException("Can't parse json: " + json)
+        case _ => JsError("Should be a string" )
       }
-    }
+
   }
 
   implicit object Writes extends Writes[VersionedId[ObjectId]] {
@@ -39,7 +38,7 @@ object VersionedIdImplicits {
       }
     }
 
-    def versionedIdToString(id:VersionedId[ObjectId]) : String =  id.version.map(id.id.toString + ":" + _).getOrElse(id.id.toString)
+    def versionedIdToString(id:VersionedId[ObjectId]) : String =  id.version.map( (l : Int) => s"${id.id.toString}:$l").getOrElse(id.id.toString)
 
 
     private def vId(id: String, v: Option[Int] = None): Option[VersionedId[ObjectId]] = if (ObjectId.isValid(id)) {

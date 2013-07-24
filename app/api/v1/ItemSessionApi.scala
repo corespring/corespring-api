@@ -112,7 +112,12 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService
   def create(itemId: VersionedId[ObjectId]) = ApiAction {
     request =>
 
-      def getSettings(json:JsValue) : Option[ItemSessionSettings] = json.asOpt[ItemSession].map(_.settings).orElse(Some(ItemSessionSettings()))
+      def getSettings(json:JsValue) : Option[ItemSessionSettings] = {
+        (json \ "settings") match{
+          case obj : JsObject  => obj.asOpt[ItemSessionSettings]
+          case _ => Some(ItemSessionSettings())
+        }
+      }
 
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.Read)) {
         //if the version is not included, we need the current version to include in the itemId in session

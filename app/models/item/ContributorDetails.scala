@@ -26,13 +26,13 @@ object ContributorDetails extends ValueGetter {
     val costForResource = "costForResource"
   }
 
-  implicit val Formats = Json.format[ContributorDetails]
-/*  implicit object Reads extends Reads[ContributorDetails] {
+  //implicit val Formats = Json.format[ContributorDetails]
+  implicit object Reads extends Reads[ContributorDetails] {
 
     import Keys._
 
-    def reads(json: JsValue): ContributorDetails = {
-      ContributorDetails(
+    def reads(json: JsValue): JsResult[ContributorDetails] = {
+      JsSuccess(ContributorDetails(
         author = (json \ author).asOpt[String],
         contributor = (json \ contributor).asOpt[String],
         costForResource = (json \ costForResource).asOpt[Int],
@@ -41,7 +41,7 @@ object ContributorDetails extends ValueGetter {
         licenseType = (json \ licenseType).asOpt[String],
         credentials = (json \ credentials).asOpt[String].
           map(v => if (fieldValues.credentials.exists(_.key == v)) v else throw new JsonValidationException(credentials))
-      )
+      ))
     }
   }
 
@@ -70,5 +70,5 @@ object ContributorDetails extends ValueGetter {
 
       objects.tail.foldRight(objects.head)(_ ++ _)
     }
-  }*/
+  }
 }
