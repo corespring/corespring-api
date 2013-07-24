@@ -456,8 +456,8 @@ angular.module('qti.directives').directive("landingsolution", function (QtiUtils
     compile: function (el, attrs) {
       var template =
         [
-          '<div style="min-height: {{maxHeight}}px; min-width: {{width}}px" class="thumbnail {{correctClass}} landing '+attrs['class']+'">',
-          ' <div ng-repeat="item in items" class="contentElement" ng-bind-html-unsafe="item"></div>',
+          '<ul style="min-height: {{maxHeight}}px; min-width: {{width}}px" class="thumbnail {{correctClass}} landing '+attrs['class']+'">',
+          ' <li ng-repeat="item in items" class="contentElement" ng-bind-html-unsafe="item"></li>',
           '<div class="clearfix"></div>',
           '</div>'].join(" ");
 

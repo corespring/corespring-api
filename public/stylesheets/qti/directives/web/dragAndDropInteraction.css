@@ -2,7 +2,10 @@
     overflow: hidden;
 }
 
-.drag-and-drop-interaction ul, .drag-and-drop-interaction li {
+.drag-and-drop-interaction ul,
+.drag-and-drop-solution-modal ul,
+.drag-and-drop-interaction li,
+.drag-and-drop-solution-modal li {
     margin: 0px;
     vertical-align: top;
 }
