@@ -22,6 +22,7 @@ class SessionDataTest extends BaseTest {
     ResponseDeclaration(
       identifier = id,
       cardinality = "single",
+      baseType="identifier",
       correctResponse = Some(CorrectResponseSingle(value)),
       mapping = None)
   )

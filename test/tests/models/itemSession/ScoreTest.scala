@@ -26,12 +26,14 @@ class ScoreTest extends Specification {
         ResponseDeclaration(
           identifier = "q1",
           cardinality = "single",
+          baseType="identifier",
           correctResponse = Some(CorrectResponseSingle("q1Answer")),
           mapping = None),
 
         ResponseDeclaration(
           identifier = "q3",
           cardinality = "multiple",
+          baseType="identifier",
           correctResponse = Some(CorrectResponseMultiple(Seq("q3_answer_1","q3_answer_3"))),
           mapping = None
           )
