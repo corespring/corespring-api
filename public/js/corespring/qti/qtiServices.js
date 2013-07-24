@@ -155,7 +155,7 @@ angular.module('qti.services')
   }
 );
 
-angular.module('qti.services').factory('Canvas', function() {
+angular.module('qti.services').factory('Canvas', function () {
   function Canvas(id, attrs) {
     this.board = JXG.JSXGraph.initBoard(id, {
                          boundingbox: [0 - attrs.domain, attrs.range, attrs.domain, 0 - attrs.range],
@@ -186,7 +186,7 @@ angular.module('qti.services').factory('Canvas', function() {
     this.scale = attrs.scale;
     if(attrs.pointLabels){
         this.pointLabels = attrs.pointLabels;
-    } else{
+    } else {
         this.pointLabels = 'letters';
     }
   }
@@ -202,7 +202,7 @@ angular.module('qti.services').factory('Canvas', function() {
     return _.find(this.points, function(p){
         return p.name == ptName;
     });
-  }
+  };
   Canvas.prototype.pointCollision = function(coords) {
     var points = this.points, scale = this.scale;
     function min(coord){
