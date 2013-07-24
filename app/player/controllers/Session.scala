@@ -32,6 +32,13 @@ class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Cont
     RequestedAccess.asRead(Some(itemId))
   )(implicit request => api.create(itemId)(request))
 
+  def createAndReturn(itemId: VersionedId[ObjectId]) = auth.ValidatedAction(RequestedAccess.asRead(Some(itemId))) {
+    implicit request => {
+      println("test")
+      api.create(itemId)(request)
+    }
+  }
+
   def read(itemId: VersionedId[ObjectId], sessionId: ObjectId) = auth.ValidatedAction(
     RequestedAccess.asRead(Some(itemId), Some(sessionId))
   )(implicit request => api.get(itemId, sessionId)(request))

@@ -58,6 +58,21 @@
 
   }
 
+  function getPlayerQueryString() {
+    var queryString;
+    var scripts = document.getElementsByTagName('script');
+    var regex = /.*player.js\?apiClientId=(.*)&options=(.*)/;
+
+    $(scripts).each(function(i, script) {
+      var src = $(script).attr('src');
+      var match = src !== undefined ? src.match(regex) : null;
+      if (match !== null) {
+        queryString = src.match(/.*player.js\?(.*)/)[1];
+      }
+    });
+    return queryString;
+  }
+
   var isValidMode = function(m){
     if(!m) return false;
 
@@ -65,7 +80,7 @@
   };
 
   var iframePlayerStrategy = function (e, options) {
-    e.html("<iframe id='iframe-player' src='" + options.corespringUrl + "' style='width: 100%; height: 100%; border: none'></iframe>");
+    e.html("<iframe id='iframe-player' src='" + options.corespringUrl + '?' + getPlayerQueryString() + "' style='width: 100%; height: 100%; border: none'" + "></iframe>");
     e.width(options.width ? options.width : "600px");
 
 

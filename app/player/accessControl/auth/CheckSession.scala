@@ -16,6 +16,8 @@ import player.accessControl.models._
 import scala.Left
 import scala.Right
 import scala.Some
+import scala.collection.mutable
+import org.apache.commons.collections.Buffer
 
 /** An implementation of TokenizedRequestActionBuilder that grants access based on the requested access and render options.
   * RequestedAccess is defined by the controllers. It defines the type of access that the controller will need.
@@ -51,9 +53,30 @@ abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAcces
               case Right(false) => Unauthorized(Json.toJson(ApiError.InvalidCredentials(Some("you can't access the items"))))
               case Left(e) => Unauthorized(Json.toJson(ApiError.InvalidCredentials(e.clientOutput)))
             }
-        }.getOrElse(BadRequest("Couldn't find options"))
+        }.getOrElse({
+          request.cookies.get("PLAY_SESSION") match {
+            case Some(cookie) => BadRequest("Couldn't find options")
+            case None => {
+              if (isSafari(request)) {
+                if (request.path.endsWith("session/redirect")) {
+                  val referer = request.queryString.get("referer").getOrElse(Seq[String]("")).head
+                  Ok("""<script src='/player.js?""" + request.rawQueryString + """'></script><script type="text/javascript">window.location='""" + referer + "';</script>").as("text/html")
+                } else {
+                  Ok("""<script type="text/javascript">top.location.href = 'session/redirect?""" + request.rawQueryString + "&referer=" + request.headers("Referer") + """';</script>""").as("text/html")
+                }
+              } else {
+                BadRequest("Couldn't find options")
+              }
+            }
+          }
+
+        })
 
     }
+
+  def isSafari(request: Request[AnyContent]) = {
+    request.headers("user-agent").equals("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/536.29.13 (KHTML, like Gecko) Version/6.0.4 Safari/536.29.13")
+  }
 
   /** Grant access for this request?
     */
