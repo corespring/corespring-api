@@ -37,10 +37,6 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     renderItem(p)
   }
 
-  def safariSession = {
-    Action { Ok }
-  }
-
   def render(sessionId: ObjectId) = {
     DefaultItemSession.get(sessionId) match {
       case Some(session) => {
