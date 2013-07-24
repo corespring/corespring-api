@@ -1,3 +1,5 @@
+'use strict';
+
 angular.module("qti.directives").directive("pointinteraction", function(){
     return {
         template: [
@@ -15,21 +17,21 @@ angular.module("qti.directives").directive("pointinteraction", function(){
                  }
             });
             $scope.interactionCallback = function(params){
+                function round(coord){
+                     var px = coord.x;
+                     var py = coord.y;
+                     if(px > $scope.domain){px = $scope.domain; }
+                     else if(px < (0 - $scope.domain)){px = 0 - $scope.domain; }
+                     if(py > $scope.range) {py = $scope.range; }
+                     else if(py < (0 - $scope.range)) {py = 0 - $scope.range; }
+                     if($scope.sigfigs > -1) {
+                         var multiplier = Math.pow(10,$scope.sigfigs);
+                         px = Math.round(px*multiplier) / multiplier;
+                         py = Math.round(py*multiplier) / multiplier;
+                     }
+                     return {x: px,y: py};
+                }
                 if(params.points){
-                    function round(coord){
-                         var px = coord.x;
-                         var py = coord.y;
-                         if(px > $scope.domain){px = $scope.domain; }
-                         else if(px < (0 - $scope.domain)){px = 0 - $scope.domain; }
-                         if(py > $scope.range) {py = $scope.range; }
-                         else if(py < (0 - $scope.range)) {py = 0 - $scope.range; }
-                         if($scope.sigfigs > -1) {
-                             var multiplier = Math.pow(10,$scope.sigfigs);
-                             px = Math.round(px*multiplier) / multiplier;
-                             py = Math.round(py*multiplier) / multiplier;
-                         }
-                         return {x: px,y: py};
-                    }
                     $scope.pointResponse = _.map(params.points,function(coord){
                         var newCoord = round(coord);
                         return newCoord.x+","+newCoord.y;

@@ -1,4 +1,5 @@
-angular.module("qti.directives").directive("line", function(){
+'use strict';
+angular.module("qti.directives").directive("graphline", function(){
     return {
         restrict: "E",
         require: '^lineinteraction',
@@ -83,8 +84,7 @@ angular.module("qti.directives").directive("lineinteraction", function(){
             });
             $scope.interactionCallback = function(params){
                 //set scope point to params point, rounding if necessary
-                if(params.points){
-                  function setPoint(name){
+                function setPoint(name){
                    if(params.points[name]){
                      var px = params.points[name].x;
                      var py = params.points[name].y;
@@ -99,7 +99,9 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                      }
                      $scope.points[name] = {x: px,y: py};
                    }
-                  }
+                }
+                if(params.points){
+
                   setPoint('A');
                   setPoint('B');
 

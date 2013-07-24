@@ -15,10 +15,10 @@
                          graph-height="300px"
                          show-inputs="false"
                          locked="">
-            <line>
+            <graphline>
                 <point>-3,1</point>
                 <point>-2,3</point>
-            </line>
+            </graphline>
         </lineInteraction>
 
         <p>The equation for the line is: </p>
