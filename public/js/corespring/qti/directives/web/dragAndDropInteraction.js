@@ -155,7 +155,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
           });
 
           if (response && response.outcome && !response.outcome.isCorrect)
-            $scope.isShowSolutionButtonVisible = true;
+            $scope.isShowSolutionButtonVisible = $scope.highlightCorrectResponse();
 
           _.each(value, function (v) {
             var arr = v.split(":");
@@ -378,6 +378,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
 
         $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
           if (!responses) return;
+          if (!$scope.highlightUserResponse()) return;
           var correctResponse = QtiUtils.getResponseValue($scope.responseIdentifier, responses, []);
           var correctResponseForTarget = _.find(correctResponse,function (elem) {
             var s1 = elem.split(":")[0];
