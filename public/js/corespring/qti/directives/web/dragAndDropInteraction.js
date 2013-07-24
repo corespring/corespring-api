@@ -59,6 +59,12 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         $scope.initMathML(0);
       };
 
+      $scope.$on('unsetSelection', function (event) {
+        $scope.resetClick();
+        $scope.isShowSolutionButtonVisible = false;
+        $scope.canDrag = true;
+      });
+
       $scope.dropCallback = function (event, ui) {
         $scope.initMathML(0);
 
@@ -360,7 +366,12 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
             $(el).find('.contentElement').width($scope.maxWidth);
             $(el).find('.contentElement').height($scope.maxHeight);
           });
-        }
+        };
+
+        $scope.$on('unsetSelection', function (event) {
+          $scope.correctClass = "";
+        });
+
 
         $scope.$watch("maxWidth + maxHeight", function () {
           $scope.width = isMultiple ? $scope.maxWidth * 4 + 20 : $scope.maxWidth + 20;
