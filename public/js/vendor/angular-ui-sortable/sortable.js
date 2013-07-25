@@ -105,8 +105,14 @@ angular.module('ui.sortable', [])
               // Create sortable
 
             element.sortable(opts);
-            element.data('sortable').floating = true;
-            element.data('uiSortable').floating = true;
+
+
+            // CoreSpring Addition - force layout to horizontal
+            if (element.data('sortable'))
+              element.data('sortable').floating = true;
+
+            if (element.data('uiSortable'))
+              element.data('uiSortable').floating = true;
           }
         };
       }
