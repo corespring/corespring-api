@@ -6,15 +6,18 @@ import common.encryption.{Crypto, AESCrypto}
 import common.utils.string
 import models.auth.ApiClient
 import models.item.service.{ItemServiceImpl, ItemService}
+import org.bson.types.ObjectId
+import play.api.Play
 import play.api.libs.json.Json
 import play.api.mvc._
-import play.api.{Logger, Play}
 import player.accessControl.cookies.PlayerCookieWriter
 import player.accessControl.models.RenderOptions
 import scala.Some
+import scalaz.Scalaz._
+import scalaz.{Failure, Success, Validation}
 
 
-class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService : ItemService) extends Controller with AssetResource with PlayerCookieWriter {
+class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService : ItemService, errorHandler:String=>Result) extends Controller with AssetResource with PlayerCookieWriter {
 
   def itemProfileJavascript = renderJavascript(playerTemplate, {
     (ro: Option[RenderOptions], req: Request[AnyContent]) =>
@@ -44,12 +47,12 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService : 
     */
   private def renderJavascript(template: => String, tokenFn: ((Option[RenderOptions], Request[AnyContent]) => Map[String, String])) = Action {
     implicit request =>
-      withApiClient {
+      withApiClient(errorHandler) {
         implicit client =>
-          withOptions {
+          withOptions(errorHandler) {
             options =>
-              val preppedJs = createJsFromTemplate(template, tokenFn(options, request))
-              val newSession = sumSession(request.session, client.map(c => playerCookies(c.orgId,options)).getOrElse(Seq()): _*)
+              val preppedJs = AssetLoading.createJsFromTemplate(template, tokenFn(options, request))
+              val newSession = sumSession(request.session, playerCookies(client.orgId,options) : _*)
               Ok(preppedJs)
                 .as("text/javascript")
                 .withSession(newSession)
@@ -73,39 +76,71 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService : 
     }
   }
 
-  private def withOptions(block: Option[RenderOptions] => Result)(implicit request: Request[AnyContent], client: Option[ApiClient]) = client match {
-    case Some(c) => {
-      val result = for {
-        o <- request.queryString.get("options").map(_.mkString)
-        ro <- decryptOptions(o, c)
-      } yield {
-        block(Some(ro))
+  private def withOptions(errorBlock:String=>Result)(block: Option[RenderOptions] => Result)(implicit request: Request[AnyContent], client: ApiClient) = {
+
+    import AssetLoading.ErrorMessages._
+
+    val result : Validation[String,Result] = for{
+      o <- request.queryString.get("options").map(_.mkString).toSuccess( queryParamNotFound("options", request.queryString))
+      ro <- decryptOptions(o,client).toSuccess( DecryptOptions )
+    } yield block(Some(ro))
+
+      result match {
+        case Success(r) => r
+        case Failure(msg) => errorBlock(msg)
       }
-      result.getOrElse(block(None))
+  }
+
+
+  private def withApiClient(errorBlock: String => Result)(block: ApiClient => Result)(implicit request: Request[AnyContent]): Result = {
+
+    import AssetLoading.ErrorMessages._
+
+    val result : Validation[String,Result] = for{
+     id <- request.queryString.get("apiClientId").map(_.mkString).toSuccess( queryParamNotFound("apiClientId", request.queryString))
+     validId <- if(ObjectId.isValid(id)) Success(id) else Failure(InvalidObjectId)
+     client <- ApiClient.findByKey(id).toSuccess( apiClientNotFound(id) )
+    } yield block(client)
+
+    result match {
+      case Success(r) => r
+      case Failure(msg) => errorBlock(msg)
     }
-    case _ => block(None)
   }
-
-  private def withApiClient(block: Option[ApiClient] => Result)(implicit request: Request[AnyContent]): Result = {
-    val id = request.queryString.get("apiClientId").map(_.mkString)
-    val maybeClient: Option[ApiClient] = for {
-      i <- id
-      client <- ApiClient.findByKey(i)
-    } yield client
-    block(maybeClient)
-  }
-
-
-  private def createJsFromTemplate(template: String, tokens: Map[String, String]): String = string.interpolate(template, string.replaceKey(tokens), string.DollarRegex)
-
 }
 
-object DefaultTemplate {
+object AssetLoadingDefaults{
 
-  import play.api.Play.current
+  object Templates {
 
-  def player = io.Source.fromFile(Play.getFile("public/js/corespring/corespring-player.js")).getLines().mkString("\n")
+    import play.api.Play.current
+
+    def player = load("public/js/corespring/corespring-player.js")
+    def errorPlayer = load("public/js/corespring/corespring-error-player.js")
+    private def load(p:String) : String = io.Source.fromFile(Play.getFile(p)).getLines().mkString("\n")
+  }
+
+  object ErrorHandler {
+
+    import play.api.mvc.Results.Ok
+
+    def handleError(msg:String) : Result ={
+      val out = AssetLoading.createJsFromTemplate(Templates.errorPlayer, Map("playerError" -> msg) )
+      Ok(out).as("text/javascript")
+    }
+  }
 }
 
-object AssetLoading extends AssetLoading(AESCrypto, DefaultTemplate.player, ItemServiceImpl)
+object AssetLoading extends AssetLoading(AESCrypto, AssetLoadingDefaults.Templates.player, ItemServiceImpl, AssetLoadingDefaults.ErrorHandler.handleError) {
+
+  def createJsFromTemplate(template: String, tokens: Map[String, String]): String = string.interpolate(template, string.replaceKey(tokens), string.DollarRegex)
+
+  object ErrorMessages {
+
+    def apiClientNotFound(id:String) = "Can't find api client with id: " + id
+    def queryParamNotFound(key:String, queryString:Map[String,Seq[String]]) = "Can't find parameter '" + key + "' on query string: " + queryString
+    val DecryptOptions = "Can't decrypt options"
+    val InvalidObjectId = "Invalid ObjectId"
+  }
+}
 
