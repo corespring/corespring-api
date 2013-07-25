@@ -191,7 +191,11 @@ angular.module('qti.services').factory('Canvas', function () {
     }
   }
   Canvas.prototype.getMouseCoords = function(e) {
-    var coords = new JXG.Coords(JXG.COORDS_BY_SCREEN, [e.offsetX, e.offsetY], this.board);
+    var cPos = this.board.getCoordsTopLeftCorner(e),
+        absPos = JXG.getPosition(e),
+        dx = absPos[0]-cPos[0],
+        dy = absPos[1]-cPos[1];
+    var coords = new JXG.Coords(JXG.COORDS_BY_SCREEN, [dx, dy], this.board);
     var simpleCoords = {
       x: coords.usrCoords[1],
       y: coords.usrCoords[2]
