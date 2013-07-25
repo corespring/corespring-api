@@ -18,7 +18,7 @@ trait Interaction extends PackageLogging{
   def isScoreable : Boolean
 
   def validate(qtiItem: QtiItem): (Boolean, String) = {
-    val isValid = !(qtiItem.responseDeclarations.find(_.identifier == responseIdentifier).isEmpty && !locked)
+    val isValid = !qtiItem.responseDeclarations.find(_.identifier == responseIdentifier).isEmpty || locked
     val msg = if (isValid) "Ok" else "Missing response declartaion for " + responseIdentifier
     (isValid, msg)
   }

@@ -94,14 +94,18 @@ object CorrectResponseLineEquation{
     if (sides.length == 2){
       val lhs = sides(0)
       val rhs = sides(1)
-      getTestPoints.foldRight[Boolean](true)((testPoint,acc) => if (acc){
-        val variableValues = Seq(variables._1 -> testPoint._1, variables._2 -> testPoint._2)
-        val lfe = formatExpression(lhs, variableValues)
-        val rfe = formatExpression(rhs, variableValues)
-        //replace the x and y vars with the values of testPoint then evaluate the two expressions with the JSengine.
-        // the two sides should be equal
-        engine.eval(formatExpression(lhs, variableValues)) == engine.eval(formatExpression(rhs, variableValues))
-      } else false)
+      try{
+        getTestPoints.foldRight[Boolean](true)((testPoint,acc) => if (acc){
+          val variableValues = Seq(variables._1 -> testPoint._1, variables._2 -> testPoint._2)
+          val lfe = formatExpression(lhs, variableValues)
+          val rfe = formatExpression(rhs, variableValues)
+          //replace the x and y vars with the values of testPoint then evaluate the two expressions with the JSengine.
+          // the two sides should be equal
+          engine.eval(formatExpression(lhs, variableValues)) == engine.eval(formatExpression(rhs, variableValues))
+        } else false)
+      }catch{
+        case e:javax.script.ScriptException => false
+      }
     } else false
   }
 }

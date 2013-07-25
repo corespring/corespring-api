@@ -86,9 +86,10 @@ object LineInteraction extends InteractionCompanion[LineInteraction]{
   def apply(interaction: Node, itemBody: Option[Node]): LineInteraction = {
     LineInteraction(
       (interaction \ "@responseIdentifier").text,
-      !(interaction \ "@locked").text.isEmpty,
+      interaction.attribute("locked").isDefined,
       (interaction \ "@sigfigs").text match {
-        case sigfigs if sigfigs.forall(_.isDigit) => sigfigs.toInt
+        case "" => -1
+        case sigfigs if sigfigs != "" && sigfigs.forall(_.isDigit) => sigfigs.toInt
         case _ => -1
       }
     )
