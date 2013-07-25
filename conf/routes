@@ -160,6 +160,7 @@ GET    /player/aggregate/:assessmentId/:itemId/*filename   player.controllers.As
 
 # New Player Rendering
 GET    /player.js                                   player.controllers.AssetLoading.itemPlayerJavascript
+GET    /tagger-player.js                            player.controllers.AssetLoading.noSessionPlayerJavascript
 GET    /profile.js                                  player.controllers.AssetLoading.itemProfileJavascript
 
 

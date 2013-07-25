@@ -121,7 +121,13 @@
     var codes = com.corespring.players.errors;
 
     var error = function (msg, code) {
-      errorCallback({msg: msg, code: code});
+      if(errorCallback){
+          errorCallback({msg: msg, code: code});
+      } else if (console && console.error) {
+        console.error(msg, code);
+      } else {
+        alert(msg);
+      }
     };
 
     if (!jQuery) {
@@ -192,7 +198,7 @@
     options.corespringUrl = getUrl(com.corespring.players.config.mode, options);
 
     if (!options.sessionId && !options.itemId) {
-      errorCallback({msg: "Need to specify either itemId or sessionId in options", code: com.corespring.players.errors.NEED_ITEMID_OR_SESSIONID});
+      error("Need to specify either itemId or sessionId in options", com.corespring.players.errors.NEED_ITEMID_OR_SESSIONID);
       return;
     }
 
