@@ -5,12 +5,11 @@ angular.module("qti.directives").directive("graphline", function(){
         require: '^lineinteraction',
         scope: 'true',
         compile: function(element,attrs,transclude){
-            console.log("compileing graphline")
             element.attr('hidden','');
             var locked = element.parent()[0].attributes.getNamedItem('locked')?true:false;
             return function(scope,element,attrs,LineCtrl){
                 var points = _.map(element.find('point'),function(p){
-                    var coords = p.innerText.split(",");
+                    var coords = p.innerHTML.split(",");
                     if(coords.length == 2){
                         return {x: coords[0], y: coords[1]};
                     }else {
@@ -18,8 +17,6 @@ angular.module("qti.directives").directive("graphline", function(){
                     }
                 })
                 if(points.length == 2){
-                    console.log("line interaction")
-                    console.log(points)
                     LineCtrl.setInitialParams({
                           points: {
                               A: points[0],

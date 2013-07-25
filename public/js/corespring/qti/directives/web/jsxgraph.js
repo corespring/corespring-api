@@ -67,8 +67,6 @@ return {
       }
     });
     scope.graphCallback = function(params){
-        console.log("graphCallback")
-        console.log(params)
         if(params.points){
             for (var ptName in params.points) {
               var point = params.points[ptName];
