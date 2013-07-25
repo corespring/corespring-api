@@ -1,8 +1,9 @@
 package api.v1
 
 import api.ApiError
+import common.config.AppConfig
 import controllers.auth.{Permission, ApiRequest, BaseApi}
-import controllers.{EmptyS3Service, S3Service}
+import controllers.{CorespringS3Service, EmptyS3Service}
 import models.item.resource.{VirtualFile, BaseFile, StoredFile, Resource}
 import models.item.service.{ItemService, ItemServiceImpl}
 import models.item.{Content, Item}
@@ -12,9 +13,8 @@ import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc._
 import scala.Some
-import common.config.AppConfig
 
-class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
+class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends BaseApi {
 
   private val USE_ITEM_DATA_KEY: String = "__!data!__"
 
@@ -326,7 +326,7 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
     HasItem(
       itemId,
       Seq(editCheck(),isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_,_)),
-      s3service.s3upload(AppConfig.assetsBucket, key(itemId, DATA_PATH, filename)))(
+      s3service.upload(AppConfig.assetsBucket, key(itemId, DATA_PATH, filename)))(
     {
       request =>
 
@@ -364,7 +364,7 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
         canFindResource(materialName)(_,_),
         isFilenameTaken(filename, materialName)(_,_)
       ),
-      s3service.s3upload(AppConfig.assetsBucket, storageKey(itemId, materialName, filename)))(
+      s3service.upload(AppConfig.assetsBucket, storageKey(itemId, materialName, filename)))(
     {
       request =>
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item
@@ -388,7 +388,7 @@ class ResourceApi(s3service:S3Service, service :ItemService) extends BaseApi {
 
   def createSupportingMaterialWithFile(itemId: String, name: String, filename: String) = {
     val s3Key = storageKey(itemId, name, filename)
-    HasItem(itemId,Seq(editCheck()), s3service.s3upload(AppConfig.assetsBucket, s3Key))(
+    HasItem(itemId,Seq(editCheck()), s3service.upload(AppConfig.assetsBucket, s3Key))(
     {
       request =>
         val item = request.asInstanceOf[ItemRequest[AnyContent]].item

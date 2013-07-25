@@ -29,7 +29,7 @@ import search.ItemSearch
  * Items API
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
-class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with PackageLogging {
+class ItemApi(s3service: CorespringS3Service, service :ItemService) extends BaseApi with PackageLogging {
 
   import Item.Keys._
 

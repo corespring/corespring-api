@@ -18,7 +18,7 @@ import scala.concurrent.duration.Duration
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.json.{JsString, JsObject}
 
-class SystemCheck(s3: S3Service) extends Controller {
+class SystemCheck(s3: CorespringS3Service) extends Controller {
   implicit val as = Akka.system
 
 

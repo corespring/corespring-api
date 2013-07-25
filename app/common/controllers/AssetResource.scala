@@ -1,8 +1,11 @@
 package common.controllers
 
-import controllers.{EmptyS3Service, S3Service, S3ServiceClient}
+import common.config.AppConfig
+import common.log.PackageLogging
+import controllers.{CorespringS3Service, EmptyS3Service, S3ServiceClient}
 import models.item.Item
 import models.item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
+import models.item.service.ItemServiceClient
 import models.itemSession.DefaultItemSession
 import org.bson.types.ObjectId
 import play.api.mvc.Results._
@@ -10,10 +13,6 @@ import play.api.mvc._
 import scalaz.Scalaz._
 import scalaz.{Success, Failure}
 import web.controllers.ObjectIdParser
-import web.controllers.utils.ConfigLoader
-import models.item.service.ItemServiceClient
-import common.log.PackageLogging
-import common.config.AppConfig
 
 
 object AssetResource{
@@ -29,7 +28,7 @@ object AssetResource{
 
 trait AssetResource extends AssetResourceBase{
   final def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]] = Some(renderBaseFile(f))
-  def s3Service : S3Service = EmptyS3Service
+  def s3Service : CorespringS3Service = EmptyS3Service
 }
 
 
