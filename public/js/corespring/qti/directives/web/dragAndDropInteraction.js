@@ -308,7 +308,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           '<ul ui-sortable="sortableOptions" ng-model="listTargets[targetIndex]">',
           ' <li ng-repeat="item in listTargets[targetIndex]" class="contentElement"',
           ' jqyoui-draggable="{index: {{$index}}, placeholder:true, animate:false, onStart: \'startCallback\'}"',
-          ' data-jqyoui-options="draggableOptions" ng-model="listTargets[targetIndex]" ng-show="item.title" ng-bind-html-unsafe="item.title" data-id="{{item.id}}"></li>',
+          ' data-jqyoui-options="draggableOptions" ng-model="listTargets[targetIndex]" ng-show="!_.isEmpty(item.title)" ng-bind-html-unsafe="item.title" data-id="{{item.id}}"></li>',
           '<div class="clearfix"></li>',
           '</ul>',
           originalHtml,
