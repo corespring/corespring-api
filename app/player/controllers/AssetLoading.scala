@@ -8,7 +8,7 @@ import models.auth.ApiClient
 import models.item.service.{ItemServiceImpl, ItemService}
 import org.bson.types.ObjectId
 import play.api.Play
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 import player.accessControl.cookies.PlayerCookieWriter
 import player.accessControl.models.RenderOptions
@@ -31,6 +31,15 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService : 
       }.getOrElse("preview")
       createJsTokens(ro, req) + ("mode" -> mode)
   })
+
+  /** Load the player js - but don't set any session cookies.
+   * This is used for scenarios where the user is already authenticated and has an appropriate session cookie
+   */
+  def noSessionPlayerJavascript = Action { request =>
+    val preppedJs = AssetLoading.createJsFromTemplate(playerTemplate, Map("mode" -> "preview", "baseUrl" -> getBaseUrl(request)))
+    Ok(preppedJs)
+      .as("text/javascript")
+  }
 
   def getDataFileForAssessment(assessmentId: String, itemId: String, filename: String) = getDataFile(itemId, filename)
 
@@ -64,17 +73,27 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService : 
 
   private def createJsTokens(o: Option[RenderOptions], r: Request[AnyContent]): Map[String, String] = Map("baseUrl" -> getBaseUrl(r))
 
+  private def decryptOptions(encryptedOptions: String, apiClient: ApiClient): Validation[String,RenderOptions] = {
 
-  private def decryptOptions(encryptedOptions: String, apiClient: ApiClient): Option[RenderOptions] = try {
-    val options = crypto.decrypt(encryptedOptions, apiClient.clientSecret)
-    val json = Json.parse(options)
-    json.asOpt[RenderOptions]
-  }
-  catch {
-    case e: Throwable => {
-      Logger.warn("Error parsing options with apiClient id: " + apiClient.clientId)
-      None
+    import AssetLoading.ErrorMessages._
+
+    def decryptString = try {
+       Success(crypto.decrypt(encryptedOptions, apiClient.clientSecret))
+    } catch {
+      case e : Throwable => Failure(e.getMessage)
     }
+
+    def parse(s:String) : Validation[String,JsValue] = try{
+      Success(Json.parse(s))
+    } catch {
+      case e : Throwable => Failure( badJsonString(s, e) )
+    }
+
+    for {
+      s <- decryptString
+      parsed <- parse(s)
+      ro <- parsed.asOpt[RenderOptions].toSuccess( cantConvertJsonToRenderOptions(s))
+    } yield ro
   }
 
   private def withOptions(errorBlock:String=>Result)(block: Option[RenderOptions] => Result)(implicit request: Request[AnyContent], client: ApiClient) = {
@@ -83,7 +102,7 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService : 
 
     val result : Validation[String,Result] = for{
       o <- request.queryString.get("options").map(_.mkString).toSuccess( queryParamNotFound("options", request.queryString))
-      ro <- decryptOptions(o,client).toSuccess( DecryptOptions )
+      ro <- decryptOptions(o,client)
     } yield block(Some(ro))
 
       result match {
@@ -140,8 +159,9 @@ object AssetLoading extends AssetLoading(AESCrypto, AssetLoadingDefaults.Templat
 
     def apiClientNotFound(id:String) = "Can't find api client with id: " + id
     def queryParamNotFound(key:String, queryString:Map[String,Seq[String]]) = "Can't find parameter '" + key + "' on query string: " + queryString
-    val DecryptOptions = "Can't decrypt options"
     val InvalidObjectId = "Invalid ObjectId"
+    def badJsonString(s:String, e:Throwable) = "Can't parse string into json: " + s
+    def cantConvertJsonToRenderOptions(s:String) = "Can't convert json to options: " + s
   }
 }
 
