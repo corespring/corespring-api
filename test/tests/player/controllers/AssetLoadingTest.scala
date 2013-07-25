@@ -46,10 +46,10 @@ class AssetLoadingTest extends Specification {
       assertErrors("blah", None, AssetLoading.ErrorMessages.queryParamNotFound("apiClientId", Map()))
       assertErrors("blah?apiClientId=blah", None, AssetLoading.ErrorMessages.InvalidObjectId)
       assertErrors("blah?apiClientId=" + apiClientId, None, AssetLoading.ErrorMessages.queryParamNotFound("options", Map("apiClientId" -> Seq(apiClientId))))
-      assertErrors("blah?apiClientId=" + apiClientId, Some("asdfasdf"), AssetLoading.ErrorMessages.DecryptOptions )
+      assertErrors("blah?apiClientId=" + apiClientId, Some("bad-json"), AssetLoading.ErrorMessages.badJsonString("bad-json", new Exception()))
       val badId = "000000000000000000000001"
       assertErrors("blah?apiClientId=" + badId, None, AssetLoading.ErrorMessages.apiClientNotFound(badId))
-      assertErrors("blah?apiClientId=" + apiClientId, Some("{}"), AssetLoading.ErrorMessages.DecryptOptions )
+      assertErrors("blah?apiClientId=" + apiClientId, Some("{}"), AssetLoading.ErrorMessages.cantConvertJsonToRenderOptions("{}") )
     }
   }
 }
