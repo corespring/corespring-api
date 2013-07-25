@@ -114,7 +114,7 @@ object Global extends GlobalSettings {
       }
       case Mode.Dev => {
         if(initData) {
-          onlyIfLocalDb(emptyData, seedDevData, seedDebugData)
+          onlyIfLocalDb(emptyData, seedDevData, seedDebugData, seedDemoData)
         }
         seedStaticData()
       }

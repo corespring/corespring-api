@@ -1,0 +1,15 @@
+/*
+*/
+.graph-interaction{
+    background-color: #CCCCCC;
+    padding: 10px;
+}
+.points-display{
+
+}
+.point-display{
+
+}
+.point-display p,input{
+    display: inline;
+}

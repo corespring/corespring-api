@@ -26,7 +26,8 @@ object QtiKeys extends PackageLogging{
           matches.nodeOrAttr("tabs") -> "tabs",
           matches.nodeOrAttr("cs-tabs") -> "tabs",
           matches.nodeOrAttr("math") -> "math",
-          matches.attrAndValue("class", "numbered-lines") -> "numberedLines"
+          matches.attrAndValue("class", "numbered-lines") -> "numberedLines",
+          matches.attr("jsxgraphcore") -> "jsxgraphcore"
         )
         nodes.filter(_._1).map(_._2).distinct
       }

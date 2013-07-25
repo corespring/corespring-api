@@ -74,6 +74,7 @@ object SessionData {
           (userResponses.toList ::: correctResponses.toList).distinct
 
         val feedbackTuples: List[(String, String)] = responsesToGiveFeedbackOn.map(createFeedback).flatten
+        val ofc = buildOutcomeFeedbackContents
         feedbackTuples.toMap[String, String] ++ buildOutcomeFeedbackContents
       } else {
         Map()
@@ -117,6 +118,7 @@ object SessionData {
 
     def correctResponseToItemResponse(id: String)(cr: CorrectResponse): ItemResponse = cr match {
       case CorrectResponseSingle(value) => StringItemResponse(id, value)
+      case CorrectResponseLineEquation(value,_,_,_) => StringItemResponse(id,value)
       case CorrectResponseMultiple(value) => ArrayItemResponse(id, value)
       case CorrectResponseAny(value) => ArrayItemResponse(id, value)
       case CorrectResponseOrdered(value) => ArrayItemResponse(id, value)

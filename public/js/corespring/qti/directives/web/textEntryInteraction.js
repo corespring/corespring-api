@@ -54,13 +54,13 @@ angular.module('qti.directives').directive("textentryinteraction", function (Qti
                 if (!responses) return;
 
                 var correctResponse = QtiUtils.getResponseValue(responseIdentifier, responses, "");
-
+                var outcome = QtiUtils.getOutcomeValue(responseIdentifier,scope.itemSession.responses)
                 removeCss();
 
                 if (responses.length == 0) {
                     element.addClass(scope.CSS.received);
                 }
-                else if (isCorrect(correctResponse)) {
+                else if (isCorrect(correctResponse) || (outcome && outcome.isCorrect)) {
                     if (scope.highlightCorrectResponse() || scope.highlightUserResponse()) {
                         element.addClass(scope.CSS.correct);
                     }

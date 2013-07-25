@@ -2,6 +2,15 @@
     overflow: hidden;
 }
 
+.drag-and-drop-interaction ul,
+.drag-and-drop-solution-modal ul,
+.drag-and-drop-interaction li,
+.drag-and-drop-solution-modal li {
+    margin: 0px;
+    vertical-align: top;
+}
+
+
 .drag-and-drop-interaction .answerContainer {
     padding-top: 5px;
     padding-bottom: 5px;
@@ -58,9 +67,9 @@ table.csDropTiles,
 .drag-and-drop-interaction .contentElement,
 .drag-and-drop-solution-modal .contentElement
 {
+    display: inline-block;
     background-color: #999;
     padding: 8px;
-    float: left;
     margin: 1px 5px 1px 1px;
     font-size:14px;
     font-family:"Ubuntu", Arial, Helvetica, sans-serif;

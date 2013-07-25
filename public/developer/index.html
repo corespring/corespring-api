@@ -310,8 +310,7 @@ Collections
     </div>
     <!-- main content -->
     <div class="main-content">
-        <br/>
-
+        <p><br/></p>
 
 <div class="span9 lead-in developer" style="margin-left: 0px;">
 
@@ -397,12 +396,6 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <p><em>* The TC system needs to support LTI outcomes service for the outcomes to be sent back to the TC system</em></p>
 
-<h3>Using CoreSpring in Canvas with LTI</h3>
-
-<p>The instructions for how to configure LTI Tools might vary somewhat from system to system. By way of reference, we will describe how to configure CoreSpring with CanvasLMS here:</p>
-
-<p><a href="/developer/canvas-integration.html">Configuring CoreSpring with Canvas</a></p>
-
 <h2><a name="integration-direct" class="waypoint"></a> Direct Integration</h2>
 
 <p>Direct integration using the CoreSpring REST APIs and Item Player gives you a lot of flexibility in how to integrate the content into your system.</p>
@@ -416,8 +409,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 </ol>
 
 
-<br/>
-
+<p><br/></p>
 
 <p><strong>Finding an Item</strong></p>
 
@@ -450,7 +442,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
         <span class="nt">&lt;script&gt;</span>
           <span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
               <span class="c1">//Note: Use jquery style selectors</span>
-              <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">org</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">);</span>
+              <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">);</span>
            <span class="p">});</span>
         <span class="nt">&lt;/script&gt;</span>
       <span class="nt">&lt;/head&gt;</span>
@@ -695,7 +687,7 @@ callback(null,encrypted+"--"+new Buffer(iv).toString('hex'));
       <span class="nx">itemId</span><span class="o">:</span> <span class="s2">&quot;itemId&quot;</span><span class="p">,</span>
       <span class="nx">mode</span><span class="o">:</span> <span class="s2">&quot;preview&quot;</span>
     <span class="p">}</span>
-    <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">org</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">,</span> <span class="nx">options</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">,</span> <span class="nx">options</span><span class="p">);</span>
 </code></pre>
 </div>
 
@@ -717,7 +709,7 @@ callback(null,encrypted+"--"+new Buffer(iv).toString('hex'));
     <span class="p">}</span>
 
 
-    <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span>
+    <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span>
       <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;cs-item-player&#39;</span><span class="p">),</span>
       <span class="nx">itemPlayerConfig</span><span class="p">);</span>
 </code></pre>
@@ -776,8 +768,7 @@ The interactive API widget is pre-configured to use this access token but you ca
 
 <p>Once you have <a href="/developer/register">registered</a> and have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL. You can access the authorization url to receive your auth token using the widget below.</p>
 
-<br/>
-
+<p><br/></p>
 
 <div style="padding-bottom: 10px;">
   <rest-widget
@@ -807,8 +798,7 @@ The interactive API widget is pre-configured to use this access token but you ca
 </div>
 
 
-<br/>
-
+<p><br/></p>
 
 <p>Or by passing it in the query string to a request:</p>
 
@@ -840,10 +830,7 @@ This complete model for Item is described at the end of this section.</p>
 
 <p>Returns the Item for the specified <em>:itemId</em>. Does not return every field (see below).</p>
 
-<br/>
-
-
-
+<p><br/></p>
 
 <div style="padding-bottom: 10px;">
   <rest-widget
@@ -856,8 +843,7 @@ This complete model for Item is described at the end of this section.</p>
 
 <p>Returns the Item for the specified <em>:itemId</em>. Returns <em>all</em> properties of the Item model.</p>
 
-<br/>
-
+<p><br/></p>
 
 <h2><a name="items-get-list" class="waypoint"></a>Getting a List of Items</h2>
 
@@ -875,10 +861,7 @@ This complete model for Item is described at the end of this section.</p>
 </p></blockquote>
 
 
-
-
-<br/>
-
+<p><br/></p>
 
 <div style="padding-bottom: 10px;">
   <rest-widget
@@ -890,8 +873,7 @@ This complete model for Item is described at the end of this section.</p>
 
 <p>Returns an array of all Items for the specified <em>:collectionId</em>.</p>
 
-<br/>
-
+<p><br/></p>
 
 <div style="padding-bottom: 10px;">
   <rest-widget
@@ -1148,12 +1130,7 @@ these properties as was originally set by the contributor of the item:</p>
 </div>
 
 
-
-
-<br/>
-
-
-
+<p><br/></p>
 
 <table class="table table-striped table-bordered table-condensed">
   <tr>
@@ -1199,10 +1176,7 @@ these properties as was originally set by the contributor of the item:</p>
 </table>
 
 
-
-
-<br/>
-
+<p><br/></p>
 
 <h2><a name="item-session-response-model"></a>Item Session Response Model</h2>
 
@@ -1250,10 +1224,7 @@ these properties as was originally set by the contributor of the item:</p>
 </div>
 
 
-
-
-<br/>
-
+<p><br/></p>
 
 <h1><a name="organizations-index" class="waypoint"></a>Organizations</h1>
 
@@ -1539,7 +1510,7 @@ wanted to display only itemType and sort alphabetically in ascending order:</p>
 
 <hr />
 
-<p>date:  05/31/2013 11:21AM</p>
+<p>date:  07/23/2013 12:57PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">

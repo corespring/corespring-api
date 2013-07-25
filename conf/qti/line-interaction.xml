@@ -1,0 +1,55 @@
+<assessmentItem>
+    <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
+    <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
+    <responseDeclaration identifier="graphTest" baseType="line" cardinality="single">
+        <correctResponse>
+            <value>y=2x+7</value>
+        </correctResponse>
+    </responseDeclaration>
+    <responseDeclaration identifier="equationEntryTest" cardinality="single" baseType="line">
+        <correctResponse>
+            <value>y=2x+7</value>
+        </correctResponse>
+    </responseDeclaration>
+    <itemBody>
+
+        Line P has a slope of 2 and intersects point (-3,1). Draw line P below and give the equation for line P
+        <lineInteraction jsxgraphcore=""
+                         responseIdentifier="graphTest"
+                         graph-width="300px"
+                         graph-height="300px"
+                         domain="10"
+                         range="10"
+                         scale="1"
+                         domain-label="x"
+                         range-label="y"
+                         tick-label-frequency="5"
+                         sigfigs="-1"
+                />
+
+        <feedbackBlock outcomeIdentifier="responses.graphTest.outcome.incorrect">
+            <div class="feedback-block-incorrect">Wrong!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.graphTest.outcome.correct">
+            <div class="feedback-block-correct">You're right!</div>
+        </feedbackBlock>
+
+        <p>The equation for the line is: </p>
+        <textEntryInteraction responseIdentifier="equationEntryTest" expectedLength="20" />
+        <feedbackBlock outcomeIdentifier="responses.equationEntryTest.outcome.incorrectEquation">
+            <div class="feedback-block-incorrect">Wrong!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.equationEntryTest.value" identifier="y=2x+7">
+            <div class="feedback-block-correct">You're right!</div>
+        </feedbackBlock>
+
+        <feedbackBlock outcomeIdentifier="responses.equationEntryTest.outcome.lineEquationMatch">
+            <div class="feedback-block-correct">You're right, but equation is not in form of y=mx+b</div>
+        </feedbackBlock>
+
+
+    </itemBody>
+</assessmentItem>
+

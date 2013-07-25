@@ -2,9 +2,6 @@ package player.accessControl.models
 
 import common.encryption.AESCrypto
 import models.auth.ApiClient
-import play.api.libs.json.JsNumber
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
 import play.api.libs.json._
 
 case class RenderOptions(itemId: String = "*",
@@ -26,13 +23,15 @@ object RenderOptions {
   implicit object Reads extends Reads[RenderOptions] {
     def reads(json: JsValue): JsResult[RenderOptions] = {
 
-      RequestedAccess.Mode.withName("preview")
+      val expires = (json \ "expires").asOpt[Long].getOrElse(
+        (json \ "expires").asOpt[String].get.toLong
+      )
       JsSuccess(RenderOptions(
         (json \ "itemId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
         (json \ "sessionId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
         (json \ "assessmentId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
         (json \ "role").asOpt[String].filterNot(_.isEmpty).getOrElse("student"),
-        (json \ "expires").as[Long],
+        expires,
         RequestedAccess.Mode.withName((json \ "mode").as[String])
       ))
     }

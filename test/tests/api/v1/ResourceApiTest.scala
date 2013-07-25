@@ -130,11 +130,11 @@ class ResourceApiTest extends BaseTest with PackageLogging {
 
       val updateFile = VirtualFile("newName2.txt", "text/txt", isMain = false, content = "new content")
       val result = makeFileRequest(updateFile, update)
-      status(result) must equalTo(OK)
+      status(result) === OK
 
       resourceFn().files.find(_.name == updateFile.name) match {
         case Some(f) => {
-          f.asInstanceOf[VirtualFile].content must equalTo(updateFile.content)
+          f.asInstanceOf[VirtualFile].content === updateFile.content
         }
         case _ => failure("can't find updated file")
       }
@@ -152,10 +152,10 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       val result = makeFileRequest(f1, create)
 
       val json = Json.parse(contentAsString(result))
-      json.as[BaseFile].name must equalTo("data.file.default.txt")
-      json.as[BaseFile].isMain must equalTo(true)
+      json.as[BaseFile].name === "data.file.default.txt"
+      json.as[BaseFile].isMain === true
 
-      status(result) must equalTo(OK)
+      status(result) === OK
 
       val item: Item = ItemServiceImpl.findOneById(testItem.id).get
 
@@ -163,7 +163,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
         case Some(r) => {
           r.files.find(_.isMain == true) match {
             case Some(defaultFile) => {
-              defaultFile.name must equalTo(f1.name)
+              defaultFile.name === f1.name
             }
             case None => failure("couldn't find default file")
           }
@@ -186,10 +186,10 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       val f = VirtualFile("data.file.txt", "text/txt", isMain = false, content = "hello there")
       val result = makeFileRequest(f, create)
       val json = Json.parse(contentAsString(result))
-      json.as[BaseFile].name must equalTo("data.file.txt")
-      status(result) must equalTo(OK)
+      json.as[BaseFile].name === "data.file.txt"
+      status(result) === OK
       val secondResult = makeFileRequest(f, create)
-      status(secondResult) must equalTo(NOT_ACCEPTABLE)
+      status(secondResult) === NOT_ACCEPTABLE
     }
 
     "create a new supporting material resource" in {
@@ -208,8 +208,8 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       status(resultWithResource) === OK
 
       val secondResult = create(tokenFakeRequest(FakeHeaders(), AnyContentAsJson(Json.toJson(r))))
-      contentAsString(secondResult).contains(ApiError.ResourceNameTaken.message) must equalTo(true)
-      status(secondResult) must equalTo(NOT_ACCEPTABLE)
+      contentAsString(secondResult).contains(ApiError.ResourceNameTaken.message) === true
+      status(secondResult) === NOT_ACCEPTABLE
 
       val delete = ResourceApi.deleteSupportingMaterial(testItemId, "newResource")
       val deleteResult = delete(tokenFakeRequest())
@@ -224,7 +224,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       val r: Resource = Resource("newResource2", Seq())
       create(tokenFakeRequest(FakeHeaders(), AnyContentAsJson(Json.toJson(r))))
       val deleteResult = delete(tokenFakeRequest())
-      status(deleteResult) must equalTo(OK)
+      status(deleteResult) === OK
     }
 
 
@@ -233,9 +233,9 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       val result = get(tokenFakeRequest())
       val json: JsValue = parsed[JsValue](result)
       val seq: Seq[JsObject] = json.as[Seq[JsObject]]
-      seq.length must equalTo(1)
+      seq.length === 1
       val jsItem = seq(0)
-      (jsItem \ "name").asOpt[String] must equalTo(Some("Rubric"))
+      (jsItem \ "name").asOpt[String] === Some("Rubric")
     }
 
     "binary upload test" in {

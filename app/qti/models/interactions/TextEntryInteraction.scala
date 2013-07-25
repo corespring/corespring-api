@@ -2,21 +2,39 @@ package qti.models.interactions
 
 import models.itemSession._
 import qti.models.QtiItem.Correctness
-import qti.models.ResponseDeclaration
+import qti.models.{CorrectResponseLineEquation, ResponseDeclaration}
 import xml.Node
+import java.util.regex.Pattern
+import util.Random
+import javax.script.ScriptEngineManager
 
 case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int, feedbackBlocks: Seq[FeedbackInline]) extends Interaction {
 
   def isScoreable = true
 
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
+    def checkLineEquation:Option[CorrectResponseLineEquation] = responseDeclaration.flatMap(_.correctResponse.
+        find(cr => cr.isInstanceOf[CorrectResponseLineEquation]).
+        map[CorrectResponseLineEquation](cr => cr.asInstanceOf[CorrectResponseLineEquation])
+    )
     response match {
       case StringItemResponse(_,responseValue,_) => responseDeclaration match {
-        case Some(rd) => rd.mapping match {
-          case Some(mapping) => Some(ItemResponseOutcome(mapping.mappedValue(response.value), rd.isCorrect(responseValue) == Correctness.Correct))
-          case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
-            Some(ItemResponseOutcome(1,true))
-          } else Some(ItemResponseOutcome(0,false))
+        case Some(rd) => {
+          def getOutcomeProperties(isCorrect:Boolean):Map[String,Boolean] = checkLineEquation match {
+            case Some(cre) => if (isCorrect && cre.value != responseValue) Map("lineEquationMatch" -> true)  //even though the response value may not match the expected value, the response may still be correct
+              else if(!isCorrect) Map("incorrectEquation" ->  true)
+              else Map()
+            case None => Map()
+          }
+          rd.mapping match {
+            case Some(mapping) =>
+              val isCorrect:Boolean = rd.isCorrect(responseValue) == Correctness.Correct
+              Some(ItemResponseOutcome(mapping.mappedValue(response.value), isCorrect, outcomeProperties = getOutcomeProperties(isCorrect)))
+            case None => {
+              val isCorrect:Boolean = rd.isCorrect(responseValue) == Correctness.Correct
+              Some(ItemResponseOutcome(if(isCorrect) 1 else 0, isCorrect, outcomeProperties = getOutcomeProperties(isCorrect)))
+            }
+          }
         }
         case None => None
       }
@@ -46,6 +64,7 @@ case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int,
 }
 
 object TextEntryInteraction extends InteractionCompanion[TextEntryInteraction]{
+  private val engine = new ScriptEngineManager().getEngineByName("JavaScript")
 
   def tagName = "textEntryInteraction"
 
@@ -75,5 +94,6 @@ object TextEntryInteraction extends InteractionCompanion[TextEntryInteraction]{
     (itemBody \\ "feedbackBlock").map(node => FeedbackInline(node,None))
   }
   private def expectedLength(n: Node): Int = (n \ "@expectedLength").text.toInt
+
 
 }
