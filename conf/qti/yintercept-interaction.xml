@@ -18,11 +18,11 @@
                          max-points="2"
                 />
 
-        <feedbackBlock outcomeIdentifier="responses.yinterceptTest.outcome.incorrect">
+        <feedbackBlock outcomeIdentifier="responses.interceptTest.outcome.incorrect">
             <div class="feedback-block-incorrect">Wrong!</div>
         </feedbackBlock>
 
-        <feedbackBlock outcomeIdentifier="responses.yinterceptTest.outcome.correct">
+        <feedbackBlock outcomeIdentifier="responses.interceptTest.outcome.correct">
             <div class="feedback-block-correct">You're right!</div>
         </feedbackBlock>
 
