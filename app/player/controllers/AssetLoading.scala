@@ -32,6 +32,15 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService : 
       createJsTokens(ro, req) + ("mode" -> mode)
   })
 
+  /** Load the player js - but don't set any session cookies.
+   * This is used for scenarios where the user is already authenticated and has an appropriate session cookie
+   */
+  def noSessionPlayerJavascript = Action { request =>
+    val preppedJs = AssetLoading.createJsFromTemplate(playerTemplate, Map("mode" -> "preview", "baseUrl" -> getBaseUrl(request)))
+    Ok(preppedJs)
+      .as("text/javascript")
+  }
+
   def getDataFileForAssessment(assessmentId: String, itemId: String, filename: String) = getDataFile(itemId, filename)
 
 
