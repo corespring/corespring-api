@@ -82,8 +82,8 @@ object CorrectResponseLineEquation{
       var testCoords:Array[(Int,Int)] = Array()
       for (i <- 1 to numOfTestPoints){
         val xcoord = new Random().nextInt(range._2 - range._1)+range._1
-        val ycoord = engine.eval(formatExpression(rhs,Seq(variables._1 -> xcoord))).asInstanceOf[Double].toInt
-        testCoords = testCoords :+ (xcoord,ycoord)
+        val ycoord = engine.eval(formatExpression(rhs,Seq(variables._1 -> xcoord))).toString.toDouble
+        testCoords = testCoords :+ (xcoord,ycoord.toInt)
       }
       testCoords
     }
@@ -105,6 +105,7 @@ object CorrectResponseLineEquation{
         } else false)
       }catch{
         case e:javax.script.ScriptException => false
+        case e:NumberFormatException => false
       }
     } else false
   }
