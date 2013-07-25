@@ -24,7 +24,7 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
     }
 
 
-  val isQtiValid: (Boolean, Seq[String]) = {
+  lazy val isQtiValid: (Boolean, Seq[String]) = {
     val messages = itemBody.interactions.collect {
       case s => s.validate(this)._2
     }

@@ -172,8 +172,8 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                 scope.responseIdentifier = attrs.responseidentifier;
                 scope.controller = AssessmentItemController;
                 scope.controller.registerInteraction(element.attr('responseIdentifier'), "line graph", "graph");
-                scope.controller.setResponse(scope.responseIdentifier,null);
                 scope.outcomeReturned = scope.locked = attrs.hasOwnProperty('locked')?true:false;
+                if(!scope.locked) scope.controller.setResponse(scope.responseIdentifier,null);
             }
         }
     }
