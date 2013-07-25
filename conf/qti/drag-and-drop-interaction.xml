@@ -17,7 +17,7 @@
         <dragAndDropInteraction responseIdentifier="alphabet1">
             Complete the equation below:
 
-            <table class="tileTable">
+            <table>
                 <tr>
                     <td>
                         <draggableChoice identifier="two" width="100px">2</draggableChoice>
@@ -53,13 +53,13 @@
             <table>
                 <tr>
                     <td>
-                        <landingPlace cardinality="single" class="blueTile inline" identifier="target1"></landingPlace>
+                        <landingPlace cardinality="single" class="inline" identifier="target1"></landingPlace>
                     </td>
                     <td>
-                        <landingPlace cardinality="single" class="blueTile inline" identifier="target2"></landingPlace>
+                        <landingPlace cardinality="single" class="inline" identifier="target2"></landingPlace>
                     </td>
                     <td>
-                        <landingPlace cardinality="single" class="blueTile inline" identifier="target3"></landingPlace>
+                        <landingPlace cardinality="single" class="inline" identifier="target3"></landingPlace>
                     </td>
                     <td>
                         equals 5x

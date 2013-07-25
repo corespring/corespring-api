@@ -37,24 +37,24 @@
                 <table class="no-border">
                     <tr>
 
-                        <td><i>w<sup>1</sup></i>= <landingPlace cardinality='single' class='blueTile inline' identifier='target1'></landingPlace></td>
+                        <td><i>w<sup>1</sup></i>= <landingPlace cardinality='single' class='inline' identifier='target1'></landingPlace></td>
                     </tr>
                     <tr>
-                        <td><i>w<sup>n</sup></i>= <landingPlace cardinality='single' class='blueTile inline' identifier='target2'></landingPlace></td>
+                        <td><i>w<sup>n</sup></i>= <landingPlace cardinality='single' class='inline' identifier='target2'></landingPlace></td>
 
-                        <td><landingPlace cardinality='single' class='blueTile inline' identifier='target3'></landingPlace></td>
-                        <td><landingPlace cardinality='single' class='blueTile inline' identifier='target4'></landingPlace>
+                        <td><landingPlace cardinality='single' class='inline' identifier='target3'></landingPlace></td>
+                        <td><landingPlace cardinality='single' class='inline' identifier='target4'></landingPlace>
                         </td>
                     </tr>
                     <tr>
                         <td>
-                            where <i>n</i> is  <landingPlace cardinality='single' class='blueTile inline' identifier='target5'> </landingPlace>, </td>
-                        <td>such that <landingPlace cardinality='single' class='blueTile inline' identifier='target6'></landingPlace>. </td>
+                            where <i>n</i> is  <landingPlace cardinality='single' class='inline' identifier='target5'> </landingPlace>, </td>
+                        <td>such that <landingPlace cardinality='single' class='inline' identifier='target6'></landingPlace>. </td>
                     </tr>
                 </table>
             </answerArea>
 
-            <draggableChoiceGroup class='tileTable' shuffle='true' itemsPerRow='4'>
+            <draggableChoiceGroup shuffle='true' itemsPerRow='4'>
                 <draggableChoice identifier='1' copyOnDrag='true'>an integer</draggableChoice>
                 <draggableChoice identifier='2' copyOnDrag='true'>a real number</draggableChoice>
                 <draggableChoice identifier='3' copyOnDrag='true'>2</draggableChoice>

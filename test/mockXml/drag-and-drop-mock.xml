@@ -29,10 +29,10 @@
             <draggableChoice identifier="cow">Cow</draggableChoice>
             <draggableChoice identifier="bus">Bus</draggableChoice>
             </table>
-            <landingPlace cardinality="ordered" class="blueTile inline" identifier="target1"></landingPlace>
-            <landingPlace cardinality="multiple" class="blueTile inline" identifier="target2"></landingPlace>
-            <landingPlace cardinality="single" class="blueTile inline" identifier="target3"></landingPlace>
-            <landingPlace cardinality="ordered" class="blueTile inline" identifier="target4"></landingPlace>
+            <landingPlace cardinality="ordered" class="inline" identifier="target1"></landingPlace>
+            <landingPlace cardinality="multiple" class="inline" identifier="target2"></landingPlace>
+            <landingPlace cardinality="single" class="inline" identifier="target3"></landingPlace>
+            <landingPlace cardinality="ordered" class="inline" identifier="target4"></landingPlace>
 
         </dragAndDropInteraction>
 
