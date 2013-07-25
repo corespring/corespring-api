@@ -1,3 +1,4 @@
+'use strict';
 angular.module('qti.directives').directive('jsxGraph', function(Canvas) {
 return {
   template: "<div id='box' class='jxgbox' ng-style='boxStyle' style='width: 100%; height: 100%;'></div>",
