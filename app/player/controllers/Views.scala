@@ -130,9 +130,12 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
   protected def renderItem(params: RenderParams) = auth.ValidatedAction(params.toRequestedAccess) {
     tokenRequest =>
       ApiAction {
-        implicit request => prepareHtml(params, request.ctx.organization) match {
-          case Some(html: Html) => Ok(html).withSession(request.session + activeModeCookie(params.sessionMode))
-          case None => NotFound("not found")
+        implicit request => {
+          prepareHtml(params, request.ctx.organization) match {
+            case Some(html: Html) => Ok(html).withSession(
+              request.session + activeModeCookie(params.sessionMode))
+            case None => NotFound("not found")
+          }
         }
       }(tokenRequest)
   }

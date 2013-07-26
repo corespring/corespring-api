@@ -23,7 +23,7 @@ import scala.Some
   * Using these two models we can make a decision on whether this request should be granted access.
   *
   */
-abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAccess] with PlayerCookieReader {
+abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAccess] with PlayerCookieReader with SafariWorkaround {
 
   def ValidatedAction(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
     ValidatedAction(play.api.mvc.BodyParsers.parse.anyContent)(ra)(block)
@@ -51,9 +51,19 @@ abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAcces
               case Right(false) => Unauthorized(Json.toJson(ApiError.InvalidCredentials(Some("you can't access the items"))))
               case Left(e) => Unauthorized(Json.toJson(ApiError.InvalidCredentials(e.clientOutput)))
             }
-        }.getOrElse(BadRequest("Couldn't find options"))
-
+        }.getOrElse({
+          request.cookies.get("PLAY_SESSION") match {
+            case Some(cookie) => BadRequest("Couldn't find options")
+            case None => {
+              isSafari(request) match {
+                case true => handleSafari(request)
+                case false => BadRequest("Couldn't find options")
+              }
+            }
+          }
+        })
     }
+
 
   /** Grant access for this request?
     */
