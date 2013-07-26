@@ -16,11 +16,11 @@ class DeveloperTest extends BaseTest {
 
   sequential
 
-  def secureSocialSession(u: Option[User]): Array[(String, String)] = u match {
+  def secureSocialSession(u: Option[User], date: DateTime = DateTime.now()): Array[(String, String)] = u match {
     case Some(user) => Array(
       (SecureSocial.UserKey -> user.userName),
       (SecureSocial.ProviderKey -> user.provider),
-      (SecureSocial.LastAccessKey -> DateTime.now().toString)
+      (SecureSocial.LastAccessKey -> date.toString)
     )
     case _ => Array()
   }
@@ -51,6 +51,12 @@ class DeveloperTest extends BaseTest {
       status(Developer.createOrganization()(request)) === OK
       println(contentAsString(Developer.createOrganization()(request)))
       status(Developer.createOrganization()(request)) === BAD_REQUEST
+    }
+
+    "return unauthorized with expired session" in new MockUser{
+      val request = fakeRequest().withSession(secureSocialSession(Some(user), DateTime.now().minusDays(200)): _*)
+      val result = Developer.isLoggedIn(request)
+      status(result) === UNAUTHORIZED
     }
   }
 }
