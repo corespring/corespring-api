@@ -139,7 +139,7 @@ object Global extends GlobalSettings {
     require(uri.isDefined, "the mongo uri isn't defined!")
 
     uri match {
-      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1"))
+      case Some(url) => (uri.get.contains("localhost") || uri.get.contains("127.0.0.1"))
       case None => false
     }
   }
