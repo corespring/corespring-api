@@ -3,8 +3,10 @@ package tests.api.v1
 import api.ApiError
 import api.v1.ItemApi
 import com.mongodb.casbah.Imports._
-import controllers.S3Service
+import controllers.CorespringS3Service
 import models._
+import models.item.Item
+import models.item.resource.{VirtualFile, Resource}
 import models.item.service.ItemServiceImpl
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mock.Mockito
@@ -16,12 +18,10 @@ import play.api.test.Helpers._
 import scala.Some
 import scala.xml._
 import tests.BaseTest
-import models.item.Item
-import models.item.resource.{VirtualFile, Resource}
 
 class ItemApiTest extends BaseTest with Mockito {
 
-  val mockS3service = mock[S3Service]
+  val mockS3service = mock[CorespringS3Service]
 
 
   val ItemRoutes = api.v1.routes.ItemApi
@@ -299,7 +299,7 @@ class ItemApiTest extends BaseTest with Mockito {
     val id = "511154e48604c9f77da9739b"
     val fakeRequest = FakeRequest(POST, "/api/v1/items/%s?access_token=%s".format(id, token))
     val result = itemApi.cloneItem(VersionedId(new ObjectId(id)))(fakeRequest)
-    there was atLeastTwo(mockS3service).cloneFile(anyString, anyString, anyString)
+    there was atLeastTwo(mockS3service).copyFile(anyString, anyString, anyString)
   }.pendingUntilFixed("Play 2.1.3 upgrade - fix this")
 
 }

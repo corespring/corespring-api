@@ -1,7 +1,8 @@
 package utils
 
-import controllers.S3Service
-import play.api.mvc.{Headers, Result, BodyParser}
+import controllers.CorespringS3Service
+import org.corespring.amazon.s3.models.DeleteResponse
+import play.api.mvc.{RequestHeader, Headers, Result, BodyParser}
 
 
 package object mocks {
@@ -10,24 +11,20 @@ package object mocks {
   /** A mock s3 service that will throw an exception if the keyname
     * starts with "bad"
     */
-  class MockS3Service extends S3Service {
+  class MockS3Service extends CorespringS3Service {
 
     import play.api.mvc.Results._
 
-    def cloneFile(bucket: String, keyName: String, newKeyName: String) {
+    def copyFile(bucket: String, keyName: String, newKeyName: String) {
       if (keyName.contains("bad"))
         throw new RuntimeException("bad file")
       else
         Unit
     }
 
-    def s3upload(bucket: String, keyName: String): BodyParser[Int] = null
+    def upload(bucket: String, keyName: String, predicate: (RequestHeader) => Option[Result]): BodyParser[String] = ???
 
-    def s3download(bucket: String, itemId: String, keyName: String): Result = Ok("")
-
-    def bucket: String = null
-
-    def delete(bucket: String, keyName: String): this.type#S3DeleteResponse = null
+    def delete(bucket: String, keyName: String): DeleteResponse = null
 
     def download(bucket: String, fullKey: String, headers: Option[Headers]): Result = Ok("")
 
