@@ -103,7 +103,7 @@ object Global extends GlobalSettings {
     Logger.debug(s"Init Data: $initData :: ${app.configuration.getBoolean(INIT_DATA)}")
 
     def onlyIfLocalDb(fns: (() => Unit)*) {
-      if (isLocalDb(app))
+      if (isSafeToSeedDb(app))
         fns.foreach( fn => fn() )
       else
         throw new RuntimeException("You're trying to seed against a remote db - bad idea")
@@ -111,12 +111,10 @@ object Global extends GlobalSettings {
 
     app.mode match {
       case Mode.Test => {
-        emptyData()
-        seedTestData()
+        onlyIfLocalDb(emptyData, seedTestData)
       }
       case Mode.Dev => {
         if(initData) {
-          Logger.debug("Seed dev if local..")
           onlyIfLocalDb(emptyData, seedDevData, seedDebugData, seedDemoData)
         }
         seedStaticData()
@@ -133,15 +131,17 @@ object Global extends GlobalSettings {
 
   }
 
-  private def isLocalDb(implicit  app : Application) : Boolean = {
+  private def isSafeToSeedDb(implicit  app : Application) : Boolean = {
     val uri = app.configuration.getString("mongodb.default.uri")
 
     require(uri.isDefined, "the mongo uri isn't defined!")
 
-    uri match {
-      case Some(url) => (uri.get.contains("localhost") || uri.get.contains("127.0.0.1"))
-      case None => false
+    def isSafeRemoteUri(uri:String) : Boolean = {
+      val safeRemoteUri = app.configuration.getString("seed.db.safe.mongodb.uri")
+      safeRemoteUri.map(safeUri => uri == safeUri ).getOrElse(false)
     }
+
+    uri.map { u => u.contains("localhost") || u.contains("127.0.0.1") || isSafeRemoteUri(u) }.getOrElse(false)
   }
 
   /** Add demo data models to the the db to allow end users to be able to
