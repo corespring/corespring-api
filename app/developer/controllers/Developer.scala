@@ -17,8 +17,9 @@ import play.api.libs.json.JsBoolean
 import scala.Some
 import scala.Right
 import play.api.libs.json.JsObject
+import org.joda.time.DateTime
 
-object Developer extends Controller with BaseApi{
+object Developer extends Controller with BaseApi with SecureSocial {
 
   def at(path:String,file:String) = Assets.at(path,file)
 
@@ -41,21 +42,27 @@ object Developer extends Controller with BaseApi{
     Redirect("/login").withSession(request.session + ("securesocial.originalUrl" -> "/developer/home"));
   }
 
-  def isLoggedIn = Action { request =>
-    val username = request.session.get(SecureSocial.UserKey)
-    if(username.isDefined){
-      User.getUser(username.get) match {
-        case Some(user) => {
-          if (user.provider == "userpass"){
-            Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(user.userName))))
-          }else{
-            Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(user.fullName.split(" ")(0)))))
+  def isLoggedIn = UserAwareAction { request =>
+    val notLoggedIn = Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(false))))
+    lastAccessFromSession(request.session) match {
+      case Some(lastAccess) => {
+        val username = request.session.get(SecureSocial.UserKey)
+        if (username.isDefined && !isSessionExpired(lastAccess)) {
+          User.getUser(username.get) match {
+            case Some(user) => {
+              if (user.provider == "userpass"){
+                Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(user.userName))))
+              }else{
+                Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(user.fullName.split(" ")(0)))))
+              }
+            }
+            case None => notLoggedIn    //this can occur if the cookies are still set but the user has been deleted
           }
+        } else {
+          notLoggedIn
         }
-        case None => Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(false))))    //this can occur if the cookies are still set but the user has been deleted
       }
-    }else{
-      Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(false))))
+      case None => notLoggedIn
     }
   }
 

@@ -56,7 +56,7 @@ class DeveloperTest extends BaseTest {
     "not logged in with expired session" in new MockUser{
       val request = fakeRequest().withSession(secureSocialSession(Some(user), DateTime.now().minusDays(200)): _*)
       val result = Developer.isLoggedIn(request)
-      (Json.parse(contentAsString(result)) \ "isLoggedIn") must equalTo(false)
+      (Json.parse(contentAsString(result)) \ "isLoggedIn").as[Boolean] === false
     }
   }
 }
