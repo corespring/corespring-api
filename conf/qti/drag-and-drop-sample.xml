@@ -33,7 +33,7 @@
         <br></br>
 
         <h4 class="para-center">Tiles</h4>
-        <dragAndDropInteraction responseIdentifier='alphabet1' orderMatters='rue'>
+        <dragAndDropInteraction responseIdentifier='alphabet1'>
 
             <draggableChoiceGroup shuffle="true" itemsPerRow="5">
                         <draggableChoice identifier='1' copyOnDrag='true'>an integer</draggableChoice>
