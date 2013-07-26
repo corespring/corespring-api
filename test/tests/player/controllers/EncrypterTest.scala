@@ -66,7 +66,7 @@ class EncrypterTest extends BaseTest {
       def fr(c: AnyContent): FakeRequest[AnyContent] = FakeRequest("", tokenize(".."), FakeHeaders(), c)
 
       runRequestAndReturnStatus(fr(AnyContentAsEmpty)) === BAD_REQUEST
-      runRequestAndReturnStatus(fr(AnyContentAsJson(Json.parse( """{"test": true}""")))) === BAD_REQUEST
+      runRequestAndReturnStatus(fr(AnyContentAsJson(Json.parse( """{"test": true}""")))) === OK
       runRequestAndReturnStatus(fr(AnyContentAsJson(Json.toJson(RenderOptions(expires = 0, mode = RequestedAccess.Mode.All))))) === OK
 
     }

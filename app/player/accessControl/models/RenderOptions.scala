@@ -23,17 +23,19 @@ object RenderOptions {
   implicit object Reads extends Reads[RenderOptions] {
     def reads(json: JsValue): JsResult[RenderOptions] = {
 
-      val expires = (json \ "expires").asOpt[Long].getOrElse(
-        (json \ "expires").asOpt[String].get.toLong
-      )
-      JsSuccess(RenderOptions(
-        (json \ "itemId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
-        (json \ "sessionId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
-        (json \ "assessmentId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
-        (json \ "role").asOpt[String].filterNot(_.isEmpty).getOrElse("student"),
-        expires,
-        RequestedAccess.Mode.withName((json \ "mode").as[String])
-      ))
+      def expires : Option[Long] = (json \ "expires").asOpt[Long] orElse (json \ "expires").asOpt[String].map(_.toLong)
+
+      expires.map{
+        e =>
+          JsSuccess(RenderOptions(
+            (json \ "itemId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
+            (json \ "sessionId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
+            (json \ "assessmentId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
+            (json \ "role").asOpt[String].filterNot(_.isEmpty).getOrElse("student"),
+            e,
+            RequestedAccess.Mode.withName((json \ "mode").as[String])
+          ))
+      }.getOrElse(JsError("Expires is a mandatory field"))
     }
   }
 
