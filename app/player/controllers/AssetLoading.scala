@@ -163,8 +163,15 @@ object AssetLoading extends AssetLoading(AESCrypto, AssetLoadingDefaults.Templat
     def apiClientNotFound(id:String) = "Can't find api client with id: " + id
     def queryParamNotFound(key:String, queryString:Map[String,Seq[String]]) = "Can't find parameter '" + key + "' on query string: " + queryString
     val InvalidObjectId = "Invalid ObjectId"
-    def badJsonString(s:String, e:Throwable) = "Can't parse string into json: " + s
-    def cantConvertJsonToRenderOptions(s:String) = "Can't convert json to options: " + s
+    def badJsonString(s:String, e:Throwable) = escape("Can't parse string into json: " + s)
+    def cantConvertJsonToRenderOptions(s:String) = escape("Can't convert json to options: " + s)
+
+
+    private def escape(s:String) : String = {
+      val escaped = s.replace("\"", "\\\\\"")
+      Logger.debug("escaped: " + escaped)
+      escaped
+    }
   }
 }
 
