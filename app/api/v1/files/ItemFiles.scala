@@ -50,7 +50,7 @@ trait ItemFiles extends PackageLogging {
     }
 
     Logger.debug("[ItemFiles] clone file: " + file.storageKey + " --> " + newStorageKey)
-    s3service.cloneFile(bucket, file.storageKey, newStorageKey)
+    s3service.copyFile(bucket, file.storageKey, newStorageKey)
     file.storageKey = newStorageKey
     CloneFileResult(file, true)
   } catch {

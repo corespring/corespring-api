@@ -373,4 +373,4 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService) extends Base
 
 }
 
-object ItemApi extends api.v1.ItemApi(EmptyS3Service, ItemServiceImpl)
+object ItemApi extends api.v1.ItemApi(CorespringS3ServiceImpl, ItemServiceImpl)

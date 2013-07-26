@@ -2,7 +2,7 @@ package common.controllers
 
 import common.config.AppConfig
 import common.log.PackageLogging
-import controllers.{CorespringS3Service, EmptyS3Service, S3ServiceClient}
+import controllers.{CorespringS3Service, CorespringS3ServiceImpl, S3ServiceClient}
 import models.item.Item
 import models.item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
 import models.item.service.ItemServiceClient
@@ -28,7 +28,7 @@ object AssetResource{
 
 trait AssetResource extends AssetResourceBase{
   final def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]] = Some(renderBaseFile(f))
-  def s3Service : CorespringS3Service = EmptyS3Service
+  def s3Service : CorespringS3Service = CorespringS3ServiceImpl
 }
 
 

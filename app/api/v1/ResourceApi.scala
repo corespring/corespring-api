@@ -3,7 +3,7 @@ package api.v1
 import api.ApiError
 import common.config.AppConfig
 import controllers.auth.{Permission, ApiRequest, BaseApi}
-import controllers.{CorespringS3Service, EmptyS3Service}
+import controllers.{CorespringS3Service, CorespringS3ServiceImpl}
 import models.item.resource.{VirtualFile, BaseFile, StoredFile, Resource}
 import models.item.service.{ItemService, ItemServiceImpl}
 import models.item.{Content, Item}
@@ -506,4 +506,4 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
   }
 }
 
-object ResourceApi extends api.v1.ResourceApi(EmptyS3Service, ItemServiceImpl)
+object ResourceApi extends api.v1.ResourceApi(CorespringS3ServiceImpl, ItemServiceImpl)

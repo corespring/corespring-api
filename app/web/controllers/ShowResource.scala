@@ -2,7 +2,7 @@ package web.controllers
 
 import common.controllers.{AssetResourceBase, QtiResource}
 import controllers.auth.BaseApi
-import controllers.{CorespringS3Service, EmptyS3Service}
+import controllers.{CorespringS3Service, CorespringS3ServiceImpl}
 import models.item.Item
 import models.item.resource.{Resource, BaseFile}
 import play.api.mvc._
@@ -24,7 +24,7 @@ object ShowResource
   with AssetResourceBase
   with QtiRenderer {
 
-  def s3Service : CorespringS3Service = EmptyS3Service
+  def s3Service : CorespringS3Service = CorespringS3ServiceImpl
 
   def itemService : ItemService = ItemServiceImpl
 

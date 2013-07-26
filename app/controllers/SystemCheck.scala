@@ -85,4 +85,4 @@ class SystemCheck(s3: CorespringS3Service) extends Controller {
   }
 }
 
-object SystemCheck extends SystemCheck(EmptyS3Service)
+object SystemCheck extends SystemCheck(CorespringS3ServiceImpl)

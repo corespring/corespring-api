@@ -8,7 +8,7 @@ import com.mongodb.{BasicDBObject, DBObject}
 import com.novus.salat._
 import common.config.AppConfig
 import common.log.PackageLogging
-import controllers.{CorespringS3Service, EmptyS3Service}
+import controllers.{CorespringS3Service, CorespringS3ServiceImpl}
 import dao.SalatMongoCursor
 import models.item.resource.BaseFile.ContentTypes
 import models.item.resource.{VirtualFile, Resource}
@@ -140,7 +140,7 @@ object ItemVersioningDao extends  SalatVersioningDao[Item] {
 }
 
 
-object ItemServiceImpl extends ItemServiceImpl(EmptyS3Service, DefaultItemSession, ItemVersioningDao)
+object ItemServiceImpl extends ItemServiceImpl(CorespringS3ServiceImpl, DefaultItemSession, ItemVersioningDao)
 
 
 

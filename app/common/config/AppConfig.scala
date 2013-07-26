@@ -10,6 +10,8 @@ class AppConfig(config:Config) {
     val
     DEMO_ORG_ID,
     ROOT_ORG_ID,
+    AMAZON_ACCESS_SECRET,
+    AMAZON_ACCESS_KEY,
     AMAZON_ASSETS_BUCKET = Value
   }
 
@@ -18,6 +20,8 @@ class AppConfig(config:Config) {
   lazy val demoOrgId : ObjectId = new ObjectId(config.getString(Key.DEMO_ORG_ID))
   lazy val rootOrgId: ObjectId = new ObjectId(config.getString(Key.ROOT_ORG_ID))
   lazy val assetsBucket : String = config.getString(Key.AMAZON_ASSETS_BUCKET)
+  lazy val amazonKey : String = config.getString(Key.AMAZON_ACCESS_KEY)
+  lazy val amazonSecret : String = config.getString(Key.AMAZON_ACCESS_SECRET)
 }
 
 object AppConfig extends AppConfig(ConfigFactory.load())
