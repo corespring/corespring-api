@@ -135,11 +135,11 @@ object Global extends GlobalSettings {
 
   private def isLocalDb(implicit  app : Application) : Boolean = {
     val uri = app.configuration.getString("mongodb.default.uri")
-    Logger.debug(s"isLocalDb? uri: $uri")
+
+    require(uri.isDefined, "the mongo uri isn't defined!")
 
     uri match {
-      //TODO: Remove hardcoded url
-      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907.mongolab.com:35907/sib")
+      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1"))
       case None => false
     }
   }
