@@ -9,9 +9,7 @@ object Dependencies {
   val playPluginMailer = "com.typesafe" %% "play-plugins-mailer" % "2.1.0"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
   val securesocial = "securesocial" %% "securesocial" % "master-SNAPSHOT"
-  //val securesocial = "securesocial" % "securesocial_2.9.1" % "2.0.8"
-  //TODO: 2.1.2 Upgrade - Check version w/ Attila
-  val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.3.0.1"
+  val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.3.0.3"
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.2"
