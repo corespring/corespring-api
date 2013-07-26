@@ -39,6 +39,8 @@ function DeveloperCtrl($scope,$http,$rootScope,Developer) {
                     });
                 }) ;
             } else $scope.authState = "noauth";
+        }, function(data) {
+          $scope.authState = "noauth";
         });
     })();
 }

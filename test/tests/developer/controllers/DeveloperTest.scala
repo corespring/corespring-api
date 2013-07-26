@@ -53,10 +53,10 @@ class DeveloperTest extends BaseTest {
       status(Developer.createOrganization()(request)) === BAD_REQUEST
     }
 
-    "not logged in with expired session" in new MockUser{
+    "return unauthorized with expired session" in new MockUser{
       val request = fakeRequest().withSession(secureSocialSession(Some(user), DateTime.now().minusDays(200)): _*)
       val result = Developer.isLoggedIn(request)
-      (Json.parse(contentAsString(result)) \ "isLoggedIn").as[Boolean] === false
+      status(result) === UNAUTHORIZED
     }
   }
 }

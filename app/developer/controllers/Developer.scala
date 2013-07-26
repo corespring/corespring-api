@@ -42,27 +42,17 @@ object Developer extends Controller with BaseApi with SecureSocial {
     Redirect("/login").withSession(request.session + ("securesocial.originalUrl" -> "/developer/home"));
   }
 
-  def isLoggedIn = UserAwareAction { request =>
-    val notLoggedIn = Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(false))))
-    lastAccessFromSession(request.session) match {
-      case Some(lastAccess) => {
-        val username = request.session.get(SecureSocial.UserKey)
-        if (username.isDefined && !isSessionExpired(lastAccess)) {
-          User.getUser(username.get) match {
-            case Some(user) => {
-              if (user.provider == "userpass"){
-                Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(user.userName))))
-              }else{
-                Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(user.fullName.split(" ")(0)))))
-              }
-            }
-            case None => notLoggedIn    //this can occur if the cookies are still set but the user has been deleted
-          }
-        } else {
-          notLoggedIn
-        }
+  def isLoggedIn = SecuredAction(ajaxCall = true) { request =>
+    val userId: UserId = request.user.id
+    User.getUser(userId.id) match {
+      case Some(user) => {
+        val username = if (user.provider == "userpass") user.userName else user.fullName.split(" ").head
+        Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(true), "username" -> JsString(username))))
       }
-      case None => notLoggedIn
+      case None => {
+        // this can occur if the cookies are still set but the user has been deleted
+        Ok(JsObject(Seq("isLoggedIn" -> JsBoolean(false))))
+      }
     }
   }
 
