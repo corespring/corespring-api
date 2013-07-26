@@ -13,7 +13,7 @@ object Defaults{
       implicit val writes = Json.writes[FieldValue]
 
       val json : JsValue = writes.writes(fv)
-      Json.prettyPrint(json)
+      Json.stringify(json)
     }
     case _ => ""
   }

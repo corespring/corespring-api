@@ -153,7 +153,7 @@ object FieldValuesApi extends BaseApi {
   private def getSubFieldAsJsValue(fieldValue: Option[FieldValue], fieldName: String): JsValue = fieldValue match {
     case Some(fv) => {
       FieldValue.getSeqForFieldName(fv, fieldName) match {
-        case Some(seq) => toJson(seq)
+        case Some(json) => json
         case _ => JsObject(Seq())
       }
     }

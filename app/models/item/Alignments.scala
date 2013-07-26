@@ -34,7 +34,7 @@ object Alignments extends ValueGetter {
       ))
     }
 
-    private def getValidatedValue(s: Seq[KeyValue])(json: JsValue, key: String): Option[String] = {
+    private def getValidatedValue(s: Seq[StringKeyValue])(json: JsValue, key: String): Option[String] = {
       val value = (json \ key).asOpt[String]
       val out = value.filter(v => s.exists(_.key == v))
       out

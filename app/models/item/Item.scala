@@ -112,11 +112,6 @@ object Item {
     }
   }
 
-  def getValidatedValue(s: Seq[KeyValue])(json: JsValue, key: String) = {
-    (json \ key).asOpt[String]
-      .map(v => if (s.exists(_.key == v)) v else throw new JsonValidationException(key))
-  }
-
   implicit object Reads extends Reads[Item] {
 
     import Keys._
