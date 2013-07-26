@@ -6,7 +6,8 @@
     com.corespring = com.corespring || {};
     com.corespring.players = {};
 
-    com.corespring.players.error = "${playerError}";
+    com.corespring.players.mainError = "${playerError}";
+    com.corespring.players.errors = {};
 
     com.corespring.players.ItemProfile = function (element, options, errorCallback, onLoadCallback) {
         return new com.corespring.players.ItemPlayer(element, options, errorCallback);
@@ -40,7 +41,7 @@
             return;
         }
         e.append("<p>An Error has occured loading the player - please contact your system administrator");
-        error(com.corespring.players.error);
+        error(com.corespring.players.mainError);
 
     };
 })(this);

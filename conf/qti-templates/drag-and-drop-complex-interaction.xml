@@ -29,7 +29,7 @@
 
 
 
-        <dragAndDropInteraction responseIdentifier='alphabet1' orderMatters='rue'>
+        <dragAndDropInteraction responseIdentifier='alphabet1'>
             <prompt>PROMPT FOR THE WORK MAY GO HERE. For example: Write a recursive definition for the sequence that represents the number of cells in the growth medium at the end of teach week by dragging the tiles into the spaces below.</prompt>
 
 
