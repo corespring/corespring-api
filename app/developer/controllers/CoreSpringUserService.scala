@@ -19,12 +19,15 @@ import securesocial.core.providers.Token
  */
 class CoreSpringUserService(application: Application) extends UserServicePlugin(application) with PackageLogging {
 
-  def find(id: UserId): Option[SocialUser] = {
+  override def find(id: UserId): Option[SocialUser] = {
     // id.id has the username
-    Logger.info("looking for %s(%s)".format(id.id, id.providerId))
+    Logger.debug("looking for %s(%s)".format(id.id, id.providerId))
 
-    User.getUser(id.id, id.providerId) map {
+    User.getUser(id) map {
       u =>
+
+        Logger.debug(s"Found user: $u")
+
         SocialUser(
           id,
           "",

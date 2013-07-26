@@ -24,7 +24,7 @@ case class FieldValue(
                        var gradeLevels: Seq[StringKeyValue] = Seq(),
                        var reviewsPassed: Seq[StringKeyValue] = Seq(),
                        var keySkills: Seq[ListKeyValue] = Seq(),
-                       var itemTypes: Seq[StringKeyValue] = Seq(),
+                       var itemTypes: Seq[ListKeyValue] = Seq(),
                        var licenseTypes: Seq[StringKeyValue] = Seq(),
                        var priorUses: Seq[StringKeyValue] = Seq(),
                        var demonstratedKnowledge : Seq[StringKeyValue] = Seq(),

@@ -14,6 +14,8 @@ import web.controllers.utils.ConfigLoader
   */
 object Global extends GlobalSettings {
 
+  val Logger : LoggerLike = play.api.Logger("Global")
+
   val INIT_DATA: String = "INIT_DATA"
 
   val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
@@ -90,18 +92,18 @@ object Global extends GlobalSettings {
   }
 
   override def onStart(app: Application) : Unit = {
-    // support JodaTime
+
     RegisterJodaTimeConversionHelpers()
 
-    //TODO: 2.1.2 Upgrade - Add back an s3 service
-    //ConcreteS3Service.init
     AssetsLoaderImpl.init(app)
     LocalAssetsLoaderImpl.init(app)
 
-    val initData:Boolean = app.configuration.getString(INIT_DATA) == "true"
+    val initData:Boolean = app.configuration.getBoolean(INIT_DATA).getOrElse(false)
+
+    Logger.debug(s"Init Data: $initData :: ${app.configuration.getBoolean(INIT_DATA)}")
 
     def onlyIfLocalDb(fns: (() => Unit)*) {
-      if (isLocalDb)
+      if (isLocalDb(app))
         fns.foreach( fn => fn() )
       else
         throw new RuntimeException("You're trying to seed against a remote db - bad idea")
@@ -114,6 +116,7 @@ object Global extends GlobalSettings {
       }
       case Mode.Dev => {
         if(initData) {
+          Logger.debug("Seed dev if local..")
           onlyIfLocalDb(emptyData, seedDevData, seedDebugData, seedDemoData)
         }
         seedStaticData()
@@ -130,8 +133,11 @@ object Global extends GlobalSettings {
 
   }
 
-  private def isLocalDb: Boolean = {
-    ConfigLoader.get("mongodb.default.uri") match {
+  private def isLocalDb(implicit  app : Application) : Boolean = {
+    val uri = app.configuration.getString("mongodb.default.uri")
+    Logger.debug(s"isLocalDb? uri: $uri")
+
+    uri match {
       //TODO: Remove hardcoded url
       case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907.mongolab.com:35907/sib")
       case None => false
