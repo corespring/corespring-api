@@ -17,7 +17,8 @@ return {
     //    ...
     //  },
     //  drawShape:{
-    //    line: [pt1,pt2]
+    //    line: [pt1,pt2],
+    //    showPoints: Boolean
     //  },
     //  submission: {
     //    isIncomplete:[Boolean],
@@ -103,6 +104,8 @@ return {
                  if(pt1 && pt2){
                      canvas.makeLine([pt1,pt2]);
                  }
+             }else if(params.drawShape.curve && !lockGraph){
+                canvas.makeCurve(params.drawShape.curve)
              }
         }
         if(params.submission){

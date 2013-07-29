@@ -23,7 +23,7 @@ angular.module("qti.directives").directive("graphline", function(){
                               B: points[1]
                           },
                           drawShape:{
-                              line: ["A","B"]
+                              line: ["A","B"],
                           },
                           submission:{lockGraph: locked}
                       });
@@ -34,6 +34,31 @@ angular.module("qti.directives").directive("graphline", function(){
         }
     }
 });
+angular.module("qti.directives").directive("graphcurve", function(){
+    return {
+        restrict: "E",
+        require: '^lineinteraction',
+        scope: 'true',
+        compile: function(element,attrs,transclude){
+            element.attr('hidden','');
+            var locked = element.parent()[0].attributes.getNamedItem('locked')?true:false;
+            return function(scope,element,attrs,LineCtrl){
+                var innertext = element[0].innerHTML;
+                if(!innertext) throw "graphcurve must contain text";
+                var equation = innertext.split('=')[1];
+                if(equation){
+                    equation = equation.replace("x","*x")
+                    LineCtrl.setInitialParams({
+                        drawShape:{
+                            curve: function(x){return eval(equation)}
+                        },
+                        submission:{lockGraph: locked}
+                    })
+                }
+            }
+        }
+    }
+})
 angular.module("qti.directives").directive("lineinteraction", function(){
     return {
         template: [

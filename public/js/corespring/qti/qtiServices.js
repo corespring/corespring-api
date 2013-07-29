@@ -280,5 +280,12 @@ angular.module('qti.services').factory('Canvas', function () {
         fixed: true
       });
   };
+  Canvas.prototype.makeCurve = function(fn){
+    return this.board.create('functiongraph', [fn], {
+        strokeColor: '#00ff00',
+        strokeWidth: 2,
+        fixed: true
+      })
+  }
   return Canvas;
 });
