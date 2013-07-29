@@ -1,16 +1,17 @@
 package tests.developer.controllers
 
 import com.mongodb.casbah.commons.MongoDBObject
+import common.log.PackageLogging
 import developer.controllers.Developer
 import models.{Organization, User}
 import org.bson.types.ObjectId
+import org.joda.time.DateTime
 import org.specs2.mutable.After
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsJson
 import play.api.test.Helpers._
 import tests.BaseTest
 import tests.helpers.TestModelHelpers
-import common.log.PackageLogging
 
 class DeveloperTest extends BaseTest with TestModelHelpers with PackageLogging{
 
@@ -42,6 +43,16 @@ class DeveloperTest extends BaseTest with TestModelHelpers with PackageLogging{
       val request = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList : _*)
       status(Developer.createOrganization()(request)) === OK
       status(Developer.createOrganization()(request)) === BAD_REQUEST
+    }
+
+    "return unauthorized with expired session" in new MockUser{
+
+      import DateTime.now
+
+      val request = fakeRequest()
+        .withCookies(expiredSecureSocialCookie(Some(user)).toSeq : _*)
+      val result = Developer.isLoggedIn(request)
+      status(result) === UNAUTHORIZED
     }
   }
 }
