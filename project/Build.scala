@@ -20,6 +20,7 @@ object Build extends sbt.Build {
     templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
     resolvers ++= Dependencies.Resolvers.all,
     Keys.fork.in(Test) := false,
+    scalacOptions ++= Seq("-feature", "-deprecation"),
     (test in Test) <<= (test in Test).map(Commands.runJsTests)
   )
 }

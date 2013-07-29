@@ -179,8 +179,6 @@ GET    /web/javascripts/routes                             web.controllers.ShowR
 GET    /web/show-resource/:itemId/:resourceName/main        web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)
 GET    /web/show-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId,resourceName,filename)
 GET    /web/print-resource/:itemId/data/main                web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
-GET    /web/print-resource/:itemId/:resourceName/main       web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)
-GET    /web/print-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId,resourceName,filename)
 
 #
 # BasicLTI

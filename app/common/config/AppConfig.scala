@@ -2,6 +2,7 @@ package common.config
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.bson.types.ObjectId
+import scala.language.implicitConversions
 
 class AppConfig(config:Config) {
 

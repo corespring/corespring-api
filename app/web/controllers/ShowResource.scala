@@ -1,10 +1,11 @@
 package web.controllers
 
 import common.controllers.{AssetResourceBase, QtiResource}
-import controllers.auth.BaseApi
+import controllers.auth.{Permission, BaseApi}
 import controllers.{CorespringS3Service, CorespringS3ServiceImpl}
-import models.item.Item
 import models.item.resource.{Resource, BaseFile}
+import models.item.service.{ItemService, ItemServiceImpl, ItemServiceClient}
+import models.item.{Content, Item}
 import play.api.mvc._
 import player.controllers.QtiRenderer
 import player.views.models.{QtiKeys, PlayerParams}
@@ -13,7 +14,6 @@ import scala.Some
 import scala.xml.Elem
 import scalaz.Scalaz._
 import scalaz.{Success, Failure}
-import models.item.service.{ItemService, ItemServiceImpl, ItemServiceClient}
 
 
 object ShowResource
@@ -24,9 +24,9 @@ object ShowResource
   with AssetResourceBase
   with QtiRenderer {
 
-  def s3Service : CorespringS3Service = CorespringS3ServiceImpl
+  def s3Service: CorespringS3Service = CorespringS3ServiceImpl
 
-  def itemService : ItemService = ItemServiceImpl
+  def itemService: ItemService = ItemServiceImpl
 
   def javascriptRoutes = Action {
     implicit request =>
@@ -71,14 +71,20 @@ object ShowResource
 
         import models.versioning.VersionedIdImplicits.Binders._
 
-        getItemXMLByObjectId(item, request.ctx.organization) match {
-          case Some(xmlData: Elem) => {
-            val qtiKeys = QtiKeys((xmlData \ "itemBody")(0))
-            val finalXml = prepareQti(xmlData, renderMode)
-            val params: PlayerParams = PlayerParams(finalXml, itemId = Some(versionedIdToString(item.id)), previewEnabled = (renderMode == Web), qtiKeys = qtiKeys, mode = renderMode)
-            Ok(player.views.html.Player(params))
+        if (Content.isAuthorized(request.ctx.organization, item.id, Permission.Read)) {
+
+          itemService.getQtiXml(item.id) match {
+            case Some(xmlData: Elem) => {
+              val qtiKeys = QtiKeys((xmlData \ "itemBody")(0))
+              val finalXml = prepareQti(xmlData, renderMode)
+              val params: PlayerParams = PlayerParams(finalXml, itemId = Some(versionedIdToString(item.id)), previewEnabled = (renderMode == Web), qtiKeys = qtiKeys, mode = renderMode)
+              Ok(player.views.html.Player(params))
+            }
+            case None => NotFound("Can't find item")
           }
-          case None => NotFound("Can't find item")
+        }
+        else {
+          BadRequest("Not Authorized")
         }
     }
 

@@ -3,6 +3,7 @@ package qti.models.interactions
 import models.itemSession.{ItemResponseOutcome, ArrayItemResponse, ItemResponse}
 import qti.models._
 import scala.Some
+import scala.language.postfixOps
 import util.matching.Regex
 import xml.transform.{RuleTransformer, RewriteRule}
 import xml.{XML, NodeSeq, Elem, Node}
