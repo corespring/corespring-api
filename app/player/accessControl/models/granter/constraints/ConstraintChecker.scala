@@ -16,6 +16,6 @@ abstract class ConstraintChecker {
   }
 
 
-  protected def failed(name: String, msg: String): ValueAndConstraint[Any] = ValueAndConstraint(name, "?", List(new FailedConstraint(msg)))
+  protected def failed(name: String, msg: String): ValueAndConstraint[Any] = ValueAndConstraint(name, "Abstract ?", List(new FailedConstraint(msg)))
 
 }

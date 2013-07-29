@@ -23,6 +23,7 @@ object VersionedIdImplicits {
         * sometimes the version is passed as Some(Long) instead of Some(Int)
         * To work around this we cast to Any
         * TODO: find out what is causing this? new scala version? new play version?
+        * Note: This appears to only happen when you make requests via the play test framework.
         */
       val out = id.id.toString + id.version.map{ v : Any => ":"+ v.toString}.getOrElse("")
       JsString(out)
@@ -44,7 +45,7 @@ object VersionedIdImplicits {
       }
     }
 
-    def versionedIdToString(id:VersionedId[ObjectId]) : String =  id.version.map( (l : Int) => s"${id.id.toString}:$l").getOrElse(id.id.toString)
+    def versionedIdToString(id:VersionedId[ObjectId]) : String =  id.version.map( (l : Any) => s"${id.id.toString}:$l").getOrElse(id.id.toString)
 
 
     private def vId(id: String, v: Option[Int] = None): Option[VersionedId[ObjectId]] = if (ObjectId.isValid(id)) {

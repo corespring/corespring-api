@@ -29,6 +29,7 @@
     <logger name="tests" level="DEBUG"/>
     <logger name="utils" level="DEBUG"/>
     <logger name="basiclti.controllers" level="DEBUG"/>
+    <logger name="s3-play-plugin" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

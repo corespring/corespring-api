@@ -11,10 +11,12 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.JsObject
 import play.api.libs.json.{Json, JsValue}
 import play.api.mvc._
-import play.api.test.FakeHeaders
+import play.api.test.{FakeRequest, FakeHeaders}
 import play.api.test.Helpers._
 import scala._
 import tests.BaseTest
+import play.api.Play
+import play.api.libs.iteratee.Iteratee
 
 
 class ResourceApiTest extends BaseTest with PackageLogging {
@@ -56,6 +58,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       val request = tokenFakeRequest("blah", "blah", FakeHeaders(), AnyContentAsJson(Json.toJson(file)))
       action(request)
     }
+
 
     "delete a file from the Item.data Resource" in {
       val create = ResourceApi.createDataFile(testItemId) //.createDataFile(testItemId)
@@ -238,10 +241,53 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       (jsItem \ "name").asOpt[String] === Some("Rubric")
     }
 
-    "binary upload test" in {
-      skipped("need to work with promises/futures etc - see gist: https://gist.github.com/edeustace/2e9a31614c8b47a36087")
-      true === true
+
+    "do a binary post to supporting materials Resource" in {
+
+      import play.api.Play.current
+
+      val item = testItem
+      val filename = "cute-rabbit.jpg"
+
+      import models.versioning.VersionedIdImplicits.Binders._
+      val create = api.v1.ResourceApi.uploadFile(versionedIdToString(item.id),"Rubric", filename)
+      val file = Play.getFile("test/tests/files/" + filename)
+      val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
+      val byteArray = source.map(_.toByte).toArray
+      source.close()
+
+
+      Logger.debug(s"Test item id: ${item.id}")
+      //First upload should work
+
+      val firstCall = call(create, byteArray, OK, "cute-rabbit.jpg")
+      firstCall === (true, true)
+
+      //Second call is not acceptable - the file already exists
+      val secondCall = call(create, byteArray, NOT_FOUND, ApiError.FilenameTaken.message)
+      secondCall === (true, true)
+
+      val badUpdate = api.v1.ResourceApi.uploadFile(versionedIdToString(item.id), "badResourceName", filename)
+      val thirdCall = call(badUpdate, byteArray,  NOT_FOUND, ApiError.ResourceNotFound.message)
+      thirdCall === (true, true)
+
+      false === true
+    }.pendingUntilFixed("Note: the assertions pass here but the assets aren't uploaded (the tests are closing the pipes)")
+
+    def call(action : Action[String], byteArray: Array[Byte], expectedStatus: Int, expectedContains: String): (Boolean, Boolean) = {
+
+      val result = await(action( FakeRequest(
+          "",
+          tokenize(""),
+          FakeHeaders(Seq("Content" -> Seq("application/octet-stream"), CONTENT_LENGTH -> Seq(byteArray.length.toString))),
+          byteArray
+      )).run)
+
+      Logger.debug(s"result: $result")
+      Logger.debug(contentAsString(result))
+      (status(result) == expectedStatus, contentAsString(result).contains(expectedContains) === true)
     }
+
   }
 }
 
