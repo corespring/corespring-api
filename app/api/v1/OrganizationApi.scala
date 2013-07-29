@@ -46,8 +46,8 @@ object OrganizationApi extends BaseApi {
     val initSearch = MongoDBObject(key -> orgId)
     def applySort(orgs:SalatMongoCursor[Organization]):Result = {
       optsort.map(Organization.toSortObj(_)) match {
-        case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(orgs.sort(sort).skip(sk).limit(l))))
-        case None => Ok(Json.toJson(Utils.toSeq(orgs.skip(sk).limit(l))))
+        case Some(Right(sort)) => Ok(Json.toJson(orgs.sort(sort).skip(sk).limit(l).toSeq))
+        case None => Ok(Json.toJson(orgs.skip(sk).limit(l).toSeq))
         case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
       }
     }

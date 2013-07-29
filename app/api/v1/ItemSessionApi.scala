@@ -75,7 +75,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService
     request =>
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.Read)) {
         val cursor = itemSession.find(MongoDBObject(ItemSession.Keys.itemId -> itemId))
-        Ok(toJson(Utils.toSeq(cursor)))
+        Ok(toJson(cursor.toSeq))
       } else Unauthorized(toJson(ApiError.UnauthorizedItemSession))
   }
 

@@ -143,10 +143,9 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
     }
     seqcollid
   }
-  def getPublicCollections:Seq[ContentCollection] = {
-    val cursor = ContentCollection.find(MongoDBObject(isPublic -> true))
-    Utils.toSeq(cursor)
-  }
+
+  def getPublicCollections:Seq[ContentCollection] =  ContentCollection.find(MongoDBObject(isPublic -> true)).toSeq
+
 
   /**
    *

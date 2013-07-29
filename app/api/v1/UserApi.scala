@@ -30,8 +30,8 @@ object UserApi extends BaseApi {
 
     def applySort(users:SalatMongoCursor[User]):Result = {
       optsort.map(User.toSortObj(_)) match {
-        case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(users.sort(sort).skip(sk).limit(l))))
-        case None => Ok(Json.toJson(Utils.toSeq(users.skip(sk).limit(l))))
+        case Some(Right(sort)) => Ok(Json.toJson(users.sort(sort).skip(sk).limit(l).toSeq))
+        case None => Ok(Json.toJson(users.skip(sk).limit(l).toSeq))
         case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
       }
     }

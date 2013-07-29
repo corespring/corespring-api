@@ -85,7 +85,7 @@ object ItemSearch extends Searchable {
       }
     }) match {
       case Right(searchobj) => if (searchobj.nonEmpty) {
-        val subjects = Utils.toSeq(Subject.find(searchobj)).map(_.id)
+        val subjects = Subject.find(searchobj).toSeq.map(_.id)
         if (subjects.size > 1) Right(MongoDBObject(taskInfo + "." + TaskInfo.Keys.subjects + "." + Subjects.Keys.primary -> MongoDBObject("$in" -> subjects)))
         else if (subjects.size == 1) Right(MongoDBObject(taskInfo + "." + TaskInfo.Keys.subjects + "." + Subjects.Keys.primary -> subjects.head))
         else Left(SearchCancelled(None))
@@ -105,7 +105,7 @@ object ItemSearch extends Searchable {
       }
     }) match {
       case Right(searchobj) => if (searchobj.nonEmpty) {
-        val subjects: Seq[ObjectId] = Utils.toSeq(Subject.find(searchobj)).map(_.id)
+        val subjects: Seq[ObjectId] = Subject.find(searchobj).toSeq.map(_.id)
         if (subjects.size > 1) Right(MongoDBObject(taskInfo + "." + TaskInfo.Keys.subjects + "." + Subjects.Keys.related -> MongoDBObject("$in" -> subjects)))
         else if (subjects.size == 1) Right(MongoDBObject(taskInfo + "." + TaskInfo.Keys.subjects + "." + Subjects.Keys.related -> subjects.head))
         else Left(SearchCancelled(None))
@@ -136,7 +136,7 @@ object ItemSearch extends Searchable {
       }
     }) match {
       case Right(searchobj) => if (searchobj.nonEmpty) {
-        val standards: Seq[String] = Utils.toSeq(Standard.find(searchobj)).map(_.dotNotation).flatten
+        val standards: Seq[String] = Standard.find(searchobj).toSeq.map(_.dotNotation).flatten
         if (standards.nonEmpty) {
           if (standards.size == 1) Right(MongoDBObject( Item.Keys.standards -> standards.head))
           else Right(MongoDBObject(Item.Keys.standards -> MongoDBObject("$in" -> standards)))

@@ -101,9 +101,9 @@ object FieldValuesApi extends BaseApi {
         q.map(Subject.toSearchObj(_,None)).getOrElse[Either[SearchCancelled,MongoDBObject]](Right(MongoDBObject())) match {
           case Right(query) => f.map(Subject.toFieldsObj(_)) match {
             case Some(Right(searchFields)) => if(c == "true") JsObject(Seq("count" -> JsNumber(Subject.find(query).count)))
-            else JsArray(Utils.toSeq(Subject.find(query,searchFields.dbfields)).map(Json.toJson(_)))
+            else JsArray(Subject.find(query,searchFields.dbfields).toSeq.map(Json.toJson(_)))
             case None => if(c == "true") JsObject(Seq("count" -> JsNumber(Subject.find(query).count)))
-            else JsArray(Utils.toSeq(Subject.find(query)).map(Json.toJson(_)))
+            else JsArray(Subject.find(query).toSeq.map(Json.toJson(_)))
             case Some(Left(error)) => JsNull
           }
           case Left(sc) => sc.error match {
@@ -116,9 +116,9 @@ object FieldValuesApi extends BaseApi {
         q.map(Standard.toSearchObj(_,None)).getOrElse[Either[SearchCancelled,MongoDBObject]](Right(MongoDBObject())) match {
           case Right(query) => f.map(Standard.toFieldsObj(_)) match {
             case Some(Right(searchFields)) => if(c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(query).count)))
-            else JsArray(Utils.toSeq(Standard.find(query,searchFields.dbfields)).map(Json.toJson(_)))
+            else JsArray(Standard.find(query,searchFields.dbfields).toSeq.map(Json.toJson(_)))
             case None => if(c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(query).count)))
-            else JsArray(Utils.toSeq(Standard.find(query)).map(Json.toJson(_)))
+            else JsArray(Standard.find(query).toSeq.map(Json.toJson(_)))
             case Some(Left(error)) => JsNull
           }
           case Left(sc) => sc.error match {
