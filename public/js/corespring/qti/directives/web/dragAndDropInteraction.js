@@ -366,6 +366,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           stop: $scope.dropCallback,
           out: $scope.outCallback,
           over:  $scope.overCallback,
+          disabled: !$scope.canDrag,
           revert: false
         };
 
@@ -400,7 +401,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
 
         $scope.draggableOptions = {
           revert: $scope.revertFunction
-        }
+        };
 
         $scope.dropCallback = function (event, ui) {
           $scope.$parent.dropCallback(event, ui);
@@ -415,7 +416,6 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           $scope.correctClass = "";
         });
 
-
         $scope.$watch("maxWidth + maxHeight", function () {
           $scope.width = isMultiple ? $scope.maxWidth * 4 + 20 : $scope.maxWidth + 20;
         });
@@ -424,6 +424,10 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           $scope.dragging.id = $(ev.target).attr('data-id');
           $scope.dragging.draggingFromAnswer = false;
         };
+
+        $scope.$watch("canDrag", function(newVal) {
+          $scope.sortableOptions.disabled = !newVal;
+        });
 
         $scope.$watch("listTargets[" + $scope.targetIndex + "]", function () {
           $scope.itemContent = $scope.listTargets[$scope.targetIndex];
