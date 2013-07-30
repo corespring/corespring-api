@@ -16,4 +16,3 @@ deployment/.env_vars.sh
 mongo-migrator.log
 .heroku-helper-env.conf
 *.iml
-tests
