@@ -15,6 +15,5 @@ object AccessControlFilter extends EssentialFilter {
           .withHeaders(("Access-Control-Allow-Headers", "x-requested-with,Content-Type,Authorization"))
       )
     }
-
   }
 }
