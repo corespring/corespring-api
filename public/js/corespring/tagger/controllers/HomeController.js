@@ -88,6 +88,23 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
     return out.join(", ").replace(/0/g, "");
   };
 
+  function applyPermissions(items){
+    var readOnlyCollections = _.filter(CollectionManager.rawCollections,function(c){
+      return c.permission == "read";
+    });
+     return _.map(items, function(item){
+        var readOnlyColl = _.find(readOnlyCollections, function(coll){
+            return coll.id == item.collectionId;  //1 represents read-only access
+        });
+        if(readOnlyColl){
+            item.readOnly = true;
+        }else{
+            item.readOnly = false;
+        }
+        return item;
+      });
+  }
+
   $scope.search = function () {
     var isOtherSelected = $scope.searchParams && _.find($scope.searchParams.itemType, function (e) {
       return e.label == "Other"
@@ -104,20 +121,7 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
       });
     }
     SearchService.search($scope.searchParams, function (res) {
-      var readOnlyCollections = _.filter(CollectionManager.rawCollections,function(c){
-        return c.permission == "read";
-      });
-      $rootScope.items = _.map(res, function(item){
-        var readOnlyColl = _.find(readOnlyCollections, function(coll){
-            return coll.id == item.collectionId;  //1 represents read-only access
-        });
-        if(readOnlyColl){
-            item.readOnly = true;
-        }else{
-            item.readOnly = false;
-        }
-        return item;
-      })
+        $rootScope.items = applyPermissions(res);
       setTimeout(function () {
         MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
       }, 200);
@@ -127,7 +131,7 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
   $scope.loadMore = function () {
     SearchService.loadMore(function () {
         // re-bind the scope collection to the services model after result comes back
-        $rootScope.items = SearchService.itemDataCollection;
+        $rootScope.items = applyPermissions(SearchService.itemDataCollection);
         //Trigger MathJax
         setTimeout(function () {
           MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
