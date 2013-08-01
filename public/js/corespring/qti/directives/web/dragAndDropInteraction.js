@@ -221,8 +221,8 @@ angular.module('qti.directives').directive("draggablechoice", function () {
         $scope.height = attrs.height ? attrs.height : "50px";
         $scope.copyOnDrag = attrs.copyondrag == "true";
         $scope.placeholderClass = attrs.placeholderClass;
-        var lastW, lastH, sizeNotChangedCounter = 0;
-        var interval = setInterval(function () {
+        var lastW, lastH;
+        setInterval(function () {
           $scope.$apply(function () {
 
             var w = $(el).find('.sizerHolder').width();
@@ -230,15 +230,8 @@ angular.module('qti.directives').directive("draggablechoice", function () {
 
             if (lastW != w || lastH != h) {
               $scope.propagateDimension(w, h);
-              sizeNotChangedCounter = 0;
-            } else {
-              sizeNotChangedCounter++;
             }
 
-            if (sizeNotChangedCounter > 5) {
-              console.log("Size has settled");
-              clearInterval(interval);
-            }
             lastW = w;
             lastH = h;
           });
