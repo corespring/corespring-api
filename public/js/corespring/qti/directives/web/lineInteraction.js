@@ -23,7 +23,7 @@ angular.module("qti.directives").directive("graphline", function(){
                               B: points[1]
                           },
                           drawShape:{
-                              line: ["A","B"],
+                              line: ["A","B"]
                           },
                           submission:{lockGraph: locked}
                       });
