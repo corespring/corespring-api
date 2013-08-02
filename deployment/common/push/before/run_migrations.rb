@@ -23,7 +23,7 @@ def get_migrator_uri(uri, replica_set_name)
   end
 end
 
-JAR="deployment/libs/mongo-migrator_2.9.2-0.2.0-one-jar.jar"
+JAR=Dir["deployment/libs/mongo-migrator*.jar"][0]
 MIGRATIONS="deployment/migrations"
 MONGO_URI = config["ENV_MONGO_URI"]
 REPLICA_SET_NAME = config["ENV_MONGO_REPLICA_SET_NAME"]
