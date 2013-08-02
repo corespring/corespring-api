@@ -466,15 +466,21 @@ angular.module('qti.directives').directive("landingsolution", function (QtiUtils
       var template =
         [
           '<ul style="min-height: {{maxHeight}}px; min-width: {{width}}px" class="thumbnail {{correctClass}} landing '+attrs['class']+'">',
-          ' <li ng-repeat="item in items" class="contentElement" ng-bind-html-unsafe="item"></li>',
-          '<div class="clearfix"></div>',
-          '</div>'].join(" ");
+          ' <div class="landingLabelHolder" ng-show="label">',
+          '  <span class="landingLabel" style="">{{label}}</span>',
+          ' </div>',
+          ' <li ng-repeat="item in items" class="contentElement" ng-bind-html-unsafe="item" />',
+          ' <div class="clearfix"></div>',
+          '</ul>'
+        ].join(" ");
 
       el.html(template);
 
       return function ($scope, el, attrs) {
         $scope.isMultiple = attrs.cardinality == 'multiple' || attrs.cardinality == 'ordered';
         $scope.items = [];
+
+        $scope.label = attrs.label;
 
         $scope.$watch("maxWidth", function () {
           $scope.width = $scope.isMultiple ? (4 * $scope.maxWidth) : $scope.maxWidth;
