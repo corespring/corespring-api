@@ -5,7 +5,7 @@ import play.api.libs.json.JsString
 import play.api.libs.json.JsObject
 import play.api.libs.json.Json._
 import com.novus.salat.annotations.raw.Salat
-import qti.models.QtiItem
+import org.corespring.qti.models.QtiItem
 
 /**
  * Case class representing a user's response to an indvidual qusetion in an item

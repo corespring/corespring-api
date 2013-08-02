@@ -6,16 +6,14 @@ import com.amazonaws.services.s3.{AmazonS3, AmazonS3Client}
 import com.ee.assets.deployment.ContentInfo
 import com.typesafe.config.ConfigFactory
 import common.controllers.deployment.S3Deployer
-import org.specs2.mutable.{Before, Specification}
-import play.api.Play
-import tests.PlaySingleton
 import common.utils.string
 import java.io._
-import java.util.zip.GZIPInputStream
+import org.specs2.mutable.{Before, Specification}
+import play.api.Play
 import scala.Left
-import com.ee.assets.deployment.ContentInfo
 import scala.Right
 import scala.Some
+import tests.PlaySingleton
 
 class S3DeployerTest extends Specification {
 
@@ -54,7 +52,8 @@ class S3DeployerTest extends Specification {
     }
 
     "deploy gz file" in new RemoveFileBefore(client, bucket, "test/tests/files/cs-common.min.gz.js"){
-       import play.api.Play.current
+
+      import play.api.Play.current
 
       val file = Play.getFile(path)
 

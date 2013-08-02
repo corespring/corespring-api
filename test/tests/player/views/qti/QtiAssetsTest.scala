@@ -4,7 +4,7 @@ import org.specs2.mutable.Specification
 import play.api.LoggerLike
 import player.views.qti.QtiAssets
 import player.views.qti.models.{QtiJsAsset, QtiAssetsConfig}
-import qti.models.RenderingMode
+import org.corespring.qti.models.RenderingMode
 
 
 class QtiAssetsTest extends Specification {

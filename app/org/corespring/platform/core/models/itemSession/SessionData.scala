@@ -1,12 +1,13 @@
 package org.corespring.platform.core.models.itemSession
 
 import play.api.libs.json.Json._
-import qti.models._
-import interactions.SelectTextInteraction
+import org.corespring.qti.models._
 import play.api.libs.json._
 import play.api.libs.json.JsArray
 import scala.Some
 import play.api.libs.json.JsObject
+import org.corespring.qti.models.{CorrectResponse, ResponseDeclaration, QtiItem}
+import org.corespring.qti.models.interactions.SelectTextInteraction
 
 case class SessionData(correctResponses: Seq[ItemResponse] = Seq(), feedbackContents: Map[String, String] = Map())
 

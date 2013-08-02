@@ -1,9 +1,11 @@
 package tests
 
 import _root_.common.seed.SeedDb
-import org.corespring.platform.core.models.item.service.{ItemService, ItemServiceImpl}
 import _root_.web.controllers.utils.ConfigLoader
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.service.{ItemService, ItemServiceImpl}
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mutable.Specification
 import org.specs2.specification.{Step, Fragments}
 import play.api.libs.json._
@@ -12,13 +14,6 @@ import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
-import play.api.test.FakeHeaders
-import scala.Some
-import play.api.mvc.AnyContentAsJson
-import play.api.mvc.AnyContentAsText
-import play.api.libs.json.JsObject
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.platform.core.models.item.Item
 
 
 /**
@@ -109,7 +104,7 @@ trait BaseTest extends Specification {
       case None =>
         FakeRequest(httpVerb, fullUrl)
     }
-    //TODO 2.1.1 - using route gives a compilation error here
+    //TODO 2.1.3 - using route gives a compilation error here
     routeAndCall(request)
   }
 

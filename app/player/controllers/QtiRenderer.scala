@@ -1,11 +1,13 @@
 package player.controllers
 
-import qti.models.QtiItem
-import qti.models.RenderingMode._
-import qti.processors.FeedbackProcessor
+import org.corespring.qti.models.{RenderingMode, QtiItem}
+import RenderingMode._
+import org.corespring.qti.processors.FeedbackProcessor
 import FeedbackProcessor._
 import xml.transform.{RuleTransformer, RewriteRule}
 import scala.xml.{Xhtml, Node, Elem}
+import org.corespring.qti.models.QtiItem
+import org.corespring.qti.processors.FeedbackProcessor
 
 
 trait QtiRenderer {

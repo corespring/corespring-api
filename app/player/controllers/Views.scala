@@ -10,12 +10,13 @@ import player.accessControl.auth.CheckSessionAccess
 import player.accessControl.cookies.PlayerCookieWriter
 import player.accessControl.models.RequestedAccess
 import player.views.models.{QtiKeys, ExceptionMessage, PlayerParams}
-import qti.models.RenderingMode._
+import org.corespring.qti.models.RenderingMode
+import RenderingMode._
 import scala.xml.Elem
 import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
 import org.corespring.platform.data.mongo.models.VersionedId
 import common.controllers.deployment.{AssetsLoaderImpl, AssetsLoader}
-import qti.models.RenderingMode.RenderingMode
+import RenderingMode.RenderingMode
 import org.corespring.platform.core.models.itemSession.DefaultItemSession
 import org.corespring.platform.core.models.quiz.basic.Quiz
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits

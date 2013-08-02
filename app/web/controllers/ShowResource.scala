@@ -8,7 +8,8 @@ import org.corespring.platform.core.models.item.service.{ItemService, ItemServic
 import play.api.mvc._
 import player.controllers.QtiRenderer
 import player.views.models.{QtiKeys, PlayerParams}
-import qti.models.RenderingMode._
+import org.corespring.qti.models.RenderingMode
+import RenderingMode._
 import scala.Some
 import scala.xml.Elem
 import scalaz.Scalaz._

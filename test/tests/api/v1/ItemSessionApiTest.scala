@@ -15,12 +15,13 @@ import play.api.mvc.AnyContentAsJson
 import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import qti.models._
+import org.corespring.qti.models._
 import scala.Left
 import scala.Right
 import scala.Some
 import tests.BaseTest
 import utils.RequestCalling
+import org.corespring.qti.models.QtiItem
 
 class ItemSessionApiTest extends BaseTest with RequestCalling {
 

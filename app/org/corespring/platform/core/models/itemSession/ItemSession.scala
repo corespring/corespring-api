@@ -11,11 +11,11 @@ import org.joda.time.DateTime
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
-import qti.models.QtiItem
 import scala.xml._
 import se.radley.plugin.salat._
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import qti.processors.FeedbackProcessor
+import org.corespring.qti.models.QtiItem
+import org.corespring.qti.processors.FeedbackProcessor
 
 case class FeedbackIdMapEntry(csFeedbackId: String, outcomeIdentifier: String, identifier: String)
 

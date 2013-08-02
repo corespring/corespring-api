@@ -1,8 +1,8 @@
 package org.corespring.platform.core.models.itemSession
 
-import qti.models.{ResponseDeclaration, QtiItem}
-import qti.models.QtiItem.Correctness
-import qti.models.interactions.Interaction
+import org.corespring.qti.models.{ResponseDeclaration, QtiItem}
+import QtiItem.Correctness
+import org.corespring.qti.models.interactions.Interaction
 
 object Score {
 
