@@ -10,7 +10,7 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
   $scope.$root.mode = "home";
 
 
-  $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
+  $rootScope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
   $rootScope.$broadcast('onListViewOpened');
 
   var init = function () {
@@ -39,13 +39,13 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
   };
 
   $scope.sortBy = function (field) {
-    if ($scope.searchParams.sort && $scope.searchParams.sort[field]) {
-      $scope.searchParams.sort[field] *= -1;
+    if ($rootScope.searchParams.sort && $rootScope.searchParams.sort[field]) {
+      $rootScope.searchParams.sort[field] *= -1;
     } else {
-      $scope.searchParams.sort = {};
-      $scope.searchParams.sort[field] = 1;
+      $rootScope.searchParams.sort = {};
+      $rootScope.searchParams.sort[field] = 1;
     }
-    $scope.$broadcast("sortingOnField", field, $scope.searchParams.sort[field] == 1);
+    $scope.$broadcast("sortingOnField", field, $rootScope.searchParams.sort[field] == 1);
     $scope.search();
   }
 
@@ -88,26 +88,11 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
     return out.join(", ").replace(/0/g, "");
   };
 
-  $scope.search = function () {
-    var isOtherSelected = $scope.searchParams && _.find($scope.searchParams.itemType, function (e) {
-      return e.label == "Other"
+  function applyPermissions(items){
+    var readOnlyCollections = _.filter(CollectionManager.rawCollections,function(c){
+      return c.permission == "read";
     });
-
-    if (isOtherSelected) {
-      $scope.searchParams.notSelectedItemTypes = [];
-      _.each($scope.flatItemTypeDataProvided, function (e) {
-        var isSelected = _.find($scope.searchParams.itemType, function (f) {
-          return e.label == f.label;
-        });
-        if (!isSelected)
-          $scope.searchParams.notSelectedItemTypes.push(e);
-      });
-    }
-    SearchService.search($scope.searchParams, function (res) {
-      var readOnlyCollections = _.filter(CollectionManager.rawCollections,function(c){
-        return c.permission == "read";
-      });
-      $rootScope.items = _.map(res, function(item){
+     return _.map(items, function(item){
         var readOnlyColl = _.find(readOnlyCollections, function(coll){
             return coll.id == item.collectionId;  //1 represents read-only access
         });
@@ -117,7 +102,26 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
             item.readOnly = false;
         }
         return item;
-      })
+      });
+  }
+
+  $scope.search = function () {
+    var isOtherSelected = $rootScope.searchParams && _.find($rootScope.searchParams.itemType, function (e) {
+      return e.label == "Other"
+    });
+
+    if (isOtherSelected) {
+      $rootScope.searchParams.notSelectedItemTypes = [];
+      _.each($scope.flatItemTypeDataProvided, function (e) {
+        var isSelected = _.find($rootScope.searchParams.itemType, function (f) {
+          return e.label == f.label;
+        });
+        if (!isSelected)
+          $rootScope.searchParams.notSelectedItemTypes.push(e);
+      });
+    }
+    SearchService.search($rootScope.searchParams, function (res) {
+        $rootScope.items = applyPermissions(res);
       setTimeout(function () {
         MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
       }, 200);
@@ -127,7 +131,7 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
   $scope.loadMore = function () {
     SearchService.loadMore(function () {
         // re-bind the scope collection to the services model after result comes back
-        $rootScope.items = SearchService.itemDataCollection;
+        $rootScope.items = applyPermissions(SearchService.itemDataCollection);
         //Trigger MathJax
         setTimeout(function () {
           MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
@@ -141,8 +145,8 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
 
     $scope.$watch( function(){ return CollectionManager.sortedCollections; }, function(newValue, oldValue){
       $scope.sortedCollections = newValue;
-      if($scope.sortedCollections){
-        $scope.searchParams.collection = _.clone($scope.sortedCollections[0].collections);
+      if(!$rootScope.searchParams.collection && $scope.sortedCollections){
+        $rootScope.searchParams.collection = _.clone($scope.sortedCollections[0].collections);
       }
       $scope.search();
     }, true);
