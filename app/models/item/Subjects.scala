@@ -1,9 +1,14 @@
 package models.item
 
 import com.mongodb.casbah.Imports._
-import play.api.libs.json.{JsObject, JsValue, Json, Reads, Writes}
+import play.api.libs.json._
 import models.Subject
 import controllers.JsonValidationException
+import controllers.JsonValidationException
+import play.api.libs.json.JsObject
+import scala.Some
+import org.bson.types.ObjectId
+import com.mongodb.casbah.commons.TypeImports.ObjectId
 
 case class Subjects(var primary: Option[ObjectId] = None,
                     var related: Option[ObjectId] = None)
@@ -47,7 +52,7 @@ object Subjects extends ValueGetter {
   }
 
   implicit object Reads extends Reads[Subjects] {
-    def reads(json: JsValue): Subjects = {
+    def reads(json: JsValue): JsResult[Subjects] = {
       import Keys._
 
       def buildSubjectFromSeq(s: Seq[Option[String]]) = {
@@ -60,7 +65,7 @@ object Subjects extends ValueGetter {
       try {
         val maybeSubjects = get[Subjects](json, Seq(primarySubject, relatedSubject), buildSubjectFromSeq)
         maybeSubjects match {
-          case Some(s) => s
+          case Some(s) => JsSuccess(s)
           case _ => throw new RuntimeException("subjects expected")
         }
       }

@@ -1,45 +1,38 @@
 package models.item.service
 
+import api.v1.files.{CloneFileResult, ItemFiles}
 import com.mongodb.casbah
 import com.mongodb.casbah.MongoDB
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{BasicDBObject, DBObject}
 import com.novus.salat._
-import dao.{SalatInsertError, SalatMongoCursor}
+import common.config.AppConfig
+import common.log.PackageLogging
+import controllers.{CorespringS3Service, CorespringS3ServiceImpl}
+import dao.SalatMongoCursor
 import models.item.resource.BaseFile.ContentTypes
-import models.item.resource.{StoredFile, VirtualFile, Resource}
+import models.item.resource.{VirtualFile, Resource}
 import models.item.{FieldValue, Item}
+import models.itemSession.{DefaultItemSession, ItemSessionCompanion}
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.SalatVersioningDao
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 import play.api.Application
 import play.api.PlayException
 import scala.xml.Elem
-import se.radley.plugin.salat.SalatPlugin
-import common.log.PackageLogging
-import controllers.{ConcreteS3Service, S3Service}
-import com.typesafe.config.ConfigFactory
-import scalaz.Scalaz._
 import scalaz._
-import org.corespring.platform.data.mongo.exceptions.SalatVersioningDaoException
-import api.v1.ResourceApi
-import org.corespring.platform.data.mongo.models.{EntityWithVersionedId, VersionedId}
-import com.sun.xml.internal.bind.v2.TODO
-import web.controllers.utils.ConfigLoader
-import api.v1.files.{CloneFileResult, ItemFiles}
-import models.itemSession.{DefaultItemSession, ItemSessionCompanion}
-import org.corespring.platform.data.VersioningDao
-import common.config.AppConfig
+import se.radley.plugin.salat.SalatPlugin
 
 class ItemServiceImpl(
-                       val s3service: S3Service,
+                       val s3service: CorespringS3Service,
                        sessionCompanion : ItemSessionCompanion,
                        val dao : SalatVersioningDao[Item])
   extends ItemService with PackageLogging with ItemFiles{
 
+  import com.mongodb.casbah.commons.conversions.scala._
   import models.mongoContext.context
 
-  import com.mongodb.casbah.commons.conversions.scala._
 
   RegisterJodaTimeConversionHelpers()
   val FieldValuesVersion = "0.0.1"
@@ -132,7 +125,7 @@ object ItemVersioningDao extends  SalatVersioningDao[Item] {
   import play.api.Play.current
 
   private def salatDb(sourceName: String = "default")(implicit app: Application): MongoDB = {
-    app.plugin[SalatPlugin].map(_.db(sourceName)).getOrElse(throw PlayException("SalatPlugin is not " +
+    app.plugin[SalatPlugin].map(_.db(sourceName)).getOrElse(throw new PlayException("SalatPlugin is not " +
       "registered.", "You need to register the plugin with \"500:se.radley.plugin.salat.SalatPlugin\" in conf/play.plugins"))
   }
 
@@ -147,7 +140,7 @@ object ItemVersioningDao extends  SalatVersioningDao[Item] {
 }
 
 
-object ItemServiceImpl extends ItemServiceImpl(ConcreteS3Service, DefaultItemSession, ItemVersioningDao)
+object ItemServiceImpl extends ItemServiceImpl(CorespringS3ServiceImpl, DefaultItemSession, ItemVersioningDao)
 
 
 

@@ -4,7 +4,7 @@ import qti.models.QtiItem
 import qti.models.RenderingMode._
 import qti.processors.FeedbackProcessor._
 import xml.transform.{RuleTransformer, RewriteRule}
-import xml.{Node, Elem}
+import scala.xml.{Xhtml, Node, Elem}
 
 
 trait QtiRenderer {
@@ -19,12 +19,13 @@ trait QtiRenderer {
     val itemBody = filterFeedbackContent(xmlWithCsFeedbackIds \ "itemBody");
     //TODO remember after refactor, filter feedback content for feedbackBlock and modalFeedback, feedbackInline's have already been done in the interactions
     val qtiXml = <assessmentItem mode={renderMode.toString}>{itemBody}</assessmentItem>
-    removeNamespaces(qtiXml)
+    val string = Xhtml.toXhtml(qtiXml)
+    removeNamespaces(string)
   }
 
   /** remove the namespaces - Note: this is necessary to support correct rendering in IE8
    */
-  private def removeNamespaces(xml: Elem): String = NamespaceRegex.replaceAllIn(xml.mkString, "")
+  private def removeNamespaces(xml: String): String = NamespaceRegex.replaceAllIn(xml, "")
   private class PreprocessXml extends RewriteRule{
     override def transform(node: Node): Seq[Node] = node match {
       case e:Elem => QtiItem.interactionModels.find(i => i.interactionMatch(e)) match {

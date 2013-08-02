@@ -1,6 +1,7 @@
 package tests.developer.controllers
 
 import com.mongodb.casbah.commons.MongoDBObject
+import common.log.PackageLogging
 import developer.controllers.Developer
 import models.{Organization, User}
 import org.bson.types.ObjectId
@@ -9,27 +10,18 @@ import org.specs2.mutable.After
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsJson
 import play.api.test.Helpers._
-import securesocial.core.SecureSocial
 import tests.BaseTest
+import tests.helpers.TestModelHelpers
 
-class DeveloperTest extends BaseTest {
+class DeveloperTest extends BaseTest with TestModelHelpers with PackageLogging{
 
   sequential
-
-  def secureSocialSession(u: Option[User], date: DateTime = DateTime.now()): Array[(String, String)] = u match {
-    case Some(user) => Array(
-      (SecureSocial.UserKey -> user.userName),
-      (SecureSocial.ProviderKey -> user.provider),
-      (SecureSocial.LastAccessKey -> date.toString)
-    )
-    case _ => Array()
-  }
 
   "Developer" should {
 
     "redirects to organization form when user belongs to demo org" in new MockUser{
-      val request = fakeRequest().withSession(secureSocialSession(Some(user)): _*)
-      val result = Developer.home(request);
+      val request = fakeRequest().withCookies(secureSocialCookie(Some(user)).toList : _*)
+      val result = Developer.home(request)
       status(result) must equalTo(SEE_OTHER)
       headers(result).get("Location") must beEqualTo(Some("/developer/org/form"))
     }
@@ -37,24 +29,28 @@ class DeveloperTest extends BaseTest {
     "return developer/home when user has registered org" in new MockUser{
       val orgName = """{"name":"%s"}""".format(testOrgName)
       val json = Json.parse(orgName)
-      val createRequest = fakeRequest(AnyContentAsJson(json)).withSession(secureSocialSession(Some(user)): _*)
-      Developer.createOrganization()(createRequest)
-      val request = fakeRequest().withSession(secureSocialSession(Some(user)): _*)
-      val result = Developer.home(request);
+      val createRequest = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList : _*)
+      val createResult = Developer.createOrganization()(createRequest)
+      status(createResult) === OK
+      val request = fakeRequest().withCookies(secureSocialCookie(Some(user)).toList : _*)
+      val result = Developer.home(request)
       status(result) must equalTo(OK)
     }
 
     "create only one org" in new MockUser {
       val orgName = """{"name":"%s"}""".format(testOrgName)
       val json = Json.parse(orgName)
-      val request = fakeRequest(AnyContentAsJson(json)).withSession(secureSocialSession(Some(user)): _*)
+      val request = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList : _*)
       status(Developer.createOrganization()(request)) === OK
-      println(contentAsString(Developer.createOrganization()(request)))
       status(Developer.createOrganization()(request)) === BAD_REQUEST
     }
 
     "return unauthorized with expired session" in new MockUser{
-      val request = fakeRequest().withSession(secureSocialSession(Some(user), DateTime.now().minusDays(200)): _*)
+
+      import DateTime.now
+
+      val request = fakeRequest()
+        .withCookies(expiredSecureSocialCookie(Some(user)).toSeq : _*)
       val result = Developer.isLoggedIn(request)
       status(result) === UNAUTHORIZED
     }

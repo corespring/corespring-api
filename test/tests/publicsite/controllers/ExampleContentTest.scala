@@ -1,14 +1,11 @@
 package tests.publicsite.controllers
 
-import tests.{BaseTest, PlaySingleton}
-import org.specs2.mutable.Specification
-import play.api.test.Helpers._
 import models.item._
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
-import play.mvc.Result
-import play.api.mvc.AnyContent
+import play.api.test.Helpers._
 import scala.Some
+import tests.BaseTest
 
 class ExampleContentTest extends BaseTest{
 
@@ -20,7 +17,7 @@ class ExampleContentTest extends BaseTest{
 
       val request = FakeRequest(call.method, call.url)
 
-      routeAndCall(request) match {
+      route(request) match {
 
         case Some(result) => {
           val json = Json.parse(contentAsString(result))

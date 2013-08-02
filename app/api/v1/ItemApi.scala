@@ -21,9 +21,6 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc.{Result, Action, AnyContent}
-import scala.Left
-import scala.Right
-import scala.Some
 import scalaz.Scalaz._
 import scalaz.{Failure, Success, Validation}
 import search.ItemSearch
@@ -32,7 +29,7 @@ import search.ItemSearch
  * Items API
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
-class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with PackageLogging {
+class ItemApi(s3service: CorespringS3Service, service :ItemService) extends BaseApi with PackageLogging {
 
   import Item.Keys._
 
@@ -247,7 +244,8 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
    */
   private def saveItem(item: Item, createNewVersion: Boolean): Option[Item] = {
     service.save(item, createNewVersion)
-    service.findOneById(VersionedId(item.id.id))
+    val vid : VersionedId[ObjectId] = item.id.copy(version = None)
+    service.findOneById(vid)
   }
 
   def get(id: VersionedId[ObjectId], detail: Option[String] = Some("normal")) = ItemApiAction(id, Permission.Read) {
@@ -327,6 +325,12 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
       }
   }
 
+  private def itemFromJson(json:JsValue) : Item = {
+    json.asOpt[Item].getOrElse{
+      throw new Exception("TODO 2.1.1 upgrade- handle this correctly")
+    }
+  }
+
 
   def create = ApiAction {
     request =>
@@ -336,7 +340,7 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
             if ((json \ "id").asOpt[String].isDefined) {
               BadRequest(toJson(ApiError.IdNotNeeded))
             } else {
-              val i: Item = fromJson[Item](json)
+              val i = itemFromJson(json)
               if (i.collectionId.isEmpty && request.ctx.permission.has(Permission.Write)) {
                 Organization.getDefaultCollection(request.ctx.organization) match {
                   case Right(default) => {
@@ -369,4 +373,4 @@ class ItemApi(s3service: S3Service, service :ItemService) extends BaseApi with P
 
 }
 
-object ItemApi extends api.v1.ItemApi(ConcreteS3Service, ItemServiceImpl)
+object ItemApi extends api.v1.ItemApi(CorespringS3ServiceImpl, ItemServiceImpl)

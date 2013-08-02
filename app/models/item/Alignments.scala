@@ -19,33 +19,22 @@ object Alignments extends ValueGetter {
     val relatedCurriculum = "relatedCurriculum"
   }
 
-  implicit object Writes extends Writes[Alignments] {
-    def writes(a: Alignments): JsValue = {
-      import Keys._
-
-      JsObject(Seq(
-        a.bloomsTaxonomy.map((bloomsTaxonomy -> JsString(_))),
-        Some((keySkills -> JsArray(a.keySkills.map(JsString(_))))),
-        a.demonstratedKnowledge.map((demonstratedKnowledge -> JsString(_))),
-        a.relatedCurriculum.map((relatedCurriculum -> JsString(_)))
-      ).flatten)
-    }
-  }
+  implicit val Writes = Json.writes[Alignments]
 
   implicit object Reads extends Reads[Alignments] {
-    def reads(json: JsValue): Alignments = {
+    def reads(json: JsValue): JsResult[Alignments] = {
 
       import Keys._
 
-      new Alignments(
+      JsSuccess(new Alignments(
         demonstratedKnowledge = getValidatedValue(fieldValues.demonstratedKnowledge)(json, demonstratedKnowledge),
         bloomsTaxonomy = getValidatedValue(fieldValues.bloomsTaxonomy)(json, bloomsTaxonomy),
         keySkills = (json \ keySkills).asOpt[Seq[String]].getOrElse(Seq.empty),
         relatedCurriculum = (json \ relatedCurriculum).asOpt[String]
-      )
+      ))
     }
 
-    private def getValidatedValue(s: Seq[KeyValue])(json: JsValue, key: String): Option[String] = {
+    private def getValidatedValue(s: Seq[StringKeyValue])(json: JsValue, key: String): Option[String] = {
       val value = (json \ key).asOpt[String]
       val out = value.filter(v => s.exists(_.key == v))
       out

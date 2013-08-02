@@ -59,12 +59,12 @@ object ItemSession {
     def writes(session: ItemSession): JsValue = {
 
       import Keys._
-      import models.versioning.VersionedIdImplicits.Writes
+      import models.versioning.VersionedIdImplicits.{Writes => IdWrites}
       import play.api.libs.json.Json._
 
       val main: Seq[(String, JsValue)] = Seq(
         "id" -> JsString(session.id.toString),
-        itemId -> Json.toJson(session.itemId),
+        itemId -> Json.toJson(session.itemId)(IdWrites),
         responses -> toJson(session.responses),
         "settings" -> toJson(session.settings)
       )
@@ -90,21 +90,18 @@ object ItemSession {
 
     import Keys._
 
-    def reads(json: JsValue): ItemSession = {
+    override def reads(json: JsValue): JsResult[ItemSession] = {
 
-      val settings = if ((json \ "settings").as[ItemSessionSettings] == null)
-        new ItemSessionSettings()
-      else
-        (json \ "settings").as[ItemSessionSettings]
+      val settings = (json \ "settings").asOpt[ItemSessionSettings].getOrElse(ItemSessionSettings())
 
-      import VersionedIdImplicits.Reads
-      ItemSession(
-        itemId = (json \ itemId).asOpt[VersionedId[ObjectId]].getOrElse(throw new JsonValidationException("You must have an item id")),
+      import VersionedIdImplicits.{Reads => IdReads}
+      JsSuccess(ItemSession(
+        itemId = (json \ itemId).asOpt[VersionedId[ObjectId]](IdReads).getOrElse(throw new JsonValidationException("You must have an item id")),
         start = (json \ start).asOpt[Long].map(new DateTime(_)),
         finish = (json \ finish).asOpt[Long].map(new DateTime(_)),
         responses = (json \ responses).asOpt[Seq[ItemResponse]].getOrElse(Seq()),
         id = (json \ "id").asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()),
-        settings = settings)
+        settings = settings))
     }
 
   }

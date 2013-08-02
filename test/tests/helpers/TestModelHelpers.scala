@@ -8,8 +8,11 @@ import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import org.specs2.execute.{Failure, Result}
 import org.specs2.mutable.After
-import securesocial.core.SecureSocial
+import securesocial.core.{UserId, Authenticator, SecureSocial}
 import play.api.Logger
+import developer.controllers.{CoreSpringUserService, Developer}
+import play.api.mvc.Cookie
+import play.api.cache.Cache
 
 trait TestModelHelpers {
 
@@ -78,13 +81,35 @@ trait TestModelHelpers {
 
   def testOrg = new Organization("test")
 
-  def secureSocialSession(u: Option[User]): Array[(String, String)] = u match {
-    case Some(user) => Array(
-      (SecureSocial.UserKey -> user.userName),
-      (SecureSocial.ProviderKey -> "userpass"),
-      (SecureSocial.LastAccessKey -> DateTime.now().toString)
-    )
-    case _ => Array()
+  def secureSocialCookie(u: Option[User], expires : Option[DateTime] = None): Option[Cookie] = u.map{ user =>
+
+      val authenticator : Authenticator = Authenticator.create(CoreSpringUserService.toIdentity(user)) match {
+        case Left(e) => throw new RuntimeException(e)
+        case Right(a) => a
+      }
+      authenticator.toCookie
+  }
+
+  def expiredSecureSocialCookie(u: Option[User]): Option[Cookie] = u.map{ user =>
+
+    val authenticator : Authenticator = Authenticator.create(CoreSpringUserService.toIdentity(user)) match {
+      case Left(e) => throw new RuntimeException(e)
+      case Right(a) => a
+    }
+
+    import DateTime.now
+    val creationDate = now.minusDays(3)
+    val expirationDate = now.minusDays(1)
+    val lastUsed = now.minusDays(2)
+    val withExpires = authenticator.copy(creationDate = creationDate,
+      expirationDate = expirationDate,
+      lastUsed = lastUsed)
+
+    Logger.debug(s"Authenticator id: $withExpires.id")
+    //Note: SecureSocial needs to look up the authenticator from the cache
+    import play.api.Play.current
+    Cache.set(withExpires.id,withExpires)
+    withExpires.toCookie
   }
 
   def tokenFormBody(id: String, secret: String, username: String, grantType: Option[String] = None): Array[(String, String)] = {

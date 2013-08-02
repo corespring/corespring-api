@@ -124,15 +124,15 @@ object ItemResponse {
      * @param json
      * @return
      */
-    def reads(json: JsValue): ItemResponse = {
+    def reads(json: JsValue): JsResult[ItemResponse] = {
 
       val id = (json \ "id").as[String]
 
-      (json \ "value") match {
+      JsSuccess{(json \ "value") match {
         case JsArray(seq) => ArrayItemResponse(id, seq.map(_.as[String]))
         case JsString(s) => StringItemResponse(id, s)
         case _ => StringItemResponse(id, (json \ "value").as[String])
-      }
+      }}
     }
   }
 

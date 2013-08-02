@@ -19,6 +19,7 @@ import se.radley.plugin.salat._
 import search.Searchable
 import securesocial.core.UserId
 import common.config.AppConfig
+import common.log.PackageLogging
 
 
 case class User(var userName: String = "",
@@ -32,7 +33,7 @@ case class User(var userName: String = "",
   def hasRegisteredOrg: Boolean = org.orgId != AppConfig.demoOrgId
 }
 
-object User extends ModelCompanion[User, ObjectId] with Searchable {
+object User extends ModelCompanion[User, ObjectId] with Searchable with PackageLogging {
   val userName = "userName"
   val fullName = "fullName"
   val email = "email"
@@ -122,15 +123,14 @@ object User extends ModelCompanion[User, ObjectId] with Searchable {
    */
   def getUser(username: String): Option[User] = User.findOne(MongoDBObject(User.userName -> username))
 
-  def getUser(userId: UserId): Option[User] =
-    User.findOne(
-      MongoDBObject(User.userName -> userId.id, User.provider -> userId.providerId)
-    )
+  def getUser(userId: UserId): Option[User] = getUser(userId.id, userId.providerId)
 
-  def getUser(username: String, provider: String): Option[User] =
-    User.findOne(
-      MongoDBObject(User.userName -> username, User.provider -> provider)
-    )
+  def getUser(username: String, provider: String): Option[User] = {
+    Logger.debug(s"getUser: $username, $provider")
+    val query = MongoDBObject(User.userName -> username, User.provider -> provider)
+    Logger.debug( s"${User.count( query )}")
+    User.findOne( query )
+  }
 
   def getUsers(orgId: ObjectId): Either[InternalError, Seq[User]] = {
     val c: SalatMongoCursor[User] = User.find(MongoDBObject(User.org + "." + UserOrg.orgId -> orgId))

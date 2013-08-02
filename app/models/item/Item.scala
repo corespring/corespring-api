@@ -112,16 +112,11 @@ object Item {
     }
   }
 
-  def getValidatedValue(s: Seq[KeyValue])(json: JsValue, key: String) = {
-    (json \ key).asOpt[String]
-      .map(v => if (s.exists(_.key == v)) v else throw new JsonValidationException(key))
-  }
-
   implicit object Reads extends Reads[Item] {
 
     import Keys._
 
-    def reads(json: JsValue): Item = {
+    def reads(json: JsValue): JsResult[Item] = {
       val item = Item()
 
       item.collectionId = (json \ collectionId).asOpt[String].getOrElse("")
@@ -146,12 +141,12 @@ object Item {
       item.published = (json \ published).asOpt[Boolean].getOrElse(false)
 
       try {
-        import models.versioning.VersionedIdImplicits.Reads
-        item.id = (json \ id).asOpt[VersionedId[ObjectId]].getOrElse(VersionedId(new ObjectId()))
+        import models.versioning.VersionedIdImplicits.{Reads => IdReads}
+        item.id = (json \ id).asOpt[VersionedId[ObjectId]](IdReads).getOrElse(VersionedId(new ObjectId()))
       } catch {
         case e: Throwable => throw new JsonValidationException(id)
       }
-      item
+      JsSuccess(item)
     }
   }
 

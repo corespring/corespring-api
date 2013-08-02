@@ -1,9 +1,10 @@
 package controllers
 
-import com.novus.salat.dao.SalatMongoCursor
-import org.bson.types.ObjectId
-import collection.mutable.ArrayBuffer
 import collection.generic.CanBuildFrom
+import collection.mutable.ArrayBuffer
+import org.bson.types.ObjectId
+import scala.language.higherKinds
+import scala.language.postfixOps
 import scala.util.Random
 import scala.xml.Node
 
@@ -49,17 +50,13 @@ object Utils {
     bf(xs) ++= buf result
   }
 
-
   def toObjectId(id: String): Option[ObjectId] = {
-    try {
+    if(ObjectId.isValid(id)){
       Some(new ObjectId(id))
-    } catch {
-      case e: IllegalArgumentException => None
+    } else {
+      None
     }
   }
-
-  /** This method will be removed soon once 'cursor.toSeq' has been deemed ok */
-  def toSeq[T <: AnyRef](c: SalatMongoCursor[T]): Seq[T] = c.toSeq
 
   private def removeWhitespace(s: String): String = {
     s.replaceAll("\\s", "").replaceAll("\"", "'")

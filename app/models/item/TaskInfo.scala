@@ -48,7 +48,7 @@ object TaskInfo extends ValueGetter {
   }
 
   implicit object Reads extends Reads[TaskInfo] {
-    def reads(json:JsValue) : TaskInfo = {
+    def reads(json:JsValue) : JsResult[TaskInfo] = {
 
       import Keys._
 
@@ -65,12 +65,12 @@ object TaskInfo extends ValueGetter {
             throw new JsonValidationException(gradeLevel)
       }
 
-      TaskInfo(
+      JsSuccess(TaskInfo(
         subjects = json.asOpt[Subjects],
         gradeLevel = getGradeLevel.getOrElse(Seq()),
         title = (json \ title).asOpt[String],
         itemType = (json \ itemType).asOpt[String]
-      )
+      ))
 
     }
   }

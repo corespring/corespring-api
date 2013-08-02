@@ -23,15 +23,12 @@ object QuizApi extends BaseApi {
 
   def create() = ApiAction {
     request =>
-      request.body.asJson match {
-        case Some(json) => {
-          val quiz = fromJson[Quiz](json)
+      parsed[Quiz](request.body.asJson, {
+        quiz =>
           val copy = quiz.copy(orgId = Some(request.ctx.organization))
           Quiz.create(copy)
           Ok(toJson(copy))
-        }
-        case _ => BadRequest("Invalid Json")
-      }
+      })
   }
 
   def get(id: ObjectId) = ApiAction {
@@ -53,29 +50,15 @@ object QuizApi extends BaseApi {
   def update(id: ObjectId) = ApiAction {
     request => WithQuiz(id, request.ctx.organization) {
       quiz =>
-        request.body.asJson match {
-          case Some(json) => {
-            val jsonQuiz = fromJson[Quiz](json)
+        parsed[Quiz](request.body.asJson, {
+          jsonQuiz =>
             val newQuiz = quiz.copy(
-              participants = (json \ "participants") match {
-                case p:JsUndefined => quiz.participants
-                case _ => jsonQuiz.participants
-              },
-              questions = (json \ "questions") match {
-                case p:JsUndefined => quiz.questions
-                case _ => jsonQuiz.questions
-              },
-              metadata = (json \ "metadata") match {
-                case p:JsUndefined => quiz.metadata
-                case _ => jsonQuiz.metadata
-              }
-
-            )
+              participants = if (jsonQuiz.participants.length > 0) jsonQuiz.participants else quiz.participants,
+              questions = if (jsonQuiz.questions.length > 0) jsonQuiz.questions else quiz.questions,
+              metadata = if (jsonQuiz.metadata.size > 0) jsonQuiz.metadata else quiz.metadata)
             Quiz.update(newQuiz)
             Ok(toJson(newQuiz))
-          }
-          case _ => BadRequest("invalid json")
-        }
+        })
     }
   }
 
@@ -95,32 +78,28 @@ object QuizApi extends BaseApi {
       Ok(toJson(quizzes))
   }
 
-  def addParticipants(id:ObjectId) = ApiAction {
-    request => WithQuiz(id,request.ctx.organization){
-      quiz =>
-        request.body.asJson match {
-          case Some(json)  =>
-            val ids = (json \ "ids").as[Seq[String]]
-            val updated = Quiz.addParticipants(quiz, ids)
-            Ok(toJson(updated))
-          case _ =>
-            BadRequest(toJson(ApiError.JsonExpected))
-        }
-    }
+  def addParticipants(id: ObjectId) = ApiAction {
+    request =>
+      request.body.asJson match {
+        case Some(json) =>
+          val ids = (json \ "ids").as[Seq[String]]
+          val updated = Quiz.addParticipants(id, ids)
+          Ok(toJson(updated))
+
+        case _ =>
+          BadRequest(toJson(ApiError.JsonExpected))
+      }
   }
 
   def addAnswerForParticipant(quizId: ObjectId, externalUid: String) = ApiAction {
     request => {
       WithQuiz(quizId, request.ctx.organization) {
         quiz =>
-          request.body.asJson match {
-            case Some(json) => {
-              val answer = fromJson[Answer](json)
+          parsed[Answer](request.body.asJson, {
+            answer =>
               val updated = Quiz.addAnswer(quizId, externalUid, answer)
               Ok(toJson(updated))
-            }
-            case _ => BadRequest(toJson(ApiError.JsonExpected))
-          }
+          })
       }
     }
   }

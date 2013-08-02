@@ -50,8 +50,8 @@ object CollectionApi extends BaseApi {
     val initSearch = MongoDBObject("_id" -> MongoDBObject("$in" -> collrefs.map(_.collectionId)))
     def applySort(colls:SalatMongoCursor[ContentCollection]):Result = {
       optsort.map(ContentCollection.toSortObj(_)) match {
-        case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(colls.sort(sort).skip(sk).limit(l)).map(c => CollectionExtraDetails(c, collrefs.find(_.collectionId == c.id).get.pval))))
-        case None => Ok(Json.toJson(Utils.toSeq(colls.skip(sk).limit(l)).map(c => CollectionExtraDetails(c, collrefs.find(_.collectionId == c.id).get.pval))))
+        case Some(Right(sort)) => Ok(Json.toJson(colls.sort(sort).skip(sk).limit(l).toSeq.map(c => CollectionExtraDetails(c, collrefs.find(_.collectionId == c.id).get.pval))))
+        case None => Ok(Json.toJson(colls.skip(sk).limit(l).toSeq.map(c => CollectionExtraDetails(c, collrefs.find(_.collectionId == c.id).get.pval))))
         case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
       }
     }

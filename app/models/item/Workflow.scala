@@ -13,7 +13,8 @@ object Workflow {
   val standardsAligned: String = "standardsAligned"
   val qaReview: String = "qaReview"
 
-  implicit object WorkflowWrites extends Writes[Workflow] {
+  implicit val Formats = Json.format[Workflow]
+/*  implicit object WorkflowWrites extends Writes[Workflow] {
 
     def writes(workflow: Workflow) = {
 
@@ -37,6 +38,6 @@ object Workflow {
       )
     }
   }
-
+*/
 }
 

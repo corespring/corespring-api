@@ -1,6 +1,6 @@
 package tests.models.item.service
 
-import controllers.S3Service
+import controllers.CorespringS3Service
 import models.item.resource.{StoredFile, Resource}
 import models.item.service.{ItemVersioningDao, ItemServiceImpl}
 import models.item.{TaskInfo, Item}
@@ -15,14 +15,14 @@ import utils.mocks.MockS3Service
 
 class ItemServiceImplTest extends BaseTest with Mockito {
 
-  val s3: S3Service = mock[S3Service]
+  val s3: CorespringS3Service = mock[CorespringS3Service]
   val dao: SalatVersioningDao[Item] = mock[SalatVersioningDao[Item]]
   val service = new ItemServiceImpl(s3, DefaultItemSession, dao)
 
   "save" should {
 
     def assertSaveWithStoredFile(name:String, shouldSucceed:Boolean) : Result = {
-      val mockS3 : S3Service = new MockS3Service
+      val mockS3 : CorespringS3Service = new MockS3Service
       val s = new ItemServiceImpl(mockS3, DefaultItemSession, ItemVersioningDao)
       val id = VersionedId(ObjectId.get)
       val file = StoredFile(name, "image/png", false, StoredFile.storageKey(id, "data", name))

@@ -28,7 +28,11 @@ object RegistrationToken extends ModelCompanion[RegistrationToken,ObjectId] {
   val Expires = "expirationTime"
   val IsSignUp = "isSignUp"
 
-  implicit object RegistrationTokenWrites extends Writes[RegistrationToken] {
+  import common.models.json._
+  implicit val Writes = Json.writes[RegistrationToken]
+  implicit val Reads = Json.reads[RegistrationToken]
+
+  /*implicit object RegistrationTokenWrites extends Writes[RegistrationToken] {
     def writes(token: RegistrationToken) = {
       var list = List[(String,JsValue)]()
       if ( token.uuid.nonEmpty ) list = (Uuid -> JsString(token.uuid)) :: list
@@ -51,7 +55,7 @@ object RegistrationToken extends ModelCompanion[RegistrationToken,ObjectId] {
           isSignUp = (json \ IsSignUp).asOpt[Boolean].getOrElse(false)
         )
       }
-    }
+    }*/
 
   val description = "Tokens"
 }

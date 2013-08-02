@@ -1,7 +1,7 @@
 package api.v1.files
 
 import common.log.PackageLogging
-import controllers.S3Service
+import controllers.{CorespringS3Service}
 import models.item.Item
 import models.item.resource.{Resource, StoredFile}
 import scalaz.{Validation, Failure, Success}
@@ -13,7 +13,7 @@ case class CloneFileResult(file: StoredFile, successful: Boolean)
 
 trait ItemFiles extends PackageLogging {
 
-  def s3service: S3Service
+  def s3service: CorespringS3Service
 
   def bucket: String
 
@@ -50,7 +50,7 @@ trait ItemFiles extends PackageLogging {
     }
 
     Logger.debug("[ItemFiles] clone file: " + file.storageKey + " --> " + newStorageKey)
-    s3service.cloneFile(bucket, file.storageKey, newStorageKey)
+    s3service.copyFile(bucket, file.storageKey, newStorageKey)
     file.storageKey = newStorageKey
     CloneFileResult(file, true)
   } catch {

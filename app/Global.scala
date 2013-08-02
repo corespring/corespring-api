@@ -1,4 +1,3 @@
-import _root_.controllers.ConcreteS3Service
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import com.typesafe.config.ConfigFactory
 import common.controllers.deployment.{LocalAssetsLoaderImpl, AssetsLoaderImpl}
@@ -14,6 +13,8 @@ import web.controllers.utils.ConfigLoader
 /**
   */
 object Global extends GlobalSettings {
+
+  val Logger : LoggerLike = play.api.Logger("Global")
 
   val INIT_DATA: String = "INIT_DATA"
 
@@ -91,17 +92,18 @@ object Global extends GlobalSettings {
   }
 
   override def onStart(app: Application) : Unit = {
-    // support JodaTime
+
     RegisterJodaTimeConversionHelpers()
 
-    ConcreteS3Service.init
     AssetsLoaderImpl.init(app)
     LocalAssetsLoaderImpl.init(app)
 
-    val initData:Boolean = ConfigFactory.load().getString(INIT_DATA) == "true"
+    val initData:Boolean = app.configuration.getBoolean(INIT_DATA).getOrElse(false)
+
+    Logger.debug(s"Init Data: $initData :: ${app.configuration.getBoolean(INIT_DATA)}")
 
     def onlyIfLocalDb(fns: (() => Unit)*) {
-      if (isLocalDb)
+      if (isSafeToSeedDb(app))
         fns.foreach( fn => fn() )
       else
         throw new RuntimeException("You're trying to seed against a remote db - bad idea")
@@ -109,8 +111,7 @@ object Global extends GlobalSettings {
 
     app.mode match {
       case Mode.Test => {
-        emptyData()
-        seedTestData()
+        onlyIfLocalDb(emptyData, seedTestData)
       }
       case Mode.Dev => {
         if(initData) {
@@ -130,12 +131,17 @@ object Global extends GlobalSettings {
 
   }
 
-  private def isLocalDb: Boolean = {
-    ConfigLoader.get("mongodb.default.uri") match {
-      //TODO: Remove hardcoded url
-      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907.mongolab.com:35907/sib")
-      case None => false
+  private def isSafeToSeedDb(implicit  app : Application) : Boolean = {
+    val uri = app.configuration.getString("mongodb.default.uri")
+
+    require(uri.isDefined, "the mongo uri isn't defined!")
+
+    def isSafeRemoteUri(uri:String) : Boolean = {
+      val safeRemoteUri = app.configuration.getString("seed.db.safe.mongodb.uri")
+      safeRemoteUri.map(safeUri => uri == safeUri ).getOrElse(false)
     }
+
+    uri.map { u => u.contains("localhost") || u.contains("127.0.0.1") || isSafeRemoteUri(u) }.getOrElse(false)
   }
 
   /** Add demo data models to the the db to allow end users to be able to

@@ -9,34 +9,35 @@ import models._
 import item.FieldValue
 import models.itemSession.{DefaultItemSession, ItemSession}
 import scala.Right
-import akka.dispatch.{ExecutionContext, Future, Await}
-import akka.util.duration._
-import java.util.concurrent.{TimeUnit, TimeoutException}
 import play.api.libs.concurrent.Akka
 import play.api.Play.current
-import play.api.libs.json.{JsString, JsObject}
 import play.api.cache.Cache
+import scala.concurrent.Future
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.Duration
+import play.api.libs.concurrent.Execution.Implicits._
+import play.api.libs.json.{JsString, JsObject}
 
-object SystemCheck extends Controller{
+class SystemCheck(s3: CorespringS3Service) extends Controller {
   implicit val as = Akka.system
-  private val checks:Seq[()=>Either[InternalError,Unit]] = Seq(
-    () => checkDatabase,
-    () => checkS3
-  )
-  def checkCache:Either[InternalError,Unit] = {
-    Cache.set("test","test")
+
+
+  def checkCache(): Either[InternalError, Unit] = {
+    Cache.set("test", "test")
     Cache.get("test") match {
-      case Some(test) => if(test == "test") Right(())
-        else Left(InternalError("did not retrieve correct value from cache"))
+      case Some(test) => if (test == "test") Right(())
+      else Left(InternalError("did not retrieve correct value from cache"))
       case None => Left(InternalError("could not retrieve any value from cache"))
     }
   }
-  def checkS3:Either[InternalError,Unit] = {
-    if (ConcreteS3Service.online) Right(())
+
+  def checkS3(): Either[InternalError, Unit] = {
+    if (s3.online) Right(())
     else Left(InternalError("S3 is not available"))
   }
-  def checkDatabase:Either[InternalError,Unit] = {
-    val dbmodels:Seq[ModelCompanion[_,ObjectId]] = Seq(
+
+  def checkDatabase(): Either[InternalError, Unit] = {
+    val dbmodels: Seq[ModelCompanion[_, ObjectId]] = Seq(
       AccessToken,
       ApiClient,
       ContentCollection,
@@ -47,28 +48,41 @@ object SystemCheck extends Controller{
       Subject,
       User
     )
-    dbmodels.foldRight[Either[InternalError,Unit]](Right(()))((dbmodel,result) => {
-      if (result.isRight){
+    dbmodels.foldRight[Either[InternalError, Unit]](Right(()))((dbmodel, result) => {
+      if (result.isRight) {
         dbmodel.findOne(MongoDBObject()) match {
           case Some(_) => Right(())
-          case None => Left(InternalError("could not find collection: "+dbmodel.dao.collection.getName()))
+          case None => Left(InternalError("could not find collection: " + dbmodel.dao.collection.getName()))
         }
       } else result
     })
   }
 
   def index = Action {
-    checks.foldRight[Either[InternalError,Unit]](Right(()))((check,result) => {
-      if(result.isRight){
-        try{
-          Await.result(Future{check()},6 second)
-        } catch {
-          case e:TimeoutException => Left(InternalError("timeout occurred when running system check"))
-        }
-      } else result
-    }) match {
-      case Right(_) => Ok
-      case Left(error) => InternalServerError(JsObject(Seq("error" -> JsString("a check failed"),"moreInfo" -> JsString(error.message))))
+
+    val timeout = play.api.libs.concurrent.Promise.timeout("Oops", Duration(6, TimeUnit.SECONDS))
+
+    val runChecks: Future[Either[InternalError, Unit]] = scala.concurrent.Future {
+      val results = List(checkS3(), checkCache(), checkDatabase())
+
+      def isAnError(result: Either[InternalError, Unit]) = result match {
+        case Left(_) => true
+        case Right(_) => false
+      }
+      val errors = results.filter(isAnError)
+
+      if (errors.length == 0) Right() else Left(InternalError(".."))
+    }
+
+    Async {
+      Future.firstCompletedOf(Seq(runChecks, timeout)).map {
+        case timeout: String => BadRequest("timeout")
+        case Right(_) => Ok
+        case Left(error : InternalError) => InternalServerError(JsObject(Seq("error" -> JsString("a check failed"),"moreInfo" -> JsString(error.message))))
+        case Left(_) => BadRequest("..")
+      }
     }
   }
 }
+
+object SystemCheck extends SystemCheck(CorespringS3ServiceImpl)

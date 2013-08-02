@@ -2,9 +2,6 @@ package player.accessControl.models
 
 import common.encryption.AESCrypto
 import models.auth.ApiClient
-import play.api.libs.json.JsNumber
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
 import play.api.libs.json._
 
 case class RenderOptions(itemId: String = "*",
@@ -24,19 +21,21 @@ object RenderOptions {
   val ANYTHING = RenderOptions(expires = 0, mode = RequestedAccess.Mode.All)
 
   implicit object Reads extends Reads[RenderOptions] {
-    def reads(json: JsValue): RenderOptions = {
-      val expires = (json \ "expires").asOpt[Long].getOrElse(
-        (json \ "expires").asOpt[String].get.toLong
-      )
-      RequestedAccess.Mode.withName("preview")
-      RenderOptions(
-        (json \ "itemId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
-        (json \ "sessionId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
-        (json \ "assessmentId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
-        (json \ "role").asOpt[String].filterNot(_.isEmpty).getOrElse("student"),
-        expires,
-        RequestedAccess.Mode.withName((json \ "mode").as[String])
-      )
+    def reads(json: JsValue): JsResult[RenderOptions] = {
+
+      def expires : Option[Long] = (json \ "expires").asOpt[Long] orElse (json \ "expires").asOpt[String].map(_.toLong)
+
+      expires.map{
+        e =>
+          JsSuccess(RenderOptions(
+            (json \ "itemId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
+            (json \ "sessionId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
+            (json \ "assessmentId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
+            (json \ "role").asOpt[String].filterNot(_.isEmpty).getOrElse("student"),
+            e,
+            RequestedAccess.Mode.withName((json \ "mode").as[String])
+          ))
+      }.getOrElse(JsError("Expires is a mandatory field"))
     }
   }
 
@@ -55,6 +54,9 @@ object RenderOptions {
 
   def decryptOptions(apiClient: ApiClient, encrypted: String): RenderOptions = {
     val decrypted = AESCrypto.decrypt(encrypted, apiClient.clientSecret)
-    Json.fromJson[RenderOptions](Json.parse(decrypted))
+    Json.fromJson[RenderOptions](Json.parse(decrypted)) match {
+      case JsSuccess(ro, _) => ro
+      case JsError(e) => throw new RuntimeException("Error parsing json")
+    }
   }
 }

@@ -3,6 +3,7 @@ package qti.models.interactions
 import models.itemSession.{ItemResponseOutcome, ArrayItemResponse, ItemResponse}
 import qti.models._
 import scala.Some
+import scala.language.postfixOps
 import util.matching.Regex
 import xml.transform.{RuleTransformer, RewriteRule}
 import xml.{XML, NodeSeq, Elem, Node}
@@ -124,20 +125,24 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
   }
 
   private def performOnText(e: NodeSeq, fn: String => String): NodeSeq = {
-    val xmlText = e.mkString
-    val regExp = "<.*?>".r
-    val matches = regExp.findAllIn(xmlText).toList
 
-    val openString = matches.head
-    val closeString = regExp.findAllIn(xmlText).toList.last
+      val xmlText = e.mkString
+      val regExp = "<.*?>".r
+      val matches = regExp.findAllIn(xmlText).toList
 
-    val lastIndex = xmlText.lastIndexOf("<")
-    val resultText = xmlText.substring(0, lastIndex).replaceFirst("<.*?>", "")
+      def noBody = matches.length == 1
 
-    val transformedText = fn(resultText)
+      if(noBody){
+        XML.loadString(matches.head)
+      } else {
+        val openString = matches.head
+        val closeString = regExp.findAllIn(xmlText).toList.last
 
-
-    XML.loadString(openString + transformedText + closeString)
+        val lastIndex = xmlText.lastIndexOf("<")
+        val resultText = xmlText.substring(0, lastIndex).replaceFirst("<.*?>", "")
+        val transformedText = fn(resultText)
+        XML.loadString(openString + transformedText + closeString)
+      }
   }
 
   private def tagSentences(s: String): String = {
@@ -154,6 +159,7 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
   }
 
   private def tagWords(s: String): String = {
+
     val regExp = new Regex("(?<![</&])\\b([a-zA-Z_']+)\\b", "match")
     var idx = 0
     regExp.replaceAllIn(s, m => {

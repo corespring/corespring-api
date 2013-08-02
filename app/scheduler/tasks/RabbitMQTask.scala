@@ -1,10 +1,10 @@
 package scheduler.tasks
 
-import akka.util.Duration
 import play.api.libs.json.{JsNull, JsValue}
+import scala.concurrent.duration.{FiniteDuration, Duration}
 
 trait RabbitMQTask extends Runnable{
-  val initialDelay:Duration = Duration.Zero
-  val frequency:Duration = Duration.Zero
+  val initialDelay:FiniteDuration = Duration.Zero
+  val frequency:FiniteDuration = Duration.Zero
   var data:JsValue = JsNull
 }

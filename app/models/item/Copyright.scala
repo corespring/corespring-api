@@ -20,18 +20,21 @@ object Copyright extends ValueGetter {
     val imageName = "imageName"
   }
 
+  //TODO: use format macro where possible
+  //implicit val Formats = Json.format[Copyright]
+
   implicit object Reads extends Reads[Copyright] {
 
     import Keys._
 
-    def reads(json: JsValue): Copyright = {
+    def reads(json: JsValue): JsResult[Copyright] = {
 
       val maybeCopyright = get[Copyright](
         json,
         Seq(copyrightOwner, copyrightYear, copyrightExpirationDate, copyrightImageName),
         (s: Seq[Option[String]]) => Some(Copyright(s(0), s(1), s(2), s(3))))
 
-      maybeCopyright.get
+      JsSuccess(maybeCopyright.get)
     }
   }
 
@@ -49,4 +52,5 @@ object Copyright extends ValueGetter {
         ).flatten)
     }
   }
+
 }

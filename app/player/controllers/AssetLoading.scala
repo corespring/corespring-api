@@ -73,9 +73,6 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService : 
 
   private def createJsTokens(o: Option[RenderOptions], r: Request[AnyContent]): Map[String, String] = Map("baseUrl" -> getBaseUrl(r))
 
-
-
-
   private def decryptOptions(encryptedOptions: String, apiClient: ApiClient): Validation[String,RenderOptions] = {
 
     import AssetLoading.ErrorMessages._

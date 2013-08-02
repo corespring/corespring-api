@@ -51,12 +51,12 @@ case class DragAndDropInteraction(responseIdentifier: String, choices: Seq[Simpl
 
                 (errors.isEmpty, errors.mkString("\n"))
 
-              case None => (false, "Correct response declaration not found")
+              case _ => (false, "Correct response declaration not found")
 
             }
-          case None => (false, "Drag and drop interaction not found")
+          case _ => (false, "Drag and drop interaction not found")
         }
-      case None => (false, "Response declaration not found")
+      case _ => (false, "Response declaration not found")
     }
   }
 

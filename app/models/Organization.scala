@@ -108,10 +108,7 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
    * @param parentId
    * @return
    */
-  def getTree(parentId: ObjectId): Seq[Organization] = {
-    val c = Organization.find(MongoDBObject(Organization.path -> parentId))
-    Utils.toSeq(c)
-  }
+  def getTree(parentId: ObjectId): Seq[Organization] = Organization.find(MongoDBObject(Organization.path -> parentId)).toSeq
 
   def isChild(parentId: ObjectId, childId: ObjectId): Boolean = {
     Organization.findOneById(childId) match {

@@ -1,7 +1,7 @@
 package tests.api.v1.files
 
 import api.v1.files.ItemFiles
-import controllers.S3Service
+import controllers.CorespringS3Service
 import models.item.Item
 import models.item.resource.{StoredFile, Resource}
 import org.bson.types.ObjectId
@@ -14,7 +14,7 @@ import utils.mocks.MockS3Service
 class ItemFilesTest extends Specification with Mockito{
 
   val itemFiles = new ItemFiles{
-    def s3service: S3Service =   mock[S3Service]
+    def s3service: CorespringS3Service =   mock[CorespringS3Service]
 
     def bucket: String = "some-bucket"
   }
@@ -49,7 +49,7 @@ class ItemFilesTest extends Specification with Mockito{
     "if clone fails for a file then the list of clone file results are returned" in {
 
       val mockFiles = new ItemFiles {
-        def s3service: S3Service = new MockS3Service
+        def s3service: CorespringS3Service = new MockS3Service
         def bucket: String = "blah"
       }
 

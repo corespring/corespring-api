@@ -3,9 +3,9 @@ package common.controllers
 import com.ee.assets.Loader
 import com.ee.assets.deployment.Deployer
 import common.views.helpers.Defaults
-import controllers.ConcreteS3Service
 import play.api.Play
 import play.api.Play.current
+import com.amazonaws.services.s3.AmazonS3Client
 
 package object deployment {
 
@@ -14,7 +14,8 @@ package object deployment {
   lazy val loader: Loader = new Loader(if(isProd) Some(s3Deployer) else None, Play.mode, current.configuration)
   lazy val localLoader: Loader = new Loader(None, Play.mode, current.configuration)
 
-  lazy val s3Deployer: Deployer = new S3Deployer(ConcreteS3Service.getAmazonClient, bucketName, releaseRoot)
+  //TODO: 2.1.2 Upgrade - S3Client required here
+  lazy val s3Deployer: Deployer = new S3Deployer(Some(new AmazonS3Client()), bucketName, releaseRoot)
 
   val bucketName: String = {
     val publicAssets = "corespring-public-assets"

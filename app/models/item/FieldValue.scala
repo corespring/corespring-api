@@ -1,47 +1,45 @@
 package models.item
 
-import play.api.Play.current
-
 import play.api.libs.json._
 import play.api.libs.json.JsString
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import com.mongodb.casbah.Imports._
 import models.mongoContext._
+import play.api.Play.current
 
+case class ListKeyValue(key: String, value: Seq[String])
+case class StringKeyValue(key:String, value: String)
 
-case class KeyValue(key: String, value: Any)
-
-object KeyValue {
-
-  implicit object KeyValueWrites extends Writes[KeyValue] {
-    def writes(keyValue: KeyValue) = {
-      JsObject(Seq[(String, JsValue)]("key" -> JsString(keyValue.key), "value" -> JsString(keyValue.value.toString)))
-    }
-  }
-
+object ListKeyValue{
+  implicit val Writes = Json.writes[ListKeyValue]
 }
 
+object StringKeyValue{
+  implicit val Writes = Json.writes[StringKeyValue]
+}
 
 case class FieldValue(
                        var version: Option[String] = None,
-                       var gradeLevels: Seq[KeyValue] = Seq(),
-                       var reviewsPassed: Seq[KeyValue] = Seq(),
-                       var keySkills: Seq[KeyValue] = Seq(),
-                       var itemTypes: Seq[KeyValue] = Seq(),
-                       var licenseTypes: Seq[KeyValue] = Seq(),
-                       var priorUses: Seq[KeyValue] = Seq(),
-                       var demonstratedKnowledge : Seq[KeyValue] = Seq(),
-                       var credentials: Seq[KeyValue] = Seq(),
-                       var bloomsTaxonomy: Seq[KeyValue] = Seq(),
+                       var gradeLevels: Seq[StringKeyValue] = Seq(),
+                       var reviewsPassed: Seq[StringKeyValue] = Seq(),
+                       var keySkills: Seq[ListKeyValue] = Seq(),
+                       var itemTypes: Seq[ListKeyValue] = Seq(),
+                       var licenseTypes: Seq[StringKeyValue] = Seq(),
+                       var priorUses: Seq[StringKeyValue] = Seq(),
+                       var demonstratedKnowledge : Seq[StringKeyValue] = Seq(),
+                       var credentials: Seq[StringKeyValue] = Seq(),
+                       var bloomsTaxonomy: Seq[StringKeyValue] = Seq(),
                        var id: ObjectId = new ObjectId()
                        )
 
 object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
 
+  import play.api.Play.current
+
   lazy val current = FieldValue.findOne(MongoDBObject(FieldValue.Version -> CurrentVersion)).getOrElse(throw new RuntimeException("could not find field values doc with specified version"))
 
-  val collection = mongoCollection("fieldValues")
+  val collection = mongoCollection("fieldValues")(play.api.Play.current)
 
   val dao = new SalatDAO[FieldValue, ObjectId](collection = collection) {}
 
@@ -59,17 +57,22 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
   val DemonstratedKnowledge = "demonstratedKnowledge"
 
 
-  def getSeqForFieldName(fieldValue:FieldValue, fieldName: String): Option[Seq[KeyValue]] = fieldName match {
-    case GradeLevel => Some(fieldValue.gradeLevels)
-    case ReviewsPassed => Some(fieldValue.reviewsPassed)
-    case KeySkills => Some(fieldValue.keySkills)
-    case ItemTypes => Some(fieldValue.itemTypes)
-    case LicenseTypes => Some(fieldValue.licenseTypes)
-    case PriorUses => Some(fieldValue.priorUses)
-    case Credentials => Some(fieldValue.credentials)
-    case BloomsTaxonomy => Some(fieldValue.bloomsTaxonomy)
-    case DemonstratedKnowledge => Some(fieldValue.demonstratedKnowledge)
-    case _ => None
+  def getSeqForFieldName(fieldValue:FieldValue, fieldName: String): Option[JsValue] = {
+
+    def o[A](v:A)(implicit writes : Writes[A]) : Option[JsValue] = Some(play.api.libs.json.Json.toJson(v))
+
+    fieldName match {
+      case GradeLevel => o(fieldValue.gradeLevels)
+      case ReviewsPassed => o(fieldValue.reviewsPassed)
+      case KeySkills => o(fieldValue.keySkills)
+      case ItemTypes => o(fieldValue.itemTypes)
+      case LicenseTypes => o(fieldValue.licenseTypes)
+      case PriorUses => o(fieldValue.priorUses)
+      case Credentials => o(fieldValue.credentials)
+      case BloomsTaxonomy => o(fieldValue.bloomsTaxonomy)
+      case DemonstratedKnowledge => o(fieldValue.demonstratedKnowledge)
+      case _ => None
+    }
   }
 
   implicit object FieldValueWrites extends Writes[FieldValue] {

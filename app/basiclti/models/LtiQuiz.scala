@@ -22,24 +22,15 @@ case class LtiQuestion(itemId: Option[VersionedId[ObjectId]],
 object LtiQuestion {
 
   implicit object Writes extends Writes[LtiQuestion] {
-    import models.versioning.VersionedIdImplicits.Writes
+    import models.versioning.VersionedIdImplicits.{Writes => IdWrites}
     def writes(q: LtiQuestion): JsValue = {
-      val out = Seq("settings" -> Json.toJson(q.settings)) ++ q.itemId.map( id => "itemId" -> Json.toJson(id) )
+      val out = Seq("settings" -> Json.toJson(q.settings)) ++ q.itemId.map( id => "itemId" -> Json.toJson(id)(IdWrites) )
       JsObject(out)
     }
   }
 
-  implicit object Reads extends Reads[LtiQuestion] {
-
-    import models.versioning.VersionedIdImplicits.Reads
-
-    def reads(json: JsValue): LtiQuestion = LtiQuestion(
-      (json \ "itemId").asOpt[VersionedId[ObjectId]],
-      (json \ "settings").as[ItemSessionSettings]
-    )
-
-  }
-
+  import models.versioning.VersionedIdImplicits.{Reads, Writes}
+  implicit val LtiQuestionReads = Json.reads[LtiQuestion]
 }
 
 case class LtiParticipant(itemSession: ObjectId,
@@ -49,30 +40,9 @@ case class LtiParticipant(itemSession: ObjectId,
   extends models.quiz.BaseParticipant(Seq(itemSession), resultSourcedId)
 
 object LtiParticipant{
-
-  implicit object Writes extends Writes[LtiParticipant] {
-
-    def writes(p:LtiParticipant) : JsValue = {
-      JsObject(Seq(
-        "itemSession" -> JsString(p.itemSession.toString),
-        "resultSourcedId" -> JsString(p.resultSourcedId),
-       "gradePassbackUrl" -> JsString(p.gradePassbackUrl),
-      "onFinishedUrl" -> JsString(p.onFinishedUrl)
-      ))
-    }
-  }
-
-  implicit object Reads extends Reads[LtiParticipant] {
-
-    def reads( json : JsValue ) : LtiParticipant = {
-      LtiParticipant(
-        new ObjectId((json \ "itemSession").as[String]),
-        (json \ "resultSourcedId").as[String],
-        (json \ "gradePassbackUrl").as[String],
-        (json \ "onFinishedUrl").as[String]
-      )
-    }
-  }
+  import common.models.json.{ObjectIdReads, ObjectIdWrites}
+  implicit val Writes = Json.writes[LtiParticipant]
+  implicit val Reads = Json.reads[LtiParticipant]
 }
 
 case class LtiQuiz(resourceLinkId: String,
@@ -120,7 +90,9 @@ case class LtiQuiz(resourceLinkId: String,
 
 object LtiQuiz {
 
+/*
   implicit object Writes extends Writes[LtiQuiz] {
+
 
     def writes(quiz: LtiQuiz): JsValue = {
 
@@ -132,8 +104,12 @@ object LtiQuiz {
       ) ++ quiz.orgId.map( o => "orgId" -> JsString(o.toString)))
     }
   }
+*/
+  import common.models.json._
+  implicit val Writes = Json.writes[LtiQuiz]
+  implicit val Reads = Json.reads[LtiQuiz]
 
-  implicit object Reads extends Reads[LtiQuiz] {
+/*  implicit object Reads extends Reads[LtiQuiz] {
 
     def reads(json:JsValue) : LtiQuiz = {
       LtiQuiz(
@@ -145,6 +121,7 @@ object LtiQuiz {
       )
     }
   }
+  */
 
   /**
    * Hide the ModelCompanion from the client code as it provides too many operations.

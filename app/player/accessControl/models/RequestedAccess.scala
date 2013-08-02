@@ -3,6 +3,7 @@ package player.accessControl.models
 import controllers.auth.Permission
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
+import scala.language.implicitConversions
 
 case class RequestedAccess(
                        itemId: Option[VersionedContentRequest] = None,

@@ -36,9 +36,12 @@ class LaunchConfigTest extends Specification{
   }
 
   private def get(quiz:LtiQuiz): LtiQuiz = {
-    val call = Routes.get(quiz.id)
-    val request = FakeRequest(call.method, call.url)
-    callAndReturnModel(addSessionInfo(quiz,request))
+    val action = basiclti.controllers.LtiQuizzes.get(quiz.id)
+    val request = FakeRequest("ignore", "ignore")
+    val result = action(addSessionInfo(quiz,request))
+    val json = parse(contentAsString(result))
+    json.as[LtiQuiz]
+    //callAndReturnModel(addSessionInfo(quiz,request))
   }
 
   private def addSessionInfo[A](quiz: LtiQuiz, r: FakeRequest[A]): FakeRequest[A] = {
@@ -49,26 +52,12 @@ class LaunchConfigTest extends Specification{
   }
 
   private def update(quiz: LtiQuiz): LtiQuiz = {
-    val call = Routes.update(quiz.id)
-    val jsValue = LtiQuiz.Writes.writes(quiz)
-
-    println("jsValue: " + jsValue)
-    val request = FakeRequest(call.method, call.url, FakeHeaders(), AnyContentAsJson(jsValue))
-    callAndReturnModel(addSessionInfo(quiz, request))
-  }
-
-  private def callAndReturnModel[T <: AnyContent](request: FakeRequest[T]): LtiQuiz = {
-    routeAndCall(request) match {
-      case Some(result) => {
-        val resultString = contentAsString(result)
-        println("resultString: ")
-        println(resultString)
-        val json: JsValue = parse(resultString)
-
-        json.as[LtiQuiz]
-      }
-      case _ => throw new RuntimeException("couldn't get result")
-    }
+    val action = basiclti.controllers.LtiQuizzes.update(quiz.id)
+    val jsValue = toJson(quiz)
+    val request = FakeRequest("ignore", "ignore", FakeHeaders(), AnyContentAsJson(jsValue))
+    val result = action(addSessionInfo(quiz,request))
+    val json = parse(contentAsString(result))
+    json.as[LtiQuiz]
   }
 
   "launch config" should {
@@ -94,7 +83,7 @@ class LaunchConfigTest extends Specification{
       val jsValue = toJson(copiedConfig)
       val request = FakeRequest(call.method, call.url, FakeHeaders(), AnyContentAsJson(jsValue))
 
-      routeAndCall(addSessionInfo(copiedConfig,request)) match {
+      route(addSessionInfo(copiedConfig,request)) match {
         case Some(r) => {
           status(r) === BAD_REQUEST
         }

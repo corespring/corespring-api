@@ -56,19 +56,19 @@ object BaseFile {
 
   implicit object BaseFileReads extends Reads[BaseFile] {
 
-    def reads(json: JsValue): BaseFile = {
+    def reads(json: JsValue): JsResult[BaseFile] = {
 
       val name = (json \ "name").asOpt[String].getOrElse("unknown")
       val contentType = (json \ "contentType").asOpt[String].getOrElse(getContentType(name))
       val isMain = (json \ "default").asOpt[Boolean].getOrElse(false)
 
-
+      JsSuccess(
       (json \ "content").asOpt[String] match {
         case Some(content) => {
           VirtualFile(name, contentType, isMain, content)
         }
         case _ => StoredFile(name, contentType, isMain) //we are missing the storageKey here
-      }
+      })
     }
   }
 
