@@ -41,7 +41,7 @@
                         <a href="#"
                         data-toggle="dropdown"
                         class="dropdown-toggle">Create Item <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
+                        <ul style="z-index: 99999" class="dropdown-menu">
                             @templates.groupBy(_.group).toSeq.sortWith(_._1.length > _._1.length).map { group =>
                                 <li>
                                     @group._1
