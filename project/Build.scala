@@ -1,6 +1,10 @@
 import sbt._
 import Keys._
-import PlayProject._
+
+import play.Project._
+
+import com.typesafe.sbt.SbtScalariform.scalariformSettings
+
 
 object Build extends sbt.Build {
 
@@ -13,7 +17,7 @@ object Build extends sbt.Build {
     "org.bson.types.ObjectId",
     "org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._")
 
-  val main = play.Project(appName, appVersion, Dependencies.all).settings(
+  val main = play.Project(appName, appVersion, Dependencies.all ).settings(
     scalaVersion := ScalaVersion,
     parallelExecution.in(Test) := false,
     routesImport ++= customImports,
@@ -22,5 +26,5 @@ object Build extends sbt.Build {
     Keys.fork.in(Test) := false,
     scalacOptions ++= Seq("-feature", "-deprecation"),
     (test in Test) <<= (test in Test).map(Commands.runJsTests)
-  )
+  ).settings(scalariformSettings : _*)
 }
