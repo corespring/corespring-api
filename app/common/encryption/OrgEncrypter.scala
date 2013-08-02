@@ -1,7 +1,7 @@
 package common.encryption
 
-import models.auth.ApiClient
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.auth.ApiClient
 
 class OrgEncrypter(orgId: ObjectId, encrypter: Crypto) {
 

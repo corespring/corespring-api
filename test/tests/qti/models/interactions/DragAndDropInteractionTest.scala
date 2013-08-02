@@ -5,7 +5,7 @@ import qti.models.interactions.DragAndDropInteraction
 import qti.models.{ResponseDeclaration, QtiItem}
 import utils.MockXml
 import utils.MockXml.{removeNodeFromXmlWhere, addChildNodeInXmlWhere}
-import models.itemSession.ArrayItemResponse
+import org.corespring.platform.core.models.itemSession.ArrayItemResponse
 
 class DragAndDropInteractionTest extends Specification {
 

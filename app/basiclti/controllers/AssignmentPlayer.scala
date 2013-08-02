@@ -2,14 +2,15 @@ package basiclti.controllers
 
 import basiclti.models.LtiQuiz
 import common.controllers.AssetResource
-import models.itemSession.{DefaultItemSession, ItemSession}
 import org.bson.types.ObjectId
 import play.api.mvc.Action
 import player.accessControl.auth.{CheckSessionAccess, CheckSession}
 import player.accessControl.models.RequestedAccess
 import player.controllers.Views
-import models.item.service.ItemServiceImpl
+import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import player.views.models.PlayerParams
+import org.corespring.platform.core.models.itemSession.{DefaultItemSession, ItemSession}
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 
 object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl) with AssetResource {
 
@@ -53,7 +54,7 @@ object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl) with 
     case Left(msg) => Action(request => NotFound(msg))
     case Right(session) => {
 
-      import models.versioning.VersionedIdImplicits.Binders._
+      import VersionedIdImplicits.Binders._
       getDataFile(versionedIdToString(session.itemId), filename)
     }
   }

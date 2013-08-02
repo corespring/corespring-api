@@ -1,7 +1,7 @@
 package qti.models.interactions
 
 import qti.models.ResponseDeclaration
-import models.itemSession.{ArrayItemResponse, StringItemResponse, ItemResponseOutcome, ItemResponse}
+import org.corespring.platform.core.models.itemSession.{ArrayItemResponse, StringItemResponse, ItemResponseOutcome, ItemResponse}
 import xml.Node
 import qti.models.QtiItem.Correctness
 

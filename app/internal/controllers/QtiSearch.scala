@@ -4,12 +4,12 @@ import controllers.auth.BaseApi
 import play.mvc.BodyParser
 import play.api.mvc.{Action, AnyContentAsFormUrlEncoded, BodyParsers}
 import play.mvc.BodyParser.FormUrlEncoded
-import models.{Organization}
-import models.item.Item
-import models.item.service.{ItemServiceImpl, XmlSearch, XmlSearchClient, ItemServiceClient}
+import org.corespring.platform.core.models.item.service.{ItemServiceImpl, XmlSearch, XmlSearchClient, ItemServiceClient}
 import org.corespring.platform.data.VersioningDao
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.SalatVersioningDao
+import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.item.Item
 
 trait QtiSearch extends BaseApi{ self : XmlSearchClient =>
 

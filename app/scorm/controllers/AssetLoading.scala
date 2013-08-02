@@ -2,7 +2,7 @@ package scorm.controllers
 
 import common.controllers.utils.BaseUrl
 import common.encryption.AESCrypto
-import models.item.service.ItemServiceImpl
+import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import play.api.mvc.{AnyContent, Request}
 import player.controllers.{AssetLoading => PlayerAssetLoading, AssetLoadingDefaults}
 

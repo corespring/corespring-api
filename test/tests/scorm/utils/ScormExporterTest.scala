@@ -6,7 +6,7 @@ import java.io.{FileNotFoundException, File}
 import org.bson.types.ObjectId
 import tests.{BaseTest}
 import tests.PlaySingleton
-import models.item.Item
+import org.corespring.platform.core.models.item.Item
 
 class ScormExporterTest extends BaseTest {
 

@@ -6,9 +6,6 @@ import basiclti.controllers.routes.{AssignmentPlayer => AssignmentPlayerRoutes}
 import basiclti.models._
 import common.controllers.utils.BaseUrl
 import controllers.auth.{TokenizedRequestActionBuilder, BaseApi}
-import models.Organization
-import models.auth.ApiClient
-import models.itemSession.{DefaultItemSession, ItemSessionSettings, ItemSession}
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
 import org.bson.types.ObjectId
 import play.api.libs.json.Json._
@@ -25,6 +22,9 @@ import scala.Left
 import scala.Right
 import scala.Some
 import scala.concurrent.Future
+import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.auth.ApiClient
+import org.corespring.platform.core.models.itemSession.{ItemSessionSettings, DefaultItemSession, ItemSession}
 
 /**
  * Handles the launching of corespring items via the LTI 1.1 launch specification.

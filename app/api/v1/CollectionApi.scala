@@ -1,17 +1,15 @@
 package api.v1
 
 import controllers.auth.{Permission, BaseApi}
-import models._
+import org.corespring.platform.core.models._
 import api.{ApiError}
 import com.mongodb.casbah.Imports._
 import com.novus.salat.dao.SalatMongoCursor
 import controllers.auth.{Permission, BaseApi}
 import controllers.{InternalError, Utils}
-import models.{ContentCollection, Organization}
 import play.api.libs.json._
 import play.api.mvc.Result
 import scala.Left
-import search.SearchCancelled
 import play.api.libs.json.JsArray
 import play.api.libs.json.JsUndefined
 import play.api.libs.json.JsString
@@ -21,6 +19,8 @@ import play.api.libs.json.JsNumber
 import com.novus.salat.dao.SalatMongoCursor
 import play.api.libs.json.JsObject
 import scalaz.{Failure, Success}
+import org.corespring.platform.core.models.{Organization, CollectionExtraDetails, ContentCollection}
+import org.corespring.platform.core.models.search.SearchCancelled
 
 /**
  * The Collections API

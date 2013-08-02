@@ -5,6 +5,7 @@ import player.accessControl.models.RequestedAccess.Mode._
 import player.accessControl.models.granter.constraints._
 import player.accessControl.models.{VersionedContentRequest, ContentRequest, RenderOptions, RequestedAccess}
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 
 /** An AccessGranter that creates a list of Constraints based on the rendering options */
 class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLookup) extends ConstraintChecker with AccessGranter {
@@ -75,7 +76,7 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
   }
 
   private def void(s: String): Option[VersionedId[ObjectId]] = {
-    import models.versioning.VersionedIdImplicits.Binders._
+    import VersionedIdImplicits.Binders._
     stringToVersionedId(s)
   }
 

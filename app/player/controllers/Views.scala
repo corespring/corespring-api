@@ -2,8 +2,6 @@ package player.controllers
 
 import common.controllers.QtiResource
 import controllers.auth.{TokenizedRequestActionBuilder, BaseApi}
-import models.itemSession.DefaultItemSession
-import models.quiz.basic.Quiz
 import org.bson.types.ObjectId
 import org.xml.sax.SAXParseException
 import play.api.mvc.Action
@@ -14,10 +12,13 @@ import player.accessControl.models.RequestedAccess
 import player.views.models.{QtiKeys, ExceptionMessage, PlayerParams}
 import qti.models.RenderingMode._
 import scala.xml.Elem
-import models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
+import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
 import org.corespring.platform.data.mongo.models.VersionedId
 import common.controllers.deployment.{AssetsLoaderImpl, AssetsLoader}
 import qti.models.RenderingMode.RenderingMode
+import org.corespring.platform.core.models.itemSession.DefaultItemSession
+import org.corespring.platform.core.models.quiz.basic.Quiz
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 
 
 class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService)
@@ -112,7 +113,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     )
 
     def toPlayerParams(xml: String, qtiKeys: QtiKeys): PlayerParams = {
-      import models.versioning.VersionedIdImplicits.Binders._
+      import VersionedIdImplicits.Binders._
       PlayerParams(
         xml,
         Some(versionedIdToString(itemId)),

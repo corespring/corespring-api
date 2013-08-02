@@ -1,10 +1,11 @@
 package reporting.controllers
 
 import controllers.auth.BaseApi
-import models._
+import org.corespring.platform.core.models._
 import reporting.services.ReportsService
-import models.item.Item
-import models.item.service.ItemServiceImpl
+import org.corespring.platform.core.models.item.service.ItemServiceImpl
+import org.corespring.platform.core.models.{Subject, Standard, ContentCollection}
+import org.corespring.platform.core.models.item.Item
 
 object Reports extends BaseApi {
 

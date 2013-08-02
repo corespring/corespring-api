@@ -6,8 +6,6 @@ import common.log.PackageLogging
 import controllers.Assets
 import controllers.auth.{BaseApi, OAuthProvider, Permission}
 import developer.controllers.routes.{Developer => DeveloperRoutes}
-import models.auth.ApiClient
-import models.{User, Organization}
 import org.bson.types.ObjectId
 import play.api.libs.json._
 import play.api.mvc._
@@ -17,6 +15,8 @@ import scala._
 import scalaz.Scalaz._
 import scalaz.{Failure, Success, Validation}
 import securesocial.core.{UserId, SecureSocial}
+import org.corespring.platform.core.models.{User, Organization}
+import org.corespring.platform.core.models.auth.ApiClient
 
 /**
  * TODO: remove magic strings

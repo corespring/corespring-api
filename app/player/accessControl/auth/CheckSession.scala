@@ -5,7 +5,6 @@ import api.ApiError
 import controllers.InternalError
 import controllers.auth.TokenizedRequestActionBuilder
 import controllers.auth.requests.TokenizedRequest
-import models.auth.AccessToken
 import org.bson.types.ObjectId
 import play.api.libs.json.Json
 import play.api.mvc.Results._
@@ -16,6 +15,7 @@ import player.accessControl.models._
 import scala.Left
 import scala.Right
 import scala.Some
+import org.corespring.platform.core.models.auth.AccessToken
 
 /** An implementation of TokenizedRequestActionBuilder that grants access based on the requested access and render options.
   * RequestedAccess is defined by the controllers. It defines the type of access that the controller will need.

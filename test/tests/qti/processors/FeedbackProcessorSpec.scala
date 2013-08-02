@@ -1,10 +1,10 @@
 package tests.qti.processors
 
-import models.itemSession.FeedbackIdMapEntry
 import org.specs2.mutable._
 import play.api.libs.json.{JsObject, JsString, Json}
-import qti.processors.FeedbackProcessor
 import scala.xml.{Node, Elem, XML, NodeSeq}
+import org.corespring.platform.core.models.itemSession.FeedbackIdMapEntry
+import qti.processors.FeedbackProcessor
 
 class FeedbackProcessorSpec extends Specification {
 

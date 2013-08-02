@@ -3,8 +3,8 @@ package tests.api.v1
 import api.ApiError
 import api.v1.ItemSessionApi
 import controllers.InternalError
-import models.itemSession._
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.itemSession._
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 import org.specs2.mutable._
@@ -172,7 +172,7 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
 
 
   "creating and then updating item session" should {
-    import models.itemSession.{DefaultItemSession => IS}
+    import org.corespring.platform.core.models.itemSession.{DefaultItemSession => IS}
 
     def addResponses() : Seq[ItemResponse] = Seq(
       StringItemResponse("mexicanPresident", "calderon"),
@@ -209,8 +209,8 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
       val testSession = createNewSession().copy( responses = Seq(StringItemResponse("winterDiscontent", "York")))
       Logger.debug(s" test session : $testSession")
       val json = process(testSession)
-      (json \ "sessionData" \ "feedbackContent").as[JsObject].keys.size === 1
-    }.pendingUntilFixed("TODO // Play 2.1.3 upgrade - should be simple")
+      (json \ "sessionData" \ "feedbackContents").as[JsObject].keys.size === 1
+    }
 
 
     "return an item session which contains correctResponse object within sessionData which contains all correct responses available" in {

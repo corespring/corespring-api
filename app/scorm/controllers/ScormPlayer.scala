@@ -1,7 +1,7 @@
 package scorm.controllers
 
 import common.controllers.AssetResource
-import models.item.service.ItemServiceImpl
+import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import play.api.templates.Html
 import player.accessControl.auth.CheckSessionAccess
 import player.controllers.Views

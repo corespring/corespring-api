@@ -1,11 +1,12 @@
 package tests.publicsite.controllers
 
-import models.item._
+import org.corespring.platform.core.models.item._
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
 import tests.BaseTest
+import org.corespring.platform.core.models.item.Item
 
 class ExampleContentTest extends BaseTest{
 

@@ -11,7 +11,7 @@ object Build extends sbt.Build {
   val customImports = Seq("se.radley.plugin.salat.Binders._",
     "org.corespring.platform.data.mongo.models.VersionedId",
     "org.bson.types.ObjectId",
-    "models.versioning.VersionedIdImplicits.Binders._")
+    "org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._")
 
   val main = play.Project(appName, appVersion, Dependencies.all).settings(
     scalaVersion := ScalaVersion,

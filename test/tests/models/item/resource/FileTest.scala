@@ -1,7 +1,7 @@
 package tests.models.item.resource
 
 import org.specs2.mutable.Specification
-import models.item.resource.{Resource, StoredFile}
+import org.corespring.platform.core.models.item.resource.{Resource, StoredFile}
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 

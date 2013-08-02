@@ -16,12 +16,12 @@
   },
   "responses": [
     {
-      "_t": "models.itemSession.StringItemResponse",
+      "_t" : "org.corespring.platform.core.models.itemSession.StringItemResponse",
       "_id": "mexicanPresident",
       "responseValue": "calderon"
     },
     {
-      "_t": "models.itemSession.StringItemResponse",
+      "_t" : "org.corespring.platform.core.models.itemSession.StringItemResponse",
       "_id": "irishPresident",
       "responseValue": "higgins"
     }

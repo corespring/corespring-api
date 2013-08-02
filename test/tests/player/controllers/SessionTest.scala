@@ -1,6 +1,5 @@
 package tests.player.controllers
 
-import models.itemSession.{DefaultItemSession, PreviewItemSessionCompanion, ItemSessionCompanion, ItemSession}
 import org.bson.types.ObjectId
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
@@ -12,6 +11,7 @@ import player.accessControl.models.RequestedAccess.Mode._
 import player.controllers.Session
 import tests.PlaySingleton
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession, PreviewItemSessionCompanion, ItemSession}
 
 class SessionTest extends Specification with PlayerCookieWriter {
 

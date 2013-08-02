@@ -3,9 +3,8 @@ package tests.api.v1
 import api.ApiError
 import api.v1.ResourceApi
 import common.log.PackageLogging
-import models.item.Item
-import models.item.resource.{BaseFile, VirtualFile, Resource}
-import models.item.service.ItemServiceImpl
+import org.corespring.platform.core.models.item.resource.{BaseFile, VirtualFile, Resource}
+import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.JsObject
@@ -17,6 +16,8 @@ import scala._
 import tests.BaseTest
 import play.api.Play
 import play.api.libs.iteratee.Iteratee
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.core.models.item.Item
 
 
 class ResourceApiTest extends BaseTest with PackageLogging {
@@ -249,7 +250,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       val item = testItem
       val filename = "cute-rabbit.jpg"
 
-      import models.versioning.VersionedIdImplicits.Binders._
+      import VersionedIdImplicits.Binders._
       val create = api.v1.ResourceApi.uploadFile(versionedIdToString(item.id),"Rubric", filename)
       val file = Play.getFile("test/tests/files/" + filename)
       val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)

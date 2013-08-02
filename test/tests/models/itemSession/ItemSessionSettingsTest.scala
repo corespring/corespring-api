@@ -2,7 +2,7 @@ package tests.models.itemSession
 
 import play.api.libs.json.{Json}
 import tests.{BaseTest}
-import models.itemSession.{ItemSessionSettings, ItemSession}
+import org.corespring.platform.core.models.itemSession.{ItemSessionSettings, ItemSession}
 
 class ItemSessionSettingsTest extends BaseTest{
 

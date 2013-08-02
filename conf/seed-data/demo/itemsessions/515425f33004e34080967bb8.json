@@ -17,7 +17,7 @@
   },
   "responses": [
     {
-      "_t": "models.itemSession.StringItemResponse",
+      "_t" : "org.corespring.platform.core.models.itemSession.StringItemResponse",
       "_id": "Q_01",
       "responseValue": "15"
     }

@@ -4,7 +4,7 @@ import java.io._
 import scorm.models.extractors.RemoteItemRunnerTemplate
 import scorm.models.Builder
 import scorm.models.Builder.Config
-import models.item.Item
+import org.corespring.platform.core.models.item.Item
 
 
 object ScormExporter {

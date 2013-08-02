@@ -3,11 +3,8 @@ package controllers
 import play.api.mvc.{Action, Controller}
 import com.novus.salat._
 import dao.ModelCompanion
-import models.auth.{ApiClient, AccessToken}
 import com.mongodb.casbah.Imports._
-import models._
-import item.FieldValue
-import models.itemSession.{DefaultItemSession, ItemSession}
+import org.corespring.platform.core.models._
 import scala.Right
 import play.api.libs.concurrent.Akka
 import play.api.Play.current
@@ -17,6 +14,13 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.json.{JsString, JsObject}
+import org.corespring.platform.core.models._
+import scala.Some
+import play.api.libs.json.JsString
+import play.api.libs.json.JsObject
+import org.corespring.platform.core.models.auth.{ApiClient, AccessToken}
+import org.corespring.platform.core.models.itemSession.DefaultItemSession
+import org.corespring.platform.core.models.item.FieldValue
 
 class SystemCheck(s3: CorespringS3Service) extends Controller {
   implicit val as = Akka.system

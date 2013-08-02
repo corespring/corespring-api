@@ -1,6 +1,6 @@
 package qti.models.interactions
 
-import models.itemSession.{ItemResponseOutcome, ItemResponse}
+import org.corespring.platform.core.models.itemSession.{ItemResponseOutcome, ItemResponse}
 import qti.models.{QtiItem, ResponseDeclaration}
 import xml.Node
 

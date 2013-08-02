@@ -5,7 +5,6 @@ import com.mongodb.casbah.commons.MongoDBObject
 import common.config.AppConfig
 import common.log.PackageLogging
 import developer.models.RegistrationToken
-import models.{UserOrg, User}
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import play.api.Application
@@ -13,6 +12,7 @@ import scala.Some
 import securesocial.core._
 import securesocial.core.providers.utils.PasswordHasher
 import securesocial.core.providers.Token
+import org.corespring.platform.core.models.{UserOrg, User}
 
 /**
  * An implementation of the UserService

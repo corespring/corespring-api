@@ -1,6 +1,6 @@
 package qti.models.interactions
 
-import models.itemSession.{ItemResponseOutcome, ArrayItemResponse, ItemResponse}
+import org.corespring.platform.core.models.itemSession.{ItemResponseOutcome, ArrayItemResponse, ItemResponse}
 import qti.models._
 import scala.Some
 import scala.language.postfixOps

@@ -1,7 +1,6 @@
 package tests.player.controllers
 
 import common.encryption.{Crypto, AESCrypto}
-import models.auth.{AccessToken, ApiClient}
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContent, AnyContentAsEmpty, AnyContentAsJson, Call}
 import play.api.test.Helpers._
@@ -9,6 +8,7 @@ import play.api.test.{FakeHeaders, FakeRequest}
 import player.accessControl.models.{RequestedAccess, RenderOptions}
 import tests.BaseTest
 import player.controllers.Encrypter
+import org.corespring.platform.core.models.auth.{ApiClient, AccessToken}
 
 class EncrypterTest extends BaseTest {
 

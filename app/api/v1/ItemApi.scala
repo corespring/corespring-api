@@ -9,21 +9,21 @@ import common.log.PackageLogging
 import controllers._
 import controllers.auth.ApiRequest
 import controllers.auth.{Permission, BaseApi}
-import models._
-import models.item._
-import models.item.resource.StoredFile
-import models.item.service.{ItemServiceImpl, ItemService}
-import models.json.ItemView
-import models.mongoContext._
-import models.search.SearchCancelled
-import models.search.SearchFields
+import org.corespring.platform.core.models._
+import org.corespring.platform.core.models.item._
+import org.corespring.platform.core.models.item.resource.StoredFile
+import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
+import org.corespring.platform.core.models.json.ItemView
+import org.corespring.platform.core.models.mongoContext.context
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc.{Result, Action, AnyContent}
 import scalaz.Scalaz._
 import scalaz.{Failure, Success, Validation}
-import search.ItemSearch
+import org.corespring.platform.core.models.{Organization, ContentCollection}
+import org.corespring.platform.core.models.search.{ItemSearch, SearchFields, SearchCancelled}
+import org.corespring.platform.core.models.item.{TaskInfo, Item, Alignments, Content}
 
 /**
  * Items API
@@ -286,7 +286,7 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService) extends Base
   Action[AnyContent] =
     ApiAction {
       request =>
-        if (models.item.Content.isAuthorized(request.ctx.organization, id, p)) {
+        if (Content.isAuthorized(request.ctx.organization, id, p)) {
           block(request)
         } else {
           val orgName = Organization.findOneById(request.ctx.organization).map(_.name).getOrElse("unknown org")

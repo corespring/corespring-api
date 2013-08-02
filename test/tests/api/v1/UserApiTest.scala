@@ -10,7 +10,6 @@ import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
 import scala.Some
 import tests.BaseTest
-import models.{UserOrg, User}
 import com.mongodb.casbah.Imports._
 import play.api.test.FakeHeaders
 import scala.Some

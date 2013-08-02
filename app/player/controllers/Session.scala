@@ -3,7 +3,6 @@ package player.controllers
 import api.v1.ItemSessionApi
 import common.controllers.SimpleJsRoutes
 import controllers.auth.TokenizedRequestActionBuilder
-import models.itemSession.PreviewItemSessionCompanion
 import org.bson.types.ObjectId
 import play.api.mvc._
 import player.accessControl.auth.CheckSessionAccess
@@ -11,8 +10,9 @@ import player.accessControl.cookies.PlayerCookieReader
 import player.accessControl.models.RequestedAccess
 import player.accessControl.models.RequestedAccess.Mode._
 import scala.Some
-import models.item.service.ItemServiceImpl
+import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.platform.core.models.itemSession.PreviewItemSessionCompanion
 
 
 class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Controller with SimpleJsRoutes with PlayerCookieReader {

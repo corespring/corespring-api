@@ -4,12 +4,12 @@ import org.specs2.mutable.Specification
 import qti.models._
 import interactions.ChoiceInteraction
 import interactions.choices.SimpleChoice
-import models._
+import org.corespring.platform.core.models._
 import org.omg.CORBA.IRObject
 import qti.models.QtiItem.Correctness
 import scala.Some
 import scala.Some
-import models.itemSession.{Score, ItemResponseOutcome, ArrayItemResponse, StringItemResponse}
+import org.corespring.platform.core.models.itemSession.{Score, ItemResponseOutcome, ArrayItemResponse, StringItemResponse}
 
 class ScoreTest extends Specification {
 

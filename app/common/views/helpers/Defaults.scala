@@ -2,8 +2,8 @@ package common.views.helpers
 
 import com.mongodb.casbah.commons.MongoDBObject
 import web.controllers.utils.ConfigLoader
-import models.item.FieldValue
 import play.api.libs.json.{JsValue, Json}
+import org.corespring.platform.core.models.item.FieldValue
 
 object Defaults{
 

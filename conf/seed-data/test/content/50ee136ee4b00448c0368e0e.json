@@ -42,7 +42,7 @@
     "name": "qtiItem",
     "files": [
       {
-        "_t": "models.item.resource.VirtualFile",
+        "_t" : "org.corespring.platform.core.models.item.resource.VirtualFile",
         "name": "qti.xml",
         "contentType": "text/xml",
         "isMain": true,
@@ -57,14 +57,14 @@
       "name": "Rubric",
       "files": [
         {
-          "_t": "models.item.resource.VirtualFile",
+          "_t" : "org.corespring.platform.core.models.item.resource.VirtualFile",
           "name": "index.html",
           "contentType": "text/html",
           "isMain": true,
           "content": "<html>\n<head></head>\n<body>\n<h2>Rubric</h2>\n    \n\n    <TABLE>\n<TBODY>\n<TR> <TD>Score Points</TD> <TD></TD>  </TR>\n<TR> <TD>2</TD> <TD>The response includes: \n<ul>\n    <li>dog bite marks, dirt scuffs OR</li>\n<li>dog bite marks, dirt scuffs OR</li>\n<li>dog bite marks, smudged now and faded OR</li>\n<li>dirt scuffs, fraying seams OR</li>\n<li>fraying seams, smudged now and faded</li>\n</ul>\n<TR>\n<TD>1</TD> <TD>The response includes: \n<ul>\n<li>dog bite marks OR </li>\n<li>dirt scuffs OR</li>\n<li>fraying seams OR </li>\n<LI>smudged now and faded</LI>\n</ul>\n<TR> <TD>0</TD> <TD>The response gets no credit if it provides no evidence of the ability to \nidentify the intended meaning of words based on context and includes \nno relevant information from the text.</TR>\n</TBODY>\n</TABLE>\n</body></html>"
         },
         {
-          "_t": "models.item.resource.StoredFile",
+          "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
           "name": "grandma.pdf",
           "contentType": "application/pdf",
           "isMain": false,
@@ -76,7 +76,7 @@
       "name": "Text Complexity Analysis",
       "files": [
         {
-          "_t": "models.item.resource.StoredFile",
+          "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
           "name": "grandma.pdf",
           "contentType": "application/pdf",
           "isMain": true,

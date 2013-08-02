@@ -3,7 +3,7 @@ package qti.processors
 import xml._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 import scala.Some
-import models.itemSession.FeedbackIdMapEntry
+import org.corespring.platform.core.models.itemSession.FeedbackIdMapEntry
 
 /**
  * Provides transformations on JSON strings to add/remove csFeedbackIds to feedback elements, as well as validation for

@@ -1,14 +1,14 @@
 package controllers.auth
 
-import models.auth.{AccessToken, ApiClient}
 import api.ApiError._
 import api.ApiError
 import org.bson.types.ObjectId
-import models.Organization
 import play.api.Logger
 import com.novus.salat.dao.SalatSaveError
 import org.joda.time.DateTime
 import common.encryption.AESCrypto
+import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.auth.{ApiClient, AccessToken}
 
 /**
  * A OAuth provider

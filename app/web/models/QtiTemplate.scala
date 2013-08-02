@@ -4,7 +4,7 @@ import com.mongodb.casbah.Imports._
 import com.novus.salat.dao._
 import play.api.Play.current
 import play.api.libs.json.{JsNumber, JsObject, JsString, Writes}
-import models.mongoContext.context
+import org.corespring.platform.core.models.mongoContext.context
 
 
 case class QtiTemplate(

@@ -48,12 +48,12 @@
   },
   "responses": [
     {
-      "_t": "models.itemSession.StringItemResponse",
+      "_t" : "org.corespring.platform.core.models.itemSession.StringItemResponse",
       "_id": "mexicanPresident",
       "responseValue": "cameron"
     },
     {
-      "_t": "models.itemSession.ArrayItemResponse",
+      "_t" : "org.corespring.platform.core.models.itemSession.ArrayItemResponse",
       "_id": "rainbowColors",
       "responseValue": [
         "blue",

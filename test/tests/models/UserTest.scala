@@ -1,10 +1,10 @@
 package tests.models
 
 import org.specs2.mutable.{After, Specification}
-import models.{Organization, User}
 import org.bson.types.ObjectId
 import controllers.auth.Permission
 import tests.PlaySingleton
+import org.corespring.platform.core.models.{User, Organization}
 
 class UserTest extends Specification {
 

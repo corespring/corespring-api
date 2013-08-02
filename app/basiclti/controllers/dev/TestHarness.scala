@@ -5,7 +5,6 @@ import basiclti.controllers.AssignmentLauncher
 import basiclti.models.{LtiOAuthConsumer, LtiData}
 import common.controllers.utils.BaseUrl
 import controllers.auth.{OAuthConstants, BaseApi}
-import models.auth.ApiClient
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
 import org.jboss.netty.handler.codec.http.HttpMethod
 import org.bson.types.ObjectId
@@ -15,6 +14,7 @@ import play.Logger
 import scala.Some
 import securesocial.core.SecureSocial
 import securesocial.core.SecuredRequest
+import org.corespring.platform.core.models.auth.ApiClient
 
 /** This test harness simulates an LTI 1.1 Tool Consumer
   * @see http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html

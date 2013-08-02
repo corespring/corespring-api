@@ -5,18 +5,26 @@ import com.mongodb.casbah.Imports._
 import controllers.Utils
 import controllers.auth.ApiRequest
 import controllers.auth.{Permission, BaseApi}
-import models._
-import models.item.Content
-import models.item.service.{ItemServiceImpl, ItemService}
-import models.itemSession._
+import org.corespring.platform.core.models._
+import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
+import org.corespring.platform.core.models.itemSession._
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json._
 import play.api.libs.json.{JsError, JsSuccess, JsValue, JsObject}
 import play.api.mvc.AnyContent
-import quiz.basic.Quiz
 import scala.Left
 import scala.Right
 import scala.Some
+import org.corespring.platform.core.models.itemSession._
+import org.corespring.platform.core.models.itemSession.StringItemResponse
+import play.api.libs.json.JsSuccess
+import scala.Some
+import org.corespring.platform.data.mongo.models.VersionedId
+import controllers.auth.ApiRequest
+import play.api.libs.json.JsObject
+import org.corespring.platform.core.models.itemSession.ArrayItemResponse
+import org.corespring.platform.core.models.quiz.basic.Quiz
+import org.corespring.platform.core.models.item.Content
 
 /**
  * API for managing item sessions

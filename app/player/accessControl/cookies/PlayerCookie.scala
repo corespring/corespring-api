@@ -1,10 +1,10 @@
 package player.accessControl.cookies
 
-import models.{UserOrg, User}
 import org.bson.types.ObjectId
 import play.api.libs.json.Json
 import play.api.mvc.{Session, Request}
 import player.accessControl.models.{RenderOptions, RequestedAccess}
+import org.corespring.platform.core.models.User
 
 
 trait PlayerCookieWriter {

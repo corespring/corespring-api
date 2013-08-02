@@ -2,19 +2,19 @@ package api.v1
 
 import controllers.auth.{Permission, BaseApi}
 import play.api.libs.json._
-import models.{Organization, UserOrg, User}
 import org.bson.types.ObjectId
 import api.{ApiError}
 import com.mongodb.casbah.Imports._
 import play.api.mvc.Result
 import controllers.Utils
 import scala.Left
-import models.search.SearchCancelled
 import play.api.libs.json.JsArray
 import scala.Some
 import scala.Right
 import com.novus.salat.dao.SalatMongoCursor
 import play.api.libs.json.JsObject
+import org.corespring.platform.core.models.{User, Organization}
+import org.corespring.platform.core.models.search.SearchCancelled
 
 /**
  * The User API

@@ -2,7 +2,6 @@ package tests.api.v1
 
 import org.specs2.mutable.Specification
 import utils.RequestCalling
-import models.quiz.basic.{Participant, Quiz}
 import play.api.mvc.{AnyContentAsJson, AnyContentAsEmpty}
 import tests.PlaySingleton
 import org.bson.types.ObjectId
@@ -10,6 +9,7 @@ import play.api.libs.json.{JsSuccess, Json}
 import play.mvc.Call
 import play.api.test.Helpers._
 import play.api.test.FakeRequest
+import org.corespring.platform.core.models.quiz.basic.{Participant, Quiz}
 
 class QuizApiTest extends Specification with RequestCalling {
 

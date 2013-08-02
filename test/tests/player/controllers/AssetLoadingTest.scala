@@ -10,7 +10,7 @@ import player.controllers.AssetLoading
 import tests.PlaySingleton
 import player.accessControl.models.{RequestedAccess, RenderOptions}
 import play.api.libs.json.Json
-import models.item.service.ItemServiceImpl
+import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.specs2.execute.Result
 
 class AssetLoadingTest extends Specification {

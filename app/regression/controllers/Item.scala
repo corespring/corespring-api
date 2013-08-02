@@ -5,15 +5,15 @@ import org.bson.types.ObjectId
 import player.accessControl.models.{RequestedAccess, RenderOptions}
 import player.controllers.Views
 import controllers.auth.TokenizedRequestActionBuilder
-import models.item.service.{ItemServiceImpl, ItemService}
+import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
 import player.accessControl.auth.CheckSessionAccess
 import common.controllers.deployment.LocalAssetsLoaderImpl
 import java.util.NoSuchElementException
-import models.itemSession.{DefaultItemSession, ItemSessionCompanion}
 import play.api.libs.json.Json._
 import scala.Some
 import org.corespring.platform.data.mongo.models.VersionedId
 import api.ApiError
+import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession}
 
 class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val itemService : ItemService, itemSession: ItemSessionCompanion)
   extends Views(auth, itemService) {

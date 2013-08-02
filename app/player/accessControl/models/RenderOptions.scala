@@ -1,8 +1,8 @@
 package player.accessControl.models
 
 import common.encryption.AESCrypto
-import models.auth.ApiClient
 import play.api.libs.json._
+import org.corespring.platform.core.models.auth.ApiClient
 
 case class RenderOptions(itemId: String = "*",
                          sessionId: String = "*",

@@ -3,7 +3,6 @@ package tests.developer.controllers
 import com.mongodb.casbah.commons.MongoDBObject
 import common.log.PackageLogging
 import developer.controllers.Developer
-import models.{Organization, User}
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import org.specs2.mutable.After
@@ -12,6 +11,7 @@ import play.api.mvc.AnyContentAsJson
 import play.api.test.Helpers._
 import tests.BaseTest
 import tests.helpers.TestModelHelpers
+import org.corespring.platform.core.models.{User, Organization}
 
 class DeveloperTest extends BaseTest with TestModelHelpers with PackageLogging{
 

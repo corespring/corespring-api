@@ -1,8 +1,7 @@
 package tests
 
 import _root_.common.seed.SeedDb
-import _root_.models.item.Item
-import _root_.models.item.service.{ItemService, ItemServiceImpl}
+import org.corespring.platform.core.models.item.service.{ItemService, ItemServiceImpl}
 import _root_.web.controllers.utils.ConfigLoader
 import org.bson.types.ObjectId
 import org.specs2.mutable.Specification
@@ -19,6 +18,7 @@ import play.api.mvc.AnyContentAsJson
 import play.api.mvc.AnyContentAsText
 import play.api.libs.json.JsObject
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.platform.core.models.item.Item
 
 
 /**

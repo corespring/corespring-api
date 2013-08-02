@@ -3,13 +3,13 @@ package tests.models.quiz.basic
 import org.specs2.mutable.{After, Specification}
 import tests.{BaseTest, PlaySingleton}
 import play.api.libs.json.{JsArray, Json}
-import models.quiz.basic.{Answer, Participant, Question, Quiz}
 import org.bson.types.ObjectId
-import models.itemSession.ItemSessionSettings
 import com.mongodb.casbah.commons.MongoDBObject
 import common.seed.SeedDb
 import org.corespring.platform.data.mongo.models.VersionedId
 import utils.RequestCalling
+import org.corespring.platform.core.models.itemSession.ItemSessionSettings
+import org.corespring.platform.core.models.quiz.basic.{Question, Participant, Answer, Quiz}
 
 class QuizTest extends BaseTest with RequestCalling{
 

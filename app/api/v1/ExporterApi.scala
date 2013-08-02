@@ -5,8 +5,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import common.controllers.utils.BaseUrl
 import common.encryption._
 import controllers.auth.{Permission, BaseApi}
-import models.item.service.{ItemServiceImpl, ItemService}
-import models.item.{Content, Item}
+import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.iteratee.Enumerator
@@ -15,6 +14,8 @@ import play.api.mvc._
 import player.accessControl.models.RenderOptions
 import scala.Some
 import scorm.utils.ScormExporter
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.core.models.item.{Item, Content}
 
 class ExporterApi(encrypter: Crypto, service:ItemService) extends BaseApi {
 
@@ -66,7 +67,7 @@ class ExporterApi(encrypter: Crypto, service:ItemService) extends BaseApi {
   }
 
   private def validObjectIds(ids: String): List[VersionedId[ObjectId]] = {
-    import models.versioning.VersionedIdImplicits.Binders._
+    import VersionedIdImplicits.Binders._
     ids.split(",").toList.map(stringToVersionedId).flatten
   }
 

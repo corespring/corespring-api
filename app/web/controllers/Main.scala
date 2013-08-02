@@ -2,13 +2,13 @@ package web.controllers
 
 import common.controllers.session.SessionHandler
 import controllers.auth.BaseApi
-import models.{User, Organization}
 import play.api.mvc._
 import player.accessControl.cookies.{PlayerCookieKeys, PlayerCookieWriter}
 import scala.Some
 import securesocial.core.{SecureSocial, SecuredRequest}
 import web.controllers.utils.ConfigLoader
 import web.models.QtiTemplate
+import org.corespring.platform.core.models.{User, Organization}
 
 
 object Main extends BaseApi with PlayerCookieWriter with SessionHandler {

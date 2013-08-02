@@ -4,10 +4,9 @@ import api.ApiError
 import api.v1.ItemApi
 import com.mongodb.casbah.Imports._
 import controllers.CorespringS3Service
-import models._
-import models.item.Item
-import models.item.resource.{VirtualFile, Resource}
-import models.item.service.ItemServiceImpl
+import org.corespring.platform.core.models._
+import org.corespring.platform.core.models.item.resource.{VirtualFile, Resource}
+import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mock.Mockito
 import play.api.libs.json._
@@ -18,6 +17,8 @@ import play.api.test.Helpers._
 import scala.Some
 import scala.xml._
 import tests.BaseTest
+import org.corespring.platform.core.models.ContentCollection
+import org.corespring.platform.core.models.item.Item
 
 class ItemApiTest extends BaseTest with Mockito {
 
@@ -234,7 +235,7 @@ class ItemApiTest extends BaseTest with Mockito {
       case Some(deleteResult) => {
         status(deleteResult) === OK
         ItemServiceImpl.findOneById(item.id) match {
-          case Some(deletedItem) => deletedItem.collectionId === models.ContentCollection.archiveCollId.toString
+          case Some(deletedItem) => deletedItem.collectionId === ContentCollection.archiveCollId.toString
           case _ => failure("couldn't find deleted item")
         }
       }

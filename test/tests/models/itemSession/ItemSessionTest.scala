@@ -1,9 +1,8 @@
 package tests.models.itemSession
 
-import models.item.Item
-import models.item.resource.BaseFile.ContentTypes
-import models.item.resource.{VirtualFile, Resource}
-import models.itemSession._
+import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
+import org.corespring.platform.core.models.item.resource.{VirtualFile, Resource}
+import org.corespring.platform.core.models.itemSession._
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import play.api.libs.json.Json.toJson
@@ -16,10 +15,16 @@ import utils.MockXml
 import xml.Elem
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mutable.After
+import org.corespring.platform.core.models.itemSession._
+import org.corespring.platform.core.models.itemSession.StringItemResponse
+import scala.Some
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.platform.core.models.itemSession.ArrayItemResponse
+import org.corespring.platform.core.models.item.Item
 
 class ItemSessionTest extends BaseTest {
 
-  import models.itemSession.ItemSession.Keys
+  import ItemSession.Keys
 
   val DummyXml = scala.xml.XML.loadFile("test/mockXml/item-session-test-one.xml")
 

@@ -1,7 +1,6 @@
 package publicsite.controllers
 
 import java.nio.charset.Charset
-import models.Organization
 import org.bson.types.ObjectId
 import play.api.Play
 import play.api.Play.current
@@ -11,6 +10,7 @@ import player.accessControl.cookies.PlayerCookieWriter
 import player.accessControl.models.{RenderOptions, RequestedAccess}
 import scala.io.Codec
 import common.config.AppConfig
+import org.corespring.platform.core.models.Organization
 
 
 object Application extends Controller with securesocial.core.SecureSocial with PlayerCookieWriter {

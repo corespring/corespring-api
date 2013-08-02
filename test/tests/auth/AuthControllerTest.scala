@@ -6,9 +6,7 @@ import org.specs2.execute.{Result, Failure}
 import play.api.test.Helpers._
 import securesocial.core.SecureSocial
 import controllers.auth.{Permission, OAuthConstants}
-import models.{User, Organization}
 import play.api.libs.json.Json
-import models.auth.{AccessToken, ApiClient}
 import scala.Left
 import scala.Right
 import com.mongodb.casbah.commons.MongoDBObject
@@ -17,6 +15,8 @@ import org.joda.time.DateTime
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import common.encryption.ShaHash
 import tests.helpers.TestModelHelpers
+import org.corespring.platform.core.models.{User, Organization}
+import org.corespring.platform.core.models.auth.{ApiClient, AccessToken}
 
 class AuthControllerTest extends BaseTest with TestModelHelpers {
 

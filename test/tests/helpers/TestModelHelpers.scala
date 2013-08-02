@@ -2,8 +2,6 @@ package tests.helpers
 
 import common.encryption.ShaHash
 import controllers.auth.{OAuthConstants, Permission}
-import models.auth.AccessToken
-import models.{ContentCollection, User, Organization}
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import org.specs2.execute.{Failure, Result}
@@ -13,6 +11,8 @@ import play.api.Logger
 import developer.controllers.{CoreSpringUserService, Developer}
 import play.api.mvc.Cookie
 import play.api.cache.Cache
+import org.corespring.platform.core.models.{User, Organization, ContentCollection}
+import org.corespring.platform.core.models.auth.AccessToken
 
 trait TestModelHelpers {
 

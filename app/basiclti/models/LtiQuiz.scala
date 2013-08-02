@@ -4,7 +4,6 @@ package basiclti.models
 import api.ApiError
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao._
-import models.itemSession.{DefaultItemSession, ItemSessionSettings, ItemSession}
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Play.current
@@ -13,23 +12,26 @@ import scala.Left
 import scala.Right
 import scala.Some
 import se.radley.plugin.salat._
+import org.corespring.platform.core.models.itemSession.{ItemSessionSettings, DefaultItemSession, ItemSession}
+import org.corespring.platform.core.models.quiz.{BaseQuiz, BaseQuestion, BaseParticipant}
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 
 case class LtiQuestion(itemId: Option[VersionedId[ObjectId]],
                        settings: ItemSessionSettings)
-  extends models.quiz.BaseQuestion(itemId, settings)
+  extends BaseQuestion(itemId, settings)
 
 
 object LtiQuestion {
 
   implicit object Writes extends Writes[LtiQuestion] {
-    import models.versioning.VersionedIdImplicits.{Writes => IdWrites}
+    import VersionedIdImplicits.{Writes => IdWrites}
     def writes(q: LtiQuestion): JsValue = {
       val out = Seq("settings" -> Json.toJson(q.settings)) ++ q.itemId.map( id => "itemId" -> Json.toJson(id)(IdWrites) )
       JsObject(out)
     }
   }
 
-  import models.versioning.VersionedIdImplicits.{Reads, Writes}
+  import VersionedIdImplicits.{Reads, Writes}
   implicit val LtiQuestionReads = Json.reads[LtiQuestion]
 }
 
@@ -37,7 +39,7 @@ case class LtiParticipant(itemSession: ObjectId,
                           resultSourcedId: String,
                           gradePassbackUrl: String,
                           onFinishedUrl: String)
-  extends models.quiz.BaseParticipant(Seq(itemSession), resultSourcedId)
+  extends BaseParticipant(Seq(itemSession), resultSourcedId)
 
 object LtiParticipant{
   import common.models.json.{ObjectIdReads, ObjectIdWrites}
@@ -50,7 +52,7 @@ case class LtiQuiz(resourceLinkId: String,
                    participants: Seq[LtiParticipant] = Seq(),
                    orgId: Option[ObjectId],
                    id: ObjectId = new ObjectId())
-  extends models.quiz.BaseQuiz(Seq(question), participants, id) {
+  extends BaseQuiz(Seq(question), participants, id) {
 
   def hasAssignments = this.participants.length > 0
 
@@ -128,8 +130,9 @@ object LtiQuiz {
    */
   private object Dao extends ModelCompanion[LtiQuiz, ObjectId] {
     val collection = mongoCollection("lti_quizzes")
-    import models.mongoContext.context
-    val dao = new SalatDAO[LtiQuiz, ObjectId](collection = collection) {}
+    import org.corespring.platform.core.models.mongoContext.context
+    import org.corespring.platform.core.models.mongoContext.context
+val dao = new SalatDAO[LtiQuiz, ObjectId](collection = collection) {}
   }
 
   def collection = Dao.collection

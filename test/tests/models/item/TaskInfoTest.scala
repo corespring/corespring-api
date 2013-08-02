@@ -1,10 +1,10 @@
 package tests.models.item
 
 import org.specs2.mutable.Specification
-import models.item.TaskInfo
 import play.api.libs.json._
 import controllers.JsonValidationException
 import tests.{BaseTest, PlaySingleton}
+import org.corespring.platform.core.models.item.TaskInfo
 
 class TaskInfoTest extends BaseTest {
 

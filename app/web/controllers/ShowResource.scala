@@ -3,9 +3,8 @@ package web.controllers
 import common.controllers.{AssetResourceBase, QtiResource}
 import controllers.auth.{Permission, BaseApi}
 import controllers.{CorespringS3Service, CorespringS3ServiceImpl}
-import models.item.resource.{Resource, BaseFile}
-import models.item.service.{ItemService, ItemServiceImpl, ItemServiceClient}
-import models.item.{Content, Item}
+import org.corespring.platform.core.models.item.resource.{Resource, BaseFile}
+import org.corespring.platform.core.models.item.service.{ItemService, ItemServiceImpl, ItemServiceClient}
 import play.api.mvc._
 import player.controllers.QtiRenderer
 import player.views.models.{QtiKeys, PlayerParams}
@@ -14,6 +13,8 @@ import scala.Some
 import scala.xml.Elem
 import scalaz.Scalaz._
 import scalaz.{Success, Failure}
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.core.models.item.{Item, Content}
 
 
 object ShowResource
@@ -53,7 +54,7 @@ object ShowResource
     */
   def renderDataResourceForPrinting(itemId: String): Action[AnyContent] = {
 
-    import models.versioning.VersionedIdImplicits.Binders._
+    import VersionedIdImplicits.Binders._
     val out = for {
       oid <- stringToVersionedId(itemId).toSuccess("Invalid object id")
       item <- itemService.findOneById(oid).toSuccess("Can't find item id")
@@ -69,7 +70,7 @@ object ShowResource
     ApiAction {
       request =>
 
-        import models.versioning.VersionedIdImplicits.Binders._
+        import VersionedIdImplicits.Binders._
 
         if (Content.isAuthorized(request.ctx.organization, item.id, Permission.Read)) {
 

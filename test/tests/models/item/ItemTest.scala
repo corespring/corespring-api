@@ -2,10 +2,11 @@ package tests.models.item
 
 import com.mongodb.BasicDBObject
 import controllers.JsonValidationException
-import models._
-import models.item.Item.Keys
-import models.item._
 import org.bson.types.ObjectId
+import org.corespring.platform.core
+import org.corespring.platform.core.models.Subject
+import org.corespring.platform.core.models.item.Item.Keys
+import org.corespring.platform.core.models.item._
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import play.api.libs.json.Json
@@ -29,7 +30,7 @@ class ItemTest extends BaseTest {
 
       val json = Json.toJson(item)
 
-      import models.item.Alignments.Keys
+      import Alignments.Keys
       (json \ Keys.demonstratedKnowledge).asOpt[String] === Some("Factual")
       (json \ Keys.bloomsTaxonomy).asOpt[String] === Some("Applying")
 
@@ -87,7 +88,7 @@ class ItemTest extends BaseTest {
 
     "parse subjects with only primary" in {
       val dbSubject = Subject.findOne(new BasicDBObject())
-      val subject = models.item.Subjects(primary = Some(dbSubject.get.id))
+      val subject = Subjects(primary = Some(dbSubject.get.id))
 
       //The json that is submittted to be read is different from the db json
       val jsonToRead = JsObject(
@@ -105,7 +106,7 @@ class ItemTest extends BaseTest {
 
     "parse subjects with primary and related" in {
       val dbSubject = Subject.findOne(new BasicDBObject())
-      val subject = models.item.Subjects(primary = Some(dbSubject.get.id), related = Some(dbSubject.get.id))
+      val subject = core.models.item.Subjects(primary = Some(dbSubject.get.id), related = Some(dbSubject.get.id))
 
       //The json that is submittted to be read is different from the db json
       val jsonToRead = JsObject(

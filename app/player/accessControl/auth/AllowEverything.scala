@@ -2,11 +2,11 @@ package player.accessControl.auth
 
 import com.mongodb.casbah.commons.MongoDBObject
 import controllers.auth.requests.TokenizedRequest
-import models.Organization
-import models.auth.AccessToken
 import play.api.mvc._
 import player.accessControl.models.RequestedAccess
 import controllers.auth.TokenizedRequestActionBuilder
+import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.auth.AccessToken
 
 /** An impl of ActionBuilder that creates a tokenized request for the Root Corespring Org - effectively a pass through */
 object AllowEverything extends TokenizedRequestActionBuilder[RequestedAccess]{

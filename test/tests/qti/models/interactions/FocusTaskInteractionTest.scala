@@ -3,7 +3,7 @@ package tests.qti.models.interactions
 import org.specs2.mutable._
 import qti.models.interactions.{FocusTaskInteraction, SelectTextInteraction}
 import qti.models.{CorrectResponseMultiple, ResponseDeclaration}
-import models.itemSession.{ItemResponseOutcome, ArrayItemResponse}
+import org.corespring.platform.core.models.itemSession.{ItemResponseOutcome, ArrayItemResponse}
 
 class FocusTaskInteractionTest extends Specification {
 

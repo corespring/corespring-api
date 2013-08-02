@@ -1,21 +1,23 @@
 package common.seed
 
-import _root_.models.auth.{AccessToken, ApiClient}
-import _root_.models._
+import org.corespring.platform.core.models._
 import com.mongodb.casbah.{MongoDB, MongoCollection}
-import item.{Content, FieldValue}
-import _root_.models.itemSession.{DefaultItemSession, ItemSession}
 import java.io.File
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import play.api._
 import play.api.Play.current
 import JsonImporter._
-import quiz.basic.Quiz
 import web.models.QtiTemplate
 import basiclti.models.LtiQuiz
 import developer.models.RegistrationToken
 import se.radley.plugin.salat.SalatPlugin
+import org.corespring.platform.core.models._
+import scala.Some
+import org.corespring.platform.core.models.auth.{ApiClient, AccessToken}
+import org.corespring.platform.core.models.itemSession.DefaultItemSession
+import org.corespring.platform.core.models.quiz.basic.Quiz
+import org.corespring.platform.core.models.item.FieldValue
 
 object SeedDb {
 

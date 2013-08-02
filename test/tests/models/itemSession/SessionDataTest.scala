@@ -1,6 +1,6 @@
 package tests.models.itemSession
 
-import models.itemSession._
+import org.corespring.platform.core.models.itemSession._
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
@@ -9,6 +9,7 @@ import qti.models._
 import scala.Some
 import tests.BaseTest
 import utils.MockXml
+import org.corespring.platform.core.models.itemSession.{SessionData, ItemSession, ArrayItemResponse, StringItemResponse}
 
 class SessionDataTest extends BaseTest {
 
@@ -259,8 +260,8 @@ class SessionDataTest extends BaseTest {
       session.settings.showFeedback = true
       val data : SessionData = SessionData(qtiItem, session)
       data.feedbackContents.size === 2
-      data.feedbackContents.get("1").get === (XML\\"correctResponseFeedback").text 
-      data.feedbackContents.get("2").get === (XML\\"incorrectResponseFeedback").text 
+      data.feedbackContents.get("1").get === (XML\\"correctResponseFeedback").text
+      data.feedbackContents.get("2").get === (XML\\"incorrectResponseFeedback").text
 
     }
   }

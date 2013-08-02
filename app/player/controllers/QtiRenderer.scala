@@ -2,7 +2,8 @@ package player.controllers
 
 import qti.models.QtiItem
 import qti.models.RenderingMode._
-import qti.processors.FeedbackProcessor._
+import qti.processors.FeedbackProcessor
+import FeedbackProcessor._
 import xml.transform.{RuleTransformer, RewriteRule}
 import scala.xml.{Xhtml, Node, Elem}
 

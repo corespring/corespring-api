@@ -3,13 +3,14 @@ package tests.models.versioning
 import org.specs2.mutable.Specification
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
-import models.versioning.VersionedIdImplicits.{Writes, Reads}
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import VersionedIdImplicits.{Writes, Reads}
 import play.api.libs.json.{JsSuccess, JsString}
 import common.log.PackageLogging
 
 class VersionedIdImplicitsTest extends Specification with PackageLogging{
 
-  import models.versioning.VersionedIdImplicits.Binders._
+  import VersionedIdImplicits.Binders._
 
   //TODO: SalatVersioningDao - migrate to 2.10
   "Binder" should {

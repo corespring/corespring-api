@@ -4,7 +4,7 @@ import org.specs2.mutable._
 import qti.models.interactions.SelectTextInteraction
 import qti.models.{CorrectResponseMultiple, ResponseDeclaration}
 import play.libs.Json
-import models.itemSession.{ItemResponseOutcome, ArrayItemResponse}
+import org.corespring.platform.core.models.itemSession.{ItemResponseOutcome, ArrayItemResponse}
 
 class SelectTextInteractionTest extends Specification {
 

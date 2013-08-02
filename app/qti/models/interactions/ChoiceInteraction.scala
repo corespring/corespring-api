@@ -1,7 +1,7 @@
 package qti.models.interactions
 
 import choices.{Choice, SimpleChoice}
-import models.itemSession._
+import org.corespring.platform.core.models.itemSession._
 import qti.models.QtiItem.Correctness
 import qti.models.ResponseDeclaration
 import scala.Some

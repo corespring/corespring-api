@@ -3,11 +3,11 @@ package api.v1
 import org.bson.types.ObjectId
 import controllers.auth.BaseApi
 import play.api.mvc.{Action, Result}
-import models.quiz.basic.{Participant, Answer, Quiz}
 import play.api.libs.json.Json._
 import api.ApiError
-import models.itemSession.ItemSession
 import play.api.libs.json.{JsUndefined, JsValue}
+import org.corespring.platform.core.models.itemSession.ItemSession
+import org.corespring.platform.core.models.quiz.basic.{Answer, Quiz}
 
 object QuizApi extends BaseApi {
 

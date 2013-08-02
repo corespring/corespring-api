@@ -1,9 +1,9 @@
 package tests.models
 
 import controllers.auth.Permission
-import models._
-import models.item.Item.Keys
-import models.item.Item
+import org.corespring.platform.core.models._
+import org.corespring.platform.core.models.item.Item
+import Item.Keys
 import org.bson.types.ObjectId
 import play.api.Logger
 import play.api.libs.json.{JsString, JsObject, Json}
@@ -13,6 +13,8 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import tests.BaseTest
 import tests.helpers.TestModelHelpers
+import org.corespring.platform.core.models.{Organization, ContentCollection}
+import org.corespring.platform.core.models.item.Item
 
 class PermissionsTest extends BaseTest with TestModelHelpers {
 

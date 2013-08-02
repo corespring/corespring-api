@@ -1,10 +1,10 @@
 package tests.basiclti.models
 
 import basiclti.models._
-import models.itemSession.ItemSessionSettings
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import tests.BaseTest
+import org.corespring.platform.core.models.itemSession.ItemSessionSettings
 
 class LtiQuizTest extends BaseTest {
 

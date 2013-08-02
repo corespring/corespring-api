@@ -7,7 +7,7 @@ import play.api.libs.json.JsArray
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import scala.Some
-import models.itemSession.{ItemResponseOutcome, ArrayItemResponse, ItemResponse}
+import org.corespring.platform.core.models.itemSession.{ItemResponseOutcome, ArrayItemResponse, ItemResponse}
 
 class ItemResponseTest extends Specification {
 

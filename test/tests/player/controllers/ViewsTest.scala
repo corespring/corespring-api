@@ -1,6 +1,6 @@
 package tests.player.controllers
 
-import models.item.service.ItemServiceImpl
+import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.specs2.execute.{Result => SpecsResult}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification

@@ -1,7 +1,7 @@
 package qti.models.interactions
 
 import choices.SimpleChoice
-import models.itemSession._
+import org.corespring.platform.core.models.itemSession._
 import qti.models.QtiItem.Correctness
 import qti.models.{CorrectResponseTargeted, QtiItem, ResponseDeclaration}
 import scala.xml._
@@ -10,7 +10,7 @@ import scala.xml.transform.{RuleTransformer, RewriteRule}
 import controllers.Utils.isTrue
 import scala.Some
 import scala.xml.{Text, Attribute}
-import models.itemSession.ArrayItemResponse
+import org.corespring.platform.core.models.itemSession.ArrayItemResponse
 
 case class Target(identifier: String, cardinality: String)
 

@@ -1,8 +1,8 @@
 package controllers.auth.requests
 
 import org.bson.types.ObjectId
-import models.auth.AccessToken
 import play.api.mvc.Request
+import org.corespring.platform.core.models.auth.AccessToken
 
 trait TokenizedRequestBuilder {
 
