@@ -221,8 +221,8 @@ angular.module('qti.directives').directive("draggablechoice", function () {
         $scope.height = attrs.height ? attrs.height : "50px";
         $scope.copyOnDrag = attrs.copyondrag == "true";
         $scope.placeholderClass = attrs.placeholderClass;
-        var lastW, lastH, sizeNotChangedCounter = 0;
-        var interval = setInterval(function () {
+        var lastW, lastH;
+        setInterval(function () {
           $scope.$apply(function () {
 
             var w = $(el).find('.sizerHolder').width();
@@ -230,15 +230,8 @@ angular.module('qti.directives').directive("draggablechoice", function () {
 
             if (lastW != w || lastH != h) {
               $scope.propagateDimension(w, h);
-              sizeNotChangedCounter = 0;
-            } else {
-              sizeNotChangedCounter++;
             }
 
-            if (sizeNotChangedCounter > 5) {
-              console.log("Size has settled");
-              clearInterval(interval);
-            }
             lastW = w;
             lastH = h;
           });
@@ -366,6 +359,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           stop: $scope.dropCallback,
           out: $scope.outCallback,
           over:  $scope.overCallback,
+          disabled: !$scope.canDrag,
           revert: false
         };
 
@@ -400,7 +394,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
 
         $scope.draggableOptions = {
           revert: $scope.revertFunction
-        }
+        };
 
         $scope.dropCallback = function (event, ui) {
           $scope.$parent.dropCallback(event, ui);
@@ -415,7 +409,6 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           $scope.correctClass = "";
         });
 
-
         $scope.$watch("maxWidth + maxHeight", function () {
           $scope.width = isMultiple ? $scope.maxWidth * 4 + 20 : $scope.maxWidth + 20;
         });
@@ -424,6 +417,10 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           $scope.dragging.id = $(ev.target).attr('data-id');
           $scope.dragging.draggingFromAnswer = false;
         };
+
+        $scope.$watch("canDrag", function(newVal) {
+          $scope.sortableOptions.disabled = !newVal;
+        });
 
         $scope.$watch("listTargets[" + $scope.targetIndex + "]", function () {
           $scope.itemContent = $scope.listTargets[$scope.targetIndex];

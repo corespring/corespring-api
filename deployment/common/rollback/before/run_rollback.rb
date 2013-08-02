@@ -3,7 +3,7 @@ require 'json'
 
 =begin
 Heroku helper script
-Expects a commit hash and a path to a json file 
+Expects a commit hash and a path to a json file
 that contains config information for the heroku server
 --
 Always check and exit with appropriate exit codes!
@@ -22,7 +22,7 @@ puts "ARGV[1]: #{ARGV[1]}"
 
 config = JSON.parse(IO.read(ARGV[1]))
 COMMIT_HASH = ARGV[0]
-JAR="deployment/libs/mongo-migrator_2.9.2-0.2.0-one-jar.jar"
+JAR=Dir["deployment/libs/mongo-migrator*.jar"][0]
 MIGRATIONS="deployment/migrations"
 MONGO_URI = config["HH_MONGO_URI"]
 

@@ -50,9 +50,9 @@ object CorrectResponseLineEquation{
    */
   def lineEquationMatch(value:String, responseValue:String,
                         range:(Int,Int) = (-10,10), variables:(String,String) = "x" -> "y",
-                        numOfTestPoints:Int = 2):Boolean = {
-    def formatExpression(expr:String,variableValues:Seq[(String,Int)]):String = {
-      def replaceVar(expr:String, variable:String, num:Int):String = {
+                        numOfTestPoints:Int = 5):Boolean = {
+    def formatExpression(expr:String,variableValues:Seq[(String,Double)]):String = {
+      def replaceVar(expr:String, variable:String, num:Double):String = {
         var newExpr = expr
         var m = Pattern.compile(".*([0-9)])"+variable+"([(0-9]).*").matcher(newExpr)
         if (m.matches()){
@@ -77,13 +77,13 @@ object CorrectResponseLineEquation{
     /**
      * find coordinates on the graph that fall on the line
      */
-    def getTestPoints:Array[(Int,Int)] = {
+    def getTestPoints:Array[(Double,Double)] = {
       val rhs = value.split("=")(1)
-      var testCoords:Array[(Int,Int)] = Array()
+      var testCoords:Array[(Double,Double)] = Array()
       for (i <- 1 to numOfTestPoints){
-        val xcoord = new Random().nextInt(range._2 - range._1)+range._1
-        val ycoord = engine.eval(formatExpression(rhs,Seq(variables._1 -> xcoord))).toString.toDouble
-        testCoords = testCoords :+ (xcoord,ycoord.toInt)
+        val xcoord:Double = new Random().nextInt(range._2 - range._1)+range._1
+        val ycoord:Double = engine.eval(formatExpression(rhs,Seq(variables._1 -> xcoord))).toString.toDouble
+        testCoords = testCoords :+ (xcoord,ycoord)
       }
       testCoords
     }
@@ -97,8 +97,6 @@ object CorrectResponseLineEquation{
       try{
         getTestPoints.foldRight[Boolean](true)((testPoint,acc) => if (acc){
           val variableValues = Seq(variables._1 -> testPoint._1, variables._2 -> testPoint._2)
-          val lfe = formatExpression(lhs, variableValues)
-          val rfe = formatExpression(rhs, variableValues)
           //replace the x and y vars with the values of testPoint then evaluate the two expressions with the JSengine.
           // the two sides should be equal
           engine.eval(formatExpression(lhs, variableValues)) == engine.eval(formatExpression(rhs, variableValues))

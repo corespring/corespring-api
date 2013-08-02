@@ -15,10 +15,7 @@
                          graph-height="300px"
                          show-inputs="false"
                          locked="">
-            <graphline>
-                <point>-3,1</point>
-                <point>-2,3</point>
-            </graphline>
+            <graphcurve>y=2x+7</graphcurve>
         </lineInteraction>
 
         <p>The equation for the line is: </p>
