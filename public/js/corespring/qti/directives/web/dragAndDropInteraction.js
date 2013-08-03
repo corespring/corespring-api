@@ -223,18 +223,22 @@ angular.module('qti.directives').directive("draggablechoice", function () {
         $scope.placeholderClass = attrs.placeholderClass;
         var lastW, lastH;
         setInterval(function () {
-          $scope.$apply(function () {
 
-            var w = $(el).find('.sizerHolder').width();
-            var h = $(el).find('.sizerHolder').height();
+          if(!$scope.$$phase) {
 
-            if (lastW != w || lastH != h) {
-              $scope.propagateDimension(w, h);
-            }
+            $scope.$apply(function () {
 
-            lastW = w;
-            lastH = h;
-          });
+              var w = $(el).find('.sizerHolder').width();
+              var h = $(el).find('.sizerHolder').height();
+
+              if (lastW != w || lastH != h) {
+                $scope.propagateDimension(w, h);
+              }
+
+              lastW = w;
+              lastH = h;
+            });
+          }
         }, 1000);
 
         $scope.dropOptions = {
