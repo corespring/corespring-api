@@ -66,9 +66,7 @@ version of play.*
 
 #### Localhost
 
-To configure the logger when running locally add a system property to your run command:
-
-    play -Dlogger.file=path/to/logger.xml
+by default in Dev mode the logger in conf/logger.xml is used.
 
 #### Amazon S3
 
