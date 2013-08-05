@@ -1,6 +1,6 @@
 package org.corespring.qti.models.interactions
 
-import org.corespring.platform.core.models.itemSession.ArrayItemResponse
+import org.corespring.qti.models.responses.ArrayResponse
 import org.corespring.qti.models.QtiItem
 import org.specs2.mutable._
 import utils.MockXml
@@ -35,7 +35,7 @@ class DragAndDropInteractionTest extends Specification {
     "populates responseCorrect" in {
       val item = QtiItem(interactionXml)
       val rd = item.responseDeclarations.find(_.identifier == "alphabet1")
-      val response = ArrayItemResponse("alphabet1", Seq("target1:apple|pear","target2:cow","target3:car|bus","target4:apple|pear"))
+      val response = ArrayResponse("alphabet1", Seq("target1:apple|pear","target2:cow","target3:car|bus","target4:apple|pear"))
       val outcome = interaction.getOutcome(rd, response).get
       outcome.outcomeProperties.get("responseCorrect").get must beTrue
       outcome.outcomeProperties.get("responseIncorrect").get must beFalse
@@ -44,7 +44,7 @@ class DragAndDropInteractionTest extends Specification {
     "populates responseIncorrect" in {
       val item = QtiItem(interactionXml)
       val rd = item.responseDeclarations.find(_.identifier == "alphabet1")
-      val response = ArrayItemResponse("alphabet1", Seq("target1:apple|pear","target2:pear","target3:car|bus","target4:apple|pear"))
+      val response = ArrayResponse("alphabet1", Seq("target1:apple|pear","target2:pear","target3:car|bus","target4:apple|pear"))
       val outcome = interaction.getOutcome(rd, response).get
       outcome.outcomeProperties.get("responseCorrect").get must beFalse
       outcome.outcomeProperties.get("responseIncorrect").get must beTrue

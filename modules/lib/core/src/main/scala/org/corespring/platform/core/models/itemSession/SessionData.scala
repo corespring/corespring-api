@@ -1,15 +1,17 @@
 package org.corespring.platform.core.models.itemSession
 
-import play.api.libs.json.Json._
 import org.corespring.qti.models._
-import play.api.libs.json._
-import play.api.libs.json.JsArray
-import scala.Some
-import play.api.libs.json.JsObject
-import org.corespring.qti.models.{CorrectResponse, ResponseDeclaration, QtiItem}
 import org.corespring.qti.models.interactions.SelectTextInteraction
+import org.corespring.qti.models.responses.{Response, ArrayResponse, StringResponse}
+import org.corespring.qti.models.{CorrectResponse, ResponseDeclaration, QtiItem}
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json._
+import play.api.libs.json._
+import scala.Some
 
-case class SessionData(correctResponses: Seq[ItemResponse] = Seq(), feedbackContents: Map[String, String] = Map())
+
+case class SessionData(correctResponses: Seq[Response] = Seq(), feedbackContents: Map[String, String] = Map())
 
 object SessionData {
 
@@ -34,14 +36,14 @@ object SessionData {
 
     //we need to get the correct responses from SelectTextInteraction manually,
     // because there are no response declaration for that interaction. the correct response is within the interaction
-    val selectTextInteractionCorrectResponses:Seq[ItemResponse] = qti.itemBody.interactions.filter(i => i.isInstanceOf[SelectTextInteraction]).
+    val selectTextInteractionCorrectResponses:Seq[Response] = qti.itemBody.interactions.filter(i => i.isInstanceOf[SelectTextInteraction]).
       map(_.asInstanceOf[SelectTextInteraction]).
       filter(_.correctResponse.isDefined).
-      map(sti => ArrayItemResponse(sti.responseIdentifier,sti.correctResponse.get.value))
+      map(sti => ArrayResponse(sti.responseIdentifier,sti.correctResponse.get.value))
 
 
 
-    val allCorrectResponses:List[ItemResponse] = declarationsToItemResponse(qti.responseDeclarations) ++ selectTextInteractionCorrectResponses
+    val allCorrectResponses:List[Response] = declarationsToResponse(qti.responseDeclarations) ++ selectTextInteractionCorrectResponses
 
 
     def createFeedback( idValueIndex : (String, String, Int)): Option[(String, String)] = {
@@ -91,7 +93,7 @@ object SessionData {
     }
     def makeCorrectResponseList : Seq[(String,String,Int)] = {
 
-      def getIdValueIndexIfApplicable(response:ItemResponse) : Seq[IdValueIndex] = {
+      def getIdValueIndexIfApplicable(response:Response) : Seq[IdValueIndex] = {
         if(qti.isCorrectResponseApplicable(response.id))
           response.getIdValueIndex
         else
@@ -111,31 +113,31 @@ object SessionData {
 
 
   /**
-   * convert ResponseDeclaration.CorrectResponse -> ItemResponse
+   * convert ResponseDeclaration.CorrectResponse -> Response
    * @param declarations
    * @return
    */
-  private def declarationsToItemResponse(declarations: Seq[ResponseDeclaration]): List[ItemResponse] = {
+  private def declarationsToResponse(declarations: Seq[ResponseDeclaration]): List[Response] = {
 
-    def correctResponseToItemResponse(id: String)(cr: CorrectResponse): ItemResponse = cr match {
-      case CorrectResponseSingle(value) => StringItemResponse(id, value)
-      case CorrectResponseLineEquation(value,_,_,_) => StringItemResponse(id,value)
-      case CorrectResponseMultiple(value) => ArrayItemResponse(id, value)
-      case CorrectResponseAny(value) => ArrayItemResponse(id, value)
-      case CorrectResponseOrdered(value) => ArrayItemResponse(id, value)
-      case CorrectResponseTargeted(value, _) => ArrayItemResponse(id, value.toList.map(it=>it._1+":"+it._2.mkString(",")))
+    def correctResponseToResponse(id: String)(cr: CorrectResponse): Response = cr match {
+      case CorrectResponseSingle(value) => StringResponse(id, value)
+      case CorrectResponseLineEquation(value,_,_,_) => StringResponse(id,value)
+      case CorrectResponseMultiple(value) => ArrayResponse(id, value)
+      case CorrectResponseAny(value) => ArrayResponse(id, value)
+      case CorrectResponseOrdered(value) => ArrayResponse(id, value)
+      case CorrectResponseTargeted(value, _) => ArrayResponse(id, value.toList.map(it=>it._1+":"+it._2.mkString(",")))
       case _ => throw new RuntimeException("Unknown CorrectResponseType: " + cr)
     }
 
-    def _declarationsToItemResponses(declarations: Seq[ResponseDeclaration]): List[ItemResponse] = {
+    def _declarationsToResponses(declarations: Seq[ResponseDeclaration]): List[Response] = {
       if (declarations.isEmpty) {
         List()
       } else {
         val rd: ResponseDeclaration = declarations.head
-        val correctResponseViews = rd.correctResponse.map(correctResponseToItemResponse(rd.identifier))
-        correctResponseViews.toList ::: _declarationsToItemResponses(declarations.tail)
+        val correctResponseViews = rd.correctResponse.map(correctResponseToResponse(rd.identifier))
+        correctResponseViews.toList ::: _declarationsToResponses(declarations.tail)
       }
     }
-    _declarationsToItemResponses(declarations)
+    _declarationsToResponses(declarations)
   }
 }

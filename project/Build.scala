@@ -22,17 +22,19 @@ object Build extends sbt.Build {
 
   import Dependencies._
 
-
-  /** Core data model */
-  val core = builders.lib("core").settings(
-    libraryDependencies ++= Seq(salatPlay, salatVersioningDao, specs2, playS3, playFramework, securesocial)
+  val commonUtils = builders.lib("common-utils").settings(
+    libraryDependencies ++= Seq(specs2, playFramework, salatPlay, playJson % "test")
   )
 
   /** The Qti library */
   val qti = builders.lib("qti").settings(
     libraryDependencies ++= Seq(specs2, salatPlay, playJson % "test")
-  ).dependsOn(core, testLib % "test->compile")
+  ).dependsOn(commonUtils, testLib % "test->compile")
 
+  /** Core data model */
+  val core = builders.lib("core").settings(
+    libraryDependencies ++= Seq(salatPlay, salatVersioningDao, specs2, playS3, playFramework, securesocial)
+  ).dependsOn(commonUtils, qti)
 
   val main = play.Project(appName, appVersion, Dependencies.all ).settings(
     scalaVersion := ScalaVersion,
@@ -44,6 +46,6 @@ object Build extends sbt.Build {
     scalacOptions ++= Seq("-feature", "-deprecation"),
     (test in Test) <<= (test in Test).map(Commands.runJsTests)
   )
-    .dependsOn(qti, core)
-    .aggregate(qti, core)
+    .dependsOn(qti, core, commonUtils)
+    .aggregate(qti, core, commonUtils)
 }

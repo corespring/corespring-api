@@ -1,30 +1,30 @@
 package org.corespring.qti.models.interactions
 
-import org.corespring.platform.core.models.itemSession.{ArrayItemResponse, StringItemResponse, ItemResponseOutcome, ItemResponse}
+import org.corespring.qti.models.responses.{ArrayResponse, StringResponse, ResponseOutcome, Response}
 import org.corespring.qti.models.QtiItem.Correctness
 import org.corespring.qti.models.ResponseDeclaration
 import xml.Node
 
 case class PointInteraction(responseIdentifier: String) extends Interaction {
-  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
+  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: Response): Option[ResponseOutcome] = {
     response match {
-      case StringItemResponse(_,responseValue,_) => responseDeclaration match {
+      case StringResponse(_,responseValue,_) => responseDeclaration match {
         case Some(rd) => {
           val isCorrect = rd.isCorrect(responseValue) == Correctness.Correct
           rd.mapping match {
             case Some(mapping) => Some(
-              ItemResponseOutcome(mapping.mappedValue(response.value),
+              ResponseOutcome(mapping.mappedValue(response.value),
                 isCorrect, outcomeProperties = if (isCorrect) Map("correct" -> true) else Map("incorrect" -> true)
               )
             )
             case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
-              Some(ItemResponseOutcome(1, true, outcomeProperties = Map("correct" -> true)))
-            } else Some(ItemResponseOutcome(0,false,outcomeProperties = Map("incorrect" -> true)))
+              Some(ResponseOutcome(1, true, outcomeProperties = Map("correct" -> true)))
+            } else Some(ResponseOutcome(0,false,outcomeProperties = Map("incorrect" -> true)))
           }
         }
         case None => None
       }
-      case ArrayItemResponse(_,responseValue,_) => responseDeclaration match {
+      case ArrayResponse(_,responseValue,_) => responseDeclaration match {
         case Some(rd) => {
           def isCorrect(fn: (String,Int)=>Boolean):Boolean = {
             var count:Int = 0
@@ -44,14 +44,14 @@ case class PointInteraction(responseIdentifier: String) extends Interaction {
                   true
                 } else false
               })
-              Some(ItemResponseOutcome(sum,
+              Some(ResponseOutcome(sum,
                 correct, outcomeProperties = if (correct) Map("correct" -> true) else Map("incorrect" -> true)
               ))
             }
             case None => {
               if (isCorrect((value,count) => rd.isValueCorrect(value,Some(count)))) {
-                Some(ItemResponseOutcome(1, true, outcomeProperties = Map("correct" -> true)))
-              } else Some(ItemResponseOutcome(0,false,outcomeProperties = Map("incorrect" -> true)))
+                Some(ResponseOutcome(1, true, outcomeProperties = Map("correct" -> true)))
+              } else Some(ResponseOutcome(0,false,outcomeProperties = Map("incorrect" -> true)))
             }
           }
         }

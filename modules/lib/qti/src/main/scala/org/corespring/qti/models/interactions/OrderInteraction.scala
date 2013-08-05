@@ -1,6 +1,6 @@
 package org.corespring.qti.models.interactions
 
-import org.corespring.platform.core.models.itemSession._
+import org.corespring.qti.models.responses._
 import org.corespring.qti.models.QtiItem.Correctness
 import org.corespring.qti.models.ResponseDeclaration
 import org.corespring.qti.models.interactions.choices.SimpleChoice
@@ -12,9 +12,9 @@ case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoic
 
 
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)
-  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
+  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: Response) : Option[ResponseOutcome] = {
     response match {
-      case ArrayItemResponse(_,responseValue,_) => responseDeclaration match {
+      case ArrayResponse(_,responseValue,_) => responseDeclaration match {
         case Some(rd) => rd.mapping match {
           case Some(mapping) => {
             var count:Int = 0;
@@ -27,12 +27,12 @@ case class OrderInteraction(responseIdentifier: String, choices: Seq[SimpleChoic
               }
               count += 1;
             }
-            Some(ItemResponseOutcome(sum,rd.isCorrect(responseValue) == Correctness.Correct))
+            Some(ResponseOutcome(sum,rd.isCorrect(responseValue) == Correctness.Correct))
           }
           case None => if (rd.isCorrect(response.value) == Correctness.Correct){
-            Some(ItemResponseOutcome(1,true))
+            Some(ResponseOutcome(1,true))
           } else {
-            Some(ItemResponseOutcome(0,false))
+            Some(ResponseOutcome(0,false))
           }
         }
         case None => None

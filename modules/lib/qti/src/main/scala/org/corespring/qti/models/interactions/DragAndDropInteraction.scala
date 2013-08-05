@@ -1,7 +1,7 @@
 package org.corespring.qti.models.interactions
 
 import controllers.Utils.isTrue
-import org.corespring.platform.core.models.itemSession._
+import org.corespring.qti.models.responses._
 import org.corespring.qti.models.QtiItem.Correctness
 import org.corespring.qti.models.interactions.choices.SimpleChoice
 import org.corespring.qti.models.{CorrectResponseTargeted, ResponseDeclaration, QtiItem}
@@ -61,10 +61,10 @@ case class DragAndDropInteraction(responseIdentifier: String, choices: Seq[Simpl
 
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)
 
-  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
+  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: Response): Option[ResponseOutcome] = {
     val (score:Int, isCorrect:Boolean) =
     response match {
-      case ArrayItemResponse(_, responseValue, _) => responseDeclaration match {
+      case ArrayResponse(_, responseValue, _) => responseDeclaration match {
         case Some(rd) => rd.mapping match {
           case Some(mapping) => {
             var count: Int = 0;
@@ -93,7 +93,7 @@ case class DragAndDropInteraction(responseIdentifier: String, choices: Seq[Simpl
         None
       }
     }
-    Some(ItemResponseOutcome(score, isCorrect, None, Map("responseCorrect"->isCorrect, "responseIncorrect"->(!isCorrect))))
+    Some(ResponseOutcome(score, isCorrect, None, Map("responseCorrect"->isCorrect, "responseIncorrect"->(!isCorrect))))
   }
 }
 

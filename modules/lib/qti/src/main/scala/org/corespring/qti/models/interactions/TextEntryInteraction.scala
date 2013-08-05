@@ -1,6 +1,6 @@
 package org.corespring.qti.models.interactions
 
-import org.corespring.platform.core.models.itemSession._
+import org.corespring.qti.models.responses._
 import org.corespring.qti.models.QtiItem.Correctness
 import org.corespring.qti.models.{ResponseDeclaration, CorrectResponseLineEquation}
 import xml.Node
@@ -9,13 +9,13 @@ case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int,
 
   def isScoreable = true
 
-  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
+  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: Response) : Option[ResponseOutcome] = {
     def checkLineEquation:Option[CorrectResponseLineEquation] = responseDeclaration.flatMap(_.correctResponse.
         find(cr => cr.isInstanceOf[CorrectResponseLineEquation]).
         map[CorrectResponseLineEquation](cr => cr.asInstanceOf[CorrectResponseLineEquation])
     )
     response match {
-      case StringItemResponse(_,responseValue,_) => responseDeclaration match {
+      case StringResponse(_,responseValue,_) => responseDeclaration match {
         case Some(rd) => {
           def getOutcomeProperties(isCorrect:Boolean):Map[String,Boolean] = checkLineEquation match {
             case Some(cre) => if (isCorrect && cre.value != responseValue) Map("lineEquationMatch" -> true)  //even though the response value may not match the expected value, the response may still be correct
@@ -26,17 +26,17 @@ case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int,
           rd.mapping match {
             case Some(mapping) =>
               val isCorrect:Boolean = rd.isCorrect(responseValue) == Correctness.Correct
-              Some(ItemResponseOutcome(mapping.mappedValue(response.value), isCorrect, outcomeProperties = getOutcomeProperties(isCorrect)))
+              Some(ResponseOutcome(mapping.mappedValue(response.value), isCorrect, outcomeProperties = getOutcomeProperties(isCorrect)))
             case None => {
               val isCorrect:Boolean = rd.isCorrect(responseValue) == Correctness.Correct
-              Some(ItemResponseOutcome(if(isCorrect) 1 else 0, isCorrect, outcomeProperties = getOutcomeProperties(isCorrect)))
+              Some(ResponseOutcome(if(isCorrect) 1 else 0, isCorrect, outcomeProperties = getOutcomeProperties(isCorrect)))
             }
           }
         }
         case None => None
       }
         //in this case, multiple responses are received, but this interaction only allows for one correct answer. choose the correct answer with the highest value
-      case ArrayItemResponse(_,responseValues,_) => responseDeclaration match {
+      case ArrayResponse(_,responseValues,_) => responseDeclaration match {
         case Some(rd) => rd.mapping match {
           case Some(mapping) => {
             var max:Float = Float.MinValue;
@@ -44,11 +44,11 @@ case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int,
               val mappedValue = mapping.mappedValue(responseValue)
               if (max < mappedValue) max = mappedValue
             }
-            Some(ItemResponseOutcome(max,true))
+            Some(ResponseOutcome(max,true))
           }
           case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
-            Some(ItemResponseOutcome(1,true))
-          } else Some(ItemResponseOutcome(0,false))
+            Some(ResponseOutcome(1,true))
+          } else Some(ResponseOutcome(0,false))
         }
         case None => None
       }

@@ -1,6 +1,6 @@
 package org.corespring.qti.models.interactions
 
-import org.corespring.platform.core.models.itemSession.{ItemResponseOutcome, ArrayItemResponse}
+import org.corespring.qti.models.responses.{ResponseOutcome, ArrayResponse}
 import org.corespring.qti.models.{CorrectResponseMultiple, ResponseDeclaration}
 import org.specs2.mutable._
 
@@ -60,42 +60,42 @@ class SelectTextInteractionTest extends Specification {
 
     "too few selection is reflected in response object" in {
       val rd = ResponseDeclaration("selectText","multiple","identifier",Some(CorrectResponseMultiple(List("2", "3", "7"))),None)
-      val response = ArrayItemResponse("selectText", Seq("3"), Some(ItemResponseOutcome(0,false, Some("Comment"))))
+      val response = ArrayResponse("selectText", Seq("3"), Some(ResponseOutcome(0,false, Some("Comment"))))
       val outcome = interaction.getOutcome(Some(rd), response).get
       outcome.outcomeProperties.get("responsesBelowMin").get must beTrue
     }
 
     "too many selection is reflected in response object" in {
       val rd = ResponseDeclaration("selectText","multiple","identifier",Some(CorrectResponseMultiple(List("2", "3"))),None)
-      val response = ArrayItemResponse("selectText", Seq("3","4","5","6"), Some(ItemResponseOutcome(0,false, Some("Comment"))))
+      val response = ArrayResponse("selectText", Seq("3","4","5","6"), Some(ResponseOutcome(0,false, Some("Comment"))))
       val outcome = interaction.getOutcome(Some(rd), response).get
       outcome.outcomeProperties.get("responsesExceedMax").get must beTrue
     }
 
     "correct selection is reflected in response object" in {
       val rd = ResponseDeclaration("selectText","multiple","identifier",Some(CorrectResponseMultiple(List("2", "3"))),None)
-      val response = ArrayItemResponse("selectText", Seq("2","3"), Some(ItemResponseOutcome(0,false, Some("Comment"))))
+      val response = ArrayResponse("selectText", Seq("2","3"), Some(ResponseOutcome(0,false, Some("Comment"))))
       val outcome = interaction.getOutcome(Some(rd), response).get
       outcome.outcomeProperties.get("responsesCorrect").get must beTrue
     }
 
     "if no correctness checking then response should be correct regardless of answer" in {
       val rd = ResponseDeclaration("selectText","multiple","identifier",Some(CorrectResponseMultiple(List("2", "3"))),None)
-      val response = ArrayItemResponse("selectText", Seq("1","4"), Some(ItemResponseOutcome(0,false, Some("Comment"))))
+      val response = ArrayResponse("selectText", Seq("1","4"), Some(ResponseOutcome(0,false, Some("Comment"))))
       val outcome = interaction.getOutcome(Some(rd), response).get
       outcome.outcomeProperties.get("responsesCorrect").get must beTrue
     }
 
     "correct number of selection is reflected in response object" in {
       val rd = ResponseDeclaration("selectText","multiple","identifier",Some(CorrectResponseMultiple(List("2", "3"))),None)
-      val response = ArrayItemResponse("selectText", Seq("2","3"), Some(ItemResponseOutcome(0,false, Some("Comment"))))
+      val response = ArrayResponse("selectText", Seq("2","3"), Some(ResponseOutcome(0,false, Some("Comment"))))
       val outcome = interaction.getOutcome(Some(rd), response).get
       outcome.outcomeProperties.get("responsesNumberCorrect").get must beTrue
     }
 
     "correct number of selection with some incorrect anwsers is reflected in response object" in {
       val rd = ResponseDeclaration("selectText","multiple","identifier",Some(CorrectResponseMultiple(List("2", "3"))),None)
-      val response = ArrayItemResponse("selectText", Seq("2","4"), Some(ItemResponseOutcome(0,false, Some("Comment"))))
+      val response = ArrayResponse("selectText", Seq("2","4"), Some(ResponseOutcome(0,false, Some("Comment"))))
       val outcome = interactionChecked.getOutcome(Some(rd), response).get
       outcome.outcomeProperties.get("responsesCorrect") must beNone
       outcome.outcomeProperties.get("responsesIncorrect").get must beTrue
@@ -104,7 +104,7 @@ class SelectTextInteractionTest extends Specification {
 
     "incorrect selection is reflected in response object" in {
       val rd = ResponseDeclaration("selectText","multiple","identifier",Some(CorrectResponseMultiple(List("2", "3"))),None)
-      val response = ArrayItemResponse("selectText", Seq("1","4"), Some(ItemResponseOutcome(0,false, Some("Comment"))))
+      val response = ArrayResponse("selectText", Seq("1","4"), Some(ResponseOutcome(0,false, Some("Comment"))))
       val outcome = interactionChecked.getOutcome(Some(rd), response).get
       outcome.outcomeProperties.get("responsesCorrect") must beNone
       outcome.outcomeProperties.get("responsesIncorrect").get must beTrue
@@ -112,7 +112,7 @@ class SelectTextInteractionTest extends Specification {
 
     "incorrect selection and incorrent number of selection should both be reflected in response object" in {
       val rd = ResponseDeclaration("selectText","multiple","identifer",Some(CorrectResponseMultiple(List("2", "3"))),None)
-      val response = ArrayItemResponse("selectText", Seq("1"), Some(ItemResponseOutcome(0,false, Some("Comment"))))
+      val response = ArrayResponse("selectText", Seq("1"), Some(ResponseOutcome(0,false, Some("Comment"))))
       val outcome = interactionChecked.getOutcome(Some(rd), response).get
       outcome.outcomeProperties.get("responsesCorrect") must beNone
       outcome.outcomeProperties.get("responsesIncorrect").get must beTrue

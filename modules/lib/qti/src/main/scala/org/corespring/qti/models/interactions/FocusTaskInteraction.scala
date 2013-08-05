@@ -1,6 +1,6 @@
 package org.corespring.qti.models.interactions
 
-import org.corespring.platform.core.models.itemSession._
+import org.corespring.qti.models.responses._
 import org.corespring.qti.models.interactions.choices.{SimpleChoice, Choice}
 import org.corespring.qti.models.{CorrectResponseMultiple, ResponseDeclaration, QtiItem}
 import scala.Some
@@ -20,13 +20,13 @@ case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleC
 
   def getChoice(identifier: String): Option[Choice] = choices.find(_.identifier == identifier)
 
-  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
+  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: Response): Option[ResponseOutcome] = {
     var outcomeProperties: Map[String, Boolean] = Map()
     var score: Float = 0
     var isResponseCorrect: Boolean = true
     var isResponseIncorrect: Boolean = false
     response match {
-      case ArrayItemResponse(_, responseValues, _) =>
+      case ArrayResponse(_, responseValues, _) =>
         val isNumberOfSelectionCorrect = responseValues.size >= minSelections && responseValues.size <= maxSelections
         isResponseCorrect = isNumberOfSelectionCorrect
 
@@ -62,7 +62,7 @@ case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleC
     }
 
 
-    Some(ItemResponseOutcome(score, isResponseCorrect, None, outcomeProperties))
+    Some(ResponseOutcome(score, isResponseCorrect, None, outcomeProperties))
   }
 }
 

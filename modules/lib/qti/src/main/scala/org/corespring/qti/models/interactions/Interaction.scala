@@ -1,7 +1,7 @@
 package org.corespring.qti.models.interactions
 
 import common.log.PackageLogging
-import org.corespring.platform.core.models.itemSession.{ItemResponseOutcome, ItemResponse}
+import org.corespring.qti.models.responses.{ResponseOutcome, Response}
 import org.corespring.qti.models.{ResponseDeclaration, QtiItem}
 import xml.{Elem, NodeSeq, Node}
 
@@ -9,7 +9,7 @@ trait Interaction extends PackageLogging{
   val responseIdentifier: String
   protected val locked:Boolean = false;
 
-  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome]
+  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: Response): Option[ResponseOutcome]
 
   /** Can this Interaction be automatically scored from the users response
     * Eg: multichoice can - but free written text can't be

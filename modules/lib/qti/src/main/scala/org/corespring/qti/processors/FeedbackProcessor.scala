@@ -1,6 +1,6 @@
 package org.corespring.qti.processors
 
-import org.corespring.platform.core.models.itemSession.FeedbackIdMapEntry
+import org.corespring.qti.models.FeedbackIdMapEntry
 import scala.Some
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 import xml._

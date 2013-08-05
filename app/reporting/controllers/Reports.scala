@@ -1,11 +1,9 @@
 package reporting.controllers
 
 import controllers.auth.BaseApi
-import org.corespring.platform.core.models._
-import reporting.services.ReportsService
 import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.corespring.platform.core.models.{Subject, Standard, ContentCollection}
-import org.corespring.platform.core.models.item.Item
+import reporting.services.ReportsService
 
 object Reports extends BaseApi {
 
@@ -34,9 +32,9 @@ object Reports extends BaseApi {
       Ok(out).withHeaders(("Content-type", "text/csv"))
   }
 
-  def getPrimarySubjectItemReport = ApiAction(request => Ok(service.buildPrimarySubjectItemReport).withHeaders(("Content-type", "text/csv")))
+  def getPrimarySubjectItemReport = ApiAction(request => Ok(service.buildPrimarySubjectReport).withHeaders(("Content-type", "text/csv")))
 
-  def getStandardItemReport = ApiAction(request => Ok(service.buildStandardsItemReport).withHeaders(("Content-type", "text/csv")))
+  def getStandardItemReport = ApiAction(request => Ok(service.buildStandardsReport).withHeaders(("Content-type", "text/csv")))
 
   def getContributorReport = ApiAction(request => Ok(service.buildContributorReport).withHeaders(("Content-type", "text/csv")))
 

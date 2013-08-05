@@ -1,16 +1,16 @@
 package org.corespring.qti.models.interactions
 
 import java.util.regex.Pattern
-import org.corespring.platform.core.models.itemSession.{ArrayItemResponse, StringItemResponse, ItemResponseOutcome, ItemResponse}
+import org.corespring.qti.models.responses.{ArrayResponse, StringResponse, ResponseOutcome, Response}
 import org.corespring.qti.models.QtiItem.Correctness
 import org.corespring.qti.models.{CorrectResponseSingle, CorrectResponseLineEquation, ResponseDeclaration}
 import xml.Node
 
 case class LineInteraction(responseIdentifier: String, override val locked:Boolean, sigfigs:Int = -1) extends Interaction{
-  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse):Option[ItemResponseOutcome] = {
+  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: Response):Option[ResponseOutcome] = {
     if (locked) None else getOutcomeUnlocked(responseDeclaration, response)
   }
-  private def getOutcomeUnlocked(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
+  private def getOutcomeUnlocked(responseDeclaration: Option[ResponseDeclaration], response: Response): Option[ResponseOutcome] = {
     def getSlopeAndYIntercept(equation:String):(Double,Double) = {
       val p = Pattern.compile("y=(.+)x\\+(.+)")
       val m = p.matcher(equation); m.matches()
@@ -31,20 +31,20 @@ case class LineInteraction(responseIdentifier: String, override val locked:Boole
       }).getOrElse(Map())
     }
     response match {
-      case StringItemResponse(_,responseValue,_) => responseDeclaration match {
+      case StringResponse(_,responseValue,_) => responseDeclaration match {
         case Some(rd) => rd.mapping match {
           case Some(mapping) => Some(
-            ItemResponseOutcome(mapping.mappedValue(response.value),
+            ResponseOutcome(mapping.mappedValue(response.value),
             rd.isCorrect(responseValue) == Correctness.Correct,
             outcomeProperties = (outcomeProperties _).tupled(getSlopeAndYIntercept(responseValue)))
           )
           case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
-            Some(ItemResponseOutcome(1,true,outcomeProperties = (outcomeProperties _).tupled(getSlopeAndYIntercept(responseValue))))
-          } else Some(ItemResponseOutcome(0,false,outcomeProperties = (outcomeProperties _).tupled(getSlopeAndYIntercept(responseValue))))
+            Some(ResponseOutcome(1,true,outcomeProperties = (outcomeProperties _).tupled(getSlopeAndYIntercept(responseValue))))
+          } else Some(ResponseOutcome(0,false,outcomeProperties = (outcomeProperties _).tupled(getSlopeAndYIntercept(responseValue))))
         }
         case None => None
       }
-      case ArrayItemResponse(_,responseValue,_) => responseDeclaration match {
+      case ArrayResponse(_,responseValue,_) => responseDeclaration match {
         case Some(rd) => {
           val pta = responseValue(0).split(",").map(_.toDouble)
           val ptb = responseValue(1).split(",").map(_.toDouble)
@@ -60,13 +60,13 @@ case class LineInteraction(responseIdentifier: String, override val locked:Boole
           }
           rd.mapping match {
             case Some(mapping) => Some(
-              ItemResponseOutcome(mapping.mappedValue(equation),
+              ResponseOutcome(mapping.mappedValue(equation),
                 rd.isCorrect(equation) == Correctness.Correct,
                 outcomeProperties = outcomeProperties(slope,yintercept))
             )
             case None => if (rd.isCorrect(equation) == Correctness.Correct) {
-              Some(ItemResponseOutcome(1,true,outcomeProperties = outcomeProperties(slope,yintercept)))
-            } else Some(ItemResponseOutcome(0,false,outcomeProperties = outcomeProperties(slope,yintercept)))
+              Some(ResponseOutcome(1,true,outcomeProperties = outcomeProperties(slope,yintercept)))
+            } else Some(ResponseOutcome(0,false,outcomeProperties = outcomeProperties(slope,yintercept)))
           }
         }
         case None => None

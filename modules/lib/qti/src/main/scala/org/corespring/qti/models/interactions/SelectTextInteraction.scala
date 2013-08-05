@@ -1,6 +1,6 @@
 package org.corespring.qti.models.interactions
 
-import org.corespring.platform.core.models.itemSession.{ItemResponseOutcome, ArrayItemResponse, ItemResponse}
+import org.corespring.qti.models.responses.{ResponseOutcome, ArrayResponse, Response}
 import org.corespring.qti.models._
 import scala.Some
 import scala.language.postfixOps
@@ -19,11 +19,11 @@ case class SelectTextInteraction(responseIdentifier: String, selectionType: Stri
 
   def getChoice(identifier: String) = None
 
-  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse): Option[ItemResponseOutcome] = {
+  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: Response): Option[ResponseOutcome] = {
     var score: Float = 0
     var outcomeProperties: Map[String, Boolean] = Map()
     response match {
-      case ArrayItemResponse(_, responseValue, _) => correctResponse match {
+      case ArrayResponse(_, responseValue, _) => correctResponse match {
         case Some(cr) => {
           val isNumberOfSelectionCorrect = responseValue.size >= minSelection && responseValue.size <= maxSelection
 
@@ -59,7 +59,7 @@ case class SelectTextInteraction(responseIdentifier: String, selectionType: Stri
           } else {
             outcomeProperties = outcomeProperties + ("responsesBelowMin" -> false)
           }
-          Some(ItemResponseOutcome(score, score == 1, None, outcomeProperties))
+          Some(ResponseOutcome(score, score == 1, None, outcomeProperties))
         }
         case _ => None
       }

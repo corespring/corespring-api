@@ -188,13 +188,13 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
 
   protected def jsonExpected = BadRequest(Json.toJson(ApiError.JsonExpected))
 
-  def parsed[A](maybeJson:Option[JsValue], fn: (A=>Result), noItemResult: Result = BadRequest("Bad Json"))(implicit format : Format[A]) : Result = maybeJson match {
+  def parsed[A](maybeJson:Option[JsValue], fn: (A=>Result), noResult: Result = BadRequest("Bad Json"))(implicit format : Format[A]) : Result = maybeJson match {
     case Some(json) => {
       play.api.libs.json.Json.fromJson[A](json) match {
         case JsSuccess(item, _) => fn(item)
-        case _ => noItemResult
+        case _ => noResult
       }
     }
-    case _ => noItemResult
+    case _ => noResult
   }
 }

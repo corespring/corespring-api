@@ -1,6 +1,6 @@
 package org.corespring.qti.models.interactions
 
-import org.corespring.platform.core.models.itemSession.{ItemResponseOutcome, ItemResponse}
+import org.corespring.qti.models.responses.{ResponseOutcome, Response}
 import org.corespring.qti.models.{ResponseDeclaration, QtiItem}
 import xml.Node
 
@@ -8,7 +8,7 @@ case class ExtendedTextInteraction(responseIdentifier: String) extends Interacti
 
   def isScoreable = false
 
-  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = None
+  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: Response) : Option[ResponseOutcome] = None
 
   override def validate(qtiItem: QtiItem): (Boolean, String) = (true, "Ok")
 }

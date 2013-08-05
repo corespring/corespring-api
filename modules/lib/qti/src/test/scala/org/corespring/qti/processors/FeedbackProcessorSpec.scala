@@ -1,6 +1,6 @@
 package org.corespring.qti.processors
 
-import org.corespring.platform.core.models.itemSession.FeedbackIdMapEntry
+import org.corespring.qti.models.responses.FeedbackIdMapEntry
 import org.specs2.mutable._
 import play.api.libs.json.{JsObject, JsString, Json}
 import scala.xml.{Node, Elem, XML, NodeSeq}

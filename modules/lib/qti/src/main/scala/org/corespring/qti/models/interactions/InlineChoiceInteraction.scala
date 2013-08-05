@@ -1,6 +1,6 @@
 package org.corespring.qti.models.interactions
 
-import org.corespring.platform.core.models.itemSession._
+import org.corespring.qti.models.responses._
 import org.corespring.qti.models.QtiItem.Correctness
 import org.corespring.qti.models.ResponseDeclaration
 import org.corespring.qti.models.interactions.choices.InlineChoice
@@ -12,14 +12,14 @@ case class InlineChoiceInteraction(responseIdentifier: String, choices: Seq[Inli
 
 
   def getChoice(identifier: String) = choices.find(_.identifier == identifier)
-  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: ItemResponse) : Option[ItemResponseOutcome] = {
+  def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: Response) : Option[ResponseOutcome] = {
     response match {
-      case StringItemResponse(_,responseValue,_) => responseDeclaration match {
+      case StringResponse(_,responseValue,_) => responseDeclaration match {
         case Some(rd) => rd.mapping match {
-          case Some(mapping) => Some(ItemResponseOutcome(mapping.mappedValue(response.value),rd.isCorrect(responseValue) == Correctness.Correct))
+          case Some(mapping) => Some(ResponseOutcome(mapping.mappedValue(response.value),rd.isCorrect(responseValue) == Correctness.Correct))
           case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
-            Some(ItemResponseOutcome(1,true))
-          } else Some(ItemResponseOutcome(0,false))
+            Some(ResponseOutcome(1,true))
+          } else Some(ResponseOutcome(0,false))
         }
         case None => None
       }

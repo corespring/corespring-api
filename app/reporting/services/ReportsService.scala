@@ -104,7 +104,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * Build a csv where each line is for a primary subject and the columns are counts of a specific set of item properties.
    * @return
    */
-  def buildPrimarySubjectItemReport: String = {
+  def buildPrimarySubjectReport: String = {
 
     populateHeaders
 
@@ -128,7 +128,7 @@ class ReportsService(ItemCollection: MongoCollection,
     (category + ": " + subject).replaceAll(",", "")
   }
 
-  def buildStandardsItemReport: String = {
+  def buildStandardsReport: String = {
 
     populateHeaders
 

@@ -6,18 +6,17 @@ import common.log.PackageLogging
 import controllers.{JsonValidationException, InternalError}
 import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
 import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qti.models.responses.{ResponseOutcome, Response}
+import org.corespring.qti.models.{FeedbackIdMapEntry, QtiItem}
+import org.corespring.qti.processors.FeedbackProcessor
 import org.joda.time.DateTime
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
 import scala.xml._
 import se.radley.plugin.salat._
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.qti.models.QtiItem
-import org.corespring.qti.processors.FeedbackProcessor
-
-case class FeedbackIdMapEntry(csFeedbackId: String, outcomeIdentifier: String, identifier: String)
 
 /**
  * Case class representing an individual item session
@@ -26,7 +25,7 @@ case class ItemSession(var itemId: VersionedId[ObjectId],
                        var attempts: Int = 0,
                        var start: Option[DateTime] = None,
                        var finish: Option[DateTime] = None,
-                       var responses: Seq[ItemResponse] = Seq(),
+                       var responses: Seq[Response] = Seq(),
                        var id: ObjectId = new ObjectId(),
                        var feedbackIdLookup: Seq[FeedbackIdMapEntry] = Seq(),
                        var sessionData: Option[SessionData] = None,
@@ -58,8 +57,8 @@ object ItemSession {
     def writes(session: ItemSession): JsValue = {
 
       import Keys._
-      import VersionedIdImplicits.{Writes => IdWrites}
-      import play.api.libs.json.Json._
+import VersionedIdImplicits.{Writes => IdWrites}
+import play.api.libs.json.Json._
 
       val main: Seq[(String, JsValue)] = Seq(
         "id" -> JsString(session.id.toString),
@@ -94,11 +93,11 @@ object ItemSession {
       val settings = (json \ "settings").asOpt[ItemSessionSettings].getOrElse(ItemSessionSettings())
 
       import VersionedIdImplicits.{Reads => IdReads}
-      JsSuccess(ItemSession(
+JsSuccess(ItemSession(
         itemId = (json \ itemId).asOpt[VersionedId[ObjectId]](IdReads).getOrElse(throw new JsonValidationException("You must have an item id")),
         start = (json \ start).asOpt[Long].map(new DateTime(_)),
         finish = (json \ finish).asOpt[Long].map(new DateTime(_)),
-        responses = (json \ responses).asOpt[Seq[ItemResponse]].getOrElse(Seq()),
+        responses = (json \ responses).asOpt[Seq[Response]].getOrElse(Seq()),
         id = (json \ "id").asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()),
         settings = settings))
     }
@@ -122,13 +121,13 @@ object DefaultItemSession extends ItemSessionCompanion {
 trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with PackageLogging{
 
   import ItemSession.Keys._
+import org.corespring.platform.core.models.mongoContext.context
 
   def collection: MongoCollection
 
   def itemService : ItemService
 
-  import org.corespring.platform.core.models.mongoContext.context
-val dao = new SalatDAO[ItemSession, ObjectId](collection = collection) {}
+  val dao = new SalatDAO[ItemSession, ObjectId](collection = collection) {}
 
   /**
    * @return - the newly created item session
@@ -255,7 +254,7 @@ val dao = new SalatDAO[ItemSession, ObjectId](collection = collection) {}
 
         if (!dbSession.isStarted) dbo.put(start, new DateTime())
         if (update.isFinished) dbo.put(finish, update.finish.get)
-        if (!update.responses.isEmpty) dbo.put(responses, update.responses.map(grater[ItemResponse].asDBObject(_)))
+        if (!update.responses.isEmpty) dbo.put(responses, update.responses.map(grater[Response].asDBObject(_)))
 
         dbo.put(dateModified, if (update.isFinished) update.finish.get else new DateTime())
 
@@ -308,8 +307,8 @@ val dao = new SalatDAO[ItemSession, ObjectId](collection = collection) {}
     (sessionScore, Score.getMaxScore(qti))
   }
 
-  def correctResponseCount(responses: Seq[ItemResponse]): Double = {
-    val outcomes: Seq[ItemResponseOutcome] = responses.map(_.outcome).flatten
+  def correctResponseCount(responses: Seq[Response]): Double = {
+    val outcomes: Seq[ResponseOutcome] = responses.map(_.outcome).flatten
     val outcomesCorrect = outcomes.map(_.isCorrect)
     outcomesCorrect.filter(_ == true).length
   }
