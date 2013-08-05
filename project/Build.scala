@@ -3,9 +3,6 @@ import Keys._
 
 import play.Project._
 
-import com.typesafe.sbt.SbtScalariform.scalariformSettings
-
-
 object Build extends sbt.Build {
 
   val appName = "corespring-api"
@@ -26,5 +23,5 @@ object Build extends sbt.Build {
     Keys.fork.in(Test) := false,
     scalacOptions ++= Seq("-feature", "-deprecation"),
     (test in Test) <<= (test in Test).map(Commands.runJsTests)
-  ).settings(scalariformSettings : _*)
+  )
 }
