@@ -102,9 +102,7 @@ object MyRegistration extends Controller {
               val user = User(userName = id, fullName = info.firstName + " " + info.lastName, email = t.email, password = passwordInfo.password, provider = providerId)
               (info.organization match {
                 case Some(orgName) => models.Organization.insert(models.Organization(orgName), None) match {
-                  case Right(org) => {
-                    User.insertUser(user, org.id, Permission.Write, false)
-                  }
+                  case Right(org) => User.insertUser(user, org.id, Permission.Write, false)
                   case Left(error) => Left(error)
                 }
                 case None => User.insertUser(user, AppConfig.demoOrgId, Permission.Read, false)
@@ -124,6 +122,7 @@ object MyRegistration extends Controller {
                   if (UsernamePasswordProvider.sendWelcomeEmail) {
                     Mailer.sendWelcomeEmail(socialUser)
                   }
+                  Events.fire(new SignUpEvent(socialUser))
                   Redirect(RoutesHelper.login()).flashing(Success -> Messages(SignUpDone))
                 }
                 case Left(error) => InternalServerError(JsObject(Seq("message" -> JsString("error occurred during registration [" + error.clientOutput.getOrElse("") + "]"))))
