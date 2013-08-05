@@ -2,7 +2,6 @@ package tests.api.v1
 
 import api.ApiError
 import api.v1.ResourceApi
-import common.log.PackageLogging
 import org.corespring.platform.core.models.item.resource.{BaseFile, VirtualFile, Resource}
 import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.bson.types.ObjectId
@@ -13,11 +12,12 @@ import play.api.mvc._
 import play.api.test.{FakeRequest, FakeHeaders}
 import play.api.test.Helpers._
 import scala._
-import tests.BaseTest
 import play.api.Play
 import play.api.libs.iteratee.Iteratee
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.Item
+import org.corespring.common.log.PackageLogging
+import org.corespring.test.BaseTest
 
 
 class ResourceApiTest extends BaseTest with PackageLogging {

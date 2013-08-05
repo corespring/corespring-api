@@ -9,7 +9,7 @@ import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.execute.Result
 import org.specs2.mock.Mockito
-import tests.BaseTest
+import org.corespring.test.BaseTest
 import utils.mocks.MockS3Service
 
 class ItemServiceImplTest extends BaseTest with Mockito {

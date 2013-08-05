@@ -1,7 +1,7 @@
 package scheduler.tasks
 
-import common.log.PackageLogging
 import scala.concurrent.duration._
+import org.corespring.common.log.PackageLogging
 
 //TODO: Find out whats supposed to happen here.
 class SessionAggregateTask extends RabbitMQTask with PackageLogging{

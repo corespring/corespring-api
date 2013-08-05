@@ -12,8 +12,8 @@ import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
-import tests.PlaySingleton
 import org.corespring.platform.core.models.item.Item
+import org.corespring.test.PlaySingleton
 
 class AssetResourceTest extends Specification with Mockito{
 

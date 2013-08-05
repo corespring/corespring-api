@@ -13,7 +13,7 @@ import play.api.Play
 import scala.Left
 import scala.Right
 import scala.Some
-import tests.PlaySingleton
+import org.corespring.test.PlaySingleton
 
 class S3DeployerTest extends Specification {
 

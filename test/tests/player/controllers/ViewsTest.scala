@@ -10,7 +10,7 @@ import play.api.test.{FakeHeaders, FakeRequest}
 import player.accessControl.cookies.PlayerCookieKeys
 import player.accessControl.models.RequestedAccess
 import player.controllers.Views
-import tests.PlaySingleton
+import org.corespring.test.PlaySingleton
 
 class ViewsTest extends Specification with Mockito {
 

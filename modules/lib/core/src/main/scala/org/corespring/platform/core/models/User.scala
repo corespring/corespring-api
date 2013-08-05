@@ -16,9 +16,9 @@ import scala.Right
 import scala.Some
 import se.radley.plugin.salat._
 import securesocial.core.UserId
-import common.config.AppConfig
-import common.log.PackageLogging
 import org.corespring.platform.core.models.search.Searchable
+import org.corespring.common.config.AppConfig
+import org.corespring.common.log.PackageLogging
 
 
 case class User(var userName: String = "",

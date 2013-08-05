@@ -2,8 +2,6 @@ package developer.controllers
 
 import _root_.controllers.auth.Permission
 import com.mongodb.casbah.commons.MongoDBObject
-import common.config.AppConfig
-import common.log.PackageLogging
 import developer.models.RegistrationToken
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
@@ -13,6 +11,8 @@ import securesocial.core._
 import securesocial.core.providers.utils.PasswordHasher
 import securesocial.core.providers.Token
 import org.corespring.platform.core.models.{UserOrg, User}
+import org.corespring.common.config.AppConfig
+import org.corespring.common.log.PackageLogging
 
 /**
  * An implementation of the UserService

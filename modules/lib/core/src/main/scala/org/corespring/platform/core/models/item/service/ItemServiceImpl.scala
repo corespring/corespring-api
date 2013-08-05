@@ -6,8 +6,6 @@ import com.mongodb.casbah.MongoDB
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{BasicDBObject, DBObject}
 import com.novus.salat._
-import common.config.AppConfig
-import common.log.PackageLogging
 import controllers.{CorespringS3Service, CorespringS3ServiceImpl}
 import dao.SalatMongoCursor
 import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
@@ -23,6 +21,8 @@ import scalaz._
 import se.radley.plugin.salat.SalatPlugin
 import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession}
 import org.corespring.platform.core.models.item.{Item, FieldValue}
+import org.corespring.common.config.AppConfig
+import org.corespring.common.log.PackageLogging
 
 class ItemServiceImpl(
                        val s3service: CorespringS3Service,

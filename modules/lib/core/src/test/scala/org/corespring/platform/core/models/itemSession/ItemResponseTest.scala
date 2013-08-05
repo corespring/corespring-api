@@ -3,15 +3,15 @@ package org.corespring.platform.core.models.itemSession
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json._
 import play.api.libs.json._
-import scala.Some
+import org.corespring.qti.models.responses.{Response,ResponseOutcome,ArrayResponse,StringResponse}
 
-class ItemResponseTest extends Specification {
+class ResponseTest extends Specification {
 
-  "ItemResponse" should {
+  "Response" should {
 
-    val outcome = ItemResponseOutcome(score = 0, isCorrect = false, comment = Some("b"))
+    val outcome = ResponseOutcome(score = 0, isCorrect = false, comment = Some("b"))
 
-    val response : ItemResponse = ArrayItemResponse(id = "test", 
+    val response : Response = ArrayResponse(id = "test",
       outcome = Some(outcome), 
       responseValue = Seq("a" ,"b"))
     val json = Json.toJson(response)
@@ -33,12 +33,12 @@ class ItemResponseTest extends Specification {
     }
 
     "not parse the outcome from the json" in {
-      val parsedResponse: ItemResponse = expectedJson.as[ItemResponse]
+      val parsedResponse: Response = expectedJson.as[Response]
       parsedResponse.outcome must beNone
     }
 
     "generate json correctly with a value string" in {
-      val response : ItemResponse = ArrayItemResponse(id = "test", outcome = Some(outcome), responseValue = Seq("a","b"))
+      val response : Response = ArrayResponse(id = "test", outcome = Some(outcome), responseValue = Seq("a","b"))
       val json = Json.toJson(response)
       println("json value: " + (json\"value"))
       (json \ "value") must equalTo(JsArray(Seq(JsString("a"),JsString("b"))))

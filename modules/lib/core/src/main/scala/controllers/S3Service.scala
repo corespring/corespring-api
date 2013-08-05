@@ -4,7 +4,7 @@ import com.amazonaws.services.s3.AmazonS3
 import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.amazon.s3.{ConcreteS3Service, S3Service}
 import play.api.mvc._
-import common.config.AppConfig
+import org.corespring.common.config.AppConfig
 
 trait S3ServiceClient {
   def s3Service : CorespringS3Service

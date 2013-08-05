@@ -18,8 +18,8 @@ import play.api.libs.json.JsString
 import scala.Some
 import scala.Right
 import play.api.libs.json.JsObject
-import common.config.AppConfig
 import org.corespring.platform.core.models.search.Searchable
+import org.corespring.common.config.AppConfig
 
 case class Organization(var name: String = "",
                         var path: Seq[ObjectId] = Seq(),

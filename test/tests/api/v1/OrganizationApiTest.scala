@@ -4,7 +4,7 @@ import play.api.libs.json.JsValue
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
-import tests.BaseTest
+import org.corespring.test.BaseTest
 
 class OrganizationApiTest extends BaseTest {
   val orgId = "51114b307fc1eaa866444648"

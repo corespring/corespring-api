@@ -3,8 +3,8 @@ package tests.basiclti.models
 import basiclti.models._
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
-import tests.BaseTest
 import org.corespring.platform.core.models.itemSession.ItemSessionSettings
+import org.corespring.test.BaseTest
 
 class LtiQuizTest extends BaseTest {
 

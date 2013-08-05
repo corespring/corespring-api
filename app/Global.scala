@@ -7,7 +7,7 @@ import play.api._
 import play.api.mvc.Results._
 import play.api.mvc._
 import scala.Some
-import web.controllers.utils.ConfigLoader
+import web.controller.utils.ConfigLoader
 
 
 /**

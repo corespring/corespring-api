@@ -1,9 +1,9 @@
 package org.corespring.qti.models.interactions
 
-import common.log.PackageLogging
 import org.corespring.qti.models.responses.{ResponseOutcome, Response}
 import org.corespring.qti.models.{ResponseDeclaration, QtiItem}
 import xml.{Elem, NodeSeq, Node}
+import org.corespring.common.log.PackageLogging
 
 trait Interaction extends PackageLogging{
   val responseIdentifier: String

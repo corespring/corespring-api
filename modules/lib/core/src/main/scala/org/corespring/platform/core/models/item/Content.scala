@@ -2,12 +2,12 @@ package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
 import com.novus.salat.dao.SalatDAOUpdateError
-import common.log.PackageLogging
 import controllers.InternalError
 import controllers.auth.Permission
 import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.ContentCollection
+import org.corespring.common.log.PackageLogging
 
 trait Content {
   var id: VersionedId[ObjectId]

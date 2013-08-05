@@ -16,7 +16,7 @@
   },
   "responses": [
     {
-      "_t" : "org.corespring.platform.core.models.itemSession.StringItemResponse",
+      "_t" : "org.corespring.qti.models.responses.StringResponse",
       "_id": "mexicanPresident",
       "responseValue": "calderon",
       "outcome": {
@@ -24,7 +24,7 @@
       }
     },
     {
-      "_t" : "org.corespring.platform.core.models.itemSession.StringItemResponse",
+      "_t" : "org.corespring.qti.models.responses.StringResponse",
       "_id": "irishPresident",
       "responseValue": "guinness",
       "outcome": {
@@ -32,7 +32,7 @@
       }
     },
     {
-      "_t" : "org.corespring.platform.core.models.itemSession.StringItemResponse",
+      "_t" : "org.corespring.qti.models.responses.StringResponse",
       "_id": "winterDiscontent",
       "responseValue": "York",
       "outcome": {

@@ -5,8 +5,8 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.itemSession.ItemSessionSettings
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json
-import tests.{BaseTest, PlaySingleton}
 import utils.RequestCalling
+import org.corespring.test.{PlaySingleton, BaseTest}
 
 class QuizTest extends BaseTest with RequestCalling{
 

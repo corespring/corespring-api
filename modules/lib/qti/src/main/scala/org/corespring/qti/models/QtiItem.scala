@@ -4,7 +4,7 @@ import org.corespring.qti.models.QtiItem.Correctness
 import org.corespring.qti.models.interactions._
 import scala.Some
 import scala.xml._
-import common.log.PackageLogging
+import org.corespring.common.log.PackageLogging
 
 case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline]) {
   var defaultCorrect = "Correct!"

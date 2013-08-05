@@ -3,12 +3,12 @@ package controllers.auth
 import api.ApiError
 import api.ApiError._
 import play.api.libs.json._
-import common.log.PackageLogging
 import play.api.libs.json.{JsString, JsObject, Json}
 import play.api.mvc._
 import securesocial.core.SecureSocial
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.{User, Organization}
+import org.corespring.common.log.PackageLogging
 
 /**
  * A class that adds an AuthorizationContext to the Request object

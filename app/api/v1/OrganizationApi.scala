@@ -14,9 +14,9 @@ import scala.Some
 import scala.Right
 import com.novus.salat.dao.SalatMongoCursor
 import play.api.libs.json.JsObject
-import common.config.AppConfig
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.search.SearchCancelled
+import org.corespring.common.config.AppConfig
 
 /**
  * The Organization API

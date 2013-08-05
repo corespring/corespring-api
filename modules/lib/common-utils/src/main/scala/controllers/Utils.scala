@@ -101,5 +101,5 @@ object Utils {
     percent
   }
 }
-
+//TODO: move this out of common-utils
 case class JsonValidationException(field: String) extends RuntimeException("invalid value for: " + field)

@@ -5,12 +5,12 @@ import play.api.test._
 import play.api.test.Helpers._
 import scala._
 import play.api.mvc.{AnyContentAsJson, Result}
-import tests.BaseTest
 import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
 import scala.Some
 import org.bson.types.ObjectId
 import api.v1.CollectionApi
+import org.corespring.test.BaseTest
 
 
 class CollectionApiTest extends BaseTest {

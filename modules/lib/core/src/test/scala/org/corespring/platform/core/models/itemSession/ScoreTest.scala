@@ -4,6 +4,7 @@ import org.corespring.qti.models.QtiItem.Correctness
 import org.corespring.qti.models._
 import org.corespring.qti.models.interactions.ChoiceInteraction
 import org.corespring.qti.models.interactions.choices.SimpleChoice
+import org.corespring.qti.models.responses.{ResponseOutcome, StringResponse, ArrayResponse}
 import org.specs2.mutable.Specification
 import scala.Some
 
@@ -45,13 +46,13 @@ class ScoreTest extends Specification {
     }
 
     "score a sequence of responses with one item" in {
-      val seq = Seq(StringItemResponse(id = "q1", responseValue = "q1Answer", outcome = None))
+      val seq = Seq(StringResponse(id = "q1", responseValue = "q1Answer", outcome = None))
       val result = Score.scoreResponses(seq, qti)
       val expected = Seq(
-        StringItemResponse(
+        StringResponse(
           id = "q1",
           responseValue = "q1Answer",
-          outcome = Some(ItemResponseOutcome(1,true,None,Map()))
+          outcome = Some(ResponseOutcome(1,true,None,Map()))
         )
       )
       result must equalTo(expected)
@@ -59,14 +60,14 @@ class ScoreTest extends Specification {
 
     "score an array item response" in {
       val seq = Seq(
-        ArrayItemResponse(id = "q3", responseValue = Seq("q3_answer_1", "q3_answer_2"), outcome = None)
+        ArrayResponse(id = "q3", responseValue = Seq("q3_answer_1", "q3_answer_2"), outcome = None)
       )
       val result = Score.scoreResponses(seq, qti)
       val expected = Seq(
-        ArrayItemResponse(
+        ArrayResponse(
           id = "q3",
           responseValue = Seq("q3_answer_1", "q3_answer_2"),
-          outcome = Some(ItemResponseOutcome(0,false,None,Map()))
+          outcome = Some(ResponseOutcome(0,false,None,Map()))
         ))
       result must equalTo(expected)
     }
@@ -74,16 +75,16 @@ class ScoreTest extends Specification {
 
     "score a sequence of responses with one item" in {
       val seq = Seq(
-        StringItemResponse(id = "q1", responseValue = "q1Answer", outcome = None),
-        StringItemResponse(id = "q2", responseValue = "blah", outcome = None))
+        StringResponse(id = "q1", responseValue = "q1Answer", outcome = None),
+        StringResponse(id = "q2", responseValue = "blah", outcome = None))
       val result = Score.scoreResponses(seq, qti)
       val expected = Seq(
-        StringItemResponse(
+        StringResponse(
           id = "q1",
           responseValue = "q1Answer",
-          outcome = Some(ItemResponseOutcome(1,true,None,Map()))
+          outcome = Some(ResponseOutcome(1,true,None,Map()))
         ),
-        StringItemResponse(id = "q2", responseValue = "blah", outcome = None))
+        StringResponse(id = "q2", responseValue = "blah", outcome = None))
       result must equalTo(expected)
     }
   }

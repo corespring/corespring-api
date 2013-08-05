@@ -8,9 +8,9 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.execute.Result
 import org.specs2.mutable.BeforeAfter
 import play.api.test.Helpers._
-import tests.BaseTest
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.Item
+import org.corespring.test.BaseTest
 
 class ExporterApiTest extends BaseTest {
 

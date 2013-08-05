@@ -13,8 +13,8 @@ import scala.Some
 import scala.Right
 import play.api.data.validation.ValidationError
 import web.controllers.ObjectIdParser
-import common.log.PackageLogging
 import org.corespring.platform.core.models.User
+import org.corespring.common.log.PackageLogging
 
 
 /**

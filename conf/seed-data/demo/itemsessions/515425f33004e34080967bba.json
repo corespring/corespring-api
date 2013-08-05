@@ -17,7 +17,7 @@
   },
   "responses": [
     {
-      "_t" : "org.corespring.platform.core.models.itemSession.ArrayItemResponse",
+      "_t" : "org.corespring.qti.models.responses.ArrayResponse",
       "_id": "RESPONSE",
       "responseValue": [
         "ChoiceA",

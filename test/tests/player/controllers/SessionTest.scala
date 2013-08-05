@@ -9,9 +9,9 @@ import play.api.test.{FakeRequest, FakeHeaders}
 import player.accessControl.cookies.PlayerCookieWriter
 import player.accessControl.models.RequestedAccess.Mode._
 import player.controllers.Session
-import tests.PlaySingleton
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession, PreviewItemSessionCompanion, ItemSession}
+import org.corespring.test.PlaySingleton
 
 class SessionTest extends Specification with PlayerCookieWriter {
 

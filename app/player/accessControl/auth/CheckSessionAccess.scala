@@ -9,10 +9,10 @@ import player.accessControl.models.granter._
 import scala.Left
 import scala.Right
 import scala.Some
-import common.log.PackageLogging
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession, PreviewItemSessionCompanion}
 import org.corespring.platform.core.models.quiz.basic.Quiz
+import org.corespring.common.log.PackageLogging
 
 /** Delegate calls to grantAccess to the ConstraintGranter.
  */

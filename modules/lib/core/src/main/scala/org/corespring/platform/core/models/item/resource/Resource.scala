@@ -4,7 +4,7 @@ import play.api.libs.json._
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import scala.Some
-import common.log.PackageLogging
+import org.corespring.common.log.PackageLogging
 
 
 /**

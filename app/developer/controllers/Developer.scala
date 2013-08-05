@@ -1,8 +1,6 @@
 package developer.controllers
 
 import api.ApiError
-import common.config.AppConfig
-import common.log.PackageLogging
 import controllers.Assets
 import controllers.auth.{BaseApi, OAuthProvider, Permission}
 import developer.controllers.routes.{Developer => DeveloperRoutes}
@@ -17,6 +15,8 @@ import scalaz.{Failure, Success, Validation}
 import securesocial.core.{UserId, SecureSocial}
 import org.corespring.platform.core.models.{User, Organization}
 import org.corespring.platform.core.models.auth.ApiClient
+import org.corespring.common.config.AppConfig
+import org.corespring.common.log.PackageLogging
 
 /**
  * TODO: remove magic strings

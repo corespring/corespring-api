@@ -1,11 +1,11 @@
 package org.corespring.platform.core.models.versioning
 
 import VersionedIdImplicits.{Writes, Reads}
-import common.log.PackageLogging
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mutable.Specification
 import play.api.libs.json.{JsSuccess, JsString}
+import org.corespring.common.log.PackageLogging
 
 class VersionedIdImplicitsTest extends Specification with PackageLogging{
 

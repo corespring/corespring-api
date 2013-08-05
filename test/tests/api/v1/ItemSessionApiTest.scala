@@ -19,9 +19,9 @@ import org.corespring.qti.models._
 import scala.Left
 import scala.Right
 import scala.Some
-import tests.BaseTest
 import utils.RequestCalling
 import org.corespring.qti.models.QtiItem
+import org.corespring.test.BaseTest
 
 class ItemSessionApiTest extends BaseTest with RequestCalling {
 

@@ -1,6 +1,5 @@
 package tests.basiclti.controllers
 
-import tests.{PlaySingleton, BaseTest}
 import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers._
 import basiclti.models.{LtiQuestion, LtiQuiz}
@@ -15,6 +14,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.AccessToken
 import org.corespring.platform.core.models.itemSession.ItemSessionSettings
+import org.corespring.test.PlaySingleton
 
 class LaunchConfigTest extends Specification{
 

@@ -1,13 +1,14 @@
-import sbt.Keys._
 import sbt._
 
 object Dependencies {
 
+  val playVersion = "2.1.3-RC1"
+
   //TODO: May need to change this
   val playJson = "com.typesafe.play" %% "play-json" % "2.2.0-M1"
 
-  val playFramework = "play" %% "play" % "2.1.3-RC1"
-
+  val playFramework = "play" %% "play" % playVersion
+  val playTest = "play" %% "play-test" % playVersion
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val salatPlay =  "se.radley" %% "play-plugins-salat" % "1.2"
   val casbah = "com.mongodb.casbah" %% "casbah" % "2.0"
@@ -22,7 +23,7 @@ object Dependencies {
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.2"
   val assetsLoader = "com.ee" %% "assets-loader" % "0.10.1-8ab100a"
-  val specs2 = "org.specs2" %% "specs2" % "2.1.1" % "test"
+  val specs2 = "org.specs2" %% "specs2" % "2.1.1"
   val closureCompiler = ("com.google.javascript" % "closure-compiler" % "rr2079.1" notTransitive())
     .exclude("args4j", "args4j")
     .exclude("com.google.guava", "guava")
@@ -33,6 +34,8 @@ object Dependencies {
     .exclude("com.googlecode.jarjar", "jarjar")
     .exclude("junit", "junit")
   val all = Seq(
+    playS3,
+    salatVersioningDao,
     amapClient,
     assetsLoader,
     aws,

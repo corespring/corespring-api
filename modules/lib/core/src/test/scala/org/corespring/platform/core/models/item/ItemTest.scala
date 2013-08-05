@@ -11,7 +11,7 @@ import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import play.api.libs.json.Json
 import scala.Some
-import tests.BaseTest
+import org.corespring.test.BaseTest
 
 class ItemTest extends BaseTest {
 

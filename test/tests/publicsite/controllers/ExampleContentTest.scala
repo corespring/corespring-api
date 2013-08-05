@@ -5,8 +5,8 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
-import tests.BaseTest
 import org.corespring.platform.core.models.item.Item
+import org.corespring.test.BaseTest
 
 class ExampleContentTest extends BaseTest{
 

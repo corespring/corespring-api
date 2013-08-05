@@ -6,9 +6,9 @@ import play.api.mvc.{AnyContent, AnyContentAsEmpty, AnyContentAsJson, Call}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
 import player.accessControl.models.{RequestedAccess, RenderOptions}
-import tests.BaseTest
 import player.controllers.Encrypter
 import org.corespring.platform.core.models.auth.{ApiClient, AccessToken}
+import org.corespring.test.BaseTest
 
 class EncrypterTest extends BaseTest {
 

@@ -1,7 +1,5 @@
 package common.controllers
 
-import common.config.AppConfig
-import common.log.PackageLogging
 import controllers.{CorespringS3Service, CorespringS3ServiceImpl, S3ServiceClient}
 import org.corespring.platform.core.models.item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
 import org.corespring.platform.core.models.item.service.ItemServiceClient
@@ -14,6 +12,8 @@ import web.controllers.ObjectIdParser
 import org.corespring.platform.core.models.itemSession.DefaultItemSession
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.Item
+import org.corespring.common.config.AppConfig
+import org.corespring.common.log.PackageLogging
 
 
 object AssetResource{

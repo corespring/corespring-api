@@ -5,7 +5,6 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSONParseException
 import com.novus.salat.dao.SalatInsertError
 import com.novus.salat.dao.SalatMongoCursor
-import common.log.PackageLogging
 import controllers._
 import controllers.auth.ApiRequest
 import controllers.auth.{Permission, BaseApi}
@@ -24,6 +23,7 @@ import scalaz.{Failure, Success, Validation}
 import org.corespring.platform.core.models.{Organization, ContentCollection}
 import org.corespring.platform.core.models.search.{ItemSearch, SearchFields, SearchCancelled}
 import org.corespring.platform.core.models.item.{TaskInfo, Item, Alignments, Content}
+import org.corespring.common.log.PackageLogging
 
 /**
  * Items API

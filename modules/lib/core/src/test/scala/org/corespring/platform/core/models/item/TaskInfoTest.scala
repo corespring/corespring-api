@@ -2,7 +2,7 @@ package org.corespring.platform.core.models.item
 
 import controllers.JsonValidationException
 import play.api.libs.json._
-import tests.BaseTest
+import org.corespring.test.BaseTest
 
 class TaskInfoTest extends BaseTest {
 

@@ -4,19 +4,15 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
 import org.corespring.platform.core.models.item.resource.{VirtualFile, Resource}
-import org.corespring.platform.core.models.itemSession._
-import org.corespring.platform.core.models.itemSession._
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qti.models.responses.{ArrayResponse, StringResponse}
+import org.corespring.test.BaseTest
 import org.joda.time.DateTime
-import org.specs2.mutable.After
 import play.api.libs.json.Json.toJson
 import play.api.libs.json.{Json, JsValue}
 import scala.Left
 import scala.Right
 import scala.Some
-import scala.Some
-import tests.BaseTest
 import utils.MockXml
 import xml.Elem
 
@@ -68,7 +64,7 @@ class ItemSessionTest extends BaseTest {
     "throw an IllegalArgumentException if a feedbackInline node has no identifier" in {
       val session = ItemSession(itemId = genItemId)
       itemSession.save(session)
-      session.responses = Seq(StringItemResponse(id = "RESPONSE", responseValue = "ChoiceB", outcome = None))
+      session.responses = Seq(StringResponse(id = "RESPONSE", responseValue = "ChoiceB", outcome = None))
 
       val xml = scala.xml.XML.loadFile("test/mockXml/item-session-test-two.xml")
 
@@ -126,7 +122,7 @@ class ItemSessionTest extends BaseTest {
       session.settings.highlightCorrectResponse
       session.settings.showFeedback = true
       itemSession.save(session)
-      session.responses = Seq(StringItemResponse(id = "RESPONSE", responseValue = "ChoiceB", outcome = None))
+      session.responses = Seq(StringResponse(id = "RESPONSE", responseValue = "ChoiceB", outcome = None))
 
       val xml = scala.xml.XML.loadFile("test/mockXml/item-session-test-one.xml")
 
@@ -202,7 +198,7 @@ class ItemSessionTest extends BaseTest {
     "automatically finish a session if all responses are correct" in {
       val session = ItemSession(itemId = genItemId)
       itemSession.begin(session)
-      session.responses = Seq(StringItemResponse("a", "a"))
+      session.responses = Seq(StringResponse("a", "a"))
       itemSession.process(session, SimpleXml) match {
         case Left(e) => failure("error: " + e.message)
         case Right(s) => s.isFinished must equalTo(true)
@@ -213,7 +209,7 @@ class ItemSessionTest extends BaseTest {
       val session = ItemSession(itemId = genItemId)
       session.settings.maxNoOfAttempts = 0 // no max... multiple attempts allowed
       itemSession.begin(session)
-      session.responses = Seq(StringItemResponse("a", "b"))
+      session.responses = Seq(StringResponse("a", "b"))
       itemSession.process(session, SimpleXml) match {
         case Left(e) => failure("error: " + e.message)
         case Right(s) => s.isFinished must equalTo(false)
@@ -258,7 +254,7 @@ class ItemSessionTest extends BaseTest {
 
       val session = ItemSession(itemId = genItemId)
       session.responses = Seq(
-        StringItemResponse("q1", "q1Answer")
+        StringResponse("q1", "q1Answer")
       )
 
       itemSession.save(session)
@@ -277,8 +273,8 @@ class ItemSessionTest extends BaseTest {
       itemSession.save(session)
 
       session.responses = Seq(
-        ArrayItemResponse("rainbowColors", Seq("blue", "violet", "red")),
-        StringItemResponse("winterDiscontent", "york")
+        ArrayResponse("rainbowColors", Seq("blue", "violet", "red")),
+        StringResponse("winterDiscontent", "york")
       )
 
       itemSession.process(session, MockXml.AllItems) match {
@@ -304,7 +300,7 @@ class ItemSessionTest extends BaseTest {
         case _ => failure("can't find new session")
       }
 
-      session.responses = Seq(StringItemResponse("winterDiscontent", "york"))
+      session.responses = Seq(StringResponse("winterDiscontent", "york"))
       itemSession.process(session, MockXml.AllItems) match {
         case Left(e) => failure("error: " + e.message)
         case Right(s) => {
@@ -376,8 +372,8 @@ class ItemSessionTest extends BaseTest {
       val session = ItemSession(itemId = item.id)
 
       session.responses = Seq(
-        ArrayItemResponse("rainbowColors", Seq("blue", "violet", "red")),
-        StringItemResponse("winterDiscontent", "york")
+        ArrayResponse("rainbowColors", Seq("blue", "violet", "red")),
+        StringResponse("winterDiscontent", "york")
       )
 
       val xml: Elem = itemSession.getXmlWithFeedback(session).right.get

@@ -6,8 +6,8 @@ import player.views.qti.models.{QtiJsAsset, QtiAssetsConfig}
 import org.corespring.qti.models.{RenderingMode, QtiItem}
 import RenderingMode._
 import scala.xml.Node
-import common.log.PackageLogging
 import org.corespring.qti.models.QtiItem
+import org.corespring.common.log.PackageLogging
 
 
 class QtiAssets(jsRootPath: String, cssRootPath:String, seedConfig: QtiAssetsConfig) {

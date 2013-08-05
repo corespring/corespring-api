@@ -5,8 +5,8 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao._
 import play.api.Play.current
 import se.radley.plugin.salat._
-import common.encryption.ShaHash
 import play.api.libs.oauth.OAuth
+import org.corespring.common.encryption.ShaHash
 
 object OAuthConstants {
   val GrantType = "grant_type"

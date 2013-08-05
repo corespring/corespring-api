@@ -1,7 +1,7 @@
 package org.corespring.platform.core.models.itemSession
 
 import play.api.libs.json.Json
-import tests.BaseTest
+import org.corespring.test.BaseTest
 
 class ItemSessionSettingsTest extends BaseTest{
 

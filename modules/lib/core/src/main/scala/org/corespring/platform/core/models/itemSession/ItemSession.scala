@@ -2,7 +2,6 @@ package org.corespring.platform.core.models.itemSession
 
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
-import common.log.PackageLogging
 import controllers.{JsonValidationException, InternalError}
 import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
 import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
@@ -17,6 +16,7 @@ import play.api.Play.current
 import play.api.libs.json._
 import scala.xml._
 import se.radley.plugin.salat._
+import org.corespring.common.log.PackageLogging
 
 /**
  * Case class representing an individual item session
