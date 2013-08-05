@@ -60,7 +60,7 @@ object Dependencies {
     val spy = "Spy Repository" at "http://files.couchbase.com/maven2"
     val sonatypeSnapshots= "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
     val sonatypeReleases = "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/releases"
-    val sbtPluginSnapshots = Resolver.url("sbt-plugin-snapshots", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
+    val sbtPluginSnapshots = Resolver.url("sbt-plugin-releases", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
     val sbtPluginReleases =  Resolver.url("sbt-plugin-snapshots", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots/"))(Resolver.ivyStylePatterns)
     val all: Seq[Resolver] = Seq(
       spy,
