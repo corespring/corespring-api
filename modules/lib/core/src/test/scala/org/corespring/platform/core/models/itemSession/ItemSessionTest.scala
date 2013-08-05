@@ -1,5 +1,6 @@
 package org.corespring.platform.core.models.itemSession
 
+import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
@@ -17,6 +18,10 @@ import utils.MockXml
 import xml.Elem
 
 class ItemSessionTest extends BaseTest {
+
+  sequential
+
+  RegisterJodaTimeConversionHelpers()
 
   import ItemSession.Keys
 
@@ -48,14 +53,14 @@ class ItemSessionTest extends BaseTest {
       itemSession.save(testSession)
       itemSession.findOneById(testSession.id) match {
         case Some(result) => success
-        case _ => failure
+        case _ => failure(s"Couldn't find the newly saved item ${testSession.id}")
       }
     }
 
     "be deletable" in {
       itemSession.remove(testSession)
       itemSession.findOneById(testSession.id) match {
-        case Some(result) => failure
+        case Some(result) => failure(s"The item wasn't deleted: $result")
         case _ => success
       }
     }

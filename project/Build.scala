@@ -21,7 +21,8 @@ object Build extends sbt.Build {
 
 
   val commonUtils = builders.lib("common-utils").settings(
-    libraryDependencies ++= Seq(specs2 % "test", playFramework, salatPlay, playJson % "test")
+    libraryDependencies ++= Seq(specs2 % "test", playFramework, salatPlay, playJson % "test"),
+      Keys.fork in Test := false
   )
 
   /** Any shared test helpers in here */
@@ -31,7 +32,8 @@ object Build extends sbt.Build {
 
   /** The Qti library */
   val qti = builders.lib("qti").settings(
-    libraryDependencies ++= Seq(specs2 % "test", salatPlay, playJson % "test")
+    libraryDependencies ++= Seq(specs2 % "test", salatPlay, playJson % "test"),
+    Keys.fork in Test := false
   ).dependsOn(commonUtils, testLib % "test->compile")
 
   /** Core data model */
@@ -46,6 +48,8 @@ object Build extends sbt.Build {
       assetsLoader,
       mockito,
       playTest % "test"),
+      Keys.fork in Test := false,
+      parallelExecution.in(Test) := false,
 
       testOptions in Test += Tests.Setup((l:ClassLoader) => println("------------> setup")),
       testOptions in Test += Tests.Cleanup((l:ClassLoader) => println("-------------> cleanup"))

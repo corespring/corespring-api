@@ -46,21 +46,21 @@ trait BaseTest extends Specification {
 
   def fakeRequest(content:AnyContent = AnyContentAsEmpty) : FakeRequest[AnyContent] = FakeRequest("", tokenize(""), FakeHeaders(), content)
 
-  def initDB() {
+  /*def initDB() {
     if (isLocalDb) {
       SeedDb.emptyData()
       SeedDb.seedData("conf/seed-data/test")
     } else {
       throw new RuntimeException("You're trying to seed against a remote db - bad idea")
     }
-  }
+  }*/
 
   PlaySingleton.start()
 
-  override def map(fs: => Fragments) = {
+  /*override def map(fs: => Fragments) = {
     import org.specs2.specification.Step
     Step(initDB) ^ fs
-  }
+  }*/
 
   /**
    * Decorate play.api.mvc.Result with some helper methods

@@ -10,6 +10,8 @@ import org.corespring.test.{PlaySingleton, BaseTest}
 
 class QuizTest extends BaseTest with RequestCalling{
 
+  sequential
+
   PlaySingleton.start()
 
   "Quiz" should {

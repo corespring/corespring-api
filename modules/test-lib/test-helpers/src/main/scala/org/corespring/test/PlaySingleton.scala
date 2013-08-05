@@ -14,7 +14,7 @@ object PlaySingleton {
     Play.maybeApplication match {
       case Some(fakeApp) =>
       case None => {
-        println(">>> this path: " + new File(".").getAbsolutePath)
+        println(s" Starting app >>> ${new File(".").getAbsolutePath}")
         Play.start(
           FakeApplication(
 
