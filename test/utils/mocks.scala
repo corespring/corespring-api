@@ -29,6 +29,8 @@ package object mocks {
     def download(bucket: String, fullKey: String, headers: Option[Headers]): Result = Ok("")
 
     def online: Boolean = false
+
+    def getClient = ???
   }
 
 }
