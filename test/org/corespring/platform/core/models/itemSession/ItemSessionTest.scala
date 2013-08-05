@@ -4,8 +4,6 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
 import org.corespring.platform.core.models.item.resource.{VirtualFile, Resource}
-import org.corespring.platform.core.models.itemSession.ArrayItemResponse
-import org.corespring.platform.core.models.itemSession.StringItemResponse
 import org.corespring.platform.core.models.itemSession._
 import org.corespring.platform.core.models.itemSession._
 import org.corespring.platform.data.mongo.models.VersionedId
