@@ -1,6 +1,5 @@
 package tests.plugins
 
-import org.specs2.mutable.Specification
 import tests.helpers.TestModelHelpers
 import securesocial.core._
 import securesocial.core.PasswordInfo
