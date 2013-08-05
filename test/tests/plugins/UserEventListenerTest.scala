@@ -29,12 +29,7 @@ class UserEventListenerTest extends BaseTest with TestModelHelpers {
 
   def userHasDate(user: User, fn: User => Option[DateTime]) = {
     val hasDate: Boolean = User.getUser(userId(user)) match {
-      case Some(user) => {
-        fn(user) match {
-          case Some(date) => true
-          case None => false
-        }
-      }
+      case Some(user) => !fn(user).isEmpty
       case None => false
     }
     hasDate === true
