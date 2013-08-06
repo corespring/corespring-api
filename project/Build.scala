@@ -1,6 +1,9 @@
 import play.Project._
 import sbt.Keys._
 import sbt._
+import MongoDbSeederPlugin._
+
+
 
 
 object Build extends sbt.Build {
@@ -50,10 +53,16 @@ object Build extends sbt.Build {
       playTest % "test"),
       Keys.fork in Test := false,
       parallelExecution.in(Test) := false,
-
-      testOptions in Test += Tests.Setup((l:ClassLoader) => println("------------> setup")),
-      testOptions in Test += Tests.Cleanup((l:ClassLoader) => println("-------------> cleanup"))
-  ).dependsOn(commonUtils, qti, testLib % "test->compile")
+      (test in Test) <<= (test in Test) dependsOn(seedTestTask)
+      //testOptions in Test += Tests.Setup{ () =>
+      //  println("-------------> setup")
+      //  MongoDbSeederPlugin.seed("mongodb://localhost/api", "conf/seed-data/common,conf/seed-data/test", "seed-core")
+      //},
+  ).settings( MongoDbSeederPlugin.newSettings : _*).settings(
+    testUri := "mongodb://localhost/api",
+    testPaths := "conf/seed-data/test"
+  )
+    .dependsOn(commonUtils, qti, testLib % "test->compile")
 
 
   val commonViews = builders.web("common-views").settings(
@@ -68,7 +77,18 @@ object Build extends sbt.Build {
     resolvers ++= Dependencies.Resolvers.all,
     Keys.fork.in(Test) := false,
     scalacOptions ++= Seq("-feature", "-deprecation"),
-    (test in Test) <<= (test in Test).map(Commands.runJsTests)
+    (test in Test) <<= (test in Test).map(Commands.runJsTests),
+    testOptions in Test += Tests.Setup{ () =>
+      println("-------------> setup")
+      MongoDbSeederPlugin.seed("mongodb://localhost/api", "conf/seed-data/test", "seed-core")
+    },
+    testOptions in Test += Tests.Cleanup{() =>
+      println("-------------> cleanup main")
+      //MongoDbSeederPlugin.unseed("mongodb://localhost/api", "conf/seed-data/common,conf/seed-data/test", "unseed-core")
+    }
+  ).settings(
+    MongoDbSeederPlugin.newSettings : _*).settings(
+    testPaths := "conf/seed-data/test"
   )
     .dependsOn(qti, core % "compile->compile;test->test", commonUtils, commonViews, testLib % "test->compile")
     .aggregate(qti, core, commonUtils, commonViews, testLib )
