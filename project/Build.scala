@@ -52,15 +52,7 @@ object Build extends sbt.Build {
       mockito,
       playTest % "test"),
       Keys.fork in Test := false,
-      parallelExecution.in(Test) := false,
-      (test in Test) <<= (test in Test) dependsOn(seedTestTask)
-      //testOptions in Test += Tests.Setup{ () =>
-      //  println("-------------> setup")
-      //  MongoDbSeederPlugin.seed("mongodb://localhost/api", "conf/seed-data/common,conf/seed-data/test", "seed-core")
-      //},
-  ).settings( MongoDbSeederPlugin.newSettings : _*).settings(
-    testUri := "mongodb://localhost/api",
-    testPaths := "conf/seed-data/test"
+      parallelExecution.in(Test) := false
   )
     .dependsOn(commonUtils, qti, testLib % "test->compile")
 
@@ -77,19 +69,7 @@ object Build extends sbt.Build {
     resolvers ++= Dependencies.Resolvers.all,
     Keys.fork.in(Test) := false,
     scalacOptions ++= Seq("-feature", "-deprecation"),
-    (test in Test) <<= (test in Test).map(Commands.runJsTests),
-    testOptions in Test += Tests.Setup{ () =>
-      println("-------------> setup")
-      MongoDbSeederPlugin.seed("mongodb://localhost/api", "conf/seed-data/test", "seed-core")
-    },
-    testOptions in Test += Tests.Cleanup{() =>
-      println("-------------> cleanup main")
-      //MongoDbSeederPlugin.unseed("mongodb://localhost/api", "conf/seed-data/common,conf/seed-data/test", "unseed-core")
-    }
-  ).settings(
-    MongoDbSeederPlugin.newSettings : _*).settings(
-    testPaths := "conf/seed-data/test"
-  )
-    .dependsOn(qti, core % "compile->compile;test->test", commonUtils, commonViews, testLib % "test->compile")
-    .aggregate(qti, core, commonUtils, commonViews, testLib )
+    (test in Test) <<= (test in Test).map(Commands.runJsTests)
+  ).dependsOn(qti, core % "compile->compile;test->test", commonUtils, commonViews, testLib % "test->compile")
+   .aggregate(qti, core, commonUtils, commonViews, testLib )
 }

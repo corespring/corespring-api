@@ -109,7 +109,9 @@ object Global extends GlobalSettings {
         throw new RuntimeException("You're trying to seed against a remote db - bad idea")
     }
 
-    /*app.mode match {
+    app.mode match {
+
+
       case Mode.Test => {
         onlyIfLocalDb(emptyData, seedTestData)
       }
@@ -128,7 +130,7 @@ object Global extends GlobalSettings {
         seedDemoData()
       }
     }
-    */
+
   }
 
   private def isSafeToSeedDb(implicit  app : Application) : Boolean = {

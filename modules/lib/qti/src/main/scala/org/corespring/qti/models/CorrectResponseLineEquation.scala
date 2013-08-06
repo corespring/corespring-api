@@ -17,7 +17,6 @@ case class CorrectResponseLineEquation(value: String,
   def isValueCorrect(v: String, index: Option[Int]) = CorrectResponseLineEquation.lineEquationMatch(value,v,range,variables,numOfTestPoints)
 }
 object CorrectResponseLineEquation{
-  val engine = new ScriptEngineManager().getEngineByName("JavaScript")
   def apply(node:Node, lineAttr:String):CorrectResponseLineEquation = {
     if ((node \ "value").size != 1) {
       throw new RuntimeException("Cardinality is set to single but there is not one <value> declared: " + (node \ "value").toString)
@@ -50,6 +49,7 @@ object CorrectResponseLineEquation{
   def lineEquationMatch(value:String, responseValue:String,
                         range:(Int,Int) = (-10,10), variables:(String,String) = "x" -> "y",
                         numOfTestPoints:Int = 5):Boolean = {
+    val engine = new ScriptEngineManager().getEngineByName("JavaScript")
     def formatExpression(expr:String,variableValues:Seq[(String,Double)]):String = {
       def replaceVar(expr:String, variable:String, num:Double):String = {
         var newExpr = expr
