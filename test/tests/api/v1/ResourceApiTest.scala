@@ -18,6 +18,8 @@ import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.Item
 import org.corespring.common.log.PackageLogging
 import org.corespring.test.BaseTest
+import scala.concurrent.Await
+import java.util.concurrent.TimeUnit
 
 
 class ResourceApiTest extends BaseTest with PackageLogging {
@@ -245,6 +247,22 @@ class ResourceApiTest extends BaseTest with PackageLogging {
 
     "do a binary post to supporting materials Resource" in {
 
+      def call(action : Action[String], byteArray: Array[Byte], expectedStatus: Int, expectedContains: String): (Boolean, Boolean) = {
+        val iteratee : Iteratee[Array[Byte], Result] = action(FakeRequest(
+          "",
+          tokenize(""),
+          FakeHeaders(Seq("Content" -> Seq("application/octet-stream"), CONTENT_LENGTH -> Seq(byteArray.length.toString))),
+          byteArray
+        ))
+
+        import scala.concurrent.duration._
+        val result : Result = scala.concurrent.Await.result(iteratee.run, Duration(2, TimeUnit.SECONDS))
+
+        Logger.debug(s"result: $result")
+        Logger.debug(contentAsString(result))
+        (status(result) == expectedStatus, contentAsString(result).contains(expectedContains) === true)
+      }
+
       import play.api.Play.current
 
       val item = testItem
@@ -275,19 +293,6 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       false === true
     }.pendingUntilFixed("Note: the assertions pass here but the assets aren't uploaded (the tests are closing the pipes)")
 
-    def call(action : Action[String], byteArray: Array[Byte], expectedStatus: Int, expectedContains: String): (Boolean, Boolean) = {
-
-      val result = await(action( FakeRequest(
-          "",
-          tokenize(""),
-          FakeHeaders(Seq("Content" -> Seq("application/octet-stream"), CONTENT_LENGTH -> Seq(byteArray.length.toString))),
-          byteArray
-      )).run)
-
-      Logger.debug(s"result: $result")
-      Logger.debug(contentAsString(result))
-      (status(result) == expectedStatus, contentAsString(result).contains(expectedContains) === true)
-    }
 
   }
 }

@@ -1,15 +1,14 @@
-package tests.api.v1.files
+package api.v1.files
 
-import api.v1.files.ItemFiles
 import controllers.CorespringS3Service
-import org.corespring.platform.core.models.item.resource.{StoredFile, Resource}
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.resource.{StoredFile, Resource}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import scalaz.{Failure, Success}
 import utils.mocks.MockS3Service
-import org.corespring.platform.core.models.item.Item
 
 class ItemFilesTest extends Specification with Mockito{
 

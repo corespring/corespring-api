@@ -1,28 +1,17 @@
 package org.corespring.test
 
-import common.seed.SeedDb
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mutable.Specification
-import org.specs2.specification.Fragments
 import play.api.libs.json._
 import play.api.mvc._
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.FakeHeaders
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
 import scala.Some
 import web.controller.utils.ConfigLoader
-import play.api.test.Helpers._
-import play.api.test.FakeHeaders
-import scala.Some
-import org.corespring.platform.data.mongo.models.VersionedId
-import play.api.mvc.AnyContentAsText
-import play.api.test.FakeHeaders
-import scala.Some
-import org.corespring.platform.data.mongo.models.VersionedId
-import play.api.mvc.AnyContentAsJson
-import play.api.mvc.AnyContentAsText
-import play.api.libs.json.JsObject
 
 
 /**

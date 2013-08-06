@@ -70,6 +70,6 @@ object Build extends sbt.Build {
     scalacOptions ++= Seq("-feature", "-deprecation"),
     (test in Test) <<= (test in Test).map(Commands.runJsTests)
   )
-    .dependsOn(qti, core, commonUtils, commonViews)
-    .aggregate(qti, core, commonUtils, commonViews)
+    .dependsOn(qti, core % "compile->compile;test->test", commonUtils, commonViews, testLib % "test->compile")
+    .aggregate(qti, core, commonUtils, commonViews, testLib )
 }

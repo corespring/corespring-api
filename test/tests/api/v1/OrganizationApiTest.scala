@@ -49,10 +49,11 @@ class OrganizationApiTest extends BaseTest {
     val Some(result) = route(fakeRequest)
     assertResult(result)
     val tree = parsed[List[JsValue]](result)
-    tree.foreach(o => {
+
+    forall(tree){ o  =>
       // make sure the orgId is in the path of each retrieved org
-      (o \ "path").as[Seq[String]].contains(orgId) must beTrue
-    })
+      (o \ "path").as[Seq[String]].contains(orgId) === true
+    }
   }
 
   "list organization children" in {
@@ -60,14 +61,12 @@ class OrganizationApiTest extends BaseTest {
     val Some(result) = route(fakeRequest)
     assertResult(result)
     val children = parsed[List[JsValue]](result)
-    children.foreach(o => {
+
+    forall(children){ o =>
       // make sure the orgId is in the path of each retrieved org
-      (o \ "path").as[Seq[String]].contains(orgId) must beTrue
-    })
-    // make sure the parent org was not returned
-    children.foreach(o => {
-      (o \ "id").as[String] must not equalTo (orgId)
-    })
+      (o \ "path").as[Seq[String]].contains(orgId) === true
+      (o \ "id").as[String] !== orgId
+    }
   }
 
   "find an organization with name 'Demo Organization 3'" in {
