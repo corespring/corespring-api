@@ -164,7 +164,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   });
 
   $scope.changePanel = function (panelName) {
-    var panel = ["metadata", "supportingMaterials", "content"].indexOf(panelName) == -1 ? "metadata" : panelName;
+    var panel = ["metadata", "supportingMaterials", "content", "orgMetadata"].indexOf(panelName) == -1 ? "metadata" : panelName;
     $scope.currentPanel = panel;
     $scope.$broadcast("tabSelected");
     enterEditorIfInContentPanel();
