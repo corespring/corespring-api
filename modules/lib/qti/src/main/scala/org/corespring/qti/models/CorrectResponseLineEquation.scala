@@ -1,10 +1,9 @@
-package qti.models
+package org.corespring.qti.models
 
-import interactions.TextEntryInteraction
-import javax.script.ScriptEngineManager
-import xml.Node
 import java.util.regex.Pattern
+import javax.script.ScriptEngineManager
 import util.Random
+import xml.Node
 
 /**
  * value is limited to the format y=f(x), where f(x) is some continuous (defined at all points) expression only containing the variable x

@@ -1,18 +1,14 @@
 package tests.plugins
 
-import tests.helpers.TestModelHelpers
-import securesocial.core._
-import securesocial.core.PasswordInfo
-import securesocial.core.LoginEvent
-import securesocial.core.OAuth2Info
-import securesocial.core.AuthenticationMethod.UserPassword
-import models.User
-import plugins.UserEventListener
+import controllers.auth.Permission
+import org.corespring.platform.core.models.User
+import org.corespring.test.{TestModelHelpers, BaseTest}
+import org.joda.time.DateTime
 import play.api.mvc.Session
 import play.api.test.FakeRequest
-import tests.BaseTest
-import controllers.auth.Permission
-import org.joda.time.DateTime
+import plugins.UserEventListener
+import securesocial.core.AuthenticationMethod.UserPassword
+import securesocial.core._
 
 class UserEventListenerTest extends BaseTest with TestModelHelpers {
 
