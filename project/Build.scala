@@ -11,6 +11,9 @@ object Build extends sbt.Build {
   val ScalaVersion = "2.10.1"
   val org = "org.corespring"
 
+  val cred = Credentials(Path.userHome / ".ivy2" / ".credentials")
+
+
   val builders = new Builders(appName, org, appVersion, ScalaVersion)
 
   val customImports = Seq("se.radley.plugin.salat.Binders._",
@@ -51,6 +54,7 @@ object Build extends sbt.Build {
       playTest % "test"),
       Keys.fork in Test := false,
       parallelExecution.in(Test) := false,
+      credentials += cred,
       testOptions in Test += Tests.Setup{ () =>
         println( scala.Console.BLUE + "-------------> setup core "  + scala.Console.RESET)
         MongoDbSeederPlugin.seed("mongodb://localhost/api", "conf/seed-data/test", "seed-main", "INFO")
@@ -63,15 +67,13 @@ object Build extends sbt.Build {
   ).dependsOn(core)
 
   val main = play.Project(appName, appVersion, Dependencies.all )
-
-    .settings(
-      MongoDbSeederPlugin.newSettings ++ Seq( testPaths := "conf/seed-data/test", testUri := "mongodb://localhost/api" ) : _* )
     .settings(
     scalaVersion := ScalaVersion,
     parallelExecution.in(Test) := false,
     routesImport ++= customImports,
     templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
     resolvers ++= Dependencies.Resolvers.all,
+    credentials += cred,
     Keys.fork.in(Test) := false,
     scalacOptions ++= Seq("-feature", "-deprecation"),
     (test in Test) <<= (test in Test).map(Commands.runJsTests),

@@ -9,6 +9,7 @@ object Dependencies {
 
   val playFramework = "play" %% "play" % playVersion
   val playTest = "play" %% "play-test" % playVersion
+  val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.4-SNAPSHOT"
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val salatPlay =  "se.radley" %% "play-plugins-salat" % "1.2"
   val casbah = "com.mongodb.casbah" %% "casbah" % "2.0"
@@ -39,6 +40,7 @@ object Dependencies {
     amapClient,
     assetsLoader,
     aws,
+    mongoDbSeeder,
     jbcrypt,
     mockito,
     playMemcached,
@@ -55,7 +57,8 @@ object Dependencies {
 
     //TODO: Remove this - once we have an internal artifactory repo setup
 
-    val localIvy = Resolver.file("Local Ivy Repository", file(Path.userHome.absolutePath+"/.ivy2/local")) (Resolver.ivyStylePatterns)
+    //val localIvy = Resolver.file("Local Ivy Repository", file(Path.userHome.absolutePath+"/.ivy2/local")) (Resolver.ivyStylePatterns)
+    val edeustaceArtifatory = "EE Artifactory Snapshots" at "http://edeustace.artifactoryonline.com/edeustace/snapshots"
     val typesafe = "typesafe releases" at "http://repo.typesafe.com/typesafe/releases/"
     val edeustaceReleases= "ed eustace" at "http://edeustace.com/repository/releases/"
     val edeustaceSnapshots = "ed eustace snapshots" at "http://edeustace.com/repository/snapshots/"
@@ -67,7 +70,8 @@ object Dependencies {
     val all: Seq[Resolver] = Seq(
       sonatypeSnapshots,
       typesafe,
-      localIvy,
+      //localIvy,
+    edeustaceArtifatory,
       spy,
       edeustaceSnapshots,
       edeustaceReleases,
