@@ -19,11 +19,14 @@ import securesocial.core.UserId
 import org.corespring.platform.core.models.search.Searchable
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
+import org.joda.time.DateTime
 
 
 case class User(var userName: String = "",
                 var fullName: String = "",
                 var email: String = "",
+                var lastLoginDate: Option[DateTime] = None,
+                var registrationDate: Option[DateTime] = None,
                 var org: UserOrg = UserOrg(AppConfig.demoOrgId,Permission.Read.value),
                 var password: String = "",
                 var provider: String = "userpass",
@@ -39,6 +42,8 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with PackageL
   val orgKey = "org"
   val password = "password"
   val provider = "provider"
+  val lastLoginDate = "lastLoginDate"
+  val registrationDate = "registrationDate"
 
   val collection = mongoCollection("users")
   import org.corespring.platform.core.models.mongoContext.context
@@ -85,10 +90,33 @@ val dao = new SalatDAO[User, ObjectId](collection = collection) {}
     }
   }
 
+  def touchLastLogin(userId: UserId) = touch(userId, User.lastLoginDate)
+  def touchRegistration(userId: UserId) = touch(userId, User.registrationDate)
+
+  def touch(userId: UserId, field: String) = {
+    User.getUser(userId) match {
+      case Some(user) => {
+        User.update(MongoDBObject("_id" -> user.id), MongoDBObject("$set" ->
+          MongoDBObject(
+            field -> new DateTime()
+          )),
+          false, false, User.collection.writeConcern)
+        Right(user)
+      }
+      case None => Left(InternalError("no user found to update " + field))
+    }
+  }
+
+
   def updateUser(user: User): Either[InternalError, User] = {
     try {
       User.update(MongoDBObject("_id" -> user.id), MongoDBObject("$set" ->
-        MongoDBObject(User.userName -> user.userName, User.fullName -> user.fullName, User.email -> user.email, User.password -> user.password)),
+        MongoDBObject(
+          User.userName -> user.userName,
+          User.fullName -> user.fullName,
+          User.email -> user.email,
+          User.password -> user.password
+        )),
         false, false, User.collection.writeConcern)
       User.findOneById(user.id) match {
         case Some(u) => Right(u)
