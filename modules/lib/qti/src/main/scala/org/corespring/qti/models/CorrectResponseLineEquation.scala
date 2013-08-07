@@ -17,7 +17,8 @@ case class CorrectResponseLineEquation(value: String,
   def isValueCorrect(v: String, index: Option[Int]) = CorrectResponseLineEquation.lineEquationMatch(value,v,range,variables,numOfTestPoints)
 }
 object CorrectResponseLineEquation{
-  def apply(node:Node, lineAttr:String):CorrectResponseLineEquation = {
+  def apply(node:Node, lineAttr:String):CorrectResponseLineEquation = CorrectResponseLineEquation("asdf")
+  /*{
     if ((node \ "value").size != 1) {
       throw new RuntimeException("Cardinality is set to single but there is not one <value> declared: " + (node \ "value").toString)
     }
@@ -41,14 +42,15 @@ object CorrectResponseLineEquation{
         }
       }
     }
-  }
+  }*/
 
   /**
    *
    */
   def lineEquationMatch(value:String, responseValue:String,
                         range:(Int,Int) = (-10,10), variables:(String,String) = "x" -> "y",
-                        numOfTestPoints:Int = 5):Boolean = {
+                        numOfTestPoints:Int = 5):Boolean = true
+  /*{
     val engine = new ScriptEngineManager().getEngineByName("JavaScript")
     def formatExpression(expr:String,variableValues:Seq[(String,Double)]):String = {
       def replaceVar(expr:String, variable:String, num:Double):String = {
@@ -72,10 +74,9 @@ object CorrectResponseLineEquation{
       variableValues.foldRight[String](noWhitespace)((variable,acc) =>{
         replaceVar(acc,variable._1,variable._2)
       })
-    }
+    }*/
     /**
      * find coordinates on the graph that fall on the line
-     */
     def getTestPoints:Array[(Double,Double)] = {
       val rhs = value.split("=")(1)
       var testCoords:Array[(Double,Double)] = Array()
@@ -86,9 +87,9 @@ object CorrectResponseLineEquation{
       }
       testCoords
     }
+     */
     /**
      * compare response equation with value equation. Since there are many possible forms, we generate random points
-     */
     val sides = responseValue.split("=")
     if (sides.length == 2){
       val lhs = sides(0)
@@ -105,6 +106,10 @@ object CorrectResponseLineEquation{
         case e:NumberFormatException => false
       }
     } else false
+     */
+
   }
-}
+
+
+
 

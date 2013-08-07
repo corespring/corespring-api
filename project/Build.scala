@@ -4,8 +4,6 @@ import sbt._
 import MongoDbSeederPlugin._
 
 
-
-
 object Build extends sbt.Build {
 
   val appName = "corespring"
@@ -52,16 +50,23 @@ object Build extends sbt.Build {
       mockito,
       playTest % "test"),
       Keys.fork in Test := false,
-      parallelExecution.in(Test) := false
-  )
-    .dependsOn(commonUtils, qti, testLib % "test->compile")
+      parallelExecution.in(Test) := false,
+      testOptions in Test += Tests.Setup{ () =>
+        println( scala.Console.BLUE + "-------------> setup core "  + scala.Console.RESET)
+        MongoDbSeederPlugin.seed("mongodb://localhost/api", "conf/seed-data/test", "seed-main", "INFO")
+      }
+   ).dependsOn(commonUtils, qti, testLib % "test->compile")
 
 
   val commonViews = builders.web("common-views").settings(
     libraryDependencies ++= Seq(playJson % "test")
   ).dependsOn(core)
 
-  val main = play.Project(appName, appVersion, Dependencies.all ).settings(
+  val main = play.Project(appName, appVersion, Dependencies.all )
+
+    .settings(
+      MongoDbSeederPlugin.newSettings ++ Seq( testPaths := "conf/seed-data/test", testUri := "mongodb://localhost/api" ) : _* )
+    .settings(
     scalaVersion := ScalaVersion,
     parallelExecution.in(Test) := false,
     routesImport ++= customImports,
@@ -69,7 +74,17 @@ object Build extends sbt.Build {
     resolvers ++= Dependencies.Resolvers.all,
     Keys.fork.in(Test) := false,
     scalacOptions ++= Seq("-feature", "-deprecation"),
-    (test in Test) <<= (test in Test).map(Commands.runJsTests)
+    (test in Test) <<= (test in Test).map(Commands.runJsTests),
+    testOptions in Test += Tests.Setup{ () =>
+      println( scala.Console.BLUE + "-------------> setup " + appName + scala.Console.RESET)
+      MongoDbSeederPlugin.seed("mongodb://localhost/api", "conf/seed-data/test", "seed-main", "INFO")
+    },
+    testOptions in Test += Tests.Cleanup{ () =>
+      println( scala.Console.BLUE + "-------------> cleanup " + appName + scala.Console.RESET)
+      MongoDbSeederPlugin.unseed("mongodb://localhost/api", "conf/seed-data/test", "seed-main", "INFO")
+    }
   ).dependsOn(qti, core % "compile->compile;test->test", commonUtils, commonViews, testLib % "test->compile")
    .aggregate(qti, core, commonUtils, commonViews, testLib )
+
+
 }

@@ -5,7 +5,7 @@ import org.corespring.amazon.s3.models.DeleteResponse
 import play.api.mvc.{RequestHeader, Headers, Result, BodyParser}
 
 
-object mocks{
+package object mocks{
 
 
   /** A mock s3 service that will throw an exception if the keyname

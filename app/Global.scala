@@ -109,11 +109,13 @@ object Global extends GlobalSettings {
         throw new RuntimeException("You're trying to seed against a remote db - bad idea")
     }
 
+    Logger.debug(s"App mode: $app.mode")
+
     app.mode match {
 
 
       case Mode.Test => {
-        onlyIfLocalDb(emptyData, seedTestData)
+        //onlyIfLocalDb(emptyData, seedTestData)
       }
       case Mode.Dev => {
         if(initData) {
@@ -165,7 +167,7 @@ object Global extends GlobalSettings {
   }
 
   private def seedTestData() {
-    seedData("conf/seed-data/test")
+    //seedData("conf/seed-data/test")
   }
 
   private def seedDevData() {

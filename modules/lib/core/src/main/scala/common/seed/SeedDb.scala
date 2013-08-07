@@ -63,7 +63,7 @@ object SeedDb {
   }
 
   def seedData(path: String) {
-    Logger.info("seedData: " + path)
+    Logger.info("[common.seed.SeedDb] ]!!!!!!!!!!!!!!!!! -----> seedData: " + path)
 
     val folder: File = Play.getFile(path)
     for (file <- folder.listFiles) {

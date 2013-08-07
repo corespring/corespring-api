@@ -1,6 +1,5 @@
 package org.corespring.platform.core.models.quiz.basic
 
-import common.seed.SeedDb
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.itemSession.ItemSessionSettings
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -57,7 +56,6 @@ class QuizTest extends BaseTest with RequestCalling{
 
     "add answer" in {
 
-      Quiz.removeAll()
       val q = Quiz(questions = Seq(), participants = Seq(
         Participant(externalUid = "sam.smith@gmail.com", answers = Seq())
       ))
@@ -148,8 +146,8 @@ class QuizTest extends BaseTest with RequestCalling{
 
     "json generation works" in {
 
-      SeedDb.emptyData()
-      SeedDb.seedData("conf/seed-data/test")
+      //SeedDb.emptyData()
+      //SeedDb.seedData("conf/seed-data/test")
 
       def assertCompleteAndScore(id: ObjectId, expected: (Boolean, Int)*): org.specs2.execute.Result = {
 
