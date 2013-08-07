@@ -53,11 +53,6 @@ object Dependencies {
 
   object Resolvers {
 
-
-
-    //TODO: Remove this - once we have an internal artifactory repo setup
-
-    //val localIvy = Resolver.file("Local Ivy Repository", file(Path.userHome.absolutePath+"/.ivy2/local")) (Resolver.ivyStylePatterns)
     val edeustaceArtifatory = "EE Artifactory Snapshots" at "http://edeustace.artifactoryonline.com/edeustace/snapshots"
     val typesafe = "typesafe releases" at "http://repo.typesafe.com/typesafe/releases/"
     val edeustaceReleases= "ed eustace" at "http://edeustace.com/repository/releases/"
