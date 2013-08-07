@@ -9,7 +9,7 @@ object Dependencies {
 
   val playFramework = "play" %% "play" % playVersion
   val playTest = "play" %% "play-test" % playVersion
-  val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.4-SNAPSHOT"
+  val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.5-6380cac"
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val salatPlay =  "se.radley" %% "play-plugins-salat" % "1.2"
   val casbah = "com.mongodb.casbah" %% "casbah" % "2.0"
@@ -65,8 +65,7 @@ object Dependencies {
     val all: Seq[Resolver] = Seq(
       sonatypeSnapshots,
       typesafe,
-      //localIvy,
-    edeustaceArtifatory,
+      edeustaceArtifatory,
       spy,
       edeustaceSnapshots,
       edeustaceReleases,

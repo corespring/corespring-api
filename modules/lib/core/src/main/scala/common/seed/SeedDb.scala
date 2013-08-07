@@ -1,19 +1,15 @@
 package common.seed
 
-import JsonImporter._
+import com.ee.seeder.Seeder
+import com.ee.seeder.log.ConsoleLogger.Level
 import com.mongodb.casbah.{MongoDB, MongoCollection}
-import java.io.File
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models._
 import org.corespring.platform.core.models._
 import org.corespring.platform.core.models.auth.{ApiClient, AccessToken}
 import org.corespring.platform.core.models.item.FieldValue
 import org.corespring.platform.core.models.itemSession.DefaultItemSession
-import org.corespring.platform.core.models.quiz.basic.Quiz
 import org.joda.time.DateTime
-import play.api.Play.current
 import play.api._
-import scala.Some
 import se.radley.plugin.salat.SalatPlugin
 
 object SeedDb {
@@ -44,15 +40,6 @@ object SeedDb {
     salatDb()(current)("quizzes")
   )
 
-
-  abstract class SeedFormat
-
-  case class JsonOnEachLine(f: File) extends SeedFormat
-
-  case class JsonFilesAreChildren(f: File) extends SeedFormat
-
-  case class JsonListFile(f: File) extends SeedFormat
-
   def emptyData() {
     collections.foreach(_.drop())
   }
@@ -63,47 +50,10 @@ object SeedDb {
   }
 
   def seedData(path: String) {
-    Logger.info("[common.seed.SeedDb] ]!!!!!!!!!!!!!!!!! -----> seedData: " + path)
-
-    val folder: File = Play.getFile(path)
-    for (file <- folder.listFiles) {
-      val basename = file.getName.replace(".json", "")
-      collections.find(basename == _.name) match {
-        case Some(c) => {
-          Logger.info("Seeding: " + c.name)
-          getSeedFormat(file) match {
-            case JsonOnEachLine(f) => jsonLinesToDb(path + "/" + f.getName, c)
-            case JsonFilesAreChildren(f) => insertFilesInFolder(path + "/" + f.getName, c)
-            case JsonListFile(f) => jsonFileListToDb(path + "/" + f.getName + "/list.json", c)
-          }
-        }
-        case _ => Logger.warn("Couldn't find collection for: " + file.getName)
-      }
-    }
+    val db : MongoDB = salatDb()
+    val seeder = new Seeder(salatDb(), Level.DEBUG)
+    seeder.seed(List(path))
   }
-
-  private def getSeedFormat(f: File): SeedFormat = {
-    if (f.isDirectory) {
-      getSingleList(f) match {
-        case Some(listFile) => JsonListFile(f)
-        case _ => JsonFilesAreChildren(f)
-      }
-    } else {
-      JsonOnEachLine(f)
-    }
-  }
-
-  private def getSingleList(directory: File): Option[File] = {
-
-    val listFile = for (f <- directory.listFiles; if (f.getName == "list.json")) yield f
-
-    if (listFile.length != 1) {
-      None
-    } else {
-      Some(listFile(0))
-    }
-  }
-
 
   def addMockAccessToken(token: String, scope: Option[String]) = {
     AccessToken.collection.drop()

@@ -3,6 +3,7 @@ package utils
 import controllers.CorespringS3Service
 import org.corespring.amazon.s3.models.DeleteResponse
 import play.api.mvc.{RequestHeader, Headers, Result, BodyParser}
+import play.api.libs.iteratee.{Done, Input}
 
 
 package object mocks{
@@ -22,7 +23,10 @@ package object mocks{
         Unit
     }
 
-    def upload(bucket: String, keyName: String, predicate: (RequestHeader) => Option[Result]): BodyParser[String] = ???
+    def upload(bucket: String, keyName: String, predicate: (RequestHeader) => Option[Result]): BodyParser[String] = {
+      BodyParser{ request =>
+        Done[Array[Byte], Either[Result, String]](Left(Ok), Input.Empty) }
+    }
 
     def delete(bucket: String, keyName: String): DeleteResponse = null
 

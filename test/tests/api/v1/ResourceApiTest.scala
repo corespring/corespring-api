@@ -2,24 +2,24 @@ package tests.api.v1
 
 import api.ApiError
 import api.v1.ResourceApi
+import java.util.concurrent.TimeUnit
+import org.bson.types.ObjectId
+import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{BaseFile, VirtualFile, Resource}
 import org.corespring.platform.core.models.item.service.ItemServiceImpl
-import org.bson.types.ObjectId
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.test.BaseTest
+import play.api.Play
+import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.JsObject
 import play.api.libs.json.{Json, JsValue}
 import play.api.mvc._
-import play.api.test.{FakeRequest, FakeHeaders}
 import play.api.test.Helpers._
+import play.api.test.{FakeRequest, FakeHeaders}
 import scala._
-import play.api.Play
-import play.api.libs.iteratee.Iteratee
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.models.item.Item
-import org.corespring.common.log.PackageLogging
-import org.corespring.test.BaseTest
-import scala.concurrent.Await
-import java.util.concurrent.TimeUnit
+import utils.mocks.MockS3Service
 
 
 class ResourceApiTest extends BaseTest with PackageLogging {
@@ -29,6 +29,8 @@ class ResourceApiTest extends BaseTest with PackageLogging {
   def testItemId: String = testItem.id.id.toString
 
   lazy val itemId : VersionedId[ObjectId]= VersionedId(ObjectId.get, None)
+
+  val resourceApi : ResourceApi = new ResourceApi( new MockS3Service(), ItemServiceImpl)
 
   def testItem: Item = {
 
@@ -54,8 +56,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       case _ => throw new RuntimeException("can't find rubric")
     }
   }
-  "resource api" should{ "work" in { true === true }}
-  /*"resource api" should {
+  "resource api" should {
 
     def makeFileRequest(file: VirtualFile, action: Action[AnyContent]): Result = {
       val request = tokenFakeRequest("blah", "blah", FakeHeaders(), AnyContentAsJson(Json.toJson(file)))
@@ -64,8 +65,8 @@ class ResourceApiTest extends BaseTest with PackageLogging {
 
 
     "delete a file from the Item.data Resource" in {
-      val create = ResourceApi.createDataFile(testItemId) //.createDataFile(testItemId)
-      val delete = ResourceApi.deleteDataFile(testItemId, "myfile.txt", true)
+      val create = resourceApi.createDataFile(testItemId) //.createDataFile(testItemId)
+      val delete = resourceApi.deleteDataFile(testItemId, "myfile.txt", true)
       val file = VirtualFile("myfile.txt", "text/txt", isMain = true, content = "I'm never going to be main")
       assertDelete(create, delete, testItem.data.get, file)
     }
@@ -83,8 +84,8 @@ class ResourceApiTest extends BaseTest with PackageLogging {
 
 
     "delete a file from a supportingMaterial Resource" in {
-      val create = ResourceApi.createSupportingMaterialFile(testItemId, "Rubric")
-      val delete = ResourceApi.deleteSupportingMaterialFile(testItemId, "Rubric", "myfile.txt")
+      val create = resourceApi.createSupportingMaterialFile(testItemId, "Rubric")
+      val delete = resourceApi.deleteSupportingMaterialFile(testItemId, "Rubric", "myfile.txt")
       val file = VirtualFile("myfile.txt", "text/txt", isMain = true, content = "I'm never going to be main")
       assertDelete(create, delete, rubric, file)
     }
@@ -92,7 +93,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
 
     "creating or updating a file to default in Item.data is ignored" in {
 
-      val create = ResourceApi.createDataFile(testItemId)
+      val create = resourceApi.createDataFile(testItemId)
       val f0 = VirtualFile("myfile.txt", "text/txt", isMain = true, content = "I'm never going to be main")
 
       makeFileRequest(f0, create)
@@ -104,7 +105,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
         case _ => failure("Can't find new file")
       }
 
-      val update = ResourceApi.updateDataFile(testItemId, "myfile.txt", true)
+      val update = resourceApi.updateDataFile(testItemId, "myfile.txt", true)
       makeFileRequest(f0, update)
 
       testItem.data.get.files.find(_.name == f0.name) match {
@@ -116,17 +117,17 @@ class ResourceApiTest extends BaseTest with PackageLogging {
     }
 
     "update a file in supporting materials" in {
-      val create = ResourceApi.createSupportingMaterialFile(testItemId, "Rubric")
+      val create = resourceApi.createSupportingMaterialFile(testItemId, "Rubric")
       val file = VirtualFile("data.txt", "text/txt", isMain = false, content = "f0")
-      val update = ResourceApi.updateSupportingMaterialFile(testItemId, "Rubric", "data.txt")
+      val update = resourceApi.updateSupportingMaterialFile(testItemId, "Rubric", "data.txt")
       assertUpdate(create, update, file, (_ => testItem.supportingMaterials.find(_.name == "Rubric").get))
     }
 
     "update a file in Item.data" in {
       val noSessionItem = "511275564924c9ca07b97043"
-      val create = ResourceApi.createDataFile(noSessionItem)
+      val create = resourceApi.createDataFile(noSessionItem)
       val file = VirtualFile("data.txt", "text/txt", isMain = false, content = "f0")
-      val update = ResourceApi.updateDataFile(noSessionItem, "data.txt", true)
+      val update = resourceApi.updateDataFile(noSessionItem, "data.txt", true)
       assertUpdate(create, update, file, (_ => ItemServiceImpl.findOneById(VersionedId(new ObjectId(noSessionItem))).get.data.get))
     }
 
@@ -149,7 +150,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
 
     "when creating a file - if its default - unsets the other items in the file list" in {
 
-      val create = ResourceApi.createSupportingMaterialFile(testItemId, "Rubric")
+      val create = resourceApi.createSupportingMaterialFile(testItemId, "Rubric")
 
       val f0 = VirtualFile("data.file.0.default.txt", "text/txt", isMain = true, content = "f0")
       val f1 = VirtualFile("data.file.default.txt", "text/txt", isMain = true, content = "hello there")
@@ -179,12 +180,12 @@ class ResourceApiTest extends BaseTest with PackageLogging {
     }
 
     "create a virtual file in Item.data resource" in {
-      val create = ResourceApi.createDataFile(testItemId)
+      val create = resourceApi.createDataFile(testItemId)
       assertCantCreateTwoFilesWithSameName(create)
     }
 
     "create a virtual file in a supporting material resource" in {
-      val create = ResourceApi.createSupportingMaterialFile(testItemId, "Rubric")
+      val create = resourceApi.createSupportingMaterialFile(testItemId, "Rubric")
       assertCantCreateTwoFilesWithSameName(create)
     }
 
@@ -200,7 +201,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
 
     "create a new supporting material resource" in {
 
-      val create = ResourceApi.createSupportingMaterial(testItemId)
+      val create = resourceApi.createSupportingMaterial(testItemId)
       val request = tokenFakeRequest(FakeHeaders())
       val result = create(request)
       status(result) === BAD_REQUEST
@@ -217,7 +218,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       contentAsString(secondResult).contains(ApiError.ResourceNameTaken.message) === true
       status(secondResult) === NOT_ACCEPTABLE
 
-      val delete = ResourceApi.deleteSupportingMaterial(testItemId, "newResource")
+      val delete = resourceApi.deleteSupportingMaterial(testItemId, "newResource")
       val deleteResult = delete(tokenFakeRequest())
       println(contentAsString(deleteResult))
       status(deleteResult) === OK
@@ -225,8 +226,8 @@ class ResourceApiTest extends BaseTest with PackageLogging {
 
     "delete a new supporting material resource" in {
       val resourceName = "newResource2"
-      val delete = ResourceApi.deleteSupportingMaterial(testItemId, resourceName)
-      val create = ResourceApi.createSupportingMaterial(testItemId)
+      val delete = resourceApi.deleteSupportingMaterial(testItemId, resourceName)
+      val create = resourceApi.createSupportingMaterial(testItemId)
       val r: Resource = Resource("newResource2", Seq())
       create(tokenFakeRequest(FakeHeaders(), AnyContentAsJson(Json.toJson(r))))
       val deleteResult = delete(tokenFakeRequest())
@@ -235,7 +236,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
 
 
     "list an item's supporting materials" in {
-      val get = ResourceApi.getSupportingMaterials(testItemId)
+      val get = resourceApi.getSupportingMaterials(testItemId)
       val result = get(tokenFakeRequest())
       val json: JsValue = parsed[JsValue](result)
       val seq: Seq[JsObject] = json.as[Seq[JsObject]]
@@ -263,13 +264,13 @@ class ResourceApiTest extends BaseTest with PackageLogging {
         (status(result) == expectedStatus, contentAsString(result).contains(expectedContains) === true)
       }
 
+      import VersionedIdImplicits.Binders._
       import play.api.Play.current
 
       val item = testItem
       val filename = "cute-rabbit.jpg"
 
-      import VersionedIdImplicits.Binders._
-      val create = api.v1.ResourceApi.uploadFile(versionedIdToString(item.id),"Rubric", filename)
+      val create = resourceApi.uploadFile(versionedIdToString(item.id),"Rubric", filename)
       val file = Play.getFile("test/tests/files/" + filename)
       val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
       val byteArray = source.map(_.toByte).toArray
@@ -286,14 +287,14 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       val secondCall = call(create, byteArray, NOT_FOUND, ApiError.FilenameTaken.message)
       secondCall === (true, true)
 
-      val badUpdate = api.v1.ResourceApi.uploadFile(versionedIdToString(item.id), "badResourceName", filename)
+      val badUpdate = resourceApi.uploadFile(versionedIdToString(item.id), "badResourceName", filename)
       val thirdCall = call(badUpdate, byteArray,  NOT_FOUND, ApiError.ResourceNotFound.message)
       thirdCall === (true, true)
 
-      false === true
-    }.pendingUntilFixed("Note: the assertions pass here but the assets aren't uploaded (the tests are closing the pipes)")
+      true === false
+    }.pendingUntilFixed("Need to make a decision on what we're testing here")
 
 
-  }*/
+  }
 }
 
