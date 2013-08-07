@@ -1,5 +1,5 @@
 @(editUrl: String)
 <div ng-show="currentPanel == 'orgMetadata'"  ng-controller="OrganizationMetadataController">
-    <iframe src="@editUrl" />
+    <iframe id="externalMetadataEditor" src="@editUrl" style="width: 100%; height: 500px"/>
 </div>
 
