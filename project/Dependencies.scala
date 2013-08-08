@@ -9,13 +9,14 @@ object Dependencies {
 
   val playFramework = "play" %% "play" % playVersion
   val playTest = "play" %% "play-test" % playVersion
-  val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.5-6380cac"
+
+  val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.5-3f2edcd"
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val salatPlay =  "se.radley" %% "play-plugins-salat" % "1.2"
   val casbah = "com.mongodb.casbah" %% "casbah" % "2.0"
   val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.1.0"
   val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.2-d2150fc"
-  val playS3 = "org.corespring" %% "play-s3" % "0.1-3d07c18"
+  val playS3 = "org.corespring" %% "play-s3" % "0.1-46515f2"
   val playPluginMailer = "com.typesafe" %% "play-plugins-mailer" % "2.1.0"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
   val securesocial = "securesocial" %% "securesocial" % "master-SNAPSHOT"

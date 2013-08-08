@@ -49,10 +49,10 @@ object SeedDb {
     salatDb()(current)("templates").drop()
   }
 
-  def seedData(path: String) {
+  def seedData(paths: String*) {
     val db : MongoDB = salatDb()
     val seeder = new Seeder(salatDb(), Level.DEBUG)
-    seeder.seed(List(path))
+    seeder.seed(paths.toList, false)
   }
 
   def addMockAccessToken(token: String, scope: Option[String]) = {

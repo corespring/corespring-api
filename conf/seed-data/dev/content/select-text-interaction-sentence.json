@@ -13,7 +13,7 @@
         "name": "qti.xml",
         "contentType": "text/xml",
         "isMain": true,
-        "content": "$[interpolate{/conf/qti/select-text-interaction-sentence.xml}]"
+        "content": "$[interpolate{conf/qti/select-text-interaction-sentence.xml}]"
       }
     ]
   },

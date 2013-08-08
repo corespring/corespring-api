@@ -171,9 +171,7 @@ object Global extends GlobalSettings {
   }
 
   private def seedDevData() {
-    seedData("conf/seed-data/common")
-    seedData("conf/seed-data/dev")
-    seedData("conf/seed-data/exemplar-content")
+    seedData("conf/seed-data/common", "conf/seed-data/dev", "conf/seed-data/exemplar-content")
   }
 
   private def seedDebugData(){
