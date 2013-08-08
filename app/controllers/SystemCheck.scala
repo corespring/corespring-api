@@ -4,6 +4,7 @@ import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import dao.ModelCompanion
 import java.util.concurrent.TimeUnit
+import org.corespring.assets.{CorespringS3ServiceImpl, CorespringS3Service}
 import org.corespring.platform.core.models._
 import org.corespring.platform.core.models.auth.{ApiClient, AccessToken}
 import org.corespring.platform.core.models.error.InternalError

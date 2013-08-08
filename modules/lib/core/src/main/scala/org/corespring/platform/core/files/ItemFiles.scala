@@ -1,6 +1,6 @@
 package org.corespring.platform.core.files
 
-import controllers.CorespringS3Service
+import org.corespring.assets.CorespringS3Service
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{Resource, StoredFile}

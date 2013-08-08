@@ -1,6 +1,6 @@
 package org.corespring.platform.core.models.item.service
 
-import controllers.CorespringS3Service
+import org.corespring.assets.CorespringS3Service
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.resource.{StoredFile, Resource}
 import org.corespring.platform.core.models.item.{TaskInfo, Item}

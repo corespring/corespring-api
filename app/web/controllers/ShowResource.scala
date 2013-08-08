@@ -1,22 +1,20 @@
 package web.controllers
 
 import common.controllers.{AssetResourceBase, QtiResource}
-import controllers.auth.{BaseApi}
-import controllers.{CorespringS3Service, CorespringS3ServiceImpl}
+import controllers.auth.BaseApi
+import org.corespring.assets.{CorespringS3ServiceImpl, CorespringS3Service}
+import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.resource.{Resource, BaseFile}
 import org.corespring.platform.core.models.item.service.{ItemService, ItemServiceImpl, ItemServiceClient}
+import org.corespring.platform.core.models.item.{Item, Content}
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.qti.models.RenderingMode._
 import play.api.mvc._
 import player.controllers.QtiRenderer
 import player.views.models.{QtiKeys, PlayerParams}
-import org.corespring.qti.models.RenderingMode
-import RenderingMode._
-import scala.Some
 import scala.xml.Elem
 import scalaz.Scalaz._
 import scalaz.{Success, Failure}
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.models.item.{Item, Content}
-import org.corespring.platform.core.models.auth.Permission
 
 
 object ShowResource

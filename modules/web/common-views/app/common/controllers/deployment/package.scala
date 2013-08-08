@@ -2,10 +2,10 @@ package common.controllers
 
 import com.ee.assets.Loader
 import com.ee.assets.deployment.Deployer
-import controllers.CorespringS3ServiceImpl
 import play.api.Play
 import play.api.Play.current
 import common.views.helpers.Defaults
+import org.corespring.assets.CorespringS3ServiceImpl
 
 package object deployment {
 

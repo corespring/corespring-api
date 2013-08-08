@@ -1,19 +1,19 @@
 package common.controllers
 
-import controllers.{CorespringS3Service, CorespringS3ServiceImpl, S3ServiceClient}
+import org.bson.types.ObjectId
+import org.corespring.assets.{S3ServiceClient, CorespringS3ServiceImpl, CorespringS3Service}
+import org.corespring.common.config.AppConfig
+import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
 import org.corespring.platform.core.models.item.service.ItemServiceClient
-import org.bson.types.ObjectId
+import org.corespring.platform.core.models.itemSession.DefaultItemSession
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import play.api.mvc.Results._
 import play.api.mvc._
 import scalaz.Scalaz._
 import scalaz.{Success, Failure}
 import web.controllers.ObjectIdParser
-import org.corespring.platform.core.models.itemSession.DefaultItemSession
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.models.item.Item
-import org.corespring.common.config.AppConfig
-import org.corespring.common.log.PackageLogging
 
 
 object AssetResource{

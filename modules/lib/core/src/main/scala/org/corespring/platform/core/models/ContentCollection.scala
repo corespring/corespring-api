@@ -1,27 +1,26 @@
 package org.corespring.platform.core.models
 
-import org.bson.types.ObjectId
-import se.radley.plugin.salat._
-import play.api.libs.json._
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat._
-import dao._
 import dao.SalatDAOUpdateError
 import dao.SalatInsertError
 import dao.SalatRemoveError
-import scala.Left
-import play.api.libs.json.JsString
-import scala.Some
-import scala.Right
-import play.api.libs.json.JsObject
-import play.api.Play.current
-import play.api.Play
-import org.corespring.platform.core.models.item.service.ItemServiceImpl
-import scalaz.{Failure, Success, Validation}
-import org.corespring.platform.core.models.search.Searchable
+import dao._
+import org.bson.types.ObjectId
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error
 import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.item.service.ItemServiceImpl
+import org.corespring.platform.core.models.search.Searchable
+import play.api.Play
+import play.api.Play.current
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsString
+import play.api.libs.json._
+import scala.Left
+import scala.Right
+import scala.Some
+import scalaz.{Failure, Success, Validation}
+import se.radley.plugin.salat._
 
 
 /**
@@ -37,10 +36,12 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
   val DEFAULT = "default" //used as the value for name when the content collection is a default collection
 
   val collection = mongoCollection("contentcolls")
-  import org.corespring.platform.core.models.mongoContext.context
-val dao = new SalatDAO[ContentCollection, ObjectId](collection = collection) {}
 
-  def insertCollection(orgId: ObjectId, coll: ContentCollection, p:Permission): Either[error.InternalError, ContentCollection] = {
+  import org.corespring.platform.core.models.mongoContext.context
+
+  val dao = new SalatDAO[ContentCollection, ObjectId](collection = collection) {}
+
+  def insertCollection(orgId: ObjectId, coll: ContentCollection, p:Permission): Either[InternalError, ContentCollection] = {
     //TODO: apply two-phase commit
       if(Play.isProd) coll.id = new ObjectId()
       try {

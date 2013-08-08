@@ -5,11 +5,16 @@ import com.mongodb.casbah.MongoDB
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{BasicDBObject, DBObject}
 import com.novus.salat._
-import controllers.{CorespringS3Service, CorespringS3ServiceImpl}
 import dao.SalatMongoCursor
+import org.bson.types.ObjectId
+import org.corespring.assets.{CorespringS3ServiceImpl, CorespringS3Service}
+import org.corespring.common.config.AppConfig
+import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.files.{CloneFileResult, ItemFiles}
 import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
 import org.corespring.platform.core.models.item.resource.{VirtualFile, Resource}
-import org.bson.types.ObjectId
+import org.corespring.platform.core.models.item.{Item, FieldValue}
+import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession}
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
@@ -18,11 +23,6 @@ import play.api.PlayException
 import scala.xml.Elem
 import scalaz._
 import se.radley.plugin.salat.SalatPlugin
-import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession}
-import org.corespring.platform.core.models.item.{Item, FieldValue}
-import org.corespring.common.config.AppConfig
-import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.files.{CloneFileResult, ItemFiles}
 
 class ItemServiceImpl(
                        val s3service: CorespringS3Service,

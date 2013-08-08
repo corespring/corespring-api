@@ -3,7 +3,7 @@ package tests.api.v1
 import api.ApiError
 import api.v1.ItemApi
 import com.mongodb.casbah.Imports._
-import controllers.CorespringS3Service
+import org.corespring.assets.CorespringS3Service
 import org.corespring.platform.core.models._
 import org.corespring.platform.core.models.item.resource.{VirtualFile, Resource}
 import org.corespring.platform.core.models.item.service.ItemServiceImpl

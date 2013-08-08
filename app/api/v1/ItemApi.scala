@@ -5,7 +5,6 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSONParseException
 import com.novus.salat.dao.SalatInsertError
 import com.novus.salat.dao.SalatMongoCursor
-import controllers._
 import controllers.auth.ApiRequest
 import controllers.auth.BaseApi
 import org.corespring.common.log.PackageLogging
@@ -29,6 +28,7 @@ import scalaz.Failure
 import scalaz.Scalaz._
 import scalaz.Success
 import scalaz.Validation
+import org.corespring.assets.{CorespringS3ServiceImpl, CorespringS3Service}
 
 /**
  * Items API

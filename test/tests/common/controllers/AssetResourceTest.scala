@@ -1,7 +1,7 @@
 package tests.common.controllers
 
 import common.controllers.{AssetResource, AssetResourceBase}
-import controllers.CorespringS3Service
+import org.corespring.assets.CorespringS3Service
 import org.corespring.platform.core.models.item.resource.BaseFile
 import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
 import org.specs2.mock.Mockito

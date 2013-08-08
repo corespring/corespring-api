@@ -1,6 +1,6 @@
 package utils
 
-import controllers.CorespringS3Service
+import org.corespring.assets.CorespringS3Service
 import org.corespring.amazon.s3.models.DeleteResponse
 import play.api.mvc.{RequestHeader, Headers, Result, BodyParser}
 import play.api.libs.iteratee.{Done, Input}
