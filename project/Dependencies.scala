@@ -53,7 +53,8 @@ object Dependencies {
 
   object Resolvers {
 
-    val edeustaceArtifatory = "EE Artifactory Snapshots" at "http://edeustace.artifactoryonline.com/edeustace/snapshots"
+    val corespringSnapshots = "Corespring Artifactory Snapshots" at "http://ec2-107-22-19-173.compute-1.amazonaws.com/artifactory/ivy-snapshots"
+    val corespringReleases = "Corespring Artifactory Releases" at "http://ec2-107-22-19-173.compute-1.amazonaws.com/artifactory/ivy-releases"
     val typesafe = "typesafe releases" at "http://repo.typesafe.com/typesafe/releases/"
     val edeustaceReleases= "ed eustace" at "http://edeustace.com/repository/releases/"
     val edeustaceSnapshots = "ed eustace snapshots" at "http://edeustace.com/repository/snapshots/"
@@ -65,7 +66,8 @@ object Dependencies {
     val all: Seq[Resolver] = Seq(
       sonatypeSnapshots,
       typesafe,
-      edeustaceArtifatory,
+      corespringSnapshots,
+      corespringReleases,
       spy,
       edeustaceSnapshots,
       edeustaceReleases,
