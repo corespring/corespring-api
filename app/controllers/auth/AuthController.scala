@@ -15,6 +15,7 @@ import play.api.data.validation.ValidationError
 import web.controllers.ObjectIdParser
 import org.corespring.platform.core.models.User
 import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.auth.Permission
 
 
 /**

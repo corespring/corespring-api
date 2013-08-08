@@ -2,7 +2,7 @@ package developer.controllers
 
 import api.ApiError
 import controllers.Assets
-import controllers.auth.{BaseApi, OAuthProvider, Permission}
+import controllers.auth.{BaseApi, OAuthProvider}
 import developer.controllers.routes.{Developer => DeveloperRoutes}
 import org.bson.types.ObjectId
 import play.api.libs.json._
@@ -14,7 +14,7 @@ import scalaz.Scalaz._
 import scalaz.{Failure, Success, Validation}
 import securesocial.core.{UserId, SecureSocial}
 import org.corespring.platform.core.models.{User, Organization}
-import org.corespring.platform.core.models.auth.ApiClient
+import org.corespring.platform.core.models.auth.{Permission, ApiClient}
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
 
@@ -110,7 +110,7 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
 
       def makeOrg(json: JsValue): Option[Organization] = (json \ "name").asOpt[String].map {
         n =>
-          import common.models.json._
+          import org.corespring.platform.core.models.json._
           Organization(n, (json \ "parent_id").asOpt[ObjectId].toList)
       }
 

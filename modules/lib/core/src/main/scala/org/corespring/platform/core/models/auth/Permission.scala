@@ -1,4 +1,4 @@
-package controllers.auth
+package org.corespring.platform.core.models.auth
 
 /**
  * A Permission

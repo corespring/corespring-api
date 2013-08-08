@@ -1,9 +1,8 @@
 package org.corespring.test
 
-import controllers.auth.Permission
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.ShaHash
-import org.corespring.platform.core.models.auth.AccessToken
+import org.corespring.platform.core.models.auth.{Permission, AccessToken, OAuthConstants}
 import org.corespring.platform.core.models.{User, Organization, ContentCollection}
 import org.joda.time.DateTime
 import org.specs2.execute.Failure
@@ -17,7 +16,6 @@ import scala.Some
 import securesocial.core.UserId
 import securesocial.core._
 import securesocial.core.providers.utils.PasswordHasher
-import org.corespring.platform.core.models.auth.OAuthConstants
 
 trait TestModelHelpers {
 

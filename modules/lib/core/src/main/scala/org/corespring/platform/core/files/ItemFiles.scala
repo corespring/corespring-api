@@ -1,10 +1,10 @@
-package api.v1.files
+package org.corespring.platform.core.files
 
-import controllers.{CorespringS3Service}
+import controllers.CorespringS3Service
+import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{Resource, StoredFile}
 import scalaz.{Validation, Failure, Success}
-import org.corespring.platform.core.models.item.Item
-import org.corespring.common.log.PackageLogging
 
 
 case class CloneResourceResult(files: Seq[CloneFileResult])

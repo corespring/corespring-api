@@ -1,4 +1,4 @@
-package controllers
+package org.corespring.assets
 
 import com.amazonaws.services.s3.AmazonS3
 import org.corespring.amazon.s3.models.DeleteResponse

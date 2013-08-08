@@ -9,7 +9,6 @@ import dao._
 import dao.SalatDAOUpdateError
 import dao.SalatInsertError
 import dao.SalatRemoveError
-import controllers.{Utils, InternalError}
 import scala.Left
 import play.api.libs.json.JsString
 import scala.Some
@@ -17,10 +16,13 @@ import scala.Right
 import play.api.libs.json.JsObject
 import play.api.Play.current
 import play.api.Play
-import controllers.auth.Permission
 import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import scalaz.{Failure, Success, Validation}
 import org.corespring.platform.core.models.search.Searchable
+import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.error
+import org.corespring.platform.core.models.error.InternalError
+
 
 /**
  * A ContentCollection
@@ -38,7 +40,7 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
   import org.corespring.platform.core.models.mongoContext.context
 val dao = new SalatDAO[ContentCollection, ObjectId](collection = collection) {}
 
-  def insertCollection(orgId: ObjectId, coll: ContentCollection, p:Permission): Either[InternalError, ContentCollection] = {
+  def insertCollection(orgId: ObjectId, coll: ContentCollection, p:Permission): Either[error.InternalError, ContentCollection] = {
     //TODO: apply two-phase commit
       if(Play.isProd) coll.id = new ObjectId()
       try {

@@ -1,7 +1,7 @@
 package org.corespring.platform.core.models.item
 
 import com.mongodb.BasicDBObject
-import controllers.JsonValidationException
+import org.corespring.platform.core.models.json.JsonValidationException
 import org.bson.types.ObjectId
 import org.corespring.platform.core
 import org.corespring.platform.core.models.Subject

@@ -1,14 +1,10 @@
 package org.corespring.platform.core.models.item
 
-import com.mongodb.casbah.Imports._
-import play.api.libs.json._
-import controllers.JsonValidationException
-import controllers.JsonValidationException
-import play.api.libs.json.JsObject
-import scala.Some
-import org.bson.types.ObjectId
 import com.mongodb.casbah.commons.TypeImports.ObjectId
 import org.corespring.platform.core.models.Subject
+import org.corespring.platform.core.models.json.JsonValidationException
+import play.api.libs.json._
+import scala.Some
 
 case class Subjects(var primary: Option[ObjectId] = None,
                     var related: Option[ObjectId] = None)

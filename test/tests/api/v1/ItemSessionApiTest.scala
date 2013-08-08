@@ -2,7 +2,6 @@ package tests.api.v1
 
 import api.ApiError
 import api.v1.ItemSessionApi
-import controllers.InternalError
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.itemSession._
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -22,6 +21,8 @@ import scala.Left
 import scala.Right
 import scala.Some
 import utils.RequestCalling
+import org.corespring.platform.core.models.error.InternalError
+
 
 class ItemSessionApiTest extends BaseTest with RequestCalling {
 

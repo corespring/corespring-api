@@ -1,11 +1,11 @@
 package tests.web.views.helpers
 
-import common.utils.string
 import org.bson.types.ObjectId
 import org.specs2.mutable.Specification
 import web.views.helpers.MainHelper
 import org.corespring.platform.core.models.Organization
 import org.corespring.test.PlaySingleton
+import org.corespring.common.utils.string
 
 class MainHelperTest extends Specification {
 

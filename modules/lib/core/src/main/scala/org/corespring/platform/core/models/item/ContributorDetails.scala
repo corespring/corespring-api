@@ -1,7 +1,7 @@
 package org.corespring.platform.core.models.item
 
 import play.api.libs.json._
-import controllers.JsonValidationException
+import org.corespring.platform.core.models.json.JsonValidationException
 
 
 case class ContributorDetails(

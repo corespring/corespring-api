@@ -3,7 +3,7 @@ package api.v1
 import api.ApiError
 import com.mongodb.casbah.Imports._
 import controllers.auth.ApiRequest
-import controllers.auth.{Permission, BaseApi}
+import controllers.auth.{BaseApi}
 import org.corespring.platform.core.models.item.Content
 import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
 import org.corespring.platform.core.models.itemSession._
@@ -18,6 +18,7 @@ import play.api.mvc.AnyContent
 import scala.Left
 import scala.Right
 import scala.Some
+import org.corespring.platform.core.models.auth.Permission
 
 /**
  * API for managing item sessions

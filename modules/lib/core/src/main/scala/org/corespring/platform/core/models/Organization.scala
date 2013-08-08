@@ -1,25 +1,21 @@
 package org.corespring.platform.core.models
 
-import se.radley.plugin.salat._
-import play.api.libs.json._
-import org.bson.types.ObjectId
-import com.novus.salat.dao.{ModelCompanion, SalatDAO}
-import controllers.auth.Permission
-import play.api.Play.current
 import com.mongodb.casbah.commons.MongoDBObject
-import play.api.Play
-import controllers.{Utils, InternalError}
 import com.novus.salat._
-import dao.SalatDAOUpdateError
-import dao.SalatRemoveError
-import scala.Left
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsString
-import scala.Some
-import scala.Right
-import play.api.libs.json.JsObject
-import org.corespring.platform.core.models.search.Searchable
+import com.novus.salat.dao.{SalatDAOUpdateError, SalatRemoveError, ModelCompanion, SalatDAO}
+import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
+import org.corespring.platform.core.models.search.Searchable
+import play.api.Play
+import play.api.Play.current
+import play.api.libs.json._
+import scala.Left
+import scala.Right
+import scala.Some
+import se.radley.plugin.salat._
+import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.error.InternalError
+
 
 case class Organization(var name: String = "",
                         var path: Seq[ObjectId] = Seq(),
@@ -36,8 +32,10 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
   val id = "id"
 
   val collection = mongoCollection("orgs")
+
   import org.corespring.platform.core.models.mongoContext.context
-val dao = new SalatDAO[Organization, ObjectId](collection = collection) {}
+
+  val dao = new SalatDAO[Organization, ObjectId](collection = collection) {}
 
   def apply(): Organization = new Organization();
 

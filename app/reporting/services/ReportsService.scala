@@ -8,8 +8,8 @@ import reporting.models.ReportLineResult.{KeyCount, LineResult}
 import reporting.models.ReportLineResult
 import org.bson.types.ObjectId
 
-import common.utils.string
 import org.corespring.platform.core.models.ContentCollection
+import org.corespring.common.utils.string
 
 class ReportsService(ItemCollection: MongoCollection,
                      SubjectCollection: MongoCollection,

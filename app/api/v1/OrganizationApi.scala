@@ -6,7 +6,7 @@ import controllers.auth.BaseApi
 import api._
 import com.mongodb.casbah.Imports._
 import play.api.mvc.Result
-import controllers.Utils
+
 import com.mongodb.casbah.commons.MongoDBObject
 import scala.Left
 import play.api.libs.json.JsArray

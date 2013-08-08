@@ -2,9 +2,10 @@ package org.corespring.platform.core.models.itemSession
 
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
-import controllers.{JsonValidationException, InternalError}
 import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
+import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
+import org.corespring.platform.core.models.json.JsonValidationException
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qti.models.responses.{ResponseOutcome, Response}
@@ -16,7 +17,8 @@ import play.api.Play.current
 import play.api.libs.json._
 import scala.xml._
 import se.radley.plugin.salat._
-import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.error.InternalError
+
 
 /**
  * Case class representing an individual item session
@@ -57,8 +59,8 @@ object ItemSession {
     def writes(session: ItemSession): JsValue = {
 
       import Keys._
-import VersionedIdImplicits.{Writes => IdWrites}
-import play.api.libs.json.Json._
+      import VersionedIdImplicits.{Writes => IdWrites}
+      import play.api.libs.json.Json._
 
       val main: Seq[(String, JsValue)] = Seq(
         "id" -> JsString(session.id.toString),
@@ -93,7 +95,7 @@ import play.api.libs.json.Json._
       val settings = (json \ "settings").asOpt[ItemSessionSettings].getOrElse(ItemSessionSettings())
 
       import VersionedIdImplicits.{Reads => IdReads}
-JsSuccess(ItemSession(
+      JsSuccess(ItemSession(
         itemId = (json \ itemId).asOpt[VersionedId[ObjectId]](IdReads).getOrElse(throw new JsonValidationException("You must have an item id")),
         start = (json \ start).asOpt[Long].map(new DateTime(_)),
         finish = (json \ finish).asOpt[Long].map(new DateTime(_)),
@@ -121,7 +123,7 @@ object DefaultItemSession extends ItemSessionCompanion {
 trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with PackageLogging{
 
   import ItemSession.Keys._
-import org.corespring.platform.core.models.mongoContext.context
+  import org.corespring.platform.core.models.mongoContext.context
 
   def collection: MongoCollection
 

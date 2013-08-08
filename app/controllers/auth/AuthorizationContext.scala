@@ -2,6 +2,7 @@ package controllers.auth
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.{User, Organization}
+import org.corespring.platform.core.models.auth.Permission
 
 /**
  * A class that holds authorization information for an API call.  This is created in the BaseApi trait.

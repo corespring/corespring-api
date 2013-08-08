@@ -4,7 +4,7 @@ import play.api.test.FakeRequest
 import org.specs2.execute.{Result, Failure}
 import play.api.test.Helpers._
 import securesocial.core.SecureSocial
-import controllers.auth.{Permission, OAuthConstants}
+import controllers.auth.{OAuthConstants}
 import play.api.libs.json.Json
 import scala.Left
 import scala.Right
@@ -13,7 +13,7 @@ import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import org.corespring.platform.core.models.{User, Organization}
-import org.corespring.platform.core.models.auth.{ApiClient, AccessToken}
+import org.corespring.platform.core.models.auth.{Permission, ApiClient, AccessToken}
 import org.corespring.common.encryption.ShaHash
 import org.corespring.test.{TestModelHelpers, BaseTest}
 

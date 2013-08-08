@@ -58,6 +58,10 @@ object Build extends sbt.Build {
     Keys.fork in Test := false
   ).dependsOn(commonUtils, testLib % "test->compile")
 
+  val assets = builders.lib("assets").settings(
+    libraryDependencies ++= Seq(specs2 % "test", playS3, assetsLoader)
+  ).dependsOn(commonUtils)
+
   /** Core data model */
   val core = builders.lib("core").settings(
     libraryDependencies ++= Seq(
@@ -78,7 +82,7 @@ object Build extends sbt.Build {
         println( scala.Console.BLUE + "-------------> setup core "  + scala.Console.RESET)
         MongoDbSeederPlugin.seed("mongodb://localhost/api", "conf/seed-data/test", "seed-main", "INFO")
       }
-   ).dependsOn(commonUtils, qti, testLib % "test->compile")
+   ).dependsOn(assets,commonUtils, qti, testLib % "test->compile")
 
 
   val commonViews = builders.web("common-views").settings(

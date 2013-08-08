@@ -1,4 +1,4 @@
-package controllers
+package org.corespring.platform.core.models.error
 
 case class InternalError(message: String, e : Option[Throwable] = None){
 

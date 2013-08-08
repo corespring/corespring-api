@@ -1,7 +1,7 @@
 package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
-import controllers.JsonValidationException
+import org.corespring.platform.core.models.json.JsonValidationException
 import org.corespring.platform.core.models.json.ItemView
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.{EntityWithVersionedId, VersionedId}

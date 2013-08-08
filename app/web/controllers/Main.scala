@@ -2,13 +2,12 @@ package web.controllers
 
 import common.controllers.session.SessionHandler
 import controllers.auth.BaseApi
+import org.corespring.platform.core.models.{User, Organization}
 import play.api.mvc._
 import player.accessControl.cookies.{PlayerCookieKeys, PlayerCookieWriter}
 import scala.Some
-import securesocial.core.{SecureSocial, SecuredRequest}
-import web.models.QtiTemplate
-import org.corespring.platform.core.models.{User, Organization}
-import web.controller.utils.ConfigLoader
+import securesocial.core.SecuredRequest
+import org.corespring.platform.core.models.web.QtiTemplate
 
 
 object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
@@ -26,7 +25,8 @@ object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
   def index = SecuredAction {
     implicit request: SecuredRequest[AnyContent] =>
 
-      val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
+      val uri: Option[String] = play.api.Play.current.configuration.getString("mongodb.default.uri")
+      val (dbServer, dbName) = getDbName(uri)
       val userId = request.user.id
       val user: User = User.getUser(request.user.id).getOrElse(throw new RuntimeException("Unknown user"))
       Organization.findOneById(user.org.orgId) match {

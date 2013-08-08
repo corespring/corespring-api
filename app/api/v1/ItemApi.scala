@@ -7,23 +7,28 @@ import com.novus.salat.dao.SalatInsertError
 import com.novus.salat.dao.SalatMongoCursor
 import controllers._
 import controllers.auth.ApiRequest
-import controllers.auth.{Permission, BaseApi}
+import controllers.auth.BaseApi
+import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models._
-import org.corespring.platform.core.models.item._
+import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.item.resource.StoredFile
 import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
+import org.corespring.platform.core.models.item.{TaskInfo, Item, Alignments, Content}
 import org.corespring.platform.core.models.json.ItemView
 import org.corespring.platform.core.models.mongoContext.context
+import org.corespring.platform.core.models.search.ItemSearch
+import org.corespring.platform.core.models.search.SearchCancelled
+import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc.{Result, Action, AnyContent}
+import scala.Some
+import scalaz.Failure
 import scalaz.Scalaz._
-import scalaz.{Failure, Success, Validation}
-import org.corespring.platform.core.models.{Organization, ContentCollection}
-import org.corespring.platform.core.models.search.{ItemSearch, SearchFields, SearchCancelled}
-import org.corespring.platform.core.models.item.{TaskInfo, Item, Alignments, Content}
-import org.corespring.common.log.PackageLogging
+import scalaz.Success
+import scalaz.Validation
 
 /**
  * Items API
@@ -83,7 +88,7 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService) extends Base
     toJson(itemViews)
   }
 
-  def parseCollectionIds[A](request: ApiRequest[A])(value: AnyRef): Either[InternalError, AnyRef] = value match {
+  def parseCollectionIds[A](request: ApiRequest[A])(value: AnyRef): Either[error.InternalError, AnyRef] = value match {
     case dbo: BasicDBObject => dbo.toSeq.headOption match {
       case Some((key, dblist)) => if (key == "$in") {
         if (dblist.isInstanceOf[BasicDBList]) {

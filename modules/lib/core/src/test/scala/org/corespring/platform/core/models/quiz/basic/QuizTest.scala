@@ -146,9 +146,6 @@ class QuizTest extends BaseTest with RequestCalling{
 
     "json generation works" in {
 
-      //SeedDb.emptyData()
-      //SeedDb.seedData("conf/seed-data/test")
-
       def assertCompleteAndScore(id: ObjectId, expected: (Boolean, Int)*): org.specs2.execute.Result = {
 
         Quiz.findOneById(id) match {

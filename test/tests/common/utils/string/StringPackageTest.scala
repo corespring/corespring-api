@@ -1,7 +1,7 @@
 package tests.common.utils.string
 
 import org.specs2.mutable.Specification
-import common.utils.string
+import org.corespring.common.utils.string
 
 class StringPackageTest extends Specification {
 

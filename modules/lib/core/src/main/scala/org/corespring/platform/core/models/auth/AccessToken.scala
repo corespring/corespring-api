@@ -1,15 +1,14 @@
 package org.corespring.platform.core.models.auth
 
-import org.bson.types.ObjectId
-import com.novus.salat.dao.{SalatRemoveError, SalatInsertError, SalatDAO, ModelCompanion}
 import com.mongodb.casbah.commons.MongoDBObject
-import se.radley.plugin.salat._
-import play.api.Play.current
-import org.joda.time.DateTime
-import play.api.libs.json.{JsString, JsValue, JsObject, Writes}
-import controllers.auth.Permission
-import controllers.InternalError
+import com.novus.salat.dao.{SalatRemoveError, SalatInsertError, SalatDAO, ModelCompanion}
+import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
+import org.joda.time.DateTime
+import play.api.Play.current
+import se.radley.plugin.salat._
+import org.corespring.platform.core.models.error.InternalError
+
 
 
 /**
@@ -34,8 +33,10 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
   val tokenId = "tokenId"
 
   val collection = mongoCollection("accessTokens")
+
   import org.corespring.platform.core.models.mongoContext.context
-val dao = new SalatDAO[AccessToken, ObjectId](collection = collection) {}
+
+  val dao = new SalatDAO[AccessToken, ObjectId](collection = collection) {}
 
   def removeToken(tokenId:String):Either[InternalError,Unit] = {
     try{

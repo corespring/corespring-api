@@ -3,10 +3,10 @@ package common.controllers.deployment
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model._
 import com.ee.assets.deployment.{ContentInfo, Deployer}
-import common.utils.string
 import java.io.{InputStream, ByteArrayInputStream}
 import java.util.Date
 import org.corespring.common.log.PackageLogging
+import org.corespring.common.utils.string
 import scala.Left
 import scala.Right
 import scala.Some
@@ -74,7 +74,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
 
   private def toByteArray(is: InputStream) = {
     import scala.language.postfixOps
-Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
+    Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
   }
 
   /** Try and delete everything from an existing bucket - if that fails - create a new bucket and set the access policy.

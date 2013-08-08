@@ -4,7 +4,7 @@ import basiclti.export.CCExporter
 import com.mongodb.casbah.commons.MongoDBObject
 import common.controllers.utils.BaseUrl
 import common.encryption._
-import controllers.auth.{Permission, BaseApi}
+import controllers.auth.{BaseApi}
 import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -16,6 +16,7 @@ import scala.Some
 import scorm.utils.ScormExporter
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.{Item, Content}
+import org.corespring.platform.core.models.auth.Permission
 
 class ExporterApi(encrypter: Crypto, service:ItemService) extends BaseApi {
 

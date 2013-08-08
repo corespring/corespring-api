@@ -1,8 +1,8 @@
 package player.accessControl.models
 
-import controllers.auth.Permission
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.platform.core.models.auth.Permission
 
 case class ContentRequest(id:ObjectId,p:Permission)
 

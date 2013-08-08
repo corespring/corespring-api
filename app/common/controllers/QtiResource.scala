@@ -2,11 +2,11 @@ package common.controllers
 
 import org.bson.types.ObjectId
 import scala.xml.Elem
-import controllers.auth.Permission
 import org.corespring.platform.core.models.item.resource.{VirtualFile, Resource}
 import org.corespring.platform.core.models.item.service.ItemServiceClient
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.item.{Item, Content}
+import org.corespring.platform.core.models.auth.Permission
 
 trait QtiResource { self : ItemServiceClient =>
 

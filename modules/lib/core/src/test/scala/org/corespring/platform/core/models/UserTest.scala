@@ -1,9 +1,9 @@
 package org.corespring.platform.core.models
 
-import controllers.auth.Permission
 import org.bson.types.ObjectId
 import org.specs2.mutable.{After, Specification}
 import org.corespring.test.PlaySingleton
+import org.corespring.platform.core.models.auth.Permission
 
 class UserTest extends Specification {
 

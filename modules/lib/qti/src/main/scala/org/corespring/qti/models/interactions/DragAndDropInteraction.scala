@@ -1,6 +1,5 @@
 package org.corespring.qti.models.interactions
 
-import controllers.Utils.isTrue
 import org.corespring.qti.models.responses._
 import org.corespring.qti.models.QtiItem.Correctness
 import org.corespring.qti.models.interactions.choices.SimpleChoice
@@ -10,6 +9,9 @@ import scala.collection.mutable
 import scala.xml._
 import scala.xml.transform.{RuleTransformer, RewriteRule}
 import scala.xml.{Text, Attribute}
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.generic.CanBuildFrom
+import scala.util.Random
 
 case class Target(identifier: String, cardinality: String)
 
@@ -108,6 +110,47 @@ object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteractio
 
   def tagName = "dragAndDropInteraction"
 
+
+  def isTrue(v:Any):Boolean = {
+    v match {
+      case s:String => s.toLowerCase == "true"
+      case b:Boolean => b
+      case n:Node => isTrue(n.text)
+      case Some(some) => isTrue(some)
+      case _ => false
+    }
+  }
+
+  def shuffleElements[T, CC[X] <: TraversableOnce[X]](xs: CC[T], isFixed: T => Boolean)(implicit bf: CanBuildFrom[CC[T], T, CC[T]]): CC[T] = {
+    val buf = new ArrayBuffer[T] ++= xs
+
+    def swap(i1: Int, i2: Int) {
+      if (!isFixed(buf(i1)) && !isFixed(buf(i2))) {
+        val tmp = buf(i1)
+        buf(i1) = buf(i2)
+        buf(i2) = tmp
+      }
+    }
+
+    def getRandomIndex(n: Int): Int = {
+      if (buf.take(n).forall(isFixed(_)))
+        -1
+      else {
+        val index = Random.nextInt(n)
+        if (!isFixed(buf(index))) index else getRandomIndex(n)
+      }
+    }
+
+    for (n <- buf.length to 2 by -1) {
+      if (!isFixed(buf(n - 1))) {
+        val k = getRandomIndex(n)
+        if (k >= 0) swap(n - 1, k)
+      }
+    }
+
+    bf(xs) ++= buf result
+  }
+
   private def convertGroupToTable(xml: NodeSeq, nodeLabel:String, groupLabel:String, tableClass:String) = {
 
     val tdNode = <td></td>
@@ -118,7 +161,7 @@ object DragAndDropInteraction extends InteractionCompanion[DragAndDropInteractio
 
       def doShuffle(xs: Seq[Node]) = {
         def isFixed(n: Node): Boolean = isTrue(n.attribute(fixedAttribute))
-        controllers.Utils.shuffle(xs, isFixed)
+        shuffleElements(xs, isFixed)
       }
 
       def tdRule = new RewriteRule {

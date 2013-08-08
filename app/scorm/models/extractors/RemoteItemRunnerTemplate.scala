@@ -1,8 +1,8 @@
 package scorm.models.extractors
 
-import common.utils.string
 import java.io.File
 import scala.io.Source
+import org.corespring.common.utils.string
 
 
 /**

@@ -29,7 +29,7 @@ val dao = new SalatDAO[RegistrationToken, ObjectId](collection = collection) {}
   val Expires = "expirationTime"
   val IsSignUp = "isSignUp"
 
-  import common.models.json._
+  import org.corespring.platform.core.models.json._
   implicit val Writes = Json.writes[RegistrationToken]
   implicit val Reads = Json.reads[RegistrationToken]
 

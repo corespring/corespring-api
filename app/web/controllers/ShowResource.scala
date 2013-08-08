@@ -1,7 +1,7 @@
 package web.controllers
 
 import common.controllers.{AssetResourceBase, QtiResource}
-import controllers.auth.{Permission, BaseApi}
+import controllers.auth.{BaseApi}
 import controllers.{CorespringS3Service, CorespringS3ServiceImpl}
 import org.corespring.platform.core.models.item.resource.{Resource, BaseFile}
 import org.corespring.platform.core.models.item.service.{ItemService, ItemServiceImpl, ItemServiceClient}
@@ -16,6 +16,7 @@ import scalaz.Scalaz._
 import scalaz.{Success, Failure}
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.{Item, Content}
+import org.corespring.platform.core.models.auth.Permission
 
 
 object ShowResource

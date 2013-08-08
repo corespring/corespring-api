@@ -42,7 +42,7 @@ case class LtiParticipant(itemSession: ObjectId,
   extends BaseParticipant(Seq(itemSession), resultSourcedId)
 
 object LtiParticipant{
-  import common.models.json.{ObjectIdReads, ObjectIdWrites}
+  import org.corespring.platform.core.models.json.{ObjectIdReads, ObjectIdWrites}
   implicit val Writes = Json.writes[LtiParticipant]
   implicit val Reads = Json.reads[LtiParticipant]
 }
@@ -107,7 +107,7 @@ object LtiQuiz {
     }
   }
 */
-  import common.models.json._
+  import org.corespring.platform.core.models.json._
   implicit val Writes = Json.writes[LtiQuiz]
   implicit val Reads = Json.reads[LtiQuiz]
 

@@ -1,6 +1,5 @@
 package org.corespring.platform.core.models.item.service
 
-import api.v1.files.{CloneFileResult, ItemFiles}
 import com.mongodb.casbah
 import com.mongodb.casbah.MongoDB
 import com.mongodb.casbah.commons.MongoDBObject
@@ -23,6 +22,7 @@ import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, De
 import org.corespring.platform.core.models.item.{Item, FieldValue}
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.files.{CloneFileResult, ItemFiles}
 
 class ItemServiceImpl(
                        val s3service: CorespringS3Service,

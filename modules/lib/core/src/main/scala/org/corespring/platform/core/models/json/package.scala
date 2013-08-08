@@ -1,10 +1,11 @@
-package common.models
+package org.corespring.platform.core.models
 
-import org.bson.types.ObjectId
 import play.api.libs.json._
-
+import org.bson.types.ObjectId
+import play.api.libs.json.JsSuccess
 
 package object json {
+  case class JsonValidationException(field: String) extends RuntimeException("invalid value for: " + field)
 
   implicit object ObjectIdReads extends Reads[ObjectId] {
     def reads(js: JsValue): JsResult[ObjectId] = {
@@ -25,5 +26,4 @@ package object json {
   implicit object ObjectIdWrites extends Writes[ObjectId] {
     def writes(oid: ObjectId): JsValue = JsString(oid.toString)
   }
-
 }

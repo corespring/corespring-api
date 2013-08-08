@@ -1,15 +1,15 @@
-package common.view.helpers
+package common.views.helpers
 
-import play.api.libs.json.{JsValue, Json}
-import org.corespring.platform.core.models.item.FieldValue
 import com.mongodb.casbah.commons.MongoDBObject
 import com.typesafe.config.{ConfigFactory, Config}
+import org.corespring.platform.core.models.item.FieldValue
+import play.api.libs.json.{JsValue, Json}
 
 object Defaults{
 
   lazy val fieldValues : String = FieldValue.findOne(MongoDBObject()) match {
     case Some(fv) => {
-      import common.models.json._
+      import org.corespring.platform.core.models.json._
       implicit val writes = Json.writes[FieldValue]
 
       val json : JsValue = writes.writes(fv)

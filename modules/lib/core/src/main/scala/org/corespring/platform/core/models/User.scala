@@ -3,8 +3,6 @@ package org.corespring.platform.core.models
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import com.novus.salat.dao._
-import controllers.InternalError
-import controllers.auth.Permission
 import dao.SalatDAOUpdateError
 import dao.SalatMongoCursor
 import dao.SalatRemoveError
@@ -20,6 +18,9 @@ import org.corespring.platform.core.models.search.Searchable
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
 import org.joda.time.DateTime
+import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.error.InternalError
+
 
 
 case class User(var userName: String = "",

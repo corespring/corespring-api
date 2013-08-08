@@ -38,7 +38,7 @@ val dao = new SalatDAO[Standard, ObjectId](collection = collection) {}
   //Ensure dotNotation is unique
   collection.ensureIndex(DotNotation)
 
-  //import common.models.json._
+  //import org.corespring.platform.core.models.json._
   //implicit val reads = Json.reads[Standard]
   //implicit val writes = Json.writes[Standard]
 

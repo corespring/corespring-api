@@ -1,12 +1,11 @@
 package common.controllers
 
-import com.amazonaws.services.s3.AmazonS3Client
-import common.view.helpers.Defaults
+import com.ee.assets.Loader
+import com.ee.assets.deployment.Deployer
 import controllers.CorespringS3ServiceImpl
 import play.api.Play
 import play.api.Play.current
-import com.ee.assets.Loader
-import com.ee.assets.deployment.Deployer
+import common.views.helpers.Defaults
 
 package object deployment {
 

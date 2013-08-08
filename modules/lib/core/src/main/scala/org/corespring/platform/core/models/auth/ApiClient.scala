@@ -1,12 +1,11 @@
 package org.corespring.platform.core.models.auth
 
-import org.bson.types.ObjectId
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao._
+import org.bson.types.ObjectId
+import org.corespring.common.encryption.ShaHash
 import play.api.Play.current
 import se.radley.plugin.salat._
-import play.api.libs.oauth.OAuth
-import org.corespring.common.encryption.ShaHash
 
 object OAuthConstants {
   val GrantType = "grant_type"
@@ -40,8 +39,10 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
   val clientSecret = "clientSecret"
 
   val collection = mongoCollection("apiClients")
+
   import org.corespring.platform.core.models.mongoContext.context
-val dao = new SalatDAO[ApiClient, ObjectId](collection = collection) {}
+
+  val dao = new SalatDAO[ApiClient, ObjectId](collection = collection) {}
 
   /**
    * Retrieves an ApiClient by client id and secret from the services.

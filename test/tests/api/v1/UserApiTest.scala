@@ -14,8 +14,8 @@ import play.api.test.FakeHeaders
 import scala.Some
 import play.api.mvc.AnyContentAsJson
 import org.bson.types.ObjectId
-import controllers.auth.Permission
 import org.corespring.test.BaseTest
+import org.corespring.platform.core.models.auth.Permission
 
 /**
  * User API Tests

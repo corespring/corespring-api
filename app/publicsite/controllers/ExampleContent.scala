@@ -2,13 +2,12 @@ package publicsite.controllers
 
 import api.ApiError
 import com.mongodb.casbah.Imports._
-import controllers.Utils
+import org.corespring.platform.core.models.ContentCollection
+import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.service.{ItemService, ItemServiceImpl, ItemServiceClient}
+import org.corespring.platform.core.models.search.ItemSearch
 import play.api.libs.json.{Json, JsArray}
 import play.api.mvc.{Result, Action, Controller}
-import org.corespring.platform.core.models.ContentCollection
-import org.corespring.platform.core.models.search.ItemSearch
-import org.corespring.platform.core.models.item.Item
 
 
 object ExampleContent extends Controller with ItemServiceClient{

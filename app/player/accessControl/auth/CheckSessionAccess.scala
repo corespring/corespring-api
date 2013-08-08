@@ -1,6 +1,5 @@
 package player.accessControl.auth
 
-import controllers.InternalError
 import org.bson.types.ObjectId
 import play.api.Logger
 import player.accessControl.models.RequestedAccess.Mode
@@ -13,6 +12,8 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession, PreviewItemSessionCompanion}
 import org.corespring.platform.core.models.quiz.basic.Quiz
 import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.error.InternalError
+
 
 /** Delegate calls to grantAccess to the ConstraintGranter.
  */

@@ -1,4 +1,4 @@
-package common.utils
+package org.corespring.common.utils
 
 import scala.util.matching.Regex
 

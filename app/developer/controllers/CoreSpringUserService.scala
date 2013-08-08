@@ -1,6 +1,5 @@
 package developer.controllers
 
-import _root_.controllers.auth.Permission
 import com.mongodb.casbah.commons.MongoDBObject
 import developer.models.RegistrationToken
 import org.bson.types.ObjectId
@@ -13,6 +12,7 @@ import securesocial.core.providers.Token
 import org.corespring.platform.core.models.{UserOrg, User}
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.auth.Permission
 
 /**
  * An implementation of the UserService

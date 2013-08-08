@@ -1,8 +1,8 @@
 package common.controllers.deployment
 
+import com.ee.assets.Loader
 import org.corespring.common.log.PackageLogging
 import play.api.{Play, Application}
-import com.ee.assets.Loader
 
 class AssetsLoader(val loader: Loader) extends PackageLogging{
 

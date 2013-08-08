@@ -1,7 +1,7 @@
 package api.v1
 
 import api.ApiError
-import controllers.auth.{Permission, ApiRequest, BaseApi}
+import controllers.auth.{ApiRequest, BaseApi}
 import controllers.{CorespringS3Service, CorespringS3ServiceImpl}
 import org.corespring.platform.core.models.item.resource.{VirtualFile, BaseFile, StoredFile, Resource}
 import org.corespring.platform.core.models.item.service.{ItemService, ItemServiceImpl}
@@ -14,6 +14,7 @@ import scala.Some
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.{Item, Content}
 import org.corespring.common.config.AppConfig
+import org.corespring.platform.core.models.auth.Permission
 
 class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends BaseApi {
 

@@ -11,45 +11,20 @@ import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
-import web.controller.utils.ConfigLoader
 
 
-/**
- * Base class for tests
- *
- */
 trait BaseTest extends Specification {
 
   val TEST_COLLECTION_ID: String = "51114b127fc1eaa866444647"
   // From standard fixture data
   val token = "test_token"
 
-  val isLocalDb: Boolean = {
-    ConfigLoader.get("mongodb.default.uri") match {
-      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907.mongolab.com:35907/sib")
-      case None => false
-    }
-  }
-
   def itemService : ItemService = ItemServiceImpl
 
   def fakeRequest(content:AnyContent = AnyContentAsEmpty) : FakeRequest[AnyContent] = FakeRequest("", tokenize(""), FakeHeaders(), content)
 
-  /*def initDB() {
-    if (isLocalDb) {
-      SeedDb.emptyData()
-      SeedDb.seedData("conf/seed-data/test")
-    } else {
-      throw new RuntimeException("You're trying to seed against a remote db - bad idea")
-    }
-  }*/
 
   PlaySingleton.start()
-
-  /*override def map(fs: => Fragments) = {
-    import org.specs2.specification.Step
-    Step(initDB) ^ fs
-  }*/
 
   /**
    * Decorate play.api.mvc.Result with some helper methods

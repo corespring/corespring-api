@@ -13,11 +13,11 @@ import play.api.i18n.Messages
 import securesocial.core.providers.Token
 import scala.Some
 import securesocial.controllers.Registration._
-import controllers.auth.Permission
 import play.api.libs.json.{JsString, JsObject}
 import org.corespring.platform.core.models
 import org.corespring.platform.core.models.User
 import org.corespring.common.config.AppConfig
+import org.corespring.platform.core.models.auth.Permission
 
 object MyRegistration extends Controller {
   val Organization = "organization"

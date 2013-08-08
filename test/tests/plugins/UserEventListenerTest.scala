@@ -1,6 +1,5 @@
 package tests.plugins
 
-import controllers.auth.Permission
 import org.corespring.platform.core.models.User
 import org.corespring.test.{TestModelHelpers, BaseTest}
 import org.joda.time.DateTime
@@ -9,6 +8,7 @@ import play.api.test.FakeRequest
 import plugins.UserEventListener
 import securesocial.core.AuthenticationMethod.UserPassword
 import securesocial.core._
+import org.corespring.platform.core.models.auth.Permission
 
 class UserEventListenerTest extends BaseTest with TestModelHelpers {
 

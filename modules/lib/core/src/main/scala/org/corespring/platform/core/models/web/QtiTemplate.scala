@@ -1,4 +1,4 @@
-package web.models
+package org.corespring.platform.core.models.web
 
 import com.mongodb.casbah.Imports._
 import com.novus.salat.dao._

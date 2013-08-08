@@ -9,6 +9,7 @@ import securesocial.core.SecureSocial
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.{User, Organization}
 import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.auth.Permission
 
 /**
  * A class that adds an AuthorizationContext to the Request object

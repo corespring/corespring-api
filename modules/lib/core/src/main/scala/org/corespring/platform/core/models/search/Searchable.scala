@@ -1,13 +1,12 @@
 package org.corespring.platform.core.models.search
 
-import com.mongodb.BasicDBObject
 import com.mongodb.casbah.Imports._
-import java.util.regex.Pattern
-import controllers.InternalError
-import scala.Left
-import scala.Some
-import scala.Right
 import com.mongodb.util.{JSONParseException, JSON}
+import java.util.regex.Pattern
+import org.corespring.platform.core.models.error.InternalError
+import scala.Left
+import scala.Right
+import scala.Some
 
 trait Searchable {
   protected val searchableFields:Seq[String] = Seq()
