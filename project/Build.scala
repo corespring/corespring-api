@@ -11,7 +11,25 @@ object Build extends sbt.Build {
   val ScalaVersion = "2.10.1"
   val org = "org.corespring"
 
-  val cred = Credentials(Path.userHome / ".ivy2" / ".credentials")
+  val cred = {
+
+    val f : File =  file( Seq(Path.userHome / ".ivy2"/ ".credentials").mkString )
+
+    def env(k:String) = System.getenv(k)
+
+    if(f.exists()){
+      println("using credentials file")
+      Credentials(f)
+    } else {
+      //https://devcenter.heroku.com/articles/labs-user-env-compile
+      println("using credentials env vars - you need to have: user-env-compile enabled in heroku")
+      Credentials(
+        env("ARTIFACTORY_REALM"),
+        env("ARTIFACTORY_HOST"),
+        env("ARTIFACTORY_USER"),
+        env("ARTIFACTORY_PASS") )
+    }
+  }
 
 
   val builders = new Builders(appName, org, appVersion, ScalaVersion)

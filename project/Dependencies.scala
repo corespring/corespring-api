@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
 
-  val playVersion = "2.1.3-RC1"
+  val playVersion = "2.1.3"
 
   //TODO: May need to change this
   val playJson = "com.typesafe.play" %% "play-json" % "2.2.0-M1"
