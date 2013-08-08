@@ -53,6 +53,7 @@ object Build extends sbt.Build {
   )
 
   /** The Qti library */
+  //TODO: only depends on commonUtils for PackageLogging - remove
   val qti = builders.lib("qti").settings(
     libraryDependencies ++= Seq(specs2 % "test", salatPlay, playJson % "test"),
     Keys.fork in Test := false
@@ -85,9 +86,18 @@ object Build extends sbt.Build {
    ).dependsOn(assets,commonUtils, qti, testLib % "test->compile")
 
 
+  val playerLib = builders.lib("player-lib").settings(
+    libraryDependencies ++= Seq(playFramework)
+  ).dependsOn(core, commonUtils)
+
   val commonViews = builders.web("common-views").settings(
     libraryDependencies ++= Seq(playJson % "test")
   ).dependsOn(core)
+
+  /** The public play module */
+  val public = builders.web("public").settings(
+    libraryDependencies ++= Seq(playFramework, securesocial)
+  ).dependsOn(commonViews,core, playerLib)
 
   val main = play.Project(appName, appVersion, Dependencies.all )
     .settings(
@@ -108,8 +118,8 @@ object Build extends sbt.Build {
       println( scala.Console.BLUE + "-------------> cleanup " + appName + scala.Console.RESET)
       MongoDbSeederPlugin.unseed("mongodb://localhost/api", "conf/seed-data/test", "seed-main", "INFO")
     }
-  ).dependsOn(qti, core % "compile->compile;test->test", commonUtils, commonViews, testLib % "test->compile")
-   .aggregate(qti, core, commonUtils, commonViews, testLib )
+  ).dependsOn(public, playerLib, qti, core % "compile->compile;test->test", commonUtils, commonViews, testLib % "test->compile")
+   .aggregate(public, playerLib, qti, core, commonUtils, commonViews, testLib )
 
 
 }

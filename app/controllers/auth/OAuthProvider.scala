@@ -6,9 +6,9 @@ import org.bson.types.ObjectId
 import play.api.Logger
 import com.novus.salat.dao.SalatSaveError
 import org.joda.time.DateTime
-import common.encryption.AESCrypto
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.{ApiClient, AccessToken}
+import org.corespring.common.encryption.AESCrypto
 
 /**
  * A OAuth provider

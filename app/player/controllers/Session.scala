@@ -2,10 +2,9 @@ package player.controllers
 
 import api.v1.ItemSessionApi
 import common.controllers.SimpleJsRoutes
-import controllers.auth.TokenizedRequestActionBuilder
 import org.bson.types.ObjectId
 import play.api.mvc._
-import player.accessControl.auth.CheckSessionAccess
+import player.accessControl.auth.{TokenizedRequestActionBuilder, CheckSessionAccess}
 import player.accessControl.cookies.PlayerCookieReader
 import player.accessControl.models.RequestedAccess
 import player.accessControl.models.RequestedAccess.Mode._

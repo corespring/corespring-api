@@ -5,7 +5,7 @@ import basiclti.controllers.routes.{AssignmentLauncher => AssignmentLauncherRout
 import basiclti.controllers.routes.{AssignmentPlayer => AssignmentPlayerRoutes}
 import basiclti.models._
 import common.controllers.utils.BaseUrl
-import controllers.auth.{TokenizedRequestActionBuilder, BaseApi}
+import controllers.auth.{BaseApi}
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
 import org.bson.types.ObjectId
 import play.api.libs.json.Json._
@@ -15,7 +15,7 @@ import play.api.libs.oauth.OAuthCalculator
 import play.api.libs.oauth.RequestToken
 import play.api.libs.ws.WS
 import play.api.mvc._
-import player.accessControl.auth.CheckSessionAccess
+import player.accessControl.auth.{TokenizedRequestActionBuilder, CheckSessionAccess}
 import player.accessControl.cookies.{PlayerCookieWriter, PlayerCookieKeys}
 import player.accessControl.models.{RenderOptions, RequestedAccess}
 import scala.Left

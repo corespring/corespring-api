@@ -2,7 +2,6 @@ package player.controllers
 
 import common.controllers.AssetResource
 import common.controllers.utils.BaseUrl
-import common.encryption.{Crypto, AESCrypto}
 import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
 import org.bson.types.ObjectId
 import play.api.Play
@@ -15,6 +14,7 @@ import scalaz.Scalaz._
 import scalaz.{Failure, Success, Validation}
 import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.common.utils.string
+import org.corespring.common.encryption.{Crypto, AESCrypto}
 
 
 class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService : ItemService, errorHandler:String=>Result) extends Controller with AssetResource with PlayerCookieWriter {

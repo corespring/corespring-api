@@ -2,11 +2,11 @@ package basiclti.controllers.api
 
 import basiclti.accessControl.auth.QuerySessionRenderOptions
 import common.controllers.SimpleJsRoutes
-import controllers.auth.TokenizedRequestActionBuilder
 import org.bson.types.ObjectId
 import play.api.mvc.{AnyContent, Controller}
-import controllers.auth.requests.TokenizedRequest
 import org.corespring.platform.data.mongo.models.VersionedId
+import player.accessControl.auth.TokenizedRequestActionBuilder
+import player.accessControl.auth.requests.TokenizedRequest
 
 
 class Item(auth: TokenizedRequestActionBuilder[QuerySessionRenderOptions.RenderOptionQuery]) extends Controller with SimpleJsRoutes {

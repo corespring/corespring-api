@@ -1,6 +1,5 @@
 package tests.player.controllers
 
-import common.encryption.NullCrypto
 import org.specs2.mutable.Specification
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.Helpers._
@@ -12,6 +11,7 @@ import play.api.libs.json.Json
 import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.specs2.execute.Result
 import org.corespring.test.PlaySingleton
+import org.corespring.common.encryption.NullCrypto
 
 class AssetLoadingTest extends Specification {
 

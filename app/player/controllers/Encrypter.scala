@@ -6,6 +6,7 @@ import play.api.libs.json._
 import player.accessControl.models.RenderOptions
 import scalaz.Scalaz._
 import scalaz._
+import org.corespring.common.encryption.{Crypto, AESCrypto}
 
 class Encrypter(encrypter: Crypto) extends BaseApi {
 

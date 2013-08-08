@@ -1,12 +1,12 @@
 package player.controllers
 
 import common.controllers.QtiResource
-import controllers.auth.{TokenizedRequestActionBuilder, BaseApi}
+import controllers.auth.{BaseApi}
 import org.bson.types.ObjectId
 import org.xml.sax.SAXParseException
 import play.api.mvc.Action
 import play.api.templates.Html
-import player.accessControl.auth.CheckSessionAccess
+import player.accessControl.auth.{TokenizedRequestActionBuilder, CheckSessionAccess}
 import player.accessControl.cookies.PlayerCookieWriter
 import player.accessControl.models.RequestedAccess
 import player.views.models.{QtiKeys, ExceptionMessage, PlayerParams}

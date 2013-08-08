@@ -1,7 +1,7 @@
 package tests.common.encryption
 
-import common.encryption.AESCrypto
 import org.specs2.mutable.Specification
+import org.corespring.common.encryption.AESCrypto
 
 class AESCryptoTest extends Specification {
   val key = "thekey"

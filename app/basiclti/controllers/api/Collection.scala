@@ -5,9 +5,9 @@ import common.controllers.SimpleJsRoutes
 import org.bson.types.ObjectId
 import play.api.mvc._
 import scala.Some
-import controllers.auth.requests.TokenizedRequest
 import basiclti.accessControl.auth.ValidateQuizIdAndOrgId
 import org.corespring.platform.core.models.auth.AccessToken
+import player.accessControl.auth.requests.TokenizedRequest
 
 class Collection(auth: ValidateQuizIdAndOrgId[TokenizedRequest[AnyContent]]) extends Controller with SimpleJsRoutes {
 

@@ -1,10 +1,10 @@
 package basiclti.accessControl.auth
 
 import basiclti.accessControl.auth.cookies.LtiCookieKeys
-import controllers.auth.ActionBuilder
 import org.bson.types.ObjectId
 import play.api.mvc._
 import player.accessControl.cookies.PlayerCookieReader
+import player.accessControl.auth.ActionBuilder
 
 
 /**

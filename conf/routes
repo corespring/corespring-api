@@ -29,17 +29,7 @@ GET     /developer/*file            developer.controllers.Developer.at(path="/pu
 POST    /auth/register                          controllers.auth.AuthController.register
 POST    /auth/access_token                      controllers.auth.AuthController.getAccessToken
 
-#Public site
-GET     /                                      publicsite.controllers.Application.index
-GET     /public/empty                          publicsite.controllers.Application.empty
-GET     /public/educators                      publicsite.controllers.Application.educators
-GET     /public/contact                        publicsite.controllers.Application.contact
-GET     /public/partnerships                   publicsite.controllers.Application.partnerships
-GET     /public/about                          publicsite.controllers.Application.about
-GET     /public/items                          publicsite.controllers.Application.getItems
-GET     /public/features                       publicsite.controllers.Application.features
-# Example content
-GET    /example-content/items                  publicsite.controllers.ExampleContent.items(q: Option[String] ?= None)
+->     /                      public.Routes
 
 #
 # V1 API

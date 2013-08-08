@@ -1,10 +1,10 @@
 package basiclti.accessControl.auth
 
-import controllers.auth.requests.{TokenizedRequestBuilder, TokenizedRequest}
 import org.bson.types.ObjectId
 import player.accessControl.cookies.PlayerCookieReader
 import player.accessControl.models.RenderOptions
-import controllers.auth.TokenizedRequestActionBuilder
+import player.accessControl.auth.TokenizedRequestActionBuilder
+import player.accessControl.auth.requests.{TokenizedRequestBuilder, TokenizedRequest}
 
 
 /** An implementation of ActionBuilder where we check the user session rendering options */
