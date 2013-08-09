@@ -36,6 +36,7 @@ object Build extends sbt.Build {
   }
 
   val main = play.Project(appName, appVersion, Dependencies.all).settings(
+    credentials += cred,
     scalaVersion := ScalaVersion,
     parallelExecution.in(Test) := false,
     routesImport ++= customImports,
@@ -43,7 +44,6 @@ object Build extends sbt.Build {
     resolvers ++= Dependencies.Resolvers.all,
     Keys.fork.in(Test) := false,
     scalacOptions ++= Seq("-feature", "-deprecation"),
-    (test in Test) <<= (test in Test).map(Commands.runJsTests),
-    credentials := cred
+    (test in Test) <<= (test in Test).map(Commands.runJsTests)
   )
 }
