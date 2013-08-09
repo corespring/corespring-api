@@ -13,9 +13,10 @@ import scala.Some
 import org.corespring.platform.data.mongo.models.VersionedId
 import api.ApiError
 import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession}
+import org.corespring.platform.core.models.quiz.basic.Quiz
 
 class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val itemService : ItemService, itemSession: ItemSessionCompanion)
-  extends Views(auth, itemService) {
+  extends Views(auth, itemService, Quiz) {
 
   private val USER = "admin"
   private val PASSWORD = "1234secret"

@@ -1,7 +1,6 @@
-package tests.common.utils.string
+package org.corespring.common.utils.string
 
 import org.specs2.mutable.Specification
-import org.corespring.common.utils.string
 
 class StringPackageTest extends Specification {
 
@@ -9,14 +8,14 @@ class StringPackageTest extends Specification {
 
     "lower case first char" in {
 
-      string.lowercaseFirstChar("Hello") === "hello"
-      string.lowercaseFirstChar("") === ""
-      string.lowercaseFirstChar(null) === null
+      lowercaseFirstChar("Hello") === "hello"
+      lowercaseFirstChar("") === ""
+      lowercaseFirstChar(null) === null
 
     }
 
     "interpolate" in {
-      string.interpolate("hello ${token}", string.replaceKey(Map("token" -> "world")), string.DollarRegex) === "hello world"
+      interpolate("hello ${token}", replaceKey(Map("token" -> "world")), DollarRegex) === "hello world"
 
 
       val policyTemplate =
@@ -37,7 +36,7 @@ class StringPackageTest extends Specification {
           |}
         """.stripMargin
 
-      val text = string.interpolate(policyTemplate, string.replaceKey(Map("bucket" -> "my-bucket")), string.DollarRegex)
+      val text = interpolate(policyTemplate, replaceKey(Map("bucket" -> "my-bucket")), DollarRegex)
 
 
       text.contains("my-bucket") === true

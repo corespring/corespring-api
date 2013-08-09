@@ -47,6 +47,7 @@ object AESCrypto extends Crypto {
     (cipher,iv) =>
       new String(cipher.doFinal(Hex.decodeHex(value.split("--")(0).toCharArray)))
   }
+
   private def withCipher(key: String, iv:Array[Byte], mode: Int)(block: (Cipher,String) => String): String = {
     val raw = MessageDigest.getInstance("MD5").digest(key.getBytes("UTF-8"))
     val spec = new SecretKeySpec(raw, "AES")

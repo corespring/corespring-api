@@ -6,21 +6,17 @@ import com.novus.salat.dao._
 import dao.SalatDAOUpdateError
 import dao.SalatMongoCursor
 import dao.SalatRemoveError
+import org.corespring.common.config.AppConfig
+import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.search.Searchable
+import org.joda.time.DateTime
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
-import scala.Left
-import scala.Right
-import scala.Some
 import se.radley.plugin.salat._
-import securesocial.core.UserId
-import org.corespring.platform.core.models.search.Searchable
-import org.corespring.common.config.AppConfig
-import org.corespring.common.log.PackageLogging
-import org.joda.time.DateTime
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.InternalError
-
+import securesocial.core.IdentityId
 
 
 case class User(var userName: String = "",
@@ -47,8 +43,10 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with PackageL
   val registrationDate = "registrationDate"
 
   val collection = mongoCollection("users")
+
   import org.corespring.platform.core.models.mongoContext.context
-val dao = new SalatDAO[User, ObjectId](collection = collection) {}
+
+  val dao = new SalatDAO[User, ObjectId](collection = collection) {}
 
   object Dbo{
     def orgIdIn(orgIds:ObjectId*) : DBObject =  MongoDBObject(User.orgKey + "." + UserOrg.orgId -> MongoDBObject("$in" -> orgIds))
@@ -91,10 +89,10 @@ val dao = new SalatDAO[User, ObjectId](collection = collection) {}
     }
   }
 
-  def touchLastLogin(userId: UserId) = touch(userId, User.lastLoginDate)
-  def touchRegistration(userId: UserId) = touch(userId, User.registrationDate)
+  def touchLastLogin(userId: IdentityId) = touch(userId, User.lastLoginDate)
+  def touchRegistration(userId: IdentityId) = touch(userId, User.registrationDate)
 
-  def touch(userId: UserId, field: String) = {
+  def touch(userId: IdentityId, field: String) = {
     User.getUser(userId) match {
       case Some(user) => {
         User.update(MongoDBObject("_id" -> user.id), MongoDBObject("$set" ->
@@ -152,7 +150,7 @@ val dao = new SalatDAO[User, ObjectId](collection = collection) {}
    */
   def getUser(username: String): Option[User] = User.findOne(MongoDBObject(User.userName -> username))
 
-  def getUser(userId: UserId): Option[User] = getUser(userId.id, userId.providerId)
+  def getUser(userId: IdentityId): Option[User] = getUser(userId.userId, userId.providerId)
 
   def getUser(username: String, provider: String): Option[User] = {
     Logger.debug(s"getUser: $username, $provider")

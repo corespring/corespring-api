@@ -1,0 +1,44 @@
+# Corespring Build Structure
+
+The build file defines the build for this project.
+
+The project is broken down into a set of libraries and play modules.
+
+The purpose of this is:
+* To provide reusable libraries
+* To define clear boundaries between interacting parts of the system
+* To provide a clear api between libraries and to provide encapsulation
+
+The libraries and modules are located in the modules folder:
+* lib - for libraries - vanilla sbt projects
+* test-lib - for test libraries used only for testing
+* web - for play libraries
+
+
+## Libraries
+
+* core - The core library (Note: The intention is to further break this library down to data-models, data-service, data-json)
+* assets - A library that contains an interface to S3 and working with assets
+* common-utils - any shared utils
+* player-lib - some player library behaviour
+* qti - the qti parser and logic
+
+## Play Modules
+
+* common-views - some shared html templates and view helpers
+* public - the public section of the site
+
+## Test Libraries
+
+* test-helpers - any shared helper libraries for any testing that needs to be done
+
+## General Rules/Thoughts
+
+* all packages must reside under `org.corespring`
+* the next package(s) under `org.corespring` must give a clear indication of the functional area that the package provides: eg: `org.corepsring.common.utils`
+* place unit tests in the same project as the behaviour - in the exact same namespace
+* try to place new behaviour in the most appropriate library - if it doesn't exisit and the behaviour is substantial enough consider creating a library for it
+* when creating new libraries try to minimize its dependencies as much as possible (atm too many libraries depend on `core`, which in turn depends on too many libraries)
+* if a library is depended on by too many others it is an indication that that library could be further divided in to sub libraries
+* to help minimize dependencies and make a library, reusable try and work with abstractions
+* we may at some point want to consider moving some of the libraries out of this project altogether and make them dependencies

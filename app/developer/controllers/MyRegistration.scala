@@ -31,7 +31,7 @@ object MyRegistration extends Controller {
   val formWithUsername = Form[MyRegistrationInfo](
     mapping(
       UserName -> nonEmptyText.verifying(Messages(UserNameAlreadyTaken), userName => {
-        UserService.find(UserId(userName, providerId)).isEmpty
+        UserService.find(IdentityId(userName, providerId)).isEmpty
       }),
       FirstName -> nonEmptyText,
       LastName -> nonEmptyText,
@@ -110,7 +110,7 @@ object MyRegistration extends Controller {
               }) match {
                 case Right(dbuser) => {
                   val socialUser = SocialUser(
-                    UserId(id, providerId),
+                    IdentityId(id, providerId),
                     info.firstName,
                     info.lastName,
                     "%s %s".format(info.firstName, info.lastName),

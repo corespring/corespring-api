@@ -18,7 +18,6 @@ import play.api.libs.json.{Json, JsValue}
 import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, FakeHeaders}
-import scala._
 import utils.mocks.MockS3Service
 
 

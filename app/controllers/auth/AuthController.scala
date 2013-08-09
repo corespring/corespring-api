@@ -67,7 +67,7 @@ object AuthController extends Controller with SecureSocial with ObjectIdParser w
    */
   def register = SecuredAction { implicit request =>
       registerInfo.bindFromRequest().value.map { orgStr =>
-          val username = request.user.id.id
+          val username = request.user.identityId.userId
           val orgId = new ObjectId(orgStr)
           User.getUser(username) match {
             case Some(user) => if(user.org.orgId == orgId && (user.org.pval&Permission.Write.value) == Permission.Write.value){

@@ -80,7 +80,7 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
       request =>
         Logger.debug("request route: "+request.method+" "+request.uri)
         SecureSocial.currentUser(request).find(_ => request.headers.get("CoreSpring-IgnoreSession").isEmpty).map { u =>
-          invokeAsUser(u.id.id, u.id.providerId, request)(f)
+          invokeAsUser(u.identityId.userId, u.identityId.providerId, request)(f)
         }.getOrElse {
           tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
             OAuthProvider.getAuthorizationContext(token).fold(
@@ -103,7 +103,7 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
     Action(p) {
       request =>
         SecureSocial.currentUser(request).find(_ => request.headers.get("CoreSpring-IgnoreSession").isEmpty).map( u => {
-          invokeAsUser(u.id.id, u.id.providerId, request){request =>
+          invokeAsUser(u.identityId.userId, u.identityId.providerId, request){request =>
             if(request.ctx.permission.has(access)) f(request)
             else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
           }

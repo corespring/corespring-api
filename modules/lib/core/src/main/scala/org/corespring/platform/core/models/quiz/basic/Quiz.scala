@@ -160,7 +160,11 @@ case class Quiz(orgId: Option[ObjectId] = None,
                 id: ObjectId = new ObjectId()) extends BaseQuiz(questions, participants, id)
 
 
-object Quiz {
+trait QuizService{
+  def findOneById(id:ObjectId) : Option[Quiz]
+}
+
+object Quiz extends QuizService{
 
   private object Keys {
     val orgId = "orgId"

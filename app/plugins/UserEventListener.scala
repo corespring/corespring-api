@@ -14,8 +14,8 @@ class UserEventListener(app: Application) extends EventListener {
 
   def onEvent(event: Event, request: RequestHeader, session: Session): Option[Session] = {
     event match {
-      case _: LoginEvent => User.touchLastLogin(event.user.id)
-      case _: SignUpEvent => User.touchRegistration(event.user.id)
+      case _: LoginEvent => User.touchLastLogin(event.user.identityId)
+      case _: SignUpEvent => User.touchRegistration(event.user.identityId)
       case _ => {}
     }
     Some(session)

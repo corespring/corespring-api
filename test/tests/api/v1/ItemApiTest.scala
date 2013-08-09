@@ -4,21 +4,19 @@ import api.ApiError
 import api.v1.ItemApi
 import com.mongodb.casbah.Imports._
 import org.corespring.assets.CorespringS3Service
-import org.corespring.platform.core.models._
+import org.corespring.platform.core.models.ContentCollection
+import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{VirtualFile, Resource}
 import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.test.BaseTest
 import org.specs2.mock.Mockito
 import play.api.libs.json._
 import play.api.mvc._
 import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import scala.Some
 import scala.xml._
-import org.corespring.platform.core.models.ContentCollection
-import org.corespring.platform.core.models.item.Item
-import org.corespring.test.BaseTest
 
 class ItemApiTest extends BaseTest with Mockito {
 

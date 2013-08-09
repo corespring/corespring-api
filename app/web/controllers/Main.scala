@@ -27,12 +27,12 @@ object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
 
       val uri: Option[String] = play.api.Play.current.configuration.getString("mongodb.default.uri")
       val (dbServer, dbName) = getDbName(uri)
-      val userId = request.user.id
-      val user: User = User.getUser(request.user.id).getOrElse(throw new RuntimeException("Unknown user"))
+      val userId = request.user.identityId
+      val user: User = User.getUser(request.user.identityId).getOrElse(throw new RuntimeException("Unknown user"))
       Organization.findOneById(user.org.orgId) match {
         case Some(userOrg) => Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName, userOrg))
           .withSession(
-          sumSession(request.session, playerCookies(userId.id, userId.providerId) :+ activeModeCookie(): _*)
+          sumSession(request.session, playerCookies(userId.userId, userId.providerId) :+ activeModeCookie(): _*)
         )
         case None => InternalServerError("could not find organization of user")
       }

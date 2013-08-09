@@ -11,8 +11,9 @@ import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import player.views.models.PlayerParams
 import org.corespring.platform.core.models.itemSession.{DefaultItemSession, ItemSession}
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.core.models.quiz.basic.Quiz
 
-object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl) with AssetResource {
+object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl, Quiz) with AssetResource {
 
   def run(configId: ObjectId, resultSourcedId: String) = {
     session(configId, resultSourcedId) match {

@@ -1,14 +1,13 @@
-package tests.player.accessControl.models.granter
+package player.accessControl.models.granter
 
+import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.specs2.execute.Result
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
-import player.accessControl.models.{RequestedAccess, RenderOptions}
 import player.accessControl.models.RequestedAccess.Mode
 import player.accessControl.models.RequestedAccess.Mode._
-import player.accessControl.models.granter.{QuizItemLookup, SessionItemLookup, ConstraintGranter}
-import org.bson.types.ObjectId
-import org.specs2.execute.Success
-import org.specs2.matcher.MatchResult
-import org.corespring.platform.data.mongo.models.VersionedId
+import player.accessControl.models.{RequestedAccess, RenderOptions}
 
 class ConstraintGranterTest extends Specification {
 
@@ -44,11 +43,10 @@ class ConstraintGranterTest extends Specification {
 
   def randomVersionedId = Some(VersionedId(ObjectId.get))
 
-  import org.specs2.execute.{Result => SpecsResult}
 
   case class GrantAssert(r: RequestedAccess, expected: Boolean, session: SessionItemLookup = yesSession, quiz: QuizItemLookup = yesQuiz)
 
-  def assertGrant(options: RenderOptions, mode: Mode, assertions: GrantAssert*): SpecsResult = {
+  def assertGrant(options: RenderOptions, mode: Mode, assertions: GrantAssert*): Result = {
 
     val results: Seq[MatchResult[Any]] = assertions.map {
       (a) =>

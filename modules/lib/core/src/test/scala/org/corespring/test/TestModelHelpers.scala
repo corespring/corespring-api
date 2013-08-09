@@ -13,7 +13,7 @@ import play.api.cache.Cache
 import play.api.mvc.Cookie
 import scala.Array
 import scala.Some
-import securesocial.core.UserId
+import securesocial.core.IdentityId
 import securesocial.core._
 import securesocial.core.providers.utils.PasswordHasher
 
@@ -96,7 +96,7 @@ trait TestModelHelpers {
   //TODO: From CorespringUserService
   private def toIdentity(u:User) : Identity = {
     SocialUser(
-      UserId(u.userName, u.provider),
+      IdentityId(u.userName, u.provider),
       "",
       "",
       u.fullName,

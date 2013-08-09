@@ -18,11 +18,11 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import common.controllers.deployment.{AssetsLoaderImpl, AssetsLoader}
 import RenderingMode.RenderingMode
 import org.corespring.platform.core.models.itemSession.DefaultItemSession
-import org.corespring.platform.core.models.quiz.basic.Quiz
+import org.corespring.platform.core.models.quiz.basic.{QuizService, Quiz}
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 
 
-class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService)
+class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService, quizService : QuizService)
   extends BaseApi
   with QtiResource
   with ItemServiceClient
@@ -66,7 +66,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
 
   def aggregate(assessmentId: ObjectId, itemId: VersionedId[ObjectId]) = {
 
-    Quiz.findOneById(assessmentId) match {
+    quizService.findOneById(assessmentId) match {
       case Some(id) => {
         def renderAggregatePlayer(assessmentId: ObjectId)(p: PlayerParams) = player.views.html.aggregatePlayer(p, assessmentId.toString)
         val p = RenderParams(
@@ -163,4 +163,4 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
 
 }
 
-object Views extends Views(CheckSessionAccess, ItemServiceImpl)
+object Views extends Views(CheckSessionAccess, ItemServiceImpl, Quiz)
