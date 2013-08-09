@@ -32,6 +32,18 @@ The libraries and modules are located in the modules folder:
 
 * test-helpers - any shared helper libraries for any testing that needs to be done
 
+## Testing
+
+Note: The seeding of the app is now part of the sbt build - It won't happen as part of the app start up. To seed before you test run:
+
+    > seed-test
+    > test
+
+
+## Using the sbt command line
+* `project corespring-public` - set 'corespring-public' as the current build target this allows you to compile/test only this project
+* `project <tab>` - to get a list of available projects
+
 ## General Rules/Thoughts
 
 * all packages must reside under `org.corespring`
@@ -42,3 +54,4 @@ The libraries and modules are located in the modules folder:
 * if a library is depended on by too many others it is an indication that that library could be further divided in to sub libraries
 * to help minimize dependencies and make a library, reusable try and work with abstractions
 * we may at some point want to consider moving some of the libraries out of this project altogether and make them dependencies
+
