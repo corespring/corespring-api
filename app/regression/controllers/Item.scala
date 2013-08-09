@@ -1,19 +1,19 @@
 package regression.controllers
 
-import play.api.mvc.Action
-import org.bson.types.ObjectId
-import player.controllers.Views
-import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
-import LocalAssetsLoaderImpl
-import java.util.NoSuchElementException
-import play.api.libs.json.Json._
-import scala.Some
-import org.corespring.platform.data.mongo.models.VersionedId
 import api.ApiError
+import java.util.NoSuchElementException
+import org.bson.types.ObjectId
+import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
 import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession}
 import org.corespring.platform.core.models.quiz.basic.Quiz
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
 import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
+import org.corespring.web.common.controllers.deployment.LocalAssetsLoaderImpl
+import play.api.libs.json.Json._
+import play.api.mvc.Action
+import player.controllers.Views
+import scala.Some
 
 class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val itemService : ItemService, itemSession: ItemSessionCompanion)
   extends Views(auth, itemService, Quiz) {

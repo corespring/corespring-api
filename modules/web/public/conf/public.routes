@@ -1,0 +1,10 @@
+GET     /                               publicsite.controllers.Application.index
+GET     /empty                          publicsite.controllers.Application.empty
+GET     /educators                      publicsite.controllers.Application.educators
+GET     /contact                        publicsite.controllers.Application.contact
+GET     /partnerships                   publicsite.controllers.Application.partnerships
+GET     /about                          publicsite.controllers.Application.about
+GET     /items                          publicsite.controllers.Application.getItems
+GET     /features                       publicsite.controllers.Application.features
+
+GET    /example-content/items           publicsite.controllers.ExampleContent.items(q: Option[String] ?= None)

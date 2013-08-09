@@ -1,6 +1,7 @@
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import common.seed.SeedDb._
 import org.bson.types.ObjectId
+import org.corespring.web.common.controllers.deployment.{LocalAssetsLoaderImpl, AssetsLoaderImpl}
 import play.api._
 import play.api.mvc.Results._
 import play.api.mvc._
@@ -67,7 +68,7 @@ object Global extends GlobalSettings {
     if (Logger.isDebugEnabled) {
       throwable.printStackTrace()
     }
-    InternalServerError(common.views.html.onError(uid, throwable))
+    InternalServerError(org.corespring.web.common.views.html.onError(uid, throwable))
   }
 
 

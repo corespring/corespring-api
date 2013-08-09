@@ -1,22 +1,22 @@
-@(itemBody:String, qtiAssetLoader : player.views.qti.QtiAssetsLoader)(implicit assetsLoader: org.corespring.web.common.controllers.deployment.AssetsLoader = common.controllers.deployment.AssetsLoaderImpl)
+@(itemBody:String, qtiAssetLoader : player.views.qti.QtiAssetsLoader)(implicit assetsLoader: org.corespring.web.common.controllers.deployment.AssetsLoader = org.corespring.web.common.controllers.deployment.AssetsLoaderImpl)
 
-@common.views.html.head.coreJs()
-@common.views.html.head.ubuntu()
-@common.views.html.head.bootstrap()
-@common.views.html.head.angular()
+@org.corespring.web.common.views.html.head.coreJs()
+@org.corespring.web.common.views.html.head.ubuntu()
+@org.corespring.web.common.views.html.head.bootstrap()
+@org.corespring.web.common.views.html.head.angular()
 @common.views.html.head.bootstrapModal()
-@common.views.html.head.corespringCommon()
+@org.corespring.web.common.views.html.head.corespringCommon()
 
 <script type="text/javascript" src="@player.controllers.routes.Session.jsRoutes"></script>
 
 @assetsLoader.playerCommon
 
 <!-- Default Css -->
-@Html(common.controllers.DefaultCss.DEFAULT_CSS)
+@Html(org.corespring.web.common.controllers.DefaultCss.DEFAULT_CSS)
 <!-- End default css -->
 
 @assetsLoader.loader.scripts("qti-interactions")( qtiAssetLoader.localJsPaths : _*)
-@common.controllers.deployment.loader.css("qti-interactions")( qtiAssetLoader.localCssPaths : _* )
+@org.corespring.web.common.controllers.deployment.loader.css("qti-interactions")( qtiAssetLoader.localCssPaths : _* )
 
 <!-- qti - remote js -->
 @qtiAssetLoader.remoteJsPaths.map{ p =>

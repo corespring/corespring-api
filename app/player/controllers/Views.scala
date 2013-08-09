@@ -1,28 +1,27 @@
 package player.controllers
 
 import common.controllers.QtiResource
-import controllers.auth.{BaseApi}
+import controllers.auth.BaseApi
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
+import org.corespring.platform.core.models.itemSession.DefaultItemSession
+import org.corespring.platform.core.models.quiz.basic.{QuizService, Quiz}
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
+import org.corespring.player.accessControl.cookies.PlayerCookieWriter
+import org.corespring.player.accessControl.models.RequestedAccess
+import org.corespring.qti.models.RenderingMode._
+import org.corespring.web.common.controllers.deployment.{AssetsLoaderImpl, AssetsLoader}
 import org.xml.sax.SAXParseException
 import play.api.mvc.Action
 import play.api.templates.Html
 import player.views.models.{QtiKeys, ExceptionMessage, PlayerParams}
-import org.corespring.qti.models.RenderingMode
-import RenderingMode._
 import scala.xml.Elem
-import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
-import org.corespring.platform.data.mongo.models.VersionedId
-import RenderingMode.RenderingMode
-import org.corespring.platform.core.models.itemSession.DefaultItemSession
-import org.corespring.platform.core.models.quiz.basic.{QuizService, Quiz}
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
-import org.corespring.player.accessControl.cookies.PlayerCookieWriter
-import org.corespring.player.accessControl.models.RequestedAccess
-import org.corespring.web.common.controllers.deployment.AssetsLoader
 
 
 class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService, quizService : QuizService)
+
   extends BaseApi
   with QtiResource
   with ItemServiceClient

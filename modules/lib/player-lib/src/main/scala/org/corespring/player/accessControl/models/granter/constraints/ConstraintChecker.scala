@@ -1,5 +1,4 @@
 package org.corespring.player.accessControl.models.granter.constraints
-import org.corespring.player.accessControl.models.granter.constraints.ValueAndConstraint
 
 abstract class ConstraintChecker {
 

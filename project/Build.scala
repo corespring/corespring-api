@@ -42,7 +42,7 @@ object Build extends sbt.Build {
   val builders = new Builders(appName, org, appVersion, ScalaVersion)
 
   val customImports = Seq(
-    "import scala.language.reflectiveCalls",
+    "scala.language.reflectiveCalls",
     "se.radley.plugin.salat.Binders._",
     "org.corespring.platform.data.mongo.models.VersionedId",
     "org.bson.types.ObjectId",
@@ -108,6 +108,7 @@ object Build extends sbt.Build {
     parallelExecution.in(Test) := false,
     Keys.fork.in(Test) := true
   ).dependsOn(commonViews,core %"compile->compile;test->test", playerLib, testLib % "test->compile")
+  .aggregate(commonViews)
 
   val main = play.Project(appName, appVersion, Dependencies.all )
     .settings(

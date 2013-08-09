@@ -1,8 +1,7 @@
 package player.views.models
 
-import org.corespring.qti.models.RenderingMode
-import RenderingMode.RenderingMode
-import org.corespring.web.common.controllers.deployment.AssetsLoader
+import org.corespring.qti.models.RenderingMode.RenderingMode
+import org.corespring.web.common.controllers.deployment.{AssetsLoaderImpl, AssetsLoader}
 
 case class PlayerParams(xml: String,
                         itemId: Option[String],
