@@ -6,10 +6,17 @@ import MongoDbSeederPlugin._
 
 object Build extends sbt.Build {
 
+
+
+  import Dependencies._
+
   val appName = "corespring"
   val appVersion = "1.0"
   val ScalaVersion = "2.10.1"
   val org = "org.corespring"
+
+  //TODO: this isn't working atm :: scalaVersion in ThisBuild := ScalaVersion
+
 
   val cred = {
 
@@ -41,7 +48,6 @@ object Build extends sbt.Build {
     "org.bson.types.ObjectId",
     "org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._")
 
-  import Dependencies._
 
 
   val commonUtils = builders.lib("common-utils").settings(

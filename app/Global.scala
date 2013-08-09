@@ -1,5 +1,4 @@
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
-import common.controllers.deployment.{LocalAssetsLoaderImpl, AssetsLoaderImpl}
 import common.seed.SeedDb._
 import org.bson.types.ObjectId
 import play.api._

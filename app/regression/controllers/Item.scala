@@ -4,7 +4,7 @@ import play.api.mvc.Action
 import org.bson.types.ObjectId
 import player.controllers.Views
 import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
-import common.controllers.deployment.LocalAssetsLoaderImpl
+import LocalAssetsLoaderImpl
 import java.util.NoSuchElementException
 import play.api.libs.json.Json._
 import scala.Some

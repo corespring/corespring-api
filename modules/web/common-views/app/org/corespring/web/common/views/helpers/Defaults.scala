@@ -1,4 +1,4 @@
-package common.views.helpers
+package org.corespring.web.common.views.helpers
 
 import com.mongodb.casbah.commons.MongoDBObject
 import com.typesafe.config.{ConfigFactory, Config}
@@ -10,7 +10,7 @@ object Defaults{
   lazy val fieldValues : String = FieldValue.findOne(MongoDBObject()) match {
     case Some(fv) => {
       import org.corespring.platform.core.models.json._
-      implicit val writes = Json.writes[FieldValue]
+implicit val writes = Json.writes[FieldValue]
 
       val json : JsValue = writes.writes(fv)
       Json.stringify(json)

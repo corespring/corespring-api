@@ -1,4 +1,4 @@
-package common.controllers
+package org.corespring.web.common.controllers
 
 object DefaultCss {
 

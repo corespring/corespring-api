@@ -14,6 +14,7 @@ import play.api.mvc._
 import scalaz.Scalaz._
 import scalaz.{Success, Failure}
 import web.controllers.ObjectIdParser
+import org.corespring.web.common.controllers.DefaultCss
 
 
 object AssetResource{

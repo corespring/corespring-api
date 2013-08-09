@@ -5,7 +5,6 @@ import com.amazonaws.services.s3.model.SetBucketPolicyRequest
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3Client}
 import com.ee.assets.deployment.ContentInfo
 import com.typesafe.config.ConfigFactory
-import common.controllers.deployment.S3Deployer
 import java.io._
 import org.specs2.mutable.{Before, Specification}
 import play.api.Play
@@ -14,6 +13,7 @@ import scala.Right
 import scala.Some
 import org.corespring.test.PlaySingleton
 import org.corespring.common.utils.string
+import org.corespring.web.common.controllers.deployment.S3Deployer
 
 class S3DeployerTest extends Specification {
 

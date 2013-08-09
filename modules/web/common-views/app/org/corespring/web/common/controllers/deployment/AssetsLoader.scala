@@ -1,8 +1,7 @@
-package common.controllers.deployment
-
+package org.corespring.web.common.controllers.deployment
 import com.ee.assets.Loader
 import org.corespring.common.log.PackageLogging
-import play.api.{Play, Application}
+import play.api.Play
 
 class AssetsLoader(val loader: Loader) extends PackageLogging{
 
@@ -32,5 +31,5 @@ class AssetsLoader(val loader: Loader) extends PackageLogging{
     "js/corespring/qti/prototype.extensions/Function.js")
 }
 
-object AssetsLoaderImpl extends AssetsLoader(common.controllers.deployment.loader)
-object LocalAssetsLoaderImpl extends AssetsLoader(common.controllers.deployment.localLoader)
+object AssetsLoaderImpl extends AssetsLoader(loader)
+object LocalAssetsLoaderImpl extends AssetsLoader(localLoader)
