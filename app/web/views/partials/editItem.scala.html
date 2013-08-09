@@ -34,8 +34,7 @@
 <div class="sub-nav sub-nav-lower">
     <div class="container" style="width: 940px;">
         <div class="row">
-
-            <ul class="span5 nav nav-pills">
+            <ul class="span8 nav nav-pills">
                 <li ng-class="{true:'active', false:''}[currentPanel=='content']">
                     <a
                             href="javascript:void(1)"
@@ -51,9 +50,9 @@
                        ng-click="changePanel('supportingMaterials')">Supporting Materials</a>
                 </li>
 
-                <li ng-class="{true:'active', false:''}[currentPanel=='orgMetadata']">
+                <li ng-class="{true:'active', false:''}[currentPanel=='orgMetadata']" ng-repeat="(key, mdSet) in itemData.metadataSets">
                     <a href="javascript:void(1)"
-                       ng-click="changePanel('orgMetadata')">Metadata</a>
+                       ng-click="changeToOrgMetadata(key)">{{mdSet.label}} metadata</a>
                 </li>
             </ul>
 
@@ -88,7 +87,7 @@
 
         @_edit.supportingMaterials()
 
-        @_edit.orgMetadata("http://cs-metadata-test.herokuapp.com/index.php")
+        @_edit.orgMetadata()
 
         <!--_edit.content()
         ng-show="currentPanel == 'content'"

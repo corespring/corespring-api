@@ -171,6 +171,11 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     updateLocation($scope.currentPanel);
   };
 
+  $scope.changeToOrgMetadata = function (mdKey) {
+    $scope.changePanel("orgMetadata");
+    $scope.selectedMetadataSet = mdKey;
+  }
+
   $scope.editItem = function () {
     $location.url('/edit/' + $scope.itemData.id);
   };
@@ -204,6 +209,22 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.loadItem = function () {
     ItemService.get({id: $routeParams.itemId}, function onItemLoaded(itemData) {
+      console.log("ItemData arrived");
+      console.log(itemData);
+
+      // TODO: Mocking this for the time being. Format is key: label
+      itemData.metadataSets = {
+        "newclassroom": {
+          label: "New Classroom",
+          editorUrl: "http://cs-metadata-test.herokuapp.com/index.php",
+          data: {
+            "rabbit": "fast",
+            "snail": "slow",
+            "dog": "medium"
+          }
+        }
+      };
+
       $rootScope.itemData = itemData;
       enterEditorIfInContentPanel();
       initItemType();
