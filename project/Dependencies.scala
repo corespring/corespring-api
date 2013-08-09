@@ -8,7 +8,7 @@ object Dependencies {
   val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.1.0"
   val playPluginMailer = "com.typesafe" %% "play-plugins-mailer" % "2.1.0"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
-  val securesocial = "securesocial" %% "securesocial" % "master-SNAPSHOT"
+  val securesocial = "org.corespring" %% "securesocial" % "master-ba91cdb"
   val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.3.0.3"
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
@@ -62,7 +62,12 @@ object Dependencies {
     val sonatypeReleases = "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/releases"
     val sbtPluginSnapshots = Resolver.url("sbt-plugin-releases", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
     val sbtPluginReleases =  Resolver.url("sbt-plugin-snapshots", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots/"))(Resolver.ivyStylePatterns)
+    val corespringSnapshots = "Corespring Artifactory Snapshots" at "http://ec2-107-22-19-173.compute-1.amazonaws.com/artifactory/ivy-snapshots"
+    val corespringReleases = "Corespring Artifactory Releases" at "http://ec2-107-22-19-173.compute-1.amazonaws.com/artifactory/ivy-releases"
+
     val all: Seq[Resolver] = Seq(
+      corespringSnapshots,
+      corespringReleases,
       spy,
       edeustaceSnapshots,
       edeustaceReleases,
