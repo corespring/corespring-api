@@ -1,4 +1,5 @@
 //repackaging has taken place - update type hints
+//models.item.resource => org.corespring.platform.core.models.item.resource
 
 function run(processor){
 
