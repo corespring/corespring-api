@@ -1,11 +1,11 @@
 package tests.player
 
-import player.accessControl.models.RequestedAccess
 import play.api.mvc.{BodyParser, Action, Result, AnyContent}
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
-import player.accessControl.auth.TokenizedRequestActionBuilder
-import player.accessControl.auth.requests.TokenizedRequest
+import org.corespring.player.accessControl.auth.TokenizedRequestActionBuilder
+import org.corespring.player.accessControl.auth.requests.TokenizedRequest
+import org.corespring.player.accessControl.models.RequestedAccess
 
 package object controllers {
 

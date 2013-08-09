@@ -4,14 +4,14 @@ import org.specs2.mutable.Specification
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, FakeHeaders}
-import player.accessControl.cookies.PlayerCookieKeys
 import player.controllers.AssetLoading
-import player.accessControl.models.{RequestedAccess, RenderOptions}
 import play.api.libs.json.Json
 import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.specs2.execute.Result
 import org.corespring.test.PlaySingleton
 import org.corespring.common.encryption.NullCrypto
+import org.corespring.player.accessControl.cookies.PlayerCookieKeys
+import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
 
 class AssetLoadingTest extends Specification {
 

@@ -11,13 +11,13 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import play.api.mvc._
-import player.accessControl.models.RenderOptions
 import scala.Some
 import scorm.utils.ScormExporter
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.{Item, Content}
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.common.encryption.{Crypto, AESCrypto}
+import org.corespring.player.accessControl.models.RenderOptions
 
 class ExporterApi(encrypter: Crypto, service:ItemService) extends BaseApi {
 

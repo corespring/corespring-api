@@ -4,14 +4,14 @@ import basiclti.models.LtiQuiz
 import common.controllers.AssetResource
 import org.bson.types.ObjectId
 import play.api.mvc.Action
-import player.accessControl.auth.{CheckSessionAccess, CheckSession}
-import player.accessControl.models.RequestedAccess
 import player.controllers.Views
 import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import player.views.models.PlayerParams
 import org.corespring.platform.core.models.itemSession.{DefaultItemSession, ItemSession}
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.quiz.basic.Quiz
+import org.corespring.player.accessControl.auth.CheckSessionAccess
+import org.corespring.player.accessControl.models.RequestedAccess
 
 object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl, Quiz) with AssetResource {
 

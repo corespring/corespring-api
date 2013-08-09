@@ -4,11 +4,11 @@ import play.api.libs.json.Json
 import play.api.mvc.{AnyContent, AnyContentAsEmpty, AnyContentAsJson, Call}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
-import player.accessControl.models.{RequestedAccess, RenderOptions}
 import player.controllers.Encrypter
 import org.corespring.platform.core.models.auth.{ApiClient, AccessToken}
 import org.corespring.test.BaseTest
 import org.corespring.common.encryption.{Crypto, AESCrypto}
+import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
 
 class EncrypterTest extends BaseTest {
 

@@ -2,10 +2,8 @@ package regression.controllers
 
 import play.api.mvc.Action
 import org.bson.types.ObjectId
-import player.accessControl.models.{RequestedAccess, RenderOptions}
 import player.controllers.Views
 import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
-import player.accessControl.auth.{TokenizedRequestActionBuilder, CheckSessionAccess}
 import common.controllers.deployment.LocalAssetsLoaderImpl
 import java.util.NoSuchElementException
 import play.api.libs.json.Json._
@@ -14,6 +12,8 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import api.ApiError
 import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession}
 import org.corespring.platform.core.models.quiz.basic.Quiz
+import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
+import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
 
 class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val itemService : ItemService, itemSession: ItemSessionCompanion)
   extends Views(auth, itemService, Quiz) {

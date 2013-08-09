@@ -5,8 +5,8 @@ import common.controllers.SimpleJsRoutes
 import org.bson.types.ObjectId
 import play.api.mvc.{AnyContent, Controller}
 import org.corespring.platform.data.mongo.models.VersionedId
-import player.accessControl.auth.TokenizedRequestActionBuilder
-import player.accessControl.auth.requests.TokenizedRequest
+import org.corespring.player.accessControl.auth.TokenizedRequestActionBuilder
+import org.corespring.player.accessControl.auth.requests.TokenizedRequest
 
 
 class Item(auth: TokenizedRequestActionBuilder[QuerySessionRenderOptions.RenderOptionQuery]) extends Controller with SimpleJsRoutes {

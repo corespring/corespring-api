@@ -4,14 +4,15 @@ import api.v1.ItemSessionApi
 import common.controllers.SimpleJsRoutes
 import org.bson.types.ObjectId
 import play.api.mvc._
-import player.accessControl.auth.{TokenizedRequestActionBuilder, CheckSessionAccess}
-import player.accessControl.cookies.PlayerCookieReader
-import player.accessControl.models.RequestedAccess
-import player.accessControl.models.RequestedAccess.Mode._
+import org.corespring.player.accessControl.models.RequestedAccess
+import RequestedAccess.Mode._
 import scala.Some
 import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.itemSession.PreviewItemSessionCompanion
+import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
+import org.corespring.player.accessControl.cookies.PlayerCookieReader
+import org.corespring.player.accessControl.models.RequestedAccess
 
 
 class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Controller with SimpleJsRoutes with PlayerCookieReader {

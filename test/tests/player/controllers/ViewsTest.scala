@@ -15,11 +15,12 @@ import org.specs2.mutable.Specification
 import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
-import player.accessControl.cookies.PlayerCookieKeys
-import player.accessControl.models.RequestedAccess.Mode
+import org.corespring.player.accessControl.models.RequestedAccess
+import RequestedAccess.Mode
 import player.controllers.Views
 import scala.xml.Elem
 import utils.MockXml
+import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 
 class ViewsTest extends Specification with Mockito {
 

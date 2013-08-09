@@ -6,9 +6,6 @@ import org.bson.types.ObjectId
 import org.xml.sax.SAXParseException
 import play.api.mvc.Action
 import play.api.templates.Html
-import player.accessControl.auth.{TokenizedRequestActionBuilder, CheckSessionAccess}
-import player.accessControl.cookies.PlayerCookieWriter
-import player.accessControl.models.RequestedAccess
 import player.views.models.{QtiKeys, ExceptionMessage, PlayerParams}
 import org.corespring.qti.models.RenderingMode
 import RenderingMode._
@@ -20,6 +17,9 @@ import RenderingMode.RenderingMode
 import org.corespring.platform.core.models.itemSession.DefaultItemSession
 import org.corespring.platform.core.models.quiz.basic.{QuizService, Quiz}
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
+import org.corespring.player.accessControl.cookies.PlayerCookieWriter
+import org.corespring.player.accessControl.models.RequestedAccess
 
 
 class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService, quizService : QuizService)

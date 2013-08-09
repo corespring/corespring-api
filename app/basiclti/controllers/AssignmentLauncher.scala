@@ -15,9 +15,6 @@ import play.api.libs.oauth.OAuthCalculator
 import play.api.libs.oauth.RequestToken
 import play.api.libs.ws.WS
 import play.api.mvc._
-import player.accessControl.auth.{TokenizedRequestActionBuilder, CheckSessionAccess}
-import player.accessControl.cookies.{PlayerCookieWriter, PlayerCookieKeys}
-import player.accessControl.models.{RenderOptions, RequestedAccess}
 import scala.Left
 import scala.Right
 import scala.Some
@@ -25,6 +22,9 @@ import scala.concurrent.Future
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.models.itemSession.{ItemSessionSettings, DefaultItemSession, ItemSession}
+import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
+import org.corespring.player.accessControl.cookies.{PlayerCookieKeys, PlayerCookieWriter}
+import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
 
 /**
  * Handles the launching of corespring items via the LTI 1.1 launch specification.

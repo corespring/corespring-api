@@ -2,7 +2,6 @@ import play.Project._
 import sbt.Keys._
 import sbt._
 import MongoDbSeederPlugin._
-import sbt.ScalaVersion
 
 
 object Build extends sbt.Build {
@@ -84,11 +83,7 @@ object Build extends sbt.Build {
       playTest % "test"),
       Keys.fork in Test := true,
       parallelExecution.in(Test) := false,
-      credentials += cred//,
-      //testOptions in Test += Tests.Setup{ () =>
-      //  println( scala.Console.BLUE + "-------------> setup core "  + scala.Console.RESET)
-      //  MongoDbSeederPlugin.seed("mongodb://localhost/api", "conf/seed-data/test", "seed-main", "INFO")
-      //}
+      credentials += cred
    ).dependsOn(assets,commonUtils, qti, testLib % "test->compile")
 
 
@@ -105,11 +100,7 @@ object Build extends sbt.Build {
     libraryDependencies ++= Seq(playFramework, securesocial),
     routesImport ++= customImports,
     parallelExecution.in(Test) := false,
-    Keys.fork.in(Test) := true//,
-    //testOptions in Test += Tests.Setup{ () =>
-    //  println( scala.Console.BLUE + "-------------> setup " + appName + scala.Console.RESET)
-    //  MongoDbSeederPlugin.seed("mongodb://localhost/api", "conf/seed-data/test", "seed-main", "INFO")
-    //}
+    Keys.fork.in(Test) := true
   ).dependsOn(commonViews,core %"compile->compile;test->test", playerLib, testLib % "test->compile")
 
   val main = play.Project(appName, appVersion, Dependencies.all )
@@ -122,18 +113,9 @@ object Build extends sbt.Build {
     credentials += cred,
     Keys.fork.in(Test) := true,
     scalacOptions ++= Seq("-feature", "-deprecation"),
-    (test in Test) <<= (test in Test).map(Commands.runJsTests)//,
-    //testOptions in Test += Tests.Setup{ () =>
-    //  println( scala.Console.BLUE + "-------------> setup " + appName + scala.Console.RESET)
-    //  MongoDbSeederPlugin.seed("mongodb://localhost/api", "conf/seed-data/test", "seed-main", "INFO")
-    //},
-    //testOptions in Test += Tests.Cleanup{ () =>
-    //  println( scala.Console.BLUE + "-------------> cleanup " + appName + scala.Console.RESET)
-    //  MongoDbSeederPlugin.unseed("mongodb://localhost/api", "conf/seed-data/test", "seed-main", "INFO")
-    //}
+    (test in Test) <<= (test in Test).map(Commands.runJsTests)
   ).settings( MongoDbSeederPlugin.newSettings  ++ Seq(testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test") : _* )
-    .dependsOn(public, playerLib, qti, core % "compile->compile;test->test", commonUtils, commonViews, testLib % "test->compile")
+   .dependsOn(public, playerLib, qti, core % "compile->compile;test->test", commonUtils, commonViews, testLib % "test->compile")
    .aggregate(public, playerLib, qti, core, commonUtils, commonViews, testLib )
-
 
 }

@@ -6,12 +6,13 @@ import play.api.libs.json.Json
 import play.api.mvc.{Result, Action, AnyContentAsJson, AnyContent}
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, FakeHeaders}
-import player.accessControl.cookies.PlayerCookieWriter
-import player.accessControl.models.RequestedAccess.Mode._
+import org.corespring.player.accessControl.models.RequestedAccess
+import RequestedAccess.Mode._
 import player.controllers.Session
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession, PreviewItemSessionCompanion, ItemSession}
 import org.corespring.test.PlaySingleton
+import org.corespring.player.accessControl.cookies.PlayerCookieWriter
 
 class SessionTest extends Specification with PlayerCookieWriter {
 

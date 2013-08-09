@@ -3,10 +3,10 @@ package player.controllers
 import common.controllers.SimpleJsRoutes
 import org.bson.types.ObjectId
 import play.api.mvc._
-import player.accessControl.auth.{TokenizedRequestActionBuilder, CheckSessionAccess, CheckSession}
-import player.accessControl.models.RequestedAccess
 import org.corespring.platform.data.mongo.models.VersionedId
-import player.accessControl.auth.requests.TokenizedRequest
+import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
+import org.corespring.player.accessControl.auth.requests.TokenizedRequest
+import org.corespring.player.accessControl.models.RequestedAccess
 
 
 class Item(auth: TokenizedRequestActionBuilder[RequestedAccess] ) extends Controller with SimpleJsRoutes {
