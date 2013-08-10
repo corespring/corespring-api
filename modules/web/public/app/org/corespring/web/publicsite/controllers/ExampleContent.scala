@@ -1,4 +1,4 @@
-package publicsite.controllers
+package org.corespring.web.publicsite.controllers
 
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.ContentCollection

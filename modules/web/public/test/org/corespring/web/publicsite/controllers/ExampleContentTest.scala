@@ -1,4 +1,4 @@
-package publicsite.controllers
+package org.corespring.web.publicsite.controllers
 
 import org.corespring.platform.core.models.item._
 import org.corespring.test.BaseTest
@@ -14,7 +14,7 @@ class ExampleContentTest extends BaseTest{
 
       val request = FakeRequest("", "")
 
-      val result = publicsite.controllers.ExampleContent.items(None)(request)
+      val result = ExampleContent.items(None)(request)
 
       val json = Json.parse(contentAsString(result))
       val items: Seq[Item] = json.as[Seq[Item]]

@@ -1,24 +1,24 @@
-package publicsite.controllers
+package org.corespring.web.publicsite.controllers
 
 import java.nio.charset.Charset
 import org.corespring.common.config.AppConfig
+import org.corespring.player.accessControl.cookies.PlayerCookieWriter
+import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.json.Json
 import play.api.mvc._
 import scala.io.Codec
-import org.corespring.player.accessControl.cookies.PlayerCookieWriter
-import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
 
 
 object Application extends Controller with securesocial.core.SecureSocial with PlayerCookieWriter {
 
   def index = Action {
-    Ok(publicsite.views.html.index())
+    Ok(org.corespring.web.publicsite.views.html.index())
   }
 
   def contact = Action {
-    Ok(publicsite.views.html.contact())
+    Ok(org.corespring.web.publicsite.views.html.contact())
   }
 
   def educators = UserAwareAction {
@@ -29,7 +29,7 @@ object Application extends Controller with securesocial.core.SecureSocial with P
           val newCookies : Seq[(String,String)] = playerCookies(user.identityId.userId, user.identityId.providerId) :+ activeModeCookie(RequestedAccess.Mode.Preview)
           val newSession = sumSession(request.session, newCookies : _*)
           //TODO: Is it safe to assume that the user has access to this content?
-          Ok(publicsite.views.html.educators())
+          Ok(org.corespring.web.publicsite.views.html.educators())
             .withSession(newSession)
         }
         case _ => {
@@ -37,7 +37,7 @@ object Application extends Controller with securesocial.core.SecureSocial with P
           val newCookies : Seq[(String,String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(RequestedAccess.Mode.Preview)
           val newSession = sumSession(request.session, newCookies : _*)
 
-          Ok(publicsite.views.html.educators())
+          Ok(org.corespring.web.publicsite.views.html.educators())
             .withSession(newSession)
         }
       }
@@ -48,11 +48,11 @@ object Application extends Controller with securesocial.core.SecureSocial with P
   }
 
   def partnerships = Action {
-    Ok(publicsite.views.html.partnerships())
+    Ok(org.corespring.web.publicsite.views.html.partnerships())
   }
 
   def about = Action {
-    Ok(publicsite.views.html.about())
+    Ok(org.corespring.web.publicsite.views.html.about())
   }
 
   def getItems = Action {
@@ -60,6 +60,6 @@ object Application extends Controller with securesocial.core.SecureSocial with P
   }
 
   def features = Action {
-    Ok(publicsite.views.html.features())
+    Ok(org.corespring.web.publicsite.views.html.features())
   }
 }
