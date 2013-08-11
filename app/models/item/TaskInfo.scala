@@ -2,8 +2,9 @@ package models.item
 
 import controllers.JsonValidationException
 import play.api.libs.json._
+import scala.collection.mutable.Map
 
-case class TaskInfo(
+case class TaskInfo( extended: Map[String,Map[String,String]] = Map(),
                      subjects: Option[Subjects] = None,
                      gradeLevel: Seq[String] = Seq(),
                      title: Option[String] = None,
@@ -22,6 +23,7 @@ object TaskInfo extends ValueGetter {
     val gradeLevel = "gradeLevel"
     val itemType = "itemType"
     val subjects = "subjects"
+    val extended = "extended"
   }
 
   implicit object Writes extends Writes[TaskInfo] {
@@ -64,8 +66,9 @@ object TaskInfo extends ValueGetter {
           else
             throw new JsonValidationException(gradeLevel)
       }
-
+      def getExtended = (json \ extended).asOpt[Map[String,Map[String,String]]]
       JsSuccess(TaskInfo(
+        extended = getExtended.getOrElse(Map()),
         subjects = json.asOpt[Subjects],
         gradeLevel = getGradeLevel.getOrElse(Seq()),
         title = (json \ title).asOpt[String],

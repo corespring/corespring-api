@@ -4,12 +4,13 @@ angular.module("qti.directives").directive("pointinteraction", function(){
     return {
         template: [
         "<div class='graph-interaction'>",
+        "   <p>{{additionalInfo}}</p>",
         "   <div jsx-graph graph-callback='graphCallback' interaction-callback='interactionCallback'></div>",
         "</div>"].join("\n"),
         restrict: 'E',
         scope: true,
         require: '^assessmentitem',
-        controller: ['$scope', function($scope){
+        controller: ['$scope', '$document', function($scope, $document){
             $scope.yintercept = {x: undefined, y: undefined};
             $scope.$watch('showNoResponseFeedback', function(){
                  if($scope.isEmptyItem($scope.pointResponse) && $scope.showNoResponseFeedback){
@@ -76,6 +77,7 @@ angular.module("qti.directives").directive("pointinteraction", function(){
             element.find('[jsx-graph]').attr(graphAttrs);
             //element.find("#initialParams").remove()
             return function(scope, element, attrs, AssessmentItemController){
+                scope.additionalInfo = attrs.additionalInfo
                 scope.scale = graphAttrs.scale;
                 scope.domain = domain;
                 scope.range = range;

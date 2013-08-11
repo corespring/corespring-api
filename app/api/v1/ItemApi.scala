@@ -369,7 +369,48 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService) extends Base
         case _ => BadRequest(toJson(ApiError.JsonExpected))
       }
   }
-
+  def updateMetadata(id:VersionedId[ObjectId], property:String) = ApiAction{ request =>
+    val value = request.body.asText match {
+      case Some(v) => v
+      case None => request.body.asJson match {
+        case Some(v) => v.toString()
+        case None => BadRequest(Json.toJson(ApiError.BodyNotFound))
+      }
+    }
+    service.findOneById(id) match {
+      case Some(item) => Organization.findOneById(request.ctx.organization) match {
+        case Some(org) => {
+          val splitprops = property.split(".")
+          val metadataKey = splitprops(0)
+          val key = splitprops(1)
+          if(splitprops.length == 2){
+            MetadataSet.findByKey(metadataKey) match {
+              case Some(ms) => {
+                if(ms.schema.isEmpty || ms.schema.find(sm => sm.key == key).isDefined){
+                  val taskInfo:TaskInfo = item.taskInfo.getOrElse(TaskInfo())
+                  taskInfo.extended.find(_._1 == metadataKey) match {
+                    case Some((_,m)) => m.put(property,value)
+                    case None => {
+                      taskInfo.extended.put(metadataKey,scala.collection.mutable.Map(property,value))
+                    }
+                  }
+                } else BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("you are attempting to add a property that does not match the set schema"))))
+              }
+              case None => BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("specified set was not found"))))
+            }
+          } else {
+            BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("you must specify a property with set name and key separated by a '.'"))))
+          }
+        }
+        case None => InternalServerError(Json.toJson(ApiError.MetadataNotFound(Some("organization not found even after authentication"))))
+      }
+      case None => BadRequest(Json.toJson(ApiError.IdNotFound))
+    }
+    Ok
+  }
+  def getMetadata(id:VersionedId[ObjectId], property:String) = ApiAction {request =>
+    NotImplemented
+  }
 
 }
 

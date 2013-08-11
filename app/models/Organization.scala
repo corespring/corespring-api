@@ -25,6 +25,7 @@ import common.config.AppConfig
 case class Organization(var name: String = "",
                         var path: Seq[ObjectId] = Seq(),
                         var contentcolls: Seq[ContentCollRef] = Seq(),
+                        var metadataSets: Seq[MetadataSetRef] = Seq(),
                         var id: ObjectId = new ObjectId()) {
   lazy val isRoot:Boolean = id == AppConfig.rootOrgId
 }
@@ -212,11 +213,12 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
 }
 
 case class ContentCollRef(var collectionId: ObjectId, var pval: Long = Permission.Read.value)
-
 object ContentCollRef {
   val pval: String = "pval"
   val collectionId: String = "collectionId"
 }
+
+case class MetadataSetRef(var metadataId: ObjectId, var isOwner:Boolean)
 
 
 
