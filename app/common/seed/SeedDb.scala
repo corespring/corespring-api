@@ -41,7 +41,8 @@ object SeedDb {
     QtiTemplate.collection,
     LtiQuiz.collection,
     RegistrationToken.collection,
-    Quiz.collection
+    Quiz.collection,
+    MetadataSet.collection
   )
 
 
