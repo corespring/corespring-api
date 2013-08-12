@@ -1,6 +1,6 @@
 import sbt._
-import Keys._
 import PlayProject._
+import sbt.Keys._
 
 object Build extends sbt.Build {
 
@@ -13,7 +13,30 @@ object Build extends sbt.Build {
     "org.bson.types.ObjectId",
     "models.versioning.VersionedIdImplicits.Binders._")
 
+  val cred = {
+
+    val f : File =  file( Seq(Path.userHome / ".ivy2"/ ".credentials").mkString )
+
+    def env(k:String) = System.getenv(k)
+
+    if(f.exists()){
+      println("using credentials file")
+      Credentials(f)
+    } else {
+      //https://devcenter.heroku.com/articles/labs-user-env-compile
+      println("using credentials env vars - you need to have: user-env-compile enabled in heroku")
+      Credentials(
+        env("ARTIFACTORY_REALM"),
+        env("ARTIFACTORY_HOST"),
+        env("ARTIFACTORY_USER"),
+        env("ARTIFACTORY_PASS")
+        )
+
+    }
+  }
+
   val main = play.Project(appName, appVersion, Dependencies.all).settings(
+    credentials += cred,
     scalaVersion := ScalaVersion,
     parallelExecution.in(Test) := false,
     routesImport ++= customImports,
