@@ -55,3 +55,23 @@ Note: The seeding of the app is now part of the sbt build - It won't happen as p
 * to help minimize dependencies and make a library, reusable try and work with abstractions
 * we may at some point want to consider moving some of the libraries out of this project altogether and make them dependencies
 
+
+#### Thoughts on further modularization.
+
+##### Core => models, json + services
+
+models - only the case classes
+json - only the json serialization of the models
+services - the service behaviour for the given models
+
+One thing that is nice about json serialization at the moment is that the Reads/Writes are picked up automatically as they are defined in the model companion objects. So for example
+
+    class MyController{
+      def get = Action{ request => Ok( Json.toJson(MyModel())) }
+    }
+
+In this the Json Writes for type MyModel will be automatically picked up because the implicit look up behaviour will check the companion object of MyModel.
+
+The bad thing about this is that you need to pollute your class with a json implementation - not something that your model cares about.
+
+You could have a model companion in a project where everything is defined??
