@@ -3,10 +3,10 @@ package org.corespring.web.publicsite.controllers
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.service.{ItemService, ItemServiceImpl, ItemServiceClient}
 import org.corespring.platform.core.models.search.ItemSearch
 import play.api.libs.json.{Json, JsArray}
 import play.api.mvc.{Result, Action, Controller}
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemServiceClient, ItemService}
 
 
 object ExampleContent extends Controller with ItemServiceClient{

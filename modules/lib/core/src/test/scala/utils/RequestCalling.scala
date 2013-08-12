@@ -7,7 +7,7 @@ import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-trait RequestCalling extends PackageLogging {
+trait RequestCalling extends PackageLogging with JsonToModel {
 
   val accessToken = "test_token"
 
@@ -35,6 +35,9 @@ trait RequestCalling extends PackageLogging {
     }
   }
 
+}
+
+trait JsonToModel{
   def getData[A](maybeData:JsResult[A]) : A = maybeData match {
     case JsSuccess(d,_) => d
     case _ => throw new RuntimeException("couldn't read json")

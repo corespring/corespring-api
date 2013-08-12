@@ -3,11 +3,11 @@ package api.v1
 import api.ApiError
 import com.mongodb.casbah.Imports._
 import controllers.auth.ApiRequest
-import controllers.auth.{BaseApi}
+import controllers.auth.BaseApi
+import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.Content
-import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
 import org.corespring.platform.core.models.itemSession._
-import org.corespring.platform.core.models.quiz.basic.Quiz
+import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qti.models.responses.{ResponseAggregate, ArrayResponse, StringResponse}
 import play.api.libs.json.JsObject
@@ -18,18 +18,18 @@ import play.api.mvc.AnyContent
 import scala.Left
 import scala.Right
 import scala.Some
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 
 /**
  * API for managing item sessions
  */
-class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService) extends BaseApi {
+class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService, quizService : QuizService) extends BaseApi {
 
 
   def aggregate(quizId: ObjectId, itemId: VersionedId[ObjectId]) = ApiAction {
     request =>
 
-      Quiz.findOneById(quizId) match {
+      quizService.findOneById(quizId) match {
         case Some(q) =>
           val sessions = q.participants.map(_.answers.filter(_.itemId.toString == itemId.toString).map(_.sessionId.toString)).flatten
           Ok(JsObject(aggregateSessions(sessions).toList.map(p => (p._1, toJson(p._2)))))
@@ -267,4 +267,4 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService
   }
 }
 
-object ItemSessionApi extends ItemSessionApi(DefaultItemSession, ItemServiceImpl)
+object ItemSessionApi extends ItemSessionApi(DefaultItemSession, ItemServiceImpl, QuizService)

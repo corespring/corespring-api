@@ -4,9 +4,14 @@ import com.mongodb.DBObject
 import com.novus.salat.dao.SalatMongoCursor
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.service.ItemService
-import org.corespring.platform.core.models.quiz.basic.{Quiz, QuizService}
+import org.corespring.platform.core.models.quiz.basic.{Answer, Quiz}
+import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.player.accessControl.cookies.PlayerCookieKeys
+import org.corespring.player.accessControl.models.RequestedAccess
+import org.corespring.player.accessControl.models.RequestedAccess.Mode.Mode
+import org.corespring.player.accessControl.models.RequestedAccess.Mode._
 import org.corespring.test.PlaySingleton
 import org.specs2.execute.{Result => SpecsResult}
 import org.specs2.matcher.{Expectable, Matcher}
@@ -15,12 +20,9 @@ import org.specs2.mutable.Specification
 import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
-import org.corespring.player.accessControl.models.RequestedAccess
-import RequestedAccess.Mode
 import player.controllers.Views
 import scala.xml.Elem
 import utils.MockXml
-import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 
 class ViewsTest extends Specification with Mockito {
 
@@ -46,11 +48,18 @@ class ViewsTest extends Specification with Mockito {
 
   val quizService = new QuizService{
     def findOneById(id: ObjectId): Option[Quiz] = Some(Quiz(id = id))
+    def addAnswer(quizId: ObjectId, externalUid: String, answer: Answer): Option[Quiz] = ???
+    def addParticipants(quizId: ObjectId, externalUids: Seq[String]): Option[Quiz] = ???
+    def create(q: Quiz) {}
+    def findAllByOrgId(id: ObjectId): List[Quiz] = ???
+    def findByIds(ids: List[ObjectId]): List[Quiz] = ???
+    def remove(q: Quiz) {}
+    def update(q: Quiz) {}
   }
 
   val views = new Views(new TestBuilder, mockService, quizService)
 
-  class BeRightMode(m:Mode.Mode) extends Matcher[Action[AnyContent]]{
+  class BeRightMode(m:Mode) extends Matcher[Action[AnyContent]]{
     def apply[S <: Action[AnyContent]](s:Expectable[S]) = {
       val httpResult = s.value(FakeRequest("", "", FakeHeaders(), AnyContentAsEmpty))
       val modeString = session(httpResult).get(PlayerCookieKeys.ACTIVE_MODE)
@@ -65,12 +74,11 @@ class ViewsTest extends Specification with Mockito {
     }
   }
 
-  def beMode(m:Mode.Mode) = new BeRightMode(m)
+  def beMode(m:Mode) = new BeRightMode(m)
 
   "views" should {
 
     "set the correct cookie" in {
-      import Mode._
       views.preview(testId) must beMode(Preview)
       views.administerItem(testId) must beMode(Administer)
       views.administerSession(testSessionId) must beMode(Administer)

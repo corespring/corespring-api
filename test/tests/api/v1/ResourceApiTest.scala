@@ -7,7 +7,6 @@ import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{BaseFile, VirtualFile, Resource}
-import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
@@ -19,6 +18,7 @@ import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, FakeHeaders}
 import utils.mocks.MockS3Service
+import org.corespring.platform.core.services.item.ItemServiceImpl
 
 
 class ResourceApiTest extends BaseTest with PackageLogging {

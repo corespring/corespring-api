@@ -1,17 +1,16 @@
 package api.v1
 
-import org.bson.types.ObjectId
-import controllers.auth.BaseApi
-import play.api.mvc.{Action, Result}
-import play.api.libs.json.Json._
 import api.ApiError
-import play.api.libs.json.{JsUndefined, JsValue}
-import org.corespring.platform.core.models.itemSession.ItemSession
+import controllers.auth.BaseApi
+import org.bson.types.ObjectId
 import org.corespring.platform.core.models.quiz.basic.{Answer, Quiz}
+import org.corespring.platform.core.services.quiz.basic.QuizService
+import play.api.libs.json.Json._
+import play.api.mvc.Result
 
-object QuizApi extends BaseApi {
+class QuizApi(quizService : QuizService) extends BaseApi {
 
-  def WithQuiz(id: ObjectId, orgId: ObjectId)(f: Quiz => Result): Result = Quiz.findOneById(id) match {
+  def WithQuiz(id: ObjectId, orgId: ObjectId)(f: Quiz => Result): Result = quizService.findOneById(id) match {
     case Some(q) => {
       q.orgId match {
         case Some(quizOrgId) => if (quizOrgId == orgId) f(q) else BadRequest("You can't access this quiz")
@@ -26,7 +25,7 @@ object QuizApi extends BaseApi {
       parsed[Quiz](request.body.asJson, {
         quiz =>
           val copy = quiz.copy(orgId = Some(request.ctx.organization))
-          Quiz.create(copy)
+          quizService.create(copy)
           Ok(toJson(copy))
       })
   }
@@ -41,7 +40,7 @@ object QuizApi extends BaseApi {
   def getMultiple(ids:String) = ApiAction{
     request => {
       val objectIds = ids.split(",").toList.map(new ObjectId(_))
-      val quizzes : List[Quiz] = Quiz.findByIds(objectIds)
+      val quizzes : List[Quiz] = quizService.findByIds(objectIds)
       val filtered = quizzes.filter(_.orgId == Some(request.ctx.organization))
       Ok(toJson(filtered))
     }
@@ -56,7 +55,7 @@ object QuizApi extends BaseApi {
               participants = if (jsonQuiz.participants.length > 0) jsonQuiz.participants else quiz.participants,
               questions = if (jsonQuiz.questions.length > 0) jsonQuiz.questions else quiz.questions,
               metadata = if (jsonQuiz.metadata.size > 0) jsonQuiz.metadata else quiz.metadata)
-            Quiz.update(newQuiz)
+            quizService.update(newQuiz)
             Ok(toJson(newQuiz))
         })
     }
@@ -66,7 +65,7 @@ object QuizApi extends BaseApi {
     request => {
       WithQuiz(id, request.ctx.organization) {
         quiz =>
-          Quiz.remove(quiz)
+          quizService.remove(quiz)
           Ok("")
       }
     }
@@ -74,7 +73,7 @@ object QuizApi extends BaseApi {
 
   def list() = ApiAction {
     request =>
-      val quizzes = Quiz.findAllByOrgId(request.ctx.organization)
+      val quizzes = quizService.findAllByOrgId(request.ctx.organization)
       Ok(toJson(quizzes))
   }
 
@@ -83,7 +82,7 @@ object QuizApi extends BaseApi {
       request.body.asJson match {
         case Some(json) =>
           val ids = (json \ "ids").as[Seq[String]]
-          val updated = Quiz.addParticipants(id, ids)
+          val updated = quizService.addParticipants(id, ids)
           Ok(toJson(updated))
 
         case _ =>
@@ -97,10 +96,12 @@ object QuizApi extends BaseApi {
         quiz =>
           parsed[Answer](request.body.asJson, {
             answer =>
-              val updated = Quiz.addAnswer(quizId, externalUid, answer)
+              val updated = quizService.addAnswer(quizId, externalUid, answer)
               Ok(toJson(updated))
           })
       }
     }
   }
 }
+
+object QuizApi extends QuizApi(QuizService)

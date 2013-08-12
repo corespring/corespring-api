@@ -2,7 +2,6 @@ package tests.api.v1
 
 import api.v1.ExporterApi
 import java.io.{FileOutputStream, File}
-import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.execute.Result
@@ -11,6 +10,7 @@ import play.api.test.Helpers._
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.Item
 import org.corespring.test.BaseTest
+import org.corespring.platform.core.services.item.ItemServiceImpl
 
 class ExporterApiTest extends BaseTest {
 

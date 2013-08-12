@@ -2,11 +2,11 @@ package org.corespring.platform.core.models.json
 
 import play.api.libs.json._
 import scala.Some
-import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.corespring.platform.core.models.Standard
 import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.{Item, ContentType}
+import org.corespring.platform.core.services.item.ItemServiceImpl
 
 case class ItemView(item:Item, searchFields:Option[SearchFields])
 

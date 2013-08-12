@@ -9,7 +9,6 @@ import dao._
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
-import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.corespring.platform.core.models.search.Searchable
 import play.api.Play
 import play.api.Play.current
@@ -21,6 +20,7 @@ import scala.Right
 import scala.Some
 import scalaz.{Failure, Success, Validation}
 import se.radley.plugin.salat._
+import org.corespring.platform.core.services.item.ItemServiceImpl
 
 
 /**

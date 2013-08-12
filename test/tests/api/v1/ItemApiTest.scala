@@ -7,7 +7,6 @@ import org.corespring.assets.CorespringS3Service
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{VirtualFile, Resource}
-import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
 import org.specs2.mock.Mockito
@@ -17,6 +16,7 @@ import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.xml._
+import org.corespring.platform.core.services.item.ItemServiceImpl
 
 class ItemApiTest extends BaseTest with Mockito {
 

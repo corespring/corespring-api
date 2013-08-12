@@ -1,4 +1,4 @@
-package org.corespring.platform.core.models.item.service
+package org.corespring.platform.core.services.item
 
 import com.mongodb.casbah
 import com.mongodb.casbah.MongoDB

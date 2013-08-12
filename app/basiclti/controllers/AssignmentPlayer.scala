@@ -3,17 +3,17 @@ package basiclti.controllers
 import basiclti.models.LtiQuiz
 import common.controllers.AssetResource
 import org.bson.types.ObjectId
-import play.api.mvc.Action
-import player.controllers.Views
-import org.corespring.platform.core.models.item.service.ItemServiceImpl
-import player.views.models.PlayerParams
 import org.corespring.platform.core.models.itemSession.{DefaultItemSession, ItemSession}
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.models.quiz.basic.Quiz
+import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.player.accessControl.auth.CheckSessionAccess
 import org.corespring.player.accessControl.models.RequestedAccess
+import play.api.mvc.Action
+import player.controllers.Views
+import player.views.models.PlayerParams
+import org.corespring.platform.core.services.item.ItemServiceImpl
 
-object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl, Quiz) with AssetResource {
+object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl, QuizService) with AssetResource {
 
   def run(configId: ObjectId, resultSourcedId: String) = {
     session(configId, resultSourcedId) match {

@@ -5,7 +5,6 @@ import com.mongodb.casbah.commons.MongoDBObject
 import common.controllers.utils.BaseUrl
 import common.encryption._
 import controllers.auth.{BaseApi}
-import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.iteratee.Enumerator
@@ -18,6 +17,7 @@ import org.corespring.platform.core.models.item.{Item, Content}
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.common.encryption.{Crypto, AESCrypto}
 import org.corespring.player.accessControl.models.RenderOptions
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 
 class ExporterApi(encrypter: Crypto, service:ItemService) extends BaseApi {
 

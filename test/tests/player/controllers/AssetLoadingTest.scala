@@ -6,12 +6,12 @@ import play.api.test.Helpers._
 import play.api.test.{FakeRequest, FakeHeaders}
 import player.controllers.AssetLoading
 import play.api.libs.json.Json
-import org.corespring.platform.core.models.item.service.ItemServiceImpl
 import org.specs2.execute.Result
 import org.corespring.test.PlaySingleton
 import org.corespring.common.encryption.NullCrypto
 import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
+import org.corespring.platform.core.services.item.ItemServiceImpl
 
 class AssetLoadingTest extends Specification {
 

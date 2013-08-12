@@ -3,10 +3,9 @@ package player.controllers
 import common.controllers.QtiResource
 import controllers.auth.BaseApi
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
 import org.corespring.platform.core.models.itemSession.DefaultItemSession
-import org.corespring.platform.core.models.quiz.basic.{QuizService, Quiz}
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
 import org.corespring.player.accessControl.cookies.PlayerCookieWriter
@@ -18,6 +17,7 @@ import play.api.mvc.Action
 import play.api.templates.Html
 import player.views.models.{QtiKeys, ExceptionMessage, PlayerParams}
 import scala.xml.Elem
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemServiceClient, ItemService}
 
 
 class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService, quizService : QuizService)
@@ -162,4 +162,4 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
 
 }
 
-object Views extends Views(CheckSessionAccess, ItemServiceImpl, Quiz)
+object Views extends Views(CheckSessionAccess, ItemServiceImpl, QuizService)

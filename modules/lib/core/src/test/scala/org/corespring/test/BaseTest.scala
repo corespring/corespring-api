@@ -2,7 +2,6 @@ package org.corespring.test
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mutable.Specification
 import play.api.libs.json._
@@ -11,6 +10,7 @@ import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 
 
 trait BaseTest extends Specification {

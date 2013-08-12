@@ -1,13 +1,16 @@
-package org.corespring.platform.core.models.quiz.basic
+package org.corespring.platform.core.services.quiz.basic
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.itemSession.ItemSessionSettings
+import org.corespring.platform.core.models.quiz.basic.{Answer, Participant, Question, Quiz}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.{PlaySingleton, BaseTest}
 import play.api.libs.json.Json
-import utils.RequestCalling
+import utils.JsonToModel
 
-class QuizTest extends BaseTest with RequestCalling{
+class QuizServiceTest extends BaseTest with JsonToModel{
+
+  val service = QuizService
 
   sequential
 
@@ -16,12 +19,12 @@ class QuizTest extends BaseTest with RequestCalling{
   "Quiz" should {
     "save" in {
 
-      val count = Quiz.count()
+      val count = service.count()
       val q = Quiz()
-      Quiz.create(q)
-      Quiz.count() === (count + 1)
-      Quiz.remove(q)
-      Quiz.count() === count
+      service.create(q)
+      service.count() === (count + 1)
+      service.remove(q)
+      service.count() === count
     }
 
 
@@ -59,24 +62,24 @@ class QuizTest extends BaseTest with RequestCalling{
       val q = Quiz(questions = Seq(), participants = Seq(
         Participant(externalUid = "sam.smith@gmail.com", answers = Seq())
       ))
-      Quiz.create(q)
+      service.create(q)
       val answer = Answer(new ObjectId(), new ObjectId())
 
-      Quiz.addAnswer(q.id, "sam.smith@gmail.com", answer) match {
+      service.addAnswer(q.id, "sam.smith@gmail.com", answer) match {
         case Some(updated) => {
           updated.participants(0).answers.length === 1
         }
         case _ => failure("couldn't find updated")
       }
 
-      Quiz.addAnswer(q.id, "sam.smith@gmail.com", answer) match {
+      service.addAnswer(q.id, "sam.smith@gmail.com", answer) match {
         case Some(updated) => {
           updated.participants(0).answers.length === 1
         }
         case _ => failure("couldn't find updated")
       }
 
-      Quiz.addAnswer(q.id, "sam.smith@gmail.com", Answer(new ObjectId(), new ObjectId())) match {
+      service.addAnswer(q.id, "sam.smith@gmail.com", Answer(new ObjectId(), new ObjectId())) match {
         case Some(updated) => {
           updated.participants(0).answers.length === 2
         }
@@ -94,7 +97,7 @@ class QuizTest extends BaseTest with RequestCalling{
             answers = Seq()
           )
         ))
-      Quiz.create(quizOne)
+      service.create(quizOne)
 
       val quizTwo = Quiz(
         questions = Seq(),
@@ -104,8 +107,8 @@ class QuizTest extends BaseTest with RequestCalling{
             answers = Seq()
           )
         ))
-      Quiz.create(quizTwo)
-      val result = Quiz.findByIds(List(quizOne.id, quizTwo.id))
+      service.create(quizTwo)
+      val result = service.findByIds(List(quizOne.id, quizTwo.id))
       result.length === 2
     }
 
@@ -126,9 +129,9 @@ class QuizTest extends BaseTest with RequestCalling{
                     answers = Seq()
                   )
                 ))
-              Quiz.create(quizOne)
+              service.create(quizOne)
 
-              Quiz.findOneById(quizOne.id) match {
+              service.findOneById(quizOne.id) match {
                 case Some(updatedQuiz) => {
                   updatedQuiz.questions(0).title === info.title
                   success
@@ -148,7 +151,7 @@ class QuizTest extends BaseTest with RequestCalling{
 
       def assertCompleteAndScore(id: ObjectId, expected: (Boolean, Int)*): org.specs2.execute.Result = {
 
-        Quiz.findOneById(id) match {
+        service.findOneById(id) match {
           case Some(quiz) => {
 
             val participant = quiz.participants(0)

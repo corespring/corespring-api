@@ -1,21 +1,17 @@
 package org.corespring.platform.core.models.quiz.basic
 
-import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.dao.{SalatDAO, ModelCompanion}
-import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
 import org.bson.types.ObjectId
-import org.joda.time.DateTime
-import play.api.Play.current
-import play.api.libs.json.Json._
-import play.api.libs.json._
-import scala.Some
-import se.radley.plugin.salat._
-import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.platform.core.models.item.{TaskInfo, Item}
 import org.corespring.platform.core.models.itemSession.{ItemSessionSettings, DefaultItemSession, ItemSession}
 import org.corespring.platform.core.models.quiz.{BaseQuestion, BaseParticipant, BaseQuiz}
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.models.item.{TaskInfo, Item}
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.joda.time.DateTime
+import play.api.libs.json.Json._
+import play.api.libs.json._
+import scala.Some
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemServiceClient, ItemService}
 
 case class Answer(sessionId: ObjectId, itemId: ObjectId)
 
@@ -134,8 +130,8 @@ trait QuestionLike {
       question.itemId,
       MongoDBObject("taskInfo.title" -> 1, "standards" -> 1)).toList.headOption match {
       case Some(dbo) => {
-        import com.novus.salat._
         import com.mongodb.casbah.Imports._
+        import com.novus.salat._
         import org.corespring.platform.core.models.mongoContext.context
         val item : Item = grater[Item].asObject(dbo)
         val title = item.taskInfo.getOrElse(TaskInfo(title = Some(""))).title
@@ -159,23 +155,14 @@ case class Quiz(orgId: Option[ObjectId] = None,
                 participants: Seq[Participant] = Seq(),
                 id: ObjectId = new ObjectId()) extends BaseQuiz(questions, participants, id)
 
-
-trait QuizService{
-  def findOneById(id:ObjectId) : Option[Quiz]
-}
-
-object Quiz extends QuizService{
-
-  private object Keys {
-    val orgId = "orgId"
-  }
+object Quiz {
 
   implicit object Writes extends Writes[Quiz] {
     def writes(q: Quiz): JsObject = {
 
       val props = List(
         Some("id" -> JsString(q.id.toString)),
-        q.orgId.map((o: ObjectId) => ("orgId" -> JsString(o.toString))), //,
+        q.orgId.map((o: ObjectId) => ("orgId" -> JsString(o.toString))),
         Some("metadata" -> toJson(q.metadata)),
         Some("participants" -> toJson(q.participants)),
         Some("questions" -> toJson(q.questions))
@@ -198,91 +185,6 @@ object Quiz extends QuizService{
         (json \ "id").asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId())
       ))
     }
-  }
-
-  /** Hide the dao - it provides too many options
-    * By hiding it we can thin out the client api for quiz
-    */
-  private object Dao extends ModelCompanion[Quiz, ObjectId] {
-    import play.api.Play.current
-    val collection = mongoCollection("quizzes")
-    import org.corespring.platform.core.models.mongoContext.context
-val dao = new SalatDAO[Quiz, ObjectId](collection = collection) {}
-  }
-
-
-  /** Bind Item title and standards to the question */
-  private def bindItemData(q: Quiz): Quiz = {
-    q.copy(questions = q.questions.map(Question.bindItemToQuestion))
-  }
-
-  def create(q: Quiz) {
-    Dao.save(bindItemData(q))
-  }
-
-  def update(q: Quiz) {
-    Dao.save(bindItemData(q))
-  }
-
-  def count(query: DBObject = MongoDBObject(),
-            fields: List[String] = List()): Long =
-    Dao.count(query, fields)
-
-  def removeAll() {
-    Dao.remove(MongoDBObject())
-  }
-
-  def remove(q: Quiz) {
-    Dao.remove(q)
-  }
-
-  def findOneById(id: ObjectId) = Dao.findOneById(id)
-
-
-  def findByIds(ids: List[ObjectId]) = {
-    val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))
-    Dao.find(query).toList
-  }
-
-  def collection = Dao.collection
-
-  def findAllByOrgId(id: ObjectId): List[Quiz] = {
-    val query = MongoDBObject(Keys.orgId -> id)
-    Dao.find(query).toList
-  }
-
-  def addAnswer(quizId: ObjectId, externalUid: String, answer: Answer): Option[Quiz] = {
-
-    def processParticipants(externalUid: String)(p: Participant): Participant = {
-      if (p.externalUid == externalUid && !p.answers.exists(_.itemId == answer.itemId)) {
-        p.copy(answers = p.answers :+ answer)
-      }
-      else {
-        p
-      }
-    }
-
-    Quiz.findOneById(quizId) match {
-      case Some(q) => {
-        val updatedQuiz = q.copy(participants = q.participants.map(processParticipants(externalUid)))
-        Quiz.update(updatedQuiz)
-        Some(updatedQuiz)
-      }
-      case None => None
-    }
-  }
-
-  def addParticipants(quizId: ObjectId, externalUids: Seq[String]): Option[Quiz] = {
-    Quiz.findOneById(quizId) match {
-      case Some(q) => addParticipants(q, externalUids)
-      case None => None
-    }
-  }
-
-  def addParticipants(q: Quiz, externalUids: Seq[String]): Option[Quiz] = {
-    val updatedQuiz = q.copy(participants = q.participants ++ externalUids.map(euid => Participant(Seq(), euid)))
-    Quiz.update(updatedQuiz)
-    Some(updatedQuiz)
   }
 
 }

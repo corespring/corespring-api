@@ -2,12 +2,12 @@ package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
 import com.novus.salat.dao.SalatDAOUpdateError
-import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 
 
 trait Content {

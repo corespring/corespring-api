@@ -1,15 +1,16 @@
 package tests.api.v1
 
-import org.specs2.mutable.Specification
-import utils.RequestCalling
-import play.api.mvc.{AnyContentAsJson, AnyContentAsEmpty}
 import org.bson.types.ObjectId
-import play.api.libs.json.{JsSuccess, Json}
-import play.mvc.Call
-import play.api.test.Helpers._
-import play.api.test.FakeRequest
 import org.corespring.platform.core.models.quiz.basic.{Participant, Quiz}
+import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.test.PlaySingleton
+import org.specs2.mutable.Specification
+import play.api.libs.json.{JsSuccess, Json}
+import play.api.mvc.{AnyContentAsJson, AnyContentAsEmpty}
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
+import play.mvc.Call
+import utils.RequestCalling
 
 class QuizApiTest extends Specification with RequestCalling {
 
@@ -38,7 +39,7 @@ class QuizApiTest extends Specification with RequestCalling {
       val quizOne = createQuiz()
       val quizTwo = createQuiz()
       val quizThree = Quiz(orgId = Some(new ObjectId("51114b307fc1eaa866444649")))
-      Quiz.create(quizThree)
+      QuizService.create(quizThree)
       val ids = List(quizOne, quizTwo, quizThree).map(_.id.toString).mkString(",")
       val multiple = invokeCall[List[Quiz]](Api.getMultiple(ids), AnyContentAsEmpty)
       multiple.length === 2
@@ -68,7 +69,7 @@ class QuizApiTest extends Specification with RequestCalling {
 
     def createQuiz(metadata: Map[String, String] = Map()): Quiz = {
       val q = Quiz(orgId = Some(orgId), metadata = metadata)
-      Quiz.create(q)
+      QuizService.create(q)
       q
     }
 
@@ -79,7 +80,7 @@ class QuizApiTest extends Specification with RequestCalling {
       route(FakeRequest(call.method, call.url, FakeAuthHeader, AnyContentAsEmpty)) match {
         case Some(result) => {
           status(result) === OK
-          Quiz.findOneById(q.id) === None
+          QuizService.findOneById(q.id) === None
         }
         case _ => failure("Error deleting")
       }
@@ -94,7 +95,7 @@ class QuizApiTest extends Specification with RequestCalling {
 
     "list" in {
 
-      Quiz.removeAll()
+      QuizService.removeAll()
       createQuiz()
       createQuiz()
       createQuiz()
@@ -114,8 +115,5 @@ class QuizApiTest extends Specification with RequestCalling {
         case _ => failure("Error deleting")
       }
     }
-
-
   }
-
 }

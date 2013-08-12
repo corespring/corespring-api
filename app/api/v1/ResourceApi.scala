@@ -3,7 +3,6 @@ package api.v1
 import api.ApiError
 import controllers.auth.{ApiRequest, BaseApi}
 import org.corespring.platform.core.models.item.resource.{VirtualFile, BaseFile, StoredFile, Resource}
-import org.corespring.platform.core.models.item.service.{ItemService, ItemServiceImpl}
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json._
@@ -15,6 +14,7 @@ import org.corespring.platform.core.models.item.{Item, Content}
 import org.corespring.common.config.AppConfig
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.assets.{CorespringS3ServiceImpl, CorespringS3Service}
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 
 class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends BaseApi {
 

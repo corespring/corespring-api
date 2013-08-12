@@ -1,10 +1,10 @@
-package org.corespring.platform.core.models.item.service
+package org.corespring.platform.core.services.item
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.SalatVersioningDao
-import org.corespring.platform.core.models.item.Item
 
 trait XmlSearchClient{
   def xmlSearch : XmlSearch

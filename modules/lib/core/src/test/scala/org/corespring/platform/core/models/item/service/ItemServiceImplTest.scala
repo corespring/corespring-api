@@ -11,6 +11,7 @@ import org.specs2.execute.Result
 import org.specs2.mock.Mockito
 import org.corespring.test.BaseTest
 import utils.mocks.MockS3Service
+import org.corespring.platform.core.services.item.{ItemVersioningDao, ItemServiceImpl}
 
 class ItemServiceImplTest extends BaseTest with Mockito {
 

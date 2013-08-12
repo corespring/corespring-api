@@ -4,7 +4,6 @@ import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import dao.{SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError}
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
 import org.corespring.platform.core.models.json.JsonValidationException
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -18,6 +17,7 @@ import play.api.libs.json._
 import scala.xml._
 import se.radley.plugin.salat._
 import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 
 
 /**

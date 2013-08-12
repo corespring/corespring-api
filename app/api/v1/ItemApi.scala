@@ -12,7 +12,6 @@ import org.corespring.platform.core.models._
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.item.resource.StoredFile
-import org.corespring.platform.core.models.item.service.{ItemServiceImpl, ItemService}
 import org.corespring.platform.core.models.item.{TaskInfo, Item, Alignments, Content}
 import org.corespring.platform.core.models.json.ItemView
 import org.corespring.platform.core.models.mongoContext.context
@@ -29,6 +28,7 @@ import scalaz.Scalaz._
 import scalaz.Success
 import scalaz.Validation
 import org.corespring.assets.{CorespringS3ServiceImpl, CorespringS3Service}
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 
 /**
  * Items API

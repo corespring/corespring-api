@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, PreviewItemSessionCompanion, DefaultItemSession}
-import org.corespring.platform.core.models.quiz.basic.Quiz
+import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.models.RequestedAccess.Mode
 import org.corespring.player.accessControl.models.granter.{QuizItemLookup, SessionItemLookup, ConstraintGranter}
@@ -35,7 +35,7 @@ object CheckSessionAccess extends CheckSession with PackageLogging{
 
   val quizLookup: QuizItemLookup = new QuizItemLookup {
     def containsItem(id: ObjectId, itemId: VersionedId[ObjectId]): Boolean = {
-      Quiz.findOneById(id) match {
+      QuizService.findOneById(id) match {
         case Some(q) => q.questions.exists(_.itemId == itemId)
         case _ => false
       }

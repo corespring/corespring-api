@@ -6,7 +6,6 @@ import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
-import org.corespring.platform.core.models.item.service.ItemServiceClient
 import org.corespring.platform.core.models.itemSession.DefaultItemSession
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import play.api.mvc.Results._
@@ -15,6 +14,7 @@ import scalaz.Scalaz._
 import scalaz.{Success, Failure}
 import web.controllers.ObjectIdParser
 import org.corespring.web.common.controllers.DefaultCss
+import org.corespring.platform.core.services.item.ItemServiceClient
 
 
 object AssetResource{
