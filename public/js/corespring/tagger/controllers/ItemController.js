@@ -216,11 +216,11 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       itemData.metadataSets = {
         "newclassroom": {
           label: "New Classroom",
-          editorUrl: "http://cs-metadata-test.herokuapp.com/index.php",
+          editorUrl: "http://localhost:5000",
           data: {
-            "rabbit": "fast",
-            "snail": "slow",
-            "dog": "medium"
+              "Skill Number": "043",
+              "Family": "4",
+              "Master Question": "C"
           }
         }
       };
