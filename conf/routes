@@ -83,8 +83,8 @@ GET     /api/v1/items/:id/detail                api.v1.ItemApi.getDetail(id: Ver
 POST    /api/v1/items                           api.v1.ItemApi.create
 PUT     /api/v1/items/:id                       api.v1.ItemApi.update(id: VersionedId[ObjectId])
 POST    /api/v1/items/:id                       api.v1.ItemApi.cloneItem(id:VersionedId[ObjectId])
-PUT     /api/v1/items/:id/extended/:property    api.v1.ExtendedMetadataApi.updateMetadata(id:VersionedId[ObjectId],property:String)
-GET     /api/v1/items/:id/extended/:property    api.v1.ExtendedMetadataApi.getMetadata(id:VersionedId[ObjectId],property:String)
+PUT     /api/v1/items/:id/extended/:property    api.v1.ItemApi.updateMetadata(id:VersionedId[ObjectId],property:String)
+GET     /api/v1/items/:id/extended/:property    api.v1.ItemApi.getMetadata(id:VersionedId[ObjectId],property:String)
 
 
 # Exporter api

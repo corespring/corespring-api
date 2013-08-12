@@ -12,7 +12,7 @@ case class SchemaMetadata(key: String)
 case class MetadataSet(var metadataKey: String,
                         var editorUrl: String,
                         var editorLabel: String,
-                        var isPublic:Boolean = String,
+                        var isPublic:Boolean = false,
                         var schema:Seq[SchemaMetadata] = Seq(),
                         var id: ObjectId = ObjectId.get())
 object MetadataSet extends ModelCompanion[MetadataSet,ObjectId]{

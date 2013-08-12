@@ -66,6 +66,7 @@ object TaskInfo extends ValueGetter {
           else
             throw new JsonValidationException(gradeLevel)
       }
+      import scala.collection.mutable.Map
       def getExtended = (json \ extended).asOpt[Map[String,Map[String,String]]]
       JsSuccess(TaskInfo(
         extended = getExtended.getOrElse(Map()),
