@@ -4,8 +4,16 @@ import controllers.JsonValidationException
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import scala.collection.mutable.Map
+import com.mongodb.casbah.Imports._
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsUndefined
+import play.api.libs.json.JsSuccess
+import play.api.libs.json.JsString
+import scala.Some
+import play.api.libs.json.JsObject
+import play.api.data.validation.ValidationError
 
-case class TaskInfo( extended: Map[String,Map[String,String]] = Map(),
+case class TaskInfo( var extended: Seq[Metadata] = Seq(),
                      subjects: Option[Subjects] = None,
                      gradeLevel: Seq[String] = Seq(),
                      title: Option[String] = None,
@@ -15,7 +23,6 @@ case class TaskInfo( extended: Map[String,Map[String,String]] = Map(),
     copy( title = title.map( t => if(t.isEmpty) titlePrefix else titlePrefix + " " + t) orElse Some(titlePrefix))
   }
 }
-
 object TaskInfo extends ValueGetter {
 
 
@@ -49,67 +56,70 @@ object TaskInfo extends ValueGetter {
       }
     }
   }
-  def extendedAsJson(extended: Map[String,Map[String,String]]):JsValue = {
-    JsObject(extended.foldRight[Seq[(String,JsValue)]](Seq())((set,acc1) => {
-      acc1 :+ (set._1 -> JsObject(set._2.foldRight[Seq[(String,JsValue)]](Seq())((prop,acc2) => acc2 :+ (prop._1 -> JsString(prop._2)))))
+  def extendedAsJson(extended: Seq[Metadata]):JsValue = {
+    JsObject(extended.foldRight[Seq[(String,JsValue)]](Seq())((md,acc1) => {
+      acc1 :+ (md.metadataKey -> JsObject(md.props.toSeq.map(prop => prop._1 -> JsString(prop._2))))
     }))
   }
-  implicit object Reads extends Reads[TaskInfo] {
-    def reads(json:JsValue) : JsResult[TaskInfo] = {
-
-      import Keys._
-      import play.api.data.validation.ValidationError
-
-      def isValid(g:String) = fieldValues.gradeLevels.exists(_.key == g)
-
-      /** Look up the grade level string in fieldValues to ensure its valid
-       * @return a sequence of gradelevel strings of throw a JsonValidationException
-       */
-      def getGradeLevel:JsResult[Seq[String]] = (json \ gradeLevel).asOpt[Seq[String]].map { v =>
-          if (v.foldRight[Boolean](true)((g, acc) => isValid(g) && acc)) JsSuccess(v)
-          else JsError(__ \ gradeLevel, ValidationError("missing", gradeLevel))
-      }.getOrElse(JsSuccess(Seq()))
-
-      def getExtended:JsResult[Map[String,Map[String,String]]] = {
-        (json \ "extended") match {
-          case JsObject(fields1) => {
-            fields1.foldRight[Either[JsError,Map[String,Map[String,String]]]](Right(Map()))((prop,acc) => {
-              prop._2 match {
-                case JsObject(innerFields) => {
-                  innerFields.foldRight[Either[JsError,Map[String,String]]](Right(Map()))((innerProp,innerAcc) => {
-                    innerProp._2.validate[String] match {
-                      case JsSuccess(value,_) => innerAcc.fold(Left(_), innerProps => Right(innerProps + (innerProp._1 -> value)))
-                      case JsError(errors) => innerAcc.fold(jserror => Left(JsError(jserror.errors ++ errors)), _ => Left(JsError(errors)))
-                    }
-                  }) match {
-                    case Right(innerProps) => acc.fold(Left(_),props => Right(props + (prop._1 -> innerProps)))
-                    case Left(innerJserror) => acc match {
-                      case Right(_) => Left(innerJserror)
-                      case Left(jserror) => Left(JsError(jserror.errors ++ innerJserror.errors))
-                    }
-                  }
-                }
-                case _ => Left(JsError(__ \ prop._1, ValidationError("incorrect format", "json object not found for "+prop._1+"property")))
-              }
-            }) match {
-              case Right(props) => JsSuccess(props)
-              case Left(jserror) => jserror
-            }
+  private def isValid(g:String) = fieldValues.gradeLevels.exists(_.key == g)
+  private val getGradeLevel = Reads[Seq[String]]((json:JsValue) => {
+    (json \ Keys.gradeLevel).asOpt[Seq[String]] match {
+      case Some(grades) => if (grades.forall(isValid(_))) JsSuccess(grades)
+        else JsError(__ \ Keys.gradeLevel, ValidationError("missing", Keys.gradeLevel))
+      case None => JsSuccess(Seq())
+    }
+  })
+  private val getExtended = Reads[Seq[Metadata]]((json:JsValue) => {
+    (json \ Keys.extended) match {
+      case JsArray(metadatas) => {
+        metadatas.foldRight[Either[JsError,Seq[Metadata]]](Right(Seq[Metadata]()))((jsmetadata,acc) => {
+          Json.fromJson[Metadata](jsmetadata) match {
+            case JsSuccess(metadata,_) => acc.fold(Left(_), mds => Right(mds :+ metadata))
+            case JsError(errors) => acc.fold(jserror => Left(JsError(jserror.errors ++ errors)), _ =>Left(JsError(errors)))
           }
-          case JsUndefined(_) => JsSuccess(Map())
-          case _ => JsError(__ \ extended, ValidationError("incorrect format","json for extended property was not a JSON object"))
+        }) match {
+          case Right(props) => JsSuccess(props)
+          case Left(jserror) => jserror
         }
       }
+      case JsUndefined(_) => JsSuccess(Seq())
+      case _ => JsError(__ \ Keys.extended, ValidationError("incorrect format","json for extended property was not a JSON object"))
+    }
+  })
+  private val getSubjects = Reads[Option[Subjects]]((json:JsValue) =>
+    Json.fromJson[Subjects](json).fold(_ => JsSuccess(None), valid => JsSuccess(Some(valid)))
+  )
+  implicit val taskInfoReads:Reads[TaskInfo] = (
+    getExtended and
+    getSubjects and
+    getGradeLevel and
+    (__ \ Keys.title).readNullable[String] and
+    (__ \ Keys.itemType).readNullable[String]
+  )(TaskInfo.apply _)
+}
 
-      getGradeLevel.flatMap(gradeLevel => getExtended.map(extended =>
-        TaskInfo(
-          extended = extended,
-          subjects = json.asOpt[Subjects],
-          gradeLevel = gradeLevel,
-          title = (json \ title).asOpt[String],
-          itemType = (json \ itemType).asOpt[String]
-        )
-      ))
+case class Metadata(metadataKey: String, props: Map[String,String])
+object Metadata{
+  private val propsReads:Reads[Map[String,String]] = Reads[Map[String,String]](json => {
+    (json \ "props") match {
+      case JsObject(fields) => JsSuccess(fields.foldRight[Map[String,String]](Map())((field,acc) => {
+        acc + (field._1 -> field._2.toString())
+      }))
+      case JsUndefined(_) => JsSuccess(Map())
+      case _ => JsError(__ \ "props", ValidationError("incorrect format","props must be a JSON object"))
+    }
+  })
+  implicit val metadataReads:Reads[Metadata] = (
+      (__ \ "metadataKey").read[String] and
+      propsReads
+    )(Metadata.apply _)
+
+  implicit object MetadataWrites extends Writes[Metadata]{
+    def writes(o: Metadata): JsValue = {
+      Json.obj(
+        "metadataKey" -> o.metadataKey,
+        "props" -> Json.obj(o.props.toSeq.map(prop => prop._1 -> Json.toJsFieldJsValueWrapper(prop._2)):_*)
+      )
     }
   }
 }

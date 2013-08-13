@@ -324,11 +324,50 @@ class ItemApiTest extends BaseTest with Mockito {
     val itemId = "511154e48604c9f77da9739b"
     val property = "blergl.mergl"
     val value = "the answer to all things"
-    val fakeRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token)).withTextBody(value)
-    val result = route(fakeRequest).get
-    status(result) must beEqualTo(OK)
-    val json = Json.parse(result.body)
-    (json \ "blergl" \ "mergl").as[String] must beEqualTo(value)
+    val updateRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token)).withTextBody(value)
+    val updateResult = route(updateRequest).get
+    status(updateResult) must beEqualTo(OK)
+    val updateJson = Json.parse(updateResult.body)
+    (updateJson \ "blergl" \ "mergl").as[String] must beEqualTo(value)
+    val request = FakeRequest(GET, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token))
+    val requestResult = route(request).get
+    status(requestResult) must beEqualTo(OK)
+    val requestJson = Json.parse(requestResult.body)
+    (requestJson \ "mergl").as[String] must beEqualTo(value)
   }
-
+  "update/retrieve properties of item metadata set" in {
+    val itemId = "511154e48604c9f77da9739b"
+    val property = "blergl"
+    val body = Json.obj(
+      "mergl" -> "the answer to all things",
+      "platypus" -> "greatest animal ever",
+      "baaaa" -> "sound a goat makes"
+    )
+    val updateRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token)).withJsonBody(body)
+    val updateResult = route(updateRequest).get
+    status(updateResult) must beEqualTo(OK)
+    val json = Json.parse(updateResult.body)
+    json match {
+      case JsObject(fields) => fields.find(_._1 == property) match {
+        case Some((_,jsprops)) => jsprops match {
+          case JsObject(props) => {
+            props.forall(prop => body.fields.find(field => field._1 == prop._1).isDefined) must beTrue
+          }
+          case _ => failure("metadata did not have a properties object")
+        }
+        case None => failure("could not find metadata properties with key "+property)
+      }
+      case _ => failure("returned json not an object")
+    }
+    val request = FakeRequest(GET, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token))
+    val requestResult = route(request).get
+    status(requestResult) must beEqualTo(OK)
+    val requestJson = Json.parse(requestResult.body)
+    requestJson match {
+      case JsObject(fields) => body.fields.forall(prop => {
+        fields.find(_._1 == prop._1).isDefined
+      }) must beTrue
+      case _ => failure("returned json not an object")
+    }
+  }
 }
