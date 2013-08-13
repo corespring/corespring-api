@@ -23,6 +23,7 @@ import search.Searchable
 import common.config.AppConfig
 import scalaz._
 import Scalaz._
+import models.metadata.MetadataSetServiceImpl
 
 case class Organization(var name: String = "",
                         var path: Seq[ObjectId] = Seq(),
@@ -32,7 +33,24 @@ case class Organization(var name: String = "",
   lazy val isRoot:Boolean = id == AppConfig.rootOrgId
 }
 
-object Organization extends ModelCompanion[Organization,ObjectId] with Searchable{
+trait OrganizationService {
+
+  def metadataSetService : MetadataSetServiceImpl
+
+  def addMetadataSet(orgId:ObjectId, setId: ObjectId, checkExistence:Boolean = true): Either[String,MetadataSetRef]
+
+  /** remove metadata set by id
+    * @param orgId
+    * @param setId
+    * @return maybe an error string
+    */
+  def removeMetadataSet(orgId:ObjectId, setId: ObjectId): Option[String]
+
+
+  def findOneById(orgId:ObjectId) : Option[Organization]
+}
+
+trait OrganizationImpl extends ModelCompanion[Organization,ObjectId] with Searchable with OrganizationService{
 
   val name: String = "name"
   val path: String = "path"
@@ -86,7 +104,7 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
    */
   def delete(orgId: ObjectId): Either[InternalError, Unit] = {
     try {
-      remove(MongoDBObject(Organization.path -> orgId))
+      remove(MongoDBObject(path -> orgId))
       Right(())
     } catch {
       case e:SalatRemoveError => Left(InternalError("failed to destroy organization tree", e))
@@ -95,9 +113,9 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
 
   def updateOrganization(org: Organization): Either[InternalError, Organization] = {
     try {
-      Organization.update(MongoDBObject("_id" -> org.id), MongoDBObject("$set" -> MongoDBObject(name -> org.name)),
-        false, false, Organization.collection.writeConcern)
-      Organization.findOneById(org.id) match {
+      update(MongoDBObject("_id" -> org.id), MongoDBObject("$set" -> MongoDBObject(name -> org.name)),
+        false, false, collection.writeConcern)
+      findOneById(org.id) match {
         case Some(org) => Right(org)
         case None => Left(InternalError("could not find organization that was just modified"))
       }
@@ -112,10 +130,10 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
    * @param parentId
    * @return
    */
-  def getTree(parentId: ObjectId): Seq[Organization] = Organization.find(MongoDBObject(Organization.path -> parentId)).toSeq
+  def getTree(parentId: ObjectId): Seq[Organization] = find(MongoDBObject(path -> parentId)).toSeq
 
   def isChild(parentId: ObjectId, childId: ObjectId): Boolean = {
-    Organization.findOneById(childId) match {
+    findOneById(childId) match {
       case Some(child) => {
         if (child.path.size >= 2) child.path(1) == parentId else false
       }
@@ -124,16 +142,16 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
   }
 
   def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean = {
-    Organization.findOne(MongoDBObject("_id" -> orgId,
-      Organization.contentcolls -> MongoDBObject("$elemMatch" ->
+    findOne(MongoDBObject("_id" -> orgId,
+      contentcolls -> MongoDBObject("$elemMatch" ->
         MongoDBObject(ContentCollRef.collectionId -> collRef.collectionId, ContentCollRef.pval -> collRef.pval)))).isDefined
   }
   def removeCollection(orgId:ObjectId, collId: ObjectId):Either[InternalError,Unit] = {
-    Organization.findOneById(orgId) match {
+    findOneById(orgId) match {
       case Some(org) => {
         org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
         try {
-          Organization.update(MongoDBObject("_id" -> orgId),org,false,false,Organization.defaultWriteConcern)
+          update(MongoDBObject("_id" -> orgId),org,false,false,defaultWriteConcern)
           Right(())
         }catch {
           case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
@@ -155,9 +173,9 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
     try {
       val collRef = new ContentCollRef(collId, p.value)
       if (!hasCollRef(orgId, collRef)) {
-        Organization.update(MongoDBObject("_id" -> orgId),
-          MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> grater[ContentCollRef].asDBObject(collRef))),
-          false, false, Organization.collection.writeConcern)
+        update(MongoDBObject("_id" -> orgId),
+          MongoDBObject("$addToSet" -> MongoDBObject(contentcolls -> grater[ContentCollRef].asDBObject(collRef))),
+          false, false, collection.writeConcern)
         Right(collRef)
       } else {
         Left(InternalError("collection reference already exists"))
@@ -181,26 +199,34 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
     }
   }
 
-  def addMetadataSet(orgId:ObjectId, msId: ObjectId, checkExistence:Boolean = true):ValidationNel[controllers.InternalError,MetadataSetRef] = {
-    def shouldContinue:Boolean = !checkExistence || MetadataSet.findOneById(msId).isDefined
-    if(shouldContinue){
-      try{
-        val msref = MetadataSetRef(msId,true)
-        val wr = Organization.update(MongoDBObject("_id" -> orgId),
-          MongoDBObject("$push" -> MongoDBObject(Organization.metadataSets -> grater[MetadataSetRef].asDBObject(msref))),
-          false, false)
-        if(wr.getLastError.ok()){
-          msref.successNel[controllers.InternalError]
-        } else {
-          controllers.InternalError("error while updating organization data").failNel[MetadataSetRef]
-        }
-      }catch {
-        case e:SalatDAOUpdateError => controllers.InternalError("error while updating organization data").failNel[MetadataSetRef]
+  def addMetadataSet(orgId:ObjectId, msId: ObjectId, checkExistence:Boolean = true): Either[String,MetadataSetRef] = {
+
+    def applyUpdate =  try{
+      val ref = MetadataSetRef(msId,true)
+      val wr = update(MongoDBObject("_id" -> orgId),
+        MongoDBObject("$push" -> MongoDBObject(metadataSets -> grater[MetadataSetRef].asDBObject(ref))),
+        false, false)
+      if(wr.getLastError.ok()){
+        Right(ref)
+      } else {
+        Left("error while updating organization data")
       }
-    } else {
-      controllers.InternalError("could not find metadata set").failNel[MetadataSetRef]
+    } catch {
+      case e:SalatDAOUpdateError => Left("error while updating organization data")
     }
+
+    metadataSetService.findOneById(msId).map(set => applyUpdate )
+      .getOrElse{
+        if(checkExistence) Left("couldn't find the metadata set") else applyUpdate
+      }
   }
+
+  def removeMetadataSet(orgId: ObjectId, setId: ObjectId): Option[String] = findOneById(orgId).map{ org =>
+      val query = MongoDBObject("_id" -> orgId)
+      val pull = MongoDBObject("$pull" -> MongoDBObject("metadataSets" -> MongoDBObject("metadataId" -> setId)))
+      val result = update( query, pull, false, false, collection.writeConcern )
+      if(result.getLastError.ok) None else Some("Error updating orgs")
+    }.getOrElse(Some("Can't find org with id: " + orgId))
 
   object FullWrites extends BasicWrites{
 
@@ -234,6 +260,13 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
   override val searchableFields = Seq(
     name
   )
+
+}
+
+object Organization extends OrganizationImpl{
+  def metadataSetService: MetadataSetServiceImpl = new MetadataSetServiceImpl{
+    def orgService: OrganizationService = Organization
+  }
 }
 
 case class ContentCollRef(var collectionId: ObjectId, var pval: Long = Permission.Read.value)
