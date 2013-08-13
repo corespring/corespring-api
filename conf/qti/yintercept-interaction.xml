@@ -15,6 +15,7 @@
                          graph-width="300px"
                          graph-height="300px"
                          point-labels="y-intercept,x-intercept"
+                         additional-info="More instructions about what is required for this taks. This text can run the width of this space, then wrap and push down any content below it"
                          max-points="2"
                 />
 

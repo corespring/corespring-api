@@ -1,5 +1,6 @@
 package tests
 
+import _root_.common.log.PackageLogging
 import _root_.common.seed.SeedDb
 import _root_.models.item.Item
 import _root_.models.item.service.{ItemService, ItemServiceImpl}
@@ -25,7 +26,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
  * Base class for tests
  *
  */
-trait BaseTest extends Specification {
+trait BaseTest extends Specification{
 
   val TEST_COLLECTION_ID: String = "51114b127fc1eaa866444647"
   // From standard fixture data
@@ -43,16 +44,14 @@ trait BaseTest extends Specification {
   def fakeRequest(content:AnyContent = AnyContentAsEmpty) : FakeRequest[AnyContent] = FakeRequest("", tokenize(""), FakeHeaders(), content)
 
   def initDB() {
-    if (isLocalDb) {
-      SeedDb.emptyData()
-      SeedDb.seedData("conf/seed-data/test")
-    } else {
-      throw new RuntimeException("You're trying to seed against a remote db - bad idea")
-    }
+      if (isLocalDb) {
+        SeedDb.emptyData()
+        SeedDb.seedData("conf/seed-data/test")
+      } else {
+        throw new RuntimeException("You're trying to seed against a remote db - bad idea")
+      }
   }
-
   PlaySingleton.start()
-
   override def map(fs: => Fragments) = Step(initDB) ^ fs
 
   /**

@@ -179,8 +179,8 @@ table.csDropTiles,
     cursor: pointer;
 }
 
-.modal-backdrop,
-.modal-backdrop.fade.in {
-    opacity: 0.3;
-    filter: alpha(opacity=30);
+.modal-backdrop {
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: rgba(0, 0, 0, 0.2);
 }

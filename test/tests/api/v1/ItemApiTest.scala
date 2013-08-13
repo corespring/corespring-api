@@ -244,6 +244,8 @@ class ItemApiTest extends BaseTest with Mockito {
 
 
 
+
+
   "when saving an item with QTI xml, add csFeedbackId attrs if they are not present" in {
     /**
      * all feedback elements, feedbackInline and modalFeedback should be decorated with the attribute csFeedbackId
@@ -301,5 +303,32 @@ class ItemApiTest extends BaseTest with Mockito {
     val result = itemApi.cloneItem(VersionedId(new ObjectId(id)))(fakeRequest)
     there was atLeastTwo(mockS3service).copyFile(anyString, anyString, anyString)
   }.pendingUntilFixed("Play 2.1.3 upgrade - fix this")
+
+  "updating item metadata without having a corresponding set results in error" in {
+    val itemId = "511154e48604c9f77da9739b"
+    val property = "flergl.mergl"
+    val fakeRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token)).withTextBody("the answer to all things")
+    val result = route(fakeRequest).get
+    status(result) must beEqualTo(BAD_REQUEST)
+    result.body must contain(ApiError.MetadataNotFound.message)
+  }
+  "updating item metadata with incorrect schema results in error" in {
+    val itemId = "511154e48604c9f77da9739b"
+    val property = "blergl.flergl"
+    val fakeRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token)).withTextBody("the answer to all things")
+    val result = route(fakeRequest).get
+    status(result) must beEqualTo(BAD_REQUEST)
+    result.body must contain(ApiError.MetadataNotFound.message)
+  }
+  "update/retrieve single property metadata with corresponding set" in {
+    val itemId = "511154e48604c9f77da9739b"
+    val property = "blergl.mergl"
+    val value = "the answer to all things"
+    val fakeRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token)).withTextBody(value)
+    val result = route(fakeRequest).get
+    status(result) must beEqualTo(OK)
+    val json = Json.parse(result.body)
+    (json \ "blergl" \ "mergl").as[String] must beEqualTo(value)
+  }
 
 }

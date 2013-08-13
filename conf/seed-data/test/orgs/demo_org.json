@@ -21,5 +21,13 @@
       },
       "pval": 3
     }
+  ],
+  "metadataSets": [
+    {
+      "metadataId": {
+          "$oid": "5209323f2c18c74e18c8dcbe"
+        },
+      "isOwner": true
+    }
   ]
 }

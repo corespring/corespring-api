@@ -64,7 +64,6 @@ case class TextEntryInteraction(responseIdentifier: String, expectedLength: Int,
 }
 
 object TextEntryInteraction extends InteractionCompanion[TextEntryInteraction]{
-  private val engine = new ScriptEngineManager().getEngineByName("JavaScript")
 
   def tagName = "textEntryInteraction"
 

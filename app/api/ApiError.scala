@@ -81,6 +81,7 @@ object ApiError {
   val CollIdNotNeeded      = ApiError(206, "a collection id cannot be specified for this operation")
   val StringToMongo         = ApiError(207, "could not parse string into db object")
   val BadJson              = ApiError(208, "could not parse json into expected object")
+  val BodyNotFound        = ApiError(209, "no valid body was found in the request")
 
   // Organization API
   val IdsDoNotMatch       = ApiError(300, "Specified id does not match the one in the json")
@@ -119,6 +120,7 @@ object ApiError {
 
   //Item API
   val CollectionIdMissing = ApiError(700, "collection id is missing in given json")
+  val IdNotFound          = ApiError(701, "item not found with the given id")
 
   //amazon s3
   val AmazonS3Client          = ApiError(800, "an exception occured on the when communicating with S3")
@@ -133,6 +135,10 @@ object ApiError {
   val ResourceNameTaken       = ApiError(902, "Resource name is taken - please choose another")
   val FilenameIsRequired      = ApiError(903, "Filename is required")
   val UpdateResource          = ApiError(904, "Cannot update resource")
+
+  //Extended metadata
+  val MetadataNotFound        = ApiError(1000, "Metadata not found")
+  val InsertMetadata          = ApiError(1001, "error occurred when inserting metadata")
 
 
   implicit object ApiErrorWrites extends Writes[ApiError] {

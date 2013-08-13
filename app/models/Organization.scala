@@ -21,10 +21,13 @@ import scala.Right
 import play.api.libs.json.JsObject
 import search.Searchable
 import common.config.AppConfig
+import scalaz._
+import Scalaz._
 
 case class Organization(var name: String = "",
                         var path: Seq[ObjectId] = Seq(),
                         var contentcolls: Seq[ContentCollRef] = Seq(),
+                        var metadataSets: Seq[MetadataSetRef] = Seq(),
                         var id: ObjectId = new ObjectId()) {
   lazy val isRoot:Boolean = id == AppConfig.rootOrgId
 }
@@ -35,6 +38,7 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
   val path: String = "path"
   val contentcolls: String = "contentcolls"
   val id = "id"
+  val metadataSets = "metadataSets"
 
   val collection = mongoCollection("orgs")
   val dao = new SalatDAO[Organization, ObjectId](collection = collection) {}
@@ -177,6 +181,27 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
     }
   }
 
+  def addMetadataSet(orgId:ObjectId, msId: ObjectId, checkExistence:Boolean = true):ValidationNel[controllers.InternalError,MetadataSetRef] = {
+    def shouldContinue:Boolean = !checkExistence || MetadataSet.findOneById(msId).isDefined
+    if(shouldContinue){
+      try{
+        val msref = MetadataSetRef(msId,true)
+        val wr = Organization.update(MongoDBObject("_id" -> orgId),
+          MongoDBObject("$push" -> MongoDBObject(Organization.metadataSets -> grater[MetadataSetRef].asDBObject(msref))),
+          false, false)
+        if(wr.getLastError.ok()){
+          msref.successNel[controllers.InternalError]
+        } else {
+          controllers.InternalError("error while updating organization data").failNel[MetadataSetRef]
+        }
+      }catch {
+        case e:SalatDAOUpdateError => controllers.InternalError("error while updating organization data").failNel[MetadataSetRef]
+      }
+    } else {
+      controllers.InternalError("could not find metadata set").failNel[MetadataSetRef]
+    }
+  }
+
   object FullWrites extends BasicWrites{
 
     implicit object CollectionReferenceWrites extends Writes[ContentCollRef] {
@@ -212,11 +237,12 @@ object Organization extends ModelCompanion[Organization,ObjectId] with Searchabl
 }
 
 case class ContentCollRef(var collectionId: ObjectId, var pval: Long = Permission.Read.value)
-
 object ContentCollRef {
   val pval: String = "pval"
   val collectionId: String = "collectionId"
 }
+
+case class MetadataSetRef(var metadataId: ObjectId, var isOwner:Boolean)
 
 
 

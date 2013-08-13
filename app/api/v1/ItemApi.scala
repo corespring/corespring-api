@@ -369,7 +369,97 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService) extends Base
         case _ => BadRequest(toJson(ApiError.JsonExpected))
       }
   }
-
+  def updateMetadata(id:VersionedId[ObjectId], property:String) = ApiAction{ request =>
+    import scala.collection.mutable.Map
+    service.findOneById(id) match {
+      case Some(item) => {
+        val splitprops = property.split("\\.")
+        if(splitprops.length == 2){ //attempting update a property within a metadata set
+          val metadataKey:String = splitprops(0)
+          val key = splitprops(1)
+          //since there is a period delimeter, we assume that the body is meant to be a single value for the given key. therefore we serialize if there is json
+          val value:Option[String] = request.body.asText match {
+            case Some(v) => Some(v)
+            case None => request.body.asJson match {
+              case Some(v) => Some(v.toString())
+              case None => None
+            }
+          }
+          if(value.isDefined){
+            MetadataSet.findByKey(metadataKey) match {
+              case Some(ms) => {  //check to make sure the given property matches the schema, if there is a a schema
+                if(ms.schema.isEmpty || ms.schema.find(sm => sm.key == key).isDefined){
+                  //update metadata
+                  val taskInfo:TaskInfo = item.taskInfo.getOrElse(TaskInfo())
+                  taskInfo.extended.find(_._1 == metadataKey) match {
+                    case Some((_,m)) => m.put(property,value)
+                    case None => taskInfo.extended.put(metadataKey, Map[String,String](key -> value.get))
+                  }
+                  item.taskInfo = Some(taskInfo)
+                  service.save(item,false)
+                  Ok(TaskInfo.extendedAsJson(item.taskInfo.get.extended))
+                } else BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("you are attempting to add a property that does not match the set schema"))))
+              }
+              case None => BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("specified set was not found"))))
+            }
+          }else{
+            BadRequest(Json.toJson(ApiError.BodyNotFound))
+          }
+        } else { //attempting to update an entire metadata set
+          //since property does not have a period delimeter, we assume property is the metadata key
+          // and the user is attempting to update an entire metadata set within the item
+          val value:Option[Map[String,String]] = request.body.asJson match {
+            case Some(JsObject(fields)) => Some(
+              fields.foldRight[Map[String,String]](Map())((prop,acc) => acc + (prop._1 -> prop._2.toString()))
+            )
+            case _ => None
+          }
+          if (value.isDefined){
+            MetadataSet.findByKey(property) match {
+              case Some(ms) => { //check to make sure the given properties matches the schema, if there is a a schema
+                if(ms.schema.isEmpty || ms.schema.forall(sm => value.get.contains(sm.key))) {
+                  //update metadata
+                  val taskInfo:TaskInfo = item.taskInfo.getOrElse(TaskInfo())
+                  taskInfo.extended.put(property,value.get)
+                  item.taskInfo = Some(taskInfo)
+                  service.save(item,false)
+                  Ok(TaskInfo.extendedAsJson(item.taskInfo.get.extended))
+                } else BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("you are attempting to add a property that does not match the set schema"))))
+              }
+              case None => BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("specified set was not found"))))
+            }
+          }else{
+            BadRequest(Json.toJson(ApiError.BodyNotFound))
+          }
+        }
+      }
+      case None => NotFound(Json.toJson(ApiError.IdNotFound))
+    }
+  }
+  def getMetadata(id:VersionedId[ObjectId], property:String) = ApiAction {request =>
+    service.findOneById(id) match {
+      case Some(item) => {
+        val splitprops = property.split(".")
+        if(splitprops.length == 2){
+          val metadataKey:String = splitprops(0)
+          val key = splitprops(1)
+          item.taskInfo.flatMap(_.extended.find(_._1 == metadataKey)) match {
+            case Some((_,metadataProps)) => metadataProps.find(_._1 == key).map(_._2) match {
+              case Some(value) => Ok(Json.obj(key -> value))
+              case None => BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("could not find metadata property "+key+" in the set "+metadataKey))))
+            }
+            case None => BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("coud not find metadata set key in item"))))
+          }
+        } else {
+          item.taskInfo.flatMap(_.extended.find(_._1 == property)) match {
+            case Some((_,metadataProps)) => Ok(Json.obj(metadataProps.map(prop => prop._1 -> toJsFieldJsValueWrapper(prop._2)).toSeq:_*))
+            case None => BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("coud not find metadata set key in item"))))
+          }
+        }
+      }
+      case None => NotFound(Json.toJson(ApiError.IdNotFound))
+    }
+  }
 
 }
 
