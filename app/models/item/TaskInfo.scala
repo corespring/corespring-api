@@ -68,10 +68,10 @@ object TaskInfo extends ValueGetter {
       def getGradeLevel:JsResult[Seq[String]] = (json \ gradeLevel).asOpt[Seq[String]].map { v =>
           if (v.foldRight[Boolean](true)((g, acc) => isValid(g) && acc)) JsSuccess(v)
           else JsError(__ \ gradeLevel, ValidationError("missing", gradeLevel))
-      }.getOrElse(JsError(__ \ gradeLevel, ValidationError("missing", gradeLevel)))
+      }.getOrElse(JsSuccess(Seq()))
 
       def getExtended:JsResult[Map[String,Map[String,String]]] = {
-        json match {
+        (json \ "extended") match {
           case JsObject(fields1) => {
             fields1.foldRight[Either[JsError,Map[String,Map[String,String]]]](Right(Map()))((prop,acc) => {
               prop._2 match {
@@ -96,7 +96,8 @@ object TaskInfo extends ValueGetter {
               case Left(jserror) => jserror
             }
           }
-          case _ => JsError(__ \ extended, ValidationError("incorrect format","json object not found for extended property"))
+          case JsUndefined(_) => JsSuccess(Map())
+          case _ => JsError(__ \ extended, ValidationError("incorrect format","json for extended property was not a JSON object"))
         }
       }
 
