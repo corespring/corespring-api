@@ -217,6 +217,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         "newclassroom": {
           label: "New Classroom",
           editorUrl: "http://localhost:5000",
+          lockFields: true,
           data: {
               "Skill Number": "043",
               "Family": "4",

@@ -21,7 +21,7 @@ function OrganizationMetadataController($scope, MessageBridge) {
       console.log("Metadata Requested");
 
       // TODO: Send current metadata
-      var current = $scope.itemData.metadataSets[$scope.selectedMetadataSet].data;
+      var current = $scope.itemData.metadataSets[$scope.selectedMetadataSet];
       MessageBridge.sendMessage("externalMetadataEditor", {type: "currentMetadata", message: current}, true);
     }
   });
