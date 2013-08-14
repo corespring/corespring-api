@@ -68,7 +68,8 @@ object Build extends sbt.Build {
   ).dependsOn(commonUtils, testLib % "test->compile")
 
   val assets = builders.lib("assets").settings(
-    libraryDependencies ++= Seq(specs2 % "test", playS3, assetsLoader)
+    libraryDependencies ++= Seq(specs2 % "test", playS3, assetsLoader),
+    credentials += cred
   ).dependsOn(commonUtils)
 
   /** Core data model */
