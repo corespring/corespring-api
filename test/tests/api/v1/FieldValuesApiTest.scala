@@ -1,8 +1,7 @@
 package tests.api.v1
 
 import org.specs2.mutable.Specification
-import models._
-import item.FieldValue
+import org.corespring.platform.core.models._
 import org.bson.types.ObjectId
 import org.specs2.execute.Pending
 import play.api.libs.json._
@@ -10,7 +9,6 @@ import play.api.mvc.{Results, SimpleResult, AnyContentAsJson}
 import play.api.test.{FakeHeaders, FakeRequest}
 import org.specs2.mutable._
 import play.api.test.Helpers._
-import tests.{BaseTest, PlaySingleton}
 import com.mongodb.BasicDBObject
 import play.api.mvc.AnyContentAsJson
 import scala.Some
@@ -19,6 +17,8 @@ import play.api.libs.json.JsArray
 import play.api.mvc.AnyContentAsJson
 import scala.Some
 import play.api.mvc.SimpleResult
+import org.corespring.platform.core.models.item.FieldValue
+import org.corespring.test.BaseTest
 
 object FieldValuesApiTest extends BaseTest {
 
@@ -82,7 +82,7 @@ object FieldValuesApiTest extends BaseTest {
        case Some(result) => {
           val json = Json.parse(contentAsString(result))
           (((json\ "subject")).asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
-       } 
+       }
        case _ => failure("request unsuccessful")
       }
     }
@@ -95,7 +95,7 @@ object FieldValuesApiTest extends BaseTest {
        case Some(result) => {
           val json = Json.parse(contentAsString(result))
           (((json\ "reviewsPassed")).asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
-       } 
+       }
        case _ => failure("request unsuccessful")
       }
 

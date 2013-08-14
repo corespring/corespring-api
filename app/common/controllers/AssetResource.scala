@@ -1,18 +1,20 @@
 package common.controllers
 
-import common.config.AppConfig
-import common.log.PackageLogging
-import controllers.{CorespringS3Service, CorespringS3ServiceImpl, S3ServiceClient}
-import models.item.Item
-import models.item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
-import models.item.service.ItemServiceClient
-import models.itemSession.DefaultItemSession
 import org.bson.types.ObjectId
+import org.corespring.assets.{S3ServiceClient, CorespringS3ServiceImpl, CorespringS3Service}
+import org.corespring.common.config.AppConfig
+import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
+import org.corespring.platform.core.models.itemSession.DefaultItemSession
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import play.api.mvc.Results._
 import play.api.mvc._
 import scalaz.Scalaz._
 import scalaz.{Success, Failure}
 import web.controllers.ObjectIdParser
+import org.corespring.web.common.controllers.DefaultCss
+import org.corespring.platform.core.services.item.ItemServiceClient
 
 
 object AssetResource{
@@ -63,7 +65,7 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemSer
 
   private def getFile(itemId:String, resourceName:String, filename: Option[String] = None) : Action[AnyContent] =
   {
-    import models.versioning.VersionedIdImplicits.Binders._
+    import VersionedIdImplicits.Binders._
 
     val out = for {
       oid <- stringToVersionedId(itemId).toSuccess(Errors.invalidObjectId)

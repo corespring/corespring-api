@@ -1,7 +1,7 @@
 package common.controllers
 
-import common.utils.string
 import play.core.Router.JavascriptReverseRoute
+import org.corespring.common.utils.string
 
 
 trait SimpleJsRoutes {

@@ -1,8 +1,8 @@
 package player.views.models
 
 import scala.xml.Node
-import common.log.PackageLogging
-import qti.models.QtiItem
+import org.corespring.qti.models.QtiItem
+import org.corespring.common.log.PackageLogging
 
 /** A list of keys that describe features that this qti document uses */
 case class QtiKeys(keys:Seq[String])

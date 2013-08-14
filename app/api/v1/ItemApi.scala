@@ -5,25 +5,28 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSONParseException
 import com.novus.salat.dao.SalatInsertError
 import com.novus.salat.dao.SalatMongoCursor
-import common.log.PackageLogging
-import controllers._
 import controllers.auth.ApiRequest
-import controllers.auth.{Permission, BaseApi}
-import models._
-import models.item._
-import models.item.resource.StoredFile
-import models.item.service.{ItemServiceImpl, ItemService}
-import models.json.ItemView
-import models.mongoContext._
-import models.search.SearchCancelled
-import models.search.SearchFields
+import controllers.auth.BaseApi
+import org.corespring.assets.{CorespringS3ServiceImpl, CorespringS3Service}
+import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models._
+import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.item._
+import org.corespring.platform.core.models.item.resource.StoredFile
+import org.corespring.platform.core.models.json.ItemView
+import org.corespring.platform.core.models.metadata.MetadataSet
+import org.corespring.platform.core.models.mongoContext.context
+import org.corespring.platform.core.models.search.ItemSearch
+import org.corespring.platform.core.models.search.SearchCancelled
+import org.corespring.platform.core.models.search.SearchFields
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc.{Result, Action, AnyContent}
 import scalaz.Scalaz._
-import scalaz.{Failure, Success, Validation}
-import search.ItemSearch
+import scalaz.{Failure,Success,Validation}
 
 /**
  * Items API
@@ -83,7 +86,7 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService) extends Base
     toJson(itemViews)
   }
 
-  def parseCollectionIds[A](request: ApiRequest[A])(value: AnyRef): Either[InternalError, AnyRef] = value match {
+  def parseCollectionIds[A](request: ApiRequest[A])(value: AnyRef): Either[error.InternalError, AnyRef] = value match {
     case dbo: BasicDBObject => dbo.toSeq.headOption match {
       case Some((key, dblist)) => if (key == "$in") {
         if (dblist.isInstanceOf[BasicDBList]) {
@@ -287,7 +290,7 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService) extends Base
   Action[AnyContent] =
     ApiAction {
       request =>
-        if (models.item.Content.isAuthorized(request.ctx.organization, id, p)) {
+        if (Content.isAuthorized(request.ctx.organization, id, p)) {
           block(request)
         } else {
           val orgName = Organization.findOneById(request.ctx.organization).map(_.name).getOrElse("unknown org")

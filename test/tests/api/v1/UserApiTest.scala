@@ -9,14 +9,13 @@ import scala.Some
 import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
 import scala.Some
-import tests.BaseTest
-import models.{UserOrg, User}
 import com.mongodb.casbah.Imports._
 import play.api.test.FakeHeaders
 import scala.Some
 import play.api.mvc.AnyContentAsJson
 import org.bson.types.ObjectId
-import controllers.auth.Permission
+import org.corespring.test.BaseTest
+import org.corespring.platform.core.models.auth.Permission
 
 /**
  * User API Tests

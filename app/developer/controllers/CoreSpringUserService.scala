@@ -1,27 +1,26 @@
 package developer.controllers
 
-import _root_.controllers.auth.Permission
 import com.mongodb.casbah.commons.MongoDBObject
-import common.config.AppConfig
-import common.log.PackageLogging
 import developer.models.RegistrationToken
-import models.{UserOrg, User}
 import org.bson.types.ObjectId
+import org.corespring.common.config.AppConfig
+import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.{UserOrg, User}
 import org.joda.time.DateTime
 import play.api.Application
-import scala.Some
 import securesocial.core._
-import securesocial.core.providers.utils.PasswordHasher
 import securesocial.core.providers.Token
+import securesocial.core.providers.utils.PasswordHasher
 
 /**
  * An implementation of the UserService
  */
 class CoreSpringUserService(application: Application) extends UserServicePlugin(application) with PackageLogging {
 
-  override def find(id: UserId): Option[SocialUser] = {
+  override def find(id: IdentityId): Option[SocialUser] = {
     // id.id has the username
-    Logger.debug("looking for %s(%s)".format(id.id, id.providerId))
+    Logger.debug("looking for %s(%s)".format(id.userId, id.providerId))
 
     User.getUser(id) map {
       u =>
@@ -43,18 +42,18 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
   }
 
   override def save(user: Identity): Identity = {
-    User.getUser(user.id.id, user.id.providerId) match {
+    User.getUser(user.identityId.userId, user.identityId.providerId) match {
       case None => {
         val corespringUser =
           User(
-            user.id.id,
+            user.identityId.userId,
             user.fullName,
             user.email.getOrElse(""),
             None,
             None,
             UserOrg(AppConfig.demoOrgId,Permission.Read.value),
             user.passwordInfo.getOrElse(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = "")).password,
-            user.id.providerId,
+            user.identityId.providerId,
             new ObjectId())
 
         User.insertUser(corespringUser, AppConfig.demoOrgId, Permission.Read, checkOrgId = false)
@@ -99,7 +98,7 @@ object CoreSpringUserService{
 
   def toIdentity(u:User) : Identity = {
     SocialUser(
-      UserId(u.userName, u.provider),
+      IdentityId(u.userName, u.provider),
       "",
       "",
       u.fullName,

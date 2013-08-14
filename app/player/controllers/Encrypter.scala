@@ -3,9 +3,10 @@ package player.controllers
 import common.encryption._
 import controllers.auth.BaseApi
 import play.api.libs.json._
-import player.accessControl.models.RenderOptions
 import scalaz.Scalaz._
 import scalaz._
+import org.corespring.common.encryption.{Crypto, AESCrypto}
+import org.corespring.player.accessControl.models.RenderOptions
 
 class Encrypter(encrypter: Crypto) extends BaseApi {
 

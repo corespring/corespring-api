@@ -1,16 +1,13 @@
 package tests.api.v1
 
-import play.api.libs.json.{Reads, JsSuccess, Json, JsValue}
-import play.api.test._
-import play.api.test.Helpers._
-import scala._
-import play.api.mvc.{AnyContentAsJson, Result}
-import tests.BaseTest
-import play.api.test.FakeHeaders
-import play.api.mvc.AnyContentAsJson
-import scala.Some
-import org.bson.types.ObjectId
 import api.v1.CollectionApi
+import org.bson.types.ObjectId
+import org.corespring.test.BaseTest
+import play.api.libs.json.{Json, JsValue}
+import play.api.mvc.AnyContentAsJson
+import play.api.test.Helpers._
+import play.api.test._
+import scala._
 
 
 class CollectionApiTest extends BaseTest {

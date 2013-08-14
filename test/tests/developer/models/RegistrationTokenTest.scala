@@ -1,12 +1,12 @@
 package tests.developer.models
 
 import org.specs2.mutable.Specification
-import models._
+import org.corespring.platform.core.models._
 import play.api.libs.json.Json
 import scala.Some
 import org.joda.time.DateTime
-import tests.BaseTest
 import developer.models.RegistrationToken
+import org.corespring.test.BaseTest
 
 class RegistrationTokenTest extends BaseTest {
   "token" should {

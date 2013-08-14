@@ -2,12 +2,12 @@ package basiclti.controllers.api
 
 
 import common.controllers.SimpleJsRoutes
-import models.auth.AccessToken
 import org.bson.types.ObjectId
 import play.api.mvc._
 import scala.Some
-import controllers.auth.requests.TokenizedRequest
 import basiclti.accessControl.auth.ValidateQuizIdAndOrgId
+import org.corespring.platform.core.models.auth.AccessToken
+import org.corespring.player.accessControl.auth.requests.TokenizedRequest
 
 class Collection(auth: ValidateQuizIdAndOrgId[TokenizedRequest[AnyContent]]) extends Controller with SimpleJsRoutes {
 

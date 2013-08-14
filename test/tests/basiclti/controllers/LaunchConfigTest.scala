@@ -1,6 +1,5 @@
 package tests.basiclti.controllers
 
-import tests.{PlaySingleton, BaseTest}
 import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers._
 import basiclti.models.{LtiQuestion, LtiQuiz}
@@ -8,13 +7,14 @@ import org.bson.types.ObjectId
 import play.api.libs.json.Json._
 import play.api.libs.json.JsValue
 import play.api.mvc.{Request, Cookie, AnyContent, AnyContentAsJson}
-import models.Organization
-import models.auth.AccessToken
-import models.itemSession.ItemSessionSettings
 import basiclti.accessControl.auth.cookies.LtiCookieKeys
-import player.accessControl.cookies.PlayerCookieKeys
 import org.specs2.mutable.Specification
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.auth.AccessToken
+import org.corespring.platform.core.models.itemSession.ItemSessionSettings
+import org.corespring.test.PlaySingleton
+import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 
 class LaunchConfigTest extends Specification{
 

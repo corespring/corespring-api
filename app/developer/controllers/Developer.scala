@@ -1,13 +1,9 @@
 package developer.controllers
 
 import api.ApiError
-import common.config.AppConfig
-import common.log.PackageLogging
 import controllers.Assets
-import controllers.auth.{BaseApi, OAuthProvider, Permission}
+import controllers.auth.{BaseApi, OAuthProvider}
 import developer.controllers.routes.{Developer => DeveloperRoutes}
-import models.auth.ApiClient
-import models.{User, Organization}
 import org.bson.types.ObjectId
 import play.api.libs.json._
 import play.api.mvc._
@@ -16,7 +12,11 @@ import scala.Right
 import scala._
 import scalaz.Scalaz._
 import scalaz.{Failure, Success, Validation}
-import securesocial.core.{UserId, SecureSocial}
+import securesocial.core.{IdentityId, SecureSocial}
+import org.corespring.platform.core.models.{User, Organization}
+import org.corespring.platform.core.models.auth.{Permission, ApiClient}
+import org.corespring.common.config.AppConfig
+import org.corespring.common.log.PackageLogging
 
 /**
  * TODO: remove magic strings
@@ -28,7 +28,7 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
   private def userFromRequest(r: Request[AnyContent]): Option[User] = {
     val result: Validation[String, User] = for {
       authenticator <- SecureSocial.authenticatorFromRequest(r).toSuccess("Can't find authenticator")
-      user <- User.getUser(authenticator.userId).toSuccess(s"Can't find user with id: $authenticator.userId")
+      user <- User.getUser(authenticator.identityId).toSuccess(s"Can't find user with id: $authenticator.userId")
     } yield user
 
     result match {
@@ -60,8 +60,8 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
     request =>
 
       def json(isLoggedIn: Boolean, username: Option[String] = None) = JsObject(Seq("isLoggedIn" -> JsBoolean(isLoggedIn)) ++ username.map("username" -> JsString(_)))
-      val userId: UserId = request.user.id
-      User.getUser(userId.id) match {
+      val userId: IdentityId = request.user.identityId
+      User.getUser(userId) match {
         case Some(user) => {
           val username = if (user.provider == "userpass") user.userName else user.fullName.split(" ").head
           Ok(json(true, Some(username)))
@@ -86,7 +86,7 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
 
   def getOrganization = SecuredAction {
     request =>
-      User.getUser(request.user.id) match {
+      User.getUser(request.user.identityId) match {
         case Some(user) => {
           val org: Option[Organization] = User.getOrg(user, Permission.Read)
           //get the first organization besides the public corespring organization. for now, we assume that the person is only registered to one private organization
@@ -110,7 +110,7 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
 
       def makeOrg(json: JsValue): Option[Organization] = (json \ "name").asOpt[String].map {
         n =>
-          import common.models.json._
+          import org.corespring.platform.core.models.json._
           Organization(n, (json \ "parent_id").asOpt[ObjectId].toList)
       }
 
@@ -127,12 +127,12 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
       }
 
       val validation: Validation[String, (Organization, ApiClient)] = for {
-        user <- User.getUser(request.user.id).toSuccess("Unknown user")
+        user <- User.getUser(request.user.identityId).toSuccess("Unknown user")
         okUser <- if (user.hasRegisteredOrg) Failure("Org already registered") else Success(user)
         json <- request.body.asJson.toSuccess("Json expected")
         orgToCreate <- makeOrg(json).toSuccess("Couldn't create org")
         orgId <- Organization.insert(orgToCreate).toSuccess("Couldn't create org")
-        updatedUserId <- setOrg(okUser.id, orgId).toSuccess("Couldn't set org")
+        updatedIdentityId <- setOrg(okUser.id, orgId).toSuccess("Couldn't set org")
         apiClient <- makeApiClient(orgId).toSuccess("Couldn't create api client")
       } yield (orgToCreate, apiClient)
 
@@ -144,7 +144,7 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
 
   def getOrganizationCredentials(orgId: ObjectId) = SecuredAction {
     request =>
-      User.getUser(request.user.id) match {
+      User.getUser(request.user.identityId) match {
         case Some(user) => {
           if (user.org.orgId == orgId) {
             Organization.findOneById(orgId) match {

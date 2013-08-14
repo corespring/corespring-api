@@ -13,10 +13,11 @@ import play.api.i18n.Messages
 import securesocial.core.providers.Token
 import scala.Some
 import securesocial.controllers.Registration._
-import models.User
-import controllers.auth.Permission
 import play.api.libs.json.{JsString, JsObject}
-import common.config.AppConfig
+import org.corespring.platform.core.models
+import org.corespring.platform.core.models.User
+import org.corespring.common.config.AppConfig
+import org.corespring.platform.core.models.auth.Permission
 
 object MyRegistration extends Controller {
   val Organization = "organization"
@@ -30,7 +31,7 @@ object MyRegistration extends Controller {
   val formWithUsername = Form[MyRegistrationInfo](
     mapping(
       UserName -> nonEmptyText.verifying(Messages(UserNameAlreadyTaken), userName => {
-        UserService.find(UserId(userName, providerId)).isEmpty
+        UserService.find(IdentityId(userName, providerId)).isEmpty
       }),
       FirstName -> nonEmptyText,
       LastName -> nonEmptyText,
@@ -109,7 +110,7 @@ object MyRegistration extends Controller {
               }) match {
                 case Right(dbuser) => {
                   val socialUser = SocialUser(
-                    UserId(id, providerId),
+                    IdentityId(id, providerId),
                     info.firstName,
                     info.lastName,
                     "%s %s".format(info.firstName, info.lastName),

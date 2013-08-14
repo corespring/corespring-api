@@ -9,14 +9,14 @@
     "name": "qti.xml",
     "files": [
       {
-        "_t": "models.item.resource.VirtualFile",
+        "_t" : "org.corespring.platform.core.models.item.resource.VirtualFile",
         "name": "qti.xml",
         "contentType": "text/xml",
         "isMain": true,
         "content": "$[interpolate{conf/qti/stock-feedback.xml}]"
       },
       {
-        "_t": "models.item.resource.StoredFile",
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name": "clientcharges.jpg",
         "contentType": "image/jpg",
         "storageKey": "test_images/Cute-Koala-01.jpg",
@@ -46,21 +46,21 @@
       "name": "Rubric",
       "files": [
         {
-          "_t": "models.item.resource.VirtualFile",
+          "_t" : "org.corespring.platform.core.models.item.resource.VirtualFile",
           "name": "index.html",
           "contentType": "text/html",
           "content": "<html><head><link rel=\"stylesheet\" href=\"my.css\"/></head><body><div class=\"blue\">hello world, here is a cute puppy<br/><img src=\"cute-puppy.jpg\"/></body></html>",
           "isMain": true
         },
         {
-          "_t": "models.item.resource.VirtualFile",
+          "_t" : "org.corespring.platform.core.models.item.resource.VirtualFile",
           "name": "my.css",
           "contentType": "text/css",
           "content": ".blue{ background-color: #0000ff;}",
           "isMain": false
         },
         {
-          "_t": "models.item.resource.StoredFile",
+          "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
           "name": "cute-puppy.jpg",
           "contentType": "image/jpg",
           "storageKey": "test_images/cute-kittens1.jpg",

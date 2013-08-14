@@ -1,31 +1,27 @@
 package tests.plugins
 
-import tests.helpers.TestModelHelpers
-import securesocial.core._
-import securesocial.core.PasswordInfo
-import securesocial.core.LoginEvent
-import securesocial.core.OAuth2Info
-import securesocial.core.AuthenticationMethod.UserPassword
-import models.User
-import plugins.UserEventListener
+import org.corespring.platform.core.models.User
+import org.corespring.test.{TestModelHelpers, BaseTest}
+import org.joda.time.DateTime
 import play.api.mvc.Session
 import play.api.test.FakeRequest
-import tests.BaseTest
-import controllers.auth.Permission
-import org.joda.time.DateTime
+import plugins.UserEventListener
+import securesocial.core.AuthenticationMethod.UserPassword
+import securesocial.core._
+import org.corespring.platform.core.models.auth.Permission
 
 class UserEventListenerTest extends BaseTest with TestModelHelpers {
 
-  case class MockIdentity(id: UserId, firstName: String = "", lastName: String = "", fullName: String = "", email: Option[String] = None,
+  case class MockIdentity(identityId: IdentityId, firstName: String = "", lastName: String = "", fullName: String = "", email: Option[String] = None,
                      avatarUrl: Option[String] = None, authMethod: AuthenticationMethod = UserPassword,
                      oAuth1Info: Option[OAuth1Info] = None,
                      oAuth2Info: Option[OAuth2Info] = None,
                      passwordInfo: Option[PasswordInfo] = None) extends Identity
 
-  def identity(userId: UserId) = MockIdentity(id = userId)
+  def identity(userId: IdentityId) = MockIdentity(userId)
 
   val userEventListener = new UserEventListener(null)
-  def userId(user: User) = UserId(user.userName, "userpass")
+  def userId(user: User) = IdentityId(user.userName, "userpass")
 
   def userHasDate(user: User, fn: User => Option[DateTime]) = {
     val hasDate: Boolean = User.getUser(userId(user)) match {

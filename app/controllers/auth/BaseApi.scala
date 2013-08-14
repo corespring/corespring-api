@@ -3,12 +3,13 @@ package controllers.auth
 import api.ApiError
 import api.ApiError._
 import play.api.libs.json._
-import common.log.PackageLogging
-import models.{Organization, User}
 import play.api.libs.json.{JsString, JsObject, Json}
 import play.api.mvc._
 import securesocial.core.SecureSocial
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.{User, Organization}
+import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.auth.Permission
 
 /**
  * A class that adds an AuthorizationContext to the Request object
@@ -79,7 +80,7 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
       request =>
         Logger.debug("request route: "+request.method+" "+request.uri)
         SecureSocial.currentUser(request).find(_ => request.headers.get("CoreSpring-IgnoreSession").isEmpty).map { u =>
-          invokeAsUser(u.id.id, u.id.providerId, request)(f)
+          invokeAsUser(u.identityId.userId, u.identityId.providerId, request)(f)
         }.getOrElse {
           tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
             OAuthProvider.getAuthorizationContext(token).fold(
@@ -102,7 +103,7 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
     Action(p) {
       request =>
         SecureSocial.currentUser(request).find(_ => request.headers.get("CoreSpring-IgnoreSession").isEmpty).map( u => {
-          invokeAsUser(u.id.id, u.id.providerId, request){request =>
+          invokeAsUser(u.identityId.userId, u.identityId.providerId, request){request =>
             if(request.ctx.permission.has(access)) f(request)
             else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
           }
@@ -188,13 +189,13 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
 
   protected def jsonExpected = BadRequest(Json.toJson(ApiError.JsonExpected))
 
-  def parsed[A](maybeJson:Option[JsValue], fn: (A=>Result), noItemResult: Result = BadRequest("Bad Json"))(implicit format : Format[A]) : Result = maybeJson match {
+  def parsed[A](maybeJson:Option[JsValue], fn: (A=>Result), noResult: Result = BadRequest("Bad Json"))(implicit format : Format[A]) : Result = maybeJson match {
     case Some(json) => {
       play.api.libs.json.Json.fromJson[A](json) match {
         case JsSuccess(item, _) => fn(item)
-        case _ => noItemResult
+        case _ => noResult
       }
     }
-    case _ => noItemResult
+    case _ => noResult
   }
 }

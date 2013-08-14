@@ -1,12 +1,13 @@
 package player.views.qti
 
-import common.utils.string
 import play.api.{LoggerLike, Logger}
 import player.views.qti.models.{QtiJsAsset, QtiAssetsConfig}
-import qti.models.QtiItem
-import qti.models.RenderingMode._
+import org.corespring.qti.models.{RenderingMode, QtiItem}
+import RenderingMode._
 import scala.xml.Node
-import common.log.PackageLogging
+import org.corespring.qti.models.QtiItem
+import org.corespring.common.log.PackageLogging
+import org.corespring.common.utils.string
 
 
 class QtiAssets(jsRootPath: String, cssRootPath:String, seedConfig: QtiAssetsConfig) {

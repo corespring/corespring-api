@@ -4,9 +4,8 @@ import org.specs2.mutable.{BeforeAfter, Specification}
 import scorm.utils.ScormExporter
 import java.io.{FileNotFoundException, File}
 import org.bson.types.ObjectId
-import tests.{BaseTest}
-import tests.PlaySingleton
-import models.item.Item
+import org.corespring.platform.core.models.item.Item
+import org.corespring.test.{PlaySingleton, BaseTest}
 
 class ScormExporterTest extends BaseTest {
 

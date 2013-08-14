@@ -4,9 +4,6 @@ package tests.basiclti.controllers
 import basiclti.controllers.AssignmentLauncher
 import basiclti.models.{LtiQuestion, LtiQuiz, LtiOAuthConsumer, LtiData}
 import com.mongodb.casbah.commons.MongoDBObject
-import models.Organization
-import models.auth.ApiClient
-import models.itemSession.ItemSessionSettings
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -14,6 +11,9 @@ import org.specs2.mutable._
 import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{WithApplication, FakeHeaders}
+import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.auth.ApiClient
+import org.corespring.platform.core.models.itemSession.ItemSessionSettings
 
 
 class AssignmentLauncherTest extends Specification /*extends BaseTest*/ {

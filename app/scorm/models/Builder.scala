@@ -1,9 +1,10 @@
 package scorm.models
 
 import scala.xml.{Unparsed, Elem}
-import models.item.Item
-import models.versioning.VersionedIdImplicits.Binders._
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import VersionedIdImplicits.Binders._
 import play.api.libs.json.{JsString, JsObject, Json}
+import org.corespring.platform.core.models.item.Item
 
 object Builder {
 

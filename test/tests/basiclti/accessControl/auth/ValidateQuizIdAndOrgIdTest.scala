@@ -8,8 +8,8 @@ import play.api.mvc.Results._
 import play.api.mvc.{Result, AnyContent, Request}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import player.accessControl.cookies.PlayerCookieKeys
-import tests.PlaySingleton
+import org.corespring.test.PlaySingleton
+import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 
 object MockImpl extends ValidateQuizIdAndOrgId[FakeRequest[AnyContent]] {
   def makeRequest(orgId: ObjectId, r: Request[AnyContent]): Option[FakeRequest[AnyContent]] = Some(r.asInstanceOf[FakeRequest[AnyContent]])

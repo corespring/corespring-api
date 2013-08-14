@@ -12,6 +12,22 @@ This project contains the api rest layer and web ui for administering corespring
 * Install play 2.0.4
 * For running tests install phantomjs
 
+### SBT Configuration
+
+We use a private repo for our assets. Because of this you will need to define your credentials in a file located at:
+
+    ~/.ivy2/.credentials
+
+This file will look like so:
+
+    realm=Artifactory Realm
+    host=ec2-107-22-19-173.compute-1.amazonaws.com
+    user=XXXXXXXXXX
+    password=XXXXXXXXXX
+
+
+Ask someone to provide you with the user password
+
 
 ### Running/Testing
 
