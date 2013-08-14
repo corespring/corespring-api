@@ -42,7 +42,8 @@ object TaskInfo extends ValueGetter {
       val infoJson = JsObject(Seq(
           if (info.gradeLevel.isEmpty) None else Some((gradeLevel -> JsArray(info.gradeLevel.map(JsString(_))))),
           info.title.map((title -> JsString(_))),
-          info.itemType.map((itemType -> JsString(_)))
+          info.itemType.map((itemType -> JsString(_))),
+          if(info.extended.isEmpty) None else Some((extended -> extendedAsJson(info.extended)))
         ).flatten)
 
       val subjectsJson : Option[JsValue] = info.subjects.map( subjects => Json.toJson(subjects))
@@ -107,5 +108,11 @@ object TaskInfo extends ValueGetter {
 }
 
 case class Metadata(metadataKey: String, props: Map[String,String])
+object Metadata{
+  object Keys{
+    val metadataKey = "metadataKey"
+    val props = "props"
+  }
+}
 
 
