@@ -243,6 +243,8 @@ class ItemApiTest extends BaseTest with Mockito {
 
 
 
+
+
   "when saving an item with QTI xml, add csFeedbackId attrs if they are not present" in {
     /**
      * all feedback elements, feedbackInline and modalFeedback should be decorated with the attribute csFeedbackId
@@ -301,4 +303,70 @@ class ItemApiTest extends BaseTest with Mockito {
     there was atLeastTwo(mockS3service).copyFile(anyString, anyString, anyString)
   }.pendingUntilFixed("Play 2.1.3 upgrade - fix this")
 
+  "updating item metadata without having a corresponding set results in error" in {
+    val itemId = "511154e48604c9f77da9739b"
+    val property = "flergl.mergl"
+    val fakeRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token)).withTextBody("the answer to all things")
+    val result = route(fakeRequest).get
+    status(result) must beEqualTo(BAD_REQUEST)
+    result.body must contain(ApiError.MetadataNotFound.message)
+  }
+  "updating item metadata with incorrect schema results in error" in {
+    val itemId = "511154e48604c9f77da9739b"
+    val property = "blergl.flergl"
+    val fakeRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token)).withTextBody("the answer to all things")
+    val result = route(fakeRequest).get
+    status(result) must beEqualTo(BAD_REQUEST)
+    result.body must contain(ApiError.MetadataNotFound.message)
+  }
+  "update/retrieve single property metadata with corresponding set" in {
+    val itemId = "511154e48604c9f77da9739b"
+    val property = "blergl.mergl"
+    val value = "the answer to all things"
+    val updateRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token)).withTextBody(value)
+    val updateResult = route(updateRequest).get
+    status(updateResult) must beEqualTo(OK)
+    val updateJson = Json.parse(updateResult.body)
+    (updateJson \ "blergl" \ "mergl").as[String] must beEqualTo(value)
+    val request = FakeRequest(GET, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token))
+    val requestResult = route(request).get
+    status(requestResult) must beEqualTo(OK)
+    val requestJson = Json.parse(requestResult.body)
+    (requestJson \ "mergl").as[String] must beEqualTo(value)
+  }
+  "update/retrieve properties of item metadata set" in {
+    val itemId = "511154e48604c9f77da9739b"
+    val property = "blergl"
+    val body = Json.obj(
+      "mergl" -> "the answer to all things",
+      "platypus" -> "greatest animal ever",
+      "baaaa" -> "sound a goat makes"
+    )
+    val updateRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token)).withJsonBody(body)
+    val updateResult = route(updateRequest).get
+    status(updateResult) must beEqualTo(OK)
+    val json = Json.parse(updateResult.body)
+    json match {
+      case JsObject(fields) => fields.find(_._1 == property) match {
+        case Some((_,jsprops)) => jsprops match {
+          case JsObject(props) => {
+            props.forall(prop => body.fields.find(field => field._1 == prop._1).isDefined) must beTrue
+          }
+          case _ => failure("metadata did not have a properties object")
+        }
+        case None => failure("could not find metadata properties with key "+property)
+      }
+      case _ => failure("returned json not an object")
+    }
+    val request = FakeRequest(GET, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token))
+    val requestResult = route(request).get
+    status(requestResult) must beEqualTo(OK)
+    val requestJson = Json.parse(requestResult.body)
+    requestJson match {
+      case JsObject(fields) => body.fields.forall(prop => {
+        fields.find(_._1 == prop._1).isDefined
+      }) must beTrue
+      case _ => failure("returned json not an object")
+    }
+  }
 }

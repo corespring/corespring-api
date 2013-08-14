@@ -11,6 +11,7 @@ import org.corespring.platform.core.models.itemSession.DefaultItemSession
 import org.joda.time.DateTime
 import play.api._
 import se.radley.plugin.salat.SalatPlugin
+import org.corespring.platform.core.models.metadata.MetadataSet
 
 object SeedDb {
 
@@ -33,11 +34,12 @@ object SeedDb {
     ApiClient.collection,
     DefaultItemSession.collection,
     User.collection,
-    Organization.collection,
+    salatDb()(current)("orgs"),
     salatDb()(current)("templates"),
     salatDb()(current)("lti_quizzes"),
     salatDb()(current)("regtokens"),
-    salatDb()(current)("quizzes")
+    salatDb()(current)("quizzes"),
+    MetadataSet.collection
   )
 
   def emptyData() {

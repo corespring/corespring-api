@@ -2,18 +2,16 @@ package org.corespring.test
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mutable.Specification
 import play.api.libs.json._
 import play.api.mvc._
-import play.api.test.FakeHeaders
-import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import play.api.test.{FakeHeaders, FakeRequest}
 import scala.Some
-import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 
-
-trait BaseTest extends Specification {
+trait BaseTest extends Specification{
 
   val TEST_COLLECTION_ID: String = "51114b127fc1eaa866444647"
   // From standard fixture data

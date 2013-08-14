@@ -62,11 +62,11 @@ object Subjects extends ValueGetter {
         val maybeSubjects = get[Subjects](json, Seq(primarySubject, relatedSubject), buildSubjectFromSeq)
         maybeSubjects match {
           case Some(s) => JsSuccess(s)
-          case _ => throw new RuntimeException("subjects expected")
+          case _ => JsError("error parsing subjects")
         }
       }
       catch {
-        case e: IllegalArgumentException => throw new JsonValidationException(e.getMessage)
+        case e: IllegalArgumentException => JsError("error parsing subjects")
       }
     }
 

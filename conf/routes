@@ -59,7 +59,7 @@ GET     /api/v1/users/:id                       api.v1.UserApi.getUser(id: Objec
 POST    /api/v1/users                           api.v1.UserApi.createUser
 PUT     /api/v1/users/:id                       api.v1.UserApi.updateUser(id: ObjectId)
 DELETE  /api/v1/users/:id                       api.v1.UserApi.deleteUser(id: ObjectId)
-GET     /api/v1/organizations/:orgId/users             api.v1.UserApi.getUsersByOrg(orgId: ObjectId)
+GET     /api/v1/organizations/:orgId/users      api.v1.UserApi.getUsersByOrg(orgId: ObjectId)
 
 # Items API
 GET     /api/v1/items                           api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
@@ -73,6 +73,15 @@ GET     /api/v1/items/:id/detail                api.v1.ItemApi.getDetail(id: Ver
 POST    /api/v1/items                           api.v1.ItemApi.create
 PUT     /api/v1/items/:id                       api.v1.ItemApi.update(id: VersionedId[ObjectId])
 POST    /api/v1/items/:id                       api.v1.ItemApi.cloneItem(id:VersionedId[ObjectId])
+PUT     /api/v1/items/:id/extended/:property    api.v1.ItemApi.updateMetadata(id:VersionedId[ObjectId],property:String)
+GET     /api/v1/items/:id/extended/:property    api.v1.ItemApi.getMetadata(id:VersionedId[ObjectId],property:String)
+
+
+GET     /api/v1/metadata-sets                   api.v1.MetadataSetApi.list
+GET     /api/v1/metadata-sets/:id               api.v1.MetadataSetApi.get(id:ObjectId)
+POST    /api/v1/metadata-sets                   api.v1.MetadataSetApi.create
+PUT     /api/v1/metadata-sets/:id               api.v1.MetadataSetApi.update(id:ObjectId)
+DELETE  /api/v1/metadata-sets/:id               api.v1.MetadataSetApi.delete(id:ObjectId)
 
 # Exporter api
 GET     /api/v1/items/multiple/scorm-2004.zip       api.v1.ExporterApi.multiItemScorm2004(ids:String)

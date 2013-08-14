@@ -17,7 +17,7 @@ class TaskInfoTest extends BaseTest {
     "does not parse invalid gradeLevel" in {
       val taskInfo = TaskInfo(gradeLevel = Seq("apple", "pear"))
       val json = Json.toJson(taskInfo)
-      json.as[TaskInfo] must throwA[JsonValidationException]
+      json.as[TaskInfo] must throwA[JsResultException]
     }
 
     "parse itemType" in {

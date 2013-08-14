@@ -164,12 +164,17 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   });
 
   $scope.changePanel = function (panelName) {
-    var panel = ["metadata", "supportingMaterials", "content"].indexOf(panelName) == -1 ? "metadata" : panelName;
+    var panel = ["metadata", "supportingMaterials", "content", "orgMetadata"].indexOf(panelName) == -1 ? "metadata" : panelName;
     $scope.currentPanel = panel;
     $scope.$broadcast("tabSelected");
     enterEditorIfInContentPanel();
     updateLocation($scope.currentPanel);
   };
+
+  $scope.changeToOrgMetadata = function (mdKey) {
+    $scope.changePanel("orgMetadata");
+    $scope.selectedMetadataSet = mdKey;
+  }
 
   $scope.editItem = function () {
     $location.url('/edit/' + $scope.itemData.id);
@@ -204,6 +209,23 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.loadItem = function () {
     ItemService.get({id: $routeParams.itemId}, function onItemLoaded(itemData) {
+      console.log("ItemData arrived");
+      console.log(itemData);
+
+      // TODO: Mocking this for the time being. Format is key: label
+      itemData.metadataSets = {
+        "newclassroom": {
+          label: "New Classroom",
+          editorUrl: "http://localhost:5000",
+          lockFields: true,
+          data: {
+              "Skill Number": "043",
+              "Family": "4",
+              "Master Question": "C"
+          }
+        }
+      };
+
       $rootScope.itemData = itemData;
       enterEditorIfInContentPanel();
       initItemType();
