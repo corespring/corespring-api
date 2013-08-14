@@ -31,7 +31,7 @@ object MetadataSet extends ModelCompanion[MetadataSet,ObjectId]{
 
   implicit val format = Json.format[MetadataSet]
 
-  val collection = mongoCollection("metadataSet")
+  val collection = mongoCollection("metadataSets")
   def dao: DAO[MetadataSet, ObjectId] = new SalatDAO[MetadataSet, ObjectId](collection = collection) {}
 
   def findByKey(key:String):Option[MetadataSet] = {
