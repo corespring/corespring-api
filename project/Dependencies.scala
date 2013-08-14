@@ -64,6 +64,7 @@ object Dependencies {
     val sbtPluginReleases =  Resolver.url("sbt-plugin-snapshots", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots/"))(Resolver.ivyStylePatterns)
     val corespringSnapshots = "Corespring Artifactory Snapshots" at "http://ec2-107-22-19-173.compute-1.amazonaws.com/artifactory/ivy-snapshots"
     val corespringReleases = "Corespring Artifactory Releases" at "http://ec2-107-22-19-173.compute-1.amazonaws.com/artifactory/ivy-releases"
+
     val all: Seq[Resolver] = Seq(
       corespringSnapshots,
       corespringReleases,

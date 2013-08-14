@@ -25,9 +25,11 @@ angular.module('corespring-services', []).factory('MessageBridge', [function () 
 
     /**
      * @param id - target either an iframe id or 'parent'
-     * @param msg - a string or object - gets JSON.stringified
+     * @param msg - a string or object - gets JSON.stringified unless disableStringify is true
+     * @param disableStringify - Boolean, if true msg won't be JSON.stringified (please note
+     * that IE only supports sending strings as message)
      */
-    sendMessage: function (id, msg) {
+    sendMessage: function (id, msg, disableStringify) {
 
       function getParent(){ return (parent && parent != window) ? parent : null; }
       function getIframe(id){
@@ -42,7 +44,7 @@ angular.module('corespring-services', []).factory('MessageBridge', [function () 
       var target = (!id || id === "parent" ) ? getParent() : getIframe(id);
 
       if(target){
-        target.postMessage(JSON.stringify(msg), "*");
+        target.postMessage(disableStringify ? msg : JSON.stringify(msg), "*");
       }
     }
   }
