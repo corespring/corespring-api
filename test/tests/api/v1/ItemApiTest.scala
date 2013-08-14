@@ -69,7 +69,7 @@ class ItemApiTest extends BaseTest with Mockito {
     assertResult(result)
     val items = parsed[List[JsValue]](result)
     items.size must beEqualTo(allItemsCount)
-  }
+  }//.pendingUntilFixed("magic number issues again")
 
 "list items in a collection" in {
   val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s".format(token))
@@ -77,7 +77,7 @@ class ItemApiTest extends BaseTest with Mockito {
   assertResult(result)
   val items = parsed[List[JsValue]](result)
   items.size must beEqualTo(allItemsCount)
-}
+}//.pendingUntilFixed("magic number issues again")
 
   "list all items skipping 3" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&sk=3".format(token))
@@ -85,7 +85,7 @@ class ItemApiTest extends BaseTest with Mockito {
     assertResult(result)
     val items = parsed[List[JsValue]](result)
     items.size must beEqualTo(allItemsCount - 3)
-  }
+}//.pendingUntilFixed("magic number issues again")
 
   "list items limiting result to 2" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&l=2".format(token))

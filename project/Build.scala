@@ -15,6 +15,8 @@ object Build extends sbt.Build {
   val ScalaVersion = "2.10.1"
   val org = "org.corespring"
 
+  val forkInTests = false
+
   //TODO: this isn't working atm :: scalaVersion in ThisBuild := ScalaVersion
 
 
@@ -50,7 +52,7 @@ object Build extends sbt.Build {
 
   val commonUtils = builders.lib("common-utils").settings(
     libraryDependencies ++= Seq(specs2 % "test", playFramework, salatPlay, playJson % "test"),
-      Keys.fork in Test := false
+      Keys.fork in Test := forkInTests
   )
 
   /** Any shared test helpers in here */
@@ -62,7 +64,7 @@ object Build extends sbt.Build {
   //TODO: only depends on commonUtils for PackageLogging - remove
   val qti = builders.lib("qti").settings(
     libraryDependencies ++= Seq(specs2 % "test", salatPlay, playJson % "test"),
-    Keys.fork in Test := false
+    Keys.fork in Test := forkInTests
   ).dependsOn(commonUtils, testLib % "test->compile")
 
   val assets = builders.lib("assets").settings(
@@ -85,7 +87,7 @@ object Build extends sbt.Build {
       assetsLoader,
       mockito,
       playTest % "test"),
-      Keys.fork in Test := true,
+      Keys.fork in Test := forkInTests,
       parallelExecution.in(Test) := false,
       credentials += cred
    ).dependsOn(assets,commonUtils, qti, testLib % "test->compile")
@@ -104,7 +106,7 @@ object Build extends sbt.Build {
     libraryDependencies ++= Seq(playFramework, securesocial),
     routesImport ++= customImports,
     parallelExecution.in(Test) := false,
-    Keys.fork.in(Test) := true
+    Keys.fork.in(Test) := forkInTests
   ).dependsOn(commonViews,core %"compile->compile;test->test", playerLib, testLib % "test->compile")
   .aggregate(commonViews)
 
@@ -116,7 +118,7 @@ object Build extends sbt.Build {
     templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
     resolvers ++= Dependencies.Resolvers.all,
     credentials += cred,
-    Keys.fork.in(Test) := true,
+    Keys.fork.in(Test) := forkInTests,
     scalacOptions ++= Seq("-feature", "-deprecation"),
     (test in Test) <<= (test in Test).map(Commands.runJsTests)
   ).settings( MongoDbSeederPlugin.newSettings  ++ Seq(testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test") : _* )
