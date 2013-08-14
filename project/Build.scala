@@ -22,19 +22,17 @@ object Build extends sbt.Build {
 
     val f : File =  file( Seq(Path.userHome / ".ivy2"/ ".credentials").mkString )
 
-    def env(k:String) = System.getenv(k)
-
     if(f.exists()){
-      println("using credentials file")
+      println("[credentials] using credentials file")
       Credentials(f)
     } else {
       //https://devcenter.heroku.com/articles/labs-user-env-compile
-      println("using credentials env vars - you need to have: user-env-compile enabled in heroku")
-      Credentials(
-        env("ARTIFACTORY_REALM"),
-        env("ARTIFACTORY_HOST"),
-        env("ARTIFACTORY_USER"),
-        env("ARTIFACTORY_PASS") )
+      println("[credentials] using credentials env vars - you need to have: user-env-compile enabled in heroku")
+
+      def repoVar(s:String) = System.getenv("ARTIFACTORY_" + s)
+      val args = Seq("REALM", "HOST", "USER", "PASS").map(repoVar)
+      println("[credentials] args: " + args)
+      Credentials( args(0), args(1), args(2), args(3) )
     }
   }
 
