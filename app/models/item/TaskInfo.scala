@@ -107,26 +107,5 @@ object TaskInfo extends ValueGetter {
 }
 
 case class Metadata(metadataKey: String, props: Map[String,String])
-object Metadata{
-//  private val propsReads:Reads[Map[String,String]] = Reads[Map[String,String]](json => {
-//    (json \ "props") match {
-//      case JsObject(fields) => JsSuccess(fields.foldRight[Map[String,String]](Map())((field,acc) => {
-//        acc + (field._1 -> field._2.toString())
-//      }))
-//      case JsUndefined(_) => JsSuccess(Map())
-//      case _ => JsError(__ \ "props", ValidationError("incorrect format","props must be a JSON object"))
-//    }
-//  })
-//  implicit val metadataReads:Reads[Metadata] = (
-//      (__ \ "metadataKey").read[String] and
-//      propsReads
-//    )(Metadata.apply _)
-//
-//  implicit object MetadataWrites extends Writes[Metadata]{
-//    def writes(o: Metadata): JsValue = {
-//      Json.obj(o.metadataKey -> Json.obj(o.props.toSeq.map(prop => prop._1 -> Json.toJsFieldJsValueWrapper(prop._2)):_*))
-//    }
-//  }
-}
 
 
