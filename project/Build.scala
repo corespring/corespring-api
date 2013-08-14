@@ -17,6 +17,15 @@ object Build extends sbt.Build {
 
   val forkInTests = true
 
+
+  val disableDocsSettings = Seq(
+    // disable publishing the main API jar
+    publishArtifact in (Compile, packageDoc) := false,
+    // disable publishing the main sources jar
+    publishArtifact in (Compile, packageSrc) := false,
+    sources in doc in Compile := List()
+  )
+
   //TODO: this isn't working atm :: scalaVersion in ThisBuild := ScalaVersion
 
 
@@ -53,24 +62,24 @@ object Build extends sbt.Build {
   val commonUtils = builders.lib("common-utils").settings(
     libraryDependencies ++= Seq(specs2 % "test", playFramework, salatPlay, playJson % "test"),
       Keys.fork in Test := forkInTests
-  )
+  ).settings(disableDocsSettings : _*)
 
   /** Any shared test helpers in here */
   val testLib = builders.testLib("test-helpers").settings(
     libraryDependencies ++= Seq(specs2 % "test->compile", playFramework, playTest, salatPlay)
-  )
+  ).settings(disableDocsSettings : _*)
 
   /** The Qti library */
   //TODO: only depends on commonUtils for PackageLogging - remove
   val qti = builders.lib("qti").settings(
     libraryDependencies ++= Seq(specs2 % "test", salatPlay, playJson % "test"),
     Keys.fork in Test := forkInTests
-  ).dependsOn(commonUtils, testLib % "test->compile")
+  ).dependsOn(commonUtils, testLib % "test->compile").settings(disableDocsSettings : _*)
 
   val assets = builders.lib("assets").settings(
     libraryDependencies ++= Seq(specs2 % "test", playS3, assetsLoader),
     credentials += cred
-  ).dependsOn(commonUtils)
+  ).dependsOn(commonUtils).settings(disableDocsSettings : _*)
 
   /** Core data model */
   //TODO: This needs to be further broken down into smaller well defined libraries
@@ -91,16 +100,16 @@ object Build extends sbt.Build {
       Keys.fork in Test := forkInTests,
       parallelExecution.in(Test) := false,
       credentials += cred
-   ).dependsOn(assets,commonUtils, qti, testLib % "test->compile")
+   ).dependsOn(assets,commonUtils, qti, testLib % "test->compile").settings(disableDocsSettings : _*)
 
 
   val playerLib = builders.lib("player-lib").settings(
     libraryDependencies ++= Seq(playFramework, specs2 % "test")
-  ).dependsOn(core, commonUtils)
+  ).dependsOn(core, commonUtils).settings(disableDocsSettings : _*)
 
   val commonViews = builders.web("common-views").settings(
     libraryDependencies ++= Seq(playJson % "test")
-  ).dependsOn(core)
+  ).dependsOn(core).settings(disableDocsSettings : _*)
 
   /** The public play module */
   val public = builders.web("public").settings(
@@ -109,7 +118,7 @@ object Build extends sbt.Build {
     parallelExecution.in(Test) := false,
     Keys.fork.in(Test) := forkInTests
   ).dependsOn(commonViews,core %"compile->compile;test->test", playerLib, testLib % "test->compile")
-  .aggregate(commonViews)
+  .aggregate(commonViews).settings(disableDocsSettings : _*)
 
   val main = play.Project(appName, appVersion, Dependencies.all )
     .settings(
@@ -124,6 +133,6 @@ object Build extends sbt.Build {
     (test in Test) <<= (test in Test).map(Commands.runJsTests)
   ).settings( MongoDbSeederPlugin.newSettings  ++ Seq(testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test") : _* )
    .dependsOn(public, playerLib, qti, core % "compile->compile;test->test", commonUtils, commonViews, testLib % "test->compile")
-   .aggregate(public, playerLib, qti, core, commonUtils, commonViews, testLib )
+   .aggregate(public, playerLib, qti, core, commonUtils, commonViews, testLib ).settings(disableDocsSettings : _*)
 
 }
