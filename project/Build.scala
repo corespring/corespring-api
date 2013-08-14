@@ -15,7 +15,7 @@ object Build extends sbt.Build {
   val ScalaVersion = "2.10.1"
   val org = "org.corespring"
 
-  val forkInTests = false
+  val forkInTests = true
 
   //TODO: this isn't working atm :: scalaVersion in ThisBuild := ScalaVersion
 
