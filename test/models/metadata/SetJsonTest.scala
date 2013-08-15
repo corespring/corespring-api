@@ -1,11 +1,8 @@
 package models.metadata
 
-import models.MetadataSet
-import models.item.Metadata
+import models.{Metadata, MetadataSet, SchemaMetadata}
 import org.bson.types.ObjectId
 import org.specs2.mutable.Specification
-import models.SchemaMetadata
-import scala.collection.mutable.Map
 import play.api.libs.json.Json
 import tests.PlaySingleton
 
@@ -18,7 +15,7 @@ class SetJsonTest extends Specification {
 
     def toJsonString(p:(String,String)) = s""" "${p._1}" : "${p._2}" """
 
-    def dataArray( m : Metadata) : String = m.props.map(toJsonString).mkString(",")
+    def dataArray( m : Metadata) : String = m.properties.map(toJsonString).mkString(",")
 
     def mkJson(s:MetadataSet, m : Option[Metadata]) : String = {
 

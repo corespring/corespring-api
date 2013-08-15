@@ -297,7 +297,7 @@ class ItemApiTest extends BaseTest with Mockito {
   }
 
   "clone item" in {
-    val itemApi = new ItemApi(mockS3service, ItemServiceImpl)
+    val itemApi = new ItemApi(mockS3service, ItemServiceImpl, api.v1.dependencies.metadataSetService)
     val id = "511154e48604c9f77da9739b"
     val fakeRequest = FakeRequest(POST, "/api/v1/items/%s?access_token=%s".format(id, token))
     val result = itemApi.cloneItem(VersionedId(new ObjectId(id)))(fakeRequest)

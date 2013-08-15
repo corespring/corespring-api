@@ -423,11 +423,7 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService, metadataSetS
               case Some(ms) => { //check to make sure the given properties matches the schema, if there is a a schema
                 if(ms.schema.isEmpty || ms.schema.forall(sm => mutableMap.contains(sm.key))) {
                   val taskInfo:TaskInfo = item.taskInfo.getOrElse(TaskInfo())
-//<<<<<<< HEAD
-//                 taskInfo.extended = taskInfo.extended.filter(_.metadataKey != property) :+ Metadata(property,mutableMap)
-//=======
                   taskInfo.extended.put(property,new BasicDBObject(mutableMap))
-//>>>>>>> d019d18e4d756b899981ede88c035a011a6cb180
                   item.taskInfo = Some(taskInfo)
                   service.save(item,false)
                   Ok(TaskInfo.extendedAsJson(taskInfo.extended))
