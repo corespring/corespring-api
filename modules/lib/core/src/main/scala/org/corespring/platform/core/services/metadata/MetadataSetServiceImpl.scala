@@ -17,7 +17,7 @@ trait MetadataSetServiceImpl extends MetadataService {
     import org.corespring.platform.core.models.mongoContext.context
     import play.api.Play.current
 
-    val collection = mongoCollection("metadataSet")
+    val collection = mongoCollection("metadataSets")
 
     def dao: DAO[MetadataSet, ObjectId] = new SalatDAO[MetadataSet, ObjectId](collection = collection) {}
   }
