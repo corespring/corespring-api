@@ -373,6 +373,7 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService, metadataSetS
   }
   def updateMetadata(id:VersionedId[ObjectId], property:String) = ApiAction{ request =>
     import scala.collection.mutable.Map
+    import collection.JavaConversions._
     service.findOneById(id) match {
       case Some(item) => {
         val splitprops = property.split("\\.")
@@ -393,9 +394,9 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService, metadataSetS
                 if(ms.schema.isEmpty || ms.schema.find(sm => sm.key == key).isDefined){
                   //update metadata
                   val taskInfo:TaskInfo = item.taskInfo.getOrElse(TaskInfo())
-                  taskInfo.extended.find(_.metadataKey == metadataKey) match {
-                    case Some(m) => m.props.put(property,value)
-                    case None => taskInfo.extended = taskInfo.extended :+ Metadata(metadataKey, Map[String,String](key -> value.get))
+                  taskInfo.extended.find(_._1 == metadataKey) match {
+                    case Some(m) => m._2.put(property,value.get)
+                    case None => taskInfo.extended.put(metadataKey, new BasicDBObject(key, value.get))
                   }
                   item.taskInfo = Some(taskInfo)
                   service.save(item,false)
@@ -422,7 +423,11 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService, metadataSetS
               case Some(ms) => { //check to make sure the given properties matches the schema, if there is a a schema
                 if(ms.schema.isEmpty || ms.schema.forall(sm => mutableMap.contains(sm.key))) {
                   val taskInfo:TaskInfo = item.taskInfo.getOrElse(TaskInfo())
-                  taskInfo.extended = taskInfo.extended.filter(_.metadataKey != property) :+ Metadata(property,mutableMap)
+//<<<<<<< HEAD
+//                 taskInfo.extended = taskInfo.extended.filter(_.metadataKey != property) :+ Metadata(property,mutableMap)
+//=======
+                  taskInfo.extended.put(property,new BasicDBObject(mutableMap))
+//>>>>>>> d019d18e4d756b899981ede88c035a011a6cb180
                   item.taskInfo = Some(taskInfo)
                   service.save(item,false)
                   Ok(TaskInfo.extendedAsJson(taskInfo.extended))
@@ -443,19 +448,19 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService, metadataSetS
         if(splitprops.length > 1){
           val metadataKey:String = splitprops(0)
           val key = splitprops(1)
-          item.taskInfo.flatMap(_.extended.find(_.metadataKey == metadataKey).map(_.props)) match {
+          item.taskInfo.flatMap(_.extended.find(_._1 == metadataKey).map(_._2)) match {
             case Some(metadataProps) => {
               metadataProps.find(_._1 == key).map(_._2) match {
-                case Some(value) => Ok(Json.obj(key -> value))
+                case Some(value) => Ok(Json.obj(key -> value.toString))
                 case None => BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("could not find metadata property "+key+" in the set "+metadataKey))))
               }
             }
             case None => BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("could not find metadata set key in item"))))
           }
         } else {
-          item.taskInfo.flatMap(_.extended.find(_.metadataKey == property).map(_.props)) match {
+          item.taskInfo.flatMap(_.extended.find(_._1 == property).map(_._2)) match {
             case Some(metadataProps) => {
-              Ok(Json.obj(metadataProps.map(prop => prop._1 -> toJsFieldJsValueWrapper(prop._2)).toSeq:_*))
+              Ok(Json.obj(metadataProps.map(prop => prop._1 -> toJsFieldJsValueWrapper(prop._2.toString)).toSeq:_*))
             }
             case None => BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("could not find metadata set key in item"))))
           }
