@@ -1,8 +1,8 @@
 {
     "_id": {
-        "$oid": "520a3533aec5c7d4d1c80b8b"
+        "$oid": "520be11e6f28e0dcb4662d6d"
     },
-    "metadataKey":"corespring_org",
+    "metadataKey":"demo_org",
     "editorUrl":"http://corespring.org/metadata-editor",
     "editorLabel":"CoreSpring Org Metadata",
     "schema":[
