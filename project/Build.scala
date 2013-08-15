@@ -12,7 +12,7 @@ object Build extends sbt.Build {
 
   val appName = "corespring"
   val appVersion = "1.0"
-  val ScalaVersion = "2.10.1"
+  val ScalaVersion = "2.10.0"
   val org = "org.corespring"
 
   val forkInTests = true
