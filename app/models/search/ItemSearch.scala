@@ -145,38 +145,6 @@ object ItemSearch extends Searchable {
       case Left(sc) => Left(sc)
     }
   }
-//  private def preParseExtendedMetadata(dbquery: BasicDBObject)(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, MongoDBObject] = {
-//    dbquery.foldRight[Either[SearchCancelled,MongoDBObject]](Right(MongoDBObject()))((field,result) => {
-//      result.fold(Left(_),searchobj => {
-//        if (field._1.startsWith(extended)){
-//          val keys = field._1.split(".")
-//          if(keys.length != 3){
-//            Left(SearchCancelled(Some(InternalError(
-//              "you must specify a metadata key property using dot notation when querying metadata. \n" +
-//                "For example, given a metadata key 'mykey', if you wanted to search for the property 'prop1' which contains 'value1', your query may look like:\n" +
-//                "{'extended.mykey.prop1':'value1'"))))
-//          } else {
-//            val metadataKey = keys(1)
-//            val propsKey = keys(2)
-//            val mdobj = MongoDBObject()
-//            if (searchobj.contains(extended+"."+Metadata.Keys.metadataKey)){
-//              searchobj.get(extended+"."+Metadata.Keys.metadataKey) match {
-//                case value:String => mdobj.put(extended+"."+Metadata.Keys.metadataKey, MongoDBObject("$in" -> MongoDBList(value, metadataKey)))
-//                case dbo:BasicDBObject => dbo.get("$in") match {
-//                  case keysList:BasicDBList => mdobj.put(extended+"."+Metadata.Keys.metadataKey, MongoDBObject("$in" -> keysList.add(metadataKey)))
-//                  case _ => Left(SearchCancelled(Some(InternalError("the value for $in for the value of extended.metadataKey was an unknown type"))))
-//                }
-//                case _ => Left(SearchCancelled(Some(InternalError("the value of extended.metadataKey was an unknown type"))))
-//              }
-//            } else mdobj.put(extended+"."+Metadata.Keys.metadataKey, metadataKey)
-//            mdobj.put(extended+"."+Metadata.Keys.props+"."+propsKey)
-//            searchobj.putAll(mdobj)
-//            formatQuery("meta")
-//          }
-//        } else Right(searchobj)
-//      })
-//    })
-//  }
   override protected def toSearchObjInternal(dbquery: BasicDBObject, optInitSearch: Option[MongoDBObject])(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, MongoDBObject] = {
     preParseStandards(dbquery) match {
       case Right(query1) => preParseSubjects(dbquery) match {
@@ -219,7 +187,7 @@ object ItemSearch extends Searchable {
                 case `reviewsPassed` => formatQuery(reviewsPassed, field._2, searchobj)
                 case key if key.startsWith(standards) => Right(searchobj)
                 case `title` => formatQuery(taskInfo + "." + TaskInfo.Keys.title, field._2, searchobj)
-                case key if key.startsWith(extended) => Right(searchobj)
+                case key if key.startsWith(extended) => formatQuery(taskInfo+"."+key,field._2,searchobj)
                 case _ => Left(SearchCancelled(Some(InternalError("unknown key contained in query: " + field._1))))
               }
             }
