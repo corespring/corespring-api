@@ -22,6 +22,7 @@ import controllers.auth.Permission
 import search.Searchable
 import models.item.service.ItemServiceImpl
 import scalaz.{Failure, Success, Validation}
+import common.log.{ClassLogging, PackageLogging}
 
 /**
  * A ContentCollection
@@ -30,7 +31,7 @@ case class ContentCollection(var name: String = "", var isPublic: Boolean = fals
   lazy val itemCount:Int = ItemServiceImpl.find(MongoDBObject("collectionId" -> id.toString)).count
 }
 
-object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with Searchable{
+object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with Searchable with ClassLogging{
   val name = "name"
   val isPublic = "isPublic"
   val DEFAULT = "default" //used as the value for name when the content collection is a default collection
@@ -165,7 +166,12 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
    * @param collId
    */
   def isAuthorized(orgId:ObjectId, collId:ObjectId, p: Permission):Boolean = {
-    getCollectionIds(orgId,p).find(_ == collId).isDefined
+    val orgCollectionIds = getCollectionIds(orgId, p)
+    val exists = orgCollectionIds.exists( _ == collId)
+    if(!exists){
+      Logger.debug(s"[isAuthorized] == false : orgId: $orgId, collection id: $collId isn't in: ${orgCollectionIds.mkString(",")}")
+    }
+    exists
   }
 
   implicit object CollectionWrites extends Writes[ContentCollection] {

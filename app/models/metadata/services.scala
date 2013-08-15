@@ -7,9 +7,31 @@ import se.radley.plugin.salat._
 import com.mongodb.casbah.commons.MongoDBObject
 import scala.Some
 import com.mongodb.WriteResult
+import models.item.Metadata
+import org.corespring.platform.data.mongo.models.VersionedId
+import models.item.service.{ItemServiceClient, ItemServiceImpl, ItemService}
+
+trait MetadataService{
+
+  def get(itemId:VersionedId[ObjectId], keys:Seq[String]): Seq[Metadata]
+}
+
+trait MetadataServiceImpl extends MetadataService{ self : ItemServiceClient =>
+
+  def get(itemId: VersionedId[ObjectId], keys: Seq[String]): Seq[Metadata] = {
+
+    val maybeSeq : Option[Seq[Metadata]] = for{
+      i <- itemService.findOneById(itemId)
+      info <- i.taskInfo
+    } yield info.extended.filter( e => keys.exists( _ == e.metadataKey ) )
+
+    maybeSeq.getOrElse(Seq())
+  }
+
+}
 
 
-trait MetadataService {
+trait MetadataSetService {
   def update(set: MetadataSet): Either[String, MetadataSet]
 
   def create(orgId: ObjectId, set: MetadataSet): Either[String, MetadataSet]
@@ -24,7 +46,7 @@ trait MetadataService {
 }
 
 
-trait MetadataSetServiceImpl extends MetadataService {
+trait MetadataSetServiceImpl extends MetadataSetService {
 
   def orgService: OrganizationService
 

@@ -10,7 +10,15 @@
         "$oid": "520a3533aec5c7d4d1c80b8e"
       },
       "isOwner": true
+    },
+
+    {
+      "metadataId": {
+        "$oid": "520a3533aec5c7d4d1c80b8f"
+      },
+      "isOwner": true
     }
+
   ],
 
   "contentcolls": [

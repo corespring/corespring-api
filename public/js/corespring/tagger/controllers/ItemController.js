@@ -16,7 +16,7 @@ if (Array.prototype.removeItem == null) Array.prototype.removeItem = function (i
 /**
  * Controller for editing Item
  */
-function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, MetadataSet) {
+function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata) {
 
   function loadStandardsSelectionData() {
     $http.get(ServiceLookup.getUrlFor('standardsTree')).success(function (data) {
@@ -163,6 +163,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.showResourceEditor = false
   });
 
+  var isViewingMetadataPanel = function(){
+   return $scope.currentPanel == "orgMetadata";
+  };
+
   $scope.changePanel = function (panelName) {
     var panel = ["metadata", "supportingMaterials", "content", "orgMetadata"].indexOf(panelName) == -1 ? "metadata" : panelName;
     $scope.currentPanel = panel;
@@ -173,7 +177,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.changeToOrgMetadata = function (mdKey) {
     $scope.changePanel("orgMetadata");
-    $scope.selectedMetadataSet = mdKey;
+    $scope.selectedMetadata = mdKey;
   }
 
   $scope.editItem = function () {
@@ -207,27 +211,14 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   // broadcast an event when the Edit view is called
   $rootScope.$broadcast('onEditViewOpened');
 
+  $scope.loadItemMetadata = function(){
+    ItemMetadata.get({id: $routeParams.itemId }, function onItemMetadataLoaded(itemMetadata){
+      $scope.itemMetadata = itemMetadata;
 
-  $scope.loadMetadataSets = function(){
-
-    MetadataSet.get({}, function onSetsLoaded(sets){
-
-      console.log("Loaded metadata sets", sets);
-
-      $scope.metadataSets = sets;
-
-
-      $scope.loadExtendedData()
+      if(isViewingMetadataPanel()){
+        $scope.selectedMetadata = $scope.itemMetadata[0].metadataKey;
+      }
     });
-  };
-
-  $scope.loadExtendedData = function(){
-
-    if(!$scope.metadataSets){
-      return;
-    }
-
-    ExtendedData.get({id: $scope.itemData.id, sets : })
   };
 
 
@@ -277,7 +268,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   });
 
   $scope.loadItem();
-  $scope.loadMetadataSets();
+  $scope.loadItemMetadata();
 
   $rootScope.$on('showSaveWarning', function () {
     $scope.$apply('showSaveWarning=true');
@@ -536,6 +527,6 @@ ItemController.$inject = [
   'Collection',
   'ServiceLookup',
   '$http',
-  'MetadataSet'
+  'ItemMetadata'
 ];
 

@@ -12,13 +12,26 @@ angular.module('tagger.services')
         }
     ]);
 
+angular.module('tagger.services')
+  .factory('ExtendedData', [
+    '$resource', 'ServiceLookup', function($resource, ServiceLookup){
+
+      return $resource(
+        ServiceLookup.getUrlFor('extendedItemData'),
+        {},
+        {
+          "update": { method : 'PUT'}
+        }
+      );
+    }
+  ]);
 
 angular.module('tagger.services')
-    .factory('MetadataSet', [
+    .factory('ItemMetadata', [
         '$resource', 'ServiceLookup', function($resource, ServiceLookup){
 
             return $resource(
-             ServiceLookup.getUrlFor('metadataSets') + '/:id',
+             ServiceLookup.getUrlFor('itemMetadata') + '/:id',
                 {},
                 {
                   "get" :{ method:'GET', isArray:true}

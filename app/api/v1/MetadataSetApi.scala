@@ -13,27 +13,6 @@ import scalaz._
 
 class MetadataSetApi(metadataSetService:MetadataSetServiceImpl) extends BaseApi {
 
-
-  /*def getMetadataForItem = Action{ request =>
-
-      val out =
-        """
-          |[
-          | {
-          |   "id" : "asdfasdf",
-          |   "editorLabel" : "Label",
-          |   "metadataKey" : "keyOne",
-          |   "editorUrl" : "blah.org",
-          |   "data" : [
-          |     { "key" : "Apple", "value" : "" },
-          |     { "key" : "Car", "value" : "Audi" },
-          |     { "key" : "Tennis", "value" : "Federer" },
-          |   ]
-          | }
-          |]
-        """.stripMargin
-  }*/
-
   def list = ApiAction{ request =>
     Ok(metadataSetService.list(request.ctx.organization).as[JsValue])
   }

@@ -86,6 +86,7 @@ POST    /api/v1/items/:id                       api.v1.ItemApi.cloneItem(id:Vers
 PUT     /api/v1/items/:id/extended/:property    api.v1.ItemApi.updateMetadata(id:VersionedId[ObjectId],property:String)
 GET     /api/v1/items/:id/extended/:property    api.v1.ItemApi.getMetadata(id:VersionedId[ObjectId],property:String)
 
+GET     /api/v1/metadata/item/:id               api.v1.ItemMetadataApi.get(id:VersionedId[ObjectId])
 
 GET     /api/v1/metadata-sets                   api.v1.MetadataSetApi.list
 GET     /api/v1/metadata-sets/:id               api.v1.MetadataSetApi.get(id:ObjectId)

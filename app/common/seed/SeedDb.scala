@@ -42,7 +42,7 @@ object SeedDb {
     LtiQuiz.collection,
     RegistrationToken.collection,
     Quiz.collection,
-    MetadataSet.collection
+    salatDb()(play.api.Play.current)("metadataSets")
   )
 
 

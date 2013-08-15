@@ -1,11 +1,16 @@
-function OrganizationMetadataController($scope, MessageBridge) {
+function OrganizationMetadataController($scope, MessageBridge, ExtendedData) {
 
-  var getMetadataSet = function(key,sets){
+  var getMetadata = function(key,sets){
      return _.find(sets, function(s){return s.metadataKey == key});
   };
 
+  var updateMetadata = function(key, holder, newData){
+    var current = getMetadata(key, holder);
+    current.data = newData;
+  };
+
   var getEditorUrl = function(key, sets){
-    var metadataSet = getMetadataSet(key,sets);
+    var metadataSet = getMetadata(key,sets);
     if(metadataSet && metadataSet.editorUrl){
       return metadataSet.editorUrl;
     } else {
@@ -13,29 +18,41 @@ function OrganizationMetadataController($scope, MessageBridge) {
     }
   };
 
-  $scope.$watch("itemData", function() {
-  });
-
-  $scope.$watch("selectedMetadataSet", function(k) {
+  $scope.$watch("selectedMetadata", function(k) {
     if (!k) return;
 
-    if ($scope.metadataSets)
-      $scope.editUrl = getEditorUrl(k, $scope.metadataSets);
+    if ($scope.itemMetadata)
+      $scope.editUrl = getEditorUrl(k, $scope.itemMetadata);
   });
 
   MessageBridge.addMessageListener(function (message) {
+
     if (message && message.data && message.data.type == 'updateMetadata') {
       console.log("updating metadata: ", message.data.message);
-      // TODO: Update metadata in corespring
+      var update = message.data.message;
+
+      var property = $scope.selectedMetadata;
+      console.log("property: " + property);
+      ExtendedData.update({id: $scope.itemData.id, property : property }, update, function onSuccess(response){
+        console.log("The extended data was successfully updated");
+        var data = response[$scope.selectedMetadata];
+        updateMetadata($scope.selectedMetadata, $scope.itemMetadata, data );
+        MessageBridge.sendMessage("externalMetadataEditor", {type: "currentMetadata", message: data}, true);
+      });
+      return;
     }
 
     if (message && message.data && message.data.type == 'requestMetadata') {
       console.log("Metadata Requested");
 
-      // TODO: Send current metadata
-      var current = getMetadataSet($scope.selectedMetadataSet, $scope.metadataSets);
-      MessageBridge.sendMessage("externalMetadataEditor", {type: "currentMetadata", message: current}, true);
+      var current = getMetadata($scope.selectedMetadata, $scope.itemMetadata);
+
+      if(current){
+        MessageBridge.sendMessage("externalMetadataEditor", {type: "currentMetadata", message: current.data}, true);
+      }
     }
   });
 
 }
+
+OrganizationMetadataController.$inject = ['$scope', 'MessageBridge', 'ExtendedData'];

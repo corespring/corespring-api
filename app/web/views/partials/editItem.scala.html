@@ -50,9 +50,9 @@
                        ng-click="changePanel('supportingMaterials')">Supporting Materials</a>
                 </li>
 
-                <li ng-class="{true:'active', false:''}[currentPanel=='orgMetadata']" ng-repeat="mdSet in metadataSets">
+                <li ng-class="{true:'active', false:''}[currentPanel=='orgMetadata']" ng-repeat="m in itemMetadata">
                     <a href="javascript:void(1)"
-                       ng-click="changeToOrgMetadata(mdSet.metadataKey)">{{mdSet.editorLabel}}</a>
+                       ng-click="changeToOrgMetadata(m.metadataKey)">{{m.editorLabel}}</a>
                 </li>
             </ul>
 

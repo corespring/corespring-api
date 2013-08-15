@@ -2,9 +2,17 @@ package common.log
 
 import play.api.LoggerLike
 
-trait PackageLogging {
 
-  private lazy val name : String = {
+trait Logging {
+
+  protected def loggerName : String
+
+  protected lazy val Logger : LoggerLike = play.api.Logger(loggerName)
+}
+
+trait PackageLogging extends Logging {
+
+  override protected def loggerName : String = {
     val clazz = this.getClass
     val p = clazz.getPackage
     if(p == null)
@@ -13,5 +21,8 @@ trait PackageLogging {
       p.getName
   }
 
-  protected lazy val Logger : LoggerLike = play.api.Logger(name)
+}
+
+trait ClassLogging extends Logging{
+  override protected def loggerName : String = this.getClass.getSimpleName.replace("$", "")
 }

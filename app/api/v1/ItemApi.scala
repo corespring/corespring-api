@@ -24,12 +24,13 @@ import play.api.mvc.{Result, Action, AnyContent}
 import scalaz.Scalaz._
 import scalaz.{Failure, Success, Validation}
 import search.ItemSearch
+import models.metadata.{MetadataSetServiceImpl, MetadataSetService}
 
 /**
  * Items API
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
-class ItemApi(s3service: CorespringS3Service, service :ItemService) extends BaseApi with PackageLogging {
+class ItemApi(s3service: CorespringS3Service, service :ItemService, metadataSetService: MetadataSetService) extends BaseApi with PackageLogging {
 
   import Item.Keys._
 
@@ -387,7 +388,7 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService) extends Base
             }
           }
           if(value.isDefined){
-            MetadataSet.findByKey(metadataKey) match {
+            metadataSetService.findByKey(metadataKey) match {
               case Some(ms) => {  //check to make sure the given property matches the schema, if there is a a schema
                 if(ms.schema.isEmpty || ms.schema.find(sm => sm.key == key).isDefined){
                   //update metadata
@@ -409,19 +410,19 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService) extends Base
         } else { //attempting to update an entire metadata set
           //since property does not have a period delimeter, we assume property is the metadata key
           // and the user is attempting to update an entire metadata set within the item
-          val value:Option[Map[String,String]] = request.body.asJson match {
-            case Some(JsObject(fields)) => Some(
-              fields.foldRight[Map[String,String]](Map())((prop,acc) => acc + (prop._1 -> prop._2.toString()))
-            )
-            case _ => None
-          }
-          if (value.isDefined){
-            MetadataSet.findByKey(property) match {
+
+          import play.api.libs.json._
+          val incomingData = for( json <- request.body.asJson;  map <- json.asOpt[scala.collection.immutable.Map[String,String]] ) yield map
+
+          incomingData.map{ m =>
+
+            val mutableMap = collection.mutable.Map(m.toSeq: _*)
+
+            metadataSetService.findByKey(property) match {
               case Some(ms) => { //check to make sure the given properties matches the schema, if there is a a schema
-                if(ms.schema.isEmpty || ms.schema.forall(sm => value.get.contains(sm.key))) {
-                  //update metadata
+                if(ms.schema.isEmpty || ms.schema.forall(sm => mutableMap.contains(sm.key))) {
                   val taskInfo:TaskInfo = item.taskInfo.getOrElse(TaskInfo())
-                  taskInfo.extended = taskInfo.extended.filter(_.metadataKey != property) :+ Metadata(property,value.get)
+                  taskInfo.extended = taskInfo.extended.filter(_.metadataKey != property) :+ Metadata(property,mutableMap)
                   item.taskInfo = Some(taskInfo)
                   service.save(item,false)
                   Ok(TaskInfo.extendedAsJson(taskInfo.extended))
@@ -429,9 +430,7 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService) extends Base
               }
               case None => BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("specified set was not found"))))
             }
-          }else{
-            BadRequest(Json.toJson(ApiError.BodyNotFound))
-          }
+          }.getOrElse(BadRequest(Json.toJson(ApiError.BodyNotFound)))
         }
       }
       case None => NotFound(Json.toJson(ApiError.IdNotFound))
@@ -467,5 +466,14 @@ class ItemApi(s3service: CorespringS3Service, service :ItemService) extends Base
   }
 
 }
+object dependencies{
 
-object ItemApi extends api.v1.ItemApi(CorespringS3ServiceImpl, ItemServiceImpl)
+  val metadataSetService : MetadataSetServiceImpl = new MetadataSetServiceImpl {
+    def orgService: OrganizationService = new OrganizationImpl{
+      def metadataSetService: MetadataSetServiceImpl = dependencies.metadataSetService
+    }
+  }
+}
+
+object ItemApi extends api.v1.ItemApi(CorespringS3ServiceImpl, ItemServiceImpl, dependencies.metadataSetService)
+
