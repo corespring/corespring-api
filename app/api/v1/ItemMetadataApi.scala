@@ -8,7 +8,6 @@ import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.{Json, JsValue}
 
-case class SetView(set: MetadataSet, data: Metadata)
 
 class ItemMetadataApi(metadataService: MetadataService, setService: MetadataSetService) extends BaseApi {
 

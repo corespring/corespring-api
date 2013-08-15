@@ -1,4 +1,4 @@
-package models.metadata
+package common.utils
 
 import play.api.libs.json._
 

@@ -5,8 +5,9 @@ import org.bson.types.ObjectId
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
 import tests.PlaySingleton
+import utils.JsonAssertions
 
-class SetJsonTest extends Specification {
+class SetJsonTest extends Specification with JsonAssertions {
 
 
   PlaySingleton.start()
@@ -39,16 +40,8 @@ class SetJsonTest extends Specification {
 
     def assert(set:MetadataSet, m : Option[Metadata]) = {
       val ref = SetJson(set,m)
-
       println(s"Generated json: ${Json.stringify(ref)}")
-
-      JsonCompare.caseInsensitiveSubTree(Json.stringify(ref), mkJson(set,m)) match {
-        case Left(diffs) => {
-          println(diffs)
-          failure(diffs.mkString(","))
-        }
-        case Right(_) => success
-      }
+      assertJsonIsEqual(Json.stringify(ref), mkJson(set,m))
     }
 
     "create some json" in assert(
