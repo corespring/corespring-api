@@ -32,3 +32,5 @@ object MetadataSet{
   implicit val format = Json.format[MetadataSet]
 
 }
+
+case class Metadata(key:String, properties:Map[String,String])

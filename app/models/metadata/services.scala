@@ -1,15 +1,13 @@
 package models.metadata
 
-import models.{OrganizationService, MetadataSet}
-import org.bson.types.ObjectId
-import com.novus.salat.dao.{SalatDAO, DAO, ModelCompanion}
-import se.radley.plugin.salat._
+import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBObject
-import scala.Some
-import com.mongodb.WriteResult
-import models.item.Metadata
+import com.novus.salat.dao.{SalatDAO, DAO, ModelCompanion}
+import models.item.service.ItemServiceClient
+import models.{Metadata, OrganizationService, MetadataSet}
 import org.corespring.platform.data.mongo.models.VersionedId
-import models.item.service.{ItemServiceClient, ItemServiceImpl, ItemService}
+import scala.Some
+import se.radley.plugin.salat._
 
 trait MetadataService{
 
@@ -23,9 +21,30 @@ trait MetadataServiceImpl extends MetadataService{ self : ItemServiceClient =>
     val maybeSeq : Option[Seq[Metadata]] = for{
       i <- itemService.findOneById(itemId)
       info <- i.taskInfo
-    } yield info.extended.filter( e => keys.exists( _ == e.metadataKey ) )
+      extendedMetadata <- toMetadataMap(info.extended)
+    } yield extendedMetadata.filter( e => keys.exists( _ == e.key) )
 
     maybeSeq.getOrElse(Seq())
+  }
+
+  def toMetadataMap( m : scala.collection.mutable.Map[String,BasicDBObject]) : Option[Seq[Metadata]] = {
+
+    def dboToMap(dbo:BasicDBObject) : scala.collection.immutable.Map[String,String] = {
+      import scala.collection.JavaConversions._
+      val javaMap : java.util.Map[_,_] = dbo.toMap
+      val scalaMap : scala.collection.mutable.Map[_,_] = mapAsScalaMap(javaMap)
+      val stringMap : Seq[(String,String)] = scalaMap.toSeq.map{
+        tuple =>
+          val (key,value) = tuple
+          println(s"key: $key, value: $value")
+
+          (tuple._1.asInstanceOf[String],tuple._2.asInstanceOf[String])
+      }
+      scala.collection.immutable.Map( stringMap.toSeq : _*)
+    }
+
+    val out = m.toSeq.map( tuple => Metadata( tuple._1, dboToMap(tuple._2)))
+    Some(out)
   }
 
 }
@@ -51,8 +70,10 @@ trait MetadataSetServiceImpl extends MetadataSetService {
   def orgService: OrganizationService
 
   private val dao = new ModelCompanion[MetadataSet, ObjectId] {
+
     import models.mongoContext.context
     import play.api.Play.current
+
     val collection = mongoCollection("metadataSets")
 
     def dao: DAO[MetadataSet, ObjectId] = new SalatDAO[MetadataSet, ObjectId](collection = collection) {}

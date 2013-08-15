@@ -68,25 +68,20 @@
     "demonstratedKnowledge": "Factual"
   },
   "taskInfo": {
-    "extended" : [
-      {
-        "metadataKey" : "dev_org",
-        "props" : {
-          "ui_comment" : "I'm a ui comment",
+    "extended": {
+      "dev_org": {
+        "ui_comment" : "I'm a ui comment",
           "dev_comment" : "I'm a dev comment",
           "qa_comment" : "I'm a qa comment"
         }
       },
-      {
-        "metadataKey" : "dev_org_two",
-        "props" : {
-          "banana" : "yummy",
+    "dev_org_two": {
+      "banana" : "yummy",
           "apple" : "hmmmm",
           "carrot" : "orangey"
-        }
       }
-    ],
-    "subjects": {
+  },
+  "subjects": {
       "primary": {
         "$oid": "4ffb535f6bb41e469c0bf2ac"
       }

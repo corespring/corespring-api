@@ -68,16 +68,13 @@
     "demonstratedKnowledge": "Factual"
   },
   "taskInfo": {
-    "extended" : [
-      {
-        "metadataKey" : "newclassrooms_metadata",
-        "props" : {
-          "skillNumber": "129",
-          "family": "A",
-          "masterQuestion": "1"
-        }
+    "extended" : {
+      "newclassrooms_metadata" : {
+        "skillNumber": "129",
+        "family": "A",
+        "masterQuestion": "1"
       }
-    ],
+    },
     "subjects": {
       "primary": {
         "$oid": "4ffb535f6bb41e469c0bf2ac"
