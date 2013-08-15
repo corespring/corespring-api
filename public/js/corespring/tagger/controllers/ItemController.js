@@ -16,7 +16,7 @@ if (Array.prototype.removeItem == null) Array.prototype.removeItem = function (i
 /**
  * Controller for editing Item
  */
-function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, $timeout) {
+function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, MetadataSet) {
 
   function loadStandardsSelectionData() {
     $http.get(ServiceLookup.getUrlFor('standardsTree')).success(function (data) {
@@ -207,13 +207,37 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   // broadcast an event when the Edit view is called
   $rootScope.$broadcast('onEditViewOpened');
 
+
+  $scope.loadMetadataSets = function(){
+
+    MetadataSet.get({}, function onSetsLoaded(sets){
+
+      console.log("Loaded metadata sets", sets);
+
+      $scope.metadataSets = sets;
+
+
+      $scope.loadExtendedData()
+    });
+  };
+
+  $scope.loadExtendedData = function(){
+
+    if(!$scope.metadataSets){
+      return;
+    }
+
+    ExtendedData.get({id: $scope.itemData.id, sets : })
+  };
+
+
   $scope.loadItem = function () {
     ItemService.get({id: $routeParams.itemId}, function onItemLoaded(itemData) {
       console.log("ItemData arrived");
       console.log(itemData);
 
       // TODO: Mocking this for the time being. Format is key: label
-      itemData.metadataSets = {
+      /*itemData.metadataSets = {
         "newclassroom": {
           label: "New Classroom",
           editorUrl: "http://localhost:5000",
@@ -224,7 +248,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
               "Master Question": "C"
           }
         }
-      };
+      };*/
 
       $rootScope.itemData = itemData;
       enterEditorIfInContentPanel();
@@ -243,34 +267,26 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       alert("Error cloning item: " + JSON.stringify(error))
     });
   };
-  //*******item versioning*********//
-//  $scope.increment = function(){
-//      $scope.showSaveWarning = false;
-//      $scope.showProgressModal = true;
-//      $scope.itemData.increment({id:$scope.itemData.id}, function onIncrementSuccess(data){
-//          $scope.showProgressModal = false;
-//          $location.path('/edit/' + data.id);
-//      }, function onError(error) {
-//          $scope.showProgressModal = false;
-//          alert("Error incrementing item: " + JSON.stringify(error))
-//      });
-//  }
-  $scope.showSaveWarning=false
-  $scope.itemVersion = 1
-  $scope.$on("dataLoaded",function(newValue,oldValue){
-      $scope.itemVersion = parseInt($scope.itemData.id.split(":")[1])+1
-      $scope.isPublished = $scope.itemData.published
-  })
-  //*****************************//
-  $scope.loadItem();
 
-     $rootScope.$on('showSaveWarning',function(){
-       $scope.$apply('showSaveWarning=true')
-     });
+  $scope.showSaveWarning = false;
+
+  $scope.itemVersion = 1;
+  $scope.$on("dataLoaded", function (newValue, oldValue) {
+    $scope.itemVersion = parseInt($scope.itemData.id.split(":")[1]) + 1;
+    $scope.isPublished = $scope.itemData.published;
+  });
+
+  $scope.loadItem();
+  $scope.loadMetadataSets();
+
+  $rootScope.$on('showSaveWarning', function () {
+    $scope.$apply('showSaveWarning=true');
+  });
 
   $scope.$watch('itemData.pValue', function (newValue, oldValue) {
     $scope.pValueAsString = $scope.getPValueAsString(newValue);
   });
+
   $scope.$watch('isPublished', function(){
     console.log("isPublished was changed")
       if($scope.isPublished) {
@@ -278,7 +294,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         if($scope.itemData.sessionCount == 1) $scope.sessionCount = "("+$scope.itemData.sessionCount+" response)"
         else $scope.sessionCount = "("+$scope.itemData.sessionCount+" responses)"
       } else $scope.itemStatus = "Draft"
-  })
+  });
+
   $scope.getPValueAsString = function (value) {
 
     var vals = {
@@ -296,7 +313,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         }
       }
     };
-
     return getLabelFromValue(vals, value);
   };
 
@@ -520,6 +536,6 @@ ItemController.$inject = [
   'Collection',
   'ServiceLookup',
   '$http',
-  '$timeout'
+  'MetadataSet'
 ];
 

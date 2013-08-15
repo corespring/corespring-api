@@ -77,12 +77,17 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
   def ApiAction[A](p: BodyParser[A])(f: ApiRequest[A] => Result) = {
     Action(p) {
       request =>
-        Logger.debug("request route: "+request.method+" "+request.uri)
-        SecureSocial.currentUser(request).find(_ => request.headers.get("CoreSpring-IgnoreSession").isEmpty).map { u =>
-          invokeAsUser(u.id.id, u.id.providerId, request)(f)
-        }.getOrElse {
-          tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
-            OAuthProvider.getAuthorizationContext(token).fold(
+
+        val IgnoreSession = "CoreSpring-IgnoreSession"
+
+        Logger.debug(s"request route: ${request.method}, ${request.uri}")
+        Logger.debug(s"ignore session: ${ request.headers.get(IgnoreSession)}")
+
+        def resultFromToken = {
+
+          def onError(apiError:ApiError) = BadRequest(Json.toJson(apiError))
+
+          def onToken(token : String ) =  OAuthProvider.getAuthorizationContext(token).fold(
               error => {
                 Logger.debug("Error getting authorization context")
                 Forbidden(Json.toJson(error)).as(JSON)
@@ -92,9 +97,19 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
                 Logger.debug("returning result")
                 result
               }
-            )
           )
+          tokenFromRequest(request).fold(onError, onToken)
         }
+
+        def userResult = for{
+          currentUser <- SecureSocial.currentUser(request)
+          if(request.headers.get(IgnoreSession).isEmpty)
+        } yield {
+          Logger.debug( s"currentUser: $currentUser")
+          invokeAsUser(currentUser.id.id, currentUser.id.providerId, request)(f)
+        }
+
+        userResult.getOrElse(resultFromToken)
     }
   }
 

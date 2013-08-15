@@ -14,6 +14,20 @@ angular.module('tagger.services')
 
 
 angular.module('tagger.services')
+    .factory('MetadataSet', [
+        '$resource', 'ServiceLookup', function($resource, ServiceLookup){
+
+            return $resource(
+             ServiceLookup.getUrlFor('metadataSets') + '/:id',
+                {},
+                {
+                  "get" :{ method:'GET', isArray:true}
+                }
+            );
+        }
+    ]);
+
+angular.module('tagger.services')
     .factory('SupportingMaterial',
     [ '$resource', 'ServiceLookup', function ($resource, ServiceLookup) {
 

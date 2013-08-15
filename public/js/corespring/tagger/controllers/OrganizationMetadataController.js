@@ -1,14 +1,26 @@
 function OrganizationMetadataController($scope, MessageBridge) {
 
+  var getMetadataSet = function(key,sets){
+     return _.find(sets, function(s){return s.metadataKey == key});
+  };
+
+  var getEditorUrl = function(key, sets){
+    var metadataSet = getMetadataSet(key,sets);
+    if(metadataSet && metadataSet.editorUrl){
+      return metadataSet.editorUrl;
+    } else {
+      return "/metadata/unkown-editor-url?" + key
+    }
+  };
+
   $scope.$watch("itemData", function() {
   });
 
   $scope.$watch("selectedMetadataSet", function(k) {
     if (!k) return;
 
-    if ($scope.itemData)
-      $scope.editUrl = $scope.itemData.metadataSets[k].editorUrl;
-
+    if ($scope.metadataSets)
+      $scope.editUrl = getEditorUrl(k, $scope.metadataSets);
   });
 
   MessageBridge.addMessageListener(function (message) {
@@ -21,7 +33,7 @@ function OrganizationMetadataController($scope, MessageBridge) {
       console.log("Metadata Requested");
 
       // TODO: Send current metadata
-      var current = $scope.itemData.metadataSets[$scope.selectedMetadataSet];
+      var current = getMetadataSet($scope.selectedMetadataSet, $scope.metadataSets);
       MessageBridge.sendMessage("externalMetadataEditor", {type: "currentMetadata", message: current}, true);
     }
   });
