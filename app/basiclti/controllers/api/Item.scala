@@ -13,12 +13,13 @@ class Item(auth: TokenizedRequestActionBuilder[QuerySessionRenderOptions.RenderO
 
   import api.v1.{ItemApi => Api}
 
+  import models.versioning.VersionedIdImplicits.Binders.versionedIdToString
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) =
     auth.ValidatedAction( o => o.allowItemId("*")){ r : TokenizedRequest[AnyContent] =>
       Api.list(q, f, c, sk, l, sort)(r)
     }
 
-  def read(itemId: VersionedId[ObjectId]) = auth.ValidatedAction(o => o.allowItemId(itemId.toString)){ r : TokenizedRequest[AnyContent] =>
+  def read(itemId: VersionedId[ObjectId]) = auth.ValidatedAction(o => o.allowItemId(versionedIdToString(itemId))){ r : TokenizedRequest[AnyContent] =>
     Api.getDetail(itemId)(r)
   }
 }

@@ -1,10 +1,13 @@
 package player.controllers
 
 import common.controllers.QtiResource
+import common.controllers.deployment.{AssetsLoaderImpl, AssetsLoader}
 import controllers.auth.{TokenizedRequestActionBuilder, BaseApi}
+import models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
 import models.itemSession.DefaultItemSession
 import models.quiz.basic.Quiz
 import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.xml.sax.SAXParseException
 import play.api.mvc.Action
 import play.api.templates.Html
@@ -14,10 +17,6 @@ import player.accessControl.models.RequestedAccess
 import player.views.models.{QtiKeys, ExceptionMessage, PlayerParams}
 import qti.models.RenderingMode._
 import scala.xml.Elem
-import models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
-import org.corespring.platform.data.mongo.models.VersionedId
-import common.controllers.deployment.{AssetsLoaderImpl, AssetsLoader}
-import qti.models.RenderingMode.RenderingMode
 
 
 class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService)
@@ -112,10 +111,9 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     )
 
     def toPlayerParams(xml: String, qtiKeys: QtiKeys): PlayerParams = {
-      import models.versioning.VersionedIdImplicits.Binders._
       PlayerParams(
         xml,
-        Some(versionedIdToString(itemId)),
+        Some(itemId.toString),
         sessionId.map(_.toString),
         enablePreview,
         qtiKeys,

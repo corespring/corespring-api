@@ -10,10 +10,9 @@ object VersionedIdImplicits {
   implicit object Reads extends Reads[VersionedId[ObjectId]] {
 
     def reads(json: JsValue): JsResult[VersionedId[ObjectId]] = json match {
-        case JsString(text) => Binders.stringToVersionedId(text).map(JsSuccess(_)).getOrElse(throw new RuntimeException("Can't parse json"))
+        case JsString(text) => VersionedId(text).map(JsSuccess(_)).getOrElse(throw new RuntimeException("Can't parse json"))
         case _ => JsError("Should be a string" )
       }
-
   }
 
   implicit object Writes extends Writes[VersionedId[ObjectId]] {
@@ -33,37 +32,16 @@ object VersionedIdImplicits {
 
   object Binders {
 
+    @deprecated("VersionedId apply(s:String) now parses the id:version string format", "")
+    def stringToVersionedId(s: String): Option[VersionedId[ObjectId]] = VersionedId(s)
 
-    def stringToVersionedId(s: String): Option[VersionedId[ObjectId]] = {
-      if (s.contains(":")) {
-        val arr = s.split(":")
-        val id = arr(0)
-        val v = arr(1)
-        vId(id, int(v))
-      } else {
-        vId(s)
-      }
-    }
+    @deprecated("VersionedId toString now generates the id:version string format", "")
+    def versionedIdToString(id:VersionedId[ObjectId]) : String = id.toString
 
-    def versionedIdToString(id:VersionedId[ObjectId]) : String =  id.version.map( (l : Any) => s"${id.id.toString}:$l").getOrElse(id.id.toString)
-
-
-    private def vId(id: String, v: Option[Int] = None): Option[VersionedId[ObjectId]] = if (ObjectId.isValid(id)) {
-      Some(VersionedId(new ObjectId(id), v))
-    }
-    else {
-      None
-    }
-
-    private def int(i: String): Option[Int] = try {
-      Some(i.toInt)
-    } catch {
-      case _: Throwable => None
-    }
 
     implicit def versionedIdPathBindable = new PathBindable[VersionedId[ObjectId]] {
       def bind(key: String, value: String) = {
-        stringToVersionedId(value)
+        VersionedId(value)
           .map(Right(_))
           .getOrElse(Left("Invalid object id for key: " + key))
       }
