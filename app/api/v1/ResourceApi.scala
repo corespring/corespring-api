@@ -75,11 +75,7 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
    * @param itemId
    * @return an Option[ObjectId] or None if the id is invalid
    */
-  private def convertStringToVersionedId(itemId: String): Option[VersionedId[ObjectId]] = {
-      Logger.debug("handle itemId: " + itemId)
-    import models.versioning.VersionedIdImplicits.Binders._
-    stringToVersionedId(itemId)
-  }
+  private def convertStringToVersionedId(itemId: String): Option[VersionedId[ObjectId]] = VersionedId(itemId)
 
   def HasItem(itemId: String,
               additionalChecks: Seq[(ApiRequest[AnyContent],Item) => Option[Result]] = Seq(),
@@ -99,6 +95,7 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
       case _ => NotFound(filename)
     }
   }
+
   def editCheck(force:Boolean = false) = new Function2[ApiRequest[_],Item,Option[Result]] {
     def apply(request:ApiRequest[_], item:Item):Option[Result] = {
       if(Content.isAuthorized(request.ctx.organization,item.id,Permission.Write)){
