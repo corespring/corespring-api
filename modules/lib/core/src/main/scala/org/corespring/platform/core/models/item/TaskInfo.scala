@@ -71,11 +71,19 @@ object TaskInfo extends ValueGetter {
   })
   private val getExtended = Reads[Seq[Metadata]]((json:JsValue) => {
     (json \ Keys.extended) match {
-      case JsArray(metadatas) => {
+      case JsObject(metadatas) => {
         metadatas.foldRight[Either[JsError,Seq[Metadata]]](Right(Seq[Metadata]()))((jsmetadata,acc) => {
-          Json.fromJson[Metadata](jsmetadata) match {
-            case JsSuccess(metadata,_) => acc.fold(Left(_), mds => Right(mds :+ metadata))
-            case JsError(errors) => acc.fold(jserror => Left(JsError(jserror.errors ++ errors)), _ =>Left(JsError(errors)))
+          val (metadataKey, jsprops) = jsmetadata
+          val optprops:Either[JsError,Map[String,String]] = (jsprops match {
+            case JsObject(fields) => Right(fields.foldRight[Map[String,String]](Map())((field,acc) => {
+              acc + (field._1 -> field._2.toString())
+            }))
+            case JsUndefined(_) => Right(Map[String,String]())
+            case _ => Left(JsError(__ \ metadataKey, ValidationError("incorrect format","props must be a JSON object")))
+          })
+          optprops match {
+            case Right(props) => acc.fold(error => Left(error),mds => Right(mds :+ Metadata(metadataKey,props)))
+            case Left(e) => acc.fold(error => Left(JsError(e.errors ++ error.errors)),_ => Left(e))
           }
         }) match {
           case Right(props) => JsSuccess(props)
@@ -99,29 +107,5 @@ object TaskInfo extends ValueGetter {
 }
 
 case class Metadata(metadataKey: String, props: Map[String,String])
-object Metadata{
-  private val propsReads:Reads[Map[String,String]] = Reads[Map[String,String]](json => {
-    (json \ "props") match {
-      case JsObject(fields) => JsSuccess(fields.foldRight[Map[String,String]](Map())((field,acc) => {
-        acc + (field._1 -> field._2.toString())
-      }))
-      case JsUndefined(_) => JsSuccess(Map())
-      case _ => JsError(__ \ "props", ValidationError("incorrect format","props must be a JSON object"))
-    }
-  })
-  implicit val metadataReads:Reads[Metadata] = (
-      (__ \ "metadataKey").read[String] and
-      propsReads
-    )(Metadata.apply _)
-
-  implicit object MetadataWrites extends Writes[Metadata]{
-    def writes(o: Metadata): JsValue = {
-      Json.obj(
-        "metadataKey" -> o.metadataKey,
-        "props" -> Json.obj(o.props.toSeq.map(prop => prop._1 -> Json.toJsFieldJsValueWrapper(prop._2)):_*)
-      )
-    }
-  }
-}
 
 
