@@ -1,23 +1,17 @@
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import common.controllers.deployment.{LocalAssetsLoaderImpl, AssetsLoaderImpl}
 import common.seed.SeedDb._
-import filters.{AjaxFilter, AccessControlFilter}
+import filters.{Headers, AjaxFilter, AccessControlFilter}
 import org.bson.types.ObjectId
 import play.api._
 import play.api.mvc.Results._
 import play.api.mvc._
-import scala.Some
 
-
-/**
-  */
 object Global extends WithFilters(AjaxFilter, AccessControlFilter) {
 
   val Logger : LoggerLike = play.api.Logger("Global")
 
   val INIT_DATA: String = "INIT_DATA"
-
-  val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {
@@ -47,7 +41,7 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter) {
     val result = super.onHandlerNotFound(request)
 
     result match {
-      case s: SimpleResult[_] => s.withHeaders(AccessControlAllowEverything)
+      case s: SimpleResult[_] => s.withHeaders(Headers.AccessControlAllowEverything)
       case _ => result
     }
   }
@@ -55,7 +49,7 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter) {
   override def onBadRequest(request: play.api.mvc.RequestHeader, error: scala.Predef.String): play.api.mvc.Result = {
     val result = super.onBadRequest(request, error)
     result match {
-      case s: SimpleResult[_] => s.withHeaders(AccessControlAllowEverything)
+      case s: SimpleResult[_] => s.withHeaders(Headers.AccessControlAllowEverything)
       case _ => result
     }
   }
