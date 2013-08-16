@@ -414,4 +414,30 @@ class ItemQueryTest extends BaseTest{
     }
     jsonSuccess must beTrue
   }
+
+  "search for items by metadata" in {
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{extended.demo_org.ui_comment:{$regex:\"comment about ui\"}}"),f=Some("{extended:1}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = route(request).get
+    status(result) must equalTo(OK)
+    val json = Json.parse(contentAsString(result))
+    val jsonSuccess = json match {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
+          (jsobj \ "extended") match {
+            case JsObject(extended) => extended.find(field => {
+              field._1 == "demo_org" && (field._2 match {
+                case JsObject(props) => props.find(prop => prop._1 == "ui_comment" && prop._2 == JsString("comment about ui")).isDefined
+                case _ => false
+              })
+            }).isDefined
+            case _ => false
+          }
+        })
+      }
+      case _ => false
+    }
+    jsonSuccess must beTrue
+  }
 }

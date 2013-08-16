@@ -64,6 +64,7 @@ object ItemSearch extends Searchable {
           case key if key.startsWith(standards) => toSearchFieldObj(searchFields, field, false)
           case `title` => toSearchFieldObj(searchFields, field, dbkey = taskInfo + "." + TaskInfo.Keys.title)
           case `published` => toSearchFieldObj(searchFields, field)
+          case key if key.startsWith(extended) => toSearchFieldObj(searchFields,field,dbkey = taskInfo+"."+key)
           case _ => Left(InternalError("unknown key contained in fields: " + field._1))
         }
       }
@@ -239,6 +240,7 @@ object ItemSearch extends Searchable {
       case `title` => formatSortField(taskInfo + "." + TaskInfo.Keys.title, field._2)
       case `collectionId` => formatSortField(collectionId, field._2)
       case `published` => formatSortField(published, field._2)
+      case key if key.startsWith(extended) => formatSortField(taskInfo+"."+key,field._2)
       case _ => Left(InternalError("unknown or invalid key contained in sort field"))
     }
   }

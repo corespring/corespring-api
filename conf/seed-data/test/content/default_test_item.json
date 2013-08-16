@@ -98,6 +98,14 @@
       "12"
     ],
     "title": "This item has Qti.xml and supporting materials",
-    "itemType": "Multiple Choice"
+    "itemType": "Multiple Choice",
+    "extended":{
+        "demo_org":{
+            "ui_comment":"comment about ui",
+            "dev_comment":"comment about dev",
+            "qa_comment":"comment about qa",
+            "num_comments":5
+        }
+    }
   }
 }
