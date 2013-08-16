@@ -1,18 +1,17 @@
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
-import com.typesafe.config.ConfigFactory
 import common.controllers.deployment.{LocalAssetsLoaderImpl, AssetsLoaderImpl}
 import common.seed.SeedDb._
+import filters.{AjaxFilter, AccessControlFilter}
 import org.bson.types.ObjectId
 import play.api._
 import play.api.mvc.Results._
 import play.api.mvc._
 import scala.Some
-import web.controllers.utils.ConfigLoader
 
 
 /**
   */
-object Global extends GlobalSettings {
+object Global extends WithFilters(AjaxFilter, AccessControlFilter) {
 
   val Logger : LoggerLike = play.api.Logger("Global")
 
@@ -20,42 +19,12 @@ object Global extends GlobalSettings {
 
   val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
 
-  def AccessControlAction[A](action: Action[A]): Action[A] = Action(action.parser) {
-    request =>
-      action(request) match {
-        case s: SimpleResult[_] =>
-          s
-            .withHeaders(AccessControlAllowEverything)
-            .withHeaders(("Access-Control-Allow-Methods", "PUT, GET, POST, DELETE, OPTIONS"))
-            .withHeaders(("Access-Control-Allow-Headers", "x-requested-with,Content-Type,Authorization"))
-
-        case result => result
-      }
-  }
-
-  def AjaxFilterAction[A](action: Action[A]): Action[A] = Action(action.parser) {
-    request =>
-      if (request.headers.get("X-Requested-With") == Some("XMLHttpRequest")) {
-        action(request) match {
-          case s: SimpleResult[_] => s.withHeaders(("Cache-Control", "no-cache"))
-          case result => result
-        }
-      }
-      else {
-        action(request)
-      }
-  }
-
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
-
     request.method match {
       //return the default access control headers for all OPTION requests.
-      case "OPTIONS" => Some(AccessControlAction(Action(new play.api.mvc.Results.Status(200))))
+      case "OPTIONS" => Some(Action(new play.api.mvc.Results.Status(200)))
       case _ => {
-        super.onRouteRequest(request).map {
-          case action: Action[_] => AjaxFilterAction(AccessControlAction(action))
-          case other => other
-        }
+        super.onRouteRequest(request)
       }
     }
   }
