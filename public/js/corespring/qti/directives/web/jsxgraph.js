@@ -41,9 +41,9 @@ return {
         tickLabelFrequency: parseInt(attr.ticklabelfrequency?attr.ticklabelfrequency:5),
         pointLabels: attr.pointlabels
     };
-    var canvas = new Canvas("box", canvasAttrs);
+    var canvas;
     var lockGraph = false;
-    var points = {};
+    var points = {}
     var onPointMove = function(point, coords) {
       if(!lockGraph){
           if(coords != null) point.moveTo([coords.x, coords.y]);
@@ -61,15 +61,18 @@ return {
         return point;
       }
     };
-    //define callbacks
-    canvas.on('up', function(e) {
-      var coords = canvas.getMouseCoords(e);
-      if ((!canvasAttrs.maxPoints || canvas.points.length < canvasAttrs.maxPoints) && !canvas.pointCollision(coords)) {
-        addPoint(coords);
-      }
-    });
+    var clearBoard = function(){
+        while(canvas.points.length > 0){
+            canvas.popPoint();
+        }
+        while(canvas.shapes.length > 0){
+            canvas.popShape();
+        }
+        points = {}
+    }
     scope.graphCallback = function(params){
-        if(params.points){
+        if(params.points && canvas){
+            clearBoard();
             for (var ptName in params.points) {
               var point = params.points[ptName];
               var coordx = parseFloat(point.x);
@@ -97,7 +100,7 @@ return {
               }
             }
         }
-        if(params.drawShape){
+        if(params.drawShape && canvas){
              if(params.drawShape.line && !lockGraph){
                  var pt1 = canvas.getPoint(params.drawShape.line[0]);
                  var pt2 = canvas.getPoint(params.drawShape.line[1]);
@@ -108,7 +111,7 @@ return {
                 canvas.makeCurve(params.drawShape.curve)
              }
         }
-        if(params.submission){
+        if(params.submission && canvas){
              if(params.submission.isIncomplete){
                scope.boxStyle = {width: "100%", height: "100%", borderColor: "yellow", borderWidth: "2px"};
              }else if(params.submission.clearBorder){
@@ -126,6 +129,16 @@ return {
                     scope.boxStyle = {width: "100%", height: "100%", borderColor: "red", borderWidth: "2px"};
                  }
              }
+        }
+        if(params.initBoard){
+           canvas = new Canvas("box", canvasAttrs);
+           //define callbacks
+           canvas.on('up', function(e) {
+             var coords = canvas.getMouseCoords(e);
+             if ((!canvasAttrs.maxPoints || canvas.points.length < canvasAttrs.maxPoints) && !canvas.pointCollision(coords)) {
+               addPoint(coords);
+             }
+           });
         }
     };
   }

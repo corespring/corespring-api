@@ -63,29 +63,37 @@ angular.module("qti.directives").directive("lineinteraction", function(){
     return {
         template: [
         "<div class='graph-interaction'>",
+        "   <div class='additional-text' ng-show='additionalText'>",
+        "       <p>{{additionalText}}</p>",
+        "   </div>",
         "   <div class='row'>",
-        "       <div class='span3' ng-show='showInputs'>",
-        "           <div class='point-display'>",
+        "       <div class='span3' ng-show='showInputs' style='margin-right: 17px;'>",
+        "           <div class='point-display' style='padding-bottom: 10px;'>",
         "              <p>Point A:</p>",
         "              <p>x: </p>",
-        "              <input type='text' style='width: 40px;', ng-model='points.A.x' ng-disabled='outcomeReturned'>",
+        "              <input type='text' style='width: 43px;', ng-model='points.A.x' ng-disabled='outcomeReturned'>",
         "              <p>y: </p>",
-        "              <input type='text' style='width: 40px;' ng-model='points.A.y'  ng-disabled='outcomeReturned'>",
+        "              <input type='text' style='width: 43px;' ng-model='points.A.y'  ng-disabled='outcomeReturned'>",
         "          </div>",
-        "          <div class='point-display'>",
+        "          <hr class='point-display-break'>",
+        "          <div class='point-display' style='padding-top: 10px;'>",
         "             <p>Point B:</p>",
         "             <p>x: </p>",
-        "             <input type='text' style='width: 40px;', ng-model='points.B.x' ng-disabled='outcomeReturned'>",
+        "             <input type='text' style='width: 43px;', ng-model='points.B.x' ng-disabled='outcomeReturned'>",
         "             <p>y: </p>",
-        "             <input type='text' style='width: 40px;' ng-model='points.B.y' ng-disabled='outcomeReturned'>",
+        "             <input type='text' style='width: 43px;' ng-model='points.B.y' ng-disabled='outcomeReturned'>",
         "          </div>",
         "      </div>",
-        "      <div class='span4 scale-display' ng-show='showInputs'>",
+        "      <div class='span3 scale-display' ng-show='showInputs' style='margin-left: 0px;'>",
         "          <p>scale={{scale}}</p>",
         "          <p ng-show='showWholeNumbersMessage'>Decimals and fractions will be rounded to the nearest whole number.</p>",
         "      </div>",
+        "      <div class='span1 graph-btns' ng-show='showInputs'>",
+        "          <button type='button' class='btn btn-default btn-undo' ng-click='undo()'>Undo</button>",
+        "          <button type='button' class='btn btn-default btn-start-over' ng-click='startOver()'>Start Over</button>",
+        "      </div>",
         "   </div>",
-        "   <div jsx-graph graph-callback='graphCallback' interaction-callback='interactionCallback'></div>",
+        "   <div class='graph-container' jsx-graph graph-callback='graphCallback' interaction-callback='interactionCallback'></div>",
         "   <div id='initialParams' ng-transclude></div>",
         "</div>"].join("\n"),
         transclude: true,
@@ -97,11 +105,14 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                 $scope.initialParams = initialParams;
             };
             $scope.$watch('graphCallback',function(){
-                if($scope.graphCallback && $scope.initialParams){
-                    $scope.graphCallback($scope.initialParams);
+                if($scope.graphCallback){
+                    $scope.graphCallback({initBoard: true})
+                    if($scope.initialParams){
+                       $scope.graphCallback($scope.initialParams);
+                    }
                 }
             })
-            $scope.points = {A: {x: undefined, y: undefined}, B: {x: undefined, y: undefined}};
+            $scope.points = {A: {x: undefined, y: undefined, isSet:false}, B: {x: undefined, y: undefined, isSet:false}};
             $scope.$watch('showNoResponseFeedback', function(){
                  if($scope.isEmptyItem($scope.graphCoords) && $scope.showNoResponseFeedback){
                     $scope.graphCallback({submission: {isIncomplete:true}});
@@ -122,7 +133,7 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                          px = Math.round(px*multiplier) / multiplier;
                          py = Math.round(py*multiplier) / multiplier;
                      }
-                     $scope.points[name] = {x: px,y: py};
+                     $scope.points[name] = {x: px, y: py, isSet:true};
                    }
                 }
                 if(params.points){
@@ -157,6 +168,17 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                 $scope.graphCallback({points: graphPoints});
               }
             }, true)
+            $scope.undo = function(){
+                if($scope.points.B && $scope.points.B.isSet){
+                    $scope.points.B = {}
+                } else if($scope.points.A && $scope.points.A.isSet){
+                    $scope.points.A = {}
+                }
+            }
+            $scope.startOver = function(){
+                $scope.points.B = {}
+                $scope.points.A = {}
+            }
             $scope.$on("formSubmitted",function(){
                 if(!$scope.locked){
                    $scope.outcomeReturned = true;
@@ -184,10 +206,12 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                                  tickLabelFrequency: attrs.tickLabelFrequency,
                                  maxPoints:2
                              };
-            element.find('[jsx-graph]').css({width: width, height: height});
+
             element.find('[jsx-graph]').attr(graphAttrs);
-            //element.find("#initialParams").remove()
             return function(scope, element, attrs, AssessmentItemController){
+                var jsxgraphElem = element.find('[jsx-graph]');
+                jsxgraphElem.css({height: jsxgraphElem.width()});
+                scope.additionalText = attrs.additionalText
                 scope.scale = graphAttrs.scale;
                 scope.showWholeNumbersMessage = scope.scale == 1;
                 scope.domain = graphAttrs.domain;
