@@ -88,7 +88,7 @@ class ReportsService(ItemCollection: MongoCollection,
     def mapToDistincList(field:String):List[String] = {
       val distResult = ItemCollection.distinct(field)
       if (distResult == null) return List()
-      val distStringResult = distResult.map(p => if (p != null) p.toString else "")
+      val distStringResult = distResult.map((p : Any) => if (p != null) p.toString else "")
       if (distStringResult == null) return List()
 
       distStringResult.filter(_ != "").toList

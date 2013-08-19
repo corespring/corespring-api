@@ -12,7 +12,7 @@ object Build extends sbt.Build {
 
   val appName = "corespring"
   val appVersion = "1.0"
-  val ScalaVersion = "2.10.1"
+  val ScalaVersion = "2.10.0"
   val org = "org.corespring"
 
   val forkInTests = true
@@ -31,8 +31,10 @@ object Build extends sbt.Build {
 
   val cred = {
 
-    val f : File =  file( Seq(Path.userHome / ".ivy2"/ ".credentials").mkString )
-
+    val envCredentialsPath = System.getenv("CREDENTIALS_PATH")
+    val path = if(envCredentialsPath != null) envCredentialsPath else Seq(Path.userHome / ".ivy2"/ ".credentials").mkString
+    val f : File =  file(path)
+    println("[credentials] check file: : " + f.getAbsolutePath)
     if(f.exists()){
       println("[credentials] using credentials file")
       Credentials(f)
