@@ -32,7 +32,7 @@ object Build extends sbt.Build {
   val cred = {
 
     val f : File =  file( Seq(Path.userHome / ".ivy2"/ ".credentials").mkString )
-
+    println("[credentials] check: " + f.getAbsolutePath)
     if(f.exists()){
       println("[credentials] using credentials file")
       Credentials(f)
