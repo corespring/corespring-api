@@ -115,7 +115,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
 
       PlayerParams(
         xml,
-        Some(itemId.toString),
+        Some(versionedIdToString(itemId)),
         sessionId.map(_.toString),
         enablePreview,
         qtiKeys,
