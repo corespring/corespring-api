@@ -64,6 +64,7 @@ object ItemSearch extends Searchable {
           case key if key.startsWith(standards) => toSearchFieldObj(searchFields, field, false)
           case `title` => toSearchFieldObj(searchFields, field, dbkey = taskInfo + "." + TaskInfo.Keys.title)
           case `published` => toSearchFieldObj(searchFields, field)
+          case key if key.startsWith(extended) => toSearchFieldObj(searchFields,field,dbkey = taskInfo+"."+key)
           case _ => Left(InternalError("unknown key contained in fields: " + field._1))
         }
       }
@@ -145,7 +146,6 @@ object ItemSearch extends Searchable {
       case Left(sc) => Left(sc)
     }
   }
-
   override protected def toSearchObjInternal(dbquery: BasicDBObject, optInitSearch: Option[MongoDBObject])(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, MongoDBObject] = {
     preParseStandards(dbquery) match {
       case Right(query1) => preParseSubjects(dbquery) match {
@@ -188,6 +188,7 @@ object ItemSearch extends Searchable {
                 case `reviewsPassed` => formatQuery(reviewsPassed, field._2, searchobj)
                 case key if key.startsWith(standards) => Right(searchobj)
                 case `title` => formatQuery(taskInfo + "." + TaskInfo.Keys.title, field._2, searchobj)
+                case key if key.startsWith(extended) => formatQuery(taskInfo+"."+key,field._2,searchobj)
                 case _ => Left(SearchCancelled(Some(InternalError("unknown key contained in query: " + field._1))))
               }
             }
@@ -239,6 +240,7 @@ object ItemSearch extends Searchable {
       case `title` => formatSortField(taskInfo + "." + TaskInfo.Keys.title, field._2)
       case `collectionId` => formatSortField(collectionId, field._2)
       case `published` => formatSortField(published, field._2)
+      case key if key.startsWith(extended) => formatSortField(taskInfo+"."+key,field._2)
       case _ => Left(InternalError("unknown or invalid key contained in sort field"))
     }
   }

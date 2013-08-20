@@ -1,6 +1,5 @@
 package org.corespring.platform.core.models.item
 
-import org.corespring.platform.core.models.json.JsonValidationException
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import scala.collection.mutable.Map
@@ -13,7 +12,7 @@ import scala.Some
 import play.api.libs.json.JsObject
 import play.api.data.validation.ValidationError
 
-case class TaskInfo( var extended: Seq[Metadata] = Seq(),
+case class TaskInfo( var extended: Map[String,BasicDBObject] = Map(),
                      subjects: Option[Subjects] = None,
                      gradeLevel: Seq[String] = Seq(),
                      title: Option[String] = None,
@@ -24,7 +23,6 @@ case class TaskInfo( var extended: Seq[Metadata] = Seq(),
   }
 }
 object TaskInfo extends ValueGetter {
-
 
   object Keys {
     val title = "title"
@@ -42,7 +40,8 @@ object TaskInfo extends ValueGetter {
       val infoJson = JsObject(Seq(
           if (info.gradeLevel.isEmpty) None else Some((gradeLevel -> JsArray(info.gradeLevel.map(JsString(_))))),
           info.title.map((title -> JsString(_))),
-          info.itemType.map((itemType -> JsString(_)))
+          info.itemType.map((itemType -> JsString(_))),
+          if(info.extended.isEmpty) None else Some((extended -> extendedAsJson(info.extended)))
         ).flatten)
 
       val subjectsJson : Option[JsValue] = info.subjects.map( subjects => Json.toJson(subjects))
@@ -56,9 +55,9 @@ object TaskInfo extends ValueGetter {
       }
     }
   }
-  def extendedAsJson(extended: Seq[Metadata]):JsValue = {
+  def extendedAsJson(extended: Map[String,BasicDBObject]):JsValue = {
     JsObject(extended.foldRight[Seq[(String,JsValue)]](Seq())((md,acc1) => {
-      acc1 :+ (md.metadataKey -> JsObject(md.props.toSeq.map(prop => prop._1 -> JsString(prop._2))))
+      acc1 :+ (md._1 -> JsObject(md._2.toSeq.map(prop => prop._1 -> JsString(prop._2.toString))))
     }))
   }
   private def isValid(g:String) = fieldValues.gradeLevels.exists(_.key == g)
@@ -69,20 +68,29 @@ object TaskInfo extends ValueGetter {
       case None => JsSuccess(Seq())
     }
   })
-  private val getExtended = Reads[Seq[Metadata]]((json:JsValue) => {
+  private val getExtended = Reads[Map[String,BasicDBObject]]((json:JsValue) => {
     (json \ Keys.extended) match {
-      case JsArray(metadatas) => {
-        metadatas.foldRight[Either[JsError,Seq[Metadata]]](Right(Seq[Metadata]()))((jsmetadata,acc) => {
-          Json.fromJson[Metadata](jsmetadata) match {
-            case JsSuccess(metadata,_) => acc.fold(Left(_), mds => Right(mds :+ metadata))
-            case JsError(errors) => acc.fold(jserror => Left(JsError(jserror.errors ++ errors)), _ =>Left(JsError(errors)))
+      case JsObject(metadatas) => {
+        metadatas.foldRight[Either[JsError,Map[String,BasicDBObject]]](Right(Map[String,BasicDBObject]()))((jsmetadata,acc) => {
+          val (metadataKey, jsprops) = jsmetadata
+          val optprops:Either[JsError,Map[String,String]] = (jsprops match {
+            case JsObject(fields) => Right(fields.foldRight[Map[String,String]](Map())((field,acc) => {
+              acc + (field._1 -> field._2.toString())
+            }))
+            case JsUndefined(_) => Right(Map[String,String]())
+            case _ => Left(JsError(__ \ metadataKey, ValidationError("incorrect format","props must be a JSON object")))
+          })
+          import collection.JavaConversions._
+          optprops match {
+            case Right(props) => acc.fold(error => Left(error), mds => Right(mds + (metadataKey -> new BasicDBObject(props))))
+            case Left(e) => acc.fold(error => Left(JsError(e.errors ++ error.errors)),_ => Left(e))
           }
         }) match {
           case Right(props) => JsSuccess(props)
           case Left(jserror) => jserror
         }
       }
-      case JsUndefined(_) => JsSuccess(Seq())
+      case JsUndefined(_) => JsSuccess(Map())
       case _ => JsError(__ \ Keys.extended, ValidationError("incorrect format","json for extended property was not a JSON object"))
     }
   })
@@ -96,32 +104,6 @@ object TaskInfo extends ValueGetter {
     (__ \ Keys.title).readNullable[String] and
     (__ \ Keys.itemType).readNullable[String]
   )(TaskInfo.apply _)
-}
-
-case class Metadata(metadataKey: String, props: Map[String,String])
-object Metadata{
-  private val propsReads:Reads[Map[String,String]] = Reads[Map[String,String]](json => {
-    (json \ "props") match {
-      case JsObject(fields) => JsSuccess(fields.foldRight[Map[String,String]](Map())((field,acc) => {
-        acc + (field._1 -> field._2.toString())
-      }))
-      case JsUndefined(_) => JsSuccess(Map())
-      case _ => JsError(__ \ "props", ValidationError("incorrect format","props must be a JSON object"))
-    }
-  })
-  implicit val metadataReads:Reads[Metadata] = (
-      (__ \ "metadataKey").read[String] and
-      propsReads
-    )(Metadata.apply _)
-
-  implicit object MetadataWrites extends Writes[Metadata]{
-    def writes(o: Metadata): JsValue = {
-      Json.obj(
-        "metadataKey" -> o.metadataKey,
-        "props" -> Json.obj(o.props.toSeq.map(prop => prop._1 -> Json.toJsFieldJsValueWrapper(prop._2)):_*)
-      )
-    }
-  }
 }
 
 

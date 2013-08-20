@@ -7,6 +7,7 @@ import play.api.mvc.{AnyContent, Controller}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.auth.TokenizedRequestActionBuilder
 import org.corespring.player.accessControl.auth.requests.TokenizedRequest
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders.versionedIdToString
 
 
 class Item(auth: TokenizedRequestActionBuilder[QuerySessionRenderOptions.RenderOptionQuery]) extends Controller with SimpleJsRoutes {
@@ -18,7 +19,7 @@ class Item(auth: TokenizedRequestActionBuilder[QuerySessionRenderOptions.RenderO
       Api.list(q, f, c, sk, l, sort)(r)
     }
 
-  def read(itemId: VersionedId[ObjectId]) = auth.ValidatedAction(o => o.allowItemId(itemId.toString)){ r : TokenizedRequest[AnyContent] =>
+  def read(itemId: VersionedId[ObjectId]) = auth.ValidatedAction(o => o.allowItemId(versionedIdToString(itemId))){ r : TokenizedRequest[AnyContent] =>
     Api.getDetail(itemId)(r)
   }
 }
