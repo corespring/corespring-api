@@ -1,0 +1,14 @@
+{
+    "_id": {
+        "$oid": "520a3533aec5c7d4d1c80b8e"
+    },
+    "metadataKey":"dev_org",
+    "editorUrl":"http://metadata-form-ui-example.herokuapp.com",
+    "editorLabel":"CoreSpring Org Metadata",
+    "schema":[
+        {"key":"ui_comment"},
+        {"key":"dev_comment"},
+        {"key":"qa_comment"}
+    ],
+    "isPublic":false
+}

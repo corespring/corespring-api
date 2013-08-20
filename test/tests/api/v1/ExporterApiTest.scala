@@ -67,7 +67,7 @@ class ExporterApiTest extends BaseTest {
     }
 
     def after{
-      Seq("rm", "-fr", base.split("/")(0)).!
+      //Seq("rm", "-fr", base.split("/")(0)).!
     }
   }
 }
