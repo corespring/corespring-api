@@ -69,6 +69,8 @@ angular.module('tagger.services')
                 subject:'/api/v1/field_values/subject',
                 organizations:'/api/v1/organizations',
                 collection: checkInjectedRoutes('PlayerCollectionRoutes', 'list', [],'/api/v1/collections'),
+                itemMetadata : '/api/v1/metadata/item',
+                extendedItemData : '/api/v1/items/:id/extended/:property',
                 contributor:'/api/v1/contributors',
                 uploadFile:'/tagger/upload/{itemId}/{fileName}',
                 viewFile:'/tagger/files/{itemId}/{fileName}',

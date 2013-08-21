@@ -13,9 +13,8 @@ import play.api.mvc._
 import scalaz.Scalaz._
 import scalaz.{Success, Failure}
 import web.controllers.ObjectIdParser
-import org.corespring.web.common.controllers.DefaultCss
 import org.corespring.platform.core.services.item.ItemServiceClient
-
+import org.corespring.web.common.controllers.DefaultCss
 
 object AssetResource{
   object Errors{
@@ -43,8 +42,13 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemSer
   def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]]
 
   def getDataFileBySessionId(sessionId: String, filename: String) = {
+
+
     DefaultItemSession.findOneById(new ObjectId(sessionId)) match {
-      case Some(session) => getDataFile(session.itemId.toString, filename)
+      case Some(session) => {
+        val itemIdString = VersionedIdImplicits.Binders.versionedIdToString(session.itemId)
+        getDataFile(itemIdString, filename)
+      }
       case _ => Action(NotFound("sessionId: " + sessionId))
     }
   }

@@ -1,27 +1,26 @@
 package player.controllers
 
 import common.controllers.QtiResource
-import controllers.auth.BaseApi
-import org.bson.types.ObjectId
-import org.corespring.platform.core.models.itemSession.DefaultItemSession
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.services.quiz.basic.QuizService
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
-import org.corespring.player.accessControl.cookies.PlayerCookieWriter
-import org.corespring.player.accessControl.models.RequestedAccess
-import org.corespring.qti.models.RenderingMode._
-import org.corespring.web.common.controllers.deployment.{AssetsLoaderImpl, AssetsLoader}
 import org.xml.sax.SAXParseException
 import play.api.mvc.Action
 import play.api.templates.Html
 import player.views.models.{QtiKeys, ExceptionMessage, PlayerParams}
 import scala.xml.Elem
+import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
+import org.corespring.player.accessControl.models.RequestedAccess
 import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemServiceClient, ItemService}
-
+import org.corespring.platform.core.services.quiz.basic.QuizService
+import controllers.auth.BaseApi
+import org.corespring.player.accessControl.cookies.PlayerCookieWriter
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.bson.types.ObjectId
+import org.corespring.platform.core.models.itemSession.DefaultItemSession
+import org.corespring.web.common.controllers.deployment.{AssetsLoader, AssetsLoaderImpl}
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import VersionedIdImplicits.Binders._
+import org.corespring.qti.models.RenderingMode._
 
 class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService, quizService : QuizService)
-
   extends BaseApi
   with QtiResource
   with ItemServiceClient
@@ -113,10 +112,10 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     )
 
     def toPlayerParams(xml: String, qtiKeys: QtiKeys): PlayerParams = {
-      import VersionedIdImplicits.Binders._
+
       PlayerParams(
         xml,
-        Some(versionedIdToString(itemId)),
+        Some(itemId.toString),
         sessionId.map(_.toString),
         enablePreview,
         qtiKeys,
