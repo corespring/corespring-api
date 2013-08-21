@@ -192,8 +192,6 @@ angular.module("qti.directives").directive("lineinteraction", function(){
             }, 500)
         }],
         compile: function(element, attrs, transclude){
-            var width = attrs.graphWidth?attrs.graphWidth:"300px";
-            var height = attrs.graphHeight?attrs.graphHeight:"300px";
             var graphAttrs = {
                                  domain: parseInt(attrs.domain?attrs.domain:10),
                                  range: parseInt(attrs.range?attrs.range:10),
