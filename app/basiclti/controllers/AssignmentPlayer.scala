@@ -56,7 +56,7 @@ object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl, QuizS
     case Right(session) => {
 
       import VersionedIdImplicits.Binders._
-      getDataFile(versionedIdToString(session.itemId), filename)
+      getDataFile(session.itemId.toString(), filename)
     }
   }
 

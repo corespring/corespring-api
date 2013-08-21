@@ -4,15 +4,41 @@
   com.corespring = com.corespring || {};
   com.corespring.players = {};
 
-  var addMessageListener = function (fn) {
-    var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
-    var eventer = window[eventMethod];
-    var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+  var rootListener = null;
 
-    eventer(messageEvent,function(e) {
-      fn(e);
-    },false);
+  var eventName = function() { return window.addEventListener ? "message" : "onmessage";}
+  var addEventFunctionName = function(){ return window.addEventListener ? "addEventListener" : "attachEvent"; }
+
+  /** only add one listener to the window, this function is expected to then delegate out to player listeners */
+  var addRootLevelMessageListener = function (newListener) {
+    if(rootListener != null ){
+        throw "A root level listener is already registered!";
+    }
+    rootListener = newListener;
+    window[addEventFunctionName()](eventName(),rootListener,false);
   };
+
+  /** The root listener implementation - forward event to all player listeners */
+  var rootLevelListener = function(e){
+    for(var i = 0; i < playerListeners.length; i++){
+        playerListeners[i](e);
+    }
+  };
+
+  addRootLevelMessageListener(rootLevelListener);
+
+  /** A cache of existing player listeners - gets overrwritten when a new ItemPlayer is instantiated */
+  var playerListeners = [];
+
+  var addPlayerListener = function(fn){
+   if(playerListeners.indexOf(fn) == -1 ){
+     playerListeners.push(fn);
+   }
+  }
+
+  var clearPlayerListeners = function(){
+    playerListeners = [];
+  }
 
   com.corespring.players.config = {
     baseUrl: "${baseUrl}",
@@ -43,19 +69,15 @@
       try {
         var json = JSON.parse(data);
         if (json.message == 'dimensionsUpdate') {
+          console.log("dimension changed...");
           $(element).height(json.h + 30);
         }
-      } catch (e) {}
+      } catch (e) {
+          console.warn(e);
+      }
     }
 
-    var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
-    var eventer = window[eventMethod];
-    var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
-
-    eventer(messageEvent,function(e) {
-      listenerFunction(e.data);
-    },false);
-
+    addPlayerListener(function(e){ listenerFunction(e.data) });
   }
 
   var isValidMode = function(m){
@@ -98,13 +120,15 @@
    */
   com.corespring.players.ItemPlayer = function (element, options, errorCallback) {
 
+    clearPlayerListeners();
+
     var addSessionListener = function (message, callback, dataHandler) {
 
       dataHandler = (dataHandler || function (s) {
         return s.id;
       });
 
-      addMessageListener(function (event) {
+      addPlayerListener(function (event) {
         try {
           var dataString = event.data;
           var data = JSON.parse(dataString);

@@ -1,0 +1,16 @@
+{
+  "_id": {
+    "$oid": "512d46ce0364068384f217a4"
+  },
+  "provider": "userpass",
+  "userName": "newclassrooms",
+  "fullName": "Homer Simpson",
+  "email": "homersimpson@springfield.org",
+  "password": "$2a$10$ztrohKSsxniXnLsTJyAJVOlye5DFYlMi3GUQH1SHkVSO5IH.E9O72",
+  "org": {
+    "orgId": {
+      "$oid": "513404dd0364dc35bb39339c"
+    },
+    "pval": 3
+  }
+}

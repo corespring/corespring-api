@@ -166,8 +166,7 @@ angular.module('qti.services').factory('Canvas', function () {
                          },
                          showNavigation: false,
                          showCopyright: false,
-                         zoom: false,
-                         keepaspectratio: true
+                         zoom: false
                        });
     var axisAttrs = {ticks: {minorTicks: attrs.tickLabelFrequency-1, drawLabels: true}};
     this.board.create('axis', [[0, 0], [1, 0]], axisAttrs);
@@ -183,6 +182,8 @@ angular.module('qti.services').factory('Canvas', function () {
         this.board.create('text', [yoffset.usrCoords[1], yoffset.usrCoords[2], attrs.rangeLabel], {fixed: true});
     }
     this.points = [];
+    this.texts = [];
+    this.shapes = [];
     this.scale = attrs.scale;
     if(attrs.pointLabels){
         this.pointLabels = attrs.pointLabels;
@@ -246,27 +247,25 @@ angular.module('qti.services').factory('Canvas', function () {
     //then apply the offset to the point coordinates to get the correct position of text
     var origin = new JXG.Coords(JXG.COORDS_BY_USER, [0, 0], this.board);
     var offset = new JXG.Coords(JXG.COORDS_BY_SCREEN, [origin.scrCoords[1]-22, origin.scrCoords[2]-15], this.board);
-    this.board.create('text', [function(){return point.X()+offset.usrCoords[1];}, function(){return point.Y()+offset.usrCoords[2];},
+    var text = this.board.create('text', [function(){return point.X()+offset.usrCoords[1];}, function(){return point.Y()+offset.usrCoords[2];},
         function () { return name+' ('+point.X()+','+point.Y()+')'; }], {fixed: true});
+    this.texts.push(text);
     return point;
   };
 
   Canvas.prototype.popPoint = function() {
-    return this.board.removeObject(this.points.pop);
+    this.board.removeObject(this.texts.splice(0,1));
+    this.board.removeObject(this.points.splice(0,1));
   };
 
   Canvas.prototype.removePoint = function(pointId) {
-    var p, _i, _len, _ref, _results;
-    this.board.removeObject(pointId);
-    _ref = this.points;
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      p = _ref[_i];
-      if (p.id !== pointId) {
-        _results.push(this.points = p);
+    for (var i = 0; i < this.points.length; i++) {
+      if (this.points[i].id == pointId) {
+        this.board.removeObject(this.points[i].text)
+        this.board.removeObject(this.points[i]);
+        this.points.splice(i,1)
       }
     }
-    return _results;
   };
 
   Canvas.prototype.on = function(event, handler) {
@@ -274,18 +273,25 @@ angular.module('qti.services').factory('Canvas', function () {
   };
 
   Canvas.prototype.makeLine = function(pts) {
-      return this.board.create('line', pts, {
+      var shape = this.board.create('line', pts, {
         strokeColor: '#00ff00',
         strokeWidth: 2,
         fixed: true
       });
+      this.shapes.push(shape)
+      return shape;
   };
   Canvas.prototype.makeCurve = function(fn){
-    return this.board.create('functiongraph', [fn], {
+      var shape = this.board.create('functiongraph', [fn], {
         strokeColor: '#00ff00',
         strokeWidth: 2,
         fixed: true
       })
+      this.shapes.push(shape)
+      return shape;
+  }
+  Canvas.prototype.popShape = function(){
+    return this.board.removeObject(this.shapes.splice(0,1));
   }
   return Canvas;
 });

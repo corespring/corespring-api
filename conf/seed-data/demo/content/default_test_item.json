@@ -70,6 +70,14 @@
       "10"
     ],
     "title": "Read the poem <i>When I Heard the Learned Astronomer</i> by Walt Whitman and analyze the text using the questions presented as a guide.",
-    "itemType": "Text with Questions"
+    "itemType": "Text with Questions",
+    "extended":{
+        "demo_org":{
+            "ui_comment":"comment about ui",
+            "dev_comment":"comment about dev",
+            "qa_comment":"comment about qa",
+            "num_comments":5
+        }
+    }
   }
 }
