@@ -78,7 +78,7 @@ object ShowResource
             case Some(xmlData: Elem) => {
               val qtiKeys = QtiKeys((xmlData \ "itemBody")(0))
               val finalXml = prepareQti(xmlData, renderMode)
-              val params: PlayerParams = PlayerParams(finalXml, itemId = Some(versionedIdToString(item.id)), previewEnabled = (renderMode == Web), qtiKeys = qtiKeys, mode = renderMode)
+              val params: PlayerParams = PlayerParams(finalXml, itemId = Some(item.id.toString()), previewEnabled = (renderMode == Web), qtiKeys = qtiKeys, mode = renderMode)
               Ok(player.views.html.Player(params))
             }
             case None => NotFound("Can't find item")

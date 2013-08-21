@@ -10,9 +10,9 @@ object VersionedIdImplicits {
   implicit object Reads extends Reads[VersionedId[ObjectId]] {
 
     def reads(json: JsValue): JsResult[VersionedId[ObjectId]] = json match {
-        case JsString(text) => Binders.stringToVersionedId(text).map(JsSuccess(_)).getOrElse(throw new RuntimeException("Can't parse json"))
-        case _ => JsError("Should be a string" )
-      }
+      case JsString(text) => Binders.stringToVersionedId(text).map(JsSuccess(_)).getOrElse(throw new RuntimeException("Can't parse json"))
+      case _ => JsError("Should be a string" )
+    }
 
   }
 

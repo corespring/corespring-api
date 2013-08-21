@@ -269,7 +269,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       val item = testItem
       val filename = "cute-rabbit.jpg"
 
-      val create = resourceApi.uploadFile(versionedIdToString(item.id),"Rubric", filename)
+      val create = resourceApi.uploadFile(item.id.toString(),"Rubric", filename)
       val file = Play.getFile("test/tests/files/" + filename)
       val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
       val byteArray = source.map(_.toByte).toArray
@@ -286,7 +286,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       val secondCall = call(create, byteArray, NOT_FOUND, ApiError.FilenameTaken.message)
       secondCall === (true, true)
 
-      val badUpdate = resourceApi.uploadFile(versionedIdToString(item.id), "badResourceName", filename)
+      val badUpdate = resourceApi.uploadFile(item.id.toString(), "badResourceName", filename)
       val thirdCall = call(badUpdate, byteArray,  NOT_FOUND, ApiError.ResourceNotFound.message)
       thirdCall === (true, true)
 

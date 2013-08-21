@@ -1,10 +1,9 @@
 package scorm.models
 
 import scala.xml.{Unparsed, Elem}
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import VersionedIdImplicits.Binders._
 import play.api.libs.json.{JsString, JsObject, Json}
 import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 
 object Builder {
 
@@ -48,7 +47,7 @@ object Builder {
   object ResourceNode {
     def apply(item: Item): Elem = {
       <resource
-      identifier={versionedIdToString(item.id)}
+      identifier={item.id.toString}
       type="webcontent"
       adlcp:scormType="sco"
       href="remote-item-runner.html"></resource>
@@ -58,7 +57,7 @@ object Builder {
   object ItemLaunchData {
     def apply(item: Item, config:Config): Unparsed = {
       val launchData = Seq(
-        "itemId" -> JsString(versionedIdToString(item.id)),
+        "itemId" -> JsString(item.id.toString),
         "templates" -> JsObject(Seq(
           "item" -> JsString(config.corespringDomain + "/scorm-player/item/:itemId/run"),
           "session" -> JsString(config.corespringDomain + "/scorm-player/session/:sessionId/run") )
@@ -73,7 +72,7 @@ object Builder {
   object ItemNode {
     def apply(item: Item, config:Config): Elem = {
 
-      <item identifier={versionedIdToString(item.id)} identifierref={versionedIdToString(item.id)}>
+      <item identifier={item.id.toString} identifierref={item.id.toString}>
         <title>
           {item.taskInfo.map( _.title.getOrElse("?"))}
         </title>
@@ -82,7 +81,7 @@ object Builder {
         </adlcp:dataFromLMS>
         <adlcp:data>
           <adlcp:map targetID="shared_data"/>
-          <adlcp:map targetID={versionedIdToString(item.id)}/>
+          <adlcp:map targetID={item.id.toString}/>
         </adlcp:data>
       </item>
 

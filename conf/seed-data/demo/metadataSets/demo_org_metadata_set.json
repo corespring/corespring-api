@@ -1,0 +1,14 @@
+{
+    "_id": {
+        "$oid": "520be11e6f28e0dcb4662d6d"
+    },
+    "metadataKey":"demo_org",
+    "editorUrl":"http://corespring.org/metadata-editor",
+    "editorLabel":"CoreSpring Org Metadata",
+    "schema":[
+        {"key":"ui_comment"},
+        {"key":"dev_comment"},
+        {"key":"qa_comment"}
+    ],
+    "isPublic":false
+}

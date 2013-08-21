@@ -101,6 +101,7 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
       case _ => NotFound(filename)
     }
   }
+
   def editCheck(force:Boolean = false) = new Function2[ApiRequest[_],Item,Option[Result]] {
     def apply(request:ApiRequest[_], item:Item):Option[Result] = {
       if(Content.isAuthorized(request.ctx.organization,item.id,Permission.Write)){

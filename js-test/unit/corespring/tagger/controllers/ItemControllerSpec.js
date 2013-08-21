@@ -15,6 +15,7 @@ describe('ItemController should', function () {
   var prepareBackend = function ($backend) {
 
     var urls = [
+      {method: 'GET', url: "/api/v1/metadata/item", response: {ok:true}},
       {method: 'PUT', url: /.*/, response: { ok: true }},
       {method: 'POST', url: '/api/v1/items/itemId/increment', data: {}, response: {id: 'itemId2', version: {rev: 2}}},
       //{method: 'POST', url: /.*/, data: {}, response: { ok: true }},
