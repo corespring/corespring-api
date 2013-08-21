@@ -45,10 +45,9 @@ object Builder {
   }
 
   object ResourceNode {
-    import VersionedIdImplicits.Binders._
     def apply(item: Item): Elem = {
       <resource
-      identifier={versionedIdToString(item.id)}
+      identifier={item.id.toString}
       type="webcontent"
       adlcp:scormType="sco"
       href="remote-item-runner.html"></resource>
