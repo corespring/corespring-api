@@ -39,7 +39,7 @@ object SeedDb {
     salatDb()(current)("lti_quizzes"),
     salatDb()(current)("regtokens"),
     salatDb()(current)("quizzes"),
-    MetadataSet.collection
+    salatDb()(play.api.Play.current)("metadataSets")
   )
 
   def emptyData() {

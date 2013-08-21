@@ -1,59 +1,24 @@
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import common.seed.SeedDb._
+import filters.{Headers, AjaxFilter, AccessControlFilter}
 import org.bson.types.ObjectId
 import org.corespring.web.common.controllers.deployment.{LocalAssetsLoaderImpl, AssetsLoaderImpl}
 import play.api._
 import play.api.mvc.Results._
 import play.api.mvc._
-import scala.Some
 
-
-/**
-  */
-object Global extends GlobalSettings {
+object Global extends WithFilters(AjaxFilter, AccessControlFilter) {
 
   val Logger : LoggerLike = play.api.Logger("Global")
 
   val INIT_DATA: String = "INIT_DATA"
 
-  val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
-
-  def AccessControlAction[A](action: Action[A]): Action[A] = Action(action.parser) {
-    request =>
-      action(request) match {
-        case s: SimpleResult[_] =>
-          s
-            .withHeaders(AccessControlAllowEverything)
-            .withHeaders(("Access-Control-Allow-Methods", "PUT, GET, POST, DELETE, OPTIONS"))
-            .withHeaders(("Access-Control-Allow-Headers", "x-requested-with,Content-Type,Authorization"))
-
-        case result => result
-      }
-  }
-
-  def AjaxFilterAction[A](action: Action[A]): Action[A] = Action(action.parser) {
-    request =>
-      if (request.headers.get("X-Requested-With") == Some("XMLHttpRequest")) {
-        action(request) match {
-          case s: SimpleResult[_] => s.withHeaders(("Cache-Control", "no-cache"))
-          case result => result
-        }
-      }
-      else {
-        action(request)
-      }
-  }
-
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
-
     request.method match {
       //return the default access control headers for all OPTION requests.
-      case "OPTIONS" => Some(AccessControlAction(Action(new play.api.mvc.Results.Status(200))))
+      case "OPTIONS" => Some(Action(new play.api.mvc.Results.Status(200)))
       case _ => {
-        super.onRouteRequest(request).map {
-          case action: Action[_] => AjaxFilterAction(AccessControlAction(action))
-          case other => other
-        }
+        super.onRouteRequest(request)
       }
     }
   }
@@ -76,7 +41,7 @@ object Global extends GlobalSettings {
     val result = super.onHandlerNotFound(request)
 
     result match {
-      case s: SimpleResult[_] => s.withHeaders(AccessControlAllowEverything)
+      case s: SimpleResult[_] => s.withHeaders(Headers.AccessControlAllowEverything)
       case _ => result
     }
   }
@@ -84,7 +49,7 @@ object Global extends GlobalSettings {
   override def onBadRequest(request: play.api.mvc.RequestHeader, error: scala.Predef.String): play.api.mvc.Result = {
     val result = super.onBadRequest(request, error)
     result match {
-      case s: SimpleResult[_] => s.withHeaders(AccessControlAllowEverything)
+      case s: SimpleResult[_] => s.withHeaders(Headers.AccessControlAllowEverything)
       case _ => result
     }
   }

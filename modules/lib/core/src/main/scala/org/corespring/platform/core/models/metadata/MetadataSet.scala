@@ -22,16 +22,12 @@ case class MetadataSet(var metadataKey: String,
                         var id: ObjectId = ObjectId.get())
 
 
-object MetadataSet extends ModelCompanion[MetadataSet,ObjectId]{
+object MetadataSet{
 
   import org.corespring.platform.core.models.json._
 
   implicit val format = Json.format[MetadataSet]
 
-  val collection = mongoCollection("metadataSets")
-  def dao: DAO[MetadataSet, ObjectId] = new SalatDAO[MetadataSet, ObjectId](collection = collection) {}
-
-  def findByKey(key:String):Option[MetadataSet] = {
-    findOne(MongoDBObject("metadataKey" -> key))
-  }
 }
+
+case class Metadata(key:String, properties:Map[String,String])
