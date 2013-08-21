@@ -46,7 +46,7 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemSer
 
     DefaultItemSession.findOneById(new ObjectId(sessionId)) match {
       case Some(session) => {
-        val itemIdString = VersionedIdImplicits.Binders.versionedIdToString(session.itemId)
+        val itemIdString = session.itemId.toString()
         getDataFile(itemIdString, filename)
       }
       case _ => Action(NotFound("sessionId: " + sessionId))

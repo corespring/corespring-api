@@ -28,21 +28,14 @@
     margin-right: 8px;
     border-color: #999999;
 }
-.graph-btns{
-    float: bottom;
-    margin-left: 0px;
-}
-.graph-btns .btn-undo{
-    margin-bottom: 8px;
+.btn-undo{
     width: 50px;
-    margin-right: 20px;
-    margin-left: 20px;
     border-radius: 6px;
     border-style: solid;
     border-color: #999999;
     border-width: 1px;
 }
-.graph-btns .btn-start-over{
+.btn-start-over{
     width: 90px;
     border-radius: 6px;
     border-style: solid;

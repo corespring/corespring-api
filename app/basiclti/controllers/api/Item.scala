@@ -19,7 +19,7 @@ class Item(auth: TokenizedRequestActionBuilder[QuerySessionRenderOptions.RenderO
       Api.list(q, f, c, sk, l, sort)(r)
     }
 
-  def read(itemId: VersionedId[ObjectId]) = auth.ValidatedAction(o => o.allowItemId(versionedIdToString(itemId))){ r : TokenizedRequest[AnyContent] =>
+  def read(itemId: VersionedId[ObjectId]) = auth.ValidatedAction(o => o.allowItemId(itemId.toString())){ r : TokenizedRequest[AnyContent] =>
     Api.getDetail(itemId)(r)
   }
 }

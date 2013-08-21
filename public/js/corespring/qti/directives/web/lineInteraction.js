@@ -84,11 +84,8 @@ angular.module("qti.directives").directive("lineinteraction", function(){
         "             <input type='text' style='width: 43px;' ng-model='points.B.y' ng-disabled='outcomeReturned'>",
         "          </div>",
         "      </div>",
-        "      <div class='span3 scale-display' ng-show='showInputs' style='margin-left: 0px;'>",
+        "      <div class='span4 scale-display' ng-show='showInputs' style='margin-left: 0px;'>",
         "          <p>scale={{scale}}</p>",
-        "          <p ng-show='showWholeNumbersMessage'>Decimals and fractions will be rounded to the nearest whole number.</p>",
-        "      </div>",
-        "      <div class='span1 graph-btns' ng-show='showInputs'>",
         "          <button type='button' class='btn btn-default btn-undo' ng-click='undo()'>Undo</button>",
         "          <button type='button' class='btn btn-default btn-start-over' ng-click='startOver()'>Start Over</button>",
         "      </div>",
@@ -213,7 +210,6 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                 jsxgraphElem.css({height: jsxgraphElem.width()});
                 scope.additionalText = attrs.additionalText
                 scope.scale = graphAttrs.scale;
-                scope.showWholeNumbersMessage = scope.scale == 1;
                 scope.domain = graphAttrs.domain;
                 scope.range = graphAttrs.range;
                 scope.sigfigs = parseInt(attrs.sigfigs?attrs.sigfigs:-1);
