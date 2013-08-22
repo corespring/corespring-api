@@ -11,10 +11,6 @@
 .point-display p,input{
     display: inline;
 }
-.scale-display p{
-    margin-bottom: -10px;
-    margin-right: 22px;
-}
 .additional-text p{
     font-family: 'Ubuntu' !important;
     font-style: normal;

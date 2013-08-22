@@ -4,8 +4,10 @@ angular.module("qti.directives").directive("pointinteraction", function(){
     return {
         template: [
         "<div class='graph-interaction'>",
-        "   <p>{{additionalInfo}}</p>",
-        "   <div jsx-graph graph-callback='graphCallback' interaction-callback='interactionCallback'></div>",
+        "   <div class='additional-text' ng-show='additionalText'>",
+        "       <p>{{additionalText}}</p>",
+        "   </div>",
+        "   <div class='graph-container' jsx-graph graph-callback='graphCallback' interaction-callback='interactionCallback'></div>",
         "</div>"].join("\n"),
         restrict: 'E',
         scope: true,
@@ -17,6 +19,11 @@ angular.module("qti.directives").directive("pointinteraction", function(){
                     $scope.graphCallback({submission: {isIncomplete:true}});
                  }
             });
+            $scope.$watch('graphCallback',function(){
+                if($scope.graphCallback){
+                    $scope.graphCallback({initBoard: true})
+                }
+            })
             $scope.interactionCallback = function(params){
                 function round(coord){
                      var px = coord.x;
@@ -59,8 +66,6 @@ angular.module("qti.directives").directive("pointinteraction", function(){
             }, 500)
         }],
         compile: function(element, attrs, transclude){
-            var width = attrs.graphWidth?attrs.graphWidth:"300px";
-            var height = attrs.graphHeight?attrs.graphHeight:"300px";
             var domain = parseInt(attrs.domain?attrs.domain:10);
             var range = parseInt(attrs.range?attrs.range:10);
             var graphAttrs = {
@@ -73,11 +78,11 @@ angular.module("qti.directives").directive("pointinteraction", function(){
                                  pointLabels: attrs.pointLabels,
                                  maxPoints: attrs.maxPoints
                              };
-            element.find('[jsx-graph]').css({width: width, height: height});
             element.find('[jsx-graph]').attr(graphAttrs);
-            //element.find("#initialParams").remove()
             return function(scope, element, attrs, AssessmentItemController){
-                scope.additionalInfo = attrs.additionalInfo
+                var jsxgraphElem = element.find('[jsx-graph]');
+                jsxgraphElem.css({height: jsxgraphElem.width()});
+                scope.additionalText = attrs.additionalText
                 scope.scale = graphAttrs.scale;
                 scope.domain = domain;
                 scope.range = range;
