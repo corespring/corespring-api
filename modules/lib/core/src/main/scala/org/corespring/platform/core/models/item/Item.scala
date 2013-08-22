@@ -101,6 +101,7 @@ object Item {
     val dateModified = "dateModified"
     val otherAlignments = "otherAlignments"
     val published = "published"
+    val extended = "extended"
   }
 
 

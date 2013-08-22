@@ -13,6 +13,7 @@
         </encoder>
     </appender>
 
+    <logger name="ContentCollection" level="DEBUG"/>
     <logger name="play" level="INFO"/>
     <logger name="Global" level="DEBUG"/>
     <logger name="application" level="INFO"/>

@@ -1,0 +1,89 @@
+{
+  "_id": {
+    "_id": {
+      "$oid": "521274a34924c9ca07b97044"
+    },
+    "version": 0
+  },
+  "collectionId": "5ff2e4cae4b077b9e31689fd",
+  "contributorDetails": {
+    "contributor": "New York State Education Department",
+    "credentials": "State Department of Education",
+    "copyright": {
+      "owner": "New York State Education Department",
+      "year": "2012",
+      "imageName": "nysed.png"
+    },
+    "author": "New York State Education Department",
+    "sourceUrl": "http://www.p12.nysed.gov/apda/common-core-sample-questions",
+    "licenseType": "CC BY"
+  },
+  "published": false,
+  "contentType": "item",
+  "priorUse": "Formative",
+  "priorGradeLevel": [
+
+  ],
+  "reviewsPassed": [
+    "Editorial"
+  ],
+  "standards": [
+    "RI.3.1"
+  ],
+  "data": {
+    "name": "data",
+    "files": [
+      {
+        "_t": "org.corespring.platform.core.models.item.resource.VirtualFile",
+        "name": "qti.xml",
+        "contentType": "text/xml",
+        "isMain": true,
+        "content": "<assessmentItem></assessmentItem>"
+      },
+      {
+        "_t": "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name": "Soil.png",
+        "contentType": "image/png",
+        "isMain": false,
+        "storageKey": "50087e1de4b03c53174f7530/Soil.png"
+      }
+    ]
+  },
+  "supportingMaterials": [
+
+  ],
+  "workflow": {
+    "setup": false,
+    "tagged": true,
+    "standardsAligned": true,
+    "qaReview": false
+  },
+  "otherAlignments": {
+    "bloomsTaxonomy": "Remembering",
+    "keySkills": [
+      "Identify",
+      "Define",
+      "Classify"
+    ],
+    "demonstratedKnowledge": "Factual"
+  },
+  "taskInfo": {
+    "extended" : {
+      "newclassrooms_metadata" : {
+        "skillNumber": "129",
+        "family": "A",
+        "masterQuestion": "1"
+      }
+    },
+    "subjects": {
+      "primary": {
+        "$oid": "4ffb535f6bb41e469c0bf2ac"
+      }
+    },
+    "gradeLevel": [
+      "03"
+    ],
+    "title": "[DEV] New classrooms - This item has metadata",
+    "itemType": "Multiple Choice"
+  }
+}

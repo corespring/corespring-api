@@ -2,26 +2,22 @@ package org.corespring.platform.core.models
 
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat._
-import dao.SalatDAOUpdateError
-import dao.SalatInsertError
-import dao.SalatRemoveError
-import dao._
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.search.Searchable
 import play.api.Play
 import play.api.Play.current
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
 import play.api.libs.json._
 import scala.Left
 import scala.Right
 import scala.Some
 import scalaz.{Failure, Success, Validation}
-import se.radley.plugin.salat._
 import org.corespring.platform.core.services.item.ItemServiceImpl
-
+import org.corespring.common.log.ClassLogging
+import com.novus.salat._
+import com.novus.salat.dao._
+import se.radley.plugin.salat._
 
 /**
  * A ContentCollection
@@ -30,7 +26,7 @@ case class ContentCollection(var name: String = "", var isPublic: Boolean = fals
   lazy val itemCount:Int = ItemServiceImpl.find(MongoDBObject("collectionId" -> id.toString)).count
 }
 
-object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with Searchable{
+object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with Searchable with ClassLogging{
   val name = "name"
   val isPublic = "isPublic"
   val DEFAULT = "default" //used as the value for name when the content collection is a default collection
@@ -168,7 +164,12 @@ object ContentCollection extends ModelCompanion[ContentCollection,ObjectId] with
    * @param collId
    */
   def isAuthorized(orgId:ObjectId, collId:ObjectId, p: Permission):Boolean = {
-    getCollectionIds(orgId,p).find(_ == collId).isDefined
+    val orgCollectionIds = getCollectionIds(orgId, p)
+    val exists = orgCollectionIds.exists( _ == collId)
+    if(!exists){
+      Logger.debug(s"[isAuthorized] == false : orgId: $orgId, collection id: $collId isn't in: ${orgCollectionIds.mkString(",")}")
+    }
+    exists
   }
 
   implicit object CollectionWrites extends Writes[ContentCollection] {
