@@ -25,7 +25,6 @@ This file will look like so:
     user=XXXXXXXXXX
     password=XXXXXXXXXX
 
-
 Ask someone to provide you with the user password
 
 ### Running/Testing
