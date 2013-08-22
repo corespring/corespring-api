@@ -59,7 +59,7 @@ angular.module("qti.directives").directive("graphcurve", function(){
         }
     }
 })
-angular.module("qti.directives").directive("lineinteraction", function(){
+angular.module("qti.directives").directive("lineinteraction", ['$compile', function($compile){
     return {
         template: [
         "<div class='graph-interaction'>",
@@ -90,7 +90,7 @@ angular.module("qti.directives").directive("lineinteraction", function(){
         "          <button type='button' class='btn btn-default btn-start-over' ng-click='startOver()'>Start Over</button>",
         "      </div>",
         "   </div>",
-        "   <div class='graph-container' jsx-graph graph-callback='graphCallback' interaction-callback='interactionCallback'></div>",
+        //"   <div class='graph-container' jsx-graph graph-callback='graphCallback' interaction-callback='interactionCallback'></div>",
         "   <div id='initialParams' ng-transclude></div>",
         "</div>"].join("\n"),
         transclude: true,
@@ -103,7 +103,6 @@ angular.module("qti.directives").directive("lineinteraction", function(){
             };
             $scope.$watch('graphCallback',function(){
                 if($scope.graphCallback){
-                    $scope.graphCallback({initBoard: true})
                     if($scope.initialParams){
                        $scope.graphCallback($scope.initialParams);
                     }
@@ -183,6 +182,30 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                        return r.id === $scope.responseIdentifier;
                    });
                    $scope.graphCallback({submission: {isCorrect: response && response.outcome.isCorrect, lockGraph: true}});
+                   var correctResponse = _.find($scope.itemSession.sessionData.correctResponses, function(cr){
+                       return cr.id == $scope.responseIdentifier;
+                   });
+                   if(correctResponse && correctResponse.value){
+                       var correctHtmlResponse = [
+                            "<assessmentItem><itemBody>",
+                                "<lineInteraction jsxgraphcore=''",
+                                                 "domain='"+$scope.domain+"'",
+                                                 "range='"+$scope.range+"'",
+                                                 "scale='"+$scope.scale+"'",
+                                                 "domain-label='"+$scope.domainLabel+"'",
+                                                 "range-label='"+$scope.rangeLabel+"'",
+                                                 "tick-label-frequency='"+$scope.tickLabelFrequency+"'",
+                                                 "show-inputs=false",
+                                                 "locked=''",
+                                        ">",
+                                    "<graphcurve>"+correctResponse.value+"</graphcurve>",
+                                "</lineInteraction>",
+                            "</itemBody></assessmentItem>"
+                       ].join("\n");
+                       $scope.controller.setCorrectHtmlResponse($scope.responseIdentifier, correctHtmlResponse)
+                   } else {
+                    console.error("no correct response found in returned session data")
+                   }
                 }
             });
 
@@ -202,10 +225,18 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                                  maxPoints:2
                              };
 
-            element.find('[jsx-graph]').attr(graphAttrs);
             return function(scope, element, attrs, AssessmentItemController){
-                var jsxgraphElem = element.find('[jsx-graph]');
-                jsxgraphElem.css({height: jsxgraphElem.width()});
+                var gielem = element.find('.graph-interaction')
+                //get the width of the container
+                var domelem = element
+                while(domelem.width() == 0){
+                    domelem = domelem.parent()
+                }
+                var containerWidth = domelem.width()
+                gielem.append("<div class='graph-container' jsx-graph graph-callback='graphCallback' interaction-callback='interactionCallback'></div>")
+                gielem.find('.graph-container').attr(graphAttrs)
+                gielem.find('.graph-container').css({width: Math.floor(containerWidth*.85), height: Math.floor(containerWidth*.85)});
+                $compile(gielem.find('.graph-container'))(scope)
                 scope.additionalText = attrs.additionalText
                 scope.scale = graphAttrs.scale;
                 scope.domain = graphAttrs.domain;
@@ -217,7 +248,10 @@ angular.module("qti.directives").directive("lineinteraction", function(){
                 scope.controller.registerInteraction(element.attr('responseIdentifier'), "line graph", "graph");
                 scope.outcomeReturned = scope.locked = attrs.hasOwnProperty('locked')?true:false;
                 if(!scope.locked) scope.controller.setResponse(scope.responseIdentifier,null);
+                scope.domainLabel = graphAttrs.domainLabel
+                scope.rangeLabel = graphAttrs.rangeLabel
+                scope.tickLabelFrequency = attrs.tickLabelFrequency
             }
         }
     }
-});
+}]);

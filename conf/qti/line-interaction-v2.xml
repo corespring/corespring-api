@@ -7,11 +7,8 @@
     <itemBody>
 
         Line P has a slope of 2 and intersects point (-3,1). Draw line P below and give the equation for line P
-        <lineInteraction id="linetest"
-                         jsxgraphcore=""
+        <lineInteraction jsxgraphcore=""
                          responseIdentifier="graphTest"
-                         graph-width="500px"
-                         graph-height="300px"
                          domain="10"
                          range="10"
                          scale="1"
@@ -20,12 +17,12 @@
                          tick-label-frequency="5"
                          sigfigs="-1"
                          additional-text="More instructions about what is required for this task. This text can run the width of this space, and then wrap &amp; push down any content below it. Gray space will expand"
+                         style="width: 100%; height: 100%;"
                 />
 
         <feedbackBlock outcomeIdentifier="responses.graphTest.outcome.incorrect">
             <div class="feedback-block-incorrect">
-                Wrong!
-                <correctAnswer interactionIdentifier="linetest">See the correct answer</correctAnswer>
+                Wrong! <correctanswer responseIdentifier="graphTest">See the correct answer</correctanswer>
             </div>
         </feedbackBlock>
 

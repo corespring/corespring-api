@@ -11,13 +11,7 @@ function ControlBarController($scope, $rootScope) {
         $rootScope.$broadcast('controlBarChanged');
     }
 }
-//angular.module('qti.directives').directive('correctanswer', function(){
-//    return {
-//        restrict: 'E',
-//        replace: 'true',
-//
-//    }
-//})
+
 ControlBarController.$inject = ['$scope', '$rootScope'];
 
 // base directive include for all QTI items
@@ -73,6 +67,8 @@ angular.module('qti.directives').directive('assessmentitem', function() {
 
             $scope.showNoResponseFeedback = false;
             $scope.responses = [];
+            //used to display modal containing correct answer
+            $scope.correctHtmlResponses = {};
 
             $scope.isEmptyItem = function(value) {
                 if (!value) {
@@ -111,6 +107,10 @@ angular.module('qti.directives').directive('assessmentitem', function() {
                 $scope.showNoResponseFeedback = ($scope.status == 'ATTEMPTED' && $scope.hasEmptyResponse());
 
                 $scope.finalSubmit = false;
+            };
+
+            this.setCorrectHtmlResponse = function(key, html){
+                $scope.correctHtmlResponses[key] = html
             };
 
             this.findItemByKey = function(key) {

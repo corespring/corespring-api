@@ -1,7 +1,7 @@
 'use strict';
 angular.module('qti.directives').directive('jsxGraph', function(Canvas) {
 return {
-  template: "<div id='box' class='jxgbox' ng-style='boxStyle' style='width: 100%; height: 100%;'></div>",
+  template: "<div class='jxgbox' ng-style='boxStyle' style='width: 100%; height: 100%;'></div>",
   restrict: 'A',
   scope: {
     //{
@@ -41,7 +41,23 @@ return {
         tickLabelFrequency: parseInt(attr.ticklabelfrequency?attr.ticklabelfrequency:5),
         pointLabels: attr.pointlabels
     };
-    var canvas;
+    function generateCanvasId(){
+        var alphabet = "abcdefghijklmnopqrstuvwxyz".split('')
+        var canvasId = ""
+        for(var i = 0; i < 6; i++){
+            canvasId = canvasId + alphabet[Math.floor(Math.random()*alphabet.length)]
+        }
+        elem.find(".jxgbox").attr("id",canvasId)
+        return canvasId
+    }
+    var canvas = new Canvas(generateCanvasId(), canvasAttrs);
+    //define callbacks
+    canvas.on('up', function(e) {
+      var coords = canvas.getMouseCoords(e);
+      if ((!canvasAttrs.maxPoints || canvas.points.length < canvasAttrs.maxPoints) && !canvas.pointCollision(coords)) {
+        addPoint(coords);
+      }
+    });
     var lockGraph = false;
     var points = {}
     var onPointMove = function(point, coords) {
@@ -129,16 +145,6 @@ return {
                     scope.boxStyle = {width: "100%", height: "100%", borderColor: "red", borderWidth: "2px"};
                  }
              }
-        }
-        if(params.initBoard){
-           canvas = new Canvas("box", canvasAttrs);
-           //define callbacks
-           canvas.on('up', function(e) {
-             var coords = canvas.getMouseCoords(e);
-             if ((!canvasAttrs.maxPoints || canvas.points.length < canvasAttrs.maxPoints) && !canvas.pointCollision(coords)) {
-               addPoint(coords);
-             }
-           });
         }
     };
   }
