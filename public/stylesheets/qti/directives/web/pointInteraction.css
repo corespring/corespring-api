@@ -1,15 +1,41 @@
-/*
-*/
 .graph-interaction{
     background-color: #CCCCCC;
+    padding: 10px;
     margin-top: 15px;
-}
-.points-display{
-
+    margin-bottom: 25px;
 }
 .point-display{
 
 }
 .point-display p,input{
     display: inline;
+}
+.scale-display p{
+    margin-bottom: -10px;
+    margin-right: 22px;
+}
+.additional-text p{
+    font-family: 'Ubuntu' !important;
+    font-style: normal;
+    font-size: 13px;
+}
+.btn-undo{
+    width: 50px;
+    border-radius: 6px;
+    border-style: solid;
+    border-color: #999999;
+    border-width: 1px;
+}
+.btn-start-over{
+    width: 90px;
+    border-radius: 6px;
+    border-style: solid;
+    border-color: #999999;
+    border-width: 1px;
+}
+.graph-container{
+    margin-top: 15px;
+    margin-right: auto;
+    margin-left: auto;
+    width: 85%;
 }
