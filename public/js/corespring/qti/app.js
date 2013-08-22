@@ -11,7 +11,13 @@ function ControlBarController($scope, $rootScope) {
         $rootScope.$broadcast('controlBarChanged');
     }
 }
-
+//angular.module('qti.directives').directive('correctanswer', function(){
+//    return {
+//        restrict: 'E',
+//        replace: 'true',
+//
+//    }
+//})
 ControlBarController.$inject = ['$scope', '$rootScope'];
 
 // base directive include for all QTI items
