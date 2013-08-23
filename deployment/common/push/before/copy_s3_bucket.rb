@@ -33,6 +33,7 @@ raise "no amazon bucket specified in the config" if target_bucket.nil?
 live_bucket = ENV["CORESPRING_LIVE_ASSETS_BUCKET"]
 raise "no live bucket specified" if live_bucket.nil?
 
+`mkdir $HOME/cs-api-assets` unless File.exist? File.expand_path("~/cs-api-assets")
 `cd ~/cs-api-assets`
 
 pull = "cs-api-assets pull-bucket #{live_bucket}"
