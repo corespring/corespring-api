@@ -1,0 +1,14 @@
+{
+  "_id": {
+    "$oid": "520a3533aec5c7d4d1c80b8f"
+  },
+  "metadataKey":"dev_org_two",
+  "editorUrl":"http://metadata-form-ui-example.herokuapp.com",
+  "editorLabel":"CoreSpring Org Metadata",
+  "schema":[
+    {"key":"banana"},
+    {"key":"apple"},
+    {"key":"carrot"}
+  ],
+  "isPublic":false
+}

@@ -1,22 +1,21 @@
 package tests.auth
 
-import tests.BaseTest
 import play.api.test.FakeRequest
 import org.specs2.execute.{Result, Failure}
 import play.api.test.Helpers._
 import securesocial.core.SecureSocial
-import controllers.auth.{Permission, OAuthConstants}
-import models.{User, Organization}
+import controllers.auth.{OAuthConstants}
 import play.api.libs.json.Json
-import models.auth.{AccessToken, ApiClient}
 import scala.Left
 import scala.Right
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import play.api.mvc.AnyContentAsFormUrlEncoded
-import common.encryption.ShaHash
-import tests.helpers.TestModelHelpers
+import org.corespring.platform.core.models.{User, Organization}
+import org.corespring.platform.core.models.auth.{Permission, ApiClient, AccessToken}
+import org.corespring.common.encryption.ShaHash
+import org.corespring.test.{TestModelHelpers, BaseTest}
 
 class AuthControllerTest extends BaseTest with TestModelHelpers {
 
@@ -25,7 +24,7 @@ class AuthControllerTest extends BaseTest with TestModelHelpers {
 
   /** Execute a specs method body once we register and have a client id and secret, tidy up after */
   def withRegistration(orgId: ObjectId, user: Option[User], fn: ((String, String) => Result)): Result = {
-    routeAndCall(registerRequest(orgId, user)) match {
+    route(registerRequest(orgId, user)) match {
       case Some(result) => {
         if (status(result) == OK) {
           val (id, secret) = idAndSecret(result)
@@ -43,10 +42,10 @@ class AuthControllerTest extends BaseTest with TestModelHelpers {
   /** Execute a specs method body once we have a token and tidy up after */
   def withToken(user: User, clientId: String, secret: String, fn: (String => Result), grantType: Option[String] = None): Result = {
     val tokenRequest = FakeRequest(Routes.getAccessToken().method, Routes.getAccessToken().url)
-      .withSession(secureSocialSession(Some(user)): _*)
+      .withCookies(secureSocialCookie(Some(user)).toList : _*)
       .withFormUrlEncodedBody(tokenFormBody(clientId, secret, user.userName, grantType): _*)
 
-    routeAndCall(tokenRequest) match {
+    route(tokenRequest) match {
       case Some(result) => {
         val json = Json.parse(contentAsString(result))
         val token = (json \ OAuthConstants.AccessToken).as[String]
@@ -61,7 +60,7 @@ class AuthControllerTest extends BaseTest with TestModelHelpers {
 
   def registerRequest(orgId: ObjectId, maybeUser: Option[User] = None): FakeRequest[AnyContentAsFormUrlEncoded] = {
     FakeRequest(Routes.register().method, Routes.register().url)
-      .withSession(secureSocialSession(maybeUser): _*)
+      .withCookies(secureSocialCookie(maybeUser).toList : _*)
       .withFormUrlEncodedBody(OAuthConstants.Organization -> orgId.toString)
   }
 
@@ -86,7 +85,7 @@ class AuthControllerTest extends BaseTest with TestModelHelpers {
   "cannot register without logging in through SS" in {
     withOrg(testOrg, {
       org =>
-        routeAndCall(registerRequest(org.id)) match {
+        route(registerRequest(org.id)) match {
           case Some(result) => status(result) !== OK
           case _ => failure
         }
@@ -98,7 +97,7 @@ class AuthControllerTest extends BaseTest with TestModelHelpers {
       org: Organization =>
         withUser(testUser, org.id, Permission.Read, {
           user =>
-            routeAndCall(registerRequest(org.id, Some(user))) match {
+            route(registerRequest(org.id, Some(user))) match {
               case Some(result) => status(result) === UNAUTHORIZED
               case _ => failure
             }
@@ -125,8 +124,10 @@ class AuthControllerTest extends BaseTest with TestModelHelpers {
       org: Organization =>
         withUser(testUser, org.id, Permission.Write, {
           user =>
-            val result1 = routeAndCall(registerRequest(org.id, Some(user))).get
-            val result2 = routeAndCall(registerRequest(org.id, Some(user))).get
+
+            val result1 = route(registerRequest(org.id, Some(user))).get
+            Thread.sleep(100)
+            val result2 = route(registerRequest(org.id, Some(user))).get
             removeApiClient(result1)
             removeApiClient(result2)
             contentAsString(result1) === contentAsString(result2)
@@ -168,7 +169,7 @@ class AuthControllerTest extends BaseTest with TestModelHelpers {
                     val OrgRoutes = api.v1.routes.OrganizationApi
                     val call = OrgRoutes.list()
                     val orgRequest = FakeRequest(call.method, (call.url + "?access_token=%s").format(token))
-                    routeAndCall(orgRequest) match {
+                    route(orgRequest) match {
                       case Some(result) => status(result) === OK
                       case _ => failure
                     }

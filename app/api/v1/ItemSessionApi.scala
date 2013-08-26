@@ -2,32 +2,34 @@ package api.v1
 
 import api.ApiError
 import com.mongodb.casbah.Imports._
-import controllers.Utils
 import controllers.auth.ApiRequest
-import controllers.auth.{Permission, BaseApi}
-import models._
-import models.item.Content
-import models.item.service.{ItemServiceImpl, ItemService}
-import models.itemSession._
+import controllers.auth.BaseApi
+import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.item.Content
+import org.corespring.platform.core.models.itemSession._
+import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qti.models.responses.{ResponseAggregate, ArrayResponse, StringResponse}
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsSuccess
 import play.api.libs.json.Json._
-import play.api.libs.json.{JsValue, JsObject}
+import play.api.libs.json.{JsError, JsValue}
 import play.api.mvc.AnyContent
-import quiz.basic.Quiz
 import scala.Left
 import scala.Right
 import scala.Some
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 
 /**
  * API for managing item sessions
  */
-class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService) extends BaseApi {
+class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService, quizService : QuizService) extends BaseApi {
 
 
   def aggregate(quizId: ObjectId, itemId: VersionedId[ObjectId]) = ApiAction {
     request =>
 
-      Quiz.findOneById(quizId) match {
+      quizService.findOneById(quizId) match {
         case Some(q) =>
           val sessions = q.participants.map(_.answers.filter(_.itemId.toString == itemId.toString).map(_.sessionId.toString)).flatten
           Ok(JsObject(aggregateSessions(sessions).toList.map(p => (p._1, toJson(p._2)))))
@@ -37,8 +39,8 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService
 
   }
 
-  private def aggregateSessions(sessionIds: Seq[String]): Map[String, ItemResponseAggregate] = {
-    val agg: scala.collection.mutable.Map[String, ItemResponseAggregate] = scala.collection.mutable.Map()
+  private def aggregateSessions(sessionIds: Seq[String]): Map[String, ResponseAggregate] = {
+    val agg: scala.collection.mutable.Map[String, ResponseAggregate] = scala.collection.mutable.Map()
     sessionIds.foreach {
       p =>
         val oid = new ObjectId(p)
@@ -51,14 +53,14 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService
                 } else {
                   val correctResponses = session.sessionData match {
                     case Some(sd) => sd.correctResponses
-                    case None => Seq()
+                    case _ => Seq()
                   }
                   val cr = correctResponses.find(_.id == resp.id) match {
-                    case Some(r: ArrayItemResponse) => r.responseValue
-                    case Some(r: StringItemResponse) => Seq(r.responseValue)
-                    case None => Seq()
+                    case Some(r: ArrayResponse) => r.responseValue
+                    case Some(r: StringResponse) => Seq(r.responseValue)
+                    case _ => Seq()
                   }
-                  agg(resp.id) = ItemResponseAggregate(resp.id, cr, resp)
+                  agg(resp.id) = ResponseAggregate.build(resp.id, cr, resp)
                 }
             }
           }
@@ -75,7 +77,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService
     request =>
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.Read)) {
         val cursor = itemSession.find(MongoDBObject(ItemSession.Keys.itemId -> itemId))
-        Ok(toJson(Utils.toSeq(cursor)))
+        Ok(toJson(cursor.toSeq))
       } else Unauthorized(toJson(ApiError.UnauthorizedItemSession))
   }
 
@@ -112,7 +114,12 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService
   def create(itemId: VersionedId[ObjectId]) = ApiAction {
     request =>
 
-      def getSettings(json:JsValue) : Option[ItemSessionSettings] = json.asOpt[ItemSession].map(_.settings).orElse(Some(ItemSessionSettings()))
+      def getSettings(json:JsValue) : Option[ItemSessionSettings] = {
+        (json \ "settings") match{
+          case obj : JsObject  => obj.asOpt[ItemSessionSettings]
+          case _ => Some(ItemSessionSettings())
+        }
+      }
 
       if (Content.isAuthorized(request.ctx.organization, itemId, Permission.Read)) {
         //if the version is not included, we need the current version to include in the itemId in session
@@ -210,7 +217,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService
 
   /**
    * Process the user response - this counts as an attempt at the question
-   * Return sessionData and ItemResponseOutcomes
+   * Return sessionData and ResponseOutcomes
    * @param itemId
    */
   def processResponse(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction {
@@ -227,22 +234,27 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService
                 BadRequest(toJson(ApiError.ItemSessionFinished))
               } else {
 
-                val clientSession = fromJson[ItemSession](jsonSession)
-                dbSession.finish = clientSession.finish
-                dbSession.responses = clientSession.responses
+                fromJson[ItemSession](jsonSession) match {
+                  case JsSuccess(clientSession, _) =>
+                  {
+                    dbSession.finish = clientSession.finish
+                    dbSession.responses = clientSession.responses
 
-                itemSession.getXmlWithFeedback(dbSession) match {
-                  case Right(xmlWithCsFeedbackIds) => {
-                    itemSession.process(dbSession, xmlWithCsFeedbackIds) match {
-                      case Right(newSession) => {
-                        val json = toJson(newSession)
-                        Logger.debug("[processResponse] successful")
-                        Ok(json)
+                    itemSession.getXmlWithFeedback(dbSession) match {
+                      case Right(xmlWithCsFeedbackIds) => {
+                        itemSession.process(dbSession, xmlWithCsFeedbackIds) match {
+                          case Right(newSession) => {
+                            val json = toJson(newSession)
+                            Logger.debug("[processResponse] successful")
+                            Ok(json)
+                          }
+                          case Left(error) => InternalServerError(toJson(ApiError.UpdateItemSession(error.clientOutput)))
+                        }
                       }
-                      case Left(error) => InternalServerError(toJson(ApiError.UpdateItemSession(error.clientOutput)))
+                      case Left(e) => InternalServerError(toJson(ApiError.UpdateItemSession(e.clientOutput)))
                     }
                   }
-                  case Left(e) => InternalServerError(toJson(ApiError.UpdateItemSession(e.clientOutput)))
+                  case JsError(e) => BadRequest("") //?
                 }
               }
             }
@@ -255,4 +267,4 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService :ItemService
   }
 }
 
-object ItemSessionApi extends ItemSessionApi(DefaultItemSession, ItemServiceImpl)
+object ItemSessionApi extends ItemSessionApi(DefaultItemSession, ItemServiceImpl, QuizService)

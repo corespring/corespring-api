@@ -2,7 +2,8 @@ package player.views.qti
 
 import player.views.models.QtiKeys
 import player.views.qti.models.{QtiJsAsset, QtiAssetsConfig}
-import qti.models.RenderingMode._
+import org.corespring.qti.models.RenderingMode
+import RenderingMode._
 
 class QtiAssetsLoaderImpl(qtiKeys:QtiKeys, mode : RenderingMode) extends QtiAssetsLoader {
 

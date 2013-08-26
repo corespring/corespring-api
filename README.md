@@ -12,6 +12,21 @@ This project contains the api rest layer and web ui for administering corespring
 * Install play 2.0.4
 * For running tests install phantomjs
 
+### SBT Configuration
+
+We use a private repo for our assets. Because of this you will need to define your credentials in a file located at:
+
+    ~/.ivy2/.credentials
+
+This file will look like so:
+
+    realm=Artifactory Realm
+    host=repository.corespring.org
+    user=XXXXXXXXXX
+    password=XXXXXXXXXX
+
+Ask someone to provide you with the user password
+
 
 ### Running/Testing
 
@@ -66,9 +81,7 @@ version of play.*
 
 #### Localhost
 
-To configure the logger when running locally add a system property to your run command:
-
-    play -Dlogger.file=path/to/logger.xml
+by default in Dev mode the logger in conf/logger.xml is used.
 
 #### Amazon S3
 

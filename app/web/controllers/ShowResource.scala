@@ -2,18 +2,19 @@ package web.controllers
 
 import common.controllers.{AssetResourceBase, QtiResource}
 import controllers.auth.BaseApi
-import controllers.{ConcreteS3Service, S3Service}
-import models.item.Item
-import models.item.resource.{Resource, BaseFile}
+import org.corespring.assets.{CorespringS3ServiceImpl, CorespringS3Service}
+import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.item.resource.{Resource, BaseFile}
+import org.corespring.platform.core.models.item.{Item, Content}
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.qti.models.RenderingMode._
 import play.api.mvc._
 import player.controllers.QtiRenderer
 import player.views.models.{QtiKeys, PlayerParams}
-import qti.models.RenderingMode._
-import scala.Some
 import scala.xml.Elem
 import scalaz.Scalaz._
 import scalaz.{Success, Failure}
-import models.item.service.{ItemService, ItemServiceImpl, ItemServiceClient}
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemServiceClient, ItemService}
 
 
 object ShowResource
@@ -24,9 +25,9 @@ object ShowResource
   with AssetResourceBase
   with QtiRenderer {
 
-  def s3Service : S3Service = ConcreteS3Service
+  def s3Service: CorespringS3Service = CorespringS3ServiceImpl
 
-  def itemService : ItemService = ItemServiceImpl
+  def itemService: ItemService = ItemServiceImpl
 
   def javascriptRoutes = Action {
     implicit request =>
@@ -53,7 +54,7 @@ object ShowResource
     */
   def renderDataResourceForPrinting(itemId: String): Action[AnyContent] = {
 
-    import models.versioning.VersionedIdImplicits.Binders._
+    import VersionedIdImplicits.Binders._
     val out = for {
       oid <- stringToVersionedId(itemId).toSuccess("Invalid object id")
       item <- itemService.findOneById(oid).toSuccess("Can't find item id")
@@ -69,16 +70,22 @@ object ShowResource
     ApiAction {
       request =>
 
-        import models.versioning.VersionedIdImplicits.Binders._
+        import VersionedIdImplicits.Binders._
 
-        getItemXMLByObjectId(item, request.ctx.organization) match {
-          case Some(xmlData: Elem) => {
-            val qtiKeys = QtiKeys((xmlData \ "itemBody")(0))
-            val finalXml = prepareQti(xmlData, renderMode)
-            val params: PlayerParams = PlayerParams(finalXml, itemId = Some(versionedIdToString(item.id)), previewEnabled = (renderMode == Web), qtiKeys = qtiKeys, mode = renderMode)
-            Ok(player.views.html.Player(params))
+        if (Content.isAuthorized(request.ctx.organization, item.id, Permission.Read)) {
+
+          itemService.getQtiXml(item.id) match {
+            case Some(xmlData: Elem) => {
+              val qtiKeys = QtiKeys((xmlData \ "itemBody")(0))
+              val finalXml = prepareQti(xmlData, renderMode)
+              val params: PlayerParams = PlayerParams(finalXml, itemId = Some(item.id.toString()), previewEnabled = (renderMode == Web), qtiKeys = qtiKeys, mode = renderMode)
+              Ok(player.views.html.Player(params))
+            }
+            case None => NotFound("Can't find item")
           }
-          case None => NotFound("Can't find item")
+        }
+        else {
+          BadRequest("Not Authorized")
         }
     }
 

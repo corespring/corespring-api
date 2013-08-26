@@ -4,3 +4,4 @@ modules/
 js-test/
 test/
 project/
+bin/

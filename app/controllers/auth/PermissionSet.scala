@@ -1,5 +1,7 @@
 package controllers.auth
 
+import org.corespring.platform.core.models.auth.Permission
+
 /**
  * A Permission Set
  */

@@ -1,7 +1,7 @@
 package web.views.helpers
 import play.api.templates.Html
-import models.Organization
 import play.api.libs.json.{JsValue, Json}
+import org.corespring.platform.core.models.Organization
 
 object MainHelper {
 

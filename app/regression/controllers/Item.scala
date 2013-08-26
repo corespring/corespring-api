@@ -1,22 +1,22 @@
 package regression.controllers
 
-import play.api.mvc.Action
-import org.bson.types.ObjectId
-import player.accessControl.models.{RequestedAccess, RenderOptions}
-import player.controllers.Views
-import controllers.auth.TokenizedRequestActionBuilder
-import models.item.service.{ItemServiceImpl, ItemService}
-import player.accessControl.auth.CheckSessionAccess
-import common.controllers.deployment.LocalAssetsLoaderImpl
-import java.util.NoSuchElementException
-import models.itemSession.{DefaultItemSession, ItemSessionCompanion}
-import play.api.libs.json.Json._
-import scala.Some
-import org.corespring.platform.data.mongo.models.VersionedId
 import api.ApiError
+import java.util.NoSuchElementException
+import org.bson.types.ObjectId
+import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession}
+import org.corespring.platform.core.services.quiz.basic.QuizService
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
+import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
+import org.corespring.web.common.controllers.deployment.LocalAssetsLoaderImpl
+import play.api.libs.json.Json._
+import play.api.mvc.Action
+import player.controllers.Views
+import scala.Some
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 
 class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val itemService : ItemService, itemSession: ItemSessionCompanion)
-  extends Views(auth, itemService) {
+  extends Views(auth, itemService, QuizService) {
 
   private val USER = "admin"
   private val PASSWORD = "1234secret"

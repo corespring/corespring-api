@@ -10,12 +10,12 @@
   },
   "responses": [
     {
-      "_t": "models.itemSession.StringItemResponse",
+      "_t" : "org.corespring.qti.models.responses.StringResponse",
       "_id": "mexicanPresident",
       "responseValue": "obama"
     },
     {
-      "_t": "models.itemSession.StringItemResponse",
+      "_t" : "org.corespring.qti.models.responses.StringResponse",
       "_id": "irishPresident",
       "responseValue": "higgins"
     }

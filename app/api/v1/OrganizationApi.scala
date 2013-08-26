@@ -1,22 +1,22 @@
 package api.v1
 
 import org.bson.types.ObjectId
-import models.{User, Organization}
 import play.api.libs.json._
 import controllers.auth.BaseApi
 import api._
 import com.mongodb.casbah.Imports._
 import play.api.mvc.Result
-import controllers.Utils
+
 import com.mongodb.casbah.commons.MongoDBObject
 import scala.Left
-import models.search.SearchCancelled
 import play.api.libs.json.JsArray
 import scala.Some
 import scala.Right
 import com.novus.salat.dao.SalatMongoCursor
 import play.api.libs.json.JsObject
-import common.config.AppConfig
+import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.search.SearchCancelled
+import org.corespring.common.config.AppConfig
 
 /**
  * The Organization API
@@ -46,8 +46,8 @@ object OrganizationApi extends BaseApi {
     val initSearch = MongoDBObject(key -> orgId)
     def applySort(orgs:SalatMongoCursor[Organization]):Result = {
       optsort.map(Organization.toSortObj(_)) match {
-        case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(orgs.sort(sort).skip(sk).limit(l))))
-        case None => Ok(Json.toJson(Utils.toSeq(orgs.skip(sk).limit(l))))
+        case Some(Right(sort)) => Ok(Json.toJson(orgs.sort(sort).skip(sk).limit(l).toSeq))
+        case None => Ok(Json.toJson(orgs.skip(sk).limit(l).toSeq))
         case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
       }
     }

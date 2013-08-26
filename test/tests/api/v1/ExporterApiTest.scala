@@ -2,17 +2,16 @@ package tests.api.v1
 
 import api.v1.ExporterApi
 import java.io.{FileOutputStream, File}
-import models.item.Item
-import models.item.service.ItemServiceImpl
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.execute.Result
 import org.specs2.mutable.BeforeAfter
 import play.api.test.Helpers._
-import tests.BaseTest
+import org.corespring.platform.core.models.item.Item
+import org.corespring.test.BaseTest
+import org.corespring.platform.core.services.item.ItemServiceImpl
 
 class ExporterApiTest extends BaseTest {
-
 
   sequential
 
@@ -51,8 +50,7 @@ class ExporterApiTest extends BaseTest {
     ItemServiceImpl.findOneById( VersionedId(new ObjectId(id)) ).map{
       i : Item =>
         val identifier = (manifest \ "resources" \ "resource" \ "@identifier").text
-        import models.versioning.VersionedIdImplicits.Binders._
-        identifier ===  versionedIdToString(i.id)
+        identifier ===  i.id.toString()
     }.getOrElse(failure("couldn't find item"))
   }
 

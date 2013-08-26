@@ -2,34 +2,37 @@ package web.controllers
 
 import common.controllers.session.SessionHandler
 import controllers.auth.BaseApi
-import models.{User, Organization}
+import org.corespring.platform.core.models.{User, Organization}
 import play.api.mvc._
-import player.accessControl.cookies.{PlayerCookieKeys, PlayerCookieWriter}
 import scala.Some
-import securesocial.core.{SecureSocial, SecuredRequest}
-import web.controllers.utils.ConfigLoader
-import web.models.QtiTemplate
+import securesocial.core.SecuredRequest
+import org.corespring.platform.core.models.web.QtiTemplate
+import org.corespring.player.accessControl.cookies.{PlayerCookieKeys, PlayerCookieWriter}
 
 
 object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
 
+  //TODO: 2.1.2 Upgrade - keys?
+  val UserKey = "securesocial.user"
+  val ProviderKey = "securesocial.provider"
   def logout(s: Session): Session = {
     s -
       PlayerCookieKeys.RENDER_OPTIONS -
-      SecureSocial.UserKey -
-      SecureSocial.ProviderKey
+      UserKey -
+      ProviderKey
   }
 
   def index = SecuredAction {
     implicit request: SecuredRequest[AnyContent] =>
 
-      val (dbServer, dbName) = getDbName(ConfigLoader.get("mongodb.default.uri"))
-      val userId = request.user.id
-      val user: User = User.getUser(request.user.id).getOrElse(throw new RuntimeException("Unknown user"))
+      val uri: Option[String] = play.api.Play.current.configuration.getString("mongodb.default.uri")
+      val (dbServer, dbName) = getDbName(uri)
+      val userId = request.user.identityId
+      val user: User = User.getUser(request.user.identityId).getOrElse(throw new RuntimeException("Unknown user"))
       Organization.findOneById(user.org.orgId) match {
         case Some(userOrg) => Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName, userOrg))
           .withSession(
-          sumSession(request.session, playerCookies(userId.id, userId.providerId) :+ activeModeCookie(): _*)
+          sumSession(request.session, playerCookies(userId.userId, userId.providerId) :+ activeModeCookie(): _*)
         )
         case None => InternalServerError("could not find organization of user")
       }

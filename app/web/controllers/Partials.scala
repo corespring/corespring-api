@@ -1,7 +1,7 @@
 package web.controllers
 
 import play.api.mvc.{Action, Controller}
-import web.models.QtiTemplate
+import org.corespring.platform.core.models.web.QtiTemplate
 
 object Partials extends Controller{
 

@@ -1,0 +1,14 @@
+{
+  "_id": {
+    "$oid": "520a3533aec5c7d4d1c80b8b"
+  },
+  "metadataKey":"newclassrooms_metadata",
+  "editorUrl":"http://localhost:5000/newclassrooms",
+  "editorLabel":"New Classrooms",
+  "schema":[
+    {"key":"skillNumber"},
+    {"key":"family"},
+    {"key":"masterQuestion"}
+  ],
+  "isPublic":false
+}

@@ -1,26 +1,16 @@
 package api.v1
 
-import controllers.auth.{Permission, BaseApi}
-import models._
-import api.{ApiError}
+import api.ApiError
 import com.mongodb.casbah.Imports._
 import com.novus.salat.dao.SalatMongoCursor
-import controllers.auth.{Permission, BaseApi}
-import controllers.{InternalError, Utils}
-import models.{ContentCollection, Organization}
+import controllers.auth.BaseApi
+import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.search.SearchCancelled
+import org.corespring.platform.core.models.{Organization, CollectionExtraDetails, ContentCollection}
 import play.api.libs.json._
 import play.api.mvc.Result
-import scala.Left
-import search.SearchCancelled
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsUndefined
-import play.api.libs.json.JsString
-import scala.Some
-import scala.Right
-import play.api.libs.json.JsNumber
-import com.novus.salat.dao.SalatMongoCursor
-import play.api.libs.json.JsObject
 import scalaz.{Failure, Success}
+import org.corespring.platform.core.models.error.InternalError
 
 /**
  * The Collections API
@@ -50,8 +40,8 @@ object CollectionApi extends BaseApi {
     val initSearch = MongoDBObject("_id" -> MongoDBObject("$in" -> collrefs.map(_.collectionId)))
     def applySort(colls:SalatMongoCursor[ContentCollection]):Result = {
       optsort.map(ContentCollection.toSortObj(_)) match {
-        case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(colls.sort(sort).skip(sk).limit(l)).map(c => CollectionExtraDetails(c, collrefs.find(_.collectionId == c.id).get.pval))))
-        case None => Ok(Json.toJson(Utils.toSeq(colls.skip(sk).limit(l)).map(c => CollectionExtraDetails(c, collrefs.find(_.collectionId == c.id).get.pval))))
+        case Some(Right(sort)) => Ok(Json.toJson(colls.sort(sort).skip(sk).limit(l).toSeq.map(c => CollectionExtraDetails(c, collrefs.find(_.collectionId == c.id).get.pval))))
+        case None => Ok(Json.toJson(colls.skip(sk).limit(l).toSeq.map(c => CollectionExtraDetails(c, collrefs.find(_.collectionId == c.id).get.pval))))
         case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
       }
     }
@@ -118,7 +108,7 @@ object CollectionApi extends BaseApi {
 
   private def unknownCollection = NotFound(Json.toJson(ApiError.UnknownCollection))
 
-  private def addCollectionToOrganizations(values: Seq[JsValue], collId: ObjectId): Either[controllers.InternalError, Unit] = {
+  private def addCollectionToOrganizations(values: Seq[JsValue], collId: ObjectId): Either[InternalError, Unit] = {
     val orgs: Seq[(ObjectId, Permission)] = values.map(v => v match {
       case JsString(strval) => (new ObjectId(strval) -> Permission.Read)
       case JsObject(orgWithPerm) => (new ObjectId(orgWithPerm(1)._1) -> Permission.fromLong(orgWithPerm(1)._2.as[Long]).get)

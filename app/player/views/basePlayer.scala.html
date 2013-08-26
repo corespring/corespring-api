@@ -7,7 +7,7 @@
 <html ng-app="qti" dimensions-checker>
 <head>
     <title>@params.itemId</title>
-    @common.views.html.partials.ieEightSupport()
+    @org.corespring.web.common.views.html.partials.ieEightSupport()
     @partials.scripts(params.xml, new player.views.qti.QtiAssetsLoaderImpl(params.qtiKeys, params.mode))(params.assetsLoader)
 
 

@@ -33,14 +33,16 @@ function DeveloperCtrl($scope,$http,$rootScope,Developer) {
                     $scope.authState = "registered"
                     $http.post('/auth/register',{organization: org.id}).success(function(data,status,headers,config){
                         if(data.client_id && data.client_secret){
-                            $rootScope.apiClient = {clientId: data.client_id, clientSecret: data.client_secret}
+                            var clientSignature = CryptoJS.HmacSHA1(
+                                "client_credentials:"+data.client_id+":HmacSHA1",
+                                data.client_secret
+                            ).toString()
+                            $rootScope.apiClient = {clientId: data.client_id, clientSecret: data.client_secret, client_signature: clientSignature}
                             $rootScope.$broadcast('setApiClient')
                         }
                     });
                 }) ;
             } else $scope.authState = "noauth";
-        }, function(data) {
-          $scope.authState = "noauth";
         });
     })();
 }

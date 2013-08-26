@@ -32,10 +32,10 @@
 </div>
 
 <div class="sub-nav sub-nav-lower">
+    <a href="javascript:history.back()" style="float: left; margin-top: 10px; margin-left: 10px; color: white;"><-- Back to Collections</a>
     <div class="container" style="width: 940px;">
         <div class="row">
-
-            <ul class="span4 nav nav-pills">
+            <ul class="span8 nav nav-pills">
                 <li ng-class="{true:'active', false:''}[currentPanel=='content']">
                     <a
                             href="javascript:void(1)"
@@ -49,6 +49,11 @@
                 <li ng-class="{true:'active', false:''}[currentPanel=='supportingMaterials']">
                     <a href="javascript:void(1)"
                        ng-click="changePanel('supportingMaterials')">Supporting Materials</a>
+                </li>
+
+                <li ng-class="{true:'active', false:''}[currentPanel=='orgMetadata']" ng-repeat="m in itemMetadata">
+                    <a href="javascript:void(1)"
+                       ng-click="changeToOrgMetadata(m.metadataKey)">{{m.editorLabel}}</a>
                 </li>
             </ul>
 
@@ -82,6 +87,8 @@
         @_edit.metadata()
 
         @_edit.supportingMaterials()
+
+        @_edit.orgMetadata()
 
         <!--_edit.content()
         ng-show="currentPanel == 'content'"

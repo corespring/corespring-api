@@ -7,9 +7,9 @@ import com.mongodb.{BasicDBObject, DBObject}
 import reporting.models.ReportLineResult.{KeyCount, LineResult}
 import reporting.models.ReportLineResult
 import org.bson.types.ObjectId
-import models.ContentCollection
 
-import common.utils.string
+import org.corespring.platform.core.models.ContentCollection
+import org.corespring.common.utils.string
 
 class ReportsService(ItemCollection: MongoCollection,
                      SubjectCollection: MongoCollection,
@@ -88,7 +88,7 @@ class ReportsService(ItemCollection: MongoCollection,
     def mapToDistincList(field:String):List[String] = {
       val distResult = ItemCollection.distinct(field)
       if (distResult == null) return List()
-      val distStringResult = distResult.map(p => if (p != null) p.toString else "")
+      val distStringResult = distResult.map((p : Any) => if (p != null) p.toString else "")
       if (distStringResult == null) return List()
 
       distStringResult.filter(_ != "").toList
@@ -104,7 +104,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * Build a csv where each line is for a primary subject and the columns are counts of a specific set of item properties.
    * @return
    */
-  def buildPrimarySubjectItemReport: String = {
+  def buildPrimarySubjectReport: String = {
 
     populateHeaders
 
@@ -128,7 +128,7 @@ class ReportsService(ItemCollection: MongoCollection,
     (category + ": " + subject).replaceAll(",", "")
   }
 
-  def buildStandardsItemReport: String = {
+  def buildStandardsReport: String = {
 
     populateHeaders
 

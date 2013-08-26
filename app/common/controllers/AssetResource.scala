@@ -1,21 +1,20 @@
 package common.controllers
 
-import controllers.{S3Service, S3ServiceClient, ConcreteS3Service}
-import models.item.Item
-import models.item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
-import models.itemSession.DefaultItemSession
 import org.bson.types.ObjectId
+import org.corespring.assets.{S3ServiceClient, CorespringS3ServiceImpl, CorespringS3Service}
+import org.corespring.common.config.AppConfig
+import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.resource.{StoredFile, VirtualFile, BaseFile, Resource}
+import org.corespring.platform.core.models.itemSession.DefaultItemSession
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import play.api.mvc.Results._
 import play.api.mvc._
-import scala.Some
 import scalaz.Scalaz._
 import scalaz.{Success, Failure}
 import web.controllers.ObjectIdParser
-import web.controllers.utils.ConfigLoader
-import models.item.service.ItemServiceClient
-import common.log.PackageLogging
-import common.config.AppConfig
-
+import org.corespring.platform.core.services.item.ItemServiceClient
+import org.corespring.web.common.controllers.DefaultCss
 
 object AssetResource{
   object Errors{
@@ -30,7 +29,7 @@ object AssetResource{
 
 trait AssetResource extends AssetResourceBase{
   final def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]] = Some(renderBaseFile(f))
-  def s3Service : S3Service = ConcreteS3Service
+  def s3Service : CorespringS3Service = CorespringS3ServiceImpl
 }
 
 
@@ -43,8 +42,13 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemSer
   def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]]
 
   def getDataFileBySessionId(sessionId: String, filename: String) = {
+
+
     DefaultItemSession.findOneById(new ObjectId(sessionId)) match {
-      case Some(session) => getDataFile(session.itemId.toString, filename)
+      case Some(session) => {
+        val itemIdString = session.itemId.toString()
+        getDataFile(itemIdString, filename)
+      }
       case _ => Action(NotFound("sessionId: " + sessionId))
     }
   }
@@ -65,7 +69,7 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemSer
 
   private def getFile(itemId:String, resourceName:String, filename: Option[String] = None) : Action[AnyContent] =
   {
-    import models.versioning.VersionedIdImplicits.Binders._
+    import VersionedIdImplicits.Binders._
 
     val out = for {
       oid <- stringToVersionedId(itemId).toSuccess(Errors.invalidObjectId)

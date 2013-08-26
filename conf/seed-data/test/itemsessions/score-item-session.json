@@ -10,18 +10,18 @@
   },
   "responses": [
     {
-      "_t": "models.itemSession.StringItemResponse",
+      "_t" : "org.corespring.qti.models.responses.StringResponse",
       "_id": "mexicanPresident",
       "responseValue": "obama"
     },
     {
-      "_t": "models.itemSession.StringItemResponse",
+      "_t" : "org.corespring.qti.models.responses.StringResponse",
       "_id": "irishPresident",
       "responseValue": "higgins"
     },
     {
       "_id": "rainbowColors",
-      "_t": "models.itemSession.ArrayItemResponse",
+      "_t" : "org.corespring.qti.models.responses.ArrayResponse",
       "responseValue": [
         "blue",
         "violet"
@@ -29,12 +29,12 @@
     },
     {
       "_id": "winterDiscontent",
-      "_t": "models.itemSession.StringItemResponse",
+      "_t" : "org.corespring.qti.models.responses.StringResponse",
       "responseValue": "sdfgadfg"
     },
     {
       "_id": "wivesOfHenry",
-      "_t": "models.itemSession.ArrayItemResponse",
+      "_t" : "org.corespring.qti.models.responses.ArrayResponse",
       "responseValue": [
         "parr",
         "cleves",
@@ -46,7 +46,7 @@
     },
     {
       "_id": "cutePugs",
-      "_t": "models.itemSession.ArrayItemResponse",
+      "_t" : "org.corespring.qti.models.responses.ArrayResponse",
       "responseValue": [
         "pug2",
         "pug1",
@@ -54,13 +54,13 @@
       ]
     },
     {
-      "_t": "models.itemSession.StringItemResponse",
+      "_t" : "org.corespring.qti.models.responses.StringResponse",
       "_id": "longAnswer",
       "responseValue": "asdfadf"
     },
     {
       "_id": "manOnMoon",
-      "_t": "models.itemSession.StringItemResponse",
+      "_t" : "org.corespring.qti.models.responses.StringResponse",
       "responseValue": "armstrong"
     }
   ],

@@ -10,7 +10,7 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
   $scope.$root.mode = "home";
 
 
-  $scope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
+  $rootScope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
   $rootScope.$broadcast('onListViewOpened');
 
   var init = function () {
@@ -39,13 +39,13 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
   };
 
   $scope.sortBy = function (field) {
-    if ($scope.searchParams.sort && $scope.searchParams.sort[field]) {
-      $scope.searchParams.sort[field] *= -1;
+    if ($rootScope.searchParams.sort && $rootScope.searchParams.sort[field]) {
+      $rootScope.searchParams.sort[field] *= -1;
     } else {
-      $scope.searchParams.sort = {};
-      $scope.searchParams.sort[field] = 1;
+      $rootScope.searchParams.sort = {};
+      $rootScope.searchParams.sort[field] = 1;
     }
-    $scope.$broadcast("sortingOnField", field, $scope.searchParams.sort[field] == 1);
+    $scope.$broadcast("sortingOnField", field, $rootScope.searchParams.sort[field] == 1);
     $scope.search();
   }
 
@@ -106,21 +106,21 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
   }
 
   $scope.search = function () {
-    var isOtherSelected = $scope.searchParams && _.find($scope.searchParams.itemType, function (e) {
+    var isOtherSelected = $rootScope.searchParams && _.find($rootScope.searchParams.itemType, function (e) {
       return e.label == "Other"
     });
 
     if (isOtherSelected) {
-      $scope.searchParams.notSelectedItemTypes = [];
+      $rootScope.searchParams.notSelectedItemTypes = [];
       _.each($scope.flatItemTypeDataProvided, function (e) {
-        var isSelected = _.find($scope.searchParams.itemType, function (f) {
+        var isSelected = _.find($rootScope.searchParams.itemType, function (f) {
           return e.label == f.label;
         });
         if (!isSelected)
-          $scope.searchParams.notSelectedItemTypes.push(e);
+          $rootScope.searchParams.notSelectedItemTypes.push(e);
       });
     }
-    SearchService.search($scope.searchParams, function (res) {
+    SearchService.search($rootScope.searchParams, function (res) {
         $rootScope.items = applyPermissions(res);
       setTimeout(function () {
         MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
@@ -145,8 +145,8 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
 
     $scope.$watch( function(){ return CollectionManager.sortedCollections; }, function(newValue, oldValue){
       $scope.sortedCollections = newValue;
-      if($scope.sortedCollections){
-        $scope.searchParams.collection = _.clone($scope.sortedCollections[0].collections);
+      if(!$rootScope.searchParams.collection && $scope.sortedCollections){
+        $rootScope.searchParams.collection = _.clone($scope.sortedCollections[0].collections);
       }
       $scope.search();
     }, true);

@@ -8,7 +8,8 @@ case class CCAssignmentGroups(groups:Seq[CCAssignmentGroup]) {
                                   xmlns="http://canvas.instructure.com/xsd/cccv1p0"
                                   xsi:schemaLocation="http://canvas.instructure.com/xsd/cccv1p0 http://canvas.instructure.com/xsd/cccv1p0.xsd">
                 </assignmentGroups>
-    new Elem(outer.prefix, outer.label, outer.attributes, outer.scope, (outer.child ++ groups.map(_.toXml)) : _*)
+
+    Elem(outer.prefix, outer.label, outer.attributes, outer.scope, true, (outer.child ++ groups.map(_.toXml)) : _*)
   }
 }
 

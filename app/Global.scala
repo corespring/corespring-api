@@ -1,60 +1,24 @@
-import _root_.controllers.ConcreteS3Service
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
-import com.typesafe.config.ConfigFactory
-import common.controllers.deployment.{LocalAssetsLoaderImpl, AssetsLoaderImpl}
 import common.seed.SeedDb._
+import filters.{Headers, AjaxFilter, AccessControlFilter}
 import org.bson.types.ObjectId
+import org.corespring.web.common.controllers.deployment.{LocalAssetsLoaderImpl, AssetsLoaderImpl}
 import play.api._
 import play.api.mvc.Results._
 import play.api.mvc._
-import scala.Some
-import web.controllers.utils.ConfigLoader
 
+object Global extends WithFilters(AjaxFilter, AccessControlFilter) {
 
-/**
-  */
-object Global extends GlobalSettings {
+  val Logger : LoggerLike = play.api.Logger("Global")
 
   val INIT_DATA: String = "INIT_DATA"
 
-  val AccessControlAllowEverything = ("Access-Control-Allow-Origin", "*")
-
-  def AccessControlAction[A](action: Action[A]): Action[A] = Action(action.parser) {
-    request =>
-      action(request) match {
-        case s: SimpleResult[_] =>
-          s
-            .withHeaders(AccessControlAllowEverything)
-            .withHeaders(("Access-Control-Allow-Methods", "PUT, GET, POST, DELETE, OPTIONS"))
-            .withHeaders(("Access-Control-Allow-Headers", "x-requested-with,Content-Type,Authorization"))
-
-        case result => result
-      }
-  }
-
-  def AjaxFilterAction[A](action: Action[A]): Action[A] = Action(action.parser) {
-    request =>
-      if (request.headers.get("X-Requested-With") == Some("XMLHttpRequest")) {
-        action(request) match {
-          case s: SimpleResult[_] => s.withHeaders(("Cache-Control", "no-cache"))
-          case result => result
-        }
-      }
-      else {
-        action(request)
-      }
-  }
-
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
-
     request.method match {
       //return the default access control headers for all OPTION requests.
-      case "OPTIONS" => Some(AccessControlAction(Action(new play.api.mvc.Results.Status(200))))
+      case "OPTIONS" => Some(Action(new play.api.mvc.Results.Status(200)))
       case _ => {
-        super.onRouteRequest(request).map {
-          case action: Action[_] => AjaxFilterAction(AccessControlAction(action))
-          case other => other
-        }
+        super.onRouteRequest(request)
       }
     }
   }
@@ -69,7 +33,7 @@ object Global extends GlobalSettings {
     if (Logger.isDebugEnabled) {
       throwable.printStackTrace()
     }
-    InternalServerError(common.views.html.onError(uid, throwable))
+    InternalServerError(org.corespring.web.common.views.html.onError(uid, throwable))
   }
 
 
@@ -77,7 +41,7 @@ object Global extends GlobalSettings {
     val result = super.onHandlerNotFound(request)
 
     result match {
-      case s: SimpleResult[_] => s.withHeaders(AccessControlAllowEverything)
+      case s: SimpleResult[_] => s.withHeaders(Headers.AccessControlAllowEverything)
       case _ => result
     }
   }
@@ -85,32 +49,36 @@ object Global extends GlobalSettings {
   override def onBadRequest(request: play.api.mvc.RequestHeader, error: scala.Predef.String): play.api.mvc.Result = {
     val result = super.onBadRequest(request, error)
     result match {
-      case s: SimpleResult[_] => s.withHeaders(AccessControlAllowEverything)
+      case s: SimpleResult[_] => s.withHeaders(Headers.AccessControlAllowEverything)
       case _ => result
     }
   }
 
   override def onStart(app: Application) : Unit = {
-    // support JodaTime
+
     RegisterJodaTimeConversionHelpers()
 
-    ConcreteS3Service.init
     AssetsLoaderImpl.init(app)
     LocalAssetsLoaderImpl.init(app)
 
-    val initData:Boolean = ConfigFactory.load().getString(INIT_DATA) == "true"
+    val initData:Boolean = app.configuration.getBoolean(INIT_DATA).getOrElse(false)
+
+    Logger.debug(s"Init Data: $initData :: ${app.configuration.getBoolean(INIT_DATA)}")
 
     def onlyIfLocalDb(fns: (() => Unit)*) {
-      if (isLocalDb)
+      if (isSafeToSeedDb(app))
         fns.foreach( fn => fn() )
       else
         throw new RuntimeException("You're trying to seed against a remote db - bad idea")
     }
 
+    Logger.debug(s"App mode: $app.mode")
+
     app.mode match {
+
+
       case Mode.Test => {
-        emptyData()
-        seedTestData()
+        //onlyIfLocalDb(emptyData, seedTestData)
       }
       case Mode.Dev => {
         if(initData) {
@@ -130,12 +98,17 @@ object Global extends GlobalSettings {
 
   }
 
-  private def isLocalDb: Boolean = {
-    ConfigLoader.get("mongodb.default.uri") match {
-      //TODO: Remove hardcoded url
-      case Some(url) => (url.contains("localhost") || url.contains("127.0.0.1") || url == "mongodb://bleezmo:Basic333@ds035907.mongolab.com:35907/sib")
-      case None => false
+  private def isSafeToSeedDb(implicit  app : Application) : Boolean = {
+    val uri = app.configuration.getString("mongodb.default.uri")
+
+    require(uri.isDefined, "the mongo uri isn't defined!")
+
+    def isSafeRemoteUri(uri:String) : Boolean = {
+      val safeRemoteUri = app.configuration.getString("seed.db.safe.mongodb.uri")
+      safeRemoteUri.map(safeUri => uri == safeUri ).getOrElse(false)
     }
+
+    uri.map { u => u.contains("localhost") || u.contains("127.0.0.1") || isSafeRemoteUri(u) }.getOrElse(false)
   }
 
   /** Add demo data models to the the db to allow end users to be able to
@@ -157,13 +130,11 @@ object Global extends GlobalSettings {
   }
 
   private def seedTestData() {
-    seedData("conf/seed-data/test")
+    //seedData("conf/seed-data/test")
   }
 
   private def seedDevData() {
-    seedData("conf/seed-data/common")
-    seedData("conf/seed-data/dev")
-    seedData("conf/seed-data/exemplar-content")
+    seedData("conf/seed-data/common", "conf/seed-data/dev", "conf/seed-data/exemplar-content")
   }
 
   private def seedDebugData(){

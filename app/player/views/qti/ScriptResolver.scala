@@ -1,7 +1,7 @@
 package player.views.qti
 
-import common.utils.string
 import player.views.qti.models.QtiAssetsConfig
+import org.corespring.common.utils.string
 
 //TODO: make this private - we can't do so at the moment because all our tests are within a 'tests' package.
 class ScriptResolver(assetsFolder:String, suffix : String = ".js", config : QtiAssetsConfig) {

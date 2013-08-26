@@ -1,20 +1,21 @@
 package api.v1
 
-import controllers.auth.{Permission, BaseApi}
+import controllers.auth.{BaseApi}
 import play.api.libs.json._
-import models.{Organization, UserOrg, User}
 import org.bson.types.ObjectId
 import api.{ApiError}
 import com.mongodb.casbah.Imports._
 import play.api.mvc.Result
-import controllers.Utils
+
 import scala.Left
-import models.search.SearchCancelled
 import play.api.libs.json.JsArray
 import scala.Some
 import scala.Right
 import com.novus.salat.dao.SalatMongoCursor
 import play.api.libs.json.JsObject
+import org.corespring.platform.core.models.{User, Organization}
+import org.corespring.platform.core.models.search.SearchCancelled
+import org.corespring.platform.core.models.auth.Permission
 
 /**
  * The User API
@@ -30,8 +31,8 @@ object UserApi extends BaseApi {
 
     def applySort(users:SalatMongoCursor[User]):Result = {
       optsort.map(User.toSortObj(_)) match {
-        case Some(Right(sort)) => Ok(Json.toJson(Utils.toSeq(users.sort(sort).skip(sk).limit(l))))
-        case None => Ok(Json.toJson(Utils.toSeq(users.skip(sk).limit(l))))
+        case Some(Right(sort)) => Ok(Json.toJson(users.sort(sort).skip(sk).limit(l).toSeq))
+        case None => Ok(Json.toJson(users.skip(sk).limit(l).toSeq))
         case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
       }
     }

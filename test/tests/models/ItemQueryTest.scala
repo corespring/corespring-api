@@ -1,6 +1,6 @@
 package tests.models
 
-import tests.BaseTest
+import org.corespring.test.BaseTest
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -13,7 +13,7 @@ class ItemQueryTest extends BaseTest{
     val author = "New England Common Assessment Program"
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{author:\""+author+"\"}"), f = Some("{author:1}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
@@ -33,7 +33,7 @@ class ItemQueryTest extends BaseTest{
   "filter search by gradeLevel matching multiple grades" in {
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{gradeLevel:{$all:[\"02\",\"04\"]}}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
@@ -54,7 +54,7 @@ class ItemQueryTest extends BaseTest{
     val subCategory = "Key Ideas and Details"
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{standards.subCategory:\""+subCategory+"\"}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
@@ -78,7 +78,7 @@ class ItemQueryTest extends BaseTest{
     val primarySubjectCategory = "Mathematics"
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{primarySubject.category:\""+primarySubjectCategory+"\"}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
@@ -99,7 +99,7 @@ class ItemQueryTest extends BaseTest{
     val title = "DEV"
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{title:{$regex:\""+title+"\"}}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
@@ -121,7 +121,7 @@ class ItemQueryTest extends BaseTest{
     val itemType = "Multiple Choice"
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{title:{$regex:\""+title+"\"},itemType:\""+itemType+"\"}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
@@ -150,7 +150,7 @@ class ItemQueryTest extends BaseTest{
     val author = "New England Common Assessment Program"
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{\"$or\":[{primarySubject.category:\""+primarySubjectCategory+"\"},{title:{$regex:\""+title+"\"}},{gradeLevel:\""+gradeLevel+"\"},{itemType:\""+itemType+"\"},{standards.dotNotation:\""+standardsDotNotation+"\"},{author:\""+author+"\"}]}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
@@ -192,7 +192,7 @@ class ItemQueryTest extends BaseTest{
     val author = "New England Common Assessment Program"
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{\"$or\":[{primarySubject.category:\""+primarySubjectCategory+"\"},{title:{$regex:\""+title+"\"}},{gradeLevel:\""+gradeLevel+"\"},{itemType:\""+itemType+"\"},{standards.dotNotation:\""+standardsDotNotation+"\"},{author:\""+author+"\"}]}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
@@ -227,13 +227,13 @@ class ItemQueryTest extends BaseTest{
   "filtering by supportingMaterials results in error" in {
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{supportingMaterials.name:meh}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(BAD_REQUEST)
   }
   "filtering by data results in error" in {
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{data.name:meh}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(BAD_REQUEST)
   }
   "filter items based on a set of subjects using $in" in {
@@ -241,7 +241,7 @@ class ItemQueryTest extends BaseTest{
     val category2 = "English Language Arts"
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{primarySubject.category:{$in : [\""+category1+"\",\""+category2+"\"]}}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
@@ -268,7 +268,7 @@ class ItemQueryTest extends BaseTest{
     val collection2 = "511276834924c9ca07b97044"
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{collectionId:{$in:[\""+collection1+"\",\""+collection2+"\"]}}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
@@ -328,20 +328,20 @@ class ItemQueryTest extends BaseTest{
   "all queryable item params are checked within it's search method" in {
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{"+searchParams.tail.foldRight[String](searchParams.head._1+":"+searchParams.head._2)((param,result) => result+","+param._1+":"+param._2)+"}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
   }
   "all search field item params are checked within it's search method" in {
     val call:Call = api.v1.routes.ItemApi.list(f = Some("{"+searchParams.tail.foldRight[String](searchParams.head._1+":1")((param,result) => result+","+param._1+":1")+",id:1}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
   }
   "search for items that do not have an itemType equal to Multiple Choice" in {
     val itemType = "Multiple Choice"
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{itemType : {$ne : \""+itemType+"\"}}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
@@ -361,7 +361,7 @@ class ItemQueryTest extends BaseTest{
   "search for items that do not contain a gradeLevel of 02 or 04" in {
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{gradeLevel:{$nin:[\"02\",\"04\"]}}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
@@ -384,7 +384,7 @@ class ItemQueryTest extends BaseTest{
   "no results are returned when searching for itemType that has both values of Multiple Choice and Project" in {
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{$and:[{itemType:\"Multiple Choice\"},{itemType:\"Project\"}]}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     json match {
@@ -397,7 +397,7 @@ class ItemQueryTest extends BaseTest{
   "match all items that have a gradeLevel which contains the values 02 and 04 in its array" in {
     val call:Call = api.v1.routes.ItemApi.list(q = Some("{$and : [ { gradeLevel : \"02\"}, { gradeLevel : \"04\"}],gradeLevel:{$exists:true}}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = routeAndCall(request).get
+    val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
@@ -406,6 +406,32 @@ class ItemQueryTest extends BaseTest{
         jsobjects.forall(jsobj => {
           (jsobj \ "gradeLevel") match {
             case JsArray(grades) => grades.exists(_.as[String] == "02") && grades.exists(_.as[String] == "04")
+            case _ => false
+          }
+        })
+      }
+      case _ => false
+    }
+    jsonSuccess must beTrue
+  }
+
+  "search for items by metadata" in {
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{extended.demo_org.ui_comment:{$regex:\"comment about ui\"}}"),f=Some("{extended:1}"))
+    val request = FakeRequest(call.method,call.url+"&access_token="+token)
+    val result = route(request).get
+    status(result) must equalTo(OK)
+    val json = Json.parse(contentAsString(result))
+    val jsonSuccess = json match {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
+          (jsobj \ "extended") match {
+            case JsObject(extended) => extended.find(field => {
+              field._1 == "demo_org" && (field._2 match {
+                case JsObject(props) => props.find(prop => prop._1 == "ui_comment" && prop._2 == JsString("comment about ui")).isDefined
+                case _ => false
+              })
+            }).isDefined
             case _ => false
           }
         })

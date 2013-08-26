@@ -3,6 +3,7 @@
 .graph-interaction{
     background-color: #CCCCCC;
     padding: 10px;
+    margin-top: 10px;
 }
 .point-display{
 
@@ -10,6 +11,36 @@
 .point-display p,input{
     display: inline;
 }
-.scale-display p{
-    margin-bottom: -10px;
+.additional-text p{
+    font-family: 'Ubuntu' !important;
+    font-style: normal;
+    font-size: 13px;
+    padding-bottom: 17px;
+}
+.point-display-break{
+    margin-left:0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-right: 8px;
+    border-color: #999999;
+}
+.btn-undo{
+    width: 50px;
+    border-radius: 6px;
+    border-style: solid;
+    border-color: #999999;
+    border-width: 1px;
+}
+.btn-start-over{
+    width: 90px;
+    border-radius: 6px;
+    border-style: solid;
+    border-color: #999999;
+    border-width: 1px;
+}
+.graph-container{
+    margin-top: 20px;
+    margin-right: auto;
+    margin-left: auto;
+    width: 85%;
 }

@@ -2,12 +2,14 @@ package controllers.auth
 
 import api.ApiError
 import api.ApiError._
-import com.mongodb.casbah.Imports
-import common.log.PackageLogging
-import models.{Organization, User}
+import play.api.libs.json._
 import play.api.libs.json.{JsString, JsObject, Json}
 import play.api.mvc._
 import securesocial.core.SecureSocial
+import org.bson.types.ObjectId
+import org.corespring.platform.core.models.{User, Organization}
+import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.auth.Permission
 
 /**
  * A class that adds an AuthorizationContext to the Request object
@@ -76,12 +78,17 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
   def ApiAction[A](p: BodyParser[A])(f: ApiRequest[A] => Result) = {
     Action(p) {
       request =>
-        Logger.debug("request route: "+request.method+" "+request.uri)
-        SecureSocial.currentUser(request).find(_ => request.headers.get("CoreSpring-IgnoreSession").isEmpty).map { u =>
-          invokeAsUser(u.id.id, u.id.providerId, request)(f)
-        }.getOrElse {
-          tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
-            OAuthProvider.getAuthorizationContext(token).fold(
+
+        val IgnoreSession = "CoreSpring-IgnoreSession"
+
+        Logger.debug(s"request route: ${request.method}, ${request.uri}")
+        Logger.debug(s"ignore session: ${ request.headers.get(IgnoreSession)}")
+
+        def resultFromToken = {
+
+          def onError(apiError:ApiError) = BadRequest(Json.toJson(apiError))
+
+          def onToken(token : String ) =  OAuthProvider.getAuthorizationContext(token).fold(
               error => {
                 Logger.debug("Error getting authorization context")
                 Forbidden(Json.toJson(error)).as(JSON)
@@ -91,9 +98,19 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
                 Logger.debug("returning result")
                 result
               }
-            )
           )
+          tokenFromRequest(request).fold(onError, onToken)
         }
+
+        def userResult = for{
+          currentUser <- SecureSocial.currentUser(request)
+          if(request.headers.get(IgnoreSession).isEmpty)
+        } yield {
+          Logger.debug( s"currentUser: $currentUser")
+          invokeAsUser(currentUser.identityId.userId, currentUser.identityId.providerId, request)(f)
+        }
+
+        userResult.getOrElse(resultFromToken)
     }
   }
 
@@ -101,7 +118,7 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
     Action(p) {
       request =>
         SecureSocial.currentUser(request).find(_ => request.headers.get("CoreSpring-IgnoreSession").isEmpty).map( u => {
-          invokeAsUser(u.id.id, u.id.providerId, request){request =>
+          invokeAsUser(u.identityId.userId, u.identityId.providerId, request){request =>
             if(request.ctx.permission.has(access)) f(request)
             else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
           }
@@ -139,7 +156,7 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
    * @return
    */
     def invokeAsUser[A](username: String, provider:String, request: Request[A])(f: ApiRequest[A]=>Result) = {
-      def orgId : Option[Imports.ObjectId] = User.getUser(username, provider).map(_.org.orgId)
+      def orgId : Option[ObjectId] = User.getUser(username, provider).map(_.org.orgId)
 
       val maybeOrg : Option[Organization] = orgId.map(Organization.findOneById).getOrElse(None)
       maybeOrg.map{ org =>
@@ -186,4 +203,14 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
   }
 
   protected def jsonExpected = BadRequest(Json.toJson(ApiError.JsonExpected))
+
+  def parsed[A](maybeJson:Option[JsValue], fn: (A=>Result), noResult: Result = BadRequest("Bad Json"))(implicit format : Format[A]) : Result = maybeJson match {
+    case Some(json) => {
+      play.api.libs.json.Json.fromJson[A](json) match {
+        case JsSuccess(item, _) => fn(item)
+        case _ => noResult
+      }
+    }
+    case _ => noResult
+  }
 }

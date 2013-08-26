@@ -9,17 +9,17 @@
     "name": "qti.xml",
     "files": [
       {
-        "_t": "models.item.resource.VirtualFile",
+        "_t" : "org.corespring.platform.core.models.item.resource.VirtualFile",
         "name": "qti.xml",
         "contentType": "text/xml",
         "isMain": true,
-        "content": "$[interpolate{/conf/qti/line-interaction.xml}]"
+        "content": "$[interpolate{conf/qti/line-interaction.xml}]"
       }
     ]
   },
   "published": false,
   "collectionId": "5001b9b9e4b035d491c268c3",
   "taskInfo": {
-    "title": "Graph Interaction"
+    "title": "Line Interaction with equation entry"
   }
 }

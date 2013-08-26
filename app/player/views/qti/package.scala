@@ -1,7 +1,7 @@
 package player.views
 
 import java.io.File
-import common.utils.string
+import org.corespring.common.utils.string
 
 package object qti {
 

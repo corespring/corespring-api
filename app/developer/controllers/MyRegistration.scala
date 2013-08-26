@@ -13,11 +13,11 @@ import play.api.i18n.Messages
 import securesocial.core.providers.Token
 import scala.Some
 import securesocial.controllers.Registration._
-import models.User
-import controllers.auth.Permission
-import org.bson.types.ObjectId
 import play.api.libs.json.{JsString, JsObject}
-import common.config.AppConfig
+import org.corespring.platform.core.models
+import org.corespring.platform.core.models.User
+import org.corespring.common.config.AppConfig
+import org.corespring.platform.core.models.auth.Permission
 
 object MyRegistration extends Controller {
   val Organization = "organization"
@@ -31,7 +31,7 @@ object MyRegistration extends Controller {
   val formWithUsername = Form[MyRegistrationInfo](
     mapping(
       UserName -> nonEmptyText.verifying(Messages(UserNameAlreadyTaken), userName => {
-        UserService.find(UserId(userName, providerId)).isEmpty
+        UserService.find(IdentityId(userName, providerId)).isEmpty
       }),
       FirstName -> nonEmptyText,
       LastName -> nonEmptyText,
@@ -103,16 +103,14 @@ object MyRegistration extends Controller {
               val user = User(userName = id, fullName = info.firstName + " " + info.lastName, email = t.email, password = passwordInfo.password, provider = providerId)
               (info.organization match {
                 case Some(orgName) => models.Organization.insert(models.Organization(orgName), None) match {
-                  case Right(org) => {
-                    User.insertUser(user, org.id, Permission.Write, false)
-                  }
+                  case Right(org) => User.insertUser(user, org.id, Permission.Write, false)
                   case Left(error) => Left(error)
                 }
                 case None => User.insertUser(user, AppConfig.demoOrgId, Permission.Read, false)
               }) match {
                 case Right(dbuser) => {
                   val socialUser = SocialUser(
-                    UserId(id, providerId),
+                    IdentityId(id, providerId),
                     info.firstName,
                     info.lastName,
                     "%s %s".format(info.firstName, info.lastName),
@@ -125,6 +123,7 @@ object MyRegistration extends Controller {
                   if (UsernamePasswordProvider.sendWelcomeEmail) {
                     Mailer.sendWelcomeEmail(socialUser)
                   }
+                  Events.fire(new SignUpEvent(socialUser))
                   Redirect(RoutesHelper.login()).flashing(Success -> Messages(SignUpDone))
                 }
                 case Left(error) => InternalServerError(JsObject(Seq("message" -> JsString("error occurred during registration [" + error.clientOutput.getOrElse("") + "]"))))

@@ -32,7 +32,7 @@
     "name": "data",
     "files": [
       {
-        "_t": "models.item.resource.VirtualFile",
+        "_t" : "org.corespring.platform.core.models.item.resource.VirtualFile",
         "name": "qti.xml",
         "contentType": "text/xml",
         "isMain": true,

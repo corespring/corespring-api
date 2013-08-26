@@ -1,0 +1,82 @@
+{ "name": "Organization A",
+  "path": [
+    {
+      "$oid": "502404dd0364dc35bb39339c"
+    }
+  ],
+  "metadataSets": [
+    {
+      "metadataId": {
+        "$oid": "520a3533aec5c7d4d1c80b8e"
+      },
+      "isOwner": true
+    },
+
+    {
+      "metadataId": {
+        "$oid": "520a3533aec5c7d4d1c80b8f"
+      },
+      "isOwner": true
+    }
+
+  ],
+
+  "contentcolls": [
+
+  {
+    "collectionId":{
+      "$oid":"4ff2e4cae4b077b9e31689fd"
+    },
+    "pval": 3
+  },
+  {
+    "collectionId":{
+      "$oid":"51baf73da196d2f175140218"
+    },
+    "pval": 3
+  },
+  {
+    "collectionId": {
+      "$oid": "50a22ccc300479fa2a5a66ac"
+    },
+    "pval": 3
+  },
+  {
+    "collectionId": {
+      "$oid": "505777f5e4b05f7845735bc1"
+    },
+    "pval": 3
+  } ,
+  {
+    "collectionId": {
+      "$oid": "5021814ce4b03e00504e4741"
+    },
+    "pval": 3
+  },
+  {
+    "collectionId": {
+      "$oid": "5001b9b9e4b035d491c268c3"
+    },
+    "pval": 3
+  } ,
+  {
+    "collectionId": {
+      "$oid": "5001bb0ee4b0d7c9ec3210a2"
+    },
+    "pval": 3
+  } ,
+  {
+    "collectionId": {
+      "$oid": "4ff2e56fe4b077b9e3168a05"
+    },
+    "pval": 3
+  },
+  {
+    "collectionId": {
+      "$oid": "5072e73b1c00df6fdd627594"
+    },
+    "pval": 3
+  }
+], "_id": {
+  "$oid": "502404dd0364dc35bb39339c"
+}}

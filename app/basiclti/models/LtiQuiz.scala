@@ -4,7 +4,6 @@ package basiclti.models
 import api.ApiError
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao._
-import models.itemSession.{DefaultItemSession, ItemSessionSettings, ItemSession}
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Play.current
@@ -13,66 +12,39 @@ import scala.Left
 import scala.Right
 import scala.Some
 import se.radley.plugin.salat._
+import org.corespring.platform.core.models.itemSession.{ItemSessionSettings, DefaultItemSession, ItemSession}
+import org.corespring.platform.core.models.quiz.{BaseQuiz, BaseQuestion, BaseParticipant}
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 
 case class LtiQuestion(itemId: Option[VersionedId[ObjectId]],
                        settings: ItemSessionSettings)
-  extends models.quiz.BaseQuestion(itemId, settings)
+  extends BaseQuestion(itemId, settings)
 
 
 object LtiQuestion {
 
   implicit object Writes extends Writes[LtiQuestion] {
-    import models.versioning.VersionedIdImplicits.Writes
+    import VersionedIdImplicits.{Writes => IdWrites}
     def writes(q: LtiQuestion): JsValue = {
-      val out = Seq("settings" -> Json.toJson(q.settings)) ++ q.itemId.map( id => "itemId" -> Json.toJson(id) )
+      val out = Seq("settings" -> Json.toJson(q.settings)) ++ q.itemId.map( id => "itemId" -> Json.toJson(id)(IdWrites) )
       JsObject(out)
     }
   }
 
-  implicit object Reads extends Reads[LtiQuestion] {
-
-    import models.versioning.VersionedIdImplicits.Reads
-
-    def reads(json: JsValue): LtiQuestion = LtiQuestion(
-      (json \ "itemId").asOpt[VersionedId[ObjectId]],
-      (json \ "settings").as[ItemSessionSettings]
-    )
-
-  }
-
+  import VersionedIdImplicits.{Reads, Writes}
+  implicit val LtiQuestionReads = Json.reads[LtiQuestion]
 }
 
 case class LtiParticipant(itemSession: ObjectId,
                           resultSourcedId: String,
                           gradePassbackUrl: String,
                           onFinishedUrl: String)
-  extends models.quiz.BaseParticipant(Seq(itemSession), resultSourcedId)
+  extends BaseParticipant(Seq(itemSession), resultSourcedId)
 
 object LtiParticipant{
-
-  implicit object Writes extends Writes[LtiParticipant] {
-
-    def writes(p:LtiParticipant) : JsValue = {
-      JsObject(Seq(
-        "itemSession" -> JsString(p.itemSession.toString),
-        "resultSourcedId" -> JsString(p.resultSourcedId),
-       "gradePassbackUrl" -> JsString(p.gradePassbackUrl),
-      "onFinishedUrl" -> JsString(p.onFinishedUrl)
-      ))
-    }
-  }
-
-  implicit object Reads extends Reads[LtiParticipant] {
-
-    def reads( json : JsValue ) : LtiParticipant = {
-      LtiParticipant(
-        new ObjectId((json \ "itemSession").as[String]),
-        (json \ "resultSourcedId").as[String],
-        (json \ "gradePassbackUrl").as[String],
-        (json \ "onFinishedUrl").as[String]
-      )
-    }
-  }
+  import org.corespring.platform.core.models.json.{ObjectIdReads, ObjectIdWrites}
+  implicit val Writes = Json.writes[LtiParticipant]
+  implicit val Reads = Json.reads[LtiParticipant]
 }
 
 case class LtiQuiz(resourceLinkId: String,
@@ -80,7 +52,7 @@ case class LtiQuiz(resourceLinkId: String,
                    participants: Seq[LtiParticipant] = Seq(),
                    orgId: Option[ObjectId],
                    id: ObjectId = new ObjectId())
-  extends models.quiz.BaseQuiz(Seq(question), participants, id) {
+  extends BaseQuiz(Seq(question), participants, id) {
 
   def hasAssignments = this.participants.length > 0
 
@@ -120,7 +92,9 @@ case class LtiQuiz(resourceLinkId: String,
 
 object LtiQuiz {
 
+/*
   implicit object Writes extends Writes[LtiQuiz] {
+
 
     def writes(quiz: LtiQuiz): JsValue = {
 
@@ -132,8 +106,12 @@ object LtiQuiz {
       ) ++ quiz.orgId.map( o => "orgId" -> JsString(o.toString)))
     }
   }
+*/
+  import org.corespring.platform.core.models.json._
+  implicit val Writes = Json.writes[LtiQuiz]
+  implicit val Reads = Json.reads[LtiQuiz]
 
-  implicit object Reads extends Reads[LtiQuiz] {
+/*  implicit object Reads extends Reads[LtiQuiz] {
 
     def reads(json:JsValue) : LtiQuiz = {
       LtiQuiz(
@@ -145,14 +123,16 @@ object LtiQuiz {
       )
     }
   }
+  */
 
   /**
    * Hide the ModelCompanion from the client code as it provides too many operations.
    */
   private object Dao extends ModelCompanion[LtiQuiz, ObjectId] {
     val collection = mongoCollection("lti_quizzes")
-    import models.mongoContext.context
-    val dao = new SalatDAO[LtiQuiz, ObjectId](collection = collection) {}
+    import org.corespring.platform.core.models.mongoContext.context
+    import org.corespring.platform.core.models.mongoContext.context
+val dao = new SalatDAO[LtiQuiz, ObjectId](collection = collection) {}
   }
 
   def collection = Dao.collection

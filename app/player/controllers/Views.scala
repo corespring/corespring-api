@@ -1,26 +1,26 @@
 package player.controllers
 
 import common.controllers.QtiResource
-import controllers.auth.{TokenizedRequestActionBuilder, BaseApi}
-import models.itemSession.DefaultItemSession
-import models.quiz.basic.Quiz
-import org.bson.types.ObjectId
 import org.xml.sax.SAXParseException
 import play.api.mvc.Action
 import play.api.templates.Html
-import player.accessControl.auth.CheckSessionAccess
-import player.accessControl.cookies.PlayerCookieWriter
-import player.accessControl.models.RequestedAccess
 import player.views.models.{QtiKeys, ExceptionMessage, PlayerParams}
-import qti.models.RenderingMode._
 import scala.xml.Elem
-import models.item.service.{ItemServiceImpl, ItemService, ItemServiceClient}
+import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
+import org.corespring.player.accessControl.models.RequestedAccess
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemServiceClient, ItemService}
+import org.corespring.platform.core.services.quiz.basic.QuizService
+import controllers.auth.BaseApi
+import org.corespring.player.accessControl.cookies.PlayerCookieWriter
 import org.corespring.platform.data.mongo.models.VersionedId
-import common.controllers.deployment.{AssetsLoaderImpl, AssetsLoader}
-import qti.models.RenderingMode.RenderingMode
+import org.bson.types.ObjectId
+import org.corespring.platform.core.models.itemSession.DefaultItemSession
+import org.corespring.web.common.controllers.deployment.{AssetsLoader, AssetsLoaderImpl}
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import VersionedIdImplicits.Binders._
+import org.corespring.qti.models.RenderingMode._
 
-
-class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService)
+class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService, quizService : QuizService)
   extends BaseApi
   with QtiResource
   with ItemServiceClient
@@ -64,7 +64,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
 
   def aggregate(assessmentId: ObjectId, itemId: VersionedId[ObjectId]) = {
 
-    Quiz.findOneById(assessmentId) match {
+    quizService.findOneById(assessmentId) match {
       case Some(id) => {
         def renderAggregatePlayer(assessmentId: ObjectId)(p: PlayerParams) = player.views.html.aggregatePlayer(p, assessmentId.toString)
         val p = RenderParams(
@@ -112,10 +112,10 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     )
 
     def toPlayerParams(xml: String, qtiKeys: QtiKeys): PlayerParams = {
-      import models.versioning.VersionedIdImplicits.Binders._
+
       PlayerParams(
         xml,
-        Some(versionedIdToString(itemId)),
+        Some(itemId.toString),
         sessionId.map(_.toString),
         enablePreview,
         qtiKeys,
@@ -161,4 +161,4 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
 
 }
 
-object Views extends Views(CheckSessionAccess, ItemServiceImpl)
+object Views extends Views(CheckSessionAccess, ItemServiceImpl, QuizService)

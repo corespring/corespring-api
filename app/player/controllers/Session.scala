@@ -2,23 +2,23 @@ package player.controllers
 
 import api.v1.ItemSessionApi
 import common.controllers.SimpleJsRoutes
-import controllers.auth.TokenizedRequestActionBuilder
-import models.itemSession.PreviewItemSessionCompanion
 import org.bson.types.ObjectId
-import play.api.mvc._
-import player.accessControl.auth.CheckSessionAccess
-import player.accessControl.cookies.PlayerCookieReader
-import player.accessControl.models.RequestedAccess
-import player.accessControl.models.RequestedAccess.Mode._
-import scala.Some
-import models.item.service.ItemServiceImpl
+import org.corespring.platform.core.models.itemSession.PreviewItemSessionCompanion
+import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
+import org.corespring.player.accessControl.cookies.PlayerCookieReader
+import org.corespring.player.accessControl.models.RequestedAccess
+import org.corespring.player.accessControl.models.RequestedAccess.Mode._
+import play.api.mvc._
+import scala.Some
+import org.corespring.platform.core.services.item.ItemServiceImpl
 
 
 class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Controller with SimpleJsRoutes with PlayerCookieReader {
 
   val DefaultApi = ItemSessionApi
-  val PreviewApi = new ItemSessionApi(PreviewItemSessionCompanion, ItemServiceImpl)
+  val PreviewApi = new ItemSessionApi(PreviewItemSessionCompanion, ItemServiceImpl, QuizService)
 
   /** If we are running in preview mode - return the PreviewApi which will store the sessions in a different collection */
   def api(implicit request: Request[AnyContent]): ItemSessionApi = {

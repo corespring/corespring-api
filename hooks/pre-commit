@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+
+# installation: 
+# cd .git/hooks
+# ln -s ../../hooks/pre-commit pre-commit
+
+scalaVersion="2.10.2"
+echo "format scala"
+./bin/scalariform -s $scalaVersion --recurse app/
+./bin/scalariform -s $scalaVersion --recurse modules/

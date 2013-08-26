@@ -2,17 +2,25 @@ package basiclti.export
 
 import xml.Elem
 
+private object Helper{
+  def addChildNode( e : Elem, child : Elem*) : Elem =  {
+    val children = e.child ++ child
+    Elem(e.prefix, e.label, e.attributes, e.scope, true, children : _*)
+  }
+}
+
 case class CCManifest(identifier:String, resources:Seq[CCResource], organizations:Seq[CCOrganization]) {
   private val resourcesXml:Option[Elem] = {
     val outer:Elem = <resources></resources>
     if (!resources.isEmpty){
-      Some(new Elem(outer.prefix,outer.label,outer.attributes, outer.scope, (outer.child ++ resources.map(_.toXml)) : _*))
+      val out = Helper.addChildNode(outer, resources.map(_.toXml) : _*)
+      Some(out)
     } else None
   }
   private val organizationsXml:Option[Elem] = {
     val outer:Elem = <organizations></organizations>
     if (!organizations.isEmpty){
-      Some(new Elem(outer.prefix,outer.label,outer.attributes, outer.scope, (outer.child ++ organizations.map(_.toXml)) : _*))
+      Some(Helper.addChildNode(outer, organizations.map(_.toXml) : _*))
     } else None
   }
  def toXml:Elem = {
@@ -32,21 +40,22 @@ case class CCManifest(identifier:String, resources:Seq[CCResource], organization
    </metadata>
  </manifest>
    if (organizationsXml.isDefined){
-     outer = new Elem(outer.prefix, outer.label, outer.attributes, outer.scope, (outer.child ++ organizationsXml.get) : _*)
+     outer = Helper.addChildNode(outer, organizationsXml.get)
    }
    if (resourcesXml.isDefined){
-     outer = new Elem(outer.prefix, outer.label, outer.attributes, outer.scope, (outer.child ++ resourcesXml.get) : _*)
+     outer = Helper.addChildNode(outer, resourcesXml.get)
    }
    outer
  }
 }
+
 
 case class CCOrganization(identifier: String,itemGroup:Option[CCItemGroup]){
   def toXml:Elem = {
     val outer:Elem =
     <organization identifier={identifier} structure="rooted-hierarchy"></organization>
     if (itemGroup.isDefined){
-      new Elem(outer.prefix,outer.label,outer.attributes,outer.scope,(outer.child ++ itemGroup.get.toXml) : _*);
+      Helper.addChildNode(outer, itemGroup.get.toXml)
     } else outer
   }
 }
@@ -55,8 +64,8 @@ case class CCItemGroup(title: String, identifier: String, items:Seq[CCItem]){
   def toXml:Elem = {
     var outer:Elem = <item identifier={identifier}>
     </item>
-    if (title != "") outer =  new Elem(outer.prefix,outer.label,outer.attributes,outer.scope, (outer.child ++ <title>{title}</title>) : _*)
-    outer = new Elem(outer.prefix,outer.label,outer.attributes,outer.scope, (outer.child ++ items.map(_.toXml)) : _*)
+    if (title != "") outer =  Helper.addChildNode(outer, <title>{title}</title>)
+    outer = Helper.addChildNode(outer,items.map(_.toXml) : _*)
     outer
   }
 }
@@ -64,25 +73,25 @@ case class CCItem(title: String, identifier:String, identifierref:String){
   def toXml:Elem = {
     var outer:Elem = <item identifier={identifier}>
     </item>
-    if (title != "") outer =  new Elem(outer.prefix,outer.label,outer.attributes,outer.scope, (outer.child ++ <title>{title}</title>) : _*)
+    if (title != "") outer =  Helper.addChildNode(outer,  <title>{title}</title>)
     outer
   }
 }
 
 trait CCResource{
   val identifier: String
-  val rtype: String;
-  val files: Seq[CCResourceFile];
+  val rtype: String
+  val files: Seq[CCResourceFile]
   def toXml: Elem = {
     val outer:Elem = <resource identifier={identifier} type={rtype}></resource>
-    new Elem(outer.prefix,outer.label, outer.attributes, outer.scope, (outer.child ++ files.map(_.toXml)) : _*)
+    Helper.addChildNode(outer,files.map(_.toXml) : _*)
   }
 }
 trait CCHrefResource extends CCResource{
-  val href:String;
+  val href:String
   override def toXml:Elem = {
     val outer:Elem = <resource href={href} identifier={identifier} type={rtype}></resource>
-    new Elem(outer.prefix,outer.label, outer.attributes, outer.scope, (outer.child ++ files.map(_.toXml)) : _*)
+    Helper.addChildNode(outer, files.map(_.toXml) : _*)
   }
 }
 case class CCFolderResource(identifier: String, files: Seq[CCResourceFile]) extends CCResource{

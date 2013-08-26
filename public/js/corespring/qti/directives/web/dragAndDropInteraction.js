@@ -88,7 +88,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         var html = fromHtml.replace(/<:*landingPlace([\s\S]*?)>/gmi, "<landingSolution$1>").replace(/<\/:*landingPlace>/gmi, "</landingSolution>");
         var answerAreaMatch = draggableChoiceRegexp.exec(html);
         var solutionHtml = (answerAreaMatch && answerAreaMatch.length > 0) ? answerAreaMatch[0] : removeAnswerNodes(html);
-        return "<div ui-modal ng-model='solutionVisible' class='drag-and-drop-solution-modal'><span class='close-button' ng-click='hideSolution()' style='z-index: 10'></span><h1>Answer</h1>" + solutionHtml + "<a ng-click='hideSolution()'>See your answer</a></div>";
+        return "<div ui-modal data-dynamic='true' ng-model='solutionVisible' class='drag-and-drop-solution-modal'><span class='close-button' ng-click='hideSolution()' style='z-index: 10'></span><h1>Answer</h1>" + solutionHtml + "<a ng-click='hideSolution()'>See your answer</a></div>";
       };
 
       var removePromptNode = function (fromHtml) {
@@ -223,18 +223,22 @@ angular.module('qti.directives').directive("draggablechoice", function () {
         $scope.placeholderClass = attrs.placeholderClass;
         var lastW, lastH;
         setInterval(function () {
-          $scope.$apply(function () {
 
-            var w = $(el).find('.sizerHolder').width();
-            var h = $(el).find('.sizerHolder').height();
+          if(!$scope.$$phase) {
 
-            if (lastW != w || lastH != h) {
-              $scope.propagateDimension(w, h);
-            }
+            $scope.$apply(function () {
 
-            lastW = w;
-            lastH = h;
-          });
+              var w = $(el).find('.sizerHolder').width();
+              var h = $(el).find('.sizerHolder').height();
+
+              if (lastW != w || lastH != h) {
+                $scope.propagateDimension(w, h);
+              }
+
+              lastW = w;
+              lastH = h;
+            });
+          }
         }, 1000);
 
         $scope.dropOptions = {
@@ -466,15 +470,21 @@ angular.module('qti.directives').directive("landingsolution", function (QtiUtils
       var template =
         [
           '<ul style="min-height: {{maxHeight}}px; min-width: {{width}}px" class="thumbnail {{correctClass}} landing '+attrs['class']+'">',
-          ' <li ng-repeat="item in items" class="contentElement" ng-bind-html-unsafe="item"></li>',
-          '<div class="clearfix"></div>',
-          '</div>'].join(" ");
+          ' <div class="landingLabelHolder" ng-show="label">',
+          '  <span class="landingLabel" style="">{{label}}</span>',
+          ' </div>',
+          ' <li ng-repeat="item in items" class="contentElement" ng-bind-html-unsafe="item" />',
+          ' <div class="clearfix"></div>',
+          '</ul>'
+        ].join(" ");
 
       el.html(template);
 
       return function ($scope, el, attrs) {
         $scope.isMultiple = attrs.cardinality == 'multiple' || attrs.cardinality == 'ordered';
         $scope.items = [];
+
+        $scope.label = attrs.label;
 
         $scope.$watch("maxWidth", function () {
           $scope.width = $scope.isMultiple ? (4 * $scope.maxWidth) : $scope.maxWidth;

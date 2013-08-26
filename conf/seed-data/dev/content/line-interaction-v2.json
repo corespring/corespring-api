@@ -1,0 +1,25 @@
+{
+  "_id": {
+    "_id": {
+      "$oid": "51fff531b908843f70398c51"
+    },
+    "version": 0
+  },
+  "data": {
+    "name": "qti.xml",
+    "files": [
+      {
+        "_t": "org.corespring.platform.core.models.item.resource.VirtualFile",
+        "name": "qti.xml",
+        "contentType": "text/xml",
+        "isMain": true,
+        "content": "$[interpolate{conf/qti/line-interaction-v2.xml}]"
+      }
+    ]
+  },
+  "published": false,
+  "collectionId": "5001b9b9e4b035d491c268c3",
+  "taskInfo": {
+    "title": "Line Interaction"
+  }
+}

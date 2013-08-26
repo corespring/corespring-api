@@ -1,9 +1,9 @@
 package tests.common.controllers
 
 import common.controllers.{AssetResource, AssetResourceBase}
-import controllers.S3Service
-import models.item.Item
-import models.item.resource.BaseFile
+import org.corespring.assets.CorespringS3Service
+import org.corespring.platform.core.models.item.resource.BaseFile
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import play.api.Logger
 import play.api.mvc.Results.Ok
@@ -11,9 +11,9 @@ import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
-import tests.PlaySingleton
-import models.item.service.{ItemServiceImpl, ItemService}
-import org.specs2.mock.Mockito
+import org.corespring.platform.core.models.item.Item
+import org.corespring.test.PlaySingleton
+import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 
 class AssetResourceTest extends Specification with Mockito{
 
@@ -22,7 +22,7 @@ class AssetResourceTest extends Specification with Mockito{
   val resource = new AssetResourceBase {
     def itemService : ItemService = ItemServiceImpl
     def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]] = Some(Action(Ok(f.toString)))
-    def s3Service: S3Service = mock[S3Service]
+    def s3Service: CorespringS3Service = mock[CorespringS3Service]
   }
 
   "show resource" should {

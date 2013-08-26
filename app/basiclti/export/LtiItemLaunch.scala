@@ -23,7 +23,7 @@ case class LtiItemOutcomes(launchUrl: String, title: String, description: Option
     </blti:extensions>
     </cartridge_basiclti_link>
     if (description.isDefined){
-      outer = new Elem(outer.prefix,outer.label,outer.attributes, outer.scope,
+      outer = Elem(outer.prefix,outer.label,outer.attributes, outer.scope, true,
         (outer.child ++ <blti:description>{description.get}</blti:description>) : _*)
     }
     outer

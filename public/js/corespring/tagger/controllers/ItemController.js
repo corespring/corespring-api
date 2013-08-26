@@ -16,7 +16,7 @@ if (Array.prototype.removeItem == null) Array.prototype.removeItem = function (i
 /**
  * Controller for editing Item
  */
-function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, $timeout) {
+function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata) {
 
   function loadStandardsSelectionData() {
     $http.get(ServiceLookup.getUrlFor('standardsTree')).success(function (data) {
@@ -163,13 +163,22 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.showResourceEditor = false
   });
 
+  var isViewingMetadataPanel = function(){
+   return $scope.currentPanel == "orgMetadata";
+  };
+
   $scope.changePanel = function (panelName) {
-    var panel = ["metadata", "supportingMaterials", "content"].indexOf(panelName) == -1 ? "metadata" : panelName;
+    var panel = ["metadata", "supportingMaterials", "content", "orgMetadata"].indexOf(panelName) == -1 ? "metadata" : panelName;
     $scope.currentPanel = panel;
     $scope.$broadcast("tabSelected");
     enterEditorIfInContentPanel();
     updateLocation($scope.currentPanel);
   };
+
+  $scope.changeToOrgMetadata = function (mdKey) {
+    $scope.changePanel("orgMetadata");
+    $scope.selectedMetadata = mdKey;
+  }
 
   $scope.editItem = function () {
     $location.url('/edit/' + $scope.itemData.id);
@@ -202,8 +211,36 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   // broadcast an event when the Edit view is called
   $rootScope.$broadcast('onEditViewOpened');
 
+  $scope.loadItemMetadata = function(){
+    ItemMetadata.get({id: $routeParams.itemId }, function onItemMetadataLoaded(itemMetadata){
+      $scope.itemMetadata = itemMetadata;
+
+      if(isViewingMetadataPanel()){
+        $scope.selectedMetadata = $scope.itemMetadata[0].metadataKey;
+      }
+    });
+  };
+
+
   $scope.loadItem = function () {
     ItemService.get({id: $routeParams.itemId}, function onItemLoaded(itemData) {
+      console.log("ItemData arrived");
+      console.log(itemData);
+
+      // TODO: Mocking this for the time being. Format is key: label
+      /*itemData.metadataSets = {
+        "newclassroom": {
+          label: "New Classroom",
+          editorUrl: "http://localhost:5000",
+          lockFields: true,
+          data: {
+              "Skill Number": "043",
+              "Family": "4",
+              "Master Question": "C"
+          }
+        }
+      };*/
+
       $rootScope.itemData = itemData;
       enterEditorIfInContentPanel();
       initItemType();
@@ -221,34 +258,26 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       alert("Error cloning item: " + JSON.stringify(error))
     });
   };
-  //*******item versioning*********//
-//  $scope.increment = function(){
-//      $scope.showSaveWarning = false;
-//      $scope.showProgressModal = true;
-//      $scope.itemData.increment({id:$scope.itemData.id}, function onIncrementSuccess(data){
-//          $scope.showProgressModal = false;
-//          $location.path('/edit/' + data.id);
-//      }, function onError(error) {
-//          $scope.showProgressModal = false;
-//          alert("Error incrementing item: " + JSON.stringify(error))
-//      });
-//  }
-  $scope.showSaveWarning=false
-  $scope.itemVersion = 1
-  $scope.$on("dataLoaded",function(newValue,oldValue){
-      $scope.itemVersion = parseInt($scope.itemData.id.split(":")[1])+1
-      $scope.isPublished = $scope.itemData.published
-  })
-  //*****************************//
-  $scope.loadItem();
 
-     $rootScope.$on('showSaveWarning',function(){
-       $scope.$apply('showSaveWarning=true')
-     });
+  $scope.showSaveWarning = false;
+
+  $scope.itemVersion = 1;
+  $scope.$on("dataLoaded", function (newValue, oldValue) {
+    $scope.itemVersion = parseInt($scope.itemData.id.split(":")[1]) + 1;
+    $scope.isPublished = $scope.itemData.published;
+  });
+
+  $scope.loadItem();
+  $scope.loadItemMetadata();
+
+  $rootScope.$on('showSaveWarning', function () {
+    $scope.$apply('showSaveWarning=true');
+  });
 
   $scope.$watch('itemData.pValue', function (newValue, oldValue) {
     $scope.pValueAsString = $scope.getPValueAsString(newValue);
   });
+
   $scope.$watch('isPublished', function(){
     console.log("isPublished was changed")
       if($scope.isPublished) {
@@ -256,7 +285,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         if($scope.itemData.sessionCount == 1) $scope.sessionCount = "("+$scope.itemData.sessionCount+" response)"
         else $scope.sessionCount = "("+$scope.itemData.sessionCount+" responses)"
       } else $scope.itemStatus = "Draft"
-  })
+  });
+
   $scope.getPValueAsString = function (value) {
 
     var vals = {
@@ -274,7 +304,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         }
       }
     };
-
     return getLabelFromValue(vals, value);
   };
 
@@ -498,6 +527,6 @@ ItemController.$inject = [
   'Collection',
   'ServiceLookup',
   '$http',
-  '$timeout'
+  'ItemMetadata'
 ];
 
