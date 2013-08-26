@@ -4,15 +4,18 @@ import sbt._
 import MongoDbSeederPlugin._
 
 
+/**
+ * Note: We are getting cross-versioning errors - they don't have an impact on the build
+ * and will be picked up when we migrate to a newer version of play. So the choice is to ignore them for now.
+ * @see: https://groups.google.com/forum/#!topic/play-framework-dev/vXbkCEvJrkQ
+ */
 object Build extends sbt.Build {
-
-
 
   import Dependencies._
 
   val appName = "corespring"
   val appVersion = "1.0"
-  val ScalaVersion = "2.10.0"
+  val ScalaVersion = "2.10.2"
   val org = "org.corespring"
 
   val forkInTests = true

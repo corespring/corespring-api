@@ -1,4 +1,4 @@
-package utils
+package org.corespring.test.utils
 
 import org.specs2.mutable.Specification
 import org.specs2.execute.Result

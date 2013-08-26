@@ -20,8 +20,8 @@ import play.api.test.Helpers._
 import scala.Left
 import scala.Right
 import scala.Some
-import utils.RequestCalling
 import org.corespring.platform.core.models.error.InternalError
+import org.corespring.test.utils.RequestCalling
 
 
 class ItemSessionApiTest extends BaseTest with RequestCalling {
