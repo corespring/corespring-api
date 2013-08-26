@@ -62,7 +62,7 @@ angular.module("qti.directives").directive("graphcurve", function(){
 angular.module("qti.directives").directive("lineinteraction", ['$compile', function($compile){
     return {
         template: [
-        "<div class='graph-interaction'>",
+        "<div class='graph-interaction' >",
         "   <div class='additional-text' ng-show='additionalText'>",
         "       <p>{{additionalText}}</p>",
         "   </div>",
@@ -96,7 +96,7 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
         transclude: true,
         restrict: 'E',
         scope: true,
-        require: '^assessmentitem',
+        require: '?^assessmentitem',
         controller: ['$scope', function($scope){
             this.setInitialParams = function(initialParams){
                 $scope.initialParams = initialParams;
@@ -147,7 +147,7 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
                   }else{
                     $scope.graphCoords = null;
                   }
-                  if(!$scope.locked){
+                  if(!$scope.locked && $scope.controller){
                     $scope.controller.setResponse($scope.responseIdentifier, $scope.graphCoords);
                   }
                 }
@@ -187,7 +187,7 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
                    });
                    if(correctResponse && correctResponse.value){
                        var correctHtmlResponse = [
-                            "<assessmentItem><itemBody>",
+                                "<p>The equation is "+correctResponse.value+"<p>",
                                 "<lineInteraction jsxgraphcore=''",
                                                  "domain='"+$scope.domain+"'",
                                                  "range='"+$scope.range+"'",
@@ -197,12 +197,13 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
                                                  "tick-label-frequency='"+$scope.tickLabelFrequency+"'",
                                                  "show-inputs=false",
                                                  "locked=''",
+                                                 "graph-width=300",
+                                                 "graph-height=300",
                                         ">",
                                     "<graphcurve>"+correctResponse.value+"</graphcurve>",
-                                "</lineInteraction>",
-                            "</itemBody></assessmentItem>"
+                                "</lineInteraction>"
                        ].join("\n");
-                       $scope.controller.setCorrectHtmlResponse($scope.responseIdentifier, correctHtmlResponse)
+                       if($scope.controller) $scope.controller.setCorrectHtmlResponse($scope.responseIdentifier, correctHtmlResponse)
                    } else {
                     console.error("no correct response found in returned session data")
                    }
@@ -215,6 +216,14 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
             }, 500)
         }],
         compile: function(element, attrs, transclude){
+            function generateId(){
+                var alphabet = "abcdefghijklmnopqrstuvwxyz".split('')
+                var canvasId = ""
+                for(var i = 0; i < 6; i++){
+                    canvasId = canvasId + alphabet[Math.floor(Math.random()*alphabet.length)]
+                }
+                return canvasId
+            }
             var graphAttrs = {
                                  domain: parseInt(attrs.domain?attrs.domain:10),
                                  range: parseInt(attrs.range?attrs.range:10),
@@ -222,22 +231,29 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
                                  domainLabel: attrs.domainLabel,
                                  rangeLabel: attrs.rangeLabel,
                                  tickLabelFrequency: attrs.tickLabelFrequency,
-                                 maxPoints:2
+                                 maxPoints:2,
+                                 id: generateId()
                              };
 
             return function(scope, element, attrs, AssessmentItemController){
                 var gielem = element.find('.graph-interaction')
-                //get the width of the container
-                var domelem = element
-                while(domelem.width() == 0){
-                    domelem = domelem.parent()
+                var containerWidth, containerHeight;
+                if(attrs.graphWidth && attrs.graphHeight){
+                    containerWidth = parseInt(attrs.graphWidth)
+                    containerHeight = parseInt(attrs.graphHeight)
+                } else {
+                    //get the width of the container
+                    var domelem = element
+                    while(domelem.width() == 0){
+                        domelem = domelem.parent()
+                    }
+                    containerHeight = containerWidth = domelem.width()
                 }
-                var containerWidth = domelem.width()
                 gielem.append("<div class='graph-container' jsx-graph graph-callback='graphCallback' interaction-callback='interactionCallback'></div>")
-                gielem.find('.graph-container').attr(graphAttrs)
-                gielem.find('.graph-container').css({width: Math.floor(containerWidth*.85), height: Math.floor(containerWidth*.85)});
-                $compile(gielem.find('.graph-container'))(scope)
-                scope.additionalText = attrs.additionalText
+                gielem.find('.graph-container').attr(graphAttrs);
+                gielem.find('.graph-container').css({width: Math.floor(containerWidth*.9), height: Math.floor(containerHeight*.9)});
+                $compile(gielem.find('.graph-container'))(scope);
+                scope.additionalText = attrs.additionalText;
                 scope.scale = graphAttrs.scale;
                 scope.domain = graphAttrs.domain;
                 scope.range = graphAttrs.range;
@@ -245,9 +261,9 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
                 scope.showInputs = !attrs.showInputs || attrs.showInputs === "true";
                 scope.responseIdentifier = attrs.responseidentifier;
                 scope.controller = AssessmentItemController;
-                scope.controller.registerInteraction(element.attr('responseIdentifier'), "line graph", "graph");
+                if(scope.controller) scope.controller.registerInteraction(element.attr('responseIdentifier'), "line graph", "graph");
                 scope.outcomeReturned = scope.locked = attrs.hasOwnProperty('locked')?true:false;
-                if(!scope.locked) scope.controller.setResponse(scope.responseIdentifier,null);
+                if(!scope.locked && scope.controller) scope.controller.setResponse(scope.responseIdentifier,null);
                 scope.domainLabel = graphAttrs.domainLabel
                 scope.rangeLabel = graphAttrs.rangeLabel
                 scope.tickLabelFrequency = attrs.tickLabelFrequency

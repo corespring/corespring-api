@@ -47,44 +47,36 @@ angular.module('qti.directives').directive('correctanswer', ['$compile', functio
     return {
         restrict: 'E',
         template: [
-            "<a href='' ng-click='showCorrectAnswerModal()' ng-show='incorrectResponse' ng-transclude></a>",
-            "<div id='myModal' class='modal hide fade' tabindex='-1' role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'>",
+            "<a href='' ng-click='showCorrectAnswer=true' ng-show='incorrectResponse' ng-transclude></a>",
+            "<div ui-modal ng-model='showCorrectAnswer' close='showCorrectAnswer=false'>",
               "<div class='modal-header'>",
-                "<button type='button' class='close' data-dismiss='modal' aria-hidden='true'>×</button>",
-                "<h3 id='myModalLabel'>Modal header</h3>",
+                "<button type='button' class='close' ng-click='showCorrectAnswer=false'>×</button>",
+                "<h3 id='myModalLabel'>The Correct Answer</h3>",
               "</div>",
               "<div class='modal-body'></div>",
-              "<div class='modal-footer'>",
-                "<button class='btn' data-dismiss='modal' aria-hidden='true'>Close</button>",
-                "<button class='btn btn-primary'>Save changes</button>",
-              "</div>",
             "</div>",
         ].join("\n"),
         require: '^assessmentitem',
         transclude: true,
         link: function(scope, element, attrs, AssessmentItemCtrl) {
-            scope.incorrectResponse = true
+            scope.incorrectResponse = false
             scope.$on("formSubmitted",function(){
                var response = _.find(scope.itemSession.responses,function(r){
                    return r.id === attrs.responseidentifier;
                });
                scope.incorrectResponse = response && !response.outcome.isCorrect
+               if(scope.incorrectResponse){
+                   var htmlResponse = _.find(scope.correctHtmlResponses, function(html,key){
+                       return key == attrs.responseidentifier;
+                   })
+                   if(htmlResponse){
+                      element.find('.modal-body').html(htmlResponse)
+                      $compile(element.find('.modal-body'))(scope)
+                   } else {
+                       console.error("no html correct response found to be displayed in modal")
+                   }
+               }
             });
-            scope.showCorrectAnswerModal = function(){
-                var htmlResponse = _.find(scope.correctHtmlResponses, function(html,key){
-                    return key == attrs.responseidentifier;
-                })
-                if(htmlResponse){
-                   element.find('.modal-body').html(htmlResponse)
-                   $compile(element.find('.modal-body'))(scope)
-                   element.find('#myModal').modal({
-                      backdropFade: true,
-                      dialogFade:true
-                    })
-                } else {
-                    console.error("no html correct response found to be displayed in modal")
-                }
-            }
         }
     }
 }])

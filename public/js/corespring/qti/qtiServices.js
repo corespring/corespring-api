@@ -167,7 +167,7 @@ angular.module('qti.services').factory('Canvas', function () {
                          showNavigation: false,
                          showCopyright: false,
                          zoom: false
-                       });
+                       },{width: attrs.width, height: attrs.height});
     var axisAttrs = {ticks: {minorTicks: attrs.tickLabelFrequency-1, drawLabels: true}};
     this.board.create('axis', [[0, 0], [1, 0]], axisAttrs);
     this.board.create('axis', [[0, 0], [0, 1]], axisAttrs);

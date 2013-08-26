@@ -1,7 +1,7 @@
 'use strict';
 angular.module('qti.directives').directive('jsxGraph', function(Canvas) {
 return {
-  template: "<div class='jxgbox' ng-style='boxStyle' style='width: 100%; height: 100%;'></div>",
+  template: "<div class='jxgbox' ng-style='boxStyle' style='width: 100%; height: 100%; display: block'></div>",
   restrict: 'A',
   scope: {
     //{
@@ -39,7 +39,9 @@ return {
         domainLabel: attr.domainlabel,
         rangeLabel: attr.rangelabel,
         tickLabelFrequency: parseInt(attr.ticklabelfrequency?attr.ticklabelfrequency:5),
-        pointLabels: attr.pointlabels
+        pointLabels: attr.pointlabels,
+        width: elem.width(),
+        height: elem.height()
     };
     function generateCanvasId(){
         var alphabet = "abcdefghijklmnopqrstuvwxyz".split('')
