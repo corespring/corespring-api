@@ -1,4 +1,0 @@
-{
-  "ENV_MONGO_URI": "mongodb://coing:rs@ds04345349347.moasdfngolab.com:4533459347/corasdfespring-staging",
-  "ENV_INIT_DATA": "false"
-}
