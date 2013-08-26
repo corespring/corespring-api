@@ -7,3 +7,4 @@
 
 echo "format scala"
 ./bin/scalariform --recurse app/
+./bin/scalariform --recurse modules/
