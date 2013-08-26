@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+
+# installation: 
+# cd .git/hooks
+# ln -s ../../pre-commit.sh pre-commit
+
+echo "format scala"
+./bin/scalariform --recurse app/
