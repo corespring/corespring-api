@@ -21,7 +21,7 @@ We use a private repo for our assets. Because of this you will need to define yo
 This file will look like so:
 
     realm=Artifactory Realm
-    host=ec2-107-22-19-173.compute-1.amazonaws.com
+    host=repository.corespring.org
     user=XXXXXXXXXX
     password=XXXXXXXXXX
 
