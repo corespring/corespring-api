@@ -12,7 +12,7 @@ object Dependencies {
 
   val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.5-3f2edcd"
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
-  val salatPlay =  "se.radley" %% "play-plugins-salat" % "1.2"
+  val salatPlay =  "se.radley" %% "play-plugins-salat" % "1.3.0"
   val casbah = "com.mongodb.casbah" %% "casbah" % "2.0"
   val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.1.0"
   val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.2-b185ac1"

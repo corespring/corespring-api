@@ -6,7 +6,7 @@ import org.corespring.platform.core.models.quiz.basic.{Answer, Participant, Ques
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.{PlaySingleton, BaseTest}
 import play.api.libs.json.Json
-import utils.JsonToModel
+import org.corespring.test.utils.JsonToModel
 
 class QuizServiceTest extends BaseTest with JsonToModel{
 

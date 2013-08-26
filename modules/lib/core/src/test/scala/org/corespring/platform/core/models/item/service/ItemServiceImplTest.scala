@@ -1,17 +1,17 @@
 package org.corespring.platform.core.models.item.service
 
-import org.corespring.assets.CorespringS3Service
 import org.bson.types.ObjectId
+import org.corespring.assets.CorespringS3Service
 import org.corespring.platform.core.models.item.resource.{StoredFile, Resource}
 import org.corespring.platform.core.models.item.{TaskInfo, Item}
 import org.corespring.platform.core.models.itemSession.{DefaultItemSession, ItemSession}
+import org.corespring.platform.core.services.item.{ItemVersioningDao, ItemServiceImpl}
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.test.BaseTest
+import org.corespring.test.utils.mocks.MockS3Service
 import org.specs2.execute.Result
 import org.specs2.mock.Mockito
-import org.corespring.test.BaseTest
-import utils.mocks.MockS3Service
-import org.corespring.platform.core.services.item.{ItemVersioningDao, ItemServiceImpl}
 
 class ItemServiceImplTest extends BaseTest with Mockito {
 

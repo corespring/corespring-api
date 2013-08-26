@@ -1,4 +1,4 @@
-package utils
+package org.corespring.test.utils
 
 import play.api.libs.json._
 

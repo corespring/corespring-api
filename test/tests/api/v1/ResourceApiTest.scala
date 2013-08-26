@@ -7,9 +7,10 @@ import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{BaseFile, VirtualFile, Resource}
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.core.services.item.ItemServiceImpl
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
+import org.corespring.test.utils.mocks.MockS3Service
 import play.api.Play
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.JsObject
@@ -17,8 +18,6 @@ import play.api.libs.json.{Json, JsValue}
 import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, FakeHeaders}
-import utils.mocks.MockS3Service
-import org.corespring.platform.core.services.item.ItemServiceImpl
 
 
 class ResourceApiTest extends BaseTest with PackageLogging {
@@ -263,7 +262,6 @@ class ResourceApiTest extends BaseTest with PackageLogging {
         (status(result) == expectedStatus, contentAsString(result).contains(expectedContains) === true)
       }
 
-      import VersionedIdImplicits.Binders._
       import play.api.Play.current
 
       val item = testItem

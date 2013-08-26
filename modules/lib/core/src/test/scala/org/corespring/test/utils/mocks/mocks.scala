@@ -1,4 +1,4 @@
-package utils
+package org.corespring.test.utils
 
 import org.corespring.assets.CorespringS3Service
 import org.corespring.amazon.s3.models.DeleteResponse
