@@ -20,12 +20,8 @@ return {
     //    line: [pt1,pt2],
     //    showPoints: Boolean
     //  },
-    //  submission: {
-    //    isIncomplete:[Boolean],
-    //    clearBorder:[Boolean],
-    //    lockGraph:[Boolean],
-    //    isCorrect:[Boolean]
-    //  }
+    //  graphStyle: {}, //set the css
+    //  lockGraph: Boolean
     //}
     graphCallback: '='
   },
@@ -129,24 +125,14 @@ return {
                 canvas.makeCurve(params.drawShape.curve)
              }
         }
-        if(params.submission && canvas){
-             if(params.submission.isIncomplete){
-               scope.boxStyle = {width: "100%", height: "100%", borderColor: "yellow", borderWidth: "2px"};
-             }else if(params.submission.clearBorder){
-               scope.boxStyle = {width: "100%", height: "100%"};
-             }else{
-                 if(params.submission.lockGraph){
-                     _.each(canvas.points,function(p){
-                         p.setAttribute({fixed: true});
-                     });
-                     lockGraph = true;
-                 }
-                 if(params.submission.isCorrect){
-                   scope.boxStyle = {width: "100%", height: "100%", borderColor: "green", borderWidth: "2px"};
-                 }else if(params.submission.hasOwnProperty('isCorrect')){
-                    scope.boxStyle = {width: "100%", height: "100%", borderColor: "red", borderWidth: "2px"};
-                 }
-             }
+        if(params.graphStyle){
+            params.boxStyle = _.extend({width: "100%", height: "100%"}, params.graphStyle)
+        }
+        if(params.lockGraph){
+             _.each(canvas.points,function(p){
+                 p.setAttribute({fixed: true});
+             });
+             lockGraph = true;
         }
     };
   }

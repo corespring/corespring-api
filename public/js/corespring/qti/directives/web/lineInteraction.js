@@ -71,17 +71,17 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
         "           <div class='point-display' style='padding-bottom: 10px;'>",
         "              <p>Point A:</p>",
         "              <p>x: </p>",
-        "              <input type='text' style='width: 43px;', ng-model='points.A.x' ng-disabled='outcomeReturned'>",
+        "              <input type='text' style='width: 43px;', ng-model='points.A.x' ng-disabled='locked'>",
         "              <p>y: </p>",
-        "              <input type='text' style='width: 43px;' ng-model='points.A.y'  ng-disabled='outcomeReturned'>",
+        "              <input type='text' style='width: 43px;' ng-model='points.A.y'  ng-disabled='locked'>",
         "          </div>",
         "          <hr class='point-display-break'>",
         "          <div class='point-display' style='padding-top: 10px;'>",
         "             <p>Point B:</p>",
         "             <p>x: </p>",
-        "             <input type='text' style='width: 43px;', ng-model='points.B.x' ng-disabled='outcomeReturned'>",
+        "             <input type='text' style='width: 43px;', ng-model='points.B.x' ng-disabled='locked'>",
         "             <p>y: </p>",
-        "             <input type='text' style='width: 43px;' ng-model='points.B.y' ng-disabled='outcomeReturned'>",
+        "             <input type='text' style='width: 43px;' ng-model='points.B.y' ng-disabled='locked'>",
         "          </div>",
         "      </div>",
         "      <div class='span4 scale-display' ng-show='showInputs' style='margin-left: 0px;'>",
@@ -98,6 +98,7 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
         scope: true,
         require: '?^assessmentitem',
         controller: ['$scope', function($scope){
+            $scope.submissions = 0
             this.setInitialParams = function(initialParams){
                 $scope.initialParams = initialParams;
             };
@@ -111,7 +112,7 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
             $scope.points = {A: {x: undefined, y: undefined, isSet:false}, B: {x: undefined, y: undefined, isSet:false}};
             $scope.$watch('showNoResponseFeedback', function(){
                  if($scope.isEmptyItem($scope.graphCoords) && $scope.showNoResponseFeedback){
-                    $scope.graphCallback({submission: {isIncomplete:true}});
+                    $scope.graphCallback({graphStyle: {borderColor: "yellow", borderWidth: "2px"}});
                  }
             });
             $scope.interactionCallback = function(params){
@@ -143,7 +144,7 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
                       var slope = (params.points.A.y - params.points.B.y) / (params.points.A.x - params.points.B.x);
                       var yintercept = params.points.A.y - (params.points.A.x * slope);
                       $scope.equation = "y="+slope+"x+"+yintercept;
-                      $scope.graphCallback({submission:{clearBorder: true},drawShape:{line: ["A","B"]}});
+                      $scope.graphCallback({graphStyle:{},drawShape:{line: ["A","B"]}});
                   }else{
                     $scope.graphCoords = null;
                   }
@@ -177,11 +178,22 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
             }
             $scope.$on("formSubmitted",function(){
                 if(!$scope.locked){
-                   $scope.outcomeReturned = true;
+                   $scope.submissions = $scope.submissions++;
                    var response = _.find($scope.itemSession.responses,function(r){
                        return r.id === $scope.responseIdentifier;
                    });
-                   $scope.graphCallback({submission: {isCorrect: response && response.outcome.isCorrect, lockGraph: true}});
+                   if($scope.itemSession.settings.highlightUserResponse){
+                        if(response && response.outcome.isCorrect){
+                            $scope.graphCallback({graphStyle: {borderColor: "green", borderWidth: "2px"}})
+                        } else {
+                            $scope.graphCallback({graphStyle: {borderColor: "red", borderWidth: "2px"}})
+                        }
+                   }
+                   var maxAttempts = $scope.itemSession.settings.maxNoOfAttempts?$scope.itemSession.settings.maxNoOfAttempts:1
+                   if($scope.submissions >= maxAttempts){
+                        $scope.locked = true;
+                        $scope.graphCallback({lockGraph: true});
+                   }
                    var correctResponse = _.find($scope.itemSession.sessionData.correctResponses, function(cr){
                        return cr.id == $scope.responseIdentifier;
                    });
@@ -209,11 +221,6 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
                    }
                 }
             });
-
-            //refresh periodically
-            setInterval(function(){
-                $scope.$digest();
-            }, 500)
         }],
         compile: function(element, attrs, transclude){
             function generateId(){
@@ -259,6 +266,12 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
                 scope.range = graphAttrs.range;
                 scope.sigfigs = parseInt(attrs.sigfigs?attrs.sigfigs:-1);
                 scope.showInputs = !attrs.showInputs || attrs.showInputs === "true";
+                if(scope.showInputs){
+                    //refresh periodically
+                    setInterval(function(){
+                        $scope.$digest();
+                    }, 500)
+                }
                 scope.responseIdentifier = attrs.responseidentifier;
                 scope.controller = AssessmentItemController;
                 if(scope.controller) scope.controller.registerInteraction(element.attr('responseIdentifier'), "line graph", "graph");
