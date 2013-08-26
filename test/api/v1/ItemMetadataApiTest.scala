@@ -5,10 +5,10 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import play.api.test.FakeRequest
-import utils.JsonAssertions
 import org.corespring.test.PlaySingleton
 import org.corespring.platform.core.models.metadata.{Metadata, SchemaMetadata, MetadataSet}
 import org.corespring.platform.core.services.metadata.{MetadataService, MetadataSetService}
+import org.corespring.test.utils.JsonAssertions
 
 class ItemMetadataApiTest extends Specification with Mockito with JsonAssertions{
 

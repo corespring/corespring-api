@@ -5,10 +5,10 @@ import org.corespring.assets.CorespringS3Service
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{StoredFile, Resource}
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.test.utils.mocks.MockS3Service
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import scalaz.{Failure, Success}
-import utils.mocks.MockS3Service
 
 class ItemFilesTest extends Specification with Mockito{
 

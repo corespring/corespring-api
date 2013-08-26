@@ -4,7 +4,7 @@ import org.specs2.mutable.Specification
 import play.api.libs.json.Json
 import org.corespring.test.PlaySingleton
 import org.corespring.platform.core.models.metadata._
-import utils.JsonAssertions
+import org.corespring.test.utils.JsonAssertions
 
 class SetJsonTest extends Specification with JsonAssertions {
 
