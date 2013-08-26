@@ -5,6 +5,7 @@
 # cd .git/hooks
 # ln -s ../../pre-commit.sh pre-commit
 
+scalaVersion="2.10.2"
 echo "format scala"
-./bin/scalariform --recurse app/
-./bin/scalariform --recurse modules/
+./bin/scalariform -s $scalaVersion --recurse app/
+./bin/scalariform -s $scalaVersion --recurse modules/
