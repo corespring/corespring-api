@@ -5,7 +5,9 @@
 # cd .git/hooks
 # ln -s ../../hooks/pre-commit pre-commit
 
-git diff --cached --name-status
+#git diff --cached --name-status
+
+git diff --cached --name-only --diff-filter=ACM
 
 scalaVersion="2.10.2"
 echo "format scala"
