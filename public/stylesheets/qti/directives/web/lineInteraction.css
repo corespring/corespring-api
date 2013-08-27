@@ -2,8 +2,11 @@
 */
 .graph-interaction{
     background-color: #CCCCCC;
-    padding: 10px;
     margin-top: 10px;
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 30px;
 }
 .point-display{
 
@@ -42,4 +45,8 @@
     margin-top: 20px;
     margin-right: auto;
     margin-left: auto;
+}
+.correct-answer{
+    margin-top: 5px;
+    float: right;
 }

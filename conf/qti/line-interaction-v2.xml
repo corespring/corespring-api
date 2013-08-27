@@ -20,7 +20,7 @@
 
         <feedbackBlock outcomeIdentifier="responses.graphTest.outcome.incorrect">
             <div class="feedback-block-incorrect">
-                Wrong! <correctanswer responseIdentifier="graphTest">See the correct answer</correctanswer>
+                Wrong!
             </div>
         </feedbackBlock>
 
