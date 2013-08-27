@@ -195,19 +195,21 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
               }
             }, true)
             $scope.undo = function(){
-                if($scope.points.B && $scope.points.B.isSet){
+                if(!$scope.locked && $scope.points.B && $scope.points.B.isSet){
                     $scope.points.B = {}
-                } else if($scope.points.A && $scope.points.A.isSet){
+                } else if(!$scope.locked && $scope.points.A && $scope.points.A.isSet){
                     $scope.points.A = {}
                 }
             }
             $scope.startOver = function(){
-                $scope.points.B = {}
-                $scope.points.A = {}
+                if(!$scope.locked){
+                    $scope.points.B = {}
+                    $scope.points.A = {}
+                }
             }
             $scope.$on("formSubmitted",function(){
                 if(!$scope.locked){
-                   $scope.submissions = $scope.submissions++;
+                   $scope.submissions++;
                    var response = _.find($scope.itemSession.responses,function(r){
                        return r.id === $scope.responseIdentifier;
                    });
