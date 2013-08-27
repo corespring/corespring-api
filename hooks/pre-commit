@@ -27,10 +27,11 @@ files = Utils.get_scala_changes(log)
 scalaVersion="2.10.2"
 
 if files.length > 0
-    cmd = "./bin/scalariform -s=#{scalaVersion} #{files.join(" ")}"
+    cmd = "./bin/scalariform --test -s=#{scalaVersion} #{files.join(" ")}"
     puts "running: #{cmd}"
-    `#{cmd}`
-    exit 1
+    success = `#{cmd}`
+
+    puts "success? : #{$?.to_i}"
 end
 
 exit 0
