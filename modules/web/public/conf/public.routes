@@ -1,6 +1,7 @@
 GET     /                               org.corespring.web.publicsite.controllers.Application.index
 GET     /empty                          org.corespring.web.publicsite.controllers.Application.empty
 GET     /educators                      org.corespring.web.publicsite.controllers.Application.educators
+GET     /public/educators               org.corespring.web.publicsite.controllers.Application.educators
 GET     /contact                        org.corespring.web.publicsite.controllers.Application.contact
 GET     /partnerships                   org.corespring.web.publicsite.controllers.Application.partnerships
 GET     /about                          org.corespring.web.publicsite.controllers.Application.about
