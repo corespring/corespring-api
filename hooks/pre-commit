@@ -31,8 +31,9 @@ if files.length > 0
   puts Dir.pwd
   puts cmd
   `#{cmd}`
-
-  `git commit --no-verify . -m "formatter fix: #{files.join(" ")}"`
+  inner_commit = "git commit --no-verify . -m \"formatter fix: #{files.join(" ")}\""
+  puts "run: #{inner_commit}"
+  `#{inner_commit}`
 end
 
 
