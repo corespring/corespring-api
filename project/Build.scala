@@ -51,7 +51,7 @@ object Build extends sbt.Build {
   val builders = new Builders(appName, org, appVersion, ScalaVersion)
 
   val customImports = Seq(
-    "scala.language.reflectiveCalls",
+      "scala.language.reflectiveCalls",
     "se.radley.plugin.salat.Binders._",
     "org.corespring.platform.data.mongo.models.VersionedId",
     "org.bson.types.ObjectId",
