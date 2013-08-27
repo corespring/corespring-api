@@ -28,11 +28,12 @@ scalaVersion="2.10.2"
 
 if files.length > 0
     cmd = "./bin/scalariform --test -s=#{scalaVersion} #{files.join(" ")}"
-    puts "running: #{cmd}"
     output = `#{cmd}`
-    puts "output"
-    puts output
-    puts "success? : #{$?.exit_code}"
+    if output.include? "[FAILED]"
+        puts "!! You need to format your scala code!"
+        puts "run:"
+        puts "./bin/scalariform -s=#{scalaVersion} #{files.join(" ")}"
+        abort "------------"
+    end
 end
 
-exit 0
