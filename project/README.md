@@ -2,7 +2,6 @@
 
 The build file defines the build for this project.
 
-
 The project is broken down into a set of libraries and play modules.
 
 The purpose of this is:

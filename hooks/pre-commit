@@ -7,5 +7,5 @@
 
 scalaVersion="2.10.2"
 echo "format scala"
-./bin/scalariform -s $scalaVersion --recurse app/
-./bin/scalariform -s $scalaVersion --recurse modules/
+./bin/scalariform -s=$scalaVersion --recurse app/
+./bin/scalariform -s=$scalaVersion --recurse modules/
