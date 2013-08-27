@@ -28,6 +28,6 @@ scalaVersion="2.10.2"
 
 if files.length > 0
     cmd = "./bin/scalariform -s=#{scalaVersion} #{files.join(" ")}"
-    puts "cmd: "
-    puts cmd
+    puts "running: #{cmd}"
+    `#{cmd}`
 end
