@@ -52,7 +52,7 @@ object Build extends sbt.Build {
 
   val customImports = Seq(
     "scala.language.reflectiveCalls",
-      "se.radley.plugin.salat.Binders._",
+    "se.radley.plugin.salat.Binders._",
     "org.corespring.platform.data.mongo.models.VersionedId",
     "org.bson.types.ObjectId",
     "org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._")
