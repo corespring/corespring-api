@@ -30,10 +30,11 @@ if files.length > 0
     cmd = "./bin/scalariform --test -s=#{scalaVersion} #{files.join(" ")}"
     output = `#{cmd}`
     if output.include? "[FAILED]"
-        puts "!! You need to format your scala code!"
+        puts "--------------------------------------------------"
+        puts "You need to format your scala code!"
         puts "run:"
         puts "./bin/scalariform -s=#{scalaVersion} #{files.join(" ")}"
-        abort "------------"
+        abort "--------------------------------------------------"
     end
 end
 
