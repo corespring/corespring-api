@@ -13,6 +13,7 @@ case class ApiError(code: Int, message: String, moreInfo: Option[String] = None)
     copy(moreInfo = otherInfo)
   }
 
+
   override def toString = "%d: %s [%s]".format(code, message, moreInfo)
 }
 
