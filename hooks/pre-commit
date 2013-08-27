@@ -15,6 +15,20 @@ module Utils
     out = matches.map{ |m| m[1]}
     out
   end
+
+
+  def self.clip(msg)
+    if RUBY_PLATFORM.downcase.include?("darwin")
+      IO.popen('pbcopy', 'w+') do |clipboard|
+        clipboard.write msg
+      end
+    elsif RUBY_PLATFORM.downcase.include?("linux")
+      IO.popen('xsel --clipboard --input', 'r+') do |clipboard|
+        clipboard.puts msg
+      end
+    end
+  end
+
 end
 
 log = `git diff-index --cached HEAD`
@@ -26,7 +40,7 @@ if files.length > 0
     output = `#{cmd}`
 
     format_cmd =  "./bin/scalariform -s=#{scalaVersion} #{files.join(" ")}"
-    IO.popen('pbcopy', 'w').puts format_cmd
+    Utils.clip format_cmd
     if output.include? "[FAILED]"
         puts "--------------------------------------------------"
         puts "You need to format your scala code!"
