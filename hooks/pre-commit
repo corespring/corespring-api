@@ -29,9 +29,10 @@ scalaVersion="2.10.2"
 if files.length > 0
     cmd = "./bin/scalariform --test -s=#{scalaVersion} #{files.join(" ")}"
     puts "running: #{cmd}"
-    success = `#{cmd}`
-
-    puts "success? : #{$?}"
+    output = `#{cmd}`
+    puts "output"
+    puts output
+    puts "success? : #{$?.exit_code}"
 end
 
 exit 0
