@@ -13,7 +13,6 @@ case class ApiError(code: Int, message: String, moreInfo: Option[String] = None)
     copy(moreInfo = otherInfo)
   }
 
-
   override def toString = "%d: %s [%s]".format(code, message, moreInfo)
 }
 
@@ -99,7 +98,6 @@ object ApiError {
   val AddToOrganization = ApiError(404, "Failed to link collection to organization(s)")
   val CollectionUnauthorized = ApiError(405, "You do not have permissions for the specified collection")
   val DeleteCollection = ApiError(406, "An error occurred while trying to delete collection")
-
 
   // User API
   val UserRequiredFields = ApiError(500, "userName, fullName and email are required")
