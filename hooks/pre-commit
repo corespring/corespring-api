@@ -30,4 +30,7 @@ if files.length > 0
     cmd = "./bin/scalariform -s=#{scalaVersion} #{files.join(" ")}"
     puts "running: #{cmd}"
     `#{cmd}`
+    exit 1
 end
+
+exit 0
