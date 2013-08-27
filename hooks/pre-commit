@@ -24,11 +24,15 @@ scalaVersion="2.10.2"
 if files.length > 0
     cmd = "./bin/scalariform --test -s=#{scalaVersion} #{files.join(" ")}"
     output = `#{cmd}`
+
+    format_cmd =  "./bin/scalariform -s=#{scalaVersion} #{files.join(" ")}"
+    IO.popen('pbcopy', 'w').puts format_cmd
     if output.include? "[FAILED]"
         puts "--------------------------------------------------"
         puts "You need to format your scala code!"
         puts "run:"
-        puts "./bin/scalariform -s=#{scalaVersion} #{files.join(" ")}"
+        puts format_cmd
+        puts "its been copied to your clipboard for your convenience"
         abort "--------------------------------------------------"
     end
 end
