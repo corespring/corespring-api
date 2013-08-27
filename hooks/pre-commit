@@ -20,26 +20,6 @@ module Utils
 end
 
 log = `git diff-index --cached HEAD`
-
-files = Utils.get_scala_changes(log)
-scalaVersion="2.10.2"
-
-
-if files.length > 0
-  cmd = "./bin/scalariform -s=#{scalaVersion} #{files.join(" ")}"
-  puts "running formatter"
-  puts Dir.pwd
-  puts cmd
-  `#{cmd}`
-  inner_commit = "git commit --no-verify #{files.join(" ")} -m \"formatter fix: #{files.join(" ")}\""
-  puts "run: #{inner_commit}"
-  `#{inner_commit}`
-end
-
-
-=begin
-log = `git diff-index --cached HEAD`
-
 files = Utils.get_scala_changes(log)
 scalaVersion="2.10.2"
 
@@ -54,4 +34,3 @@ if files.length > 0
         abort "--------------------------------------------------"
     end
 end
-=end
