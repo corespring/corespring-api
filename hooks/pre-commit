@@ -28,6 +28,8 @@ scalaVersion="2.10.2"
 if files.length > 0
   cmd = "./bin/scalariform -s=#{scalaVersion} #{files.join(" ")}"
   puts "running formatter"
+  puts Dir.pwd
+  puts cmd
   `cmd`
 end
 
