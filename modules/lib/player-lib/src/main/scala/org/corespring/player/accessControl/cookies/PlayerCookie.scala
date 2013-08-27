@@ -3,15 +3,14 @@ package org.corespring.player.accessControl.cookies
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.User
 import play.api.libs.json.Json
-import play.api.mvc.{Session, Request}
-import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
-
+import play.api.mvc.{ Session, Request }
+import org.corespring.player.accessControl.models.{ RequestedAccess, RenderOptions }
 
 trait PlayerCookieWriter {
 
   /** A helper method to allow you to create a new session out of the existing and a variable number of Key values pairs */
   def sumSession(s: Session, keyValues: (String, String)*): Session = {
-    keyValues.foldRight(s)((kv: (String, String), acc: Session) => acc +(kv._1, kv._2))
+    keyValues.foldRight(s)((kv: (String, String), acc: Session) => acc + (kv._1, kv._2))
   }
 
   def playerCookies(userId: String, providerId: String): Seq[(String, String)] = User.getUser(userId, providerId).map {
@@ -19,9 +18,8 @@ trait PlayerCookieWriter {
       playerCookies(u.org.orgId, Some(RenderOptions.ANYTHING))
   }.getOrElse(Seq())
 
-  def playerCookies(orgId: ObjectId, options:Option[RenderOptions]): Seq[(String, String)] = Seq(
-    PlayerCookieKeys.ORG_ID -> orgId.toString
-  ) ++ options.map{ ro => (PlayerCookieKeys.RENDER_OPTIONS -> Json.toJson(ro).toString)}
+  def playerCookies(orgId: ObjectId, options: Option[RenderOptions]): Seq[(String, String)] = Seq(
+    PlayerCookieKeys.ORG_ID -> orgId.toString) ++ options.map { ro => (PlayerCookieKeys.RENDER_OPTIONS -> Json.toJson(ro).toString) }
 
   def activeModeCookie[A](mode: RequestedAccess.Mode.Mode = RequestedAccess.Mode.Preview)(implicit request: Request[A]): (String, String) = {
     (PlayerCookieKeys.ACTIVE_MODE -> mode.toString)

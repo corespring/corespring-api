@@ -17,7 +17,6 @@ class StringPackageTest extends Specification {
     "interpolate" in {
       interpolate("hello ${token}", replaceKey(Map("token" -> "world")), DollarRegex) === "hello world"
 
-
       val policyTemplate =
         """
           |{
@@ -37,7 +36,6 @@ class StringPackageTest extends Specification {
         """.stripMargin
 
       val text = interpolate(policyTemplate, replaceKey(Map("bucket" -> "my-bucket")), DollarRegex)
-
 
       text.contains("my-bucket") === true
 

@@ -3,9 +3,8 @@ package common.controllers.utils
 import play.api.mvc.Request
 import play.api.mvc.AnyContent
 
-
-object BaseUrl{
-  def apply(r:Request[AnyContent]) : String = {
+object BaseUrl {
+  def apply(r: Request[AnyContent]): String = {
 
     /**
      * Note: You can't check a request to see if its http or not in Play

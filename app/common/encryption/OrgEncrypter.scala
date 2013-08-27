@@ -8,15 +8,13 @@ class OrgEncrypter(orgId: ObjectId, encrypter: Crypto) {
 
   def encrypt(s: String): Option[EncryptionResult] = ApiClient.findOneByOrgId(orgId).map {
     client =>
-      try{
+      try {
         val data = encrypter.encrypt(s, client.clientSecret)
         EncryptionSuccess(client.clientId.toString, data, Some(s))
-      }
-      catch {
-        case e : Throwable => EncryptionFailure("Error encrypting: ", e)
+      } catch {
+        case e: Throwable => EncryptionFailure("Error encrypting: ", e)
       }
   }
-
 
   def decrypt(s: String): Option[String] = ApiClient.findOneByOrgId(orgId).map {
     client =>

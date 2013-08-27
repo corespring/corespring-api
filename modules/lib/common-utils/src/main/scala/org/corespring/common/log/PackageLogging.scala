@@ -2,20 +2,19 @@ package org.corespring.common.log
 
 import play.api.LoggerLike
 
-
 trait Logging {
 
-  protected def loggerName : String
+  protected def loggerName: String
 
-  protected lazy val Logger : LoggerLike = play.api.Logger(loggerName)
+  protected lazy val Logger: LoggerLike = play.api.Logger(loggerName)
 }
 
 trait PackageLogging extends Logging {
 
-  override protected def loggerName : String = {
+  override protected def loggerName: String = {
     val clazz = this.getClass
     val p = clazz.getPackage
-    if(p == null)
+    if (p == null)
       clazz.getName
     else
       p.getName
@@ -23,6 +22,6 @@ trait PackageLogging extends Logging {
 
 }
 
-trait ClassLogging extends Logging{
-  override protected def loggerName : String = this.getClass.getSimpleName.replace("$", "")
+trait ClassLogging extends Logging {
+  override protected def loggerName: String = this.getClass.getSimpleName.replace("$", "")
 }

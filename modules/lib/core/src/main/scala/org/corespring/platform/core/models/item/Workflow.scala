@@ -3,9 +3,9 @@ package org.corespring.platform.core.models.item
 import play.api.libs.json._
 
 case class Workflow(var setup: Boolean = false,
-                    var tagged: Boolean = false,
-                    var standardsAligned: Boolean = false,
-                    var qaReview: Boolean = false)
+  var tagged: Boolean = false,
+  var standardsAligned: Boolean = false,
+  var qaReview: Boolean = false)
 
 object Workflow {
   val setup: String = "setup"
@@ -14,7 +14,7 @@ object Workflow {
   val qaReview: String = "qaReview"
 
   implicit val Formats = Json.format[Workflow]
-/*  implicit object WorkflowWrites extends Writes[Workflow] {
+  /*  implicit object WorkflowWrites extends Writes[Workflow] {
 
     def writes(workflow: Workflow) = {
 

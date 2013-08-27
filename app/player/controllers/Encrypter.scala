@@ -5,7 +5,7 @@ import controllers.auth.BaseApi
 import play.api.libs.json._
 import scalaz.Scalaz._
 import scalaz._
-import org.corespring.common.encryption.{Crypto, AESCrypto}
+import org.corespring.common.encryption.{ Crypto, AESCrypto }
 import org.corespring.player.accessControl.models.RenderOptions
 
 class Encrypter(encrypter: Crypto) extends BaseApi {
@@ -15,8 +15,7 @@ class Encrypter(encrypter: Crypto) extends BaseApi {
       Seq(
         "clientId" -> JsString(er.clientId),
         "options" -> JsString(er.data),
-        "request" -> JsString(er.requested.getOrElse(""))
-      )
+        "request" -> JsString(er.requested.getOrElse("")))
     }
   }
 
@@ -41,18 +40,13 @@ class Encrypter(encrypter: Crypto) extends BaseApi {
                 Json.toJson(
                   JsObject(
                     Seq(
-                      "error" -> JsString("There was an error encrypting your options")
-                    )
-                  )
-                )
-              )
+                      "error" -> JsString("There was an error encrypting your options")))))
             }
           }
         }
         case Failure(e) => BadRequest("Bad Request: " + e)
       }
   }
-
 
   private def validJson(json: JsValue): Boolean = try {
     Json.fromJson[RenderOptions](json)
@@ -61,9 +55,7 @@ class Encrypter(encrypter: Crypto) extends BaseApi {
     case t: Throwable => false
   }
 
-
 }
 
 object Encrypter extends Encrypter(AESCrypto)
-
 

@@ -8,17 +8,15 @@ import org.corespring.test.utils.JsonAssertions
 
 class SetJsonTest extends Specification with JsonAssertions {
 
-
   PlaySingleton.start()
 
   "SetJson" should {
 
-    def toJsonString(p:(String,String)) = s""" "${p._1}" : "${p._2}" """
+    def toJsonString(p: (String, String)) = s""" "${p._1}" : "${p._2}" """
 
-    def dataArray( m : Metadata) : String = m.properties.map(toJsonString).mkString(",")
+    def dataArray(m: Metadata): String = m.properties.map(toJsonString).mkString(",")
 
-    def mkJson(s:MetadataSet, m : Option[Metadata]) : String = {
-
+    def mkJson(s: MetadataSet, m: Option[Metadata]): String = {
 
       val string = s"""
           {
@@ -27,8 +25,8 @@ class SetJsonTest extends Specification with JsonAssertions {
             "editorLabel" : "${s.editorLabel}",
             "editorUrl" : "${s.editorUrl}",
             "isPublic" : ${s.isPublic},
-            "schema" : [ ${s.schema.map( sc =>  s""" {"key" : "${sc.key}"} """).mkString(",")}]
-            ${ if( m.isDefined) s""", "data" : { ${dataArray(m.get)}}""" else ""}
+            "schema" : [ ${s.schema.map(sc => s""" {"key" : "${sc.key}"} """).mkString(",")}]
+            ${if (m.isDefined) s""", "data" : { ${dataArray(m.get)}}""" else ""}
           }
         """
 
@@ -36,22 +34,19 @@ class SetJsonTest extends Specification with JsonAssertions {
       string
     }
 
-
-    def assert(set:MetadataSet, m : Option[Metadata]) = {
-      val ref = SetJson(set,m)
+    def assert(set: MetadataSet, m: Option[Metadata]) = {
+      val ref = SetJson(set, m)
       println(s"Generated json: ${Json.stringify(ref)}")
-      assertJsonIsEqual(Json.stringify(ref), mkJson(set,m))
+      assertJsonIsEqual(Json.stringify(ref), mkJson(set, m))
     }
 
     "create some json" in assert(
-      MetadataSet( "one", "url", "label", true, Seq(SchemaMetadata("apple"))),
-      Some(Metadata("one", Map("apple" -> "Granny Smith")))
-    )
+      MetadataSet("one", "url", "label", true, Seq(SchemaMetadata("apple"))),
+      Some(Metadata("one", Map("apple" -> "Granny Smith"))))
 
     "create some json" in assert(
-      MetadataSet( "one", "url", "label", true, Seq(SchemaMetadata("apple"))),
-      None
-    )
+      MetadataSet("one", "url", "label", true, Seq(SchemaMetadata("apple"))),
+      None)
 
   }
 }

@@ -3,7 +3,7 @@ package org.corespring.qti.models.interactions
 import org.corespring.qti.models.responses._
 import org.corespring.qti.models.QtiItem.Correctness
 import org.corespring.qti.models.ResponseDeclaration
-import org.corespring.qti.models.interactions.choices.{SimpleChoice, Choice}
+import org.corespring.qti.models.interactions.choices.{ SimpleChoice, Choice }
 import scala.Some
 import xml._
 
@@ -19,20 +19,19 @@ case class ChoiceInteraction(responseIdentifier: String, choices: Seq[SimpleChoi
         case Some(rd) => rd.mapping match {
           case Some(mapping) => Some(ResponseOutcome(mapping.mappedValue(response.value), rd.isCorrect(responseValue) == Correctness.Correct))
           case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
-            Some(ResponseOutcome(1,true))
-          } else Some(ResponseOutcome(0,false))
+            Some(ResponseOutcome(1, true))
+          } else Some(ResponseOutcome(0, false))
         }
         case None => None
       }
       case ArrayResponse(_, responseValues, _) => responseDeclaration match {
         case Some(rd) => rd.mapping match {
           case Some(mapping) => Some(ResponseOutcome(
-            responseValues.foldRight[Float](0)((responseValue,sum) => sum + mapping.mappedValue(responseValue)),
-            rd.isCorrect(responseValues) == Correctness.Correct
-          ))
+            responseValues.foldRight[Float](0)((responseValue, sum) => sum + mapping.mappedValue(responseValue)),
+            rd.isCorrect(responseValues) == Correctness.Correct))
           case None => if (rd.isCorrect(response.value) == Correctness.Correct) {
-            Some(ResponseOutcome(1,true))
-          } else Some(ResponseOutcome(0,false))
+            Some(ResponseOutcome(1, true))
+          } else Some(ResponseOutcome(0, false))
         }
         case None => None
       }
@@ -50,8 +49,7 @@ object ChoiceInteraction extends InteractionCompanion[ChoiceInteraction] {
 
   def apply(interaction: Node, itemBody: Option[Node]): ChoiceInteraction = ChoiceInteraction(
     (interaction \ "@responseIdentifier").text,
-    (interaction \ "simpleChoice").map(SimpleChoice(_, (interaction \ "@responseIdentifier").text))
-  )
+    (interaction \ "simpleChoice").map(SimpleChoice(_, (interaction \ "@responseIdentifier").text)))
 
   def parse(itemBody: Node): Seq[Interaction] = {
     val interactions = (itemBody \\ tagName)

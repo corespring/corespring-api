@@ -1,8 +1,8 @@
 package org.corespring.qti.models.interactions
 
 import org.corespring.qti.models.responses._
-import org.corespring.qti.models.interactions.choices.{SimpleChoice, Choice}
-import org.corespring.qti.models.{CorrectResponseMultiple, ResponseDeclaration, QtiItem}
+import org.corespring.qti.models.interactions.choices.{ SimpleChoice, Choice }
+import org.corespring.qti.models.{ CorrectResponseMultiple, ResponseDeclaration, QtiItem }
 import scala.Some
 import xml._
 
@@ -61,7 +61,6 @@ case class FocusTaskInteraction(responseIdentifier: String, choices: Seq[SimpleC
         Logger.error("received a response that was not an array response in FocusTaskInteraction.getOutcome")
     }
 
-
     Some(ResponseOutcome(score, isResponseCorrect, None, outcomeProperties))
   }
 }
@@ -77,8 +76,7 @@ object FocusTaskInteraction extends InteractionCompanion[FocusTaskInteraction] {
       (interaction \ "focusChoice").map(SimpleChoice(_, (interaction \ "@responseIdentifier").text)),
       (interaction \ "@checkIfCorrect").text == "yes",
       (interaction \ "@minSelections").text.toInt,
-      (interaction \ "@maxSelections").text.toInt
-    )
+      (interaction \ "@maxSelections").text.toInt)
   }
 
   def parse(itemBody: Node): Seq[Interaction] = {

@@ -4,10 +4,9 @@ import org.corespring.qti.models.responses.ArrayResponse
 import org.corespring.qti.models.QtiItem
 import org.specs2.mutable._
 import utils.MockXml
-import utils.MockXml.{removeNodeFromXmlWhere, addChildNodeInXmlWhere}
+import utils.MockXml.{ removeNodeFromXmlWhere, addChildNodeInXmlWhere }
 
 class DragAndDropInteractionTest extends Specification {
-
 
   def interactionXml = MockXml.load("drag-and-drop-mock.xml")
 
@@ -35,7 +34,7 @@ class DragAndDropInteractionTest extends Specification {
     "populates responseCorrect" in {
       val item = QtiItem(interactionXml)
       val rd = item.responseDeclarations.find(_.identifier == "alphabet1")
-      val response = ArrayResponse("alphabet1", Seq("target1:apple|pear","target2:cow","target3:car|bus","target4:apple|pear"))
+      val response = ArrayResponse("alphabet1", Seq("target1:apple|pear", "target2:cow", "target3:car|bus", "target4:apple|pear"))
       val outcome = interaction.getOutcome(rd, response).get
       outcome.outcomeProperties.get("responseCorrect").get must beTrue
       outcome.outcomeProperties.get("responseIncorrect").get must beFalse
@@ -44,7 +43,7 @@ class DragAndDropInteractionTest extends Specification {
     "populates responseIncorrect" in {
       val item = QtiItem(interactionXml)
       val rd = item.responseDeclarations.find(_.identifier == "alphabet1")
-      val response = ArrayResponse("alphabet1", Seq("target1:apple|pear","target2:pear","target3:car|bus","target4:apple|pear"))
+      val response = ArrayResponse("alphabet1", Seq("target1:apple|pear", "target2:pear", "target3:car|bus", "target4:apple|pear"))
       val outcome = interaction.getOutcome(rd, response).get
       outcome.outcomeProperties.get("responseCorrect").get must beFalse
       outcome.outcomeProperties.get("responseIncorrect").get must beTrue
@@ -64,10 +63,11 @@ class DragAndDropInteractionTest extends Specification {
 
     "drag and drop interaction target validation #1" in {
       val xml = removeNodeFromXmlWhere(interactionXml) {
-        n => n.label != DragAndDropInteraction.targetNodeLabel && (n.attribute("identifier") match {
-          case Some(id) => id.text == "target2"
-          case _ => false
-        })
+        n =>
+          n.label != DragAndDropInteraction.targetNodeLabel && (n.attribute("identifier") match {
+            case Some(id) => id.text == "target2"
+            case _ => false
+          })
       }
       QtiItem(xml) must throwAn[IllegalArgumentException]
     }
@@ -81,9 +81,9 @@ class DragAndDropInteractionTest extends Specification {
 
   }
 
-  val elems = List("apple","pear","moon","shine","bell","head")
+  val elems = List("apple", "pear", "moon", "shine", "bell", "head")
 
-  def isFixed(e:String) = e.contains("a")
+  def isFixed(e: String) = e.contains("a")
   val iterations = 100
   import DragAndDropInteraction._
   "isTrue" should {
@@ -126,9 +126,9 @@ class DragAndDropInteractionTest extends Specification {
 
     val results = collection.mutable.Map[String, Int]()
     elems.foreach(results(_) = 0)
-    (1 to iterations) foreach { i=>
+    (1 to iterations) foreach { i =>
       val shuffled = shuffleElements(elems, isFixed)
-      shuffled.zipWithIndex foreach { case(el, i) => results(el) = results(el) + i }
+      shuffled.zipWithIndex foreach { case (el, i) => results(el) = results(el) + i }
     }
 
     "not touch fixed elements" in {
@@ -139,9 +139,9 @@ class DragAndDropInteractionTest extends Specification {
 
     "distribute evenly" in {
       println(results)
-      results("moon") must beCloseTo(300,30)
-      results("shine") must beCloseTo(300,30)
-      results("bell") must beCloseTo(300,30)
+      results("moon") must beCloseTo(300, 30)
+      results("shine") must beCloseTo(300, 30)
+      results("bell") must beCloseTo(300, 30)
     }
   }
 

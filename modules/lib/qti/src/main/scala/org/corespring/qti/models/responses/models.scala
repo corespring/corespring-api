@@ -17,10 +17,9 @@ abstract class Response(val id: String, val outcome: Option[ResponseOutcome] = N
   def getIdValueIndex: Seq[(String, String, Int)]
 }
 
+case class ResponseOutcome(score: Float = 0, isCorrect: Boolean = false, comment: Option[String] = None, outcomeProperties: Map[String, Boolean] = Map()) {
 
-case class ResponseOutcome(score: Float = 0, isCorrect: Boolean = false, comment: Option[String] = None, outcomeProperties: Map[String, Boolean] = Map()){
-
-  def getOutcomeBasedFeedbackContents(qti:QtiItem, responseIdentifier:String):Map[String,String] = {
+  def getOutcomeBasedFeedbackContents(qti: QtiItem, responseIdentifier: String): Map[String, String] = {
     val modalFeedbacks = qti.modalFeedbacks;
     val feedbackBlocks = qti.itemBody.feedbackBlocks
     val feedbacks = (modalFeedbacks ++ feedbackBlocks).filter(_.outcomeIdentifier == responseIdentifier)
@@ -33,10 +32,10 @@ case class ResponseOutcome(score: Float = 0, isCorrect: Boolean = false, comment
   }
 }
 
-object ResponseOutcome{
+object ResponseOutcome {
   implicit object ResponseOutcomeWrites extends Writes[ResponseOutcome] {
     def writes(iro: ResponseOutcome): JsValue = {
-      var jsseq:Seq[(String,JsValue)] = Seq("score" -> JsNumber(iro.score), "isCorrect" -> JsBoolean(iro.isCorrect))
+      var jsseq: Seq[(String, JsValue)] = Seq("score" -> JsNumber(iro.score), "isCorrect" -> JsBoolean(iro.isCorrect))
       if (iro.comment.isDefined) jsseq = jsseq :+ ("comment" -> JsString(iro.comment.get))
       jsseq = jsseq ++ iro.outcomeProperties.toSeq.map(prop => (prop._1 -> JsBoolean(prop._2)))
       JsObject(jsseq)
@@ -68,21 +67,18 @@ object Response {
         case StringResponse(id, v, outcome) => {
           Seq(Some("id" -> JsString(id)),
             Some("value" -> JsString(v)),
-            outcome.map(("outcome" -> toJson(_)))
-          )
+            outcome.map(("outcome" -> toJson(_))))
         }
         case ArrayResponse(id, v, outcome) => {
           Seq(
             Some("id" -> JsString(id)),
             Some("value" -> JsArray(v.map(JsString(_)))),
-            outcome.map(("outcome" -> toJson(_)))
-          )
+            outcome.map(("outcome" -> toJson(_))))
         }
       }
       JsObject(seq.flatten)
     }
   }
-
 
   implicit object ResponseReads extends Reads[Response] {
 
@@ -95,11 +91,13 @@ object Response {
 
       val id = (json \ "id").as[String]
 
-      JsSuccess{(json \ "value") match {
-        case JsArray(seq) => ArrayResponse(id, seq.map(_.as[String]))
-        case JsString(s) => StringResponse(id, s)
-        case _ => StringResponse(id, (json \ "value").as[String])
-      }}
+      JsSuccess {
+        (json \ "value") match {
+          case JsArray(seq) => ArrayResponse(id, seq.map(_.as[String]))
+          case JsString(s) => StringResponse(id, s)
+          case _ => StringResponse(id, (json \ "value").as[String])
+        }
+      }
     }
   }
 
@@ -121,7 +119,6 @@ case class ArrayResponse(override val id: String, responseValue: Seq[String], ov
 
   def getIdValueIndex = responseValue.view.zipWithIndex.map((f: (String, Int)) => (id, f._1, f._2))
 }
-
 
 case class ResponseAggregate(val id: String, correctAnswers: Seq[String], numCorrect: Int = 0, numResponses: Int = 0, totalDistribution: Int = 0, choices: Map[String, Int] = Map()) {
   def aggregate(response: Response): ResponseAggregate = {
@@ -145,7 +142,6 @@ object ResponseAggregate {
     ResponseAggregate(id, correctResponses).aggregate(response)
   }
 
-
   implicit object AggregrateFormat extends Writes[ResponseAggregate] {
     def writes(agg: ResponseAggregate) = {
       var list = List[(String, JsValue)]()
@@ -160,6 +156,4 @@ object ResponseAggregate {
   }
 
 }
-
-
 

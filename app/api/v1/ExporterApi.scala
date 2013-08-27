@@ -4,7 +4,7 @@ import basiclti.export.CCExporter
 import com.mongodb.casbah.commons.MongoDBObject
 import common.controllers.utils.BaseUrl
 import common.encryption._
-import controllers.auth.{BaseApi}
+import controllers.auth.{ BaseApi }
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.iteratee.Enumerator
@@ -13,41 +13,40 @@ import play.api.mvc._
 import scala.Some
 import scorm.utils.ScormExporter
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.models.item.{Item, Content}
+import org.corespring.platform.core.models.item.{ Item, Content }
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.common.encryption.{Crypto, AESCrypto}
+import org.corespring.common.encryption.{ Crypto, AESCrypto }
 import org.corespring.player.accessControl.models.RenderOptions
-import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
+import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
 
-class ExporterApi(encrypter: Crypto, service:ItemService) extends BaseApi {
+class ExporterApi(encrypter: Crypto, service: ItemService) extends BaseApi {
 
   val OctetStream: String = "application/octet-stream"
 
-
-  /** Build a multi item scorm .zip
-    * @param ids - comma delimited list of ids
-    */
+  /**
+   * Build a multi item scorm .zip
+   * @param ids - comma delimited list of ids
+   */
   def multiItemScorm2004(ids: String) = ApiActionRead {
     request =>
 
       Logger.debug("Encrypt for org: " + request.ctx.org.map(_.name).getOrElse("??"))
       val orgEncrypter = new OrgEncrypter(request.ctx.organization, encrypter)
       val options: RenderOptions = RenderOptions.ANYTHING
-      val maybeResult =  orgEncrypter.encrypt(Json.toJson(options).toString())
+      val maybeResult = orgEncrypter.encrypt(Json.toJson(options).toString())
 
       maybeResult match {
         case Some(EncryptionSuccess(clientId, data, _)) => {
           val generatorFn: List[Item] => Array[Byte] = ScormExporter.makeMultiScormPackage(_, BaseUrl(request), clientId, data)
           binaryResultFromIds(ids, request.ctx.organization, generatorFn)
         }
-        case Some(EncryptionFailure(msg,t)) => {
+        case Some(EncryptionFailure(msg, t)) => {
           Logger.debug("multiItemScorm encryption error: " + msg + " " + t.getMessage)
           BadRequest("An error occurred")
         }
         case _ => BadRequest("Unable to create export package")
       }
   }
-
 
   def multiItemLti(ids: String) = ApiActionRead {
     request =>

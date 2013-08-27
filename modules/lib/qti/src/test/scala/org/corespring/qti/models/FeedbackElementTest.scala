@@ -13,7 +13,7 @@ class FeedbackElementTest extends Specification {
         <p>You're awesome at this!</p>
       </feedbackInline>
 
-    val feedbackInline = FeedbackInline(feedbackXML,None)
+    val feedbackInline = FeedbackInline(feedbackXML, None)
 
     "parse identifier and outcome identifier" in {
       if (feedbackInline.identifier equals "1") success else failure
@@ -21,11 +21,10 @@ class FeedbackElementTest extends Specification {
     }
 
     "return body xml" in {
-      val actualString = feedbackXML.child.foldRight[String]("")((node,acc) => node.toString() + acc)
+      val actualString = feedbackXML.child.foldRight[String]("")((node, acc) => node.toString() + acc)
       feedbackInline.content must beEqualTo(actualString.trim)
     }
 
   }
-
 
 }

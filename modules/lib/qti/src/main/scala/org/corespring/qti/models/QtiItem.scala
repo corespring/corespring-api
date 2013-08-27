@@ -19,7 +19,6 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
         }
     }
 
-
   lazy val isQtiValid: (Boolean, Seq[String]) = {
     val messages = itemBody.interactions.collect {
       case s => s.validate(this)._2
@@ -37,10 +36,9 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
   def isCorrectResponseApplicable(id: String): Boolean = itemBody.getInteraction(id) match {
     case Some(TextEntryInteraction(_, _, _)) => false
     case Some(InlineChoiceInteraction(_, _)) => false
-    case Some(LineInteraction(_,_,_)) => false
+    case Some(LineInteraction(_, _, _)) => false
     case _ => true
   }
-
 
   /**
    * Check whether the entire response is correct
@@ -104,11 +102,11 @@ case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: Ite
     itemBody.feedbackBlocks
       .filter(_.outcomeIdentifier == id)
       .find(_.identifier == value) match {
-      case Some(fb) => {
-        Some(fb)
+        case Some(fb) => {
+          Some(fb)
+        }
+        case None => None
       }
-      case None => None
-    }
   }
 
   private def getFeedbackInline(id: String, value: String): Option[FeedbackInline] = {
@@ -139,8 +137,7 @@ object QtiItem {
     FocusTaskInteraction,
     LineInteraction,
     DragAndDropInteraction,
-    PointInteraction
-  )
+    PointInteraction)
 
   /**
    * An enumeration of the possible Correctness of a question
@@ -168,8 +165,7 @@ object QtiItem {
     QtiItem(
       responseDeclarations = (n \ "responseDeclaration").map(ResponseDeclaration(_, itemBody)),
       itemBody = itemBody,
-      modalFeedbacks = (n \ "modalFeedbacks").map(FeedbackInline(_, None))
-    )
+      modalFeedbacks = (n \ "modalFeedbacks").map(FeedbackInline(_, None)))
   }
 
   private def addCorrectResponseFeedback(qti: QtiItem, n: Node) {
@@ -188,7 +184,7 @@ object QtiItem {
 
 }
 
-case class ResponseDeclaration(identifier: String, cardinality: String, baseType:String, correctResponse: Option[CorrectResponse], mapping: Option[Mapping]) {
+case class ResponseDeclaration(identifier: String, cardinality: String, baseType: String, correctResponse: Option[CorrectResponse], mapping: Option[Mapping]) {
   def isCorrect(responseValues: Seq[String]): Correctness.Value = {
     isCorrect(responseValues.foldRight[String]("")((response, acc) => if (acc.isEmpty) response else acc + "," + response))
   }
@@ -225,8 +221,7 @@ object ResponseDeclaration {
       cardinality = cardinality,
       baseType = baseType,
       correctResponse = buildCorrectResponse(correctResponseNode, identifier, cardinality, baseType, body),
-      mapping = (node \ "mapping").headOption.map(Mapping(_))
-    )
+      mapping = (node \ "mapping").headOption.map(Mapping(_)))
   }
 
   private def buildCorrectResponse(n: Option[Node], identifier: String, cardinality: String, baseType: String, body: ItemBody): Option[CorrectResponse] = n match {
@@ -258,20 +253,20 @@ object CorrectResponse {
     if (interaction.isDefined) {
       interaction.get match {
         case TextEntryInteraction(_, _, _) => baseType match {
-          case line if line startsWith("line") => CorrectResponseLineEquation(node,line)
+          case line if line startsWith ("line") => CorrectResponseLineEquation(node, line)
           case _ => CorrectResponseAny(node)
         }
         case SelectTextInteraction(_, _, _, _, _, _) => CorrectResponseAny(node)
         case DragAndDropInteraction(_, _, targets) =>
           CorrectResponseTargeted(node, targets.filter(_.cardinality == "ordered").map(_.identifier).toSet)
-        case _ => CorrectResponse(node,cardinality,baseType)
+        case _ => CorrectResponse(node, cardinality, baseType)
       }
-    } else CorrectResponse(node,cardinality,baseType)
+    } else CorrectResponse(node, cardinality, baseType)
   }
   def apply(node: Node, cardinality: String, baseType: String): CorrectResponse = {
     cardinality match {
       case "single" => baseType match {
-        case line if line startsWith("line") => CorrectResponseLineEquation(node,line)
+        case line if line startsWith ("line") => CorrectResponseLineEquation(node, line)
         case _ => CorrectResponseSingle(node)
       }
       case "multiple" => CorrectResponseMultiple(node)
@@ -292,13 +287,11 @@ object CorrectResponseSingle {
 
     if ((node \ "value").size != 1) {
       throw new RuntimeException("Cardinality is set to single but there is not one <value> declared: " + (node \ "value").toString)
-    }
-    else {
+    } else {
       CorrectResponseSingle((node \ "value").text)
     }
   }
 }
-
 
 case class CorrectResponseMultiple(value: Seq[String]) extends CorrectResponse {
   def isCorrect(responseValue: String) = {
@@ -317,8 +310,7 @@ case class CorrectResponseMultiple(value: Seq[String]) extends CorrectResponse {
 
 object CorrectResponseMultiple {
   def apply(node: Node): CorrectResponseMultiple = CorrectResponseMultiple(
-    (node \ "value").map(_.text)
-  )
+    (node \ "value").map(_.text))
 }
 
 case class CorrectResponseAny(value: Seq[String]) extends CorrectResponse {
@@ -347,8 +339,7 @@ case class CorrectResponseOrdered(value: Seq[String]) extends CorrectResponse {
 
 object CorrectResponseOrdered {
   def apply(node: Node): CorrectResponseOrdered = CorrectResponseOrdered(
-    (node \ "value").map(_.text)
-  )
+    (node \ "value").map(_.text))
 }
 
 case class CorrectResponseTargeted(value: Map[String, List[String]], orderedTargets: Set[String] = Set()) extends CorrectResponse with PackageLogging {
@@ -362,7 +353,6 @@ case class CorrectResponseTargeted(value: Map[String, List[String]], orderedTarg
           val positionMatters = orderedTargets.contains(target)
           target -> (if (positionMatters) answersArray.toList else answersArray.toSet)
       }.toMap
-
 
     val valueMap = value.map { it =>
       val positionMatters = orderedTargets.contains(it._1)
@@ -386,8 +376,7 @@ object CorrectResponseTargeted {
   def apply(node: Node, orderedTargets: Set[String]): CorrectResponseTargeted = {
     CorrectResponseTargeted(
       (node \ "value").map(e => e.attribute("identifier").get.text -> (e \ "value").map(_.text).toList).toMap,
-      orderedTargets
-    )
+      orderedTargets)
   }
 }
 
@@ -410,8 +399,7 @@ object Mapping {
       case _ => None
     }
     val mapEntries = (node \ "mapEntry").foldRight[Map[String, Float]](Map())((node, acc) =>
-      acc + ((node \ "@mapKey").text -> (node \ "@mappedValue").text.toFloat)
-    )
+      acc + ((node \ "@mapKey").text -> (node \ "@mappedValue").text.toFloat))
     Mapping(mapEntries, defaultValue)
   }
 }
@@ -424,8 +412,7 @@ case class ItemBody(interactions: Seq[Interaction], feedbackBlocks: Seq[Feedback
 object ItemBody {
   def apply(node: Node): ItemBody = {
     val feedbackBlocks = buildTypes[FeedbackInline](node, Seq(
-      ("feedbackBlock", FeedbackInline(_, None))
-    ))
+      ("feedbackBlock", FeedbackInline(_, None))))
     ItemBody(QtiItem.interactionModels.map(_.parse(node)).flatten, feedbackBlocks)
   }
 

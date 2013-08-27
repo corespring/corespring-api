@@ -1,6 +1,6 @@
 package org.corespring.platform.core.models.error
 
-case class InternalError(message: String, e : Option[Throwable] = None){
+case class InternalError(message: String, e: Option[Throwable] = None) {
 
   play.api.Logger(this.getClass.getSimpleName).error(message)
 
@@ -8,8 +8,8 @@ case class InternalError(message: String, e : Option[Throwable] = None){
 
 }
 
-object InternalError{
-  def apply(message:String, e : Throwable) : InternalError = {
+object InternalError {
+  def apply(message: String, e: Throwable): InternalError = {
     InternalError(message, Some(e))
   }
 }

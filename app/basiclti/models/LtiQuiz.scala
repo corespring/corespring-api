@@ -1,6 +1,5 @@
 package basiclti.models
 
-
 import api.ApiError
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao._
@@ -12,53 +11,52 @@ import scala.Left
 import scala.Right
 import scala.Some
 import se.radley.plugin.salat._
-import org.corespring.platform.core.models.itemSession.{ItemSessionSettings, DefaultItemSession, ItemSession}
-import org.corespring.platform.core.models.quiz.{BaseQuiz, BaseQuestion, BaseParticipant}
+import org.corespring.platform.core.models.itemSession.{ ItemSessionSettings, DefaultItemSession, ItemSession }
+import org.corespring.platform.core.models.quiz.{ BaseQuiz, BaseQuestion, BaseParticipant }
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 
 case class LtiQuestion(itemId: Option[VersionedId[ObjectId]],
-                       settings: ItemSessionSettings)
+  settings: ItemSessionSettings)
   extends BaseQuestion(itemId, settings)
-
 
 object LtiQuestion {
 
   implicit object Writes extends Writes[LtiQuestion] {
-    import VersionedIdImplicits.{Writes => IdWrites}
+    import VersionedIdImplicits.{ Writes => IdWrites }
     def writes(q: LtiQuestion): JsValue = {
-      val out = Seq("settings" -> Json.toJson(q.settings)) ++ q.itemId.map( id => "itemId" -> Json.toJson(id)(IdWrites) )
+      val out = Seq("settings" -> Json.toJson(q.settings)) ++ q.itemId.map(id => "itemId" -> Json.toJson(id)(IdWrites))
       JsObject(out)
     }
   }
 
-  import VersionedIdImplicits.{Reads, Writes}
+  import VersionedIdImplicits.{ Reads, Writes }
   implicit val LtiQuestionReads = Json.reads[LtiQuestion]
 }
 
 case class LtiParticipant(itemSession: ObjectId,
-                          resultSourcedId: String,
-                          gradePassbackUrl: String,
-                          onFinishedUrl: String)
+  resultSourcedId: String,
+  gradePassbackUrl: String,
+  onFinishedUrl: String)
   extends BaseParticipant(Seq(itemSession), resultSourcedId)
 
-object LtiParticipant{
-  import org.corespring.platform.core.models.json.{ObjectIdReads, ObjectIdWrites}
+object LtiParticipant {
+  import org.corespring.platform.core.models.json.{ ObjectIdReads, ObjectIdWrites }
   implicit val Writes = Json.writes[LtiParticipant]
   implicit val Reads = Json.reads[LtiParticipant]
 }
 
 case class LtiQuiz(resourceLinkId: String,
-                   question: LtiQuestion,
-                   participants: Seq[LtiParticipant] = Seq(),
-                   orgId: Option[ObjectId],
-                   id: ObjectId = new ObjectId())
+  question: LtiQuestion,
+  participants: Seq[LtiParticipant] = Seq(),
+  orgId: Option[ObjectId],
+  id: ObjectId = new ObjectId())
   extends BaseQuiz(Seq(question), participants, id) {
 
   def hasAssignments = this.participants.length > 0
 
   def addParticipantIfNew(resultSourcedId: String,
-                          passbackUrl: String,
-                          finishedUrl: String): LtiQuiz = {
+    passbackUrl: String,
+    finishedUrl: String): LtiQuiz = {
 
     participants.find(_.resultSourcedId == resultSourcedId) match {
       case Some(a) => this
@@ -75,8 +73,7 @@ case class LtiQuiz(resourceLinkId: String,
           itemSession = session.id,
           resultSourcedId = resultSourcedId,
           gradePassbackUrl = passbackUrl,
-          onFinishedUrl = finishedUrl
-        )
+          onFinishedUrl = finishedUrl)
         val updated = this.participants :+ newParticipant
 
         val updatedQuiz = this.copy(participants = updated)
@@ -92,7 +89,7 @@ case class LtiQuiz(resourceLinkId: String,
 
 object LtiQuiz {
 
-/*
+  /*
   implicit object Writes extends Writes[LtiQuiz] {
 
 
@@ -111,7 +108,7 @@ object LtiQuiz {
   implicit val Writes = Json.writes[LtiQuiz]
   implicit val Reads = Json.reads[LtiQuiz]
 
-/*  implicit object Reads extends Reads[LtiQuiz] {
+  /*  implicit object Reads extends Reads[LtiQuiz] {
 
     def reads(json:JsValue) : LtiQuiz = {
       LtiQuiz(
@@ -132,7 +129,7 @@ object LtiQuiz {
     val collection = mongoCollection("lti_quizzes")
     import org.corespring.platform.core.models.mongoContext.context
     import org.corespring.platform.core.models.mongoContext.context
-val dao = new SalatDAO[LtiQuiz, ObjectId](collection = collection) {}
+    val dao = new SalatDAO[LtiQuiz, ObjectId](collection = collection) {}
   }
 
   def collection = Dao.collection
@@ -154,7 +151,6 @@ val dao = new SalatDAO[LtiQuiz, ObjectId](collection = collection) {}
   def findByResourceLinkId(resourceLinkId: String): Option[LtiQuiz] = {
     Dao.findOne(MongoDBObject("resourceLinkId" -> resourceLinkId))
   }
-
 
   def update(update: LtiQuiz, orgId: ObjectId): Either[ApiError, LtiQuiz] = {
     if (!canUpdate(update, orgId)) {

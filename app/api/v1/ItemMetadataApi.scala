@@ -2,16 +2,14 @@ package api.v1
 
 import controllers.auth.BaseApi
 import org.bson.types.ObjectId
-import org.corespring.platform.data.mongo.models.VersionedId
-import play.api.libs.json.{Json, JsValue}
-import org.corespring.platform.core.services.metadata._
-import org.corespring.platform.core.models.metadata.{Metadata, MetadataSet}
-import org.corespring.platform.core.services.item.{ItemService, ItemServiceImpl, ItemServiceClient}
-import org.corespring.platform.core.models.metadata.Metadata
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.core.models.Organization
-
+import org.corespring.platform.core.models.metadata.Metadata
+import org.corespring.platform.core.models.metadata.MetadataSet
+import org.corespring.platform.core.services.item.{ ItemService, ItemServiceImpl, ItemServiceClient }
+import org.corespring.platform.core.services.metadata._
+import org.corespring.platform.core.services.organization.OrganizationService
+import org.corespring.platform.data.mongo.models.VersionedId
+import play.api.libs.json.{ Json, JsValue }
 
 class ItemMetadataApi(metadataService: MetadataService, setService: MetadataSetService) extends BaseApi {
 
@@ -31,7 +29,5 @@ object ItemMetadataApi extends ItemMetadataApi(
   },
   new MetadataSetServiceImpl {
     def orgService: OrganizationService = Organization
-  }
-)
-
+  })
 

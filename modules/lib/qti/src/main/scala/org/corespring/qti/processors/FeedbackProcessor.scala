@@ -2,7 +2,7 @@ package org.corespring.qti.processors
 
 import org.corespring.qti.models.FeedbackIdMapEntry
 import scala.Some
-import scala.xml.transform.{RewriteRule, RuleTransformer}
+import scala.xml.transform.{ RewriteRule, RuleTransformer }
 import xml._
 
 /**
@@ -28,7 +28,7 @@ object FeedbackProcessor extends XmlValidator {
       override def transform(n: Node): NodeSeq =
         n match {
           case e: Elem if (FEEDBACK_NODE_LABELS.contains(e.label)) =>
-              <a/>.copy(attributes = e.attributes.filter(_.key != identifier)).copy(label = e.label)
+            <a/>.copy(attributes = e.attributes.filter(_.key != identifier)).copy(label = e.label)
           case n => n
         }
     })
@@ -51,35 +51,35 @@ object FeedbackProcessor extends XmlValidator {
    */
   //def addFeedbackIds(xml: NodeSeq): NodeSeq = applyRewriteRuleToXml(xml, new FeedbackIdentifierInserter())
   //def addFeedbackIds(xmlString: String): String = addFeedbackIds(XML.loadString(xmlString)).toString
-  def addFeedbackIds(elem:Elem):(Elem,Seq[FeedbackIdMapEntry]) = {
-    val feedbackMap = addFeedbackIds(elem,FeedbackMap(elem,Seq(),new IdIncrementor))
-    (feedbackMap.elem,feedbackMap.mapping)
+  def addFeedbackIds(elem: Elem): (Elem, Seq[FeedbackIdMapEntry]) = {
+    val feedbackMap = addFeedbackIds(elem, FeedbackMap(elem, Seq(), new IdIncrementor))
+    (feedbackMap.elem, feedbackMap.mapping)
   }
-  private def addFeedbackIds(elem:Elem,feedbackMap:FeedbackMap):FeedbackMap = {
-    if (FEEDBACK_NODE_LABELS.contains(elem.label)){
-      val id:Int = feedbackMap.incrementId
-      feedbackMap.mapping = feedbackMap.mapping :+ FeedbackIdMapEntry(id.toString,(elem \ "@outcomeIdentifier").text,(elem \ "@identifier").text)
-      feedbackMap.elem = elem % Attribute(None,csFeedbackId,Text(id.toString),Null)
+  private def addFeedbackIds(elem: Elem, feedbackMap: FeedbackMap): FeedbackMap = {
+    if (FEEDBACK_NODE_LABELS.contains(elem.label)) {
+      val id: Int = feedbackMap.incrementId
+      feedbackMap.mapping = feedbackMap.mapping :+ FeedbackIdMapEntry(id.toString, (elem \ "@outcomeIdentifier").text, (elem \ "@identifier").text)
+      feedbackMap.elem = elem % Attribute(None, csFeedbackId, Text(id.toString), Null)
       feedbackMap
-    }else{
-      var innerNodes:Seq[Node] = Seq()
+    } else {
+      var innerNodes: Seq[Node] = Seq()
       elem.child.foreach(node => node match {
-        case innerElem:Elem =>
-          val innerFeedbackMap = addFeedbackIds(innerElem,FeedbackMap(innerElem,Seq(),feedbackMap.incr))
+        case innerElem: Elem =>
+          val innerFeedbackMap = addFeedbackIds(innerElem, FeedbackMap(innerElem, Seq(), feedbackMap.incr))
           innerNodes = innerNodes :+ innerFeedbackMap.elem
           feedbackMap.mapping = feedbackMap.mapping ++ innerFeedbackMap.mapping
         case other => innerNodes = innerNodes :+ other
       })
-      feedbackMap.elem = Elem(elem.prefix,elem.label,elem.attributes,elem.scope,true,innerNodes : _*)
+      feedbackMap.elem = Elem(elem.prefix, elem.label, elem.attributes, elem.scope, true, innerNodes: _*)
       feedbackMap
     }
   }
-  private case class FeedbackMap(var elem:Elem,var mapping:Seq[FeedbackIdMapEntry], incr:IdIncrementor){
-    def incrementId:Int = incr.increment
+  private case class FeedbackMap(var elem: Elem, var mapping: Seq[FeedbackIdMapEntry], incr: IdIncrementor) {
+    def incrementId: Int = incr.increment
   }
-  private class IdIncrementor{
-    private var id:Int = 0
-    def increment:Int = {id = id + 1; id}
+  private class IdIncrementor {
+    private var id: Int = 0
+    def increment: Int = { id = id + 1; id }
   }
   /**
    * adds the csFeedbackIds to elem given the csFeedbackId -> identifier map. returns the same element passed in
@@ -87,19 +87,19 @@ object FeedbackProcessor extends XmlValidator {
    * @param mapping
    * @return
    */
-  def addFeedbackIds(elem:Elem, mapping:Seq[FeedbackIdMapEntry]):Elem = {
-    if (FEEDBACK_NODE_LABELS.contains(elem.label)){
-      mapping.find(fime => (fime.outcomeIdentifier == (elem \ "@outcomeIdentifier").text) && (fime.identifier== (elem \ "@identifier").text)).map(_.csFeedbackId) match {
-        case Some(id) => elem % Attribute(None,csFeedbackId,Text(id),Null)
+  def addFeedbackIds(elem: Elem, mapping: Seq[FeedbackIdMapEntry]): Elem = {
+    if (FEEDBACK_NODE_LABELS.contains(elem.label)) {
+      mapping.find(fime => (fime.outcomeIdentifier == (elem \ "@outcomeIdentifier").text) && (fime.identifier == (elem \ "@identifier").text)).map(_.csFeedbackId) match {
+        case Some(id) => elem % Attribute(None, csFeedbackId, Text(id), Null)
         case None => elem
       }
     } else {
-      var innerNodes:Seq[Node] = Seq()
+      var innerNodes: Seq[Node] = Seq()
       elem.child.foreach(_ match {
-          case innerElem:Elem => innerNodes = innerNodes :+ addFeedbackIds(innerElem,mapping)
-          case other => innerNodes = innerNodes :+ other
+        case innerElem: Elem => innerNodes = innerNodes :+ addFeedbackIds(innerElem, mapping)
+        case other => innerNodes = innerNodes :+ other
       })
-      Elem(elem.prefix,elem.label,elem.attributes,elem.scope,true,innerNodes : _*)
+      Elem(elem.prefix, elem.label, elem.attributes, elem.scope, true, innerNodes: _*)
     }
   }
 
@@ -108,8 +108,7 @@ object FeedbackProcessor extends XmlValidator {
    */
   def removeFeedbackIds(qtiXml: String): String = applyRewriteRuleToXml(qtiXml, feedbackIdentifierRemoverRule)
 
-
-  def filterFeedbackContent(xml: NodeSeq):NodeSeq = removeResponsesTransformer.transform(xml)
+  def filterFeedbackContent(xml: NodeSeq): NodeSeq = removeResponsesTransformer.transform(xml)
 
   def validate(xmlString: String): XmlValidationResult = {
     val xml = XML.loadString(xmlString)
@@ -134,30 +133,27 @@ object FeedbackProcessor extends XmlValidator {
   private def applyRewriteRuleToXml(xmlString: String, rewriteRule: RewriteRule): String =
     applyRewriteRuleToXml(XML.loadString(xmlString), rewriteRule).toString()
 
-
   /**
    * Adds an incrementing csFeedbackId attribute to each <feedbackInline> element.
    *
    * FIXME: It looks like the transform method is called multiple times per node, resulting in higher than desired id
    * values
    */
-  private class FeedbackIdentifierInserter(mapping:Map[String,String]) extends RewriteRule {
+  private class FeedbackIdentifierInserter(mapping: Map[String, String]) extends RewriteRule {
     override def transform(node: Node): Seq[Node] =
       node match {
-      case elem: Elem if (FEEDBACK_NODE_LABELS.contains(elem.label)) => {
-        mapping.find(field => field._2 == (elem \ "@identifier").text).map(_._1) match {
-          case Some(id) =>
-            elem % Attribute(None,csFeedbackId,Text(id),Null)
-            elem
-          case None =>
+        case elem: Elem if (FEEDBACK_NODE_LABELS.contains(elem.label)) => {
+          mapping.find(field => field._2 == (elem \ "@identifier").text).map(_._1) match {
+            case Some(id) =>
+              elem % Attribute(None, csFeedbackId, Text(id), Null)
+              elem
+            case None =>
+          }
+          elem
         }
-        elem
+        case other => other
       }
-      case other => other
-    }
 
   }
 }
-
-
 

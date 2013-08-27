@@ -7,8 +7,7 @@ class ResponseDeclarationTest extends Specification {
 
   val itemBody = ItemBody(
     interactions = Seq(),
-    feedbackBlocks = Seq()
-  )
+    feedbackBlocks = Seq())
 
   "A single cardinality response declaration" should {
     val xml =
@@ -43,7 +42,7 @@ class ResponseDeclarationTest extends Specification {
           <value>H</value>
           <value>O</value>
         </correctResponse>
-        <mapping defaultValue={defaultValue.toString} upperBound="2" lowerBound="0">
+        <mapping defaultValue={ defaultValue.toString } upperBound="2" lowerBound="0">
           <mapEntry mappedValue="1" mapKey="H"></mapEntry>
           <mapEntry mappedValue="2" mapKey="O"></mapEntry>
           <mapEntry mappedValue="-1" mapKey="Cl"></mapEntry>

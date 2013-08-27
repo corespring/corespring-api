@@ -6,14 +6,13 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.itemSession.PreviewItemSessionCompanion
 import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
+import org.corespring.player.accessControl.auth.{ CheckSessionAccess, TokenizedRequestActionBuilder }
 import org.corespring.player.accessControl.cookies.PlayerCookieReader
 import org.corespring.player.accessControl.models.RequestedAccess
 import org.corespring.player.accessControl.models.RequestedAccess.Mode._
 import play.api.mvc._
 import scala.Some
 import org.corespring.platform.core.services.item.ItemServiceImpl
-
 
 class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Controller with SimpleJsRoutes with PlayerCookieReader {
 
@@ -29,30 +28,25 @@ class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Cont
   }
 
   def create(itemId: VersionedId[ObjectId]) = auth.ValidatedAction(
-    RequestedAccess.asRead(Some(itemId))
-  )(implicit request => api.create(itemId)(request))
+    RequestedAccess.asRead(Some(itemId)))(implicit request => api.create(itemId)(request))
 
   def read(itemId: VersionedId[ObjectId], sessionId: ObjectId) = auth.ValidatedAction(
-    RequestedAccess.asRead(Some(itemId), Some(sessionId))
-  )(implicit request => api.get(itemId, sessionId)(request))
+    RequestedAccess.asRead(Some(itemId), Some(sessionId)))(implicit request => api.get(itemId, sessionId)(request))
 
   def update(itemId: VersionedId[ObjectId], sessionId: ObjectId, action: Option[String] = None) = auth.ValidatedAction(
-    RequestedAccess.asRead(Some(itemId), Some(sessionId))
-  )(implicit request => api.update(itemId, sessionId, action)(request))
+    RequestedAccess.asRead(Some(itemId), Some(sessionId)))(implicit request => api.update(itemId, sessionId, action)(request))
 
   def aggregate(quizId: ObjectId, itemId: VersionedId[ObjectId]) = auth.ValidatedAction(
-    RequestedAccess.asRead(Some(itemId), assessmentId = Some(quizId))
-  )(implicit request => api.aggregate(quizId, itemId)(request))
+    RequestedAccess.asRead(Some(itemId), assessmentId = Some(quizId)))(implicit request => api.aggregate(quizId, itemId)(request))
 
   def jsRoutes = Action {
     implicit request =>
-      import routes.javascript.{Session => JsSession}
+      import routes.javascript.{ Session => JsSession }
       val jsRoutes = List(
         JsSession.create,
         JsSession.read,
         JsSession.aggregate,
-        JsSession.update
-      )
+        JsSession.update)
       Ok(createSimpleRoutes("PlayerRoutes", jsRoutes: _*))
         .as("text/javascript")
   }

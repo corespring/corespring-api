@@ -7,7 +7,7 @@ import play.api.Logger
 import com.novus.salat.dao.SalatSaveError
 import org.joda.time.DateTime
 import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.{ApiClient, AccessToken}
+import org.corespring.platform.core.models.auth.{ ApiClient, AccessToken }
 import org.corespring.common.encryption.AESCrypto
 
 /**
@@ -57,21 +57,21 @@ object OAuthProvider {
     grantType match {
       case OAuthConstants.ClientCredentials =>
         // check we got valid credentials first
-        ApiClient.findByIdAndSecret(clientId,clientSecret).map(
-        {
-          client =>
-          //todo: if a user if specified check that it exists and is visible for the caller
+        ApiClient.findByIdAndSecret(clientId, clientSecret).map(
+          {
+            client =>
+              //todo: if a user if specified check that it exists and is visible for the caller
 
-          // credentials are ok, delete if there's a previous token for the same org and scope
-            val org = client.orgId
-            AccessToken.find(org, scope).foreach(AccessToken.remove(_))
-            val creationTime = DateTime.now()
-            val token = AccessToken(org, scope, generateToken, creationTime, creationTime.plusHours(24))
-            AccessToken.insert(token) match {
-              case Some(_) => Right(token)
-              case None => Left(ApiError.OperationError)
-            }
-        }).getOrElse(Left(InvalidCredentials))
+              // credentials are ok, delete if there's a previous token for the same org and scope
+              val org = client.orgId
+              AccessToken.find(org, scope).foreach(AccessToken.remove(_))
+              val creationTime = DateTime.now()
+              val token = AccessToken(org, scope, generateToken, creationTime, creationTime.plusHours(24))
+              AccessToken.insert(token) match {
+                case Some(_) => Right(token)
+                case None => Left(ApiError.OperationError)
+              }
+          }).getOrElse(Left(InvalidCredentials))
       case _ => Left(UnsupportedFlow)
     }
   }
@@ -85,7 +85,7 @@ object OAuthProvider {
   def getAuthorizationContext(t: String): Either[ApiError, AuthorizationContext] = {
     AccessToken.findById(t) match {
       case Some(token: AccessToken) =>
-        if ( token.isExpired ) {
+        if (token.isExpired) {
           Left(ExpiredToken.format(token.expirationDate.toString))
         } else {
 
@@ -101,6 +101,6 @@ object OAuthProvider {
    * @return a token
    */
   def generateToken = {
-    BigInt.probablePrime(AESCrypto.KEY_LENGTH*8, scala.util.Random).toString(AESCrypto.KEY_RADIX)
+    BigInt.probablePrime(AESCrypto.KEY_LENGTH * 8, scala.util.Random).toString(AESCrypto.KEY_RADIX)
   }
 }

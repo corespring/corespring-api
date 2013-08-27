@@ -1,25 +1,22 @@
 package org.corespring.qti.models.interactions
 
 import org.corespring.qti.models.responses.ArrayResponse
-import org.corespring.qti.models.{ResponseDeclaration, QtiItem}
+import org.corespring.qti.models.{ ResponseDeclaration, QtiItem }
 import org.specs2.mutable.Specification
 
-
-class LineInteractionTest extends Specification{
+class LineInteractionTest extends Specification {
 
   val qti = QtiItem(
-  <assessmentItem>
-    <responseDeclaration identifier="graphTest" baseType="line" cardinality="single">
-      <correctResponse>
-        <value>y=2x+7</value>
-      </correctResponse>
-    </responseDeclaration>
-    <itemBody>
-      <lineInteraction jsxgraphcore="" responseIdentifier="graphTest" graph-width="300px" graph-height="300px" domain="10"
-                       range="10" scale="1" domain-label="x" range-label="y" tick-label-frequency="5"
-      ></lineInteraction>
-    </itemBody>
-  </assessmentItem>)
+    <assessmentItem>
+      <responseDeclaration identifier="graphTest" baseType="line" cardinality="single">
+        <correctResponse>
+          <value>y=2x+7</value>
+        </correctResponse>
+      </responseDeclaration>
+      <itemBody>
+        <lineInteraction jsxgraphcore="" responseIdentifier="graphTest" graph-width="300px" graph-height="300px" domain="10" range="10" scale="1" domain-label="x" range-label="y" tick-label-frequency="5"></lineInteraction>
+      </itemBody>
+    </assessmentItem>)
 
   val optli1 = qti.itemBody.interactions.find(i => i.responseIdentifier == "graphTest" && i.isInstanceOf[LineInteraction]).map(_.asInstanceOf[LineInteraction])
 
@@ -44,8 +41,7 @@ class LineInteractionTest extends Specification{
         </correctResponse>
       </responseDeclaration>
       <itemBody>
-        <lineInteraction jsxgraphcore="" responseIdentifier="graphTest" sigfigs="3"
-        ></lineInteraction>
+        <lineInteraction jsxgraphcore="" responseIdentifier="graphTest" sigfigs="3"></lineInteraction>
       </itemBody>
     </assessmentItem>)
 
@@ -70,10 +66,10 @@ class LineInteractionTest extends Specification{
       optli1.map(_.sigfigs) must beSome(-1)
     }
     "be answered correctly" in {
-      optli1.flatMap(_.getOutcome(optrd1,ArrayResponse("graphTest",Seq("-3,1","-2,3")))).map(_.isCorrect) must beSome(true)
+      optli1.flatMap(_.getOutcome(optrd1, ArrayResponse("graphTest", Seq("-3,1", "-2,3")))).map(_.isCorrect) must beSome(true)
     }
     "be answered correctly with different coordinates" in {
-      optli1.flatMap(_.getOutcome(optrd1,ArrayResponse("graphTest",Seq("1,9","-4,-1")))).map(_.isCorrect) must beSome(true)
+      optli1.flatMap(_.getOutcome(optrd1, ArrayResponse("graphTest", Seq("1,9", "-4,-1")))).map(_.isCorrect) must beSome(true)
     }
   }
 
@@ -88,7 +84,7 @@ class LineInteractionTest extends Specification{
       optli3.map(_.sigfigs) must beSome(3)
     }
     "be answered correctly when slope matches significant figures" in {
-      optli3.flatMap(_.getOutcome(optrd3,ArrayResponse("graphTest",Seq("1,4.571428571","3,7.714285713")))).map(_.isCorrect) must beSome(true)
+      optli3.flatMap(_.getOutcome(optrd3, ArrayResponse("graphTest", Seq("1,4.571428571", "3,7.714285713")))).map(_.isCorrect) must beSome(true)
     }
   }
 

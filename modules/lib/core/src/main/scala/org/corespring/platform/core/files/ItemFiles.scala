@@ -3,9 +3,8 @@ package org.corespring.platform.core.files
 import org.corespring.assets.CorespringS3Service
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{Resource, StoredFile}
-import scalaz.{Validation, Failure, Success}
-
+import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
+import scalaz.{ Validation, Failure, Success }
 
 case class CloneResourceResult(files: Seq[CloneFileResult])
 
@@ -17,13 +16,14 @@ trait ItemFiles extends PackageLogging {
 
   def bucket: String
 
-  /** Given a newly versioned item, copy the files on s3 to the new storageKey
-    * and upate the file's storage key.
-    *
-    * @return a Validation
-    *         Failure -> a seq of files that were successfully cloned (to allow rollback)
-    *         Success -> the updated item
-    */
+  /**
+   * Given a newly versioned item, copy the files on s3 to the new storageKey
+   * and upate the file's storage key.
+   *
+   * @return a Validation
+   *         Failure -> a seq of files that were successfully cloned (to allow rollback)
+   *         Success -> the updated item
+   */
   def cloneStoredFiles(implicit item: Item): Validation[Seq[CloneFileResult], Item] = {
 
     val resources: Seq[Resource] = item.supportingMaterials ++ item.data
@@ -45,7 +45,7 @@ trait ItemFiles extends PackageLogging {
   def processFile(resource: Resource, file: StoredFile)(implicit item: Item): CloneFileResult = try {
     val newStorageKey = StoredFile.storageKey(item.id, resource, file.name)
 
-    if(file.storageKey.isEmpty){
+    if (file.storageKey.isEmpty) {
       throw new RuntimeException("this file has no storage key: " + file.name + " id: " + item.id + " resource: " + resource.name)
     }
 
@@ -54,7 +54,7 @@ trait ItemFiles extends PackageLogging {
     file.storageKey = newStorageKey
     CloneFileResult(file, true)
   } catch {
-    case e : Throwable => {
+    case e: Throwable => {
       Logger.debug("An error occurred cloning the file: " + e.getMessage)
       CloneFileResult(file, false)
     }

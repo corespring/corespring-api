@@ -2,7 +2,7 @@ package org.corespring.web.common.controllers
 
 object DefaultCss {
 
-  private def css( url : String ) : String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
+  private def css(url: String): String = """<link rel="stylesheet" type="text/css" href="%s"/>""".format(url)
 
   private val BYTE_BUREAU = css("/assets/stylesheets/bytebureau/styles.css")
 
@@ -13,6 +13,6 @@ object DefaultCss {
 }
 
 object Bootstrap {
-  def path(suffix : String, version: String = "2.1.1" ) = "/assets/bootstrap/%s/%s/bootstrap.%s".format(version, suffix, suffix)
+  def path(suffix: String, version: String = "2.1.1") = "/assets/bootstrap/%s/%s/bootstrap.%s".format(version, suffix, suffix)
 
 }

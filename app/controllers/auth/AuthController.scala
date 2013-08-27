@@ -3,7 +3,7 @@ package controllers.auth
 import play.api.data._
 import play.api.data.Forms._
 import play.api.libs.json.Json
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{ Action, Controller }
 import api.ApiError
 import org.bson.types.ObjectId
 import securesocial.core.SecureSocial
@@ -17,12 +17,11 @@ import org.corespring.platform.core.models.User
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.auth.Permission
 
-
 /**
  * A controller to handle the OAuth flow and consumer registration
  */
 
-object AuthController extends Controller with SecureSocial with ObjectIdParser with PackageLogging{
+object AuthController extends Controller with SecureSocial with ObjectIdParser with PackageLogging {
 
   case class AccessTokenRequest(grant_type: String, client_id: String, client_secret: String, scope: Option[String])
 
@@ -37,22 +36,20 @@ object AuthController extends Controller with SecureSocial with ObjectIdParser w
   val accessTokenForm = Form(
     mapping(
       OAuthConstants.GrantType -> optional(text),
-      OAuthConstants.ClientId ->  text.verifying(validObjectIdConstraint),
+      OAuthConstants.ClientId -> text.verifying(validObjectIdConstraint),
       OAuthConstants.ClientSecret -> nonEmptyText,
-      OAuthConstants.Scope -> optional(text)
-    )((grantType,clientId,clientSecret,scope) =>
-      AccessTokenRequest.apply(grantType.getOrElse(OAuthConstants.ClientCredentials),clientId,clientSecret,scope))
-      (AccessTokenRequest.unapply(_).map((atrtuple => (Some(atrtuple._1),atrtuple._2,atrtuple._3,atrtuple._4))))
-  )
+      OAuthConstants.Scope -> optional(text))((grantType, clientId, clientSecret, scope) =>
+        AccessTokenRequest.apply(grantType.getOrElse(OAuthConstants.ClientCredentials), clientId, clientSecret, scope))(AccessTokenRequest.unapply(_).map((atrtuple => (Some(atrtuple._1), atrtuple._2, atrtuple._3, atrtuple._4)))))
 
-  def validObjectIdConstraint : Constraint[String] = {
-    def validOid(s:String) = objectId(s).isDefined
+  def validObjectIdConstraint: Constraint[String] = {
+    def validOid(s: String) = objectId(s).isDefined
     Constraint[String]({
-     s : String => s match {
-       case _ if s.length == 0 => Invalid(ValidationError("empty"))
-       case oid if !validOid(oid) => Invalid(ValidationError("Invalid object id"))
-       case _ => Valid
-     }
+      s: String =>
+        s match {
+          case _ if s.length == 0 => Invalid(ValidationError("empty"))
+          case oid if !validOid(oid) => Invalid(ValidationError("Invalid object id"))
+          case _ => Valid
+        }
     })
   }
 
@@ -66,26 +63,25 @@ object AuthController extends Controller with SecureSocial with ObjectIdParser w
    * @return
    */
   def register = SecuredAction { implicit request =>
-      registerInfo.bindFromRequest().value.map { orgStr =>
-          val username = request.user.identityId.userId
-          val orgId = new ObjectId(orgStr)
-          User.getUser(username) match {
-            case Some(user) => if(user.org.orgId == orgId && (user.org.pval&Permission.Write.value) == Permission.Write.value){
-              try {
-                OAuthProvider.createApiClient(orgId).fold(
-                  error => BadRequest(Json.toJson(error)),
-                  client => Ok(Json.toJson(Map(OAuthConstants.ClientId -> client.clientId.toString, OAuthConstants.ClientSecret -> client.clientSecret)))
-                )
-              } catch {
-                case ex: IllegalArgumentException => BadRequest(Json.toJson(ApiError.MissingOrganization))
-              }
-            }else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
-            case None => {
-              Logger.error("user was authorized but does not exist!")
-              InternalServerError
-            }
+    registerInfo.bindFromRequest().value.map { orgStr =>
+      val username = request.user.identityId.userId
+      val orgId = new ObjectId(orgStr)
+      User.getUser(username) match {
+        case Some(user) => if (user.org.orgId == orgId && (user.org.pval & Permission.Write.value) == Permission.Write.value) {
+          try {
+            OAuthProvider.createApiClient(orgId).fold(
+              error => BadRequest(Json.toJson(error)),
+              client => Ok(Json.toJson(Map(OAuthConstants.ClientId -> client.clientId.toString, OAuthConstants.ClientSecret -> client.clientSecret))))
+          } catch {
+            case ex: IllegalArgumentException => BadRequest(Json.toJson(ApiError.MissingOrganization))
           }
-      }.getOrElse(BadRequest(Json.toJson(ApiError.MissingOrganization))).as(JSON)
+        } else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
+        case None => {
+          Logger.error("user was authorized but does not exist!")
+          InternalServerError
+        }
+      }
+    }.getOrElse(BadRequest(Json.toJson(ApiError.MissingOrganization))).as(JSON)
   }
 
   def getAccessToken = Action {
@@ -98,7 +94,6 @@ object AuthController extends Controller with SecureSocial with ObjectIdParser w
               val result = Map(OAuthConstants.AccessToken -> token.tokenId) ++ token.scope.map(OAuthConstants.Scope -> _)
               Ok(Json.toJson(result))
             case Left(error) => Forbidden(Json.toJson(error))
-          }
-      ).as(JSON)
+          }).as(JSON)
   }
 }

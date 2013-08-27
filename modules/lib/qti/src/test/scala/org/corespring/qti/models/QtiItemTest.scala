@@ -4,7 +4,7 @@ import io.Codec
 import java.nio.charset.Charset
 import org.corespring.qti.models.QtiItem.Correctness
 import org.corespring.qti.models._
-import org.corespring.qti.models.interactions.{FeedbackInline, TextEntryInteraction, Interaction}
+import org.corespring.qti.models.interactions.{ FeedbackInline, TextEntryInteraction, Interaction }
 import org.specs2.mutable.Specification
 import scala.Some
 import scala.xml._
@@ -12,11 +12,9 @@ import utils.MockXml
 
 class QtiItemTest extends Specification {
 
-
   val AllItems = QtiItem(MockXml.AllItems)
 
   def xml(identifier: String, cardinality: String, values: NodeSeq, interaction: NodeSeq = <none/>): Elem = MockXml.createXml(identifier, cardinality, values, interaction)
-
 
   "QtiItem" should {
 
@@ -24,13 +22,13 @@ class QtiItemTest extends Specification {
       "id",
       "single",
       <value>14</value> <value>Fourteen</value>,
-        <textEntryInteraction responseIdentifier="id" expectedLength="1"/>))
+      <textEntryInteraction responseIdentifier="id" expectedLength="1"/>))
 
     val selectText = QtiItem(xml(
       "id",
       "single",
       <value>14</value>,
-     <selectTextInteraction responseIdentifier="id" selectionType="sentence" minSelections="2" maxSelections="2" />))
+      <selectTextInteraction responseIdentifier="id" selectionType="sentence" minSelections="2" maxSelections="2"/>))
 
     val single = QtiItem(xml("id", "single", <value>1</value>))
     val multiple = QtiItem(xml("id", "multiple", <value>1</value> <value>2</value>))
@@ -79,7 +77,6 @@ class QtiItemTest extends Specification {
     }
   }
 
-
   "QtiItem xml parsing" should {
     val item = QtiItem(MockXml.load("multiple-feedback-blocks.xml"))
 
@@ -106,7 +103,7 @@ class QtiItemTest extends Specification {
 
     "find a feedback block for an incorrect response" in {
       item.getFeedback("Q_03", "8") match {
-        case Some(FeedbackInline(csFeedbackId,outcomeId,_,_,_,_,_)) => {
+        case Some(FeedbackInline(csFeedbackId, outcomeId, _, _, _, _, _)) => {
           csFeedbackId === "2"
           outcomeId === "Q_03"
         }
@@ -125,20 +122,17 @@ class QtiItemTest extends Specification {
       interactionMatchesExpectation(q6, Seq("Q_06 : 8", "Q_06 : incorrect")) === true
     }
 
-
     "is correct response applicable is false for text interactions" in {
 
       val textEntryXml = MockXml.createXml("1",
         "multiple",
         <value>six</value><value>6</value>,
-        <textEntryInteraction responseIdentifier="1" expectedLength="4"></textEntryInteraction>
-        )
+        <textEntryInteraction responseIdentifier="1" expectedLength="4"></textEntryInteraction>)
 
       val qti = QtiItem(textEntryXml)
 
       qti.isCorrectResponseApplicable("1") === false
     }
-
 
   }
 
@@ -146,15 +140,15 @@ class QtiItemTest extends Specification {
     "return correct scores" in {
 
       val testXml = <assessmentItem>
-        <responseDeclaration identifier="q1" cardinality="single" baseType="identifier">
-          <correctResponse>
-            <value>q1Answer</value>
-          </correctResponse>
-        </responseDeclaration>
-        <itemBody>
-          <choiceInteraction responseIdentifier="q1"></choiceInteraction>
-        </itemBody>
-      </assessmentItem>
+                      <responseDeclaration identifier="q1" cardinality="single" baseType="identifier">
+                        <correctResponse>
+                          <value>q1Answer</value>
+                        </correctResponse>
+                      </responseDeclaration>
+                      <itemBody>
+                        <choiceInteraction responseIdentifier="q1"></choiceInteraction>
+                      </itemBody>
+                    </assessmentItem>
 
       val qti = QtiItem(testXml)
       qti.isCorrect("q1", "q1Answer") must equalTo(Correctness.Correct)
@@ -178,20 +172,18 @@ class QtiItemTest extends Specification {
     val feedbackXml = xml("id", "single",
       <value>1</value>,
       <choiceInteraction responseIdentifier="id">
-        <simpleChoice identifier="1">a
+        <simpleChoice identifier="1">
+          a
           <feedbackInline csFeedbackId="cs_1" identifier="1">You are correct</feedbackInline>
         </simpleChoice>
-        <simpleChoice identifier="2">a
+        <simpleChoice identifier="2">
+          a
           <feedbackInline csFeedbackId="cs_2" identifier="2">You are incorrect</feedbackInline>
         </simpleChoice>
       </choiceInteraction>
-        <feedbackBlock
-        outcomeIdentifier="responses.id.value"
-        identifier="3"
-        csFeedbackId="cs_3"
-        showHide="show">
-          cs_3 feedback text
-        </feedbackBlock>)
+      <feedbackBlock outcomeIdentifier="responses.id.value" identifier="3" csFeedbackId="cs_3" showHide="show">
+        cs_3 feedback text
+      </feedbackBlock>)
 
     "find simple choice feedback inline" in {
       QtiItem(feedbackXml).getFeedback("id", "1") must not beNone
@@ -204,7 +196,6 @@ class QtiItemTest extends Specification {
   }
 
 }
-
 
 class ItemBodyTest extends Specification {
 
@@ -325,9 +316,7 @@ class CorrectResponseTest extends Specification {
             <landingPlace cardinality="multiple" identifier="target2"></landingPlace>
             <landingPlace cardinality="single" identifier="target3"></landingPlace>
             <landingPlace cardinality="ordered" identifier="target4"></landingPlace>
-
-          </dragAndDropInteraction>
-      ))
+          </dragAndDropInteraction>))
       val response = item.responseDeclarations(0).correctResponse.get
       response.isValueCorrect("target1:apple|pear|cherry|orange", None) === true
       response.isValueCorrect("target1:apple|pear|cherry", None) === false
@@ -337,7 +326,6 @@ class CorrectResponseTest extends Specification {
       response.isCorrect("target1:apple|pear|cherry|orange,target2:fox|bear|cow,target3:apple,target4:fox") mustEqual true
       response.isCorrect("target1:pear|apple|cherry|orange,target2:cow|bear|fox,target3:apple,target4:fox") mustEqual false
     }
-
 
   }
 }

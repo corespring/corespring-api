@@ -6,7 +6,7 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-class ExampleContentTest extends BaseTest{
+class ExampleContentTest extends BaseTest {
 
   "ExampleContent" should {
 

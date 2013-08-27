@@ -4,9 +4,9 @@ import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mutable.Specification
 
-class FileTest extends Specification{
+class FileTest extends Specification {
 
-  "StoredFile" should{
+  "StoredFile" should {
     "return a storage key for id with no version" in {
       val id = VersionedId(ObjectId.get)
       val resource = Resource("resource", Seq())

@@ -5,12 +5,11 @@ import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
 
 case class Alignments(bloomsTaxonomy: Option[String] = None,
-                      keySkills: Seq[String] = Seq(),
-                      demonstratedKnowledge: Option[String] = None,
-                      relatedCurriculum: Option[String] = None)
+  keySkills: Seq[String] = Seq(),
+  demonstratedKnowledge: Option[String] = None,
+  relatedCurriculum: Option[String] = None)
 
 object Alignments extends ValueGetter {
-
 
   object Keys {
     val bloomsTaxonomy = "bloomsTaxonomy"
@@ -30,8 +29,7 @@ object Alignments extends ValueGetter {
         demonstratedKnowledge = getValidatedValue(fieldValues.demonstratedKnowledge)(json, demonstratedKnowledge),
         bloomsTaxonomy = getValidatedValue(fieldValues.bloomsTaxonomy)(json, bloomsTaxonomy),
         keySkills = (json \ keySkills).asOpt[Seq[String]].getOrElse(Seq.empty),
-        relatedCurriculum = (json \ relatedCurriculum).asOpt[String]
-      ))
+        relatedCurriculum = (json \ relatedCurriculum).asOpt[String]))
     }
 
     private def getValidatedValue(s: Seq[StringKeyValue])(json: JsValue, key: String): Option[String] = {
@@ -41,6 +39,4 @@ object Alignments extends ValueGetter {
     }
   }
 }
-
-
 

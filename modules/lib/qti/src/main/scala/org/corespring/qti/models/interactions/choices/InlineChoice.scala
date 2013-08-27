@@ -9,6 +9,5 @@ object InlineChoice {
   def apply(node: Node, responseIdentifier: String): InlineChoice = InlineChoice(
     (node \ "@identifier").text,
     responseIdentifier,
-    (node \ "feedbackInline").headOption.map(FeedbackInline(_, Some(responseIdentifier)))
-  )
+    (node \ "feedbackInline").headOption.map(FeedbackInline(_, Some(responseIdentifier))))
 }

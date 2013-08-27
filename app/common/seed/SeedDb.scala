@@ -2,10 +2,10 @@ package common.seed
 
 import com.ee.seeder.Seeder
 import com.ee.seeder.log.ConsoleLogger.Level
-import com.mongodb.casbah.{MongoDB, MongoCollection}
+import com.mongodb.casbah.{ MongoDB, MongoCollection }
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models._
-import org.corespring.platform.core.models.auth.{ApiClient, AccessToken}
+import org.corespring.platform.core.models.auth.{ ApiClient, AccessToken }
 import org.corespring.platform.core.models.item.FieldValue
 import org.corespring.platform.core.models.itemSession.DefaultItemSession
 import org.joda.time.DateTime
@@ -39,8 +39,7 @@ object SeedDb {
     salatDb()(current)("lti_quizzes"),
     salatDb()(current)("regtokens"),
     salatDb()(current)("quizzes"),
-    salatDb()(play.api.Play.current)("metadataSets")
-  )
+    salatDb()(play.api.Play.current)("metadataSets"))
 
   def emptyData() {
     collections.foreach(_.drop())
@@ -52,7 +51,7 @@ object SeedDb {
   }
 
   def seedData(paths: String*) {
-    val db : MongoDB = salatDb()
+    val db: MongoDB = salatDb()
     val seeder = new Seeder(salatDb(), Level.DEBUG)
     seeder.seed(paths.toList, false)
   }

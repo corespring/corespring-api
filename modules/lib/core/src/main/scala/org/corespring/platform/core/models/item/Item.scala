@@ -4,7 +4,7 @@ import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.json.JsonValidationException
 import org.corespring.platform.core.models.json.ItemView
 import org.bson.types.ObjectId
-import org.corespring.platform.data.mongo.models.{EntityWithVersionedId, VersionedId}
+import org.corespring.platform.data.mongo.models.{ EntityWithVersionedId, VersionedId }
 import org.joda.time.DateTime
 import play.api.libs.json._
 import scala._
@@ -14,31 +14,30 @@ import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.resource.Resource
 
 case class Item(
-                 var collectionId: String = "",
-                 var contributorDetails: Option[ContributorDetails] = None,
-                 var contentType: String = "item",
-                 var priorUse: Option[String] = None,
-                 var priorGradeLevel: Seq[String] = Seq(),
-                 var reviewsPassed: Seq[String] = Seq(),
-                 var standards: Seq[String] = Seq(),
-                 var pValue: Option[String] = None,
-                 var lexile: Option[String] = None,
-                 var data: Option[Resource] = None,
-                 var originId: Option[String] = None,
-                 var supportingMaterials: Seq[Resource] = Seq(),
-                 var published: Boolean = false,
-                 var workflow: Option[Workflow] = None,
-                 var dateModified: Option[DateTime] = Some(new DateTime()),
-                 var taskInfo: Option[TaskInfo] = None,
-                 var otherAlignments: Option[Alignments] = None,
-                 var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())) extends Content with EntityWithVersionedId[ObjectId] {
+  var collectionId: String = "",
+  var contributorDetails: Option[ContributorDetails] = None,
+  var contentType: String = "item",
+  var priorUse: Option[String] = None,
+  var priorGradeLevel: Seq[String] = Seq(),
+  var reviewsPassed: Seq[String] = Seq(),
+  var standards: Seq[String] = Seq(),
+  var pValue: Option[String] = None,
+  var lexile: Option[String] = None,
+  var data: Option[Resource] = None,
+  var originId: Option[String] = None,
+  var supportingMaterials: Seq[Resource] = Seq(),
+  var published: Boolean = false,
+  var workflow: Option[Workflow] = None,
+  var dateModified: Option[DateTime] = Some(new DateTime()),
+  var taskInfo: Option[TaskInfo] = None,
+  var otherAlignments: Option[Alignments] = None,
+  var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())) extends Content with EntityWithVersionedId[ObjectId] {
 
   def cloneItem: Item = {
     val taskInfoCopy = taskInfo.getOrElse(TaskInfo(title = Some(""))).cloneInfo("[copy]")
     copy(id = VersionedId(ObjectId.get()), taskInfo = Some(taskInfoCopy), published = false)
   }
 }
-
 
 object Item {
 
@@ -104,7 +103,6 @@ object Item {
     val extended = "extended"
   }
 
-
   lazy val fieldValues = FieldValue.current
 
   implicit object ItemWrites extends Writes[Item] {
@@ -142,7 +140,7 @@ object Item {
       item.published = (json \ published).asOpt[Boolean].getOrElse(false)
 
       try {
-        import VersionedIdImplicits.{Reads => IdReads}
+        import VersionedIdImplicits.{ Reads => IdReads }
         item.id = (json \ id).asOpt[VersionedId[ObjectId]](IdReads).getOrElse(VersionedId(new ObjectId()))
       } catch {
         case e: Throwable => throw new JsonValidationException(id)

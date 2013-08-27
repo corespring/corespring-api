@@ -2,8 +2,8 @@ package org.corespring.test
 
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.ShaHash
-import org.corespring.platform.core.models.auth.{Permission, AccessToken, OAuthConstants}
-import org.corespring.platform.core.models.{User, Organization, ContentCollection}
+import org.corespring.platform.core.models.auth.{ Permission, AccessToken, OAuthConstants }
+import org.corespring.platform.core.models.{ User, Organization, ContentCollection }
 import org.joda.time.DateTime
 import org.specs2.execute.Failure
 import org.specs2.execute.Result
@@ -84,17 +84,17 @@ trait TestModelHelpers {
 
   def testOrg = new Organization("test")
 
-  def secureSocialCookie(u: Option[User], expires : Option[DateTime] = None): Option[Cookie] = u.map{ user =>
+  def secureSocialCookie(u: Option[User], expires: Option[DateTime] = None): Option[Cookie] = u.map { user =>
 
-      val authenticator : Authenticator = Authenticator.create(toIdentity(user)) match {
-        case Left(e) => throw new RuntimeException(e.getMessage)
-        case Right(a) => a
-      }
-      authenticator.toCookie
+    val authenticator: Authenticator = Authenticator.create(toIdentity(user)) match {
+      case Left(e) => throw new RuntimeException(e.getMessage)
+      case Right(a) => a
+    }
+    authenticator.toCookie
   }
 
   //TODO: From CorespringUserService
-  private def toIdentity(u:User) : Identity = {
+  private def toIdentity(u: User): Identity = {
     SocialUser(
       IdentityId(u.userName, u.provider),
       "",
@@ -103,15 +103,12 @@ trait TestModelHelpers {
       Some(u.email),
       None,
       AuthenticationMethod.UserPassword,
-      passwordInfo = Some(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = u.password))
-    )
+      passwordInfo = Some(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = u.password)))
   }
 
-  def expiredSecureSocialCookie(u: Option[User]): Option[Cookie] = u.map{ user =>
+  def expiredSecureSocialCookie(u: Option[User]): Option[Cookie] = u.map { user =>
 
-
-
-    val authenticator : Authenticator = Authenticator.create(toIdentity(user)) match {
+    val authenticator: Authenticator = Authenticator.create(toIdentity(user)) match {
       case Left(e) => throw new RuntimeException(e)
       case Right(a) => a
     }
@@ -127,21 +124,19 @@ trait TestModelHelpers {
 
     Logger.debug(s"Authenticator id: $withExpires.id")
     //Note: SecureSocial needs to look up the authenticator from the cache
-    Cache.set(withExpires.id,withExpires)
+    Cache.set(withExpires.id, withExpires)
     withExpires.toCookie
   }
 
   def tokenFormBody(id: String, secret: String, username: String, grantType: Option[String] = None): Array[(String, String)] = {
     val signature = ShaHash.sign(
-      OAuthConstants.ClientCredentials+":"+id+":"+OAuthConstants.Sha1Hash+":"+username,
-      secret
-    )
+      OAuthConstants.ClientCredentials + ":" + id + ":" + OAuthConstants.Sha1Hash + ":" + username,
+      secret)
     val base = Array(
       (OAuthConstants.ClientId -> id),
       (OAuthConstants.ClientSecret -> secret),
       (OAuthConstants.Scope -> username))
     base ++ grantType.map((OAuthConstants.GrantType -> _))
   }
-
 
 }

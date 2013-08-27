@@ -2,10 +2,9 @@ package basiclti.accessControl.auth
 
 import org.bson.types.ObjectId
 import org.corespring.player.accessControl.auth.TokenizedRequestActionBuilder
-import org.corespring.player.accessControl.auth.requests.{TokenizedRequestBuilder, TokenizedRequest}
+import org.corespring.player.accessControl.auth.requests.{ TokenizedRequestBuilder, TokenizedRequest }
 import org.corespring.player.accessControl.cookies.PlayerCookieReader
 import org.corespring.player.accessControl.models.RenderOptions
-
 
 /** An implementation of ActionBuilder where we check the user session rendering options */
 object QuerySessionRenderOptions extends TokenizedRequestActionBuilder[RenderOptions => Boolean] with PlayerCookieReader with TokenizedRequestBuilder {
@@ -13,7 +12,7 @@ object QuerySessionRenderOptions extends TokenizedRequestActionBuilder[RenderOpt
   type RenderOptionQuery = (RenderOptions => Boolean)
 
   import play.api.mvc.Results.BadRequest
-  import play.api.mvc.{BodyParser, Result, Action, AnyContent}
+  import play.api.mvc.{ BodyParser, Result, Action, AnyContent }
 
   def ValidatedAction(query: RenderOptionQuery)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
     ValidatedAction(play.api.mvc.BodyParsers.parse.anyContent)(query)(block)

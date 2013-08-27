@@ -13,12 +13,13 @@ trait RequestCalling extends PackageLogging with JsonToModel {
 
   lazy val FakeAuthHeader = FakeHeaders(Seq("Authorization" -> Seq("Bearer " + accessToken)))
 
-  /** Invoke a fake request - parse the response from json to type T
-    * @return the typed instance that was returned
-    */
+  /**
+   * Invoke a fake request - parse the response from json to type T
+   * @return the typed instance that was returned
+   */
   def invokeCall[T](action: Action[AnyContent], content: AnyContent)(implicit reads: Reads[T], writes: Writes[T]): T = {
 
-    val request : Request[AnyContent] = FakeRequest(
+    val request: Request[AnyContent] = FakeRequest(
       "ignore",
       "ignore",
       FakeAuthHeader,
@@ -37,9 +38,9 @@ trait RequestCalling extends PackageLogging with JsonToModel {
 
 }
 
-trait JsonToModel{
-  def getData[A](maybeData:JsResult[A]) : A = maybeData match {
-    case JsSuccess(d,_) => d
+trait JsonToModel {
+  def getData[A](maybeData: JsResult[A]): A = maybeData match {
+    case JsSuccess(d, _) => d
     case _ => throw new RuntimeException("couldn't read json")
   }
 }

@@ -2,9 +2,10 @@ package org.corespring.test.utils
 
 import play.api.libs.json._
 
-/** Lifted from: https://raw.github.com/lunatech-labs/json-compare/master/src/main/scala/com/lunatech/jsoncompare/JsonCompare.scala
-  *
-  */
+/**
+ * Lifted from: https://raw.github.com/lunatech-labs/json-compare/master/src/main/scala/com/lunatech/jsoncompare/JsonCompare.scala
+ *
+ */
 object JsonCompare {
 
   /**

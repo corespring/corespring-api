@@ -1,21 +1,22 @@
 package org.corespring.qti.models.interactions
 
-import org.corespring.qti.models.responses.{ResponseOutcome, Response}
-import org.corespring.qti.models.{ResponseDeclaration, QtiItem}
-import xml.{Elem, NodeSeq, Node}
+import org.corespring.qti.models.responses.{ ResponseOutcome, Response }
+import org.corespring.qti.models.{ ResponseDeclaration, QtiItem }
+import xml.{ Elem, NodeSeq, Node }
 import org.corespring.common.log.PackageLogging
 
-trait Interaction extends PackageLogging{
+trait Interaction extends PackageLogging {
   val responseIdentifier: String
-  protected val locked:Boolean = false;
+  protected val locked: Boolean = false;
 
   def getOutcome(responseDeclaration: Option[ResponseDeclaration], response: Response): Option[ResponseOutcome]
 
-  /** Can this Interaction be automatically scored from the users response
-    * Eg: multichoice can - but free written text can't be
-    * @return
-    */
-  def isScoreable : Boolean
+  /**
+   * Can this Interaction be automatically scored from the users response
+   * Eg: multichoice can - but free written text can't be
+   * @return
+   */
+  def isScoreable: Boolean
 
   def validate(qtiItem: QtiItem): (Boolean, String) = {
     val isValid = !qtiItem.responseDeclarations.find(_.identifier == responseIdentifier).isEmpty || locked

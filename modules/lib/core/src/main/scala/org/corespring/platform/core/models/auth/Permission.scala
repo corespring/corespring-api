@@ -4,8 +4,8 @@ package org.corespring.platform.core.models.auth
  * A Permission
  */
 case class Permission(value: Long, name: String) {
-  def has(p: Permission):Boolean = {
-    (value&p.value) == p.value
+  def has(p: Permission): Boolean = {
+    (value & p.value) == p.value
   }
 }
 
@@ -17,8 +17,8 @@ object Permission {
 
   def fromLong(value: Long): Option[Permission] = value match {
     case 0 => Some(None)
-    case x if((x&Write.value)==Write.value) => Some(Write)
-    case x if((x&Read.value)==Read.value) => Some(Read)
+    case x if ((x & Write.value) == Write.value) => Some(Write)
+    case x if ((x & Read.value) == Read.value) => Some(Read)
     case _ => scala.None
   }
 
@@ -29,5 +29,5 @@ object Permission {
     case _ => scala.None
   }
 
-  def toHumanReadable(l:Long) : String = fromLong(l).map(_.name).getOrElse("Unknown Permission")
+  def toHumanReadable(l: Long): String = fromLong(l).map(_.name).getOrElse("Unknown Permission")
 }

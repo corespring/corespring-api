@@ -8,13 +8,13 @@ object ReportLineResult {
   var LicenseType: List[String] = List()
   var Credentials: List[String] = List()
 
-  class KeyCount(var key:String, var count: Int){
+  class KeyCount(var key: String, var count: Int) {
     override def toString = key + "," + count
   }
 
-  def zeroedKeyCountList(l: List[String]) : List[KeyCount] = l.map( (s:String) => new KeyCount(s,0))
+  def zeroedKeyCountList(l: List[String]): List[KeyCount] = l.map((s: String) => new KeyCount(s, 0))
 
-  def buildCsv(title:String, list: List[LineResult]): String = {
+  def buildCsv(title: String, list: List[LineResult]): String = {
     val header: String =
       List(title, "Total # of Items").mkString(",") + "," +
         ItemTypes.mkString(",") + "," +
@@ -26,7 +26,7 @@ object ReportLineResult {
     header + list.map(buildLineString).mkString("\n")
   }
 
-  private def createValueList(l: List[KeyCount]) = l.map((kc:KeyCount) => kc.count)
+  private def createValueList(l: List[KeyCount]) = l.map((kc: KeyCount) => kc.count)
 
   private def buildLineString(result: LineResult): String = {
     val outList = List(result.subject, result.total) :::
@@ -40,13 +40,12 @@ object ReportLineResult {
   }
 
   case class LineResult(subject: String,
-                               total: Int = 0,
-                               itemType: List[KeyCount] = zeroedKeyCountList(ItemTypes),
-                               gradeLevel: List[KeyCount] = zeroedKeyCountList(GradeLevel),
-                               priorUse: List[KeyCount] = zeroedKeyCountList(PriorUse),
-                               credentials: List[KeyCount] = zeroedKeyCountList(Credentials),
-                               licenseType: List[KeyCount] = zeroedKeyCountList(LicenseType)
-                                )
+    total: Int = 0,
+    itemType: List[KeyCount] = zeroedKeyCountList(ItemTypes),
+    gradeLevel: List[KeyCount] = zeroedKeyCountList(GradeLevel),
+    priorUse: List[KeyCount] = zeroedKeyCountList(PriorUse),
+    credentials: List[KeyCount] = zeroedKeyCountList(Credentials),
+    licenseType: List[KeyCount] = zeroedKeyCountList(LicenseType))
 
 }
 

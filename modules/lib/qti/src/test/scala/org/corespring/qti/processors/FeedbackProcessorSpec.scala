@@ -2,33 +2,32 @@ package org.corespring.qti.processors
 
 import org.corespring.qti.models.FeedbackIdMapEntry
 import org.specs2.mutable._
-import play.api.libs.json.{JsObject, JsString, Json}
-import scala.xml.{Node, Elem, XML, NodeSeq}
+import play.api.libs.json.{ JsObject, JsString, Json }
+import scala.xml.{ Node, Elem, XML, NodeSeq }
 
 class FeedbackProcessorSpec extends Specification {
 
-
   def jsonFromXml(xml: NodeSeq): String = Json.stringify(JsObject(Seq("xmlData" -> JsString(xml.toString))))
 
-  def xmlFromJson(jsonData: String): NodeSeq ={
+  def xmlFromJson(jsonData: String): NodeSeq = {
     val json = Json.parse(jsonData)
-    val map : Map[String,String] = json.as[Map[String,String]]
+    val map: Map[String, String] = json.as[Map[String, String]]
     XML.loadString(map.getOrElse("xmlData", ""))
   }
 
   def getAttributeMap(node: Elem): Map[String, String] =
-      node.attributes.map(attribute => (attribute.key, attribute.value(0).text)).toMap
+    node.attributes.map(attribute => (attribute.key, attribute.value(0).text)).toMap
 
   def trueForAllFeedback[A](rootNode: NodeSeq, p: NodeSeq => Boolean): Boolean = {
     ((rootNode \\ "feedbackInline") ++ (rootNode \\ "modalFeedback")).foldLeft(true)((a, b) => p(b) && a)
   }
 
   def identifierEquals(value: String)(node: Node) = {
-    (node \ "@identifier" ).text == value
+    (node \ "@identifier").text == value
   }
 
-  def nodeWithFeedbackId(xml:Node, id:String) : Node = {
-     (xml \\ "_" ).filter( identifierEquals(id)).head
+  def nodeWithFeedbackId(xml: Node, id: String): Node = {
+    (xml \\ "_").filter(identifierEquals(id)).head
   }
 
   "FeedbackProcessor" should {
@@ -39,7 +38,7 @@ class FeedbackProcessorSpec extends Specification {
           <modalFeedback identifier="moreTestFeedback">More test feedback!</modalFeedback>
         </body>
 
-      val expectedMap = Seq(FeedbackIdMapEntry("1","","testFeedback"), FeedbackIdMapEntry("2","","moreTestFeedback"))
+      val expectedMap = Seq(FeedbackIdMapEntry("1", "", "testFeedback"), FeedbackIdMapEntry("2", "", "moreTestFeedback"))
 
       val expectedXml =
         <body>
@@ -55,11 +54,10 @@ class FeedbackProcessorSpec extends Specification {
 
     "add the csFeedbackId to the node that is declared in the map" in {
       val elem = <feedbackInline identifier="test1"></feedbackInline>
-      val map = Seq(FeedbackIdMapEntry("12345","","test1"))
-      val result = FeedbackProcessor.addFeedbackIds(elem,map)
+      val map = Seq(FeedbackIdMapEntry("12345", "", "test1"))
+      val result = FeedbackProcessor.addFeedbackIds(elem, map)
       (result \ "@csFeedbackId").text must equalTo("12345")
     }
-
 
     "filter all feedback info other than csFeedbackId" in {
       val xml =

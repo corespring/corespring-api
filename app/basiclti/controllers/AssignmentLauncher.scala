@@ -1,15 +1,15 @@
 package basiclti.controllers
 
 import basiclti.accessControl.auth.cookies.LtiCookieKeys
-import basiclti.controllers.routes.{AssignmentLauncher => AssignmentLauncherRoutes}
-import basiclti.controllers.routes.{AssignmentPlayer => AssignmentPlayerRoutes}
+import basiclti.controllers.routes.{ AssignmentLauncher => AssignmentLauncherRoutes }
+import basiclti.controllers.routes.{ AssignmentPlayer => AssignmentPlayerRoutes }
 import basiclti.models._
 import common.controllers.utils.BaseUrl
-import controllers.auth.{BaseApi}
+import controllers.auth.{ BaseApi }
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
 import org.bson.types.ObjectId
 import play.api.libs.json.Json._
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{ JsValue, Json }
 import play.api.libs.oauth.ConsumerKey
 import play.api.libs.oauth.OAuthCalculator
 import play.api.libs.oauth.RequestToken
@@ -21,10 +21,10 @@ import scala.Some
 import scala.concurrent.Future
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.platform.core.models.itemSession.{ItemSessionSettings, DefaultItemSession, ItemSession}
-import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
-import org.corespring.player.accessControl.cookies.{PlayerCookieKeys, PlayerCookieWriter}
-import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
+import org.corespring.platform.core.models.itemSession.{ ItemSessionSettings, DefaultItemSession, ItemSession }
+import org.corespring.player.accessControl.auth.{ CheckSessionAccess, TokenizedRequestActionBuilder }
+import org.corespring.player.accessControl.cookies.{ PlayerCookieKeys, PlayerCookieWriter }
+import org.corespring.player.accessControl.models.{ RequestedAccess, RenderOptions }
 
 /**
  * Handles the launching of corespring items via the LTI 1.1 launch specification.
@@ -43,8 +43,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
     showFeedback = true,
     highlightCorrectResponse = true,
     highlightUserResponse = true,
-    allowEmptyResponses = true
-  )
+    allowEmptyResponses = true)
 
   private def getOrgFromOauthSignature(request: Request[AnyContent]): Option[Organization] = {
 
@@ -65,7 +64,6 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
 
     org.getOrElse(None)
   }
-
 
   private def signaturesMatch(request: Request[AnyContent], consumer: LtiOAuthConsumer): Boolean = {
     val requestSignature = request.body.asFormUrlEncoded.get(LtiKeys.Signature).head
@@ -105,7 +103,6 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
                   (PlayerCookieKeys.ACTIVE_MODE -> mode)
               }
 
-
               def isInstructor = data.roles.exists(_ == LtiKeys.Instructor)
 
               if (isInstructor) {
@@ -113,8 +110,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
                 Ok(basiclti.views.html.itemChooser(
                   quiz.id,
                   data.selectionDirective.getOrElse(""),
-                  data.returnUrl.getOrElse("")
-                ))
+                  data.returnUrl.getOrElse("")))
                   .withSession(buildSession(request.session, RequestedAccess.Mode.Preview.toString))
                   .withHeaders(p3pHeaders)
               } else {
@@ -149,7 +145,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
      * @param linkId
      * @return
      */
-    def newQuiz(linkId: String): LtiQuiz = data.oauthConsumerKey.map{ key =>
+    def newQuiz(linkId: String): LtiQuiz = data.oauthConsumerKey.map { key =>
 
       require(ObjectId.isValid(key.trim), "the consumer key must be a valid object id")
 
@@ -161,11 +157,10 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
         linkId,
         LtiQuestion(None, ItemSessionSettings()),
         Seq(),
-        client.map(_.orgId)
-      )
+        client.map(_.orgId))
       LtiQuiz.insert(quiz)
       quiz
-    }.getOrElse{
+    }.getOrElse {
       throw new IllegalArgumentException("The consumer key must be defined")
     }
 
@@ -190,39 +185,38 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
     }
   }
 
-
   def responseXml(sourcedId: String, score: String) = {
     Logger.debug("[responseXml with: %s, %s".format(sourcedId, score))
 
     /**
-     TODO: Add a result data endpoint so that the users response can be seen.
-    <resultData>
-      <url>https://corespring.org</url>
-    </resultData>
-    */
-  val out = <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
-    <imsx_POXHeader>
-      <imsx_POXRequestHeaderInfo>
-        <imsx_version>V1.0</imsx_version>
-        <imsx_messageIdentifier>12341234</imsx_messageIdentifier>
-      </imsx_POXRequestHeaderInfo>
-    </imsx_POXHeader>
-    <imsx_POXBody>
-      <replaceResultRequest>
-        <resultRecord>
-          <sourcedGUID>
-            <sourcedId>{sourcedId}</sourcedId>
-          </sourcedGUID>
-          <result>
-            <resultScore>
-              <language>en</language>
-              <textString>{score}</textString>
-            </resultScore>
-          </result>
-        </resultRecord>
-      </replaceResultRequest>
-    </imsx_POXBody>
-  </imsx_POXEnvelopeRequest>
+     * TODO: Add a result data endpoint so that the users response can be seen.
+     * <resultData>
+     * <url>https://corespring.org</url>
+     * </resultData>
+     */
+    val out = <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
+                <imsx_POXHeader>
+                  <imsx_POXRequestHeaderInfo>
+                    <imsx_version>V1.0</imsx_version>
+                    <imsx_messageIdentifier>12341234</imsx_messageIdentifier>
+                  </imsx_POXRequestHeaderInfo>
+                </imsx_POXHeader>
+                <imsx_POXBody>
+                  <replaceResultRequest>
+                    <resultRecord>
+                      <sourcedGUID>
+                        <sourcedId>{ sourcedId }</sourcedId>
+                      </sourcedGUID>
+                      <result>
+                        <resultScore>
+                          <language>en</language>
+                          <textString>{ score }</textString>
+                        </resultScore>
+                      </result>
+                    </resultRecord>
+                  </replaceResultRequest>
+                </imsx_POXBody>
+              </imsx_POXEnvelopeRequest>
     out
   }
   private def session(id: ObjectId, resultSourcedId: String): Either[String, ItemSession] =
@@ -242,33 +236,32 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
     }
 
   def process(quizId: ObjectId, resultSourcedId: String) = session(quizId, resultSourcedId) match {
-      case Left(msg) => Action{ request =>
-        Logger.warn("Error processing response: " + msg)
-        BadRequest(msg)
-      }
-      case Right(session) => {
-        auth.ValidatedAction(RequestedAccess.asRead(assessmentId = Some(quizId), itemId = Some(session.itemId), sessionId = Some(session.id))) {
-          request =>
-            import scalaz._
-            import Scalaz._
+    case Left(msg) => Action { request =>
+      Logger.warn("Error processing response: " + msg)
+      BadRequest(msg)
+    }
+    case Right(session) => {
+      auth.ValidatedAction(RequestedAccess.asRead(assessmentId = Some(quizId), itemId = Some(session.itemId), sessionId = Some(session.id))) {
+        request =>
+          import scalaz._
+          import Scalaz._
 
+          val result: Validation[String, AsyncResult] = for {
+            q <- LtiQuiz.findOneById(quizId).toSuccess("Can't find Quiz")
+            p <- q.participants.find(_.resultSourcedId == resultSourcedId).toSuccess("Can't find participant")
+            orgId <- q.orgId.toSuccess("Quiz has no orgId")
+            apiClient <- ApiClient.findOneByOrgId(orgId).toSuccess("Can't find ApiClient for org")
+          } yield sendScore(session, p, apiClient)
 
-            val result: Validation[String, AsyncResult] = for {
-              q <- LtiQuiz.findOneById(quizId).toSuccess("Can't find Quiz")
-              p <- q.participants.find(_.resultSourcedId == resultSourcedId).toSuccess("Can't find participant")
-              orgId <- q.orgId.toSuccess("Quiz has no orgId")
-              apiClient <- ApiClient.findOneByOrgId(orgId).toSuccess("Can't find ApiClient for org")
-            } yield sendScore(session, p, apiClient)
-
-            result match {
-              case Failure(msg) => {
-                this.Logger.warn("Error processing response with source id: %s: %s".format(resultSourcedId, msg))
-                BadRequest(msg)
-              }
-              case Success(result) => result
+          result match {
+            case Failure(msg) => {
+              this.Logger.warn("Error processing response with source id: %s: %s".format(resultSourcedId, msg))
+              BadRequest(msg)
             }
-        }
+            case Success(result) => result
+          }
       }
+    }
   }
 
   /**
@@ -276,7 +269,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
    * @see https://canvas.instructure.com/doc/api/file.assignment_tools.html
    * @return
    */
-  private def sendScore(session: ItemSession, participant: LtiParticipant, client: ApiClient) : AsyncResult = {
+  private def sendScore(session: ItemSession, participant: LtiParticipant, client: ApiClient): AsyncResult = {
 
     import play.api.libs.concurrent.Execution.Implicits._
 
@@ -284,8 +277,8 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
       Logger.debug("Sending the grade passback to: %s".format(participant.gradePassbackUrl))
       WS.url(participant.gradePassbackUrl)
         .sign(
-        OAuthCalculator(ConsumerKey(consumer.getConsumerKey, consumer.getConsumerSecret),
-          RequestToken(consumer.getToken, consumer.getTokenSecret)))
+          OAuthCalculator(ConsumerKey(consumer.getConsumerKey, consumer.getConsumerSecret),
+            RequestToken(consumer.getToken, consumer.getTokenSecret)))
         .withHeaders(("Content-Type", "application/xml"))
         .post(responseXml(participant.resultSourcedId, score))
     }
@@ -297,7 +290,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
 
     if (emptyOrNull(participant.gradePassbackUrl)) {
       Logger.warn("Not sending passback for assignment: %s".format(participant.resultSourcedId))
-      val futureResult: Future[Result] = Future{
+      val futureResult: Future[Result] = Future {
         Ok(toJson(Map("returnUrl" -> participant.onFinishedUrl)))
       }
       AsyncResult(futureResult)
@@ -307,25 +300,24 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
       Async {
         sendResultsToPassback(consumer, score)
           .transform({
-            response => {
-              val returnUrl = response.body match {
-                case e: String if e.contains("Invalid authorization header")=>  AssignmentLauncherRoutes.error("Unauthorized").url
-                case e : String if e.contains("<imsx_codeMajor>unsupported</imsx_codeMajor>") =>  AssignmentLauncherRoutes.error("Unsupported").url
-                case _ => participant.onFinishedUrl
+            response =>
+              {
+                val returnUrl = response.body match {
+                  case e: String if e.contains("Invalid authorization header") => AssignmentLauncherRoutes.error("Unauthorized").url
+                  case e: String if e.contains("<imsx_codeMajor>unsupported</imsx_codeMajor>") => AssignmentLauncherRoutes.error("Unsupported").url
+                  case _ => participant.onFinishedUrl
+                }
+                Ok(toJson(Map("returnUrl" -> returnUrl)))
               }
-              Ok(toJson(Map("returnUrl" -> returnUrl)))
-            }
-        }, {
-          throwable =>
-            throw new RuntimeException(throwable.getMessage)
-        }
-        )
+          }, {
+            throwable =>
+              throw new RuntimeException(throwable.getMessage)
+          })
       }
     }
   }
 
-  def error(cause : String) = Action(Ok(basiclti.views.html.error(cause)))
-
+  def error(cause: String) = Action(Ok(basiclti.views.html.error(cause)))
 
   private def getScore(session: ItemSession): String = {
     val (score, maxScore) = DefaultItemSession.getTotalScore(session)
@@ -333,31 +325,26 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
   }
 
   def xml(title: String, description: String, url: String, width: Int, height: Int) = {
-    <cartridge_basiclti_link xmlns="http://www.imsglobal.org/xsd/imslticc_v1p0"
-                             xmlns:blti="http://www.imsglobal.org/xsd/imsbasiclti_v1p0"
-                             xmlns:lticm="http://www.imsglobal.org/xsd/imslticm_v1p0"
-                             xmlns:lticp="http://www.imsglobal.org/xsd/imslticp_v1p0"
-                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                             xsi:schemaLocation="http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd">
+    <cartridge_basiclti_link xmlns="http://www.imsglobal.org/xsd/imslticc_v1p0" xmlns:blti="http://www.imsglobal.org/xsd/imsbasiclti_v1p0" xmlns:lticm="http://www.imsglobal.org/xsd/imslticm_v1p0" xmlns:lticp="http://www.imsglobal.org/xsd/imslticp_v1p0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd">
       <blti:title>
-        {title}
+        { title }
       </blti:title>
       <blti:description>
-        {description}
+        { description }
       </blti:description>
       <blti:extensions platform="canvas.instructure.com">
         <lticm:property name="tool_id">corespring_resource_selection</lticm:property>
         <lticm:property name="privacy_level">anonymous</lticm:property>
         <lticm:options name="resource_selection">
           <lticm:property name="url">
-            {url}
+            { url }
           </lticm:property>
           <lticm:property name="text">???</lticm:property>
           <lticm:property name="selection_width">
-            {width}
+            { width }
           </lticm:property>
           <lticm:property name="selection_height">
-            {height}
+            { height }
           </lticm:property>
         </lticm:options>
       </blti:extensions>

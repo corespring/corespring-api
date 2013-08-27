@@ -1,13 +1,13 @@
 package org.corespring.platform.core.models.versioning
 
-import VersionedIdImplicits.{Writes, Reads}
+import VersionedIdImplicits.{ Writes, Reads }
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mutable.Specification
-import play.api.libs.json.{JsSuccess, JsString}
+import play.api.libs.json.{ JsSuccess, JsString }
 import org.corespring.common.log.PackageLogging
 
-class VersionedIdImplicitsTest extends Specification with PackageLogging{
+class VersionedIdImplicitsTest extends Specification with PackageLogging {
 
   import VersionedIdImplicits.Binders._
 
@@ -43,7 +43,7 @@ class VersionedIdImplicitsTest extends Specification with PackageLogging{
 
   "Writes" should {
     "write json" in {
-      Writes.writes(VersionedId( new ObjectId("000000000000000000000001"), Some(0))) === JsString("000000000000000000000001:0")
+      Writes.writes(VersionedId(new ObjectId("000000000000000000000001"), Some(0))) === JsString("000000000000000000000001:0")
     }
   }
 

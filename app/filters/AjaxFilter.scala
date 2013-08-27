@@ -1,6 +1,6 @@
 package filters
 
-import play.api.mvc.{EssentialFilter, SimpleResult, RequestHeader, EssentialAction}
+import play.api.mvc.{ EssentialFilter, SimpleResult, RequestHeader, EssentialAction }
 
 object AjaxFilter extends EssentialFilter {
 

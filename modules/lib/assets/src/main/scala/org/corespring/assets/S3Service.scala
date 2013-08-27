@@ -2,23 +2,23 @@ package org.corespring.assets
 
 import com.amazonaws.services.s3.AmazonS3
 import org.corespring.amazon.s3.models.DeleteResponse
-import org.corespring.amazon.s3.{ConcreteS3Service, S3Service}
+import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import play.api.mvc._
 import org.corespring.common.config.AppConfig
 
 trait S3ServiceClient {
-  def s3Service : CorespringS3Service
+  def s3Service: CorespringS3Service
 }
 
 trait CorespringS3Service extends S3Service {
   def copyFile(bucket: String, keyName: String, newKeyName: String)
 
-  def online:Boolean
+  def online: Boolean
 
-  def getClient : AmazonS3
+  def getClient: AmazonS3
 }
 
-object EmptyS3Service extends CorespringS3Service{
+object EmptyS3Service extends CorespringS3Service {
   def download(bucket: String, fullKey: String, headers: Option[Headers]): Result = ???
 
   def delete(bucket: String, keyName: String): DeleteResponse = ???
@@ -34,7 +34,7 @@ object EmptyS3Service extends CorespringS3Service{
 
 class CorespringS3ServiceImpl(key: String, secret: String)
   extends ConcreteS3Service(key: String, secret: String)(play.libs.Akka.system())
-  with CorespringS3Service{
+  with CorespringS3Service {
 
   def getClient = client
 

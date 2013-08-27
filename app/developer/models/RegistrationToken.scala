@@ -10,17 +10,17 @@ import org.joda.time.DateTime
 import org.corespring.platform.core.models.mongoContext.context
 
 case class RegistrationToken(var uuid: String = "",
-                 var email: String = "",
-                 var creationTime: Option[DateTime] = None,
-                 var expirationTime: Option[DateTime] = None,
-                 var isSignUp: Boolean,
-                 var id: ObjectId = new ObjectId())
+  var email: String = "",
+  var creationTime: Option[DateTime] = None,
+  var expirationTime: Option[DateTime] = None,
+  var isSignUp: Boolean,
+  var id: ObjectId = new ObjectId())
 
-object RegistrationToken extends ModelCompanion[RegistrationToken,ObjectId] {
+object RegistrationToken extends ModelCompanion[RegistrationToken, ObjectId] {
 
   val collection = mongoCollection("regtokens")
   import org.corespring.platform.core.models.mongoContext.context
-val dao = new SalatDAO[RegistrationToken, ObjectId](collection = collection) {}
+  val dao = new SalatDAO[RegistrationToken, ObjectId](collection = collection) {}
 
   val Id = "id"
   val Uuid = "uuid"

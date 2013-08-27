@@ -5,16 +5,16 @@ import scala.Some
 import org.corespring.platform.core.models.Standard
 import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.models.item.{Item, ContentType}
+import org.corespring.platform.core.models.item.{ Item, ContentType }
 import org.corespring.platform.core.services.item.ItemServiceImpl
 
-case class ItemView(item:Item, searchFields:Option[SearchFields])
+case class ItemView(item: Item, searchFields: Option[SearchFields])
 
-object ItemView{
+object ItemView {
 
   import Item.Keys._
 
-  implicit object ItemViewWrites extends Writes[ItemView]{
+  implicit object ItemViewWrites extends Writes[ItemView] {
     def writes(itemView: ItemView): JsValue = {
 
       def toJsObject[T](a: Option[T])(implicit w: Writes[T]): Option[JsObject] = a.map(w.writes(_).asInstanceOf[JsObject])
@@ -26,18 +26,17 @@ object ItemView{
 
       val out = Seq(Some(mainItem), details, taskInfo, alignments).flatten
       val jsObject = out.tail.foldRight(out.head)(_ ++ _)
-      itemView.searchFields.map(stripFields(jsObject,_)).getOrElse(jsObject)
+      itemView.searchFields.map(stripFields(jsObject, _)).getOrElse(jsObject)
     }
 
-    private def stripFields(jsObject:JsObject, searchFields:SearchFields):JsObject = {
-      def checkFields(key:String):Boolean = if(searchFields.inclusion) searchFields.jsfields.exists(_ == key)
-          else searchFields.jsfields.exists(_ != key)
+    private def stripFields(jsObject: JsObject, searchFields: SearchFields): JsObject = {
+      def checkFields(key: String): Boolean = if (searchFields.inclusion) searchFields.jsfields.exists(_ == key)
+      else searchFields.jsfields.exists(_ != key)
 
-      JsObject(jsObject.fields.foldRight[Seq[(String,JsValue)]](Seq())((field,result) => {
-          if(checkFields(field._1)) result :+ field
-          else result
-        })
-      )
+      JsObject(jsObject.fields.foldRight[Seq[(String, JsValue)]](Seq())((field, result) => {
+        if (checkFields(field._1)) result :+ field
+        else result
+      }))
     }
 
     private def writeMainItem(item: Item): JsObject = {
@@ -51,8 +50,7 @@ object ItemView{
         Some((collectionId -> JsString(item.collectionId))),
         Some(contentType -> JsString(ContentType.item)),
         Some(published -> JsBoolean(item.published)),
-        Some("sessionCount" -> JsNumber(ItemServiceImpl.sessionCount(item)))
-      )
+        Some("sessionCount" -> JsNumber(ItemServiceImpl.sessionCount(item))))
 
       def makeJsString(tuple: (String, Option[String])) = {
         val (key, value) = tuple
@@ -66,8 +64,7 @@ object ItemView{
         (lexile, item.lexile),
         (originId, item.originId),
         (pValue, item.pValue),
-        (priorUse, item.priorUse)
-      ).map(makeJsString)
+        (priorUse, item.priorUse)).map(makeJsString)
 
       def makeJsArray(tuple: (String, Seq[JsValue])) = {
         val (key, value) = tuple
@@ -83,8 +80,7 @@ object ItemView{
         (priorGradeLevel, item.priorGradeLevel.map(JsString(_))),
         (reviewsPassed, item.reviewsPassed.map(JsString(_))),
         (supportingMaterials, item.supportingMaterials.map(Json.toJson(_))),
-        (standards, validStandards.map(Json.toJson(_)))
-      ).map(makeJsArray)
+        (standards, validStandards.map(Json.toJson(_)))).map(makeJsArray)
 
       val joined = (basics ++ strings ++ arrays).flatten
       JsObject(joined)

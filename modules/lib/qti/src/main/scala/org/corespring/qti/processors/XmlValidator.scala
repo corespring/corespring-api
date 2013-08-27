@@ -1,7 +1,7 @@
 package org.corespring.qti.processors
 
 import org.xml.sax.SAXParseException
-import xml.{XML, Elem}
+import xml.{ XML, Elem }
 
 trait XmlValidator {
   /**
@@ -12,7 +12,6 @@ trait XmlValidator {
   def validate(xmlString: String): XmlValidationResult
 }
 
-
 case class ExceptionMessage(message: String, lineNumber: Int = -1, columnNumber: Int = -1)
 
 object XmlValidationResult {
@@ -22,8 +21,8 @@ object XmlValidationResult {
 case class XmlValidationResult(exceptions: Option[List[ExceptionMessage]] = None) {
 
   def +(that: XmlValidationResult): XmlValidationResult =
-      XmlValidationResult(
-        Some(this.exceptions.getOrElse(List[ExceptionMessage]()) ::: that.exceptions.getOrElse(List[ExceptionMessage]())))
+    XmlValidationResult(
+      Some(this.exceptions.getOrElse(List[ExceptionMessage]()) ::: that.exceptions.getOrElse(List[ExceptionMessage]())))
 
   def success: Boolean = exceptions match {
     case e: Some[List[ExceptionMessage]] => false
@@ -37,8 +36,7 @@ object XmlValidator extends XmlValidator {
     try {
       val xml: Elem = XML.loadString(xmlString)
       XmlValidationResult.success
-    }
-    catch {
+    } catch {
       case e: SAXParseException => {
         XmlValidationResult(Some(List(ExceptionMessage(e.getMessage, e.getLineNumber, e.getColumnNumber))))
       }

@@ -1,7 +1,7 @@
 package org.corespring.platform.core.models.auth
 
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.dao.{SalatRemoveError, SalatInsertError, SalatDAO, ModelCompanion}
+import com.novus.salat.dao.{ SalatRemoveError, SalatInsertError, SalatDAO, ModelCompanion }
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
 import org.joda.time.DateTime
@@ -9,21 +9,19 @@ import play.api.Play.current
 import se.radley.plugin.salat._
 import org.corespring.platform.core.models.error.InternalError
 
-
-
 /**
  * An access token
  *
  * @see ApiClient
  */
 
-  case class AccessToken( organization: ObjectId,
-                          scope: Option[String],
-                          var tokenId: String,
-                          creationDate: DateTime = DateTime.now(),
-                          expirationDate: DateTime = DateTime.now().plusHours(24),
-                          neverExpire:Boolean = false) {
-  def isExpired:Boolean = {
+case class AccessToken(organization: ObjectId,
+  scope: Option[String],
+  var tokenId: String,
+  creationDate: DateTime = DateTime.now(),
+  expirationDate: DateTime = DateTime.now().plusHours(24),
+  neverExpire: Boolean = false) {
+  def isExpired: Boolean = {
     !neverExpire && DateTime.now().isAfter(expirationDate)
   }
 }
@@ -38,16 +36,16 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
 
   val dao = new SalatDAO[AccessToken, ObjectId](collection = collection) {}
 
-  def removeToken(tokenId:String):Either[InternalError,Unit] = {
-    try{
+  def removeToken(tokenId: String): Either[InternalError, Unit] = {
+    try {
       AccessToken.remove(MongoDBObject(AccessToken.tokenId -> tokenId))
       Right(())
-    }catch{
-      case e:SalatRemoveError => Left(InternalError("error removing token with id "+tokenId, e))
+    } catch {
+      case e: SalatRemoveError => Left(InternalError("error removing token with id " + tokenId, e))
     }
   }
-  def insertToken(token:AccessToken):Either[InternalError,AccessToken] = {
-    try{
+  def insertToken(token: AccessToken): Either[InternalError, AccessToken] = {
+    try {
       AccessToken.insert(token) match {
         case Some(id) => AccessToken.findOneById(id) match {
           case Some(dbtoken) => Right(dbtoken)
@@ -55,8 +53,8 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
         }
         case None => Left(InternalError("error occurred during insert"))
       }
-    }catch {
-      case e:SalatInsertError => Left(InternalError("error occurred during insert", e))
+    } catch {
+      case e: SalatInsertError => Left(InternalError("error occurred during insert", e))
     }
 
   }
@@ -82,14 +80,14 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
     findOne(query.result())
   }
 
-  def getTokenForOrgById(id:ObjectId) : Option[AccessToken] = {
+  def getTokenForOrgById(id: ObjectId): Option[AccessToken] = {
     Organization.findOneById(id).map(getTokenForOrg)
   }
 
-  def getTokenForOrg(org:Organization) : AccessToken = {
+  def getTokenForOrg(org: Organization): AccessToken = {
 
     AccessToken.find(org.id, None) match {
-      case Some(t) if(!t.isExpired) => t
+      case Some(t) if (!t.isExpired) => t
       case _ => {
         val now = DateTime.now()
         val token: AccessToken = new AccessToken(

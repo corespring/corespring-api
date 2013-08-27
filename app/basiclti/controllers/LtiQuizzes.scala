@@ -11,22 +11,19 @@ import scala.Left
 import scala.Right
 import scala.Some
 
-
-class LtiQuizzes(auth:ValidateQuizIdAndOrgId[OrgRequest[AnyContent]]) extends Controller {
+class LtiQuizzes(auth: ValidateQuizIdAndOrgId[OrgRequest[AnyContent]]) extends Controller {
 
   /** Prevent the block from executing if the cookie id doesn't match the request id */
-  private def quizIdMatches(requestQuizId:ObjectId)(quizId:String,orgId:String) : Boolean = {
-    try{
+  private def quizIdMatches(requestQuizId: ObjectId)(quizId: String, orgId: String): Boolean = {
+    try {
       val oid = new ObjectId(quizId)
       oid == requestQuizId
-    }
-    catch {
-      case t : Throwable => false
+    } catch {
+      case t: Throwable => false
     }
   }
 
-
-  def get(id: ObjectId) = auth.ValidatedAction( quizIdMatches(id)_ ){
+  def get(id: ObjectId) = auth.ValidatedAction(quizIdMatches(id)_) {
     request =>
       models.LtiQuiz.findOneById(id) match {
         case Some(c) => Ok(toJson(c))
@@ -55,8 +52,7 @@ class LtiQuizzes(auth:ValidateQuizIdAndOrgId[OrgRequest[AnyContent]]) extends Co
         try {
           val out = json.asOpt[LtiQuiz]
           out
-        }
-        catch {
+        } catch {
           case e: Throwable => {
             play.Logger.warn(e.getMessage)
             None
@@ -68,6 +64,6 @@ class LtiQuizzes(auth:ValidateQuizIdAndOrgId[OrgRequest[AnyContent]]) extends Co
   }
 }
 
-object LtiQuizzes extends LtiQuizzes( new ValidateQuizIdAndOrgId[OrgRequest[AnyContent]]{
-  override def makeRequest(orgId: ObjectId, r: Request[AnyContent]): Option[OrgRequest[AnyContent]] = Some(new OrgRequest[AnyContent](orgId,r))
+object LtiQuizzes extends LtiQuizzes(new ValidateQuizIdAndOrgId[OrgRequest[AnyContent]] {
+  override def makeRequest(orgId: ObjectId, r: Request[AnyContent]): Option[OrgRequest[AnyContent]] = Some(new OrgRequest[AnyContent](orgId, r))
 })

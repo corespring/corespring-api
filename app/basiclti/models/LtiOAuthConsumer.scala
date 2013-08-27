@@ -1,7 +1,7 @@
 package basiclti.models
 
 import oauth.signpost.AbstractOAuthConsumer
-import play.api.mvc.{AnyContent, Request}
+import play.api.mvc.{ AnyContent, Request }
 import java.net.URLDecoder
 import org.corespring.platform.core.models.auth.ApiClient
 
@@ -17,8 +17,7 @@ class LtiOAuthConsumer(consumerKey: String, consumerSecret: String)
         val params = body.asFormUrlEncoded.get.filter(v => !v._1.startsWith("oauth_signature")).map(entry => (entry._1, entry._2.headOption.getOrElse("")))
         wrapped = new LtiRequestAdapter(request, params)
         wrapped
-      }
-      else {
+      } else {
         throw new IllegalArgumentException("Couldn't parse request body")
       }
     }
@@ -37,8 +36,8 @@ class LtiOAuthConsumer(consumerKey: String, consumerSecret: String)
   }
 }
 
-object LtiOAuthConsumer{
-  def apply(client:ApiClient) : LtiOAuthConsumer = {
+object LtiOAuthConsumer {
+  def apply(client: ApiClient): LtiOAuthConsumer = {
     new LtiOAuthConsumer(client.clientId.toString, client.clientSecret)
   }
 }

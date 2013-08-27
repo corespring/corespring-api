@@ -4,7 +4,6 @@ import scala.Some
 import scala.xml.transform.RewriteRule
 import xml._
 
-
 object InteractionProcessing {
   val FEEDBACK_INLINE = "feedbackInline"
   val FEEDBACK_BLOCK = "feedbackBlock"
@@ -14,7 +13,7 @@ object InteractionProcessing {
   val identifier = "identifier"
   val outcomeIdentifier = "outcomeIdentifier"
 
-  class FeedbackOutcomeIdentifierInserter(ci:InteractionWithChoices) extends RewriteRule{
+  class FeedbackOutcomeIdentifierInserter(ci: InteractionWithChoices) extends RewriteRule {
     private def addIdentifiersToElem(elem: Elem, outcomeIdentifier: String, identifier: String): Elem = {
       var elementWithIdentifiers = elem
       if ((elem \ "@identifier").isEmpty) {
@@ -30,7 +29,7 @@ object InteractionProcessing {
         if (elem.label equals FEEDBACK_INLINE) {
           elem.attribute(csFeedbackId) match {
             case Some(csFeedbackId) => {
-              val optIdentifiers:Option[(String,String)] = ci.choices.find(_.feedbackInline.exists(_.csFeedbackId == csFeedbackId.text)) match {
+              val optIdentifiers: Option[(String, String)] = ci.choices.find(_.feedbackInline.exists(_.csFeedbackId == csFeedbackId.text)) match {
                 case Some(sc) => Some(ci.responseIdentifier -> sc.identifier)
                 case None => None
               }
@@ -41,7 +40,7 @@ object InteractionProcessing {
             }
             case None => elem
           }
-        }else {
+        } else {
           elem
         }
       }

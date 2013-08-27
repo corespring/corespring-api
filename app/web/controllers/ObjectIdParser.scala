@@ -7,8 +7,7 @@ trait ObjectIdParser {
   def objectId(id: String): Option[ObjectId] = {
     try {
       Some(new ObjectId(id))
-    }
-    catch {
+    } catch {
       case e: Exception => None
     }
   }

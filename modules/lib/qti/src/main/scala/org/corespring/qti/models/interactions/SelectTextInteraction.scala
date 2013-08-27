@@ -1,17 +1,16 @@
 package org.corespring.qti.models.interactions
 
-import org.corespring.qti.models.responses.{ResponseOutcome, ArrayResponse, Response}
+import org.corespring.qti.models.responses.{ ResponseOutcome, ArrayResponse, Response }
 import org.corespring.qti.models._
 import scala.Some
 import scala.language.postfixOps
 import util.matching.Regex
-import xml.transform.{RuleTransformer, RewriteRule}
-import xml.{XML, NodeSeq, Elem, Node}
+import xml.transform.{ RuleTransformer, RewriteRule }
+import xml.{ XML, NodeSeq, Elem, Node }
 
 case class SelectTextInteraction(responseIdentifier: String, selectionType: String, checkIfCorrect: Boolean, minSelection: Int, maxSelection: Int, correctResponse: Option[CorrectResponseMultiple]) extends Interaction {
 
   def isScoreable = true
-
 
   override def validate(qtiItem: QtiItem) = {
     (true, "Ok")
@@ -35,12 +34,10 @@ case class SelectTextInteraction(responseIdentifier: String, selectionType: Stri
                 outcomeProperties = outcomeProperties + ("responsesIncorrect" -> true)
 
               isEverySelectedCorrect && isNumberOfSelectionCorrect
-            }
-            else {
+            } else {
               // We only need whether the number of selection is within range of [minSelection,maxSelection]
               isNumberOfSelectionCorrect
-            }
-          )
+            })
 
           if (isNumberOfSelectionCorrect)
             outcomeProperties = outcomeProperties + ("responsesNumberCorrect" -> true)
@@ -86,8 +83,7 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
       (node \ "@checkIfCorrect").text.toLowerCase == "yes",
       (node \ "@minSelections").text.toInt,
       (node \ "@maxSelections").text.toInt,
-      correctAnswers
-    )
+      correctAnswers)
   }
 
   def parse(itemBody: Node): Seq[Interaction] = {
@@ -112,8 +108,7 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
         (taggedXml
           \ "span"
           filterNot (_ \ "@selectable" isEmpty)
-          filterNot (_ \ "correct" isEmpty)
-          ).map(n => idRegexp.findFirstMatchIn(n.mkString).get.group("match"))
+          filterNot (_ \ "correct" isEmpty)).map(n => idRegexp.findFirstMatchIn(n.mkString).get.group("match"))
       }
     correctIndexes
   }
@@ -126,23 +121,23 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
 
   private def performOnText(e: NodeSeq, fn: String => String): NodeSeq = {
 
-      val xmlText = e.mkString
-      val regExp = "<.*?>".r
-      val matches = regExp.findAllIn(xmlText).toList
+    val xmlText = e.mkString
+    val regExp = "<.*?>".r
+    val matches = regExp.findAllIn(xmlText).toList
 
-      def noBody = matches.length == 1
+    def noBody = matches.length == 1
 
-      if(noBody){
-        XML.loadString(matches.head)
-      } else {
-        val openString = matches.head
-        val closeString = regExp.findAllIn(xmlText).toList.last
+    if (noBody) {
+      XML.loadString(matches.head)
+    } else {
+      val openString = matches.head
+      val closeString = regExp.findAllIn(xmlText).toList.last
 
-        val lastIndex = xmlText.lastIndexOf("<")
-        val resultText = xmlText.substring(0, lastIndex).replaceFirst("<.*?>", "")
-        val transformedText = fn(resultText)
-        XML.loadString(openString + transformedText + closeString)
-      }
+      val lastIndex = xmlText.lastIndexOf("<")
+      val resultText = xmlText.substring(0, lastIndex).replaceFirst("<.*?>", "")
+      val transformedText = fn(resultText)
+      XML.loadString(openString + transformedText + closeString)
+    }
   }
 
   private def tagSentences(s: String): String = {

@@ -2,8 +2,8 @@ package org.corespring.web.common.controllers.deployment
 
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model._
-import com.ee.assets.deployment.{ContentInfo, Deployer}
-import java.io.{InputStream, ByteArrayInputStream}
+import com.ee.assets.deployment.{ ContentInfo, Deployer }
+import java.io.{ InputStream, ByteArrayInputStream }
 import java.util.Date
 import org.corespring.common.log.PackageLogging
 import org.corespring.common.utils.string
@@ -19,7 +19,6 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
   private val deployed: mutable.Map[String, String] = mutable.Map()
 
   def listAssets: Map[String, String] = deployed.toMap
-
 
   def deploy(relativePath: String, lastModified: Long, stream: => InputStream, info: ContentInfo): Either[String, String] = {
 
@@ -58,8 +57,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
             s3.putObject(bucket, deploymentPath, bytesInputStream, metadata)
             deployed += (key -> S3Deployer.getUrl(bucket, deploymentPath))
             Right(deployed.get(key).get)
-          }
-          catch {
+          } catch {
             case e: Throwable => Left(e.getMessage)
           }
       }.getOrElse(Left("The amazon client isn't initialized"))
@@ -71,10 +69,11 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
 
   private def toByteArray(is: InputStream) = {
     import scala.language.postfixOps
-Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
+    Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
   }
 
-  /** Try and delete everything from an existing bucket - if that fails - create a new bucket and set the access policy.
+  /**
+   * Try and delete everything from an existing bucket - if that fails - create a new bucket and set the access policy.
    */
   private def createCleanBucket = client.map {
     s3 =>

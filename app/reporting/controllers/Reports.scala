@@ -1,7 +1,7 @@
 package reporting.controllers
 
 import controllers.auth.BaseApi
-import org.corespring.platform.core.models.{Subject, Standard, ContentCollection}
+import org.corespring.platform.core.models.{ Subject, Standard, ContentCollection }
 import reporting.services.ReportsService
 import org.corespring.platform.core.services.item.ItemServiceImpl
 
@@ -11,8 +11,7 @@ object Reports extends BaseApi {
     ItemServiceImpl.collection,
     Subject.collection,
     ContentCollection.collection,
-    Standard.collection
-  )
+    Standard.collection)
 
   def index = ApiAction {
     request =>

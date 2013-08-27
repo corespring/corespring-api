@@ -3,16 +3,14 @@ package org.corespring.platform.core.models.item
 import play.api.libs.json._
 import org.corespring.platform.core.models.json.JsonValidationException
 
-
 case class ContributorDetails(
-                               var contributor: Option[String] = None,
-                               var credentials: Option[String] = None,
-                               var copyright: Option[Copyright] = None,
-                               var author: Option[String] = None,
-                               var sourceUrl: Option[String] = None,
-                               var licenseType: Option[String] = None,
-                               var costForResource: Option[Int] = None
-                               )
+  var contributor: Option[String] = None,
+  var credentials: Option[String] = None,
+  var copyright: Option[Copyright] = None,
+  var author: Option[String] = None,
+  var sourceUrl: Option[String] = None,
+  var licenseType: Option[String] = None,
+  var costForResource: Option[Int] = None)
 
 object ContributorDetails extends ValueGetter {
 
@@ -40,8 +38,7 @@ object ContributorDetails extends ValueGetter {
         sourceUrl = (json \ sourceUrl).asOpt[String],
         licenseType = (json \ licenseType).asOpt[String],
         credentials = (json \ credentials).asOpt[String].
-          map(v => if (fieldValues.credentials.exists(_.key == v)) v else throw new JsonValidationException(credentials))
-      ))
+          map(v => if (fieldValues.credentials.exists(_.key == v)) v else throw new JsonValidationException(credentials))))
     }
   }
 
@@ -57,16 +54,15 @@ object ContributorDetails extends ValueGetter {
         details.costForResource.map((costForResource -> JsNumber(_))),
         details.credentials.map((credentials -> JsString(_))),
         details.licenseType.map((licenseType -> JsString(_))),
-        details.sourceUrl.map((sourceUrl -> JsString(_)))
-      )
+        details.sourceUrl.map((sourceUrl -> JsString(_))))
 
       val copyrightJson = Json.toJson(details.copyright)
       val detailsJson = JsObject(s.flatten)
 
       val objects =
-        Seq(detailsJson,copyrightJson)
-        .filter(_.isInstanceOf[JsObject])
-        .map(_.asInstanceOf[JsObject])
+        Seq(detailsJson, copyrightJson)
+          .filter(_.isInstanceOf[JsObject])
+          .map(_.asInstanceOf[JsObject])
 
       objects.tail.foldRight(objects.head)(_ ++ _)
     }

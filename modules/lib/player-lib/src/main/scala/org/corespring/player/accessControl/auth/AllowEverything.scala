@@ -8,11 +8,11 @@ import org.corespring.player.accessControl.auth.requests.TokenizedRequest
 import org.corespring.player.accessControl.models.RequestedAccess
 
 /** An impl of ActionBuilder that creates a tokenized request for the Root Corespring Org - effectively a pass through */
-object AllowEverything extends TokenizedRequestActionBuilder[RequestedAccess]{
+object AllowEverything extends TokenizedRequestActionBuilder[RequestedAccess] {
 
-  def ValidatedAction(access:RequestedAccess)(block: TokenizedRequest[AnyContent] => Result): Action[AnyContent] = ValidatedAction(BodyParsers.parse.anyContent)(access)(block)
+  def ValidatedAction(access: RequestedAccess)(block: TokenizedRequest[AnyContent] => Result): Action[AnyContent] = ValidatedAction(BodyParsers.parse.anyContent)(access)(block)
 
-  def ValidatedAction(p: BodyParser[AnyContent])(access:RequestedAccess)(block: TokenizedRequest[AnyContent] => Result): Action[AnyContent] = {
+  def ValidatedAction(p: BodyParser[AnyContent])(access: RequestedAccess)(block: TokenizedRequest[AnyContent] => Result): Action[AnyContent] = {
     Action(p) {
       request =>
 

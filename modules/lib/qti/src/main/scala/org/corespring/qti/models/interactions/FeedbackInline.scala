@@ -2,16 +2,16 @@ package org.corespring.qti.models.interactions
 
 import org.corespring.qti.models.QtiItem
 import org.corespring.qti.models.QtiItem.Correctness
-import play.api.libs.json.{JsString, JsObject, JsValue, Writes}
+import play.api.libs.json.{ JsString, JsObject, JsValue, Writes }
 import xml.Node
 
 case class FeedbackInline(csFeedbackId: String,
-                          outcomeIdentifier: String,
-                          identifier: String,
-                          content: String,
-                          outcomeAttrs:Seq[String] = Seq(),
-                          var defaultFeedback: Boolean = false,
-                          var incorrectResponse: Boolean = false) {
+  outcomeIdentifier: String,
+  identifier: String,
+  content: String,
+  outcomeAttrs: Seq[String] = Seq(),
+  var defaultFeedback: Boolean = false,
+  var incorrectResponse: Boolean = false) {
   def defaultContent(qtiItem: QtiItem): String =
     qtiItem.responseDeclarations.find(_.identifier == outcomeIdentifier) match {
       case Some(rd) =>
@@ -57,10 +57,10 @@ object FeedbackInline {
         (node \ "@incorrectResponse").text == "true")
       case None => {
         val outcomeIdentifier = (node \ "@outcomeIdentifier").text;
-        val outcomeAttrs:Seq[String] = outcomeIdentifier.split("outcome").toList match {
+        val outcomeAttrs: Seq[String] = outcomeIdentifier.split("outcome").toList match {
           case Nil => Seq()
-          case head::Nil => Seq()
-          case head::tail => tail(0).split('.')
+          case head :: Nil => Seq()
+          case head :: tail => tail(0).split('.')
         }
         FeedbackInline((node \ "@csFeedbackId").text,
           outcomeIdentifier.split('.')(1),
@@ -80,8 +80,7 @@ object FeedbackInline {
         "csFeedbackId" -> JsString(fi.csFeedbackId),
         "responseIdentifier" -> JsString(fi.outcomeIdentifier),
         "identifier" -> JsString(fi.identifier),
-        "body" -> JsString(fi.content)
-      ))
+        "body" -> JsString(fi.content)))
     }
   }
 

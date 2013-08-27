@@ -2,8 +2,8 @@ package developer.controllers
 
 import api.ApiError
 import controllers.Assets
-import controllers.auth.{BaseApi, OAuthProvider}
-import developer.controllers.routes.{Developer => DeveloperRoutes}
+import controllers.auth.{ BaseApi, OAuthProvider }
+import developer.controllers.routes.{ Developer => DeveloperRoutes }
 import org.bson.types.ObjectId
 import play.api.libs.json._
 import play.api.mvc._
@@ -11,10 +11,10 @@ import scala.Left
 import scala.Right
 import scala._
 import scalaz.Scalaz._
-import scalaz.{Failure, Success, Validation}
-import securesocial.core.{IdentityId, SecureSocial}
-import org.corespring.platform.core.models.{User, Organization}
-import org.corespring.platform.core.models.auth.{Permission, ApiClient}
+import scalaz.{ Failure, Success, Validation }
+import securesocial.core.{ IdentityId, SecureSocial }
+import org.corespring.platform.core.models.{ User, Organization }
+import org.corespring.platform.core.models.auth.{ Permission, ApiClient }
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
 

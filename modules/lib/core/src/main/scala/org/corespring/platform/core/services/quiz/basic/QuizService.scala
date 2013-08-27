@@ -2,33 +2,34 @@ package org.corespring.platform.core.services.quiz.basic
 
 import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.dao.{SalatDAO, ModelCompanion}
+import com.novus.salat.dao.{ SalatDAO, ModelCompanion }
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.quiz.basic.{Answer, Question, Participant, Quiz}
+import org.corespring.platform.core.models.quiz.basic.{ Answer, Question, Participant, Quiz }
 import scala.Some
 import se.radley.plugin.salat._
 
-trait QuizService{
+trait QuizService {
 
   def addAnswer(quizId: ObjectId, externalUid: String, answer: Answer): Option[Quiz]
   def addParticipants(quizId: ObjectId, externalUids: Seq[String]): Option[Quiz]
-  def create(q: Quiz) : Unit
+  def create(q: Quiz): Unit
   def findAllByOrgId(id: ObjectId): List[Quiz]
-  def findByIds(ids: List[ObjectId]) : List[Quiz]
-  def findOneById(id:ObjectId) : Option[Quiz]
-  def remove(q: Quiz) : Unit
-  def update(q: Quiz) : Unit
+  def findByIds(ids: List[ObjectId]): List[Quiz]
+  def findOneById(id: ObjectId): Option[Quiz]
+  def remove(q: Quiz): Unit
+  def update(q: Quiz): Unit
 }
 
-object QuizService extends QuizService{
+object QuizService extends QuizService {
 
   private object Keys {
     val orgId = "orgId"
   }
 
-  /** Hide the dao - it provides too many options
-    * By hiding it we can thin out the client api for quiz
-    */
+  /**
+   * Hide the dao - it provides too many options
+   * By hiding it we can thin out the client api for quiz
+   */
   private object Dao extends ModelCompanion[Quiz, ObjectId] {
 
     import org.corespring.platform.core.models.mongoContext.context
@@ -37,7 +38,6 @@ object QuizService extends QuizService{
     val collection = mongoCollection("quizzes")
     val dao = new SalatDAO[Quiz, ObjectId](collection = collection) {}
   }
-
 
   /** Bind Item title and standards to the question */
   private def bindItemData(q: Quiz): Quiz = {
@@ -53,7 +53,7 @@ object QuizService extends QuizService{
   }
 
   def count(query: DBObject = MongoDBObject(),
-            fields: List[String] = List()): Long =
+    fields: List[String] = List()): Long =
     Dao.count(query, fields)
 
   def removeAll() {
@@ -65,7 +65,6 @@ object QuizService extends QuizService{
   }
 
   def findOneById(id: ObjectId) = Dao.findOneById(id)
-
 
   def findByIds(ids: List[ObjectId]) = {
     val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))
@@ -84,8 +83,7 @@ object QuizService extends QuizService{
     def processParticipants(externalUid: String)(p: Participant): Participant = {
       if (p.externalUid == externalUid && !p.answers.exists(_.itemId == answer.itemId)) {
         p.copy(answers = p.answers :+ answer)
-      }
-      else {
+      } else {
         p
       }
     }

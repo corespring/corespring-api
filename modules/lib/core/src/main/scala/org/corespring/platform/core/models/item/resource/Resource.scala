@@ -6,19 +6,17 @@ import play.api.libs.json.JsString
 import scala.Some
 import org.corespring.common.log.PackageLogging
 
-
 /**
  * A Resource is representation of a set of one or more files. The files can be Stored files (uploaded to amazon) or virtual files (stored in mongo).
  */
-case class Resource(name: String, var files: Seq[BaseFile]){
+case class Resource(name: String, var files: Seq[BaseFile]) {
 
   def defaultFile = files.find(_.isMain)
 }
 
-object Resource extends PackageLogging{
+object Resource extends PackageLogging {
   val name = "name"
   val files = "files"
-
 
   val QtiXml = "qti.xml"
   val QtiPath = "data"
@@ -27,8 +25,7 @@ object Resource extends PackageLogging{
     def writes(res: Resource): JsValue = {
       JsObject(List(
         "name" -> JsString(res.name),
-        "files" -> Json.toJson(res.files)
-      ))
+        "files" -> Json.toJson(res.files)))
     }
   }
 

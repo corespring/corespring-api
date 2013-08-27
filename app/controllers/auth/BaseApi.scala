@@ -3,11 +3,11 @@ package controllers.auth
 import api.ApiError
 import api.ApiError._
 import play.api.libs.json._
-import play.api.libs.json.{JsString, JsObject, Json}
+import play.api.libs.json.{ JsString, JsObject, Json }
 import play.api.mvc._
 import securesocial.core.SecureSocial
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.{User, Organization}
+import org.corespring.platform.core.models.{ User, Organization }
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.auth.Permission
 
@@ -17,7 +17,7 @@ import org.corespring.platform.core.models.auth.Permission
  * @param r - the Request
  * @tparam A - the type determining the type of the body parser (eg: AnyContent)
  */
-case class ApiRequest[A](ctx: AuthorizationContext, r: Request[A], token : String) extends WrappedRequest(r)
+case class ApiRequest[A](ctx: AuthorizationContext, r: Request[A], token: String) extends WrappedRequest(r)
 
 /**
  * A base trait for all objects implementing API calls.  Intercepts the request and extracts the credentials of the caller
@@ -28,13 +28,11 @@ case class ApiRequest[A](ctx: AuthorizationContext, r: Request[A], token : Strin
  * @see Permission
  * @see PermissionSet
  */
-trait BaseApi extends Controller with SecureSocial with PackageLogging{
+trait BaseApi extends Controller with SecureSocial with PackageLogging {
 
   private val AuthorizationHeader = "Authorization"
   private val Bearer = "Bearer"
   private val Space = " "
-
-
 
   /**
    * Returns the access token either from the Play session (with key access_token) or from the Authorization header
@@ -46,7 +44,7 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
    */
   def tokenFromRequest[A](request: Request[A]): Either[ApiError, String] = {
     request.queryString.get(OAuthConstants.AccessToken).map(seq => Right(seq.head)).getOrElse {
-    request.session.get(OAuthConstants.AccessToken).map(Right(_)).getOrElse {
+      request.session.get(OAuthConstants.AccessToken).map(Right(_)).getOrElse {
         request.headers.get(AuthorizationHeader) match {
           case Some(value) =>
             value.split(Space) match {
@@ -59,7 +57,7 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
     }
   }
 
-  def SSLApiAction[A](p:BodyParser[A])(f:ApiRequest[A] => Result):Action[A] = ApiAction(p){
+  def SSLApiAction[A](p: BodyParser[A])(f: ApiRequest[A] => Result): Action[A] = ApiAction(p) {
     request =>
       request.headers.get("x-forwarded-proto") match {
         case Some("https") => f(request)
@@ -82,31 +80,30 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
         val IgnoreSession = "CoreSpring-IgnoreSession"
 
         Logger.debug(s"request route: ${request.method}, ${request.uri}")
-        Logger.debug(s"ignore session: ${ request.headers.get(IgnoreSession)}")
+        Logger.debug(s"ignore session: ${request.headers.get(IgnoreSession)}")
 
         def resultFromToken = {
 
-          def onError(apiError:ApiError) = BadRequest(Json.toJson(apiError))
+          def onError(apiError: ApiError) = BadRequest(Json.toJson(apiError))
 
-          def onToken(token : String ) =  OAuthProvider.getAuthorizationContext(token).fold(
-              error => {
-                Logger.debug("Error getting authorization context")
-                Forbidden(Json.toJson(error)).as(JSON)
-              },
-              ctx => {
-                val result: PlainResult = f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
-                Logger.debug("returning result")
-                result
-              }
-          )
+          def onToken(token: String) = OAuthProvider.getAuthorizationContext(token).fold(
+            error => {
+              Logger.debug("Error getting authorization context")
+              Forbidden(Json.toJson(error)).as(JSON)
+            },
+            ctx => {
+              val result: PlainResult = f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
+              Logger.debug("returning result")
+              result
+            })
           tokenFromRequest(request).fold(onError, onToken)
         }
 
-        def userResult = for{
+        def userResult = for {
           currentUser <- SecureSocial.currentUser(request)
-          if(request.headers.get(IgnoreSession).isEmpty)
+          if (request.headers.get(IgnoreSession).isEmpty)
         } yield {
-          Logger.debug( s"currentUser: $currentUser")
+          Logger.debug(s"currentUser: $currentUser")
           invokeAsUser(currentUser.identityId.userId, currentUser.identityId.providerId, request)(f)
         }
 
@@ -114,25 +111,23 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
     }
   }
 
-  private def ApiActionPermissions[A](p: BodyParser[A])(access:Permission)(f: ApiRequest[A] => Result)= {
+  private def ApiActionPermissions[A](p: BodyParser[A])(access: Permission)(f: ApiRequest[A] => Result) = {
     Action(p) {
       request =>
-        SecureSocial.currentUser(request).find(_ => request.headers.get("CoreSpring-IgnoreSession").isEmpty).map( u => {
-          invokeAsUser(u.identityId.userId, u.identityId.providerId, request){request =>
-            if(request.ctx.permission.has(access)) f(request)
+        SecureSocial.currentUser(request).find(_ => request.headers.get("CoreSpring-IgnoreSession").isEmpty).map(u => {
+          invokeAsUser(u.identityId.userId, u.identityId.providerId, request) { request =>
+            if (request.ctx.permission.has(access)) f(request)
             else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
           }
-        }).getOrElse( tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
+        }).getOrElse(tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
           OAuthProvider.getAuthorizationContext(token).fold(
             error => Forbidden(Json.toJson(error)).as(JSON),
             ctx => {
               ctx.permission.has(access)
-              val result: PlainResult = if(ctx.permission.has(access))f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
+              val result: PlainResult = if (ctx.permission.has(access)) f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
               else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
               result
-            }
-          )
-        ))
+            })))
     }
   }
   /**
@@ -155,15 +150,15 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
    * @tparam A
    * @return
    */
-    def invokeAsUser[A](username: String, provider:String, request: Request[A])(f: ApiRequest[A]=>Result) = {
-      def orgId : Option[ObjectId] = User.getUser(username, provider).map(_.org.orgId)
+  def invokeAsUser[A](username: String, provider: String, request: Request[A])(f: ApiRequest[A] => Result) = {
+    def orgId: Option[ObjectId] = User.getUser(username, provider).map(_.org.orgId)
 
-      val maybeOrg : Option[Organization] = orgId.map(Organization.findOneById).getOrElse(None)
-      maybeOrg.map{ org =>
-        val ctx = new AuthorizationContext(org.id, Option(username), true, Some(org))
-        f( ApiRequest(ctx, request, ""))
-      }.getOrElse( Forbidden( Json.toJson(MissingCredentials) ).as(JSON) )
-    }
+    val maybeOrg: Option[Organization] = orgId.map(Organization.findOneById).getOrElse(None)
+    maybeOrg.map { org =>
+      val ctx = new AuthorizationContext(org.id, Option(username), true, Some(org))
+      f(ApiRequest(ctx, request, ""))
+    }.getOrElse(Forbidden(Json.toJson(MissingCredentials)).as(JSON))
+  }
 
   /**
    * A helper method to create an action for API calls
@@ -204,7 +199,7 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging{
 
   protected def jsonExpected = BadRequest(Json.toJson(ApiError.JsonExpected))
 
-  def parsed[A](maybeJson:Option[JsValue], fn: (A=>Result), noResult: Result = BadRequest("Bad Json"))(implicit format : Format[A]) : Result = maybeJson match {
+  def parsed[A](maybeJson: Option[JsValue], fn: (A => Result), noResult: Result = BadRequest("Bad Json"))(implicit format: Format[A]): Result = maybeJson match {
     case Some(json) => {
       play.api.libs.json.Json.fromJson[A](json) match {
         case JsSuccess(item, _) => fn(item)
