@@ -30,7 +30,7 @@ if files.length > 0
   puts "running formatter"
   puts Dir.pwd
   puts cmd
-  `cmd`
+  `#{cmd}`
 end
 
 
