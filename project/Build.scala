@@ -63,7 +63,6 @@ object Build extends sbt.Build {
     "org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._")
 
 
-
   val commonUtils = builders.lib("common-utils").settings(
     libraryDependencies ++= Seq(specs2 % "test", playFramework, salatPlay, playJson % "test"),
       Keys.fork in Test := forkInTests
