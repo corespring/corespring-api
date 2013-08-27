@@ -48,7 +48,7 @@ object Build extends sbt.Build {
     }
   }
 
-    val builders = new Builders(appName, org, appVersion, ScalaVersion)
+  val builders = new Builders(appName, org, appVersion, ScalaVersion)
 
   val customImports = Seq(
     "scala.language.reflectiveCalls",
