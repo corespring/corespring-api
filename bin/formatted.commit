@@ -24,10 +24,12 @@ files = Utils.get_scala_changes(log)
 scalaVersion="2.10.2"
 message = ARGV[0]
 
+`git commit --no-verify . -m "#{message}"`
+
 if files.length > 0
     puts "... formatting... "
     cmd = "./bin/scalariform -s=#{scalaVersion} #{files.join(" ")}"
     output = `#{cmd}`
 end
 
-`git commit . -m "#{message}"`
+`git commit . -m "fix formatting"`
