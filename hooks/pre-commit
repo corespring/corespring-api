@@ -31,6 +31,8 @@ if files.length > 0
   puts Dir.pwd
   puts cmd
   `#{cmd}`
+
+  `git commit --no-verify . -m "formatter fix: #{files.join(" ")}"`
 end
 
 
