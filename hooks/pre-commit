@@ -31,7 +31,7 @@ if files.length > 0
     puts "running: #{cmd}"
     success = `#{cmd}`
 
-    puts "success? : #{$?.to_i}"
+    puts "success? : #{$?}"
 end
 
 exit 0
