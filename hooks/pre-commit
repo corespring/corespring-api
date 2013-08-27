@@ -9,6 +9,8 @@
 
 git diff --cached --name-only --diff-filter=ACM
 
+echo "..."
+git diff-index --cached HEAD
 scalaVersion="2.10.2"
 echo "format scala"
 #./bin/scalariform -s=$scalaVersion --recurse app/
