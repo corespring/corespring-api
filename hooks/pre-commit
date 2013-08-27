@@ -19,8 +19,20 @@ module Utils
   end
 end
 
+log = `git diff-index --cached HEAD`
+
+files = Utils.get_scala_changes(log)
+scalaVersion="2.10.2"
 
 
+if files.length > 0
+  cmd = "./bin/scalariform -s=#{scalaVersion} #{files.join(" ")}"
+  puts "running formatter"
+  `cmd`
+end
+
+
+=begin
 log = `git diff-index --cached HEAD`
 
 files = Utils.get_scala_changes(log)
@@ -37,4 +49,4 @@ if files.length > 0
         abort "--------------------------------------------------"
     end
 end
-
+=end
