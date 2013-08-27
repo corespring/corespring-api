@@ -5,10 +5,6 @@
 # cd .git/hooks
 # ln -s ../../hooks/pre-commit pre-commit
 
-#git diff --cached --name-status
-
-git diff --cached --name-only --diff-filter=ACM
-
 echo "..."
 git diff-index --cached HEAD
 scalaVersion="2.10.2"
