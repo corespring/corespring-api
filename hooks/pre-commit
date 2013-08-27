@@ -1,13 +1,33 @@
-#!/usr/bin/env bash
+#!/usr/bin/env ruby
 
 
 # installation: 
 # cd .git/hooks
 # ln -s ../../hooks/pre-commit pre-commit
 
-echo "..."
-git diff-index --cached HEAD
+
+module Utils
+
+  REGEX = /.*[M|A]\s(.*\.scala)/
+
+  def self.get_scala_changes(log)
+    lines = log.split("\n")
+    matches = lines.map{ |l| REGEX.match l}
+    matches.select!{ |m| !m.nil?}
+    out = matches.map{ |m| m[1]}
+    out
+  end
+end
+
+
+
+log = `git diff-index --cached HEAD`
+
+files = Utils.get_scala_changes(log)
 scalaVersion="2.10.2"
-echo "format scala"
-#./bin/scalariform -s=$scalaVersion --recurse app/
-#./bin/scalariform -s=$scalaVersion --recurse modules/
+
+if files.length > 0
+    cmd = "./bin/scalariform -s=#{scalaVersion} #{files.join(" ")}"
+    puts "cmd: "
+    puts cmd
+end

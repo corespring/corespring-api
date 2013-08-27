@@ -99,6 +99,7 @@ object ApiError {
   val CollectionUnauthorized = ApiError(405, "You do not have permissions for the specified collection")
   val DeleteCollection = ApiError(406, "An error occurred while trying to delete collection")
 
+
   // User API
   val UserRequiredFields = ApiError(500, "userName, fullName and email are required")
   val UnknownUser = ApiError(501, "Unknown user")
