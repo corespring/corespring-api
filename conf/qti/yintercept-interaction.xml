@@ -10,12 +10,11 @@
     <itemBody>
 
         Give the y-intercept and x-intercept of y=2x+6
-        <pointInteraction jsxgraphcore=""
-                         responseIdentifier="interceptTest"
+        <pointInteraction responseIdentifier="interceptTest"
                          point-labels="y-intercept,x-intercept"
                          additional-text="More instructions about what is required for this taks. This text can run the width of this space, then wrap and push down any content below it"
                          max-points="2"
-                />
+                         />
 
         <feedbackBlock outcomeIdentifier="responses.interceptTest.outcome.incorrect">
             <div class="feedback-block-incorrect">Wrong!</div>
