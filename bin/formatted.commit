@@ -25,7 +25,9 @@ scalaVersion="2.10.2"
 message = ARGV[0]
 
 if files.length > 0
+    puts "... formatting... "
     cmd = "./bin/scalariform -s=#{scalaVersion} #{files.join(" ")}"
     output = `#{cmd}`
-    `git commit . -m #{message}`
 end
+
+`git commit . -m "#{message}"`
