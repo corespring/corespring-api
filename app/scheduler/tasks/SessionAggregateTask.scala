@@ -9,6 +9,6 @@ class SessionAggregateTask extends RabbitMQTask with PackageLogging {
   override val frequency = 1.minute
 
   def run() {
-    Logger.error("This run function does nothing")
+    logger.error("This run function does nothing")
   }
 }

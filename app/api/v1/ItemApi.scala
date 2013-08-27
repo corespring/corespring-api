@@ -236,7 +236,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     itemsf.foreach(sf => {
       dbitemsf.find(_.name == sf.name) match {
         case Some(dbsf) => sf.storageKey = dbsf.storageKey
-        case None => Logger.warn("addStorageKeysToItem: no db storage key found")
+        case None => logger.warn("addStorageKeysToItem: no db storage key found")
       }
     })
   }
@@ -257,7 +257,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
         if (d == "detailed") getFieldsDbo(false, request.ctx.isLoggedIn, Seq(data)) else getFieldsDbo(true, request.ctx.isLoggedIn)
       }.getOrElse(getFieldsDbo(true, request.ctx.isLoggedIn))
 
-      Logger.debug("[ItemApi.get] fields: " + fields)
+      logger.debug("[ItemApi.get] fields: " + fields)
 
       service.findFieldsById(id, fields)
         .map(dbo => com.novus.salat.grater[Item].asObject(dbo))

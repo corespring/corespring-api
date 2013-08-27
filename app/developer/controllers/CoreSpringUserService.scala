@@ -20,12 +20,12 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
 
   override def find(id: IdentityId): Option[SocialUser] = {
     // id.id has the username
-    Logger.debug("looking for %s(%s)".format(id.userId, id.providerId))
+    logger.debug("looking for %s(%s)".format(id.userId, id.providerId))
 
     User.getUser(id) map {
       u =>
 
-        Logger.debug(s"Found user: $u")
+        logger.debug(s"Found user: $u")
 
         SocialUser(
           id,
@@ -80,7 +80,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
   override def deleteToken(uuid: String) {
     RegistrationToken.findOne(MongoDBObject(RegistrationToken.Uuid -> uuid)) match {
       case Some(regToken) => RegistrationToken.remove(regToken)
-      case _ => Logger.info("No such token found")
+      case _ => logger.info("No such token found")
     }
   }
 

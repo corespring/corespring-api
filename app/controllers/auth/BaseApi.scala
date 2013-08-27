@@ -79,8 +79,8 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging {
 
         val IgnoreSession = "CoreSpring-IgnoreSession"
 
-        Logger.debug(s"request route: ${request.method}, ${request.uri}")
-        Logger.debug(s"ignore session: ${request.headers.get(IgnoreSession)}")
+        logger.debug(s"request route: ${request.method}, ${request.uri}")
+        logger.debug(s"ignore session: ${request.headers.get(IgnoreSession)}")
 
         def resultFromToken = {
 
@@ -88,12 +88,12 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging {
 
           def onToken(token: String) = OAuthProvider.getAuthorizationContext(token).fold(
             error => {
-              Logger.debug("Error getting authorization context")
+              logger.debug("Error getting authorization context")
               Forbidden(Json.toJson(error)).as(JSON)
             },
             ctx => {
               val result: PlainResult = f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
-              Logger.debug("returning result")
+              logger.debug("returning result")
               result
             })
           tokenFromRequest(request).fold(onError, onToken)
@@ -103,7 +103,7 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging {
           currentUser <- SecureSocial.currentUser(request)
           if (request.headers.get(IgnoreSession).isEmpty)
         } yield {
-          Logger.debug(s"currentUser: $currentUser")
+          logger.debug(s"currentUser: $currentUser")
           invokeAsUser(currentUser.identityId.userId, currentUser.identityId.providerId, request)(f)
         }
 

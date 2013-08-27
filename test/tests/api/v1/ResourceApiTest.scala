@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{BaseFile, VirtualFile, Resource}
+import org.corespring.platform.core.models.item.resource.{ BaseFile, VirtualFile, Resource }
 import org.corespring.platform.core.services.item.ItemServiceImpl
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
@@ -14,11 +14,10 @@ import org.corespring.test.utils.mocks.MockS3Service
 import play.api.Play
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.JsObject
-import play.api.libs.json.{Json, JsValue}
+import play.api.libs.json.{ Json, JsValue }
 import play.api.mvc._
 import play.api.test.Helpers._
-import play.api.test.{FakeRequest, FakeHeaders}
-
+import play.api.test.{ FakeRequest, FakeHeaders }
 
 class ResourceApiTest extends BaseTest with PackageLogging {
 
@@ -26,23 +25,21 @@ class ResourceApiTest extends BaseTest with PackageLogging {
 
   def testItemId: String = testItem.id.id.toString
 
-  lazy val itemId : VersionedId[ObjectId]= VersionedId(ObjectId.get, None)
+  lazy val itemId: VersionedId[ObjectId] = VersionedId(ObjectId.get, None)
 
-  val resourceApi : ResourceApi = new ResourceApi( new MockS3Service(), ItemServiceImpl)
+  val resourceApi: ResourceApi = new ResourceApi(new MockS3Service(), ItemServiceImpl)
 
   def testItem: Item = {
 
     ItemServiceImpl.findOneById(itemId).getOrElse {
 
-      Logger.debug("[testItem] Can't find item - create it")
+      logger.debug("[testItem] Can't find item - create it")
       val item = Item(
         id = itemId,
         collectionId = TEST_COLLECTION_ID,
         supportingMaterials = Seq(
-          Resource("Rubric", files = Seq(VirtualFile("Rubric", "text/html", true, "<html/>")))
-        ),
-        data = Some(Resource("data", files = Seq(VirtualFile("qti.xml", "text/xml", true, "<root/>"))))
-      )
+          Resource("Rubric", files = Seq(VirtualFile("Rubric", "text/html", true, "<html/>")))),
+        data = Some(Resource("data", files = Seq(VirtualFile("qti.xml", "text/xml", true, "<root/>")))))
       ItemServiceImpl.save(item)
       item
     }
@@ -61,7 +58,6 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       action(request)
     }
 
-
     "delete a file from the Item.data Resource" in {
       val create = resourceApi.createDataFile(testItemId) //.createDataFile(testItemId)
       val delete = resourceApi.deleteDataFile(testItemId, "myfile.txt", true)
@@ -71,15 +67,14 @@ class ResourceApiTest extends BaseTest with PackageLogging {
 
     def assertDelete(create: Action[AnyContent], delete: Action[AnyContent], resource: => Resource, file: VirtualFile) = {
       val initialLength = resource.files.length
-      Logger.debug(s"length: $initialLength")
+      logger.debug(s"length: $initialLength")
       val result = makeFileRequest(file, create)
-      Logger.debug(s"Result: ${contentAsString(result)}")
+      logger.debug(s"Result: ${contentAsString(result)}")
       status(result) === OK
       resource.files.length === initialLength + 1
       makeFileRequest(file, delete)
       resource.files.length must equalTo(initialLength)
     }
-
 
     "delete a file from a supportingMaterial Resource" in {
       val create = resourceApi.createSupportingMaterialFile(testItemId, "Rubric")
@@ -87,7 +82,6 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       val file = VirtualFile("myfile.txt", "text/txt", isMain = true, content = "I'm never going to be main")
       assertDelete(create, delete, rubric, file)
     }
-
 
     "creating or updating a file to default in Item.data is ignored" in {
 
@@ -144,7 +138,6 @@ class ResourceApiTest extends BaseTest with PackageLogging {
         case _ => failure("can't find updated file")
       }
     }
-
 
     "when creating a file - if its default - unsets the other items in the file list" in {
 
@@ -206,7 +199,6 @@ class ResourceApiTest extends BaseTest with PackageLogging {
 
       val r: Resource = Resource("newResource", Seq())
 
-
       val resultWithResource = create(tokenFakeRequest(FakeHeaders(), AnyContentAsJson(Json.toJson(r))))
       println(contentAsString(resultWithResource))
       println(status(resultWithResource))
@@ -232,7 +224,6 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       status(deleteResult) === OK
     }
 
-
     "list an item's supporting materials" in {
       val get = resourceApi.getSupportingMaterials(testItemId)
       val result = get(tokenFakeRequest())
@@ -243,22 +234,20 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       (jsItem \ "name").asOpt[String] === Some("Rubric")
     }
 
-
     "do a binary post to supporting materials Resource" in {
 
-      def call(action : Action[String], byteArray: Array[Byte], expectedStatus: Int, expectedContains: String): (Boolean, Boolean) = {
-        val iteratee : Iteratee[Array[Byte], Result] = action(FakeRequest(
+      def call(action: Action[String], byteArray: Array[Byte], expectedStatus: Int, expectedContains: String): (Boolean, Boolean) = {
+        val iteratee: Iteratee[Array[Byte], Result] = action(FakeRequest(
           "",
           tokenize(""),
           FakeHeaders(Seq("Content" -> Seq("application/octet-stream"), CONTENT_LENGTH -> Seq(byteArray.length.toString))),
-          byteArray
-        ))
+          byteArray))
 
         import scala.concurrent.duration._
-        val result : Result = scala.concurrent.Await.result(iteratee.run, Duration(2, TimeUnit.SECONDS))
+        val result: Result = scala.concurrent.Await.result(iteratee.run, Duration(2, TimeUnit.SECONDS))
 
-        Logger.debug(s"result: $result")
-        Logger.debug(contentAsString(result))
+        logger.debug(s"result: $result")
+        logger.debug(contentAsString(result))
         (status(result) == expectedStatus, contentAsString(result).contains(expectedContains) === true)
       }
 
@@ -267,14 +256,13 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       val item = testItem
       val filename = "cute-rabbit.jpg"
 
-      val create = resourceApi.uploadFile(item.id.toString(),"Rubric", filename)
+      val create = resourceApi.uploadFile(item.id.toString(), "Rubric", filename)
       val file = Play.getFile("test/tests/files/" + filename)
       val source = scala.io.Source.fromFile(file.getAbsolutePath)(scala.io.Codec.ISO8859)
       val byteArray = source.map(_.toByte).toArray
       source.close()
 
-
-      Logger.debug(s"Test item id: ${item.id}")
+      logger.debug(s"Test item id: ${item.id}")
       //First upload should work
 
       val firstCall = call(create, byteArray, OK, "cute-rabbit.jpg")
@@ -285,12 +273,11 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       secondCall === (true, true)
 
       val badUpdate = resourceApi.uploadFile(item.id.toString(), "badResourceName", filename)
-      val thirdCall = call(badUpdate, byteArray,  NOT_FOUND, ApiError.ResourceNotFound.message)
+      val thirdCall = call(badUpdate, byteArray, NOT_FOUND, ApiError.ResourceNotFound.message)
       thirdCall === (true, true)
 
       true === false
     }.pendingUntilFixed("Need to make a decision on what we're testing here")
-
 
   }
 }

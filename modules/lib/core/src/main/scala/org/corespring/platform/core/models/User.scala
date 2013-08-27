@@ -148,9 +148,9 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with PackageL
   def getUser(userId: IdentityId): Option[User] = getUser(userId.userId, userId.providerId)
 
   def getUser(username: String, provider: String): Option[User] = {
-    Logger.debug(s"getUser: $username, $provider")
+    logger.debug(s"getUser: $username, $provider")
     val query = MongoDBObject(User.userName -> username, User.provider -> provider)
-    Logger.debug(s"${User.count(query)}")
+    logger.debug(s"${User.count(query)}")
     User.findOne(query)
   }
 

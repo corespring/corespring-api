@@ -34,14 +34,14 @@ class ContentHelper(itemService: ItemService) extends PackageLogging {
     itemService.findOneById(contentId).map { item =>
       isCollectionAuthorized(orgId, item.collectionId, p)
     }.getOrElse {
-      Logger.debug("isAuthorized: can't find item with id: " + contentId)
+      logger.debug("isAuthorized: can't find item with id: " + contentId)
       false
     }
   }
 
   def isCollectionAuthorized(orgId: ObjectId, collectionId: String, p: Permission): Boolean = {
     val ids = ContentCollection.getCollectionIds(orgId, p)
-    Logger.debug("isCollectionAuthorized: " + ids + " collection id: " + collectionId)
+    logger.debug("isCollectionAuthorized: " + ids + " collection id: " + collectionId)
     ids.exists(_.toString == collectionId)
   }
 }

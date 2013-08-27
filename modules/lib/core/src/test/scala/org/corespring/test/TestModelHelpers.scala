@@ -16,8 +16,9 @@ import scala.Some
 import securesocial.core.IdentityId
 import securesocial.core._
 import securesocial.core.providers.utils.PasswordHasher
+import org.corespring.common.log.ClassLogging
 
-trait TestModelHelpers {
+trait TestModelHelpers extends ClassLogging {
 
   class TestOPlenty(p: Permission, collectionPermission: Permission = Permission.None) extends After {
 
@@ -48,7 +49,7 @@ trait TestModelHelpers {
     }
 
     def after {
-      Logger(this.getClass.getName).debug("removing AccessToken, User, Organization + ContentCollection")
+      logger.debug("removing AccessToken, User, Organization + ContentCollection")
       AccessToken.removeToken(tokenId)
       User.remove(user)
       Organization.remove(org)
@@ -122,7 +123,7 @@ trait TestModelHelpers {
       expirationDate = expirationDate,
       lastUsed = lastUsed)
 
-    Logger.debug(s"Authenticator id: $withExpires.id")
+    logger.debug(s"Authenticator id: $withExpires.id")
     //Note: SecureSocial needs to look up the authenticator from the cache
     Cache.set(withExpires.id, withExpires)
     withExpires.toCookie

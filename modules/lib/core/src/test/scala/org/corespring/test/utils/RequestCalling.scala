@@ -31,7 +31,7 @@ trait RequestCalling extends PackageLogging with JsonToModel {
       val json: JsValue = Json.parse(contentAsString(result))
       getData(reads.reads(json))
     } else {
-      Logger.warn(s"Error invoking call: ${contentAsString(result)}")
+      logger.warn(s"Error invoking call: ${contentAsString(result)}")
       getData(reads.reads(JsObject(Seq())))
     }
   }

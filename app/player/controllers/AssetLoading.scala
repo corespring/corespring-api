@@ -164,7 +164,7 @@ object AssetLoading extends AssetLoading(AESCrypto, AssetLoadingDefaults.Templat
 
     private def escape(s: String): String = {
       val escaped = s.replace("\"", "\\\\\"")
-      Logger.debug("escaped: " + escaped)
+      logger.debug("escaped: " + escaped)
       escaped
     }
   }
