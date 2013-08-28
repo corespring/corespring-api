@@ -2,11 +2,11 @@
  * Shared function for handling feedback blocks
  * @return {Object}
  */
-var feedbackDirectiveFunction = function ($compile, QtiUtils) {
+var feedbackDirectiveFunction = function (QtiUtils) {
 
     return {
         restrict:'ACE',
-        template:'<span class="{{cssClass}}"></span>',
+        template:'<span class="{{cssClass}}" ng-bind-html-unsafe="feedback"></span>',
         scope:true,
         require:'^assessmentitem',
         link:function (scope, element, attrs) {
@@ -26,9 +26,6 @@ var feedbackDirectiveFunction = function ($compile, QtiUtils) {
                 var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
                 scope.feedback = ( feedback || "" );
 
-                element.html(feedback || "")
-                $compile(element.contents())(scope)
-
               setTimeout(function () {
                 if (typeof(MathJax) != "undefined") {
                   MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
@@ -44,8 +41,9 @@ var feedbackDirectiveFunction = function ($compile, QtiUtils) {
     }
 };
 
-angular.module('qti.directives').directive('feedbackblock', ['$compile', feedbackDirectiveFunction]);
 
-angular.module('qti.directives').directive('feedbackinline', ['$compile', feedbackDirectiveFunction]);
+angular.module('qti.directives').directive('feedbackblock', feedbackDirectiveFunction);
 
-angular.module('qti.directives').directive('modalfeedback', ['$compile', feedbackDirectiveFunction]);
+angular.module('qti.directives').directive('feedbackinline', feedbackDirectiveFunction);
+
+angular.module('qti.directives').directive('modalfeedback', feedbackDirectiveFunction);
