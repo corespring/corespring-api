@@ -150,7 +150,7 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
                     containerHeight = containerWidth = graphContainer.width()
                 }
                 graphContainer.attr(graphAttrs);
-                graphContainer.css({width: Math.floor(containerWidth*.9), height: Math.floor(containerHeight*.9)});
+                graphContainer.css({width: containerWidth, height: containerHeight});
                 $compile(graphContainer)(scope);
                 scope.additionalText = attrs.additionalText;
                 scope.scale = graphAttrs.scale;

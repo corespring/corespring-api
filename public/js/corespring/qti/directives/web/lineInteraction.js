@@ -62,12 +62,12 @@ angular.module("qti.directives").directive("graphcurve", function(){
 angular.module("qti.directives").directive("lineinteraction", ['$compile', function($compile){
     return {
         template: [
-        "<div class='graph-interaction' >",
-        "   <div class='additional-text' ng-show='additionalText'>",
+        "<div class='container-fluid graph-interaction' >",
+        "   <div class='row-fluid additional-text' ng-show='additionalText'>",
         "       <p>{{additionalText}}</p>",
         "   </div>",
-        "   <div class='row'>",
-        "       <div class='span3' ng-show='showInputs' style='margin-right: 17px;'>",
+        "   <div class='row-fluid'>",
+        "       <div class='span5' ng-show='showInputs' style='margin-right: 17px;'>",
         "           <div class='point-display' style='padding-bottom: 10px;'>",
         "              <p>Point A:</p>",
         "              <p>x: </p>",
@@ -84,13 +84,13 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
         "             <input type='text' ng-style='inputStyle' ng-model='points.B.y' ng-disabled='locked'>",
         "          </div>",
         "      </div>",
-        "      <div class='span4 scale-display' ng-show='showInputs' style='margin-left: 0px;'>",
+        "      <div class='span4 scale-display' ng-show='showInputs'>",
         "          <p>scale={{scale}}</p>",
         "          <button type='button' class='btn btn-default btn-undo' ng-click='undo()'>Undo</button>",
         "          <button type='button' class='btn btn-default btn-start-over' ng-click='startOver()'>Start Over</button>",
         "      </div>",
         "   </div>",
-        "   <div class='graph-container'></div>",
+        "   <div class='row-fluid graph-container'></div>",
         "   <div id='initialParams' ng-transclude></div>",
         "</div>"
         ].join("\n"),
@@ -250,7 +250,7 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
                     containerHeight = containerWidth = graphContainer.width()
                 }
                 graphContainer.attr(graphAttrs);
-                graphContainer.css({width: Math.floor(containerWidth*.9), height: Math.floor(containerHeight*.9)});
+                graphContainer.css({width: containerWidth, height: containerHeight});
                 $compile(graphContainer)(scope);
                 scope.additionalText = attrs.additionalText;
                 scope.scale = graphAttrs.scale;
