@@ -91,4 +91,17 @@ describe('qtiServices.QtiUtils', function () {
 
     });
 
+    describe('isObject', function(){
+        it("returns true if object", function(){
+            expect(service.isObject({})).toBe(true)
+            expect(service.isObject([])).toBe(false)
+        })
+    })
+    describe('isArray', function(){
+        it("returns true if array", function(){
+            expect(service.isArray([])).toBe(true)
+            expect(service.isArray({})).toBe(false)
+        })
+    })
+
 });

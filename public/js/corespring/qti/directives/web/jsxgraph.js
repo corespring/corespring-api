@@ -1,5 +1,5 @@
 'use strict';
-angular.module('qti.directives').directive('jsxGraph', function(Canvas) {
+angular.module('qti.directives').directive('jsxGraph', function(Canvas,QtiUtils) {
 return {
   template: "<div class='jxgbox' ng-style='boxStyle' style='width: 100%; height: 100%'></div>",
   restrict: 'A',
@@ -90,7 +90,7 @@ return {
     scope.graphCallback = function(params){
         if(params.points && canvas){
             clearBoard();
-            if(Object.prototype.toString.call(params.points) === "[object Object]"){
+            if(QtiUtils.isObject(params.points)){
               for (var ptName in params.points) {
                 var point = params.points[ptName];
                 var coordx = parseFloat(point.x);
@@ -118,7 +118,7 @@ return {
                   if(point.color) canvas.changePointColor(canvasPoint, point.color)
                 }
               }
-            }else if(Object.prototype.toString.call(params.points) === "[object Array]"){
+            }else if(QtiUtils.isArray(params.points)){
                 for(var i = 0; i < params.points.length; i++){
                     var coordx = parseFloat(params.points[i].x);
                     var coordy = parseFloat(params.points[i].y);

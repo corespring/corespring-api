@@ -151,6 +151,14 @@ angular.module('qti.services')
       return prompt;
     };
 
+    QtiUtils.isObject = function(someobj){
+        return Object.prototype.toString.call(someobj) === "[object Object]"
+    }
+
+    QtiUtils.isArray = function(someobj){
+        return Object.prototype.toString.call(someobj) === "[object Array]"
+    }
+
     return QtiUtils;
   }
 );
