@@ -49,13 +49,13 @@ trait ItemFiles extends PackageLogging {
       throw new RuntimeException("this file has no storage key: " + file.name + " id: " + item.id + " resource: " + resource.name)
     }
 
-    Logger.debug("[ItemFiles] clone file: " + file.storageKey + " --> " + newStorageKey)
+    logger.debug("[ItemFiles] clone file: " + file.storageKey + " --> " + newStorageKey)
     s3service.copyFile(bucket, file.storageKey, newStorageKey)
     file.storageKey = newStorageKey
     CloneFileResult(file, true)
   } catch {
     case e: Throwable => {
-      Logger.debug("An error occurred cloning the file: " + e.getMessage)
+      logger.debug("An error occurred cloning the file: " + e.getMessage)
       CloneFileResult(file, false)
     }
   }

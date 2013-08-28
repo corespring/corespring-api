@@ -77,7 +77,7 @@ object AuthController extends Controller with SecureSocial with ObjectIdParser w
           }
         } else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
         case None => {
-          Logger.error("user was authorized but does not exist!")
+          logger.error("user was authorized but does not exist!")
           InternalServerError
         }
       }

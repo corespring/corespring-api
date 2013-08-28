@@ -25,7 +25,7 @@ object CheckSessionAccess extends CheckSession with PackageLogging {
     private def contains(companion: ItemSessionCompanion, id: ObjectId, itemId: VersionedId[ObjectId]): Boolean = {
       companion.findOneById(id) match {
         case Some(s) => {
-          Logger.debug("SessionItemLookup:contains: companion: " + companion + " itemId:" + s.itemId + " searched for: " + itemId)
+          logger.debug("SessionItemLookup:contains: companion: " + companion + " itemId:" + s.itemId + " searched for: " + itemId)
           s.itemId == itemId
         }
         case _ => false
@@ -54,7 +54,7 @@ object CheckSessionAccess extends CheckSession with PackageLogging {
     else {
       val failedConstraints = granter.getFailedConstraints(activeMode, a, o)
 
-      Logger.warn("Access was refused. The following constraints prevented access: \n " + failedConstraints.mkString(", \n"))
+      logger.warn("Access was refused. The following constraints prevented access: \n " + failedConstraints.mkString(", \n"))
       Left(InternalError("Access denied: " + failedConstraints.mkString(",\n")))
     }
   }

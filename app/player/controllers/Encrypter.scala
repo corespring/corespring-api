@@ -35,7 +35,7 @@ class Encrypter(encrypter: Crypto) extends BaseApi {
           r match {
             case s: EncryptionSuccess => Ok(Json.toJson(s))
             case f: EncryptionFailure => {
-              Logger.error("Failed encryption: " + f.e.getMessage)
+              logger.error("Failed encryption: " + f.e.getMessage)
               BadRequest(
                 Json.toJson(
                   JsObject(

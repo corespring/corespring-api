@@ -34,7 +34,7 @@ object Resource extends PackageLogging {
 
       json match {
         case obj: JsObject => {
-          Logger.debug(s"ResourceReads ${Json.prettyPrint(json)}")
+          logger.debug(s"ResourceReads ${Json.prettyPrint(json)}")
           val resourceName = (json \ "name").as[String]
           val files = (json \ "files").asOpt[Seq[JsValue]].map(_.map(f => {
 

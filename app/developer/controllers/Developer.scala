@@ -34,7 +34,7 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
     result match {
       case Success(u) => Some(u)
       case Failure(e) => {
-        Logger.warn(s"[userFromRequest] - $e")
+        logger.warn(s"[userFromRequest] - $e")
         None
       }
     }

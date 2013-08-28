@@ -24,13 +24,13 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
 
     val deploymentPath = (prefix + "/" + relativePath).replaceAll("//", "/")
 
-    Logger.debug("deploy: " + deploymentPath + ", lastModified: " + lastModified)
+    logger.debug("deploy: " + deploymentPath + ", lastModified: " + lastModified)
     def key: String = deploymentPath + ":" + lastModified
 
     def checkS3: Option[String] = client.map {
       s3 =>
         try {
-          Logger.debug("check s3 for: " + deploymentPath)
+          logger.debug("check s3 for: " + deploymentPath)
           s3.getObject(bucket, deploymentPath)
           val url = S3Deployer.getUrl(bucket, deploymentPath)
           deployed += (key -> url)
@@ -44,7 +44,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
       client.map {
         s3 =>
           try {
-            Logger.debug("upload file: " + deploymentPath)
+            logger.debug("upload file: " + deploymentPath)
             val metadata = new ObjectMetadata()
             metadata.setLastModified(new Date(lastModified))
             metadata.setContentType(info.contentType)
@@ -78,11 +78,11 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
   private def createCleanBucket = client.map {
     s3 =>
       try {
-        Logger.debug("List objects for bucket: %s".format(bucket))
+        logger.debug("List objects for bucket: %s".format(bucket))
         s3.listObjects(bucket)
       } catch {
         case e: Throwable => {
-          Logger.debug("creating new bucket: " + bucket)
+          logger.debug("creating new bucket: " + bucket)
           s3.createBucket(bucket)
           val text = string.interpolate(S3Deployer.policyTemplate, string.replaceKey(Map("bucket" -> bucket)), string.DollarRegex)
           val request = new SetBucketPolicyRequest(bucket, text)
