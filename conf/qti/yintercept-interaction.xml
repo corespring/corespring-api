@@ -1,6 +1,6 @@
 <assessmentItem>
-    <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
-    <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
+    <correctResponseFeedback>Correct!</correctResponseFeedback>
+    <incorrectResponseFeedback>Good try.</incorrectResponseFeedback>
     <responseDeclaration identifier="interceptTest" baseType="string" cardinality="ordered">
         <correctResponse>
             <value>0,6</value>
@@ -9,7 +9,7 @@
     </responseDeclaration>
     <itemBody>
 
-        Give the y-intercept and x-intercept of y=2x+6
+        <p>Identify the y-intercept and x-intercept of the line y=2x+6 by marking the points on the graph.</p>
         <pointInteraction responseIdentifier="interceptTest"
                          point-labels="y-intercept,x-intercept"
                          additional-text="More instructions about what is required for this taks. This text can run the width of this space, then wrap and push down any content below it"
@@ -17,11 +17,11 @@
                          />
 
         <feedbackBlock outcomeIdentifier="responses.interceptTest.outcome.incorrect">
-            <div class="feedback-block-incorrect">Wrong!</div>
+            <div class="feedback-block-incorrect">Good try.</div>
         </feedbackBlock>
 
         <feedbackBlock outcomeIdentifier="responses.interceptTest.outcome.correct">
-            <div class="feedback-block-correct">You're right!</div>
+            <div class="feedback-block-correct">Correct!</div>
         </feedbackBlock>
 
     </itemBody>

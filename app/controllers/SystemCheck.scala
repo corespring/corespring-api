@@ -40,7 +40,7 @@ class SystemCheck(s3: CorespringS3Service) extends Controller {
   }
 
   def checkDatabase(): Either[InternalError, Unit] = {
-    val dbmodels: Seq[ModelCompanion[_, ObjectId]] = Seq(
+    val dbmodels: Seq[ModelCompanion[_, ObjectId]] = Seq[ModelCompanion[_, ObjectId]](
       AccessToken,
       ApiClient,
       ContentCollection,
