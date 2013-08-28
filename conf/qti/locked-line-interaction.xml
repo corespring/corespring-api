@@ -11,8 +11,6 @@
         Give the equation for the given line below.
         <lineInteraction jsxgraphcore=""
                          responseIdentifier="graphTest"
-                         graph-width="300px"
-                         graph-height="300px"
                          show-inputs="false"
                          locked="">
             <graphcurve>y=2x+7</graphcurve>

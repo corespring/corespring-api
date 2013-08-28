@@ -242,18 +242,13 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
 
             return function(scope, element, attrs, AssessmentItemController){
                 var containerWidth, containerHeight;
+                var graphContainer = element.find('.graph-container')
                 if(attrs.graphWidth && attrs.graphHeight){
                     containerWidth = parseInt(attrs.graphWidth)
                     containerHeight = parseInt(attrs.graphHeight)
                 } else {
-                    //get the width of the container
-                    var domelem = element
-                    while(domelem.width() == 0){
-                        domelem = domelem.parent()
-                    }
-                    containerHeight = containerWidth = domelem.width()
+                    containerHeight = containerWidth = graphContainer.width()
                 }
-                var graphContainer = element.find('.graph-container')
                 graphContainer.attr(graphAttrs);
                 graphContainer.css({width: Math.floor(containerWidth*.9), height: Math.floor(containerHeight*.9)});
                 $compile(graphContainer)(scope);
