@@ -57,7 +57,7 @@ object Build extends sbt.Build {
     "org.bson.types.ObjectId",
     "org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._")
 
-  val commonUtils = builders.lib("common-utils").settings(
+  val apiUtils = builders.lib("api-utils").settings(
     libraryDependencies ++= Seq(specs2 % "test", playFramework, salatPlay, playJson % "test"),
     Keys.fork in Test := forkInTests).settings(disableDocsSettings: _*)
 
@@ -65,23 +65,19 @@ object Build extends sbt.Build {
   val testLib = builders.testLib("test-helpers").settings(
     libraryDependencies ++= Seq(specs2 % "test->compile", playFramework, playTest, salatPlay)).settings(disableDocsSettings: _*)
 
-  /** The Qti library */
-  //TODO: only depends on commonUtils for PackageLogging - remove
-  val qti = builders.lib("qti").settings(
-    libraryDependencies ++= Seq(specs2 % "test", salatPlay, playJson % "test"),
-    Keys.fork in Test := forkInTests).dependsOn(commonUtils, testLib % "test->compile").settings(disableDocsSettings: _*)
-
-  val assets = builders.lib("assets").settings(
-    libraryDependencies ++= Seq(specs2 % "test", playS3, assetsLoader),
-    credentials += cred).dependsOn(commonUtils).settings(disableDocsSettings: _*)
+  val assets = builders.lib("assets")
+    .settings(
+      libraryDependencies ++= Seq(specs2 % "test", playS3, assetsLoader, corespringCommonUtils),
+      credentials += cred)
+    .dependsOn(apiUtils)
+    .settings(disableDocsSettings: _*)
 
   /** Core data model */
-  //TODO: This needs to be further broken down into smaller well defined libraries
-  // -> data-models - only the case class data models
-  // -> data-services - data model services (aka the objects that we have now)
   val core = builders.lib("core").settings(
     libraryDependencies ++= Seq(
       salatPlay,
+      corespringQti,
+      corespringCommonUtils,
       salatVersioningDao,
       specs2 % "test",
       playS3,
@@ -93,10 +89,13 @@ object Build extends sbt.Build {
       playTest % "test"),
     Keys.fork in Test := forkInTests,
     parallelExecution.in(Test) := false,
-    credentials += cred).dependsOn(assets, commonUtils, qti, testLib % "test->compile").settings(disableDocsSettings: _*)
+    credentials += cred).dependsOn(assets, testLib % "test->compile").settings(disableDocsSettings: _*)
 
-  val playerLib = builders.lib("player-lib").settings(
-    libraryDependencies ++= Seq(playFramework, specs2 % "test")).dependsOn(core, commonUtils).settings(disableDocsSettings: _*)
+  val playerLib = builders.lib("player-lib")
+    .settings(
+      libraryDependencies ++= Seq(corespringCommonUtils, playFramework, specs2 % "test"))
+    .dependsOn(core)
+    .settings(disableDocsSettings: _*)
 
   val commonViews = builders.web("common-views").settings(
     libraryDependencies ++= Seq(playJson % "test")).dependsOn(core).settings(disableDocsSettings: _*)
@@ -120,7 +119,7 @@ object Build extends sbt.Build {
       Keys.fork.in(Test) := forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests)).settings(MongoDbSeederPlugin.newSettings ++ Seq(testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
-    .dependsOn(public, playerLib, qti, core % "compile->compile;test->test", commonUtils, commonViews, testLib % "test->compile")
-    .aggregate(public, playerLib, qti, core, commonUtils, commonViews, testLib).settings(disableDocsSettings: _*)
+    .dependsOn(public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile")
+    .aggregate(public, playerLib, core, apiUtils, commonViews, testLib).settings(disableDocsSettings: _*)
 
 }

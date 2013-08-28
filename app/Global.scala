@@ -2,14 +2,13 @@ import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHe
 import common.seed.SeedDb._
 import filters.{ Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
+import org.corespring.common.log.ClassLogging
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
 import play.api._
 import play.api.mvc.Results._
 import play.api.mvc._
 
-object Global extends WithFilters(AjaxFilter, AccessControlFilter) {
-
-  val Logger: LoggerLike = play.api.Logger("Global")
+object Global extends WithFilters(AjaxFilter, AccessControlFilter) with ClassLogging {
 
   val INIT_DATA: String = "INIT_DATA"
 
@@ -27,10 +26,10 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter) {
   override def onError(request: RequestHeader, throwable: Throwable) = {
 
     val uid = new ObjectId().toString
-    Logger.error(uid)
-    Logger.error(throwable.getMessage)
+    logger.error(uid)
+    logger.error(throwable.getMessage)
 
-    if (Logger.isDebugEnabled) {
+    if (logger.isDebugEnabled) {
       throwable.printStackTrace()
     }
     InternalServerError(org.corespring.web.common.views.html.onError(uid, throwable))
@@ -62,7 +61,7 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter) {
 
     val initData: Boolean = app.configuration.getBoolean(INIT_DATA).getOrElse(false)
 
-    Logger.debug(s"Init Data: $initData :: ${app.configuration.getBoolean(INIT_DATA)}")
+    logger.debug(s"Init Data: $initData :: ${app.configuration.getBoolean(INIT_DATA)}")
 
     def onlyIfLocalDb(fns: (() => Unit)*) {
       if (isSafeToSeedDb(app))
@@ -71,7 +70,7 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter) {
         throw new RuntimeException("You're trying to seed against a remote db - bad idea")
     }
 
-    Logger.debug(s"App mode: $app.mode")
+    logger.debug(s"App mode: ${app.mode}")
 
     app.mode match {
 

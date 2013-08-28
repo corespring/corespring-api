@@ -76,7 +76,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService) extends 
    * @return an Option[ObjectId] or None if the id is invalid
    */
   private def convertStringToVersionedId(itemId: String): Option[VersionedId[ObjectId]] = {
-    Logger.debug("handle itemId: " + itemId)
+    logger.debug("handle itemId: " + itemId)
     import VersionedIdImplicits.Binders._
     stringToVersionedId(itemId)
   }

@@ -7,7 +7,7 @@ import play.api.Play
 class AssetsLoader(val loader: Loader) extends PackageLogging {
 
   def init(implicit app: play.api.Application) = if (Play.isProd) {
-    Logger.debug("running S3 deployments...")
+    logger.debug("running S3 deployments...")
     tagger
     corespringCommon
     playerCommon

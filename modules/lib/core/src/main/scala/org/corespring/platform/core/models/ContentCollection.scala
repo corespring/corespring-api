@@ -166,7 +166,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     val orgCollectionIds = getCollectionIds(orgId, p)
     val exists = orgCollectionIds.exists(_ == collId)
     if (!exists) {
-      Logger.debug(s"[isAuthorized] == false : orgId: $orgId, collection id: $collId isn't in: ${orgCollectionIds.mkString(",")}")
+      logger.debug(s"[isAuthorized] == false : orgId: $orgId, collection id: $collId isn't in: ${orgCollectionIds.mkString(",")}")
     }
     exists
   }

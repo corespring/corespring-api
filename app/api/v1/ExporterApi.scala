@@ -30,7 +30,7 @@ class ExporterApi(encrypter: Crypto, service: ItemService) extends BaseApi {
   def multiItemScorm2004(ids: String) = ApiActionRead {
     request =>
 
-      Logger.debug("Encrypt for org: " + request.ctx.org.map(_.name).getOrElse("??"))
+      logger.debug("Encrypt for org: " + request.ctx.org.map(_.name).getOrElse("??"))
       val orgEncrypter = new OrgEncrypter(request.ctx.organization, encrypter)
       val options: RenderOptions = RenderOptions.ANYTHING
       val maybeResult = orgEncrypter.encrypt(Json.toJson(options).toString())
@@ -41,7 +41,7 @@ class ExporterApi(encrypter: Crypto, service: ItemService) extends BaseApi {
           binaryResultFromIds(ids, request.ctx.organization, generatorFn)
         }
         case Some(EncryptionFailure(msg, t)) => {
-          Logger.debug("multiItemScorm encryption error: " + msg + " " + t.getMessage)
+          logger.debug("multiItemScorm encryption error: " + msg + " " + t.getMessage)
           BadRequest("An error occurred")
         }
         case _ => BadRequest("Unable to create export package")

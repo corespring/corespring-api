@@ -69,8 +69,8 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
     val requestSignature = request.body.asFormUrlEncoded.get(LtiKeys.Signature).head
     consumer.getOAuthSignature() match {
       case Some(s) => {
-        Logger.debug("signature: " + s)
-        Logger.debug("requestSignature: " + requestSignature)
+        logger.debug("signature: " + s)
+        logger.debug("requestSignature: " + requestSignature)
         s.equals(requestSignature)
       }
       case _ => false
@@ -186,7 +186,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
   }
 
   def responseXml(sourcedId: String, score: String) = {
-    Logger.debug("[responseXml with: %s, %s".format(sourcedId, score))
+    logger.debug("[responseXml with: %s, %s".format(sourcedId, score))
 
     /**
      * TODO: Add a result data endpoint so that the users response can be seen.
@@ -237,7 +237,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
 
   def process(quizId: ObjectId, resultSourcedId: String) = session(quizId, resultSourcedId) match {
     case Left(msg) => Action { request =>
-      Logger.warn("Error processing response: " + msg)
+      logger.warn("Error processing response: " + msg)
       BadRequest(msg)
     }
     case Right(session) => {
@@ -255,7 +255,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
 
           result match {
             case Failure(msg) => {
-              this.Logger.warn("Error processing response with source id: %s: %s".format(resultSourcedId, msg))
+              this.logger.warn("Error processing response with source id: %s: %s".format(resultSourcedId, msg))
               BadRequest(msg)
             }
             case Success(result) => result
@@ -274,7 +274,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
     import play.api.libs.concurrent.Execution.Implicits._
 
     def sendResultsToPassback(consumer: LtiOAuthConsumer, score: String) = {
-      Logger.debug("Sending the grade passback to: %s".format(participant.gradePassbackUrl))
+      logger.debug("Sending the grade passback to: %s".format(participant.gradePassbackUrl))
       WS.url(participant.gradePassbackUrl)
         .sign(
           OAuthCalculator(ConsumerKey(consumer.getConsumerKey, consumer.getConsumerSecret),
@@ -289,7 +289,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
     def emptyOrNull(s: String): Boolean = (s == null || s.isEmpty)
 
     if (emptyOrNull(participant.gradePassbackUrl)) {
-      Logger.warn("Not sending passback for assignment: %s".format(participant.resultSourcedId))
+      logger.warn("Not sending passback for assignment: %s".format(participant.resultSourcedId))
       val futureResult: Future[Result] = Future {
         Ok(toJson(Map("returnUrl" -> participant.onFinishedUrl)))
       }

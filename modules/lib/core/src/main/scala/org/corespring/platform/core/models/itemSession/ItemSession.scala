@@ -211,7 +211,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
 
   private def updateFromDbo(id: ObjectId, dbo: DBObject, additionalProcessing: (ItemSession => Unit) = (s) => ()): Either[InternalError, ItemSession] = {
     try {
-      Logger.debug(this + ":: update into : " + this.collection.getFullName())
+      logger.debug(this + ":: update into : " + this.collection.getFullName())
       update(unfinishedSession(id), dbo, false, false, collection.writeConcern)
       findOneById(id) match {
         case Some(session) => {
