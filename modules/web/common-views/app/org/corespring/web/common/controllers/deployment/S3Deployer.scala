@@ -2,8 +2,8 @@ package org.corespring.web.common.controllers.deployment
 
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model._
-import com.ee.assets.deployment.{ContentInfo, Deployer}
-import java.io.{InputStream, ByteArrayInputStream}
+import com.ee.assets.deployment.{ ContentInfo, Deployer }
+import java.io.{ InputStream, ByteArrayInputStream }
 import java.util.Date
 import org.corespring.common.log.PackageLogging
 import org.corespring.common.utils.string
@@ -20,18 +20,17 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
 
   def listAssets: Map[String, String] = deployed.toMap
 
-
   def deploy(relativePath: String, lastModified: Long, stream: => InputStream, info: ContentInfo): Either[String, String] = {
 
     val deploymentPath = (prefix + "/" + relativePath).replaceAll("//", "/")
 
-    Logger.debug("deploy: " + deploymentPath + ", lastModified: " + lastModified)
+    logger.debug("deploy: " + deploymentPath + ", lastModified: " + lastModified)
     def key: String = deploymentPath + ":" + lastModified
 
     def checkS3: Option[String] = client.map {
       s3 =>
         try {
-          Logger.debug("check s3 for: " + deploymentPath)
+          logger.debug("check s3 for: " + deploymentPath)
           s3.getObject(bucket, deploymentPath)
           val url = S3Deployer.getUrl(bucket, deploymentPath)
           deployed += (key -> url)
@@ -45,7 +44,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
       client.map {
         s3 =>
           try {
-            Logger.debug("upload file: " + deploymentPath)
+            logger.debug("upload file: " + deploymentPath)
             val metadata = new ObjectMetadata()
             metadata.setLastModified(new Date(lastModified))
             metadata.setContentType(info.contentType)
@@ -58,8 +57,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
             s3.putObject(bucket, deploymentPath, bytesInputStream, metadata)
             deployed += (key -> S3Deployer.getUrl(bucket, deploymentPath))
             Right(deployed.get(key).get)
-          }
-          catch {
+          } catch {
             case e: Throwable => Left(e.getMessage)
           }
       }.getOrElse(Left("The amazon client isn't initialized"))
@@ -71,19 +69,20 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
 
   private def toByteArray(is: InputStream) = {
     import scala.language.postfixOps
-Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
+    Stream.continually(is.read).takeWhile(-1 !=).map(_.toByte).toArray
   }
 
-  /** Try and delete everything from an existing bucket - if that fails - create a new bucket and set the access policy.
+  /**
+   * Try and delete everything from an existing bucket - if that fails - create a new bucket and set the access policy.
    */
   private def createCleanBucket = client.map {
     s3 =>
       try {
-        Logger.debug("List objects for bucket: %s".format(bucket))
+        logger.debug("List objects for bucket: %s".format(bucket))
         s3.listObjects(bucket)
       } catch {
         case e: Throwable => {
-          Logger.debug("creating new bucket: " + bucket)
+          logger.debug("creating new bucket: " + bucket)
           s3.createBucket(bucket)
           val text = string.interpolate(S3Deployer.policyTemplate, string.replaceKey(Map("bucket" -> bucket)), string.DollarRegex)
           val request = new SetBucketPolicyRequest(bucket, text)

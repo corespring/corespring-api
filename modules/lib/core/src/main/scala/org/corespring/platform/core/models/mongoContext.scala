@@ -1,6 +1,6 @@
 package org.corespring.platform.core.models
 
-import com.novus.salat.{TypeHintFrequency, StringTypeHintStrategy, Context}
+import com.novus.salat.{ TypeHintFrequency, StringTypeHintStrategy, Context }
 import play.api.Play
 import play.api.Play.current
 

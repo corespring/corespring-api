@@ -63,12 +63,12 @@ object BaseFile {
       val isMain = (json \ "default").asOpt[Boolean].getOrElse(false)
 
       JsSuccess(
-      (json \ "content").asOpt[String] match {
-        case Some(content) => {
-          VirtualFile(name, contentType, isMain, content)
-        }
-        case _ => StoredFile(name, contentType, isMain) //we are missing the storageKey here
-      })
+        (json \ "content").asOpt[String] match {
+          case Some(content) => {
+            VirtualFile(name, contentType, isMain, content)
+          }
+          case _ => StoredFile(name, contentType, isMain) //we are missing the storageKey here
+        })
     }
   }
 
@@ -76,8 +76,7 @@ object BaseFile {
     JsObject(Seq(
       "name" -> JsString(f.name),
       "contentType" -> JsString(f.contentType),
-      "default" -> JsBoolean(f.isMain))
-    )
+      "default" -> JsBoolean(f.isMain)))
   }
 }
 
@@ -97,7 +96,6 @@ object VirtualFile {
   }
 
 }
-
 
 /**
  * A File that has been stored in a file storage service.

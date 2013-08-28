@@ -6,18 +6,18 @@ import org.corespring.platform.core.models.error.InternalError
 import org.corespring.player.accessControl.auth.requests.TokenizedRequest
 import org.corespring.player.accessControl.cookies.PlayerCookieReader
 import org.corespring.player.accessControl.models.RequestedAccess.Mode
-import org.corespring.player.accessControl.models.{RenderOptions, RequestedAccess}
+import org.corespring.player.accessControl.models.{ RenderOptions, RequestedAccess }
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
 
-
-/** An implementation of TokenizedRequestActionBuilder that grants access based on the requested access and render options.
-  * RequestedAccess is defined by the controllers. It defines the type of access that the controller will need.
-  * RenderOptions is set as a session cookie it defines what rendering options have been granted to the session.
-  * Using these two models we can make a decision on whether this request should be granted access.
-  *
-  */
+/**
+ * An implementation of TokenizedRequestActionBuilder that grants access based on the requested access and render options.
+ * RequestedAccess is defined by the controllers. It defines the type of access that the controller will need.
+ * RenderOptions is set as a session cookie it defines what rendering options have been granted to the session.
+ * Using these two models we can make a decision on whether this request should be granted access.
+ *
+ */
 abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAccess] with PlayerCookieReader {
 
   def ValidatedAction(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
@@ -43,7 +43,7 @@ abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAcces
           o =>
             grantAccess(activeMode(request), ra, o) match {
               case Right(true) => invokeBlock
-                //TODO: ApiError dependency?
+              //TODO: ApiError dependency?
               case Right(false) => Unauthorized(Json.toJson("you can't access the items"))
               case Left(e) => Unauthorized(Json.toJson(e.clientOutput))
             }
@@ -51,8 +51,9 @@ abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAcces
 
     }
 
-  /** Grant access for this request?
-    */
+  /**
+   * Grant access for this request?
+   */
   def grantAccess(activeMode: Option[Mode.Mode], a: RequestedAccess, o: RenderOptions): Either[InternalError, Boolean]
 
 }

@@ -2,16 +2,14 @@ package basiclti.export
 
 import org.bson.types.ObjectId
 import java.io._
-import java.util.zip.{ZipEntry, ZipOutputStream}
+import java.util.zip.{ ZipEntry, ZipOutputStream }
 import scala.Some
 import collection.mutable.ArrayBuffer
-import xml.{XML, Elem}
+import xml.{ XML, Elem }
 
-import basiclti.controllers.routes.{AssignmentLauncher => AssignmentLauncherRoutes}
-
+import basiclti.controllers.routes.{ AssignmentLauncher => AssignmentLauncherRoutes }
 
 object CCExporter {
-
 
   private class ConfigFiles {
     val virtualFiles = new ArrayBuffer[VirtualFile]()
@@ -27,7 +25,7 @@ object CCExporter {
     zip(cf.virtualFiles)
   }
 
-  private def buildLti(ids: Seq[String], cf: ConfigFiles, domain : String) {
+  private def buildLti(ids: Seq[String], cf: ConfigFiles, domain: String) {
     var count = 1
     ids.foreach(id => {
       val url = domain + AssignmentLauncherRoutes.launch()
@@ -56,8 +54,7 @@ object CCExporter {
       cf.virtualFiles += CCFile(folderId + "/assignment-" + count + ".html", ha.toString);
       cf.resources += CCWebFolderResource(folderId,
         folderId + "/assignment-" + count + ".html",
-        Seq(CCResourceFile(folderId + "/assignment-" + count + ".html"), CCResourceFile(folderId + "/assignment_settings.xml"))
-      )
+        Seq(CCResourceFile(folderId + "/assignment-" + count + ".html"), CCResourceFile(folderId + "/assignment_settings.xml")))
     })
   }
 
@@ -65,12 +62,10 @@ object CCExporter {
     val name = "imsmanifest.xml"
     val organizations = Seq(
       CCOrganization(IdGen(),
-        Some(CCItemGroup("", "LearningModules", Seq()))
-      ))
+        Some(CCItemGroup("", "LearningModules", Seq()))))
     val ccmanifest = CCManifest(IdGen(),
       cf.resources.toSeq,
-      organizations
-    )
+      organizations)
     cf.virtualFiles += CCFile(name, xmlToString(ccmanifest.toXml))
   }
 

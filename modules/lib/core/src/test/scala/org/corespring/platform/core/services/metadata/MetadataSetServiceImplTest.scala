@@ -1,11 +1,11 @@
 package org.corespring.platform.core.services.metadata
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.metadata.{MetadataSet, SchemaMetadata}
-import org.corespring.platform.core.models.{MetadataSetRef, Organization}
+import org.corespring.platform.core.models.metadata.{ MetadataSet, SchemaMetadata }
+import org.corespring.platform.core.models.{ MetadataSetRef, Organization }
 import org.corespring.test.PlaySingleton
 import org.specs2.mock.Mockito
-import org.specs2.mutable.{BeforeAfter, Specification}
+import org.specs2.mutable.{ BeforeAfter, Specification }
 import scala.Some
 import org.corespring.platform.core.services.organization.OrganizationService
 
@@ -41,9 +41,8 @@ class MetadataSetServiceImplTest extends Specification with Mockito {
       service.delete(orgId, newSet.id)
     }
 
-    def before: Any = { }
+    def before: Any = {}
   }
-
 
   "metadata set service" should {
 
@@ -60,14 +59,14 @@ class MetadataSetServiceImplTest extends Specification with Mockito {
       service.list(orgId).length === 1
     }
 
-    "update" in new SetWrapper{
+    "update" in new SetWrapper {
       service.create(orgId, newSet)
       val copy = newSet.copy(metadataKey = "new_key")
-      service.update( copy )
-      service.findByKey("new_key") ===  Some(copy)
+      service.update(copy)
+      service.findByKey("new_key") === Some(copy)
     }
 
-    "delete" in new SetWrapper{
+    "delete" in new SetWrapper {
       service.create(orgId, newSet)
       service.delete(orgId, newSet.id)
       service.findByKey(newSet.metadataKey) === None

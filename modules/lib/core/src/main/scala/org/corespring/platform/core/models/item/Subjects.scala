@@ -7,7 +7,7 @@ import play.api.libs.json._
 import scala.Some
 
 case class Subjects(var primary: Option[ObjectId] = None,
-                    var related: Option[ObjectId] = None)
+  var related: Option[ObjectId] = None)
 
 object Subjects extends ValueGetter {
 
@@ -23,11 +23,12 @@ object Subjects extends ValueGetter {
 
       import Keys._
 
-      /** Look up the subject in the database
-        *
-        * @param id
-        * @return
-        */
+      /**
+       * Look up the subject in the database
+       *
+       * @param id
+       * @return
+       */
       def getSubject(id: Option[ObjectId]): Option[JsValue] = id match {
         case Some(foundId) => {
           Subject.findOneById(foundId) match {
@@ -40,8 +41,7 @@ object Subjects extends ValueGetter {
 
       val foundSubjects: Seq[Option[(String, JsValue)]] = Seq(
         getSubject(s.primary).map((primarySubject -> Json.toJson(_))),
-        getSubject(s.related).map((relatedSubject -> Json.toJson(_)))
-      )
+        getSubject(s.related).map((relatedSubject -> Json.toJson(_))))
 
       JsObject(foundSubjects.flatten)
     }
@@ -64,8 +64,7 @@ object Subjects extends ValueGetter {
           case Some(s) => JsSuccess(s)
           case _ => JsError("error parsing subjects")
         }
-      }
-      catch {
+      } catch {
         case e: IllegalArgumentException => JsError("error parsing subjects")
       }
     }

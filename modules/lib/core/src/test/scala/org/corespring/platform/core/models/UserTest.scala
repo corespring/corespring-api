@@ -1,7 +1,7 @@
 package org.corespring.platform.core.models
 
 import org.bson.types.ObjectId
-import org.specs2.mutable.{After, Specification}
+import org.specs2.mutable.{ After, Specification }
 import org.corespring.test.PlaySingleton
 import org.corespring.platform.core.models.auth.Permission
 
@@ -11,7 +11,7 @@ class UserTest extends Specification {
 
   sequential
 
-  class UserScoped extends After{
+  class UserScoped extends After {
 
     lazy val user = User("user_test_name")
     lazy val org = getOrg
@@ -22,7 +22,7 @@ class UserTest extends Specification {
       o
     }
 
-    def after{
+    def after {
       Organization.remove(org)
       User.removeUser(user.userName)
     }
@@ -39,7 +39,7 @@ class UserTest extends Specification {
 
     "get permissions" in new UserScoped {
       User.insertUser(user, org.id, Permission.Write)
-      User.getPermissions(user.userName, org.id) === Right(Permission(3,"write"))
+      User.getPermissions(user.userName, org.id) === Right(Permission(3, "write"))
     }
   }
 

@@ -1,8 +1,8 @@
 package api.v1
 
 import api.ApiError
-import controllers.auth.{ApiRequest, BaseApi}
-import org.corespring.platform.core.models.item.resource.{VirtualFile, BaseFile, StoredFile, Resource}
+import controllers.auth.{ ApiRequest, BaseApi }
+import org.corespring.platform.core.models.item.resource.{ VirtualFile, BaseFile, StoredFile, Resource }
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json._
@@ -10,13 +10,13 @@ import play.api.libs.json._
 import play.api.mvc._
 import scala.Some
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.models.item.{Item, Content}
+import org.corespring.platform.core.models.item.{ Item, Content }
 import org.corespring.common.config.AppConfig
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.assets.{CorespringS3ServiceImpl, CorespringS3Service}
-import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
+import org.corespring.assets.{ CorespringS3ServiceImpl, CorespringS3Service }
+import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
 
-class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends BaseApi {
+class ResourceApi(s3service: CorespringS3Service, service: ItemService) extends BaseApi {
 
   private val USE_ITEM_DATA_KEY: String = "__!data!__"
 
@@ -48,20 +48,18 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
    * @tparam A
    */
   def HasItem[A](
-                  itemId: String,
-                  additionalChecks: Seq[(ApiRequest[A],Item) => Option[Result]],
-                  p: BodyParser[A])(
-                  action: ItemRequest[A] => Result
-                  ) = ApiAction(p) { request =>
+    itemId: String,
+    additionalChecks: Seq[(ApiRequest[A], Item) => Option[Result]],
+    p: BodyParser[A])(
+      action: ItemRequest[A] => Result) = ApiAction(p) { request =>
     convertStringToVersionedId(itemId) match {
       case Some(validId) => {
         service.findOneById(validId) match {
           case Some(item) => {
-            val errors: Seq[Result] = additionalChecks.flatMap(_(request,item))
+            val errors: Seq[Result] = additionalChecks.flatMap(_(request, item))
             if (errors.length == 0) {
               action(ItemRequest(item, request))
-            }
-            else {
+            } else {
               //TODO: Only returning the first error
               errors(0)
             }
@@ -78,21 +76,21 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
    * @return an Option[ObjectId] or None if the id is invalid
    */
   private def convertStringToVersionedId(itemId: String): Option[VersionedId[ObjectId]] = {
-      Logger.debug("handle itemId: " + itemId)
+    logger.debug("handle itemId: " + itemId)
     import VersionedIdImplicits.Binders._
     stringToVersionedId(itemId)
   }
 
   def HasItem(itemId: String,
-              additionalChecks: Seq[(ApiRequest[AnyContent],Item) => Option[Result]] = Seq(),
-              action: ItemRequest[AnyContent] => Result): Action[AnyContent] = HasItem(itemId, additionalChecks, parse.anyContent)(action)
+    additionalChecks: Seq[(ApiRequest[AnyContent], Item) => Option[Result]] = Seq(),
+    action: ItemRequest[AnyContent] => Result): Action[AnyContent] = HasItem(itemId, additionalChecks, parse.anyContent)(action)
 
   private def removeFileFromResource(item: Item, resource: Resource, filename: String): Result = {
     resource.files.find(_.name == filename) match {
       case Some(f) => {
         resource.files = resource.files.filterNot(_.name == filename)
         f match {
-          case StoredFile(_,_,_,key) => s3service.delete(AppConfig.assetsBucket,key)
+          case StoredFile(_, _, _, key) => s3service.delete(AppConfig.assetsBucket, key)
           case _ => //do nothing
         }
         service.save(item)
@@ -102,14 +100,13 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
     }
   }
 
-  def editCheck(force:Boolean = false) = new Function2[ApiRequest[_],Item,Option[Result]] {
-    def apply(request:ApiRequest[_], item:Item):Option[Result] = {
-      if(Content.isAuthorized(request.ctx.organization,item.id,Permission.Write)){
-        if(service.sessionCount(item)> 0 && item.published && !force){
+  def editCheck(force: Boolean = false) = new Function2[ApiRequest[_], Item, Option[Result]] {
+    def apply(request: ApiRequest[_], item: Item): Option[Result] = {
+      if (Content.isAuthorized(request.ctx.organization, item.id, Permission.Write)) {
+        if (service.sessionCount(item) > 0 && item.published && !force) {
           Some(Forbidden(toJson(JsObject(Seq("message" ->
             JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
-            "flags" -> JsArray(Seq(JsString("alert_increment")))
-          )))))
+            "flags" -> JsArray(Seq(JsString("alert_increment"))))))))
         } else {
           None
         }
@@ -121,36 +118,34 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
     itemId,
     Seq(editCheck()),
     {
-      request : ItemRequest[AnyContent] =>
-        val item = request.item//.asInstanceOf[ItemRequest[AnyContent]].item
+      request: ItemRequest[AnyContent] =>
+        val item = request.item //.asInstanceOf[ItemRequest[AnyContent]].item
         item.supportingMaterials.find(_.name == resourceName) match {
           case Some(r) => {
             removeFileFromResource(item, r, filename)
           }
           case _ => NotFound(resourceName)
         }
-  }
-  )
+    })
 
-  def deleteDataFile(itemId: String, filename: String, force:Boolean) = HasItem(
+  def deleteDataFile(itemId: String, filename: String, force: Boolean) = HasItem(
     itemId,
     Seq(editCheck(force)),
     {
-      request : ItemRequest[AnyContent] =>
+      request: ItemRequest[AnyContent] =>
         val item = request.item
         if (filename == DEFAULT_DATA_FILE_NAME) {
           BadRequest("Can't delete " + DEFAULT_DATA_FILE_NAME)
         } else {
           removeFileFromResource(item, item.data.get, filename)
         }
-    }
-  )
+    })
 
   def createSupportingMaterialFile(itemId: String, resourceName: String) = HasItem(
     itemId,
     Seq(editCheck()),
     {
-      request  : ItemRequest[AnyContent] =>
+      request: ItemRequest[AnyContent] =>
         request.body.asJson match {
           case Some(json) => {
             val item = request.item
@@ -168,15 +163,13 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
           }
           case _ => BadRequest
         }
-    }
-  )
-
+    })
 
   def createDataFile(itemId: String) = HasItem(
     itemId,
     Seq(editCheck()),
     {
-      request : ItemRequest[AnyContent] =>
+      request: ItemRequest[AnyContent] =>
         request.body.asJson match {
           case Some(json) => {
             val item = request.item
@@ -194,8 +187,7 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
           }
           case _ => BadRequest
         }
-    }
-  )
+    })
 
   private def ensureDataFileIsMainIsCorrect(file: BaseFile): BaseFile = {
     val isMain = file.name == DEFAULT_DATA_FILE_NAME
@@ -227,7 +219,7 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
     Seq(editCheck(force)),
     {
 
-      request : ItemRequest[AnyContent] =>
+      request: ItemRequest[AnyContent] =>
         getFileFromJson(request.body) match {
           case Some(update) => {
             val item = request.item
@@ -247,8 +239,7 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
           }
           case _ => BadRequest
         }
-    }
-  )
+    })
 
   private def getFileFromJson(body: AnyContent): Option[BaseFile] = {
     body.asJson match {
@@ -264,7 +255,7 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
     itemId,
     Seq(editCheck()),
     {
-      request : ItemRequest[AnyContent] =>
+      request: ItemRequest[AnyContent] =>
         getFileFromJson(request.body) match {
           case Some(update) => {
             val item = request.item
@@ -293,29 +284,29 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
           }
           case _ => BadRequest
         }
-    }
-  )
+    })
 
-  /** Create the storage key for the resource.
-    * The key must have the format:
-    * - data resources: $itemId/$version/data/$filename
-    * - supporting materials: $itemId/$version/materials/$resourceName/$filename
-    *
-    * It finds the actual versionedId stored in the db - to ensure that the version is part of the storageKey.
-    * @param itemId - a string representation of the versioned id
-    * @param keys - the subfolders
-    */
-  private def key(itemId : String, keys : String*) : String = {
+  /**
+   * Create the storage key for the resource.
+   * The key must have the format:
+   * - data resources: $itemId/$version/data/$filename
+   * - supporting materials: $itemId/$version/materials/$resourceName/$filename
+   *
+   * It finds the actual versionedId stored in the db - to ensure that the version is part of the storageKey.
+   * @param itemId - a string representation of the versioned id
+   * @param keys - the subfolders
+   */
+  private def key(itemId: String, keys: String*): String = {
 
-    val someItem : Option[Item] = for{
+    val someItem: Option[Item] = for {
       vId <- convertStringToVersionedId(itemId)
       item <- service.findOneById(vId)
     } yield item
 
-    someItem.map{ i =>
-      require(i.id.version.isDefined, "The version must be defined" )
+    someItem.map { i =>
+      require(i.id.version.isDefined, "The version must be defined")
       (Seq(i.id.id.toString, i.id.version.get) ++ keys).mkString("/")
-    }.getOrElse( throw new RuntimeException("Can't find item by id: " + itemId))
+    }.getOrElse(throw new RuntimeException("Can't find item by id: " + itemId))
 
   }
 
@@ -328,30 +319,29 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
   def uploadFileToData(itemId: String, filename: String) = {
     HasItem(
       itemId,
-      Seq(editCheck(),isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_,_)),
+      Seq(editCheck(), isFilenameTaken(filename, USE_ITEM_DATA_KEY)(_, _)),
       s3service.upload(AppConfig.assetsBucket, key(itemId, DATA_PATH, filename)))(
-    {
-      request =>
+        {
+          request =>
 
-        def getDataResource(item:Item) : Resource = item.data match {
-          case Some(r) => r
-          case _ => item.data = Some(Resource(name = "data", files = Seq())); item.data.get
-        }
-        val item = request.item
+            def getDataResource(item: Item): Resource = item.data match {
+              case Some(r) => r
+              case _ => item.data = Some(Resource(name = "data", files = Seq())); item.data.get
+            }
+            val item = request.item
 
-        val resource = getDataResource(item)
+            val resource = getDataResource(item)
 
-        val file = new StoredFile(
-          filename,
-          contentType(filename),
-          false,
-          key(itemId, DATA_PATH, filename))
+            val file = new StoredFile(
+              filename,
+              contentType(filename),
+              false,
+              key(itemId, DATA_PATH, filename))
 
-        resource.files = resource.files ++ Seq(file)
-        service.save(item)
-        Ok(toJson(file))
-    }
-    )
+            resource.files = resource.files ++ Seq(file)
+            service.save(item)
+            Ok(toJson(file))
+        })
   }
 
   /**
@@ -363,26 +353,24 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
    */
   def uploadFile(itemId: String, materialName: String, filename: String) =
     HasItem(itemId,
-      Seq( editCheck(),
-        canFindResource(materialName)(_,_),
-        isFilenameTaken(filename, materialName)(_,_)
-      ),
+      Seq(editCheck(),
+        canFindResource(materialName)(_, _),
+        isFilenameTaken(filename, materialName)(_, _)),
       s3service.upload(AppConfig.assetsBucket, storageKey(itemId, materialName, filename)))(
-    {
-      request =>
-        val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-        val resource = item.supportingMaterials.find(_.name == materialName).get
+        {
+          request =>
+            val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+            val resource = item.supportingMaterials.find(_.name == materialName).get
 
-        val file = new StoredFile(
-          filename,
-          contentType(filename),
-          false,
-          storageKey(itemId, materialName, filename))
-        resource.files = resource.files ++ Seq(file)
-        service.save(item)
-        Ok(toJson(file))
-    }
-    )
+            val file = new StoredFile(
+              filename,
+              contentType(filename),
+              false,
+              storageKey(itemId, materialName, filename))
+            resource.files = resource.files ++ Seq(file)
+            service.save(item)
+            Ok(toJson(file))
+        })
 
   def getSupportingMaterials(itemId: String) = HasItem(itemId, Seq(), {
     request =>
@@ -391,60 +379,59 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
 
   def createSupportingMaterialWithFile(itemId: String, name: String, filename: String) = {
     val s3Key = storageKey(itemId, name, filename)
-    HasItem(itemId,Seq(editCheck()), s3service.upload(AppConfig.assetsBucket, s3Key))(
-    {
-      request =>
-        val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-        item.supportingMaterials.find(_.name == name) match {
-          case Some(foundResource) => NotAcceptable(toJson(ApiError.ResourceNameTaken))
-          case _ => {
-            val file = new StoredFile(filename, contentType(filename), true, s3Key)
-            val resource = Resource(name, Seq(file))
-            item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
-            service.save(item)
-            Ok(toJson(resource))
+    HasItem(itemId, Seq(editCheck()), s3service.upload(AppConfig.assetsBucket, s3Key))(
+      {
+        request =>
+          val item = request.asInstanceOf[ItemRequest[AnyContent]].item
+          item.supportingMaterials.find(_.name == name) match {
+            case Some(foundResource) => NotAcceptable(toJson(ApiError.ResourceNameTaken))
+            case _ => {
+              val file = new StoredFile(filename, contentType(filename), true, s3Key)
+              val resource = Resource(name, Seq(file))
+              item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
+              service.save(item)
+              Ok(toJson(resource))
+            }
           }
-        }
-    })
+      })
   }
 
-  def createSupportingMaterial(itemId: String) = HasItem(itemId,Seq(editCheck()), { request : ItemRequest[AnyContent] =>
+  def createSupportingMaterial(itemId: String) = HasItem(itemId, Seq(editCheck()), { request: ItemRequest[AnyContent] =>
 
-      request.body.asJson match {
-        case Some(json) => {
-          json.asOpt[Resource] match {
-            case Some(foundResource) => {
-              isResourceNameTaken(foundResource.name)(request.item) match {
-                case Some(error) => NotAcceptable(toJson(error))
-                case _ => {
-                  request.item.supportingMaterials = request.item.supportingMaterials ++ Seq[Resource](foundResource)
-                  service.save(request.item)
-                  Ok(toJson(foundResource))
-                }
+    request.body.asJson match {
+      case Some(json) => {
+        json.asOpt[Resource] match {
+          case Some(foundResource) => {
+            isResourceNameTaken(foundResource.name)(request.item) match {
+              case Some(error) => NotAcceptable(toJson(error))
+              case _ => {
+                request.item.supportingMaterials = request.item.supportingMaterials ++ Seq[Resource](foundResource)
+                service.save(request.item)
+                Ok(toJson(foundResource))
               }
             }
-            case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
           }
+          case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
         }
-        case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
       }
+      case _ => BadRequest(Json.toJson(ApiError.JsonExpected))
+    }
   })
 
   def deleteSupportingMaterial(itemId: String, resourceName: String) = HasItem(itemId,
-    Seq(editCheck(),canFindResource(resourceName)(_,_)),
+    Seq(editCheck(), canFindResource(resourceName)(_, _)),
     {
-      request : ItemRequest[AnyContent] =>
+      request: ItemRequest[AnyContent] =>
         request.item.supportingMaterials = request.item.supportingMaterials.filter(_.name != resourceName)
         service.save(request.item)
         Ok("")
-    }
-  )
+    })
 
   private def unsetIsMain(resource: Resource) {
     resource.files = resource.files.map((f: BaseFile) => {
       f match {
-        case VirtualFile(n,ct,_,k) => VirtualFile(n,ct, false, k)
-        case StoredFile(n,ct,_,c) => StoredFile(n,ct, false, c)
+        case VirtualFile(n, ct, _, k) => VirtualFile(n, ct, false, k)
+        case StoredFile(n, ct, _, c) => StoredFile(n, ct, false, c)
       }
     })
   }
@@ -469,11 +456,10 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
   /**
    * check that the item contains a supportingMaterial resource with the supplied name.
    */
-  private def canFindResource(resourceName: String)(request:ApiRequest[_], item: Item): Option[Result] = {
+  private def canFindResource(resourceName: String)(request: ApiRequest[_], item: Item): Option[Result] = {
     if (item.supportingMaterials.exists(_.name == resourceName)) {
       None
-    }
-    else {
+    } else {
       Some(NotFound(toJson(ApiError.ResourceNotFound(Some(resourceName)))))
     }
   }
@@ -493,14 +479,13 @@ class ResourceApi(s3service:CorespringS3Service, service :ItemService) extends B
     }
   }
 
-  private def isFilenameTaken(filename: String, resourceName: String)(request:ApiRequest[_], item: Item): Option[Result] = {
+  private def isFilenameTaken(filename: String, resourceName: String)(request: ApiRequest[_], item: Item): Option[Result] = {
 
     getResource(item, resourceName) match {
       case Some(r) => {
         if (r.files.exists(_.name == filename)) {
           Some(NotFound(toJson(ApiError.FilenameTaken(Some(filename)))))
-        }
-        else {
+        } else {
           None
         }
       }

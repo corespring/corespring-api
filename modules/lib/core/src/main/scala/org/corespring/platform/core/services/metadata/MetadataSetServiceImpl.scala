@@ -7,52 +7,51 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat._
 import se.radley.plugin.salat._
 import com.novus.salat.dao._
-import org.corespring.platform.core.models.metadata.{Metadata,MetadataSet}
+import org.corespring.platform.core.models.metadata.{ Metadata, MetadataSet }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.services.item.ItemServiceClient
 import play.api.Play.current
 import org.corespring.platform.core.models.mongoContext._
 
-trait MetadataService{
+trait MetadataService {
 
-  def get(itemId:VersionedId[ObjectId], keys:Seq[String]): Seq[Metadata]
+  def get(itemId: VersionedId[ObjectId], keys: Seq[String]): Seq[Metadata]
 }
 
-trait MetadataServiceImpl extends MetadataService{ self : ItemServiceClient =>
+trait MetadataServiceImpl extends MetadataService { self: ItemServiceClient =>
 
   def get(itemId: VersionedId[ObjectId], keys: Seq[String]): Seq[Metadata] = {
 
-    val maybeSeq : Option[Seq[Metadata]] = for{
+    val maybeSeq: Option[Seq[Metadata]] = for {
       i <- itemService.findOneById(itemId)
       info <- i.taskInfo
       extendedMetadata <- toMetadataMap(info.extended)
-    } yield extendedMetadata.filter( e => keys.exists( _ == e.key) )
+    } yield extendedMetadata.filter(e => keys.exists(_ == e.key))
 
     maybeSeq.getOrElse(Seq())
   }
 
-  def toMetadataMap( m : scala.collection.mutable.Map[String,BasicDBObject]) : Option[Seq[Metadata]] = {
+  def toMetadataMap(m: scala.collection.mutable.Map[String, BasicDBObject]): Option[Seq[Metadata]] = {
 
-    def dboToMap(dbo:BasicDBObject) : scala.collection.immutable.Map[String,String] = {
+    def dboToMap(dbo: BasicDBObject): scala.collection.immutable.Map[String, String] = {
       import scala.collection.JavaConversions._
-      val javaMap : java.util.Map[_,_] = dbo.toMap
-      val scalaMap : scala.collection.mutable.Map[_,_] = mapAsScalaMap(javaMap)
-      val stringMap : Seq[(String,String)] = scalaMap.toSeq.map{
+      val javaMap: java.util.Map[_, _] = dbo.toMap
+      val scalaMap: scala.collection.mutable.Map[_, _] = mapAsScalaMap(javaMap)
+      val stringMap: Seq[(String, String)] = scalaMap.toSeq.map {
         tuple =>
-          val (key,value) = tuple
+          val (key, value) = tuple
           println(s"key: $key, value: $value")
 
-          (tuple._1.asInstanceOf[String],tuple._2.asInstanceOf[String])
+          (tuple._1.asInstanceOf[String], tuple._2.asInstanceOf[String])
       }
-      scala.collection.immutable.Map( stringMap.toSeq : _*)
+      scala.collection.immutable.Map(stringMap.toSeq: _*)
     }
 
-    val out = m.toSeq.map( tuple => Metadata( tuple._1, dboToMap(tuple._2)))
+    val out = m.toSeq.map(tuple => Metadata(tuple._1, dboToMap(tuple._2)))
     Some(out)
   }
 
 }
-
 
 trait MetadataSetService {
   def update(set: MetadataSet): Either[String, MetadataSet]

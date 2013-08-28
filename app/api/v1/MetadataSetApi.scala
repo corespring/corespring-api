@@ -1,14 +1,14 @@
 package api.v1
 
-import controllers.auth.{ApiRequest, BaseApi}
+import controllers.auth.{ ApiRequest, BaseApi }
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.metadata.MetadataSet
 import org.corespring.platform.core.services.metadata.MetadataSetServiceImpl
 import org.corespring.platform.core.services.organization.OrganizationService
 import play.api.libs.json.Json._
-import play.api.libs.json.{JsArray, JsValue}
-import play.api.mvc.{AnyContent, Result}
+import play.api.libs.json.{ JsArray, JsValue }
+import play.api.mvc.{ AnyContent, Result }
 import scala.language.implicitConversions
 import scalaz.Scalaz._
 import scalaz._

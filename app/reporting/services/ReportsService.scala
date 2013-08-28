@@ -3,8 +3,8 @@ package reporting.services
 import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.Implicits._
 import com.mongodb.casbah.map_reduce._
-import com.mongodb.{BasicDBObject, DBObject}
-import reporting.models.ReportLineResult.{KeyCount, LineResult}
+import com.mongodb.{ BasicDBObject, DBObject }
+import reporting.models.ReportLineResult.{ KeyCount, LineResult }
 import reporting.models.ReportLineResult
 import org.bson.types.ObjectId
 
@@ -12,11 +12,9 @@ import org.corespring.platform.core.models.ContentCollection
 import org.corespring.common.utils.string
 
 class ReportsService(ItemCollection: MongoCollection,
-                     SubjectCollection: MongoCollection,
-                     CollectionsCollection: MongoCollection,
-                     StandardCollection: MongoCollection
-                      ) {
-
+  SubjectCollection: MongoCollection,
+  CollectionsCollection: MongoCollection,
+  StandardCollection: MongoCollection) {
 
   def getCollections: List[(String, String)] = ContentCollection.findAll().toList.map {
     c => (c.name.toString, c.id.toString)
@@ -49,8 +47,7 @@ class ReportsService(ItemCollection: MongoCollection,
     val result: MapReduceResult = ItemCollection.mapReduce(cmd)
     val inlineResult: MapReduceInlineResult = result.asInstanceOf[MapReduceInlineResult]
 
-
-    def collectionIdToName(id:String):String = {
+    def collectionIdToName(id: String): String = {
       if (id == "unknown") return "?"
       ContentCollection.findOneById(new ObjectId(id)) match {
         case Some(c) => c.name
@@ -83,12 +80,11 @@ class ReportsService(ItemCollection: MongoCollection,
     }
   }
 
-
   def populateHeaders {
-    def mapToDistincList(field:String):List[String] = {
+    def mapToDistincList(field: String): List[String] = {
       val distResult = ItemCollection.distinct(field)
       if (distResult == null) return List()
-      val distStringResult = distResult.map((p : Any) => if (p != null) p.toString else "")
+      val distStringResult = distResult.map((p: Any) => if (p != null) p.toString else "")
       if (distStringResult == null) return List()
 
       distStringResult.filter(_ != "").toList
@@ -147,7 +143,6 @@ class ReportsService(ItemCollection: MongoCollection,
 
   }
 
-
   /**
    * Build a csv where each line is a contributor and the columns are counts of a specific set of item properties.
    * @return
@@ -196,7 +191,6 @@ class ReportsService(ItemCollection: MongoCollection,
     }
   }
 
-
   /**
    * Run the map reduce for the given property and with the given query, then place the counts for each value into
    * the KeyCount that matches the item.
@@ -206,9 +200,9 @@ class ReportsService(ItemCollection: MongoCollection,
    * @param mapTemplateFn
    */
   private def runMapReduceForProperty(keyCounts: List[KeyCount],
-                                      property: String,
-                                      query: BasicDBObject,
-                                      mapTemplateFn: JSFunction = JSFunctions.SimplePropertyMapFnTemplate) {
+    property: String,
+    query: BasicDBObject,
+    mapTemplateFn: JSFunction = JSFunctions.SimplePropertyMapFnTemplate) {
 
     val mapFn: JSFunction = interpolate(mapTemplateFn, Map("property" -> property))
     val cmd = MapReduceCommand(ItemCollection.name, mapFn, JSFunctions.ReduceFn, MapReduceInlineOutput, Some(query))
@@ -276,7 +270,6 @@ class ReportsService(ItemCollection: MongoCollection,
                                         return count;
                                       }"""
   }
-
 
   /**
    * Build a single line of counts for the given query.

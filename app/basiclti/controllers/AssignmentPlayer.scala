@@ -3,7 +3,7 @@ package basiclti.controllers
 import basiclti.models.LtiQuiz
 import common.controllers.AssetResource
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.itemSession.{DefaultItemSession, ItemSession}
+import org.corespring.platform.core.models.itemSession.{ DefaultItemSession, ItemSession }
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.player.accessControl.auth.CheckSessionAccess
@@ -23,7 +23,7 @@ object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl, QuizS
           session.itemId,
           sessionId = Some(session.id),
           sessionMode = RequestedAccess.Mode.Administer,
-          templateFn = (p:PlayerParams) => basiclti.views.html.LtiPlayer(p, configId.toString, resultSourcedId))
+          templateFn = (p: PlayerParams) => basiclti.views.html.LtiPlayer(p, configId.toString, resultSourcedId))
         renderItem(p)
       }
     }
@@ -49,7 +49,6 @@ object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl, QuizS
     }
     case _ => Left("Can't find config")
   }
-
 
   def getDataFileForAssignment(configId: ObjectId, resultSourcedId: String, filename: String) = session(configId, resultSourcedId) match {
     case Left(msg) => Action(request => NotFound(msg))

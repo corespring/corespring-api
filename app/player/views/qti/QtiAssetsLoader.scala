@@ -8,4 +8,3 @@ trait QtiAssetsLoader {
   def localCssPaths: Seq[String]
 }
 
-

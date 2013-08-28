@@ -18,17 +18,15 @@ import play.api.libs.json._
 import se.radley.plugin.salat._
 import securesocial.core.IdentityId
 
-
 case class User(var userName: String = "",
-                var fullName: String = "",
-                var email: String = "",
-                var lastLoginDate: Option[DateTime] = None,
-                var registrationDate: Option[DateTime] = None,
-                var org: UserOrg = UserOrg(AppConfig.demoOrgId,Permission.Read.value),
-                var password: String = "",
-                var provider: String = "userpass",
-                var id: ObjectId = new ObjectId()
-                 ) {
+  var fullName: String = "",
+  var email: String = "",
+  var lastLoginDate: Option[DateTime] = None,
+  var registrationDate: Option[DateTime] = None,
+  var org: UserOrg = UserOrg(AppConfig.demoOrgId, Permission.Read.value),
+  var password: String = "",
+  var provider: String = "userpass",
+  var id: ObjectId = new ObjectId()) {
   def hasRegisteredOrg: Boolean = org.orgId != AppConfig.demoOrgId
 }
 
@@ -48,8 +46,8 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with PackageL
 
   val dao = new SalatDAO[User, ObjectId](collection = collection) {}
 
-  object Dbo{
-    def orgIdIn(orgIds:ObjectId*) : DBObject =  MongoDBObject(User.orgKey + "." + UserOrg.orgId -> MongoDBObject("$in" -> orgIds))
+  object Dbo {
+    def orgIdIn(orgIds: ObjectId*): DBObject = MongoDBObject(User.orgKey + "." + UserOrg.orgId -> MongoDBObject("$in" -> orgIds))
   }
 
   /**
@@ -97,15 +95,13 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with PackageL
       case Some(user) => {
         User.update(MongoDBObject("_id" -> user.id), MongoDBObject("$set" ->
           MongoDBObject(
-            field -> new DateTime()
-          )),
+            field -> new DateTime())),
           false, false, User.collection.writeConcern)
         Right(user)
       }
       case None => Left(InternalError("no user found to update " + field))
     }
   }
-
 
   def updateUser(user: User): Either[InternalError, User] = {
     try {
@@ -114,8 +110,7 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with PackageL
           User.userName -> user.userName,
           User.fullName -> user.fullName,
           User.email -> user.email,
-          User.password -> user.password
-        )),
+          User.password -> user.password)),
         false, false, User.collection.writeConcern)
       User.findOneById(user.id) match {
         case Some(u) => Right(u)
@@ -139,7 +134,7 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with PackageL
   }
 
   def getOrg(user: User, p: Permission): Option[Organization] = {
-    val org: Option[ObjectId] = if((user.org.pval & p.value) == p.value) Some(user.org.orgId) else None
+    val org: Option[ObjectId] = if ((user.org.pval & p.value) == p.value) Some(user.org.orgId) else None
     org.flatMap(Organization.findOneById)
   }
 
@@ -153,10 +148,10 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with PackageL
   def getUser(userId: IdentityId): Option[User] = getUser(userId.userId, userId.providerId)
 
   def getUser(username: String, provider: String): Option[User] = {
-    Logger.debug(s"getUser: $username, $provider")
+    logger.debug(s"getUser: $username, $provider")
     val query = MongoDBObject(User.userName -> username, User.provider -> provider)
-    Logger.debug( s"${User.count( query )}")
-    User.findOne( query )
+    logger.debug(s"${User.count(query)}")
+    User.findOne(query)
   }
 
   def getUsers(orgId: ObjectId): Either[InternalError, Seq[User]] = {
@@ -194,8 +189,7 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with PackageL
   override val searchableFields = Seq(
     userName,
     fullName,
-    email
-  )
+    email)
 }
 
 case class UserOrg(var orgId: ObjectId, var pval: Long)
@@ -204,6 +198,4 @@ object UserOrg {
   val orgId: String = "orgId"
   val pval: String = "pval"
 }
-
-
 

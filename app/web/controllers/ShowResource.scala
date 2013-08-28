@@ -1,21 +1,20 @@
 package web.controllers
 
-import common.controllers.{AssetResourceBase, QtiResource}
+import common.controllers.{ AssetResourceBase, QtiResource }
 import controllers.auth.BaseApi
-import org.corespring.assets.{CorespringS3ServiceImpl, CorespringS3Service}
+import org.corespring.assets.{ CorespringS3ServiceImpl, CorespringS3Service }
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.resource.{Resource, BaseFile}
-import org.corespring.platform.core.models.item.{Item, Content}
+import org.corespring.platform.core.models.item.resource.{ Resource, BaseFile }
+import org.corespring.platform.core.models.item.{ Item, Content }
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.qti.models.RenderingMode._
 import play.api.mvc._
 import player.controllers.QtiRenderer
-import player.views.models.{QtiKeys, PlayerParams}
+import player.views.models.{ QtiKeys, PlayerParams }
 import scala.xml.Elem
 import scalaz.Scalaz._
-import scalaz.{Success, Failure}
-import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemServiceClient, ItemService}
-
+import scalaz.{ Success, Failure }
+import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemServiceClient, ItemService }
 
 object ShowResource
   extends BaseApi
@@ -34,7 +33,7 @@ object ShowResource
 
       import play.api.Routes
       import web.controllers.routes.javascript._
-      import web.controllers.routes.javascript.{ShowResource => ShowResourceJs}
+      import web.controllers.routes.javascript.{ ShowResource => ShowResourceJs }
 
       Ok(
         Routes.javascriptRouter("WebRoutes")(
@@ -42,16 +41,16 @@ object ShowResource
           Partials.createItem,
           Partials.editItem,
           Partials.home,
-          Partials.viewItem
-        )).as("text/javascript")
+          Partials.viewItem)).as("text/javascript")
   }
 
-  /** Render the Item.data resource using the CSS for printing.
-    * TODO: This doesn't support non-QTI data items.
-    * It will have to at some point.
-    * @param itemId
-    * @return
-    */
+  /**
+   * Render the Item.data resource using the CSS for printing.
+   * TODO: This doesn't support non-QTI data items.
+   * It will have to at some point.
+   * @param itemId
+   * @return
+   */
   def renderDataResourceForPrinting(itemId: String): Action[AnyContent] = {
 
     import VersionedIdImplicits.Binders._
@@ -83,12 +82,10 @@ object ShowResource
             }
             case None => NotFound("Can't find item")
           }
-        }
-        else {
+        } else {
           BadRequest("Not Authorized")
         }
     }
-
 
   private def isQti(f: BaseFile) = f.contentType == BaseFile.ContentTypes.XML && f.name == Resource.QtiXml
 
@@ -96,8 +93,6 @@ object ShowResource
     if (isDataResource && isQti(f))
       renderPlayer(item)
     else
-      renderBaseFile(f)
-  )
-
+      renderBaseFile(f))
 
 }

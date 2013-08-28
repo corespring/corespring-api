@@ -8,29 +8,28 @@ import com.mongodb.casbah.Imports._
 import play.api.Play.current
 
 case class ListKeyValue(key: String, value: Seq[String])
-case class StringKeyValue(key:String, value: String)
+case class StringKeyValue(key: String, value: String)
 
-object ListKeyValue{
+object ListKeyValue {
   implicit val Writes = Json.writes[ListKeyValue]
 }
 
-object StringKeyValue{
+object StringKeyValue {
   implicit val Writes = Json.writes[StringKeyValue]
 }
 
 case class FieldValue(
-                       var version: Option[String] = None,
-                       var gradeLevels: Seq[StringKeyValue] = Seq(),
-                       var reviewsPassed: Seq[StringKeyValue] = Seq(),
-                       var keySkills: Seq[ListKeyValue] = Seq(),
-                       var itemTypes: Seq[ListKeyValue] = Seq(),
-                       var licenseTypes: Seq[StringKeyValue] = Seq(),
-                       var priorUses: Seq[StringKeyValue] = Seq(),
-                       var demonstratedKnowledge : Seq[StringKeyValue] = Seq(),
-                       var credentials: Seq[StringKeyValue] = Seq(),
-                       var bloomsTaxonomy: Seq[StringKeyValue] = Seq(),
-                       var id: ObjectId = new ObjectId()
-                       )
+  var version: Option[String] = None,
+  var gradeLevels: Seq[StringKeyValue] = Seq(),
+  var reviewsPassed: Seq[StringKeyValue] = Seq(),
+  var keySkills: Seq[ListKeyValue] = Seq(),
+  var itemTypes: Seq[ListKeyValue] = Seq(),
+  var licenseTypes: Seq[StringKeyValue] = Seq(),
+  var priorUses: Seq[StringKeyValue] = Seq(),
+  var demonstratedKnowledge: Seq[StringKeyValue] = Seq(),
+  var credentials: Seq[StringKeyValue] = Seq(),
+  var bloomsTaxonomy: Seq[StringKeyValue] = Seq(),
+  var id: ObjectId = new ObjectId())
 
 object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
 
@@ -41,7 +40,7 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
   val collection = mongoCollection("fieldValues")(play.api.Play.current)
 
   import org.corespring.platform.core.models.mongoContext.context
-val dao = new SalatDAO[FieldValue, ObjectId](collection = collection) {}
+  val dao = new SalatDAO[FieldValue, ObjectId](collection = collection) {}
 
   val CurrentVersion = "0.0.1"
 
@@ -56,10 +55,9 @@ val dao = new SalatDAO[FieldValue, ObjectId](collection = collection) {}
   val BloomsTaxonomy = "bloomsTaxonomy"
   val DemonstratedKnowledge = "demonstratedKnowledge"
 
+  def getSeqForFieldName(fieldValue: FieldValue, fieldName: String): Option[JsValue] = {
 
-  def getSeqForFieldName(fieldValue:FieldValue, fieldName: String): Option[JsValue] = {
-
-    def o[A](v:A)(implicit writes : Writes[A]) : Option[JsValue] = Some(play.api.libs.json.Json.toJson(v))
+    def o[A](v: A)(implicit writes: Writes[A]): Option[JsValue] = Some(play.api.libs.json.Json.toJson(v))
 
     fieldName match {
       case GradeLevel => o(fieldValue.gradeLevels)
@@ -101,6 +99,5 @@ val dao = new SalatDAO[FieldValue, ObjectId](collection = collection) {}
     PriorUses -> "prior uses",
     Credentials -> "credentials",
     BloomsTaxonomy -> "bloomsTaxonomy stuff",
-    DemonstratedKnowledge -> "Demonstrated Knowledge"
-  )
+    DemonstratedKnowledge -> "Demonstrated Knowledge")
 }

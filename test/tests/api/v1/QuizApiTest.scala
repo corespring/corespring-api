@@ -10,7 +10,7 @@ import play.api.mvc.{AnyContentAsJson, AnyContentAsEmpty}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.mvc.Call
-import utils.RequestCalling
+import org.corespring.test.utils.RequestCalling
 
 class QuizApiTest extends Specification with RequestCalling {
 

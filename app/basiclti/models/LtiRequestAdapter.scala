@@ -1,29 +1,29 @@
 package basiclti.models
 
-import play.api.mvc.{AnyContent, Request}
+import play.api.mvc.{ AnyContent, Request }
 import oauth.signpost.http.HttpRequest
 import java.net.URLEncoder
 import common.controllers.utils.BaseUrl
 import play.Logger
 
-case class LtiRequestAdapter(request: Request[_], params:Map[String, String]) extends HttpRequest {
-  var headers = Map[String,String]()
+case class LtiRequestAdapter(request: Request[_], params: Map[String, String]) extends HttpRequest {
+  var headers = Map[String, String]()
 
   def getMethod = request.method
 
-  def getRequestUrl : String = {
+  def getRequestUrl: String = {
 
-    def e(s:String) = URLEncoder.encode(s,"utf-8")
+    def e(s: String) = URLEncoder.encode(s, "utf-8")
 
     val base = BaseUrl(request.asInstanceOf[Request[AnyContent]])
 
     val url = base + request.path
 
-    if (params.isEmpty){
+    if (params.isEmpty) {
       url
     } else {
       //Note: only encode the name and value not the = or &
-      val paramString = params.toList.map( (kv) => e(kv._1) + "=" + e(kv._2) ).mkString("&")
+      val paramString = params.toList.map((kv) => e(kv._1) + "=" + e(kv._2)).mkString("&")
       url + "?" + paramString
     }
   }

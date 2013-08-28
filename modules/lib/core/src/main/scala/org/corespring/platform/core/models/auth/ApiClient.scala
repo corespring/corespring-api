@@ -26,11 +26,10 @@ object OAuthConstants {
 /**
  * An API client.  This gets created for each organization that is allowed API access
  */
-case class ApiClient(orgId: ObjectId, clientId: ObjectId, clientSecret: String){
-  def defaultClientSignature:String = ShaHash.sign(
-      OAuthConstants.ClientCredentials+":"+clientId+":"+OAuthConstants.Sha1Hash,
-      clientSecret
-    )
+case class ApiClient(orgId: ObjectId, clientId: ObjectId, clientSecret: String) {
+  def defaultClientSignature: String = ShaHash.sign(
+    OAuthConstants.ClientCredentials + ":" + clientId + ":" + OAuthConstants.Sha1Hash,
+    clientSecret)
 }
 
 object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
@@ -55,9 +54,9 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
     findOne(idsObj)
   }
 
-  def findByKey(key:String) : Option[ApiClient] = {
+  def findByKey(key: String): Option[ApiClient] = {
     findOne(MongoDBObject(ApiClient.clientId -> new ObjectId(key)))
   }
 
-  def findOneByOrgId(orgId:ObjectId):Option[ApiClient] = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> orgId))
+  def findOneByOrgId(orgId: ObjectId): Option[ApiClient] = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> orgId))
 }

@@ -6,7 +6,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.itemSession._
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qti.models.QtiItem
-import org.corespring.qti.models.responses.{Response, StringResponse, ArrayResponse}
+import org.corespring.qti.models.responses.{ Response, StringResponse, ArrayResponse }
 import org.corespring.test.BaseTest
 import org.joda.time.DateTime
 import org.specs2.mutable._
@@ -20,9 +20,8 @@ import play.api.test.Helpers._
 import scala.Left
 import scala.Right
 import scala.Some
-import utils.RequestCalling
 import org.corespring.platform.core.models.error.InternalError
-
+import org.corespring.test.utils.RequestCalling
 
 class ItemSessionApiTest extends BaseTest with RequestCalling {
 
@@ -39,8 +38,7 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
   def createNewSession(itemId: String = IDs.Item, content: AnyContent = AnyContentAsEmpty): ItemSession = {
     invokeCall[ItemSession](
       Api.create(versionedId(itemId)),
-      content
-    )
+      content)
   }
 
   def get(sessionId: String, itemId: String): ItemSession = {
@@ -52,24 +50,20 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
   def processResponse(session: ItemSession): ItemSession = {
     invokeCall[ItemSession](
       Api.update(session.itemId, session.id, None),
-      AnyContentAsJson(Json.toJson(session))
-    )
+      AnyContentAsJson(Json.toJson(session)))
   }
 
   def update(session: ItemSession): ItemSession = {
     invokeCall[ItemSession](
       Api.update(session.itemId, session.id, Some("updateSettings")),
-      AnyContentAsJson(Json.toJson(session))
-    )
+      AnyContentAsJson(Json.toJson(session)))
   }
 
-  def begin(s: ItemSession) : ItemSession = {
+  def begin(s: ItemSession): ItemSession = {
     invokeCall[ItemSession](
       Api.update(s.itemId, s.id, Some("begin")),
-      AnyContentAsJson(Json.toJson(s))
-    )
+      AnyContentAsJson(Json.toJson(s)))
   }
-
 
   "item session data" should {
 
@@ -89,8 +83,7 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
         update.method,
         update.url,
         FakeAuthHeader,
-        AnyContentAsJson(Json.toJson(testSession))
-      )
+        AnyContentAsJson(Json.toJson(testSession)))
 
       //First update is fine
       route(updateRequest) match {
@@ -110,7 +103,6 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
       }
     }
   }
-
 
   "process" should {
     "ignore any settings in the model" in {
@@ -172,24 +164,22 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
     }
   }
 
-
   "creating and then updating item session" should {
-    import org.corespring.platform.core.models.itemSession.{DefaultItemSession => IS}
+    import org.corespring.platform.core.models.itemSession.{ DefaultItemSession => IS }
 
-    def addResponses() : Seq[Response] = Seq(
+    def addResponses(): Seq[Response] = Seq(
       StringResponse("mexicanPresident", "calderon"),
       StringResponse("irishPresident", "guinness"),
-      StringResponse("winterDiscontent", "York")
-    )
+      StringResponse("winterDiscontent", "York"))
 
-    def optQtiItem(testSession:ItemSession): Either[InternalError, QtiItem] = IS.getXmlWithFeedback(IS.findOneById(testSession.id).get) match {
+    def optQtiItem(testSession: ItemSession): Either[InternalError, QtiItem] = IS.getXmlWithFeedback(IS.findOneById(testSession.id).get) match {
       case Right(elem) => Right(QtiItem(elem))
       case Left(e) => Left(e)
     }
 
-    def process(s:ItemSession) : JsValue = {
-      val result =  ItemSessionApi.processResponse(s.itemId, s.id)(FakeRequest("",tokenize(""), FakeHeaders(), AnyContentAsJson(Json.toJson(s))))
-      Logger.debug(s"process : : : ${contentAsString(result)}")
+    def process(s: ItemSession): JsValue = {
+      val result = ItemSessionApi.processResponse(s.itemId, s.id)(FakeRequest("", tokenize(""), FakeHeaders(), AnyContentAsJson(Json.toJson(s))))
+      logger.debug(s"process : : : ${contentAsString(result)}")
       Json.parse(contentAsString(result))
     }
 
@@ -205,23 +195,21 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
       (json \ "sessionData" \ "correctResponses")(0) === JsObject(Seq("id" -> JsString("mexicanPresident"), "value" -> JsString("calderon")))
     }
 
-
     "return an item session feedback contents with sessionData which contains all feedback elements in the xml which correspond to responses from client" in {
 
-      val testSession = createNewSession().copy( responses = Seq(StringResponse("winterDiscontent", "York")))
-      Logger.debug(s" test session : $testSession")
+      val testSession = createNewSession().copy(responses = Seq(StringResponse("winterDiscontent", "York")))
+      logger.debug(s" test session : $testSession")
       val json = process(testSession)
       (json \ "sessionData" \ "feedbackContents").as[JsObject].keys.size === 1
     }
 
-
     "return an item session which contains correctResponse object within sessionData which contains all correct responses available" in {
 
       val s = createNewSession().copy(responses = addResponses())
-      val correctResponses = (process(s) \ "sessionData" \ "correctResponses" ).as[Seq[Response]]
+      val correctResponses = (process(s) \ "sessionData" \ "correctResponses").as[Seq[Response]]
 
-      def sir(a:String,b:String) : Response = StringResponse(a,b)
-      def air(a:String,b:Seq[String]) : Response = ArrayResponse(a,b)
+      def sir(a: String, b: String): Response = StringResponse(a, b)
+      def air(a: String, b: Seq[String]): Response = ArrayResponse(a, b)
 
       val expectedValues = Seq(
         sir("mexicanPresident", "calderon"),
@@ -230,8 +218,7 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
         air("winterDiscontent", Seq("York", "york")),
         air("wivesOfHenry", Seq("aragon", "boleyn", "seymour", "cleves", "howard", "parr")),
         air("cutePugs", Seq("pug1", "pug2", "pug3")),
-        sir("manOnMoon", "armstrong")
-      )
+        sir("manOnMoon", "armstrong"))
       correctResponses === expectedValues
     }
 
@@ -242,7 +229,6 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
     }
 
   }
-
 
   /**
    * Clean up any state created

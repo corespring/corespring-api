@@ -3,13 +3,11 @@ package org.corespring.platform.core.models.search
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.item.Item.Keys._
-import org.corespring.platform.core.models.{Subject, Standard}
+import org.corespring.platform.core.models.{ Subject, Standard }
 import scala.Left
 import scala.Right
 import scala.Some
 import org.corespring.platform.core.models.error.InternalError
-
-
 
 object ItemSearch extends Searchable {
 
@@ -64,7 +62,7 @@ object ItemSearch extends Searchable {
           case key if key.startsWith(standards) => toSearchFieldObj(searchFields, field, false)
           case `title` => toSearchFieldObj(searchFields, field, dbkey = taskInfo + "." + TaskInfo.Keys.title)
           case `published` => toSearchFieldObj(searchFields, field)
-          case key if key.startsWith(extended) => toSearchFieldObj(searchFields,field,dbkey = taskInfo+"."+key)
+          case key if key.startsWith(extended) => toSearchFieldObj(searchFields, field, dbkey = taskInfo + "." + key)
           case _ => Left(InternalError("unknown key contained in fields: " + field._1))
         }
       }
@@ -139,7 +137,7 @@ object ItemSearch extends Searchable {
       case Right(searchobj) => if (searchobj.nonEmpty) {
         val standards: Seq[String] = Standard.find(searchobj).toSeq.map(_.dotNotation).flatten
         if (standards.nonEmpty) {
-          if (standards.size == 1) Right(MongoDBObject( Item.Keys.standards -> standards.head))
+          if (standards.size == 1) Right(MongoDBObject(Item.Keys.standards -> standards.head))
           else Right(MongoDBObject(Item.Keys.standards -> MongoDBObject("$in" -> standards)))
         } else Left(SearchCancelled(None))
       } else Right(MongoDBObject())
@@ -188,7 +186,7 @@ object ItemSearch extends Searchable {
                 case `reviewsPassed` => formatQuery(reviewsPassed, field._2, searchobj)
                 case key if key.startsWith(standards) => Right(searchobj)
                 case `title` => formatQuery(taskInfo + "." + TaskInfo.Keys.title, field._2, searchobj)
-                case key if key.startsWith(extended) => formatQuery(taskInfo+"."+key,field._2,searchobj)
+                case key if key.startsWith(extended) => formatQuery(taskInfo + "." + key, field._2, searchobj)
                 case _ => Left(SearchCancelled(Some(InternalError("unknown key contained in query: " + field._1))))
               }
             }
@@ -240,7 +238,7 @@ object ItemSearch extends Searchable {
       case `title` => formatSortField(taskInfo + "." + TaskInfo.Keys.title, field._2)
       case `collectionId` => formatSortField(collectionId, field._2)
       case `published` => formatSortField(published, field._2)
-      case key if key.startsWith(extended) => formatSortField(taskInfo+"."+key,field._2)
+      case key if key.startsWith(extended) => formatSortField(taskInfo + "." + key, field._2)
       case _ => Left(InternalError("unknown or invalid key contained in sort field"))
     }
   }

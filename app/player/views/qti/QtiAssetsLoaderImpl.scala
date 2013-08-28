@@ -1,11 +1,11 @@
 package player.views.qti
 
 import player.views.models.QtiKeys
-import player.views.qti.models.{QtiJsAsset, QtiAssetsConfig}
+import player.views.qti.models.{ QtiJsAsset, QtiAssetsConfig }
 import org.corespring.qti.models.RenderingMode
 import RenderingMode._
 
-class QtiAssetsLoaderImpl(qtiKeys:QtiKeys, mode : RenderingMode) extends QtiAssetsLoader {
+class QtiAssetsLoaderImpl(qtiKeys: QtiKeys, mode: RenderingMode) extends QtiAssetsLoader {
 
   val config = QtiAssetsConfig(
     Seq(

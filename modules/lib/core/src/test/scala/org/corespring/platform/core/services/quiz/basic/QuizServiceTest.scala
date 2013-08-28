@@ -2,13 +2,13 @@ package org.corespring.platform.core.services.quiz.basic
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.itemSession.ItemSessionSettings
-import org.corespring.platform.core.models.quiz.basic.{Answer, Participant, Question, Quiz}
+import org.corespring.platform.core.models.quiz.basic.{ Answer, Participant, Question, Quiz }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.{PlaySingleton, BaseTest}
+import org.corespring.test.{ PlaySingleton, BaseTest }
 import play.api.libs.json.Json
-import utils.JsonToModel
+import org.corespring.test.utils.JsonToModel
 
-class QuizServiceTest extends BaseTest with JsonToModel{
+class QuizServiceTest extends BaseTest with JsonToModel {
 
   val service = QuizService
 
@@ -27,7 +27,6 @@ class QuizServiceTest extends BaseTest with JsonToModel{
       service.count() === count
     }
 
-
     "parse json" in {
 
       val q = new Quiz(
@@ -37,31 +36,24 @@ class QuizServiceTest extends BaseTest with JsonToModel{
         questions = Seq(
           Question(
             itemId = VersionedId(new ObjectId()),
-            settings = ItemSessionSettings()
-          )
-        ),
+            settings = ItemSessionSettings())),
         participants = Seq(
           Participant(
             answers = Seq(Answer(new ObjectId(), new ObjectId())),
-            externalUid = "blah"
-          )
-        )
-      )
+            externalUid = "blah")))
 
       val json = Json.toJson(q)
-      val newQ : Quiz = getData(Json.fromJson[Quiz](json))
+      val newQ: Quiz = getData(Json.fromJson[Quiz](json))
       q.id === newQ.id
       q.orgId === newQ.orgId
       q.questions === newQ.questions
       q.participants === newQ.participants
     }
 
-
     "add answer" in {
 
       val q = Quiz(questions = Seq(), participants = Seq(
-        Participant(externalUid = "sam.smith@gmail.com", answers = Seq())
-      ))
+        Participant(externalUid = "sam.smith@gmail.com", answers = Seq())))
       service.create(q)
       val answer = Answer(new ObjectId(), new ObjectId())
 
@@ -94,9 +86,7 @@ class QuizServiceTest extends BaseTest with JsonToModel{
         participants = Seq(
           Participant(
             externalUid = "sam.smith@gmail.com",
-            answers = Seq()
-          )
-        ))
+            answers = Seq())))
       service.create(quizOne)
 
       val quizTwo = Quiz(
@@ -104,9 +94,7 @@ class QuizServiceTest extends BaseTest with JsonToModel{
         participants = Seq(
           Participant(
             externalUid = "sam.smith@gmail.com",
-            answers = Seq()
-          )
-        ))
+            answers = Seq())))
       service.create(quizTwo)
       val result = service.findByIds(List(quizOne.id, quizTwo.id))
       result.length === 2
@@ -126,9 +114,7 @@ class QuizServiceTest extends BaseTest with JsonToModel{
                 participants = Seq(
                   Participant(
                     externalUid = "sam.smith@gmail.com",
-                    answers = Seq()
-                  )
-                ))
+                    answers = Seq())))
               service.create(quizOne)
 
               service.findOneById(quizOne.id) match {

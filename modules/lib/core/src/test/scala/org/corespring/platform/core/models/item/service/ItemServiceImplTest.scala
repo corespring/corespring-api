@@ -1,17 +1,17 @@
 package org.corespring.platform.core.models.item.service
 
-import org.corespring.assets.CorespringS3Service
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.resource.{StoredFile, Resource}
-import org.corespring.platform.core.models.item.{TaskInfo, Item}
-import org.corespring.platform.core.models.itemSession.{DefaultItemSession, ItemSession}
+import org.corespring.assets.CorespringS3Service
+import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
+import org.corespring.platform.core.models.item.{ TaskInfo, Item }
+import org.corespring.platform.core.models.itemSession.{ DefaultItemSession, ItemSession }
+import org.corespring.platform.core.services.item.{ ItemVersioningDao, ItemServiceImpl }
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.test.BaseTest
+import org.corespring.test.utils.mocks.MockS3Service
 import org.specs2.execute.Result
 import org.specs2.mock.Mockito
-import org.corespring.test.BaseTest
-import utils.mocks.MockS3Service
-import org.corespring.platform.core.services.item.{ItemVersioningDao, ItemServiceImpl}
 
 class ItemServiceImplTest extends BaseTest with Mockito {
 
@@ -21,31 +21,31 @@ class ItemServiceImplTest extends BaseTest with Mockito {
 
   "save" should {
 
-    def assertSaveWithStoredFile(name:String, shouldSucceed:Boolean) : Result = {
-      val mockS3 : CorespringS3Service = new MockS3Service
+    def assertSaveWithStoredFile(name: String, shouldSucceed: Boolean): Result = {
+      val mockS3: CorespringS3Service = new MockS3Service
       val s = new ItemServiceImpl(mockS3, DefaultItemSession, ItemVersioningDao)
       val id = VersionedId(ObjectId.get)
       val file = StoredFile(name, "image/png", false, StoredFile.storageKey(id, "data", name))
-      val resource = Resource(name = "data", files = Seq(file) )
+      val resource = Resource(name = "data", files = Seq(file))
       val item = Item(id = id, data = Some(resource), taskInfo = Some(TaskInfo(title = Some("original title"))))
       val latestId = s.insert(item)
 
-      latestId.map{ vid =>
+      latestId.map { vid =>
         vid.version === Some(0)
       }.getOrElse(failure("insert failed"))
 
-      val update = item.copy(id = latestId.get, taskInfo = Some(TaskInfo(title=Some("new title"))))
+      val update = item.copy(id = latestId.get, taskInfo = Some(TaskInfo(title = Some("new title"))))
 
       s.save(update, true)
 
       val dbItem = s.findOneById(VersionedId(item.id.id))
 
-      val expectedVersion = if(shouldSucceed) 1 else 0
+      val expectedVersion = if (shouldSucceed) 1 else 0
 
       println("expecting version: " + expectedVersion)
 
       dbItem
-        .map( i => i.id === VersionedId(id.id, Some(expectedVersion)))
+        .map(i => i.id === VersionedId(id.id, Some(expectedVersion)))
         .getOrElse(failure("couldn't find item"))
     }
 

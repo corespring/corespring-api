@@ -6,7 +6,6 @@ import scorm.models.Builder
 import scorm.models.Builder.Config
 import org.corespring.platform.core.models.item.Item
 
-
 object ScormExporter {
 
   val ScormFolder = "conf/scorm/multi-item-scorm-2004"
@@ -16,7 +15,7 @@ object ScormExporter {
 
   type NameContents = (String, String)
 
-  def makeMultiScormPackage(items: List[Item], host: String, clientId:String, encryptedOptions:String): Array[Byte] = {
+  def makeMultiScormPackage(items: List[Item], host: String, clientId: String, encryptedOptions: String): Array[Byte] = {
     val plainFilePaths = PlainFiles.map(ScormFolder + "/" + _.getName)
     val tokens: Map[String, String] = Map("corespringDomain" -> host, "apiClientId" -> clientId, "options" -> encryptedOptions)
     val processedTemplates = processTemplates(tokens)
@@ -28,15 +27,15 @@ object ScormExporter {
 
   private def processTemplates(tokens: Map[String, String]): List[Option[NameContents]] = {
     TemplateFiles.map {
-      f: File => {
-        (f, tokens) match {
-          case RemoteItemRunnerTemplate(n, c) => Some((n, c))
-          case _ => None
+      f: File =>
+        {
+          (f, tokens) match {
+            case RemoteItemRunnerTemplate(n, c) => Some((n, c))
+            case _ => None
+          }
         }
-      }
     }
   }
-
 
   def basename(n: String): String = {
     val parts = n.split("/")
@@ -57,8 +56,8 @@ object ScormExporter {
    * @return
    */
   def zip(files: Iterable[String], stringFiles: Iterable[(String, String)], processName: (String => String) = (n => n)): Array[Byte] = {
-    import java.io.{BufferedInputStream, FileInputStream}
-    import java.util.zip.{ZipEntry, ZipOutputStream}
+    import java.io.{ BufferedInputStream, FileInputStream }
+    import java.util.zip.{ ZipEntry, ZipOutputStream }
 
     val byteOutStream = new ByteArrayOutputStream()
     val zip = new ZipOutputStream(byteOutStream)

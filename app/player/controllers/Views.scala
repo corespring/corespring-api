@@ -4,29 +4,28 @@ import common.controllers.QtiResource
 import org.xml.sax.SAXParseException
 import play.api.mvc.Action
 import play.api.templates.Html
-import player.views.models.{QtiKeys, ExceptionMessage, PlayerParams}
+import player.views.models.{ QtiKeys, ExceptionMessage, PlayerParams }
 import scala.xml.Elem
-import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
+import org.corespring.player.accessControl.auth.{ CheckSessionAccess, TokenizedRequestActionBuilder }
 import org.corespring.player.accessControl.models.RequestedAccess
-import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemServiceClient, ItemService}
+import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemServiceClient, ItemService }
 import org.corespring.platform.core.services.quiz.basic.QuizService
 import controllers.auth.BaseApi
 import org.corespring.player.accessControl.cookies.PlayerCookieWriter
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.itemSession.DefaultItemSession
-import org.corespring.web.common.controllers.deployment.{AssetsLoader, AssetsLoaderImpl}
+import org.corespring.web.common.controllers.deployment.{ AssetsLoader, AssetsLoaderImpl }
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import VersionedIdImplicits.Binders._
 import org.corespring.qti.models.RenderingMode._
 
-class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService : ItemService, quizService : QuizService)
+class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService: ItemService, quizService: QuizService)
   extends BaseApi
   with QtiResource
   with ItemServiceClient
   with QtiRenderer
   with PlayerCookieWriter {
-
 
   private object PlayerTemplates {
     def default(p: PlayerParams): play.api.templates.Html = player.views.html.Player(p)
@@ -47,8 +46,8 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     }
   }
 
-  def administerItem(itemId: VersionedId[ObjectId] ) = {
-    val p = RenderParams(itemId = itemId, sessionMode = RequestedAccess.Mode.Administer )
+  def administerItem(itemId: VersionedId[ObjectId]) = {
+    val p = RenderParams(itemId = itemId, sessionMode = RequestedAccess.Mode.Administer)
     renderItem(p)
   }
 
@@ -87,29 +86,28 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
       itemId = itemId,
       sessionMode = RequestedAccess.Mode.Preview,
       renderingMode = if (isPrintMode) Printing else Web,
-      templateFn = player.views.html.Profile(isPrintMode, tab)
-    )
+      templateFn = player.views.html.Profile(isPrintMode, tab))
 
     renderItem(p)
   }
 
-  /** An internal model of the rendering parameters
-    * TODO: renderingMode + sessionMode - can we conflate these to one concept?
-    */
+  /**
+   * An internal model of the rendering parameters
+   * TODO: renderingMode + sessionMode - can we conflate these to one concept?
+   */
   protected case class RenderParams(itemId: VersionedId[ObjectId],
-                                    sessionMode: RequestedAccess.Mode.Mode,
-                                    renderingMode: RenderingMode = Web,
-                                    sessionId: Option[ObjectId] = None,
-                                    assessmentId: Option[ObjectId] = None,
-                                    templateFn: PlayerParams => Html = defaultTemplate,
-                                    assetsLoader: AssetsLoader = AssetsLoaderImpl) {
+    sessionMode: RequestedAccess.Mode.Mode,
+    renderingMode: RenderingMode = Web,
+    sessionId: Option[ObjectId] = None,
+    assessmentId: Option[ObjectId] = None,
+    templateFn: PlayerParams => Html = defaultTemplate,
+    assetsLoader: AssetsLoader = AssetsLoaderImpl) {
 
     def toRequestedAccess: RequestedAccess = RequestedAccess.asRead(
       itemId = Some(itemId),
       sessionId = sessionId,
       assessmentId = assessmentId,
-      mode = Some(sessionMode)
-    )
+      mode = Some(sessionMode))
 
     def toPlayerParams(xml: String, qtiKeys: QtiKeys): PlayerParams = {
 
@@ -120,7 +118,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
         enablePreview,
         qtiKeys,
         renderingMode,
-        assetsLoader  )
+        assetsLoader)
     }
 
     def enablePreview: Boolean = sessionMode == RequestedAccess.Mode.Preview
@@ -130,10 +128,11 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
   protected def renderItem(params: RenderParams) = auth.ValidatedAction(params.toRequestedAccess) {
     tokenRequest =>
       ApiAction {
-        implicit request => prepareHtml(params, request.ctx.organization) match {
-          case Some(html: Html) => Ok(html).withSession(request.session + activeModeCookie(params.sessionMode))
-          case None => NotFound("not found")
-        }
+        implicit request =>
+          prepareHtml(params, request.ctx.organization) match {
+            case Some(html: Html) => Ok(html).withSession(request.session + activeModeCookie(params.sessionMode))
+            case None => NotFound("not found")
+          }
       }(tokenRequest)
   }
 
@@ -154,7 +153,6 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
         Some(player.views.html.PlayerError(errorInfo))
       }
     }
-
 
   /** Allow the default player to be overriden */
   protected def defaultTemplate: (PlayerParams => Html) = PlayerTemplates.default

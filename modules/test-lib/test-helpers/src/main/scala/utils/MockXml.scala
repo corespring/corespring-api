@@ -1,7 +1,7 @@
 package utils
 
-import scala.xml.transform.{RuleTransformer, RewriteRule}
-import scala.xml.{Node, Elem, NodeSeq}
+import scala.xml.transform.{ RuleTransformer, RewriteRule }
+import scala.xml.{ Node, Elem, NodeSeq }
 
 object MockXml {
 
@@ -10,19 +10,19 @@ object MockXml {
   val incorrectResponseFeedback = "incorrect response feedback"
   val correctResponseFeedback = "correct response feedback"
 
-  def load(filename:String) : Elem = scala.xml.XML.loadFile("test/mockXml/%s".format(filename))
+  def load(filename: String): Elem = scala.xml.XML.loadFile("test/mockXml/%s".format(filename))
 
-  def createXml(identifier:String, cardinality: String, values: NodeSeq, interaction: NodeSeq = <none/>): Elem = {
+  def createXml(identifier: String, cardinality: String, values: NodeSeq, interaction: NodeSeq = <none/>): Elem = {
     <assessmentItem>
-      <correctResponseFeedback>{correctResponseFeedback}</correctResponseFeedback>
-      <incorrectResponseFeedback>{incorrectResponseFeedback}</incorrectResponseFeedback>
-      <responseDeclaration identifier={identifier} cardinality={cardinality} baseType="string">
+      <correctResponseFeedback>{ correctResponseFeedback }</correctResponseFeedback>
+      <incorrectResponseFeedback>{ incorrectResponseFeedback }</incorrectResponseFeedback>
+      <responseDeclaration identifier={ identifier } cardinality={ cardinality } baseType="string">
         <correctResponse>
-          {values}
+          { values }
         </correctResponse>
       </responseDeclaration>
       <itemBody>
-        {interaction}
+        { interaction }
       </itemBody>
     </assessmentItem>
   }
@@ -59,6 +59,5 @@ object MockXml {
 
     new RuleTransformer(replaceIt).transform(xml).head
   }
-
 
 }

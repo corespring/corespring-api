@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby
+
+# installation: 
+# cd .git/hooks
+# ln -s ../../hooks/pre-commit pre-commit
+
+module Utils
+
+  REGEX = /.*[M|A]\s(.*\.scala)/
+
+  def self.get_scala_changes(log)
+    lines = log.split("\n")
+    matches = lines.map{ |l| REGEX.match l}
+    matches.select!{ |m| !m.nil?}
+    out = matches.map{ |m| m[1]}
+    out
+  end
+
+
+  def self.clip(msg)
+    if RUBY_PLATFORM.downcase.include?("darwin")
+      IO.popen('pbcopy', 'w+') do |clipboard|
+        clipboard.write msg
+      end
+    elsif RUBY_PLATFORM.downcase.include?("linux")
+      IO.popen('xsel --clipboard --input', 'r+') do |clipboard|
+        clipboard.puts msg
+      end
+    end
+  end
+
+end
+
+log = `git diff-index --cached HEAD`
+files = Utils.get_scala_changes(log)
+scalaVersion="2.10.2"
+
+if files.length > 0
+    cmd = "./bin/scalariform --test -s=#{scalaVersion} #{files.join(" ")}"
+    output = `#{cmd}`
+
+    format_cmd =  "./bin/scalariform -s=#{scalaVersion} #{files.join(" ")}"
+    Utils.clip format_cmd
+    if output.include? "[FAILED]"
+        puts "--------------------------------------------------"
+        puts "You need to format your scala code!"
+        puts "run:"
+        puts format_cmd
+        puts "its been copied to your clipboard for your convenience"
+        abort "--------------------------------------------------"
+    end
+end

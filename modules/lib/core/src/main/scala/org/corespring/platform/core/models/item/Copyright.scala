@@ -3,9 +3,9 @@ package org.corespring.platform.core.models.item
 import play.api.libs.json._
 
 case class Copyright(owner: Option[String] = None,
-                     year: Option[String] = None,
-                     expirationDate: Option[String] = None,
-                     imageName: Option[String] = None)
+  year: Option[String] = None,
+  expirationDate: Option[String] = None,
+  imageName: Option[String] = None)
 
 object Copyright extends ValueGetter {
 
@@ -48,8 +48,7 @@ object Copyright extends ValueGetter {
           copyright.owner.map((copyrightOwner -> JsString(_))),
           copyright.year.map((copyrightYear -> JsString(_))),
           copyright.expirationDate.map((copyrightExpirationDate -> JsString(_))),
-          copyright.imageName.map((copyrightImageName -> JsString(_)))
-        ).flatten)
+          copyright.imageName.map((copyrightImageName -> JsString(_)))).flatten)
     }
   }
 

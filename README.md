@@ -1,6 +1,11 @@
 This project contains the api rest layer and web ui for administering corespring items.
 
 ### Installation
+
+Before you do *anything* please run the following to install the git pre-commit hook:
+
+    ln -s hooks/pre-commit .git/hooks/pre-commit
+
 *we assume you already have Java JDK >= 1.6*
 
 *Mac users - It is recommended that you use [homebrew](http://mxcl.github.io/homebrew/) for all your installations.*
@@ -21,10 +26,9 @@ We use a private repo for our assets. Because of this you will need to define yo
 This file will look like so:
 
     realm=Artifactory Realm
-    host=ec2-107-22-19-173.compute-1.amazonaws.com
+    host=repository.corespring.org
     user=XXXXXXXXXX
     password=XXXXXXXXXX
-
 
 Ask someone to provide you with the user password
 

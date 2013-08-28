@@ -3,7 +3,6 @@ package org.corespring.player.accessControl.models.granter
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 
-
 package object constraints {
 
   /** An abstraction of whether a value is allowed */
@@ -48,14 +47,13 @@ package object constraints {
     override def describe = "? > " + limit
   }
 
-
   class LongLessThan(l: Long) extends NumberLessThanConstraint {
     def limit = l
 
     override def toString: String = describe
   }
 
-  class TimeExpiredConstraint(expiry:Long) extends NumberLessThanConstraint {
+  class TimeExpiredConstraint(expiry: Long) extends NumberLessThanConstraint {
     def limit = expiry
     override def toString: String = describe
   }
@@ -68,7 +66,7 @@ package object constraints {
     override def describe = "session-contains-item? " + itemId + " lookup: " + lookup
   }
 
-  class LookupContainsItemId(itemId:VersionedId[ObjectId], lookup : ItemLookup) extends Constraint[ObjectId]{
+  class LookupContainsItemId(itemId: VersionedId[ObjectId], lookup: ItemLookup) extends Constraint[ObjectId] {
     def allow[U >: ObjectId](value: U) = lookup.containsItem(value.asInstanceOf[ObjectId], itemId)
 
     override def toString: String = describe
@@ -83,7 +81,6 @@ package object constraints {
 
     override def describe = "Failed: " + msg
   }
-
 
   class ObjectIdMatches(oid: ObjectId) extends Constraint[ObjectId] {
 

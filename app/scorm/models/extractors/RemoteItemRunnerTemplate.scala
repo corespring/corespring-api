@@ -4,7 +4,6 @@ import java.io.File
 import scala.io.Source
 import org.corespring.common.utils.string
 
-
 /**
  * Extractor for the RemoteItem runner html file that gets bundled into the scorm package
  */
@@ -13,7 +12,7 @@ object RemoteItemRunnerTemplate {
   lazy val FinalName = Name.replace(".template", "")
   val Name: String = "remote-item-runner.html.template"
 
-  def unapply(pair: (File, Map[String,String])) = {
+  def unapply(pair: (File, Map[String, String])) = {
 
     val (f, tokens) = pair
 
