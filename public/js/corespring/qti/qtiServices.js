@@ -318,6 +318,7 @@ angular.module('qti.directives').directive('correctanswer', ['$compile', functio
                     "<h3 id='myModalLabel'>The Correct Answer</h3>",
                   "</div>",
                   "<div class='modal-body'></div>",
+                  "<div class='modal-footer' style='text-align: left;'><a href='' ng-click='showCorrectAnswer=false'>See your answer</a></div>",
                 "</div>",
             "</div>"
         ].join("\n"),
