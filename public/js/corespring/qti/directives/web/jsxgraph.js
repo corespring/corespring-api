@@ -12,7 +12,8 @@ return {
     //  points:{
     //    [ptName]:{
     //      x:[Number],
-    //      y:[Number]
+    //      y:[Number],
+    //      color: [String]
     //    }
     //    ...
     //  },
@@ -20,7 +21,9 @@ return {
     //    line: [pt1,pt2],
     //    showPoints: Boolean
     //  },
+    //  pointsStyle: [String], //set the color of all the points and labels of points
     //  graphStyle: {}, //set the css
+    //  shapesStyle: [String], //set the color of all shapes (e.g. lines) on the graph
     //  lockGraph: Boolean
     //}
     graphCallback: '='
@@ -110,8 +113,9 @@ return {
                       onPointMove(canvasPoint, coords);
                     }
                   } else if (!canvasAttrs.maxPoints || canvas.points.length < canvasAttrs.maxPoints) {
-                    addPoint(coords);
+                      canvasPoint = addPoint(coords);
                   }
+                  if(point.color) canvas.changePointColor(canvasPoint, point.color)
                 }
               }
             }else if(Object.prototype.toString.call(params.points) === "[object Array]"){
@@ -123,10 +127,12 @@ return {
                             x: coordx,
                             y: coordy
                         };
-                        if(canvas.pointCollision(coords) == null){
-                            addPoint(coords)
+                        var canvasPoint = canvas.pointCollision(coords)
+                        if(canvasPoint == null){
+                            canvasPoint = addPoint(coords)
                         }
                     }
+                    if(params.points[i].color) canvas.changePointColor(canvasPoint, params.points[i].color)
                 }
             }
         }
@@ -141,8 +147,18 @@ return {
                 canvas.makeCurve(params.drawShape.curve)
              }
         }
+        if(params.pointsStyle){
+            _.each(canvas.points, function(p){
+                canvas.changePointColor(p, params.pointsStyle)
+            })
+        }
         if(params.graphStyle){
             scope.boxStyle = _.extend({width: "100%", height: "100%"}, params.graphStyle)
+        }
+        if(params.shapesStyle){
+            _.each(canvas.shapes, function(shape){
+                canvas.changeShapeColor(shape, params.shapesStyle)
+            })
         }
         if(params.lockGraph){
              _.each(canvas.points,function(p){

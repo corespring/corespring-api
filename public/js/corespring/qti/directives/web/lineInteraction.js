@@ -71,17 +71,17 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
         "           <div class='point-display' style='padding-bottom: 10px;'>",
         "              <p>Point A:</p>",
         "              <p>x: </p>",
-        "              <input type='text' style='width: 43px;', ng-model='points.A.x' ng-disabled='locked'>",
+        "              <input type='text' ng-style='inputStyle', ng-model='points.A.x' ng-disabled='locked'>",
         "              <p>y: </p>",
-        "              <input type='text' style='width: 43px;' ng-model='points.A.y'  ng-disabled='locked'>",
+        "              <input type='text' ng-style='inputStyle' ng-model='points.A.y'  ng-disabled='locked'>",
         "          </div>",
         "          <hr class='point-display-break'>",
         "          <div class='point-display' style='padding-top: 10px;'>",
         "             <p>Point B:</p>",
         "             <p>x: </p>",
-        "             <input type='text' style='width: 43px;', ng-model='points.B.x' ng-disabled='locked'>",
+        "             <input type='text' ng-style='inputStyle' ng-model='points.B.x' ng-disabled='locked'>",
         "             <p>y: </p>",
-        "             <input type='text' style='width: 43px;' ng-model='points.B.y' ng-disabled='locked'>",
+        "             <input type='text' ng-style='inputStyle' ng-model='points.B.y' ng-disabled='locked'>",
         "          </div>",
         "      </div>",
         "      <div class='span4 scale-display' ng-show='showInputs' style='margin-left: 0px;'>",
@@ -99,6 +99,7 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
         scope: true,
         require: '?^assessmentitem',
         controller: ['$scope', function($scope){
+
             $scope.submissions = 0
             this.setInitialParams = function(initialParams){
                 $scope.initialParams = initialParams;
@@ -187,9 +188,11 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
                    });
                    if($scope.itemSession.settings.highlightUserResponse){
                         if(response && response.outcome.isCorrect){
-                            $scope.graphCallback({graphStyle: {borderColor: "green", borderWidth: "2px"}})
+                            $scope.graphCallback({graphStyle: {borderColor: "green", borderWidth: "2px"}, pointsStyle: "green", shapesStyle: "green"})
+                            $scope.inputStyle = _.extend($scope.inputStyle, {border: 'thin solid green'})
                         } else {
-                            $scope.graphCallback({graphStyle: {borderColor: "red", borderWidth: "2px"}})
+                            $scope.graphCallback({graphStyle: {borderColor: "red", borderWidth: "2px"}, pointsStyle: "red", shapesStyle: "red"})
+                            $scope.inputStyle = _.extend($scope.inputStyle, {border: 'thin solid red'})
                         }
                    }
                    var maxAttempts = $scope.itemSession.settings.maxNoOfAttempts?$scope.itemSession.settings.maxNoOfAttempts:1
@@ -278,6 +281,7 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
                 scope.domainLabel = graphAttrs.domainLabel
                 scope.rangeLabel = graphAttrs.rangeLabel
                 scope.tickLabelFrequency = attrs.tickLabelFrequency
+                scope.inputStyle = {width: "40px"}
             }
         }
     }

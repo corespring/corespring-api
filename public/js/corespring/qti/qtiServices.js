@@ -227,7 +227,7 @@ angular.module('qti.services').factory('Canvas', function () {
   };
 
   Canvas.prototype.addPoint = function(coords, ptName) {
-    var pointAttrs = {snapToGrid: true, snapSizeX: this.scale, snapSizeY: this.scale, showInfobox: false, withLabel:false};
+    var pointAttrs = {strokeColor: "blue", fillColor: "blue", snapToGrid: true, snapSizeX: this.scale, snapSizeY: this.scale, showInfobox: false, withLabel:false};
     var point = this.board.create('point', [coords.x, coords.y], pointAttrs);
     this.points.push(point);
     var name = (function(labels,points){
@@ -274,7 +274,7 @@ angular.module('qti.services').factory('Canvas', function () {
 
   Canvas.prototype.makeLine = function(pts) {
       var shape = this.board.create('line', pts, {
-        strokeColor: '#00ff00',
+        strokeColor: '#0000ff',
         strokeWidth: 2,
         fixed: true
       });
@@ -283,7 +283,7 @@ angular.module('qti.services').factory('Canvas', function () {
   };
   Canvas.prototype.makeCurve = function(fn){
       var shape = this.board.create('functiongraph', [fn], {
-        strokeColor: '#00ff00',
+        strokeColor: '#0000ff',
         strokeWidth: 2,
         fixed: true
       })
@@ -292,6 +292,14 @@ angular.module('qti.services').factory('Canvas', function () {
   }
   Canvas.prototype.popShape = function(){
     return this.board.removeObject(this.shapes.splice(0,1));
+  }
+  Canvas.prototype.changePointColor = function(point, color){
+    point.setAttribute({fillColor: color, strokeColor: color})
+    var index = _.indexOf(_.map(this.points,function(p){return p.id}), point.id)
+    this.texts[index].setAttribute({strokeColor: color})
+  }
+  Canvas.prototype.changeShapeColor = function(shape, color){
+    shape.setAttribute({strokeColor: color})
   }
   return Canvas;
 });

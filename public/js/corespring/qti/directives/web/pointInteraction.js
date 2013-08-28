@@ -12,13 +12,14 @@ angular.module("qti.directives").directive("graphpoint",function(){
                 var coords = element[0].innerHTML.split(",");
                 if(coords.length == 2){
                     var point = {x: coords[0], y: coords[1]};
+                    if(attrs.color) point = _.extend(point,{color: attrs.color})
                     var points = []
                     if(PointCtrl.getInitialParams() && PointCtrl.getInitialParams().points){
                         points = PointCtrl.getInitialParams().points
                     }
                     points.push(point)
                     PointCtrl.setInitialParams({ points: points })
-                }else {
+                } else {
                     throw "each point must contain x and y coordinate separated by a comma";
                 }
             };
@@ -91,9 +92,9 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
                    });
                    if($scope.itemSession.settings.highlightUserResponse){
                         if(response && response.outcome.isCorrect){
-                            $scope.graphCallback({graphStyle: {borderColor: "green", borderWidth: "2px"}})
+                            $scope.graphCallback({graphStyle: {borderColor: "green", borderWidth: "2px"}, pointsStyle: "green"})
                         } else {
-                            $scope.graphCallback({graphStyle: {borderColor: "red", borderWidth: "2px"}})
+                            $scope.graphCallback({graphStyle: {borderColor: "red", borderWidth: "2px"}, pointsStyle: "red"})
                         }
                    }
                    var maxAttempts = $scope.itemSession.settings.maxNoOfAttempts?$scope.itemSession.settings.maxNoOfAttempts:1
@@ -116,7 +117,7 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
                                 ">"
                            ]
                            var body = _.map(correctResponse.value, function(value){
-                                return "<graphpoint>"+value+"</graphpoint>"
+                                return "<graphpoint color='green'>"+value+"</graphpoint>"
                            })
                            var endElem = ["</pointInteraction>"]
                            $scope.correctAnswerBody = _.flatten([startElem, body, endElem]).join("\n");
