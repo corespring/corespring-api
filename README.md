@@ -1,6 +1,11 @@
 This project contains the api rest layer and web ui for administering corespring items.
 
 ### Installation
+
+Before you do *anything* please run the following to install the git pre-commit hook:
+
+    ln -s hooks/pre-commit .git/hooks/pre-commit
+
 *we assume you already have Java JDK >= 1.6*
 
 *Mac users - It is recommended that you use [homebrew](http://mxcl.github.io/homebrew/) for all your installations.*

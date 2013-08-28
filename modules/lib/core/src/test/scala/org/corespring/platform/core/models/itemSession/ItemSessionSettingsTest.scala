@@ -3,7 +3,7 @@ package org.corespring.platform.core.models.itemSession
 import play.api.libs.json.Json
 import org.corespring.test.BaseTest
 
-class ItemSessionSettingsTest extends BaseTest{
+class ItemSessionSettingsTest extends BaseTest {
 
   "item session settings " should {
     "parse json" in {

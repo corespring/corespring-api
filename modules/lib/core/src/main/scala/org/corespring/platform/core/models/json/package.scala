@@ -10,15 +10,14 @@ package object json {
   implicit object ObjectIdReads extends Reads[ObjectId] {
     def reads(js: JsValue): JsResult[ObjectId] = {
 
-      try{
+      try {
         val string = js.as[String]
         if (ObjectId.isValid(string))
           JsSuccess(new ObjectId(string))
         else
           JsError("Invalid object id")
-      }
-      catch {
-        case e : Throwable => JsError("Invalid json")
+      } catch {
+        case e: Throwable => JsError("Invalid json")
       }
     }
   }

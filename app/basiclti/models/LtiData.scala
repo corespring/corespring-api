@@ -1,15 +1,15 @@
 package basiclti.models
 
-import play.api.mvc.{AnyContent, Request}
+import play.api.mvc.{ AnyContent, Request }
 
 case class LtiData(outcomeUrl: Option[String],
-                   resultSourcedId: Option[String],
-                   returnUrl: Option[String],
-                   resourceLinkId: Option[String],
-                   roles: Seq[String],
-                   selectionDirective: Option[String],
-                   oauthConsumerKey: Option[String],
-                   canvasConfigId: Option[String])
+  resultSourcedId: Option[String],
+  returnUrl: Option[String],
+  resourceLinkId: Option[String],
+  roles: Seq[String],
+  selectionDirective: Option[String],
+  oauthConsumerKey: Option[String],
+  canvasConfigId: Option[String])
 
 object LtiData {
 
@@ -23,9 +23,8 @@ object LtiData {
     val SelectionDirective: String = "selection_directive"
     val CanvasConfigId: String = "canvas_config_id"
     val OAuthConsumerKey: String = "oauth_consumer_key"
-    val ContextLabel : String = "context_label"
+    val ContextLabel: String = "context_label"
   }
-
 
   def apply(request: Request[AnyContent]): Option[LtiData] = request.body.asFormUrlEncoded match {
     case Some(form) => {
@@ -39,9 +38,7 @@ object LtiData {
           roles = getSeq(form.get(Keys.Roles)),
           selectionDirective = getString(form.get(Keys.SelectionDirective)),
           oauthConsumerKey = getString(form.get(Keys.OAuthConsumerKey)),
-          canvasConfigId = getString(form.get(Keys.CanvasConfigId))
-        )
-      )
+          canvasConfigId = getString(form.get(Keys.CanvasConfigId))))
     }
     case _ => None
   }

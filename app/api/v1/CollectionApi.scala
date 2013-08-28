@@ -6,10 +6,10 @@ import com.novus.salat.dao.SalatMongoCursor
 import controllers.auth.BaseApi
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.search.SearchCancelled
-import org.corespring.platform.core.models.{Organization, CollectionExtraDetails, ContentCollection}
+import org.corespring.platform.core.models.{ Organization, CollectionExtraDetails, ContentCollection }
 import play.api.libs.json._
 import play.api.mvc.Result
-import scalaz.{Failure, Success}
+import scalaz.{ Failure, Success }
 import org.corespring.platform.core.models.error.InternalError
 
 /**
@@ -35,10 +35,10 @@ object CollectionApi extends BaseApi {
         Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
-  private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, optsort:Option[String]) = {
-    val collrefs = ContentCollection.getContentCollRefs(orgId,Permission.Read, true)
+  private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, optsort: Option[String]) = {
+    val collrefs = ContentCollection.getContentCollRefs(orgId, Permission.Read, true)
     val initSearch = MongoDBObject("_id" -> MongoDBObject("$in" -> collrefs.map(_.collectionId)))
-    def applySort(colls:SalatMongoCursor[ContentCollection]):Result = {
+    def applySort(colls: SalatMongoCursor[ContentCollection]): Result = {
       optsort.map(ContentCollection.toSortObj(_)) match {
         case Some(Right(sort)) => Ok(Json.toJson(colls.sort(sort).skip(sk).limit(l).toSeq.map(c => CollectionExtraDetails(c, collrefs.find(_.collectionId == c.id).get.pval))))
         case None => Ok(Json.toJson(colls.skip(sk).limit(l).toSeq.map(c => CollectionExtraDetails(c, collrefs.find(_.collectionId == c.id).get.pval))))
@@ -90,12 +90,12 @@ object CollectionApi extends BaseApi {
           case _ => {
             val newId = new ObjectId
             val name = (json \ "name").asOpt[String]
-            if ( name.isEmpty ) {
-              BadRequest( Json.toJson(ApiError.CollectionNameMissing))
+            if (name.isEmpty) {
+              BadRequest(Json.toJson(ApiError.CollectionNameMissing))
             } else {
               val collection = ContentCollection(id = newId, name = name.get)
-              ContentCollection.insertCollection(request.ctx.organization,collection,Permission.Write) match {
-                case Right(coll) => Ok(Json.toJson(CollectionExtraDetails(coll,Permission.Write.value)))
+              ContentCollection.insertCollection(request.ctx.organization, collection, Permission.Write) match {
+                case Right(coll) => Ok(Json.toJson(CollectionExtraDetails(coll, Permission.Write.value)))
                 case Left(e) => InternalServerError(Json.toJson(ApiError.InsertCollection(e.clientOutput)))
               }
             }
@@ -153,14 +153,14 @@ object CollectionApi extends BaseApi {
    */
   def deleteCollection(id: ObjectId) = ApiActionWrite { request =>
     ContentCollection.findOneById(id) match {
-      case Some(coll) => if(coll.itemCount == 0 && ContentCollection.isAuthorized(request.ctx.organization,id,Permission.Write)) {
-          ContentCollection.delete(id) match {
-            case Success(_) => Ok(Json.toJson(coll))
-            case Failure(error) => InternalServerError(Json.toJson(ApiError.DeleteCollection(error.clientOutput)))
-          }
-        }else{
-          InternalServerError(Json.toJson(ApiError.DeleteCollection(Some("cannot delete collection that contains items"))))
+      case Some(coll) => if (coll.itemCount == 0 && ContentCollection.isAuthorized(request.ctx.organization, id, Permission.Write)) {
+        ContentCollection.delete(id) match {
+          case Success(_) => Ok(Json.toJson(coll))
+          case Failure(error) => InternalServerError(Json.toJson(ApiError.DeleteCollection(error.clientOutput)))
         }
+      } else {
+        InternalServerError(Json.toJson(ApiError.DeleteCollection(Some("cannot delete collection that contains items"))))
+      }
       case None => BadRequest(Json.toJson(ApiError.DeleteCollection))
     }
   }

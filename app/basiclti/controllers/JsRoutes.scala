@@ -4,17 +4,16 @@ import common.controllers.SimpleJsRoutes
 import play.api.mvc.Action
 import play.api.mvc.Controller
 
-object JsRoutes extends Controller with SimpleJsRoutes{
+object JsRoutes extends Controller with SimpleJsRoutes {
 
-  def index = Action{ request =>
+  def index = Action { request =>
 
-    import api.routes.javascript.{Collection => JsCollection}
-    import api.routes.javascript.{Item => JsItem}
+    import api.routes.javascript.{ Collection => JsCollection }
+    import api.routes.javascript.{ Item => JsItem }
 
     Ok(
-        createSimpleRoutes("PlayerCollectionRoutes", JsCollection.list) +
-        createSimpleRoutes("PlayerItemRoutes", JsItem.list)
-      ).as("text/javascript")
+      createSimpleRoutes("PlayerCollectionRoutes", JsCollection.list) +
+        createSimpleRoutes("PlayerItemRoutes", JsItem.list)).as("text/javascript")
   }
 
 }

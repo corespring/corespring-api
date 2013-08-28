@@ -6,14 +6,14 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.SalatVersioningDao
 
-trait XmlSearchClient{
-  def xmlSearch : XmlSearch
+trait XmlSearchClient {
+  def xmlSearch: XmlSearch
 
 }
 
 trait XmlSearch {
 
-  def dao : SalatVersioningDao[Item]
+  def dao: SalatVersioningDao[Item]
 
   def findInXml(string: String, collectionIds: List[String]): List[Item] = {
 
@@ -25,10 +25,8 @@ trait XmlSearch {
           MongoDBObject(
             "$regex" -> query,
             "$options" -> "msi"),
-        "collectionId" -> MongoDBObject("$in" -> collectionIds.toArray)
-      ),
-      MongoDBObject("taskInfo" -> 1)
-    ).toList
+        "collectionId" -> MongoDBObject("$in" -> collectionIds.toArray)),
+      MongoDBObject("taskInfo" -> 1)).toList
   }
 
 }

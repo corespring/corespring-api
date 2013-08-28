@@ -15,7 +15,6 @@ import org.corespring.test.BaseTest
 
 class ItemTest extends BaseTest {
 
-
   "parse" should {
 
     "work" in {
@@ -23,10 +22,7 @@ class ItemTest extends BaseTest {
         otherAlignments = Some(
           Alignments(
             demonstratedKnowledge = Some("Factual"),
-            bloomsTaxonomy = Some("Applying")
-          )
-        )
-      )
+            bloomsTaxonomy = Some("Applying"))))
 
       val json = Json.toJson(item)
 
@@ -72,7 +68,6 @@ class ItemTest extends BaseTest {
       parsed.standards must equalTo(item.standards)
     }
 
-
     "parse priorGradeLevel" in {
       val item = Item(priorGradeLevel = Seq("03", "04"))
       val json = Json.toJson(item)
@@ -94,15 +89,11 @@ class ItemTest extends BaseTest {
       val jsonToRead = JsObject(
         Seq(
           Keys.id -> JsString(new ObjectId().toString),
-          Keys.primarySubject -> JsString(subject.primary.get.toString)
-        )
-      )
+          Keys.primarySubject -> JsString(subject.primary.get.toString)))
       val parsed = jsonToRead.as[Item]
 
       parsed.taskInfo.get.subjects.get.primary must equalTo(subject.primary)
     }
-
-
 
     "parse subjects with primary and related" in {
       val dbSubject = Subject.findOne(new BasicDBObject())
@@ -113,9 +104,7 @@ class ItemTest extends BaseTest {
         Seq(
           Keys.id -> JsString(new ObjectId().toString),
           Keys.primarySubject -> JsString(subject.primary.get.toString),
-          Keys.relatedSubject -> JsString(subject.related.get.toString)
-        )
-      )
+          Keys.relatedSubject -> JsString(subject.related.get.toString)))
 
       val parsed = jsonToRead.as[Item]
 
@@ -123,14 +112,12 @@ class ItemTest extends BaseTest {
       parsed.taskInfo.get.subjects.get.related must equalTo(subject.related)
     }
 
-
     "parse contributor details" in {
       val copyright = Copyright(Some("Ed"), Some("2001"), Some("3000"), Some("imageName.png"))
       val contributorDetails = ContributorDetails(
         copyright = Some(copyright),
         costForResource = Some(10),
-        author = Some("Ed")
-      )
+        author = Some("Ed"))
       val item = Item(contributorDetails = Some(contributorDetails))
       val json = Json.toJson(item)
       (json \ Keys.copyrightOwner).asOpt[String] must equalTo(Some("Ed"))
@@ -191,7 +178,7 @@ class ItemTest extends BaseTest {
       clonedItem.get.taskInfo.get.title.get === "[copy]"
     }
 
-  /**/
+    /**/
   }
 
 }

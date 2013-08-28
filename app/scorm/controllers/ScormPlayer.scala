@@ -8,7 +8,6 @@ import player.controllers.Views
 import player.views.models.PlayerParams
 import org.corespring.platform.core.services.item.ItemServiceImpl
 
-
-object ScormPlayer extends Views(CheckSessionAccess, ItemServiceImpl, QuizService) with AssetResource{
-  override protected def defaultTemplate : (PlayerParams => Html) = (p:PlayerParams) => scorm.views.html.ScormPlayer(p)
+object ScormPlayer extends Views(CheckSessionAccess, ItemServiceImpl, QuizService) with AssetResource {
+  override protected def defaultTemplate: (PlayerParams => Html) = (p: PlayerParams) => scorm.views.html.ScormPlayer(p)
 }

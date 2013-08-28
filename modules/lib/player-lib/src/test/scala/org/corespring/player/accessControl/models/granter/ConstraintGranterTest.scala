@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.models.RequestedAccess.Mode
 import org.corespring.player.accessControl.models.RequestedAccess.Mode._
-import org.corespring.player.accessControl.models.{RenderOptions, RequestedAccess}
+import org.corespring.player.accessControl.models.{ RenderOptions, RequestedAccess }
 import org.specs2.execute.Result
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
@@ -37,12 +37,11 @@ class ConstraintGranterTest extends Specification {
 
   def sOid(s: String = oidString(1)) = Some(new ObjectId(s))
 
-  def sVersionedId(s:String = oidString(1)) = Some(VersionedId(new ObjectId(s)))
+  def sVersionedId(s: String = oidString(1)) = Some(VersionedId(new ObjectId(s)))
 
   def randomId = Some(new ObjectId())
 
   def randomVersionedId = Some(VersionedId(ObjectId.get))
-
 
   case class GrantAssert(r: RequestedAccess, expected: Boolean, session: SessionItemLookup = yesSession, quiz: QuizItemLookup = yesQuiz)
 
@@ -59,15 +58,13 @@ class ConstraintGranterTest extends Specification {
 
     "when in administer" in {
 
-
       "session wildcard, item wildcard" in {
         val o = RenderOptions(itemId = RenderOptions.*, sessionId = RenderOptions.*, expires = 0, mode = Administer)
 
         assertGrant(o, Administer,
           GrantAssert(ra(Administer, itemId = randomVersionedId), true),
           GrantAssert(ra(Administer, sessionId = randomId), true),
-          GrantAssert(ra(Administer, itemId = randomVersionedId, sessionId = randomId), true)
-        )
+          GrantAssert(ra(Administer, itemId = randomVersionedId, sessionId = randomId), true))
       }
 
       "session bound, item wildcard" in {
@@ -77,8 +74,7 @@ class ConstraintGranterTest extends Specification {
           GrantAssert(ra(Administer, itemId = randomVersionedId), true),
           GrantAssert(ra(Administer, sessionId = randomId), false),
           GrantAssert(ra(Administer, sessionId = sOid(sessionId)), true),
-          GrantAssert(ra(Administer, itemId = randomVersionedId, sessionId = sOid(sessionId)), true)
-        )
+          GrantAssert(ra(Administer, itemId = randomVersionedId, sessionId = sOid(sessionId)), true))
       }
 
       "item bound, session wildcard" in {
@@ -88,8 +84,7 @@ class ConstraintGranterTest extends Specification {
           GrantAssert(ra(Administer, itemId = randomVersionedId), false),
           GrantAssert(ra(Administer, itemId = sVersionedId(itemId)), true),
           GrantAssert(ra(Administer, sessionId = randomId), true),
-          GrantAssert(ra(Administer, sessionId = randomId), false, session = noSession)
-        )
+          GrantAssert(ra(Administer, sessionId = randomId), false, session = noSession))
       }
 
       "item bound, session bound" in {
@@ -106,7 +101,6 @@ class ConstraintGranterTest extends Specification {
       }
 
     }
-
 
     "when in aggregate" in {
 
@@ -163,7 +157,6 @@ class ConstraintGranterTest extends Specification {
         }
       }
     }
-
 
     "when in preview" in {
 

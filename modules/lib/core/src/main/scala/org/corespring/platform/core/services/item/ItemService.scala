@@ -1,6 +1,6 @@
 package org.corespring.platform.core.services.item
 
-import com.mongodb.{BasicDBObject, DBObject}
+import com.mongodb.{ BasicDBObject, DBObject }
 import com.novus.salat.dao.SalatMongoCursor
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
@@ -13,9 +13,8 @@ trait ItemServiceClient {
 
 trait ItemService extends BaseItemService[VersionedId[ObjectId]]
 
-
 trait BaseItemService[ID] {
-  def cloneItem(item:Item): Option[Item]
+  def cloneItem(item: Item): Option[Item]
 
   def findFieldsById(id: ID, fields: DBObject = new BasicDBObject()): Option[DBObject]
 
@@ -40,6 +39,6 @@ trait BaseItemService[ID] {
 
   def getQtiXml(id: ID): Option[Elem]
 
-  def sessionCount(item:Item) : Long
+  def sessionCount(item: Item): Long
 
 }

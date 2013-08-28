@@ -18,9 +18,7 @@ object PlaySingleton {
         Play.start(
           FakeApplication(
 
-            additionalPlugins =  Seq("se.radley.plugin.salat.SalatPlugin")
-          )
-        )
+            additionalPlugins = Seq("se.radley.plugin.salat.SalatPlugin")))
       }
     }
   }

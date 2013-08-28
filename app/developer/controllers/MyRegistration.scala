@@ -1,9 +1,9 @@
 package developer.controllers
 
-import play.api.mvc.{Result, Action, Controller}
+import play.api.mvc.{ Result, Action, Controller }
 import play.api.data._
 import play.api.data.Forms._
-import play.api.{Play, Logger}
+import play.api.{ Play, Logger }
 import securesocial.core.providers.UsernamePasswordProvider
 import securesocial.core._
 import com.typesafe.plugin._
@@ -13,7 +13,7 @@ import play.api.i18n.Messages
 import securesocial.core.providers.Token
 import scala.Some
 import securesocial.controllers.Registration._
-import play.api.libs.json.{JsString, JsObject}
+import play.api.libs.json.{ JsString, JsObject }
 import org.corespring.platform.core.models
 import org.corespring.platform.core.models.User
 import org.corespring.common.config.AppConfig
@@ -23,10 +23,10 @@ object MyRegistration extends Controller {
   val Organization = "organization"
 
   case class MyRegistrationInfo(userName: Option[String],
-                                firstName: String,
-                                lastName: String,
-                                organization: Option[String],
-                                password: String)
+    firstName: String,
+    lastName: String,
+    organization: Option[String],
+    password: String)
 
   val formWithUsername = Form[MyRegistrationInfo](
     mapping(
@@ -39,17 +39,10 @@ object MyRegistration extends Controller {
       (Password ->
         tuple(
           Password1 -> nonEmptyText.verifying(use[PasswordValidator].errorMessage,
-            p => use[PasswordValidator].isValid(p)
-          ),
-          Password2 -> nonEmptyText
-        ).verifying(Messages(PasswordsDoNotMatch), passwords => passwords._1 == passwords._2)
-        )
-    )
-      // binding
-      ((userName, firstName, lastName, organization, password) => MyRegistrationInfo(Some(userName), firstName, lastName, organization, password._1))
-      // unbinding
-      (info => Some(info.userName.getOrElse(""), info.firstName, info.lastName, info.organization, ("", "")))
-  )
+            p => use[PasswordValidator].isValid(p)),
+          Password2 -> nonEmptyText).verifying(Messages(PasswordsDoNotMatch), passwords => passwords._1 == passwords._2))) // binding
+          ((userName, firstName, lastName, organization, password) => MyRegistrationInfo(Some(userName), firstName, lastName, organization, password._1)) // unbinding
+          (info => Some(info.userName.getOrElse(""), info.firstName, info.lastName, info.organization, ("", ""))))
 
   val formWithoutUsername = Form[MyRegistrationInfo](
     mapping(
@@ -59,17 +52,10 @@ object MyRegistration extends Controller {
       (Password ->
         tuple(
           Password1 -> nonEmptyText.verifying(use[PasswordValidator].errorMessage,
-            p => use[PasswordValidator].isValid(p)
-          ),
-          Password2 -> nonEmptyText
-        ).verifying(Messages(PasswordsDoNotMatch), passwords => passwords._1 == passwords._2)
-        )
-    )
-      // binding
-      ((firstName, lastName, organization, password) => MyRegistrationInfo(None, firstName, lastName, organization, password._1))
-      // unbinding
-      (info => Some(info.firstName, info.lastName, info.organization, ("", "")))
-  )
+            p => use[PasswordValidator].isValid(p)),
+          Password2 -> nonEmptyText).verifying(Messages(PasswordsDoNotMatch), passwords => passwords._1 == passwords._2))) // binding
+          ((firstName, lastName, organization, password) => MyRegistrationInfo(None, firstName, lastName, organization, password._1)) // unbinding
+          (info => Some(info.firstName, info.lastName, info.organization, ("", ""))))
 
   val form = if (UsernamePasswordProvider.withUserNameSupport) formWithUsername else formWithoutUsername
 
@@ -117,8 +103,7 @@ object MyRegistration extends Controller {
                     Some(t.email),
                     if (UsernamePasswordProvider.enableGravatar) GravatarHelper.avatarFor(t.email) else None,
                     AuthenticationMethod.UserPassword,
-                    passwordInfo = Some(passwordInfo)
-                  )
+                    passwordInfo = Some(passwordInfo))
                   UserService.deleteToken(t.uuid)
                   if (UsernamePasswordProvider.sendWelcomeEmail) {
                     Mailer.sendWelcomeEmail(socialUser)
@@ -128,8 +113,7 @@ object MyRegistration extends Controller {
                 }
                 case Left(error) => InternalServerError(JsObject(Seq("message" -> JsString("error occurred during registration [" + error.clientOutput.getOrElse("") + "]"))))
               }
-            }
-          )
+            })
       })
   }
 }

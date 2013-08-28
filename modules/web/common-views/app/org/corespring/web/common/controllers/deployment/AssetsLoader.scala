@@ -4,10 +4,10 @@ import com.ee.assets.Loader
 import org.corespring.common.log.PackageLogging
 import play.api.Play
 
-class AssetsLoader(val loader: Loader) extends PackageLogging{
+class AssetsLoader(val loader: Loader) extends PackageLogging {
 
-  def init(implicit app : play.api.Application) = if(Play.isProd){
-    Logger.debug("running S3 deployments...")
+  def init(implicit app: play.api.Application) = if (Play.isProd) {
+    logger.debug("running S3 deployments...")
     tagger
     corespringCommon
     playerCommon
@@ -20,7 +20,6 @@ class AssetsLoader(val loader: Loader) extends PackageLogging{
     "js/corespring/common/services/MessageBridge.js",
     "js/corespring/common/directives/ResultPager.js",
     "js/corespring/common/directives/IframeAutoHeight.js")
-
 
   def playerCommon = loader.scripts("common")(
     "js/corespring/qti/controllers",

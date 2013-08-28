@@ -1,20 +1,20 @@
 package api.v1
 
-import fieldValues.{Options, QueryOptions}
+import fieldValues.{ Options, QueryOptions }
 import play.api.libs.json.Json._
-import play.api.mvc.{Result, Action}
+import play.api.mvc.{ Result, Action }
 import play.api.Play.current
 import play.api.libs.json
 import play.api.libs.json._
 import org.corespring.platform.core.models._
-import controllers.auth.{BaseApi}
+import controllers.auth.{ BaseApi }
 import com.mongodb.casbah.Imports._
 import scala.Some
 import play.api.cache.Cache
 
 import api.ApiError
 import com.mongodb.casbah.commons.MongoDBObject
-import org.corespring.platform.core.models.{Subject, Standard}
+import org.corespring.platform.core.models.{ Subject, Standard }
 import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.item.FieldValue
 
@@ -28,9 +28,8 @@ object FieldValuesApi extends BaseApi {
     val list = FieldValue.descriptions.toList :::
       List(
         ("cc-standard", Standard.description + " (list queries available)"),
-        ("subject", Subject.description + " (list queries available)")
-      )
-    for {d <- list} yield Map("path" -> ("/api/v1/field_values/" + d._1), "description" -> d._2)
+        ("subject", Subject.description + " (list queries available)"))
+    for { d <- list } yield Map("path" -> ("/api/v1/field_values/" + d._1), "description" -> d._2)
   }
 
   def getAllAvailable = Action {
@@ -51,7 +50,7 @@ object FieldValuesApi extends BaseApi {
    */
   def getFieldValues(fieldName: String, q: Option[String], f: Option[String], c: String, sk: Int, l: Int) = Action {
     request =>
-      val jsValue = getFieldValuesAsJsValue(fieldName,q,f,c,sk,l)
+      val jsValue = getFieldValuesAsJsValue(fieldName, q, f, c, sk, l)
       Ok(toJson(jsValue))
   }
 
@@ -62,14 +61,14 @@ object FieldValuesApi extends BaseApi {
    *  { "subject" : { q: {}, f: {}, l: 1, sk: 1} , "standards" : {...}}
    * }}}
    */
-  def multiple(fieldNames: String, fieldOptions: Option[String], c: String ) = Action {
+  def multiple(fieldNames: String, fieldOptions: Option[String], c: String) = Action {
     val names: Seq[String] = fieldNames.split(",").toSeq
 
     def _getItems(names: Seq[String]): Map[String, JsValue] = names match {
       case Nil => Map()
       case _ => {
         val n: String = names.head
-        val options : Options = getOptionsForField(n, fieldOptions)
+        val options: Options = getOptionsForField(n, fieldOptions)
         val value: JsValue = getFieldValuesAsJsValue(n, options.query, options.filter, c, options.skip, options.limit)
         Map((n -> value)) ++ _getItems(names.tail)
       }
@@ -81,16 +80,16 @@ object FieldValuesApi extends BaseApi {
   /**
    * Extract the values from the json string
    */
-  private def getOptionsForField(name:String, options : Option[String]) : Options = options match {
+  private def getOptionsForField(name: String, options: Option[String]): Options = options match {
     case Some(s) => {
       try {
         val json = Json.parse(s)
-        (json\name) match {
+        (json \ name) match {
           case QueryOptions(queryOpts) => queryOpts
           case _ => QueryOptions.DefaultOptions
         }
       } catch {
-        case _ : Throwable => QueryOptions.DefaultOptions
+        case _: Throwable => QueryOptions.DefaultOptions
       }
     }
     case _ => QueryOptions.DefaultOptions
@@ -99,11 +98,11 @@ object FieldValuesApi extends BaseApi {
   private def getFieldValuesAsJsValue(name: String, q: Option[String], f: Option[String], c: String, sk: Int, l: Int): JsValue = {
     name match {
       case "subject" => {
-        q.map(Subject.toSearchObj(_,None)).getOrElse[Either[SearchCancelled,MongoDBObject]](Right(MongoDBObject())) match {
+        q.map(Subject.toSearchObj(_, None)).getOrElse[Either[SearchCancelled, MongoDBObject]](Right(MongoDBObject())) match {
           case Right(query) => f.map(Subject.toFieldsObj(_)) match {
-            case Some(Right(searchFields)) => if(c == "true") JsObject(Seq("count" -> JsNumber(Subject.find(query).count)))
-            else JsArray(Subject.find(query,searchFields.dbfields).toSeq.map(Json.toJson(_)))
-            case None => if(c == "true") JsObject(Seq("count" -> JsNumber(Subject.find(query).count)))
+            case Some(Right(searchFields)) => if (c == "true") JsObject(Seq("count" -> JsNumber(Subject.find(query).count)))
+            else JsArray(Subject.find(query, searchFields.dbfields).toSeq.map(Json.toJson(_)))
+            case None => if (c == "true") JsObject(Seq("count" -> JsNumber(Subject.find(query).count)))
             else JsArray(Subject.find(query).toSeq.map(Json.toJson(_)))
             case Some(Left(error)) => JsNull
           }
@@ -114,11 +113,11 @@ object FieldValuesApi extends BaseApi {
         }
       }
       case "cc-standard" => {
-        q.map(Standard.toSearchObj(_,None)).getOrElse[Either[SearchCancelled,MongoDBObject]](Right(MongoDBObject())) match {
+        q.map(Standard.toSearchObj(_, None)).getOrElse[Either[SearchCancelled, MongoDBObject]](Right(MongoDBObject())) match {
           case Right(query) => f.map(Standard.toFieldsObj(_)) match {
-            case Some(Right(searchFields)) => if(c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(query).count)))
-            else JsArray(Standard.find(query,searchFields.dbfields).toSeq.map(Json.toJson(_)))
-            case None => if(c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(query).count)))
+            case Some(Right(searchFields)) => if (c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(query).count)))
+            else JsArray(Standard.find(query, searchFields.dbfields).toSeq.map(Json.toJson(_)))
+            case None => if (c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(query).count)))
             else JsArray(Standard.find(query).toSeq.map(Json.toJson(_)))
             case Some(Left(error)) => JsNull
           }

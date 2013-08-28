@@ -4,28 +4,26 @@ import play.api.Play.current
 import org.bson.types.ObjectId
 import play.api.libs.json._
 import play.api.libs.json.JsString
-import com.novus.salat.dao.{SalatDAO, ModelCompanion}
+import com.novus.salat.dao.{ SalatDAO, ModelCompanion }
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.search.Searchable
 
-
 case class Standard(var dotNotation: Option[String] = None,
-                     var guid:Option[String] = None,
-                     var subject: Option[String] = None,
-                     var category: Option[String] = None,
-                     var subCategory: Option[String] = None,
-                     var standard: Option[String] = None,
-                     var id: ObjectId = new ObjectId()
-                     )
+  var guid: Option[String] = None,
+  var subject: Option[String] = None,
+  var category: Option[String] = None,
+  var subCategory: Option[String] = None,
+  var standard: Option[String] = None,
+  var id: ObjectId = new ObjectId())
 
-object Standard extends ModelCompanion[Standard,ObjectId] with Searchable{
+object Standard extends ModelCompanion[Standard, ObjectId] with Searchable {
 
   val collection = mongoCollection("ccstandards")
 
   import org.corespring.platform.core.models.mongoContext.context
-val dao = new SalatDAO[Standard, ObjectId](collection = collection) {}
+  val dao = new SalatDAO[Standard, ObjectId](collection = collection) {}
 
   val Id = "id"
   val DotNotation = "dotNotation"
@@ -42,7 +40,6 @@ val dao = new SalatDAO[Standard, ObjectId](collection = collection) {}
   //implicit val reads = Json.reads[Standard]
   //implicit val writes = Json.writes[Standard]
 
-
   implicit object StandardWrites extends Writes[Standard] {
 
     def writes(obj: Standard) = {
@@ -53,9 +50,7 @@ val dao = new SalatDAO[Standard, ObjectId](collection = collection) {}
           Subject -> JsString(obj.subject.getOrElse("")),
           Category -> JsString(obj.category.getOrElse("")),
           SubCategory -> JsString(obj.subCategory.getOrElse("")),
-          Standard -> JsString(obj.standard.getOrElse(""))
-        )
-      )
+          Standard -> JsString(obj.standard.getOrElse(""))))
     }
   }
 
@@ -78,16 +73,16 @@ val dao = new SalatDAO[Standard, ObjectId](collection = collection) {}
     Category,
     SubCategory,
     Standard,
-    guid
-  )
+    guid)
 
-  def findOneByDotNotation(dn:String) : Option[Standard] = findOne(MongoDBObject(DotNotation -> dn))
+  def findOneByDotNotation(dn: String): Option[Standard] = findOne(MongoDBObject(DotNotation -> dn))
 
-  /** validate that the dotNotation exists
+  /**
+   * validate that the dotNotation exists
    * @param dn
    * @return true if its valid false if not
    */
-  def isValidDotNotation(dn:String) : Boolean = findOne(MongoDBObject(DotNotation -> dn)) match {
+  def isValidDotNotation(dn: String): Boolean = findOne(MongoDBObject(DotNotation -> dn)) match {
     case Some(s) => true
     case _ => false
   }

@@ -7,7 +7,7 @@ import org.corespring.player.accessControl.models.ContentRequest
 import org.corespring.player.accessControl.models.RequestedAccess.Mode._
 import org.corespring.player.accessControl.models.VersionedContentRequest
 import org.corespring.player.accessControl.models.granter.constraints._
-import org.corespring.player.accessControl.models.{RenderOptions, RequestedAccess}
+import org.corespring.player.accessControl.models.{ RenderOptions, RequestedAccess }
 
 /** An AccessGranter that creates a list of Constraints based on the rendering options */
 class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLookup) extends ConstraintChecker with AccessGranter {
@@ -39,13 +39,14 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
     val common: List[ValueAndConstraint[Any]] = List(timeConstraint)
 
     val modeSpecificConstraints: List[ValueAndConstraint[Any]] = request.mode.map {
-      m => m match {
-        case Preview => (itemAndSession orElse itemOnly orElse noMatch(Preview, "no item or session"))(request)
-        case Render => (sessionOnly orElse noMatch(Render, "no session found"))(request)
-        case Aggregate => (itemAndAssessment orElse noMatch(Aggregate, "only an assessment id and item are allowed"))(request)
-        case Administer => (itemOnly orElse sessionOnly orElse itemAndSession orElse noMatch(Administer, "no item or session passed"))(request)
-        case _ => List()
-      }
+      m =>
+        m match {
+          case Preview => (itemAndSession orElse itemOnly orElse noMatch(Preview, "no item or session"))(request)
+          case Render => (sessionOnly orElse noMatch(Render, "no session found"))(request)
+          case Aggregate => (itemAndAssessment orElse noMatch(Aggregate, "only an assessment id and item are allowed"))(request)
+          case Administer => (itemOnly orElse sessionOnly orElse itemAndSession orElse noMatch(Administer, "no item or session passed"))(request)
+          case _ => List()
+        }
     }.getOrElse(List(failed("mode", "No mode")))
 
     common ::: modeSpecificConstraints
@@ -81,20 +82,18 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
     stringToVersionedId(s)
   }
 
-  private def makeOrFail[ID](s: String, converterFn: String => Option[ID], fn: (ID=> Constraint[Any]), failedMsg: String) = {
+  private def makeOrFail[ID](s: String, converterFn: String => Option[ID], fn: (ID => Constraint[Any]), failedMsg: String) = {
     converterFn(s).map {
       o => fn(o)
     }.getOrElse(new FailedConstraint(failedMsg))
   }
-
 
   private def boundConstraints(itemId: String, otherId: String, lookup: ItemLookup): List[Constraint[Any]] = {
 
     def itemIdToSessionConstraint: List[Constraint[Any]] = {
       if (itemId == RenderOptions.*) {
         List()
-      }
-      else {
+      } else {
         List(makeOrFail[VersionedId[ObjectId]](itemId, void, new LookupContainsItemId(_, lookup), "invalid itemId in RenderOptions"))
       }
     }

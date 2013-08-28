@@ -6,7 +6,7 @@ import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.{UserOrg, User}
+import org.corespring.platform.core.models.{ UserOrg, User }
 import org.joda.time.DateTime
 import play.api.Application
 import securesocial.core._
@@ -20,12 +20,12 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
 
   override def find(id: IdentityId): Option[SocialUser] = {
     // id.id has the username
-    Logger.debug("looking for %s(%s)".format(id.userId, id.providerId))
+    logger.debug("looking for %s(%s)".format(id.userId, id.providerId))
 
     User.getUser(id) map {
       u =>
 
-        Logger.debug(s"Found user: $u")
+        logger.debug(s"Found user: $u")
 
         SocialUser(
           id,
@@ -35,9 +35,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
           Some(u.email),
           None,
           AuthenticationMethod.UserPassword,
-          passwordInfo = Some(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = u.password)
-          )
-        )
+          passwordInfo = Some(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = u.password)))
     }
   }
 
@@ -51,7 +49,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
             user.email.getOrElse(""),
             None,
             None,
-            UserOrg(AppConfig.demoOrgId,Permission.Read.value),
+            UserOrg(AppConfig.demoOrgId, Permission.Read.value),
             user.passwordInfo.getOrElse(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = "")).password,
             user.identityId.providerId,
             new ObjectId())
@@ -74,17 +72,15 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
 
   override def findByEmailAndProvider(email: String, providerId: String) = User.findOne(MongoDBObject(User.email -> email)).map(CoreSpringUserService.toIdentity)
 
-
   override def findToken(token: String) = {
     RegistrationToken.findOne(MongoDBObject(RegistrationToken.Uuid -> token)).map(regToken =>
-      Token(regToken.uuid, regToken.email, regToken.creationTime.get, regToken.expirationTime.get, regToken.isSignUp)
-    )
+      Token(regToken.uuid, regToken.email, regToken.creationTime.get, regToken.expirationTime.get, regToken.isSignUp))
   }
 
   override def deleteToken(uuid: String) {
     RegistrationToken.findOne(MongoDBObject(RegistrationToken.Uuid -> uuid)) match {
       case Some(regToken) => RegistrationToken.remove(regToken)
-      case _ => Logger.info("No such token found")
+      case _ => logger.info("No such token found")
     }
   }
 
@@ -94,9 +90,9 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
   }
 }
 
-object CoreSpringUserService{
+object CoreSpringUserService {
 
-  def toIdentity(u:User) : Identity = {
+  def toIdentity(u: User): Identity = {
     SocialUser(
       IdentityId(u.userName, u.provider),
       "",
@@ -105,7 +101,6 @@ object CoreSpringUserService{
       Some(u.email),
       None,
       AuthenticationMethod.UserPassword,
-      passwordInfo = Some(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = u.password))
-    )
+      passwordInfo = Some(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = u.password)))
   }
 }

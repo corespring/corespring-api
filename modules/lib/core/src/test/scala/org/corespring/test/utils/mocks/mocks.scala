@@ -2,16 +2,15 @@ package org.corespring.test.utils
 
 import org.corespring.assets.CorespringS3Service
 import org.corespring.amazon.s3.models.DeleteResponse
-import play.api.mvc.{RequestHeader, Headers, Result, BodyParser}
-import play.api.libs.iteratee.{Done, Input}
+import play.api.mvc.{ RequestHeader, Headers, Result, BodyParser }
+import play.api.libs.iteratee.{ Done, Input }
 
+package object mocks {
 
-package object mocks{
-
-
-  /** A mock s3 service that will throw an exception if the keyname
-    * starts with "bad"
-    */
+  /**
+   * A mock s3 service that will throw an exception if the keyname
+   * starts with "bad"
+   */
   class MockS3Service extends CorespringS3Service {
 
     import play.api.mvc.Results._
@@ -24,8 +23,9 @@ package object mocks{
     }
 
     def upload(bucket: String, keyName: String, predicate: (RequestHeader) => Option[Result]): BodyParser[String] = {
-      BodyParser{ request =>
-        Done[Array[Byte], Either[Result, String]](Left(Ok), Input.Empty) }
+      BodyParser { request =>
+        Done[Array[Byte], Either[Result, String]](Left(Ok), Input.Empty)
+      }
     }
 
     def delete(bucket: String, keyName: String): DeleteResponse = null

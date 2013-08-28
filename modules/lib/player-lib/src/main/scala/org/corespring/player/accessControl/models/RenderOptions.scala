@@ -5,14 +5,13 @@ import org.corespring.platform.core.models.auth.ApiClient
 import play.api.libs.json._
 
 case class RenderOptions(itemId: String = "*",
-                         sessionId: String = "*",
-                         assessmentId: String = "*",
-                         role: String = "student",
-                         expires: Long,
-                         mode: RequestedAccess.Mode.Mode) {
-  def allowItemId(id: String): Boolean = if (itemId == RenderOptions.*) { true  } else id == itemId
+  sessionId: String = "*",
+  assessmentId: String = "*",
+  role: String = "student",
+  expires: Long,
+  mode: RequestedAccess.Mode.Mode) {
+  def allowItemId(id: String): Boolean = if (itemId == RenderOptions.*) { true } else id == itemId
 }
-
 
 object RenderOptions {
 
@@ -23,9 +22,9 @@ object RenderOptions {
   implicit object Reads extends Reads[RenderOptions] {
     def reads(json: JsValue): JsResult[RenderOptions] = {
 
-      def expires : Option[Long] = (json \ "expires").asOpt[Long] orElse (json \ "expires").asOpt[String].map(_.toLong)
+      def expires: Option[Long] = (json \ "expires").asOpt[Long] orElse (json \ "expires").asOpt[String].map(_.toLong)
 
-      expires.map{
+      expires.map {
         e =>
           JsSuccess(RenderOptions(
             (json \ "itemId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
@@ -33,8 +32,7 @@ object RenderOptions {
             (json \ "assessmentId").asOpt[String].filterNot(_.isEmpty).getOrElse(*),
             (json \ "role").asOpt[String].filterNot(_.isEmpty).getOrElse("student"),
             e,
-            RequestedAccess.Mode.withName((json \ "mode").as[String])
-          ))
+            RequestedAccess.Mode.withName((json \ "mode").as[String])))
       }.getOrElse(JsError("Expires is a mandatory field"))
     }
   }
@@ -47,8 +45,7 @@ object RenderOptions {
         "assessmentId" -> JsString(ro.assessmentId),
         "role" -> JsString(ro.role),
         "expires" -> JsNumber(ro.expires),
-        "mode" -> JsString(ro.mode.toString)
-      ))
+        "mode" -> JsString(ro.mode.toString)))
     }
   }
 

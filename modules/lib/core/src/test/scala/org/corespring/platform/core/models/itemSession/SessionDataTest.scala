@@ -2,8 +2,8 @@ package org.corespring.platform.core.models.itemSession
 
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qti.models.responses.{StringResponse, ArrayResponse}
-import org.corespring.qti.models.{ItemBody, CorrectResponseSingle, ResponseDeclaration, QtiItem}
+import org.corespring.qti.models.responses.{ StringResponse, ArrayResponse }
+import org.corespring.qti.models.{ ItemBody, CorrectResponseSingle, ResponseDeclaration, QtiItem }
 import org.joda.time.DateTime
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json._
@@ -22,10 +22,9 @@ class SessionDataTest extends Specification {
     ResponseDeclaration(
       identifier = id,
       cardinality = "single",
-      baseType="identifier",
+      baseType = "identifier",
       correctResponse = Some(CorrectResponseSingle(value)),
-      mapping = None)
-  )
+      mapping = None))
 
   def createSingleResponseQti = QtiItem(singleResponseDeclaration(), createEmptyItemBody, Seq())
 
@@ -69,18 +68,20 @@ class SessionDataTest extends Specification {
     val questionId = "questionOne"
 
     def interactionXml(maxChoices: Int) =
-      <choiceInteraction maxChoices={maxChoices.toString} responseIdentifier={questionId}>
-        <simpleChoice identifier="A">A
+      <choiceInteraction maxChoices={ maxChoices.toString } responseIdentifier={ questionId }>
+        <simpleChoice identifier="A">
+          A
           <feedbackInline csFeedbackId="cs_1" identifier="A">Super!</feedbackInline>
         </simpleChoice>
-        <simpleChoice identifier="B">B
+        <simpleChoice identifier="B">
+          B
           <feedbackInline csFeedbackId="cs_2" identifier="B" defaultFeedback="true"></feedbackInline>
         </simpleChoice>
-        <simpleChoice identifier="C">C
+        <simpleChoice identifier="C">
+          C
           <feedbackInline csFeedbackId="cs_3" identifier="C" defaultFeedback="true"></feedbackInline>
         </simpleChoice>
       </choiceInteraction>
-
 
     val radioInteraction = interactionXml(1)
 
@@ -99,7 +100,6 @@ class SessionDataTest extends Specification {
       SessionData(qti, s).feedbackContents.size must equalTo(0)
     }
 
-
     "show feedback for correct responses even though it wasn't selected" in {
       val s = createSession
       s.finish = Some(new DateTime())
@@ -107,7 +107,7 @@ class SessionDataTest extends Specification {
       s.settings.showFeedback = true
       //Answer incorrectly
       s.responses = Seq(StringResponse(questionId, responseValue = "B"))
-      SessionData(qti,s).feedbackContents.size === 2
+      SessionData(qti, s).feedbackContents.size === 2
     }
 
     "show feedback for correct responses even though it wasn't selected and correct responses are not shown" in {
@@ -117,7 +117,7 @@ class SessionDataTest extends Specification {
       s.settings.showFeedback = true
       //Answer incorrectly
       s.responses = Seq(StringResponse(questionId, responseValue = "B"))
-      SessionData(qti,s).feedbackContents.size === 1
+      SessionData(qti, s).feedbackContents.size === 1
     }
 
     "show the correct feedback string" in {
@@ -145,8 +145,7 @@ class SessionDataTest extends Specification {
     "show feedback for multiple choice items" in {
       val incorrectResponse = createSession
       incorrectResponse.responses = Seq(
-        ArrayResponse(questionId, responseValue = Seq("B", "C"))
-      )
+        ArrayResponse(questionId, responseValue = Seq("B", "C")))
       incorrectResponse.settings.showFeedback = true
       val multiChoiceXml = MockXml.createXml(questionId,
         "multiple",
@@ -164,22 +163,17 @@ class SessionDataTest extends Specification {
       correctResponse.settings.highlightCorrectResponse = true
       correctResponse.settings.showFeedback = true
       correctResponse.responses = Seq(
-        ArrayResponse(questionId, responseValue = Seq("A", "B"))
-      )
+        ArrayResponse(questionId, responseValue = Seq("A", "B")))
 
-      SessionData(qti,correctResponse).feedbackContents.size === 2
+      SessionData(qti, correctResponse).feedbackContents.size === 2
     }
 
     val textWithFeedbackBlocks =
       <p>
         <textEntryInteraction responseIdentifier="id" expectedLength="1"/>
-        <feedbackBlock outcomeIdentifier="responses.id.value"
-                       identifier="york" csFeedbackId="cs_1">Capitalize</feedbackBlock>
-        <feedbackBlock outcomeIdentifier="responses.id.value"
-                       identifier="York" csFeedbackId="cs_2">Bingo</feedbackBlock>
-        <feedbackBlock outcomeIdentifier="responses.id.value"
-                       incorrectResponse="true"
-                       csFeedbackId="cs_3">What is this?</feedbackBlock>
+        <feedbackBlock outcomeIdentifier="responses.id.value" identifier="york" csFeedbackId="cs_1">Capitalize</feedbackBlock>
+        <feedbackBlock outcomeIdentifier="responses.id.value" identifier="York" csFeedbackId="cs_2">Bingo</feedbackBlock>
+        <feedbackBlock outcomeIdentifier="responses.id.value" incorrectResponse="true" csFeedbackId="cs_3">What is this?</feedbackBlock>
       </p>
 
     val textEntryXml = MockXml.createXml("id",
@@ -193,8 +187,7 @@ class SessionDataTest extends Specification {
       val s = createSession
       s.settings.showFeedback = true
       s.responses = Seq(
-        StringResponse("id", responseValue = "york")
-      )
+        StringResponse("id", responseValue = "york"))
       val data = SessionData(textEntryQti, s)
       data.feedbackContents.size must_== (1)
       data.feedbackContents.get("cs_1").getOrElse("error") === "Capitalize"
@@ -218,7 +211,6 @@ class SessionDataTest extends Specification {
       data.feedbackContents.get("cs_3").getOrElse("error") === "What is this?"
     }
 
-
     /**
      * Showing custom feedback for individual items for an order interaction isn't
      * currently possible - we'd need to know if the feedback message was
@@ -228,9 +220,9 @@ class SessionDataTest extends Specification {
 
   }
 
-"legacy tests" should {
+  "legacy tests" should {
 
-  "return correct feedback for inline item" in {
+    "return correct feedback for inline item" in {
       val XML =
         <assessmentItem>
           <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
@@ -241,13 +233,13 @@ class SessionDataTest extends Specification {
             </correctResponse>
           </responseDeclaration>
           <itemBody>
-            <inlineChoiceInteraction
-            responseIdentifier="manOnMoon"
-            required="false">
-              <inlineChoice identifier="armstrong">Neil Armstrong
+            <inlineChoiceInteraction responseIdentifier="manOnMoon" required="false">
+              <inlineChoice identifier="armstrong">
+                Neil Armstrong
                 <feedbackInline csFeedbackId="1" identifier="armstrong" defaultFeedback="true"/>
               </inlineChoice>
-              <inlineChoice identifier="aldrin">Buzz Aldrin
+              <inlineChoice identifier="aldrin">
+                Buzz Aldrin
                 <feedbackInline csFeedbackId="2" identifier="aldrin" defaultFeedback="true"/>
               </inlineChoice>
             </inlineChoiceInteraction>
@@ -256,33 +248,31 @@ class SessionDataTest extends Specification {
 
       val qtiItem = QtiItem(XML)
 
-    val correctResponse = StringResponse("manOnMoon", "armstrong")
-    val incorrectResponse = StringResponse("manOnMoon", "aldrin")
+      val correctResponse = StringResponse("manOnMoon", "armstrong")
+      val incorrectResponse = StringResponse("manOnMoon", "aldrin")
 
-    val session = ItemSession(itemId = VersionedId(new ObjectId()), responses = Seq(correctResponse, incorrectResponse))
+      val session = ItemSession(itemId = VersionedId(new ObjectId()), responses = Seq(correctResponse, incorrectResponse))
       session.settings.showFeedback = true
-      val data : SessionData = SessionData(qtiItem, session)
+      val data: SessionData = SessionData(qtiItem, session)
       data.feedbackContents.size === 2
-      data.feedbackContents.get("1").get === (XML\\"correctResponseFeedback").text
-      data.feedbackContents.get("2").get === (XML\\"incorrectResponseFeedback").text
+      data.feedbackContents.get("1").get === (XML \\ "correctResponseFeedback").text
+      data.feedbackContents.get("2").get === (XML \\ "incorrectResponseFeedback").text
 
     }
   }
 
-
   "session data feedback for item with multiple feedback blocks" should {
     "return all the incorrect feedback" in {
-      val s : ItemSession = createSession
+      val s: ItemSession = createSession
       s.settings.showFeedback = true
       s.responses = Seq(
         StringResponse("Q_03", "8"),
         StringResponse("Q_04", "8"),
         StringResponse("Q_05", "8"),
-        StringResponse("Q_06", "9")
-      )
+        StringResponse("Q_06", "9"))
 
-      val qti = QtiItem( MockXml.load("multiple-feedback-blocks.xml"))
-      val sd = SessionData(qti,s)
+      val qti = QtiItem(MockXml.load("multiple-feedback-blocks.xml"))
+      val sd = SessionData(qti, s)
       println(sd.feedbackContents)
       sd.feedbackContents.size === 4
     }

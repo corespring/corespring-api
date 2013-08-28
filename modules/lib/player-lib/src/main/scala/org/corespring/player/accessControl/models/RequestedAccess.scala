@@ -6,10 +6,10 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import scala.language.implicitConversions
 
 case class RequestedAccess(
-                       itemId: Option[VersionedContentRequest] = None,
-                       sessionId: Option[ContentRequest] = None,
-                       assessmentId: Option[ContentRequest] = None,
-                       mode: Option[RequestedAccess.Mode.Mode] = Some(RequestedAccess.Mode.All))
+  itemId: Option[VersionedContentRequest] = None,
+  sessionId: Option[ContentRequest] = None,
+  assessmentId: Option[ContentRequest] = None,
+  mode: Option[RequestedAccess.Mode.Mode] = Some(RequestedAccess.Mode.All))
 
 object RequestedAccess {
   object Mode extends Enumeration {
@@ -21,13 +21,13 @@ object RequestedAccess {
     val All = Value("*")
   }
 
-  implicit def toContentRequest(id:Option[ObjectId]):Option[ContentRequest] = id.map(ContentRequest(_, Permission.Read))
-  implicit def toVersionedContentRequest(id:Option[VersionedId[ObjectId]]):Option[VersionedContentRequest] = id.map(VersionedContentRequest(_, Permission.Read))
+  implicit def toContentRequest(id: Option[ObjectId]): Option[ContentRequest] = id.map(ContentRequest(_, Permission.Read))
+  implicit def toVersionedContentRequest(id: Option[VersionedId[ObjectId]]): Option[VersionedContentRequest] = id.map(VersionedContentRequest(_, Permission.Read))
 
   def asRead(itemId: Option[VersionedId[ObjectId]] = None,
-             sessionId: Option[ObjectId] = None,
-             assessmentId: Option[ObjectId] = None,
-             mode: Option[RequestedAccess.Mode.Mode] = None): RequestedAccess = {
+    sessionId: Option[ObjectId] = None,
+    assessmentId: Option[ObjectId] = None,
+    mode: Option[RequestedAccess.Mode.Mode] = None): RequestedAccess = {
     new RequestedAccess(itemId, sessionId, assessmentId, mode)
   }
 }

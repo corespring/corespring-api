@@ -2,13 +2,12 @@ package web.controllers
 
 import common.controllers.session.SessionHandler
 import controllers.auth.BaseApi
-import org.corespring.platform.core.models.{User, Organization}
+import org.corespring.platform.core.models.{ User, Organization }
 import play.api.mvc._
 import scala.Some
 import securesocial.core.SecuredRequest
 import org.corespring.platform.core.models.web.QtiTemplate
-import org.corespring.player.accessControl.cookies.{PlayerCookieKeys, PlayerCookieWriter}
-
+import org.corespring.player.accessControl.cookies.{ PlayerCookieKeys, PlayerCookieWriter }
 
 object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
 
@@ -32,8 +31,7 @@ object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
       Organization.findOneById(user.org.orgId) match {
         case Some(userOrg) => Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName, userOrg))
           .withSession(
-          sumSession(request.session, playerCookies(userId.userId, userId.providerId) :+ activeModeCookie(): _*)
-        )
+            sumSession(request.session, playerCookies(userId.userId, userId.providerId) :+ activeModeCookie(): _*))
         case None => InternalServerError("could not find organization of user")
       }
 
@@ -45,8 +43,7 @@ object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
         val noAt = """mongodb://(.*)/(.*)""".r
         val noAt(server, name) = url
         (server, name)
-      }
-      else {
+      } else {
         val withAt = """.*@(.*)/(.*)""".r
         val withAt(server, name) = url
         (server, name)

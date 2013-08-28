@@ -2,25 +2,24 @@ package org.corespring.test
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
+import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mutable.Specification
 import play.api.libs.json._
 import play.api.mvc._
 import play.api.test.Helpers._
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.{ FakeHeaders, FakeRequest }
 import scala.Some
 
-trait BaseTest extends Specification{
+trait BaseTest extends Specification {
 
   val TEST_COLLECTION_ID: String = "51114b127fc1eaa866444647"
   // From standard fixture data
   val token = "test_token"
 
-  def itemService : ItemService = ItemServiceImpl
+  def itemService: ItemService = ItemServiceImpl
 
-  def fakeRequest(content:AnyContent = AnyContentAsEmpty) : FakeRequest[AnyContent] = FakeRequest("", tokenize(""), FakeHeaders(), content)
-
+  def fakeRequest(content: AnyContent = AnyContentAsEmpty): FakeRequest[AnyContent] = FakeRequest("", tokenize(""), FakeHeaders(), content)
 
   PlaySingleton.start()
 
@@ -60,8 +59,7 @@ trait BaseTest extends Specification{
     }
   }
 
-  def versionedId(oid: String, v : Int = 0): VersionedId[ObjectId] = VersionedId(new ObjectId(oid), Some(v))
-
+  def versionedId(oid: String, v: Int = 0): VersionedId[ObjectId] = VersionedId(new ObjectId(oid), Some(v))
 
   // TODO: Something's wrong with this, but when it works it will be a useful shorthand
   def doRequest(httpVerb: String, url: String, jsonObject: Map[String, String]): Option[Result] =
@@ -87,7 +85,7 @@ trait BaseTest extends Specification{
    * Generates JSON request body for the API, with provided XML data in the appropriate field. Also adds in a set of
    * top-level attributes that get added to the request.
    */
-  def xmlBody(xml: String, attributes: Map[String, String] = Map()): JsValue =  Json.toJson(attributes)
+  def xmlBody(xml: String, attributes: Map[String, String] = Map()): JsValue = Json.toJson(attributes)
 
   def getXMLContentFromResponse(jsonResponse: String): Seq[String] = {
     (Json.parse(jsonResponse) \ Item.Keys.data \ "files").asOpt[Seq[JsObject]].getOrElse(Seq()).map(file => {
@@ -95,16 +93,15 @@ trait BaseTest extends Specification{
     })
   }
 
-
   def parsed[A](result: Result)(implicit reads: Reads[A]) = Json.fromJson[A](Json.parse(contentAsString(result))) match {
     case JsSuccess(data, _) => data
     case _ => throw new RuntimeException("Couldn't parse json")
   }
 
   def assertResult(result: Result,
-                   expectedStatus: Int = OK,
-                   expectedCharset: Option[String] = Some("utf-8"),
-                   expectedContentType: Option[String] = Some("application/json")): org.specs2.execute.Result = {
+    expectedStatus: Int = OK,
+    expectedCharset: Option[String] = Some("utf-8"),
+    expectedContentType: Option[String] = Some("application/json")): org.specs2.execute.Result = {
     status(result) === expectedStatus
     charset(result) === expectedCharset
     contentType(result) === expectedContentType

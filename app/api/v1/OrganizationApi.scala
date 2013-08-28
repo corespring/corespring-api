@@ -30,33 +30,33 @@ object OrganizationApi extends BaseApi {
    *
    * @return
    */
-  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort:Option[String]) = ApiActionRead { request =>
-    doList(request.ctx.organization, q, f, c, sk, l,sort)
+  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiActionRead { request =>
+    doList(request.ctx.organization, q, f, c, sk, l, sort)
   }
 
-  def listWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort:Option[String]) = ApiActionRead { request =>
-    if(orgId == request.ctx.organization || Organization.isChild(request.ctx.organization,orgId))
-      doList(orgId, q, f, c, sk, l,sort)
+  def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiActionRead { request =>
+    if (orgId == request.ctx.organization || Organization.isChild(request.ctx.organization, orgId))
+      doList(orgId, q, f, c, sk, l, sort)
     else
       Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
-  private def doList(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, optsort:Option[String], childrenOnly: Boolean = false) = {
-    val key = if ( childrenOnly ) childPath else Organization.path
+  private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, optsort: Option[String], childrenOnly: Boolean = false) = {
+    val key = if (childrenOnly) childPath else Organization.path
     val initSearch = MongoDBObject(key -> orgId)
-    def applySort(orgs:SalatMongoCursor[Organization]):Result = {
+    def applySort(orgs: SalatMongoCursor[Organization]): Result = {
       optsort.map(Organization.toSortObj(_)) match {
         case Some(Right(sort)) => Ok(Json.toJson(orgs.sort(sort).skip(sk).limit(l).toSeq))
         case None => Ok(Json.toJson(orgs.skip(sk).limit(l).toSeq))
         case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
       }
     }
-    q.map(Organization.toSearchObj(_,Some(initSearch))).getOrElse[Either[SearchCancelled,MongoDBObject]](Right(initSearch)) match {
+    q.map(Organization.toSearchObj(_, Some(initSearch))).getOrElse[Either[SearchCancelled, MongoDBObject]](Right(initSearch)) match {
       case Right(query) => f.map(Organization.toFieldsObj(_)) match {
-        case Some(Right(searchFields)) => if(c == "true") Ok(JsObject(Seq("count" -> JsNumber(Organization.find(query).count))))
-                                          else applySort(Organization.find(query,searchFields.dbfields))
-        case None => if(c == "true") Ok(JsObject(Seq("count" -> JsNumber(Organization.find(query).count))))
-                     else applySort(Organization.find(query))
+        case Some(Right(searchFields)) => if (c == "true") Ok(JsObject(Seq("count" -> JsNumber(Organization.find(query).count))))
+        else applySort(Organization.find(query, searchFields.dbfields))
+        case None => if (c == "true") Ok(JsObject(Seq("count" -> JsNumber(Organization.find(query).count))))
+        else applySort(Organization.find(query))
         case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidFields(error.clientOutput)))
       }
       case Left(sc) => sc.error match {
@@ -71,12 +71,12 @@ object OrganizationApi extends BaseApi {
    *
    * @return
    */
-  def getChildren(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort:Option[String]) = ApiActionRead { request =>
-    doList(request.ctx.organization, q, f, c, sk, l, sort, childrenOnly =  true)
+  def getChildren(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiActionRead { request =>
+    doList(request.ctx.organization, q, f, c, sk, l, sort, childrenOnly = true)
   }
 
-  def getChildrenWithOrg(orgId:ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort:Option[String]) = ApiActionRead { request =>
-    if(orgId == request.ctx.organization || Organization.isChild(request.ctx.organization,orgId))
+  def getChildrenWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiActionRead { request =>
+    if (orgId == request.ctx.organization || Organization.isChild(request.ctx.organization, orgId))
       doList(orgId, q, f, c, sk, l, sort, childrenOnly = true)
     else
       Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
@@ -89,17 +89,17 @@ object OrganizationApi extends BaseApi {
    */
   def getOrganization(id: ObjectId) = ApiActionRead { request =>
     Organization.findOneById(id) match {
-        case Some(org) =>  {
-          if (request.ctx.organization == org.id){
-            Ok(Json.toJson(org))
-          }else{
-            Organization.getTree(request.ctx.organization).find(_.id == org.id) match {
-              case Some(_) => Ok(Json.toJson(org))
-              case None => Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
-            }
+      case Some(org) => {
+        if (request.ctx.organization == org.id) {
+          Ok(Json.toJson(org))
+        } else {
+          Organization.getTree(request.ctx.organization).find(_.id == org.id) match {
+            case Some(_) => Ok(Json.toJson(org))
+            case None => Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
           }
         }
-        case None => NotFound(Json.toJson(ApiError.UnknownOrganization))
+      }
+      case None => NotFound(Json.toJson(ApiError.UnknownOrganization))
     }
   }
 
@@ -109,12 +109,12 @@ object OrganizationApi extends BaseApi {
    * @return
    */
   def getDefaultOrganization = ApiActionRead { request =>
-    Ok(Json.toJson(Organization.findOneById( request.ctx.organization )))
+    Ok(Json.toJson(Organization.findOneById(request.ctx.organization)))
   }
 
   private def unknownOrganization = NotFound(Json.toJson(ApiError.UnknownOrganization))
-  private def parseChildren(json: JsValue, elseValue: Seq[ObjectId]):Seq[ObjectId] = {
-    (json \ "children").asOpt[Seq[String]].map( seq => seq.map( new ObjectId(_)) ).getOrElse(elseValue)
+  private def parseChildren(json: JsValue, elseValue: Seq[ObjectId]): Seq[ObjectId] = {
+    (json \ "children").asOpt[Seq[String]].map(seq => seq.map(new ObjectId(_))).getOrElse(elseValue)
   }
 
   /**
@@ -123,26 +123,26 @@ object OrganizationApi extends BaseApi {
    * @return
    */
   def updateOrganization(id: ObjectId) = ApiAction { request =>
-    Organization.findOneById(id).map( original =>
-    {
-      request.body.asJson match {
-        case Some(json) => {
-          val name = (json \ "name").asOpt[String].getOrElse(original.name)
-          Organization.updateOrganization(Organization(name = name,id = id)) match {
-            case Right(o) => Ok(Json.toJson(o))
-            case Left(e) => InternalServerError(Json.toJson(ApiError.UpdateOrganization(e.clientOutput)))
+    Organization.findOneById(id).map(original =>
+      {
+        request.body.asJson match {
+          case Some(json) => {
+            val name = (json \ "name").asOpt[String].getOrElse(original.name)
+            Organization.updateOrganization(Organization(name = name, id = id)) match {
+              case Right(o) => Ok(Json.toJson(o))
+              case Left(e) => InternalServerError(Json.toJson(ApiError.UpdateOrganization(e.clientOutput)))
+            }
           }
+          case _ => jsonExpected
         }
-        case _ => jsonExpected
-      }
-    }).getOrElse(unknownOrganization)
+      }).getOrElse(unknownOrganization)
   }
 
   /**
    * Deletes an organization
    */
   def deleteOrganization(id: ObjectId) = ApiAction { request =>
-    if ( id == request.ctx.organization) {
+    if (id == request.ctx.organization) {
       Forbidden(Json.toJson(ApiError.CantDeleteMainOrg))
     } else {
       Organization.findOneById(id) match {

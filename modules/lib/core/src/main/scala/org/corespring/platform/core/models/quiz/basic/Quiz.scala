@@ -2,16 +2,16 @@ package org.corespring.platform.core.models.quiz.basic
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.{TaskInfo, Item}
-import org.corespring.platform.core.models.itemSession.{ItemSessionSettings, DefaultItemSession, ItemSession}
-import org.corespring.platform.core.models.quiz.{BaseQuestion, BaseParticipant, BaseQuiz}
+import org.corespring.platform.core.models.item.{ TaskInfo, Item }
+import org.corespring.platform.core.models.itemSession.{ ItemSessionSettings, DefaultItemSession, ItemSession }
+import org.corespring.platform.core.models.quiz.{ BaseQuestion, BaseParticipant, BaseQuiz }
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 import play.api.libs.json.Json._
 import play.api.libs.json._
 import scala.Some
-import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemServiceClient, ItemService}
+import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemServiceClient, ItemService }
 
 case class Answer(sessionId: ObjectId, itemId: ObjectId)
 
@@ -20,8 +20,7 @@ object Answer {
   implicit object Reads extends Reads[Answer] {
     override def reads(json: JsValue): JsResult[Answer] = {
       JsSuccess(Answer(new ObjectId((json \ "sessionId").as[String]),
-        new ObjectId((json \ "itemId").as[String])
-      ))
+        new ObjectId((json \ "itemId").as[String])))
     }
   }
 
@@ -35,8 +34,7 @@ object Answer {
         "itemId" -> JsString(a.itemId.toString),
         "score" -> JsNumber(calculateScore(maybeSession)),
         "lastResponse" -> JsNumber(getLastResponse(maybeSession)),
-        "isComplete" -> JsBoolean(isComplete(maybeSession))
-      ))
+        "isComplete" -> JsBoolean(isComplete(maybeSession))))
     }
   }
 
@@ -63,7 +61,7 @@ object Answer {
 }
 
 case class Participant(answers: Seq[Answer],
-                       externalUid: String) extends BaseParticipant(answers.map(_.sessionId), externalUid)
+  externalUid: String) extends BaseParticipant(answers.map(_.sessionId), externalUid)
 
 object Participant {
 
@@ -71,8 +69,7 @@ object Participant {
     def reads(json: JsValue): JsResult[Participant] = {
       JsSuccess(new Participant(
         (json \ "answers").as[Seq[Answer]],
-        (json \ "externalUid").as[String]
-      ))
+        (json \ "externalUid").as[String]))
     }
   }
 
@@ -80,20 +77,20 @@ object Participant {
     def writes(p: Participant): JsValue = {
       JsObject(Seq(
         "answers" -> toJson(p.answers),
-        "externalUid" -> JsString(p.externalUid)
-      ))
+        "externalUid" -> JsString(p.externalUid)))
     }
   }
 
 }
 
-/** Note: We are adding the title and standard info from the Item model here.
-  * Its a little bit of duplication - but will save us from having to make a 2nd db query
-  */
+/**
+ * Note: We are adding the title and standard info from the Item model here.
+ * Its a little bit of duplication - but will save us from having to make a 2nd db query
+ */
 case class Question(itemId: VersionedId[ObjectId],
-                    settings: ItemSessionSettings = new ItemSessionSettings(),
-                    title: Option[String] = None,
-                    standards: Seq[String] = Seq()) extends BaseQuestion(Some(itemId), settings)
+  settings: ItemSessionSettings = new ItemSessionSettings(),
+  title: Option[String] = None,
+  standards: Seq[String] = Seq()) extends BaseQuestion(Some(itemId), settings)
 
 trait QuestionLike {
   self: ItemServiceClient =>
@@ -101,27 +98,24 @@ trait QuestionLike {
   implicit object Reads extends Reads[Question] {
     def reads(json: JsValue): JsResult[Question] = {
 
-      import VersionedIdImplicits.{Reads => IdReads}
+      import VersionedIdImplicits.{ Reads => IdReads }
 
       JsSuccess(Question(
         (json \ "itemId").as[VersionedId[ObjectId]](IdReads),
-        (json \ "settings").asOpt[ItemSessionSettings].getOrElse(ItemSessionSettings())
-      ))
+        (json \ "settings").asOpt[ItemSessionSettings].getOrElse(ItemSessionSettings())))
     }
   }
 
   implicit object Writes extends Writes[Question] {
     def writes(q: Question): JsValue = {
 
-      import VersionedIdImplicits.{Writes =>IdWrites}
+      import VersionedIdImplicits.{ Writes => IdWrites }
       JsObject(
         Seq(
           Some("itemId" -> toJson(q.itemId)(IdWrites)),
           if (q.settings != null) Some("settings" -> toJson(q.settings)) else None,
           q.title.map("title" -> JsString(_)),
-          Some("standards" -> JsArray(q.standards.map(JsString(_))))
-        ).flatten
-      )
+          Some("standards" -> JsArray(q.standards.map(JsString(_))))).flatten)
     }
   }
 
@@ -129,19 +123,19 @@ trait QuestionLike {
     itemService.findFieldsById(
       question.itemId,
       MongoDBObject("taskInfo.title" -> 1, "standards" -> 1)).toList.headOption match {
-      case Some(dbo) => {
-        import com.mongodb.casbah.Imports._
-        import com.novus.salat._
-        import org.corespring.platform.core.models.mongoContext.context
-        val item : Item = grater[Item].asObject(dbo)
-        val title = item.taskInfo.getOrElse(TaskInfo(title = Some(""))).title
-        val standards = item.standards
-        question.copy(
-          title = title,
-          standards = standards)
+        case Some(dbo) => {
+          import com.mongodb.casbah.Imports._
+          import com.novus.salat._
+          import org.corespring.platform.core.models.mongoContext.context
+          val item: Item = grater[Item].asObject(dbo)
+          val title = item.taskInfo.getOrElse(TaskInfo(title = Some(""))).title
+          val standards = item.standards
+          question.copy(
+            title = title,
+            standards = standards)
+        }
+        case _ => question
       }
-      case _ => question
-    }
   }
 }
 
@@ -150,10 +144,10 @@ object Question extends QuestionLike with ItemServiceClient {
 }
 
 case class Quiz(orgId: Option[ObjectId] = None,
-                metadata: Map[String, String] = Map(),
-                questions: Seq[Question] = Seq(),
-                participants: Seq[Participant] = Seq(),
-                id: ObjectId = new ObjectId()) extends BaseQuiz(questions, participants, id)
+  metadata: Map[String, String] = Map(),
+  questions: Seq[Question] = Seq(),
+  participants: Seq[Participant] = Seq(),
+  id: ObjectId = new ObjectId()) extends BaseQuiz(questions, participants, id)
 
 object Quiz {
 
@@ -165,8 +159,7 @@ object Quiz {
         q.orgId.map((o: ObjectId) => ("orgId" -> JsString(o.toString))),
         Some("metadata" -> toJson(q.metadata)),
         Some("participants" -> toJson(q.participants)),
-        Some("questions" -> toJson(q.questions))
-      ).flatten
+        Some("questions" -> toJson(q.questions))).flatten
 
       JsObject(props)
     }
@@ -182,8 +175,7 @@ object Quiz {
         (json \ "metadata").asOpt[Map[String, String]].getOrElse(Map()),
         (json \ "questions").asOpt[Seq[Question]].getOrElse(Seq()),
         participants,
-        (json \ "id").asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId())
-      ))
+        (json \ "id").asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId())))
     }
   }
 
