@@ -166,37 +166,37 @@ angular.module('qti.services')
 angular.module('qti.services').factory('Canvas', function () {
   function Canvas(id, attrs) {
     this.board = JXG.JSXGraph.initBoard(id, {
-                         boundingbox: [0 - attrs.domain, attrs.range, attrs.domain, 0 - attrs.range],
-                         grid: {
-                             hasGrid: true,
-                             gridX: attrs.scale,
-                             gridY: attrs.scale
-                         },
-                         showNavigation: false,
-                         showCopyright: false,
-                         zoom: false
-                       },{width: attrs.width, height: attrs.height});
+      boundingbox: [0 - attrs.domain, attrs.range, attrs.domain, 0 - attrs.range],
+      grid: {
+         hasGrid: true,
+         gridX: attrs.scale,
+         gridY: attrs.scale
+      },
+      showNavigation: false,
+      showCopyright: false,
+      zoom: false
+    },{width: attrs.width, height: attrs.height});
     var axisAttrs = {ticks: {minorTicks: attrs.tickLabelFrequency-1, drawLabels: true}};
     this.board.create('axis', [[0, 0], [1, 0]], axisAttrs);
     this.board.create('axis', [[0, 0], [0, 1]], axisAttrs);
     if(attrs.domainLabel){
-        var xcoords = new JXG.Coords(JXG.COORDS_BY_USER, [attrs.domain, 0], this.board);
-        var xoffset = new JXG.Coords(JXG.COORDS_BY_SCREEN, [xcoords.scrCoords[1]-((attrs.domainLabel.length*4)+10), xcoords.scrCoords[2]+10], this.board);
-        this.board.create('text', [xoffset.usrCoords[1], xoffset.usrCoords[2], attrs.domainLabel], {fixed: true});
+      var xcoords = new JXG.Coords(JXG.COORDS_BY_USER, [attrs.domain, 0], this.board);
+      var xoffset = new JXG.Coords(JXG.COORDS_BY_SCREEN, [xcoords.scrCoords[1]-((attrs.domainLabel.length*4)+10), xcoords.scrCoords[2]+10], this.board);
+      this.board.create('text', [xoffset.usrCoords[1], xoffset.usrCoords[2], attrs.domainLabel], {fixed: true});
     }
     if(attrs.rangeLabel){
-        var ycoords = new JXG.Coords(JXG.COORDS_BY_USER, [0, attrs.range], this.board);
-        var yoffset = new JXG.Coords(JXG.COORDS_BY_SCREEN, [ycoords.scrCoords[1]-((attrs.rangeLabel.length*4)+15), ycoords.scrCoords[2]+10], this.board);
-        this.board.create('text', [yoffset.usrCoords[1], yoffset.usrCoords[2], attrs.rangeLabel], {fixed: true});
+      var ycoords = new JXG.Coords(JXG.COORDS_BY_USER, [0, attrs.range], this.board);
+      var yoffset = new JXG.Coords(JXG.COORDS_BY_SCREEN, [ycoords.scrCoords[1]-((attrs.rangeLabel.length*4)+15), ycoords.scrCoords[2]+10], this.board);
+      this.board.create('text', [yoffset.usrCoords[1], yoffset.usrCoords[2], attrs.rangeLabel], {fixed: true});
     }
     this.points = [];
     this.texts = [];
     this.shapes = [];
     this.scale = attrs.scale;
     if(attrs.pointLabels){
-        this.pointLabels = attrs.pointLabels;
+      this.pointLabels = attrs.pointLabels;
     } else {
-        this.pointLabels = 'letters';
+      this.pointLabels = 'letters';
     }
   }
   Canvas.prototype.getMouseCoords = function(e) {
@@ -213,7 +213,7 @@ angular.module('qti.services').factory('Canvas', function () {
   };
   Canvas.prototype.getPoint = function(ptName){
     return _.find(this.points, function(p){
-        return p.name == ptName;
+      return p.name == ptName;
     });
   };
   Canvas.prototype.pointCollision = function(coords) {
@@ -239,24 +239,24 @@ angular.module('qti.services').factory('Canvas', function () {
     var point = this.board.create('point', [coords.x, coords.y], pointAttrs);
     this.points.push(point);
     var name = (function(labels,points){
-        if(ptName){
-            return ptName;
-        } else if(typeof labels === "string"){
-            if(labels === "numbers"){
-                return points.length+".";
-            } else if(labels === "letters"){
-                return point.name;
-            } else{
-                return labels.split(",")[points.length-1];
-            }
+      if(ptName){
+          return ptName;
+      } else if(typeof labels === "string"){
+        if(labels === "numbers"){
+          return points.length+".";
+        } else if(labels === "letters"){
+          return point.name;
+        } else{
+          return labels.split(",")[points.length-1];
         }
+      }
     })(this.pointLabels, this.points);
     //in order to get correct offset for text, we must find origin point and offset by screen coordinates,
     //then apply the offset to the point coordinates to get the correct position of text
     var origin = new JXG.Coords(JXG.COORDS_BY_USER, [0, 0], this.board);
     var offset = new JXG.Coords(JXG.COORDS_BY_SCREEN, [origin.scrCoords[1]-22, origin.scrCoords[2]-15], this.board);
     var text = this.board.create('text', [function(){return point.X()+offset.usrCoords[1];}, function(){return point.Y()+offset.usrCoords[2];},
-        function () { return name+' ('+point.X()+','+point.Y()+')'; }], {fixed: true});
+      function () { return name+' ('+point.X()+','+point.Y()+')'; }], {fixed: true});
     this.texts.push(text);
     return point;
   };
@@ -281,22 +281,22 @@ angular.module('qti.services').factory('Canvas', function () {
   };
 
   Canvas.prototype.makeLine = function(pts) {
-      var shape = this.board.create('line', pts, {
-        strokeColor: '#0000ff',
-        strokeWidth: 2,
-        fixed: true
-      });
-      this.shapes.push(shape)
-      return shape;
+    var shape = this.board.create('line', pts, {
+      strokeColor: '#0000ff',
+      strokeWidth: 2,
+      fixed: true
+    });
+    this.shapes.push(shape)
+    return shape;
   };
   Canvas.prototype.makeCurve = function(fn){
-      var shape = this.board.create('functiongraph', [fn], {
-        strokeColor: '#0000ff',
-        strokeWidth: 2,
-        fixed: true
-      })
-      this.shapes.push(shape)
-      return shape;
+    var shape = this.board.create('functiongraph', [fn], {
+      strokeColor: '#0000ff',
+      strokeWidth: 2,
+      fixed: true
+    })
+    this.shapes.push(shape)
+    return shape;
   }
   Canvas.prototype.popShape = function(){
     return this.board.removeObject(this.shapes.splice(0,1));
@@ -311,35 +311,3 @@ angular.module('qti.services').factory('Canvas', function () {
   }
   return Canvas;
 });
-
-//used to display correct answer modal
-//set the correctAnswerBody to html that should be displayed for the answer
-angular.module('qti.directives').directive('correctanswer', ['$compile', function($compile){
-    return {
-        restrict: 'E',
-        template: [
-            "<div>",
-                "<a href='' ng-click='showCorrectAnswer=true' ng-show='incorrectResponse' ng-transclude></a>",
-                "<div ui-modal ng-model='showCorrectAnswer' close='showCorrectAnswer=false'>",
-                  "<div class='modal-header'>",
-                    "<button type='button' class='close' ng-click='showCorrectAnswer=false'>×</button>",
-                    "<h3 id='myModalLabel'>The Correct Answer</h3>",
-                  "</div>",
-                  "<div class='modal-body'></div>",
-                  "<div class='modal-footer' style='text-align: left;'><a href='' ng-click='showCorrectAnswer=false'>See your answer</a></div>",
-                "</div>",
-            "</div>"
-        ].join("\n"),
-        scope: {correctAnswerBody: '='},
-        transclude: true,
-        link: function(scope, element, attrs) {
-            scope.$watch("correctAnswerBody",function(){
-                if(scope.correctAnswerBody){
-                    scope.incorrectResponse = true;
-                    element.find('.modal-body').html(scope.correctAnswerBody)
-                    $compile(element.find('.modal-body'))(scope)
-                }
-            })
-        }
-    }
-}])
