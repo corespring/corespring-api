@@ -19,6 +19,10 @@ object VersionedIdImplicits {
   implicit object Writes extends Writes[VersionedId[ObjectId]] {
     def writes(id: VersionedId[ObjectId]): JsValue = {
 
+      def intString(v: Any): String = {
+        val rawString = v.toString
+        rawString.split("\\.")(0)
+      }
       /**
        * Note: We are experiencing some weird runtime boxing/unboxing which means that
        * sometimes the version is passed as Some(Long) instead of Some(Int)
@@ -26,7 +30,7 @@ object VersionedIdImplicits {
        * TODO: find out what is causing this? new scala version? new play version?
        * Note: This appears to only happen when you make requests via the play test framework.
        */
-      val out = id.id.toString + id.version.map { v: Any => ":" + v.toString }.getOrElse("")
+      val out = id.id.toString + id.version.map { v: Any => ":" + intString(v) }.getOrElse("")
       JsString(out)
     }
   }
