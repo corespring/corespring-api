@@ -11,17 +11,17 @@
 
   /** only add one listener to the window, this function is expected to then delegate out to player listeners */
   var addRootLevelMessageListener = function (newListener) {
-    if(rootListener != null ){
-        throw "A root level listener is already registered!";
+    if (rootListener != null) {
+      throw "A root level listener is already registered!";
     }
     rootListener = newListener;
-    window[addEventFunctionName()](eventName(),rootListener,false);
+    window[addEventFunctionName()](eventName(), rootListener, false);
   };
 
   /** The root listener implementation - forward event to all player listeners */
-  var rootLevelListener = function(e){
-    for(var i = 0; i < playerListeners.length; i++){
-        playerListeners[i](e);
+  var rootLevelListener = function (e) {
+    for (var i = 0; i < playerListeners.length; i++) {
+      playerListeners[i](e);
     }
   };
 
@@ -30,13 +30,13 @@
   /** A cache of existing player listeners - gets overrwritten when a new ItemPlayer is instantiated */
   var playerListeners = [];
 
-  var addPlayerListener = function(fn){
-   if(playerListeners.indexOf(fn) == -1 ){
-     playerListeners.push(fn);
-   }
+  var addPlayerListener = function (fn) {
+    if (playerListeners.indexOf(fn) == -1) {
+      playerListeners.push(fn);
+    }
   }
 
-  var clearPlayerListeners = function(){
+  var clearPlayerListeners = function () {
     playerListeners = [];
   }
 
@@ -60,12 +60,12 @@
     NEED_EMBEDDING_ELEMENT: 3,
     INVALID_PLAYER_LOCATION: 4,
     NEED_JQUERY: 5,
-    MULTIPLE_ELEMENTS : 6
+    MULTIPLE_ELEMENTS: 6
   };
 
   function addDimensionChangeListener(element) {
 
-    var listenerFunction = function(data) {
+    var listenerFunction = function (data) {
       try {
         var json = JSON.parse(data);
         if (json.message == 'dimensionsUpdate') {
@@ -73,17 +73,17 @@
           $(element).height(json.h + 30);
         }
       } catch (e) {
-          console.warn(e);
+        console.warn(e);
       }
     }
 
     addPlayerListener(function(e){ listenerFunction(e.data) });
   }
 
-  var isValidMode = function(m){
-    if(!m) return false;
+  var isValidMode = function (m) {
+    if (!m) return false;
 
-    return ["preview","administer","render","aggregate"].indexOf(m) !== -1;
+    return ["preview", "administer", "render", "aggregate"].indexOf(m) !== -1;
   };
 
   var iframePlayerStrategy = function (e, options) {
@@ -149,8 +149,8 @@
     var codes = com.corespring.players.errors;
 
     var error = function (msg, code) {
-      if(errorCallback){
-          errorCallback({msg: msg, code: code});
+      if (errorCallback) {
+        errorCallback({msg: msg, code: code});
       } else if (console && console.error) {
         console.error(msg, code);
       } else {
@@ -170,7 +170,7 @@
       return;
     }
 
-    if(e.length !== 1){
+    if (e.length !== 1) {
       error("Container element must be unique", codes.MULTIPLE_ELEMENTS);
       return;
     }
@@ -230,11 +230,18 @@
       return;
     }
 
-    /* programmatically submits the item */
-    this.submitItem = function() {
+    /**
+     * programmatically submits the item
+     *
+     * @returns true if successfully submitted, false if error
+     **/
+    this.submitItem = function () {
       try {
         e.find('iframe')[0].contentWindow.postMessage("{\"message\": \"submitItem\"}", "*");
-      } catch (e) {}
+        return true;
+      } catch (e) {
+        return false;
+      }
     };
 
     var playerRenderFunction = iframePlayerStrategy;
