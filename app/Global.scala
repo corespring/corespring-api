@@ -1,6 +1,6 @@
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import common.seed.SeedDb._
-import filters.{ Headers, AjaxFilter, AccessControlFilter }
+import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
@@ -8,7 +8,7 @@ import play.api._
 import play.api.mvc.Results._
 import play.api.mvc._
 
-object Global extends WithFilters(AjaxFilter, AccessControlFilter) with ClassLogging {
+object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) with ClassLogging {
 
   val INIT_DATA: String = "INIT_DATA"
 
