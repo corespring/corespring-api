@@ -83,67 +83,73 @@ return {
         }
         points = {}
     }
-    scope.graphCallback = function(params){
-      if(params.points && canvas){
-        clearBoard();
-        if(QtiUtils.isObject(params.points)){
-          for (var ptName in params.points) {
-            var point = params.points[ptName];
-            var coordx = parseFloat(point.x);
-            var coordy = parseFloat(point.y);
-            if (!isNaN(coordx) && !isNaN(coordy)) {
-              var coords = {
+    function processPointsCallback(paramPoints){
+      clearBoard();
+      if(QtiUtils.isObject(paramPoints)){
+        for (var ptName in paramPoints) {
+          var point = paramPoints[ptName];
+          var coordx = parseFloat(point.x);
+          var coordy = parseFloat(point.y);
+          if (!isNaN(coordx) && !isNaN(coordy)) {
+            var coords = {
+              x: coordx,
+              y: coordy
+            };
+            var canvasPoint = null;
+            for (var i = 0; i < canvas.points.length; i++) {
+              if (ptName === canvas.points[i].name) {
+                canvasPoint = canvas.points[i];
+              }
+            }
+            //if the coordinates for a point that exists has changed, then update that point
+            //otherwise, a new point will be created
+            if (canvasPoint != null) {
+              if (canvasPoint.X() !== coords.x || canvasPoint.Y() !== coords.y) {
+                onPointMove(canvasPoint, coords);
+              }
+            } else if (!canvasAttrs.maxPoints || canvas.points.length < canvasAttrs.maxPoints) {
+                canvasPoint = addPoint(coords);
+            }
+            if(point.color) canvas.changePointColor(canvasPoint, point.color)
+          }
+        }
+      }else if(QtiUtils.isArray(paramPoints)){
+        for(var i = 0; i < paramPoints.length; i++){
+          var coordx = parseFloat(paramPoints[i].x);
+          var coordy = parseFloat(paramPoints[i].y);
+          if (!isNaN(coordx) && !isNaN(coordy)) {
+            var coords = {
                 x: coordx,
                 y: coordy
-              };
-              var canvasPoint = null;
-              for (var i = 0; i < canvas.points.length; i++) {
-                if (ptName === canvas.points[i].name) {
-                  canvasPoint = canvas.points[i];
-                }
-              }
-              //if the coordinates for a point that exists has changed, then update that point
-              //otherwise, a new point will be created
-              if (canvasPoint != null) {
-                if (canvasPoint.X() !== coords.x || canvasPoint.Y() !== coords.y) {
-                  onPointMove(canvasPoint, coords);
-                }
-              } else if (!canvasAttrs.maxPoints || canvas.points.length < canvasAttrs.maxPoints) {
-                  canvasPoint = addPoint(coords);
-              }
-              if(point.color) canvas.changePointColor(canvasPoint, point.color)
+            };
+            var canvasPoint = canvas.pointCollision(coords)
+            if(canvasPoint == null){
+                canvasPoint = addPoint(coords)
             }
           }
-        }else if(QtiUtils.isArray(params.points)){
-          for(var i = 0; i < params.points.length; i++){
-            var coordx = parseFloat(params.points[i].x);
-            var coordy = parseFloat(params.points[i].y);
-            if (!isNaN(coordx) && !isNaN(coordy)) {
-              var coords = {
-                  x: coordx,
-                  y: coordy
-              };
-              var canvasPoint = canvas.pointCollision(coords)
-              if(canvasPoint == null){
-                  canvasPoint = addPoint(coords)
-              }
-            }
-            if(params.points[i].color) canvas.changePointColor(canvasPoint, params.points[i].color)
-          }
+          if(paramPoints[i].color) canvas.changePointColor(canvasPoint, paramPoints[i].color)
         }
+      }
+    }
+    function drawShapeCallback(drawShape){
+      if(drawShape.line && !lockGraph){
+        var pt1 = canvas.getPoint(drawShape.line[0]);
+        var pt2 = canvas.getPoint(drawShape.line[1]);
+        if(pt1 && pt2){
+           canvas.makeLine([pt1,pt2]);
+        }
+      }else if(drawShape.curve && !lockGraph){
+        canvas.makeCurve(drawShape.curve)
+      }      
+    }
+    scope.graphCallback = function(params){
+      if(params.points && canvas){
+        processPointsCallback(params.points)
       }
       if(params.drawShape && canvas){
-        if(params.drawShape.line && !lockGraph){
-          var pt1 = canvas.getPoint(params.drawShape.line[0]);
-          var pt2 = canvas.getPoint(params.drawShape.line[1]);
-          if(pt1 && pt2){
-             canvas.makeLine([pt1,pt2]);
-          }
-        }else if(params.drawShape.curve && !lockGraph){
-          canvas.makeCurve(params.drawShape.curve)
-        }
+        drawShapeCallback(params.drawShape)
       }
-      if(params.pointsStyle){
+      if(params.pointsStyle && canvas){
         _.each(canvas.points, function(p){
           canvas.changePointColor(p, params.pointsStyle)
         })
@@ -151,12 +157,12 @@ return {
       if(params.graphStyle){
         scope.boxStyle = _.extend({width: "100%", height: "100%"}, params.graphStyle)
       }
-      if(params.shapesStyle){
+      if(params.shapesStyle && canvas){
         _.each(canvas.shapes, function(shape){
           canvas.changeShapeColor(shape, params.shapesStyle)
         })
       }
-      if(params.lockGraph){
+      if(params.lockGraph && canvas){
         _.each(canvas.points,function(p){
            p.setAttribute({fixed: true});
         });

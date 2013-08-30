@@ -240,6 +240,21 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
       };
 
       return function(scope, element, attrs, AssessmentItemController){
+        function setScopeFromAttrs(){
+          scope.additionalText = attrs.additionalText;
+          scope.scale = graphAttrs.scale;
+          scope.domain = graphAttrs.domain;
+          scope.range = graphAttrs.range;
+          scope.sigfigs = parseInt(attrs.sigfigs?attrs.sigfigs:-1);
+          scope.showInputs = !attrs.showInputs || attrs.showInputs === "true";
+          scope.responseIdentifier = attrs.responseidentifier;
+          scope.locked = attrs.hasOwnProperty('locked')?true:false;
+          scope.domainLabel = graphAttrs.domainLabel
+          scope.rangeLabel = graphAttrs.rangeLabel
+          scope.tickLabelFrequency = attrs.tickLabelFrequency
+          scope.inputStyle = {width: "40px"}
+        }
+        setScopeFromAttrs();
         var containerWidth, containerHeight;
         var graphContainer = element.find('.graph-container')
         if(attrs.graphWidth && attrs.graphHeight){
@@ -251,31 +266,19 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
         graphContainer.attr(graphAttrs);
         graphContainer.css({width: containerWidth, height: containerHeight});
         $compile(graphContainer)(scope);
-        scope.additionalText = attrs.additionalText;
-        scope.scale = graphAttrs.scale;
-        scope.domain = graphAttrs.domain;
-        scope.range = graphAttrs.range;
-        scope.sigfigs = parseInt(attrs.sigfigs?attrs.sigfigs:-1);
-        scope.showInputs = !attrs.showInputs || attrs.showInputs === "true";
         if(scope.showInputs){
           //refresh periodically
           setInterval(function(){
             scope.$digest();
           }, 500)
         }
-        scope.responseIdentifier = attrs.responseidentifier;
         scope.controller = AssessmentItemController;
         if(scope.controller) scope.controller.registerInteraction(element.attr('responseIdentifier'), "line graph", "graph");
-        scope.locked = attrs.hasOwnProperty('locked')?true:false;
         if(!scope.locked && scope.controller){
           scope.controller.setResponse(scope.responseIdentifier,null);
           element.find(".graph-interaction").append("<correctanswer class='correct-answer' correct-answer-body='correctAnswerBody' responseIdentifier={{responseIdentifier}}>See the correct answer</correctanswer>")
           $compile(element.find("correctanswer"))(scope)
         }
-        scope.domainLabel = graphAttrs.domainLabel
-        scope.rangeLabel = graphAttrs.rangeLabel
-        scope.tickLabelFrequency = attrs.tickLabelFrequency
-        scope.inputStyle = {width: "40px"}
       }
     }
   }
