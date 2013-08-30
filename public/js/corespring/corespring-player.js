@@ -87,7 +87,11 @@
   };
 
   var iframePlayerStrategy = function (e, options) {
-    e.html("<iframe id='iframe-player' src='" + options.corespringUrl + "' style='width: 100%; height: 100%; border: none'></iframe>");
+    var url = options.corespringUrl;
+    if (options.omitSubmitButton)
+      url += "?omitSubmitButton=true";
+
+    e.html("<iframe id='iframe-player' src='" + url + "' style='width: 100%; height: 100%; border: none'></iframe>");
     e.width(options.width ? options.width : "600px");
 
 
@@ -226,8 +230,16 @@
       return;
     }
 
+    /* programmatically submits the item */
+    this.submitItem = function() {
+      try {
+        e.find('iframe')[0].contentWindow.postMessage("{\"message\": \"submitItem\"}", "*");
+      } catch (e) {}
+    };
+
     var playerRenderFunction = iframePlayerStrategy;
     playerRenderFunction(e, options);
   };
+
 })(this);
 

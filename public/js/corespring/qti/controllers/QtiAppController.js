@@ -5,8 +5,11 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
 
     var obj = JSON.parse(e.data);
 
-    if (obj.message === "update") {
+    if (obj.message === "submitItem") {
+      $scope.$broadcast("submitItem");
+    }
 
+    if (obj.message === "update") {
       $scope.originalSettings = angular.copy(obj.settings);
 
       if ($scope.itemSession) {
