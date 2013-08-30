@@ -18,7 +18,10 @@ ControlBarController.$inject = ['$scope', '$rootScope'];
 angular.module('qti.directives').directive('assessmentitem', function() {
     return {
         restrict: 'E',
-        controller: function($scope, $element, $attrs, $timeout, $rootScope) {
+        controller: function($scope, $element, $attrs, $timeout, $rootScope, $location) {
+
+            var matchOmitButtonAttribute = /omitSubmitButton=(\w*)/.exec($location.absUrl());
+            $scope.omitSubmitButton = matchOmitButtonAttribute && matchOmitButtonAttribute.length > 1 && matchOmitButtonAttribute[1] == "true";
 
             var itemId = null;
             var sessionId = null;
@@ -125,6 +128,11 @@ angular.module('qti.directives').directive('assessmentitem', function() {
                 return false;
 
             };
+
+            var that = this;
+            $scope.$on("submitItem", function() {
+              that.submitResponses();
+            });
 
             // this is the function that submits the user responses and gets the outcomes
             this.submitResponses = function() {
@@ -265,7 +273,7 @@ angular.module('qti.directives').directive('itembody', function() {
             '<div class="ui-hide animatable flow-feedback-container" ng-class="{true: \'ui-show\', false: \'ui-hide\'}[showFeedback()]">',
             '<div class="feedback-message" ng-class="getFeedbackMessageClass()"><span class="text">{{getFeedbackMessage()}}</span></div>',
             '</div>',
-            '<a class="btn btn-primary" ng-disabled="!isAllowedSubmit()" ng-hide="formSubmitted" ng-click="onSubmitClick()">{{submitButtonText()}}</a>',
+            '<a class="btn btn-primary" ng-disabled="!isAllowedSubmit()" ng-hide="omitSubmitButton || formSubmitted" ng-click="onSubmitClick()">{{submitButtonText()}}</a>',
             '</div>'].join('\n'),
         require: '^assessmentitem',
         link: function(scope, element, attrs, AssessmentItemCtrl) {
