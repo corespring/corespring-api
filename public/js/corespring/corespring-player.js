@@ -1,5 +1,4 @@
 (function (root) {
-  console = console || {log: function(){}};
   var com = root.com = root.com || {};
 
   com.corespring = com.corespring || {};
@@ -70,11 +69,9 @@
       try {
         var json = JSON.parse(data);
         if (json.message == 'dimensionsUpdate') {
-          console.log("dimension changed...");
           $(element).height(json.h + 30);
         }
       } catch (e) {
-          console.warn(e);
       }
     }
 
@@ -138,7 +135,7 @@
           }
         }
         catch (e) {
-          console.warn("error parsing: " + event.data);
+          //console.warn("error parsing: " + event.data);
         }
       });
     };
