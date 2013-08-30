@@ -1,4 +1,5 @@
 (function (root) {
+  console = console || {log: function(){}};
   var com = root.com = root.com || {};
 
   com.corespring = com.corespring || {};
