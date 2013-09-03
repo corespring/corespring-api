@@ -24,7 +24,8 @@ return {
     //  pointsStyle: [String], //set the color of all the points and labels of points
     //  graphStyle: {}, //set the css
     //  shapesStyle: [String], //set the color of all shapes (e.g. lines) on the graph
-    //  lockGraph: Boolean
+    //  lockGraph: Boolean,
+    //  clearBoard: true
     //}
     graphCallback: '='
   },
@@ -148,6 +149,11 @@ return {
       }
       if(params.drawShape && canvas){
         drawShapeCallback(params.drawShape)
+      }
+      if(params.clearBoard && canvas){
+        clearBoard();
+        scope.boxStyle = {width: "100%", height: "100%"};
+        lockGraph = false;
       }
       if(params.pointsStyle && canvas){
         _.each(canvas.points, function(p){
