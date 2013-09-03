@@ -109,6 +109,15 @@ angular.module('qti.directives').directive('assessmentitem', function() {
 
                 $scope.finalSubmit = false;
             };
+            this.removeResponse = function(key){
+              var index = -1;
+              for(var i = 0; i < $scope.responses.length; i++){
+                if ($scope.responses[i] && $scope.responses[i].id == key) {
+                  index = i;
+                }
+              }
+              if(index != -1) $scope.responses.splice(index,1)
+            };
 
             this.findItemByKey = function(key) {
                 for (var i = 0; i < $scope.responses.length; i++) {

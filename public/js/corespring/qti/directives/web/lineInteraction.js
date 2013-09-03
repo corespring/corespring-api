@@ -60,6 +60,9 @@ angular.module("qti.directives").directive("graphcurve", function(){
   }
 })
 angular.module("qti.directives").directive("lineinteraction", ['$compile', function($compile){
+  function setDefaultInputStyles(scope){
+    scope.inputStyle = {width: "40px"}
+  }
   return {
     template: [
       "<div class='container-fluid graph-interaction' >",
@@ -179,6 +182,20 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
           $scope.points.A = {}
         }
       }
+      function lockGraph(){
+        $scope.locked = true;
+        $scope.graphCallback({lockGraph: true});  
+      }
+      $scope.$on('controlBarChanged', function(){
+        if($scope.settingsHaveChanged){
+          $scope.graphCallback({clearBoard: true});
+          setDefaultInputStyles($scope);
+          $scope.correctAnswerBody = "clear";
+          $scope.points = {A: {x: undefined, y: undefined, isSet:false}, B: {x: undefined, y: undefined, isSet:false}};
+          $scope.locked = false;
+          $scope.controller.removeResponse($scope.responseIdentifier)
+        }
+      })
       $scope.$on("formSubmitted",function(){
         if(!$scope.locked){
           $scope.submissions++;
@@ -186,18 +203,19 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
             return r.id === $scope.responseIdentifier;
           });
           if($scope.itemSession.settings.highlightUserResponse){
-          if(response && response.outcome.isCorrect){
-            $scope.graphCallback({graphStyle: {borderColor: "green", borderWidth: "2px"}, pointsStyle: "green", shapesStyle: "green"})
-            $scope.inputStyle = _.extend($scope.inputStyle, {border: 'thin solid green'})
-          } else {
-            $scope.graphCallback({graphStyle: {borderColor: "red", borderWidth: "2px"}, pointsStyle: "red", shapesStyle: "red"})
-            $scope.inputStyle = _.extend($scope.inputStyle, {border: 'thin solid red'})
-          }
+            if(response && response.outcome.isCorrect){
+              $scope.graphCallback({graphStyle: {borderColor: "green", borderWidth: "2px"}, pointsStyle: "green", shapesStyle: "green"})
+              $scope.inputStyle = _.extend($scope.inputStyle, {border: 'thin solid green'})
+            } else {
+              $scope.graphCallback({graphStyle: {borderColor: "red", borderWidth: "2px"}, pointsStyle: "red", shapesStyle: "red"})
+              $scope.inputStyle = _.extend($scope.inputStyle, {border: 'thin solid red'})
+            }
           }
           var maxAttempts = $scope.itemSession.settings.maxNoOfAttempts?$scope.itemSession.settings.maxNoOfAttempts:1
           if($scope.submissions >= maxAttempts){
-          $scope.locked = true;
-          $scope.graphCallback({lockGraph: true});
+            lockGraph();
+          }else if(maxAttempts == 0 && response && response.outcome.isCorrect){
+            lockGraph();
           }
           if($scope.itemSession.settings.highlightCorrectResponse){
             var correctResponse = _.find($scope.itemSession.sessionData.correctResponses, function(cr){
@@ -252,7 +270,7 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
           scope.domainLabel = graphAttrs.domainLabel
           scope.rangeLabel = graphAttrs.rangeLabel
           scope.tickLabelFrequency = attrs.tickLabelFrequency
-          scope.inputStyle = {width: "40px"}
+          setDefaultInputStyles(scope);
         }
         setScopeFromAttrs();
         var containerWidth, containerHeight;

@@ -22,9 +22,13 @@ angular.module('qti.directives').directive('correctanswer', ['$compile', functio
     link: function(scope, element, attrs) {
       scope.$watch("correctAnswerBody",function(){
         if(scope.correctAnswerBody){
-          scope.incorrectResponse = true;
-          element.find('.modal-body').html(scope.correctAnswerBody)
-          $compile(element.find('.modal-body'))(scope)
+          if(scope.correctAnswerBody === "clear"){
+            scope.incorrectResponse = false
+          } else {
+            scope.incorrectResponse = true;
+            element.find('.modal-body').html(scope.correctAnswerBody)
+            $compile(element.find('.modal-body'))(scope)
+          }
         }
       })
     }
