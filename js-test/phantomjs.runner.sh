@@ -6,13 +6,12 @@ DECLARATIONS=`find ../public/js/corespring -type f -path '**/services.js'`
 ##We are ignoring the print related directives here
 #be sure to add app files first before others so main variable declarations come first
 APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/app.js'| grep -v '/printing/' | grep -v '/aggregate/' | grep -v '/instructor/'`
-APP_JS_SERVICE_SRC_FILES=`find ../public/js/corespring/services -type f -path '**/*.js'`
 OTHER_APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/*.js' ! -iname 'app.js'| grep -v '/printing/' | grep -v '/aggregate/' | grep -v '/instructor/' | grep -v 'corespring-error-player.js'`
 TEST_LIB_FILES="./lib/jasmine-jquery.js"
 FRONTLOAD_SPEC_FILES=`find ./unit -type f -path '**/*-priority-1.js'`
 SPEC_FILES=`find ./unit \( -type f -path '**/*.js' -and -not -name '*priority*' \)`
 
-cat ${DECLARATIONS} ${APP_JS_SRC_FILES} ${APP_JS_SERVICE_SRC_FILES} ${OTHER_APP_JS_SRC_FILES} ${TEST_LIB_FILES} > all_corespring.js
+cat ${DECLARATIONS} ${APP_JS_SRC_FILES} ../public/js/corespring/qti/services/qtiServices.js ${OTHER_APP_JS_SRC_FILES} ${TEST_LIB_FILES} > all_corespring.js
 cat ${FRONTLOAD_SPEC_FILES} ${SPEC_FILES} > all_specs.js
 
 # sanity check to make sure phantomjs exists in the PATH
