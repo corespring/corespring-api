@@ -1,7 +1,7 @@
 'use strict';
-angular.module('qti.directives').directive('jsxGraph', function(Canvas) {
+angular.module('qti.directives').directive('jsxGraph', function(Canvas,QtiUtils) {
 return {
-  template: "<div id='box' class='jxgbox' ng-style='boxStyle' style='width: 100%; height: 100%;'></div>",
+  template: "<div class='jxgbox' ng-style='boxStyle' style='width: 100%; height: 100%'></div>",
   restrict: 'A',
   scope: {
     //{
@@ -12,7 +12,8 @@ return {
     //  points:{
     //    [ptName]:{
     //      x:[Number],
-    //      y:[Number]
+    //      y:[Number],
+    //      color: [String]
     //    }
     //    ...
     //  },
@@ -20,12 +21,10 @@ return {
     //    line: [pt1,pt2],
     //    showPoints: Boolean
     //  },
-    //  submission: {
-    //    isIncomplete:[Boolean],
-    //    clearBorder:[Boolean],
-    //    lockGraph:[Boolean],
-    //    isCorrect:[Boolean]
-    //  }
+    //  pointsStyle: [String], //set the color of all the points and labels of points
+    //  graphStyle: {}, //set the css
+    //  shapesStyle: [String], //set the color of all shapes (e.g. lines) on the graph
+    //  lockGraph: Boolean
     //}
     graphCallback: '='
   },
@@ -39,9 +38,23 @@ return {
         domainLabel: attr.domainlabel,
         rangeLabel: attr.rangelabel,
         tickLabelFrequency: parseInt(attr.ticklabelfrequency?attr.ticklabelfrequency:5),
-        pointLabels: attr.pointlabels
+        pointLabels: attr.pointlabels,
+        width: elem.width(),
+        height: elem.height()
     };
-    var canvas;
+    function generateCanvasId(){
+        var canvasId = Math.random().toString(36).substring(7);
+        elem.find(".jxgbox").attr("id",canvasId)
+        return canvasId
+    }
+    var canvas = new Canvas(generateCanvasId(), canvasAttrs);
+    //define callbacks
+    canvas.on('up', function(e) {
+      var coords = canvas.getMouseCoords(e);
+      if ((!canvasAttrs.maxPoints || canvas.points.length < canvasAttrs.maxPoints) && !canvas.pointCollision(coords)) {
+        addPoint(coords);
+      }
+    });
     var lockGraph = false;
     var points = {}
     var onPointMove = function(point, coords) {
@@ -70,76 +83,91 @@ return {
         }
         points = {}
     }
-    scope.graphCallback = function(params){
-        if(params.points && canvas){
-            clearBoard();
-            for (var ptName in params.points) {
-              var point = params.points[ptName];
-              var coordx = parseFloat(point.x);
-              var coordy = parseFloat(point.y);
-              if (!isNaN(coordx) && !isNaN(coordy)) {
-                var coords = {
-                  x: coordx,
-                  y: coordy
-                };
-                var canvasPoint = null;
-                for (var i = 0; i < canvas.points.length; i++) {
-                  if (ptName === canvas.points[i].name) {
-                    canvasPoint = canvas.points[i];
-                  }
-                }
-                //if the coordinates for a point that exists has changed, then update that point
-                //otherwise, a new point will be created
-                if (canvasPoint != null) {
-                  if (canvasPoint.X() !== coords.x || canvasPoint.Y() !== coords.y) {
-                    onPointMove(canvasPoint, coords);
-                  }
-                } else if (!canvasAttrs.maxPoints || canvas.points.length < canvasAttrs.maxPoints) {
-                  addPoint(coords);
-                }
+    function processPointsCallback(paramPoints){
+      clearBoard();
+      if(QtiUtils.isObject(paramPoints)){
+        for (var ptName in paramPoints) {
+          var point = paramPoints[ptName];
+          var coordx = parseFloat(point.x);
+          var coordy = parseFloat(point.y);
+          if (!isNaN(coordx) && !isNaN(coordy)) {
+            var coords = {
+              x: coordx,
+              y: coordy
+            };
+            var canvasPoint = null;
+            for (var i = 0; i < canvas.points.length; i++) {
+              if (ptName === canvas.points[i].name) {
+                canvasPoint = canvas.points[i];
               }
             }
+            //if the coordinates for a point that exists has changed, then update that point
+            //otherwise, a new point will be created
+            if (canvasPoint != null) {
+              if (canvasPoint.X() !== coords.x || canvasPoint.Y() !== coords.y) {
+                onPointMove(canvasPoint, coords);
+              }
+            } else if (!canvasAttrs.maxPoints || canvas.points.length < canvasAttrs.maxPoints) {
+                canvasPoint = addPoint(coords);
+            }
+            if(point.color) canvas.changePointColor(canvasPoint, point.color)
+          }
         }
-        if(params.drawShape && canvas){
-             if(params.drawShape.line && !lockGraph){
-                 var pt1 = canvas.getPoint(params.drawShape.line[0]);
-                 var pt2 = canvas.getPoint(params.drawShape.line[1]);
-                 if(pt1 && pt2){
-                     canvas.makeLine([pt1,pt2]);
-                 }
-             }else if(params.drawShape.curve && !lockGraph){
-                canvas.makeCurve(params.drawShape.curve)
-             }
+      }else if(QtiUtils.isArray(paramPoints)){
+        for(var i = 0; i < paramPoints.length; i++){
+          var coordx = parseFloat(paramPoints[i].x);
+          var coordy = parseFloat(paramPoints[i].y);
+          if (!isNaN(coordx) && !isNaN(coordy)) {
+            var coords = {
+                x: coordx,
+                y: coordy
+            };
+            var canvasPoint = canvas.pointCollision(coords)
+            if(canvasPoint == null){
+                canvasPoint = addPoint(coords)
+            }
+          }
+          if(paramPoints[i].color) canvas.changePointColor(canvasPoint, paramPoints[i].color)
         }
-        if(params.submission && canvas){
-             if(params.submission.isIncomplete){
-               scope.boxStyle = {width: "100%", height: "100%", borderColor: "yellow", borderWidth: "2px"};
-             }else if(params.submission.clearBorder){
-               scope.boxStyle = {width: "100%", height: "100%"};
-             }else{
-                 if(params.submission.lockGraph){
-                     _.each(canvas.points,function(p){
-                         p.setAttribute({fixed: true});
-                     });
-                     lockGraph = true;
-                 }
-                 if(params.submission.isCorrect){
-                   scope.boxStyle = {width: "100%", height: "100%", borderColor: "green", borderWidth: "2px"};
-                 }else if(params.submission.hasOwnProperty('isCorrect')){
-                    scope.boxStyle = {width: "100%", height: "100%", borderColor: "red", borderWidth: "2px"};
-                 }
-             }
+      }
+    }
+    function drawShapeCallback(drawShape){
+      if(drawShape.line && !lockGraph){
+        var pt1 = canvas.getPoint(drawShape.line[0]);
+        var pt2 = canvas.getPoint(drawShape.line[1]);
+        if(pt1 && pt2){
+           canvas.makeLine([pt1,pt2]);
         }
-        if(params.initBoard){
-           canvas = new Canvas("box", canvasAttrs);
-           //define callbacks
-           canvas.on('up', function(e) {
-             var coords = canvas.getMouseCoords(e);
-             if ((!canvasAttrs.maxPoints || canvas.points.length < canvasAttrs.maxPoints) && !canvas.pointCollision(coords)) {
-               addPoint(coords);
-             }
-           });
-        }
+      }else if(drawShape.curve && !lockGraph){
+        canvas.makeCurve(drawShape.curve)
+      }      
+    }
+    scope.graphCallback = function(params){
+      if(params.points && canvas){
+        processPointsCallback(params.points)
+      }
+      if(params.drawShape && canvas){
+        drawShapeCallback(params.drawShape)
+      }
+      if(params.pointsStyle && canvas){
+        _.each(canvas.points, function(p){
+          canvas.changePointColor(p, params.pointsStyle)
+        })
+      }
+      if(params.graphStyle){
+        scope.boxStyle = _.extend({width: "100%", height: "100%"}, params.graphStyle)
+      }
+      if(params.shapesStyle && canvas){
+        _.each(canvas.shapes, function(shape){
+          canvas.changeShapeColor(shape, params.shapesStyle)
+        })
+      }
+      if(params.lockGraph && canvas){
+        _.each(canvas.points,function(p){
+           p.setAttribute({fixed: true});
+        });
+        lockGraph = true;
+      }
     };
   }
 };

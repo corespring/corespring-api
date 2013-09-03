@@ -1,6 +1,6 @@
 <assessmentItem>
-    <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
-    <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
+    <correctResponseFeedback>Correct!</correctResponseFeedback>
+    <incorrectResponseFeedback>Good try.</incorrectResponseFeedback>
     <responseDeclaration identifier="graphTest" baseType="line" cardinality="single">
         <correctResponse>
             <value>y=2x+7</value>
@@ -13,7 +13,7 @@
     </responseDeclaration>
     <itemBody>
 
-        Line P has a slope of 2 and intersects point (-3,1). Draw line P below and give the equation for line P
+        <p>Line P has a slope of 2 and intersects point (-3,1). Draw line P below and give the equation for line P</p>
         <lineInteraction jsxgraphcore=""
                          responseIdentifier="graphTest"
                          graph-width="300px"
@@ -28,21 +28,21 @@
                 />
 
         <feedbackBlock outcomeIdentifier="responses.graphTest.outcome.incorrect">
-            <div class="feedback-block-incorrect">Wrong!</div>
+            <div class="feedback-block-incorrect">Good try.</div>
         </feedbackBlock>
 
         <feedbackBlock outcomeIdentifier="responses.graphTest.outcome.correct">
-            <div class="feedback-block-correct">You're right!</div>
+            <div class="feedback-block-correct">Correct!</div>
         </feedbackBlock>
 
         <p>The equation for the line is: </p>
         <textEntryInteraction responseIdentifier="equationEntryTest" expectedLength="20" />
         <feedbackBlock outcomeIdentifier="responses.equationEntryTest.outcome.incorrectEquation">
-            <div class="feedback-block-incorrect">Wrong!</div>
+            <div class="feedback-block-incorrect">Good try.</div>
         </feedbackBlock>
 
         <feedbackBlock outcomeIdentifier="responses.equationEntryTest.value" identifier="y=2x+7">
-            <div class="feedback-block-correct">You're right!</div>
+            <div class="feedback-block-correct">Correct!</div>
         </feedbackBlock>
 
         <feedbackBlock outcomeIdentifier="responses.equationEntryTest.outcome.lineEquationMatch">

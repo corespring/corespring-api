@@ -66,10 +66,12 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.previewVisible = !$scope.previewVisible;
     $scope.$broadcast("panelOpen");
 
-    com.corespring.players.ItemPlayer("#item-preview-target", {
+    var player = new com.corespring.players.ItemPlayer("#item-preview-target", {
       mode : "preview",
       itemId : $scope.itemData.id,
-      height: "100%"}
+      height: "100%",
+      omitSubmitButton: false
+      }
     );
   };
 
