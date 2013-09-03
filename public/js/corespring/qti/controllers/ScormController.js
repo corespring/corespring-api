@@ -75,7 +75,6 @@ function ScormController($scope, ScormBridge) {
   $scope.$watch('itemSession', function(newItemSession) {
 
     if (newItemSession) {
-      //console.log("set the item session to Scorm..");
       ScormBridge.sendMessage({
         action: "setItemSession",
         value: JSON.stringify(newItemSession)
@@ -86,10 +85,8 @@ function ScormController($scope, ScormBridge) {
 
   $scope.$watch('itemSession.isFinished', function(newValue, oldValue) {
 
-    //console.log("item session is finished");
 
     if (newValue && hasSubmitted) {
-      //console.log("the session is finished - notify the Scorm App");
       notifyScormApp();
     }
   });
@@ -113,7 +110,6 @@ function ScormController($scope, ScormBridge) {
   };
 
   $scope.$on('registerInteraction', function(event, id, prompt, type) {
-    //console.log('registerInteraction: ' + id + ", " + prompt + ", " + type);
 
     var interaction = $scope.registerInteraction(id, prompt, type);
     //first send the id, then send the description

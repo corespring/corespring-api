@@ -179,7 +179,6 @@ angular.module('qti.directives').directive('simplechoice', function (QtiUtils) {
                     if (!responses) return;
 
                     var correctResponse = QtiUtils.getResponseValue(responseIdentifier, responses, "");
-                    //console.log(responses);
 
                     var isCorrect = isOurResponseCorrect(correctResponse);
 

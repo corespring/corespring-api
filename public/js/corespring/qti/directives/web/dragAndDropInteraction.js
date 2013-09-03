@@ -151,7 +151,6 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
             if (!_.isEqual(state, _.last($scope.stateStack))) {
               $scope.stateStack.push(state);
             }
-            console.log("Setting response to: ", response);
             AssessmentItemCtrl.setResponse($scope.responseIdentifier, response);
         });
 

@@ -172,7 +172,6 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
         $scope.showFile($scope.fileToRename);
         $scope.saveSelectedFileFinished();
     }).error(function (data, status, headers, config) {
-      console.log(data);
       if (typeof data.flags != "undefined" && _.contains(data.flags, "alert_increment")) {
         fileToUpdate.name = oldFilename;
         $scope.saveSelectedFileFinished(true);
@@ -304,13 +303,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
       }
     }
   };
-//   $scope.$on('showSaveWarning',function(){
-//     console.log("broadcast received showSaveWarning")
-//     $scope.showSaveWarning = true;
-//   })
-//    $rootScope.$watch('showSaveWarning', function(){
-//      console.log("showSaveWarning: "+$scope.showSaveWarning);
-//    });
+
 
   $scope.addFile = function (file) {
     $scope.resource.files = ($scope.resource.files || []);

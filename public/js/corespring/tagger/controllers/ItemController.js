@@ -29,7 +29,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         $scope.collections = data;
       },
       function () {
-        console.log("load collections: error: " + arguments);
+          // TODO implement error handling https://www.pivotaltracker.com/story/show/56296530
+          //console.log("load collections: error: " + arguments);
       });
   }
 
@@ -224,23 +225,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.loadItem = function () {
     ItemService.get({id: $routeParams.itemId}, function onItemLoaded(itemData) {
-      console.log("ItemData arrived");
-      console.log(itemData);
-
-      // TODO: Mocking this for the time being. Format is key: label
-      /*itemData.metadataSets = {
-        "newclassroom": {
-          label: "New Classroom",
-          editorUrl: "http://localhost:5000",
-          lockFields: true,
-          data: {
-              "Skill Number": "043",
-              "Family": "4",
-              "Master Question": "C"
-          }
-        }
-      };*/
-
       $rootScope.itemData = itemData;
       enterEditorIfInContentPanel();
       initItemType();
@@ -279,7 +263,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   });
 
   $scope.$watch('isPublished', function(){
-    console.log("isPublished was changed")
       if($scope.isPublished) {
         $scope.itemStatus = "published"
         if($scope.itemData.sessionCount == 1) $scope.sessionCount = "("+$scope.itemData.sessionCount+" response)"
@@ -370,7 +353,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             }
           },
           function onError() {
-            console.log("Error saving item");
+            // TODO implement error handling https://www.pivotaltracker.com/story/show/56296530
             $scope.isSaving = false;
             $scope.suppressSave = false;
           }
@@ -431,7 +414,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   );
 
   $scope.standardAdapter.valueSetter = function (newItem) {
-    console.log("custom value setter");
     if ($scope.itemData.standards != null) {
       $scope.itemData.standards.push(newItem);
     }

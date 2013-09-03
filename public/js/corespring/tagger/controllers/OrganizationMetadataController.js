@@ -28,13 +28,10 @@ function OrganizationMetadataController($scope, MessageBridge, ExtendedData) {
   MessageBridge.addMessageListener(function (message) {
 
     if (message && message.data && message.data.type == 'updateMetadata') {
-      console.log("updating metadata: ", message.data.message);
       var update = message.data.message;
 
       var property = $scope.selectedMetadata;
-      console.log("property: " + property);
       ExtendedData.update({id: $scope.itemData.id, property : property }, update, function onSuccess(response){
-        console.log("The extended data was successfully updated");
         var data = response[$scope.selectedMetadata];
         updateMetadata($scope.selectedMetadata, $scope.itemMetadata, data );
         MessageBridge.sendMessage("externalMetadataEditor", {type: "currentMetadata", message: data}, true);
@@ -43,7 +40,6 @@ function OrganizationMetadataController($scope, MessageBridge, ExtendedData) {
     }
 
     if (message && message.data && message.data.type == 'requestMetadata') {
-      console.log("Metadata Requested");
 
       var current = getMetadata($scope.selectedMetadata, $scope.itemMetadata);
 

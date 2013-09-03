@@ -39,7 +39,7 @@ function CreateCollection($scope, CollectionManager, UserInfo) {
 
     var onError = function (err) {
       $scope.setAlertClassAndMessage('error', "Error deleting collection");
-      console.log("error deleting collection: " + err);
+      // TODO implement error handling https://www.pivotaltracker.com/story/show/56296530
     };
 
     CollectionManager.removeCollection(id, onSuccess, onError);

@@ -51,8 +51,6 @@ angular.module('qti.directives').directive('selectable', function factory(QtiUti
         scope.$watch('aggregate', function (aggregate) {
           if (!aggregate) return;
           var agg = aggregate[scope.responseIdentifier];
-//          var total = agg.totalDistribution;
-          console.log(scope.responseIdentifier);
           scope.num = agg.choices[scope.id];
           var isCorrect = agg.correctAnswers.indexOf(scope.id) >= 0;
           scope.numClass = isCorrect ? "correct" : "incorrect";

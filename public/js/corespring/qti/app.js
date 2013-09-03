@@ -158,7 +158,7 @@ angular.module('qti.directives').directive('assessmentitem', function() {
                 };
 
                 var onError = function(data) {
-                  console.log("[assessmentItem] onError...")
+                  // TODO implement error handling https://www.pivotaltracker.com/story/show/56296530
                   console.warn(JSON.stringify(data));
                 };
 

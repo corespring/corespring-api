@@ -20,12 +20,10 @@ function MainNavController($scope, $rootScope, $location, SearchService) {
   };
 
   $scope.$on('onListViewOpened', function (evt) {
-    console.log('received onListViewOpened');
     $scope.editViewOpen = false;
   });
 
   $scope.$on('onEditViewOpened', function (evt) {
-    console.log('received onEditViewOpened');
     $scope.editViewOpen = true;
   });
 

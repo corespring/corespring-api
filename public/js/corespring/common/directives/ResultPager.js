@@ -105,18 +105,15 @@ corespringDirectivesModule.directive("resultPager", function () {
         var proposedIndex = currentIndex + number;
 
         if (proposedIndex < 0) {
-          //console.log("currentIndex is < 0");
           return;
         }
 
         if (proposedIndex > totalNoOfItems - 1) {
-          //console.log("currentIndex is > than totalNoOfItems");
           return;
         }
 
         updatePageText(proposedIndex);
 
-        //console.log("proposedIndex: "  + proposedIndex);
 
         var nextItem = $scope[listModel][proposedIndex];
         if (nextItem) {

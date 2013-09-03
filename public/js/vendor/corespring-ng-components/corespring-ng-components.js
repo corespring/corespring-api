@@ -275,7 +275,6 @@
         };
         dragFn = function(className, fn) {
           return function(evt) {
-            console.log("drag enter leave");
             $element.attr('class', originalClasses.join(" "));
             if (className != null) {
               $element.addClass(className);
@@ -292,10 +291,8 @@
         dragOver = dragFn("over");
         dropBody = function(evt) {
           var files;
-          console.log('drop evt:', JSON.parse(JSON.stringify(evt.dataTransfer)));
           files = evt.dataTransfer.files;
           if (files.length === 1 && acceptedType(files[0])) {
-            console.log(files);
             if (callback != null) {
               callback(files[0]);
             }

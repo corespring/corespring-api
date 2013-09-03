@@ -159,7 +159,8 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
         $scope.contributors = data;
       },
       function () {
-        console.log("load contributors: error: " + arguments);
+          // TODO implement error handling https://www.pivotaltracker.com/story/show/56296530
+          //console.log("load contributors: error: " + arguments);
       });
   }
 
@@ -186,14 +187,12 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
   };
 
   $scope.deleteCancelled = function () {
-    console.log("Item Delete Cancelled");
     $scope.itemToDelete = null;
     $scope.showConfirmDestroyModal = false;
   };
 
   $scope.itemClick = function(){
     if(this.item.readOnly){
-        console.log(this.item)
         $scope.openItem(this.item.id)
     }else{
       SearchService.currentItem = this.item;
@@ -249,7 +248,7 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
         }, 10);
       }
     }catch(err){
-        //console.log(err)
+        // TODO implement error handling https://www.pivotaltracker.com/story/show/56296530
     }
   };
 
