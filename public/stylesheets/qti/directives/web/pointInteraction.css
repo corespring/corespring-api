@@ -1,8 +1,10 @@
 .graph-interaction{
     background-color: #CCCCCC;
-    padding: 10px;
-    margin-top: 15px;
-    margin-bottom: 25px;
+    margin-top: 10px;
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 30px;
 }
 .point-display{
 
@@ -19,23 +21,12 @@
     font-style: normal;
     font-size: 13px;
 }
-.btn-undo{
-    width: 50px;
-    border-radius: 6px;
-    border-style: solid;
-    border-color: #999999;
-    border-width: 1px;
-}
-.btn-start-over{
-    width: 90px;
-    border-radius: 6px;
-    border-style: solid;
-    border-color: #999999;
-    border-width: 1px;
-}
 .graph-container{
-    margin-top: 15px;
+    margin-top: 20px;
     margin-right: auto;
     margin-left: auto;
-    width: 85%;
+}
+.correct-answer{
+    margin-top: 5px;
+    float: right;
 }
