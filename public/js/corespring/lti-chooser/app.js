@@ -159,7 +159,7 @@ function LtiChooserController($scope, $rootScope, $location, LaunchConfigService
       $scope.quiz = data;
       if (onSaveCompleteCallback) onSaveCompleteCallback();
     }, function (error) {
-      // TODO - implement error handling
+      // TODO implement error handling https://www.pivotaltracker.com/story/show/56296530
       $rootScope.errorMessage = error.data ? error.data : "An error occurred saving your config, please try again";
     });
   };

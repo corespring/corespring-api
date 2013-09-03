@@ -72,6 +72,7 @@
           $(element).height(json.h + 30);
         }
       } catch (e) {
+          // TODO implement error handling https://www.pivotaltracker.com/story/show/56296530
       }
     }
 
@@ -135,7 +136,7 @@
           }
         }
         catch (e) {
-          //console.warn("error parsing: " + event.data);
+            // TODO implement error handling https://www.pivotaltracker.com/story/show/56296530
         }
       });
     };
