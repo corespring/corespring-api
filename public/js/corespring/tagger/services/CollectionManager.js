@@ -116,7 +116,6 @@ angular.module('tagger.services')
           if (onComplete) onComplete();
         },
         function () {
-            // TODO implement error handling https://www.pivotaltracker.com/story/show/56296530
             //console.log("load collections: error: " + arguments);
         });
     };

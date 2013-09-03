@@ -29,7 +29,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         $scope.collections = data;
       },
       function () {
-          // TODO implement error handling https://www.pivotaltracker.com/story/show/56296530
           //console.log("load collections: error: " + arguments);
       });
   }
@@ -353,7 +352,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             }
           },
           function onError() {
-            // TODO implement error handling https://www.pivotaltracker.com/story/show/56296530
             $scope.isSaving = false;
             $scope.suppressSave = false;
           }

@@ -73,7 +73,6 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
           }
         },
         function (error) {
-          // TODO implement error handling https://www.pivotaltracker.com/story/show/56296530
           //console.warn(JSON.stringify(error));
           onError(error);
         });

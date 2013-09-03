@@ -159,7 +159,6 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
         $scope.contributors = data;
       },
       function () {
-          // TODO implement error handling https://www.pivotaltracker.com/story/show/56296530
           //console.log("load contributors: error: " + arguments);
       });
   }
@@ -248,7 +247,7 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
         }, 10);
       }
     }catch(err){
-        // TODO implement error handling https://www.pivotaltracker.com/story/show/56296530
+
     }
   };
 
