@@ -193,7 +193,6 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
           $scope.correctAnswerBody = "clear";
           $scope.points = {A: {x: undefined, y: undefined, isSet:false}, B: {x: undefined, y: undefined, isSet:false}};
           $scope.locked = false;
-          $scope.controller.removeResponse($scope.responseIdentifier)
         }
       })
       $scope.$on("formSubmitted",function(){

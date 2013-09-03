@@ -84,6 +84,17 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
           $scope.pointResponse = null;
         }
       }
+      function lockGraph(){
+        $scope.locked = true;
+        $scope.graphCallback({lockGraph: true});
+      }
+      $scope.$on('controlBarChanged', function(){
+        if($scope.settingsHaveChanged){
+          $scope.graphCallback({clearBoard: true});
+          $scope.correctAnswerBody = "clear";
+          $scope.locked = false;
+        }
+      })
       $scope.$on("formSubmitted",function(){
         if(!$scope.locked){
           $scope.submissions++;
@@ -99,8 +110,9 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
           }
           var maxAttempts = $scope.itemSession.settings.maxNoOfAttempts?$scope.itemSession.settings.maxNoOfAttempts:1
           if($scope.submissions >= maxAttempts){
-            $scope.locked = true;
-            $scope.graphCallback({lockGraph: true});
+            lockGraph();
+          }else if(maxAttempts == 0 && response && response.outcome.isCorrect){
+            lockGraph();
           }
           if($scope.itemSession.settings.highlightCorrectResponse){
             var correctResponse = _.find($scope.itemSession.sessionData.correctResponses, function(cr){
