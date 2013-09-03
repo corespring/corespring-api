@@ -1,3 +1,4 @@
+'use strict';
 angular.module('qti.services').factory('Canvas', function () {
   function Canvas(id, attrs) {
     this.board = JXG.JSXGraph.initBoard(id, {

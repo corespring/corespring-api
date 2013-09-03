@@ -1,3 +1,4 @@
+'use strict';
 //used to display correct answer modal
 //set the correctAnswerBody to html that should be displayed for the answer
 angular.module('qti.directives').directive('correctanswer', ['$compile', function($compile){
@@ -28,4 +29,4 @@ angular.module('qti.directives').directive('correctanswer', ['$compile', functio
       })
     }
   }
-}])
+}]);
