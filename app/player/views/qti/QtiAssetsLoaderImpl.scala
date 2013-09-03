@@ -11,9 +11,10 @@ class QtiAssetsLoaderImpl(qtiKeys: QtiKeys, mode: RenderingMode) extends QtiAsse
     Seq(
       QtiJsAsset("choiceInteraction", localDependents = Seq("simpleChoice")),
       QtiJsAsset("math", hasJsFile = false, remoteDependents = Seq("//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")),
-      QtiJsAsset("jsxgraphcore", hasJsFile = false, remoteDependents = Seq("//cdnjs.cloudflare.com/ajax/libs/jsxgraph/0.97/jsxgraphcore.js")),
-      QtiJsAsset("lineInteraction", localDependents = Seq("jsxgraph")),
-      QtiJsAsset("pointInteraction", localDependents = Seq("jsxgraph"))))
+      QtiJsAsset("lineInteraction", localDependents = Seq("jsxgraph"), remoteDependents = Seq("/assets/js/vendor/jsxgraph/jsxgraphcore.js")),
+      QtiJsAsset("pointInteraction", localDependents = Seq("jsxgraph"), remoteDependents = Seq("/assets/js/vendor/jsxgraph/jsxgraphcore.js"))
+    )
+  )
 
   private val assets = new QtiAssets("js/corespring/qti/directives", "stylesheets/qti/directives", config)
 

@@ -24,8 +24,10 @@ class AssetsLoader(val loader: Loader) extends PackageLogging {
   def playerCommon = loader.scripts("common")(
     "js/corespring/qti/controllers",
     "js/corespring/qti/app.js",
-    "js/corespring/qti/qtiServices.js",
+    "js/corespring/qti/services/qtiServices.js",
+    "js/corespring/qti/services/Canvas.js",
     "js/corespring/qti/directives/DimensionsChecker.js",
+    "js/corespring/qti/directives/correctAnswer.js",
     "js/corespring/qti/directives/feedbackInline.js",
     "js/corespring/qti/prototype.extensions/Array.js",
     "js/corespring/qti/prototype.extensions/Function.js")
