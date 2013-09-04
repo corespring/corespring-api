@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+require 'find'
+
+def process?(file)
+  javascript = file.end_with?('.js')
+  gzipped = file.end_with?('.gz.js')
+  vendor = file.include?('vendor')
+  migration = file.include?('migration')
+  test = file.include?('js-test')
+  target = file.include?('target')
+
+  javascript && !gzipped && !vendor && !migration && !test && !target
+end
+
+errors = []
+
+Find.find('.').select{|f| process?(f)}.each do |file|
+  File.readlines(file, encoding: 'UTF-8').each_with_index do |line, index|
+    begin
+      if line.match(/[\u0080-\u00ff]/)
+        errors << "#{file.sub("./", "")}:#{index+1} contains invalid character"
+      end
+    rescue
+    end
+  end
+end
+
+if !errors.empty?
+  errors.each{|error| puts error}
+  exit 1
+end
