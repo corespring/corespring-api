@@ -46075,4 +46075,4 @@ define('../build/core.deps.js',[
 
     return JXG;
 });
-require('../build/core.deps.js');}())
+require('../build/core.deps.js');}());
