@@ -50,3 +50,8 @@ if files.length > 0
         abort "--------------------------------------------------"
     end
 end
+
+if errors = `hooks/pre-commit-hooks/javascript-unicode-check`
+  puts errors
+  exit 1
+end

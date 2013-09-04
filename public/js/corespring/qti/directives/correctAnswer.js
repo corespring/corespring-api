@@ -9,7 +9,7 @@ angular.module('qti.directives').directive('correctanswer', ['$compile', functio
     "<a href='' ng-click='showCorrectAnswer=true' ng-show='incorrectResponse' ng-transclude></a>",
     "<div ui-modal ng-model='showCorrectAnswer' close='showCorrectAnswer=false'>",
     "<div class='modal-header'>",
-    "<button type='button' class='close' ng-click='showCorrectAnswer=false'>×</button>",
+    "<button type='button' class='close' ng-click='showCorrectAnswer=false'>&#215;</button>",
     "<h3 id='myModalLabel'>The Correct Answer</h3>",
     "</div>",
     "<div class='modal-body'></div>",
