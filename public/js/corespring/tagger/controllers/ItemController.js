@@ -485,8 +485,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   /**
    * creates a mongo json query for the mongolab rest API
-   * @searchText - the text to query for
-   * @fields - an array of the fields to find the searchtext in
+   * @param {string} searchText - the text to query for
+   * @param {array} fields - an array of the fields to find the searchtext in
    */
   function createMongoQuery(searchText, fields) {
     return JSON.stringify(new com.corespring.mongo.MongoQuery().fuzzyTextQuery(searchText, fields));
