@@ -29,7 +29,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         $scope.collections = data;
       },
       function () {
-        console.log("load collections: error: " + arguments);
+          //console.log("load collections: error: " + arguments);
       });
   }
 
@@ -66,10 +66,12 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.previewVisible = !$scope.previewVisible;
     $scope.$broadcast("panelOpen");
 
-    com.corespring.players.ItemPlayer("#item-preview-target", {
+    var player = new com.corespring.players.ItemPlayer("#item-preview-target", {
       mode : "preview",
       itemId : $scope.itemData.id,
-      height: "100%"}
+      height: "100%",
+      omitSubmitButton: false
+      }
     );
   };
 
@@ -224,23 +226,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.loadItem = function () {
     ItemService.get({id: $routeParams.itemId}, function onItemLoaded(itemData) {
-      console.log("ItemData arrived");
-      console.log(itemData);
-
-      // TODO: Mocking this for the time being. Format is key: label
-      /*itemData.metadataSets = {
-        "newclassroom": {
-          label: "New Classroom",
-          editorUrl: "http://localhost:5000",
-          lockFields: true,
-          data: {
-              "Skill Number": "043",
-              "Family": "4",
-              "Master Question": "C"
-          }
-        }
-      };*/
-
       $rootScope.itemData = itemData;
       enterEditorIfInContentPanel();
       initItemType();
@@ -279,7 +264,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   });
 
   $scope.$watch('isPublished', function(){
-    console.log("isPublished was changed")
       if($scope.isPublished) {
         $scope.itemStatus = "published"
         if($scope.itemData.sessionCount == 1) $scope.sessionCount = "("+$scope.itemData.sessionCount+" response)"
@@ -370,7 +354,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
             }
           },
           function onError() {
-            console.log("Error saving item");
             $scope.isSaving = false;
             $scope.suppressSave = false;
           }
@@ -431,7 +414,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   );
 
   $scope.standardAdapter.valueSetter = function (newItem) {
-    console.log("custom value setter");
     if ($scope.itemData.standards != null) {
       $scope.itemData.standards.push(newItem);
     }
@@ -503,8 +485,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   /**
    * creates a mongo json query for the mongolab rest API
-   * @searchText - the text to query for
-   * @fields - an array of the fields to find the searchtext in
+   * @param {string} searchText - the text to query for
+   * @param {array} fields - an array of the fields to find the searchtext in
    */
   function createMongoQuery(searchText, fields) {
     return JSON.stringify(new com.corespring.mongo.MongoQuery().fuzzyTextQuery(searchText, fields));

@@ -11,7 +11,7 @@ TEST_LIB_FILES="./lib/jasmine-jquery.js"
 FRONTLOAD_SPEC_FILES=`find ./unit -type f -path '**/*-priority-1.js'`
 SPEC_FILES=`find ./unit \( -type f -path '**/*.js' -and -not -name '*priority*' \)`
 
-cat ${DECLARATIONS} ${APP_JS_SRC_FILES} ${OTHER_APP_JS_SRC_FILES} ${TEST_LIB_FILES} > all_corespring.js
+cat ${DECLARATIONS} ${APP_JS_SRC_FILES} ../public/js/corespring/qti/services/qtiServices.js ${OTHER_APP_JS_SRC_FILES} ${TEST_LIB_FILES} > all_corespring.js
 cat ${FRONTLOAD_SPEC_FILES} ${SPEC_FILES} > all_specs.js
 
 # sanity check to make sure phantomjs exists in the PATH

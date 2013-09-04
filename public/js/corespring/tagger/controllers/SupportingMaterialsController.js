@@ -114,7 +114,6 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
         };
 
         var url = ServiceLookup.getUrlFor('uploadSupportingMaterial', substitutions);
-        console.log("upload url: " + url);
         return url;
     };
 
@@ -138,7 +137,6 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
      * @param result - the json from the server with the StoredFile properties.
      */
     $scope.onResourceUploadCompleted = function (result) {
-        console.log("onResourceUploadCompleted!!: " + result);
 
         $scope.$apply(function () {
             var resultObject = $.parseJSON(result);

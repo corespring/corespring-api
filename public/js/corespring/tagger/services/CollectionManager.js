@@ -116,7 +116,7 @@ angular.module('tagger.services')
           if (onComplete) onComplete();
         },
         function () {
-          console.log("load collections: error: " + arguments);
+            //console.log("load collections: error: " + arguments);
         });
     };
 

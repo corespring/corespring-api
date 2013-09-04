@@ -4,7 +4,6 @@ angular.module('tagger')
 
     return {
       link: function ($scope) {
-        console.log("networkProgress...");
         $scope.isLoading = false;
 
         $scope.$on('onNetworkLoading', function () {

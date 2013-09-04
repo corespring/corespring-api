@@ -39,7 +39,6 @@ function CreateCollection($scope, CollectionManager, UserInfo) {
 
     var onError = function (err) {
       $scope.setAlertClassAndMessage('error', "Error deleting collection");
-      console.log("error deleting collection: " + err);
     };
 
     CollectionManager.removeCollection(id, onSuccess, onError);

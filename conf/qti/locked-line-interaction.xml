@@ -1,6 +1,6 @@
 <assessmentItem>
-    <correctResponseFeedback>Looking good buddy</correctResponseFeedback>
-    <incorrectResponseFeedback>You should rethink this</incorrectResponseFeedback>
+    <correctResponseFeedback>Correct!</correctResponseFeedback>
+    <incorrectResponseFeedback>Good try.</incorrectResponseFeedback>
     <responseDeclaration identifier="equationEntryTest" cardinality="single" baseType="line">
         <correctResponse>
             <value>y=2x+7</value>
@@ -8,11 +8,9 @@
     </responseDeclaration>
     <itemBody>
 
-        Give the equation for the given line below.
+        <p>Give the equation for the given line below.</p>
         <lineInteraction jsxgraphcore=""
                          responseIdentifier="graphTest"
-                         graph-width="300px"
-                         graph-height="300px"
                          show-inputs="false"
                          locked="">
             <graphcurve>y=2x+7</graphcurve>
@@ -21,11 +19,11 @@
         <p>The equation for the line is: </p>
         <textEntryInteraction responseIdentifier="equationEntryTest" expectedLength="20" />
         <feedbackBlock outcomeIdentifier="responses.equationEntryTest.outcome.incorrectEquation">
-            <div class="feedback-block-incorrect">Wrong!</div>
+            <div class="feedback-block-incorrect">Good try.</div>
         </feedbackBlock>
 
         <feedbackBlock outcomeIdentifier="responses.equationEntryTest.value" identifier="y=2x+7">
-            <div class="feedback-block-correct">You're right!</div>
+            <div class="feedback-block-correct">Correct!</div>
         </feedbackBlock>
 
         <feedbackBlock outcomeIdentifier="responses.equationEntryTest.outcome.lineEquationMatch">

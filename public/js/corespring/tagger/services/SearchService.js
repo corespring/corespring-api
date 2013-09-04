@@ -203,7 +203,6 @@ angular.module('tagger.services').factory('SearchService',
           var onQuerySuccess = function (data) {
 
             if (id != searchService.searchId) {
-              //console.log("Old search results - ignoring");
               return;
             }
 
@@ -244,7 +243,6 @@ angular.module('tagger.services').factory('SearchService',
         $rootScope.$broadcast('onNetworkLoading');
 
         if (this.isLastSearchRunning) {
-          console.log("last request not done yet");
           return;
         }
 

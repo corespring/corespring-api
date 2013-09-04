@@ -23,6 +23,7 @@ class SessionDataTest extends Specification {
       identifier = id,
       cardinality = "single",
       baseType = "identifier",
+      exactMatch = true,
       correctResponse = Some(CorrectResponseSingle(value)),
       mapping = None))
 
