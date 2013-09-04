@@ -5,6 +5,8 @@ This project contains the api rest layer and web ui for administering corespring
 Before you do *anything* please run the following to install the git pre-commit hook:
 
     ln -s hooks/pre-commit .git/hooks/pre-commit
+    
+For more information, please see our git commit hooks [documentation](hooks/README.md).
 
 *we assume you already have Java JDK >= 1.6*
 
