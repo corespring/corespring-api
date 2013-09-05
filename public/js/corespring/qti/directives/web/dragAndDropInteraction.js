@@ -290,13 +290,14 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
     compile: function (el, attrs) {
       var isMultiple = attrs.cardinality == 'multiple' ||  attrs.cardinality == 'ordered';
       var expandHorizontally = attrs.expand == 'horizontal';
-      var style = expandHorizontally ? "min-height: {{maxHeight}}px; min-width: {{width}}px" : "min-height: {{maxHeight}}px; width: {{width}}px";
+      var style = expandHorizontally ? "min-height: {{lpHeight}}px; min-width: {{width}}px" : "min-height: {{lpHeight}}px; width: {{width}}px";
 
       var originalHtml = el.html();
+      var classAttrs = attrs['class'] || "";
 
       var template = isMultiple ?
         [
-          '<div style="'+style+'" class="landing {{correctClass}} '+attrs['class']+'" data-drop="true" ng-model="listTargets[targetIndex]"',
+          '<div style="'+style+'" class="landing {{correctClass}} '+classAttrs+'" data-drop="true" ng-model="listTargets[targetIndex]"',
           'jqyoui-droppable="{onDrop: \'dropCallback\', onOver: \'overCallback\', multiple: true}" data-jqyoui-options="dropOptions">',
           '<div class="landingLabelHolder" ng-show="label">',
           ' <span class="landingLabel" style="">{{label}}</span>',
@@ -312,7 +313,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
           '</div>'].join(" ")
         :
         [
-          '<div class="landing {{correctClass}} '+attrs['class']+'" style="'+style+'" data-drop="true" ng-model="listTargets" ',
+          '<div class="landing {{correctClass}} '+classAttrs+'" style="'+style+'" data-drop="true" ng-model="listTargets" ',
           'jqyoui-droppable="{index: {{targetIndex}}, onDrop: \'dropCallback\', onOver: \'overCallback\', multiple: false}" data-jqyoui-options="dropOptions">',
           '<div class="landingLabelHolder"  ng-show="label">',
           ' <span class="landingLabel" style="">{{label}}</span>',
@@ -329,6 +330,7 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
       el.html(template);
 
       return function ($scope, el, attrs) {
+        $scope.correctClass = "";
         $scope.isMultiple = attrs.cardinality == 'multiple' ||  attrs.cardinality == 'ordered';
         $scope.isOrdered = attrs.cardinality == 'ordered';
         var defaultWidth = $scope.isMultiple ? "200" : "50";
@@ -414,6 +416,9 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
 
         $scope.$watch("maxWidth + maxHeight", function () {
           $scope.width = isMultiple ? $scope.maxWidth * 4 + 20 : $scope.maxWidth + 20;
+          $scope.lpHeight = $scope.maxHeight + 20;
+          if (!_.isEmpty($scope.label))
+            $scope.lpHeight += 15;
         });
 
         $scope.startCallback = function (ev, b) {
