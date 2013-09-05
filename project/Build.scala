@@ -86,14 +86,15 @@ object Build extends sbt.Build {
       securesocial,
       assetsLoader,
       mockito,
-      playTest % "test"),
+      playTest % "test",
+      scalaFaker),
     Keys.fork in Test := forkInTests,
     parallelExecution.in(Test) := false,
     credentials += cred).dependsOn(assets, testLib % "test->compile").settings(disableDocsSettings: _*)
 
   val playerLib = builders.lib("player-lib")
     .settings(
-      libraryDependencies ++= Seq(corespringCommonUtils, playFramework, specs2 % "test"))
+      libraryDependencies ++= Seq(corespringCommonUtils, playFramework, specs2, scalaFaker % "test"))
     .dependsOn(core)
     .settings(disableDocsSettings: _*)
 
