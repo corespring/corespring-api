@@ -391,7 +391,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
                   //update metadata
                   val taskInfo: TaskInfo = item.taskInfo.getOrElse(TaskInfo())
                   taskInfo.extended.find(_._1 == metadataKey) match {
-                    case Some(m) => m._2.put(property, value.get)
+                    case Some(m) => m._2.put(key, value.get)
                     case None => taskInfo.extended.put(metadataKey, new BasicDBObject(key, value.get))
                   }
                   item.taskInfo = Some(taskInfo)
