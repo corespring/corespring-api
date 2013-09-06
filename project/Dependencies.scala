@@ -29,6 +29,7 @@ object Dependencies {
   val assetsLoader = "com.ee" %% "assets-loader" % "0.10.1-8ab100a"
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
+  val scalaFaker = "it.justwrote" %% "scala-faker" % "0.3-SNAPSHOT"
 
   val closureCompiler = ("com.google.javascript" % "closure-compiler" % "rr2079.1" notTransitive ())
     .exclude("args4j", "args4j")
@@ -49,6 +50,7 @@ object Dependencies {
     mongoDbSeeder,
     jbcrypt,
     mockito,
+    scalaFaker,
     playMemcached,
     playPluginMailer,
     playPluginUtil,
@@ -73,6 +75,10 @@ object Dependencies {
     val sonatypeReleases = "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/releases"
     val sbtPluginSnapshots = Resolver.url("sbt-plugin-releases", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
     val sbtPluginReleases = Resolver.url("sbt-plugin-snapshots", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots/"))(Resolver.ivyStylePatterns)
+
+    // TODO: Publish to repository.corespring.org!!!!!!!
+    val justWroteSnapshots = "justwrote" at "http://repo.justwrote.it/snapshots/"
+
     val all: Seq[Resolver] = Seq(
       localIvy,
       sonatypeSnapshots,
@@ -83,7 +89,8 @@ object Dependencies {
       edeustaceSnapshots,
       edeustaceReleases,
       sbtPluginSnapshots,
-      sbtPluginReleases)
+      sbtPluginReleases,
+      justWroteSnapshots)
   }
 
 }
