@@ -115,7 +115,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     collections: Seq[ObjectId],
     current: Boolean = true,
     jsBuilder: (Int, SalatMongoCursor[Item], SearchFields, Boolean) => JsValue)(implicit request: ApiRequest[A]): Either[ApiError, JsValue] = {
-    if (!collections.nonEmpty) {
+    if (collections.isEmpty) {
       Right(JsArray(Seq()))
     } else {
       val initSearch: MongoDBObject = MongoDBObject(collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))
