@@ -87,7 +87,7 @@ h4 {
 }
 p {
 	margin: 0;
-	font:14px/20px "Ubuntu", Arial, Helvetica, sans-serif !important;
+	font:14px/20px "Ubuntu", Arial, Helvetica, sans-serif;
 	font-size:14px;
 	line-height:20px;
 	padding:0 0 18px;
