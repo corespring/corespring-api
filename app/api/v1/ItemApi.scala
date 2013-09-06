@@ -115,7 +115,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     collections: Seq[ObjectId],
     current: Boolean = true,
     jsBuilder: (Int, SalatMongoCursor[Item], SearchFields, Boolean) => JsValue)(implicit request: ApiRequest[A]): Either[ApiError, JsValue] = {
-    if (!collections.nonEmpty) {
+    if (collections.isEmpty) {
       Right(JsArray(Seq()))
     } else {
       val initSearch: MongoDBObject = MongoDBObject(collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))
@@ -391,7 +391,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
                   //update metadata
                   val taskInfo: TaskInfo = item.taskInfo.getOrElse(TaskInfo())
                   taskInfo.extended.find(_._1 == metadataKey) match {
-                    case Some(m) => m._2.put(property, value.get)
+                    case Some(m) => m._2.put(key, value.get)
                     case None => taskInfo.extended.put(metadataKey, new BasicDBObject(key, value.get))
                   }
                   item.taskInfo = Some(taskInfo)

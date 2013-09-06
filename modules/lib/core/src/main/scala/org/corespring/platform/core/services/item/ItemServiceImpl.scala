@@ -66,6 +66,8 @@ class ItemServiceImpl(
 
   def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false) = dao.update(id, dbo, createNewVersion)
 
+  def deleteUsingDao(id: VersionedId[ObjectId]) = dao.delete(id)
+
   // three things occur here: 1. save the new item, 2. copy the old item's s3 files, 3. update the old item's stored files with the new s3 locations
   // TODO if any of these three things fail, the database and s3 revert back to previous state
   def save(item: Item, createNewVersion: Boolean = false) = {
