@@ -22,7 +22,8 @@ object ItemHelper {
 
   def count(collectionIds: Option[Seq[ObjectId]] = None): Int = {
     collectionIds match {
-      case Some(ids) => { val v = ItemServiceImpl.countItems(MongoDBObject("collectionId" -> MongoDBObject("$in" -> ids.map(_.toString)))); println(v); println(v); println(v); v }
+      case Some(ids) =>
+        ItemServiceImpl.countItems(MongoDBObject("collectionId" -> MongoDBObject("$in" -> ids.map(_.toString))))
       case _ => ItemServiceImpl.countItems(MongoDBObject())
     }
   }
