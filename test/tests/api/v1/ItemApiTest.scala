@@ -21,7 +21,7 @@ import tests.helpers._
 import play.api.libs.json.JsSuccess
 import scala.Some
 import play.api.libs.json.JsObject
-import tests.helpers.models.ItemHelper
+import tests.helpers.models.{CollectionHelper, ItemHelper}
 
 class ItemApiTest extends BaseTest with Mockito {
 
@@ -70,7 +70,7 @@ class ItemApiTest extends BaseTest with Mockito {
     val Some(result) = route(fakeRequest)
     assertResult(result)
     val items = parsed[List[JsValue]](result)
-    items.size must beEqualTo(List(ItemHelper.count, DefaultPageSize).min)
+    items.size must beEqualTo(List(ItemHelper.publicCount, DefaultPageSize).min)
   }
 
   "list items in a collection" in new FixtureData {
@@ -86,7 +86,7 @@ class ItemApiTest extends BaseTest with Mockito {
     val Some(result) = route(fakeRequest)
     assertResult(result)
     val items = parsed[List[JsValue]](result)
-    items.size must beEqualTo(List(ItemHelper.count - 3, DefaultPageSize).min)
+    items.size must beEqualTo(List(ItemHelper.publicCount - 3, DefaultPageSize).min)
   }
   "list items limiting result to 2" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&l=2".format(token))

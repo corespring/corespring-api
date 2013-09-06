@@ -14,6 +14,16 @@ object CollectionHelper {
       case _ => throw new Exception("Failed to create collection")
     }
 
+  /**
+   * Provides ObjectIds for all public collections
+   */
+  def public: Seq[ObjectId] = {
+    ContentCollection.getPublicCollections match {
+      case stream: Stream[ContentCollection] => stream.foldLeft(Seq.empty[ObjectId])({(acc, collection) => acc :+ collection.id})
+      case seq: Seq[ContentCollection] => seq.map(_.id)
+    }
+  }
+
   def delete(collectionId: ObjectId) = ContentCollection.delete(collectionId)
 
 }

@@ -5,6 +5,10 @@ import org.corespring.platform.core.services.item.ItemServiceImpl
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import com.mongodb.casbah.commons.MongoDBObject
+import org.corespring.platform.core.models.item.Item.Keys._
+import scala.Some
+import com.mongodb.casbah.Imports._
+import scala.Some
 
 object ItemHelper {
 
@@ -16,9 +20,17 @@ object ItemHelper {
     }
   }
 
-  def count: Int = {
-    ItemServiceImpl.countItems(MongoDBObject())
+  def count(collectionIds: Option[Seq[ObjectId]] = None): Int = {
+    collectionIds match {
+      case Some(ids) => { val v = ItemServiceImpl.countItems(MongoDBObject("collectionId" -> MongoDBObject("$in" -> ids.map(_.toString)))); println(v); println(v); println(v); v }
+      case _ => ItemServiceImpl.countItems(MongoDBObject())
+    }
   }
+
+  /**
+   * Provides a count of all items in public collections
+   */
+  def publicCount: Int = count(Some(CollectionHelper.public))
 
   def delete(itemId: VersionedId[ObjectId]) = ItemServiceImpl.deleteUsingDao(itemId)
 
