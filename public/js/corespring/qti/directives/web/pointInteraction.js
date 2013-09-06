@@ -51,6 +51,9 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
           if($scope.initialParams){
            $scope.graphCallback($scope.initialParams);
           }
+          if($scope.locked){
+            $scope.graphCallback({lockGraph: true})
+          }
         }
       })
       $scope.$watch('showNoResponseFeedback', function(){

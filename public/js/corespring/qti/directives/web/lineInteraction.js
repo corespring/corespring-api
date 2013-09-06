@@ -111,6 +111,9 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
           if($scope.initialParams){
             $scope.graphCallback($scope.initialParams);
           }
+          if($scope.locked){
+            $scope.graphCallback({lockGraph: true})
+          }
         }
       })
       $scope.points = {A: {x: undefined, y: undefined, isSet:false}, B: {x: undefined, y: undefined, isSet:false}};
