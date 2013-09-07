@@ -60,7 +60,7 @@ angular.module('cs.directives').directive('jsonHighlight', function($http) {
         var object = JSON.parse(html);
       }
       catch (e){
-          // TODO - implement error handling
+        console.log("Error parsing html: " + html);
       }
       var jsonFormatted = com.cs.utils.syntaxHighlightJson(object);
       $(element).html("<div class='responseHolder'><pre>" + jsonFormatted + "</pre></div>");
@@ -357,6 +357,7 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
         })
 
         $(element).find('#tryBtn').click( function(){
+            //console.log("try it..");
             scope.$apply( function() {
               scope.showRunner = !scope.showRunner;
             });
@@ -369,6 +370,7 @@ angular.module('cs.directives').directive('restWidget', function($http,$rootScop
 
         } else {
           $(element).find('#goBtn').click( function(){
+              //console.log("go!!");
               scope.executeCall();
           });
 
