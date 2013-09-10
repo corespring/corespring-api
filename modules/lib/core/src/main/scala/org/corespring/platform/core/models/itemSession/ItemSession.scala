@@ -18,17 +18,8 @@ import scala.xml._
 import se.radley.plugin.salat._
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
+import scalaz.{Failure, Success}
 
-case class SessionOutcome(score: Double)
-object SessionOutcome{
-  implicit object SOReads extends Writes[SessionOutcome]{
-    def writes(outcome: SessionOutcome):JsValue = {
-      JsObject(Seq(
-        "score" -> JsNumber(outcome.score)
-      ))
-    }
-  }
-}
 /**
  * Case class representing an individual item session
  */
@@ -277,18 +268,20 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
 
         updateFromDbo(update.id, dboUpdate, (u) => {
           val qtiItem = QtiItem(xmlWithCsFeedbackIds)
-          u.responses = Score.scoreResponses(u.responses, qtiItem)
-          val maxScore = Score.getMaxScore(qtiItem)
-          val score: Score = (totalScore(u.responses,maxScore), maxScore)
-
-          if (isMaxAttemptsExceeded(u) || isTopScore(score)) {
-            u.finish = Some(new DateTime())
-            u.dateModified = u.finish
-            save(u)
+          val sessionOutcome = SessionOutcome.processSessionOutcome(u,qtiItem)
+          sessionOutcome match {
+            case Success(so) => {
+              if (so.isComplete) {
+                u.finish = Some(new DateTime())
+                u.dateModified = u.finish
+                u.outcome = Some(so)
+                save(u)
+              } else u.outcome = Some(so)
+              //TODO: We need to be careful with session data - you can't persist it
+              u.sessionData = Some(SessionData(qtiItem, u))
+            }
+            case Failure(error) => Left(error)
           }
-          u.outcome = Some(SessionOutcome(score._1))
-          //TODO: We need to be careful with session data - you can't persist it
-          u.sessionData = Some(SessionData(qtiItem, u))
         })
 
       }

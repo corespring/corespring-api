@@ -374,7 +374,7 @@ class ItemSessionTest extends BaseTest {
 
       val (score, maxScore) = itemSession.getTotalScore(session)
 
-      score === 2.0
+      score === 0.5
       maxScore === 7.0
     }
 
@@ -390,8 +390,8 @@ class ItemSessionTest extends BaseTest {
           case _ => failure("can't find item with Id " + id)
         }
       }
-      assertScore("515594f4e4b05a52e550d41a", 2.0, 7.0)
-      assertScore("5155a5965c2a32164f2d5046", 1.0, 7.0)
+      assertScore("515594f4e4b05a52e550d41a", 0.5714285714285714, 7.0)
+      assertScore("5155a5965c2a32164f2d5046", 0.14285714285714285, 7.0)
       assertScore("5155a8e6ed0db8d2dd136e85", 1.0, 1.0)
     }
   }

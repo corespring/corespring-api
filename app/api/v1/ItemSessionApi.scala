@@ -35,7 +35,6 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
 
         case _ => NotFound
       }
-
   }
 
   private def aggregateSessions(sessionIds: Seq[String]): Map[String, ResponseAggregate] = {
