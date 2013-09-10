@@ -286,7 +286,39 @@ class ItemSessionTest extends BaseTest {
         }
       }
     }
+    "return session outcome with overall score" in{
 
+      val xml = <assessmentItem>
+        <responseDeclaration identifier="q1" cardinality="single" baseType="identifier">
+          <correctResponse>
+            <value>q1Answer</value>
+          </correctResponse>
+        </responseDeclaration>
+        <responseDeclaration identifier="q2" cardinality="single" baseType="identifier">
+          <correctResponse>
+            <value>q2Answer</value>
+          </correctResponse>
+        </responseDeclaration>
+        <itemBody>
+          <choiceInteraction responseIdentifier="q1"></choiceInteraction>
+          <choiceInteraction responseIdentifier="q2"></choiceInteraction>
+        </itemBody>
+      </assessmentItem>
+
+      val session = ItemSession(itemId = genItemId)
+      session.responses = Seq(
+        StringResponse("q1", "q1Answer"),
+        StringResponse("q2", "wrong"))
+
+      itemSession.save(session)
+      itemSession.process(session, xml) match {
+        case Left(e) => failure("error: " + e.message)
+        case Right(s) => {
+          s.outcome must beSome
+          s.outcome.get.score must equalTo(0.5)
+        }
+      }
+    }
     "add a dateModified value" in {
       val session = ItemSession(
         itemId = genItemId,
