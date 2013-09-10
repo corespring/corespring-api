@@ -59,7 +59,7 @@
 
                 if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '')
                         && location.hostname == this.hostname) {
-                    console.log("navigateToLink: " + this.hash)
+                    //console.log("navigateToLink: " + this.hash)
                     navigateToLink(this.hash);
                     window.location.hash = this.hash;
                     return false;
