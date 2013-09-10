@@ -158,8 +158,8 @@ class QuizServiceTest extends BaseTest with JsonToModel {
       }
 
       assertCompleteAndScore(new ObjectId("000000000000000000000001"), (false, 0))
-      assertCompleteAndScore(new ObjectId("000000000000000000000002"), (true, 50))
-      assertCompleteAndScore(new ObjectId("000000000000000000000003"), (true, 100))
+      assertCompleteAndScore(new ObjectId("000000000000000000000002"), (true, 25))
+      assertCompleteAndScore(new ObjectId("000000000000000000000003"), (true, 50))
 
     }
   }

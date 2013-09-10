@@ -286,7 +286,39 @@ class ItemSessionTest extends BaseTest {
         }
       }
     }
+    "return session outcome with overall score" in{
 
+      val xml = <assessmentItem>
+        <responseDeclaration identifier="q1" cardinality="single" baseType="identifier">
+          <correctResponse>
+            <value>q1Answer</value>
+          </correctResponse>
+        </responseDeclaration>
+        <responseDeclaration identifier="q2" cardinality="single" baseType="identifier">
+          <correctResponse>
+            <value>q2Answer</value>
+          </correctResponse>
+        </responseDeclaration>
+        <itemBody>
+          <choiceInteraction responseIdentifier="q1"></choiceInteraction>
+          <choiceInteraction responseIdentifier="q2"></choiceInteraction>
+        </itemBody>
+      </assessmentItem>
+
+      val session = ItemSession(itemId = genItemId)
+      session.responses = Seq(
+        StringResponse("q1", "q1Answer"),
+        StringResponse("q2", "wrong"))
+
+      itemSession.save(session)
+      itemSession.process(session, xml) match {
+        case Left(e) => failure("error: " + e.message)
+        case Right(s) => {
+          s.outcome must beSome
+          s.outcome.get.score must equalTo(0.5)
+        }
+      }
+    }
     "add a dateModified value" in {
       val session = ItemSession(
         itemId = genItemId,
@@ -374,7 +406,7 @@ class ItemSessionTest extends BaseTest {
 
       val (score, maxScore) = itemSession.getTotalScore(session)
 
-      score === 2.0
+      score === 0.5
       maxScore === 7.0
     }
 
@@ -390,8 +422,8 @@ class ItemSessionTest extends BaseTest {
           case _ => failure("can't find item with Id " + id)
         }
       }
-      assertScore("515594f4e4b05a52e550d41a", 2.0, 7.0)
-      assertScore("5155a5965c2a32164f2d5046", 1.0, 7.0)
+      assertScore("515594f4e4b05a52e550d41a", 0.5714285714285714, 7.0)
+      assertScore("5155a5965c2a32164f2d5046", 0.14285714285714285, 7.0)
       assertScore("5155a8e6ed0db8d2dd136e85", 1.0, 1.0)
     }
   }
