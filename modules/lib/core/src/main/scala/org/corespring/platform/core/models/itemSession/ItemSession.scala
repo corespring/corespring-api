@@ -18,6 +18,7 @@ import scala.xml._
 import se.radley.plugin.salat._
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
+import scalaz.{Failure, Success}
 
 /**
  * Case class representing an individual item session
@@ -27,6 +28,7 @@ case class ItemSession(var itemId: VersionedId[ObjectId],
   var start: Option[DateTime] = None,
   var finish: Option[DateTime] = None,
   var responses: Seq[Response] = Seq(),
+  var outcome:Option[SessionOutcome] = None,
   var id: ObjectId = new ObjectId(),
   var feedbackIdLookup: Seq[FeedbackIdMapEntry] = Seq(),
   var sessionData: Option[SessionData] = None,
@@ -77,7 +79,11 @@ object ItemSession {
         Seq(finish -> JsNumber(f.getMillis), "isFinished" -> JsBoolean(true))
       }).getOrElse(Seq())
 
-      JsObject(main ++ sessionDataSeq ++ startedSeq ++ finishSeq)
+      val outcome: Seq[(String, JsValue)] = session.outcome.map(o => {
+        Seq("outcome" -> Json.toJson(o))
+      }).getOrElse(Seq())
+
+      JsObject(main ++ sessionDataSeq ++ startedSeq ++ finishSeq ++ outcome)
     }
   }
 
@@ -262,17 +268,20 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
 
         updateFromDbo(update.id, dboUpdate, (u) => {
           val qtiItem = QtiItem(xmlWithCsFeedbackIds)
-          u.responses = Score.scoreResponses(u.responses, qtiItem)
-          val score: Score = (correctResponseCount(u.responses), Score.getMaxScore(qtiItem))
-
-          if (isMaxAttemptsExceeded(u) || isTopScore(score)) {
-            u.finish = Some(new DateTime())
-            u.dateModified = u.finish
-            save(u)
+          val sessionOutcome = SessionOutcome.processSessionOutcome(u,qtiItem)
+          sessionOutcome match {
+            case Success(so) => {
+              if (so.isComplete) {
+                u.finish = Some(new DateTime())
+                u.dateModified = u.finish
+                u.outcome = Some(so)
+                save(u)
+              } else u.outcome = Some(so)
+              //TODO: We need to be careful with session data - you can't persist it
+              u.sessionData = Some(SessionData(qtiItem, u))
+            }
+            case Failure(error) => Left(error)
           }
-
-          //TODO: We need to be careful with session data - you can't persist it
-          u.sessionData = Some(SessionData(qtiItem, u))
         })
 
       }
@@ -294,15 +303,17 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
 
     val qti = QtiItem(xml)
     session.responses = Score.scoreResponses(session.responses, qti)
-
-    val sessionScore = correctResponseCount(session.responses)
-    (sessionScore, Score.getMaxScore(qti))
+    val maxScore = Score.getMaxScore(qti)
+    val sessionScore = totalScore(session.responses, maxScore)
+    (sessionScore, maxScore)
   }
 
-  def correctResponseCount(responses: Seq[Response]): Double = {
-    val outcomes: Seq[ResponseOutcome] = responses.map(_.outcome).flatten
-    val outcomesCorrect = outcomes.map(_.isCorrect)
-    outcomesCorrect.filter(_ == true).length
+  private def totalScore(responses: Seq[Response], scoreableResponses:Int): Double = {
+    val sum = responses.foldRight[Double](0)((r,acc) => {
+      acc + r.outcome.map(_.score.toDouble).getOrElse(0.toDouble)
+    })
+    val average = sum / scoreableResponses
+    return average
   }
 
   /**
