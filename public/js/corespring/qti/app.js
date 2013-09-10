@@ -166,7 +166,6 @@ angular.module('qti.directives').directive('assessmentitem', function() {
                 };
 
                 var onError = function(data) {
-                  console.warn(JSON.stringify(data));
                 };
 
                 $rootScope.$broadcast('assessmentItem_submit', $scope.itemSession, onSuccess, onError, !areResponsesIncorrect());
