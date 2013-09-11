@@ -1,8 +1,9 @@
 package org.corespring.platform.core.models.itemSession
 
-import org.corespring.qti.models.QtiItem
+import org.corespring.qti.models.{Script, QtiItem}
 import scalaz._
 import Scalaz._
+import org.corespring.common.log.ClassLogging
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.qti.models.responses.Response
 import org.corespring.qti.models.responses.processing.ResponseProcessing
@@ -10,13 +11,14 @@ import play.api.libs.json._
 
 case class SessionOutcome(score: Double, isCorrect: Boolean, isComplete: Boolean)
 
-object SessionOutcome {
+object SessionOutcome extends ClassLogging {
 
-  def processSessionOutcome(itemSession: ItemSession, qtiItem: QtiItem): Validation[InternalError,SessionOutcome] =
+  def processSessionOutcome(itemSession: ItemSession, qtiItem: QtiItem): Validation[InternalError,SessionOutcome] = {
     qtiItem.responseProcessing match {
       case Some(processing) => responseProcessingScoring(itemSession, qtiItem, processing)
       case _ => defaultScoring(itemSession, qtiItem)
     }
+  }
 
   def apply(score: Double, itemSession: ItemSession) =
     new SessionOutcome(
