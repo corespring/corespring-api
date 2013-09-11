@@ -45,7 +45,6 @@ class SessionOutcomeTest extends Specification {
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
         case Success(outcome) => {
-          println(outcome)
           outcome.score === 1.0
           outcome.isCorrect === true
           outcome.isComplete === true
@@ -96,7 +95,6 @@ class SessionOutcomeTest extends Specification {
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
         case Success(outcome) => {
-          println(outcome)
           outcome.score === computedScore
           outcome.isCorrect === false
           outcome.isComplete === true
