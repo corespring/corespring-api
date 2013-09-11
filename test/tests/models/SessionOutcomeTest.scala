@@ -104,8 +104,6 @@ class SessionOutcomeTest extends Specification {
         }
         case _ => failure
       }
-
-      true === true
     }
 
   }
