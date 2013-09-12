@@ -9,8 +9,7 @@
     <itemBody>
 
         <p>Give the equation for the given line below.</p>
-        <lineInteraction jsxgraphcore=""
-                         responseIdentifier="graphTest"
+        <lineInteraction responseIdentifier="graphTest"
                          show-inputs="false"
                          locked="">
             <graphcurve>y=2x+7</graphcurve>
