@@ -256,9 +256,9 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
         domainLabel: attrs.domainLabel,
         rangeLabel: attrs.rangeLabel,
         tickLabelFrequency: attrs.tickLabelFrequency,
+        showLabels: attrs.showLabels?attrs.showLabels:"true",
         maxPoints:2
       };
-
       return function(scope, element, attrs, AssessmentItemController){
         function setScopeFromAttrs(){
           scope.additionalText = attrs.additionalText;
