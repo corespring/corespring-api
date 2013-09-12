@@ -14,8 +14,7 @@
     <itemBody>
 
         <p>Line P has a slope of 2 and intersects point (-3,1). Draw line P below and give the equation for line P</p>
-        <lineInteraction jsxgraphcore=""
-                         responseIdentifier="graphTest"
+        <lineInteraction responseIdentifier="graphTest"
                          graph-width="300px"
                          graph-height="300px"
                          domain="10"
