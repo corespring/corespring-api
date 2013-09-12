@@ -154,13 +154,7 @@ class ItemSessionTest extends BaseTest {
       itemSession.begin(session)
       itemSession.process(session, DummyXml)
 
-      itemSession.findOneById(session.id) match {
-        case Some(s) => {
-          s.isFinished === true
-        }
-        case _ => failure
-      }
-      true === true
+      itemSession.findOneById(session.id).get.isFinished === true
     }
 
     "automatically finish an item if the max number of attempts has been reached" in {
@@ -344,6 +338,30 @@ class ItemSessionTest extends BaseTest {
         case Left(e) => failure("error: " + e.message)
         case Right(s) => {
           s.dateModified === session.finish
+        }
+      }
+    }
+
+    "if nonSubmit is set to true, don't count as a submission" in {
+      val session = ItemSession(
+        itemId = genItemId,
+        settings = new ItemSessionSettings(maxNoOfAttempts = 0, allowEmptyResponses = true))
+      //Allow multiple attempts
+      itemSession.save(session)
+      session.responses = Seq(StringResponse("winterDiscontent", "york"))
+      itemSession.process(session, MockXml.AllItems, true) match {
+        case Left(e) => failure("error: " + e.message)
+        case Right(s) => {
+          session.attempts === 0
+          session.isFinished === false
+        }
+      }
+      session.responses = Seq(StringResponse("winterDiscontent", "blergl"))
+      itemSession.process(session, MockXml.AllItems, true) match {
+        case Left(e) => failure("error: "+e.message)
+        case Right(s) => {
+          println(Json.toJson(s).toString())
+          s.responses.exists(r => r.id == "winterDiscontent" && r.value == "blergl") === true
         }
       }
     }

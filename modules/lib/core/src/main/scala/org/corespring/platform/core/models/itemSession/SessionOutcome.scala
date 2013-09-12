@@ -16,7 +16,7 @@ object SessionOutcome{
     session.responses = Score.scoreResponses(session.responses, qtiItem)
     val maxScore = Score.getMaxScore(qtiItem)
     val score = totalScore(session.responses,maxScore)
-    SessionOutcome(score,score==1,isMaxAttemptsExceeded(session) || score == 1).success[InternalError]
+    SessionOutcome(score,score==1, session.isFinished || isMaxAttemptsExceeded(session) || score == 1).success[InternalError]
   }
   private def isMaxAttemptsExceeded(session: ItemSession): Boolean = {
     val max = session.settings.maxNoOfAttempts
