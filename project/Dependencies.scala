@@ -26,7 +26,13 @@ object Dependencies {
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.2"
-  val assetsLoader = "com.ee" %% "assets-loader" % "0.10.1-8ab100a" exclude("org.mozilla", "1.7R2")
+
+  // TODO: temporary solution: taking out yui which is used for css minification as it breaks
+  // dependencies for corespring-qti. This needs to be sorted out properly!
+
+  val assetsLoader = ("com.ee" %% "assets-loader" % "0.10.1-8ab100a")
+    .exclude("com.yahoo.platform.yui", "yuicompressor")
+
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.3-SNAPSHOT"
