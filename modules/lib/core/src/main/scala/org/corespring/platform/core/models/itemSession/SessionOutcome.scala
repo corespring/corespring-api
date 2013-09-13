@@ -1,6 +1,6 @@
 package org.corespring.platform.core.models.itemSession
 
-import org.corespring.qti.models.{Script, QtiItem}
+import org.corespring.qti.models.QtiItem
 import scalaz._
 import Scalaz._
 import org.corespring.common.log.ClassLogging
@@ -29,11 +29,11 @@ object SessionOutcome extends ClassLogging {
 
   private def responseProcessingScoring(itemSession: ItemSession, qtiItem: QtiItem, responseProcessing: ResponseProcessing): Validation[InternalError, SessionOutcome] = {
     responseProcessing.process(Map("itemSession" -> Json.toJson(itemSession))) match {
-      case Some(score) => score match {
-        case double: Double => Success(SessionOutcome(double, itemSession))
-        case _ => Failure(InternalError(s"""Response processing for item ${itemSession.itemId} did not return a Double"""))
+      case Some(jsValue: JsValue) => {
+        println(jsValue)
+        Success(SessionOutcome(0, itemSession))
       }
-      case _ => Failure(InternalError(s"""Response processing for item ${itemSession.itemId} did not return a score"""))
+      case _ => Failure(InternalError(s"""Response processing for item ${itemSession.itemId} did not return a JsObject"""))
     }
   }
 

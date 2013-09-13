@@ -11,7 +11,7 @@ object Dependencies {
   val playTest = "play" %% "play-test" % playVersion
 
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
-  val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-00c0972"
+  val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-c919f28"
   val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.5-3f2edcd"
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.3.0"
@@ -30,6 +30,7 @@ object Dependencies {
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.3-SNAPSHOT"
+  val rhino = "org.mozilla" %  "rhino" % "1.7R4"
 
   val closureCompiler = ("com.google.javascript" % "closure-compiler" % "rr2079.1" notTransitive ())
     .exclude("args4j", "args4j")
@@ -57,6 +58,7 @@ object Dependencies {
     salatPlay,
     securesocial,
     scalaz,
+    rhino,
     closureCompiler)
 
   object Resolvers {
