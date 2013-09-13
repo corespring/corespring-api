@@ -7,7 +7,7 @@ object Dependencies {
   //TODO: May need to change this
   val playJson = "com.typesafe.play" %% "play-json" % "2.2.0-M1"
 
-  val playFramework = "play" %% "play" % playVersion
+  val playFramework = "play" %% "play" % playVersion exclude("org.mozilla", "1.7R2")
   val playTest = "play" %% "play-test" % playVersion
 
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
@@ -26,11 +26,11 @@ object Dependencies {
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.2"
-  val assetsLoader = "com.ee" %% "assets-loader" % "0.10.1-8ab100a"
+  val assetsLoader = "com.ee" %% "assets-loader" % "0.10.1-8ab100a" exclude("org.mozilla", "1.7R2")
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.3-SNAPSHOT"
-  val rhino = "org.mozilla" %  "rhino" % "1.7R4"
+  val rhino = "org.mozilla" % "rhino" % "1.7R4"
 
   val closureCompiler = ("com.google.javascript" % "closure-compiler" % "rr2079.1" notTransitive ())
     .exclude("args4j", "args4j")
