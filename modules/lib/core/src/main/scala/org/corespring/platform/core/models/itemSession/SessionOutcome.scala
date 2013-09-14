@@ -4,12 +4,13 @@ import org.corespring.qti.models.{ResponseDeclaration, QtiItem}
 import scalaz._
 import Scalaz._
 import org.corespring.common.log.ClassLogging
-import org.corespring.platform.core.models.error.InternalError
 import org.corespring.qti.models.responses.Response
 import org.corespring.qti.models.responses.processing.ResponseProcessing
 import play.api.libs.json._
+import org.corespring.platform.core.models.error.InternalError
 
-case class SessionOutcome(score: Double, isCorrect: Boolean, isComplete: Boolean)
+case class SessionOutcome(
+  score: Double, isCorrect: Boolean, isComplete: Boolean, identifierOutcomes: Option[Map[String, JsObject]] = None)
 
 object SessionOutcome extends ClassLogging {
 
@@ -20,84 +21,28 @@ object SessionOutcome extends ClassLogging {
     }
   }
 
-  def apply(score: Double, itemSession: ItemSession) =
+  def fromJsObject(jsObject: JsObject, responseDeclarations: Option[Seq[ResponseDeclaration]] = None) = {
     new SessionOutcome(
-      score = score,
-      isCorrect = score==1,
-      isComplete = isMaxAttemptsExceeded(itemSession) || score == 1
+      score = (jsObject \ "score").asInstanceOf[JsNumber].value.toDouble,
+      isCorrect = (jsObject \ "isCorrect").asInstanceOf[JsBoolean].value,
+      isComplete = (jsObject \ "isComplete").asInstanceOf[JsBoolean].value,
+      identifierOutcomes = responseDeclarations match {
+        case Some(declarations: Seq[ResponseDeclaration]) =>
+          Some(declarations.map(_.identifier).map(id => id -> (jsObject \ id).asInstanceOf[JsObject]).toMap)
+        case None => None
+      }
     )
-
-  private def responseProcessingScoring(itemSession: ItemSession, qtiItem: QtiItem, responseProcessing: ResponseProcessing): Validation[InternalError, SessionOutcome] = {
-    responseProcessing.process(Map("itemSession" -> Json.toJson(itemSession))) match {
-      case Some(jsValue: JsValue) => {
-        checkJsResponse(jsValue, qtiItem.responseDeclarations) match {
-          case Some(internalError) => Failure(internalError)
-          case _ => {
-            Success(new SessionOutcome(0, true, true))
-          }
-        }
-      }
-      case _ => Failure(InternalError(s"""Response processing for item ${itemSession.itemId} did not return a JsObject"""))
-    }
   }
 
-  private def checkJsResponse(jsValue: JsValue, responseDeclarations: Seq[ResponseDeclaration]): Option[InternalError] = {
-    validateJsResponse(jsValue) match {
-      case Some(internalError) => Some(internalError)
-      case _ => {
-        val identifiers = responseDeclarations.map(_.identifier)
-        identifiers.find(identifier => (jsValue \ identifier).isInstanceOf[JsUndefined]) match {
-          case Some(identifier) =>
-            Some(InternalError(s"""Response for identifier $identifier is required in JsObject"""))
-          case _ => {
-            val errors = identifiers.flatMap(identifier => validateJsResponse((jsValue \ identifier), Some(identifier)))
-            errors match {
-              case errors: Seq[InternalError] if errors.nonEmpty => {
-                Some(errors.head)
-              }
-              case _ => None
-            }
-          }
-        }
-      }
-    }
+  private def responseProcessingScoring(
+      itemSession: ItemSession,
+      qtiItem: QtiItem, responseProcessing: ResponseProcessing): Validation[InternalError, SessionOutcome] = {
+
+    val response = responseProcessing.process(Map("itemSession" -> Json.toJson(itemSession)))
+    ResponseProcessingOutputValidator(response, qtiItem)
   }
 
-  private def validateJsResponse(jsValue: JsValue, identifier: Option[String] = None): Option[InternalError] = {
-    val identifierString: String = identifier match {
-      case Some(string) => s""" for responseDeclaration identifier $string"""
-      case None => ""
-    }
-    jsValue match {
-      case jsObject: JsObject => {
-        (jsObject \ "score") match {
-          case JsNumber(_) => {
-            (jsObject \ "isComplete") match {
-              case JsBoolean(_) => {
-                (jsObject \ "isCorrect") match {
-                  case JsBoolean(_) => None
-                  case JsUndefined(_) =>
-                    Some(InternalError(s"""isCorrect is required in Javascript response object$identifierString"""))
-                  case _ =>
-                    Some(InternalError(s"""isCorrect is required to be a JsBoolean object$identifierString"""))
-                }
-              }
-              case JsUndefined(_) =>
-                Some(InternalError(s"""isComplete is required in Javascript response object$identifierString"""))
-              case _ =>
-                Some(InternalError(s"""isComplete is required to be a JsBoolean object$identifierString"""))
-            }
-          }
-          case JsUndefined(_) =>
-            Some(InternalError(s"""score is required in Javascript response object$identifierString"""))
-          case _ => Some(InternalError(s"""score is required to be a JsNumber object$identifierString"""))
-        }
-      }
-      case _ => Some(InternalError(s"""Response processed by Javascript was not a JsObject$identifierString"""))
-    }
-  }
-
-  private def defaultScoring(session: ItemSession, qtiItem: QtiItem): Validation[InternalError,SessionOutcome] = {
+  private def defaultScoring(session: ItemSession, qtiItem: QtiItem): Validation[InternalError, SessionOutcome] = {
     session.responses = Score.scoreResponses(session.responses, qtiItem)
     val maxScore = Score.getMaxScore(qtiItem)
     val score = totalScore(session.responses,maxScore)
@@ -119,9 +64,18 @@ object SessionOutcome extends ClassLogging {
 
   implicit object SOReads extends Writes[SessionOutcome] {
     def writes(outcome: SessionOutcome):JsValue = {
-      JsObject(Seq(
-        "score" -> JsNumber(outcome.score)
-      ))
+      JsObject(
+        Seq(
+          "score" -> JsNumber(outcome.score),
+          "isCorrect" -> JsBoolean(outcome.isCorrect),
+          "isComplete" -> JsBoolean(outcome.isComplete)
+        ) ++ (
+          outcome.identifierOutcomes match {
+            case Some(outcomes) => outcomes.toList
+            case _ => Seq.empty
+          }
+        )
+      )
     }
   }
 
