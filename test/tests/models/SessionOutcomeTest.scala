@@ -2,11 +2,12 @@ package tests.models
 
 import org.specs2.mutable.Specification
 import org.corespring.qti.models.QtiItem
-import org.corespring.platform.core.models.itemSession.{SessionOutcome, ItemSession}
+import org.corespring.platform.core.models.itemSession.{ResponseProcessingOutputValidator, SessionOutcome, ItemSession}
 import org.corespring.qti.models.responses.StringResponse
 import scalaz.{Failure, Success}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.error.InternalError
+import play.api.libs.json.{JsBoolean, JsObject, JsNumber}
 
 class SessionOutcomeTest extends Specification {
 
@@ -104,10 +105,33 @@ class SessionOutcomeTest extends Specification {
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
         case Success(sessionOutcome: SessionOutcome) => {
-          println(sessionOutcome);
-          success;
+          sessionOutcome.score === 1.0
+          sessionOutcome.isCorrect === true
+          sessionOutcome.isComplete === true
+          sessionOutcome.identifierOutcomes match {
+            case Some(outcomes) => {
+              outcomes.get("Q_01") match {
+                case Some(q1Outcome) => {
+                  (q1Outcome \ "score").asInstanceOf[JsNumber].value === 1
+                  (q1Outcome \ "isCorrect").asInstanceOf[JsBoolean].value === true
+                  (q1Outcome \ "isComplete").asInstanceOf[JsBoolean].value === true
+                  outcomes.get("Q_02") match {
+                    case Some(q2Outcome) => {
+                      (q2Outcome \ "score").asInstanceOf[JsNumber].value === 1
+                      (q2Outcome \ "isCorrect").asInstanceOf[JsBoolean].value === true
+                      (q2Outcome \ "isComplete").asInstanceOf[JsBoolean].value === true
+                      success
+                    }
+                    case _ => failure("SessionOutcome did not contain responseDeclaration identifier Q_02")
+                  }
+                }
+                case _ => failure("SessionOutcome did not contain responseDeclaration identifier Q_01")
+              }
+            }
+            case _ => failure("SessionOutcome did not contain values for responseDeclaration identifiers")
+          }
         }
-        case _ => failure
+        case _ => failure("Did not correctly process response to SessionOutcome")
       }
     }
 
