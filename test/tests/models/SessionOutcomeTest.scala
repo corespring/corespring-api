@@ -112,14 +112,14 @@ class SessionOutcomeTest extends Specification {
             case Some(outcomes) => {
               outcomes.get("Q_01") match {
                 case Some(q1Outcome) => {
-                  (q1Outcome \ "score").asInstanceOf[JsNumber].value === 1
-                  (q1Outcome \ "isCorrect").asInstanceOf[JsBoolean].value === true
-                  (q1Outcome \ "isComplete").asInstanceOf[JsBoolean].value === true
+                  q1Outcome.score === 1
+                  q1Outcome.isCorrect === true
+                  q1Outcome.isComplete === true
                   outcomes.get("Q_02") match {
                     case Some(q2Outcome) => {
-                      (q2Outcome \ "score").asInstanceOf[JsNumber].value === 1
-                      (q2Outcome \ "isCorrect").asInstanceOf[JsBoolean].value === true
-                      (q2Outcome \ "isComplete").asInstanceOf[JsBoolean].value === true
+                      q2Outcome.score === 1
+                      q2Outcome.isCorrect === true
+                      q2Outcome.isComplete === true
                       success
                     }
                     case _ => failure("SessionOutcome did not contain responseDeclaration identifier Q_02")

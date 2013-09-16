@@ -10,7 +10,7 @@ import play.api.libs.json._
 import org.corespring.platform.core.models.error.InternalError
 
 case class SessionOutcome(
-  score: Double, isCorrect: Boolean, isComplete: Boolean, identifierOutcomes: Option[Map[String, JsObject]] = None)
+  score: Double, isCorrect: Boolean, isComplete: Boolean, identifierOutcomes: Option[Map[String, SessionOutcome]] = None)
 
 object SessionOutcome extends ClassLogging {
 
@@ -21,14 +21,14 @@ object SessionOutcome extends ClassLogging {
     }
   }
 
-  def fromJsObject(jsObject: JsObject, responseDeclarations: Option[Seq[ResponseDeclaration]] = None) = {
+  def fromJsObject(jsObject: JsObject, responseDeclarations: Option[Seq[ResponseDeclaration]] = None): SessionOutcome = {
     new SessionOutcome(
       score = (jsObject \ "score").asInstanceOf[JsNumber].value.toDouble,
       isCorrect = (jsObject \ "isCorrect").asInstanceOf[JsBoolean].value,
       isComplete = (jsObject \ "isComplete").asInstanceOf[JsBoolean].value,
       identifierOutcomes = responseDeclarations match {
         case Some(declarations: Seq[ResponseDeclaration]) =>
-          Some(declarations.map(_.identifier).map(id => id -> (jsObject \ id).asInstanceOf[JsObject]).toMap)
+          Some(declarations.map(_.identifier).map(id => id -> fromJsObject((jsObject \ id).asInstanceOf[JsObject])).toMap)
         case None => None
       }
     )
@@ -63,7 +63,7 @@ object SessionOutcome extends ClassLogging {
   }
 
   implicit object SOReads extends Writes[SessionOutcome] {
-    def writes(outcome: SessionOutcome):JsValue = {
+    def writes(outcome: SessionOutcome): JsValue = {
       JsObject(
         Seq(
           "score" -> JsNumber(outcome.score),
@@ -71,7 +71,11 @@ object SessionOutcome extends ClassLogging {
           "isComplete" -> JsBoolean(outcome.isComplete)
         ) ++ (
           outcome.identifierOutcomes match {
-            case Some(outcomes) => outcomes.toList
+            case Some(outcomes) => outcomes.map{
+              case (identifier, sessionOutcome) => {
+                identifier -> writes(sessionOutcome)
+              }
+            }
             case _ => Seq.empty
           }
         )
