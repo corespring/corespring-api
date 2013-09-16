@@ -51,6 +51,9 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
           if($scope.initialParams){
            $scope.graphCallback($scope.initialParams);
           }
+          if($scope.locked){
+            $scope.graphCallback({lockGraph: true})
+          }
         }
       })
       $scope.$watch('showNoResponseFeedback', function(){
@@ -150,7 +153,8 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
         rangeLabel: attrs.rangeLabel,
         tickLabelFrequency: attrs.tickLabelFrequency,
         pointLabels: attrs.pointLabels,
-        maxPoints: attrs.maxPoints
+        maxPoints: attrs.maxPoints,
+        showLabels: attrs.showLabels?attrs.showLabels:"true"
       };
       return function(scope, element, attrs, AssessmentItemController){
         var containerWidth, containerHeight;

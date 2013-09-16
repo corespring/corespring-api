@@ -8,7 +8,8 @@
   "schema":[
     {"key":"skillNumber"},
     {"key":"family"},
-    {"key":"masterQuestion"}
+    {"key":"masterQuestion"},
+    {"key":"credits"}
   ],
   "isPublic":false
 }

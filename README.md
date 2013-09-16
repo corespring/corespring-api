@@ -1,3 +1,5 @@
+![corespring](public/images/logo.png)
+
 This project contains the api rest layer and web ui for administering corespring items.
 
 ### Installation

@@ -111,6 +111,9 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
           if($scope.initialParams){
             $scope.graphCallback($scope.initialParams);
           }
+          if($scope.locked){
+            $scope.graphCallback({lockGraph: true})
+          }
         }
       })
       $scope.points = {A: {x: undefined, y: undefined, isSet:false}, B: {x: undefined, y: undefined, isSet:false}};
@@ -253,9 +256,9 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
         domainLabel: attrs.domainLabel,
         rangeLabel: attrs.rangeLabel,
         tickLabelFrequency: attrs.tickLabelFrequency,
+        showLabels: attrs.showLabels?attrs.showLabels:"true",
         maxPoints:2
       };
-
       return function(scope, element, attrs, AssessmentItemController){
         function setScopeFromAttrs(){
           scope.additionalText = attrs.additionalText;

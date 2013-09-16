@@ -41,7 +41,8 @@ return {
         tickLabelFrequency: parseInt(attr.ticklabelfrequency?attr.ticklabelfrequency:5),
         pointLabels: attr.pointlabels,
         width: elem.width(),
-        height: elem.height()
+        height: elem.height(),
+        showLabels: attr.showlabels
     };
     function generateCanvasId(){
         var canvasId = Math.random().toString(36).substring(7);

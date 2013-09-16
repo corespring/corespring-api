@@ -154,13 +154,7 @@ class ItemSessionTest extends BaseTest {
       itemSession.begin(session)
       itemSession.process(session, DummyXml)
 
-      itemSession.findOneById(session.id) match {
-        case Some(s) => {
-          s.isFinished === true
-        }
-        case _ => failure
-      }
-      true === true
+      itemSession.findOneById(session.id).get.isFinished === true
     }
 
     "automatically finish an item if the max number of attempts has been reached" in {
@@ -286,7 +280,39 @@ class ItemSessionTest extends BaseTest {
         }
       }
     }
+    "return session outcome with overall score" in{
 
+      val xml = <assessmentItem>
+        <responseDeclaration identifier="q1" cardinality="single" baseType="identifier">
+          <correctResponse>
+            <value>q1Answer</value>
+          </correctResponse>
+        </responseDeclaration>
+        <responseDeclaration identifier="q2" cardinality="single" baseType="identifier">
+          <correctResponse>
+            <value>q2Answer</value>
+          </correctResponse>
+        </responseDeclaration>
+        <itemBody>
+          <choiceInteraction responseIdentifier="q1"></choiceInteraction>
+          <choiceInteraction responseIdentifier="q2"></choiceInteraction>
+        </itemBody>
+      </assessmentItem>
+
+      val session = ItemSession(itemId = genItemId)
+      session.responses = Seq(
+        StringResponse("q1", "q1Answer"),
+        StringResponse("q2", "wrong"))
+
+      itemSession.save(session)
+      itemSession.process(session, xml) match {
+        case Left(e) => failure("error: " + e.message)
+        case Right(s) => {
+          s.outcome must beSome
+          s.outcome.get.score must equalTo(0.5)
+        }
+      }
+    }
     "add a dateModified value" in {
       val session = ItemSession(
         itemId = genItemId,
@@ -312,6 +338,30 @@ class ItemSessionTest extends BaseTest {
         case Left(e) => failure("error: " + e.message)
         case Right(s) => {
           s.dateModified === session.finish
+        }
+      }
+    }
+
+    "if nonSubmit is set to true, don't count as a submission" in {
+      val session = ItemSession(
+        itemId = genItemId,
+        settings = new ItemSessionSettings(maxNoOfAttempts = 0, allowEmptyResponses = true))
+      //Allow multiple attempts
+      itemSession.save(session)
+      session.responses = Seq(StringResponse("winterDiscontent", "york"))
+      itemSession.process(session, MockXml.AllItems, true) match {
+        case Left(e) => failure("error: " + e.message)
+        case Right(s) => {
+          session.attempts === 0
+          session.isFinished === false
+        }
+      }
+      session.responses = Seq(StringResponse("winterDiscontent", "blergl"))
+      itemSession.process(session, MockXml.AllItems, true) match {
+        case Left(e) => failure("error: "+e.message)
+        case Right(s) => {
+          println(Json.toJson(s).toString())
+          s.responses.exists(r => r.id == "winterDiscontent" && r.value == "blergl") === true
         }
       }
     }
@@ -374,7 +424,7 @@ class ItemSessionTest extends BaseTest {
 
       val (score, maxScore) = itemSession.getTotalScore(session)
 
-      score === 2.0
+      score === 0.5
       maxScore === 7.0
     }
 
@@ -390,8 +440,8 @@ class ItemSessionTest extends BaseTest {
           case _ => failure("can't find item with Id " + id)
         }
       }
-      assertScore("515594f4e4b05a52e550d41a", 2.0, 7.0)
-      assertScore("5155a5965c2a32164f2d5046", 1.0, 7.0)
+      assertScore("515594f4e4b05a52e550d41a", 0.5714285714285714, 7.0)
+      assertScore("5155a5965c2a32164f2d5046", 0.14285714285714285, 7.0)
       assertScore("5155a8e6ed0db8d2dd136e85", 1.0, 1.0)
     }
   }

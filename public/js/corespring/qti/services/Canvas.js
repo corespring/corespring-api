@@ -29,6 +29,7 @@ angular.module('qti.services').factory('Canvas', function () {
     this.texts = [];
     this.shapes = [];
     this.scale = attrs.scale;
+    this.showLabels = attrs.showLabels=="true"
     if(attrs.pointLabels){
       this.pointLabels = attrs.pointLabels;
     } else {
@@ -74,26 +75,28 @@ angular.module('qti.services').factory('Canvas', function () {
     var pointAttrs = {strokeColor: "blue", fillColor: "blue", snapToGrid: true, snapSizeX: this.scale, snapSizeY: this.scale, showInfobox: false, withLabel:false};
     var point = this.board.create('point', [coords.x, coords.y], pointAttrs);
     this.points.push(point);
-    var name = (function(labels,points){
-      if(ptName){
-          return ptName;
-      } else if(typeof labels === "string"){
-        if(labels === "numbers"){
-          return points.length+".";
-        } else if(labels === "letters"){
-          return point.name;
-        } else{
-          return labels.split(",")[points.length-1];
-        }
-      }
-    })(this.pointLabels, this.points);
-    //in order to get correct offset for text, we must find origin point and offset by screen coordinates,
-    //then apply the offset to the point coordinates to get the correct position of text
-    var origin = new JXG.Coords(JXG.COORDS_BY_USER, [0, 0], this.board);
-    var offset = new JXG.Coords(JXG.COORDS_BY_SCREEN, [origin.scrCoords[1]-22, origin.scrCoords[2]-15], this.board);
-    var text = this.board.create('text', [function(){return point.X()+offset.usrCoords[1];}, function(){return point.Y()+offset.usrCoords[2];},
-      function () { return name+' ('+point.X()+','+point.Y()+')'; }], {fixed: true});
-    this.texts.push(text);
+    if(this.showLabels){
+        var name = (function(labels,points){
+          if(ptName){
+              return ptName;
+          } else if(typeof labels === "string"){
+            if(labels === "numbers"){
+              return points.length+".";
+            } else if(labels === "letters"){
+              return point.name;
+            } else{
+              return labels.split(",")[points.length-1];
+            }
+          }
+        })(this.pointLabels, this.points);
+        //in order to get correct offset for text, we must find origin point and offset by screen coordinates,
+        //then apply the offset to the point coordinates to get the correct position of text
+        var origin = new JXG.Coords(JXG.COORDS_BY_USER, [0, 0], this.board);
+        var offset = new JXG.Coords(JXG.COORDS_BY_SCREEN, [origin.scrCoords[1]-22, origin.scrCoords[2]-15], this.board);
+        var text = this.board.create('text', [function(){return point.X()+offset.usrCoords[1];}, function(){return point.Y()+offset.usrCoords[2];},
+          function () { return name+' ('+point.X()+','+point.Y()+')'; }], {fixed: true});
+        this.texts.push(text);
+    }
     return point;
   };
 
@@ -140,7 +143,9 @@ angular.module('qti.services').factory('Canvas', function () {
   Canvas.prototype.changePointColor = function(point, color){
     point.setAttribute({fillColor: color, strokeColor: color})
     var index = _.indexOf(_.map(this.points,function(p){return p.id}), point.id)
-    this.texts[index].setAttribute({strokeColor: color})
+    if(this.texts[index]){ //check to see if exists as labels may be disabled
+        this.texts[index].setAttribute({strokeColor: color})
+    }
   }
   Canvas.prototype.changeShapeColor = function(shape, color){
     shape.setAttribute({strokeColor: color})

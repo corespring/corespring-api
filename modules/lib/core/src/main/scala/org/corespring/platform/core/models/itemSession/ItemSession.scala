@@ -18,6 +18,7 @@ import scala.xml._
 import se.radley.plugin.salat._
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
+import scalaz.{Failure, Success}
 
 /**
  * Case class representing an individual item session
@@ -27,6 +28,7 @@ case class ItemSession(var itemId: VersionedId[ObjectId],
   var start: Option[DateTime] = None,
   var finish: Option[DateTime] = None,
   var responses: Seq[Response] = Seq(),
+  var outcome:Option[SessionOutcome] = None,
   var id: ObjectId = new ObjectId(),
   var feedbackIdLookup: Seq[FeedbackIdMapEntry] = Seq(),
   var sessionData: Option[SessionData] = None,
@@ -77,7 +79,11 @@ object ItemSession {
         Seq(finish -> JsNumber(f.getMillis), "isFinished" -> JsBoolean(true))
       }).getOrElse(Seq())
 
-      JsObject(main ++ sessionDataSeq ++ startedSeq ++ finishSeq)
+      val outcome: Seq[(String, JsValue)] = session.outcome.map(o => {
+        Seq("outcome" -> Json.toJson(o))
+      }).getOrElse(Seq())
+
+      JsObject(main ++ sessionDataSeq ++ startedSeq ++ finishSeq ++ outcome)
     }
   }
 
@@ -212,13 +218,18 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
   private def updateFromDbo(id: ObjectId, dbo: DBObject, additionalProcessing: (ItemSession => Unit) = (s) => ()): Either[InternalError, ItemSession] = {
     try {
       logger.debug(this + ":: update into : " + this.collection.getFullName())
-      update(unfinishedSession(id), dbo, false, false, collection.writeConcern)
-      findOneById(id) match {
-        case Some(session) => {
-          additionalProcessing(session)
-          Right(session)
+      //TODO: only update session if date modified is greater than date modified in db
+      val wr = update(unfinishedSession(id), dbo, false, false, collection.writeConcern)
+      if(wr.getN() == 0){
+        Left(InternalError("no open session could be updated"))
+      } else {
+        findOneById(id) match {
+          case Some(session) => {
+            additionalProcessing(session)
+            Right(session)
+          }
+          case None => Left(InternalError("could not find session that was just updated"))
         }
-        case None => Left(InternalError("could not find session that was just updated"))
       }
     } catch {
       case e: SalatDAOUpdateError => Left(InternalError("error updating item session: " + e.getMessage))
@@ -236,7 +247,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    * @param xmlWithCsFeedbackIds
    * @return
    */
-  def process(update: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem): Either[InternalError, ItemSession] = withDbSession(update) {
+  def process(update: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem, nonSubmit:Boolean = false): Either[InternalError, ItemSession] = withDbSession(update) {
     dbSession =>
 
       if (dbSession.isFinished) {
@@ -246,33 +257,39 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
         val dbo: BasicDBObject = new BasicDBObject()
 
         if (!dbSession.isStarted) dbo.put(start, new DateTime())
-        if (update.isFinished) dbo.put(finish, update.finish.get)
-        if (!update.responses.isEmpty) dbo.put(responses, update.responses.map(grater[Response].asDBObject(_)))
+        val attempts = if(!nonSubmit) dbSession.attempts + 1 else dbSession.attempts
 
-        dbo.put(dateModified, if (update.isFinished) update.finish.get else new DateTime())
-
-        val dboUpdate = MongoDBObject(("$set", dbo), ("$inc", MongoDBObject(("attempts", 1))))
-
-        def isMaxAttemptsExceeded(session: ItemSession): Boolean = {
-          val max = session.settings.maxNoOfAttempts
-          max != 0 && session.attempts >= max
+        if (!nonSubmit && update.isFinished){
+          dbo.put(finish, update.finish.get)
+          dbo.put(dateModified, update.finish.get)
+        } else{
+          dbo.put(dateModified, new DateTime())
         }
 
-        def isTopScore(score: Score) = (score._1 / score._2) == 1
+        if (!update.responses.isEmpty) dbo.put(responses, update.responses.map(grater[Response].asDBObject(_)))
+        dbo.put("attempts", attempts)
+        val dboUpdate = MongoDBObject(("$set", dbo))
 
         updateFromDbo(update.id, dboUpdate, (u) => {
-          val qtiItem = QtiItem(xmlWithCsFeedbackIds)
-          u.responses = Score.scoreResponses(u.responses, qtiItem)
-          val score: Score = (correctResponseCount(u.responses), Score.getMaxScore(qtiItem))
-
-          if (isMaxAttemptsExceeded(u) || isTopScore(score)) {
-            u.finish = Some(new DateTime())
-            u.dateModified = u.finish
-            save(u)
+          if(!nonSubmit){
+            val qtiItem = QtiItem(xmlWithCsFeedbackIds)
+            val sessionOutcome = SessionOutcome.processSessionOutcome(u,qtiItem)
+            sessionOutcome match {
+              case Success(so) => {
+                u.outcome = Some(so)
+                if (so.isComplete) {
+                  if(!u.isFinished){
+                    u.finish = Some(new DateTime())
+                    u.dateModified = u.finish
+                  }
+                  save(u)
+                }
+                //TODO: We need to be careful with session data - you can't persist it
+                u.sessionData = Some(SessionData(qtiItem, u))
+              }
+              case Failure(error) => Left(error)
+            }
           }
-
-          //TODO: We need to be careful with session data - you can't persist it
-          u.sessionData = Some(SessionData(qtiItem, u))
         })
 
       }
@@ -294,15 +311,17 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
 
     val qti = QtiItem(xml)
     session.responses = Score.scoreResponses(session.responses, qti)
-
-    val sessionScore = correctResponseCount(session.responses)
-    (sessionScore, Score.getMaxScore(qti))
+    val maxScore = Score.getMaxScore(qti)
+    val sessionScore = totalScore(session.responses, maxScore)
+    (sessionScore, maxScore)
   }
 
-  def correctResponseCount(responses: Seq[Response]): Double = {
-    val outcomes: Seq[ResponseOutcome] = responses.map(_.outcome).flatten
-    val outcomesCorrect = outcomes.map(_.isCorrect)
-    outcomesCorrect.filter(_ == true).length
+  private def totalScore(responses: Seq[Response], scoreableResponses:Int): Double = {
+    val sum = responses.foldRight[Double](0)((r,acc) => {
+      acc + r.outcome.map(_.score.toDouble).getOrElse(0.toDouble)
+    })
+    val average = sum / scoreableResponses
+    return average
   }
 
   /**

@@ -35,7 +35,6 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
 
         case _ => NotFound
       }
-
   }
 
   private def aggregateSessions(sessionIds: Seq[String]): Map[String, ResponseAggregate] = {
@@ -231,12 +230,13 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
                 fromJson[ItemSession](jsonSession) match {
                   case JsSuccess(clientSession, _) =>
                     {
+                      val nonSubmit = (jsonSession \ "nonSubmit").asOpt[Boolean].getOrElse(false)
                       dbSession.finish = clientSession.finish
                       dbSession.responses = clientSession.responses
 
                       itemSession.getXmlWithFeedback(dbSession) match {
                         case Right(xmlWithCsFeedbackIds) => {
-                          itemSession.process(dbSession, xmlWithCsFeedbackIds) match {
+                          itemSession.process(dbSession, xmlWithCsFeedbackIds,nonSubmit) match {
                             case Right(newSession) => {
                               val json = toJson(newSession)
                               logger.debug("[processResponse] successful")

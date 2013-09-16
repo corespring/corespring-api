@@ -1,17 +1,17 @@
-@(name:String = "itemData")
+@(name:String = "itemData", itemId: Option[String] = None)
 <div class="container profile">
-    <div class="item-type">Task</div>
-    <br/>
-
+    <p class="title" ng-bind-html-unsafe='@(name + ".title")'/>
 
     <table>
-
+        <tr>
+            <td colspan="3" class="key-label">Item Id: <span class="key-value">@itemId</span></td>
+        </tr>
         <tr>
             <td width="120px" class="key-label">Grade:
-            <span class="key-value">
-                <span ng-show='@("!" + name + ".gradeLevel")' style="color: #888; font-style: italic;">Not Assigned</span>
-                {{ @(name + ".gradeLevel.join(', ') ") }}
-             </span>
+                <span class="key-value">
+                    <span ng-show='@("!" + name + ".gradeLevel")' style="color: #888; font-style: italic;">Not Assigned</span>
+                    {{ @(name + ".gradeLevel.join(', ') ") }}
+                </span>
             </td>
             <td width="300px" class="key-label">CCSS:
                 <span class="key-value">
@@ -28,12 +28,6 @@
                  </span>
             </td>
         </tr>
-
-    </table>
-
-    <p class="title" ng-bind-html-unsafe='@(name + ".title")'/>
-
-    <table width="100%">
         <tr>
             <td class="key-label" width="50%">Primary Subject<br/>
                 <span class="key-value">

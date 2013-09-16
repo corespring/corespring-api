@@ -28,39 +28,36 @@
 <body>
 
     <div class="itemProfile">
-        <div ng-controller="ProfileController" >
+        <div ng-controller="ProfileController">
 
             @if(tab=="") {
-            <div class="sub-nav" style="position: relative">
-                <div class="container" style="width: 600px;">
-                    <div class="row">
-                        <ul class="nav nav-tabs">
+                <div class="sub-nav" style="position: relative">
+                    <div class="container" style="width: 600px;">
+                        <div class="row">
+                            <ul class="nav nav-tabs">
 
-                            <li ng-class="{true: 'active', false:''}[currentPanel=='profile']">
-                                <a ng-click="changePanel('profile')"> Profile </a>
-                            </li>
+                                <li ng-class="{true: 'active', false:''}[currentPanel=='profile']">
+                                    <a ng-click="changePanel('profile')"> Profile </a>
+                                </li>
 
-                            <li ng-class="{true:'active', false:''}[currentPanel=='item']">
-                                <a ng-click="changePanel('item')"> Preview </a>
-                            </li>
+                                <li ng-class="{true:'active', false:''}[currentPanel=='item']">
+                                    <a ng-click="changePanel('item')"> Preview </a>
+                                </li>
 
-                            <li ng-repeat="sm in itemData.supportingMaterials"
-                            ng-class="{true: 'active', false:''}[currentSm==sm]">
-                                <a ng-click="changeSupportingMaterialPanel(sm)">
-                                        {{sm.name}} </a>
-                            </li>
+                                <li ng-repeat="sm in itemData.supportingMaterials"
+                                  ng-class="{true: 'active', false:''}[currentSm==sm]">
+                                    <a ng-click="changeSupportingMaterialPanel(sm)">{{sm.name}}</a>
+                                </li>
+                                <li class="prev-print">
+                                    <a class="prev-print" ng-click="printCurrent()">
+                                        <img src="/assets/images/print.png" alt="Print"/>
+                                    </a>
+                                </li>
 
-
-                            <li class="prev-print">
-                                <a class="prev-print" ng-click="printCurrent()">
-                                    <img src="/assets/images/print.png" alt="Print"/>
-                                </a>
-                            </li>
-
-                        </ul>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-            </div>
             }
 
             <div id='itemView' class="iframe-600-centered" ng-show="currentPanel=='item'" ng-controller='QtiAppController' show-when-loaded hide-when-loaded="#preloader">
@@ -90,7 +87,7 @@
 
             <div id='profileView' ng-show="currentPanel=='profile'" class="preview-container">
                 <div class="container" style="width: 100%">
-                    @web.views.html.partials._viewItem.corespringData()
+                    @web.views.html.partials._viewItem.corespringData(itemId = params.itemId)
                     @web.views.html.partials._viewItem.history()
                 </div>
             </div>

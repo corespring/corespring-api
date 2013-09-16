@@ -17,17 +17,19 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.xml._
 import org.corespring.platform.core.services.item.ItemServiceImpl
+import tests.helpers._
+import play.api.libs.json.JsSuccess
+import scala.Some
+import play.api.libs.json.JsObject
+import tests.helpers.models.{CollectionHelper, ItemHelper}
 
 class ItemApiTest extends BaseTest with Mockito {
 
   val mockS3service = mock[CorespringS3Service]
 
-
   val ItemRoutes = api.v1.routes.ItemApi
 
-  //TODO: We shouldn't be depending on a magic number here
-  //We should seed our own collection instead so we have complete control over the data.
-  val allItemsCount = 26
+  val DefaultPageSize = 50
 
   def assertBasics(result: Result): List[org.specs2.execute.Result] = {
     List(
@@ -68,25 +70,24 @@ class ItemApiTest extends BaseTest with Mockito {
     val Some(result) = route(fakeRequest)
     assertResult(result)
     val items = parsed[List[JsValue]](result)
-    items.size must beEqualTo(allItemsCount)
-  }//.pendingUntilFixed("magic number issues again")
+    items.size must beEqualTo(List(ItemHelper.publicCount, DefaultPageSize).min)
+  }
 
-"list items in a collection" in {
-  val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s".format(token))
-  val Some(result) = route(fakeRequest)
-  assertResult(result)
-  val items = parsed[List[JsValue]](result)
-  items.size must beEqualTo(allItemsCount)
-}//.pendingUntilFixed("magic number issues again")
+  "list items in a collection" in new FixtureData {
+    val fakeRequest = FakeRequest(GET, s"""/api/v1/collections/$collectionId/items?access_token=$accessToken""")
+    val Some(result) = route(fakeRequest)
+    assertResult(result)
+    val items = parsed[List[JsValue]](result)
+    items.size must beEqualTo(itemIds.length)
+  }
 
   "list all items skipping 3" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&sk=3".format(token))
     val Some(result) = route(fakeRequest)
     assertResult(result)
     val items = parsed[List[JsValue]](result)
-    items.size must beEqualTo(allItemsCount - 3)
-}//.pendingUntilFixed("magic number issues again")
-
+    items.size must beEqualTo(List(ItemHelper.publicCount - 3, DefaultPageSize).min)
+  }
   "list items limiting result to 2" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&l=2".format(token))
     val Some(result) = route(fakeRequest)
