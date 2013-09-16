@@ -130,12 +130,16 @@ angular.module('qti.directives').directive('assessmentitem', function() {
             };
 
             var that = this;
-            $scope.$on("submitItem", function() {
-              that.submitResponses();
+            $scope.$on("submitItem", function(event,opts) {
+              if(opts && opts.nonSubmit){
+                that.submitResponses(true)
+              } else {
+                that.submitResponses();
+              }
             });
 
             // this is the function that submits the user responses and gets the outcomes
-            this.submitResponses = function() {
+            this.submitResponses = function(nonSubmit) {
                 if ($scope.formSubmitted) return;
 
 
@@ -148,6 +152,8 @@ angular.module('qti.directives').directive('assessmentitem', function() {
                 $scope.$broadcast('resetUI');
 
                 $scope.itemSession.responses = $scope.responses;
+
+                if(nonSubmit) $scope.itemSession.nonSubmit = true;
 
                 if ($scope.finalSubmit) $scope.itemSession.finish = new Date().getTime();
 
