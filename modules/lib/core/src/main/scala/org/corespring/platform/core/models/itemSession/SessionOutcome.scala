@@ -62,7 +62,7 @@ object SessionOutcome extends ClassLogging {
     return average
   }
 
-  implicit object SOReads extends Writes[SessionOutcome] {
+  implicit object SOWrites extends Writes[SessionOutcome] {
     def writes(outcome: SessionOutcome): JsValue = {
       JsObject(
         Seq(
