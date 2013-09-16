@@ -68,13 +68,13 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemSer
   private def getFile(itemId: String, resourceName: String, filename: Option[String] = None): Action[AnyContent] =
     {
       import VersionedIdImplicits.Binders._
-
+      val decodedFilename = filename.map(java.net.URI.create(_).getPath)
       val out = for {
         oid <- stringToVersionedId(itemId).toSuccess(Errors.invalidObjectId)
         item <- itemService.findOneById(oid).toSuccess(Errors.cantFindItem)
         dr <- getResource(item, resourceName).toSuccess(Errors.cantFindResource)
         (isItemDataResource, resource) = dr
-        name <- (filename orElse resource.defaultFile.map(_.name)).toSuccess(Errors.noFilenameSpecified)
+        name <- (decodedFilename orElse resource.defaultFile.map(_.name)).toSuccess(Errors.noFilenameSpecified)
         file <- resource.files.find(_.name == name).toSuccess(Errors.cantFindFileWithName + name)
         action <- renderFile(item, isItemDataResource, file).toSuccess(Errors.cantRender)
       } yield action
