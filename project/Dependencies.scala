@@ -11,7 +11,7 @@ object Dependencies {
   val playTest = "play" %% "play-test" % playVersion
 
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
-  val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-00c0972"
+  val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-c919f28"
   val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.5-3f2edcd"
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.3.0"
@@ -26,7 +26,13 @@ object Dependencies {
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.2"
-  val assetsLoader = "com.ee" %% "assets-loader" % "0.10.1-8ab100a"
+
+  // TODO: temporary solution: taking out yui which is used for css minification as it breaks
+  // dependencies for corespring-qti. This needs to be sorted out properly!
+
+  val assetsLoader = ("com.ee" %% "assets-loader" % "0.10.1-8ab100a")
+    .exclude("com.yahoo.platform.yui", "yuicompressor")
+
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.3-SNAPSHOT"
