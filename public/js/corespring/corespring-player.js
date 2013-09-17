@@ -236,9 +236,9 @@
      **/
     this.submitItem = function (opts) {
       try {
-        var message = {"message": "submitItem"}
+        var message = {"message": "submitItem"};
         if(opts){
-            message = _.extend(message,opts)
+            message = _.extend(message,opts);
         }
         window.postMessage(JSON.stringify(message), "*");
         return true;
