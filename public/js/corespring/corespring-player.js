@@ -229,15 +229,18 @@
       error("Need to specify either itemId or sessionId in options", com.corespring.players.errors.NEED_ITEMID_OR_SESSIONID);
       return;
     }
-
     /**
      * programmatically submits the item
      *
      * @returns true if successfully submitted, false if error
      **/
-    this.submitItem = function () {
+    this.submitItem = function (opts) {
       try {
-        e.find('iframe')[0].contentWindow.postMessage("{\"message\": \"submitItem\"}", "*");
+        var message = {"message": "submitItem"};
+        if(opts){
+            message = _.extend(message,opts);
+        }
+        window.postMessage(JSON.stringify(message), "*");
         return true;
       } catch (e) {
         return false;

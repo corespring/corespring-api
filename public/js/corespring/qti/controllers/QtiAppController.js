@@ -6,7 +6,7 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
     var obj = JSON.parse(e.data);
 
     if (obj.message === "submitItem") {
-      $scope.$broadcast("submitItem");
+      $scope.$broadcast("submitItem",obj);
     }
 
     if (obj.message === "update") {
