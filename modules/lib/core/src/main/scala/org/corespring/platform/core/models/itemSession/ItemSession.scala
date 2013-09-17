@@ -247,7 +247,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    * @param xmlWithCsFeedbackIds
    * @return
    */
-  def process(update: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem, nonSubmit:Boolean = false): Either[InternalError, ItemSession] = withDbSession(update) {
+  def process(update: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem, isAttempt:Boolean = true): Either[InternalError, ItemSession] = withDbSession(update) {
     dbSession =>
 
       if (dbSession.isFinished) {
@@ -257,9 +257,9 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
         val dbo: BasicDBObject = new BasicDBObject()
 
         if (!dbSession.isStarted) dbo.put(start, new DateTime())
-        val attempts = if(!nonSubmit) dbSession.attempts + 1 else dbSession.attempts
+        val attempts = if(isAttempt) dbSession.attempts + 1 else dbSession.attempts
 
-        if (!nonSubmit && update.isFinished){
+        if (isAttempt && update.isFinished){
           dbo.put(finish, update.finish.get)
           dbo.put(dateModified, update.finish.get)
         } else{
@@ -271,7 +271,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
         val dboUpdate = MongoDBObject(("$set", dbo))
 
         updateFromDbo(update.id, dboUpdate, (u) => {
-          if(!nonSubmit){
+          if(isAttempt){
             val qtiItem = QtiItem(xmlWithCsFeedbackIds)
             val sessionOutcome = SessionOutcome.processSessionOutcome(u,qtiItem)
             sessionOutcome match {

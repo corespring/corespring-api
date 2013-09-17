@@ -234,18 +234,23 @@
      *
      * @returns true if successfully submitted, false if error
      **/
-    this.submitItem = function (opts) {
+    this.submitItem = function () {
       try {
-        var message = {"message": "submitItem"};
-        if(opts){
-            message = _.extend(message,opts);
-        }
-        window.postMessage(JSON.stringify(message), "*");
+        window.postMessage(JSON.stringify({"message": "submitItem"}), "*");
         return true;
       } catch (e) {
         return false;
       }
     };
+
+    this.saveResponses = function(){
+      try{
+        window.postMessage(JSON.stringify({"message":"submitItem","isAttempt":false}), "*");
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
 
     var playerRenderFunction = iframePlayerStrategy;
     playerRenderFunction(e, options);
