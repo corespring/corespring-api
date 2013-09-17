@@ -735,27 +735,22 @@ callback(null,encrypted+"--"+new Buffer(iv).toString('hex'));
 
 <h3>Methods</h3>
 
-<h4>submitItem(opts)</h4>
+<h4>submitItem()</h4>
 
 <p>Can be called as an alternative to the user clicking the 'Submit' button for the item.</p>
 
-<p>Parameters:</p>
+<h4>saveResponses()</h4>
 
-<ul>
-<li>opts: optional JSON object of properties to be appended to the submitted session. For example, submitting the item without counting it as a submission would look like:</li>
-</ul>
+<p>Can be called to save responses without counting as a submission</p>
 
-
-<div class="highlight"><pre><code class="javascript"><span class="nx">player</span><span class="p">.</span><span class="nx">submitItem</span><span class="p">({</span><span class="nx">nonSubmit</span><span class="o">:</span> <span class="kc">true</span><span class="p">});</span>
-</code></pre>
-</div>
-
-
-<p>Full Example:</p>
+<p>Example:</p>
 
 <div class="highlight"><pre><code class="javascript">    <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span>
       <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;cs-item-player&#39;</span><span class="p">),</span> <span class="p">{});</span>
 
+    <span class="c1">//save responses</span>
+    <span class="nx">player</span><span class="p">.</span><span class="nx">saveResponses</span><span class="p">();</span>
+    
     <span class="c1">//submit the current session. </span>
     <span class="nx">player</span><span class="p">.</span><span class="nx">submitItem</span><span class="p">();</span>
 </code></pre>
@@ -1539,7 +1534,7 @@ wanted to display only itemType and sort alphabetically in ascending order:</p>
 
 <hr />
 
-<p>date:  09/17/2013 03:55PM</p>
+<p>date:  09/17/2013 05:48PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
