@@ -230,13 +230,13 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
                 fromJson[ItemSession](jsonSession) match {
                   case JsSuccess(clientSession, _) =>
                     {
-                      val nonSubmit = (jsonSession \ "nonSubmit").asOpt[Boolean].getOrElse(false)
+                      val isAttempt = (jsonSession \ "isAttempt").asOpt[Boolean].getOrElse(true)
                       dbSession.finish = clientSession.finish
                       dbSession.responses = clientSession.responses
 
                       itemSession.getXmlWithFeedback(dbSession) match {
                         case Right(xmlWithCsFeedbackIds) => {
-                          itemSession.process(dbSession, xmlWithCsFeedbackIds,nonSubmit) match {
+                          itemSession.process(dbSession, xmlWithCsFeedbackIds,isAttempt) match {
                             case Right(newSession) => {
                               val json = toJson(newSession)
                               logger.debug("[processResponse] successful")
