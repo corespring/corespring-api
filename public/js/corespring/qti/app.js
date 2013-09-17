@@ -132,7 +132,7 @@ angular.module('qti.directives').directive('assessmentitem', function() {
             var that = this;
             $scope.$on("submitItem", function(event,opts) {
               if(opts && opts.nonSubmit){
-                that.submitResponses(true)
+                that.submitResponses(true);
               } else {
                 that.submitResponses();
               }
