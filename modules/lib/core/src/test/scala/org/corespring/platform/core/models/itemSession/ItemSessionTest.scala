@@ -342,14 +342,14 @@ class ItemSessionTest extends BaseTest {
       }
     }
 
-    "if nonSubmit is set to true, don't count as a submission" in {
+    "if isAttempt is set to false, don't count as a submission" in {
       val session = ItemSession(
         itemId = genItemId,
         settings = new ItemSessionSettings(maxNoOfAttempts = 0, allowEmptyResponses = true))
       //Allow multiple attempts
       itemSession.save(session)
       session.responses = Seq(StringResponse("winterDiscontent", "york"))
-      itemSession.process(session, MockXml.AllItems, true) match {
+      itemSession.process(session, MockXml.AllItems, false) match {
         case Left(e) => failure("error: " + e.message)
         case Right(s) => {
           session.attempts === 0
@@ -357,7 +357,7 @@ class ItemSessionTest extends BaseTest {
         }
       }
       session.responses = Seq(StringResponse("winterDiscontent", "blergl"))
-      itemSession.process(session, MockXml.AllItems, true) match {
+      itemSession.process(session, MockXml.AllItems, false) match {
         case Left(e) => failure("error: "+e.message)
         case Right(s) => {
           println(Json.toJson(s).toString())

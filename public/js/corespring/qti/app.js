@@ -131,15 +131,15 @@ angular.module('qti.directives').directive('assessmentitem', function() {
 
             var that = this;
             $scope.$on("submitItem", function(event,opts) {
-              if(opts && opts.nonSubmit){
-                that.submitResponses(true);
+              if(opts && !opts.isAttempt){
+                that.submitResponses(false);
               } else {
                 that.submitResponses();
               }
             });
 
             // this is the function that submits the user responses and gets the outcomes
-            this.submitResponses = function(nonSubmit) {
+            this.submitResponses = function(isAttempt) {
                 if ($scope.formSubmitted) return;
 
 
@@ -153,7 +153,7 @@ angular.module('qti.directives').directive('assessmentitem', function() {
 
                 $scope.itemSession.responses = $scope.responses;
 
-                if(nonSubmit) $scope.itemSession.nonSubmit = true;
+                if(!isAttempt) $scope.itemSession.isAttempt = false;
 
                 if ($scope.finalSubmit) $scope.itemSession.finish = new Date().getTime();
 
