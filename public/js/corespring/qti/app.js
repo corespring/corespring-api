@@ -153,7 +153,7 @@ angular.module('qti.directives').directive('assessmentitem', function() {
 
                 $scope.itemSession.responses = $scope.responses;
 
-                if(!isAttempt) $scope.itemSession.isAttempt = false;
+                if(isAttempt === false) $scope.itemSession.isAttempt = false;
 
                 if ($scope.finalSubmit) $scope.itemSession.finish = new Date().getTime();
 
@@ -165,7 +165,6 @@ angular.module('qti.directives').directive('assessmentitem', function() {
                         $scope.formSubmitted = $scope.itemSession.isFinished;
                         if ($scope.formSubmitted) {
                             $scope.formHasIncorrect = false;
-
                             $scope.$broadcast('formSubmitted', $scope.itemSession, !areResponsesIncorrect());
                         }
                     });
