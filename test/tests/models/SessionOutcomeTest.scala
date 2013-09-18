@@ -3,7 +3,7 @@ package tests.models
 import org.specs2.mutable.Specification
 import org.corespring.qti.models.QtiItem
 import org.corespring.platform.core.models.itemSession.{ResponseProcessingOutputValidator, SessionOutcome, ItemSession}
-import org.corespring.qti.models.responses.StringResponse
+import org.corespring.qti.models.responses.{ArrayResponse, StringResponse}
 import scalaz.{Failure, Success}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.error.InternalError
@@ -332,6 +332,78 @@ class SessionOutcomeTest extends Specification {
       }
     }
 
+    "contain preprocessed Javascript for DragAndDropInteraction" in {
+      val script =
+        """
+          var score = dragDropQuestion.value.target1 == '1' ? 1 : 0;
+          score += dragDropQuestion.value.target2 == '2' ? 1 : 0;
+          var response = {
+            score: score / 2,
+            isCorrect: score == 2,
+            isComplete: score == 2,
+            dragDropQuestion: {
+              score: score / 2,
+              isCorrect: score == 2,
+              isComplete: score == 2
+            }
+          };
+          response;
+        """
+      val qtiItem = QtiItem(
+        <assessmentItem>
+          <responseProcessing type="script">
+            <script type="text/javascript">{script}</script>
+          </responseProcessing>
+          <responseDeclaration identifier='dragDropQuestion' cardinality='targeted' baseType='identifier'>
+            <correctResponse>
+              <value identifier='target1'>1</value>
+              <value identifier='target2'>2</value>
+            </correctResponse>
+          </responseDeclaration>
+          <itemBody>
+            <dragAndDropInteraction responseIdentifier='dragDropQuestion' orderMatters='true'>
+              <draggableChoice identifier='1'/>
+              <draggableChoice identifier='2'/>
+              <landingPlace cardinality='single' identifier='target1'/>
+              <landingPlace cardinality='single' identifier='target2'/>
+            </dragAndDropInteraction>
+          </itemBody>
+        </assessmentItem>
+      )
+
+      val itemSession = ItemSession(
+        itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
+        responses = Seq(ArrayResponse(id = "dragDropQuestion", responseValue = Seq("target1:1", "target2:2"))),
+        attempts = 1)
+
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+        case s: Success[InternalError, SessionOutcome] => {
+          s.getOrElse(null) match {
+            case sessionOutcome: SessionOutcome => {
+              sessionOutcome.isComplete === true
+              sessionOutcome.isCorrect === true
+              sessionOutcome.score === 1
+              sessionOutcome.identifierOutcomes match {
+                case Some(outcomes) => {
+                  outcomes.get("dragDropQuestion") match {
+                    case Some(outcome) => {
+                      outcome.isComplete === true
+                      outcome.isCorrect === true
+                      outcome.score === 1
+                      success
+                    }
+                    case _ => failure("No outcome for identifier dragDropQuestion")
+                  }
+                }
+                case None => failure("No outcomes for identifiers")
+              }
+            }
+            case _ => failure("No SessionOutcome")
+          }
+        }
+        case f: Failure[InternalError, _] => failure("There was an error processing the Javascript")
+      }
+    }
 
   }
 

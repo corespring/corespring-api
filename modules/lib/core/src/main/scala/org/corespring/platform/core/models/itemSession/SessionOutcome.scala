@@ -37,7 +37,7 @@ object SessionOutcome extends ClassLogging {
     itemSession: ItemSession,
     qtiItem: QtiItem, responseProcessing: ResponseProcessing): Validation[InternalError, SessionOutcome] = {
 
-    val response = responseProcessing.process(Map("itemSession" -> Json.toJson(itemSession)))
+    val response = responseProcessing.process(Some(Map("itemSession" -> Json.toJson(itemSession))), Some(itemSession.responses))
     ResponseProcessingOutputValidator(response, qtiItem)
   }
 
