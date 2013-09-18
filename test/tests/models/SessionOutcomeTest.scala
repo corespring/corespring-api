@@ -332,6 +332,74 @@ class SessionOutcomeTest extends Specification {
       }
     }
 
+    "contain preprocessed Javascript for InlineChoiceInteraction" in {
+      val script =
+        """
+          var score = (badStepQuestion.value == '1') ? 1 : 0;
+          var response = {
+            score: score,
+            isCorrect: score == 1,
+            isComplete: score == 1,
+            badStepQuestion: {
+              score: score,
+              isCorrect: score == 1,
+              isComplete: score == 1
+            }
+          };
+          response;
+        """
+
+      val qtiItem = QtiItem(
+        <assessmentItem>
+          <responseProcessing type="script">
+            <script type="text/javascript">{script}</script>
+          </responseProcessing>
+          <responseDeclaration identifier='badStepQuestion' cardinality='single' baseType='identifier'>
+            <correctResponse>
+              <value>1</value>
+            </correctResponse>
+          </responseDeclaration>
+          <itemBody>
+            <inlineChoiceInteraction responseIdentifier='badStepQuestion'></inlineChoiceInteraction>
+          </itemBody>
+        </assessmentItem>
+      )
+
+      val itemSession = ItemSession(
+        itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
+        responses = Seq(StringResponse(id = "badStepQuestion", responseValue = "1"))
+      )
+
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+        case s: Success[InternalError, SessionOutcome] => {
+          s.getOrElse(null) match {
+            case sessionOutcome: SessionOutcome => {
+              sessionOutcome.isComplete === true
+              sessionOutcome.isCorrect === true
+              sessionOutcome.score === 1
+              sessionOutcome.identifierOutcomes match {
+                case Some(outcomes) => {
+                  outcomes.get("badStepQuestion") match {
+                    case Some(outcome) => {
+                      outcome.isComplete === true
+                      outcome.isCorrect === true
+                      outcome.score === 1
+                      success
+                    }
+                    case _ => failure("No outcome for identifier badStepQuestion")
+                  }
+                }
+                case None => failure("No outcomes for identifiers")
+              }
+            }
+            case _ => failure
+          }
+
+        }
+        case f: Failure[InternalError, _] => failure
+      }
+    }
+
     "contain preprocessed Javascript for DragAndDropInteraction" in {
       val script =
         """
