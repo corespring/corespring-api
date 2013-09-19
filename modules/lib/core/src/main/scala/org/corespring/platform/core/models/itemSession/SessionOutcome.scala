@@ -37,15 +37,65 @@ object SessionOutcome extends ClassLogging {
     itemSession: ItemSession,
     qtiItem: QtiItem, responseProcessing: ResponseProcessing): Validation[InternalError, SessionOutcome] = {
 
-    val response = responseProcessing.process(Map("itemSession" -> Json.toJson(itemSession)))
-    ResponseProcessingOutputValidator(response, qtiItem)
+    defaultScoring(itemSession, qtiItem) match {
+      case s: Success[_, SessionOutcome] => {
+        s.getOrElse(null) match {
+          case defaultOutcome: SessionOutcome => {
+            val identifierDefaults = defaultOutcome.identifierOutcomes match {
+              case Some(outcomes) => outcomes.map({
+                case (identifier, outcome) => {
+                  identifier -> Json.obj(
+                    "outcome" -> Json.obj(
+                      "score" -> JsNumber(outcome.score),
+                      "isCorrect" -> JsBoolean(outcome.isCorrect),
+                      "isComplete" -> JsBoolean(outcome.isComplete)
+                    )
+                  )
+                }
+              })
+              case None => Map.empty
+            }
+
+            val response = responseProcessing.process(
+              Some(Map("itemSession" -> Json.toJson(itemSession)) ++ identifierDefaults), Some(itemSession.responses))
+            ResponseProcessingOutputValidator(response, qtiItem)
+          }
+          case _ => Failure(InternalError(s"Default scoring failed"))
+        }
+      }
+      case f: Failure[InternalError, SessionOutcome] => Failure(InternalError(s"Default scoring failed:\n ${f.e.message}"))
+    }
+
   }
 
   private def defaultScoring(session: ItemSession, qtiItem: QtiItem): Validation[InternalError, SessionOutcome] = {
     session.responses = Score.scoreResponses(session.responses, qtiItem)
     val maxScore = Score.getMaxScore(qtiItem)
     val score = totalScore(session.responses, maxScore)
-    SessionOutcome(score, score == 1, session.isFinished || isMaxAttemptsExceeded(session) || score == 1).success[InternalError]
+
+    SessionOutcome(
+      score = score,
+      isCorrect = score == 1,
+      isComplete = session.isFinished || isMaxAttemptsExceeded(session) || score == 1,
+      identifierOutcomes = (session.responses.length > 1) match {
+        case true => {
+          Some(
+            session.responses.map(response => {
+              response.outcome match {
+                case Some(outcome) => {
+                  val score = outcome.score.toDouble
+                  Some(response.id ->
+                    SessionOutcome(score, score == 1, session.isFinished || isMaxAttemptsExceeded(session) || score == 1, None))
+                }
+                case _ => None
+              }
+            }).flatten.toMap
+          )
+        }
+        case _ => {
+          None
+        }
+      }).success[InternalError]
   }
 
   private def isMaxAttemptsExceeded(session: ItemSession): Boolean = {
