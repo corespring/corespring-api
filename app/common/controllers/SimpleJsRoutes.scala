@@ -22,12 +22,15 @@ trait SimpleJsRoutes {
     def process(jsr: JavascriptReverseRoute): String = {
       val split = jsr.name.split("\\.").toList
       val shortName = split.last
-      val tokens = Map("functionName" -> shortName, "functionBody" -> jsr.f)
-      string.interpolate("routesObject.${functionName} = ${functionBody}\n", string.replaceKey(tokens), string.DollarRegex)
+      val functionName = shortName
+      val functionBody = jsr.f
+      s"routesObject.${functionName} = ${functionBody}\n"
     }
 
-    val test =
-      """
+
+    val routeObjectName = objectName
+    val functionsList = routes.map(process).mkString("\n")
+      s"""
        //Simple Js Routes - an alternative rendering to the standard Play Js Routes generator
        //1. Init the Play Framework functions on the global scope (so we can created extendable objects
        if( !window["_qS"] ){
@@ -51,8 +54,5 @@ trait SimpleJsRoutes {
 
        })();
       """
-    val tokens = Map("routeObjectName" -> objectName, "functionsList" -> routes.map(process).mkString("\n"))
-    string.interpolate(test, string.replaceKey(tokens), string.DollarRegex)
-
   }
 }
