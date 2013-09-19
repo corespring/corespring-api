@@ -32,7 +32,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
         try {
           logger.debug("check s3 for: " + deploymentPath)
           s3.getObject(bucket, deploymentPath)
-          val url = S3Deployer.getUrl(bucket, deploymentPath)
+          val url = S3Deployer.url(bucket, deploymentPath)
           deployed += (key -> url)
           Some(url)
         } catch {
@@ -55,7 +55,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
             metadata.setContentLength(bytes.length)
             val bytesInputStream = new ByteArrayInputStream(bytes)
             s3.putObject(bucket, deploymentPath, bytesInputStream, metadata)
-            deployed += (key -> S3Deployer.getUrl(bucket, deploymentPath))
+            deployed += (key -> S3Deployer.url(bucket, deploymentPath))
             Right(deployed.get(key).get)
           } catch {
             case e: Throwable => Left(e.getMessage)
@@ -84,7 +84,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
         case e: Throwable => {
           logger.debug("creating new bucket: " + bucket)
           s3.createBucket(bucket)
-          val text = string.interpolate(S3Deployer.policyTemplate, string.replaceKey(Map("bucket" -> bucket)), string.DollarRegex)
+          val text = S3Deployer.policyTemplate(bucket)
           val request = new SetBucketPolicyRequest(bucket, text)
           s3.setBucketPolicy(request)
         }
@@ -95,12 +95,9 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
 
 object S3Deployer {
 
-  def getUrl(bucket: String, path: String): String = {
-    val template = "s3.amazonaws.com/${bucket}/${path}"
-    "//" + string.interpolate(template, string.replaceKey(Map("bucket" -> bucket, "path" -> path)), string.DollarRegex).replaceAll("//", "/")
-  }
+  def url(bucket: String, path: String): String = "//" + s"s3.amazonaws.com/${bucket}/${path}".replaceAll("//", "/")
 
-  val policyTemplate = """{
+  def policyTemplate(bucket: String): String = s"""{
                          |  "Version":"2008-10-17",
                          |  "Statement":[{
                          |	"Sid":"AllowPublicRead",

@@ -45,13 +45,13 @@ class S3DeployerTest extends Specification {
       deployer.deploy(path, file.lastModified(), inputStream, ContentInfo(contentType = "text/javascript")) match {
         case Left(e) => failure(e)
         case Right(p) => {
-          p === S3Deployer.getUrl(bucket, prefixPath(path))
+          p === S3Deployer.url(bucket, prefixPath(path))
         }
       }
 
       deployer.deploy(path, file.lastModified(), inputStream, ContentInfo(contentType = "text/javascript"))
 
-      deployer.listAssets === Map(prefix + "/" + path + ":" + file.lastModified() -> S3Deployer.getUrl(bucket, prefixPath(path)))
+      deployer.listAssets === Map(prefix + "/" + path + ":" + file.lastModified() -> S3Deployer.url(bucket, prefixPath(path)))
       */
     }
 
@@ -69,7 +69,7 @@ class S3DeployerTest extends Specification {
         case Left(e) => failure(e)
         case Right(p) => {
           println("url: " + p)
-          p === S3Deployer.getUrl(bucket, prefixPath(path))
+          p === S3Deployer.url(bucket, prefixPath(path))
         }
       }
       */
@@ -93,7 +93,7 @@ class RemoveFileBefore(val client: AmazonS3, val bucket: String, val path: Strin
     } catch {
       case e: Throwable => {
         client.createBucket(bucket)
-        val text = string.interpolate(S3Deployer.policyTemplate, string.replaceKey(Map("bucket" -> bucket)), string.DollarRegex)
+        val text = S3Deployer.policyTemplate(bucket), string.replaceKey(Map("bucket" -> bucket)), string.DollarRegex)
         val request = new SetBucketPolicyRequest(bucket, text)
         client.setBucketPolicy(request)
       }
