@@ -5,13 +5,13 @@ object Dependencies {
   val playVersion = "2.1.3"
 
   //TODO: May need to change this
-  val playJson = "com.typesafe.play" %% "play-json" % "2.2.0-M1"
+  val playJson = "com.typesafe.play" %% "play-json" % "2.2.0-RC2"
 
   val playFramework = "play" %% "play" % playVersion
   val playTest = "play" %% "play-test" % playVersion
 
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
-  val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-c919f28"
+  val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-ceeca9e"
   val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.5-3f2edcd"
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.3.0"
