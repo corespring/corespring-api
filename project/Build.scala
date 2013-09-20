@@ -1,7 +1,6 @@
 import play.Project._
 import sbt.Keys._
 import sbt._
-import MongoDbSeederPlugin._
 
 /**
  * Note: We are getting cross-versioning errors - they don't have an impact on the build
@@ -63,6 +62,7 @@ object Build extends sbt.Build {
 
   /** Any shared test helpers in here */
   val testLib = builders.testLib("test-helpers").settings(
+    scalaVersion := ScalaVersion,
     libraryDependencies ++= Seq(specs2 % "test->compile", playFramework, playTest, salatPlay)).settings(disableDocsSettings: _*)
 
   val assets = builders.lib("assets")
@@ -118,8 +118,8 @@ object Build extends sbt.Build {
       resolvers ++= Dependencies.Resolvers.all,
       credentials += cred,
       Keys.fork.in(Test) := forkInTests,
-      scalacOptions ++= Seq("-feature", "-deprecation"),
-      (test in Test) <<= (test in Test).map(Commands.runJsTests)).settings(MongoDbSeederPlugin.newSettings ++ Seq(testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
+      scalacOptions ++= Seq("-feature", "-deprecation"))
+//      (test in Test) <<= (test in Test).map(Commands.runJsTests)).settings(MongoDbSeederPlugin.newSettings ++ Seq(testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .dependsOn(public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile")
     .aggregate(public, playerLib, core, apiUtils, commonViews, testLib).settings(disableDocsSettings: _*)
 
