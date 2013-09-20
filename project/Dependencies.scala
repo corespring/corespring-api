@@ -12,6 +12,7 @@ object Dependencies {
 
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
   val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-5aecaa8"
+  val rhinos = "com.scalapeno" %% "rhinos" % "0.6.0.corespring-7486e05-SNAPSHOT"
   val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.5-3f2edcd"
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.3.0"
