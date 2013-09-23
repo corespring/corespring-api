@@ -78,6 +78,7 @@ object Build extends sbt.Build {
       salatPlay,
       corespringQti,
       rhinos,
+      rhino,
       corespringCommonUtils,
       salatVersioningDao,
       specs2 % "test",
