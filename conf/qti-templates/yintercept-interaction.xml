@@ -11,9 +11,17 @@
 
         <p>Identify the y-intercept and x-intercept of the line y=2x+6 by marking the points on the graph.</p>
         <pointInteraction responseIdentifier="interceptTest"
-                         point-labels="y-intercept,x-intercept"
-                         additional-text="More instructions about what is required for this taks. This text can run the width of this space, then wrap and push down any content below it"
-                         max-points="2"
+                          graph-width="300px"
+                          graph-height="300px"
+                          domain="10"
+                          range="10"
+                          scale="1"
+                          range-label="y"
+                          domain-label="x"
+                          tick-label-frequency="5"
+                          point-labels="y-intercept,x-intercept"
+                          additional-text="More instructions about what is required for this taks. This text can run the width of this space, then wrap and push down any content below it"
+                          max-points="2"
                          />
 
         <feedbackBlock outcomeIdentifier="responses.interceptTest.outcome.incorrect">
