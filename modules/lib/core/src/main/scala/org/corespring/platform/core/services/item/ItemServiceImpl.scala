@@ -12,7 +12,7 @@ import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.files.{ CloneFileResult, ItemFiles }
 import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
-import org.corespring.platform.core.models.item.resource.{ VirtualFile, Resource }
+import org.corespring.platform.core.models.item.resource.{CDataHandler, VirtualFile, Resource}
 import org.corespring.platform.core.models.item.{ Item, FieldValue }
 import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, DefaultItemSession }
 import org.corespring.platform.data.mongo.SalatVersioningDao
@@ -106,7 +106,7 @@ class ItemServiceImpl(
       resource <- Some(grater[Resource].asObject(dbo.get(Item.Keys.data).asInstanceOf[DBObject]))
       mainFile <- resource.files.find(f => f.isMain && f.contentType == ContentTypes.XML)
       virtualFile: VirtualFile <- if (mainFile.isInstanceOf[VirtualFile]) Some(mainFile.asInstanceOf[VirtualFile]) else None
-    } yield scala.xml.XML.loadString(virtualFile.content)
+    } yield scala.xml.XML.loadString(CDataHandler.addCDataTags(virtualFile.content))
   }
 
   def currentVersion(id: VersionedId[ObjectId]): Option[Int] = throw new RuntimeException("to be implemented?")
