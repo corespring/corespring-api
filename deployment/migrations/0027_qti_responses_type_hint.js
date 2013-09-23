@@ -1,76 +1,34 @@
 //repackaging has taken place for corespring-qti responses - update type hints
-//org.corespring.platform.core.models.itemSession.StringItemResponse => org.corespring.platform.core.models.StringResponse
-//org.corespring.platform.core.models.itemSession.ArrayItemResponse => org.corespring.platform.core.models.ArrayResponse
+//models.itemSession.StringItemResponse => org.corespring.qti.models.responses.StringResponse
+//models.itemSession.ArrayItemResponse => org.corespring.qti.models.responses.ArrayResponse
 
 function up() {
-    var processor = function (f) {
-        var changed = false;
-        if (f._t && f._t == "org.corespring.platform.core.models.itemSession.StringItemResponse") {
-            f._t = "org.corespring.platform.core.models.StringResponse";
-            changed = true;
-        }
-        return changed;
+    db.itemsessions.update(
+        {"responses._t":"models.itemSession.StringItemResponse"},
+        {"$set":{"responses.$._t":"org.corespring.qti.models.responses.StringResponse"}},
+        {multi:true}
+    )
+    while(db.itemsessions.find({"responses._t":"models.itemSession.StringItemResponse"}).count() > 0){
+        db.itemsessions.update(
+            {"responses._t":"models.itemSession.StringItemResponse"},
+            {"$set":{"responses.$._t":"org.corespring.qti.models.responses.StringResponse"}},
+            {multi:true}
+        )
     }
-    run(processor);
+    db.itemsessions.update(
+        {"responses._t":"models.itemSession.ArrayItemResponse"},
+        {"$set":{"responses.$._t":"org.corespring.qti.models.responses.ArrayResponse"}},
+        {multi:true}
+    )
+    while(db.itemsessions.find({"responses._t":"models.itemSession.ArrayItemResponse"}).count() > 0){
+        db.itemsessions.update(
+            {"responses._t":"models.itemSession.ArrayItemResponse"},
+            {"$set":{"responses.$._t":"org.corespring.qti.models.responses.ArrayResponse"}},
+            {multi:true}
+        )
+    }
 }
 
 function down(){
-    var processor = function(f){
-        if(f._t && f._t == "org.corespring.platform.core.models.StringResponse"){
-            f._t = "org.corespring.platform.core.models.itemSession.StringItemResponse";
-            return true;
-        }
-        return false;
-    }
-    run(processor);
-}
-
-function run(processor) {
-
-    function runProcessorAgainstFiles(filesArray, processor) {
-
-        if (!filesArray) {
-            return false;
-        }
-        var changed = false;
-        for (var i = 0; i < filesArray.length; i++) {
-            var f = filesArray[i];
-            var fileChanged = processor(f);
-            if(fileChanged){
-                changed = true;
-            }
-        }
-        return changed;
-    }
-
-    var dataFile = {"data.files._t": {$exists: true}};
-    var suFile = {"supportingMaterials.files._t": {$exists: true}};
-
-    var together = { $or: [ dataFile, suFile ]};
-
-    db.content.find(together).forEach(function (i) {
-
-        var changed = false;
-
-        var fileChange = runProcessorAgainstFiles(i.data.files, processor);
-
-        if(fileChange){
-            changed = true;
-        }
-
-        if (i.supportingMaterials) {
-            for (var x = 0; x < i.supportingMaterials.length; x++) {
-                var sm = i.supportingMaterials[x];
-                var smChanged = runProcessorAgainstFiles(sm.files, processor);
-
-                if (smChanged) {
-                    changed = true;
-                }
-            }
-        }
-
-        if (changed) {
-            db.content.save(i);
-        }
-    });
+    //in the database, there are different documents with correct type hints. we don't want to modify those
 }
