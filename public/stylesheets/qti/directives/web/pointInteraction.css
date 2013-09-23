@@ -30,3 +30,22 @@
     margin-top: 5px;
     float: right;
 }
+.btn-undo{
+    width: 50px;
+    border-radius: 6px;
+    border-style: solid;
+    border-color: #999999;
+    border-width: 1px;
+}
+.btn-start-over{
+    width: 90px;
+    border-radius: 6px;
+    border-style: solid;
+    border-color: #999999;
+    border-width: 1px;
+}
+.scale-display {
+    margin-bottom: 10px;
+    float: right;
+    margin-right: 20px;
+}
