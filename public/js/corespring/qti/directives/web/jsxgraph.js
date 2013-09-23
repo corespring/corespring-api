@@ -62,7 +62,7 @@ return {
     var onPointMove = function(point, coords) {
       if(!lockGraph){
           if(coords != null) point.moveTo([coords.x, coords.y]);
-          points[point.name] = {x: point.X(), y: point.Y()};
+          points[point.name] = {x: point.X(), y: point.Y(), index: point.canvasIndex};
           scope.interactionCallback({points: points});
       }
     };

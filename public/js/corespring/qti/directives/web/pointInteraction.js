@@ -46,7 +46,8 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
     scope: true,
     require: '?^assessmentitem',
     controller: ['$scope', function($scope){
-      $scope.submissions = 0
+      $scope.submissions = 0;
+      $scope.points = {};
       this.setInitialParams = function(initialParams){
         $scope.initialParams = initialParams;
       };
@@ -82,6 +83,7 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
          return {x: px,y: py};
         }
         if(params.points){
+          $scope.points = params.points;
           $scope.pointResponse = _.map(params.points,function(coord){
             var newCoord = round(coord);
             return newCoord.x+","+newCoord.y;
@@ -147,12 +149,21 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
       });
       $scope.undo = function(){
         if(!$scope.locked){
-
+            var pointsArray = _.map($scope.points, function(point,ptName){
+                return {name: ptName, index: point.index }
+            });
+            var removeName = _.max(pointsArray,function(point){return point.index;}).name;
+            delete $scope.points[removeName]
+            if($scope.graphCallback){
+              $scope.graphCallback({points: $scope.points});
+            }
         }
       }
       $scope.startOver = function(){
         if(!$scope.locked){
-
+            if($scope.graphCallback){
+              $scope.graphCallback({points: {}});
+            }
         }
       }
     }],
