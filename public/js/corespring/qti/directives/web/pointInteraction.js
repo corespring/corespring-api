@@ -33,6 +33,11 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
     "   <div class='additional-text' ng-show='additionalText'>",
     "       <p>{{additionalText}}</p>",
     "   </div>",
+    "   <div id='scale-display' class='scale-display' ng-show='showInputs'>",
+    "       scale={{scale}}",
+    "       <button type='button' class='btn btn-default btn-undo' ng-click='undo()'>Undo</button>",
+    "       <button type='button' class='btn btn-default btn-start-over' ng-click='startOver()'>Start Over</button>",
+    "   </div>",
     "   <div class='graph-container'></div>",
     "   <div id='initialParams' ng-transclude></div>",
     "</div>"].join("\n"),
@@ -140,6 +145,16 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
           }
         }
       });
+      $scope.undo = function(){
+        if(!$scope.locked){
+
+        }
+      }
+      $scope.startOver = function(){
+        if(!$scope.locked){
+
+        }
+      }
     }],
     compile: function(element, attrs, transclude){
       var graphAttrs = {
@@ -187,6 +202,7 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
         scope.tickLabelFrequency = attrs.tickLabelFrequency
         scope.pointLabels = graphAttrs.pointLabels
         scope.maxPoints = graphAttrs.maxPoints
+        scope.showInputs = (attrs.showInputs?attrs.showInputs:'true') == 'true'
       }
     }
   }
