@@ -245,3 +245,5 @@ POST    /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearch()
 GET     /regression/:orgId/:itemSessionId/render            regression.controllers.Item.renderPlayer(orgId: ObjectId, itemSessionId: ObjectId)
 GET     /regression/:orgId/:itemId/:requestedAccess         regression.controllers.Item.simplePlayer(requestedAccess: String, orgId: ObjectId, itemId: VersionedId[ObjectId])
 
+#client logger
+POST    /logger/:logType            controllers.ClientLogger.submitLog(logType)

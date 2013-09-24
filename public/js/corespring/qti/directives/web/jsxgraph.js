@@ -1,5 +1,5 @@
 'use strict';
-angular.module('qti.directives').directive('jsxGraph', function(Canvas,QtiUtils) {
+angular.module('qti.directives').directive('jsxGraph', function(Canvas,QtiUtils,Logger) {
 return {
   template: "<div class='jxgbox' ng-style='boxStyle' style='width: 100%; height: 100%'></div>",
   restrict: 'A',
@@ -30,6 +30,7 @@ return {
     graphCallback: '='
   },
   link: function(scope, elem, attr) {
+    Logger.fatal("blergl mergl flergl")
     //global vars
     var canvasAttrs = {
         domain: parseInt(attr.domain?attr.domain:10),
