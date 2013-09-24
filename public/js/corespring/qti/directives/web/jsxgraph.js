@@ -30,7 +30,6 @@ return {
     graphCallback: '='
   },
   link: function(scope, elem, attr) {
-    Logger.fatal("blergl mergl flergl")
     //global vars
     var canvasAttrs = {
         domain: parseInt(attr.domain?attr.domain:10),

@@ -23,7 +23,12 @@ object MessageType extends Enumeration{
   }
 }
 class LogEntry(val message: String, val messageType:MessageType.MessageType, var stacktrace:Option[String] = None){
-  override def toString = s"Client.${messageType}: ${message}\nStacktrace: ${stacktrace.getOrElse("None")}"
+  override def toString = Seq(
+    s"\n***Client Log Entry***",
+    s"${messageType}: ${message}",
+    s"${stacktrace.getOrElse("")}",
+    s"***End ${new java.util.Date().toString()}***"
+  ).mkString("\n")
 }
 object LogEntry{
   def apply(message:String, strmessageType:String, stackTrace:Option[String] = None):Validation[ValidationError,LogEntry] = {
