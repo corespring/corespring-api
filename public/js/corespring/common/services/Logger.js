@@ -24,7 +24,8 @@ loadModule('corespring-services').factory('Logger', ['$resource', function($reso
         fatal: function(message){
             var trace = printStackTrace();
             trace.splice(0,5); //offset to compensate for inclusion of stacktrace.js calls and Logger.js calls within the trace
-            logger.fatal({message: message, stacktrace: trace.join("\n")})
+            if(!e)logger.fatal({message: message, stacktrace: trace.join("\n")})
+
         },
         error: function(message){
             var trace = printStackTrace();

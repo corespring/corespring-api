@@ -1,4 +1,4 @@
-package controllers
+package org.corespring.commonutils
 
 import play.api.mvc.{Request, Result, Action, Controller}
 import org.corespring.common.log.{ClassLogging, PackageLogging}

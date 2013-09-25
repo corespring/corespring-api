@@ -7,6 +7,7 @@ import play.api.mvc.AnyContentAsJson
 import play.api.libs.json.{JsString, JsObject}
 
 class ClientLoggerTest extends BaseTest{
+  def
   "submitting a log entry type fatal" should {
     "succeed with message" in {
       val json = JsObject(Seq("message" -> JsString("blergl mergl")))
@@ -28,26 +29,42 @@ class ClientLoggerTest extends BaseTest{
   }
   "submitting a log entry type error" should {
     "succeed with message" in {
-      pending
+      val json = JsObject(Seq("message" -> JsString("blergl mergl")))
+      val request = FakeRequest(POST, "/logger/error", FakeHeaders(), AnyContentAsJson(json))
+      val result = route(request).get
+      status(result) must beEqualTo(OK)
     }
     "succeed with message and stacktrace" in {
-      pending
+      val json = JsObject(Seq("message" -> JsString("blergl mergl"), "stacktrace" -> JsString("more mergl")))
+      val request = FakeRequest(POST, "/logger/error", FakeHeaders(), AnyContentAsJson(json))
+      val result = route(request).get
+      status(result) must beEqualTo(OK)
     }
     "fail without message" in {
-      pending
+      val request = FakeRequest(POST, "/logger/error", FakeHeaders(), AnyContentAsJson(JsObject(Seq())))
+      val result = route(request).get
+      status(result) must beEqualTo(BAD_REQUEST)
     }
   }
   "submitting a log entry type warn" should {
     "succeed with message" in {
-      pending
+      val json = JsObject(Seq("message" -> JsString("blergl mergl")))
+      val request = FakeRequest(POST, "/logger/warn", FakeHeaders(), AnyContentAsJson(json))
+      val result = route(request).get
+      status(result) must beEqualTo(OK)
     }
     "fail without message" in {
-      pending
+      val request = FakeRequest(POST, "/logger/warn", FakeHeaders(), AnyContentAsJson(JsObject(Seq())))
+      val result = route(request).get
+      status(result) must beEqualTo(BAD_REQUEST)
     }
   }
   "submitting a log entry type info" should {
     "succeed with message" in {
-      pending
+      val json = JsObject(Seq("message" -> JsString("blergl mergl")))
+      val request = FakeRequest(POST, "/logger/warn", FakeHeaders(), AnyContentAsJson(json))
+      val result = route(request).get
+      status(result) must beEqualTo(OK)
     }
     "fail without message" in {
       pending
@@ -58,6 +75,11 @@ class ClientLoggerTest extends BaseTest{
       pending
     }
     "fail without message" in {
+      pending
+    }
+  }
+  "submitting a log entry of any other type" should {
+    "result in error" in {
       pending
     }
   }
