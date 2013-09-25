@@ -26,7 +26,7 @@ class LogEntry(val message: String, val messageType:MessageType.MessageType, var
   override def toString = Seq(
     s"\n***Client Log Entry***",
     s"${messageType}: ${message}",
-    s"${stacktrace.getOrElse("")}",
+    s"${stacktrace.getOrElse("").split("\n").map(s => "  "+s)}",
     s"***End ${new java.util.Date().toString()}***"
   ).mkString("\n")
 }
