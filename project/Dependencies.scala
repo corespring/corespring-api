@@ -20,7 +20,7 @@ object Dependencies {
   val casbah = "com.mongodb.casbah" %% "casbah" % "2.0"
   val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.1.0"
   val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.2-b185ac1"
-  val playS3 = "org.corespring" %% "play-s3" % "0.1-e04d044"
+  val playS3 = "org.corespring" %% "play-s3" % "0.1-bea81d9"
   val playPluginMailer = "com.typesafe" %% "play-plugins-mailer" % "2.1.0"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
   val securesocial = "org.corespring" %% "securesocial" % "master-c376674"
