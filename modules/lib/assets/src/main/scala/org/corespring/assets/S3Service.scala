@@ -27,13 +27,13 @@ object EmptyS3Service extends CorespringS3Service {
 
   def online: Boolean = ???
 
-  def upload(bucket: String, keyName: String, predicate: (RequestHeader) => Option[Result]): BodyParser[String] = ???
+  def upload(bucket: String, keyName: String, predicate: (RequestHeader) => Option[Result]): BodyParser[Int] = ???
 
   def getClient = ???
 }
 
 class CorespringS3ServiceImpl(key: String, secret: String)
-  extends ConcreteS3Service(key: String, secret: String)(play.libs.Akka.system())
+  extends ConcreteS3Service(key: String, secret: String)
   with CorespringS3Service {
 
   def getClient = client
