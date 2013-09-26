@@ -236,7 +236,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
 
     "do a binary post to supporting materials Resource" in {
 
-      def call(action: Action[String], byteArray: Array[Byte], expectedStatus: Int, expectedContains: String): (Boolean, Boolean) = {
+      def call(action: Action[Int], byteArray: Array[Byte], expectedStatus: Int, expectedContains: String): (Boolean, Boolean) = {
         val iteratee: Iteratee[Array[Byte], Result] = action(FakeRequest(
           "",
           tokenize(""),
