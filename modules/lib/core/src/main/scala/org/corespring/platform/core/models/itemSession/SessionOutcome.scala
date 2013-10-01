@@ -58,7 +58,15 @@ object SessionOutcome extends ClassLogging {
 
             val response = responseProcessing.process(
               Some(Map("itemSession" -> Json.toJson(itemSession)) ++ identifierDefaults), Some(itemSession.responses))
-            ResponseProcessingOutputValidator(response, qtiItem)
+
+            response match {
+              case Some(jsObject: JsObject) => {
+                val result = Writes.writes(defaultOutcome).deepMerge(jsObject)
+                ResponseProcessingOutputValidator(result, qtiItem)
+              }
+              case _ => Failure(InternalError(s"""Response processing for item did not return a JsObject"""))
+            }
+
           }
           case _ => Failure(InternalError(s"Default scoring failed"))
         }
@@ -112,7 +120,7 @@ object SessionOutcome extends ClassLogging {
   }
 
   implicit object Writes extends Writes[SessionOutcome] {
-    def writes(outcome: SessionOutcome): JsValue = {
+    def writes(outcome: SessionOutcome): JsObject = {
       JsObject(
         Seq(
           "score" -> JsNumber(outcome.score),
