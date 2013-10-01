@@ -29,14 +29,11 @@ import scalaz.{Validation, Success, Failure}
  */
 object ResponseProcessingOutputValidator {
 
-  def apply(returnValue: Any, qtiItem: QtiItem): Validation[InternalError, SessionOutcome] = returnValue match {
-    case Some(jsObject: JsObject) => {
-      validateJsResponse(jsObject, qtiItem.responseDeclarations) match {
-        case Some(internalError) => Failure(internalError)
-        case _ => Success(SessionOutcome.fromJsObject(jsObject, Some(qtiItem.responseDeclarations)))
-      }
+  def apply(jsObject: JsObject, qtiItem: QtiItem): Validation[InternalError, SessionOutcome] = {
+    validateJsResponse(jsObject, qtiItem.responseDeclarations) match {
+      case Some(internalError) => Failure(internalError)
+      case _ => Success(SessionOutcome.fromJsObject(jsObject, Some(qtiItem.responseDeclarations)))
     }
-    case _ => Failure(InternalError(s"""Response processing for item did not return a JsObject"""))
   }
 
   private def validateJsResponse(jsValue: JsValue, responseDeclarations: Seq[ResponseDeclaration]): Option[InternalError] =
