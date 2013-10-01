@@ -10,7 +10,7 @@ object Dependencies {
   val playFramework = "play" %% "play" % playVersion
   val playTest = "play" %% "play-test" % playVersion
 
-  val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
+  val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-007f68a"
   val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-889c7fa"
   val rhinos = "com.scalapeno" %% "rhinos" % "0.6.0.corespring-08a2213-SNAPSHOT"
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
