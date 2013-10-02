@@ -11,7 +11,7 @@ import org.corespring.test.BaseTest
 import org.joda.time.DateTime
 import org.specs2.mutable._
 import play.api.libs.json._
-import play.api.mvc.{Cookie, AnyContent, AnyContentAsEmpty, AnyContentAsJson}
+import play.api.mvc._
 import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -20,6 +20,13 @@ import scala.Right
 import scala.Some
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.test.utils.RequestCalling
+import org.corespring.qti.models.responses.ArrayResponse
+import play.api.test.FakeHeaders
+import org.corespring.qti.models.responses.StringResponse
+import play.api.libs.json.JsString
+import scala.Some
+import play.api.mvc.AnyContentAsJson
+import play.api.libs.json.JsObject
 
 class ItemSessionApiTest extends BaseTest with RequestCalling {
 
@@ -156,8 +163,6 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
       val newSession = createNewSession()
       if (newSession.start.isDefined) failure else success
       val result = begin(newSession)
-      //println(".. begin..")
-      //println(result)
       if (result.start.isDefined) success else failure
     }
   }
@@ -236,16 +241,9 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
       val get = api.v1.routes.ItemSessionApi.get(versionedId(IDs.Item), s.id)
 
       val request = FakeRequest(get.method, tokenize(get.url)).withSession(
-        "player.renderOptions" -> "{\"itemId\":\"*\",\"sessionId\":\"*\",\"assessmentId\":\"*\",\"role\":\"instructor\",\"expires\":0,\"mode\":\"render\"}"
+        "player.renderOptions" -> """{"itemId":"*","sessionId":"*","assessmentId":"*","role":"instructor","expires":0,"mode":"render"}"""
       )
-      val result = route(request).get
-      val jsItemSession = Json.parse(contentAsString(result))
-      val itemSession = Json.fromJson[ItemSession](jsItemSession).get
-      DefaultItemSession.remove(itemSession)
-      (jsItemSession \ "sessionData") must beAnInstanceOf[JsObject]
-      itemSession.settings.highlightCorrectResponse must beTrue
-      itemSession.settings.highlightUserResponse must beTrue
-      itemSession.settings.showFeedback must beTrue
+      matchSettingsAndSessionData(route(request).get)
     }
   }
   "item session on update" should {
@@ -264,17 +262,19 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
           "responses" -> Json.toJson(Seq(StringResponse("mexicanPresident", "calderon"),
           StringResponse("irishPresident", "guinness"), StringResponse("winterDiscontent", "York"))))))
         .withSession(
-          "player.renderOptions" -> "{\"itemId\":\"*\",\"sessionId\":\"*\",\"assessmentId\":\"*\",\"role\":\"instructor\",\"expires\":0,\"mode\":\"render\"}"
+          "player.renderOptions" -> """{"itemId":"*","sessionId":"*","assessmentId":"*","role":"instructor","expires":0,"mode":"render"}"""
         )
-      val result = route(request).get
-      val jsItemSession = Json.parse(contentAsString(result))
-      val itemSession = Json.fromJson[ItemSession](jsItemSession).get
-      DefaultItemSession.remove(itemSession)
-      (jsItemSession \ "sessionData") must beAnInstanceOf[JsObject]
-      itemSession.settings.highlightCorrectResponse must beTrue
-      itemSession.settings.highlightUserResponse must beTrue
-      itemSession.settings.showFeedback must beTrue
+      matchSettingsAndSessionData(route(request).get)
     }
+  }
+  def matchSettingsAndSessionData(result:Result) = {
+    val jsItemSession = Json.parse(contentAsString(result))
+    val itemSession = Json.fromJson[ItemSession](jsItemSession).get
+    DefaultItemSession.remove(itemSession)
+    (jsItemSession \ "sessionData") must beAnInstanceOf[JsObject]
+    itemSession.settings.highlightCorrectResponse must beTrue
+    itemSession.settings.highlightUserResponse must beTrue
+    itemSession.settings.showFeedback must beTrue
   }
 
   /**
