@@ -328,7 +328,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    * @param id - the item session id
    * @return
    */
-  def get(id: ObjectId)( implicit includeResponsesOverride:Boolean = false): Option[ItemSession] = {
+  def get(id: ObjectId)( implicit includeResponsesOverride:Boolean): Option[ItemSession] = {
     findOneById(id) match {
       case Some(session) => Some(addExtrasIfFinished(session, addSessionData, addResponses))
       case _ => None

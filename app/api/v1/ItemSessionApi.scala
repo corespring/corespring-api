@@ -43,7 +43,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
     sessionIds.foreach {
       p =>
         val oid = new ObjectId(p)
-        itemSession.get(oid) match {
+        itemSession.get(oid)(false) match {
           case Some(session) => {
             session.responses.foreach {
               resp =>

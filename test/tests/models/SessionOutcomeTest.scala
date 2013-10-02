@@ -20,11 +20,6 @@ class SessionOutcomeTest extends Specification {
     attempts = 1)
 
   "SessionOutcome" should {
-    "be retrievable from database after persisting" in new WithApplication{
-      val sessionId = DefaultItemSession.insert(ItemSession(itemId = VersionedId(new ObjectId()), outcome = Some(SessionOutcome(1,true,true,Some(Map("blergl" -> SessionOutcome(1,true,true))))))).get
-      val itemSession = DefaultItemSession.findOneById(sessionId).get
-      itemSession.outcome.map(_.identifierOutcomes.get("blergl")) must beSome(SessionOutcome(1,true,true))
-    }
     "return default scoring with no response processing" in {
       val qtiItem =
         QtiItem(

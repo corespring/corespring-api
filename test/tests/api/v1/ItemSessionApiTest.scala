@@ -11,9 +11,7 @@ import org.corespring.test.BaseTest
 import org.joda.time.DateTime
 import org.specs2.mutable._
 import play.api.libs.json._
-import play.api.mvc.AnyContent
-import play.api.mvc.AnyContentAsEmpty
-import play.api.mvc.AnyContentAsJson
+import play.api.mvc.{Cookie, AnyContent, AnyContentAsEmpty, AnyContentAsJson}
 import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -158,8 +156,8 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
       val newSession = createNewSession()
       if (newSession.start.isDefined) failure else success
       val result = begin(newSession)
-      println(".. begin..")
-      println(result)
+      //println(".. begin..")
+      //println(result)
       if (result.start.isDefined) success else failure
     }
   }
@@ -179,7 +177,7 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
 
     def process(s: ItemSession): JsValue = {
       val result = ItemSessionApi.processResponse(s.itemId, s.id)(FakeRequest("", tokenize(""), FakeHeaders(), AnyContentAsJson(Json.toJson(s))))
-      logger.debug(s"process : : : ${contentAsString(result)}")
+      //logger.debug(s"process : : : ${contentAsString(result)}")
       Json.parse(contentAsString(result))
     }
 
@@ -198,7 +196,7 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
     "return an item session feedback contents with sessionData which contains all feedback elements in the xml which correspond to responses from client" in {
 
       val testSession = createNewSession().copy(responses = Seq(StringResponse("winterDiscontent", "York")))
-      logger.debug(s" test session : $testSession")
+      //logger.debug(s" test session : $testSession")
       val json = process(testSession)
       (json \ "sessionData" \ "feedbackContents").as[JsObject].keys.size === 1
     }
@@ -228,6 +226,55 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
       dbSession.id === session.id
     }
 
+  }
+  "item session on get" should {
+    "show correct responses even if settings says otherwise if there is render options with role=instructor" in {
+      val s = DefaultItemSession.newSession(ItemSession(start = Some(new DateTime()), finish = Some(new DateTime()), itemId = versionedId(IDs.Item),
+        settings = ItemSessionSettings(highlightCorrectResponse = false, highlightUserResponse = false, showFeedback = false),
+        responses = Seq(StringResponse("mexicanPresident", "calderon"),StringResponse("irishPresident", "guinness"),StringResponse("winterDiscontent", "York"))
+      )).right.get
+      val get = api.v1.routes.ItemSessionApi.get(versionedId(IDs.Item), s.id)
+
+      val request = FakeRequest(get.method, tokenize(get.url)).withSession(
+        "player.renderOptions" -> "{\"itemId\":\"*\",\"sessionId\":\"*\",\"assessmentId\":\"*\",\"role\":\"instructor\",\"expires\":0,\"mode\":\"render\"}"
+      )
+      val result = route(request).get
+      val jsItemSession = Json.parse(contentAsString(result))
+      val itemSession = Json.fromJson[ItemSession](jsItemSession).get
+      DefaultItemSession.remove(itemSession)
+      (jsItemSession \ "sessionData") must beAnInstanceOf[JsObject]
+      itemSession.settings.highlightCorrectResponse must beTrue
+      itemSession.settings.highlightUserResponse must beTrue
+      itemSession.settings.showFeedback must beTrue
+    }
+  }
+  "item session on update" should {
+    "show correct responses even if settings says otherwise if there is render options with role=instructor" in {
+      val s = createNewSession(content = AnyContentAsJson(Json.obj(
+        "settings" -> Json.toJson(ItemSessionSettings(highlightCorrectResponse = false, highlightUserResponse = false, showFeedback = false))
+      )))
+      val update = api.v1.routes.ItemSessionApi.update(versionedId(IDs.Item), s.id)
+
+      val request = FakeRequest(
+        update.method,
+        tokenize(update.url),
+        FakeAuthHeader,
+        AnyContentAsJson(Json.obj(
+          "itemId" -> JsString(IDs.Item),
+          "responses" -> Json.toJson(Seq(StringResponse("mexicanPresident", "calderon"),
+          StringResponse("irishPresident", "guinness"), StringResponse("winterDiscontent", "York"))))))
+        .withSession(
+          "player.renderOptions" -> "{\"itemId\":\"*\",\"sessionId\":\"*\",\"assessmentId\":\"*\",\"role\":\"instructor\",\"expires\":0,\"mode\":\"render\"}"
+        )
+      val result = route(request).get
+      val jsItemSession = Json.parse(contentAsString(result))
+      val itemSession = Json.fromJson[ItemSession](jsItemSession).get
+      DefaultItemSession.remove(itemSession)
+      (jsItemSession \ "sessionData") must beAnInstanceOf[JsObject]
+      itemSession.settings.highlightCorrectResponse must beTrue
+      itemSession.settings.highlightUserResponse must beTrue
+      itemSession.settings.showFeedback must beTrue
+    }
   }
 
   /**
