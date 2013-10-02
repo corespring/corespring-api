@@ -31,7 +31,7 @@ class SessionDataTest extends Specification {
 
   "new session data" should {
     "be empty for empty qti and session" in {
-      val sessionData = SessionData(createEmptyQti, createSession)
+      val sessionData = SessionData(createEmptyQti, createSession)(false)
       sessionData.correctResponses.length must equalTo(0)
       sessionData.feedbackContents.size must equalTo(0)
     }
@@ -46,7 +46,7 @@ class SessionDataTest extends Specification {
       s.responses = Seq(StringResponse(id = "questionOne", responseValue = "value"))
       s.settings.highlightCorrectResponse = true
       s.finish = Some(new DateTime())
-      val json = toJson(SessionData(qti, s))
+      val json = toJson(SessionData(qti, s)(false))
       val expected = """{"correctResponses":[{"id":"questionOne","value":"value"}],"feedbackContents":{}}"""
       expected must equalTo(stringify(json))
     }
@@ -58,9 +58,9 @@ class SessionDataTest extends Specification {
       val s: ItemSession = createSession
       val qti: QtiItem = createSingleResponseQti
       s.responses = Seq(StringResponse(id = "questionOne", responseValue = "value"))
-      SessionData(qti, s).correctResponses.length must equalTo(1)
+      SessionData(qti, s)(false).correctResponses.length must equalTo(1)
       s.settings.highlightCorrectResponse = false
-      SessionData(qti, s).correctResponses.length must equalTo(0)
+      SessionData(qti, s)(false).correctResponses.length must equalTo(0)
     }
   }
 
@@ -96,9 +96,9 @@ class SessionDataTest extends Specification {
       val s: ItemSession = createSession
       s.settings.showFeedback = true
       s.responses = Seq(StringResponse(questionId, responseValue = "A"))
-      SessionData(qti, s).feedbackContents.size must equalTo(1)
+      SessionData(qti, s)(false).feedbackContents.size must equalTo(1)
       s.settings.showFeedback = false
-      SessionData(qti, s).feedbackContents.size must equalTo(0)
+      SessionData(qti, s)(false).feedbackContents.size must equalTo(0)
     }
 
     "show feedback for correct responses even though it wasn't selected" in {
@@ -108,7 +108,7 @@ class SessionDataTest extends Specification {
       s.settings.showFeedback = true
       //Answer incorrectly
       s.responses = Seq(StringResponse(questionId, responseValue = "B"))
-      SessionData(qti, s).feedbackContents.size === 2
+      SessionData(qti, s)(false).feedbackContents.size === 2
     }
 
     "show feedback for correct responses even though it wasn't selected and correct responses are not shown" in {
@@ -118,7 +118,7 @@ class SessionDataTest extends Specification {
       s.settings.showFeedback = true
       //Answer incorrectly
       s.responses = Seq(StringResponse(questionId, responseValue = "B"))
-      SessionData(qti, s).feedbackContents.size === 1
+      SessionData(qti, s)(false).feedbackContents.size === 1
     }
 
     "show the correct feedback string" in {
@@ -126,7 +126,7 @@ class SessionDataTest extends Specification {
       s.responses = Seq(StringResponse(questionId, responseValue = "A"))
       s.settings.showFeedback = true
 
-      SessionData(qti, s).feedbackContents.get("cs_1") match {
+      SessionData(qti, s)(false).feedbackContents.get("cs_1") match {
         case Some(fb) => fb must equalTo("Super!")
         case _ => failure("couldn't find feedback")
       }
@@ -137,7 +137,7 @@ class SessionDataTest extends Specification {
       s.responses = Seq(StringResponse(questionId, responseValue = "B"))
       s.settings.showFeedback = true
 
-      SessionData(qti, s).feedbackContents.get("cs_2") match {
+      SessionData(qti, s)(false).feedbackContents.get("cs_2") match {
         case Some(fb) => fb must equalTo(MockXml.incorrectResponseFeedback)
         case _ => failure("couldn't find feedback")
       }
@@ -154,7 +154,7 @@ class SessionDataTest extends Specification {
         multipleChoiceInteraction)
 
       val qti = QtiItem(multiChoiceXml)
-      val data = SessionData(qti, incorrectResponse)
+      val data = SessionData(qti, incorrectResponse)(false)
       println(data.feedbackContents)
       data.feedbackContents.size must_== (3)
       data.feedbackContents.get("cs_2").getOrElse("error") === MockXml.correctResponseFeedback
@@ -166,7 +166,7 @@ class SessionDataTest extends Specification {
       correctResponse.responses = Seq(
         ArrayResponse(questionId, responseValue = Seq("A", "B")))
 
-      SessionData(qti, correctResponse).feedbackContents.size === 2
+      SessionData(qti, correctResponse)(false).feedbackContents.size === 2
     }
 
     val textWithFeedbackBlocks =
@@ -189,7 +189,7 @@ class SessionDataTest extends Specification {
       s.settings.showFeedback = true
       s.responses = Seq(
         StringResponse("id", responseValue = "york"))
-      val data = SessionData(textEntryQti, s)
+      val data = SessionData(textEntryQti, s)(false)
       data.feedbackContents.size must_== (1)
       data.feedbackContents.get("cs_1").getOrElse("error") === "Capitalize"
     }
@@ -198,7 +198,7 @@ class SessionDataTest extends Specification {
       val s = createSession
       s.settings.showFeedback = true
       s.responses = Seq(StringResponse("id", responseValue = "York"))
-      val data = SessionData(textEntryQti, s)
+      val data = SessionData(textEntryQti, s)(false)
       data.feedbackContents.size must_== (1)
       data.feedbackContents.get("cs_2").getOrElse("error") === "Bingo"
     }
@@ -207,7 +207,7 @@ class SessionDataTest extends Specification {
       val s = createSession
       s.settings.showFeedback = true
       s.responses = Seq(StringResponse("id", responseValue = "Some other text"))
-      val data = SessionData(textEntryQti, s)
+      val data = SessionData(textEntryQti, s)(false)
       data.feedbackContents.size must_== (1)
       data.feedbackContents.get("cs_3").getOrElse("error") === "What is this?"
     }
@@ -254,7 +254,7 @@ class SessionDataTest extends Specification {
 
       val session = ItemSession(itemId = VersionedId(new ObjectId()), responses = Seq(correctResponse, incorrectResponse))
       session.settings.showFeedback = true
-      val data: SessionData = SessionData(qtiItem, session)
+      val data: SessionData = SessionData(qtiItem, session)(false)
       data.feedbackContents.size === 2
       data.feedbackContents.get("1").get === (XML \\ "correctResponseFeedback").text
       data.feedbackContents.get("2").get === (XML \\ "incorrectResponseFeedback").text
@@ -273,7 +273,7 @@ class SessionDataTest extends Specification {
         StringResponse("Q_06", "9"))
 
       val qti = QtiItem(MockXml.load("multiple-feedback-blocks.xml"))
-      val sd = SessionData(qti, s)
+      val sd = SessionData(qti, s)(false)
       println(sd.feedbackContents)
       sd.feedbackContents.size === 4
     }

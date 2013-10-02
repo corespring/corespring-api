@@ -27,7 +27,7 @@ object SessionData {
     }
   }
 
-  def apply(qti: QtiItem, session: ItemSession): SessionData = {
+  def apply(qti: QtiItem, session: ItemSession)( implicit includeResponsesOverride:Boolean): SessionData = {
 
     def showCorrectResponses = session.settings.highlightCorrectResponse
     def showFeedback = session.settings.showFeedback
@@ -67,7 +67,7 @@ object SessionData {
     def getFeedbackContents: Map[String, String] = {
       if (showFeedback) {
         val userResponses = session.responses.map(_.getIdValueIndex).flatten
-        val correctResponses = if (showCorrectResponses) makeCorrectResponseList else Seq()
+        val correctResponses = if (showCorrectResponses || includeResponsesOverride) makeCorrectResponseList else Seq()
         val responsesToGiveFeedbackOn: List[(String, String, Int)] =
           (userResponses.toList ::: correctResponses.toList).distinct
 
@@ -100,7 +100,7 @@ object SessionData {
     }
 
     SessionData(
-      if (showCorrectResponses) allCorrectResponses else Seq(),
+      if (showCorrectResponses || includeResponsesOverride) allCorrectResponses else Seq(),
       getFeedbackContents)
   }
 
