@@ -52,7 +52,6 @@ object ItemSession {
     val settings = "settings"
     val dateModified = "dateModified"
   }
-
   implicit object Writes extends Writes[ItemSession] {
 
     def writes(session: ItemSession): JsValue = {
@@ -247,7 +246,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    * @param xmlWithCsFeedbackIds
    * @return
    */
-  def process(update: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem, isAttempt:Boolean = true): Either[InternalError, ItemSession] = withDbSession(update) {
+  def process(update: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem, isAttempt:Boolean = true)( implicit includeResponsesOverride:Boolean): Either[InternalError, ItemSession] = withDbSession(update) {
     dbSession =>
 
       if (dbSession.isFinished) {
@@ -329,7 +328,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    * @param id - the item session id
    * @return
    */
-  def get(id: ObjectId): Option[ItemSession] = {
+  def get(id: ObjectId)( implicit includeResponsesOverride:Boolean): Option[ItemSession] = {
     findOneById(id) match {
       case Some(session) => Some(addExtrasIfFinished(session, addSessionData, addResponses))
       case _ => None
@@ -338,7 +337,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
 
   private def addExtrasIfFinished(
     session: ItemSession,
-    fns: ((ItemSession, Elem) => Unit)*): ItemSession =
+    fns: ((ItemSession, Elem) => Unit)*)( implicit includeResponsesOverride:Boolean): ItemSession =
     if (session.isFinished) {
       getXmlWithFeedback(session) match {
         case Right(xml) => {
@@ -351,11 +350,11 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
       session
     }
 
-  private def addSessionData(session: ItemSession, xml: Elem) {
+  private def addSessionData(session: ItemSession, xml: Elem)( implicit includeResponsesOverride:Boolean) {
     session.sessionData = Some(SessionData(QtiItem(xml), session))
   }
 
-  private def addResponses(session: ItemSession, xml: Elem) {
+  private def addResponses(session: ItemSession, xml: Elem)( implicit includeResponsesOverride:Boolean) {
     session.responses = Score.scoreResponses(session.responses, QtiItem(xml))
   }
 
