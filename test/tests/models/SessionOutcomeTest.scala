@@ -2,12 +2,15 @@ package tests.models
 
 import org.specs2.mutable.Specification
 import org.corespring.qti.models.QtiItem
-import org.corespring.platform.core.models.itemSession.{ResponseProcessingOutputValidator, SessionOutcome, ItemSession}
+import org.corespring.platform.core.models.itemSession.{DefaultItemSession, ResponseProcessingOutputValidator, SessionOutcome, ItemSession}
 import org.corespring.qti.models.responses.{ArrayResponse, StringResponse}
 import scalaz.{Failure, Success}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.error.InternalError
 import play.api.libs.json.{JsBoolean, JsObject, JsNumber}
+import org.bson.types.ObjectId
+import play.api.test._
+import play.api.test.Helpers._
 
 class SessionOutcomeTest extends Specification {
 
@@ -17,7 +20,6 @@ class SessionOutcomeTest extends Specification {
     attempts = 1)
 
   "SessionOutcome" should {
-
     "return default scoring with no response processing" in {
       val qtiItem =
         QtiItem(
@@ -135,7 +137,7 @@ class SessionOutcomeTest extends Specification {
       }
     }
 
-    "return internal error processing ResponseProcessing returning no score" in {
+    "return default value for score when Javascript does not include it in response" in {
       val qtiItem = itemWithResponseJs(
         """
           var response = {
@@ -157,14 +159,13 @@ class SessionOutcomeTest extends Specification {
       )
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
-        case success: Success[_, _] => failure("Should have failed because of missing score, but didn't")
-        case failure: Failure[InternalError, _] => success
-        case _ => failure("Did not produce failure of the correct type")
+        case s: Success[_, _] => success
+        case _ => failure("Should have included score, but didn't")
       }
 
     }
 
-    "return internal error processing ResponseProcessing returning no isCorrect" in {
+    "return default value for isCorrect when Javascript does not include it in response" in {
       val qtiItem = itemWithResponseJs(
         """
           var response = {
@@ -186,13 +187,13 @@ class SessionOutcomeTest extends Specification {
       )
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
-        case success: Success[_, _] => failure("Should have failed because of missing isCorrect, but didn't")
-        case failure: Failure[InternalError, _] => success
-        case _ => failure("Did not produce failure of the correct type")
+        case s: Success[_, _] => success
+        case _ => failure("Should have included isCorrect, but didn't")
       }
     }
 
-    "return internal error processing ResponseProcessing returning no isComplete" in {
+
+    "return default value for isComplete when Javascript does not include it in response" in {
       val qtiItem = itemWithResponseJs(
         """
           var response = {
@@ -214,13 +215,12 @@ class SessionOutcomeTest extends Specification {
       )
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
-        case success: Success[_, _] => failure("Should have failed because of missing isComplete, but didn't")
-        case failure: Failure[InternalError, _] => success
-        case _ => failure("Did not produce failure of the correct type")
+        case s: Success[_, _] => success
+        case _ => failure("Should have included isComplete, but didn't")
       }
     }
 
-    "return internal error processing ResponseProcessing returning missing ResponseDeclaration identifier" in {
+    "return default values for response identifier when Javascript does not include it in response" in {
       val qtiItem = itemWithResponseJs(
         """
           var response = {
@@ -238,14 +238,12 @@ class SessionOutcomeTest extends Specification {
       )
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
-        case success: Success[_, _] =>
-          failure("Should have failed because of missing ResponseDeclaration identifier, but didn't")
-        case failure: Failure[InternalError, _] => success
-        case _ => failure("Did not produce failure of the correct type")
+        case s: Success[_, _] => success
+        case _ => failure("Should have contained response identifier Q_01, but didn't")
       }
     }
 
-    "return internal error processing ResponseProcessing returning missing score for ResponseDeclaration identifier" in {
+    "return default value for score in response identifier when Javascript does not include it in response" in {
       val qtiItem = itemWithResponseJs(
         """
           var response = {
@@ -267,14 +265,12 @@ class SessionOutcomeTest extends Specification {
       )
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
-        case success: Success[_, _] =>
-          failure("Should have failed because of missing score for ResponseDeclaration identifier, but didn't")
-        case failure: Failure[InternalError, _] => success
-        case _ => failure("Did not produce failure of the correct type")
+        case s: Success[_, _] => success
+        case _ => failure("Should have contained score, but didn't")
       }
     }
 
-    "return internal error processing ResponseProcessing returning missing isCorrect for ResponseDeclaration identifier" in {
+    "return default value for isCorrect in response identifier when Javascript does not include it in response" in {
       val qtiItem = itemWithResponseJs(
         """
           var response = {
@@ -296,14 +292,12 @@ class SessionOutcomeTest extends Specification {
       )
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
-        case success: Success[_, _] =>
-          failure("Should have failed because of missing isCorrect for ResponseDeclaration identifier, but didn't")
-        case failure: Failure[InternalError, _] => success
-        case _ => failure("Did not produce failure of the correct type")
+        case s: Success[_, _] => success
+        case _ => failure("Should have contained Q_01.isCorrect, but didn't")
       }
     }
 
-    "return internal error processing ResponseProcessing returning missing isComplete for ResponseDeclaration identifier" in {
+    "return default value for isComplete in response identifier when Javascript does not include it in response" in {
       val qtiItem = itemWithResponseJs(
         """
           var response = {
@@ -325,10 +319,8 @@ class SessionOutcomeTest extends Specification {
       )
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
-        case success: Success[_, _] =>
-          failure("Should have failed because of missing isComplete for ResponseDeclaration identifier, but didn't")
-        case failure: Failure[InternalError, _] => success
-        case _ => failure("Did not produce failure of the correct type")
+        case s: Success[_, _] => success
+        case _ => failure("Should have contained Q_01.isCompleted, but didn't")
       }
     }
 
