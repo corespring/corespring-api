@@ -32,7 +32,8 @@ object ResponseProcessingOutputValidator {
   def apply(jsObject: JsObject, qtiItem: QtiItem): Validation[InternalError, SessionOutcome] = {
     validateJsResponse(jsObject, qtiItem.responseDeclarations) match {
       case Some(internalError) => Failure(internalError)
-      case _ => Success(SessionOutcome.fromJsObject(jsObject, Some(qtiItem.responseDeclarations)))
+      case _ => SessionOutcome.fromJsObject(jsObject, qtiItem.responseDeclarations)
+                  .fold(errors => Failure(InternalError(JsError.toFlatJson(errors).toString)),so => Success(so))
     }
   }
 
