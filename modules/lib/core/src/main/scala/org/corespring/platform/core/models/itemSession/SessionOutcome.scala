@@ -57,15 +57,6 @@ object SessionOutcome extends ClassLogging {
         (__ \ "isComplete").read[Boolean] and
         Reads.apply(computeIdentifierOutcomes)
       )(SessionOutcome.apply _).reads(json)
-//    new SessionOutcome(
-//      score = (jsObject \ "score").asInstanceOf[JsNumber].value.toDouble,
-//      isCorrect = (jsObject \ "isCorrect").asInstanceOf[JsBoolean].value,
-//      isComplete = (jsObject \ "isComplete").asInstanceOf[JsBoolean].value,
-//      identifierOutcomes = responseDeclarations match {
-//        case Some(declarations: Seq[ResponseDeclaration]) =>
-//          declarations.map(d => d.identifier -> Json.fromJson[IdentifierOutcome]((jsObject \ d.identifier))).
-//        case None => Map()
-//      })
   }
 
   private def responseProcessingScoring(
