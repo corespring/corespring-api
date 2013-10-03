@@ -319,6 +319,20 @@ class SessionOutcomeTest extends Specification {
       }
     }
 
+    "return SessionOutcome with number as score when Javascript returns number" in {
+      val qtiItem = itemWithResponseJs(
+        """
+          var score = 1;
+          score;
+        """
+      )
+
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+        case s: Success[_,SessionOutcome] if s.getOrElse(null).score == 1 => success
+        case _ => failure("Did not set score from javascript number response")
+      }
+    }
+
     "contain preprocessed Javascript for InlineChoiceInteraction" in {
       val script =
         """
