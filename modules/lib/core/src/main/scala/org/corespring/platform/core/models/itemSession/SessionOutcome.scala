@@ -37,6 +37,7 @@ object SessionOutcome extends ClassLogging {
       case _ => defaultScoring(itemSession, qtiItem)
     }
   }
+
   implicit val sessionOutcomeReads = (
     (__ \ "score").read[Double] and
     (__ \ "isCorrect").read[Boolean] and
@@ -85,6 +86,10 @@ object SessionOutcome extends ClassLogging {
             response match {
               case Some(jsObject: JsObject) => {
                 val result = Writes.writes(defaultOutcome).deepMerge(jsObject)
+                ResponseProcessingOutputValidator(result, qtiItem)
+              }
+              case Some(jsNumber: JsNumber) => {
+                val result = Writes.writes(defaultOutcome).deepMerge(Json.obj("score" -> jsNumber))
                 ResponseProcessingOutputValidator(result, qtiItem)
               }
               case _ => Failure(InternalError(s"""Response processing for item did not return a JsObject"""))
