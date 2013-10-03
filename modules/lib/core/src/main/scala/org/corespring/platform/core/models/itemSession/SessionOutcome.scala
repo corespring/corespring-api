@@ -7,10 +7,27 @@ import org.corespring.common.log.ClassLogging
 import org.corespring.qti.models.responses.Response
 import org.corespring.qti.models.responses.processing.ResponseProcessing
 import play.api.libs.json._
+import play.api.libs.functional.syntax._
 import org.corespring.platform.core.models.error.InternalError
 
+case class IdentifierOutcome(score: Double, isCorrect: Boolean, isComplete: Boolean)
+object IdentifierOutcome{
+  implicit val identifierOutcomeReads = (
+    (__ \ "score").read[Double] and
+    (__ \ "isCorrect").read[Boolean] and
+    (__ \ "isComplete").read[Boolean]
+  )(IdentifierOutcome.apply _)
+
+  implicit val identifierOutcomeWrites = new Writes[IdentifierOutcome] {
+    def writes(o: IdentifierOutcome): JsValue = Json.obj(
+      "score" -> JsNumber(o.score),
+      "isCorrect" -> JsBoolean(o.isCorrect),
+      "isComplete" -> JsBoolean(o.isComplete)
+    )
+  }
+}
 case class SessionOutcome(
-  score: Double, isCorrect: Boolean, isComplete: Boolean, identifierOutcomes: Option[Map[String, SessionOutcome]] = None)
+  score: Double, isCorrect: Boolean, isComplete: Boolean, identifierOutcomes: Map[String, IdentifierOutcome] = Map())
 
 object SessionOutcome extends ClassLogging {
 
@@ -20,17 +37,26 @@ object SessionOutcome extends ClassLogging {
       case _ => defaultScoring(itemSession, qtiItem)
     }
   }
+  implicit val sessionOutcomeReads = (
+    (__ \ "score").read[Double] and
+    (__ \ "isCorrect").read[Boolean] and
+    (__ \ "isComplete").read[Boolean] and
+    (__ \ "identifierOutcomes").read[Map[String,IdentifierOutcome]]
+  )(SessionOutcome.apply _)
 
-  def fromJsObject(jsObject: JsObject, responseDeclarations: Option[Seq[ResponseDeclaration]] = None): SessionOutcome = {
-    new SessionOutcome(
-      score = (jsObject \ "score").asInstanceOf[JsNumber].value.toDouble,
-      isCorrect = (jsObject \ "isCorrect").asInstanceOf[JsBoolean].value,
-      isComplete = (jsObject \ "isComplete").asInstanceOf[JsBoolean].value,
-      identifierOutcomes = responseDeclarations match {
-        case Some(declarations: Seq[ResponseDeclaration]) =>
-          Some(declarations.map(_.identifier).map(id => id -> fromJsObject((jsObject \ id).asInstanceOf[JsObject])).toMap)
-        case None => None
-      })
+  def fromJsObject(json:JsValue, responseDeclarations: Seq[ResponseDeclaration] = Seq()): JsResult[SessionOutcome] = {
+      def computeIdentifierOutcomes(json:JsValue):JsResult[Map[String,IdentifierOutcome]]= {
+        responseDeclarations.map(d => d.identifier -> Json.fromJson[IdentifierOutcome]((json \ d.identifier)))
+          .foldLeft[JsResult[Map[String,IdentifierOutcome]]](JsSuccess(Map()))((result,input) => {
+            result.fold(JsError(_),identifierOutcomes => input._2.fold(JsError(_),io => JsSuccess(identifierOutcomes + (input._1 ->  io))))
+          })
+      }
+      (
+        (__ \ "score").read[Double] and
+        (__ \ "isCorrect").read[Boolean] and
+        (__ \ "isComplete").read[Boolean] and
+        Reads.apply(computeIdentifierOutcomes)
+      )(SessionOutcome.apply _).reads(json)
   }
 
   private def responseProcessingScoring(
@@ -41,20 +67,17 @@ object SessionOutcome extends ClassLogging {
       case s: Success[_, SessionOutcome] => {
         s.getOrElse(null) match {
           case defaultOutcome: SessionOutcome => {
-            val identifierDefaults = defaultOutcome.identifierOutcomes match {
-              case Some(outcomes) => outcomes.map({
-                case (identifier, outcome) => {
-                  identifier -> Json.obj(
-                    "outcome" -> Json.obj(
-                      "score" -> JsNumber(outcome.score),
-                      "isCorrect" -> JsBoolean(outcome.isCorrect),
-                      "isComplete" -> JsBoolean(outcome.isComplete)
-                    )
+            val identifierDefaults = defaultOutcome.identifierOutcomes.map({
+              case (identifier, outcome) => {
+                identifier -> Json.obj(
+                  "outcome" -> Json.obj(
+                    "score" -> JsNumber(outcome.score),
+                    "isCorrect" -> JsBoolean(outcome.isCorrect),
+                    "isComplete" -> JsBoolean(outcome.isComplete)
                   )
-                }
-              })
-              case None => Map.empty
-            }
+                )
+              }
+            })
 
             val response = responseProcessing.process(
               Some(Map("itemSession" -> Json.toJson(itemSession)) ++ identifierDefaults), Some(itemSession.responses))
@@ -87,21 +110,19 @@ object SessionOutcome extends ClassLogging {
       isComplete = session.isFinished || isMaxAttemptsExceeded(session) || score == 1,
       identifierOutcomes = (session.responses.length > 1) match {
         case true => {
-          Some(
             session.responses.map(response => {
               response.outcome match {
                 case Some(outcome) => {
                   val score = outcome.score.toDouble
                   Some(response.id ->
-                    SessionOutcome(score, score == 1, session.isFinished || isMaxAttemptsExceeded(session) || score == 1, None))
+                    IdentifierOutcome(score, score == 1, session.isFinished || isMaxAttemptsExceeded(session) || score == 1))
                 }
                 case _ => None
               }
             }).flatten.toMap
-          )
         }
         case _ => {
-          None
+          Map()
         }
       }).success[InternalError]
   }
@@ -126,13 +147,10 @@ object SessionOutcome extends ClassLogging {
           "score" -> JsNumber(outcome.score),
           "isCorrect" -> JsBoolean(outcome.isCorrect),
           "isComplete" -> JsBoolean(outcome.isComplete)) ++ (
-            outcome.identifierOutcomes match {
-              case Some(outcomes) => outcomes.map {
-                case (identifier, sessionOutcome) => {
-                  identifier -> writes(sessionOutcome)
-                }
+            outcome.identifierOutcomes.map {
+              case (identifier, identifierOutcome) => {
+                identifier -> Json.toJson(identifierOutcome)
               }
-              case _ => Seq.empty
             }))
     }
   }

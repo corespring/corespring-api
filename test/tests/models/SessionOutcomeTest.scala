@@ -110,27 +110,22 @@ class SessionOutcomeTest extends Specification {
           sessionOutcome.score === 1.0
           sessionOutcome.isCorrect === true
           sessionOutcome.isComplete === true
-          sessionOutcome.identifierOutcomes match {
-            case Some(outcomes) => {
-              outcomes.get("Q_01") match {
-                case Some(q1Outcome) => {
-                  q1Outcome.score === 1
-                  q1Outcome.isCorrect === true
-                  q1Outcome.isComplete === true
-                  outcomes.get("Q_02") match {
-                    case Some(q2Outcome) => {
-                      q2Outcome.score === 1
-                      q2Outcome.isCorrect === true
-                      q2Outcome.isComplete === true
-                      success
-                    }
-                    case _ => failure("SessionOutcome did not contain responseDeclaration identifier Q_02")
-                  }
+          sessionOutcome.identifierOutcomes.get("Q_01") match {
+            case Some(q1Outcome) => {
+              q1Outcome.score === 1
+              q1Outcome.isCorrect === true
+              q1Outcome.isComplete === true
+              sessionOutcome.identifierOutcomes.get("Q_02") match {
+                case Some(q2Outcome) => {
+                  q2Outcome.score === 1
+                  q2Outcome.isCorrect === true
+                  q2Outcome.isComplete === true
+                  success
                 }
-                case _ => failure("SessionOutcome did not contain responseDeclaration identifier Q_01")
+                case _ => failure("SessionOutcome did not contain responseDeclaration identifier Q_02")
               }
             }
-            case _ => failure("SessionOutcome did not contain values for responseDeclaration identifiers")
+            case _ => failure("SessionOutcome did not contain responseDeclaration identifier Q_01")
           }
         }
         case _ => failure("Did not correctly process response to SessionOutcome")
@@ -369,19 +364,14 @@ class SessionOutcomeTest extends Specification {
               sessionOutcome.isComplete === true
               sessionOutcome.isCorrect === true
               sessionOutcome.score === 1
-              sessionOutcome.identifierOutcomes match {
-                case Some(outcomes) => {
-                  outcomes.get("badStepQuestion") match {
-                    case Some(outcome) => {
-                      outcome.isComplete === true
-                      outcome.isCorrect === true
-                      outcome.score === 1
-                      success
-                    }
-                    case _ => failure("No outcome for identifier badStepQuestion")
-                  }
+              sessionOutcome.identifierOutcomes.get("badStepQuestion") match {
+                case Some(outcome) => {
+                  outcome.isComplete === true
+                  outcome.isCorrect === true
+                  outcome.score === 1
+                  success
                 }
-                case None => failure("No outcomes for identifiers")
+                case _ => failure("No outcome for identifier badStepQuestion")
               }
             }
             case _ => failure
@@ -443,19 +433,14 @@ class SessionOutcomeTest extends Specification {
               sessionOutcome.isComplete === true
               sessionOutcome.isCorrect === true
               sessionOutcome.score === 1
-              sessionOutcome.identifierOutcomes match {
-                case Some(outcomes) => {
-                  outcomes.get("dragDropQuestion") match {
-                    case Some(outcome) => {
-                      outcome.isComplete === true
-                      outcome.isCorrect === true
-                      outcome.score === 1
-                      success
-                    }
-                    case _ => failure("No outcome for identifier dragDropQuestion")
-                  }
+              sessionOutcome.identifierOutcomes.get("dragDropQuestion") match {
+                case Some(outcome) => {
+                  outcome.isComplete === true
+                  outcome.isCorrect === true
+                  outcome.score === 1
+                  success
                 }
-                case None => failure("No outcomes for identifiers")
+                case _ => failure("No outcome for identifier dragDropQuestion")
               }
             }
             case _ => failure("No SessionOutcome")
@@ -498,28 +483,23 @@ class SessionOutcomeTest extends Specification {
         sessionOutcome.score === 1
         sessionOutcome.isComplete === true
         sessionOutcome.isCorrect === true
-        sessionOutcome.identifierOutcomes match {
-          case Some(outcomes) => {
-            outcomes.get("Q_01") match {
-              case Some(q1Outcome) => {
-                q1Outcome.score === 2
-                q1Outcome.isCorrect === false
-                q1Outcome.isComplete === false
+        sessionOutcome.identifierOutcomes.get("Q_01") match {
+          case Some(q1Outcome) => {
+            q1Outcome.score === 2
+            q1Outcome.isCorrect === false
+            q1Outcome.isComplete === false
 
-                outcomes.get("Q_02") match {
-                  case Some(q2Outcome) => {
-                    q2Outcome.score === 1
-                    q2Outcome.isCorrect === true
-                    q2Outcome.isComplete === true
-                    success
-                  }
-                  case _ => failure("No outcome for identifier Q_02")
-                }
+            sessionOutcome.identifierOutcomes.get("Q_02") match {
+              case Some(q2Outcome) => {
+                q2Outcome.score === 1
+                q2Outcome.isCorrect === true
+                q2Outcome.isComplete === true
+                success
               }
-              case _ => failure("No outcome for identifier Q_01")
+              case _ => failure("No outcome for identifier Q_02")
             }
           }
-          case _ => failure("No identifier outcomes found")
+          case _ => failure("No outcome for identifier Q_01")
         }
         success
       }
