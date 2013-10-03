@@ -2,12 +2,15 @@ package tests.models
 
 import org.specs2.mutable.Specification
 import org.corespring.qti.models.QtiItem
-import org.corespring.platform.core.models.itemSession.{ResponseProcessingOutputValidator, SessionOutcome, ItemSession}
+import org.corespring.platform.core.models.itemSession.{DefaultItemSession, ResponseProcessingOutputValidator, SessionOutcome, ItemSession}
 import org.corespring.qti.models.responses.{ArrayResponse, StringResponse}
 import scalaz.{Failure, Success}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.error.InternalError
 import play.api.libs.json.{JsBoolean, JsObject, JsNumber}
+import org.bson.types.ObjectId
+import play.api.test._
+import play.api.test.Helpers._
 
 class SessionOutcomeTest extends Specification {
 
@@ -17,7 +20,6 @@ class SessionOutcomeTest extends Specification {
     attempts = 1)
 
   "SessionOutcome" should {
-
     "return default scoring with no response processing" in {
       val qtiItem =
         QtiItem(

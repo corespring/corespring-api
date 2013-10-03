@@ -37,7 +37,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
   }
 
   def render(sessionId: ObjectId) = {
-    DefaultItemSession.get(sessionId) match {
+    DefaultItemSession.get(sessionId)(false) match {
       case Some(session) => {
         val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Render)
         renderItem(p)
@@ -52,7 +52,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
   }
 
   def administerSession(sessionId: ObjectId) = {
-    DefaultItemSession.get(sessionId) match {
+    DefaultItemSession.get(sessionId)(false) match {
       case Some(session) => {
         val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Administer)
         renderItem(p)
