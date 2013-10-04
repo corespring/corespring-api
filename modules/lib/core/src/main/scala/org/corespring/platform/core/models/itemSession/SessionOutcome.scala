@@ -12,6 +12,7 @@ import org.corespring.platform.core.models.error.InternalError
 import com.scalapeno.rhinos.EcmaErrorWithSource
 
 case class IdentifierOutcome(score: Double, isCorrect: Boolean, isComplete: Boolean)
+
 object IdentifierOutcome{
   implicit val identifierOutcomeReads = (
     (__ \ "score").read[Double] and
@@ -121,7 +122,7 @@ object SessionOutcome extends ClassLogging {
       score = score,
       isCorrect = score == 1,
       isComplete = session.isFinished || isMaxAttemptsExceeded(session) || score == 1,
-      identifierOutcomes = (session.responses.length > 1) match {
+      identifierOutcomes = session.responses.nonEmpty match {
         case true => {
             session.responses.map(response => {
               response.outcome match {
@@ -134,9 +135,7 @@ object SessionOutcome extends ClassLogging {
               }
             }).flatten.toMap
         }
-        case _ => {
-          Map()
-        }
+        case _ => Map()
       }).success[InternalError]
   }
 
