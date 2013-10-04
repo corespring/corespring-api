@@ -131,10 +131,10 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
         okUser <- if (user.hasRegisteredOrg) Failure("Org already registered") else Success(user)
         json <- request.body.asJson.toSuccess("Json expected")
         orgToCreate <- makeOrg(json).toSuccess("Couldn't create org")
-        orgId <- Organization.insert(orgToCreate).toSuccess("Couldn't create org")
-        updatedIdentityId <- setOrg(okUser.id, orgId).toSuccess("Couldn't set org")
-        apiClient <- makeApiClient(orgId).toSuccess("Couldn't create api client")
-      } yield (orgToCreate, apiClient)
+        org <- Organization.insert(orgToCreate,None).right.toOption.toSuccess("Couldn't create org")
+        updatedIdentityId <- setOrg(okUser.id, org.id).toSuccess("Couldn't set org")
+        apiClient <- makeApiClient(org.id).toSuccess("Couldn't create api client")
+      } yield (org, apiClient)
 
       validation match {
         case Failure(s) => BadRequest(s)
