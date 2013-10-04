@@ -9,6 +9,7 @@ import org.corespring.qti.models.responses.processing.ResponseProcessing
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import org.corespring.platform.core.models.error.InternalError
+import com.scalapeno.rhinos.EcmaErrorWithSource
 
 case class IdentifierOutcome(score: Double, isCorrect: Boolean, isComplete: Boolean)
 object IdentifierOutcome{
@@ -80,19 +81,26 @@ object SessionOutcome extends ClassLogging {
               }
             })
 
-            val response = responseProcessing.process(
-              Some(Map("itemSession" -> Json.toJson(itemSession)) ++ identifierDefaults), Some(itemSession.responses))
+            try {
+              val response = responseProcessing.process(
+                Some(Map("itemSession" -> Json.toJson(itemSession)) ++ identifierDefaults), Some(itemSession.responses))
 
-            response match {
-              case Some(jsObject: JsObject) => {
-                val result = Writes.writes(defaultOutcome).deepMerge(jsObject)
-                ResponseProcessingOutputValidator(result, qtiItem)
+              response match {
+                case Some(jsObject: JsObject) => {
+                  val result = Writes.writes(defaultOutcome).deepMerge(jsObject)
+                  ResponseProcessingOutputValidator(result, qtiItem)
+                }
+                case Some(jsNumber: JsNumber) => {
+                  val result = Writes.writes(defaultOutcome).deepMerge(Json.obj("score" -> jsNumber))
+                  ResponseProcessingOutputValidator(result, qtiItem)
+                }
+                case _ => Failure(InternalError(s"""Response processing for item did not return a JsObject"""))
               }
-              case Some(jsNumber: JsNumber) => {
-                val result = Writes.writes(defaultOutcome).deepMerge(Json.obj("score" -> jsNumber))
-                ResponseProcessingOutputValidator(result, qtiItem)
+            } catch {
+              case e: EcmaErrorWithSource => {
+                println(e.source)
+                throw new RuntimeException(e);
               }
-              case _ => Failure(InternalError(s"""Response processing for item did not return a JsObject"""))
             }
 
           }

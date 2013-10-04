@@ -11,8 +11,8 @@ object Dependencies {
   val playTest = "play" %% "play-test" % playVersion
 
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
-  val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-889c7fa"
-  val rhinos = "com.scalapeno" %% "rhinos" % "0.6.0.corespring-08a2213-SNAPSHOT"
+  val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-607d75e"
+  val rhinos = "com.scalapeno" %% "rhinos" % "0.6.0.corespring-4ee2755-SNAPSHOT"
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
   val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.5-3f2edcd"
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
