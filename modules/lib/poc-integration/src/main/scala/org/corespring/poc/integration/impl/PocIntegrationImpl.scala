@@ -4,11 +4,12 @@ import org.corespring.container.components.model.Component
 import org.corespring.container.components.outcome.{DefaultOutcomeProcessor, OutcomeProcessor}
 import org.corespring.container.components.response.{ResponseProcessorImpl, ResponseProcessor}
 import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.itemSession.{PreviewItemSessionCompanion, ItemSessionCompanion, ItemSession}
 import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 import org.corespring.poc.integration.impl.controllers.editor.{ClientItemImpl, EditorHooksImpl}
 import org.corespring.poc.integration.impl.controllers.player.{ClientSessionImpl, PlayerHooksImpl}
 import org.corespring.poc.integration.impl.transformers.ItemTransformer
-import play.api.libs.json.JsValue
+import play.api.libs.json.{Json, JsValue}
 import play.api.mvc.Controller
 
 class PocIntegrationImpl(comps: => Seq[Component]) {
@@ -18,7 +19,13 @@ class PocIntegrationImpl(comps: => Seq[Component]) {
   private lazy val playerHooks = new PlayerHooksImpl {
 
     def loadedComponents: Seq[Component] = comps
-  }
+
+    def sessionService: ItemSessionCompanion = PreviewItemSessionCompanion
+    def itemService: ItemService = ItemServiceImpl
+    def transformItem = ItemTransformer.transformToPocItem
+    //TODO: Implement the transform for session
+    def transformSession = (s:ItemSession) => Json.obj()
+}
 
   private lazy val editorHooks = new EditorHooksImpl {
     def loadedComponents: Seq[Component] = comps

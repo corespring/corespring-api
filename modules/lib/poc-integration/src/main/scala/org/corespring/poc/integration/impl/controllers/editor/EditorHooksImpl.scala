@@ -1,6 +1,6 @@
 package org.corespring.poc.integration.impl.controllers.editor
 
-import org.corespring.container.client.actions.{PlayerRequest, ClientHooksActionBuilder}
+import org.corespring.container.client.actions.{SessionIdRequest, PlayerRequest, ClientHooksActionBuilder}
 import org.corespring.container.client.controllers.hooks.EditorHooks
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
@@ -39,5 +39,7 @@ trait EditorHooksImpl extends EditorHooks {
     def loadServices(id: String)(block: (PlayerRequest[AnyContent]) => Result): Action[AnyContent] = load(id)(block)
 
     def loadConfig(id: String)(block: (PlayerRequest[AnyContent]) => Result): Action[AnyContent] = load(id)(block)
-  }
+
+    def createSessionForItem(itemId: String)(block: (SessionIdRequest[AnyContent]) => Result): Action[AnyContent] = Action(BadRequest("Not supported"))
+}
 }
