@@ -94,6 +94,13 @@ object Build extends sbt.Build {
     parallelExecution.in(Test) := false,
     credentials += cred).dependsOn(assets, testLib % "test->compile").settings(disableDocsSettings: _*)
 
+  val pocIntegration = builders.lib("poc-integration").settings(
+    libraryDependencies ++= Seq(
+      containerClientWeb,
+      componentLoader,
+      componentModel )
+  ).dependsOn(core)
+
   val playerLib = builders.lib("player-lib")
     .settings(
       libraryDependencies ++= Seq(corespringCommonUtils, playFramework, specs2, scalaFaker % "test"))
@@ -122,7 +129,7 @@ object Build extends sbt.Build {
       Keys.fork.in(Test) := forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests)).settings(MongoDbSeederPlugin.newSettings ++ Seq(testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
-    .dependsOn(public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile")
-    .aggregate(public, playerLib, core, apiUtils, commonViews, testLib).settings(disableDocsSettings: _*)
+    .dependsOn(public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile", pocIntegration)
+    .aggregate(public, playerLib, core, apiUtils, commonViews, testLib, pocIntegration).settings(disableDocsSettings: _*)
 
 }

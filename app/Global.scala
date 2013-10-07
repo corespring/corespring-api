@@ -3,14 +3,25 @@ import common.seed.SeedDb._
 import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
+import org.corespring.container.components.loader.{ComponentLoader, FileComponentLoader}
+import org.corespring.poc.integration.ControllerInstanceResolver
+import org.corespring.poc.integration.impl.PocIntegrationImpl
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
 import play.api._
 import play.api.mvc.Results._
 import play.api.mvc._
 
-object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) with ClassLogging {
+object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) with ControllerInstanceResolver with ClassLogging {
 
   val INIT_DATA: String = "INIT_DATA"
+
+  private lazy val componentLoader : ComponentLoader = {
+    val out = new FileComponentLoader(Play.current.configuration.getString("components.path").toSeq)
+    out.reload
+    out
+  }
+
+  def controllers: Seq[Controller] = new PocIntegrationImpl(componentLoader.all).controllers
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {
@@ -125,10 +136,6 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
   private def seedStaticData() {
     emptyStaticData()
     seedData("conf/seed-data/static")
-  }
-
-  private def seedTestData() {
-    //seedData("conf/seed-data/test")
   }
 
   private def seedDevData() {

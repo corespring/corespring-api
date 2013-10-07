@@ -29,6 +29,12 @@ object Dependencies {
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.2"
 
+  //POC
+  //val containerClient = "org.corespring" %% "container-client" % "0.0.1"
+  val containerClientWeb = "org.corespring" %% "container-client-web" % "0.0.1"
+  val componentModel = "org.corespring" %% "component-model" % "0.0.1"
+  val componentLoader = "org.corespring" %% "component-loader" % "0.0.1"
+
   // TODO: temporary solution: taking out yui which is used for css minification as it breaks
   // dependencies for corespring-qti. This needs to be sorted out properly!
 
@@ -65,7 +71,12 @@ object Dependencies {
     salatPlay,
     securesocial,
     scalaz,
-    closureCompiler)
+    closureCompiler,
+    //containerClient,
+    containerClientWeb,
+    componentLoader,
+    componentModel
+    )
 
   object Resolvers {
 

@@ -30,6 +30,7 @@ POST    /auth/register                          controllers.auth.AuthController.
 POST    /auth/access_token                      controllers.auth.AuthController.getAccessToken
 
 ->     /                      public.Routes
+->     /poc                   playerWeb.Routes
 
 #
 # V1 API
