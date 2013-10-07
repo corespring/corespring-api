@@ -2,15 +2,11 @@ package tests.models
 
 import org.specs2.mutable.Specification
 import org.corespring.qti.models.QtiItem
-import org.corespring.platform.core.models.itemSession.{DefaultItemSession, ResponseProcessingOutputValidator, SessionOutcome, ItemSession}
+import org.corespring.platform.core.models.itemSession.{SessionOutcome, ItemSession}
 import org.corespring.qti.models.responses.{ArrayResponse, StringResponse}
 import scalaz.{Failure, Success}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.error.InternalError
-import play.api.libs.json.{JsBoolean, JsObject, JsNumber}
-import org.bson.types.ObjectId
-import play.api.test._
-import play.api.test.Helpers._
 
 class SessionOutcomeTest extends Specification {
 
@@ -518,6 +514,54 @@ class SessionOutcomeTest extends Specification {
         success
       }
       case _ => failure
+    }
+
+    "provide outcome variables to choiceInteraction" in {
+
+      val js =
+        """
+          RESPONSE.outcome.score;
+        """
+
+      val qtiItem = QtiItem(
+        <asssessmentItem>
+          <responseDeclaration identifier='RESPONSE' cardinality='multiple' baseType='identifier'>
+            <correctResponse>
+              <value>1</value>
+              <value>2</value>
+              <value>3</value>
+            </correctResponse>
+          </responseDeclaration>
+          <responseProcessing type="script">
+            <script type="text/javascript">
+              {js}
+            </script>
+          </responseProcessing>
+          <itemBody>
+            <choiceInteraction responseIdentifier='RESPONSE' shuffle='true' maxChoices='0'>
+              <simpleChoice identifier='1' fixed='false'/>
+              <simpleChoice identifier='2' fixed='false'/>
+              <simpleChoice identifier='3' fixed='false'/>
+              <simpleChoice identifier='4' fixed='false'/>
+              <simpleChoice identifier='5' fixed='false'/>
+              <simpleChoice identifier='6' fixed='false'/>
+            </choiceInteraction>
+          </itemBody>
+        </asssessmentItem>
+      )
+
+      val session = ItemSession(
+        itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
+        responses = Seq(ArrayResponse(id = "RESPONSE", responseValue = Seq("1", "2", "3"))),
+        attempts = 1)
+
+      SessionOutcome.processSessionOutcome(session, qtiItem) match {
+        case Success(sessionOutcome: SessionOutcome) => {
+          println(sessionOutcome)
+          success
+        }
+        case _ => failure
+      }
     }
 
   }
