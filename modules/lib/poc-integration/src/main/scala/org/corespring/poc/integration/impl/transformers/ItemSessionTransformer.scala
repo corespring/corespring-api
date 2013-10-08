@@ -4,9 +4,9 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.itemSession.{ItemSessionSettings, ItemSession}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qti.models.responses.{StringResponse, ArrayResponse, Response}
+import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.json._
-import org.joda.time.DateTime
 
 trait ItemSessionTransformer {
   def toPocJson(session: ItemSession): JsValue
