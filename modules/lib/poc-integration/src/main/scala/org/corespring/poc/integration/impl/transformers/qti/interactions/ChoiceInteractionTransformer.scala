@@ -1,13 +1,10 @@
 package org.corespring.poc.integration.impl.transformers.qti.interactions
 
+import play.api.Logger
+import play.api.libs.json._
+import scala.collection.mutable
 import scala.xml.transform.RewriteRule
 import scala.xml.{NodeSeq, Elem, Node}
-import play.api.libs.json._
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
-import play.api.libs.json.JsArray
-import scala.collection.mutable
-import play.api.Logger
 
 object ChoiceInteractionTransformer {
 
@@ -47,18 +44,25 @@ object ChoiceInteractionTransformer {
         }
 
         def correctResponse : JsObject = {
-          Json.obj(
-            "value" -> (responseDeclaration \\ "value")(0).text.trim
-          )
+
+          val values: Seq[Node] = (responseDeclaration \\ "value").toSeq
+
+          val jsonValues: Seq[JsString] = values.map {
+            (n: Node) => JsString(n.text.trim)
+          }
+
+          Json.obj("value" -> JsArray(jsonValues))
         }
 
         val responseIdentifier = (e \ "@responseIdentifier").text
 
         val json = Json.obj(
-            "componentType" -> "corespring-single-choice",
+            "componentType" -> "corespring-multiple-choice",
             "model" -> Json.obj(
                 "config" -> Json.obj(
-                  "shuffle" -> (e \ "@shuffle").text
+                  "shuffle" -> (e \ "@shuffle").text,
+                  "orientation" -> JsString( if( (e \ "@orientation").text == "vertical") "vertical" else "horizontal" ),
+                  "singleChoice" -> JsBoolean( ( (e\ "@maxChoices").text == "1") )
                 ),
                 "prompt" -> (e \ "prompt").text.trim,
                 "choices" -> choices
@@ -68,7 +72,7 @@ object ChoiceInteractionTransformer {
           )
 
         componentJson.put(responseIdentifier, json)
-        <corespring-single-choice id={responseIdentifier}></corespring-single-choice>
+        <corespring-multiple-choice id={responseIdentifier}></corespring-multiple-choice>
       }
       case other => other
     }

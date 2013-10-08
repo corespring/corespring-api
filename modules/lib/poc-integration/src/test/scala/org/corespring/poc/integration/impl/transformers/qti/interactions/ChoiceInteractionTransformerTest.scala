@@ -1,43 +1,63 @@
 package org.corespring.poc.integration.impl.transformers.qti.interactions
 import org.specs2.mutable.Specification
-import scala.xml.transform.RuleTransformer
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsString, JsArray, JsObject}
 import scala.collection.mutable
+import scala.xml.transform.RuleTransformer
+import scala.xml.{Elem, Node}
 
 class ChoiceInteractionTransformerTest extends Specification {
 
 
-  val qti =
+  def qti(rd: Elem, body: Elem): Node =
     <assessmentItem>
-      <responseDeclaration identifier="Q_01" cardinality="single" baseType="identifier">
-        <correctResponse>
-          <value>ChoiceA</value>
-        </correctResponse>
-      </responseDeclaration>
-      <itemBody>
-        <choiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
-          <prompt>ITEM PROMPT?</prompt>
-          <simpleChoice identifier="ChoiceA">ChoiceA text (Correct Choice)
-            <feedbackInline identifier="ChoiceA" defaultFeedback="true"/>
-          </simpleChoice>
-          <simpleChoice identifier="ChoiceD">ChoiceD text
-            <feedbackInline identifier="ChoiceD" defaultFeedback="true"/>
-          </simpleChoice>
-        </choiceInteraction>
-      </itemBody>
+      {rd}<itemBody>
+      {body}
+    </itemBody>
     </assessmentItem>
+
+  def responseDeclaration(cardinality: String, correctResponse: Elem) =
+    <responseDeclaration identifier="Q_01" cardinality={cardinality} baseType="identifier">
+      {correctResponse}
+    </responseDeclaration>
+
+  def choiceInteraction =
+    <choiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
+      <prompt>ITEM PROMPT?</prompt>
+      <simpleChoice identifier="A">A
+        <feedbackInline identifier="A" defaultFeedback="true"/>
+      </simpleChoice>
+      <simpleChoice identifier="B">B
+        <feedbackInline identifier="B" defaultFeedback="true"/>
+      </simpleChoice>
+    </choiceInteraction>
+
+  val singleChoice = qti(
+    responseDeclaration("single", <correctResponse>
+      <value>A</value>
+    </correctResponse>),
+    choiceInteraction)
+
+  val multipleChoice = qti(
+    responseDeclaration("multiple", <correctResponse>
+      <value>A</value> <value>B</value>
+    </correctResponse>),
+    choiceInteraction
+  )
 
 
   "ChoiceInteractionTransformer" should {
     "transform" in {
 
-      val responseDeclarations = qti \\ "responseDeclaration"
+      val responseDeclarations = singleChoice \\ "responseDeclaration"
 
       val componentsJson : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
 
-      val out = new RuleTransformer(new ChoiceInteractionTransformer.Rewriter(componentsJson, responseDeclarations )).transform(qti)
+      val out = new RuleTransformer(new ChoiceInteractionTransformer.Rewriter(componentsJson, responseDeclarations)).transform(singleChoice)
 
-      componentsJson.get("Q_01") must beSome[JsObject]
+      val q1 = componentsJson.get("Q_01").getOrElse(throw new RuntimeException("No component called Q_01"))
+
+      (q1 \ "componentType").as[String] === "corespring-single-choice"
+      (q1 \ "correctResponse" \ "value") === JsArray(Seq(JsString("A")))
     }
   }
 }
