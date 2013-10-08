@@ -1,4 +1,5 @@
 package org.corespring.poc.integration.impl.transformers.qti.interactions
+
 import org.specs2.mutable.Specification
 import play.api.libs.json.{JsString, JsArray, JsObject}
 import scala.collection.mutable
@@ -10,6 +11,8 @@ class ChoiceInteractionTransformerTest extends Specification {
 
   def qti(rd: Elem, body: Elem): Node =
     <assessmentItem>
+      <correctResponseFeedback>Default Correct</correctResponseFeedback>
+      <incorrectResponseFeedback>Default Incorrect</incorrectResponseFeedback>
       {rd}<itemBody>
       {body}
     </itemBody>
@@ -52,12 +55,17 @@ class ChoiceInteractionTransformerTest extends Specification {
 
       val componentsJson : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
 
-      val out = new RuleTransformer(new ChoiceInteractionTransformer.Rewriter(componentsJson, responseDeclarations)).transform(singleChoice)
+      val out = new RuleTransformer(new ChoiceInteractionTransformer(componentsJson, singleChoice)).transform(singleChoice)
 
       val q1 = componentsJson.get("Q_01").getOrElse(throw new RuntimeException("No component called Q_01"))
 
-      (q1 \ "componentType").as[String] === "corespring-single-choice"
+      (q1 \ "componentType").as[String] === "corespring-multiple-choice"
+      (q1 \ "model" \ "config" \ "singleChoice" ).as[Boolean] === true
       (q1 \ "correctResponse" \ "value") === JsArray(Seq(JsString("A")))
+      (q1 \ "feedback").as[Seq[JsObject]].length === 2
+      ((q1 \ "feedback")(0) \ "value").as[String] === "A"
+      ((q1 \ "feedback")(0) \ "feedback").as[String] === "Default Correct"
+
     }
   }
 }

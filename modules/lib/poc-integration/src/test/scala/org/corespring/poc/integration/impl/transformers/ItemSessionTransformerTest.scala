@@ -35,8 +35,8 @@ class ItemSessionTransformerTest extends Specification{
             "id" : "$oid",
             "itemId" : "$oid",
             "answers" : {
-              "1" : { "value" : "1"},
-              "2" : { "value" : ["2.1", "2.2"] }
+              "1" : "1",
+              "2" : ["2.1", "2.2"]
             },
             "maxNoOfAttempts" : 1,
             "showCorrectResponse" : true,

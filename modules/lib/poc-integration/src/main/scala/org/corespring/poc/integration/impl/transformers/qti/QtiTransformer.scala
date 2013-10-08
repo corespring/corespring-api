@@ -12,10 +12,8 @@ object QtiTransformer {
 
     val components : mutable.Map[String,JsObject]  = new mutable.HashMap[String,JsObject]()
 
-    val responseDeclarations = qti \\ "responseDeclaration"
-
     val transformedHtml = new RuleTransformer(
-      new ChoiceInteractionTransformer.Rewriter(components, responseDeclarations )
+      new ChoiceInteractionTransformer(components, qti)
     ).transform(qti)
 
     val html = (transformedHtml(0) \ "itemBody")(0)

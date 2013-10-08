@@ -1,21 +1,24 @@
 package org.corespring.poc.integration.impl.transformers.qti.interactions
 
+import org.corespring.qti.models.QtiItem
 import play.api.Logger
 import play.api.libs.json._
 import scala.collection.mutable
 import scala.xml.transform.RewriteRule
-import scala.xml.{NodeSeq, Elem, Node}
+import scala.xml.{Elem, Node}
 
-object ChoiceInteractionTransformer {
+class ChoiceInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti : Node) extends RewriteRule {
+
 
   private val logger : Logger = Logger("poc.integration")
-
-  class Rewriter(componentJson:mutable.Map[String,JsObject], responseDeclarations:NodeSeq) extends RewriteRule {
 
     override def transform(node: Node): Seq[Node] = node match {
       case e: Elem if e.label == "choiceInteraction" => {
 
-        logger.debug( s"transform choiceInteraction: ${(e \ "@responseIdentifier").text }")
+        val qtiItem = QtiItem(qti)
+        val componentId = (e \ "@responseIdentifier").text.trim
+
+        logger.debug( s"transform choiceInteraction: ${componentId}")
 
         def choices : JsArray = {
           val out : Seq[JsValue] = (e \\ "simpleChoice").toSeq.map{ n : Node =>
@@ -28,14 +31,29 @@ object ChoiceInteractionTransformer {
         }
 
         def feedback : JsArray = {
-          val out : Seq[JsValue] = (e \\ "feedbackInline").toSeq.map{ n : Node =>
-            Json.obj("value" -> JsString((n \ "@identifier").text), "feedback" -> "TODO")
-          }
-          JsArray(out)
+
+          val choiceIds : Seq[Node] = (e \\ "simpleChoice").toSeq
+
+          val feedbackObjects : Seq[JsObject] = choiceIds.map{ (n:Node) =>
+
+            val id = (n \ "@identifier").text.trim
+
+            val fbInline = qtiItem.getFeedback(componentId, id)
+
+            fbInline.map{ fb =>
+              val content = if( fb.defaultFeedback ){
+                fb.defaultContent(qtiItem)
+              } else {
+                fb.content
+              }
+              Json.obj( "value" -> JsString(id), "feedback" -> JsString(content))
+            }
+          }.flatten
+          JsArray(feedbackObjects)
         }
 
         def responseDeclaration : Node = {
-          responseDeclarations.find{ (rd : Node) =>
+          (qti \\ "responseDeclaration").find{ (rd : Node) =>
             val responseId = (rd \ "@identifier").text
             val elementId = (e \ "@responseIdentifier").text
             logger.debug( s"$responseId ==? $elementId" )
@@ -76,5 +94,5 @@ object ChoiceInteractionTransformer {
       }
       case other => other
     }
-  }
+
 }

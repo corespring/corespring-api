@@ -30,8 +30,8 @@ object ItemSessionTransformer extends ItemSessionTransformer {
 
       def response(r: Response): JsValue = {
         r match {
-          case StringResponse(id, value, _) => Json.obj("value" -> JsString(value))
-          case ArrayResponse(id, value, _) => Json.obj("value" -> JsArray(value.map(JsString(_))))
+          case StringResponse(id, value, _) => JsString(value)
+          case ArrayResponse(id, value, _) => JsArray(value.map(JsString(_)))
         }
       }
 
@@ -85,10 +85,12 @@ object ItemSessionTransformer extends ItemSessionTransformer {
     def makeResponses(answers: JsObject): Seq[Response] = answers.fields.map {
       (f: (String, JsValue)) =>
         val (key, json) = f
-        (json \ "value") match {
+        json match {
           case jsonArray: JsArray => ArrayResponse(id = key, responseValue = jsonArray.as[Seq[String]])
           case jsonString: JsString => StringResponse(id = key, responseValue = jsonString.as[String])
-          case _ => StringResponse(id = key, responseValue = "??")
+          case _ => {
+            throw new RuntimeException(s"Unknown response format id: $itemId: ${Json.stringify(json)}")
+          }
         }
     }
 
