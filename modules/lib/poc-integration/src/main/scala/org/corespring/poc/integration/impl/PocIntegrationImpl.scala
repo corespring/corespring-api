@@ -8,8 +8,8 @@ import org.corespring.platform.core.models.itemSession.{PreviewItemSessionCompan
 import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 import org.corespring.poc.integration.impl.controllers.editor.{ClientItemImpl, EditorHooksImpl}
 import org.corespring.poc.integration.impl.controllers.player.{ClientSessionImpl, PlayerHooksImpl}
-import org.corespring.poc.integration.impl.transformers.ItemTransformer
-import play.api.libs.json.{Json, JsValue}
+import org.corespring.poc.integration.impl.transformers.{ItemSessionTransformer, ItemTransformer}
+import play.api.libs.json.JsValue
 import play.api.mvc.Controller
 
 class PocIntegrationImpl(comps: => Seq[Component]) {
@@ -23,8 +23,7 @@ class PocIntegrationImpl(comps: => Seq[Component]) {
     def sessionService: ItemSessionCompanion = PreviewItemSessionCompanion
     def itemService: ItemService = ItemServiceImpl
     def transformItem = ItemTransformer.transformToPocItem
-    //TODO: Implement the transform for session
-    def transformSession = (s:ItemSession) => Json.obj()
+    def transformSession = ItemSessionTransformer.toPocJson
 }
 
   private lazy val editorHooks = new EditorHooksImpl {
@@ -42,13 +41,17 @@ class PocIntegrationImpl(comps: => Seq[Component]) {
   }
 
   private lazy val sessions = new ClientSessionImpl {
-    //def itemService: MongoService = itemServiceIn
 
     def responseProcessor: ResponseProcessor = new ResponseProcessorImpl(comps)
 
-    //def sessionService: MongoService = sessionServiceIn
-
     def outcomeProcessor: OutcomeProcessor = DefaultOutcomeProcessor
 
+    def sessionService: ItemSessionCompanion = PreviewItemSessionCompanion
+
+    def itemService: ItemService = ItemServiceImpl
+
+    def transformItem: (Item) => JsValue = ItemTransformer.transformToPocItem
+
+    def sessionTransformer: ItemSessionTransformer = ItemSessionTransformer
   }
 }

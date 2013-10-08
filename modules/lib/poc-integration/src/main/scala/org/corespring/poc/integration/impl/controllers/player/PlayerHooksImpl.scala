@@ -4,13 +4,13 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.actions.{SessionIdRequest, PlayerRequest, ClientHooksActionBuilder}
 import org.corespring.container.client.controllers.hooks.PlayerHooks
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.itemSession.{ItemSession, ItemSessionCompanion}
+import org.corespring.platform.core.models.itemSession.{ItemSessionSettings, ItemSession, ItemSessionCompanion}
 import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, Result, AnyContent}
 import scalaz.Scalaz._
 import scalaz._
-import org.corespring.platform.data.mongo.models.VersionedId
 
 trait PlayerHooksImpl extends PlayerHooks {
 
@@ -55,9 +55,11 @@ trait PlayerHooksImpl extends PlayerHooks {
 
     def createSessionForItem(itemId: String)(block: (SessionIdRequest[AnyContent]) => Result): Action[AnyContent] = Action{ request =>
 
+      val settings = ItemSessionSettings(maxNoOfAttempts = 4)
+
       val result = for {
         vid <- VersionedId(itemId).toSuccess("Error creating item id")
-        sessionId <- sessionService.insert(ItemSession(itemId = vid)).toSuccess("Error creating session")
+        sessionId <- sessionService.insert(ItemSession(itemId = vid, settings = settings)).toSuccess("Error creating session")
       } yield sessionId
 
       result match {

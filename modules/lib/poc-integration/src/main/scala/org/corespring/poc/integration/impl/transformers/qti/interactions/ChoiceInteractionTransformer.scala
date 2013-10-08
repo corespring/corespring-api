@@ -18,11 +18,13 @@ object ChoiceInteractionTransformer {
     override def transform(node: Node): Seq[Node] = node match {
       case e: Elem if e.label == "choiceInteraction" => {
 
+        logger.debug( s"transform choiceInteraction: ${(e \ "@responseIdentifier").text }")
+
         def choices : JsArray = {
           val out : Seq[JsValue] = (e \\ "simpleChoice").toSeq.map{ n : Node =>
             Json.obj(
               "label" -> JsString(n.text),
-              "value" -> JsString( (n \ "@identifier").text )
+              "value" -> JsString( (n \ "@identifier").text.trim )
             )
           }
           JsArray(out)
@@ -46,7 +48,7 @@ object ChoiceInteractionTransformer {
 
         def correctResponse : JsObject = {
           Json.obj(
-            "value" -> (responseDeclaration \\ "value")(0).text
+            "value" -> (responseDeclaration \\ "value")(0).text.trim
           )
         }
 
@@ -58,7 +60,7 @@ object ChoiceInteractionTransformer {
                 "config" -> Json.obj(
                   "shuffle" -> (e \ "@shuffle").text
                 ),
-                "prompt" -> (e \ "prompt").text,
+                "prompt" -> (e \ "prompt").text.trim,
                 "choices" -> choices
             ),
             "feedback" -> feedback,

@@ -99,7 +99,7 @@ object Build extends sbt.Build {
       containerClientWeb,
       componentLoader,
       componentModel )
-  ).dependsOn(core)
+  ).dependsOn(core % "test->test;compile->compile")
 
   val playerLib = builders.lib("player-lib")
     .settings(

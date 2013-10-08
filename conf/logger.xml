@@ -21,18 +21,19 @@
     <logger name="developer" level="DEBUG"/>
     <logger name="controllers" level="DEBUG"/>
     <logger name="qti" level="DEBUG"/>
-    <logger name="models" level="DEBUG"/>
-    <logger name="player" level="DEBUG"/>
+    <logger name="models" level="ERROR"/>
+    <logger name="player" level="ERROR"/>
     <logger name="assets" level="WARN"/>
     <logger name="common" level="DEBUG"/>
     <logger name="common.controllers.deployment" level="DEBUG"/>
-    <logger name="memcached" level="ERROR"/>
     <logger name="models.mongoContext" level="ERROR"/>
     <logger name="tests" level="DEBUG"/>
     <logger name="utils" level="DEBUG"/>
-    <logger name="basiclti.controllers" level="DEBUG"/>
+    <logger name="basiclti.controllers" level="ERROR"/>
     <logger name="s3-play-plugin" level="WARN"/>
-    <logger name="memcached" level="DEBUG"/>
+    <logger name="memcached" level="ERROR"/>
+    <logger name="components.response" level="DEBUG"/>
+    <logger name="poc" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
