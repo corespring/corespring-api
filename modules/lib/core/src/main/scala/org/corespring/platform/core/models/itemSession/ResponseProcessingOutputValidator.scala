@@ -29,7 +29,7 @@ import scalaz.{Validation, Success, Failure}
  */
 object ResponseProcessingOutputValidator {
 
-  def apply(jsObject: JsObject, qtiItem: QtiItem): Validation[InternalError, SessionOutcome] = {
+  def apply(script:String, jsObject: JsObject, qtiItem: QtiItem)(implicit debugMode:Boolean): Validation[InternalError, SessionOutcome] = {
     validateJsResponse(jsObject, qtiItem.responseDeclarations) match {
       case Some(internalError) => Failure(internalError)
       case _ => SessionOutcome.fromJsObject(jsObject, qtiItem.responseDeclarations)

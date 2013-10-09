@@ -2,17 +2,30 @@ angular.module('qti.directives', ['qti.services','ngDragDrop','ui.sortable']);
 angular.module('qti', ['qti.directives', 'qti.services', 'corespring-services', 'corespring-directives','corespring-utils', 'ui']);
 
 
-function ControlBarController($scope, $rootScope) {
+function ControlBarController($scope, $rootScope, $document) {
     $scope.showAdminOptions = false;
+    $scope.showScore = false;
 
     $scope.toggleControlBar = function() {
         $scope.showAdminOptions = !$scope.showAdminOptions;
 
         $rootScope.$broadcast('controlBarChanged');
     }
+
+    $rootScope.$on('computedOutcome', function(event, outcome){
+        $scope.showScore = true;
+        $scope.totalScore = outcome.score
+        $document.find('#score-popover').popover({html: true, content: function(){
+            output = [
+                "score: "+outcome.score,
+                "isComplete: "+outcome.isComplete
+            ]
+        }})
+    })
+
 }
 
-ControlBarController.$inject = ['$scope', '$rootScope'];
+ControlBarController.$inject = ['$scope', '$rootScope', '$document'];
 
 // base directive include for all QTI items
 angular.module('qti.directives').directive('assessmentitem', function() {
@@ -166,6 +179,7 @@ angular.module('qti.directives').directive('assessmentitem', function() {
                         if ($scope.formSubmitted) {
                             $scope.formHasIncorrect = false;
                             $scope.$broadcast('formSubmitted', $scope.itemSession, !areResponsesIncorrect());
+                            $rootScope.$broadcast('computedOutcome', $scope.itemSession.outcome)
                         }
                     });
                 };

@@ -8,6 +8,11 @@
   <i
   ng-class="{ true: 'icon-arrow-down', false: 'icon-arrow-right'}[showAdminOptions]">
   </i>
+  <div class="show-score" ng-show="showScore">
+      <a href="#"
+         id="score-popover"
+         data-placement="bottom">Score: </a>{{totalScore}}
+  </div>
 </div>
 
 <div class="well" ng-show="showAdminOptions">

@@ -216,7 +216,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
    * Return sessionData and ResponseOutcomes
    * @param itemId
    */
-  def processResponse(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction {
+  def processResponse(itemId: VersionedId[ObjectId], sessionId: ObjectId)= ApiAction {
     request =>
       implicit val isInstructor = renderOptions(request).map(_.role == "instructor").getOrElse(false)
       logger.debug("[processResponse]: " + sessionId)
