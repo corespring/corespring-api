@@ -24,6 +24,8 @@
     <script type="text/javascript" src="js/vendor/waypoint/waypoints.js"></script>
     <script type="text/javascript" src="js/corespring/directives.js"></script>
     <script type="text/javascript" src="js/corespring/app.js"></script>
+    <!--hmac-sha1 used to create api client signature to retrieve access token-->
+    <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/hmac-sha1.js"></script>
 
     <script type="text/javascript">
 
@@ -396,6 +398,12 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <p><em>* The TC system needs to support LTI outcomes service for the outcomes to be sent back to the TC system</em></p>
 
+<h3>Using CoreSpring in Canvas with LTI</h3>
+
+<p>The instructions for how to configure LTI Tools might vary somewhat from system to system. By way of reference, we will describe how to configure CoreSpring with CanvasLMS here:</p>
+
+<p><a href="/developer/canvas-integration.html">Configuring CoreSpring with Canvas</a></p>
+
 <h2><a name="integration-direct" class="waypoint"></a> Direct Integration</h2>
 
 <p>Direct integration using the CoreSpring REST APIs and Item Player gives you a lot of flexibility in how to integrate the content into your system.</p>
@@ -442,7 +450,8 @@ Our developer tools include a set of APIs for discovering, managing and deployin
         <span class="nt">&lt;script&gt;</span>
           <span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
               <span class="c1">//Note: Use jquery style selectors</span>
-              <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">);</span>
+              <span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1">//more information on options to follow</span>
+              <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">org</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">,</span> <span class="nx">options</span><span class="p">);</span>
            <span class="p">});</span>
         <span class="nt">&lt;/script&gt;</span>
       <span class="nt">&lt;/head&gt;</span>
@@ -450,7 +459,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
         <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&#39;cs-item-player&#39;</span><span class="nt">&gt;&lt;/div&gt;</span>
         <span class="c">&lt;!-- jquery is a dependency --&gt;</span>
         <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;jquery.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
-        <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;https://www.corespring.org/player.js?apiClientId=${apiClientId}&amp;options=${options}&quot;</span> <span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+        <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;//corespring.org/player.js?apiClientId=${apiClientId}&amp;options=${options}&quot;</span> <span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
       <span class="nt">&lt;/body&gt;</span>
      <span class="nt">&lt;/html&gt;</span>
 </code></pre>
@@ -481,13 +490,6 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 
 <p>Depending on the mode you must also pass in some additional variables. See the next section for more information.</p>
 
-<h3>Optional Options</h3>
-
-<h4>omitSubmitButton (Boolean)</h4>
-
-<p>In case this is true the submit button will not be shown on the rendered item. In this case you wil be able to control item
-submission programmatically via the <a href="#player-method-submit">submitItem</a> method of the player. The default value is false.</p>
-
 <h2><a name="player-modes" class="waypoint"></a>Player Modes</h2>
 
 <hr />
@@ -504,7 +506,6 @@ submission programmatically via the <a href="#player-method-submit">submitItem</
       "mode" : "preview",
       "itemId" : "1",
       "expires": "1366216268"
-
     }
 </json-highlight>
 </div>
@@ -581,7 +582,7 @@ submission programmatically via the <a href="#player-method-submit">submitItem</
       "mode" : "aggregate",
       "itemId": "1",
       "assessmentId" : "1",
-      "expires": "1366216268"
+      "expires": 1366216268
     }
 </json-highlight>
 </div>
@@ -608,7 +609,7 @@ To call the api, you will need to pass an access token which you can retrieve wi
 
 <p>Example:</p>
 
-<pre><code>POST /api/v1/item-player/options
+<pre><code>POST /player/encrypt-options
 {
   /* your options here */
 }
@@ -620,42 +621,9 @@ U2FsdGVkX19QrTAwaoeIypkJ2CjF+5TK+Oji5/X+ExV7wfTEIvpKYJBdP9NziW0iPxoSt9dPQaYN0OQs
 
 <h4>Encrypting Options in Your Code</h4>
 
-<p>You may also encrypt the player options in your own (server-side) code. Corespring uses AES 128 bit encryption with Cipher Block Chaining (CBC) as the mode of operation and PKCS5 padding. In order for Corespring to be able to read and decrypt your encryption you must:</p>
+<p>You may also encrypt the player options in your own (server-side) code: Simply encode the JSON formatted options string with AES encryption using your Client Secret as the key.</p>
 
-<ol>
-<li>generate a 128 bit initialization vector(IV) and output the result in hexadecimal</li>
-<li>hash your secret using MD5 Message Digest</li>
-<li>encrypt your options with the hashed key and output the result in hexademical</li>
-<li>encode both the cipher text and iv in utf-8 and combine the two into one string using the delimeter '--' e.g. [encrypted]--[iv]</li>
-</ol>
-
-
-<p>The following is an example in NodeJs:</p>
-
-<pre><code>// Options is the options you are encrypting and secret is your client secret. 
-// This code assumes both are defined elsewhere
-var crypto = require('crypto'); //nodejs crypto module. see nodejs api documentation
-var uuid = require('node-uuid'); //generate uuid to represent initialization vector
-
-var iv = new Array(16);
-var digest = new Array(16);
-
-uuid.v4(null, iv, 0); 
-
-var hash = crypto.createHash('md5');
-hash.update(secret,'utf8');
-var digest = hash.digest('hex');
-//digest is now the hashed secret to be used to encrypt options
-
-var cipher = crypto.createCipheriv('aes-128-cbc', 
-                                  new Buffer(digest,'hex'), 
-                                  new Buffer(iv)); 
-var encrypted = cipher.update(JSON.stringify(options), "utf8", "hex");
-encrypted += cipher.final("hex"); //the final encrypted message
-//the final output in the form of [encrypted]--[iv]
-//callback with the encrypted options
-callback(null,encrypted+"--"+new Buffer(iv).toString('hex'));
-</code></pre>
+<blockquote><p>Note: if the key you generate is not in the ascii charset, you should urlencode the key before adding it to the query parameter when loading the player.</p></blockquote>
 
 <h2><a name="advanced-options" class="waypoint"></a>Advanced Options</h2>
 
@@ -681,7 +649,7 @@ callback(null,encrypted+"--"+new Buffer(iv).toString('hex'));
       "itemId": "*",
       "sessionId": "*",
       "mode": "*",
-      "expires": "0"
+      "expires": 0
     }
 </json-highlight>
 </div>
@@ -695,7 +663,7 @@ callback(null,encrypted+"--"+new Buffer(iv).toString('hex'));
       <span class="nx">itemId</span><span class="o">:</span> <span class="s2">&quot;itemId&quot;</span><span class="p">,</span>
       <span class="nx">mode</span><span class="o">:</span> <span class="s2">&quot;preview&quot;</span>
     <span class="p">}</span>
-    <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">,</span> <span class="nx">options</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">org</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">,</span> <span class="nx">options</span><span class="p">);</span>
 </code></pre>
 </div>
 
@@ -703,6 +671,25 @@ callback(null,encrypted+"--"+new Buffer(iv).toString('hex'));
 <h3>Registering Callbacks with Player</h3>
 
 <p>The Item Player allows you to define some callback functions in your javascript code that will be executed by the player.</p>
+
+<h4>Limitations</h4>
+
+<p>There will only ever be one set of listeners active for one ItemPlayer. For example:</p>
+
+<div class="highlight"><pre><code class="javascript">    <span class="kd">var</span> <span class="nx">config</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nx">onItemSessionCreated</span> <span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">sessionId</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;created: &quot;</span> <span class="o">+</span> <span class="nx">sessionId</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kd">var</span> <span class="nx">playerOne</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">,</span> <span class="nx">config</span><span class="p">);</span>
+    <span class="c1">//Only player two will receive events - all listeners from player one are gone.</span>
+    <span class="kd">var</span> <span class="nx">playerTwo</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#cs-item-player&#39;</span><span class="p">,</span> <span class="nx">config</span><span class="p">);</span>
+</code></pre>
+</div>
+
+
+<p>This means that you should only have have one active ItemPlayer instance per page.</p>
 
 <h4>onItemSession</h4>
 
@@ -717,7 +704,7 @@ callback(null,encrypted+"--"+new Buffer(iv).toString('hex'));
     <span class="p">}</span>
 
 
-    <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span>
+    <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span>
       <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;cs-item-player&#39;</span><span class="p">),</span>
       <span class="nx">itemPlayerConfig</span><span class="p">);</span>
 </code></pre>
@@ -736,35 +723,9 @@ callback(null,encrypted+"--"+new Buffer(iv).toString('hex'));
 <p>Administer Mode:</p>
 
 <ul>
-<li><strong>itemSessionStart(itemSessionId)</strong>: called when a new item session is started, passes the item session id</li>
-<li><strong>itemSessionComplete(itemSessionId)</strong>: called when a new item session is completed, passes the item session id</li>
+<li><strong>onItemSessionCreated(itemSessionId)</strong>: called when a new item session is created, passes the item session id</li>
+<li><strong>onItemSessionCompleted(itemSessionId)</strong>: called when a new item session is completed, passes the item session id</li>
 </ul>
-
-
-<h3>Methods</h3>
-
-<p><a name="player-method-submit" class="waypoint"></a></p>
-
-<h4>submitItem()</h4>
-
-<p>Can be called as an alternative to the user clicking the 'Submit' button for the item.</p>
-
-<h4>saveResponses()</h4>
-
-<p>Can be called to save responses without counting as a submission</p>
-
-<p>Example:</p>
-
-<div class="highlight"><pre><code class="javascript">    <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span>
-      <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;cs-item-player&#39;</span><span class="p">),</span> <span class="p">{});</span>
-
-    <span class="c1">//save responses</span>
-    <span class="nx">player</span><span class="p">.</span><span class="nx">saveResponses</span><span class="p">();</span>
-    
-    <span class="c1">//submit the current session. </span>
-    <span class="nx">player</span><span class="p">.</span><span class="nx">submitItem</span><span class="p">();</span>
-</code></pre>
-</div>
 
 
 <h2><a name="road-map" class="waypoint"></a>Road Map</h2>
@@ -800,7 +761,18 @@ The interactive API widget is pre-configured to use this access token but you ca
 
 <h2><a name="authentication-get-token" class="waypoint"></a> Getting an Access Token</h2>
 
-<p>Once you have <a href="/developer/register">registered</a> and have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL. You can access the authorization url to receive your auth token using the widget below.</p>
+<p>Once you have <a href="/developer/register">registered</a> and have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL. The authorization requires two paramaters: a client id and client signature. The client id is the <code>client_id</code> you received from registering. The signature is a HmacSHA1 hash value where the key is the <code>client_secret</code> you received from registering. The message part is a utf-8 character encoded string of the form <code>[grant_type]:[client_id]:[algorithm]</code>. Where grant_type must be "client_credentials", client_id is the client id you received from registering, and algorithm is "HmacSHA1". The following javascript code is an example of signature generation using the <a href="https://code.google.com/p/crypto-js"> crypto-js library</a>.</p>
+
+<pre><code>/*
+* Here it is assumed that clientId and clientSecret are retrieved elsewhere from registering
+*/
+var signature = CryptoJS.HmacSHA1(
+  "client_credentials:"+clientId+":HmacSHA1",
+  clientSecret
+)
+</code></pre>
+
+<p>You can access the authorization url to receive your auth token using the widget below.</p>
 
 <p><br/></p>
 
@@ -810,7 +782,7 @@ The interactive API widget is pre-configured to use this access token but you ca
     disabled="false"
     disabled-message="currently disabled to ensure the fixture data stays in the correct state"
     path="/auth/access_token"
-    form-params="client_id=client_id&client_secret=client_secret"
+    form-params="client_id=client_id&client_signature=client_signature"
     url="/auth/access_token">
   </rest-widget>
 </div>
@@ -1362,7 +1334,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
 
 <hr />
 
-<p>date:  09/18/2013 03:58PM</p>
+<p>date:  10/10/2013 04:27PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
