@@ -79,19 +79,19 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
       } else Unauthorized(toJson(ApiError.UnauthorizedItemSession))
   }
 
-  def update(itemId: VersionedId[ObjectId], sessionId: ObjectId, action: Option[String]) = action match {
+  def update(itemId: VersionedId[ObjectId], sessionId: ObjectId, role:String, action: Option[String]) = action match {
     case Some("begin") => begin(itemId, sessionId)
     case Some("updateSettings") => updateSettings(itemId, sessionId)
-    case _ => processResponse(itemId, sessionId)
+    case _ => processResponse(itemId, sessionId)(role)
   }
 
   /**
    * @param sessionId
    * @return
    */
-  def get(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction {
+  def get(itemId: VersionedId[ObjectId], sessionId: ObjectId, role:String) = ApiAction {
     request =>
-      implicit val isInstructor = renderOptions(request).map(_.role == "instructor").getOrElse(false)
+      implicit val isInstructor = role == "instructor"
       itemSession.get(sessionId) match {
         case Some(session) => {
           if (Content.isAuthorized(request.ctx.organization, session.itemId, Permission.Read)) {
@@ -216,9 +216,9 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
    * Return sessionData and ResponseOutcomes
    * @param itemId
    */
-  def processResponse(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction {
+  def processResponse(itemId: VersionedId[ObjectId], sessionId: ObjectId)(implicit role:String) = ApiAction {
     request =>
-      implicit val isInstructor = renderOptions(request).map(_.role == "instructor").getOrElse(false)
+      implicit val isInstructor = role == "instructor"
       logger.debug("[processResponse]: " + sessionId)
 
       itemSession.findOneById(sessionId) match {
