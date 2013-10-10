@@ -308,6 +308,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     if(error) $scope.showSaveWarning = true;
   };
 
+  $scope.backToCollections = function(){
+    $location.path("/home").search('');
+  };
+
   $scope.publish = function(){
     $scope.itemData.published = true;
     $scope.itemData.update({},function(data){
