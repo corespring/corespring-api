@@ -1,5 +1,5 @@
 (function (root) {
-  var console = console || {log: function(){}};
+  var console = window.console || {log: function(){}};
   var com = root.com = root.com || {};
 
   com.corespring = com.corespring || {};
@@ -66,18 +66,27 @@
 
   function addDimensionChangeListener(element) {
 
-    var listenerFunction = function (data) {
+    var listenerFunction = function (data, event) {
       try {
         var json = JSON.parse(data);
         if (json.message == 'dimensionsUpdate') {
-          $(element).height(json.h + 30);
+          var frames = document.getElementsByTagName('iframe');
+          var found = false;
+          for (var i = 0; i < frames.length; i++) {
+            if (frames[i].contentWindow == event.source) {
+              $(frames[i]).height(json.h + 30);
+              found = true;
+              break;
+            }
+          }
+          if (!found) $(element).height(json.h + 30);
         }
       } catch (e) {
 
       }
     }
 
-    addPlayerListener(function(e){ listenerFunction(e.data) });
+    addPlayerListener(function(e){ listenerFunction(e.data, e) });
   }
 
   var isValidMode = function (m) {
