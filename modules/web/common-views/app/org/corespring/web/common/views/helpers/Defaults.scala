@@ -15,7 +15,6 @@ object Defaults {
   private lazy val properties = {
     val url = Play.resource( propsFile )
     url.map{ u =>
-      println(u.getPath)
       val props = new Properties()
       props.load(u.openStream())
       props
