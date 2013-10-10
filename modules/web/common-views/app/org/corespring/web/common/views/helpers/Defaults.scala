@@ -2,10 +2,25 @@ package org.corespring.web.common.views.helpers
 
 import com.mongodb.casbah.commons.MongoDBObject
 import com.typesafe.config.{ ConfigFactory, Config }
+import java.util.Properties
 import org.corespring.platform.core.models.item.FieldValue
+import play.api.Play
+import play.api.Play.current
 import play.api.libs.json.{ JsValue, Json }
 
 object Defaults {
+
+  val propsFile = "/buildInfo.properties"
+
+  private lazy val properties = {
+    val url = Play.resource("/buildInfo.properties")
+    url.map{ u =>
+      println(u.getPath)
+      val props = new Properties()
+      props.load(u.openStream())
+      props
+    }.getOrElse( new Properties() )
+  }
 
   lazy val fieldValues: String = FieldValue.findOne(MongoDBObject()) match {
     case Some(fv) => {
@@ -18,11 +33,9 @@ object Defaults {
     case _ => ""
   }
 
-  lazy val commitHashShort: String = get("ENV_CORESPRING_API_COMMIT_HASH_SHORT").getOrElse("?")
-  lazy val commitHash: String = get("ENV_CORESPRING_API_COMMIT_HASH").getOrElse("?")
-  lazy val commitMsg: String = get("ENV_CORESPRING_API_COMMIT_MSG").getOrElse("?")
-  lazy val pushDate: String = get("ENV_CORESPRING_API_PUSH_DATE").getOrElse("?")
-  lazy val branch: String = get("ENV_CORESPRING_API_BRANCH").getOrElse("?")
+  lazy val commitHashShort: String = properties.getProperty("commit.hash", "?")
+  lazy val pushDate: String = properties.getProperty("date", "?" )
+  lazy val branch: String = properties.getProperty("branch", "?")
 
   def envName(default: String): String = get("ENV_NAME").getOrElse(default)
 
