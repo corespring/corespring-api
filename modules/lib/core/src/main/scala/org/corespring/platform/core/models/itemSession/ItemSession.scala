@@ -294,12 +294,35 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
       }
   }
 
+//  /**
+//   * Get the item session and add any extra data to it if its finished.
+//   * @param id - the item session id
+//   * @return
+//   */
+//  def get(id: ObjectId)( implicit includeResponsesOverride:Boolean): Option[ItemSession] = {
+//    findOneById(id) match {
+//      case Some(session) => {
+//        if (session.isFinished) {
+//          getXmlWithFeedback(session) match {
+//            case Right(xml) => {
+//              fns.foreach(_(session, xml))
+//              session
+//            }
+//            case Left(e) => session
+//          }
+//        } else {
+//          session
+//        }
+//      }
+//      case _ => None
+//    }
+//  }
+
   /**
    * Calculate the score total
    * @param session
    * @return a tuple (score, maxScore)
    */
-
   def getTotalScore(session: ItemSession): (Double, Double) = {
     require(session.isFinished, "The session isn't finished.")
 
