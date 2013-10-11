@@ -608,7 +608,7 @@ To call the api, you will need to pass an access token which you can retrieve wi
 
 <p>Example:</p>
 
-<pre><code>POST /api/v1/item-player/options
+<pre><code>POST  /player/encrypt-options
 {
   /* your options here */
 }
@@ -632,7 +632,7 @@ U2FsdGVkX19QrTAwaoeIypkJ2CjF+5TK+Oji5/X+ExV7wfTEIvpKYJBdP9NziW0iPxoSt9dPQaYN0OQs
 
 <p>The following is an example in NodeJs:</p>
 
-<pre><code>// Options is the options you are encrypting and secret is your client secret. 
+<pre><code>// Options is the options you are encrypting and secret is your client secret.
 // This code assumes both are defined elsewhere
 var crypto = require('crypto'); //nodejs crypto module. see nodejs api documentation
 var uuid = require('node-uuid'); //generate uuid to represent initialization vector
@@ -640,16 +640,16 @@ var uuid = require('node-uuid'); //generate uuid to represent initialization vec
 var iv = new Array(16);
 var digest = new Array(16);
 
-uuid.v4(null, iv, 0); 
+uuid.v4(null, iv, 0);
 
 var hash = crypto.createHash('md5');
 hash.update(secret,'utf8');
 var digest = hash.digest('hex');
 //digest is now the hashed secret to be used to encrypt options
 
-var cipher = crypto.createCipheriv('aes-128-cbc', 
-                                  new Buffer(digest,'hex'), 
-                                  new Buffer(iv)); 
+var cipher = crypto.createCipheriv('aes-128-cbc',
+                                  new Buffer(digest,'hex'),
+                                  new Buffer(iv));
 var encrypted = cipher.update(JSON.stringify(options), "utf8", "hex");
 encrypted += cipher.final("hex"); //the final encrypted message
 //the final output in the form of [encrypted]--[iv]
@@ -760,8 +760,8 @@ callback(null,encrypted+"--"+new Buffer(iv).toString('hex'));
 
     <span class="c1">//save responses</span>
     <span class="nx">player</span><span class="p">.</span><span class="nx">saveResponses</span><span class="p">();</span>
-    
-    <span class="c1">//submit the current session. </span>
+
+    <span class="c1">//submit the current session.</span>
     <span class="nx">player</span><span class="p">.</span><span class="nx">submitItem</span><span class="p">();</span>
 </code></pre>
 </div>
@@ -1362,7 +1362,7 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
 
 <hr />
 
-<p>date:  09/18/2013 03:58PM</p>
+<p>date:  10/10/2013 04:35PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
