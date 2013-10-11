@@ -126,7 +126,9 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
 
   private def roleConstraints(role:String)(implicit options:RenderOptions): ValueAndConstraint[Any] = {
     ValueAndConstraint("role",role,
-      if (options.role == RenderOptions.*) List(new WildcardConstraint) else List(new StringEqualsConstraint(options.role))
+      if (options.role == RenderOptions.*) List(new WildcardConstraint)
+      else if (options.role == "instructor") List(new SuccessConstraint)
+      else List(new StringEqualsConstraint(options.role))
     )
   }
 

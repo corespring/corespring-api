@@ -217,11 +217,21 @@
           error("Unknown mode", codes.NEED_MODE);
           break;
       }
-      return template
+      template = template
         .replace(":itemId", options.itemId)
         .replace(":sessionId", options.sessionId)
         .replace(":assessmentId", options.assessmentId);
+      if(options.role) return addQueryString(template,options.role)
+      else return template
     };
+
+    function addQueryString(url,param){
+        if(url.indexOf("?") != -1){
+            return url+"&role="+param;
+        }else{
+            return url+"?role="+param;
+        }
+    }
 
     options.corespringUrl = getUrl(com.corespring.players.config.mode, options);
 

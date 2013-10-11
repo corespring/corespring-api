@@ -128,7 +128,7 @@ GET     /api/v1/quizzes                             api.v1.QuizApi.list()
 GET    /scorm-player.js                                 scorm.controllers.AssetLoading.itemPlayerJavascript
 GET    /scorm-player/item/:itemId/administer            scorm.controllers.ScormPlayer.administerItem(itemId : VersionedId[ObjectId])
 GET    /scorm-player/item/:itemId/:filename             scorm.controllers.ScormPlayer.getDataFile(itemId : String, filename:String)
-GET    /scorm-player/session/:sessionId/render          scorm.controllers.ScormPlayer.render(sessionId : ObjectId)
+GET    /scorm-player/session/:sessionId/render          scorm.controllers.ScormPlayer.render(sessionId : ObjectId, role:String ?= "student")
 GET    /scorm-player/session/:sessionId/:filename       scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : String, filename:String)
 
 
@@ -150,7 +150,7 @@ GET    /player/item/:itemId/administer                     player.controllers.Vi
 GET    /player/item/:itemId/profile                        player.controllers.Views.profile(itemId:VersionedId[ObjectId], tab:String ?= "")
 GET    /player/item/:itemId/*filename                      player.controllers.AssetLoading.getDataFile(itemId, filename)
 
-GET    /player/session/:sessionId/render                   player.controllers.Views.render(sessionId:ObjectId)
+GET    /player/session/:sessionId/render                   player.controllers.Views.render(sessionId:ObjectId, role:String ?= "student")
 GET    /player/session/:sessionId/administer               player.controllers.Views.administerSession(sessionId:ObjectId)
 GET    /player/session/:sessionId/*filename                player.controllers.AssetLoading.getDataFileBySessionId(sessionId, filename)
 
