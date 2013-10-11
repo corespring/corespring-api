@@ -37,12 +37,11 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
   private def buildConstraints(request: RequestedAccess)(implicit options: RenderOptions): List[ValueAndConstraint[Any]] = {
 
     val common: List[ValueAndConstraint[Any]] = List(timeConstraint)
-
     val modeSpecificConstraints: List[ValueAndConstraint[Any]] = request.mode.map {
       m =>
         m match {
           case Preview => (itemAndSession orElse itemOnly orElse noMatch(Preview, "no item or session"))(request)
-          case Render => (sessionAndRole orElse noMatch(Render, "no session found"))(request)
+          case Render => (sessionAndRole orElse sessionOnly orElse noMatch(Render, "no session found"))(request)
           case Aggregate => (itemAndAssessment orElse noMatch(Aggregate, "only an assessment id and item are allowed"))(request)
           case Administer => (itemOnly orElse sessionOnly orElse itemAndSession orElse noMatch(Administer, "no item or session passed"))(request)
           case _ => List()
