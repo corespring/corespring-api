@@ -10,6 +10,7 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 
 class ConstraintGranterTest extends Specification {
+  sequential
 
   def sessionLookup(contains: Boolean): SessionItemLookup = new SessionItemLookup {
     def containsItem(id: ObjectId, itemId: VersionedId[ObjectId]): Boolean = contains
@@ -199,9 +200,7 @@ class ConstraintGranterTest extends Specification {
     }
 
     "when in render" in {
-
       "and not bound to an itemId" in {
-
         "no access if a session isn't defined" in {
           val options = RenderOptions(expires = 0, mode = Mode.Render, sessionId = RenderOptions.*)
           granter().grant(ra(Render), options) === false
