@@ -36,9 +36,9 @@ case class SessionOutcome(score: Double,
 
 object SessionOutcome extends ClassLogging {
 
-  def processSessionOutcome(itemSession: ItemSession, qtiItem: QtiItem)(implicit debugMode:Boolean): Validation[InternalError, SessionOutcome] = {
+  def processSessionOutcome(itemSession: ItemSession, qtiItem: QtiItem, debugMode:Boolean): Validation[InternalError, SessionOutcome] = {
     qtiItem.responseProcessing match {
-      case Some(processing) => responseProcessingScoring(itemSession, qtiItem, processing)
+      case Some(processing) => responseProcessingScoring(itemSession, qtiItem, processing)(debugMode)
       case _ => defaultScoring(itemSession, qtiItem)
     }
   }
@@ -53,7 +53,7 @@ object SessionOutcome extends ClassLogging {
   def fromJsObject(json:JsValue, responseDeclarations: Seq[ResponseDeclaration] = Seq()): JsResult[SessionOutcome] = {
       def computeIdentifierOutcomes(json:JsValue):JsResult[Map[String,IdentifierOutcome]] = {
         responseDeclarations.map(d =>
-          d.identifier -> Json.fromJson[IdentifierOutcome]((json \ d.identifier)))
+          d.identifier -> Json.fromJson[IdentifierOutcome]((json \ "identifierOutcomes" \ d.identifier)))
           .foldLeft[JsResult[Map[String,IdentifierOutcome]]](JsSuccess(Map()))((result,input) => {
             result.fold[JsResult[Map[String,IdentifierOutcome]]](
               JsError(_),
@@ -100,11 +100,11 @@ object SessionOutcome extends ClassLogging {
               response match {
                 case Some((script:String,jsObject: JsObject)) => {
                   val result = Writes.writes(defaultOutcome).deepMerge(jsObject)
-                  ResponseProcessingOutputValidator(script, result, qtiItem)
+                  ResponseProcessingOutputValidator(result, qtiItem).map(so => if(debugMode) so.copy(script = Some(script)) else so)
                 }
                 case Some((script:String,jsNumber: JsNumber)) => {
                   val result = Writes.writes(defaultOutcome).deepMerge(Json.obj("score" -> jsNumber))
-                  ResponseProcessingOutputValidator(script, result, qtiItem)
+                  ResponseProcessingOutputValidator(result, qtiItem).map(so => if(debugMode) so.copy(script = Some(script)) else so)
                 }
                 case _ => Failure(InternalError(s"""Response processing for item did not return a JsObject"""))
               }
@@ -169,12 +169,14 @@ object SessionOutcome extends ClassLogging {
         Seq(
           "score" -> JsNumber(outcome.score),
           "isCorrect" -> JsBoolean(outcome.isCorrect),
-          "isComplete" -> JsBoolean(outcome.isComplete)) ++ (
-            outcome.identifierOutcomes.map {
+          "isComplete" -> JsBoolean(outcome.isComplete)
+        ) ++ Seq(
+          "identifierOutcomes" -> JsObject((outcome.identifierOutcomes.map {
               case (identifier, identifierOutcome) => {
                 identifier -> Json.toJson(identifierOutcome)
               }
-            }) ++ outcome.script.map(s => Seq("script" -> JsString(s))).getOrElse(Seq())
+          }).toSeq)
+        ) ++ outcome.script.map(s => Seq("script" -> JsString(s))).getOrElse(Seq())
       )
     }
   }

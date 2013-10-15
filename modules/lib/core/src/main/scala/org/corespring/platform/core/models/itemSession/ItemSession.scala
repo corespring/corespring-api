@@ -277,7 +277,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
         updateFromDbo(update.id, dboUpdate, (u) => {
           if(isAttempt){
             val qtiItem = QtiItem(xmlWithCsFeedbackIds)
-            val sessionOutcome = SessionOutcome.processSessionOutcome(u,qtiItem)
+            val sessionOutcome = SessionOutcome.processSessionOutcome(u,qtiItem,debugMode)
             sessionOutcome match {
               case Success(so) => {
                 u.outcome = Some(so)

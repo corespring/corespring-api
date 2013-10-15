@@ -9,10 +9,33 @@
   ng-class="{ true: 'icon-arrow-down', false: 'icon-arrow-right'}[showAdminOptions]">
   </i>
   <div class="show-score" ng-show="showScore">
-      <a href="#"
-         id="score-popover"
-         data-placement="bottom">Score: </a>{{totalScore}}
+      <a href='' ng-click='scorePopup=true'>Score: </a>{{outcome.score}}
+      <div ui-modal ng-model='scorePopup' close='scorePopup=false'>
+          <div class='modal-header'>
+              <button type='button' class='close' ng-click='scorePopup=false'>&#215;</button>
+              <h3 id='myModalLabel'>Session Outcome</h3>
+          </div>
+          <div class='modal-body'>
+              <ul>
+                  <li>score: {{outcome.score}}</li>
+                  <li>isComplete: {{outcome.isComplete}}</li>
+                  <li ng-repeat="identifier in identifiers">
+                      <a href="" ng-click="displayIdentifier(identifier.label)">{{identifier.label}}</a>
+                      <ul ng-show="identifier.display">
+                        <li>score: {{outcome.identifierOutcomes[identifier.label].score}}</li>
+                        <li>isCorrect: {{outcome.identifierOutcomes[identifier.label].isCorrect}}</li>
+                      </ul>
+                  </li>
+              </ul>
+              <div ng-show="hasScript">
+                  <a href="" ng-click="runScript()">run script</a>
+              </div>
+          </div>
+          <div class='modal-footer' style='text-align: left;'><a href='' ng-click='scorePopup=false'>See your answer</a></div>
+      </div>
+
   </div>
+
 </div>
 
 <div class="well" ng-show="showAdminOptions">

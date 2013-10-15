@@ -29,7 +29,7 @@ import scalaz.{Validation, Success, Failure}
  */
 object ResponseProcessingOutputValidator {
 
-  def apply(script:String, jsObject: JsObject, qtiItem: QtiItem)(implicit debugMode:Boolean): Validation[InternalError, SessionOutcome] = {
+  def apply(jsObject: JsObject, qtiItem: QtiItem)(implicit debugMode:Boolean): Validation[InternalError, SessionOutcome] = {
     validateJsResponse(jsObject, qtiItem.responseDeclarations) match {
       case Some(internalError) => Failure(internalError)
       case _ => SessionOutcome.fromJsObject(jsObject, qtiItem.responseDeclarations)
@@ -42,11 +42,11 @@ object ResponseProcessingOutputValidator {
       case Some(internalError) => Some(internalError)
       case _ => {
         val identifiers = responseDeclarations.map(_.identifier)
-        identifiers.find(identifier => (jsValue \ identifier).isInstanceOf[JsUndefined]) match {
+        identifiers.find(identifier => (jsValue \ "identifierOutcomes" \ identifier).isInstanceOf[JsUndefined]) match {
           case Some(identifier) =>
             Some(InternalError(s"""Response for identifier $identifier is required in JsObject"""))
           case _ => {
-            val errors = identifiers.flatMap(identifier => validateJsValue((jsValue \ identifier), Some(identifier)))
+            val errors = identifiers.flatMap(identifier => validateJsValue((jsValue \ "identifierOutcomes" \ identifier), Some(identifier)))
             errors match {
               case errors: Seq[InternalError] if errors.nonEmpty => {
                 Some(errors.head)

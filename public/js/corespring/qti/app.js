@@ -2,7 +2,7 @@ angular.module('qti.directives', ['qti.services','ngDragDrop','ui.sortable']);
 angular.module('qti', ['qti.directives', 'qti.services', 'corespring-services', 'corespring-directives','corespring-utils', 'ui']);
 
 
-function ControlBarController($scope, $rootScope, $document) {
+function ControlBarController($scope, $rootScope) {
     $scope.showAdminOptions = false;
     $scope.showScore = false;
 
@@ -14,18 +14,40 @@ function ControlBarController($scope, $rootScope, $document) {
 
     $rootScope.$on('computedOutcome', function(event, outcome){
         $scope.showScore = true;
-        $scope.totalScore = outcome.score
-        $document.find('#score-popover').popover({html: true, content: function(){
-            output = [
-                "score: "+outcome.score,
-                "isComplete: "+outcome.isComplete
-            ]
-        }})
+        $scope.scorePopup = false;
+        $scope.outcome = outcome;
+        $scope.hasScript = outcome.script != null;
+        $scope.showSeeScript = false;
+        $scope.showRunScript = false;
+        $scope.identifiers = _.map(_.keys(outcome.identifierOutcomes),function(identifier){
+            return {label: identifier, display: false};
+        });
+        $scope.displayIdentifier = function(label){
+            _.each($scope.identifiers,function(identifier){
+                if(identifier.label == label && !identifier.display) identifier.display = true;
+                else identifier.display = false;
+            });
+        }
+        $scope.seeScript = function(){
+            var scriptWindow = window.open()
+            scriptWindow.document.write([
+            "<link href=\"http://alexgorbatchev.com/pub/sh/current/styles/shCoreDefault.css\" rel=\"stylesheet\" type=\"text/css\" />",
+            "<script src=\"http://alexgorbatchev.com/pub/sh/current/scripts/shCore.js\" type=\"text/javascript\"></script>",
+            "<script src=\"http://alexgorbatchev.com/pub/sh/current/scripts/shBrushJScript.js\" type=\"text/javascript\"></script>",
+            "<script type=\"text/javascript\">SyntaxHighlighter.all();</script>",
+            "<body><script type=\"syntaxhighlighter\" class=\"brush: js\"><![CDATA[",
+                outcome.script,
+            "]]></script></body>"
+            ].join("\n"));
+        }
+        $scope.runScript = function(){
+
+        }
     })
 
 }
 
-ControlBarController.$inject = ['$scope', '$rootScope', '$document'];
+ControlBarController.$inject = ['$scope', '$rootScope'];
 
 // base directive include for all QTI items
 angular.module('qti.directives').directive('assessmentitem', function() {
