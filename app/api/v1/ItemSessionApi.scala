@@ -216,7 +216,11 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
    * Return sessionData and ResponseOutcomes
    * @param itemId
    */
+<<<<<<< HEAD
   def processResponse(itemId: VersionedId[ObjectId], sessionId: ObjectId)(implicit role:String) = ApiAction {
+=======
+  def processResponse(itemId: VersionedId[ObjectId], sessionId: ObjectId)= ApiAction {
+>>>>>>> origin/js_debug
     request =>
       implicit val isInstructor = role == "instructor"
       logger.debug("[processResponse]: " + sessionId)
