@@ -26,7 +26,7 @@
 
         <p class="intro-2">INTRO HERE
             <!-- non-inline latex -->
-            <tex inline="false"> &#92;left( &#92;sum_{k=1}^n a_k b_k &#92;right)^2 &#92;leq &#92;left( &#92;sum_{k=1}^n a_k^2 &#92;right) &#92;left( &#92;sum_{k=1}^n b_k^2 &#92;right) </tex></p>
+            <tex inline="false"> \left( \sum_{k=1}^n a_k b_k \right)^2 \leq \left( \sum_{k=1}^n a_k^2 \right) \left( \sum_{k=1}^n b_k^2 \right) </tex></p>
 
         <div class="imagewrapper">
             <img src="PUT YOUR IMAGE HERE.png"/>
