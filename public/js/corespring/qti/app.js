@@ -13,10 +13,7 @@ function ControlBarController($scope, $rootScope) {
     }
 
     $rootScope.$on('computedOutcome', function(event, outcome){
-<<<<<<< HEAD
         console.log(outcome)
-=======
->>>>>>> origin/js_debug
         $scope.showScore = true;
         $scope.scorePopup = false;
         $scope.outcome = outcome;
