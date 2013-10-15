@@ -13,7 +13,6 @@ function ControlBarController($scope, $rootScope) {
     }
 
     $rootScope.$on('computedOutcome', function(event, outcome){
-        console.log(outcome)
         $scope.showScore = true;
         $scope.scorePopup = false;
         $scope.outcome = outcome;
@@ -42,13 +41,22 @@ function ControlBarController($scope, $rootScope) {
             "</pre>"
             ].join("\n"));
         }
+        function addCode(js){
+          var e = document.createElement('script');
+          e.type = 'text/javascript';
+          e.src  = 'data:text/javascript;charset=utf-8,'+escape([
+              js,
+              "document.getElementById('scriptContent').innerHTML = JSON.stringify(outcome);"
+            ].join("\n"));
+          document.getElementById("scriptResults").appendChild(e);
+        }
         $scope.runScript = function(){
+
             if(!$scope.showScriptResults){
                 $scope.showScriptResults = true;
-                $scope.scriptResults = JSON.stringify(eval(outcome.script));
+                addCode(outcome.script)
             } else {
                 $scope.showScriptResults = false;
-                $scope.scriptResults = null;
             }
         }
     })
