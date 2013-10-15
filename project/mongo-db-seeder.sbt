@@ -1,3 +1,3 @@
-resolvers += "Ed Eustace Mvn Repo" at "http://edeustace.com/repository/snapshots"
+resolvers += "corespring snapshot repo" at "http://repository.corespring.org/artifactory/public-ivy-snapshots"
 
-addSbtPlugin("com.ee" % "mongo-db-seeder-sbt" % "0.5-6380cac")
+addSbtPlugin("org.corespring" % "mongo-db-seeder-sbt" % "0.6-bc4a5e8")
