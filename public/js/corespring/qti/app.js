@@ -20,6 +20,7 @@ function ControlBarController($scope, $rootScope) {
         $scope.hasScript = outcome.script != null;
         $scope.showSeeScript = false;
         $scope.showRunScript = false;
+        $scope.showScriptResults = false;
         $scope.identifiers = _.map(_.keys(outcome.identifierOutcomes),function(identifier){
             return {label: identifier, display: false};
         });
@@ -42,8 +43,13 @@ function ControlBarController($scope, $rootScope) {
             ].join("\n"));
         }
         $scope.runScript = function(){
-            var result = eval(outcome.script)
-            console.log(result)
+            if(!$scope.showScriptResults){
+                $scope.showScriptResults = true;
+                $scope.scriptResults = JSON.stringify(eval(outcome.script));
+            } else {
+                $scope.showScriptResults = false;
+                $scope.scriptResults = null;
+            }
         }
     })
 
