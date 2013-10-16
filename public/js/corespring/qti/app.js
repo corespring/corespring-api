@@ -50,9 +50,9 @@ function ControlBarController($scope, $rootScope) {
           return e;
         }
         function createOutcomeElem(){
-            var scriptContentElem = document.createElement("pre")
-            scriptContentElem.id = "scriptContent"
-            return scriptContentElem
+            var scriptContentElem = document.createElement("pre");
+            scriptContentElem.id = "scriptContent";
+            return scriptContentElem;
         }
         $scope.runScript = function(){
             var scriptResultsElem = document.getElementById("scriptResults");
