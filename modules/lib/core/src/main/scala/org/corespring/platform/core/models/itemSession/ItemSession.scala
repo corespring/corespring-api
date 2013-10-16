@@ -109,21 +109,26 @@ object ItemSession {
 }
 
 object PreviewItemSessionCompanion extends ItemSessionCompanion {
+  override val debugMode = true;
+
   //Note: using a normal collection because in a capped collection a document's size may not grow beyond its original size.
   def collection = mongoCollection("itemsessionsPreview")
   def itemService: ItemService = ItemServiceImpl
 }
 
 object DefaultItemSession extends ItemSessionCompanion {
+  override val debugMode = false
+
   def collection = mongoCollection("itemsessions")
 
   def itemService: ItemService = ItemServiceImpl
 }
-
 trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with PackageLogging {
 
   import ItemSession.Keys._
   import org.corespring.platform.core.models.mongoContext.context
+
+  val debugMode:Boolean;
 
   def collection: MongoCollection
 
@@ -246,7 +251,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    * @param xmlWithCsFeedbackIds
    * @return
    */
-  def process(update: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem, isAttempt:Boolean = true)( implicit includeResponsesOverride:Boolean): Either[InternalError, ItemSession] = withDbSession(update) {
+  def process(update: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem, isAttempt:Boolean = true)(implicit isInstructor:Boolean): Either[InternalError, ItemSession] = withDbSession(update) {
     dbSession =>
 
       if (dbSession.isFinished) {
@@ -272,7 +277,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
         updateFromDbo(update.id, dboUpdate, (u) => {
           if(isAttempt){
             val qtiItem = QtiItem(xmlWithCsFeedbackIds)
-            val sessionOutcome = SessionOutcome.processSessionOutcome(u,qtiItem)
+            val sessionOutcome = SessionOutcome.processSessionOutcome(u,qtiItem,debugMode)
             sessionOutcome match {
               case Success(so) => {
                 u.outcome = Some(so)
@@ -284,7 +289,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
                   save(u)
                 }
                 //TODO: We need to be careful with session data - you can't persist it
-                u.sessionData = Some(SessionData(qtiItem, u))
+                u.sessionData = Some(SessionData(qtiItem, u)(isInstructor))
               }
               case Failure(error) => Left(error)
             }
@@ -299,7 +304,6 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    * @param session
    * @return a tuple (score, maxScore)
    */
-
   def getTotalScore(session: ItemSession): (Double, Double) = {
     require(session.isFinished, "The session isn't finished.")
 
