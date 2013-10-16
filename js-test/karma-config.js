@@ -3,8 +3,8 @@ basePath = '..';
 files = [
     JASMINE,
     JASMINE_ADAPTER,
-    'js-test/lib/jquery/jquery-1.9.1.js',
-    'js-test/lib/jquery/jquery-ui-1.10.3.js',
+    'js-test/lib/jquery-1.7.2.min.js',
+    'js-test/lib/jquery-ui.js',
     'js-test/lib/js-diff.js',
     'js-test/lib/jasmine-jquery.js',
     'public/js/vendor/ace/ace.js',
@@ -19,7 +19,6 @@ files = [
     'public/js/vendor/underscore/1.3.3/underscore.js',
     'public/js/vendor/angular-bootstrap-ui/angular-bootstrap-ui.js',
     'public/js/vendor/corespring-ng-components/corespring-ng-components.js',
-    'public/js/corespring/qti/services/qtiServices.js',
     'public/js/corespring/**/*.js',
     'js-test/lib/play.mock.routes.js',
     'js-test/unit/**/*.js'
@@ -32,7 +31,7 @@ exclude = ["public/js/corespring/qti/directives/printing/*.js",
 // use dots reporter, as travis terminal does not support escaping sequences
 // possible values: 'dots' || 'progress'
 reporter = 'dots';
-browsers = ['Firefox'];
+browsers = ['PhantomJS'];
 // these are default values, just to show available options
 // web server port
 port = 8080;

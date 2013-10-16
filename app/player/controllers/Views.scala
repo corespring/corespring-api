@@ -36,10 +36,10 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     renderItem(p)
   }
 
-  def render(sessionId: ObjectId, role:String) = {
+  def render(sessionId: ObjectId) = {
     DefaultItemSession.get(sessionId)(false) match {
       case Some(session) => {
-        val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Render, role = role)
+        val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Render)
         renderItem(p)
       }
       case None => Action(NotFound("not found"))
@@ -100,7 +100,6 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     renderingMode: RenderingMode = Web,
     sessionId: Option[ObjectId] = None,
     assessmentId: Option[ObjectId] = None,
-    role: String = "student",
     templateFn: PlayerParams => Html = defaultTemplate,
     assetsLoader: AssetsLoader = AssetsLoaderImpl) {
 
@@ -108,8 +107,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
       itemId = Some(itemId),
       sessionId = sessionId,
       assessmentId = assessmentId,
-      mode = Some(sessionMode),
-      role = Some(role))
+      mode = Some(sessionMode))
 
     def toPlayerParams(xml: String, qtiKeys: QtiKeys): PlayerParams = {
 
@@ -117,7 +115,6 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
         xml,
         Some(itemId.toString),
         sessionId.map(_.toString),
-        role,
         enablePreview,
         qtiKeys,
         renderingMode,

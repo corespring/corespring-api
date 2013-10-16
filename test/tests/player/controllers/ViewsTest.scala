@@ -82,7 +82,7 @@ class ViewsTest extends Specification with Mockito {
       views.preview(testId) must beMode(Preview)
       views.administerItem(testId) must beMode(Administer)
       views.administerSession(testSessionId) must beMode(Administer)
-      views.render(testSessionId,"student") must  beMode(Render)
+      views.render(testSessionId) must  beMode(Render)
       views.aggregate(testQuizId, testQuizItemId) must beMode(Aggregate)
       views.profile(testId, "tab") must beMode(Preview)
 

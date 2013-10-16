@@ -46,7 +46,7 @@ object SessionData {
       val feedback = qti.getFeedback(id, value)
       feedback match {
         case Some(fb) => {
-          if (!showFeedback && !includeResponsesOverride)
+          if (!showFeedback)
             None
           else if (fb.defaultFeedback)
             Some(fb.csFeedbackId, getDefaultFeedback(id, value, index))
@@ -65,7 +65,7 @@ object SessionData {
     }
 
     def getFeedbackContents: Map[String, String] = {
-      if (showFeedback || includeResponsesOverride) {
+      if (showFeedback) {
         val userResponses = session.responses.map(_.getIdValueIndex).flatten
         val correctResponses = if (showCorrectResponses || includeResponsesOverride) makeCorrectResponseList else Seq()
         val responsesToGiveFeedbackOn: List[(String, String, Int)] =

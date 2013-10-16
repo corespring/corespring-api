@@ -1237,11 +1237,6 @@ margin: 20px auto -8px;
 	border: 1px solid #ccc;
 	width:600px
 }
-.control-bar-head .show-score{
-    display: inline-block;
-    float: right;
-    margin-right: 100px;
-}
 .itemplayer-control-bar div a {
 	color: #000;
 	font-size: 13px;

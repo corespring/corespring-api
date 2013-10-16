@@ -34,7 +34,7 @@ trait BaseTest extends Specification {
 
   implicit def resultToResultHelper(result: Result) = new ResultHelper(result)
 
-  def tokenize(url: String, tkn: String = token): String = if(url.contains("?")) url+"&access_token="+tkn else url + "?access_token=" + tkn
+  def tokenize(url: String, tkn: String = token): String = url + "?access_token=" + tkn
 
   def tokenFakeRequest[A](method: String, uri: String, headers: FakeHeaders = FakeHeaders(), body: A = AnyContentAsText("")): FakeRequest[A] = {
     FakeRequest(method, tokenize(uri), headers, body)

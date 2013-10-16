@@ -6,7 +6,6 @@ import org.corespring.web.common.controllers.deployment.{ AssetsLoaderImpl, Asse
 case class PlayerParams(xml: String,
   itemId: Option[String],
   sessionId: Option[String] = None,
-  role:String = "student",
   previewEnabled: Boolean = false,
   qtiKeys: QtiKeys,
   mode: RenderingMode,

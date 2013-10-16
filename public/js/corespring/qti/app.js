@@ -1,69 +1,15 @@
-"use strict";
-
 angular.module('qti.directives', ['qti.services','ngDragDrop','ui.sortable']);
 angular.module('qti', ['qti.directives', 'qti.services', 'corespring-services', 'corespring-directives','corespring-utils', 'ui']);
 
 
 function ControlBarController($scope, $rootScope) {
     $scope.showAdminOptions = false;
-    $scope.showScore = false;
 
     $scope.toggleControlBar = function() {
         $scope.showAdminOptions = !$scope.showAdminOptions;
 
         $rootScope.$broadcast('controlBarChanged');
     }
-
-    $rootScope.$on('computedOutcome', function(event, outcome){
-        $scope.showScore = true;
-        $scope.scorePopup = false;
-        $scope.outcome = outcome;
-        $scope.hasScript = outcome.script != null;
-        $scope.identifiers = _.map(_.keys(outcome.identifierOutcomes),function(identifier){
-            return {label: identifier, display: false};
-        });
-        $scope.displayIdentifier = function(label){
-            _.each($scope.identifiers,function(identifier){
-                if(identifier.label == label && !identifier.display) identifier.display = true;
-                else identifier.display = false;
-            });
-        }
-        $scope.seeScript = function(){
-            var scriptWindow = window.open()
-            scriptWindow.document.write([
-            "<link href=\"http://alexgorbatchev.com/pub/sh/current/styles/shCoreDefault.css\" rel=\"stylesheet\" type=\"text/css\" />",
-            "<script src=\"http://alexgorbatchev.com/pub/sh/current/scripts/shCore.js\" type=\"text/javascript\"></script>",
-            "<script src=\"http://alexgorbatchev.com/pub/sh/current/scripts/shBrushJScript.js\" type=\"text/javascript\"></script>",
-            "<script type=\"text/javascript\">SyntaxHighlighter.all();</script>",
-            "<pre class=\"brush: js\">",
-                outcome.script,
-            "</pre>"
-            ].join("\n"));
-        }
-        function createScriptElem(js){
-          var e = document.createElement('script');
-          e.type = 'text/javascript';
-          e.src  = 'data:text/javascript;charset=utf-8,'+escape([
-              js,
-              "document.getElementById('scriptContent').innerHTML = JSON.stringify(outcome);"
-            ].join("\n"));
-          return e;
-        }
-        function createOutcomeElem(){
-            var scriptContentElem = document.createElement("pre");
-            scriptContentElem.id = "scriptContent";
-            return scriptContentElem;
-        }
-        $scope.runScript = function(){
-            var scriptResultsElem = document.getElementById("scriptResults");
-            scriptResultsElem.innerHTML = "";
-            var scriptElem = createScriptElem(outcome.script);
-            var outcomeElem = createOutcomeElem();
-            scriptResultsElem.appendChild(outcomeElem);
-            scriptResultsElem.appendChild(scriptElem);
-        }
-    })
-
 }
 
 ControlBarController.$inject = ['$scope', '$rootScope'];
@@ -220,7 +166,6 @@ angular.module('qti.directives').directive('assessmentitem', function() {
                         if ($scope.formSubmitted) {
                             $scope.formHasIncorrect = false;
                             $scope.$broadcast('formSubmitted', $scope.itemSession, !areResponsesIncorrect());
-                            $rootScope.$broadcast('computedOutcome', $scope.itemSession.outcome)
                         }
                     });
                 };

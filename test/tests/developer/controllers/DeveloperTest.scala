@@ -5,14 +5,12 @@ import developer.controllers.Developer
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 import org.specs2.mutable.After
-import play.api.libs.json.{JsArray, Json}
-import play.api.mvc.{AnyContentAsFormUrlEncoded, AnyContentAsJson}
+import play.api.libs.json.Json
+import play.api.mvc.AnyContentAsJson
 import play.api.test.Helpers._
 import org.corespring.platform.core.models.{User, Organization}
 import org.corespring.common.log.PackageLogging
 import org.corespring.test.{TestModelHelpers, BaseTest}
-import java.util.regex.{Matcher, Pattern}
-import play.api.test.FakeRequest
 
 class DeveloperTest extends BaseTest with TestModelHelpers with PackageLogging{
 
@@ -44,33 +42,6 @@ class DeveloperTest extends BaseTest with TestModelHelpers with PackageLogging{
       val request = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList : _*)
       status(Developer.createOrganization()(request)) === OK
       status(Developer.createOrganization()(request)) === BAD_REQUEST
-    }
-
-    "be able to view org after creating it" in new MockUser{
-      val orgName = """{"name":"%s"}""".format(testOrgName)
-      val json = Json.parse(orgName)
-      val createRequest = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList : _*)
-      val createResult = Developer.createOrganization()(createRequest)
-      status(createResult) === OK
-      val body = contentAsString(createResult).replaceAll("\\s","")
-      val m = Pattern.compile(
-        """.*<p><span class="span2">ClientID:</span>(.*)</p>.*<p><span class="span2">Client Secret:</span>(.*)</p>.*""".replaceAll("\\s","")
-      ).matcher(body)
-      m.matches() === true
-      val clientSecret = m.group(2)
-      val clientId = m.group(1)
-      val tokenRequest = fakeRequest(AnyContentAsFormUrlEncoded(Map("client_id" -> Seq(clientId), "client_secret" -> Seq(clientSecret))))
-      val tokenResult = controllers.auth.AuthController.getAccessToken()(tokenRequest)
-      status(tokenResult) === OK
-      val token = (Json.parse(contentAsString(tokenResult)) \ "access_token").as[String]
-      val listCall = api.v1.routes.OrganizationApi.list()
-      val request = FakeRequest(listCall.method, tokenize(listCall.url,token))
-      val result = route(request).get
-      status(result) === OK
-      (Json.parse(contentAsString(result)) match {
-        case JsArray(jsorgs) => jsorgs.find(jsorg => (jsorg \ "name").as[String] == testOrgName).isDefined
-        case _ => false
-      }) === true
     }
 
     "return unauthorized with expired session" in new MockUser{

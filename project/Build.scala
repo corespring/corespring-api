@@ -96,6 +96,7 @@ object Build extends sbt.Build {
       specs2 % "test",
       playS3,
       playFramework,
+      mongoDbSeeder,
       securesocial,
       assetsLoader,
       mockito,

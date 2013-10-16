@@ -11,7 +11,6 @@ class QtiAssetsLoaderImpl(qtiKeys: QtiKeys, mode: RenderingMode) extends QtiAsse
     Seq(
       QtiJsAsset("choiceInteraction", localDependents = Seq("simpleChoice")),
       QtiJsAsset("math", hasJsFile = false, remoteDependents = Seq("//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")),
-      QtiJsAsset("tex", localDependents = Seq("tex"), remoteDependents = Seq("//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")),
       QtiJsAsset("lineInteraction", localDependents = Seq("jsxgraph"), remoteDependents = Seq("/assets/js/vendor/jsxgraph/jsxgraphcore.min.js")),
       QtiJsAsset("pointInteraction", localDependents = Seq("jsxgraph"), remoteDependents = Seq("/assets/js/vendor/jsxgraph/jsxgraphcore.min.js"))
     )

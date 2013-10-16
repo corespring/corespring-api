@@ -48,7 +48,7 @@ class SessionOutcomeTest extends Specification {
         responses = Seq(StringResponse(id = "Q_01", responseValue = "2"), StringResponse(id = "Q_02", responseValue = "1")),
         attempts = 1)
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
         case Success(outcome) => {
           outcome.score === 1.0
           outcome.isCorrect === true
@@ -101,7 +101,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
         case Success(sessionOutcome: SessionOutcome) => {
           sessionOutcome.score === 1.0
           sessionOutcome.isCorrect === true
@@ -149,7 +149,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
         case s: Success[_, _] => success
         case _ => failure("Should have included score, but didn't")
       }
@@ -177,7 +177,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
         case s: Success[_, _] => success
         case _ => failure("Should have included isCorrect, but didn't")
       }
@@ -205,7 +205,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
         case s: Success[_, _] => success
         case _ => failure("Should have included isComplete, but didn't")
       }
@@ -228,7 +228,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
         case s: Success[_, _] => success
         case _ => failure("Should have contained response identifier Q_01, but didn't")
       }
@@ -255,7 +255,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
         case s: Success[_, _] => success
         case _ => failure("Should have contained score, but didn't")
       }
@@ -282,7 +282,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
         case s: Success[_, _] => success
         case _ => failure("Should have contained Q_01.isCorrect, but didn't")
       }
@@ -309,7 +309,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
         case s: Success[_, _] => success
         case _ => failure("Should have contained Q_01.isCompleted, but didn't")
       }
@@ -323,7 +323,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
         case s: Success[_,SessionOutcome] if s.getOrElse(null).score == 1 => success
         case _ => failure("Did not set score from javascript number response")
       }
@@ -367,7 +367,7 @@ class SessionOutcomeTest extends Specification {
         responses = Seq(StringResponse(id = "badStepQuestion", responseValue = "1"))
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
         case s: Success[InternalError, SessionOutcome] => {
           s.getOrElse(null) match {
             case sessionOutcome: SessionOutcome => {
@@ -436,7 +436,7 @@ class SessionOutcomeTest extends Specification {
         responses = Seq(ArrayResponse(id = "dragDropQuestion", responseValue = Seq("target1:1", "target2:2"))),
         attempts = 1)
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
         case s: Success[InternalError, SessionOutcome] => {
           s.getOrElse(null) match {
             case sessionOutcome: SessionOutcome => {
@@ -488,7 +488,7 @@ class SessionOutcomeTest extends Specification {
       responses = Seq(StringResponse(id = "Q_01", responseValue = "2"), StringResponse(id = "Q_02", responseValue = "1"))
     )
 
-    SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
+    SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
       case Success(sessionOutcome: SessionOutcome) => {
         sessionOutcome.score === 1
         sessionOutcome.isComplete === true
@@ -555,7 +555,7 @@ class SessionOutcomeTest extends Specification {
         responses = Seq(ArrayResponse(id = "RESPONSE", responseValue = Seq("1", "2", "3"))),
         attempts = 1)
 
-      SessionOutcome.processSessionOutcome(session, qtiItem, false) match {
+      SessionOutcome.processSessionOutcome(session, qtiItem) match {
         case Success(sessionOutcome: SessionOutcome) => {
           println(sessionOutcome)
           success

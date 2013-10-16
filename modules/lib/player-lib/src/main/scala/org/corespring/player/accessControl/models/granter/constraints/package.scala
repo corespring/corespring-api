@@ -82,12 +82,6 @@ package object constraints {
     override def describe = "Failed: " + msg
   }
 
-  class SuccessConstraint extends Constraint[String] {
-    def allow[U >: String](value: U): Boolean = true
-
-    override def describe = "success"
-  }
-
   class ObjectIdMatches(oid: ObjectId) extends Constraint[ObjectId] {
 
     def allow[U >: ObjectId](value: U) = value.asInstanceOf[ObjectId] == oid

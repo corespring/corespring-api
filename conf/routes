@@ -112,8 +112,8 @@ GET     /api/v1/field_values/:fieldName        api.v1.FieldValuesApi.getFieldVal
 
 POST    /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.create(itemId:VersionedId[ObjectId])
 GET     /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.list(itemId:VersionedId[ObjectId])
-GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.get(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student")
-PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student", action : Option[String] ?= None)
+GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.get(itemId:VersionedId[ObjectId], sessionId: ObjectId)
+PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId:VersionedId[ObjectId], sessionId: ObjectId, action : Option[String] ?= None)
 
 PUT     /api/v1/quizzes/:quizId/:externalUid/add-answer        api.v1.QuizApi.addAnswerForParticipant(quizId:ObjectId,externalUid:String)
 GET     /api/v1/quizzes/:quizId                     api.v1.QuizApi.get(quizId:ObjectId)
@@ -128,15 +128,15 @@ GET     /api/v1/quizzes                             api.v1.QuizApi.list()
 GET    /scorm-player.js                                 scorm.controllers.AssetLoading.itemPlayerJavascript
 GET    /scorm-player/item/:itemId/administer            scorm.controllers.ScormPlayer.administerItem(itemId : VersionedId[ObjectId])
 GET    /scorm-player/item/:itemId/:filename             scorm.controllers.ScormPlayer.getDataFile(itemId : String, filename:String)
-GET    /scorm-player/session/:sessionId/render          scorm.controllers.ScormPlayer.render(sessionId : ObjectId, role:String ?= "student")
+GET    /scorm-player/session/:sessionId/render          scorm.controllers.ScormPlayer.render(sessionId : ObjectId)
 GET    /scorm-player/session/:sessionId/:filename       scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : String, filename:String)
 
 
 # New Player
 ## REST calls
 POST   /player/api/:itemId/session                         player.controllers.Session.create(itemId:VersionedId[ObjectId])
-GET    /player/api/:itemId/session/:sessionId              player.controllers.Session.read(itemId:VersionedId[ObjectId], sessionId:ObjectId, role:String ?= "student")
-PUT    /player/api/:itemId/session/:sessionId              player.controllers.Session.update(itemId:VersionedId[ObjectId],sessionId:ObjectId, role:String ?= "student", action : Option[String] ?= None)
+GET    /player/api/:itemId/session/:sessionId              player.controllers.Session.read(itemId:VersionedId[ObjectId], sessionId:ObjectId)
+PUT    /player/api/:itemId/session/:sessionId              player.controllers.Session.update(itemId:VersionedId[ObjectId],sessionId:ObjectId,action : Option[String] ?= None)
 POST   /player/api/:itemId/session/:quizId/aggregate       player.controllers.Session.aggregate(quizId:ObjectId, itemId:VersionedId[ObjectId])
 GET    /player/routes.js                                   player.controllers.Session.jsRoutes
 GET    /player/api/:itemId/details                         player.controllers.Item.getDetail(itemId:VersionedId[ObjectId])
@@ -150,7 +150,7 @@ GET    /player/item/:itemId/administer                     player.controllers.Vi
 GET    /player/item/:itemId/profile                        player.controllers.Views.profile(itemId:VersionedId[ObjectId], tab:String ?= "")
 GET    /player/item/:itemId/*filename                      player.controllers.AssetLoading.getDataFile(itemId, filename)
 
-GET    /player/session/:sessionId/render                   player.controllers.Views.render(sessionId:ObjectId, role:String ?= "student")
+GET    /player/session/:sessionId/render                   player.controllers.Views.render(sessionId:ObjectId)
 GET    /player/session/:sessionId/administer               player.controllers.Views.administerSession(sessionId:ObjectId)
 GET    /player/session/:sessionId/*filename                player.controllers.AssetLoading.getDataFileBySessionId(sessionId, filename)
 

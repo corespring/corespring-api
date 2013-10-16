@@ -4,8 +4,7 @@
     angular.module('qti.services').factory('Config', [function(){
         var out = {
             itemId : "@params.itemId.getOrElse("")",
-            sessionId : '@params.sessionId.getOrElse("")',
-            role : '@params.role'
+            sessionId : '@params.sessionId.getOrElse("")'
         };
 
         @additionalParams.map{ tuple =>

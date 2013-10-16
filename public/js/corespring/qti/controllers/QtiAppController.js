@@ -39,9 +39,7 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
 
     var params = {
       itemId: Config.itemId,
-      sessionId: Config.sessionId,
-      role: Config.role
-    };
+      sessionId: Config.sessionId};
 
     if (Config.token) {
       params.access_token = Config.token;
