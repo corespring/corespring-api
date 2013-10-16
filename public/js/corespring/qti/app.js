@@ -19,9 +19,6 @@ function ControlBarController($scope, $rootScope) {
         $scope.scorePopup = false;
         $scope.outcome = outcome;
         $scope.hasScript = outcome.script != null;
-        $scope.showSeeScript = false;
-        $scope.showRunScript = false;
-        $scope.showScriptResults = false;
         $scope.identifiers = _.map(_.keys(outcome.identifierOutcomes),function(identifier){
             return {label: identifier, display: false};
         });
@@ -43,23 +40,27 @@ function ControlBarController($scope, $rootScope) {
             "</pre>"
             ].join("\n"));
         }
-        function addCode(js){
+        function createScriptElem(js){
           var e = document.createElement('script');
           e.type = 'text/javascript';
           e.src  = 'data:text/javascript;charset=utf-8,'+escape([
               js,
               "document.getElementById('scriptContent').innerHTML = JSON.stringify(outcome);"
             ].join("\n"));
-          document.getElementById("scriptResults").appendChild(e);
+          return e;
+        }
+        function createOutcomeElem(){
+            var scriptContentElem = document.createElement("pre");
+            scriptContentElem.id = "scriptContent";
+            return scriptContentElem;
         }
         $scope.runScript = function(){
-
-            if(!$scope.showScriptResults){
-                $scope.showScriptResults = true;
-                addCode(outcome.script)
-            } else {
-                $scope.showScriptResults = false;
-            }
+            var scriptResultsElem = document.getElementById("scriptResults");
+            scriptResultsElem.innerHTML = "";
+            var scriptElem = createScriptElem(outcome.script);
+            var outcomeElem = createOutcomeElem();
+            scriptResultsElem.appendChild(outcomeElem);
+            scriptResultsElem.appendChild(scriptElem);
         }
     })
 
