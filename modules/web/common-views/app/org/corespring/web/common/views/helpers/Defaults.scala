@@ -12,7 +12,7 @@ object Defaults {
 
   val propsFile = "/buildInfo.properties"
 
-  private lazy val properties = {
+  private val properties = {
     val url = Play.resource( propsFile )
     url.map{ u =>
       val props = new Properties()
