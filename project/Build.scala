@@ -30,15 +30,17 @@ object Build extends sbt.Build {
 
   val buildInfoTask = TaskKey[Seq[File]]("build-info", "generate build info properties file")
 
-  val buildInfo = buildInfoTask <<= (resourceManaged in Compile, name, version) map { (dir, n, v) =>
-    val file = dir / "buildInfo.properties"
+  val buildInfo = buildInfoTask <<= ( target in Compile, name, version, streams) map { (dir, n, v, s) =>
+    s.log.info("[>> build info] on " + dir.getPath)
+
+    val file = dir / "scala-2.10" / "classes" / "buildInfo.properties"
     val commitHash : String = Process("git rev-parse --short HEAD").!!.trim
     val branch : String = Process("git rev-parse --abbrev-ref HEAD").!!.trim
     val formatter = DateTimeFormat.forPattern("HH:mm dd MMMM yyyy");
     val date =formatter.print(DateTime.now)
     val contents = "commit.hash=%s\nbranch=%s\nversion=%s\ndate=%s".format(commitHash, branch, v, date)
     IO.write(file, contents)
-    Seq(file)
+    Seq(dir)
   }
 
   val cred = {
@@ -111,13 +113,14 @@ object Build extends sbt.Build {
     .dependsOn(core)
     .settings(disableDocsSettings: _*)
 
-
+  val buildInfoLib = builders.lib("build-info").settings(
+    buildInfo,
+    resourceGenerators in Compile <+= buildInfoTask
+  )
 
   val commonViews = builders.web("common-views").settings(
-    //buildInfo,
-    //resourceGenerators in Compile <+= buildInfoTask,
     libraryDependencies ++= Seq(playJson % "test")
-  ).dependsOn(core).settings(disableDocsSettings: _*)
+  ).dependsOn(core, buildInfoLib).settings(disableDocsSettings: _*)
 
   /** The public play module */
   val public = builders.web("public").settings(
