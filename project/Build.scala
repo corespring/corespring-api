@@ -114,8 +114,6 @@ object Build extends sbt.Build {
 
 
   val commonViews = builders.web("common-views").settings(
-    //buildInfo,
-    //resourceGenerators in Compile <+= buildInfoTask,
     libraryDependencies ++= Seq(playJson % "test")
   ).dependsOn(core).settings(disableDocsSettings: _*)
 
