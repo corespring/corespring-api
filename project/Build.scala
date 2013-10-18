@@ -101,9 +101,9 @@ object Build extends sbt.Build {
 
   val buildInfo = TaskKey[Unit]("build-client", "runs client installation commands")
 
-  val buildInfoTask = buildInfo <<= (target, name, version, streams) map {
+  val buildInfoTask = buildInfo <<= (classDirectory in Compile, name, version, streams) map {
     (base, n, v, s) =>
-      s.log.info("[ buildInfo - write build properties file] on " + base.getAbsolutePath)
+      s.log.info("[buildInfo] ---> write build properties file] on " + base.getAbsolutePath)
       val file = base / "buildInfo.properties"
       val commitHash : String = Process("git rev-parse --short HEAD").!!.trim
       val branch : String = Process("git rev-parse --abbrev-ref HEAD").!!.trim
