@@ -28,19 +28,6 @@ object Build extends sbt.Build {
     publishArtifact in (Compile, packageSrc) := false,
     sources in doc in Compile := List())
 
-  val buildInfoTask = TaskKey[Seq[File]]("build-info", "generate build info properties file")
-
-  val buildInfo = buildInfoTask <<= (resourceManaged in Compile, name, version) map { (dir, n, v) =>
-    val file = dir / "buildInfo.properties"
-    val commitHash : String = Process("git rev-parse --short HEAD").!!.trim
-    val branch : String = Process("git rev-parse --abbrev-ref HEAD").!!.trim
-    val formatter = DateTimeFormat.forPattern("HH:mm dd MMMM yyyy");
-    val date =formatter.print(DateTime.now)
-    val contents = "commit.hash=%s\nbranch=%s\nversion=%s\ndate=%s".format(commitHash, branch, v, date)
-    IO.write(file, contents)
-    Seq(file)
-  }
-
   val cred = {
     val envCredentialsPath = System.getenv("CREDENTIALS_PATH")
     val path = if (envCredentialsPath != null) envCredentialsPath else Seq(Path.userHome / ".ivy2" / ".credentials").mkString
@@ -112,8 +99,23 @@ object Build extends sbt.Build {
     .settings(disableDocsSettings: _*)
 
 
+  val buildInfo = TaskKey[Unit]("build-client", "runs client installation commands")
+
+  val buildInfoTask = buildInfo <<= (classDirectory in Compile, name, version, streams) map {
+    (base, n, v, s) =>
+      s.log.info("[buildInfo] ---> write build properties file] on " + base.getAbsolutePath)
+      val file = base / "buildInfo.properties"
+      val commitHash : String = Process("git rev-parse --short HEAD").!!.trim
+      val branch : String = Process("git rev-parse --abbrev-ref HEAD").!!.trim
+      val formatter = DateTimeFormat.forPattern("HH:mm dd MMMM yyyy");
+      val date =formatter.print(DateTime.now)
+      val contents = "commit.hash=%s\nbranch=%s\nversion=%s\ndate=%s".format(commitHash, branch, v, date)
+      IO.write(file, contents)
+  }
 
   val commonViews = builders.web("common-views").settings(
+    buildInfoTask,
+    (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildInfo,
     libraryDependencies ++= Seq(playJson % "test")
   ).dependsOn(core).settings(disableDocsSettings: _*)
 
