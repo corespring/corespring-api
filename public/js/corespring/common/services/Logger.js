@@ -22,31 +22,31 @@ loadModule('corespring-services').factory('Logger', ['$resource', function($reso
     return {
         fatal: function(message,stacktrace){
             if(stacktrace){
-                logger.fatal({message: message, stacktrace: stacktrace.toString()})
+                logger.fatal({message: message, stacktrace: stacktrace.toString()});
             }else{
                 var trace = printStackTrace();
                 trace.splice(0,5); //offset to compensate for inclusion of stacktrace.js calls and Logger.js calls within the trace
-                logger.fatal({message: message, stacktrace: trace.join("\n")})
+                logger.fatal({message: message, stacktrace: trace.join("\n")});
             }
         },
         error: function(message){
             var trace = printStackTrace();
             trace.splice(0,5); //offset to compensate for inclusion of stacktrace.js calls and Logger.js calls within the trace
-            logger.error({message: message, stacktrace: trace.join("\n")})
+            logger.error({message: message, stacktrace: trace.join("\n")});
         },
         warn: function(message){
-            logger.warn({message: message})
+            logger.warn({message: message});
         },
         info: function(message){
-            logger.info({message: message})
+            logger.info({message: message});
         },
         debug: function(message){
-            logger.debug({message: message})
+            logger.debug({message: message});
         }
     }
 }])
 loadModule('corespring-servicse').factory('$exceptionHandler', ['Logger', function (Logger) {
     return function (exception, cause) {
-        Logger.fatal("Angular exception thrown")
+        Logger.fatal("Angular exception thrown: "+exception);
     };
 }]);
