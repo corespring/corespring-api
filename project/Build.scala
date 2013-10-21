@@ -76,7 +76,6 @@ object Build extends sbt.Build {
     libraryDependencies ++= Seq(
       salatPlay,
       corespringQti,
-      rhino,
       corespringCommonUtils,
       salatVersioningDao,
       specs2 % "test",
