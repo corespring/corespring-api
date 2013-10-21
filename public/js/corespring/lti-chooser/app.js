@@ -6,7 +6,8 @@ angular.module("lti-chooser",
     'corespring-directives',
     'corespring-services',
     'corespring-utils',
-    'ui']);
+    'ui',
+    'corespring-logger']);
 
 angular.module("lti-chooser").config(['$routeProvider', function ($routeProvider) {
   $routeProvider.when('/main', {templateUrl: '/lti/chooser/partials/main', controller: MainController});
@@ -26,7 +27,7 @@ angular.module("lti-services", ['ngResource'])
   }]);
 
 
-function LtiChooserController($scope, $rootScope, $location, LaunchConfigService, Config) {
+function LtiChooserController($scope, $rootScope, $location, LaunchConfigService, Config, Logger) {
 
   $scope.returnToSearch = function () {
     $rootScope.item = null;
@@ -159,6 +160,7 @@ function LtiChooserController($scope, $rootScope, $location, LaunchConfigService
       $scope.quiz = data;
       if (onSaveCompleteCallback) onSaveCompleteCallback();
     }, function (error) {
+      Logger.error("Exception In LtiChooserController.saveItem: "+JSON.stringify(error));
       $rootScope.errorMessage = error.data ? error.data : "An error occurred saving your config, please try again";
     });
   };
@@ -228,6 +230,6 @@ function LtiChooserController($scope, $rootScope, $location, LaunchConfigService
   $scope.init();
 }
 
-LtiChooserController.$inject = ['$scope', '$rootScope', '$location', 'LaunchConfigService', 'Config'];
+LtiChooserController.$inject = ['$scope', '$rootScope', '$location', 'LaunchConfigService', 'Config', 'Logger'];
 
 

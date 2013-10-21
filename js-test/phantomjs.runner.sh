@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #aggregate js and spec files
-DECLARATIONS=`find ../public/js/corespring -type f -path '**/services.js'`
+DECLARATIONS=`find ../public/js/corespring -type f \( -name services.js -o -name Logger.js \)`
 
 ##We are ignoring the print related directives here
 #be sure to add app files first before others so main variable declarations come first
 APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/app.js'| grep -v '/printing/' | grep -v '/aggregate/' | grep -v '/instructor/'`
-OTHER_APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/*.js' ! -iname 'app.js'| grep -v '/printing/' | grep -v '/aggregate/' | grep -v '/instructor/' | grep -v 'corespring-error-player.js'`
+OTHER_APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/*.js' ! -iname 'app.js'| grep -v '/printing/' | grep -v '/aggregate/' | grep -v '/instructor/' | grep -v 'corespring-error-player.js' | grep -v 'Logger.js'`
 TEST_LIB_FILES="./lib/jasmine-jquery.js"
 FRONTLOAD_SPEC_FILES=`find ./unit -type f -path '**/*-priority-1.js'`
 SPEC_FILES=`find ./unit \( -type f -path '**/*.js' -and -not -name '*priority*' \)`

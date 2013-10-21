@@ -1,51 +1,55 @@
-function loadModule(name) {
-  try {
-    return angular.module(name);
-  }
-  catch (e) {
-    return angular.module(name, []);
-  }
-}
-loadModule('corespring-services').factory('Logger', ['$resource', function($resource){
+//use injector instead of http directly because we need to use this in exception hanlder
+angular.module('corespring-logger',[]).factory('Logger', ['$injector', '$log', function($injector, $log){
 
-    var logger = $resource(
-        '/logger/:logType',
-        {},
-        {
-            fatal: {method: 'POST', params: {logType: 'fatal'}},
-            error: {method: 'POST', params: {logType: 'error'}},
-            warn: {method: 'POST', params: {logType: 'warn'}},
-            info: {method: 'POST', params: {logType: 'info'}},
-            debug: {method: 'POST', params: {logType: 'debug'}}
-        }
-    )
+    //everything must go around a try catch block in order to avoid exceptions being thrown and handled by exception handler
+    //if exception handler does end up handling things, an infinite loop will occur
     return {
-        fatal: function(message,stacktrace){
-            if(stacktrace){
-                logger.fatal({message: message, stacktrace: stacktrace.toString()});
-            }else{
+        fatal: function(message,toServer,stacktrace){
+            try{
+                $log.error(message);
+                if(!toServer) return;
+                if(stacktrace){
+                    $injector.get("$http").post("/logger/fatal",{message: message, stacktrace: stacktrace.toString()})
+                }else{
+                    var trace = printStackTrace();
+                    trace.splice(0,5); //offset to compensate for inclusion of stacktrace.js calls and Logger.js calls within the trace
+                    $injector.get("$http").post("/logger/fatal", {message: message, stacktrace: trace.join("\n")});
+                }
+            } catch (e) {}
+        },
+        error: function(message,toServer){
+            try{
+                $log.error(message);
+                if(!toServer) return;
                 var trace = printStackTrace();
                 trace.splice(0,5); //offset to compensate for inclusion of stacktrace.js calls and Logger.js calls within the trace
-                logger.fatal({message: message, stacktrace: trace.join("\n")});
-            }
+                $injector.get("$http").post("/logger/error",{message: message, stacktrace: trace.join("\n")});
+            } catch (e) {}
         },
-        error: function(message){
-            var trace = printStackTrace();
-            trace.splice(0,5); //offset to compensate for inclusion of stacktrace.js calls and Logger.js calls within the trace
-            logger.error({message: message, stacktrace: trace.join("\n")});
+        warn: function(message, toServer){
+            try{
+                $log.warn(message);
+                if(!toServer) return;
+                $injector.get("$http").post("/logger/warn", {message: message});
+            } catch (e) {}
         },
-        warn: function(message){
-            logger.warn({message: message});
+        info: function(message,toServer){
+            try{
+                $log.info(message);
+                if(!toServer) return;
+                $injector.get("$http").post("/logger/info", {message: message});
+            } catch (e) {}
         },
-        info: function(message){
-            logger.info({message: message});
-        },
-        debug: function(message){
-            logger.debug({message: message});
+        debug: function(message,toServer){
+            try{
+                $log.info(message);
+                if(!toServer) return;
+                $injector.get("$http").post("/logger/debug", {message: message});
+            } catch (e) {}
         }
     }
 }])
-loadModule('corespring-servicse').factory('$exceptionHandler', ['Logger', function (Logger) {
+angular.module('corespring-logger').factory('$exceptionHandler', ['Logger', function (Logger) {
     return function (exception, cause) {
         Logger.fatal("Angular exception thrown: "+exception);
     };
