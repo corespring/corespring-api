@@ -51,6 +51,6 @@ angular.module('corespring-logger',[]).factory('Logger', ['$injector', '$log', f
 }])
 angular.module('corespring-logger').factory('$exceptionHandler', ['Logger', function (Logger) {
     return function (exception, cause) {
-        Logger.fatal("Angular exception thrown: "+exception);
+        Logger.fatal("Angular exception thrown: "+exception,true);
     };
 }]);
