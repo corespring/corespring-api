@@ -4,16 +4,15 @@ object Dependencies {
 
   val playVersion = "2.1.3"
 
-  //TODO: May need to change this
+  //Warning: Only use this for tests - don't use it as an app dependency.
+  //Once we move to 2.2.0 then we can use it wherever.
   val playJson = "com.typesafe.play" %% "play-json" % "2.2.0-RC2"
 
   val playFramework = "play" %% "play" % playVersion
   val playTest = "play" %% "play-test" % playVersion
 
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
-  val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-f45e047"
-  val rhinos = "com.scalapeno" %% "rhinos" % "0.6.0.corespring-4e02aa7-SNAPSHOT"
-  val rhino = "org.mozilla" % "rhino" % "1.7R4"
+  val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-322a8fc"
   val mongoDbSeeder = "org.corespring" %% "mongo-db-seeder-lib" % "0.6-ae58487"
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.3.0"
