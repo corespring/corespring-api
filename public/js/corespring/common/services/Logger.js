@@ -11,9 +11,7 @@ angular.module('corespring-logger',[]).factory('Logger', ['$injector', '$log', f
                 if(stacktrace){
                     $injector.get("$http").post("/logger/fatal",{message: message, stacktrace: stacktrace.toString()})
                 }else{
-                    var trace = printStackTrace();
-                    trace.splice(0,5); //offset to compensate for inclusion of stacktrace.js calls and Logger.js calls within the trace
-                    $injector.get("$http").post("/logger/fatal", {message: message, stacktrace: trace.join("\n")});
+                    $injector.get("$http").post("/logger/fatal", {message: message});
                 }
             } catch (e) {}
         },
@@ -21,9 +19,7 @@ angular.module('corespring-logger',[]).factory('Logger', ['$injector', '$log', f
             try{
                 $log.error(message);
                 if(!toServer) return;
-                var trace = printStackTrace();
-                trace.splice(0,5); //offset to compensate for inclusion of stacktrace.js calls and Logger.js calls within the trace
-                $injector.get("$http").post("/logger/error",{message: message, stacktrace: trace.join("\n")});
+                $injector.get("$http").post("/logger/error",{message: message});
             } catch (e) {}
         },
         warn: function(message, toServer){
