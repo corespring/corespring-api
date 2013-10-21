@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+                title="" adaptive="false" timeDependent="false">
+
+    <correctResponseFeedback>Correct!</correctResponseFeedback>
+    <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>
+
+
+    <responseDeclaration identifier="Q_01" cardinality="multiple" baseType="identifier">
+
+        <correctResponse>
+            <value>ChoiceA</value>
+            <value>ChoiceD</value>
+        </correctResponse>
+
+        <mapping lowerBound="0" upperBound="2" defaultValue="-2">
+            <mapEntry mapKey="ChoiceA" mappedValue="1"/>
+            <mapEntry mapKey="ChoiceD" mappedValue="1"/>
+        </mapping>
+    </responseDeclaration>
+    <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float"/>
+
+    <itemBody>
+
+        <p class="intro-2">INTRO HERE
+            <!-- non-inline latex -->
+            <tex inline="false"> \left( \sum_{k=1}^n a_k b_k \right)^2 \leq \left( \sum_{k=1}^n a_k^2 \right) \left( \sum_{k=1}^n b_k^2 \right) </tex></p>
+
+        <div class="imagewrapper">
+            <img src="PUT YOUR IMAGE HERE.png"/>
+        </div>
+
+        <choiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="0">
+
+            <prompt>ITEM PROMPT?</prompt>
+            <simpleChoice identifier="ChoiceA" fixed="false">
+                <!-- inline latex, this is the default -->
+                <tex inline="true"> P(E)   = {n &#92;choose k} p^k (1-p)^{ n-k} </tex>
+                <feedbackInline identifier="ChoiceA" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceB" fixed="false"><tex>&#92;left( &#92;sum_{k=1}^n a_k b_k &#92;right)^2 &#92;leq &#92;left( &#92;sum_{k=1}^n a_k^2 &#92;right) &#92;left( &#92;sum_{k=1}^n b_k^2 &#92;right)</tex>
+                <feedbackInline identifier="ChoiceB" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceC" fixed="false"><tex>&#92;sqrt{3x-1}+(1+x)^2</tex>
+                <feedbackInline identifier="ChoiceC" defaultFeedback="true"/>
+            </simpleChoice>
+        </choiceInteraction>
+
+
+    </itemBody>
+</assessmentItem>

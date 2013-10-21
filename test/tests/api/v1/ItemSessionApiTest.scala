@@ -11,9 +11,7 @@ import org.corespring.test.BaseTest
 import org.joda.time.DateTime
 import org.specs2.mutable._
 import play.api.libs.json._
-import play.api.mvc.AnyContent
-import play.api.mvc.AnyContentAsEmpty
-import play.api.mvc.AnyContentAsJson
+import play.api.mvc._
 import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -22,6 +20,13 @@ import scala.Right
 import scala.Some
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.test.utils.RequestCalling
+import org.corespring.qti.models.responses.ArrayResponse
+import play.api.test.FakeHeaders
+import org.corespring.qti.models.responses.StringResponse
+import play.api.libs.json.JsString
+import scala.Some
+import play.api.mvc.AnyContentAsJson
+import play.api.libs.json.JsObject
 
 class ItemSessionApiTest extends BaseTest with RequestCalling {
 
@@ -42,26 +47,26 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
   }
 
   def get(sessionId: String, itemId: String): ItemSession = {
-    val result = ItemSessionApi.get(versionedId(itemId), new ObjectId(sessionId))(FakeRequest("", tokenize(""), FakeHeaders(), AnyContentAsEmpty))
+    val result = ItemSessionApi.get(versionedId(itemId), new ObjectId(sessionId), "student")(FakeRequest("", tokenize(""), FakeHeaders(), AnyContentAsEmpty))
     val json = Json.parse(contentAsString(result))
     json.as[ItemSession]
   }
 
   def processResponse(session: ItemSession): ItemSession = {
     invokeCall[ItemSession](
-      Api.update(session.itemId, session.id, None),
+      Api.update(session.itemId, session.id, "student",None),
       AnyContentAsJson(Json.toJson(session)))
   }
 
   def update(session: ItemSession): ItemSession = {
     invokeCall[ItemSession](
-      Api.update(session.itemId, session.id, Some("updateSettings")),
+      Api.update(session.itemId, session.id, "student", Some("updateSettings")),
       AnyContentAsJson(Json.toJson(session)))
   }
 
   def begin(s: ItemSession): ItemSession = {
     invokeCall[ItemSession](
-      Api.update(s.itemId, s.id, Some("begin")),
+      Api.update(s.itemId, s.id, "student", Some("begin")),
       AnyContentAsJson(Json.toJson(s)))
   }
 
@@ -158,8 +163,6 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
       val newSession = createNewSession()
       if (newSession.start.isDefined) failure else success
       val result = begin(newSession)
-      println(".. begin..")
-      println(result)
       if (result.start.isDefined) success else failure
     }
   }
@@ -178,8 +181,8 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
     }
 
     def process(s: ItemSession): JsValue = {
-      val result = ItemSessionApi.processResponse(s.itemId, s.id)(FakeRequest("", tokenize(""), FakeHeaders(), AnyContentAsJson(Json.toJson(s))))
-      logger.debug(s"process : : : ${contentAsString(result)}")
+      val result = ItemSessionApi.processResponse(s.itemId, s.id)("student")(FakeRequest("", tokenize(""), FakeHeaders(), AnyContentAsJson(Json.toJson(s))))
+      //logger.debug(s"process : : : ${contentAsString(result)}")
       Json.parse(contentAsString(result))
     }
 
@@ -198,7 +201,7 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
     "return an item session feedback contents with sessionData which contains all feedback elements in the xml which correspond to responses from client" in {
 
       val testSession = createNewSession().copy(responses = Seq(StringResponse("winterDiscontent", "York")))
-      logger.debug(s" test session : $testSession")
+      //logger.debug(s" test session : $testSession")
       val json = process(testSession)
       (json \ "sessionData" \ "feedbackContents").as[JsObject].keys.size === 1
     }
@@ -228,6 +231,72 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
       dbSession.id === session.id
     }
 
+  }
+  "item session on get" should {
+    "show correct responses even if settings says otherwise if there is render options with role=instructor and instructor role is requested" in {
+      callSessionGet("instructor", """{"itemId":"*","sessionId":"*","assessmentId":"*","role":"instructor","expires":0,"mode":"render"}""",true)
+    }
+    "show correct responses even if settings says otherwise if there is render options with role=* and instructor role is requested" in {
+      callSessionGet("instructor", """{"itemId":"*","sessionId":"*","assessmentId":"*","role":"*","expires":0,"mode":"render"}""",true)
+    }
+    "show correct responses even if settings says otherwise if there is render options with role=instructor and student role is requested" in {
+      callSessionGet("student", """{"itemId":"*","sessionId":"*","assessmentId":"*","role":"instructor","expires":0,"mode":"render"}""",false)
+    }
+    "show correct responses even if settings says otherwise if there is render options with role=* and student role is requested" in {
+      callSessionGet("student", """{"itemId":"*","sessionId":"*","assessmentId":"*","role":"*","expires":0,"mode":"render"}""",false)
+    }
+  }
+  "item session on update" should {
+    "show correct responses even if settings says otherwise if there is render options with role=instructor and instructor role is requested" in {
+      callSessionUpdate("instructor", """{"itemId":"*","sessionId":"*","assessmentId":"*","role":"instructor","expires":0,"mode":"render"}""",true)
+    }
+    "show correct responses even if settings says otherwise if there is render options with role='*' and instructor role is requested" in {
+      callSessionUpdate("instructor", """{"itemId":"*","sessionId":"*","assessmentId":"*","role":"*","expires":0,"mode":"render"}""",true)
+    }
+    "do not show correct responses according to settings if there is render options with role=instructor and student role is requested" in {
+      callSessionUpdate("student", """{"itemId":"*","sessionId":"*","assessmentId":"*","role":"instructor","expires":0,"mode":"render"}""",false)
+    }
+    "do not show correct responses according to settings if there is render options with role=* and student role is requested" in {
+      callSessionUpdate("student", """{"itemId":"*","sessionId":"*","assessmentId":"*","role":"*","expires":0,"mode":"render"}""",false)
+    }
+  }
+  def callSessionGet(role:String, renderOptions: String, showCorrectResponses:Boolean) = {
+    val s = DefaultItemSession.newSession(ItemSession(start = Some(new DateTime()), finish = Some(new DateTime()), itemId = versionedId(IDs.Item),
+      settings = ItemSessionSettings(highlightCorrectResponse = false, highlightUserResponse = false, showFeedback = false),
+      responses = Seq(StringResponse("mexicanPresident", "calderon"),StringResponse("irishPresident", "guinness"),StringResponse("winterDiscontent", "York"))
+    )).right.get
+    val get = api.v1.routes.ItemSessionApi.get(versionedId(IDs.Item), s.id, role)
+    val request = FakeRequest(get.method, tokenize(get.url)).withSession(
+      "player.renderOptions" -> renderOptions
+    )
+    matchSettingsAndSessionData(route(request).get,showCorrectResponses)
+  }
+  def callSessionUpdate(role:String, renderOptions: String, showCorrectResponses:Boolean) = {
+    val s = createNewSession(content = AnyContentAsJson(Json.obj(
+      "settings" -> Json.toJson(ItemSessionSettings(highlightCorrectResponse = false, highlightUserResponse = false, showFeedback = false))
+    )))
+    val update = api.v1.routes.ItemSessionApi.update(versionedId(IDs.Item), s.id, role)
+    val request = FakeRequest(
+      update.method,
+      tokenize(update.url),
+      FakeAuthHeader,
+      AnyContentAsJson(Json.obj(
+        "itemId" -> JsString(IDs.Item),
+        "responses" -> Json.toJson(Seq(StringResponse("mexicanPresident", "calderon"),
+          StringResponse("irishPresident", "guinness"), StringResponse("winterDiscontent", "York"))))))
+      .withSession(
+      "player.renderOptions" -> renderOptions
+    )
+    matchSettingsAndSessionData(route(request).get,showCorrectResponses)
+  }
+  def matchSettingsAndSessionData(result:Result, showCorrectResponses:Boolean) = {
+    val jsItemSession = Json.parse(contentAsString(result))
+    val itemSession = Json.fromJson[ItemSession](jsItemSession).get
+    DefaultItemSession.remove(itemSession)
+    (jsItemSession \ "sessionData") must beAnInstanceOf[JsObject]
+    itemSession.settings.highlightCorrectResponse === showCorrectResponses
+    itemSession.settings.highlightUserResponse === showCorrectResponses
+    itemSession.settings.showFeedback === showCorrectResponses
   }
 
   /**

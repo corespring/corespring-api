@@ -19,11 +19,12 @@ import scala.Left
 import scala.Right
 import scala.Some
 import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
+import org.corespring.player.accessControl.cookies.PlayerCookieReader
 
 /**
  * API for managing item sessions
  */
-class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService, quizService: QuizService) extends BaseApi {
+class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService, quizService: QuizService) extends BaseApi with PlayerCookieReader {
 
   def aggregate(quizId: ObjectId, itemId: VersionedId[ObjectId]) = ApiAction {
     request =>
@@ -42,7 +43,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
     sessionIds.foreach {
       p =>
         val oid = new ObjectId(p)
-        itemSession.get(oid) match {
+        itemSession.get(oid)(false) match {
           case Some(session) => {
             session.responses.foreach {
               resp =>
@@ -78,21 +79,23 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
       } else Unauthorized(toJson(ApiError.UnauthorizedItemSession))
   }
 
-  def update(itemId: VersionedId[ObjectId], sessionId: ObjectId, action: Option[String]) = action match {
+  def update(itemId: VersionedId[ObjectId], sessionId: ObjectId, role:String, action: Option[String]) = action match {
     case Some("begin") => begin(itemId, sessionId)
     case Some("updateSettings") => updateSettings(itemId, sessionId)
-    case _ => processResponse(itemId, sessionId)
+    case _ => processResponse(itemId, sessionId)(role)
   }
 
   /**
    * @param sessionId
    * @return
    */
-  def get(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction {
+  def get(itemId: VersionedId[ObjectId], sessionId: ObjectId, role:String) = ApiAction {
     request =>
+      implicit val isInstructor = role == "instructor"
       itemSession.get(sessionId) match {
         case Some(session) => {
           if (Content.isAuthorized(request.ctx.organization, session.itemId, Permission.Read)) {
+            if (isInstructor) session.settings = session.settings.copy(highlightCorrectResponse = true, highlightUserResponse = true, showFeedback = true)
             Ok(toJson(session))
           } else {
             Unauthorized(toJson(ApiError.UnauthorizedItemSession))
@@ -213,9 +216,9 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
    * Return sessionData and ResponseOutcomes
    * @param itemId
    */
-  def processResponse(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction {
+  def processResponse(itemId: VersionedId[ObjectId], sessionId: ObjectId)(implicit role:String) = ApiAction {
     request =>
-
+      implicit val isInstructor = role == "instructor"
       logger.debug("[processResponse]: " + sessionId)
 
       itemSession.findOneById(sessionId) match {
@@ -238,6 +241,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
                         case Right(xmlWithCsFeedbackIds) => {
                           itemSession.process(dbSession, xmlWithCsFeedbackIds,isAttempt) match {
                             case Right(newSession) => {
+                              if (isInstructor) newSession.settings = newSession.settings.copy(highlightCorrectResponse = true, highlightUserResponse = true, showFeedback = true)
                               val json = toJson(newSession)
                               logger.debug("[processResponse] successful")
                               Ok(json)

@@ -1,3 +1,5 @@
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import play.Project._
 import sbt.Keys._
 import sbt._
@@ -26,10 +28,7 @@ object Build extends sbt.Build {
     publishArtifact in (Compile, packageSrc) := false,
     sources in doc in Compile := List())
 
-  //TODO: this isn't working atm :: scalaVersion in ThisBuild := ScalaVersion
-
   val cred = {
-
     val envCredentialsPath = System.getenv("CREDENTIALS_PATH")
     val path = if (envCredentialsPath != null) envCredentialsPath else Seq(Path.userHome / ".ivy2" / ".credentials").mkString
     val f: File = file(path)
@@ -84,7 +83,6 @@ object Build extends sbt.Build {
       specs2 % "test",
       playS3,
       playFramework,
-      mongoDbSeeder,
       securesocial,
       assetsLoader,
       mockito,
@@ -100,8 +98,26 @@ object Build extends sbt.Build {
     .dependsOn(core)
     .settings(disableDocsSettings: _*)
 
+
+  val buildInfo = TaskKey[Unit]("build-client", "runs client installation commands")
+
+  val buildInfoTask = buildInfo <<= (classDirectory in Compile, name, version, streams) map {
+    (base, n, v, s) =>
+      s.log.info("[buildInfo] ---> write build properties file] on " + base.getAbsolutePath)
+      val file = base / "buildInfo.properties"
+      val commitHash : String = Process("git rev-parse --short HEAD").!!.trim
+      val branch : String = Process("git rev-parse --abbrev-ref HEAD").!!.trim
+      val formatter = DateTimeFormat.forPattern("HH:mm dd MMMM yyyy");
+      val date =formatter.print(DateTime.now)
+      val contents = "commit.hash=%s\nbranch=%s\nversion=%s\ndate=%s".format(commitHash, branch, v, date)
+      IO.write(file, contents)
+  }
+
   val commonViews = builders.web("common-views").settings(
-    libraryDependencies ++= Seq(playJson % "test")).dependsOn(core).settings(disableDocsSettings: _*)
+    buildInfoTask,
+    (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildInfo,
+    libraryDependencies ++= Seq(playJson % "test")
+  ).dependsOn(core).settings(disableDocsSettings: _*)
 
   /** The public play module */
   val public = builders.web("public").settings(
@@ -121,7 +137,8 @@ object Build extends sbt.Build {
       credentials += cred,
       Keys.fork.in(Test) := forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
-      (test in Test) <<= (test in Test).map(Commands.runJsTests)).settings(MongoDbSeederPlugin.newSettings ++ Seq(testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
+      (test in Test) <<= (test in Test).map(Commands.runJsTests)
+  ).settings(MongoDbSeederPlugin.newSettings ++ Seq(testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .dependsOn(public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile")
     .aggregate(public, playerLib, core, apiUtils, commonViews, testLib).settings(disableDocsSettings: _*)
 

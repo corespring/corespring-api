@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<assessmentItem adaptive='false' timeDependent='false'>
+    <responseDeclaration identifier='RESPONSE' cardinality='multiple' baseType='identifier'>
+        <correctResponseFeedback>Correct!</correctResponseFeedback>
+        <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>
+        <correctResponse>
+            <value>3</value>
+            <value>4</value>
+        </correctResponse>
+    </responseDeclaration>
+    <outcomeDeclaration identifier='SCORE' cardinality='single' baseType='float'/>
+    <itemBody>
+        <p>Which of these is a vegatable?</p>
+        <choiceInteraction responseIdentifier='RESPONSE' shuffle='false' maxChoices='0'>
+            <simpleChoice identifier='1'>Apple</simpleChoice>
+            <simpleChoice identifier='2'>Cat</simpleChoice>
+            <simpleChoice identifier='3'>Carrot</simpleChoice>
+            <simpleChoice identifier='4'>Potato</simpleChoice>
+        </choiceInteraction>
+
+    </itemBody>
+    <responseProcessing type='script'>
+        <!--
+        The script gets executed with the following variables available:
+        - the response object for any interaction defined in the qti (in this case an object named 'RESPONSE' )
+
+        It 'returns' an outcome object that contains a single property 'score' which is a value between 0.0-1.0
+
+        So the concept is that an item author has item level access to the responses that the student has provided,
+        and from these builds a score value that will override any automated score.
+        -->
+        <script type='text/javascript'>
+            exports.processItem = function(questions, answers, componentScores){
+                return {};
+            };
+
+            var correctAnswers = 0;
+            if (RESPONSE.value.indexOf('3') != -1) correctAnswers += 1;
+            if (RESPONSE.value.indexOf('4') != -1) correctAnswers += 1;
+
+            var score = 0;
+            if (correctAnswers == 1) score = 0.5
+            if (correctAnswers == 2) score = 1.0
+
+            var outcome = {};
+            outcome.score = score;
+            outcome;
+        </script>
+    </responseProcessing>
+</assessmentItem>

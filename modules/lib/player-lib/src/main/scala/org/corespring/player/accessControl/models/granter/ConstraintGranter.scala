@@ -37,12 +37,11 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
   private def buildConstraints(request: RequestedAccess)(implicit options: RenderOptions): List[ValueAndConstraint[Any]] = {
 
     val common: List[ValueAndConstraint[Any]] = List(timeConstraint)
-
     val modeSpecificConstraints: List[ValueAndConstraint[Any]] = request.mode.map {
       m =>
         m match {
           case Preview => (itemAndSession orElse itemOnly orElse noMatch(Preview, "no item or session"))(request)
-          case Render => (sessionOnly orElse noMatch(Render, "no session found"))(request)
+          case Render => (sessionAndRole orElse sessionOnly orElse noMatch(Render, "no session found"))(request)
           case Aggregate => (itemAndAssessment orElse noMatch(Aggregate, "only an assessment id and item are allowed"))(request)
           case Administer => (itemOnly orElse sessionOnly orElse itemAndSession orElse noMatch(Administer, "no item or session passed"))(request)
           case _ => List()
@@ -53,19 +52,23 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
   }
 
   private def itemAndAssessment(implicit options: RenderOptions): PartialFunction[RequestedAccess, List[ValueAndConstraint[Any]]] = {
-    case RequestedAccess(Some(item), None, Some(assessment), _) => List(assessmentValueAndConstraints(assessment), itemValueAndConstraints(item))
+    case RequestedAccess(Some(item), None, Some(assessment),_,_) => List(assessmentValueAndConstraints(assessment), itemValueAndConstraints(item))
   }
 
   private def itemAndSession(implicit options: RenderOptions): PartialFunction[RequestedAccess, List[ValueAndConstraint[Any]]] = {
-    case RequestedAccess(Some(item), Some(session), _, _) => List(itemValueAndConstraints(item), sessionValueAndConstraints(session))
+    case RequestedAccess(Some(item), Some(session), _, _,_) => List(itemValueAndConstraints(item), sessionValueAndConstraints(session))
   }
 
   private def itemOnly(implicit options: RenderOptions): PartialFunction[RequestedAccess, List[ValueAndConstraint[Any]]] = {
-    case RequestedAccess(Some(item), None, None, _) => List(itemValueAndConstraints(item))
+    case RequestedAccess(Some(item), None, None, _,_) => List(itemValueAndConstraints(item))
   }
 
   private def sessionOnly(implicit options: RenderOptions): PartialFunction[RequestedAccess, List[ValueAndConstraint[Any]]] = {
-    case RequestedAccess(_, Some(session), None, _) => List(sessionValueAndConstraints(session))
+    case RequestedAccess(_, Some(session), None, _,_) => List(sessionValueAndConstraints(session))
+  }
+
+  private def sessionAndRole(implicit options: RenderOptions): PartialFunction[RequestedAccess, List[ValueAndConstraint[Any]]] = {
+    case RequestedAccess(_, Some(session), None, _,Some(role)) => List(sessionValueAndConstraints(session),roleConstraints(role))
   }
 
   private def noMatch(key: Mode, msg: String): PartialFunction[RequestedAccess, List[ValueAndConstraint[Any]]] = {
@@ -118,6 +121,14 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
       List()
     else
       List(makeOrFail[VersionedId[ObjectId]](options.itemId, void, new VersionedIdMatches(_), "invalid item id in RenderOptions"))
+  }
+
+  private def roleConstraints(role:String)(implicit options:RenderOptions): ValueAndConstraint[Any] = {
+    ValueAndConstraint("role",role,
+      if (options.role == RenderOptions.*) List(new WildcardConstraint)
+      else if (options.role == "instructor") List(new SuccessConstraint)
+      else List(new StringEqualsConstraint(options.role))
+    )
   }
 
   private def itemValueAndConstraints(item: VersionedContentRequest)(implicit options: RenderOptions): ValueAndConstraint[Any] = {

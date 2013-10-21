@@ -22,9 +22,9 @@ package object mocks {
         Unit
     }
 
-    def upload(bucket: String, keyName: String, predicate: (RequestHeader) => Option[Result]): BodyParser[String] = {
+    def upload(bucket: String, keyName: String, predicate: (RequestHeader) => Option[Result]): BodyParser[Int] = {
       BodyParser { request =>
-        Done[Array[Byte], Either[Result, String]](Left(Ok), Input.Empty)
+        Done[Array[Byte], Either[Result, Int]](Left(Ok), Input.Empty)
       }
     }
 

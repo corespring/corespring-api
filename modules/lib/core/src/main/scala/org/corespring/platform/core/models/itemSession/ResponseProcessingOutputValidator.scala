@@ -29,14 +29,12 @@ import scalaz.{Validation, Success, Failure}
  */
 object ResponseProcessingOutputValidator {
 
-  def apply(returnValue: Any, qtiItem: QtiItem): Validation[InternalError, SessionOutcome] = returnValue match {
-    case Some(jsObject: JsObject) => {
-      validateJsResponse(jsObject, qtiItem.responseDeclarations) match {
-        case Some(internalError) => Failure(internalError)
-        case _ => Success(SessionOutcome.fromJsObject(jsObject, Some(qtiItem.responseDeclarations)))
-      }
+  def apply(jsObject: JsObject, qtiItem: QtiItem)(implicit debugMode:Boolean): Validation[InternalError, SessionOutcome] = {
+    validateJsResponse(jsObject, qtiItem.responseDeclarations) match {
+      case Some(internalError) => Failure(internalError)
+      case _ => SessionOutcome.fromJsObject(jsObject, qtiItem.responseDeclarations)
+                  .fold(errors => Failure(InternalError(JsError.toFlatJson(errors).toString)),so => Success(so))
     }
-    case _ => Failure(InternalError(s"""Response processing for item did not return a JsObject"""))
   }
 
   private def validateJsResponse(jsValue: JsValue, responseDeclarations: Seq[ResponseDeclaration]): Option[InternalError] =
@@ -44,11 +42,11 @@ object ResponseProcessingOutputValidator {
       case Some(internalError) => Some(internalError)
       case _ => {
         val identifiers = responseDeclarations.map(_.identifier)
-        identifiers.find(identifier => (jsValue \ identifier).isInstanceOf[JsUndefined]) match {
+        identifiers.find(identifier => (jsValue \ "identifierOutcomes" \ identifier).isInstanceOf[JsUndefined]) match {
           case Some(identifier) =>
             Some(InternalError(s"""Response for identifier $identifier is required in JsObject"""))
           case _ => {
-            val errors = identifiers.flatMap(identifier => validateJsValue((jsValue \ identifier), Some(identifier)))
+            val errors = identifiers.flatMap(identifier => validateJsValue((jsValue \ "identifierOutcomes" \ identifier), Some(identifier)))
             errors match {
               case errors: Seq[InternalError] if errors.nonEmpty => {
                 Some(errors.head)
