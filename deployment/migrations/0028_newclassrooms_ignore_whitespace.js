@@ -1,4 +1,4 @@
-var up = (function(){
+function up() {
 
     var NEW_CLASSROOMS_COLLECTION_ID = "51df104fe4b073dbbb1c84fa";
     var RESPONSE_DECLARATION_REGEX = /<responseDeclaration.*(\n?)(.*)\>/g;
@@ -21,4 +21,4 @@ var up = (function(){
         });
     };
 
-})();
+};

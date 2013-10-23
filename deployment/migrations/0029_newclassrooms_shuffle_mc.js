@@ -1,4 +1,4 @@
-var up = (function(){
+function up(){
 
     var NEW_CLASSROOMS_COLLECTION_ID = "51df104fe4b073dbbb1c84fa";
 
@@ -48,4 +48,4 @@ var up = (function(){
         db.content.save(content);
     });
 
-})();
+}
