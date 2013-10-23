@@ -120,11 +120,10 @@ object Build extends sbt.Build {
   ).dependsOn(core).settings(disableDocsSettings: _*)
 
   /**client logging*/
-  val clientLogging = builders.web("clientlogging").settings(
-    libraryDependencies ++= Seq(playFramework),
-    routesImport ++= customImports,
-    parallelExecution.in(Test) := false,
-    Keys.fork.in(Test) := forkInTests).settings(disableDocsSettings: _*)
+  val clientLogging = builders.web("client-logging").settings(
+  //TODO: Move logging code from commonUtils into clientlogging
+    libraryDependencies ++= Seq(playFramework, scalaz, corespringCommonUtils)
+  )
 
   /** The public play module */
   val public = builders.web("public").settings(

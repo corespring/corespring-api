@@ -31,6 +31,8 @@ POST    /auth/access_token                      controllers.auth.AuthController.
 
 ->     /                      public.Routes
 
+->     /logger                clientlogging.Routes
+
 #
 # V1 API
 #
@@ -245,4 +247,3 @@ POST    /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearch()
 GET     /regression/:orgId/:itemSessionId/render            regression.controllers.Item.renderPlayer(orgId: ObjectId, itemSessionId: ObjectId)
 GET     /regression/:orgId/:itemId/:requestedAccess         regression.controllers.Item.simplePlayer(requestedAccess: String, orgId: ObjectId, itemId: VersionedId[ObjectId])
 
-->     /logger                clientlogging.Routes
