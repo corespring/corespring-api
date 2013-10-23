@@ -1,4 +1,4 @@
-package controllers
+package org.corespring.clientlogging
 
 import play.api.mvc.{Request, Result, Action, Controller}
 import play.api.libs.json._
@@ -14,18 +14,17 @@ object ClientLogger extends Controller with ClientLogging{
       case JsSuccess(message,_) => {
         val stacktrace = (request.body \ "stacktrace").asOpt[String]
         logType match {
-          case "debug" => logger.debug(message,stacktrace.getOrElse(""))
-          case "info" =>  logger.info(message,stacktrace.getOrElse(""))
-          case "warn" => logger.warn(message,stacktrace.getOrElse(""))
-          case "error" => logger.error(message,stacktrace.getOrElse(""))
-          case "fatal" => logger.fatal(message,stacktrace.getOrElse(""))
+          case "debug" => logger.debug(message,stacktrace.getOrElse("")); Ok
+          case "info" =>  logger.info(message,stacktrace.getOrElse("")); Ok
+          case "warn" => logger.warn(message,stacktrace.getOrElse("")); Ok
+          case "error" => logger.error(message,stacktrace.getOrElse("")); Ok
+          case "fatal" => logger.fatal(message,stacktrace.getOrElse("")); Ok
+          case _ => BadRequest(s"received message with no type: $message")
         }
-        Ok
       }
       case JsError(errors) => BadRequest(JsObject(Seq(
         "errors" -> JsArray(errors.flatMap(_._2).map(e => JsString(e.message)).seq)
       )))
     }
-    Ok
   }
 }
