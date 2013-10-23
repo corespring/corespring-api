@@ -5,9 +5,9 @@ var up = (function(){
     var newClassroomsContent = db.content.find({"collectionId": NEW_CLASSROOMS_COLLECTION_ID});
 
     /**
-     * Returns the <feedbackBlock/> with incorrectResponse="true" from the item.
+     * Returns the <feedbackBlock/> contents with incorrectResponse="true" from the item.
      */
-    function getIncorrectFeedbackBlock(item) {
+    function getIncorrectFeedback(item) {
         var incorrectFeedbackRegex = /<div class=['|\"]feedback-block-incorrect['|\"]>([.\s\S]*)<\/div>/;
         var match = incorrectFeedbackRegex.exec(item);
         return match == null ? null : match[1].trim();
@@ -37,7 +37,7 @@ var up = (function(){
         content.data.files.forEach(function(file) {
             if ((file.isMain && file.content) && isShortAnswer(content)) {
                 file.content = file.content.replace(
-                    getIncorrectFeedbackBlock(file.content), getIncorrectAnswerMessage(file.content));
+                    getIncorrectFeedback(file.content), getIncorrectAnswerMessage(file.content));
                 db.content.save(content);
             }
         });
