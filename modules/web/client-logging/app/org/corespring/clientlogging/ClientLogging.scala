@@ -1,11 +1,11 @@
-package org.corespring.log
+package org.corespring.clientlogging
 
 import scalaz._
 import Scalaz._
 import org.slf4j._
 import collection.JavaConversions._
 import collection.JavaConverters._
-
+import org.corespring.common.log.PackageLogging
 
 
 class ClientLogEntry(logname: String) extends LogEntryTemplate{

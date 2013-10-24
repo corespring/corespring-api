@@ -122,7 +122,7 @@ object Build extends sbt.Build {
   /**client logging*/
   val clientLogging = builders.web("client-logging").settings(
     libraryDependencies ++= Seq(playFramework, scalaz)
-  )
+  ).dependsOn(apiUtils)
 
   /** The public play module */
   val public = builders.web("public").settings(

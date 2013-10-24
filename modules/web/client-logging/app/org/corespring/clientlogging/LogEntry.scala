@@ -1,4 +1,4 @@
-package org.corespring.log
+package org.corespring.clientlogging
 
 import org.slf4j.{Marker, LoggerFactory, Logger}
 import scalaz.{Failure, Success, Validation}

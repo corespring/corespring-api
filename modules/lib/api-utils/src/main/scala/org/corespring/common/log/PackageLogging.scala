@@ -1,4 +1,4 @@
-package org.corespring.log
+package org.corespring.common.log
 
 import org.slf4j.LoggerFactory
 

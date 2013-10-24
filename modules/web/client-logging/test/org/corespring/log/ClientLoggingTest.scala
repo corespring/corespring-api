@@ -1,6 +1,7 @@
 package org.corespring.log
 
 import org.specs2.mutable.Specification
+import org.corespring.clientlogging.{MessageType, ClientLogEntry}
 
 
 class ClientLoggingTest extends Specification{
