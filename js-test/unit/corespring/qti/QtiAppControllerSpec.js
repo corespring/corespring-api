@@ -49,7 +49,8 @@ describe('qtiDirectives.assessmentItem', function () {
     try {
       ctrl = $controller(QtiAppController, {
         $scope: scope,
-        $location: mockLocation
+        $location: mockLocation,
+        Logger: {}
       });
     } catch (e) {
       throw("Error with the controller: " + e);

@@ -41,6 +41,10 @@
     playerListeners = [];
   }
 
+  var logError = function(message){
+    $.post("/logger/error",{message: message})
+  }
+
   com.corespring.players.config = {
     baseUrl: "${baseUrl}",
     paths: {
@@ -82,7 +86,7 @@
           if (!found) $(element).height(json.h + 30);
         }
       } catch (e) {
-
+            logError("Exception in addDimensionChangeListener: "+e);
       }
     }
 
@@ -150,7 +154,7 @@
           }
         }
         catch (e) {
-
+            logError("Exception in ItemPlayer.addSessionListener: "+e);
         }
       });
     };
@@ -258,6 +262,7 @@
         window.postMessage(JSON.stringify({"message": "submitItem"}), "*");
         return true;
       } catch (e) {
+        logError("Exception in ItemPlayer.submitItem: "+e);
         return false;
       }
     };
@@ -267,6 +272,7 @@
         window.postMessage(JSON.stringify({"message":"submitItem","isAttempt":false}), "*");
         return true;
       } catch (e) {
+        logError("Exception in ItemPlayer.saveResponses: "+e);
         return false;
       }
     }

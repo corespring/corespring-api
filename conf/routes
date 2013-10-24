@@ -31,6 +31,8 @@ POST    /auth/access_token                      controllers.auth.AuthController.
 
 ->     /                      public.Routes
 
+->     /logger/                clientlogging.Routes
+
 #
 # V1 API
 #

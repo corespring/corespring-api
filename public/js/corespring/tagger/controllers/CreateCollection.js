@@ -1,4 +1,4 @@
-function CreateCollection($scope, CollectionManager, UserInfo) {
+function CreateCollection($scope, CollectionManager, UserInfo, Logger) {
 
   $scope.orgName = UserInfo.org.name;
 
@@ -10,6 +10,7 @@ function CreateCollection($scope, CollectionManager, UserInfo) {
   $scope.setAlertClassAndMessage = function (cssclass, message) {
     $scope.alertClass = 'alert-' + cssclass;
     $scope.alertMessage = message;
+    if(cssclass == 'error') Logger.error(message)
   };
 
   $scope.paneClicked = function () {
@@ -74,4 +75,4 @@ function CreateCollection($scope, CollectionManager, UserInfo) {
       }
     }, true);
 }
-CreateCollection.$inject = ['$scope', 'CollectionManager', 'UserInfo'];
+CreateCollection.$inject = ['$scope', 'CollectionManager', 'UserInfo', 'Logger'];

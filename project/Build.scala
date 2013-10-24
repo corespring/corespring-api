@@ -117,6 +117,11 @@ object Build extends sbt.Build {
     libraryDependencies ++= Seq(playJson % "test")
   ).dependsOn(core).settings(disableDocsSettings: _*)
 
+  /**client logging*/
+  val clientLogging = builders.web("client-logging").settings(
+    libraryDependencies ++= Seq(playFramework, scalaz)
+  ).dependsOn(apiUtils)
+
   /** The public play module */
   val public = builders.web("public").settings(
     libraryDependencies ++= Seq(playFramework, securesocial),
@@ -137,7 +142,7 @@ object Build extends sbt.Build {
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests)
   ).settings(MongoDbSeederPlugin.newSettings ++ Seq(testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
-    .dependsOn(public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile")
-    .aggregate(public, playerLib, core, apiUtils, commonViews, testLib).settings(disableDocsSettings: _*)
+    .dependsOn(public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile", clientLogging % "compile->compile;test->test")
+    .aggregate(public, playerLib, core, apiUtils, commonViews, testLib, clientLogging).settings(disableDocsSettings: _*)
 
 }

@@ -1,4 +1,4 @@
-function HomeController($scope, $timeout, $rootScope, $http, $location, ItemService, SearchService, CollectionManager, Contributor, ItemFormattingUtils) {
+function HomeController($scope, $timeout, $rootScope, $http, $location, ItemService, SearchService, CollectionManager, Contributor, ItemFormattingUtils, Logger) {
 
   //Mixin ItemFormattingUtils
   angular.extend($scope, ItemFormattingUtils);
@@ -158,8 +158,8 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
     Contributor.get({}, function (data) {
         $scope.contributors = data;
       },
-      function () {
-          //console.log("load contributors: error: " + arguments);
+      function (err) {
+          console.log("error occurred when loading contributors: "+JSON.stringify(e));
       });
   }
 
@@ -247,7 +247,8 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
         }, 10);
       }
     }catch(err){
-
+       //it is normal for this error to be thrown
+       // Logger.error("Error occurred on window event listener in home controller: "+JSON.stringify(err));
     }
   };
 
@@ -269,6 +270,7 @@ HomeController.$inject = ['$scope',
   'SearchService',
   'CollectionManager',
   'Contributor',
-  'ItemFormattingUtils'
+  'ItemFormattingUtils',
+  'Logger'
   ];
 

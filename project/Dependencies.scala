@@ -11,7 +11,7 @@ object Dependencies {
   val playFramework = "play" %% "play" % playVersion
   val playTest = "play" %% "play-test" % playVersion
 
-  val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
+  val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-b12aff3"
   val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-71bd721"
   val mongoDbSeeder = "org.corespring" %% "mongo-db-seeder-lib" % "0.6-ae58487"
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
