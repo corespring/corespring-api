@@ -6,10 +6,11 @@ import play.api.libs.json.JsSuccess
 import play.api.data.validation.ValidationError
 import scalaz._
 import Scalaz._
-import org.corespring.common.log.{ClientLogEntry, ClientLogging}
+import org.corespring.log.{ClientLogEntry, ClientLogging}
 
 object ClientLogger extends Controller with ClientLogging{
   def submitLog(logType:String) = Action(parse.json) { request =>
+    println("mergl")
     (request.body \ "message").validate[String] match {
       case JsSuccess(message,_) => {
         val stacktrace = (request.body \ "stacktrace").asOpt[String]

@@ -121,8 +121,7 @@ object Build extends sbt.Build {
 
   /**client logging*/
   val clientLogging = builders.web("client-logging").settings(
-  //TODO: Move logging code from commonUtils into clientlogging
-    libraryDependencies ++= Seq(playFramework, scalaz, corespringCommonUtils)
+    libraryDependencies ++= Seq(playFramework, scalaz)
   )
 
   /** The public play module */
@@ -145,7 +144,7 @@ object Build extends sbt.Build {
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests)
   ).settings(MongoDbSeederPlugin.newSettings ++ Seq(testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
-    .dependsOn(public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile", clientLogging)
+    .dependsOn(public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile", clientLogging % "compile->compile;test->test")
     .aggregate(public, playerLib, core, apiUtils, commonViews, testLib, clientLogging).settings(disableDocsSettings: _*)
 
 }
