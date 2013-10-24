@@ -23,6 +23,7 @@ object BaseFile {
     val HTML: String = "text/html"
     val TXT: String = "text/txt"
     val JS: String = "text/javascript"
+    val UNKNOWN : String = "unknown"
   }
 
   val SuffixToContentTypes = Map(
@@ -40,8 +41,8 @@ object BaseFile {
 
   def getContentType(filename: String): String = {
     val split = filename.split("\\.").toList
-    val suffix = split.last
-    SuffixToContentTypes.getOrElse(suffix, "unknown")
+    val suffix = split.last.toLowerCase
+    SuffixToContentTypes.getOrElse(suffix, ContentTypes.UNKNOWN)
   }
 
   implicit object BaseFileWrites extends Writes[BaseFile] {
