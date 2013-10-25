@@ -32,6 +32,7 @@ object BaseFile {
     "png" -> ContentTypes.PNG,
     "gif" -> ContentTypes.GIF,
     "doc" -> ContentTypes.DOC,
+    "docx" -> ContentTypes.DOC,
     "pdf" -> ContentTypes.PDF,
     "xml" -> ContentTypes.XML,
     "css" -> ContentTypes.CSS,
