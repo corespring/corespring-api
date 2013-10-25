@@ -35,6 +35,7 @@ class BaseFileTest extends Specification {
         "png" -> PNG,
         "gif" -> GIF,
         "doc" -> DOC,
+        "docx" -> DOC,
         "pdf" -> PDF,
         "xml" -> XML,
         "css" -> CSS,
