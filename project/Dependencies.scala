@@ -77,6 +77,7 @@ object Dependencies {
     val sonatypeReleases = "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/releases"
     val sbtPluginSnapshots = Resolver.url("sbt-plugin-releases", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
     val sbtPluginReleases = Resolver.url("sbt-plugin-snapshots", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots/"))(Resolver.ivyStylePatterns)
+    val edeustaceReleases = "ed eustace" at "http://edeustace.com/repository/releases/"
 
     // TODO: Publish to repository.corespring.org!!!!!!!
     val justWroteSnapshots = "justwrote" at "http://repo.justwrote.it/snapshots/"
@@ -90,6 +91,7 @@ object Dependencies {
       spy,
       sbtPluginSnapshots,
       sbtPluginReleases,
+      edeustaceReleases,
       justWroteSnapshots)
   }
 
