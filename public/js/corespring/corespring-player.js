@@ -258,17 +258,7 @@
      *
      * @returns true if successfully submitted, false if error
      **/
-    this.submitItem = function () {
-      try {
-        e.find('iframe')[0].contentWindow.postMessage(JSON.stringify({"message": "submitItem"}), "*");
-        return true;
-      } catch (e) {
-        logError("Exception in ItemPlayer.submitItem: "+e);
-        return false;
-      }
-    };
-
-    this.saveResponses = function(){
+    var submitFunction = function(isAttempt) {
       try{
         e.find('iframe')[0].contentWindow.postMessage(JSON.stringify({"message":"submitItem","isAttempt":false}), "*");
         return true;
@@ -276,6 +266,14 @@
         logError("Exception in ItemPlayer.saveResponses: "+e);
         return false;
       }
+    }
+
+    this.submitItem = function () {
+      submitFunction(true);
+    };
+
+    this.saveResponses = function(){
+      submitFunction(false);
     }
 
     var playerRenderFunction = iframePlayerStrategy;
