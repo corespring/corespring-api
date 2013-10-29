@@ -248,27 +248,28 @@
       error("Need to specify either itemId or sessionId in options", com.corespring.players.errors.NEED_ITEMID_OR_SESSIONID);
       return;
     }
+
+    var submitFunction = function (isAttempt) {
+      try {
+        e.find('iframe')[0].contentWindow.postMessage(JSON.stringify({"message": "submitItem", "isAttempt": isAttempt}), "*");
+        return true;
+      } catch (e) {
+        logError("Exception in ItemPlayer.submitItem: " + e);
+        return false;
+      }
+    };
+
     /**
      * programmatically submits the item
      *
      * @returns true if successfully submitted, false if error
      **/
     this.submitItem = function () {
-      try {
-        window.postMessage(JSON.stringify({"message": "submitItem"}), "*");
-        return true;
-      } catch (e) {
-        return false;
-      }
+      submitFunction(true);
     };
 
     this.saveResponses = function(){
-      try{
-        window.postMessage(JSON.stringify({"message":"submitItem","isAttempt":false}), "*");
-        return true;
-      } catch (e) {
-        return false;
-      }
+      submitFunction(false);
     }
 
     var playerRenderFunction = iframePlayerStrategy;
