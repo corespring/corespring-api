@@ -85,36 +85,6 @@ describe('CoreSpringPlayer', function () {
       expect(url).toBe("${baseUrl}/item/iid/preview");
     });
 
-    it("is able to submit through submitItem", function(){
-      var player = new com.corespring.players.ItemPlayer(myDiv, {mode: 'preview', itemId: "iid", width: "500px", height: "500px"});
-      var message = null;
-      window.addEventListener("message",function(e){
-        message = JSON.parse(e.data);
-      },false);
-      waitsFor(function(){
-        if(message) console.log(message)
-        if (message && message.message === "submitItem") {
-            return true;
-        } else return false;
-      },"a submitItem message", 500)
-      player.submitItem();
-    });
-
-    it("is able to save responses", function(){
-      var player = new com.corespring.players.ItemPlayer(myDiv, {mode: 'preview', itemId: "iid", width: "500px", height: "500px"});
-      var message = null;
-      window.addEventListener("message",function(e){
-        message = JSON.parse(e.data);
-      },false);
-      waitsFor(function(){
-        if(message) console.log(message)
-        if (message && message.message === "submitItem") {
-            return message.isAttempt === false;
-        } else return false;
-      },"a saveResponses message", 500)
-      player.saveResponses();
-    });
-
     it("sets width and height", function () {
       new com.corespring.players.ItemPlayer(myDiv, {mode: 'render', sessionId: "something", width: "500px", height: "500px"});
       var iframe = myDiv.find("iframe");

@@ -1,4 +1,5 @@
 (function (root) {
+
   var console = window.console || {log: function(){}};
   var com = root.com = root.com || {};
 
@@ -259,7 +260,7 @@
      **/
     this.submitItem = function () {
       try {
-        window.postMessage(JSON.stringify({"message": "submitItem"}), "*");
+        e.find('iframe')[0].contentWindow.postMessage(JSON.stringify({"message": "submitItem"}), "*");
         return true;
       } catch (e) {
         logError("Exception in ItemPlayer.submitItem: "+e);
@@ -269,7 +270,7 @@
 
     this.saveResponses = function(){
       try{
-        window.postMessage(JSON.stringify({"message":"submitItem","isAttempt":false}), "*");
+        e.find('iframe')[0].contentWindow.postMessage(JSON.stringify({"message":"submitItem","isAttempt":false}), "*");
         return true;
       } catch (e) {
         logError("Exception in ItemPlayer.saveResponses: "+e);
