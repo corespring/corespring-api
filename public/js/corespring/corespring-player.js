@@ -260,7 +260,7 @@
      **/
     var submitFunction = function(isAttempt) {
       try{
-        e.find('iframe')[0].contentWindow.postMessage(JSON.stringify({"message":"submitItem","isAttempt":false}), "*");
+        e.find('iframe')[0].contentWindow.postMessage(JSON.stringify({"message":"submitItem","isAttempt":isAttempt}), "*");
         return true;
       } catch (e) {
         logError("Exception in ItemPlayer.saveResponses: "+e);

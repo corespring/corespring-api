@@ -188,7 +188,7 @@ angular.module('qti.directives').directive('assessmentitem', ['Logger', function
               if(opts && !opts.isAttempt){
                 that.submitResponses(false);
               } else {
-                that.submitResponses();
+                that.submitResponses(true);
               }
             });
 
