@@ -16,7 +16,7 @@ if (Array.prototype.removeItem == null) Array.prototype.removeItem = function (i
 /**
  * Controller for editing Item
  */
-function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata) {
+function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata, Logger) {
 
   function loadStandardsSelectionData() {
     $http.get(ServiceLookup.getUrlFor('standardsTree')).success(function (data) {
@@ -28,8 +28,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     Collection.get({}, function (data) {
         $scope.collections = data;
       },
-      function () {
-          //console.log("load collections: error: " + arguments);
+      function (err) {
+        Logger.error("error when loading collections in ItemController: "+JSON.stringify(err))
       });
   }
 
@@ -357,7 +357,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
                 $scope.$broadcast("dataLoaded")
             }
           },
-          function onError() {
+          function onError(err) {
             $scope.isSaving = false;
             $scope.suppressSave = false;
           }
@@ -513,6 +513,7 @@ ItemController.$inject = [
   'Collection',
   'ServiceLookup',
   '$http',
-  'ItemMetadata'
+  'ItemMetadata',
+  'Logger'
 ];
 

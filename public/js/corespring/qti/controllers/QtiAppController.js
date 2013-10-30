@@ -1,4 +1,4 @@
-function QtiAppController($scope, $timeout, $location, AssessmentSessionService, Config, MessageBridge) {
+function QtiAppController($scope, $timeout, $location, AssessmentSessionService, Config, MessageBridge, Logger) {
 
 
   $scope.onMessageReceived = function (e) {
@@ -78,7 +78,7 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
           }
         },
         function (error) {
-          //console.warn(JSON.stringify(error));
+          //onError logs error
           onError(error);
         });
 
@@ -150,5 +150,5 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
 
 }
 
-QtiAppController.$inject = ['$scope', '$timeout', '$location', 'AssessmentSessionService', 'Config', 'MessageBridge'];
+QtiAppController.$inject = ['$scope', '$timeout', '$location', 'AssessmentSessionService', 'Config', 'MessageBridge', 'Logger'];
 

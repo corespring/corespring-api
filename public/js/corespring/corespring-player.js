@@ -1,4 +1,5 @@
 (function (root) {
+
   var console = window.console || {log: function(){}};
   var com = root.com = root.com || {};
 
@@ -39,6 +40,10 @@
 
   var clearPlayerListeners = function () {
     playerListeners = [];
+  }
+
+  var logError = function(message){
+    $.post("/logger/error",{message: message})
   }
 
   com.corespring.players.config = {
@@ -82,7 +87,7 @@
           if (!found) $(element).height(json.h + 30);
         }
       } catch (e) {
-
+            logError("Exception in addDimensionChangeListener: "+e);
       }
     }
 
@@ -150,7 +155,7 @@
           }
         }
         catch (e) {
-
+            logError("Exception in ItemPlayer.addSessionListener: "+e);
         }
       });
     };
@@ -264,6 +269,16 @@
      *
      * @returns true if successfully submitted, false if error
      **/
+    var submitFunction = function(isAttempt) {
+      try{
+        e.find('iframe')[0].contentWindow.postMessage(JSON.stringify({"message":"submitItem","isAttempt":isAttempt}), "*");
+        return true;
+      } catch (e) {
+        logError("Exception in ItemPlayer.saveResponses: "+e);
+        return false;
+      }
+    }
+
     this.submitItem = function () {
       submitFunction(true);
     };

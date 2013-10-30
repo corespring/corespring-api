@@ -1,7 +1,7 @@
 "use strict";
 
-angular.module('qti.directives', ['qti.services','ngDragDrop','ui.sortable']);
-angular.module('qti', ['qti.directives', 'qti.services', 'corespring-services', 'corespring-directives','corespring-utils', 'ui']);
+angular.module('qti.directives', ['qti.services','ngDragDrop','ui.sortable', 'corespring-logger']);
+angular.module('qti', ['qti.directives', 'qti.services', 'corespring-services', 'corespring-directives','corespring-utils', 'ui', 'corespring-logger']);
 
 
 function ControlBarController($scope, $rootScope) {
@@ -69,7 +69,7 @@ function ControlBarController($scope, $rootScope) {
 ControlBarController.$inject = ['$scope', '$rootScope'];
 
 // base directive include for all QTI items
-angular.module('qti.directives').directive('assessmentitem', function() {
+angular.module('qti.directives').directive('assessmentitem', ['Logger', function(Logger) {
     return {
         restrict: 'E',
         controller: function($scope, $element, $attrs, $timeout, $rootScope, $location) {
@@ -196,7 +196,6 @@ angular.module('qti.directives').directive('assessmentitem', function() {
             this.submitResponses = function(isAttempt) {
                 if ($scope.formSubmitted) return;
 
-
                 if ($scope.hasEmptyResponse() && !allowEmptyResponses) {
                     $scope.status = 'ATTEMPTED';
                     $scope.showNoResponseFeedback = ($scope.hasEmptyResponse());
@@ -226,6 +225,7 @@ angular.module('qti.directives').directive('assessmentitem', function() {
                 };
 
                 var onError = function(data) {
+                    Logger.error("Error in assessmentItem directive when submitting responses: "+JSON.stringify(data));
                 };
 
                 $rootScope.$broadcast('assessmentItem_submit', $scope.itemSession, onSuccess, onError, !areResponsesIncorrect());
@@ -317,7 +317,7 @@ angular.module('qti.directives').directive('assessmentitem', function() {
             }
         }
     };
-});
+}]);
 
 angular.module('qti.directives').directive('itembody', function() {
 
