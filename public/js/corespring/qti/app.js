@@ -113,10 +113,9 @@ angular.module('qti.directives').directive('assessmentitem', ['Logger', function
                 }
 
                 $scope.formSubmitted = $scope.itemSession.isFinished;
-
+                $scope.$broadcast('highlightUserResponses');
                 if ($scope.formSubmitted) {
                     $scope.$broadcast('formSubmitted', $scope.itemSession, !areResponsesIncorrect());
-                    $scope.$broadcast('highlightUserResponses');
                 } else {
                     $scope.$broadcast('resetUI');
                 }
