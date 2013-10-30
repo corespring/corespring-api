@@ -196,7 +196,6 @@ angular.module('qti.directives').directive('assessmentitem', ['Logger', function
             this.submitResponses = function(isAttempt) {
                 if ($scope.formSubmitted) return;
 
-
                 if ($scope.hasEmptyResponse() && !allowEmptyResponses) {
                     $scope.status = 'ATTEMPTED';
                     $scope.showNoResponseFeedback = ($scope.hasEmptyResponse());
