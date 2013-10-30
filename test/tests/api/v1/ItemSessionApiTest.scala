@@ -110,6 +110,22 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
   }
 
   "process" should {
+
+    "if it isn't an 'attempt' just save the responses" in {
+
+      val settings = ItemSessionSettings(maxNoOfAttempts = 5)
+      val session = ItemSession(
+        itemId = versionedId(IDs.Item),
+        settings = settings
+      )
+      val newSession = createNewSession(IDs.Item, AnyContentAsJson(Json.toJson(session)))
+      val update = newSession.copy(responses = Seq(StringResponse("id", "blah")))
+      val json = Json.toJson(update).as[JsObject] ++ Json.obj("isAttempt" -> false)
+      val updatedSession = invokeCall[ItemSession]( Api.update(newSession.itemId, newSession.id, "student", None), AnyContentAsJson(json))
+      updatedSession.responses.length === 1
+    }
+
+
     "ignore any settings in the model" in {
 
       val settings = ItemSessionSettings(maxNoOfAttempts = 5)
