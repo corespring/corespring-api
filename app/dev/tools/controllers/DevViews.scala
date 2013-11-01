@@ -24,9 +24,9 @@ object DevActionBuilder extends TokenizedRequestActionBuilder[RequestedAccess] w
 
   def ValidatedAction(p: BodyParser[AnyContent])(access: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] = Action{ implicit request =>
 
-    if(Play.current.mode != Mode.Dev){
-      NotFound("")
-    } else {
+    def devToolsEnabled = Play.current.mode == Mode.Dev || Play.current.configuration.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
+
+    def loadDevPlayer = {
 
       val orgId = request.getQueryString("orgId").getOrElse("502404dd0364dc35bb39339a")
 
@@ -35,7 +35,6 @@ object DevActionBuilder extends TokenizedRequestActionBuilder[RequestedAccess] w
 
         AccessToken.getTokenForOrgById(id).map{ t =>
           val tokenizedRequest = TokenizedRequest(t.tokenId, request)
-
           val orgId = AppConfig.demoOrgId
           val newCookies: Seq[(String, String)] = playerCookies(orgId, Some(RenderOptions.ANYTHING)) :+ activeModeCookie(RequestedAccess.Mode.All)
           val newSession = sumSession(request.session, newCookies: _*)
@@ -43,11 +42,10 @@ object DevActionBuilder extends TokenizedRequestActionBuilder[RequestedAccess] w
           val result = block(tokenizedRequest)
           result.withSession(newSession)
         }.getOrElse(NotFound(""))
-
-      } else {
-        NotFound("")
-      }
+      } else NotFound("")
     }
+
+    if(devToolsEnabled) loadDevPlayer else NotFound("")
   }
 }
 
