@@ -11,7 +11,7 @@ angular.module('qti.directives').directive('inlinechoiceinteraction', function (
 
     var nodes = html.match(inlineChoiceRegex);
 
-    var out = { options: [], feedbacks: [], labels: []};
+    var out = { options: [], feedbacks: [], identifiers: [], labels: []};
 
     if (!nodes) {
       return [];
@@ -37,8 +37,8 @@ angular.module('qti.directives').directive('inlinechoiceinteraction', function (
         .replace(/\$label/gi, optionValue);
 
       out.labels.push("<span ng-show='selectedIdx=="+i+"'>"+optionValue+"</span>");
-
       out.options.push(option);
+      out.identifiers.push(node.attr("identifier"));
     }
     out.labels.push("<span ng-show='selectedIdx==-1'>"+chooseLabel+"</span>");
 
@@ -47,7 +47,6 @@ angular.module('qti.directives').directive('inlinechoiceinteraction', function (
 
 
   var compile = function (element, attrs, transclude) {
-
 
     var optionsAndFeedback = getOptionsAndFeedbacks(element);
 
@@ -72,13 +71,13 @@ angular.module('qti.directives').directive('inlinechoiceinteraction', function (
 
     return function ($scope, element, attrs, AssessmentItemCtrl) {
       $scope.labels = optionsAndFeedback.labels;
+      $scope.identifiers = optionsAndFeedback.identifiers;
       $scope.selectedIdx = -1;
       AssessmentItemCtrl.registerInteraction(element.attr('responseIdentifier'), 'inline');
 
       var modelToUpdate = attrs["responseidentifier"];
 
       $scope.click = function (label, value) {
-        $scope.selected = $scope.labels[Number(label)];
         $scope.selectedIdx = Number(label);
         $scope.choice = value;
         $(element).find('.dropdown-toggle').dropdown('toggle');
@@ -102,6 +101,7 @@ angular.module('qti.directives').directive('inlinechoiceinteraction', function (
 
       $scope.$on('highlightUserResponses', function () {
         $scope.choice = QtiUtils.getResponseValue(modelToUpdate, $scope.itemSession.responses);
+        $scope.selectedIdx = _($scope.identifiers).indexOf($scope.choice);
       });
 
       $scope.$watch('itemSession.sessionData.correctResponses', function (responses) {
@@ -141,7 +141,6 @@ angular.module('qti.directives').directive('inlinechoiceinteraction', function (
     compile: compile,
     controller: function ($scope) {
       this.scope = $scope;
-      $scope.selected = chooseLabel;
     }
   }
 });
