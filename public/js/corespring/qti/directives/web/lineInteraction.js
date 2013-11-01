@@ -199,16 +199,15 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
         }
       })
       $scope.$on("highlightUserResponses", function(){
-        if(!$scope.itemSession.isFinished && $scope.itemSession.responses){
-           var response = _.find($scope.itemSession.responses,function(r){
-                return r.id === $scope.responseIdentifier;
+        if($scope.itemSession.responses){
+          var response = _.find($scope.itemSession.responses,function(r){
+              return r.id === $scope.responseIdentifier;
            });
-           if(response){
-               var A = response.value[0].split(",")
-               var B = response.value[1].split(",")
-               $scope.points.A = {x: A[0], y: A[1]}
-               $scope.points.B = {x: B[0], y: B[1]}
-           }
+          if(response){
+            var A = response.value[0].split(",")
+            var B = response.value[1].split(",")
+            $scope.points = {A: {x: A[0], y: A[1]},B: {x: B[0], y: B[1]}}
+          }
         }
       })
       $scope.$on("formSubmitted",function(){
@@ -217,6 +216,12 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
           var response = _.find($scope.itemSession.responses,function(r){
             return r.id === $scope.responseIdentifier;
           });
+          if(response){
+            var A = response.value[0].split(",")
+            var B = response.value[1].split(",")
+            $scope.points = {A: {x: A[0], y: A[1]},B: {x: B[0], y: B[1]}}
+            $scope.graphCallback({points: $scope.points})
+          }
           if($scope.itemSession.settings.highlightUserResponse){
             if(response && response.outcome.isCorrect){
               $scope.graphCallback({graphStyle: {borderColor: "green", borderWidth: "2px"}, pointsStyle: "green", shapesStyle: "green"})
