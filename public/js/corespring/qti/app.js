@@ -211,7 +211,7 @@ angular.module('qti.directives').directive('assessmentitem', ['Logger', function
 
                 var onSuccess = function() {
                     $scope.formHasIncorrect = areResponsesIncorrect();
-                    $scope.finalSubmit = true;
+                    $scope.finalSubmit = isAttempt;
                     // Note: need to call this within a $timeout as the propogation isn't working properly without it.
                     $timeout(function() {
                         $scope.formSubmitted = $scope.itemSession.isFinished;

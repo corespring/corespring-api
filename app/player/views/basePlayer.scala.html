@@ -1,4 +1,4 @@
-@(params:player.views.models.PlayerParams, bodyAttributes:String, additionalScripts: Option[Html] = None, afterBody : Option[Html] = None)
+@(params:player.views.models.PlayerParams, bodyAttributes:String, additionalScripts: Option[Html] = None, afterBody : Option[Html] = None, belowPlayer : Option[Html] = None)
 
 @cssClass = @{
     if(params.previewEnabled) "assessment-page" else "student-assessment-page"
@@ -33,6 +33,9 @@
 
 <div class="@cssClass" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">
     @Html(params.xml)
+    @belowPlayer.map{ bp =>
+        @bp
+    }
 </div>
 </body>
 </html>
