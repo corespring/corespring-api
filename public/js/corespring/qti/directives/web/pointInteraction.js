@@ -105,35 +105,29 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
           $scope.locked = false;
         }
       })
+      function renewResponse(){
+        var response = _.find($scope.itemSession.responses,function(r){
+            return r.id === $scope.responseIdentifier;
+         });
+        if(response){
+          var points = [];
+          for(var i = 0; i < response.value.length; i++){
+              var point = response.value[i].split(",");
+              points.push({x: point[0], y: point[1]});
+          }
+          $scope.graphCallback({points: points});
+        }
+        return response;
+      }
       $scope.$on("highlightUserResponses", function(){
         if($scope.itemSession.responses){
-          var response = _.find($scope.itemSession.responses,function(r){
-              return r.id === $scope.responseIdentifier;
-           });
-          if(response){
-            var points = []
-            for(var i = 0; i < response.value.length; i++){
-                var point = response.value[i].split(",")
-                points.push({x: point[0], y: point[1]})
-            }
-            $scope.graphCallback({points: points})
-          }
+            renewResponse();
         }
       })
       $scope.$on("formSubmitted",function(){
         if(!$scope.locked){
           $scope.submissions++;
-          var response = _.find($scope.itemSession.responses,function(r){
-            return r.id === $scope.responseIdentifier;
-          });
-          if(response){
-            var points = []
-            for(var i = 0; i < response.value.length; i++){
-                var point = response.value[i].split(",")
-                points.push({x: point[0], y: point[1]})
-            }
-            $scope.graphCallback({points: points})
-          }
+          var response = renewResponse();
           if($scope.itemSession.settings.highlightUserResponse){
             if(response && response.outcome.isCorrect){
               $scope.graphCallback({graphStyle: {borderColor: "green", borderWidth: "2px"}, pointsStyle: "green"})
