@@ -86,7 +86,7 @@ return {
         points = {}
     }
     function processPointsCallback(paramPoints){
-      clearBoard();
+      if(!lockGraph) clearBoard();
       if(QtiUtils.isObject(paramPoints)){
         for (var ptName in paramPoints) {
           var point = paramPoints[ptName];

@@ -113,10 +113,9 @@ angular.module('qti.directives').directive('assessmentitem', ['Logger', function
                 }
 
                 $scope.formSubmitted = $scope.itemSession.isFinished;
-
+                $scope.$broadcast('highlightUserResponses');
                 if ($scope.formSubmitted) {
                     $scope.$broadcast('formSubmitted', $scope.itemSession, !areResponsesIncorrect());
-                    $scope.$broadcast('highlightUserResponses');
                 } else {
                     $scope.$broadcast('resetUI');
                 }
@@ -212,7 +211,7 @@ angular.module('qti.directives').directive('assessmentitem', ['Logger', function
 
                 var onSuccess = function() {
                     $scope.formHasIncorrect = areResponsesIncorrect();
-                    $scope.finalSubmit = true;
+                    $scope.finalSubmit = isAttempt;
                     // Note: need to call this within a $timeout as the propogation isn't working properly without it.
                     $timeout(function() {
                         $scope.formSubmitted = $scope.itemSession.isFinished;
@@ -331,12 +330,12 @@ angular.module('qti.directives').directive('itembody', function() {
             '<div class="ui-hide animatable flow-feedback-container" ng-class="{true: \'ui-show\', false: \'ui-hide\'}[showFeedback()]">',
             '<div class="feedback-message" ng-class="getFeedbackMessageClass()"><span class="text">{{getFeedbackMessage()}}</span></div>',
             '</div>',
-            '<a class="btn btn-primary" ng-disabled="!isAllowedSubmit()" ng-hide="omitSubmitButton || formSubmitted" ng-click="onSubmitClick()">{{submitButtonText()}}</a>',
+            '<a class="btn btn-primary" ng-disabled="!isAllowedSubmit()" ng-hide="omitSubmitButton || formSubmitted" ng-click="onSubmitClick(true)">{{submitButtonText()}}</a>',
             '</div>'].join('\n'),
         require: '^assessmentitem',
         link: function(scope, element, attrs, AssessmentItemCtrl) {
-            scope.onSubmitClick = function() {
-                AssessmentItemCtrl.submitResponses();
+            scope.onSubmitClick = function(isAttempt) {
+                AssessmentItemCtrl.submitResponses(isAttempt);
             };
         }
     };

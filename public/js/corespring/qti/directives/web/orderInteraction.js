@@ -315,7 +315,9 @@ var commonLinkFn = function ($scope, element, attrs, AssessmentItemCtrl, QtiUtil
 
         var value = QtiUtils.getResponseValue($scope.responseIdentifier, $scope.itemSession.responses, "");
         $scope.highlightingUserResponse = true;
-        $scope.orderedList = buildFromResponse(value);
+        if (value) {
+            $scope.orderedList = buildFromResponse(value);
+        }
     });
 
 
