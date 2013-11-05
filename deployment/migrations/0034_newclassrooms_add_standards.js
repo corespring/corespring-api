@@ -33,7 +33,5 @@ function up() {
         }
     });
 
-    print(noMatchCount);
+    print("Number of items with no match: " + noMatchCount);
 }
-
-up();
