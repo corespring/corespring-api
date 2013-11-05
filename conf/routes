@@ -165,6 +165,13 @@ GET    /player.js                                   player.controllers.AssetLoad
 GET    /tagger-player.js                            player.controllers.AssetLoading.noSessionPlayerJavascript
 GET    /profile.js                                  player.controllers.AssetLoading.itemProfileJavascript
 
+## Dev endpoints...
+GET    /dev/tools/player/item/:itemId/administer                     dev.tools.controllers.DevViews.administerItem(itemId:VersionedId[ObjectId])
+GET    /dev/tools/player/item/:itemId/*filename                      player.controllers.AssetLoading.getDataFile(itemId, filename)
+
+GET    /dev/tools/player/session/:sessionId/render                   dev.tools.controllers.DevViews.render(sessionId:ObjectId, role:String ?= "student")
+GET    /dev/tools/player/session/:sessionId/*filename                player.controllers.AssetLoading.getDataFileBySessionId(sessionId, filename)
+
 
 # Web tier
 GET    /web                                    web.controllers.Main.index

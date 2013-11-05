@@ -1,0 +1,18 @@
+@(params: player.views.models.PlayerParams)
+
+    @bodyAttributes = @{ "ng-controller=QtiAppController" }
+
+    @belowPlayer = @{
+        val markup : scala.xml.Elem = <div>
+            <script src="/assets/js/corespring/qti/controllers/DevController.js"></script>
+            <div ng-controller="DevController">
+               <h1>Dev player</h1>
+               <button ng-click="saveResponses()">Save Response</button>
+               <a ng-href="/dev/tools/player/session/{{itemSession.id}}/render" target="_blank">Launch Session</a>
+            </div>
+        </div>
+        val html : Html = Html(markup.mkString("\n"))
+        Some(html)
+    }
+
+@player.views.html.basePlayer(params, bodyAttributes, belowPlayer = belowPlayer)
