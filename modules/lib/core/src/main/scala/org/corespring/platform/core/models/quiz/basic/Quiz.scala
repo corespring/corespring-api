@@ -13,7 +13,7 @@ import play.api.libs.json._
 import scala.Some
 import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemServiceClient, ItemService }
 
-case class Answer(sessionId: ObjectId, itemId: ObjectId)
+case class Answer(sessionId: ObjectId, itemId: VersionedId[ObjectId])
 
 object Answer {
 
