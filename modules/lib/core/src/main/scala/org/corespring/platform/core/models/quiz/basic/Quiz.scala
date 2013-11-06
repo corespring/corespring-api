@@ -19,8 +19,10 @@ object Answer {
 
   implicit object Reads extends Reads[Answer] {
     override def reads(json: JsValue): JsResult[Answer] = {
-      JsSuccess(Answer(new ObjectId((json \ "sessionId").as[String]),
-        new ObjectId((json \ "itemId").as[String])))
+      VersionedId((json \ "itemId").as[String]) match {
+        case Some(versionedId) => JsSuccess(Answer(new ObjectId((json \ "sessionId").as[String]), versionedId))
+        case _ => JsError("Invalid itemId")
+      }
     }
   }
 
