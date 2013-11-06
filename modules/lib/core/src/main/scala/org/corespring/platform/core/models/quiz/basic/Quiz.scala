@@ -13,14 +13,16 @@ import play.api.libs.json._
 import scala.Some
 import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemServiceClient, ItemService }
 
-case class Answer(sessionId: ObjectId, itemId: ObjectId)
+case class Answer(sessionId: ObjectId, itemId: VersionedId[ObjectId])
 
 object Answer {
 
   implicit object Reads extends Reads[Answer] {
     override def reads(json: JsValue): JsResult[Answer] = {
-      JsSuccess(Answer(new ObjectId((json \ "sessionId").as[String]),
-        new ObjectId((json \ "itemId").as[String])))
+      VersionedId((json \ "itemId").as[String]) match {
+        case Some(versionedId) => JsSuccess(Answer(new ObjectId((json \ "sessionId").as[String]), versionedId))
+        case _ => JsError("Invalid itemId")
+      }
     }
   }
 
