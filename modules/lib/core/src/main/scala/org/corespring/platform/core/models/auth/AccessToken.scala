@@ -95,7 +95,7 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
           scope = None,
           tokenId = new ObjectId().toString,
           creationDate = now,
-          expirationDate = now.plusHours(1))
+          expirationDate = now.plusHours(24))
         AccessToken.insert(token)
         token
       }
