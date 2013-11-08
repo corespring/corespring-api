@@ -34,9 +34,12 @@ class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Cont
     RequestedAccess.asRead(Some(itemId), Some(sessionId), role = Some(role)))(implicit request =>
     api.get(itemId, sessionId, role)(request))
 
-  def update(itemId: VersionedId[ObjectId], sessionId: ObjectId, role: String, action: Option[String] = None) = auth.ValidatedAction(
-    RequestedAccess.asRead(Some(itemId), Some(sessionId), role = Some(role)))(implicit request =>
-    api.update(itemId, sessionId, role, action)(request))
+  def update(itemId: VersionedId[ObjectId], sessionId: ObjectId, role: String, action: Option[String] = None) = {
+    auth.ValidatedAction(
+      RequestedAccess.asRead(Some(itemId), Some(sessionId), role = Some(role)))(implicit request =>
+      api.update(itemId, sessionId, role, action)(request)
+    )
+  }
 
   def aggregate(quizId: ObjectId, itemId: VersionedId[ObjectId]) = auth.ValidatedAction(
     RequestedAccess.asRead(Some(itemId), assessmentId = Some(quizId)))(implicit request => api.aggregate(quizId, itemId)(request))
