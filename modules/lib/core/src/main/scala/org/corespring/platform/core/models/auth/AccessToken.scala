@@ -8,6 +8,7 @@ import org.joda.time.DateTime
 import play.api.Play.current
 import se.radley.plugin.salat._
 import org.corespring.platform.core.models.error.InternalError
+import com.typesafe.config.ConfigFactory
 
 /**
  * An access token
@@ -19,7 +20,7 @@ case class AccessToken(organization: ObjectId,
   scope: Option[String],
   var tokenId: String,
   creationDate: DateTime = DateTime.now(),
-  expirationDate: DateTime = DateTime.now().plusHours(24),
+  expirationDate: DateTime = DateTime.now().plusHours(AccessToken.tokenDuration),
   neverExpire: Boolean = false) {
   def isExpired: Boolean = {
     !neverExpire && DateTime.now().isAfter(expirationDate)
@@ -29,7 +30,7 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
   val organization = "organization"
   val scope = "scope"
   val tokenId = "tokenId"
-
+  lazy val tokenDuration = ConfigFactory.load().getString("TOKEN_DURATION").toInt
   val collection = mongoCollection("accessTokens")
 
   import org.corespring.platform.core.models.mongoContext.context
@@ -95,7 +96,7 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
           scope = None,
           tokenId = new ObjectId().toString,
           creationDate = now,
-          expirationDate = now.plusHours(24))
+          expirationDate = now.plusHours(tokenDuration))
         AccessToken.insert(token)
         token
       }
