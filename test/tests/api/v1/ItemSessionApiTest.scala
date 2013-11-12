@@ -92,13 +92,13 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
 
       //First update is fine
       route(updateRequest) match {
-        case Some(result) => status(result) must equalTo(OK)
+        case Some(result) => status(result) must be equalTo OK
         case _ => failure("First update didn't work")
       }
 
       //Second update should also work
       route(updateRequest) match {
-        case Some(result) => status(result) must equalTo(OK)
+        case Some(result) => status(result) must be equalTo OK
         case _ => failure("Second update didn't work")
       }
 
