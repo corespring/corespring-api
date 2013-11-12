@@ -392,179 +392,179 @@ class SessionOutcomeTest extends Specification {
       }
     }
 
-    "contain preprocessed Javascript for DragAndDropInteraction" in {
-      val script =
-        """
-          var score = dragDropQuestion.value.target1 == '1' ? 1 : 0;
-          score += dragDropQuestion.value.target2 == '2' ? 1 : 0;
-          var response = {
-            score: score / 2,
-            isCorrect: score == 2,
-            isComplete: score == 2,
-            dragDropQuestion: {
-              score: score / 2,
-              isCorrect: score == 2,
-              isComplete: score == 2
-            }
-          };
-          response;
-        """
-      val qtiItem = QtiItem(
-        <assessmentItem>
-          <responseProcessing type="script">
-            <script type="text/javascript">{script}</script>
-          </responseProcessing>
-          <responseDeclaration identifier='dragDropQuestion' cardinality='targeted' baseType='identifier'>
-            <correctResponse>
-              <value identifier='target1'>1</value>
-              <value identifier='target2'>2</value>
-            </correctResponse>
-          </responseDeclaration>
-          <itemBody>
-            <dragAndDropInteraction responseIdentifier='dragDropQuestion' orderMatters='true'>
-              <draggableChoice identifier='1'/>
-              <draggableChoice identifier='2'/>
-              <landingPlace cardinality='single' identifier='target1'/>
-              <landingPlace cardinality='single' identifier='target2'/>
-            </dragAndDropInteraction>
-          </itemBody>
-        </assessmentItem>
-      )
-
-      val itemSession = ItemSession(
-        itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
-        responses = Seq(ArrayResponse(id = "dragDropQuestion", responseValue = Seq("target1:1", "target2:2"))),
-        attempts = 1)
-
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
-        case s: Success[InternalError, SessionOutcome] => {
-          s.getOrElse(null) match {
-            case sessionOutcome: SessionOutcome => {
-              sessionOutcome.isComplete === true
-              sessionOutcome.isCorrect === true
-              sessionOutcome.score === 1
-              sessionOutcome.identifierOutcomes.get("dragDropQuestion") match {
-                case Some(outcome) => {
-                  outcome.isComplete === true
-                  outcome.isCorrect === true
-                  outcome.score === 1
-                  success
-                }
-                case _ => failure("No outcome for identifier dragDropQuestion")
-              }
-            }
-            case _ => failure("No SessionOutcome")
-          }
-        }
-        case f: Failure[InternalError, _] => failure("There was an error processing the Javascript")
-      }
-    }
-
-  }
-
-  "contain default response in outcome" in {
-    val qtiItem = itemWithResponseJs(
-      """
-        var returnValue = {
-          score: (Q_01.outcome.score + Q_02.outcome.score) / 2,
-          isCorrect: (Q_01.outcome.isCorrect && Q_02.outcome.isCorrect),
-          isComplete: (Q_01.outcome.isComplete && Q_02.outcome.isComplete),
-          Q_01: {
-            score: parseInt(Q_01.value),
-            isCorrect: false,
-            isComplete: false
-          },
-          Q_02: {
-            score: parseInt(Q_02.value),
-            isCorrect: true,
-            isComplete: true
-          }
-        };
-        returnValue;
-      """)
-
-    val itemSession = ItemSession(
-      itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
-      responses = Seq(StringResponse(id = "Q_01", responseValue = "2"), StringResponse(id = "Q_02", responseValue = "1"))
-    )
-
-    SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
-      case Success(sessionOutcome: SessionOutcome) => {
-        sessionOutcome.score === 1
-        sessionOutcome.isComplete === true
-        sessionOutcome.isCorrect === true
-        sessionOutcome.identifierOutcomes.get("Q_01") match {
-          case Some(q1Outcome) => {
-            q1Outcome.score === 2
-            q1Outcome.isCorrect === false
-            q1Outcome.isComplete === false
-
-            sessionOutcome.identifierOutcomes.get("Q_02") match {
-              case Some(q2Outcome) => {
-                q2Outcome.score === 1
-                q2Outcome.isCorrect === true
-                q2Outcome.isComplete === true
-                success
-              }
-              case _ => failure("No outcome for identifier Q_02")
-            }
-          }
-          case _ => failure("No outcome for identifier Q_01")
-        }
-        success
-      }
-      case _ => failure
-    }
-
-    "provide outcome variables to choiceInteraction" in {
-
-      val js =
-        """
-          RESPONSE.outcome.score;
-        """
-
-      val qtiItem = QtiItem(
-        <asssessmentItem>
-          <responseDeclaration identifier='RESPONSE' cardinality='multiple' baseType='identifier'>
-            <correctResponse>
-              <value>1</value>
-              <value>2</value>
-              <value>3</value>
-            </correctResponse>
-          </responseDeclaration>
-          <responseProcessing type="script">
-            <script type="text/javascript">
-              {js}
-            </script>
-          </responseProcessing>
-          <itemBody>
-            <choiceInteraction responseIdentifier='RESPONSE' shuffle='true' maxChoices='0'>
-              <simpleChoice identifier='1' fixed='false'/>
-              <simpleChoice identifier='2' fixed='false'/>
-              <simpleChoice identifier='3' fixed='false'/>
-              <simpleChoice identifier='4' fixed='false'/>
-              <simpleChoice identifier='5' fixed='false'/>
-              <simpleChoice identifier='6' fixed='false'/>
-            </choiceInteraction>
-          </itemBody>
-        </asssessmentItem>
-      )
-
-      val session = ItemSession(
-        itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
-        responses = Seq(ArrayResponse(id = "RESPONSE", responseValue = Seq("1", "2", "3"))),
-        attempts = 1)
-
-      SessionOutcome.processSessionOutcome(session, qtiItem, false) match {
-        case Success(sessionOutcome: SessionOutcome) => {
-          println(sessionOutcome)
-          success
-        }
-        case _ => failure
-      }
-    }
+//    "contain preprocessed Javascript for DragAndDropInteraction" in {
+//      val script =
+//        """
+//          var score = dragDropQuestion.value.target1 == '1' ? 1 : 0;
+//          score += dragDropQuestion.value.target2 == '2' ? 1 : 0;
+//          var response = {
+//            score: score / 2,
+//            isCorrect: score == 2,
+//            isComplete: score == 2,
+//            dragDropQuestion: {
+//              score: score / 2,
+//              isCorrect: score == 2,
+//              isComplete: score == 2
+//            }
+//          };
+//          response;
+//        """
+//      val qtiItem = QtiItem(
+//        <assessmentItem>
+//          <responseProcessing type="script">
+//            <script type="text/javascript">{script}</script>
+//          </responseProcessing>
+//          <responseDeclaration identifier='dragDropQuestion' cardinality='targeted' baseType='identifier'>
+//            <correctResponse>
+//              <value identifier='target1'>1</value>
+//              <value identifier='target2'>2</value>
+//            </correctResponse>
+//          </responseDeclaration>
+//          <itemBody>
+//            <dragAndDropInteraction responseIdentifier='dragDropQuestion' orderMatters='true'>
+//              <draggableChoice identifier='1'/>
+//              <draggableChoice identifier='2'/>
+//              <landingPlace cardinality='single' identifier='target1'/>
+//              <landingPlace cardinality='single' identifier='target2'/>
+//            </dragAndDropInteraction>
+//          </itemBody>
+//        </assessmentItem>
+//      )
+//
+//      val itemSession = ItemSession(
+//        itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
+//        responses = Seq(ArrayResponse(id = "dragDropQuestion", responseValue = Seq("target1:1", "target2:2"))),
+//        attempts = 1)
+//
+//      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
+//        case s: Success[InternalError, SessionOutcome] => {
+//          s.getOrElse(null) match {
+//            case sessionOutcome: SessionOutcome => {
+//              sessionOutcome.isComplete === true
+//              sessionOutcome.isCorrect === true
+//              sessionOutcome.score === 1
+//              sessionOutcome.identifierOutcomes.get("dragDropQuestion") match {
+//                case Some(outcome) => {
+//                  outcome.isComplete === true
+//                  outcome.isCorrect === true
+//                  outcome.score === 1
+//                  success
+//                }
+//                case _ => failure("No outcome for identifier dragDropQuestion")
+//              }
+//            }
+//            case _ => failure("No SessionOutcome")
+//          }
+//        }
+//        case f: Failure[InternalError, _] => failure("There was an error processing the Javascript")
+//      }
+//    }
 
   }
+
+//  "contain default response in outcome" in {
+//    val qtiItem = itemWithResponseJs(
+//      """
+//        var returnValue = {
+//          score: (Q_01.outcome.score + Q_02.outcome.score) / 2,
+//          isCorrect: (Q_01.outcome.isCorrect && Q_02.outcome.isCorrect),
+//          isComplete: (Q_01.outcome.isComplete && Q_02.outcome.isComplete),
+//          Q_01: {
+//            score: parseInt(Q_01.value),
+//            isCorrect: false,
+//            isComplete: false
+//          },
+//          Q_02: {
+//            score: parseInt(Q_02.value),
+//            isCorrect: true,
+//            isComplete: true
+//          }
+//        };
+//        returnValue;
+//      """)
+//
+//    val itemSession = ItemSession(
+//      itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
+//      responses = Seq(StringResponse(id = "Q_01", responseValue = "2"), StringResponse(id = "Q_02", responseValue = "1"))
+//    )
+//
+//    SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
+//      case Success(sessionOutcome: SessionOutcome) => {
+//        sessionOutcome.score === 1
+//        sessionOutcome.isComplete === true
+//        sessionOutcome.isCorrect === true
+//        sessionOutcome.identifierOutcomes.get("Q_01") match {
+//          case Some(q1Outcome) => {
+//            q1Outcome.score === 2
+//            q1Outcome.isCorrect === false
+//            q1Outcome.isComplete === false
+//
+//            sessionOutcome.identifierOutcomes.get("Q_02") match {
+//              case Some(q2Outcome) => {
+//                q2Outcome.score === 1
+//                q2Outcome.isCorrect === true
+//                q2Outcome.isComplete === true
+//                success
+//              }
+//              case _ => failure("No outcome for identifier Q_02")
+//            }
+//          }
+//          case _ => failure("No outcome for identifier Q_01")
+//        }
+//        success
+//      }
+//      case _ => failure
+//    }
+//
+//    "provide outcome variables to choiceInteraction" in {
+//
+//      val js =
+//        """
+//          RESPONSE.outcome.score;
+//        """
+//
+//      val qtiItem = QtiItem(
+//        <asssessmentItem>
+//          <responseDeclaration identifier='RESPONSE' cardinality='multiple' baseType='identifier'>
+//            <correctResponse>
+//              <value>1</value>
+//              <value>2</value>
+//              <value>3</value>
+//            </correctResponse>
+//          </responseDeclaration>
+//          <responseProcessing type="script">
+//            <script type="text/javascript">
+//              {js}
+//            </script>
+//          </responseProcessing>
+//          <itemBody>
+//            <choiceInteraction responseIdentifier='RESPONSE' shuffle='true' maxChoices='0'>
+//              <simpleChoice identifier='1' fixed='false'/>
+//              <simpleChoice identifier='2' fixed='false'/>
+//              <simpleChoice identifier='3' fixed='false'/>
+//              <simpleChoice identifier='4' fixed='false'/>
+//              <simpleChoice identifier='5' fixed='false'/>
+//              <simpleChoice identifier='6' fixed='false'/>
+//            </choiceInteraction>
+//          </itemBody>
+//        </asssessmentItem>
+//      )
+//
+//      val session = ItemSession(
+//        itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
+//        responses = Seq(ArrayResponse(id = "RESPONSE", responseValue = Seq("1", "2", "3"))),
+//        attempts = 1)
+//
+//      SessionOutcome.processSessionOutcome(session, qtiItem, false) match {
+//        case Success(sessionOutcome: SessionOutcome) => {
+//          println(sessionOutcome)
+//          success
+//        }
+//        case _ => failure
+//      }
+//    }
+//
+//  }
 
   private def itemWithResponseJs(js: String): QtiItem = {
     QtiItem(
