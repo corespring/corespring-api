@@ -1,25 +1,17 @@
 package org.corespring.platform.core.models.quiz.basic
 
 import com.mongodb.casbah.commons.MongoDBObject
-import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.{ TaskInfo, Item }
-import org.corespring.platform.core.models.itemSession.{ ItemSessionSettings, DefaultItemSession, ItemSession }
-import org.corespring.platform.core.models.quiz.{ BaseQuestion, BaseParticipant, BaseQuiz }
+import org.corespring.platform.core.models.itemSession._
+import org.corespring.platform.core.models.quiz._
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 import play.api.libs.json.Json._
+import org.corespring.platform.core.services.item._
+import com.mongodb.casbah.Imports._
 import play.api.libs.json._
 import scala.Some
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemServiceClient, ItemService }
-import com.mongodb.casbah.Imports._
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsSuccess
-import play.api.libs.json.JsString
-import play.api.libs.json.JsBoolean
-import scala.Some
-import play.api.libs.json.JsNumber
-import play.api.libs.json.JsObject
 import org.corespring.platform.core.models.json.JsonValidationException
 
 case class Answer(sessionId: ObjectId, itemId: VersionedId[ObjectId])
