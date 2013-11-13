@@ -92,20 +92,16 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
 
       //First update is fine
       route(updateRequest) match {
-        case Some(result) => status(result) must equalTo(OK)
+        case Some(result) => status(result) must be equalTo OK
         case _ => failure("First update didn't work")
       }
 
-      //This will fail because a finish has been set for this ItemSession in the previous request.
+      //Second update should also work
       route(updateRequest) match {
-        case Some(result) => {
-          status(result) must equalTo(BAD_REQUEST)
-          val json = Json.parse(contentAsString(result))
-          (json \ "message").asOpt[String] must equalTo(Some(ApiError.ItemSessionFinished.message))
-          (json \ "code").asOpt[Int] must equalTo(Some(ApiError.ItemSessionFinished.code))
-        }
+        case Some(result) => status(result) must be equalTo OK
         case _ => failure("Second update didn't work")
       }
+
     }
   }
 

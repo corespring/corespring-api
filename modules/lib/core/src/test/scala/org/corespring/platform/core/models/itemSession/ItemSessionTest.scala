@@ -171,10 +171,10 @@ class ItemSessionTest extends BaseTest {
         }
       })
 
-      //Should fail now
+      //session should be finished now
       itemSession.process(session, DummyXml)(false) match {
-        case Left(e) => success
-        case Right(e) => failure
+        case Left(e) => failure("error: " + e.message)
+        case Right(s) => s.isFinished must equalTo(true)
       }
     }
 
