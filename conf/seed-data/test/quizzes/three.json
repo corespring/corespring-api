@@ -24,7 +24,10 @@
             "$oid": "5154236deea49124561ee825"
           },
           "itemId": {
-            "$oid": "5153eee1aa2eefdc1b7a5570"
+            "_id": {
+              "$oid": "5153eee1aa2eefdc1b7a5570"
+            },
+            "version": 0
           }
         }
       ],

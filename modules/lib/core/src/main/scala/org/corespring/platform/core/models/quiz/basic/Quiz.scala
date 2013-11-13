@@ -1,37 +1,48 @@
 package org.corespring.platform.core.models.quiz.basic
 
 import com.mongodb.casbah.commons.MongoDBObject
-import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.{ TaskInfo, Item }
-import org.corespring.platform.core.models.itemSession.{ ItemSessionSettings, DefaultItemSession, ItemSession }
-import org.corespring.platform.core.models.quiz.{ BaseQuestion, BaseParticipant, BaseQuiz }
+import org.corespring.platform.core.models.itemSession._
+import org.corespring.platform.core.models.quiz._
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 import play.api.libs.json.Json._
+import org.corespring.platform.core.services.item._
+import com.mongodb.casbah.Imports._
 import play.api.libs.json._
 import scala.Some
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemServiceClient, ItemService }
+import org.corespring.platform.core.models.json.JsonValidationException
 
-case class Answer(sessionId: ObjectId, itemId: ObjectId)
+case class Answer(sessionId: ObjectId, itemId: VersionedId[ObjectId])
 
 object Answer {
 
   implicit object Reads extends Reads[Answer] {
+
+    import VersionedIdImplicits.{ Reads => IdReads }
+
     override def reads(json: JsValue): JsResult[Answer] = {
-      JsSuccess(Answer(new ObjectId((json \ "sessionId").as[String]),
-        new ObjectId((json \ "itemId").as[String])))
+      JsSuccess(
+        Answer(
+          sessionId = new ObjectId((json \ "sessionId").as[String]),
+          itemId = (json \ "itemId").asOpt[VersionedId[ObjectId]](IdReads).getOrElse(throw new JsonValidationException("You must have an item id"))
+        )
+      )
     }
   }
 
   implicit object Writes extends Writes[Answer] {
+
+    import VersionedIdImplicits.{ Writes => IdWrites }
+
     def writes(a: Answer): JsValue = {
 
       val maybeSession: Option[ItemSession] = DefaultItemSession.findOneById(a.sessionId)
 
       JsObject(Seq(
         "sessionId" -> JsString(a.sessionId.toString),
-        "itemId" -> JsString(a.itemId.toString),
+        "itemId" -> Json.toJson(a.itemId)(IdWrites),
         "score" -> JsNumber(calculateScore(maybeSession)),
         "lastResponse" -> JsNumber(getLastResponse(maybeSession)),
         "isComplete" -> JsBoolean(isComplete(maybeSession))))
