@@ -416,8 +416,12 @@ class SessionOutcomeTest extends Specification {
           </responseProcessing>
           <responseDeclaration identifier='dragDropQuestion' cardinality='targeted' baseType='identifier'>
             <correctResponse>
-              <value identifier='target1'>1</value>
-              <value identifier='target2'>2</value>
+              <value identifier='target1'>
+                <value>1</value>
+              </value>
+              <value identifier='target2'>
+                <value>2</value>
+              </value>
             </correctResponse>
           </responseDeclaration>
           <itemBody>
@@ -445,9 +449,8 @@ class SessionOutcomeTest extends Specification {
               sessionOutcome.identifierOutcomes.get("dragDropQuestion") match {
                 case Some(outcome) => {
                   outcome.isComplete === true
-                  //TODO: FIX BREAKING TESTS
-//                  outcome.isCorrect === true
-//                  outcome.score === 1
+                 outcome.isCorrect === true
+                 outcome.score === 1
                   success
                 }
                 case _ => failure("No outcome for identifier dragDropQuestion")
