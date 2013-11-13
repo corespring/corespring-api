@@ -488,20 +488,19 @@ class SessionOutcomeTest extends Specification {
 
     val itemSession = ItemSession(
       itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
-      responses = Seq(StringResponse(id = "Q_01", responseValue = "2"), StringResponse(id = "Q_02", responseValue = "1"))
+      responses = Seq(StringResponse(id = "Q_01", responseValue = "0"), StringResponse(id = "Q_02", responseValue = "1"))
     )
 
     SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
       case Success(sessionOutcome: SessionOutcome) => {
-        sessionOutcome.score === 1
-        sessionOutcome.isComplete === true
-        sessionOutcome.isCorrect === true
+        sessionOutcome.score === 0.5
+        sessionOutcome.isComplete === false
+        sessionOutcome.isCorrect === false
         sessionOutcome.identifierOutcomes.get("Q_01") match {
           case Some(q1Outcome) => {
-            //TODO: FIX BREAKING TESTS
-            //q1Outcome.score === 2
-           // q1Outcome.isCorrect === false
-           // q1Outcome.isComplete === false
+            q1Outcome.score === 0
+            q1Outcome.isCorrect === false
+            q1Outcome.isComplete === false
 
             sessionOutcome.identifierOutcomes.get("Q_02") match {
               case Some(q2Outcome) => {
