@@ -75,7 +75,7 @@ object ItemSession {
       }).getOrElse(Seq())
 
       val finishSeq: Seq[(String, JsValue)] = session.finish.map(f => {
-        Seq(finish -> JsNumber(f.getMillis))
+        Seq(finish -> JsNumber(f.getMillis), "isFinished" -> JsBoolean(true))
       }).getOrElse(Seq())
 
       val outcome: Seq[(String, JsValue)] = session.outcome.map(o => {
