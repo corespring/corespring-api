@@ -223,7 +223,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
     try {
       logger.debug(this + ":: update into : " + this.collection.getFullName())
       //TODO: only update session if date modified is greater than date modified in db
-      val wr = update(MongoDBObject("_id" -> id), dbo, false, false, collection.writeConcern)
+      val wr = update(unfinishedSession(id), dbo, false, false, collection.writeConcern)
       if(wr.getN() == 0){
         Left(InternalError("no open session could be updated"))
       } else {
@@ -253,6 +253,10 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    */
   def process(update: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem, isAttempt:Boolean = true)(implicit isInstructor:Boolean): Either[InternalError, ItemSession] = withDbSession(update) {
     dbSession =>
+
+      if (dbSession.isFinished) {
+        Left(InternalError("The session is finished"))
+      } else {
 
         val dbo: BasicDBObject = new BasicDBObject()
 
@@ -292,6 +296,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
           }
         })
 
+      }
   }
 
   /**
@@ -356,6 +361,8 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
   private def addResponses(session: ItemSession, xml: Elem)( implicit includeResponsesOverride:Boolean) {
     session.responses = Score.scoreResponses(session.responses, QtiItem(xml))
   }
+
+  private def unfinishedSession(id: ObjectId): MongoDBObject = MongoDBObject("_id" -> id, finish -> MongoDBObject("$exists" -> false))
 
 }
 
