@@ -226,6 +226,10 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
           case true => request.body.asJson match {
             case Some(jsonSession) => {
 
+              if (dbSession.finish.isDefined) {
+                BadRequest(toJson(ApiError.ItemSessionFinished))
+              } else {
+
                 fromJson[ItemSession](jsonSession) match {
                   case JsSuccess(clientSession, _) =>
                     {
@@ -250,7 +254,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
                     }
                   case JsError(e) => BadRequest("") //?
                 }
-
+              }
             }
             case None => BadRequest(toJson(ApiError.JsonExpected))
           }
