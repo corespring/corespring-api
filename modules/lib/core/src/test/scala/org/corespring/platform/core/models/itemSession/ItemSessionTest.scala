@@ -445,4 +445,17 @@ class ItemSessionTest extends BaseTest {
       assertScore("5155a8e6ed0db8d2dd136e85", 1.0, 1.0)
     }
   }
+
+  "reopen" should {
+    "reopen a session" in {
+      val id = ObjectId.get
+      val session = ItemSession(id = id, itemId = genItemId, finish = Some(DateTime.now), attempts = 10)
+      val dbId = itemSession.insert(session)
+      itemSession.reopen(session)
+      itemSession.findOneById(id).map{ s =>
+        s.finish.isEmpty === true
+        s.attempts === 0
+      }.getOrElse(failure(s"Can't find session with id: $id"))
+    }
+   }
 }

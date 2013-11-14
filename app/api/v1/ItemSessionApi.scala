@@ -7,23 +7,24 @@ import controllers.auth.BaseApi
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.Content
 import org.corespring.platform.core.models.itemSession._
+import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
 import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qti.models.responses.{ ResponseAggregate, ArrayResponse, StringResponse }
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsSuccess
+import org.corespring.player.accessControl.cookies.PlayerCookieReader
+import org.corespring.qti.models.responses.ArrayResponse
+import org.corespring.qti.models.responses.ResponseAggregate
+import org.corespring.qti.models.responses.StringResponse
 import play.api.libs.json.Json._
-import play.api.libs.json.{ JsError, JsValue }
+import play.api.libs.json._
 import play.api.mvc.AnyContent
 import scala.Left
 import scala.Right
 import scala.Some
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
-import org.corespring.player.accessControl.cookies.PlayerCookieReader
 
 /**
  * API for managing item sessions
  */
+
 class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService, quizService: QuizService) extends BaseApi with PlayerCookieReader {
 
   def aggregate(quizId: ObjectId, itemId: VersionedId[ObjectId]) = ApiAction {
@@ -83,6 +84,17 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
     case Some("begin") => begin(itemId, sessionId)
     case Some("updateSettings") => updateSettings(itemId, sessionId)
     case _ => processResponse(itemId, sessionId)(role)
+  }
+
+  def reopen(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction{ request =>
+    findSessionAndCheckAuthorization(sessionId, itemId, request.ctx.organization) match {
+      case Left(error) => BadRequest(toJson(error))
+      case Right(session) => {
+        itemSession.reopen(session).map{ update => Ok(toJson(update)) }.getOrElse{
+          BadRequest(toJson(ApiError.ReopenItemSessionFailed))
+        }
+      }
+    }
   }
 
   /**

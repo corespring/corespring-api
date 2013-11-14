@@ -4,10 +4,12 @@ import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import dao.{ SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError }
 import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.json.JsonValidationException
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qti.models.responses.{ ResponseOutcome, Response }
+import org.corespring.qti.models.responses.Response
 import org.corespring.qti.models.{ FeedbackIdMapEntry, QtiItem }
 import org.corespring.qti.processors.FeedbackProcessor
 import org.joda.time.DateTime
@@ -15,10 +17,8 @@ import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
 import scala.xml._
-import se.radley.plugin.salat._
-import org.corespring.platform.core.models.error.InternalError
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
 import scalaz.{Failure, Success}
+import se.radley.plugin.salat._
 
 /**
  * Case class representing an individual item session
@@ -52,6 +52,8 @@ object ItemSession {
     val settings = "settings"
     val dateModified = "dateModified"
   }
+
+
   implicit object Writes extends Writes[ItemSession] {
 
     def writes(session: ItemSession): JsValue = {
@@ -215,7 +217,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
   private def withDbSession(session: ItemSession)(fn: ((ItemSession) => Either[InternalError, ItemSession])) = {
     findOneById(session.id) match {
       case Some(dbSession) => fn(dbSession)
-      case _ => Left(InternalError("can't find item session" + session.id.toString))
+      case _ => Left(InternalError(s"can't find item session: ${session.id}"))
     }
   }
 
@@ -331,6 +333,18 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
     findOneById(id) match {
       case Some(session) => Some(addExtrasIfFinished(session, addSessionData, addResponses))
       case _ => None
+    }
+  }
+
+
+  def reopen(session:ItemSession) : Option[ItemSession] = {
+    val update = session.copy(finish = None, attempts = 0)
+    val result = save(update)
+
+    if(result.getLastError.ok){
+      Some(update)
+    } else {
+      None
     }
   }
 
