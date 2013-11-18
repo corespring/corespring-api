@@ -25,6 +25,7 @@ class QuizApi(quizService: QuizService) extends BaseApi {
       parsed[Quiz](request.body.asJson, {
         quiz =>
           val copy = quiz.copy(orgId = Some(request.ctx.organization))
+          println(copy.metadata)
           quizService.create(copy)
           Ok(toJson(copy))
       })

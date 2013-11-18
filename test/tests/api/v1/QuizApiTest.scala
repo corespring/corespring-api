@@ -11,6 +11,8 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.mvc.Call
 import org.corespring.test.utils.RequestCalling
+import java.util.Date
+import org.joda.time.DateTime
 
 class QuizApiTest extends Specification with RequestCalling {
 
@@ -57,6 +59,8 @@ class QuizApiTest extends Specification with RequestCalling {
       val createdQuiz = invokeCall[Quiz](Api.create(), json)
       createdQuiz.metadata.get("course") === Some("some course")
       createdQuiz.participants.length === 1
+      createdQuiz.starts.isDefined must beTrue
+      createdQuiz.ends.isDefined must beTrue
     }
 
     "update" in {
@@ -68,7 +72,7 @@ class QuizApiTest extends Specification with RequestCalling {
     }
 
     def createQuiz(metadata: Map[String, String] = Map()): Quiz = {
-      val q = Quiz(orgId = Some(orgId), metadata = metadata)
+      val q = Quiz(orgId = Some(orgId), metadata = metadata, starts = Some(new DateTime()), ends = Some(new DateTime()))
       QuizService.create(q)
       q
     }
