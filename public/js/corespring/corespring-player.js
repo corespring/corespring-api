@@ -253,6 +253,17 @@
       error("Need to specify either itemId or sessionId in options", com.corespring.players.errors.NEED_ITEMID_OR_SESSIONID);
       return;
     }
+
+    var submitFunction = function (isAttempt) {
+      try {
+        e.find('iframe')[0].contentWindow.postMessage(JSON.stringify({"message": "submitItem", "isAttempt": isAttempt}), "*");
+        return true;
+      } catch (e) {
+        logError("Exception in ItemPlayer.submitItem: " + e);
+        return false;
+      }
+    };
+
     /**
      * programmatically submits the item
      *
