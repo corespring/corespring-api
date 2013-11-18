@@ -333,7 +333,9 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
         $scope.correctClass = "";
         $scope.isMultiple = attrs.cardinality == 'multiple' ||  attrs.cardinality == 'ordered';
         $scope.isOrdered = attrs.cardinality == 'ordered';
-        var defaultWidth = $scope.isMultiple ? "200" : "50";
+
+        var columnsPerRow = attrs.columnsperrow || 3;
+        var defaultWidth = $scope.isMultiple ? columnsPerRow * 50 : "50";
         $scope.width = defaultWidth;
 
         $scope.targetIndex = $scope.indexes.targetIndex++;
@@ -415,7 +417,8 @@ angular.module('qti.directives').directive("landingplace", function (QtiUtils) {
         });
 
         $scope.$watch("maxWidth + maxHeight", function () {
-          $scope.width = isMultiple ? $scope.maxWidth * 4 + 20 : $scope.maxWidth + 20;
+          var padding = 25;
+          $scope.width = isMultiple ? ($scope.maxWidth + padding) * columnsPerRow : $scope.maxWidth + padding;
           $scope.lpHeight = $scope.maxHeight + 20;
           if (!_.isEmpty($scope.label))
             $scope.lpHeight += 15;

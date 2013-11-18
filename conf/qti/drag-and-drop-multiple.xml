@@ -34,7 +34,7 @@
 
             <answerArea> <p>Put the vegetables in the basket.</p>
 
-                <landingPlace cardinality="multiple" identifier='target1' label='Basket' />
+                <landingPlace cardinality="multiple" identifier='target1' label='Basket' columnsPerRow="2" />
                 <p/>
                 <p>Drag the ingredient that could also be called 'chicken' in on the spot below.</p>
                 <landingPlace cardinality='single' identifier='target2' label='Ingredient' />
