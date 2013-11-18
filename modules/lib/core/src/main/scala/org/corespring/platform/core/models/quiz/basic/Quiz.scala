@@ -13,7 +13,6 @@ import com.mongodb.casbah.Imports._
 import play.api.libs.json._
 import scala.Some
 import org.corespring.platform.core.models.json.JsonValidationException
-import java.util.Date
 
 case class Answer(sessionId: ObjectId, itemId: VersionedId[ObjectId])
 

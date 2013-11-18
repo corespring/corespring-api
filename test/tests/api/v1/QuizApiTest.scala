@@ -11,7 +11,6 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.mvc.Call
 import org.corespring.test.utils.RequestCalling
-import java.util.Date
 import org.joda.time.DateTime
 
 class QuizApiTest extends Specification with RequestCalling {
