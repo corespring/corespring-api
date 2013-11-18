@@ -157,6 +157,8 @@ object Question extends QuestionLike with ItemServiceClient {
 case class Quiz(orgId: Option[ObjectId] = None,
   metadata: Map[String, String] = Map(),
   questions: Seq[Question] = Seq(),
+  starts: Option[DateTime] = None,
+  ends: Option[DateTime] = None,
   participants: Seq[Participant] = Seq(),
   id: ObjectId = new ObjectId()) extends BaseQuiz(questions, participants, id)
 
@@ -169,6 +171,8 @@ object Quiz {
         Some("id" -> JsString(q.id.toString)),
         q.orgId.map((o: ObjectId) => ("orgId" -> JsString(o.toString))),
         Some("metadata" -> toJson(q.metadata)),
+        Some("start" -> toJson(q.starts)),
+        Some("end" -> toJson(q.ends)),
         Some("participants" -> toJson(q.participants)),
         Some("questions" -> toJson(q.questions))).flatten
 
@@ -185,6 +189,8 @@ object Quiz {
         (json \ "orgId").asOpt[String].map(new ObjectId(_)),
         (json \ "metadata").asOpt[Map[String, String]].getOrElse(Map()),
         (json \ "questions").asOpt[Seq[Question]].getOrElse(Seq()),
+        (json \ "start").asOpt[DateTime],
+        (json \ "end").asOpt[DateTime],
         participants,
         (json \ "id").asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId())))
     }
