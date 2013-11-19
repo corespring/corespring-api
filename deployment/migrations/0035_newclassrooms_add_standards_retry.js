@@ -460,7 +460,7 @@ function up() {
 
     function getStandardsForSkillNumber(skillNumber) {
         return skillNumberMap[skillNumber];
-    }a
+    }
 
     function contains(a, obj) {
         for (var i = 0; i < a.length; i++) {
