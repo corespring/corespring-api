@@ -10,8 +10,8 @@ class QtiAssetsLoaderImpl(qtiKeys: QtiKeys, mode: RenderingMode) extends QtiAsse
   val config = QtiAssetsConfig(
     Seq(
       QtiJsAsset("choiceInteraction", localDependents = Seq("simpleChoice")),
-      QtiJsAsset("math", hasJsFile = false, remoteDependents = Seq("//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")),
-      QtiJsAsset("tex", localDependents = Seq("tex"), remoteDependents = Seq("//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")),
+      QtiJsAsset("math", hasJsFile = false, remoteDependents = Seq("/assets/js/vendor/mathjax/MathJax-2.2.js")),
+      QtiJsAsset("tex", localDependents = Seq("tex"), remoteDependents = Seq("/assets/js/vendor/mathjax/MathJax-2.2.js")),
       QtiJsAsset("lineInteraction", localDependents = Seq("jsxgraph"), remoteDependents = Seq("/assets/js/vendor/jsxgraph/jsxgraphcore.min.js")),
       QtiJsAsset("pointInteraction", localDependents = Seq("jsxgraph"), remoteDependents = Seq("/assets/js/vendor/jsxgraph/jsxgraphcore.min.js"))
     )
