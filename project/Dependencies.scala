@@ -12,7 +12,7 @@ object Dependencies {
   val playTest = "play" %% "play-test" % playVersion
 
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-b12aff3"
-  val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-71bd721"
+  val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-4a5d2dc"
   val mongoDbSeeder = "org.corespring" %% "mongo-db-seeder-lib" % "0.6-ae58487"
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.3.0"
@@ -78,6 +78,7 @@ object Dependencies {
     val sbtPluginSnapshots = Resolver.url("sbt-plugin-releases", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
     val sbtPluginReleases = Resolver.url("sbt-plugin-snapshots", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots/"))(Resolver.ivyStylePatterns)
     val edeustaceReleases = "ed eustace" at "http://edeustace.com/repository/releases/"
+    val localRepo = Resolver.file("Local repo", file(System.getProperty("user.home") + "/.ivy2/local"))(Resolver.ivyStylePatterns)
 
     // TODO: Publish to repository.corespring.org!!!!!!!
     val justWroteSnapshots = "justwrote" at "http://repo.justwrote.it/snapshots/"
@@ -92,7 +93,8 @@ object Dependencies {
       sbtPluginSnapshots,
       sbtPluginReleases,
       edeustaceReleases,
-      justWroteSnapshots)
+      justWroteSnapshots,
+      localRepo)
   }
 
 }
