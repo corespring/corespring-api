@@ -56,14 +56,14 @@ object CollectionApi extends BaseApi {
     fieldValueMap.get(fieldName) match {
       case Some(field) => {
         // Expand "one.two" into Seq("this.one", "this.one.two") for checks down path in a JSON object
-        val fieldChecks =
+        val fieldCheck =
           field.split("\\.").foldLeft(Seq.empty[String])((acc, str) =>
-            acc :+ (if (acc.isEmpty) s"this.$str" else s"${acc.last}.$str"))
+            acc :+ (if (acc.isEmpty) s"this.$str" else s"${acc.last}.$str")).mkString(" && ")
         val cmd = MapReduceCommand(
           input = "content",
           map = s"""
             function() {
-              if (${fieldChecks.mkString(" && ")}) {
+              if (${fieldCheck}) {
                 emit(this.$field, 1);
               }
             }""",
