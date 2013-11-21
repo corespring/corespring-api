@@ -2,26 +2,12 @@ package api.v1
 
 import api.ApiError
 import com.mongodb.casbah.Imports._
-import com.novus.salat.dao.SalatMongoCursor
 import controllers.auth.BaseApi
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.{ Organization, CollectionExtraDetails, ContentCollection }
 import play.api.libs.json._
 import play.api.mvc.Result
-import scalaz.{ Failure, Success }
 import org.corespring.platform.core.models.error.InternalError
-import play.api.libs.json.Json._
-import org.corespring.platform.core.models.search.SearchCancelled
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsUndefined
-import scalaz.Failure
-import play.api.libs.json.JsString
-import scala.Some
-import play.api.libs.json.JsNumber
-import com.novus.salat.dao.SalatMongoCursor
-import scalaz.Success
-import play.api.libs.json.JsObject
 import com.mongodb.casbah.map_reduce._
 import org.corespring.platform.core.services.item.ItemServiceImpl
 import com.mongodb.DBObject
