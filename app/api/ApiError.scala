@@ -98,6 +98,7 @@ object ApiError {
   val AddToOrganization = ApiError(404, "Failed to link collection to organization(s)")
   val CollectionUnauthorized = ApiError(405, "You do not have permissions for the specified collection")
   val DeleteCollection = ApiError(406, "An error occurred while trying to delete collection")
+  val InvalidField = ApiError(407, "The provided field cannot be queried")
 
   // User API
   val UserRequiredFields = ApiError(500, "userName, fullName and email are required")
