@@ -2,7 +2,7 @@ angular.module('qti.directives').directive('inlinechoiceinteraction', function (
 
   var chooseLabel = "Choose...";
 
-  var getOptionsAndFeedbacks = function (element) {
+  var getOptionsAndFeedbacks = function (element, shuffle) {
 
     var html = element.html();
 
@@ -11,15 +11,24 @@ angular.module('qti.directives').directive('inlinechoiceinteraction', function (
 
     var nodes = html.match(inlineChoiceRegex);
 
-    var out = { options: [], feedbacks: [], identifiers: [], labels: []};
-
     if (!nodes) {
       return [];
     }
 
+    var fixedIndexes = [];
     nodes = $(element).children('inlinechoice');
+    nodes.each(function (idx, node) {
+      if ($(node).attr('fixed') == 'true') fixedIndexes.push(idx);
+    });
 
+    if (shuffle) {
+      nodes = $.makeArray(nodes).shuffle(fixedIndexes);
+    }
+
+    var out = [];
     for (var i = 0; i < nodes.length; i++) {
+      var choice = {};
+
       var template = '<li><a ng-click="click(\' ' + i + ' \', \'${value}\')">$label</a></li>';
       var node = angular.element(nodes[i]);
       var nodeContents = node.html();
@@ -27,7 +36,7 @@ angular.module('qti.directives').directive('inlinechoiceinteraction', function (
       var feedbackNodes = nodeContents.match(feedbackRegex);
       if (feedbackNodes && feedbackNodes.length > 0) {
         var floatDirective = feedbackNodes[0].replace(/<:*feedbackinline/gim, "<span class='feedbackfloat'").replace(/\/:*feedbackinline/gim, "/span");
-        out.feedbacks.push(floatDirective);
+        choice.feedback = floatDirective;
       }
 
       var optionValue = nodeContents.replace(feedbackRegex, "");
@@ -36,11 +45,13 @@ angular.module('qti.directives').directive('inlinechoiceinteraction', function (
         .replace("${value}", node.attr("identifier"))
         .replace(/\$label/gi, optionValue);
 
-      out.labels.push("<span ng-show='selectedIdx=="+i+"'>"+optionValue+"</span>");
-      out.options.push(option);
-      out.identifiers.push(node.attr("identifier"));
+      choice.label = "<span ng-show='selectedIdx==" + i + "'>" + optionValue + "</span>";
+      choice.option = option;
+      choice.identifier = node.attr("identifier");
+      out.push(choice);
     }
-    out.labels.push("<span ng-show='selectedIdx==-1'>"+chooseLabel+"</span>");
+
+    out.push({label: "<span ng-show='selectedIdx==-1'>" + chooseLabel + "</span>"});
 
     return out;
   };
@@ -48,30 +59,30 @@ angular.module('qti.directives').directive('inlinechoiceinteraction', function (
 
   var compile = function (element, attrs, transclude) {
 
-    var optionsAndFeedback = getOptionsAndFeedbacks(element);
+    var optionsAndFeedback = getOptionsAndFeedbacks(element, attrs.shuffle == "true");
 
     var html = [
       '<div class="btn-group" style="display: inline-block">',
       '<a class="btn dropdown-toggle" ng-class="{disabled: formSubmitted}" data-toggle="dropdown" href="#">'
-    ].concat(optionsAndFeedback.labels).concat([
-      '<span class="caret"></span></a>',
-      '<ul class="dropdown-menu">'
-    ]);
+    ].concat(_.pluck(optionsAndFeedback, "label")).concat([
+        '<span class="caret"></span></a>',
+        '<ul class="dropdown-menu">'
+      ]);
 
     //TODO: This isn't being picked up - leave it for now.
     if (element.attr('required') === "true") {
       html.push('<option value="">Choose..</option>');
     }
 
-    html = html.concat(optionsAndFeedback.options);
+    html = html.concat(_.pluck(optionsAndFeedback, "option"));
     html.push('</ul></div>');
 
-    html = html.concat(optionsAndFeedback.feedbacks);
+    html = html.concat(_.pluck(optionsAndFeedback, "feedback"));
     element.html(html.join(""));
 
     return function ($scope, element, attrs, AssessmentItemCtrl) {
-      $scope.labels = optionsAndFeedback.labels;
-      $scope.identifiers = optionsAndFeedback.identifiers;
+      $scope.labels = _.pluck(optionsAndFeedback, "label");
+      $scope.identifiers = _.pluck(optionsAndFeedback, "identifier");
       $scope.selectedIdx = -1;
       AssessmentItemCtrl.registerInteraction(element.attr('responseIdentifier'), 'inline');
 
@@ -175,7 +186,7 @@ var feedbackFloat = function (QtiUtils) {
         $(element).tooltip('destroy');
       });
 
-      scope.$on('controlBarChanged', function() {
+      scope.$on('controlBarChanged', function () {
         $(element).tooltip('destroy');
       });
 
