@@ -189,6 +189,9 @@ object FieldValuesApi extends BaseApi {
                 if (this.taskInfo.itemType) {
                   emit({itemType: this.taskInfo.itemType}, {exists: 1});
                 }
+                if (this.taskInfo.subjects && this.taskInfo.subjects.primary) {
+                  emit({subject: this.subjects.primary), {exists: 1});
+                }
               }
               if (this.standards) {
                 this.standards.forEach(function(standard) {
@@ -226,10 +229,17 @@ object FieldValuesApi extends BaseApi {
               // Convert "_id" to key+value pair, and fold into map
               case idObj: BasicDBObject => {
                 val key = idObj.keySet.iterator.next
-                val value = idObj.getString(key)
-                acc.get(key) match {
-                  case Some(seq) => acc + (key -> (seq :+ value))
-                  case None => acc + (key -> Seq(value))
+                key match {
+                  case "subject" => {
+                    acc
+                  }
+                  case _ => {
+                    val value = idObj.getString(key)
+                    acc.get(key) match {
+                      case Some(seq) => acc + (key -> (seq :+ value))
+                      case None => acc + (key -> Seq(value))
+                    }
+                  }
                 }
               }
               case _ => acc
