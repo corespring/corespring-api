@@ -1,29 +1,19 @@
 package api.v1
 
-import fieldValues.{ Options, QueryOptions }
+import fieldValues.QueryOptions
 import play.api.libs.json.Json._
-import play.api.mvc.{ Result, Action }
+import play.api.mvc.Action
 import play.api.Play.current
-import play.api.libs.json
 import play.api.libs.json._
-import org.corespring.platform.core.models._
-import controllers.auth.{ BaseApi }
+import controllers.auth.BaseApi
 import com.mongodb.casbah.Imports._
-import scala.Some
 import play.api.cache.Cache
 
 import api.ApiError
 import com.mongodb.casbah.commons.MongoDBObject
 import org.corespring.platform.core.models.{ Subject, Standard }
-import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.item.FieldValue
 import com.mongodb.casbah.map_reduce.{MapReduceInlineOutput, MapReduceCommand}
-import org.corespring.platform.core.models.search.SearchCancelled
-import play.api.libs.json.JsArray
-import scala.Some
-import play.api.libs.json.JsNumber
-import api.v1.fieldValues.Options
-import play.api.libs.json.JsObject
 import org.corespring.platform.core.models.search.SearchCancelled
 import play.api.libs.json.JsArray
 import scala.Some
@@ -166,7 +156,26 @@ object FieldValuesApi extends BaseApi {
   def getFieldValuesByContributor(contributor: String) =
     getFieldValues(MongoDBObject("contributorDetails.contributor" -> contributor))
 
+  /**
+   * Returns available field values for gradeLevel, itemType, standard, keySkill, bloomsTaxonomy, and
+   * demonstratedKnowledge, scoped by a provided {@link MongoDBObject} for querying.
+   */
   private def getFieldValues(query: MongoDBObject) = Action {
+
+    /**
+     * This MapReduce returns results of the form:
+     *
+     *   {
+     *     "_id": {
+     *       { "gradeLevel" : "04"}
+     *     },
+     *     "value": {
+     *       { "exists" : 1 }
+     *     }
+     *   }
+     *
+     * Where the _id values are the unique key+value pairs for fields and their values.
+     */
     val cmd = MapReduceCommand(
       input = "content",
       map = """
@@ -214,6 +223,7 @@ object FieldValuesApi extends BaseApi {
         val fieldValueMap = result.foldLeft(Map.empty[String, Seq[String]])((acc, obj) => obj match {
           case dbo: DBObject => {
             dbo.get("_id") match {
+              // Convert "_id" to key+value pair, and fold into map
               case idObj: BasicDBObject => {
                 val key = idObj.keySet.iterator.next
                 val value = idObj.getString(key)
