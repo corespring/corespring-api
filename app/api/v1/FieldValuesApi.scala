@@ -269,7 +269,10 @@ object FieldValuesApi extends BaseApi {
         })
         Ok(Json.toJson(fieldValueMap))
       }
-      case _ => BadRequest(Json.toJson(ApiError.InvalidField))
+      case error: MapReduceError => {
+        Logger.error(error.errorMessage.getOrElse("Unknown MapReduce error"))
+        InternalServerError(Json.toJson(ApiError.MapReduceError))
+      }
     }
   }
 

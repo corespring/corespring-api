@@ -99,6 +99,7 @@ object ApiError {
   val CollectionUnauthorized = ApiError(405, "You do not have permissions for the specified collection")
   val DeleteCollection = ApiError(406, "An error occurred while trying to delete collection")
   val InvalidField = ApiError(407, "The provided field cannot be queried")
+  val MapReduceError = ApiError(408, "There was an error querying the database")
 
   // User API
   val UserRequiredFields = ApiError(500, "userName, fullName and email are required")
