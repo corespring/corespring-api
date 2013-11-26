@@ -191,9 +191,10 @@ object FieldValuesApi extends BaseApi {
                   emit({itemType: this.taskInfo.itemType}, {exists: 1});
                 }
                 if (this.taskInfo.subjects && this.taskInfo.subjects.primary) {
-                  emit({subject: this.subjects.primary), {exists: 1});
+                  emit({subject: this.taskInfo.subjects.primary}, {exists: 1});
                 }
               }
+
               if (this.standards) {
                 this.standards.forEach(function(standard) {
                   emit({standard: standard}, {exists: 1});
