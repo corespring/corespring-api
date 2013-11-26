@@ -12,7 +12,7 @@ import play.api.cache.Cache
 import api.ApiError
 import com.mongodb.casbah.commons.MongoDBObject
 import org.corespring.platform.core.models.{ Subject, Standard }
-import org.corespring.platform.core.models.item.FieldValue
+import org.corespring.platform.core.models.item.{Subjects, FieldValue}
 import com.mongodb.casbah.map_reduce.{MapReduceInlineOutput, MapReduceCommand}
 import org.corespring.platform.core.models.search.SearchCancelled
 import play.api.libs.json.JsArray
@@ -22,6 +22,7 @@ import api.v1.fieldValues.Options
 import play.api.libs.json.JsObject
 import org.corespring.platform.core.services.item.ItemServiceImpl
 import com.mongodb.DBObject
+import play.api.Logger
 
 object FieldValuesApi extends BaseApi {
 
@@ -229,12 +230,29 @@ object FieldValuesApi extends BaseApi {
               // Convert "_id" to key+value pair, and fold into map
               case idObj: BasicDBObject => {
                 val key = idObj.keySet.iterator.next
+                val value = idObj.getString(key)
                 key match {
                   case "subject" => {
-                    acc
+                    Subject.findOneById(new ObjectId(value)) match {
+                      case Some(subject) => subject.subject match {
+                        case Some(subjectString) => {
+                          acc.get(key) match {
+                            case Some(seq) => acc + (key -> (seq :+ subjectString))
+                            case None => acc + (key -> Seq(subjectString))
+                          }
+                        }
+                        case _ => {
+                          Logger.error(s"Could not find subject text for subject with id ${value}")
+                          acc
+                        }
+                      }
+                      case _ => {
+                        Logger.error(s"Could not find subject with id ${value}")
+                        acc
+                      }
+                    }
                   }
                   case _ => {
-                    val value = idObj.getString(key)
                     acc.get(key) match {
                       case Some(seq) => acc + (key -> (seq :+ value))
                       case None => acc + (key -> Seq(value))
