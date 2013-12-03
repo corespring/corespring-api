@@ -16,6 +16,7 @@ trait QuizService {
   def create(q: Quiz): Unit
   def findAllByOrgId(id: ObjectId): List[Quiz]
   def findByIds(ids: List[ObjectId]): List[Quiz]
+  def findByAuthor(authorId: String): List[Quiz]
   def findOneById(id: ObjectId): Option[Quiz]
   def remove(q: Quiz): Unit
   def update(q: Quiz): Unit

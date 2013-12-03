@@ -54,6 +54,7 @@ GET     /api/v1/organizations/:orgId/collections    api.v1.CollectionApi.listWit
 POST    /api/v1/collections                     api.v1.CollectionApi.createCollection
 PUT     /api/v1/collections/:id                 api.v1.CollectionApi.updateCollection(id: ObjectId)
 DELETE  /api/v1/collections/:id                 api.v1.CollectionApi.deleteCollection(id: ObjectId)
+GET     /api/v1/collections/:ids/fieldValues/:field  api.v1.CollectionApi.fieldValuesByFrequency(ids: String, field: String)
 
 # Users
 GET     /api/v1/users                           api.v1.UserApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
@@ -109,6 +110,8 @@ DELETE  /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.deleteDa
 GET     /api/v1/field_values                   api.v1.FieldValuesApi.getAllAvailable
 GET     /api/v1/field_values/multiple        api.v1.FieldValuesApi.multiple(fieldNames:String, fieldOptions: Option[String] ?= None, c ?= "false" )
 GET     /api/v1/field_values/:fieldName        api.v1.FieldValuesApi.getFieldValues(fieldName:String, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
+GET     /api/v1/field_values/contributor/:contributor   api.v1.FieldValuesApi.getFieldValuesByContributor(contributor: String)
+GET     /api/v1/field_values/collection/:collectionId   api.v1.FieldValuesApi.getFieldValuesByCollection(collectionId: ObjectId)
 
 # Item Session API
 
@@ -116,7 +119,9 @@ POST    /api/v1/items/:itemId/sessions                         api.v1.ItemSessio
 GET     /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.list(itemId:VersionedId[ObjectId])
 GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.get(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student")
 PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student", action : Option[String] ?= None)
+PUT     /api/v1/items/:itemId/sessions/:sessionId/reopen       api.v1.ItemSessionApi.reopen(itemId:VersionedId[ObjectId], sessionId: ObjectId)
 
+GET     /api/v1/quizzes/author/:authorId                       api.v1.QuizApi.getByAuthor(authorId: String)
 PUT     /api/v1/quizzes/:quizId/:externalUid/add-answer        api.v1.QuizApi.addAnswerForParticipant(quizId:ObjectId,externalUid:String)
 GET     /api/v1/quizzes/:quizId                     api.v1.QuizApi.get(quizId:ObjectId)
 GET     /api/v1/quizzes/multiple/:quizIds           api.v1.QuizApi.getMultiple(quizIds:String)

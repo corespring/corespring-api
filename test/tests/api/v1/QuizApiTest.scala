@@ -18,6 +18,7 @@ class QuizApiTest extends Specification with RequestCalling {
   PlaySingleton.start()
 
   val orgId = new ObjectId("51114b307fc1eaa866444648")
+  val authorId = "fd707fc3c"
 
   val Api = api.v1.QuizApi
 
@@ -44,6 +45,10 @@ class QuizApiTest extends Specification with RequestCalling {
       val ids = List(quizOne, quizTwo, quizThree).map(_.id.toString).mkString(",")
       val multiple = invokeCall[List[Quiz]](Api.getMultiple(ids), AnyContentAsEmpty)
       multiple.length === 2
+    }
+
+    "get by author" in {
+      QuizService.findByAuthor(authorId).length === 1
     }
 
     "create" in {

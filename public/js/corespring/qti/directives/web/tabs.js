@@ -79,7 +79,7 @@ angular.module('qti.directives').directive('csTabs', [
         controller: controllerFn,
         template: ['<div class="tab-panel">',
                     '<div class="tabs">',
-                    '<ul><li ng-repeat="tab in tabs" >',
+                    '<ul><li ng-repeat="tab in tabs" ng-show="tab.title">',
                     '<a href="" ng-class="{active: tab.selected()}" ng-click="selectTab(tab, $event)">{{tab.title}}</a>',
                     '</li></ul></div><div class="tab-box" ng-transclude></div></div>'].join('')
 
