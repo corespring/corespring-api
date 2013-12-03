@@ -55,6 +55,7 @@ class ViewsTest extends Specification with Mockito {
     def findByIds(ids: List[ObjectId]): List[Quiz] = ???
     def remove(q: Quiz) {}
     def update(q: Quiz) {}
+    def findByAuthor(authorId: String): List[Quiz] = ???
   }
 
   val views = new Views(new TestBuilder, mockService, quizService)
