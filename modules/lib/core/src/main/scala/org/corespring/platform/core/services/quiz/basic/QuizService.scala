@@ -15,6 +15,7 @@ trait QuizService {
   def create(q: Quiz): Unit
   def findAllByOrgId(id: ObjectId): List[Quiz]
   def findByIds(ids: List[ObjectId]): List[Quiz]
+  def findByAuthor(authorId: String): List[Quiz]
   def findOneById(id: ObjectId): Option[Quiz]
   def remove(q: Quiz): Unit
   def update(q: Quiz): Unit
@@ -24,6 +25,7 @@ object QuizService extends QuizService {
 
   private object Keys {
     val orgId = "orgId"
+    val authorId = "metadata.authorId"
   }
 
   /**
@@ -109,5 +111,10 @@ object QuizService extends QuizService {
     val updatedQuiz = q.copy(participants = q.participants ++ externalUids.map(euid => Participant(Seq(), euid)))
     update(updatedQuiz)
     Some(updatedQuiz)
+  }
+
+  def findByAuthor(authorId: String): List[Quiz] = {
+    val query = MongoDBObject(Keys.authorId -> authorId)
+    Dao.find(query).toList
   }
 }

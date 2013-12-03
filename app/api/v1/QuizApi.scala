@@ -38,6 +38,10 @@ class QuizApi(quizService: QuizService) extends BaseApi {
       }
   }
 
+  def getByAuthor(authorId: String) = ApiAction { request =>
+    Ok(toJson(quizService.findByAuthor(authorId)))
+  }
+
   def getMultiple(ids: String) = ApiAction {
     request =>
       {
