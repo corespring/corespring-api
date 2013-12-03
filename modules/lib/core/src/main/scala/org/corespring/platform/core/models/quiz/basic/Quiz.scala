@@ -72,7 +72,7 @@ object Answer {
 }
 
 case class Participant(answers: Seq[Answer],
-  externalUid: String) extends BaseParticipant(answers.map(_.sessionId), externalUid)
+  externalUid: String, lastModified: Option[DateTime] = None) extends BaseParticipant(answers.map(_.sessionId), externalUid)
 
 object Participant {
 
@@ -86,9 +86,13 @@ object Participant {
 
   implicit object Writes extends Writes[Participant] {
     def writes(p: Participant): JsValue = {
-      JsObject(Seq(
+      val fields = Seq(
         "answers" -> toJson(p.answers),
-        "externalUid" -> JsString(p.externalUid)))
+        "externalUid" -> JsString(p.externalUid))
+      p.lastModified match {
+        case None => JsObject(fields)
+        case Some(time) => JsObject(fields ++ Seq(("lastModified" -> JsNumber(time.getMillis))))
+      }
     }
   }
 

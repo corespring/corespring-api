@@ -1,12 +1,13 @@
 package org.corespring.platform.core.services.quiz.basic
 
-import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao.{ SalatDAO, ModelCompanion }
-import org.bson.types.ObjectId
 import org.corespring.platform.core.models.quiz.basic.{ Answer, Question, Participant, Quiz }
-import scala.Some
 import se.radley.plugin.salat._
+import org.corespring.platform.core.models.itemSession.{DefaultItemSession, ItemSessionCompanion}
+import com.mongodb.casbah.Imports._
+import scala.Some
+import org.joda.time.DateTime
 
 trait QuizService {
 
@@ -21,7 +22,7 @@ trait QuizService {
   def update(q: Quiz): Unit
 }
 
-object QuizService extends QuizService {
+class QuizServiceImpl(itemSession: ItemSessionCompanion) extends QuizService {
 
   private object Keys {
     val orgId = "orgId"
@@ -115,6 +116,25 @@ object QuizService extends QuizService {
 
   def findByAuthor(authorId: String): List[Quiz] = {
     val query = MongoDBObject(Keys.authorId -> authorId)
-    Dao.find(query).toList
+    withParticipantTimestamps(Dao.find(query).toList)
+  }
+
+  private def withParticipantTimestamps(quizzes: List[Quiz]): List[Quiz] = {
+
+    implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
+    quizzes.map(quiz => {
+      quiz.copy(participants = quiz.participants.map(
+        participant => {
+          val timestamps = itemSession.find(
+            MongoDBObject("_id" -> MongoDBObject("$in" -> participant.answers.map(_.sessionId)))).toList
+            .map(_.dateModified)
+          timestamps.nonEmpty match {
+            case true => participant.copy(lastModified = timestamps.max)
+            case _ => participant
+          }
+        }))
+    })
   }
 }
+
+object QuizService extends QuizServiceImpl(DefaultItemSession)
