@@ -310,7 +310,8 @@ Collections
     </div>
     <!-- main content -->
     <div class="main-content">
-        <p><br/></p>
+        <br/>
+
 
 <div class="span9 lead-in developer" style="margin-left: 0px;">
 
@@ -409,7 +410,8 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 </ol>
 
 
-<p><br/></p>
+<br/>
+
 
 <p><strong>Finding an Item</strong></p>
 
@@ -802,7 +804,8 @@ The interactive API widget is pre-configured to use this access token but you ca
 
 <p>Once you have <a href="/developer/register">registered</a> and have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL. You can access the authorization url to receive your auth token using the widget below.</p>
 
-<p><br/></p>
+<br/>
+
 
 <div style="padding-bottom: 10px;">
   <rest-widget
@@ -832,7 +835,8 @@ The interactive API widget is pre-configured to use this access token but you ca
 </div>
 
 
-<p><br/></p>
+<br/>
+
 
 <p>Or by passing it in the query string to a request:</p>
 
@@ -864,7 +868,10 @@ This complete model for Item is described at the end of this section.</p>
 
 <p>Returns the Item for the specified <em>:itemId</em>. Does not return every field (see below).</p>
 
-<p><br/></p>
+<br/>
+
+
+
 
 <div style="padding-bottom: 10px;">
   <rest-widget
@@ -877,7 +884,8 @@ This complete model for Item is described at the end of this section.</p>
 
 <p>Returns the Item for the specified <em>:itemId</em>. Returns <em>all</em> properties of the Item model.</p>
 
-<p><br/></p>
+<br/>
+
 
 <h2><a name="items-get-list" class="waypoint"></a>Getting a List of Items</h2>
 
@@ -895,7 +903,10 @@ This complete model for Item is described at the end of this section.</p>
 </p></blockquote>
 
 
-<p><br/></p>
+
+
+<br/>
+
 
 <div style="padding-bottom: 10px;">
   <rest-widget
@@ -907,7 +918,8 @@ This complete model for Item is described at the end of this section.</p>
 
 <p>Returns an array of all Items for the specified <em>:collectionId</em>.</p>
 
-<p><br/></p>
+<br/>
+
 
 <div style="padding-bottom: 10px;">
   <rest-widget
@@ -1164,7 +1176,12 @@ these properties as was originally set by the contributor of the item:</p>
 </div>
 
 
-<p><br/></p>
+
+
+<br/>
+
+
+
 
 <table class="table table-striped table-bordered table-condensed">
   <tr>
@@ -1210,7 +1227,10 @@ these properties as was originally set by the contributor of the item:</p>
 </table>
 
 
-<p><br/></p>
+
+
+<br/>
+
 
 <h2><a name="item-session-response-model"></a>Item Session Response Model</h2>
 
@@ -1258,7 +1278,10 @@ these properties as was originally set by the contributor of the item:</p>
 </div>
 
 
-<p><br/></p>
+
+
+<br/>
+
 
 <h1><a name="organizations-index" class="waypoint"></a>Organizations</h1>
 
@@ -1358,11 +1381,193 @@ The standard <a href="#list-queries">List Queries</a> parameters are available f
 <p><strong>Params</strong>
 The standard <a href="#list-queries">List Queries</a> parameters are available for these operations.</p>
 
-<p>Liquid error: invalid byte sequence in US-ASCII</p>
+<h2><a name="list-queries"></a>List Queries</h2>
 
 <hr />
 
-<p>date:  10/10/2013 04:35PM</p>
+<p>Several of the CoreSpring REST APIs return an array of JSON objects.
+Each of these API resources support parameters to help with querying / filtering results.</p>
+
+<h2>Query Parameters for Resources with Array Response</h2>
+
+<table class="table table-striped table-bordered table-condensed">
+    <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Optional</th>
+    </tr>
+    <tr>
+        <td>q</td>
+        <td>Query: The query to use to search the resources. (see below for details)</td>
+        <td>true</td>
+    </tr>
+    <tr>
+        <td>f</td>
+        <td>Fields: Indicates fields to include in the result. For example f={"name": 1, "description":1}<br/> 
+(1—include; 0—exclude)<br/>
+       e.g. { "name" : 1, "email": 1 } OR <br/>
+       e.g. { "comments" : 0 } </td>
+        <td>true</td>
+    </tr>
+    <tr>
+        <td>c</td>
+        <td>Count: If set the response will be a number with the count for the number of results the query would produce in total.</td>
+        <td>true</td>
+    </tr>
+    <tr>
+        <td>sk</td>
+        <td>Skip: a number indicating how many results to skip in the result set</td>
+        <td>true</td>
+    </tr>
+    <tr>
+        <td>l</td>
+        <td>Limit: a number indicating how many results to include in the result set. If this is not set explicitly, and implicit value of 100 will be used. The maximum is 200, a request resulting in > 200 elements in the array will result in an error response.</td>
+        <td>true</td>
+    </tr>
+</table>
+
+
+<h2>Examples</h2>
+
+<hr />
+
+<h3>'q' Query Parameter</h3>
+
+<p>This parameter is used for defining a query to use against the list of objects. It is formatted as a JSON object where the
+key is the property of the item and the value is the value that the property must have in order for that item to be returned.
+For example, in a call to the /items resource you could return only items of type 'Multiple Choice' adding a query parameter like this:</p>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path='/items?q={"itemType":"Multiple+Choice"}'
+    url='/api/v1/items?q={"itemType":"Multiple+Choice"}&l=2&access_token=demo_token'>
+  </rest-widget>
+</div>
+
+
+<p>Multiple key-value pairs may be included in the query. Any items that match each key-value pair will be returned. In other
+words, a logical-and is performed for all key-value pairs.</p>
+
+<div style="padding-bottom: 10px;">
+    <rest-widget
+            method="GET"
+            path='/items?q={itemType:"Multiple+Choice",gradeLevel:"04"}'
+            url='/api/v1/items?q={"itemType":"Multiple+Choice","gradeLevel":"04"}&l=2&access_token=demo_token'>
+    </rest-widget>
+</div>
+
+
+<p>Any field in the JSON item model may be queried. There are special operators that can be used which add extra querying options.</p>
+
+<h3>Special Operators for Querying</h3>
+
+<table class="table table-striped table-bordered table-condensed">
+    <thead>
+        <tr>
+            <th>Op</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>$or *</td>
+            <td>
+                Used to apply a logical-or to the statements included in it's corresponding array<br/>
+                Example: <code>q={$or : [ { itemType : "Multiple Choice"}, { itemType : "Project"}]}</code> <br/>
+                Searches for all items where itemType is either "Multiple Choice" or "Project"
+            </td>
+        </tr>
+        <tr>
+            <td>$and *</td>
+            <td>
+                Used to apply a logical-and to the statements included in it's corresponding array. Note: this is automatically
+                done when there are multiple key-value pairs within the object. $and is necessary if you want to apply logical-and
+                to the same property. Attempting this by including it twice will obviously result in overwriting one with the other. <br/>
+                Example: <code>q={$and : [ { gradeLevel : "02"}, { gradeLevel : "04"}]}</code> <br/>
+                Matches all items that have a gradeLevel which contains the values "02" and "04" in its array
+            </td>
+        </tr>
+        <tr>
+            <td>$in</td>
+            <td>
+                Search any item for the specified key which matches any of the multiple values <br/>
+                Example: <code>q={ itemType : { $nin : ["Multiple Choice", "Project"]}}</code> <br/>
+                Searches for all items where itemType is neither "Multiple Choice" or "Project"
+            </td>
+        </tr>
+        <tr>
+            <td>$nin</td>
+            <td>
+                Search any item for the specified key which does not match any of the multiple values <br/>
+                Example: <code>q={ itemType : { $in : ["Multiple Choice", "Project"]}}</code><br/>
+                Searches for all items where the value of itemType is not "Multiple Choice" or "Project"
+            </td>
+        </tr>
+        <tr>
+            <td>$exists</td>
+            <td>
+                Search any item that contains (or does not contain) the specified key. The value for exists may be either true or false<br/>
+                Example: <code>q={ itemType : {$exists : true}}</code><br/>
+                Searches for all items that have the itemType property
+            </td>
+        </tr>
+        <tr>
+            <td>$ne</td>
+            <td>
+                Search any item where the specified key is not equal to the given value<br/>
+                Example: <code>q={ itemType : {$ne : "Multiple Choice"}}</code><br/>
+                Any item that does not have itemType equal to "Multiple Choice" will be returned
+            </td>
+        </tr>
+        <tr>
+            <td>$all</td>
+            <td>
+                This is used where the given property has an array of values. The value of $all is an array of values and any item
+                which matches the property and all of those given values will be returned<br/>
+                Example: <code>q={ gradeLevel : { $all : ["02", "04"]}}</code><br/>
+                Matches all items that have a gradeLevel which contains the values "02" and "04" in its array
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+
+<p>*Note: $and and $or operators can only be used as outer properties, that is, not embedded in another object.</p>
+
+<h3>'f' Fields Parameter</h3>
+
+<p>The Fields parameter allows you to specify which fields of the target object you would like returned with the result.
+For example, if you only wanted the Item Title and Primary Subject Fields for the items in the query defined above, you could add the 'f' parameter:</p>
+
+<div style="padding-bottom: 10px;">
+  <rest-widget 
+    method="GET" 
+    path='/items?q={"itemType":"Multiple+Choice"}&f={title:1,gradeLevel:1,primarySubject:1}'
+    url='/api/v1/items?q={"itemType":"Multiple+Choice"}&f={title:1,gradeLevel:1,primarySubject:1}&l=2&access_token=demo_token'>
+  </rest-widget>
+</div>
+
+
+<h3>'sort' Sort Parameter</h3>
+
+<p>The Sort parameter allows you to specify the order in which the results are displayed, in ascending or descending. When
+specifying sort, you must supply a JSON object with a single key-value pair. The key being some property of item, and the
+value being either 1 or -1, representing ascending or descending respectively. The following example would be used if you
+wanted to display only itemType and sort alphabetically in ascending order:</p>
+
+<div style="padding-bottom: 10px;">
+    <rest-widget
+            method="GET"
+            path='/items?q={"itemType":{$exists:true}}&f={itemType:1}&sort={itemType:1}'
+            url='/api/v1/items?q={"itemType":{$exists:true}}&f={itemType:1}&sort={itemType:1}&access_token=demo_token'>
+    </rest-widget>
+</div>
+
+
+<hr />
+
+<p>date:  12/04/2013 03:21PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
