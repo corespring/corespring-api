@@ -137,7 +137,7 @@
     "itemTypes":[
         {
             "key":"Fixed Choice",
-            "value":["Multiple Choice","Multi-Multi Choice","Visual Multi Choice","Inline Choice","Ordering","Drag And Drop"]
+            "value":["Multiple Choice","Multi-Multi Choice","Visual Multi Choice","Inline Choice","Ordering","Drag & Drop"]
         },
         {
             "key":"Constructed Response",
@@ -149,7 +149,11 @@
         },
         {
             "key":"Composite",
-            "value":["Composite - Multiple MC","Composite - MC and SA","Composite - MC, SA, OE","Project","Performance","Activity"]
+            "value":["Composite - Multiple MC","Composite - MC and SA","Composite - MC, SA, OE","Composite - Project","Composite - Performance","Composite - Activity" ,"Composite - Algebra"]
+        },
+        {
+            "key":"Algebra",
+            "value":["Plot Lines", "Plot Points", "Evaluate an Equation"]
         }
     ],
 
