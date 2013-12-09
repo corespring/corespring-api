@@ -12,16 +12,22 @@
         <span class="close-window-button" style="display: inline-block;" ng-click="uiState.showCollectionsPane = false"></span>
         <div class="header"><h4>{{orgName}} Collections</h4></div>
     </div>
-    <div class="alert" ng-class="alertClass">{{alertMessage}}</div>
-    <table class="table table-striped">
-        <thead>
-            <th>Collection</th>
+    <div class="header-holder">
+
+    <table class="table header">
+    <thead>
+            <th class="collection-label">Collection</th>
             <th># of items</th>
             <th></th>
         </thead>
-        <tbody>
+    </table>
+    </div>
+    <div class="scrollable">
+        <table class="table table-striped">
+            <tbody>
             <tr ng-repeat="collection in collections">
-                <td>
+                <td class="collection-label">
+
                     <div content-editable
                          content-id="{{collection.id}}"
                          ng-model="collection.name"
@@ -31,14 +37,14 @@
                 <td>{{collection.itemCount}}</td>
                 <td><span ng-show="collection.itemCount == 0"><a ng-click="deleteCollection(collection.id)">delete</a></span></td>
             </tr>
-            <tr>
-                <td>
-                    <input type="text" id="newcollection" placeholder="type collection name..." ng-model="newcolname">
-                    <a style="padding-left: 15px;" ng-click="createCollection(newcolname)">add</a>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
+    <div class="footer">
+         <input type="text" id="newcollection" ui-keypress="{13:'createCollection(newcolname)'}" placeholder="type collection name..." ng-model="newcolname">
+         <button class="btn btn-mini btn-success" ng-click="createCollection(newcolname)">add</button>
+    </div>
+    <div class="alert" ng-class="alertClass">{{alertMessage}}</div>
 </div>
 <div ng-class="{'window-up': showPopup}">
     <div class="window-overlay">

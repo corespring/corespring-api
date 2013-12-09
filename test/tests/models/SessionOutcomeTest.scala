@@ -48,7 +48,7 @@ class SessionOutcomeTest extends Specification {
         responses = Seq(StringResponse(id = "Q_01", responseValue = "2"), StringResponse(id = "Q_02", responseValue = "1")),
         attempts = 1)
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case Success(outcome) => {
           outcome.score === 1.0
           outcome.isCorrect === true
@@ -101,7 +101,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case Success(sessionOutcome: SessionOutcome) => {
           sessionOutcome.score === 1.0
           sessionOutcome.isCorrect === true
@@ -149,7 +149,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[_, _] => success
         case _ => failure("Should have included score, but didn't")
       }
@@ -177,7 +177,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[_, _] => success
         case _ => failure("Should have included isCorrect, but didn't")
       }
@@ -205,7 +205,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[_, _] => success
         case _ => failure("Should have included isComplete, but didn't")
       }
@@ -228,7 +228,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[_, _] => success
         case _ => failure("Should have contained response identifier Q_01, but didn't")
       }
@@ -255,7 +255,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[_, _] => success
         case _ => failure("Should have contained score, but didn't")
       }
@@ -282,7 +282,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[_, _] => success
         case _ => failure("Should have contained Q_01.isCorrect, but didn't")
       }
@@ -309,7 +309,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[_, _] => success
         case _ => failure("Should have contained Q_01.isCompleted, but didn't")
       }
@@ -323,7 +323,7 @@ class SessionOutcomeTest extends Specification {
         """
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[_,SessionOutcome] if s.getOrElse(null).score == 1 => success
         case _ => failure("Did not set score from javascript number response")
       }
@@ -367,7 +367,7 @@ class SessionOutcomeTest extends Specification {
         responses = Seq(StringResponse(id = "badStepQuestion", responseValue = "1"))
       )
 
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[InternalError, SessionOutcome] => {
           s.getOrElse(null) match {
             case sessionOutcome: SessionOutcome => {
@@ -416,8 +416,12 @@ class SessionOutcomeTest extends Specification {
           </responseProcessing>
           <responseDeclaration identifier='dragDropQuestion' cardinality='targeted' baseType='identifier'>
             <correctResponse>
-              <value identifier='target1'>1</value>
-              <value identifier='target2'>2</value>
+              <value identifier='target1'>
+                <value>1</value>
+              </value>
+              <value identifier='target2'>
+                <value>2</value>
+              </value>
             </correctResponse>
           </responseDeclaration>
           <itemBody>
@@ -435,8 +439,7 @@ class SessionOutcomeTest extends Specification {
         itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
         responses = Seq(ArrayResponse(id = "dragDropQuestion", responseValue = Seq("target1:1", "target2:2"))),
         attempts = 1)
-
-      SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+      SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[InternalError, SessionOutcome] => {
           s.getOrElse(null) match {
             case sessionOutcome: SessionOutcome => {
@@ -446,8 +449,8 @@ class SessionOutcomeTest extends Specification {
               sessionOutcome.identifierOutcomes.get("dragDropQuestion") match {
                 case Some(outcome) => {
                   outcome.isComplete === true
-                  outcome.isCorrect === true
-                  outcome.score === 1
+                 outcome.isCorrect === true
+                 outcome.score === 1
                   success
                 }
                 case _ => failure("No outcome for identifier dragDropQuestion")
@@ -485,17 +488,17 @@ class SessionOutcomeTest extends Specification {
 
     val itemSession = ItemSession(
       itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
-      responses = Seq(StringResponse(id = "Q_01", responseValue = "2"), StringResponse(id = "Q_02", responseValue = "1"))
+      responses = Seq(StringResponse(id = "Q_01", responseValue = "0"), StringResponse(id = "Q_02", responseValue = "1"))
     )
 
-    SessionOutcome.processSessionOutcome(itemSession, qtiItem) match {
+    SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
       case Success(sessionOutcome: SessionOutcome) => {
-        sessionOutcome.score === 1
-        sessionOutcome.isComplete === true
-        sessionOutcome.isCorrect === true
+        sessionOutcome.score === 0.5
+        sessionOutcome.isComplete === false
+        sessionOutcome.isCorrect === false
         sessionOutcome.identifierOutcomes.get("Q_01") match {
           case Some(q1Outcome) => {
-            q1Outcome.score === 2
+            q1Outcome.score === 0
             q1Outcome.isCorrect === false
             q1Outcome.isComplete === false
 
@@ -516,54 +519,54 @@ class SessionOutcomeTest extends Specification {
       case _ => failure
     }
 
-    "provide outcome variables to choiceInteraction" in {
+  }
 
-      val js =
-        """
+  "provide outcome variables to choiceInteraction" in {
+
+    val js =
+      """
           RESPONSE.outcome.score;
-        """
+      """
 
-      val qtiItem = QtiItem(
-        <asssessmentItem>
-          <responseDeclaration identifier='RESPONSE' cardinality='multiple' baseType='identifier'>
-            <correctResponse>
-              <value>1</value>
-              <value>2</value>
-              <value>3</value>
-            </correctResponse>
-          </responseDeclaration>
-          <responseProcessing type="script">
-            <script type="text/javascript">
-              {js}
-            </script>
-          </responseProcessing>
-          <itemBody>
-            <choiceInteraction responseIdentifier='RESPONSE' shuffle='true' maxChoices='0'>
-              <simpleChoice identifier='1' fixed='false'/>
-              <simpleChoice identifier='2' fixed='false'/>
-              <simpleChoice identifier='3' fixed='false'/>
-              <simpleChoice identifier='4' fixed='false'/>
-              <simpleChoice identifier='5' fixed='false'/>
-              <simpleChoice identifier='6' fixed='false'/>
-            </choiceInteraction>
-          </itemBody>
-        </asssessmentItem>
-      )
+    val qtiItem = QtiItem(
+      <asssessmentItem>
+        <responseDeclaration identifier='RESPONSE' cardinality='multiple' baseType='identifier'>
+          <correctResponse>
+            <value>1</value>
+            <value>2</value>
+            <value>3</value>
+          </correctResponse>
+        </responseDeclaration>
+        <responseProcessing type="script">
+          <script type="text/javascript">
+            {js}
+          </script>
+        </responseProcessing>
+        <itemBody>
+          <choiceInteraction responseIdentifier='RESPONSE' shuffle='true' maxChoices='0'>
+            <simpleChoice identifier='1' fixed='false'/>
+            <simpleChoice identifier='2' fixed='false'/>
+            <simpleChoice identifier='3' fixed='false'/>
+            <simpleChoice identifier='4' fixed='false'/>
+            <simpleChoice identifier='5' fixed='false'/>
+            <simpleChoice identifier='6' fixed='false'/>
+          </choiceInteraction>
+        </itemBody>
+      </asssessmentItem>
+    )
 
-      val session = ItemSession(
-        itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
-        responses = Seq(ArrayResponse(id = "RESPONSE", responseValue = Seq("1", "2", "3"))),
-        attempts = 1)
+    val session = ItemSession(
+      itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
+      responses = Seq(ArrayResponse(id = "RESPONSE", responseValue = Seq("1", "2", "3"))),
+      attempts = 1)
 
-      SessionOutcome.processSessionOutcome(session, qtiItem) match {
-        case Success(sessionOutcome: SessionOutcome) => {
-          println(sessionOutcome)
-          success
-        }
-        case _ => failure
+    SessionOutcome.processSessionOutcome(session, qtiItem, false) match {
+      case Success(sessionOutcome: SessionOutcome) => {
+        println(sessionOutcome)
+        success
       }
+      case _ => failure
     }
-
   }
 
   private def itemWithResponseJs(js: String): QtiItem = {

@@ -1,5 +1,5 @@
 'use strict';
-angular.module('qti.directives').directive('jsxGraph', function(Canvas,QtiUtils) {
+angular.module('qti.directives').directive('jsxGraph', function(Canvas,QtiUtils,Logger) {
 return {
   template: "<div class='jxgbox' ng-style='boxStyle' style='width: 100%; height: 100%'></div>",
   restrict: 'A',
@@ -86,7 +86,7 @@ return {
         points = {}
     }
     function processPointsCallback(paramPoints){
-      clearBoard();
+      if(!lockGraph) clearBoard();
       if(QtiUtils.isObject(paramPoints)){
         for (var ptName in paramPoints) {
           var point = paramPoints[ptName];

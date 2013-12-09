@@ -5,7 +5,7 @@ import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ComponentLoader, FileComponentLoader}
 import org.corespring.poc.integration.ControllerInstanceResolver
-import org.corespring.poc.integration.impl.PocIntegrationImpl
+import org.corespring.poc.integration.impl.V2PlayerIntegration
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
 import play.api._
 import play.api.mvc.Results._
@@ -21,7 +21,7 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
     out
   }
 
-  def controllers: Seq[Controller] = new PocIntegrationImpl(componentLoader.all).controllers
+  def controllers: Seq[Controller] = new V2PlayerIntegration(componentLoader.all).controllers
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {

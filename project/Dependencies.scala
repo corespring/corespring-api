@@ -4,17 +4,16 @@ object Dependencies {
 
   val playVersion = "2.1.3"
 
-  //TODO: May need to change this
+  //Warning: Only use this for tests - don't use it as an app dependency.
+  //Once we move to 2.2.0 then we can use it wherever.
   val playJson = "com.typesafe.play" %% "play-json" % "2.2.0-RC2"
 
   val playFramework = "play" %% "play" % playVersion
   val playTest = "play" %% "play-test" % playVersion
 
-  val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
-  val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-df71d20"
-  val rhinos = "com.scalapeno" %% "rhinos" % "0.6.0.corespring-4ee2755-SNAPSHOT"
-  val rhino = "org.mozilla" % "rhino" % "1.7R4"
-  val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.5-3f2edcd"
+  val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-b12aff3"
+  val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-4a5d2dc"
+  val mongoDbSeeder = "org.corespring" %% "mongo-db-seeder-lib" % "0.6-ae58487"
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.3.0"
   val casbah = "com.mongodb.casbah" %% "casbah" % "2.0"
@@ -30,10 +29,10 @@ object Dependencies {
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.2"
 
   //POC
-  //val containerClient = "org.corespring" %% "container-client" % "0.0.1"
-  val containerClientWeb = "org.corespring" %% "container-client-web" % "0.0.1"
-  val componentModel = "org.corespring" %% "component-model" % "0.0.1"
-  val componentLoader = "org.corespring" %% "component-loader" % "0.0.1"
+  val containerVersion = "0.0.2"
+  val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
+  val componentModel = "org.corespring" %% "component-model" % containerVersion
+  val componentLoader = "org.corespring" %% "component-loader" % containerVersion
 
   // TODO: temporary solution: taking out yui which is used for css minification as it breaks
   // dependencies for corespring-qti. This needs to be sorted out properly!
@@ -80,36 +79,33 @@ object Dependencies {
 
   object Resolvers {
 
-    //val localIvy = Resolver.file("local ivy", file(Path.userHome.absolutePath+"/.ivy2/local/"))//(Resolver.ivyStylePatterns)
-    //val localIvy = "Local Ivy Repository" at file(Path.userHome.absolutePath+"/.ivy2/local/") (Resolver.ivyStylePatterns)
-    val localIvy = Resolver.file("Local Ivy Repository", file(Path.userHome.absolutePath + "/.ivy2/local"))(Resolver.ivyStylePatterns)
-
     val corespringSnapshots = "Corespring Artifactory Snapshots" at "http://repository.corespring.org/artifactory/ivy-snapshots"
     val corespringReleases = "Corespring Artifactory Releases" at "http://repository.corespring.org/artifactory/ivy-releases"
+    val corespringPublicSnapshots = "Corespring Public Artifactory Snapshots" at "http://repository.corespring.org/artifactory/public-ivy-snapshots"
     val typesafe = "typesafe releases" at "http://repo.typesafe.com/typesafe/releases/"
-    val edeustaceReleases = "ed eustace" at "http://edeustace.com/repository/releases/"
-    val edeustaceSnapshots = "ed eustace snapshots" at "http://edeustace.com/repository/snapshots/"
     val spy = "Spy Repository" at "http://files.couchbase.com/maven2"
     val sonatypeSnapshots = "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
     val sonatypeReleases = "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/releases"
     val sbtPluginSnapshots = Resolver.url("sbt-plugin-releases", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
     val sbtPluginReleases = Resolver.url("sbt-plugin-snapshots", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots/"))(Resolver.ivyStylePatterns)
+    val edeustaceReleases = "ed eustace" at "http://edeustace.com/repository/releases/"
+    val localRepo = Resolver.file("Local repo", file(System.getProperty("user.home") + "/.ivy2/local"))(Resolver.ivyStylePatterns)
 
     // TODO: Publish to repository.corespring.org!!!!!!!
     val justWroteSnapshots = "justwrote" at "http://repo.justwrote.it/snapshots/"
 
     val all: Seq[Resolver] = Seq(
-      localIvy,
       sonatypeSnapshots,
       typesafe,
       corespringSnapshots,
       corespringReleases,
+      corespringPublicSnapshots,
       spy,
-      edeustaceSnapshots,
-      edeustaceReleases,
       sbtPluginSnapshots,
       sbtPluginReleases,
-      justWroteSnapshots)
+      edeustaceReleases,
+      justWroteSnapshots,
+      localRepo)
   }
 
 }

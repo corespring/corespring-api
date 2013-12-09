@@ -46,7 +46,7 @@ object SessionData {
       val feedback = qti.getFeedback(id, value)
       feedback match {
         case Some(fb) => {
-          if (!showFeedback)
+          if (!showFeedback && !includeResponsesOverride)
             None
           else if (fb.defaultFeedback)
             Some(fb.csFeedbackId, getDefaultFeedback(id, value, index))
@@ -65,7 +65,7 @@ object SessionData {
     }
 
     def getFeedbackContents: Map[String, String] = {
-      if (showFeedback) {
+      if (showFeedback || includeResponsesOverride) {
         val userResponses = session.responses.map(_.getIdValueIndex).flatten
         val correctResponses = if (showCorrectResponses || includeResponsesOverride) makeCorrectResponseList else Seq()
         val responsesToGiveFeedbackOn: List[(String, String, Int)] =
@@ -113,7 +113,7 @@ object SessionData {
 
     def correctResponseToResponse(id: String)(cr: CorrectResponse): Response = cr match {
       case CorrectResponseSingle(value) => StringResponse(id, value)
-      case CorrectResponseLineEquation(value, _, _, _,_) => StringResponse(id, value)
+      case CorrectResponseEquation(value, _, _, _,_) => StringResponse(id, value)
       case CorrectResponseMultiple(value) => ArrayResponse(id, value)
       case CorrectResponseAny(value) => ArrayResponse(id, value)
       case CorrectResponseOrdered(value) => ArrayResponse(id, value)

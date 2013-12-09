@@ -55,6 +55,7 @@ class ViewsTest extends Specification with Mockito {
     def findByIds(ids: List[ObjectId]): List[Quiz] = ???
     def remove(q: Quiz) {}
     def update(q: Quiz) {}
+    def findByAuthor(authorId: String): List[Quiz] = ???
   }
 
   val views = new Views(new TestBuilder, mockService, quizService)
@@ -82,7 +83,7 @@ class ViewsTest extends Specification with Mockito {
       views.preview(testId) must beMode(Preview)
       views.administerItem(testId) must beMode(Administer)
       views.administerSession(testSessionId) must beMode(Administer)
-      views.render(testSessionId) must  beMode(Render)
+      views.render(testSessionId,"student") must  beMode(Render)
       views.aggregate(testQuizId, testQuizItemId) must beMode(Aggregate)
       views.profile(testId, "tab") must beMode(Preview)
 

@@ -198,12 +198,27 @@ angular.module("qti.directives").directive("lineinteraction", ['$compile', funct
           $scope.locked = false;
         }
       })
+      function renewResponse(){
+        var response = _.find($scope.itemSession.responses,function(r){
+           return r.id === $scope.responseIdentifier;
+        });
+        if(response){
+          var A = response.value[0].split(",");
+          var B = response.value[1].split(",");
+          $scope.points = {A: {x: A[0], y: A[1]},B: {x: B[0], y: B[1]}};
+        }
+        return response;
+      }
+      $scope.$on("highlightUserResponses", function(){
+        if($scope.itemSession.responses){
+          renewResponse();
+        }
+      })
       $scope.$on("formSubmitted",function(){
         if(!$scope.locked){
           $scope.submissions++;
-          var response = _.find($scope.itemSession.responses,function(r){
-            return r.id === $scope.responseIdentifier;
-          });
+          var response = renewResponse();
+          $scope.graphCallback({points: $scope.points})
           if($scope.itemSession.settings.highlightUserResponse){
             if(response && response.outcome.isCorrect){
               $scope.graphCallback({graphStyle: {borderColor: "green", borderWidth: "2px"}, pointsStyle: "green", shapesStyle: "green"})

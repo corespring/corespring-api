@@ -115,7 +115,7 @@ describe('qtiDirectives.assessmentItem', function () {
         return response;
       });
 
-      controller.submitResponses();
+      controller.submitResponses(true);
       expect(interaction.scope.finalSubmit).toBe(true);
       controller.setResponse("questionOne", "hello");
       expect(interaction.scope.finalSubmit).toBe(false);

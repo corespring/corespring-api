@@ -80,7 +80,7 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
                 files:[
                     {
                         name:"index.html",
-                        content:"<html><body>hello world</body></html>",
+                        content:"<html><head></head><body>hello world</body></html>",
                         "default":true,
                         contentType:"text/html"
                     }

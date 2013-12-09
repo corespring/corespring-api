@@ -9,7 +9,8 @@ case class RequestedAccess(
   itemId: Option[VersionedContentRequest] = None,
   sessionId: Option[ContentRequest] = None,
   assessmentId: Option[ContentRequest] = None,
-  mode: Option[RequestedAccess.Mode.Mode] = Some(RequestedAccess.Mode.All))
+  mode: Option[RequestedAccess.Mode.Mode] = Some(RequestedAccess.Mode.All),
+  role: Option[String] = Some("student"))
 
 object RequestedAccess {
   object Mode extends Enumeration {
@@ -20,14 +21,14 @@ object RequestedAccess {
     val Aggregate = Value("aggregate")
     val All = Value("*")
   }
-
   implicit def toContentRequest(id: Option[ObjectId]): Option[ContentRequest] = id.map(ContentRequest(_, Permission.Read))
   implicit def toVersionedContentRequest(id: Option[VersionedId[ObjectId]]): Option[VersionedContentRequest] = id.map(VersionedContentRequest(_, Permission.Read))
 
   def asRead(itemId: Option[VersionedId[ObjectId]] = None,
     sessionId: Option[ObjectId] = None,
     assessmentId: Option[ObjectId] = None,
-    mode: Option[RequestedAccess.Mode.Mode] = None): RequestedAccess = {
-    new RequestedAccess(itemId, sessionId, assessmentId, mode)
+    mode: Option[RequestedAccess.Mode.Mode] = None,
+    role: Option[String] = None): RequestedAccess = {
+    new RequestedAccess(itemId, sessionId, assessmentId, mode, role)
   }
 }

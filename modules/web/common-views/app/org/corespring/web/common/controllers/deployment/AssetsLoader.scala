@@ -19,7 +19,8 @@ class AssetsLoader(val loader: Loader) extends PackageLogging {
     "js/corespring/common/services/ItemFormattingUtils.js",
     "js/corespring/common/services/MessageBridge.js",
     "js/corespring/common/directives/ResultPager.js",
-    "js/corespring/common/directives/IframeAutoHeight.js")
+    "js/corespring/common/directives/IframeAutoHeight.js",
+    "js/corespring/common/services/Logger.js")
 
   def playerCommon = loader.scripts("common")(
     "js/corespring/qti/controllers",

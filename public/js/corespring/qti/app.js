@@ -1,21 +1,75 @@
-angular.module('qti.directives', ['qti.services','ngDragDrop','ui.sortable']);
-angular.module('qti', ['qti.directives', 'qti.services', 'corespring-services', 'corespring-directives','corespring-utils', 'ui']);
+"use strict";
+
+angular.module('qti.directives', ['qti.services','ngDragDrop','ui.sortable', 'corespring-logger']);
+angular.module('qti', ['qti.directives', 'qti.services', 'corespring-services', 'corespring-directives','corespring-utils', 'ui', 'corespring-logger']);
 
 
 function ControlBarController($scope, $rootScope) {
     $scope.showAdminOptions = false;
+    $scope.showScore = false;
 
     $scope.toggleControlBar = function() {
         $scope.showAdminOptions = !$scope.showAdminOptions;
 
         $rootScope.$broadcast('controlBarChanged');
     }
+
+    $rootScope.$on('computedOutcome', function(event, outcome){
+        $scope.showScore = true;
+        $scope.scorePopup = false;
+        $scope.outcome = outcome;
+        $scope.hasScript = outcome.script != null;
+        $scope.identifiers = _.map(_.keys(outcome.identifierOutcomes),function(identifier){
+            return {label: identifier, display: false};
+        });
+        $scope.displayIdentifier = function(label){
+            _.each($scope.identifiers,function(identifier){
+                if(identifier.label == label && !identifier.display) identifier.display = true;
+                else identifier.display = false;
+            });
+        }
+        $scope.seeScript = function(){
+            var scriptWindow = window.open()
+            scriptWindow.document.write([
+            "<link href=\"http://alexgorbatchev.com/pub/sh/current/styles/shCoreDefault.css\" rel=\"stylesheet\" type=\"text/css\" />",
+            "<script src=\"http://alexgorbatchev.com/pub/sh/current/scripts/shCore.js\" type=\"text/javascript\"></script>",
+            "<script src=\"http://alexgorbatchev.com/pub/sh/current/scripts/shBrushJScript.js\" type=\"text/javascript\"></script>",
+            "<script type=\"text/javascript\">SyntaxHighlighter.all();</script>",
+            "<pre class=\"brush: js\">",
+                outcome.script,
+            "</pre>"
+            ].join("\n"));
+        }
+        function createScriptElem(js){
+          var e = document.createElement('script');
+          e.type = 'text/javascript';
+          e.src  = 'data:text/javascript;charset=utf-8,'+escape([
+              js,
+              "document.getElementById('scriptContent').innerHTML = JSON.stringify(outcome);"
+            ].join("\n"));
+          return e;
+        }
+        function createOutcomeElem(){
+            var scriptContentElem = document.createElement("pre");
+            scriptContentElem.id = "scriptContent";
+            return scriptContentElem;
+        }
+        $scope.runScript = function(){
+            var scriptResultsElem = document.getElementById("scriptResults");
+            scriptResultsElem.innerHTML = "";
+            var scriptElem = createScriptElem(outcome.script);
+            var outcomeElem = createOutcomeElem();
+            scriptResultsElem.appendChild(outcomeElem);
+            scriptResultsElem.appendChild(scriptElem);
+        }
+    })
+
 }
 
 ControlBarController.$inject = ['$scope', '$rootScope'];
 
 // base directive include for all QTI items
-angular.module('qti.directives').directive('assessmentitem', function() {
+angular.module('qti.directives').directive('assessmentitem', ['Logger', function(Logger) {
     return {
         restrict: 'E',
         controller: function($scope, $element, $attrs, $timeout, $rootScope, $location) {
@@ -59,10 +113,9 @@ angular.module('qti.directives').directive('assessmentitem', function() {
                 }
 
                 $scope.formSubmitted = $scope.itemSession.isFinished;
-
+                $scope.$broadcast('highlightUserResponses');
                 if ($scope.formSubmitted) {
                     $scope.$broadcast('formSubmitted', $scope.itemSession, !areResponsesIncorrect());
-                    $scope.$broadcast('highlightUserResponses');
                 } else {
                     $scope.$broadcast('resetUI');
                 }
@@ -134,14 +187,13 @@ angular.module('qti.directives').directive('assessmentitem', function() {
               if(opts && !opts.isAttempt){
                 that.submitResponses(false);
               } else {
-                that.submitResponses();
+                that.submitResponses(true);
               }
             });
 
             // this is the function that submits the user responses and gets the outcomes
             this.submitResponses = function(isAttempt) {
                 if ($scope.formSubmitted) return;
-
 
                 if ($scope.hasEmptyResponse() && !allowEmptyResponses) {
                     $scope.status = 'ATTEMPTED';
@@ -159,18 +211,20 @@ angular.module('qti.directives').directive('assessmentitem', function() {
 
                 var onSuccess = function() {
                     $scope.formHasIncorrect = areResponsesIncorrect();
-                    $scope.finalSubmit = true;
+                    $scope.finalSubmit = isAttempt;
                     // Note: need to call this within a $timeout as the propogation isn't working properly without it.
                     $timeout(function() {
                         $scope.formSubmitted = $scope.itemSession.isFinished;
                         if ($scope.formSubmitted) {
                             $scope.formHasIncorrect = false;
                             $scope.$broadcast('formSubmitted', $scope.itemSession, !areResponsesIncorrect());
+                            $rootScope.$broadcast('computedOutcome', $scope.itemSession.outcome)
                         }
                     });
                 };
 
                 var onError = function(data) {
+                    Logger.error("Error in assessmentItem directive when submitting responses: "+JSON.stringify(data));
                 };
 
                 $rootScope.$broadcast('assessmentItem_submit', $scope.itemSession, onSuccess, onError, !areResponsesIncorrect());
@@ -262,7 +316,7 @@ angular.module('qti.directives').directive('assessmentitem', function() {
             }
         }
     };
-});
+}]);
 
 angular.module('qti.directives').directive('itembody', function() {
 
@@ -276,12 +330,12 @@ angular.module('qti.directives').directive('itembody', function() {
             '<div class="ui-hide animatable flow-feedback-container" ng-class="{true: \'ui-show\', false: \'ui-hide\'}[showFeedback()]">',
             '<div class="feedback-message" ng-class="getFeedbackMessageClass()"><span class="text">{{getFeedbackMessage()}}</span></div>',
             '</div>',
-            '<a class="btn btn-primary" ng-disabled="!isAllowedSubmit()" ng-hide="omitSubmitButton || formSubmitted" ng-click="onSubmitClick()">{{submitButtonText()}}</a>',
+            '<a class="btn btn-primary" ng-disabled="!isAllowedSubmit()" ng-hide="omitSubmitButton || formSubmitted" ng-click="onSubmitClick(true)">{{submitButtonText()}}</a>',
             '</div>'].join('\n'),
         require: '^assessmentitem',
         link: function(scope, element, attrs, AssessmentItemCtrl) {
-            scope.onSubmitClick = function() {
-                AssessmentItemCtrl.submitResponses();
+            scope.onSubmitClick = function(isAttempt) {
+                AssessmentItemCtrl.submitResponses(isAttempt);
             };
         }
     };

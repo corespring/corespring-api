@@ -41,7 +41,7 @@ describe('ItemController should', function () {
     http = $http;
 
     try {
-      ctrl = $controller(ItemController, {$scope: scope, $routeParams: routeParams, $location: location});
+      ctrl = $controller(ItemController, {$scope: scope, $routeParams: routeParams, $location: location, Logger: {}});
     } catch (e) {
       throw("Error with the controller: " + e);
     }

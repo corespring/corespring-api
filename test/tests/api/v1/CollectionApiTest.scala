@@ -3,7 +3,7 @@ package tests.api.v1
 import api.v1.CollectionApi
 import org.bson.types.ObjectId
 import org.corespring.test.BaseTest
-import play.api.libs.json.{Json, JsValue}
+import play.api.libs.json.{JsNumber, Json, JsValue}
 import play.api.mvc.AnyContentAsJson
 import play.api.test.Helpers._
 import play.api.test._
@@ -60,6 +60,49 @@ class CollectionApiTest extends BaseTest {
     (collection \ "id").as[String] must beEqualTo(collectionId)
   }
 
+//  s"return itemType values and counts for $collectionId" in {
+//    skipped("these results are not accurate")
+//    val fakeRequest = FakeRequest(GET, s"/api/v1/collections/$collectionId/fieldValues/itemType?access_token=$token")
+//    val Some(result) = route(fakeRequest)
+//    val json = parsed[JsValue](result)
+//    (json \ "Constructed Response - Short Answer") match {
+//      case jsNumber: JsNumber => jsNumber.value must be equalTo 1.0
+//      case _ => failure("Json was missing constructed response value")
+//    }
+//    (json \ "Multiple Choice") match {
+//      case jsNumber: JsNumber => jsNumber.value must be equalTo 5.0
+//      case _ => failure("Json was missing multiple choice value")
+//    }
+//    (json \ "Text with Questions") match {
+//      case jsNumber: JsNumber => jsNumber.value must be equalTo 1.0
+//      case _ => failure("Json was missing text with questions value")
+//    }
+//  }
+//
+//  s"return contributor values and counts for $collectionId" in {
+//    val fakeRequest = FakeRequest(GET, s"/api/v1/collections/$collectionId/fieldValues/contributor?access_token=$token")
+//    val Some(result) = route(fakeRequest)
+//    val json = parsed[JsValue](result)
+//    (json \ "New England Common Assessment Program") match {
+//      case jsNumber: JsNumber => jsNumber.value must be equalTo 2.0
+//      case _ => failure("Json was msising New England Common Assessment Program value")
+//    }
+//    (json \ "New York State Education Department") match {
+//      case jsNumber: JsNumber => jsNumber.value must be equalTo 1.0
+//      case _ => failure("Json was missing New York State Education Department value")
+//    }
+//    (json \ "State of New Jersey Department of Education") match {
+//      case jsNumber: JsNumber => jsNumber.value must be equalTo 1.0
+//      case _ => failure("Json was missing State of New Jersey Department of Education value")
+//    }
+//  }
+
+  "return bad request for invalid fieldValue property" in {
+    val fakeRequest = FakeRequest(GET, s"/api/v1/collections/$collectionId/fieldValues/NotLegit?access_token=$token")
+    val Some(result) = route(fakeRequest)
+    status(result) must be equalTo BAD_REQUEST
+  }
+
   "create, update and delete a collection" in {
     val name = "test collection"
     // create it
@@ -88,7 +131,6 @@ class CollectionApiTest extends BaseTest {
 
     val getResult = CollectionApi.getCollection(oid)(FakeRequest(GET, tokenize("b")))
     status(getResult)  === NOT_FOUND
-
   }
 
 

@@ -1,0 +1,2 @@
+#client logger
+POST    /:logType            org.corespring.clientlogging.ClientLogger.submitLog(logType)

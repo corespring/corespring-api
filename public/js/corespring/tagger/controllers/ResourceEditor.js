@@ -315,7 +315,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     xml: "<root>hello world</root>",
     css: ".hello_world{ font-weight: bold; }",
     js: "alert('hello world');",
-    html: "<html><body>hello world</body></html>"
+    html: "<html><head></head><body>hello world</body></html>"
   };
 
   $scope.createNewVirtualFile = function (name) {

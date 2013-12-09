@@ -146,7 +146,11 @@
         },
         {
             "key":"Composite",
-            "value":["Composite - Multiple MC","Composite - MC and SA","Composite - MC, SA, OE","Project","Performance","Activity"]
+            "value":["Composite - Multiple MC","Composite - MC and SA","Composite - MC, SA, OE","Composite - Project","Composite - Performance","Composite - Activity"]
+        },
+        {
+            "key":"Algebra",
+            "value":["Plot Lines", "Plot Points", "Evaluate an Equation"]
         }
     ],
 

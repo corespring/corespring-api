@@ -3,6 +3,6 @@ try{
     angular.module('tagger.services')
 }
 catch (e){
-    angular.module('tagger.services', ['ngResource']);
+    angular.module('tagger.services', ['ngResource', 'corespring-logger']);
 }
 
