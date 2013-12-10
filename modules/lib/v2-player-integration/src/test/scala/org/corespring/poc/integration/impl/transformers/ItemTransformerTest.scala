@@ -45,7 +45,7 @@ class ItemTransformerTest extends Specification{
         )
       )
 
-      val json = ItemTransformer.transformToPocItem(item)
+      val json = ItemTransformer.transformToV2Json(item)
 
       (json \ "metadata" \ "title").as[String] === "item one"
 

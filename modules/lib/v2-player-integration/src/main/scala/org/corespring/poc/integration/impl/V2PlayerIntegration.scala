@@ -1,5 +1,7 @@
 package org.corespring.poc.integration.impl
 
+import com.mongodb.casbah.MongoDB
+import org.bson.types.ObjectId
 import org.corespring.amazon.s3.ConcreteS3Service
 import org.corespring.container.client.controllers.{ComponentsFileController, Rig, Icons, Assets}
 import org.corespring.container.components.model.Component
@@ -7,8 +9,9 @@ import org.corespring.container.components.model.Library
 import org.corespring.container.components.model.UiComponent
 import org.corespring.container.components.outcome.{DefaultScoreProcessor, ScoreProcessor}
 import org.corespring.container.components.response.{OutcomeProcessorImpl, OutcomeProcessor}
+import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.itemSession.{PreviewItemSessionCompanion, ItemSessionCompanion}
+import org.corespring.platform.core.models.itemSession.PreviewItemSessionCompanion
 import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 import org.corespring.poc.integration.impl.controllers.editor.{ClientItemImpl, EditorHooksImpl}
 import org.corespring.poc.integration.impl.controllers.player.{ClientSessionImpl, PlayerHooksImpl}
@@ -17,9 +20,6 @@ import play.api.Configuration
 import play.api.libs.json.JsValue
 import play.api.mvc._
 import scala.Some
-import org.bson.types.ObjectId
-import org.corespring.mongo.json.services.MongoService
-import com.mongodb.casbah.MongoDB
 
 class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db : MongoDB) {
 
@@ -78,7 +78,7 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db : 
 
     def sessionService: MongoService = rootSessionService
     def itemService: ItemService = ItemServiceImpl
-    def transformItem = ItemTransformer.transformToPocItem
+    def transformItem = ItemTransformer.transformToV2Json
 }
 
   private lazy val editorHooks = new EditorHooksImpl {
@@ -86,7 +86,7 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db : 
 
     def itemService: ItemService = ItemServiceImpl
 
-    def transform: (Item) => JsValue = ItemTransformer.transformToPocItem
+    def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
   }
 
   private lazy val items = new ClientItemImpl {
@@ -97,7 +97,7 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db : 
 
     def itemService: ItemService = ItemServiceImpl
 
-    def transform: (Item) => JsValue = ItemTransformer.transformToPocItem
+    def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
   }
 
   private lazy val sessions = new ClientSessionImpl {
@@ -110,7 +110,7 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db : 
 
     def itemService: ItemService = ItemServiceImpl
 
-    def transformItem: (Item) => JsValue = ItemTransformer.transformToPocItem
+    def transformItem: (Item) => JsValue = ItemTransformer.transformToV2Json
 
   }
 }

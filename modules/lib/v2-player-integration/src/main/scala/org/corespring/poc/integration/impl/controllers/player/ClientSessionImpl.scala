@@ -21,8 +21,6 @@ trait ClientSessionImpl extends Session{
 
   def transformItem: Item => JsValue
 
-  def saveSession(id: String, pocSession: JsValue): Option[JsValue] = sessionService.save(id, pocSession)
-
   def oid(s: String) = if (ObjectId.isValid(s)) Some(new ObjectId(s)) else None
 
   private def loadSession(sessionId: String): Validation[String, JsValue] = for {
@@ -60,13 +58,13 @@ trait ClientSessionImpl extends Session{
     def submitAnswers(id: String)(block: (SubmitSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action {
       request =>
         handleValidationResult{
-          loadEverythingJson(id).map(json => block(SubmitSessionRequest(json, saveSession, request)))
+          loadEverythingJson(id).map(json => block(SubmitSessionRequest(json, sessionService.save, request)))
         }
     }
 
     def loadEverything(id: String)(block: (FullSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action {
       request =>
-        //TODO: Add security
+        //TODO: Add secure mode
         handleValidationResult(loadEverythingJson(id).map(json => block(FullSessionRequest(json, false, request))))
     }
 
@@ -74,17 +72,16 @@ trait ClientSessionImpl extends Session{
 
     def loadOutcome(id: String)(block: (SessionOutcomeRequest[AnyContent]) => Result): Action[AnyContent] = Action {
       request =>
-        //TODO: Plugin in secure and complete
+        //TODO: Plugin in secure mode and complete
         handleValidationResult(loadItemAndSession(id).map(tuple => block(SessionOutcomeRequest(tuple._1, tuple._2, false, false, request))))
     }
 
     def save(id: String)(block: (SaveSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action {
       request =>
-
-        //TODO: Add security
+        //TODO: Add secure mode
         handleValidationResult{
           loadSession(id)
-            .map(s => SaveSessionRequest(s, false, false, saveSession, request))
+            .map(s => SaveSessionRequest(s, false, false, sessionService.save, request))
             .map(block)
         }
 

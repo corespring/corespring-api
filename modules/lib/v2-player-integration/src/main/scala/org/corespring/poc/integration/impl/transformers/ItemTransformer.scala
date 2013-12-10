@@ -7,7 +7,7 @@ import play.api.libs.json.{JsString, JsValue, Json}
 
 object ItemTransformer {
 
-  def transformToPocItem(item:Item) : JsValue = {
+  def transformToV2Json(item:Item) : JsValue = {
 
     val qti = item.data.get.files.find( _.name == "qti.xml").getOrElse(throw new RuntimeException("No qti..")).asInstanceOf[VirtualFile].content
 
